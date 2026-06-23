@@ -1,0 +1,1505 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DNA OS Observatory | Pipeline Debugger</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg-dark: #060b14;
+      --bg-card: rgba(10, 18, 32, 0.8);
+      --border-card: rgba(255, 255, 255, 0.06);
+      --font-outfit: 'Outfit', 'Inter', sans-serif;
+      --font-inter: 'Inter', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+      --color-primary: #00f2fe;
+      --color-secondary: #4facfe;
+      --color-success: #00e676;
+      --color-warning: #ffb300;
+      --color-error: #ff1744;
+      --color-text-main: #ddeeff;
+      --color-text-sub: #7a92a8;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg-dark);
+      background-image:
+        radial-gradient(ellipse at 20% 0%, rgba(0, 100, 180, 0.12) 0%, transparent 60%),
+        radial-gradient(ellipse at 80% 100%, rgba(0, 60, 120, 0.1) 0%, transparent 60%);
+      font-family: var(--font-inter);
+      color: var(--color-text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 4px; }
+
+    /* ── HEADER ── */
+    header {
+      background: rgba(6, 11, 20, 0.9);
+      border-bottom: 1px solid var(--border-card);
+      backdrop-filter: blur(16px);
+      padding: 10px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 200;
+    }
+
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .brand-logo {
+      width: 30px; height: 30px;
+      background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+      border-radius: 7px;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 800; color: #000; font-family: var(--font-outfit);
+      font-size: 0.85rem;
+      box-shadow: 0 0 12px rgba(0,242,254,0.3);
+    }
+    .brand-title { font-family: var(--font-outfit); font-size: 1rem; font-weight: 700; }
+    .brand-subtitle { font-size: 0.7rem; color: var(--color-text-sub); margin-left: 6px; border-left: 1px solid rgba(255,255,255,0.1); padding-left: 8px; }
+
+    .header-right { display: flex; align-items: center; gap: 16px; }
+    .status-dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--color-error);
+      box-shadow: 0 0 8px var(--color-error);
+      animation: pulseDot 1.8s infinite;
+    }
+    .status-indicator { display: flex; align-items: center; gap: 7px; font-size: 0.78rem; }
+    #connection-status-text { color: var(--color-error); }
+
+    @keyframes pulseDot {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    .icon-btn {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      color: var(--color-text-sub);
+      padding: 5px 12px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .icon-btn:hover { background: rgba(0,242,254,0.07); border-color: rgba(0,242,254,0.25); color: var(--color-primary); }
+
+    /* ── TABS ── */
+    .tab-bar {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 8px 20px 0;
+      border-bottom: 1px solid var(--border-card);
+      background: rgba(6,11,20,0.6);
+    }
+    .tab {
+      padding: 7px 16px;
+      font-size: 0.8rem;
+      font-weight: 500;
+      border-radius: 6px 6px 0 0;
+      cursor: pointer;
+      transition: all 0.2s;
+      color: var(--color-text-sub);
+      border: 1px solid transparent;
+      border-bottom: none;
+      margin-bottom: -1px;
+    }
+    .tab:hover { color: var(--color-text-main); background: rgba(255,255,255,0.03); }
+    .tab.active {
+      color: var(--color-primary);
+      background: rgba(0,242,254,0.06);
+      border-color: var(--border-card);
+      border-bottom-color: var(--bg-dark);
+    }
+
+    /* ── DASHBOARD ── */
+    .dashboard {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 340px 1fr 320px;
+      gap: 14px;
+      padding: 14px;
+      height: calc(100vh - 100px);
+      overflow: hidden;
+    }
+
+    /* ── PIPELINE DEBUGGER (full-width tab) ── */
+    .debugger-view {
+      display: none;
+      flex-direction: column;
+      gap: 14px;
+      padding: 14px;
+      height: calc(100vh - 100px);
+      overflow-y: auto;
+    }
+    .debugger-view.active { display: flex; }
+    .dashboard.active { display: none; }
+
+    .column { display: flex; flex-direction: column; gap: 14px; height: 100%; overflow: hidden; }
+
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-card);
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      backdrop-filter: blur(16px);
+      box-shadow: 0 4px 24px rgba(0,0,0,0.4);
+    }
+    .card-header {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border-card);
+      display: flex; justify-content: space-between; align-items: center;
+      background: rgba(255,255,255,0.01);
+    }
+    .card-title {
+      font-family: var(--font-outfit);
+      font-size: 0.88rem;
+      font-weight: 600;
+      display: flex; align-items: center; gap: 8px;
+      color: #fff;
+    }
+    .card-title svg { color: var(--color-primary); }
+    .card-body {
+      padding: 14px;
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    /* ── PIPELINE STEPS ── */
+    .pipeline-grid {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 10px;
+    }
+
+    .pipe-step {
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 10px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      transition: all 0.3s;
+      position: relative;
+    }
+    .pipe-step.state-idle { border-color: rgba(255,255,255,0.06); }
+    .pipe-step.state-running {
+      border-color: var(--color-primary);
+      box-shadow: 0 0 12px rgba(0,242,254,0.15);
+      animation: borderPulse 0.8s infinite alternate;
+    }
+    .pipe-step.state-ok { border-color: rgba(0,230,118,0.4); background: rgba(0,230,118,0.04); }
+    .pipe-step.state-fail { border-color: rgba(255,23,68,0.4); background: rgba(255,23,68,0.04); }
+    .pipe-step.state-skip { border-color: rgba(255,179,0,0.3); background: rgba(255,179,0,0.03); }
+
+    @keyframes borderPulse {
+      from { box-shadow: 0 0 8px rgba(0,242,254,0.1); }
+      to { box-shadow: 0 0 20px rgba(0,242,254,0.3); }
+    }
+
+    .pipe-step-num {
+      font-size: 0.6rem;
+      color: var(--color-text-sub);
+      font-family: var(--font-mono);
+    }
+    .pipe-step-label {
+      font-family: var(--font-outfit);
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: #fff;
+    }
+    .pipe-step-desc {
+      font-size: 0.68rem;
+      color: var(--color-text-sub);
+      line-height: 1.4;
+    }
+    .pipe-status-bar {
+      height: 3px;
+      border-radius: 2px;
+      background: rgba(255,255,255,0.06);
+      margin-top: auto;
+      overflow: hidden;
+    }
+    .pipe-status-fill {
+      height: 100%;
+      border-radius: 2px;
+      width: 0%;
+      transition: width 0.6s ease, background 0.3s;
+    }
+    .state-running .pipe-status-fill { width: 60%; background: var(--color-primary); animation: barPulse 0.8s infinite alternate; }
+    .state-ok .pipe-status-fill { width: 100%; background: var(--color-success); }
+    .state-fail .pipe-status-fill { width: 100%; background: var(--color-error); }
+    .state-skip .pipe-status-fill { width: 100%; background: var(--color-warning); }
+    @keyframes barPulse { from { opacity: 0.5; } to { opacity: 1; } }
+
+    .pipe-result {
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      color: var(--color-text-sub);
+      word-break: break-all;
+      display: none;
+    }
+    .state-ok .pipe-result,
+    .state-fail .pipe-result,
+    .state-skip .pipe-result { display: block; }
+    .state-ok .pipe-result { color: var(--color-success); }
+    .state-fail .pipe-result { color: var(--color-error); }
+    .state-skip .pipe-result { color: var(--color-warning); }
+
+    /* ── FIRE PANEL ── */
+    .fire-panel {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .fire-section {
+      background: rgba(0,0,0,0.2);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 10px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .fire-section-title {
+      font-family: var(--font-outfit);
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--color-primary);
+      display: flex; align-items: center; gap: 6px;
+    }
+
+    .field-group { display: flex; flex-direction: column; gap: 5px; }
+    .field-label { font-size: 0.7rem; color: var(--color-text-sub); font-weight: 500; }
+    .field-input, .field-textarea, .field-select {
+      background: rgba(0,0,0,0.3);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 6px;
+      padding: 7px 10px;
+      color: #fff;
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      outline: none;
+      transition: border-color 0.2s;
+      width: 100%;
+    }
+    .field-input:focus, .field-textarea:focus, .field-select:focus { border-color: var(--color-primary); }
+    .field-textarea { resize: vertical; min-height: 60px; }
+    .field-select option { background: #0b1828; }
+
+    .fire-btn {
+      padding: 9px 18px;
+      border-radius: 7px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s;
+      display: flex; align-items: center; justify-content: center; gap: 7px;
+      font-family: var(--font-outfit);
+    }
+    .fire-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .fire-btn-primary {
+      background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+      color: #000;
+      box-shadow: 0 0 12px rgba(0,242,254,0.2);
+    }
+    .fire-btn-primary:not(:disabled):hover { box-shadow: 0 0 20px rgba(0,242,254,0.4); transform: translateY(-1px); }
+    .fire-btn-secondary {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      color: var(--color-text-main);
+    }
+    .fire-btn-secondary:not(:disabled):hover { background: rgba(255,255,255,0.08); }
+    .fire-btn-danger {
+      background: rgba(255,23,68,0.1);
+      border: 1px solid rgba(255,23,68,0.3);
+      color: var(--color-error);
+    }
+    .fire-btn-danger:not(:disabled):hover { background: rgba(255,23,68,0.2); }
+
+    /* ── RESULT LOG ── */
+    .result-log {
+      background: #050a12;
+      border: 1px solid rgba(255,255,255,0.05);
+      border-radius: 8px;
+      padding: 12px;
+      font-family: var(--font-mono);
+      font-size: 0.73rem;
+      color: var(--color-text-sub);
+      line-height: 1.6;
+      min-height: 140px;
+      max-height: 260px;
+      overflow-y: auto;
+    }
+    .log-line { margin-bottom: 2px; }
+    .log-time { color: rgba(255,255,255,0.25); margin-right: 6px; }
+    .log-ok { color: var(--color-success); }
+    .log-err { color: var(--color-error); }
+    .log-warn { color: var(--color-warning); }
+    .log-info { color: var(--color-primary); }
+    .log-data { color: #8ec5fc; }
+
+    /* ── LIVE FEED ── */
+    .event-card {
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.04);
+      border-radius: 8px;
+      padding: 9px 11px;
+      display: flex; flex-direction: column; gap: 5px;
+      font-size: 0.78rem;
+      transition: all 0.2s;
+      cursor: pointer;
+    }
+    .event-card:hover { border-color: rgba(0,242,254,0.2); }
+    .event-card.active-event { border-color: var(--color-primary); box-shadow: 0 0 8px rgba(0,242,254,0.1); }
+    .event-meta { display: flex; justify-content: space-between; align-items: center; color: var(--color-text-sub); font-size: 0.72rem; }
+    .event-time { font-family: var(--font-mono); }
+    .event-text { color: #fff; font-weight: 500; }
+
+    .badge {
+      padding: 2px 6px; border-radius: 3px;
+      font-size: 0.62rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.3px;
+    }
+    .badge-text { background: rgba(79,172,254,0.12); color: #8ec5fc; border: 1px solid rgba(79,172,254,0.25); }
+    .badge-location { background: rgba(0,242,254,0.12); color: #7bfafd; border: 1px solid rgba(0,242,254,0.25); }
+    .badge-ok { background: rgba(0,230,118,0.1); color: var(--color-success); border: 1px solid rgba(0,230,118,0.2); }
+    .badge-fail { background: rgba(255,23,68,0.1); color: var(--color-error); border: 1px solid rgba(255,23,68,0.2); }
+    .badge-pending { background: rgba(255,179,0,0.1); color: var(--color-warning); border: 1px solid rgba(255,179,0,0.2); }
+
+    /* ── DB ACTIVITY ── */
+    .db-item { font-size: 0.78rem; border-bottom: 1px solid rgba(255,255,255,0.03); padding-bottom: 7px; }
+    .db-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+    .db-table { font-family: var(--font-outfit); font-weight: 600; color: var(--color-secondary); }
+    .db-op { font-family: var(--font-mono); font-size: 0.68rem; font-weight: 700; }
+    .db-op-insert { color: var(--color-success); }
+    .db-op-update { color: var(--color-warning); }
+    .db-diff { background: rgba(0,0,0,0.15); border-radius: 4px; padding: 4px 6px; font-family: var(--font-mono); font-size: 0.7rem; line-height: 1.4; }
+    .diff-row { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 1px; }
+    .diff-key { color: var(--color-text-sub); }
+    .diff-arrow { color: rgba(255,255,255,0.2); }
+    .diff-new { color: var(--color-success); background: rgba(0,230,118,0.05); padding: 0 3px; border-radius: 2px; }
+
+    /* ── TRACE CHECKPOINTS ── */
+    .trace-item { display: flex; align-items: center; gap: 10px; font-size: 0.78rem; padding: 5px 0; border-bottom: 1px solid rgba(255,255,255,0.03); }
+    .trace-icon {
+      width: 18px; height: 18px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.65rem; font-weight: bold; flex-shrink: 0;
+    }
+    .ti-idle { background: rgba(255,255,255,0.03); color: var(--color-text-sub); border: 1px solid rgba(255,255,255,0.1); }
+    .ti-ok { background: rgba(0,230,118,0.12); color: var(--color-success); border: 1px solid var(--color-success); }
+    .ti-fail { background: rgba(255,23,68,0.12); color: var(--color-error); border: 1px solid var(--color-error); }
+    .ti-pending { background: rgba(255,179,0,0.12); color: var(--color-warning); border: 1px solid var(--color-warning); animation: pulseDot 1s infinite alternate; }
+    .trace-info { flex: 1; }
+    .trace-step { font-weight: 500; color: #fff; font-size: 0.78rem; }
+    .trace-desc { font-size: 0.68rem; color: var(--color-text-sub); }
+    .trace-time { font-family: var(--font-mono); font-size: 0.68rem; color: var(--color-text-sub); }
+
+    /* ── SVG FLOW ── */
+    .svg-container { width: 100%; height: 100%; min-height: 400px; }
+    .flow-line { fill: none; stroke: rgba(255,255,255,0.05); stroke-width: 2.5; transition: stroke 0.4s; }
+    .flow-line-active { stroke: var(--color-primary); stroke-dasharray: 7,7; animation: dashAnim 0.8s linear infinite; }
+    .flow-line-ok { stroke: var(--color-success); }
+    .flow-line-fail { stroke: var(--color-error); }
+    @keyframes dashAnim { to { stroke-dashoffset: -14; } }
+    .flow-node { cursor: pointer; transition: all 0.3s; }
+    .flow-node circle { fill: #080f1e; stroke: rgba(255,255,255,0.12); stroke-width: 2; transition: all 0.3s; }
+    .flow-node text { fill: var(--color-text-sub); font-family: 'Outfit'; font-weight: 600; font-size: 10px; transition: fill 0.3s; }
+    .flow-node.active-node circle { stroke: var(--color-primary); filter: drop-shadow(0 0 6px rgba(0,242,254,0.6)); }
+    .flow-node.active-node text { fill: var(--color-primary); }
+    .flow-node.ok-node circle { stroke: var(--color-success); filter: drop-shadow(0 0 6px rgba(0,230,118,0.5)); }
+    .flow-node.ok-node text { fill: var(--color-success); }
+    .flow-node.fail-node circle { stroke: var(--color-error); filter: drop-shadow(0 0 6px rgba(255,23,68,0.5)); }
+    .flow-node.fail-node text { fill: var(--color-error); }
+
+    /* ── MODAL ── */
+    .modal-backdrop {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.8); backdrop-filter: blur(8px);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 500; opacity: 0; pointer-events: none; transition: opacity 0.25s;
+    }
+    .modal-backdrop.active { opacity: 1; pointer-events: all; }
+    .modal {
+      background: #0a1422; border: 1px solid rgba(255,255,255,0.08);
+      box-shadow: 0 0 40px rgba(0,242,254,0.08);
+      width: 480px; border-radius: 12px; padding: 22px;
+      display: flex; flex-direction: column; gap: 14px;
+    }
+    .modal-title { font-family: var(--font-outfit); font-size: 1.1rem; font-weight: 700; color: #fff; }
+    .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 6px; }
+
+    /* ── EMPTY STATE ── */
+    .empty-state {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      flex: 1; color: var(--color-text-sub); font-size: 0.78rem;
+      gap: 8px; padding: 32px 16px; text-align: center; opacity: 0.6;
+    }
+    .empty-state svg { opacity: 0.4; }
+
+    /* ── DIVIDER LABEL ── */
+    .section-label {
+      font-family: var(--font-outfit);
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--color-text-sub);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      padding: 4px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      margin-bottom: 2px;
+    }
+
+    /* ── STATE INSPECT ── */
+    .state-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+    }
+    .state-field {
+      background: rgba(0,0,0,0.2);
+      border-radius: 6px;
+      padding: 6px 8px;
+      font-size: 0.72rem;
+    }
+    .state-key { color: var(--color-text-sub); font-size: 0.66rem; margin-bottom: 2px; }
+    .state-val { color: #fff; font-family: var(--font-mono); word-break: break-all; }
+    .state-val.has-value { color: var(--color-success); }
+    .state-val.no-value { color: rgba(255,255,255,0.2); font-style: italic; }
+  </style>
+</head>
+<body>
+
+  <!-- ── HEADER ── -->
+  <header>
+    <div class="brand">
+      <div class="brand-logo">D</div>
+      <div>
+        <span class="brand-title">DNA OS OBSERVATORY</span>
+        <span class="brand-subtitle">Pipeline Debugger v2</span>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="status-indicator">
+        <span class="status-dot" id="status-dot"></span>
+        <span id="connection-status-text">Disconnected</span>
+      </div>
+      <button class="icon-btn" onclick="openConfig()">⚙ Database Config</button>
+    </div>
+  </header>
+
+  <!-- ── TABS ── -->
+  <div class="tab-bar">
+    <div class="tab active" onclick="switchTab('monitor')" id="tab-monitor">📡 Live Monitor</div>
+    <div class="tab" onclick="switchTab('debugger')" id="tab-debugger">🔬 Pipeline Debugger</div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════ -->
+  <!--  TAB 1: LIVE MONITOR                          -->
+  <!-- ══════════════════════════════════════════════ -->
+  <main class="dashboard" id="view-monitor">
+
+    <!-- LEFT: Live Event Feed -->
+    <section class="column">
+      <div class="card" style="height:100%;">
+        <div class="card-header">
+          <div class="card-title">
+            <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2z"/></svg>
+            Live Event Feed
+          </div>
+          <span class="badge badge-text" id="event-count">0 Events</span>
+        </div>
+        <div class="card-body" id="event-feed-container">
+          <div class="empty-state" id="feed-empty-state">
+            <svg width="28" height="28" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/></svg>
+            รอรับ Webhook จาก LINE
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MIDDLE: DB Activity + Trace -->
+    <section class="column">
+      <div class="card" style="flex:1.1;">
+        <div class="card-header">
+          <div class="card-title">
+            <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 6 5.58 6 10v4c0 4.42 4.48 8 10 8s10-3.58 10-8v-4c0-4.42-4.48-8-10-8z"/></svg>
+            Postgres Activity
+          </div>
+        </div>
+        <div class="card-body" id="db-activity-container">
+          <div class="empty-state" id="db-empty-state">
+            <svg width="28" height="28" fill="currentColor" viewBox="0 0 24 24"><path d="M4 18h16v2H4zm0-5h16v2H4zm0-5h16v2H4z"/></svg>
+            ไม่มีความเคลื่อนไหวในฐานข้อมูล
+          </div>
+        </div>
+      </div>
+      <div class="card" style="flex:0.9;">
+        <div class="card-header">
+          <div class="card-title">
+            <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+            Function Checkpoints
+          </div>
+          <span class="badge badge-text" id="active-event-id" style="font-family:monospace;font-size:0.62rem;">No Active Trace</span>
+        </div>
+        <div class="card-body" style="gap:6px;">
+          <div class="trace-item">
+            <div class="trace-icon ti-idle" id="chk-receive">●</div>
+            <div class="trace-info">
+              <div class="trace-step">① Receive Webhook</div>
+              <div class="trace-desc">รับเหตุการณ์จาก LINE Platform</div>
+            </div>
+            <span class="trace-time" id="time-receive">-</span>
+          </div>
+          <div class="trace-item">
+            <div class="trace-icon ti-idle" id="chk-get_state">●</div>
+            <div class="trace-info">
+              <div class="trace-step">② Load Conversation State</div>
+              <div class="trace-desc">ดึง State ปัจจุบันจาก DB</div>
+            </div>
+            <span class="trace-time" id="time-get_state">-</span>
+          </div>
+          <div class="trace-item">
+            <div class="trace-icon ti-idle" id="chk-save_registry">●</div>
+            <div class="trace-info">
+              <div class="trace-step">③ Gemini Extract → entity_registry</div>
+              <div class="trace-desc">AI ดึง material/quantity/destination</div>
+            </div>
+            <span class="trace-time" id="time-save_registry">-</span>
+          </div>
+          <div class="trace-item">
+            <div class="trace-icon ti-idle" id="chk-save_state">●</div>
+            <div class="trace-info">
+              <div class="trace-step">④ Persist conversation_states</div>
+              <div class="trace-desc">บันทึก State ใหม่ลง DB</div>
+            </div>
+            <span class="trace-time" id="time-save_state">-</span>
+          </div>
+          <div class="trace-item">
+            <div class="trace-icon ti-idle" id="chk-validation">●</div>
+            <div class="trace-info">
+              <div class="trace-step">⑤ Business Validation</div>
+              <div class="trace-desc">ตรวจว่า material+quantity+location ครบมั้ย</div>
+            </div>
+            <span class="trace-time" id="time-validation">-</span>
+          </div>
+          <div class="trace-item">
+            <div class="trace-icon ti-idle" id="chk-quotation">●</div>
+            <div class="trace-info">
+              <div class="trace-step">⑥ Quotation / Silent Match</div>
+              <div class="trace-desc">สร้าง BOQ → match_queue → documents</div>
+            </div>
+            <span class="trace-time" id="time-quotation">-</span>
+          </div>
+          <div class="trace-item">
+            <div class="trace-icon ti-idle" id="chk-reply">●</div>
+            <div class="trace-info">
+              <div class="trace-step">⑦ LINE Response Dispatch</div>
+              <div class="trace-desc">ส่งผลกลับ LINE API</div>
+            </div>
+            <span class="trace-time" id="time-reply">-</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- RIGHT: Visual Flow -->
+    <section class="column">
+      <div class="card flow-card" style="height:100%;">
+        <div class="card-header">
+          <div class="card-title">
+            <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/></svg>
+            Visual Flow Map
+          </div>
+        </div>
+        <div class="card-body" style="padding:8px;justify-content:center;align-items:center;background:#060b14;">
+          <div class="svg-container">
+            <svg viewBox="0 0 300 480" width="100%" height="100%">
+              <defs>
+                <linearGradient id="grad1" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stop-color="#00f2fe"/>
+                  <stop offset="100%" stop-color="#4facfe"/>
+                </linearGradient>
+              </defs>
+              <path id="wire-1" d="M150,58 L150,120" class="flow-line"/>
+              <path id="wire-2" d="M150,150 L150,215" class="flow-line"/>
+              <path id="wire-3" d="M150,245 L150,310" class="flow-line"/>
+              <path id="wire-4" d="M150,340 L150,403" class="flow-line"/>
+
+              <g id="node-line" class="flow-node" onclick="showNodeInfo('line')">
+                <circle cx="150" cy="42" r="22"/>
+                <text x="150" y="46" text-anchor="middle" font-size="9px">LINE OA</text>
+              </g>
+              <g id="node-webhook" class="flow-node" onclick="showNodeInfo('webhook')">
+                <circle cx="150" cy="135" r="22"/>
+                <text x="150" y="139" text-anchor="middle" font-size="9px">WEBHOOK</text>
+              </g>
+              <g id="node-database" class="flow-node" onclick="showNodeInfo('database')">
+                <circle cx="150" cy="230" r="22"/>
+                <text x="150" y="234" text-anchor="middle" font-size="9px">POSTGRES</text>
+              </g>
+              <g id="node-ai" class="flow-node" onclick="showNodeInfo('ai')">
+                <circle cx="150" cy="325" r="22"/>
+                <text x="150" y="329" text-anchor="middle" font-size="9px">GEMINI AI</text>
+              </g>
+              <g id="node-response" class="flow-node" onclick="showNodeInfo('response')">
+                <circle cx="150" cy="418" r="22"/>
+                <text x="150" y="422" text-anchor="middle" font-size="9px">RESPONSE</text>
+              </g>
+            </svg>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ══════════════════════════════════════════════ -->
+  <!--  TAB 2: PIPELINE DEBUGGER                     -->
+  <!-- ══════════════════════════════════════════════ -->
+  <div class="debugger-view" id="view-debugger">
+
+    <!-- ① 6-Step Pipeline Status Bar -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">
+          <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+          Pipeline Status — 6 ขั้นตอน
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button class="fire-btn fire-btn-secondary" style="padding:5px 12px;font-size:0.72rem;" onclick="resetPipeline()">↺ Reset</button>
+        </div>
+      </div>
+      <div class="card-body" style="padding:12px;">
+        <div class="pipeline-grid">
+          <div class="pipe-step state-idle" id="pipe-1">
+            <div class="pipe-step-num">STEP 1</div>
+            <div class="pipe-step-label">LINE → Webhook</div>
+            <div class="pipe-step-desc">ข้อความเข้าถึง Edge Function มั้ย</div>
+            <div class="pipe-result" id="pipe-result-1">—</div>
+            <div class="pipe-status-bar"><div class="pipe-status-fill" id="pipe-fill-1"></div></div>
+          </div>
+          <div class="pipe-step state-idle" id="pipe-2">
+            <div class="pipe-step-num">STEP 2</div>
+            <div class="pipe-step-label">Webhook → Event</div>
+            <div class="pipe-step-desc">สร้าง row ใน line_events มั้ย</div>
+            <div class="pipe-result" id="pipe-result-2">—</div>
+            <div class="pipe-status-bar"><div class="pipe-status-fill" id="pipe-fill-2"></div></div>
+          </div>
+          <div class="pipe-step state-idle" id="pipe-3">
+            <div class="pipe-step-num">STEP 3</div>
+            <div class="pipe-step-label">Event → Database</div>
+            <div class="pipe-step-desc">conversation_states บันทึกมั้ย</div>
+            <div class="pipe-result" id="pipe-result-3">—</div>
+            <div class="pipe-status-bar"><div class="pipe-status-fill" id="pipe-fill-3"></div></div>
+          </div>
+          <div class="pipe-step state-idle" id="pipe-4">
+            <div class="pipe-step-num">STEP 4</div>
+            <div class="pipe-step-label">DB → Context Builder</div>
+            <div class="pipe-step-desc">ข้อมูล State ครบก่อนส่ง AI มั้ย</div>
+            <div class="pipe-result" id="pipe-result-4">—</div>
+            <div class="pipe-status-bar"><div class="pipe-status-fill" id="pipe-fill-4"></div></div>
+          </div>
+          <div class="pipe-step state-idle" id="pipe-5">
+            <div class="pipe-step-num">STEP 5</div>
+            <div class="pipe-step-label">Context → AI</div>
+            <div class="pipe-step-desc">Gemini รับข้อมูลอะไรเข้าจริงๆ</div>
+            <div class="pipe-result" id="pipe-result-5">—</div>
+            <div class="pipe-status-bar"><div class="pipe-status-fill" id="pipe-fill-5"></div></div>
+          </div>
+          <div class="pipe-step state-idle" id="pipe-6">
+            <div class="pipe-step-num">STEP 6</div>
+            <div class="pipe-step-label">AI → Action</div>
+            <div class="pipe-step-desc">คำตอบ AI ผิดเพราะอะไร</div>
+            <div class="pipe-result" id="pipe-result-6">—</div>
+            <div class="pipe-status-bar"><div class="pipe-status-fill" id="pipe-fill-6"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ② Fire Panel + State Inspector -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+
+      <!-- Fire Panel -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">
+            <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/></svg>
+            🚀 ยิงทดสอบ Webhook
+          </div>
+        </div>
+        <div class="card-body" style="gap:12px;">
+          <div class="fire-panel">
+            <div class="fire-section">
+              <div class="fire-section-title">📝 ข้อมูลผู้ส่ง</div>
+              <div class="field-group">
+                <div class="field-label">LINE User ID (Fake)</div>
+                <input class="field-input" id="fire-user-id" value="Uxxx_debug_test_user_001" placeholder="Uxxxxxxxxxx"/>
+              </div>
+              <div class="field-group">
+                <div class="field-label">ประเภทข้อความ</div>
+                <select class="field-select" id="fire-msg-type" onchange="onMsgTypeChange()">
+                  <option value="text">💬 ข้อความธรรมดา (text)</option>
+                  <option value="location">📍 แชร์ตำแหน่ง (location)</option>
+                </select>
+              </div>
+            </div>
+            <div class="fire-section">
+              <div class="fire-section-title">📦 เนื้อหาข้อความ</div>
+              <div class="field-group" id="text-msg-group">
+                <div class="field-label">ข้อความ</div>
+                <textarea class="field-textarea" id="fire-text" placeholder="ต้องการดินถม 50 คิว ส่งที่บางนา กทม">ต้องการดินถม 50 คิว ส่งที่บางนา กทม</textarea>
+              </div>
+              <div style="display:none;" id="location-msg-group">
+                <div class="field-group">
+                  <div class="field-label">ชื่อสถานที่</div>
+                  <input class="field-input" id="fire-loc-title" value="หน้างานบางนา กทม"/>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+                  <div class="field-group">
+                    <div class="field-label">Latitude</div>
+                    <input class="field-input" id="fire-lat" value="13.6839"/>
+                  </div>
+                  <div class="field-group">
+                    <div class="field-label">Longitude</div>
+                    <input class="field-input" id="fire-lng" value="100.6079"/>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button class="fire-btn fire-btn-primary" id="fire-main-btn" onclick="fireWebhook()">
+              🚀 ยิงทดสอบ Webhook
+            </button>
+            <button class="fire-btn fire-btn-secondary" onclick="inspectState()">
+              🔍 ดู State ปัจจุบัน
+            </button>
+            <button class="fire-btn fire-btn-secondary" onclick="inspectLastEvent()">
+              📋 ดู Event ล่าสุด
+            </button>
+            <button class="fire-btn fire-btn-danger" onclick="clearUserState()">
+              🗑 ล้าง State User
+            </button>
+          </div>
+
+          <div class="section-label">Output Log</div>
+          <div class="result-log" id="debug-log">
+            <div class="log-line"><span class="log-info">// Pipeline Debugger พร้อมใช้งาน</span></div>
+            <div class="log-line"><span class="log-info">// กด "ยิงทดสอบ" เพื่อเริ่ม trace แต่ละขั้นตอน</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- State Inspector -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">
+            <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
+            Conversation State Inspector
+          </div>
+          <span class="badge badge-text" id="inspect-user-label" style="font-family:monospace;font-size:0.62rem;">No User</span>
+        </div>
+        <div class="card-body" style="gap:10px;">
+          <div class="state-grid" id="state-inspector-grid">
+            <div class="empty-state" style="grid-column:1/-1;">
+              <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5z"/></svg>
+              กด "ดู State ปัจจุบัน" เพื่อโหลดข้อมูล
+            </div>
+          </div>
+
+          <div class="section-label" style="margin-top:4px;">entity_registry (5 ล่าสุด)</div>
+          <div id="entity-registry-log" style="font-size:0.72rem;color:var(--color-text-sub);font-family:var(--font-mono);line-height:1.7;">
+            — ยังไม่มีข้อมูล —
+          </div>
+
+          <div class="section-label">Last Event Status</div>
+          <div id="last-event-info" style="font-size:0.72rem;color:var(--color-text-sub);font-family:var(--font-mono);line-height:1.7;">
+            — ยังไม่มีข้อมูล —
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── CONFIG MODAL ── -->
+  <div class="modal-backdrop" id="config-modal">
+    <div class="modal" onclick="event.stopPropagation()">
+      <div class="modal-title">⚙ Supabase Configuration</div>
+      <p style="font-size:0.75rem;color:var(--color-text-sub);">ข้อมูลนี้เก็บใน LocalStorage เบราว์เซอร์เท่านั้น ไม่ส่งไปที่ใดทั้งสิ้น</p>
+      <div class="field-group">
+        <div class="field-label">SUPABASE URL</div>
+        <input class="field-input" id="sb-url" placeholder="https://xxxxxxxx.supabase.co"/>
+      </div>
+      <div class="field-group">
+        <div class="field-label">SUPABASE ANON KEY</div>
+        <input class="field-input" id="sb-key" type="password" placeholder="eyJhbGci..."/>
+      </div>
+      <div class="field-group">
+        <div class="field-label">WEBHOOK FUNCTION URL (line-webhook-v2)</div>
+        <input class="field-input" id="sb-webhook-url" placeholder="https://xxxxxxxx.supabase.co/functions/v1/line-webhook-v2"/>
+      </div>
+      <div class="field-group">
+        <div class="field-label">SUPABASE SERVICE ROLE KEY (สำหรับ Debug เท่านั้น)</div>
+        <input class="field-input" id="sb-service-key" type="password" placeholder="eyJhbGci... (service_role)"/>
+      </div>
+      <div class="modal-actions">
+        <button class="fire-btn fire-btn-secondary" onclick="closeConfig()">ยกเลิก</button>
+        <button class="fire-btn fire-btn-primary" onclick="saveConfig()">บันทึกและเชื่อมต่อ</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm'
+
+    // ── Globals ──
+    let supabase = null;
+    let eventCount = 0;
+    let currentUserId = null;
+
+    const STEP_MAP = {
+      'receive_text': 'receive', 'receive_location': 'receive',
+      'get_state': 'get_state',
+      'save_registry': 'save_registry', 'gemini_extraction': 'save_registry',
+      'save_state': 'save_state',
+      'validation': 'validation', 'process_quotation': 'quotation',
+      'gemini_agent': 'quotation', 'fallback_router': 'quotation',
+      'create_draft': 'quotation', 'reply_dispatched': 'reply',
+      'partner_notified': 'reply'
+    };
+
+    // ── Boot ──
+    window.onload = async () => {
+      try {
+        const r = await fetch('./config.json');
+        if (r.ok) {
+          const c = await r.json();
+          if (c.supabaseUrl && c.supabaseAnonKey) {
+            document.getElementById('sb-url').value = c.supabaseUrl;
+            document.getElementById('sb-key').value = c.supabaseAnonKey;
+            const wUrl = c.supabaseUrl.replace('.supabase.co', '.supabase.co') + '/functions/v1/line-webhook-v2';
+            document.getElementById('sb-webhook-url').value = wUrl;
+            initSupabase(c.supabaseUrl, c.supabaseAnonKey);
+            return;
+          }
+        }
+      } catch (e) {}
+
+      const u = localStorage.getItem('obs_url');
+      const k = localStorage.getItem('obs_key');
+      if (u && k) {
+        document.getElementById('sb-url').value = u;
+        document.getElementById('sb-key').value = k;
+        const wk = localStorage.getItem('obs_webhook_url') || '';
+        const sk = localStorage.getItem('obs_service_key') || '';
+        document.getElementById('sb-webhook-url').value = wk;
+        document.getElementById('sb-service-key').value = sk;
+        initSupabase(u, k);
+      } else {
+        openConfig();
+      }
+    };
+
+    // ── Tabs ──
+    window.switchTab = (tab) => {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.getElementById('tab-' + tab).classList.add('active');
+      document.getElementById('view-monitor').classList.toggle('active', tab === 'monitor');
+      document.getElementById('view-debugger').classList.toggle('active', tab === 'debugger');
+      if (tab === 'monitor') {
+        document.getElementById('view-monitor').style.display = 'grid';
+        document.getElementById('view-debugger').style.display = 'none';
+      } else {
+        document.getElementById('view-monitor').style.display = 'none';
+        document.getElementById('view-debugger').style.display = 'flex';
+      }
+    };
+
+    // ── Config Modal ──
+    window.openConfig = () => document.getElementById('config-modal').classList.add('active');
+    window.closeConfig = () => document.getElementById('config-modal').classList.remove('active');
+    window.saveConfig = () => {
+      const u = document.getElementById('sb-url').value.trim();
+      const k = document.getElementById('sb-key').value.trim();
+      const wk = document.getElementById('sb-webhook-url').value.trim();
+      const sk = document.getElementById('sb-service-key').value.trim();
+      if (!u || !k) { alert('กรุณากรอก URL และ Key ครับ'); return; }
+      localStorage.setItem('obs_url', u);
+      localStorage.setItem('obs_key', k);
+      if (wk) localStorage.setItem('obs_webhook_url', wk);
+      if (sk) localStorage.setItem('obs_service_key', sk);
+      closeConfig();
+      initSupabase(u, k);
+    };
+
+    // ── Connection Status ──
+    function setStatus(text, type) {
+      const dot = document.getElementById('status-dot');
+      const label = document.getElementById('connection-status-text');
+      label.innerText = text;
+      const colors = { ok: 'var(--color-success)', pending: 'var(--color-warning)', error: 'var(--color-error)' };
+      const c = colors[type] || colors.error;
+      dot.style.background = c; dot.style.boxShadow = `0 0 8px ${c}`;
+      label.style.color = c;
+    }
+
+    // ── Init Supabase + Realtime ──
+    function initSupabase(url, key) {
+      setStatus('Connecting...', 'pending');
+      try {
+        supabase = createClient(url, key);
+        supabase.channel('line-events-ch')
+          .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'line_events' }, p => handleNewEvent(p.new))
+          .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'line_events' }, p => handleUpdatedEvent(p.new))
+          .subscribe(s => {
+            if (s === 'SUBSCRIBED') setStatus('Realtime Active', 'ok');
+            else setStatus('Connection Lost', 'error');
+          });
+        supabase.channel('states-ch')
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'conversation_states' }, p => handleDBActivity('conversation_states', p.eventType, p.new, p.old))
+          .subscribe();
+        supabase.channel('entities-ch')
+          .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'entity_registry' }, p => handleDBActivity('entity_registry', 'INSERT', p.new))
+          .subscribe();
+        supabase.channel('docs-ch')
+          .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'documents' }, p => handleDBActivity('documents', 'INSERT', p.new))
+          .subscribe();
+      } catch (err) {
+        setStatus('Init Failed', 'error');
+        console.error(err);
+      }
+    }
+
+    // ── Live Feed ──
+    function handleNewEvent(evt) {
+      eventCount++;
+      document.getElementById('event-count').innerText = `${eventCount} Events`;
+      document.getElementById('feed-empty-state')?.remove();
+
+      const container = document.getElementById('event-feed-container');
+      const timeStr = new Date(evt.created_at).toLocaleTimeString();
+      const isLoc = evt.raw_type === 'location';
+      const card = document.createElement('div');
+      card.className = 'event-card';
+      card.id = `evt-${evt.id}`;
+      card.onclick = () => focusTrace(evt.id, evt.admin_note, evt.status);
+      card.innerHTML = `
+        <div class="event-meta">
+          <span class="event-time">${timeStr}</span>
+          <span class="badge ${isLoc ? 'badge-location' : 'badge-text'}">${isLoc ? '📍 Location' : '💬 Text'}</span>
+        </div>
+        <div class="event-text">${evt.raw_text || ''}</div>
+        <div class="event-meta">
+          <span style="font-family:monospace;font-size:0.68rem;">${(evt.line_user_id || '').substring(0,12)}…</span>
+          <span class="badge badge-pending" id="evt-badge-${evt.id}">Processing…</span>
+        </div>
+      `;
+      container.insertBefore(card, container.firstChild);
+      setNodeClass('node-line', 'active-node');
+      setNodeClass('node-webhook', 'active-node');
+      pulseLine('wire-1');
+    }
+
+    function handleUpdatedEvent(evt) {
+      const badge = document.getElementById(`evt-badge-${evt.id}`);
+      if (badge) {
+        if (evt.status === 'COMPLETED' || evt.status === 'success') {
+          badge.className = 'badge badge-ok'; badge.innerText = '✓ Done';
+        } else if (evt.status === 'failed') {
+          badge.className = 'badge badge-fail'; badge.innerText = '✗ Failed';
+        }
+      }
+      const cur = document.getElementById('active-event-id').innerText;
+      if (cur.includes(evt.id.substring(0,8))) focusTrace(evt.id, evt.admin_note, evt.status);
+    }
+
+    function handleDBActivity(table, op, newD, oldD) {
+      document.getElementById('db-empty-state')?.remove();
+      const c = document.getElementById('db-activity-container');
+      const timeStr = new Date().toLocaleTimeString();
+      const item = document.createElement('div');
+      item.className = 'db-item';
+      let diffHtml = '';
+      if (op === 'UPDATE' && oldD && newD) {
+        let rows = '';
+        Object.keys(newD).forEach(k => {
+          if (k === 'updated_at' || k === 'expires_at') return;
+          const ov = typeof oldD[k] === 'object' ? JSON.stringify(oldD[k]) : String(oldD[k] ?? '');
+          const nv = typeof newD[k] === 'object' ? JSON.stringify(newD[k]) : String(newD[k] ?? '');
+          if (ov !== nv) rows += `<div class="diff-row"><span class="diff-key">${k}:</span><span>${ov||'null'}</span><span class="diff-arrow">→</span><span class="diff-new">${nv||'null'}</span></div>`;
+        });
+        if (rows) diffHtml = `<div class="db-diff">${rows}</div>`;
+      } else if (op === 'INSERT' && newD) {
+        let rows = '';
+        Object.keys(newD).forEach(k => {
+          if (newD[k] == null || k === 'created_at' || k === 'id') return;
+          const v = typeof newD[k] === 'object' ? JSON.stringify(newD[k]) : newD[k];
+          rows += `<div class="diff-row"><span class="diff-key">${k}:</span><span class="diff-new">${v}</span></div>`;
+        });
+        if (rows) diffHtml = `<div class="db-diff">${rows}</div>`;
+      }
+      item.innerHTML = `
+        <div class="db-header">
+          <span class="db-table">${table}</span>
+          <span class="db-op ${op === 'INSERT' ? 'db-op-insert' : 'db-op-update'}">${op} [${timeStr}]</span>
+        </div>
+        ${diffHtml}
+      `;
+      c.insertBefore(item, c.firstChild);
+      if (table === 'conversation_states') { setNodeClass('node-database', 'active-node'); pulseLine('wire-2'); }
+      if (table === 'entity_registry') { setNodeClass('node-ai', 'active-node'); pulseLine('wire-3'); }
+    }
+
+    // ── Trace Panel ──
+    function focusTrace(id, adminNote, status) {
+      document.querySelectorAll('.event-card').forEach(e => e.classList.remove('active-event'));
+      document.getElementById(`evt-${id}`)?.classList.add('active-event');
+      document.getElementById('active-event-id').innerText = `ID: ${id.substring(0,8)}…`;
+      if (!adminNote) { resetCheckpoints(); return; }
+      try {
+        const data = typeof adminNote === 'string' ? JSON.parse(adminNote) : adminNote;
+        const traces = data.trace_log || [];
+        resetCheckpoints();
+        setNodeClass('node-line', 'ok-node');
+        setNodeClass('node-webhook', 'ok-node');
+
+        traces.forEach(t => {
+          const chkId = STEP_MAP[t.step];
+          if (!chkId) return;
+          const icon = document.getElementById('chk-' + chkId);
+          const time = document.getElementById('time-' + chkId);
+          if (time) time.innerText = new Date(t.timestamp).toLocaleTimeString();
+          if (!icon) return;
+          if (t.status === 'SUCCESS') {
+            icon.className = 'trace-icon ti-ok'; icon.innerText = '✓';
+            if (['get_state','save_state','save_registry'].includes(chkId)) { setNodeClass('node-database','ok-node'); pulseLine('wire-2'); }
+            if (chkId === 'save_registry') { setNodeClass('node-ai','ok-node'); pulseLine('wire-3'); }
+            if (chkId === 'quotation') { pulseLine('wire-4'); }
+            if (chkId === 'reply') { setNodeClass('node-response','ok-node'); }
+          } else if (t.status === 'FAILED' || t.status === 'BLOCKED') {
+            icon.className = 'trace-icon ti-fail'; icon.innerText = '✗';
+          } else if (t.status === 'PENDING') {
+            icon.className = 'trace-icon ti-pending'; icon.innerText = '●';
+          }
+        });
+      } catch(e) { console.error(e); }
+    }
+
+    function resetCheckpoints() {
+      ['receive','get_state','save_registry','save_state','validation','quotation','reply'].forEach(s => {
+        const ic = document.getElementById('chk-'+s);
+        const ti = document.getElementById('time-'+s);
+        if (ic) { ic.className = 'trace-icon ti-idle'; ic.innerText = '●'; }
+        if (ti) ti.innerText = '-';
+      });
+      ['node-line','node-webhook','node-database','node-ai','node-response'].forEach(n => setNodeClass(n,''));
+      ['wire-1','wire-2','wire-3','wire-4'].forEach(w => {
+        const el = document.getElementById(w);
+        if (el) el.className.baseVal = 'flow-line';
+      });
+    }
+
+    // ── Visual Flow Helpers ──
+    function setNodeClass(id, cls) {
+      const n = document.getElementById(id);
+      if (n) n.className.baseVal = `flow-node ${cls}`;
+    }
+    function pulseLine(id) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.className.baseVal = 'flow-line flow-line-active';
+      setTimeout(() => { el.className.baseVal = 'flow-line flow-line-ok'; }, 2200);
+    }
+
+    window.showNodeInfo = (id) => {
+      const map = {
+        line: 'LINE OA Gateway — ประตูรับส่งข้อความจาก LINE',
+        webhook: 'Edge Function: line-webhook-v2 — ประมวลผลทุก event',
+        database: 'Postgres: conversation_states + entity_registry',
+        ai: 'Gemini AI: ดึง material/quantity/destination จากข้อความ',
+        response: 'LINE API Reply/Push — ส่งผลกลับลูกค้า'
+      };
+      alert(`🛰 Node [${id.toUpperCase()}]\n${map[id]||''}`);
+    };
+
+    // ══════════════════════════════════════════════
+    //  PIPELINE DEBUGGER FUNCTIONS
+    // ══════════════════════════════════════════════
+
+    function setPipeState(n, state, result) {
+      const step = document.getElementById(`pipe-${n}`);
+      if (!step) return;
+      step.className = `pipe-step state-${state}`;
+      const res = document.getElementById(`pipe-result-${n}`);
+      if (res && result) res.innerText = result;
+    }
+
+    window.resetPipeline = () => {
+      for (let i = 1; i <= 6; i++) setPipeState(i, 'idle', '—');
+    };
+
+    function appendLog(msg, type = 'info') {
+      const log = document.getElementById('debug-log');
+      const timeStr = new Date().toLocaleTimeString();
+      const div = document.createElement('div');
+      div.className = 'log-line';
+      div.innerHTML = `<span class="log-time">[${timeStr}]</span><span class="log-${type}">${msg}</span>`;
+      log.appendChild(div);
+      log.scrollTop = log.scrollHeight;
+    }
+
+    window.onMsgTypeChange = () => {
+      const t = document.getElementById('fire-msg-type').value;
+      document.getElementById('text-msg-group').style.display = t === 'text' ? 'flex' : 'none';
+      document.getElementById('location-msg-group').style.display = t === 'location' ? 'block' : 'none';
+    };
+
+    window.fireWebhook = async () => {
+      if (!supabase) { appendLog('❌ ยังไม่ได้เชื่อมต่อ Supabase', 'err'); return; }
+
+      const webhookUrl = localStorage.getItem('obs_webhook_url') || document.getElementById('sb-webhook-url').value;
+      if (!webhookUrl) { appendLog('❌ ยังไม่ได้กรอก Webhook URL ใน Config', 'err'); openConfig(); return; }
+
+      const userId = document.getElementById('fire-user-id').value.trim() || 'Udebug_test_001';
+      const msgType = document.getElementById('fire-msg-type').value;
+      currentUserId = userId;
+      document.getElementById('inspect-user-label').innerText = userId.substring(0,16) + '…';
+
+      resetPipeline();
+      const log = document.getElementById('debug-log');
+      log.innerHTML = '';
+
+      // ── STEP 1: Build and fire ──
+      setPipeState(1, 'running', 'กำลังส่ง…');
+      appendLog(`🚀 กำลังยิงไปที่: ${webhookUrl}`, 'info');
+      appendLog(`📦 User: ${userId} | Type: ${msgType}`, 'data');
+
+      let payload;
+      if (msgType === 'text') {
+        const text = document.getElementById('fire-text').value.trim();
+        appendLog(`💬 ข้อความ: "${text}"`, 'data');
+        payload = {
+          events: [{
+            type: 'message',
+            replyToken: 'debug_reply_token_' + Date.now(),
+            source: { userId, type: 'user' },
+            message: { id: 'debug_msg_' + Date.now(), type: 'text', text }
+          }]
+        };
+      } else {
+        const title = document.getElementById('fire-loc-title').value.trim();
+        const lat = parseFloat(document.getElementById('fire-lat').value);
+        const lng = parseFloat(document.getElementById('fire-lng').value);
+        appendLog(`📍 Location: ${title} (${lat}, ${lng})`, 'data');
+        payload = {
+          events: [{
+            type: 'message',
+            replyToken: 'debug_reply_token_' + Date.now(),
+            source: { userId, type: 'user' },
+            message: { id: 'debug_msg_' + Date.now(), type: 'location', title, address: title, latitude: lat, longitude: lng }
+          }]
+        };
+      }
+
+      let httpOk = false;
+      let httpStatus = 0;
+      try {
+        const btn = document.getElementById('fire-main-btn');
+        btn.disabled = true;
+        btn.innerText = '⏳ กำลังยิง…';
+
+        const startTime = Date.now();
+        const res = await fetch(webhookUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const elapsed = Date.now() - startTime;
+        httpStatus = res.status;
+        const resText = await res.text();
+
+        if (res.ok) {
+          httpOk = true;
+          setPipeState(1, 'ok', `HTTP ${httpStatus} (${elapsed}ms)`);
+          appendLog(`✅ STEP 1 OK — HTTP ${httpStatus} ใช้เวลา ${elapsed}ms`, 'ok');
+          appendLog(`📥 Response: ${resText.substring(0,120)}`, 'data');
+        } else {
+          setPipeState(1, 'fail', `HTTP ${httpStatus}`);
+          appendLog(`❌ STEP 1 FAIL — HTTP ${httpStatus}: ${resText.substring(0,200)}`, 'err');
+          btn.disabled = false;
+          btn.innerText = '🚀 ยิงทดสอบ Webhook';
+          return;
+        }
+
+        btn.disabled = false;
+        btn.innerText = '🚀 ยิงทดสอบ Webhook';
+      } catch (err) {
+        setPipeState(1, 'fail', 'Network Error');
+        appendLog(`❌ STEP 1 ERROR — ${err.message}`, 'err');
+        appendLog(`💡 ตรวจ CORS หรือ Webhook URL ถูกต้องมั้ย`, 'warn');
+        document.getElementById('fire-main-btn').disabled = false;
+        document.getElementById('fire-main-btn').innerText = '🚀 ยิงทดสอบ Webhook';
+        return;
+      }
+
+      // ── STEP 2: Wait for line_events insert ──
+      setPipeState(2, 'running', 'รอ DB insert…');
+      appendLog(`⏳ STEP 2 — รอ line_events insert (max 5s)…`, 'warn');
+      await new Promise(r => setTimeout(r, 2000));
+
+      const { data: events, error: evErr } = await supabase
+        .from('line_events')
+        .select('*')
+        .eq('line_user_id', userId)
+        .order('created_at', { ascending: false })
+        .limit(1);
+
+      if (evErr || !events || events.length === 0) {
+        setPipeState(2, 'fail', 'ไม่มีข้อมูลใน line_events');
+        appendLog(`❌ STEP 2 FAIL — ไม่พบ row ใน line_events สำหรับ user ${userId}`, 'err');
+        appendLog(`💡 อาจ user_id ผิด หรือ insert ล้มเหลว`, 'warn');
+        return;
+      }
+
+      const lastEvent = events[0];
+      setPipeState(2, 'ok', `ID: ${lastEvent.id.substring(0,8)}… | status: ${lastEvent.status}`);
+      appendLog(`✅ STEP 2 OK — line_events row: ${lastEvent.id}`, 'ok');
+      appendLog(`   raw_text: "${lastEvent.raw_text}" | status: ${lastEvent.status}`, 'data');
+
+      // ── STEP 3: Check conversation_states ──
+      setPipeState(3, 'running', 'ตรวจ DB…');
+      appendLog(`⏳ STEP 3 — ตรวจ conversation_states…`, 'warn');
+      await new Promise(r => setTimeout(r, 1500));
+
+      const { data: state, error: stErr } = await supabase
+        .from('conversation_states')
+        .select('*')
+        .eq('line_user_id', userId)
+        .maybeSingle();
+
+      if (stErr || !state) {
+        setPipeState(3, 'fail', 'ไม่มี state ใน DB');
+        appendLog(`❌ STEP 3 FAIL — ไม่พบ conversation_states สำหรับ user ${userId}`, 'err');
+      } else {
+        setPipeState(3, 'ok', `material:${state.material||'null'} | qty:${state.quantity||'null'}`);
+        appendLog(`✅ STEP 3 OK — conversation_states พบข้อมูล`, 'ok');
+        appendLog(`   material: ${state.material} | quantity: ${state.quantity} | destination_text: ${state.destination_text}`, 'data');
+        renderStateInspector(state);
+      }
+
+      // ── STEP 4: Context Builder check ──
+      setPipeState(4, 'running', 'ตรวจ field ครบมั้ย…');
+      appendLog(`⏳ STEP 4 — ตรวจ Context Builder (field ครบมั้ย)…`, 'warn');
+      await new Promise(r => setTimeout(r, 800));
+
+      const stateData = state || {};
+      const hasMaterial = !!stateData.material;
+      const hasQty = !!stateData.quantity;
+      const hasLoc = !!(stateData.destination_location || stateData.destination_text);
+      const missing = [];
+      if (!hasMaterial) missing.push('material');
+      if (!hasQty) missing.push('quantity');
+      if (!hasLoc) missing.push('destination');
+
+      if (missing.length === 0) {
+        setPipeState(4, 'ok', 'material ✓ qty ✓ location ✓');
+        appendLog(`✅ STEP 4 OK — Context ครบ: material=${stateData.material} qty=${stateData.quantity} dest=${stateData.destination_text}`, 'ok');
+      } else {
+        setPipeState(4, 'skip', `ขาด: ${missing.join(', ')}`);
+        appendLog(`⚠️ STEP 4 INCOMPLETE — Context ยังขาด: ${missing.join(', ')}`, 'warn');
+        appendLog(`   → ระบบจะรอรับข้อมูลเพิ่มในรอบต่อไป`, 'warn');
+      }
+
+      // ── STEP 5: entity_registry (AI output) ──
+      setPipeState(5, 'running', 'ตรวจ Gemini output…');
+      appendLog(`⏳ STEP 5 — ตรวจ entity_registry (Gemini extraction)…`, 'warn');
+      await new Promise(r => setTimeout(r, 1000));
+
+      const { data: entities, error: entErr } = await supabase
+        .from('entity_registry')
+        .select('*')
+        .eq('line_user_id', userId)
+        .order('created_at', { ascending: false })
+        .limit(5);
+
+      if (entErr || !entities || entities.length === 0) {
+        setPipeState(5, 'fail', 'ไม่มี entity ใน registry');
+        appendLog(`❌ STEP 5 FAIL — ไม่พบ entity_registry สำหรับ user`, 'err');
+        appendLog(`   → อาจ: Gemini 503 / extraction ล้มเหลว`, 'warn');
+      } else {
+        const latest = entities[0];
+        const fields = Object.keys(latest.extracted_entities || {}).filter(k => latest.extracted_entities[k]);
+        setPipeState(5, 'ok', `Extracted: ${fields.join(', ') || 'ว่าง'}`);
+        appendLog(`✅ STEP 5 OK — entity_registry มี ${entities.length} record`, 'ok');
+        appendLog(`   Latest extracted: ${JSON.stringify(latest.extracted_entities)}`, 'data');
+        renderEntityRegistry(entities);
+      }
+
+      // ── STEP 6: Re-read event for final trace ──
+      setPipeState(6, 'running', 'ตรวจ trace_log…');
+      appendLog(`⏳ STEP 6 — รอ admin_note trace_log (max 4s)…`, 'warn');
+      await new Promise(r => setTimeout(r, 4000));
+
+      const { data: finalEvt } = await supabase
+        .from('line_events')
+        .select('*')
+        .eq('id', lastEvent.id)
+        .single();
+
+      if (finalEvt?.admin_note) {
+        try {
+          const traceData = typeof finalEvt.admin_note === 'string' ? JSON.parse(finalEvt.admin_note) : finalEvt.admin_note;
+          const traces = traceData.trace_log || [];
+          const lastStep = traces[traces.length - 1];
+          const hasError = traces.some(t => t.status === 'FAILED' || t.status === 'BLOCKED');
+
+          if (!hasError) {
+            setPipeState(6, 'ok', `${traces.length} steps | last: ${lastStep?.step}`);
+            appendLog(`✅ STEP 6 OK — trace_log ครบ ${traces.length} ขั้นตอน`, 'ok');
+          } else {
+            const failStep = traces.find(t => t.status === 'FAILED' || t.status === 'BLOCKED');
+            setPipeState(6, 'fail', `FAIL at: ${failStep?.step}`);
+            appendLog(`❌ STEP 6 FAIL — ล้มเหลวที่ขั้น: ${failStep?.step}`, 'err');
+            appendLog(`   → AI ตอบผิดเพราะ: ข้อมูล input ผิด หรือ Gemini return error`, 'warn');
+          }
+
+          renderLastEvent(finalEvt, traces);
+          focusTrace(finalEvt.id, finalEvt.admin_note, finalEvt.status);
+        } catch(e) {
+          setPipeState(6, 'skip', 'Parse trace error');
+          appendLog(`⚠️ STEP 6 — ไม่สามารถ parse trace_log ได้`, 'warn');
+        }
+      } else {
+        setPipeState(6, 'skip', 'ไม่มี trace log');
+        appendLog(`⚠️ STEP 6 — ไม่มี admin_note trace_log (function อาจไม่ได้ log)`, 'warn');
+      }
+
+      appendLog(`─────────────────────────────`, 'info');
+      appendLog(`🏁 Pipeline Debug เสร็จสิ้น`, 'info');
+    };
+
+    // ── Inspect current state ──
+    window.inspectState = async () => {
+      if (!supabase) { appendLog('❌ ไม่ได้เชื่อมต่อ', 'err'); return; }
+      const userId = document.getElementById('fire-user-id').value.trim() || 'Udebug_test_001';
+      currentUserId = userId;
+      document.getElementById('inspect-user-label').innerText = userId.substring(0,16) + '…';
+      appendLog(`🔍 ดึง State ของ: ${userId}`, 'info');
+
+      const { data: s, error } = await supabase
+        .from('conversation_states').select('*').eq('line_user_id', userId).maybeSingle();
+
+      if (error || !s) {
+        appendLog(`❌ ไม่พบ State สำหรับ user นี้`, 'err');
+        document.getElementById('state-inspector-grid').innerHTML = `<div class="empty-state" style="grid-column:1/-1;">ไม่พบ State ในระบบ</div>`;
+        return;
+      }
+      renderStateInspector(s);
+      appendLog(`✅ โหลด State สำเร็จ — intent: ${s.current_intent} | material: ${s.material} | qty: ${s.quantity}`, 'ok');
+
+      const { data: ents } = await supabase.from('entity_registry').select('*').eq('line_user_id', userId).order('created_at', {ascending:false}).limit(5);
+      if (ents) renderEntityRegistry(ents);
+    };
+
+    // ── Inspect last event ──
+    window.inspectLastEvent = async () => {
+      if (!supabase) return;
+      const userId = document.getElementById('fire-user-id').value.trim() || 'Udebug_test_001';
+      const { data: evts } = await supabase.from('line_events').select('*').eq('line_user_id', userId).order('created_at', {ascending:false}).limit(1);
+      if (!evts || evts.length === 0) { appendLog('❌ ไม่พบ Event สำหรับ user นี้', 'err'); return; }
+      const e = evts[0];
+      let traces = [];
+      if (e.admin_note) {
+        try { const d = typeof e.admin_note === 'string' ? JSON.parse(e.admin_note) : e.admin_note; traces = d.trace_log || []; } catch(err) {}
+      }
+      renderLastEvent(e, traces);
+      if (e.admin_note) focusTrace(e.id, e.admin_note, e.status);
+      appendLog(`📋 Event ล่าสุด: ${e.id} | status: ${e.status} | text: "${e.raw_text}"`, 'data');
+    };
+
+    // ── Clear state ──
+    window.clearUserState = async () => {
+      if (!supabase) return;
+      const userId = document.getElementById('fire-user-id').value.trim();
+      if (!userId) { appendLog('❌ กรอก User ID ก่อน', 'err'); return; }
+      if (!confirm(`ลบ State ของ ${userId} ออกจาก DB จริงๆ มั้ย?`)) return;
+
+      const { error } = await supabase.from('conversation_states').delete().eq('line_user_id', userId);
+      if (error) { appendLog(`❌ ลบไม่ได้: ${error.message}`, 'err'); return; }
+      appendLog(`🗑 ล้าง conversation_states ของ ${userId} เสร็จแล้ว`, 'ok');
+      document.getElementById('state-inspector-grid').innerHTML = `<div class="empty-state" style="grid-column:1/-1;">State ถูกล้างแล้ว</div>`;
+    };
+
+    // ── Render Helpers ──
+    function renderStateInspector(s) {
+      const fields = [
+        { key: 'current_intent', label: 'Intent' },
+        { key: 'material', label: 'Material' },
+        { key: 'quantity', label: 'Quantity' },
+        { key: 'vehicle_type', label: 'Vehicle Type' },
+        { key: 'destination_text', label: 'Destination' },
+        { key: 'destination_location', label: 'GPS Location' },
+        { key: 'contact_name', label: 'Contact Name' },
+        { key: 'contact_phone', label: 'Contact Phone' },
+        { key: 'project_name', label: 'Project' },
+        { key: 'status', label: 'State Status' },
+      ];
+      const grid = document.getElementById('state-inspector-grid');
+      grid.innerHTML = fields.map(f => {
+        const v = s[f.key];
+        const display = v == null ? 'null' : (typeof v === 'object' ? JSON.stringify(v) : String(v));
+        const cls = v != null ? 'has-value' : 'no-value';
+        return `<div class="state-field"><div class="state-key">${f.label}</div><div class="state-val ${cls}">${display}</div></div>`;
+      }).join('');
+    }
+
+    function renderEntityRegistry(ents) {
+      const el = document.getElementById('entity-registry-log');
+      el.innerHTML = ents.map(e => {
+        const t = new Date(e.created_at).toLocaleTimeString();
+        const extracted = JSON.stringify(e.extracted_entities || {});
+        return `<span style="color:var(--color-text-sub)">[${t}]</span> <span style="color:var(--color-success)">${extracted}</span>`;
+      }).join('<br/>');
+    }
+
+    function renderLastEvent(e, traces) {
+      const el = document.getElementById('last-event-info');
+      const t = new Date(e.created_at).toLocaleTimeString();
+      el.innerHTML = `
+        <span style="color:var(--color-text-sub)">ID:</span> <span style="color:#fff">${e.id.substring(0,16)}…</span><br/>
+        <span style="color:var(--color-text-sub)">Time:</span> ${t}<br/>
+        <span style="color:var(--color-text-sub)">Status:</span> <span style="color:${e.status==='COMPLETED'?'var(--color-success)':'var(--color-warning)'}">${e.status}</span><br/>
+        <span style="color:var(--color-text-sub)">Text:</span> "${e.raw_text||''}"<br/>
+        <span style="color:var(--color-text-sub)">Trace steps:</span> ${traces.length} steps logged
+      `;
+    }
+  </script>
+</body>
+</html>
