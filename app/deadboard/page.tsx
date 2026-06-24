@@ -15,12 +15,10 @@ export default function DeadBoardPage() {
         minHeight: "100vh",
         background: "#000",
         color: "#eee",
-        padding: 24,
+        padding: "24px 48px",
         display: "flex",
         flexDirection: "column",
         gap: 20,
-        maxWidth: 1400,
-        margin: "0 auto",
       }}
     >
       <header>
@@ -39,6 +37,8 @@ export default function DeadBoardPage() {
           borderRadius: 12,
           padding: 16,
           background: "#0a0a0a",
+          flex: 1,
+          minHeight: 400,
         }}
       >
         <ResultViewer result={result} />
