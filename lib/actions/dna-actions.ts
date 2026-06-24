@@ -1,4 +1,5 @@
 import { supabase } from "@/lib/supabase/queries";
+import { randomUUID } from "crypto";
 
 // ---- Types ----
 
@@ -6,6 +7,7 @@ export interface ActionRequest {
   action: string;
   mode: "preview" | "execute";
   payload: Record<string, unknown>;
+  preview_token?: string;
 }
 
 export interface ActionResponse {
@@ -13,8 +15,32 @@ export interface ActionResponse {
   mode: "preview" | "execute";
   action: string;
   preview?: Record<string, unknown>;
+  preview_token?: string;
   result?: Record<string, unknown>;
+  next_actions?: string[];
   error?: string;
+}
+
+// ---- PREVIEW TOKEN GUARD ----
+
+const _tokenStore = new Map<string, { action: string; payload: Record<string, unknown>; expires: number }>();
+
+function issueToken(action: string, payload: Record<string, unknown>): string {
+  const token = randomUUID();
+  _tokenStore.set(token, { action, payload, expires: Date.now() + 5 * 60 * 1000 });
+  return token;
+}
+
+function consumeToken(token: string, action: string): { valid: boolean; error?: string } {
+  const entry = _tokenStore.get(token);
+  if (!entry) return { valid: false, error: "preview_token ไม่ถูกต้องหรือหมดอายุ — ต้อง preview ก่อน" };
+  if (entry.action !== action) return { valid: false, error: `token ออกให้ action "${entry.action}" ไม่ใช่ "${action}"` };
+  if (Date.now() > entry.expires) {
+    _tokenStore.delete(token);
+    return { valid: false, error: "preview_token หมดอายุ (5 นาที) — preview ใหม่" };
+  }
+  _tokenStore.delete(token);
+  return { valid: true };
 }
 
 // ---- PAYMENT ----
@@ -36,10 +62,13 @@ export async function previewPayment(invoiceDebtId: string): Promise<ActionRespo
     .eq("id", debt.document_id)
     .single();
 
+  const token = issueToken("payment", { invoice_debt_id: invoiceDebtId });
+
   return {
     ok: true,
     mode: "preview",
     action: "payment",
+    preview_token: token,
     preview: {
       invoice_debt_id: debt.id,
       document_number: doc?.document_number ?? "-",
@@ -55,6 +84,9 @@ export async function previewPayment(invoiceDebtId: string): Promise<ActionRespo
         triggers: ["back-to-back webhook จะยิงอัตโนมัติ", "LINE Notify แจ้งเจ้าของ"],
       },
     },
+    next_actions: [
+      `.pay execute ${debt.id} ${debt.outstanding_amount}`,
+    ],
   };
 }
 
@@ -69,7 +101,7 @@ export async function executePayment(payload: {
 
   const { data: debt, error: debtErr } = await supabase()
     .from("invoice_debts")
-    .select("id, outstanding_amount, invoice_status")
+    .select("id, document_id, outstanding_amount, invoice_status")
     .eq("id", payload.invoice_debt_id)
     .single();
 
@@ -122,6 +154,10 @@ export async function executePayment(payload: {
       outstanding_after: newOutstanding,
       new_status: newStatus,
     },
+    next_actions: [
+      `.invoice find ${debt.document_id}`,
+      `.debt list`,
+    ],
   };
 }
 
@@ -134,10 +170,13 @@ export async function previewDocumentCreate(payload: Record<string, unknown>): P
     return { ok: false, mode: "preview", action: "document.create", error: `ขาดข้อมูล: ${missing.join(", ")}` };
   }
 
+  const token = issueToken("document.create", payload);
+
   return {
     ok: true,
     mode: "preview",
     action: "document.create",
+    preview_token: token,
     preview: {
       document_type: payload.document_type,
       party_name: payload.party_name,
@@ -150,6 +189,9 @@ export async function previewDocumentCreate(payload: Record<string, unknown>): P
         triggers: ["document_items sync (ถ้ามี items)", "back-to-back webhook เมื่อ confirm"],
       },
     },
+    next_actions: [
+      `ยืนยัน → execute`,
+    ],
   };
 }
 
@@ -191,6 +233,10 @@ export async function executeDocumentCreate(payload: {
     mode: "execute",
     action: "document.create",
     result: { id: data.id, document_number: data.document_number, status: data.status },
+    next_actions: [
+      `.invoice find ${data.document_number}`,
+      `.doc list`,
+    ],
   };
 }
 
@@ -201,10 +247,13 @@ export async function previewDebtCreate(payload: Record<string, unknown>): Promi
     return { ok: false, mode: "preview", action: "debt.create", error: "ต้องระบุ customer_name และ principal_amount" };
   }
 
+  const token = issueToken("debt.create", payload);
+
   return {
     ok: true,
     mode: "preview",
     action: "debt.create",
+    preview_token: token,
     preview: {
       customer_name: payload.customer_name,
       principal_amount: payload.principal_amount,
@@ -215,6 +264,9 @@ export async function previewDebtCreate(payload: Record<string, unknown>): Promi
         source: "deadboard",
       },
     },
+    next_actions: [
+      `ยืนยัน → execute`,
+    ],
   };
 }
 
@@ -244,13 +296,27 @@ export async function executeDebtCreate(payload: {
     mode: "execute",
     action: "debt.create",
     result: { id: data.id, customer_name: data.customer_name, principal_amount: data.principal_amount },
+    next_actions: [
+      `.debt find ${data.customer_name}`,
+      `.debt list`,
+    ],
   };
 }
 
 // ---- DISPATCH ----
 
 export async function dispatchAction(req: ActionRequest): Promise<ActionResponse> {
-  const { action, mode, payload } = req;
+  const { action, mode, payload, preview_token } = req;
+
+  if (mode === "execute") {
+    if (!preview_token) {
+      return { ok: false, mode, action, error: "ต้อง preview ก่อน — ไม่มี preview_token" };
+    }
+    const guard = consumeToken(preview_token, action);
+    if (!guard.valid) {
+      return { ok: false, mode, action, error: guard.error! };
+    }
+  }
 
   switch (action) {
     case "payment":
