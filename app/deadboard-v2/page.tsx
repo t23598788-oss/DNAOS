@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import CommandBox from "@/components/CommandBox";
+import CommandBoxAI from "@/components/CommandBoxAI";
 import ResultViewer from "@/components/ResultViewer";
 import ActionPanel from "@/components/ActionPanel";
 import ActionModal from "@/components/ActionModal";
@@ -192,7 +192,7 @@ export default function DeadBoardV2Page() {
         </div>
       </header>
 
-      <CommandBox onResult={handleCommandInput} />
+      <CommandBoxAI onResult={handleCommandInput} />
       <ActionPanel />
 
       {/* Candidate Selector */}
