@@ -479,11 +479,12 @@ async function processQuotation(
       `-----------------------------------------\n` +
       `ข้อมูลนี้ได้ถูกบันทึกเข้าระบบเป็นใบร่าง BOQ เรียบร้อยแล้วครับ และส่งแจ้งเตือนผู้บริหารเพื่ออนุมัติเงื่อนไขในระบบเรียบร้อยแล้วครับ สะดวกให้เข้าจัดส่งในช่วงวันไหนดีครับ?`
 
+    const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? ''
     const notifyMsg = `\n📢 [AI Quote Request] ลูกค้าขอใบเสนอราคาใหม่ผ่านไลน์\n` +
       `🔹 โครงการ: ${updatedState.project_name}\n` +
       `🔹 ผู้ติดต่อ: ${updatedState.contact_name} (${updatedState.contact_phone})\n` +
       `🔹 ยอดเสนอประเมิน: ${totalPrice.toLocaleString()} บาท\n` +
-      `🔗 อนุมัติเอกสารคลิก: https://tmxkiripdvorrcnuezvm.supabase.co/dashboard/drafts/${draft.id}`
+      `🔗 อนุมัติเอกสารคลิก: ${supabaseUrl}/dashboard/drafts/${draft.id}`
 
     await sendLineNotify(notifyMsg)
   }

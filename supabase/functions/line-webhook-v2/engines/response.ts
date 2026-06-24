@@ -242,7 +242,11 @@ export class ResponseGateway {
     // Route CEO Administrative alerts
     if (channel === 'CEO_NOTIFY') {
       if (payload.type === 'CEO_DRAFT_ALERT') {
-        const supabaseUrl = Deno.env.get('SUPABASE_URL') || 'https://tmxkiripdvorrcnuezvm.supabase.co';
+        const supabaseUrl = Deno.env.get('SUPABASE_URL');
+        if (!supabaseUrl) {
+          console.error('Missing SUPABASE_URL for CEO draft alert');
+          return;
+        }
         const approvalLink = `${supabaseUrl}/dashboard/drafts/${payload.draftId}`;
         const formattedPrice = (payload.totalPrice ?? 0).toLocaleString();
 

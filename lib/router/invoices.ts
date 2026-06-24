@@ -1,6 +1,5 @@
 import type { Command, CommandResult } from "@/types/command";
-import { getLatestInvoice, getInvoices } from "@/lib/supabase/queries";
-import { sendLineMessage } from "@/lib/siri/shortcuts";
+import { getLatestInvoice, getDocuments, createDocument } from "@/lib/supabase/queries";
 
 export async function handleInvoices(command: Command): Promise<CommandResult> {
   switch (command.action) {
@@ -9,15 +8,22 @@ export async function handleInvoices(command: Command): Promise<CommandResult> {
       return { ok: true, command, data };
     }
     case "invoice.list": {
-      const data = await getInvoices();
+      const data = await getDocuments("invoice");
       return { ok: true, command, data };
     }
-    case "invoice.send_latest": {
-      const inv = await getLatestInvoice();
-      if (!inv) return { ok: false, command, error: "ไม่พบใบแจ้งหนี้ล่าสุด" };
-      const message = `ใบแจ้งหนี้ ${inv.invoice_no} ยอด ${inv.amount} บาท`;
-      sendLineMessage(inv.contact ?? "", message);
-      return { ok: true, command, data: { sent: true, invoice: inv, message } };
+    case "invoice.create": {
+      if (!command.payload?.party_name || !command.payload?.net_amount) {
+        return { ok: false, command, error: "ต้องระบุ party_name และ net_amount" };
+      }
+      const data = await createDocument({
+        document_type: "invoice",
+        document_number: command.payload.document_number ?? `INV-${Date.now()}`,
+        party_name: command.payload.party_name,
+        net_amount: command.payload.net_amount,
+        issue_date: command.payload.issue_date,
+        note: command.payload.note,
+      });
+      return { ok: true, command, data };
     }
     default:
       return { ok: false, command, error: `invoice: ไม่รองรับ ${command.action}` };
