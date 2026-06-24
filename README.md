@@ -1,33 +1,36 @@
-# DNA OS — Dead Board (V1)
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-Command → Router → Supabase → Result Viewer
-Command → Siri Shortcut → LINE
-จากหน้าจอเดียว: `/deadboard`
+## Getting Started
 
-## Run
+First, run the development server:
+
 ```bash
-npm install
-cp .env.local.example .env.local   # ใส่ค่า Supabase
 npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
 ```
 
-## Flow
-1. พิมพ์คำสั่งไทยใน CommandBox เช่น "ลูกหนี้ทั้งหมด"
-2. router/index.ts -> parseCommand() -> Command Object
-3. dispatch() -> handler ตาม domain (debt/invoice/document/line)
-4. handler เรียก supabase/queries.ts หรือ siri/shortcuts.ts
-5. ResultViewer แสดงผล (JSON / Table / Text)
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-## คำสั่งที่รองรับ V1
-- ลูกหนี้ทั้งหมด        → debt.list
-- ใบแจ้งหนี้ล่าสุด       → invoice.latest
-- ส่งใบแจ้งหนี้ล่าสุด    → invoice.send_latest
-- เปิด LINE            → line.open
-- เปิด Drive          → drive.open
+You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
-## Supabase tables ที่ต้องมี
-- debts, invoices, documents (มีคอลัมน์ created_at)
-- invoices ต้องมี: invoice_no, amount, contact
+This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
-## Siri Shortcuts ที่ต้องสร้างบน iOS
-- ชื่อ "SendLine" รับ input {contact, message}
+## Learn More
+
+To learn more about Next.js, take a look at the following resources:
+
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+
+## Deploy on Vercel
+
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.

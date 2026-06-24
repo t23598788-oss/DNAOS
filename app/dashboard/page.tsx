@@ -1,15 +1,7 @@
-export default function DashboardPage() {
+export default function Dashboard() {
   return (
-    <main
-      style={{
-        minHeight: "100vh",
-        background: "#000",
-        color: "#eee",
-        padding: 24,
-      }}
-    >
-      <h1>Dashboard</h1>
-      <p style={{ color: "#666" }}>Placeholder — V2</p>
-    </main>
-  );
+    <div>
+      <h1>DNA OS Control Center</h1>
+    </div>
+  )
 }
