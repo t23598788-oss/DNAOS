@@ -19,7 +19,7 @@ export default function DeadBoardPage() {
         display: "flex",
         flexDirection: "column",
         gap: 20,
-        maxWidth: 900,
+        maxWidth: 1400,
         margin: "0 auto",
       }}
     >
