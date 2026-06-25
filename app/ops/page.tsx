@@ -112,19 +112,30 @@ export default function OpsPage() {
         </button>
       </div>
 
-      {/* ===== Tool Panel (V6) ===== */}
+      {/* ===== Tool Panel (V6) — Brand Icons + Tooltip ===== */}
       {showTools && (
         <div style={{ padding: "12px 24px", borderBottom: "1px solid #111", background: "#050505" }}>
-          <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
-            {(Object.entries(CAPABILITIES) as [CapabilityType, { label: string; icon: string }][]).map(([cap, info]) => (
+          <div style={{ display: "flex", gap: 20, flexWrap: "wrap" }}>
+            {(Object.entries(CAPABILITIES) as [CapabilityType, { label: string }][]).map(([cap, info]) => (
               <div key={cap}>
-                <div style={{ fontSize: 10, color: "#555", marginBottom: 4 }}>{info.icon} {info.label}</div>
-                <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
-                  {getToolsByCapability(cap).map((tool) => (
-                    <button key={tool.id} onClick={() => executeTool(tool)} style={{ padding: "4px 10px", borderRadius: 6, border: "1px solid #222", background: "#111", color: "#ccc", fontSize: 11, cursor: "pointer" }}>
-                      {tool.icon} {tool.name}
-                    </button>
-                  ))}
+                <div style={{ fontSize: 10, color: "#444", marginBottom: 6 }}>{info.label}</div>
+                <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                  {getToolsByCapability(cap).map((tool) => {
+                    const isImg = tool.logo.startsWith("http");
+                    return (
+                      <button
+                        key={tool.id}
+                        onClick={() => executeTool(tool)}
+                        title={tool.name}
+                        style={{ width: 36, height: 36, borderRadius: 8, border: "1px solid #222", background: "#111", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", padding: 0 }}
+                      >
+                        {isImg
+                          ? <img src={tool.logo} alt={tool.name} style={{ width: 20, height: 20, objectFit: "contain" }} />
+                          : <span style={{ fontSize: 16 }}>{tool.logo}</span>
+                        }
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             ))}
