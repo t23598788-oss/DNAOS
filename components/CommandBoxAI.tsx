@@ -2,10 +2,24 @@
 
 import { useState } from "react";
 import type { CommandResult } from "@/types/command";
-import { runCommand, dispatch } from "@/lib/router";
+import { dispatch } from "@/lib/router";
 
 interface Props {
   onResult: (result: CommandResult) => void;
+}
+
+// AI อาจส่ง action ที่ชื่อต่างจาก V1 → แปลงให้ตรง
+function normalizeAction(action: string): string {
+  const map: Record<string, string> = {
+    "doc.list": "document.list",
+    "doc.get": "document.list",
+    "pay.list": "debt.list",
+    "pay.preview": "debt.list",
+    "quote.calc": "document.list",
+    "job.assign": "job.list",
+    "job.track": "job.list",
+  };
+  return map[action] ?? action;
 }
 
 export default function CommandBoxAI({ onResult }: Props) {
@@ -16,7 +30,6 @@ export default function CommandBoxAI({ onResult }: Props) {
     if (!input.trim() || loading) return;
     setLoading(true);
     try {
-      // 1. ลอง OpenAI แปลก่อน
       const aiRes = await fetch("/api/translate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -27,7 +40,7 @@ export default function CommandBoxAI({ onResult }: Props) {
       if (aiData.ok && aiData.command) {
         const cmd = aiData.command;
 
-        // 2. ถ้า AI แปลได้ → ยิงเข้า V2 Action (find) หรือ V1 Router
+        // FIND → ยิง V2 Action API
         if (cmd.action.includes("find")) {
           const domain = cmd.action.split(".")[0];
           const keyword = cmd.payload?.name ?? cmd.payload?.keyword ?? "";
@@ -45,13 +58,16 @@ export default function CommandBoxAI({ onResult }: Props) {
           } else {
             onResult({ ok: false, command: cmd, error: findData.error ?? "ไม่พบข้อมูล" });
           }
-        } else {
-          // AI แปลได้ → ใช้ dispatch ตรงด้วย command จาก AI
-          const result = await dispatch(cmd);
-          onResult(result);
+          return;
         }
+
+        // แปลง action ให้ตรงกับ V1 แล้ว dispatch
+        const normalized = { ...cmd, action: normalizeAction(cmd.action) };
+        const result = await dispatch(normalized);
+        onResult(result);
       } else {
-        // 3. AI แปลไม่ได้ → fallback V1 keyword match
+        // AI แปลไม่ได้ → ลอง V1 keyword match
+        const { runCommand } = await import("@/lib/router");
         const result = await runCommand(input);
         onResult(result);
       }
