@@ -1,173 +1,203 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { dispatch } from "@/lib/router";
 import { CAPABILITIES, getToolsByCapability } from "@/lib/executor/capabilities";
 import type { CapabilityType, Tool } from "@/lib/executor/capabilities";
 
-interface Item {
-  id: string; name: string; lat?: number; lng?: number;
-  materials?: string[]; prices?: Record<string, number>;
-  phone?: string; address?: string; distance_km?: number;
+// ---- Types ----
+interface Message {
+  role: "user" | "system";
+  text: string;
+  data?: Record<string, unknown>[] | Record<string, unknown>;
+  trace?: Record<string, unknown>[];
+  timestamp: string;
 }
 
-interface TracedValue {
-  label: string; value: number | string; unit: string;
-  source: string; formula: string; timestamp: string;
+interface Context {
+  customer?: string;
+  material?: string;
+  quantity?: number;
+  pit?: string;
+  pit_id?: string;
+  last_action?: string;
 }
 
 export default function OpsPage() {
+  const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
-  const [results, setResults] = useState<Item[]>([]);
-  const [selected, setSelected] = useState<Item | null>(null);
-  const [message, setMessage] = useState("");
-  const [trace, setTrace] = useState<TracedValue[]>([]);
-  const [expandedTrace, setExpandedTrace] = useState<number | null>(null);
   const [showTools, setShowTools] = useState(false);
-  const [qty, setQty] = useState("100");
+  const [context, setContext] = useState<Context>({});
+  const [showContext, setShowContext] = useState(false);
+  const bottomRef = useRef<HTMLDivElement>(null);
 
-  // ── V5: Search (Read-Only) ──
-  async function search() {
+  useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
+
+  function addMsg(role: "user" | "system", text: string, data?: Message["data"], trace?: Message["trace"]) {
+    setMessages((prev) => [...prev, { role, text, data, trace, timestamp: new Date().toLocaleTimeString("th-TH") }]);
+  }
+
+  // ── Main command handler ──
+  async function send() {
     if (!input.trim() || loading) return;
-    setLoading(true); setMessage(""); setTrace([]); setSelected(null);
+    const userInput = input.trim();
+    setInput("");
+    addMsg("user", userInput);
+    setLoading(true);
+    setShowTools(false);
+
     try {
-      // Step 1: AI แปลภาษา
-      const ai = await (await fetch("/api/translate", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text: input, engine: "openai" }) })).json();
+      // V1: Receive → V2: AI translate
+      const ai = await (await fetch("/api/translate", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text: userInput, engine: "openai" }) })).json();
 
       if (!ai.ok) {
-        // AI แปลไม่ได้ → fallback V1
-        const r = await dispatch({ action: "unknown", payload: { source: input } });
-        setMessage(`V5: AI แปลไม่ได้ — ลอง V1 keyword match`);
-        if (r.ok && r.data) { setResults((Array.isArray(r.data) ? r.data : [r.data]).map(mapItem)); }
+        addMsg("system", `แปลคำสั่งไม่ได้ — ลอง V1 keyword match`);
+        const r = await dispatch({ action: "unknown", payload: { source: userInput } });
+        if (r.ok && r.data) addMsg("system", `พบ ${Array.isArray(r.data) ? r.data.length : 1} ผลลัพธ์`, Array.isArray(r.data) ? r.data : [r.data]);
+        else addMsg("system", r.error ?? "ไม่พบข้อมูล");
+        setLoading(false);
         return;
       }
 
       const cmd = ai.command;
-      setMessage(`V5: AI แปลเป็น ${cmd.action} → กำลังค้นหา...`);
 
-      // Step 2: Find หรือ Dispatch
+      // V3: Registry + V4: Analysis
       if (cmd.action.includes("find")) {
-        const d = cmd.action.split(".")[0], kw = cmd.payload?.name ?? cmd.payload?.keyword ?? "";
+        const domain = cmd.action.split(".")[0];
+        const keyword = cmd.payload?.name ?? cmd.payload?.keyword ?? "";
+
+        addMsg("system", `กำลังค้นหา "${keyword}" ...`);
 
         try {
-          const f = await (await fetch("/api/action", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ type: "find", domain: d, keyword: kw, question: input }) })).json();
+          const f = await (await fetch("/api/action", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ type: "find", domain, keyword, question: userInput }) })).json();
 
           if (f.ok && f.record) {
-            const e = f.record.enriched ?? f.record.results ?? (Array.isArray(f.record) ? f.record : [f.record]);
-            const items = (Array.isArray(e) ? e : [e]).map(mapItem);
-            setResults(items);
-            setMessage(`V5: พบ ${items.length} ผลลัพธ์${f.record.rank?.explain ? ` — ${f.record.rank.explain}` : ""} (ค้นหา "${kw}" ใน ${d})`);
+            const enriched = f.record.enriched ?? f.record.results ?? [f.record];
+            const items = Array.isArray(enriched) ? enriched : [enriched];
+            const rank = f.record.rank;
+
+            // V5: Business Analysis — สรุป + แนะนำ
+            if (items.length > 0 && items[0]?.distance_km) {
+              // มีระยะทาง → วิเคราะห์แบบธุรกิจ
+              const best = items[0];
+              const hasPrices = items.some((i: Record<string, unknown>) => i.prices && Object.keys(i.prices as object).length > 0);
+
+              let summary = `พบ ${items.length} แห่ง`;
+              if (rank?.explain) summary += ` (${rank.explain})`;
+              summary += `\n\n`;
+              summary += `แนะนำอันดับ 1: ${best.name}\n`;
+              if (best.distance_km) summary += `   ระยะทาง: ${best.distance_km} กม.\n`;
+              if (best.address && best.address !== "-") summary += `   ที่อยู่: ${best.address}\n`;
+              if (best.materials) summary += `   วัสดุ: ${(best.materials as string[]).join(", ")}\n`;
+              if (best.prices) summary += `   ราคา: ${Object.entries(best.prices as Record<string, number>).map(([k, v]) => `${k} ${v}฿/คิว`).join(", ")}\n`;
+              summary += `\n`;
+
+              if (items.length > 1) {
+                summary += `ทางเลือกอื่น:\n`;
+                items.slice(1, 4).forEach((item: Record<string, unknown>, i: number) => {
+                  summary += `   ${i + 2}. ${item.name}`;
+                  if (item.distance_km) summary += ` — ${item.distance_km} กม.`;
+                  if (item.prices) summary += ` — ${Object.values(item.prices as Record<string, number>).map((v) => `${v}฿`).join("/")}`;
+                  summary += `\n`;
+                });
+              }
+
+              if (!hasPrices) {
+                summary += `\n⚠ ยังไม่มีราคาวัสดุในระบบ — ต้องเพิ่มราคาก่อนคำนวณต้นทุนได้`;
+              }
+
+              // Update context
+              setContext((prev) => ({ ...prev, pit: String(best.name), pit_id: String(best.id), last_action: "find" }));
+
+              addMsg("system", summary, items);
+            } else {
+              // ไม่มีระยะทาง → แสดงเป็น list
+              addMsg("system", `พบ ${items.length} รายการ`, items);
+            }
           } else {
-            setResults([]);
-            setMessage(`V5: ไม่พบ "${kw}" — ค้นใน pit_profiles + partners + invoices + debts แล้ว ยังไม่มีข้อมูลนี้ในระบบ`);
+            addMsg("system", `ไม่พบ "${keyword}"\n\nค้นใน: pit_profiles, partners, invoices, debts\nลองพิมพ์ชื่ออื่น หรือพิมพ์สั้นลง`);
           }
         } catch {
-          // Enrichment อาจ timeout → ลอง find โดยไม่ enrich
-          setMessage(`V5: enrichment timeout — กำลังลองค้นหาแบบเร็ว...`);
-          const f2 = await (await fetch("/api/action", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ type: "find", domain: d, keyword: kw }) })).json();
-          if (f2.ok && f2.record) {
-            const e = f2.record.results ?? [f2.record];
-            setResults((Array.isArray(e) ? e : [e]).map(mapItem));
-            setMessage(`V5: พบ ${Array.isArray(e) ? e.length : 1} ผลลัพธ์ (แบบเร็ว ไม่มี enrichment)`);
-          } else { setResults([]); setMessage(`V5: ไม่พบ "${kw}" — ${f2.error ?? "ไม่มีข้อมูลนี้ในระบบ"}`); }
+          addMsg("system", `การค้นหาใช้เวลานาน — ลองค้นแบบสั้นลง เช่น "โรงโม่" แทน "โรงโม่หินทั้งหมดในจังหวัด"`);
         }
       } else {
-        // ไม่ใช่ find → ใช้ V1 dispatch
+        // V1 dispatch สำหรับคำสั่งที่ไม่ใช่ find
         const r = await dispatch(cmd);
         if (r.ok && r.data) {
-          const a = Array.isArray(r.data) ? r.data : [r.data];
-          setResults(a.map(mapItem));
-          setMessage(`V5: ${cmd.action} → พบ ${a.length} ผลลัพธ์`);
+          const items = Array.isArray(r.data) ? r.data : [r.data];
+          addMsg("system", `${cmd.action} → พบ ${items.length} ผลลัพธ์`, items);
         } else {
-          setResults([]);
-          setMessage(`V5: ${cmd.action} → ${r.error ?? "ไม่พบข้อมูล"} (ค้นจาก Supabase)`);
+          addMsg("system", `${cmd.action} → ${r.error ?? "ไม่พบข้อมูล"}`);
         }
       }
-    } catch (err) { setMessage(`V5: เชื่อมต่อไม่ได้ — ${err instanceof Error ? err.message : "network error"}`); }
-    finally { setLoading(false); }
-  }
-
-  function mapItem(r: Record<string, unknown>): Item {
-    return { id: String(r.id ?? r.pit_id ?? r.partner_id ?? ""), name: String(r.name ?? r.pit_name ?? r.customer_name ?? r.party_name ?? r.document_number ?? r.project_name ?? "-"), lat: r.lat ? Number(r.lat) : r.latitude ? Number(r.latitude) : undefined, lng: r.lng ? Number(r.lng) : r.longitude ? Number(r.longitude) : undefined, materials: r.materials as string[] | undefined, prices: r.prices as Record<string, number> | undefined, phone: r.phone ? String(r.phone) : undefined, address: r.address ? String(r.address) : undefined, distance_km: r.distance_km ? Number(r.distance_km) : undefined };
-  }
-
-  // ── V5: Explainable Calc ──
-  async function explainCalc(item: Item) {
-    setSelected(item);
-    try {
-      const res = await fetch("/api/explain", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ pit_id: item.id, site_lat: 16.4314, site_lng: 102.835, quantity: Number(qty) }) });
-      const data = await res.json();
-      if (data.ok) setTrace(data.items);
-    } catch {}
+    } catch (err) {
+      addMsg("system", `เชื่อมต่อไม่ได้ — ${err instanceof Error ? err.message : "network error"}`);
+    } finally {
+      setLoading(false);
+    }
   }
 
   // ── V6: Tool execute ──
-  async function executeTool(tool: Tool) {
+  function executeTool(tool: Tool) {
     setShowTools(false);
     switch (tool.id) {
       case "google_maps":
-        if (selected?.lat) window.open(`https://maps.google.com/?q=${selected.lat},${selected.lng}`, "_blank");
-        else setMessage("เลือกรายการที่มี GPS ก่อน");
+        if (context.pit_id) { window.open(`https://maps.google.com/?q=${context.pit}`, "_blank"); addMsg("system", `เปิด Google Maps → ${context.pit}`); }
+        else addMsg("system", "ค้นหาสถานที่ก่อน แล้วค่อยเปิดแผนที่");
         break;
-      case "line":
-        window.location.href = "line://";
-        break;
-      case "phone":
-        if (selected?.phone) window.location.href = `tel:${selected.phone}`;
-        else setMessage("เลือกรายการที่มีเบอร์โทรก่อน");
-        break;
+      case "line": window.location.href = "line://"; addMsg("system", "เปิด LINE"); break;
+      case "phone": addMsg("system", "พิมพ์ \"โทร 08x-xxx-xxxx\" หรือค้นหาคู่ค้าก่อน"); break;
       case "gps_current":
-        navigator.geolocation?.getCurrentPosition((p) => setMessage(`GPS: ${p.coords.latitude.toFixed(6)}, ${p.coords.longitude.toFixed(6)}`));
+        navigator.geolocation?.getCurrentPosition((p) => {
+          const msg = `GPS ปัจจุบัน: ${p.coords.latitude.toFixed(6)}, ${p.coords.longitude.toFixed(6)}`;
+          addMsg("system", msg);
+        });
         break;
       default:
-        if (tool.available) setMessage(`${tool.name} — รอ V6 MCP connector`);
-        break;
+        if (tool.available) addMsg("system", `${tool.name} — พร้อมเชื่อมผ่าน MCP`);
+        else addMsg("system", `${tool.name} — ยังไม่พร้อมใช้งาน`);
     }
   }
 
   return (
-    <div style={{ minHeight: "100vh", background: "#000", color: "#eee", display: "flex", flexDirection: "column" }}>
+    <div style={{ height: "100vh", background: "#000", color: "#eee", display: "flex", flexDirection: "column" }}>
 
-      {/* ===== Command Bar (top) ===== */}
-      <div style={{ padding: "12px 24px", borderBottom: "1px solid #111", display: "flex", gap: 8, alignItems: "center" }}>
-        <span style={{ fontSize: 14, fontWeight: 600, color: "#22c55e", whiteSpace: "nowrap" }}>DNA OS</span>
-        <input
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && search()}
-          placeholder="พิมพ์อะไรก็ได้..."
-          style={{ flex: 1, padding: "10px 16px", fontSize: 15, border: "1px solid #222", borderRadius: 24, background: "#0a0a0a", color: "#eee", outline: "none" }}
-        />
-        <button onClick={search} disabled={loading} style={{ padding: "10px 20px", borderRadius: 24, border: "none", background: "#22c55e", color: "#000", fontWeight: 600, cursor: "pointer", fontSize: 14 }}>
-          {loading ? "..." : "ค้นหา"}
-        </button>
-        <button onClick={() => setShowTools(!showTools)} style={{ width: 40, height: 40, borderRadius: 20, border: "1px solid #333", background: showTools ? "#22c55e" : "#111", color: showTools ? "#000" : "#eee", fontSize: 20, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
-          +
-        </button>
+      {/* ===== Header ===== */}
+      <div style={{ padding: "8px 24px", borderBottom: "1px solid #111", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <span style={{ fontSize: 15, fontWeight: 600, color: "#22c55e" }}>DNA OS</span>
+        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+          <button onClick={() => setShowContext(!showContext)} style={{ padding: "4px 10px", borderRadius: 8, border: "1px solid #222", background: showContext ? "#111" : "transparent", color: "#555", fontSize: 11, cursor: "pointer" }}>
+            {context.pit ? `📍 ${context.pit.substring(0, 15)}` : "Context"}
+          </button>
+          <span style={{ fontSize: 10, color: "#333" }}>V5 Read + V6 Execute</span>
+        </div>
       </div>
 
-      {/* ===== Tool Panel (V6) — Brand Icons + Tooltip ===== */}
+      {/* ===== Context Panel ===== */}
+      {showContext && Object.keys(context).length > 0 && (
+        <div style={{ padding: "8px 24px", borderBottom: "1px solid #111", background: "#050505", fontSize: 11, color: "#555", display: "flex", gap: 16 }}>
+          {context.customer && <span>ลูกค้า: {context.customer}</span>}
+          {context.pit && <span>แหล่ง: {context.pit}</span>}
+          {context.material && <span>วัสดุ: {context.material}</span>}
+          {context.quantity && <span>จำนวน: {context.quantity} คิว</span>}
+          {context.last_action && <span>คำสั่งล่าสุด: {context.last_action}</span>}
+        </div>
+      )}
+
+      {/* ===== Tool Panel (V6) ===== */}
       {showTools && (
         <div style={{ padding: "12px 24px", borderBottom: "1px solid #111", background: "#050505" }}>
           <div style={{ display: "flex", gap: 20, flexWrap: "wrap" }}>
             {(Object.entries(CAPABILITIES) as [CapabilityType, { label: string }][]).map(([cap, info]) => (
               <div key={cap}>
                 <div style={{ fontSize: 10, color: "#444", marginBottom: 6 }}>{info.label}</div>
-                <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                <div style={{ display: "flex", gap: 6 }}>
                   {getToolsByCapability(cap).map((tool) => {
                     const isImg = tool.logo.startsWith("http");
                     return (
-                      <button
-                        key={tool.id}
-                        onClick={() => executeTool(tool)}
-                        title={tool.name}
-                        style={{ width: 36, height: 36, borderRadius: 8, border: "1px solid #222", background: "#111", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", padding: 0 }}
-                      >
-                        {isImg
-                          ? <img src={tool.logo} alt={tool.name} style={{ width: 20, height: 20, objectFit: "contain" }} />
-                          : <span style={{ fontSize: 16 }}>{tool.logo}</span>
-                        }
+                      <button key={tool.id} onClick={() => executeTool(tool)} title={tool.name} style={{ width: 36, height: 36, borderRadius: 8, border: "1px solid #222", background: "#111", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", padding: 0 }}>
+                        {isImg ? <img src={tool.logo} alt={tool.name} style={{ width: 20, height: 20, objectFit: "contain" }} /> : <span style={{ fontSize: 16 }}>{tool.logo}</span>}
                       </button>
                     );
                   })}
@@ -178,71 +208,71 @@ export default function OpsPage() {
         </div>
       )}
 
-      {message && <div style={{ padding: "6px 24px", fontSize: 12, color: "#888" }}>{message}</div>}
-
-      {/* ===== Content ===== */}
-      <div style={{ flex: 1, display: "flex", overflow: "hidden" }}>
-
-        {/* Left: Results */}
-        <div style={{ flex: 1, padding: "12px 24px", overflow: "auto" }}>
-          {results.length === 0 && <p style={{ color: "#222", fontSize: 14, textAlign: "center", marginTop: 80 }}>พิมพ์คำสั่งด้านบน</p>}
-
-          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-            {results.map((r, i) => (
-              <div key={r.id || i} onClick={() => explainCalc(r)} style={{ padding: "12px 16px", borderRadius: 10, border: `1px solid ${selected?.id === r.id ? "#22c55e" : "#1a1a1a"}`, background: selected?.id === r.id ? "#0a1a0a" : "#0a0a0a", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <div>
-                  <div style={{ fontWeight: 600, fontSize: 14, color: selected?.id === r.id ? "#22c55e" : "#eee" }}>{r.name}</div>
-                  <div style={{ fontSize: 11, color: "#555", display: "flex", gap: 8, marginTop: 2 }}>
-                    {r.distance_km && <span>{r.distance_km} กม.</span>}
-                    {r.phone && r.phone !== "-" && <span>{r.phone}</span>}
-                    {r.address && r.address !== "-" && <span>{r.address.substring(0, 40)}</span>}
-                  </div>
-                  {r.materials && <div style={{ fontSize: 11, color: "#f59e0b", marginTop: 2 }}>{r.materials.join(", ")}</div>}
-                  {r.prices && <div style={{ fontSize: 11, color: "#22c55e" }}>{Object.entries(r.prices).map(([k, v]) => `${k}: ${v}฿`).join("  ")}</div>}
-                </div>
-                {r.distance_km && <span style={{ fontSize: 12, color: "#666", whiteSpace: "nowrap" }}>{r.distance_km} กม.</span>}
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Right: Explainable Trace */}
-        {trace.length > 0 && (
-          <div style={{ width: 380, borderLeft: "1px solid #111", padding: "12px 16px", overflow: "auto", background: "#050505" }}>
-            <div style={{ fontSize: 11, color: "#555", marginBottom: 8 }}>
-              EXPLAIN — {selected?.name}
-              <input value={qty} onChange={(e) => { setQty(e.target.value); if (selected) setTimeout(() => explainCalc(selected), 300); }} style={{ marginLeft: 8, width: 60, padding: "2px 6px", fontSize: 11, border: "1px solid #333", borderRadius: 4, background: "#111", color: "#eee" }} /> คิว
-            </div>
-            {trace.map((t, i) => {
-              const isKey = ["ต้นทุนรวม", "ราคาขาย", "กำไร"].includes(t.label);
-              const color = t.label === "ต้นทุนรวม" ? "#f87171" : t.label === "ราคาขาย" ? "#22c55e" : t.label === "กำไร" ? "#f59e0b" : "#ccc";
-              const isSep = t.label === "ต้นทุนรวม" || t.label === "Markup";
-
-              return (
-                <div key={i}>
-                  {isSep && <div style={{ borderTop: "1px solid #1a1a1a", margin: "6px 0" }} />}
-                  <div onClick={() => setExpandedTrace(expandedTrace === i ? null : i)} style={{ display: "flex", justifyContent: "space-between", padding: "4px 6px", borderRadius: 4, cursor: "pointer", background: expandedTrace === i ? "#111" : "transparent" }}>
-                    <span style={{ fontSize: 12, color: isKey ? color : "#888", fontWeight: isKey ? 600 : 400 }}>{t.label}</span>
-                    <span style={{ fontSize: 12, color, fontWeight: isKey ? 600 : 400 }}>{typeof t.value === "number" ? t.value.toLocaleString() : t.value} {t.unit}</span>
-                  </div>
-                  {expandedTrace === i && (
-                    <div style={{ padding: "4px 6px 4px 12px", fontSize: 10, color: "#444", background: "#0a0a0a", borderRadius: 4, marginBottom: 2 }}>
-                      <div><span style={{ color: "#f59e0b" }}>Source:</span> {t.source}</div>
-                      <div><span style={{ color: "#22c55e" }}>Formula:</span> {t.formula}</div>
-                      <div><span style={{ color: "#666" }}>Updated:</span> {t.timestamp.substring(0, 19)}</div>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
+      {/* ===== Messages ===== */}
+      <div style={{ flex: 1, overflow: "auto", padding: "16px 24px" }}>
+        {messages.length === 0 && (
+          <div style={{ textAlign: "center", marginTop: "25vh", color: "#222" }}>
+            <div style={{ fontSize: 28, fontWeight: 700, color: "#111", marginBottom: 8 }}>DNA OS</div>
+            <div style={{ fontSize: 14, color: "#333" }}>รอรับคำสั่งจากเฮีย</div>
           </div>
         )}
+
+        {messages.map((msg, i) => (
+          <div key={i} style={{ marginBottom: 16, maxWidth: 800, marginLeft: msg.role === "user" ? "auto" : 0, marginRight: msg.role === "user" ? 0 : "auto" }}>
+            <div style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
+              <div style={{ width: 28, height: 28, borderRadius: 6, background: msg.role === "user" ? "#22c55e" : "#111", border: msg.role === "system" ? "1px solid #222" : "none", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, flexShrink: 0, color: msg.role === "user" ? "#000" : "#22c55e", fontWeight: 600 }}>
+                {msg.role === "user" ? "H" : "D"}
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 13, whiteSpace: "pre-wrap", lineHeight: 1.6, color: msg.role === "user" ? "#eee" : "#ccc" }}>
+                  {msg.text}
+                </div>
+
+                {/* Data table */}
+                {msg.data && Array.isArray(msg.data) && msg.data.length > 0 && (
+                  <details style={{ marginTop: 8 }}>
+                    <summary style={{ fontSize: 11, color: "#555", cursor: "pointer" }}>ดูข้อมูลดิบ ({msg.data.length} รายการ)</summary>
+                    <div style={{ marginTop: 4, maxHeight: 200, overflow: "auto", background: "#0a0a0a", borderRadius: 8, padding: 8 }}>
+                      {msg.data.map((item: Record<string, unknown>, j: number) => (
+                        <div key={j} style={{ padding: "4px 0", borderBottom: "1px solid #111", fontSize: 11, color: "#888" }}>
+                          {Object.entries(item).filter(([, v]) => v !== null && v !== undefined && v !== "-" && v !== "").slice(0, 6).map(([k, v]) => (
+                            <span key={k} style={{ marginRight: 12 }}>{k}: <span style={{ color: "#ccc" }}>{typeof v === "object" ? JSON.stringify(v) : String(v)}</span></span>
+                          ))}
+                        </div>
+                      ))}
+                    </div>
+                  </details>
+                )}
+
+                <div style={{ fontSize: 10, color: "#333", marginTop: 4 }}>{msg.timestamp}</div>
+              </div>
+            </div>
+          </div>
+        ))}
+
+        {loading && (
+          <div style={{ display: "flex", gap: 8, alignItems: "center", color: "#555", fontSize: 13 }}>
+            <div style={{ width: 28, height: 28, borderRadius: 6, background: "#111", border: "1px solid #222", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, color: "#22c55e" }}>D</div>
+            กำลังประมวลผล...
+          </div>
+        )}
+
+        <div ref={bottomRef} />
       </div>
 
-      {/* Footer */}
-      <div style={{ padding: "8px 24px", borderTop: "1px solid #111", display: "flex", justifyContent: "space-between", fontSize: 10, color: "#333" }}>
-        <span>V5 Read + Explain | V6 Execute (ปุ่ม +)</span>
-        <span>DNA OS Control Console</span>
+      {/* ===== Input Bar ===== */}
+      <div style={{ padding: "12px 24px", borderTop: "1px solid #111", background: "#050505" }}>
+        <div style={{ display: "flex", gap: 8, maxWidth: 800, margin: "0 auto" }}>
+          <button onClick={() => setShowTools(!showTools)} style={{ width: 40, height: 40, borderRadius: 20, border: "1px solid #333", background: showTools ? "#22c55e" : "#111", color: showTools ? "#000" : "#eee", fontSize: 20, cursor: "pointer", flexShrink: 0 }}>+</button>
+          <input
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && send()}
+            placeholder="พิมพ์คำสั่ง..."
+            style={{ flex: 1, padding: "10px 16px", fontSize: 15, border: "1px solid #222", borderRadius: 24, background: "#111", color: "#eee", outline: "none" }}
+          />
+          <button onClick={send} disabled={loading || !input.trim()} style={{ width: 40, height: 40, borderRadius: 20, border: "none", background: input.trim() ? "#22c55e" : "#222", color: input.trim() ? "#000" : "#555", fontSize: 16, cursor: input.trim() ? "pointer" : "default", flexShrink: 0 }}>▶</button>
+        </div>
       </div>
     </div>
   );
