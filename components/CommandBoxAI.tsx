@@ -51,10 +51,10 @@ export default function CommandBoxAI({ onResult }: Props) {
           });
           const findData = await findRes.json();
 
-          if (findData.found === "exact") {
-            onResult({ ok: true, command: cmd, data: { ...findData.record, next_actions: findData.next_actions } });
-          } else if (findData.found === "ambiguous") {
-            onResult({ ok: false, command: cmd, error: findData.error, data: findData.candidates });
+          if (findData.ok && findData.record) {
+            // V5: ถ้ามี formatted → แสดง enriched data
+            const enriched = findData.record.enriched ?? findData.record.results ?? findData.record;
+            onResult({ ok: true, command: cmd, data: enriched });
           } else {
             onResult({ ok: false, command: cmd, error: findData.error ?? "ไม่พบข้อมูล" });
           }

@@ -1,13 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
 import { dispatchAction } from "@/lib/actions/dna-actions";
 import { dispatchFind } from "@/lib/actions/find-resolver";
+import { enrichPitResults, enrichPartnerResults } from "@/lib/presenter/enricher";
+import { formatPitResults, formatPartnerResults } from "@/lib/presenter/formatter";
 import type { ActionRequest } from "@/lib/actions/dna-actions";
+
+// DNA OS HQ — ขอนแก่น
+const HQ_LAT = 16.4714;
+const HQ_LNG = 102.9738;
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
 
-    // ---- FIND endpoint ----
+    // ---- FIND endpoint + V5 Presenter ----
     if (body.type === "find") {
       if (!body.domain || !body.keyword) {
         return NextResponse.json(
@@ -15,7 +21,31 @@ export async function POST(req: NextRequest) {
           { status: 400 }
         );
       }
+
       const result = await dispatchFind(body.domain, body.keyword);
+
+      // V5: Enrich + Format ถ้าเจอข้อมูล
+      if (result.ok && result.record) {
+        const rawData = result.record.results as Record<string, unknown>[] | undefined;
+
+        if (rawData && Array.isArray(rawData)) {
+          if (body.domain === "pit" || body.domain === "partner") {
+            // ตรวจว่าเป็น pit data หรือ partner data
+            const isPit = rawData[0] && ("pit_name" in rawData[0] || "latitude" in rawData[0]);
+
+            if (isPit) {
+              const enriched = await enrichPitResults(rawData, HQ_LAT, HQ_LNG);
+              const formatted = formatPitResults(enriched, body.keyword);
+              return NextResponse.json({ ...result, record: { ...result.record, enriched, formatted } });
+            } else {
+              const enriched = await enrichPartnerResults(rawData);
+              const formatted = formatPartnerResults(enriched, body.keyword);
+              return NextResponse.json({ ...result, record: { ...result.record, enriched, formatted } });
+            }
+          }
+        }
+      }
+
       return NextResponse.json(result);
     }
 
