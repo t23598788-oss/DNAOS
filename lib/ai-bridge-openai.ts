@@ -20,8 +20,9 @@ mode ต้องเป็น "preview" เสมอ ห้ามใส่ "exec
 คำสั่งที่รองรับ:
 - debt.find → หาลูกหนี้ payload: {name:"ชื่อ"}
 - debt.list → ดูหนี้ค้าง payload: {status:"OPEN"}
-- partner.find → หาคู่ค้า payload: {name:"ชื่อ"}
-- partner.list → ดูคู่ค้า payload: {}
+- partner.find → หาคู่ค้า/แหล่งวัสดุ/โรงงาน/โรงโม่/บ่อทราย payload: {name:"ชื่อหรือประเภท"}
+- partner.list → ดูคู่ค้าทั้งหมด payload: {}
+- pit.find → หาบ่อวัสดุ/โรงโม่หิน/โรงงานคอนกรีต/ท่าทราย payload: {name:"ชื่อหรือประเภท"}
 - invoice.find → หาใบแจ้งหนี้ payload: {keyword:"เลขหรือชื่อ"}
 - invoice.list → ดูใบแจ้งหนี้ payload: {}
 - invoice.latest → ใบแจ้งหนี้ล่าสุด payload: {}
@@ -34,7 +35,10 @@ mode ต้องเป็น "preview" เสมอ ห้ามใส่ "exec
 - job.assign → สั่งงานคนขับ payload: {job_id:"xxx",driver:"ชื่อ"}
 - job.track → ติดตามงาน payload: {job_id:"xxx"}
 - material.list → ดูวัสดุ payload: {}
-- quote.calc → คำนวณราคา payload: {quantity:100,material:"ดินถม"}`;
+- quote.calc → คำนวณราคา payload: {quantity:100,material:"ดินถม"}
+
+สำคัญ: ถ้าถามเรื่อง บ่อ/โรงโม่/โรงงาน/ท่าทราย/แหล่งวัสดุ/คอนกรีต ให้ใช้ pit.find หรือ partner.find
+ถ้าถามแค่คำเดียวหรือสองคำที่เป็นชื่อสิ่งของ/สถานที่ ให้ใช้ partner.find เสมอ`;
 
 export async function translateWithAI(thai: string): Promise<BridgeResult> {
   const apiKey = process.env.OPENAI_API_KEY;

@@ -151,6 +151,60 @@ export async function findInvoice(keyword: string): Promise<FindResult> {
   };
 }
 
+// ---- PIT FIND (บ่อวัสดุ / โรงงาน / โรงโม่) ----
+
+export async function findPit(keyword: string): Promise<FindResult> {
+  const { data, error } = await supabase()
+    .from("pit_profiles")
+    .select("id, pit_name, address, latitude, longitude")
+    .is("deleted_at", null)
+    .ilike("pit_name", `%${keyword}%`)
+    .order("pit_name");
+
+  if (error) return { ok: false, found: "none", error: error.message };
+  if (!data || data.length === 0) return { ok: false, found: "none", error: `ไม่พบแหล่งวัสดุ: "${keyword}"` };
+
+  if (data.length === 1) {
+    const r = data[0];
+    return {
+      ok: true,
+      found: "exact",
+      record: { pit_id: r.id, pit_name: r.pit_name, address: r.address, lat: r.latitude, lng: r.longitude },
+      next_actions: [`.pit materials ${r.id}`],
+    };
+  }
+
+  return {
+    ok: true,
+    found: data.length <= 10 ? "exact" : "ambiguous",
+    record: data.length <= 10 ? { results: data, count: data.length } : undefined,
+    candidates: data.length > 10 ? data.slice(0, 10).map((r) => ({ id: r.id, pit_name: r.pit_name, address: r.address })) : undefined,
+    error: data.length > 10 ? `พบ ${data.length} แห่ง แสดง 10 แรก` : undefined,
+  };
+}
+
+// ---- SMART FIND (ค้นหาทุก table ที่เกี่ยว) ----
+
+export async function smartFind(keyword: string): Promise<FindResult> {
+  // ลอง pit_profiles ก่อน
+  const pit = await findPit(keyword);
+  if (pit.ok) return pit;
+
+  // ลอง partners
+  const partner = await findPartner(keyword);
+  if (partner.ok) return partner;
+
+  // ลอง invoices
+  const invoice = await findInvoice(keyword);
+  if (invoice.ok) return invoice;
+
+  // ลอง debts
+  const debt = await findDebt(keyword);
+  if (debt.ok) return debt;
+
+  return { ok: false, found: "none", error: `ไม่พบข้อมูล: "${keyword}"` };
+}
+
 // ---- DISPATCH FIND ----
 
 export async function dispatchFind(domain: string, keyword: string): Promise<FindResult> {
@@ -158,10 +212,12 @@ export async function dispatchFind(domain: string, keyword: string): Promise<Fin
     case "debt":
       return findDebt(keyword);
     case "partner":
-      return findPartner(keyword);
+      return smartFind(keyword);
     case "invoice":
       return findInvoice(keyword);
+    case "pit":
+      return findPit(keyword);
     default:
-      return { ok: false, found: "none", error: `find ไม่รองรับ domain: ${domain}` };
+      return smartFind(keyword);
   }
 }
