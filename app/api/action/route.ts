@@ -3,6 +3,7 @@ import { dispatchAction } from "@/lib/actions/dna-actions";
 import { dispatchFind } from "@/lib/actions/find-resolver";
 import { enrichPitResults, enrichPartnerResults } from "@/lib/presenter/enricher";
 import { formatPitResults, formatPartnerResults } from "@/lib/presenter/formatter";
+import { detectRankContext, rankResults } from "@/lib/presenter/ranker";
 import type { ActionRequest } from "@/lib/actions/dna-actions";
 
 // DNA OS HQ — ขอนแก่น
@@ -33,14 +34,18 @@ export async function POST(req: NextRequest) {
             // ตรวจว่าเป็น pit data หรือ partner data
             const isPit = rawData[0] && ("pit_name" in rawData[0] || "latitude" in rawData[0]);
 
+            const question = body.question ?? body.keyword;
+            const rankCtx = detectRankContext(question);
+
             if (isPit) {
               const enriched = await enrichPitResults(rawData, HQ_LAT, HQ_LNG);
-              const formatted = formatPitResults(enriched, body.keyword);
-              return NextResponse.json({ ...result, record: { ...result.record, enriched, formatted } });
+              const ranked = rankResults(enriched, rankCtx);
+              const formatted = formatPitResults(ranked, body.keyword);
+              return NextResponse.json({ ...result, record: { ...result.record, enriched: ranked, formatted, rank: rankCtx } });
             } else {
               const enriched = await enrichPartnerResults(rawData);
               const formatted = formatPartnerResults(enriched, body.keyword);
-              return NextResponse.json({ ...result, record: { ...result.record, enriched, formatted } });
+              return NextResponse.json({ ...result, record: { ...result.record, enriched, formatted, rank: rankCtx } });
             }
           }
         }

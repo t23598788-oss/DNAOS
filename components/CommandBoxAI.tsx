@@ -47,7 +47,7 @@ export default function CommandBoxAI({ onResult }: Props) {
           const findRes = await fetch("/api/action", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ type: "find", domain, keyword }),
+            body: JSON.stringify({ type: "find", domain, keyword, question: input }),
           });
           const findData = await findRes.json();
 
