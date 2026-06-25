@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { dispatch } from "@/lib/router";
-import { CAPABILITIES, getToolsByCapability } from "@/lib/executor/capabilities";
+import { CAPABILITIES, getToolsByCapability, getStatusColor, getStatusLabel } from "@/lib/executor/capabilities";
 import type { CapabilityType, Tool } from "@/lib/executor/capabilities";
 
 // ---- Types ----
@@ -12,6 +12,10 @@ interface Message {
   data?: Record<string, unknown>[] | Record<string, unknown>;
   trace?: Record<string, unknown>[];
   timestamp: string;
+}
+
+interface ToolDetail {
+  tool: Tool;
 }
 
 interface Context {
@@ -28,6 +32,7 @@ export default function OpsPage() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [showTools, setShowTools] = useState(false);
+  const [toolDetail, setToolDetail] = useState<ToolDetail | null>(null);
   const [context, setContext] = useState<Context>({});
   const [showContext, setShowContext] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -140,24 +145,25 @@ export default function OpsPage() {
 
   // ── V6: Tool execute ──
   function executeTool(tool: Tool) {
+    if (tool.status === "disabled") { addMsg("system", `${tool.name} — Disabled`); return; }
+    if (tool.status === "auth_required") { addMsg("system", `${tool.name} — ต้อง Login ก่อนใช้งาน`); return; }
+    if (tool.status === "offline") { addMsg("system", `${tool.name} — Offline`); return; }
+
     setShowTools(false);
     switch (tool.id) {
-      case "google_maps":
+      case "gmaps":
         if (context.pit_id) { window.open(`https://maps.google.com/?q=${context.pit}`, "_blank"); addMsg("system", `เปิด Google Maps → ${context.pit}`); }
         else addMsg("system", "ค้นหาสถานที่ก่อน แล้วค่อยเปิดแผนที่");
         break;
       case "line": window.location.href = "line://"; addMsg("system", "เปิด LINE"); break;
-      case "phone": addMsg("system", "พิมพ์ \"โทร 08x-xxx-xxxx\" หรือค้นหาคู่ค้าก่อน"); break;
-      case "gps_current":
-        navigator.geolocation?.getCurrentPosition((p) => {
-          const msg = `GPS ปัจจุบัน: ${p.coords.latitude.toFixed(6)}, ${p.coords.longitude.toFixed(6)}`;
-          addMsg("system", msg);
-        });
-        break;
+      case "vscode": window.location.href = "vscode://"; addMsg("system", "เปิด VS Code"); break;
       default:
-        if (tool.available) addMsg("system", `${tool.name} — พร้อมเชื่อมผ่าน MCP`);
-        else addMsg("system", `${tool.name} — ยังไม่พร้อมใช้งาน`);
+        addMsg("system", `${tool.name} — Connected ✓ พร้อมรับคำสั่ง${tool.mcp_server ? ` (MCP: ${tool.mcp_server})` : ""}`);
     }
+  }
+
+  function showToolInfo(tool: Tool) {
+    setToolDetail({ tool });
   }
 
   return (
@@ -192,19 +198,40 @@ export default function OpsPage() {
             {(Object.entries(CAPABILITIES) as [CapabilityType, { label: string }][]).map(([cap, info]) => (
               <div key={cap}>
                 <div style={{ fontSize: 10, color: "#444", marginBottom: 6 }}>{info.label}</div>
-                <div style={{ display: "flex", gap: 6 }}>
-                  {getToolsByCapability(cap).map((tool) => {
-                    const isImg = tool.logo.startsWith("http");
-                    return (
-                      <button key={tool.id} onClick={() => executeTool(tool)} title={tool.name} style={{ width: 36, height: 36, borderRadius: 8, border: "1px solid #222", background: "#111", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", padding: 0 }}>
-                        {isImg ? <img src={tool.logo} alt={tool.name} style={{ width: 20, height: 20, objectFit: "contain" }} /> : <span style={{ fontSize: 16 }}>{tool.logo}</span>}
+                <div style={{ display: "flex", gap: 4 }}>
+                  {getToolsByCapability(cap).map((tool) => (
+                    <div key={tool.id} style={{ position: "relative" }}>
+                      <button
+                        onClick={() => executeTool(tool)}
+                        onContextMenu={(e) => { e.preventDefault(); showToolInfo(tool); }}
+                        title={`${tool.name} — ${getStatusLabel(tool.status)}`}
+                        style={{ width: 36, height: 36, borderRadius: 8, border: "1px solid #222", background: "#111", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", padding: 0, opacity: tool.status === "disabled" ? 0.3 : 1 }}
+                      >
+                        <img src={tool.logo} alt={tool.name} style={{ width: 20, height: 20, objectFit: "contain", filter: tool.status === "disabled" ? "grayscale(1)" : "none" }} />
                       </button>
-                    );
-                  })}
+                      <div style={{ position: "absolute", bottom: -2, right: -2, width: 8, height: 8, borderRadius: 4, background: getStatusColor(tool.status), border: "1px solid #000" }} />
+                    </div>
+                  ))}
                 </div>
               </div>
             ))}
           </div>
+
+          {/* Tool Detail Panel */}
+          {toolDetail && (
+            <div style={{ marginTop: 12, padding: 12, background: "#111", borderRadius: 8, border: "1px solid #222", fontSize: 11, maxWidth: 320 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                <span style={{ fontWeight: 600 }}>{toolDetail.tool.name}</span>
+                <button onClick={() => setToolDetail(null)} style={{ background: "none", border: "none", color: "#555", cursor: "pointer" }}>x</button>
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 4, color: "#888" }}>
+                <div>Status: <span style={{ color: getStatusColor(toolDetail.tool.status) }}>{getStatusLabel(toolDetail.tool.status)}</span></div>
+                <div>Handler: {toolDetail.tool.handler}</div>
+                {toolDetail.tool.mcp_server && <div>MCP: {toolDetail.tool.mcp_server}</div>}
+                <div>Capability: {toolDetail.tool.capability}</div>
+              </div>
+            </div>
+          )}
         </div>
       )}
 

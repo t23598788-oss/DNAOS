@@ -35,8 +35,8 @@ export async function execute(req: ExecuteRequest): Promise<ExecuteResult> {
     return { ok: false, tool_id: req.tool_id, action: req.action, error: `ไม่พบเครื่องมือ: ${req.tool_id}` };
   }
 
-  if (!tool.available) {
-    return { ok: false, tool_id: req.tool_id, action: req.action, error: `${tool.name} ยังไม่พร้อมใช้งาน` };
+  if (tool.status !== "connected") {
+    return { ok: false, tool_id: req.tool_id, action: req.action, error: `${tool.name} — ${tool.status}` };
   }
 
   switch (tool.handler) {
@@ -48,8 +48,7 @@ export async function execute(req: ExecuteRequest): Promise<ExecuteResult> {
       return executeApi(req);
     case "mcp":
       return { ok: false, tool_id: req.tool_id, action: req.action, error: "MCP ต้องเรียกผ่าน Mac terminal" };
-    case "browser":
-      return executeBrowser(req);
+    // browser handler removed — OS basics hidden from V6
     default:
       return { ok: false, tool_id: req.tool_id, action: req.action, error: `handler ไม่รองรับ: ${tool.handler}` };
   }
@@ -105,17 +104,4 @@ async function executeApi(req: ExecuteRequest): Promise<ExecuteResult> {
   return { ok: false, tool_id: req.tool_id, action: req.action, error: "API executor รอ V6.1" };
 }
 
-function executeBrowser(req: ExecuteRequest): ExecuteResult {
-  switch (req.tool_id) {
-    case "gps_current":
-      return { ok: true, tool_id: req.tool_id, action: "open", result: { use_geolocation: true } };
-    case "clipboard":
-      return { ok: true, tool_id: req.tool_id, action: "open", result: { use_clipboard: true } };
-    case "camera":
-      return { ok: true, tool_id: req.tool_id, action: "open", result: { use_camera: true } };
-    case "microphone":
-      return { ok: true, tool_id: req.tool_id, action: "open", result: { use_microphone: true } };
-    default:
-      return { ok: false, tool_id: req.tool_id, action: req.action, error: "browser handler ไม่รองรับ" };
-  }
-}
+// Browser handler removed — OS basics hidden from V6
