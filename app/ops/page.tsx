@@ -32,24 +32,59 @@ export default function OpsPage() {
     if (!input.trim() || loading) return;
     setLoading(true); setMessage(""); setTrace([]); setSelected(null);
     try {
+      // Step 1: AI แปลภาษา
       const ai = await (await fetch("/api/translate", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text: input, engine: "openai" }) })).json();
-      if (ai.ok && ai.command) {
-        const cmd = ai.command;
-        if (cmd.action.includes("find")) {
-          const d = cmd.action.split(".")[0], kw = cmd.payload?.name ?? cmd.payload?.keyword ?? "";
+
+      if (!ai.ok) {
+        // AI แปลไม่ได้ → fallback V1
+        const r = await dispatch({ action: "unknown", payload: { source: input } });
+        setMessage(`V5: AI แปลไม่ได้ — ลอง V1 keyword match`);
+        if (r.ok && r.data) { setResults((Array.isArray(r.data) ? r.data : [r.data]).map(mapItem)); }
+        return;
+      }
+
+      const cmd = ai.command;
+      setMessage(`V5: AI แปลเป็น ${cmd.action} → กำลังค้นหา...`);
+
+      // Step 2: Find หรือ Dispatch
+      if (cmd.action.includes("find")) {
+        const d = cmd.action.split(".")[0], kw = cmd.payload?.name ?? cmd.payload?.keyword ?? "";
+
+        try {
           const f = await (await fetch("/api/action", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ type: "find", domain: d, keyword: kw, question: input }) })).json();
+
           if (f.ok && f.record) {
-            const e = f.record.enriched ?? f.record.results ?? [f.record];
+            const e = f.record.enriched ?? f.record.results ?? (Array.isArray(f.record) ? f.record : [f.record]);
+            const items = (Array.isArray(e) ? e : [e]).map(mapItem);
+            setResults(items);
+            setMessage(`V5: พบ ${items.length} ผลลัพธ์${f.record.rank?.explain ? ` — ${f.record.rank.explain}` : ""} (ค้นหา "${kw}" ใน ${d})`);
+          } else {
+            setResults([]);
+            setMessage(`V5: ไม่พบ "${kw}" — ค้นใน pit_profiles + partners + invoices + debts แล้ว ยังไม่มีข้อมูลนี้ในระบบ`);
+          }
+        } catch {
+          // Enrichment อาจ timeout → ลอง find โดยไม่ enrich
+          setMessage(`V5: enrichment timeout — กำลังลองค้นหาแบบเร็ว...`);
+          const f2 = await (await fetch("/api/action", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ type: "find", domain: d, keyword: kw }) })).json();
+          if (f2.ok && f2.record) {
+            const e = f2.record.results ?? [f2.record];
             setResults((Array.isArray(e) ? e : [e]).map(mapItem));
-            setMessage(`${Array.isArray(e) ? e.length : 1} ผลลัพธ์${f.record.rank?.explain ? ` — ${f.record.rank.explain}` : ""}`);
-          } else { setResults([]); setMessage(f.error ?? "ไม่พบ"); }
+            setMessage(`V5: พบ ${Array.isArray(e) ? e.length : 1} ผลลัพธ์ (แบบเร็ว ไม่มี enrichment)`);
+          } else { setResults([]); setMessage(`V5: ไม่พบ "${kw}" — ${f2.error ?? "ไม่มีข้อมูลนี้ในระบบ"}`); }
+        }
+      } else {
+        // ไม่ใช่ find → ใช้ V1 dispatch
+        const r = await dispatch(cmd);
+        if (r.ok && r.data) {
+          const a = Array.isArray(r.data) ? r.data : [r.data];
+          setResults(a.map(mapItem));
+          setMessage(`V5: ${cmd.action} → พบ ${a.length} ผลลัพธ์`);
         } else {
-          const r = await dispatch(cmd);
-          if (r.ok && r.data) { const a = Array.isArray(r.data) ? r.data : [r.data]; setResults(a.map(mapItem)); setMessage(`${a.length} ผลลัพธ์`); }
-          else { setResults([]); setMessage(r.error ?? "ไม่พบ"); }
+          setResults([]);
+          setMessage(`V5: ${cmd.action} → ${r.error ?? "ไม่พบข้อมูล"} (ค้นจาก Supabase)`);
         }
       }
-    } catch { setMessage("เชื่อมต่อไม่ได้"); }
+    } catch (err) { setMessage(`V5: เชื่อมต่อไม่ได้ — ${err instanceof Error ? err.message : "network error"}`); }
     finally { setLoading(false); }
   }
 
