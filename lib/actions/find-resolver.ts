@@ -66,36 +66,12 @@ export async function findPartner(keyword: string): Promise<FindResult> {
   if (error) return { ok: false, found: "none", error: error.message };
   if (!data || data.length === 0) return { ok: false, found: "none", error: `ไม่พบคู่ค้า: "${keyword}"` };
 
-  if (data.length === 1) {
-    const r = data[0];
-    return {
-      ok: true,
-      found: "exact",
-      record: {
-        partner_id: r.id,
-        code: r.code,
-        name: r.name,
-        type: r.partner_type_label,
-        phone: r.phone,
-        address: r.address,
-      },
-      next_actions: [
-        `.invoice list ${r.id}`,
-        `.doc list partner:${r.id}`,
-      ],
-    };
-  }
-
   return {
     ok: true,
-    found: "ambiguous",
-    candidates: data.map((r) => ({
-      id: r.id,
-      code: r.code,
-      name: r.name,
-      phone: r.phone,
-    })),
-    error: `พบ ${data.length} ราย กรุณาเลือก`,
+    found: "exact",
+    record: data.length === 1
+      ? { partner_id: data[0].id, code: data[0].code, name: data[0].name, type: data[0].partner_type_label, phone: data[0].phone, address: data[0].address }
+      : { results: data, count: data.length },
   };
 }
 
@@ -164,22 +140,10 @@ export async function findPit(keyword: string): Promise<FindResult> {
   if (error) return { ok: false, found: "none", error: error.message };
   if (!data || data.length === 0) return { ok: false, found: "none", error: `ไม่พบแหล่งวัสดุ: "${keyword}"` };
 
-  if (data.length === 1) {
-    const r = data[0];
-    return {
-      ok: true,
-      found: "exact",
-      record: { pit_id: r.id, pit_name: r.pit_name, address: r.address, lat: r.latitude, lng: r.longitude },
-      next_actions: [`.pit materials ${r.id}`],
-    };
-  }
-
   return {
     ok: true,
-    found: data.length <= 10 ? "exact" : "ambiguous",
-    record: data.length <= 10 ? { results: data, count: data.length } : undefined,
-    candidates: data.length > 10 ? data.slice(0, 10).map((r) => ({ id: r.id, pit_name: r.pit_name, address: r.address })) : undefined,
-    error: data.length > 10 ? `พบ ${data.length} แห่ง แสดง 10 แรก` : undefined,
+    found: "exact",
+    record: { results: data, count: data.length },
   };
 }
 
