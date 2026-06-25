@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import type { CommandResult } from "@/types/command";
-import { runCommand } from "@/lib/router";
+import { runCommand, dispatch } from "@/lib/router";
 
 interface Props {
   onResult: (result: CommandResult) => void;
@@ -46,19 +46,9 @@ export default function CommandBoxAI({ onResult }: Props) {
             onResult({ ok: false, command: cmd, error: findData.error ?? "ไม่พบข้อมูล" });
           }
         } else {
-          // ใช้ V1 router ปกติ
-          const result = await runCommand(input);
-
-          // ถ้า V1 ไม่รู้จัก แต่ AI แปลได้ → ส่ง command จาก AI กลับไป
-          if (!result.ok && result.command.action === "unknown") {
-            onResult({
-              ok: false,
-              command: cmd,
-              error: `AI แปลได้: ${cmd.action} — แต่ระบบยังไม่รองรับคำสั่งนี้`,
-            });
-          } else {
-            onResult(result);
-          }
+          // AI แปลได้ → ใช้ dispatch ตรงด้วย command จาก AI
+          const result = await dispatch(cmd);
+          onResult(result);
         }
       } else {
         // 3. AI แปลไม่ได้ → fallback V1 keyword match
