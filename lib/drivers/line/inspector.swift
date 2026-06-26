@@ -2,7 +2,6 @@ import Cocoa
 import ApplicationServices
 
 /// AX — thin wrapper สำหรับ Accessibility API
-/// ไม่รู้จัก LINE ไม่รู้จักแอปไหน ทำแค่อ่าน/หา/ตั้งค่า AXUIElement
 struct AX {
     static func app(_ pid: pid_t) -> AXUIElement { AXUIElementCreateApplication(pid) }
 
@@ -29,31 +28,25 @@ struct AX {
         AXUIElementPerformAction(el, kAXPressAction as CFString) == .success
     }
 
-    /// Recursive search — หา element ตาม role
     static func find(_ root: AXUIElement, role target: String, depth: Int = 8) -> [AXUIElement] {
         var out: [AXUIElement] = []
         dig(root, target, 0, depth, &out)
         return out
     }
 
-    /// Recursive search — หา element ตาม predicate
     static func findFirst(_ root: AXUIElement, depth: Int = 8, _ match: (AXUIElement) -> Bool) -> AXUIElement? {
         if match(root) { return root }
         if depth <= 0 { return nil }
-        for c in children(root) {
-            if let found = findFirst(c, depth: depth - 1, match) { return found }
-        }
+        for c in children(root) { if let f = findFirst(c, depth: depth-1, match) { return f } }
         return nil
     }
 
-    /// อ่าน static text ทั้งหมด
     static func texts(_ root: AXUIElement, depth: Int = 8) -> [String] {
         find(root, role: kAXStaticTextRole, depth: depth).compactMap { value($0) ?? title($0) }.filter { !$0.isEmpty }
     }
 
-    private static func dig(_ el: AXUIElement, _ target: String, _ d: Int, _ max: Int, _ out: inout [AXUIElement]) {
-        if d > max { return }
-        if role(el) == target { out.append(el) }
-        for c in children(el) { dig(c, target, d+1, max, &out) }
+    private static func dig(_ el: AXUIElement, _ t: String, _ d: Int, _ m: Int, _ o: inout [AXUIElement]) {
+        if d > m { return }; if role(el) == t { o.append(el) }
+        for c in children(el) { dig(c, t, d+1, m, &o) }
     }
 }

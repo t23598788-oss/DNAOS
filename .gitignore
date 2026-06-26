@@ -40,3 +40,5 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 lib/macos/line-ctrl
+lib/drivers/line/line-driver
+lib/macos/
