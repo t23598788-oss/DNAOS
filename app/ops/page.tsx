@@ -169,20 +169,39 @@ export default function OpsPage() {
     }
 
     addMsg("system", `กำลังเปิด ${tool.name}...`);
+
+    // ลอง Agent (localhost:7777) ก่อน → fallback ไป /api/computer
+    const agentUrl = "http://localhost:7777";
+    const driverMap: Record<string, string> = { line: "line" };
+    const driverName = driverMap[tool.id];
+
     try {
-      const res = await fetch("/api/computer", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ workflow: "app.launch", app: appName }),
-      });
-      const data = await res.json();
-      if (data.ok) {
-        addMsg("system", `เปิด ${tool.name} สำเร็จ ✓`);
+      let data: any;
+      if (driverName) {
+        // เรียก Agent → Driver
+        const res = await fetch(`${agentUrl}/call`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ driver: driverName, command: "connect" }),
+        });
+        data = await res.json();
+      } else {
+        // fallback: /api/computer
+        const res = await fetch("/api/computer", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ workflow: "app.launch", app: appName }),
+        });
+        data = await res.json();
+      }
+
+      if (data.success || data.ok) {
+        addMsg("system", `เปิด ${tool.name} สำเร็จ ✓${driverName ? " (Agent)" : ""}`);
       } else {
         addMsg("system", `${tool.name} — ${data.error ?? "เปิดไม่ได้"}`);
       }
     } catch {
-      addMsg("system", `${tool.name} — ต้องรันบน local (next dev) เท่านั้น`);
+      addMsg("system", `${tool.name} — Agent offline (localhost:7777) — เปิด Agent ก่อน: bash lib/agent/start.sh`);
     }
   }
 
