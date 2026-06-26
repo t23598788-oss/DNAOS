@@ -1,19 +1,35 @@
 [
-  { "patterns": ["เปิด line", "เปิดไลน์"],                          "workflow": "app.launch", "app": "LINE" },
-  { "patterns": ["เปิด chrome", "เปิดโครม", "เปิดเว็บ"],            "workflow": "app.launch", "app": "Google Chrome" },
-  { "patterns": ["เปิด vscode", "เปิดวีเอส", "เปิด vs code"],      "workflow": "app.launch", "app": "VS Code" },
-  { "patterns": ["เปิด terminal", "เปิดเทอร์มินอล"],               "workflow": "app.launch", "app": "Terminal" },
-  { "patterns": ["เปิด finder", "เปิดไฟล์"],                        "workflow": "app.launch", "app": "Finder" },
-  { "patterns": ["เปิด mail", "เปิดเมล", "เปิดอีเมล"],             "workflow": "app.launch", "app": "Mail" },
-  { "patterns": ["เปิดปฏิทิน", "เปิด calendar"],                    "workflow": "app.launch", "app": "Calendar" },
-  { "patterns": ["เปิด github", "เปิดกิตฮับ"],                      "workflow": "app.launch", "app": "GitHub Desktop" },
-  { "patterns": ["เปิด google maps", "เปิดแผนที่", "เปิดแมพ"],      "workflow": "app.launch", "app": "Google Maps" },
-  { "patterns": ["เปิด google earth", "เปิดเอิร์ธ"],                "workflow": "app.launch", "app": "Google Earth" },
-  { "patterns": ["เปิด pdf", "เปิดพีดีเอฟ"],                        "workflow": "app.launch", "app": "PDF Viewer" },
-  { "patterns": ["ส่งข้อความ", "ส่งไลน์", "ส่ง line"],              "workflow": "message.send", "app": "LINE" },
-  { "patterns": ["ดูแผนที่", "ดูตำแหน่ง", "นำทาง"],                 "workflow": "map.view",    "app": "Google Maps" },
-  { "patterns": ["ส่งเมล", "ส่งอีเมล"],                             "workflow": "email.send",  "app": "Mail" },
-  { "patterns": ["deploy", "ดีพลอย"],                                "workflow": "dev.deploy",  "app": "Terminal" },
-  { "patterns": ["push", "พุช", "อัพโค้ด"],                          "workflow": "dev.push",    "app": "GitHub Desktop" },
-  { "patterns": ["สถานะแอป", "สถานะโปรแกรม", "สถานะเครื่อง"],       "workflow": "system.status" }
+  { "patterns": ["เปิด line", "เปิดไลน์"],                                       "command": "OPEN_LINE",          "workflow": "app.launch", "app": "LINE" },
+  { "patterns": ["เปิด chrome", "เปิดโครม", "เปิดเว็บ"],                         "command": "OPEN_LINE",          "workflow": "app.launch", "app": "Google Chrome" },
+  { "patterns": ["เปิด vscode", "เปิดวีเอส", "เปิด vs code"],                   "command": "OPEN_LINE",          "workflow": "app.launch", "app": "VS Code" },
+  { "patterns": ["เปิด terminal", "เปิดเทอร์มินอล"],                            "command": "OPEN_LINE",          "workflow": "app.launch", "app": "Terminal" },
+  { "patterns": ["เปิด finder", "เปิดไฟล์"],                                     "command": "OPEN_LINE",          "workflow": "app.launch", "app": "Finder" },
+  { "patterns": ["เปิด mail", "เปิดเมล", "เปิดอีเมล"],                          "command": "OPEN_LINE",          "workflow": "app.launch", "app": "Mail" },
+  { "patterns": ["เปิดปฏิทิน", "เปิด calendar"],                                 "command": "OPEN_LINE",          "workflow": "app.launch", "app": "Calendar" },
+  { "patterns": ["เปิด github", "เปิดกิตฮับ"],                                   "command": "OPEN_LINE",          "workflow": "app.launch", "app": "GitHub Desktop" },
+  { "patterns": ["เปิด google maps", "เปิดแผนที่", "เปิดแมพ"],                   "command": "OPEN_LINE",          "workflow": "app.launch", "app": "Google Maps" },
+  { "patterns": ["เปิด google earth", "เปิดเอิร์ธ"],                             "command": "OPEN_LINE",          "workflow": "app.launch", "app": "Google Earth" },
+  { "patterns": ["เปิด pdf", "เปิดพีดีเอฟ"],                                     "command": "OPEN_LINE",          "workflow": "app.launch", "app": "PDF Viewer" },
+
+  { "patterns": ["อ่านแชท", "อ่านข้อความ", "ดูแชท"],                             "command": "READ_CHAT",          "workflow": "chat.read" },
+  { "patterns": ["สรุปแชท", "สรุปเหตุการณ์", "สรุปข้อความ"],                     "command": "SUMMARIZE_CHAT",     "workflow": "chat.summarize" },
+
+  { "patterns": ["หาคู่ค้า", "หาลูกค้า", "ค้นหาบริษัท"],                         "command": "SEARCH_PARTNER",     "workflow": "db.search_partner" },
+  { "patterns": ["หาหนี้", "ยอดหนี้", "ลูกหนี้"],                                "command": "SEARCH_DEBT",        "workflow": "db.search_debt" },
+  { "patterns": ["ใบแจ้งหนี้", "โหลดใบแจ้งหนี้"],                                "command": "LOAD_INVOICE",       "workflow": "db.load_invoice" },
+
+  { "patterns": ["คำนวณราคา", "เสนอราคา", "ราคาเท่าไหร่"],                       "command": "CALCULATE_PRICE",    "workflow": "calc.price" },
+  { "patterns": ["ระยะทาง", "ไกลเท่าไหร่", "เช็คระยะทาง"],                       "command": "CHECK_DISTANCE",     "workflow": "calc.distance" },
+
+  { "patterns": ["สร้างเอกสาร", "ออกใบแจ้งหนี้", "ออกใบเสนอราคา", "ออกใบเสร็จ", "ทวงหนี้"], "command": "GENERATE_DOCUMENT", "workflow": "doc.generate" },
+  { "patterns": ["ดูเอกสาร", "preview", "ดู preview"],                           "command": "PREVIEW_DOCUMENT",   "workflow": "doc.preview" },
+
+  { "patterns": ["ส่งข้อความ", "ส่งไลน์", "ส่ง line"],                           "command": "SEND_LINE_MESSAGE",  "workflow": "line.send",   "approval": true },
+
+  { "patterns": ["ลงทะเบียนคู่ค้า", "เพิ่มลูกค้า", "บันทึกคู่ค้า"],             "command": "REGISTER_PARTNER",   "workflow": "db.register", "approval": true },
+
+  { "patterns": ["ส่งเมล", "ส่งอีเมล"],                                          "command": "SEND_LINE_MESSAGE",  "workflow": "email.send",  "app": "Mail", "approval": true },
+  { "patterns": ["deploy", "ดีพลอย"],                                             "command": "SEND_LINE_MESSAGE",  "workflow": "dev.deploy",  "app": "Terminal", "approval": true },
+  { "patterns": ["push", "พุช", "อัพโค้ด"],                                       "command": "SEND_LINE_MESSAGE",  "workflow": "dev.push",    "app": "GitHub Desktop", "approval": true },
+  { "patterns": ["สถานะแอป", "สถานะโปรแกรม", "สถานะเครื่อง"],                    "command": "READ_CHAT",          "workflow": "system.status" }
 ]
