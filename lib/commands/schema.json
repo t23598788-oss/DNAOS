@@ -1,5 +1,5 @@
 {
-  "version": "1.1",
+  "version": "1.2",
   "phase": "copilot",
 
   "permissions": {
@@ -15,7 +15,16 @@
   "actions": [
     "OPEN_APP",
     "FOCUS_WINDOW",
+    "GET_WINDOW_LIST",
+    "CAPTURE_WINDOW",
+    "OCR_WINDOW",
     "READ_WINDOW",
+    "READ_SELECTION",
+    "CLICK",
+    "TYPE_TEXT",
+    "PRESS_KEY",
+    "SCROLL",
+    "WAIT",
     "SEARCH_DATABASE",
     "QUERY_MAP",
     "CALCULATE",
@@ -24,7 +33,9 @@
     "APPROVE",
     "EXECUTE",
     "REGISTER",
-    "SAVE"
+    "SAVE",
+    "SAVE_CONTEXT",
+    "LOAD_CONTEXT"
   ],
 
   "commands": [

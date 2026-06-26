@@ -1,28 +1,30 @@
 {
-  "app.launch":       { "steps": ["launch", "wait_ready", "report"],                              "confirm": false },
-  "app.close":        { "steps": ["close", "report"],                                              "confirm": false },
+  "app.launch":        { "steps": ["OPEN_APP", "WAIT", "FOCUS_WINDOW"],                                                   "confirm": false },
+  "app.close":         { "steps": ["FOCUS_WINDOW", "PRESS_KEY:cmd+q"],                                                    "confirm": false },
 
-  "chat.read":        { "steps": ["focus", "read", "report"],                                      "confirm": false },
-  "chat.summarize":   { "steps": ["focus", "read", "report"],                                      "confirm": false },
+  "chat.read":         { "steps": ["FOCUS_WINDOW", "CAPTURE_WINDOW", "OCR_WINDOW"],                                       "confirm": false },
+  "chat.summarize":    { "steps": ["FOCUS_WINDOW", "CAPTURE_WINDOW", "OCR_WINDOW", "SAVE_CONTEXT"],                        "confirm": false },
 
-  "db.search_partner":{ "steps": ["report"],                                                       "confirm": false },
-  "db.search_debt":   { "steps": ["report"],                                                       "confirm": false },
-  "db.load_invoice":  { "steps": ["report"],                                                       "confirm": false },
-  "db.register":      { "steps": ["report"],                                                       "confirm": true },
+  "db.search_partner": { "steps": ["SEARCH_DATABASE"],                                                                     "confirm": false },
+  "db.search_debt":    { "steps": ["SEARCH_DATABASE"],                                                                     "confirm": false },
+  "db.load_invoice":   { "steps": ["SEARCH_DATABASE"],                                                                     "confirm": false },
+  "db.register":       { "steps": ["APPROVE", "SAVE"],                                                                    "confirm": true },
 
-  "calc.price":       { "steps": ["report"],                                                       "confirm": false },
-  "calc.distance":    { "steps": ["report"],                                                       "confirm": false },
+  "calc.price":        { "steps": ["CALCULATE"],                                                                           "confirm": false },
+  "calc.distance":     { "steps": ["QUERY_MAP"],                                                                           "confirm": false },
 
-  "doc.generate":     { "steps": ["report"],                                                       "confirm": false },
-  "doc.preview":      { "steps": ["report"],                                                       "confirm": false },
+  "doc.generate":      { "steps": ["LOAD_CONTEXT", "SEARCH_DATABASE", "CALCULATE", "GENERATE"],                            "confirm": false },
+  "doc.preview":       { "steps": ["PREVIEW"],                                                                             "confirm": false },
 
-  "line.send":        { "steps": ["launch", "wait_ready", "focus", "search", "click:chat", "type", "submit", "wait_delivery", "report"], "confirm": true },
+  "line.copilot":      { "steps": ["OPEN_APP", "WAIT", "FOCUS_WINDOW", "CAPTURE_WINDOW", "OCR_WINDOW", "SEARCH_DATABASE", "SEARCH_DATABASE", "QUERY_MAP", "CALCULATE", "GENERATE", "PREVIEW", "APPROVE", "EXECUTE"], "confirm": true },
 
-  "email.send":       { "steps": ["launch", "wait_ready", "focus", "click:compose", "type:to", "click:subject", "type:subject", "click:body", "type:body", "shortcut:send", "report"], "confirm": true },
+  "line.send":         { "steps": ["FOCUS_WINDOW", "CLICK:search", "TYPE_TEXT:contact", "WAIT", "CLICK:chat", "TYPE_TEXT:message", "PRESS_KEY:enter", "WAIT"], "confirm": true },
 
-  "dev.deploy":       { "steps": ["launch", "wait_ready", "type:command", "submit", "wait_long", "report"], "confirm": true },
-  "dev.push":         { "steps": ["launch", "wait_ready", "focus", "shortcut:push", "wait_long", "report"], "confirm": true },
+  "email.send":        { "steps": ["OPEN_APP", "WAIT", "FOCUS_WINDOW", "CLICK:compose", "TYPE_TEXT:to", "CLICK:subject", "TYPE_TEXT:subject", "CLICK:body", "TYPE_TEXT:body", "PRESS_KEY:cmd+shift+d", "WAIT"], "confirm": true },
 
-  "map.view":         { "steps": ["launch", "wait_ready", "search", "wait_load", "report"],        "confirm": false },
-  "system.status":    { "steps": ["check_all_apps"],                                               "confirm": false }
+  "dev.deploy":        { "steps": ["OPEN_APP", "WAIT", "TYPE_TEXT:command", "PRESS_KEY:enter", "WAIT"],                    "confirm": true },
+  "dev.push":          { "steps": ["OPEN_APP", "WAIT", "FOCUS_WINDOW", "PRESS_KEY:cmd+p", "WAIT"],                        "confirm": true },
+
+  "map.view":          { "steps": ["OPEN_APP", "WAIT", "QUERY_MAP"],                                                      "confirm": false },
+  "system.status":     { "steps": ["GET_WINDOW_LIST"],                                                                     "confirm": false }
 }
