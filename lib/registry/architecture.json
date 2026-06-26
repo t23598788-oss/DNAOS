@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "layers": {
+    "v1-input":      { "purpose": "รับ Event แปลงเป็น JSON", "modules": ["parser", "debts", "invoices", "documents", "jobs", "partners", "line", "computer"] },
+    "v2-rules":      { "purpose": "Validation / Business Rule / Permission", "modules": ["actions", "resolver"] },
+    "v3-engines":    { "purpose": "คำนวณ (ราคา/VAT/ดอกเบี้ย/สถานะ)", "modules": ["config-loader", "distance", "time", "fuel", "cost", "pricing", "tax", "debt", "capacity"] },
+    "v4-ai":         { "purpose": "แปลภาษา ไม่สร้างข้อมูล ไม่คำนวณ", "modules": ["bridge-local", "bridge-openai"] },
+    "v5-presenter":  { "purpose": "สรุป + Timeline + อธิบาย", "modules": ["enricher", "formatter", "ranker", "explainer"] },
+    "v6-executor":   { "purpose": "Execute + Drivers + Runtime", "modules": ["executor", "capabilities", "capability-manager"] },
+    "documents":     { "purpose": "Render Template เดียว", "modules": ["engine"] },
+    "commands":      { "purpose": "JSON Registry", "modules": ["commands", "workflows", "schema"] },
+    "core":          { "purpose": "Workflow Engine", "modules": ["engine", "registry", "audit", "init"] },
+    "drivers":       { "purpose": "App Drivers (BaseDriver)", "modules": ["base", "line", "chrome", "vscode", "finder", "terminal", "maps", "earth", "mail", "calendar", "pdf", "github"] },
+    "runtime":       { "purpose": "Node-only helpers", "modules": ["shell", "platform"] },
+    "browser":       { "purpose": "Browser Safe", "modules": ["parser"] },
+    "shared":        { "purpose": "Types", "modules": ["types"] },
+    "supabase":      { "purpose": "DB + Realtime", "modules": ["queries", "realtime"] },
+    "agent":         { "purpose": "Local macOS Agent", "modules": ["server"] },
+    "registry":      { "purpose": "System Registries", "modules": ["architecture", "modules", "interfaces", "events", "commands", "schemas", "drivers", "services"] }
+  }
+}

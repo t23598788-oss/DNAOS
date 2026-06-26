@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "drivers": {
+    "line":            { "type": "native",  "platform": "macos", "binary": "lib/drivers/line/line-driver", "status": "active" },
+    "chrome":          { "type": "ts",      "platform": "any",   "module": "lib/drivers/chrome.ts",        "status": "active" },
+    "vscode":          { "type": "ts",      "platform": "any",   "module": "lib/drivers/vscode.ts",        "status": "active" },
+    "finder":          { "type": "ts",      "platform": "macos", "module": "lib/drivers/finder.ts",        "status": "active" },
+    "terminal":        { "type": "ts",      "platform": "macos", "module": "lib/drivers/terminal.ts",      "status": "active" },
+    "maps":            { "type": "ts",      "platform": "any",   "module": "lib/drivers/maps.ts",          "status": "active" },
+    "earth":           { "type": "ts",      "platform": "macos", "module": "lib/drivers/earth.ts",         "status": "active" },
+    "mail":            { "type": "ts",      "platform": "macos", "module": "lib/drivers/mail.ts",          "status": "active" },
+    "calendar":        { "type": "ts",      "platform": "macos", "module": "lib/drivers/calendar.ts",      "status": "active" },
+    "pdf":             { "type": "ts",      "platform": "macos", "module": "lib/drivers/pdf.ts",           "status": "active" },
+    "github":          { "type": "ts",      "platform": "macos", "module": "lib/drivers/github.ts",        "status": "active" }
+  }
+}

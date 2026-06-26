@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "events": {
+    "line.message_received":    { "source": "v1-input",     "data": ["userId", "messageText", "messageType", "timestamp"] },
+    "command.parsed":           { "source": "v1-input",     "data": ["action", "payload"] },
+    "command.translated":       { "source": "v4-ai",        "data": ["action", "mode", "payload"] },
+    "rule.validated":           { "source": "v2-rules",     "data": ["valid", "message"] },
+    "engine.calculated":        { "source": "v3-engines",   "data": ["result", "audit"] },
+    "document.generated":       { "source": "documents",    "data": ["type", "docNumber", "html", "summary"] },
+    "document.previewed":       { "source": "v5-presenter", "data": ["docNumber"] },
+    "approval.requested":       { "source": "v6-executor",  "data": ["capability", "args"] },
+    "approval.confirmed":       { "source": "v6-executor",  "data": ["confirmId"] },
+    "executor.completed":       { "source": "v6-executor",  "data": ["tool", "action", "result"] },
+    "driver.action":            { "source": "drivers",      "data": ["driver", "command", "result"] },
+    "debt.status_changed":      { "source": "v3-engines",   "data": ["debtId", "from", "to", "event"] },
+    "debt.interest_calculated": { "source": "v3-engines",   "data": ["debtId", "principal", "interest", "total"] },
+    "payment.received":         { "source": "supabase",     "data": ["invoiceId", "amount", "method"] },
+    "error.occurred":           { "source": "*",            "data": ["module", "action", "error", "code"] }
+  }
+}

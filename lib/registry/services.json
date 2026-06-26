@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "services": {
+    "agent":           { "type": "http",     "port": 7777,  "module": "lib/agent/server.ts",                 "status": "active" },
+    "supabase":        { "type": "database", "module": "lib/supabase/queries.ts",                            "status": "active" },
+    "supabase-realtime": { "type": "websocket", "module": "lib/supabase/realtime.ts",                        "status": "active" },
+    "line-receiver":   { "type": "edge-function", "module": "supabase/functions/line-receiver/index.ts",     "status": "active" },
+    "line-webhook":    { "type": "edge-function", "module": "supabase/functions/line-webhook/index.ts",      "status": "active" },
+    "document-api":    { "type": "api-route", "path": "/api/document",  "module": "app/api/document/route.ts",  "status": "active" },
+    "computer-api":    { "type": "api-route", "path": "/api/computer",  "module": "app/api/computer/route.ts",  "status": "active" },
+    "action-api":      { "type": "api-route", "path": "/api/action",    "module": "app/api/action/route.ts",    "status": "active" },
+    "translate-api":   { "type": "api-route", "path": "/api/translate",  "module": "app/api/translate/route.ts", "status": "active" },
+    "explain-api":     { "type": "api-route", "path": "/api/explain",    "module": "app/api/explain/route.ts",  "status": "active" },
+    "execute-api":     { "type": "api-route", "path": "/api/execute",    "module": "app/api/execute/route.ts",  "status": "active" }
+  }
+}
