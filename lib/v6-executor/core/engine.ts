@@ -5,7 +5,7 @@
 
 import type { AppDriver, WorkflowResult, WorkflowDef } from "@/lib/shared/types";
 import { record } from "./audit";
-import workflowDefs from "@/lib/v6-executor/commands/workflows.json";
+import workflowDefs from "@/lib/commands/workflows.json";
 
 const workflows = workflowDefs as Record<string, WorkflowDef>;
 

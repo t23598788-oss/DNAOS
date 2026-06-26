@@ -5,7 +5,8 @@ export { calcFuel } from "./fuel";
 export { calcCost } from "./cost";
 export { calcPricing } from "./pricing";
 export { calcTax } from "./tax";
-export { calcDebt } from "./debt";
+export { calcDebtFull, calcCompoundInterest, calcDaysOverdue, checkOverdue, nextStatus } from "./debt/engine";
+export type { DebtStatus } from "./debt/engine";
 export { calcCapacity } from "./capacity";
 
 import type { AuditTrail } from "./config-loader";

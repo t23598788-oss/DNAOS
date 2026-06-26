@@ -6,7 +6,7 @@ import ResultViewer from "@/components/ResultViewer";
 import ActionPanel from "@/components/ActionPanel";
 import ActionModal from "@/components/ActionModal";
 import ToastContainer, { useToast } from "@/components/Toast";
-import { subscribePayments } from "@/lib/v2-rules/realtime";
+import { subscribePayments } from "@/lib/supabase/realtime";
 import type { CommandResult } from "@/types/command";
 import type { ActionResponse } from "@/lib/v2-rules/actions";
 
