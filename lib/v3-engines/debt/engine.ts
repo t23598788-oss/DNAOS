@@ -109,5 +109,10 @@ export { checkOverdue } from "./overdue";
 export { calcCollectionFee } from "./collection";
 export { nextStatus, canAccrueInterest, canChargeCollectionFee, isTerminal } from "./status";
 export type { DebtStatus } from "./status";
+export { applyTransition, buildTransitionChain } from "./transition";
+export type { TransitionEvent, TransitionResult } from "./transition";
+export { checkDebtSchedule, checkBatch } from "./scheduler";
+export { calcDebtSummary } from "./calculator";
+export type { DebtSummary } from "./calculator";
 
 function round(n: number): number { return Math.round(n * 100) / 100; }
