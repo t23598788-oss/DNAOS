@@ -5,6 +5,7 @@ import { handleDocuments } from "./documents";
 import { handleJobs } from "./jobs";
 import { handlePartners } from "./partners";
 import { handleLine } from "./line";
+import { handleComputer, parseComputerCommand } from "./computer";
 
 export function parseCommand(raw: string): Command {
   const text = raw.trim();
@@ -50,13 +51,13 @@ export function parseCommand(raw: string): Command {
   if (t.includes("วัสดุ") || t.includes("material"))
     return { action: "material.list" };
 
-  // ---- LINE ----
-  if (t.includes("เปิด line") || t.includes("เปิดไลน์") || t === "line")
-    return { action: "line.open" };
-
   // ---- DRIVE ----
   if (t.includes("เปิด drive") || t.includes("เปิดไดรฟ์") || t.includes("ไดรฟ์"))
     return { action: "drive.open" };
+
+  // ---- V6 COMPUTER (ใช้ Workflow Registry) ----
+  const computerCmd = parseComputerCommand(text);
+  if (computerCmd) return computerCmd;
 
   return { action: "unknown", payload: { source: text } };
 }
@@ -83,6 +84,8 @@ export async function dispatch(command: Command): Promise<CommandResult> {
         return await handleLine(command);
       case "drive":
         return await handleDocuments(command);
+      case "computer":
+        return await handleComputer(command);
       default:
         return {
           ok: false,

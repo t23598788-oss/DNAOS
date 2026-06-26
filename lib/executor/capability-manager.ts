@@ -277,7 +277,11 @@ export async function executeCapability(
     };
   }
 
-  // ลอง primary server
+  // ลอง Computer Control Layer ก่อน (local macOS)
+  const localResult = await tryLocalExecution(capability, args);
+  if (localResult) return localResult;
+
+  // ลอง primary MCP server
   if (isServerAlive(mapping.mcpServer)) {
     try {
       const result = await callMcpExecutor(mapping.mcpServer, mapping.toolName, args);
@@ -290,7 +294,7 @@ export async function executeCapability(
     }
   }
 
-  // ลอง fallback server
+  // ลอง fallback MCP server
   if (mapping.fallbackServer && mapping.fallbackTool) {
     try {
       const result = await callMcpExecutor(mapping.fallbackServer, mapping.fallbackTool, args);
@@ -308,6 +312,55 @@ export async function executeCapability(
     is_fallback: false, require_confirm: mapping.requireConfirm,
     error: `ทั้ง ${mapping.mcpServer} และ ${mapping.fallbackServer ?? "ไม่มี fallback"} ไม่ตอบสนอง`,
   };
+}
+
+async function tryLocalExecution(
+  capability: CapabilityAction,
+  args: Record<string, unknown>
+): Promise<CapabilityResult | null> {
+  try {
+    const { isLocalMac } = await import("./computer-control/osascript");
+    if (!isLocalMac()) return null;
+
+    const { planTask } = await import("../computer/planner");
+    const { enqueue, getQueueItem } = await import("../computer/queue");
+
+    const plan = planTask(capability, args);
+    if (!plan) return null;
+
+    plan.requireConfirm = false;
+    const item = enqueue(plan, args);
+
+    // รอ queue ทำงานเสร็จ (max 30s)
+    const deadline = Date.now() + 30_000;
+    while (Date.now() < deadline) {
+      const current = getQueueItem(item.id);
+      if (!current) break;
+      if (current.status === "completed" || current.status === "failed" || current.status === "cancelled") {
+        return {
+          ok: current.status === "completed",
+          capability,
+          server_used: "local-mac",
+          tool_used: plan.app,
+          is_fallback: false,
+          require_confirm: false,
+          result: current.status === "completed"
+            ? { steps: current.stepResults.length, app: plan.app, queueId: item.id }
+            : undefined,
+          error: current.status !== "completed" ? current.error : undefined,
+        };
+      }
+      await new Promise((r) => setTimeout(r, 200));
+    }
+
+    return {
+      ok: false, capability, server_used: "local-mac", tool_used: plan.app,
+      is_fallback: false, require_confirm: false,
+      error: "หมดเวลา — queue ทำงานไม่เสร็จภายใน 30 วินาที",
+    };
+  } catch {
+    return null;
+  }
 }
 
 async function callMcpExecutor(
