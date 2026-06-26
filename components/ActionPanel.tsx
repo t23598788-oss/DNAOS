@@ -1,7 +1,6 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { openLine, openDrive } from "@/lib/siri/shortcuts";
 
 export default function ActionPanel() {
   const router = useRouter();
@@ -18,14 +17,11 @@ export default function ActionPanel() {
 
   return (
     <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-      <button style={btn} onClick={openLine}>
-        Open LINE
-      </button>
-      <button style={btn} onClick={openDrive}>
-        Open Google Drive
+      <button style={btn} onClick={() => router.push("/command-center")}>
+        Command Center
       </button>
       <button style={btn} onClick={() => router.push("/dashboard")}>
-        Open Dashboard
+        Dashboard
       </button>
     </div>
   );

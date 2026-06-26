@@ -281,10 +281,7 @@ export default function OpsPage() {
       {/* ===== Messages ===== */}
       <div style={{ flex: 1, overflow: "auto", padding: "16px 24px" }}>
         {messages.length === 0 && (
-          <div style={{ textAlign: "center", marginTop: "25vh", color: "#222" }}>
-            <div style={{ fontSize: 28, fontWeight: 700, color: "#111", marginBottom: 8 }}>DNA OS</div>
-            <div style={{ fontSize: 14, color: "#333" }}>รอรับคำสั่งจากเฮีย</div>
-          </div>
+          <div style={{ textAlign: "center", marginTop: "25vh", color: "#aaa", fontSize: 13 }}>ไม่มีข้อมูล</div>
         )}
 
         {messages.map((msg, i) => (

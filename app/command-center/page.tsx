@@ -1,16 +1,13 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { generateDoc, DOC_LABELS, type DocType, type DocData, type DocResult } from "@/lib/documents/engine";
+import { DOC_LABELS, type DocType, type DocResult } from "@/lib/documents/engine";
 
 type Tab = "chat" | "documents" | "finance" | "search";
 type SideItem = { id: string; label: string; type: string; badge?: number };
 
-const SIDE_SECTIONS: { title: string; items: SideItem[] }[] = [
-  { title: "ลูกค้า", items: [{ id: "c1", label: "หจก. ฮ การช่าง", type: "customer", badge: 2 }, { id: "c2", label: "K Construction 199", type: "customer" }] },
-  { title: "Supplier", items: [{ id: "s1", label: "โรงโม่ศิลาขอนแก่น", type: "supplier" }, { id: "s2", label: "แพลนท์คอนกรีต A", type: "supplier" }] },
-  { title: "งาน", items: [{ id: "j1", label: "งานถมดิน ม.7", type: "job" }, { id: "j2", label: "งานขนหิน ถ.มิตรภาพ", type: "job" }] },
-];
+// Sidebar ดึงจาก Supabase — ไม่มี hardcode
+const SIDE_SECTIONS: { title: string; items: SideItem[] }[] = [];
 
 const QUICK_COMMANDS = [
   { cmd: "/quotation", label: "ใบเสนอราคา" },
@@ -26,9 +23,7 @@ export default function CommandCenter() {
   const [tab, setTab] = useState<Tab>("chat");
   const [selected, setSelected] = useState<SideItem | null>(null);
   const [input, setInput] = useState("");
-  const [messages, setMessages] = useState<{ role: string; text: string; time: string }[]>([
-    { role: "system", text: "DNA OS Command Center พร้อมใช้งาน", time: now() },
-  ]);
+  const [messages, setMessages] = useState<{ role: string; text: string; time: string }[]>([]);
   const [docPreview, setDocPreview] = useState<DocResult | null>(null);
   const [showQuick, setShowQuick] = useState(false);
   const chatEnd = useRef<HTMLDivElement>(null);
@@ -74,14 +69,14 @@ export default function CommandCenter() {
           addMsg("system", r.error ?? "ไม่พบข้อมูล");
         }
       } else {
-        addMsg("system", "ไม่เข้าใจคำสั่ง — ลอง /quotation, /invoice, /search");
+        addMsg("system", "ไม่เข้าใจคำสั่ง");
       }
     } catch {
       addMsg("system", "เชื่อมต่อไม่ได้");
     }
   }
 
-  function handleQuickCommand(cmd: string) {
+  async function handleQuickCommand(cmd: string) {
     const parts = cmd.split(" ");
     const command = parts[0];
 
@@ -92,20 +87,25 @@ export default function CommandCenter() {
     };
 
     if (docTypes[command]) {
-      const sampleDoc: DocData = {
-        type: docTypes[command],
-        customer: { name: selected?.label ?? "ลูกค้าตัวอย่าง", contact: "คุณสมชาย", taxId: "040xxxxxxxxx" },
-        project: selected?.type === "job" ? selected.label : "",
-        items: [
-          { description: "ค่าบริการพัฒนาระบบซอฟต์แวร์", detail: "ระบบบริหารจัดการงานขนส่ง", qty: 1, unit: "งาน", unitPrice: 38200 },
-          { description: "ค่าบริการแพลตฟอร์มอิเล็กทรอนิกส์", detail: "ติดตามสต็อกแบบเรียลไทม์", qty: 1, unit: "งาน", unitPrice: 22500 },
-        ],
-        status: "issued",
-      };
-      const result = generateDoc(sampleDoc);
-      setDocPreview(result);
-      setTab("documents");
-      addMsg("system", `สร้าง${result.label.th} ${result.docNumber} — ยอดสุทธิ ${result.summary.total.toLocaleString()} บาท`);
+      // STRICT RENDER MODE — ดึงข้อมูลจาก DB เท่านั้น ห้าม mock
+      addMsg("system", `กำลังดึงข้อมูลจากฐานข้อมูลเพื่อสร้าง${DOC_LABELS[docTypes[command]].th}...`);
+      try {
+        const res = await fetch("/api/document", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ type: docTypes[command], customer: { name: selected?.label }, items: [] }),
+        });
+        const data = await res.json();
+        if (data.html) {
+          setDocPreview(data);
+          setTab("documents");
+          addMsg("system", `${data.label?.th ?? docTypes[command]} — ยอดสุทธิ ${data.summary?.total?.toLocaleString() ?? 0} บาท`);
+        } else {
+          addMsg("system", data.error ?? "ไม่พบข้อมูล");
+        }
+      } catch {
+        addMsg("system", "ไม่พบข้อมูล");
+      }
       return;
     }
 
@@ -212,17 +212,16 @@ export default function CommandCenter() {
 
           {tab === "documents" && !docPreview && (
             <div style={{ textAlign: "center", padding: 40, color: "#888" }}>
-              <div style={{ fontSize: 14 }}>ยังไม่มีเอกสาร</div>
-              <div style={{ fontSize: 12, marginTop: 8 }}>ใช้คำสั่ง /quotation, /invoice, /delivery เพื่อสร้างเอกสาร</div>
+              <div style={{ fontSize: 14 }}>ไม่มีข้อมูล</div>
             </div>
           )}
 
           {tab === "finance" && (
-            <div style={{ padding: 20, color: "#888", fontSize: 14 }}>Finance Center — เชื่อมกับ Debt Engine (Phase ถัดไป)</div>
+            <div style={{ padding: 20, color: "#888", fontSize: 14 }}>ไม่มีข้อมูล</div>
           )}
 
           {tab === "search" && (
-            <div style={{ padding: 20, color: "#888", fontSize: 14 }}>Search — เชื่อมกับ Supabase (Phase ถัดไป)</div>
+            <div style={{ padding: 20, color: "#888", fontSize: 14 }}>ไม่มีข้อมูล</div>
           )}
         </div>
 
@@ -249,46 +248,16 @@ export default function CommandCenter() {
         </div>
       </div>
 
-      {/* ===== RIGHT CONTEXT ===== */}
+      {/* ===== RIGHT CONTEXT — ข้อมูลจาก DB เท่านั้น ===== */}
       <div style={{ width: 280, borderLeft: `1px solid ${border}`, background: "#fff", overflowY: "auto", flexShrink: 0, padding: 16 }}>
         {selected ? (
           <>
             <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 12 }}>{selected.label}</div>
             <div style={{ fontSize: 11, color: "#888", marginBottom: 16 }}>ประเภท: {selected.type}</div>
-
-            <div style={{ ...cardStyle }}>
-              <div style={cardTitle}>ข้อมูลบริษัท</div>
-              <div style={cardRow}>ผู้ติดต่อ: คุณสมชาย</div>
-              <div style={cardRow}>โทร: 08x-xxx-xxxx</div>
-              <div style={cardRow}>เลขภาษี: 040xxxxxxxxx</div>
-            </div>
-
-            <div style={{ ...cardStyle }}>
-              <div style={cardTitle}>เครดิต</div>
-              <div style={cardRow}>วงเงิน: 500,000 บาท</div>
-              <div style={cardRow}>ใช้ไป: 120,000 บาท</div>
-              <div style={{ ...cardRow, color: "#22c55e", fontWeight: 600 }}>คงเหลือ: 380,000 บาท</div>
-            </div>
-
-            <div style={{ ...cardStyle }}>
-              <div style={cardTitle}>ยอดค้าง</div>
-              <div style={{ ...cardRow, color: "#f59e0b", fontWeight: 600 }}>64,949 บาท</div>
-              <div style={{ fontSize: 10, color: "#888" }}>ครบกำหนด 17/07/2026</div>
-            </div>
-
-            <div style={{ ...cardStyle }}>
-              <div style={cardTitle}>AI Summary</div>
-              <div style={{ fontSize: 11, color: "#555", lineHeight: 1.6 }}>ลูกค้ารายนี้มียอดค้างชำระ 1 รายการ ใกล้ครบกำหนด เคยสั่งงานขนส่ง 12 ครั้งใน 3 เดือน</div>
-            </div>
-
-            <div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 12 }}>
-              <button onClick={() => { setInput("/quotation"); handleSubmit(); }} style={{ ...btnStyle, background: green, color: "#fff", width: "100%", textAlign: "center" }}>สร้างใบเสนอราคา</button>
-              <button onClick={() => { setInput("/invoice"); handleSubmit(); }} style={{ ...btnStyle, width: "100%", textAlign: "center" }}>สร้างใบแจ้งหนี้</button>
-              <button onClick={() => { setInput("/debt"); handleSubmit(); }} style={{ ...btnStyle, width: "100%", textAlign: "center" }}>ติดตามหนี้</button>
-            </div>
+            <div style={{ fontSize: 11, color: "#aaa", textAlign: "center", padding: 20 }}>ไม่มีข้อมูล</div>
           </>
         ) : (
-          <div style={{ textAlign: "center", padding: 40, color: "#aaa", fontSize: 12 }}>เลือกรายการจากด้านซ้าย</div>
+          <div style={{ textAlign: "center", padding: 40, color: "#aaa", fontSize: 12 }}>ไม่มีข้อมูล</div>
         )}
       </div>
     </div>
@@ -298,6 +267,3 @@ export default function CommandCenter() {
 function now() { return new Date().toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit" }); }
 
 const btnStyle: React.CSSProperties = { padding: "6px 14px", fontSize: 12, fontWeight: 600, border: "1px solid #d1d5db", borderRadius: 6, cursor: "pointer", background: "#fff" };
-const cardStyle: React.CSSProperties = { border: "1px solid #e5e7eb", borderRadius: 8, padding: 10, marginBottom: 10 };
-const cardTitle: React.CSSProperties = { fontSize: 10, fontWeight: 600, color: "#888", textTransform: "uppercase", letterSpacing: 1, marginBottom: 6 };
-const cardRow: React.CSSProperties = { fontSize: 12, marginBottom: 3, color: "#333" };

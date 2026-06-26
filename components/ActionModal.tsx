@@ -1,6 +1,6 @@
 "use client";
 
-import type { ActionResponse } from "@/lib/actions/dna-actions";
+import type { ActionResponse } from "@/lib/v2-rules/actions";
 
 interface Props {
   preview: ActionResponse | null;
