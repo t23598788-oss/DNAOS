@@ -143,22 +143,46 @@ export default function OpsPage() {
     }
   }
 
-  // ── V6: Tool execute ──
-  function executeTool(tool: Tool) {
+  // ── V6: Tool execute ผ่าน Computer Control API ──
+  async function executeTool(tool: Tool) {
     if (tool.status === "disabled") { addMsg("system", `${tool.name} — Disabled`); return; }
     if (tool.status === "auth_required") { addMsg("system", `${tool.name} — ต้อง Login ก่อนใช้งาน`); return; }
     if (tool.status === "offline") { addMsg("system", `${tool.name} — Offline`); return; }
 
     setShowTools(false);
-    switch (tool.id) {
-      case "gmaps":
-        if (context.pit_id) { window.open(`https://maps.google.com/?q=${context.pit}`, "_blank"); addMsg("system", `เปิด Google Maps → ${context.pit}`); }
-        else addMsg("system", "ค้นหาสถานที่ก่อน แล้วค่อยเปิดแผนที่");
-        break;
-      case "line": window.location.href = "line://"; addMsg("system", "เปิด LINE"); break;
-      case "vscode": window.location.href = "vscode://"; addMsg("system", "เปิด VS Code"); break;
-      default:
-        addMsg("system", `${tool.name} — Connected ✓ พร้อมรับคำสั่ง${tool.mcp_server ? ` (MCP: ${tool.mcp_server})` : ""}`);
+
+    const appNames: Record<string, string> = {
+      line: "LINE", whatsapp: "WhatsApp", messenger: "Messenger", telegram: "Telegram",
+      discord: "Discord", slack: "Slack", gmaps: "Google Maps", gearth: "Google Earth",
+      gdrive: "Finder", supabase: "Google Chrome", openai: "Google Chrome",
+      claude: "Google Chrome", gemini: "Google Chrome", github: "GitHub Desktop",
+      vscode: "VS Code", gmail: "Mail", gcal: "Calendar", pdf: "PDF Viewer",
+      vercel: "Terminal", mcp: "Terminal", facebook: "Google Chrome",
+      instagram: "Google Chrome", tiktok: "Google Chrome", x: "Google Chrome",
+      onedrive: "Finder", dropbox: "Finder",
+    };
+
+    const appName = appNames[tool.id];
+    if (!appName) {
+      addMsg("system", `${tool.name} — Connected ✓ พร้อมรับคำสั่ง${tool.mcp_server ? ` (MCP: ${tool.mcp_server})` : ""}`);
+      return;
+    }
+
+    addMsg("system", `กำลังเปิด ${tool.name}...`);
+    try {
+      const res = await fetch("/api/computer", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ workflow: "app.launch", app: appName }),
+      });
+      const data = await res.json();
+      if (data.ok) {
+        addMsg("system", `เปิด ${tool.name} สำเร็จ ✓`);
+      } else {
+        addMsg("system", `${tool.name} — ${data.error ?? "เปิดไม่ได้"}`);
+      }
+    } catch {
+      addMsg("system", `${tool.name} — ต้องรันบน local (next dev) เท่านั้น`);
     }
   }
 
