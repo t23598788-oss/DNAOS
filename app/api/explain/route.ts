@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { explainQuote } from "@/lib/presenter/explainer";
+import { explainQuote } from "@/lib/v5-presenter/explainer";
 
 export async function POST(req: NextRequest) {
   try {

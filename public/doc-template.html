@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DNA OS — Document</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap');
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Sarabun',sans-serif;font-size:12px;color:#111;background:#e0e0e0}
+
+  .page{width:210mm;min-height:297mm;margin:8mm auto;padding:10mm 12mm 12mm;background:#fff;box-shadow:0 2px 12px rgba(0,0,0,.12);position:relative}
+
+  /* ── Header ── */
+  .hdr{display:flex;justify-content:space-between;align-items:flex-start;padding-bottom:8px;border-bottom:2.5px solid #111;margin-bottom:10px}
+  .hdr-l h1{font-size:20px;font-weight:700;letter-spacing:2px}
+  .hdr-l p{font-size:10px;color:#444;line-height:1.5}
+  .hdr-r{text-align:right}
+  .dtype{font-size:18px;font-weight:700;letter-spacing:2px;border:2.5px solid #111;padding:3px 14px;display:inline-block}
+  .dtype-th{font-size:13px;font-weight:600;margin-top:2px}
+  .dnum{font-size:11px;margin-top:4px;font-weight:600}
+  .dstatus{display:inline-block;font-size:10px;font-weight:700;padding:2px 10px;margin-top:4px;letter-spacing:1px}
+  .dstatus.draft{background:#f3f4f6;color:#666;border:1px solid #ccc}
+  .dstatus.issued{background:#dbeafe;color:#1e40af;border:1px solid #60a5fa}
+  .dstatus.outstanding{background:#fef3c7;color:#92400e;border:1px solid #f59e0b}
+  .dstatus.overdue{background:#fee2e2;color:#991b1b;border:1px solid #ef4444}
+  .dstatus.paid{background:#d1fae5;color:#065f46;border:1px solid #10b981}
+
+  /* ── Grid ── */
+  .grid{display:grid;grid-template-columns:1fr 1fr;border:1px solid #444;margin-bottom:10px}
+  .cell{padding:6px 8px;border:1px solid #444}
+  .cell .lb{font-size:9px;color:#888;text-transform:uppercase;letter-spacing:.8px}
+  .cell .vl{font-size:11px;font-weight:600;margin-top:1px}
+  .cell .sub{font-size:9.5px;color:#555}
+
+  /* ── Table ── */
+  table{width:100%;border-collapse:collapse;margin-bottom:10px}
+  th{background:#111;color:#fff;font-size:9.5px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;padding:6px 7px;text-align:left}
+  th.r,td.r{text-align:right}
+  th.c,td.c{text-align:center}
+  td{padding:6px 7px;border-bottom:1px solid #ddd;font-size:11px}
+  tr:last-child td{border-bottom:2px solid #111}
+  .iname{font-weight:600}
+  .idesc{font-size:10px;color:#555;margin-top:1px}
+
+  /* ── Summary ── */
+  .summ{display:flex;justify-content:space-between;margin-bottom:10px}
+  .summ-l{font-size:10px;color:#555;max-width:50%;line-height:1.6}
+  .summ-r{width:210px}
+  .sr{display:flex;justify-content:space-between;padding:3px 0;font-size:11px;border-bottom:1px solid #eee}
+  .sr.tot{border-top:2px solid #111;border-bottom:2px solid #111;font-size:14px;font-weight:700;padding:6px 0;margin-top:3px}
+  .sr.sub{color:#555;font-size:10px}
+
+  /* ── Debt Section ── */
+  .debt{border:1.5px solid #dc2626;padding:8px 10px;margin-bottom:10px;background:#fef2f2}
+  .debt h3{font-size:12px;font-weight:700;color:#991b1b;margin-bottom:6px;letter-spacing:1px}
+  .debt .dr{display:flex;justify-content:space-between;padding:2px 0;font-size:11px}
+  .debt .dr.dtot{font-weight:700;font-size:13px;border-top:1.5px solid #dc2626;padding-top:4px;margin-top:3px}
+  .debt .formula{font-size:9px;color:#888;margin-top:4px;font-style:italic}
+
+  /* ── Payment ── */
+  .pay{border:1px solid #444;padding:8px 10px;margin-bottom:10px;display:flex;justify-content:space-between}
+  .pay-l{font-size:10.5px;line-height:1.6}
+  .pay-l .bk{font-weight:700;font-size:12px}
+  .pay-r{text-align:right;font-size:10px}
+
+  /* ── Signatures ── */
+  .sigs{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;margin-top:20px;text-align:center}
+  .sig{border-top:1px solid #333;margin-top:40px;padding-top:4px;font-size:9.5px}
+
+  .ftr{text-align:center;font-size:9px;color:#888;margin-top:12px;border-top:1px solid #ddd;padding-top:6px}
+
+  /* ── Controls ── */
+  .ctrl{text-align:center;margin:8px auto;max-width:210mm}
+  .ctrl button{font-family:'Sarabun',sans-serif;font-size:12px;font-weight:600;padding:7px 18px;margin:3px;border:none;border-radius:5px;cursor:pointer}
+  .bp{background:#111;color:#fff}
+  .bt{background:#f3f4f6;color:#111;border:1px solid #ccc!important}
+  .bt.on{background:#111;color:#fff}
+
+  @media print{body{background:#fff}.page{margin:0;box-shadow:none;width:100%}.ctrl{display:none!important}}
+</style>
+</head>
+<body>
+
+<div class="ctrl" id="ctrl">
+  <button class="bt on" onclick="setType('INV')">ใบแจ้งหนี้</button>
+  <button class="bt" onclick="setType('QUO')">ใบเสนอราคา</button>
+  <button class="bt" onclick="setType('PO')">ใบสั่งซื้อ</button>
+  <button class="bt" onclick="setType('DO')">ใบส่งของ</button>
+  <button class="bt" onclick="setType('REC')">ใบเสร็จ</button>
+  <button class="bt" onclick="setType('DEM')">ทวงหนี้</button>
+  <button class="bt" onclick="setType('NOT')">แจ้งยอดค้าง</button>
+  <button class="bp" onclick="window.print()">⬇ บันทึก PDF</button>
+</div>
+
+<div class="page" id="page"></div>
+
+<script>
+// ══════════════════════════════════════════════
+// DATA — แก้เฉพาะตรงนี้ (หรือดึงจาก DB)
+// ══════════════════════════════════════════════
+const co = {
+  name:"DNA OS", full:"บริษัท ดีเอ็นเอ โอเอส จำกัด",
+  tax:"0405569002851", phone:"088-985-4294",
+  email:"dnaos@company.com",
+  addr:"435 ม.8 ต.โนนท่อน อ.เมือง จ.ขอนแก่น",
+  bank:"ธนาคารกสิกรไทย", acct:"230-8-66630-4",
+  branch:"สาขา โลตัส ขอนแก่น 2",
+  promptpay:"0405569002851"
+};
+
+const ev = {
+  id:"INV-20260617-0001",
+  date:"17/06/2026",
+  credit:30,
+  due:"17/07/2026",
+  status:"outstanding",  // draft|issued|outstanding|overdue|paid
+  ref:"",
+  project:"ระบบบริหารจัดการงานขนส่ง",
+
+  customer:{
+    name:"หจก. ฮ การช่าง",
+    contact:"คุณสมชาย",
+    tax:"040xxxxxxxxx",
+    addr:"123 ถ.มิตรภาพ อ.เมือง จ.ขอนแก่น",
+    phone:"08x-xxx-xxxx"
+  },
+
+  items:[
+    {name:"ค่าบริการพัฒนาระบบซอฟต์แวร์",desc:"บริหารจัดการข้อมูลงานก่อสร้าง",qty:1,unit:"งาน",price:38200,discount:0},
+    {name:"ค่าบริการแพลตฟอร์มอิเล็กทรอนิกส์",desc:"ติดตามการขนส่ง-สต็อกแบบเรียลไทม์",qty:1,unit:"งาน",price:22500,discount:0}
+  ],
+
+  shipping:0,
+  serviceFee:0,
+  otherFee:0,
+  discount:0,
+  vat:0.07,
+  paidAmount:0,
+
+  // กรณีเอกสารหนี้
+  debt:{
+    principal:0,       // ถ้า 0 = คำนวณจาก items
+    fee:0,
+    interestStart:"17/07/2026",
+    rate:0.25,
+    daysOverdue:0      // ถ้า 0 = คำนวณจากวันนี้
+  }
+};
+
+// ══════════════════════════════════════════════
+// ENGINE — ห้ามแก้
+// ══════════════════════════════════════════════
+const types = {
+  QUO:{en:"QUOTATION",th:"ใบเสนอราคา"},
+  PO:{en:"PURCHASE ORDER",th:"ใบสั่งซื้อ"},
+  DO:{en:"DELIVERY ORDER",th:"ใบส่งของ"},
+  INV:{en:"INVOICE",th:"ใบแจ้งหนี้"},
+  REC:{en:"RECEIPT",th:"ใบเสร็จรับเงิน"},
+  DEM:{en:"DEMAND NOTICE",th:"หนังสือทวงหนี้"},
+  NOT:{en:"STATEMENT",th:"หนังสือแจ้งยอดค้างชำระ"}
+};
+
+const statusLabels = {
+  draft:"ร่าง",issued:"ออกแล้ว",outstanding:"ค้างชำระ",overdue:"เกินกำหนด",paid:"ชำระแล้ว"
+};
+
+let cur = "INV";
+const f = n => n.toLocaleString("th-TH",{minimumFractionDigits:2,maximumFractionDigits:2});
+
+function calc(){
+  const itemTotal = ev.items.reduce((s,i)=>s+i.qty*i.price-i.discount,0);
+  const beforeDiscount = itemTotal + ev.shipping + ev.serviceFee + ev.otherFee;
+  const afterDiscount = beforeDiscount - ev.discount;
+  const vatAmt = Math.round(afterDiscount * ev.vat * 100)/100;
+  const grand = afterDiscount + vatAmt;
+  const remaining = grand - ev.paidAmount;
+
+  let debtInfo = null;
+  if(cur==="DEM"||cur==="NOT"||ev.status==="overdue"){
+    const P = ev.debt.principal || grand;
+    const F = ev.debt.fee;
+    const r = ev.debt.rate;
+    const parts = ev.debt.interestStart.split("/");
+    const startDate = new Date(parts[2],parts[1]-1,parts[0]);
+    const d = ev.debt.daysOverdue || Math.max(0,Math.floor((Date.now()-startDate)/(86400000)));
+    const dailyRate = r/365;
+    const current = (P+F)*Math.pow(1+dailyRate,d);
+    const interest = current-(P+F);
+    debtInfo = {P,F,r,d,dailyRate,current,interest,total:P+F+interest};
+  }
+
+  return {itemTotal,beforeDiscount,afterDiscount,vatAmt,grand,remaining,debtInfo};
+}
+
+function render(){
+  const c = calc();
+  const t = types[cur];
+  const docId = ev.id.replace(/^[A-Z]+/,cur);
+  const isDebt = cur==="DEM"||cur==="NOT";
+  const st = isDebt?"overdue":ev.status;
+
+  document.getElementById("page").innerHTML = `
+  <!-- HEADER -->
+  <div class="hdr">
+    <div class="hdr-l">
+      <h1>${co.name}</h1>
+      <p>${co.full}<br>${co.addr}<br>โทร ${co.phone} | ${co.email}<br>เลขผู้เสียภาษี ${co.tax}</p>
+    </div>
+    <div class="hdr-r">
+      <div class="dtype">${t.en}</div>
+      <div class="dtype-th">${t.th}</div>
+      <div class="dnum">${docId}</div>
+      <div class="dstatus ${st}">${statusLabels[st]?.toUpperCase()??st}</div>
+    </div>
+  </div>
+
+  <!-- INFO GRID -->
+  <div class="grid">
+    <div class="cell">
+      <div class="lb">ลูกค้า / Customer</div>
+      <div class="vl">${ev.customer.name}</div>
+      <div class="sub">ผู้ติดต่อ: ${ev.customer.contact}</div>
+      <div class="sub">${ev.customer.addr}</div>
+      <div class="sub">โทร ${ev.customer.phone}</div>
+    </div>
+    <div class="cell">
+      <div class="lb">เลขที่เอกสาร / Doc No.</div>
+      <div class="vl">${docId}</div>
+      <div class="sub">วันที่: ${ev.date}</div>
+      ${ev.ref?`<div class="sub">Ref: ${ev.ref}</div>`:""}
+    </div>
+    <div class="cell">
+      <div class="lb">เลขผู้เสียภาษีลูกค้า / Customer Tax ID</div>
+      <div class="vl">${ev.customer.tax}</div>
+    </div>
+    <div class="cell">
+      <div class="lb">Project / Reference</div>
+      <div class="vl">${ev.project||"-"}</div>
+      ${ev.credit?`<div class="sub">เครดิต ${ev.credit} วัน — ครบกำหนด ${ev.due}</div>`:""}
+    </div>
+  </div>
+
+  <!-- ITEMS TABLE -->
+  <table>
+    <thead><tr>
+      <th style="width:30px" class="c">ลำดับ</th>
+      <th>รายการ / Description</th>
+      <th style="width:45px" class="c">จำนวน</th>
+      <th style="width:40px" class="c">หน่วย</th>
+      <th style="width:80px" class="r">ราคา/หน่วย</th>
+      <th style="width:65px" class="r">ส่วนลด</th>
+      <th style="width:85px" class="r">จำนวนเงิน</th>
+    </tr></thead>
+    <tbody>
+      ${ev.items.map((x,i)=>`<tr>
+        <td class="c">${i+1}</td>
+        <td><div class="iname">${x.name}</div>${x.desc?`<div class="idesc">${x.desc}</div>`:""}</td>
+        <td class="c">${x.qty}</td>
+        <td class="c">${x.unit||"งาน"}</td>
+        <td class="r">${f(x.price)}</td>
+        <td class="r">${x.discount?f(x.discount):"-"}</td>
+        <td class="r">${f(x.qty*x.price-x.discount)}</td>
+      </tr>`).join("")}
+    </tbody>
+  </table>
+
+  <!-- SUMMARY -->
+  <div class="summ">
+    <div class="summ-l">
+      <strong>หมายเหตุ</strong><br>
+      กรุณาชำระภายในกำหนด ${ev.credit||30} วัน<br>
+      ขอบคุณที่ใช้บริการ ${co.name}
+    </div>
+    <div class="summ-r">
+      <div class="sr"><span>รวมค่าสินค้า/บริการ</span><span>${f(c.itemTotal)}</span></div>
+      ${ev.shipping?`<div class="sr sub"><span>ค่าขนส่ง</span><span>${f(ev.shipping)}</span></div>`:""}
+      ${ev.serviceFee?`<div class="sr sub"><span>ค่าบริการ</span><span>${f(ev.serviceFee)}</span></div>`:""}
+      ${ev.otherFee?`<div class="sr sub"><span>ค่าธรรมเนียม</span><span>${f(ev.otherFee)}</span></div>`:""}
+      ${ev.discount?`<div class="sr sub"><span>ส่วนลด</span><span>-${f(ev.discount)}</span></div>`:""}
+      <div class="sr"><span>ยอดก่อน VAT</span><span>${f(c.afterDiscount)}</span></div>
+      <div class="sr"><span>VAT ${(ev.vat*100).toFixed(0)}%</span><span>${f(c.vatAmt)}</span></div>
+      <div class="sr tot"><span>ยอดสุทธิ</span><span>${f(c.grand)}</span></div>
+      ${ev.paidAmount?`
+        <div class="sr sub"><span>ชำระแล้ว</span><span>-${f(ev.paidAmount)}</span></div>
+        <div class="sr" style="font-weight:600"><span>ยอดคงเหลือ</span><span>${f(c.remaining)}</span></div>
+      `:""}
+    </div>
+  </div>
+
+  <!-- DEBT SECTION -->
+  ${c.debtInfo?`
+  <div class="debt">
+    <h3>● รายละเอียดหนี้ค้างชำระ</h3>
+    <div class="dr"><span>เงินต้น (P)</span><span>${f(c.debtInfo.P)}</span></div>
+    ${c.debtInfo.F?`<div class="dr"><span>ค่าธรรมเนียม (F)</span><span>${f(c.debtInfo.F)}</span></div>`:""}
+    <div class="dr"><span>วันที่เริ่มคิดดอกเบี้ย</span><span>${ev.debt.interestStart}</span></div>
+    <div class="dr"><span>จำนวนวันค้างชำระ</span><span>${c.debtInfo.d} วัน</span></div>
+    <div class="dr"><span>อัตราดอกเบี้ย</span><span>${(c.debtInfo.r*100).toFixed(0)}% ต่อปี (ต้นทบดอก)</span></div>
+    <div class="dr"><span>ดอกเบี้ยสะสม</span><span>${f(c.debtInfo.interest)}</span></div>
+    <div class="dr dtot"><span>ยอดที่ต้องชำระทั้งหมด</span><span>${f(c.debtInfo.total)}</span></div>
+    <div class="formula">สูตร: (P+F) × (1 + ${c.debtInfo.r}÷365)^${c.debtInfo.d} = ${f(c.debtInfo.current)}</div>
+  </div>
+  `:""}
+
+  <!-- PAYMENT -->
+  <div class="pay">
+    <div class="pay-l">
+      <div>เงื่อนไขการชำระเงิน</div>
+      <div class="bk">${co.bank}</div>
+      <div>เลขที่ ${co.acct}</div>
+      <div>ชื่อบัญชี ${co.full}</div>
+      <div>${co.branch}</div>
+      <div style="margin-top:4px">PromptPay: ${co.promptpay}</div>
+    </div>
+    <div class="pay-r">
+      <div>กำหนดชำระ</div>
+      <div style="font-weight:700;font-size:13px">${ev.due}</div>
+    </div>
+  </div>
+
+  <!-- SIGNATURES -->
+  <div class="sigs">
+    <div><div class="sig">ผู้จัดทำ</div><div style="font-size:8px;color:#888">วันที่ ____/____/____</div></div>
+    <div><div class="sig">ผู้ตรวจสอบ</div><div style="font-size:8px;color:#888">วันที่ ____/____/____</div></div>
+    <div><div class="sig">ผู้อนุมัติ</div><div style="font-size:8px;color:#888">วันที่ ____/____/____</div></div>
+    <div><div class="sig">ผู้รับเอกสาร</div><div style="font-size:8px;color:#888">วันที่ ____/____/____</div></div>
+  </div>
+
+  <div class="ftr">${co.full} | เลขผู้เสียภาษี ${co.tax} | ${co.addr} | โทร ${co.phone}</div>
+  `;
+
+  document.title = `${cur}-${docId}`;
+  document.querySelectorAll(".bt").forEach(b=>b.classList.toggle("on",b.textContent.includes(t.th)));
+}
+
+function setType(t){cur=t;render();}
+render();
+</script>
+</body>
+</html>

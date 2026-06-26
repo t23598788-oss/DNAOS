@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import type { CommandResult } from "@/types/command";
-import { runCommand } from "@/lib/router";
+import { runCommand } from "@/lib/v1-input/parser";
 
 interface Props {
   onResult: (result: CommandResult) => void;

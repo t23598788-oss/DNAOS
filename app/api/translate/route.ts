@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { translateWithAI } from "@/lib/ai-bridge-openai";
-import { translate as translateLocal } from "@/lib/ai-bridge";
+import { translateWithAI } from "@/lib/v4-ai/bridge-openai";
+import { translate as translateLocal } from "@/lib/v4-ai/bridge-local";
 
 export async function POST(req: NextRequest) {
   try {

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import type { CommandResult } from "@/types/command";
-import { dispatch } from "@/lib/router";
+import { dispatch } from "@/lib/v1-input/parser";
 
 interface Props {
   onResult: (result: CommandResult) => void;
@@ -67,7 +67,7 @@ export default function CommandBoxAI({ onResult }: Props) {
         onResult(result);
       } else {
         // AI แปลไม่ได้ → ลอง V1 keyword match
-        const { runCommand } = await import("@/lib/router");
+        const { runCommand } = await import("@/lib/v1-input/parser");
         const result = await runCommand(input);
         onResult(result);
       }

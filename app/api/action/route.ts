@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { dispatchAction } from "@/lib/actions/dna-actions";
-import { dispatchFind } from "@/lib/actions/find-resolver";
-import { enrichPitResults, enrichPartnerResults } from "@/lib/presenter/enricher";
-import { formatPitResults, formatPartnerResults } from "@/lib/presenter/formatter";
-import { detectRankContext, rankResults } from "@/lib/presenter/ranker";
-import type { ActionRequest } from "@/lib/actions/dna-actions";
+import { dispatchAction } from "@/lib/v2-rules/actions";
+import { dispatchFind } from "@/lib/v2-rules/resolver";
+import { enrichPitResults, enrichPartnerResults } from "@/lib/v5-presenter/enricher";
+import { formatPitResults, formatPartnerResults } from "@/lib/v5-presenter/formatter";
+import { detectRankContext, rankResults } from "@/lib/v5-presenter/ranker";
+import type { ActionRequest } from "@/lib/v2-rules/actions";
 
 // DNA OS HQ — ขอนแก่น
 const HQ_LAT = 16.4714;

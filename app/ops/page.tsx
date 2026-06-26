@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { dispatch } from "@/lib/router";
-import { CAPABILITIES, getToolsByCapability, getStatusColor, getStatusLabel } from "@/lib/executor/capabilities";
-import type { CapabilityType, Tool } from "@/lib/executor/capabilities";
+import { dispatch } from "@/lib/v1-input/parser";
+import { CAPABILITIES, getToolsByCapability, getStatusColor, getStatusLabel } from "@/lib/v6-executor/capabilities";
+import type { CapabilityType, Tool } from "@/lib/v6-executor/capabilities";
 
 // ---- Types ----
 interface Message {

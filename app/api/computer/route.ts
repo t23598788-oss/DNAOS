@@ -4,7 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { isLocalMac } from "@/lib/runtime/platform";
+import { isLocalMac } from "@/lib/v6-executor/runtime/platform";
 
 export async function POST(req: NextRequest) {
   if (!isLocalMac()) {
@@ -19,22 +19,22 @@ export async function POST(req: NextRequest) {
   }
 
   // Dynamic import — child_process อยู่เฉพาะฝั่ง server
-  const { register } = await import("@/lib/core/registry");
-  const { get, list } = await import("@/lib/core/registry");
-  const { execute } = await import("@/lib/core/engine");
+  const { register } = await import("@/lib/v6-executor/core/registry");
+  const { get, list } = await import("@/lib/v6-executor/core/registry");
+  const { execute } = await import("@/lib/v6-executor/core/engine");
 
   // Register drivers (lazy)
-  const line = (await import("@/lib/drivers/line")).default;
-  const chrome = (await import("@/lib/drivers/chrome")).default;
-  const vscode = (await import("@/lib/drivers/vscode")).default;
-  const finder = (await import("@/lib/drivers/finder")).default;
-  const terminal = (await import("@/lib/drivers/terminal")).default;
-  const maps = (await import("@/lib/drivers/maps")).default;
-  const earth = (await import("@/lib/drivers/earth")).default;
-  const mail = (await import("@/lib/drivers/mail")).default;
-  const calendar = (await import("@/lib/drivers/calendar")).default;
-  const pdf = (await import("@/lib/drivers/pdf")).default;
-  const github = (await import("@/lib/drivers/github")).default;
+  const line = (await import("@/lib/v6-executor/drivers/line")).default;
+  const chrome = (await import("@/lib/v6-executor/drivers/chrome")).default;
+  const vscode = (await import("@/lib/v6-executor/drivers/vscode")).default;
+  const finder = (await import("@/lib/v6-executor/drivers/finder")).default;
+  const terminal = (await import("@/lib/v6-executor/drivers/terminal")).default;
+  const maps = (await import("@/lib/v6-executor/drivers/maps")).default;
+  const earth = (await import("@/lib/v6-executor/drivers/earth")).default;
+  const mail = (await import("@/lib/v6-executor/drivers/mail")).default;
+  const calendar = (await import("@/lib/v6-executor/drivers/calendar")).default;
+  const pdf = (await import("@/lib/v6-executor/drivers/pdf")).default;
+  const github = (await import("@/lib/v6-executor/drivers/github")).default;
   [line, chrome, vscode, finder, terminal, maps, earth, mail, calendar, pdf, github].forEach(register);
 
   if (workflow === "system.status") {

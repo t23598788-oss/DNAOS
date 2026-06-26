@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { execute } from "@/lib/executor/executor";
-import type { ExecuteRequest } from "@/lib/executor/executor";
+import { execute } from "@/lib/v6-executor/executor";
+import type { ExecuteRequest } from "@/lib/v6-executor/executor";
 
 export async function POST(req: NextRequest) {
   try {
