@@ -56,6 +56,7 @@ export interface DocData {
   discount?: number;
   vatRate?: number;
   paidAmount?: number;
+  paymentRequired?: boolean;
   notes?: string;
   debt?: {
     principal: number;
@@ -120,6 +121,11 @@ export function generateDoc(data: DocData): DocResult {
   };
   const st = data.status ?? "issued";
 
+  // Compliance Policy: payment section แสดงเฉพาะเอกสารรับเงิน
+  const paymentTypes: DocType[] = ["invoice", "billing", "debt_notice"];
+  const showPayment = data.paymentRequired ?? paymentTypes.includes(data.type);
+  const showDebt = !!data.debt;
+
   const html = `<!DOCTYPE html><html lang="th"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -153,8 +159,6 @@ tr:last-child td{border-bottom:2px solid #22c55e}
 .debt .dtot{font-weight:700;font-size:13px;border-top:1.5px solid #dc2626;padding-top:4px;margin-top:3px}
 .pay{border:1px solid #d1d5db;padding:8px 10px;margin-bottom:12px;display:flex;justify-content:space-between;border-radius:6px}
 .pay-l{font-size:10px;line-height:1.6}.pay-l .bk{font-weight:700;font-size:12px;color:#22c55e}
-.sigs{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-top:20px;text-align:center}
-.sig{border-top:1px solid #999;margin-top:40px;padding-top:4px;font-size:9px}
 .ftr{text-align:center;font-size:9px;color:#aaa;margin-top:12px;border-top:1px solid #e5e7eb;padding-top:6px}
 </style></head><body>
 <div class="hdr">
@@ -190,8 +194,7 @@ ${data.debt ? `<div class="debt"><h3>● รายละเอียดหนี
 <div class="dr"><span>อัตราดอกเบี้ย</span><span>${(data.debt.interestRate * 100).toFixed(0)}% ต่อปี (ต้นทบดอก)</span></div>
 <div class="dr"><span>ดอกเบี้ยสะสม</span><span>${f(data.debt.interestAccrued)}</span></div>
 <div class="dr dtot"><span>ยอดที่ต้องชำระ</span><span>${f(data.debt.principal + data.debt.fee + data.debt.interestAccrued)}</span></div></div>` : ""}
-<div class="pay"><div class="pay-l"><div>ชำระเงิน</div><div class="bk">${COMPANY.bank}</div><div>เลขที่ ${COMPANY.acct}</div><div>ชื่อบัญชี ${COMPANY.full}</div><div>${COMPANY.branch}</div><div style="margin-top:3px">PromptPay: ${COMPANY.promptpay}</div></div><div style="text-align:right;font-size:10px">${data.dueDate ? `<div>กำหนดชำระ</div><div style="font-weight:700;font-size:13px;color:#22c55e">${data.dueDate}</div>` : ""}</div></div>
-<div class="sigs"><div><div class="sig">ผู้จัดทำ</div></div><div><div class="sig">ผู้อนุมัติ</div></div><div><div class="sig">ผู้รับเอกสาร</div></div></div>
+${showPayment ? `<div class="pay"><div class="pay-l"><div>ชำระเงิน</div><div class="bk">${COMPANY.bank}</div><div>เลขที่ ${COMPANY.acct}</div><div>ชื่อบัญชี ${COMPANY.full}</div><div>${COMPANY.branch}</div></div><div style="text-align:right;font-size:10px">${data.dueDate ? `<div>กำหนดชำระ</div><div style="font-weight:700;font-size:13px;color:#22c55e">${data.dueDate}</div>` : ""}</div></div>` : ""}
 <div class="ftr">${COMPANY.full} | เลขผู้เสียภาษี ${COMPANY.tax} | ${COMPANY.addr} | โทร ${COMPANY.phone}</div>
 </body></html>`;
 
