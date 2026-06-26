@@ -1,7 +1,6 @@
 {
-  "version": "1.0",
+  "version": "1.1",
   "phase": "copilot",
-  "description": "DBD Command Schema — AI Copilot Mode",
 
   "permissions": {
     "read": true,
@@ -13,124 +12,117 @@
     "require_human_approval": true
   },
 
+  "actions": [
+    "OPEN_APP",
+    "FOCUS_WINDOW",
+    "READ_WINDOW",
+    "SEARCH_DATABASE",
+    "QUERY_MAP",
+    "CALCULATE",
+    "GENERATE",
+    "PREVIEW",
+    "APPROVE",
+    "EXECUTE",
+    "REGISTER",
+    "SAVE"
+  ],
+
   "commands": [
     {
       "command": "OPEN_LINE",
-      "description": "เปิดแอป LINE บนเครื่อง",
+      "action": "OPEN_APP",
+      "target": "LINE",
       "layer": "V6",
-      "approval": false,
-      "params": {}
+      "approval": false
     },
     {
       "command": "READ_CHAT",
-      "description": "อ่านข้อความในห้องแชทปัจจุบัน",
+      "action": "READ_WINDOW",
+      "target": "LINE",
       "layer": "V1",
       "approval": false,
-      "params": {
-        "chat": { "type": "string", "default": "current", "description": "ห้องแชทที่ต้องการอ่าน" }
-      }
+      "params": { "chat": { "type": "string", "default": "current" } }
     },
     {
       "command": "SUMMARIZE_CHAT",
-      "description": "สรุปเหตุการณ์จากแชท — ลูกค้าต้องการอะไร จำนวน ส่งเมื่อไหร่ สถานะ",
+      "action": "READ_WINDOW",
+      "target": "LINE",
       "layer": "V4",
-      "approval": false,
-      "params": {}
+      "approval": false
     },
     {
       "command": "SEARCH_PARTNER",
-      "description": "ค้นหาคู่ค้าจาก Supabase",
+      "action": "SEARCH_DATABASE",
+      "table": "partners",
       "layer": "V1",
       "approval": false,
-      "params": {
-        "keyword": { "type": "string", "required": true, "description": "ชื่อบริษัท/ลูกค้า" }
-      }
+      "params": { "keyword": { "type": "string", "required": true } }
     },
     {
       "command": "SEARCH_DEBT",
-      "description": "ค้นยอดหนี้ของคู่ค้า",
+      "action": "SEARCH_DATABASE",
+      "table": "debts",
       "layer": "V3",
       "approval": false,
-      "params": {
-        "partner": { "type": "string", "required": true, "description": "ชื่อคู่ค้า" }
-      }
+      "params": { "partner": { "type": "string", "required": true } }
     },
     {
       "command": "LOAD_INVOICE",
-      "description": "ดึงใบแจ้งหนี้ของคู่ค้า",
+      "action": "SEARCH_DATABASE",
+      "table": "documents",
       "layer": "V1",
       "approval": false,
-      "params": {
-        "partner": { "type": "string", "required": true, "description": "ชื่อคู่ค้า" },
-        "status": { "type": "string", "default": "all", "description": "all / outstanding / paid" }
-      }
+      "params": { "partner": { "type": "string", "required": true }, "status": { "type": "string", "default": "all" } }
     },
     {
       "command": "CALCULATE_PRICE",
-      "description": "คำนวณราคา (ต้นทุน + ขนส่ง + กำไร)",
+      "action": "CALCULATE",
+      "engine": "pricing",
       "layer": "V3",
       "approval": false,
-      "params": {
-        "from": { "type": "string", "required": true, "description": "แหล่งวัสดุ/โรงโม่" },
-        "to": { "type": "string", "required": true, "description": "หน้างาน/ปลายทาง" },
-        "product": { "type": "string", "required": true, "description": "ชนิดวัสดุ" },
-        "quantity": { "type": "number", "required": true, "description": "จำนวน (คิว/ตัน)" }
-      }
+      "params": { "from": { "type": "string", "required": true }, "to": { "type": "string", "required": true }, "product": { "type": "string", "required": true }, "quantity": { "type": "number", "required": true } }
     },
     {
       "command": "CHECK_DISTANCE",
-      "description": "คำนวณระยะทาง",
+      "action": "QUERY_MAP",
       "layer": "V3",
       "approval": false,
-      "params": {
-        "origin": { "type": "string", "required": true, "description": "ต้นทาง" },
-        "destination": { "type": "string", "required": true, "description": "ปลายทาง" }
-      }
+      "params": { "origin": { "type": "string", "required": true }, "destination": { "type": "string", "required": true } }
     },
     {
       "command": "GENERATE_DOCUMENT",
-      "description": "สร้างเอกสาร (INV/PO/DO/QUO/REC/DEM/NOT)",
+      "action": "GENERATE",
       "layer": "V3",
       "approval": false,
-      "params": {
-        "type": { "type": "string", "required": true, "description": "ประเภทเอกสาร: invoice / quotation / purchase_order / delivery_order / receipt / debt_notice / statement" }
-      }
+      "params": { "type": { "type": "string", "required": true } }
     },
     {
       "command": "PREVIEW_DOCUMENT",
-      "description": "แสดง Preview เอกสารให้ตรวจ",
+      "action": "PREVIEW",
       "layer": "V5",
-      "approval": false,
-      "params": {}
+      "approval": false
     },
     {
       "command": "WAIT_APPROVAL",
-      "description": "รอผู้ใช้อนุมัติก่อนดำเนินการ",
+      "action": "APPROVE",
       "layer": "V6",
-      "approval": true,
-      "params": {}
+      "approval": true
     },
     {
       "command": "SEND_LINE_MESSAGE",
-      "description": "ส่งข้อความ LINE — ต้อง approved=true เท่านั้น",
+      "action": "EXECUTE",
+      "target": "LINE",
       "layer": "V6",
       "approval": true,
-      "params": {
-        "approved": { "type": "boolean", "required": true, "description": "ต้องเป็น true จึงจะส่งได้" }
-      }
+      "params": { "approved": { "type": "boolean", "required": true } }
     },
     {
       "command": "REGISTER_PARTNER",
-      "description": "ลงทะเบียนคู่ค้าใหม่ — รออนุมัติก่อนบันทึก",
+      "action": "REGISTER",
+      "table": "partners",
       "layer": "V6",
       "approval": true,
-      "params": {
-        "line_name": { "type": "string", "description": "ชื่อใน LINE" },
-        "company": { "type": "string", "description": "ชื่อบริษัท" },
-        "contact": { "type": "string", "description": "ชื่อผู้ติดต่อ" },
-        "phone": { "type": "string", "description": "เบอร์โทร" },
-        "tax_id": { "type": "string", "description": "เลขผู้เสียภาษี" }
-      }
+      "params": { "line_name": { "type": "string" }, "company": { "type": "string" }, "contact": { "type": "string" }, "phone": { "type": "string" }, "tax_id": { "type": "string" } }
     }
   ],
 
@@ -147,14 +139,5 @@
     "PREVIEW_DOCUMENT",
     "WAIT_APPROVAL",
     "SEND_LINE_MESSAGE"
-  ],
-
-  "not_in_this_phase": [
-    "AI ตอบลูกค้าอัตโนมัติ",
-    "AI กดส่งเอง",
-    "LINE Official Account",
-    "Webhook",
-    "Automation",
-    "Follow-up อัตโนมัติ"
   ]
 }
