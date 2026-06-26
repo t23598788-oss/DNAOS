@@ -18,6 +18,8 @@ swiftc \
   "$DIR/line_reader.swift" \
   "$DIR/line_sender.swift" \
   "$DIR/event_monitor.swift" \
+  "$DIR/inspector.swift" \
+  "$DIR/selector.swift" \
   "$DIR/line_controller.swift" \
   "$DIR/main.swift" \
   -framework Cocoa \

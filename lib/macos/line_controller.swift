@@ -124,17 +124,51 @@ struct LineController {
                 "timestamp": ISO8601DateFormatter().string(from: snap.timestamp)
             ]
 
+        // ── Inspector ──
+        case "inspect":
+            let depth = Int(args["depth"] ?? "6") ?? 6
+            let tree = Inspector.scanAsDict(maxDepth: depth)
+            return ["ok": true, "command": "inspect", "count": tree.count, "tree": tree]
+
+        case "inspect.keys":
+            let keys = Inspector.findKeyElements()
+            return keys
+
+        // ── Selector ──
+        case "resolve":
+            guard let name = args["name"], !name.isEmpty else {
+                return ["ok": false, "command": "resolve", "error": "missing name"]
+            }
+            let found = Selector.resolve(name) != nil
+            return ["ok": found, "command": "resolve", "element": name, "found": found]
+
+        case "resolve.invalidate":
+            Selector.invalidate()
+            return ["ok": true, "command": "resolve.invalidate"]
+
         // ── Permissions ──
         case "permissions":
             if !Permissions.checkAccessibility() {
                 _ = Permissions.requestAccessibility()
-                return ["ok": false, "error": "Accessibility not granted", "reason": "System Settings > Privacy > Accessibility"]
+                return ["ok": false, "command": "permissions", "error": "Accessibility not granted", "reason": "System Settings > Privacy > Accessibility"]
             }
-            return ["ok": true, "accessibility": true]
+            return ["ok": true, "command": "permissions", "accessibility": true]
 
         default:
-            return ["ok": false, "error": "unknown command: \(command)"]
+            return ["ok": false, "command": command, "error": "unknown command: \(command)"]
         }
+    }
+
+    /// มาตรฐาน JSON response
+    static func standardResponse(_ command: String, success: Bool, data: [String: Any] = [:], error: String? = nil) -> [String: Any] {
+        var result: [String: Any] = [
+            "success": success,
+            "command": command,
+            "timestamp": ISO8601DateFormatter().string(from: Date())
+        ]
+        for (k, v) in data { result[k] = v }
+        if let e = error { result["error"] = e }
+        return result
     }
 }
 
