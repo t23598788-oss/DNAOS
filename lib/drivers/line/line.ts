@@ -1,6 +1,8 @@
 /**
- * LINE Driver — Node.js interface
+ * LINE Driver — Node.js wrapper
  * DNA OS ติดต่อ LINE ผ่านไฟล์นี้ตัวเดียว
+ *
+ * ภายในเรียก: ./line-driver line <command> --key value
  */
 
 import { execFile } from "child_process";
@@ -11,7 +13,7 @@ const BIN = join(__dirname, "line-driver");
 interface R { success: boolean; command: string; [k: string]: unknown }
 
 function call(cmd: string, args: Record<string, string> = {}): Promise<R> {
-  const a = [cmd];
+  const a = ["line", cmd];
   for (const [k, v] of Object.entries(args)) a.push(`--${k}`, v);
   return new Promise(res => {
     execFile(BIN, a, { timeout: 15000 }, (err, out, se) => {

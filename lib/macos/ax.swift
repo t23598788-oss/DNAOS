@@ -1,7 +1,8 @@
 import Cocoa
 import ApplicationServices
 
-/// AX — thin wrapper สำหรับ Accessibility API
+/// AX — shared Accessibility wrapper
+/// ทุก Driver ใช้ร่วมกัน ไม่ต้องเขียนซ้ำ
 struct AX {
     static func app(_ pid: pid_t) -> AXUIElement { AXUIElementCreateApplication(pid) }
 
@@ -18,6 +19,7 @@ struct AX {
     static func title(_ el: AXUIElement) -> String? { str(el, kAXTitleAttribute) }
     static func value(_ el: AXUIElement) -> String? { str(el, kAXValueAttribute) }
     static func ident(_ el: AXUIElement) -> String? { str(el, kAXIdentifierAttribute) }
+    static func desc(_ el: AXUIElement) -> String? { str(el, kAXDescriptionAttribute) }
     static func children(_ el: AXUIElement) -> [AXUIElement] { (attr(el, kAXChildrenAttribute) as? [AXUIElement]) ?? [] }
 
     static func set(_ el: AXUIElement, _ name: String, _ val: CFTypeRef) -> Bool {
