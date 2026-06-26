@@ -1,20 +1,33 @@
 import Foundation
 
-let arguments = CommandLine.arguments
-let command = arguments.count > 1 ? arguments[1] : "status"
+let args = CommandLine.arguments
+let cmd = args.count > 1 ? args[1] : "status"
 
-var args: [String: String] = [:]
-var i = 2
-while i < arguments.count - 1 {
-    let key = arguments[i].replacingOccurrences(of: "--", with: "")
-    let value = arguments[i + 1]
-    args[key] = value
-    i += 2
+func param(_ key: String) -> String? {
+    guard let i = args.firstIndex(of: "--\(key)"), i + 1 < args.count else { return nil }
+    return args[i + 1]
 }
 
-let result = LineController.execute(command, args: args)
+let result: [String: Any]
 
-if let jsonData = try? JSONSerialization.data(withJSONObject: result, options: .prettyPrinted),
-   let jsonString = String(data: jsonData, encoding: .utf8) {
-    print(jsonString)
+switch cmd {
+case "connect":     result = LINEDriver.connect()
+case "status":      result = LINEDriver.status()
+case "focus":       result = LINEDriver.focus()
+case "listChats":   result = LINEDriver.listChats()
+case "openChat":    result = LINEDriver.openChat(param("id") ?? param("name") ?? "")
+case "currentChat": result = LINEDriver.currentChat()
+case "readMessages":result = LINEDriver.readMessages(Int(param("limit") ?? "0") ?? 0)
+case "readUnread":  result = LINEDriver.readUnread()
+case "send":        result = LINEDriver.send(param("text") ?? "")
+case "reply":       result = LINEDriver.reply(param("messageId") ?? "", param("text") ?? "")
+case "search":      result = LINEDriver.search(param("keyword") ?? param("query") ?? "")
+case "back":        result = LINEDriver.back()
+case "close":       result = LINEDriver.close()
+default:            result = ["success": false, "command": cmd, "error": "unknown command"]
+}
+
+if let data = try? JSONSerialization.data(withJSONObject: result, options: .prettyPrinted),
+   let str = String(data: data, encoding: .utf8) {
+    print(str)
 }
