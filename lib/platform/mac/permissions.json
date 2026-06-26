@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "accessibility":    { "required_for": ["CLICK", "TYPE_TEXT", "PRESS_KEY", "SCROLL", "READ_WINDOW"],     "settings_path": "Privacy_Accessibility" },
+    "automation":       { "required_for": ["RUN_APPLE_SCRIPT", "FOCUS_WINDOW", "CLOSE_APP"],                "settings_path": "Privacy_Automation" },
+    "screen_recording": { "required_for": ["CAPTURE_WINDOW", "OCR_WINDOW"],                                 "settings_path": "Privacy_ScreenCapture" },
+    "files_and_folders":{ "required_for": ["READ_FILE", "SAVE_FILE"],                                       "settings_path": "Privacy_AllFiles" },
+    "notifications":    { "required_for": ["READ_NOTIFICATION"],                                             "settings_path": "Privacy_Notifications" }
+  },
+
+  "no_permission_needed": ["OPEN_APP", "OPEN_URL", "RUN_SHORTCUT", "GET_WINDOW_LIST", "WAIT"]
+}
