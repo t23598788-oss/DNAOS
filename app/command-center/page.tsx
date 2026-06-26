@@ -46,30 +46,21 @@ export default function CommandCenter() {
       return;
     }
 
-    // ส่งไป AI translate
+    // ส่งไป Command Center API → AI Translation → Runtime → Business
     try {
-      const res = await fetch("/api/translate", {
+      const res = await fetch("/api/command", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text, engine: "local" }),
+        body: JSON.stringify({ text }),
       });
       const data = await res.json();
-      if (data.ok && data.command) {
-        addMsg("ai", `เข้าใจคำสั่ง: ${data.command.action}`);
-        // Route ไป handler
-        const result = await fetch("/api/action", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ type: "find", action: data.command.action, payload: data.command.payload }),
-        });
-        const r = await result.json();
-        if (r.ok) {
-          addMsg("system", JSON.stringify(r.data, null, 2).slice(0, 500));
-        } else {
-          addMsg("system", r.error ?? "ไม่พบข้อมูล");
-        }
+      if (data.success) {
+        addMsg("ai", `${data.intent} ${data.entities ? JSON.stringify(data.entities) : ""}`);
+        if (data.data) addMsg("system", JSON.stringify(data.data, null, 2).slice(0, 800));
+        if (data.traceId) addMsg("system", `trace: ${data.traceId}`);
+        if (data.events?.length) addMsg("system", `events: ${data.events.map((e: { type: string }) => e.type).join(" → ")}`);
       } else {
-        addMsg("system", "ไม่เข้าใจคำสั่ง");
+        addMsg("system", data.error ?? "ไม่เข้าใจคำสั่ง");
       }
     } catch {
       addMsg("system", "เชื่อมต่อไม่ได้");
