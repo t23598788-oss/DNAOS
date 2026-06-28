@@ -1,0 +1,609 @@
+{
+  "version": 1,
+  "policy": "ทุกไฟล์ต้องอยู่ใน registry — ไม่มี Shadow System",
+  "modules": {
+    "lib/shared/types.ts": {
+      "owner": "shared",
+      "layer": "shared",
+      "purpose": "Single source of truth สำหรับทุก type ในระบบ",
+      "exports": ["Command", "CommandResult", "ViewMode", "RuntimeCommand", "RuntimeResult", "RuntimeEvent", "AppStatus", "StepResult", "WorkflowResult", "AppDriver", "CommandMatch", "CommandEntry", "WorkflowDef", "AuditEntry", "DebtStatus", "AuditTrail", "round"]
+    },
+    "lib/registry/index.ts": {
+      "owner": "registry",
+      "layer": "shared",
+      "purpose": "Registry กลาง — resolve module/driver/event/schema/service สำหรับ Runtime",
+      "exports": ["getLayer", "getModule", "getInterface", "getEvent", "getDriver", "getService", "getSchema", "listLayers", "listModules", "listInterfaces", "listEvents", "listDrivers", "listServices", "listSchemas", "isRegistered"]
+    },
+    "lib/runtime/engine.ts": {
+      "owner": "runtime",
+      "layer": "shared",
+      "purpose": "Runtime Engine — โหลด Registry, resolve module, execute command, dispatch event",
+      "exports": ["RuntimeCommand", "RuntimeResult", "RuntimeEvent", "loadRegistry", "resolveModule", "executeCommand", "dispatchEvent", "getRecentEvents", "getEventsByTrace", "createResult", "registerCommand"]
+    },
+    "lib/browser/parser.ts": {
+      "owner": "browser",
+      "layer": "shared",
+      "purpose": "Command Parser ฝั่ง Browser — อ่าน commands.json แล้ว match keyword",
+      "exports": ["matchCommand", "listCommands"]
+    },
+    "lib/supabase/queries.ts": {
+      "owner": "supabase",
+      "layer": "supabase",
+      "purpose": "Supabase client + query functions สำหรับทุก table",
+      "exports": ["supabase", "getOpenDebts", "getAllDebts", "getDebtTrackings", "createDebtTracking", "getDocuments", "getLatestInvoice", "getReceipts", "createDocument", "getJobs", "getPartners", "getMaterialTypes", "getPendingDrafts"]
+    },
+    "lib/supabase/realtime.ts": {
+      "owner": "supabase",
+      "layer": "supabase",
+      "purpose": "Supabase Realtime subscription สำหรับ payments/debts/documents",
+      "exports": ["subscribePayments"]
+    },
+    "lib/middleware/auth.ts": {
+      "owner": "middleware",
+      "layer": "shared",
+      "purpose": "Auth middleware — ตรวจ Bearer token ผ่าน Supabase",
+      "exports": ["requireAuth"]
+    },
+    "lib/middleware/sanitize.ts": {
+      "owner": "middleware",
+      "layer": "shared",
+      "purpose": "Input sanitization — ป้องกัน XSS และ injection",
+      "exports": ["sanitizeText", "sanitizeHtml"]
+    },
+    "lib/v1-input/parser.ts": {
+      "owner": "v1-input",
+      "layer": "v1-input",
+      "purpose": "แปลง text ภาษาไทย เป็น Command JSON + dispatch ไปยัง handler",
+      "exports": ["parseCommand", "dispatch", "runCommand"]
+    },
+    "lib/v1-input/debts.ts": {
+      "owner": "v1-input",
+      "layer": "v1-input",
+      "purpose": "จัดการคำสั่งหนี้ — debt.list, debt.all, debt.trackings",
+      "exports": ["handleDebts"]
+    },
+    "lib/v1-input/invoices.ts": {
+      "owner": "v1-input",
+      "layer": "v1-input",
+      "purpose": "จัดการคำสั่งใบแจ้งหนี้ — invoice.latest, invoice.list",
+      "exports": ["handleInvoices"]
+    },
+    "lib/v1-input/documents.ts": {
+      "owner": "v1-input",
+      "layer": "v1-input",
+      "purpose": "จัดการคำสั่งเอกสาร — document.list, document.boq, document.po, document.do, document.receipt, draft.list",
+      "exports": ["handleDocuments"]
+    },
+    "lib/v1-input/jobs.ts": {
+      "owner": "v1-input",
+      "layer": "v1-input",
+      "purpose": "จัดการคำสั่งงาน — job.list, job.active",
+      "exports": ["handleJobs"]
+    },
+    "lib/v1-input/partners.ts": {
+      "owner": "v1-input",
+      "layer": "v1-input",
+      "purpose": "จัดการคำสั่งคู่ค้าและวัสดุ — partner.list, material.list",
+      "exports": ["handlePartners"]
+    },
+    "lib/v1-input/line.ts": {
+      "owner": "v1-input",
+      "layer": "v1-input",
+      "purpose": "จัดการคำสั่ง LINE — redirect ไปใช้ computer.launch",
+      "exports": ["handleLine"]
+    },
+    "lib/v1-input/computer.ts": {
+      "owner": "v1-input",
+      "layer": "v1-input",
+      "purpose": "จัดการคำสั่ง Computer Control — parse + route ไป /api/computer",
+      "exports": ["parseComputerCommand", "handleComputer"]
+    },
+    "lib/v2-rules/actions.ts": {
+      "owner": "v2-rules",
+      "layer": "v2-rules",
+      "purpose": "Action API — preview/execute pattern สำหรับ payment, document.create, debt.create พร้อม token guard",
+      "exports": ["ActionRequest", "ActionResponse", "previewPayment", "executePayment", "previewDocumentCreate", "executeDocumentCreate", "previewDebtCreate", "executeDebtCreate", "dispatchAction"]
+    },
+    "lib/v2-rules/resolver.ts": {
+      "owner": "v2-rules",
+      "layer": "v2-rules",
+      "purpose": "Smart Find — ค้นหา debt/partner/invoice/pit แบบ fuzzy + cross-table",
+      "exports": ["FindResult", "findDebt", "findPartner", "findInvoice", "findPit", "smartFind", "dispatchFind"]
+    },
+    "lib/v3-engines/index.ts": {
+      "owner": "v3-engines",
+      "layer": "v3-engines",
+      "purpose": "Re-export รวมทุก engine + calcFullQuote pipeline",
+      "exports": ["loadConfigs", "calcDistance", "findNearestPit", "calcTime", "calcFuel", "calcCost", "calcPricing", "calcTax", "calcDebtFull", "calcCompoundInterest", "calcDaysOverdue", "checkOverdue", "nextStatus", "DebtStatus", "calcCapacity", "QuoteInput", "QuoteResult", "calcFullQuote"]
+    },
+    "lib/v3-engines/config-loader.ts": {
+      "owner": "v3-engines",
+      "layer": "v3-engines",
+      "purpose": "โหลด Business Rules จาก app_configs table พร้อม cache 60 วินาที",
+      "exports": ["RulesConfig", "loadConfigs", "getNum", "getStr", "AuditTrail", "audit"]
+    },
+    "lib/v3-engines/business.ts": {
+      "owner": "v3-engines",
+      "layer": "v3-engines",
+      "purpose": "Business Engine — คำนวณราคา/หนี้/ภาษี + register เข้า Runtime",
+      "exports": ["loadBusinessRules", "calculatePrice", "calculateDebt", "calculateTax", "registerBusinessCommands"]
+    },
+    "lib/v3-engines/distance.ts": {
+      "owner": "v3-engines",
+      "layer": "v3-engines",
+      "purpose": "คำนวณระยะทาง Haversine + หาบ่อวัสดุใกล้สุด",
+      "exports": ["DistanceInput", "DistanceResult", "calcDistance", "findNearestPit"]
+    },
+    "lib/v3-engines/time.ts": {
+      "owner": "v3-engines",
+      "layer": "v3-engines",
+      "purpose": "คำนวณเวลาขนส่ง (ไป-กลับ + ขึ้นลงของ)",
+      "exports": ["TimeInput", "TimeResult", "calcTime"]
+    },
+    "lib/v3-engines/fuel.ts": {
+      "owner": "v3-engines",
+      "layer": "v3-engines",
+      "purpose": "คำนวณค่าน้ำมัน (ระยะทาง x อัตราสิ้นเปลือง x ราคา)",
+      "exports": ["FuelInput", "FuelResult", "calcFuel"]
+    },
+    "lib/v3-engines/cost.ts": {
+      "owner": "v3-engines",
+      "layer": "v3-engines",
+      "purpose": "คำนวณต้นทุนรวม (วัสดุ + น้ำมัน + ค่าแรง)",
+      "exports": ["CostInput", "CostResult", "calcCost"]
+    },
+    "lib/v3-engines/pricing.ts": {
+      "owner": "v3-engines",
+      "layer": "v3-engines",
+      "purpose": "คำนวณราคาขาย (ต้นทุน + markup + system fee + urgent fee)",
+      "exports": ["PricingInput", "PricingResult", "calcPricing"]
+    },
+    "lib/v3-engines/tax.ts": {
+      "owner": "v3-engines",
+      "layer": "v3-engines",
+      "purpose": "คำนวณภาษี VAT + หัก ณ ที่จ่าย",
+      "exports": ["TaxInput", "TaxResult", "calcTax"]
+    },
+    "lib/v3-engines/capacity.ts": {
+      "owner": "v3-engines",
+      "layer": "v3-engines",
+      "purpose": "คำนวณจำนวนเที่ยวจากปริมาณและความจุรถ",
+      "exports": ["CapacityInput", "CapacityResult", "calcCapacity"]
+    },
+    "lib/v3-engines/debt/engine.ts": {
+      "owner": "v3-engines/debt",
+      "layer": "v3-engines",
+      "purpose": "Debt Engine หลัก — รวมคำนวณ สถานะ+ดอกเบี้ย+ค่าทวงถาม+ยอดรวม",
+      "exports": ["DebtCalcInput", "DebtCalcResult", "calcDebtFull", "calcCompoundInterest", "calcDaysOverdue", "checkOverdue", "calcCollectionFee", "nextStatus", "canAccrueInterest", "canChargeCollectionFee", "isTerminal", "applyTransition", "buildTransitionChain", "TransitionEvent", "TransitionResult", "checkDebtSchedule", "checkBatch", "calcDebtSummary", "DebtSummary", "DebtStatus"]
+    },
+    "lib/v3-engines/debt/calculator.ts": {
+      "owner": "v3-engines/debt",
+      "layer": "v3-engines",
+      "purpose": "รวมยอดหนี้ทั้งหมด ณ วันที่กำหนด (เงินต้น+ค่าธรรมเนียม+ดอกเบี้ย+ค่าทวงถาม-ชำระแล้ว)",
+      "exports": ["DebtSummaryInput", "DebtSummary", "calcDebtSummary"]
+    },
+    "lib/v3-engines/debt/interest.ts": {
+      "owner": "v3-engines/debt",
+      "layer": "v3-engines",
+      "purpose": "คำนวณดอกเบี้ยทบต้น + จำนวนวันค้าง",
+      "exports": ["InterestInput", "InterestResult", "calcCompoundInterest", "calcDaysOverdue"]
+    },
+    "lib/v3-engines/debt/collection.ts": {
+      "owner": "v3-engines/debt",
+      "layer": "v3-engines",
+      "purpose": "คำนวณค่าทวงถาม — capped ตามเพดานกฎหมาย",
+      "exports": ["CollectionFeeInput", "CollectionFeeResult", "calcCollectionFee"]
+    },
+    "lib/v3-engines/debt/overdue.ts": {
+      "owner": "v3-engines/debt",
+      "layer": "v3-engines",
+      "purpose": "ตรวจสอบครบกำหนด + เลย grace period",
+      "exports": ["OverdueCheck", "checkOverdue"]
+    },
+    "lib/v3-engines/debt/status.ts": {
+      "owner": "v3-engines/debt",
+      "layer": "v3-engines",
+      "purpose": "Debt State Machine — 7 สถานะ, event-driven transition",
+      "exports": ["DebtStatus", "StatusTransition", "nextStatus", "isTerminal", "canAccrueInterest", "canChargeCollectionFee"]
+    },
+    "lib/v3-engines/debt/transition.ts": {
+      "owner": "v3-engines/debt",
+      "layer": "v3-engines",
+      "purpose": "เปลี่ยนสถานะหนี้จาก Event + สร้าง transition chain",
+      "exports": ["TransitionEvent", "TransitionResult", "applyTransition", "buildTransitionChain"]
+    },
+    "lib/v3-engines/debt/scheduler.ts": {
+      "owner": "v3-engines/debt",
+      "layer": "v3-engines",
+      "purpose": "ตรวจครบกำหนดหนี้ + สร้าง TransitionEvent อัตโนมัติ (cron/realtime)",
+      "exports": ["DebtRecord", "SchedulerResult", "checkDebtSchedule", "checkBatch"]
+    },
+    "lib/v4-ai/bridge-local.ts": {
+      "owner": "v4-ai",
+      "layer": "v4-ai",
+      "purpose": "AI Bridge แบบ local — แปลภาษาไทยเป็น JSON command ด้วย keyword matching",
+      "exports": ["BridgeCommand", "BridgeResult", "translate"]
+    },
+    "lib/v4-ai/bridge-openai.ts": {
+      "owner": "v4-ai",
+      "layer": "v4-ai",
+      "purpose": "AI Bridge แบบ OpenAI — ใช้ GPT-4o-mini แปลภาษาไทยเป็น JSON command",
+      "exports": ["translateWithAI"]
+    },
+    "lib/v4-ai/translator.ts": {
+      "owner": "v4-ai",
+      "layer": "v4-ai",
+      "purpose": "AI Translation Layer — แปล Intent+Entity จากภาษาไทย + register เข้า Runtime",
+      "exports": ["Intent", "Entity", "TranslationResult", "translate", "registerTranslationCommands"]
+    },
+    "lib/v5-presenter/index.ts": {
+      "owner": "v5-presenter",
+      "layer": "v5-presenter",
+      "purpose": "Re-export รวมทุก presenter module",
+      "exports": ["enrichPitResults", "enrichPartnerResults", "formatPitResults", "formatPartnerResults", "formatDebtResults", "detectRankContext", "rankResults", "EnrichedRecord", "FormattedResult", "FormattedItem", "RankPolicy", "RankContext"]
+    },
+    "lib/v5-presenter/enricher.ts": {
+      "owner": "v5-presenter",
+      "layer": "v5-presenter",
+      "purpose": "Enrich ข้อมูลดิบ — เพิ่มวัสดุ/ราคา/ระยะทางจาก DB",
+      "exports": ["EnrichedRecord", "enrichPitResults", "enrichPartnerResults"]
+    },
+    "lib/v5-presenter/explainer.ts": {
+      "owner": "v5-presenter",
+      "layer": "v5-presenter",
+      "purpose": "Explainable Calculator — ทุกตัวเลขตอบ 3 คำถาม: มาจากไหน, คำนวณอย่างไร, อัปเดตเมื่อไร",
+      "exports": ["TracedValue", "ExplainedQuote", "explainQuote"]
+    },
+    "lib/v5-presenter/formatter.ts": {
+      "owner": "v5-presenter",
+      "layer": "v5-presenter",
+      "purpose": "จัดรูปแบบผลลัพธ์เป็น structured response สำหรับ UI",
+      "exports": ["FormattedResult", "FormattedItem", "formatPitResults", "formatPartnerResults", "formatDebtResults"]
+    },
+    "lib/v5-presenter/ranker.ts": {
+      "owner": "v5-presenter",
+      "layer": "v5-presenter",
+      "purpose": "จัดอันดับผลลัพธ์ตาม context (ระยะทาง/ราคา/วัสดุ/ชื่อ)",
+      "exports": ["RankPolicy", "RankContext", "detectRankContext", "rankResults"]
+    },
+    "lib/v6-executor/index.ts": {
+      "owner": "v6-executor",
+      "layer": "v6-executor",
+      "purpose": "Re-export รวมทุก V6 module (execute, capabilities, capability-manager)",
+      "exports": ["execute", "CAPABILITIES", "TOOLS", "getToolsByCapability", "getConnectedTools", "findTool", "getStatusColor", "getStatusLabel", "executeCapability", "getCapabilityInfo", "listAllCapabilities", "listReadCapabilities", "listWriteCapabilities", "CapabilityType", "Tool", "ToolStatus", "ExecuteRequest", "ExecuteResult", "CapabilityAction", "CapabilityResult"]
+    },
+    "lib/v6-executor/executor.ts": {
+      "owner": "v6-executor",
+      "layer": "v6-executor",
+      "purpose": "V6 Executor — ชั้นเดียวที่เขียน DB ได้ (Supabase/URL Scheme/API)",
+      "exports": ["ExecuteRequest", "ExecuteResult", "execute"]
+    },
+    "lib/v6-executor/gateway.ts": {
+      "owner": "v6-executor",
+      "layer": "v6-executor",
+      "purpose": "Data Gateway — ประตูเดียวสำหรับเขียน DB (Rule 71) re-export จาก v2-rules/actions",
+      "exports": ["dispatchAction", "previewPayment", "executePayment", "previewDocumentCreate", "executeDocumentCreate", "previewDebtCreate", "executeDebtCreate", "ActionRequest", "ActionResponse"]
+    },
+    "lib/v6-executor/capabilities.ts": {
+      "owner": "v6-executor",
+      "layer": "v6-executor",
+      "purpose": "Capability Registry — เครื่องมือภายนอกที่เชื่อมต่อได้ (LINE/Maps/Drive/AI/GitHub...)",
+      "exports": ["CapabilityType", "ToolStatus", "Tool", "CAPABILITIES", "TOOLS", "getToolsByCapability", "getConnectedTools", "findTool", "getStatusColor", "getStatusLabel"]
+    },
+    "lib/v6-executor/capability-manager.ts": {
+      "owner": "v6-executor",
+      "layer": "v6-executor",
+      "purpose": "Capability Orchestrator — ผูกกับความสามารถไม่ใช่ยี่ห้อ มี fallback อัตโนมัติ",
+      "exports": ["CapabilityAction", "CapabilityResult", "executeCapability", "getCapabilityInfo", "listAllCapabilities", "listReadCapabilities", "listWriteCapabilities"]
+    },
+    "lib/v6-executor/core/engine.ts": {
+      "owner": "v6-executor/core",
+      "layer": "v6-executor",
+      "purpose": "Workflow Engine — โหลด JSON Registry แตก Steps ส่ง Driver",
+      "exports": ["getWorkflow", "execute", "listWorkflows"]
+    },
+    "lib/v6-executor/core/registry.ts": {
+      "owner": "v6-executor/core",
+      "layer": "v6-executor",
+      "purpose": "Driver Registry — register/get/list/has driver สำหรับแอป macOS",
+      "exports": ["register", "get", "list", "has"]
+    },
+    "lib/v6-executor/core/init.ts": {
+      "owner": "v6-executor/core",
+      "layer": "v6-executor",
+      "purpose": "Auto-register ทุก Driver เข้า Registry",
+      "exports": []
+    },
+    "lib/v6-executor/core/audit.ts": {
+      "owner": "v6-executor/core",
+      "layer": "v6-executor",
+      "purpose": "Audit Log — บันทึกทุก step ของ workflow execution",
+      "exports": ["record", "recent", "clear"]
+    },
+    "lib/v6-executor/runtime/platform.ts": {
+      "owner": "v6-executor/runtime",
+      "layer": "v6-executor",
+      "purpose": "Platform Detection — ตรวจว่ารันบน macOS หรือไม่ (Browser Safe)",
+      "exports": ["isLocalMac"]
+    },
+    "lib/v6-executor/runtime/shell.ts": {
+      "owner": "v6-executor/runtime",
+      "layer": "v6-executor",
+      "purpose": "Shell/AppleScript Runner — จุดเดียวที่เรียก child_process",
+      "exports": ["shell", "osascript", "openApp", "openUrl", "isProcessRunning", "waitUntilRunning", "esc"]
+    },
+    "lib/v6-executor/drivers/base.ts": {
+      "owner": "v6-executor/drivers",
+      "layer": "v6-executor",
+      "purpose": "Base Driver — launch/focus/close/status มาตรฐาน สำหรับทุกแอป macOS",
+      "exports": ["BaseDriver", "ok", "fail"]
+    },
+    "lib/v6-executor/drivers/line.ts": {
+      "owner": "v6-executor/drivers",
+      "layer": "v6-executor",
+      "purpose": "LINE Driver — ควบคุม LINE Desktop ผ่าน AppleScript",
+      "exports": ["default"]
+    },
+    "lib/v6-executor/drivers/chrome.ts": {
+      "owner": "v6-executor/drivers",
+      "layer": "v6-executor",
+      "purpose": "Chrome Driver — ควบคุม Google Chrome ผ่าน AppleScript",
+      "exports": ["default"]
+    },
+    "lib/v6-executor/drivers/vscode.ts": {
+      "owner": "v6-executor/drivers",
+      "layer": "v6-executor",
+      "purpose": "VS Code Driver — ควบคุม Visual Studio Code ผ่าน AppleScript + CLI",
+      "exports": ["default"]
+    },
+    "lib/v6-executor/drivers/finder.ts": {
+      "owner": "v6-executor/drivers",
+      "layer": "v6-executor",
+      "purpose": "Finder Driver — ควบคุม macOS Finder ผ่าน AppleScript",
+      "exports": ["default"]
+    },
+    "lib/v6-executor/drivers/terminal.ts": {
+      "owner": "v6-executor/drivers",
+      "layer": "v6-executor",
+      "purpose": "Terminal Driver — ควบคุม macOS Terminal ผ่าน AppleScript",
+      "exports": ["default"]
+    },
+    "lib/v6-executor/drivers/maps.ts": {
+      "owner": "v6-executor/drivers",
+      "layer": "v6-executor",
+      "purpose": "Google Maps Driver — เปิด/ค้นหาแผนที่ผ่าน URL",
+      "exports": ["default"]
+    },
+    "lib/v6-executor/drivers/earth.ts": {
+      "owner": "v6-executor/drivers",
+      "layer": "v6-executor",
+      "purpose": "Google Earth Driver — ควบคุม Google Earth Pro ผ่าน AppleScript",
+      "exports": ["default"]
+    },
+    "lib/v6-executor/drivers/mail.ts": {
+      "owner": "v6-executor/drivers",
+      "layer": "v6-executor",
+      "purpose": "Mail Driver — ควบคุม Apple Mail ผ่าน AppleScript",
+      "exports": ["default"]
+    },
+    "lib/v6-executor/drivers/calendar.ts": {
+      "owner": "v6-executor/drivers",
+      "layer": "v6-executor",
+      "purpose": "Calendar Driver — ควบคุม Apple Calendar ผ่าน AppleScript",
+      "exports": ["default"]
+    },
+    "lib/v6-executor/drivers/pdf.ts": {
+      "owner": "v6-executor/drivers",
+      "layer": "v6-executor",
+      "purpose": "PDF Viewer Driver — ควบคุม Preview ผ่าน AppleScript",
+      "exports": ["default"]
+    },
+    "lib/v6-executor/drivers/github.ts": {
+      "owner": "v6-executor/drivers",
+      "layer": "v6-executor",
+      "purpose": "GitHub Desktop Driver — ควบคุม GitHub Desktop ผ่าน AppleScript",
+      "exports": ["default"]
+    },
+    "lib/documents/engine.ts": {
+      "owner": "documents",
+      "layer": "v5-presenter",
+      "purpose": "Document Engine — STRICT RENDER MODE, template เดียว เปลี่ยนแค่ document_type",
+      "exports": ["DocType", "DOC_LABELS", "DocItem", "DocEvent", "DocData", "DocResult", "generateDoc"]
+    },
+    "lib/agent/server.ts": {
+      "owner": "agent",
+      "layer": "v6-executor",
+      "purpose": "Local macOS Agent — HTTP server รับคำสั่ง Computer Control จาก Board",
+      "exports": []
+    },
+    "lib/drivers/line/line.ts": {
+      "owner": "drivers/line",
+      "layer": "v6-executor",
+      "purpose": "LINE Driver (Node.js wrapper) — เรียก binary line-driver",
+      "exports": ["default"]
+    },
+    "lib/platform/mac/applescript.ts": {
+      "owner": "platform/mac",
+      "layer": "v6-executor",
+      "purpose": "AppleScript Runner — จุดเดียวที่เรียก child_process สำหรับ macOS",
+      "exports": ["MacResult", "runScript", "runShell", "esc"]
+    },
+    "lib/platform/mac/app-executor.ts": {
+      "owner": "platform/mac",
+      "layer": "v6-executor",
+      "purpose": "App Executor — OPEN_APP / CLOSE_APP / isRunning / waitReady",
+      "exports": ["open", "close", "isRunning", "waitReady"]
+    },
+    "lib/platform/mac/accessibility.ts": {
+      "owner": "platform/mac",
+      "layer": "v6-executor",
+      "purpose": "Accessibility Executor — CLICK / TYPE_TEXT / PRESS_KEY / SCROLL / READ_WINDOW",
+      "exports": ["click", "typeText", "pressKey", "scroll", "readWindow"]
+    },
+    "lib/platform/mac/mac-platform.ts": {
+      "owner": "platform/mac",
+      "layer": "v6-executor",
+      "purpose": "macOS Platform Layer Entry Point — route action ไป executor ที่เหมาะสม",
+      "exports": ["executeAction", "executeActions", "listActions", "getActionInfo", "isLocalMac"]
+    },
+    "lib/platform/mac/permissions.ts": {
+      "owner": "platform/mac",
+      "layer": "v6-executor",
+      "purpose": "macOS Permission Checker — ตรวจสิทธิ์ accessibility/automation/screen recording",
+      "exports": ["PermissionName", "checkPermission", "openSettings"]
+    },
+    "lib/platform/mac/shortcuts.ts": {
+      "owner": "platform/mac",
+      "layer": "v6-executor",
+      "purpose": "Shortcuts Executor — RUN_SHORTCUT ผ่าน macOS Shortcuts CLI",
+      "exports": ["run", "list"]
+    },
+    "lib/platform/mac/url-schemes.ts": {
+      "owner": "platform/mac",
+      "layer": "v6-executor",
+      "purpose": "URL Scheme Executor — เปิดแอปผ่าน URL scheme (line://, vscode://, maps://...)",
+      "exports": ["open", "openByScheme"]
+    },
+    "lib/platform/mac/window-executor.ts": {
+      "owner": "platform/mac",
+      "layer": "v6-executor",
+      "purpose": "Window Executor — FOCUS / LIST / CAPTURE / OCR (Vision framework)",
+      "exports": ["focus", "list", "capture", "captureWindow", "ocr"]
+    },
+    "app/api/command/route.ts": {
+      "owner": "api",
+      "layer": "api",
+      "purpose": "Command Center API — รับ text/JSON → AI แปล → Runtime → Business → Result",
+      "exports": ["POST"]
+    },
+    "app/api/action/route.ts": {
+      "owner": "api",
+      "layer": "api",
+      "purpose": "Action API — find/preview/execute + V5 Presenter enrichment",
+      "exports": ["POST"]
+    },
+    "app/api/computer/route.ts": {
+      "owner": "api",
+      "layer": "api",
+      "purpose": "Computer Control API — execute workflow บน macOS ผ่าน driver",
+      "exports": ["POST"]
+    },
+    "app/api/document/route.ts": {
+      "owner": "api",
+      "layer": "api",
+      "purpose": "Document API — generate เอกสาร HTML จาก DocData",
+      "exports": ["POST"]
+    },
+    "app/api/execute/route.ts": {
+      "owner": "api",
+      "layer": "api",
+      "purpose": "Execute API — V6 executor สำหรับ tool-based operations",
+      "exports": ["POST"]
+    },
+    "app/api/explain/route.ts": {
+      "owner": "api",
+      "layer": "api",
+      "purpose": "Explain API — V5 Explainable Calculator สำหรับ quote",
+      "exports": ["POST"]
+    },
+    "app/api/translate/route.ts": {
+      "owner": "api",
+      "layer": "api",
+      "purpose": "Translate API — แปลภาษาไทยเป็น JSON command (local หรือ OpenAI)",
+      "exports": ["POST"]
+    },
+    "app/page.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "หน้าแรก — แสดงลิงก์ไป Dead Board + Dashboard",
+      "exports": ["default"]
+    },
+    "app/layout.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Root Layout — ตั้งค่า font, metadata, HTML structure",
+      "exports": ["metadata", "default"]
+    },
+    "app/dashboard/page.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Dashboard page — Control Center (placeholder)",
+      "exports": ["default"]
+    },
+    "app/deadboard/page.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Dead Board V1 — CommandBox + ResultViewer + ActionPanel",
+      "exports": ["default"]
+    },
+    "app/deadboard-v2/page.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Dead Board V2 — AI CommandBox + Find + Preview/Confirm + Realtime + Toast",
+      "exports": ["default"]
+    },
+    "app/command-center/page.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Command Center — Chat UI + Document Preview + Quick Commands (/quotation, /invoice...)",
+      "exports": ["default"]
+    },
+    "app/ops/page.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Ops Page — AI Chat + V5 Smart Find + V6 Tool Panel + Context Tracking",
+      "exports": ["default"]
+    },
+    "components/CommandBox.tsx": {
+      "owner": "components",
+      "layer": "app",
+      "purpose": "Command input box — V1 keyword-based execution",
+      "exports": ["default"]
+    },
+    "components/CommandBoxAI.tsx": {
+      "owner": "components",
+      "layer": "app",
+      "purpose": "AI Command input box — OpenAI translation + V2 find + V1 fallback",
+      "exports": ["default"]
+    },
+    "components/ResultViewer.tsx": {
+      "owner": "components",
+      "layer": "app",
+      "purpose": "แสดงผลลัพธ์ 3 แบบ — JSON / Table / Text",
+      "exports": ["default"]
+    },
+    "components/ActionPanel.tsx": {
+      "owner": "components",
+      "layer": "app",
+      "purpose": "Quick navigation panel — Command Center / Dashboard",
+      "exports": ["default"]
+    },
+    "components/ActionModal.tsx": {
+      "owner": "components",
+      "layer": "app",
+      "purpose": "Preview/Confirm modal สำหรับ Action API (preview → execute)",
+      "exports": ["default"]
+    },
+    "components/Toast.tsx": {
+      "owner": "components",
+      "layer": "app",
+      "purpose": "Toast notification — แสดงข้อความ realtime event",
+      "exports": ["useToast", "default"]
+    },
+    "lib/runtime/trace.ts": {
+      "owner": "runtime",
+      "layer": "shared",
+      "purpose": "Request Trace — บันทึกทุกขั้นตอนของ request ที่ replay ได้",
+      "exports": ["TraceStep", "RequestTrace", "startTrace", "addStep", "setIntent", "completeTrace", "getTrace", "getRecentTraces", "replayTrace"]
+    },
+    "next.config.ts": {
+      "owner": "config",
+      "layer": "config",
+      "purpose": "Next.js configuration — turbopack settings",
+      "exports": ["default"]
+    }
+  },
+  "excluded": [
+    "next-env.d.ts"
+  ]
+}

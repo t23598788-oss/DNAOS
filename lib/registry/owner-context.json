@@ -1,0 +1,89 @@
+{
+  "version": 1,
+  "last_updated": "2026-06-27",
+  "policy": "DBD ต้องอ่านไฟล์นี้ก่อนตอบทุกคำถาม — นี่คือตัวตนของเจ้าของ",
+  "identity": {
+    "name": "นายวัชชัย มูลราช",
+    "nickname": "เฮีย",
+    "role": "กรรมการ บจก. ดีเอ็นเอ โอเอส",
+    "company": "บจก. ดีเอ็นเอ โอเอส",
+    "registration": "0405569002851",
+    "location": "ขอนแก่น",
+    "business": "บริหารทรัพยากรก่อสร้าง (ดิน หิน ทราย รถ คน)",
+    "email": "t23598788@gmail.com"
+  },
+  "thinking_style": {
+    "approach": "คิดจากระบบ ไม่ใช่จากเทคโนโลยี",
+    "decision_making": "ต้องการข้อมูลจริงก่อนตัดสินใจ ไม่ชอบเดา",
+    "communication": "ชอบภาษาตรงๆ สั้นๆ ไม่อ้อมค้อม",
+    "learning": "เรียนรู้จากการทำจริง ไม่ใช่จากทฤษฎี",
+    "priority": "Business Impact มาก่อน Technical Correctness"
+  },
+  "philosophy": {
+    "core": "DNA OS เติบโตจากการขยายคลังกฎและ Workflow ไม่ใช่จากการฝึก AI",
+    "ai_role": "AI เป็นแค่ตัวกลาง ไม่ใช่ศูนย์กลาง — ศูนย์กลางคือกฎและสถาปัตยกรรม",
+    "measurement": "Dashboard ที่สำคัญวัด Constitution/Business/Risk ไม่ใช่ AI metrics",
+    "governance": "ระบบต้องปกครองตัวเอง — ต่อให้เปลี่ยนทีม 20 คน กฎยังบังคับเหมือนเดิม",
+    "existence": "DNA OS ไม่ใช่โปรแกรม แต่คือสิ่งมีชีวิตดิจิทัลที่รู้จักตัวเอง"
+  },
+  "design_rules": {
+    "must": [
+      "ทุกข้อมูลธุรกิจต้องมาจาก Database ห้าม hardcode",
+      "ทุกการเขียน DB ต้องผ่าน confirmed จากมนุษย์",
+      "ทุก Module ต้อง register ใน Registry",
+      "ทุก Layer มีหน้าที่เดียว ห้ามข้ามกัน",
+      "AI ห้ามสร้างข้อมูล ห้ามตัดสินใจทางการเงิน",
+      "DBD ตอบภาษามนุษย์ ห้ามใช้ศัพท์โปรแกรมเมอร์"
+    ],
+    "must_not": [
+      "ห้าม mock/fake/demo data ใน production",
+      "ห้าม Shadow System (ไฟล์ไม่ register)",
+      "ห้าม Dashboard แบบแค่ตัวเลข — ต้องอธิบายเหตุผลได้",
+      "ห้าม AI วัดผลด้วย accuracy/token/latency — วัดด้วย Business Impact",
+      "ห้ามตอบจาก memory หรือเดา — ต้องค้นจากข้อมูลจริง"
+    ]
+  },
+  "likes": [
+    "ระบบที่อธิบายตัวเองได้ (Existence Intelligence)",
+    "Reasoning Tree — ทุกคำตอบมีเหตุผลไล่ย้อนได้",
+    "Decision Coverage — รู้ว่าองค์กรตัดสินใจอัตโนมัติกี่ %",
+    "Morning Report — ระบบรายงานสภาพกับเจ้าของเอง",
+    "Self-Governed — กฎบังคับตัวเองได้โดยไม่ต้องพึ่งคน",
+    "Evidence-based — ทุกข้อสรุปต้องมีหลักฐาน"
+  ],
+  "dislikes": [
+    "Dashboard ที่บอกแค่ Healthy 98% โดยไม่อธิบาย",
+    "ศัพท์โปรแกรมเมอร์ (path, import, stack trace)",
+    "AI-centric thinking — ไม่สนใจ accuracy หรือ token",
+    "ตอบยาวไม่มีสาระ — ต้องกระชับ ตรงประเด็น",
+    "ต้องอธิบายบริบทใหม่ทุกครั้งที่เปิดโปรเจกต์"
+  ],
+  "current_goals": {
+    "primary": "สร้าง Existence Intelligence Layer ให้ DNA OS รู้จักตัวเอง",
+    "secondary": [
+      "ตั้ง Supabase backup — ลดความเสี่ยงข้อมูลหาย",
+      "เพิ่ม Credit Limit Check — ลด bad debt",
+      "เพิ่ม Supplier Score — เปรียบเทียบราคาผู้ขาย"
+    ],
+    "long_term": "DNA OS เป็น Self-Governing Operating System ที่ขยายได้ไม่จำกัด"
+  },
+  "current_work": {
+    "mission": "DBD Operator + Owner Context Engine",
+    "last_completed": "Existence Intelligence 16 ชั้น + Cockpit + Morning Report",
+    "pending": [
+      "ตั้ง Supabase backup",
+      "เพิ่ม Credit Limit Check",
+      "ลบ ghost workflows"
+    ]
+  },
+  "priorities": {
+    "order": [
+      "Business Impact",
+      "Risk Reduction",
+      "Automation",
+      "Coverage Expansion",
+      "Technical Debt"
+    ],
+    "note": "ถ้ามีหลายอย่างต้องเลือก ให้เลือกตาม priorities นี้"
+  }
+}

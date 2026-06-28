@@ -11,7 +11,7 @@
  * 5. Reply Message กลับ LINE
  */
 
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.43.4";
+import { createClient } from "jsr:@supabase/supabase-js@2";
 import { verifySignature } from "./verify.ts";
 import { translate } from "./translator.ts";
 import { ok, error, cors } from "./response.ts";
@@ -29,6 +29,11 @@ Deno.serve(async (req) => {
     body = JSON.parse(rawBody);
   } catch {
     return error(400, "Invalid JSON");
+  }
+
+  // ── 1.5 LINE Verify (empty events) → ตอบ 200 ทันที ──
+  if (!body.events || body.events.length === 0) {
+    return ok({ status: "ok", message: "no events" });
   }
 
   // ── 2. Verify Signature ──

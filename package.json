@@ -7,7 +7,20 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "dead-code": "knip --no-progress",
+    "duplicates": "jscpd",
+    "guard": "bash scripts/governance.sh",
+    "dashboard": "bash scripts/dashboard.sh",
+    "intelligence": "bash scripts/intelligence.sh",
+    "existence": "bash scripts/existence.sh",
+    "status": "bash scripts/dashboard.sh && bash scripts/intelligence.sh && bash scripts/existence.sh",
+    "diagnosis": "npx tsx lib/runtime/self-awareness.ts",
+    "existence-intelligence": "npx tsx lib/runtime/existence-intelligence.ts",
+    "cockpit": "npx tsx lib/runtime/cockpit.ts",
+    "why": "npx tsx lib/runtime/cockpit.ts why",
+    "dbd": "npx tsx lib/runtime/dbd.ts",
+    "precommit": "bash scripts/pre-commit-check.sh"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.108.2",
@@ -23,7 +36,10 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.2.9",
+    "jscpd": "^5.0.11",
+    "knip": "^6.22.0",
     "tailwindcss": "^4",
+    "tsx": "^4.22.4",
     "typescript": "^5"
   }
 }

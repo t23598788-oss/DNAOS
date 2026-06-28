@@ -9,35 +9,10 @@ import {
   getModule, getDriver, getEvent, getSchema, getService,
   listModules, listDrivers, listEvents, isRegistered,
 } from "@/lib/registry";
+import type { RuntimeCommand, RuntimeResult, RuntimeEvent } from "@/lib/shared/types";
+import { startTrace, addStep, completeTrace, getTrace, getRecentTraces, replayTrace } from "@/lib/runtime/trace";
 
-// ── Types ──
-
-export interface RuntimeCommand {
-  version: number;
-  command: string;
-  args: Record<string, unknown>;
-  traceId?: string;
-}
-
-export interface RuntimeResult {
-  success: boolean;
-  command: string;
-  traceId: string;
-  timestamp: string;
-  source: string;
-  data?: unknown;
-  error?: string;
-  events: RuntimeEvent[];
-}
-
-export interface RuntimeEvent {
-  id: string;
-  type: string;
-  source: string;
-  timestamp: string;
-  traceId: string;
-  data?: unknown;
-}
+export type { RuntimeCommand, RuntimeResult, RuntimeEvent };
 
 // ── Event Log ──
 
@@ -84,30 +59,47 @@ export async function executeCommand(cmd: RuntimeCommand): Promise<RuntimeResult
   const traceId = cmd.traceId ?? uuid();
   const timestamp = new Date().toISOString();
   const events: RuntimeEvent[] = [];
+  const traceStart = Date.now();
+
+  // Start audit trace
+  startTrace(traceId, cmd.command ?? "unknown");
 
   // Validate command
   if (!cmd.command || !cmd.version) {
+    addStep(traceId, { layer: "runtime", module: "engine", action: "validate", input: { command: cmd.command, version: cmd.version }, duration_ms: Date.now() - traceStart, error: "missing command or version" });
+    completeTrace(traceId, "failed");
     return { success: false, command: cmd.command ?? "", traceId, timestamp, source: "runtime", error: "missing command or version", events };
   }
 
   // Emit start event
   events.push(emitEvent("command.received", "runtime", traceId, { command: cmd.command }));
+  addStep(traceId, { layer: "runtime", module: "engine", action: "command.received", input: { command: cmd.command, args: cmd.args }, duration_ms: Date.now() - traceStart });
 
   // Resolve handler
+  const resolveStart = Date.now();
   const handler = commandHandlers[cmd.command];
   if (!handler) {
     events.push(emitEvent("command.unknown", "runtime", traceId, { command: cmd.command }));
+    addStep(traceId, { layer: "runtime", module: "engine", action: "resolve.handler", input: { command: cmd.command }, duration_ms: Date.now() - resolveStart, error: `unknown command: ${cmd.command}` });
+    completeTrace(traceId, "failed");
     return { success: false, command: cmd.command, traceId, timestamp, source: "runtime", error: `unknown command: ${cmd.command}`, events };
   }
 
+  addStep(traceId, { layer: "runtime", module: "engine", action: "resolve.handler", input: { command: cmd.command }, duration_ms: Date.now() - resolveStart });
+
   // Execute
+  const execStart = Date.now();
   try {
     const result = await handler(cmd.args, traceId);
     events.push(emitEvent("command.completed", "runtime", traceId, { command: cmd.command, success: true }));
+    addStep(traceId, { layer: "runtime", module: "engine", action: "execute", input: cmd.args, output: result != null ? { result: typeof result === "object" ? result as Record<string, unknown> : { value: result } } : undefined, duration_ms: Date.now() - execStart });
+    completeTrace(traceId, "completed");
     return { success: true, command: cmd.command, traceId, timestamp, source: "runtime", data: result, events };
   } catch (e) {
     const error = (e as Error).message;
     events.push(emitEvent("command.failed", "runtime", traceId, { command: cmd.command, error }));
+    addStep(traceId, { layer: "runtime", module: "engine", action: "execute", input: cmd.args, duration_ms: Date.now() - execStart, error });
+    completeTrace(traceId, "failed");
     return { success: false, command: cmd.command, traceId, timestamp, source: "runtime", error, events };
   }
 }
@@ -160,6 +152,9 @@ const commandHandlers: Record<string, CommandHandler> = {
   "registry.get_schema": async (args) => getSchema(String(args.name ?? "")),
   "events.recent": async (args) => getRecentEvents(Number(args.count ?? 20)),
   "events.by_trace": async (args) => getEventsByTrace(String(args.traceId ?? "")),
+  "trace.get": async (args) => getTrace(String(args.traceId ?? "")),
+  "trace.recent": async (args) => getRecentTraces(Number(args.count ?? 20)),
+  "trace.replay": async (args) => replayTrace(String(args.traceId ?? "")),
 };
 
 export function registerCommand(name: string, handler: CommandHandler): void {

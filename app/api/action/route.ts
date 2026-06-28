@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { requireAuth } from "@/lib/middleware/auth";
 import { dispatchAction } from "@/lib/v2-rules/actions";
 import { dispatchFind } from "@/lib/v2-rules/resolver";
 import { enrichPitResults, enrichPartnerResults } from "@/lib/v5-presenter/enricher";
@@ -6,11 +7,14 @@ import { formatPitResults, formatPartnerResults } from "@/lib/v5-presenter/forma
 import { detectRankContext, rankResults } from "@/lib/v5-presenter/ranker";
 import type { ActionRequest } from "@/lib/v2-rules/actions";
 
-// DNA OS HQ — ขอนแก่น
+// TODO: ย้ายไป app_configs table — Rule 1 ห้าม hardcode
 const HQ_LAT = 16.4714;
 const HQ_LNG = 102.9738;
 
 export async function POST(req: NextRequest) {
+  const authResult = await requireAuth(req);
+  if (authResult instanceof NextResponse) return authResult;
+
   try {
     const body = await req.json();
 

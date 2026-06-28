@@ -1,0 +1,98 @@
+{
+  "version": 1,
+  "policy": "ทุก Business Domain ต้องรู้ว่าครอบคลุมแค่ไหน",
+  "domains": {
+    "sales": {
+      "label": "งานขาย / เสนอราคา",
+      "status": "covered",
+      "modules": ["v3-engines/pricing", "v3-engines/cost", "v3-engines/distance", "v3-engines/fuel", "v3-engines/capacity", "v3-engines/time"],
+      "commands": ["business.calculate_price", "calc.price", "calc.distance"],
+      "workflows": ["doc.generate", "doc.preview"],
+      "documents": ["quotation", "invoice"]
+    },
+    "purchase": {
+      "label": "งานจัดซื้อ",
+      "status": "covered",
+      "modules": ["v1-input/partners", "v2-rules/resolver"],
+      "commands": ["partner.list", "partner.find"],
+      "workflows": ["db.search_partner"],
+      "documents": ["purchase-order"]
+    },
+    "debt": {
+      "label": "ลูกหนี้ / ติดตามหนี้",
+      "status": "covered",
+      "modules": ["v3-engines/debt/engine", "v3-engines/debt/interest", "v3-engines/debt/collection", "v3-engines/debt/status", "v3-engines/debt/transition", "v3-engines/debt/scheduler", "v3-engines/debt/calculator", "v1-input/debts"],
+      "commands": ["debt.list", "debt.all", "debt.trackings", "debt.create", "business.calculate_debt"],
+      "workflows": ["db.search_debt"],
+      "documents": ["invoice"]
+    },
+    "tax": {
+      "label": "ภาษี / VAT / หัก ณ ที่จ่าย",
+      "status": "covered",
+      "modules": ["v3-engines/tax"],
+      "commands": ["business.calculate_tax"],
+      "workflows": [],
+      "documents": ["receipt"]
+    },
+    "transport": {
+      "label": "ขนส่ง / จัดส่งวัสดุ",
+      "status": "covered",
+      "modules": ["v3-engines/distance", "v3-engines/fuel", "v3-engines/capacity", "v3-engines/time", "v3-engines/cost"],
+      "commands": ["job.list", "job.active"],
+      "workflows": ["calc.distance"],
+      "documents": ["delivery-order"]
+    },
+    "document": {
+      "label": "เอกสาร / ใบเสนอราคา / ใบแจ้งหนี้",
+      "status": "covered",
+      "modules": ["lib/documents/engine", "v1-input/documents", "v1-input/invoices"],
+      "commands": ["document.list", "document.create", "invoice.list", "invoice.create", "receipt.create"],
+      "workflows": ["doc.generate", "doc.preview"],
+      "documents": ["quotation", "invoice", "receipt", "boq", "delivery-order", "purchase-order"]
+    },
+    "communication": {
+      "label": "LINE / Email / แจ้งเตือน",
+      "status": "covered",
+      "modules": ["v1-input/line", "v6-executor/drivers/line"],
+      "commands": ["line.send", "line.read"],
+      "workflows": ["line.send", "chat.read", "email.send"],
+      "documents": []
+    },
+    "inventory": {
+      "label": "คลังสินค้า / สต๊อกวัสดุ",
+      "status": "not_covered",
+      "modules": [],
+      "commands": [],
+      "workflows": [],
+      "documents": [],
+      "gap": "ยังไม่มี module สำหรับจัดการคลังสินค้า / สต๊อก"
+    },
+    "hr": {
+      "label": "บุคลากร / คนขับรถ / ช่าง",
+      "status": "not_covered",
+      "modules": [],
+      "commands": [],
+      "workflows": [],
+      "documents": [],
+      "gap": "ยังไม่มี module สำหรับจัดการบุคลากร"
+    },
+    "maintenance": {
+      "label": "ซ่อมบำรุง / เครื่องจักร",
+      "status": "partial",
+      "modules": [],
+      "commands": [],
+      "workflows": [],
+      "documents": [],
+      "gap": "มี kis-webhook สำหรับรับ event จากเครื่องจักร แต่ยังไม่มี engine จัดการซ่อมบำรุง"
+    },
+    "accounting": {
+      "label": "บัญชี / งบการเงิน",
+      "status": "not_covered",
+      "modules": [],
+      "commands": [],
+      "workflows": [],
+      "documents": [],
+      "gap": "ยังไม่มี module สำหรับบัญชี/งบการเงิน"
+    }
+  }
+}

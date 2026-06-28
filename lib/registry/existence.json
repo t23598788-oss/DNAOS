@@ -1,0 +1,103 @@
+{
+  "version": 1,
+  "policy": "DNA OS ต้องรู้จักตัวเอง — รู้ว่าทำอะไรได้ ขาดอะไร ต้องอยู่ที่ไหน ต้องใช้อะไร",
+
+  "capabilities": {
+    "vision":    { "status": "available", "interfaces": ["macOS Screenshot", "Browser Canvas", "LINE Image"], "used_by": ["chat.read", "chat.summarize"] },
+    "gps":       { "status": "available", "interfaces": ["Google Maps API", "Browser Geolocation", "Vehicle GPS"], "used_by": ["calc.distance", "scout-map"] },
+    "voice":     { "status": "not_available", "interfaces": [], "used_by": [], "gap": "ยังไม่มี Voice Input/Output" },
+    "camera":    { "status": "not_available", "interfaces": [], "used_by": [], "gap": "ยังไม่มี Camera API" },
+    "messaging": { "status": "available", "interfaces": ["LINE Messaging API", "LINE Notify", "Email SMTP"], "used_by": ["line.send", "email.send"] },
+    "payment":   { "status": "partial", "interfaces": ["Manual via invoice_payments"], "used_by": ["payment"], "gap": "ยังไม่มี auto payment gateway" },
+    "printer":   { "status": "available", "interfaces": ["macOS Print Dialog", "PDF Export"], "used_by": ["doc.generate"] },
+    "sensor":    { "status": "partial", "interfaces": ["KIS Webhook (IoT)"], "used_by": ["kis-webhook"], "gap": "รับ event ได้ แต่ยังไม่ส่งคำสั่งกลับ" },
+    "database":  { "status": "available", "interfaces": ["Supabase PostgreSQL", "Supabase Realtime"], "used_by": ["*"] },
+    "ai_text":   { "status": "available", "interfaces": ["OpenAI GPT", "Google Gemini", "Local Keyword Match"], "used_by": ["ai.translate", "line-webhook"] },
+    "file_system": { "status": "available", "interfaces": ["macOS Finder", "Node.js fs"], "used_by": ["v6-executor/drivers/finder"] },
+    "terminal":  { "status": "available", "interfaces": ["macOS Terminal", "zsh"], "used_by": ["v6-executor/drivers/terminal"] },
+    "browser":   { "status": "available", "interfaces": ["Google Chrome", "Safari"], "used_by": ["v6-executor/drivers/chrome"] },
+    "calendar":  { "status": "available", "interfaces": ["macOS Calendar"], "used_by": ["v6-executor/drivers/calendar"] },
+    "plc":       { "status": "not_available", "interfaces": [], "used_by": [], "gap": "ยังไม่มี PLC/Modbus/OPC-UA" },
+    "mqtt":      { "status": "not_available", "interfaces": [], "used_by": [], "gap": "ยังไม่มี MQTT broker" },
+    "robot_arm": { "status": "not_available", "interfaces": [], "used_by": [], "gap": "ยังไม่มี Robot Controller" }
+  },
+
+  "environment": {
+    "current": "macOS",
+    "supported": ["macOS", "Browser", "Supabase Edge (Deno)"],
+    "planned": ["Android", "iOS", "Linux Server", "Windows"],
+    "not_supported": ["PLC", "Embedded", "Robot"],
+    "constraints": {
+      "macOS": ["AppleScript", "Accessibility API", "URL Schemes"],
+      "Browser": ["No file system", "No native API", "Sandbox only"],
+      "Supabase Edge": ["Deno runtime", "No persistent state", "300s timeout"]
+    }
+  },
+
+  "goals": {
+    "increase_revenue":  { "label": "เพิ่มยอดขาย", "workflows": ["calc.price", "doc.generate", "line.copilot"], "metrics": ["selling_price", "quote_count"] },
+    "reduce_cost":       { "label": "ลดต้นทุน", "workflows": ["calc.distance", "calc.price"], "metrics": ["fuel_cost", "driver_wage", "total_cost"] },
+    "collect_debt":      { "label": "เก็บหนี้", "workflows": ["db.search_debt"], "metrics": ["outstanding_amount", "collection_rate"] },
+    "reduce_time":       { "label": "ลดเวลา", "workflows": ["line.copilot", "doc.generate"], "metrics": ["response_time", "automation_rate"] },
+    "improve_sla":       { "label": "เพิ่ม SLA", "workflows": ["system.status"], "metrics": ["uptime", "error_rate"] },
+    "expand_coverage":   { "label": "ขยายพื้นที่", "workflows": ["scout-map", "calc.distance"], "metrics": ["partner_count", "coverage_radius"] }
+  },
+
+  "missing_knowledge": [
+    { "domain": "กฎหมาย", "item": "การประมูลภาครัฐ (e-Bidding)", "impact": "ยังรับงานภาครัฐไม่ได้" },
+    { "domain": "กฎหมาย", "item": "BOI สิทธิประโยชน์การลงทุน", "impact": "ยังไม่คำนวณภาษี BOI ได้" },
+    { "domain": "กฎหมาย", "item": "กฎหมายแรงงาน / ค่าแรงขั้นต่ำ", "impact": "ยังไม่ตรวจ compliance แรงงาน" },
+    { "domain": "มาตรฐาน", "item": "ISO 9001 Quality Management", "impact": "ยังไม่มี quality checklist" },
+    { "domain": "มาตรฐาน", "item": "มอก. วัสดุก่อสร้าง", "impact": "ยังไม่ตรวจคุณภาพวัสดุ" },
+    { "domain": "การเงิน", "item": "สินเชื่อ / วงเงินลูกค้า", "impact": "ยังไม่มี credit limit check" },
+    { "domain": "การเงิน", "item": "การจัดทำงบการเงิน", "impact": "ยังไม่สร้าง financial statements" },
+    { "domain": "โลจิสติกส์", "item": "Route Optimization", "impact": "ยังเลือกเส้นทางตามระยะทางเท่านั้น ไม่คำนึงจราจร" },
+    { "domain": "โลจิสติกส์", "item": "Fleet Management", "impact": "ยังไม่จัดคิวรถอัตโนมัติ" }
+  ],
+
+  "human_dependency": {
+    "legal":       { "label": "กฎหมาย / ลายเซ็น", "count": 4, "reason": "ต้องลงนามโดยกรรมการ", "examples": ["อนุมัติสัญญา", "ลงนามเอกสาร", "ยื่นภาษี", "จดทะเบียน"] },
+    "negotiation": { "label": "การเจรจา", "count": 3, "reason": "ต้องใช้วิจารณญาณมนุษย์", "examples": ["ต่อรองราคา", "เจรจาหนี้", "เจรจาคู่ค้าใหม่"] },
+    "approval":    { "label": "การอนุมัติ", "count": 11, "reason": "Rule 72: ทุก write ต้อง confirmed", "examples": ["อนุมัติใบเสนอราคา", "อนุมัติจ่ายเงิน", "อนุมัติเอกสาร"] },
+    "ethics":      { "label": "จริยธรรม", "count": 2, "reason": "AI ไม่ควรตัดสินใจ", "examples": ["ไล่ออก/ลงโทษ", "เปลี่ยนเงื่อนไขสัญญา"] },
+    "quality":     { "label": "ตรวจคุณภาพ", "count": 3, "reason": "ต้องใช้ประสบการณ์", "examples": ["ตรวจวัสดุ", "ตรวจงานก่อสร้าง", "ตรวจรถ"] },
+    "relationship":{ "label": "ลูกค้าสัมพันธ์", "count": 4, "reason": "ต้องใช้ EQ", "examples": ["เยี่ยมลูกค้า", "แก้ปัญหาเฉพาะหน้า", "รับเรื่องร้องเรียน", "ขอบคุณลูกค้า"] }
+  },
+
+  "evolution_suggestions": [
+    { "action": "เพิ่ม Supplier Score engine", "effort": "medium", "impact": { "decision_coverage": "+14%", "supplier_selection": "60% → 100%" } },
+    { "action": "เพิ่ม Route Optimization", "effort": "high", "impact": { "automation_rate": "70% → 82%", "transport_knowledge": "+15%" } },
+    { "action": "เพิ่ม Credit Limit Check", "effort": "low", "impact": { "line_response": "75% → 100%", "risk_reduction": "medium" } },
+    { "action": "เพิ่ม Inventory Module", "effort": "high", "impact": { "business_coverage": "68% → 77%", "knowledge": "+9%" } },
+    { "action": "เพิ่ม Driver Assignment Rule", "effort": "medium", "impact": { "vehicle_dispatch": "80% → 100%", "automation_rate": "+5%" } },
+    { "action": "เพิ่ม Price Comparison Engine", "effort": "medium", "impact": { "supplier_selection": "60% → 80%", "cost_reduction": "high" } }
+  ],
+
+  "container_recommendations": {
+    "office_operations": {
+      "required_capabilities": ["database", "ai_text", "messaging", "printer", "browser"],
+      "recommended": "macOS / Browser",
+      "reason": "งานสำนักงาน ใช้ Supabase + LINE + เอกสาร"
+    },
+    "field_operations": {
+      "required_capabilities": ["gps", "camera", "messaging", "database"],
+      "recommended": "Android",
+      "reason": "งานหน้างาน ต้อง GPS + กล้อง + LINE"
+    },
+    "machine_monitoring": {
+      "required_capabilities": ["sensor", "mqtt", "plc"],
+      "recommended": "Industrial Controller / Edge Device",
+      "reason": "งานเครื่องจักร ต้อง PLC + Sensor"
+    },
+    "ai_processing": {
+      "required_capabilities": ["ai_text", "database"],
+      "recommended": "Cloud Server (Supabase Edge)",
+      "reason": "งาน AI ไม่ต้อง GPU เพราะใช้ API"
+    },
+    "fleet_management": {
+      "required_capabilities": ["gps", "messaging", "database", "sensor"],
+      "recommended": "Android + Vehicle GPS",
+      "reason": "งานจัดรถ ต้อง GPS รถ + LINE คนขับ"
+    }
+  }
+}

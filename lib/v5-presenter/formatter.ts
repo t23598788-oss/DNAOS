@@ -71,3 +71,31 @@ export function formatDebtResults(records: Record<string, unknown>[], keyword: s
     })),
   };
 }
+
+export function formatDocumentCreateResult(record: Record<string, unknown>): FormattedResult {
+  const summary = record.summary as Record<string, unknown> | undefined;
+  const total = Number(summary?.total ?? 0);
+  const documentNumber = String(record.document_number ?? "-");
+  const partyName = String(record.party_name ?? "-");
+
+  return {
+    title: String((record.presenter as Record<string, unknown> | undefined)?.title ?? documentNumber),
+    summary: String(
+      (record.presenter as Record<string, unknown> | undefined)?.summary
+      ?? `${partyName} • ${total.toLocaleString("th-TH")} บาท`
+    ),
+    count: 1,
+    items: [{
+      name: documentNumber,
+      details: [
+        `ลูกค้า: ${partyName}`,
+        `ยอดสุทธิ: ${total.toLocaleString("th-TH")} บาท`,
+        `สถานะ: ${String(record.status ?? "-")}`,
+      ],
+      actions: [
+        { label: "Export PDF", command: `pdf.export:${documentNumber}` },
+        { label: "ส่ง LINE", command: `line.send:${documentNumber}` },
+      ],
+    }],
+  };
+}

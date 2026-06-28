@@ -5,6 +5,7 @@
  * ทุกค่ามาจาก policy (DB) ไม่ hardcode
  */
 
+import { round } from "@/lib/shared/types";
 import { calcCompoundInterest, calcDaysOverdue } from "./interest";
 import { calcCollectionFee } from "./collection";
 import { canAccrueInterest, canChargeCollectionFee, type DebtStatus } from "./status";
@@ -20,7 +21,6 @@ export interface DebtSummaryInput {
   paidAmount: number;
   asOfDate?: string;
 }
-
 export interface DebtSummary {
   principal: number;
   fee: number;
@@ -78,5 +78,3 @@ export function calcDebtSummary(input: DebtSummaryInput): DebtSummary {
     netRemaining: round(netRemaining),
   };
 }
-
-function round(n: number): number { return Math.round(n * 100) / 100; }

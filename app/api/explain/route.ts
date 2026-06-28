@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
+import { requireAuth } from "@/lib/middleware/auth";
 import { explainQuote } from "@/lib/v5-presenter/explainer";
 
 export async function POST(req: NextRequest) {
+  const authResult = await requireAuth(req);
+  if (authResult instanceof NextResponse) return authResult;
+
   try {
     const body = await req.json();
 

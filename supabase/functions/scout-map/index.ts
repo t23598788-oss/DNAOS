@@ -75,12 +75,10 @@ Deno.serve(async (req) => {
         }))
       }
     } else {
-      console.warn("GOOGLE_MAPS_API_KEY is not set. Using mock scout results for demo.")
-      // Mock results if API key is not configured
-      scoutedPlaces = [
-        { name: "บ่อดินผู้ใหญ่มา โคกสูง", address: "ต.โคกสูง อ.เมือง จ.นครราชสีมา", rating: 4.5, latitude: latitude + 0.05, longitude: longitude - 0.02 },
-        { name: "ร้านเจริญวัสดุก่อสร้าง", address: "ถ.มิตรภาพ ต.จอหอ จ.นครราชสีมา", rating: 4.0, latitude: latitude - 0.03, longitude: longitude + 0.04 }
-      ]
+      return new Response(JSON.stringify({ error: "GOOGLE_MAPS_API_KEY is not set — ห้าม mock data (Rule 94)" }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
     }
 
     // 4. Send LINE Notify alert to CEO

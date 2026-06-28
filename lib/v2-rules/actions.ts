@@ -1,4 +1,5 @@
 import { supabase } from "@/lib/supabase/queries";
+import { DOC_LABELS, generateDoc, type DocData, type DocItem, type DocType } from "@/lib/documents/engine";
 import { randomUUID } from "crypto";
 
 // ---- Types ----
@@ -165,7 +166,7 @@ export async function executePayment(payload: {
 
 export async function previewDocumentCreate(payload: Record<string, unknown>): Promise<ActionResponse> {
   const required = ["document_type", "party_name", "net_amount"];
-  const missing = required.filter((f) => !payload[f]);
+  const missing = required.filter((f) => payload[f] === undefined || payload[f] === null || payload[f] === "");
   if (missing.length > 0) {
     return { ok: false, mode: "preview", action: "document.create", error: `ขาดข้อมูล: ${missing.join(", ")}` };
   }
@@ -202,23 +203,53 @@ export async function executeDocumentCreate(payload: {
   net_amount: number;
   issue_date?: string;
   note?: string;
+  items?: DocItem[];
 }): Promise<ActionResponse> {
-  const prefix = payload.document_type === "invoice" ? "INV" : payload.document_type === "receipt" ? "REC" : "DOC";
-  const docNum = payload.document_number ?? `${prefix}-${new Date().toISOString().split("T")[0].replace(/-/g, "")}-${String(Date.now()).slice(-3)}`;
+  const documentType = normalizeDocumentType(payload.document_type);
+  const label = DOC_LABELS[documentType];
+  const docNum = payload.document_number ?? `${label.prefix}-${new Date().toISOString().split("T")[0].replace(/-/g, "")}-${String(Date.now()).slice(-3)}`;
+  const issueDate = payload.issue_date ?? new Date().toISOString().split("T")[0];
+  const items = normalizeItems(payload.items, payload.net_amount, label.th);
+  const documentData: DocData = {
+    type: documentType,
+    docNumber: docNum,
+    date: issueDate,
+    status: "saved",
+    customer: { name: payload.party_name },
+    items,
+    notes: payload.note,
+  };
+  const rendered = generateDoc(documentData);
 
   const { data, error } = await supabase()
     .from("documents")
     .insert({
-      document_type: payload.document_type,
+      document_type: documentType,
       document_number: docNum,
       party_name: payload.party_name,
-      net_amount: payload.net_amount,
-      subtotal_amount: payload.net_amount,
-      base_amount: payload.net_amount,
-      gross_amount: payload.net_amount,
-      issue_date: payload.issue_date ?? new Date().toISOString().split("T")[0],
+      net_amount: rendered.summary.total,
+      subtotal_amount: rendered.summary.subtotal,
+      base_amount: rendered.summary.beforeVat,
+      gross_amount: rendered.summary.total,
+      issue_date: issueDate,
       status: "saved",
       note: payload.note,
+      data: {
+        ...documentData,
+        items: items.map((item) => ({
+          description: item.description,
+          qty: item.qty,
+          unit_price: item.unitPrice,
+          line_total: item.qty * item.unitPrice - (item.discount ?? 0),
+          unit_label: item.unit,
+          detail: item.detail,
+        })),
+        render: {
+          label: rendered.label,
+          html: rendered.html,
+          summary: rendered.summary,
+        },
+      },
       source: "deadboard",
     })
     .select()
@@ -232,12 +263,41 @@ export async function executeDocumentCreate(payload: {
     ok: true,
     mode: "execute",
     action: "document.create",
-    result: { id: data.id, document_number: data.document_number, status: data.status },
+    result: {
+      id: data.id,
+      document_id: data.id,
+      document_type: data.document_type,
+      document_number: data.document_number,
+      party_name: data.party_name,
+      status: data.status,
+      html: rendered.html,
+      summary: rendered.summary,
+      presenter: {
+        title: `${rendered.label.th} ${data.document_number}`,
+        summary: `${data.party_name} • ${rendered.summary.total.toLocaleString("th-TH")} บาท`,
+      },
+    },
     next_actions: [
       `.invoice find ${data.document_number}`,
       `.doc list`,
     ],
   };
+}
+
+function normalizeDocumentType(documentType: string): DocType {
+  if (documentType === "delivery") return "delivery_order";
+  if (documentType in DOC_LABELS) return documentType as DocType;
+  return "quotation";
+}
+
+function normalizeItems(items: DocItem[] | undefined, netAmount: number, fallbackLabel: string): DocItem[] {
+  if (items?.length) return items;
+  return [{
+    description: fallbackLabel,
+    qty: 1,
+    unit: "รายการ",
+    unitPrice: Number.isFinite(netAmount) ? netAmount : 0,
+  }];
 }
 
 // ---- DEBT TRACKING CREATE ----

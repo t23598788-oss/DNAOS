@@ -1,9 +1,4 @@
-/**
- * Debt Interest — ต้นทบดอกรายวัน
- *
- * ทุกค่ามาจาก debt_policy ไม่ hardcode
- * สูตร: (P+F) × (1 + r/365)^d
- */
+import { round } from "@/lib/shared/types";
 
 export interface InterestInput {
   principal: number;
@@ -36,5 +31,4 @@ export function calcDaysOverdue(dueDate: Date, asOf: Date = new Date()): number 
   return Math.max(0, Math.floor((asOf.getTime() - dueDate.getTime()) / 86_400_000));
 }
 
-function round(n: number): number { return Math.round(n * 100) / 100; }
 function fmt(n: number): string { return n.toLocaleString("th-TH", { minimumFractionDigits: 2 }); }

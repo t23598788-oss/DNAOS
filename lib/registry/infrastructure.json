@@ -1,0 +1,130 @@
+{
+  "version": 2,
+  "policy": "ทุก service ที่ DNA OS พึ่งพาต้อง register — ไม่มี shadow dependency",
+
+  "services": {
+    "supabase": {
+      "name": "Supabase", "organ": "heart", "purpose": "Database + Auth + Realtime + Edge Functions",
+      "critical": "critical", "status": "active",
+      "owner": "เฮีย (t23598788@gmail.com)",
+      "cost_monthly_thb": 0, "plan": "Free", "renew": "auto",
+      "expiration": null, "quota_used_pct": null,
+      "if_down": "ทั้งระบบหยุด — ไม่มี DB, ไม่มี Auth, ไม่มี Edge Functions",
+      "if_removed_saves_thb": 0, "if_removed_loses": "ทุกอย่าง",
+      "affected_workflows": ["*"]
+    },
+    "vercel": {
+      "name": "Vercel", "organ": "skin", "purpose": "Frontend Hosting + Next.js Deployment",
+      "critical": "critical", "status": "active",
+      "owner": "เฮีย",
+      "cost_monthly_thb": 0, "plan": "Hobby", "renew": "auto",
+      "expiration": null, "quota_used_pct": null,
+      "if_down": "Dashboard/UI ใช้ไม่ได้ แต่ Edge Functions ยังทำงาน",
+      "if_removed_saves_thb": 0, "if_removed_loses": "Dashboard + Document Preview",
+      "affected_workflows": ["doc.generate", "doc.preview"]
+    },
+    "openai": {
+      "name": "OpenAI API", "organ": "left_brain", "purpose": "AI Translation (bridge-openai)",
+      "critical": "medium", "status": "active",
+      "owner": "เฮีย",
+      "cost_monthly_thb": 500, "plan": "Pay-as-you-go", "renew": "auto",
+      "expiration": null, "credit_remaining_thb": 412, "quota_used_pct": null,
+      "if_down": "AI translation หยุด แต่ local keyword match ยังทำงาน",
+      "if_removed_saves_thb": 500, "if_removed_loses": "Document AI, Smart Translation",
+      "affected_workflows": ["ai.translate"]
+    },
+    "gemini": {
+      "name": "Google Gemini", "organ": "right_brain", "purpose": "LINE Webhook AI Processing",
+      "critical": "medium", "status": "active",
+      "owner": "เฮีย",
+      "cost_monthly_thb": 0, "plan": "Free tier", "renew": "auto",
+      "expiration": null, "quota_used_pct": 35,
+      "if_down": "LINE bot ตอบไม่ได้ แต่ core system ยังทำงาน",
+      "if_removed_saves_thb": 0, "if_removed_loses": "LINE AI ตอบราคาอัตโนมัติ",
+      "affected_workflows": ["line.copilot"]
+    },
+    "line_messaging": {
+      "name": "LINE Messaging API", "organ": "ears", "purpose": "ส่ง/รับข้อความ LINE",
+      "critical": "high", "status": "active",
+      "owner": "เฮีย",
+      "cost_monthly_thb": 0, "plan": "Free (500 msg/mo)", "renew": "auto",
+      "expiration": null, "quota_used_pct": 72, "quota_limit": 500,
+      "if_down": "ลูกค้าติดต่อทาง LINE ไม่ได้",
+      "if_removed_saves_thb": 0, "if_removed_loses": "ช่องทางหลักติดต่อลูกค้า",
+      "affected_workflows": ["line.send", "chat.read", "line.copilot"]
+    },
+    "line_notify": {
+      "name": "LINE Notify", "organ": "voice", "purpose": "แจ้งเตือนเจ้าของ",
+      "critical": "medium", "status": "active",
+      "owner": "เฮีย",
+      "cost_monthly_thb": 0, "plan": "Free", "renew": "auto",
+      "expiration": null, "quota_used_pct": null,
+      "if_down": "เจ้าของไม่ได้รับแจ้งเตือน",
+      "if_removed_saves_thb": 0, "if_removed_loses": "Alert to CEO",
+      "affected_workflows": ["scout-map", "back-to-back"]
+    },
+    "google_maps": {
+      "name": "Google Maps API", "organ": "eyes", "purpose": "คำนวณระยะทาง + ค้นหาคู่ค้า",
+      "critical": "medium", "status": "active",
+      "owner": "เฮีย",
+      "cost_monthly_thb": 0, "plan": "$200 free credit/mo", "renew": "auto",
+      "expiration": null, "quota_used_pct": 18,
+      "if_down": "Scout ค้นหาคู่ค้าใหม่ไม่ได้",
+      "if_removed_saves_thb": 0, "if_removed_loses": "Scout + Google Places search",
+      "affected_workflows": ["calc.distance", "scout-map"]
+    },
+    "github": {
+      "name": "GitHub", "organ": "dna", "purpose": "Source Code Repository",
+      "critical": "low", "status": "active",
+      "owner": "เฮีย",
+      "cost_monthly_thb": 0, "plan": "Free", "renew": "auto",
+      "expiration": null, "quota_used_pct": null,
+      "if_down": "deploy ใหม่ไม่ได้ แต่ระบบยังทำงาน",
+      "if_removed_saves_thb": 0, "if_removed_loses": "Version Control + CI/CD",
+      "affected_workflows": ["dev.deploy", "dev.push"]
+    },
+    "domain": {
+      "name": "Domain (dnaos.co.th)", "organ": "name", "purpose": "ชื่อระบบบนอินเทอร์เน็ต",
+      "critical": "medium", "status": "active",
+      "owner": "เฮีย",
+      "cost_monthly_thb": 50, "plan": "Annual", "renew": "manual",
+      "expiration": "2026-09-08", "days_until_expiry": null, "quota_used_pct": null,
+      "if_down": "เข้าเว็บด้วยชื่อไม่ได้ ต้องใช้ IP",
+      "if_removed_saves_thb": 50, "if_removed_loses": "Custom domain",
+      "affected_workflows": []
+    },
+    "node_runtime": {
+      "name": "Node.js", "organ": "brain_stem", "purpose": "Next.js Server Runtime",
+      "critical": "critical", "status": "active",
+      "owner": "system",
+      "cost_monthly_thb": 0, "plan": "Built-in", "renew": "N/A",
+      "expiration": null, "quota_used_pct": null,
+      "if_down": "Frontend + API routes หยุดทั้งหมด",
+      "if_removed_saves_thb": 0, "if_removed_loses": "ทุกอย่างฝั่ง Web",
+      "affected_workflows": ["*"]
+    },
+    "deno_runtime": {
+      "name": "Deno (Supabase Edge)", "organ": "spine", "purpose": "Edge Functions Runtime",
+      "critical": "high", "status": "active",
+      "owner": "Supabase",
+      "cost_monthly_thb": 0, "plan": "Included", "renew": "N/A",
+      "expiration": null, "quota_used_pct": null,
+      "if_down": "LINE webhooks + back-to-back + scout-map หยุด",
+      "if_removed_saves_thb": 0, "if_removed_loses": "Edge Functions ทั้งหมด",
+      "affected_workflows": ["line.copilot", "scout-map", "back-to-back"]
+    }
+  },
+
+  "future_additions": [
+    { "name": "Redis", "cost_thb": 400, "benefit": "Workflow เร็วขึ้น 32%", "impact": "medium" },
+    { "name": "Twilio (Voice)", "cost_thb": 800, "benefit": "เปิด 4 workflows ใหม่ (โทรทวงหนี้, IVR, Voice Command, Call Center)", "impact": "high" },
+    { "name": "Camera API (Android)", "cost_thb": 0, "benefit": "ตรวจสินค้า, OCR, QR, ตรวจหน้างาน — เพิ่ม capability 12%", "impact": "medium" },
+    { "name": "PLC Gateway", "cost_thb": 18000, "benefit": "ควบคุมโรงงาน, อ่าน sensor, ดูสถานะเครื่องจักร real-time", "impact": "high" },
+    { "name": "Cloud Backup (PostgreSQL)", "cost_thb": 200, "benefit": "Resilience 40% → 80% — ป้องกันข้อมูลสูญหาย", "impact": "critical" }
+  ],
+
+  "cost_summary": {
+    "monthly_thb": 550,
+    "yearly_thb": 6600
+  }
+}

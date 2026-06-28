@@ -53,7 +53,7 @@ export async function explainQuote(params: {
   const dLng = ((pit?.longitude ?? 0) - params.site_lng) * Math.PI / 180;
   const a = Math.sin(dLat / 2) ** 2 + Math.cos(params.site_lat * Math.PI / 180) * Math.cos((pit?.latitude ?? 0) * Math.PI / 180) * Math.sin(dLng / 2) ** 2;
   const rawDist = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  const minDist = getNum(configs, "minimum-distance", 15);
+  const minDist = getNum(configs, "minimum-distance");
   const distance = Math.max(rawDist, minDist);
 
   items.push({
@@ -66,9 +66,9 @@ export async function explainQuote(params: {
   });
 
   // 3. รถ + ความจุ
-  let capacity = getNum(configs, "vehicle-default-capacity", 10);
+  let capacity = getNum(configs, "vehicle-default-capacity");
   let vehicleName = "รถ 10 ล้อ (default)";
-  let fuelRate = getNum(configs, "default-fuel-consumption", 6.5);
+  let fuelRate = getNum(configs, "default-fuel-consumption");
   let vehicleTs = now;
 
   if (params.vehicle_type_id) {
@@ -145,7 +145,7 @@ export async function explainQuote(params: {
   });
 
   // 5. น้ำมัน
-  const fuelPrice = getNum(configs, "fuel-price", 43);
+  const fuelPrice = getNum(configs, "fuel-price");
   const roundTripKm = distance * 2;
   const litersPerTrip = roundTripKm / fuelRate;
   const totalLiters = litersPerTrip * trips;
@@ -188,7 +188,7 @@ export async function explainQuote(params: {
   });
 
   // 6. ค่าแรง
-  const driverWage = getNum(configs, "driver-wage-per-trip", 450);
+  const driverWage = getNum(configs, "driver-wage-per-trip");
   const totalWage = driverWage * trips;
 
   items.push({
@@ -211,7 +211,7 @@ export async function explainQuote(params: {
 
   // 7. ต้นทุน + ราคาขาย
   const totalCost = materialCost + fuelCost + totalWage;
-  const markup = getNum(configs, "pricing-markup-percent", 25);
+  const markup = getNum(configs, "pricing-markup-percent");
   const sellingPrice = Math.round(totalCost * (1 + markup / 100));
   const profit = sellingPrice - totalCost;
 

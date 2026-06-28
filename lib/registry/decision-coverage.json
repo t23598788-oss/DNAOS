@@ -1,0 +1,87 @@
+{
+  "version": 1,
+  "policy": "ทุกการตัดสินใจซ้ำของธุรกิจต้องถูกแปลงเป็นกฎที่ตรวจสอบได้",
+  "decisions": {
+    "pricing": {
+      "label": "ตั้งราคา / เสนอราคา",
+      "total_decision_points": 8,
+      "codified": 8,
+      "coverage_pct": 100,
+      "rules": [
+        { "decision": "คำนวณระยะทาง", "codified_in": "v3-engines/distance.ts", "source": "DB:app_configs" },
+        { "decision": "คำนวณค่าน้ำมัน", "codified_in": "v3-engines/fuel.ts", "source": "DB:app_configs.fuel-price" },
+        { "decision": "คำนวณจำนวนเที่ยว", "codified_in": "v3-engines/capacity.ts", "source": "DB:app_configs.vehicle-default-capacity" },
+        { "decision": "คำนวณค่าแรงคนขับ", "codified_in": "v3-engines/cost.ts", "source": "DB:app_configs.driver-wage-per-trip" },
+        { "decision": "คิด markup", "codified_in": "v3-engines/pricing.ts", "source": "DB:app_configs.pricing-markup-percent" },
+        { "decision": "คิด VAT", "codified_in": "v3-engines/tax.ts", "source": "DB:app_configs.vat-rate" },
+        { "decision": "คิดค่าเร่งด่วน", "codified_in": "v3-engines/pricing.ts", "source": "DB:app_configs.urgent-fee-percent" },
+        { "decision": "เลือกบ่อที่ใกล้สุด", "codified_in": "v3-engines/distance.ts", "source": "DB:pit_profiles" }
+      ]
+    },
+    "document_approval": {
+      "label": "อนุมัติเอกสาร",
+      "total_decision_points": 4,
+      "codified": 4,
+      "coverage_pct": 100,
+      "rules": [
+        { "decision": "ต้อง preview ก่อน execute", "codified_in": "v2-rules/actions.ts#issueToken", "source": "code" },
+        { "decision": "token 5 นาทีหมดอายุ", "codified_in": "v2-rules/actions.ts#consumeToken", "source": "code" },
+        { "decision": "action ต้องตรงกับ token", "codified_in": "v2-rules/actions.ts#consumeToken", "source": "code" },
+        { "decision": "เฉพาะ confirmed เท่านั้นที่เขียน DB", "codified_in": "app/api/execute/route.ts", "source": "code" }
+      ]
+    },
+    "vehicle_dispatch": {
+      "label": "จัดรถ / เลือกรถ",
+      "total_decision_points": 5,
+      "codified": 4,
+      "coverage_pct": 80,
+      "rules": [
+        { "decision": "คำนวณจำนวนเที่ยวจากความจุ", "codified_in": "v3-engines/capacity.ts", "source": "DB:app_configs" },
+        { "decision": "คำนวณเวลาต่อเที่ยว", "codified_in": "v3-engines/time.ts", "source": "DB:app_configs" },
+        { "decision": "คำนวณค่าน้ำมันต่อเที่ยว", "codified_in": "v3-engines/fuel.ts", "source": "DB:app_configs" },
+        { "decision": "เลือกรถตาม vehicle_type_id", "codified_in": "v3-engines/capacity.ts", "source": "DB:vehicle_types" },
+        { "decision": "เลือกคนขับตามพื้นที่", "codified_in": null, "source": null, "gap": "ยังไม่มีกฎเลือกคนขับอัตโนมัติ" }
+      ]
+    },
+    "supplier_selection": {
+      "label": "เลือกผู้ขาย / บ่อวัสดุ",
+      "total_decision_points": 5,
+      "codified": 3,
+      "coverage_pct": 60,
+      "rules": [
+        { "decision": "หาบ่อที่ใกล้สุด (Haversine)", "codified_in": "v3-engines/distance.ts", "source": "DB:pit_profiles" },
+        { "decision": "กรองตาม material_type_id", "codified_in": "v3-engines/distance.ts#findNearestPit", "source": "DB:pit_profiles" },
+        { "decision": "scout หาคู่ค้าใหม่ถ้าไม่มีในรัศมี", "codified_in": "supabase/functions/scout-map", "source": "Google Maps API" },
+        { "decision": "เปรียบเทียบราคาระหว่างผู้ขาย", "codified_in": null, "source": null, "gap": "ยังไม่มีกฎเปรียบเทียบราคาอัตโนมัติ" },
+        { "decision": "ตรวจประวัติส่งของตรงเวลา", "codified_in": null, "source": null, "gap": "ยังไม่มี supplier rating" }
+      ]
+    },
+    "debt_collection": {
+      "label": "ติดตามหนี้ / ทวงถาม",
+      "total_decision_points": 7,
+      "codified": 7,
+      "coverage_pct": 100,
+      "rules": [
+        { "decision": "คำนวณดอกเบี้ยทบต้น", "codified_in": "v3-engines/debt/interest.ts", "source": "DB:app_configs.debt-interest-rate" },
+        { "decision": "ตรวจ grace period", "codified_in": "v3-engines/debt/overdue.ts", "source": "DB:app_configs.debt-grace-period-hours" },
+        { "decision": "เปลี่ยนสถานะตาม event", "codified_in": "v3-engines/debt/transition.ts", "source": "code:state-machine" },
+        { "decision": "คิดค่าทวงถาม", "codified_in": "v3-engines/debt/collection.ts", "source": "DB:app_configs.debt-collection-fee-rate" },
+        { "decision": "cap ค่าทวงถามตามกฎหมาย", "codified_in": "v3-engines/debt/collection.ts", "source": "DB:app_configs.debt-collection-fee-limit" },
+        { "decision": "ตรวจ batch ลูกหนี้ทั้งหมด", "codified_in": "v3-engines/debt/scheduler.ts", "source": "DB:debt_trackings" },
+        { "decision": "ปิดหนี้เมื่อชำระครบ", "codified_in": "v2-rules/actions.ts#executePayment", "source": "code" }
+      ]
+    },
+    "line_response": {
+      "label": "ตอบ LINE อัตโนมัติ",
+      "total_decision_points": 4,
+      "codified": 3,
+      "coverage_pct": 75,
+      "rules": [
+        { "decision": "แยก intent จากข้อความ", "codified_in": "supabase/functions/line-webhook-v2/helpers.ts", "source": "Gemini AI" },
+        { "decision": "ดึง entity (ชื่อ, จำนวน, วัสดุ)", "codified_in": "supabase/functions/line-webhook-v2/helpers.ts", "source": "Gemini AI + regex" },
+        { "decision": "คำนวณราคาตอบกลับ", "codified_in": "supabase/functions/line-webhook-v2/index.ts", "source": "DB:app_configs" },
+        { "decision": "ตรวจ credit ลูกค้าก่อนรับงาน", "codified_in": null, "source": null, "gap": "ยังไม่มีกฎตรวจ credit" }
+      ]
+    }
+  }
+}

@@ -13,6 +13,69 @@ const eslintConfig = defineConfig([
     "build/**",
     "next-env.d.ts",
   ]),
+
+  // ===== DNA OS Layer Boundary Guards =====
+  // Rule 71: V1-V5 cannot import @supabase/supabase-js directly
+  // Only V6-Executor (lib/v6-executor/) and lib/supabase/ may access the database
+  {
+    files: [
+      "lib/v1-input/**/*.ts",
+      "lib/v2-rules/**/*.ts",
+      "lib/v3-engines/**/*.ts",
+      "lib/v4-ai/**/*.ts",
+      "lib/v5-presenter/**/*.ts",
+    ],
+    rules: {
+      "no-restricted-imports": ["error", {
+        patterns: [{
+          group: ["@supabase/supabase-js"],
+          message: "Rule 71: V1-V5 import @supabase/supabase-js ไม่ได้ — เฉพาะ V6-Executor เท่านั้นที่เข้าถึง DB ได้ ใช้ lib/supabase/queries.ts แทน",
+        }],
+      }],
+    },
+  },
+
+  // Rule 14: V5-presenter cannot import from v3-engines
+  // Presenter only formats data, must receive via function parameters
+  {
+    files: ["lib/v5-presenter/**/*.ts"],
+    rules: {
+      "no-restricted-imports": ["error", {
+        patterns: [{
+          group: ["**/v3-engines/**"],
+          message: "Rule 14: V5-Presenter ห้าม import V3-Engines โดยตรง — รับข้อมูลผ่าน function parameter เท่านั้น",
+        }],
+      }],
+    },
+  },
+
+  // V4-AI cannot import from lib/runtime/engine
+  // AI layer should not register commands into the runtime
+  {
+    files: ["lib/v4-ai/**/*.ts"],
+    rules: {
+      "no-restricted-imports": ["error", {
+        patterns: [{
+          group: ["**/runtime/engine**"],
+          message: "V4-AI ห้าม import runtime/engine — AI ไม่ควร register command เอง",
+        }],
+      }],
+    },
+  },
+
+  // Rule 12: UI components cannot import from lib/v1-input/
+  // UI must go through API routes, not call V1 directly
+  {
+    files: ["components/**/*.ts", "components/**/*.tsx", "app/**/*.ts", "app/**/*.tsx"],
+    rules: {
+      "no-restricted-imports": ["error", {
+        patterns: [{
+          group: ["**/v1-input/**"],
+          message: "Rule 12: UI (components/app) ห้ามเรียก V1-Input โดยตรง — ต้องผ่าน API route",
+        }],
+      }],
+    },
+  },
 ]);
 
 export default eslintConfig;

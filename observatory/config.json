@@ -1,4 +1,5 @@
 {
-  "supabaseUrl": "https://tmxkiripdvorrcnuezvm.supabase.co",
-  "supabaseAnonKey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRteGtpcmlwZHZvcnJjbnVlenZtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNTMxNjAsImV4cCI6MjA5MTgyOTE2MH0.X6aJE8536CzaPj1L2VhZKPCh32xmKLqQagmRGKj2z_w"
+  "supabaseUrl": "",
+  "supabaseAnonKey": "",
+  "_note": "ใช้ env var NEXT_PUBLIC_SUPABASE_URL / NEXT_PUBLIC_SUPABASE_ANON_KEY — ห้าม hardcode credentials (Rule 67, 69)"
 }

@@ -10,18 +10,24 @@
  * Payment แสดงเฉพาะ paymentRequired=true
  */
 
+import { sanitizeHtml } from "@/lib/middleware/sanitize";
+
 export type DocType =
-  | "quotation" | "workorder" | "delivery" | "invoice"
-  | "billing" | "receipt" | "debt_notice" | "management_fee"
-  | "requisition" | "job_summary" | "monthly_summary";
+  | "quotation" | "boq" | "workorder" | "delivery" | "delivery_order"
+  | "invoice" | "billing" | "receipt" | "purchase_order"
+  | "debt_notice" | "management_fee" | "requisition"
+  | "job_summary" | "monthly_summary";
 
 export const DOC_LABELS: Record<DocType, { th: string; en: string; prefix: string }> = {
   quotation:       { th: "ใบเสนอราคา",      en: "QUOTATION",        prefix: "QUO" },
+  boq:             { th: "ใบประมาณปริมาณงาน", en: "BILL OF QUANTITIES", prefix: "BOQ" },
   workorder:       { th: "ใบสั่งงาน",        en: "WORK ORDER",       prefix: "WO" },
   delivery:        { th: "ใบส่งของ",         en: "DELIVERY ORDER",   prefix: "DO" },
+  delivery_order:  { th: "ใบส่งสินค้า",      en: "DELIVERY ORDER",   prefix: "DO" },
   invoice:         { th: "ใบแจ้งหนี้",       en: "INVOICE",          prefix: "INV" },
   billing:         { th: "ใบวางบิล",         en: "BILLING NOTE",     prefix: "BN" },
   receipt:         { th: "ใบรับเงิน",        en: "RECEIPT",          prefix: "REC" },
+  purchase_order:  { th: "ใบสั่งซื้อ",       en: "PURCHASE ORDER",   prefix: "PO" },
   debt_notice:     { th: "ใบติดตามหนี้",     en: "DEBT NOTICE",      prefix: "DEM" },
   management_fee:  { th: "ใบค่าบริหาร",      en: "MANAGEMENT FEE",   prefix: "MGT" },
   requisition:     { th: "ใบเบิก",          en: "REQUISITION",      prefix: "REQ" },
@@ -107,6 +113,7 @@ export function generateDoc(data: DocData): DocResult {
 
   const f = (n: number) => n.toLocaleString("th-TH", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const show = (v: unknown) => v !== undefined && v !== null && v !== "";
+  const esc = (v: string | undefined) => v ? sanitizeHtml(v) : "";
   const showPayment = data.paymentRequired === true && !!data.payment;
   const showDebt = !!data.debt;
   const showEvents = !!data.events?.length;
@@ -159,20 +166,20 @@ tr:last-child td{border-bottom:2px solid #22c55e}
 
 <!-- HEADER -->
 <div class="hdr">
-<div class="hdr-l">${show(data.company?.name) ? `<h1>${data.company!.name}</h1>` : ""}${show(data.company?.taxId) ? `<p>เลขผู้เสียภาษี ${data.company!.taxId}</p>` : ""}</div>
-<div style="text-align:right"><div class="dtype">${label.en}</div><div class="dtype-th">${label.th}</div>${show(docNumber) ? `<div style="font-size:11px;font-weight:600;margin-top:4px">${docNumber}</div>` : ""}${show(st) ? `<div class="badge">${st.toUpperCase()}</div>` : ""}${show(data.date) ? `<div style="font-size:10px;color:#888;margin-top:2px">${data.date}</div>` : ""}</div>
+<div class="hdr-l">${show(data.company?.name) ? `<h1>${esc(data.company!.name)}</h1>` : ""}${show(data.company?.taxId) ? `<p>เลขผู้เสียภาษี ${esc(data.company!.taxId)}</p>` : ""}</div>
+<div style="text-align:right"><div class="dtype">${label.en}</div><div class="dtype-th">${label.th}</div>${show(docNumber) ? `<div style="font-size:11px;font-weight:600;margin-top:4px">${esc(docNumber)}</div>` : ""}${show(st) ? `<div class="badge">${esc(st.toUpperCase())}</div>` : ""}${show(data.date) ? `<div style="font-size:10px;color:#888;margin-top:2px">${esc(data.date)}</div>` : ""}</div>
 </div>
 
 ${showCustomer || showProject ? `<!-- CUSTOMER + PROJECT -->
 <div class="grid">
-${showCustomer ? `<div class="cell"><div class="lb">ลูกค้า</div><div class="vl">${data.customer!.name}</div>${show(data.customer!.contact) ? `<div class="sub">${data.customer!.contact}</div>` : ""}${show(data.customer!.address) ? `<div class="sub">${data.customer!.address}</div>` : ""}${show(data.customer!.phone) ? `<div class="sub">${data.customer!.phone}</div>` : ""}</div>` : ""}
-${show(data.customer?.taxId) ? `<div class="cell"><div class="lb">เลขผู้เสียภาษีลูกค้า</div><div class="vl">${data.customer!.taxId}</div></div>` : ""}
-${showProject ? `<div class="cell"><div class="lb">Project / Reference</div>${show(data.project) ? `<div class="vl">${data.project}</div>` : ""}${show(data.reference) ? `<div class="sub">Ref: ${data.reference}</div>` : ""}</div>` : ""}
+${showCustomer ? `<div class="cell"><div class="lb">ลูกค้า</div><div class="vl">${esc(data.customer!.name)}</div>${show(data.customer!.contact) ? `<div class="sub">${esc(data.customer!.contact)}</div>` : ""}${show(data.customer!.address) ? `<div class="sub">${esc(data.customer!.address)}</div>` : ""}${show(data.customer!.phone) ? `<div class="sub">${esc(data.customer!.phone)}</div>` : ""}</div>` : ""}
+${show(data.customer?.taxId) ? `<div class="cell"><div class="lb">เลขผู้เสียภาษีลูกค้า</div><div class="vl">${esc(data.customer!.taxId)}</div></div>` : ""}
+${showProject ? `<div class="cell"><div class="lb">Project / Reference</div>${show(data.project) ? `<div class="vl">${esc(data.project)}</div>` : ""}${show(data.reference) ? `<div class="sub">Ref: ${esc(data.reference)}</div>` : ""}</div>` : ""}
 </div>` : ""}
 
 <!-- ITEMS -->
 <table><thead><tr><th class="c" style="width:30px">ลำดับ</th><th>รายการ</th><th class="c" style="width:45px">จำนวน</th><th class="c" style="width:40px">หน่วย</th><th class="r" style="width:80px">ราคา/หน่วย</th><th class="r" style="width:55px">ส่วนลด</th><th class="r" style="width:85px">จำนวนเงิน</th></tr></thead><tbody>
-${data.items.map((x, i) => `<tr><td class="c">${i + 1}</td><td><div class="iname">${x.description}</div>${show(x.detail) ? `<div class="idesc">${x.detail}</div>` : ""}</td><td class="c">${x.qty}</td><td class="c">${x.unit}</td><td class="r">${f(x.unitPrice)}</td><td class="r">${x.discount ? f(x.discount) : ""}</td><td class="r">${f(x.qty * x.unitPrice - (x.discount ?? 0))}</td></tr>`).join("")}
+${data.items.map((x, i) => `<tr><td class="c">${i + 1}</td><td><div class="iname">${esc(x.description)}</div>${show(x.detail) ? `<div class="idesc">${esc(x.detail)}</div>` : ""}</td><td class="c">${x.qty}</td><td class="c">${esc(x.unit)}</td><td class="r">${f(x.unitPrice)}</td><td class="r">${x.discount ? f(x.discount) : ""}</td><td class="r">${f(x.qty * x.unitPrice - (x.discount ?? 0))}</td></tr>`).join("")}
 </tbody></table>
 
 <!-- SUMMARY -->
@@ -188,7 +195,7 @@ ${paid > 0 ? `<div class="sr"><span>ชำระแล้ว</span><span>-${f(pa
 
 ${showEvents ? `<!-- EVENTS -->
 <div class="events"><h3>Event Timeline</h3>
-${data.events!.map(e => `<div class="ev"><span class="ev-date">${e.date}</span><span class="ev-action">${e.action}</span></div>`).join("")}
+${data.events!.map(e => `<div class="ev"><span class="ev-date">${esc(e.date)}</span><span class="ev-action">${esc(e.action)}</span></div>`).join("")}
 </div>` : ""}
 
 ${showDebt ? `<!-- DEBT -->
@@ -203,15 +210,15 @@ ${showDebt ? `<!-- DEBT -->
 
 ${showPayment ? `<!-- PAYMENT -->
 <div class="pay"><div class="pay-l">
-${show(data.payment!.bank) ? `<div class="bk">${data.payment!.bank}</div>` : ""}
-${show(data.payment!.account) ? `<div>เลขที่ ${data.payment!.account}</div>` : ""}
-${show(data.payment!.accountName) ? `<div>${data.payment!.accountName}</div>` : ""}
-${show(data.payment!.branch) ? `<div>${data.payment!.branch}</div>` : ""}
-</div>${show(data.payment!.dueDate) ? `<div style="text-align:right;font-size:10px"><div>กำหนดชำระ</div><div style="font-weight:700;font-size:13px;color:#22c55e">${data.payment!.dueDate}</div></div>` : ""}</div>` : ""}
+${show(data.payment!.bank) ? `<div class="bk">${esc(data.payment!.bank)}</div>` : ""}
+${show(data.payment!.account) ? `<div>เลขที่ ${esc(data.payment!.account)}</div>` : ""}
+${show(data.payment!.accountName) ? `<div>${esc(data.payment!.accountName)}</div>` : ""}
+${show(data.payment!.branch) ? `<div>${esc(data.payment!.branch)}</div>` : ""}
+</div>${show(data.payment!.dueDate) ? `<div style="text-align:right;font-size:10px"><div>กำหนดชำระ</div><div style="font-weight:700;font-size:13px;color:#22c55e">${esc(data.payment!.dueDate)}</div></div>` : ""}</div>` : ""}
 
-${show(data.notes) ? `<div style="font-size:10px;color:#666;margin-top:8px;white-space:pre-wrap">${data.notes}</div>` : ""}
+${show(data.notes) ? `<div style="font-size:10px;color:#666;margin-top:8px;white-space:pre-wrap">${esc(data.notes)}</div>` : ""}
 
-${show(data.company?.name) ? `<div class="ftr">${data.company!.name}${show(data.company!.taxId) ? ` | เลขผู้เสียภาษี ${data.company!.taxId}` : ""}</div>` : ""}
+${show(data.company?.name) ? `<div class="ftr">${esc(data.company!.name)}${show(data.company!.taxId) ? ` | เลขผู้เสียภาษี ${esc(data.company!.taxId)}` : ""}</div>` : ""}
 
 </body></html>`;
 

@@ -1,0 +1,99 @@
+{
+  "version": 1,
+  "policy": "ทุก import ข้าม layer ต้องอยู่ในกราฟนี้ — เพิ่ม edge ใหม่ต้อง approve",
+  "allowed_imports": {
+    "app": [
+      "lib/shared",
+      "lib/middleware",
+      "lib/supabase",
+      "lib/documents",
+      "lib/registry",
+      "lib/runtime",
+      "lib/v1-input",
+      "lib/v2-rules",
+      "lib/v3-engines",
+      "lib/v4-ai",
+      "lib/v5-presenter",
+      "lib/v6-executor"
+    ],
+    "components": [
+      "lib/shared",
+      "lib/v1-input",
+      "lib/v2-rules"
+    ],
+    "lib/v1-input": [
+      "lib/shared",
+      "lib/supabase",
+      "lib/v2-rules",
+      "lib/browser"
+    ],
+    "lib/v2-rules": [
+      "lib/shared",
+      "lib/supabase"
+    ],
+    "lib/v3-engines": [
+      "lib/shared",
+      "lib/supabase",
+      "lib/v3-engines",
+      "lib/runtime"
+    ],
+    "lib/v4-ai": [
+      "lib/shared",
+      "lib/commands",
+      "lib/runtime"
+    ],
+    "lib/v5-presenter": [
+      "lib/shared",
+      "lib/supabase",
+      "lib/v3-engines"
+    ],
+    "lib/v6-executor": [
+      "lib/shared",
+      "lib/supabase",
+      "lib/v6-executor",
+      "lib/v2-rules",
+      "lib/commands",
+      "lib/registry"
+    ],
+    "lib/runtime": [
+      "lib/registry",
+      "lib/shared"
+    ],
+    "lib/supabase": [
+      "lib/shared",
+      "lib/supabase"
+    ],
+    "lib/middleware": [
+      "lib/shared"
+    ],
+    "lib/documents": [
+      "lib/shared",
+      "lib/supabase",
+      "lib/middleware"
+    ],
+    "lib/registry": [
+      "lib/shared"
+    ],
+    "lib/agent": [
+      "lib/shared",
+      "lib/v6-executor"
+    ],
+    "lib/browser": [
+      "lib/shared",
+      "lib/commands"
+    ]
+  },
+  "notes": {
+    "app_wide": "app/ (pages + API routes) can import from all presentation and execution layers for command dispatch",
+    "components_v1": "components use lib/v1-input/parser for dispatch, lib/v2-rules for type-only imports",
+    "v1_browser": "v1-input/computer.ts uses lib/browser/parser for matchCommand",
+    "v3_self": "v3-engines sub-modules can import each other (e.g., debt/engine imports config-loader)",
+    "v3_runtime": "v3-engines/business.ts registers commands via lib/runtime/engine",
+    "v4_runtime": "v4-ai/translator.ts registers commands via lib/runtime/engine",
+    "v5_v3": "v5-presenter uses v3-engines for calcDistance and config-loader (enricher/explainer)",
+    "v6_self": "v6-executor sub-modules can import each other (drivers, core, runtime)",
+    "v6_v2": "v6-executor/gateway.ts imports v2-rules/actions for permission check before execute",
+    "v6_supabase": "v6-executor/executor.ts uses supabase for audit logging",
+    "supabase_self": "lib/supabase/realtime.ts imports from lib/supabase/queries"
+  }
+}

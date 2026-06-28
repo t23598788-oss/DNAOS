@@ -29,14 +29,20 @@ export async function loadConfigs(): Promise<RulesConfig> {
   return configs;
 }
 
-export function getNum(configs: RulesConfig, key: string, fallback: number): number {
+export function getNum(configs: RulesConfig, key: string): number {
   const v = configs[key];
-  return typeof v === "number" ? v : fallback;
+  if (typeof v !== "number") {
+    throw new Error(`[CONFIG MISSING] key="${key}" — ต้องใส่ใน app_configs table ก่อนใช้งาน`);
+  }
+  return v;
 }
 
-export function getStr(configs: RulesConfig, key: string, fallback: string): string {
+export function getStr(configs: RulesConfig, key: string): string {
   const v = configs[key];
-  return v !== undefined ? String(v) : fallback;
+  if (v === undefined) {
+    throw new Error(`[CONFIG MISSING] key="${key}" — ต้องใส่ใน app_configs table ก่อนใช้งาน`);
+  }
+  return String(v);
 }
 
 export interface AuditTrail {

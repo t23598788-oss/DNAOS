@@ -1,0 +1,23 @@
+{
+  "threshold": 10,
+  "reporters": ["console"],
+  "ignore": [
+    "node_modules/**",
+    ".next/**",
+    "supabase/functions/**",
+    "**/*.json",
+    "**/*.md"
+  ],
+  "absolute": true,
+  "gitignore": true,
+  "minLines": 8,
+  "minTokens": 50,
+  "format": ["typescript", "tsx"],
+  "pattern": [
+    "lib/**/*.ts",
+    "app/**/*.ts",
+    "app/**/*.tsx",
+    "components/**/*.tsx"
+  ],
+  "blame": false
+}

@@ -20,9 +20,9 @@ export interface PricingResult {
 
 export async function calcPricing(input: PricingInput): Promise<PricingResult> {
   const configs = await loadConfigs();
-  const markupPercent = getNum(configs, "pricing-markup-percent", 25);
-  const systemFeePercent = getNum(configs, "system-fee-percent", 3);
-  const urgentFeePercent = getNum(configs, "urgent-fee-percent", 15);
+  const markupPercent = getNum(configs, "pricing-markup-percent");
+  const systemFeePercent = getNum(configs, "system-fee-percent");
+  const urgentFeePercent = getNum(configs, "urgent-fee-percent");
 
   const markup = input.total_cost * (markupPercent / 100);
   const systemFee = input.total_cost * (systemFeePercent / 100);

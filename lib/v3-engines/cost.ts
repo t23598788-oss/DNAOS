@@ -22,7 +22,7 @@ export interface CostResult {
 
 export async function calcCost(input: CostInput): Promise<CostResult> {
   const configs = await loadConfigs();
-  const driverWage = getNum(configs, "driver-wage-per-trip", 450);
+  const driverWage = getNum(configs, "driver-wage-per-trip");
 
   let materialPrice = 0;
   if (input.pit_profile_id && input.material_type_id) {

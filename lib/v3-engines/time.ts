@@ -13,8 +13,8 @@ export interface TimeResult {
 
 export async function calcTime(input: TimeInput): Promise<TimeResult> {
   const configs = await loadConfigs();
-  const avgSpeed = getNum(configs, "avg-speed-kmh", 40);
-  const loadUnloadMin = getNum(configs, "load-unload-minutes", 30);
+  const avgSpeed = getNum(configs, "avg-speed-kmh");
+  const loadUnloadMin = getNum(configs, "load-unload-minutes");
 
   const driveHours = input.distance_km / avgSpeed;
   const loadHours = loadUnloadMin / 60;

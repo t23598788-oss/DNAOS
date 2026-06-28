@@ -14,8 +14,10 @@
  * 7. ไม่มี Regression
  */
 
-import { registerCommand, dispatchEvent } from "@/lib/runtime/engine";
+import { round } from "@/lib/shared/types";
+import { registerCommand } from "@/lib/runtime/engine";
 import { loadConfigs, getNum, type RulesConfig } from "./config-loader";
+import { calcDebtFull, type DebtCalcInput } from "./debt/engine";
 
 // ── 1. โหลด Business Rules ──
 
@@ -23,7 +25,6 @@ export async function loadBusinessRules(): Promise<{ ok: boolean; rules: RulesCo
   const rules = await loadConfigs();
   return { ok: true, rules, count: Object.keys(rules).length };
 }
-
 // ── 2. คำนวณ Business Logic ──
 
 export async function calculatePrice(args: {
@@ -32,10 +33,10 @@ export async function calculatePrice(args: {
   material_price: number;
 }): Promise<Record<string, unknown>> {
   const rules = await loadConfigs();
-  const fuelPrice = getNum(rules, "fuel-price", 43);
-  const driverWage = getNum(rules, "driver-wage-per-trip", 450);
-  const markup = getNum(rules, "pricing-markup-percent", 25);
-  const capacity = getNum(rules, "vehicle-default-capacity", 10);
+  const fuelPrice = getNum(rules, "fuel-price");
+  const driverWage = getNum(rules, "driver-wage-per-trip");
+  const markup = getNum(rules, "pricing-markup-percent");
+  const capacity = getNum(rules, "vehicle-default-capacity");
 
   const trips = Math.ceil(args.quantity / capacity);
   const fuelCost = args.distance_km * fuelPrice * trips;
@@ -59,36 +60,15 @@ export async function calculateDebt(args: {
   due_date: string;
   paid_amount?: number;
 }): Promise<Record<string, unknown>> {
-  const rules = await loadConfigs();
-  const gracePeriod = getNum(rules, "debt-grace-period-hours", 24);
-  const rate = args.interest_rate / 100;
-  const dailyRate = rate / 365;
-
-  const due = new Date(args.due_date);
-  const now = new Date();
-  const daysOverdue = Math.max(0, Math.floor((now.getTime() - due.getTime()) / 86_400_000));
-  const isOverdue = daysOverdue > 0;
-
-  const fee = round(args.principal * (args.fee_rate / 100));
-  const base = args.principal + fee;
-  const paid = args.paid_amount ?? 0;
-  const remaining = Math.max(0, args.principal - paid);
-
-  let interest = 0;
-  if (isOverdue && remaining > 0) {
-    const current = (remaining + fee) * Math.pow(1 + dailyRate, daysOverdue);
-    interest = round(current - (remaining + fee));
-  }
-
-  const total = round(remaining + fee + interest);
-
-  return {
-    principal: args.principal, fee, base: round(base),
-    daysOverdue, isOverdue, gracePeriod,
-    interest: round(interest), dailyRate,
-    paid, remaining: round(remaining),
-    total,
+  const input: DebtCalcInput = {
+    principal: args.principal,
+    feeAmount: round(args.principal * (args.fee_rate / 100)),
+    dueDate: args.due_date,
+    paidAmount: args.paid_amount,
+    status: "ACTIVE_CREDIT",
   };
+  const result = await calcDebtFull(input);
+  return { ...result };
 }
 
 export async function calculateTax(args: {
@@ -96,7 +76,8 @@ export async function calculateTax(args: {
   vat_rate?: number;
   withholding_rate?: number;
 }): Promise<Record<string, unknown>> {
-  const vatRate = args.vat_rate ?? 0.07;
+  const rules = await loadConfigs();
+  const vatRate = args.vat_rate ?? (getNum(rules, "vat-rate") / 100);
   const vat = round(args.amount * vatRate);
   const withholding = args.withholding_rate ? round(args.amount * args.withholding_rate) : 0;
   const net = round(args.amount + vat - withholding);
@@ -135,5 +116,3 @@ export function registerBusinessCommands(): void {
     })
   );
 }
-
-function round(n: number): number { return Math.round(n * 100) / 100; }

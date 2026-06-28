@@ -1,72 +1,102 @@
-/**
- * DNA OS Command Center API
- *
- * รับ JSON Command หรือ ภาษาไทย → AI แปล → Runtime → Business → Result
- * แสดง Event Log + Trace ID ทุกครั้ง
- */
+import { NextResponse } from 'next/server';
+import { getDocuments, getOpenDebts, getDebtTrackings, getPartners, getJobs, getMaterialTypes } from "@/lib/supabase/queries";
 
-import { NextRequest, NextResponse } from "next/server";
-import { executeCommand, getEventsByTrace, type RuntimeCommand } from "@/lib/runtime/engine";
-import { registerBusinessCommands } from "@/lib/v3-engines/business";
-import { translate, registerTranslationCommands } from "@/lib/v4-ai/translator";
+let globalDisplayState: any = {
+  activeView: 'IDLE',
+  data: {}
+};
 
-let initialized = false;
+async function interpret(command: string) {
+  const q = command.toLowerCase();
 
-function init() {
-  if (initialized) return;
-  registerBusinessCommands();
-  registerTranslationCommands();
-  initialized = true;
+  // ── ลูกค้า / คู่ค้า ──
+  if (/ลูกค้า|คู่ค้า|partner/.test(q)) {
+    const all = await getPartners().catch(() => []) ?? [];
+    const name = q.replace(/ดู|หา|เปิด|ลูกค้า|คู่ค้า|ของ|คุณ|partner/g, "").trim();
+
+    if (name) {
+      const found = all.filter((p: any) => p.name?.toLowerCase().includes(name));
+      if (found.length === 1) {
+        return { activeView: "PARTNER_DETAIL", data: found[0] };
+      }
+      if (found.length > 1) {
+        return { activeView: "PARTNER_PICK", data: { keyword: name, items: found } };
+      }
+      return { activeView: "NOT_FOUND", data: { text: `ไม่พบลูกค้าชื่อ "${name}"` } };
+    }
+    return { activeView: "PARTNER_LIST", data: { items: all } };
+  }
+
+  // ── ใบแจ้งหนี้ ──
+  if (/ใบแจ้งหนี้|invoice/.test(q)) {
+    const all = await getDocuments("invoice").catch(() => []) ?? [];
+    return { activeView: "INVOICE_LIST", data: { items: all } };
+  }
+
+  // ── เอกสาร ──
+  if (/เอกสาร|document|ใบเสร็จ|ใบเสนอราคา/.test(q)) {
+    const t = /ใบเสร็จ/.test(q) ? "receipt" : /ใบเสนอราคา/.test(q) ? "quotation" : undefined;
+    const all = await getDocuments(t).catch(() => []) ?? [];
+    return { activeView: "DOC_LIST", data: { items: all, type: t ?? "ทั้งหมด" } };
+  }
+
+  // ── หนี้ ──
+  if (/หนี้|debt|ลูกหนี้/.test(q)) {
+    const debts = await getOpenDebts().catch(() => []) ?? [];
+    return { activeView: "DEBT_LIST", data: { items: debts } };
+  }
+
+  // ── งาน ──
+  if (/งาน|job|จัดส่ง|โปรเจกต์/.test(q)) {
+    const all = await getJobs().catch(() => []) ?? [];
+    const name = q.replace(/ดู|หา|เปิด|งาน|ของ|คุณ|จัดส่ง|โปรเจกต์/g, "").trim();
+
+    if (name) {
+      const found = all.filter((j: any) =>
+        j.project_name?.toLowerCase().includes(name) ||
+        j.contact_name?.toLowerCase().includes(name)
+      );
+      if (found.length === 1) {
+        return { activeView: "JOB_DETAIL", data: found[0] };
+      }
+      if (found.length > 1) {
+        return { activeView: "JOB_PICK", data: { keyword: name, items: found } };
+      }
+      return { activeView: "NOT_FOUND", data: { text: `ไม่พบงานชื่อ "${name}"` } };
+    }
+    return { activeView: "JOB_LIST", data: { items: all } };
+  }
+
+  // ── วัสดุ ──
+  if (/วัสดุ|material|หิน|ทราย|ดิน/.test(q)) {
+    const all = await getMaterialTypes().catch(() => []) ?? [];
+    return { activeView: "MATERIAL_LIST", data: { items: all } };
+  }
+
+  // ── ซ่อน / ล้าง ──
+  if (/ซ่อน|ล้าง|clear|reset/.test(q)) {
+    return { activeView: "IDLE", data: {} };
+  }
+
+  return { activeView: "UNKNOWN", data: { text: command } };
 }
 
-export async function POST(req: NextRequest) {
-  init();
+export async function POST(request: Request) {
+  try {
+    const body = await request.json();
 
-  const body = await req.json();
-  const { text, command } = body as { text?: string; command?: RuntimeCommand };
-
-  // Route 1: ภาษาไทย → AI แปล → Runtime
-  if (text) {
-    const translation = translate(text);
-
-    if (!translation.ok || !translation.command) {
-      return NextResponse.json({
-        success: false,
-        intent: translation.intent,
-        raw: text,
-        error: "ไม่เข้าใจคำสั่ง",
-      });
+    if (body.userCommand) {
+      globalDisplayState = await interpret(body.userCommand);
+    } else if (body.command) {
+      globalDisplayState = { activeView: body.command, data: body.payload || {} };
     }
 
-    const result = await executeCommand(translation.command);
-    const events = getEventsByTrace(result.traceId);
-
-    return NextResponse.json({
-      success: result.success,
-      intent: translation.intent,
-      entities: translation.entities,
-      raw: text,
-      traceId: result.traceId,
-      data: result.data,
-      error: result.error,
-      events,
-    });
+    return NextResponse.json({ success: true });
+  } catch {
+    return NextResponse.json({ success: false, error: "รหัสคำสั่งไม่ถูกต้อง" }, { status: 400 });
   }
+}
 
-  // Route 2: JSON Command ตรง → Runtime
-  if (command) {
-    const result = await executeCommand(command);
-    const events = getEventsByTrace(result.traceId);
-
-    return NextResponse.json({
-      success: result.success,
-      command: result.command,
-      traceId: result.traceId,
-      data: result.data,
-      error: result.error,
-      events,
-    });
-  }
-
-  return NextResponse.json({ success: false, error: "ต้องระบุ text หรือ command" }, { status: 400 });
+export async function GET() {
+  return NextResponse.json(globalDisplayState);
 }

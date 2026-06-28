@@ -16,8 +16,8 @@ export interface FuelResult {
 
 export async function calcFuel(input: FuelInput): Promise<FuelResult> {
   const configs = await loadConfigs();
-  const fuelPrice = getNum(configs, "fuel-price", 43);
-  let consumptionRate = getNum(configs, "default-fuel-consumption", 6.5);
+  const fuelPrice = getNum(configs, "fuel-price");
+  let consumptionRate = getNum(configs, "default-fuel-consumption");
 
   if (input.vehicle_type_id) {
     const { data: vt } = await supabase()

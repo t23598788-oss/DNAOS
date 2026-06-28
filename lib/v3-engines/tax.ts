@@ -18,7 +18,7 @@ export interface TaxResult {
 
 export async function calcTax(input: TaxInput): Promise<TaxResult> {
   const configs = await loadConfigs();
-  const vatRate = getNum(configs, "vat-rate", 7);
+  const vatRate = getNum(configs, "vat-rate");
   const vatEnabled = input.vat_enabled ?? true;
   const vatMode = input.vat_mode ?? "inclusive";
   const whtPercent = input.withholding_tax_percent ?? 0;

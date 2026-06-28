@@ -6,6 +6,7 @@
  * AI ห้ามเรียกตรง — ต้องผ่าน Engine เท่านั้น
  */
 
+import { round } from "@/lib/shared/types";
 import { loadConfigs, getNum, audit, type AuditTrail } from "../config-loader";
 import { calcCompoundInterest, calcDaysOverdue } from "./interest";
 import { checkOverdue } from "./overdue";
@@ -39,10 +40,10 @@ export interface DebtCalcResult {
 
 export async function calcDebtFull(input: DebtCalcInput): Promise<DebtCalcResult> {
   const configs = await loadConfigs();
-  const interestRate = getNum(configs, "debt-interest-rate", 25) / 100;
-  const gracePeriodHours = getNum(configs, "debt-grace-period-hours", 24);
-  const collectionFeeRate = getNum(configs, "debt-collection-fee-rate", 5);
-  const collectionFeeLimit = getNum(configs, "debt-collection-fee-limit", 100000);
+  const interestRate = getNum(configs, "debt-interest-rate") / 100;
+  const gracePeriodHours = getNum(configs, "debt-grace-period-hours");
+  const collectionFeeRate = getNum(configs, "debt-collection-fee-rate");
+  const collectionFeeLimit = getNum(configs, "debt-collection-fee-limit");
 
   const due = new Date(input.dueDate);
   const asOf = input.asOfDate ? new Date(input.asOfDate) : new Date();
@@ -114,5 +115,3 @@ export type { TransitionEvent, TransitionResult } from "./transition";
 export { checkDebtSchedule, checkBatch } from "./scheduler";
 export { calcDebtSummary } from "./calculator";
 export type { DebtSummary } from "./calculator";
-
-function round(n: number): number { return Math.round(n * 100) / 100; }
