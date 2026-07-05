@@ -23,12 +23,14 @@ interface Exchange {
 }
 
 const SUGGESTIONS = [
-  "วันนี้ระบบสถานะเป็นอย่างไร",
-  "ระบบขาดอะไร",
-  "เดือนนี้ต้องจ่ายอะไร",
-  "ตรวจสอบหนี้ค้าง",
-  "เช็คสถานะงาน",
-  "ความเสี่ยงตอนนี้คืออะไร",
+  "สรุปการเงินทั้งหมด",
+  "มีหนี้ค้างเท่าไหร่",
+  "งานที่ยังไม่ปิดมีกี่งาน",
+  "ใบแจ้งหนี้ล่าสุด 5 ใบ",
+  "พาร์ตเนอร์ทั้งหมดในระบบ",
+  "เหตุการณ์ล่าสุดในระบบ",
+  "งานประเภทขายทั้งหมด",
+  "summary of all finances",
 ];
 
 // ── Three.js hologram face — procedural wireframe head, no external model ──
@@ -233,7 +235,7 @@ export default function BrainPage() {
       const res = await fetch("/api/brain", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question: q }),
+        body: JSON.stringify({ question: q, history: history.slice(0, 6) }),
       });
       const data = await res.json();
       const exchange: Exchange = {
