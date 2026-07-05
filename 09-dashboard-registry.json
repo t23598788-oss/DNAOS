@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "policy": "Dashboard ต้องวัดผลกระทบทางธุรกิจ ไม่ใช่แค่ตัวเลขทางเทคนิค",
+  "dashboards": {
+    "existence_intelligence": {
+      "name": "Existence Intelligence",
+      "purpose": "แสดงให้เห็นว่าระบบรู้จักตัวเองแค่ไหน (Capabilities, Gaps, Evolution)",
+      "purpose_th": "แสดงให้เห็นว่าระบบรู้จักตัวเองแค่ไหน (ความสามารถ, ช่องว่าง, การพัฒนา)",
+      "script": "npm run existence-intelligence"
+    },
+    "governance": {
+      "name": "Governance & Constitution",
+      "purpose": "ตรวจสอบว่าการทำงานของระบบเป็นไปตามกฎที่ตั้งไว้หรือไม่",
+      "purpose_th": "ตรวจสอบว่าการทำงานของระบบเป็นไปตามรัฐธรรมนูญหรือไม่",
+      "script": "npm run guard"
+    }
+  }
+}

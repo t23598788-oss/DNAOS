@@ -1,267 +1,282 @@
 'use client';
+import { useState, useEffect, useCallback } from 'react';
 
-import { useState, useRef, useEffect } from 'react';
+type RowStatus = 'hold' | 'released' | 'pending';
 
-function fmt(n: any) { const v = Number(n); return isNaN(v) ? "-" : v.toLocaleString("th-TH", { minimumFractionDigits: 2 }); }
-
-function DeleteBtn({ table, id, onDone }: { table: string; id: string; onDone: () => void }) {
-  const [confirming, setConfirming] = useState(false);
-  if (!id) return null;
-  if (confirming) return (
-    <div className="flex gap-2 mt-2">
-      <button onClick={async () => { await fetch('/api/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: `DELETE:${table}:${id}` }) }); setConfirming(false); onDone(); }} className="px-3 py-1.5 bg-red-500 text-white text-xs rounded-lg">ยืนยันลบ</button>
-      <button onClick={() => setConfirming(false)} className="px-3 py-1.5 bg-stone-200 text-stone-700 text-xs rounded-lg">ยกเลิก</button>
-    </div>
-  );
-  return <button onClick={() => setConfirming(true)} className="mt-2 text-xs text-stone-400 hover:text-red-500 transition">ลบออกจากระบบ</button>;
+interface MatrixRow {
+  id: string;
+  company_name: string;
+  company_phone: string;
+  webhook_url: string;
+  client_name: string;
+  deposit_amount: number;
+  deposit_doc_number: string;
+  driver_name: string;
+  distance_km: number;
+  quantity: number;
+  delivered: number;
+  status: RowStatus;
+  project_name: string;
+  job_status: string;
+  created_at: string;
 }
 
-function UIComponent({ uiData, onCommand }: { uiData: any; onCommand: (cmd: string) => void }) {
-  const t = uiData.componentType;
-
-  if (t === 'INFO_CARD') return (
-    <div className="mt-3 bg-white rounded-2xl border border-stone-200 p-6 shadow-sm">
-      {uiData.title && <div className="text-lg font-semibold text-stone-800 mb-4 pb-3 border-b border-stone-100">{uiData.title}</div>}
-      <div className="space-y-3">
-        {uiData.items?.map((item: any, i: number) => (
-          <div key={i} className="flex justify-between items-start">
-            <span className="text-stone-500 text-sm">{item.label}</span>
-            <span className="text-stone-900 text-sm font-medium text-right ml-4">{item.value}</span>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-
-  if (t === 'DOCUMENT_RENDERER') return (
-    <div className="mt-3 bg-white rounded-2xl border border-stone-200 p-6 shadow-sm">
-      <div className="font-semibold text-lg text-stone-800 border-b border-stone-100 pb-2 mb-4">{uiData.title}</div>
-      <div className="space-y-2 text-sm">
-        <p><span className="text-stone-500">ลูกค้า:</span> <span className="font-medium">{uiData.customerName}</span></p>
-        {uiData.phone && <p><span className="text-stone-500">โทร:</span> {uiData.phone}</p>}
-        {uiData.address && <p><span className="text-stone-500">ที่อยู่:</span> {uiData.address}</p>}
-        <p className="text-emerald-600 font-medium mt-3">สร้างสำเร็จ</p>
-      </div>
-    </div>
-  );
-
-  if (t === 'CUSTOMER_CARD') return (
-    <div className="mt-3 bg-white rounded-2xl border border-stone-200 p-6 shadow-sm">
-      <div className="font-semibold text-lg text-stone-800 mb-4">{uiData.name}</div>
-      <div className="space-y-3 text-sm">
-        {uiData.code && <div className="flex justify-between"><span className="text-stone-500">รหัส</span><span className="text-stone-900">{uiData.code}</span></div>}
-        {uiData.type && <div className="flex justify-between"><span className="text-stone-500">ประเภท</span><span className="text-stone-900">{uiData.type}</span></div>}
-        {uiData.source && <div className="flex justify-between"><span className="text-stone-500">แหล่ง</span><span className="text-stone-900">{uiData.source}</span></div>}
-        {uiData.phone && <div className="flex justify-between"><span className="text-stone-500">โทร</span><span className="text-stone-900">{uiData.phone}</span></div>}
-        {uiData.address && <div className="flex justify-between"><span className="text-stone-500">ที่อยู่</span><span className="text-stone-900 text-right max-w-[60%]">{uiData.address}</span></div>}
-      </div>
-    </div>
-  );
-
-  if (t === 'PICKER') return (
-    <div className="mt-3 space-y-2">
-      {uiData.items?.map((item: any, i: number) => (
-        <button key={i} onClick={() => onCommand(`${uiData.command_prefix}${item.label}`)}
-          className="w-full text-left px-5 py-4 rounded-xl bg-white border border-stone-200 hover:border-stone-400 hover:shadow-sm active:bg-stone-50 transition">
-          <div className="text-stone-900 text-sm font-medium">{item.label}</div>
-          {item.detail && <div className="text-stone-500 text-xs mt-0.5">{item.detail}</div>}
-        </button>
-      ))}
-    </div>
-  );
-
-  if (t === 'PARTNER_LIST') return (
-    <div className="mt-3 space-y-1">
-      {uiData.items?.map((p: any, i: number) => (
-        <button key={i} onClick={() => onCommand(`ลูกค้า ${p.name}`)}
-          className="w-full text-left px-5 py-3 rounded-xl hover:bg-stone-100 active:bg-stone-200 transition flex justify-between items-center">
-          <span className="text-stone-900 text-sm">{p.name}</span>
-          <span className="text-stone-400 text-xs">{p.phone ?? ""}</span>
-        </button>
-      ))}
-    </div>
-  );
-
-  if (t === 'DEBT_LIST') return (
-    <div className="mt-3 space-y-2">
-      {uiData.items?.map((d: any, i: number) => (
-        <div key={i} className="px-5 py-4 rounded-xl bg-white border border-stone-200 shadow-sm">
-          <div className="flex justify-between items-start">
-            <div><div className="text-stone-900 text-sm font-medium">{d.customer_name ?? "ไม่ทราบชื่อ"}</div><div className="text-stone-400 text-xs mt-0.5">{d.invoice_status}</div></div>
-            <div className="text-right"><div className="text-red-600 text-sm font-semibold">{fmt(d.outstanding_amount ?? d.principal_amount)}</div><div className="text-stone-400 text-xs">เงินต้น {fmt(d.principal_amount)}</div></div>
-          </div>
-          <DeleteBtn table={d.customer_name ? "debt_trackings" : "invoice_debts"} id={d.id} onDone={() => onCommand("หนี้")} />
-        </div>
-      ))}
-    </div>
-  );
-
-  if (t === 'JOB_CARD') return (
-    <div className="mt-3 bg-white rounded-2xl border border-stone-200 p-6 shadow-sm">
-      <div className="font-semibold text-lg text-stone-800 mb-4">{uiData.project}</div>
-      <div className="space-y-3 text-sm">
-        <div className="flex justify-between"><span className="text-stone-500">ผู้ติดต่อ</span><span className="text-stone-900">{uiData.contact ?? "-"}</span></div>
-        <div className="flex justify-between"><span className="text-stone-500">ระยะทาง</span><span className="text-stone-900">{uiData.distance ?? "-"} km</span></div>
-        <div className="flex justify-between"><span className="text-stone-500">ต้องการ</span><span className="text-stone-900">{uiData.required ?? "-"} คิว</span></div>
-        <div className="flex justify-between"><span className="text-stone-500">ส่งแล้ว</span><span className="text-stone-900">{uiData.delivered ?? 0} คิว</span></div>
-        <div className="flex justify-between"><span className="text-stone-500">สถานะ</span><span className="text-stone-900">{uiData.status ?? "-"}</span></div>
-      </div>
-    </div>
-  );
-
-  if (t === 'JOB_LIST') return (
-    <div className="mt-3 space-y-2">
-      {uiData.items?.map((j: any, i: number) => (
-        <div key={i} className="px-5 py-4 rounded-xl bg-white border border-stone-200 shadow-sm">
-          <div className="flex justify-between cursor-pointer" onClick={() => onCommand(`งาน ${j.project_name}`)}>
-            <div><div className="text-stone-900 text-sm font-medium">{j.project_name}</div><div className="text-stone-400 text-xs mt-0.5">{j.contact_name}</div></div>
-            <div className="text-stone-500 text-xs text-right">{j.job_status}</div>
-          </div>
-          <DeleteBtn table="jobs" id={j.id} onDone={() => onCommand("งาน")} />
-        </div>
-      ))}
-    </div>
-  );
-
-  if (t === 'DOC_LIST') return (
-    <div className="mt-3 space-y-2">
-      {uiData.items?.map((doc: any, i: number) => (
-        <div key={i} className="px-5 py-4 rounded-xl bg-white border border-stone-200 shadow-sm">
-          <div className="flex justify-between">
-            <div><div className="text-stone-900 text-sm font-medium">{doc.party_name}</div><div className="text-stone-400 text-xs mt-0.5">{doc.document_type} {doc.document_number}</div></div>
-            <div className="text-right"><div className="text-stone-900 text-sm font-medium">{fmt(doc.net_amount)}</div><div className="text-stone-400 text-xs">{doc.status}</div></div>
-          </div>
-          <DeleteBtn table="documents" id={doc.id} onDone={() => onCommand("เอกสาร")} />
-        </div>
-      ))}
-    </div>
-  );
-
-  if (t === 'MATERIAL_LIST') return (
-    <div className="mt-3 grid grid-cols-2 sm:grid-cols-3 gap-2">
-      {uiData.items?.map((m: any, i: number) => (
-        <div key={i} className="px-4 py-3 rounded-xl bg-white border border-stone-200 text-center text-stone-800 text-sm shadow-sm">{m.name}</div>
-      ))}
-    </div>
-  );
-
-  if (t === 'HTML_DOCUMENT') return (
-    <div className="mt-3 rounded-xl overflow-hidden border border-stone-200 bg-white shadow-sm">
-      <iframe srcDoc={uiData.html} className="w-full border-0" style={{ minHeight: '500px' }} title="เอกสาร" />
-    </div>
-  );
-
-  return null;
+function fmtMoney(n: number) {
+  if (n === 0) return null;
+  return '฿' + n.toLocaleString('th-TH', { minimumFractionDigits: 0 });
 }
 
-export default function AIChatCockpit() {
-  const [messages, setMessages] = useState<any[]>([{ sender: 'ai', type: 'text', text: 'DNA OS พร้อมทำงานครับ' }]);
-  const [input, setInput] = useState('');
-  const [sending, setSending] = useState(false);
-  const endRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
+function fmtNum(n: number) {
+  return n.toLocaleString('th-TH');
+}
 
-  useEffect(() => { endRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
-  useEffect(() => { inputRef.current?.focus(); }, []);
+function StatusPill({ status }: { status: RowStatus }) {
+  if (status === 'hold') return (
+    <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-100 text-amber-700">
+      <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse flex-shrink-0" />
+      <span className="text-xs font-semibold whitespace-nowrap">Hold 🔒</span>
+    </div>
+  );
+  if (status === 'released') return (
+    <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-700">
+      <span className="w-2 h-2 rounded-full bg-emerald-500 flex-shrink-0" />
+      <span className="text-xs font-semibold whitespace-nowrap">Released 🔓</span>
+    </div>
+  );
+  return (
+    <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-stone-100 text-stone-500">
+      <span className="w-2 h-2 rounded-full bg-stone-300 flex-shrink-0" />
+      <span className="text-xs font-semibold whitespace-nowrap">รอดำเนินการ</span>
+    </div>
+  );
+}
 
-  async function send(text?: string) {
-    const msg = (text ?? input).trim();
-    if (!msg) return;
-    setMessages(prev => [...prev, { sender: 'owner', type: 'text', text: msg }]);
-    setInput('');
-    setSending(true);
-    const res = await fetch('/api/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: msg }) });
-    const data = await res.json();
-    if (data.command === 'CLEAR_SCREEN') {
-      setMessages([{ sender: 'ai', type: 'text', text: 'พร้อมทำงานครับ' }]);
-    } else {
-      setMessages(prev => [...prev, data]);
+function CopyBtn({ text }: { text: string }) {
+  const [copied, setCopied] = useState(false);
+  async function copy() {
+    try { await navigator.clipboard.writeText(text); } catch { return; }
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }
+  return (
+    <button
+      onClick={copy}
+      className="mt-1.5 text-[10px] px-2 py-0.5 rounded border border-stone-200 bg-stone-50 hover:bg-blue-50 hover:border-blue-200 text-stone-400 hover:text-blue-600 transition font-mono leading-relaxed whitespace-nowrap"
+    >
+      {copied ? '✓ คัดลอกแล้ว' : 'คัดลอก Webhook URL'}
+    </button>
+  );
+}
+
+export default function ControlCenter() {
+  const [rows, setRows] = useState<MatrixRow[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [acting, setActing] = useState<string | null>(null);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await fetch('/api/control-center');
+      const data = await res.json();
+      setRows(data.rows ?? []);
+      setLastUpdated(new Date());
+    } finally {
+      setLoading(false);
     }
-    setSending(false);
-    inputRef.current?.focus();
+  }, []);
+
+  useEffect(() => { load(); }, [load]);
+
+  async function act(rowId: string, action: 'approve' | 'suspend') {
+    const key = rowId + ':' + action;
+    setActing(key);
+    try {
+      await fetch('/api/control-center', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ job_id: rowId, action }),
+      });
+      await load();
+    } finally {
+      setActing(null);
+    }
   }
 
-  return (
-    <div className="flex flex-col h-screen bg-stone-50 text-stone-900 touch-manipulation">
+  const holdRows = rows.filter(r => r.status === 'hold');
+  const releasedRows = rows.filter(r => r.status === 'released');
+  const totalHold = holdRows.reduce((s, r) => s + r.deposit_amount, 0);
 
-      <div className="px-6 py-3 bg-white border-b border-stone-200 text-sm font-medium text-stone-800 flex justify-between items-center shadow-sm">
-        <span>DNA OS</span>
-        <span className="text-xs text-emerald-600 flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />พร้อมทำงาน</span>
+  return (
+    <div className="min-h-screen bg-stone-50 text-stone-900">
+
+      {/* Header */}
+      <div className="sticky top-0 z-10 bg-white border-b border-stone-200 px-6 py-3 flex items-center justify-between shadow-sm">
+        <div className="flex items-center gap-3">
+          <span className="font-bold text-stone-800 tracking-tight">DNA OS</span>
+          <span className="text-stone-200 select-none">|</span>
+          <span className="text-sm text-stone-500 font-medium">Control Center</span>
+        </div>
+        <div className="flex items-center gap-3">
+          {lastUpdated && (
+            <span className="text-xs text-stone-400 tabular-nums">
+              {lastUpdated.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+            </span>
+          )}
+          <button
+            onClick={load}
+            disabled={loading}
+            className="text-xs px-3 py-1.5 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-600 disabled:opacity-40 transition font-medium"
+          >
+            {loading ? 'โหลด...' : '↺ รีเฟรช'}
+          </button>
+          <div className="flex items-center gap-1.5 text-xs text-emerald-600">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+            <span>Live</span>
+          </div>
+        </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-6 space-y-4">
-        {messages.map((msg, i) => (
-          <div key={i} className={`flex ${msg.sender === 'owner' ? 'justify-end' : 'justify-start'}`}>
-            <div className={`max-w-2xl w-full ${msg.sender === 'owner'
-              ? 'px-5 py-3 bg-blue-600 text-white rounded-2xl rounded-br-sm text-sm shadow-sm ml-auto max-w-md'
-              : 'px-5 py-3 bg-white border border-stone-200 rounded-2xl rounded-bl-sm text-sm shadow-sm text-stone-700'}`}>
-              <p className="whitespace-pre-line leading-relaxed">{msg.text}</p>
-              {msg.type === 'ui_component' && msg.uiData && (
-                <UIComponent uiData={msg.uiData} onCommand={send} />
-              )}
-              {msg.type === 'workspace' && msg.workspace?.sections && (
-                <div className="mt-3 space-y-4">
-                  {msg.workspace.sections.map((sec: any, si: number) => (
-                    <div key={si}>
-                      <div className="text-xs font-semibold text-stone-500 uppercase tracking-wider mb-2">{sec.section} ({sec.items?.length ?? 0})</div>
-                      {sec.type === 'pick' ? (
-                        <div className="space-y-2">
-                          {sec.items?.map((item: any, ii: number) => (
-                            <button key={ii} onClick={() => send(`${sec.prefix}${item.title}`)} className="w-full text-left px-5 py-4 rounded-xl bg-white border border-stone-200 hover:border-stone-400 hover:shadow-sm active:bg-stone-50 transition">
-                              <div className="text-stone-900 text-sm font-medium">{item.title}</div>
-                              {item.subtitle && <div className="text-stone-500 text-xs mt-0.5">{item.subtitle}</div>}
-                            </button>
-                          ))}
+      <div className="px-6 py-5 max-w-screen-2xl mx-auto">
+
+        {/* Stats */}
+        <div className="grid grid-cols-3 gap-4 mb-6">
+          <div className="bg-white rounded-2xl border border-stone-200 px-5 py-4 shadow-sm">
+            <div className="text-xs text-stone-400 font-medium mb-1 uppercase tracking-wider">งานทั้งหมด</div>
+            <div className="text-3xl font-bold text-stone-800 tabular-nums">{rows.length}</div>
+          </div>
+          <div className="bg-amber-50 rounded-2xl border border-amber-200 px-5 py-4 shadow-sm">
+            <div className="text-xs text-amber-600 font-medium mb-1 uppercase tracking-wider">Hold 🔒 เงินล็อกอยู่</div>
+            <div className="text-3xl font-bold text-amber-700 tabular-nums">{holdRows.length}</div>
+            {totalHold > 0 && (
+              <div className="text-sm text-amber-600 mt-0.5">{fmtMoney(totalHold)}</div>
+            )}
+          </div>
+          <div className="bg-emerald-50 rounded-2xl border border-emerald-200 px-5 py-4 shadow-sm">
+            <div className="text-xs text-emerald-600 font-medium mb-1 uppercase tracking-wider">Released 🔓 ส่งสำเร็จ</div>
+            <div className="text-3xl font-bold text-emerald-700 tabular-nums">{releasedRows.length}</div>
+          </div>
+        </div>
+
+        {/* Matrix Table */}
+        <div className="overflow-x-auto rounded-2xl border border-stone-200 bg-white shadow-sm">
+          {loading && rows.length === 0 ? (
+            <div className="py-24 text-center text-stone-400 text-sm animate-pulse">กำลังดึงข้อมูล...</div>
+          ) : rows.length === 0 ? (
+            <div className="py-24 text-center text-stone-400 text-sm">ยังไม่มีงานในระบบ</div>
+          ) : (
+            <table className="w-full text-sm min-w-[960px]">
+              <thead>
+                <tr className="border-b border-stone-100 bg-stone-50">
+                  <th className="text-left text-[11px] font-semibold text-stone-400 uppercase tracking-wider px-5 py-3 w-64">
+                    บริษัทขนส่ง / LINE Webhook
+                  </th>
+                  <th className="text-left text-[11px] font-semibold text-stone-400 uppercase tracking-wider px-5 py-3 w-48">
+                    ผู้ว่าจ้าง
+                  </th>
+                  <th className="text-left text-[11px] font-semibold text-stone-400 uppercase tracking-wider px-5 py-3 w-48">
+                    คนขับ / งานจัดส่ง
+                  </th>
+                  <th className="text-left text-[11px] font-semibold text-stone-400 uppercase tracking-wider px-5 py-3 w-40">
+                    สถานะเงินกลาง
+                  </th>
+                  <th className="text-left text-[11px] font-semibold text-stone-400 uppercase tracking-wider px-5 py-3 w-44">
+                    การตัดสินใจ
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-stone-50">
+                {rows.map((row) => (
+                  <tr key={row.id} className="hover:bg-stone-50/60 transition-colors">
+
+                    {/* Col 1: Transport company + webhook */}
+                    <td className="px-5 py-4 align-top">
+                      <div className="font-semibold text-stone-800 leading-tight">{row.company_name}</div>
+                      {row.company_phone && (
+                        <div className="text-xs text-stone-400 mt-0.5">{row.company_phone}</div>
+                      )}
+                      <div className="mt-2">
+                        <div className="text-[10px] text-stone-300 font-mono truncate max-w-[220px] leading-relaxed">
+                          {row.webhook_url.replace('https://', '')}
                         </div>
-                      ) : sec.type === 'info' ? (
-                        <div className="bg-white rounded-2xl border border-stone-200 p-5 shadow-sm space-y-3">
-                          {sec.items?.map((item: any, ii: number) => (
-                            <div key={ii} className="flex justify-between"><span className="text-stone-500 text-sm">{item.title}</span><span className="text-stone-900 text-sm font-medium">{item.subtitle}</span></div>
-                          ))}
+                        <CopyBtn text={row.webhook_url} />
+                      </div>
+                    </td>
+
+                    {/* Col 2: Client/Employer */}
+                    <td className="px-5 py-4 align-top">
+                      <div className="font-semibold text-stone-800 leading-tight">{row.client_name}</div>
+                      {row.deposit_amount > 0 ? (
+                        <div className="mt-1.5 space-y-0.5">
+                          <div className="text-xs text-stone-400">ยอดค้ำประกัน</div>
+                          <div className="text-base font-bold text-stone-900 tabular-nums">
+                            {fmtMoney(row.deposit_amount)}
+                          </div>
+                          {row.deposit_doc_number && (
+                            <div className="text-[10px] text-stone-400 font-mono">{row.deposit_doc_number}</div>
+                          )}
                         </div>
                       ) : (
-                        <div className="space-y-2">
-                          {sec.items?.map((item: any, ii: number) => (
-                            <div key={ii} className="px-5 py-3 rounded-xl bg-white border border-stone-200 shadow-sm">
-                              <div className="flex justify-between items-start">
-                                <div className="text-stone-900 text-sm font-medium">{item.title}</div>
-                              </div>
-                              {item.subtitle && <div className="text-stone-500 text-xs mt-1">{item.subtitle}</div>}
-                              {item._table && item.id && <DeleteBtn table={item._table} id={item.id} onDone={() => send(sec.section)} />}
-                            </div>
-                          ))}
-                          {(!sec.items || sec.items.length === 0) && <div className="text-stone-400 text-sm py-3">ไม่มีข้อมูล</div>}
+                        <div className="text-xs text-stone-300 mt-1">ยังไม่มียอด</div>
+                      )}
+                    </td>
+
+                    {/* Col 3: Driver + Job */}
+                    <td className="px-5 py-4 align-top">
+                      <div className="font-semibold text-stone-800 leading-tight">{row.driver_name}</div>
+                      <div className="text-xs text-stone-500 mt-0.5 line-clamp-2">{row.project_name}</div>
+                      <div className="flex flex-wrap gap-x-3 mt-1.5 text-xs text-stone-400 tabular-nums">
+                        {row.distance_km > 0 && <span>{row.distance_km} กม.</span>}
+                        {row.quantity > 0 && (
+                          <span>{fmtNum(row.delivered)}/{fmtNum(row.quantity)} ม³</span>
+                        )}
+                      </div>
+                    </td>
+
+                    {/* Col 4: Escrow status */}
+                    <td className="px-5 py-4 align-top">
+                      <StatusPill status={row.status} />
+                      <div className="text-[10px] text-stone-400 mt-1.5 font-mono tracking-tight">
+                        {row.job_status}
+                      </div>
+                    </td>
+
+                    {/* Col 5: Decision */}
+                    <td className="px-5 py-4 align-top">
+                      {row.status === 'hold' && (
+                        <div className="flex flex-col gap-2">
+                          <button
+                            onClick={() => act(row.id, 'approve')}
+                            disabled={acting !== null}
+                            className="px-4 py-2 bg-emerald-600 text-white rounded-xl text-xs font-semibold hover:bg-emerald-700 active:bg-emerald-800 disabled:opacity-40 transition shadow-sm whitespace-nowrap"
+                          >
+                            {acting === row.id + ':approve' ? '...' : 'อนุมัติโอนเงิน ✓'}
+                          </button>
+                          <button
+                            onClick={() => act(row.id, 'suspend')}
+                            disabled={acting !== null}
+                            className="px-4 py-2 bg-white text-red-600 border border-red-200 rounded-xl text-xs font-semibold hover:bg-red-50 active:bg-red-100 disabled:opacity-40 transition whitespace-nowrap"
+                          >
+                            {acting === row.id + ':suspend' ? '...' : 'ระงับจ่าย ✕'}
+                          </button>
                         </div>
                       )}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-        ))}
-        {sending && (
-          <div className="flex justify-start">
-            <div className="px-5 py-3 bg-white border border-stone-200 rounded-2xl rounded-bl-sm text-sm text-stone-400 animate-pulse shadow-sm">
-              กำลังดึงข้อมูล...
-            </div>
-          </div>
-        )}
-        <div ref={endRef} />
-      </div>
+                      {row.status === 'released' && (
+                        <span className="text-xs text-emerald-600 font-semibold">โอนแล้ว ✓</span>
+                      )}
+                      {row.status === 'pending' && (
+                        <span className="text-xs text-stone-400">รอยืนยัน</span>
+                      )}
+                    </td>
 
-      <div className="bg-white border-t border-stone-200 px-4 py-2 flex gap-2 justify-center">
-        {messages.length > 1 && <button onClick={() => setMessages(msgs => msgs.length > 1 ? msgs.slice(0, -2) : msgs)} className="text-xs text-stone-400 hover:text-stone-700 px-3 py-1.5 rounded-lg bg-stone-100">ย้อนกลับ</button>}
-        <button onClick={() => setMessages([{ sender: 'ai', type: 'text', text: 'พร้อมทำงานครับ' }])} className="text-xs text-stone-400 hover:text-stone-700 px-3 py-1.5 rounded-lg bg-stone-100">ล้างหน้าจอ</button>
-      </div>
-
-      <form onSubmit={e => { e.preventDefault(); send(); }} className="bg-white px-4 sm:px-6 py-3 border-t border-stone-200">
-        <div className="max-w-3xl mx-auto flex gap-2">
-          <input ref={inputRef} value={input} onChange={e => setInput(e.target.value)} placeholder="ถามอะไรก็ได้..."
-            className="flex-1 bg-stone-100 border border-stone-200 rounded-xl px-4 py-3 text-sm text-stone-900 placeholder:text-stone-400 focus:outline-none focus:border-stone-400 focus:ring-1 focus:ring-stone-300" autoComplete="off" enterKeyHint="send" />
-          <button type="submit" disabled={sending || !input.trim()} className="px-6 py-3 bg-blue-600 text-white text-sm rounded-xl font-medium hover:bg-blue-700 active:bg-blue-800 disabled:opacity-30 shadow-sm">สั่งการ</button>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </div>
-      </form>
+
+      </div>
     </div>
   );
 }

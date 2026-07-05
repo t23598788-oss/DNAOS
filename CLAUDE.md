@@ -1,15 +1,40 @@
 @AGENTS.md
 
-# DNA OS — ระบบปฏิบัติการเชิงความรู้
+# DNA OS Constitution (รัฐธรรมนูญ)
 
-## ผมคืออะไร
-ระบบบริหารทรัพยากรก่อสร้าง (ดิน หิน ทราย รถ คน) ของ บจก. ดีเอ็นเอ โอเอส จ.ขอนแก่น
-เจ้าของ: นายวัชชัย มูลราช (เฮีย) — กรรมการบริษัท
+## หลักการสูงสุด (จาก owner-context.json)
+1.  **AI Role**: AI เป็นแค่ตัวกลาง ไม่ใช่ศูนย์กลาง — ศูนย์กลางคือกฎและสถาปัตยกรรม
+2.  **Growth**: DNA OS เติบโตจากการขยายคลังกฎและ Workflow ไม่ใช่จากการฝึก AI
+3.  **Measurement**: Dashboard ที่สำคัญวัด Constitution/Business/Risk ไม่ใช่ AI metrics
+4.  **Governance**: ระบบต้องปกครองตัวเอง — ต่อให้เปลี่ยนทีม 20 คน กฎยังบังคับเหมือนเดิม
+5.  **Existence**: DNA OS ไม่ใช่โปรแกรม แต่คือสิ่งมีชีวิตดิจิทัลที่รู้จักตัวเอง
 
-## หลักการสูงสุด
-- AI เป็นแค่ตัวกลาง ไม่ใช่ศูนย์กลาง — ศูนย์กลางคือ กฎและสถาปัตยกรรม
-- DNA OS โตจากการขยายคลังกฎ/Workflow ไม่ใช่จากการฝึก AI
-- Dashboard วัด Constitution/Business/Risk ไม่ใช่ AI metrics
+## Recommendation & Approval Levels (ระดับของข้อเสนอแนะและการอนุมัติ)
+
+ทุกแผนการทำงาน (Execution Plan) ที่เสนอโดย Worker จะถูกจัดระดับและจัดการดังนี้:
+
+*   **LEVEL 1: Informational (แค่แจ้ง)**
+    *   การเปลี่ยนแปลงเล็กน้อยที่ไม่มีผลกระทบ (เช่น แก้ไขเอกสาร) Runtime จะบันทึกและดำเนินการต่อ
+
+*   **LEVEL 2: Recommended (แนะนำ)**
+    *   การแก้ไขที่ปลอดภัย (เช่น Refactor) Runtime จะอนุมัติให้ดำเนินการได้โดยอัตโนมัติ
+
+*   **LEVEL 3: High Impact (ควรตรวจสอบก่อน)**
+    *   การเปลี่ยนแปลงที่อาจกระทบหลายส่วน (เช่น เปลี่ยน API) Runtime จะทำการวิเคราะห์ผลกระทบ (Impact Analysis) และเสนอแผนการดำเนินงานเพื่อรอการตรวจสอบ
+
+*   **LEVEL 4: Approval Required (ต้องขออนุมัติ)**
+    *   การเปลี่ยนแปลงที่มีความเสี่ยงสูง (เช่น ลบโมดูลหลัก) Runtime จะเสนอเรื่องให้มนุษย์ (CEO) อนุมัติผ่าน Dashboard เท่านั้น
+
+*   **LEVEL 5: Forbidden (ห้าม)**
+    *   การกระทำที่ขัดต่อ Constitution (เช่น ลบฐานข้อมูล, สร้างโมดูลซ้ำ) Runtime จะปฏิเสธและหยุดการทำงานทันที
+
+## Architecture Principles (หลักการสถาปัตยกรรม)
+
+1.  **Constitution**: คือกฎหมายสูงสุดของระบบ เขียนและแก้ไขโดยมนุษย์เท่านั้น
+2.  **Runtime**: คือผู้บังคับใช้กฎของ Constitution ไม่ใช่ AI และเป็นกลาง ไม่ขึ้นกับ AI ค่ายใด
+3.  **Governance Engine**: เป็นส่วนหนึ่งของ Runtime ทำหน้าที่อ่าน Constitution, Registry, และ Repository เพื่อตัดสินผลตามกฎที่มีอยู่เท่านั้น ไม่มีสิทธิ์คิด, ตีความ, หรือแก้ไขกฎ
+4.  **External Workers**: AI ทุกตัว (Gemini, Claude, GPT, etc.) เป็น "คนงานภายนอก" ที่รับ Task ไปทำ แล้วส่งผลกลับมาให้ Runtime ตรวจสอบ
+5.  **Chain of Command**: Worker → Runtime (Governance Engine) → Human (CEO). Runtime เป็นผู้อนุมัติ, ปฏิเสธ, หรือส่งต่อให้มนุษย์ตาม Constitution เท่านั้น
 
 ## สถาปัตยกรรม V1-V6
 ```
@@ -44,6 +69,8 @@ npm run diagnosis              # Self Analysis + Reasoning Tree
 npm run precommit              # ตรวจก่อน commit
 npm run dead-code              # หา unused files/functions
 npm run duplicates             # หา copy-paste
+npm run backup                 # Backup ทุกตาราง → backups/
+npm run restore -- backups/DIR # Restore จาก backup
 ```
 
 ## Registry Files (ห้ามมี Shadow System)
@@ -61,5 +88,5 @@ npm run duplicates             # หา copy-paste
 - Business Coverage: 68% (ขาด: คลังสินค้า, HR, บัญชี)
 - Decision Coverage: 87%
 - Constitution Enforcement: 25/100 rules
-- Risk: Resilience 40% (Supabase ไม่มี backup)
+- Risk: Resilience 55% (local backup มีแล้ว, ยังขาด cloud backup)
 - Cost: 550 THB/เดือน

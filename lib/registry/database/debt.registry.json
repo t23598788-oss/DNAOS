@@ -1,0 +1,23 @@
+{
+  "name": "debt",
+  "name_th": "ระบบจัดการหนี้",
+  "purpose": "Manages debt lifecycle, including interest calculation, status transitions, and collection.",
+  "purpose_th": "เก็บและจัดการข้อมูลหนี้ทั้งหมด",
+  "description_th": "ใช้คำนวณดอกเบี้ย, ค่าปรับ, ติดตามสถานะหนี้, และผูกกับเอกสารใบแจ้งหนี้",
+  "used_by": [
+    "lib/v2-rules/actions.ts"
+  ],
+  "used_by_th": [
+    "ไฟล์จัดการ Action (เช่น การรับชำระเงิน)"
+  ],
+  "depends_on": [
+    "partners",
+    "documents",
+    "app_configs"
+  ],
+  "depends_on_th": [
+    "ข้อมูลคู่ค้า",
+    "ระบบจัดการเอกสาร",
+    "ค่ากำหนดของระบบ"
+  ]
+}

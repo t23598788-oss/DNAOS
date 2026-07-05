@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "last_updated": "2026-07-05",
+  "initial_state": "IDLE",
+  "terminal_states": ["CONFIRMED", "ERROR"],
+  "registries": {
+    "intent":      { "file": "intent.registry.json",     "status": "ACTIVE", "description": "Intent definitions" },
+    "state":       { "file": "state.registry.json",      "status": "ACTIVE", "description": "Conversation state machine" },
+    "entity":      { "file": "entity.registry.json",     "status": "ACTIVE", "description": "Entity type definitions" },
+    "memory":      { "file": "memory.registry.json",     "status": "ACTIVE", "description": "Memory configuration" },
+    "transition":  { "file": "transition.registry.json", "status": "ACTIVE", "description": "State transition rules" }
+  }
+}

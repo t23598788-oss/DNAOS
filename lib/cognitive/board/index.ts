@@ -56,6 +56,24 @@ export function composeBoard(
   addEntityList(sections, "job", "งาน", entities);
   addEntityList(sections, "material", "วัสดุ", entities);
 
+  for (const result of executionResults) {
+    if (result.tool.includes(".create") && result.success && result.data) {
+      const data = result.data as Record<string, unknown>;
+      const html = data.html as string | undefined;
+      const presenter = data.presenter as Record<string, string> | undefined;
+      if (html) {
+        sections.push({
+          type: "document",
+          title: presenter?.title ?? String(data.document_number ?? "เอกสาร"),
+          html,
+          subtitle: presenter?.summary ?? null,
+          document_id: String(data.document_id ?? data.id ?? ""),
+          document_number: String(data.document_number ?? ""),
+        } as any);
+      }
+    }
+  }
+
   const warnings = worldState.constraints.filter((c) => c.severity === "blocking" || c.severity === "warning");
   if (warnings.length) {
     sections.push({

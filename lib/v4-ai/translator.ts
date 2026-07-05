@@ -7,8 +7,6 @@
  * "สั่งหิน 30 คิว" → { intent: "CREATE_ORDER", entities: { product: "หิน", quantity: 30, unit: "คิว" } }
  */
 
-import { registerCommand } from "@/lib/runtime/engine";
-
 // ── Types ──
 
 export type Intent =
@@ -198,8 +196,3 @@ function extractApp(t: string): string | undefined {
   return undefined;
 }
 
-// ── Register into Runtime ──
-
-export function registerTranslationCommands(): void {
-  registerCommand("ai.translate", async (args) => translate(String(args.text ?? "")));
-}

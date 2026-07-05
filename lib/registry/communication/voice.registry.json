@@ -1,0 +1,109 @@
+{
+  "version": 2,
+  "schema_version": "1.0.0",
+  "channel_type": "voice_call",
+  "last_updated": "2026-07-05",
+  "compatibility": ["1.0.0"],
+  "deprecated_since": null,
+  "migration_required": false,
+
+  "authority": {
+    "source": "source_of_truth",
+    "managed_by": "DNA OS Registry",
+    "owner": "เฮีย (t23598788@gmail.com)",
+    "last_verified": null,
+    "policy_note": "ยังไม่ได้ configure — ต้องการ Twilio Voice หรือ NECTEC Voice API"
+  },
+
+  "health": {
+    "status": "DISABLED",
+    "last_check": null,
+    "last_error": null,
+    "health_score": null
+  },
+
+  "depends_on": {
+    "required_services": [],
+    "required_env": ["VOICE_ACCOUNT_SID", "VOICE_AUTH_TOKEN"],
+    "required_drivers": [],
+    "required_modules": []
+  },
+
+  "channel": {
+    "provider": null,
+    "from_number": null,
+    "env_key_sid": "VOICE_ACCOUNT_SID",
+    "env_key_token": "VOICE_AUTH_TOKEN"
+  },
+
+  "lifecycle": {
+    "channel":       "NOT_CONFIGURED",
+    "outbound_call": "DISABLED",
+    "inbound_ivr":   "DISABLED",
+    "voice_command": "DISABLED",
+    "ai_reply":      "DISABLED"
+  },
+
+  "policy": {
+    "allow_ai_reply":   false,
+    "allow_auto_reply": false,
+    "allow_broadcast":  false,
+    "allow_push":       false,
+    "allow_schedule":   false,
+    "allow_document":   false,
+    "allow_payment":    false
+  },
+
+  "security": {
+    "required_env":     ["VOICE_ACCOUNT_SID", "VOICE_AUTH_TOKEN"],
+    "secret_keys":      ["VOICE_AUTH_TOKEN"],
+    "verify_signature": false,
+    "permission_scope": [],
+    "encryption":       null,
+    "token_rotation":   null
+  },
+
+  "capabilities": {
+    "receive_message": { "enabled": false, "status": "DISABLED" },
+    "send_message":    { "enabled": false, "status": "DISABLED" },
+    "reply":           { "enabled": false, "status": "DISABLED" },
+    "broadcast":       { "enabled": false, "status": "DISABLED" },
+    "attachment":      { "enabled": false, "status": "DISABLED" },
+    "location":        { "enabled": false, "status": "DISABLED" },
+    "rich_menu":       { "enabled": false, "status": "DISABLED" },
+    "webhook":         { "enabled": false, "status": "DISABLED" },
+    "voice_call":      { "enabled": false, "status": "DISABLED" },
+    "video_call":      { "enabled": false, "status": "DISABLED" },
+    "payment":         { "enabled": false, "status": "DISABLED" },
+    "notification":    { "enabled": false, "status": "DISABLED" }
+  },
+
+  "topology": {
+    "flow": [],
+    "nodes": {}
+  },
+
+  "pipeline": {},
+
+  "monitoring": {
+    "metrics": [],
+    "logging": { "level": "info", "table": null },
+    "trace": false,
+    "audit": false,
+    "last_check": null,
+    "last_error": null,
+    "health_score": null
+  },
+
+  "cleanup_required": [],
+
+  "metadata": {
+    "use_cases": [
+      "โทรทวงหนี้อัตโนมัติเมื่อค้างเกิน N วัน",
+      "IVR รับออเดอร์ทางโทรศัพท์",
+      "Voice Command สั่งงานคนขับ",
+      "Call Center ต่อสายเข้าเฮีย"
+    ],
+    "note": "ยังไม่ได้ configure — ต้องการ Twilio Voice หรือ NECTEC Voice API — มูลค่าสูง impact สูง"
+  }
+}

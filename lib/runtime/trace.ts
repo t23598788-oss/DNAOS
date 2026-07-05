@@ -13,7 +13,7 @@ export interface DataSource {
 
 export interface TraceStep {
   seq: number;
-  layer: "v1-input" | "v2-rules" | "v3-engines" | "v4-ai" | "v5-presenter" | "v6-executor" | "runtime" | "supabase";
+  layer: "cognitive" | "v2-rules" | "v3-engines" | "v4-ai" | "v5-presenter" | "v6-executor" | "runtime" | "supabase";
   module: string;
   action: string;
   input: Record<string, unknown>;

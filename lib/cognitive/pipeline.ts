@@ -1,5 +1,6 @@
 import OpenAI from "openai";
-import { getDebtTrackings, getDocuments, getJobs, getMaterialTypes, getOpenDebts, getPartners, supabase } from "@/lib/supabase/queries";
+import { getDebtTrackings, getDocuments, getJobs, getMaterialTypes, getOpenDebts, getPartners } from "@/lib/supabase/queries";
+import { execute as executeV6 } from "@/lib/v6-executor";
 import { composeBoard, type BoardResponse } from "@/lib/cognitive/board";
 import { evaluate } from "@/lib/cognitive/evaluation";
 import { executePlan } from "@/lib/cognitive/executor";
@@ -20,11 +21,15 @@ const INTENT_CATALOG: Record<string, string[]> = {
   create_invoice: ["ออกบิล", "สร้างใบแจ้งหนี้", "ทำบิล", "ออกใบแจ้งหนี้"],
   create_quotation: ["เสนอราคา", "สร้างใบเสนอราคา", "ออกใบเสนอราคา"],
   create_boq: ["สร้าง boq", "ออก boq", "สร้างใบประมาณปริมาณงาน", "ออกใบประมาณปริมาณงาน"],
+  create_receipt: ["ออกใบเสร็จ", "สร้างใบเสร็จ", "ออกใบรับเงิน", "สร้างใบรับเงิน"],
+  create_delivery: ["ออกใบส่งสินค้า", "สร้างใบส่งสินค้า", "ออกใบส่งของ", "ออก DO"],
+  create_billing: ["ออกใบกำกับภาษี", "สร้างใบกำกับภาษี", "ออกใบวางบิล"],
   review_partner: ["โรงโม่", "โม่หิน", "บ่อทราย", "บ่อดิน", "ดูคู่ค้า"],
   review_customer: ["ลูกค้า", "รายการลูกค้า", "แสดงรายการลูกค้า", "ดูรายการลูกค้า"],
   review_material: ["ดูวัสดุ", "วัสดุ", "ราคาวัสดุ"],
   review_job: ["ดูงาน", "งาน", "จัดส่ง", "โปรเจกต์"],
-  review_document: ["ดูเอกสาร", "เอกสาร", "ใบเสร็จ"],
+  review_document: ["ดูเอกสาร", "เอกสาร"],
+  review_receipt: ["ดูใบเสร็จ", "ใบเสร็จ", "ใบเสร็จทั้งหมด"],
   review_quotation: ["ดูใบเสนอราคา", "แสดงใบเสนอราคา", "ใบเสนอราคาทั้งหมด"],
   review_boq: ["ดู boq", "แสดง boq", "ดูใบประมาณปริมาณงาน", "แสดงใบประมาณปริมาณงาน"],
   send_line: ["ส่ง LINE", "ส่งไลน์"],
@@ -102,6 +107,53 @@ const WORKFLOWS: Record<string, WorkflowDefinition> = {
       step(2, "document.present", { document_id: "$1.document_id" }, 1, [], false, false),
       step(3, "pdf.export", { document_id: "$1.document_id", document_number: "$1.document_number", html: "$1.html" }, 2, [], false, true, "retry"),
       step(4, "line.send", { customer_id: "$0.id", message: "$2.summary", pdf_url: "$3.pdf_url" }, 3, [], false, true, "retry"),
+    ],
+    possible_next_workflows: ["send_line"],
+    rollback_strategy: "abort",
+  },
+  create_receipt: {
+    id: "create_receipt",
+    trigger: ["create_receipt"],
+    required_business_objects: ["receipt"],
+    required_inputs: [{ field: "who", source: "session", ask_if_missing: "ออกใบเสร็จให้ใครครับ" }],
+    steps: [
+      step(0, "identity.resolve", { name: "$who" }),
+      step(1, "debt.query", { customer_id: "$0.id" }, 0),
+      step(2, "receipt.create", { customer_id: "$0.id", amount: "$1.total" }, 1, [], false, false),
+      step(3, "document.present", { document_id: "$2.document_id" }, 2, [], false, false),
+      step(4, "pdf.export", { document_id: "$2.document_id", document_number: "$2.document_number", html: "$2.html" }, 3, [], false, true, "retry"),
+      step(5, "line.send", { customer_id: "$0.id", message: "$3.summary", pdf_url: "$4.pdf_url" }, 4, [], false, true, "retry"),
+    ],
+    possible_next_workflows: ["send_line"],
+    rollback_strategy: "abort",
+  },
+  create_delivery: {
+    id: "create_delivery",
+    trigger: ["create_delivery"],
+    required_business_objects: ["delivery_order"],
+    required_inputs: [{ field: "who", source: "session", ask_if_missing: "ออกใบส่งสินค้าให้ใครครับ" }],
+    steps: [
+      step(0, "identity.resolve", { name: "$who" }),
+      step(1, "delivery_order.create", { customer_id: "$0.id" }, 0, [], false, false),
+      step(2, "document.present", { document_id: "$1.document_id" }, 1, [], false, false),
+      step(3, "pdf.export", { document_id: "$1.document_id", document_number: "$1.document_number", html: "$1.html" }, 2, [], false, true, "retry"),
+      step(4, "line.send", { customer_id: "$0.id", message: "$2.summary", pdf_url: "$3.pdf_url" }, 3, [], false, true, "retry"),
+    ],
+    possible_next_workflows: ["send_line"],
+    rollback_strategy: "abort",
+  },
+  create_billing: {
+    id: "create_billing",
+    trigger: ["create_billing"],
+    required_business_objects: ["billing"],
+    required_inputs: [{ field: "who", source: "session", ask_if_missing: "ออกใบกำกับภาษีให้ใครครับ" }],
+    steps: [
+      step(0, "identity.resolve", { name: "$who" }),
+      step(1, "debt.query", { customer_id: "$0.id" }, 0),
+      step(2, "billing.create", { customer_id: "$0.id", amount: "$1.total" }, 1, [], false, false),
+      step(3, "document.present", { document_id: "$2.document_id" }, 2, [], false, false),
+      step(4, "pdf.export", { document_id: "$2.document_id", document_number: "$2.document_number", html: "$2.html" }, 3, [], false, true, "retry"),
+      step(5, "line.send", { customer_id: "$0.id", message: "$3.summary", pdf_url: "$4.pdf_url" }, 4, [], false, true, "retry"),
     ],
     possible_next_workflows: ["send_line"],
     rollback_strategy: "abort",
@@ -220,8 +272,8 @@ export async function runCognitivePipeline(message: string): Promise<BoardRespon
   if (/^DELETE:/.test(message)) {
     const [, table, id] = message.match(/^DELETE:(\w+):(.+)$/) ?? [];
     if (table && id) {
-      await supabase().from(table).delete().eq("id", id);
-      return { sender: "ai", type: "text", text: "ลบแล้วครับ" };
+      const result = await executeV6({ tool_id: "supabase", action: "delete", payload: { table, id }, confirmed: true });
+      return { sender: "ai", type: "text", text: result.ok ? "ลบแล้วครับ" : `ลบไม่ได้: ${result.error}` };
     }
   }
 

@@ -24,7 +24,6 @@ check_layer() {
   fi
 }
 
-check_layer "v1-input" "lib/v1-input"
 check_layer "v2-rules" "lib/v2-rules"
 check_layer "v3-engines" "lib/v3-engines"
 check_layer "v4-ai" "lib/v4-ai"
@@ -39,7 +38,7 @@ check_layer "runtime" "lib/runtime"
 # 2. Check for undeclared directories (new folders not in architecture)
 echo "--- Checking for undeclared directories ---"
 
-DECLARED_LAYERS="v1-input v2-rules v3-engines v4-ai v5-presenter v6-executor documents commands shared supabase registry runtime browser agent platform drivers middleware macos"
+DECLARED_LAYERS="v2-rules v3-engines v4-ai v5-presenter v6-executor documents commands shared supabase registry runtime browser agent platform drivers middleware macos cognitive"
 
 for dir in lib/*/; do
   dirname=$(basename "$dir")

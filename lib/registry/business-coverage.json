@@ -13,7 +13,7 @@
     "purchase": {
       "label": "งานจัดซื้อ",
       "status": "covered",
-      "modules": ["v1-input/partners", "v2-rules/resolver"],
+      "modules": ["cognitive/partners", "v2-rules/resolver"],
       "commands": ["partner.list", "partner.find"],
       "workflows": ["db.search_partner"],
       "documents": ["purchase-order"]
@@ -21,7 +21,7 @@
     "debt": {
       "label": "ลูกหนี้ / ติดตามหนี้",
       "status": "covered",
-      "modules": ["v3-engines/debt/engine", "v3-engines/debt/interest", "v3-engines/debt/collection", "v3-engines/debt/status", "v3-engines/debt/transition", "v3-engines/debt/scheduler", "v3-engines/debt/calculator", "v1-input/debts"],
+      "modules": ["v3-engines/debt/engine", "v3-engines/debt/interest", "v3-engines/debt/collection", "v3-engines/debt/status", "v3-engines/debt/transition", "v3-engines/debt/scheduler", "v3-engines/debt/calculator", "cognitive/debts"],
       "commands": ["debt.list", "debt.all", "debt.trackings", "debt.create", "business.calculate_debt"],
       "workflows": ["db.search_debt"],
       "documents": ["invoice"]
@@ -45,7 +45,7 @@
     "document": {
       "label": "เอกสาร / ใบเสนอราคา / ใบแจ้งหนี้",
       "status": "covered",
-      "modules": ["lib/documents/engine", "v1-input/documents", "v1-input/invoices"],
+      "modules": ["lib/documents/engine", "cognitive/documents", "cognitive/invoices"],
       "commands": ["document.list", "document.create", "invoice.list", "invoice.create", "receipt.create"],
       "workflows": ["doc.generate", "doc.preview"],
       "documents": ["quotation", "invoice", "receipt", "boq", "delivery-order", "purchase-order"]
@@ -53,7 +53,7 @@
     "communication": {
       "label": "LINE / Email / แจ้งเตือน",
       "status": "covered",
-      "modules": ["v1-input/line", "v6-executor/drivers/line"],
+      "modules": ["cognitive/line", "v6-executor/drivers/line"],
       "commands": ["line.send", "line.read"],
       "workflows": ["line.send", "chat.read", "email.send"],
       "documents": []
@@ -93,6 +93,23 @@
       "workflows": [],
       "documents": [],
       "gap": "ยังไม่มี module สำหรับบัญชี/งบการเงิน"
+    },
+    "relationship": {
+      "label": "ความสัมพันธ์ธุรกิจ / Business Timeline",
+      "status": "covered",
+      "design_principle": "เอกสารคือ artifact ของ event ไม่ใช่ตัว event เอง — ศูนย์กลางคือ partner + timeline",
+      "modules": [
+        "v3-engines/partner/timeline",
+        "app/admin/partners/page",
+        "app/admin/partners/[id]/page"
+      ],
+      "commands": [
+        "partner.list",
+        "partner.timeline"
+      ],
+      "workflows": [],
+      "documents": [],
+      "gap": "business_events ยังว่างอยู่ (phase 1 ใช้ documents เป็นหลัก) — phase 2 คือ event capture จาก LINE + manual note"
     }
   }
 }

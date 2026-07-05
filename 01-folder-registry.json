@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "policy": "โครงสร้างโฟลเดอร์หลักต้องสะท้อนสถาปัตยกรรมของระบบ",
+  "folders": {
+    "app": {
+      "purpose": "API Routes และหน้าเว็บ (UI)",
+      "owner": "Vercel/Next.js"
+    },
+    "components": {
+      "purpose": "React Components สำหรับหน้าเว็บ",
+      "owner": "UI"
+    },
+    "lib": {
+      "purpose": "โค้ดหลักของ DNA OS ทั้งหมด แบ่งตาม Layer (V1-V7)",
+      "owner": "System"
+    },
+    "registry": {
+      "purpose": "ทะเบียนและกฎทั้งหมดของระบบ (Single Source of Truth)",
+      "owner": "Governance"
+    },
+    "scripts": {
+      "purpose": "สคริปต์สำหรับตรวจสอบและบำรุงรักษาระบบ (Guards)",
+      "owner": "Governance"
+    },
+    "supabase": {
+      "purpose": "Edge Functions ที่ทำงานบน Supabase",
+      "owner": "Infrastructure"
+    }
+  }
+}

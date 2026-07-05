@@ -1,0 +1,38 @@
+{
+  "version": 1,
+  "policy": "AI เป็นแค่ตัวกลาง (Tool) ไม่ใช่ศูนย์กลาง — ทุกตัวต้องลงทะเบียนและมีหน้าที่ชัดเจน",
+  "models": {
+    "openai": {
+      "model_name": "OpenAI (GPT-4o-mini)",
+      "nickname": "สมองซีกซ้าย (Left Brain)",
+      "primary_role": "แปลภาษาและสร้างเอกสาร (Translator & Document AI)",
+      "description": "ทำหน้าที่เป็นเครื่องมือแปลภาษาไทยจาก Command Center ให้เป็นคำสั่ง JSON ที่ระบบเข้าใจ และช่วยสรุปหรือสร้างเนื้อหาสำหรับเอกสารต่างๆ",
+      "status": "active",
+      "key_files": [
+        "lib/v4-ai/bridge-openai.ts",
+        "lib/registry/command-registry.json (ai.translate)",
+        "lib/registry/infrastructure.json (services.openai)"
+      ],
+      "rules": [
+        "Rule 73: ห้ามเปลี่ยนสถานะทางการเงิน (บังคับใช้โหมด preview)",
+        "Rule 81: ห้ามสร้างข้อมูลเอง"
+      ]
+    },
+    "gemini": {
+      "model_name": "Google Gemini",
+      "nickname": "สมองซีกขวา (Right Brain)",
+      "primary_role": "ประมวลผลข้อความจาก LINE (LINE Webhook Processor)",
+      "description": "ทำหน้าที่รับข้อความจาก LINE Webhook เพื่อแยกแยะเจตนา (Intent) และดึงข้อมูลสำคัญ (Entities) เช่น ชื่อลูกค้า, สินค้า, จำนวน เพื่อส่งต่อให้ระบบคำนวณราคาและตอบกลับอัตโนมัติ",
+      "status": "active",
+      "key_files": [
+        "supabase/functions/line-webhook-v2/helpers.ts",
+        "lib/registry/decision-coverage.json (decisions.line_response)",
+        "lib/registry/infrastructure.json (services.gemini)"
+      ],
+      "rules": [
+        "ทำหน้าที่อ่านและวิเคราะห์เท่านั้น",
+        "ผลลัพธ์จะถูกส่งไปให้ V3-Engines คำนวณต่อ ไม่ตัดสินใจเอง"
+      ]
+    }
+  }
+}

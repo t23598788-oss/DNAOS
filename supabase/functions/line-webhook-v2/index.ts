@@ -10,23 +10,11 @@ import {
   resolveAddressToCoordinates
 } from "./helpers.ts"
 import { ResponseGateway } from "./engines/response.ts"
+import { haversine as calculateDistance } from "../_shared/haversine.ts"
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-}
-
-// Haversine formula to compute distance in km between two coordinates
-function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
-  const R = 6371 // Radius of the earth in km
-  const dLat = (lat2 - lat1) * Math.PI / 180
-  const dLon = (lon2 - lon1) * Math.PI / 180
-  const a = 
-    Math.sin(dLat/2) * Math.sin(dLat/2) +
-    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
-    Math.sin(dLon/2) * Math.sin(dLon/2)
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a))
-  return R * c // Distance in km
 }
 
 async function processQuotation(
@@ -501,6 +489,26 @@ Deno.serve(async (req) => {
 
     for (const event of events) {
       const lineUserId = event.source?.userId
+      const groupId = event.source?.groupId ?? event.source?.roomId ?? null
+
+      // --- 0. GROUP / ROOM MESSAGES — log only, ไม่เข้า pipeline ตอบอัตโนมัติ ---
+      // เหตุผล: pipeline ที่มีอยู่ (matching/quotation/reply) ออกแบบมาสำหรับคุยแบบ 1:1
+      // การส่งราคา/จับคู่อัตโนมัติเข้ากลุ่มสาธารณะโดยไม่ตั้งใจมีความเสี่ยงทางธุรกิจ
+      // จึงบันทึกไว้ให้เห็นข้อมูลก่อน รอออกแบบ workflow เฉพาะกลุ่มภายหลัง
+      if (groupId) {
+        if (event.type === 'message' && event.message) {
+          await supabase.from('line_events').insert({
+            line_user_id: lineUserId || null,
+            group_id: groupId,
+            raw_text: event.message.text ?? event.message.type,
+            line_message_id: event.message.id || null,
+            raw_type: `group_${event.message.type}`,
+            status: 'new',
+          })
+        }
+        continue
+      }
+
       if (!lineUserId) continue
 
       // --- 1. HANDLE LOCATION MESSAGES ---

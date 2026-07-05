@@ -22,7 +22,14 @@ function save(path: string, data: any) {
   writeFileSync(join(ROOT, path), JSON.stringify(data, null, 2));
 }
 
-function say(t: string) { console.log(t); }
+// บรรทัดที่ตอบกลับสะสมไว้ในนี้ — say() ใช้ได้ทั้งพิมพ์ CLI และตอบผ่าน API
+let buffer: string[] = [];
+function say(t: string) { buffer.push(t); }
+function flush(): string {
+  const out = buffer.join("\n");
+  buffer = [];
+  return out;
+}
 
 // ── Owner Context Engine ──
 
@@ -361,7 +368,9 @@ function handleUnknown(question: string) {
 
 // ── Main ──
 
-function dbd(question: string) {
+// answerQuestion — pure function ใช้ได้ทั้ง CLI และ API
+// คืนค่า matched=false เมื่อไม่มี pattern ตรง (ห้ามเดา ต้องบอกตรงๆ ว่าไม่รู้)
+export function answerQuestion(question: string): { answer: string; matched: boolean } {
   const owner = loadOwner();
   const name = owner.identity?.nickname ?? "เฮีย";
 
@@ -375,43 +384,57 @@ function dbd(question: string) {
     if (pattern.match.test(q)) {
       pattern.handler(q, data);
       say("");
-      return;
+      return { answer: flush(), matched: true };
     }
   }
 
   handleUnknown(question);
   say("");
+  return { answer: flush(), matched: false };
 }
 
-// ── CLI ──
+function dbd(question: string) {
+  const { answer } = answerQuestion(question);
+  console.log(answer);
+}
 
-const args = process.argv.slice(2);
-const firstArg = args[0] ?? "";
+// ── CLI ── (ทำงานเฉพาะตอนรันเป็น script โดยตรง ไม่ทำงานตอนถูก import เข้า Next.js)
 
-if (args.length === 0) {
-  const owner = loadOwner();
-  const name = owner.identity?.nickname ?? "เฮีย";
-  say("");
-  say(`  DBD — ผู้ช่วยของ${name}`);
-  say("  ถามอะไรก็ได้เป็นภาษาไทย");
-  say("");
-  say("  คำถาม:");
-  say('    npm run dbd -- "วันนี้ระบบเป็นยังไง"');
-  say('    npm run dbd -- "ระบบขาดอะไร"');
-  say('    npm run dbd -- "เดือนนี้ต้องจ่ายอะไร"');
-  say('    npm run dbd -- "ระบบทำงานเองได้แค่ไหน"');
-  say("");
-  say("  จัดการ Owner Context:");
-  say('    npm run dbd -- context                  ดูตัวตนเจ้าของ');
-  say('    npm run dbd -- goal "เป้าหมายใหม่"       เปลี่ยนเป้าหมาย');
-  say('    npm run dbd -- mission "งานใหม่"          เปลี่ยนงานปัจจุบัน');
-  say("");
-} else if (firstArg === "context") {
-  showOwnerContext();
-} else if (firstArg === "goal" && args[1]) {
-  updateOwnerGoal(args.slice(1).join(" "));
-} else if (firstArg === "mission" && args[1]) {
-  updateOwnerWork(args.slice(1).join(" "));
-} else {
-  dbd(args.join(" "));
+const isDirectRun = typeof require !== "undefined" && require.main === module;
+
+if (isDirectRun) {
+  const args = process.argv.slice(2);
+  const firstArg = args[0] ?? "";
+
+  if (args.length === 0) {
+    const owner = loadOwner();
+    const name = owner.identity?.nickname ?? "เฮีย";
+    say("");
+    say(`  DBD — ผู้ช่วยของ${name}`);
+    say("  ถามอะไรก็ได้เป็นภาษาไทย");
+    say("");
+    say("  คำถาม:");
+    say('    npm run dbd -- "วันนี้ระบบเป็นยังไง"');
+    say('    npm run dbd -- "ระบบขาดอะไร"');
+    say('    npm run dbd -- "เดือนนี้ต้องจ่ายอะไร"');
+    say('    npm run dbd -- "ระบบทำงานเองได้แค่ไหน"');
+    say("");
+    say("  จัดการ Owner Context:");
+    say('    npm run dbd -- context                  ดูตัวตนเจ้าของ');
+    say('    npm run dbd -- goal "เป้าหมายใหม่"       เปลี่ยนเป้าหมาย');
+    say('    npm run dbd -- mission "งานใหม่"          เปลี่ยนงานปัจจุบัน');
+    say("");
+    console.log(flush());
+  } else if (firstArg === "context") {
+    showOwnerContext();
+    console.log(flush());
+  } else if (firstArg === "goal" && args[1]) {
+    updateOwnerGoal(args.slice(1).join(" "));
+    console.log(flush());
+  } else if (firstArg === "mission" && args[1]) {
+    updateOwnerWork(args.slice(1).join(" "));
+    console.log(flush());
+  } else {
+    dbd(args.join(" "));
+  }
 }

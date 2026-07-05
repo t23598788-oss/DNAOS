@@ -115,12 +115,30 @@
     }
   },
 
+  "backup": {
+    "local_backup": {
+      "status": "active",
+      "method": "npm run backup → backups/YYYY-MM-DD_HHmmss/",
+      "tables": 20,
+      "format": "JSON per table + _manifest.json",
+      "retention": "30 backups max (auto-cleanup)",
+      "restore": "npm run restore -- backups/<timestamp>",
+      "schedule": "manual (ควรรันก่อน deploy ทุกครั้ง)",
+      "risk_note": "backup อยู่บนเครื่อง local — ถ้าเครื่องพัง backup หายด้วย"
+    },
+    "cloud_backup": {
+      "status": "planned",
+      "cost_thb": 200,
+      "benefit": "Resilience 40% → 90% — เก็บ backup บน cloud storage แยกจาก Supabase"
+    }
+  },
+
   "future_additions": [
     { "name": "Redis", "cost_thb": 400, "benefit": "Workflow เร็วขึ้น 32%", "impact": "medium" },
     { "name": "Twilio (Voice)", "cost_thb": 800, "benefit": "เปิด 4 workflows ใหม่ (โทรทวงหนี้, IVR, Voice Command, Call Center)", "impact": "high" },
     { "name": "Camera API (Android)", "cost_thb": 0, "benefit": "ตรวจสินค้า, OCR, QR, ตรวจหน้างาน — เพิ่ม capability 12%", "impact": "medium" },
     { "name": "PLC Gateway", "cost_thb": 18000, "benefit": "ควบคุมโรงงาน, อ่าน sensor, ดูสถานะเครื่องจักร real-time", "impact": "high" },
-    { "name": "Cloud Backup (PostgreSQL)", "cost_thb": 200, "benefit": "Resilience 40% → 80% — ป้องกันข้อมูลสูญหาย", "impact": "critical" }
+    { "name": "Cloud Backup (S3/R2)", "cost_thb": 200, "benefit": "Resilience → 90% — off-site backup + point-in-time recovery", "impact": "critical" }
   ],
 
   "cost_summary": {

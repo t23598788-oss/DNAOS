@@ -21,6 +21,7 @@ export interface DebtSummaryInput {
   paidAmount: number;
   asOfDate?: string;
 }
+
 export interface DebtSummary {
   principal: number;
   fee: number;
@@ -78,3 +79,4 @@ export function calcDebtSummary(input: DebtSummaryInput): DebtSummary {
     netRemaining: round(netRemaining),
   };
 }
+

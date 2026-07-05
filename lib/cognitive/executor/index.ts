@@ -1,9 +1,13 @@
 /**
  * Cognitive Executor — runs Planner steps through existing V2/V6 runtime modules.
+ * ทุก step ที่มี query handler ใน dispatcher จะถูกบังคับใช้กฎจาก command-registry.json
  */
 
-import { getDocuments, getJobs, getMaterialTypes, getOpenDebts, getPartners } from "@/lib/supabase/queries";
+import { getDebtTrackings, getDocuments, getJobs, getMaterialTypes, getOpenDebts, getPartners } from "@/lib/supabase/queries";
 import { executeDocumentCreate } from "@/lib/v2-rules/actions";
+import { dispatch as dispatchCommand, isRegistered } from "@/lib/v2-rules/dispatcher";
+import { calcDebtFull } from "@/lib/v3-engines/debt/engine";
+import { generateDoc, DOC_LABELS, type DocData, type DocType } from "@/lib/documents/engine";
 import { executeCapability } from "@/lib/v6-executor/capability-manager";
 import { execute as executeV6 } from "@/lib/v6-executor";
 import { formatDocumentCreateResult } from "@/lib/v5-presenter/formatter";
@@ -50,6 +54,17 @@ export async function executePlan(plan: ExecutionPlan, worldState: WorldState): 
 async function runStep(step: ToolStepPlan, worldState: WorldState, results: StepResult[]): Promise<StepData> {
   const args = resolveRuntimeArgs(step.args, results);
 
+  const registryCommand = toRegistryCommand(step.tool, args);
+  if (registryCommand && isRegistered(registryCommand)) {
+    const dispatched = await dispatchCommand(registryCommand, args, !step.tool.endsWith(".create"));
+    if (!dispatched.ok && dispatched.violations.length > 0) {
+      throw new Error(`Rule violation: ${dispatched.violations.join("; ")}`);
+    }
+    if (dispatched.ok && dispatched.data !== null) {
+      return dispatched.data as StepData;
+    }
+  }
+
   switch (step.tool) {
     case "identity.resolve":
       return resolveIdentity(args.name ?? worldState.context.who ?? "");
@@ -72,6 +87,9 @@ async function runStep(step: ToolStepPlan, worldState: WorldState, results: Step
     case "invoice.create":
     case "quotation.create":
     case "boq.create":
+    case "receipt.create":
+    case "delivery_order.create":
+    case "billing.create":
       return executeDocumentCommand(step.tool, args, worldState, results);
     case "document.present":
       return presentDocument(results);
@@ -86,6 +104,25 @@ async function runStep(step: ToolStepPlan, worldState: WorldState, results: Step
   }
 }
 
+function toRegistryCommand(tool: string, args: Record<string, string>): string | null {
+  const TOOL_TO_COMMAND: Record<string, string> = {
+    "partner.list": "partner.list",
+    "customer.list": "partner.list",
+    "material.list": "material.list",
+    "job.list": "job.list",
+    "debt.query": "debt.list",
+  };
+  if (tool in TOOL_TO_COMMAND) return TOOL_TO_COMMAND[tool];
+  if (tool === "document.query" || tool === "invoice.query") {
+    const t = args.document_type;
+    if (t === "invoice") return "invoice.list";
+    if (t === "quotation") return "document.boq";
+    if (t === "receipt") return "document.receipt";
+    return "document.list";
+  }
+  return null;
+}
+
 async function resolveIdentity(name: string): Promise<Record<string, unknown>[]> {
   const query = name.trim().toLowerCase();
   if (!query) return [];
@@ -95,15 +132,43 @@ async function resolveIdentity(name: string): Promise<Record<string, unknown>[]>
 
 async function queryDebt(customerId: string | undefined, worldState: WorldState, results: StepResult[]): Promise<Record<string, unknown>[]> {
   const resolved = resolveCustomer(customerId, worldState, results);
-  const debts = await getOpenDebts();
-  const docs = await getDocuments();
+  const customerName = resolved.name ?? worldState.context.who;
+  const [debts, docs, trackings] = await Promise.all([getOpenDebts(), getDocuments(), getDebtTrackings()]);
 
-  return debts
+  const invoiceDebts = debts
     .map((debt) => {
       const doc = docs.find((d) => d.id === debt.document_id);
-      return { ...debt, customer_name: doc?.party_name ?? resolved.name ?? worldState.context.who ?? "" };
+      return { ...debt, customer_name: doc?.party_name ?? customerName ?? "" };
     })
-    .filter((debt) => matchesCustomer(debt.customer_name, resolved.name ?? worldState.context.who));
+    .filter((debt) => matchesCustomer(debt.customer_name, customerName));
+
+  if (invoiceDebts.length > 0) return invoiceDebts;
+
+  const matched = trackings.filter((t) => matchesCustomer(t.customer_name, customerName));
+  try {
+    const calculated = await Promise.all(
+      matched.map((t) =>
+        calcDebtFull({
+          principal: Number(t.principal_amount),
+          feeAmount: Number(t.principal_amount) * (Number(t.fee_rate ?? 5) / 100),
+          dueDate: t.interest_start_at ?? t.created_at,
+          paidAmount: 0,
+          status: "DEBT",
+        }),
+      ),
+    );
+    return matched.map((t, i) => ({
+      ...t,
+      outstanding_amount: calculated[i].remaining,
+      principal_amount: calculated[i].principal,
+      fee_amount: calculated[i].fee,
+      interest_amount: calculated[i].interestAccrued,
+      days_overdue: calculated[i].daysOverdue,
+      total_outstanding: calculated[i].totalOutstanding,
+    }));
+  } catch {
+    return matched.map((t) => ({ ...t, outstanding_amount: t.principal_amount }));
+  }
 }
 
 async function queryDocuments(customerId: string | undefined, worldState: WorldState, results: StepResult[], docType?: string): Promise<Record<string, unknown>[]> {
@@ -123,23 +188,45 @@ async function queryJobs(worldState: WorldState): Promise<Record<string, unknown
 async function executeDocumentCommand(tool: string, args: Record<string, string>, worldState: WorldState, results: StepResult[]): Promise<Record<string, unknown>> {
   const resolved = resolveCustomer(args.customer_id, worldState, results);
   const debts = findResultArray(results, "debt.query");
-  const total = sumAmounts(debts);
-  const documentType = tool === "quotation.create" ? "quotation" : tool === "boq.create" ? "boq" : "invoice";
-  const netAmount = documentType === "invoice" ? total : Number(args.amount ?? total ?? 0);
+  const documentType = tool.replace(".create", "") as DocType;
 
   if (!resolved.name) throw new Error("ต้องรู้ชื่อลูกค้าก่อนสร้างเอกสาร");
-  if (documentType === "invoice" && netAmount <= 0) throw new Error("ไม่พบยอดหนี้สำหรับสร้างใบแจ้งหนี้");
 
-  const action = await executeDocumentCreate({
+  const { items, debtInfo } = buildDebtItems(debts);
+  const label = DOC_LABELS[documentType] ?? DOC_LABELS.invoice;
+  const docNumber = `${label.prefix}-${new Date().toISOString().split("T")[0].replace(/-/g, "")}-${String(Date.now()).slice(-3)}`;
+
+  const docData: DocData = {
+    type: documentType,
+    docNumber,
+    date: new Date().toISOString().split("T")[0],
+    status: "draft",
+    company: { name: "บจก. ดีเอ็นเอ โอเอส", taxId: "0405569002851" },
+    customer: { name: resolved.name },
+    items,
+    vatRate: 0.07,
+    debt: debtInfo,
+    notes: worldState.context.what ?? undefined,
+  };
+
+  const rendered = generateDoc(docData);
+
+  return {
     document_type: documentType,
+    document_number: docNumber,
     party_name: resolved.name,
-    net_amount: Number.isFinite(netAmount) ? netAmount : 0,
-    items: buildDocumentItems(documentType, debts, netAmount),
-    note: `สร้างจาก Cognitive Pipeline: ${worldState.context.what ?? ""}`,
-  });
-
-  if (!action.ok || !action.result) throw new Error(action.error ?? "สร้างเอกสารไม่สำเร็จ");
-  return action.result;
+    status: "draft",
+    net_amount: rendered.summary.total,
+    html: rendered.html,
+    summary: rendered.summary,
+    items,
+    presenter: {
+      title: `${rendered.label.th} ${docNumber}`,
+      summary: `${resolved.name} • ${rendered.summary.total.toLocaleString("th-TH")} บาท`,
+    },
+    _draft: true,
+    _doc_data: docData,
+  };
 }
 
 async function presentDocument(results: StepResult[]): Promise<Record<string, unknown>> {
@@ -216,7 +303,8 @@ function resolveReference(ref: string, results: StepResult[]): unknown {
   const match = ref.match(/^\$(\d+)\.(.+)$/);
   if (!match) return undefined;
   const result = results[Number(match[1])];
-  return readPath(result?.data, match[2]);
+  const data = Array.isArray(result?.data) ? result.data[0] ?? null : result?.data;
+  return readPath(data, match[2]);
 }
 
 function readPath(value: unknown, path: string): unknown {
@@ -259,28 +347,40 @@ function matchesCustomer(value: unknown, name: string | null | undefined): boole
   return String(value ?? "").toLowerCase().includes(name.toLowerCase());
 }
 
-function sumAmounts(rows: Record<string, unknown>[]): number {
-  return rows.reduce((sum, row) => {
-    const value = Number(row.outstanding_amount ?? row.principal_amount ?? row.net_amount ?? 0);
-    return Number.isFinite(value) ? sum + value : sum;
-  }, 0);
-}
+function buildDebtItems(debts: Record<string, unknown>[]) {
+  const items: { description: string; detail?: string; qty: number; unit: string; unitPrice: number }[] = [];
+  let principal = 0;
+  let fee = 0;
+  let interest = 0;
+  let daysOverdue = 0;
+  let interestRate = 25;
 
-function buildDocumentItems(documentType: string, debts: Record<string, unknown>[], netAmount: number) {
-  if (documentType === "invoice" && debts.length) {
-    return debts.map((debt) => ({
-      description: String(debt.customer_name ?? "ยอดหนี้ค้างชำระ"),
-      detail: String(debt.document_id ?? ""),
-      qty: 1,
-      unit: "รายการ",
-      unitPrice: Number(debt.outstanding_amount ?? debt.principal_amount ?? debt.net_amount ?? 0),
-    }));
+  for (const d of debts) {
+    const p = Number(d.principal_amount ?? d.outstanding_amount ?? 0);
+    const f = Number(d.fee_amount ?? 0);
+    const int = Number(d.interest_amount ?? 0);
+    principal += p;
+    fee += f;
+    interest += int;
+    daysOverdue = Math.max(daysOverdue, Number(d.days_overdue ?? 0));
   }
 
-  return [{
-    description: documentType === "boq" ? "ใบประมาณปริมาณงาน" : "ใบเสนอราคา",
-    qty: 1,
-    unit: "รายการ",
-    unitPrice: Number.isFinite(netAmount) ? netAmount : 0,
-  }];
+  items.push({ description: "เงินต้นยกมา", qty: 1, unit: "รายการ", unitPrice: principal });
+  if (fee > 0) items.push({ description: "ค่าธรรมเนียม 5%", qty: 1, unit: "รายการ", unitPrice: fee });
+  if (interest > 0) items.push({ description: `ดอกเบี้ย ${interestRate}% (${daysOverdue} วัน)`, qty: 1, unit: "รายการ", unitPrice: interest });
+
+  if (items.length === 1 && principal === 0 && debts.length > 0) {
+    const total = Number(debts[0].outstanding_amount ?? debts[0].principal_amount ?? 0);
+    items[0].unitPrice = total;
+  }
+
+  const debtInfo = principal > 0 ? {
+    principal,
+    fee,
+    daysOverdue,
+    interestRate: interestRate / 100,
+    interestAccrued: interest,
+  } : undefined;
+
+  return { items, debtInfo };
 }

@@ -1,0 +1,5569 @@
+{
+  "generated_at": "2026-07-05T08:35:19.554Z",
+  "version": 1,
+  "nodes": [
+    {
+      "id": "layer:v2-rules",
+      "type": "Layer",
+      "layer": "v2-rules",
+      "name_en": "v2-rules",
+      "purpose_th": "Validation / Business Rule / Permission",
+      "exports": [],
+      "status": "OK"
+    },
+    {
+      "id": "layer:v3-engines",
+      "type": "Layer",
+      "layer": "v3-engines",
+      "name_en": "v3-engines",
+      "purpose_th": "คำนวณ (ราคา/VAT/ดอกเบี้ย/สถานะ)",
+      "exports": [],
+      "status": "OK"
+    },
+    {
+      "id": "layer:v4-ai",
+      "type": "Layer",
+      "layer": "v4-ai",
+      "name_en": "v4-ai",
+      "purpose_th": "แปลภาษา ไม่สร้างข้อมูล ไม่คำนวณ",
+      "exports": [],
+      "status": "OK"
+    },
+    {
+      "id": "layer:v5-presenter",
+      "type": "Layer",
+      "layer": "v5-presenter",
+      "name_en": "v5-presenter",
+      "purpose_th": "สรุป + Timeline + อธิบาย",
+      "exports": [],
+      "status": "OK"
+    },
+    {
+      "id": "layer:v6-executor",
+      "type": "Layer",
+      "layer": "v6-executor",
+      "name_en": "v6-executor",
+      "purpose_th": "Execute + Drivers + Runtime",
+      "exports": [],
+      "status": "OK"
+    },
+    {
+      "id": "layer:documents",
+      "type": "Layer",
+      "layer": "documents",
+      "name_en": "documents",
+      "purpose_th": "Render Template เดียว",
+      "exports": [],
+      "status": "OK"
+    },
+    {
+      "id": "layer:commands",
+      "type": "Layer",
+      "layer": "commands",
+      "name_en": "commands",
+      "purpose_th": "JSON Registry",
+      "exports": [],
+      "status": "OK"
+    },
+    {
+      "id": "layer:core",
+      "type": "Layer",
+      "layer": "core",
+      "name_en": "core",
+      "purpose_th": "Workflow Engine",
+      "exports": [],
+      "status": "OK"
+    },
+    {
+      "id": "layer:drivers",
+      "type": "Layer",
+      "layer": "drivers",
+      "name_en": "drivers",
+      "purpose_th": "App Drivers (BaseDriver)",
+      "exports": [],
+      "status": "OK"
+    },
+    {
+      "id": "layer:runtime",
+      "type": "Layer",
+      "layer": "runtime",
+      "name_en": "runtime",
+      "purpose_th": "Node-only helpers",
+      "exports": [],
+      "status": "OK"
+    },
+    {
+      "id": "layer:browser",
+      "type": "Layer",
+      "layer": "browser",
+      "name_en": "browser",
+      "purpose_th": "Browser Safe",
+      "exports": [],
+      "status": "OK"
+    },
+    {
+      "id": "layer:shared",
+      "type": "Layer",
+      "layer": "shared",
+      "name_en": "shared",
+      "purpose_th": "Types",
+      "exports": [],
+      "status": "OK"
+    },
+    {
+      "id": "layer:supabase",
+      "type": "Layer",
+      "layer": "supabase",
+      "name_en": "supabase",
+      "purpose_th": "DB + Realtime",
+      "exports": [],
+      "status": "OK"
+    },
+    {
+      "id": "layer:agent",
+      "type": "Layer",
+      "layer": "agent",
+      "name_en": "agent",
+      "purpose_th": "Local macOS Agent",
+      "exports": [],
+      "status": "OK"
+    },
+    {
+      "id": "layer:registry",
+      "type": "Layer",
+      "layer": "registry",
+      "name_en": "registry",
+      "purpose_th": "System Registries",
+      "exports": [],
+      "status": "OK"
+    },
+    {
+      "id": "layer:cognitive",
+      "type": "Layer",
+      "layer": "cognitive",
+      "name_en": "cognitive",
+      "purpose_th": "Cognitive Pipeline (Intent → Plan → Execute → Reflect)",
+      "exports": [],
+      "status": "OK"
+    },
+    {
+      "id": "layer:platform",
+      "type": "Layer",
+      "layer": "platform",
+      "name_en": "platform",
+      "purpose_th": "Platform Detection",
+      "exports": [],
+      "status": "OK"
+    },
+    {
+      "id": "layer:middleware",
+      "type": "Layer",
+      "layer": "middleware",
+      "name_en": "middleware",
+      "purpose_th": "Auth + Sanitize",
+      "exports": [],
+      "status": "OK"
+    },
+    {
+      "id": "layer:macos",
+      "type": "Layer",
+      "layer": "macos",
+      "name_en": "macos",
+      "purpose_th": "macOS Native Drivers (Swift)",
+      "exports": [],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/shared/types.ts",
+      "type": "Module",
+      "layer": "shared",
+      "name_en": "lib/shared/types.ts",
+      "purpose_th": "ศูนย์กลางชนิดข้อมูล (Types) สำหรับทั้งระบบ",
+      "exports": [
+        "AppDriver",
+        "AppStatus",
+        "AuditEntry",
+        "AuditTrail",
+        "BusinessEvent",
+        "BusinessEventType",
+        "Command",
+        "CommandEntry",
+        "CommandMatch",
+        "CommandResult",
+        "DebtStatus",
+        "PartnerSummary",
+        "PartnerTimelineEntry",
+        "RuntimeCommand",
+        "RuntimeEvent",
+        "RuntimeResult",
+        "StepResult",
+        "TimelineEntryKind",
+        "ViewMode",
+        "WorkflowDef",
+        "WorkflowResult",
+        "round"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/registry/index.ts",
+      "type": "Module",
+      "layer": "shared",
+      "name_en": "lib/registry/index.ts",
+      "purpose_th": "ทะเบียนกลาง — ค้นหาและเข้าถึงส่วนประกอบต่างๆ ของระบบสำหรับ Runtime (V1)",
+      "exports": [
+        "getActiveChannels",
+        "getCommunicationCapabilities",
+        "getCommunicationChannel",
+        "getCommunicationIndex",
+        "getCommunicationLifecycle",
+        "getCommunicationRegistry",
+        "getCommunicationTopology",
+        "getDriver",
+        "getEvent",
+        "getInterface",
+        "getLINEAPIs",
+        "getLINEChannel",
+        "getLINECleanupList",
+        "getLINELifecycle",
+        "getLINEOAFeatures",
+        "getLINERegistry",
+        "getLINETopology",
+        "getLayer",
+        "getModule",
+        "getSchema",
+        "getService",
+        "isFeatureEnabled",
+        "isLINEFeatureEnabled",
+        "isPolicyAllowed",
+        "isRegistered",
+        "listCommunicationChannels",
+        "listDrivers",
+        "listEvents",
+        "listInterfaces",
+        "listLayers",
+        "listModules",
+        "listSchemas",
+        "listServices",
+        "loadAllCommunicationChannels",
+        "loadCommunicationChannel",
+        "resolveCapability",
+        "resolveCommunication",
+        "resolveDependencies",
+        "resolveHealth",
+        "resolveLifecycle",
+        "resolvePipeline",
+        "resolvePolicy",
+        "resolveSecurityContract",
+        "resolveTopology",
+        "validateAllCommunicationRegistries",
+        "validateCommunicationRegistry"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/runtime/engine.ts",
+      "type": "Module",
+      "layer": "shared",
+      "name_en": "lib/runtime/engine.ts",
+      "purpose_th": "เครื่องยนต์ Runtime — โหลดทะเบียน, ค้นหาโมดูล, รันคำสั่ง, และกระจายเหตุการณ์",
+      "exports": [
+        "createResult",
+        "dispatchEvent",
+        "executeCommand",
+        "getEventsByTrace",
+        "getRecentEvents",
+        "loadRegistry",
+        "registerCommand",
+        "resolveModule"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/supabase/queries.ts",
+      "type": "Module",
+      "layer": "supabase",
+      "name_en": "lib/supabase/queries.ts",
+      "purpose_th": "ส่วนเชื่อมต่อ Supabase และฟังก์ชันสำหรับดึงข้อมูลจากทุกตาราง",
+      "exports": [
+        "canonicalDocumentType",
+        "createDebtTracking",
+        "createDocument",
+        "deleteDebtTracking",
+        "documentTypeVariants",
+        "getAllDebts",
+        "getBusinessEventsByPartner",
+        "getDebtTrackingById",
+        "getDebtTrackings",
+        "getDebtorPartners",
+        "getDebtsByCustomerName",
+        "getDocumentTypeCounts",
+        "getDocuments",
+        "getDocumentsByPartner",
+        "getFirstInvoiceForPartner",
+        "getJobs",
+        "getLatestInvoice",
+        "getMaterialTypes",
+        "getOpenDebts",
+        "getPartnerById",
+        "getPartnerByName",
+        "getPartners",
+        "getPartnersWithDocumentSummary",
+        "getPendingDrafts",
+        "getReceipts",
+        "supabase",
+        "updateDebtTracking"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/supabase/realtime.ts",
+      "type": "Module",
+      "layer": "supabase",
+      "name_en": "lib/supabase/realtime.ts",
+      "purpose_th": "ส่วนจัดการ Realtime Subscription ของ Supabase สำหรับตาราง payments, debts, documents",
+      "exports": [
+        "subscribePayments"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/middleware/auth.ts",
+      "type": "Module",
+      "layer": "shared",
+      "name_en": "lib/middleware/auth.ts",
+      "purpose_th": "Middleware ตรวจสอบสิทธิ์ — ตรวจสอบ Bearer token ผ่าน Supabase",
+      "exports": [
+        "requireAuth"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/middleware/sanitize.ts",
+      "type": "Module",
+      "layer": "shared",
+      "name_en": "lib/middleware/sanitize.ts",
+      "purpose_th": "Middleware กรองข้อมูล — ป้องกันการโจมตีแบบ XSS และ SQL injection",
+      "exports": [
+        "sanitizeText",
+        "sanitizeHtml"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/cognitive/pipeline.ts",
+      "type": "Module",
+      "layer": "cognitive",
+      "name_en": "lib/cognitive/pipeline.ts",
+      "purpose_th": "กระบวนการคิดหลักของระบบ — เจตนา → วางแผน → ปฏิบัติ → ประเมินผล → แสดงผล",
+      "exports": [
+        "runCognitivePipeline"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/cognitive/executor/index.ts",
+      "type": "Module",
+      "layer": "cognitive",
+      "name_en": "lib/cognitive/executor/index.ts",
+      "purpose_th": "ส่วนปฏิบัติการ — ทำงานตามแผนที่วางไว้โดยเรียกใช้โมดูลต่างๆ",
+      "exports": [
+        "executePlan"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/cognitive/planner/index.ts",
+      "type": "Module",
+      "layer": "cognitive",
+      "name_en": "lib/cognitive/planner/index.ts",
+      "purpose_th": "ส่วนวางแผน — แปลงการตัดสินใจให้เป็นแผนการปฏิบัติงานพร้อมขั้นตอน",
+      "exports": [
+        "plan"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/cognitive/planner/engine.ts",
+      "type": "Module",
+      "layer": "cognitive",
+      "name_en": "lib/cognitive/planner/engine.ts",
+      "purpose_th": "เครื่องมือวางแผน — ตรรกะหลักในการค้นหาและสร้างขั้นตอนการทำงาน",
+      "exports": [
+        "Decision",
+        "ExecutionPlan",
+        "RequiredInput",
+        "RollbackStep",
+        "ToolStepPlan",
+        "WorkflowDefinition",
+        "WorkflowStep",
+        "plan"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/cognitive/planner/engine.test.ts",
+      "type": "Module",
+      "layer": "cognitive",
+      "name_en": "lib/cognitive/planner/engine.test.ts",
+      "purpose_th": "ชุดทดสอบสำหรับส่วนวางแผน",
+      "exports": [],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/cognitive/reasoning/index.ts",
+      "type": "Module",
+      "layer": "cognitive",
+      "name_en": "lib/cognitive/reasoning/index.ts",
+      "purpose_th": "ส่วนหาเหตุผล — ตัดสินใจว่าจะต้องใช้เครื่องมืออะไรบ้างเพื่อบรรลุเป้าหมาย",
+      "exports": [
+        "reason"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/cognitive/reasoning/engine.ts",
+      "type": "Module",
+      "layer": "cognitive",
+      "name_en": "lib/cognitive/reasoning/engine.ts",
+      "purpose_th": "เครื่องมือหาเหตุผล — แปลงเป้าหมายเป็นการตัดสินใจและแผนงาน",
+      "exports": [
+        "DomainKnowledge",
+        "DomainObject",
+        "Goal",
+        "PlanStep",
+        "ReasoningOutput",
+        "Session",
+        "reason"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/cognitive/reasoning/engine.test.ts",
+      "type": "Module",
+      "layer": "cognitive",
+      "name_en": "lib/cognitive/reasoning/engine.test.ts",
+      "purpose_th": "ชุดทดสอบสำหรับส่วนหาเหตุผล",
+      "exports": [],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/cognitive/reflection/index.ts",
+      "type": "Module",
+      "layer": "cognitive",
+      "name_en": "lib/cognitive/reflection/index.ts",
+      "purpose_th": "ส่วนประเมินผล — ตรวจสอบและประเมินผลลัพธ์จากการปฏิบัติงาน",
+      "exports": [
+        "reflect"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/cognitive/reflection/engine.ts",
+      "type": "Module",
+      "layer": "cognitive",
+      "name_en": "lib/cognitive/reflection/engine.ts",
+      "purpose_th": "เครื่องมือประเมินผล — สร้างข้อมูลเชิงลึกจากผลลัพธ์การทำงาน",
+      "exports": [
+        "ExecutionResult",
+        "MemoryUpdate",
+        "ReflectionOutput",
+        "StateTransition",
+        "reflect"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/cognitive/evaluation/index.ts",
+      "type": "Module",
+      "layer": "cognitive",
+      "name_en": "lib/cognitive/evaluation/index.ts",
+      "purpose_th": "ส่วนวัดผล — วัดความสำเร็จของการทำงานตามแผน",
+      "exports": [
+        "evaluate"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/cognitive/evaluation/engine.ts",
+      "type": "Module",
+      "layer": "cognitive",
+      "name_en": "lib/cognitive/evaluation/engine.ts",
+      "purpose_th": "เครื่องมือวัดผล — ตรวจสอบว่าผลลัพธ์ตรงตามเกณฑ์ความสำเร็จหรือไม่",
+      "exports": [
+        "EvaluationGap",
+        "EvaluationResult",
+        "ExecutionOutput",
+        "evaluate"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/cognitive/hypothesis/index.ts",
+      "type": "Module",
+      "layer": "cognitive",
+      "name_en": "lib/cognitive/hypothesis/index.ts",
+      "purpose_th": "ส่วนตั้งสมมติฐาน — สร้างสมมติฐานจากสถานะของโลกรอบตัว",
+      "exports": [
+        "generateHypotheses"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/cognitive/hypothesis/engine.ts",
+      "type": "Module",
+      "layer": "cognitive",
+      "name_en": "lib/cognitive/hypothesis/engine.ts",
+      "purpose_th": "เครื่องมือตั้งสมมติฐาน — สร้างสมมติฐานที่เป็นไปได้",
+      "exports": [
+        "Hypothesis",
+        "generateHypotheses"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/cognitive/memory/index.ts",
+      "type": "Module",
+      "layer": "cognitive",
+      "name_en": "lib/cognitive/memory/index.ts",
+      "purpose_th": "ส่วนความจำ — จัดการหน่วยความจำสำหรับแต่ละ session",
+      "exports": [
+        "applyReflection",
+        "cancelPending",
+        "enrichWithMemory",
+        "executePending",
+        "getMemory",
+        "newSession",
+        "resetMemory",
+        "whatChanged",
+        "whatIsCurrentGoal",
+        "whatIsPending",
+        "whatWasCancelled"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/cognitive/memory/context.ts",
+      "type": "Module",
+      "layer": "cognitive",
+      "name_en": "lib/cognitive/memory/context.ts",
+      "purpose_th": "บริบทความจำ — เพิ่มข้อมูลแวดล้อมเพื่อให้เข้าใจสถานการณ์ดีขึ้น",
+      "exports": [
+        "Context",
+        "ExecutorResult",
+        "GoalOutput",
+        "clear",
+        "get",
+        "hasWho",
+        "hasWhoId",
+        "isSameSubject",
+        "isStale",
+        "updateFromExecutor",
+        "updateFromGoal"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/cognitive/memory/session.ts",
+      "type": "Module",
+      "layer": "cognitive",
+      "name_en": "lib/cognitive/memory/session.ts",
+      "purpose_th": "หน่วยความจำเซสชัน — ติดตามสถานะของแต่ละเซสชันการทำงาน",
+      "exports": [
+        "SessionMemory",
+        "applyReflection",
+        "cancelPending",
+        "enrichWithMemory",
+        "executePending",
+        "getMemory",
+        "isStale",
+        "newSession",
+        "resetMemory",
+        "whatChanged",
+        "whatIsCurrentGoal",
+        "whatIsPending",
+        "whatWasCancelled"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/cognitive/state/index.ts",
+      "type": "Module",
+      "layer": "cognitive",
+      "name_en": "lib/cognitive/state/index.ts",
+      "purpose_th": "ส่วนสถานะ — ส่งออกโมดูลที่เกี่ยวกับสถานะทั้งหมด",
+      "exports": [
+        "buildResourceGraph",
+        "buildTimeline",
+        "buildWorldState",
+        "checkConstraints"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/cognitive/state/types.ts",
+      "type": "Module",
+      "layer": "cognitive",
+      "name_en": "lib/cognitive/state/types.ts",
+      "purpose_th": "ชนิดข้อมูลสถานะ — นิยาม WorldState และ SituationInput",
+      "exports": [
+        "Constraint",
+        "ConstraintType",
+        "Entity",
+        "EntityType",
+        "EventType",
+        "RelationType",
+        "ResourceEdge",
+        "ResourceGraph",
+        "SituationEvent",
+        "SituationInput",
+        "Timeline",
+        "WorldState"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/cognitive/state/world-state.ts",
+      "type": "Module",
+      "layer": "cognitive",
+      "name_en": "lib/cognitive/state/world-state.ts",
+      "purpose_th": "สถานะโลก — ภาพรวมของสถานะทั้งหมด ณ เวลานั้นๆ",
+      "exports": [
+        "buildWorldState"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/cognitive/state/constraint-engine.ts",
+      "type": "Module",
+      "layer": "cognitive",
+      "name_en": "lib/cognitive/state/constraint-engine.ts",
+      "purpose_th": "เครื่องมือตรวจสอบข้อจำกัด — ตรวจสอบว่าสถานะปัจจุบันเป็นไปตามข้อจำกัดหรือไม่",
+      "exports": [
+        "checkConstraints"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/cognitive/state/resource-graph.ts",
+      "type": "Module",
+      "layer": "cognitive",
+      "name_en": "lib/cognitive/state/resource-graph.ts",
+      "purpose_th": "กราฟทรัพยากร — แสดงความสัมพันธ์ระหว่างทรัพยากรต่างๆ",
+      "exports": [
+        "buildResourceGraph"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/cognitive/state/timeline.ts",
+      "type": "Module",
+      "layer": "cognitive",
+      "name_en": "lib/cognitive/state/timeline.ts",
+      "purpose_th": "เส้นเวลา — แสดงลำดับเวลาของเหตุการณ์ที่เกิดขึ้น",
+      "exports": [
+        "buildTimeline"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/cognitive/situation/index.ts",
+      "type": "Module",
+      "layer": "cognitive",
+      "name_en": "lib/cognitive/situation/index.ts",
+      "purpose_th": "ส่วนสถานการณ์ — ส่งออกโมดูลที่เกี่ยวกับสถานการณ์",
+      "exports": [
+        "buildSituation",
+        "extractEntities",
+        "extractEvents"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/cognitive/situation/builder.ts",
+      "type": "Module",
+      "layer": "cognitive",
+      "name_en": "lib/cognitive/situation/builder.ts",
+      "purpose_th": "ตัวสร้างสถานการณ์ — สร้าง WorldState จากข้อมูลอินพุต",
+      "exports": [
+        "buildSituation"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/cognitive/situation/entity-extractor.ts",
+      "type": "Module",
+      "layer": "cognitive",
+      "name_en": "lib/cognitive/situation/entity-extractor.ts",
+      "purpose_th": "ตัวสกัดข้อมูล — ดึงข้อมูลสำคัญ (entity) จากอินพุต",
+      "exports": [
+        "extractEntities"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/cognitive/situation/event-extractor.ts",
+      "type": "Module",
+      "layer": "cognitive",
+      "name_en": "lib/cognitive/situation/event-extractor.ts",
+      "purpose_th": "ตัวสกัดเหตุการณ์ — ดึงเหตุการณ์ (event) จากอินพุต",
+      "exports": [
+        "extractEvents"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/cognitive/board/index.ts",
+      "type": "Module",
+      "layer": "cognitive",
+      "name_en": "lib/cognitive/board/index.ts",
+      "purpose_th": "ตัวประกอบบอร์ด — รวบรวมผลลัพธ์จากทุกส่วนเพื่อแสดงบนบอร์ด",
+      "exports": [
+        "BoardResponse",
+        "composeBoard"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/cognitive/objective/index.ts",
+      "type": "Module",
+      "layer": "cognitive",
+      "name_en": "lib/cognitive/objective/index.ts",
+      "purpose_th": "ส่วนเป้าหมาย — กำหนดเป้าหมายจากข้อมูลอินพุตที่ผ่านการเสริม",
+      "exports": [
+        "createObjective",
+        "resolveObjective"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/cognitive/objective/contract.ts",
+      "type": "Module",
+      "layer": "cognitive",
+      "name_en": "lib/cognitive/objective/contract.ts",
+      "purpose_th": "ชนิดข้อมูลเป้าหมาย — นิยามชนิดข้อมูลที่เกี่ยวกับเป้าหมาย",
+      "exports": [
+        "Objective",
+        "SessionSnapshot",
+        "createObjective"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/cognitive/objective/manager.ts",
+      "type": "Module",
+      "layer": "cognitive",
+      "name_en": "lib/cognitive/objective/manager.ts",
+      "purpose_th": "ผู้จัดการเป้าหมาย — จัดการวงจรชีวิตของเป้าหมาย",
+      "exports": [
+        "EnrichedInput",
+        "Session",
+        "resolveObjective"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/cognitive/objective/manager.test.ts",
+      "type": "Module",
+      "layer": "cognitive",
+      "name_en": "lib/cognitive/objective/manager.test.ts",
+      "purpose_th": "ชุดทดสอบสำหรับผู้จัดการเป้าหมาย",
+      "exports": [],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/cognitive/intent/index.ts",
+      "type": "Module",
+      "layer": "cognitive",
+      "name_en": "lib/cognitive/intent/index.ts",
+      "purpose_th": "ส่วนเจตนา — จำแนกประเภทของเจตนาผู้ใช้",
+      "exports": [
+        "/* Operating Intent + Intent Catalog จะอยู่ที่นี่ */"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/cognitive/knowledge/index.ts",
+      "type": "Module",
+      "layer": "cognitive",
+      "name_en": "lib/cognitive/knowledge/index.ts",
+      "purpose_th": "ส่วนความรู้ — ส่วนเชื่อมต่อกับฐานความรู้ของระบบ",
+      "exports": [
+        "/* Domain Knowledge จะอยู่ที่นี่ */"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/cognitive/learning/index.ts",
+      "type": "Module",
+      "layer": "cognitive",
+      "name_en": "lib/cognitive/learning/index.ts",
+      "purpose_th": "ส่วนการเรียนรู้ — เรียนรู้จากผลการประเมินและวัดผล",
+      "exports": [
+        "LearningOutput",
+        "learn"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/cognitive/priority/index.ts",
+      "type": "Module",
+      "layer": "cognitive",
+      "name_en": "lib/cognitive/priority/index.ts",
+      "purpose_th": "ส่วนจัดลำดับความสำคัญ — จัดลำดับการกระทำและเป้าหมาย",
+      "exports": [
+        "/* Priority Engine จะอยู่ที่นี่ */"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/cognitive/integration.test.ts",
+      "type": "Module",
+      "layer": "cognitive",
+      "name_en": "lib/cognitive/integration.test.ts",
+      "purpose_th": "ชุดทดสอบ Integration สำหรับกระบวนการคิดทั้งหมด",
+      "exports": [],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/supabase/state-cache.ts",
+      "type": "Module",
+      "layer": "supabase",
+      "name_en": "lib/supabase/state-cache.ts",
+      "purpose_th": "แคชสถานะการแสดงผล — ใช้ Supabase เป็นที่เก็บสถานะสำหรับ Serverless",
+      "exports": [
+        "DisplayState",
+        "getDisplayState",
+        "setDisplayState"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/v2-rules/dispatcher.ts",
+      "type": "Module",
+      "layer": "v2-rules",
+      "name_en": "lib/v2-rules/dispatcher.ts",
+      "purpose_th": "ผู้จ่ายงาน — ผู้บังคับใช้กฎ อ่านทะเบียนและบังคับใช้ filter, การยืนยัน, และการตรวจสอบข้อมูล",
+      "exports": [
+        "DispatchResult",
+        "dispatch",
+        "getCommandDef",
+        "isRegistered",
+        "listCommands",
+        "validateInput"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/v2-rules/actions.ts",
+      "type": "Module",
+      "layer": "v2-rules",
+      "name_en": "lib/v2-rules/actions.ts",
+      "purpose_th": "API สำหรับ Action — จัดการรูปแบบ preview/execute สำหรับการชำระเงิน, สร้างเอกสาร, สร้างหนี้ พร้อมการป้องกันด้วย token",
+      "exports": [
+        "ActionRequest",
+        "ActionResponse",
+        "previewPayment",
+        "executePayment",
+        "previewDocumentCreate",
+        "executeDocumentCreate",
+        "previewDebtCreate",
+        "executeDebtCreate",
+        "dispatchAction"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/v2-rules/resolver.ts",
+      "type": "Module",
+      "layer": "v2-rules",
+      "name_en": "lib/v2-rules/resolver.ts",
+      "purpose_th": "ระบบค้นหาอัจฉริยะ — ค้นหาหนี้/คู่ค้า/ใบแจ้งหนี้/บ่อดิน แบบเทียบเคียงและข้ามตาราง",
+      "exports": [
+        "FindResult",
+        "findDebt",
+        "findPartner",
+        "findInvoice",
+        "findPit",
+        "smartFind",
+        "dispatchFind"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/v3-engines/index.ts",
+      "type": "Module",
+      "layer": "v3-engines",
+      "name_en": "lib/v3-engines/index.ts",
+      "purpose_th": "ส่งออก Engine ทั้งหมดอีกครั้ง และรวมกระบวนการคำนวณใบเสนอราคาเต็มรูปแบบ",
+      "exports": [
+        "QuoteInput",
+        "QuoteResult",
+        "calcCapacity",
+        "calcCompoundInterest",
+        "calcCost",
+        "calcDaysOverdue",
+        "calcDebtFull",
+        "calcDistance",
+        "calcFuel",
+        "calcFullQuote",
+        "calcPricing",
+        "calcTax",
+        "calcTime",
+        "calculateDebt",
+        "calculatePrice",
+        "checkOverdue",
+        "findNearestPit",
+        "loadBusinessRules",
+        "loadConfigs",
+        "nextStatus"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/v3-engines/config-loader.ts",
+      "type": "Module",
+      "layer": "v3-engines",
+      "name_en": "lib/v3-engines/config-loader.ts",
+      "purpose_th": "โหลดกฎธุรกิจจากตาราง app_configs พร้อมระบบแคช 60 วินาที",
+      "exports": [
+        "AuditTrail",
+        "RulesConfig",
+        "audit",
+        "clearConfigCache",
+        "getNum",
+        "getStr",
+        "loadConfigs"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/v3-engines/business.ts",
+      "type": "Module",
+      "layer": "v3-engines",
+      "name_en": "lib/v3-engines/business.ts",
+      "purpose_th": "เครื่องยนต์ธุรกิจ — คำนวณราคา, หนี้, ภาษี และลงทะเบียนคำสั่งเข้าสู่ Runtime",
+      "exports": [
+        "loadBusinessRules",
+        "calculatePrice",
+        "calculateDebt",
+        "calculateTax",
+        "registerBusinessCommands"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/v3-engines/distance.ts",
+      "type": "Module",
+      "layer": "v3-engines",
+      "name_en": "lib/v3-engines/distance.ts",
+      "purpose_th": "คำนวณระยะทางด้วยสูตร Haversine และค้นหาบ่อวัสดุที่ใกล้ที่สุด",
+      "exports": [
+        "DistanceInput",
+        "DistanceResult",
+        "calcDistance",
+        "findNearestPit",
+        "haversine"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/v3-engines/time.ts",
+      "type": "Module",
+      "layer": "v3-engines",
+      "name_en": "lib/v3-engines/time.ts",
+      "purpose_th": "คำนวณเวลาที่ใช้ในการขนส่ง (รวมเวลาเดินทางไป-กลับ และเวลาขึ้นลงของ)",
+      "exports": [
+        "TimeInput",
+        "TimeResult",
+        "calcTime"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/v3-engines/fuel.ts",
+      "type": "Module",
+      "layer": "v3-engines",
+      "name_en": "lib/v3-engines/fuel.ts",
+      "purpose_th": "คำนวณต้นทุนค่าน้ำมัน (จากระยะทาง, อัตราสิ้นเปลือง, และราคาต่อลิตร)",
+      "exports": [
+        "FuelInput",
+        "FuelResult",
+        "calcFuel"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/v3-engines/cost.ts",
+      "type": "Module",
+      "layer": "v3-engines",
+      "name_en": "lib/v3-engines/cost.ts",
+      "purpose_th": "คำนวณต้นทุนรวมทั้งหมด (ค่าวัสดุ, ค่าน้ำมัน, และค่าแรง)",
+      "exports": [
+        "CostInput",
+        "CostResult",
+        "calcCost"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/v3-engines/pricing.ts",
+      "type": "Module",
+      "layer": "v3-engines",
+      "name_en": "lib/v3-engines/pricing.ts",
+      "purpose_th": "คำนวณราคาขาย (จากต้นทุน, ส่วนเพิ่ม, ค่าธรรมเนียมระบบ, และค่างานด่วน)",
+      "exports": [
+        "PricingInput",
+        "PricingResult",
+        "calcPricing"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/v3-engines/tax.ts",
+      "type": "Module",
+      "layer": "v3-engines",
+      "name_en": "lib/v3-engines/tax.ts",
+      "purpose_th": "คำนวณภาษีมูลค่าเพิ่ม (VAT) และภาษีหัก ณ ที่จ่าย",
+      "exports": [
+        "TaxInput",
+        "TaxResult",
+        "calcTax"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/v3-engines/capacity.ts",
+      "type": "Module",
+      "layer": "v3-engines",
+      "name_en": "lib/v3-engines/capacity.ts",
+      "purpose_th": "คำนวณจำนวนเที่ยวที่ต้องวิ่งจากปริมาณสินค้าและความจุของรถ",
+      "exports": [
+        "CapacityInput",
+        "CapacityResult",
+        "calcCapacity"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/v3-engines/debt/engine.ts",
+      "type": "Module",
+      "layer": "v3-engines",
+      "name_en": "lib/v3-engines/debt/engine.ts",
+      "purpose_th": "เครื่องยนต์จัดการหนี้หลัก — รวมการคำนวณสถานะ, ดอกเบี้ย, ค่าทวงถาม, และยอดรวม",
+      "exports": [
+        "DebtCalcInput",
+        "DebtCalcResult",
+        "applyTransition",
+        "buildTransitionChain",
+        "calcCollectionFee",
+        "calcCompoundInterest",
+        "calcDaysOverdue",
+        "calcDebtFull",
+        "calcDebtSummary",
+        "canAccrueInterest",
+        "canChargeCollectionFee",
+        "checkBatch",
+        "checkDebtSchedule",
+        "checkOverdue",
+        "isTerminal",
+        "nextStatus"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/v3-engines/debt/calculator.ts",
+      "type": "Module",
+      "layer": "v3-engines",
+      "name_en": "lib/v3-engines/debt/calculator.ts",
+      "purpose_th": "คำนวณยอดหนี้รวม ณ วันที่กำหนด (เงินต้น, ค่าธรรมเนียม, ดอกเบี้ย, ค่าทวงถาม, หักยอดชำระแล้ว)",
+      "exports": [
+        "DebtSummaryInput",
+        "DebtSummary",
+        "calcDebtSummary"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/v3-engines/debt/interest.ts",
+      "type": "Module",
+      "layer": "v3-engines",
+      "name_en": "lib/v3-engines/debt/interest.ts",
+      "purpose_th": "คำนวณดอกเบี้ยแบบทบต้น และจำนวนวันที่ค้างชำระ",
+      "exports": [
+        "InterestInput",
+        "InterestResult",
+        "calcCompoundInterest",
+        "calcDaysOverdue"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/v3-engines/debt/collection.ts",
+      "type": "Module",
+      "layer": "v3-engines",
+      "name_en": "lib/v3-engines/debt/collection.ts",
+      "purpose_th": "คำนวณค่าทวงถาม โดยมีเพดานสูงสุดตามที่กฎหมายกำหนด",
+      "exports": [
+        "CollectionFeeInput",
+        "CollectionFeeResult",
+        "calcCollectionFee"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/v3-engines/debt/overdue.ts",
+      "type": "Module",
+      "layer": "v3-engines",
+      "name_en": "lib/v3-engines/debt/overdue.ts",
+      "purpose_th": "ตรวจสอบว่าหนี้ถึงกำหนดชำระแล้วหรือยัง และเลยช่วงผ่อนผันไปแล้วหรือไม่",
+      "exports": [
+        "OverdueCheck",
+        "checkOverdue"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/v3-engines/debt/status.ts",
+      "type": "Module",
+      "layer": "v3-engines",
+      "name_en": "lib/v3-engines/debt/status.ts",
+      "purpose_th": "ระบบสถานะหนี้ — จัดการ 7 สถานะของหนี้และการเปลี่ยนสถานะตามเหตุการณ์",
+      "exports": [
+        "DebtStatus",
+        "StatusTransition",
+        "nextStatus",
+        "isTerminal",
+        "canAccrueInterest",
+        "canChargeCollectionFee"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/v3-engines/debt/transition.ts",
+      "type": "Module",
+      "layer": "v3-engines",
+      "name_en": "lib/v3-engines/debt/transition.ts",
+      "purpose_th": "เปลี่ยนสถานะหนี้ตามเหตุการณ์ และสร้างประวัติการเปลี่ยนแปลงสถานะ",
+      "exports": [
+        "TransitionEvent",
+        "TransitionResult",
+        "applyTransition",
+        "buildTransitionChain"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/v3-engines/debt/scheduler.ts",
+      "type": "Module",
+      "layer": "v3-engines",
+      "name_en": "lib/v3-engines/debt/scheduler.ts",
+      "purpose_th": "ระบบตั้งเวลาตรวจหนี้ — ตรวจสอบหนี้ที่ครบกำหนดและสร้าง Event เปลี่ยนสถานะอัตโนมัติ",
+      "exports": [
+        "DebtRecord",
+        "SchedulerResult",
+        "checkDebtSchedule",
+        "checkBatch"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/v4-ai/bridge-local.ts",
+      "type": "Module",
+      "layer": "v4-ai",
+      "name_en": "lib/v4-ai/bridge-local.ts",
+      "purpose_th": "สะพานเชื่อม AI (Local) — แปลภาษาไทยเป็นคำสั่ง JSON ด้วยการจับคู่คีย์เวิร์ด",
+      "exports": [
+        "BridgeCommand",
+        "BridgeResult",
+        "translate"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/v4-ai/bridge-openai.ts",
+      "type": "Module",
+      "layer": "v4-ai",
+      "name_en": "lib/v4-ai/bridge-openai.ts",
+      "purpose_th": "สะพานเชื่อม AI (OpenAI) — ใช้ GPT-4o-mini แปลภาษาไทยเป็นคำสั่ง JSON",
+      "exports": [
+        "translateWithAI"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/v4-ai/translator.ts",
+      "type": "Module",
+      "layer": "v4-ai",
+      "name_en": "lib/v4-ai/translator.ts",
+      "purpose_th": "ชั้นแปลภาษาด้วย AI — แปลเจตนาและข้อมูลจากภาษาไทย และลงทะเบียนคำสั่งเข้าสู่ Runtime",
+      "exports": [
+        "Entity",
+        "Intent",
+        "TranslationResult",
+        "translate"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/v5-presenter/index.ts",
+      "type": "Module",
+      "layer": "v5-presenter",
+      "name_en": "lib/v5-presenter/index.ts",
+      "purpose_th": "ส่งออกโมดูลสำหรับจัดรูปแบบการแสดงผลทั้งหมดอีกครั้ง",
+      "exports": [
+        "enrichPitResults",
+        "enrichPartnerResults",
+        "formatPitResults",
+        "formatPartnerResults",
+        "formatDebtResults",
+        "detectRankContext",
+        "rankResults",
+        "EnrichedRecord",
+        "FormattedResult",
+        "FormattedItem",
+        "RankPolicy",
+        "RankContext"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/v5-presenter/enricher.ts",
+      "type": "Module",
+      "layer": "v5-presenter",
+      "name_en": "lib/v5-presenter/enricher.ts",
+      "purpose_th": "เสริมข้อมูลดิบ — เพิ่มข้อมูลวัสดุ, ราคา, หรือระยะทางจากฐานข้อมูล",
+      "exports": [
+        "EnrichedRecord",
+        "enrichPitResults",
+        "enrichPartnerResults"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/v5-presenter/explainer.ts",
+      "type": "Module",
+      "layer": "v5-presenter",
+      "name_en": "lib/v5-presenter/explainer.ts",
+      "purpose_th": "เครื่องคำนวณที่อธิบายได้ — ทุกตัวเลขสามารถตอบได้ว่า มาจากไหน, คำนวณอย่างไร, และอัปเดตเมื่อไหร่",
+      "exports": [
+        "TracedValue",
+        "ExplainedQuote",
+        "explainQuote"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/v5-presenter/formatter.ts",
+      "type": "Module",
+      "layer": "v5-presenter",
+      "name_en": "lib/v5-presenter/formatter.ts",
+      "purpose_th": "จัดรูปแบบผลลัพธ์ให้อยู่ในโครงสร้างที่ UI นำไปใช้แสดงผลได้ง่าย",
+      "exports": [
+        "FormattedItem",
+        "FormattedResult",
+        "formatDebtResults",
+        "formatDocumentCreateResult",
+        "formatPartnerResults",
+        "formatPitResults"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/v5-presenter/ranker.ts",
+      "type": "Module",
+      "layer": "v5-presenter",
+      "name_en": "lib/v5-presenter/ranker.ts",
+      "purpose_th": "จัดอันดับผลลัพธ์ตามบริบท เช่น เรียงตามระยะทาง, ราคา, หรือชื่อ",
+      "exports": [
+        "RankPolicy",
+        "RankContext",
+        "detectRankContext",
+        "rankResults"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/v6-executor/index.ts",
+      "type": "Module",
+      "layer": "v6-executor",
+      "name_en": "lib/v6-executor/index.ts",
+      "purpose_th": "ส่งออกโมดูล V6 ทั้งหมดอีกครั้ง (ส่วนปฏิบัติการ, ความสามารถ, และผู้จัดการความสามารถ)",
+      "exports": [
+        "CAPABILITIES",
+        "TOOLS",
+        "execute",
+        "executeCapability",
+        "findTool",
+        "getCapabilityInfo",
+        "getConnectedTools",
+        "getStatusColor",
+        "getStatusLabel",
+        "getToolsByCapability",
+        "listAllCapabilities",
+        "listReadCapabilities",
+        "listWriteCapabilities"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/v6-executor/executor.ts",
+      "type": "Module",
+      "layer": "v6-executor",
+      "name_en": "lib/v6-executor/executor.ts",
+      "purpose_th": "ส่วนปฏิบัติการ V6 — เป็น Layer เดียวที่ได้รับอนุญาตให้เขียนข้อมูลลงฐานข้อมูลได้",
+      "exports": [
+        "ExecuteRequest",
+        "ExecuteResult",
+        "execute"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/v6-executor/gateway.ts",
+      "type": "Module",
+      "layer": "v6-executor",
+      "name_en": "lib/v6-executor/gateway.ts",
+      "purpose_th": "ประตูข้อมูล — เป็นประตูเดียวสำหรับเขียนข้อมูลลง DB (ตามกฎข้อ 71) โดยเรียกใช้จาก v2-rules/actions",
+      "exports": [
+        "dispatchAction",
+        "executeDebtCreate",
+        "executeDocumentCreate",
+        "executePayment",
+        "previewDebtCreate",
+        "previewDocumentCreate",
+        "previewPayment",
+        "type ActionRequest",
+        "type ActionResponse"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/v6-executor/capabilities.ts",
+      "type": "Module",
+      "layer": "v6-executor",
+      "name_en": "lib/v6-executor/capabilities.ts",
+      "purpose_th": "ทะเบียนความสามารถ — ลงทะเบียนเครื่องมือภายนอกที่เชื่อมต่อได้ (เช่น LINE, Maps, Drive)",
+      "exports": [
+        "CapabilityType",
+        "ToolStatus",
+        "Tool",
+        "CAPABILITIES",
+        "TOOLS",
+        "getToolsByCapability",
+        "getConnectedTools",
+        "findTool",
+        "getStatusColor",
+        "getStatusLabel"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/v6-executor/capability-manager.ts",
+      "type": "Module",
+      "layer": "v6-executor",
+      "name_en": "lib/v6-executor/capability-manager.ts",
+      "purpose_th": "ผู้จัดการความสามารถ — จัดการการเรียกใช้ความสามารถโดยไม่ขึ้นกับยี่ห้อ และมีระบบสำรองอัตโนมัติ",
+      "exports": [
+        "CapabilityAction",
+        "CapabilityResult",
+        "executeCapability",
+        "getCapabilityInfo",
+        "listAllCapabilities",
+        "listReadCapabilities",
+        "listWriteCapabilities"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/v6-executor/core/engine.ts",
+      "type": "Module",
+      "layer": "v6-executor",
+      "name_en": "lib/v6-executor/core/engine.ts",
+      "purpose_th": "เครื่องมือ Workflow — โหลดทะเบียน JSON, แบ่งเป็นขั้นตอน, และส่งให้ Driver ทำงาน",
+      "exports": [
+        "getWorkflow",
+        "execute",
+        "listWorkflows"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/v6-executor/core/registry.ts",
+      "type": "Module",
+      "layer": "v6-executor",
+      "name_en": "lib/v6-executor/core/registry.ts",
+      "purpose_th": "ทะเบียนไดรเวอร์ — ลงทะเบียน, ค้นหา, และแสดงรายการไดรเวอร์สำหรับโปรแกรมบน macOS",
+      "exports": [
+        "register",
+        "get",
+        "list",
+        "has"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/v6-executor/core/init.ts",
+      "type": "Module",
+      "layer": "v6-executor",
+      "name_en": "lib/v6-executor/core/init.ts",
+      "purpose_th": "ลงทะเบียนไดรเวอร์ทั้งหมดเข้าสู่ระบบโดยอัตโนมัติ",
+      "exports": [],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/v6-executor/core/audit.ts",
+      "type": "Module",
+      "layer": "v6-executor",
+      "name_en": "lib/v6-executor/core/audit.ts",
+      "purpose_th": "ล็อกการตรวจสอบ — บันทึกทุกขั้นตอนการทำงานของ workflow",
+      "exports": [
+        "record",
+        "recent",
+        "clear"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/v6-executor/runtime/platform.ts",
+      "type": "Module",
+      "layer": "v6-executor",
+      "name_en": "lib/v6-executor/runtime/platform.ts",
+      "purpose_th": "การตรวจจับแพลตฟอร์ม — ตรวจสอบว่ากำลังทำงานบน macOS หรือไม่ (ปลอดภัยสำหรับเบราว์เซอร์)",
+      "exports": [
+        "isLocalMac"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/v6-executor/runtime/shell.ts",
+      "type": "Module",
+      "layer": "v6-executor",
+      "name_en": "lib/v6-executor/runtime/shell.ts",
+      "purpose_th": "ตัวรัน Shell/AppleScript — เป็นจุดเดียวที่เรียกใช้ child_process",
+      "exports": [
+        "shell",
+        "osascript",
+        "openApp",
+        "openUrl",
+        "isProcessRunning",
+        "waitUntilRunning",
+        "esc"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/v6-executor/drivers/base.ts",
+      "type": "Module",
+      "layer": "v6-executor",
+      "name_en": "lib/v6-executor/drivers/base.ts",
+      "purpose_th": "ไดรเวอร์พื้นฐาน — กำหนดมาตรฐานการ เปิด/โฟกัส/ปิด/ตรวจสอบสถานะ สำหรับทุกโปรแกรมบน macOS",
+      "exports": [
+        "BaseDriver",
+        "ok",
+        "fail"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/v6-executor/drivers/line.ts",
+      "type": "Module",
+      "layer": "v6-executor",
+      "name_en": "lib/v6-executor/drivers/line.ts",
+      "purpose_th": "ไดรเวอร์ LINE — ควบคุมโปรแกรม LINE บน Desktop ผ่าน AppleScript",
+      "exports": [
+        "default"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/v6-executor/drivers/chrome.ts",
+      "type": "Module",
+      "layer": "v6-executor",
+      "name_en": "lib/v6-executor/drivers/chrome.ts",
+      "purpose_th": "ไดรเวอร์ Chrome — ควบคุมโปรแกรม Google Chrome ผ่าน AppleScript",
+      "exports": [
+        "default"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/v6-executor/drivers/vscode.ts",
+      "type": "Module",
+      "layer": "v6-executor",
+      "name_en": "lib/v6-executor/drivers/vscode.ts",
+      "purpose_th": "ไดรเวอร์ VS Code — ควบคุมโปรแกรม Visual Studio Code ผ่าน AppleScript และ CLI",
+      "exports": [
+        "default"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/v6-executor/drivers/finder.ts",
+      "type": "Module",
+      "layer": "v6-executor",
+      "name_en": "lib/v6-executor/drivers/finder.ts",
+      "purpose_th": "ไดรเวอร์ Finder — ควบคุมโปรแกรม Finder ของ macOS ผ่าน AppleScript",
+      "exports": [
+        "default"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/v6-executor/drivers/terminal.ts",
+      "type": "Module",
+      "layer": "v6-executor",
+      "name_en": "lib/v6-executor/drivers/terminal.ts",
+      "purpose_th": "ไดรเวอร์ Terminal — ควบคุมโปรแกรม Terminal ของ macOS ผ่าน AppleScript",
+      "exports": [
+        "default"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/v6-executor/drivers/maps.ts",
+      "type": "Module",
+      "layer": "v6-executor",
+      "name_en": "lib/v6-executor/drivers/maps.ts",
+      "purpose_th": "ไดรเวอร์ Google Maps — เปิดและค้นหาแผนที่ผ่าน URL",
+      "exports": [
+        "default"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/v6-executor/drivers/earth.ts",
+      "type": "Module",
+      "layer": "v6-executor",
+      "name_en": "lib/v6-executor/drivers/earth.ts",
+      "purpose_th": "ไดรเวอร์ Google Earth — ควบคุมโปรแกรม Google Earth Pro ผ่าน AppleScript",
+      "exports": [
+        "default"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/v6-executor/drivers/mail.ts",
+      "type": "Module",
+      "layer": "v6-executor",
+      "name_en": "lib/v6-executor/drivers/mail.ts",
+      "purpose_th": "ไดรเวอร์ Mail — ควบคุมโปรแกรม Apple Mail ผ่าน AppleScript",
+      "exports": [
+        "default"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/v6-executor/drivers/calendar.ts",
+      "type": "Module",
+      "layer": "v6-executor",
+      "name_en": "lib/v6-executor/drivers/calendar.ts",
+      "purpose_th": "ไดรเวอร์ Calendar — ควบคุมโปรแกรม Apple Calendar ผ่าน AppleScript",
+      "exports": [
+        "default"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/v6-executor/drivers/pdf.ts",
+      "type": "Module",
+      "layer": "v6-executor",
+      "name_en": "lib/v6-executor/drivers/pdf.ts",
+      "purpose_th": "ไดรเวอร์ PDF — ควบคุมโปรแกรม Preview สำหรับดู PDF ผ่าน AppleScript",
+      "exports": [
+        "default"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/v6-executor/drivers/github.ts",
+      "type": "Module",
+      "layer": "v6-executor",
+      "name_en": "lib/v6-executor/drivers/github.ts",
+      "purpose_th": "ไดรเวอร์ GitHub Desktop — ควบคุมโปรแกรม GitHub Desktop ผ่าน AppleScript",
+      "exports": [
+        "default"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/documents/engine.ts",
+      "type": "Module",
+      "layer": "v5-presenter",
+      "name_en": "lib/documents/engine.ts",
+      "purpose_th": "เครื่องมือสร้างเอกสาร — โหมดการแสดงผลแบบเข้มงวด, ใช้ template เดียวสำหรับทุกประเภทเอกสาร",
+      "exports": [
+        "DocType",
+        "DOC_LABELS",
+        "DocItem",
+        "DocEvent",
+        "DocData",
+        "DocResult",
+        "generateDoc"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/drivers/line/line.ts",
+      "type": "Module",
+      "layer": "v6-executor",
+      "name_en": "lib/drivers/line/line.ts",
+      "purpose_th": "ไดรเวอร์ LINE (Node.js) — เป็นตัวกลางสำหรับเรียกใช้ binary ของ line-driver",
+      "exports": [
+        "default"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/platform/mac/applescript.ts",
+      "type": "Module",
+      "layer": "v6-executor",
+      "name_en": "lib/platform/mac/applescript.ts",
+      "purpose_th": "ตัวรัน AppleScript — เป็นจุดเดียวที่เรียกใช้ child_process สำหรับคำสั่งบน macOS",
+      "exports": [
+        "MacResult",
+        "runScript",
+        "runShell",
+        "esc"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/platform/mac/app-executor.ts",
+      "type": "Module",
+      "layer": "v6-executor",
+      "name_en": "lib/platform/mac/app-executor.ts",
+      "purpose_th": "ส่วนปฏิบัติการโปรแกรม — จัดการการ เปิด/ปิด/ตรวจสอบสถานะ/รอ โปรแกรม",
+      "exports": [
+        "open",
+        "close",
+        "isRunning",
+        "waitReady"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/platform/mac/accessibility.ts",
+      "type": "Module",
+      "layer": "v6-executor",
+      "name_en": "lib/platform/mac/accessibility.ts",
+      "purpose_th": "ส่วนปฏิบัติการ Accessibility — จัดการการ คลิก/พิมพ์/กดปุ่ม/เลื่อน/อ่านหน้าจอ",
+      "exports": [
+        "click",
+        "typeText",
+        "pressKey",
+        "scroll",
+        "readWindow"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/platform/mac/mac-platform.ts",
+      "type": "Module",
+      "layer": "v6-executor",
+      "name_en": "lib/platform/mac/mac-platform.ts",
+      "purpose_th": "จุดเริ่มต้นของ Platform Layer (macOS) — ส่ง action ไปยังส่วนปฏิบัติการที่ถูกต้อง",
+      "exports": [
+        "ActionInfo",
+        "ActionName",
+        "checkPermission",
+        "executeAction",
+        "executeActions",
+        "getActionInfo",
+        "isLocalMac",
+        "listActions",
+        "openSettings"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/platform/mac/permissions.ts",
+      "type": "Module",
+      "layer": "v6-executor",
+      "name_en": "lib/platform/mac/permissions.ts",
+      "purpose_th": "ตัวตรวจสอบสิทธิ์บน macOS — ตรวจสอบสิทธิ์การเข้าถึง, automation, และการบันทึกหน้าจอ",
+      "exports": [
+        "PermissionName",
+        "checkPermission",
+        "openSettings"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/platform/mac/shortcuts.ts",
+      "type": "Module",
+      "layer": "v6-executor",
+      "name_en": "lib/platform/mac/shortcuts.ts",
+      "purpose_th": "ส่วนปฏิบัติการ Shortcuts — สั่งรัน Shortcut ผ่าน CLI ของ macOS",
+      "exports": [
+        "run",
+        "list"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/platform/mac/url-schemes.ts",
+      "type": "Module",
+      "layer": "v6-executor",
+      "name_en": "lib/platform/mac/url-schemes.ts",
+      "purpose_th": "ส่วนปฏิบัติการ URL Scheme — เปิดโปรแกรมผ่าน URL scheme (เช่น line://, vscode://)",
+      "exports": [
+        "open",
+        "openByScheme"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/platform/mac/window-executor.ts",
+      "type": "Module",
+      "layer": "v6-executor",
+      "name_en": "lib/platform/mac/window-executor.ts",
+      "purpose_th": "ส่วนปฏิบัติการหน้าต่าง — จัดการการ โฟกัส/แสดงรายการ/จับภาพ/ทำ OCR",
+      "exports": [
+        "focus",
+        "list",
+        "capture",
+        "captureWindow",
+        "ocr"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:app/api/command/route.ts",
+      "type": "Module",
+      "layer": "api",
+      "name_en": "app/api/command/route.ts",
+      "purpose_th": "API สำหรับคำสั่ง — ส่งต่อไปยัง cognitive pipeline และใช้ state cache ของ Supabase",
+      "exports": [
+        "POST",
+        "GET"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:app/api/chat/route.ts",
+      "type": "Module",
+      "layer": "api",
+      "name_en": "app/api/chat/route.ts",
+      "purpose_th": "API สำหรับแชท — เป็น Endpoint หลักของ cognitive pipeline",
+      "exports": [
+        "POST"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:app/api/action/route.ts",
+      "type": "Module",
+      "layer": "api",
+      "name_en": "app/api/action/route.ts",
+      "purpose_th": "API สำหรับ Action — จัดการ find/preview/execute และเสริมข้อมูลด้วย V5 Presenter",
+      "exports": [
+        "POST"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:app/api/document/route.ts",
+      "type": "Module",
+      "layer": "api",
+      "name_en": "app/api/document/route.ts",
+      "purpose_th": "API เอกสาร — สร้างเอกสารในรูปแบบ HTML จากข้อมูล DocData",
+      "exports": [
+        "POST"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:app/api/explain/route.ts",
+      "type": "Module",
+      "layer": "api",
+      "name_en": "app/api/explain/route.ts",
+      "purpose_th": "API อธิบายผล — ใช้ V5 Explainable Calculator สำหรับใบเสนอราคา",
+      "exports": [
+        "POST"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:app/page.tsx",
+      "type": "Module",
+      "layer": "app",
+      "name_en": "app/page.tsx",
+      "purpose_th": "หน้าแรกของเว็บ — แสดงลิงก์เพื่อไปยัง Dead Board และ Dashboard",
+      "exports": [
+        "default"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:app/layout.tsx",
+      "type": "Module",
+      "layer": "app",
+      "name_en": "app/layout.tsx",
+      "purpose_th": "โครงสร้างหลักของหน้าเว็บ — ตั้งค่าฟอนต์, metadata, และโครงสร้าง HTML",
+      "exports": [
+        "metadata",
+        "default"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/runtime/trace.ts",
+      "type": "Module",
+      "layer": "shared",
+      "name_en": "lib/runtime/trace.ts",
+      "purpose_th": "การติดตามคำขอ — บันทึกทุกขั้นตอนของคำขอเพื่อให้สามารถเล่นซ้ำได้",
+      "exports": [
+        "DataSource",
+        "RequestTrace",
+        "TraceStep",
+        "addStep",
+        "completeTrace",
+        "getRecentTraces",
+        "getTrace",
+        "replayTrace",
+        "setIntent",
+        "startTrace",
+        "traceLineage"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:next.config.ts",
+      "type": "Module",
+      "layer": "config",
+      "name_en": "next.config.ts",
+      "purpose_th": "ไฟล์ตั้งค่า Next.js — การตั้งค่าสำหรับ Turbopack",
+      "exports": [
+        "default"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:scripts/sync-registry.ts",
+      "type": "Module",
+      "layer": "scripts",
+      "name_en": "scripts/sync-registry.ts",
+      "purpose_th": "Script sync module-registry.json กับ source code จริง",
+      "exports": [
+        "bar",
+        "foo"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:scripts/build-arch-book.ts",
+      "type": "Module",
+      "layer": "scripts",
+      "name_en": "scripts/build-arch-book.ts",
+      "purpose_th": "Script สร้าง architecture-book.json จาก registry + source",
+      "exports": [
+        "ArchEdge",
+        "ArchNode",
+        "ArchitectureBook"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:config/document-service-categories.ts",
+      "type": "Module",
+      "layer": "config",
+      "name_en": "config/document-service-categories.ts",
+      "purpose_th": "ประเภทบริการสำหรับเอกสาร — ห้าม hardcode ในไฟล์อื่น",
+      "exports": [
+        "DEFAULT_DOCUMENT_SERVICE_CATEGORY",
+        "DOCUMENT_SERVICE_CATEGORIES",
+        "DocumentServiceCategory",
+        "getServiceCategoryMeta"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/runtime/self-awareness.ts",
+      "type": "Module",
+      "layer": "runtime",
+      "name_en": "lib/runtime/self-awareness.ts",
+      "purpose_th": "Self-Awareness — ระบบรู้จักตัวเอง อธิบาย DNA ของตัวเอง",
+      "exports": [
+        "getDiagnosisJSON",
+        "runDiagnosis",
+        "runExistenceIntelligence"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/runtime/existence-intelligence.ts",
+      "type": "Module",
+      "layer": "runtime",
+      "name_en": "lib/runtime/existence-intelligence.ts",
+      "purpose_th": "วิเคราะห์ Existence Intelligence 16 ชั้น จาก existence.json",
+      "exports": [
+        "runExistenceIntelligence"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/documents/template.ts",
+      "type": "Module",
+      "layer": "documents",
+      "name_en": "lib/documents/template.ts",
+      "purpose_th": "Template engine สำหรับสร้างเอกสาร",
+      "exports": [
+        "RenderInput",
+        "renderDocument"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/documents/document-editor.ts",
+      "type": "Module",
+      "layer": "documents",
+      "name_en": "lib/documents/document-editor.ts",
+      "purpose_th": "Editor สำหรับแก้ไขเอกสาร",
+      "exports": [
+        "DOCUMENT_TYPE_META",
+        "DOCUMENT_TYPE_ORDER",
+        "DOCUMENT_UNIT_OPTIONS",
+        "DocumentCustomer",
+        "DocumentDebtInfo",
+        "DocumentDraftInput",
+        "DocumentLineItem",
+        "DocumentStatus",
+        "DocumentTotals",
+        "DocumentType",
+        "DocumentTypeMeta",
+        "VAT_RATE",
+        "VatMode",
+        "calculateDocumentTotals",
+        "createEmptyDocumentDraft",
+        "draftToDocData",
+        "formatMoney",
+        "mapPartnerToCustomer",
+        "roundMoney",
+        "toThaiDate"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/documents/debt-notice-draft.ts",
+      "type": "Module",
+      "layer": "documents",
+      "name_en": "lib/documents/debt-notice-draft.ts",
+      "purpose_th": "สร้าง draft หนังสือแจ้งหนี้จาก template",
+      "exports": [
+        "buildDebtNoticeDraft"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/config/company-settings.ts",
+      "type": "Module",
+      "layer": "config",
+      "name_en": "lib/config/company-settings.ts",
+      "purpose_th": "ตั้งค่าบริษัท — ชื่อ, ที่อยู่, เลขภาษี โหลดจาก Supabase",
+      "exports": [
+        "CompanySettings",
+        "loadCompanySettings",
+        "saveCompanySettings"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/v3-engines/debt/tracking.ts",
+      "type": "Module",
+      "layer": "v3-engines",
+      "name_en": "lib/v3-engines/debt/tracking.ts",
+      "purpose_th": "คำนวณ tracking สถานะหนี้ — ดอกเบี้ย, งวด, ยอดค้าง",
+      "exports": [
+        "DEBT_TRACKING_GRACE_DAYS",
+        "DEBT_TRACKING_INTEREST_RATE",
+        "DEBT_TRACKING_PENALTY_PER_DAY",
+        "DebtTrackingInput",
+        "DebtTrackingSummary",
+        "calcDebtTrackingSummary"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:supabase/functions/line-webhook-v2/helpers.ts",
+      "type": "Module",
+      "layer": "supabase",
+      "name_en": "supabase/functions/line-webhook-v2/helpers.ts",
+      "purpose_th": "Helper functions สำหรับ LINE webhook v2",
+      "exports": [
+        "ConversationState",
+        "checkBusinessQualification",
+        "executeBusinessValidation",
+        "extractEntities",
+        "extractStructuredEntitiesWithGemini",
+        "getOrInitState",
+        "resolveAddressToCoordinates",
+        "saveEntitiesToRegistry",
+        "updateConversationState"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:supabase/functions/_shared/haversine.ts",
+      "type": "Module",
+      "layer": "supabase",
+      "name_en": "supabase/functions/_shared/haversine.ts",
+      "purpose_th": "คำนวณระยะทาง Haversine สำหรับ Supabase functions",
+      "exports": [
+        "haversine"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:app/api/traces/route.ts",
+      "type": "Module",
+      "layer": "api",
+      "name_en": "app/api/traces/route.ts",
+      "purpose_th": "API Traces — expose runtime trace store",
+      "exports": [
+        "GET"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:app/api/self-description/route.ts",
+      "type": "Module",
+      "layer": "api",
+      "name_en": "app/api/self-description/route.ts",
+      "purpose_th": "API Self-Description — ระบบอธิบายตัวเองจาก existence.json",
+      "exports": [
+        "GET"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:app/api/reader/route.ts",
+      "type": "Module",
+      "layer": "api",
+      "name_en": "app/api/reader/route.ts",
+      "purpose_th": "API อ่านไฟล์ source code — เปิด reader panel",
+      "exports": [
+        "GET"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:app/api/governance/route.ts",
+      "type": "Module",
+      "layer": "api",
+      "name_en": "app/api/governance/route.ts",
+      "purpose_th": "API Governance — อ่าน architecture-book.json",
+      "exports": [
+        "GET"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:app/api/routes/route.ts",
+      "type": "Module",
+      "layer": "api",
+      "name_en": "app/api/routes/route.ts",
+      "purpose_th": "API สแกน route.ts ทั้งหมดในโปรเจกต์",
+      "exports": [
+        "GET",
+        "METHOD"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:app/api/manual-doc/route.ts",
+      "type": "Module",
+      "layer": "api",
+      "name_en": "app/api/manual-doc/route.ts",
+      "purpose_th": "API สร้างเอกสารด้วยมือ",
+      "exports": [
+        "GET",
+        "dynamic"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:app/api/deploy/route.ts",
+      "type": "Module",
+      "layer": "api",
+      "name_en": "app/api/deploy/route.ts",
+      "purpose_th": "API Deploy status — ตรวจสอบสถานะ deployment",
+      "exports": [
+        "GET"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:app/api/dbd/route.ts",
+      "type": "Module",
+      "layer": "api",
+      "name_en": "app/api/dbd/route.ts",
+      "purpose_th": "API DBD Center — รวมข้อมูล registry + runtime + governance",
+      "exports": [
+        "GET",
+        "dynamic"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:app/api/control-center/route.ts",
+      "type": "Module",
+      "layer": "api",
+      "name_en": "app/api/control-center/route.ts",
+      "purpose_th": "API Control Center — รวมสถานะระบบทั้งหมด",
+      "exports": [
+        "GET",
+        "POST"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:app/api/build/route.ts",
+      "type": "Module",
+      "layer": "api",
+      "name_en": "app/api/build/route.ts",
+      "purpose_th": "API ตรวจสอบ Build status และ Architecture book",
+      "exports": [
+        "GET",
+        "POST"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:supabase/functions/line-webhook-v2/middleware/sanitizer.ts",
+      "type": "Module",
+      "layer": "supabase",
+      "name_en": "supabase/functions/line-webhook-v2/middleware/sanitizer.ts",
+      "purpose_th": "Sanitizer middleware สำหรับ LINE webhook v2",
+      "exports": [
+        "RawPricingData",
+        "SanitizedPricing",
+        "sanitizePricing"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:supabase/functions/line-webhook-v2/engines/response.ts",
+      "type": "Module",
+      "layer": "supabase",
+      "name_en": "supabase/functions/line-webhook-v2/engines/response.ts",
+      "purpose_th": "สร้าง response สำหรับ LINE webhook v2",
+      "exports": [
+        "ResponseGateway",
+        "ResponsePayload"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:app/api/admin/settings/route.ts",
+      "type": "Module",
+      "layer": "api",
+      "name_en": "app/api/admin/settings/route.ts",
+      "purpose_th": "API ตั้งค่าระบบ",
+      "exports": [
+        "GET",
+        "PUT"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:app/api/admin/partners/route.ts",
+      "type": "Module",
+      "layer": "api",
+      "name_en": "app/api/admin/partners/route.ts",
+      "purpose_th": "API รายชื่อ partners ทั้งหมด",
+      "exports": [
+        "GET"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:app/api/admin/debt-trackings/route.ts",
+      "type": "Module",
+      "layer": "api",
+      "name_en": "app/api/admin/debt-trackings/route.ts",
+      "purpose_th": "API รายการ debt tracking ทั้งหมด",
+      "exports": [
+        "GET",
+        "POST"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:app/api/admin/documents/route.ts",
+      "type": "Module",
+      "layer": "api",
+      "name_en": "app/api/admin/documents/route.ts",
+      "purpose_th": "API รายการเอกสารทั้งหมด",
+      "exports": [
+        "GET",
+        "POST"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:app/api/admin/debt-trackings/[id]/route.ts",
+      "type": "Module",
+      "layer": "api",
+      "name_en": "app/api/admin/debt-trackings/[id]/route.ts",
+      "purpose_th": "API อ่าน/อัปเดต debt tracking รายการ",
+      "exports": [
+        "DELETE",
+        "GET",
+        "PATCH"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:app/api/admin/documents/[id]/route.ts",
+      "type": "Module",
+      "layer": "api",
+      "name_en": "app/api/admin/documents/[id]/route.ts",
+      "purpose_th": "API อ่าน/แก้ไข/ลบเอกสารรายการ",
+      "exports": [
+        "DELETE",
+        "GET",
+        "PATCH"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:app/api/admin/debt-trackings/[id]/draft/route.ts",
+      "type": "Module",
+      "layer": "api",
+      "name_en": "app/api/admin/debt-trackings/[id]/draft/route.ts",
+      "purpose_th": "API สร้าง draft สำหรับ debt tracking รายการ",
+      "exports": [
+        "GET"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:app/api/admin/documents/[id]/confirm/route.ts",
+      "type": "Module",
+      "layer": "api",
+      "name_en": "app/api/admin/documents/[id]/confirm/route.ts",
+      "purpose_th": "API ยืนยันเอกสาร",
+      "exports": [
+        "POST"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/v3-engines/partner/timeline.ts",
+      "type": "Module",
+      "layer": "v3-engines",
+      "name_en": "lib/v3-engines/partner/timeline.ts",
+      "purpose_th": "รวมข้อมูลเอกสารและ business events ของคู่ค้าให้เป็น timeline เรียงตามวันที่",
+      "exports": [
+        "buildPartnerTimeline",
+        "buildPartnerSummary"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:app/api/admin/partners/[id]/timeline/route.ts",
+      "type": "Module",
+      "layer": "api",
+      "name_en": "app/api/admin/partners/[id]/timeline/route.ts",
+      "purpose_th": "ดึง summary + timeline entries ของ partner คนนั้นทั้งหมด",
+      "exports": [
+        "GET"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:app/admin/partners/page.tsx",
+      "type": "Module",
+      "layer": "ui",
+      "name_en": "app/admin/partners/page.tsx",
+      "purpose_th": "หน้ารายชื่อคู่ค้า (ทดแทนมุมมองเอกสารเป็นศูนย์กลาง)",
+      "exports": [
+        "default"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:app/admin/partners/[id]/page.tsx",
+      "type": "Module",
+      "layer": "ui",
+      "name_en": "app/admin/partners/[id]/page.tsx",
+      "purpose_th": "แสดงประวัติเหตุการณ์และเอกสารทั้งหมดของคู่ค้า จากปัจจุบันย้อนหลังไปถึงเหตุการณ์แรก",
+      "exports": [
+        "default"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:middleware.ts",
+      "type": "Module",
+      "layer": "middleware.ts",
+      "name_en": "middleware.ts",
+      "purpose_th": "ป้องกันหน้า /admin/* ทั้งหมด — เด้งไป /login ถ้าไม่มี admin_session cookie",
+      "exports": [
+        "config",
+        "middleware"
+      ],
+      "status": "UNUSED",
+      "error_th": "ไม่มีใครเรียกใช้ และไม่มี declared_callers — เพิ่ม declared_callers ใน module-registry.json หรือตั้ง entry_point: true"
+    },
+    {
+      "id": "module:lib/transactions/workflows.ts",
+      "type": "Module",
+      "layer": "transactions",
+      "name_en": "lib/transactions/workflows.ts",
+      "purpose_th": "ทะเบียน workflow ของแต่ละประเภทธุรกรรม (tx_type) — ลำดับขั้นตอนอ่านจากที่นี่ที่เดียว ไม่ hardcode ใน UI",
+      "exports": [
+        "ExpectedDoc",
+        "TX_TYPE_LABELS",
+        "TX_TYPE_ORDER",
+        "TxEvent",
+        "TxType",
+        "TxWorkflow",
+        "WORKFLOWS",
+        "WorkflowStep",
+        "getNextStep",
+        "getStepIndex",
+        "getWorkflow",
+        "isFinalEvent",
+        "isPendingEvent"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/transactions/state-machine.ts",
+      "type": "Module",
+      "layer": "transactions",
+      "name_en": "lib/transactions/state-machine.ts",
+      "purpose_th": "ตัวห่อบางๆ เหนือ Workflow Registry — ใช้หา state ถัดไปของ transaction เมื่อเกิด event",
+      "exports": [
+        "getAvailableActions",
+        "getWorkflow",
+        "isFinalEvent",
+        "isPendingEvent",
+        "resolveTransition",
+        "type ExpectedDoc",
+        "type TxEvent",
+        "type TxType",
+        "type TxWorkflow",
+        "type WorkflowStep"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/transactions/document-link.ts",
+      "type": "Module",
+      "layer": "transactions",
+      "name_en": "lib/transactions/document-link.ts",
+      "purpose_th": "ตัดสินว่าเอกสารที่สร้างใหม่ควรผูกกับ tx_type ไหน และควร advance state ของ transaction ไปถึงขั้นไหน",
+      "exports": [
+        "DOC_LINK_RULES",
+        "DocLinkRule",
+        "buildAutoTitle",
+        "getLinkRule",
+        "shouldAdvance"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/runtime/dbd.ts",
+      "type": "Module",
+      "layer": "runtime",
+      "name_en": "lib/runtime/dbd.ts",
+      "purpose_th": "ผู้ช่วย DBD — ตอบคำถามอิสระจากข้อมูลจริงใน registry/infrastructure เท่านั้น ห้ามเดา ใช้ทั้งจาก CLI (npm run dbd) และ API",
+      "exports": [
+        "answerQuestion"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/documents/draft-builders.ts",
+      "type": "Module",
+      "layer": "documents",
+      "name_en": "lib/documents/draft-builders.ts",
+      "purpose_th": "สร้าง DocumentDraftInput จากข้อมูล partner/เอกสารที่มีอยู่แล้ว เพื่อ pre-fill ฟอร์มสร้างเอกสาร ไม่ต้องกรอกซ้ำ",
+      "exports": [
+        "NEXT_DOC_SUGGESTIONS",
+        "buildDraftFromDocument",
+        "buildDraftFromPartner"
+      ],
+      "status": "UNUSED",
+      "error_th": "ไม่มีใครเรียกใช้ และไม่มี declared_callers — เพิ่ม declared_callers ใน module-registry.json หรือตั้ง entry_point: true"
+    },
+    {
+      "id": "module:app/api/brain/route.ts",
+      "type": "Module",
+      "layer": "app",
+      "name_en": "app/api/brain/route.ts",
+      "purpose_th": "API ตอบคำถามให้หน้า DNA Brain (/admin/brain) — เรียก answerQuestion() จาก lib/runtime/dbd.ts",
+      "exports": [
+        "POST"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/registry/trace/_validator.ts",
+      "type": "Module",
+      "layer": "registry",
+      "name_en": "lib/registry/trace/_validator.ts",
+      "purpose_th": "ตรวจสอบความถูกต้องของข้อมูล registry โดเมนการตรวจสอบย้อนรอย (Trace) เทียบกับ schema",
+      "exports": [
+        "validateTraceRegistry"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/registry/trace/_schema.ts",
+      "type": "Module",
+      "layer": "registry",
+      "name_en": "lib/registry/trace/_schema.ts",
+      "purpose_th": "สัญญาชนิดข้อมูล (schema) ของ registry โดเมนการตรวจสอบย้อนรอย (Trace)",
+      "exports": [
+        "MetricDefinition",
+        "MetricType",
+        "SpanDefinition",
+        "SpanStatus",
+        "TraceManifest",
+        "TraceSchema",
+        "ValidationResult"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/registry/trace/_resolver.ts",
+      "type": "Module",
+      "layer": "registry",
+      "name_en": "lib/registry/trace/_resolver.ts",
+      "purpose_th": "API สำหรับดึงข้อมูล registry โดเมนการตรวจสอบย้อนรอย (Trace) — ผู้ใช้ต้องเรียกผ่านนี้เท่านั้น ห้ามอ่านไฟล์ JSON ตรง",
+      "exports": [
+        "isTraceEnabled",
+        "resolveAllMetrics",
+        "resolveAllSpans",
+        "resolveMetric",
+        "resolveSpan",
+        "resolveTraceSchema",
+        "resolveTraceStorageTable"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/registry/trace/_loader.ts",
+      "type": "Module",
+      "layer": "registry",
+      "name_en": "lib/registry/trace/_loader.ts",
+      "purpose_th": "ตัวโหลดไฟล์ JSON ของ registry โดเมนการตรวจสอบย้อนรอย (Trace) แบบ static import ใช้ได้ทุก environment ของ Next.js",
+      "exports": [
+        "getTraceManifest",
+        "listMetrics",
+        "listSpans",
+        "loadMetric",
+        "loadSpan",
+        "loadTraceSchema",
+        "validateAllTrace"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/registry/communication/_validator.ts",
+      "type": "Module",
+      "layer": "registry",
+      "name_en": "lib/registry/communication/_validator.ts",
+      "purpose_th": "ตรวจสอบความถูกต้องของข้อมูล registry โดเมนการสื่อสาร (Communication) เทียบกับ schema",
+      "exports": [
+        "validateRegistry"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/registry/communication/_schema.ts",
+      "type": "Module",
+      "layer": "registry",
+      "name_en": "lib/registry/communication/_schema.ts",
+      "purpose_th": "สัญญาชนิดข้อมูล (schema) ของ registry โดเมนการสื่อสาร (Communication)",
+      "exports": [
+        "AuthoritySource",
+        "CommunicationCapabilities",
+        "CommunicationCapability",
+        "CommunicationManifest",
+        "CommunicationRegistry",
+        "DependencyGraph",
+        "HealthStatus",
+        "LifecycleValue",
+        "MonitoringConfig",
+        "RuntimePolicy",
+        "SecurityContract",
+        "Topology",
+        "TopologyNode",
+        "ValidationError",
+        "ValidationResult",
+        "ValidationWarning"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/registry/communication/_resolver.ts",
+      "type": "Module",
+      "layer": "registry",
+      "name_en": "lib/registry/communication/_resolver.ts",
+      "purpose_th": "API สำหรับดึงข้อมูล registry โดเมนการสื่อสาร (Communication) — ผู้ใช้ต้องเรียกผ่านนี้เท่านั้น ห้ามอ่านไฟล์ JSON ตรง",
+      "exports": [
+        "getCommunicationCapabilities",
+        "getCommunicationChannel",
+        "getCommunicationLifecycle",
+        "getCommunicationRegistry",
+        "getCommunicationTopology",
+        "isFeatureEnabled",
+        "isPolicyAllowed",
+        "resolveCapability",
+        "resolveCommunication",
+        "resolveDependencies",
+        "resolveHealth",
+        "resolveLifecycle",
+        "resolvePipeline",
+        "resolvePolicy",
+        "resolveSecurityContract",
+        "resolveTopology"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/registry/communication/_loader.ts",
+      "type": "Module",
+      "layer": "registry",
+      "name_en": "lib/registry/communication/_loader.ts",
+      "purpose_th": "ตัวโหลดไฟล์ JSON ของ registry โดเมนการสื่อสาร (Communication) แบบ static import ใช้ได้ทุก environment ของ Next.js",
+      "exports": [
+        "getManifest",
+        "listChannels",
+        "load",
+        "loadAll",
+        "validateAll"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/registry/execution/_validator.ts",
+      "type": "Module",
+      "layer": "registry",
+      "name_en": "lib/registry/execution/_validator.ts",
+      "purpose_th": "ตรวจสอบความถูกต้องของข้อมูล registry โดเมนการรันงาน (Execution) เทียบกับ schema",
+      "exports": [
+        "validateExecutionRegistry"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/registry/execution/_schema.ts",
+      "type": "Module",
+      "layer": "registry",
+      "name_en": "lib/registry/execution/_schema.ts",
+      "purpose_th": "สัญญาชนิดข้อมูล (schema) ของ registry โดเมนการรันงาน (Execution)",
+      "exports": [
+        "EngineDefinition",
+        "EngineType",
+        "ExecutionManifest",
+        "ExecutionStatus",
+        "PipelineDefinition",
+        "PipelineStep",
+        "StageDefinition",
+        "StageStatus",
+        "TraceConfig",
+        "ValidationResult"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/registry/execution/_resolver.ts",
+      "type": "Module",
+      "layer": "registry",
+      "name_en": "lib/registry/execution/_resolver.ts",
+      "purpose_th": "API สำหรับดึงข้อมูล registry โดเมนการรันงาน (Execution) — ผู้ใช้ต้องเรียกผ่านนี้เท่านั้น ห้ามอ่านไฟล์ JSON ตรง",
+      "exports": [
+        "getEngineForStep",
+        "isEngineActive",
+        "isPipelineActive",
+        "resolveActivePipelines",
+        "resolveDefaultPipeline",
+        "resolveEngine",
+        "resolveNextStages",
+        "resolvePipelineSteps",
+        "resolveStage",
+        "resolveTraceConfig"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/registry/execution/_loader.ts",
+      "type": "Module",
+      "layer": "registry",
+      "name_en": "lib/registry/execution/_loader.ts",
+      "purpose_th": "ตัวโหลดไฟล์ JSON ของ registry โดเมนการรันงาน (Execution) แบบ static import ใช้ได้ทุก environment ของ Next.js",
+      "exports": [
+        "getExecutionManifest",
+        "listEngines",
+        "listPipelines",
+        "listStages",
+        "loadEngine",
+        "loadPipeline",
+        "loadStage",
+        "loadTraceConfig",
+        "validateAllExecution"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/registry/conversation/_validator.ts",
+      "type": "Module",
+      "layer": "registry",
+      "name_en": "lib/registry/conversation/_validator.ts",
+      "purpose_th": "ตรวจสอบความถูกต้องของข้อมูล registry โดเมนบทสนทนา (Conversation) เทียบกับ schema",
+      "exports": [
+        "validateConversationRegistry"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/registry/conversation/_schema.ts",
+      "type": "Module",
+      "layer": "registry",
+      "name_en": "lib/registry/conversation/_schema.ts",
+      "purpose_th": "สัญญาชนิดข้อมูล (schema) ของ registry โดเมนบทสนทนา (Conversation)",
+      "exports": [
+        "ConversationManifest",
+        "EntityDefinition",
+        "EntityId",
+        "IntentDefinition",
+        "IntentId",
+        "MemoryConfig",
+        "MemoryScope",
+        "StateDefinition",
+        "StateId",
+        "TransitionDefinition",
+        "ValidationResult"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/registry/conversation/_resolver.ts",
+      "type": "Module",
+      "layer": "registry",
+      "name_en": "lib/registry/conversation/_resolver.ts",
+      "purpose_th": "API สำหรับดึงข้อมูล registry โดเมนบทสนทนา (Conversation) — ผู้ใช้ต้องเรียกผ่านนี้เท่านั้น ห้ามอ่านไฟล์ JSON ตรง",
+      "exports": [
+        "isConversationStateActive",
+        "isEntityActive",
+        "isIntentActive",
+        "isTerminalState",
+        "resolveConversationState",
+        "resolveEntity",
+        "resolveInitialState",
+        "resolveIntent",
+        "resolveRequiredEntities",
+        "resolveTerminalStates",
+        "resolveTransitionsFrom"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/registry/conversation/_loader.ts",
+      "type": "Module",
+      "layer": "registry",
+      "name_en": "lib/registry/conversation/_loader.ts",
+      "purpose_th": "ตัวโหลดไฟล์ JSON ของ registry โดเมนบทสนทนา (Conversation) แบบ static import ใช้ได้ทุก environment ของ Next.js",
+      "exports": [
+        "getConversationManifest",
+        "listConversationStates",
+        "listEntities",
+        "listIntents",
+        "loadConversationState",
+        "loadEntity",
+        "loadIntent",
+        "loadMemoryConfig",
+        "loadTransitions",
+        "validateAllConversation"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:app/api/auth/login/route.ts",
+      "type": "Module",
+      "layer": "app",
+      "name_en": "app/api/auth/login/route.ts",
+      "purpose_th": "ล็อกอินแอดมิน — เช็ค email/password กับ env var แล้วตั้ง cookie admin_session",
+      "exports": [
+        "POST"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:app/api/admin/transactions/route.ts",
+      "type": "Module",
+      "layer": "app",
+      "name_en": "app/api/admin/transactions/route.ts",
+      "purpose_th": "แสดงรายการ transaction ทั้งหมด กรองตามค้าง/partner/ประเภทงานได้",
+      "exports": [
+        "GET",
+        "POST"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:app/api/admin/transactions/[id]/route.ts",
+      "type": "Module",
+      "layer": "app",
+      "name_en": "app/api/admin/transactions/[id]/route.ts",
+      "purpose_th": "ดึงข้อมูล transaction เดี่ยว พร้อม business_events และเอกสารที่ผูกอยู่",
+      "exports": [
+        "DELETE",
+        "GET",
+        "PATCH"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:app/api/admin/transactions/[id]/advance/route.ts",
+      "type": "Module",
+      "layer": "app",
+      "name_en": "app/api/admin/transactions/[id]/advance/route.ts",
+      "purpose_th": "สั่งให้ transaction เดินหน้าไป state ถัดไป ผ่าน transaction state machine",
+      "exports": [
+        "POST"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:app/api/admin/partners/[id]/chain/route.ts",
+      "type": "Module",
+      "layer": "app",
+      "name_en": "app/api/admin/partners/[id]/chain/route.ts",
+      "purpose_th": "ดึงข้อมูล partner พร้อมสาย transaction/เอกสาร/event ทั้งหมด ใช้ในหน้ารายละเอียด partner",
+      "exports": [
+        "GET"
+      ],
+      "status": "OK"
+    },
+    {
+      "id": "module:lib/v3-engines/impact/engine.ts",
+      "type": "Module",
+      "layer": "v3-engines",
+      "name_en": "lib/v3-engines/impact/engine.ts",
+      "purpose_th": "คำนวณการ์ดผลกระทบธุรกิจจริง (การเงิน/ปฏิบัติการ) จาก debt_trackings และ jobs เท่านั้น ห้าม hardcode ตัวเลข",
+      "exports": [
+        "ImpactCard",
+        "getBusinessImpact",
+        "getFinancialImpact",
+        "getOperationalImpact"
+      ],
+      "status": "OK"
+    }
+  ],
+  "edges": [
+    {
+      "source": "module:scripts/new-module.ts",
+      "target": "module:${path.replace(/\\.ts$/, .ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:scripts/build-arch-book.ts",
+      "target": "module:scripts/module.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v6-executor/index.ts",
+      "target": "module:lib/v6-executor/executor.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v6-executor/index.ts",
+      "target": "module:lib/v6-executor/capabilities.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v6-executor/index.ts",
+      "target": "module:lib/v6-executor/capability-manager.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v6-executor/index.ts",
+      "target": "module:lib/v6-executor/capabilities.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v6-executor/index.ts",
+      "target": "module:lib/v6-executor/executor.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v6-executor/index.ts",
+      "target": "module:lib/v6-executor/capability-manager.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v6-executor/gateway.ts",
+      "target": "module:lib/v2-rules/actions.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v6-executor/executor.ts",
+      "target": "module:lib/supabase/queries.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v6-executor/executor.ts",
+      "target": "module:lib/v6-executor/capabilities.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v6-executor/executor.ts",
+      "target": "module:lib/v6-executor/core/registry.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v6-executor/executor.ts",
+      "target": "module:lib/v6-executor/core/init.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v5-presenter/ranker.ts",
+      "target": "module:lib/v5-presenter/enricher.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v5-presenter/index.ts",
+      "target": "module:lib/v5-presenter/enricher.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v5-presenter/index.ts",
+      "target": "module:lib/v5-presenter/explainer.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v5-presenter/index.ts",
+      "target": "module:lib/v5-presenter/formatter.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v5-presenter/index.ts",
+      "target": "module:lib/v5-presenter/ranker.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v5-presenter/formatter.ts",
+      "target": "module:lib/v5-presenter/enricher.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v5-presenter/explainer.ts",
+      "target": "module:lib/supabase/queries.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v5-presenter/enricher.ts",
+      "target": "module:lib/supabase/queries.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v2-rules/resolver.ts",
+      "target": "module:lib/supabase/queries.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v2-rules/dispatcher.ts",
+      "target": "module:lib/supabase/queries.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v2-rules/dispatcher.ts",
+      "target": "module:lib/registry/command-registry.json.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v2-rules/actions.ts",
+      "target": "module:lib/supabase/queries.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v2-rules/actions.ts",
+      "target": "module:lib/documents/engine.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/transactions/state-machine.ts",
+      "target": "module:lib/transactions/workflows.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/transactions/state-machine.ts",
+      "target": "module:lib/transactions/workflows.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/transactions/document-link.ts",
+      "target": "module:lib/transactions/workflows.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v4-ai/bridge-openai.ts",
+      "target": "module:lib/v4-ai/bridge-local.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v3-engines/time.ts",
+      "target": "module:lib/v3-engines/config-loader.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v3-engines/tax.ts",
+      "target": "module:lib/v3-engines/config-loader.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v3-engines/pricing.ts",
+      "target": "module:lib/v3-engines/config-loader.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v3-engines/index.ts",
+      "target": "module:lib/v3-engines/config-loader.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v3-engines/index.ts",
+      "target": "module:lib/v3-engines/distance.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v3-engines/index.ts",
+      "target": "module:lib/v3-engines/time.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v3-engines/index.ts",
+      "target": "module:lib/v3-engines/fuel.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v3-engines/index.ts",
+      "target": "module:lib/v3-engines/cost.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v3-engines/index.ts",
+      "target": "module:lib/v3-engines/pricing.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v3-engines/index.ts",
+      "target": "module:lib/v3-engines/tax.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v3-engines/index.ts",
+      "target": "module:lib/v3-engines/debt/engine.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v3-engines/index.ts",
+      "target": "module:lib/v3-engines/debt/engine.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v3-engines/index.ts",
+      "target": "module:lib/v3-engines/capacity.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v3-engines/index.ts",
+      "target": "module:lib/v3-engines/business.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v3-engines/index.ts",
+      "target": "module:lib/v3-engines/config-loader.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v3-engines/index.ts",
+      "target": "module:lib/v3-engines/distance.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v3-engines/index.ts",
+      "target": "module:lib/v3-engines/capacity.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v3-engines/index.ts",
+      "target": "module:lib/v3-engines/time.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v3-engines/index.ts",
+      "target": "module:lib/v3-engines/cost.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v3-engines/index.ts",
+      "target": "module:lib/v3-engines/pricing.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v3-engines/index.ts",
+      "target": "module:lib/v3-engines/tax.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v3-engines/fuel.ts",
+      "target": "module:lib/supabase/queries.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v3-engines/fuel.ts",
+      "target": "module:lib/v3-engines/config-loader.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v3-engines/distance.ts",
+      "target": "module:lib/supabase/queries.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v3-engines/distance.ts",
+      "target": "module:lib/v3-engines/config-loader.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v3-engines/cost.ts",
+      "target": "module:lib/supabase/queries.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v3-engines/cost.ts",
+      "target": "module:lib/v3-engines/config-loader.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v3-engines/cost.ts",
+      "target": "module:lib/v3-engines/fuel.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v3-engines/config-loader.ts",
+      "target": "module:lib/supabase/queries.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v3-engines/capacity.ts",
+      "target": "module:lib/supabase/queries.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v3-engines/capacity.ts",
+      "target": "module:lib/v3-engines/config-loader.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v3-engines/business.ts",
+      "target": "module:lib/shared/types.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v3-engines/business.ts",
+      "target": "module:lib/runtime/engine.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v3-engines/business.ts",
+      "target": "module:lib/v3-engines/config-loader.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v3-engines/business.ts",
+      "target": "module:lib/v3-engines/debt/engine.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/supabase/state-cache.ts",
+      "target": "module:lib/supabase/queries.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/supabase/realtime.ts",
+      "target": "module:lib/supabase/queries.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/runtime/self-awareness.ts",
+      "target": "module:lib/runtime/existence-intelligence.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/runtime/engine.ts",
+      "target": "module:lib/registry/index.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/runtime/engine.ts",
+      "target": "module:lib/shared/types.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/runtime/engine.ts",
+      "target": "module:lib/runtime/trace.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/registry/index.ts",
+      "target": "module:lib/registry/architecture.json.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/registry/index.ts",
+      "target": "module:lib/registry/modules.json.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/registry/index.ts",
+      "target": "module:lib/registry/interfaces.json.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/registry/index.ts",
+      "target": "module:lib/registry/events.json.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/registry/index.ts",
+      "target": "module:lib/registry/drivers.json.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/registry/index.ts",
+      "target": "module:lib/registry/services.json.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/registry/index.ts",
+      "target": "module:lib/registry/schemas.json.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/registry/index.ts",
+      "target": "module:lib/registry/communication/_resolver.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/registry/index.ts",
+      "target": "module:lib/registry/communication/_loader.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/registry/index.ts",
+      "target": "module:lib/registry/communication/_validator.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/registry/index.ts",
+      "target": "module:lib/registry/communication/_resolver.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/registry/index.ts",
+      "target": "module:lib/registry/communication/_loader.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/registry/index.ts",
+      "target": "module:lib/registry/execution/_loader.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/registry/index.ts",
+      "target": "module:lib/registry/execution/_resolver.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/registry/index.ts",
+      "target": "module:lib/registry/execution/_validator.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/registry/index.ts",
+      "target": "module:lib/registry/conversation/_loader.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/registry/index.ts",
+      "target": "module:lib/registry/conversation/_resolver.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/registry/index.ts",
+      "target": "module:lib/registry/conversation/_validator.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/registry/index.ts",
+      "target": "module:lib/registry/trace/_loader.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/registry/index.ts",
+      "target": "module:lib/registry/trace/_resolver.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/registry/index.ts",
+      "target": "module:lib/registry/trace/_validator.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/documents/template.ts",
+      "target": "module:lib/middleware/sanitize.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/documents/template.ts",
+      "target": "module:lib/documents/engine.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/documents/engine.ts",
+      "target": "module:lib/documents/template.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/documents/draft-builders.ts",
+      "target": "module:lib/supabase/queries.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/documents/draft-builders.ts",
+      "target": "module:lib/documents/document-editor.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/documents/document-editor.ts",
+      "target": "module:config/document-service-categories.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/documents/document-editor.ts",
+      "target": "module:lib/config/company-settings.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/documents/document-editor.ts",
+      "target": "module:lib/documents/engine.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/documents/debt-notice-draft.ts",
+      "target": "module:lib/supabase/queries.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/documents/debt-notice-draft.ts",
+      "target": "module:lib/v3-engines/debt/tracking.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/documents/debt-notice-draft.ts",
+      "target": "module:lib/documents/document-editor.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/cognitive/pipeline.ts",
+      "target": "module:lib/supabase/queries.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/cognitive/pipeline.ts",
+      "target": "module:lib/v6-executor/index.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/cognitive/pipeline.ts",
+      "target": "module:lib/cognitive/board/index.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/cognitive/pipeline.ts",
+      "target": "module:lib/cognitive/evaluation/index.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/cognitive/pipeline.ts",
+      "target": "module:lib/cognitive/executor/index.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/cognitive/pipeline.ts",
+      "target": "module:lib/cognitive/hypothesis/index.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/cognitive/pipeline.ts",
+      "target": "module:lib/cognitive/learning/index.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/cognitive/pipeline.ts",
+      "target": "module:lib/cognitive/memory/index.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/cognitive/pipeline.ts",
+      "target": "module:lib/cognitive/objective/index.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/cognitive/pipeline.ts",
+      "target": "module:lib/cognitive/planner/index.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/cognitive/pipeline.ts",
+      "target": "module:lib/cognitive/reasoning/index.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/cognitive/pipeline.ts",
+      "target": "module:lib/cognitive/reflection/index.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/cognitive/pipeline.ts",
+      "target": "module:lib/cognitive/situation/index.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/cognitive/pipeline.ts",
+      "target": "module:lib/cognitive/state/index.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/cognitive/integration.test.ts",
+      "target": "module:lib/cognitive/objective/manager.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/cognitive/integration.test.ts",
+      "target": "module:lib/cognitive/reasoning/engine.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/cognitive/integration.test.ts",
+      "target": "module:lib/cognitive/planner/engine.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/cognitive/integration.test.ts",
+      "target": "module:lib/cognitive/objective/contract.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/config/company-settings.ts",
+      "target": "module:lib/v3-engines/config-loader.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:supabase/functions/line-webhook-v2/index.ts",
+      "target": "module:supabase/functions/line-webhook-v2/helpers.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:supabase/functions/line-webhook-v2/index.ts",
+      "target": "module:supabase/functions/line-webhook-v2/engines/response.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:supabase/functions/line-webhook-v2/index.ts",
+      "target": "module:supabase/functions/_shared/haversine.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:supabase/functions/line-webhook-v2/helpers.ts",
+      "target": "module:supabase/functions/_shared/haversine.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v6-executor/drivers/vscode.ts",
+      "target": "module:lib/v6-executor/drivers/base.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v6-executor/drivers/vscode.ts",
+      "target": "module:lib/v6-executor/runtime/shell.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v6-executor/drivers/terminal.ts",
+      "target": "module:lib/v6-executor/drivers/base.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v6-executor/drivers/terminal.ts",
+      "target": "module:lib/v6-executor/runtime/shell.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v6-executor/drivers/pdf.ts",
+      "target": "module:lib/v6-executor/drivers/base.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v6-executor/drivers/pdf.ts",
+      "target": "module:lib/v6-executor/runtime/shell.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v6-executor/drivers/maps.ts",
+      "target": "module:lib/v6-executor/drivers/base.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v6-executor/drivers/maps.ts",
+      "target": "module:lib/v6-executor/runtime/shell.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v6-executor/drivers/mail.ts",
+      "target": "module:lib/v6-executor/drivers/base.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v6-executor/drivers/mail.ts",
+      "target": "module:lib/v6-executor/runtime/shell.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v6-executor/drivers/line.ts",
+      "target": "module:lib/v6-executor/drivers/base.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v6-executor/drivers/line.ts",
+      "target": "module:lib/v6-executor/runtime/shell.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v6-executor/drivers/github.ts",
+      "target": "module:lib/v6-executor/drivers/base.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v6-executor/drivers/github.ts",
+      "target": "module:lib/v6-executor/runtime/shell.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v6-executor/drivers/finder.ts",
+      "target": "module:lib/v6-executor/drivers/base.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v6-executor/drivers/finder.ts",
+      "target": "module:lib/v6-executor/runtime/shell.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v6-executor/drivers/earth.ts",
+      "target": "module:lib/v6-executor/drivers/base.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v6-executor/drivers/earth.ts",
+      "target": "module:lib/v6-executor/runtime/shell.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v6-executor/drivers/chrome.ts",
+      "target": "module:lib/v6-executor/drivers/base.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v6-executor/drivers/chrome.ts",
+      "target": "module:lib/v6-executor/runtime/shell.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v6-executor/drivers/calendar.ts",
+      "target": "module:lib/v6-executor/drivers/base.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v6-executor/drivers/calendar.ts",
+      "target": "module:lib/v6-executor/runtime/shell.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v6-executor/drivers/base.ts",
+      "target": "module:lib/shared/types.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v6-executor/drivers/base.ts",
+      "target": "module:lib/v6-executor/runtime/shell.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v6-executor/core/registry.ts",
+      "target": "module:lib/shared/types.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v6-executor/core/init.ts",
+      "target": "module:lib/v6-executor/core/registry.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v6-executor/core/init.ts",
+      "target": "module:lib/v6-executor/drivers/line.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v6-executor/core/init.ts",
+      "target": "module:lib/v6-executor/drivers/chrome.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v6-executor/core/init.ts",
+      "target": "module:lib/v6-executor/drivers/vscode.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v6-executor/core/init.ts",
+      "target": "module:lib/v6-executor/drivers/finder.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v6-executor/core/init.ts",
+      "target": "module:lib/v6-executor/drivers/terminal.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v6-executor/core/init.ts",
+      "target": "module:lib/v6-executor/drivers/maps.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v6-executor/core/init.ts",
+      "target": "module:lib/v6-executor/drivers/earth.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v6-executor/core/init.ts",
+      "target": "module:lib/v6-executor/drivers/mail.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v6-executor/core/init.ts",
+      "target": "module:lib/v6-executor/drivers/calendar.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v6-executor/core/init.ts",
+      "target": "module:lib/v6-executor/drivers/pdf.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v6-executor/core/init.ts",
+      "target": "module:lib/v6-executor/drivers/github.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v6-executor/core/init.ts",
+      "target": "module:lib/v6-executor/core/engine.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v6-executor/core/engine.ts",
+      "target": "module:lib/shared/types.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v6-executor/core/engine.ts",
+      "target": "module:lib/v6-executor/core/audit.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v6-executor/core/engine.ts",
+      "target": "module:lib/commands/workflows.json.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v6-executor/core/audit.ts",
+      "target": "module:lib/shared/types.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v3-engines/partner/timeline.ts",
+      "target": "module:lib/shared/types.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v3-engines/partner/timeline.ts",
+      "target": "module:lib/supabase/queries.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v3-engines/impact/engine.ts",
+      "target": "module:lib/supabase/queries.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v3-engines/impact/engine.ts",
+      "target": "module:lib/v3-engines/debt/tracking.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v3-engines/impact/engine.ts",
+      "target": "module:lib/shared/types.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v3-engines/debt/transition.ts",
+      "target": "module:lib/v3-engines/debt/status.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v3-engines/debt/tracking.ts",
+      "target": "module:lib/shared/types.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v3-engines/debt/tracking.ts",
+      "target": "module:lib/v3-engines/debt/interest.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v3-engines/debt/scheduler.ts",
+      "target": "module:lib/v3-engines/debt/overdue.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v3-engines/debt/scheduler.ts",
+      "target": "module:lib/v3-engines/debt/transition.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v3-engines/debt/interest.ts",
+      "target": "module:lib/shared/types.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v3-engines/debt/engine.ts",
+      "target": "module:lib/shared/types.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v3-engines/debt/engine.ts",
+      "target": "module:lib/v3-engines/config-loader.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v3-engines/debt/engine.ts",
+      "target": "module:lib/v3-engines/debt/interest.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v3-engines/debt/engine.ts",
+      "target": "module:lib/v3-engines/debt/overdue.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v3-engines/debt/engine.ts",
+      "target": "module:lib/v3-engines/debt/collection.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v3-engines/debt/engine.ts",
+      "target": "module:lib/v3-engines/debt/status.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v3-engines/debt/engine.ts",
+      "target": "module:lib/v3-engines/debt/interest.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v3-engines/debt/engine.ts",
+      "target": "module:lib/v3-engines/debt/overdue.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v3-engines/debt/engine.ts",
+      "target": "module:lib/v3-engines/debt/collection.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v3-engines/debt/engine.ts",
+      "target": "module:lib/v3-engines/debt/status.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v3-engines/debt/engine.ts",
+      "target": "module:lib/v3-engines/debt/status.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v3-engines/debt/engine.ts",
+      "target": "module:lib/v3-engines/debt/transition.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v3-engines/debt/engine.ts",
+      "target": "module:lib/v3-engines/debt/transition.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v3-engines/debt/engine.ts",
+      "target": "module:lib/v3-engines/debt/scheduler.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v3-engines/debt/engine.ts",
+      "target": "module:lib/v3-engines/debt/calculator.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v3-engines/debt/engine.ts",
+      "target": "module:lib/v3-engines/debt/calculator.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v3-engines/debt/calculator.ts",
+      "target": "module:lib/shared/types.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v3-engines/debt/calculator.ts",
+      "target": "module:lib/v3-engines/debt/interest.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v3-engines/debt/calculator.ts",
+      "target": "module:lib/v3-engines/debt/collection.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/v3-engines/debt/calculator.ts",
+      "target": "module:lib/v3-engines/debt/status.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/platform/mac/window-executor.ts",
+      "target": "module:lib/platform/mac/applescript.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/platform/mac/window-executor.ts",
+      "target": "module:lib/platform/mac/applescript.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/platform/mac/url-schemes.ts",
+      "target": "module:lib/platform/mac/applescript.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/platform/mac/shortcuts.ts",
+      "target": "module:lib/platform/mac/applescript.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/platform/mac/permissions.ts",
+      "target": "module:lib/platform/mac/applescript.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/platform/mac/mac-platform.ts",
+      "target": "module:lib/platform/mac/app-executor.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/platform/mac/mac-platform.ts",
+      "target": "module:lib/platform/mac/accessibility.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/platform/mac/mac-platform.ts",
+      "target": "module:lib/platform/mac/shortcuts.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/platform/mac/mac-platform.ts",
+      "target": "module:lib/platform/mac/url-schemes.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/platform/mac/mac-platform.ts",
+      "target": "module:lib/platform/mac/window-executor.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/platform/mac/mac-platform.ts",
+      "target": "module:lib/v6-executor/runtime/platform.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/platform/mac/mac-platform.ts",
+      "target": "module:lib/platform/mac/permissions.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/platform/mac/mac-platform.ts",
+      "target": "module:lib/platform/mac/permissions.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/platform/mac/applescript.ts",
+      "target": "module:lib/v6-executor/runtime/shell.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/platform/mac/app-executor.ts",
+      "target": "module:lib/v6-executor/runtime/shell.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/platform/mac/app-executor.ts",
+      "target": "module:lib/platform/mac/applescript.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/platform/mac/accessibility.ts",
+      "target": "module:lib/platform/mac/applescript.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/platform/mac/accessibility.ts",
+      "target": "module:lib/platform/mac/applescript.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/registry/trace/_validator.ts",
+      "target": "module:lib/registry/trace/_schema.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/registry/trace/_resolver.ts",
+      "target": "module:lib/registry/trace/_loader.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/registry/trace/_resolver.ts",
+      "target": "module:lib/registry/trace/_schema.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/registry/trace/_loader.ts",
+      "target": "module:lib/registry/trace/_schema.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/registry/trace/_loader.ts",
+      "target": "module:lib/registry/trace/_validator.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/registry/trace/_loader.ts",
+      "target": "module:lib/registry/trace/_index.registry.json.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/registry/trace/_loader.ts",
+      "target": "module:lib/registry/trace/trace.registry.json.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/registry/trace/_loader.ts",
+      "target": "module:lib/registry/trace/metrics.registry.json.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/registry/communication/_validator.ts",
+      "target": "module:lib/registry/communication/_schema.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/registry/communication/_resolver.ts",
+      "target": "module:lib/registry/communication/_loader.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/registry/communication/_resolver.ts",
+      "target": "module:lib/registry/communication/_schema.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/registry/communication/_loader.ts",
+      "target": "module:lib/registry/communication/_schema.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/registry/communication/_loader.ts",
+      "target": "module:lib/registry/communication/_validator.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/registry/communication/_loader.ts",
+      "target": "module:lib/registry/communication/_index.registry.json.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/registry/communication/_loader.ts",
+      "target": "module:lib/registry/communication/line.registry.json.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/registry/communication/_loader.ts",
+      "target": "module:lib/registry/communication/email.registry.json.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/registry/communication/_loader.ts",
+      "target": "module:lib/registry/communication/sms.registry.json.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/registry/communication/_loader.ts",
+      "target": "module:lib/registry/communication/telegram.registry.json.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/registry/communication/_loader.ts",
+      "target": "module:lib/registry/communication/whatsapp.registry.json.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/registry/communication/_loader.ts",
+      "target": "module:lib/registry/communication/voice.registry.json.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/registry/execution/_validator.ts",
+      "target": "module:lib/registry/execution/_schema.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/registry/execution/_resolver.ts",
+      "target": "module:lib/registry/execution/_loader.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/registry/execution/_resolver.ts",
+      "target": "module:lib/registry/execution/_schema.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/registry/execution/_loader.ts",
+      "target": "module:lib/registry/execution/_schema.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/registry/execution/_loader.ts",
+      "target": "module:lib/registry/execution/_validator.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/registry/execution/_loader.ts",
+      "target": "module:lib/registry/execution/_index.registry.json.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/registry/execution/_loader.ts",
+      "target": "module:lib/registry/execution/pipeline.registry.json.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/registry/execution/_loader.ts",
+      "target": "module:lib/registry/execution/engines.registry.json.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/registry/execution/_loader.ts",
+      "target": "module:lib/registry/execution/stages.registry.json.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/registry/execution/_loader.ts",
+      "target": "module:lib/registry/execution/trace.registry.json.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/registry/conversation/_validator.ts",
+      "target": "module:lib/registry/conversation/_schema.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/registry/conversation/_resolver.ts",
+      "target": "module:lib/registry/conversation/_loader.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/registry/conversation/_resolver.ts",
+      "target": "module:lib/registry/conversation/_schema.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/registry/conversation/_loader.ts",
+      "target": "module:lib/registry/conversation/_schema.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/registry/conversation/_loader.ts",
+      "target": "module:lib/registry/conversation/_validator.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/registry/conversation/_loader.ts",
+      "target": "module:lib/registry/conversation/_index.registry.json.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/registry/conversation/_loader.ts",
+      "target": "module:lib/registry/conversation/intent.registry.json.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/registry/conversation/_loader.ts",
+      "target": "module:lib/registry/conversation/state.registry.json.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/registry/conversation/_loader.ts",
+      "target": "module:lib/registry/conversation/entity.registry.json.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/registry/conversation/_loader.ts",
+      "target": "module:lib/registry/conversation/memory.registry.json.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/registry/conversation/_loader.ts",
+      "target": "module:lib/registry/conversation/transition.registry.json.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/cognitive/state/world-state.ts",
+      "target": "module:lib/cognitive/state/types.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/cognitive/state/timeline.ts",
+      "target": "module:lib/cognitive/state/types.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/cognitive/state/resource-graph.ts",
+      "target": "module:lib/cognitive/state/types.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/cognitive/state/index.ts",
+      "target": "module:lib/cognitive/state/resource-graph.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/cognitive/state/index.ts",
+      "target": "module:lib/cognitive/state/timeline.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/cognitive/state/index.ts",
+      "target": "module:lib/cognitive/state/constraint-engine.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/cognitive/state/index.ts",
+      "target": "module:lib/cognitive/state/world-state.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/cognitive/state/index.ts",
+      "target": "module:lib/cognitive/state/types.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/cognitive/state/constraint-engine.ts",
+      "target": "module:lib/cognitive/state/types.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/cognitive/situation/index.ts",
+      "target": "module:lib/cognitive/situation/builder.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/cognitive/situation/index.ts",
+      "target": "module:lib/cognitive/situation/entity-extractor.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/cognitive/situation/index.ts",
+      "target": "module:lib/cognitive/situation/event-extractor.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/cognitive/situation/event-extractor.ts",
+      "target": "module:lib/cognitive/state/types.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/cognitive/situation/entity-extractor.ts",
+      "target": "module:lib/cognitive/state/types.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/cognitive/situation/builder.ts",
+      "target": "module:lib/cognitive/state/types.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/cognitive/situation/builder.ts",
+      "target": "module:lib/cognitive/situation/entity-extractor.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/cognitive/situation/builder.ts",
+      "target": "module:lib/cognitive/situation/event-extractor.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/cognitive/situation/builder.ts",
+      "target": "module:lib/cognitive/state/resource-graph.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/cognitive/situation/builder.ts",
+      "target": "module:lib/cognitive/state/timeline.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/cognitive/situation/builder.ts",
+      "target": "module:lib/cognitive/state/constraint-engine.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/cognitive/situation/builder.ts",
+      "target": "module:lib/cognitive/state/world-state.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/cognitive/planner/index.ts",
+      "target": "module:lib/cognitive/planner/engine.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/cognitive/planner/index.ts",
+      "target": "module:lib/cognitive/planner/engine.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/cognitive/planner/engine.ts",
+      "target": "module:lib/cognitive/objective/contract.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/cognitive/planner/engine.test.ts",
+      "target": "module:lib/cognitive/planner/engine.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/cognitive/planner/engine.test.ts",
+      "target": "module:lib/cognitive/objective/contract.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/cognitive/reflection/index.ts",
+      "target": "module:lib/cognitive/reflection/engine.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/cognitive/reflection/index.ts",
+      "target": "module:lib/cognitive/reflection/engine.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/cognitive/reflection/engine.ts",
+      "target": "module:lib/cognitive/state/types.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/cognitive/reasoning/index.ts",
+      "target": "module:lib/cognitive/reasoning/engine.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/cognitive/reasoning/index.ts",
+      "target": "module:lib/cognitive/reasoning/engine.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/cognitive/reasoning/engine.test.ts",
+      "target": "module:lib/cognitive/reasoning/engine.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/cognitive/memory/session.ts",
+      "target": "module:lib/cognitive/state/types.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/cognitive/memory/session.ts",
+      "target": "module:lib/cognitive/reflection/engine.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/cognitive/memory/index.ts",
+      "target": "module:lib/cognitive/memory/session.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/cognitive/memory/index.ts",
+      "target": "module:lib/cognitive/memory/session.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/cognitive/memory/index.ts",
+      "target": "module:lib/cognitive/memory/context.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/cognitive/objective/manager.ts",
+      "target": "module:lib/cognitive/objective/contract.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/cognitive/objective/manager.test.ts",
+      "target": "module:lib/cognitive/objective/manager.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/cognitive/objective/index.ts",
+      "target": "module:lib/cognitive/objective/contract.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/cognitive/objective/index.ts",
+      "target": "module:lib/cognitive/objective/contract.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/cognitive/objective/index.ts",
+      "target": "module:lib/cognitive/objective/manager.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/cognitive/objective/index.ts",
+      "target": "module:lib/cognitive/objective/manager.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/cognitive/hypothesis/index.ts",
+      "target": "module:lib/cognitive/hypothesis/engine.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/cognitive/hypothesis/index.ts",
+      "target": "module:lib/cognitive/hypothesis/engine.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/cognitive/hypothesis/engine.ts",
+      "target": "module:lib/cognitive/state/types.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/cognitive/learning/index.ts",
+      "target": "module:lib/cognitive/evaluation/index.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/cognitive/learning/index.ts",
+      "target": "module:lib/cognitive/reflection/index.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/cognitive/executor/index.ts",
+      "target": "module:lib/supabase/queries.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/cognitive/executor/index.ts",
+      "target": "module:lib/v2-rules/actions.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/cognitive/executor/index.ts",
+      "target": "module:lib/v2-rules/dispatcher.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/cognitive/executor/index.ts",
+      "target": "module:lib/v3-engines/debt/engine.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/cognitive/executor/index.ts",
+      "target": "module:lib/documents/engine.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/cognitive/executor/index.ts",
+      "target": "module:lib/v6-executor/capability-manager.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/cognitive/executor/index.ts",
+      "target": "module:lib/v6-executor/index.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/cognitive/executor/index.ts",
+      "target": "module:lib/v5-presenter/formatter.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/cognitive/executor/index.ts",
+      "target": "module:lib/cognitive/planner/index.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/cognitive/executor/index.ts",
+      "target": "module:lib/cognitive/state/index.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/cognitive/executor/index.ts",
+      "target": "module:lib/cognitive/evaluation/index.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/cognitive/evaluation/index.ts",
+      "target": "module:lib/cognitive/evaluation/engine.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/cognitive/evaluation/index.ts",
+      "target": "module:lib/cognitive/evaluation/engine.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/cognitive/evaluation/engine.ts",
+      "target": "module:lib/cognitive/state/types.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/traces/route.ts",
+      "target": "module:lib/runtime/trace.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/self-description/route.ts",
+      "target": "module:lib/runtime/self-awareness.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/cognitive/board/index.ts",
+      "target": "module:lib/cognitive/evaluation/index.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/cognitive/board/index.ts",
+      "target": "module:lib/cognitive/hypothesis/index.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/cognitive/board/index.ts",
+      "target": "module:lib/cognitive/reflection/index.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:lib/cognitive/board/index.ts",
+      "target": "module:lib/cognitive/state/index.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/explain/route.ts",
+      "target": "module:lib/middleware/auth.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/explain/route.ts",
+      "target": "module:lib/v3-engines/config-loader.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/explain/route.ts",
+      "target": "module:lib/v3-engines/distance.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/explain/route.ts",
+      "target": "module:lib/v5-presenter/explainer.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/document/route.ts",
+      "target": "module:lib/middleware/auth.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/document/route.ts",
+      "target": "module:lib/documents/engine.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/dbd/route.ts",
+      "target": "module:lib/runtime/trace.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/dbd/route.ts",
+      "target": "module:lib/runtime/engine.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/control-center/route.ts",
+      "target": "module:lib/supabase/queries.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/control-center/route.ts",
+      "target": "module:lib/platform/mac/mac-platform.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/command/route.ts",
+      "target": "module:lib/cognitive/pipeline.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/command/route.ts",
+      "target": "module:lib/supabase/state-cache.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/brain/route.ts",
+      "target": "module:lib/runtime/dbd.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/brain/route.ts",
+      "target": "module:lib/v3-engines/impact/engine.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/chat/route.ts",
+      "target": "module:lib/cognitive/pipeline.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/action/route.ts",
+      "target": "module:lib/middleware/auth.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/action/route.ts",
+      "target": "module:lib/v6-executor/gateway.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/action/route.ts",
+      "target": "module:lib/v2-rules/resolver.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/action/route.ts",
+      "target": "module:lib/v5-presenter/enricher.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/action/route.ts",
+      "target": "module:lib/v3-engines/distance.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/action/route.ts",
+      "target": "module:lib/v5-presenter/formatter.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/action/route.ts",
+      "target": "module:lib/v5-presenter/ranker.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/action/route.ts",
+      "target": "module:lib/v6-executor/gateway.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:supabase/functions/line-webhook-v2/engines/response.ts",
+      "target": "module:supabase/functions/line-webhook-v2/middleware/sanitizer.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/settings/route.ts",
+      "target": "module:lib/middleware/auth.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/settings/route.ts",
+      "target": "module:lib/config/company-settings.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/transactions/route.ts",
+      "target": "module:lib/supabase/queries.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/transactions/route.ts",
+      "target": "module:lib/transactions/workflows.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/debt-trackings/route.ts",
+      "target": "module:lib/supabase/queries.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/debt-trackings/route.ts",
+      "target": "module:lib/v3-engines/debt/tracking.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/partners/route.ts",
+      "target": "module:lib/supabase/queries.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/documents/route.ts",
+      "target": "module:lib/supabase/queries.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/documents/route.ts",
+      "target": "module:config/document-service-categories.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/documents/route.ts",
+      "target": "module:lib/documents/document-editor.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/documents/route.ts",
+      "target": "module:lib/documents/engine.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/documents/route.ts",
+      "target": "module:lib/config/company-settings.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/documents/route.ts",
+      "target": "module:lib/transactions/document-link.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/documents/route.ts",
+      "target": "module:lib/transactions/workflows.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/transactions/[id]/route.ts",
+      "target": "module:lib/supabase/queries.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/debt-trackings/[id]/route.ts",
+      "target": "module:lib/supabase/queries.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/debt-trackings/[id]/route.ts",
+      "target": "module:lib/v3-engines/debt/tracking.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/documents/[id]/route.ts",
+      "target": "module:lib/supabase/queries.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/documents/[id]/route.ts",
+      "target": "module:config/document-service-categories.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/documents/[id]/route.ts",
+      "target": "module:lib/documents/document-editor.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/documents/[id]/route.ts",
+      "target": "module:lib/documents/engine.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/documents/[id]/route.ts",
+      "target": "module:lib/config/company-settings.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/transactions/[id]/advance/route.ts",
+      "target": "module:lib/supabase/queries.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/transactions/[id]/advance/route.ts",
+      "target": "module:lib/transactions/state-machine.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/debt-trackings/[id]/draft/route.ts",
+      "target": "module:lib/documents/debt-notice-draft.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/partners/[id]/timeline/route.ts",
+      "target": "module:lib/supabase/queries.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/partners/[id]/timeline/route.ts",
+      "target": "module:lib/v3-engines/partner/timeline.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/partners/[id]/chain/route.ts",
+      "target": "module:lib/supabase/queries.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/documents/[id]/confirm/route.ts",
+      "target": "module:lib/supabase/queries.ts",
+      "label": "imports"
+    },
+    {
+      "source": "layer:shared",
+      "target": "module:lib/shared/types.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:shared",
+      "target": "module:lib/registry/index.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:shared",
+      "target": "module:lib/runtime/engine.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:supabase",
+      "target": "module:lib/supabase/queries.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:supabase",
+      "target": "module:lib/supabase/realtime.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:shared",
+      "target": "module:lib/middleware/auth.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:shared",
+      "target": "module:lib/middleware/sanitize.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:cognitive",
+      "target": "module:lib/cognitive/pipeline.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:cognitive",
+      "target": "module:lib/cognitive/executor/index.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:cognitive",
+      "target": "module:lib/cognitive/planner/index.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:cognitive",
+      "target": "module:lib/cognitive/planner/engine.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:cognitive",
+      "target": "module:lib/cognitive/planner/engine.test.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:cognitive",
+      "target": "module:lib/cognitive/reasoning/index.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:cognitive",
+      "target": "module:lib/cognitive/reasoning/engine.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:cognitive",
+      "target": "module:lib/cognitive/reasoning/engine.test.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:cognitive",
+      "target": "module:lib/cognitive/reflection/index.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:cognitive",
+      "target": "module:lib/cognitive/reflection/engine.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:cognitive",
+      "target": "module:lib/cognitive/evaluation/index.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:cognitive",
+      "target": "module:lib/cognitive/evaluation/engine.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:cognitive",
+      "target": "module:lib/cognitive/hypothesis/index.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:cognitive",
+      "target": "module:lib/cognitive/hypothesis/engine.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:cognitive",
+      "target": "module:lib/cognitive/memory/index.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:cognitive",
+      "target": "module:lib/cognitive/memory/context.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:cognitive",
+      "target": "module:lib/cognitive/memory/session.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:cognitive",
+      "target": "module:lib/cognitive/state/index.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:cognitive",
+      "target": "module:lib/cognitive/state/types.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:cognitive",
+      "target": "module:lib/cognitive/state/world-state.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:cognitive",
+      "target": "module:lib/cognitive/state/constraint-engine.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:cognitive",
+      "target": "module:lib/cognitive/state/resource-graph.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:cognitive",
+      "target": "module:lib/cognitive/state/timeline.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:cognitive",
+      "target": "module:lib/cognitive/situation/index.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:cognitive",
+      "target": "module:lib/cognitive/situation/builder.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:cognitive",
+      "target": "module:lib/cognitive/situation/entity-extractor.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:cognitive",
+      "target": "module:lib/cognitive/situation/event-extractor.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:cognitive",
+      "target": "module:lib/cognitive/board/index.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:cognitive",
+      "target": "module:lib/cognitive/objective/index.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:cognitive",
+      "target": "module:lib/cognitive/objective/contract.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:cognitive",
+      "target": "module:lib/cognitive/objective/manager.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:cognitive",
+      "target": "module:lib/cognitive/objective/manager.test.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:cognitive",
+      "target": "module:lib/cognitive/intent/index.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:cognitive",
+      "target": "module:lib/cognitive/knowledge/index.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:cognitive",
+      "target": "module:lib/cognitive/learning/index.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:cognitive",
+      "target": "module:lib/cognitive/priority/index.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:cognitive",
+      "target": "module:lib/cognitive/integration.test.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:supabase",
+      "target": "module:lib/supabase/state-cache.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:v2-rules",
+      "target": "module:lib/v2-rules/dispatcher.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:v2-rules",
+      "target": "module:lib/v2-rules/actions.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:v2-rules",
+      "target": "module:lib/v2-rules/resolver.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:v3-engines",
+      "target": "module:lib/v3-engines/index.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:v3-engines",
+      "target": "module:lib/v3-engines/config-loader.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:v3-engines",
+      "target": "module:lib/v3-engines/business.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:v3-engines",
+      "target": "module:lib/v3-engines/distance.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:v3-engines",
+      "target": "module:lib/v3-engines/time.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:v3-engines",
+      "target": "module:lib/v3-engines/fuel.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:v3-engines",
+      "target": "module:lib/v3-engines/cost.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:v3-engines",
+      "target": "module:lib/v3-engines/pricing.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:v3-engines",
+      "target": "module:lib/v3-engines/tax.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:v3-engines",
+      "target": "module:lib/v3-engines/capacity.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:v3-engines",
+      "target": "module:lib/v3-engines/debt/engine.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:v3-engines",
+      "target": "module:lib/v3-engines/debt/calculator.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:v3-engines",
+      "target": "module:lib/v3-engines/debt/interest.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:v3-engines",
+      "target": "module:lib/v3-engines/debt/collection.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:v3-engines",
+      "target": "module:lib/v3-engines/debt/overdue.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:v3-engines",
+      "target": "module:lib/v3-engines/debt/status.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:v3-engines",
+      "target": "module:lib/v3-engines/debt/transition.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:v3-engines",
+      "target": "module:lib/v3-engines/debt/scheduler.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:v4-ai",
+      "target": "module:lib/v4-ai/bridge-local.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:v4-ai",
+      "target": "module:lib/v4-ai/bridge-openai.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:v4-ai",
+      "target": "module:lib/v4-ai/translator.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:v5-presenter",
+      "target": "module:lib/v5-presenter/index.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:v5-presenter",
+      "target": "module:lib/v5-presenter/enricher.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:v5-presenter",
+      "target": "module:lib/v5-presenter/explainer.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:v5-presenter",
+      "target": "module:lib/v5-presenter/formatter.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:v5-presenter",
+      "target": "module:lib/v5-presenter/ranker.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:v6-executor",
+      "target": "module:lib/v6-executor/index.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:v6-executor",
+      "target": "module:lib/v6-executor/executor.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:v6-executor",
+      "target": "module:lib/v6-executor/gateway.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:v6-executor",
+      "target": "module:lib/v6-executor/capabilities.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:v6-executor",
+      "target": "module:lib/v6-executor/capability-manager.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:v6-executor",
+      "target": "module:lib/v6-executor/core/engine.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:v6-executor",
+      "target": "module:lib/v6-executor/core/registry.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:v6-executor",
+      "target": "module:lib/v6-executor/core/init.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:v6-executor",
+      "target": "module:lib/v6-executor/core/audit.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:v6-executor",
+      "target": "module:lib/v6-executor/runtime/platform.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:v6-executor",
+      "target": "module:lib/v6-executor/runtime/shell.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:v6-executor",
+      "target": "module:lib/v6-executor/drivers/base.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:v6-executor",
+      "target": "module:lib/v6-executor/drivers/line.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:v6-executor",
+      "target": "module:lib/v6-executor/drivers/chrome.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:v6-executor",
+      "target": "module:lib/v6-executor/drivers/vscode.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:v6-executor",
+      "target": "module:lib/v6-executor/drivers/finder.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:v6-executor",
+      "target": "module:lib/v6-executor/drivers/terminal.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:v6-executor",
+      "target": "module:lib/v6-executor/drivers/maps.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:v6-executor",
+      "target": "module:lib/v6-executor/drivers/earth.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:v6-executor",
+      "target": "module:lib/v6-executor/drivers/mail.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:v6-executor",
+      "target": "module:lib/v6-executor/drivers/calendar.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:v6-executor",
+      "target": "module:lib/v6-executor/drivers/pdf.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:v6-executor",
+      "target": "module:lib/v6-executor/drivers/github.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:v5-presenter",
+      "target": "module:lib/documents/engine.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:v6-executor",
+      "target": "module:lib/drivers/line/line.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:v6-executor",
+      "target": "module:lib/platform/mac/applescript.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:v6-executor",
+      "target": "module:lib/platform/mac/app-executor.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:v6-executor",
+      "target": "module:lib/platform/mac/accessibility.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:v6-executor",
+      "target": "module:lib/platform/mac/mac-platform.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:v6-executor",
+      "target": "module:lib/platform/mac/permissions.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:v6-executor",
+      "target": "module:lib/platform/mac/shortcuts.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:v6-executor",
+      "target": "module:lib/platform/mac/url-schemes.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:v6-executor",
+      "target": "module:lib/platform/mac/window-executor.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:api",
+      "target": "module:app/api/command/route.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:api",
+      "target": "module:app/api/chat/route.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:api",
+      "target": "module:app/api/action/route.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:api",
+      "target": "module:app/api/document/route.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:api",
+      "target": "module:app/api/explain/route.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:app",
+      "target": "module:app/page.tsx",
+      "label": "contains"
+    },
+    {
+      "source": "layer:app",
+      "target": "module:app/layout.tsx",
+      "label": "contains"
+    },
+    {
+      "source": "layer:shared",
+      "target": "module:lib/runtime/trace.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:config",
+      "target": "module:next.config.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:scripts",
+      "target": "module:scripts/sync-registry.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:scripts",
+      "target": "module:scripts/build-arch-book.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:config",
+      "target": "module:config/document-service-categories.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:runtime",
+      "target": "module:lib/runtime/self-awareness.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:runtime",
+      "target": "module:lib/runtime/existence-intelligence.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:documents",
+      "target": "module:lib/documents/template.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:documents",
+      "target": "module:lib/documents/document-editor.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:documents",
+      "target": "module:lib/documents/debt-notice-draft.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:config",
+      "target": "module:lib/config/company-settings.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:v3-engines",
+      "target": "module:lib/v3-engines/debt/tracking.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:supabase",
+      "target": "module:supabase/functions/line-webhook-v2/helpers.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:supabase",
+      "target": "module:supabase/functions/_shared/haversine.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:api",
+      "target": "module:app/api/traces/route.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:api",
+      "target": "module:app/api/self-description/route.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:api",
+      "target": "module:app/api/reader/route.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:api",
+      "target": "module:app/api/governance/route.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:api",
+      "target": "module:app/api/routes/route.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:api",
+      "target": "module:app/api/manual-doc/route.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:api",
+      "target": "module:app/api/deploy/route.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:api",
+      "target": "module:app/api/dbd/route.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:api",
+      "target": "module:app/api/control-center/route.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:api",
+      "target": "module:app/api/build/route.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:supabase",
+      "target": "module:supabase/functions/line-webhook-v2/middleware/sanitizer.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:supabase",
+      "target": "module:supabase/functions/line-webhook-v2/engines/response.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:api",
+      "target": "module:app/api/admin/settings/route.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:api",
+      "target": "module:app/api/admin/partners/route.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:api",
+      "target": "module:app/api/admin/debt-trackings/route.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:api",
+      "target": "module:app/api/admin/documents/route.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:api",
+      "target": "module:app/api/admin/debt-trackings/[id]/route.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:api",
+      "target": "module:app/api/admin/documents/[id]/route.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:api",
+      "target": "module:app/api/admin/debt-trackings/[id]/draft/route.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:api",
+      "target": "module:app/api/admin/documents/[id]/confirm/route.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:v3-engines",
+      "target": "module:lib/v3-engines/partner/timeline.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:api",
+      "target": "module:app/api/admin/partners/[id]/timeline/route.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:ui",
+      "target": "module:app/admin/partners/page.tsx",
+      "label": "contains"
+    },
+    {
+      "source": "layer:ui",
+      "target": "module:app/admin/partners/[id]/page.tsx",
+      "label": "contains"
+    },
+    {
+      "source": "layer:middleware.ts",
+      "target": "module:middleware.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:transactions",
+      "target": "module:lib/transactions/workflows.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:transactions",
+      "target": "module:lib/transactions/state-machine.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:transactions",
+      "target": "module:lib/transactions/document-link.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:runtime",
+      "target": "module:lib/runtime/dbd.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:documents",
+      "target": "module:lib/documents/draft-builders.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:app",
+      "target": "module:app/api/brain/route.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:registry",
+      "target": "module:lib/registry/trace/_validator.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:registry",
+      "target": "module:lib/registry/trace/_schema.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:registry",
+      "target": "module:lib/registry/trace/_resolver.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:registry",
+      "target": "module:lib/registry/trace/_loader.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:registry",
+      "target": "module:lib/registry/communication/_validator.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:registry",
+      "target": "module:lib/registry/communication/_schema.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:registry",
+      "target": "module:lib/registry/communication/_resolver.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:registry",
+      "target": "module:lib/registry/communication/_loader.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:registry",
+      "target": "module:lib/registry/execution/_validator.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:registry",
+      "target": "module:lib/registry/execution/_schema.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:registry",
+      "target": "module:lib/registry/execution/_resolver.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:registry",
+      "target": "module:lib/registry/execution/_loader.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:registry",
+      "target": "module:lib/registry/conversation/_validator.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:registry",
+      "target": "module:lib/registry/conversation/_schema.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:registry",
+      "target": "module:lib/registry/conversation/_resolver.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:registry",
+      "target": "module:lib/registry/conversation/_loader.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:app",
+      "target": "module:app/api/auth/login/route.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:app",
+      "target": "module:app/api/admin/transactions/route.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:app",
+      "target": "module:app/api/admin/transactions/[id]/route.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:app",
+      "target": "module:app/api/admin/transactions/[id]/advance/route.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:app",
+      "target": "module:app/api/admin/partners/[id]/chain/route.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:v3-engines",
+      "target": "module:lib/v3-engines/impact/engine.ts",
+      "label": "contains"
+    }
+  ],
+  "summary": {
+    "total": 181,
+    "ok": 179,
+    "broken": 0,
+    "unused": 2,
+    "unregistered": 0
+  }
+}

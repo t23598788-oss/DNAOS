@@ -4,7 +4,7 @@
     "Driver":         { "methods": ["connect", "status", "focus", "close", "execute"], "layer": "drivers" },
     "Engine":         { "methods": ["execute"], "layer": "core" },
     "Renderer":       { "methods": ["generateDoc"], "layer": "documents" },
-    "Parser":         { "methods": ["parseCommand", "dispatch", "runCommand"], "layer": "v1-input" },
+    "Pipeline":       { "methods": ["runCognitivePipeline"], "layer": "cognitive" },
     "AIBridge":       { "methods": ["translate"], "layer": "v4-ai" },
     "Presenter":      { "methods": ["enrich", "format", "rank", "explain"], "layer": "v5-presenter" },
     "Resolver":       { "methods": ["find", "smartFind"], "layer": "v2-rules" },

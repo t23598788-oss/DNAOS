@@ -9,6 +9,11 @@ let _cacheExpiry = 0;
 
 const CACHE_TTL = 60_000;
 
+export function clearConfigCache(): void {
+  _cache = null;
+  _cacheExpiry = 0;
+}
+
 export async function loadConfigs(): Promise<RulesConfig> {
   if (_cache && Date.now() < _cacheExpiry) return _cache;
 
@@ -21,7 +26,9 @@ export async function loadConfigs(): Promise<RulesConfig> {
   const configs: RulesConfig = {};
   for (const row of data ?? []) {
     const num = Number(row.data);
-    configs[row.title] = isNaN(num) ? row.data : num;
+    // แปลงเป็น number เฉพาะตอนแปลงกลับได้ค่าเดิมเป๊ะ — กัน string ที่ดูเหมือนเลขแต่มีความหมายตามตัวอักษร
+    // เช่น เลขผู้เสียภาษี "0405569002851" ห้ามเสีย 0 นำหน้าไป
+    configs[row.title] = !isNaN(num) && String(num) === row.data ? num : row.data;
   }
 
   _cache = configs;

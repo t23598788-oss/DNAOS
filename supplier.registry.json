@@ -1,0 +1,21 @@
+{
+  "name": "supplier",
+  "name_th": "ระบบจัดการผู้ขาย",
+  "purpose": "Manages supplier and vendor information, specifically for material sourcing.",
+  "purpose_th": "เก็บและจัดการข้อมูลผู้ขายวัสดุ",
+  "description_th": "ใช้เก็บข้อมูลผู้ขายวัสดุ (บ่อดิน, โรงโม่) และข้อมูลวัสดุที่แต่ละรายมีขาย",
+  "used_by": [
+    "lib/v3-engines/pricing/engine.ts",
+    "lib/v3-engines/distance.ts"
+  ],
+  "used_by_th": [
+    "ไฟล์คำนวณราคา (สำหรับหาต้นทุนวัสดุ)",
+    "ไฟล์คำนวณระยะทาง (สำหรับหาผู้ขายที่ใกล้ที่สุด)"
+  ],
+  "depends_on": [
+    "partners"
+  ],
+  "depends_on_th": [
+    "ข้อมูลคู่ค้า"
+  ]
+}

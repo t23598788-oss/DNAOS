@@ -1,0 +1,48 @@
+{
+  "domain": "config",
+  "tables": [
+    {
+      "table": "app_configs",
+      "primaryKey": "id",
+      "description": "ค่ากำหนดธุรกิจทั้งหมด — ห้าม hardcode ต้องอ่านจากตารางนี้เท่านั้น",
+      "columns": ["id", "title", "data", "created_at", "updated_at", "deleted_at"],
+      "softDelete": true
+    }
+  ],
+  "relations": [],
+  "indexes": [
+    { "table": "app_configs", "column": "title", "type": "unique" }
+  ],
+  "permissions": {
+    "read": ["Debt Engine", "Pricing Engine", "Document Engine", "Config Loader"],
+    "write": ["V6 Executor", "Admin"]
+  },
+  "commands": [],
+  "events": ["config.updated"],
+  "engines": [
+    { "name": "Config Loader", "file": "lib/v3-engines/config-loader.ts", "function": "loadConfigs" }
+  ],
+  "queries": [
+    { "name": "loadConfigs", "file": "lib/v3-engines/config-loader.ts", "action": "read" },
+    { "name": "getNum", "file": "lib/v3-engines/config-loader.ts", "action": "read" }
+  ],
+  "dependencies": [],
+  "validators": [
+    { "rule": "title ต้อง unique", "field": "title", "type": "unique" },
+    { "rule": "Configuration แยกจาก Code", "constitution": "Rule 10", "type": "architecture" },
+    { "rule": "Business policy อยู่ใน Database ห้าม hardcode", "constitution": "Rule 79", "type": "architecture" }
+  ],
+  "documents": [],
+  "api": [],
+  "keys": {
+    "debt-interest-rate": { "value": 25, "unit": "%/ปี", "description": "อัตราดอกเบี้ยทบต้นรายวัน" },
+    "debt-grace-period-hours": { "value": 0, "unit": "ชั่วโมง", "description": "ระยะผ่อนผันหลังครบกำหนด" },
+    "debt-collection-fee-rate": { "value": 5, "unit": "%", "description": "ค่าธรรมเนียมทวงถาม" },
+    "debt-collection-fee-limit": { "value": 20000, "unit": "บาท", "description": "เพดานค่าทวงถามตามกฎหมาย" },
+    "fuel-price": { "value": 43, "unit": "บาท/ลิตร", "description": "ราคาน้ำมันปัจจุบัน" },
+    "driver-wage-per-trip": { "value": 450, "unit": "บาท/เที่ยว", "description": "ค่าแรงคนขับ" },
+    "pricing-markup-percent": { "value": 25, "unit": "%", "description": "กำไรเพิ่มจากต้นทุน" },
+    "vehicle-default-capacity": { "value": 10, "unit": "คิว", "description": "ความจุรถเริ่มต้น" },
+    "minimum-distance": { "value": 15, "unit": "กม.", "description": "ระยะทางขั้นต่ำคิดค่าขนส่ง" }
+  }
+}

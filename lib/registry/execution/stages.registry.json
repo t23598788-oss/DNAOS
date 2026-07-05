@@ -1,0 +1,75 @@
+{
+  "version": 1,
+  "last_updated": "2026-07-05",
+  "stages": {
+    "IDLE": {
+      "id": "IDLE",
+      "label": "Idle — รอรับ message",
+      "description": "ระบบพร้อมรับ webhook ถัดไป",
+      "next_stages": ["RECEIVING"],
+      "terminal": false
+    },
+    "RECEIVING": {
+      "id": "RECEIVING",
+      "label": "Receiving — กำลังรับ webhook",
+      "description": "รับ LINE webhook event เข้าสู่ระบบ กำลัง verify signature",
+      "next_stages": ["LOGGING", "ERROR"],
+      "terminal": false,
+      "timeout_ms": 500
+    },
+    "LOGGING": {
+      "id": "LOGGING",
+      "label": "Logging — บันทึก event",
+      "description": "เขียน event เข้า line_events table",
+      "next_stages": ["EXTRACTING", "ERROR"],
+      "terminal": false,
+      "timeout_ms": 1000
+    },
+    "EXTRACTING": {
+      "id": "EXTRACTING",
+      "label": "Extracting — AI สกัด entities",
+      "description": "Gemini 2.5 Flash Lite สกัด material_type, quantity_m3, location จากข้อความ",
+      "next_stages": ["MATCHING", "ERROR"],
+      "terminal": false,
+      "timeout_ms": 5000
+    },
+    "MATCHING": {
+      "id": "MATCHING",
+      "label": "Matching — จับคู่บ่อวัสดุ",
+      "description": "Workflow engine จับคู่ลูกค้ากับบ่อวัสดุที่เหมาะสม",
+      "next_stages": ["REPLYING", "ERROR"],
+      "terminal": false,
+      "timeout_ms": 3000
+    },
+    "REPLYING": {
+      "id": "REPLYING",
+      "label": "Replying — ส่ง reply กลับ",
+      "description": "ResponseGateway ส่ง reply ผ่าน LINE Reply API",
+      "next_stages": ["DONE", "ERROR"],
+      "terminal": false,
+      "timeout_ms": 2000
+    },
+    "DONE": {
+      "id": "DONE",
+      "label": "Done — สำเร็จ",
+      "description": "Pipeline ทำงานสำเร็จ กลับสู่ IDLE",
+      "next_stages": ["IDLE"],
+      "terminal": true
+    },
+    "ERROR": {
+      "id": "ERROR",
+      "label": "Error — เกิดข้อผิดพลาด",
+      "description": "Pipeline หยุดกลางคัน log error กลับสู่ IDLE",
+      "next_stages": ["IDLE"],
+      "terminal": true,
+      "on_timeout": "ERROR"
+    },
+    "SKIPPED": {
+      "id": "SKIPPED",
+      "label": "Skipped — ข้ามขั้นตอน",
+      "description": "ขั้นตอนถูก skip เพราะ policy_gate=DISABLED",
+      "next_stages": [],
+      "terminal": true
+    }
+  }
+}

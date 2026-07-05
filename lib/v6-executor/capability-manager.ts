@@ -368,11 +368,9 @@ async function tryLocalExecution(
 async function callMcpExecutor(
   server: string,
   tool: string,
-  args: Record<string, unknown>
+  _args: Record<string, unknown>
 ): Promise<Record<string, unknown>> {
-  // TODO: เชื่อม MCP Client จริงของ Mac
-  // return await mcpClient.callTool(server, tool, args);
-  return { success: true, server, tool, message: `ธุรกรรมผ่านท่อตรง ${server} เรียบร้อย` };
+  throw new Error(`MCP stub: ${server}/${tool} ยังไม่ได้เชื่อมต่อจริง — ต้อง implement MCP client`);
 }
 
 // ---- Lookup ----

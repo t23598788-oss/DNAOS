@@ -1,0 +1,43 @@
+{
+  "domain": "payment",
+  "tables": [
+    {
+      "table": "invoice_payments",
+      "primaryKey": "id",
+      "description": "ประวัติการชำระเงิน — ผูกกับ invoice_debts",
+      "columns": ["id", "invoice_debt_id", "payment_amount", "paid_at", "principal_before_payment", "outstanding_before_payment", "outstanding_after_payment", "note"],
+      "softDelete": false
+    }
+  ],
+  "relations": [
+    { "table": "invoice_debts", "foreignKey": "invoice_debt_id", "type": "foreign_key" }
+  ],
+  "indexes": [
+    { "table": "invoice_payments", "column": "invoice_debt_id", "type": "btree" },
+    { "table": "invoice_payments", "column": "paid_at", "type": "btree" }
+  ],
+  "permissions": {
+    "read": ["Review Board", "Debt Engine", "Document Engine"],
+    "write": ["V6 Executor"]
+  },
+  "commands": ["preview_payment", "execute_payment"],
+  "events": ["payment.created", "payment.confirmed", "debt.status_changed"],
+  "engines": [
+    { "name": "Payment Action", "file": "lib/v2-rules/actions.ts", "function": "executePayment" }
+  ],
+  "queries": [
+    { "name": "previewPayment", "file": "lib/v2-rules/actions.ts", "action": "read" },
+    { "name": "executePayment", "file": "lib/v2-rules/actions.ts", "action": "write" }
+  ],
+  "dependencies": ["debt"],
+  "validators": [
+    { "rule": "ต้องมี invoice_debt_id", "field": "invoice_debt_id", "type": "required" },
+    { "rule": "payment_amount > 0", "field": "payment_amount", "type": "positive" },
+    { "rule": "หนี้ต้องยังไม่ PAID", "field": "invoice_status", "type": "state_check" },
+    { "rule": "ต้อง preview ก่อน execute", "constitution": "Rule 72", "type": "confirmation" }
+  ],
+  "documents": ["receipt"],
+  "api": [
+    { "endpoint": "/api/action", "method": "POST", "action": "preview payment / execute payment" }
+  ]
+}

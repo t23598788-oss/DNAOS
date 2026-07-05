@@ -3,6 +3,30 @@ set -e
 
 echo "=== DNA OS Pre-Commit Guard ==="
 
+# Step 0: Sync Registry และสร้าง Architecture Book ก่อนทุกอย่าง
+echo "--- Syncing Registry + Architecture Book ---"
+npx tsx scripts/sync-registry.ts
+npx tsx scripts/build-arch-book.ts
+echo "Registry synced"
+
+# Guard 0: Architecture health — ไม่ยอมรับ BROKEN หรือ UNUSED โมดูลใหม่
+ARCH_BOOK="lib/registry/architecture-book.json"
+if [ -f "$ARCH_BOOK" ]; then
+  BROKEN=$(node -e "const b=require('./$ARCH_BOOK'); console.log(b.summary.broken)")
+  UNUSED=$(node -e "const b=require('./$ARCH_BOOK'); console.log(b.summary.unused)")
+  if [ "$BROKEN" -gt 0 ]; then
+    echo "ERROR: มี $BROKEN โมดูล BROKEN — รัน 'npm run arch' และแก้ไขก่อน commit"
+    node -e "const b=require('./$ARCH_BOOK'); b.nodes.filter(n=>n.status==='BROKEN').forEach(n=>console.log('  BROKEN:',n.name_en,'|',n.error_th??''))"
+    exit 1
+  fi
+  if [ "$UNUSED" -gt 0 ]; then
+    echo "ERROR: มี $UNUSED โมดูล UNUSED — เพิ่ม declared_callers ใน module-registry.json หรือตั้ง entry_point: true"
+    node -e "const b=require('./$ARCH_BOOK'); b.nodes.filter(n=>n.status==='UNUSED').forEach(n=>console.log('  UNUSED:',n.name_en))"
+    exit 1
+  fi
+  echo "Architecture OK: ${BROKEN} broken, ${UNUSED} unused"
+fi
+
 # Guard 1: No Supabase credentials in source
 if grep -rn "supabase.co" --include="*.ts" --include="*.tsx" --include="*.json" \
    --exclude-dir=node_modules --exclude-dir=.next \
@@ -18,7 +42,7 @@ if grep -rn "Mock\|mock\|fake\|Fake\|MOCK\|FAKE" --include="*.ts" lib/v3-engines
 fi
 
 # Guard 3: No direct supabase import in v1-v5
-for layer in lib/v1-input lib/v2-rules lib/v3-engines lib/v4-ai lib/v5-presenter; do
+for layer in lib/v2-rules lib/v3-engines lib/v4-ai lib/v5-presenter; do
   if grep -rn "from.*@supabase/supabase-js" --include="*.ts" "$layer/" 2>/dev/null; then
     echo "ERROR: $layer imports @supabase/supabase-js directly — Rule 71"
     exit 1

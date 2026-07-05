@@ -15,11 +15,10 @@ const eslintConfig = defineConfig([
   ]),
 
   // ===== DNA OS Layer Boundary Guards =====
-  // Rule 71: V1-V5 cannot import @supabase/supabase-js directly
+  // Rule 71: V2-V5 cannot import @supabase/supabase-js directly
   // Only V6-Executor (lib/v6-executor/) and lib/supabase/ may access the database
   {
     files: [
-      "lib/v1-input/**/*.ts",
       "lib/v2-rules/**/*.ts",
       "lib/v3-engines/**/*.ts",
       "lib/v4-ai/**/*.ts",
@@ -29,7 +28,7 @@ const eslintConfig = defineConfig([
       "no-restricted-imports": ["error", {
         patterns: [{
           group: ["@supabase/supabase-js"],
-          message: "Rule 71: V1-V5 import @supabase/supabase-js ไม่ได้ — เฉพาะ V6-Executor เท่านั้นที่เข้าถึง DB ได้ ใช้ lib/supabase/queries.ts แทน",
+          message: "Rule 71: V2-V5 import @supabase/supabase-js ไม่ได้ — เฉพาะ V6-Executor เท่านั้นที่เข้าถึง DB ได้ ใช้ lib/supabase/queries.ts แทน",
         }],
       }],
     },
@@ -63,19 +62,8 @@ const eslintConfig = defineConfig([
     },
   },
 
-  // Rule 12: UI components cannot import from lib/v1-input/
-  // UI must go through API routes, not call V1 directly
-  {
-    files: ["components/**/*.ts", "components/**/*.tsx", "app/**/*.ts", "app/**/*.tsx"],
-    rules: {
-      "no-restricted-imports": ["error", {
-        patterns: [{
-          group: ["**/v1-input/**"],
-          message: "Rule 12: UI (components/app) ห้ามเรียก V1-Input โดยตรง — ต้องผ่าน API route",
-        }],
-      }],
-    },
-  },
+
+
 ]);
 
 export default eslintConfig;

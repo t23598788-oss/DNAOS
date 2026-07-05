@@ -10,21 +10,19 @@ import { join } from "path";
 import { execSync } from "child_process";
 
 const ROOT = process.cwd();
+const REGISTRY_ROOT = join(ROOT, "../registry");
 
 function load(path: string): any {
-  try { return JSON.parse(readFileSync(join(ROOT, path), "utf-8")); }
+  try { return JSON.parse(readFileSync(path, "utf-8")); }
   catch { return {}; }
 }
 
-const existence = load("lib/registry/existence.json");
-const infra = load("lib/registry/infrastructure.json");
-const business = load("lib/registry/business-coverage.json");
-const decisions = load("lib/registry/decision-coverage.json");
-const rules = load("lib/registry/rule-coverage.json");
-const commands = load("lib/registry/command-registry.json");
-const modules = load("lib/registry/module-registry.json");
-const depGraph = load("lib/registry/dependency-graph.json");
-const architecture = load("lib/registry/architecture.json");
+const statusRegistry = load(join(REGISTRY_ROOT, "10-status-registry.json"));
+const existence = statusRegistry; // existence data is now part of status-registry
+const infra = statusRegistry; // infrastructure is now part of status-registry
+const commands = load(join(REGISTRY_ROOT, "06-commands (ทะเบียนคำสั่ง).json"));
+const modules = load(join(REGISTRY_ROOT, "02-module-registry.json"));
+const constitution = load(join(REGISTRY_ROOT, "03-constitution.json"));
 
 function line(t: string) { console.log(t); }
 function header(n: number, title: string) {
@@ -58,15 +56,8 @@ function renderIdentity() {
   line("    4. สร้างเอกสาร (ใบเสนอราคา, ใบแจ้งหนี้, ใบเสร็จ)");
   line("    5. ประสานงานผ่าน LINE / Email");
   line("");
-
-  sub("Business Domains ที่ดูแล");
-  const domains = business.domains ?? {};
-  for (const [, d] of Object.entries(domains) as [string, any][]) {
-    const sym = d.status === "covered" ? "OK" : d.status === "partial" ? "~~" : "--";
-    line(`    ${sym}  ${d.label}`);
-  }
-
-  sub("สิ่งที่ผมห้ามทำ (Constitution Rule 81-90)");
+  
+  sub("สิ่งที่ผมห้ามทำ (จาก 03-constitution.json)");
   line("    ✗ สร้างข้อมูลธุรกิจเอง (Rule 82)");
   line("    ✗ ตัดสินใจทางการเงิน (Rule 83)");
   line("    ✗ ส่งข้อความโดยไม่ได้อนุมัติ (Rule 84)");
@@ -680,7 +671,7 @@ export function runExistenceIntelligence() {
 
   line("");
   line(`  Generated: ${new Date().toISOString()}`);
-  line(`  Source: registry/*.json + infrastructure.json + existence.json`);
+  line(`  Source: registry/*.json`);
   line(`  Policy: ห้ามเดา — ทุกคำตอบมาจากโครงสร้างจริงของระบบ`);
   line("");
 }

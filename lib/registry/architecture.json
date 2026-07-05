@@ -1,7 +1,6 @@
 {
   "version": 1,
   "layers": {
-    "v1-input":      { "purpose": "รับ Event แปลงเป็น JSON", "modules": ["parser", "debts", "invoices", "documents", "jobs", "partners", "line", "computer"] },
     "v2-rules":      { "purpose": "Validation / Business Rule / Permission", "modules": ["actions", "resolver"] },
     "v3-engines":    { "purpose": "คำนวณ (ราคา/VAT/ดอกเบี้ย/สถานะ)", "modules": ["config-loader", "distance", "time", "fuel", "cost", "pricing", "tax", "debt", "capacity"] },
     "v4-ai":         { "purpose": "แปลภาษา ไม่สร้างข้อมูล ไม่คำนวณ", "modules": ["bridge-local", "bridge-openai"] },
@@ -16,6 +15,10 @@
     "shared":        { "purpose": "Types", "modules": ["types"] },
     "supabase":      { "purpose": "DB + Realtime", "modules": ["queries", "realtime"] },
     "agent":         { "purpose": "Local macOS Agent", "modules": ["server"] },
-    "registry":      { "purpose": "System Registries", "modules": ["architecture", "modules", "interfaces", "events", "commands", "schemas", "drivers", "services"] }
+    "registry":      { "purpose": "System Registries", "modules": ["architecture", "modules", "interfaces", "events", "commands", "schemas", "drivers", "services"] },
+    "cognitive":     { "purpose": "Cognitive Pipeline (Intent → Plan → Execute → Reflect)", "modules": ["pipeline", "executor", "planner", "reasoning", "reflection", "evaluation", "hypothesis", "memory", "state", "situation", "board", "objective", "intent", "knowledge", "learning", "priority"] },
+    "platform":      { "purpose": "Platform Detection", "modules": [] },
+    "middleware":    { "purpose": "Auth + Sanitize", "modules": ["auth", "sanitize"] },
+    "macos":         { "purpose": "macOS Native Drivers (Swift)", "modules": ["protocol", "ax", "mouse", "resolver", "helpers", "registry", "clipboard", "keyboard"] }
   }
 }

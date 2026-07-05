@@ -8,6 +8,7 @@ export { calcTax } from "./tax";
 export { calcDebtFull, calcCompoundInterest, calcDaysOverdue, checkOverdue, nextStatus } from "./debt/engine";
 export type { DebtStatus } from "./debt/engine";
 export { calcCapacity } from "./capacity";
+export { loadBusinessRules, calculatePrice, calculateDebt } from "./business";
 
 import type { AuditTrail } from "./config-loader";
 import { findNearestPit } from "./distance";

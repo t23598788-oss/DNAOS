@@ -1,0 +1,37 @@
+{
+  "domain": "material",
+  "tables": [
+    {
+      "table": "material_types",
+      "primaryKey": "id",
+      "description": "ประเภทวัสดุ — ดิน หิน ทราย ลูกรัง คอนกรีต",
+      "columns": ["id", "name", "created_at", "deleted_at"],
+      "softDelete": true
+    }
+  ],
+  "relations": [
+    { "table": "pit_materials", "foreignKey": "material_type_id", "type": "foreign_key" },
+    { "table": "jobs", "foreignKey": "material_type_id", "type": "foreign_key" }
+  ],
+  "indexes": [],
+  "permissions": {
+    "read": ["Cognitive Pipeline", "Pricing Engine", "Review Board"],
+    "write": ["V6 Executor"]
+  },
+  "commands": ["review_material"],
+  "events": ["material.created", "material.price_updated"],
+  "engines": [
+    { "name": "Pricing Engine", "file": "lib/v3-engines/pricing/engine.ts", "function": "calcTransportPrice" }
+  ],
+  "queries": [
+    { "name": "getMaterialTypes", "file": "lib/supabase/queries.ts", "action": "read" }
+  ],
+  "dependencies": [],
+  "validators": [
+    { "rule": "ต้องมี name", "field": "name", "type": "required" }
+  ],
+  "documents": ["quotation", "boq", "purchase_order"],
+  "api": [
+    { "endpoint": "/api/chat", "method": "POST", "action": "ดูวัสดุ" }
+  ]
+}

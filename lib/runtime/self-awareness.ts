@@ -217,7 +217,6 @@ function analyzeContainerFit(): ContainerFit[] {
   };
 
   for (const [env, supported] of Object.entries(envCaps)) {
-    const allCaps = Object.keys(caps);
     const available = supported.filter(c => caps[c]?.status === "available" || caps[c]?.status === "partial");
     const missing = supported.filter(c => caps[c]?.status === "not_available");
     const fit = supported.length > 0 ? Math.round((available.length / supported.length) * 100) : 0;
@@ -492,6 +491,27 @@ export function runDiagnosis() {
   line(`  Generated: ${new Date().toISOString()}`);
   line("");
 }
+
+// ── Structured JSON export (ใช้โดย API route) ──
+
+export function getDiagnosisJSON() {
+  return {
+    generated_at: new Date().toISOString(),
+    digital_dna: generateDigitalDNA(),
+    capability_gaps: analyzeCapabilityGaps(),
+    workflow_gaps: analyzeWorkflowGaps(),
+    container_fit: analyzeContainerFit(),
+    evolution: analyzeEvolution(),
+    missing_knowledge: (existence.missing_knowledge ?? []) as {
+      domain: string;
+      item: string;
+      impact: string;
+    }[],
+    human_dependency: existence.human_dependency ?? {},
+  };
+}
+
+export { runExistenceIntelligence } from "./existence-intelligence";
 
 if (require.main === module) {
   runDiagnosis();

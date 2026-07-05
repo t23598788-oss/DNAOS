@@ -122,6 +122,56 @@ export type DebtStatus =
   | "PARTIAL_PAYMENT"
   | "CLOSED";
 
+// ── Partner Timeline Types ──
+
+export type BusinessEventType =
+  | "quotation_sent"
+  | "po_received"
+  | "delivery_made"
+  | "invoice_issued"
+  | "payment_received"
+  | "credit_note_issued"
+  | "line_chat"
+  | "note";
+
+export interface BusinessEvent {
+  id: string;
+  partner_id: string | null;
+  event_type: BusinessEventType;
+  event_date: string;
+  title: string | null;
+  description: string | null;
+  metadata: Record<string, unknown>;
+  created_at: string;
+}
+
+export type TimelineEntryKind = "document" | "business_event";
+
+export interface PartnerTimelineEntry {
+  date: string;
+  kind: TimelineEntryKind;
+  event_type: string;
+  title: string;
+  subtitle: string | null;
+  amount: number | null;
+  status: string | null;
+  document_id?: string;
+  document_number?: string;
+  business_event_id?: string;
+}
+
+export interface PartnerSummary {
+  id: string;
+  name: string;
+  partner_type_label: string | null;
+  phone: string | null;
+  total_invoiced: number;
+  total_received: number;
+  outstanding: number;
+  last_activity: string | null;
+  document_count: number;
+}
+
 // ── Audit Types ──
 
 export interface AuditTrail {

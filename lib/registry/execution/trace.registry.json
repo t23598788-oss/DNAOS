@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "last_updated": "2026-07-05",
+  "trace_config": {
+    "enabled": true,
+    "storage_table": "line_events",
+    "span_types": ["webhook_receive", "signature_verify", "event_log", "ai_extraction", "workflow", "reply_send", "notify_send", "error"],
+    "include_payload": false,
+    "sampling_rate": 1.0,
+    "retention_days": 30
+  }
+}

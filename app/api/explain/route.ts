@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAuth } from "@/lib/middleware/auth";
+import { loadConfigs } from "@/lib/v3-engines/config-loader";
+import { haversine } from "@/lib/v3-engines/distance";
 import { explainQuote } from "@/lib/v5-presenter/explainer";
 
 export async function POST(req: NextRequest) {
@@ -13,6 +15,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: false, error: "ต้องระบุ pit_id" }, { status: 400 });
     }
 
+    const configs = await loadConfigs();
     const result = await explainQuote({
       pit_id: body.pit_id,
       site_lat: body.site_lat ?? 16.4314,
@@ -20,6 +23,8 @@ export async function POST(req: NextRequest) {
       quantity: body.quantity ?? 100,
       material_type_id: body.material_type_id,
       vehicle_type_id: body.vehicle_type_id,
+      configs,
+      calcDistanceFn: haversine,
     });
 
     return NextResponse.json({ ok: true, ...result });

@@ -1,8 +1,8 @@
 {
   "version": 1,
   "events": {
-    "line.message_received":    { "source": "v1-input",     "data": ["userId", "messageText", "messageType", "timestamp"] },
-    "command.parsed":           { "source": "v1-input",     "data": ["action", "payload"] },
+    "line.message_received":    { "source": "cognitive",    "data": ["userId", "messageText", "messageType", "timestamp"] },
+    "command.parsed":           { "source": "cognitive",    "data": ["action", "payload"] },
     "command.translated":       { "source": "v4-ai",        "data": ["action", "mode", "payload"] },
     "rule.validated":           { "source": "v2-rules",     "data": ["valid", "message"] },
     "engine.calculated":        { "source": "v3-engines",   "data": ["result", "audit"] },

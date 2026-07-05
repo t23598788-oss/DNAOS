@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAuth } from "@/lib/middleware/auth";
-import { dispatchAction } from "@/lib/v2-rules/actions";
+import { dispatchAction } from "@/lib/v6-executor/gateway";
 import { dispatchFind } from "@/lib/v2-rules/resolver";
 import { enrichPitResults, enrichPartnerResults } from "@/lib/v5-presenter/enricher";
+import { calcDistance } from "@/lib/v3-engines/distance";
 import { formatPitResults, formatPartnerResults } from "@/lib/v5-presenter/formatter";
 import { detectRankContext, rankResults } from "@/lib/v5-presenter/ranker";
-import type { ActionRequest } from "@/lib/v2-rules/actions";
+import type { ActionRequest } from "@/lib/v6-executor/gateway";
 
 // TODO: ย้ายไป app_configs table — Rule 1 ห้าม hardcode
 const HQ_LAT = 16.4714;
@@ -42,7 +43,7 @@ export async function POST(req: NextRequest) {
             const rankCtx = detectRankContext(question);
 
             if (isPit) {
-              const enriched = await enrichPitResults(rawData, HQ_LAT, HQ_LNG);
+              const enriched = await enrichPitResults(rawData, HQ_LAT, HQ_LNG, calcDistance);
               const ranked = rankResults(enriched, rankCtx);
               const formatted = formatPitResults(ranked, body.keyword);
               return NextResponse.json({ ...result, record: { ...result.record, enriched: ranked, formatted, rank: rankCtx } });

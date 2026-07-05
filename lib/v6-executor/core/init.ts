@@ -1,7 +1,9 @@
 /**
  * Auto-register ทุก Driver — import ไฟล์นี้ครั้งเดียว
+ * รวม: Driver registration + Workflow engine ready
  */
 import { register } from "./registry";
+import "@/lib/v6-executor/core/engine"; // ensure workflow engine module is loaded
 import line from "@/lib/v6-executor/drivers/line";
 import chrome from "@/lib/v6-executor/drivers/chrome";
 import vscode from "@/lib/v6-executor/drivers/vscode";

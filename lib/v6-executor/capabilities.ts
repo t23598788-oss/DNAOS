@@ -27,7 +27,8 @@ export interface Tool {
   capability: CapabilityType;
   logo: string;
   status: ToolStatus;
-  handler: "url_scheme" | "mcp" | "api" | "supabase";
+  handler: "url_scheme" | "mcp" | "api" | "supabase" | "driver";
+  driver_app?: string;
   mcp_server?: string;
   last_sync?: string;
 }
@@ -75,7 +76,7 @@ const L = {
 
 export const TOOLS: Tool[] = [
   // Communication
-  { id: "line",       name: "LINE",       capability: "communication", logo: L.line,      status: "connected",      handler: "url_scheme" },
+  { id: "line",       name: "LINE",       capability: "communication", logo: L.line,      status: "connected",      handler: "driver",     driver_app: "line" },
   { id: "whatsapp",   name: "WhatsApp",   capability: "communication", logo: L.whatsapp,  status: "disabled",       handler: "mcp" },
   { id: "messenger",  name: "Messenger",  capability: "communication", logo: L.messenger, status: "disabled",       handler: "mcp" },
   { id: "telegram",   name: "Telegram",   capability: "communication", logo: L.telegram,  status: "disabled",       handler: "mcp" },
@@ -83,8 +84,8 @@ export const TOOLS: Tool[] = [
   { id: "slack",      name: "Slack",      capability: "communication", logo: L.slack,     status: "connected",      handler: "mcp", mcp_server: "slack@openai-curated" },
 
   // Maps
-  { id: "gmaps",      name: "Google Maps",  capability: "maps",    logo: L.gmaps,   status: "connected",      handler: "url_scheme" },
-  { id: "gearth",     name: "Google Earth", capability: "maps",    logo: L.gearth,  status: "auth_required",  handler: "mcp" },
+  { id: "gmaps",      name: "Google Maps",  capability: "maps",    logo: L.gmaps,   status: "connected",      handler: "driver",     driver_app: "google maps" },
+  { id: "gearth",     name: "Google Earth", capability: "maps",    logo: L.gearth,  status: "auth_required",  handler: "driver",     driver_app: "google earth" },
 
   // Storage
   { id: "gdrive",     name: "Google Drive", capability: "storage", logo: L.gdrive,  status: "connected",      handler: "mcp", mcp_server: "Google_Drive" },
@@ -104,7 +105,7 @@ export const TOOLS: Tool[] = [
 
   // Development
   { id: "github",     name: "GitHub",    capability: "development", logo: L.github, status: "connected",      handler: "mcp", mcp_server: "github@openai-curated" },
-  { id: "vscode",     name: "VS Code",   capability: "development", logo: L.vscode, status: "connected",     handler: "url_scheme" },
+  { id: "vscode",     name: "VS Code",   capability: "development", logo: L.vscode, status: "connected",      handler: "driver",     driver_app: "vs code" },
 
   // Business
   { id: "gmail",      name: "Gmail",     capability: "business", logo: L.gmail,   status: "connected",      handler: "mcp" },

@@ -1,0 +1,61 @@
+{
+  "version": 1,
+  "last_updated": "2026-07-05",
+  "initial_state": "IDLE",
+  "states": {
+    "IDLE": {
+      "id": "IDLE", "label": "รอรับ message", "description": "ไม่มี context — รอรับ message ใหม่",
+      "collecting": [], "terminal": false, "status": "ACTIVE"
+    },
+    "COLLECTING_MATERIAL": {
+      "id": "COLLECTING_MATERIAL", "label": "ถามประเภทวัสดุ",
+      "description": "ระบบรู้ว่าลูกค้าต้องการวัสดุ แต่ยังไม่ทราบประเภท",
+      "collecting": ["material_type"], "terminal": false, "timeout_ms": 300000, "on_timeout": "IDLE", "status": "ACTIVE"
+    },
+    "COLLECTING_LOCATION": {
+      "id": "COLLECTING_LOCATION", "label": "รอรับพิกัด",
+      "description": "ทราบวัสดุแล้ว รอลูกค้าส่ง location share",
+      "collecting": ["delivery_location"], "terminal": false, "timeout_ms": 600000, "on_timeout": "IDLE", "status": "ACTIVE"
+    },
+    "COLLECTING_QUANTITY": {
+      "id": "COLLECTING_QUANTITY", "label": "ถามปริมาณ",
+      "description": "ทราบวัสดุและพิกัดแล้ว ถามปริมาณ (คิว)",
+      "collecting": ["quantity_m3"], "terminal": false, "timeout_ms": 300000, "on_timeout": "IDLE", "status": "ACTIVE"
+    },
+    "MATCHING": {
+      "id": "MATCHING", "label": "กำลังจับคู่บ่อ",
+      "description": "ระบบกำลัง query match_queue และคำนวณราคา",
+      "collecting": [], "terminal": false, "timeout_ms": 10000, "on_timeout": "ERROR", "status": "ACTIVE"
+    },
+    "PRESENTING_QUOTE": {
+      "id": "PRESENTING_QUOTE", "label": "แสดงราคา",
+      "description": "ส่งราคาและข้อมูลบ่อวัสดุให้ลูกค้า",
+      "collecting": [], "terminal": false, "timeout_ms": 5000, "status": "ACTIVE"
+    },
+    "GENERATING_BOQ": {
+      "id": "GENERATING_BOQ", "label": "สร้าง BOQ Draft",
+      "description": "สร้างเอกสาร BOQ Draft และส่งให้ลูกค้า",
+      "collecting": [], "terminal": false, "timeout_ms": 10000, "status": "ACTIVE"
+    },
+    "CHECKING_STATUS": {
+      "id": "CHECKING_STATUS", "label": "ตรวจสถานะออเดอร์",
+      "description": "Query สถานะออเดอร์ล่าสุดของลูกค้า",
+      "collecting": [], "terminal": false, "timeout_ms": 5000, "status": "ACTIVE"
+    },
+    "AWAITING_CONFIRMATION": {
+      "id": "AWAITING_CONFIRMATION", "label": "รอยืนยัน",
+      "description": "ส่งราคาแล้ว รอลูกค้ายืนยันออเดอร์",
+      "collecting": [], "terminal": false, "timeout_ms": 86400000, "on_timeout": "IDLE", "status": "ACTIVE"
+    },
+    "CONFIRMED": {
+      "id": "CONFIRMED", "label": "ยืนยันแล้ว",
+      "description": "ลูกค้ายืนยันออเดอร์แล้ว — สิ้นสุด conversation flow",
+      "collecting": [], "terminal": true, "status": "ACTIVE"
+    },
+    "ERROR": {
+      "id": "ERROR", "label": "Error",
+      "description": "เกิดข้อผิดพลาดในกระบวนการ",
+      "collecting": [], "terminal": true, "status": "ACTIVE"
+    }
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "name": "partners",
+  "name_th": "ระบบจัดการคู่ค้า",
+  "purpose": "Manages all partner entities, including customers, vendors, and suppliers.",
+  "purpose_th": "เก็บและจัดการข้อมูลคู่ค้าทุกประเภท",
+  "description_th": "ใช้เก็บข้อมูลลูกค้า, ผู้ขาย, และผู้ส่งของ เพื่อใช้อ้างอิงในระบบเอกสาร, หนี้, และงานขนส่ง",
+  "used_by": [
+    "lib/v3-engines/debt/engine.ts",
+    "lib/documents/engine.ts",
+    "lib/v3-engines/pricing/engine.ts"
+  ],
+  "used_by_th": [
+    "ไฟล์จัดการหนี้",
+    "ไฟล์จัดการเอกสาร",
+    "ไฟล์คำนวณราคา"
+  ],
+  "depends_on": [
+    "app_configs"
+  ],
+  "depends_on_th": [
+    "ค่ากำหนดของระบบ"
+  ]
+}

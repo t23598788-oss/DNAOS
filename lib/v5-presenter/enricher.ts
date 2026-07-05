@@ -1,5 +1,4 @@
 import { supabase } from "@/lib/supabase/queries";
-import { calcDistance } from "@/lib/v3-engines/distance";
 
 export interface EnrichedRecord {
   id: string;
@@ -18,7 +17,8 @@ export interface EnrichedRecord {
 export async function enrichPitResults(
   pits: Record<string, unknown>[],
   userLat?: number,
-  userLng?: number
+  userLng?: number,
+  calcDistanceFn?: (input: { from_lat: number; from_lng: number; to_lat: number; to_lng: number }) => Promise<{ distance_km: number }>,
 ): Promise<EnrichedRecord[]> {
   const results: EnrichedRecord[] = [];
 
@@ -51,10 +51,9 @@ export async function enrichPitResults(
       }
     }
 
-    // คำนวณระยะทาง (ถ้ามี user location)
     let distance_km: number | undefined;
-    if (userLat && userLng && lat && lng) {
-      const dist = await calcDistance({ from_lat: userLat, from_lng: userLng, to_lat: lat, to_lng: lng });
+    if (userLat && userLng && lat && lng && calcDistanceFn) {
+      const dist = await calcDistanceFn({ from_lat: userLat, from_lng: userLng, to_lat: lat, to_lng: lng });
       distance_km = dist.distance_km;
     }
 

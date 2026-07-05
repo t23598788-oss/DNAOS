@@ -8,6 +8,8 @@
 
 import { supabase } from "@/lib/supabase/queries";
 import { findTool } from "./capabilities";
+import "@/lib/v6-executor/core/init"; // registers all AppDrivers on startup
+import { get as getDriver } from "@/lib/v6-executor/core/registry";
 
 export interface ExecuteRequest {
   tool_id: string;
@@ -44,11 +46,12 @@ export async function execute(req: ExecuteRequest): Promise<ExecuteResult> {
       return executeSupabase(req);
     case "url_scheme":
       return executeUrlScheme(tool, req);
+    case "driver":
+      return executeDriver(tool, req);
     case "api":
       return executeApi(req);
     case "mcp":
       return { ok: false, tool_id: req.tool_id, action: req.action, error: "MCP ต้องเรียกผ่าน Mac terminal" };
-    // browser handler removed — OS basics hidden from V6
     default:
       return { ok: false, tool_id: req.tool_id, action: req.action, error: `handler ไม่รองรับ: ${tool.handler}` };
   }
@@ -81,6 +84,31 @@ async function executeSupabase(req: ExecuteRequest): Promise<ExecuteResult> {
     }
     default:
       return { ok: false, tool_id: req.tool_id, action: req.action, error: `supabase ไม่รองรับ action: ${req.action}` };
+  }
+}
+
+async function executeDriver(tool: ReturnType<typeof findTool>, req: ExecuteRequest): Promise<ExecuteResult> {
+  const appName = tool?.driver_app ?? req.tool_id;
+  const driver = getDriver(appName);
+  if (!driver) {
+    return { ok: false, tool_id: req.tool_id, action: req.action, error: `ไม่พบ driver สำหรับ: ${appName}` };
+  }
+  try {
+    const map: Record<string, () => Promise<unknown>> = {
+      open:   () => driver.launch(),
+      search: () => driver.search(String(req.payload.query ?? req.payload.q ?? "")),
+      click:  () => driver.click(String(req.payload.target ?? "")),
+      send:   () => driver.type(String(req.payload.text ?? "")),
+      import: () => driver.read(),
+      delete: () => driver.close(),
+      update: () => driver.focus(),
+    };
+    const fn = map[req.action];
+    if (!fn) return { ok: false, tool_id: req.tool_id, action: req.action, error: `driver ไม่รองรับ action: ${req.action}` };
+    const result = await fn();
+    return { ok: true, tool_id: req.tool_id, action: req.action, result: result as Record<string, unknown> };
+  } catch (e: any) {
+    return { ok: false, tool_id: req.tool_id, action: req.action, error: e.message ?? String(e) };
   }
 }
 

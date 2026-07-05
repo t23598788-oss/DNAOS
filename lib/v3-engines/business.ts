@@ -25,6 +25,7 @@ export async function loadBusinessRules(): Promise<{ ok: boolean; rules: RulesCo
   const rules = await loadConfigs();
   return { ok: true, rules, count: Object.keys(rules).length };
 }
+
 // ── 2. คำนวณ Business Logic ──
 
 export async function calculatePrice(args: {
@@ -116,3 +117,4 @@ export function registerBusinessCommands(): void {
     })
   );
 }
+

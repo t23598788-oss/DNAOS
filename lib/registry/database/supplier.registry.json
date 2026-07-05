@@ -1,0 +1,47 @@
+{
+  "domain": "supplier",
+  "tables": [
+    {
+      "table": "pit_profiles",
+      "primaryKey": "id",
+      "description": "โปรไฟล์บ่อ/โรงโม่ — ที่ตั้ง ระยะทาง",
+      "columns": ["id", "pit_name", "partner_id", "latitude", "longitude", "distance_from_hq", "created_at", "deleted_at"],
+      "softDelete": true
+    },
+    {
+      "table": "pit_materials",
+      "primaryKey": "id",
+      "description": "วัสดุที่แต่ละบ่อขาย — ราคา สต็อก",
+      "columns": ["id", "pit_id", "material_type_id", "price_per_unit", "available", "created_at"],
+      "softDelete": false
+    }
+  ],
+  "relations": [
+    { "table": "partners", "foreignKey": "partner_id", "type": "foreign_key" },
+    { "table": "material_types", "foreignKey": "material_type_id", "type": "foreign_key" }
+  ],
+  "indexes": [
+    { "table": "pit_profiles", "column": "partner_id", "type": "btree" }
+  ],
+  "permissions": {
+    "read": ["Cognitive Pipeline", "Pricing Engine", "Review Board"],
+    "write": ["V6 Executor"]
+  },
+  "commands": ["review_partner", "review_supplier"],
+  "events": ["supplier.created", "supplier.price_updated", "supplier.stock_changed"],
+  "engines": [
+    { "name": "Pricing Engine", "file": "lib/v3-engines/pricing/engine.ts", "function": "calcTransportPrice" }
+  ],
+  "queries": [],
+  "dependencies": ["customer", "material"],
+  "validators": [
+    { "rule": "ต้องมี pit_name", "field": "pit_name", "type": "required" },
+    { "rule": "ต้องมี partner_id", "field": "partner_id", "type": "required" },
+    { "rule": "price_per_unit > 0", "field": "price_per_unit", "type": "positive" }
+  ],
+  "documents": ["purchase_order", "quotation"],
+  "api": [
+    { "endpoint": "/api/chat", "method": "POST", "action": "ดูโรงโม่ / ดูคู่ค้า" },
+    { "endpoint": "/api/action", "method": "POST", "action": "find pit / find partner" }
+  ]
+}

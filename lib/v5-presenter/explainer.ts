@@ -8,7 +8,6 @@
  */
 
 import { supabase } from "@/lib/supabase/queries";
-import { loadConfigs, getNum } from "@/lib/v3-engines/config-loader";
 
 export interface TracedValue {
   label: string;
@@ -28,6 +27,9 @@ export interface ExplainedQuote {
   };
 }
 
+type RulesConfig = Record<string, unknown>;
+function getNum(configs: RulesConfig, key: string): number { return Number(configs[key] ?? 0); }
+
 export async function explainQuote(params: {
   pit_id: string;
   site_lat: number;
@@ -35,8 +37,10 @@ export async function explainQuote(params: {
   quantity: number;
   material_type_id?: string;
   vehicle_type_id?: string;
+  configs: RulesConfig;
+  calcDistanceFn: (lat1: number, lng1: number, lat2: number, lng2: number) => number;
 }): Promise<ExplainedQuote> {
-  const configs = await loadConfigs();
+  const configs = params.configs;
   const now = new Date().toISOString();
   const items: TracedValue[] = [];
 
@@ -47,12 +51,8 @@ export async function explainQuote(params: {
     .eq("id", params.pit_id)
     .single();
 
-  // 2. ระยะทาง
-  const R = 6371;
-  const dLat = ((pit?.latitude ?? 0) - params.site_lat) * Math.PI / 180;
-  const dLng = ((pit?.longitude ?? 0) - params.site_lng) * Math.PI / 180;
-  const a = Math.sin(dLat / 2) ** 2 + Math.cos(params.site_lat * Math.PI / 180) * Math.cos((pit?.latitude ?? 0) * Math.PI / 180) * Math.sin(dLng / 2) ** 2;
-  const rawDist = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  // 2. ระยะทาง (ใช้ haversine ที่ inject มาจาก caller)
+  const rawDist = params.calcDistanceFn(params.site_lat, params.site_lng, pit?.latitude ?? 0, pit?.longitude ?? 0);
   const minDist = getNum(configs, "minimum-distance");
   const distance = Math.max(rawDist, minDist);
 

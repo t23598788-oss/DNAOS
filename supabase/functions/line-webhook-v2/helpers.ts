@@ -1,3 +1,5 @@
+import { haversine as calculateDistance } from "../_shared/haversine.ts"
+
 export interface ConversationState {
   line_user_id: string;
   current_intent: string | null;
@@ -19,19 +21,6 @@ export interface ConversationState {
   contact_name: string | null;
   contact_phone: string | null;
   payer_name: string | null;
-}
-
-// Haversine formula to compute distance in km between two coordinates
-function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
-  const R = 6371; // Radius of the earth in km
-  const dLat = (lat2 - lat1) * Math.PI / 180;
-  const dLon = (lon2 - lon1) * Math.PI / 180;
-  const a = 
-    Math.sin(dLat/2) * Math.sin(dLat/2) +
-    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
-    Math.sin(dLon/2) * Math.sin(dLon/2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-  return R * c; // Distance in km
 }
 
 // 1. Get or Initialize State

@@ -10,21 +10,21 @@ import { join } from "path";
 import { execSync } from "child_process";
 
 const ROOT = process.cwd();
+const REGISTRY_ROOT = join(ROOT, "../registry");
 const SESSION_FILE = join(ROOT, ".dna-session.json");
 
 function load(path: string): any {
-  try { return JSON.parse(readFileSync(join(ROOT, path), "utf-8")); }
+  try { return JSON.parse(readFileSync(path, "utf-8")); }
   catch { return {}; }
 }
 
 function line(t: string) { console.log(t); }
 
-const existence = load("lib/registry/existence.json");
-const infra = load("lib/registry/infrastructure.json");
-const business = load("lib/registry/business-coverage.json");
-const decisions = load("lib/registry/decision-coverage.json");
-const modules = load("lib/registry/module-registry.json");
-const commands = load("lib/registry/command-registry.json");
+const statusRegistry = load(join(REGISTRY_ROOT, "10-status-registry.json"));
+const infra = statusRegistry; // infrastructure is now part of status-registry
+const existence = statusRegistry; // existence data is now part of status-registry
+const modules = load(join(REGISTRY_ROOT, "02-module-registry.json"));
+const commands = load(join(REGISTRY_ROOT, "06-command-registry.json"));
 
 // ═══════════════════════════════════════════
 // SESSION — จำว่าทำถึงไหน
@@ -70,8 +70,6 @@ function why(topic: string) {
   const t = topic.toLowerCase();
   const caps = existence.capabilities ?? {};
   const services = infra.services ?? {};
-  const domains = business.domains ?? {};
-  const decisionMap = decisions.decisions ?? {};
 
   line("");
   line(`  ╔═══════════════════════════════════════╗`);
@@ -119,41 +117,6 @@ function why(topic: string) {
     }
   }
 
-  // Check business domains
-  for (const [key, domain] of Object.entries(domains) as [string, any][]) {
-    if (key.includes(t) || domain.label?.includes(topic)) {
-      line(`  Type: Business Domain`);
-      line(`  Label: ${domain.label}`);
-      line(`  Status: ${domain.status}`);
-      line(`  Modules: ${domain.modules?.join(", ") ?? "ไม่มี"}`);
-      line(`  Commands: ${domain.commands?.join(", ") ?? "ไม่มี"}`);
-      line(`  Workflows: ${domain.workflows?.join(", ") ?? "ไม่มี"}`);
-      if (domain.gap) line(`  Gap: ${domain.gap}`);
-      line("");
-      line("  Evidence:");
-      searchEvidence(key).forEach(e => line(`    [${e.source}] ${e.finding}`));
-      return;
-    }
-  }
-
-  // Check decisions
-  for (const [key, dec] of Object.entries(decisionMap) as [string, any][]) {
-    if (key.includes(t) || dec.label?.includes(topic)) {
-      line(`  Type: Decision Domain`);
-      line(`  Label: ${dec.label}`);
-      line(`  Coverage: ${dec.coverage_pct}%`);
-      line(`  Points: ${dec.codified}/${dec.total_decision_points}`);
-      line("");
-      for (const rule of dec.rules ?? []) {
-        const status = rule.codified_in ? "OK" : "--";
-        line(`    ${status}  ${rule.decision}`);
-        if (rule.codified_in) line(`        → ${rule.codified_in}`);
-        if (rule.gap) line(`        !! ${rule.gap}`);
-      }
-      return;
-    }
-  }
-
   line(`  ไม่พบข้อมูลเกี่ยวกับ "${topic}"`);
   line("  ลองพิมพ์:");
   line("    why voice | why supabase | why maps | why debt | why pricing");
@@ -168,7 +131,7 @@ function searchEvidence(topic: string): Evidence[] {
   for (const [path] of Object.entries(mods)) {
     if (path.toLowerCase().includes(topic)) modCount++;
   }
-  evidence.push({ source: "module-registry.json", finding: `${modCount} modules match "${topic}"` });
+  evidence.push({ source: "02-module-registry.json", finding: `${modCount} modules match "${topic}"` });
 
   // Search command registry
   const cmds = commands.commands ?? {};
@@ -176,7 +139,7 @@ function searchEvidence(topic: string): Evidence[] {
   for (const [name] of Object.entries(cmds)) {
     if (name.toLowerCase().includes(topic)) cmdCount++;
   }
-  evidence.push({ source: "command-registry.json", finding: `${cmdCount} commands match "${topic}"` });
+  evidence.push({ source: "06-command-registry.json", finding: `${cmdCount} commands match "${topic}"` });
 
   // Search source files
   try {
