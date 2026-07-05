@@ -1,9 +1,9 @@
 'use client'
 
-import { useState } from "react"
+import { Suspense, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const nextPath = searchParams.get("next") ?? "/admin"
@@ -32,7 +32,6 @@ export default function LoginPage() {
         return
       }
 
-      // redirect ไป next path (ป้องกัน loop ถ้า next = /admin/login)
       const safePath = nextPath.startsWith("/admin/login") ? "/admin" : nextPath
       router.push(safePath)
       router.refresh()
@@ -43,6 +42,54 @@ export default function LoginPage() {
     }
   }
 
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div>
+        <label className="block text-xs font-semibold text-stone-600 mb-1.5">Email</label>
+        <input
+          type="email"
+          autoComplete="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+          disabled={loading}
+          className="w-full text-sm border border-stone-200 rounded-xl px-4 py-2.5 focus:outline-none focus:border-stone-500 focus:ring-1 focus:ring-stone-500 transition bg-stone-50 disabled:opacity-50"
+          placeholder="admin@company.com"
+        />
+      </div>
+
+      <div>
+        <label className="block text-xs font-semibold text-stone-600 mb-1.5">Password</label>
+        <input
+          type="password"
+          autoComplete="current-password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+          disabled={loading}
+          className="w-full text-sm border border-stone-200 rounded-xl px-4 py-2.5 focus:outline-none focus:border-stone-500 focus:ring-1 focus:ring-stone-500 transition bg-stone-50 disabled:opacity-50"
+          placeholder="••••••••"
+        />
+      </div>
+
+      {error && (
+        <div className="text-xs text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2">
+          {error}
+        </div>
+      )}
+
+      <button
+        type="submit"
+        disabled={loading || !email || !password}
+        className="w-full py-2.5 rounded-xl bg-stone-900 text-white text-sm font-semibold hover:bg-stone-800 transition disabled:opacity-40 disabled:cursor-not-allowed"
+      >
+        {loading ? "กำลังเข้าสู่ระบบ..." : "Sign in"}
+      </button>
+    </form>
+  )
+}
+
+export default function LoginPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-stone-100 to-stone-200 flex items-center justify-center p-4">
       <div className="w-full max-w-sm">
@@ -59,49 +106,9 @@ export default function LoginPage() {
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-xs font-semibold text-stone-600 mb-1.5">Email</label>
-              <input
-                type="email"
-                autoComplete="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                disabled={loading}
-                className="w-full text-sm border border-stone-200 rounded-xl px-4 py-2.5 focus:outline-none focus:border-stone-500 focus:ring-1 focus:ring-stone-500 transition bg-stone-50 disabled:opacity-50"
-                placeholder="admin@company.com"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-stone-600 mb-1.5">Password</label>
-              <input
-                type="password"
-                autoComplete="current-password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                disabled={loading}
-                className="w-full text-sm border border-stone-200 rounded-xl px-4 py-2.5 focus:outline-none focus:border-stone-500 focus:ring-1 focus:ring-stone-500 transition bg-stone-50 disabled:opacity-50"
-                placeholder="••••••••"
-              />
-            </div>
-
-            {error && (
-              <div className="text-xs text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2">
-                {error}
-              </div>
-            )}
-
-            <button
-              type="submit"
-              disabled={loading || !email || !password}
-              className="w-full py-2.5 rounded-xl bg-stone-900 text-white text-sm font-semibold hover:bg-stone-800 transition disabled:opacity-40 disabled:cursor-not-allowed"
-            >
-              {loading ? "กำลังเข้าสู่ระบบ..." : "Sign in"}
-            </button>
-          </form>
+          <Suspense fallback={<div className="h-40 animate-pulse bg-stone-100 rounded-xl" />}>
+            <LoginForm />
+          </Suspense>
         </div>
 
         <p className="mt-6 text-center text-[10px] text-stone-400">
