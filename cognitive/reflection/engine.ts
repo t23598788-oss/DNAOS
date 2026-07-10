@@ -98,20 +98,28 @@ export function reflect(
     }
 
     // ── create operations → บันทึกว่าสร้างอะไร ──
+    // Rule 72: a *.create step whose data carries _preview_pending hasn't
+    // actually written anything yet (see cognitive/executor/index.ts /
+    // gateway/actions.ts previewDocumentCreate) — the summary text below
+    // must not say "สำเร็จ" for that case, or a human reading "สำเร็จ" would
+    // reasonably believe the document was already saved when it wasn't.
     if (result.tool.includes(".create") && result.data) {
+      const isPreviewOnly = !!result.data._preview_pending
       transitions.push({
         entity_id: result.data.id ?? "",
         field: "document_status",
         from: "none",
-        to: "created",
+        to: isPreviewOnly ? "preview" : "created",
         timestamp: now,
       });
-      memoryUpdates.push({
-        action: "add",
-        key: "pending_actions",
-        value: `ส่ง LINE ${worldState.context.who ?? ""}`,
-      });
-      lessons.push(`สร้างสำเร็จ: ${result.tool}`);
+      if (!isPreviewOnly) {
+        memoryUpdates.push({
+          action: "add",
+          key: "pending_actions",
+          value: `ส่ง LINE ${worldState.context.who ?? ""}`,
+        });
+      }
+      lessons.push(isPreviewOnly ? `เตรียมพรีวิวแล้ว รอยืนยัน: ${result.tool}` : `สร้างสำเร็จ: ${result.tool}`);
     }
 
     // ── เก็บ result ล่าสุด ──
@@ -126,11 +134,15 @@ export function reflect(
   memoryUpdates.push({ action: "add", key: "previous_goals", value: decision });
   memoryUpdates.push({ action: "set", key: "current_goal", value: decision });
 
+  const hasPendingPreview = results.some((r) => r.success && r.data?._preview_pending)
+
   return {
     success: allSuccess,
-    summary: allSuccess
-      ? `${decision} — สำเร็จ (${results.length} steps)`
-      : `${decision} — บางขั้นตอนล้มเหลว`,
+    summary: !allSuccess
+      ? `${decision} — บางขั้นตอนล้มเหลว`
+      : hasPendingPreview
+      ? `${decision} — เตรียมพรีวิวแล้ว รอยืนยันก่อนบันทึกจริง`
+      : `${decision} — สำเร็จ (${results.length} steps)`,
     resolved_entities: resolvedEntities,
     state_transitions: transitions,
     lessons,
