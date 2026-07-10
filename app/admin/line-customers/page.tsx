@@ -1,12 +1,13 @@
 'use client'
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import Link from "next/link"
 import {
   LayoutGrid, MessageCircle, Briefcase, Building2, FileText, Wallet, Mountain,
+  MapPin, FileSignature, Receipt, Truck, Banknote, Phone, Paperclip, Bot,
 } from "lucide-react"
 import { formatMoney } from "@/engines/documents/document-editor"
-import { AppShell, type IconRailItem, type ListColumnItem } from "@/components/ui-kit"
+import { AppShell, ActionBar, MapView, type IconRailItem, type ListColumnItem, type ActionBarItem } from "@/components/ui-kit"
 
 interface Contact {
   line_user_id: string
@@ -38,7 +39,23 @@ interface Message {
   raw_type: string
   raw_text: string | null
   direction: "in" | "out"
+  extracted: { latitude?: number; longitude?: number; address?: string } | null
   created_at: string
+}
+
+interface ActionLogEntry {
+  id: string
+  role: "user" | "system"
+  text: string
+  confirmToken?: string
+  confirmAction?: string
+  confirmResolved?: "confirmed" | "cancelled"
+}
+
+let actionLogSeq = 0
+function nextActionLogId() {
+  actionLogSeq += 1
+  return `a${Date.now()}-${actionLogSeq}`
 }
 
 interface DocRow {
@@ -94,6 +111,12 @@ export default function LineCustomersPage() {
   const [draftEdits, setDraftEdits] = useState<Record<string, string>>({})
   const [draftBusyId, setDraftBusyId] = useState<string | null>(null)
   const [draftError, setDraftError] = useState<string | null>(null)
+  const [actionLog, setActionLog] = useState<ActionLogEntry[]>([])
+  const [actionSending, setActionSending] = useState(false)
+  const [gpsOpen, setGpsOpen] = useState(false)
+  const [aiAskOpen, setAiAskOpen] = useState(false)
+  const [aiAskText, setAiAskText] = useState("")
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     fetch("/api/admin/line-customers")
@@ -112,6 +135,9 @@ export default function LineCustomersPage() {
     setActiveId(lineUserId)
     setDetail(null)
     setBuildError(null)
+    setActionLog([])
+    setGpsOpen(false)
+    setAiAskOpen(false)
     setDetailLoading(true)
     try {
       await loadDetail(lineUserId)
@@ -168,6 +194,82 @@ export default function LineCustomersPage() {
     }
   }, [loadDetail])
 
+  // Action Bar → cognitive pipeline (owner request 2026-07-11: ปุ่มสร้างเอกสาร
+  // ไม่เรียก backend ใหม่ — ยิงข้อความไทยสำเร็จรูปเข้า /api/chat เหมือนพิมพ์เอง
+  // เพื่อใช้ Rule-72 preview/confirm flow เดิมที่ทำไว้แล้วสำหรับ SecretaryChat)
+  const runCommand = useCallback(async (text: string) => {
+    setActionSending(true)
+    setActionLog((log) => [...log, { id: nextActionLogId(), role: "user", text }])
+    try {
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: text }),
+      })
+      const data = await res.json()
+      setActionLog((log) => [...log, {
+        id: nextActionLogId(),
+        role: "system",
+        text: data.text ?? "รับทราบครับ",
+        confirmToken: data.confirm_token,
+        confirmAction: data.confirm_action,
+      }])
+    } catch {
+      setActionLog((log) => [...log, { id: nextActionLogId(), role: "system", text: "เชื่อมต่อไม่สำเร็จ ลองใหม่อีกครั้งครับ" }])
+    } finally {
+      setActionSending(false)
+    }
+  }, [])
+
+  const confirmActionEntry = useCallback(async (entry: ActionLogEntry) => {
+    if (!entry.confirmToken || !entry.confirmAction) return
+    setActionLog((log) => log.map((x) => x.id === entry.id ? { ...x, confirmResolved: "confirmed" } : x))
+    try {
+      const res = await fetch("/api/chat/confirm", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: entry.confirmAction, preview_token: entry.confirmToken }),
+      })
+      const data = await res.json()
+      setActionLog((log) => [...log, {
+        id: nextActionLogId(),
+        role: "system",
+        text: data.ok ? "✅ บันทึกเรียบร้อยครับ" : `ยืนยันไม่สำเร็จ: ${data.error ?? "ไม่ทราบสาเหตุ"}`,
+      }])
+      if (data.ok && activeId) await loadDetail(activeId)
+    } catch {
+      setActionLog((log) => [...log, { id: nextActionLogId(), role: "system", text: "ยืนยันไม่สำเร็จ ลองใหม่อีกครั้งครับ" }])
+    }
+  }, [activeId, loadDetail])
+
+  const cancelActionEntry = useCallback((entry: ActionLogEntry) => {
+    setActionLog((log) => log.map((x) => x.id === entry.id ? { ...x, confirmResolved: "cancelled" } : x))
+  }, [])
+
+  const handleFileUpload = useCallback(async (file: File, lineUserId: string) => {
+    setActionLog((log) => [...log, { id: nextActionLogId(), role: "user", text: `📎 แนบไฟล์ ${file.name}` }])
+    const formData = new FormData()
+    formData.append("file", file)
+    formData.append("documentId", lineUserId)
+    try {
+      const res = await fetch("/api/admin/upload", { method: "POST", body: formData })
+      const data = await res.json()
+      setActionLog((log) => [...log, {
+        id: nextActionLogId(), role: "system",
+        text: res.ok ? `📎 แนบไฟล์ ${data.name} แล้ว` : `แนบไฟล์ไม่สำเร็จ: ${data.error ?? "ไม่ทราบสาเหตุ"}`,
+      }])
+    } catch {
+      setActionLog((log) => [...log, { id: nextActionLogId(), role: "system", text: "แนบไฟล์ไม่สำเร็จ ลองใหม่อีกครั้งครับ" }])
+    }
+  }, [])
+
+  const askAi = useCallback(async (question: string, companyName: string | null) => {
+    setAiAskOpen(false)
+    setAiAskText("")
+    const text = companyName ? `คุณ${companyName} ${question}` : question
+    await runCommand(text)
+  }, [runCommand])
+
   const listItems: ListColumnItem[] = contacts.map((c) => ({
     id: c.line_user_id,
     title: c.line_name ?? "ไม่ทราบชื่อ",
@@ -179,6 +281,69 @@ export default function LineCustomersPage() {
 
   const activeContact = contacts.find((c) => c.line_user_id === activeId) ?? null
   const pendingDrafts = detail?.drafts.filter((d) => d.status === "pending_review") ?? []
+
+  const companyName = activeContact?.matched_company?.name ?? null
+  const lastLocation = [...(detail?.messages ?? [])].reverse().find((m) => m.raw_type === "location" && m.extracted?.latitude != null)
+
+  const actionBarItems: ActionBarItem[] = activeContact ? [
+    {
+      key: "gps", label: "GPS", icon: MapPin,
+      onClick: () => setGpsOpen((v) => !v),
+      disabled: !lastLocation,
+      tooltip: lastLocation ? undefined : "ยังไม่มีพิกัดที่ลูกค้าส่งมา",
+    },
+    {
+      key: "quotation", label: "ใบเสนอราคา", icon: FileSignature,
+      onClick: () => runCommand(`เสนอราคาให้คุณ${companyName}`),
+      disabled: !companyName || actionSending,
+      tooltip: companyName ? undefined : "ยังไม่จับคู่บริษัท",
+    },
+    {
+      key: "invoice", label: "Invoice", icon: Receipt,
+      onClick: () => runCommand(`ออกบิลให้คุณ${companyName}`),
+      disabled: !companyName || actionSending,
+      tooltip: companyName ? undefined : "ยังไม่จับคู่บริษัท",
+    },
+    {
+      key: "delivery", label: "ส่งของ", icon: Truck,
+      onClick: () => runCommand(`ออกใบส่งสินค้าให้คุณ${companyName}`),
+      disabled: !companyName || actionSending,
+      tooltip: companyName ? undefined : "ยังไม่จับคู่บริษัท",
+    },
+    {
+      key: "receipt", label: "รับเงิน", icon: Banknote,
+      onClick: () => runCommand(`ออกใบเสร็จให้คุณ${companyName}`),
+      disabled: !companyName || actionSending,
+      tooltip: companyName ? undefined : "ยังไม่จับคู่บริษัท",
+    },
+    {
+      key: "call", label: "โทรหา", icon: Phone,
+      onClick: () => { if (activeContact.matched_company?.phone) window.location.href = `tel:${activeContact.matched_company.phone}` },
+      disabled: !activeContact.matched_company?.phone,
+      tooltip: activeContact.matched_company?.phone ? undefined : "ไม่มีเบอร์โทรในระบบ",
+    },
+    {
+      key: "attach", label: "ไฟล์", icon: Paperclip,
+      onClick: () => fileInputRef.current?.click(),
+    },
+    {
+      key: "ai", label: "ถาม AI", icon: Bot,
+      onClick: () => setAiAskOpen((v) => !v),
+    },
+  ] : []
+
+  const overflowActions: ActionBarItem[] = activeContact ? [
+    {
+      key: "boq", label: "สร้าง BOQ", icon: FileText,
+      onClick: () => runCommand(`สร้าง boq ให้คุณ${companyName}`),
+      disabled: !companyName,
+    },
+    {
+      key: "billing", label: "ใบวางบิล", icon: FileText,
+      onClick: () => runCommand(`ออกใบกำกับภาษีให้คุณ${companyName}`),
+      disabled: !companyName,
+    },
+  ] : []
 
   return (
     <AppShell
@@ -256,7 +421,7 @@ export default function LineCustomersPage() {
             </div>
           )}
 
-          {/* Chat thread — LINE-style bubbles, both sides */}
+          {/* Chat thread — LINE-style bubbles, both sides + ephemeral Action Bar log */}
           <div className="flex-1 overflow-y-auto p-3 space-y-2 bg-[#e5ece5]">
             {detailLoading && <div className="text-xs text-stone-400 text-center py-8 animate-pulse">กำลังโหลด...</div>}
             {!detailLoading && detail?.messages.map((m) => (
@@ -267,7 +432,87 @@ export default function LineCustomersPage() {
                 </div>
               </div>
             ))}
+
+            {/* Action Bar feedback — ephemeral, this session only (real results are
+                always persisted as real documents, see the collapsed section below) */}
+            {actionLog.map((entry) => (
+              <div key={entry.id} className={"flex " + (entry.role === "user" ? "justify-end" : "justify-start")}>
+                <div className={"max-w-[75%] rounded-lg px-3 py-2 shadow-sm " + (entry.role === "user" ? "bg-stone-800 text-white" : "bg-amber-50 border border-amber-200")}>
+                  <p className={"text-xs whitespace-pre-line " + (entry.role === "user" ? "text-white" : "text-stone-800")}>{entry.text}</p>
+                  {entry.confirmToken && !entry.confirmResolved && (
+                    <div className="mt-2 flex gap-2">
+                      <button
+                        onClick={() => confirmActionEntry(entry)}
+                        className="px-2.5 py-1 rounded-lg bg-emerald-600 text-white text-[11px] font-semibold hover:bg-emerald-700 transition"
+                      >
+                        ยืนยัน
+                      </button>
+                      <button
+                        onClick={() => cancelActionEntry(entry)}
+                        className="px-2.5 py-1 rounded-lg border border-stone-300 text-stone-500 text-[11px] hover:bg-stone-50 transition"
+                      >
+                        ยกเลิก
+                      </button>
+                    </div>
+                  )}
+                  {entry.confirmResolved === "cancelled" && (
+                    <p className="mt-1 text-[10px] text-stone-400">ยกเลิกแล้ว ยังไม่บันทึกอะไร</p>
+                  )}
+                </div>
+              </div>
+            ))}
           </div>
+
+          {/* GPS popover — real coordinates only, never guessed */}
+          {gpsOpen && lastLocation?.extracted?.latitude != null && lastLocation.extracted.longitude != null && (
+            <div className="border-t border-stone-200 bg-white flex-shrink-0 p-3">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-semibold text-stone-600">{lastLocation.extracted.address ?? "พิกัดล่าสุดที่ส่งมา"}</span>
+                <button onClick={() => setGpsOpen(false)} className="text-[11px] text-stone-400 hover:text-stone-700">ปิด</button>
+              </div>
+              <MapView
+                title="พิกัดล่าสุด"
+                onClose={() => setGpsOpen(false)}
+                markers={[{ id: "loc", label: lastLocation.extracted.address ?? "จุดส่ง", x: 50, y: 50, tone: "success" }]}
+              />
+            </div>
+          )}
+
+          {/* AI ask — scoped to this contact's matched company if known */}
+          {aiAskOpen && (
+            <div className="border-t border-stone-200 bg-white flex-shrink-0 p-3 flex gap-2">
+              <input
+                autoFocus
+                value={aiAskText}
+                onChange={(e) => setAiAskText(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter" && aiAskText.trim()) askAi(aiAskText.trim(), companyName) }}
+                placeholder={companyName ? `ถามเกี่ยวกับ ${companyName}...` : "ถามคำถามทั่วไป (ยังไม่จับคู่บริษัท)..."}
+                className="flex-1 text-xs border border-stone-200 rounded-lg px-3 py-2 focus:outline-none focus:border-stone-400"
+              />
+              <button
+                onClick={() => aiAskText.trim() && askAi(aiAskText.trim(), companyName)}
+                disabled={!aiAskText.trim()}
+                className="px-3 py-2 rounded-lg bg-stone-800 text-white text-xs font-semibold disabled:opacity-40 hover:bg-stone-700 transition"
+              >
+                ถาม
+              </button>
+            </div>
+          )}
+
+          {/* Action Bar — ซ่อน Events/Documents/Transactions ไว้เบื้องหลังปุ่ม */}
+          {actionBarItems.length > 0 && (
+            <ActionBar actions={actionBarItems} overflowActions={overflowActions} />
+          )}
+          <input
+            ref={fileInputRef}
+            type="file"
+            className="hidden"
+            onChange={(e) => {
+              const file = e.target.files?.[0]
+              if (file && activeContact) handleFileUpload(file, activeContact.line_user_id)
+              e.target.value = ""
+            }}
+          />
 
           {/* Business events + documents — collapsed detail, not part of the chat scroll */}
           {!detailLoading && detail && (

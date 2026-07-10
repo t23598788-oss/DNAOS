@@ -4157,6 +4157,7 @@
       "purpose": "UIKit barrel export — Window/Dock/AppShell/IconRail/ListColumn/ChatPanel/etc, all light-themed and props-driven, no hardcoded business data",
       "purpose_th": "จุด export รวมของ UIKit — Window/Dock/AppShell/IconRail/ListColumn/ChatPanel ฯลฯ ธีมสว่างทั้งหมด รับข้อมูลผ่าน props ไม่ hardcode",
       "exports": [
+        "ActionBar",
         "AppShell",
         "ChatPanel",
         "CommandPalette",
@@ -4325,6 +4326,16 @@
       "exports": [
         "default",
         "useWorkspace"
+      ],
+      "status": "active"
+    },
+    "components/ui-kit/ActionBar.tsx": {
+      "owner": "admin",
+      "layer": "ui",
+      "purpose": "Bottom action-bar row (GPS/quotation/invoice/delivery/receipt/call/attach/ask-AI) — owner request 2026-07-11: hide Events/Documents/Transactions tables behind buttons so the chat stays the primary workspace",
+      "purpose_th": "แถบปุ่มด้านล่างกระทู้แชต (GPS/เอกสาร/โทร/แนบไฟล์/ถาม AI) — ซ่อนตาราง Events/Documents ไว้หลังปุ่มตามที่เฮียขอ",
+      "exports": [
+        "default"
       ],
       "status": "active"
     }

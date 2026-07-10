@@ -29,3 +29,5 @@ export type { IconRailItem } from "./IconRail";
 export { default as ListColumn } from "./ListColumn";
 export type { ListColumnItem } from "./ListColumn";
 export { default as AppShell } from "./AppShell";
+export { default as ActionBar } from "./ActionBar";
+export type { ActionBarItem } from "./ActionBar";
