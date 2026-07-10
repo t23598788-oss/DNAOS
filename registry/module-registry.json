@@ -4338,6 +4338,36 @@
         "default"
       ],
       "status": "active"
+    },
+    "app/api/admin/line-customers/[lineUserId]/reply/route.ts": {
+      "owner": "admin",
+      "layer": "api",
+      "purpose": "Direct reply to a LINE customer from the admin screen — pushes a real LINE message and logs it (direction:out) so it shows in the real thread immediately",
+      "purpose_th": "ตอบลูกค้าตรงๆ จากหน้าแอดมิน — ส่ง LINE จริง + บันทึกเข้า line_events (direction:out)",
+      "exports": [
+        "POST"
+      ],
+      "status": "active"
+    },
+    "app/api/admin/line-customers/[lineUserId]/ask/route.ts": {
+      "owner": "admin",
+      "layer": "api",
+      "purpose": "Deterministic router for the admin ask-AI box — checks if the question names a real material first (real pricing engine + this contacts real GPS), else falls through to the generic cognitive pipeline",
+      "purpose_th": "จุดตัดสินคำถามแบบไม่เดา — ถ้าถามราคาวัสดุ ตอบด้วย engine ราคาจริง ถ้าไม่ใช่ ส่งต่อ cognitive pipeline เดิม",
+      "exports": [
+        "POST"
+      ],
+      "status": "active"
+    },
+    "engines/quote-price.ts": {
+      "owner": "engines",
+      "layer": "engines",
+      "purpose": "Next.js-side material price lookup (nearest pit + real pit_materials price) reusing engines/distance.ts and engines/material-resolver.ts — mirrors the Deno LINE-bot version but for the admin ask-AI box",
+      "purpose_th": "คำนวณราคาวัสดุจริงฝั่ง Next.js (บ่อใกล้สุด+ราคาจริง) สำหรับกล่องถาม AI ในหน้าแอดมิน คู่กับตัว Deno ที่บอทใช้",
+      "exports": [
+        "tryQuoteMaterialPrice"
+      ],
+      "status": "active"
     }
   },
   "excluded": [

@@ -116,6 +116,9 @@ export default function LineCustomersPage() {
   const [gpsOpen, setGpsOpen] = useState(false)
   const [aiAskOpen, setAiAskOpen] = useState(false)
   const [aiAskText, setAiAskText] = useState("")
+  const [replyText, setReplyText] = useState("")
+  const [replySending, setReplySending] = useState(false)
+  const [replyError, setReplyError] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -138,6 +141,8 @@ export default function LineCustomersPage() {
     setActionLog([])
     setGpsOpen(false)
     setAiAskOpen(false)
+    setReplyText("")
+    setReplyError(null)
     setDetailLoading(true)
     try {
       await loadDetail(lineUserId)
@@ -193,6 +198,30 @@ export default function LineCustomersPage() {
       setBuilding(false)
     }
   }, [loadDetail])
+
+  // Owner-reported gap 2026-07-11: this page had no way to type a real reply
+  // straight to the customer — only a draft-approval banner (only appears
+  // when the bot queued a draft) and an internal-only "ask AI" box. This
+  // pushes a real LINE message and refreshes the real thread.
+  const sendReply = useCallback(async (lineUserId: string) => {
+    const text = replyText.trim()
+    if (!text) return
+    setReplySending(true)
+    setReplyError(null)
+    try {
+      const res = await fetch(`/api/admin/line-customers/${lineUserId}/reply`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text }),
+      })
+      const d = await res.json()
+      if (!res.ok) { setReplyError(d.error ?? "ส่งไม่สำเร็จ"); return }
+      setReplyText("")
+      await loadDetail(lineUserId)
+    } finally {
+      setReplySending(false)
+    }
+  }, [replyText, loadDetail])
 
   // Action Bar → cognitive pipeline (owner request 2026-07-11: ปุ่มสร้างเอกสาร
   // ไม่เรียก backend ใหม่ — ยิงข้อความไทยสำเร็จรูปเข้า /api/chat เหมือนพิมพ์เอง
@@ -263,12 +292,38 @@ export default function LineCustomersPage() {
     }
   }, [])
 
-  const askAi = useCallback(async (question: string, companyName: string | null) => {
+  // Owner-reported gap 2026-07-11: this used to just forward to runCommand
+  // (/api/chat → generic cognitive pipeline), which has no idea about real
+  // material prices. Now goes through the dedicated ask route, which checks
+  // deterministically whether the question names a real material first and
+  // answers with the real pricing engine using this contact's own GPS —
+  // anything else still falls through to the same pipeline as before.
+  const askAi = useCallback(async (question: string, companyName: string | null, lineUserId: string) => {
     setAiAskOpen(false)
     setAiAskText("")
     const text = companyName ? `คุณ${companyName} ${question}` : question
-    await runCommand(text)
-  }, [runCommand])
+    setActionSending(true)
+    setActionLog((log) => [...log, { id: nextActionLogId(), role: "user", text: question }])
+    try {
+      const res = await fetch(`/api/admin/line-customers/${lineUserId}/ask`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question: text }),
+      })
+      const data = await res.json()
+      setActionLog((log) => [...log, {
+        id: nextActionLogId(),
+        role: "system",
+        text: data.text ?? "รับทราบครับ",
+        confirmToken: data.confirm_token,
+        confirmAction: data.confirm_action,
+      }])
+    } catch {
+      setActionLog((log) => [...log, { id: nextActionLogId(), role: "system", text: "เชื่อมต่อไม่สำเร็จ ลองใหม่อีกครั้งครับ" }])
+    } finally {
+      setActionSending(false)
+    }
+  }, [])
 
   const listItems: ListColumnItem[] = contacts.map((c) => ({
     id: c.line_user_id,
@@ -463,6 +518,27 @@ export default function LineCustomersPage() {
             ))}
           </div>
 
+          {/* พิมพ์ตอบลูกค้าโดยตรง — ข้อความจริงส่งเข้า LINE จริง ไม่ใช่ ephemeral */}
+          <div className="border-t border-stone-200 bg-white flex-shrink-0 p-2.5">
+            {replyError && <div className="text-[11px] text-rose-600 bg-rose-50 border border-rose-200 rounded-lg px-2.5 py-1.5 mb-2">{replyError}</div>}
+            <div className="flex items-center gap-2">
+              <input
+                value={replyText}
+                onChange={(e) => setReplyText(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendReply(activeContact.line_user_id) } }}
+                placeholder="พิมพ์ตอบลูกค้า..."
+                className="flex-1 text-xs border border-stone-200 rounded-lg px-3 py-2 focus:outline-none focus:border-emerald-500"
+              />
+              <button
+                onClick={() => sendReply(activeContact.line_user_id)}
+                disabled={replySending || !replyText.trim()}
+                className="px-3 py-2 rounded-lg bg-emerald-600 text-white text-xs font-semibold disabled:opacity-40 hover:bg-emerald-700 transition"
+              >
+                {replySending ? "..." : "ส่ง"}
+              </button>
+            </div>
+          </div>
+
           {/* GPS popover — real coordinates only, never guessed */}
           {gpsOpen && lastLocation?.extracted?.latitude != null && lastLocation.extracted.longitude != null && (
             <div className="border-t border-stone-200 bg-white flex-shrink-0 p-3">
@@ -485,12 +561,12 @@ export default function LineCustomersPage() {
                 autoFocus
                 value={aiAskText}
                 onChange={(e) => setAiAskText(e.target.value)}
-                onKeyDown={(e) => { if (e.key === "Enter" && aiAskText.trim()) askAi(aiAskText.trim(), companyName) }}
+                onKeyDown={(e) => { if (e.key === "Enter" && aiAskText.trim()) askAi(aiAskText.trim(), companyName, activeContact.line_user_id) }}
                 placeholder={companyName ? `ถามเกี่ยวกับ ${companyName}...` : "ถามคำถามทั่วไป (ยังไม่จับคู่บริษัท)..."}
                 className="flex-1 text-xs border border-stone-200 rounded-lg px-3 py-2 focus:outline-none focus:border-stone-400"
               />
               <button
-                onClick={() => aiAskText.trim() && askAi(aiAskText.trim(), companyName)}
+                onClick={() => aiAskText.trim() && askAi(aiAskText.trim(), companyName, activeContact.line_user_id)}
                 disabled={!aiAskText.trim()}
                 className="px-3 py-2 rounded-lg bg-stone-800 text-white text-xs font-semibold disabled:opacity-40 hover:bg-stone-700 transition"
               >
