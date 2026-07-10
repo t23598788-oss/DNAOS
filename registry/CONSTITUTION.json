@@ -1,0 +1,120 @@
+{
+  "version": 2,
+  "note": "JSON source of truth for the DNA OS Constitution. CLAUDE.md is the human-readable rendering of this same document — if they ever disagree, this file wins and CLAUDE.md must be corrected to match, not the other way around.",
+  "amendment_policy": "แก้ไขไฟล์นี้ต้องได้รับการยืนยันชัดเจนจากเจ้าของระบบเท่านั้น ไม่ใช่การตัดสินใจของ AI ฝ่ายเดียว — เทียบเท่าการแก้ 5 Architectural Laws และ Connector Lifecycle Law",
+  "core_principles": {
+    "source": "registry/owner-context.json → philosophy",
+    "principles": [
+      { "id": "ai_role", "th": "AI เป็นแค่ตัวกลาง ไม่ใช่ศูนย์กลาง — ศูนย์กลางคือกฎและสถาปัตยกรรม" },
+      { "id": "growth", "th": "DNA OS เติบโตจากการขยายคลังกฎและ Workflow ไม่ใช่จากการฝึก AI" },
+      { "id": "measurement", "th": "Dashboard ที่สำคัญวัด Constitution/Business/Risk ไม่ใช่ AI metrics" },
+      { "id": "governance", "th": "ระบบต้องปกครองตัวเอง — ต่อให้เปลี่ยนทีม 20 คน กฎยังบังคับเหมือนเดิม" },
+      { "id": "existence", "th": "DNA OS ไม่ใช่โปรแกรม แต่คือสิ่งมีชีวิตดิจิทัลที่รู้จักตัวเอง" }
+    ]
+  },
+  "runtime_contract": {
+    "title": "DNA OS Runtime Contract",
+    "added": "2026-07-07",
+    "note": "Formalizes the Operational CPU analogy (registry/architecture.json → computer_analogy) into binding rules — not just a metaphor anymore.",
+    "authority_model": {
+      "added": "2026-07-07",
+      "th": "AI ไม่ได้เชื่อฟัง Runtime — AI เชื่อฟังกฎ (Constitution + Runtime Contract) Runtime เป็นเพียงตัวบังคับใช้กฎ (enforcer) ไม่ใช่ผู้มีอำนาจออกกฎเอง",
+      "chain": "Rules (Constitution + Runtime Contract) → enforced by → Runtime (= Governance Engine, see architecture_principles.governance_engine) → obeyed by → AI Workers",
+      "why_it_matters": "แยกความหมายของ 'สิ่งที่ต้องเชื่อฟัง' (กฎ) ออกจาก 'ผู้บังคับใช้' (Runtime) — Runtime เองก็ถูกผูกมัดด้วยกฎเดียวกัน ไม่มีสิทธิ์ตีความหรือแก้ไขกฎเอง (governance_engine principle, already existed, now explicitly threaded into the Runtime Contract). ผลคือ AI ค่ายใหม่เข้าระบบได้ทันทีถ้าทำตาม Constitution + Runtime Contract โดยไม่ต้องแก้ Runtime เลย — Runtime ไม่เคยรู้จักตัวตนของ AI แต่ละค่าย รู้จักแค่ว่าทำตามกฎหรือไม่ (เหมือน Law 1: Core knows only the Contract, never identities)."
+    },
+    "rules": [
+      { "id": 1, "th": "Runtime คือ CPU ของระบบ", "maps_to": "registry/README.md + registry/EXECUTION_CONTRACT.json" },
+      { "id": 2, "th": "Registry คือ Memory ของระบบ", "maps_to": "registry/*.json collectively" },
+      { "id": 3, "th": "Scheduler คือ Process Scheduler", "maps_to": "registry/SCHEDULER.json + registry/LOCK_MANAGER.json" },
+      { "id": 4, "th": "Event Engine คือ Interrupt Controller", "maps_to": "registry/events.json" },
+      { "id": 5, "th": "Connector คือ Device Driver", "maps_to": "registry/connector-lifecycle.json + core/connector-loader.ts" },
+      { "id": 6, "th": "Workflow คือ Program", "maps_to": "engines/transactions/workflows.ts + engines/transactions/state-machine.ts" },
+      { "id": 7, "th": "AI ทุกตัวเป็น Worker ไม่ใช่ Runtime", "clarified": "AI obeys the Rules (Constitution + this Runtime Contract), not the Runtime itself — Runtime only enforces; see authority_model above", "maps_to": "registry/AI_REGISTRY.json + registry/AI_SESSIONS.json", "enforcement": "process/documentation only — no technical mechanism prevents an AI from acting outside this role today" },
+      { "id": 8, "th": "ห้าม AI เขียน Source โดยไม่ผ่าน Runtime", "maps_to": "registry/EXECUTION_CONTRACT.json execution_order (read → lock → execute → unlock)", "enforcement": "process/documentation only — not yet technically gated; see known_gaps below" },
+      { "id": 9, "th": "Runtime เท่านั้นที่เปลี่ยน State ของระบบ", "maps_to": "gateway/* (Law 2/3 — one door for confirmed writes) + registry/CURRENT_STATE.json update requirement", "enforcement": "partially code-enforced for database writes (Gateway pattern, RLS); file/source changes still process-only" },
+      { "id": 10, "th": "ทุกโมดูลต้องต่อผ่าน Runtime ไม่เชื่อมกันโดยตรง", "clarified": "modules connect through the Runtime's enforcement of the Rules, not through Runtime as an authority in itself — same distinction as rule 7", "maps_to": "5 Architectural Laws (project_dna_os_architecture) Law 2/3 — Plugins never call each other or Core directly, only via Gateway+Event", "enforcement": "code-enforced where dependency-graph.json + check-imports.sh already run" }
+    ],
+    "known_gaps": "Rules 7-9 are currently honor-system for AI behavior (no git hook can verify an AI 'read the registry first' before writing a file) — same category of gap as registry/AI_SESSIONS.json's status field: real, but not yet machine-enforced. If false compliance becomes an actual problem (not just theoretical), the next step would be a pre-commit guard comparing the committed file set against an active LOCK_MANAGER.json entry — not built yet, not requested yet."
+  },
+  "recommendation_and_approval_levels": [
+    { "level": 1, "name": "Informational", "th": "การเปลี่ยนแปลงเล็กน้อยที่ไม่มีผลกระทบ (เช่น แก้ไขเอกสาร) Runtime จะบันทึกและดำเนินการต่อ" },
+    { "level": 2, "name": "Recommended", "th": "การแก้ไขที่ปลอดภัย (เช่น Refactor) Runtime จะอนุมัติให้ดำเนินการได้โดยอัตโนมัติ" },
+    { "level": 3, "name": "High Impact", "th": "การเปลี่ยนแปลงที่อาจกระทบหลายส่วน (เช่น เปลี่ยน API) Runtime จะวิเคราะห์ผลกระทบ (Impact Analysis) และเสนอแผนรอการตรวจสอบ" },
+    { "level": 4, "name": "Approval Required", "th": "การเปลี่ยนแปลงที่มีความเสี่ยงสูง (เช่น ลบโมดูลหลัก) Runtime จะเสนอเรื่องให้มนุษย์ (CEO) อนุมัติผ่าน Dashboard เท่านั้น" },
+    { "level": 5, "name": "Forbidden", "th": "การกระทำที่ขัดต่อ Constitution (เช่น ลบฐานข้อมูล, สร้างโมดูลซ้ำ) Runtime จะปฏิเสธและหยุดการทำงานทันที" }
+  ],
+  "architecture_principles": [
+    { "id": "constitution", "th": "คือกฎหมายสูงสุดของระบบ เขียนและแก้ไขโดยมนุษย์เท่านั้น" },
+    { "id": "runtime", "th": "คือผู้บังคับใช้กฎของ Constitution ไม่ใช่ AI และเป็นกลาง ไม่ขึ้นกับ AI ค่ายใด" },
+    { "id": "governance_engine", "th": "เป็นส่วนหนึ่งของ Runtime อ่าน Constitution, Registry, Repository เพื่อตัดสินตามกฎที่มีอยู่เท่านั้น ไม่มีสิทธิ์คิด ตีความ หรือแก้ไขกฎ", "also_called": "Rule Engine (2026-07-07 terminology, see runtime_contract.authority_model) — same component, clarified name emphasizing this is what AI actually obeys, not the Runtime process itself" },
+    { "id": "external_workers", "th": "AI ทุกตัวไม่ว่าค่ายไหน เป็น 'คนงานภายนอก' รับ Task ไปทำ แล้วส่งผลกลับให้ Runtime ตรวจสอบ — ไม่ผูกกับ AI ค่ายใดค่ายหนึ่ง (AI-agnostic), AI ตัวไหนที่ทำตาม compatibility_contract ได้ถือว่าเป็น DNA OS Compatible — see registry/AI_REGISTRY.json" },
+    { "id": "chain_of_command", "th": "Worker → Runtime (Governance Engine) → Human (CEO). Runtime เป็นผู้อนุมัติ ปฏิเสธ หรือส่งต่อให้มนุษย์ตาม Constitution เท่านั้น" }
+  ],
+  "layer_architecture": {
+    "note": "ชื่อ Layer จริงปัจจุบันอยู่ที่ registry/architecture.json เท่านั้น — ห้าม duplicate คำอธิบาย layer ไว้ที่นี่ซ้ำ (execution_rules → 'Never create duplicate architecture', registry/EXECUTION_CONTRACT.json)",
+    "migrated_from": "V1-Input/V2-Rules/V3-Engines/V4-AI/V5-Presenter/V6-Executor (ชื่อเดิมก่อน 2026-07-06, เลิกใช้แล้ว)",
+    "current_source_of_truth": "registry/architecture.json"
+  },
+  "iron_rules": [
+    "ห้าม hardcode ข้อมูลธุรกิจ — ทุกค่าจาก DB via config-loader (ไม่มี fallback)",
+    "ห้าม mock/fake/demo data ใน source code",
+    "ทุก write ต้อง confirmed จากมนุษย์ (Rule 72)",
+    "AI ห้ามเปลี่ยนสถานะการเงิน (Rule 73, 83)",
+    "ทุก API route ต้องมี Auth (requireAuth)",
+    "ทุก Module ต้อง register ใน registry/module-registry.json",
+    "ทุก Command ต้อง register ใน registry/command-registry.json",
+    "ทุก import ข้าม layer ต้องอยู่ใน registry/dependency-graph.json",
+    "ห้ามเดา ห้ามสมมติ ห้ามตอบจาก memory — ต้องค้นจากข้อมูลจริงก่อนเสมอ (จาก owner-context.json design_rules)",
+    "ห้ามสร้าง Module, Folder, File หรือ Architecture ใหม่โดยไม่ตรวจสอบ Registry ก่อน",
+    "ห้ามสร้าง Business Logic ซ้ำต่อ Portal — Portal คือ View ของระบบเดียว (registry/portals.json)",
+    "Connector ทุกตัวต้องผ่าน Connect → Register → Test → Enable → Run ไม่มีข้อยกเว้น (registry/connector-lifecycle.json)",
+    "ห้าม AI คุยกับ AI ตัวอื่นโดยตรง — สื่อสารผ่าน DNA OS Registry เท่านั้น (registry/README.md → Communication Rules)",
+    "ห้ามสันนิษฐานงานของ AI ตัวอื่น — อ่าน Registry ก่อนลงมือทุกครั้ง",
+    "ห้ามสร้าง Module ใหม่, หน้าใหม่ (Page), หรือ Feature ใหม่ใด ๆ จนกว่า TASK-001 (SSO/Auth), TASK-002 (เชื่อมข้อมูลจริงทั้งหมด — เลิก Mock/Fake/Demo), และ TASK-003 (เก็บงานค้าง + Deploy Production) จะมีสถานะ DONE ทั้งหมด — Plan Lock ประกาศโดย owner 2026-07-08 ดูรายละเอียดที่ registry/TASK_QUEUE.json และ registry/CURRENT_STATE.json → plan_lock (หมายเหตุ: TASK-001/002/003 เดิม — ก่อนวันที่ 2026-07-08 — ถูกย้ายไปเป็น TASK-026/027/028 แล้ว)"
+  ],
+  "types_single_source_of_truth": {
+    "file": "core/shared/types.ts",
+    "rule": "ห้ามสร้าง type ซ้ำในไฟล์อื่น",
+    "note": "เดิมคือ lib/shared/types.ts ก่อน folder reorg 2026-07-06"
+  },
+  "registry_files_no_shadow_system": {
+    "note": "ห้ามมี Shadow System (ไฟล์ไม่ register) — เดิม path เหล่านี้ขึ้นต้นด้วย lib/registry/ ก่อน reorg 2026-07-06, ปัจจุบันคือ registry/",
+    "files": [
+      "registry/module-registry.json",
+      "registry/command-registry.json",
+      "registry/dependency-graph.json",
+      "registry/existence.json",
+      "registry/infrastructure.json",
+      "registry/business-coverage.json",
+      "registry/decision-coverage.json",
+      "registry/rule-coverage.json"
+    ],
+    "known_issue": "existence.json/business-coverage.json/decision-coverage.json/rule-coverage.json still contain internal references to pre-reorg paths (e.g. v3-engines/, lib/v3-engines/) as of 2026-07-07 — not yet fixed, tracked in registry/TASK_QUEUE.json"
+  },
+  "layer_stack": {
+    "added": "2026-07-07",
+    "th": "Constitution ↓ กำหนดกฎหมาย   —   Execution Contract ↓ กำหนดวิธีปฏิบัติตามกฎหมาย   —   Runtime ↓ บังคับใช้   —   Scheduler ↓ แจกงาน   —   Workers ↓ ลงมือทำ",
+    "why": "แยก 'กฎหมาย' (Constitution) ออกจาก 'วิธีปฏิบัติตามกฎหมาย' (Execution Contract) เพื่อให้เปลี่ยน Runtime (เช่น Node.js → Rust/Go หรือกระจายหลายเครื่อง) ได้โดยแทบไม่ต้องแตะ Constitution เลย — สิ่งที่เปลี่ยนคือวิธีรัน ไม่ใช่กฎของระบบ",
+    "execution_contract": "registry/EXECUTION_CONTRACT.json — the full Execution Order, Execution Rules, Communication Rules, and Output contract used to live inline here (ai_execution_protocol, v2); moved out into its own file 2026-07-07 so Constitution and Execution Contract are genuinely separate layers, not one file wearing two hats."
+  },
+  "current_status": {
+    "note": "ไม่ใช้ตัวเลข snapshot ตายตัวในไฟล์นี้ — ดูค่าจริงล่าสุดที่ไฟล์ registry ต่อไปนี้เสมอ เพื่อไม่ให้มีสอง Source of Truth",
+    "existence_score": "registry/existence.json",
+    "business_coverage": "registry/business-coverage.json",
+    "decision_coverage": "registry/decision-coverage.json",
+    "constitution_enforcement": "registry/rule-coverage.json",
+    "infrastructure_and_cost": "registry/infrastructure.json"
+  },
+  "commands": {
+    "guard": "npm run guard — ตรวจ governance ทุกข้อ",
+    "dashboard": "npm run dashboard — Health + Risk Score",
+    "intelligence": "npm run intelligence — Decision + Knowledge Coverage",
+    "existence_intelligence": "npm run existence-intelligence — Existence Intelligence 16 ชั้น",
+    "diagnosis": "npm run diagnosis — Self Analysis + Reasoning Tree",
+    "precommit": "npm run precommit — ตรวจก่อน commit",
+    "dead_code": "npm run dead-code — หา unused files/functions",
+    "duplicates": "npm run duplicates — หา copy-paste",
+    "backup": "npm run backup — Backup ทุกตาราง → backups/",
+    "restore": "npm run restore -- backups/DIR — Restore จาก backup"
+  }
+}

@@ -33,39 +33,50 @@ async function logErrorToDb(errorMsg: string) {
   }
 }
 
+// --- Low-level LINE API senders ---
+
+async function replyMessages(replyToken: string, messages: object[]) {
+  const lineAccessToken = Deno.env.get('LINE_CHANNEL_ACCESS_TOKEN')
+  if (!lineAccessToken) {
+    console.log(`[LINE Reply Mock]`, JSON.stringify(messages))
+    return
+  }
+  const res = await fetch('https://api.line.me/v2/bot/message/reply', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${lineAccessToken}` },
+    body: JSON.stringify({ replyToken, messages }),
+  })
+  if (!res.ok) {
+    const err = await res.text()
+    console.error('LINE reply failed:', err)
+    await logErrorToDb(`LINE reply failed: ${err}`)
+  }
+}
+
+async function pushMessages(to: string, messages: object[]) {
+  const lineAccessToken = Deno.env.get('LINE_CHANNEL_ACCESS_TOKEN')
+  if (!lineAccessToken) {
+    console.log(`[LINE Push Mock]`, JSON.stringify(messages))
+    return
+  }
+  const res = await fetch('https://api.line.me/v2/bot/message/push', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${lineAccessToken}` },
+    body: JSON.stringify({ to, messages }),
+  })
+  if (!res.ok) {
+    const err = await res.text()
+    console.error('LINE push failed:', err)
+    await logErrorToDb(`LINE push failed: ${err}`)
+  }
+}
+
 /**
  * STRICTLY PRIVATE: replyToLine.
  * Dispatches raw messages directly to the LINE Messaging API.
  */
 async function replyToLine(replyToken: string, text: string) {
-  const lineAccessToken = Deno.env.get('LINE_CHANNEL_ACCESS_TOKEN');
-  if (!lineAccessToken) {
-    console.log(`[LINE Reply Mock] Reply Token: ${replyToken}, Message: ${text}`);
-    return;
-  }
-
-  try {
-    const res = await fetch('https://api.line.me/v2/bot/message/reply', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${lineAccessToken}`
-      },
-      body: JSON.stringify({
-        replyToken,
-        messages: [{ type: 'text', text }]
-      })
-    });
-
-    if (!res.ok) {
-      const errorText = await res.text();
-      console.error('Failed to reply to LINE:', errorText);
-      await logErrorToDb(`Failed to reply to LINE: ${errorText}`);
-    }
-  } catch (err) {
-    console.error('Error sending reply to LINE:', err);
-    await logErrorToDb(`Error sending reply to LINE: ${(err as any).message || err}`);
-  }
+  await replyMessages(replyToken, [{ type: 'text', text }])
 }
 
 /**
@@ -73,34 +84,7 @@ async function replyToLine(replyToken: string, text: string) {
  * Dispatches raw messages directly to the LINE Messaging API via push endpoint.
  */
 async function pushToLine(to: string, text: string) {
-  const lineAccessToken = Deno.env.get('LINE_CHANNEL_ACCESS_TOKEN');
-  if (!lineAccessToken) {
-    console.log(`[LINE Push Mock] To: ${to}, Message: ${text}`);
-    return;
-  }
-
-  try {
-    const res = await fetch('https://api.line.me/v2/bot/message/push', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${lineAccessToken}`
-      },
-      body: JSON.stringify({
-        to,
-        messages: [{ type: 'text', text }]
-      })
-    });
-
-    if (!res.ok) {
-      const errorText = await res.text();
-      console.error('Failed to push to LINE:', errorText);
-      await logErrorToDb(`Failed to push to LINE: ${errorText}`);
-    }
-  } catch (err) {
-    console.error('Error sending push to LINE:', err);
-    await logErrorToDb(`Error sending push to LINE: ${(err as any).message || err}`);
-  }
+  await pushMessages(to, [{ type: 'text', text }])
 }
 
 /**
@@ -361,5 +345,27 @@ export class ResponseGateway {
     }
 
     await replyToLine(replyToken, replyText);
+  }
+
+  // --- LINE Native Template methods ---
+
+  static async replyText(replyToken: string, text: string) {
+    await replyMessages(replyToken, [{ type: 'text', text }])
+  }
+
+  static async replyFlex(replyToken: string, altText: string, contents: object) {
+    await replyMessages(replyToken, [{ type: 'flex', altText, contents }])
+  }
+
+  static async replyWithQuickReply(replyToken: string, text: string, items: object[]) {
+    await replyMessages(replyToken, [{
+      type: 'text',
+      text,
+      quickReply: { items },
+    }])
+  }
+
+  static async pushFlex(to: string, altText: string, contents: object) {
+    await pushMessages(to, [{ type: 'flex', altText, contents }])
   }
 }

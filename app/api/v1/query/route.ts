@@ -15,8 +15,8 @@
  */
 
 import { NextRequest, NextResponse } from "next/server"
-import { validateApiToken } from "@/lib/supabase/api-tokens"
-import { dispatch } from "@/lib/v2-rules/dispatcher"
+import { validateApiToken } from "@/services/supabase/api-tokens"
+import { dispatch } from "@/engines/validation/dispatcher"
 
 function corsHeaders() {
   return {

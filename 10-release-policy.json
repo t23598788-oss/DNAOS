@@ -28,10 +28,10 @@
 
   "shared_between_environments": [
     "Registry files (*.json)",
-    "Business Engine (lib/v3-engines/)",
-    "Workflow Engine (lib/transactions/workflows.ts)",
-    "Document Engine (lib/documents/engine.ts, document-editor.ts)",
-    "Calculation Engine (lib/v3-engines/pricing/)",
+    "Business Engine (engines/)",
+    "Workflow Engine (engines/transactions/workflows.ts)",
+    "Document Engine (engines/documents/engine.ts, document-editor.ts)",
+    "Calculation Engine (engines/pricing/)",
     "Supabase Schema (supabase/migrations/)"
   ],
 

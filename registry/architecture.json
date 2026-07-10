@@ -1,0 +1,49 @@
+{
+  "version": 2,
+  "note": "v2 — folder reorg (2026-07): renamed v2/v3/v4/v5/v6 version-numbered layers to purpose-named layers. No business logic changed, only physical location + layer naming.",
+  "computer_analogy": {
+    "added": "2026-07-07",
+    "one_line": "DNA OS ไม่ได้พยายามแทนที่ Cloud หรือ AI แต่ทำหน้าที่เป็น Runtime CPU ที่ประสานทรัพยากรจากหลายแพลตฟอร์มให้ทำงานร่วมกันภายใต้กฎเดียวกันแบบเรียลไทม์ — DNA OS is not silicon; it's an Operational CPU assembled from Runtime + Registry + Scheduler + Event Engine + Connector + Workflow, using each cloud provider (GitHub/Supabase/Vercel/LINE/Google/OpenAI/Anthropic/...) as its 'hardware'. Adding a new AI or platform means adding a Connector or Worker, not building a new computer.",
+    "mapping": {
+      "CPU": { "is": "Runtime Engine", "real_file": "registry/README.md + registry/CONSTITUTION.json → ai_execution_protocol" },
+      "RAM": { "is": "live working state", "real_file": "registry/CURRENT_STATE.json + registry/AI_SESSIONS.json + registry/TASK_QUEUE.json" },
+      "SSD": { "is": "persistent storage", "real_file": "GitHub (this repo) + registry/*.json + Supabase (services/supabase)" },
+      "Mainboard": { "is": "the rules everything else is wired into", "real_file": "registry/CONSTITUTION.json + registry/architecture.json" },
+      "PCIe": { "is": "external connections", "real_file": "registry/connector-lifecycle.json + core/connector-loader.ts + gateway/connectors.ts" },
+      "Network Card": { "is": "how the outside world reaches in", "real_file": "app/api/* + gateway/*" },
+      "Process Scheduler": { "is": "who works on what, in what order", "real_file": "registry/SCHEDULER.json + registry/LOCK_MANAGER.json" },
+      "Interrupt": { "is": "business event bus", "real_file": "registry/events.json", "known_issue": "internal source fields still say pre-reorg layer names (v2-rules/v3-engines/v4-ai) — same class of staleness as TASK-010, not yet fixed" },
+      "Drivers": { "is": "app/platform-specific adapters", "real_file": "plugins/drivers/*" },
+      "Programs": { "is": "actual business logic", "real_file": "engines/*" }
+    },
+    "implication": "New AI vendor or new platform → add a Connector (registry/connector-lifecycle.json flow) or a Worker (registry/AI_REGISTRY.json + registry/SCHEDULER.json), never a new architecture. This is the same 'never duplicate architecture' rule in registry/CONSTITUTION.json, restated as a hardware metaphor.",
+    "see_also": "registry/CONSTITUTION.json → layer_stack (2026-07-07): splits 'CPU' into Constitution (the law) → Execution Contract (registry/EXECUTION_CONTRACT.json, how to comply) → Runtime (enforces) → Scheduler → Workers, specifically so Runtime can be swapped (e.g. Node.js → Rust/Go/distributed) without touching Constitution."
+  },
+  "layers": {
+    "core":        { "name": "Core", "icon": "Cpu", "purpose": "Core Runtime + Executor Core + Config Loader + Connector Loader (Dynamic Registry) + Shared Types — single Core, never forks", "modules": ["runtime/engine", "runtime/trace", "runtime/cockpit", "runtime/self-awareness", "runtime/existence-intelligence", "executor/init", "executor/engine", "executor/registry", "executor/audit", "config-loader", "connector-loader", "config/company-settings", "shared/types"] },
+    "gateway":     { "name": "Gateway", "icon": "Shield", "purpose": "One door for confirmed writes — preview → token → execute (payment/document/debt actions/connectors)", "modules": ["index", "actions", "connectors"] },
+    "engines":     { "name": "Engines", "icon": "Workflow", "purpose": "คำนวณ (ราคา/VAT/ดอกเบี้ย/สถานะ) + Validation/Business Rule + Document Render + Transaction Workflow + Connector Testing", "modules": ["business", "cost", "pricing", "tax", "distance", "fuel", "capacity", "time", "vehicle-selector", "debt", "partner/timeline", "impact/engine", "validation/resolver", "validation/dispatcher", "documents/engine", "documents/template", "documents/document-editor", "documents/debt-notice-draft", "documents/draft-builders", "transactions/workflows", "transactions/state-machine", "transactions/document-link", "connectors/tester"] },
+    "cognitive":   { "name": "Cognitive", "icon": "Bot", "purpose": "Cognitive Pipeline (Intent → Plan → Execute → Reflect)", "modules": ["pipeline", "executor", "planner", "reasoning", "reflection", "evaluation", "hypothesis", "memory", "state", "situation", "board", "objective", "intent", "knowledge", "learning", "priority"] },
+    "presenter":   { "name": "Presenter", "icon": "LayoutGrid", "purpose": "สรุป + Timeline + อธิบาย", "modules": ["enricher", "formatter", "ranker", "explainer"] },
+    "services":    { "name": "Services", "icon": "Server", "purpose": "I/O boundary — DB, Realtime, AI bridge, request middleware", "modules": ["supabase/queries", "supabase/realtime", "supabase/api-tokens", "supabase/state-cache", "ai/translator", "ai/bridge-local", "ai/bridge-openai", "middleware/auth", "middleware/sanitize"] },
+    "plugins":     { "name": "Plugins", "icon": "Puzzle", "purpose": "แตกได้ไม่จำกัด — App Drivers + macOS native automation + LINE driver + local agent", "modules": ["drivers/base", "drivers/line", "drivers/chrome", "drivers/vscode", "drivers/finder", "drivers/terminal", "drivers/maps", "drivers/earth", "drivers/mail", "drivers/calendar", "drivers/pdf", "drivers/github", "macos", "platform/mac", "line", "agent", "executor", "capabilities", "capability-manager", "runtime/platform", "runtime/shell"] },
+    "registry":    { "name": "Registry", "icon": "Database", "purpose": "System Registries — Source of Truth for Runtime, every module must register here", "modules": ["architecture", "modules", "interfaces", "events", "commands", "schemas", "drivers", "services", "database/*", "trace/*", "execution/*", "communication/*", "conversation/*"] },
+    "browser":     { "name": "Browser", "icon": "Layers", "purpose": "Browser Safe (declared, not yet built)", "modules": [] }
+  },
+  "dynamic_registry": {
+    "note": "2026-07-06 — Connectors (external service connections) are NOT declared here. registry/*.json is static (bundled at build time, needs a redeploy to change) and is used only to bootstrap the system's own default values. Connectors are a runtime Dynamic Registry backed by the `connectors` Supabase table (see supabase/migrations/20260706000004_connectors.sql) — Core reads it live via core/connector-loader.ts (60s cache, same pattern as core/config-loader.ts). Adding/editing/removing a Connector from the /admin/connectors page takes effect immediately, no deploy.",
+    "table": "connectors",
+    "loader": "core/connector-loader.ts",
+    "gateway": "gateway/connectors.ts",
+    "tester": "engines/connectors/tester.ts",
+    "ui": "app/admin/connectors/page.tsx",
+    "auth_types": ["login", "oauth", "api_key", "token", "uri", "mcp", "webhook"],
+    "lifecycle_standard": "registry/connector-lifecycle.json (2026-07-07, locked — Connect → Register → Test → Enable → Run, no exceptions, no skipping stages, no editing Core to support a new Connector)"
+  },
+  "portal_layer": {
+    "note": "2026-07-07 — every Portal is a thin app/ route that renders the same Core/Gateway/Registry/Database; portals differ only in UI and access rights, never in business logic. Full declaration + status (official vs shell) lives in registry/portals.json, not here.",
+    "registry": "registry/portals.json",
+    "shared_shell_component": "components/portal/PortalShell.tsx",
+    "portals": ["control_center", "developer_portal", "user_portal", "partner_portal", "business_portal", "download_center"]
+  }
+}

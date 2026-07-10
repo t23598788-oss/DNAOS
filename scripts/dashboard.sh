@@ -29,29 +29,29 @@ risk_level() {
 
 # Constitution
 RULE_TOTAL=100
-RULE_ENFORCED=$(grep -c '"enforced_by"' lib/registry/rule-coverage.json 2>/dev/null || echo "0")
+RULE_ENFORCED=$(grep -c '"enforced_by"' registry/rule-coverage.json 2>/dev/null || echo "0")
 RULE_PCT=$(( RULE_ENFORCED * 100 / RULE_TOTAL ))
 
 # Workflow
-WF_TOTAL=$(grep -cE '^\s*"[a-z].*"steps"' lib/commands/workflows.json 2>/dev/null || echo "0")
+WF_TOTAL=$(grep -cE '^\s*"[a-z].*"steps"' registry/commands/workflows.json 2>/dev/null || echo "0")
 WF_INCOMPLETE=$(bash scripts/check-workflow-coverage.sh 2>/dev/null | grep "Incomplete:" | grep -o "[0-9]*" || echo "0")
 WF_COMPLETE=$(( WF_TOTAL - WF_INCOMPLETE ))
 WF_PCT=$(( WF_TOTAL > 0 ? WF_COMPLETE * 100 / WF_TOTAL : 0 ))
 
 # Business
-BIZ_TOTAL=$(grep -c '"status"' lib/registry/business-coverage.json 2>/dev/null || echo "0")
-BIZ_COVERED=$(grep -c '"covered"' lib/registry/business-coverage.json 2>/dev/null || echo "0")
-BIZ_PARTIAL=$(grep -c '"partial"' lib/registry/business-coverage.json 2>/dev/null || echo "0")
-BIZ_GAPS=$(grep -c '"not_covered"' lib/registry/business-coverage.json 2>/dev/null || echo "0")
+BIZ_TOTAL=$(grep -c '"status"' registry/business-coverage.json 2>/dev/null || echo "0")
+BIZ_COVERED=$(grep -c '"covered"' registry/business-coverage.json 2>/dev/null || echo "0")
+BIZ_PARTIAL=$(grep -c '"partial"' registry/business-coverage.json 2>/dev/null || echo "0")
+BIZ_GAPS=$(grep -c '"not_covered"' registry/business-coverage.json 2>/dev/null || echo "0")
 BIZ_PCT=$(( BIZ_TOTAL > 0 ? (BIZ_COVERED * 100 + BIZ_PARTIAL * 50) / BIZ_TOTAL : 0 ))
 
 # Documents
-DOC_TYPES=$(grep -c '"document_type"' lib/registry/command-registry.json 2>/dev/null || echo "6")
-DOC_ENGINE=$([ -f "lib/documents/engine.ts" ] && echo "100" || echo "0")
+DOC_TYPES=$(grep -c '"document_type"' registry/command-registry.json 2>/dev/null || echo "6")
+DOC_ENGINE=$([ -f "engines/documents/engine.ts" ] && echo "100" || echo "0")
 
 # Registry
-REG_MODULES=$(grep -c '"owner"' lib/registry/module-registry.json 2>/dev/null || echo "0")
-REG_COMMANDS=$(grep -c '"owner"' lib/registry/command-registry.json 2>/dev/null || echo "0")
+REG_MODULES=$(grep -c '"owner"' registry/module-registry.json 2>/dev/null || echo "0")
+REG_COMMANDS=$(grep -c '"owner"' registry/command-registry.json 2>/dev/null || echo "0")
 REG_PCT=$(( (REG_MODULES > 0 && REG_COMMANDS > 0) ? 100 : 50 ))
 
 # Governance (scripts count)
@@ -71,7 +71,7 @@ SHADOW=$(bash scripts/check-registry.sh 2>&1 | grep -c "UNREGISTERED" || true)
 SHADOW=${SHADOW:-0}
 
 # Duplicates
-CLONE_COUNT=$(npx jscpd lib/ app/ components/ 2>&1 | sed 's/\x1b\[[0-9;]*m//g' | grep "Found" | grep -o "[0-9]* clones" | grep -o "[0-9]*" || true)
+CLONE_COUNT=$(npx jscpd core/ gateway/ engines/ cognitive/ presenter/ services/ plugins/ registry/ app/ components/ 2>&1 | sed 's/\x1b\[[0-9;]*m//g' | grep "Found" | grep -o "[0-9]* clones" | grep -o "[0-9]*" || true)
 CLONE_COUNT=${CLONE_COUNT:-0}
 
 # Ghost rules

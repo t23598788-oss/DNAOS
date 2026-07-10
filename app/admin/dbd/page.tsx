@@ -326,7 +326,7 @@ function ModuleSection({ d, onNavigate }: { d: DBDData; onNavigate: (path: strin
                     <div className="text-[10px] text-slate-500 truncate">{n.purpose_th}</div>
                   )}
                   {n.status === "BROKEN" && n.error_th && (
-                    <div className="text-[10px] text-red-400">⚠ {n.error_th}</div>
+                    <div className="text-[10px] text-red-400">{n.error_th}</div>
                   )}
                 </div>
                 <span className="text-[10px] text-slate-600 shrink-0">{n.exports?.length ?? 0} exp</span>
@@ -832,11 +832,11 @@ function GovernanceSection({ d }: { d: DBDData }) {
                           <div className="text-xs text-slate-200">{r.decision}</div>
                           {r.codified_in ? (
                             <div className="text-[10px] font-mono text-green-400 mt-0.5 truncate">
-                              ✓ {r.codified_in}
+                              {r.codified_in}
                             </div>
                           ) : (
                             <div className="text-[10px] text-amber-400 mt-0.5">
-                              ⚠ ยังไม่มีในระบบ — ต้องให้คนตัดสินใจ
+                              ยังไม่มีในระบบ — ต้องให้คนตัดสินใจ
                             </div>
                           )}
                           {r.source && (
@@ -860,18 +860,18 @@ function GovernanceSection({ d }: { d: DBDData }) {
 
 type SectionId = "runtime" | "ai" | "api" | "modules" | "workflow" | "database" | "graph" | "build" | "traces" | "events" | "governance";
 
-const TABS: { id: SectionId; icon: string; label: string }[] = [
-  { id: "runtime",    icon: "⚙",  label: "Runtime"    },
-  { id: "ai",         icon: "🤖", label: "AI"          },
-  { id: "api",        icon: "🔌", label: "API"         },
-  { id: "modules",    icon: "📦", label: "Modules"     },
-  { id: "workflow",   icon: "⚡", label: "Workflow"    },
-  { id: "database",   icon: "🗄", label: "Database"    },
-  { id: "graph",      icon: "🕸",  label: "Graph"       },
-  { id: "build",      icon: "🔨", label: "Build"       },
-  { id: "traces",     icon: "🔍", label: "Traces"      },
-  { id: "events",     icon: "📋", label: "Events"      },
-  { id: "governance", icon: "⚖", label: "Governance"  },
+const TABS: { id: SectionId; label: string; sublabel: string }[] = [
+  { id: "runtime",    label: "Runtime",    sublabel: "System Health"   },
+  { id: "ai",         label: "AI",         sublabel: "Capabilities"    },
+  { id: "api",        label: "API",         sublabel: "Routes"          },
+  { id: "modules",    label: "Modules",    sublabel: "Registry"        },
+  { id: "workflow",   label: "Workflow",   sublabel: "Commands"        },
+  { id: "database",   label: "Database",   sublabel: "Schema"          },
+  { id: "graph",      label: "Graph",      sublabel: "Architecture"    },
+  { id: "build",      label: "Build",      sublabel: "Deploy"          },
+  { id: "traces",     label: "Traces",     sublabel: "Execution"       },
+  { id: "events",     label: "Events",     sublabel: "Live Stream"     },
+  { id: "governance", label: "Governance", sublabel: "Decisions"       },
 ];
 
 export default function DBDPage() {
@@ -976,26 +976,40 @@ export default function DBDPage() {
       )}
 
       <div className="relative z-10 flex flex-1 min-h-0 overflow-hidden">
-        {/* ── Left tabs ── */}
-        <nav className="w-32 shrink-0 bg-slate-900/50 backdrop-blur-sm border-r border-cyan-500/10 overflow-y-auto">
+        {/* ── Left nav — enterprise column style ── */}
+        <nav className="w-44 shrink-0 bg-slate-950 border-r border-slate-800 overflow-y-auto">
           {TABS.map((tab) => {
             const badge = tabBadge[tab.id];
+            const isActive = active === tab.id;
             return (
-              <button key={tab.id} onClick={() => setActive(tab.id)}
-                className={`w-full flex items-center justify-between px-3 py-2.5 text-xs transition ${
-                  active === tab.id
-                    ? "bg-cyan-500/10 text-cyan-300 font-semibold border-r-2 border-cyan-400 shadow-[inset_0_0_16px_-6px_rgba(34,211,238,0.4)]"
-                    : "text-slate-400 hover:bg-slate-800/40 hover:text-slate-100"
+              <button
+                key={tab.id}
+                onClick={() => setActive(tab.id)}
+                className={`group w-full text-left px-4 py-3 border-b border-slate-800/60 transition-all duration-150 ${
+                  isActive
+                    ? "bg-slate-800 border-l-2 border-l-cyan-400 pl-3.5"
+                    : "border-l-2 border-l-transparent hover:bg-slate-800/70 hover:border-l-slate-500"
+                }`}
+              >
+                <div className="flex items-center justify-between gap-1">
+                  <span className={`text-xs font-semibold tracking-wide transition-colors duration-150 ${
+                    isActive
+                      ? "text-cyan-300"
+                      : "text-slate-400 group-hover:text-slate-100"
+                  }`}>
+                    {tab.label}
+                  </span>
+                  {badge != null && (
+                    <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded font-mono tabular-nums ${
+                      isActive ? "bg-cyan-500/20 text-cyan-400" : "bg-slate-700 text-slate-400 group-hover:bg-slate-600 group-hover:text-slate-200"
+                    }`}>{badge}</span>
+                  )}
+                </div>
+                <div className={`text-[10px] mt-0.5 transition-colors duration-150 ${
+                  isActive ? "text-slate-400" : "text-slate-600 group-hover:text-slate-500"
                 }`}>
-                <span className="flex items-center gap-1.5">
-                  <span className="text-sm leading-none">{tab.icon}</span>
-                  {tab.label}
-                </span>
-                {badge != null && (
-                  <span className={`text-[9px] font-bold px-1 py-0.5 rounded-full ${
-                    active === tab.id ? "bg-cyan-500/30 text-cyan-300" : "bg-red-500/20 text-red-400"
-                  }`}>{badge}</span>
-                )}
+                  {tab.sublabel}
+                </div>
               </button>
             );
           })}
@@ -1006,7 +1020,7 @@ export default function DBDPage() {
           {loading && !data && (
             <div className="flex items-center justify-center h-full">
               <div className="text-center text-slate-500">
-                <div className="text-2xl mb-2 animate-spin inline-block">⚙</div>
+                <div className="w-6 h-6 mb-3 mx-auto rounded-full border-2 border-slate-600 border-t-cyan-400 animate-spin" />
                 <p className="text-sm">กำลังอ่าน Registry ทั้งหมด…</p>
               </div>
             </div>

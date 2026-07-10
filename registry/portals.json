@@ -1,0 +1,346 @@
+{
+  "version": 1,
+  "note": "Portal Registry — Single Source of Truth สำหรับทุก Portal ของ DNA OS. ทุก Portal ใช้ Core, Gateway, Registry, Database ชุดเดียวกันเสมอ — ความต่างระหว่าง Portal อนุญาตให้ต่างกันได้แค่ 2 อย่างเท่านั้น: UI และสิทธิ์การเข้าถึง ห้ามสร้าง Business Logic ใหม่ต่อ Portal (Portal คือ View เท่านั้น)",
+  "shared_shell_component": "components/portal/PortalShell.tsx",
+  "main": [
+    {
+      "label": "Control Center",
+      "href": "/",
+      "icon": "Cpu"
+    },
+    {
+      "label": "Developer Portal",
+      "href": "/start",
+      "icon": "BookOpen"
+    },
+    {
+      "label": "Documentation",
+      "href": "/admin",
+      "icon": "FileText"
+    },
+    {
+      "label": "Login",
+      "href": "/admin/login",
+      "icon": "LogIn"
+    },
+    {
+      "label": "Business Portal",
+      "href": "/business",
+      "icon": "Briefcase"
+    }
+  ],
+  "nav": [
+    {
+      "label": "Control Center",
+      "href": "/"
+    },
+    {
+      "label": "Products",
+      "href": "/products"
+    },
+    {
+      "label": "Solutions",
+      "href": "/solutions"
+    },
+    {
+      "label": "Marketplace",
+      "href": "/marketplace"
+    },
+    {
+      "label": "AI Services",
+      "href": "/ai-services"
+    },
+    {
+      "label": "Report",
+      "href": "/report"
+    },
+    {
+      "label": "Observer",
+      "href": "/observer"
+    },
+    {
+      "label": "User Portal",
+      "href": "/user"
+    },
+    {
+      "label": "Partner Portal",
+      "href": "/partner"
+    },
+    {
+      "label": "Developer Portal",
+      "href": "/start"
+    },
+    {
+      "label": "Business Portal",
+      "href": "/business"
+    },
+    {
+      "label": "Download Center",
+      "href": "/download"
+    },
+    {
+      "label": "Documentation",
+      "href": "/admin"
+    },
+    {
+      "label": "Login",
+      "href": "/admin/login"
+    }
+  ],
+  "_main_nav_note": "main/nav เป็น convenience view สำหรับหน้า Landing Page (app/page.tsx) เท่านั้น — ข้อมูลจริง (name/route/status/access) อยู่ที่ object `portals` ด้านล่าง ห้ามเพิ่ม Portal ใหม่ที่นี่โดยไม่เพิ่มใน `portals` ด้วย. ข้อยกเว้น: 'Documentation' (/admin) และ 'Login' (/admin/login) ถูกเพิ่มที่นี่ 2026-07-07 เป็น nav link ไปยังของจริงที่มีอยู่แล้ว (app/admin ถูกเปลี่ยนเป็น Documentation Portal โดย session อื่นก่อนหน้านี้ — ยังเป็นคำถามค้างใน CURRENT_STATE.json open_questions[0] ว่าตั้งใจหรือไม่ — ไม่ใช่ Portal ลำดับที่ 7 ใน object `portals` ด้านล่าง เพราะ 6 Portal ถูก lock ไว้แล้วตามคำสั่งก่อนหน้า)",
+  "docs": [
+    {
+      "label": "Overview",
+      "href": "/admin",
+      "icon": "LayoutGrid",
+      "group": "business"
+    },
+    {
+      "label": "Dashboard",
+      "href": "/admin/dashboard",
+      "icon": "LayoutGrid",
+      "group": "business"
+    },
+    {
+      "label": "Architecture",
+      "href": "/admin/architecture",
+      "icon": "Cpu",
+      "group": "dev"
+    },
+    {
+      "label": "🛡️ ประวัติเปลี่ยนโครงสร้าง DB",
+      "href": "/admin/schema-audit",
+      "icon": "Shield",
+      "group": "dev"
+    },
+    {
+      "label": "DNA",
+      "href": "/admin/dna",
+      "icon": "Cpu",
+      "group": "dev"
+    },
+    {
+      "label": "Graph",
+      "href": "/admin/graph",
+      "icon": "Network",
+      "group": "dev"
+    },
+    {
+      "label": "API Explorer",
+      "href": "/admin/api-explorer",
+      "icon": "Network",
+      "group": "dev"
+    },
+    {
+      "label": "API Tokens",
+      "href": "/admin/api-tokens",
+      "icon": "Shield",
+      "group": "dev"
+    },
+    {
+      "label": "Users & Roles",
+      "href": "/admin/users",
+      "icon": "Shield",
+      "group": "dev"
+    },
+    {
+      "label": "Connectors",
+      "href": "/admin/connectors",
+      "icon": "Plug",
+      "group": "dev"
+    },
+    {
+      "label": "Build",
+      "href": "/admin/build",
+      "icon": "BookOpen",
+      "group": "dev"
+    },
+    {
+      "label": "Deploy",
+      "href": "/admin/deploy",
+      "icon": "BookOpen",
+      "group": "dev"
+    },
+    {
+      "label": "Traces",
+      "href": "/admin/traces",
+      "icon": "Network",
+      "group": "dev"
+    },
+    {
+      "label": "Reader",
+      "href": "/admin/reader",
+      "icon": "BookOpen",
+      "group": "dev"
+    },
+    {
+      "label": "Links",
+      "href": "/admin/links",
+      "icon": "BookOpen",
+      "group": "dev"
+    },
+    {
+      "label": "Backup",
+      "href": "/admin/backup",
+      "icon": "Database",
+      "group": "dev"
+    },
+    {
+      "label": "Jobs",
+      "href": "/admin/jobs",
+      "icon": "Database",
+      "group": "business"
+    },
+    {
+      "label": "Partners",
+      "href": "/admin/partners",
+      "icon": "Database",
+      "group": "business"
+    },
+    {
+      "label": "Transactions",
+      "href": "/admin/transactions",
+      "icon": "Database",
+      "group": "business"
+    },
+    {
+      "label": "ธุรกิจการเงิน",
+      "href": "/admin/debt-tracking",
+      "icon": "Database",
+      "group": "business"
+    },
+    {
+      "label": "📥 เหตุการณ์เข้า",
+      "href": "/admin/event-inbox",
+      "icon": "Database",
+      "group": "business"
+    },
+    {
+      "label": "ลูกค้า LINE",
+      "href": "/admin/line-customers",
+      "icon": "LineChat",
+      "group": "business"
+    },
+    {
+      "label": "คำขอราคาค้าง",
+      "href": "/admin/quotation-queue",
+      "icon": "Database",
+      "group": "business"
+    },
+    {
+      "label": "🪨 บ่อวัสดุ",
+      "href": "/admin/pits",
+      "icon": "Database",
+      "group": "business"
+    },
+    {
+      "label": "ออกเอกสาร",
+      "href": "/admin/create-document",
+      "icon": "Database",
+      "group": "business"
+    },
+    {
+      "label": "Pending",
+      "href": "/admin/pending",
+      "icon": "LayoutGrid",
+      "group": "business"
+    },
+    {
+      "label": "DBD",
+      "href": "/admin/dbd",
+      "icon": "Puzzle",
+      "group": "business"
+    }
+  ],
+  "_docs_note": "เพิ่ม 2026-07-07 เพื่อแก้ tsc/build error ใน app/admin/layout.tsx ที่อ่าน portals.docs — เป็น real route ทั้งหมดที่มีอยู่จริงใน app/admin/*/page.tsx (28 หน้า, ไม่รวม /admin/login เพราะเป็นหน้า login เอง ไม่ใช่ nav destination), label มาจากชื่อ route ตรงๆ ไม่ได้แต่งใหม่ ครอบคลุมทั้งหน้า business admin จริง (jobs/partners/invoice/transactions/debt-tracking ฯลฯ) และหน้า documentation/explorer (architecture/connectors/api-explorer ฯลฯ) โดยตั้งใจ — เพื่อไม่ให้หน้าธุรกิจจริงหายไปจาก sidebar ระหว่างที่ยังไม่ได้คำตอบจากเจ้าของระบบว่า /admin ตั้งใจเปลี่ยนเป็น Documentation Portal ทั้งหมดหรือไม่ (ดู CURRENT_STATE.json open_questions[0] — ยังไม่ resolved)",
+  "business": [
+    {
+      "label": "Dashboard",
+      "href": "/business",
+      "icon": "LayoutGrid"
+    }
+  ],
+  "_business_note": "เพิ่ม 2026-07-07 เพื่อแก้ tsc/build error ใน app/business/layout.tsx ที่อ่าน portals.business — ปัจจุบันมีแค่ 1 หน้าจริงใต้ app/business/ (page.tsx เดียว) ทั้งที่ layout.tsx เขียนไว้ว่าจะมี 'role-based dashboards' หลายหน้า — ใส่แค่ entry เดียวที่เป็นจริง ห้ามแต่ง nav item อื่น (เช่น Pricing/Sales/Testimonials) เพราะเป็นเนื้อหาการขายที่ต้องรอเจ้าของระบบกำหนด (ดู CURRENT_STATE.json open_questions[1] — ยังไม่ resolved)",
+  "portals": {
+    "control_center": {
+      "name": "Control Center",
+      "purpose_th": "ควบคุมระบบ — ดูสถานะงานขนส่งจริง อนุมัติ/ระงับการจ่ายเงินประกัน",
+      "route": "/",
+      "implementation": "app/page.tsx",
+      "status": "official",
+      "note": "มีอยู่แล้วก่อนตั้ง Portal Registry — เปลี่ยนสถานะเป็น official ตามคำสั่ง ไม่ได้แก้โค้ดภายใน",
+      "access": {
+        "auth_required": false,
+        "verified_from": "middleware.ts (matcher: /admin/:path* เท่านั้น)",
+        "note": "ปัจจุบันไม่มีการล็อกอินจริง — สิทธิ์การเข้าถึงยังไม่ถูกกำหนด รอรายละเอียดภายหลัง"
+      }
+    },
+    "developer_portal": {
+      "name": "Developer Portal",
+      "purpose_th": "สำหรับนักพัฒนา — Observer, API spec, Modules/Commands/Workflows/Constitution/Capabilities/Drivers, Examples, Playground",
+      "route": "/start",
+      "implementation": "app/start/page.tsx",
+      "status": "official",
+      "note": "มีอยู่แล้วก่อนตั้ง Portal Registry — เปลี่ยนสถานะเป็น official ตามคำสั่ง ไม่ได้แก้โค้ดภายใน",
+      "access": {
+        "auth_required": false,
+        "verified_from": "middleware.ts (matcher: /admin/:path* เท่านั้น)",
+        "note": "ปัจจุบันไม่มีการล็อกอินจริง — สิทธิ์การเข้าถึงยังไม่ถูกกำหนด รอรายละเอียดภายหลัง"
+      }
+    },
+    "user_portal": {
+      "name": "User Portal",
+      "purpose_th": "สำหรับผู้ใช้งาน — รายละเอียดยังไม่กำหนด",
+      "route": "/user",
+      "implementation": "app/user/page.tsx",
+      "status": "shell",
+      "note": "Shell เท่านั้น ยังไม่มี Business Logic หรือเนื้อหาจริง — รอกำหนดรายละเอียดภายหลัง",
+      "access": {
+        "auth_required": null,
+        "note": "ยังไม่กำหนดกลไกสิทธิ์การเข้าถึง"
+      }
+    },
+    "partner_portal": {
+      "name": "Partner Portal",
+      "purpose_th": "สำหรับคู่ค้า/พาร์ทเนอร์ — รายละเอียดยังไม่กำหนด",
+      "route": "/partner",
+      "implementation": "app/partner/page.tsx",
+      "status": "shell",
+      "note": "Shell เท่านั้น ยังไม่มี Business Logic หรือเนื้อหาจริง — รอกำหนดรายละเอียดภายหลัง",
+      "access": {
+        "auth_required": null,
+        "note": "ยังไม่กำหนดกลไกสิทธิ์การเข้าถึง — ปัจจุบันระบบมีผู้ใช้ระดับแอดมินคนเดียว (ADMIN_EMAIL/ADMIN_PASSWORD) ยังไม่มีระบบล็อกอินแยกตามคู่ค้า"
+      }
+    },
+    "business_portal": {
+      "name": "Business Portal",
+      "purpose_th": "สำหรับนำเสนอและขายระบบ — รายละเอียดยังไม่กำหนด",
+      "route": "/business",
+      "implementation": "app/business/page.tsx",
+      "status": "shell",
+      "note": "Shell เท่านั้น ยังไม่มีเนื้อหาการตลาด/ราคา/การนำเสนอจริง — รอกำหนดรายละเอียดภายหลัง (ห้ามเดาเนื้อหาการขาย)",
+      "access": {
+        "auth_required": null,
+        "note": "ยังไม่กำหนด — คาดว่าจะเป็นหน้าสาธารณะเนื่องจากมีไว้นำเสนอขาย แต่ยังไม่ยืนยัน"
+      }
+    },
+    "download_center": {
+      "name": "Download Center",
+      "purpose_th": "สำหรับดาวน์โหลดเครื่องมือ — รายละเอียดยังไม่กำหนด",
+      "route": "/download",
+      "implementation": "app/download/page.tsx",
+      "status": "shell",
+      "note": "Shell เท่านั้น ยังไม่กำหนดว่าเครื่องมือใดดาวน์โหลดได้บ้าง — รอรายละเอียดภายหลัง",
+      "access": {
+        "auth_required": null,
+        "note": "ยังไม่กำหนดกลไกสิทธิ์การเข้าถึง"
+      }
+    }
+  },
+  "rules": [
+    "ทุก Portal ต้องใช้ Core, Gateway, Registry, Database ชุดเดียวกัน ห้ามสร้างชุดใหม่แยกต่างหากต่อ Portal",
+    "ห้ามสร้าง Business Logic ใหม่ต่อ Portal — Portal คือ View ของระบบเดียวเท่านั้น",
+    "ความต่างระหว่าง Portal อนุญาตให้ต่างกันได้แค่ 2 อย่าง: UI และสิทธิ์การเข้าถึง",
+    "Portal ที่มีอยู่ก่อนแล้ว (Control Center, Developer Portal) ถูกเปลี่ยนสถานะเป็น official โดยไม่แก้โค้ดภายใน — การลงทะเบียนนี้คือการรับรองสถานะ ไม่ใช่การ refactor"
+  ]
+}

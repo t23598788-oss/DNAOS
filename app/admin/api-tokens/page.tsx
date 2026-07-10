@@ -51,7 +51,7 @@ function CopyButton({ text }: { text: string }) {
       onClick={copy}
       className="text-[10px] px-2 py-0.5 rounded bg-stone-100 hover:bg-stone-200 text-stone-500 transition"
     >
-      {copied ? "✓ copied" : "copy"}
+      {copied ? "copied" : "copy"}
     </button>
   )
 }
@@ -67,8 +67,8 @@ export default function ApiTokensPage() {
     setState(s => ({ ...s, loading: true, error: null }))
     try {
       const res = await fetch("/api/admin/api-tokens")
-      if (!res.ok) throw new Error(`${res.status}`)
-      const json = await res.json()
+      const json = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(json.error ?? `HTTP ${res.status}`)
       setState({ tokens: json.tokens ?? [], loading: false, error: null })
     } catch (e) {
       setState(s => ({ ...s, loading: false, error: String(e) }))

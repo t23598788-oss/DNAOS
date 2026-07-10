@@ -9,8 +9,8 @@ import {
   getStepIndex,
   TX_TYPE_LABELS,
   type TxType,
-} from "@/lib/transactions/workflows"
-import { DOCUMENT_TYPE_META } from "@/lib/documents/document-editor"
+} from "@/engines/transactions/workflows"
+import { DOCUMENT_TYPE_META } from "@/engines/documents/document-editor"
 
 // ---------- types ----------
 interface Transaction {

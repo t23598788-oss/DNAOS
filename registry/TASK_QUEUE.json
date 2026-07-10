@@ -1,0 +1,213 @@
+[
+  {
+    "id": "TASK-001",
+    "title": "PLAN LOCK 1/3 — Single Sign-On + Permission system (ระบบล็อกอินและสิทธิ์)",
+    "priority": "P0",
+    "status": "in_progress",
+    "detail": "Declared by owner 2026-07-08 as the first of 3 gate tasks (registry/CONSTITUTION.json iron_rules: no new Module/Page/Feature until all 3 are DONE 100%). Renumbered from TASK-023 to TASK-001 same day per owner's explicit instruction — see CURRENT_STATE.json → plan_lock.renumbering_note for the full ID mapping (the OLD TASK-001/002/003 now live at TASK-026/027/028). Goal: log in once (SSO), reach every Portal and every API with that one session. Scope: wire Supabase Auth end-to-end across Admin Login, User Login, Partner Login, Business Portal Login, API Token Login; one shared session for the whole system; middleware auth-check on every route; Role set = Super Admin/Admin/Employee/Partner/Customer/AI Service; a Permission Registry; Route Guards; logout across every system; refresh token; remember-login. Definition of Done (all required): login once reaches every Portal; API calls share the one session; no duplicate/parallel login pages; every API route passes requireAuth. Sequenced before TASK-002/003 because both depend on the same session model. Note: zero Supabase Auth users exist in production today (see TASK-022) — this task is also the real fix for that gap, not a separate effort.",
+    "gate": true
+  },
+  {
+    "id": "TASK-002",
+    "title": "PLAN LOCK 2/3 — Connect all real data, remove every mock/demo path (เชื่อมข้อมูลจริงทั้งหมด)",
+    "priority": "P0",
+    "status": "pending",
+    "detail": "Declared by owner 2026-07-08, second of 3 gate tasks — depends on TASK-001's session model. Renumbered from TASK-024 same day, see CURRENT_STATE.json → plan_lock.renumbering_note. Goal: eliminate all mock/fake/demo data across Supabase Database, Registry, Module Registry, Command Registry, Workflow Registry, Business Rules, App Config, Partner, Document, Debt, Job, Events, Timeline, Dashboard, Observer, Business Portal, User Portal. Verify: no Mock, no Fake, no Demo Data anywhere; every page reads from the DB. Definition of Done: editing a row in the DB is immediately reflected on every page that shows it; Observer reads the real Registry; Dashboard reads real data. This overlaps with existing blockers TASK-021 (customer_orders needs real Site/Project address data) and TASK-022 (app_configs company/bank info empty) — those are sub-parts of this gate, not separate work.",
+    "gate": true
+  },
+  {
+    "id": "TASK-003",
+    "title": "PLAN LOCK 3/3 — Clean up outstanding work and ship Production (เก็บงานค้างและปล่อย Production)",
+    "priority": "P0",
+    "status": "pending",
+    "detail": "Declared by owner 2026-07-08, third of 3 gate tasks — depends on TASK-001 and TASK-002 landing first. Renumbered from TASK-025 same day, see CURRENT_STATE.json → plan_lock.renumbering_note. Goal: clean repository, ready to deploy. Scope: check git status, commit every real file, resolve conflicts, delete experimental/dead files and dead code, npm run lint, npm run type-check, npm run build, test every route, deploy to production, check the error log, tag the release. Checklist: git clean / build passes / type-check passes / lint passes / deploy passes / production actually usable. Definition of Done: git status clean, no stray files, no build errors, production genuinely usable. Related open item: CURRENT_STATE.json's working_tree_note records ~344 modified, uncommitted files as of DNA-000019 — this task is what finally resolves that.",
+    "gate": true
+  },
+  {
+    "id": "TASK-019",
+    "title": "Vercel Deployment Protection (SSO) is blocking public access to the production site",
+    "priority": "high",
+    "status": "blocked",
+    "blocked_on": "system owner — real access-control decision, not something to flip silently",
+    "detail": "Discovered 2026-07-08 (DNA-000018) immediately after deploying to production: every route, including fully public pages like / and /login, returns 302 to https://vercel.com/sso-api — this is Vercel's own Deployment Protection / Vercel Authentication project setting, unrelated to middleware.ts (which only ever gated /admin/*). No real visitor (customer, partner) can reach the site without a Vercel account added to this team. Configure at: Vercel Dashboard → dna-os-deadboard project → Settings → Deployment Protection → turn off 'Vercel Authentication' for Production (or scope it as needed). See TASK-020 for a related gap worth fixing first or alongside this. UPDATE 2026-07-08: the API-auth gap this task was waiting on (TASK-020) is now fixed — every /api/admin/* route checks its own admin_session cookie regardless of Deployment Protection. The owner can now disable Deployment Protection without that specific risk; still an access-control decision only the owner should make (Vercel Dashboard → dna-os-deadboard → Settings → Deployment Protection)."
+  },
+  {
+    "id": "TASK-020",
+    "title": "Several /api/admin/* routes have no auth check of their own — only ever protected by page-level gates",
+    "priority": "high",
+    "status": "done",
+    "detail": "Found during this session's earlier audits, resurfaced 2026-07-08 while evaluating TASK-019: routes like /api/admin/partners and /api/admin/jobs (unlike the connectors/upload/notifications routes built this session, which all call requireAdmin() checking the admin_session cookie) don't check auth themselves — they've only ever been shielded by (a) Vercel's Deployment Protection wall and (b) middleware.ts gating the /admin page that normally calls them. Neither actually protects the API route if hit directly. Should be fixed by adding the same requireAdmin() pattern (see app/api/admin/connectors/route.ts or app/api/admin/upload/route.ts for the exact pattern) to every /api/admin/* route that's missing it — especially before/alongside disabling TASK-019's Deployment Protection, since that removes the last layer currently shielding these routes in production. RESOLVED 2026-07-08 (DNA-000019, Production QA mission): added the same requireAdmin() cookie-check pattern to all 16 previously-unprotected /api/admin/* handlers (backup, debt-trackings x3, documents x3, partners x4, pulse, settings GET, transactions x3). backup/route.ts was the most severe instance — it returned a full unauthenticated dump of every business table."
+  },
+  {
+    "id": "TASK-016",
+    "title": "Upload feature — built and live",
+    "priority": "medium",
+    "status": "done",
+    "detail": "Built 2026-07-07 (DNA-000017), after the owner's follow-up narrowed the pause condition to 'missing credential' only (no credential was missing for this one, so proceeded): created a private 'attachments' Storage bucket in the live Supabase project (supabase/migrations/20260707000002_attachments_bucket.sql, applied via supabase db query --linked, verified present via a SELECT against storage.buckets). Built app/api/admin/upload/route.ts (admin_session-gated POST/GET/DELETE — upload, 5-minute signed-URL fetch, delete; 20MB size cap; PDF/PNG/JPEG/WEBP/HEIC allow-list) and components/documents/FileUpload.tsx (reusable, no business-specific logic), wired into components/documents/DocumentBuilder.tsx as a real 'attach a reference file' section on every document type (invoice/receipt/PO/delivery-order/debt-notice/etc., since they all share this one component). Attachment listing uses Supabase Storage's own .list() by documentId-prefixed folder — no new DB table needed. Scope was deliberately kept to 'attach a file to a document' (the one universally-applicable, non-guessed use case across every real document type already in the system) rather than a generic unscoped uploader. npm run build clean (exit 0), and confirmed both new API routes correctly return 401 without the admin_session cookie (same auth pattern as the connectors routes)."
+  },
+  {
+    "id": "TASK-017",
+    "title": "Notifications feature — code complete, functionally blocked on one missing credential",
+    "priority": "medium",
+    "status": "blocked",
+    "blocked_on": "external dependency — LINE_CHANNEL_ACCESS_TOKEN does not exist anywhere in this project (confirmed by direct inspection of .env.local); the code that will use it the moment it's added is already built",
+    "detail": "Built 2026-07-07 (DNA-000017): app/api/admin/notifications/send/route.ts (admin_session-gated) and app/admin/notifications/page.tsx (recipient + message + explicit two-step confirm button, no auto-send — matches capability_actions.communication.send_message.requires_confirmation:true from the registry). Reuses the exact real LINE Messaging API push call already proven working in the deployed supabase/functions/line-webhook-v2/engines/response.ts (same endpoint https://api.line.me/v2/bot/message/push, same Authorization: Bearer <LINE_CHANNEL_ACCESS_TOKEN> pattern) — not a second notification system, the same one, just newly reachable from the admin UI instead of only from inbound-webhook-triggered replies. If LINE_CHANNEL_ACCESS_TOKEN is missing, the route returns a clear 503 with the exact registry file to check, rather than failing silently or with a generic error. Real send/fail events are logged to the real audit_logs table (entity_type: 'notification'). npm run build clean, confirmed the route correctly 401s without the admin_session cookie. Email sending (registry/communication/email.registry.json's EMAIL_USER/EMAIL_PASS path) was not built — that registry entry's own policy_note says 'ยังไม่ได้ configure — ต้องการ SMTP provider ก่อน activate' and provider is null, meaning even the intended email service (Gmail SMTP? Resend? SendGrid?) is undecided, not just uncredentialed — a real scope decision, unlike LINE."
+  },
+  {
+    "id": "TASK-015",
+    "title": "Decide scope/intent of 'Brain UI' (dna-brain-3d/) before any AI attempts to build it",
+    "priority": "medium",
+    "status": "blocked",
+    "blocked_on": "system owner — real design/scope decision, not something an AI should guess",
+    "detail": "Investigated 2026-07-07 (DNA-000010): 4 files (a page, a 3D mesh component, an 'impact pipeline', and an API route) exist in dna-brain-3d/, a folder OUTSIDE the actual dna-os-deadboard project entirely (sibling directory, not app/ or components/). The pipeline file's own Thai comment admits placing 'Mock Logic' — a direct violation of the Constitution's iron rule against mock/fake/demo data. It also imports '@/lib/supabase/queries', a path that no longer exists since the 2026-07-06 folder reorg. None of the 4 files have any registry/*.json backing. Concept appears to be: type a command, an 'impact pipeline' processes it, results show as cards around a 3D brain mesh that changes state (stable/thinking/alert). Real questions needed before this can be built: (1) should this even be part of dna-os-deadboard, and if so where; (2) what should the impact pipeline actually compute, for real, instead of the placeholder mock; (3) does this need a 3D rendering library (not currently a dependency) and is that worth adding."
+  },
+  {
+    "id": "TASK-026",
+    "title": "Resolve app/admin/layout.tsx sidebar replacement (design question, not the build error)",
+    "priority": "medium",
+    "status": "blocked",
+    "blocked_on": "user confirmation — see CURRENT_STATE.json open_questions[0]",
+    "detail": "Renumbered from TASK-001 to TASK-026 on 2026-07-08 when the owner reassigned TASK-001/002/003 to the new Plan Lock gate tasks — see CURRENT_STATE.json → plan_lock.renumbering_note. CHANGELOG.json entries dated before 2026-07-08 that say 'TASK-001' mean this task. The tsc/build error is fixed (2026-07-07, DNA-000007: registry/portals.json → docs[] lists all 28 real /admin/* pages so nothing is hidden). Still open: confirm whether /admin becoming the Documentation Portal is the intended permanent design, or whether business-admin pages (jobs/partners/invoice/transactions/debt-tracking etc.) should be regrouped/separated from documentation pages (architecture/connectors/api-explorer etc.) in the sidebar, or moved elsewhere entirely."
+  },
+  {
+    "id": "TASK-027",
+    "title": "Design real Business Portal multi-dashboard nav (design question, not the build error)",
+    "priority": "low",
+    "status": "blocked",
+    "blocked_on": "user to define real Business Portal nav items — ห้ามเดา",
+    "detail": "Renumbered from TASK-002 to TASK-027 on 2026-07-08, same reason as TASK-026 — see CURRENT_STATE.json → plan_lock.renumbering_note. The tsc/build error is fixed (2026-07-07, DNA-000007: registry/portals.json → business[] has one honest entry for the one real page). Still open: only 1 of the 'role-based dashboards' implied by app/business/layout.tsx's own comment exists — real content/pages for the rest are undesigned."
+  },
+  {
+    "id": "TASK-028",
+    "title": "Fix stale CLAUDE.md",
+    "priority": "high",
+    "status": "done",
+    "detail": "Renumbered from TASK-003 to TASK-028 on 2026-07-08, same reason as TASK-026 — see CURRENT_STATE.json → plan_lock.renumbering_note. CHANGELOG.json/HANDOFF.json entries dated before 2026-07-08 that say 'closes TASK-003' mean this task, not the new TASK-003 (Clean+Deploy). Fixed 2026-07-07: replaced V1-V6 naming with current 8-layer names, lib/registry/* → registry/*, lib/shared/types.ts → core/shared/types.ts, removed hardcoded status-number snapshot (now points to live registry files), added pointers to registry/CONSTITUTION.json and registry/README.md (AI Execution Protocol)."
+  },
+  {
+    "id": "TASK-011",
+    "title": "Evolve WORK_LOCK.json from single-lock to multi-session lock",
+    "priority": "medium",
+    "status": "done",
+    "detail": "Resolved 2026-07-07 by the DNA OS Unified AI Runtime: registry/WORK_LOCK.json removed, replaced by registry/LOCK_MANAGER.json (per-file locks[] array, N agents can hold locks on N different files simultaneously). Owner-directed rename, not a unilateral AI rename."
+  },
+  {
+    "id": "TASK-010",
+    "title": "Fix stale pre-reorg paths inside registry coverage/services/command files",
+    "priority": "high",
+    "status": "done",
+    "detail": "Fixed 2026-07-07 (DNA-000015), under an explicit narrow owner exception ('Update only incorrect paths. Do not rename or redesign anything'): corrected all stale pre-reorg path references in registry/existence.json (4), business-coverage.json (18), decision-coverage.json (12), rule-coverage.json (9), services.json (3), and command-registry.json (33 command owner/layer fields + capability_actions section left alone — see note). Every replacement path was verified to actually exist in the current file tree before being written (e.g. grep/find confirmed core/executor/engine.ts, engines/validation/resolver.ts, gateway/actions.ts, gateway/index.ts, core/config-loader.ts, services/middleware/sanitize.ts all real) rather than assumed from memory of the reorg mapping. Re-ran npm run build (exit 0) and curl-verified no stale path strings remain visible on /solutions or /report. One real bug surfaced in the process, NOT fixed (out of scope for a path-only pass): services.json's 'agent' entry now correctly points at plugins/agent/server.ts, but that file does not actually exist — only plugins/agent/start.sh is there, and start.sh's own script expects server.ts to exist at that path. This is a missing file, not a wrong path — logged separately as TASK-018."
+  },
+  {
+    "id": "TASK-018",
+    "title": "plugins/agent/server.ts is missing — referenced by services.json and by plugins/agent/start.sh itself, but does not exist",
+    "priority": "medium",
+    "status": "pending",
+    "detail": "Discovered 2026-07-07 (DNA-000015) while fixing TASK-010's stale paths. registry/services.json's 'agent' service declares module: plugins/agent/server.ts (now correctly pointing at the post-reorg location) — but the file genuinely does not exist there; plugins/agent/ contains only start.sh, which itself runs `npx tsx \"$DIR/server.ts\"`, meaning the agent's own startup script is already broken independent of the registry. This is a real missing-file bug (possibly dropped during the 2026-07-06 reorg's git mv pass, or never existed under this exact name) — needs investigation into where the real agent server logic currently lives (if anywhere) before deciding whether to restore/relocate it or update start.sh."
+  },
+  {
+    "id": "TASK-004",
+    "title": "Re-run full tsc/build verification after TASK-026 and TASK-027 land",
+    "priority": "high",
+    "status": "done",
+    "detail": "npm run build passes clean (exit 0) as of 2026-07-07 DNA-000007/DNA-000008 — verified again once the real design questions (TASK-026/027, renumbered 2026-07-08 from TASK-001/002) are answered, since the fix applied so far is an honest stopgap, not the final content."
+  },
+  {
+    "id": "TASK-013",
+    "title": "Build the 5 missing Frontend Platform destinations (Products/Solutions/Marketplace/AI Services/Report)",
+    "priority": "high",
+    "status": "done",
+    "detail": "Done 2026-07-07 DNA-000008: app/products, app/solutions, app/marketplace, app/ai-services, app/report — all real registry-driven routes, all verified serving HTTP 200, npm run build passes."
+  },
+  {
+    "id": "TASK-014",
+    "title": "Real browser/visual QA (responsive Desktop/Tablet/Mobile, animations) across all Frontend Platform pages",
+    "priority": "medium",
+    "status": "pending",
+    "detail": "No real browser/screenshot tool has been available in this environment across DNA-000007, DNA-000008, or DNA-000009 (presentation-layer pass: stagger animations, PortalShell re-skin, loading skeletons) — all verification so far is npm run build (exit 0) + curl HTTP 200/HTML checks + Tailwind responsive-class review, not actual rendered/visual confirmation."
+  },
+  {
+    "id": "TASK-012",
+    "title": "Group /admin sidebar nav by category instead of one flat 28-item list",
+    "priority": "low",
+    "status": "pending",
+    "detail": "registry/portals.json → docs[] currently renders as one flat list in app/admin/layout.tsx. Once TASK-026 (renumbered 2026-07-08 from TASK-001) is resolved, consider grouping (e.g. Business vs. Documentation/Developer) for usability — not done now to avoid making an information-architecture decision ahead of the user's answer."
+  },
+  {
+    "id": "TASK-005",
+    "title": "Decide on ~9 duplicate Vercel projects + 1 dead Supabase project + 1 empty org",
+    "priority": "low",
+    "status": "pending",
+    "detail": "Flagged during infra sprawl audit, not yet actioned — awaiting user go-ahead before any deletion."
+  },
+  {
+    "id": "TASK-006",
+    "title": "Identify base44.app ('cherubic-zenith-admin-flow') found in credentials file",
+    "priority": "low",
+    "status": "pending"
+  },
+  {
+    "id": "TASK-007",
+    "title": "Decide whether to fix weak admin/password credentials on soil-app-orpin.vercel.app",
+    "priority": "low",
+    "status": "pending"
+  },
+  {
+    "id": "TASK-008",
+    "title": "Real per-portal content/access-control design for User/Partner/Business Portal, Download Center",
+    "priority": "deferred",
+    "status": "pending",
+    "detail": "Explicitly deferred by user: รายละเอียดจะกำหนดภายหลัง"
+  },
+  {
+    "id": "TASK-009",
+    "title": "Complete DocumentBuilder.tsx category-picker removal",
+    "priority": "low",
+    "status": "pending",
+    "detail": "User rejected first attempt, asked to confirm file purpose first — confirmed, but removal itself was never completed before conversation moved to tax-logic investigation."
+  },
+  {
+    "id": "TASK-021",
+    "title": "customer_orders (Jobs/Transactions) cannot be created — requires a Project + Customer Site that have no creation UI/API",
+    "priority": "high",
+    "status": "blocked",
+    "blocked_on": "system owner — needs real structured Thai address data (province/district/subdistrict/postal code) per customer_sites row, which does not exist anywhere in the system today (companies only stores one free-text address string), plus a product decision on whether every order truly requires a Site/Project",
+    "detail": "Found 2026-07-08 (DNA-000019, Production QA mission) while live-testing transaction creation: customer_orders.project_id, .document_group_id, and .customer_site_id are all NOT NULL, but app/admin/jobs/create/page.tsx and app/api/admin/transactions POST only ever collect partner_id/title/amounts — there is no concept of Site or Project anywhere in the admin UI. customer_sites itself requires site_name/address/province/district/subdistrict/postal_code, none of which are derivable from existing company records without guessing (ห้ามเดา). POST /api/admin/transactions now returns a clear 422 explaining this instead of a raw Postgres constraint error. Real fix requires either (a) building Site + Project management UI with real address entry, or (b) an owner decision to make these columns nullable if per-order sites/projects aren't actually required by the business."
+  },
+  {
+    "id": "TASK-022",
+    "title": "Company settings (app_configs) table now exists but is empty — document creation is blocked until real company info is entered",
+    "priority": "high",
+    "status": "blocked",
+    "blocked_on": "system owner — needs real company name, tax ID, bank name, bank account number, bank account name (printed on every generated document; cannot be guessed)",
+    "detail": "Found 2026-07-08 (DNA-000019, Production QA mission): core/config/company-settings.ts's loadCompanySettings() queried a table (app_configs) that did not exist at all in production, so every document create/update call (POST/PATCH /api/admin/documents) hard-crashed with a 500. Created the table via supabase/migrations/20260707000003_app_configs.sql (RLS: public read, authenticated write) — the crash is now a clean 503 with a Thai message instead. To actually unblock document creation, the owner needs to: 1) sign up for a Supabase Auth account via /admin/login (the 'สร้างบัญชี' tab — separate from the ADMIN_EMAIL/ADMIN_PASSWORD cookie login used everywhere else), 2) open the ตั้งค่า (Settings) drawer from any /admin page and enter real company name/tax ID/bank details. Zero Supabase Auth users exist today, so step 1 is required first."
+  },
+  {
+    "id": "TASK-029",
+    "title": "Vendor rotating-capital portfolio + purchase/sales VAT netting + company P&L dashboard",
+    "priority": "P2",
+    "status": "blocked_by_plan_lock",
+    "detail": "Declared by owner 2026-07-09, explicitly deferred by owner until Plan Lock gate tasks (TASK-001/002/003) are fully DONE — do not build before then. Scope per owner's own words: a date-anchored financial ledger as the base layer; company-wide input/output VAT netting (ภาษีซื้อ/ภาษีขาย) fed by real vendor fuel-tax invoices (เฮียอุทัย's oil bills, still being sent by owner); a rotating-capital 'portfolio' concept for money cycled into supplier resources (e.g. the เฮียอุทัย sand relationship) that is explicitly NOT customer debt and must not go into debt_snapshots/companies as a receivable; rolls up into a company profit/loss view including loan liabilities, shown as a dashboard 'evaluating company potential' so the system has full self-describing business context (matches existing consciousness-layer / self-aware-system philosophy). No schema for any of this exists yet (no payables table, no VAT ledger, no portfolio/investment table) — this is a genuinely new Module, hence the Plan Lock block.",
+    "context_sources": [
+      "ข้อมูลจากแชท LINE Partner/[LINE]บ่อทรายสานุสันต์.txt (เฮียอุทัย = อุทัย สานุสันต์, tax_id 3340900113652) — 25%/ปี interest rate mentioned there matches engines/business.ts's existing default, confirmed real not guessed",
+      "ข้อมูลจากแชท LINE Partner/[LINE]👷mixkung civil👷.txt (พี่มิก = contact for บจก. เคที คอนสตรัคชั่น 1988, tax_id 0405566003831 confirmed) — reveals separate personal loans (~10k/20k/30k, overlapping/unclear net total) layered on top of that company's already-imported material debt (32,736.36 in debt_snapshots) — owner asked to be given the current net loan total separately before importing, not yet provided"
+    ],
+    "do_not": "Do not invent the เฮียอุทัย 145,600บาท figure's relationship to the 3 existing purchase-orders (259,602.06 total) — owner has not clarified if additive or overlapping. Do not guess พี่มิก's net loan balance from the chat log's overlapping mentions — owner must supply the current figure directly."
+  },
+  {
+    "id": "TASK-030",
+    "title": "Customer cross-reference lookup — search a LINE contact/company, show combined timeline from companies+line_events+documents+debt_snapshots",
+    "priority": "P1",
+    "status": "in_progress",
+    "detail": "Owner corrected 2026-07-10: NOT a new AI-assistant module — reframed as a read-only query/summary layer over EXISTING real tables already populated this session (companies, debt_snapshots, line_events, documents). No new business capability, no new writes — same class of work as the ธุรกิจการเงิน page consolidation. Not blocked by Plan Lock. Building now.",
+    "do_not": "Any write action this panel triggers must go through gateway/actions.ts (Rule 72), never a direct table write."
+  },
+  {
+    "id": "TASK-031",
+    "title": "Outgoing Events (เหตุการณ์ออก) — due-date/reminder tracking for quotations, invoices, payments, dispatch, tax docs",
+    "priority": "P2",
+    "status": "blocked_no_real_data",
+    "detail": "Owner proposed 2026-07-10 as the other half of the Event Inbox concept (Incoming Events built same day, business_events + /admin/line-customers). Checked: no due-date/reminder/task table exists anywhere in either Supabase project. Cannot build without fabricating deadlines. Needs real schema first (e.g. a tasks/reminders table with due_at, kind, related_partner_id, related_document_id, done_at) before any UI can show real outgoing-event data.",
+    "do_not": "Do not render example deadlines (\"10:00 ส่งใบเสนอราคา\") without a real due_at value written by a real process — matches the no-guessing rule already applied to the Context Panel discussion."
+  }
+]

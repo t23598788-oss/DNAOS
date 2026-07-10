@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "protocol": "TASK-001 Permission Registry",
+  "note": "Single source of truth for role → access. core/auth/requireAuth.ts and core/auth/requireAuthPage.ts both read role_tiers from this file — no route file may hardcode its own role list. Any AI/human adding a new protected route registers it here, not inline in the route.",
+  "roles": [
+    { "id": "super_admin", "th": "ผู้ดูแลระบบสูงสุด", "note": "ทุกสิทธิ์ รวมถึงจัดการ role ของคนอื่น (/api/admin/users) และ backup ทั้งระบบ" },
+    { "id": "admin", "th": "ผู้ดูแลระบบ", "note": "จัดการข้อมูลธุรกิจได้ทั้งหมด ยกเว้นสิ่งที่ล็อกไว้เฉพาะ super_admin" },
+    { "id": "employee", "th": "พนักงาน", "note": "ใช้งาน Admin Panel ระดับปฏิบัติการ (เอกสาร/ธุรกรรม/หนี้) แต่ไม่จัดการ role หรือ backup" },
+    { "id": "partner", "th": "คู่ค้า", "note": "เห็นเฉพาะ Business Portal ของตัวเอง" },
+    { "id": "customer", "th": "ลูกค้า", "note": "เห็นเฉพาะ User Portal ของตัวเอง — role เริ่มต้นของทุก signup ใหม่ (ยกเว้นคนแรกสุดของระบบ)" },
+    { "id": "ai_service", "th": "บริการ AI ภายนอก", "note": "ไม่ผ่าน Supabase Auth session — auth ผ่าน X-DNA-Token header แทน (services/supabase/api-tokens.ts), read-only ตาม api_tokens.scopes" }
+  ],
+  "role_tiers": {
+    "admin_tier": ["super_admin", "admin", "employee"],
+    "super_admin_only": ["super_admin"],
+    "any_authenticated": ["super_admin", "admin", "employee", "partner", "customer"]
+  },
+  "route_access": [
+    { "prefix": "/admin", "roles": ["super_admin", "admin", "employee"], "except": ["/admin/login"] },
+    { "prefix": "/business", "roles": ["super_admin", "admin", "employee", "partner"] },
+    { "prefix": "/partner", "roles": ["super_admin", "admin", "partner"] },
+    { "prefix": "/user", "roles": ["super_admin", "admin", "customer"] }
+  ],
+  "api_access": [
+    { "prefix": "/api/admin/backup", "roles": ["super_admin"], "reason": "full unauthenticated table dump if ever exposed again — kept to the tightest tier" },
+    { "prefix": "/api/admin/users", "roles": ["super_admin"], "reason": "role assignment — must not be self-service by admin/employee" },
+    { "prefix": "/api/admin", "roles": ["super_admin", "admin", "employee"] },
+    { "prefix": "/api/document", "roles": ["super_admin", "admin", "employee"] },
+    { "prefix": "/api/action", "roles": ["super_admin", "admin", "employee"] },
+    { "prefix": "/api/explain", "roles": ["super_admin", "admin", "employee", "partner", "customer"] },
+    { "prefix": "/api/v1/query", "roles": ["ai_service"], "mechanism": "X-DNA-Token header — see services/supabase/api-tokens.ts, not a Supabase Auth session" }
+  ],
+  "public_routes": [
+    "/", "/login", "/products", "/solutions", "/marketplace", "/ai-services",
+    "/report", "/start", "/examples", "/playground", "/observer", "/download"
+  ],
+  "history": {
+    "2026-07-08": "Created for TASK-001 (Plan Lock 1/3). Replaces the old admin_session presence-only cookie check with real Supabase Auth + role checks, and formalizes the Role/Permission Registry required by TASK-001's Definition of Done."
+  }
+}

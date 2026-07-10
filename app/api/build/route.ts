@@ -4,7 +4,7 @@ import { join } from "path";
 import { execSync } from "child_process";
 
 const ROOT = process.cwd();
-const BOOK_PATH = join(ROOT, "lib/registry/architecture-book.json");
+const BOOK_PATH = join(ROOT, "registry/architecture-book.json");
 
 // GET /api/build — สถานะ build ล่าสุดจาก architecture-book.json
 export async function GET() {

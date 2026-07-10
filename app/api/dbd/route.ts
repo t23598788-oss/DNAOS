@@ -8,8 +8,8 @@ import { NextResponse } from "next/server";
 import { readFileSync, existsSync, readdirSync } from "fs";
 import { join, relative } from "path";
 import { execSync } from "child_process";
-import { getRecentTraces } from "@/lib/runtime/trace";
-import { getRecentEvents } from "@/lib/runtime/engine";
+import { getRecentTraces } from "@/core/runtime/trace";
+import { getRecentEvents } from "@/core/runtime/engine";
 
 const ROOT = process.cwd();
 
@@ -21,7 +21,7 @@ function readJSON(rel: string): any {
 
 // ── Runtime / Build ────────────────────────────────────────────────────────
 function getRuntimeStatus() {
-  const book = readJSON("lib/registry/architecture-book.json");
+  const book = readJSON("registry/architecture-book.json");
   if (!book) return { status: "not_built", health_pct: 0, summary: null, generated_at: null };
   const s = book.summary ?? {};
   const health = s.total > 0 ? Math.round((s.ok / s.total) * 100) : 0;
@@ -35,7 +35,7 @@ function getRuntimeStatus() {
 
 // ── AI / Capabilities ──────────────────────────────────────────────────────
 function getAIRegistry() {
-  const ex = readJSON("lib/registry/existence.json") ?? {};
+  const ex = readJSON("registry/existence.json") ?? {};
   const caps = ex.capabilities ?? {};
   const goals = Object.entries(ex.goals ?? {}).map(([key, v]: [string, any]) => ({
     key,
@@ -88,8 +88,8 @@ function scanAPIs() {
 
 // ── Module Registry ────────────────────────────────────────────────────────
 function getModuleRegistry() {
-  const book = readJSON("lib/registry/architecture-book.json");
-  const reg  = readJSON("lib/registry/module-registry.json") ?? {};
+  const book = readJSON("registry/architecture-book.json");
+  const reg  = readJSON("registry/module-registry.json") ?? {};
   const regModules: Record<string, any> = reg.modules ?? {};
 
   if (!book) {
@@ -120,7 +120,7 @@ function getModuleRegistry() {
 
 // ── Workflow / Command Registry ────────────────────────────────────────────
 function getWorkflowRegistry() {
-  const cmd = readJSON("lib/registry/command-registry.json") ?? {};
+  const cmd = readJSON("registry/command-registry.json") ?? {};
   const commands = Object.entries(cmd.commands ?? {}).map(([name, v]: [string, any]) => ({
     name,
     description: v.description ?? v.th ?? "",
@@ -139,7 +139,7 @@ function getWorkflowRegistry() {
     byLayer[l].push(c);
   }
 
-  const ex = readJSON("lib/registry/existence.json") ?? {};
+  const ex = readJSON("registry/existence.json") ?? {};
   const gaps = (ex.evolution_suggestions ?? []).slice(0, 8).map((s: any) => ({
     action: s.action,
     effort: s.effort ?? "",
@@ -151,7 +151,7 @@ function getWorkflowRegistry() {
 
 // ── Database Registry ──────────────────────────────────────────────────────
 function getDatabaseRegistry() {
-  const dbDir = join(ROOT, "lib/registry/database");
+  const dbDir = join(ROOT, "registry/database");
   if (!existsSync(dbDir)) return { domains: [], total_tables: 0 };
 
   const domains: any[] = [];
@@ -160,7 +160,7 @@ function getDatabaseRegistry() {
   for (const fname of readdirSync(dbDir).sort()) {
     if (!fname.endsWith(".json")) continue;
     if (fname === "database.registry.json") continue; // index file
-    const raw = readJSON(`lib/registry/database/${fname}`);
+    const raw = readJSON(`registry/database/${fname}`);
     if (!raw) continue;
 
     // Handle both formats: {domain, tables:[]} and {name, used_by}
@@ -210,7 +210,7 @@ function getDatabaseRegistry() {
 
 // ── Governance Decisions ──────────────────────────────────────────────────
 function getGovernanceDecisions() {
-  const dec = readJSON("lib/registry/decision-coverage.json") ?? {};
+  const dec = readJSON("registry/decision-coverage.json") ?? {};
   const domains = Object.entries(dec.decisions ?? {}).map(([key, v]: [string, any]) => ({
     key,
     label:        v.label ?? key,
@@ -233,7 +233,7 @@ function getGovernanceDecisions() {
 
 // ── Events ────────────────────────────────────────────────────────────────
 function getEventLog() {
-  const ev = readJSON("lib/registry/events.json") ?? {};
+  const ev = readJSON("registry/events.json") ?? {};
   const rawEvents = ev.events ?? {};
 
   // events can be an array of strings or an object of {name: {source, data}}
@@ -278,7 +278,7 @@ function getDeployInfo() {
 
 // ── Architecture Graph Summary ─────────────────────────────────────────────
 function getArchSummary() {
-  const book = readJSON("lib/registry/architecture-book.json");
+  const book = readJSON("registry/architecture-book.json");
   if (!book) return { nodes: [], edges: [], summary: null };
   return {
     nodes: (book.nodes ?? []).slice(0, 100),

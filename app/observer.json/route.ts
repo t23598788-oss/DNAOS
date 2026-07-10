@@ -9,23 +9,23 @@
  */
 
 import { NextResponse } from "next/server"
-import commandRegistry from "@/lib/registry/command-registry.json"
-import moduleRegistry  from "@/lib/registry/module-registry.json"
-import businessCoverage from "@/lib/registry/business-coverage.json"
-import existenceRegistry from "@/lib/registry/existence.json"
-import driversRegistry   from "@/lib/registry/drivers.json"
+import commandRegistry from "@/registry/command-registry.json"
+import moduleRegistry  from "@/registry/module-registry.json"
+import businessCoverage from "@/registry/business-coverage.json"
+import existenceRegistry from "@/registry/existence.json"
+import driversRegistry   from "@/registry/drivers.json"
 import workflowRegistry  from "@/07-workflow-registry.json"
 import documentRegistry  from "@/08-document-registry.json"
 
 const LAYERS = [
-  { id: "V1-Input",     path: "lib/v1-input/",     role: "รับ Event แปลงเป็น JSON — ห้ามเขียน DB" },
-  { id: "V2-Rules",     path: "lib/v2-rules/",     role: "Validation + Business Rule + Command Dispatcher" },
-  { id: "V3-Engines",   path: "lib/v3-engines/",   role: "คำนวณ business logic — ห้าม hardcode" },
-  { id: "V4-AI",        path: "lib/v4-ai/",        role: "แปลภาษาธรรมชาติ → command เท่านั้น ห้ามตัดสินใจ" },
-  { id: "V5-Presenter", path: "lib/v5-presenter/", role: "จัด format ผลลัพธ์ — ห้าม import V3" },
-  { id: "V6-Executor",  path: "lib/v6-executor/",  role: "ประตูเดียวเขียน DB + ส่ง LINE + external services" },
-  { id: "Cognitive",    path: "lib/cognitive/",    role: "Pipeline กลาง: Intent → Plan → Execute → Reflect" },
-  { id: "Middleware",   path: "lib/middleware/",   role: "Auth (requireAuth) + Sanitize — ทุก API route บังคับใช้" },
+  { id: "Input Gateway",      code: "V1-Input",     path: "lib/v1-input/",     role: "Receives all events (LINE, HTTP, Webhook) and converts to JSON. Cannot write DB." },
+  { id: "Business Rules",     code: "V2-Rules",     path: "engines/validation/",     role: "Dispatcher + Validation + Business Rules. Every command must pass through here." },
+  { id: "Business Engine",    code: "V3-Engines",   path: "engines/",   role: "Computes business logic (pricing, debt, tax, timeline). No hardcode. No DB writes." },
+  { id: "AI Interpreter",     code: "V4-AI",        path: "services/ai/",        role: "Translates natural language to commands only. Cannot make decisions or write DB." },
+  { id: "Presentation Layer", code: "V5-Presenter", path: "presenter/", role: "Formats output for display. Cannot import Business Engine directly." },
+  { id: "Execution Layer",    code: "V6-Executor",  path: "gateway/",  role: "Single gate for DB writes, LINE messages, and external service calls." },
+  { id: "Decision Pipeline",  code: "Cognitive",    path: "cognitive/",    role: "Central pipeline: Intent → Plan → Execute → Reflect" },
+  { id: "Security & Auth",    code: "Middleware",   path: "services/middleware/",   role: "requireAuth + Sanitize — enforced on every API route" },
 ]
 
 const CONSTITUTION = {

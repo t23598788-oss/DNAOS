@@ -1,6 +1,6 @@
 import DocumentBuilder from "@/components/documents/DocumentBuilder"
-import { buildDebtNoticeDraft } from "@/lib/documents/debt-notice-draft"
-import { buildDraftFromPartner, buildDraftFromDocument } from "@/lib/documents/draft-builders"
+import { buildDebtNoticeDraft } from "@/engines/documents/debt-notice-draft"
+import { buildDraftFromPartner, buildDraftFromDocument } from "@/engines/documents/draft-builders"
 
 interface Props {
   searchParams: Promise<{

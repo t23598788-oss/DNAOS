@@ -1,15 +1,20 @@
 import { NextRequest, NextResponse } from "next/server"
+import { requireAuth } from "@/core/auth/requireAuth"
+import { ADMIN_TIER } from "@/core/auth/session"
 import {
   getPartnerById,
   getDocumentsByPartner,
   getBusinessEventsByPartner,
-} from "@/lib/supabase/queries"
-import { buildPartnerTimeline, buildPartnerSummary } from "@/lib/v3-engines/partner/timeline"
+} from "@/services/supabase/queries"
+import { buildPartnerTimeline, buildPartnerSummary } from "@/engines/partner/timeline"
 
 export async function GET(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const auth = await requireAuth(ADMIN_TIER)
+  if (auth instanceof NextResponse) return auth
+
   const { id } = await params
 
   try {

@@ -3,30 +3,18 @@
  */
 
 import { NextRequest, NextResponse } from "next/server"
-import { cookies } from "next/headers"
-import { revokeApiToken } from "@/lib/supabase/api-tokens"
-
-async function getCurrentEmail(): Promise<string | null> {
-  const cookieStore = await cookies()
-  // admin_session = base64("email:timestamp") — ดู app/api/auth/login/route.ts
-  const raw = cookieStore.get("admin_session")?.value
-  if (!raw) return null
-  try {
-    const decoded = Buffer.from(raw, "base64").toString("utf-8")
-    return decoded.split(":")[0] ?? null
-  } catch {
-    return null
-  }
-}
+import { requireAuth } from "@/core/auth/requireAuth"
+import { ADMIN_TIER } from "@/core/auth/session"
+import { revokeApiToken } from "@/services/supabase/api-tokens"
 
 export async function DELETE(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const email = await getCurrentEmail()
-  if (!email) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  const auth = await requireAuth(ADMIN_TIER)
+  if (auth instanceof NextResponse) return auth
 
   const { id } = await params
-  await revokeApiToken(id, email)
+  await revokeApiToken(id, auth.email)
   return NextResponse.json({ ok: true })
 }

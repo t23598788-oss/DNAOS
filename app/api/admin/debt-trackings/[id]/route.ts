@@ -1,10 +1,15 @@
 import { NextRequest, NextResponse } from "next/server"
-import { getDebtTrackingById, updateDebtTracking, deleteDebtTracking, getFirstInvoiceForPartner } from "@/lib/supabase/queries"
-import { calcDebtTrackingSummary } from "@/lib/v3-engines/debt/tracking"
+import { requireAuth } from "@/core/auth/requireAuth"
+import { ADMIN_TIER } from "@/core/auth/session"
+import { getDebtTrackingById, updateDebtTracking, deleteDebtTracking, getFirstInvoiceForPartner } from "@/services/supabase/queries"
+import { calcDebtTrackingSummary } from "@/engines/debt/tracking"
 
 type Params = { params: Promise<{ id: string }> }
 
 export async function GET(_req: NextRequest, { params }: Params) {
+  const auth = await requireAuth(ADMIN_TIER)
+  if (auth instanceof NextResponse) return auth
+
   const { id } = await params
   try {
     const tracking = await getDebtTrackingById(id)
@@ -21,6 +26,9 @@ export async function GET(_req: NextRequest, { params }: Params) {
 }
 
 export async function PATCH(req: NextRequest, { params }: Params) {
+  const auth = await requireAuth(ADMIN_TIER)
+  if (auth instanceof NextResponse) return auth
+
   const { id } = await params
   const body = await req.json()
   try {
@@ -38,6 +46,9 @@ export async function PATCH(req: NextRequest, { params }: Params) {
 }
 
 export async function DELETE(_req: NextRequest, { params }: Params) {
+  const auth = await requireAuth(ADMIN_TIER)
+  if (auth instanceof NextResponse) return auth
+
   const { id } = await params
   try {
     await deleteDebtTracking(id)

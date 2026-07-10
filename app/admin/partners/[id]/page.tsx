@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { useParams } from "next/navigation"
 import Link from "next/link"
-import type { PartnerTimelineEntry, PartnerSummary } from "@/lib/shared/types"
+import type { PartnerTimelineEntry, PartnerSummary } from "@/core/shared/types"
 
 // ── helpers ──
 
@@ -289,6 +289,24 @@ function JobChainCard({ tx }: { tx: TxChain }) {
   )
 }
 
+interface LineMessage {
+  id: string
+  line_user_id: string
+  raw_type: string
+  raw_text: string | null
+  created_at: string
+}
+
+interface LineContact {
+  line_user_id: string
+  line_name: string | null
+  line_picture: string | null
+}
+
+function fmtDateTime(d: string) {
+  return new Date(d).toLocaleString("th-TH", { year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })
+}
+
 export default function PartnerTimelinePage() {
   const params = useParams()
   const partnerId = params.id as string
@@ -299,6 +317,8 @@ export default function PartnerTimelinePage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [credit, setCredit] = useState<{ score: number; risk: string; risk_label: string; risk_color: string; flags: string[] } | null>(null)
+  const [lineContacts, setLineContacts] = useState<LineContact[]>([])
+  const [lineMessages, setLineMessages] = useState<LineMessage[]>([])
 
   useEffect(() => {
     setLoading(true)
@@ -307,13 +327,16 @@ export default function PartnerTimelinePage() {
       fetch(`/api/admin/partners/${partnerId}/timeline`).then((r) => r.json()),
       fetch(`/api/admin/partners/${partnerId}/chain`).then((r) => r.json()),
       fetch(`/api/admin/partners/${partnerId}/credit`).then((r) => r.json()),
+      fetch(`/api/admin/partners/${partnerId}/line-messages`).then((r) => r.json()),
     ])
-      .then(([tl, ch, cr]) => {
+      .then(([tl, ch, cr, lm]) => {
         if (tl.error) throw new Error(tl.error)
         setSummary(tl.summary)
         setTimeline(tl.timeline ?? [])
         setChains(ch.chains ?? [])
         if (!cr.error) setCredit(cr)
+        setLineContacts(lm.contacts ?? [])
+        setLineMessages(lm.messages ?? [])
       })
       .catch((e: unknown) => setError(e instanceof Error ? e.message : "โหลดข้อมูลไม่สำเร็จ"))
       .finally(() => setLoading(false))
@@ -361,6 +384,41 @@ export default function PartnerTimelinePage() {
         {!loading && !error && summary && (
           <>
             <SummaryCard s={summary} />
+
+            {/* LINE conversation — a company can have more than one LINE account */}
+            {lineContacts.length > 0 && (
+              <div className="mb-6">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="text-xs font-bold text-stone-500 uppercase tracking-wider">💬 แชท LINE ({lineMessages.length} ข้อความ)</div>
+                  <div className="flex-1 h-px bg-stone-200" />
+                  <Link href="/admin/line-customers" className="text-[10px] font-semibold text-emerald-600 hover:underline">
+                    ดูหน้าลูกค้า LINE →
+                  </Link>
+                </div>
+                <div className="bg-white border border-stone-200 rounded-2xl px-4 py-3">
+                  <div className="flex flex-wrap gap-2 mb-3">
+                    {lineContacts.map((c) => (
+                      <div key={c.line_user_id} className="flex items-center gap-1.5 text-xs bg-stone-50 border border-stone-200 rounded-full pl-1 pr-2.5 py-1">
+                        {c.line_picture ? (
+                          <img src={c.line_picture} alt="" className="w-5 h-5 rounded-full object-cover bg-stone-100" referrerPolicy="no-referrer" />
+                        ) : (
+                          <div className="w-5 h-5 rounded-full bg-stone-200" />
+                        )}
+                        <span className="text-stone-700 font-medium">{c.line_name ?? "ไม่ทราบชื่อ"}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="space-y-1 max-h-64 overflow-y-auto">
+                    {lineMessages.slice(-30).map((m) => (
+                      <div key={m.id} className="flex justify-between gap-3 text-xs bg-stone-50 border border-stone-100 rounded-lg px-3 py-1.5">
+                        <span className="text-stone-700 truncate">{m.raw_text ?? `[${m.raw_type}]`}</span>
+                        <span className="text-stone-400 shrink-0">{fmtDateTime(m.created_at)}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Jobs / Transaction Chains */}
             {chains.length > 0 && (

@@ -1,32 +1,88 @@
 import { NextRequest, NextResponse } from "next/server"
-import { supabase } from "@/lib/supabase/queries"
-import { getServiceCategoryMeta } from "@/config/document-service-categories"
+import { requireAuth } from "@/core/auth/requireAuth"
+import { ADMIN_TIER } from "@/core/auth/session"
+import { supabaseAdmin as supabase } from "@/services/supabase/queries"
 import {
   type DocumentDraftInput,
-  calculateDocumentTotals,
   draftToDocData,
-} from "@/lib/documents/document-editor"
-import { DOC_LABELS, generateDoc } from "@/lib/documents/engine"
-import { loadCompanySettings } from "@/lib/config/company-settings"
+} from "@/engines/documents/document-editor"
+import { DOC_LABELS, generateDoc } from "@/engines/documents/engine"
+import { loadCompanySettings } from "@/core/config/company-settings"
 
 type Params = { params: Promise<{ id: string }> }
 
+// เอกสารจริงอยู่ใน 2 ตาราง: invoices (document_type invoice) กับ standalone_documents
+// (ประเภทอื่นทั้งหมด) — ไม่มีตาราง "documents" รวมเดียว จึงต้องลองทั้งสองตาราง
+async function findInvoice(id: string) {
+  const { data } = await supabase()
+    .from("invoices")
+    .select("id, invoice_no, invoice_status, customer_company_id, customer_order_id, total_amount, reference_no, invoice_date, due_date, created_at, companies!invoices_customer_company_id_fkey(id, name, phone, address)")
+    .eq("id", id)
+    .maybeSingle()
+  return data
+}
+
+async function findStandalone(id: string) {
+  const { data } = await supabase()
+    .from("standalone_documents")
+    .select("id, document_no, document_type, customer_company_id, customer_order_id, total_amount, reference_no, document_date, created_at, companies!standalone_documents_customer_company_id_fkey(id, name, phone, address)")
+    .eq("id", id)
+    .maybeSingle()
+  return data
+}
+
+function invoiceToDocument(d: NonNullable<Awaited<ReturnType<typeof findInvoice>>>) {
+  return {
+    id: d.id,
+    document_type: "invoice",
+    document_number: d.invoice_no ?? "",
+    status: d.invoice_status?.toLowerCase() ?? "draft",
+    partner_id: d.customer_company_id ?? null,
+    party_name: (d.companies as any)?.name ?? "",
+    net_amount: Number(d.total_amount ?? 0),
+    reference_number: d.reference_no ?? null,
+    issue_date: d.invoice_date ?? null,
+    due_date: d.due_date ?? null,
+    created_at: d.created_at,
+    partners: d.companies ?? null,
+  }
+}
+
+function standaloneToDocument(d: NonNullable<Awaited<ReturnType<typeof findStandalone>>>) {
+  return {
+    id: d.id,
+    document_type: d.document_type ?? "document",
+    document_number: d.document_no ?? "",
+    status: "draft", // standalone_documents ไม่มีคอลัมน์สถานะจริง
+    partner_id: d.customer_company_id ?? null,
+    party_name: (d.companies as any)?.name ?? "",
+    net_amount: Number(d.total_amount ?? 0),
+    reference_number: d.reference_no ?? null,
+    issue_date: d.document_date ?? null,
+    created_at: d.created_at,
+    partners: d.companies ?? null,
+  }
+}
+
 export async function GET(_req: NextRequest, { params }: Params) {
+  const auth = await requireAuth(ADMIN_TIER)
+  if (auth instanceof NextResponse) return auth
+
   const { id } = await params
 
-  const { data, error } = await supabase()
-    .from("documents")
-    .select("*, partners(id, name, phone, address)")
-    .eq("id", id)
-    .is("deleted_at", null)
-    .single()
+  const invoice = await findInvoice(id)
+  if (invoice) return NextResponse.json({ document: invoiceToDocument(invoice) })
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 404 })
+  const standalone = await findStandalone(id)
+  if (standalone) return NextResponse.json({ document: standaloneToDocument(standalone) })
 
-  return NextResponse.json({ document: data })
+  return NextResponse.json({ error: "ไม่พบเอกสาร" }, { status: 404 })
 }
 
 export async function PATCH(req: NextRequest, { params }: Params) {
+  const auth = await requireAuth(ADMIN_TIER)
+  if (auth instanceof NextResponse) return auth
+
   const { id } = await params
   const draft: DocumentDraftInput = await req.json()
 
@@ -38,76 +94,81 @@ export async function PATCH(req: NextRequest, { params }: Params) {
   }
 
   const docNumber = draft.documentNumber?.trim() || ""
-  const settings = await loadCompanySettings()
+  let settings
+  try {
+    settings = await loadCompanySettings()
+  } catch (e: unknown) {
+    return NextResponse.json(
+      { error: "ยังไม่ได้ตั้งค่าข้อมูลบริษัท (ชื่อ/เลขผู้เสียภาษี/บัญชีธนาคาร) — ตั้งค่าที่เมนู ตั้งค่า ก่อนแก้ไขเอกสาร", detail: e instanceof Error ? e.message : String(e) },
+      { status: 503 }
+    )
+  }
   const documentData = draftToDocData(draft, docNumber, settings)
   const rendered = generateDoc(documentData)
-  const totals = calculateDocumentTotals(draft)
-  const netAmount = Math.round((rendered.summary.total - totals.withholdingAmount) * 100) / 100
-  const category = getServiceCategoryMeta(draft.serviceCategoryKey)
 
-  const updates = {
-    updated_at: new Date().toISOString(),
-    document_type: draft.type,
-    document_number: docNumber,
-    issue_date: draft.issueDate || null,
-    due_date: draft.dueDate || null,
-    reference_number: draft.reference || null,
-    partner_id: draft.partnerId || null,
-    party_name: draft.customer.name,
-    party_tax_id: draft.customer.tax || null,
-    party_address: draft.customer.addr || null,
-    party_contact: draft.customer.contact || null,
-    party_tel: draft.customer.tel || null,
-    service_category_key: category.id,
-    service_category_label: category.th,
-    terms: draft.terms || null,
-    note: draft.note || null,
-    discount_amount: totals.discountAmount,
-    vat_enabled: draft.vatEnabled,
-    vat_mode: draft.vatMode,
-    withholding_tax_percent: draft.withholdingTaxPercent,
-    subtotal_amount: rendered.summary.subtotal,
-    base_amount: rendered.summary.beforeVat,
-    vat_amount: rendered.summary.vat,
-    gross_amount: rendered.summary.total,
-    withholding_amount: totals.withholdingAmount,
-    interest_amount: draft.debt?.interestAccrued ?? 0,
-    net_amount: netAmount,
-    data: {
-      ...documentData,
-      items: documentData.items.map((item) => ({
-        description: item.description,
-        detail: item.detail,
-        qty: item.qty,
-        unit_label: item.unit,
-        unit_price: item.unitPrice,
-        line_total: item.qty * item.unitPrice - (item.discount ?? 0),
-      })),
-      render: { label: rendered.label, html: rendered.html, summary: rendered.summary },
-    },
+  if (draft.type === "invoice") {
+    const { data, error } = await supabase()
+      .from("invoices")
+      .update({
+        invoice_no: docNumber,
+        customer_company_id: draft.partnerId || null,
+        invoice_date: draft.issueDate || null,
+        due_date: draft.dueDate || null,
+        reference_no: draft.reference || null,
+        notes: draft.note || null,
+        subtotal: rendered.summary.subtotal,
+        vat_rate: draft.vatEnabled ? 7 : 0,
+        vat_amount: rendered.summary.vat,
+        total_amount: rendered.summary.total,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", id)
+      .select("id, invoice_no, invoice_status, updated_at")
+      .single()
+
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json({ document: { id: data.id, document_number: data.invoice_no, status: data.invoice_status?.toLowerCase(), updated_at: data.updated_at } })
   }
 
   const { data, error } = await supabase()
-    .from("documents")
-    .update(updates)
+    .from("standalone_documents")
+    .update({
+      document_no: docNumber,
+      document_type: draft.type,
+      customer_company_id: draft.partnerId || null,
+      document_date: draft.issueDate || null,
+      reference_no: draft.reference || null,
+      notes: draft.note || null,
+      subtotal: rendered.summary.subtotal,
+      vat_rate: draft.vatEnabled ? 7 : 0,
+      vat_amount: rendered.summary.vat,
+      total_amount: rendered.summary.total,
+      updated_at: new Date().toISOString(),
+    })
     .eq("id", id)
-    .select("id, document_number, status, updated_at")
+    .select("id, document_no, updated_at")
     .single()
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-
-  return NextResponse.json({ document: data })
+  return NextResponse.json({ document: { id: data.id, document_number: data.document_no, status: "draft", updated_at: data.updated_at } })
 }
 
+// invoices มี invoice_status (soft-delete = VOID) แต่ standalone_documents ไม่มีคอลัมน์สถานะเลย
+// จึงไม่มีทาง soft-delete ได้จริง — ลบแถวจริงสำหรับประเภทนี้
 export async function DELETE(_req: NextRequest, { params }: Params) {
+  const auth = await requireAuth(ADMIN_TIER)
+  if (auth instanceof NextResponse) return auth
+
   const { id } = await params
 
-  const { error } = await supabase()
-    .from("documents")
-    .update({ deleted_at: new Date().toISOString() })
-    .eq("id", id)
+  const invoice = await findInvoice(id)
+  if (invoice) {
+    const { error } = await supabase().from("invoices").update({ invoice_status: "VOID" }).eq("id", id)
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json({ ok: true })
+  }
 
+  const { error } = await supabase().from("standalone_documents").delete().eq("id", id)
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-
   return NextResponse.json({ ok: true })
 }

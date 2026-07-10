@@ -1,282 +1,405 @@
 'use client';
-import { useState, useEffect, useCallback } from 'react';
 
-type RowStatus = 'hold' | 'released' | 'pending';
+import { useState, useMemo } from 'react';
+import Link from 'next/link';
+import portals from '@/registry/portals.json';
+import arch from '@/registry/architecture.json';
+import owner from '@/registry/owner-context.json';
+import businessCoverage from '@/registry/business-coverage.json';
+import connectorLifecycle from '@/registry/connector-lifecycle.json';
+import aiRegistry from '@/registry/AI_REGISTRY.json';
+import aiSessions from '@/registry/AI_SESSIONS.json';
+import archBook from '@/registry/architecture-book.json';
+import {
+  ArrowRight, BookOpen, CheckCircle, Cpu, Database, LayoutGrid, Plug, Shield, Bot, Server,
+  Puzzle, Workflow, Layers, GitBranch, Building, Target, Users, Menu, X, Package, Store,
+  FileText, LogIn, AlertTriangle, XCircle, Cable,
+} from 'lucide-react';
 
-interface MatrixRow {
-  id: string;
-  company_name: string;
-  company_phone: string;
-  webhook_url: string;
-  client_name: string;
-  deposit_amount: number;
-  deposit_doc_number: string;
-  driver_name: string;
-  distance_km: number;
-  quantity: number;
-  delivered: number;
-  status: RowStatus;
-  project_name: string;
-  job_status: string;
-  created_at: string;
-}
+const iconMap: { [key: string]: React.ElementType } = {
+  LayoutGrid, BookOpen, Cpu, Database, Plug, Shield, Bot, Server, Puzzle, Workflow, Layers,
+  GitBranch, Building, Target, Users, Package, Store, FileText, LogIn,
+};
 
-function fmtMoney(n: number) {
-  if (n === 0) return null;
-  return '฿' + n.toLocaleString('th-TH', { minimumFractionDigits: 0 });
-}
+const navIconMap: { [key: string]: React.ElementType } = {
+  'Control Center': Cpu,
+  'User Portal': Users,
+  'Partner Portal': Building,
+  'Developer Portal': BookOpen,
+  'Business Portal': Target,
+  'Download Center': Package,
+  'Documentation': FileText,
+  'Login': LogIn,
+};
 
-function fmtNum(n: number) {
-  return n.toLocaleString('th-TH');
-}
+const coverageStyle: { [key: string]: { icon: React.ElementType; label: string; className: string } } = {
+  covered: { icon: CheckCircle, label: 'Covered', className: 'text-emerald-400 border-emerald-800 bg-emerald-950/40' },
+  partial: { icon: AlertTriangle, label: 'Partial', className: 'text-amber-400 border-amber-800 bg-amber-950/40' },
+  not_covered: { icon: XCircle, label: 'Planned', className: 'text-stone-500 border-stone-800 bg-stone-950/40' },
+};
 
-function StatusPill({ status }: { status: RowStatus }) {
-  if (status === 'hold') return (
-    <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-100 text-amber-700">
-      <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse flex-shrink-0" />
-      <span className="text-xs font-semibold whitespace-nowrap">Hold 🔒</span>
-    </div>
-  );
-  if (status === 'released') return (
-    <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-700">
-      <span className="w-2 h-2 rounded-full bg-emerald-500 flex-shrink-0" />
-      <span className="text-xs font-semibold whitespace-nowrap">Released 🔓</span>
-    </div>
-  );
-  return (
-    <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-stone-100 text-stone-500">
-      <span className="w-2 h-2 rounded-full bg-stone-300 flex-shrink-0" />
-      <span className="text-xs font-semibold whitespace-nowrap">รอดำเนินการ</span>
-    </div>
-  );
-}
+const sessionStatusStyle: { [key: string]: string } = {
+  working: 'text-emerald-400 border-emerald-800 bg-emerald-950/40',
+  idle: 'text-stone-400 border-stone-700 bg-stone-900/40',
+  blocked: 'text-amber-400 border-amber-800 bg-amber-950/40',
+  token_exhausted: 'text-rose-400 border-rose-800 bg-rose-950/40',
+  submitted: 'text-sky-400 border-sky-800 bg-sky-950/40',
+  unknown: 'text-stone-500 border-stone-800 bg-stone-950/40',
+};
 
-function CopyBtn({ text }: { text: string }) {
-  const [copied, setCopied] = useState(false);
-  async function copy() {
-    try { await navigator.clipboard.writeText(text); } catch { return; }
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  }
-  return (
-    <button
-      onClick={copy}
-      className="mt-1.5 text-[10px] px-2 py-0.5 rounded border border-stone-200 bg-stone-50 hover:bg-blue-50 hover:border-blue-200 text-stone-400 hover:text-blue-600 transition font-mono leading-relaxed whitespace-nowrap"
-    >
-      {copied ? '✓ คัดลอกแล้ว' : 'คัดลอก Webhook URL'}
-    </button>
-  );
-}
+/**
+ * DNA OS Landing Page — Operational Platform, not a brochure site.
+ * All content is dynamically rendered from the project's registry files.
+ * Adding a new module/domain/connector/agent updates this page automatically — no JSX changes needed.
+ */
+export default function LandingPage() {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-export default function ControlCenter() {
-  const [rows, setRows] = useState<MatrixRow[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
-  const [acting, setActing] = useState<string | null>(null);
+  const controlCenterPortal = portals.main.find(p => p.label.includes("Control Center"));
+  const devPortal = portals.main.find(p => p.label.includes("Developer Portal"));
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    try {
-      const res = await fetch('/api/control-center');
-      const data = await res.json();
-      setRows(data.rows ?? []);
-      setLastUpdated(new Date());
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => { load(); }, [load]);
-
-  async function act(rowId: string, action: 'approve' | 'suspend') {
-    const key = rowId + ':' + action;
-    setActing(key);
-    try {
-      await fetch('/api/control-center', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ job_id: rowId, action }),
-      });
-      await load();
-    } finally {
-      setActing(null);
-    }
-  }
-
-  const holdRows = rows.filter(r => r.status === 'hold');
-  const releasedRows = rows.filter(r => r.status === 'released');
-  const totalHold = holdRows.reduce((s, r) => s + r.deposit_amount, 0);
+  const domainEntries = Object.entries(businessCoverage.domains);
+  const coveredCount = domainEntries.filter(([, d]) => (d as any).status === 'covered').length;
 
   return (
-    <div className="min-h-screen bg-stone-50 text-stone-900">
-
-      {/* Header */}
-      <div className="sticky top-0 z-10 bg-white border-b border-stone-200 px-6 py-3 flex items-center justify-between shadow-sm">
-        <div className="flex items-center gap-3">
-          <span className="font-bold text-stone-800 tracking-tight">DNA OS</span>
-          <span className="text-stone-200 select-none">|</span>
-          <span className="text-sm text-stone-500 font-medium">Control Center</span>
-        </div>
-        <div className="flex items-center gap-3">
-          {lastUpdated && (
-            <span className="text-xs text-stone-400 tabular-nums">
-              {lastUpdated.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
-            </span>
-          )}
-          <button
-            onClick={load}
-            disabled={loading}
-            className="text-xs px-3 py-1.5 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-600 disabled:opacity-40 transition font-medium"
-          >
-            {loading ? 'โหลด...' : '↺ รีเฟรช'}
-          </button>
-          <div className="flex items-center gap-1.5 text-xs text-emerald-600">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-            <span>Live</span>
-          </div>
-        </div>
-      </div>
-
-      <div className="px-6 py-5 max-w-screen-2xl mx-auto">
-
-        {/* Stats */}
-        <div className="grid grid-cols-3 gap-4 mb-6">
-          <div className="bg-white rounded-2xl border border-stone-200 px-5 py-4 shadow-sm">
-            <div className="text-xs text-stone-400 font-medium mb-1 uppercase tracking-wider">งานทั้งหมด</div>
-            <div className="text-3xl font-bold text-stone-800 tabular-nums">{rows.length}</div>
-          </div>
-          <div className="bg-amber-50 rounded-2xl border border-amber-200 px-5 py-4 shadow-sm">
-            <div className="text-xs text-amber-600 font-medium mb-1 uppercase tracking-wider">Hold 🔒 เงินล็อกอยู่</div>
-            <div className="text-3xl font-bold text-amber-700 tabular-nums">{holdRows.length}</div>
-            {totalHold > 0 && (
-              <div className="text-sm text-amber-600 mt-0.5">{fmtMoney(totalHold)}</div>
+    <div className="min-h-screen bg-black text-stone-300 font-sans">
+      <header className="fixed top-0 left-0 right-0 z-50 bg-black/50 backdrop-blur-lg border-b border-stone-800">
+        <div className="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
+          <Link href="/" className="font-bold text-lg text-white shrink-0">
+            {owner.identity.company}
+          </Link>
+          <nav className="hidden lg:flex items-center gap-6 overflow-x-auto">
+            {portals.nav.map(item => (
+              <Link key={item.label} href={item.href} className="text-sm text-stone-400 hover:text-white transition-colors whitespace-nowrap">
+                {item.label}
+              </Link>
+            ))}
+          </nav>
+          <div className="hidden lg:flex items-center gap-4 shrink-0">
+            {controlCenterPortal && (
+              <Link href={controlCenterPortal.href} className="px-4 py-2 text-sm font-medium text-stone-300 hover:text-white transition-colors">
+                Login
+              </Link>
+            )}
+            {devPortal && (
+              <Link href={devPortal.href} className="px-4 py-2 bg-white text-black rounded-md text-sm font-semibold hover:bg-stone-200 transition-colors">
+                Developer
+              </Link>
             )}
           </div>
-          <div className="bg-emerald-50 rounded-2xl border border-emerald-200 px-5 py-4 shadow-sm">
-            <div className="text-xs text-emerald-600 font-medium mb-1 uppercase tracking-wider">Released 🔓 ส่งสำเร็จ</div>
-            <div className="text-3xl font-bold text-emerald-700 tabular-nums">{releasedRows.length}</div>
+          <div className="lg:hidden">
+            <button onClick={() => setIsMenuOpen(!isMenuOpen)} aria-label="Toggle menu">
+              {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            </button>
           </div>
         </div>
+        {isMenuOpen && (
+          <div className="lg:hidden bg-black border-t border-stone-800 max-h-[80vh] overflow-y-auto">
+            <nav className="flex flex-col p-4 gap-4">
+              {portals.nav.map(item => {
+                const Icon = navIconMap[item.label] || LayoutGrid;
+                return (
+                  <Link key={item.label} href={item.href} className="flex items-center gap-3 text-stone-400 hover:text-white" onClick={() => setIsMenuOpen(false)}>
+                    <Icon className="w-4 h-4" />
+                    {item.label}
+                  </Link>
+                );
+              })}
+            </nav>
+          </div>
+        )}
+      </header>
 
-        {/* Matrix Table */}
-        <div className="overflow-x-auto rounded-2xl border border-stone-200 bg-white shadow-sm">
-          {loading && rows.length === 0 ? (
-            <div className="py-24 text-center text-stone-400 text-sm animate-pulse">กำลังดึงข้อมูล...</div>
-          ) : rows.length === 0 ? (
-            <div className="py-24 text-center text-stone-400 text-sm">ยังไม่มีงานในระบบ</div>
-          ) : (
-            <table className="w-full text-sm min-w-[960px]">
-              <thead>
-                <tr className="border-b border-stone-100 bg-stone-50">
-                  <th className="text-left text-[11px] font-semibold text-stone-400 uppercase tracking-wider px-5 py-3 w-64">
-                    บริษัทขนส่ง / LINE Webhook
-                  </th>
-                  <th className="text-left text-[11px] font-semibold text-stone-400 uppercase tracking-wider px-5 py-3 w-48">
-                    ผู้ว่าจ้าง
-                  </th>
-                  <th className="text-left text-[11px] font-semibold text-stone-400 uppercase tracking-wider px-5 py-3 w-48">
-                    คนขับ / งานจัดส่ง
-                  </th>
-                  <th className="text-left text-[11px] font-semibold text-stone-400 uppercase tracking-wider px-5 py-3 w-40">
-                    สถานะเงินกลาง
-                  </th>
-                  <th className="text-left text-[11px] font-semibold text-stone-400 uppercase tracking-wider px-5 py-3 w-44">
-                    การตัดสินใจ
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-stone-50">
-                {rows.map((row) => (
-                  <tr key={row.id} className="hover:bg-stone-50/60 transition-colors">
+      <main className="max-w-screen-lg mx-auto px-4 sm:px-6 lg:px-8">
 
-                    {/* Col 1: Transport company + webhook */}
-                    <td className="px-5 py-4 align-top">
-                      <div className="font-semibold text-stone-800 leading-tight">{row.company_name}</div>
-                      {row.company_phone && (
-                        <div className="text-xs text-stone-400 mt-0.5">{row.company_phone}</div>
-                      )}
-                      <div className="mt-2">
-                        <div className="text-[10px] text-stone-300 font-mono truncate max-w-[220px] leading-relaxed">
-                          {row.webhook_url.replace('https://', '')}
-                        </div>
-                        <CopyBtn text={row.webhook_url} />
-                      </div>
-                    </td>
+        {/* Hero */}
+        <section id="hero" className="pt-40 sm:pt-48 pb-24 sm:pb-32 text-center">
+          <div className="max-w-3xl mx-auto animate-[fadeIn_0.7s_ease-out]">
+            <h1 className="text-4xl sm:text-5xl md:text-7xl font-bold tracking-tighter bg-clip-text text-transparent bg-gradient-to-b from-white to-stone-400 leading-tight">
+              {owner.identity.company}
+            </h1>
+            <p className="mt-6 text-base sm:text-lg md:text-xl text-stone-400">
+              {owner.philosophy.core}
+            </p>
+            <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
+              {controlCenterPortal && (
+                <Link href={controlCenterPortal.href} className="w-full sm:w-auto text-center px-6 py-3 bg-white text-black rounded-lg text-sm font-semibold hover:bg-stone-200 transition-colors shadow-[0_0_20px_rgba(255,255,255,0.1)]">
+                  Go to {controlCenterPortal.label}
+                </Link>
+              )}
+              {devPortal && (
+                <Link href={devPortal.href} className="w-full sm:w-auto text-center px-6 py-3 bg-stone-900/50 text-stone-300 rounded-lg text-sm font-semibold hover:bg-stone-800/50 border border-stone-800 hover:border-stone-700 transition-colors">
+                  {devPortal.label}
+                </Link>
+              )}
+            </div>
+          </div>
+        </section>
 
-                    {/* Col 2: Client/Employer */}
-                    <td className="px-5 py-4 align-top">
-                      <div className="font-semibold text-stone-800 leading-tight">{row.client_name}</div>
-                      {row.deposit_amount > 0 ? (
-                        <div className="mt-1.5 space-y-0.5">
-                          <div className="text-xs text-stone-400">ยอดค้ำประกัน</div>
-                          <div className="text-base font-bold text-stone-900 tabular-nums">
-                            {fmtMoney(row.deposit_amount)}
-                          </div>
-                          {row.deposit_doc_number && (
-                            <div className="text-[10px] text-stone-400 font-mono">{row.deposit_doc_number}</div>
-                          )}
-                        </div>
-                      ) : (
-                        <div className="text-xs text-stone-300 mt-1">ยังไม่มียอด</div>
-                      )}
-                    </td>
+        {/* Platform Overview */}
+        <section id="platform" className="py-16 sm:py-24">
+          <div className="text-center">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-white">The DNA OS Platform</h2>
+            <p className="mt-4 max-w-3xl mx-auto text-base sm:text-lg text-stone-400">
+              A self-governing business operating system built on a foundation of rules, architecture, and self-observation.
+            </p>
+          </div>
+          <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8">
+            <InfoCard icon={Building} title="Vision" description={owner.current_goals.long_term} index={0} />
+            <InfoCard icon={Target} title="Mission" description={owner.philosophy.core} index={1} />
+            <InfoCard icon={Layers} title="Architecture" description={arch.note} index={2} />
+          </div>
+          <div className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {Object.entries(arch.layers).map(([key, layer], i) => (
+              <FeatureCard
+                key={key}
+                index={i}
+                href={`/admin/architecture?layer=${key}`}
+                icon={iconMap[(layer as any).icon] || Layers}
+                title={(layer as any).name}
+                description={(layer as any).purpose}
+                count={(layer as any).modules.length}
+                countLabel="Modules"
+              />
+            ))}
+          </div>
+        </section>
 
-                    {/* Col 3: Driver + Job */}
-                    <td className="px-5 py-4 align-top">
-                      <div className="font-semibold text-stone-800 leading-tight">{row.driver_name}</div>
-                      <div className="text-xs text-stone-500 mt-0.5 line-clamp-2">{row.project_name}</div>
-                      <div className="flex flex-wrap gap-x-3 mt-1.5 text-xs text-stone-400 tabular-nums">
-                        {row.distance_km > 0 && <span>{row.distance_km} กม.</span>}
-                        {row.quantity > 0 && (
-                          <span>{fmtNum(row.delivered)}/{fmtNum(row.quantity)} ม³</span>
-                        )}
-                      </div>
-                    </td>
+        {/* Products */}
+        <section id="products" className="py-16 sm:py-24">
+          <div className="text-center">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-white">Products</h2>
+            <p className="mt-4 max-w-3xl mx-auto text-base sm:text-lg text-stone-400">
+              One Core, Gateway, Registry, and Database — every Portal below is a View of the same running system, not a separate build.
+            </p>
+          </div>
+          <div className="mt-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {Object.entries(portals.portals).map(([key, p], i) => (
+              <PortalCard key={key} portal={p as any} index={i} />
+            ))}
+          </div>
+        </section>
 
-                    {/* Col 4: Escrow status */}
-                    <td className="px-5 py-4 align-top">
-                      <StatusPill status={row.status} />
-                      <div className="text-[10px] text-stone-400 mt-1.5 font-mono tracking-tight">
-                        {row.job_status}
-                      </div>
-                    </td>
+        {/* Solutions */}
+        <section id="solutions" className="py-16 sm:py-24">
+          <div className="text-center">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-white">Solutions</h2>
+            <p className="mt-4 max-w-3xl mx-auto text-base sm:text-lg text-stone-400">
+              {coveredCount} of {domainEntries.length} business domains fully covered today — shown honestly, gaps included.
+            </p>
+          </div>
+          <div className="mt-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {domainEntries.map(([key, domain], i) => (
+              <SolutionCard key={key} domainKey={key} domain={domain as any} index={i} />
+            ))}
+          </div>
+        </section>
 
-                    {/* Col 5: Decision */}
-                    <td className="px-5 py-4 align-top">
-                      {row.status === 'hold' && (
-                        <div className="flex flex-col gap-2">
-                          <button
-                            onClick={() => act(row.id, 'approve')}
-                            disabled={acting !== null}
-                            className="px-4 py-2 bg-emerald-600 text-white rounded-xl text-xs font-semibold hover:bg-emerald-700 active:bg-emerald-800 disabled:opacity-40 transition shadow-sm whitespace-nowrap"
-                          >
-                            {acting === row.id + ':approve' ? '...' : 'อนุมัติโอนเงิน ✓'}
-                          </button>
-                          <button
-                            onClick={() => act(row.id, 'suspend')}
-                            disabled={acting !== null}
-                            className="px-4 py-2 bg-white text-red-600 border border-red-200 rounded-xl text-xs font-semibold hover:bg-red-50 active:bg-red-100 disabled:opacity-40 transition whitespace-nowrap"
-                          >
-                            {acting === row.id + ':suspend' ? '...' : 'ระงับจ่าย ✕'}
-                          </button>
-                        </div>
-                      )}
-                      {row.status === 'released' && (
-                        <span className="text-xs text-emerald-600 font-semibold">โอนแล้ว ✓</span>
-                      )}
-                      {row.status === 'pending' && (
-                        <span className="text-xs text-stone-400">รอยืนยัน</span>
-                      )}
-                    </td>
+        {/* Marketplace */}
+        <section id="marketplace" className="py-16 sm:py-24">
+          <div className="text-center">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-white">Marketplace</h2>
+            <p className="mt-4 max-w-3xl mx-auto text-base sm:text-lg text-stone-400">
+              Connect any external service — {connectorLifecycle.stages.length}-stage lifecycle, no exceptions, no shortcuts.
+            </p>
+          </div>
+          <div className="relative mt-12 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+            <div className="hidden lg:block absolute top-9 left-[10%] right-[10%] h-px bg-stone-800" aria-hidden />
+            {connectorLifecycle.stages.map((stage, i) => (
+              <div
+                key={stage}
+                style={{ opacity: 0, animationDelay: `${i * 90}ms`, animationFillMode: 'forwards' }}
+                className="relative bg-stone-950 border border-stone-800 rounded-xl p-4 text-center hover:border-stone-700 transition-colors animate-[fadeIn_0.5s_ease-out]"
+              >
+                <div className="text-stone-600 text-xs font-mono">{String(i + 1).padStart(2, '0')}</div>
+                <div className="mt-2 text-white font-semibold capitalize">{stage}</div>
+              </div>
+            ))}
+          </div>
+          <div className="mt-6 flex flex-wrap justify-center gap-3">
+            {arch.dynamic_registry.auth_types.map((type, i) => (
+              <span
+                key={type}
+                style={{ opacity: 0, animationDelay: `${450 + i * 50}ms`, animationFillMode: 'forwards' }}
+                className="inline-flex items-center gap-2 px-3 py-1.5 bg-stone-900/60 border border-stone-800 rounded-full text-xs text-stone-400 hover:border-stone-700 hover:text-stone-200 transition-colors animate-[fadeIn_0.4s_ease-out]"
+              >
+                <Cable className="w-3.5 h-3.5" /> {type}
+              </span>
+            ))}
+          </div>
+        </section>
 
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </div>
+        {/* AI Services */}
+        <section id="ai-services" className="py-16 sm:py-24">
+          <div className="text-center">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-white">AI Services</h2>
+            <p className="mt-4 max-w-3xl mx-auto text-base sm:text-lg text-stone-400">
+              AI-agnostic by design — any agent that follows the Constitution and Execution Contract is DNA OS Compatible.
+            </p>
+          </div>
+          <div className="mt-10 flex flex-wrap justify-center gap-3">
+            {aiRegistry.agents.map((a, i) => (
+              <span
+                key={a.id}
+                style={{ opacity: 0, animationDelay: `${i * 40}ms`, animationFillMode: 'forwards' }}
+                className="px-4 py-2 bg-stone-950 border border-stone-800 rounded-full text-sm text-stone-300 capitalize hover:border-stone-700 hover:text-white transition-colors animate-[fadeIn_0.4s_ease-out]"
+              >
+                {a.id.replace(/-/g, ' ')}{('vendor' in a && a.vendor) ? ` · ${a.vendor}` : ''}
+              </span>
+            ))}
+          </div>
+          <div className="mt-8 max-w-2xl mx-auto grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {(aiRegistry as any).compatibility_contract?.requires?.map((r: string) => (
+              <div key={r} className="flex items-center gap-2 text-sm text-stone-400">
+                <CheckCircle className="w-4 h-4 text-emerald-500 shrink-0" /> {r}
+              </div>
+            ))}
+          </div>
+          <div className="mt-10 max-w-2xl mx-auto">
+            <h3 className="text-xs font-semibold text-stone-500 uppercase tracking-wide text-center mb-3">Live Sessions</h3>
+            <div className="space-y-2">
+              {aiSessions.sessions.map((s) => (
+                <div key={s.agent_id} className="flex items-center justify-between gap-3 bg-stone-950/60 border border-stone-800 rounded-lg px-4 py-2">
+                  <span className="text-xs font-mono text-stone-400 truncate">{s.agent_id}</span>
+                  <span className={`text-[10px] uppercase tracking-wide px-2 py-0.5 rounded-full border shrink-0 ${sessionStatusStyle[s.status] || sessionStatusStyle.unknown}`}>
+                    {s.status}
+                  </span>
+                </div>
+              ))}
+            </div>
+            <div className="mt-4 text-center">
+              <Link href="/ai-services" className="text-xs text-stone-500 hover:text-stone-300 transition-colors">See full AI Services →</Link>
+            </div>
+          </div>
+        </section>
 
+        {/* Business Modules */}
+        <section id="modules" className="py-16 sm:py-24">
+          <div className="text-center">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-white">Business Modules</h2>
+            <p className="mt-4 max-w-3xl mx-auto text-base sm:text-lg text-stone-400">
+              Live registry health — not a static claim, generated from the codebase itself.
+            </p>
+          </div>
+          <div className="mt-12 grid grid-cols-2 md:grid-cols-4 gap-4">
+            <StatCard title="Total Modules" value={(archBook as any).summary?.total ?? 0} index={0} />
+            <StatCard title="OK" value={(archBook as any).summary?.ok ?? 0} index={1} />
+            <StatCard title="Unused" value={(archBook as any).summary?.unused ?? 0} index={2} />
+            <StatCard title="Unregistered" value={(archBook as any).summary?.unregistered ?? 0} index={3} />
+          </div>
+        </section>
+
+        {/* System Health & CTA */}
+        <section id="status" className="py-16 sm:py-24">
+          <div className="max-w-3xl mx-auto bg-stone-950 p-6 sm:p-8 rounded-2xl border border-stone-800 text-center">
+            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">Real-time System Status</h2>
+            <div className="mt-6">
+              <div className={`inline-flex items-center gap-2 ${(archBook as any).summary?.broken === 0 ? 'text-emerald-400' : 'text-amber-400'}`}>
+                <CheckCircle className="w-5 h-5" />
+                <span className="font-semibold">{(archBook as any).summary?.broken === 0 ? 'All governance checks passing' : `${(archBook as any).summary?.broken} module(s) need attention`}</span>
+              </div>
+              <div className="mt-4 text-sm text-stone-500">
+                {(archBook as any).summary?.ok}/{(archBook as any).summary?.total} modules OK — see /admin for the full registry explorer.
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Footer */}
+        <footer id="contact" className="text-center py-16 border-t border-stone-800/50">
+            <p className="text-sm text-stone-500">© {new Date().getFullYear()} {owner.identity.company}. All rights reserved. For inquiries, contact <a href={`mailto:${owner.identity.email}`} className="text-blue-400 hover:text-blue-300">{owner.identity.email}</a>.</p>
+        </footer>
+      </main>
+    </div>
+  );
+}
+
+function StatCard({ title, value, index = 0 }: { title: string, value: number, index?: number }) {
+  return (
+    <div
+      style={{ opacity: 0, animationDelay: `${index * 60}ms`, animationFillMode: 'forwards' }}
+      className="bg-stone-950 p-4 sm:p-6 rounded-2xl border border-stone-800 hover:border-stone-700 transition-colors animate-[fadeIn_0.5s_ease-out]"
+    >
+      <p className="text-xs sm:text-sm font-medium text-stone-500 capitalize">{title}</p>
+      <p className="text-3xl sm:text-5xl font-bold text-white mt-2 sm:mt-3">{value}</p>
+    </div>
+  );
+}
+
+function InfoCard({ icon: Icon, title, description, index = 0 }: { icon: React.ElementType, title: string, description: string, index?: number }) {
+  return (
+    <div
+      style={{ opacity: 0, animationDelay: `${index * 80}ms`, animationFillMode: 'forwards' }}
+      className="bg-stone-950 p-6 sm:p-8 rounded-2xl border border-stone-800 hover:border-stone-700 transition-colors animate-[fadeIn_0.5s_ease-out]"
+    >
+      <div className="flex items-center gap-3">
+        <Icon className="w-6 h-6 text-stone-400" />
+        <h3 className="text-lg font-semibold text-white">{title}</h3>
       </div>
+      <p className="mt-4 text-stone-400">{description}</p>
+    </div>
+  );
+}
+
+function FeatureCard({ href, icon: Icon, title, description, count, countLabel, index = 0 }: { href: string, icon: React.ElementType, title: string, description: string, count: number, countLabel: string, index?: number }) {
+  return (
+    <Link
+      href={href}
+      style={{ opacity: 0, animationDelay: `${index * 60}ms`, animationFillMode: 'forwards' }}
+      className="group block bg-stone-950 p-6 rounded-2xl border border-stone-800 hover:border-stone-700 hover:-translate-y-0.5 transition-all duration-300 animate-[fadeIn_0.5s_ease-out]"
+    >
+      <div className="flex items-center gap-3">
+        <Icon className="w-6 h-6 text-stone-400" />
+        <h3 className="text-lg font-semibold text-white">{title}</h3>
+      </div>
+      <p className="mt-3 text-sm text-stone-400 line-clamp-3">{description}</p>
+      <div className="mt-4 pt-4 border-t border-stone-800/50 flex items-center justify-between">
+        <span className="text-sm font-medium text-white">{count} <span className="text-stone-500">{countLabel}</span></span>
+        <ArrowRight className="w-5 h-5 text-stone-700 group-hover:text-stone-400 transition-transform duration-300 group-hover:translate-x-1" />
+      </div>
+    </Link>
+  );
+}
+
+function PortalCard({ portal, index = 0 }: { portal: { name: string; purpose_th: string; route: string; status: string }, index?: number }) {
+  const isOfficial = portal.status === 'official';
+  return (
+    <Link
+      href={portal.route}
+      style={{ opacity: 0, animationDelay: `${index * 60}ms`, animationFillMode: 'forwards' }}
+      className="group block bg-stone-950 p-6 rounded-2xl border border-stone-800 hover:border-stone-700 hover:-translate-y-0.5 transition-all duration-300 animate-[fadeIn_0.5s_ease-out]"
+    >
+      <div className="flex items-center justify-between">
+        <h3 className="text-lg font-semibold text-white">{portal.name}</h3>
+        <span className={`text-[10px] uppercase tracking-wide px-2 py-0.5 rounded-full border ${isOfficial ? 'text-emerald-400 border-emerald-800 bg-emerald-950/40' : 'text-stone-500 border-stone-800 bg-stone-950/40'}`}>
+          {isOfficial ? 'Live' : 'Shell'}
+        </span>
+      </div>
+      <p className="mt-3 text-sm text-stone-400 line-clamp-3">{portal.purpose_th}</p>
+      <div className="mt-4 pt-4 border-t border-stone-800/50 flex items-center justify-between">
+        <span className="text-xs font-mono text-stone-500">{portal.route}</span>
+        <ArrowRight className="w-5 h-5 text-stone-700 group-hover:text-stone-400 transition-transform duration-300 group-hover:translate-x-1" />
+      </div>
+    </Link>
+  );
+}
+
+function SolutionCard({ domainKey, domain, index = 0 }: { domainKey: string; domain: { label: string; status: string; modules: string[] }, index?: number }) {
+  const style = coverageStyle[domain.status] || coverageStyle.not_covered;
+  const Icon = style.icon;
+  return (
+    <div
+      style={{ opacity: 0, animationDelay: `${index * 60}ms`, animationFillMode: 'forwards' }}
+      className="bg-stone-950 p-6 rounded-2xl border border-stone-800 hover:border-stone-700 hover:-translate-y-0.5 transition-all duration-300 animate-[fadeIn_0.5s_ease-out]"
+    >
+      <div className="flex items-center justify-between">
+        <h3 className="text-base font-semibold text-white capitalize">{domain.label}</h3>
+        <span className={`inline-flex items-center gap-1 text-[10px] uppercase tracking-wide px-2 py-0.5 rounded-full border ${style.className}`}>
+          <Icon className="w-3 h-3" /> {style.label}
+        </span>
+      </div>
+      <p className="mt-3 text-xs font-mono text-stone-600">{domainKey}</p>
+      <p className="mt-2 text-sm text-stone-500">{domain.modules?.length ?? 0} modules</p>
     </div>
   );
 }

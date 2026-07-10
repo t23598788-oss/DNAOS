@@ -13,16 +13,17 @@ import {
   formatMoney,
   mapPartnerToCustomer,
   draftToDocData,
-} from "@/lib/documents/document-editor"
-import { generateDoc } from "@/lib/documents/engine"
+} from "@/engines/documents/document-editor"
+import { generateDoc } from "@/engines/documents/engine"
 import { DOCUMENT_SERVICE_CATEGORIES } from "@/config/document-service-categories"
-import { getLinkRule } from "@/lib/transactions/document-link"
-import { NEXT_DOC_SUGGESTIONS } from "@/lib/documents/draft-builders"
-import { getWorkflow, getNextStep, getStepIndex, TX_TYPE_LABELS } from "@/lib/transactions/workflows"
-import type { TxType } from "@/lib/transactions/workflows"
-import type { CompanySettings } from "@/lib/config/company-settings"
-import type { DebtTrackingSummary } from "@/lib/v3-engines/debt/tracking"
+import { getLinkRule } from "@/engines/transactions/document-link"
+import { NEXT_DOC_SUGGESTIONS } from "@/engines/documents/draft-builders"
+import { getWorkflow, getNextStep, getStepIndex, TX_TYPE_LABELS } from "@/engines/transactions/workflows"
+import type { TxType } from "@/engines/transactions/workflows"
+import type { CompanySettings } from "@/core/config/company-settings"
+import type { DebtTrackingSummary } from "@/engines/debt/tracking"
 import DocumentPreview from "./DocumentPreview"
+import FileUpload, { type UploadedFile } from "./FileUpload"
 
 function printDraft(draft: DocumentDraftInput, settings: CompanySettings) {
   const docNumber = draft.documentNumber?.trim() || "ร่าง"
@@ -108,7 +109,7 @@ function StatusBadge({ status }: { status: string }) {
   )
 }
 
-// เอกสารเก่าบันทึก document_type แบบขีดกลาง ก่อนเปลี่ยนมาตรฐานเป็นขีดล่าง (เห็นพ้องกับ lib/supabase/queries.ts)
+// เอกสารเก่าบันทึก document_type แบบขีดกลาง ก่อนเปลี่ยนมาตรฐานเป็นขีดล่าง (เห็นพ้องกับ services/supabase/queries.ts)
 const LEGACY_TYPE_ALIASES: Record<string, DocumentType> = {
   "purchase-order": "purchase_order",
   "delivery-order": "delivery_order",
@@ -140,6 +141,7 @@ export default function DocumentBuilder({ mode, type, initialDraft, initialDocId
   const [hasAutoSelected, setHasAutoSelected] = useState(false)
   const [search, setSearch] = useState("")
   const [docsLoading, setDocsLoading] = useState(false)
+  const [attachments, setAttachments] = useState<UploadedFile[]>([])
 
   // debt_notice only — รายชื่อลูกหนี้ค้างชำระสดจากระบบติดตามหนี้ แสดงเป็นคอลัมน์รายการแทนรายการเอกสารที่บันทึกแล้ว
   const [debtRows, setDebtRows] = useState<DebtTrackingRow[]>([])
@@ -245,6 +247,11 @@ export default function DocumentBuilder({ mode, type, initialDraft, initialDocId
     setSelectedDebtRow(null)
     setSelectedDoc(item)
     setSelectedDocTx(null)
+    setAttachments([])
+    fetch(`/api/admin/upload?documentId=${item.id}`)
+      .then((r) => r.json())
+      .then((j) => setAttachments(j.files ?? []))
+      .catch(() => {})
     const res = await fetch(`/api/admin/documents/${item.id}`)
     const result = await res.json()
     const doc = result.document
@@ -555,6 +562,10 @@ export default function DocumentBuilder({ mode, type, initialDraft, initialDocId
                 )}
                 <button onClick={() => companySettings && printDraft(selectedDraft, companySettings)} disabled={!companySettings} className="text-xs px-3 py-1.5 rounded-lg border border-stone-200 hover:bg-stone-50 text-stone-600 transition disabled:opacity-40">พิมพ์</button>
                 <button onClick={() => deleteDoc(selectedDoc.id)} className="text-xs px-3 py-1.5 rounded-lg border border-red-200 text-red-600 hover:bg-red-50 transition">ลบ</button>
+              </div>
+              {/* Attachments — ไฟล์อ้างอิงที่แนบกับเอกสารนี้ */}
+              <div className="bg-white border-b border-stone-200 px-6 py-3">
+                <FileUpload documentId={selectedDoc.id} files={attachments} onChange={setAttachments} />
               </div>
               {/* Transaction status bar — แสดงเมื่อเอกสารผูกกับ transaction */}
               {selectedDocTx && (() => {

@@ -1,57 +1,98 @@
 import { NextRequest, NextResponse } from "next/server"
-import { supabase } from "@/lib/supabase/queries"
+import { requireAuth } from "@/core/auth/requireAuth"
+import { ADMIN_TIER } from "@/core/auth/session"
+import { supabaseAdmin as supabase } from "@/services/supabase/queries"
 
 type Params = { params: Promise<{ id: string }> }
 
+// partners → companies, transactions → customer_orders, documents → invoices + standalone_documents.
+// business_events ไม่มีตารางจริงรองรับ (ดู getBusinessEventsByPartner ใน services/supabase/queries.ts) — ว่างเสมอ
 export async function GET(_req: NextRequest, { params }: Params) {
+  const auth = await requireAuth(ADMIN_TIER)
+  if (auth instanceof NextResponse) return auth
+
   const { id: partnerId } = await params
 
-  const [partnerRes, txRes, docsRes, eventsRes] = await Promise.all([
-    // ข้อมูล partner
+  const [partnerRes, txRes, invoicesRes, standaloneRes] = await Promise.all([
     supabase()
-      .from("partners")
-      .select("id, code, name, partner_type_label, phone, address, tax_id, contact_name, created_at")
+      .from("companies")
+      .select("id, name, type, phone, address, tax_id, email, created_at")
       .eq("id", partnerId)
-      .is("deleted_at", null)
       .single(),
 
-    // transactions ทั้งหมดของ partner นี้ (พร้อม docs + events)
     supabase()
-      .from("transactions")
-      .select(`
-        id, tx_type, state, title, project_name,
-        net_amount, paid_amount, vat_amount,
-        created_at, state_changed_at,
-        suppliers:partners!transactions_supplier_id_fkey(id, name)
-      `)
-      .eq("partner_id", partnerId)
-      .is("deleted_at", null)
+      .from("customer_orders")
+      .select("id, order_no, status, created_at, updated_at")
+      .eq("customer_company_id", partnerId)
       .order("created_at", { ascending: false }),
 
-    // เอกสารทั้งหมดของ partner นี้ (รวม transaction_id)
     supabase()
-      .from("documents")
-      .select("id, document_type, document_number, status, net_amount, issue_date, created_at, transaction_id")
-      .eq("partner_id", partnerId)
-      .is("deleted_at", null)
-      .order("issue_date", { ascending: false }),
+      .from("invoices")
+      .select("id, invoice_no, invoice_status, total_amount, invoice_date, created_at, customer_order_id")
+      .eq("customer_company_id", partnerId)
+      .order("invoice_date", { ascending: false }),
 
-    // events ทั้งหมดของ partner นี้ (รวม transaction_id)
     supabase()
-      .from("business_events")
-      .select("id, event_type, event_date, title, description, transaction_id, created_at")
-      .eq("partner_id", partnerId)
-      .is("deleted_at", null)
-      .order("event_date", { ascending: false }),
+      .from("standalone_documents")
+      .select("id, document_no, document_type, total_amount, document_date, created_at, customer_order_id")
+      .eq("customer_company_id", partnerId)
+      .order("document_date", { ascending: false }),
   ])
 
   if (partnerRes.error) {
     return NextResponse.json({ error: partnerRes.error.message }, { status: 404 })
   }
 
-  const docs = docsRes.data ?? []
-  const events = eventsRes.data ?? []
-  const transactions = txRes.data ?? []
+  const partner = {
+    id: partnerRes.data.id,
+    code: partnerRes.data.id?.slice(0, 8) ?? "",
+    name: partnerRes.data.name ?? "",
+    partner_type_label: partnerRes.data.type ?? "",
+    phone: partnerRes.data.phone ?? "",
+    address: partnerRes.data.address ?? "",
+    tax_id: partnerRes.data.tax_id ?? "",
+    contact_name: partnerRes.data.email ?? "",
+    created_at: partnerRes.data.created_at,
+  }
+
+  const docs = [
+    ...(invoicesRes.data ?? []).map((d: any) => ({
+      id: d.id,
+      document_type: "invoice",
+      document_number: d.invoice_no ?? "",
+      status: d.invoice_status?.toLowerCase() ?? "draft",
+      net_amount: Number(d.total_amount ?? 0),
+      issue_date: d.invoice_date,
+      created_at: d.created_at,
+      transaction_id: d.customer_order_id ?? null,
+    })),
+    ...(standaloneRes.data ?? []).map((d: any) => ({
+      id: d.id,
+      document_type: (d.document_type ?? "document").toLowerCase(),
+      document_number: d.document_no ?? "",
+      status: "draft",
+      net_amount: Number(d.total_amount ?? 0),
+      issue_date: d.document_date,
+      created_at: d.created_at,
+      transaction_id: d.customer_order_id ?? null,
+    })),
+  ].sort((a, b) => new Date(b.issue_date ?? b.created_at).getTime() - new Date(a.issue_date ?? a.created_at).getTime())
+
+  const events: { id: string; event_type: string; event_date: string; title: string; description: string | null; transaction_id: string | null; created_at: string }[] = []
+
+  const transactions = (txRes.data ?? []).map((t: any) => ({
+    id: t.id,
+    tx_type: "sale",
+    state: t.status,
+    title: t.order_no ?? "คำสั่งซื้อ",
+    project_name: null,
+    net_amount: null,
+    paid_amount: null,
+    vat_amount: null,
+    created_at: t.created_at,
+    state_changed_at: t.updated_at ?? t.created_at,
+    suppliers: null,
+  }))
 
   // จัด docs และ events ตาม transaction_id
   const docsByTx: Record<string, typeof docs> = {}
@@ -104,7 +145,7 @@ export async function GET(_req: NextRequest, { params }: Params) {
   const firstEventDate = allDates[0] ?? null
 
   return NextResponse.json({
-    partner: partnerRes.data,
+    partner,
     chains,
     standalone_docs: standaloneDocs,
     standalone_events: standaloneEvents,

@@ -13,7 +13,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
-GRAPH_FILE="$PROJECT_DIR/lib/registry/dependency-graph.json"
+GRAPH_FILE="$PROJECT_DIR/registry/dependency-graph.json"
 
 # Colors (only if terminal supports them)
 if [ -t 1 ]; then
@@ -83,35 +83,40 @@ if [ -z "$FILES" ]; then
 fi
 
 # ---------------------------------------------------------------------------
-# Helper: determine the layer for a given file path
-#   app/api/action/route.ts   → app
-#   components/CommandBox.tsx  → components
-#   lib/v3-engines/debt/x.ts  → lib/v3-engines
-#   lib/shared/types.ts       → lib/shared
+# Helper: determine the layer for a given file path (post-reorg 2026-07)
+#   app/api/action/route.ts    → app
+#   components/CommandBox.tsx   → components
+#   engines/debt/x.ts           → engines
+#   core/shared/types.ts        → core
+#   registry/...            → registry (last remaining lib/ tenant)
 # ---------------------------------------------------------------------------
 get_layer() {
   local filepath="$1"
   case "$filepath" in
-    app/*)       echo "app" ;;
+    app/*)        echo "app" ;;
     components/*) echo "components" ;;
-    lib/*)
-      # Extract lib/<first-segment>
-      echo "$filepath" | sed 's|^\(lib/[^/]*\)/.*|\1|; s|^\(lib/[^/]*\)$|\1|'
-      ;;
+    core/*)       echo "core" ;;
+    gateway/*)    echo "gateway" ;;
+    engines/*)    echo "engines" ;;
+    cognitive/*)  echo "cognitive" ;;
+    presenter/*)  echo "presenter" ;;
+    services/*)   echo "services" ;;
+    plugins/*)    echo "plugins" ;;
+    registry/*)   echo "registry" ;;
+    registry/*) echo "registry" ;;
     *) echo "unknown" ;;
   esac
 }
 
 # ---------------------------------------------------------------------------
 # Helper: extract the target layer from an import path
-#   @/lib/v6-executor/runtime/shell → lib/v6-executor
-#   @/lib/shared/types              → lib/shared
-#   @/lib/commands/commands.json    → lib/commands
+#   @/core/shared/types      → core
+#   @/engines/debt/engine    → engines
+#   @/registry/architecture  → registry
 # ---------------------------------------------------------------------------
 get_target_layer() {
   local import_path="$1"
-  # Remove @/ prefix, then extract lib/<first-segment>
-  echo "$import_path" | sed 's|^@/||' | sed 's|^\(lib/[^/]*\)/.*|\1|; s|^\(lib/[^/]*\)$|\1|'
+  echo "$import_path" | sed 's|^@/||' | sed 's|^\(registry\)/.*|registry|; s|^\([^/]*\)/.*|\1|; s|^\([^/]*\)$|\1|'
 }
 
 # ---------------------------------------------------------------------------
@@ -134,8 +139,8 @@ while IFS= read -r file; do
   fi
 
   # Extract all @/lib/ imports from this file
-  import_targets=$(grep -oE 'from\s+"@/lib/[^"]+"|from\s+'\''@/lib/[^'\'']+'\''' "$file" 2>/dev/null \
-    | grep -oE '@/lib/[^"'\'']+' || true)
+  import_targets=$(grep -oE 'from\s+"@/(core|gateway|engines|cognitive|presenter|services|plugins|registry|lib)/[^"]+"|from\s+'\''@/(core|gateway|engines|cognitive|presenter|services|plugins|registry|lib)/[^'\'']+'\''' "$file" 2>/dev/null \
+    | grep -oE '@/(core|gateway|engines|cognitive|presenter|services|plugins|registry|lib)/[^"'\'']+' || true)
 
   while IFS= read -r target; do
     [ -z "$target" ] && continue
@@ -182,8 +187,8 @@ while IFS= read -r file; do
   src_layer=$(get_layer "$file")
   [ "$src_layer" = "unknown" ] && continue
 
-  import_targets=$(grep -oE 'from\s+"@/lib/[^"]+"|from\s+'\''@/lib/[^'\'']+'\''' "$file" 2>/dev/null \
-    | grep -oE '@/lib/[^"'\'']+' || true)
+  import_targets=$(grep -oE 'from\s+"@/(core|gateway|engines|cognitive|presenter|services|plugins|registry|lib)/[^"]+"|from\s+'\''@/(core|gateway|engines|cognitive|presenter|services|plugins|registry|lib)/[^'\'']+'\''' "$file" 2>/dev/null \
+    | grep -oE '@/(core|gateway|engines|cognitive|presenter|services|plugins|registry|lib)/[^"'\'']+' || true)
 
   while IFS= read -r target; do
     [ -z "$target" ] && continue
@@ -230,7 +235,7 @@ if [ "$VIOLATIONS" -gt 0 ]; then
   echo ""
   echo -e "$VIOLATION_LINES"
   echo ""
-  echo -e "${RED}Fix: either remove the import or add the edge to lib/registry/dependency-graph.json${NC}"
+  echo -e "${RED}Fix: either remove the import or add the edge to registry/dependency-graph.json${NC}"
   exit 1
 fi
 

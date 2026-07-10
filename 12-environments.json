@@ -58,10 +58,10 @@
     "description": "Engine เหล่านี้ทุก environment ใช้ร่วมกัน — การเปลี่ยนแปลงกระทบทุกที่",
     "engines": [
       { "id": "registry",           "path": "*.json (root)",                     "note": "Single source of truth" },
-      { "id": "business_engine",    "path": "lib/v3-engines/",                   "note": "Pricing, Debt, Scheduling" },
-      { "id": "workflow_engine",    "path": "lib/transactions/workflows.ts",     "note": "State machine per tx_type" },
-      { "id": "document_engine",   "path": "lib/documents/engine.ts",           "note": "Document generation" },
-      { "id": "calculation_engine","path": "lib/documents/document-editor.ts",  "note": "VAT, discount, totals" },
+      { "id": "business_engine",    "path": "engines/",                   "note": "Pricing, Debt, Scheduling" },
+      { "id": "workflow_engine",    "path": "engines/transactions/workflows.ts",     "note": "State machine per tx_type" },
+      { "id": "document_engine",   "path": "engines/documents/engine.ts",           "note": "Document generation" },
+      { "id": "calculation_engine","path": "engines/documents/document-editor.ts",  "note": "VAT, discount, totals" },
       { "id": "supabase_schema",    "path": "supabase/migrations/",              "note": "DB schema สำหรับทุก env" }
     ]
   },

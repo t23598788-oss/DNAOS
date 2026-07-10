@@ -21,7 +21,7 @@ interface ArchitectureBook {
   summary: { total: number; ok: number; broken: number; unused: number; unregistered: number };
 }
 
-const BOOK_PATH = join(process.cwd(), "lib/registry/architecture-book.json");
+const BOOK_PATH = join(process.cwd(), "registry/architecture-book.json");
 
 function readBook(): ArchitectureBook | null {
   if (!existsSync(BOOK_PATH)) return null;
@@ -33,7 +33,7 @@ function readBook(): ArchitectureBook | null {
 }
 
 // GET /api/governance
-// GET /api/governance?node=module:lib/... — node เดียว + importers + imports
+// GET /api/governance?node=module:lib/... — node เดียว + importers + imports (path เช่น module:engines/tax.ts)
 // GET /api/governance?layer=v3-engines — filter by layer
 export async function GET(req: Request) {
   const url = new URL(req.url);

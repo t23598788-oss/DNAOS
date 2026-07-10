@@ -6,10 +6,10 @@
  *   - หรือ entry_point: true (API route / script / page ที่ไม่ต้องมีผู้เรียก)
  *
  * Usage:
- *   npx tsx scripts/new-module.ts --path lib/my-layer/my-module.ts \
+ *   npx tsx scripts/new-module.ts --path engines/my-module.ts \
  *       --purpose "อธิบายสิ่งที่โมดูลทำ" \
- *       --layer v3-engines \
- *       --callers lib/cognitive/pipeline.ts,app/api/action/route.ts
+ *       --layer engines \
+ *       --callers cognitive/pipeline.ts,app/api/action/route.ts
  *
  *   npx tsx scripts/new-module.ts --path app/api/my-route/route.ts \
  *       --purpose "API endpoint สำหรับ..." \
@@ -21,7 +21,7 @@ import { existsSync, readFileSync, writeFileSync, mkdirSync } from "fs";
 import { join, dirname } from "path";
 
 const ROOT = join(__dirname, "..");
-const REGISTRY_PATH = join(ROOT, "lib/registry/module-registry.json");
+const REGISTRY_PATH = join(ROOT, "registry/module-registry.json");
 
 // ── Argument parsing ────────────────────────────────
 

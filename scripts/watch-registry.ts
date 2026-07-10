@@ -1,7 +1,7 @@
 /**
  * DNA OS — Registry File Watcher (Dev Mode)
  *
- * เฝ้าดู lib/** และ app/** — ทุกครั้งที่ไฟล์เปลี่ยน:
+ * เฝ้าดู core/**, gateway/**, engines/**, cognitive/**, presenter/**, services/**, plugins/**, registry/** และ app/** — ทุกครั้งที่ไฟล์เปลี่ยน:
  *   sync-registry.ts → build-arch-book.ts
  * ใช้ระหว่าง development เท่านั้น (npm run watch)
  */
@@ -31,7 +31,7 @@ function runSync(changedFile: string) {
 }
 
 const watcher = chokidar.watch(
-  ["lib/**/*.ts", "app/**/*.ts", "scripts/**/*.ts"],
+  ["core/**/*.ts", "gateway/**/*.ts", "engines/**/*.ts", "cognitive/**/*.ts", "presenter/**/*.ts", "services/**/*.ts", "plugins/**/*.ts", "registry/**/*.ts", "app/**/*.ts", "scripts/**/*.ts"],
   {
     cwd: ROOT,
     ignored: [
@@ -56,6 +56,6 @@ watcher.on("add", (path) => {
 
 watcher.on("ready", () => {
   console.log("DNA OS Registry Watcher พร้อมทำงาน");
-  console.log("  เฝ้าดู: lib/**/*.ts, app/**/*.ts");
+  console.log("  เฝ้าดู: core, gateway, engines, cognitive, presenter, services, plugins, registry, app/**/*.ts");
   console.log("  กด Ctrl+C เพื่อหยุด\n");
 });

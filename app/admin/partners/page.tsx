@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { getPartnersWithDocumentSummary } from "@/lib/supabase/queries"
+import { getPartnersWithDocumentSummary } from "@/services/supabase/queries"
 
 export const dynamic = "force-dynamic"
 

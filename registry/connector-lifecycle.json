@@ -1,0 +1,51 @@
+{
+  "version": 2,
+  "status": "LOCKED — PERMANENT ARCHITECTURE LAW OF DNA OS",
+  "standard": "Connector Lifecycle — บังคับ ห้ามมีข้อยกเว้น ห้ามข้ามขั้นตอน ห้ามแก้ Core เพื่อรองรับ Connector ใหม่",
+  "locked_at": "2026-07-07",
+  "amendment_policy": "การแก้ไขไฟล์นี้ต้องได้รับการยืนยันชัดเจนจากเจ้าของระบบเท่านั้น ไม่ใช่การตัดสินใจของ AI ฝ่ายเดียว — เทียบเท่าการแก้ 5 Architectural Laws ใน project_dna_os_architecture.md",
+  "enforced_programmatically_by": "scripts/check-connector-lifecycle.sh (รันใน scripts/pre-commit-check.sh Guard 8 — ต้องผ่านก่อน commit ทุกครั้ง ไม่ใช่แค่เอกสาร)",
+  "stages": ["connect", "register", "test", "enable", "run"],
+  "stage_detail": {
+    "connect": {
+      "description": "ผู้ใช้กรอก config/secret ตามประเภทการเชื่อมต่อ (login/oauth/api_key/token/uri/mcp/webhook)",
+      "enforced_by": "app/admin/connectors/page.tsx → POST /api/admin/connectors"
+    },
+    "register": {
+      "description": "บันทึกลงตาราง connectors อัตโนมัติทันทีที่ Connect สำเร็จ — Dynamic Registry ไม่ต้อง deploy ใหม่",
+      "enforced_by": "gateway/connectors.ts:createConnector"
+    },
+    "test": {
+      "description": "ยิง network request จริงตาม auth_type ตรวจสอบว่าเชื่อมต่อได้จริง ไม่มี mock/fake",
+      "enforced_by": "engines/connectors/tester.ts:testConnector"
+    },
+    "enable": {
+      "description": "มนุษย์ต้องกดเปิดเองเสมอ ไม่มี auto-enable แม้ Test จะผ่านแล้วก็ตาม — ปฏิเสธถ้า status ไม่ใช่ connected",
+      "enforced_by": "gateway/connectors.ts:setConnectorEnabled"
+    },
+    "run": {
+      "description": "จุดเดียวที่อนุญาตให้ AI/API/MCP/Webhook/Plugin/Service เรียกใช้ Connector จริงเพื่อทำงาน — ปฏิเสธทันทีถ้าไม่ผ่าน Test หรือไม่ผ่าน Enable",
+      "enforced_by": "core/connector-loader.ts:requireConnector"
+    }
+  },
+  "failure_flow": ["error", "auto_disable", "log", "notify_status"],
+  "failure_detail": {
+    "error": "status = 'error', last_error เก็บข้อความจริงจาก network call ที่ล้มเหลว",
+    "auto_disable": "enabled ถูกตั้งเป็น false ทันทีในธุรกรรมเดียวกับที่บันทึก error — ไม่รอมนุษย์สั่ง",
+    "log": "บันทึกลง audit_logs จริง (entity_type='connector') ทันทีที่ error/auto_disable เกิด ไม่ใช่ log ใน memory — เป็นบันทึกถาวรก่อนจะแจ้งสถานะ",
+    "notify_status": "status/last_error query ได้ทันทีผ่าน GET /api/admin/connectors — UI แสดง error pill + ข้อความจริงทันที (ยังไม่มี push notification ออกช่องทางอื่น เช่น LINE/Slack — ถ้าต้องการ เป็นงานแยกที่ต้องออกแบบเพิ่ม)"
+  },
+  "rules": [
+    "ห้ามมีข้อยกเว้น — ทุก Connector ไม่ว่าประเภทไหนต้องผ่านลำดับนี้เหมือนกันหมด",
+    "ห้ามข้ามขั้นตอน — ต้องเรียงตาม Connect → Register → Test → Enable → Run เท่านั้น จะ Enable ก่อน Test ผ่านไม่ได้ จะ Run ก่อน Enable ไม่ได้",
+    "ห้ามแก้ Core เพื่อรองรับ Connector ใหม่ — core/connector-loader.ts ทำงานกับทุก auth_type ผ่าน slug เดียวกันเสมอ ไม่มี if/switch ตามชื่อ Connector เฉพาะเจาะจง (Law 1)",
+    "ทุก AI/API/MCP/Webhook/Plugin/Service ที่ต้องการเรียกใช้ Connector จริง ต้องเรียกผ่าน core/connector-loader.ts requireConnector() เท่านั้น ห้ามเรียก getConnector()/loadConnectors() ตรงแล้วใช้ผลลัพธ์โดยไม่เช็ค status/enabled เอง — นั่นคือการข้ามขั้นตอน"
+  ],
+  "consumer_types_bound_by_this_standard": ["ai", "api", "mcp", "webhook", "plugin", "service"],
+  "enforced_by": {
+    "run_gate": "core/connector-loader.ts:requireConnector",
+    "auto_disable_on_failure": "gateway/connectors.ts:recordConnectorTest",
+    "enable_guard": "gateway/connectors.ts:setConnectorEnabled",
+    "audit_log": "core/connector-loader.ts:logConnectorLifecycleEvent → public.audit_logs"
+  }
+}

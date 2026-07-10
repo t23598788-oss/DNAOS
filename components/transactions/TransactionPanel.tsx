@@ -10,8 +10,8 @@ import {
   TX_TYPE_LABELS,
   type TxType,
   type TxWorkflow,
-} from "@/lib/transactions/workflows"
-import { DOC_LABELS, type DocType } from "@/lib/documents/engine"
+} from "@/engines/transactions/workflows"
+import { DOC_LABELS, type DocType } from "@/engines/documents/engine"
 
 // ---------- types ----------
 

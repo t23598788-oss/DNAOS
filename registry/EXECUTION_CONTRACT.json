@@ -1,0 +1,58 @@
+{
+  "version": 1,
+  "title": "DNA OS Execution Contract",
+  "added": "2026-07-07",
+  "note": "Sits between Constitution (the law) and Runtime (the enforcer). registry/CONSTITUTION.json defines what the rules ARE — this file defines HOW an agent complies with them, step by step. Moved out of CONSTITUTION.json's ai_execution_protocol section into its own file per the system owner's instruction to keep 'the law' and 'how to comply with the law' as separate layers.",
+  "layer_stack": {
+    "th": [
+      "Constitution ↓ กำหนดกฎหมาย (registry/CONSTITUTION.json)",
+      "Execution Contract ↓ กำหนดวิธีปฏิบัติตามกฎหมาย (this file)",
+      "Runtime ↓ บังคับใช้",
+      "Scheduler ↓ แจกงาน (registry/SCHEDULER.json + registry/LOCK_MANAGER.json)",
+      "Workers ↓ ลงมือทำ (registry/AI_REGISTRY.json + registry/AI_SESSIONS.json)"
+    ],
+    "implication": "เพราะ 'วิธีรัน' (Execution Contract + Runtime) แยกจาก 'กฎหมาย' (Constitution) — ถ้าวันหนึ่งเปลี่ยน Runtime จาก Node.js เป็น Rust/Go หรือกระจายหลายเครื่อง แทบไม่ต้องแตะ Constitution เลย เพราะสิ่งที่เปลี่ยนคือวิธีรัน ไม่ใช่กฎของระบบ",
+    "known_gaps": "Today 'Runtime' is not a literal separate running process — it is this document, followed manually by whichever AI agent is working (see registry/CONSTITUTION.json → runtime_contract.known_gaps for the same honesty note). The 'swap Node.js for Rust/Go/distributed' property is real in the sense that nothing here couples the law to an implementation language, but it describes a future architectural option, not a currently-running swappable system — don't overstate this as already built."
+  },
+  "communication_rules": [
+    "No AI communicates directly with another AI",
+    "Every AI communicates only through the DNA OS Registry",
+    "Never assume another AI's work — read the registry before doing anything"
+  ],
+  "execution_order": [
+    "Read registry/README.md",
+    "Read registry/CONSTITUTION.json",
+    "Read registry/CURRENT_STATE.json",
+    "Read registry/AI_SESSIONS.json — upsert own entry (agent_id, status: working)",
+    "Read registry/LOCK_MANAGER.json — never touch a file locked by a different agent",
+    "Read registry/TASK_QUEUE.json and registry/SCHEDULER.json",
+    "Choose free work (a path/task not currently locked), lock only the files you'll touch in LOCK_MANAGER.json, then execute (continue ONLY from CURRENT_STATE.next_step; if nothing is free, do nothing and wait)",
+    "Update registry/CURRENT_STATE.json",
+    "Append registry/CHANGELOG.json (see output_contract)",
+    "Release lock — remove own entry from registry/LOCK_MANAGER.json",
+    "Update registry/AI_SESSIONS.json — own status must be true (idle/blocked/token_exhausted/submitted), never left as working",
+    "Exit"
+  ],
+  "execution_rules": [
+    "Lock only the files you modify — never lock the whole project",
+    "Multiple agents may work simultaneously as long as they don't touch the same file",
+    "Never edit a file locked by a different agent",
+    "Never overwrite another agent's work",
+    "Never create duplicate architecture",
+    "Never create parallel implementations",
+    "Never rename existing registry files (except by the system owner's direct instruction — equivalent to amending the Constitution)",
+    "Never hardcode business data",
+    "Follow Constitution before writing code",
+    "Registry is the single source of truth",
+    "Before stopping, CURRENT_STATE.json must have: status (IN_PROGRESS|BLOCKED|DONE), current_file, next_step, handoff, open_questions",
+    "Leave the repository in a resumable state — the next AI must continue without asking the user; if a genuine human decision is required, status=BLOCKED with a precise open_question is itself the resumable state, never guess an answer to unblock",
+    "One Entry. One Architecture. One Registry. One Source of Truth."
+  ],
+  "output_contract": {
+    "note": "Every completed task must append a CHANGELOG.json entry with exactly these fields",
+    "fields": ["change_id", "agent_id", "provider", "model", "session_id", "files_modified", "started_at", "finished_at", "status", "summary", "next_task"]
+  },
+  "session_tracking": "registry/AI_SESSIONS.json — live roster of individual agent sessions (not just agent types). Every session must upsert its own entry on start and keep status honest — never guess another session's status.",
+  "lock_management": "registry/LOCK_MANAGER.json — per-file lock ledger, supports N agents locking N different files simultaneously; never locks the whole project.",
+  "work_scheduling": "registry/SCHEDULER.json — path-scoped feature work (task/assigned_to:'Any'/path/priority/status). Distinct from TASK_QUEUE.json's atomic backlog. assigned_to is always 'Any' by design so no work is pre-assigned to a vendor; an agent claims work by locking its path in LOCK_MANAGER.json."
+}

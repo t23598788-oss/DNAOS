@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { requireAuth } from "@/lib/middleware/auth";
-import { loadConfigs } from "@/lib/v3-engines/config-loader";
-import { haversine } from "@/lib/v3-engines/distance";
-import { explainQuote } from "@/lib/v5-presenter/explainer";
+import { requireAuth } from "@/core/auth/requireAuth";
+import { ANY_AUTHENTICATED } from "@/core/auth/session";
+import { loadConfigs } from "@/core/config-loader";
+import { haversine } from "@/engines/distance";
+import { explainQuote } from "@/presenter/explainer";
 
 export async function POST(req: NextRequest) {
-  const authResult = await requireAuth(req);
+  const authResult = await requireAuth(ANY_AUTHENTICATED);
   if (authResult instanceof NextResponse) return authResult;
 
   try {

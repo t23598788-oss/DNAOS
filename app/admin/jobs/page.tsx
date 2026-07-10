@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import Link from "next/link"
-import { TX_TYPE_LABELS, type TxType } from "@/lib/transactions/workflows"
+import { TX_TYPE_LABELS, type TxType } from "@/engines/transactions/workflows"
 
 interface Job {
   id: string

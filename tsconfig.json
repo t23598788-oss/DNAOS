@@ -20,9 +20,8 @@
     ],
     "paths": {
       "@/*": ["./*"],
-      "@/types/*": ["./lib/shared/*"],
-      "@/drivers/*": ["./lib/v6-executor/drivers/*"],
-      "@/core/*": ["./lib/v6-executor/core/*"]
+      "@/types/*": ["./core/shared/*"],
+      "@/drivers/*": ["./plugins/drivers/*"]
     }
   },
   "include": [

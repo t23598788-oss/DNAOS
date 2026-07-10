@@ -3,19 +3,18 @@ import { readFileSync, existsSync, readdirSync, statSync } from "fs";
 import { join, extname } from "path";
 
 const ROOT = process.cwd();
-const BOOK_PATH = join(ROOT, "lib/registry/architecture-book.json");
+const BOOK_PATH = join(ROOT, "registry/architecture-book.json");
 
 // เฉพาะ path ที่อนุญาตให้อ่าน
 const ALLOWED_ROOTS = [
-  "lib/registry",
-  "lib/runtime",
-  "lib/shared",
-  "lib/v2-rules",
-  "lib/v3-engines",
-  "lib/v4-ai",
-  "lib/v5-presenter",
-  "lib/v6-executor",
-  "lib/cognitive",
+  "registry",
+  "core",
+  "gateway",
+  "engines",
+  "cognitive",
+  "presenter",
+  "services",
+  "plugins",
   "app/api",
   "scripts",
 ];
@@ -44,7 +43,7 @@ function isAllowed(path: string): boolean {
   return ALLOWED_ROOTS.some((r) => clean.startsWith(r));
 }
 
-// GET /api/reader?path=lib/registry/existence.json
+// GET /api/reader?path=registry/existence.json
 export async function GET(req: Request) {
   const url = new URL(req.url);
   const filePath = url.searchParams.get("path");

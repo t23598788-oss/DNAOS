@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { requireAuth } from "@/lib/middleware/auth";
-import { generateDoc, type DocData } from "@/lib/documents/engine";
+import { requireAuth } from "@/core/auth/requireAuth";
+import { ADMIN_TIER } from "@/core/auth/session";
+import { generateDoc, type DocData } from "@/engines/documents/engine";
 
 export async function POST(req: NextRequest) {
-  const authResult = await requireAuth(req);
+  const authResult = await requireAuth(ADMIN_TIER);
   if (authResult instanceof NextResponse) return authResult;
 
   const data: DocData = await req.json();

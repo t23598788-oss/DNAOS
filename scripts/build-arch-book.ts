@@ -2,7 +2,7 @@
  * DNA OS — Architecture Book Builder
  *
  * อ่าน Registry ทุกตัว → cross-reference → คำนวณ status จริง
- * เขียน lib/registry/architecture-book.json
+ * เขียน registry/architecture-book.json
  * ห้าม hardcode คำอธิบาย — ทุกข้อมูลมาจาก Registry และ Source Code
  */
 
@@ -11,7 +11,7 @@ import { join } from "path";
 import { glob } from "glob";
 
 const ROOT = join(__dirname, "..");
-const REGISTRY = join(ROOT, "lib/registry");
+const REGISTRY = join(ROOT, "registry");
 
 // ── Types ──────────────────────────────────────────
 

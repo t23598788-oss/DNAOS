@@ -3,7 +3,7 @@
 # DNA OS Existence Dashboard
 # ระบบรู้จักตัวเอง — รู้ว่าทำอะไรได้ ขาดอะไร ต้องอยู่ที่ไหน ต้องพึ่งใครตรงไหน
 
-REG="lib/registry/existence.json"
+REG="registry/existence.json"
 
 bar() {
   local pct=$1; local w=12

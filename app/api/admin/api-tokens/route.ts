@@ -4,42 +4,34 @@
  */
 
 import { NextRequest, NextResponse } from "next/server"
-import { cookies } from "next/headers"
-import { listTokensForEmail, createApiToken } from "@/lib/supabase/api-tokens"
+import { requireAuth } from "@/core/auth/requireAuth"
+import { ADMIN_TIER } from "@/core/auth/session"
+import { listTokensForEmail, createApiToken } from "@/services/supabase/api-tokens"
 
-async function getCurrentEmail(): Promise<string | null> {
-  const cookieStore = await cookies()
-  // admin_session = base64("email:timestamp") — ดู app/api/auth/login/route.ts
-  const raw = cookieStore.get("admin_session")?.value
-  if (!raw) return null
+export async function GET() {
+  const auth = await requireAuth(ADMIN_TIER)
+  if (auth instanceof NextResponse) return auth
+
   try {
-    const decoded = Buffer.from(raw, "base64").toString("utf-8")
-    return decoded.split(":")[0] ?? null
-  } catch {
-    return null
+    const tokens = await listTokensForEmail(auth.email)
+    return NextResponse.json({ tokens })
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err)
+    return NextResponse.json({ error: msg }, { status: 500 })
   }
 }
 
-export async function GET() {
-  const email = await getCurrentEmail()
-  if (!email) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-
-  const tokens = await listTokensForEmail(email)
-  // ซ่อน token จริง ยกเว้น created_at (UI ต้องการเพื่อแสดง คัดลอกตอนสร้างใหม่เท่านั้น)
-  const safe = tokens.map(t => ({
-    ...t,
-    token: t.token, // คงไว้ — UI จะซ่อนด้วยตัวเอง (แสดงแค่ 8 chars แรก)
-  }))
-  return NextResponse.json({ tokens: safe })
-}
-
 export async function POST(req: NextRequest) {
-  const email = await getCurrentEmail()
-  if (!email) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  const auth = await requireAuth(ADMIN_TIER)
+  if (auth instanceof NextResponse) return auth
 
-  const body = await req.json().catch(() => ({}))
-  const label = String(body.label ?? "").trim() || "default"
-
-  const token = await createApiToken(email, label)
-  return NextResponse.json({ token }, { status: 201 })
+  try {
+    const body = await req.json().catch(() => ({}))
+    const label = String(body.label ?? "").trim() || "default"
+    const token = await createApiToken(auth.email, label)
+    return NextResponse.json({ token }, { status: 201 })
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err)
+    return NextResponse.json({ error: msg }, { status: 500 })
+  }
 }

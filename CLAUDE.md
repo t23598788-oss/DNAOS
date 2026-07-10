@@ -2,6 +2,12 @@
 
 # DNA OS Constitution (รัฐธรรมนูญ)
 
+**JSON source of truth is `registry/CONSTITUTION.json`** — this file is its human-readable rendering. If they ever disagree, the JSON file wins; fix this file to match, not the other way around.
+
+**ก่อนเริ่มงานทุกครั้ง (Any AI Agent — ไม่ผูกกับค่ายใดค่ายหนึ่ง)** อ่าน `registry/README.md` ก่อน แล้วตามลำดับ DNA OS Unified AI Runtime ที่นั่น — อ่าน `registry/CURRENT_STATE.json` → `registry/AI_SESSIONS.json` → `registry/LOCK_MANAGER.json` → `registry/TASK_QUEUE.json` — ห้ามเริ่มงานใหม่ถ้ามีงานค้างอยู่ ห้ามคุยกับ AI ตัวอื่นโดยตรง สื่อสารผ่าน Registry เท่านั้น AI ตัวไหนก็ได้ที่ทำตาม protocol นี้ถือว่าเป็น DNA OS Compatible (ดู `registry/AI_REGISTRY.json`)
+
+**Layer Stack:** Constitution (ไฟล์นี้/`registry/CONSTITUTION.json`) กำหนดกฎหมาย → `registry/EXECUTION_CONTRACT.json` กำหนดวิธีปฏิบัติตามกฎหมาย → Runtime บังคับใช้ → Scheduler แจกงาน → Workers ลงมือทำ แยกกันโดยตั้งใจ เพื่อเปลี่ยน Runtime ได้โดยไม่ต้องแตะกฎหมาย
+
 ## หลักการสูงสุด (จาก owner-context.json)
 1.  **AI Role**: AI เป็นแค่ตัวกลาง ไม่ใช่ศูนย์กลาง — ศูนย์กลางคือกฎและสถาปัตยกรรม
 2.  **Growth**: DNA OS เติบโตจากการขยายคลังกฎและ Workflow ไม่ใช่จากการฝึก AI
@@ -36,15 +42,18 @@
 4.  **External Workers**: AI ทุกตัว (Gemini, Claude, GPT, etc.) เป็น "คนงานภายนอก" ที่รับ Task ไปทำ แล้วส่งผลกลับมาให้ Runtime ตรวจสอบ
 5.  **Chain of Command**: Worker → Runtime (Governance Engine) → Human (CEO). Runtime เป็นผู้อนุมัติ, ปฏิเสธ, หรือส่งต่อให้มนุษย์ตาม Constitution เท่านั้น
 
-## สถาปัตยกรรม V1-V6
+## สถาปัตยกรรม Layer (ปัจจุบัน — ดู registry/architecture.json)
 ```
-V1-Input    → รับ Event แปลงเป็น JSON (ห้ามเขียน DB)
-V2-Rules    → Validation / Business Rule
-V3-Engines  → คำนวณ (ราคา/หนี้/ภาษี) ทุกค่าจาก DB ห้าม hardcode
-V4-AI       → แปลภาษาเท่านั้น ห้ามสร้างข้อมูล ห้ามตัดสินใจ
-V5-Presenter→ สรุป/อธิบาย ห้าม import V3
-V6-Executor → ประตูเดียวเขียน DB (gateway.ts)
+core       → Runtime + Executor + Config/Connector Loader + Shared Types (ห้ามเขียน DB ตรง)
+gateway    → ประตูเดียวเขียน DB — preview → token → execute (payment/document/debt/connectors)
+engines    → คำนวณ (ราคา/หนี้/ภาษี) + Validation + Document/Transaction Workflow ทุกค่าจาก DB ห้าม hardcode
+cognitive  → Intent → Plan → Execute → Reflect pipeline
+presenter  → สรุป/อธิบาย/Timeline — ห้าม import engines ตรง
+services   → I/O boundary — DB, Realtime, AI bridge, middleware
+plugins    → App Drivers + macOS/LINE/local agent — ห้ามเรียก core หรือ plugin อื่นตรง
+registry   → Source of Truth ที่ทุกโมดูลต้อง register (ไฟล์นี้)
 ```
+เดิมคือ V1-Input/V2-Rules/V3-Engines/V4-AI/V5-Presenter/V6-Executor (เลิกใช้ตั้งแต่ folder reorg 2026-07-06) — ห้ามใช้ชื่อเดิมในโค้ดหรือเอกสารใหม่
 
 ## กฎเหล็ก
 - ห้าม hardcode ข้อมูลธุรกิจ — ทุกค่าจาก DB via config-loader (ไม่มี fallback)
@@ -57,7 +66,7 @@ V6-Executor → ประตูเดียวเขียน DB (gateway.ts)
 - ทุก import ข้าม layer ต้องอยู่ใน dependency-graph.json
 
 ## Types — Single Source of Truth
-`lib/shared/types.ts` เท่านั้น ห้ามสร้าง type ซ้ำในไฟล์อื่น
+`core/shared/types.ts` เท่านั้น ห้ามสร้าง type ซ้ำในไฟล์อื่น (เดิมคือ `lib/shared/types.ts` ก่อน reorg)
 
 ## คำสั่งสำคัญ
 ```bash
@@ -74,19 +83,17 @@ npm run restore -- backups/DIR # Restore จาก backup
 ```
 
 ## Registry Files (ห้ามมี Shadow System)
-- `lib/registry/module-registry.json` — ทุกไฟล์ต้อง register
-- `lib/registry/command-registry.json` — ทุก command ต้อง register
-- `lib/registry/dependency-graph.json` — ทุก cross-layer import ต้อง declare
-- `lib/registry/existence.json` — capabilities, goals, missing knowledge
-- `lib/registry/infrastructure.json` — external services, costs, life support
-- `lib/registry/business-coverage.json` — business domains coverage
-- `lib/registry/decision-coverage.json` — decision points codified
-- `lib/registry/rule-coverage.json` — Constitution rules enforcement
+- `registry/module-registry.json` — ทุกไฟล์ต้อง register
+- `registry/command-registry.json` — ทุก command ต้อง register
+- `registry/dependency-graph.json` — ทุก cross-layer import ต้อง declare
+- `registry/existence.json` — capabilities, goals, missing knowledge
+- `registry/infrastructure.json` — external services, costs, life support
+- `registry/business-coverage.json` — business domains coverage
+- `registry/decision-coverage.json` — decision points codified
+- `registry/rule-coverage.json` — Constitution rules enforcement
+- `registry/CONSTITUTION.json` — JSON source of truth ของไฟล์นี้ทั้งไฟล์
+- `registry/EXECUTION_CONTRACT.json` — วิธีปฏิบัติตามกฎหมาย (Execution Order/Rules/Output contract) แยกออกจาก Constitution โดยตั้งใจ
+- `registry/CURRENT_STATE.json` / `TASK_QUEUE.json` / `CHANGELOG.json` / `LOCK_MANAGER.json` / `AI_SESSIONS.json` / `HANDOFF.json` / `AI_REGISTRY.json` — AI Execution Protocol ledger, ดู `registry/README.md`
 
 ## สถานะปัจจุบัน
-- Existence Score: 79/100
-- Business Coverage: 68% (ขาด: คลังสินค้า, HR, บัญชี)
-- Decision Coverage: 87%
-- Constitution Enforcement: 25/100 rules
-- Risk: Resilience 55% (local backup มีแล้ว, ยังขาด cloud backup)
-- Cost: 550 THB/เดือน
+ตัวเลขจริงล่าสุดอยู่ที่ `registry/existence.json`, `registry/business-coverage.json`, `registry/decision-coverage.json`, `registry/rule-coverage.json`, `registry/infrastructure.json` เสมอ — ห้ามจดตัวเลข snapshot ไว้ในไฟล์นี้ซ้ำเพราะจะกลายเป็นข้อมูลเก่าที่ไม่มีใครอัปเดต (ดู registry/CONSTITUTION.json → current_status)

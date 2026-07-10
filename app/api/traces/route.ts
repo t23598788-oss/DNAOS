@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getRecentTraces, getTrace, traceLineage, replayTrace } from "@/lib/runtime/trace";
+import { getRecentTraces, getTrace, traceLineage, replayTrace } from "@/core/runtime/trace";
 
 // GET /api/traces — recent traces จาก Runtime (in-memory)
 // GET /api/traces?id=<traceId> — trace เดียว + lineage + replay

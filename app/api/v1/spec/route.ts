@@ -7,7 +7,7 @@
  */
 
 import { NextResponse } from "next/server"
-import commandRegistry from "@/lib/registry/command-registry.json"
+import commandRegistry from "@/registry/command-registry.json"
 
 interface CommandEntry {
   owner: string

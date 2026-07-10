@@ -3,7 +3,7 @@
  * Public — returns module-registry.json
  */
 import { NextResponse } from "next/server"
-import moduleRegistry from "@/lib/registry/module-registry.json"
+import moduleRegistry from "@/registry/module-registry.json"
 
 export async function GET() {
   const modules = Object.entries(moduleRegistry.modules)
@@ -21,7 +21,7 @@ export async function GET() {
   return NextResponse.json(
     {
       schema_version: "1.0",
-      source: "lib/registry/module-registry.json",
+      source: "registry/module-registry.json",
       total: modules.length,
       modules,
     },

@@ -2,22 +2,29 @@
   "$schema": "https://unpkg.com/knip@latest/schema.json",
   "entry": [
     "app/**/*.{ts,tsx}",
-    "lib/runtime/engine.ts",
-    "lib/v3-engines/index.ts",
-    "lib/v3-engines/business.ts",
-    "lib/v6-executor/index.ts",
-    "lib/v6-executor/gateway.ts",
-    "lib/registry/index.ts"
+    "core/runtime/engine.ts",
+    "engines/index.ts",
+    "engines/business.ts",
+    "plugins/index.ts",
+    "gateway/index.ts",
+    "registry/index.ts"
   ],
   "project": [
     "app/**/*.{ts,tsx}",
     "components/**/*.{ts,tsx}",
-    "lib/**/*.ts"
+    "core/**/*.ts",
+    "gateway/**/*.ts",
+    "engines/**/*.ts",
+    "cognitive/**/*.ts",
+    "presenter/**/*.ts",
+    "services/**/*.ts",
+    "plugins/**/*.ts",
+    "registry/**/*.ts"
   ],
   "ignore": [
     "next-env.d.ts",
     "supabase/functions/**",
-    "lib/drivers/line/**"
+    "plugins/line/**"
   ],
   "ignoreDependencies": [
     "@tailwindcss/postcss",

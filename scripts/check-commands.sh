@@ -3,7 +3,7 @@ set -e
 
 echo "=== DNA OS Command Registry Check ==="
 
-REGISTRY="lib/registry/command-registry.json"
+REGISTRY="registry/command-registry.json"
 
 if [ ! -f "$REGISTRY" ]; then
   echo "ERROR: $REGISTRY not found"

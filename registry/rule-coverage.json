@@ -1,0 +1,32 @@
+{
+  "version": 1,
+  "policy": "ทุก Constitution Rule ต้องมี code บังคับใช้ — ไม่ใช่แค่เขียนไว้",
+  "rules": {
+    "1":  { "title": "ห้าม Hardcode ข้อมูลธุรกิจ", "enforced_by": ["scripts/pre-commit-check.sh", "core/config-loader.ts"], "type": "build-time" },
+    "2":  { "title": "ห้าม Mock/Fake/Sample/Demo", "enforced_by": ["scripts/pre-commit-check.sh#guard2", "scripts/check-drift.sh"], "type": "build-time" },
+    "3":  { "title": "ห้าม Default Customer/Invoice", "enforced_by": ["core/config-loader.ts"], "type": "runtime" },
+    "6":  { "title": "ทุก Entity ต้องมี UUID", "enforced_by": ["lib/runtime/engine.ts#uuid"], "type": "runtime" },
+    "11": { "title": "ทุก Layer มีหน้าที่เดียว", "enforced_by": ["eslint.config.mjs", "scripts/check-imports.sh"], "type": "build-time" },
+    "12": { "title": "Layer สื่อสารผ่าน Command/Event", "enforced_by": ["eslint.config.mjs#ui-v1-rule", "scripts/check-imports.sh"], "type": "build-time" },
+    "14": { "title": "ห้าม Layer เรียก Layer อื่นโดยตรง", "enforced_by": ["registry/dependency-graph.json", "scripts/check-imports.sh"], "type": "build-time" },
+    "19": { "title": "UI Render อย่างเดียว ไม่มี Business Logic", "enforced_by": ["eslint.config.mjs#ui-v1-rule"], "type": "build-time" },
+    "31": { "title": "ทุก Module ต้อง Register", "enforced_by": ["registry/module-registry.json", "scripts/check-registry.sh"], "type": "build-time" },
+    "39": { "title": "ทุก Command ลงทะเบียนใน Registry", "enforced_by": ["registry/command-registry.json", "scripts/check-commands.sh"], "type": "build-time" },
+    "40": { "title": "ห้าม hard-coded routing", "enforced_by": ["registry/dependency-graph.json"], "type": "build-time" },
+    "45": { "title": "Document Engine มี Template เดียว", "enforced_by": ["engines/documents/engine.ts"], "type": "runtime" },
+    "46": { "title": "ทุก Document Render จาก Data", "enforced_by": ["engines/documents/engine.ts", "services/middleware/sanitize.ts"], "type": "runtime" },
+    "67": { "title": "Environment variable ห้ามอยู่ใน source", "enforced_by": ["scripts/pre-commit-check.sh#guard1"], "type": "build-time" },
+    "69": { "title": "Credential file ห้าม commit", "enforced_by": ["scripts/pre-commit-check.sh#guard1", "scripts/check-drift.sh#jwt"], "type": "build-time" },
+    "71": { "title": "ทุก Execute ต้องผ่าน Execution Layer", "enforced_by": ["eslint.config.mjs#supabase-rule", "gateway/index.ts"], "type": "build-time+runtime" },
+    "72": { "title": "ทุก Write ต้องมี confirmed จากมนุษย์", "enforced_by": ["gateway/actions.ts#consumeToken", "gateway/index.ts", "gateway/actions.ts"], "type": "runtime" },
+    "73": { "title": "AI ห้ามเปลี่ยนสถานะทางการเงิน", "enforced_by": ["lib/v4-ai/bridge-openai.ts#force-preview"], "type": "runtime" },
+    "74": { "title": "AI ห้ามสร้าง/แก้/ลบข้อมูลธุรกิจ", "enforced_by": ["lib/v4-ai/bridge-openai.ts#force-preview", "eslint.config.mjs#v4-runtime-rule"], "type": "build-time+runtime" },
+    "79": { "title": "Business policy อยู่ใน Database", "enforced_by": ["core/config-loader.ts#fail-loud"], "type": "runtime" },
+    "80": { "title": "Business rule อยู่ใน Rule/Engine Layer เท่านั้น", "enforced_by": ["eslint.config.mjs", "scripts/check-imports.sh"], "type": "build-time" },
+    "81": { "title": "AI แปล วิเคราะห์ สรุป — ห้ามสร้างข้อมูล", "enforced_by": ["lib/v4-ai/bridge-openai.ts#force-preview"], "type": "runtime" },
+    "89": { "title": "State Machine เปลี่ยนจาก Event ไม่ใช่ AI", "enforced_by": ["engines/debt/transition.ts", "engines/debt/status.ts"], "type": "runtime" },
+    "94": { "title": "Production Only — ห้าม mock ใน source", "enforced_by": ["scripts/pre-commit-check.sh#guard2", "scripts/check-drift.sh"], "type": "build-time" },
+    "98": { "title": "Dead code ต้องลบ", "enforced_by": ["knip.json", "scripts/check-ghosts.sh"], "type": "build-time" }
+  },
+  "uncovered_rules": [4, 5, 7, 8, 9, 10, 13, 15, 16, 17, 18, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 32, 33, 34, 35, 36, 37, 38, 41, 42, 43, 44, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 68, 70, 75, 76, 77, 78, 82, 83, 84, 85, 86, 87, 88, 90, 91, 92, 93, 95, 96, 97, 99, 100]
+}

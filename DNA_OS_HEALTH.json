@@ -1,0 +1,34 @@
+{
+  "generated_at": "2026-07-10T17:21:32Z",
+  "governance_score": 60,
+  "checks": {
+    "type_check": 1,
+    "pre_commit_guards": 0,
+    "dead_code_policy": 0,
+    "duplicate_detector": 0,
+    "shadow_system": 0,
+    "command_registry": 1,
+    "dependency_graph": 1,
+    "architecture_drift": 1
+  },
+  "metrics": {
+    "total_modules": 298,
+    "unused_files": 26,
+    "unused_exports": 86,
+    "ghost_rules": 15,
+    "code_clones": 90
+74
+39,
+    "layer_violations": 0,
+    "shadow_files": 0,
+    "dependency_cycles": 0,
+    "rule_coverage_pct": 25,
+    "workflow_incomplete": 2,
+    "business_coverage_pct": 70
+  },
+  "summary": {
+    "passed": 4,
+    "failed": 4,
+    "total": 8
+  }
+}

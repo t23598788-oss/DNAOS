@@ -1,9 +1,9 @@
 'use client'
 
 import { useMemo, useRef, useEffect } from "react"
-import { type DocumentDraftInput, draftToDocData } from "@/lib/documents/document-editor"
-import type { CompanySettings } from "@/lib/config/company-settings"
-import { generateDoc } from "@/lib/documents/engine"
+import { type DocumentDraftInput, draftToDocData } from "@/engines/documents/document-editor"
+import type { CompanySettings } from "@/core/config/company-settings"
+import { generateDoc } from "@/engines/documents/engine"
 
 interface Props {
   draft: DocumentDraftInput

@@ -2,9 +2,9 @@
 
 echo "=== DNA OS Workflow Coverage ==="
 
-WORKFLOWS="lib/commands/workflows.json"
-COMMANDS="lib/commands/commands.json"
-EVENTS="lib/registry/events.json"
+WORKFLOWS="registry/commands/workflows.json"
+COMMANDS="registry/commands/commands.json"
+EVENTS="registry/events.json"
 
 INCOMPLETE=0
 
@@ -23,7 +23,7 @@ for wf in $WF_NAMES; do
   TRIGGER=$(grep -rn "\"$wf\"" "$COMMANDS" 2>/dev/null | wc -l | tr -d ' ')
   if [ "$TRIGGER" = "0" ]; then
     # Also check source code for direct references
-    CODE_REF=$(grep -rn "\"$wf\"" --include="*.ts" lib/ app/ 2>/dev/null | grep -v node_modules | wc -l | tr -d ' ')
+    CODE_REF=$(grep -rn "\"$wf\"" --include="*.ts" core gateway engines cognitive presenter services plugins registry app 2>/dev/null | grep -v node_modules | wc -l | tr -d ' ')
     if [ "$CODE_REF" = "0" ]; then
       ISSUES="${ISSUES} no-trigger"
     fi

@@ -1,101 +1,79 @@
 import { NextRequest, NextResponse } from "next/server"
-import { supabase } from "@/lib/supabase/queries"
-import { resolveTransition } from "@/lib/transactions/state-machine"
+import { requireAuth } from "@/core/auth/requireAuth"
+import { ADMIN_TIER } from "@/core/auth/session"
+import { supabaseAdmin as supabase, getTransactionById } from "@/services/supabase/queries"
+import { resolveTransition } from "@/engines/transactions/state-machine"
 
 type Params = { params: Promise<{ id: string }> }
 
+// สถานะจริงบน customer_orders คือ public."CustomerOrderStatus" — CANCELLED เป็น terminal branch
+// แยกจาก linear steps ใน engines/transactions/workflows.ts (ดูคอมเมนต์ที่ไฟล์นั้น)
 export async function POST(req: NextRequest, { params }: Params) {
+  const auth = await requireAuth(ADMIN_TIER)
+  if (auth instanceof NextResponse) return auth
+
   const { id } = await params
   const body = await req.json()
   const action: string = body.action
   const note: string | undefined = body.note
 
-  // ดึง transaction ปัจจุบัน
-  const { data: tx, error: txErr } = await supabase()
-    .from("transactions")
-    .select("id, tx_type, state, partner_id, net_amount, paid_amount, title")
+  const { data: order, error: orderErr } = await supabase()
+    .from("customer_orders")
+    .select("id, status, customer_company_id")
     .eq("id", id)
-    .is("deleted_at", null)
     .single()
 
-  if (txErr || !tx) return NextResponse.json({ error: "ไม่พบ transaction" }, { status: 404 })
+  if (orderErr || !order) return NextResponse.json({ error: "ไม่พบ transaction" }, { status: 404 })
 
-  const transition = resolveTransition(tx.tx_type ?? "sale", tx.state, action)
+  if (action === "cancel") {
+    if (order.status === "CANCELLED" || order.status === "PAID") {
+      return NextResponse.json({ error: `ไม่สามารถยกเลิกจากสถานะ "${order.status}" ได้` }, { status: 422 })
+    }
+    const { error: cancelErr } = await supabase()
+      .from("customer_orders")
+      .update({ status: "CANCELLED", updated_at: new Date().toISOString() })
+      .eq("id", id)
+    if (cancelErr) return NextResponse.json({ error: cancelErr.message }, { status: 500 })
+
+    await supabase().from("audit_logs").insert({
+      entity_type: "customer_order",
+      entity_id: id,
+      action: "cancel",
+      field: "status",
+      old_value: order.status,
+      new_value: "CANCELLED",
+    })
+
+    const result = await getTransactionById(id)
+    return NextResponse.json({ ...result, new_state: "CANCELLED" })
+  }
+
+  const transition = resolveTransition("sale", order.status, action)
 
   if (!transition) {
     return NextResponse.json(
-      { error: `ไม่สามารถทำ "${action}" จากสถานะ "${tx.state}" ใน workflow "${tx.tx_type}" ได้` },
+      { error: `ไม่สามารถทำ "${action}" จากสถานะ "${order.status}" ได้` },
       { status: 422 }
     )
   }
 
-  const now = new Date()
-  const today = now.toISOString().split("T")[0]
-
-  // บันทึก paid_amount ถ้าเป็น action pay
-  const extraUpdate: Record<string, unknown> = {}
-  if (action === "pay" && body.amount != null) {
-    extraUpdate.paid_amount = body.amount
-  }
-
-  // 1. อัปเดต transaction state
   const { error: updateErr } = await supabase()
-    .from("transactions")
-    .update({
-      state: transition.to,
-      state_changed_at: now.toISOString(),
-      updated_at: now.toISOString(),
-      ...extraUpdate,
-    })
+    .from("customer_orders")
+    .update({ status: transition.to, updated_at: new Date().toISOString() })
     .eq("id", id)
 
   if (updateErr) return NextResponse.json({ error: updateErr.message }, { status: 500 })
 
-  // 2. บันทึก business_event
-  const { data: event } = await supabase()
-    .from("business_events")
-    .insert({
-      partner_id: tx.partner_id,
-      event_type: transition.biz_event,
-      event_date: today,
-      title: transition.label,
-      description: note ?? null,
-      transaction_id: id,
-    })
-    .select("id")
-    .single()
-
-  // 3. ดึง transaction ที่อัปเดตแล้วพร้อม events + docs
-  const [txRes, eventsRes, docsRes] = await Promise.all([
-    supabase()
-      .from("transactions")
-      .select(`
-        id, title, tx_type, state, state_changed_at, net_amount, paid_amount, vat_amount,
-        project_name, partner_id, supplier_id, supplier_name,
-        partners!transactions_partner_id_fkey(id, name, phone),
-        suppliers:partners!transactions_supplier_id_fkey(id, name)
-      `)
-      .eq("id", id)
-      .single(),
-    supabase()
-      .from("business_events")
-      .select("id, event_type, event_date, title, description, metadata, created_at")
-      .eq("transaction_id", id)
-      .is("deleted_at", null)
-      .order("event_date", { ascending: true }),
-    supabase()
-      .from("documents")
-      .select("id, document_type, document_number, status, net_amount, issue_date, created_at")
-      .eq("transaction_id", id)
-      .is("deleted_at", null)
-      .order("created_at", { ascending: true }),
-  ])
-
-  return NextResponse.json({
-    transaction: txRes.data,
-    new_state: transition.to,
-    event_id: event?.id,
-    events: eventsRes.data ?? [],
-    documents: docsRes.data ?? [],
+  const { error: auditErr } = await supabase().from("audit_logs").insert({
+    entity_type: "customer_order",
+    entity_id: id,
+    action,
+    field: "status",
+    old_value: order.status,
+    new_value: note ? `${transition.to} — ${note}` : transition.to,
   })
+  if (auditErr) console.error("[transactions/advance] audit log failed:", auditErr.message)
+
+  const result = await getTransactionById(id)
+  return NextResponse.json({ ...result, new_state: transition.to })
 }

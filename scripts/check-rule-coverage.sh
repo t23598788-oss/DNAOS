@@ -2,7 +2,7 @@
 
 echo "=== DNA OS Rule Coverage ==="
 
-REGISTRY="lib/registry/rule-coverage.json"
+REGISTRY="registry/rule-coverage.json"
 
 if [ ! -f "$REGISTRY" ]; then
   echo "ERROR: $REGISTRY not found"

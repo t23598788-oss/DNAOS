@@ -1,8 +1,13 @@
 import { NextRequest, NextResponse } from "next/server"
-import { getDebtTrackings, createDebtTracking } from "@/lib/supabase/queries"
-import { calcDebtTrackingSummary } from "@/lib/v3-engines/debt/tracking"
+import { requireAuth } from "@/core/auth/requireAuth"
+import { ADMIN_TIER } from "@/core/auth/session"
+import { getDebtTrackings, createDebtTracking } from "@/services/supabase/queries"
+import { calcDebtTrackingSummary } from "@/engines/debt/tracking"
 
 export async function GET() {
+  const auth = await requireAuth(ADMIN_TIER)
+  if (auth instanceof NextResponse) return auth
+
   try {
     const trackings = await getDebtTrackings()
     const withSummary = trackings.map((t) => ({
@@ -20,6 +25,9 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
+  const auth = await requireAuth(ADMIN_TIER)
+  if (auth instanceof NextResponse) return auth
+
   const body = await req.json()
   if (!body.partnerId || !body.principalAmount) {
     return NextResponse.json({ error: "ต้องระบุพาร์ทเนอร์และเงินต้น" }, { status: 400 })

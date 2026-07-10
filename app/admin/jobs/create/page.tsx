@@ -2,13 +2,25 @@
 
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import { WORKFLOWS, TX_TYPE_LABELS, TX_TYPE_ORDER, type TxType } from "@/lib/transactions/workflows"
+import { WORKFLOWS, TX_TYPE_LABELS, TX_TYPE_ORDER, type TxType } from "@/engines/transactions/workflows"
 
 interface Partner {
   id: string
   name: string
   phone?: string | null
   partner_type_label?: string | null
+}
+
+interface Site {
+  id: string
+  site_name: string
+  address: string
+  province: string
+  district: string
+  subdistrict: string
+  postal_code: string
+  contact_name?: string | null
+  contact_phone?: string | null
 }
 
 function fmtMoney(n: number) {
@@ -37,8 +49,16 @@ export default function JobCreatePage() {
   const [vatEnabled, setVatEnabled] = useState(false)
   const [note, setNote] = useState("")
 
+  // site (delivery address) — required by the schema, no job can exist without one
+  const [siteId, setSiteId] = useState("")
+  const [showNewSite, setShowNewSite] = useState(false)
+  const [newSite, setNewSite] = useState({ site_name: "", address: "", province: "", district: "", subdistrict: "", postal_code: "", contact_name: "", contact_phone: "" })
+  const [savingSite, setSavingSite] = useState(false)
+  const [siteError, setSiteError] = useState<string | null>(null)
+
   // data
   const [partners, setPartners] = useState<Partner[]>([])
+  const [sites, setSites] = useState<Site[]>([])
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -48,6 +68,40 @@ export default function JobCreatePage() {
       .then((d) => setPartners(d.partners ?? []))
       .catch(() => {})
   }, [])
+
+  const loadSites = async (companyId: string) => {
+    if (!companyId) { setSites([]); return }
+    const res = await fetch(`/api/admin/sites?company_id=${companyId}`)
+    const d = await res.json()
+    setSites(d.sites ?? [])
+  }
+
+  useEffect(() => {
+    setSiteId("")
+    setShowNewSite(false)
+    loadSites(partnerId)
+  }, [partnerId])
+
+  async function handleAddSite() {
+    if (!partnerId) return
+    setSavingSite(true)
+    setSiteError(null)
+    try {
+      const res = await fetch("/api/admin/sites", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...newSite, customer_company_id: partnerId }),
+      })
+      const d = await res.json()
+      if (!res.ok) { setSiteError(d.error ?? "บันทึกไซต์ไม่สำเร็จ"); return }
+      await loadSites(partnerId)
+      setSiteId(d.site.id)
+      setShowNewSite(false)
+      setNewSite({ site_name: "", address: "", province: "", district: "", subdistrict: "", postal_code: "", contact_name: "", contact_phone: "" })
+    } finally {
+      setSavingSite(false)
+    }
+  }
 
   const workflow = WORKFLOWS[txType]
   const selectedPartner = partners.find((p) => p.id === partnerId)
@@ -61,6 +115,7 @@ export default function JobCreatePage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!partnerId) { setError("กรุณาเลือกคู่ค้า"); return }
+    if (!siteId) { setError("กรุณาเลือกหรือเพิ่มไซต์งาน (สถานที่จัดส่ง)"); return }
 
     setSaving(true)
     setError(null)
@@ -72,6 +127,7 @@ export default function JobCreatePage() {
       const payload = {
         tx_type: txType,
         partner_id: partnerId,
+        site_id: siteId,
         supplier_id: supplierId || undefined,
         title: autoTitle,
         project_name: projectName || undefined,
@@ -105,7 +161,7 @@ export default function JobCreatePage() {
         <button
           form="job-form"
           type="submit"
-          disabled={saving || !partnerId}
+          disabled={saving || !partnerId || !siteId}
           className="text-xs font-semibold px-4 py-2 rounded-xl bg-stone-900 text-white hover:bg-stone-800 transition disabled:opacity-40"
         >
           {saving ? "กำลังบันทึก..." : "บันทึกงาน →"}
@@ -212,6 +268,102 @@ export default function JobCreatePage() {
               )}
             </section>
 
+            {/* Site (delivery address) — required, no job can exist without one */}
+            {partnerId && (
+              <section className="bg-white border border-stone-200 rounded-2xl px-5 py-4">
+                <div className="text-xs font-semibold text-stone-500 uppercase tracking-wider mb-3">ไซต์งาน / สถานที่จัดส่ง</div>
+                {sites.length > 0 && !showNewSite && (
+                  <select
+                    value={siteId}
+                    onChange={(e) => setSiteId(e.target.value)}
+                    className="w-full text-sm border border-stone-200 rounded-xl px-3 py-2.5 focus:outline-none focus:border-stone-500 bg-stone-50"
+                  >
+                    <option value="">— เลือกไซต์ —</option>
+                    {sites.map((s) => (
+                      <option key={s.id} value={s.id}>{s.site_name} — {s.address}, {s.subdistrict}, {s.district}, {s.province}</option>
+                    ))}
+                  </select>
+                )}
+                {!showNewSite && (
+                  <button
+                    type="button"
+                    onClick={() => setShowNewSite(true)}
+                    className="mt-2 text-xs font-semibold text-blue-600 hover:underline"
+                  >
+                    + เพิ่มไซต์ใหม่
+                  </button>
+                )}
+                {showNewSite && (
+                  <div className="space-y-3 mt-1">
+                    <input
+                      type="text" placeholder="ชื่อไซต์ (เช่น หน้างานบางนา, สำนักงานใหญ่)"
+                      value={newSite.site_name} onChange={(e) => setNewSite({ ...newSite, site_name: e.target.value })}
+                      className="w-full text-sm border border-stone-200 rounded-xl px-3 py-2 bg-stone-50"
+                    />
+                    <input
+                      type="text" placeholder="ที่อยู่ (บ้านเลขที่ ถนน ซอย)"
+                      value={newSite.address} onChange={(e) => setNewSite({ ...newSite, address: e.target.value })}
+                      className="w-full text-sm border border-stone-200 rounded-xl px-3 py-2 bg-stone-50"
+                    />
+                    <div className="grid grid-cols-2 gap-2">
+                      <input
+                        type="text" placeholder="ตำบล/แขวง"
+                        value={newSite.subdistrict} onChange={(e) => setNewSite({ ...newSite, subdistrict: e.target.value })}
+                        className="text-sm border border-stone-200 rounded-xl px-3 py-2 bg-stone-50"
+                      />
+                      <input
+                        type="text" placeholder="อำเภอ/เขต"
+                        value={newSite.district} onChange={(e) => setNewSite({ ...newSite, district: e.target.value })}
+                        className="text-sm border border-stone-200 rounded-xl px-3 py-2 bg-stone-50"
+                      />
+                      <input
+                        type="text" placeholder="จังหวัด"
+                        value={newSite.province} onChange={(e) => setNewSite({ ...newSite, province: e.target.value })}
+                        className="text-sm border border-stone-200 rounded-xl px-3 py-2 bg-stone-50"
+                      />
+                      <input
+                        type="text" placeholder="รหัสไปรษณีย์"
+                        value={newSite.postal_code} onChange={(e) => setNewSite({ ...newSite, postal_code: e.target.value })}
+                        className="text-sm border border-stone-200 rounded-xl px-3 py-2 bg-stone-50"
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <input
+                        type="text" placeholder="ผู้ติดต่อหน้างาน (ถ้ามี)"
+                        value={newSite.contact_name} onChange={(e) => setNewSite({ ...newSite, contact_name: e.target.value })}
+                        className="text-sm border border-stone-200 rounded-xl px-3 py-2 bg-stone-50"
+                      />
+                      <input
+                        type="text" placeholder="เบอร์ติดต่อหน้างาน"
+                        value={newSite.contact_phone} onChange={(e) => setNewSite({ ...newSite, contact_phone: e.target.value })}
+                        className="text-sm border border-stone-200 rounded-xl px-3 py-2 bg-stone-50"
+                      />
+                    </div>
+                    {siteError && <div className="text-xs text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2">{siteError}</div>}
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={handleAddSite}
+                        disabled={savingSite}
+                        className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-stone-800 text-white hover:bg-stone-700 transition disabled:opacity-40"
+                      >
+                        {savingSite ? "กำลังบันทึก..." : "บันทึกไซต์"}
+                      </button>
+                      {sites.length > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => setShowNewSite(false)}
+                          className="text-xs font-medium px-3 py-1.5 rounded-lg border border-stone-200 text-stone-600 hover:bg-stone-50 transition"
+                        >
+                          ยกเลิก
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </section>
+            )}
+
             {/* Supplier (optional, for purchase/contract/transport) */}
             {showSupplier && (
               <section className="bg-white border border-stone-200 rounded-2xl px-5 py-4">
@@ -312,7 +464,7 @@ export default function JobCreatePage() {
             <div className="flex justify-end pb-8">
               <button
                 type="submit"
-                disabled={saving || !partnerId}
+                disabled={saving || !partnerId || !siteId}
                 className="px-6 py-3 rounded-xl bg-stone-900 text-white text-sm font-semibold hover:bg-stone-800 transition disabled:opacity-40"
               >
                 {saving ? "กำลังสร้างงาน..." : "บันทึกงาน และดำเนินการต่อ →"}

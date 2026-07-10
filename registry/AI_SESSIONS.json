@@ -1,0 +1,39 @@
+{
+  "version": 1,
+  "protocol": "DNA OS AI Protocol v1",
+  "note": "Live roster of individual AI agent SESSIONS/instances — not to be confused with registry/AI_REGISTRY.json (a static directory of known agent TYPES/vendors). This file answers 'who is doing what right now', not just 'what kinds of AI exist'. One entry per running/recent session. A session must upsert its own entry (by agent_id) on start, update last_seen while working, and set status honestly on every pause/stop. File-level locking itself lives in registry/LOCK_MANAGER.json — this file is identity/liveness, not locking.",
+  "status_enum": {
+    "working": "actively editing right now",
+    "idle": "session open, not actively editing (e.g. between turns, waiting on something that isn't the user)",
+    "blocked": "paused specifically waiting on a human decision (see registry/CURRENT_STATE.json open_questions)",
+    "token_exhausted": "session ended because it ran out of context/tokens, not because the task was done",
+    "submitted": "session finished its assigned work and hands off cleanly (see registry/HANDOFF.json)",
+    "unknown": "no verified signal for this session's current state — must be labeled unknown, never guessed"
+  },
+  "sessions": [
+    {
+      "agent_id": "claude-code-1783401743460",
+      "provider": "Anthropic",
+      "model": "Claude Sonnet 5",
+      "version": "claude-sonnet-5",
+      "session_id": "b4e724e3-39d8-4980-b56b-025c6e87ad07",
+      "started_at": "2026-07-07T11:51:32+0700",
+      "started_at_note": "earliest real timestamp captured in this conversation, not necessarily the literal first message — this session began before AI_SESSIONS.json existed",
+      "last_seen": "2026-07-08T01:35:00+0700",
+      "status": "idle"
+    },
+    {
+      "agent_id": "gemini-code-1783239590082",
+      "provider": "Google",
+      "model": null,
+      "version": null,
+      "session_id": null,
+      "started_at": "2026-07-05T15:19:50+0700",
+      "started_at_note": "derived by decoding the epoch-ms suffix of agent_id — not independently confirmed",
+      "last_seen": null,
+      "last_seen_note": "evidence of this session comes only from an IDE 'file opened' event for dna-brain-3d/gemini-code-1783239590082.ts observed during this conversation — no wall-clock timestamp was captured for that event, and no direct signal exists for whether this session is still running",
+      "status": "unknown",
+      "status_note": "ห้ามเดา — no verified signal for working/idle/token_exhausted/submitted. If this is your session, update your own entry with real values instead of leaving it to another AI to guess."
+    }
+  ]
+}

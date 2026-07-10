@@ -20,8 +20,8 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT_DIR"
 
-MODULE_REGISTRY="lib/registry/module-registry.json"
-COMMAND_REGISTRY="lib/registry/command-registry.json"
+MODULE_REGISTRY="registry/module-registry.json"
+COMMAND_REGISTRY="registry/command-registry.json"
 WORKFLOW_REGISTRY="07-workflow-registry.json"
 
 RED='\033[0;31m'
@@ -63,7 +63,7 @@ log_head "Level 1: Source files → Module Registry"
 REGISTERED=$(jq -r '.modules | keys[]' "$MODULE_REGISTRY")
 
 SOURCE_FILES=$(find lib app -type f \( -name "*.ts" -o -name "*.tsx" \) \
-  ! -path "lib/registry/*" \
+  ! -path "registry/*" \
   ! -path "*/.next/*" \
   ! -path "*/node_modules/*" \
   ! -name "*.d.ts" \

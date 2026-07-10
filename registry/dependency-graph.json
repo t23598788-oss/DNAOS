@@ -1,0 +1,74 @@
+{
+  "version": 2,
+  "policy": "ทุก import ข้าม layer ต้องอยู่ในกราฟนี้ — เพิ่ม edge ใหม่ต้อง approve",
+  "note": "v2 — re-keyed after folder reorg (2026-07): lib/v2-rules, lib/v3-engines, lib/v4-ai, lib/v5-presenter, lib/v6-executor, lib/runtime, lib/shared, lib/supabase, lib/middleware, lib/documents, lib/transactions, lib/cognitive, lib/config, lib/agent, lib/macos, lib/platform, lib/drivers moved out of lib/ into purpose-named top-level folders. Same allowed relationships, new names; several old cross-layer edges are now same-layer self-imports.",
+  "allowed_imports": {
+    "app": [
+      "core",
+      "services",
+      "engines",
+      "registry",
+      "cognitive",
+      "gateway",
+      "presenter",
+      "plugins"
+    ],
+    "components": [
+      "core",
+      "engines",
+      "services",
+      "registry"
+    ],
+    "cognitive": [
+      "core",
+      "services",
+      "engines",
+      "presenter",
+      "gateway",
+      "plugins"
+    ],
+    "engines": [
+      "core",
+      "services",
+      "registry"
+    ],
+    "gateway": [
+      "core",
+      "services",
+      "engines",
+      "registry"
+    ],
+    "presenter": [
+      "core",
+      "services"
+    ],
+    "plugins": [
+      "core",
+      "services",
+      "registry",
+      "gateway"
+    ],
+    "core": [
+      "registry"
+    ],
+    "services": [
+      "core"
+    ],
+    "registry": [
+      "core"
+    ]
+  },
+  "notes": {
+    "app_wide": "app/ (pages + API routes) can import from all presentation and execution layers for command dispatch",
+    "app_cognitive": "app/api/chat/route.ts uses cognitive/pipeline for the cognitive command pipeline",
+    "cognitive_all": "cognitive/ orchestrates the full pipeline — imports from services, engines, presenter, gateway, plugins",
+    "engines_self": "engines sub-modules can import each other (e.g., debt/engine imports config-loader from core; documents/validation/transactions all share the engines/ folder now)",
+    "engines_core": "engines/business.ts registers commands via core/runtime/engine",
+    "services_no_gateway_call_out": "services (ai/*) must not import core/runtime/engine directly — AI แปลอย่างเดียว ไม่ register command เอง",
+    "presenter_no_engines": "presenter ห้าม import engines (calc engines) — caller (app/) inject calcDistance/configs ผ่าน parameter",
+    "plugins_self": "plugins sub-modules can import each other (drivers, executor core wrapper, runtime)",
+    "gateway_actions": "gateway/index.ts imports gateway/actions for permission check before execute — same layer",
+    "plugins_gateway": "plugins/executor.ts uses gateway-adjacent supabase for audit logging via services",
+    "services_self": "services/supabase/realtime.ts imports from services/supabase/queries — same layer"
+  }
+}

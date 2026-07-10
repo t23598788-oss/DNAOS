@@ -17,35 +17,35 @@ bar() {
 # ── Collect Intelligence Metrics ──
 
 # Business Rules (from app_configs count via config-loader + rule-coverage)
-RULES_ENFORCED=$(grep -c '"enforced_by"' lib/registry/rule-coverage.json 2>/dev/null || echo "0")
+RULES_ENFORCED=$(grep -c '"enforced_by"' registry/rule-coverage.json 2>/dev/null || echo "0")
 RULES_TOTAL=100
 
 # Workflows
-WF_COUNT=$(grep -cE '^\s*"[a-z].*"steps"' lib/commands/workflows.json 2>/dev/null || echo "0")
+WF_COUNT=$(grep -cE '^\s*"[a-z].*"steps"' registry/commands/workflows.json 2>/dev/null || echo "0")
 
 # Commands
-CMD_COUNT=$(grep -c '"owner"' lib/registry/command-registry.json 2>/dev/null || echo "0")
+CMD_COUNT=$(grep -c '"owner"' registry/command-registry.json 2>/dev/null || echo "0")
 
 # Modules
-MOD_COUNT=$(grep -c '"owner"' lib/registry/module-registry.json 2>/dev/null || echo "0")
+MOD_COUNT=$(grep -c '"owner"' registry/module-registry.json 2>/dev/null || echo "0")
 
 # Document types
-DOC_TYPES=$(grep -o '"document_type"' lib/registry/command-registry.json 2>/dev/null | wc -l | tr -d ' ')
+DOC_TYPES=$(grep -o '"document_type"' registry/command-registry.json 2>/dev/null | wc -l | tr -d ' ')
 DOC_TYPES=${DOC_TYPES:-6}
 # Count from documents engine DOC_LABELS
-DOC_ENGINE_TYPES=$(grep -c 'quotation\|invoice\|receipt\|boq\|delivery-order\|purchase-order\|billing' lib/documents/engine.ts 2>/dev/null || echo "7")
+DOC_ENGINE_TYPES=$(grep -c 'quotation\|invoice\|receipt\|boq\|delivery-order\|purchase-order\|billing' engines/documents/engine.ts 2>/dev/null || echo "7")
 
 # Active domains
-ACTIVE_DOMAINS=$(grep -c '"covered"' lib/registry/business-coverage.json 2>/dev/null || echo "0")
-PARTIAL_DOMAINS=$(grep -c '"partial"' lib/registry/business-coverage.json 2>/dev/null || echo "0")
+ACTIVE_DOMAINS=$(grep -c '"covered"' registry/business-coverage.json 2>/dev/null || echo "0")
+PARTIAL_DOMAINS=$(grep -c '"partial"' registry/business-coverage.json 2>/dev/null || echo "0")
 
 # AI involvement — count AI-related modules
-AI_MODULES=$(ls lib/v4-ai/*.ts 2>/dev/null | wc -l | tr -d ' ')
-AI_COMMANDS=$(grep -c '"v4-ai"' lib/registry/command-registry.json 2>/dev/null || echo "0")
+AI_MODULES=$(ls services/ai/*.ts 2>/dev/null | wc -l | tr -d ' ')
+AI_COMMANDS=$(grep -c '"v4-ai"' registry/command-registry.json 2>/dev/null || echo "0")
 AI_COMMANDS=$((AI_COMMANDS + AI_MODULES))
 
 # Human Decisions — commands requiring confirmation
-HUMAN_DECISIONS=$(grep -c '"requires_confirmation": true' lib/registry/command-registry.json 2>/dev/null || echo "0")
+HUMAN_DECISIONS=$(grep -c '"requires_confirmation": true' registry/command-registry.json 2>/dev/null || echo "0")
 
 # Automation Rate
 TOTAL_CMD=$CMD_COUNT
@@ -56,11 +56,11 @@ else
 fi
 
 # Config keys in DB (estimated from config-loader usage)
-CONFIG_KEYS=$(grep -roh 'getNum(configs\?, "[^"]*"' lib/v3-engines/ 2>/dev/null | grep -o '"[^"]*"' | sort -u | wc -l | tr -d ' ')
+CONFIG_KEYS=$(grep -roh 'getNum(configs\?, "[^"]*"' engines/ 2>/dev/null | grep -o '"[^"]*"' | sort -u | wc -l | tr -d ' ')
 CONFIG_KEYS=${CONFIG_KEYS:-0}
 
 # Event types
-EVENT_COUNT=$(grep -c '"type"' lib/registry/events.json 2>/dev/null || echo "0")
+EVENT_COUNT=$(grep -c '"type"' registry/events.json 2>/dev/null || echo "0")
 
 # ── Knowledge Coverage per Department ──
 
@@ -139,7 +139,7 @@ echo "  ╠═══════════════════════
 echo "  ║                                                   ║"
 
 # Parse decision coverage from JSON
-DEC_REG="lib/registry/decision-coverage.json"
+DEC_REG="registry/decision-coverage.json"
 if [ -f "$DEC_REG" ]; then
   DEC_TOTAL_POINTS=0
   DEC_CODIFIED_POINTS=0

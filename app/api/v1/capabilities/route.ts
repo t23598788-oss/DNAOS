@@ -3,13 +3,13 @@
  * Public — returns existence.json (what DNA OS can/cannot do)
  */
 import { NextResponse } from "next/server"
-import existenceRegistry from "@/lib/registry/existence.json"
+import existenceRegistry from "@/registry/existence.json"
 
 export async function GET() {
   return NextResponse.json(
     {
       schema_version: "1.0",
-      source: "lib/registry/existence.json",
+      source: "registry/existence.json",
       ...(existenceRegistry as any),
     },
     { headers: { "Access-Control-Allow-Origin": "*", "Cache-Control": "public, max-age=300" } }

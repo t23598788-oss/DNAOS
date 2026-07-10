@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getDiagnosisJSON } from "@/lib/runtime/self-awareness";
+import { getDiagnosisJSON } from "@/core/runtime/self-awareness";
 
 // GET /api/self-description
 // ระบบอธิบายตัวเองจาก Registry — ไม่ใช้ AI ไม่มี hardcoded description

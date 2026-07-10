@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { runCognitivePipeline } from "@/lib/cognitive/pipeline";
-import { getDisplayState, setDisplayState, type DisplayState } from "@/lib/supabase/state-cache";
+import { runCognitivePipeline } from "@/cognitive/pipeline";
+import { getDisplayState, setDisplayState, type DisplayState } from "@/services/supabase/state-cache";
 
 type PipelineResult = Awaited<ReturnType<typeof runCognitivePipeline>>;
 

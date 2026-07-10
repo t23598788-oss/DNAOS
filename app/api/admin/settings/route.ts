@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from "next/server"
-import { requireAuth } from "@/lib/middleware/auth"
-import { loadCompanySettings, saveCompanySettings } from "@/lib/config/company-settings"
+import { requireAuth } from "@/core/auth/requireAuth"
+import { ADMIN_TIER, getAccessToken } from "@/core/auth/session"
+import { loadCompanySettings, saveCompanySettings } from "@/core/config/company-settings"
 
 export async function GET() {
+  const auth = await requireAuth(ADMIN_TIER)
+  if (auth instanceof NextResponse) return auth
+
   try {
     const settings = await loadCompanySettings()
     return NextResponse.json({ settings })
@@ -12,10 +16,12 @@ export async function GET() {
 }
 
 export async function PUT(req: NextRequest) {
-  const auth = await requireAuth(req)
+  const auth = await requireAuth(ADMIN_TIER)
   if (auth instanceof NextResponse) return auth
 
-  const token = req.headers.get("authorization")!.slice(7)
+  const token = await getAccessToken()
+  if (!token) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+
   const body = await req.json()
   try {
     await saveCompanySettings(token, {

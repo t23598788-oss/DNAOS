@@ -1,0 +1,32 @@
+{
+  "version": 1,
+  "protocol": "DNA OS AI Protocol v1",
+  "note": "DNA OS is AI-agnostic — it is not locked to any single AI vendor. Any agent that satisfies compatibility_contract is DNA OS Compatible, whether or not it appears in agents[] below. This list is a directory of agents known to have worked on or been evaluated against this repo, not a whitelist or a gate. A new AI does not need to be added here first — it only needs to follow registry/README.md.",
+  "compatibility_contract": {
+    "title": "DNA OS Compatible",
+    "th": "AI ทุกตัวที่สามารถทำสิ่งต่อไปนี้ ถือว่าเป็น DNA OS Compatible",
+    "requires": [
+      "อ่าน Registry",
+      "ปฏิบัติตาม Constitution",
+      "เขียน CHANGELOG",
+      "อัปเดต CURRENT_STATE",
+      "รับ Handoff",
+      "ผ่าน Validation"
+    ]
+  },
+  "agents": [
+    { "id": "claude-code", "vendor": "Anthropic", "type": "coding" },
+    { "id": "gemini-cli", "vendor": "Google", "type": "coding" },
+    { "id": "chatgpt", "vendor": "OpenAI", "type": "general" },
+    { "id": "copilot", "vendor": "GitHub" },
+    { "id": "cursor" },
+    { "id": "windsurf" },
+    { "id": "qwen" },
+    { "id": "deepseek" },
+    { "id": "kimi" },
+    { "id": "grok" },
+    { "id": "mistral" },
+    { "id": "llama" },
+    { "id": "custom" }
+  ]
+}

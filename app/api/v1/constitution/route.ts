@@ -100,7 +100,7 @@ const CONSTITUTION = {
 
   enforcement: {
     registry_check: "scripts/check-registry.sh validates all files are registered",
-    dispatcher: "lib/v2-rules/dispatcher.ts rejects unregistered commands at runtime",
+    dispatcher: "engines/validation/dispatcher.ts rejects unregistered commands at runtime",
     external_api: "/api/v1/query blocks requires_confirmation commands from external AI",
   },
 }

@@ -6,24 +6,24 @@
  * ข้อมูลทั้งหมดมาจากไฟล์ registry (static JSON) เท่านั้น
  */
 
-import commandRegistry from "@/lib/registry/command-registry.json"
-import moduleRegistry from "@/lib/registry/module-registry.json"
-import businessCoverage from "@/lib/registry/business-coverage.json"
+import commandRegistry from "@/registry/command-registry.json"
+import moduleRegistry from "@/registry/module-registry.json"
+import businessCoverage from "@/registry/business-coverage.json"
 import documentRegistry from "@/08-document-registry.json"
 import workflowRegistry from "@/07-workflow-registry.json"
-import existence from "@/lib/registry/existence.json"
+import existence from "@/registry/existence.json"
 
 // ── static data ──
 
 const LAYERS = [
-  { id: "V1-Input",     path: "lib/v1-input/",    role: "รับ Event แปลงเป็น JSON — ห้ามเขียน DB" },
-  { id: "V2-Rules",     path: "lib/v2-rules/",    role: "Validation + Business Rule + Command Dispatcher" },
-  { id: "V3-Engines",   path: "lib/v3-engines/",  role: "คำนวณ business logic (ราคา, หนี้, ภาษี, timeline) — ห้าม hardcode" },
-  { id: "V4-AI",        path: "lib/v4-ai/",       role: "แปลภาษาธรรมชาติ → command เท่านั้น ห้ามตัดสินใจ" },
-  { id: "V5-Presenter", path: "lib/v5-presenter/",role: "จัด format ผลลัพธ์สำหรับแสดงผล — ห้าม import V3" },
-  { id: "V6-Executor",  path: "lib/v6-executor/", role: "ประตูเดียวเขียน DB + ส่ง LINE + external services" },
-  { id: "Cognitive",    path: "lib/cognitive/",   role: "Pipeline กลาง: Intent → Plan → Execute → Reflect" },
-  { id: "Middleware",   path: "lib/middleware/",  role: "Auth (requireAuth) + Sanitize — ทุก API route บังคับใช้" },
+  { id: "Input Gateway",       code: "V1-Input",     path: "lib/v1-input/",     role: "รับ Event ทุกรูปแบบ (LINE, HTTP, Webhook) แปลงเป็น JSON — ห้ามเขียน DB" },
+  { id: "Business Rules",      code: "V2-Rules",     path: "engines/validation/",     role: "Dispatcher + Validation + กฎธุรกิจ — ทุก command ต้องผ่านที่นี่" },
+  { id: "Business Engine",     code: "V3-Engines",   path: "engines/",   role: "คำนวณ logic (ราคา, หนี้, ภาษี, timeline) — ห้าม hardcode, ห้ามเขียน DB" },
+  { id: "AI Interpreter",      code: "V4-AI",        path: "services/ai/",        role: "แปลภาษาธรรมชาติ → command เท่านั้น — ห้ามตัดสินใจ ห้ามเขียนตรงไปยัง DB" },
+  { id: "Presentation Layer",  code: "V5-Presenter", path: "presenter/", role: "จัด format ผลลัพธ์สำหรับแสดงผล — ห้าม import จาก Business Engine โดยตรง" },
+  { id: "Execution Layer",     code: "V6-Executor",  path: "gateway/",  role: "ประตูเดียวที่เขียน DB + ส่ง LINE + เรียก external services ได้" },
+  { id: "Decision Pipeline",   code: "Cognitive",    path: "cognitive/",    role: "Pipeline กลาง: Intent → Plan → Execute → Reflect" },
+  { id: "Security & Auth",     code: "Middleware",   path: "services/middleware/",   role: "requireAuth + Sanitize — บังคับใช้กับทุก API route" },
 ]
 
 const DB_TABLES = [
@@ -92,7 +92,6 @@ export default function ObserverPage() {
           {/* ── Banner ── */}
           <div className="mb-10 border-2 border-sky-400 rounded-2xl p-5 bg-sky-50">
             <div className="flex items-start gap-4">
-              <div className="text-3xl">🔭</div>
               <div>
                 <div className="font-bold text-sky-800 text-lg">DNA OS — Architecture Observer</div>
                 <div className="text-xs text-sky-700 mt-1">
@@ -107,7 +106,7 @@ export default function ObserverPage() {
           </div>
 
           {/* ── Identity ── */}
-          <Section title="🧬 ระบบคืออะไร">
+          <Section title="ระบบคืออะไร">
             <div className="text-sm text-stone-700 space-y-2 leading-relaxed">
               <p><strong>DNA OS</strong> — ระบบ ERP อัจฉริยะสำหรับธุรกิจคอนกรีต/ขนส่ง</p>
               <p><strong>หลักการ:</strong> AI เป็นแค่ตัวกลาง ไม่ใช่ศูนย์กลาง — ศูนย์กลางคือกฎและสถาปัตยกรรม</p>
@@ -118,24 +117,27 @@ export default function ObserverPage() {
           </Section>
 
           {/* ── Architecture Pipeline ── */}
-          <Section title="🏗️ สถาปัตยกรรม V1–V6 Pipeline">
+          <Section title="Architecture Pipeline">
             <div className="space-y-1.5">
               {LAYERS.map((l) => (
-                <div key={l.id} className="flex gap-3 text-xs">
-                  <span className="font-mono font-bold text-violet-700 w-28 shrink-0">{l.id}</span>
-                  <span className="text-stone-400 w-44 shrink-0">{l.path}</span>
+                <div key={l.id} className="flex gap-3 text-xs items-start">
+                  <div className="w-44 shrink-0">
+                    <span className="font-bold text-stone-800">{l.id}</span>
+                    <span className="ml-2 text-[10px] font-mono text-violet-500">{l.code}</span>
+                  </div>
+                  <span className="text-stone-400 w-36 shrink-0 font-mono text-[10px] pt-0.5">{l.path}</span>
                   <span className="text-stone-600">{l.role}</span>
                 </div>
               ))}
             </div>
-            <div className="mt-4 text-xs text-stone-500 bg-stone-100 rounded-xl p-3 font-mono">
-              User → V4-AI → V2-Rules (Dispatcher) → V3-Engines → V6-Executor → DB<br />
-              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;↑ ตรวจ registry + filter ทุก command
+            <div className="mt-4 text-xs text-stone-500 bg-stone-100 rounded-xl p-3 font-mono leading-relaxed">
+              Input Gateway → AI Interpreter → Business Rules (Dispatcher) → Business Engine → Execution Layer → DB<br />
+              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;↑ ตรวจ registry + filter ทุก command
             </div>
           </Section>
 
           {/* ── Database Tables ── */}
-          <Section title="🗄️ โครงสร้างฐานข้อมูล">
+          <Section title="โครงสร้างฐานข้อมูล">
             <div className="space-y-2">
               {DB_TABLES.map((t) => (
                 <div key={t.name} className="border border-stone-200 rounded-xl px-4 py-2.5 bg-white">
@@ -151,7 +153,7 @@ export default function ObserverPage() {
           </Section>
 
           {/* ── Document Types ── */}
-          <Section title="📄 ประเภทเอกสาร">
+          <Section title="ประเภทเอกสาร">
             <div className="grid grid-cols-2 gap-2">
               {docs.map(([key, val]) => (
                 <div key={key} className="border border-stone-200 rounded-xl px-3 py-2 bg-white">
@@ -174,7 +176,7 @@ export default function ObserverPage() {
           </Section>
 
           {/* ── Commands ── */}
-          <Section title="⚙️ Command Registry (ทุก command ที่ระบบรู้จัก)">
+          <Section title="Command Registry">
             <div className="space-y-1.5">
               {commands.map(([name, def]) => {
                 const d = def as any
@@ -194,7 +196,7 @@ export default function ObserverPage() {
           </Section>
 
           {/* ── Business Domains ── */}
-          <Section title="🏢 Business Coverage">
+          <Section title="Business Coverage">
             <div className="space-y-3">
               {domains.map(([key, val]) => {
                 const d = val as any
@@ -222,7 +224,7 @@ export default function ObserverPage() {
           </Section>
 
           {/* ── Workflows ── */}
-          <Section title="🔄 Workflow Registry">
+          <Section title="Workflow Registry">
             <div className="space-y-3">
               {workflows.map(([key, val]) => {
                 const w = val as any
@@ -241,7 +243,7 @@ export default function ObserverPage() {
           </Section>
 
           {/* ── Capabilities ── */}
-          <Section title="⚡ ความสามารถระบบ (Existence Registry)">
+          <Section title="ความสามารถระบบ (Existence Registry)">
             <div className="grid grid-cols-2 gap-2">
               {Object.entries((existence as any).capabilities ?? {}).map(([cap, val]) => {
                 const v = val as any
@@ -264,7 +266,7 @@ export default function ObserverPage() {
           </Section>
 
           {/* ── Iron Rules ── */}
-          <Section title="⚖️ กฎเหล็ก (Constitution)">
+          <Section title="กฎเหล็ก (Constitution)">
             <ul className="space-y-1.5">
               {IRON_RULES.map((rule, i) => (
                 <li key={i} className="flex items-start gap-2 text-xs text-stone-700">
@@ -276,7 +278,7 @@ export default function ObserverPage() {
           </Section>
 
           {/* ── Module Count ── */}
-          <Section title="📦 Module Registry (สรุป)">
+          <Section title="Module Registry (สรุป)">
             <div className="flex flex-wrap gap-2 text-xs">
               {["shared", "api", "ui", "v2-rules", "v3-engines", "v4-ai", "v5-presenter", "v6-executor", "cognitive", "registry", "runtime"].map((layer) => {
                 const count = modules.filter(([, m]) => (m as any).layer === layer).length
@@ -292,7 +294,7 @@ export default function ObserverPage() {
           </Section>
 
           {/* ── External AI API Pipe ── */}
-          <Section title="🔌 ท่อเชื่อม AI ภายนอก (External AI Pipe)">
+          <Section title="ท่อเชื่อม AI ภายนอก (External AI Pipe)">
             <div className="space-y-4">
               <div className="text-xs text-stone-700 leading-relaxed">
                 DNA OS เปิด API ให้ AI ภายนอก (Gemini, ChatGPT, Claude, หรือ app ใดก็ได้) เรียก query commands ผ่าน token

@@ -1,3 +1,12 @@
+DNA OS-โฟลเดอร์หลักต้นฉบับ/
+├── dna-os-deadboard/
+└── registry/
+    ├── 00-owner-context (บริบทเจ้าของ).json
+    ├── 01-auditor-ai (AI ตรวจงาน).json      <-- ไฟล์ใหม่สำหรับ AI ตรวจงาน
+    ├── 02-ai-roles (หน้าที่ AI).json          <-- ไฟล์ใหม่จากข้อ 1
+    ├── 03-constitution (รัฐธรรมนูญ).json
+    ├── 04-architecture (สถาปัตยกรรม).json
+    ... (ไฟล์อื่นๆ ตามลำดับเดิม)
 {
   "version": 1,
   "model": "Google Gemini",

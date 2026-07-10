@@ -1,20 +1,25 @@
 import { NextResponse } from "next/server"
-import { supabase } from "@/lib/supabase/queries"
+import { requireAuth } from "@/core/auth/requireAuth"
+import { SUPER_ADMIN_ONLY } from "@/core/auth/session"
+import { supabaseAdmin as supabase } from "@/services/supabase/queries"
 
 const TABLES = [
-  "partners",
-  "documents",
-  "document_items",
-  "transactions",
-  "business_events",
-  "debt_trackings",
-  "invoice_debts",
-  "invoice_payments",
+  "companies",
+  "invoices",
+  "invoice_items",
+  "standalone_documents",
+  "standalone_document_items",
+  "customer_orders",
+  "debt_snapshots",
+  "payments",
   "app_configs",
-  "material_types",
+  "products",
 ]
 
 export async function GET() {
+  const auth = await requireAuth(SUPER_ADMIN_ONLY)
+  if (auth instanceof NextResponse) return auth
+
   const results: Record<string, unknown[]> = {}
   const errors: string[] = []
 
@@ -55,6 +60,9 @@ export async function GET() {
 
 // สถิติ backup — ไม่ download แค่ดู row counts
 export async function POST() {
+  const auth = await requireAuth(SUPER_ADMIN_ONLY)
+  if (auth instanceof NextResponse) return auth
+
   const stats: Record<string, number> = {}
   const errors: string[] = []
 

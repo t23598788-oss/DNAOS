@@ -1,7 +1,12 @@
 import { NextResponse } from "next/server";
-import { runCognitivePipeline } from "@/lib/cognitive/pipeline";
+import { requireAuth } from "@/core/auth/requireAuth";
+import { ADMIN_TIER } from "@/core/auth/session";
+import { runCognitivePipeline } from "@/cognitive/pipeline";
 
 export async function POST(request: Request) {
+  const auth = await requireAuth(ADMIN_TIER);
+  if (auth instanceof NextResponse) return auth;
+
   try {
     const { message } = await request.json();
     const response = await runCognitivePipeline(String(message ?? ""));

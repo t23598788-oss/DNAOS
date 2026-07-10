@@ -1,21 +1,12 @@
 'use client'
 
 import { useRouter } from "next/navigation"
-import { createClient } from "@supabase/supabase-js"
-
-function getSupabase() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-  )
-}
 
 export default function LogoutButton() {
   const router = useRouter()
 
   async function handleLogout() {
-    await getSupabase().auth.signOut()
-    document.cookie = "admin_session=; path=/; max-age=0"
+    await fetch("/api/auth/logout", { method: "POST" })
     router.push("/login")
     router.refresh()
   }

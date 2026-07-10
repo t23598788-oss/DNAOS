@@ -10,7 +10,7 @@ npx tsx scripts/build-arch-book.ts
 echo "Registry synced"
 
 # Guard 0: Architecture health — ไม่ยอมรับ BROKEN หรือ UNUSED โมดูลใหม่
-ARCH_BOOK="lib/registry/architecture-book.json"
+ARCH_BOOK="registry/architecture-book.json"
 if [ -f "$ARCH_BOOK" ]; then
   BROKEN=$(node -e "const b=require('./$ARCH_BOOK'); console.log(b.summary.broken)")
   UNUSED=$(node -e "const b=require('./$ARCH_BOOK'); console.log(b.summary.unused)")
@@ -35,14 +35,14 @@ if grep -rn "supabase.co" --include="*.ts" --include="*.tsx" --include="*.json" 
   exit 1
 fi
 
-# Guard 2: No mock/fake in v3-engines
-if grep -rn "Mock\|mock\|fake\|Fake\|MOCK\|FAKE" --include="*.ts" lib/v3-engines/ 2>/dev/null; then
-  echo "ERROR: Mock/Fake data found in v3-engines — Rule 94"
+# Guard 2: No mock/fake in engines
+if grep -rn "Mock\|mock\|fake\|Fake\|MOCK\|FAKE" --include="*.ts" engines/ 2>/dev/null; then
+  echo "ERROR: Mock/Fake data found in engines — Rule 94"
   exit 1
 fi
 
-# Guard 3: No direct supabase import in v1-v5
-for layer in lib/v2-rules lib/v3-engines lib/v4-ai lib/v5-presenter; do
+# Guard 3: No direct supabase import in engines/cognitive/presenter/services-ai
+for layer in engines/validation engines cognitive presenter services/ai; do
   if grep -rn "from.*@supabase/supabase-js" --include="*.ts" "$layer/" 2>/dev/null; then
     echo "ERROR: $layer imports @supabase/supabase-js directly — Rule 71"
     exit 1
@@ -51,24 +51,24 @@ done
 
 # Guard 4: No duplicate type definitions
 if grep -rn "export interface Command {" --include="*.ts" \
-   --exclude-dir=node_modules --exclude-dir=.next . 2>/dev/null | grep -v "lib/shared/types.ts" | grep -v "RuntimeCommand" | grep -v "BridgeCommand"; then
-  echo "ERROR: Command type defined outside lib/shared/types.ts"
+   --exclude-dir=node_modules --exclude-dir=.next . 2>/dev/null | grep -v "core/shared/types.ts" | grep -v "RuntimeCommand" | grep -v "BridgeCommand"; then
+  echo "ERROR: Command type defined outside core/shared/types.ts"
   exit 1
 fi
 
 # Guard 5: types/command.ts must not exist
 if [ -f "types/command.ts" ]; then
-  echo "ERROR: types/command.ts exists — use lib/shared/types.ts"
+  echo "ERROR: types/command.ts exists — use core/shared/types.ts"
   exit 1
 fi
 
-# Guard 6: No duplicate lib/core/ or lib/drivers/*.ts
+# Guard 6: No duplicate lib/core/ or lib/drivers/*.ts (Core/drivers live at top-level core/, plugins/drivers/)
 if [ -d "lib/core" ]; then
-  echo "ERROR: lib/core/ exists — use lib/v6-executor/core/"
+  echo "ERROR: lib/core/ exists — use core/"
   exit 1
 fi
 if find lib/drivers -maxdepth 1 -name "*.ts" 2>/dev/null | head -1 | grep -q .; then
-  echo "ERROR: lib/drivers/*.ts exists — use lib/v6-executor/drivers/"
+  echo "ERROR: lib/drivers/*.ts exists — use plugins/drivers/"
   exit 1
 fi
 
@@ -78,6 +78,17 @@ if [ -x "$SCRIPT_DIR/check-imports.sh" ]; then
   echo "--- Running dependency graph check ---"
   if ! "$SCRIPT_DIR/check-imports.sh" --staged; then
     echo "ERROR: Dependency graph violation — see above"
+    exit 1
+  fi
+fi
+
+# Guard 8: Connector Lifecycle Law (LOCKED 2026-07-07, registry/connector-lifecycle.json)
+# Connect → Register → Test → Enable → Run — no exceptions, no skipped stages,
+# no Core edits to support a new Connector
+if [ -x "$SCRIPT_DIR/check-connector-lifecycle.sh" ]; then
+  echo "--- Running Connector Lifecycle guard ---"
+  if ! "$SCRIPT_DIR/check-connector-lifecycle.sh"; then
+    echo "ERROR: Connector Lifecycle Law violation — see registry/connector-lifecycle.json"
     exit 1
   fi
 fi

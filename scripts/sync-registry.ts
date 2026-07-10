@@ -11,7 +11,7 @@ import { join } from "path";
 import { glob } from "glob";
 
 const ROOT = join(__dirname, "..");
-const REGISTRY_PATH = join(ROOT, "lib/registry/module-registry.json");
+const REGISTRY_PATH = join(ROOT, "registry/module-registry.json");
 
 // ── Types ──────────────────────────────────────────
 

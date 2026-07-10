@@ -1,58 +1,54 @@
 import { NextRequest, NextResponse } from "next/server"
-import { supabase } from "@/lib/supabase/queries"
+import { requireAuth } from "@/core/auth/requireAuth"
+import { ADMIN_TIER } from "@/core/auth/session"
+import { supabaseAdmin as supabase } from "@/services/supabase/queries"
 
 type Params = { params: Promise<{ id: string }> }
 
+// documents(invoice/receipt) → invoices (receipt = invoice ที่ invoice_status = PAID)
+// debt_trackings → debt_snapshots, transactions → customer_orders
 export async function GET(_req: NextRequest, { params }: Params) {
+  const auth = await requireAuth(ADMIN_TIER)
+  if (auth instanceof NextResponse) return auth
+
   const { id: partnerId } = await params
 
-  const [invoicesRes, receiptsRes, debtRes, txRes] = await Promise.all([
+  const [invoicesRes, debtRes, txRes] = await Promise.all([
     supabase()
-      .from("documents")
-      .select("id, net_amount, issue_date, status, created_at")
-      .eq("partner_id", partnerId)
-      .eq("document_type", "invoice")
-      .is("deleted_at", null),
+      .from("invoices")
+      .select("id, total_amount, invoice_date, invoice_status, created_at")
+      .eq("customer_company_id", partnerId),
 
     supabase()
-      .from("documents")
-      .select("id, net_amount, issue_date, created_at")
-      .eq("partner_id", partnerId)
-      .eq("document_type", "receipt")
-      .is("deleted_at", null),
+      .from("debt_snapshots")
+      .select("id, total_outstanding, debt_start_at, created_at")
+      .eq("customer_company_id", partnerId),
 
     supabase()
-      .from("debt_trackings")
-      .select("id, principal_amount, fee_rate, interest_start_at, created_at")
-      .eq("partner_id", partnerId)
-      .is("deleted_at", null),
-
-    supabase()
-      .from("transactions")
-      .select("id, tx_type, state, net_amount, paid_amount, created_at")
-      .eq("partner_id", partnerId)
-      .is("deleted_at", null),
+      .from("customer_orders")
+      .select("id, status, created_at")
+      .eq("customer_company_id", partnerId),
   ])
 
   const invoices = invoicesRes.data ?? []
-  const receipts = receiptsRes.data ?? []
+  const receipts = invoices.filter((d: any) => d.invoice_status === "PAID")
   const debts = debtRes.data ?? []
   const transactions = txRes.data ?? []
 
   // ─── คำนวณ ────────────────────────────────────────────────────────────────
 
-  const totalInvoiced = invoices.reduce((s, d) => s + Number(d.net_amount ?? 0), 0)
-  const totalReceived = receipts.reduce((s, d) => s + Number(d.net_amount ?? 0), 0)
+  const totalInvoiced = invoices.reduce((s, d: any) => s + Number(d.total_amount ?? 0), 0)
+  const totalReceived = receipts.reduce((s, d: any) => s + Number(d.total_amount ?? 0), 0)
   const outstanding = Math.max(0, totalInvoiced - totalReceived)
   const paymentRate = totalInvoiced > 0 ? Math.min(1, totalReceived / totalInvoiced) : null
 
   // จำนวนงานที่ปิดสำเร็จ vs ทั้งหมด
-  const closedJobs = transactions.filter((t) => t.state === "closed" || t.state === "paid").length
+  const closedJobs = transactions.filter((t: any) => t.status === "PAID").length
   const totalJobs = transactions.length
 
   // หนี้ค้างชำระ
   const openDebt = debts.length > 0
-  const totalDebt = debts.reduce((s, d) => s + Number(d.principal_amount ?? 0), 0)
+  const totalDebt = debts.reduce((s, d: any) => s + Number(d.total_outstanding ?? 0), 0)
 
   // ─── Score (0-100) ────────────────────────────────────────────────────────
 

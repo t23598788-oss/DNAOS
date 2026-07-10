@@ -37,7 +37,7 @@
     "count": 1,
     "details": [
       {
-        "module": "lib/registry/index.ts",
+        "module": "registry/index.ts",
         "reason": "เป็น Registry ของสถาปัตยกรรมเวอร์ชันเก่า (V1) ปัจจุบันไม่ได้ถูกเรียกใช้งานโดยตรงจาก Runtime ใหม่",
         "recommendation": "พิจารณาลบไฟล์และนำออกจาก `02-module-registry.json` หากไม่ใช้งานแล้ว"
       }
