@@ -4120,6 +4120,213 @@
         "default"
       ],
       "status": "active"
+    },
+    "components/ui-kit/IconRail.tsx": {
+      "owner": "admin",
+      "layer": "ui",
+      "purpose": "LINE-style leftmost icon rail, single-select — new layout primitive for AppShell (owner request 2026-07-11: mirror the real LINE app layout)",
+      "purpose_th": "แถบไอคอนซ้ายสุดแบบแอป LINE เลือกได้ทีละ 1 — layout primitive ใหม่ของ AppShell",
+      "exports": [
+        "default"
+      ],
+      "status": "active"
+    },
+    "components/ui-kit/ListColumn.tsx": {
+      "owner": "admin",
+      "layer": "ui",
+      "purpose": "LINE-style middle list column (search + rows with avatar/subtitle/timestamp/badge) — AppShell primitive",
+      "purpose_th": "คอลัมน์รายการกลางแบบแอป LINE (ค้นหา+รายชื่อ+badge) — layout primitive ของ AppShell",
+      "exports": [
+        "default"
+      ],
+      "status": "active"
+    },
+    "components/ui-kit/AppShell.tsx": {
+      "owner": "admin",
+      "layer": "ui",
+      "purpose": "Composes IconRail + ListColumn + main content into a persistent 3-column LINE-style shell — first real page wired: app/admin/line-customers/page.tsx",
+      "purpose_th": "ประกอบ IconRail+ListColumn+เนื้อหาหลักเป็นโครง 3 คอลัมน์ถาวรแบบ LINE — หน้าจริงหน้าแรกที่ใช้: line-customers",
+      "exports": [
+        "default"
+      ],
+      "status": "active"
+    },
+    "components/ui-kit/index.ts": {
+      "owner": "admin",
+      "layer": "ui",
+      "purpose": "UIKit barrel export — Window/Dock/AppShell/IconRail/ListColumn/ChatPanel/etc, all light-themed and props-driven, no hardcoded business data",
+      "purpose_th": "จุด export รวมของ UIKit — Window/Dock/AppShell/IconRail/ListColumn/ChatPanel ฯลฯ ธีมสว่างทั้งหมด รับข้อมูลผ่าน props ไม่ hardcode",
+      "exports": [
+        "AppShell",
+        "ChatPanel",
+        "CommandPalette",
+        "DataTable",
+        "Dock",
+        "DocumentViewer",
+        "Drawer",
+        "EmptyState",
+        "IconRail",
+        "Inspector",
+        "ListColumn",
+        "MapView",
+        "PartnerCard",
+        "Timeline",
+        "Window",
+        "WindowLayer",
+        "WorkspaceCanvas",
+        "useWorkspace"
+      ],
+      "status": "active"
+    },
+    "components/ui-kit/ChatPanel.tsx": {
+      "owner": "admin",
+      "layer": "ui",
+      "purpose": "Chat bubble panel, retheme to light + LINE-style green/white bubbles 2026-07-11, supports variant panel for AppShell main pane",
+      "purpose_th": "ส่วนหนึ่งของ UIKit — Chat bubble panel, retheme to light + LINE-style green/white bubbles 2026-07-11, supports variant panel for AppShell main pane",
+      "exports": [
+        "default",
+        "ChatMessage"
+      ],
+      "status": "active"
+    },
+    "components/ui-kit/CommandPalette.tsx": {
+      "owner": "admin",
+      "layer": "ui",
+      "purpose": "Cmd+K launcher for WorkspaceCanvas, light theme",
+      "purpose_th": "ส่วนหนึ่งของ UIKit — Cmd+K launcher for WorkspaceCanvas, light theme",
+      "exports": [
+        "default",
+        "PaletteCommand"
+      ],
+      "status": "active"
+    },
+    "components/ui-kit/DataTable.tsx": {
+      "owner": "admin",
+      "layer": "ui",
+      "purpose": "Generic light-themed data table, props-driven",
+      "purpose_th": "ส่วนหนึ่งของ UIKit — Generic light-themed data table, props-driven",
+      "exports": [
+        "default",
+        "DataTableColumn"
+      ],
+      "status": "active"
+    },
+    "components/ui-kit/Dock.tsx": {
+      "owner": "admin",
+      "layer": "ui",
+      "purpose": "Multi-toggle floating-window icon dock for WorkspaceCanvas (kept alongside the newer single-select IconRail)",
+      "purpose_th": "ส่วนหนึ่งของ UIKit — Multi-toggle floating-window icon dock for WorkspaceCanvas (kept alongside the newer single-select IconRail)",
+      "exports": [
+        "default",
+        "DockItem"
+      ],
+      "status": "active"
+    },
+    "components/ui-kit/DocumentViewer.tsx": {
+      "owner": "admin",
+      "layer": "ui",
+      "purpose": "Document preview panel, light theme",
+      "purpose_th": "ส่วนหนึ่งของ UIKit — Document preview panel, light theme",
+      "exports": [
+        "default"
+      ],
+      "status": "active"
+    },
+    "components/ui-kit/Drawer.tsx": {
+      "owner": "admin",
+      "layer": "ui",
+      "purpose": "Edge-anchored sliding panel wrapper around Window",
+      "purpose_th": "ส่วนหนึ่งของ UIKit — Edge-anchored sliding panel wrapper around Window",
+      "exports": [
+        "default"
+      ],
+      "status": "active"
+    },
+    "components/ui-kit/EmptyState.tsx": {
+      "owner": "admin",
+      "layer": "ui",
+      "purpose": "Shared empty-state placeholder used by every ui-kit content component",
+      "purpose_th": "ส่วนหนึ่งของ UIKit — Shared empty-state placeholder used by every ui-kit content component",
+      "exports": [
+        "default"
+      ],
+      "status": "active"
+    },
+    "components/ui-kit/Inspector.tsx": {
+      "owner": "admin",
+      "layer": "ui",
+      "purpose": "Key/value inspector panel, light theme",
+      "purpose_th": "ส่วนหนึ่งของ UIKit — Key/value inspector panel, light theme",
+      "exports": [
+        "default",
+        "InspectorField"
+      ],
+      "status": "active"
+    },
+    "components/ui-kit/MapView.tsx": {
+      "owner": "admin",
+      "layer": "ui",
+      "purpose": "Provider-agnostic marker grid, light theme",
+      "purpose_th": "ส่วนหนึ่งของ UIKit — Provider-agnostic marker grid, light theme",
+      "exports": [
+        "default",
+        "MapMarker"
+      ],
+      "status": "active"
+    },
+    "components/ui-kit/PartnerCard.tsx": {
+      "owner": "admin",
+      "layer": "ui",
+      "purpose": "Compact partner/company summary card, light theme",
+      "purpose_th": "ส่วนหนึ่งของ UIKit — Compact partner/company summary card, light theme",
+      "exports": [
+        "default",
+        "PartnerCardProps"
+      ],
+      "status": "active"
+    },
+    "components/ui-kit/Timeline.tsx": {
+      "owner": "admin",
+      "layer": "ui",
+      "purpose": "Vertical event timeline, light theme",
+      "purpose_th": "ส่วนหนึ่งของ UIKit — Vertical event timeline, light theme",
+      "exports": [
+        "default",
+        "TimelineEvent"
+      ],
+      "status": "active"
+    },
+    "components/ui-kit/Window.tsx": {
+      "owner": "admin",
+      "layer": "ui",
+      "purpose": "Shared frame every ui-kit content component wraps in — added variant window|panel 2026-07-11 for AppShell",
+      "purpose_th": "ส่วนหนึ่งของ UIKit — Shared frame every ui-kit content component wraps in — added variant window|panel 2026-07-11 for AppShell",
+      "exports": [
+        "default",
+        "WindowProps"
+      ],
+      "status": "active"
+    },
+    "components/ui-kit/WindowLayer.tsx": {
+      "owner": "admin",
+      "layer": "ui",
+      "purpose": "Renders whichever floating windows are open in a WorkspaceCanvas",
+      "purpose_th": "ส่วนหนึ่งของ UIKit — Renders whichever floating windows are open in a WorkspaceCanvas",
+      "exports": [
+        "default"
+      ],
+      "status": "active"
+    },
+    "components/ui-kit/WorkspaceCanvas.tsx": {
+      "owner": "admin",
+      "layer": "ui",
+      "purpose": "Floating-window workspace root + context, light theme",
+      "purpose_th": "ส่วนหนึ่งของ UIKit — Floating-window workspace root + context, light theme",
+      "exports": [
+        "default",
+        "useWorkspace"
+      ],
+      "status": "active"
     }
   },
   "excluded": [

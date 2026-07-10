@@ -1,0 +1,31 @@
+// UIKit — barrel export
+// import { Dock, Drawer, Inspector, ... } from "@/components/ui-kit";
+
+export { default as Window } from "./Window";
+export { default as EmptyState } from "./EmptyState";
+export { default as WorkspaceCanvas, useWorkspace } from "./WorkspaceCanvas";
+export type { ComponentKey, OpenWindow } from "./WorkspaceCanvas";
+export { default as WindowLayer } from "./WindowLayer";
+export { default as Dock } from "./Dock";
+export type { DockItem } from "./Dock";
+export { default as Drawer } from "./Drawer";
+export { default as CommandPalette } from "./CommandPalette";
+export type { PaletteCommand } from "./CommandPalette";
+export { default as Inspector } from "./Inspector";
+export type { InspectorField } from "./Inspector";
+export { default as Timeline } from "./Timeline";
+export type { TimelineEvent } from "./Timeline";
+export { default as DataTable } from "./DataTable";
+export type { DataTableColumn } from "./DataTable";
+export { default as MapView } from "./MapView";
+export type { MapMarker } from "./MapView";
+export { default as ChatPanel } from "./ChatPanel";
+export type { ChatMessage } from "./ChatPanel";
+export { default as DocumentViewer } from "./DocumentViewer";
+export { default as PartnerCard } from "./PartnerCard";
+export type { PartnerCardProps } from "./PartnerCard";
+export { default as IconRail } from "./IconRail";
+export type { IconRailItem } from "./IconRail";
+export { default as ListColumn } from "./ListColumn";
+export type { ListColumnItem } from "./ListColumn";
+export { default as AppShell } from "./AppShell";

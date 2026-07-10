@@ -62,7 +62,7 @@ log_head "Level 1: Source files → Module Registry"
 
 REGISTERED=$(jq -r '.modules | keys[]' "$MODULE_REGISTRY")
 
-SOURCE_FILES=$(find lib app -type f \( -name "*.ts" -o -name "*.tsx" \) \
+SOURCE_FILES=$(find app components core engines gateway cognitive presenter services plugins -type f \( -name "*.ts" -o -name "*.tsx" \) \
   ! -path "registry/*" \
   ! -path "*/.next/*" \
   ! -path "*/node_modules/*" \

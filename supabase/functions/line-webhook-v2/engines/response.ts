@@ -35,6 +35,57 @@ async function logErrorToDb(errorMsg: string) {
 
 // --- Low-level LINE API senders ---
 
+// Every outbound send gets logged here, at the one choke point both
+// replyMessages() and pushMessages() go through — no call site elsewhere in
+// the codebase needs to change. Before this, line_events only ever held
+// INBOUND customer messages; nothing the bot said back was ever recorded, so
+// no screen could show a real two-sided conversation (owner request
+// 2026-07-11: make the admin chat view show both sides like the real LINE
+// app). reply_token is looked up against the inbound row that carried it to
+// find which contact this reply belongs to, since LINE's reply API itself
+// doesn't include a userId.
+function extractReadableText(messages: any[]): string {
+  const first = messages[0] as any
+  return first?.text ?? first?.altText ?? `(${first?.type ?? "message"})`
+}
+
+async function logOutboundToDb(lineUserId: string | null, messages: object[]) {
+  try {
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
+    if (!supabaseUrl || !supabaseServiceKey || !lineUserId) return
+    const supabase = createClient(supabaseUrl, supabaseServiceKey)
+    await supabase.from('line_events').insert({
+      line_user_id: lineUserId,
+      raw_type: 'text',
+      raw_text: extractReadableText(messages),
+      status: 'processed',
+      direction: 'out',
+    })
+  } catch (e) {
+    console.error('Failed to log outbound message to DB:', e)
+  }
+}
+
+async function resolveUserIdFromReplyToken(replyToken: string): Promise<string | null> {
+  try {
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
+    if (!supabaseUrl || !supabaseServiceKey) return null
+    const supabase = createClient(supabaseUrl, supabaseServiceKey)
+    const { data } = await supabase
+      .from('line_events')
+      .select('line_user_id')
+      .eq('reply_token', replyToken)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+    return data?.line_user_id ?? null
+  } catch {
+    return null
+  }
+}
+
 async function replyMessages(replyToken: string, messages: object[]) {
   const lineAccessToken = Deno.env.get('LINE_CHANNEL_ACCESS_TOKEN')
   if (!lineAccessToken) {
@@ -50,7 +101,10 @@ async function replyMessages(replyToken: string, messages: object[]) {
     const err = await res.text()
     console.error('LINE reply failed:', err)
     await logErrorToDb(`LINE reply failed: ${err}`)
+    return
   }
+  const userId = await resolveUserIdFromReplyToken(replyToken)
+  await logOutboundToDb(userId, messages)
 }
 
 async function pushMessages(to: string, messages: object[]) {
@@ -68,7 +122,9 @@ async function pushMessages(to: string, messages: object[]) {
     const err = await res.text()
     console.error('LINE push failed:', err)
     await logErrorToDb(`LINE push failed: ${err}`)
+    return
   }
+  await logOutboundToDb(to, messages)
 }
 
 /**

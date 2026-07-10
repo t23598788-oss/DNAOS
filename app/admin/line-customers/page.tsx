@@ -1,8 +1,12 @@
 'use client'
 
-import { Fragment, useState, useEffect, useCallback, useMemo } from "react"
+import { useState, useEffect, useCallback } from "react"
 import Link from "next/link"
+import {
+  LayoutGrid, MessageCircle, Briefcase, Building2, FileText, Wallet, Mountain,
+} from "lucide-react"
 import { formatMoney } from "@/engines/documents/document-editor"
+import { AppShell, type IconRailItem, type ListColumnItem } from "@/components/ui-kit"
 
 interface Contact {
   line_user_id: string
@@ -33,6 +37,7 @@ interface Message {
   id: string
   raw_type: string
   raw_text: string | null
+  direction: "in" | "out"
   created_at: string
 }
 
@@ -61,15 +66,27 @@ interface BizEvent {
   created_at: string
 }
 
-function fmtDateTime(d: string) {
-  return new Date(d).toLocaleString("th-TH", { year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })
+// 7 ฟังก์ชันหลักของ DNA OS ยุบมาจาก 13 เมนูเดิม (registry/portals.json) — หน้านี้
+// (ลูกค้า LINE) เป็นหน้าแรกที่ใช้โครง AppShell เต็มรูปแบบ ที่เหลืออีก 6 ยังพาไป
+// หน้าเดิมตามปกติก่อน รอดูหน้าตานี้แล้วค่อยขยาย (owner request 2026-07-11)
+const RAIL_ITEMS: IconRailItem[] = [
+  { key: "dashboard", label: "เลขา", icon: LayoutGrid, href: "/admin/dashboard" },
+  { key: "line-customers", label: "LINE", icon: MessageCircle, href: "/admin/line-customers" },
+  { key: "jobs", label: "งาน", icon: Briefcase, href: "/admin/jobs" },
+  { key: "partners", label: "คู่ค้า", icon: Building2, href: "/admin/partners" },
+  { key: "transactions", label: "เอกสาร", icon: FileText, href: "/admin/transactions" },
+  { key: "debt-tracking", label: "การเงิน", icon: Wallet, href: "/admin/debt-tracking" },
+  { key: "pits", label: "บ่อวัสดุ", icon: Mountain, href: "/admin/pits" },
+]
+
+function fmtTime(d: string) {
+  return new Date(d).toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit" })
 }
 
 export default function LineCustomersPage() {
   const [contacts, setContacts] = useState<Contact[]>([])
   const [loading, setLoading] = useState(true)
-  const [search, setSearch] = useState("")
-  const [expandedId, setExpandedId] = useState<string | null>(null)
+  const [activeId, setActiveId] = useState<string | null>(null)
   const [detail, setDetail] = useState<{ messages: Message[]; documents: DocRow[]; events: BizEvent[]; unlinkedCount: number; drafts: Draft[] } | null>(null)
   const [detailLoading, setDetailLoading] = useState(false)
   const [building, setBuilding] = useState(false)
@@ -85,21 +102,23 @@ export default function LineCustomersPage() {
       .finally(() => setLoading(false))
   }, [])
 
-  const filtered = useMemo(() => {
-    const q = search.trim().toLowerCase()
-    if (!q) return contacts
-    return contacts.filter((c) =>
-      (c.line_name ?? "").toLowerCase().includes(q) ||
-      c.last_message.toLowerCase().includes(q) ||
-      (c.matched_company?.name ?? "").toLowerCase().includes(q)
-    )
-  }, [contacts, search])
-
   const loadDetail = useCallback(async (lineUserId: string) => {
     const res = await fetch(`/api/admin/line-customers/${lineUserId}`)
     const d = await res.json()
     setDetail({ messages: d.messages ?? [], documents: d.documents ?? [], events: d.events ?? [], unlinkedCount: d.unlinkedCount ?? 0, drafts: d.drafts ?? [] })
   }, [])
+
+  const selectContact = useCallback(async (lineUserId: string) => {
+    setActiveId(lineUserId)
+    setDetail(null)
+    setBuildError(null)
+    setDetailLoading(true)
+    try {
+      await loadDetail(lineUserId)
+    } finally {
+      setDetailLoading(false)
+    }
+  }, [loadDetail])
 
   const sendDraft = useCallback(async (draftId: string, lineUserId: string) => {
     setDraftBusyId(draftId)
@@ -133,22 +152,6 @@ export default function LineCustomersPage() {
     }
   }, [loadDetail])
 
-  const toggle = useCallback(async (contact: Contact) => {
-    if (expandedId === contact.line_user_id) {
-      setExpandedId(null)
-      return
-    }
-    setExpandedId(contact.line_user_id)
-    setDetail(null)
-    setBuildError(null)
-    setDetailLoading(true)
-    try {
-      await loadDetail(contact.line_user_id)
-    } finally {
-      setDetailLoading(false)
-    }
-  }, [expandedId])
-
   const buildEvent = useCallback(async (lineUserId: string) => {
     setBuilding(true)
     setBuildError(null)
@@ -165,193 +168,167 @@ export default function LineCustomersPage() {
     }
   }, [loadDetail])
 
+  const listItems: ListColumnItem[] = contacts.map((c) => ({
+    id: c.line_user_id,
+    title: c.line_name ?? "ไม่ทราบชื่อ",
+    subtitle: c.last_message,
+    timestamp: fmtTime(c.last_message_at),
+    avatarUrl: c.line_picture ?? undefined,
+    highlighted: c.has_pending_draft,
+  }))
+
+  const activeContact = contacts.find((c) => c.line_user_id === activeId) ?? null
+  const pendingDrafts = detail?.drafts.filter((d) => d.status === "pending_review") ?? []
+
   return (
-    <div className="min-h-screen bg-stone-50">
-      <div className="bg-white border-b border-stone-200 px-6 py-3">
-        <h1 className="text-base font-bold text-stone-900">ลูกค้า LINE</h1>
-        <p className="text-xs text-stone-600 mt-0.5">
-          ค้นหาชื่อที่เห็นในแชท LINE — ระบบจะดึงประวัติข้อความทั้งหมด และจับคู่กับข้อมูลบริษัท/หนี้ในระบบให้อัตโนมัติถ้าชื่อตรงกัน
-        </p>
-      </div>
-
-      <div className="p-6 space-y-4">
-        <input
-          type="text"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="พิมพ์ชื่อที่เห็นใน LINE หรือคำในข้อความ..."
-          className="w-full max-w-md text-sm border border-stone-300 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-
-        <div className="bg-white rounded-xl border border-stone-200 overflow-hidden">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-stone-200 bg-stone-50 text-stone-700">
-                <th className="text-left font-bold uppercase tracking-wide px-4 py-2.5">ชื่อใน LINE</th>
-                <th className="text-left font-bold uppercase tracking-wide px-3 py-2.5">บริษัทที่จับคู่ได้</th>
-                <th className="text-left font-bold uppercase tracking-wide px-3 py-2.5">ข้อความล่าสุด</th>
-                <th className="text-right font-bold uppercase tracking-wide px-3 py-2.5">จำนวนข้อความ</th>
-                <th className="text-right font-bold uppercase tracking-wide px-4 py-2.5">ยอดหนี้</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-stone-100">
-              {loading && <tr><td colSpan={5} className="text-center text-stone-500 py-8 animate-pulse">โหลด...</td></tr>}
-              {!loading && filtered.length === 0 && <tr><td colSpan={5} className="text-center text-stone-500 py-8">ไม่พบผู้ติดต่อ</td></tr>}
-              {filtered.map((c) => {
-                const isOpen = expandedId === c.line_user_id
-                return (
-                  <Fragment key={c.line_user_id}>
-                    <tr onClick={() => toggle(c)} className={`hover:bg-red-50 transition cursor-pointer ${c.has_pending_draft ? "bg-red-50" : "hover:bg-stone-50"}`}>
-                      <td className="px-4 py-3 font-semibold text-stone-900">
-                        <div className="flex items-center gap-2.5">
-                          <span className="inline-block w-3 text-stone-400 shrink-0">{isOpen ? "▾" : "▸"}</span>
-                          {c.line_picture ? (
-                            <img src={c.line_picture} alt="" className="w-7 h-7 rounded-full object-cover shrink-0 bg-stone-100" referrerPolicy="no-referrer" />
-                          ) : (
-                            <div className="w-7 h-7 rounded-full bg-stone-200 shrink-0" />
-                          )}
-                          <span>{c.line_name ?? <span className="text-stone-400 font-normal">ไม่ทราบชื่อ (ยังไม่เคยดึงโปรไฟล์)</span>}</span>
-                          {c.has_pending_draft && (
-                            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-red-600 text-white shrink-0">รอส่ง</span>
-                          )}
-                        </div>
-                      </td>
-                      <td className="px-3 py-3 text-stone-700">
-                        {c.matched_company ? (
-                          <Link
-                            href={`/admin/partners/${c.matched_company.id}`}
-                            onClick={(e) => e.stopPropagation()}
-                            className="text-emerald-700 font-medium hover:underline"
-                          >
-                            {c.matched_company.name} →
-                          </Link>
-                        ) : (
-                          <span className="text-stone-400">ยังไม่จับคู่</span>
-                        )}
-                      </td>
-                      <td className="px-3 py-3 text-stone-600 truncate max-w-[280px]">{c.last_message}</td>
-                      <td className="px-3 py-3 text-right tabular-nums text-stone-700">{c.message_count}</td>
-                      <td className="px-4 py-3 text-right tabular-nums font-semibold text-stone-900">
-                        {c.debt ? formatMoney(c.debt.total_outstanding) : "—"}
-                      </td>
-                    </tr>
-                    {isOpen && (
-                      <tr className="bg-stone-50">
-                        <td colSpan={5} className="px-4 py-4">
-                          {detailLoading && <div className="text-sm text-stone-500 animate-pulse">กำลังดึงประวัติ...</div>}
-                          {!detailLoading && detail && (
-                            <div className="space-y-4">
-                              {detail.drafts.some((d) => d.status === "pending_review") && (
-                                <div className="space-y-2">
-                                  <div className="text-xs font-bold text-red-600 uppercase tracking-wide">📤 ข้อความรอส่ง ({detail.drafts.filter((d) => d.status === "pending_review").length})</div>
-                                  {draftError && <div className="text-xs text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2">{draftError}</div>}
-                                  {detail.drafts.filter((d) => d.status === "pending_review").map((d) => (
-                                    <div key={d.id} className="bg-white border-2 border-red-200 rounded-lg p-3" onClick={(e) => e.stopPropagation()}>
-                                      <div className="text-[11px] text-red-500 font-medium mb-1.5">{REASON_LABEL[d.reason] ?? d.reason}</div>
-                                      <textarea
-                                        className="w-full text-sm border border-stone-300 rounded-lg px-3 py-2 mb-2 min-h-[70px] focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                        defaultValue={d.proposed_text}
-                                        onChange={(e) => setDraftEdits((prev) => ({ ...prev, [d.id]: e.target.value }))}
-                                      />
-                                      <div className="flex justify-end gap-2">
-                                        <button
-                                          onClick={() => rejectDraft(d.id, c.line_user_id)}
-                                          disabled={draftBusyId === d.id}
-                                          className="text-xs font-medium px-3 py-1.5 rounded-lg border border-stone-200 text-stone-600 hover:bg-stone-50 disabled:opacity-40"
-                                        >
-                                          ยกเลิก
-                                        </button>
-                                        <button
-                                          onClick={() => sendDraft(d.id, c.line_user_id)}
-                                          disabled={draftBusyId === d.id}
-                                          className="text-xs font-medium px-3 py-1.5 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-40"
-                                        >
-                                          {draftBusyId === d.id ? "กำลังส่ง..." : "ส่งให้ลูกค้า"}
-                                        </button>
-                                      </div>
-                                    </div>
-                                  ))}
-                                </div>
-                              )}
-
-                              {c.debt && (
-                                <div className="text-xs bg-rose-50 border border-rose-200 text-rose-800 rounded-lg px-3 py-2">
-                                  ยอดหนี้คงเหลือ <strong>{formatMoney(c.debt.total_outstanding)}</strong> บาท — ผิดนัด {c.debt.days_overdue} วัน ({c.debt.collection_state})
-                                </div>
-                              )}
-
-                              <div>
-                                <div className="flex items-center justify-between mb-2">
-                                  <div className="text-xs font-bold text-stone-500 uppercase tracking-wide">Business Events ({detail.events.length})</div>
-                                  <button
-                                    onClick={(e) => { e.stopPropagation(); buildEvent(c.line_user_id) }}
-                                    disabled={building || detail.unlinkedCount === 0}
-                                    className="text-xs font-medium px-3 py-1.5 rounded-lg border border-blue-200 text-blue-700 hover:bg-blue-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
-                                  >
-                                    {building ? "กำลังสร้าง..." : detail.unlinkedCount === 0 ? "ไม่มีข้อความใหม่" : `สร้าง Event จาก ${detail.unlinkedCount} ข้อความใหม่`}
-                                  </button>
-                                </div>
-                                {buildError && <div className="text-xs text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2 mb-2">{buildError}</div>}
-                                {detail.events.length === 0 ? (
-                                  <div className="text-xs text-stone-400">ยังไม่มี Event ที่สร้างจากข้อความกลุ่มนี้</div>
-                                ) : (
-                                  <div className="space-y-1.5">
-                                    {detail.events.map((ev) => (
-                                      <div key={ev.id} className="bg-white border border-blue-100 rounded-lg px-3 py-2">
-                                        <div className="flex items-center justify-between">
-                                          <span className="text-xs font-mono font-semibold text-blue-700">{ev.event_code}</span>
-                                          <span className="text-[11px] px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200">{ev.status}</span>
-                                        </div>
-                                        <div className="mt-1 text-xs text-stone-700">
-                                          {ev.material_text ?? "—"} {ev.quantity ? `${ev.quantity} ${ev.quantity_unit ?? ""}` : ""} {ev.destination ? `→ ${ev.destination}` : ""}
-                                        </div>
-                                        {ev.schedule_text && <div className="text-[11px] text-stone-500 mt-0.5">กำหนด: {ev.schedule_text}</div>}
-                                        <div className="text-[11px] text-stone-400 mt-0.5">ความมั่นใจ: {Math.round(ev.confidence * 100)}%</div>
-                                      </div>
-                                    ))}
-                                  </div>
-                                )}
-                              </div>
-
-                              <div>
-                                <div className="text-xs font-bold text-stone-500 uppercase tracking-wide mb-2">เอกสาร ({detail.documents.length})</div>
-                                {detail.documents.length === 0 ? (
-                                  <div className="text-xs text-stone-400">ไม่มีเอกสารที่จับคู่ได้</div>
-                                ) : (
-                                  <div className="space-y-1">
-                                    {detail.documents.map((d) => (
-                                      <div key={d.id} className="flex justify-between text-xs bg-white border border-stone-200 rounded-lg px-3 py-1.5">
-                                        <span className="text-stone-700">{d.invoice_no ?? d.document_no} <span className="text-stone-400">({d.invoice_status ?? d.document_type})</span></span>
-                                        <span className="font-medium text-stone-900 tabular-nums">{formatMoney(d.total_amount)}</span>
-                                      </div>
-                                    ))}
-                                  </div>
-                                )}
-                              </div>
-
-                              <div>
-                                <div className="text-xs font-bold text-stone-500 uppercase tracking-wide mb-2">ประวัติข้อความ ({detail.messages.length})</div>
-                                <div className="space-y-1 max-h-80 overflow-y-auto">
-                                  {detail.messages.map((m) => (
-                                    <div key={m.id} className="flex justify-between gap-3 text-xs bg-white border border-stone-100 rounded-lg px-3 py-1.5">
-                                      <span className="text-stone-700 truncate">{m.raw_text ?? `[${m.raw_type}]`}</span>
-                                      <span className="text-stone-400 shrink-0">{fmtDateTime(m.created_at)}</span>
-                                    </div>
-                                  ))}
-                                </div>
-                              </div>
-                            </div>
-                          )}
-                        </td>
-                      </tr>
-                    )}
-                  </Fragment>
-                )
-              })}
-            </tbody>
-          </table>
+    <AppShell
+      railItems={RAIL_ITEMS}
+      activeRailKey="line-customers"
+      listItems={listItems}
+      activeListId={activeId}
+      onSelectList={selectContact}
+      listSearchPlaceholder="ค้นหาชื่อหรือข้อความ..."
+      listEmptyMessage={loading ? "กำลังโหลด..." : "ยังไม่มีผู้ติดต่อ"}
+    >
+      {!activeContact ? (
+        <div className="flex items-center justify-center h-full text-sm text-stone-400">
+          เลือกผู้ติดต่อทางซ้ายเพื่อดูบทสนทนา
         </div>
-      </div>
-    </div>
+      ) : (
+        <div className="flex flex-col h-full">
+          {/* Header */}
+          <div className="flex items-center gap-3 px-4 py-3 border-b border-stone-200 flex-shrink-0 bg-white">
+            {activeContact.line_picture ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={activeContact.line_picture} alt="" className="w-9 h-9 rounded-full object-cover bg-stone-100" referrerPolicy="no-referrer" />
+            ) : (
+              <div className="w-9 h-9 rounded-full bg-stone-200" />
+            )}
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-semibold text-stone-800 truncate">{activeContact.line_name ?? "ไม่ทราบชื่อ"}</p>
+              {activeContact.matched_company ? (
+                <Link href={`/admin/partners/${activeContact.matched_company.id}`} className="text-[11px] text-emerald-600 hover:underline">
+                  {activeContact.matched_company.name} →
+                </Link>
+              ) : (
+                <p className="text-[11px] text-stone-400">ยังไม่จับคู่กับบริษัทในระบบ</p>
+              )}
+            </div>
+            {activeContact.debt && (
+              <div className="text-right flex-shrink-0">
+                <p className="text-xs font-semibold text-rose-600">{formatMoney(activeContact.debt.total_outstanding)} บาท</p>
+                <p className="text-[10px] text-stone-400">ผิดนัด {activeContact.debt.days_overdue} วัน</p>
+              </div>
+            )}
+          </div>
+
+          {/* Pending drafts — Rule 72 approval banner */}
+          {pendingDrafts.length > 0 && (
+            <div className="px-4 py-3 bg-rose-50 border-b border-rose-100 flex-shrink-0 space-y-2">
+              <div className="text-xs font-bold text-rose-600">📤 ข้อความรอเฮียอนุมัติก่อนส่ง ({pendingDrafts.length})</div>
+              {draftError && <div className="text-xs text-rose-600 bg-white border border-rose-200 rounded-lg px-3 py-2">{draftError}</div>}
+              {pendingDrafts.map((d) => (
+                <div key={d.id} className="bg-white border border-rose-200 rounded-lg p-3">
+                  <div className="text-[11px] text-rose-500 font-medium mb-1.5">{REASON_LABEL[d.reason] ?? d.reason}</div>
+                  <textarea
+                    className="w-full text-sm border border-stone-200 rounded-lg px-3 py-2 mb-2 min-h-[60px] focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    defaultValue={d.proposed_text}
+                    onChange={(e) => setDraftEdits((prev) => ({ ...prev, [d.id]: e.target.value }))}
+                  />
+                  <div className="flex justify-end gap-2">
+                    <button
+                      onClick={() => rejectDraft(d.id, activeContact.line_user_id)}
+                      disabled={draftBusyId === d.id}
+                      className="text-xs font-medium px-3 py-1.5 rounded-lg border border-stone-200 text-stone-600 hover:bg-stone-50 disabled:opacity-40"
+                    >
+                      ยกเลิก
+                    </button>
+                    <button
+                      onClick={() => sendDraft(d.id, activeContact.line_user_id)}
+                      disabled={draftBusyId === d.id}
+                      className="text-xs font-medium px-3 py-1.5 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-40"
+                    >
+                      {draftBusyId === d.id ? "กำลังส่ง..." : "ส่งให้ลูกค้า"}
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Chat thread — LINE-style bubbles, both sides */}
+          <div className="flex-1 overflow-y-auto p-3 space-y-2 bg-[#e5ece5]">
+            {detailLoading && <div className="text-xs text-stone-400 text-center py-8 animate-pulse">กำลังโหลด...</div>}
+            {!detailLoading && detail?.messages.map((m) => (
+              <div key={m.id} className={"flex " + (m.direction === "out" ? "justify-end" : "justify-start")}>
+                <div className={"max-w-[70%] rounded-lg px-3 py-2 shadow-sm " + (m.direction === "out" ? "bg-[#a8e2a0]" : "bg-white border border-stone-200")}>
+                  <p className="text-xs text-stone-800 whitespace-pre-line">{m.raw_text ?? `[${m.raw_type}]`}</p>
+                  <p className="text-[9px] text-stone-500 mt-1 text-right">{fmtTime(m.created_at)}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Business events + documents — collapsed detail, not part of the chat scroll */}
+          {!detailLoading && detail && (
+            <details className="border-t border-stone-200 bg-white flex-shrink-0 max-h-64 overflow-y-auto">
+              <summary className="px-4 py-2 text-xs font-semibold text-stone-500 cursor-pointer select-none hover:text-stone-800">
+                รายละเอียดเพิ่มเติม (Business Events {detail.events.length} · เอกสาร {detail.documents.length})
+              </summary>
+              <div className="px-4 pb-4 space-y-4">
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="text-[10px] font-bold text-stone-400 uppercase tracking-wide">Business Events</div>
+                    <button
+                      onClick={() => buildEvent(activeContact.line_user_id)}
+                      disabled={building || detail.unlinkedCount === 0}
+                      className="text-[11px] font-medium px-2.5 py-1 rounded-lg border border-emerald-200 text-emerald-700 hover:bg-emerald-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
+                    >
+                      {building ? "กำลังสร้าง..." : detail.unlinkedCount === 0 ? "ไม่มีข้อความใหม่" : `สร้าง Event จาก ${detail.unlinkedCount} ข้อความใหม่`}
+                    </button>
+                  </div>
+                  {buildError && <div className="text-xs text-rose-600 bg-rose-50 border border-rose-100 rounded-lg px-3 py-2 mb-2">{buildError}</div>}
+                  {detail.events.length === 0 ? (
+                    <div className="text-xs text-stone-400">ยังไม่มี Event ที่สร้างจากข้อความกลุ่มนี้</div>
+                  ) : (
+                    <div className="space-y-1.5">
+                      {detail.events.map((ev) => (
+                        <div key={ev.id} className="bg-stone-50 border border-stone-200 rounded-lg px-3 py-2">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs font-mono font-semibold text-emerald-700">{ev.event_code}</span>
+                            <span className="text-[11px] px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">{ev.status}</span>
+                          </div>
+                          <div className="mt-1 text-xs text-stone-700">
+                            {ev.material_text ?? "—"} {ev.quantity ? `${ev.quantity} ${ev.quantity_unit ?? ""}` : ""} {ev.destination ? `→ ${ev.destination}` : ""}
+                          </div>
+                          {ev.schedule_text && <div className="text-[11px] text-stone-500 mt-0.5">กำหนด: {ev.schedule_text}</div>}
+                          <div className="text-[11px] text-stone-400 mt-0.5">ความมั่นใจ: {Math.round(ev.confidence * 100)}%</div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <div>
+                  <div className="text-[10px] font-bold text-stone-400 uppercase tracking-wide mb-2">เอกสาร</div>
+                  {detail.documents.length === 0 ? (
+                    <div className="text-xs text-stone-400">ไม่มีเอกสารที่จับคู่ได้</div>
+                  ) : (
+                    <div className="space-y-1">
+                      {detail.documents.map((d) => (
+                        <div key={d.id} className="flex justify-between text-xs bg-stone-50 border border-stone-200 rounded-lg px-3 py-1.5">
+                          <span className="text-stone-700">{d.invoice_no ?? d.document_no} <span className="text-stone-400">({d.invoice_status ?? d.document_type})</span></span>
+                          <span className="font-medium text-stone-800 tabular-nums">{formatMoney(d.total_amount)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </details>
+          )}
+        </div>
+      )}
+    </AppShell>
   )
 }
