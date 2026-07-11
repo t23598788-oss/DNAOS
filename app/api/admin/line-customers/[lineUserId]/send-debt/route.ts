@@ -61,5 +61,32 @@ export async function POST(_req: Request, { params }: Params) {
     direction: "out",
   })
 
+  // Owner-reported gap 2026-07-11: after this card goes out, a customer
+  // reply like "รับทราบครับ" fell into the generic "เดี๋ยวเช็คให้นะครับ"
+  // fallback, which makes no sense as a reply to an acknowledgment. This
+  // row is what supabase/functions/line-webhook-v2/engines/debt-followup.ts
+  // looks for to ask a real follow-up (the payment date) instead. A
+  // dedicated status (not awaiting_info/ready_to_quote) keeps this out of
+  // the quotation queue, which isn't relevant here.
+  const { count } = await db
+    .from("business_events").select("id", { count: "exact", head: true })
+    .gte("created_at", new Date().toISOString().slice(0, 10))
+  const yy = new Date().getFullYear().toString().slice(-2)
+  const mm = String(new Date().getMonth() + 1).padStart(2, "0")
+  const dd = String(new Date().getDate()).padStart(2, "0")
+  const eventCode = `EV${yy}${mm}${dd}-${String((count ?? 0) + 1).padStart(4, "0")}`
+
+  await db.from("business_events").insert({
+    event_code: eventCode,
+    event_type: "แจ้งชำระเงิน",
+    event_date: new Date().toISOString().slice(0, 10),
+    title: `แจ้งยอดค้างชำระ ${Number(debt.total_outstanding).toLocaleString("th-TH")} บาท`,
+    source_line_user_id: lineUserId,
+    partner_id: company.id,
+    status: "awaiting_payment_date",
+    confidence: 1,
+    updated_at: new Date().toISOString(),
+  })
+
   return NextResponse.json({ ok: true })
 }

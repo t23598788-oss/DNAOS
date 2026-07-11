@@ -4,6 +4,7 @@ import { ResponseGateway } from "../engines/response.ts"
 import { tryRouteToTool } from "../engines/tool-router.ts"
 import { tryCompleteAwaitingEvent } from "../engines/event-followup.ts"
 import { tryAutoBuildEvent } from "../engines/auto-build-event.ts"
+import { tryFollowUpDebtAck } from "../engines/debt-followup.ts"
 
 export async function handleText(ctx: HandlerContext): Promise<void> {
   const msgEvent = ctx.event as LineMessageEvent
@@ -58,6 +59,19 @@ export async function handleText(ctx: HandlerContext): Promise<void> {
     const builtReply = await tryAutoBuildEvent(ctx.supabase, ctx.userId)
     if (builtReply) {
       await ResponseGateway.replyText(ctx.replyToken, builtReply)
+      return
+    }
+  }
+
+  // Owner-reported bug 2026-07-11: a plain "รับทราบครับ" reply to a debt
+  // reminder card fell into the generic fallback below ("เดี๋ยวเช็คให้นะครับ"
+  // — nonsensical, there's nothing to check). If we're waiting on this
+  // contact for a payment date, handle that specifically before falling
+  // back to the generic holding reply.
+  if (ctx.userId) {
+    const debtFollowup = await tryFollowUpDebtAck(ctx.supabase, ctx.userId, text)
+    if (debtFollowup) {
+      await ResponseGateway.replyText(ctx.replyToken, debtFollowup)
       return
     }
   }

@@ -4423,6 +4423,16 @@
         "POST"
       ],
       "status": "active"
+    },
+    "supabase/functions/line-webhook-v2/engines/debt-followup.ts": {
+      "owner": "supabase",
+      "layer": "supabase",
+      "purpose": "Handles the two real cases after a debt-reminder card is sent: a plain acknowledgment (asks for a payment date) vs. an actual date reply (records it verbatim to business_events.schedule_text, never parses/guesses)",
+      "purpose_th": "แยกกรณีตอบกลับหลังส่งการ์ดแจ้งหนี้ — รับทราบเฉยๆ ถามวันที่ต่อ / ตอบวันที่มาแล้ว บันทึกจริงไม่เดารูปแบบ",
+      "exports": [
+        "tryFollowUpDebtAck"
+      ],
+      "status": "active"
     }
   },
   "excluded": [
