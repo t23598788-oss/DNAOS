@@ -4397,8 +4397,30 @@
       "purpose": "LINE Flex Message card builder for real documents (quotation/invoice/delivery/receipt) — modeled on the real LINE receipt template shown in the Flex Simulator, adapted from the previously-unused boq-card.ts",
       "purpose_th": "สร้างการ์ด LINE Flex Message จากเอกสารจริง (ใบเสนอราคา/ใบแจ้งหนี้/ใบส่งของ/ใบเสร็จ) ตามแบบ Flex Simulator ของ LINE เอง ต่อยอดจาก boq-card.ts เดิมที่ไม่เคยถูกเรียกใช้",
       "exports": [
+        "DebtReminderFlexProps",
         "DocumentFlexProps",
+        "debtReminderFlex",
         "documentFlex"
+      ],
+      "status": "active"
+    },
+    "app/api/admin/line-customers/[lineUserId]/send-debt/route.ts": {
+      "owner": "admin",
+      "layer": "api",
+      "purpose": "One-click send of a real debt reminder Flex card to a LINE customer, re-reading debt_snapshots fresh server-side rather than trusting client-cached figures",
+      "purpose_th": "ส่งการ์ดแจ้งยอดค้างชำระจริงหาลูกค้าด้วยคลิกเดียว อ่านยอดหนี้จริงจาก DB ฝั่ง server ใหม่ทุกครั้งก่อนส่ง",
+      "exports": [
+        "POST"
+      ],
+      "status": "active"
+    },
+    "app/api/admin/line-customers/[lineUserId]/send-document/route.ts": {
+      "owner": "admin",
+      "layer": "api",
+      "purpose": "One-click send of an existing invoice/standalone_document as a real LINE Flex card, not just newly-created ones",
+      "purpose_th": "ส่งเอกสารที่มีอยู่แล้ว (ไม่ใช่แค่เอกสารที่เพิ่งสร้าง) เป็นการ์ด LINE Flex จริงด้วยคลิกเดียว",
+      "exports": [
+        "POST"
       ],
       "status": "active"
     }

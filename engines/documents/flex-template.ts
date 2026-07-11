@@ -21,7 +21,12 @@ export interface DocumentFlexProps {
   documentType: DocType;
   documentNumber: string;
   partyName: string;
-  items: DocItem[];
+  // Optional — existing invoices/standalone_documents in the real DB don't
+  // store line items (standalone_document_items was dropped in the
+  // 2026-07-10 cleanup), so sending an already-saved document only has
+  // totals to show. New documents created through the chat flow still pass
+  // real items for a fuller card.
+  items?: DocItem[];
   summary: { subtotal: number; vat: number; total: number };
 }
 
@@ -29,7 +34,7 @@ export function documentFlex({ documentType, documentNumber, partyName, items, s
   const label = DOC_LABELS[documentType] ?? DOC_LABELS.quotation;
   const color = HEADER_COLOR[documentType] ?? "#37474F";
 
-  const itemRows = items.slice(0, 10).flatMap((item) => [
+  const itemRows = (items ?? []).slice(0, 10).flatMap((item) => [
     {
       type: "box",
       layout: "horizontal",
@@ -101,6 +106,50 @@ export function documentFlex({ documentType, documentNumber, partyName, items, s
             { type: "text", text: summary.total.toLocaleString("th-TH", { minimumFractionDigits: 2 }) + " ฿", weight: "bold", color, align: "end", flex: 2 },
           ],
         },
+      ],
+    },
+  };
+}
+
+export interface DebtReminderFlexProps {
+  companyName: string;
+  totalOutstanding: number;
+  daysOverdue: number;
+}
+
+export function debtReminderFlex({ companyName, totalOutstanding, daysOverdue }: DebtReminderFlexProps): object {
+  const severe = daysOverdue > 30;
+  const color = severe ? "#C62828" : "#EF6C00";
+
+  return {
+    type: "bubble",
+    size: "kilo",
+    header: {
+      type: "box",
+      layout: "vertical",
+      backgroundColor: color,
+      paddingAll: "16px",
+      contents: [
+        { type: "text", text: "แจ้งยอดค้างชำระ", color: "#FFFFFF", weight: "bold", size: "md" },
+      ],
+    },
+    body: {
+      type: "box",
+      layout: "vertical",
+      spacing: "sm",
+      contents: [
+        { type: "text", text: companyName, weight: "bold", size: "sm", wrap: true },
+        { type: "separator", margin: "sm" },
+        {
+          type: "box",
+          layout: "horizontal",
+          margin: "sm",
+          contents: [
+            { type: "text", text: "ยอดค้างชำระ", flex: 3 },
+            { type: "text", text: totalOutstanding.toLocaleString("th-TH", { minimumFractionDigits: 2 }) + " ฿", weight: "bold", color, align: "end", flex: 2 },
+          ],
+        },
+        { type: "text", text: `ผิดนัดชำระ ${daysOverdue} วัน`, size: "xs", color: "#888888" },
       ],
     },
   };

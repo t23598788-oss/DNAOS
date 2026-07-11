@@ -225,6 +225,7 @@ async function executeDocumentCommand(tool: string, args: Record<string, string>
     document_type: documentType,
     document_number: docNumber,
     party_name: resolved.name,
+    customer_company_id: resolved.id || undefined,
     net_amount: rendered.summary.total,
     issue_date: docData.date,
     note: docData.notes,

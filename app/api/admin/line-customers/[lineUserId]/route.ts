@@ -51,7 +51,13 @@ export async function GET(_req: Request, { params }: Params) {
       db.from("standalone_documents").select("id, document_no, document_type, total_amount, document_date").eq("customer_company_id", company.id),
       db.from("debt_snapshots").select("total_outstanding, collection_state, days_overdue, debt_start_at").eq("customer_company_id", company.id).maybeSingle(),
     ])
-    documents = [...(invoices ?? []), ...(standalone ?? [])]
+    // Tag each row with which real table it came from — the send-document
+    // route needs to know where to re-read it from (owner request 2026-07-11:
+    // existing documents get a "ส่ง" button too, not just newly-created ones).
+    documents = [
+      ...(invoices ?? []).map((d) => ({ ...d, table: "invoices" as const })),
+      ...(standalone ?? []).map((d) => ({ ...d, table: "standalone_documents" as const })),
+    ]
     debt = debtRow ?? null
   }
 

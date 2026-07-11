@@ -67,6 +67,7 @@ interface DocRow {
   total_amount: number
   invoice_date?: string
   document_date?: string
+  table: "invoices" | "standalone_documents"
 }
 
 interface BizEvent {
@@ -351,6 +352,42 @@ export default function LineCustomersPage() {
     }
   }, [])
 
+  // Owner request 2026-07-11: the debt figure and existing documents shown
+  // in this page were passive display only — these actually push a real
+  // LINE Flex card to the customer, right from this one screen.
+  const sendDebt = useCallback(async (lineUserId: string) => {
+    setActionSending(true)
+    setActionLog((log) => [...log, { id: nextActionLogId(), role: "user", text: "💰 ส่งแจ้งยอดค้างชำระ" }])
+    try {
+      const res = await fetch(`/api/admin/line-customers/${lineUserId}/send-debt`, { method: "POST" })
+      const data = await res.json()
+      setActionLog((log) => [...log, { id: nextActionLogId(), role: "system", text: data.ok ? "✅ ส่งแจ้งยอดค้างชำระให้ลูกค้าแล้ว" : `ส่งไม่สำเร็จ: ${data.error ?? "ไม่ทราบสาเหตุ"}` }])
+    } catch {
+      setActionLog((log) => [...log, { id: nextActionLogId(), role: "system", text: "ส่งไม่สำเร็จ ลองใหม่อีกครั้งครับ" }])
+    } finally {
+      setActionSending(false)
+    }
+  }, [])
+
+  const sendDocument = useCallback(async (lineUserId: string, doc: DocRow) => {
+    const label = doc.invoice_no ?? doc.document_no ?? ""
+    setActionSending(true)
+    setActionLog((log) => [...log, { id: nextActionLogId(), role: "user", text: `📄 ส่งเอกสาร ${label}` }])
+    try {
+      const res = await fetch(`/api/admin/line-customers/${lineUserId}/send-document`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ table: doc.table, documentId: doc.id }),
+      })
+      const data = await res.json()
+      setActionLog((log) => [...log, { id: nextActionLogId(), role: "system", text: data.ok ? `✅ ส่ง ${label} ให้ลูกค้าแล้ว` : `ส่งไม่สำเร็จ: ${data.error ?? "ไม่ทราบสาเหตุ"}` }])
+    } catch {
+      setActionLog((log) => [...log, { id: nextActionLogId(), role: "system", text: "ส่งไม่สำเร็จ ลองใหม่อีกครั้งครับ" }])
+    } finally {
+      setActionSending(false)
+    }
+  }, [])
+
   const listItems: ListColumnItem[] = contacts.map((c) => ({
     id: c.line_user_id,
     title: c.line_name ?? "ไม่ทราบชื่อ",
@@ -465,9 +502,18 @@ export default function LineCustomersPage() {
               )}
             </div>
             {activeContact.debt && (
-              <div className="text-right flex-shrink-0">
-                <p className="text-xs font-semibold text-rose-600">{formatMoney(activeContact.debt.total_outstanding)} บาท</p>
-                <p className="text-[10px] text-stone-400">ผิดนัด {activeContact.debt.days_overdue} วัน</p>
+              <div className="text-right flex-shrink-0 flex items-center gap-2">
+                <div>
+                  <p className="text-xs font-semibold text-rose-600">{formatMoney(activeContact.debt.total_outstanding)} บาท</p>
+                  <p className="text-[10px] text-stone-400">ผิดนัด {activeContact.debt.days_overdue} วัน</p>
+                </div>
+                <button
+                  onClick={() => sendDebt(activeContact.line_user_id)}
+                  disabled={actionSending}
+                  className="text-[11px] font-medium px-2.5 py-1.5 rounded-lg border border-rose-200 text-rose-700 hover:bg-rose-50 disabled:opacity-40 transition"
+                >
+                  ส่ง
+                </button>
               </div>
             )}
           </div>
@@ -667,9 +713,16 @@ export default function LineCustomersPage() {
                   ) : (
                     <div className="space-y-1">
                       {detail.documents.map((d) => (
-                        <div key={d.id} className="flex justify-between text-xs bg-stone-50 border border-stone-200 rounded-lg px-3 py-1.5">
+                        <div key={d.id} className="flex items-center justify-between text-xs bg-stone-50 border border-stone-200 rounded-lg px-3 py-1.5 gap-2">
                           <span className="text-stone-700">{d.invoice_no ?? d.document_no} <span className="text-stone-400">({d.invoice_status ?? d.document_type})</span></span>
                           <span className="font-medium text-stone-800 tabular-nums">{formatMoney(d.total_amount)}</span>
+                          <button
+                            onClick={() => sendDocument(activeContact.line_user_id, d)}
+                            disabled={actionSending}
+                            className="text-[10px] font-medium px-2 py-1 rounded-lg border border-emerald-200 text-emerald-700 hover:bg-emerald-50 disabled:opacity-40 transition flex-shrink-0"
+                          >
+                            ส่ง
+                          </button>
                         </div>
                       ))}
                     </div>
