@@ -267,6 +267,11 @@ export async function executeDocumentCreate(payload: {
         vat_amount: rendered.summary.vat,
         total_amount: rendered.summary.total,
         notes: payload.note,
+        // Real gap caught by testing 2026-07-11: `updated_at` has no DB
+        // default on invoices/standalone_documents (same pattern as
+        // customer_sites/projects/document_groups/customer_orders found
+        // earlier this session) — omitting it fails the NOT NULL constraint.
+        updated_at: new Date().toISOString(),
       })
       .select("id, invoice_status")
       .single();
@@ -290,6 +295,7 @@ export async function executeDocumentCreate(payload: {
         vat_amount: rendered.summary.vat,
         total_amount: rendered.summary.total,
         notes: payload.note,
+        updated_at: new Date().toISOString(),
       })
       .select("id")
       .single();
