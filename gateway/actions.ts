@@ -272,6 +272,7 @@ export async function executeDocumentCreate(payload: {
       status: data.status,
       html: rendered.html,
       summary: rendered.summary,
+      items,
       presenter: {
         title: `${rendered.label.th} ${data.document_number}`,
         summary: `${data.party_name} • ${rendered.summary.total.toLocaleString("th-TH")} บาท`,

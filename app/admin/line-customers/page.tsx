@@ -282,14 +282,15 @@ export default function LineCustomersPage() {
       const res = await fetch("/api/chat/confirm", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: entry.confirmAction, preview_token: entry.confirmToken }),
+        body: JSON.stringify({ action: entry.confirmAction, preview_token: entry.confirmToken, lineUserId: activeId }),
       })
       const data = await res.json()
-      setActionLog((log) => [...log, {
-        id: nextActionLogId(),
-        role: "system",
-        text: data.ok ? "✅ บันทึกเรียบร้อยครับ" : `ยืนยันไม่สำเร็จ: ${data.error ?? "ไม่ทราบสาเหตุ"}`,
-      }])
+      const text = !data.ok
+        ? `ยืนยันไม่สำเร็จ: ${data.error ?? "ไม่ทราบสาเหตุ"}`
+        : data.line_send_error
+        ? `✅ บันทึกเรียบร้อยครับ แต่${data.line_send_error}`
+        : "✅ บันทึกและส่งให้ลูกค้าทาง LINE เรียบร้อยครับ"
+      setActionLog((log) => [...log, { id: nextActionLogId(), role: "system", text }])
       if (data.ok && activeId) await loadDetail(activeId)
     } catch {
       setActionLog((log) => [...log, { id: nextActionLogId(), role: "system", text: "ยืนยันไม่สำเร็จ ลองใหม่อีกครั้งครับ" }])

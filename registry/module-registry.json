@@ -4390,6 +4390,17 @@
         "PATCH"
       ],
       "status": "active"
+    },
+    "engines/documents/flex-template.ts": {
+      "owner": "engines",
+      "layer": "engines",
+      "purpose": "LINE Flex Message card builder for real documents (quotation/invoice/delivery/receipt) — modeled on the real LINE receipt template shown in the Flex Simulator, adapted from the previously-unused boq-card.ts",
+      "purpose_th": "สร้างการ์ด LINE Flex Message จากเอกสารจริง (ใบเสนอราคา/ใบแจ้งหนี้/ใบส่งของ/ใบเสร็จ) ตามแบบ Flex Simulator ของ LINE เอง ต่อยอดจาก boq-card.ts เดิมที่ไม่เคยถูกเรียกใช้",
+      "exports": [
+        "DocumentFlexProps",
+        "documentFlex"
+      ],
+      "status": "active"
     }
   },
   "excluded": [
