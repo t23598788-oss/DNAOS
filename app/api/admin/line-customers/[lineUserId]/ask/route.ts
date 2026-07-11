@@ -50,7 +50,7 @@ export async function POST(req: NextRequest, { params }: Params) {
       : null
 
     const quantity = extractQuantity(question)
-    const text = await tryQuoteMaterialPrice(question, quantity, gps)
+    const { text } = await tryQuoteMaterialPrice(question, quantity, gps)
     return NextResponse.json({ sender: "ai", type: "text", text })
   }
 

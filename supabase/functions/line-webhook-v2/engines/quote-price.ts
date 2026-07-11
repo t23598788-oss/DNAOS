@@ -48,16 +48,26 @@ async function resolveGps(supabase: any, userId: string, destinationText: string
   return null
 }
 
+export interface QuoteResult {
+  // true only when a real price was found and computed — event-followup.ts
+  // uses this to decide whether the event is actually resolved or should
+  // stay visible in the quotation queue (owner-reported bug 2026-07-11:
+  // every reply — even an apology — was marked "quoted", so unresolvable
+  // price requests silently vanished from the queue).
+  ok: boolean
+  text: string
+}
+
 export async function tryQuoteMaterialPrice(
   supabase: any,
   userId: string,
   materialText: string,
   quantity: number | string,
   destination: string | null
-): Promise<string> {
+): Promise<QuoteResult> {
   const { data: materialTypes } = await supabase.from("material_types").select("id, name")
   const material = resolveOne(materialText, materialTypes ?? [])
-  if (!material) return "เดี๋ยวขอเช็ควัสดุให้ชัดเจนอีกครั้งครับ"
+  if (!material) return { ok: false, text: "เดี๋ยวขอเช็ควัสดุให้ชัดเจนอีกครั้งครับ" }
 
   const gps = await resolveGps(supabase, userId, destination)
   if (!gps) {
@@ -75,10 +85,10 @@ export async function tryQuoteMaterialPrice(
         .eq("customer_company_id", link.company_id).eq("is_active", true)
         .order("updated_at", { ascending: false }).limit(1).maybeSingle()
       if (site) {
-        return `ส่งที่หน้างานเดิม "${site.site_name || site.address}" ไหมครับ ถ้าใช่พิมพ์ยืนยันได้เลย ถ้าเป็นหน้างานใหม่รบกวนแชร์พิกัด GPS ให้หน่อยครับ`
+        return { ok: false, text: `ส่งที่หน้างานเดิม "${site.site_name || site.address}" ไหมครับ ถ้าใช่พิมพ์ยืนยันได้เลย ถ้าเป็นหน้างานใหม่รบกวนแชร์พิกัด GPS ให้หน่อยครับ` }
       }
     }
-    return "รบกวนแชร์พิกัด GPS หรือแจ้งสถานที่จัดส่งด้วยครับ เดี๋ยวแจ้งราคาให้ทันทีครับ"
+    return { ok: false, text: "รบกวนแชร์พิกัด GPS หรือแจ้งสถานที่จัดส่งด้วยครับ เดี๋ยวแจ้งราคาให้ทันทีครับ" }
   }
 
   const { data: pits } = await supabase
@@ -99,7 +109,7 @@ export async function tryQuoteMaterialPrice(
   const candidates = (pits ?? []).filter((p: any) => pitIdsSellingMaterial.has(p.id))
 
   if (candidates.length === 0) {
-    return `ขออภัยครับ ตอนนี้ยังไม่มีบ่อไหนในระบบตั้งราคา "${material.name}" ไว้ เดี๋ยวเช็คให้แล้วแจ้งกลับครับ`
+    return { ok: false, text: `ขออภัยครับ ตอนนี้ยังไม่มีบ่อไหนในระบบตั้งราคา "${material.name}" ไว้ เดี๋ยวเช็คให้แล้วแจ้งกลับครับ` }
   }
 
   let nearest: { id: string; name: string; distance_km: number } | null = null
@@ -107,14 +117,17 @@ export async function tryQuoteMaterialPrice(
     const d = haversine(gps.lat, gps.lng, parseFloat(pit.latitude), parseFloat(pit.longitude))
     if (!nearest || d < nearest.distance_km) nearest = { id: pit.id, name: pit.pit_name, distance_km: d }
   }
-  if (!nearest) return "เดี๋ยวแจ้งราคากลับไปครับ"
+  if (!nearest) return { ok: false, text: "เดี๋ยวแจ้งราคากลับไปครับ" }
 
   const priceRow = (pitMaterials ?? []).find((pm: any) => pm.pit_profile_id === nearest!.id)
   const unitPrice = Number(priceRow?.price)
-  if (!unitPrice) return "เดี๋ยวแจ้งราคากลับไปครับ ขอเช็คราคาก่อนนะครับ"
+  if (!unitPrice) return { ok: false, text: "เดี๋ยวแจ้งราคากลับไปครับ ขอเช็คราคาก่อนนะครับ" }
 
   const qty = Number(quantity)
   const total = unitPrice * qty
 
-  return `${material.name} ที่บ่อ "${nearest.name}" (ห่างประมาณ ${nearest.distance_km.toFixed(1)} กม.) ราคา ${unitPrice.toLocaleString()} บาท/คิว รวม ${qty} คิว = ${total.toLocaleString()} บาท (ยังไม่รวมค่าขนส่งครับ)`
+  return {
+    ok: true,
+    text: `${material.name} ที่บ่อ "${nearest.name}" (ห่างประมาณ ${nearest.distance_km.toFixed(1)} กม.) ราคา ${unitPrice.toLocaleString()} บาท/คิว รวม ${qty} คิว = ${total.toLocaleString()} บาท (ยังไม่รวมค่าขนส่งครับ)`,
+  }
 }

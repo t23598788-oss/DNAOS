@@ -1,9 +1,10 @@
 'use client'
 
-import { useState, useEffect, useMemo } from "react"
+import { Fragment, useState, useEffect, useMemo, useCallback } from "react"
 import Link from "next/link"
 
 interface PitMaterial {
+  material_type_id: string
   name: string
   price: number
 }
@@ -19,20 +20,86 @@ interface Pit {
   active: boolean
 }
 
+interface MaterialType {
+  id: string
+  name: string
+}
+
 export default function PitsPage() {
   const [pits, setPits] = useState<Pit[]>([])
+  const [materialTypes, setMaterialTypes] = useState<MaterialType[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState("")
   const [statusFilter, setStatusFilter] = useState<"" | "active" | "inactive">("")
   const [priceFilter, setPriceFilter] = useState<"" | "yes" | "no">("")
   const [sortKey, setSortKey] = useState<"name" | "province" | "materials">("name")
 
-  useEffect(() => {
+  // Owner-reported gap 2026-07-11: this page could only SHOW that 91 of 96
+  // pits had no price set — no way to actually enter one. This is the
+  // missing write path.
+  const [editingPitId, setEditingPitId] = useState<string | null>(null)
+  const [newMaterialId, setNewMaterialId] = useState("")
+  const [newPrice, setNewPrice] = useState("")
+  const [editLat, setEditLat] = useState("")
+  const [editLng, setEditLng] = useState("")
+  const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState<string | null>(null)
+
+  const load = useCallback(() => {
+    setLoading(true)
     fetch("/api/admin/pits")
       .then((r) => r.json())
-      .then((d) => setPits(d.pits ?? []))
+      .then((d) => { setPits(d.pits ?? []); setMaterialTypes(d.materialTypes ?? []) })
       .finally(() => setLoading(false))
   }, [])
+
+  useEffect(() => { load() }, [load])
+
+  const startEdit = (pit: Pit) => {
+    setEditingPitId(pit.id)
+    setNewMaterialId("")
+    setNewPrice("")
+    setEditLat(pit.lat != null ? String(pit.lat) : "")
+    setEditLng(pit.lng != null ? String(pit.lng) : "")
+    setSaveError(null)
+  }
+
+  const saveMaterialPrice = async (pitId: string) => {
+    if (!newMaterialId || !newPrice.trim()) return
+    setSaving(true)
+    setSaveError(null)
+    try {
+      const res = await fetch(`/api/admin/pits/${pitId}/materials`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ material_type_id: newMaterialId, price: Number(newPrice) }),
+      })
+      const d = await res.json()
+      if (!res.ok) { setSaveError(d.error ?? "บันทึกราคาไม่สำเร็จ"); return }
+      setNewMaterialId("")
+      setNewPrice("")
+      load()
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const saveGps = async (pitId: string) => {
+    setSaving(true)
+    setSaveError(null)
+    try {
+      const res = await fetch(`/api/admin/pits/${pitId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ latitude: Number(editLat), longitude: Number(editLng) }),
+      })
+      const d = await res.json()
+      if (!res.ok) { setSaveError(d.error ?? "บันทึกพิกัดไม่สำเร็จ"); return }
+      load()
+    } finally {
+      setSaving(false)
+    }
+  }
 
   const stats = useMemo(() => {
     const active = pits.filter((p) => p.active).length
@@ -175,37 +242,89 @@ export default function PitsPage() {
                 <th className="text-left font-bold uppercase tracking-wide px-3 py-2.5">พิกัด GPS</th>
                 <th className="text-left font-bold uppercase tracking-wide px-3 py-2.5">วัสดุที่มีราคา</th>
                 <th className="text-right font-bold uppercase tracking-wide px-4 py-2.5">สถานะ</th>
+                <th className="px-3 py-2.5"></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-stone-100">
-              {loading && <tr><td colSpan={5} className="text-center text-stone-500 py-8 animate-pulse">โหลด...</td></tr>}
-              {!loading && filtered.length === 0 && <tr><td colSpan={5} className="text-center text-stone-500 py-8">ไม่พบบ่อที่ตรงเงื่อนไข</td></tr>}
-              {filtered.map((p) => (
-                <tr key={p.id} className="hover:bg-stone-50 transition">
-                  <td className="px-4 py-3">
-                    <div className="font-semibold text-stone-900">{p.name}</div>
-                    <div className="text-xs text-stone-400 mt-0.5 max-w-[32ch] truncate">{p.address}</div>
-                  </td>
-                  <td className="px-3 py-3 text-stone-700">{p.province ?? "—"}</td>
-                  <td className="px-3 py-3 text-stone-500 tabular-nums text-xs whitespace-nowrap">
-                    {p.lat ? `${p.lat.toFixed(4)}, ${p.lng!.toFixed(4)}` : "—"}
-                  </td>
-                  <td className="px-3 py-3">
-                    {p.materials.length > 0 ? (
-                      <span className="text-stone-700 text-xs">
-                        {p.materials.map((m) => `${m.name} (${m.price.toLocaleString()}฿)`).join(", ")}
-                      </span>
-                    ) : (
-                      <span className="text-stone-400 italic text-xs">ยังไม่มีราคา</span>
+              {loading && <tr><td colSpan={6} className="text-center text-stone-500 py-8 animate-pulse">โหลด...</td></tr>}
+              {!loading && filtered.length === 0 && <tr><td colSpan={6} className="text-center text-stone-500 py-8">ไม่พบบ่อที่ตรงเงื่อนไข</td></tr>}
+              {filtered.map((p) => {
+                const isEditing = editingPitId === p.id
+                const unpriced = materialTypes.filter((mt) => !p.materials.some((m) => m.material_type_id === mt.id))
+                return (
+                  <Fragment key={p.id}>
+                    <tr className="hover:bg-stone-50 transition">
+                      <td className="px-4 py-3">
+                        <div className="font-semibold text-stone-900">{p.name}</div>
+                        <div className="text-xs text-stone-400 mt-0.5 max-w-[32ch] truncate">{p.address}</div>
+                      </td>
+                      <td className="px-3 py-3 text-stone-700">{p.province ?? "—"}</td>
+                      <td className="px-3 py-3 text-stone-500 tabular-nums text-xs whitespace-nowrap">
+                        {p.lat ? `${p.lat.toFixed(4)}, ${p.lng!.toFixed(4)}` : "—"}
+                      </td>
+                      <td className="px-3 py-3">
+                        {p.materials.length > 0 ? (
+                          <span className="text-stone-700 text-xs">
+                            {p.materials.map((m) => `${m.name} (${m.price.toLocaleString()}฿)`).join(", ")}
+                          </span>
+                        ) : (
+                          <span className="text-stone-400 italic text-xs">ยังไม่มีราคา</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${p.active ? "bg-emerald-50 text-emerald-700 border border-emerald-200" : "bg-stone-100 text-stone-500 border border-stone-200"}`}>
+                          {p.active ? "ใช้งานอยู่" : "ปิด/ลบแล้ว"}
+                        </span>
+                      </td>
+                      <td className="px-3 py-3 text-right">
+                        <button
+                          onClick={() => isEditing ? setEditingPitId(null) : startEdit(p)}
+                          className="text-[11px] font-medium px-2.5 py-1 rounded-lg border border-amber-200 text-amber-700 hover:bg-amber-50 transition"
+                        >
+                          {isEditing ? "ปิด" : "แก้ไข"}
+                        </button>
+                      </td>
+                    </tr>
+                    {isEditing && (
+                      <tr className="bg-amber-50/40">
+                        <td colSpan={6} className="px-4 py-4">
+                          {saveError && <div className="text-xs text-rose-600 bg-rose-50 border border-rose-200 rounded-lg px-3 py-2 mb-3">{saveError}</div>}
+                          <div className="grid md:grid-cols-2 gap-4">
+                            <div>
+                              <div className="text-[11px] font-bold text-stone-500 uppercase tracking-wide mb-2">พิกัด GPS</div>
+                              <div className="flex gap-2">
+                                <input value={editLat} onChange={(e) => setEditLat(e.target.value)} placeholder="latitude" className="w-32 text-xs border border-stone-300 rounded-lg px-2 py-1.5" />
+                                <input value={editLng} onChange={(e) => setEditLng(e.target.value)} placeholder="longitude" className="w-32 text-xs border border-stone-300 rounded-lg px-2 py-1.5" />
+                                <button onClick={() => saveGps(p.id)} disabled={saving} className="text-xs font-medium px-3 py-1.5 rounded-lg bg-stone-800 text-white disabled:opacity-40">บันทึกพิกัด</button>
+                              </div>
+                            </div>
+                            <div>
+                              <div className="text-[11px] font-bold text-stone-500 uppercase tracking-wide mb-2">เพิ่ม/แก้ราคาวัสดุ</div>
+                              <div className="flex gap-2">
+                                <select value={newMaterialId} onChange={(e) => setNewMaterialId(e.target.value)} className="text-xs border border-stone-300 rounded-lg px-2 py-1.5 bg-white flex-1">
+                                  <option value="">เลือกวัสดุ...</option>
+                                  {p.materials.length > 0 && (
+                                    <optgroup label="มีราคาแล้ว — แก้ไข">
+                                      {p.materials.map((m) => <option key={m.material_type_id} value={m.material_type_id}>{m.name} (ปัจจุบัน {m.price.toLocaleString()}฿)</option>)}
+                                    </optgroup>
+                                  )}
+                                  {unpriced.length > 0 && (
+                                    <optgroup label="ยังไม่มีราคา">
+                                      {unpriced.map((mt) => <option key={mt.id} value={mt.id}>{mt.name}</option>)}
+                                    </optgroup>
+                                  )}
+                                </select>
+                                <input value={newPrice} onChange={(e) => setNewPrice(e.target.value)} placeholder="ราคา/คิว" className="w-24 text-xs border border-stone-300 rounded-lg px-2 py-1.5" />
+                                <button onClick={() => saveMaterialPrice(p.id)} disabled={saving || !newMaterialId || !newPrice.trim()} className="text-xs font-medium px-3 py-1.5 rounded-lg bg-emerald-600 text-white disabled:opacity-40">บันทึก</button>
+                              </div>
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
                     )}
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${p.active ? "bg-emerald-50 text-emerald-700 border border-emerald-200" : "bg-stone-100 text-stone-500 border border-stone-200"}`}>
-                      {p.active ? "ใช้งานอยู่" : "ปิด/ลบแล้ว"}
-                    </span>
-                  </td>
-                </tr>
-              ))}
+                  </Fragment>
+                )
+              })}
             </tbody>
           </table>
         </div>

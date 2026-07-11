@@ -226,9 +226,17 @@ export async function tryCompleteAwaitingEvent(
     // status with nothing ever actually calling the pricing engine — this
     // closes it for real, material price only (no vehicle/trip/transport,
     // that's a separate piece per owner instruction "ไม่ต้องไล่รถ").
-    const priceReply = await tryQuoteMaterialPrice(supabase, userId, merged.material_text, merged.quantity, merged.destination)
-    await supabase.from("business_events").update({ status: "quoted" }).eq("id", ev.id)
-    return priceReply
+    const priceResult = await tryQuoteMaterialPrice(supabase, userId, merged.material_text, merged.quantity, merged.destination)
+    // Owner-reported bug 2026-07-11: this used to mark every reply "quoted"
+    // even an apology ("ยังไม่มีบ่อไหนตั้งราคาไว้") — the request silently
+    // vanished from the quotation queue as if it were resolved. Only a real
+    // computed price counts as quoted; anything else stays ready_to_quote so
+    // it keeps showing up as needing attention (set a real price at
+    // /admin/pits).
+    if (priceResult.ok) {
+      await supabase.from("business_events").update({ status: "quoted" }).eq("id", ev.id)
+    }
+    return priceResult.text
   }
 
   // Real order — a site is never silently reused.

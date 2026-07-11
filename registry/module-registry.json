@@ -4077,6 +4077,7 @@
       "purpose": "The missing 'close the queue with a real price and reply' step — resolves nearest pit selling the material via real GPS + haversine distance, replies with real material price × quantity. Material price only, no vehicle/trip/transport calc (separate piece per owner instruction)",
       "purpose_th": "ปิดคิวด้วยราคาจริงส่งกลับ LINE — หาบ่อที่ใกล้ที่สุดที่ขายวัสดุนั้นจริงด้วย GPS+ระยะทางจริง ตอบราคาวัสดุ×จำนวน เฉพาะราคาวัสดุ ไม่รวมรถ/ขนส่ง",
       "exports": [
+        "QuoteResult",
         "tryQuoteMaterialPrice"
       ],
       "status": "active"
@@ -4365,7 +4366,28 @@
       "purpose": "Next.js-side material price lookup (nearest pit + real pit_materials price) reusing engines/distance.ts and engines/material-resolver.ts — mirrors the Deno LINE-bot version but for the admin ask-AI box",
       "purpose_th": "คำนวณราคาวัสดุจริงฝั่ง Next.js (บ่อใกล้สุด+ราคาจริง) สำหรับกล่องถาม AI ในหน้าแอดมิน คู่กับตัว Deno ที่บอทใช้",
       "exports": [
+        "QuoteResult",
         "tryQuoteMaterialPrice"
+      ],
+      "status": "active"
+    },
+    "app/api/admin/pits/[pitId]/materials/route.ts": {
+      "owner": "admin",
+      "layer": "api",
+      "purpose": "Write path for pit_materials pricing — /admin/pits was read-only before, this is the missing entry point to actually set a real price per pit+material",
+      "purpose_th": "จุดเขียนราคาให้บ่อวัสดุจริง — เดิม /admin/pits ดูได้อย่างเดียว อันนี้คือช่องกรอกราคาที่ขาดไป",
+      "exports": [
+        "POST"
+      ],
+      "status": "active"
+    },
+    "app/api/admin/pits/[pitId]/route.ts": {
+      "owner": "admin",
+      "layer": "api",
+      "purpose": "Write path for pit_profiles GPS — fills in coordinates for pits missing them",
+      "purpose_th": "จุดแก้ไขพิกัด GPS ของบ่อวัสดุที่ยังไม่มี",
+      "exports": [
+        "PATCH"
       ],
       "status": "active"
     }

@@ -103,6 +103,11 @@ function fmtTime(d: string) {
 export default function LineCustomersPage() {
   const [contacts, setContacts] = useState<Contact[]>([])
   const [loading, setLoading] = useState(true)
+  // Owner request 2026-07-11: badge on "บ่อวัสดุ" so it's visible right here
+  // on the chat screen when the pricing engine couldn't answer a customer
+  // (event stuck at ready_to_quote — see event-followup.ts's ok/text fix) —
+  // reuses the existing quotation-queue instead of a new alerts table.
+  const [pendingQuotesCount, setPendingQuotesCount] = useState(0)
   const [activeId, setActiveId] = useState<string | null>(null)
   const [detail, setDetail] = useState<{ messages: Message[]; documents: DocRow[]; events: BizEvent[]; unlinkedCount: number; drafts: Draft[] } | null>(null)
   const [detailLoading, setDetailLoading] = useState(false)
@@ -126,6 +131,26 @@ export default function LineCustomersPage() {
       .then((r) => r.json())
       .then((d) => setContacts(d.contacts ?? []))
       .finally(() => setLoading(false))
+  }, [])
+
+  useEffect(() => {
+    let cancelled = false
+    function poll() {
+      fetch("/api/admin/quotation-queue")
+        .then((r) => r.json())
+        .then((d) => {
+          if (cancelled) return
+          // "ready_to_quote" ที่ยังค้างอยู่ = ระบบคำนวณราคาให้ไม่ได้จริงๆ
+          // (ข้อมูลครบแล้วแต่บ่อไม่มีราคาผูกไว้) — ต่างจาก awaiting_info ที่
+          // แค่รอข้อมูลลูกค้าเพิ่ม
+          const count = (d.queue ?? []).filter((e: { status: string }) => e.status === "ready_to_quote").length
+          setPendingQuotesCount(count)
+        })
+        .catch(() => {})
+    }
+    poll()
+    const id = setInterval(poll, 30000)
+    return () => { cancelled = true; clearInterval(id) }
   }, [])
 
   const loadDetail = useCallback(async (lineUserId: string) => {
@@ -400,9 +425,13 @@ export default function LineCustomersPage() {
     },
   ] : []
 
+  const railItems: IconRailItem[] = RAIL_ITEMS.map((item) =>
+    item.key === "pits" && pendingQuotesCount > 0 ? { ...item, badge: pendingQuotesCount } : item
+  )
+
   return (
     <AppShell
-      railItems={RAIL_ITEMS}
+      railItems={railItems}
       activeRailKey="line-customers"
       listItems={listItems}
       activeListId={activeId}

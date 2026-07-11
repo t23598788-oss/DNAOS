@@ -29,12 +29,12 @@ export async function GET() {
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
   const materialNameById = new Map((materialTypes ?? []).map((m) => [m.id, m.name]))
-  const materialsByPit = new Map<string, { name: string; price: number }[]>()
+  const materialsByPit = new Map<string, { material_type_id: string; name: string; price: number }[]>()
   for (const pm of pitMaterials ?? []) {
     const name = materialNameById.get(pm.material_type_id)
     if (!name) continue
     const list = materialsByPit.get(pm.pit_profile_id) ?? []
-    list.push({ name, price: Number(pm.price) })
+    list.push({ material_type_id: pm.material_type_id, name, price: Number(pm.price) })
     materialsByPit.set(pm.pit_profile_id, list)
   }
 
@@ -54,5 +54,5 @@ export async function GET() {
     active: !p.deleted_at,
   }))
 
-  return NextResponse.json({ pits: result })
+  return NextResponse.json({ pits: result, materialTypes: materialTypes ?? [] })
 }

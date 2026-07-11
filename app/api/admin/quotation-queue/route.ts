@@ -5,10 +5,14 @@ import { supabaseAdmin as supabase } from "@/services/supabase/queries"
 import { resolveMaterialText } from "@/engines/material-resolver"
 
 // Real quotation requests extracted from LINE chat (business_events,
-// status='quotation_pending') that nothing has acted on yet — resolves each
-// material name against the real material_types table so เฮีย can see what's
-// ready vs ambiguous. Pricing (distance/pit lookup) is NOT computed here —
-// that step needs a geocoder for the destination text, not yet connected.
+// status='quotation_pending'/'awaiting_info'/'ready_to_quote') that nothing
+// has fully resolved yet — resolves each material name against the real
+// material_types table so เฮีย can see what's ready vs ambiguous. Pricing IS
+// computed automatically now (engines/quote-price.ts / the Deno LINE-bot
+// version, both wired through event-followup.ts) — an event stuck at
+// 'ready_to_quote' here means the pricing engine genuinely couldn't answer
+// (no pit has a price set for that material yet), not that nothing ran. Fix
+// it by setting a real price at /admin/pits.
 
 export async function GET() {
   const auth = await requireAuth(ADMIN_TIER)
