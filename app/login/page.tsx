@@ -1,8 +1,18 @@
 'use client'
 
-import { Suspense, useState } from "react"
-import { useRouter, useSearchParams } from "next/navigation"
+import { Suspense, useState, useRef } from "react"
+import { useSearchParams } from "next/navigation"
 import { createBrowserSupabase } from "@/services/supabase/browser"
+import { resolveDestination } from "@/core/auth/resolveDestination"
+import type { AppRole } from "@/core/auth/session"
+
+// Login-flow debug instrumentation (2026-07-14) — SHA-256 of the submitted
+// password, never the plaintext, so this is safe to log to the console.
+async function sha256Hex(text: string): Promise<string> {
+  const bytes = new TextEncoder().encode(text)
+  const hashBuffer = await crypto.subtle.digest("SHA-256", bytes)
+  return Array.from(new Uint8Array(hashBuffer)).map((b) => b.toString(16).padStart(2, "0")).join("")
+}
 
 // The ONE login page for the whole system (TASK-001 SSO) — Admin, Business,
 // Partner, and User Portal all redirect here when unauthenticated
@@ -10,17 +20,11 @@ import { createBrowserSupabase } from "@/services/supabase/browser"
 // Role-based landing page after login comes from profiles.role (see
 // supabase/migrations/20260708000001_profiles_roles.sql) — never guessed
 // client-side, always read from the row RLS lets the user see for themselves.
-
-const ROLE_HOME: Record<string, string> = {
-  super_admin: "/admin",
-  admin: "/admin",
-  employee: "/admin",
-  partner: "/partner",
-  customer: "/user",
-}
+// Where that role actually lands is decided in exactly one place:
+// core/auth/resolveDestination.ts (Enterprise Workspace Architecture, Phase 1)
+// — this file only fetches the role, it does not decide the destination.
 
 function LoginForm() {
-  const router = useRouter()
   const searchParams = useSearchParams()
   const nextPath = searchParams.get("next")
   const forbidden = searchParams.get("error") === "forbidden"
@@ -32,11 +36,21 @@ function LoginForm() {
   const [success, setSuccess] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
+  // Login-flow debug instrumentation (2026-07-14) — DOM refs so submit can
+  // read the input's actual value directly, not just React's tracked state.
+  // Some autofill mechanisms set an input's value via the native property
+  // setter, bypassing React's synthetic onChange entirely: the field visibly
+  // shows the autofilled text, but React's `password` state can remain stale
+  // (often empty, or whatever was last typed before autofill ran) — meaning
+  // the form would submit a DIFFERENT value than what's shown on screen.
+  const emailInputRef = useRef<HTMLInputElement>(null)
+  const passwordInputRef = useRef<HTMLInputElement>(null)
+
   async function landingPathFor(userId: string): Promise<string> {
     const sb = createBrowserSupabase()
     const { data: profile } = await sb.from("profiles").select("role").eq("id", userId).single()
-    const role = (profile?.role as string) ?? "customer"
-    return nextPath || ROLE_HOME[role] || "/"
+    const role = (profile?.role as AppRole) ?? "customer"
+    return resolveDestination(role, nextPath)
   }
 
   async function handleSignIn(e: React.FormEvent) {
@@ -45,21 +59,87 @@ function LoginForm() {
     setError(null)
     setSuccess(null)
 
+    // DOM values only — no fallback to React state (audit requirement,
+    // 2026-07-14). Authentication reads exclusively from the actual <input>
+    // elements via these refs; `email`/`password` state below is used only
+    // for the mismatch comparison, never as a value source.
+    const domEmail = emailInputRef.current?.value ?? ""
+    const domPassword = passwordInputRef.current?.value ?? ""
+    const reactEmailLength = email.length
+    const reactPasswordLength = password.length
+
+    console.log("[TRACE-LOGIN] pre-auth DOM vs React state", {
+      domEmail,
+      domPasswordLength: domPassword.length,
+      reactEmailLength,
+      reactPasswordLength,
+    })
+
+    if (domEmail !== email || domPassword !== password) {
+      console.warn("[AUTOFILL STATE MISMATCH]", {
+        domEmail,
+        domPasswordLength: domPassword.length,
+        reactEmailLength,
+        reactPasswordLength,
+      })
+    }
+
+    const submitEmail = domEmail
+    const submitPassword = domPassword
+
+    const passwordHash = await sha256Hex(submitPassword)
+    console.log("[TRACE-LOGIN] submitted payload diagnostics (plaintext password never logged)", {
+      email: JSON.stringify(submitEmail),
+      emailMatchesExpectedOwnerAccount: submitEmail === "dnaos.tech@gmail.com",
+      passwordLength: submitPassword.length,
+      passwordSHA256: passwordHash,
+      hasLeadingOrTrailingWhitespace: submitPassword !== submitPassword.trim(),
+      hasNewlineOrCarriageReturn: /[\r\n]/.test(submitPassword),
+      isUnicodeNFCNormalized: submitPassword.normalize("NFC") === submitPassword,
+    })
+
+    console.log("[TRACE-LOGIN] signInWithPassword: start", { email: submitEmail })
+    const cookiesBefore = document.cookie.split(";").map((c) => c.trim().split("=")[0]).filter(Boolean)
+
     try {
       const sb = createBrowserSupabase()
-      const { data, error: authError } = await sb.auth.signInWithPassword({ email, password })
+      const { data, error: authError } = await sb.auth.signInWithPassword({ email: submitEmail, password: submitPassword })
+      console.log("[TRACE-LOGIN] signInWithPassword: end", {
+        hasSession: !!data.session,
+        userId: data.session?.user.id,
+        authError: authError?.message,
+        authErrorStatus: (authError as { status?: number } | null)?.status,
+        authErrorCode: (authError as { code?: string } | null)?.code,
+      })
 
       if (authError || !data.session) {
         setError(authError?.message ?? "อีเมลหรือรหัสผ่านไม่ถูกต้อง")
+        setLoading(false)
         return
       }
 
+      const cookiesAfter = document.cookie.split(";").map((c) => c.trim().split("=")[0]).filter(Boolean)
+      const newCookieNames = cookiesAfter.filter((n) => !cookiesBefore.includes(n))
+      console.log("[TRACE-LOGIN] cookies written by signInWithPassword", { newCookieNames })
+
       const dest = await landingPathFor(data.session.user.id)
-      router.push(dest)
-      router.refresh()
-    } catch {
+      console.log("[TRACE-LOGIN] redirect destination resolved", { dest })
+
+      // Hard navigation, not router.push()/router.refresh(). A client-side
+      // transition can be served from Next.js's Router Cache — a cached
+      // pre-login render/redirect of the destination route, if one exists
+      // from earlier in this tab's session — without necessarily forcing a
+      // fresh middleware-checked request. window.location.href guarantees a
+      // real top-level navigation: the browser sends the current cookie jar
+      // (the one just written above) to the server fresh, no client cache in
+      // the path at all. This is the documented Supabase pattern for
+      // "client-side sign-in, then redirect to a protected route" — not a
+      // setTimeout-based workaround.
+      console.log("[TRACE-LOGIN] navigating (hard) to", dest)
+      window.location.href = dest
+    } catch (err) {
+      console.log("[TRACE-LOGIN] unexpected error", err)
       setError("เกิดข้อผิดพลาด กรุณาลองใหม่")
-    } finally {
       setLoading(false)
     }
   }
@@ -72,7 +152,11 @@ function LoginForm() {
 
     try {
       const sb = createBrowserSupabase()
-      const { data, error: authError } = await sb.auth.signUp({ email, password })
+      const { data, error: authError } = await sb.auth.signUp({
+        email,
+        password,
+        options: { emailRedirectTo: `${window.location.origin}/login` },
+      })
 
       if (authError) {
         setError(authError.message)
@@ -81,8 +165,8 @@ function LoginForm() {
 
       if (data.session) {
         const dest = await landingPathFor(data.session.user.id)
-        router.push(dest)
-        router.refresh()
+        // Same reasoning as handleSignIn — hard navigation, not router.push().
+        window.location.href = dest
       } else {
         setSuccess("สร้างบัญชีแล้ว — กรุณาตรวจสอบอีเมลเพื่อยืนยันก่อน login")
         setMode("signin")
@@ -99,6 +183,8 @@ function LoginForm() {
       <div>
         <label className="block text-xs font-semibold text-stone-600 mb-1.5">Email</label>
         <input
+          ref={emailInputRef}
+          name="email"
           type="email"
           autoComplete="email"
           value={email}
@@ -113,6 +199,8 @@ function LoginForm() {
       <div>
         <label className="block text-xs font-semibold text-stone-600 mb-1.5">Password</label>
         <input
+          ref={passwordInputRef}
+          name="password"
           type="password"
           autoComplete={mode === "signin" ? "current-password" : "new-password"}
           value={password}

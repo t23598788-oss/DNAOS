@@ -14,6 +14,39 @@ export function createBrowserSupabase() {
   return createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    { cookieOptions: { maxAge: SESSION_COOKIE_MAX_AGE } }
+    {
+      cookieOptions: { maxAge: SESSION_COOKIE_MAX_AGE },
+      // Login-flow debug instrumentation (2026-07-14) — explicit getAll/setAll
+      // that log cookie NAMES only (never values), otherwise identical to
+      // @supabase/ssr's own default document.cookie-based implementation
+      // (createStorageFromOptions's documentCookieGetAll/documentCookieSetAll
+      // in node_modules/@supabase/ssr/dist/module/cookies.js). Remove once the
+      // login-bounce investigation is closed.
+      cookies: {
+        getAll() {
+          if (typeof document === "undefined") return [];
+          const parsed = document.cookie.split(";").map((c) => c.trim()).filter(Boolean);
+          const all = parsed.map((c) => {
+            const idx = c.indexOf("=");
+            return { name: c.slice(0, idx), value: c.slice(idx + 1) };
+          });
+          console.log("[TRACE-LOGIN] browser client: getAll cookies", { cookieNames: all.map((c) => c.name) });
+          return all;
+        },
+        setAll(cookiesToSet) {
+          console.log("[TRACE-LOGIN] browser client: setAll cookies", { cookieNames: cookiesToSet.map((c) => c.name) });
+          cookiesToSet.forEach(({ name, value, options }) => {
+            const opts = options ?? {};
+            let str = `${name}=${value}`;
+            if (opts.maxAge != null) str += `; Max-Age=${opts.maxAge}`;
+            if (opts.path) str += `; Path=${opts.path}`;
+            if (opts.domain) str += `; Domain=${opts.domain}`;
+            if (opts.sameSite) str += `; SameSite=${opts.sameSite}`;
+            if (opts.secure) str += `; Secure`;
+            document.cookie = str;
+          });
+        },
+      },
+    }
   );
 }

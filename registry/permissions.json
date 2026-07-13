@@ -34,7 +34,16 @@
     "/", "/login", "/products", "/solutions", "/marketplace", "/ai-services",
     "/report", "/start", "/examples", "/playground", "/observer", "/download"
   ],
+  "workspace_landing": {
+    "note": "Single source of truth for role -> post-login destination. Read only by core/auth/resolveDestination.ts — no route file may hardcode its own landing map (same rule as route_access above). super_admin/admin/employee land directly on /admin/dashboard, not /admin, so the login flow itself never passes through app/admin/page.tsx's own redirect.",
+    "super_admin": "/admin/dashboard",
+    "admin": "/admin/dashboard",
+    "employee": "/admin/dashboard",
+    "partner": "/partner",
+    "customer": "/user"
+  },
   "history": {
-    "2026-07-08": "Created for TASK-001 (Plan Lock 1/3). Replaces the old admin_session presence-only cookie check with real Supabase Auth + role checks, and formalizes the Role/Permission Registry required by TASK-001's Definition of Done."
+    "2026-07-08": "Created for TASK-001 (Plan Lock 1/3). Replaces the old admin_session presence-only cookie check with real Supabase Auth + role checks, and formalizes the Role/Permission Registry required by TASK-001's Definition of Done.",
+    "2026-07-14": "Added workspace_landing (Enterprise Workspace Architecture, Phase 1) — role-to-destination is now data here, not code in app/login/page.tsx's old ROLE_HOME. /business intentionally has no entry: no role lands there today (see the Phase-1 architecture proposal's orphaned-workspace finding) and this phase does not invent one."
   }
 }

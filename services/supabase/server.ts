@@ -16,16 +16,20 @@ export async function createServerSupabase() {
       cookieOptions: { maxAge: SESSION_COOKIE_MAX_AGE },
       cookies: {
         getAll() {
-          return cookieStore.getAll();
+          const all = cookieStore.getAll();
+          console.log("[TRACE-LOGIN] server client: getAll cookies", { cookieNames: all.map((c) => c.name) });
+          return all;
         },
         setAll(cookiesToSet) {
+          console.log("[TRACE-LOGIN] server client: setAll cookies", { cookieNames: cookiesToSet.map((c) => c.name) });
           try {
             cookiesToSet.forEach(({ name, value, options }) =>
               cookieStore.set(name, value, options)
             );
-          } catch {
+          } catch (err) {
             // called from a Server Component render — middleware.ts already
             // refreshes the session on every request, so this is safe to ignore
+            console.log("[TRACE-LOGIN] server client: setAll threw (expected in Server Component render)", err);
           }
         },
       },
