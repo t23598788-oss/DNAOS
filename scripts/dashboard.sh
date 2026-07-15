@@ -28,7 +28,8 @@ risk_level() {
 # ── Collect Metrics (silently) ──
 
 # Constitution
-RULE_TOTAL=100
+# Evidence-First Automation (registry/EXECUTION_CONTRACT.json, DNA-000041) — computed, not hardcoded; see scripts/check-rule-coverage.sh for why.
+RULE_TOTAL=$(node -e "const r=require('./registry/rule-coverage.json'); console.log(Object.keys(r.rules).length + r.uncovered_rules.length)")
 RULE_ENFORCED=$(grep -c '"enforced_by"' registry/rule-coverage.json 2>/dev/null || echo "0")
 RULE_PCT=$(( RULE_ENFORCED * 100 / RULE_TOTAL ))
 
@@ -71,7 +72,13 @@ SHADOW=$(bash scripts/check-registry.sh 2>&1 | grep -c "UNREGISTERED" || true)
 SHADOW=${SHADOW:-0}
 
 # Duplicates
-CLONE_COUNT=$(npx jscpd core/ gateway/ engines/ cognitive/ presenter/ services/ plugins/ registry/ app/ components/ 2>&1 | sed 's/\x1b\[[0-9;]*m//g' | grep "Found" | grep -o "[0-9]* clones" | grep -o "[0-9]*" || true)
+# jscpd fix (Runtime Contract Audit, FAIL 6, DNA-000056): explicit -f/-i now
+# forces the same typescript/tsx-only, ignore-json/md restriction .jscpd.json
+# already declares — CLI positional dir args were silently overriding that
+# config file, letting jscpd scan registry/VALIDATION_RESULTS.json's own JSON
+# content and inflate the real clone count. Same fix applied identically in
+# scripts/governance.sh (both copies of this exact command, per KM-001).
+CLONE_COUNT=$(npx jscpd -f typescript,tsx -i '**/*.json,**/*.md' core/ gateway/ engines/ cognitive/ presenter/ services/ plugins/ registry/ app/ components/ 2>&1 | sed 's/\x1b\[[0-9;]*m//g' | grep "Found" | grep -o "[0-9]* clones" | grep -o "[0-9]*" || true)
 CLONE_COUNT=${CLONE_COUNT:-0}
 
 # Ghost rules
@@ -126,7 +133,7 @@ echo "  ╠═══════════════════════
 echo "  ║                                                   ║"
 printf "  ║  Modules Registered    %-4d                       ║\n" "$REG_MODULES"
 printf "  ║  Commands Registered   %-4d                       ║\n" "$REG_COMMANDS"
-printf "  ║  Rules Enforced        %-4d / 100                 ║\n" "$RULE_ENFORCED"
+printf "  ║  Rules Enforced        %-4d / %-4d                ║\n" "$RULE_ENFORCED" "$RULE_TOTAL"
 printf "  ║  Workflows Complete    %-4d / %-4d                ║\n" "$WF_COMPLETE" "$WF_TOTAL"
 printf "  ║  Business Domains      %-4d / %-4d                ║\n" "$BIZ_COVERED" "$BIZ_TOTAL"
 echo "  ║                                                   ║"

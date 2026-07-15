@@ -8,7 +8,7 @@
     "production": {
       "name": "Production",
       "description": "ระบบที่ใช้งานจริง — ลูกค้าและพนักงานเข้าใช้งาน ต้องเสถียรเสมอ",
-      "url": "soil-app-orpin.vercel.app",
+      "url": "dnaos.dev",
       "branch": "main",
       "deploy_target": "Vercel Production",
       "loads_feature_status": ["released"],

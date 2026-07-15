@@ -5,7 +5,8 @@
     "priority": "P0",
     "status": "in_progress",
     "detail": "Declared by owner 2026-07-08 as the first of 3 gate tasks (registry/CONSTITUTION.json iron_rules: no new Module/Page/Feature until all 3 are DONE 100%). Renumbered from TASK-023 to TASK-001 same day per owner's explicit instruction — see CURRENT_STATE.json → plan_lock.renumbering_note for the full ID mapping (the OLD TASK-001/002/003 now live at TASK-026/027/028). Goal: log in once (SSO), reach every Portal and every API with that one session. Scope: wire Supabase Auth end-to-end across Admin Login, User Login, Partner Login, Business Portal Login, API Token Login; one shared session for the whole system; middleware auth-check on every route; Role set = Super Admin/Admin/Employee/Partner/Customer/AI Service; a Permission Registry; Route Guards; logout across every system; refresh token; remember-login. Definition of Done (all required): login once reaches every Portal; API calls share the one session; no duplicate/parallel login pages; every API route passes requireAuth. Sequenced before TASK-002/003 because both depend on the same session model. Note: zero Supabase Auth users exist in production today (see TASK-022) — this task is also the real fix for that gap, not a separate effort.",
-    "gate": true
+    "gate": true,
+    "progress_note_2026_07_15": "Real security audit performed: 76 total API routes, 55 had requireAuth before this pass. Found and fixed 9 real gaps: app/api/command (CRITICAL — unauthenticated POST could trigger the real cognitive command pipeline) + 8 real info/source-disclosure routes (build, deploy, governance, dbd, traces, routes, self-description, reader — reader was the most severe, a full source-code file reader across the entire codebase). Now 64/76 protected. Remaining 12 unauthenticated are legitimately public by design (owner-confirmed via AskUserQuestion): auth/logout, connectors oauth authorize/callback, connectors webhook, 7 app/api/v1/* self-description routes, manual-doc (a 501 stub). TASK-001 Definition of Done (every API route passes requireAuth) is now effectively met for all routes that SHOULD require it — the remaining 12 are intentional exceptions, not gaps. Still open for full TASK-001 completion: session model verification across all 5 login surfaces (Admin/User/Partner/Business/API Token), remember-login, refresh token behavior, and confirming zero duplicate/parallel login pages — not audited in this pass."
   },
   {
     "id": "TASK-002",
@@ -209,5 +210,95 @@
     "status": "blocked_no_real_data",
     "detail": "Owner proposed 2026-07-10 as the other half of the Event Inbox concept (Incoming Events built same day, business_events + /admin/line-customers). Checked: no due-date/reminder/task table exists anywhere in either Supabase project. Cannot build without fabricating deadlines. Needs real schema first (e.g. a tasks/reminders table with due_at, kind, related_partner_id, related_document_id, done_at) before any UI can show real outgoing-event data.",
     "do_not": "Do not render example deadlines (\"10:00 ส่งใบเสนอราคา\") without a real due_at value written by a real process — matches the no-guessing rule already applied to the Context Panel discussion."
+  },
+  {
+    "id": "TASK-032",
+    "title": "[Runtime Demand] Missing Runtime: generateDoc (the Document Engine, business.engine.generateDoc) is a registered Capability but has no...",
+    "priority": "medium",
+    "status": "blocked_owner_approval",
+    "detail": "Auto-created from registry/existence.json#owner_requests.OR-001 by scripts/sync-owner-requests.ts (Runtime Demand Synchronization, DNA-000042). Reason: generateDoc (the Document Engine, business.engine.generateDoc) is a registered Capability but has no Executor/Driver step connecting it to the Capability -> Composer -> Planner -> Orchestrator chain built in Phase 7 of this session. Impact: generateDoc works today via 13 real direct callers (a working, different path) — this is not blocking any real feature. It means the Capability Registry's Composer/Planner/Orchestrator investment (Phase 0-7.7) cannot yet compose or schedule this capability the way it was designed to. Suggested resolution: Build the missing Runtime/Executor layer connecting core/workspace/orchestrator/runtimeOrchestrator.ts's completeCapability() to a real function call — flagged as the central architectural gap in both ARCHITECTURE_INTEGRATION_PLAN.md (Phase 2.6) and RUNTIME_WIRING_REPORT.md (Phase 2.7), not solved by this entry.",
+    "owner_request_ref": "OR-001",
+    "blocked_on": "Owner approval required per registry/existence.json#owner_requests.OR-001",
+    "context_sources": [
+      "engines/documents/selfDescription.ts's describeDocumentEngine().missing field, computed live from registry/capability-registry.json + this session's own RUNTIME_WIRING_REPORT.md (Phase 2.7) finding that NONE of the 202 registered Capabilities have an Executor/Driver step — this is one specific, concrete instance of that system-wide finding, not a new discovery."
+    ]
+  },
+  {
+    "id": "TASK-033",
+    "title": "Fix Dependency Graph violation — core/auth/session.ts imports services/supabase/server directly",
+    "priority": "high",
+    "status": "done",
+    "detail": "Real, confirmed violation (registry/dependency-graph.json, scripts/check-imports.sh) — bypasses the Gateway layer. Blocks npm run build via the Deploy Gate (DNA-000055). Fix: route through gateway/, or if intentional, add the edge to dependency-graph.json for review.",
+    "context_sources": [
+      "registry/CHANGELOG.json DNA-000056 (Runtime Contract Audit FAIL 1)"
+    ],
+    "completed_note": "registry/CHANGELOG.json DNA-000067 — verified live: npx tsc --noEmit clean, bash scripts/pre-commit-check.sh exit 0, npx tsx scripts/deploy-gate.ts exit 0 (Health Score 100/100, 8/8), npm run build exit 0 (real production build succeeded end to end)."
+  },
+  {
+    "id": "TASK-034",
+    "title": "Remove hardcoded Supabase URL — registry/communication/line.registry.json:152",
+    "priority": "high",
+    "status": "done",
+    "detail": "Real, confirmed violation of Guard 1 (scripts/pre-commit-check.sh). Blocks npm run build via the Deploy Gate. Fix: replace the literal hardcoded project URL (redacted here per Guard 1) with an env-var reference.",
+    "context_sources": [
+      "registry/CHANGELOG.json DNA-000044/DNA-000056 (Runtime Contract Audit FAIL 6/pre-commit Guard 1)"
+    ],
+    "completed_note": "registry/CHANGELOG.json DNA-000067 — verified live: npx tsc --noEmit clean, bash scripts/pre-commit-check.sh exit 0, npx tsx scripts/deploy-gate.ts exit 0 (Health Score 100/100, 8/8), npm run build exit 0 (real production build succeeded end to end)."
+  },
+  {
+    "id": "TASK-035",
+    "title": "Resolve duplicate code clones flagged by jscpd (97 real clones, corrected count)",
+    "priority": "medium",
+    "status": "done",
+    "detail": "Real count after fixing the self-scan feedback-loop bug (DNA-000056) — was falsely reported as 274/300 due to jscpd scanning its own ledger output. Blocks npm run build via the Deploy Gate. Fix: review `npx jscpd -f typescript,tsx -i '**/*.json,**/*.md' ...` output and dedupe flagged blocks.",
+    "context_sources": [
+      "registry/CHANGELOG.json DNA-000056"
+    ],
+    "completed_note": "registry/CHANGELOG.json DNA-000067 — verified live: npx tsc --noEmit clean, bash scripts/pre-commit-check.sh exit 0, npx tsx scripts/deploy-gate.ts exit 0 (Health Score 100/100, 8/8), npm run build exit 0 (real production build succeeded end to end)."
+  },
+  {
+    "id": "TASK-036",
+    "title": "Archive/resolve dead code flagged by knip (42 unused files, 119 unused exports)",
+    "priority": "medium",
+    "status": "done",
+    "detail": "Blocks npm run build via the Deploy Gate. Fix: review `npx knip --no-progress` output; register real usage or remove per Rule 104 (extract knowledge before deletion).",
+    "context_sources": [
+      "registry/CHANGELOG.json DNA-000053/DNA-000056"
+    ],
+    "completed_note": "registry/CHANGELOG.json DNA-000067 — verified live: npx tsc --noEmit clean, bash scripts/pre-commit-check.sh exit 0, npx tsx scripts/deploy-gate.ts exit 0 (Health Score 100/100, 8/8), npm run build exit 0 (real production build succeeded end to end)."
+  },
+  {
+    "id": "TASK-037",
+    "title": "Connect Modules — expand module interoperability beyond the current 2 RuntimeContract implementations",
+    "priority": "medium",
+    "status": "done",
+    "detail": "468 of ~470 registered modules have no RuntimeContract/self-description. Real scope decision needed on which modules next and whether a broader Plan Lock exception is warranted, per the SDRN-P6..P10 narrow-scoping precedent.",
+    "context_sources": [
+      "registry/GOVERNANCE_REGISTRY.json programs.SDRN"
+    ],
+    "completed_note": "SDRN-P6..P12: all 11 real drivers (line/chrome/vscode/finder/terminal/maps/earth/mail/calendar/pdf/github) + Document Engine now have full RuntimeContracts, wired into the Runtime Context Broker. Real Contract Coverage: 12/486 = 2.47%. Remaining ~474 non-driver modules (engines/, cognitive/, core/workspace/, etc.) are real, honest remaining scope for a future TASK-037-continuation if requested — not silently claimed complete."
+  },
+  {
+    "id": "TASK-038",
+    "title": "Workspace Orchestrator — wire the Capability Runtime Orchestrator chain (Composer -> Planner -> Orchestrator -> Executor -> Driver)",
+    "priority": "medium",
+    "status": "not_started",
+    "detail": "Real, known gap since RUNTIME_WIRING_REPORT.md Phase 2.7 — none of the 202 registered Capabilities have an Executor/Driver step. Tracked as OR-001/TASK-032 for the Document Engine specifically; this task is the broader system-wide version.",
+    "context_sources": [
+      "registry/existence.json owner_requests OR-001",
+      "TASK-032"
+    ]
+  },
+  {
+    "id": "TASK-039",
+    "title": "Production Deploy — first real deploy after TASK-033..036 (deploy blockers) are resolved",
+    "priority": "high",
+    "status": "ready",
+    "detail": "LOCKED until TASK-033, TASK-034, TASK-035, TASK-036 all reach done — the Deploy Gate (npm run build prebuild hook) mechanically enforces this, not just a status label.",
+    "blocked_on": null,
+    "context_sources": [
+      "registry/CHANGELOG.json DNA-000055"
+    ],
+    "completed_note": "Unblocked — TASK-033/034/035/036 all done, real npm run build already verified successful in this same pass. Actual production deploy (vercel deploy or equivalent) still requires explicit owner go-ahead, not run automatically."
   }
 ]

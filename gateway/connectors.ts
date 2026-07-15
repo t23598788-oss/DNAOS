@@ -90,7 +90,7 @@ export async function createConnector(input: CreateConnectorInput): Promise<Conn
 
   const created = data as ConnectorRecord;
   // ขั้นที่ 2: Register — เกิดขึ้นอัตโนมัติทันทีที่ insert สำเร็จ (Dynamic Registry)
-  await logConnectorLifecycleEvent(created.id, "register", { newValue: created.auth_type });
+  await logConnectorLifecycleEvent(supabaseAdmin(), created.id, "register", { newValue: created.auth_type });
 
   // Webhook ไม่มี handshake ขาออก — พร้อมรับ event ทันทีที่สร้าง
   if (created.auth_type === "webhook") {
@@ -149,7 +149,7 @@ export async function setConnectorEnabled(id: string, enabled: boolean): Promise
 
   if (error) throw new Error(error.message);
   clearConnectorCache();
-  await logConnectorLifecycleEvent(id, enabled ? "enabled" : "disabled", {
+  await logConnectorLifecycleEvent(supabaseAdmin(), id, enabled ? "enabled" : "disabled", {
     oldValue: String(existing.enabled),
     newValue: String(enabled),
   });
@@ -186,12 +186,12 @@ export async function recordConnectorTest(
   // "แจ้งสถานะ" = status/last_error พร้อม query ได้ทันทีจาก GET /api/admin/connectors (ด้านล่าง)
   // "บันทึก Log" = audit_logs แถวนี้
   if (!result.ok) {
-    await logConnectorLifecycleEvent(id, "test_failed", {
+    await logConnectorLifecycleEvent(supabaseAdmin(), id, "test_failed", {
       oldValue: before?.status ?? null,
       newValue: `error: ${result.error ?? "unknown"}`,
     });
   } else {
-    await logConnectorLifecycleEvent(id, "test_passed", {
+    await logConnectorLifecycleEvent(supabaseAdmin(), id, "test_passed", {
       oldValue: before?.status ?? null,
       newValue: "connected",
     });

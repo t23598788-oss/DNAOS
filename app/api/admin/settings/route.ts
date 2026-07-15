@@ -30,6 +30,11 @@ export async function PUT(req: NextRequest) {
       paymentBankName: String(body.paymentBankName ?? "").trim(),
       paymentAccountNumber: String(body.paymentAccountNumber ?? "").trim(),
       paymentAccountName: String(body.paymentAccountName ?? "").trim(),
+      vatRate: Number(body.vatRate ?? 0.07),
+      documentTerms: String(body.documentTerms ?? "").trim(),
+      documentFooterNote: String(body.documentFooterNote ?? "").trim(),
+      debtReminderAutoEnabled: Boolean(body.debtReminderAutoEnabled),
+      debtReminderHour: Number(body.debtReminderHour ?? 9),
     })
     return NextResponse.json({ ok: true })
   } catch (e: unknown) {

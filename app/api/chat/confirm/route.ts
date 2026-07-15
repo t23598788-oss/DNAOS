@@ -5,6 +5,7 @@ import { dispatchAction } from "@/gateway/actions";
 import { supabaseAdmin as supabase } from "@/services/supabase/queries";
 import { documentFlex } from "@/engines/documents/flex-template";
 import { DOC_LABELS, type DocType } from "@/engines/documents/engine";
+import { loadCompanySettings } from "@/core/config/company-settings";
 
 // Rule 72 confirm step for the chat secretary — the preview_token already
 // carries the full payload from when cognitive/executor/index.ts called
@@ -37,12 +38,19 @@ export async function POST(request: Request) {
     } | undefined;
 
     if (doc) {
+      const company = await loadCompanySettings();
       const flex = documentFlex({
         documentType: doc.document_type,
         documentNumber: doc.document_number,
         partyName: doc.party_name,
         items: doc.items,
         summary: doc.summary,
+        branding: {
+          ourCompanyName: company.companyName || undefined,
+          ourCompanyTaxId: company.companyTaxId || undefined,
+          terms: company.documentTerms || undefined,
+          footerNote: company.documentFooterNote || undefined,
+        },
       });
       const label = DOC_LABELS[doc.document_type]?.th ?? doc.document_type;
       const token = process.env.LINE_CHANNEL_ACCESS_TOKEN;

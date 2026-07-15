@@ -2,6 +2,15 @@
   "version": 1,
   "policy": "ทุกไฟล์ต้องอยู่ใน registry — ไม่มี Shadow System",
   "modules": {
+    "observatory/index.html": {
+      "owner": "browser",
+      "layer": "browser",
+      "purpose": "[Auto-detected] Standalone static Pipeline Debugger page — not part of the Next.js app, served independently; reads observatory/config.json for Supabase URL/anon key at runtime, no hardcoded credentials",
+      "purpose_th": "[ตรวจพบอัตโนมัติ] หน้า Pipeline Debugger แบบ static แยกจาก Next.js app ให้บริการเอง อ่าน observatory/config.json สำหรับ Supabase URL/anon key ตอน runtime ไม่ hardcode credentials",
+      "exports": [],
+      "entry_point": true,
+      "status": "unregistered"
+    },
     "app/api/command/route.ts": {
       "owner": "api",
       "layer": "api",
@@ -59,7 +68,7 @@
       "purpose": "หน้าแรก — แสดงลิงก์ไป Dead Board + Dashboard",
       "purpose_th": "หน้าแรกของเว็บ — แสดงลิงก์เพื่อไปยัง Dead Board และ Dashboard",
       "exports": [
-        "default"
+        "LandingPage"
       ],
       "status": "active"
     },
@@ -69,8 +78,8 @@
       "purpose": "Root Layout — ตั้งค่า font, metadata, HTML structure",
       "purpose_th": "โครงสร้างหลักของหน้าเว็บ — ตั้งค่าฟอนต์, metadata, และโครงสร้าง HTML",
       "exports": [
-        "metadata",
-        "default"
+        "RootLayout",
+        "metadata"
       ],
       "status": "active"
     },
@@ -83,6 +92,26 @@
         "default"
       ],
       "status": "active"
+    },
+    "scripts/hello.ts": {
+      "owner": "system",
+      "layer": "scripts",
+      "purpose": "HELLO DNA OS — System Introduction Protocol (SDRN-P1). The first command an AI session should run before reading source code; merges existence.json/CURRENT_STATE.json/TASK_QUEUE.json/architecture-book.json/DNA_OS_HEALTH.json/GOVERNANCE_REGISTRY.json/CHANGELOG.json into one report, plus demonstrates the Document Engine's Self Description Interface.",
+      "purpose_th": "โปรโตคอลแนะนำตัวระบบ (SDRN-P1) — คำสั่งแรกที่ AI ควรรันก่อนอ่าน source code รวมข้อมูลจาก registry หลักเป็นรายงานเดียว",
+      "exports": [
+        "get"
+      ],
+      "status": "active",
+      "entry_point": true
+    },
+    "scripts/sync-owner-requests.ts": {
+      "owner": "system",
+      "layer": "scripts",
+      "purpose": "Runtime Demand Synchronization (DNA-000042). Connects registry/existence.json#owner_requests to registry/TASK_QUEUE.json bidirectionally: creates a task for every open owner_request without one, and closes an owner_request whose linked task reaches a done status. Idempotent, never deletes.",
+      "purpose_th": "ซิงค์ Owner Request กับ Task Queue สองทาง — สร้าง Task อัตโนมัติเมื่อมี Owner Request ใหม่ และปิด Owner Request เมื่อ Task ที่เชื่อมโยงเสร็จแล้ว",
+      "exports": [],
+      "status": "active",
+      "entry_point": true
     },
     "scripts/sync-registry.ts": {
       "owner": "system",
@@ -143,7 +172,9 @@
         "saveEntitiesToRegistry",
         "updateConversationState"
       ],
-      "status": "active"
+      "status": "active",
+      "archival_status": "ARCHIVED",
+      "archived_knowledge_ref": "registry/existence.json#archived_knowledge.entries[AK-001]"
     },
     "supabase/functions/_shared/haversine.ts": {
       "owner": "supabase",
@@ -375,7 +406,8 @@
       "purpose": "หน้ารายชื่อคู่ค้าพร้อมสรุปยอดและกิจกรรมล่าสุด",
       "purpose_th": "หน้ารายชื่อคู่ค้า (ทดแทนมุมมองเอกสารเป็นศูนย์กลาง)",
       "exports": [
-        "default"
+        "PartnersPage",
+        "dynamic"
       ],
       "status": "active"
     },
@@ -385,7 +417,7 @@
       "purpose": "หน้า Business Timeline ของคู่ค้าคนนั้น เรียงเหตุการณ์ตามวันที่",
       "purpose_th": "แสดงประวัติเหตุการณ์และเอกสารทั้งหมดของคู่ค้า จากปัจจุบันย้อนหลังไปถึงเหตุการณ์แรก",
       "exports": [
-        "default"
+        "PartnerTimelinePage"
       ],
       "status": "active"
     },
@@ -395,7 +427,7 @@
       "purpose": "Architecture Observer — Read-only snapshot ของระบบสำหรับ AI ภายนอก ไม่มี DB query",
       "purpose_th": "ท่อเชื่อม AI ภายนอก: วาง URL /observer ใน Gemini/ChatGPT/Claude เพื่ออ่านโครงสร้างระบบ",
       "exports": [
-        "default"
+        "ObserverPage"
       ],
       "access": "public_readonly",
       "status": "active"
@@ -429,7 +461,7 @@
       "purpose": "Token management UI — สร้าง/ดู/revoke API tokens สำหรับ External AI Pipe",
       "purpose_th": "หน้าจัดการ token สำหรับ AI ภายนอก: สร้าง token ใหม่ผูกกับอีเมล, ดูวันที่ใช้ล่าสุด, revoke",
       "exports": [
-        "default"
+        "ApiTokensPage"
       ],
       "status": "active"
     },
@@ -526,7 +558,7 @@
       "purpose": "GET /start — Developer Portal: entry point for UI designers, developers, and external AI",
       "purpose_th": "หน้า Portal หลักสำหรับทุกคนที่ต้องการสร้างสิ่งใหม่บน DNA OS",
       "exports": [
-        "default"
+        "StartPage"
       ],
       "access": "public",
       "status": "active"
@@ -537,7 +569,7 @@
       "purpose": "GET /examples — Screen-to-Command mapping for UI designers",
       "purpose_th": "แสดงว่าแต่ละหน้าจอต้องใช้ command อะไร — สำหรับ UI designer ที่เริ่มต้น",
       "exports": [
-        "default"
+        "ExamplesPage"
       ],
       "access": "public",
       "status": "active"
@@ -548,7 +580,7 @@
       "purpose": "GET /playground — Live API tester in browser (requires token)",
       "purpose_th": "ทดลองเรียก command ผ่านเบราว์เซอร์ด้วย token — เห็นผลจริงทันที",
       "exports": [
-        "default"
+        "PlaygroundPage"
       ],
       "access": "token_auth",
       "status": "active"
@@ -1125,7 +1157,8 @@
       "exports": [
         "answerQuestion"
       ],
-      "status": "active"
+      "status": "active",
+      "entry_point": true
     },
     "core/runtime/engine.ts": {
       "owner": "core",
@@ -1205,20 +1238,47 @@
         "CommandEntry",
         "CommandMatch",
         "CommandResult",
+        "ConfidenceLevel",
+        "ContextBudget",
         "DebtStatus",
+        "DeltaContext",
+        "ExecutionPlan",
+        "ExecutionReadiness",
+        "MeasurementReport",
+        "NegotiationFlowState",
+        "NegotiationStage",
         "PartnerSummary",
         "PartnerTimelineEntry",
         "RuntimeCommand",
+        "RuntimeCompatibility",
+        "RuntimeConnectionState",
+        "RuntimeContract",
         "RuntimeEvent",
+        "RuntimeInterface",
+        "RuntimeRejection",
         "RuntimeResult",
+        "RuntimeVersion",
+        "SelfDescription",
+        "SelfDescriptionStatus",
         "StepResult",
         "TimelineEntryKind",
         "Transaction",
         "TxState",
         "TxType",
+        "VerificationContract",
         "ViewMode",
+        "WorkOrder",
         "WorkflowDef",
         "WorkflowResult",
+        "buildMeasurementReport",
+        "computeBriefing",
+        "computeContextBudget",
+        "computeDeltaContext",
+        "computeExecutionReadiness",
+        "computeNegotiationStage",
+        "deriveExecutionPlan",
+        "deriveVerificationContract",
+        "deriveWorkOrder",
         "round"
       ],
       "status": "active"
@@ -1511,7 +1571,9 @@
         "getFinancialImpact",
         "getOperationalImpact"
       ],
-      "status": "active"
+      "status": "active",
+      "archival_status": "ARCHIVED",
+      "archived_knowledge_ref": "registry/existence.json#archived_knowledge.entries[AK-002]"
     },
     "engines/index.ts": {
       "owner": "engines",
@@ -1558,6 +1620,19 @@
       "exports": [
         "buildPartnerTimeline",
         "buildPartnerSummary"
+      ],
+      "status": "active"
+    },
+    "engines/presentation/template-resolver.ts": {
+      "owner": "engines",
+      "layer": "engines",
+      "purpose": "Presentation Template Resolver — single source of truth for mapping runtime feed sources to one selected timeline presentation template",
+      "purpose_th": "ตัว resolve template การแสดงผลกลาง — แปลง source runtime ให้เหลือ presentation template เดียวต่อ timeline card",
+      "exports": [
+        "PresentationTemplateId",
+        "PresentationTemplate",
+        "resolvePresentationTemplate",
+        "uniqueResolvedTemplates"
       ],
       "status": "active"
     },
@@ -1702,9 +1777,8 @@
         "type ActionResponse"
       ],
       "status": "active",
-      "declared_callers": [
-        "app/api/action/route.ts"
-      ]
+      "declared_callers": [],
+      "deprecated": true
     },
     "plugins/capabilities.ts": {
       "owner": "plugins",
@@ -1863,6 +1937,14 @@
       ],
       "status": "active"
     },
+    "plugins/registerAllDrivers.ts": {
+      "owner": "plugins",
+      "layer": "plugins",
+      "purpose": "Auto-register every real driver (line, chrome, vscode, finder, terminal, maps, earth, mail, calendar, pdf, github) into core/executor/registry.ts. Real, live, imported by core/executor/init.ts, plugins/executor.ts, plugins/capability-manager.ts — found unregistered by scripts/check-drift.sh's module-count check (Autonomous Runtime Evolution pass, DNA-000044): zero top-level exports (side-effect-only, register().forEach pattern), same class as scripts/hello.ts, so scripts/sync-registry.ts's auto-detection never picked it up.",
+      "purpose_th": "ลงทะเบียน Driver ทั้งหมดเข้า core/executor/registry.ts อัตโนมัติ — ไม่มี export ตรง ๆ จึงไม่เคยถูก sync-registry.ts ตรวจพบ",
+      "exports": [],
+      "status": "active"
+    },
     "plugins/executor.ts": {
       "owner": "plugins",
       "layer": "plugins",
@@ -1966,10 +2048,9 @@
         "listActions",
         "openSettings"
       ],
-      "declared_callers": [
-        "app/api/control-center/route.ts"
-      ],
-      "status": "active"
+      "declared_callers": [],
+      "status": "active",
+      "entry_point": true
     },
     "plugins/platform/mac/permissions.ts": {
       "owner": "plugins",
@@ -2276,6 +2357,7 @@
         "documentTypeVariants",
         "getAllDebts",
         "getBusinessEventsByPartner",
+        "getCustomerGps",
         "getDebtTrackingById",
         "getDebtTrackings",
         "getDebtorPartners",
@@ -2954,7 +3036,7 @@
       "purpose": "The ONE login page for the whole system (TASK-001 SSO) — real Supabase Auth sign in/sign up, redirects by role after login.",
       "purpose_th": "หน้า login เดียวของทั้งระบบ — Supabase Auth จริง, redirect ตาม role หลัง login",
       "exports": [
-        "default"
+        "LoginPage"
       ],
       "status": "active"
     },
@@ -2964,7 +3046,7 @@
       "purpose": "Compat redirect to /login for old /admin/login bookmarks — not a second login form.",
       "purpose_th": "redirect ไป /login สำหรับลิงก์เก่าที่ยังชี้มาที่ /admin/login — ไม่ใช่ฟอร์ม login ที่สอง",
       "exports": [
-        "default"
+        "AdminLoginRedirect"
       ],
       "status": "active"
     },
@@ -3051,7 +3133,9 @@
         "type AppRole",
         "type AuthedUser"
       ],
-      "status": "active"
+      "status": "active",
+      "archival_status": "ARCHIVED",
+      "archived_knowledge_ref": "registry/existence.json#archived_knowledge.entries[AK-003]"
     },
     "app/admin/users/page.tsx": {
       "owner": "admin",
@@ -3059,7 +3143,7 @@
       "purpose": "TASK-001 Role management UI — super_admin assigns roles to real users.",
       "purpose_th": "หน้าจัดการ Role — super_admin กำหนด role ให้ user จริง",
       "exports": [
-        "default"
+        "AdminUsersPage"
       ],
       "status": "active"
     },
@@ -3089,9 +3173,11 @@
       "purpose": "Client nav for app/admin/layout.tsx, split out so the layout itself can be a Server Component doing the TASK-001 role check.",
       "purpose_th": "nav ฝั่ง client ของ admin layout — แยกออกมาเพื่อให้ layout เป็น Server Component เช็ค role ได้",
       "exports": [
-        "default"
+        "AdminSidebarNav"
       ],
-      "status": "active"
+      "status": "active",
+      "archival_status": "ARCHIVED",
+      "archived_knowledge_ref": "registry/existence.json#archived_knowledge.entries[AK-004]"
     },
     "components/admin/SecretaryChat.tsx": {
       "owner": "admin",
@@ -3103,23 +3189,13 @@
       ],
       "status": "active"
     },
-    "components/business/BusinessSidebarNav.tsx": {
-      "owner": "business",
-      "layer": "ui",
-      "purpose": "Client nav for app/business/layout.tsx, split out so the layout itself can be a Server Component doing the TASK-001 role check.",
-      "purpose_th": "nav ฝั่ง client ของ business layout — แยกออกมาเพื่อให้ layout เป็น Server Component เช็ค role ได้",
-      "exports": [
-        "default"
-      ],
-      "status": "active"
-    },
     "components/admin/UsersRoleTable.tsx": {
       "owner": "admin",
       "layer": "ui",
       "purpose": "TASK-001: client table for app/admin/users/page.tsx — lists users, changes role via PATCH /api/admin/users/[id]/role.",
       "purpose_th": "ตาราง client สำหรับหน้า Users & Roles — list user + เปลี่ยน role ผ่าน API",
       "exports": [
-        "default"
+        "UsersRoleTable"
       ],
       "status": "active"
     },
@@ -3161,7 +3237,7 @@
       "purpose": "Thin wrapper — renders DocumentBuilder preset to type='invoice'. Deep-linked from Partners/Jobs detail pages; no longer in the main sidebar nav (consolidated into 'ออกเอกสาร' 2026-07-09).",
       "purpose_th": "หน้าย่อยสร้างใบแจ้งหนี้ — เรียก DocumentBuilder ตั้ง type ไว้ล่วงหน้า ไม่อยู่ในเมนูหลักแล้ว (รวมเข้า 'ออกเอกสาร')",
       "exports": [
-        "default"
+        "InvoicePage"
       ],
       "status": "active"
     },
@@ -3171,7 +3247,7 @@
       "purpose": "Thin wrapper — renders DocumentBuilder preset to type='purchase_order'. Deep-linked from Partners/Jobs detail pages; no longer in the main sidebar nav (consolidated into 'ออกเอกสาร' 2026-07-09).",
       "purpose_th": "หน้าย่อยสร้างใบสั่งซื้อ — เรียก DocumentBuilder ตั้ง type ไว้ล่วงหน้า ไม่อยู่ในเมนูหลักแล้ว (รวมเข้า 'ออกเอกสาร')",
       "exports": [
-        "default"
+        "PurchaseOrderPage"
       ],
       "status": "active"
     },
@@ -3181,7 +3257,7 @@
       "purpose": "Thin wrapper — renders DocumentBuilder preset to type='delivery_order'. Deep-linked from Partners/Jobs detail pages; no longer in the main sidebar nav (consolidated into 'ออกเอกสาร' 2026-07-09).",
       "purpose_th": "หน้าย่อยสร้างใบส่งของ — เรียก DocumentBuilder ตั้ง type ไว้ล่วงหน้า ไม่อยู่ในเมนูหลักแล้ว (รวมเข้า 'ออกเอกสาร')",
       "exports": [
-        "default"
+        "DeliveryOrderPage"
       ],
       "status": "active"
     },
@@ -3191,7 +3267,7 @@
       "purpose": "Thin wrapper — renders DocumentBuilder preset to type='payment_voucher'. Deep-linked from Partners/Jobs detail pages; no longer in the main sidebar nav (consolidated into 'ออกเอกสาร' 2026-07-09).",
       "purpose_th": "หน้าย่อยสร้างใบสำคัญจ่าย — เรียก DocumentBuilder ตั้ง type ไว้ล่วงหน้า ไม่อยู่ในเมนูหลักแล้ว (รวมเข้า 'ออกเอกสาร')",
       "exports": [
-        "default"
+        "PaymentVoucherPage"
       ],
       "status": "active"
     },
@@ -3201,7 +3277,7 @@
       "purpose": "Thin wrapper — renders DocumentBuilder preset to type='receipt'. Deep-linked from Partners/Jobs detail pages; no longer in the main sidebar nav (consolidated into 'ออกเอกสาร' 2026-07-09).",
       "purpose_th": "หน้าย่อยสร้างใบเสร็จ — เรียก DocumentBuilder ตั้ง type ไว้ล่วงหน้า ไม่อยู่ในเมนูหลักแล้ว (รวมเข้า 'ออกเอกสาร')",
       "exports": [
-        "default"
+        "ReceiptPage"
       ],
       "status": "active"
     },
@@ -3211,7 +3287,7 @@
       "purpose": "Thin wrapper — renders DocumentBuilder preset to type='debt_notice'. Deep-linked from Partners/Jobs detail pages; no longer in the main sidebar nav (consolidated into 'ออกเอกสาร' 2026-07-09).",
       "purpose_th": "หน้าย่อยสร้างหนังสือทวงหนี้ — เรียก DocumentBuilder ตั้ง type ไว้ล่วงหน้า ไม่อยู่ในเมนูหลักแล้ว (รวมเข้า 'ออกเอกสาร')",
       "exports": [
-        "default"
+        "DebtNoticePage"
       ],
       "status": "active"
     },
@@ -3221,7 +3297,7 @@
       "purpose": "Browsable list of every real API route (method + path), colored by HTTP verb — dev tool.",
       "purpose_th": "หน้ารายการ API route ทั้งหมดของระบบจริง สีตาม method — เครื่องมือนักพัฒนา",
       "exports": [
-        "default"
+        "ApiExplorerPage"
       ],
       "status": "active"
     },
@@ -3231,7 +3307,7 @@
       "purpose": "Renders module-registry.json + architecture.json as a browsable module list with status pills (OK/broken/unused/unregistered) — dev tool.",
       "purpose_th": "หน้าแสดงรายการโมดูลทั้งหมดพร้อมสถานะ จาก module-registry.json — เครื่องมือนักพัฒนา",
       "exports": [
-        "default"
+        "RegistryViewerPage"
       ],
       "status": "active"
     },
@@ -3241,7 +3317,7 @@
       "purpose": "Shows latest DB backup stats (row counts per table, errors, timestamp) — dev/ops tool.",
       "purpose_th": "หน้าแสดงสถิติการสำรองข้อมูลล่าสุด — เครื่องมือฝั่ง ops",
       "exports": [
-        "default"
+        "BackupPage"
       ],
       "status": "active"
     },
@@ -3251,7 +3327,7 @@
       "purpose": "Shows latest build status (clean/has_issues/not_built) + health/summary counts — dev tool.",
       "purpose_th": "หน้าแสดงสถานะ build ล่าสุด — เครื่องมือนักพัฒนา",
       "exports": [
-        "default"
+        "BuildPage"
       ],
       "status": "active"
     },
@@ -3261,7 +3337,7 @@
       "purpose": "Form + list UI for the Connectors feature (Connect→Register→Test→Enable→Run 5-stage lifecycle) — registers external service credentials (n8n, GitHub, etc). Dev/admin setup tool, not a daily-use page.",
       "purpose_th": "ฟอร์ม+รายการ Connector ภายนอก (5 ขั้นตอน) — เครื่องมือตั้งค่าเทคนิค ไม่ใช่หน้าใช้งานประจำวัน",
       "exports": [
-        "default"
+        "ConnectorsPage"
       ],
       "status": "active"
     },
@@ -3271,7 +3347,7 @@
       "purpose": "Real business dashboard — today's revenue, active jobs, pending docs pulled live from DB. Landing target of /admin (root redirects here).",
       "purpose_th": "แดชบอร์ดธุรกิจจริง — รายได้วันนี้/งานที่ทำอยู่/เอกสารค้าง (หน้าแรกที่ /admin redirect มา)",
       "exports": [
-        "default"
+        "DashboardPage"
       ],
       "status": "active"
     },
@@ -3281,7 +3357,7 @@
       "purpose": "Renders runtime health + Constitution/decision/rule/business coverage percentages as one 'digital DNA' report — dev/self-description tool.",
       "purpose_th": "หน้ารายงานสุขภาพระบบรวม (Constitution/Business/Rule coverage) — เครื่องมือนักพัฒนา",
       "exports": [
-        "default"
+        "DBDPage"
       ],
       "status": "active"
     },
@@ -3291,7 +3367,7 @@
       "purpose": "Shows current git commit/branch + Vercel project/env info — dev/ops tool.",
       "purpose_th": "หน้าแสดงข้อมูล deploy ปัจจุบัน (git commit, Vercel project) — เครื่องมือ ops",
       "exports": [
-        "default"
+        "DeployPage"
       ],
       "status": "active"
     },
@@ -3301,7 +3377,7 @@
       "purpose": "Renders self-awareness.ts's 'Digital DNA' snapshot (age, rule/workflow/module counts) — dev/self-description tool.",
       "purpose_th": "หน้าสรุป 'ดีเอ็นเอ' ของระบบ (อายุ, จำนวนกฎ/workflow/module) — เครื่องมือนักพัฒนา",
       "exports": [
-        "default"
+        "DnaPage"
       ],
       "status": "active"
     },
@@ -3311,7 +3387,7 @@
       "purpose": "2D controls + data-fetch wrapper around ForceGraph3DView — architecture dependency graph explorer, dev tool.",
       "purpose_th": "หน้าควบคุม + ดึงข้อมูลให้กราฟ 3D สถาปัตยกรรม — เครื่องมือนักพัฒนา",
       "exports": [
-        "default"
+        "GraphPage"
       ],
       "status": "active"
     },
@@ -3321,9 +3397,10 @@
       "purpose": "Three.js force-directed 3D graph rendering the module dependency graph (nodes colored by OK/BROKEN/UNUSED/UNREGISTERED status) — dev tool.",
       "purpose_th": "คอมโพเนนต์กราฟ 3D (Three.js) แสดงความสัมพันธ์โมดูล — เครื่องมือนักพัฒนา",
       "exports": [
-        "default",
+        "FGData",
+        "FGLink",
         "FGNode",
-        "FGData"
+        "ForceGraph3DView"
       ],
       "status": "active"
     },
@@ -3333,7 +3410,7 @@
       "purpose": "Real jobs/transactions list (tx_type, state, project, amount) with links to detail pages.",
       "purpose_th": "หน้ารายการงาน/ธุรกรรมจริง",
       "exports": [
-        "default"
+        "JobsPage"
       ],
       "status": "active"
     },
@@ -3343,7 +3420,7 @@
       "purpose": "Job detail — shows workflow step position and links to create each document type (invoice/PO/DO/etc.) for that job.",
       "purpose_th": "หน้ารายละเอียดงาน — โชว์ขั้นตอน workflow และลิงก์ออกเอกสารแต่ละประเภทของงานนั้น",
       "exports": [
-        "default"
+        "JobDetailPage"
       ],
       "status": "active"
     },
@@ -3353,7 +3430,7 @@
       "purpose": "Form to create a new job/transaction, picking a partner and tx_type.",
       "purpose_th": "ฟอร์มสร้างงาน/ธุรกรรมใหม่ เลือกพาร์ทเนอร์และประเภทธุรกรรม",
       "exports": [
-        "default"
+        "JobCreatePage"
       ],
       "status": "active"
     },
@@ -3363,7 +3440,7 @@
       "purpose": "Shared layout for every /admin/* route — renders AdminSidebarNav from portals.docs (now split business/dev groups, 2026-07-09) and enforces admin auth via requireAuthPage.",
       "purpose_th": "Layout ร่วมของทุกหน้า /admin — render sidebar จาก portals.docs (แยกกลุ่มธุรกิจ/นักพัฒนาแล้ว) และเช็คสิทธิ์ admin",
       "exports": [
-        "default"
+        "AdminLayout"
       ],
       "status": "active"
     },
@@ -3373,7 +3450,7 @@
       "purpose": "Static list of real system links (from config/system-links.ts) users click through to each connected external service.",
       "purpose_th": "หน้ารายการลิงก์ระบบจริงทั้งหมด (จาก config/system-links.ts)",
       "exports": [
-        "default"
+        "SystemLinksPage"
       ],
       "status": "active"
     },
@@ -3383,7 +3460,7 @@
       "purpose": "Manual LINE push-notification sender — calls /api/admin/notifications/send, requires explicit confirm click (Rule 72), never auto-sends.",
       "purpose_th": "หน้าส่ง LINE notification ด้วยมือ ต้องกดยืนยันทุกครั้ง (Rule 72) ไม่ส่งอัตโนมัติ",
       "exports": [
-        "default"
+        "NotificationsPage"
       ],
       "status": "active"
     },
@@ -3393,7 +3470,7 @@
       "purpose": "Bare redirect to /admin/dashboard.",
       "purpose_th": "redirect ไปหน้า /admin/dashboard เฉยๆ",
       "exports": [
-        "default"
+        "AdminPage"
       ],
       "status": "active"
     },
@@ -3403,7 +3480,7 @@
       "purpose": "Thin wrapper — renders TransactionPanel filtered to pendingOnly=true.",
       "purpose_th": "หน้าย่อย เรียก TransactionPanel กรองเฉพาะรายการค้าง",
       "exports": [
-        "default"
+        "PendingPage"
       ],
       "status": "active"
     },
@@ -3413,7 +3490,7 @@
       "purpose": "Interactive file/dependency browser (file tree + dep graph) — dev tool.",
       "purpose_th": "หน้าไล่ดูไฟล์และ dependency graph แบบโต้ตอบ — เครื่องมือนักพัฒนา",
       "exports": [
-        "default"
+        "ReaderPage"
       ],
       "status": "active"
     },
@@ -3423,7 +3500,7 @@
       "purpose": "Shows recorded execution traces (layer-by-layer steps + DB reads/writes per request) — dev tool.",
       "purpose_th": "หน้าแสดง trace การทำงานของ request แต่ละครั้ง แยกตาม layer — เครื่องมือนักพัฒนา",
       "exports": [
-        "default"
+        "TracesPage"
       ],
       "status": "active"
     },
@@ -3433,7 +3510,7 @@
       "purpose": "Thin wrapper — renders TransactionPanel in create mode, pendingOnly=false (all transactions).",
       "purpose_th": "หน้าย่อย เรียก TransactionPanel โหมดสร้าง แสดงธุรกรรมทั้งหมด",
       "exports": [
-        "default"
+        "TransactionsPage"
       ],
       "status": "active"
     },
@@ -3443,7 +3520,7 @@
       "purpose": "Public capability page listing AI_REGISTRY.json agents + AI_SESSIONS.json live session statuses.",
       "purpose_th": "หน้าสาธารณะแสดงรายชื่อ AI agent และสถานะ session จริง",
       "exports": [
-        "default"
+        "AIServicesPage"
       ],
       "status": "active"
     },
@@ -3453,7 +3530,7 @@
       "purpose": "Loading skeleton for the AI Services page (CapabilitySkeleton, 4 cards).",
       "purpose_th": "skeleton ระหว่างโหลดหน้า AI Services",
       "exports": [
-        "default"
+        "Loading"
       ],
       "status": "active"
     },
@@ -3463,7 +3540,7 @@
       "purpose": "CEO Dashboard — real stats from module-registry.json + architecture-book.json (module counts, health).",
       "purpose_th": "แดชบอร์ด CEO — สถิติจริงจาก module-registry/architecture-book",
       "exports": [
-        "default"
+        "CeoDashboardPage"
       ],
       "status": "active"
     },
@@ -3473,7 +3550,7 @@
       "purpose": "Layout for the Business Portal — sidebar from permissions.json's role_access for /business, enforces auth.",
       "purpose_th": "Layout ของ Business Portal — sidebar ตามสิทธิ์ /business เช็ค auth",
       "exports": [
-        "default"
+        "BusinessLayout"
       ],
       "status": "active"
     },
@@ -3483,7 +3560,7 @@
       "purpose": "Loading skeleton shaped like the CEO Dashboard grid (7 stat cards + health list).",
       "purpose_th": "skeleton ระหว่างโหลด CEO Dashboard",
       "exports": [
-        "default"
+        "Loading"
       ],
       "status": "active"
     },
@@ -3493,7 +3570,7 @@
       "purpose": "Download Center portal page — honestly shows there's no downloadable package yet, lists real CLI commands from CONSTITUTION.json instead.",
       "purpose_th": "หน้า Download Center — บอกตรงๆ ว่ายังไม่มีไฟล์ดาวน์โหลด โชว์ชุดคำสั่ง CLI จริงแทน",
       "exports": [
-        "default"
+        "DownloadCenterPage"
       ],
       "status": "active"
     },
@@ -3503,7 +3580,7 @@
       "purpose": "Loading skeleton for the Download Center page.",
       "purpose_th": "skeleton ระหว่างโหลดหน้า Download Center",
       "exports": [
-        "default"
+        "Loading"
       ],
       "status": "active"
     },
@@ -3513,7 +3590,7 @@
       "purpose": "LINE LIFF page — checks/prompts LINE friend-add status via the LIFF SDK.",
       "purpose_th": "หน้า LINE LIFF เช็ค/ชวนเพิ่มเพื่อน LINE ผ่าน LIFF SDK",
       "exports": [
-        "default"
+        "AddFriendLIFF"
       ],
       "status": "active"
     },
@@ -3523,7 +3600,7 @@
       "purpose": "Bare passthrough layout for /liff/* routes.",
       "purpose_th": "Layout เปล่าสำหรับหน้า /liff/*",
       "exports": [
-        "default"
+        "LIFFLayout"
       ],
       "status": "active"
     },
@@ -3533,7 +3610,7 @@
       "purpose": "Public capability page — connector lifecycle stages + supported auth types from registry.",
       "purpose_th": "หน้าสาธารณะแสดงขั้นตอน connector lifecycle และ auth type ที่รองรับ",
       "exports": [
-        "default"
+        "MarketplacePage"
       ],
       "status": "active"
     },
@@ -3543,7 +3620,7 @@
       "purpose": "Loading skeleton for the Marketplace page.",
       "purpose_th": "skeleton ระหว่างโหลดหน้า Marketplace",
       "exports": [
-        "default"
+        "Loading"
       ],
       "status": "active"
     },
@@ -3553,7 +3630,8 @@
       "purpose": "Layout + metadata for the read-only Architecture Observer page (external-AI-facing).",
       "purpose_th": "Layout ของหน้า Observer (สำหรับ AI ภายนอกอ่านสถาปัตยกรรมแบบ read-only)",
       "exports": [
-        "default"
+        "ObserverLayout",
+        "metadata"
       ],
       "status": "active"
     },
@@ -3563,7 +3641,7 @@
       "purpose": "Partner Portal — real business-coverage.json 'relationship'/'purchase' domain content, auth-gated by role.",
       "purpose_th": "Partner Portal — เนื้อหาจริงจาก business-coverage.json โดเมน relationship/purchase เช็คสิทธิ์",
       "exports": [
-        "default"
+        "PartnerPortalPage"
       ],
       "status": "active"
     },
@@ -3573,7 +3651,7 @@
       "purpose": "Loading skeleton for the Partner Portal.",
       "purpose_th": "skeleton ระหว่างโหลด Partner Portal",
       "exports": [
-        "default"
+        "Loading"
       ],
       "status": "active"
     },
@@ -3583,7 +3661,7 @@
       "purpose": "Public capability page listing real Portals from portals.json.",
       "purpose_th": "หน้าสาธารณะแสดงรายชื่อ Portal จริงจาก portals.json",
       "exports": [
-        "default"
+        "ProductsPage"
       ],
       "status": "active"
     },
@@ -3593,7 +3671,7 @@
       "purpose": "Loading skeleton for the Products page.",
       "purpose_th": "skeleton ระหว่างโหลดหน้า Products",
       "exports": [
-        "default"
+        "Loading"
       ],
       "status": "active"
     },
@@ -3603,7 +3681,7 @@
       "purpose": "Public capability page — existence/business/decision/rule coverage stats as report cards.",
       "purpose_th": "หน้าสาธารณะแสดงสถิติ coverage ต่างๆ เป็นการ์ดรายงาน",
       "exports": [
-        "default"
+        "ReportPage"
       ],
       "status": "active"
     },
@@ -3613,7 +3691,7 @@
       "purpose": "Loading skeleton for the Report page.",
       "purpose_th": "skeleton ระหว่างโหลดหน้า Report",
       "exports": [
-        "default"
+        "Loading"
       ],
       "status": "active"
     },
@@ -3623,7 +3701,7 @@
       "purpose": "Public capability page — business-coverage.json domains with covered/partial/missing pills.",
       "purpose_th": "หน้าสาธารณะแสดงโดเมนธุรกิจพร้อมสถานะ covered/partial/missing",
       "exports": [
-        "default"
+        "SolutionsPage"
       ],
       "status": "active"
     },
@@ -3633,7 +3711,7 @@
       "purpose": "Loading skeleton for the Solutions page.",
       "purpose_th": "skeleton ระหว่างโหลดหน้า Solutions",
       "exports": [
-        "default"
+        "Loading"
       ],
       "status": "active"
     },
@@ -3643,7 +3721,7 @@
       "purpose": "User Portal — real 16-capability list from existence.json with per-capability availability, auth-gated by role.",
       "purpose_th": "User Portal — รายการ 16 ความสามารถจริงจาก existence.json เช็คสิทธิ์",
       "exports": [
-        "default"
+        "UserPortalPage"
       ],
       "status": "active"
     },
@@ -3653,7 +3731,7 @@
       "purpose": "Loading skeleton for the User Portal.",
       "purpose_th": "skeleton ระหว่างโหลด User Portal",
       "exports": [
-        "default"
+        "Loading"
       ],
       "status": "active"
     },
@@ -3663,7 +3741,7 @@
       "purpose": "Client button — POSTs /api/auth/logout then redirects to /login.",
       "purpose_th": "ปุ่ม logout — เรียก /api/auth/logout แล้ว redirect ไป /login",
       "exports": [
-        "default"
+        "LogoutButton"
       ],
       "status": "active"
     },
@@ -3673,7 +3751,7 @@
       "purpose": "The 'ธุรกิจการเงิน' hub (renamed 2026-07-09) — grand-total banner, recent financial documents panel, and a collapsed 3-column debt table that expands per-row into full interest/fee/penalty breakdown on click. Reads/writes via /api/admin/debt-trackings (backed by debt_snapshots+companies).",
       "purpose_th": "หน้า 'ธุรกิจการเงิน' — แบนเนอร์ยอดรวม, เอกสารล่าสุด, ตารางลูกหนี้แบบ 3 คอลัมน์ที่กดขยายดูรายละเอียดได้",
       "exports": [
-        "default"
+        "DebtTrackingManager"
       ],
       "status": "active"
     },
@@ -3683,7 +3761,7 @@
       "purpose": "The one real document-creation UI (996 lines) — every document type page (invoice/PO/DO/receipt/payment-voucher/debt-notice/create-document) is a thin wrapper around this single component, preset by the `type` prop.",
       "purpose_th": "คอมโพเนนต์สร้างเอกสารตัวจริงตัวเดียว — ทุกหน้าประเภทเอกสารเป็นแค่ wrapper บาง ๆ ห่อตัวนี้",
       "exports": [
-        "default"
+        "DocumentBuilder"
       ],
       "status": "active"
     },
@@ -3693,7 +3771,7 @@
       "purpose": "Renders a live document preview inside an iframe using the same template.ts as the real generated document (Single Template Policy — no separate preview markup to drift).",
       "purpose_th": "พรีวิวเอกสารผ่าน iframe ใช้ template เดียวกับตัวจริง (Single Template Policy)",
       "exports": [
-        "default"
+        "DocumentPreview"
       ],
       "status": "active"
     },
@@ -3703,7 +3781,8 @@
       "purpose": "Reusable file-attachment widget — uploads via /api/admin/upload, lists attachments, opens short-lived signed URLs to view/download.",
       "purpose_th": "วิดเจ็ตแนบไฟล์ใช้ซ้ำได้ — อัปโหลดผ่าน /api/admin/upload",
       "exports": [
-        "default"
+        "FileUpload",
+        "UploadedFile"
       ],
       "status": "active"
     },
@@ -3713,7 +3792,7 @@
       "purpose": "Shared header/footer shell for standalone capability pages (Products/Solutions/Marketplace/AI Services/Report) — Server Component, zero client JS.",
       "purpose_th": "Shell ส่วนหัว/ท้ายที่ใช้ร่วมกันในหน้า capability สาธารณะ",
       "exports": [
-        "default"
+        "CapabilityPageShell"
       ],
       "status": "active"
     },
@@ -3723,7 +3802,7 @@
       "purpose": "Shared loading skeleton matching CapabilityPageShell's layout, used by every capability page's loading.tsx.",
       "purpose_th": "Skeleton โหลดร่วมที่ทุกหน้า capability เรียกใช้",
       "exports": [
-        "default"
+        "CapabilitySkeleton"
       ],
       "status": "active"
     },
@@ -3733,7 +3812,7 @@
       "purpose": "Tiny reusable copy-to-clipboard client button, kept separate so parent pages stay Server Components.",
       "purpose_th": "ปุ่ม copy-to-clipboard เล็กๆ ใช้ซ้ำได้ แยกออกมาให้หน้าแม่เป็น Server Component ได้",
       "exports": [
-        "default"
+        "CopyButton"
       ],
       "status": "active"
     },
@@ -3743,17 +3822,18 @@
       "purpose": "The one shared shell every registered Portal (registry/portals.json → portals{}) renders through — config-driven (name/purpose/status/access), no per-Portal business logic.",
       "purpose_th": "Shell กลางที่ทุก Portal ใช้ร่วมกัน — ต่างกันแค่ config ใน portals.json",
       "exports": [
-        "default"
+        "PortalId",
+        "PortalShell"
       ],
       "status": "active"
     },
     "components/settings/SettingsDrawer.tsx": {
       "owner": "components",
       "layer": "components",
-      "purpose": "Slide-over settings panel for editing CompanySettings (name, tax ID, bank info) without navigating away.",
-      "purpose_th": "แผงตั้งค่าบริษัทแบบ slide-over ไม่ต้องเปลี่ยนหน้า",
+      "purpose": "Slide-over settings panel for editing CompanySettings (name, tax ID, bank info, VAT/terms/footer, debt-reminder automation) without navigating away. 2026-07-11: added optional onSettingsLoaded callback + a mount-time fetch so the Unified Workspace's automation-status pill can show state without opening this drawer.",
+      "purpose_th": "แผงตั้งค่าบริษัทแบบ slide-over ไม่ต้องเปลี่ยนหน้า — เพิ่ม onSettingsLoaded callback ให้ป้ายสถานะอัตโนมัติในหน้า workspace แสดงผลได้โดยไม่ต้องเปิดแผงนี้ก่อน",
       "exports": [
-        "default"
+        "SettingsDrawer"
       ],
       "status": "active"
     },
@@ -3763,7 +3843,7 @@
       "purpose": "Shared transaction list+workflow-step UI — powers both /admin/transactions (all) and /admin/pending (pendingOnly filter) via mode/pendingOnly props.",
       "purpose_th": "คอมโพเนนต์รายการธุรกรรม+ขั้นตอน workflow ใช้ร่วมกันทั้งหน้า Transactions และ Pending",
       "exports": [
-        "default"
+        "TransactionPanel"
       ],
       "status": "active"
     },
@@ -3772,10 +3852,9 @@
       "layer": "core",
       "purpose": "CLI 'Cockpit' — DNA OS command center script (why/status/next/cost/risk self-description commands), reads/writes a local .dna-session.json.",
       "purpose_th": "สคริปต์ CLI ศูนย์บัญชาการ — คำสั่ง why/status/next/cost/risk ให้ระบบอธิบายตัวเอง",
-      "exports": [
-        "default"
-      ],
-      "status": "active"
+      "exports": [],
+      "status": "active",
+      "entry_point": true
     },
     "app/admin/create-document/page.tsx": {
       "owner": "app",
@@ -3783,7 +3862,7 @@
       "purpose": "The real, general-purpose document creation entry point (renamed 'ออกเอกสาร' in nav 2026-07-09) — renders DocumentBuilder, supports fromDebtTracking/partnerId/type/fromDocId/transactionId query params to pre-fill from existing context via draft-builders.ts.",
       "purpose_th": "หน้า 'ออกเอกสาร' ตัวจริง — เรียก DocumentBuilder รับ query param เพื่อ pre-fill จากบริบทเดิม",
       "exports": [
-        "default"
+        "CreateDocumentPage"
       ],
       "status": "active"
     },
@@ -3793,7 +3872,7 @@
       "purpose": "Thin wrapper — renders DebtTrackingManager (the 'ธุรกิจการเงิน' page).",
       "purpose_th": "หน้าย่อย เรียก DebtTrackingManager (หน้า 'ธุรกิจการเงิน')",
       "exports": [
-        "default"
+        "DebtTrackingPage"
       ],
       "status": "active"
     },
@@ -3876,26 +3955,6 @@
       ],
       "status": "unregistered"
     },
-    "app/api/admin/line-customers/route.ts": {
-      "owner": "app",
-      "layer": "app",
-      "purpose": "[Auto-detected] app/api/admin/line-customers/route.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] app/api/admin/line-customers/route.ts",
-      "exports": [
-        "GET"
-      ],
-      "status": "unregistered"
-    },
-    "app/api/admin/line-customers/[lineUserId]/route.ts": {
-      "owner": "app",
-      "layer": "app",
-      "purpose": "[Auto-detected] app/api/admin/line-customers/[lineUserId]/route.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] app/api/admin/line-customers/[lineUserId]/route.ts",
-      "exports": [
-        "GET"
-      ],
-      "status": "unregistered"
-    },
     "app/api/admin/partners/[id]/line-messages/route.ts": {
       "owner": "app",
       "layer": "app",
@@ -3941,10 +4000,9 @@
       "layer": "supabase",
       "purpose": "Cron-triggered Edge Function — retries LINE profile fetch for any contact still missing name/picture after the webhook's own inline retries",
       "purpose_th": "Edge Function ที่รันตาม cron ไล่ดึงชื่อ/รูปโปรไฟล์ LINE ซ้ำให้ผู้ติดต่อที่ยังไม่สำเร็จ",
-      "exports": [
-        "default"
-      ],
-      "status": "active"
+      "exports": [],
+      "status": "active",
+      "entry_point": true
     },
     "app/admin/quotation-queue/page.tsx": {
       "owner": "app",
@@ -3952,17 +4010,7 @@
       "purpose": "Admin page listing real unactioned quotation requests from LINE with material-match status",
       "purpose_th": "หน้าแอดมินแสดงคำขอราคาจริงจาก LINE ที่ยังไม่มีเอกสารตอบกลับ พร้อมสถานะจับคู่วัสดุ",
       "exports": [
-        "default"
-      ],
-      "status": "active"
-    },
-    "app/admin/line-customers/page.tsx": {
-      "owner": "app",
-      "layer": "app",
-      "purpose": "LINE contacts cross-referenced with real company/debt/document data, business event creation, and outbound-draft approval — the message-centric entry point into the customer relationship",
-      "purpose_th": "หน้าลูกค้า LINE จับคู่กับข้อมูลบริษัท/หนี้/เอกสารจริง สร้าง business event ได้ และอนุมัติข้อความรอส่งได้ในหน้าเดียว",
-      "exports": [
-        "default"
+        "QuotationQueuePage"
       ],
       "status": "active"
     },
@@ -3972,7 +4020,7 @@
       "purpose": "Flat chronological feed of every business_events row across all contacts — 'events flowing in from outside', not raw messages",
       "purpose_th": "หน้าเหตุการณ์เข้า — รายการ business_events ทั้งหมดเรียงตามเวลา นับเป็นเหตุการณ์ธุรกิจ ไม่ใช่ข้อความดิบ",
       "exports": [
-        "default"
+        "EventInboxPage"
       ],
       "status": "active"
     },
@@ -4027,7 +4075,7 @@
       "purpose": "Admin page showing the schema change audit log",
       "purpose_th": "หน้าแอดมินแสดงประวัติการเปลี่ยนแปลงโครงสร้างฐานข้อมูล",
       "exports": [
-        "default"
+        "SchemaAuditPage"
       ],
       "status": "active"
     },
@@ -4047,7 +4095,7 @@
       "purpose": "Control-room page listing all pits with province/GPS/price coverage, connected live to the real database",
       "purpose_th": "หน้าห้องควบคุมแสดงบ่อวัสดุทั้งหมด พร้อมจังหวัด/พิกัด/สถานะราคา ดึงจากฐานข้อมูลจริงสด",
       "exports": [
-        "default"
+        "PitsPage"
       ],
       "status": "active"
     },
@@ -4066,10 +4114,9 @@
       "layer": "supabase",
       "purpose": "One-off manual trigger for tryAutoBuildEvent — catches up contacts whose messages arrived before the automatic version existed",
       "purpose_th": "ทริกเกอร์แบบครั้งเดียวสำหรับไล่ประมวลผลข้อความเก่าที่มาก่อนระบบอัตโนมัติจะมีผล",
-      "exports": [
-        "default"
-      ],
-      "status": "active"
+      "exports": [],
+      "status": "active",
+      "entry_point": true
     },
     "supabase/functions/line-webhook-v2/engines/quote-price.ts": {
       "owner": "supabase",
@@ -4117,10 +4164,9 @@
       "layer": "supabase",
       "purpose": "One-off manual re-trigger of tryCompleteAwaitingEvent for backlog catch-up",
       "purpose_th": "ทริกเกอร์แบบครั้งเดียวสำหรับไล่ประมวลผล event ที่ค้างอยู่ซ้ำ",
-      "exports": [
-        "default"
-      ],
-      "status": "active"
+      "exports": [],
+      "status": "active",
+      "entry_point": true
     },
     "components/ui-kit/IconRail.tsx": {
       "owner": "admin",
@@ -4128,7 +4174,8 @@
       "purpose": "LINE-style leftmost icon rail, single-select — new layout primitive for AppShell (owner request 2026-07-11: mirror the real LINE app layout)",
       "purpose_th": "แถบไอคอนซ้ายสุดแบบแอป LINE เลือกได้ทีละ 1 — layout primitive ใหม่ของ AppShell",
       "exports": [
-        "default"
+        "IconRail",
+        "IconRailItem"
       ],
       "status": "active"
     },
@@ -4138,7 +4185,8 @@
       "purpose": "LINE-style middle list column (search + rows with avatar/subtitle/timestamp/badge) — AppShell primitive",
       "purpose_th": "คอลัมน์รายการกลางแบบแอป LINE (ค้นหา+รายชื่อ+badge) — layout primitive ของ AppShell",
       "exports": [
-        "default"
+        "ListColumn",
+        "ListColumnItem"
       ],
       "status": "active"
     },
@@ -4148,7 +4196,7 @@
       "purpose": "Composes IconRail + ListColumn + main content into a persistent 3-column LINE-style shell — first real page wired: app/admin/line-customers/page.tsx",
       "purpose_th": "ประกอบ IconRail+ListColumn+เนื้อหาหลักเป็นโครง 3 คอลัมน์ถาวรแบบ LINE — หน้าจริงหน้าแรกที่ใช้: line-customers",
       "exports": [
-        "default"
+        "AppShell"
       ],
       "status": "active"
     },
@@ -4160,87 +4208,13 @@
       "exports": [
         "ActionBar",
         "AppShell",
-        "ChatPanel",
-        "CommandPalette",
-        "DataTable",
-        "Dock",
-        "DocumentViewer",
-        "Drawer",
         "EmptyState",
+        "FlexPreview",
         "IconRail",
         "Inspector",
         "ListColumn",
         "MapView",
-        "PartnerCard",
-        "Timeline",
-        "Window",
-        "WindowLayer",
-        "WorkspaceCanvas",
-        "useWorkspace"
-      ],
-      "status": "active"
-    },
-    "components/ui-kit/ChatPanel.tsx": {
-      "owner": "admin",
-      "layer": "ui",
-      "purpose": "Chat bubble panel, retheme to light + LINE-style green/white bubbles 2026-07-11, supports variant panel for AppShell main pane",
-      "purpose_th": "ส่วนหนึ่งของ UIKit — Chat bubble panel, retheme to light + LINE-style green/white bubbles 2026-07-11, supports variant panel for AppShell main pane",
-      "exports": [
-        "default",
-        "ChatMessage"
-      ],
-      "status": "active"
-    },
-    "components/ui-kit/CommandPalette.tsx": {
-      "owner": "admin",
-      "layer": "ui",
-      "purpose": "Cmd+K launcher for WorkspaceCanvas, light theme",
-      "purpose_th": "ส่วนหนึ่งของ UIKit — Cmd+K launcher for WorkspaceCanvas, light theme",
-      "exports": [
-        "default",
-        "PaletteCommand"
-      ],
-      "status": "active"
-    },
-    "components/ui-kit/DataTable.tsx": {
-      "owner": "admin",
-      "layer": "ui",
-      "purpose": "Generic light-themed data table, props-driven",
-      "purpose_th": "ส่วนหนึ่งของ UIKit — Generic light-themed data table, props-driven",
-      "exports": [
-        "default",
-        "DataTableColumn"
-      ],
-      "status": "active"
-    },
-    "components/ui-kit/Dock.tsx": {
-      "owner": "admin",
-      "layer": "ui",
-      "purpose": "Multi-toggle floating-window icon dock for WorkspaceCanvas (kept alongside the newer single-select IconRail)",
-      "purpose_th": "ส่วนหนึ่งของ UIKit — Multi-toggle floating-window icon dock for WorkspaceCanvas (kept alongside the newer single-select IconRail)",
-      "exports": [
-        "default",
-        "DockItem"
-      ],
-      "status": "active"
-    },
-    "components/ui-kit/DocumentViewer.tsx": {
-      "owner": "admin",
-      "layer": "ui",
-      "purpose": "Document preview panel, light theme",
-      "purpose_th": "ส่วนหนึ่งของ UIKit — Document preview panel, light theme",
-      "exports": [
-        "default"
-      ],
-      "status": "active"
-    },
-    "components/ui-kit/Drawer.tsx": {
-      "owner": "admin",
-      "layer": "ui",
-      "purpose": "Edge-anchored sliding panel wrapper around Window",
-      "purpose_th": "ส่วนหนึ่งของ UIKit — Edge-anchored sliding panel wrapper around Window",
-      "exports": [
-        "default"
+        "Window"
       ],
       "status": "active"
     },
@@ -4250,7 +4224,7 @@
       "purpose": "Shared empty-state placeholder used by every ui-kit content component",
       "purpose_th": "ส่วนหนึ่งของ UIKit — Shared empty-state placeholder used by every ui-kit content component",
       "exports": [
-        "default"
+        "EmptyState"
       ],
       "status": "active"
     },
@@ -4260,7 +4234,7 @@
       "purpose": "Key/value inspector panel, light theme",
       "purpose_th": "ส่วนหนึ่งของ UIKit — Key/value inspector panel, light theme",
       "exports": [
-        "default",
+        "Inspector",
         "InspectorField"
       ],
       "status": "active"
@@ -4271,30 +4245,8 @@
       "purpose": "Provider-agnostic marker grid, light theme",
       "purpose_th": "ส่วนหนึ่งของ UIKit — Provider-agnostic marker grid, light theme",
       "exports": [
-        "default",
-        "MapMarker"
-      ],
-      "status": "active"
-    },
-    "components/ui-kit/PartnerCard.tsx": {
-      "owner": "admin",
-      "layer": "ui",
-      "purpose": "Compact partner/company summary card, light theme",
-      "purpose_th": "ส่วนหนึ่งของ UIKit — Compact partner/company summary card, light theme",
-      "exports": [
-        "default",
-        "PartnerCardProps"
-      ],
-      "status": "active"
-    },
-    "components/ui-kit/Timeline.tsx": {
-      "owner": "admin",
-      "layer": "ui",
-      "purpose": "Vertical event timeline, light theme",
-      "purpose_th": "ส่วนหนึ่งของ UIKit — Vertical event timeline, light theme",
-      "exports": [
-        "default",
-        "TimelineEvent"
+        "MapMarker",
+        "MapView"
       ],
       "status": "active"
     },
@@ -4304,29 +4256,8 @@
       "purpose": "Shared frame every ui-kit content component wraps in — added variant window|panel 2026-07-11 for AppShell",
       "purpose_th": "ส่วนหนึ่งของ UIKit — Shared frame every ui-kit content component wraps in — added variant window|panel 2026-07-11 for AppShell",
       "exports": [
-        "default",
+        "Window",
         "WindowProps"
-      ],
-      "status": "active"
-    },
-    "components/ui-kit/WindowLayer.tsx": {
-      "owner": "admin",
-      "layer": "ui",
-      "purpose": "Renders whichever floating windows are open in a WorkspaceCanvas",
-      "purpose_th": "ส่วนหนึ่งของ UIKit — Renders whichever floating windows are open in a WorkspaceCanvas",
-      "exports": [
-        "default"
-      ],
-      "status": "active"
-    },
-    "components/ui-kit/WorkspaceCanvas.tsx": {
-      "owner": "admin",
-      "layer": "ui",
-      "purpose": "Floating-window workspace root + context, light theme",
-      "purpose_th": "ส่วนหนึ่งของ UIKit — Floating-window workspace root + context, light theme",
-      "exports": [
-        "default",
-        "useWorkspace"
       ],
       "status": "active"
     },
@@ -4336,7 +4267,8 @@
       "purpose": "Bottom action-bar row (GPS/quotation/invoice/delivery/receipt/call/attach/ask-AI) — owner request 2026-07-11: hide Events/Documents/Transactions tables behind buttons so the chat stays the primary workspace",
       "purpose_th": "แถบปุ่มด้านล่างกระทู้แชต (GPS/เอกสาร/โทร/แนบไฟล์/ถาม AI) — ซ่อนตาราง Events/Documents ไว้หลังปุ่มตามที่เฮียขอ",
       "exports": [
-        "default"
+        "ActionBar",
+        "ActionBarItem"
       ],
       "status": "active"
     },
@@ -4394,9 +4326,10 @@
     "engines/documents/flex-template.ts": {
       "owner": "engines",
       "layer": "engines",
-      "purpose": "LINE Flex Message card builder for real documents (quotation/invoice/delivery/receipt) — modeled on the real LINE receipt template shown in the Flex Simulator, adapted from the previously-unused boq-card.ts",
-      "purpose_th": "สร้างการ์ด LINE Flex Message จากเอกสารจริง (ใบเสนอราคา/ใบแจ้งหนี้/ใบส่งของ/ใบเสร็จ) ตามแบบ Flex Simulator ของ LINE เอง ต่อยอดจาก boq-card.ts เดิมที่ไม่เคยถูกเรียกใช้",
+      "purpose": "LINE Flex Message card builder for real documents (quotation/invoice/delivery/receipt) — modeled on the real LINE receipt template shown in the Flex Simulator, adapted from the previously-unused boq-card.ts. 2026-07-11: added CardBranding (real company name/tax ID/terms/footer note from core/config/company-settings.ts) rendered as a footer section on every card",
+      "purpose_th": "สร้างการ์ด LINE Flex Message จากเอกสารจริง (ใบเสนอราคา/ใบแจ้งหนี้/ใบส่งของ/ใบเสร็จ) ตามแบบ Flex Simulator ของ LINE เอง ต่อยอดจาก boq-card.ts เดิมที่ไม่เคยถูกเรียกใช้ — เพิ่มส่วนท้ายการ์ดแสดงชื่อบริษัท/เลขภาษี/ข้อตกลง/หมายเหตุจริง",
       "exports": [
+        "CardBranding",
         "DebtReminderFlexProps",
         "DocumentFlexProps",
         "debtReminderFlex",
@@ -4404,11 +4337,30 @@
       ],
       "status": "active"
     },
+    "components/ui-kit/FlexPreview.tsx": {
+      "owner": "admin",
+      "layer": "ui",
+      "purpose": "Renders the subset of LINE Flex JSON produced by engines/documents/flex-template.ts (bubble/box/text/separator) as an HTML card, so the admin sees the real card before confirming a send — owner request 2026-07-11: \"ให้เห็นภาพรายการก่อนที่จะกดส่งยืนยัน\"",
+      "purpose_th": "แปลง Flex JSON ที่เราสร้างเองเป็นการ์ด HTML ให้เห็นหน้าตาจริงก่อนกดยืนยันส่ง",
+      "exports": [
+        "FlexPreview"
+      ],
+      "status": "active"
+    },
+    "supabase/functions/debt-reminder-cron/index.ts": {
+      "owner": "admin",
+      "layer": "services",
+      "purpose": "pg_cron-triggered Edge Function, runs every 10 min, sends the debt-reminder Flex card automatically once/day at the hour configured in app_configs (debt-reminder-auto-enabled/debt-reminder-hour, set via SettingsDrawer). Duplicates send-debt/route.ts + flex-template.ts's debtReminderFlex since Deno can't import the Node engine — see migration 20260711000003",
+      "purpose_th": "Edge Function ที่ pg_cron เรียกทุก 10 นาที ส่งการ์ดแจ้งยอดค้างชำระอัตโนมัติวันละ 1 รอบตามชั่วโมงที่ตั้งไว้ใน SettingsDrawer — ก็อปปี้ตรรกะจาก send-debt/route.ts มาฝั่ง Deno เพราะ import ข้าม runtime ไม่ได้",
+      "exports": [],
+      "status": "active",
+      "entry_point": true
+    },
     "app/api/admin/line-customers/[lineUserId]/send-debt/route.ts": {
       "owner": "admin",
       "layer": "api",
-      "purpose": "One-click send of a real debt reminder Flex card to a LINE customer, re-reading debt_snapshots fresh server-side rather than trusting client-cached figures",
-      "purpose_th": "ส่งการ์ดแจ้งยอดค้างชำระจริงหาลูกค้าด้วยคลิกเดียว อ่านยอดหนี้จริงจาก DB ฝั่ง server ใหม่ทุกครั้งก่อนส่ง",
+      "purpose": "Send a real debt reminder Flex card to a LINE customer, re-reading debt_snapshots fresh server-side rather than trusting client-cached figures. 2026-07-11: takes body {mode:'preview'|'execute'} (default preview) — preview builds and returns the real card without sending, execute actually pushes + logs, matching the Rule-72 preview-then-confirm pattern",
+      "purpose_th": "ส่งการ์ดแจ้งยอดค้างชำระจริงหาลูกค้า อ่านยอดหนี้จริงจาก DB ฝั่ง server ใหม่ทุกครั้งก่อนส่ง — รับ body {mode} เพื่อพรีวิวการ์ดก่อนค่อยยืนยันส่งจริง",
       "exports": [
         "POST"
       ],
@@ -4433,6 +4385,1527 @@
         "tryFollowUpDebtAck"
       ],
       "status": "active"
+    },
+    "app/admin/relationships/page.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Relationship list entry route — thin wrapper rendering RelationshipWorkspacePage with no relationship pre-selected.",
+      "purpose_th": "หน้ารายการลูกค้า (Relationship) — thin wrapper เรียก RelationshipWorkspacePage แบบไม่เลือกลูกค้าใดไว้ล่วงหน้า",
+      "exports": [
+        "RelationshipsPage"
+      ],
+      "status": "active"
+    },
+    "app/admin/relationships/[relationshipId]/page.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Deep-linkable single-relationship workspace route — reads relationship_id (companies.id) from the URL, never line_user_id.",
+      "purpose_th": "หน้า Workspace ของลูกค้ารายเดียว เปิดตรงผ่าน URL — ใช้ relationship_id (companies.id) ไม่ใช่ line_user_id",
+      "exports": [
+        "RelationshipWorkspaceRoute"
+      ],
+      "status": "active"
+    },
+    "app/admin/relationships/workspace.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "The Relationship Workspace (Architecture Migration Phase 1, 2026-07-13) — relocated and re-keyed from app/admin/line-customers/page.tsx. Workspace identity is relationship_id (companies.id); LINE is one communication channel a relationship may have zero, one, or several accounts of. Renders the merged Timeline feed (feed.ts) inside AppShell/WorkspaceProvider.",
+      "purpose_th": "Relationship Workspace (ย้าย/re-key จาก line-customers/page.tsx) — identity คือ relationship_id (companies.id) ไม่ใช่ line_user_id, LINE เป็นแค่ช่องทางสื่อสารหนึ่งที่ความสัมพันธ์หนึ่งอาจมีหลายบัญชี",
+      "exports": [
+        "RelationshipWorkspacePage"
+      ],
+      "status": "active"
+    },
+    "app/admin/relationships/feed.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Merges messages + AI/action-log + business_events + documents into one sorted Timeline feed for one relationship. Relocated/re-keyed from app/admin/line-customers/feed.ts.",
+      "purpose_th": "รวม message + AI/action-log + business_events + เอกสาร เป็น Timeline เดียวของลูกค้าหนึ่งราย ย้ายมาจาก line-customers/feed.ts",
+      "exports": [
+        "ActionLogEntry",
+        "BizEvent",
+        "DocRow",
+        "Draft",
+        "FeedItem",
+        "Message",
+        "RUNTIME_OWNERSHIP",
+        "Relationship",
+        "RelationshipDetail",
+        "RuntimeOwnershipMap",
+        "buildFeed",
+        "buildInspectorFields"
+      ],
+      "status": "active"
+    },
+    "app/admin/relationships/workspace-state.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Shared React Context + useReducer for the Relationship Workspace (pendingPreview/selection/automation). Relocated unchanged from app/admin/line-customers/workspace-state.tsx.",
+      "purpose_th": "shared state (Context + useReducer) ของ Relationship Workspace — ย้ายมาจาก line-customers/workspace-state.tsx โดยไม่เปลี่ยนโครงสร้าง",
+      "exports": [
+        "WorkspaceProvider",
+        "useWorkspace",
+        "PendingPreview",
+        "Selection",
+        "AutomationStatus"
+      ],
+      "status": "active"
+    },
+    "app/api/admin/relationships/route.ts": {
+      "owner": "api",
+      "layer": "app",
+      "purpose": "Relationship list API — rooted at companies table (not line_events history), so every real company has a workspace regardless of LINE history. Aggregates linked LINE threads, debt, and pending-draft status per relationship.",
+      "purpose_th": "API รายการลูกค้า (Relationship) — เริ่มจากตาราง companies ไม่ใช่ประวัติ LINE ทำให้ทุกบริษัทมี Workspace แม้ไม่เคยแชท LINE เลย",
+      "exports": [
+        "GET"
+      ],
+      "status": "active"
+    },
+    "app/api/admin/relationships/[relationshipId]/route.ts": {
+      "owner": "api",
+      "layer": "app",
+      "purpose": "Relationship detail API — keyed by companies.id. Aggregates messages/events across all linked LINE accounts for that relationship (union+dedupe of business_events matched by partner_id and by source_line_user_id).",
+      "purpose_th": "API รายละเอียดลูกค้า — key ด้วย companies.id รวมข้อความ/เหตุการณ์จากทุกบัญชี LINE ที่ผูกกับลูกค้ารายนี้",
+      "exports": [
+        "GET"
+      ],
+      "status": "active"
+    },
+    "styles/tokens/colors.ts": {
+      "owner": "components",
+      "layer": "ui",
+      "purpose": "Design Tokens — raw color palette for Enterprise Light / Developer Dark themes. Consumed via elevation.ts/typography.ts/semantic-colors.ts, never used directly by components.",
+      "purpose_th": "Design Token สี — palette ดิบสำหรับธีม Enterprise Light / Developer Dark ใช้ผ่าน elevation.ts/typography.ts/semantic-colors.ts เท่านั้น",
+      "exports": [
+        "colors",
+        "Theme"
+      ],
+      "status": "active"
+    },
+    "styles/tokens/elevation.ts": {
+      "owner": "components",
+      "layer": "ui",
+      "purpose": "Design Tokens — 5-layer elevation system (Background/Section/Card/Interactive Card/Floating Surface) as ready-to-use Tailwind class strings per theme.",
+      "purpose_th": "Design Token ระบบชั้นความสูง (elevation) 5 ชั้น เป็น Tailwind class สำเร็จรูปต่อธีม",
+      "exports": [
+        "elevation"
+      ],
+      "status": "active"
+    },
+    "styles/tokens/semantic-colors.ts": {
+      "owner": "components",
+      "layer": "ui",
+      "purpose": "Design Tokens — enterprise-muted semantic status colors (success/warning/error/info) per theme, replacing saturated dashboard-style neon colors.",
+      "purpose_th": "Design Token สีสถานะ (success/warning/error/info) โทน enterprise ต่อธีม แทนสีสดแบบ dashboard เกม",
+      "exports": [
+        "semanticColors",
+        "SemanticTone"
+      ],
+      "status": "active"
+    },
+    "styles/tokens/typography.ts": {
+      "owner": "components",
+      "layer": "ui",
+      "purpose": "Design Tokens — heading/body/description text color layering and font-weight tokens per theme.",
+      "purpose_th": "Design Token ตัวอักษร — สี heading/body/description และน้ำหนักฟอนต์ต่อธีม",
+      "exports": [
+        "typography",
+        "fontWeight"
+      ],
+      "status": "active"
+    },
+    "styles/tokens/spacing.ts": {
+      "owner": "components",
+      "layer": "ui",
+      "purpose": "Design Tokens — shared vertical rhythm and container-width tokens.",
+      "purpose_th": "Design Token ระยะห่าง — จังหวะแนวตั้งและความกว้าง container ที่ใช้ร่วมกัน",
+      "exports": [
+        "spacing"
+      ],
+      "status": "active"
+    },
+    "styles/tokens/index.tsx": {
+      "owner": "components",
+      "layer": "ui",
+      "purpose": "Design Tokens barrel + ThemeProvider/useTheme/ThemeToggle — Enterprise Light vs Developer Dark theme switching, persisted to localStorage.",
+      "purpose_th": "Barrel export ของ Design Tokens พร้อม ThemeProvider/useTheme/ThemeToggle สลับธีม Enterprise Light / Developer Dark เก็บค่าไว้ที่ localStorage",
+      "exports": [
+        "ThemeProvider",
+        "ThemeToggle",
+        "colors",
+        "elevation",
+        "fontWeight",
+        "semanticColors",
+        "spacing",
+        "type SemanticTone",
+        "typography",
+        "useTheme"
+      ],
+      "status": "active"
+    },
+    "engines/presentation/timeline-engine.ts": {
+      "owner": "engines",
+      "layer": "engines",
+      "purpose": "Shared timeline-merge primitive (Architecture Governance, 2026-07-13) — links documents to their originating business_event via business_event_id, else marks them standalone. The one duplicate piece of logic app/admin/relationships/feed.ts's buildFeed() and engines/partner/timeline.ts's buildPartnerTimeline() each independently re-implemented; both now call this instead of their own copy. Output shapes of both callers are unchanged (PartnerTimelineEntry[]'s external API contract preserved).",
+      "purpose_th": "ตัวช่วยรวม Timeline ที่ใช้ร่วมกัน — ผูกเอกสารเข้ากับ business_event ต้นทางผ่าน business_event_id ที่เหลือถือเป็นเอกสารเดี่ยว เป็น logic ซ้ำจุดเดียวที่ buildFeed และ buildPartnerTimeline เคยเขียนแยกกัน ตอนนี้เรียกใช้จุดเดียวกัน โดย output shape ของทั้งคู่ไม่เปลี่ยน",
+      "exports": [
+        "linkDocumentsToEvents"
+      ],
+      "status": "active"
+    },
+    "engines/presentation/event-style.ts": {
+      "owner": "engines",
+      "layer": "engines",
+      "purpose": "Canonical owner of event_type -> icon/style mappings (Architecture Governance, 2026-07-13). Relocates EVENT_STYLE (from app/admin/partners/[id]/page.tsx) and EVENT_ICONS (from app/admin/jobs/[id]/page.tsx) verbatim -- byte-identical values, single ownership. Not merged into one mapping: the two already render different icons for the same event_type today (e.g. quotation_sent), so unifying values would change existing UI output.",
+      "purpose_th": "เจ้าของ mapping event_type -> icon/สี ที่เดียว รวม EVENT_STYLE (จาก partners/[id]) และ EVENT_ICONS (จาก jobs/[id]) มาไว้ที่เดียวแบบค่าเดิมเป๊ะ ไม่รวมเป็น mapping เดียวเพราะทั้งสองแสดงไอคอนต่างกันสำหรับ event_type เดียวกันอยู่แล้ววันนี้",
+      "exports": [
+        "EVENT_STYLE",
+        "EVENT_ICONS"
+      ],
+      "status": "active"
+    },
+    "gateway/domains.ts": {
+      "owner": "gateway",
+      "layer": "gateway",
+      "purpose": "[Auto-detected] gateway/domains.ts",
+      "purpose_th": "[ตรวจพบอัตโนมัติ] gateway/domains.ts",
+      "exports": [
+        "DomainAction",
+        "DomainActionResponse",
+        "executeDnsRecordCreate",
+        "executeDnsRecordDelete",
+        "executeDnsRecordUpdate",
+        "executeDomainRegister",
+        "executeNameserverSet",
+        "executeVercelDomainAdd",
+        "executeVercelDomainRemove",
+        "executeZoneCreate",
+        "previewDnsRecordCreate",
+        "previewDnsRecordDelete",
+        "previewDnsRecordUpdate",
+        "previewDomainRegister",
+        "previewNameserverSet",
+        "previewVercelDomainAdd",
+        "previewVercelDomainRemove",
+        "previewZoneCreate"
+      ],
+      "status": "unregistered"
+    },
+    "engines/domains/vercel-binding.ts": {
+      "owner": "engines",
+      "layer": "engines",
+      "purpose": "[Auto-detected] engines/domains/vercel-binding.ts",
+      "purpose_th": "[ตรวจพบอัตโนมัติ] engines/domains/vercel-binding.ts",
+      "exports": [
+        "VercelDomainBinding",
+        "addDomainToProject",
+        "removeDomainFromProject",
+        "verifyDomain"
+      ],
+      "status": "unregistered"
+    },
+    "engines/domains/types.ts": {
+      "owner": "engines",
+      "layer": "engines",
+      "purpose": "[Auto-detected] engines/domains/types.ts",
+      "purpose_th": "[ตรวจพบอัตโนมัติ] engines/domains/types.ts",
+      "exports": [
+        "ConnectorNotReadyError",
+        "DnsRecord",
+        "DnsRecordType",
+        "DomainAvailability",
+        "DomainRegistrationRequest",
+        "DomainRegistrationResult",
+        "DomainSuggestion",
+        "Nameservers",
+        "WhoisRecord",
+        "connectorNotReady"
+      ],
+      "status": "unregistered"
+    },
+    "engines/domains/hostinger.ts": {
+      "owner": "engines",
+      "layer": "engines",
+      "purpose": "[Auto-detected] engines/domains/hostinger.ts",
+      "purpose_th": "[ตรวจพบอัตโนมัติ] engines/domains/hostinger.ts",
+      "exports": [
+        "checkAvailability",
+        "getNameservers",
+        "getWhois",
+        "registerDomain",
+        "setNameservers",
+        "suggestDomains"
+      ],
+      "status": "unregistered"
+    },
+    "engines/domains/cloudflare.ts": {
+      "owner": "engines",
+      "layer": "engines",
+      "purpose": "[Auto-detected] engines/domains/cloudflare.ts",
+      "purpose_th": "[ตรวจพบอัตโนมัติ] engines/domains/cloudflare.ts",
+      "exports": [
+        "CloudflareZone",
+        "createDnsRecord",
+        "createZone",
+        "deleteDnsRecord",
+        "findZoneByDomain",
+        "listDnsRecords",
+        "updateDnsRecord"
+      ],
+      "status": "unregistered"
+    },
+    "core/navigation/resolveNavItems.ts": {
+      "owner": "core",
+      "layer": "core",
+      "purpose": "[Auto-detected] core/navigation/resolveNavItems.ts",
+      "purpose_th": "[ตรวจพบอัตโนมัติ] core/navigation/resolveNavItems.ts",
+      "exports": [
+        "WorkspaceNavItem",
+        "resolveNavItems"
+      ],
+      "status": "unregistered"
+    },
+    "core/auth/resolveDestination.ts": {
+      "owner": "core",
+      "layer": "core",
+      "purpose": "[Auto-detected] core/auth/resolveDestination.ts",
+      "purpose_th": "[ตรวจพบอัตโนมัติ] core/auth/resolveDestination.ts",
+      "exports": [
+        "resolveDestination"
+      ],
+      "status": "unregistered"
+    },
+    "app/api/admin/domains/whois/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "[Auto-detected] app/api/admin/domains/whois/route.ts",
+      "purpose_th": "[ตรวจพบอัตโนมัติ] app/api/admin/domains/whois/route.ts",
+      "exports": [
+        "GET"
+      ],
+      "status": "unregistered"
+    },
+    "app/api/admin/domains/register/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "[Auto-detected] app/api/admin/domains/register/route.ts",
+      "purpose_th": "[ตรวจพบอัตโนมัติ] app/api/admin/domains/register/route.ts",
+      "exports": [
+        "POST"
+      ],
+      "status": "unregistered"
+    },
+    "app/api/admin/domains/suggestions/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "[Auto-detected] app/api/admin/domains/suggestions/route.ts",
+      "purpose_th": "[ตรวจพบอัตโนมัติ] app/api/admin/domains/suggestions/route.ts",
+      "exports": [
+        "GET"
+      ],
+      "status": "unregistered"
+    },
+    "app/api/admin/domains/availability/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "[Auto-detected] app/api/admin/domains/availability/route.ts",
+      "purpose_th": "[ตรวจพบอัตโนมัติ] app/api/admin/domains/availability/route.ts",
+      "exports": [
+        "GET"
+      ],
+      "status": "unregistered"
+    },
+    "core/workspace/workspaceTemplate.ts": {
+      "owner": "core",
+      "layer": "core",
+      "purpose": "Generates a real Canvas Workspace from an ApplicationDefinition's real panel list",
+      "purpose_th": "สร้าง Canvas Workspace จริงจากรายการ panel จริงของ ApplicationDefinition",
+      "exports": [
+        "createWorkspaceFromApplication"
+      ],
+      "status": "active"
+    },
+    "core/workspace/workspaceState.ts": {
+      "owner": "core",
+      "layer": "core",
+      "purpose": "Single-writer render snapshot store, written only by screenController.ts",
+      "purpose_th": "ที่เก็บ snapshot การแสดงผล เขียนได้จาก screenController.ts เท่านั้น",
+      "exports": [
+        "WorkspaceState",
+        "workspaceState"
+      ],
+      "status": "active"
+    },
+    "core/workspace/workspaceLayout.ts": {
+      "owner": "core",
+      "layer": "core",
+      "purpose": "Workspace JSON persistence (save/load/list/clone) — localStorage, not database",
+      "purpose_th": "การบันทึก Workspace JSON (save/load/list/clone) — ใช้ localStorage ไม่ใช่ฐานข้อมูล",
+      "exports": [
+        "WorkspaceLayoutStore",
+        "workspaceLayoutStore"
+      ],
+      "status": "active"
+    },
+    "core/workspace/types.ts": {
+      "owner": "core",
+      "layer": "core",
+      "purpose": "Shared contracts for the Runtime/Attachment/Screen Controller layer",
+      "purpose_th": "สัญญาข้อมูลร่วมของชั้น Runtime/Attachment/Screen Controller",
+      "exports": [
+        "AttachmentEntry",
+        "DockPosition",
+        "Listener",
+        "PanelDefinition",
+        "PanelId",
+        "Presenter",
+        "RuntimeHandle",
+        "RuntimeId",
+        "RuntimeStatus",
+        "Unsubscribe",
+        "Visibility",
+        "WorkspaceSnapshot"
+      ],
+      "status": "active"
+    },
+    "core/workspace/screenController.ts": {
+      "owner": "core",
+      "layer": "core",
+      "purpose": "The single authority controlling attach/detach/show/hide/dock/float/fullscreen",
+      "purpose_th": "จุดเดียวที่ควบคุมการ attach/detach/show/hide/dock/float/fullscreen",
+      "exports": [
+        "ScreenController",
+        "screenController"
+      ],
+      "status": "active"
+    },
+    "core/workspace/runtimeRegistry.ts": {
+      "owner": "core",
+      "layer": "core",
+      "purpose": "Module-singleton registry of running systems, independent of page lifecycle",
+      "purpose_th": "รีจิสทรีของระบบที่กำลังทำงาน แยกจาก lifecycle ของหน้าเว็บ",
+      "exports": [
+        "RuntimeRegistry",
+        "runtimeRegistry"
+      ],
+      "status": "active"
+    },
+    "core/workspace/renderModel.ts": {
+      "owner": "core",
+      "layer": "core",
+      "purpose": "The only shape data may take crossing from Presenter into a Board — no business fields",
+      "purpose_th": "รูปแบบข้อมูลเดียวที่ส่งจาก Presenter ไปยัง Board — ไม่มีฟิลด์ธุรกิจ",
+      "exports": [
+        "ActionModel",
+        "CardModel",
+        "ChartModel",
+        "EMPTY_RENDER_MODEL",
+        "PanelModel",
+        "RenderModel",
+        "TableModel",
+        "WidgetModel"
+      ],
+      "status": "active"
+    },
+    "core/workspace/presenterRegistry.ts": {
+      "owner": "core",
+      "layer": "core",
+      "purpose": "Separated Presentation bridge — converts runtime data to view-models",
+      "purpose_th": "สะพาน Separated Presentation — แปลงข้อมูล runtime เป็น view-model",
+      "exports": [
+        "PresenterRegistry",
+        "presenterRegistry"
+      ],
+      "status": "active"
+    },
+    "core/workspace/presenter.ts": {
+      "owner": "core",
+      "layer": "core",
+      "purpose": "Composition point: CanvasNode.moduleId -> Presenter -> RenderModel, honest fallback when no Presenter registered",
+      "purpose_th": "จุดประกอบ: CanvasNode.moduleId -> Presenter -> RenderModel มี fallback ที่ไม่ปลอมข้อมูลเมื่อยังไม่มี Presenter จริง",
+      "exports": [
+        "presentModuleInstance"
+      ],
+      "status": "active"
+    },
+    "core/workspace/permissionComposer.ts": {
+      "owner": "core",
+      "layer": "core",
+      "purpose": "Visibility layer only — reads existing AppRole, creates no new auth logic",
+      "purpose_th": "ชั้นการมองเห็นเท่านั้น — อ่าน AppRole ที่มีอยู่ ไม่สร้าง auth logic ใหม่",
+      "exports": [
+        "isApplicationVisible",
+        "isBoardVisible",
+        "isWidgetVisible"
+      ],
+      "status": "active"
+    },
+    "core/workspace/panelRegistry.ts": {
+      "owner": "core",
+      "layer": "core",
+      "purpose": "Registry of content units Screen Controller may attach",
+      "purpose_th": "รีจิสทรีของหน่วยเนื้อหาที่ Screen Controller อนุญาตให้ attach ได้",
+      "exports": [
+        "PanelRegistry",
+        "panelRegistry"
+      ],
+      "status": "active"
+    },
+    "core/workspace/moduleRegistry.ts": {
+      "owner": "core",
+      "layer": "core",
+      "purpose": "Generates Node metadata automatically from registry/module-registry.json + dependency-graph.json",
+      "purpose_th": "สร้างข้อมูล Node อัตโนมัติจาก module-registry.json และ dependency-graph.json",
+      "exports": [
+        "ModuleNode",
+        "ModuleRegistry",
+        "generateModuleNodes",
+        "moduleRegistry"
+      ],
+      "status": "active"
+    },
+    "core/workspace/index.ts": {
+      "owner": "core",
+      "layer": "core",
+      "purpose": "Barrel export for core/workspace/ (Application-layer files deliberately excluded — see file comment)",
+      "purpose_th": "จุดรวม export ของ core/workspace/ (ไม่รวมชั้น Application โดยตั้งใจ)",
+      "exports": [
+        "EMPTY_RENDER_MODEL",
+        "attachmentRegistry",
+        "generateModuleNodes",
+        "moduleRegistry",
+        "panelRegistry",
+        "presentModuleInstance",
+        "presenterRegistry",
+        "resolveBoard",
+        "runtimeRegistry",
+        "screenController",
+        "workspaceState"
+      ],
+      "status": "active"
+    },
+    "core/workspace/dockManager.ts": {
+      "owner": "core",
+      "layer": "core",
+      "purpose": "Dock Manager contract (interface only) — implemented by screenController.ts",
+      "purpose_th": "สัญญา Dock Manager (interface เท่านั้น) — ถูก implement โดย screenController.ts",
+      "exports": [
+        "DockManager"
+      ],
+      "status": "active"
+    },
+    "core/workspace/boardRouter.ts": {
+      "owner": "core",
+      "layer": "core",
+      "purpose": "Maps BoardType to its React component, structurally isolated from Business Engine/DB",
+      "purpose_th": "แมป BoardType ไปยัง React component แยกขาดจาก Business Engine/ฐานข้อมูลโดยโครงสร้าง",
+      "exports": [
+        "resolveBoard"
+      ],
+      "status": "active"
+    },
+    "core/workspace/board.ts": {
+      "owner": "core",
+      "layer": "core",
+      "purpose": "Board Framework contract (initialize/mount/render/update/destroy)",
+      "purpose_th": "สัญญา Board Framework (initialize/mount/render/update/destroy)",
+      "exports": [
+        "Board",
+        "BoardType"
+      ],
+      "status": "active"
+    },
+    "core/workspace/attachmentRegistry.ts": {
+      "owner": "core",
+      "layer": "core",
+      "purpose": "Tracks which runtimes are attached/visible/positioned, decoupled from execution",
+      "purpose_th": "ติดตามว่า runtime ใดถูก attach/มองเห็น/อยู่ตำแหน่งไหน แยกจากการทำงานจริง",
+      "exports": [
+        "AttachmentRegistry",
+        "attachmentRegistry"
+      ],
+      "status": "active"
+    },
+    "core/workspace/applicationWorkspace.ts": {
+      "owner": "core",
+      "layer": "core",
+      "purpose": "Namespaces a saved Workspace by Application id, reuses workspaceLayoutStore unchanged",
+      "purpose_th": "ตั้งชื่อ Workspace ที่บันทึกไว้ตาม Application id ใช้ workspaceLayoutStore เดิมไม่แก้ไข",
+      "exports": [
+        "loadOrCreateApplicationWorkspace"
+      ],
+      "status": "active"
+    },
+    "core/workspace/applicationRouter.ts": {
+      "owner": "core",
+      "layer": "core",
+      "purpose": "Application Registry lookup + permission check, never calls Gateway/Presenter itself",
+      "purpose_th": "ค้นหา Application Registry พร้อมตรวจสิทธิ์ ไม่เรียก Gateway/Presenter เอง",
+      "exports": [
+        "listVisibleApplications",
+        "resolveApplication"
+      ],
+      "status": "active"
+    },
+    "core/workspace/applicationRegistry.ts": {
+      "owner": "core",
+      "layer": "core",
+      "purpose": "4 real ApplicationDefinitions (Dashboard/Business/Partner/Finance) composed from existing Presenters/Roles",
+      "purpose_th": "ApplicationDefinition จริง 4 รายการ ประกอบจาก Presenter/Role ที่มีอยู่แล้ว",
+      "exports": [
+        "APPLICATIONS"
+      ],
+      "status": "active"
+    },
+    "core/workspace/application.ts": {
+      "owner": "core",
+      "layer": "core",
+      "purpose": "Application Composition types — pure data, no I/O",
+      "purpose_th": "ชนิดข้อมูลสำหรับ Application Composition — ข้อมูลล้วน ๆ ไม่มี I/O",
+      "exports": [
+        "ApplicationDefinition",
+        "ApplicationPanel",
+        "PresenterId"
+      ],
+      "status": "active"
+    },
+    "core/workspace/presenters/workflowPresenter.ts": {
+      "owner": "core",
+      "layer": "core",
+      "purpose": "Pure transform: WorkflowSummaryDTO -> RenderModel, composes real order status + engines/transactions/state-machine.ts",
+      "purpose_th": "แปลงข้อมูล WorkflowSummaryDTO -> RenderModel ประกอบจากสถานะคำสั่งซื้อจริงและ state-machine.ts",
+      "exports": [
+        "WorkflowSummaryDTO",
+        "toRenderModel"
+      ],
+      "status": "active"
+    },
+    "core/workspace/presenters/transportPresenter.ts": {
+      "owner": "core",
+      "layer": "core",
+      "purpose": "Pure transform with explicit availability state — no real transport table exists in production",
+      "purpose_th": "แปลงข้อมูลพร้อมสถานะ available ชัดเจน — ยังไม่มีตารางขนส่งจริงในฐานข้อมูล production",
+      "exports": [
+        "TransportSummaryDTO",
+        "toRenderModel"
+      ],
+      "status": "active"
+    },
+    "core/workspace/presenters/partnerPresenter.ts": {
+      "owner": "core",
+      "layer": "core",
+      "purpose": "Pure transform: PartnerSummaryDTO -> RenderModel, zero I/O",
+      "purpose_th": "แปลงข้อมูลล้วน ๆ: PartnerSummaryDTO -> RenderModel ไม่มี I/O",
+      "exports": [
+        "PartnerSummaryDTO",
+        "toRenderModel"
+      ],
+      "status": "active"
+    },
+    "core/workspace/presenters/orderPresenter.ts": {
+      "owner": "core",
+      "layer": "core",
+      "purpose": "Pure transform: OrderSummaryDTO -> RenderModel, zero I/O",
+      "purpose_th": "แปลงข้อมูลล้วน ๆ: OrderSummaryDTO -> RenderModel ไม่มี I/O",
+      "exports": [
+        "OrderSummaryDTO",
+        "toRenderModel"
+      ],
+      "status": "active"
+    },
+    "core/workspace/presenters/materialPresenter.ts": {
+      "owner": "core",
+      "layer": "core",
+      "purpose": "Pure transform: MaterialSummaryDTO -> RenderModel, zero I/O",
+      "purpose_th": "แปลงข้อมูลล้วน ๆ: MaterialSummaryDTO -> RenderModel ไม่มี I/O",
+      "exports": [
+        "MaterialSummaryDTO",
+        "toRenderModel"
+      ],
+      "status": "active"
+    },
+    "core/workspace/presenters/invoicePresenter.ts": {
+      "owner": "core",
+      "layer": "core",
+      "purpose": "Pure transform: InvoiceSummaryDTO -> RenderModel, zero I/O",
+      "purpose_th": "แปลงข้อมูลล้วน ๆ: InvoiceSummaryDTO -> RenderModel ไม่มี I/O",
+      "exports": [
+        "InvoiceSummaryDTO",
+        "toRenderModel"
+      ],
+      "status": "active"
+    },
+    "core/workspace/presenters/documentPresenter.ts": {
+      "owner": "core",
+      "layer": "core",
+      "purpose": "Pure transform: DocumentSummaryDTO -> RenderModel, zero I/O",
+      "purpose_th": "แปลงข้อมูลล้วน ๆ: DocumentSummaryDTO -> RenderModel ไม่มี I/O",
+      "exports": [
+        "DocumentSummaryDTO",
+        "toRenderModel"
+      ],
+      "status": "active"
+    },
+    "core/workspace/presenters/debtPresenter.ts": {
+      "owner": "core",
+      "layer": "core",
+      "purpose": "Pure transform: DebtSummaryDTO -> RenderModel, zero I/O",
+      "purpose_th": "แปลงข้อมูลล้วน ๆ: DebtSummaryDTO -> RenderModel ไม่มี I/O",
+      "exports": [
+        "DebtSummaryDTO",
+        "toRenderModel"
+      ],
+      "status": "active"
+    },
+    "core/workspace/gateway/presenterMap.ts": {
+      "owner": "core",
+      "layer": "core",
+      "purpose": "Server-only map from PresenterId to real Gateway+Presenter composition",
+      "purpose_th": "แผนที่ฝั่ง server จาก PresenterId ไปยังการประกอบ Gateway+Presenter จริง",
+      "exports": [
+        "resolvePanelRenderModel"
+      ],
+      "status": "active"
+    },
+    "core/workspace/gateway/presentationGateway.ts": {
+      "owner": "core",
+      "layer": "core",
+      "purpose": "Presentation Gateway — sole server boundary for auth + real Supabase reads, returns DTOs never raw rows",
+      "purpose_th": "Presentation Gateway — จุดเดียวฝั่ง server ที่ตรวจสิทธิ์และอ่านข้อมูลจริงจาก Supabase คืนค่าเป็น DTO ไม่ใช่แถวข้อมูลดิบ",
+      "exports": [
+        "PresentationGatewayDeps",
+        "WorkflowShape",
+        "WorkflowStepShape",
+        "createPresentationGateway"
+      ],
+      "status": "active"
+    },
+    "components/workspace/canvas/useCanvasState.ts": {
+      "owner": "components",
+      "layer": "components",
+      "purpose": "Canvas interaction state (placement/selection/viewport/screens), bridges to screenController on attach/dock/visibility changes",
+      "purpose_th": "สถานะการโต้ตอบของ Canvas เชื่อมกับ screenController เมื่อมีการ attach/dock/visibility เปลี่ยน",
+      "exports": [
+        "useCanvasState"
+      ],
+      "status": "active"
+    },
+    "components/workspace/canvas/types.ts": {
+      "owner": "components",
+      "layer": "components",
+      "purpose": "Visual Canvas types: CanvasNode/Connection/Screen/WorkspaceLayout",
+      "purpose_th": "ชนิดข้อมูลของ Visual Canvas: CanvasNode/Connection/Screen/WorkspaceLayout",
+      "exports": [
+        "CanvasConnection",
+        "CanvasNode",
+        "Screen",
+        "Viewport",
+        "WorkspaceLayout"
+      ],
+      "status": "active"
+    },
+    "components/workspace/canvas/index.ts": {
+      "owner": "components",
+      "layer": "components",
+      "purpose": "Barrel export for the Visual Canvas editor components",
+      "purpose_th": "จุดรวม export ของ component แก้ไข Visual Canvas",
+      "exports": [
+        "Canvas",
+        "ConnectionLayer",
+        "ModuleInspector",
+        "ModulePalette",
+        "NodeRenderer",
+        "PropertyInspector",
+        "useCanvasState"
+      ],
+      "status": "active"
+    },
+    "components/workspace/boards/DashboardBoard.tsx": {
+      "owner": "components",
+      "layer": "components",
+      "purpose": "Generic Board renderer — renders any RenderModel it receives, no business content knowledge",
+      "purpose_th": "Board แบบทั่วไป — แสดงผล RenderModel ใดก็ได้ที่ได้รับ ไม่รู้เนื้อหาธุรกิจ",
+      "exports": [
+        "DashboardBoard"
+      ],
+      "status": "active"
+    },
+    "components/workspace/boards/NotImplementedBoard.tsx": {
+      "owner": "components",
+      "layer": "components",
+      "purpose": "Honest placeholder for Boards with no real Presenter — never fabricates content",
+      "purpose_th": "Placeholder ที่บอกตรง ๆ ว่ายังไม่มี Presenter จริง — ไม่ปลอมเนื้อหา",
+      "exports": [
+        "NotImplementedBoard"
+      ],
+      "status": "active"
+    },
+    "components/workspace/canvas/Canvas.tsx": {
+      "owner": "components",
+      "layer": "components",
+      "purpose": "Visual Workspace editor — composes Palette, pan/zoom surface, Dock System, Inspectors, Screen/Workspace management",
+      "purpose_th": "ตัวแก้ไข Visual Workspace — รวม Palette, พื้นที่ pan/zoom, Dock System, Inspector, การจัดการ Screen/Workspace",
+      "exports": [
+        "Canvas"
+      ],
+      "status": "active"
+    },
+    "components/workspace/canvas/ConnectionLayer.tsx": {
+      "owner": "components",
+      "layer": "components",
+      "purpose": "SVG rendering of recorded node connections — drawing a line never executes anything",
+      "purpose_th": "วาดเส้นเชื่อม node ด้วย SVG — การวาดไม่ทำให้เกิดการทำงานใด ๆ",
+      "exports": [
+        "ConnectionLayer"
+      ],
+      "status": "active"
+    },
+    "components/workspace/canvas/ModuleInspector.tsx": {
+      "owner": "components",
+      "layer": "components",
+      "purpose": "Read-only view of a selected Panel's Module Registry metadata + connected modules",
+      "purpose_th": "แสดงข้อมูล metadata ของ Panel ที่เลือกจาก Module Registry และโมดูลที่เชื่อมต่อ แบบอ่านอย่างเดียว",
+      "exports": [
+        "ModuleInspector"
+      ],
+      "status": "active"
+    },
+    "components/workspace/canvas/ModulePalette.tsx": {
+      "owner": "components",
+      "layer": "components",
+      "purpose": "Lists moduleRegistry.list() only — never hardcodes a module node",
+      "purpose_th": "แสดงรายการจาก moduleRegistry.list() เท่านั้น — ไม่ hardcode module node",
+      "exports": [
+        "ModulePalette"
+      ],
+      "status": "active"
+    },
+    "components/workspace/canvas/NodeRenderer.tsx": {
+      "owner": "components",
+      "layer": "components",
+      "purpose": "Renders one placed module instance — floating (draggable) or docked (static) mode",
+      "purpose_th": "แสดงผล module instance ที่วางไว้หนึ่งตัว — โหมด floating (ลากได้) หรือ docked (นิ่ง)",
+      "exports": [
+        "NodeRenderer"
+      ],
+      "status": "active"
+    },
+    "components/workspace/canvas/PropertyInspector.tsx": {
+      "owner": "components",
+      "layer": "components",
+      "purpose": "Edits a Panel's position/size/color/visibility/dock position — routes through screenController",
+      "purpose_th": "แก้ไขตำแหน่ง/ขนาด/สี/การมองเห็น/ตำแหน่ง dock ของ Panel — ผ่าน screenController เท่านั้น",
+      "exports": [
+        "PropertyInspector"
+      ],
+      "status": "active"
+    },
+    "components/workspace/WorkspaceContext.tsx": {
+      "owner": "components",
+      "layer": "components",
+      "purpose": "Identity context + read-only Screen Controller snapshot subscription (not mounted anywhere yet)",
+      "purpose_th": "Context ระบุตัวตน + subscribe อ่าน snapshot ของ Screen Controller (ยังไม่ได้ mount ที่ไหน)",
+      "exports": [
+        "WorkspaceIdentity",
+        "WorkspaceProvider",
+        "useWorkspaceIdentity",
+        "useWorkspaceState"
+      ],
+      "status": "active",
+      "deprecated": true
+    },
+    "app/workspace-preview/WorkspacePreviewClient.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Loads or creates the most recent Workspace layout from localStorage, mounts Canvas",
+      "purpose_th": "โหลดหรือสร้าง Workspace layout ล่าสุดจาก localStorage แล้ว mount Canvas",
+      "exports": [
+        "WorkspacePreviewClient"
+      ],
+      "status": "active"
+    },
+    "app/workspace-preview/apps/[appId]/OpenInCanvasButton.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Generates an Application's Workspace Template and hands off to the Canvas editor",
+      "purpose_th": "สร้าง Workspace Template ของ Application แล้วส่งต่อไปยัง Canvas editor",
+      "exports": [
+        "OpenInCanvasButton"
+      ],
+      "status": "active"
+    },
+    "core/workspace/planner/types.ts": {
+      "owner": "core",
+      "layer": "core",
+      "purpose": "[Auto-detected] core/workspace/planner/types.ts",
+      "purpose_th": "[ตรวจพบอัตโนมัติ] core/workspace/planner/types.ts",
+      "exports": [
+        "ExecutionPlan",
+        "ExecutionValidationIssue",
+        "ExecutionValidationIssueType",
+        "ExecutionValidationResult"
+      ],
+      "status": "unregistered"
+    },
+    "core/workspace/planner/index.ts": {
+      "owner": "core",
+      "layer": "core",
+      "purpose": "[Auto-detected] core/workspace/planner/index.ts",
+      "purpose_th": "[ตรวจพบอัตโนมัติ] core/workspace/planner/index.ts",
+      "exports": [
+        "executionPlanner",
+        "isPlanFrozen",
+        "validateExecutionPlan"
+      ],
+      "status": "unregistered"
+    },
+    "core/workspace/planner/executionPlanner.ts": {
+      "owner": "core",
+      "layer": "core",
+      "purpose": "[Auto-detected] core/workspace/planner/executionPlanner.ts",
+      "purpose_th": "[ตรวจพบอัตโนมัติ] core/workspace/planner/executionPlanner.ts",
+      "exports": [
+        "executionPlanner"
+      ],
+      "status": "unregistered"
+    },
+    "core/workspace/planner/executionPlanValidator.ts": {
+      "owner": "core",
+      "layer": "core",
+      "purpose": "[Auto-detected] core/workspace/planner/executionPlanValidator.ts",
+      "purpose_th": "[ตรวจพบอัตโนมัติ] core/workspace/planner/executionPlanValidator.ts",
+      "exports": [
+        "isPlanFrozen",
+        "validateExecutionPlan"
+      ],
+      "status": "unregistered"
+    },
+    "core/workspace/orchestrator/types.ts": {
+      "owner": "core",
+      "layer": "core",
+      "purpose": "[Auto-detected] core/workspace/orchestrator/types.ts",
+      "purpose_th": "[ตรวจพบอัตโนมัติ] core/workspace/orchestrator/types.ts",
+      "exports": [
+        "ExecutionLifecycleIssue",
+        "ExecutionLifecycleIssueType",
+        "ExecutionLifecycleValidationResult",
+        "ExecutionProgress",
+        "ExecutionRetryPolicy",
+        "ExecutionSchedule",
+        "ExecutionSession",
+        "ExecutionSessionMetadata",
+        "ExecutionStatus",
+        "OrchestratorStartOptions",
+        "RuntimeOrchestrator",
+        "ScheduledStage"
+      ],
+      "status": "unregistered"
+    },
+    "core/workspace/orchestrator/runtimeOrchestrator.ts": {
+      "owner": "core",
+      "layer": "core",
+      "purpose": "[Auto-detected] core/workspace/orchestrator/runtimeOrchestrator.ts",
+      "purpose_th": "[ตรวจพบอัตโนมัติ] core/workspace/orchestrator/runtimeOrchestrator.ts",
+      "exports": [
+        "runtimeOrchestrator"
+      ],
+      "status": "unregistered"
+    },
+    "core/workspace/orchestrator/index.ts": {
+      "owner": "core",
+      "layer": "core",
+      "purpose": "[Auto-detected] core/workspace/orchestrator/index.ts",
+      "purpose_th": "[ตรวจพบอัตโนมัติ] core/workspace/orchestrator/index.ts",
+      "exports": [
+        "executionLifecycleValidator",
+        "executionProgressTracker",
+        "executionScheduler",
+        "executionStateMachine",
+        "runtimeOrchestrator"
+      ],
+      "status": "unregistered"
+    },
+    "core/workspace/orchestrator/executionStateMachine.ts": {
+      "owner": "core",
+      "layer": "core",
+      "purpose": "[Auto-detected] core/workspace/orchestrator/executionStateMachine.ts",
+      "purpose_th": "[ตรวจพบอัตโนมัติ] core/workspace/orchestrator/executionStateMachine.ts",
+      "exports": [
+        "executionStateMachine"
+      ],
+      "status": "unregistered"
+    },
+    "core/workspace/orchestrator/executionScheduler.ts": {
+      "owner": "core",
+      "layer": "core",
+      "purpose": "[Auto-detected] core/workspace/orchestrator/executionScheduler.ts",
+      "purpose_th": "[ตรวจพบอัตโนมัติ] core/workspace/orchestrator/executionScheduler.ts",
+      "exports": [
+        "executionScheduler"
+      ],
+      "status": "unregistered"
+    },
+    "core/workspace/orchestrator/executionProgressTracker.ts": {
+      "owner": "core",
+      "layer": "core",
+      "purpose": "[Auto-detected] core/workspace/orchestrator/executionProgressTracker.ts",
+      "purpose_th": "[ตรวจพบอัตโนมัติ] core/workspace/orchestrator/executionProgressTracker.ts",
+      "exports": [
+        "executionProgressTracker"
+      ],
+      "status": "unregistered"
+    },
+    "core/workspace/orchestrator/executionLifecycleValidator.ts": {
+      "owner": "core",
+      "layer": "core",
+      "purpose": "[Auto-detected] core/workspace/orchestrator/executionLifecycleValidator.ts",
+      "purpose_th": "[ตรวจพบอัตโนมัติ] core/workspace/orchestrator/executionLifecycleValidator.ts",
+      "exports": [
+        "executionLifecycleValidator"
+      ],
+      "status": "unregistered"
+    },
+    "core/workspace/composer/types.ts": {
+      "owner": "core",
+      "layer": "core",
+      "purpose": "[Auto-detected] core/workspace/composer/types.ts",
+      "purpose_th": "[ตรวจพบอัตโนมัติ] core/workspace/composer/types.ts",
+      "exports": [
+        "CompositionPlan",
+        "CompositionRequest",
+        "ValidationIssue",
+        "ValidationIssueType",
+        "ValidationResult"
+      ],
+      "status": "unregistered"
+    },
+    "core/workspace/composer/index.ts": {
+      "owner": "core",
+      "layer": "core",
+      "purpose": "[Auto-detected] core/workspace/composer/index.ts",
+      "purpose_th": "[ตรวจพบอัตโนมัติ] core/workspace/composer/index.ts",
+      "exports": [
+        "capabilityComposer",
+        "capabilityRegistryAccess",
+        "composerResolver",
+        "validateComposition"
+      ],
+      "status": "unregistered"
+    },
+    "core/workspace/composer/composerValidator.ts": {
+      "owner": "core",
+      "layer": "core",
+      "purpose": "[Auto-detected] core/workspace/composer/composerValidator.ts",
+      "purpose_th": "[ตรวจพบอัตโนมัติ] core/workspace/composer/composerValidator.ts",
+      "exports": [
+        "validateComposition"
+      ],
+      "status": "unregistered"
+    },
+    "core/workspace/composer/composerResolver.ts": {
+      "owner": "core",
+      "layer": "core",
+      "purpose": "[Auto-detected] core/workspace/composer/composerResolver.ts",
+      "purpose_th": "[ตรวจพบอัตโนมัติ] core/workspace/composer/composerResolver.ts",
+      "exports": [
+        "ComposerApplicationDefinition",
+        "composerResolver"
+      ],
+      "status": "unregistered"
+    },
+    "core/workspace/composer/capabilityRegistryAccess.ts": {
+      "owner": "core",
+      "layer": "core",
+      "purpose": "[Auto-detected] core/workspace/composer/capabilityRegistryAccess.ts",
+      "purpose_th": "[ตรวจพบอัตโนมัติ] core/workspace/composer/capabilityRegistryAccess.ts",
+      "exports": [
+        "CapabilityEntry",
+        "capabilityRegistryAccess"
+      ],
+      "status": "unregistered"
+    },
+    "core/workspace/composer/capabilityComposer.ts": {
+      "owner": "core",
+      "layer": "core",
+      "purpose": "[Auto-detected] core/workspace/composer/capabilityComposer.ts",
+      "purpose_th": "[ตรวจพบอัตโนมัติ] core/workspace/composer/capabilityComposer.ts",
+      "exports": [
+        "capabilityComposer"
+      ],
+      "status": "unregistered"
+    },
+    "app/auth/confirm/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "[Auto-detected] app/auth/confirm/route.ts",
+      "purpose_th": "[ตรวจพบอัตโนมัติ] app/auth/confirm/route.ts",
+      "exports": [
+        "GET"
+      ],
+      "status": "unregistered"
+    },
+    "app/api/admin/line-customers/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "[Auto-detected] app/api/admin/line-customers/route.ts",
+      "purpose_th": "[ตรวจพบอัตโนมัติ] app/api/admin/line-customers/route.ts",
+      "exports": [
+        "GET"
+      ],
+      "status": "unregistered"
+    },
+    "app/api/admin/line-customers/[lineUserId]/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "[Auto-detected] app/api/admin/line-customers/[lineUserId]/route.ts",
+      "purpose_th": "[ตรวจพบอัตโนมัติ] app/api/admin/line-customers/[lineUserId]/route.ts",
+      "exports": [
+        "GET"
+      ],
+      "status": "unregistered"
+    },
+    "app/workspace-preview/presentationGatewayDeps.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "[Auto-detected] app/workspace-preview/presentationGatewayDeps.ts",
+      "purpose_th": "[ตรวจพบอัตโนมัติ] app/workspace-preview/presentationGatewayDeps.ts",
+      "exports": [
+        "presentationGatewayDeps"
+      ],
+      "status": "unregistered"
+    },
+    "page.tsx": {
+      "owner": "page.tsx",
+      "layer": "page.tsx",
+      "purpose": "[Auto-detected] page.tsx",
+      "purpose_th": "[ตรวจพบอัตโนมัติ] page.tsx",
+      "exports": [
+        "EngineExplorerPage"
+      ],
+      "status": "unregistered"
+    },
+    "components/workspace/WorkspaceShell.tsx": {
+      "owner": "components",
+      "layer": "components",
+      "purpose": "[Auto-detected] components/workspace/WorkspaceShell.tsx",
+      "purpose_th": "[ตรวจพบอัตโนมัติ] components/workspace/WorkspaceShell.tsx",
+      "exports": [
+        "WorkspaceShell"
+      ],
+      "status": "unregistered"
+    },
+    "app/workspace-preview/page.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "[Auto-detected] app/workspace-preview/page.tsx",
+      "purpose_th": "[ตรวจพบอัตโนมัติ] app/workspace-preview/page.tsx",
+      "exports": [
+        "WorkspacePreviewPage"
+      ],
+      "status": "unregistered"
+    },
+    "app/workspace/page.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "[Auto-detected] app/workspace/page.tsx",
+      "purpose_th": "[ตรวจพบอัตโนมัติ] app/workspace/page.tsx",
+      "exports": [
+        "WorkspaceEntryPage"
+      ],
+      "status": "unregistered"
+    },
+    "app/user/layout.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "[Auto-detected] app/user/layout.tsx",
+      "purpose_th": "[ตรวจพบอัตโนมัติ] app/user/layout.tsx",
+      "exports": [
+        "UserLayout"
+      ],
+      "status": "unregistered"
+    },
+    "app/partner/layout.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "[Auto-detected] app/partner/layout.tsx",
+      "purpose_th": "[ตรวจพบอัตโนมัติ] app/partner/layout.tsx",
+      "exports": [
+        "PartnerLayout"
+      ],
+      "status": "unregistered"
+    },
+    "app/workspace-preview/workflow/page.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "[Auto-detected] app/workspace-preview/workflow/page.tsx",
+      "purpose_th": "[ตรวจพบอัตโนมัติ] app/workspace-preview/workflow/page.tsx",
+      "exports": [
+        "WorkflowWidgetPage"
+      ],
+      "status": "unregistered"
+    },
+    "app/workspace-preview/transport/page.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "[Auto-detected] app/workspace-preview/transport/page.tsx",
+      "purpose_th": "[ตรวจพบอัตโนมัติ] app/workspace-preview/transport/page.tsx",
+      "exports": [
+        "TransportWidgetPage"
+      ],
+      "status": "unregistered"
+    },
+    "app/workspace-preview/partner/page.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "[Auto-detected] app/workspace-preview/partner/page.tsx",
+      "purpose_th": "[ตรวจพบอัตโนมัติ] app/workspace-preview/partner/page.tsx",
+      "exports": [
+        "PartnerWidgetPage"
+      ],
+      "status": "unregistered"
+    },
+    "app/workspace-preview/order/page.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "[Auto-detected] app/workspace-preview/order/page.tsx",
+      "purpose_th": "[ตรวจพบอัตโนมัติ] app/workspace-preview/order/page.tsx",
+      "exports": [
+        "OrderWidgetPage"
+      ],
+      "status": "unregistered"
+    },
+    "app/workspace-preview/material/page.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "[Auto-detected] app/workspace-preview/material/page.tsx",
+      "purpose_th": "[ตรวจพบอัตโนมัติ] app/workspace-preview/material/page.tsx",
+      "exports": [
+        "MaterialWidgetPage"
+      ],
+      "status": "unregistered"
+    },
+    "app/workspace-preview/invoice/page.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "[Auto-detected] app/workspace-preview/invoice/page.tsx",
+      "purpose_th": "[ตรวจพบอัตโนมัติ] app/workspace-preview/invoice/page.tsx",
+      "exports": [
+        "InvoiceWidgetPage"
+      ],
+      "status": "unregistered"
+    },
+    "app/workspace-preview/debt-widget/page.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "[Auto-detected] app/workspace-preview/debt-widget/page.tsx",
+      "purpose_th": "[ตรวจพบอัตโนมัติ] app/workspace-preview/debt-widget/page.tsx",
+      "exports": [
+        "DebtWidgetPage"
+      ],
+      "status": "unregistered"
+    },
+    "app/workspace-preview/document/page.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "[Auto-detected] app/workspace-preview/document/page.tsx",
+      "purpose_th": "[ตรวจพบอัตโนมัติ] app/workspace-preview/document/page.tsx",
+      "exports": [
+        "DocumentWidgetPage"
+      ],
+      "status": "unregistered"
+    },
+    "app/admin/line-customers/page.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "[Auto-detected] app/admin/line-customers/page.tsx",
+      "purpose_th": "[ตรวจพบอัตโนมัติ] app/admin/line-customers/page.tsx",
+      "exports": [
+        "LineCustomersPage"
+      ],
+      "status": "unregistered"
+    },
+    "app/account/change-password/page.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "[Auto-detected] app/account/change-password/page.tsx",
+      "purpose_th": "[ตรวจพบอัตโนมัติ] app/account/change-password/page.tsx",
+      "exports": [
+        "ChangePasswordPage"
+      ],
+      "status": "unregistered"
+    },
+    "app/account/change-password/ChangePasswordForm.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "[Auto-detected] app/account/change-password/ChangePasswordForm.tsx",
+      "purpose_th": "[ตรวจพบอัตโนมัติ] app/account/change-password/ChangePasswordForm.tsx",
+      "exports": [
+        "ChangePasswordForm"
+      ],
+      "status": "unregistered"
+    },
+    "app/workspace-preview/apps/[appId]/page.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "[Auto-detected] app/workspace-preview/apps/[appId]/page.tsx",
+      "purpose_th": "[ตรวจพบอัตโนมัติ] app/workspace-preview/apps/[appId]/page.tsx",
+      "exports": [
+        "ApplicationPage"
+      ],
+      "status": "unregistered"
+    },
+    "engines/documents/selfDescription.ts": {
+      "owner": "engines",
+      "layer": "engines",
+      "purpose": "[Auto-detected] engines/documents/selfDescription.ts",
+      "purpose_th": "[ตรวจพบอัตโนมัติ] engines/documents/selfDescription.ts",
+      "exports": [
+        "createDocumentEngineRuntimeInterface",
+        "describeDocumentEngine",
+        "getDocumentEngineContextBudget",
+        "getDocumentEngineDeltaContext",
+        "getDocumentEngineExecutionReadiness",
+        "getDocumentEngineRuntimeContract",
+        "getDocumentEngineWorkOrder"
+      ],
+      "status": "active"
+    },
+    "app/workspace-preview/document/DocumentEngineRuntimeRegistration.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "[Auto-detected] app/workspace-preview/document/DocumentEngineRuntimeRegistration.tsx",
+      "purpose_th": "[ตรวจพบอัตโนมัติ] app/workspace-preview/document/DocumentEngineRuntimeRegistration.tsx",
+      "exports": [
+        "DocumentEngineRuntimeRegistration"
+      ],
+      "status": "unregistered"
+    },
+    "app/api/admin/runtime/document-engine/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "[Auto-detected] app/api/admin/runtime/document-engine/route.ts",
+      "purpose_th": "[ตรวจพบอัตโนมัติ] app/api/admin/runtime/document-engine/route.ts",
+      "exports": [
+        "GET"
+      ],
+      "status": "unregistered"
+    },
+    "scripts/record-validation.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "Validation Result Ledger recorder (DNA-000050) — CLI, appends every real validator run (module/command/validator/result/root_cause/evidence/suggested_fix/fixed_by/verification_result) to registry/VALIDATION_RESULTS.json, and links it to Runtime Trace (registers a validation_result span in registry/trace/trace.registry.json), Event Timeline (registers validation.result_recorded in registry/events.json), CHANGELOG (verifies --fixed-by against real change_id), and Knowledge Engine (cross-checks FAIL root causes against existence.json known_mistakes). Zero top-level exports (CLI entry point, same shape as plugins/registerAllDrivers.ts) — invisible to sync-registry.ts auto-detection, registered manually here for the same reason DNA-000044 registered registerAllDrivers.ts by hand.",
+      "purpose_th": "ตัวบันทึกผล Validation (DNA-000050)",
+      "exports": [],
+      "entry_point": true,
+      "status": "active"
+    },
+    "scripts/deploy-gate.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "Deploy Gate (DNA-000053, Rule 106 step 5) — npm run deploy-gate. Runs the real scripts/governance.sh, then for every real FAIL renders a human-readable block (Reason/Location/Root Cause/Required Action/Status) sourced from the latest matching registry/VALIDATION_RESULTS.json entry and cross-referenced against existence.json known_mistakes, instead of a bare exit code. Exits 1 (NOT READY) on any FAIL, 0 (READY) only when governance.sh reports all checks passing. Zero top-level exports (CLI entry point) — registered manually, same reason as scripts/record-validation.ts.",
+      "purpose_th": "Deploy Gate (DNA-000053) — บล็อก deploy พร้อมคำอธิบายภาษาคน",
+      "exports": [],
+      "entry_point": true,
+      "status": "active"
+    },
+    "plugins/drivers/line.selfDescription.ts": {
+      "owner": "plugins",
+      "layer": "plugins",
+      "purpose": "[Auto-detected] plugins/drivers/line.selfDescription.ts",
+      "purpose_th": "[ตรวจพบอัตโนมัติ] plugins/drivers/line.selfDescription.ts",
+      "exports": [
+        "getLineDriverContextBudget",
+        "getLineDriverDeltaContext",
+        "getLineDriverExecutionReadiness",
+        "getLineDriverRuntimeContract",
+        "getLineDriverWorkOrder"
+      ],
+      "status": "active"
+    },
+    "core/runtime/contextBroker.ts": {
+      "owner": "core",
+      "layer": "core",
+      "purpose": "[Auto-detected] core/runtime/contextBroker.ts",
+      "purpose_th": "[ตรวจพบอัตโนมัติ] core/runtime/contextBroker.ts",
+      "exports": [
+        "ArchitectureInfo",
+        "ContractProvider",
+        "ExecutionReport",
+        "RuntimeMeasurement",
+        "RuntimePacket",
+        "generateExecutionReport",
+        "getRuntimePacket",
+        "measureCurrentWindow",
+        "readCounter",
+        "registerProvider",
+        "resetBroker"
+      ],
+      "status": "active"
+    },
+    "gateway/auth.ts": {
+      "owner": "gateway",
+      "layer": "gateway",
+      "purpose": "[Auto-detected] gateway/auth.ts",
+      "purpose_th": "[ตรวจพบอัตโนมัติ] gateway/auth.ts",
+      "exports": [
+        "getServerSupabaseClient"
+      ],
+      "status": "unregistered"
+    },
+    "plugins/drivers/chrome.selfDescription.ts": {
+      "owner": "plugins",
+      "layer": "plugins",
+      "purpose": "[Auto-detected] plugins/drivers/chrome.selfDescription.ts",
+      "purpose_th": "[ตรวจพบอัตโนมัติ] plugins/drivers/chrome.selfDescription.ts",
+      "exports": [
+        "getChromeDriverContextBudget",
+        "getChromeDriverDeltaContext",
+        "getChromeDriverExecutionReadiness",
+        "getChromeDriverRuntimeContract",
+        "getChromeDriverWorkOrder"
+      ],
+      "status": "unregistered"
+    },
+    "plugins/drivers/vscode.selfDescription.ts": {
+      "owner": "plugins",
+      "layer": "plugins",
+      "purpose": "[Auto-detected] plugins/drivers/vscode.selfDescription.ts",
+      "purpose_th": "[ตรวจพบอัตโนมัติ] plugins/drivers/vscode.selfDescription.ts",
+      "exports": [
+        "getVscodeDriverContextBudget",
+        "getVscodeDriverDeltaContext",
+        "getVscodeDriverExecutionReadiness",
+        "getVscodeDriverRuntimeContract",
+        "getVscodeDriverWorkOrder"
+      ],
+      "status": "unregistered"
+    },
+    "plugins/drivers/terminal.selfDescription.ts": {
+      "owner": "plugins",
+      "layer": "plugins",
+      "purpose": "[Auto-detected] plugins/drivers/terminal.selfDescription.ts",
+      "purpose_th": "[ตรวจพบอัตโนมัติ] plugins/drivers/terminal.selfDescription.ts",
+      "exports": [
+        "getTerminalDriverContextBudget",
+        "getTerminalDriverDeltaContext",
+        "getTerminalDriverExecutionReadiness",
+        "getTerminalDriverRuntimeContract",
+        "getTerminalDriverWorkOrder"
+      ],
+      "status": "unregistered"
+    },
+    "plugins/drivers/selfDescriptionFactory.ts": {
+      "owner": "plugins",
+      "layer": "plugins",
+      "purpose": "[Auto-detected] plugins/drivers/selfDescriptionFactory.ts",
+      "purpose_th": "[ตรวจพบอัตโนมัติ] plugins/drivers/selfDescriptionFactory.ts",
+      "exports": [
+        "DriverDescriptor",
+        "createDriverContextBudget",
+        "createDriverDeltaContext",
+        "createDriverExecutionReadiness",
+        "createDriverRuntimeContract",
+        "createDriverWorkOrder"
+      ],
+      "status": "unregistered"
+    },
+    "plugins/drivers/pdf.selfDescription.ts": {
+      "owner": "plugins",
+      "layer": "plugins",
+      "purpose": "[Auto-detected] plugins/drivers/pdf.selfDescription.ts",
+      "purpose_th": "[ตรวจพบอัตโนมัติ] plugins/drivers/pdf.selfDescription.ts",
+      "exports": [
+        "getPdfDriverContextBudget",
+        "getPdfDriverDeltaContext",
+        "getPdfDriverExecutionReadiness",
+        "getPdfDriverRuntimeContract",
+        "getPdfDriverWorkOrder"
+      ],
+      "status": "unregistered"
+    },
+    "plugins/drivers/maps.selfDescription.ts": {
+      "owner": "plugins",
+      "layer": "plugins",
+      "purpose": "[Auto-detected] plugins/drivers/maps.selfDescription.ts",
+      "purpose_th": "[ตรวจพบอัตโนมัติ] plugins/drivers/maps.selfDescription.ts",
+      "exports": [
+        "getMapsDriverContextBudget",
+        "getMapsDriverDeltaContext",
+        "getMapsDriverExecutionReadiness",
+        "getMapsDriverRuntimeContract",
+        "getMapsDriverWorkOrder"
+      ],
+      "status": "unregistered"
+    },
+    "plugins/drivers/mail.selfDescription.ts": {
+      "owner": "plugins",
+      "layer": "plugins",
+      "purpose": "[Auto-detected] plugins/drivers/mail.selfDescription.ts",
+      "purpose_th": "[ตรวจพบอัตโนมัติ] plugins/drivers/mail.selfDescription.ts",
+      "exports": [
+        "getMailDriverContextBudget",
+        "getMailDriverDeltaContext",
+        "getMailDriverExecutionReadiness",
+        "getMailDriverRuntimeContract",
+        "getMailDriverWorkOrder"
+      ],
+      "status": "unregistered"
+    },
+    "plugins/drivers/github.selfDescription.ts": {
+      "owner": "plugins",
+      "layer": "plugins",
+      "purpose": "[Auto-detected] plugins/drivers/github.selfDescription.ts",
+      "purpose_th": "[ตรวจพบอัตโนมัติ] plugins/drivers/github.selfDescription.ts",
+      "exports": [
+        "getGithubDriverContextBudget",
+        "getGithubDriverDeltaContext",
+        "getGithubDriverExecutionReadiness",
+        "getGithubDriverRuntimeContract",
+        "getGithubDriverWorkOrder"
+      ],
+      "status": "unregistered"
+    },
+    "plugins/drivers/finder.selfDescription.ts": {
+      "owner": "plugins",
+      "layer": "plugins",
+      "purpose": "[Auto-detected] plugins/drivers/finder.selfDescription.ts",
+      "purpose_th": "[ตรวจพบอัตโนมัติ] plugins/drivers/finder.selfDescription.ts",
+      "exports": [
+        "getFinderDriverContextBudget",
+        "getFinderDriverDeltaContext",
+        "getFinderDriverExecutionReadiness",
+        "getFinderDriverRuntimeContract",
+        "getFinderDriverWorkOrder"
+      ],
+      "status": "unregistered"
+    },
+    "plugins/drivers/earth.selfDescription.ts": {
+      "owner": "plugins",
+      "layer": "plugins",
+      "purpose": "[Auto-detected] plugins/drivers/earth.selfDescription.ts",
+      "purpose_th": "[ตรวจพบอัตโนมัติ] plugins/drivers/earth.selfDescription.ts",
+      "exports": [
+        "getEarthDriverContextBudget",
+        "getEarthDriverDeltaContext",
+        "getEarthDriverExecutionReadiness",
+        "getEarthDriverRuntimeContract",
+        "getEarthDriverWorkOrder"
+      ],
+      "status": "unregistered"
+    },
+    "plugins/drivers/calendar.selfDescription.ts": {
+      "owner": "plugins",
+      "layer": "plugins",
+      "purpose": "[Auto-detected] plugins/drivers/calendar.selfDescription.ts",
+      "purpose_th": "[ตรวจพบอัตโนมัติ] plugins/drivers/calendar.selfDescription.ts",
+      "exports": [
+        "getCalendarDriverContextBudget",
+        "getCalendarDriverDeltaContext",
+        "getCalendarDriverExecutionReadiness",
+        "getCalendarDriverRuntimeContract",
+        "getCalendarDriverWorkOrder"
+      ],
+      "status": "unregistered"
     }
   },
   "excluded": [

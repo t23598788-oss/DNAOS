@@ -149,7 +149,8 @@
       "receiver": {
         "label": "LINE Webhook Receiver",
         "function_slug": "line-webhook-v2",
-        "url": "https://tmxkiripdvorrcnuezvm.supabase.co/functions/v1/line-webhook-v2",
+        "url": "{NEXT_PUBLIC_SUPABASE_URL}/functions/v1/line-webhook-v2",
+        "url_note": "TASK-034 (registry/CHANGELOG.json DNA-000067): real value is process.env.NEXT_PUBLIC_SUPABASE_URL + this path — the literal project URL was removed since Guard 1 (scripts/pre-commit-check.sh) correctly treats any hardcoded .supabase.co string as a violation even in documentation data; this field was never programmatically read (confirmed: no code accesses nodes.receiver.url), so nothing functional changes, only the literal string.",
         "file": "supabase/functions/line-webhook-v2/index.ts",
         "handles": ["message.text", "message.location"],
         "supabase_version": 19,

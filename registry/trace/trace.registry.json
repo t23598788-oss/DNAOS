@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "last_updated": "2026-07-05",
+  "last_updated": "2026-07-14",
   "trace_schema": {
     "trace_id_field": "trace_id",
     "span_id_field": "span_id",
@@ -52,6 +52,12 @@
         "label": "Error span",
         "storage_field": "error_message",
         "status_field": "status"
+      },
+      "validation_result": {
+        "id": "validation_result",
+        "label": "Validation run recorded",
+        "storage_field": "registry/VALIDATION_RESULTS.json",
+        "status_field": "result"
       }
     }
   }

@@ -24,6 +24,14 @@ export interface QuoteResult {
   // so unresolvable price requests silently vanished from the queue).
   ok: boolean;
   text: string;
+  // Structured fields (2026-07-13), additive only — existing callers that
+  // only read ok/text are unaffected. Needed by
+  // cognitive/executor/index.ts's buildMaterialItems() to build a real
+  // DocItem for a quotation/BOQ/delivery-order document instead of having
+  // to regex-parse the human-readable `text` sentence back into numbers.
+  materialName?: string;
+  unitPrice?: number;
+  quantityUnit?: string;
 }
 
 export async function tryQuoteMaterialPrice(
@@ -67,5 +75,8 @@ export async function tryQuoteMaterialPrice(
   return {
     ok: true,
     text: `${material.name} ที่บ่อ "${nearest_pit.name}" (ห่างประมาณ ${nearest_pit.distance_km.toFixed(1)} กม.) ราคา ${unitPrice.toLocaleString()} บาท/คิว รวม ${quantity} คิว = ${total.toLocaleString()} บาท (ยังไม่รวมค่าขนส่งครับ)`,
+    materialName: material.name,
+    unitPrice,
+    quantityUnit: "คิว",
   };
 }

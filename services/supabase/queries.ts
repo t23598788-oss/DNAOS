@@ -276,7 +276,12 @@ export async function getDocuments(docType?: string) {
     // ดึง standalone_documents ด้วยถ้าไม่ระบุ type
     const { data: sdData, error: sdErr } = await supabaseAdmin()
       .from("standalone_documents")
-      .select("id, document_no, document_type, document_date, customer_company_id, total_amount, reference_no, created_at, customer_order_id, companies(id, name)")
+      // standalone_documents has TWO FKs into companies (customer_company_id,
+      // partner_company_id) — confirmed via live schema inspection
+      // (2026-07-14) — PostgREST can't auto-embed an ambiguous relationship,
+      // hence the explicit constraint-name hint, same pattern getTransactions()
+      // already uses for customer_orders' own ambiguous companies FK.
+      .select("id, document_no, document_type, document_date, customer_company_id, total_amount, reference_no, created_at, customer_order_id, companies!standalone_documents_customer_company_id_fkey(id, name)")
       .order("created_at", { ascending: false });
     if (sdErr) throw new Error(sdErr.message);
     const standaloneDocs = (sdData ?? []).map(mapStandaloneToDocument);
@@ -288,7 +293,9 @@ export async function getDocuments(docType?: string) {
   // non-invoice types → standalone_documents
   const { data, error } = await supabaseAdmin()
     .from("standalone_documents")
-    .select("id, document_no, document_type, document_date, customer_company_id, total_amount, reference_no, created_at, customer_order_id, companies(id, name)")
+    // Same ambiguous-FK fix as above — standalone_documents has two FKs into
+    // companies, explicit constraint hint required.
+    .select("id, document_no, document_type, document_date, customer_company_id, total_amount, reference_no, created_at, customer_order_id, companies!standalone_documents_customer_company_id_fkey(id, name)")
     .eq("document_type", canonical)
     .order("created_at", { ascending: false });
   if (error) throw new Error(error.message);
@@ -512,12 +519,44 @@ export async function getDebtorPartners() {
 // ---- MATERIAL TYPES ----
 
 export async function getMaterialTypes() {
+  // Was querying a "products" table that doesn't exist in this schema (always
+  // silently returned [] via the error path) — the real table is
+  // material_types (confirmed via live schema query), the same one
+  // engines/quote-price.ts and engines/material-resolver.ts already read.
   const { data, error } = await supabaseAdmin()
-    .from("products")
+    .from("material_types")
     .select("id, name")
     .order("name");
   if (error) return [];
   return (data ?? []).map((d: any) => ({ id: d.id, name: d.name }));
+}
+
+// Real GPS lookup for a company — used to price a quotation by nearest pit
+// (engines/quote-price.ts's tryQuoteMaterialPrice requires real coordinates,
+// never guesses a location). Same join path as the client-side "last known
+// location" logic in app/admin/line-customers/page.tsx, done server-side:
+// companies -> company_line_links -> most recent line_events location.
+export async function getCustomerGps(customerId: string): Promise<{ lat: number; lng: number } | null> {
+  if (!customerId) return null
+  const db = supabaseAdmin()
+  const { data: link } = await db
+    .from("company_line_links")
+    .select("line_user_id")
+    .eq("company_id", customerId)
+    .maybeSingle()
+  if (!link?.line_user_id) return null
+
+  const { data: rows } = await db
+    .from("line_events")
+    .select("extracted")
+    .eq("line_user_id", link.line_user_id)
+    .eq("raw_type", "location")
+    .order("created_at", { ascending: false })
+    .limit(1)
+
+  const extracted = rows?.[0]?.extracted as { latitude?: number; longitude?: number } | null
+  if (!extracted?.latitude || !extracted?.longitude) return null
+  return { lat: extracted.latitude, lng: extracted.longitude }
 }
 
 // ---- PARTNER TIMELINE ----
@@ -552,8 +591,23 @@ export async function getDocumentsByPartner(partnerId: string) {
   }));
 }
 
-export async function getBusinessEventsByPartner(_partnerId: string) {
-  return [];
+export async function getBusinessEventsByPartner(partnerId: string) {
+  const { data, error } = await supabaseAdmin()
+    .from("business_events")
+    .select("id, event_type, event_date, title, description, metadata, created_at, transaction_id")
+    .eq("partner_id", partnerId)
+    .order("event_date", { ascending: false });
+  if (error) throw new Error(error.message);
+  return (data ?? []).map((e: any) => ({
+    id: e.id,
+    event_type: e.event_type ?? "note",
+    event_date: e.event_date ?? e.created_at?.split("T")[0] ?? new Date().toISOString().slice(0, 10),
+    title: e.title ?? null,
+    description: e.description ?? null,
+    metadata: e.metadata ?? {},
+    created_at: e.created_at,
+    transaction_id: e.transaction_id ?? null,
+  }));
 }
 
 // ---- TRANSACTIONS (customer_orders as the state machine equivalent) ----

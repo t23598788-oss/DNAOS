@@ -1,4 +1,5 @@
 import { loadConfigs, getNum, audit, type AuditTrail } from "@/core/config-loader";
+import { supabase } from "@/services/supabase/queries";
 
 export interface TimeInput {
   distance_km: number;
@@ -12,7 +13,7 @@ export interface TimeResult {
 }
 
 export async function calcTime(input: TimeInput): Promise<TimeResult> {
-  const configs = await loadConfigs();
+  const configs = await loadConfigs(supabase());
   const avgSpeed = getNum(configs, "avg-speed-kmh");
   const loadUnloadMin = getNum(configs, "load-unload-minutes");
 

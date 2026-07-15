@@ -55,6 +55,9 @@ function load(filename: string): any {
   catch { return {}; }
 }
 
+// KM-001 (registry/existence.json known_mistakes): this duplicates scripts/sync-registry.ts's
+// extractExports. Both independently had the same .tsx-blindness bug class 3 times this session —
+// check that file too when fixing a parsing bug here.
 function extractExportsFromFile(absPath: string): string[] {
   if (!existsSync(absPath)) return [];
   const content = readFileSync(absPath, "utf-8");
@@ -66,6 +69,8 @@ function extractExportsFromFile(absPath: string): string[] {
     /export\s+type\s+(\w+)/g,
     /export\s+interface\s+(\w+)/g,
     /export\s+enum\s+(\w+)/g,
+    /export\s+default\s+(?:async\s+)?function\s+(\w+)/g,
+    /export\s+default\s+(?:abstract\s+)?class\s+(\w+)/g,
   ];
   for (const pattern of patterns) {
     for (const match of content.matchAll(pattern)) {
@@ -78,8 +83,8 @@ function extractExportsFromFile(absPath: string): string[] {
       if (trimmed && !exports.includes(trimmed)) exports.push(trimmed);
     }
   }
-  // export default (any form: function, class, new expression, value)
-  if (/export\s+default\b/.test(content) && !exports.includes("default")) {
+  // bare `export default <expr>` (anonymous, or a named one already captured above)
+  if (exports.length === 0 && /export\s+default\b/.test(content)) {
     exports.push("default");
   }
   // export * from "./module" — barrel re-export: resolve recursively (1 level)
@@ -123,12 +128,13 @@ function extractImportsFromFile(absPath: string): string[] {
 
 // Entry point patterns that are valid without being imported
 const ENTRY_POINT_PATTERNS = [
-  /^app\/api\/.+\/route\.(ts|tsx)$/,        // Next.js API routes (HTTP endpoints)
+  /^app\/.+\/route\.(ts|tsx)$/,              // Next.js route handlers — any path under app/, not just app/api/ (e.g. app/observer.json/route.ts)
   /^app\/(layout|page|error|loading)\.(tsx|ts)$/, // Next.js root files
   /^app\/.+\/(layout|page|error|loading)\.(tsx|ts)$/, // Next.js page files
   /^scripts\/.+\.ts$/,                       // CLI scripts
   /^next\.config\.(ts|js)$/,                 // Next.js config
   /^supabase\/functions\/.+\/index\.ts$/,    // Supabase edge function entry
+  /^middleware\.ts$/,                        // Next.js middleware — framework-auto-loaded, never explicitly imported
   /\.test\.ts$/, /\.spec\.ts$/,              // Test files
 ];
 
@@ -172,8 +178,19 @@ function calcStatus(
     }
   }
 
-  // Deprecated modules are intentionally disconnected — not an error
+  // Deprecated modules are intentionally disconnected — not an error, UNLESS they've
+  // regained a real importer, which contradicts their own deprecated status (Rule 100 /
+  // KM-002, registry/existence.json known_mistakes.confirmed_duplicate_pairs). That's
+  // either a mistake (someone built on the deprecated side without checking) or a real
+  // un-deprecation that should update module-registry.json's deprecated field on purpose,
+  // not drift silently — same enforcement source scripts/check-imports.sh reads.
   if (registryData?.deprecated === true) {
+    if (isImported) {
+      return {
+        status: "BROKEN",
+        error_th: `Module ถูก mark deprecated:true แต่กลับมีคนเรียกใช้จริง (Rule 100 / KM-002) — ถ้าตั้งใจ un-deprecate ต้องอัปเดต module-registry.json deprecated field และ registry/existence.json confirmed_duplicate_pairs พร้อมกัน ห้าม drift เงียบ ๆ`,
+      };
+    }
     return { status: "OK" };
   }
 
@@ -191,9 +208,31 @@ function calcStatus(
         error_th: `ประกาศ declared_callers: [${callers.slice(0, 2).join(", ")}${callers.length > 2 ? "…" : ""}] แต่ไม่พบ import จริง — ต้องเพิ่ม import ใน caller file`,
       };
     }
+
+    // Rule 104 (Nothing Is Wasted, CONST-104, DNA-000037/038): an unused module
+    // is only excused from UNUSED if its knowledge has actually been extracted
+    // first — archival_status:"ARCHIVED" alone is not enough; the referenced
+    // entry in registry/existence.json#archived_knowledge must really exist,
+    // so this can't be satisfied by setting a flag without doing the work.
+    if (registryData?.archival_status === "ARCHIVED") {
+      const ref: string = registryData?.archived_knowledge_ref ?? "";
+      const idMatch = ref.match(/\[([A-Z]+-\d+)\]/);
+      const archiveId = idMatch?.[1];
+      const existence = load("existence.json");
+      const entries: any[] = existence.archived_knowledge?.entries ?? [];
+      const found = archiveId ? entries.find((e) => e.id === archiveId) : undefined;
+      if (found) {
+        return { status: "OK" };
+      }
+      return {
+        status: "BROKEN",
+        error_th: `archival_status: "ARCHIVED" แต่ archived_knowledge_ref ("${ref}") ไม่พบ entry จริงใน registry/existence.json#archived_knowledge (Rule 104) — ห้าม mark ARCHIVED โดยไม่มีความรู้ที่สกัดออกมาจริง`,
+      };
+    }
+
     return {
       status: "UNUSED",
-      error_th: `ไม่มีใครเรียกใช้ และไม่มี declared_callers — เพิ่ม declared_callers ใน module-registry.json หรือตั้ง entry_point: true`,
+      error_th: `ไม่มีใครเรียกใช้ และไม่มี declared_callers — เพิ่ม declared_callers ใน module-registry.json หรือตั้ง entry_point: true (หรือถ้าจะ archive ตาม Rule 104 ต้องสกัดความรู้ก่อน แล้วตั้ง archival_status: "ARCHIVED" พร้อม archived_knowledge_ref ที่ชี้ไป entry จริง)`,
     };
   }
 
@@ -210,7 +249,7 @@ async function buildArchBook() {
   const edges: ArchEdge[] = [];
 
   // Build import graph from source
-  const allFiles = await glob("**/*.ts", {
+  const allFiles = await glob("**/*.{ts,tsx}", {
     cwd: ROOT,
     ignore: ["node_modules/**", ".next/**", "**/*.d.ts"],
   });
@@ -231,11 +270,23 @@ async function buildArchBook() {
       }
       if (!resolvedBase) continue;
 
-      // Try direct .ts, then /index.ts fallback (directory import pattern)
-      let target = resolvedBase.endsWith(".ts") ? resolvedBase : `${resolvedBase}.ts`;
+      // Try direct .ts, then .tsx, then /index.ts fallback (directory import
+      // pattern). Previously always appended .ts even when the real target
+      // was .tsx (e.g. @/components/documents/DocumentBuilder) — every such
+      // import silently resolved to a nonexistent path and never counted,
+      // which is why real, actively-imported .tsx components were showing
+      // up as UNUSED.
+      let target = resolvedBase.endsWith(".ts") || resolvedBase.endsWith(".tsx") ? resolvedBase : `${resolvedBase}.ts`;
       if (!existsSync(join(ROOT, target))) {
-        const indexTarget = resolvedBase.replace(/\.ts$/, "") + "/index.ts";
-        if (existsSync(join(ROOT, indexTarget))) target = indexTarget;
+        const tsxTarget = resolvedBase.replace(/\.tsx?$/, "") + ".tsx";
+        if (existsSync(join(ROOT, tsxTarget))) {
+          target = tsxTarget;
+        } else {
+          const indexTsTarget = resolvedBase.replace(/\.tsx?$/, "") + "/index.ts";
+          const indexTsxTarget = resolvedBase.replace(/\.tsx?$/, "") + "/index.tsx";
+          if (existsSync(join(ROOT, indexTsTarget))) target = indexTsTarget;
+          else if (existsSync(join(ROOT, indexTsxTarget))) target = indexTsxTarget;
+        }
       }
       if (!importedBy.has(target)) importedBy.set(target, new Set());
       importedBy.get(target)!.add(file);

@@ -1,0 +1,438 @@
+{
+  "version": 1,
+  "protocol": "DNA OS Governance Registry — program-level tracking",
+  "note": "One layer above registry/TASK_QUEUE.json (atomic tasks) and registry/CHANGELOG.json (per-change history). Tracks Architecture Programs — multi-phase initiatives spanning several changes/sessions. Created to resolve a real, confirmed problem: multiple concurrent AI sessions and conversation threads had each independently used bare 'Phase 1/2/3' names for different, unrelated initiatives, causing ambiguity and one near-collision (EWA-P3 almost wrapped REL-P1's already-shipped app/admin/relationships/workspace.tsx in a conflicting second shell). Every phase ID below is globally unique because it is program-prefixed — a bare 'Phase 3' should never again be written anywhere in this repository without a program prefix.",
+  "created_at": "2026-07-14",
+  "created_by": "Governance Reconciliation (this session), under explicit owner authorization — see plan_lock.exceptions_log in CURRENT_STATE.json for EWA/DOMAIN specifically",
+  "programs": {
+    "AUTH": {
+      "name": "SSO + Permission System",
+      "owner": "owner",
+      "status": "in_progress",
+      "current_phase": "AUTH-P3",
+      "dependencies": [],
+      "freeze_status": "none — AUTH is itself one of the 3 Plan Lock gate tasks, not subject to a separate freeze",
+      "exception_status": "n/a — gate task, not an exception",
+      "phases": [
+        {
+          "id": "AUTH-P1",
+          "name": "Supabase Auth wiring, profiles/roles, Permission Registry, requireAuth/requireAuthPage, middleware rewrite",
+          "status": "done"
+        },
+        {
+          "id": "AUTH-P2",
+          "name": "3 real bugs found+fixed (blank Vercel env vars, RLS recursion, Server->Client icon-passing crash)",
+          "status": "done"
+        },
+        {
+          "id": "AUTH-P3",
+          "name": "Full end-to-end login confirmed by owner in real browser",
+          "status": "unconfirmed",
+          "note": "Last record says this was still open as of TASK-001's registration; no fresher evidence found during this reconciliation. Do not mark done without direct owner confirmation."
+        }
+      ]
+    },
+    "DATA": {
+      "name": "Real data everywhere, mock/demo elimination",
+      "owner": "owner",
+      "status": "pending",
+      "current_phase": "DATA-P1",
+      "dependencies": [
+        "AUTH-P3 (recommended sequencing per Plan Lock's own stated reasoning, not a hard technical block)"
+      ],
+      "freeze_status": "none — gate task",
+      "exception_status": "n/a",
+      "phases": [
+        {
+          "id": "DATA-P1",
+          "name": "Eliminate mock/fake/demo data across DB, registries, portals",
+          "status": "pending — not started"
+        }
+      ]
+    },
+    "DEPLOY": {
+      "name": "Clean repo + ship production",
+      "owner": "owner",
+      "status": "pending",
+      "current_phase": "DEPLOY-P1",
+      "dependencies": [
+        "DATA-P1"
+      ],
+      "freeze_status": "none — gate task",
+      "exception_status": "n/a",
+      "phases": [
+        {
+          "id": "DEPLOY-P1",
+          "name": "git clean, lint/typecheck/build pass, deploy, tag release",
+          "status": "pending — not started"
+        }
+      ]
+    },
+    "REL": {
+      "name": "Relationship-Centric Workspace / Timeline Migration",
+      "owner": "owner + prior session",
+      "status": "phase_2_closed_phase_3_not_authorized",
+      "current_phase": "REL-P3 (not authorized)",
+      "dependencies": [],
+      "freeze_status": "ACTIVE — see registry/CURRENT_STATE.json -> architecture_freeze. Scope: app/admin/relationships/*, engines/partner/timeline.ts, engines/presentation/*, app/admin/partners/[id]/page.tsx, app/admin/jobs/[id]/page.tsx, components/documents/DocumentBuilder.tsx, components/transactions/TransactionPanel.tsx",
+      "exception_status": "REL-P1/P2 proceeded under a direct, explicit, real-time owner instruction — logged as plan_lock.note_2026_07_13. Not a general suspension of Plan Lock.",
+      "phases": [
+        {
+          "id": "REL-P1",
+          "name": "Relationship Identity Migration (relationship_id re-key, /admin/relationships routes)",
+          "status": "done, deployed"
+        },
+        {
+          "id": "REL-P2",
+          "name": "Registry Reconciliation + duplicate-logic elimination",
+          "status": "done, deployed, closed 2026-07-13"
+        },
+        {
+          "id": "REL-P3.1",
+          "name": "Unified Timeline Engine (actual output merge)",
+          "status": "not authorized",
+          "risk": "medium"
+        },
+        {
+          "id": "REL-P3.2",
+          "name": "Business Event / Document read consolidation",
+          "status": "not authorized",
+          "risk": "medium",
+          "depends_on": "REL-P3.1"
+        },
+        {
+          "id": "REL-P3.3",
+          "name": "Fix/remove dead partner.timeline command",
+          "status": "not authorized",
+          "risk": "low",
+          "note": "independently resolvable, no dependency on other REL-P3 items"
+        },
+        {
+          "id": "REL-P3.4",
+          "name": "Embeddable DocumentBuilder.tsx / TransactionPanel.tsx",
+          "status": "not authorized",
+          "risk": "high",
+          "depends_on": "REL-P3.1"
+        },
+        {
+          "id": "REL-P3.5",
+          "name": "Delete duplicate pages, once feature parity confirmed",
+          "status": "not authorized",
+          "risk": "medium-high",
+          "depends_on": "REL-P3.4"
+        },
+        {
+          "id": "REL-P3.6",
+          "name": "Automation/settings schema migration",
+          "status": "not authorized",
+          "risk": "high",
+          "depends_on": "REL-P3.5"
+        },
+        {
+          "id": "REL-P3.7",
+          "name": "Routing cleanup",
+          "status": "not authorized",
+          "risk": "low",
+          "depends_on": "REL-P3.6"
+        }
+      ],
+      "source_docs": [
+        "PROJECT_CLOSEOUT.md",
+        "PHASE3_BACKLOG.md",
+        "TECHNICAL_DEBT.md"
+      ]
+    },
+    "EWA": {
+      "name": "Enterprise Workspace Architecture (login/auth/navigation refactor)",
+      "owner": "owner (real-time conversation authorization)",
+      "status": "in_progress_blocked",
+      "current_phase": "EWA-P3",
+      "dependencies": [],
+      "freeze_status": "none dedicated — subject to PLAN-LOCK as a whole",
+      "exception_status": "FORMALLY RECORDED this reconciliation — see registry/CURRENT_STATE.json -> plan_lock.exceptions_log. Was previously unlogged despite proceeding under real-time owner authorization across multiple turns.",
+      "phases": [
+        {
+          "id": "EWA-P1",
+          "name": "Route Resolver (core/auth/resolveDestination.ts), eliminate /admin -> /admin/dashboard redirect chain, single login-landing flow",
+          "status": "shipped"
+        },
+        {
+          "id": "EWA-P2",
+          "name": "Unified shell (components/workspace/WorkspaceShell.tsx) for User/Partner/Business, Navigation Resolver (core/navigation/resolveNavItems.ts), BusinessSidebarNav.tsx retired",
+          "status": "shipped"
+        },
+        {
+          "id": "EWA-P3",
+          "name": "Admin Workspace shell migration",
+          "status": "blocked",
+          "note": "Attempted, reverted — nesting app/admin/layout.tsx in the shared shell conflicts with REL-P1's already-shipped app/admin/relationships/workspace.tsx (own full-screen AppShell + IconRail, own h-screen container). See Conflict Matrix. Resolution does not require REL-P3 — it is a standalone technical fix on EWA's side."
+        },
+        {
+          "id": "EWA-P4",
+          "name": "Infrastructure Workspace (elevated auth = existing SUPER_ADMIN_ONLY tier, per confirmed owner decision — not step-up re-auth), relocate Developer/Architecture/Registry pages, resolve public/private status of /, /start, /observer",
+          "status": "not started"
+        }
+      ]
+    },
+    "DOMAIN": {
+      "name": "dnaos.dev migration (Vercel binding, DNS, SSL)",
+      "owner": "owner (real-time conversation authorization, incl. supplied Hostinger API credential)",
+      "status": "complete",
+      "current_phase": "DOMAIN-P3",
+      "dependencies": [],
+      "freeze_status": "none",
+      "exception_status": "FORMALLY RECORDED this reconciliation — see registry/CURRENT_STATE.json -> plan_lock.exceptions_log. Was previously unlogged.",
+      "phases": [
+        {
+          "id": "DOMAIN-P1",
+          "name": "Read-only audit (Vercel/Hostinger/env)",
+          "status": "done"
+        },
+        {
+          "id": "DOMAIN-P2",
+          "name": "dnaos.dev bound to Vercel, DNS records written via Hostinger API, www->apex redirect, code URL replacements (config/system-links.ts, 12-environments.json), NEXT_PUBLIC_APP_URL set in all Vercel environments",
+          "status": "shipped, verified live"
+        },
+        {
+          "id": "DOMAIN-P3",
+          "name": "SSL/DNS deep verification",
+          "status": "done — apex cert confirmed issued and live"
+        }
+      ]
+    },
+    "DOMCONN": {
+      "name": "Domain connector/management tooling + governance doc set",
+      "owner": "concurrent session (agent_id: claude-code-session-f683b46b)",
+      "status": "blocked_at_connect_stage",
+      "current_phase": "DOMCONN-P2",
+      "dependencies": [
+        "DOMCONN-P1"
+      ],
+      "freeze_status": "gated by CONN (permanent Connector Lifecycle Law)",
+      "exception_status": "DOMCONN-P1 proceeded under EXECUTION_MODE=OWNER_OVERRIDE (per registry/AI_SESSIONS.json current_work field) — pre-existing, not newly recorded here",
+      "phases": [
+        {
+          "id": "DOMCONN-P1",
+          "name": "engines/domains/{hostinger,cloudflare,vercel-binding}.ts, gateway/domains.ts, 4 admin API routes built",
+          "status": "done (code exists)"
+        },
+        {
+          "id": "DOMCONN-P2",
+          "name": "Hostinger connector actually Connected (Connect->Register->Test->Enable->Run)",
+          "status": "not started — 0 rows in connectors table for slug 'hostinger', confirmed by direct query"
+        },
+        {
+          "id": "DOMCONN-P3",
+          "name": "20 governance-proposal docs (docs/*.md)",
+          "status": "drafted, ARCHITECTURE_APPROVAL_PENDING — proposals, not implementation"
+        }
+      ]
+    },
+    "SDRN": {
+      "name": "Self Describing Runtime Network — Self Description Interface + HELLO DNA OS protocol",
+      "owner": "owner (real-time conversation authorization, AskUserQuestion selection — see registry/CURRENT_STATE.json plan_lock.exceptions_log for exact form)",
+      "status": "in_progress",
+      "current_phase": "SDRN-P12",
+      "dependencies": [],
+      "freeze_status": "none",
+      "exception_status": "SDRN-P1 and SDRN-P3 FORMALLY RECORDED at grant time — see registry/CURRENT_STATE.json -> plan_lock.exceptions_log -> SDRN. Both deliberately scoped to ONE real subsystem (Document Engine) rather than broadly, per owner's own repeated explicit choice, citing RUNTIME_WIRING_REPORT.md's finding that the prior broad build (Composer/Planner/Orchestrator) ended up unwired. SDRN-P2, P4, and P5 needed no NEW exception — each extends an existing file/script (existence.json, hello.ts, selfDescription.ts, core/shared/types.ts) rather than building new architecture.",
+      "phases": [
+        {
+          "id": "SDRN-P1",
+          "name": "Self Description Interface for engines/documents/engine.ts (the Document Engine) + a HELLO DNA OS session-start entry point querying it alongside existing self-description sources",
+          "status": "done — see registry/CHANGELOG.json DNA-000028"
+        },
+        {
+          "id": "SDRN-P2",
+          "name": "System Discovery (read-only) — inventory every existing self-description capability (Architecture Book, Dependency Graph, Capability Registry, Workflow Registry, Runtime Registry, Current State, Health, Existence Intelligence, Self Awareness, Document Self Description, Governance, Reasoning Tree, Graph3D, Cockpit, Knowledge Repository) and map which are real/working, which are real/disconnected, which are broken. A 10-phase build request (submitted mislabeled as 'Phase 2.3B', colliding with the real, already-completed Phase 2.3B earlier this session) was narrowed to this single read-only phase by explicit owner choice — same narrow-scoping principle as SDRN-P1.",
+          "status": "done — see registry/CHANGELOG.json DNA-000029"
+        },
+        {
+          "id": "SDRN-P3",
+          "name": "First real call to core/workspace/runtimeRegistry.ts's register() anywhere in the app — for the Document Engine only, via a new API route + a new minimal client component mounted in the existing app/workspace-preview/document/page.tsx. A 10-requirement 'Runtime Nervous System' build request (the full SPRP vision as an implementation directive) was narrowed to this one increment by explicit owner choice. Verified via a real `npm run build` (not just tsc). Also surfaced, honestly, mid-build: (1) the RuntimeHandle type's start()/stop()-lifecycle model doesn't really fit a stateless engine — implemented as documented no-ops rather than fabricated; (2) SDRN-P2's own discovery pass had missed a whole public app/api/v1/* self-description surface, 2 of whose routes (workflows, constitution) were found to be serving stale/duplicated data — recorded as KM-003, not fixed in this pass (out of scope).",
+          "status": "done — see registry/CHANGELOG.json DNA-000032"
+        },
+        {
+          "id": "SDRN-P4",
+          "name": "Owner Request registry (registry/existence.json owner_requests) — a 10-item 'Self-Governance & Runtime Immune System' mission was audited item-by-item against what already exists (items 1/8/9/10 already real via Rule 100/101; item 3 — pre-write rejection — found not achievable with current tooling, no hook exists to intercept a write before it happens; items 2/6 partial; items 4/5 unbuilt) and narrowed to item 4 by explicit owner choice. Seeded with exactly 1 real entry (OR-001, the Document Engine's Capability-Runtime-chain gap, already known from RUNTIME_WIRING_REPORT.md/SDRN-P1) rather than fabricated examples. Surfaced live in scripts/hello.ts's new OWNER REQUESTS section.",
+          "status": "done — see registry/CHANGELOG.json DNA-000034"
+        },
+        {
+          "id": "SDRN-P5",
+          "name": "Runtime Interface (core/shared/types.ts RuntimeInterface: Describe/Health/Capability/Dependency/Need/Reject/Recommend/Explain/Register/Heartbeat/Status/NextAction/Owner/Version/Compatibility) implemented for the Document Engine (engines/documents/selfDescription.ts createDocumentEngineRuntimeInterface()), exposed over app/api/admin/runtime/document-engine?method=X. A 12-section 'Digital Nervous System' mission (Event Bus, Heartbeat, 15-method interface) was narrowed to this — the interface only, pull-based, no event bus/persistent process, since neither exists nor is buildable without new infrastructure in this serverless deployment. Every one of the 15 methods verified by direct invocation with real output (not stubs) before being wired into the API route.",
+          "status": "done — see registry/CHANGELOG.json DNA-000035"
+        },
+        {
+          "id": "SDRN-P6",
+          "name": "Runtime Self-Describing Contract (19 fields: Identity/Purpose/Responsibilities/Capabilities/Dependencies/Constraints/Health/Current State/Known Problems/Missing Knowledge/Missing Capabilities/Missing Dependencies/Resources Needed/Requested Actions/Execution Scope/Forbidden Scope/Verification Procedure/Success Criteria/Confidence/Last Validation) + Negotiation Flow (BOOT -> Self Announcement -> Runtime Contract -> Knowledge Gap -> Work Request -> AI Execution -> Verification -> State Update -> Registry Commit), as real types in core/shared/types.ts. An 'Architecture Directive' asking for this across ALL ~470 modules with repository-first discovery banned for all future AI sessions was narrowed, by explicit owner choice (AskUserQuestion), to: the type/protocol definitions themselves, plus full implementation for 2 real modules — the Document Engine (upgrading its existing SDRN-P1/P5 SelfDescription) and plugins/drivers/line.ts (chosen for its already-verified real history in KM-002-line). Does not extend to the other ~468 modules or make contract-first mandatory system-wide.",
+          "status": "in_progress — see registry/CHANGELOG.json DNA-000060"
+        },
+        {
+          "id": "SDRN-P7",
+          "name": "Platform-level Runtime Contract infrastructure: ContextBudget, DeltaContext, WorkOrder, ExecutionReadiness, VerificationContract, MeasurementReport types in core/shared/types.ts (RuntimeNegotiation reused from SDRN-P6's NegotiationFlowState, not duplicated). A 'System-Wide Runtime Execution Platform' directive with mechanical AI-execution gating, real token/read/context measurement, and a 60% numeric acceptance criteria was found to be partially unbuildable in this repository (no persistent process exists to intercept the AI's own tool calls or observe its token usage — that lives in the Claude Code harness, outside this repo) and flagged directly before any build. Owner's custom-scoped answer: build the full type/schema infrastructure and a real Contract Coverage metric, but explicit instrumentation-only (not results-claiming) for the 6 metrics this repo cannot actually observe.",
+          "status": "in_progress — see registry/CHANGELOG.json DNA-000061"
+        },
+        {
+          "id": "SDRN-P8",
+          "name": "Runtime Context Broker (core/runtime/contextBroker.ts) — promoted SDRN-P7's per-module helper functions (each independently recomputing the full RuntimeContract) into one broker: compute once per module, cache in-process, derive WorkOrder/ContextBudget/ExecutionReadiness/DeltaContext from the same cached instance. Real, instrumented read counter (readCounter, incremented inside both self-description files' real readJSON) enables a genuine before/after measurement (npm run hello -- --broker-report): real repository reads went from 55 (independent recomputation, the actual SDRN-P6/P7 pattern) to 11 (broker, cached) for the same 2-module repeated-access workload — a real, computed 80% reduction, not estimated. Owner instruction: 'Continue after this commit... Promote these computations into the Runtime Context Broker' — treated as a direct continuation of SDRN-P6/P7's already-granted scope (same 2 modules, no new modules, consolidation not expansion) under Rule 105 (Autonomous Architecture Maintenance), not requiring a fresh Plan Lock exception record — logged here for traceability regardless. Serverless constraint disclosed honestly: the cache is in-process only, valid for one execution's lifetime, not persistent across requests (no persistent server process exists in this Vercel deployment, same constraint SDRN-P3/P5 already stated).",
+          "status": "done — see registry/CHANGELOG.json DNA-000062"
+        },
+        {
+          "id": "SDRN-P9",
+          "name": "Execution Planner + Execution Report — the one genuinely new, buildable subset of a 10-item 'Architecture Upgrade Directive' (Runtime Knowledge Platform), after auditing all 10 items against real state: 3 were already built (Broker/Contract/Delta Context, SDRN-P6/P7/P8), 1 substantially overlapped existing tools (a 'Context Optimizer' duplicating knip/jscpd), and several (Repository Gateway enforcement, a Knowledge Reuse Engine for the AI's own reasoning, Clarification Requests/Preparation Time/Completion Token metrics) were found not achievable in this repository regardless of scope — same reason as SDRN-P7/P8: no access to AI session behavior, only to this codebase's own real data. Owner confirmed the narrowed scope via AskUserQuestion. ExecutionPlan (core/shared/types.ts) extends WorkOrder with one real new field, expectedOutput, derived from the contract's own capabilities/responsibilities. ExecutionReport (core/runtime/contextBroker.ts) aggregates already-real broker data (repositoryReads, knowledgeReused/servedFromCache, contextBudget.skipContext, contract.confidence, contract.requestedActions) into one report per execution — no new computation, no fabricated fields. Verified live for both real modules across a cache-miss and cache-hit access, confirming repositoryReads stays flat and executionTimeMs drops to 0 on the real cache hit.",
+          "status": "done — see registry/CHANGELOG.json DNA-000063"
+        },
+        {
+          "id": "SDRN-P10",
+          "name": "AI Knowledge Packet completion — owner: 'Transform RuntimePacket into a complete AI Knowledge Packet. AI SHALL execute directly from the packet without reconstructing architectural knowledge.' Treated as a direct continuation under Rule 105 (same 2 modules, no business logic, pure synthesis of already-real data) since it named no new modules and asked for nothing already flagged unbuildable. Found 2 real, closeable gaps in the existing RuntimePacket: (1) an AI reading it still had to cross-reference 6 sub-objects for one picture -> added `briefing` (core/shared/types.ts computeBriefing(), a pure synthesis of contract+readiness fields already present, no new data) (2) module layer + allowed imports existed only as unstructured prose inside contract.constraints, not queryable -> added `architecture` (real lookup against module-registry.json/dependency-graph.json, reusing contract.executionScope[0] as the target file rather than a new registration parameter). Found and fixed a real correctness bug live during this same pass: the first implementation computed architecture unconditionally, adding real file reads even on a cache hit — contradicting the '0 additional reads on cache hit' behavior already verified and logged in SDRN-P8/P9. Fixed by caching architecture alongside the contract; re-verified live (8 reads before and after a cache-hit access, unchanged).",
+          "status": "done — see registry/CHANGELOG.json DNA-000064"
+        },
+        {
+          "id": "SDRN-P11",
+          "name": "TASK-037 (Connect Modules) start: full RuntimeContract implementation for a 3rd real module, plugins/drivers/chrome.ts — same shape as the LINE driver (BaseDriver, real registry entries, real caller in registerAllDrivers.ts). Owner instruction: '/work' (unrecognized local command) followed by 'เริ่มทำงานต่อจากจุดล่าสุดอัตโนมัติ' (continue automatically from the last point) — treated as real-time authorization to proceed with TASK-037's narrowest real increment (one additional module), matching the same narrow-scoping precedent every SDRN phase has followed, rather than expanding broadly. TASK-039 (Production Deploy) explicitly excluded from 'automatic' continuation since it requires explicit owner go-ahead per its own task queue note, not assumed from a general continue instruction.",
+          "status": "done — see registry/CHANGELOG.json DNA-000068"
+        },
+        {
+          "id": "SDRN-P12",
+          "name": "TASK-037 substantially complete: all remaining 9 real drivers (vscode/finder/terminal/maps/earth/mail/calendar/pdf/github) now have full RuntimeContracts, via a shared factory (plugins/drivers/selfDescriptionFactory.ts) rather than 9 hand-copied files — avoiding the exact 'duplicate workflow' pattern flagged as a real gap in DNA-000065. All 11 real drivers + Document Engine (12 total) now wired into the Runtime Context Broker via a data-driven WIRED_MODULES array in scripts/hello.ts (refactored from 3 hand-copied blocks, same reasoning). Owner instruction: 'เริ่มงานต่อ'/'รันงานต่อ' (continue/run the next work) — treated as continuing authorization for the same narrow, low-risk, already-established TASK-037 pattern (adding more of the same kind of module, no new architecture, no business logic), not requiring a fresh AskUserQuestion for scope given the pattern was already explicitly approved in SDRN-P11.",
+          "status": "done — see registry/CHANGELOG.json DNA-000069"
+        }
+      ]
+    },
+    "CONN": {
+      "name": "Connector Lifecycle Law",
+      "owner": "owner",
+      "status": "active_permanent",
+      "current_phase": "n/a — permanent law, not phased",
+      "dependencies": [],
+      "freeze_status": "CONN is itself a standing freeze/law, not subject to one",
+      "exception_status": "none permitted by design — amendment requires explicit owner confirmation only, same bar as amending the 5 Architectural Laws",
+      "source": "registry/connector-lifecycle.json"
+    }
+  },
+  "dependency_graph": {
+    "AUTH-P1": [],
+    "AUTH-P2": [
+      "AUTH-P1"
+    ],
+    "AUTH-P3": [
+      "AUTH-P2"
+    ],
+    "DATA-P1": [
+      "AUTH-P3 (soft)"
+    ],
+    "DEPLOY-P1": [
+      "DATA-P1"
+    ],
+    "REL-P1": [],
+    "REL-P2": [
+      "REL-P1"
+    ],
+    "REL-P3.1": [
+      "REL-P2"
+    ],
+    "REL-P3.2": [
+      "REL-P3.1"
+    ],
+    "REL-P3.3": [],
+    "REL-P3.4": [
+      "REL-P3.1"
+    ],
+    "REL-P3.5": [
+      "REL-P3.4"
+    ],
+    "REL-P3.6": [
+      "REL-P3.5"
+    ],
+    "REL-P3.7": [
+      "REL-P3.6"
+    ],
+    "EWA-P1": [],
+    "EWA-P2": [
+      "EWA-P1"
+    ],
+    "EWA-P3": [
+      "EWA-P2",
+      "resolve conflict vs REL-P1 scope"
+    ],
+    "EWA-P4": [
+      "EWA-P3"
+    ],
+    "DOMAIN-P1": [],
+    "DOMAIN-P2": [
+      "DOMAIN-P1"
+    ],
+    "DOMAIN-P3": [
+      "DOMAIN-P2"
+    ],
+    "DOMCONN-P1": [],
+    "DOMCONN-P2": [
+      "DOMCONN-P1",
+      "CONN"
+    ],
+    "DOMCONN-P3": []
+  },
+  "conflict_matrix": [
+    {
+      "pair": [
+        "EWA-P3",
+        "REL-P1"
+      ],
+      "conflict": true,
+      "nature": "File-scope overlap: app/admin/* (EWA-P3 target) contains app/admin/relationships/workspace.tsx (REL-P1 shipped output, its own full-screen AppShell/IconRail/h-screen container). Concrete mechanism: nested h-screen shells. Caught and reverted during EWA-P3's attempt, not theoretical."
+    },
+    {
+      "pair": [
+        "EWA-P3",
+        "REL-P3"
+      ],
+      "conflict": "indirect",
+      "nature": "No file overlap in currently-scoped REL-P3 work vs EWA-P3, but both eventually touch the same directory tree — re-check once REL-P3 is authorized and scoped for real."
+    },
+    {
+      "pair": [
+        "DOMAIN",
+        "EWA"
+      ],
+      "conflict": false
+    },
+    {
+      "pair": [
+        "DOMAIN",
+        "REL"
+      ],
+      "conflict": false
+    },
+    {
+      "pair": [
+        "DOMCONN",
+        "REL"
+      ],
+      "conflict": false
+    },
+    {
+      "pair": [
+        "DOMCONN",
+        "EWA"
+      ],
+      "conflict": false
+    },
+    {
+      "pair": [
+        "DOMCONN",
+        "DOMAIN"
+      ],
+      "conflict": false,
+      "note": "Same subject area (domains) but disjoint file scope — DOMAIN touches DNS/Vercel config + 2 code URLs; DOMCONN touches engines/domains/*, gateway/domains.ts, admin API routes."
+    }
+  ],
+  "execution_order": [
+    "Governance housekeeping (this reconciliation)",
+    "EWA-P3 conflict fix (technical, does not require REL-P3)",
+    "REL-P3.3 (cheapest item on the whole board, zero dependency)",
+    "AUTH-P3 (owner confirms end-to-end login — longest-open item, senior Plan Lock gate)",
+    "EWA-P3 completion + REL-P3.1 onward (safe in parallel once EWA-P3 fix lands)",
+    "EWA-P4, DOMCONN-P2 (independent, lowest urgency)",
+    "DATA-P1 -> DEPLOY-P1 (the actual remaining Plan Lock gate content)"
+  ]
+}

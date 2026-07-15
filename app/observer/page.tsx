@@ -107,13 +107,70 @@ export default function ObserverPage() {
 
           {/* ── Identity ── */}
           <Section title="ระบบคืออะไร">
-            <div className="text-sm text-stone-700 space-y-2 leading-relaxed">
-              <p><strong>DNA OS</strong> — ระบบ ERP อัจฉริยะสำหรับธุรกิจคอนกรีต/ขนส่ง</p>
-              <p><strong>หลักการ:</strong> AI เป็นแค่ตัวกลาง ไม่ใช่ศูนย์กลาง — ศูนย์กลางคือกฎและสถาปัตยกรรม</p>
-              <p><strong>การเติบโต:</strong> ขยายจากคลังกฎและ Workflow ไม่ใช่จากการฝึก AI</p>
-              <p><strong>Design Shift (2026-07):</strong> เปลี่ยนจาก "เอกสารเป็นศูนย์กลาง" → <strong>"ความสัมพันธ์และ Event เป็นศูนย์กลาง"</strong></p>
-              <p className="text-stone-500 text-xs">Partner → Timeline of Events → Documents (เอกสารคือ artifact ของ event ไม่ใช่ตัว event เอง)</p>
+            <div className="text-sm text-stone-700 space-y-4 leading-relaxed">
+              <div>
+                <p><strong>DNA OS</strong> — Operational Infrastructure Platform</p>
+                <p className="mt-1">DNA OS คือแพลตฟอร์มโครงสร้างพื้นฐานสำหรับประสานการดำเนินงานขององค์กร</p>
+              </div>
+
+              <div className="text-xs text-stone-500 space-y-0.5">
+                <p>ระบบไม่ใช่ ERP</p>
+                <p>ระบบไม่ใช่ AI Platform</p>
+                <p>ระบบไม่ใช่ Chatbot</p>
+                <p>ระบบไม่ผูกกับอุตสาหกรรมใดอุตสาหกรรมหนึ่ง</p>
+              </div>
+
+              <div>
+                <p>หน้าที่ของระบบคือเป็น Runtime สำหรับประสาน</p>
+                <div className="flex flex-wrap gap-1.5 mt-1.5">
+                  {["People", "Organization", "Resources", "Workflow", "Event", "Document", "Automation", "External Services", "AI Drivers"].map((item) => (
+                    <Tag key={item} color="blue">{item}</Tag>
+                  ))}
+                </div>
+                <p className="text-stone-500 text-xs mt-1.5">ภายใต้สถาปัตยกรรมเดียวกัน</p>
+              </div>
+
+              <div className="border-t border-stone-200 pt-3">
+                <p><strong>หลักการ:</strong> Architecture เป็นศูนย์กลางของระบบ</p>
+                <p className="text-xs text-stone-500 mt-1">Registry · Constitution · Capability · Workflow · Business Rules · Execution · Security คือองค์ประกอบที่กำหนดพฤติกรรมของระบบ</p>
+                <p className="text-xs text-stone-500 mt-1">AI เป็นเพียง Driver ที่สามารถเปลี่ยนผู้ให้บริการได้โดยไม่กระทบ Runtime</p>
+              </div>
+
+              <div className="border-t border-stone-200 pt-3">
+                <p><strong>การเติบโต (System Evolution):</strong> ขยายจาก Registry · Capability · Workflow · Constitution · Execution Layer · Integration Layer</p>
+                <p className="text-xs text-stone-500 mt-1">ไม่ขึ้นกับ AI Provider · Database Provider · Hosting Provider · Cloud Provider · External Vendor</p>
+              </div>
+
+              <div className="border-t border-stone-200 pt-3">
+                <p><strong>Architectural Evolution:</strong></p>
+                <p className="text-xs text-stone-500 mt-1">Generation 1 — Document Centric &nbsp;→&nbsp; Generation 2 — Relationship Centric</p>
+                <p className="text-xs text-stone-500 mt-1">Partner → Business Event → Timeline → Document</p>
+                <p className="text-stone-500 text-xs mt-1">Document คือผลลัพธ์ของ Business Event ไม่ใช่ศูนย์กลางของระบบ</p>
+              </div>
             </div>
+          </Section>
+
+          {/* ── Execution Philosophy ── */}
+          <Section title="Execution Philosophy">
+            <div className="text-xs text-stone-600 bg-stone-100 rounded-xl p-3 font-mono leading-relaxed">
+              Input → Intent → Command → Validation → Business Engine → Execution → Persistence → Presentation
+            </div>
+            <p className="text-xs text-stone-500 mt-3 leading-relaxed">
+              Pipeline นี้เป็น Runtime Contract — สามารถเปลี่ยนผู้ให้บริการภายนอกได้ แต่ห้ามเปลี่ยนลำดับการประมวลผล
+            </p>
+          </Section>
+
+          {/* ── Platform Independence ── */}
+          <Section title="Platform Independence">
+            <p className="text-xs text-stone-700 leading-relaxed">DNA OS ไม่ผูกกับ</p>
+            <div className="flex flex-wrap gap-1.5 mt-2">
+              {["Supabase", "LINE", "OpenAI", "Gemini", "Claude", "Hostinger", "Cloudflare", "Vercel"].map((v) => (
+                <Tag key={v} color="violet">{v}</Tag>
+              ))}
+            </div>
+            <p className="text-xs text-stone-500 mt-3 leading-relaxed">
+              บริการทั้งหมดเป็น Replaceable Drivers — Core Runtime ต้องสามารถทำงานได้แม้เปลี่ยน Provider ทั้งหมด
+            </p>
           </Section>
 
           {/* ── Architecture Pipeline ── */}

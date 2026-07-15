@@ -49,7 +49,8 @@
       "gateway"
     ],
     "core": [
-      "registry"
+      "registry",
+      "gateway"
     ],
     "services": [
       "core"
@@ -70,5 +71,6 @@
     "gateway_actions": "gateway/index.ts imports gateway/actions for permission check before execute — same layer",
     "plugins_gateway": "plugins/executor.ts uses gateway-adjacent supabase for audit logging via services",
     "services_self": "services/supabase/realtime.ts imports from services/supabase/queries — same layer"
-  }
+  },
+  "core_gateway_edge_note": "TASK-033 (registry/CHANGELOG.json DNA-000067, owner-approved AskUserQuestion decision: thin Gateway wrapper): core/auth/session.ts now imports gateway/auth.ts (getServerSupabaseClient) instead of importing services/supabase/server directly. This is the architecturally SANCTIONED pattern per CLAUDE.md (gateway = the one door), not a loosening of the core layer boundary — core -> services remains disallowed and unused anywhere in this repo (verified: core/auth/session.ts was the only real core/*.ts file importing services/ directly, and it no longer does)."
 }

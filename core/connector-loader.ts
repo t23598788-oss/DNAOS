@@ -16,9 +16,15 @@
  * แบบ soft (เช่น แสดงผล UI) เท่านั้น ไม่ใช่จุดที่อนุญาตให้ "Run" จริง
  *
  * ห้าม import @supabase/supabase-js ตรงเพื่ออ่าน connectors table เอง
+ *
+ * Phase 2.3A: core must not import services/* directly (registry/
+ * dependency-graph.json: allowed_imports.core = ["registry"]). Every
+ * function below that touches the database now takes the Supabase client
+ * as its first parameter — callers (already allowed to import services/)
+ * pass in supabaseAdmin() themselves.
  */
 
-import { supabaseAdmin } from "@/services/supabase/queries";
+import type { SupabaseClient } from "@supabase/supabase-js";
 
 export type ConnectorAuthType = "login" | "oauth" | "api_key" | "token" | "uri" | "mcp" | "webhook";
 export type ConnectorStatus = "disconnected" | "connecting" | "connected" | "error";
@@ -48,10 +54,10 @@ export function clearConnectorCache(): void {
   _cacheExpiry = 0;
 }
 
-export async function loadConnectors(): Promise<ConnectorRecord[]> {
+export async function loadConnectors(db: SupabaseClient): Promise<ConnectorRecord[]> {
   if (_cache && Date.now() < _cacheExpiry) return _cache;
 
-  const { data, error } = await supabaseAdmin()
+  const { data, error } = await db
     .from("connectors")
     .select("*")
     .order("created_at", { ascending: true });
@@ -63,8 +69,8 @@ export async function loadConnectors(): Promise<ConnectorRecord[]> {
   return _cache;
 }
 
-export async function getConnector(slug: string): Promise<ConnectorRecord | null> {
-  const all = await loadConnectors();
+export async function getConnector(db: SupabaseClient, slug: string): Promise<ConnectorRecord | null> {
+  const all = await loadConnectors(db);
   return all.find((c) => c.slug === slug) ?? null;
 }
 
@@ -74,13 +80,13 @@ export async function getConnector(slug: string): Promise<ConnectorRecord | null
  * status = "connected" (Test ผ่าน) อย่างเดียวไม่พอ — ต้อง enabled = true ด้วย
  * (คนต้องกดเปิดเองเสมอ ไม่มี auto-enable แม้ test จะผ่านแล้วก็ตาม)
  */
-export async function getConnectedConnector(slug: string): Promise<ConnectorRecord | null> {
-  const c = await getConnector(slug);
+export async function getConnectedConnector(db: SupabaseClient, slug: string): Promise<ConnectorRecord | null> {
+  const c = await getConnector(db, slug);
   return c && c.status === "connected" && c.enabled ? c : null;
 }
 
-export async function listConnectorsByAuthType(authType: ConnectorAuthType): Promise<ConnectorRecord[]> {
-  const all = await loadConnectors();
+export async function listConnectorsByAuthType(db: SupabaseClient, authType: ConnectorAuthType): Promise<ConnectorRecord[]> {
+  const all = await loadConnectors(db);
   return all.filter((c) => c.auth_type === authType);
 }
 
@@ -90,11 +96,12 @@ export type ConnectorLifecycleAction =
   | "register" | "test_passed" | "test_failed" | "enabled" | "disabled" | "run" | "run_rejected";
 
 export async function logConnectorLifecycleEvent(
+  db: SupabaseClient,
   connectorId: string,
   action: ConnectorLifecycleAction,
   detail: { oldValue?: string | null; newValue?: string | null; note?: string } = {}
 ): Promise<void> {
-  const { error } = await supabaseAdmin().from("audit_logs").insert({
+  const { error } = await db.from("audit_logs").insert({
     entity_type: "connector",
     entity_id: connectorId,
     action,
@@ -127,21 +134,21 @@ export class ConnectorRejectedError extends Error {
  * @param caller ชื่อผู้เรียก (เช่น "cognitive.pipeline", "engines.tax", "plugin.line")
  *               ใช้เพื่อ trace ใน audit log เท่านั้น ไม่มีผลต่อการตัดสินใจอนุญาต/ปฏิเสธ
  */
-export async function requireConnector(slug: string, caller: string): Promise<ConnectorRecord> {
-  const c = await getConnector(slug);
+export async function requireConnector(db: SupabaseClient, slug: string, caller: string): Promise<ConnectorRecord> {
+  const c = await getConnector(db, slug);
 
   if (!c) {
     throw new ConnectorRejectedError(slug, "ไม่พบ Connector นี้ในระบบ — ต้อง Register ก่อน (สร้างจากหน้า /admin/connectors)");
   }
   if (c.status !== "connected") {
-    await logConnectorLifecycleEvent(c.id, "run_rejected", { note: `caller=${caller}`, newValue: `status=${c.status}` });
+    await logConnectorLifecycleEvent(db, c.id, "run_rejected", { note: `caller=${caller}`, newValue: `status=${c.status}` });
     throw new ConnectorRejectedError(slug, `ยังไม่ผ่าน Test (status ปัจจุบัน: ${c.status})`);
   }
   if (!c.enabled) {
-    await logConnectorLifecycleEvent(c.id, "run_rejected", { note: `caller=${caller}`, newValue: "enabled=false" });
+    await logConnectorLifecycleEvent(db, c.id, "run_rejected", { note: `caller=${caller}`, newValue: "enabled=false" });
     throw new ConnectorRejectedError(slug, "ยังไม่ได้ Enable — ต้องกด Enable จากหน้า /admin/connectors ก่อน");
   }
 
-  await logConnectorLifecycleEvent(c.id, "run", { note: `caller=${caller}` });
+  await logConnectorLifecycleEvent(db, c.id, "run", { note: `caller=${caller}` });
   return c;
 }

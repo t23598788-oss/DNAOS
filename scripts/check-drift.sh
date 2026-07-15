@@ -36,7 +36,12 @@ check_layer "registry" "registry"
 # 2. Check for undeclared directories (new folders not in architecture)
 echo "--- Checking for undeclared top-level directories ---"
 
-DECLARED_TOP_LEVEL="core gateway engines cognitive presenter services plugins registry app components scripts supabase config node_modules backups public observatory"
+# docs/ (20 real policy .md files) and styles/ (real design tokens, imported by
+# app/page.tsx) were both real, pre-existing folders this list simply never
+# named — found via scripts/check-drift.sh's own DRIFT output (Autonomous
+# Runtime Evolution pass, DNA-000044). Added rather than left flagging real,
+# legitimate folders as a "Shadow Layer" every run.
+DECLARED_TOP_LEVEL="core gateway engines cognitive presenter services plugins registry app components scripts supabase config node_modules backups public observatory docs styles"
 
 for dir in */; do
   dirname=$(basename "$dir")

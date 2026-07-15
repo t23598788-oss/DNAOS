@@ -72,7 +72,7 @@ if [ "$MODE" = "staged" ]; then
     | grep -v node_modules \
     | grep -v '.next' || true)
 else
-  FILES=$(find app components lib -type f \( -name "*.ts" -o -name "*.tsx" \) \
+  FILES=$(find app components core engines gateway cognitive presenter services plugins -type f \( -name "*.ts" -o -name "*.tsx" \) \
     ! -path "*/node_modules/*" \
     ! -path "*/.next/*" 2>/dev/null || true)
 fi
@@ -174,6 +174,37 @@ done <<< "$FILES"
 # Task 3: Detect NEW edges not in dependency-graph.json
 # Scan all imports and find edges that exist but are not declared
 # ---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
+# Known Mistake Enforcement (Rule 100 — Core Learning Policy, registry/existence.json
+# known_mistakes.confirmed_duplicate_pairs). Single source of truth read here, not
+# hardcoded — the same list scripts/build-arch-book.ts and scripts/sync-registry.ts read.
+# Unlike Guard 9's general basename heuristic (WARN only), these are evidence-confirmed
+# pairs: if the deprecated side gains a new real importer, REJECT.
+# ---------------------------------------------------------------------------
+echo -e "${CYAN}--- Known Duplicate Enforcement (Rule 100 / KM-002) ---${NC}"
+KM_VIOLATIONS=0
+while IFS=$'\t' read -r deprecated_path keep_path reason; do
+  [ -z "$deprecated_path" ] && continue
+  while IFS= read -r file; do
+    [ -z "$file" ] && continue
+    [ ! -f "$file" ] && continue
+    [ "$file" = "$deprecated_path" ] && continue
+    if grep -qE "from\s+['\"]@/${deprecated_path%.ts}['\"]|from\s+['\"]@/${deprecated_path%.tsx}['\"]" "$file" 2>/dev/null; then
+      KM_VIOLATIONS=$((KM_VIOLATIONS + 1))
+      echo -e "  ${RED}WARNING: Dependency รูปแบบนี้เคยทำให้เกิด duplicate module (KM-002)${NC}"
+      echo -e "  ${file} imports the DEPRECATED module ${deprecated_path}"
+      echo -e "  Registry เดิมมีอยู่แล้ว: ${keep_path} — ${reason}"
+    fi
+  done <<< "$FILES"
+done < <(jq -r '.known_mistakes.confirmed_duplicate_pairs.pairs[] | [.deprecated, .keep, .reason] | @tsv' "$PROJECT_DIR/registry/existence.json" 2>/dev/null)
+
+if [ "$KM_VIOLATIONS" -gt 0 ]; then
+  echo ""
+  echo -e "${RED}=== $KM_VIOLATIONS KNOWN-DUPLICATE VIOLATION(S) FOUND (Rule 100) ===${NC}"
+  echo -e "${RED}Fix: import the 'keep' module instead, or if un-deprecating on purpose, update registry/existence.json confirmed_duplicate_pairs and module-registry.json's deprecated field together.${NC}"
+  exit 1
+fi
+
 echo -e "${CYAN}--- New Edge Detection ---${NC}"
 
 ALL_EDGES_FILE="$(mktemp)"

@@ -9,7 +9,7 @@ import { SESSION_COOKIE_MAX_AGE } from "@/services/supabase/browser";
 // and core/auth/requireAuthPage (Server Component layouts/pages), both
 // reading registry/permissions.json — kept out of middleware so this file
 // never needs a DB round trip per request, just a JWT check + refresh.
-const PROTECTED_PAGE_PREFIXES = ["/admin", "/business", "/user", "/partner", "/account"];
+const PROTECTED_PAGE_PREFIXES = ["/admin", "/business", "/user", "/partner", "/account", "/workspace-preview"];
 const PROTECTED_API_PREFIXES = ["/api/admin", "/api/document", "/api/action", "/api/explain"];
 const PAGE_EXEMPTIONS = ["/admin/login"];
 
@@ -38,59 +38,27 @@ export async function middleware(req: NextRequest) {
     }
   );
 
-  // Login-flow debug instrumentation (2026-07-14) — logs cookie NAMES only,
-  // never values (session tokens are sensitive). Remove once the login-bounce
-  // investigation is closed.
-  console.log("[TRACE-LOGIN] middleware: incoming cookies", {
-    pathname,
-    cookieNames: req.cookies.getAll().map((c) => c.name),
-  });
-
   // Also refreshes the access/refresh token cookies via setAll above if the
   // access token is near expiry — this is what makes "remember login" work
   // across visits without the user re-entering a password.
   const {
     data: { user },
-    error: userError,
   } = await supabase.auth.getUser();
-
-  console.log("[TRACE-LOGIN] middleware: auth.getUser() result", {
-    pathname,
-    userFound: !!user,
-    userId: user?.id,
-    userError: userError?.message,
-  });
 
   const isExempt = PAGE_EXEMPTIONS.some((p) => pathname.startsWith(p));
   const isProtectedPage = !isExempt && PROTECTED_PAGE_PREFIXES.some((p) => pathname.startsWith(p));
   const isProtectedApi = PROTECTED_API_PREFIXES.some((p) => pathname.startsWith(p));
 
-  console.log("[TRACE-AUTH] middleware", {
-    pathname,
-    cookieNames: req.cookies.getAll().map((c) => c.name),
-    userFound: !!user,
-    userId: user?.id,
-    userError: userError?.message,
-    isProtectedPage,
-    isProtectedApi,
-  });
-
   if (!user && isProtectedPage) {
-    const reason = userError ? `no user (auth.getUser error: ${userError.message})` : "no user (no session cookie or invalid session), protected page";
-    console.log("[TRACE-LOGIN] middleware: REDIRECT to /login", { pathname, reason });
-    console.log("[TRACE-AUTH] middleware REDIRECT to /login", { pathname, reason: "no user, protected page" });
     const loginUrl = new URL("/login", req.url);
     loginUrl.searchParams.set("next", pathname);
     return NextResponse.redirect(loginUrl);
   }
 
   if (!user && isProtectedApi) {
-    console.log("[TRACE-AUTH] middleware 401", { pathname, reason: "no user, protected api" });
     return NextResponse.json({ ok: false, error: "ต้อง login ก่อนใช้งาน" }, { status: 401 });
   }
 
-  console.log("[TRACE-LOGIN] middleware: PASS (authenticated)", { pathname, userId: user?.id });
-  console.log("[TRACE-AUTH] middleware PASS", { pathname });
   return response;
 }
 
@@ -101,6 +69,7 @@ export const config = {
     "/user/:path*",
     "/partner/:path*",
     "/account/:path*",
+    "/workspace-preview/:path*",
     "/api/admin/:path*",
     "/api/document/:path*",
     "/api/action/:path*",

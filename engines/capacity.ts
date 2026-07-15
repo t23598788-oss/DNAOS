@@ -13,7 +13,7 @@ export interface CapacityResult {
 }
 
 export async function calcCapacity(input: CapacityInput): Promise<CapacityResult> {
-  const configs = await loadConfigs();
+  const configs = await loadConfigs(supabase());
   let capacity = getNum(configs, "vehicle-default-capacity");
 
   if (input.vehicle_type_id) {

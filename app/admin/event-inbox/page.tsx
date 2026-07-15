@@ -160,7 +160,7 @@ export default function EventInboxPage() {
                             {ev.source_line_user_id && (
                               <div>
                                 <div className="text-xs text-stone-500 mb-0.5">ที่มา</div>
-                                <a href="/admin/line-customers" className="text-sm text-blue-600 hover:underline">ดูแชท LINE ต้นฉบับ →</a>
+                                <a href={ev.partner_id ? `/admin/relationships/${ev.partner_id}` : "/admin/relationships"} className="text-sm text-blue-600 hover:underline">เปิด Workspace →</a>
                               </div>
                             )}
                           </div>

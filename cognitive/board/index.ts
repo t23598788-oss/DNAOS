@@ -17,6 +17,16 @@ export interface BoardResponse {
   // to /api/chat/confirm before anything is actually written.
   confirm_token?: string;
   confirm_action?: string;
+  // Owner request 2026-07-11: real Flex card JSON for the document that
+  // would be sent, so the UI can render an actual preview instead of text
+  // before the human confirms — see cognitive/executor/index.ts's _flex_preview.
+  flex_preview?: object;
+  // Owner request 2026-07-11: "เอกสารอีกฉบับนึง...เรียงหัวข้อไว้แถบด้านบนเป็น
+  // คอลัมน์" — the full tabular document (engines/documents/template.ts's
+  // HTML render, already on the preview object as `html`), surfaced as its
+  // own top-level field so the client doesn't have to dig through
+  // `workspace.sections` to find the matching document section.
+  doc_html?: string;
 }
 
 interface BoardSection {
@@ -81,11 +91,15 @@ export function composeBoard(
 
   let confirmToken: string | undefined;
   let confirmAction: string | undefined;
+  let flexPreview: object | undefined;
+  let docHtml: string | undefined;
   for (const result of executionResults) {
     const data = result.data as Record<string, unknown> | null;
     if (result.tool.includes(".create") && result.success && data?._preview_pending) {
       confirmToken = data._confirm_token as string | undefined;
       confirmAction = data._confirm_action as string | undefined;
+      flexPreview = data._flex_preview as object | undefined;
+      docHtml = data.html as string | undefined;
     }
   }
 
@@ -113,6 +127,8 @@ export function composeBoard(
     ],
     confirm_token: confirmToken,
     confirm_action: confirmAction,
+    flex_preview: flexPreview,
+    doc_html: docHtml,
     debug: {
       entities: entities.length,
       constraints: worldState.constraints.length,

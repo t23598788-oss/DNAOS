@@ -63,7 +63,7 @@ export const SYSTEM_LINKS: SystemLinkGroup[] = [
     title: "Vercel — โฮสต์เว็บจริง (dna-os-deadboard)",
     account: "t23598788-3511 (t23598788@gmail.com)",
     items: [
-      { label: "Production site", url: "https://dna-os-deadboard.vercel.app" },
+      { label: "Production site", url: "https://dnaos.dev" },
       { label: "Project Dashboard", url: "https://vercel.com/t23598788-3511s-projects/dna-os-deadboard" },
       { label: "Deployments", url: "https://vercel.com/t23598788-3511s-projects/dna-os-deadboard/deployments" },
       { label: "Environment Variables", url: "https://vercel.com/t23598788-3511s-projects/dna-os-deadboard/settings/environment-variables" },

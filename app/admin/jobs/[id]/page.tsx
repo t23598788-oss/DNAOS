@@ -11,6 +11,7 @@ import {
   type TxType,
 } from "@/engines/transactions/workflows"
 import { DOCUMENT_TYPE_META } from "@/engines/documents/document-editor"
+import { EVENT_ICONS } from "@/engines/presentation/event-style"
 
 // ---------- types ----------
 interface Transaction {
@@ -54,11 +55,7 @@ function fmtMoney(n: number) {
   return n.toLocaleString("th-TH", { minimumFractionDigits: 0, maximumFractionDigits: 0 })
 }
 
-const EVENT_ICONS: Record<string, string> = {
-  quotation_sent: "📋", po_received: "🛒", work_started: "🔧",
-  delivery_made: "🚚", work_completed: "✅", invoice_issued: "🧾",
-  payment_received: "💰", closed: "🏁",
-}
+// Canonical owner: engines/presentation/event-style.ts (Architecture Governance, 2026-07-13)
 
 const DOC_ROUTE: Record<string, string> = {
   delivery_order: "/admin/delivery-order",

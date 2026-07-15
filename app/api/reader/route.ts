@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import { requireAuth } from "@/core/auth/requireAuth";
+import { ADMIN_TIER } from "@/core/auth/session";
 import { readFileSync, existsSync, readdirSync, statSync } from "fs";
 import { join, extname } from "path";
 
@@ -44,7 +46,14 @@ function isAllowed(path: string): boolean {
 }
 
 // GET /api/reader?path=registry/existence.json
+// Real, live security fix (TASK-001, DNA-000070): was unauthenticated — this
+// is a real source-code file reader across the entire codebase (core/gateway/
+// engines/cognitive/presenter/services/plugins/app/api/scripts), the most
+// severe of the 8 routes fixed in this pass, not just metadata leakage.
 export async function GET(req: Request) {
+  const auth = await requireAuth(ADMIN_TIER);
+  if (auth instanceof NextResponse) return auth;
+
   const url = new URL(req.url);
   const filePath = url.searchParams.get("path");
 

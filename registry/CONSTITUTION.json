@@ -1,15 +1,35 @@
 {
   "version": 2,
   "note": "JSON source of truth for the DNA OS Constitution. CLAUDE.md is the human-readable rendering of this same document — if they ever disagree, this file wins and CLAUDE.md must be corrected to match, not the other way around.",
-  "amendment_policy": "แก้ไขไฟล์นี้ต้องได้รับการยืนยันชัดเจนจากเจ้าของระบบเท่านั้น ไม่ใช่การตัดสินใจของ AI ฝ่ายเดียว — เทียบเท่าการแก้ 5 Architectural Laws และ Connector Lifecycle Law",
+  "amendment_policy": {
+    "human_confirmation_required": "แก้ไขไฟล์นี้ต้องได้รับการยืนยันชัดเจนจากเจ้าของระบบเท่านั้น ไม่ใช่การตัดสินใจของ AI ฝ่ายเดียว — เทียบเท่าการแก้ 5 Architectural Laws และ Connector Lifecycle Law",
+    "rule_verification_required": "C-007 (owner, DNA-000058): every new Constitution rule must state how it can be verified/detected — a real enforced_by + detection entry in registry/rule-coverage.json, even if that entry honestly says 'manual' or 'partial'. A rule with no verification path documented is incomplete, not just unenforced. Retroactively true of rules 100-110 already (each has a rule-coverage.json entry); now required going forward, not optional.",
+    "rule_rationale_required": "C-009 (owner, DNA-000058): every rule must explain WHY it exists (the real incident/reasoning that triggered it), not only WHAT it mandates. A rule stated as a bare mandate with no rationale cannot be judged for edge cases later — future AI/humans need the 'why' to know when the rule still applies and when it doesn't. Already this session's practice for rules 100-110 (each cites its real DNA-XXXXXX incident); now formalized as a requirement.",
+    "immutability_and_versioning": "C-010 (owner, DNA-000058): Rules are immutable once declared — a rule's substantive mandate is never silently rewritten in place; changes are either a new rule, or an explicit appended amendment (dated, attributed) alongside the original text, same pattern already used for registry/CHANGELOG.json's DNA-000001 amendment fields and registry/EXECUTION_CONTRACT.json's Evidence-First policy. Incidents (registry/existence.json known_mistakes) are append-only — never deleted, never overwritten; a changed understanding gets a new entry or a new dated sub-object, not a silent edit of the original narrative. Knowledge is versioned — same principle applied to any structured knowledge object. Honest note: DNA-000048's edit to KM-002-line's root_cause_analysis object rewrote items 6/7/10/11's VALUES in place rather than adding a new versioned analysis alongside the old one — done before this principle was stated, not compliant with it in hindsight; not retroactively fixed here since that would itself violate 'append, don't rewrite', but flagged honestly as the one known pre-existing deviation."
+  },
   "core_principles": {
     "source": "registry/owner-context.json → philosophy",
     "principles": [
-      { "id": "ai_role", "th": "AI เป็นแค่ตัวกลาง ไม่ใช่ศูนย์กลาง — ศูนย์กลางคือกฎและสถาปัตยกรรม" },
-      { "id": "growth", "th": "DNA OS เติบโตจากการขยายคลังกฎและ Workflow ไม่ใช่จากการฝึก AI" },
-      { "id": "measurement", "th": "Dashboard ที่สำคัญวัด Constitution/Business/Risk ไม่ใช่ AI metrics" },
-      { "id": "governance", "th": "ระบบต้องปกครองตัวเอง — ต่อให้เปลี่ยนทีม 20 คน กฎยังบังคับเหมือนเดิม" },
-      { "id": "existence", "th": "DNA OS ไม่ใช่โปรแกรม แต่คือสิ่งมีชีวิตดิจิทัลที่รู้จักตัวเอง" }
+      {
+        "id": "ai_role",
+        "th": "AI เป็นแค่ตัวกลาง ไม่ใช่ศูนย์กลาง — ศูนย์กลางคือกฎและสถาปัตยกรรม"
+      },
+      {
+        "id": "growth",
+        "th": "DNA OS เติบโตจากการขยายคลังกฎและ Workflow ไม่ใช่จากการฝึก AI"
+      },
+      {
+        "id": "measurement",
+        "th": "Dashboard ที่สำคัญวัด Constitution/Business/Risk ไม่ใช่ AI metrics"
+      },
+      {
+        "id": "governance",
+        "th": "ระบบต้องปกครองตัวเอง — ต่อให้เปลี่ยนทีม 20 คน กฎยังบังคับเหมือนเดิม"
+      },
+      {
+        "id": "existence",
+        "th": "DNA OS ไม่ใช่โปรแกรม แต่คือสิ่งมีชีวิตดิจิทัลที่รู้จักตัวเอง"
+      }
     ]
   },
   "runtime_contract": {
@@ -23,32 +43,167 @@
       "why_it_matters": "แยกความหมายของ 'สิ่งที่ต้องเชื่อฟัง' (กฎ) ออกจาก 'ผู้บังคับใช้' (Runtime) — Runtime เองก็ถูกผูกมัดด้วยกฎเดียวกัน ไม่มีสิทธิ์ตีความหรือแก้ไขกฎเอง (governance_engine principle, already existed, now explicitly threaded into the Runtime Contract). ผลคือ AI ค่ายใหม่เข้าระบบได้ทันทีถ้าทำตาม Constitution + Runtime Contract โดยไม่ต้องแก้ Runtime เลย — Runtime ไม่เคยรู้จักตัวตนของ AI แต่ละค่าย รู้จักแค่ว่าทำตามกฎหรือไม่ (เหมือน Law 1: Core knows only the Contract, never identities)."
     },
     "rules": [
-      { "id": 1, "th": "Runtime คือ CPU ของระบบ", "maps_to": "registry/README.md + registry/EXECUTION_CONTRACT.json" },
-      { "id": 2, "th": "Registry คือ Memory ของระบบ", "maps_to": "registry/*.json collectively" },
-      { "id": 3, "th": "Scheduler คือ Process Scheduler", "maps_to": "registry/SCHEDULER.json + registry/LOCK_MANAGER.json" },
-      { "id": 4, "th": "Event Engine คือ Interrupt Controller", "maps_to": "registry/events.json" },
-      { "id": 5, "th": "Connector คือ Device Driver", "maps_to": "registry/connector-lifecycle.json + core/connector-loader.ts" },
-      { "id": 6, "th": "Workflow คือ Program", "maps_to": "engines/transactions/workflows.ts + engines/transactions/state-machine.ts" },
-      { "id": 7, "th": "AI ทุกตัวเป็น Worker ไม่ใช่ Runtime", "clarified": "AI obeys the Rules (Constitution + this Runtime Contract), not the Runtime itself — Runtime only enforces; see authority_model above", "maps_to": "registry/AI_REGISTRY.json + registry/AI_SESSIONS.json", "enforcement": "process/documentation only — no technical mechanism prevents an AI from acting outside this role today" },
-      { "id": 8, "th": "ห้าม AI เขียน Source โดยไม่ผ่าน Runtime", "maps_to": "registry/EXECUTION_CONTRACT.json execution_order (read → lock → execute → unlock)", "enforcement": "process/documentation only — not yet technically gated; see known_gaps below" },
-      { "id": 9, "th": "Runtime เท่านั้นที่เปลี่ยน State ของระบบ", "maps_to": "gateway/* (Law 2/3 — one door for confirmed writes) + registry/CURRENT_STATE.json update requirement", "enforcement": "partially code-enforced for database writes (Gateway pattern, RLS); file/source changes still process-only" },
-      { "id": 10, "th": "ทุกโมดูลต้องต่อผ่าน Runtime ไม่เชื่อมกันโดยตรง", "clarified": "modules connect through the Runtime's enforcement of the Rules, not through Runtime as an authority in itself — same distinction as rule 7", "maps_to": "5 Architectural Laws (project_dna_os_architecture) Law 2/3 — Plugins never call each other or Core directly, only via Gateway+Event", "enforcement": "code-enforced where dependency-graph.json + check-imports.sh already run" }
+      {
+        "id": 1,
+        "th": "Runtime คือ CPU ของระบบ",
+        "maps_to": "registry/README.md + registry/EXECUTION_CONTRACT.json"
+      },
+      {
+        "id": 2,
+        "th": "Registry คือ Memory ของระบบ",
+        "maps_to": "registry/*.json collectively"
+      },
+      {
+        "id": 3,
+        "th": "Scheduler คือ Process Scheduler",
+        "maps_to": "registry/SCHEDULER.json + registry/LOCK_MANAGER.json"
+      },
+      {
+        "id": 4,
+        "th": "Event Engine คือ Interrupt Controller",
+        "maps_to": "registry/events.json"
+      },
+      {
+        "id": 5,
+        "th": "Connector คือ Device Driver",
+        "maps_to": "registry/connector-lifecycle.json + core/connector-loader.ts"
+      },
+      {
+        "id": 6,
+        "th": "Workflow คือ Program",
+        "maps_to": "engines/transactions/workflows.ts + engines/transactions/state-machine.ts"
+      },
+      {
+        "id": 7,
+        "th": "AI ทุกตัวเป็น Worker ไม่ใช่ Runtime",
+        "clarified": "AI obeys the Rules (Constitution + this Runtime Contract), not the Runtime itself — Runtime only enforces; see authority_model above",
+        "maps_to": "registry/AI_REGISTRY.json + registry/AI_SESSIONS.json",
+        "enforcement": "process/documentation only — no technical mechanism prevents an AI from acting outside this role today"
+      },
+      {
+        "id": 8,
+        "th": "ห้าม AI เขียน Source โดยไม่ผ่าน Runtime",
+        "maps_to": "registry/EXECUTION_CONTRACT.json execution_order (read → lock → execute → unlock)",
+        "enforcement": "process/documentation only — not yet technically gated; see known_gaps below"
+      },
+      {
+        "id": 9,
+        "th": "Runtime เท่านั้นที่เปลี่ยน State ของระบบ",
+        "maps_to": "gateway/* (Law 2/3 — one door for confirmed writes) + registry/CURRENT_STATE.json update requirement",
+        "enforcement": "partially code-enforced for database writes (Gateway pattern, RLS); file/source changes still process-only"
+      },
+      {
+        "id": 10,
+        "th": "ทุกโมดูลต้องต่อผ่าน Runtime ไม่เชื่อมกันโดยตรง",
+        "clarified": "modules connect through the Runtime's enforcement of the Rules, not through Runtime as an authority in itself — same distinction as rule 7",
+        "maps_to": "5 Architectural Laws (project_dna_os_architecture) Law 2/3 — Plugins never call each other or Core directly, only via Gateway+Event",
+        "enforcement": "code-enforced where dependency-graph.json + check-imports.sh already run"
+      },
+      {
+        "id": 11,
+        "th": "ห้ามมนุษย์หรือ AI ข้าม Runtime Validation — Deployment ตัดสินโดย Runtime Validation เท่านั้น",
+        "maps_to": "scripts/deploy-gate.ts (DNA-000053, npm run deploy-gate)",
+        "enforcement": "code-enforced (DNA-000055) — package.json's prebuild script now runs scripts/deploy-gate.ts automatically before every `npm run build` (npm's standard pre-script convention; Vercel's default build command is `npm run build`, so this covers the real production deploy path). Verified live and directly, not assumed: ran `npm run build` against this repo's real current state (4 real FAILs: Pre-commit Guards, Dead Code Policy, Duplicate Detector, Dependency Graph) and confirmed it exits 1 before next build ever runs, printing the full human-readable Deploy Blocked report. This was an explicit owner decision (asked directly given the real blast radius: it also blocks all current real builds/deploys until those 4 pre-existing issues are fixed) — not autonomous under Rule 105, which does not cover changes with this much operational risk."
+      }
     ],
-    "known_gaps": "Rules 7-9 are currently honor-system for AI behavior (no git hook can verify an AI 'read the registry first' before writing a file) — same category of gap as registry/AI_SESSIONS.json's status field: real, but not yet machine-enforced. If false compliance becomes an actual problem (not just theoretical), the next step would be a pre-commit guard comparing the committed file set against an active LOCK_MANAGER.json entry — not built yet, not requested yet."
+    "known_gaps": "Rules 7-9 are currently honor-system for AI behavior (no git hook can verify an AI 'read the registry first' before writing a file) — same category of gap as registry/AI_SESSIONS.json's status field: real, but not yet machine-enforced. If false compliance becomes an actual problem (not just theoretical), the next step would be a pre-commit guard comparing the committed file set against an active LOCK_MANAGER.json entry — not built yet, not requested yet.",
+    "responsibility_separation": {
+      "added": "2026-07-14",
+      "source": "DNA OS Engineering Principle (owner, DNA-000054)",
+      "note": "Extends architecture_principles + runtime_contract.authority_model (2026-07-07) with an explicit WHY/WHAT/HOW/WHETHER split — not a new authority model, a sharper statement of the same one.",
+      "human": {
+        "decides": "WHY",
+        "owns": [
+          "Vision",
+          "Business Goals",
+          "Policy",
+          "Architecture Direction",
+          "Constraints",
+          "Business Rules"
+        ]
+      },
+      "runtime": {
+        "decides": "WHAT is required",
+        "owns": [
+          "Architecture Integrity",
+          "Module Relationship",
+          "Dependency",
+          "Runtime Health",
+          "Validation",
+          "Knowledge",
+          "Self Diagnosis",
+          "Self Explanation"
+        ]
+      },
+      "ai": {
+        "decides": "HOW to implement",
+        "owns": [
+          "Analysis",
+          "Refactoring",
+          "Repair",
+          "Optimization",
+          "Knowledge Assimilation",
+          "Capability Expansion"
+        ]
+      },
+      "validation": {
+        "decides": "WHETHER it is correct"
+      },
+      "deployment": {
+        "occurs": "only after Validation PASS",
+        "authority": "Runtime is the final authority for technical integrity. Human is the final authority for business intent."
+      }
+    }
   },
   "recommendation_and_approval_levels": [
-    { "level": 1, "name": "Informational", "th": "การเปลี่ยนแปลงเล็กน้อยที่ไม่มีผลกระทบ (เช่น แก้ไขเอกสาร) Runtime จะบันทึกและดำเนินการต่อ" },
-    { "level": 2, "name": "Recommended", "th": "การแก้ไขที่ปลอดภัย (เช่น Refactor) Runtime จะอนุมัติให้ดำเนินการได้โดยอัตโนมัติ" },
-    { "level": 3, "name": "High Impact", "th": "การเปลี่ยนแปลงที่อาจกระทบหลายส่วน (เช่น เปลี่ยน API) Runtime จะวิเคราะห์ผลกระทบ (Impact Analysis) และเสนอแผนรอการตรวจสอบ" },
-    { "level": 4, "name": "Approval Required", "th": "การเปลี่ยนแปลงที่มีความเสี่ยงสูง (เช่น ลบโมดูลหลัก) Runtime จะเสนอเรื่องให้มนุษย์ (CEO) อนุมัติผ่าน Dashboard เท่านั้น" },
-    { "level": 5, "name": "Forbidden", "th": "การกระทำที่ขัดต่อ Constitution (เช่น ลบฐานข้อมูล, สร้างโมดูลซ้ำ) Runtime จะปฏิเสธและหยุดการทำงานทันที" }
+    {
+      "level": 1,
+      "name": "Informational",
+      "th": "การเปลี่ยนแปลงเล็กน้อยที่ไม่มีผลกระทบ (เช่น แก้ไขเอกสาร) Runtime จะบันทึกและดำเนินการต่อ"
+    },
+    {
+      "level": 2,
+      "name": "Recommended",
+      "th": "การแก้ไขที่ปลอดภัย (เช่น Refactor) Runtime จะอนุมัติให้ดำเนินการได้โดยอัตโนมัติ"
+    },
+    {
+      "level": 3,
+      "name": "High Impact",
+      "th": "การเปลี่ยนแปลงที่อาจกระทบหลายส่วน (เช่น เปลี่ยน API) Runtime จะวิเคราะห์ผลกระทบ (Impact Analysis) และเสนอแผนรอการตรวจสอบ"
+    },
+    {
+      "level": 4,
+      "name": "Approval Required",
+      "th": "การเปลี่ยนแปลงที่มีความเสี่ยงสูง (เช่น ลบโมดูลหลัก) Runtime จะเสนอเรื่องให้มนุษย์ (CEO) อนุมัติผ่าน Dashboard เท่านั้น"
+    },
+    {
+      "level": 5,
+      "name": "Forbidden",
+      "th": "การกระทำที่ขัดต่อ Constitution (เช่น ลบฐานข้อมูล, สร้างโมดูลซ้ำ) Runtime จะปฏิเสธและหยุดการทำงานทันที"
+    }
   ],
   "architecture_principles": [
-    { "id": "constitution", "th": "คือกฎหมายสูงสุดของระบบ เขียนและแก้ไขโดยมนุษย์เท่านั้น" },
-    { "id": "runtime", "th": "คือผู้บังคับใช้กฎของ Constitution ไม่ใช่ AI และเป็นกลาง ไม่ขึ้นกับ AI ค่ายใด" },
-    { "id": "governance_engine", "th": "เป็นส่วนหนึ่งของ Runtime อ่าน Constitution, Registry, Repository เพื่อตัดสินตามกฎที่มีอยู่เท่านั้น ไม่มีสิทธิ์คิด ตีความ หรือแก้ไขกฎ", "also_called": "Rule Engine (2026-07-07 terminology, see runtime_contract.authority_model) — same component, clarified name emphasizing this is what AI actually obeys, not the Runtime process itself" },
-    { "id": "external_workers", "th": "AI ทุกตัวไม่ว่าค่ายไหน เป็น 'คนงานภายนอก' รับ Task ไปทำ แล้วส่งผลกลับให้ Runtime ตรวจสอบ — ไม่ผูกกับ AI ค่ายใดค่ายหนึ่ง (AI-agnostic), AI ตัวไหนที่ทำตาม compatibility_contract ได้ถือว่าเป็น DNA OS Compatible — see registry/AI_REGISTRY.json" },
-    { "id": "chain_of_command", "th": "Worker → Runtime (Governance Engine) → Human (CEO). Runtime เป็นผู้อนุมัติ ปฏิเสธ หรือส่งต่อให้มนุษย์ตาม Constitution เท่านั้น" }
+    {
+      "id": "constitution",
+      "th": "คือกฎหมายสูงสุดของระบบ เขียนและแก้ไขโดยมนุษย์เท่านั้น"
+    },
+    {
+      "id": "runtime",
+      "th": "คือผู้บังคับใช้กฎของ Constitution ไม่ใช่ AI และเป็นกลาง ไม่ขึ้นกับ AI ค่ายใด"
+    },
+    {
+      "id": "governance_engine",
+      "th": "เป็นส่วนหนึ่งของ Runtime อ่าน Constitution, Registry, Repository เพื่อตัดสินตามกฎที่มีอยู่เท่านั้น ไม่มีสิทธิ์คิด ตีความ หรือแก้ไขกฎ",
+      "also_called": "Rule Engine (2026-07-07 terminology, see runtime_contract.authority_model) — same component, clarified name emphasizing this is what AI actually obeys, not the Runtime process itself"
+    },
+    {
+      "id": "external_workers",
+      "th": "AI ทุกตัวไม่ว่าค่ายไหน เป็น 'คนงานภายนอก' รับ Task ไปทำ แล้วส่งผลกลับให้ Runtime ตรวจสอบ — ไม่ผูกกับ AI ค่ายใดค่ายหนึ่ง (AI-agnostic), AI ตัวไหนที่ทำตาม compatibility_contract ได้ถือว่าเป็น DNA OS Compatible — see registry/AI_REGISTRY.json"
+    },
+    {
+      "id": "chain_of_command",
+      "th": "Worker → Runtime (Governance Engine) → Human (CEO). Runtime เป็นผู้อนุมัติ ปฏิเสธ หรือส่งต่อให้มนุษย์ตาม Constitution เท่านั้น"
+    }
   ],
   "layer_architecture": {
     "note": "ชื่อ Layer จริงปัจจุบันอยู่ที่ registry/architecture.json เท่านั้น — ห้าม duplicate คำอธิบาย layer ไว้ที่นี่ซ้ำ (execution_rules → 'Never create duplicate architecture', registry/EXECUTION_CONTRACT.json)",
@@ -70,7 +225,18 @@
     "Connector ทุกตัวต้องผ่าน Connect → Register → Test → Enable → Run ไม่มีข้อยกเว้น (registry/connector-lifecycle.json)",
     "ห้าม AI คุยกับ AI ตัวอื่นโดยตรง — สื่อสารผ่าน DNA OS Registry เท่านั้น (registry/README.md → Communication Rules)",
     "ห้ามสันนิษฐานงานของ AI ตัวอื่น — อ่าน Registry ก่อนลงมือทุกครั้ง",
-    "ห้ามสร้าง Module ใหม่, หน้าใหม่ (Page), หรือ Feature ใหม่ใด ๆ จนกว่า TASK-001 (SSO/Auth), TASK-002 (เชื่อมข้อมูลจริงทั้งหมด — เลิก Mock/Fake/Demo), และ TASK-003 (เก็บงานค้าง + Deploy Production) จะมีสถานะ DONE ทั้งหมด — Plan Lock ประกาศโดย owner 2026-07-08 ดูรายละเอียดที่ registry/TASK_QUEUE.json และ registry/CURRENT_STATE.json → plan_lock (หมายเหตุ: TASK-001/002/003 เดิม — ก่อนวันที่ 2026-07-08 — ถูกย้ายไปเป็น TASK-026/027/028 แล้ว)"
+    "ห้ามสร้าง Module ใหม่, หน้าใหม่ (Page), หรือ Feature ใหม่ใด ๆ จนกว่า TASK-001 (SSO/Auth), TASK-002 (เชื่อมข้อมูลจริงทั้งหมด — เลิก Mock/Fake/Demo), และ TASK-003 (เก็บงานค้าง + Deploy Production) จะมีสถานะ DONE ทั้งหมด — Plan Lock ประกาศโดย owner 2026-07-08 ดูรายละเอียดที่ registry/TASK_QUEUE.json และ registry/CURRENT_STATE.json → plan_lock (หมายเหตุ: TASK-001/002/003 เดิม — ก่อนวันที่ 2026-07-08 — ถูกย้ายไปเป็น TASK-026/027/028 แล้ว)",
+    "Rule 100 — Core Learning Policy: ทุก Bug/Duplicate/Runtime Error/Architecture Drift/Dependency Violation/Registry Error ที่พบต้องบันทึกเป็นบทเรียนใน registry/existence.json → known_mistakes ก่อนถือว่างานจบ ห้ามเก็บไว้เฉพาะบทสนทนากับ AI ต้องเป็น Knowledge ของระบบที่ AI/Developer/Automation/Runtime ทุกตัวอ้างอิงร่วมกัน — บังคับใช้บางส่วนผ่าน scripts/pre-commit-check.sh Guard 9 (WARN เมื่อพบ module ชื่อซ้ำในหลายตำแหน่ง, ดู KM-002); รูปแบบข้อผิดพลาดที่ยังไม่มี mechanical check ต้องระบุ detection:\"manual\" อย่างตรงไปตรงมาใน known_mistakes แทนที่จะอ้างการป้องกันที่ไม่มีจริง ประกาศโดย owner 2026-07-14 (DNA-000026, ดู registry/rule-coverage.json rule 100)",
+    "Rule 101 — Connect before Create, Compose before Expand: ก่อนสร้าง capability, registry, runtime, หรือ explanation engine ใหม่ใด ๆ ต้องค้นหาก่อนว่ามีของเดิมที่ทำหน้าที่นี้อยู่แล้วในระบบหรือไม่ (เช่น ผ่าน npm run hello, อ่าน registry/existence.json, หรือ registry อื่นที่เกี่ยวข้อง) ห้ามสร้าง Architecture ซ้ำ, Registry ซ้ำ, Runtime ซ้ำ, หรือ Explanation Engine ซ้ำ — Runtime มีหน้าที่เข้าใจตัวเองก่อนที่จะให้ AI เข้าใจมัน บังคับใช้บางส่วนผ่านกลไกเดียวกับ Rule 100 (scripts/pre-commit-check.sh Guard 9, registry/existence.json known_mistakes.confirmed_duplicate_pairs) สำหรับชั้น module/file basename เท่านั้น — ชั้นที่กว้างกว่า (ค้นหา capability/responsibility ที่ซ้ำกันเชิงความหมาย) ยังไม่มี mechanical check จริง ต้องอาศัยวินัยของผู้สร้าง (มนุษย์หรือ AI) ในการค้นก่อนสร้างจริง ๆ ห้ามอ้างว่ามีการบังคับใช้อัตโนมัติที่ไม่มีจริง ประกาศโดย owner 2026-07-14 (DNA-000030, ดู registry/rule-coverage.json rule 101)",
+    "Rule 102 — Self Publishing Runtime Protocol (SPRP): ทุก Runtime Component ต้องรับผิดชอบการประกาศการมีอยู่ของตัวเองเชิงรุก (identity/capability/runtime state/health/dependency/resource requirement/owner/execution status/improvement request) ห้ามเงียบ ห้ามให้ AI ค้นพบด้วยการไล่อ่าน source code — Component ต้อง implement SelfDescribe()/PublishState()/PublishHealth()/PublishNeed()/PublishDependency()/PublishCapability()/PublishKnowledge()/PublishWarning()/PublishProposal() เป็น interface มาตรฐานเดียวกัน บันทึกไว้เป็นเป้าหมายทางวิศวกรรมที่ประกาศแล้ว (declared engineering target) ไม่ใช่กฎที่บังคับใช้จริงในวันนี้ — โครงสร้างจริงที่มีอยู่คือ engines/documents/selfDescription.ts (SelfDescribe() สำหรับ 1 ใน 466 module, SDRN-P1) และ scripts/hello.ts (compose แบบ manual invocation เท่านั้น ไม่ proactive/continuous) ส่วน Publish* ทั้ง 8 ตัว, การเจรจาระหว่าง component, และการรายงานต่อเนื่อง ยังไม่มีอยู่จริงในระบบ ต้นแบบที่ใกล้เคียงที่สุด (ตรวจสอบตาม Rule 101 ก่อนเขียนกฎนี้ ไม่ใช่เดา) คือ core/workspace/runtimeRegistry.ts ซึ่งมี register/subscribe อยู่แล้วแต่ register() ไม่เคยถูกเรียกจริงในแอป — การสร้าง SPRP จริงต้องต่อยอดจากของเดิมนี้ ไม่ใช่สร้างใหม่คู่ขนาน และเป็นงานระดับ Feature ที่ต้องขอ Plan Lock exception + scope แยกเป็นเฟส เหมือน SDRN-P1/P2 ไม่ใช่สิ่งที่การประกาศกฎนี้ทำให้เกิดขึ้นเอง ประกาศโดย owner 2026-07-14 (DNA-000031, ดู registry/rule-coverage.json rule 102) | AMENDMENT (owner, 2026-07-15, DNA-000059, C-011): every self-describing module shall expose exactly 9 fields — Identity, Purpose, Capabilities, Dependencies, Constraints, Current State, Missing Knowledge, Requested Actions, Verification Procedure — mapped onto the real core/shared/types.ts SelfDescription interface as: identity, responsibility, capabilities, calledBy+calls, constraints (NEW), status+healthSignals, missingKnowledge (NEW, distinct from `missing` which is missing capability/wiring not missing facts), Recommend()/NextAction() on RuntimeInterface, verificationProcedure (NEW). No AI may inspect a module's internal implementation before reading its self-description, where one exists — sharpens this rule's prior 'ห้ามให้ AI ค้นพบด้วยการไล่อ่าน source code' into an explicit, absolute sequencing requirement. The 2 new fields (constraints, verificationProcedure) plus missingKnowledge were added to the SelfDescription type and populated with real data in the one existing real implementation (engines/documents/selfDescription.ts, SDRN-P1) — verified live, not just typed (npx tsx confirmed real constraints/missingKnowledge/verificationProcedure values). Still true, unchanged by this amendment: this remains a declared engineering target for the other ~469 registered modules, not enforced today — extending self-description to more modules is Feature-level work requiring its own Plan Lock exception, same as SDRN-P1 itself, not something this amendment causes to happen automatically. | AMENDMENT (owner, 2026-07-15, DNA-000061, SDRN-P7): platform-level Runtime Contract infrastructure added to core/shared/types.ts — ContextBudget (required/optional/skip context + a stated, rough token-count proxy, NOT a real measurement), DeltaContext (a real deterministic content hash for change detection — 'previously processed' requires the CALLER to persist the prior hash, since this repo has no session memory of its own), WorkOrder (a pure projection of existing RuntimeContract fields: Objective=purpose, Scope=responsibilities, Allowed/Protected Files=executionScope/forbiddenScope, Verification/Success unchanged), ExecutionReadiness (real, computed from missingCapabilities/missingDependencies — explicitly ADVISORY, nothing in this repository mechanically blocks an AI from proceeding regardless of this value), VerificationContract (groups verificationProcedure+successCriteria), and MeasurementReport (Contract Coverage is the ONE real, computable metric — verified live via npm run hello -- --contract-coverage, 2 of 473 registered modules = 0.42%; the other 6 named metrics — Repository Read Count, Context Size, Context Reuse Ratio, Delta Context Ratio, Repository Scan Avoidance, Execution Preparation Time — are honestly typed as null with a stated unmeasurableReason, since observing AI session token/read/timing behavior requires access this repository does not have; per explicit owner instruction, NOT claimed as achieved). RuntimeNegotiation was NOT re-declared — it already exists as NegotiationFlowState/computeNegotiationStage() from SDRN-P6. All 4 derived views (ContextBudget/DeltaContext/WorkOrder/ExecutionReadiness) applied to the same 2 real modules from SDRN-P6 only (Document Engine, LINE driver) — verified live, not the other ~468 modules. A real self-referential bug was found and fixed while building this: the Contract Coverage scanner's own grep pattern string matched itself (scripts/hello.ts contains the literal pattern it searches for) — the exact Rule 107 (Evidence Isolation) failure mode, caught immediately by running the scan and inspecting real output before trusting it, fixed with an explicit self-exclusion. | AMENDMENT (owner, 2026-07-15, DNA-000062, SDRN-P8): Runtime Context Broker (core/runtime/contextBroker.ts) promotes SDRN-P7's per-module helper functions into a single broker — compute a module's RuntimeContract at most once per in-process cache cycle, derive every other view (WorkOrder/ContextBudget/ExecutionReadiness/DeltaContext) from that same cached instance. Real, instrumented measurement (readCounter, incremented inside real file reads, not simulated) produced a genuine, computed before/after result for a real repeated-access workload on the same 2 modules: 55 real repository reads (independent recomputation, the prior pattern) -> 11 real repository reads (broker, cached) — an 80% real reduction, exceeding the owner's 60% target for this specific, honestly-scoped comparison. Scope of this result stated precisely, not overclaimed: it measures the broker's OWN internal behavior for 2 modules under one constructed repeated-access pattern within one process — it does NOT measure and does NOT claim anything about an AI session's overall token usage, real-world repository reads, or preparation time outside this broker, which remains outside this repository's observability (unchanged from SDRN-P7's disclosure). The in-process cache is bounded by this serverless deployment's real execution lifetime (no persistent server process exists), same constraint already disclosed for SDRN-P3/P5. | AMENDMENT (owner, 2026-07-15, DNA-000063, SDRN-P9): after a 10-item 'Architecture Upgrade Directive' (Runtime Knowledge Platform) was audited item-by-item against real state — 3 already built, 1 overlapping existing tools (knip/jscpd), several not achievable in this repository regardless of scope (mechanically gating repository access; caching the AI's own reasoning, which is not data this codebase stores; several AI-session-behavior metrics) — the owner confirmed a narrowed scope via AskUserQuestion: ExecutionPlan (WorkOrder + a real expectedOutput field, derived from contract.capabilities/responsibilities) and ExecutionReport (a real aggregation of already-computed broker data: repositoryReads, knowledgeReused, filesAvoided, confidence, improvement — no new computation). Both verified live for the same 2 modules across a real cache-miss and cache-hit access. | AMENDMENT (owner, 2026-07-15, DNA-000064, SDRN-P10): RuntimePacket gained 2 real fields closing a genuine completeness gap — briefing (a pure, one-paragraph synthesis of the contract's own identity/currentState/confidence/readiness/constraints/knownProblems, so an AI does not have to cross-reference 6 sub-objects) and architecture (real layer + allowedImports, looked up from module-registry.json/dependency-graph.json using contract.executionScope[0] — previously this existed only as unstructured prose inside constraints). A real bug was found and fixed in the same pass: the first version of architecture's lookup ran unconditionally, adding real file reads even on a cache hit, contradicting the already-verified '0 additional reads on cache hit' claim from SDRN-P8/P9 — fixed by caching architecture alongside the contract, re-verified live (8 real reads before and after a cache-hit access, confirmed unchanged).",
+    "Rule 103 — Reuse Before Build: ก่อนสร้าง module, registry, runtime, database, API, workflow, event bus, cache, service, interface หรือ storage ใหม่ใด ๆ ระบบต้องค้นหาก่อนว่ามี implementation เดิมที่ทำหน้าที่นี้อยู่แล้วหรือไม่ ถ้าของเดิมครอบคลุมความต้องการตั้งแต่ 80% ขึ้นไป ให้ต่อยอด (EXTEND) ห้ามสร้างซ้ำ ทุก request ต้องสรุปผลเป็นหนึ่งใน 3 อย่าง: EXISTING (ใช้ของเดิม) / EXTEND (ต่อยอดของเดิม) / NEW (สร้างใหม่ เฉพาะเมื่อพิสูจน์ด้วยหลักฐานแล้วว่าไม่มีของเดิมที่ใช้ได้) ทุกบรรทัดโค้ดใหม่ต้องอธิบายได้ว่าทำไมโค้ดเดิมแก้ปัญหานี้ไม่ได้ — ทั่วไปกว่า Rule 101 (ซึ่งเน้นเฉพาะการห้ามสร้าง module/registry/runtime/explanation-engine ซ้ำ) โดยครอบคลุมทุกประเภทของ infrastructure และบังคับให้ทุก proposal ตอบคำถาม 6 ข้อ: มีอะไรอยู่แล้ว / ใช้ซ้ำได้ไหม / ต่อยอดได้ไหม / อะไรจะซ้ำซ้อน / อะไรจะล้าสมัย / ทำไมโค้ดใหม่จึงหลีกเลี่ยงไม่ได้ บังคับใช้จริงเฉพาะชั้น module/file basename เท่านั้น (กลไกเดียวกับ Rule 101 — Guard 9, confirmed_duplicate_pairs) ส่วนกรอบการตัดสินใจ EXISTING/EXTEND/NEW ยังไม่มี mechanical check จริง เป็นวินัยที่ปฏิบัติจริงมาตลอด session นี้ (ดูตัวอย่างจริงใน SDRN-P1 ถึง P5 ทุกเฟส) แต่ยังไม่ถูกบังคับด้วยโค้ด ประกาศโดย owner 2026-07-14 (DNA-000036, ดู registry/rule-coverage.json rule 103)",
+    "Rule 104 — Nothing Is Wasted: ก่อนลบ source code ใด ๆ ต้อง extract ความรู้ก่อนเสมอ — original purpose, owner, dependencies, failure reason, replacement, migration path, lessons learned, known mistakes, architectural impact, historical references ห้ามลบ source code โดยไม่สกัดความรู้ออกมาก่อน ทุก implementation ที่ retire แล้ว (ACTIVE/REUSABLE/DEPRECATED/ARCHIVED/KNOWLEDGE ตาม lifecycle 5 สถานะ) ต้องกลายเป็น Runtime Knowledge ใน registry/existence.json known_mistakes ไม่ใช่หายไปเฉย ๆ — Executable code เป็นของชั่วคราว Engineering Knowledge คงอยู่ถาวร บังคับใช้จริงเฉพาะกรณี deprecation (ไม่ใช่ deletion) ผ่านกลไกเดียวกับ Rule 100/101 (registry/existence.json known_mistakes.confirmed_duplicate_pairs — ตัวอย่างจริง: plugins/line/line.ts ถูก mark deprecated:true พร้อมเหตุผลและตัวแทนที่บันทึกไว้แล้วก่อนกฎนี้จะถูกประกาศ) ส่วนกรณี deletion จริง ๆ ยังไม่เคยเกิดขึ้นใน session นี้เลย จึงยังไม่มีหลักฐานว่า mechanism การสกัดความรู้ก่อนลบถูกบังคับใช้จริง — ไม่มี guard ใดสกัดกั้นการ `rm` โดยไม่มีบันทึกความรู้ก่อน ประกาศโดย owner 2026-07-14 (DNA-000037, ดู registry/rule-coverage.json rule 104)",
+    "Rule 105 — Autonomous Architecture Maintenance Authorization: Runtime/AI ได้รับอนุญาตให้แก้ไขโดยอัตโนมัติโดยไม่ต้องขออนุมัติซ้ำ เมื่อครบทุกเงื่อนไข: (1) การแก้ไขเป็นไปตาม Constitution/Business Rules/Architecture Rules/Runtime Contracts ที่มีอยู่แล้ว (2) ไม่เปลี่ยน Business Logic และไม่ละเมิดกฎใดๆ (3) ขอบเขตจำกัดเฉพาะ architecture maintenance, registry synchronization, runtime repair, metadata updates, dependency correction, documentation alignment, validation improvements, reusable infrastructure, หรือ developer tooling เท่านั้น (4) ผ่าน validator ที่มีอยู่ทั้งหมดทั้งก่อนและหลังแก้ไข ทุกการแก้ไขอัตโนมัติต้องบันทึก audit trail ครบ: executor (AI model/version), timestamp, affected modules/files/functions, reason, root cause, validation results ก่อน-หลัง, rollback information — ลงใน CHANGELOG.json, VALIDATION_RESULTS.json, และ CURRENT_STATE.json ถ้าการแก้ไขเกินขอบเขต Constitution ต้องหยุดทันทีและสร้าง Owner Task แทนการแก้ไขเอง ประกาศโดย owner 2026-07-14 (DNA-000052, ดู registry/rule-coverage.json rule 105)",
+    "Rule 106 — Runtime Self-Evolving Knowledge Layer: ทุกครั้งที่ AI ตรวจพบปัญหา วิเคราะห์สาเหตุ หรือแก้ไข Source Code สำเร็จ ห้ามจบเพียงแค่แก้ไขไฟล์ ต้อง (1) วิเคราะห์ Root Cause จริง — ต้นตอ ไฟล์ module layer command dependency workflow (2) ตรวจว่าระบบตรวจพบปัญหานี้ได้เองหรือไม่ — ถ้าได้ บันทึกเป็น Existing Detection ถ้าไม่ได้ ถือว่า Runtime ขาด Capability (3) หากยังตรวจไม่พบ ต้องเพิ่ม Runtime Knowledge Layer จริง (Detection Rule/Diagnostic Capability/Runtime Explanation/Validation Logic/Dependency Check/Architecture Check/Event Detection/Warning Condition) เชื่อมเข้าระบบเดิม ห้ามสร้างระบบแยก (4) ทดสอบว่าเหตุการณ์เดิมเกิดซ้ำ Runtime ต้องตรวจพบ-อธิบาย-ระบุสาเหตุ-ระบุไฟล์-ระบุโมดูล-ระบุวิธีแก้ได้เอง (5) Deployment ไม่มีสิทธิ์ PASS จนกว่า Runtime ยืนยัน PASS จริง หาก FAIL ต้องอธิบายเป็นภาษาคน (Reason/Location/Root Cause/Required Action/Status) ไม่ใช่แค่ exit code (6) หลังแก้ไข ต้องบันทึกเข้า Knowledge Engine/Root Cause Engine/Validation Engine/Architecture Intelligence/Diagnostic Engine/Runtime Memory ทันที (7) ปัญหาเดิมห้ามเกิดซ้ำเกิน 3 ครั้ง — ครั้งที่ 3 ต้องหยุดแก้เฉพาะหน้าและสร้าง Capability ใหม่ (8) ทุกการเรียนรู้ต้องเชื่อมเข้าระบบหลัก ห้ามสร้าง Knowledge/Registry/Rule ซ้ำ ต้อง Reuse โครงสร้างเดิมก่อนเสมอ เป้าหมาย: Repair -> Detection -> Knowledge -> Prevention -> Autonomous Runtime ประกาศโดย owner 2026-07-14 (DNA-000053, ดู registry/rule-coverage.json rule 106) | AMENDMENT — Runtime Operational Intelligence Objective (owner, 2026-07-15, DNA-000065, C-009 applied: this supplies the WHY behind Rule 106 and several other rules, not a new mechanism): the objective is to optimize the RUNTIME's own operational intelligence continuously — not to optimize AI. Must progressively REDUCE: Structural ambiguity (NOT YET tracked — no real check exists), Dependency ambiguity (PARTIAL — scripts/check-imports.sh enforces declared edges, does not measure ambiguity as a trend), Business ambiguity (NOT YET tracked), Duplicate knowledge (Rule 100/101/103 — known_mistakes/confirmed_duplicate_pairs), Duplicate computation (Rule 107 Evidence Isolation + core/runtime/contextBroker.ts, real for 2 modules), Duplicate workflow (NOT YET tracked — checked directly: scripts/check-workflow-coverage.sh verifies workflow COMPLETENESS, not duplication; no real duplicate-workflow checker exists anywhere in this repo), Duplicate data access (NOT YET tracked — no real check exists), Runtime inconsistency (Rule 107/108/109/110, the DNA-000056 audit). Must progressively INCREASE: Knowledge completeness (Rule 100/104, known_mistakes + archived_knowledge), Capability completeness (PARTIAL — RuntimeContract.missingCapabilities exists for 2 modules only, capability-registry.json's 202 entries are not cross-checked against real wiring repo-wide), Dependency correctness (scripts/check-imports.sh, real, mechanical), Workflow consistency (scripts/check-workflow-coverage.sh, real), Module interoperability (PARTIAL — registry/dependency-graph.json + RuntimeContract.dependencies for 2 modules), Registry integrity (scripts/check-registry.sh, real, mechanical), Self-description quality (Rule 102/C-011, RuntimeContract's 19 fields, 2 of ~470 modules), Architecture cohesion (scripts/check-drift.sh, real, mechanical), Autonomous diagnosability (Rule 106 itself + scripts/deploy-gate.ts's human-readable failure explanations), Autonomous repairability (Rule 105, real but scope-limited to changes an AI can make within a single session — no autonomous background repair process exists, this is a serverless app with no persistent runtime). Honest summary: 8 of 18 dimensions have zero real mechanical tracking today (structural ambiguity, business ambiguity, duplicate workflow, duplicate data access — the 4 real gaps this amendment surfaces for the first time); the rest have real, evidence-based partial-to-full coverage already built across this session's work, not fabricated as complete. No new mechanism was built by this amendment itself — it is a mapping/rationale exercise, consistent with C-007 (verification stated) and C-009 (why, not just what) applied to Rule 106 as a whole.",
+    "Rule 107 — Evidence Isolation: Evidence (ledger/report/log/validation result — เช่น registry/VALIDATION_RESULTS.json, registry/CHANGELOG.json, DNA_OS_HEALTH.json) ห้ามถูก Audit เหมือน Source Code — ทุก audit tool (grep/jscpd/knip/etc.) ต้อง exclude ไฟล์ประเภทนี้อย่างชัดเจน ห้ามให้ไฟล์ที่ audit รอบก่อนสร้าง/เขียนไว้ ถูกดึงกลับเข้ามาเป็น input ของ audit รอบเดียวกันหรือรอบถัดไป (ป้องกัน self-feedback loop) Runtime-generated evidence files ถือเป็น immutable ณ เวลาที่เขียน — แก้ไขได้เฉพาะผ่านการ truncate/reset ที่มีเหตุผลบันทึกไว้ ไม่ใช่ audit tool ไปแก้เอง เกิดจากเหตุการณ์จริง (DNA-000056): Guard 1's grep และ jscpd ทั้งคู่สแกน registry/VALIDATION_RESULTS.json โดยไม่ตั้งใจ ทำให้ evidence ของมันเองถูกนับเป็น violation/clone ใหม่ทุกรอบ วนซ้ำไม่มีที่สิ้นสุด ประกาศโดย owner 2026-07-15 (DNA-000057, ดู registry/rule-coverage.json rule 107)",
+    "Rule 108 — Tool Invocation & Configuration Precedence Contract: ทุก audit tool ที่มี config file ของตัวเอง (เช่น jscpd → .jscpd.json, knip → knip.json) ต้องประกาศ scan boundary ของตัวเองชัดเจน และห้ามให้ CLI argument ที่ inline ไว้ใน script ต่าง ๆ (governance.sh, dashboard.sh, ฯลฯ) silently override config file โดยไม่มีใครรู้ ลำดับความสำคัญคือ CLI > Environment > Config File เสมอ — แต่ทุกครั้งที่ CLI override เกิดขึ้นจริง (ไม่ตรงกับ config file) ต้องถูก log/comment ไว้ในจุดที่ override เกิดขึ้น ไม่ใช่ปล่อยให้เงียบ เกิดจากเหตุการณ์จริง (DNA-000056): .jscpd.json ประกาศ format:['typescript','tsx'] และ ignore:['**/*.json',...] ไว้ถูกต้อง แต่ governance.sh/dashboard.sh เรียก jscpd พร้อม directory args ตรง ๆ ซึ่ง override config เงียบ ๆ ทำให้ scan ไฟล์ .json จริง โดยไม่มีใครรู้จนกว่าจะตรวจ evidence ตรง ๆ ประกาศโดย owner 2026-07-15 (DNA-000057, ดู registry/rule-coverage.json rule 108) | AMENDMENT (owner, 2026-07-15, DNA-000058, C-004/C-008): broadened, not replaced — every tool invocation must be deterministic (the same real command, run twice under the same real conditions, must produce the same real result; a silent CLI/config divergence breaks this), and the 'must be logged' requirement extends from config-file overrides specifically to ANY runtime script overriding governance more broadly (not just a tool's own config file) — no script may silently bypass or reinterpret a Constitution/Runtime Contract rule without recording why, in the same place the override happens.",
+    "Rule 109 — Environment Verification Before Audit: ก่อนเชื่อผลของ audit ใด ๆ ต้องตรวจสอบก่อนว่าเครื่องมือพื้นฐานที่ audit พึ่งพา (grep, sed, awk, tail, tr ฯลฯ) เป็น real binary ตามที่ script คาดหวังจริง ไม่ใช่ shell function/alias/wrapper ที่มี semantics ต่างออกไป — โดยเฉพาะเมื่อทดสอบผ่าน interactive shell ที่อาจมี wrapper แทรกอยู่ (เช่น tooling sandbox) ผลของการทดสอบแบบ interactive ห้ามถูกเชื่อว่าเท่ากับพฤติกรรมจริงของ script เมื่อรันเป็น subprocess จริง จนกว่าจะ trace/ยืนยันด้วย binary จริง เกิดจากเหตุการณ์จริง (DNA-000056): การแก้ Guard 1 ครั้งแรกทดสอบผ่าน interactive grep (จริง ๆ คือ ugrep wrapper จาก Claude Code shell snapshot) ได้ผลลัพธ์ถูกต้อง แต่เมื่อรัน `bash scripts/pre-commit-check.sh` จริง (ใช้ /usr/bin/grep จริง) กลับไม่ทำงาน เพราะ --exclude ของ grep จริงจับคู่แค่ basename ไม่ใช่ full path — พบได้เพราะ trace ด้วย bash -x แล้วทดสอบ /usr/bin/grep ตรง ๆ ประกาศโดย owner 2026-07-15 (DNA-000057, ดู registry/rule-coverage.json rule 109)",
+    "Rule 110 — Encoding Contract: ทุก script ที่ประมวลผลข้อความ (โดยเฉพาะ real command output ที่มีภาษาไทยปนอยู่จำนวนมากในระบบนี้) ต้องรองรับ UTF-8 อย่างถูกต้อง ห้ามใช้คำสั่งที่ตัดข้อความที่ raw byte offset (เช่น `tail -c N`) แล้วส่งต่อให้คำสั่งที่ validate UTF-8 (เช่น `tr` ภายใต้ locale UTF-8) โดยไม่ป้องกัน multi-byte character ถูกตัดครึ่ง ต้องใช้ LC_ALL=C หรือเทียบเท่าเมื่อประมวลผลแบบ byte-wise เกิดจากเหตุการณ์จริง (DNA-000056): `tail -c 1800 | tr '\\n' ' '` ใน governance.sh ตัดข้อความไทยกลางตัวอักษร ทำให้ tr ล้มด้วย 'Illegal byte sequence' ทุกรอบที่ evidence ยาวพอ ประกาศโดย owner 2026-07-15 (DNA-000057, ดู registry/rule-coverage.json rule 110)"
   ],
   "types_single_source_of_truth": {
     "file": "core/shared/types.ts",
@@ -116,5 +282,67 @@
     "duplicates": "npm run duplicates — หา copy-paste",
     "backup": "npm run backup — Backup ทุกตาราง → backups/",
     "restore": "npm run restore -- backups/DIR — Restore จาก backup"
+  },
+  "canonical_principles": {
+    "added": "2026-07-15",
+    "source": "Owner canonical principle set (DNA-000058)",
+    "note": "A compact C-XXX restatement of governance principles. Where a principle was already declared as a numbered Constitution rule (from the DNA-000056 incident, DNA-000057), it is mapped here rather than re-declared — re-declaring it under a new id would itself violate Rule 101/103 (no duplicate rules) and C-010 (rules are immutable, not silently restated). Only genuinely new principles (C-007, C-009, C-010 itself) were added as new content.",
+    "mapping": {
+      "C-001": {
+        "text": "Evidence is never Source.",
+        "maps_to": "Rule 107 (Evidence Isolation)",
+        "status": "already declared, not duplicated"
+      },
+      "C-002": {
+        "text": "Generated files never participate in the generating pipeline.",
+        "maps_to": "Rule 107 (Evidence Isolation — self-feedback clause)",
+        "status": "already declared, not duplicated"
+      },
+      "C-003": {
+        "text": "Every audit boundary must be explicit.",
+        "maps_to": "Rule 107 + Rule 108 (declared scan boundary requirement)",
+        "status": "already declared, not duplicated"
+      },
+      "C-004": {
+        "text": "Every tool invocation must be deterministic.",
+        "maps_to": "Rule 108 (Tool Invocation & Configuration Precedence Contract)",
+        "status": "amended into Rule 108's text (framing added, not a new rule) — see rule 108's appended amendment"
+      },
+      "C-005": {
+        "text": "Environment must be verified before execution.",
+        "maps_to": "Rule 109 (Environment Verification Before Audit)",
+        "status": "already declared, not duplicated"
+      },
+      "C-006": {
+        "text": "Every resolved incident must become reusable knowledge.",
+        "maps_to": "Rule 100 (Core Learning Policy) + Rule 106 (Runtime Self-Evolving Knowledge Layer)",
+        "status": "already declared, not duplicated — explicitly considered and rejected as a new rule in DNA-000057 for this exact reason"
+      },
+      "C-007": {
+        "text": "Every new rule must include verification.",
+        "maps_to": "amendment_policy.rule_verification_required (NEW)",
+        "status": "new — a rule about how rules themselves must be authored, not a runtime-behavior rule, so it lives in amendment_policy rather than iron_rules"
+      },
+      "C-008": {
+        "text": "No runtime script may override governance without recording the reason.",
+        "maps_to": "Rule 108 (broadened from 'config file' to 'governance' generally)",
+        "status": "amended into Rule 108's text — see rule 108's appended amendment"
+      },
+      "C-009": {
+        "text": "AI must explain why the rule exists, not only what the rule is.",
+        "maps_to": "amendment_policy.rule_rationale_required (NEW)",
+        "status": "new — already this session's practice (every rule 100-110 cites its real triggering incident), now formalized as a requirement, not just a habit"
+      },
+      "C-010": {
+        "text": "Knowledge is versioned. Rules are immutable. Incidents are append-only.",
+        "maps_to": "amendment_policy.immutability_and_versioning (NEW)",
+        "status": "new — governs how registry/CONSTITUTION.json, registry/existence.json, and registry/CHANGELOG.json themselves must be edited going forward"
+      },
+      "C-011": {
+        "text": "Every module must be self-describing (Identity/Purpose/Capabilities/Dependencies/Constraints/Current State/Missing Knowledge/Requested Actions/Verification Procedure). No AI may inspect internal implementation before reading the module self-description.",
+        "maps_to": "Rule 102 (Self Publishing Runtime Protocol) — amended, not duplicated",
+        "status": "amended into Rule 102's text (2 real new fields added to core/shared/types.ts SelfDescription + populated in the one real implementation) — not a new rule, since Rule 102 already declared this exact concept (DNA-000031); C-011 sharpened the field list and the AI-sequencing mandate"
+      }
+    }
   }
 }

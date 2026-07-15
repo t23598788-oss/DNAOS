@@ -5,6 +5,8 @@
  */
 
 import { NextResponse } from "next/server";
+import { requireAuth } from "@/core/auth/requireAuth";
+import { ADMIN_TIER } from "@/core/auth/session";
 import { readFileSync, existsSync, readdirSync } from "fs";
 import { join, relative } from "path";
 import { execSync } from "child_process";
@@ -291,7 +293,13 @@ function getArchSummary() {
 // ── Main Handler ──────────────────────────────────────────────────────────
 export const dynamic = "force-dynamic";
 
+// Real, live security fix (TASK-001, DNA-000070): was unauthenticated, leaked
+// full registry/runtime aggregate data — the biggest single info-disclosure
+// surface of the 8 fixed in this pass.
 export async function GET() {
+  const auth = await requireAuth(ADMIN_TIER);
+  if (auth instanceof NextResponse) return auth;
+
   const runtime    = getRuntimeStatus();
   const ai         = getAIRegistry();
   const modules    = getModuleRegistry();

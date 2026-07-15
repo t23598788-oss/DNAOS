@@ -1,17 +1,15 @@
-import PortalShell from "@/components/portal/PortalShell";
 import businessCoverage from "@/registry/business-coverage.json";
-import { requireAuthPage } from "@/core/auth/requireAuthPage";
-import permissions from "@/registry/permissions.json";
-import type { AppRole } from "@/core/auth/session";
 import { CheckCircle } from "lucide-react";
 
 const RELEVANT_DOMAINS = ["relationship", "purchase"] as const;
-const PARTNER_ROLES = permissions.route_access.find(r => r.prefix === "/partner")!.roles as AppRole[];
 
-export default async function PartnerPortalPage() {
-  await requireAuthPage("/partner", PARTNER_ROLES);
+// Auth (requireAuthPage) and shell (WorkspaceShell) now live in app/partner/layout.tsx
+// (Enterprise Workspace Architecture, Phase 2) — this page is content only, unchanged
+// from the previous version besides removing its own now-redundant auth call and
+// PortalShell wrapper.
+export default function PartnerPortalPage() {
   return (
-    <PortalShell portalId="partner_portal">
+    <div className="p-6">
       <div className="space-y-6">
         {RELEVANT_DOMAINS.map((key) => {
           const domain = businessCoverage.domains[key];
@@ -52,6 +50,6 @@ export default async function PartnerPortalPage() {
           );
         })}
       </div>
-    </PortalShell>
+    </div>
   );
 }

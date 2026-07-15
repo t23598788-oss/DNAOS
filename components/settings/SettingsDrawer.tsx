@@ -9,6 +9,11 @@ const EMPTY_SETTINGS: CompanySettings = {
   paymentBankName: "",
   paymentAccountNumber: "",
   paymentAccountName: "",
+  vatRate: 0.07,
+  documentTerms: "",
+  documentFooterNote: "",
+  debtReminderAutoEnabled: false,
+  debtReminderHour: 9,
 }
 
 /**
@@ -16,7 +21,7 @@ const EMPTY_SETTINGS: CompanySettings = {
  * ใช้ Session เดียวกับทั้งระบบ (TASK-001 SSO) — ไม่มี login ของตัวเอง
  * ถูกเรียกจากในหน้าที่ requireAuthPage ป้องกันไว้แล้วเท่านั้น (เช่น /admin)
  */
-export default function SettingsDrawer() {
+export default function SettingsDrawer({ onSettingsLoaded }: { onSettingsLoaded?: (settings: CompanySettings) => void }) {
   const [open, setOpen] = useState(false)
 
   const [settings, setSettings] = useState<CompanySettings>(EMPTY_SETTINGS)
@@ -24,17 +29,31 @@ export default function SettingsDrawer() {
   const [saving, setSaving] = useState(false)
   const [saveMsg, setSaveMsg] = useState<{ ok: boolean; text: string } | null>(null)
 
+  // Owner request 2026-07-11: Automation Engine status (debt-reminder auto-
+  // send on/off + hour) needs to be visible on the main workspace without
+  // opening this drawer — reuses this same fetch instead of a second one.
   const loadSettings = useCallback(async () => {
     const res = await fetch("/api/admin/settings")
     const data = await res.json()
-    if (data.settings) setSettings(data.settings)
+    if (data.settings) {
+      setSettings(data.settings)
+      onSettingsLoaded?.(data.settings)
+    }
     setSettingsLoaded(true)
-  }, [])
+  }, [onSettingsLoaded])
 
   useEffect(() => {
     if (!open) return
     loadSettings()
   }, [open, loadSettings])
+
+  // Load once on mount (regardless of drawer open state) so onSettingsLoaded
+  // can feed the always-visible automation status pill without requiring the
+  // owner to open this drawer first.
+  useEffect(() => {
+    loadSettings()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   async function save() {
     setSaving(true)
@@ -125,6 +144,58 @@ export default function SettingsDrawer() {
                           placeholder="ชื่อบัญชี"
                           className="w-full text-sm border border-stone-200 rounded-lg px-3 py-2 focus:outline-none focus:border-stone-500"
                         />
+                      </div>
+                    </div>
+
+                    <div>
+                      <div className="text-[10px] font-semibold text-stone-400 uppercase tracking-wider mb-2">ภาษี / ข้อตกลง (แสดงบนการ์ดเอกสารที่ส่งลูกค้า)</div>
+                      <div className="space-y-2">
+                        <input
+                          type="number"
+                          step="0.01"
+                          value={settings.vatRate}
+                          onChange={(e) => setSettings((s) => ({ ...s, vatRate: Number(e.target.value) }))}
+                          placeholder="อัตราภาษี VAT (เช่น 0.07)"
+                          className="w-full text-sm border border-stone-200 rounded-lg px-3 py-2 focus:outline-none focus:border-stone-500"
+                        />
+                        <textarea
+                          value={settings.documentTerms}
+                          onChange={(e) => setSettings((s) => ({ ...s, documentTerms: e.target.value }))}
+                          placeholder="ข้อตกลง/เงื่อนไขมาตรฐาน (ไม่บังคับ)"
+                          rows={3}
+                          className="w-full text-sm border border-stone-200 rounded-lg px-3 py-2 focus:outline-none focus:border-stone-500"
+                        />
+                        <textarea
+                          value={settings.documentFooterNote}
+                          onChange={(e) => setSettings((s) => ({ ...s, documentFooterNote: e.target.value }))}
+                          placeholder="หมายเหตุท้ายเอกสารมาตรฐาน (ไม่บังคับ)"
+                          rows={2}
+                          className="w-full text-sm border border-stone-200 rounded-lg px-3 py-2 focus:outline-none focus:border-stone-500"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <div className="text-[10px] font-semibold text-stone-400 uppercase tracking-wider mb-2">แจ้งยอดค้างชำระอัตโนมัติ</div>
+                      <div className="space-y-2">
+                        <label className="flex items-center gap-2 text-sm text-stone-700">
+                          <input
+                            type="checkbox"
+                            checked={settings.debtReminderAutoEnabled}
+                            onChange={(e) => setSettings((s) => ({ ...s, debtReminderAutoEnabled: e.target.checked }))}
+                          />
+                          เปิดส่งอัตโนมัติวันละ 1 รอบ
+                        </label>
+                        <select
+                          value={settings.debtReminderHour}
+                          onChange={(e) => setSettings((s) => ({ ...s, debtReminderHour: Number(e.target.value) }))}
+                          disabled={!settings.debtReminderAutoEnabled}
+                          className="w-full text-sm border border-stone-200 rounded-lg px-3 py-2 bg-white disabled:opacity-40"
+                        >
+                          {Array.from({ length: 24 }, (_, h) => (
+                            <option key={h} value={h}>{String(h).padStart(2, "0")}:00 น.</option>
+                          ))}
+                        </select>
                       </div>
                     </div>
 

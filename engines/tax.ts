@@ -1,4 +1,5 @@
 import { loadConfigs, getNum, audit, type AuditTrail } from "@/core/config-loader";
+import { supabase } from "@/services/supabase/queries";
 
 export interface TaxInput {
   amount: number;
@@ -17,7 +18,7 @@ export interface TaxResult {
 }
 
 export async function calcTax(input: TaxInput): Promise<TaxResult> {
-  const configs = await loadConfigs();
+  const configs = await loadConfigs(supabase());
   const vatRate = getNum(configs, "vat-rate");
   const vatEnabled = input.vat_enabled ?? true;
   const vatMode = input.vat_mode ?? "inclusive";

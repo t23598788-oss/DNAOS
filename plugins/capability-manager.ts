@@ -324,7 +324,7 @@ async function tryLocalExecution(
 
     const { execute } = await import("@/core/executor/engine");
     const { get } = await import("@/core/executor/registry");
-    await import("@/core/executor/init");
+    await import("@/plugins/registerAllDrivers");
 
     const capToWorkflow: Record<string, string> = {
       "communication.send_message": "message.send",

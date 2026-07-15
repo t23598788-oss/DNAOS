@@ -1,101 +1,777 @@
 {
   "version": 1,
   "policy": "DNA OS ต้องรู้จักตัวเอง — รู้ว่าทำอะไรได้ ขาดอะไร ต้องอยู่ที่ไหน ต้องใช้อะไร",
-
-  "capabilities": {
-    "vision":    { "status": "available", "interfaces": ["macOS Screenshot", "Browser Canvas", "LINE Image"], "used_by": ["chat.read", "chat.summarize"] },
-    "gps":       { "status": "available", "interfaces": ["Google Maps API", "Browser Geolocation", "Vehicle GPS"], "used_by": ["calc.distance", "scout-map"] },
-    "voice":     { "status": "not_available", "interfaces": [], "used_by": [], "gap": "ยังไม่มี Voice Input/Output" },
-    "camera":    { "status": "not_available", "interfaces": [], "used_by": [], "gap": "ยังไม่มี Camera API" },
-    "messaging": { "status": "available", "interfaces": ["LINE Messaging API", "LINE Notify", "Email SMTP"], "used_by": ["line.send", "email.send"] },
-    "payment":   { "status": "partial", "interfaces": ["Manual via invoice_payments"], "used_by": ["payment"], "gap": "ยังไม่มี auto payment gateway" },
-    "printer":   { "status": "available", "interfaces": ["macOS Print Dialog", "PDF Export"], "used_by": ["doc.generate"] },
-    "sensor":    { "status": "partial", "interfaces": ["KIS Webhook (IoT)"], "used_by": ["kis-webhook"], "gap": "รับ event ได้ แต่ยังไม่ส่งคำสั่งกลับ" },
-    "database":  { "status": "available", "interfaces": ["Supabase PostgreSQL", "Supabase Realtime"], "used_by": ["*"] },
-    "ai_text":   { "status": "available", "interfaces": ["OpenAI GPT", "Google Gemini", "Local Keyword Match"], "used_by": ["ai.translate", "line-webhook"] },
-    "file_system": { "status": "available", "interfaces": ["macOS Finder", "Node.js fs"], "used_by": ["plugins/drivers/finder"] },
-    "terminal":  { "status": "available", "interfaces": ["macOS Terminal", "zsh"], "used_by": ["plugins/drivers/terminal"] },
-    "browser":   { "status": "available", "interfaces": ["Google Chrome", "Safari"], "used_by": ["plugins/drivers/chrome"] },
-    "calendar":  { "status": "available", "interfaces": ["macOS Calendar"], "used_by": ["plugins/drivers/calendar"] },
-    "plc":       { "status": "not_available", "interfaces": [], "used_by": [], "gap": "ยังไม่มี PLC/Modbus/OPC-UA" },
-    "mqtt":      { "status": "not_available", "interfaces": [], "used_by": [], "gap": "ยังไม่มี MQTT broker" },
-    "robot_arm": { "status": "not_available", "interfaces": [], "used_by": [], "gap": "ยังไม่มี Robot Controller" }
-  },
-
-  "environment": {
-    "current": "macOS",
-    "supported": ["macOS", "Browser", "Supabase Edge (Deno)"],
-    "planned": ["Android", "iOS", "Linux Server", "Windows"],
-    "not_supported": ["PLC", "Embedded", "Robot"],
-    "constraints": {
-      "macOS": ["AppleScript", "Accessibility API", "URL Schemes"],
-      "Browser": ["No file system", "No native API", "Sandbox only"],
-      "Supabase Edge": ["Deno runtime", "No persistent state", "300s timeout"]
+  "known_mistakes": {
+    "policy": "DNA OS Core Learning Policy (registry/CHANGELOG.json DNA-000026) — System learns first, AI learns from the System. Every entry here must have a real, working detection mechanism cited in enforced_by, or be honestly marked detection:\"manual\" if no mechanical check exists yet — never claim automated prevention that isn't real.",
+    "entries": [
+      {
+        "id": "KM-001",
+        "date": "2026-07-14",
+        "what_happened": "The same source-export-scanning logic was independently reimplemented in 2 different governance scripts (scripts/build-arch-book.ts's extractExportsFromFile, scripts/sync-registry.ts's extractExports) instead of one shared function. Both then independently had the identical class of bug (glob missing .tsx, `export default function Name` mishandled) discovered and fixed on 3 separate occasions across this session (Phase 2.3B fixed build-arch-book.ts's glob+target-resolution; DNA-000023 discovered sync-registry.ts had the exact same glob bug, never fixed; DNA-000023 then found build-arch-book.ts's SIBLING function extractExportsFromFile had a third, different instance of the same bug family — generic \"default\" string instead of the real export name).",
+        "root_cause": "No single shared, tested utility for 'what does this TS/TSX file export' — each governance script grew its own regex-based copy. A fix applied to one copy was never propagated to the other, because nothing links them or flags the duplication.",
+        "lesson": "When two tools parse the same kind of source construct (imports, exports, layer boundaries) with independently-maintained regex/parsing logic, they will drift out of sync. The fix is either a shared utility module, or — if kept separate for isolation reasons — an explicit cross-reference comment in both files pointing at each other so a fix in one prompts a check of the other.",
+        "preventive_rule_id": "CONST-100",
+        "detection": "manual",
+        "detection_note": "No mechanical check exists for 'two files implement similar parsing logic and have drifted.' This class of bug requires code-review judgment, not a regex gate — documented here honestly rather than claiming a false mechanical guard. scripts/build-arch-book.ts:58 and scripts/sync-registry.ts:44 both now carry a code comment cross-referencing each other and this KM-001 entry, so a future editor of one is prompted to check the other.",
+        "warn_message_if_mechanical_check_existed": "WARNING: scripts/sync-registry.ts's extractExports and scripts/build-arch-book.ts's extractExportsFromFile implement the same parsing task independently (KM-001, 2026-07-14) — a fix to one must be checked against the other."
+      },
+      {
+        "id": "KM-002",
+        "date": "2026-07-14",
+        "what_happened": "Two structurally separate implementations of the same responsibility existed at once without either being flagged at creation time: (a) plugins/drivers/line.ts (live, AppleScript-based LINE automation, registered via plugins/registerAllDrivers.ts) vs plugins/line/line.ts (a Node.js wrapper around a compiled Swift binary, zero real callers, later marked deprecated:true but the duplicate was never surfaced until DNA-000024/025's registry reconciliation); (b) presenter/ (pre-existing summarize/explain/format system) vs core/workspace/presenters/ (Phase 4's Capability-system equivalent) — flagged as a real, still-unreconciled duplicate as far back as Phase 2.6.",
+        "root_cause": "Nothing checked, at the time either second implementation was created, whether a file with the same or a conceptually-equivalent name/responsibility already existed elsewhere in the repo.",
+        "lesson": "Before creating a new module whose basename or stated purpose matches something that might already exist, search the repo for that name/responsibility first. This is mechanically checkable — same basename in 2+ different directories is a strong, real signal.",
+        "preventive_rule_id": "CONST-100",
+        "detection": "mechanical",
+        "detection_note": "DNA-000026: Guard 9 in scripts/pre-commit-check.sh — general basename-collision heuristic across all source files, WARN only (real false-positive rate for generic names, e.g. session.ts/timeline.ts). DNA-000027 (Rule 100 full pipeline propagation) added evidence-CONFIRMED-pair enforcement, read from the single source registry/existence.json known_mistakes.confirmed_duplicate_pairs by 3 separate scripts rather than hardcoded per-script: (1) Module Registration — scripts/sync-registry.ts warns the moment a new file matching either side of a confirmed pair is first registered; (2) Dependency Validation — scripts/check-imports.sh REJECTs (exit 1) if any file imports the deprecated side of a confirmed pair; (3) Architecture Validation — scripts/build-arch-book.ts marks a deprecated:true module BROKEN if it regains a real importer, contradicting its own status. All 3 verified by simulating the KM-002-line mistake and confirming each rejects/warns correctly, then restoring clean state. Propagates automatically to npm run guard's exit code, the same command already used as this project's deploy-readiness gate — no separate deployment check was needed.",
+        "warn_message": "WARNING: Module '<name>' already exists at <existing path>. Registry เดิมมีอยู่แล้ว (KM-002) — โปรดใช้โมดูลเดิม หรือระบุเหตุผลที่ต้องมี 2 implementation แยกกันใน module-registry.json"
+      },
+      {
+        "id": "KM-003",
+        "date": "2026-07-14",
+        "what_happened": "While building and verifying SDRN-P3 (running `npm run build` to prove a new client component/API route actually compiled), the real build output listed routes never found by any prior audit this session, including the extensive SDRN-P2 'unified runtime model' discovery pass 2 turns earlier: app/api/self-description/route.ts (real, reads core/runtime/self-awareness.ts — fine) and a public app/api/v1/* surface (capabilities, drivers, modules, query, spec, workflows, constitution) meant for external AI to query DNA OS. Checking each: /api/v1/capabilities, /api/v1/modules, /api/v1/drivers correctly read real registry/*.json files. But /api/v1/workflows imports '@/07-workflow-registry.json' — one of the stale, pre-reorg, zero-real-importer root-level files already flagged as non-authoritative in DNA-000024/025 — meaning a real, public, external-facing API endpoint has been serving stale/wrong workflow data, not the real 19-workflow registry (registry/commands/workflows.json). And /api/v1/constitution hardcodes its own separate copy of the Constitution as a literal object in the route file, using old pre-reorg V1-V6 terminology (explicitly forbidden by CLAUDE.md's own 'เดิมคือ V1-Input/...V6-Executor...ห้ามใช้ชื่อเดิม' rule), instead of reading registry/CONSTITUTION.json — so it is both stale and a second, undeclared duplicate of the Constitution (the exact pattern Rule 101 exists to prevent), not caught by any duplicate-detection built so far because Guard 9/confirmed_duplicate_pairs only compare file basenames, not a hardcoded object against a JSON file's content.",
+        "root_cause": "Two compounding causes: (1) SDRN-P2's 'System Discovery' pass enumerated known self-description mechanisms by name (existence-intelligence, self-awareness, cockpit, etc.) rather than exhaustively walking app/api/** for every route — a real, undiscovered public API surface was missed because discovery was driven by a checklist, not a full filesystem scan. (2) These 2 specific routes were each built by independently copying/hardcoding data instead of importing the real registry file, so they silently drifted the moment the source of truth changed (the reorg, and Rule 100/101/102's additions to CONSTITUTION.json).",
+        "lesson": "A 'unified model' discovery pass that works from a list of known subsystem names, however thorough that list feels, is not the same as an exhaustive scan — this session's own SDRN-P2 missed a real, live, public API surface. Future discovery passes should include a literal directory walk (e.g. `find app/api -name route.ts`) as a cross-check against whatever checklist is being used, not rely on the checklist alone. Separately: any API route that duplicates registry content by copying it into the route file instead of importing the real file will eventually drift — this is a specific, checkable instance of Rule 101 that current tooling (Guard 9, confirmed_duplicate_pairs) does not catch, since it compares file names, not content-vs-registry consistency.",
+        "preventive_rule_id": "CONST-100, CONST-101",
+        "detection": "manual",
+        "detection_note": "No mechanical check exists for 'this API route's hardcoded/imported data has drifted from the real registry it should represent.' Found by chance while verifying an unrelated build (SDRN-P3), not by any systematic check.",
+        "update_2026_07_14_dna_000033": "app/api/v1/workflows/route.ts and app/api/v1/constitution/route.ts fixed to read the real registry/commands/workflows.json and registry/CONSTITUTION.json (owner-authorized, narrow scope, verified via real npm run build + direct data checks — 19 workflows, 18 iron_rules including Rule 102). While fixing, found this KM-003 entry's own root_cause was WRONG on one point: it called 07-workflow-registry.json a 'zero-real-importer' file — a precise grep afterward found 3 MORE real, live, uncorrected consumers: app/observer.json/route.ts, app/observer/page.tsx, app/start/page.tsx. The first two are significant: /observer and /observer.json are real, already-built, explicitly-public pages ('ให้ AI ภายนอก (Gemini, ChatGPT, Claude ฯลฯ) อ่านโครงสร้างระบบ') meant to be exactly the kind of external System Introduction Protocol endpoint this session's SDRN work has been trying to build — but they serve a hardcoded LAYERS array using pre-reorg V1-Input/V2-Rules/V3-Engines/V4-AI/V5-Presenter naming with paths like 'lib/v1-input/' that have not existed since the 2026-07-06 reorg, plus 07-workflow-registry.json AND another stale root file, 08-document-registry.json. This is a materially bigger, more relevant finding than the 2 routes just fixed and was NOT fixed in this pass — not authorized this turn, flagged for the owner to scope next. Self-correction: KM-003's own 'zero-real-importer' claim about 07-workflow-registry.json, written earlier this session, was itself an unverified assumption carried over from DNA-000024/025's characterization — this update corrects the record rather than leaving a known-wrong claim standing, per Rule 100's own requirement that knowledge entries be accurate, not just present."
+      },
+      {
+        "id": "KM-004",
+        "date": "2026-07-14",
+        "what_happened": "The Validation Result Ledger (registry/VALIDATION_RESULTS.json, DNA-000050) recorded PASS/FAIL correctly, but every single FAIL entry (VR-000002 Pre-commit Guards, VR-000003 knip, VR-000004 jscpd, VR-000007 Dependency Graph — 4/4, 100%) had root_cause, evidence, and suggested_fix all null. Found by analyzing the ledger itself, per owner MISSION: \"ใช้ Validation Result Ledger ที่สะสมไว้ วิเคราะห์หา รูปแบบความผิดพลาดที่เกิดซ้ำ\".",
+        "root_cause": "scripts/governance.sh's run_check() ran `eval \"$cmd\" 2>&1` directly inside the if-condition, streaming the real command output straight to the terminal — nothing was ever captured into a variable, so record-validation.ts was called on every FAIL with no --evidence flag at all, and had nothing real to report.",
+        "lesson": "A capability that records WHETHER something failed is not the same as one that records WHY — without capturing real output at the point of failure, a Validation Result Ledger degrades into a pass/fail counter with the diagnostic fields permanently empty. Any future recorder-style capability must capture and pass real evidence at the source, not leave it to be filled in later (it never was).",
+        "detection": "scripts/record-validation.ts now WARNs on every FAIL recorded without --evidence (mechanical, not manual) — see governance.sh's run_check(), fixed at the source in the same pass (DNA-000051) to capture real command output and pass it as --evidence automatically."
+      },
+      {
+        "id": "KM-005",
+        "knowledge_id": "DNA-KB-000056",
+        "date": "2026-07-15",
+        "title": "Audit Self Feedback Loop",
+        "what_happened": "registry/VALIDATION_RESULTS.json (an append-only Runtime Validation ledger) was scanned by the same audit tools it was meant to record the results of — Guard 1's grep (Supabase-URL scan) and jscpd (Duplicate Detector) — causing its own past --evidence text to be re-matched and fed back in as new evidence every governance.sh run, growing unboundedly (44 entries/54KB) and inflating the reported clone count 274 -> 300 across two runs in the same audit.",
+        "symptom": [
+          "Clone Count increases every run (274 -> 300 observed)",
+          "Validation ledger (registry/VALIDATION_RESULTS.json) grows continuously (54KB and climbing)",
+          "governance.sh's own pipeline crashes with 'tr: Illegal byte sequence' once evidence text got long enough"
+        ],
+        "root_causes": [
+          "Guard 1's grep scanned *.json broadly with no exclusion for the ledger file it was itself writing to",
+          "jscpd's CLI invocation in governance.sh/dashboard.sh passed explicit directory args that silently overrode .jscpd.json's own format/ignore config, scanning the ledger's JSON content anyway",
+          "(related, separately discovered) tail -c 1800 cut at a raw byte offset, sometimes slicing a multi-byte Thai character in half, which tr then rejected under the default locale"
+        ],
+        "root_cause": "Evidence (a runtime-generated ledger) was treated as Source (scannable audit input) by two different tools, with no isolation boundary between the two — a structural gap, not a one-off typo.",
+        "prevention": [
+          "Exclude the ledger from Guard 1's scan (basename-only exclude pattern — grep's --exclude matches basename, not full relative path)",
+          "Explicitly pass -f/-i flags to jscpd's CLI invocation so it cannot silently diverge from .jscpd.json",
+          "Separate Source Zone and Evidence Zone as a named Constitution concept (Rule 107), not just an ad hoc fix",
+          "Use LC_ALL=C when truncating real command output at a byte offset before piping into tr"
+        ],
+        "verification": [
+          "Clone count stable and correct across repeated real runs (97, not 274/300)",
+          "Ledger growth normal after the fix — 11 clean entries -> 22 after one real governance.sh run, all evidence lengths bounded and matching the first clean run exactly (564/1800/1086/492 chars, no recursion)",
+          "governance.sh completes end to end with zero 'Illegal byte sequence' occurrences",
+          "Evidence Isolation Guard (scripts/check-evidence-isolation.sh) deliberately regressed and confirmed it catches the exact failure mode, then restored"
+        ],
+        "lesson": "A validation/audit system that records its own results must have an explicit, enforced boundary between the files it WRITES (evidence) and the files it READS as input (source) — without that boundary, any tool with a broad enough scan pattern will eventually treat its own output as new input, and the corruption compounds silently until something else (a crash, a suspicious statistic) surfaces it.",
+        "preventive_rule_id": "CONST-107",
+        "detection": "partial mechanical — scripts/check-evidence-isolation.sh (Guard 12) checks the 2 known real violators (Guard 1, jscpd) stay excluded; scripts/verify-environment.sh (Rule 109) checks tool identity before trusting audit results",
+        "detection_note": "Guard 12 is pattern-based and bounded to the known Evidence Zone files and known scan commands — it would not automatically catch a brand-new audit tool added later that also fails to exclude the Evidence Zone; that still relies on Rule 107 being applied by whoever adds it, same honesty pattern as KM-001/102/103."
+      }
+    ],
+    "confirmed_duplicate_pairs": {
+      "note": "Single source of truth for CONFIRMED (not merely name-heuristic) duplicates — used by scripts/check-imports.sh, scripts/build-arch-book.ts, and scripts/sync-registry.ts, each reading this same list rather than hardcoding it separately (the fix for the exact anti-pattern KM-001 describes). Unlike Guard 9's general basename heuristic (which WARNs and has real false positives — see session.ts/timeline.ts, not listed here because they are different domains, not confirmed duplicates), entries here are evidence-verified and safe to enforce as a hard REJECT if their 'deprecated' side gains a new caller.",
+      "pairs": [
+        {
+          "id": "KM-002-line",
+          "keep": "plugins/drivers/line.ts",
+          "deprecated": "plugins/line/line.ts",
+          "reason": "plugins/drivers/line.ts is live (registered via plugins/registerAllDrivers.ts -> core/executor/registry.ts). plugins/line/line.ts has zero real callers and is already marked deprecated:true in module-registry.json. If plugins/line/line.ts ever gains a new real importer, that is either a mistake (someone built on the deprecated side without checking) or a deliberate un-deprecation decision that must update module-registry.json's deprecated field and this entry at the same time — not silently drift.",
+          "root_cause_analysis_2026_07_14_dna_000045": {
+            "policy": "Runtime Root Cause Intelligence pass (MISSION, owner 2026-07-14). Every field below is either real evidence (git log --follow, real caller counts, real registry state) or explicitly marked unknown/unrecoverable — none of it is guessed, per the mission's own 'ห้ามสมมติ ห้ามเดา' rule. Extends this existing entry rather than creating a new registry (Rule 101/103).",
+            "1_problem": "Two structurally different implementations both present themselves as 'the LINE driver': plugins/drivers/line.ts (AppleScript/System-Events UI automation) and plugins/line/line.ts (Node.js wrapper around a compiled native Swift binary). Only one is ever actually invoked by the running application.",
+            "2_file_location": [
+              "plugins/drivers/line.ts",
+              "plugins/line/line.ts"
+            ],
+            "3_duplicate_of": "Each names the other — same responsibility (drive the LINE desktop app), incompatible mechanisms (AppleScript automation vs native binary IPC).",
+            "4_runtime_actually_uses": "plugins/drivers/line.ts — confirmed via plugins/registerAllDrivers.ts's real import list, itself imported by core/executor/init.ts, plugins/executor.ts, plugins/capability-manager.ts (all 3 real, live callers, re-verified this session).",
+            "5_why_the_other_is_unused": "plugins/line/line.ts is never imported by registerAllDrivers.ts or any other real file — confirmed by direct grep, repeated and re-confirmed across DNA-000024, 025, 032, 045. It calls a compiled binary (plugins/line/line-driver) via child_process.execFile instead of being registered through the driver framework.",
+            "6_who_created_it": "RESOLVED with real evidence, corrected from the DNA-000045 UNKNOWN: every relevant commit on 2026-06-26 (bd1bfd5, 04f1f4a — the BaseDriver/V1-V6 lineage that plugins/drivers/line.ts descends from; e81937a, 6dfa6ea, 4bab5b9, 82db91b, 0330229 — the native Swift lineage that plugins/line/line.ts descends from) carries the identical trailer \"Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>\", confirmed by reading each commit's full body via git log --format, not just the title (DNA-000045 only checked git author identity, which is the single human committer account, and stopped there). Real finding: it was the SAME AI agent identity (Claude Sonnet 4.6) that built BOTH competing implementations, not two different, uncoordinated agents. Runtime layers checked for this item: git (commit trailers, full bodies) = data found; CHANGELOG.json/TASK_QUEUE.json/AI_SESSIONS.json/HANDOFF.json = no data (all post-date 2026-06-26 by 9-18 days, confirmed by reading each file in full — AI_SESSIONS.json's earliest entry is 2026-07-05, HANDOFF.json's narrative starts mid-Architecture-Migration in 2026-07-13; structurally cannot contain 2026-06-26 data, not a search failure).",
+            "7_when_created": "RESOLVED with a precise timeline, corrected from DNA-000045's date-only answer: git log --diff-filter=A --format=\"%h %ai %s\" -- '**/*.swift' (a check DNA-000045 did not run — it used git log --follow, whose rename-tracking heuristics skipped 3 intermediate commits) surfaces the true first-added Swift files. Real precise sequence, all 2026-06-26, all times +0700: 08:48:32 bd1bfd5 \"V6 Computer Control Layer: 6-layer architecture\" (establishes the BaseDriver/\"11 App Drivers\" pattern plugins/drivers/line.ts descends from) — then, as a separate later effort: 16:34:31 e81937a \"LINE Desktop Controller: Swift native macOS module\" (true origin of the native lineage, one full commit earlier than anything found in DNA-000045) -> 16:41:54 6dfa6ea \"LINE Controller: Inspector + Selector + Node.js Wrapper\" -> 16:56:58 4bab5b9 \"LINE Driver: rewrite as single-API Native Driver\" -> 17:02:12 82db91b \"Move LINE Driver to lib/drivers/line/\" -> 17:28:53 0330229 \"Driver Framework: shared macOS layer + Driver Protocol + Registry\". The BaseDriver pattern was established in the morning; the native Swift LINE driver was built and iterated on in a focused ~1-hour burst that afternoon, as a parallel, unreconciled effort.",
+            "8_after_which_change": "plugins/line/line.ts: the 'Driver Framework: shared macOS layer + Driver Protocol + Registry' change. plugins/drivers/line.ts: the 'Reorganize to V1-V6 architecture' change (the same reorg CLAUDE.md still references as the origin of the pre-2026-07-06 V1-V6 naming).",
+            "9_after_which_commit": {
+              "plugins/line/line.ts": [
+                "0330229",
+                "82db91b"
+              ],
+              "plugins/drivers/line.ts": [
+                "04f1f4a"
+              ]
+            },
+            "10_after_which_mission": "Still no formal DNA-XXXXXX mission/phase ID exists for 2026-06-26 — structurally confirmed, not a search gap: registry/CHANGELOG.json's own DNA-000001 entry establishes the AI Execution Protocol ledger began 2026-07-07, 11 days after this event; TASK_QUEUE.json has no entry predating this session; no other mission-tracking registry existed at that date. Runtime layers checked: CHANGELOG.json (read in full, structurally cannot predate 2026-07-07), TASK_QUEUE.json (checked, no historical task), HANDOFF.json (read in full, narrative starts 2026-07-13), AI_SESSIONS.json (read in full, earliest entry 2026-07-05) — all four checked and confirmed to have no real data for this date, not merely unsearched. What DOES exist as the real substitute for a formal mission record: the 5-commit sequence itself (e81937a through 0330229) is a coherent, self-documenting unit of work with stated intent in each commit body — real Runtime evidence of what the 'mission' was in substance, even without a DNA-XXXXXX id. No new tooling would surface more than this; the gap is structural (no tracking system existed yet at that date), not a missing capability.",
+            "11_why_ai_created_it": "RESOLVED with real, direct evidence, corrected from DNA-000045's \"unrecoverable\" answer: DNA-000045 only read commit titles; the full commit bodies (not checked before) state the actual design intent directly. e81937a's body: \"No LINE OA. No Webhook. No Selenium. Pure macOS native: Accessibility API + CGEvent + NSWorkspace.\" — the native Swift approach was chosen specifically to avoid depending on LINE's official OA/webhook API entirely, controlling the real desktop app via macOS Accessibility instead. 6dfa6ea's body shows the next iteration was for resilience: \"LINE updates UI -> system finds elements again automatically\" (selector.swift with auto-invalidation). 4bab5b9's body shows a deliberate simplification: \"Replaced 14 scattered files with 4 focused files\" and explicitly reframes it as \"Not a controller that manipulates an app — a Driver that DNA OS talks to,\" then 0330229 generalizes the shared AX/CGEvent/NSWorkspace code into a reusable \"Driver Framework\" explicitly so other apps (\"Adding Chrome/Finder/Maps = write one driver.swift + register\") would not have to duplicate it. Combined with item 6's finding (same AI identity built the competing BaseDriver/TS lineage earlier that same morning), the real, evidenced answer is: the AI was not unaware of the BaseDriver pattern — it built both, the same day, as two genuine engineering approaches to the same problem (AppleScript automation vs native Accessibility control), and the native Swift line only got wired up for LINE specifically before the BaseDriver/TS pattern was adopted as the actual scale-out pattern for the other 10 drivers. Confidence: Medium — the 'why native for LINE specifically' is a direct quote (High), but 'why it was never reconciled with the BaseDriver lineage' remains inferred from commit sequence/timing, not a stated decision (no commit or record says 'do not merge these').",
+            "12_why_existing_system_did_not_find_it": "Mechanically precise, real answer: on 2026-06-26, no duplicate-detection mechanism existed anywhere in this codebase. Guard 9 (basename collision) and confirmed_duplicate_pairs (this very structure) were built in DNA-000026/027, on 2026-07-14 — 18 days later. It is not that a check failed; no check existed yet.",
+            "13_which_registry_answered_wrong": "None. registry/module-registry.json already correctly had plugins/line/line.ts marked deprecated:true before this session started (confirmed in DNA-000024's own investigation). The registry was accurate; nothing had ever cross-referenced it against drivers.json until DNA-000024.",
+            "14_where_discovery_layer_failed": "N/A for the same reason as #12 — there was no Discovery Layer at creation time for this to fail at.",
+            "15_capability_that_should_have_found_it": "Guard 9 (scripts/pre-commit-check.sh) — the general basename-collision check — would catch this today; it did not exist in 2026-06-26.",
+            "16_guard_that_should_have_prevented_it": "Same as #15 — Guard 9/10 now would; neither existed at creation time. This is a timeline gap, not a guard defect.",
+            "17_blast_radius_if_fixed_at_root": "Fixing drivers.json's 'line' entry (this pass) resolves the one remaining real inconsistency this specific duplicate produced. It does not delete or change plugins/line/line.ts, plugins/macos/*.swift (8 files), or plugins/line/{main.swift,driver.swift,build.sh} — those remain real, orphaned-but-preserved assets per Rule 104, unaffected by this fix.",
+            "18_will_it_recur": "No, not in this specific form — Guard 9 would WARN on a 3rd 'line.ts', and check-imports.sh's confirmed_duplicate_pairs enforcement would REJECT any new real import of plugins/line/line.ts specifically (verified working in DNA-000027/039). Residual risk: other undiscovered pairs from the pre-2026-07-14 era (before any guard existed) may still exist unflagged — this fix does not sweep for those.",
+            "19_long_term_prevention": "Already real and active: Guard 9 (WARN on basename collision), Guard 10 (REJECT on archived-mistake recreation), confirmed_duplicate_pairs (REJECT on confirmed-pair violation). The one remaining real gap is a one-time historical sweep for other pre-Guard-9 duplicates — not a new ongoing rule, a bounded audit task.",
+            "20_final_report": {
+              "problem": "registry/drivers.json's 'line' entry pointed at the deprecated, unused implementation's binary path instead of the live, registered one.",
+              "root_cause": "Two LINE driver implementations were built the same day (2026-06-26) before any duplicate-detection existed; the registry entry was never reconciled against which one actually got wired into plugins/registerAllDrivers.ts.",
+              "impact": "Low severity, real: anyone reading drivers.json to find 'how does DNA OS control LINE' would be pointed at dead code. No runtime failure, since drivers.json is documentation/registry data, not itself executed to dispatch calls.",
+              "canonical_module": "plugins/drivers/line.ts",
+              "decision": "REDIRECT — updated drivers.json's 'line' entry to point at the canonical module. Did NOT delete plugins/line/line.ts or its Swift sources; they remain ARCHIVED per Rule 104, knowledge already on record via this entry and AK-style reasoning.",
+              "knowledge_added": "This entire root_cause_analysis object — the first time this session a duplicate-pair entry has been extended with full git-history evidence rather than just current-state evidence.",
+              "prevention": "Already covered by Guard 9/10 and confirmed_duplicate_pairs going forward; no new mechanism built this pass, per the mission's explicit 'ห้ามสร้าง Feature/Rule/Registry ใหม่.'",
+              "confidence": "High for items 1-6, 12-19 (direct evidence: grep, real registry state, real guard test results, git commit trailers/bodies). High for item 7 (precise timestamped sequence from git log --diff-filter=A). Medium for item 11 (direct quoted design intent for the native-vs-OA choice; inferred, not directly stated, for why the two lineages were never reconciled). Structural/explained-absence, not unknown, for item 10 (no DNA-XXXXXX mission record can exist pre-2026-07-07; verified across CHANGELOG.json, TASK_QUEUE.json, HANDOFF.json, AI_SESSIONS.json).",
+              "evidence": "git log --follow -- plugins/drivers/line.ts and plugins/line/line.ts (real commit hashes/dates/messages, captured above); git show 70b2a61 --stat (confirmed neither .ts file's content changed in that squash commit, only a binary); direct grep for real importers of both files; registry/module-registry.json's existing deprecated:true field; DNA-000024 through DNA-000045's accumulated findings.; DNA-000048 (redefined-Evidence pass): git log --format=\"%h %ai %s%n%b\" for e81937a/6dfa6ea/4bab5b9/82db91b/0330229/bd1bfd5/04f1f4a (full commit bodies, not just titles) and git log --diff-filter=A --format=\"%h %ai %s\" -- '**/*.swift' (surfaced 3 commits git log --follow missed); registry/HANDOFF.json and registry/AI_SESSIONS.json read in full and confirmed structurally absent for 2026-06-26."
+            },
+            "evidence_redefinition_2026_07_14_dna_000048": "Owner correction: Evidence is not limited to git history — any Runtime layer that can prove a relationship counts (Runtime State, Registry, Dependency/Import/Execution/Event Graph, Workflow, Runtime Trace, Validation Result, Health Report, Module Relationship, Architecture Graph, Existing Knowledge, CHANGELOG, Owner Request, Task Queue, Runtime Report). Never say insufficient evidence until every layer is checked; when still unresolved, state which layers were checked, which were not, which have no real data, and which need new tooling."
+          }
+        }
+      ]
     }
   },
-
+  "owner_requests": {
+    "policy": "Item 4 of the owner's 'Self-Governance & Runtime Immune System' mission (2026-07-14, DNA-000034): the Runtime should declare what it's missing instead of waiting for AI to guess. Deliberately NOT a static hand-written list — every entry below must cite exactly which real, re-runnable source produced it, so this stays honest rather than becoming a second copy of data that can drift (the same anti-pattern just fixed in DNA-000033's KM-003). Currently populated by hand from that source's last known output; a live-computed version (re-deriving this on every scripts/hello.ts run instead of storing it) was the more mechanically-honest option but was not built this pass — noted in evidence_note below, not hidden.",
+    "requests": [
+      {
+        "id": "OR-001",
+        "category": "Missing Runtime",
+        "reason": "generateDoc (the Document Engine, business.engine.generateDoc) is a registered Capability but has no Executor/Driver step connecting it to the Capability -> Composer -> Planner -> Orchestrator chain built in Phase 7 of this session.",
+        "evidence": "engines/documents/selfDescription.ts's describeDocumentEngine().missing field, computed live from registry/capability-registry.json + this session's own RUNTIME_WIRING_REPORT.md (Phase 2.7) finding that NONE of the 202 registered Capabilities have an Executor/Driver step — this is one specific, concrete instance of that system-wide finding, not a new discovery.",
+        "evidence_note": "Re-verify by running: node -e requiring engines/documents/selfDescription.ts's describeDocumentEngine() and reading .missing — or by re-reading RUNTIME_WIRING_REPORT.md directly. This entry is a snapshot, not a live query; if the Capability Runtime chain is ever built, this entry must be marked resolved, not left stale.",
+        "priority": "medium",
+        "impact": "generateDoc works today via 13 real direct callers (a working, different path) — this is not blocking any real feature. It means the Capability Registry's Composer/Planner/Orchestrator investment (Phase 0-7.7) cannot yet compose or schedule this capability the way it was designed to.",
+        "suggested_resolution": "Build the missing Runtime/Executor layer connecting core/workspace/orchestrator/runtimeOrchestrator.ts's completeCapability() to a real function call — flagged as the central architectural gap in both ARCHITECTURE_INTEGRATION_PLAN.md (Phase 2.6) and RUNTIME_WIRING_REPORT.md (Phase 2.7), not solved by this entry.",
+        "owner_approval_required": true,
+        "status": "open",
+        "runtime_task_ref": "TASK-032"
+      }
+    ]
+  },
+  "archived_knowledge": {
+    "policy": "Rule 104 (Nothing Is Wasted, CONST-104, DNA-000037) implementation pass (DNA-000038). Every entry below is real knowledge extracted from actually reading the file and its real callers/successors — none of this was guessed. This is the Runtime Knowledge Registry item 7 of the mission calls for; item 8 (mark source as Archived Knowledge instead of Unknown) is reflected in registry/module-registry.json's archival_status field for each of these 4 files, pointing back here. None of these 4 files have been deleted — they remain on disk, unchanged, exactly as Rule 104 requires (extract knowledge BEFORE any deletion, and none has been authorized).",
+    "entries": [
+      {
+        "id": "AK-001",
+        "file": "supabase/functions/line-webhook-v2/helpers.ts",
+        "lifecycle_state": "ARCHIVED",
+        "architectural_knowledge": "A Deno Edge Function helper module (9 exports: ConversationState, getOrInitState, updateConversationState, extractEntities, saveEntitiesToRegistry, executeBusinessValidation, checkBusinessQualification, extractStructuredEntitiesWithGemini, resolveAddressToCoordinates) implementing a full stateful conversation-flow architecture: a conversation_states table row per LINE user, regex-based Thai NLU for intent/entity detection (material, quantity, vehicle type, concrete grade, tax ID, destination, contact info), a 2-level business validation gate (field-completeness, then business qualification), and a Gemini API fallback for structured extraction and geocoding.",
+        "business_knowledge": "Built to let a customer request a concrete/aggregate quote entirely through LINE chat, tracking a multi-turn conversation until enough fields were captured to price and qualify the order — matches this project's real business domain (ready-mix concrete / aggregate logistics dispatch via LINE, confirmed via the Thai regex vocabulary: ดินถม/ทรายหยาบ/หินคลุก/เหล็กข้ออ้อย, vehicle types 6-wheeler/10-wheeler/trailer, ksc concrete grades).",
+        "dependency_relationships": "Imports @/../_shared/haversine.ts (distance calc) and reads/writes real Supabase tables: conversation_states, entity_registry, material_types, pit_materials, pit_profiles, app_configs. Zero real importers anywhere in the codebase — confirmed via grep including within its own directory (supabase/functions/line-webhook-v2/index.ts and every handlers/*.ts file), not just a repo-wide check.",
+        "runtime_behavior": "Was designed to run inside the line-webhook-v2 Edge Function on every inbound LINE text/location message, mutating conversation_states and returning a Thai-language prompt for whatever field was still missing, escalating to a live price estimate once material+location+quantity were known.",
+        "replacement_successor": "supabase/functions/line-webhook-v2/handlers/text.ts (the real, live text-message handler) uses a completely different architecture instead: ResponseGateway (engines/response.ts) + tryRouteToTool (engines/tool-router.ts) + tryCompleteAwaitingEvent (engines/event-followup.ts) + tryAutoBuildEvent (engines/auto-build-event.ts) + tryFollowUpDebtAck (engines/debt-followup.ts) — none of which reference conversation_states, ConversationState, or extractEntities. This is a real, confirmed architectural replacement, not a guess.",
+        "failure_reason": "Not a bug or a mistake — a superseded design. The regex-based intent/entity/state-machine approach was replaced by a tool-routing + event-building architecture at some point before this session; the old file was simply never deleted after the new handlers/text.ts wiring landed.",
+        "lessons_learned": "A full, working, non-trivial feature (multi-turn conversational quoting) can go completely dark with zero errors or warnings when its caller is quietly rewired to a different architecture — nothing in this codebase's tooling would have caught this without the file-by-file reading done for this Rule 104 pass. Reinforces Rule 104's own premise: orphaned code needs active knowledge extraction, not just a status flag.",
+        "historical_references": "Tracked as an UNUSED orphan since DNA-000018/PHASE_2_3B_COMPLETION.md; re-confirmed in every subsequent architecture audit through DNA-000036 without this level of detail being extracted until now."
+      },
+      {
+        "id": "AK-002",
+        "file": "engines/impact/engine.ts",
+        "lifecycle_state": "ARCHIVED",
+        "architectural_knowledge": "A small, self-contained engine (4 exports: ImpactCard, getFinancialImpact, getOperationalImpact, getBusinessImpact) that computes 'business impact cards' — short Thai-language summaries with a severity level (low/medium/high) — from two real data sources.",
+        "business_knowledge": "getFinancialImpact summarizes total outstanding debt and overdue-count from debt_trackings; getOperationalImpact summarizes job counts by status (SUSPENDED/IN_PROGRESS/PENDING_REVIEW) from jobs. Correctly follows this project's 'no hardcode, no data = no card' rule (explicit in its own file header comment) — a real, well-built piece of business logic.",
+        "dependency_relationships": "Imports getDebtTrackings/getJobs (services/supabase/queries.ts), calcDebtTrackingSummary (engines/debt/tracking.ts), round (core/shared/types.ts) — all real, all still live. Zero real importers of engine.ts itself anywhere in app/ or components/, confirmed via grep for ImpactCard/getBusinessImpact.",
+        "runtime_behavior": "Would compute 2 real-time summary cards (financial + operational) if called — the calculation logic itself is correct and would work today if wired to a real caller.",
+        "replacement_successor": "None found. Unlike AK-001, no successor or replacement pattern exists anywhere in the codebase for 'business impact cards' — this looks like a built-but-never-integrated feature (likely meant to feed a dashboard widget that either was never built or was descoped), not a case of one implementation replacing another.",
+        "failure_reason": "Not a bug and not superseded — built ahead of its UI consumer, and the consumer was apparently never built or was cut. No evidence either way; not guessed.",
+        "lessons_learned": "Confirms Rule 103's 'Reuse Before Build' has a real target here: if a future 'business impact summary' feature is ever requested, this file should be the first thing checked (EXISTING/EXTEND), not rebuilt from scratch — it's real, correct, and ready to wire in.",
+        "historical_references": "Tracked as an UNUSED orphan since DNA-000018/PHASE_2_3B_COMPLETION.md; same status through DNA-000036."
+      },
+      {
+        "id": "AK-003",
+        "file": "core/auth/index.ts",
+        "lifecycle_state": "ARCHIVED",
+        "architectural_knowledge": "A barrel/re-export file for core/auth/ — re-exports requireAuth, requireAuthPage, getAuthedUser, getAccessToken, ADMIN_TIER, SUPER_ADMIN_ONLY, ANY_AUTHENTICATED, AppRole, AuthedUser from the 3 real sibling files (requireAuth.ts, requireAuthPage.ts, session.ts).",
+        "business_knowledge": "No business logic of its own — a pure convenience/aggregation file, the standard 'index.ts barrel' pattern.",
+        "dependency_relationships": "Imports from core/auth/requireAuth.ts, requireAuthPage.ts, session.ts — all 3 real, live, heavily used elsewhere. Zero real importers of index.ts itself: every real caller in this codebase imports the specific submodule directly (e.g. `from \"@/core/auth/requireAuth\"`, `from \"@/core/auth/session\"`), confirmed as the consistent pattern across dozens of files read this session.",
+        "runtime_behavior": "N/A — a barrel file has no behavior of its own beyond re-exporting.",
+        "replacement_successor": "Not replaced — the rest of the codebase simply never adopted the `@/core/auth` barrel-import convention this file offers; direct submodule imports won out as the real, live convention instead.",
+        "failure_reason": "Not a bug, not superseded, not built-ahead-of-consumer — a convention that was offered but never adopted. The barrel still works correctly if imported; nothing about it is broken.",
+        "lessons_learned": "A real, low-risk example of Rule 101/103's 'no duplicate' principle in a different form: this isn't a duplicate module, but it IS a second, unused way to reach the same exports — worth noting that 'unused' doesn't always mean 'broken or superseded,' sometimes it means 'a convention nobody adopted,' which has a different, lower-priority resolution (safe to delete once knowledge is extracted, per this very entry) than a genuinely orphaned feature like AK-001/AK-002.",
+        "historical_references": "Tracked as an UNUSED orphan since DNA-000018/PHASE_2_3B_COMPLETION.md; same status through DNA-000036."
+      },
+      {
+        "id": "AK-004",
+        "file": "components/admin/AdminSidebarNav.tsx",
+        "lifecycle_state": "ARCHIVED",
+        "architectural_knowledge": "A 129-line client component rendering the /admin sidebar navigation, resolving icon names to lucide-react components client-side (explicitly to work around a real 'Functions cannot be passed directly to Client Components' 500 error, per its own code comment) and including a custom-drawn LINE chat-bubble icon.",
+        "business_knowledge": "Pure navigation/UI — the admin panel's sidebar for a Thai concrete/aggregate logistics ERP, grouping links under things like 'ลูกค้า LINE'.",
+        "dependency_relationships": "Imports LogoutButton (components/auth/LogoutButton.tsx, still real/live) and lucide-react icons. Its own module-registry.json purpose field says it exists 'so the layout itself can be a Server Component doing the TASK-001 role check' — confirming it was built specifically for app/admin/layout.tsx.",
+        "runtime_behavior": "Would render a working sidebar nav if mounted — the component itself is not broken.",
+        "replacement_successor": "app/admin/layout.tsx (read directly) now imports resolveNavItems (core/navigation/resolveNavItems.ts) and WorkspaceShell (components/workspace/WorkspaceShell.tsx) instead — real, confirmed replacement, built during this session's own EWA program (Enterprise Workspace Architecture, see registry/GOVERNANCE_REGISTRY.json programs.EWA) to unify navigation across the User/Partner/Business/Admin portals under one shell rather than one bespoke sidebar per portal.",
+        "failure_reason": "Not a bug — a real, deliberate architectural replacement (EWA), same class of finding as AK-001 but with an even more precisely documented successor (a named program in this project's own governance registry).",
+        "lessons_learned": "This is the cleanest of the 4 cases: real replacement, real program name, real committed rationale (unify Admin's nav with User/Partner/Business under one shell). Directly supports marking this ARCHIVED rather than merely UNUSED — its story is fully known, not a mystery.",
+        "historical_references": "Tracked as an UNUSED orphan since DNA-000018/PHASE_2_3B_COMPLETION.md; the EWA replacement itself was recorded in registry/CHANGELOG.json DNA-000022 (Governance Reconciliation) but never previously cross-referenced back to this specific file's orphan status until now."
+      },
+      {
+        "id": "AK-005",
+        "file": "plugins/platform/mac/{accessibility,app-executor,applescript,mac-platform,permissions,shortcuts,url-schemes,window-executor}.ts",
+        "lifecycle_state": "ARCHIVED",
+        "architectural_knowledge": "8 files, real macOS Platform Layer (git: '14 Actions + 7 Executors + 3 Registries', 2026-06-26 14:47) — a full accessibility/AppleScript/window-management abstraction layer, built the same day as, but AFTER, the BaseDriver pattern (bd1bfd5, 08:48) that plugins/drivers/*.ts actually uses in production today.",
+        "business_knowledge": "Would have provided generic macOS app control (accessibility tree reading, AppleScript execution, window management, URL scheme handling, keyboard shortcuts, permission checks) as a reusable layer under any driver.",
+        "dependency_relationships": "Zero real importers anywhere in app/, components/, or plugins/drivers/*.ts — confirmed via precise import-path grep (`from \"@/plugins/platform/mac/...\"`), not basename matching.",
+        "runtime_behavior": "Never wired into any real driver — plugins/drivers/*.ts (the live pattern, 11 real drivers) each implement their own AppleScript calls directly via plugins/runtime/shell.ts instead.",
+        "replacement_successor": "plugins/drivers/base.ts + plugins/runtime/shell.ts — the pattern that was actually adopted and shipped, same day, same reasoning shape as KM-002-line (two competing approaches built the same day, one became canonical).",
+        "failure_reason": "Superseded before integration — the BaseDriver/shell.ts pattern (built earlier the same morning) became the real architecture; this broader, more abstract platform layer was never connected to it.",
+        "lessons_learned": "Same lesson as KM-002-line: when two architectural approaches are built the same day, the simpler one that gets a real caller first tends to become canonical. Confirmed real, working code — not broken — just unintegrated.",
+        "historical_references": "Flagged as dead by npx knip (42 unused files) during TASK-036 (registry/CHANGELOG.json DNA-000067), traced back via git log --follow."
+      },
+      {
+        "id": "AK-006",
+        "file": "presenter/index.ts, presenter/ranker.ts",
+        "lifecycle_state": "ARCHIVED",
+        "architectural_knowledge": "presenter/index.ts is a barrel re-export (enricher/explainer/formatter/ranker). presenter/ranker.ts is a real, complete ranking engine (RankPolicy: distance/price_asc/price_desc/name/material_match) operating on EnrichedRecord.",
+        "business_knowledge": "Would rank search/query results by distance, price, name, or material match — a real, plausible feature for ranking pit/material search results.",
+        "dependency_relationships": "presenter/enricher.ts, explainer.ts, formatter.ts ARE live (imported directly by other files, confirmed separately) — only the barrel (index.ts) and ranker.ts itself have zero real importers.",
+        "runtime_behavior": "Would rank a real EnrichedRecord[] array if called — logic appears complete, just never wired to a real query/search flow.",
+        "replacement_successor": "None found — no other ranking implementation exists in this codebase.",
+        "failure_reason": "Built ahead of its caller, same shape as AK-002 (engines/impact/engine.ts) — no evidence of why it was never wired, not guessed.",
+        "lessons_learned": "Same Rule 103 target as AK-002: if a future 'rank these results' feature is requested, check here first.",
+        "historical_references": "Flagged as dead by npx knip during TASK-036 (DNA-000067)."
+      },
+      {
+        "id": "AK-007",
+        "file": "services/ai/translator.ts",
+        "lifecycle_state": "ARCHIVED",
+        "architectural_knowledge": "A real, designed Thai-language NLU layer — 'แปลภาษาไทย → Intent + Entity → JSON Command' (e.g. 'สั่งหิน 30 คิว' -> {intent: CREATE_ORDER, entities: {product, quantity, unit}}), explicitly documented as translate-only (no data creation/calculation/decision).",
+        "business_knowledge": "Would be the real entry point for parsing natural-language Thai orders into structured commands — directly relevant to this project's core LINE-bot ordering flow.",
+        "dependency_relationships": "Zero real importers confirmed via precise import-path grep. services/ai/bridge-openai.ts (a different, live file) appears to be the real AI-bridge path actually in use.",
+        "runtime_behavior": "Not connected to any real request path — cannot be exercised without a caller.",
+        "replacement_successor": "Likely services/ai/bridge-openai.ts + whatever cognitive/ pipeline actually parses real LINE messages today, though this was not exhaustively traced.",
+        "failure_reason": "Not established with certainty — plausibly an earlier or parallel design for NLU that was superseded by the bridge-openai.ts + cognitive pipeline path. Stated as uncertain, not guessed as fact.",
+        "lessons_learned": "Before building any new Thai-NLU translation logic, check this file and services/ai/bridge-openai.ts first (Rule 103).",
+        "historical_references": "Flagged as dead by npx knip during TASK-036 (DNA-000067)."
+      },
+      {
+        "id": "AK-008",
+        "file": "cognitive/intent/index.ts, cognitive/knowledge/index.ts, cognitive/priority/index.ts",
+        "lifecycle_state": "ARCHIVED",
+        "architectural_knowledge": "3 identical-shaped placeholder stub files — each contains only a doc comment and an empty `export {}` (e.g. '/** Intent — รับรู้ภาษามนุษย์ แปลเป็น canonical intent */ export { /* Operating Intent + Intent Catalog จะอยู่ที่นี่ */ };'). Never implemented — not broken code, literally never-filled scaffolding.",
+        "business_knowledge": "Would have been: Intent Catalog (canonical intent recognition), Domain Knowledge/Business Rules/Vocabulary, and a Priority Engine for ranking hypotheses — real cognitive-pipeline concepts named in this project's architecture, just never built out.",
+        "dependency_relationships": "Zero real importers, zero real exports (both empty export{} blocks) — confirmed.",
+        "runtime_behavior": "No behavior — empty modules.",
+        "replacement_successor": "Unknown whether these concepts were built elsewhere under different names (e.g. inside cognitive/executor/ or cognitive/reasoning/) — not exhaustively traced, stated honestly rather than guessed.",
+        "failure_reason": "Never implemented — scaffolding placeholders from early cognitive/ pipeline design, not a failure or supersession.",
+        "lessons_learned": "Distinct from AK-002/006/007 (real, complete, unwired code) — these are genuinely empty placeholders. Safe to archive with no functional loss.",
+        "historical_references": "Flagged as dead by npx knip during TASK-036 (DNA-000067)."
+      },
+      {
+        "id": "AK-009",
+        "file": "components/workspace/WorkspaceContext.tsx",
+        "lifecycle_state": "ARCHIVED",
+        "architectural_knowledge": "A real React Context (\"use client\") wrapping core/workspace's screenController, documented in its own comment as 'Phase 0 (architecture foundation)' formalizing the user/auth identity every /admin, /business, /partner, /user layout already handles separately.",
+        "business_knowledge": "Would have provided one shared, context-based way to access workspace/auth identity across layouts, instead of each layout resolving it independently.",
+        "dependency_relationships": "Zero real importers confirmed via precise import-path grep — the layouts it was meant to unify (app/admin/layout.tsx etc.) each still resolve identity their own way.",
+        "runtime_behavior": "Not mounted anywhere — a Provider with no real consumer.",
+        "replacement_successor": "None found — each layout's own auth-resolution path remains the real, live pattern.",
+        "failure_reason": "Built as Phase 0 foundation for a unification that was never completed across the layouts — no evidence of why, not guessed.",
+        "lessons_learned": "If workspace-identity unification across layouts is requested again, check this file first (Rule 103) before rebuilding.",
+        "historical_references": "Flagged as dead by npx knip during TASK-036 (DNA-000067)."
+      },
+      {
+        "id": "AK-010",
+        "file": "services/supabase/realtime.ts",
+        "lifecycle_state": "ARCHIVED",
+        "architectural_knowledge": "A Supabase Realtime subscription helper specifically for payment row changes (imports supabase client from ./queries, types a PaymentRow, subscribes via postgres_changes).",
+        "business_knowledge": "Would push live payment-status updates to a real-time UI subscriber instead of requiring polling/refresh.",
+        "dependency_relationships": "Zero real importers confirmed via precise import-path grep — a prior loose grep match on the word realtime in engines/debt/scheduler.ts was a code COMMENT, not a real import, corrected before archiving.",
+        "runtime_behavior": "Would establish a real Supabase Realtime channel if called — never wired to a UI component.",
+        "replacement_successor": "None found — no other realtime subscription exists in this codebase; payment updates are presumably handled via polling/refresh today.",
+        "failure_reason": "Built ahead of its UI consumer, same shape as AK-002/006/007 — no evidence of why it was never wired.",
+        "lessons_learned": "If real-time payment updates are requested again, check this file first (Rule 103).",
+        "historical_references": "Flagged as dead by npx knip during TASK-036 (DNA-000067)."
+      },
+      {
+        "id": "AK-011",
+        "file": "services/ai/bridge-local.ts, services/ai/bridge-openai.ts",
+        "lifecycle_state": "ARCHIVED",
+        "architectural_knowledge": "A real V4 AI Bridge pair — bridge-openai.ts uses GPT to translate human language into a JSON command (always preview mode, never writes/executes/decides), bridge-local.ts defines the shared BridgeCommand/BridgeResult types it imports.",
+        "business_knowledge": "Same conceptual role as services/ai/translator.ts (AK-007) — natural-language-to-command translation — but a separate, OpenAI-specific implementation.",
+        "dependency_relationships": "Zero real importers of either file confirmed via precise import-path grep — 2 earlier apparent matches (core/runtime/existence-intelligence.ts, engines/events/event-builder.ts) were a string literal and a code comment mentioning the filename, not real imports.",
+        "runtime_behavior": "Would call the real OpenAI API if invoked — never wired to a real request path.",
+        "replacement_successor": "Unclear whether services/ai/translator.ts (AK-007) or a live cognitive/ pipeline path superseded this V4-era bridge — not exhaustively traced, stated honestly.",
+        "failure_reason": "Likely superseded by a later architecture generation (V4 naming in its own header suggests an earlier iteration) — not established with certainty.",
+        "lessons_learned": "A 3rd real, unwired NLU/translation attempt in this codebase (with AK-007 and the cognitive/intent stub in AK-008) — if this capability is requested again, all 3 should be reviewed together under Rule 103, not just one.",
+        "historical_references": "Flagged as dead by npx knip during TASK-036 (DNA-000067)."
+      }
+    ]
+  },
+  "capabilities": {
+    "vision": {
+      "status": "available",
+      "interfaces": [
+        "macOS Screenshot",
+        "Browser Canvas",
+        "LINE Image"
+      ],
+      "used_by": [
+        "chat.read",
+        "chat.summarize"
+      ]
+    },
+    "gps": {
+      "status": "available",
+      "interfaces": [
+        "Google Maps API",
+        "Browser Geolocation",
+        "Vehicle GPS"
+      ],
+      "used_by": [
+        "calc.distance",
+        "scout-map"
+      ]
+    },
+    "voice": {
+      "status": "not_available",
+      "interfaces": [],
+      "used_by": [],
+      "gap": "ยังไม่มี Voice Input/Output"
+    },
+    "camera": {
+      "status": "not_available",
+      "interfaces": [],
+      "used_by": [],
+      "gap": "ยังไม่มี Camera API"
+    },
+    "messaging": {
+      "status": "available",
+      "interfaces": [
+        "LINE Messaging API",
+        "LINE Notify",
+        "Email SMTP"
+      ],
+      "used_by": [
+        "line.send",
+        "email.send"
+      ]
+    },
+    "payment": {
+      "status": "partial",
+      "interfaces": [
+        "Manual via invoice_payments"
+      ],
+      "used_by": [
+        "payment"
+      ],
+      "gap": "ยังไม่มี auto payment gateway"
+    },
+    "printer": {
+      "status": "available",
+      "interfaces": [
+        "macOS Print Dialog",
+        "PDF Export"
+      ],
+      "used_by": [
+        "doc.generate"
+      ]
+    },
+    "sensor": {
+      "status": "partial",
+      "interfaces": [
+        "KIS Webhook (IoT)"
+      ],
+      "used_by": [
+        "kis-webhook"
+      ],
+      "gap": "รับ event ได้ แต่ยังไม่ส่งคำสั่งกลับ"
+    },
+    "database": {
+      "status": "available",
+      "interfaces": [
+        "Supabase PostgreSQL",
+        "Supabase Realtime"
+      ],
+      "used_by": [
+        "*"
+      ]
+    },
+    "ai_text": {
+      "status": "available",
+      "interfaces": [
+        "OpenAI GPT",
+        "Google Gemini",
+        "Local Keyword Match"
+      ],
+      "used_by": [
+        "ai.translate",
+        "line-webhook"
+      ]
+    },
+    "file_system": {
+      "status": "available",
+      "interfaces": [
+        "macOS Finder",
+        "Node.js fs"
+      ],
+      "used_by": [
+        "plugins/drivers/finder"
+      ]
+    },
+    "terminal": {
+      "status": "available",
+      "interfaces": [
+        "macOS Terminal",
+        "zsh"
+      ],
+      "used_by": [
+        "plugins/drivers/terminal"
+      ]
+    },
+    "browser": {
+      "status": "available",
+      "interfaces": [
+        "Google Chrome",
+        "Safari"
+      ],
+      "used_by": [
+        "plugins/drivers/chrome"
+      ]
+    },
+    "calendar": {
+      "status": "available",
+      "interfaces": [
+        "macOS Calendar"
+      ],
+      "used_by": [
+        "plugins/drivers/calendar"
+      ]
+    },
+    "plc": {
+      "status": "not_available",
+      "interfaces": [],
+      "used_by": [],
+      "gap": "ยังไม่มี PLC/Modbus/OPC-UA"
+    },
+    "mqtt": {
+      "status": "not_available",
+      "interfaces": [],
+      "used_by": [],
+      "gap": "ยังไม่มี MQTT broker"
+    },
+    "robot_arm": {
+      "status": "not_available",
+      "interfaces": [],
+      "used_by": [],
+      "gap": "ยังไม่มี Robot Controller"
+    }
+  },
+  "environment": {
+    "current": "macOS",
+    "supported": [
+      "macOS",
+      "Browser",
+      "Supabase Edge (Deno)"
+    ],
+    "planned": [
+      "Android",
+      "iOS",
+      "Linux Server",
+      "Windows"
+    ],
+    "not_supported": [
+      "PLC",
+      "Embedded",
+      "Robot"
+    ],
+    "constraints": {
+      "macOS": [
+        "AppleScript",
+        "Accessibility API",
+        "URL Schemes"
+      ],
+      "Browser": [
+        "No file system",
+        "No native API",
+        "Sandbox only"
+      ],
+      "Supabase Edge": [
+        "Deno runtime",
+        "No persistent state",
+        "300s timeout"
+      ]
+    }
+  },
   "goals": {
-    "increase_revenue":  { "label": "เพิ่มยอดขาย", "workflows": ["calc.price", "doc.generate", "line.copilot"], "metrics": ["selling_price", "quote_count"] },
-    "reduce_cost":       { "label": "ลดต้นทุน", "workflows": ["calc.distance", "calc.price"], "metrics": ["fuel_cost", "driver_wage", "total_cost"] },
-    "collect_debt":      { "label": "เก็บหนี้", "workflows": ["db.search_debt"], "metrics": ["outstanding_amount", "collection_rate"] },
-    "reduce_time":       { "label": "ลดเวลา", "workflows": ["line.copilot", "doc.generate"], "metrics": ["response_time", "automation_rate"] },
-    "improve_sla":       { "label": "เพิ่ม SLA", "workflows": ["system.status"], "metrics": ["uptime", "error_rate"] },
-    "expand_coverage":   { "label": "ขยายพื้นที่", "workflows": ["scout-map", "calc.distance"], "metrics": ["partner_count", "coverage_radius"] }
+    "increase_revenue": {
+      "label": "เพิ่มยอดขาย",
+      "workflows": [
+        "calc.price",
+        "doc.generate",
+        "line.copilot"
+      ],
+      "metrics": [
+        "selling_price",
+        "quote_count"
+      ]
+    },
+    "reduce_cost": {
+      "label": "ลดต้นทุน",
+      "workflows": [
+        "calc.distance",
+        "calc.price"
+      ],
+      "metrics": [
+        "fuel_cost",
+        "driver_wage",
+        "total_cost"
+      ]
+    },
+    "collect_debt": {
+      "label": "เก็บหนี้",
+      "workflows": [
+        "db.search_debt"
+      ],
+      "metrics": [
+        "outstanding_amount",
+        "collection_rate"
+      ]
+    },
+    "reduce_time": {
+      "label": "ลดเวลา",
+      "workflows": [
+        "line.copilot",
+        "doc.generate"
+      ],
+      "metrics": [
+        "response_time",
+        "automation_rate"
+      ]
+    },
+    "improve_sla": {
+      "label": "เพิ่ม SLA",
+      "workflows": [
+        "system.status"
+      ],
+      "metrics": [
+        "uptime",
+        "error_rate"
+      ]
+    },
+    "expand_coverage": {
+      "label": "ขยายพื้นที่",
+      "workflows": [
+        "scout-map",
+        "calc.distance"
+      ],
+      "metrics": [
+        "partner_count",
+        "coverage_radius"
+      ]
+    }
   },
-
   "missing_knowledge": [
-    { "domain": "กฎหมาย", "item": "การประมูลภาครัฐ (e-Bidding)", "impact": "ยังรับงานภาครัฐไม่ได้" },
-    { "domain": "กฎหมาย", "item": "BOI สิทธิประโยชน์การลงทุน", "impact": "ยังไม่คำนวณภาษี BOI ได้" },
-    { "domain": "กฎหมาย", "item": "กฎหมายแรงงาน / ค่าแรงขั้นต่ำ", "impact": "ยังไม่ตรวจ compliance แรงงาน" },
-    { "domain": "มาตรฐาน", "item": "ISO 9001 Quality Management", "impact": "ยังไม่มี quality checklist" },
-    { "domain": "มาตรฐาน", "item": "มอก. วัสดุก่อสร้าง", "impact": "ยังไม่ตรวจคุณภาพวัสดุ" },
-    { "domain": "การเงิน", "item": "สินเชื่อ / วงเงินลูกค้า", "impact": "ยังไม่มี credit limit check" },
-    { "domain": "การเงิน", "item": "การจัดทำงบการเงิน", "impact": "ยังไม่สร้าง financial statements" },
-    { "domain": "โลจิสติกส์", "item": "Route Optimization", "impact": "ยังเลือกเส้นทางตามระยะทางเท่านั้น ไม่คำนึงจราจร" },
-    { "domain": "โลจิสติกส์", "item": "Fleet Management", "impact": "ยังไม่จัดคิวรถอัตโนมัติ" }
+    {
+      "domain": "กฎหมาย",
+      "item": "การประมูลภาครัฐ (e-Bidding)",
+      "impact": "ยังรับงานภาครัฐไม่ได้"
+    },
+    {
+      "domain": "กฎหมาย",
+      "item": "BOI สิทธิประโยชน์การลงทุน",
+      "impact": "ยังไม่คำนวณภาษี BOI ได้"
+    },
+    {
+      "domain": "กฎหมาย",
+      "item": "กฎหมายแรงงาน / ค่าแรงขั้นต่ำ",
+      "impact": "ยังไม่ตรวจ compliance แรงงาน"
+    },
+    {
+      "domain": "มาตรฐาน",
+      "item": "ISO 9001 Quality Management",
+      "impact": "ยังไม่มี quality checklist"
+    },
+    {
+      "domain": "มาตรฐาน",
+      "item": "มอก. วัสดุก่อสร้าง",
+      "impact": "ยังไม่ตรวจคุณภาพวัสดุ"
+    },
+    {
+      "domain": "การเงิน",
+      "item": "สินเชื่อ / วงเงินลูกค้า",
+      "impact": "ยังไม่มี credit limit check"
+    },
+    {
+      "domain": "การเงิน",
+      "item": "การจัดทำงบการเงิน",
+      "impact": "ยังไม่สร้าง financial statements"
+    },
+    {
+      "domain": "โลจิสติกส์",
+      "item": "Route Optimization",
+      "impact": "ยังเลือกเส้นทางตามระยะทางเท่านั้น ไม่คำนึงจราจร"
+    },
+    {
+      "domain": "โลจิสติกส์",
+      "item": "Fleet Management",
+      "impact": "ยังไม่จัดคิวรถอัตโนมัติ"
+    }
   ],
-
   "human_dependency": {
-    "legal":       { "label": "กฎหมาย / ลายเซ็น", "count": 4, "reason": "ต้องลงนามโดยกรรมการ", "examples": ["อนุมัติสัญญา", "ลงนามเอกสาร", "ยื่นภาษี", "จดทะเบียน"] },
-    "negotiation": { "label": "การเจรจา", "count": 3, "reason": "ต้องใช้วิจารณญาณมนุษย์", "examples": ["ต่อรองราคา", "เจรจาหนี้", "เจรจาคู่ค้าใหม่"] },
-    "approval":    { "label": "การอนุมัติ", "count": 11, "reason": "Rule 72: ทุก write ต้อง confirmed", "examples": ["อนุมัติใบเสนอราคา", "อนุมัติจ่ายเงิน", "อนุมัติเอกสาร"] },
-    "ethics":      { "label": "จริยธรรม", "count": 2, "reason": "AI ไม่ควรตัดสินใจ", "examples": ["ไล่ออก/ลงโทษ", "เปลี่ยนเงื่อนไขสัญญา"] },
-    "quality":     { "label": "ตรวจคุณภาพ", "count": 3, "reason": "ต้องใช้ประสบการณ์", "examples": ["ตรวจวัสดุ", "ตรวจงานก่อสร้าง", "ตรวจรถ"] },
-    "relationship":{ "label": "ลูกค้าสัมพันธ์", "count": 4, "reason": "ต้องใช้ EQ", "examples": ["เยี่ยมลูกค้า", "แก้ปัญหาเฉพาะหน้า", "รับเรื่องร้องเรียน", "ขอบคุณลูกค้า"] }
+    "legal": {
+      "label": "กฎหมาย / ลายเซ็น",
+      "count": 4,
+      "reason": "ต้องลงนามโดยกรรมการ",
+      "examples": [
+        "อนุมัติสัญญา",
+        "ลงนามเอกสาร",
+        "ยื่นภาษี",
+        "จดทะเบียน"
+      ]
+    },
+    "negotiation": {
+      "label": "การเจรจา",
+      "count": 3,
+      "reason": "ต้องใช้วิจารณญาณมนุษย์",
+      "examples": [
+        "ต่อรองราคา",
+        "เจรจาหนี้",
+        "เจรจาคู่ค้าใหม่"
+      ]
+    },
+    "approval": {
+      "label": "การอนุมัติ",
+      "count": 11,
+      "reason": "Rule 72: ทุก write ต้อง confirmed",
+      "examples": [
+        "อนุมัติใบเสนอราคา",
+        "อนุมัติจ่ายเงิน",
+        "อนุมัติเอกสาร"
+      ]
+    },
+    "ethics": {
+      "label": "จริยธรรม",
+      "count": 2,
+      "reason": "AI ไม่ควรตัดสินใจ",
+      "examples": [
+        "ไล่ออก/ลงโทษ",
+        "เปลี่ยนเงื่อนไขสัญญา"
+      ]
+    },
+    "quality": {
+      "label": "ตรวจคุณภาพ",
+      "count": 3,
+      "reason": "ต้องใช้ประสบการณ์",
+      "examples": [
+        "ตรวจวัสดุ",
+        "ตรวจงานก่อสร้าง",
+        "ตรวจรถ"
+      ]
+    },
+    "relationship": {
+      "label": "ลูกค้าสัมพันธ์",
+      "count": 4,
+      "reason": "ต้องใช้ EQ",
+      "examples": [
+        "เยี่ยมลูกค้า",
+        "แก้ปัญหาเฉพาะหน้า",
+        "รับเรื่องร้องเรียน",
+        "ขอบคุณลูกค้า"
+      ]
+    }
   },
-
   "evolution_suggestions": [
-    { "action": "เพิ่ม Supplier Score engine", "effort": "medium", "impact": { "decision_coverage": "+14%", "supplier_selection": "60% → 100%" } },
-    { "action": "เพิ่ม Route Optimization", "effort": "high", "impact": { "automation_rate": "70% → 82%", "transport_knowledge": "+15%" } },
-    { "action": "เพิ่ม Credit Limit Check", "effort": "low", "impact": { "line_response": "75% → 100%", "risk_reduction": "medium" } },
-    { "action": "เพิ่ม Inventory Module", "effort": "high", "impact": { "business_coverage": "68% → 77%", "knowledge": "+9%" } },
-    { "action": "เพิ่ม Driver Assignment Rule", "effort": "medium", "impact": { "vehicle_dispatch": "80% → 100%", "automation_rate": "+5%" } },
-    { "action": "เพิ่ม Price Comparison Engine", "effort": "medium", "impact": { "supplier_selection": "60% → 80%", "cost_reduction": "high" } }
+    {
+      "action": "เพิ่ม Supplier Score engine",
+      "effort": "medium",
+      "impact": {
+        "decision_coverage": "+14%",
+        "supplier_selection": "60% → 100%"
+      }
+    },
+    {
+      "action": "เพิ่ม Route Optimization",
+      "effort": "high",
+      "impact": {
+        "automation_rate": "70% → 82%",
+        "transport_knowledge": "+15%"
+      }
+    },
+    {
+      "action": "เพิ่ม Credit Limit Check",
+      "effort": "low",
+      "impact": {
+        "line_response": "75% → 100%",
+        "risk_reduction": "medium"
+      }
+    },
+    {
+      "action": "เพิ่ม Inventory Module",
+      "effort": "high",
+      "impact": {
+        "business_coverage": "68% → 77%",
+        "knowledge": "+9%"
+      }
+    },
+    {
+      "action": "เพิ่ม Driver Assignment Rule",
+      "effort": "medium",
+      "impact": {
+        "vehicle_dispatch": "80% → 100%",
+        "automation_rate": "+5%"
+      }
+    },
+    {
+      "action": "เพิ่ม Price Comparison Engine",
+      "effort": "medium",
+      "impact": {
+        "supplier_selection": "60% → 80%",
+        "cost_reduction": "high"
+      }
+    }
   ],
-
   "container_recommendations": {
     "office_operations": {
-      "required_capabilities": ["database", "ai_text", "messaging", "printer", "browser"],
+      "required_capabilities": [
+        "database",
+        "ai_text",
+        "messaging",
+        "printer",
+        "browser"
+      ],
       "recommended": "macOS / Browser",
       "reason": "งานสำนักงาน ใช้ Supabase + LINE + เอกสาร"
     },
     "field_operations": {
-      "required_capabilities": ["gps", "camera", "messaging", "database"],
+      "required_capabilities": [
+        "gps",
+        "camera",
+        "messaging",
+        "database"
+      ],
       "recommended": "Android",
       "reason": "งานหน้างาน ต้อง GPS + กล้อง + LINE"
     },
     "machine_monitoring": {
-      "required_capabilities": ["sensor", "mqtt", "plc"],
+      "required_capabilities": [
+        "sensor",
+        "mqtt",
+        "plc"
+      ],
       "recommended": "Industrial Controller / Edge Device",
       "reason": "งานเครื่องจักร ต้อง PLC + Sensor"
     },
     "ai_processing": {
-      "required_capabilities": ["ai_text", "database"],
+      "required_capabilities": [
+        "ai_text",
+        "database"
+      ],
       "recommended": "Cloud Server (Supabase Edge)",
       "reason": "งาน AI ไม่ต้อง GPU เพราะใช้ API"
     },
     "fleet_management": {
-      "required_capabilities": ["gps", "messaging", "database", "sensor"],
+      "required_capabilities": [
+        "gps",
+        "messaging",
+        "database",
+        "sensor"
+      ],
       "recommended": "Android + Vehicle GPS",
       "reason": "งานจัดรถ ต้อง GPS รถ + LINE คนขับ"
     }

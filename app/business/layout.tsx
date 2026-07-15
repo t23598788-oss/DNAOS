@@ -2,39 +2,32 @@ import portals from "@/registry/portals.json";
 import { requireAuthPage } from "@/core/auth/requireAuthPage";
 import permissions from "@/registry/permissions.json";
 import type { AppRole } from "@/core/auth/session";
-import BusinessSidebarNav from "@/components/business/BusinessSidebarNav";
+import { resolveNavItems } from "@/core/navigation/resolveNavItems";
+import WorkspaceShell from "@/components/workspace/WorkspaceShell";
 
 const BUSINESS_ROLES = permissions.route_access.find(r => r.prefix === "/business")!.roles as AppRole[];
 
-/**
- * Main layout for the Business Portal.
- * It includes a sidebar for navigating between different role-based dashboards.
- * Icon NAMES (strings) are passed to BusinessSidebarNav, not resolved icon
- * components — a Server Component can't pass a component/function reference
- * as a prop to a Client Component. Resolution happens client-side.
- */
+// Main layout for the Business Portal (Enterprise Workspace Architecture,
+// Phase 2) — now uses the shared WorkspaceShell instead of the retired
+// components/business/BusinessSidebarNav.tsx. A partner or admin-tier user
+// now sees both Business and any other workspace registry/permissions.json's
+// route_access already authorizes them for, via resolveNavItems.
 export default async function BusinessLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   const user = await requireAuthPage("/business", BUSINESS_ROLES);
-
-  const portalInfo = portals.main.find(p => p.label.includes('Business'));
+  const navItems = resolveNavItems(user.role);
 
   return (
-    <div className="flex min-h-screen bg-black">
-      <BusinessSidebarNav
-        navItems={portals.business}
-        headerLabel={portalInfo?.label || "Business Portal"}
-        headerIcon={portalInfo?.icon || "Briefcase"}
-        userEmail={user.email}
-      />
-
-      {/* Main Content */}
-      <main className="flex-1 bg-black">
-        {children}
-      </main>
-    </div>
+    <WorkspaceShell
+      navItems={navItems}
+      activeKey="business"
+      userEmail={user.email}
+      portalStatus={portals.portals.business_portal.status as "shell" | "official"}
+    >
+      {children}
+    </WorkspaceShell>
   );
 }

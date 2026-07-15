@@ -138,6 +138,13 @@ export interface WorldState {
     who: string | null;
     who_id: string | null;
     what: string | null;
+    // Real bug fix 2026-07-13: quotation/boq/delivery_order documents created
+    // via chat rendered with zero line items because nothing downstream of
+    // operatingIntent() ever kept the original message text — `what` gets
+    // overwritten to the bare intent name (e.g. "quotation") for create_*
+    // intents. raw_input is the actual sentence ("หิน 30 ตัน"), needed to
+    // resolve real material/quantity — see executor/index.ts's buildMaterialItems().
+    raw_input: string;
     action: string | null;
     intent_type: string;
     session_history: string[];

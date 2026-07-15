@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import { requireAuth } from "@/core/auth/requireAuth";
+import { ADMIN_TIER } from "@/core/auth/session";
 import { readFileSync, existsSync } from "fs";
 import { join } from "path";
 import { execSync } from "child_process";
@@ -6,8 +8,18 @@ import { execSync } from "child_process";
 const ROOT = process.cwd();
 const BOOK_PATH = join(ROOT, "registry/architecture-book.json");
 
+// Real, live security fix (TASK-001, registry/CHANGELOG.json DNA-000070): POST
+// runs a real execSync shell command (npm run sync) — was completely
+// unauthenticated. ADMIN_TIER (not the ANY_AUTHENTICATED default) since this
+// triggers real server-side execution, matching the tier already used for
+// other mutating admin routes (e.g. app/api/admin/documents/route.ts).
+// GET protected too for consistency — it reveals real internal build/health data.
+
 // GET /api/build — สถานะ build ล่าสุดจาก architecture-book.json
 export async function GET() {
+  const auth = await requireAuth(ADMIN_TIER);
+  if (auth instanceof NextResponse) return auth;
+
   if (!existsSync(BOOK_PATH)) {
     return NextResponse.json({
       status: "not_built",
@@ -35,6 +47,9 @@ export async function GET() {
 
 // POST /api/build — trigger npm run sync (re-scan source code)
 export async function POST() {
+  const auth = await requireAuth(ADMIN_TIER);
+  if (auth instanceof NextResponse) return auth;
+
   const start = Date.now();
   try {
     execSync("npx tsx scripts/sync-registry.ts && npx tsx scripts/build-arch-book.ts", {

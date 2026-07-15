@@ -8,7 +8,7 @@
 
 import { supabase } from "@/services/supabase/queries";
 import { findTool } from "./capabilities";
-import "@/core/executor/init"; // registers all AppDrivers on startup
+import "@/plugins/registerAllDrivers"; // registers all AppDrivers on startup
 import { get as getDriver } from "@/core/executor/registry";
 
 export interface ExecuteRequest {

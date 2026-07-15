@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import { requireAuth } from "@/core/auth/requireAuth";
+import { ADMIN_TIER } from "@/core/auth/session";
 import { readFileSync, existsSync } from "fs";
 import { join } from "path";
 
@@ -35,7 +37,12 @@ function readBook(): ArchitectureBook | null {
 // GET /api/governance
 // GET /api/governance?node=module:lib/... — node เดียว + importers + imports (path เช่น module:engines/tax.ts)
 // GET /api/governance?layer=v3-engines — filter by layer
+// Real, live security fix (TASK-001, DNA-000070): was unauthenticated, leaked
+// real architecture/module graph data.
 export async function GET(req: Request) {
+  const auth = await requireAuth(ADMIN_TIER);
+  if (auth instanceof NextResponse) return auth;
+
   const url = new URL(req.url);
   const nodeId = url.searchParams.get("node");
   const layer  = url.searchParams.get("layer");

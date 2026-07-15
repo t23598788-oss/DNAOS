@@ -10,6 +10,7 @@ import { createHmac, timingSafeEqual } from "crypto"
 import { NextRequest, NextResponse } from "next/server"
 import { getConnector } from "@/core/connector-loader"
 import { recordWebhookEvent } from "@/gateway/connectors"
+import { supabaseAdmin } from "@/services/supabase/queries"
 
 type Params = { params: Promise<{ slug: string }> }
 
@@ -24,7 +25,7 @@ function verifySignature(rawBody: string, signature: string, secret: string): bo
 export async function POST(req: NextRequest, { params }: Params) {
   const { slug } = await params
 
-  const connector = await getConnector(slug)
+  const connector = await getConnector(supabaseAdmin(), slug)
 
   if (!connector || connector.auth_type !== "webhook") {
     return NextResponse.json({ error: "ไม่พบ Webhook Connector นี้" }, { status: 404 })

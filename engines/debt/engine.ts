@@ -8,6 +8,7 @@
 
 import { round } from "@/core/shared/types";
 import { loadConfigs, getNum, audit, type AuditTrail } from "@/core/config-loader";
+import { supabase } from "@/services/supabase/queries";
 import { calcCompoundInterest, calcDaysOverdue } from "./interest";
 import { checkOverdue } from "./overdue";
 import { calcCollectionFee } from "./collection";
@@ -43,7 +44,7 @@ export interface DebtCalcResult {
 }
 
 export async function calcDebtFull(input: DebtCalcInput): Promise<DebtCalcResult> {
-  const configs = await loadConfigs();
+  const configs = await loadConfigs(supabase());
   const interestRate = getNum(configs, "debt-interest-rate") / 100;
   const gracePeriodHours = getNum(configs, "debt-grace-period-hours");
   const collectionFeeRate = getNum(configs, "debt-collection-fee-rate");

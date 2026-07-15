@@ -3,11 +3,15 @@
  * ทุก step ที่มี query handler ใน dispatcher จะถูกบังคับใช้กฎจาก command-registry.json
  */
 
-import { getDebtTrackings, getDocuments, getJobs, getMaterialTypes, getOpenDebts, getPartners } from "@/services/supabase/queries";
+import { getDebtTrackings, getDocuments, getJobs, getMaterialTypes, getOpenDebts, getPartners, getCustomerGps } from "@/services/supabase/queries";
 import { previewDocumentCreate } from "@/gateway/actions";
+import { loadCompanySettings } from "@/core/config/company-settings";
+import { documentFlex } from "@/engines/documents/flex-template";
 import { dispatch as dispatchCommand, isRegistered } from "@/engines/validation/dispatcher";
 import { calcDebtFull } from "@/engines/debt/engine";
 import { generateDoc, DOC_LABELS, type DocData, type DocType } from "@/engines/documents/engine";
+import { resolveMaterial } from "@/engines/material-resolver";
+import { tryQuoteMaterialPrice } from "@/engines/quote-price";
 import { executeCapability } from "@/plugins/capability-manager";
 import { execute as executeV6 } from "@/plugins";
 import { formatDocumentCreateResult } from "@/presenter/formatter";
@@ -197,21 +201,39 @@ async function executeDocumentCommand(tool: string, args: Record<string, string>
 
   if (!resolved.name) throw new Error("ต้องรู้ชื่อลูกค้าก่อนสร้างเอกสาร");
 
-  const { items, debtInfo } = buildDebtItems(debts);
+  // Real bug fix 2026-07-13: quotation/BOQ/delivery-order documents were
+  // always built via buildDebtItems(debts) — a debt-only converter — so a
+  // normal "เสนอราคาให้..." request (no debt.query step, debts=[]) always
+  // produced one fake "เงินต้นยกมา / 0.00" row and a 0.00 total, never the
+  // actual material/quantity/price the customer asked for. Material-type
+  // documents now build real items from the raw message + the real pricing
+  // engine (engines/quote-price.ts) instead. Debt-related documents
+  // (invoice/billing when a real debt exists) are unchanged.
+  const { items, debtInfo } = MATERIAL_DOCUMENT_TYPES.has(documentType) && debts.length === 0
+    ? { items: await buildMaterialItems(worldState.context.raw_input, resolved.id), debtInfo: undefined }
+    : buildDebtItems(debts);
   const label = DOC_LABELS[documentType] ?? DOC_LABELS.invoice;
   const docNumber = `${label.prefix}-${new Date().toISOString().split("T")[0].replace(/-/g, "")}-${String(Date.now()).slice(-3)}`;
+
+  // Owner request 2026-07-11: การ์ดเอกสารต้องมีชื่อบริษัท/เลขภาษี/VAT จริง
+  // จาก app_configs (core/config/company-settings.ts) แทนของ hardcode เดิม
+  const company = await loadCompanySettings();
 
   const docData: DocData = {
     type: documentType,
     docNumber,
     date: new Date().toISOString().split("T")[0],
     status: "draft",
-    company: { name: "บจก. ดีเอ็นเอ โอเอส", taxId: "0405569002851" },
+    company: { name: company.companyName || undefined, taxId: company.companyTaxId || undefined },
     customer: { name: resolved.name },
     items,
-    vatRate: 0.07,
+    vatRate: company.vatRate,
+    payment: company.paymentBankName
+      ? { bank: company.paymentBankName, account: company.paymentAccountNumber, accountName: company.paymentAccountName }
+      : undefined,
+    paymentRequired: documentType === "invoice" || documentType === "billing",
     debt: debtInfo,
-    notes: worldState.context.what ?? undefined,
+    notes: [worldState.context.what, company.documentTerms].filter(Boolean).join("\n") || undefined,
   };
 
   const rendered = generateDoc(docData);
@@ -236,6 +258,23 @@ async function executeDocumentCommand(tool: string, args: Record<string, string>
     throw new Error(preview.error ?? "เตรียมพรีวิวเอกสารไม่สำเร็จ");
   }
 
+  // Owner request 2026-07-11: "ให้เห็นภาพรายการก่อนที่จะกดส่งยืนยัน" — build the
+  // exact Flex card that would be sent to the customer (same branding as the
+  // real send at confirm time) so the admin sees the real card, not just text.
+  const flexPreview = documentFlex({
+    documentType,
+    documentNumber: docNumber,
+    partyName: resolved.name,
+    items,
+    summary: rendered.summary,
+    branding: {
+      ourCompanyName: company.companyName || undefined,
+      ourCompanyTaxId: company.companyTaxId || undefined,
+      terms: company.documentTerms || undefined,
+      footerNote: company.documentFooterNote || undefined,
+    },
+  });
+
   return {
     document_type: documentType,
     document_number: docNumber,
@@ -253,6 +292,7 @@ async function executeDocumentCommand(tool: string, args: Record<string, string>
     _confirm_action: "document.create",
     _confirm_token: preview.preview_token,
     _doc_data: docData,
+    _flex_preview: flexPreview,
   };
 }
 
@@ -372,6 +412,56 @@ function findLatestCreateResult(results: StepResult[]): Record<string, unknown> 
 function matchesCustomer(value: unknown, name: string | null | undefined): boolean {
   if (!name) return true;
   return String(value ?? "").toLowerCase().includes(name.toLowerCase());
+}
+
+const MATERIAL_DOCUMENT_TYPES = new Set<DocType>(["quotation", "boq", "delivery_order"]);
+
+// Real quantity+unit pattern from actual customer requests seen in
+// business_events.quantity_unit ("คิว", "ตัน", "คัน", "เที่ยว", "ถุง",
+// "ลบ.ม.") — see supabase/migrations/20260710000001_business_events.sql.
+const QUANTITY_PATTERN = /(\d+(?:\.\d+)?)\s*(คิว|ตัน|คัน|เที่ยว|ถุง|ลบ\.ม\.|ลูกบาศก์เมตร|กก\.?|ตร\.ม\.?)/;
+
+// Builds real DocItem[] for a material-type document (quotation/BOQ/
+// delivery-order) from the customer's actual raw message, using the real
+// material catalog and the real pit-pricing engine — never fabricates a
+// material, quantity, or price. Throws a clear, actionable error (same
+// pattern as the "ต้องรู้ชื่อลูกค้า" check above) when any of the three
+// real inputs it needs (quantity+unit, a resolvable material, a priced pit
+// reachable from the customer's known GPS) is missing, instead of silently
+// producing an empty or zero-priced document.
+async function buildMaterialItems(rawInput: string, customerId: string) {
+  const qtyMatch = rawInput.match(QUANTITY_PATTERN);
+  if (!qtyMatch) {
+    throw new Error(`ไม่พบจำนวนและหน่วยในข้อความ (เช่น "หิน 30 คิว") กรุณาระบุให้ชัดเจนก่อนสร้างเอกสาร: "${rawInput}"`);
+  }
+  const quantity = Number(qtyMatch[1]);
+
+  const materialTypes = await getMaterialTypes();
+  const match = resolveMaterial(rawInput, materialTypes);
+  if (!match.matched) {
+    throw new Error(
+      match.candidates.length > 0
+        ? `ไม่แน่ใจว่าหมายถึงวัสดุไหน (${match.candidates.map((c) => c.name).join(", ")}) กรุณาระบุให้ชัดเจนกว่านี้`
+        : `ไม่พบวัสดุที่ตรงกับข้อความนี้ในระบบ: "${rawInput}" กรุณาระบุชื่อวัสดุที่ลงทะเบียนไว้`
+    );
+  }
+
+  const gps = await getCustomerGps(customerId);
+  if (!gps) {
+    throw new Error("ยังไม่มีพิกัดของลูกค้าคนนี้ในระบบ ไม่สามารถหาบ่อที่ใกล้ที่สุดเพื่อคำนวณราคาได้ — รอพิกัดจาก LINE ก่อน");
+  }
+
+  const quote = await tryQuoteMaterialPrice(match.matched.name, quantity, gps);
+  if (!quote.ok || quote.unitPrice == null) {
+    throw new Error(quote.text);
+  }
+
+  return [{
+    description: quote.materialName ?? match.matched.name,
+    qty: quantity,
+    unit: quote.quantityUnit ?? "คิว",
+    unitPrice: quote.unitPrice,
+  }];
 }
 
 function buildDebtItems(debts: Record<string, unknown>[]) {

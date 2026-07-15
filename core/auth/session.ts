@@ -1,4 +1,4 @@
-import { createServerSupabase } from "@/services/supabase/server";
+import { getServerSupabaseClient } from "@/gateway/auth";
 import permissions from "@/registry/permissions.json";
 
 export type AppRole =
@@ -23,7 +23,7 @@ export const ANY_AUTHENTICATED = permissions.role_tiers.any_authenticated as App
 // Supabase Auth session cookie (TASK-001) — every requireAuth/requireAuthPage
 // call goes through this, so there is exactly one session-reading code path.
 export async function getAuthedUser(): Promise<AuthedUser | null> {
-  const supabase = await createServerSupabase();
+  const supabase = await getServerSupabaseClient();
   const {
     data: { user },
     error: userError,
@@ -58,7 +58,7 @@ export async function getAuthedUser(): Promise<AuthedUser | null> {
 // needs to hand a user-scoped Supabase client to a function outside core/auth,
 // so Postgres RLS checks auth.role()/auth.uid() as the real signed-in user.
 export async function getAccessToken(): Promise<string | null> {
-  const supabase = await createServerSupabase();
+  const supabase = await getServerSupabaseClient();
   const {
     data: { session },
   } = await supabase.auth.getSession();

@@ -17,12 +17,13 @@
 import { round } from "@/core/shared/types";
 import { registerCommand } from "@/core/runtime/engine";
 import { loadConfigs, getNum, type RulesConfig } from "@/core/config-loader";
+import { supabase } from "@/services/supabase/queries";
 import { calcDebtFull, type DebtCalcInput } from "./debt/engine";
 
 // ── 1. โหลด Business Rules ──
 
 export async function loadBusinessRules(): Promise<{ ok: boolean; rules: RulesConfig; count: number }> {
-  const rules = await loadConfigs();
+  const rules = await loadConfigs(supabase());
   return { ok: true, rules, count: Object.keys(rules).length };
 }
 
@@ -33,7 +34,7 @@ export async function calculatePrice(args: {
   quantity: number;
   material_price: number;
 }): Promise<Record<string, unknown>> {
-  const rules = await loadConfigs();
+  const rules = await loadConfigs(supabase());
   const fuelPrice = getNum(rules, "fuel-price");
   const driverWage = getNum(rules, "driver-wage-per-trip");
   const markup = getNum(rules, "pricing-markup-percent");
@@ -79,7 +80,7 @@ export async function calculateTax(args: {
   vat_rate?: number;
   withholding_rate?: number;
 }): Promise<Record<string, unknown>> {
-  const rules = await loadConfigs();
+  const rules = await loadConfigs(supabase());
   const vatRate = args.vat_rate ?? (getNum(rules, "vat-rate") / 100);
   const vat = round(args.amount * vatRate);
   const withholding = args.withholding_rate ? round(args.amount * args.withholding_rate) : 0;

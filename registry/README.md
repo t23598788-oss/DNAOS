@@ -30,6 +30,8 @@ Constitution กับ Execution Contract แยกกันโดยตั้�
 
 ### Execution Order
 
+-1. **(2026-07-15, DNA-000066)** Read `MASTER_EXECUTION_STATE.md` (repo root) first — a human-readable rendering of `CURRENT_STATE.json` + `TASK_QUEUE.json` + `architecture-book.json`'s real module summary, built specifically so a new AI session does not have to read all 65+ `CHANGELOG.json` entries to get oriented. It is a VIEW, not a second source of truth — if it disagrees with the JSON registries below, they win; regenerate it, don't trust it blindly.
+0. **(SDRN-P1, 2026-07-14)** Run `npm run hello` (`scripts/hello.ts`) first if available — it reads steps 1-6 below in one pass and prints Identity/Current State/Phase/Architecture/Health/Priority/Known Problems/Blocked Areas/Available Work/Recommended Task/Warnings/Recently Changed/Learning Updates as one combined report, plus demonstrates the Document Engine's Self Description Interface (`engines/documents/selfDescription.ts` — the only one of 466 modules wired so far; scope deliberately narrow, see `registry/GOVERNANCE_REGISTRY.json` → SDRN). This does not replace steps 1-6 — it is a faster first read of the same real files, not a new source of truth.
 1. Read `registry/README.md` (ไฟล์นี้)
 2. Read `registry/CONSTITUTION.json`
 3. Read `registry/CURRENT_STATE.json`

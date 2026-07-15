@@ -25,13 +25,15 @@ export default function Inspector({
   title,
   fields,
   onClose,
+  variant,
 }: {
   title: string;
   fields: InspectorField[];
   onClose: () => void;
+  variant?: "window" | "panel";
 }) {
   return (
-    <Window title={title} icon={<SlidersHorizontal className="w-4 h-4 text-stone-400" />} onClose={onClose}>
+    <Window title={title} icon={<SlidersHorizontal className="w-4 h-4 text-stone-400" />} onClose={onClose} variant={variant}>
       {fields.length === 0 ? (
         <EmptyState message="ยังไม่มีรายการให้ตรวจสอบ" />
       ) : (

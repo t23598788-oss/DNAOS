@@ -6,14 +6,6 @@ import { createBrowserSupabase } from "@/services/supabase/browser"
 import { resolveDestination } from "@/core/auth/resolveDestination"
 import type { AppRole } from "@/core/auth/session"
 
-// Login-flow debug instrumentation (2026-07-14) — SHA-256 of the submitted
-// password, never the plaintext, so this is safe to log to the console.
-async function sha256Hex(text: string): Promise<string> {
-  const bytes = new TextEncoder().encode(text)
-  const hashBuffer = await crypto.subtle.digest("SHA-256", bytes)
-  return Array.from(new Uint8Array(hashBuffer)).map((b) => b.toString(16).padStart(2, "0")).join("")
-}
-
 // The ONE login page for the whole system (TASK-001 SSO) — Admin, Business,
 // Partner, and User Portal all redirect here when unauthenticated
 // (middleware.ts), and all sign in against the same Supabase Auth session.
@@ -59,58 +51,16 @@ function LoginForm() {
     setError(null)
     setSuccess(null)
 
-    // DOM values only — no fallback to React state (audit requirement,
-    // 2026-07-14). Authentication reads exclusively from the actual <input>
-    // elements via these refs; `email`/`password` state below is used only
-    // for the mismatch comparison, never as a value source.
-    const domEmail = emailInputRef.current?.value ?? ""
-    const domPassword = passwordInputRef.current?.value ?? ""
-    const reactEmailLength = email.length
-    const reactPasswordLength = password.length
-
-    console.log("[TRACE-LOGIN] pre-auth DOM vs React state", {
-      domEmail,
-      domPasswordLength: domPassword.length,
-      reactEmailLength,
-      reactPasswordLength,
-    })
-
-    if (domEmail !== email || domPassword !== password) {
-      console.warn("[AUTOFILL STATE MISMATCH]", {
-        domEmail,
-        domPasswordLength: domPassword.length,
-        reactEmailLength,
-        reactPasswordLength,
-      })
-    }
-
-    const submitEmail = domEmail
-    const submitPassword = domPassword
-
-    const passwordHash = await sha256Hex(submitPassword)
-    console.log("[TRACE-LOGIN] submitted payload diagnostics (plaintext password never logged)", {
-      email: JSON.stringify(submitEmail),
-      emailMatchesExpectedOwnerAccount: submitEmail === "dnaos.tech@gmail.com",
-      passwordLength: submitPassword.length,
-      passwordSHA256: passwordHash,
-      hasLeadingOrTrailingWhitespace: submitPassword !== submitPassword.trim(),
-      hasNewlineOrCarriageReturn: /[\r\n]/.test(submitPassword),
-      isUnicodeNFCNormalized: submitPassword.normalize("NFC") === submitPassword,
-    })
-
-    console.log("[TRACE-LOGIN] signInWithPassword: start", { email: submitEmail })
-    const cookiesBefore = document.cookie.split(";").map((c) => c.trim().split("=")[0]).filter(Boolean)
+    // DOM values only — no fallback to React state. Some autofill mechanisms
+    // set an input's value via the native property setter, bypassing React's
+    // synthetic onChange entirely, so `email`/`password` state can go stale
+    // relative to what's actually shown on screen.
+    const submitEmail = emailInputRef.current?.value ?? ""
+    const submitPassword = passwordInputRef.current?.value ?? ""
 
     try {
       const sb = createBrowserSupabase()
       const { data, error: authError } = await sb.auth.signInWithPassword({ email: submitEmail, password: submitPassword })
-      console.log("[TRACE-LOGIN] signInWithPassword: end", {
-        hasSession: !!data.session,
-        userId: data.session?.user.id,
-        authError: authError?.message,
-        authErrorStatus: (authError as { status?: number } | null)?.status,
-        authErrorCode: (authError as { code?: string } | null)?.code,
-      })
 
       if (authError || !data.session) {
         setError(authError?.message ?? "อีเมลหรือรหัสผ่านไม่ถูกต้อง")
@@ -118,12 +68,7 @@ function LoginForm() {
         return
       }
 
-      const cookiesAfter = document.cookie.split(";").map((c) => c.trim().split("=")[0]).filter(Boolean)
-      const newCookieNames = cookiesAfter.filter((n) => !cookiesBefore.includes(n))
-      console.log("[TRACE-LOGIN] cookies written by signInWithPassword", { newCookieNames })
-
       const dest = await landingPathFor(data.session.user.id)
-      console.log("[TRACE-LOGIN] redirect destination resolved", { dest })
 
       // Hard navigation, not router.push()/router.refresh(). A client-side
       // transition can be served from Next.js's Router Cache — a cached
@@ -135,10 +80,8 @@ function LoginForm() {
       // the path at all. This is the documented Supabase pattern for
       // "client-side sign-in, then redirect to a protected route" — not a
       // setTimeout-based workaround.
-      console.log("[TRACE-LOGIN] navigating (hard) to", dest)
       window.location.href = dest
-    } catch (err) {
-      console.log("[TRACE-LOGIN] unexpected error", err)
+    } catch {
       setError("เกิดข้อผิดพลาด กรุณาลองใหม่")
       setLoading(false)
     }

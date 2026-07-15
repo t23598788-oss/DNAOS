@@ -11,6 +11,11 @@ const KEYS = {
   paymentBankName: "payment-bank-name",
   paymentAccountNumber: "payment-account-number",
   paymentAccountName: "payment-account-name",
+  vatRate: "vat-rate",
+  documentTerms: "document-terms",
+  documentFooterNote: "document-footer-note",
+  debtReminderAutoEnabled: "debt-reminder-auto-enabled",
+  debtReminderHour: "debt-reminder-hour",
 } as const;
 
 export interface CompanySettings {
@@ -19,16 +24,35 @@ export interface CompanySettings {
   paymentBankName: string;
   paymentAccountNumber: string;
   paymentAccountName: string;
+  vatRate: number;
+  documentTerms: string;
+  documentFooterNote: string;
+  debtReminderAutoEnabled: boolean;
+  debtReminderHour: number;
 }
 
 export async function loadCompanySettings(): Promise<CompanySettings> {
-  const configs = await loadConfigs();
+  // Anon client, constructed directly (same @supabase/supabase-js pattern
+  // already used below in saveCompanySettings) — matches loadConfigs()'s
+  // original internal supabase() client exactly (anon key, no auth header).
+  // core must not import services/* directly (registry/dependency-graph.json:
+  // allowed_imports.core = ["registry"]), Phase 2.3A.
+  const db = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
+  const configs = await loadConfigs(db);
   return {
     companyName: getStr(configs, KEYS.companyName),
     companyTaxId: getStr(configs, KEYS.companyTaxId),
     paymentBankName: getStr(configs, KEYS.paymentBankName),
     paymentAccountNumber: getStr(configs, KEYS.paymentAccountNumber),
     paymentAccountName: getStr(configs, KEYS.paymentAccountName),
+    vatRate: Number(getStr(configs, KEYS.vatRate)),
+    documentTerms: getStr(configs, KEYS.documentTerms),
+    documentFooterNote: getStr(configs, KEYS.documentFooterNote),
+    debtReminderAutoEnabled: getStr(configs, KEYS.debtReminderAutoEnabled) === "true",
+    debtReminderHour: Number(getStr(configs, KEYS.debtReminderHour)),
   };
 }
 
@@ -47,6 +71,11 @@ export async function saveCompanySettings(accessToken: string, settings: Company
     { title: KEYS.paymentBankName, data: settings.paymentBankName },
     { title: KEYS.paymentAccountNumber, data: settings.paymentAccountNumber },
     { title: KEYS.paymentAccountName, data: settings.paymentAccountName },
+    { title: KEYS.vatRate, data: String(settings.vatRate) },
+    { title: KEYS.documentTerms, data: settings.documentTerms },
+    { title: KEYS.documentFooterNote, data: settings.documentFooterNote },
+    { title: KEYS.debtReminderAutoEnabled, data: String(settings.debtReminderAutoEnabled) },
+    { title: KEYS.debtReminderHour, data: String(settings.debtReminderHour) },
   ];
 
   const { error } = await userScopedClient.from("app_configs").upsert(rows, { onConflict: "title" });

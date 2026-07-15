@@ -1,16 +1,16 @@
 {
   "version": 1,
   "drivers": {
-    "line":            { "type": "native",  "platform": "macos", "binary": "lib/drivers/line/line-driver", "status": "active" },
-    "chrome":          { "type": "ts",      "platform": "any",   "module": "lib/drivers/chrome.ts",        "status": "active" },
-    "vscode":          { "type": "ts",      "platform": "any",   "module": "lib/drivers/vscode.ts",        "status": "active" },
-    "finder":          { "type": "ts",      "platform": "macos", "module": "lib/drivers/finder.ts",        "status": "active" },
-    "terminal":        { "type": "ts",      "platform": "macos", "module": "lib/drivers/terminal.ts",      "status": "active" },
-    "maps":            { "type": "ts",      "platform": "any",   "module": "lib/drivers/maps.ts",          "status": "active" },
-    "earth":           { "type": "ts",      "platform": "macos", "module": "lib/drivers/earth.ts",         "status": "active" },
-    "mail":            { "type": "ts",      "platform": "macos", "module": "lib/drivers/mail.ts",          "status": "active" },
-    "calendar":        { "type": "ts",      "platform": "macos", "module": "lib/drivers/calendar.ts",      "status": "active" },
-    "pdf":             { "type": "ts",      "platform": "macos", "module": "lib/drivers/pdf.ts",           "status": "active" },
-    "github":          { "type": "ts",      "platform": "macos", "module": "lib/drivers/github.ts",        "status": "active" }
+    "line":            { "type": "ts",      "platform": "macos", "module": "plugins/drivers/line.ts",       "status": "active", "reconciliation_note": "REDIRECTED (DNA-000045, Runtime Root Cause Intelligence pass) from the stale binary path 'lib/drivers/line/line-driver' — that path belonged to plugins/line/line.ts (native Swift wrapper, zero real importers, already deprecated:true), not the canonical, live implementation. Full root-cause analysis (real git history, real caller counts) confirmed plugins/drivers/line.ts is the one actually registered via plugins/registerAllDrivers.ts -> core/executor/registry.ts. See registry/existence.json known_mistakes.confirmed_duplicate_pairs.KM-002-line for the full 20-point analysis. Flagged unresolved since DNA-000024; fixed here." },
+    "chrome":          { "type": "ts",      "platform": "any",   "module": "plugins/drivers/chrome.ts",    "status": "active" },
+    "vscode":          { "type": "ts",      "platform": "any",   "module": "plugins/drivers/vscode.ts",    "status": "active" },
+    "finder":          { "type": "ts",      "platform": "macos", "module": "plugins/drivers/finder.ts",    "status": "active" },
+    "terminal":        { "type": "ts",      "platform": "macos", "module": "plugins/drivers/terminal.ts",  "status": "active" },
+    "maps":            { "type": "ts",      "platform": "any",   "module": "plugins/drivers/maps.ts",      "status": "active" },
+    "earth":           { "type": "ts",      "platform": "macos", "module": "plugins/drivers/earth.ts",     "status": "active" },
+    "mail":            { "type": "ts",      "platform": "macos", "module": "plugins/drivers/mail.ts",      "status": "active" },
+    "calendar":        { "type": "ts",      "platform": "macos", "module": "plugins/drivers/calendar.ts",  "status": "active" },
+    "pdf":             { "type": "ts",      "platform": "macos", "module": "plugins/drivers/pdf.ts",       "status": "active" },
+    "github":          { "type": "ts",      "platform": "macos", "module": "plugins/drivers/github.ts",    "status": "active" }
   }
 }

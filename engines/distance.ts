@@ -26,7 +26,7 @@ export function haversine(lat1: number, lng1: number, lat2: number, lng2: number
 }
 
 export async function calcDistance(input: DistanceInput): Promise<DistanceResult> {
-  const configs = await loadConfigs();
+  const configs = await loadConfigs(supabase());
   const minDistance = getNum(configs, "minimum-distance");
 
   const km = haversine(input.from_lat, input.from_lng, input.to_lat, input.to_lng);
@@ -39,7 +39,7 @@ export async function calcDistance(input: DistanceInput): Promise<DistanceResult
 }
 
 export async function findNearestPit(lat: number, lng: number, materialTypeId?: string): Promise<DistanceResult> {
-  const configs = await loadConfigs();
+  const configs = await loadConfigs(supabase());
   const minDistance = getNum(configs, "minimum-distance");
 
   let query = supabase()

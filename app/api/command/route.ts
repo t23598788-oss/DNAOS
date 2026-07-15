@@ -1,10 +1,20 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { requireAuth } from "@/core/auth/requireAuth";
 import { runCognitivePipeline } from "@/cognitive/pipeline";
 import { getDisplayState, setDisplayState, type DisplayState } from "@/services/supabase/state-cache";
 
 type PipelineResult = Awaited<ReturnType<typeof runCognitivePipeline>>;
 
-export async function POST(request: Request) {
+// Real, live security fix (TASK-001, registry/CHANGELOG.json DNA-000070): this
+// route was completely unauthenticated — any unauthenticated request could
+// trigger the real cognitive command pipeline (runCognitivePipeline), which
+// can perform real business actions. requireAuth() with no arguments defaults
+// to ANY_AUTHENTICATED (any real logged-in role) — the same default the
+// function itself declares, not a narrower guess with no evidence behind it.
+export async function POST(request: NextRequest) {
+  const auth = await requireAuth();
+  if (auth instanceof NextResponse) return auth;
+
   try {
     const body = await request.json();
     let state: DisplayState;
@@ -26,6 +36,9 @@ export async function POST(request: Request) {
 }
 
 export async function GET() {
+  const auth = await requireAuth();
+  if (auth instanceof NextResponse) return auth;
+
   const state = await getDisplayState();
   return NextResponse.json(state);
 }

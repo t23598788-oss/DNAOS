@@ -52,6 +52,7 @@ export function buildWorldState(
       who: input.who,
       who_id: input.who_id,
       what: input.what,
+      raw_input: input.raw_input,
       action: input.action,
       intent_type: input.intent_type,
       session_history: input.session_history,

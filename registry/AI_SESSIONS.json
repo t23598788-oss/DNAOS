@@ -34,6 +34,28 @@
       "last_seen_note": "evidence of this session comes only from an IDE 'file opened' event for dna-brain-3d/gemini-code-1783239590082.ts observed during this conversation — no wall-clock timestamp was captured for that event, and no direct signal exists for whether this session is still running",
       "status": "unknown",
       "status_note": "ห้ามเดา — no verified signal for working/idle/token_exhausted/submitted. If this is your session, update your own entry with real values instead of leaving it to another AI to guess."
+    },
+    {
+      "agent_id": "claude-code-session-f683b46b",
+      "provider": "Anthropic",
+      "model": "Claude Sonnet 5",
+      "version": "claude-sonnet-5",
+      "session_id": "f683b46b-7bde-4f13-8736-4745e22ce9c0",
+      "started_at_note": "this session's own conversation start time is not independently timestamped anywhere in the registry; approximate start inferred from this file's own earlier edits (DNA-000021) made by this same session, 2026-07-13",
+      "last_seen": "2026-07-13T22:00:00+0700",
+      "status": "working",
+      "current_work": "Domain Infrastructure mission (owner exception to Plan Lock, 2026-07-13) — engines/domains/*, gateway/domains.ts, app/api/admin/domains/* (in progress, some sub-routes not yet built); currently writing docs/*.md production-governance policy proposals at owner's direct request"
+    },
+    {
+      "agent_id": "unknown-docs-writer",
+      "provider": "unknown",
+      "model": null,
+      "version": null,
+      "session_id": null,
+      "started_at": null,
+      "last_seen": "2026-07-13T21:57:00+0700",
+      "status": "unknown",
+      "status_note": "ห้ามเดา — no confirmed agent_id/provider for this session. Real evidence it exists: docs/domain-governance.md, production-governance.md, route-lifecycle.md, deployment-contract.md, url-lifecycle-policy.md, route-stability-policy.md were all created/edited today (2026-07-13) at timestamps this session (claude-code-session-f683b46b) did not produce via any of its own tool calls — confirmed by direct file-mtime inspection. domain-governance.md was observed growing (2314→3907 bytes) between two checks minutes apart, meaning it was actively being written concurrently. registry/LOCK_MANAGER.json had zero lock entries during this whole window — this session was not following the lock protocol. If this is your session, please upsert this entry with real values instead of leaving it to another AI to guess, per registry/README.md's Communication Rules (no AI talks to another AI directly — only through the Registry)."
     }
   ]
 }

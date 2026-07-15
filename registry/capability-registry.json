@@ -1,0 +1,5449 @@
+{
+  "version": "1.0.0",
+  "frozen": true,
+  "generatedAt": "2026-07-14T03:45:32.673Z",
+  "checksum": "54e2c90f6e8f1eb96e9c11cdc904bed229ec97c7b49eb1390418f72f979081d2",
+  "capabilityCount": 202,
+  "dependencyCount": 54,
+  "categoryCounts": {
+    "business": 117,
+    "gateway": 41,
+    "presentation": 17,
+    "workspace": 27
+  },
+  "policy": "Generated from registry/module-registry.json + real source inspection. No fabricated capability. No Runtime/Business Engine/Gateway/Presenter implementation modified to produce this file.",
+  "capabilities": [
+    {
+      "CapabilityId": "business.auto-create.composeMissingInfoMessage",
+      "OwnerModule": "engines/jobs/auto-create.ts",
+      "ExportName": "composeMissingInfoMessage",
+      "Category": "business",
+      "Description": "Auto-opens a real Job (Site→Project→DocumentGroup→Order) from a business_event with no admin form-filling — reports exactly what real data is missing (material/quantity/site) instead of guessing, so the caller can ask the customer",
+      "Version": "1.0.0",
+      "InputContract": "result: Extract<AutoCreateResult, { status: \"needs_info\" }>",
+      "OutputContract": "string",
+      "ExecutionType": "sync",
+      "Mutability": "mutating",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [
+        "business.material-resolver.resolveMaterialText"
+      ],
+      "Tags": [
+        "business",
+        "engines",
+        "jobs"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "business.auto-create.tryAutoCreateJob",
+      "OwnerModule": "engines/jobs/auto-create.ts",
+      "ExportName": "tryAutoCreateJob",
+      "Category": "business",
+      "Description": "Auto-opens a real Job (Site→Project→DocumentGroup→Order) from a business_event with no admin form-filling — reports exactly what real data is missing (material/quantity/site) instead of guessing, so the caller can ask the customer",
+      "Version": "1.0.0",
+      "InputContract": "db: any, event: AutoCreateEventInput",
+      "OutputContract": "Promise<AutoCreateResult>",
+      "ExecutionType": "async",
+      "Mutability": "mutating",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [
+        "business.material-resolver.resolveMaterialText"
+      ],
+      "Tags": [
+        "business",
+        "engines",
+        "jobs"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "business.builder.buildSituation",
+      "OwnerModule": "cognitive/situation/builder.ts",
+      "ExportName": "buildSituation",
+      "Category": "business",
+      "Description": "Situation Builder — สร้าง WorldState จาก SituationInput",
+      "Version": "1.0.0",
+      "InputContract": "input: SituationInput",
+      "OutputContract": "WorldState",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "business",
+        "cognitive",
+        "situation"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "business.business.calculateDebt",
+      "OwnerModule": "engines/business.ts",
+      "ExportName": "calculateDebt",
+      "Category": "business",
+      "Description": "Business Engine — คำนวณราคา/หนี้/ภาษี + register เข้า Runtime",
+      "Version": "1.0.0",
+      "InputContract": "args: {\n  principal: number;\n  fee_rate: number;\n  interest_rate: number;\n  due_date: string;\n  paid_amount?: number;\n  transaction_amount?: number;\n}",
+      "OutputContract": "Promise<Record<string, unknown>>",
+      "ExecutionType": "async",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "business",
+        "engines"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "business.business.calculatePrice",
+      "OwnerModule": "engines/business.ts",
+      "ExportName": "calculatePrice",
+      "Category": "business",
+      "Description": "Business Engine — คำนวณราคา/หนี้/ภาษี + register เข้า Runtime",
+      "Version": "1.0.0",
+      "InputContract": "args: {\n  distance_km: number;\n  quantity: number;\n  material_price: number;\n}",
+      "OutputContract": "Promise<Record<string, unknown>>",
+      "ExecutionType": "async",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "business",
+        "engines"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "business.business.calculateTax",
+      "OwnerModule": "engines/business.ts",
+      "ExportName": "calculateTax",
+      "Category": "business",
+      "Description": "Business Engine — คำนวณราคา/หนี้/ภาษี + register เข้า Runtime",
+      "Version": "1.0.0",
+      "InputContract": "args: {\n  amount: number;\n  vat_rate?: number;\n  withholding_rate?: number;\n}",
+      "OutputContract": "Promise<Record<string, unknown>>",
+      "ExecutionType": "async",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "business",
+        "engines"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "business.business.loadBusinessRules",
+      "OwnerModule": "engines/business.ts",
+      "ExportName": "loadBusinessRules",
+      "Category": "business",
+      "Description": "Business Engine — คำนวณราคา/หนี้/ภาษี + register เข้า Runtime",
+      "Version": "1.0.0",
+      "InputContract": "()",
+      "OutputContract": "Promise<",
+      "ExecutionType": "async",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "business",
+        "engines"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "business.business.registerBusinessCommands",
+      "OwnerModule": "engines/business.ts",
+      "ExportName": "registerBusinessCommands",
+      "Category": "business",
+      "Description": "Business Engine — คำนวณราคา/หนี้/ภาษี + register เข้า Runtime",
+      "Version": "1.0.0",
+      "InputContract": "()",
+      "OutputContract": "void",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "business",
+        "engines"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "business.calculator.calcDebtSummary",
+      "OwnerModule": "engines/debt/calculator.ts",
+      "ExportName": "calcDebtSummary",
+      "Category": "business",
+      "Description": "รวมยอดหนี้ทั้งหมด ณ วันที่กำหนด (เงินต้น+ค่าธรรมเนียม+ดอกเบี้ย+ค่าทวงถาม-ชำระแล้ว)",
+      "Version": "1.0.0",
+      "InputContract": "input: DebtSummaryInput",
+      "OutputContract": "DebtSummary",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "business",
+        "engines",
+        "debt"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "business.capacity.calcCapacity",
+      "OwnerModule": "engines/capacity.ts",
+      "ExportName": "calcCapacity",
+      "Category": "business",
+      "Description": "คำนวณจำนวนเที่ยวจากปริมาณและความจุรถ",
+      "Version": "1.0.0",
+      "InputContract": "input: CapacityInput",
+      "OutputContract": "Promise<CapacityResult>",
+      "ExecutionType": "async",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "business",
+        "engines"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "business.collection.calcCollectionFee",
+      "OwnerModule": "engines/debt/collection.ts",
+      "ExportName": "calcCollectionFee",
+      "Category": "business",
+      "Description": "คำนวณค่าทวงถาม — capped ตามเพดานกฎหมาย",
+      "Version": "1.0.0",
+      "InputContract": "input: CollectionFeeInput",
+      "OutputContract": "CollectionFeeResult",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "business",
+        "engines",
+        "debt"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "business.constraint-engine.checkConstraints",
+      "OwnerModule": "cognitive/state/constraint-engine.ts",
+      "ExportName": "checkConstraints",
+      "Category": "business",
+      "Description": "Constraint Engine — ตรวจ constraints ของ world state",
+      "Version": "1.0.0",
+      "InputContract": "entities: Entity[], events: SituationEvent[]",
+      "OutputContract": "Constraint[]",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "business",
+        "cognitive",
+        "state"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "business.context.clear",
+      "OwnerModule": "cognitive/memory/context.ts",
+      "ExportName": "clear",
+      "Category": "business",
+      "Description": "Memory Context — context enrichment",
+      "Version": "1.0.0",
+      "InputContract": "()",
+      "OutputContract": "Context",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "business",
+        "cognitive",
+        "memory"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "business.context.get",
+      "OwnerModule": "cognitive/memory/context.ts",
+      "ExportName": "get",
+      "Category": "business",
+      "Description": "Memory Context — context enrichment",
+      "Version": "1.0.0",
+      "InputContract": "()",
+      "OutputContract": "Readonly<Context>",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "business",
+        "cognitive",
+        "memory"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "business.context.hasWho",
+      "OwnerModule": "cognitive/memory/context.ts",
+      "ExportName": "hasWho",
+      "Category": "business",
+      "Description": "Memory Context — context enrichment",
+      "Version": "1.0.0",
+      "InputContract": "()",
+      "OutputContract": "boolean",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "business",
+        "cognitive",
+        "memory"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "business.context.hasWhoId",
+      "OwnerModule": "cognitive/memory/context.ts",
+      "ExportName": "hasWhoId",
+      "Category": "business",
+      "Description": "Memory Context — context enrichment",
+      "Version": "1.0.0",
+      "InputContract": "()",
+      "OutputContract": "boolean",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "business",
+        "cognitive",
+        "memory"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "business.context.isSameSubject",
+      "OwnerModule": "cognitive/memory/context.ts",
+      "ExportName": "isSameSubject",
+      "Category": "business",
+      "Description": "Memory Context — context enrichment",
+      "Version": "1.0.0",
+      "InputContract": "name: string",
+      "OutputContract": "boolean",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "business",
+        "cognitive",
+        "memory"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "business.context.isStale",
+      "OwnerModule": "cognitive/memory/context.ts",
+      "ExportName": "isStale",
+      "Category": "business",
+      "Description": "Memory Context — context enrichment",
+      "Version": "1.0.0",
+      "InputContract": "()",
+      "OutputContract": "boolean",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "business",
+        "cognitive",
+        "memory"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "business.context.updateFromExecutor",
+      "OwnerModule": "cognitive/memory/context.ts",
+      "ExportName": "updateFromExecutor",
+      "Category": "business",
+      "Description": "Memory Context — context enrichment",
+      "Version": "1.0.0",
+      "InputContract": "results: ExecutorResult[]",
+      "OutputContract": "Context",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "business",
+        "cognitive",
+        "memory"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "business.context.updateFromGoal",
+      "OwnerModule": "cognitive/memory/context.ts",
+      "ExportName": "updateFromGoal",
+      "Category": "business",
+      "Description": "Memory Context — context enrichment",
+      "Version": "1.0.0",
+      "InputContract": "goal: GoalOutput",
+      "OutputContract": "Context",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "business",
+        "cognitive",
+        "memory"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "business.contract.createObjective",
+      "OwnerModule": "cognitive/objective/contract.ts",
+      "ExportName": "createObjective",
+      "Category": "business",
+      "Description": "Objective Contract — type definitions",
+      "Version": "1.0.0",
+      "InputContract": "fields: Omit<Objective, \"id\">",
+      "OutputContract": "Objective",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "business",
+        "cognitive",
+        "objective"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "business.cost.calcCost",
+      "OwnerModule": "engines/cost.ts",
+      "ExportName": "calcCost",
+      "Category": "business",
+      "Description": "คำนวณต้นทุนรวม (วัสดุ + น้ำมัน + ค่าแรง)",
+      "Version": "1.0.0",
+      "InputContract": "input: CostInput",
+      "OutputContract": "Promise<CostResult>",
+      "ExecutionType": "async",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "business",
+        "engines"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "business.debt-notice-draft.buildDebtNoticeDraft",
+      "OwnerModule": "engines/documents/debt-notice-draft.ts",
+      "ExportName": "buildDebtNoticeDraft",
+      "Category": "business",
+      "Description": "สร้าง draft หนังสือแจ้งหนี้จาก template",
+      "Version": "1.0.0",
+      "InputContract": "id: string",
+      "OutputContract": "Promise<DocumentDraftInput | undefined>",
+      "ExecutionType": "async",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [
+        "business.tracking.calcDebtTrackingSummary",
+        "business.document-editor.createEmptyDocumentDraft",
+        "business.document-editor.mapPartnerToCustomer",
+        "business.document-editor.toThaiDate"
+      ],
+      "Tags": [
+        "business",
+        "engines",
+        "documents"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "business.dispatcher.dispatch",
+      "OwnerModule": "engines/validation/dispatcher.ts",
+      "ExportName": "dispatch",
+      "Category": "business",
+      "Description": "Command Dispatcher — ผู้บังคับใช้กฎ อ่าน registry บังคับ filter/confirmation/input validation",
+      "Version": "1.0.0",
+      "InputContract": "command: string,\n  payload: Record<string, unknown> = {},\n  confirmed = false,",
+      "OutputContract": "Promise<DispatchResult>",
+      "ExecutionType": "async",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [
+        "business.timeline.buildPartnerTimeline",
+        "business.timeline.buildPartnerSummary"
+      ],
+      "Tags": [
+        "business",
+        "engines",
+        "validation"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "business.dispatcher.getCommandDef",
+      "OwnerModule": "engines/validation/dispatcher.ts",
+      "ExportName": "getCommandDef",
+      "Category": "business",
+      "Description": "Command Dispatcher — ผู้บังคับใช้กฎ อ่าน registry บังคับ filter/confirmation/input validation",
+      "Version": "1.0.0",
+      "InputContract": "command: string",
+      "OutputContract": "CommandDef | null",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [
+        "business.timeline.buildPartnerTimeline",
+        "business.timeline.buildPartnerSummary"
+      ],
+      "Tags": [
+        "business",
+        "engines",
+        "validation"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "business.dispatcher.isRegistered",
+      "OwnerModule": "engines/validation/dispatcher.ts",
+      "ExportName": "isRegistered",
+      "Category": "business",
+      "Description": "Command Dispatcher — ผู้บังคับใช้กฎ อ่าน registry บังคับ filter/confirmation/input validation",
+      "Version": "1.0.0",
+      "InputContract": "command: string",
+      "OutputContract": "boolean",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [
+        "business.timeline.buildPartnerTimeline",
+        "business.timeline.buildPartnerSummary"
+      ],
+      "Tags": [
+        "business",
+        "engines",
+        "validation"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "business.dispatcher.listCommands",
+      "OwnerModule": "engines/validation/dispatcher.ts",
+      "ExportName": "listCommands",
+      "Category": "business",
+      "Description": "Command Dispatcher — ผู้บังคับใช้กฎ อ่าน registry บังคับ filter/confirmation/input validation",
+      "Version": "1.0.0",
+      "InputContract": "()",
+      "OutputContract": "string[]",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [
+        "business.timeline.buildPartnerTimeline",
+        "business.timeline.buildPartnerSummary"
+      ],
+      "Tags": [
+        "business",
+        "engines",
+        "validation"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "business.dispatcher.validateInput",
+      "OwnerModule": "engines/validation/dispatcher.ts",
+      "ExportName": "validateInput",
+      "Category": "business",
+      "Description": "Command Dispatcher — ผู้บังคับใช้กฎ อ่าน registry บังคับ filter/confirmation/input validation",
+      "Version": "1.0.0",
+      "InputContract": "command: string, payload: Record<string, unknown>",
+      "OutputContract": "string[]",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [
+        "business.timeline.buildPartnerTimeline",
+        "business.timeline.buildPartnerSummary"
+      ],
+      "Tags": [
+        "business",
+        "engines",
+        "validation"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "business.distance.calcDistance",
+      "OwnerModule": "engines/distance.ts",
+      "ExportName": "calcDistance",
+      "Category": "business",
+      "Description": "คำนวณระยะทาง Haversine + หาบ่อวัสดุใกล้สุด",
+      "Version": "1.0.0",
+      "InputContract": "input: DistanceInput",
+      "OutputContract": "Promise<DistanceResult>",
+      "ExecutionType": "async",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "business",
+        "engines"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "business.distance.findNearestPit",
+      "OwnerModule": "engines/distance.ts",
+      "ExportName": "findNearestPit",
+      "Category": "business",
+      "Description": "คำนวณระยะทาง Haversine + หาบ่อวัสดุใกล้สุด",
+      "Version": "1.0.0",
+      "InputContract": "lat: number, lng: number, materialTypeId?: string",
+      "OutputContract": "Promise<DistanceResult>",
+      "ExecutionType": "async",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "business",
+        "engines"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "business.distance.haversine",
+      "OwnerModule": "engines/distance.ts",
+      "ExportName": "haversine",
+      "Category": "business",
+      "Description": "คำนวณระยะทาง Haversine + หาบ่อวัสดุใกล้สุด",
+      "Version": "1.0.0",
+      "InputContract": "lat1: number, lng1: number, lat2: number, lng2: number",
+      "OutputContract": "number",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "business",
+        "engines"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "business.document-editor.calculateDocumentTotals",
+      "OwnerModule": "engines/documents/document-editor.ts",
+      "ExportName": "calculateDocumentTotals",
+      "Category": "business",
+      "Description": "Editor สำหรับแก้ไขเอกสาร",
+      "Version": "1.0.0",
+      "InputContract": "draft: DocumentDraftInput",
+      "OutputContract": "DocumentTotals",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "business",
+        "engines",
+        "documents"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "business.document-editor.createEmptyDocumentDraft",
+      "OwnerModule": "engines/documents/document-editor.ts",
+      "ExportName": "createEmptyDocumentDraft",
+      "Category": "business",
+      "Description": "Editor สำหรับแก้ไขเอกสาร",
+      "Version": "1.0.0",
+      "InputContract": "type: DocumentType = \"invoice\"",
+      "OutputContract": "DocumentDraftInput",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "business",
+        "engines",
+        "documents"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "business.document-editor.DOCUMENT_UNIT_OPTIONS",
+      "OwnerModule": "engines/documents/document-editor.ts",
+      "ExportName": "DOCUMENT_UNIT_OPTIONS",
+      "Category": "business",
+      "Description": "Editor สำหรับแก้ไขเอกสาร",
+      "Version": "1.0.0",
+      "InputContract": "()",
+      "OutputContract": "",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "business",
+        "engines",
+        "documents"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "business.document-editor.draftToDocData",
+      "OwnerModule": "engines/documents/document-editor.ts",
+      "ExportName": "draftToDocData",
+      "Category": "business",
+      "Description": "Editor สำหรับแก้ไขเอกสาร",
+      "Version": "1.0.0",
+      "InputContract": "draft: DocumentDraftInput, docNumber: string, settings: CompanySettings",
+      "OutputContract": "DocData",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "business",
+        "engines",
+        "documents"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "business.document-editor.formatMoney",
+      "OwnerModule": "engines/documents/document-editor.ts",
+      "ExportName": "formatMoney",
+      "Category": "business",
+      "Description": "Editor สำหรับแก้ไขเอกสาร",
+      "Version": "1.0.0",
+      "InputContract": "n: number",
+      "OutputContract": "string",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "business",
+        "engines",
+        "documents"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "business.document-editor.mapPartnerToCustomer",
+      "OwnerModule": "engines/documents/document-editor.ts",
+      "ExportName": "mapPartnerToCustomer",
+      "Category": "business",
+      "Description": "Editor สำหรับแก้ไขเอกสาร",
+      "Version": "1.0.0",
+      "InputContract": "partner: {\n  name: string\n  phone?: string | null\n  address?: string | null\n  tax_id?: string | null\n  contact_name?: string | null\n}",
+      "OutputContract": "DocumentCustomer",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "business",
+        "engines",
+        "documents"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "business.document-editor.roundMoney",
+      "OwnerModule": "engines/documents/document-editor.ts",
+      "ExportName": "roundMoney",
+      "Category": "business",
+      "Description": "Editor สำหรับแก้ไขเอกสาร",
+      "Version": "1.0.0",
+      "InputContract": "n: number",
+      "OutputContract": "number",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "business",
+        "engines",
+        "documents"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "business.document-editor.toThaiDate",
+      "OwnerModule": "engines/documents/document-editor.ts",
+      "ExportName": "toThaiDate",
+      "Category": "business",
+      "Description": "Editor สำหรับแก้ไขเอกสาร",
+      "Version": "1.0.0",
+      "InputContract": "dateStr: string",
+      "OutputContract": "string",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "business",
+        "engines",
+        "documents"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "business.document-editor.VAT_RATE",
+      "OwnerModule": "engines/documents/document-editor.ts",
+      "ExportName": "VAT_RATE",
+      "Category": "business",
+      "Description": "Editor สำหรับแก้ไขเอกสาร",
+      "Version": "1.0.0",
+      "InputContract": "()",
+      "OutputContract": "",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "business",
+        "engines",
+        "documents"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "business.document-link.buildAutoTitle",
+      "OwnerModule": "engines/transactions/document-link.ts",
+      "ExportName": "buildAutoTitle",
+      "Category": "business",
+      "Description": "Decides tx_type + transaction state advancement when a document is created.",
+      "Version": "1.0.0",
+      "InputContract": "partnerName: string, txType: string",
+      "OutputContract": "string",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "business",
+        "engines",
+        "transactions"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "business.document-link.getLinkRule",
+      "OwnerModule": "engines/transactions/document-link.ts",
+      "ExportName": "getLinkRule",
+      "Category": "business",
+      "Description": "Decides tx_type + transaction state advancement when a document is created.",
+      "Version": "1.0.0",
+      "InputContract": "docType: string",
+      "OutputContract": "DocLinkRule | undefined",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "business",
+        "engines",
+        "transactions"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "business.document-link.shouldAdvance",
+      "OwnerModule": "engines/transactions/document-link.ts",
+      "ExportName": "shouldAdvance",
+      "Category": "business",
+      "Description": "Decides tx_type + transaction state advancement when a document is created.",
+      "Version": "1.0.0",
+      "InputContract": "workflow: TxWorkflow,\n  currentEvent: string,\n  targetEvent: string",
+      "OutputContract": "boolean",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "business",
+        "engines",
+        "transactions"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "business.draft-builders.buildDraftFromDocument",
+      "OwnerModule": "engines/documents/draft-builders.ts",
+      "ExportName": "buildDraftFromDocument",
+      "Category": "business",
+      "Description": "Builds DocumentDraftInput by pre-filling from existing partner/document data — no re-entry.",
+      "Version": "1.0.0",
+      "InputContract": "docId: string,\n  newType?: string,",
+      "OutputContract": "Promise<DocumentDraftInput | undefined>",
+      "ExecutionType": "async",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [
+        "business.document-editor.createEmptyDocumentDraft",
+        "business.document-editor.mapPartnerToCustomer"
+      ],
+      "Tags": [
+        "business",
+        "engines",
+        "documents"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "business.draft-builders.buildDraftFromPartner",
+      "OwnerModule": "engines/documents/draft-builders.ts",
+      "ExportName": "buildDraftFromPartner",
+      "Category": "business",
+      "Description": "Builds DocumentDraftInput by pre-filling from existing partner/document data — no re-entry.",
+      "Version": "1.0.0",
+      "InputContract": "partnerId: string,\n  docType?: string,\n  transactionId?: string,",
+      "OutputContract": "Promise<DocumentDraftInput | undefined>",
+      "ExecutionType": "async",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [
+        "business.document-editor.createEmptyDocumentDraft",
+        "business.document-editor.mapPartnerToCustomer"
+      ],
+      "Tags": [
+        "business",
+        "engines",
+        "documents"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "business.engine.calcDebtFull",
+      "OwnerModule": "engines/debt/engine.ts",
+      "ExportName": "calcDebtFull",
+      "Category": "business",
+      "Description": "Debt Engine หลัก — รวมคำนวณ สถานะ+ดอกเบี้ย+ค่าทวงถาม+ยอดรวม",
+      "Version": "1.0.0",
+      "InputContract": "input: DebtCalcInput",
+      "OutputContract": "Promise<DebtCalcResult>",
+      "ExecutionType": "async",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "business",
+        "engines",
+        "debt"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "business.engine.evaluate",
+      "OwnerModule": "cognitive/evaluation/engine.ts",
+      "ExportName": "evaluate",
+      "Category": "business",
+      "Description": "Evaluation Engine — success criteria matching",
+      "Version": "1.0.0",
+      "InputContract": "executionOutputs: ExecutionOutput[],\n  worldState: WorldState,\n  expectedOutcome: string,\n  successCriteria: string[],",
+      "OutputContract": "EvaluationResult",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "business",
+        "cognitive",
+        "evaluation"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "business.engine.generateDoc",
+      "OwnerModule": "engines/documents/engine.ts",
+      "ExportName": "generateDoc",
+      "Category": "business",
+      "Description": "Document Engine — STRICT RENDER MODE, template เดียว เปลี่ยนแค่ document_type",
+      "Version": "1.0.0",
+      "InputContract": "data: DocData",
+      "OutputContract": "DocResult",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "business",
+        "engines",
+        "documents"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "business.engine.generateHypotheses",
+      "OwnerModule": "cognitive/hypothesis/engine.ts",
+      "ExportName": "generateHypotheses",
+      "Category": "business",
+      "Description": "Hypothesis Engine — generate hypotheses",
+      "Version": "1.0.0",
+      "InputContract": "worldState: WorldState",
+      "OutputContract": "Hypothesis[]",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "business",
+        "cognitive",
+        "hypothesis"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "business.engine.getBusinessImpact",
+      "OwnerModule": "engines/impact/engine.ts",
+      "ExportName": "getBusinessImpact",
+      "Category": "business",
+      "Description": "Computes real business impact cards (financial/operational) from debt_trackings and jobs — never hardcodes figures.",
+      "Version": "1.0.0",
+      "InputContract": "()",
+      "OutputContract": "Promise<ImpactCard[]>",
+      "ExecutionType": "async",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [
+        "business.tracking.calcDebtTrackingSummary"
+      ],
+      "Tags": [
+        "business",
+        "engines",
+        "impact"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "business.engine.getFinancialImpact",
+      "OwnerModule": "engines/impact/engine.ts",
+      "ExportName": "getFinancialImpact",
+      "Category": "business",
+      "Description": "Computes real business impact cards (financial/operational) from debt_trackings and jobs — never hardcodes figures.",
+      "Version": "1.0.0",
+      "InputContract": "()",
+      "OutputContract": "Promise<ImpactCard>",
+      "ExecutionType": "async",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [
+        "business.tracking.calcDebtTrackingSummary"
+      ],
+      "Tags": [
+        "business",
+        "engines",
+        "impact"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "business.engine.getOperationalImpact",
+      "OwnerModule": "engines/impact/engine.ts",
+      "ExportName": "getOperationalImpact",
+      "Category": "business",
+      "Description": "Computes real business impact cards (financial/operational) from debt_trackings and jobs — never hardcodes figures.",
+      "Version": "1.0.0",
+      "InputContract": "()",
+      "OutputContract": "Promise<ImpactCard>",
+      "ExecutionType": "async",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [
+        "business.tracking.calcDebtTrackingSummary"
+      ],
+      "Tags": [
+        "business",
+        "engines",
+        "impact"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "business.engine.plan",
+      "OwnerModule": "cognitive/planner/engine.ts",
+      "ExportName": "plan",
+      "Category": "business",
+      "Description": "Planner Engine — workflow resolution logic",
+      "Version": "1.0.0",
+      "InputContract": "decision: Decision,\n  objective: Objective,\n  registry: Record<string, WorkflowDefinition>,",
+      "OutputContract": "ExecutionPlan",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "business",
+        "cognitive",
+        "planner"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "business.engine.reason",
+      "OwnerModule": "cognitive/reasoning/engine.ts",
+      "ExportName": "reason",
+      "Category": "business",
+      "Description": "Reasoning Engine — goal → decision + plan",
+      "Version": "1.0.0",
+      "InputContract": "goal: Goal, session: Session",
+      "OutputContract": "ReasoningOutput",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "business",
+        "cognitive",
+        "reasoning"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "business.engine.reflect",
+      "OwnerModule": "cognitive/reflection/engine.ts",
+      "ExportName": "reflect",
+      "Category": "business",
+      "Description": "Reflection Engine — สร้าง insight จาก execution results",
+      "Version": "1.0.0",
+      "InputContract": "results: ExecutionResult[],\n  worldState: WorldState,\n  decision: string,",
+      "OutputContract": "ReflectionOutput",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "business",
+        "cognitive",
+        "reflection"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "business.entity-extractor.extractEntities",
+      "OwnerModule": "cognitive/situation/entity-extractor.ts",
+      "ExportName": "extractEntities",
+      "Category": "business",
+      "Description": "Entity Extractor — ดึง entity จาก input",
+      "Version": "1.0.0",
+      "InputContract": "input: SituationInput",
+      "OutputContract": "Entity[]",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "business",
+        "cognitive",
+        "situation"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "business.event-builder.buildEventFromMessages",
+      "OwnerModule": "engines/events/event-builder.ts",
+      "ExportName": "buildEventFromMessages",
+      "Category": "business",
+      "Description": "[Auto-detected] engines/events/event-builder.ts",
+      "Version": "1.0.0",
+      "InputContract": "messages: RawMessage[]",
+      "OutputContract": "Promise<",
+      "ExecutionType": "async",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "business",
+        "engines",
+        "events"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "business.event-builder.generateEventCode",
+      "OwnerModule": "engines/events/event-builder.ts",
+      "ExportName": "generateEventCode",
+      "Category": "business",
+      "Description": "[Auto-detected] engines/events/event-builder.ts",
+      "Version": "1.0.0",
+      "InputContract": "seq: number, at: Date = new Date(",
+      "OutputContract": "): string",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "business",
+        "engines",
+        "events"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "business.event-extractor.extractEvents",
+      "OwnerModule": "cognitive/situation/event-extractor.ts",
+      "ExportName": "extractEvents",
+      "Category": "business",
+      "Description": "Event Extractor — ดึง event จาก input",
+      "Version": "1.0.0",
+      "InputContract": "entities: Entity[]",
+      "OutputContract": "SituationEvent[]",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "business",
+        "cognitive",
+        "situation"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "business.flex-template.debtReminderFlex",
+      "OwnerModule": "engines/documents/flex-template.ts",
+      "ExportName": "debtReminderFlex",
+      "Category": "business",
+      "Description": "LINE Flex Message card builder for real documents (quotation/invoice/delivery/receipt) — modeled on the real LINE receipt template shown in the Flex Simulator, adapted from the previously-unused boq-card.ts. 2026-07-11: added CardBranding (real company name/tax ID/terms/footer note from core/config/company-settings.ts) rendered as a footer section on every card",
+      "Version": "1.0.0",
+      "InputContract": "{ companyName, totalOutstanding, daysOverdue, branding }: DebtReminderFlexProps",
+      "OutputContract": "object",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "business",
+        "engines",
+        "documents"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "business.flex-template.documentFlex",
+      "OwnerModule": "engines/documents/flex-template.ts",
+      "ExportName": "documentFlex",
+      "Category": "business",
+      "Description": "LINE Flex Message card builder for real documents (quotation/invoice/delivery/receipt) — modeled on the real LINE receipt template shown in the Flex Simulator, adapted from the previously-unused boq-card.ts. 2026-07-11: added CardBranding (real company name/tax ID/terms/footer note from core/config/company-settings.ts) rendered as a footer section on every card",
+      "Version": "1.0.0",
+      "InputContract": "{ documentType, documentNumber, partyName, items, summary, branding }: DocumentFlexProps",
+      "OutputContract": "object",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "business",
+        "engines",
+        "documents"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "business.fuel.calcFuel",
+      "OwnerModule": "engines/fuel.ts",
+      "ExportName": "calcFuel",
+      "Category": "business",
+      "Description": "คำนวณค่าน้ำมัน (ระยะทาง x อัตราสิ้นเปลือง x ราคา)",
+      "Version": "1.0.0",
+      "InputContract": "input: FuelInput",
+      "OutputContract": "Promise<FuelResult>",
+      "ExecutionType": "async",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "business",
+        "engines"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "business.index.calcFullQuote",
+      "OwnerModule": "engines/index.ts",
+      "ExportName": "calcFullQuote",
+      "Category": "business",
+      "Description": "Re-export รวมทุก engine + calcFullQuote pipeline",
+      "Version": "1.0.0",
+      "InputContract": "input: QuoteInput",
+      "OutputContract": "Promise<QuoteResult>",
+      "ExecutionType": "async",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "business",
+        "engines"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "business.index.composeBoard",
+      "OwnerModule": "cognitive/board/index.ts",
+      "ExportName": "composeBoard",
+      "Category": "business",
+      "Description": "Board Composer — รวมผลลัพธ์ทุกส่วนเป็น BoardResponse",
+      "Version": "1.0.0",
+      "InputContract": "worldState: WorldState,\n  hypotheses: Hypothesis[],\n  executionResults: ExecutionOutput[],\n  reflectionOutput: ReflectionOutput,\n  turnCount: number,",
+      "OutputContract": "BoardResponse",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "business",
+        "cognitive",
+        "board"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "business.index.executePlan",
+      "OwnerModule": "cognitive/executor/index.ts",
+      "ExportName": "executePlan",
+      "Category": "business",
+      "Description": "Cognitive Executor — รัน plan steps ผ่าน V2/V3/V5/V6 modules",
+      "Version": "1.0.0",
+      "InputContract": "plan: ExecutionPlan, worldState: WorldState",
+      "OutputContract": "Promise<StepResult[]>",
+      "ExecutionType": "async",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [
+        "gateway.actions.previewDocumentCreate",
+        "business.flex-template.documentFlex",
+        "business.dispatcher.dispatch",
+        "business.dispatcher.isRegistered",
+        "business.engine.calcDebtFull",
+        "business.engine.generateDoc",
+        "business.material-resolver.resolveMaterial",
+        "business.quote-price.tryQuoteMaterialPrice",
+        "presentation.formatter.formatDocumentCreateResult"
+      ],
+      "Tags": [
+        "business",
+        "cognitive",
+        "executor"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "business.index.learn",
+      "OwnerModule": "cognitive/learning/index.ts",
+      "ExportName": "learn",
+      "Category": "business",
+      "Description": "Learning — learn from reflection + evaluation",
+      "Version": "1.0.0",
+      "InputContract": "reflection: ReflectionOutput, evaluation: EvaluationResult",
+      "OutputContract": "LearningOutput",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "business",
+        "cognitive",
+        "learning"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "business.interest.calcCompoundInterest",
+      "OwnerModule": "engines/debt/interest.ts",
+      "ExportName": "calcCompoundInterest",
+      "Category": "business",
+      "Description": "คำนวณดอกเบี้ยทบต้น + จำนวนวันค้าง",
+      "Version": "1.0.0",
+      "InputContract": "input: InterestInput",
+      "OutputContract": "InterestResult",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "business",
+        "engines",
+        "debt"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "business.interest.calcDaysOverdue",
+      "OwnerModule": "engines/debt/interest.ts",
+      "ExportName": "calcDaysOverdue",
+      "Category": "business",
+      "Description": "คำนวณดอกเบี้ยทบต้น + จำนวนวันค้าง",
+      "Version": "1.0.0",
+      "InputContract": "dueDate: Date, asOf: Date = new Date(",
+      "OutputContract": "): number",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "business",
+        "engines",
+        "debt"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "business.manager.resolveObjective",
+      "OwnerModule": "cognitive/objective/manager.ts",
+      "ExportName": "resolveObjective",
+      "Category": "business",
+      "Description": "Objective Manager — objective lifecycle management",
+      "Version": "1.0.0",
+      "InputContract": "input: EnrichedInput, session: Session",
+      "OutputContract": "Objective",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "business",
+        "cognitive",
+        "objective"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "business.material-resolver.resolveMaterial",
+      "OwnerModule": "engines/material-resolver.ts",
+      "ExportName": "resolveMaterial",
+      "Category": "business",
+      "Description": "Resolves free-text material names from LINE chat against real material_types — never guesses between ambiguous matches, flags them for human choice instead",
+      "Version": "1.0.0",
+      "InputContract": "input: string, materialTypes: MaterialTypeRow[]",
+      "OutputContract": "MaterialMatch",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "business",
+        "engines"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "business.material-resolver.resolveMaterialText",
+      "OwnerModule": "engines/material-resolver.ts",
+      "ExportName": "resolveMaterialText",
+      "Category": "business",
+      "Description": "Resolves free-text material names from LINE chat against real material_types — never guesses between ambiguous matches, flags them for human choice instead",
+      "Version": "1.0.0",
+      "InputContract": "materialText: string, materialTypes: MaterialTypeRow[]",
+      "OutputContract": "MaterialMatch[]",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "business",
+        "engines"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "business.material-resolver.splitMaterialText",
+      "OwnerModule": "engines/material-resolver.ts",
+      "ExportName": "splitMaterialText",
+      "Category": "business",
+      "Description": "Resolves free-text material names from LINE chat against real material_types — never guesses between ambiguous matches, flags them for human choice instead",
+      "Version": "1.0.0",
+      "InputContract": "materialText: string",
+      "OutputContract": "string[]",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "business",
+        "engines"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "business.overdue.checkOverdue",
+      "OwnerModule": "engines/debt/overdue.ts",
+      "ExportName": "checkOverdue",
+      "Category": "business",
+      "Description": "ตรวจสอบครบกำหนด + เลย grace period",
+      "Version": "1.0.0",
+      "InputContract": "dueDate: Date,\n  gracePeriodHours: number,\n  asOf: Date = new Date(",
+      "OutputContract": "): OverdueCheck",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "business",
+        "engines",
+        "debt"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "business.pipeline.runCognitivePipeline",
+      "OwnerModule": "cognitive/pipeline.ts",
+      "ExportName": "runCognitivePipeline",
+      "Category": "business",
+      "Description": "Cognitive Pipeline กลาง — Intent → Plan → Execute → Reflect → Board",
+      "Version": "1.0.0",
+      "InputContract": "message: string",
+      "OutputContract": "Promise<BoardResponse |",
+      "ExecutionType": "async",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [
+        "business.index.composeBoard",
+        "business.engine.evaluate",
+        "business.index.executePlan",
+        "business.engine.generateHypotheses",
+        "business.index.learn",
+        "business.engine.plan",
+        "business.engine.reason",
+        "business.engine.reflect",
+        "business.builder.buildSituation"
+      ],
+      "Tags": [
+        "business",
+        "cognitive"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "business.pricing.calcPricing",
+      "OwnerModule": "engines/pricing.ts",
+      "ExportName": "calcPricing",
+      "Category": "business",
+      "Description": "คำนวณราคาขาย (ต้นทุน + markup + system fee + urgent fee)",
+      "Version": "1.0.0",
+      "InputContract": "input: PricingInput",
+      "OutputContract": "Promise<PricingResult>",
+      "ExecutionType": "async",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "business",
+        "engines"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "business.quote-price.tryQuoteMaterialPrice",
+      "OwnerModule": "engines/quote-price.ts",
+      "ExportName": "tryQuoteMaterialPrice",
+      "Category": "business",
+      "Description": "Next.js-side material price lookup (nearest pit + real pit_materials price) reusing engines/distance.ts and engines/material-resolver.ts — mirrors the Deno LINE-bot version but for the admin ask-AI box",
+      "Version": "1.0.0",
+      "InputContract": "materialText: string,\n  quantity: number,\n  gps: { lat: number; lng: number } | null",
+      "OutputContract": "Promise<QuoteResult>",
+      "ExecutionType": "async",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "business",
+        "engines"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "business.resource-graph.buildResourceGraph",
+      "OwnerModule": "cognitive/state/resource-graph.ts",
+      "ExportName": "buildResourceGraph",
+      "Category": "business",
+      "Description": "Resource Graph — ความสัมพันธ์ระหว่าง resources",
+      "Version": "1.0.0",
+      "InputContract": "entities: Entity[]",
+      "OutputContract": "ResourceGraph",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "business",
+        "cognitive",
+        "state"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "business.scheduler.checkBatch",
+      "OwnerModule": "engines/debt/scheduler.ts",
+      "ExportName": "checkBatch",
+      "Category": "business",
+      "Description": "ตรวจครบกำหนดหนี้ + สร้าง TransitionEvent อัตโนมัติ (cron/realtime)",
+      "Version": "1.0.0",
+      "InputContract": "debts: DebtRecord[], now: Date = new Date(",
+      "OutputContract": "): SchedulerResult[]",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "business",
+        "engines",
+        "debt"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "business.scheduler.checkDebtSchedule",
+      "OwnerModule": "engines/debt/scheduler.ts",
+      "ExportName": "checkDebtSchedule",
+      "Category": "business",
+      "Description": "ตรวจครบกำหนดหนี้ + สร้าง TransitionEvent อัตโนมัติ (cron/realtime)",
+      "Version": "1.0.0",
+      "InputContract": "debt: DebtRecord,\n  now: Date = new Date(",
+      "OutputContract": "): SchedulerResult",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "business",
+        "engines",
+        "debt"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "business.session.applyReflection",
+      "OwnerModule": "cognitive/memory/session.ts",
+      "ExportName": "applyReflection",
+      "Category": "business",
+      "Description": "Session Memory — per-session state tracking",
+      "Version": "1.0.0",
+      "InputContract": "reflection: ReflectionOutput",
+      "OutputContract": "SessionMemory",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "business",
+        "cognitive",
+        "memory"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "business.session.cancelPending",
+      "OwnerModule": "cognitive/memory/session.ts",
+      "ExportName": "cancelPending",
+      "Category": "business",
+      "Description": "Session Memory — per-session state tracking",
+      "Version": "1.0.0",
+      "InputContract": "action: string",
+      "OutputContract": "void",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "business",
+        "cognitive",
+        "memory"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "business.session.enrichWithMemory",
+      "OwnerModule": "cognitive/memory/session.ts",
+      "ExportName": "enrichWithMemory",
+      "Category": "business",
+      "Description": "Session Memory — per-session state tracking",
+      "Version": "1.0.0",
+      "InputContract": "worldState: WorldState",
+      "OutputContract": "WorldState",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "business",
+        "cognitive",
+        "memory"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "business.session.executePending",
+      "OwnerModule": "cognitive/memory/session.ts",
+      "ExportName": "executePending",
+      "Category": "business",
+      "Description": "Session Memory — per-session state tracking",
+      "Version": "1.0.0",
+      "InputContract": "action: string",
+      "OutputContract": "void",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "business",
+        "cognitive",
+        "memory"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "business.session.getMemory",
+      "OwnerModule": "cognitive/memory/session.ts",
+      "ExportName": "getMemory",
+      "Category": "business",
+      "Description": "Session Memory — per-session state tracking",
+      "Version": "1.0.0",
+      "InputContract": "()",
+      "OutputContract": "Readonly<SessionMemory>",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "business",
+        "cognitive",
+        "memory"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "business.session.isStale",
+      "OwnerModule": "cognitive/memory/session.ts",
+      "ExportName": "isStale",
+      "Category": "business",
+      "Description": "Session Memory — per-session state tracking",
+      "Version": "1.0.0",
+      "InputContract": "()",
+      "OutputContract": "boolean",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "business",
+        "cognitive",
+        "memory"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "business.session.newSession",
+      "OwnerModule": "cognitive/memory/session.ts",
+      "ExportName": "newSession",
+      "Category": "business",
+      "Description": "Session Memory — per-session state tracking",
+      "Version": "1.0.0",
+      "InputContract": "who: string",
+      "OutputContract": "SessionMemory",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "business",
+        "cognitive",
+        "memory"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "business.session.resetMemory",
+      "OwnerModule": "cognitive/memory/session.ts",
+      "ExportName": "resetMemory",
+      "Category": "business",
+      "Description": "Session Memory — per-session state tracking",
+      "Version": "1.0.0",
+      "InputContract": "()",
+      "OutputContract": "SessionMemory",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "business",
+        "cognitive",
+        "memory"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "business.session.whatChanged",
+      "OwnerModule": "cognitive/memory/session.ts",
+      "ExportName": "whatChanged",
+      "Category": "business",
+      "Description": "Session Memory — per-session state tracking",
+      "Version": "1.0.0",
+      "InputContract": "()",
+      "OutputContract": "StateTransition[]",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "business",
+        "cognitive",
+        "memory"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "business.session.whatIsCurrentGoal",
+      "OwnerModule": "cognitive/memory/session.ts",
+      "ExportName": "whatIsCurrentGoal",
+      "Category": "business",
+      "Description": "Session Memory — per-session state tracking",
+      "Version": "1.0.0",
+      "InputContract": "()",
+      "OutputContract": "string | null",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "business",
+        "cognitive",
+        "memory"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "business.session.whatIsPending",
+      "OwnerModule": "cognitive/memory/session.ts",
+      "ExportName": "whatIsPending",
+      "Category": "business",
+      "Description": "Session Memory — per-session state tracking",
+      "Version": "1.0.0",
+      "InputContract": "()",
+      "OutputContract": "string[]",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "business",
+        "cognitive",
+        "memory"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "business.session.whatWasCancelled",
+      "OwnerModule": "cognitive/memory/session.ts",
+      "ExportName": "whatWasCancelled",
+      "Category": "business",
+      "Description": "Session Memory — per-session state tracking",
+      "Version": "1.0.0",
+      "InputContract": "()",
+      "OutputContract": "string[]",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "business",
+        "cognitive",
+        "memory"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "business.state-machine.getAvailableActions",
+      "OwnerModule": "engines/transactions/state-machine.ts",
+      "ExportName": "getAvailableActions",
+      "Category": "business",
+      "Description": "Thin wrapper over the workflow registry — resolves next state for a transaction event.",
+      "Version": "1.0.0",
+      "InputContract": "txType: string, currentEvent: string",
+      "OutputContract": "inferred",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "business",
+        "engines",
+        "transactions"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "business.state-machine.resolveTransition",
+      "OwnerModule": "engines/transactions/state-machine.ts",
+      "ExportName": "resolveTransition",
+      "Category": "business",
+      "Description": "Thin wrapper over the workflow registry — resolves next state for a transaction event.",
+      "Version": "1.0.0",
+      "InputContract": "txType: string, currentEvent: string, action: string",
+      "OutputContract": "inferred",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "business",
+        "engines",
+        "transactions"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "business.status.canAccrueInterest",
+      "OwnerModule": "engines/debt/status.ts",
+      "ExportName": "canAccrueInterest",
+      "Category": "business",
+      "Description": "Debt State Machine — 7 สถานะ, event-driven transition",
+      "Version": "1.0.0",
+      "InputContract": "status: DebtStatus",
+      "OutputContract": "boolean",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "business",
+        "engines",
+        "debt"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "business.status.canChargeCollectionFee",
+      "OwnerModule": "engines/debt/status.ts",
+      "ExportName": "canChargeCollectionFee",
+      "Category": "business",
+      "Description": "Debt State Machine — 7 สถานะ, event-driven transition",
+      "Version": "1.0.0",
+      "InputContract": "status: DebtStatus",
+      "OutputContract": "boolean",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "business",
+        "engines",
+        "debt"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "business.status.isTerminal",
+      "OwnerModule": "engines/debt/status.ts",
+      "ExportName": "isTerminal",
+      "Category": "business",
+      "Description": "Debt State Machine — 7 สถานะ, event-driven transition",
+      "Version": "1.0.0",
+      "InputContract": "status: DebtStatus",
+      "OutputContract": "boolean",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "business",
+        "engines",
+        "debt"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "business.status.nextStatus",
+      "OwnerModule": "engines/debt/status.ts",
+      "ExportName": "nextStatus",
+      "Category": "business",
+      "Description": "Debt State Machine — 7 สถานะ, event-driven transition",
+      "Version": "1.0.0",
+      "InputContract": "event: string",
+      "OutputContract": "DebtStatus | null",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "business",
+        "engines",
+        "debt"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "business.tax.calcTax",
+      "OwnerModule": "engines/tax.ts",
+      "ExportName": "calcTax",
+      "Category": "business",
+      "Description": "คำนวณภาษี VAT + หัก ณ ที่จ่าย",
+      "Version": "1.0.0",
+      "InputContract": "input: TaxInput",
+      "OutputContract": "Promise<TaxResult>",
+      "ExecutionType": "async",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "business",
+        "engines"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "business.template.renderDocument",
+      "OwnerModule": "engines/documents/template.ts",
+      "ExportName": "renderDocument",
+      "Category": "business",
+      "Description": "Template engine สำหรับสร้างเอกสาร",
+      "Version": "1.0.0",
+      "InputContract": "input: RenderInput",
+      "OutputContract": "string",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "business",
+        "engines",
+        "documents"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "business.time.calcTime",
+      "OwnerModule": "engines/time.ts",
+      "ExportName": "calcTime",
+      "Category": "business",
+      "Description": "คำนวณเวลาขนส่ง (ไป-กลับ + ขึ้นลงของ)",
+      "Version": "1.0.0",
+      "InputContract": "input: TimeInput",
+      "OutputContract": "Promise<TimeResult>",
+      "ExecutionType": "async",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "business",
+        "engines"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "business.timeline.buildPartnerSummary",
+      "OwnerModule": "engines/partner/timeline.ts",
+      "ExportName": "buildPartnerSummary",
+      "Category": "business",
+      "Description": "Partner Timeline Engine — รวม documents + business_events เป็น timeline เรียงตามวันที่",
+      "Version": "1.0.0",
+      "InputContract": "partner: { id: string; name: string; partner_type_label: string | null; phone: string | null },\n  docs: RawDocument[]",
+      "OutputContract": "PartnerSummary",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [
+        "presentation.template-resolver.resolvePresentationTemplate"
+      ],
+      "Tags": [
+        "business",
+        "engines",
+        "partner"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "business.timeline.buildPartnerTimeline",
+      "OwnerModule": "engines/partner/timeline.ts",
+      "ExportName": "buildPartnerTimeline",
+      "Category": "business",
+      "Description": "Partner Timeline Engine — รวม documents + business_events เป็น timeline เรียงตามวันที่",
+      "Version": "1.0.0",
+      "InputContract": "docs: RawDocument[],\n  events: RawBusinessEvent[]",
+      "OutputContract": "PartnerTimelineEntry[]",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [
+        "presentation.template-resolver.resolvePresentationTemplate"
+      ],
+      "Tags": [
+        "business",
+        "engines",
+        "partner"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "business.timeline.buildTimeline",
+      "OwnerModule": "cognitive/state/timeline.ts",
+      "ExportName": "buildTimeline",
+      "Category": "business",
+      "Description": "Timeline — ลำดับเวลาของ events",
+      "Version": "1.0.0",
+      "InputContract": "events: SituationEvent[]",
+      "OutputContract": "Timeline",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "business",
+        "cognitive",
+        "state"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "business.tracking.calcDebtTrackingSummary",
+      "OwnerModule": "engines/debt/tracking.ts",
+      "ExportName": "calcDebtTrackingSummary",
+      "Category": "business",
+      "Description": "คำนวณ tracking สถานะหนี้ — ดอกเบี้ย, งวด, ยอดค้าง",
+      "Version": "1.0.0",
+      "InputContract": "input: DebtTrackingInput",
+      "OutputContract": "DebtTrackingSummary",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "business",
+        "engines",
+        "debt"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "business.tracking.DEBT_TRACKING_GRACE_DAYS",
+      "OwnerModule": "engines/debt/tracking.ts",
+      "ExportName": "DEBT_TRACKING_GRACE_DAYS",
+      "Category": "business",
+      "Description": "คำนวณ tracking สถานะหนี้ — ดอกเบี้ย, งวด, ยอดค้าง",
+      "Version": "1.0.0",
+      "InputContract": "()",
+      "OutputContract": "",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "business",
+        "engines",
+        "debt"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "business.tracking.DEBT_TRACKING_INTEREST_RATE",
+      "OwnerModule": "engines/debt/tracking.ts",
+      "ExportName": "DEBT_TRACKING_INTEREST_RATE",
+      "Category": "business",
+      "Description": "คำนวณ tracking สถานะหนี้ — ดอกเบี้ย, งวด, ยอดค้าง",
+      "Version": "1.0.0",
+      "InputContract": "()",
+      "OutputContract": "",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "business",
+        "engines",
+        "debt"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "business.tracking.DEBT_TRACKING_PENALTY_PER_DAY",
+      "OwnerModule": "engines/debt/tracking.ts",
+      "ExportName": "DEBT_TRACKING_PENALTY_PER_DAY",
+      "Category": "business",
+      "Description": "คำนวณ tracking สถานะหนี้ — ดอกเบี้ย, งวด, ยอดค้าง",
+      "Version": "1.0.0",
+      "InputContract": "()",
+      "OutputContract": "",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "business",
+        "engines",
+        "debt"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "business.transition.applyTransition",
+      "OwnerModule": "engines/debt/transition.ts",
+      "ExportName": "applyTransition",
+      "Category": "business",
+      "Description": "เปลี่ยนสถานะหนี้จาก Event + สร้าง transition chain",
+      "Version": "1.0.0",
+      "InputContract": "currentStatus: DebtStatus,\n  event: TransitionEvent",
+      "OutputContract": "TransitionResult",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "business",
+        "engines",
+        "debt"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "business.transition.buildTransitionChain",
+      "OwnerModule": "engines/debt/transition.ts",
+      "ExportName": "buildTransitionChain",
+      "Category": "business",
+      "Description": "เปลี่ยนสถานะหนี้จาก Event + สร้าง transition chain",
+      "Version": "1.0.0",
+      "InputContract": "events: TransitionEvent[]",
+      "OutputContract": "inferred",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "business",
+        "engines",
+        "debt"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "business.vehicle-selector.effectiveCapacity",
+      "OwnerModule": "engines/vehicle-selector.ts",
+      "ExportName": "effectiveCapacity",
+      "Category": "business",
+      "Description": "Vehicle selection law: recommends a truck type (รถหกล้อ/สิบล้อ/พ่วง) from trip distance alone (<=30km / 31-100km / >100km), plus effectiveCapacity() to convert a spec + material density into real usable payload volume.",
+      "Version": "1.0.0",
+      "InputContract": "spec: VehicleSpec, density_ton_per_m3: number",
+      "OutputContract": "number",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "business",
+        "engines"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "business.vehicle-selector.selectVehicle",
+      "OwnerModule": "engines/vehicle-selector.ts",
+      "ExportName": "selectVehicle",
+      "Category": "business",
+      "Description": "Vehicle selection law: recommends a truck type (รถหกล้อ/สิบล้อ/พ่วง) from trip distance alone (<=30km / 31-100km / >100km), plus effectiveCapacity() to convert a spec + material density into real usable payload volume.",
+      "Version": "1.0.0",
+      "InputContract": "input: VehicleSelectorInput",
+      "OutputContract": "VehicleSelectorResult",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "business",
+        "engines"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "business.workflows.getNextStep",
+      "OwnerModule": "engines/transactions/workflows.ts",
+      "ExportName": "getNextStep",
+      "Category": "business",
+      "Description": "Per-tx_type workflow step registry — single source of truth for transaction step order.",
+      "Version": "1.0.0",
+      "InputContract": "workflow: TxWorkflow, currentEvent: string",
+      "OutputContract": "WorkflowStep | undefined",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "business",
+        "engines",
+        "transactions"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "business.workflows.getStepIndex",
+      "OwnerModule": "engines/transactions/workflows.ts",
+      "ExportName": "getStepIndex",
+      "Category": "business",
+      "Description": "Per-tx_type workflow step registry — single source of truth for transaction step order.",
+      "Version": "1.0.0",
+      "InputContract": "workflow: TxWorkflow, event: string",
+      "OutputContract": "number",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "business",
+        "engines",
+        "transactions"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "business.workflows.getWorkflow",
+      "OwnerModule": "engines/transactions/workflows.ts",
+      "ExportName": "getWorkflow",
+      "Category": "business",
+      "Description": "Per-tx_type workflow step registry — single source of truth for transaction step order.",
+      "Version": "1.0.0",
+      "InputContract": "txType: string",
+      "OutputContract": "TxWorkflow",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "business",
+        "engines",
+        "transactions"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "business.workflows.isFinalEvent",
+      "OwnerModule": "engines/transactions/workflows.ts",
+      "ExportName": "isFinalEvent",
+      "Category": "business",
+      "Description": "Per-tx_type workflow step registry — single source of truth for transaction step order.",
+      "Version": "1.0.0",
+      "InputContract": "workflow: TxWorkflow, event: string",
+      "OutputContract": "boolean",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "business",
+        "engines",
+        "transactions"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "business.workflows.isPendingEvent",
+      "OwnerModule": "engines/transactions/workflows.ts",
+      "ExportName": "isPendingEvent",
+      "Category": "business",
+      "Description": "Per-tx_type workflow step registry — single source of truth for transaction step order.",
+      "Version": "1.0.0",
+      "InputContract": "workflow: TxWorkflow, event: string",
+      "OutputContract": "boolean",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "business",
+        "engines",
+        "transactions"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "business.world-state.buildWorldState",
+      "OwnerModule": "cognitive/state/world-state.ts",
+      "ExportName": "buildWorldState",
+      "Category": "business",
+      "Description": "World State — snapshot ของสถานะโลก ณ เวลานั้น",
+      "Version": "1.0.0",
+      "InputContract": "input: SituationInput,\n  entities: Entity[],\n  graph: ResourceGraph,\n  timeline: Timeline,\n  constraints: Constraint[],",
+      "OutputContract": "WorldState",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "business",
+        "cognitive",
+        "state"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "gateway.actions.dispatchAction",
+      "OwnerModule": "gateway/actions.ts",
+      "ExportName": "dispatchAction",
+      "Category": "gateway",
+      "Description": "Action API — preview/execute pattern สำหรับ payment, document.create, debt.create พร้อม token guard",
+      "Version": "1.0.0",
+      "InputContract": "req: ActionRequest",
+      "OutputContract": "Promise<ActionResponse>",
+      "ExecutionType": "async",
+      "Mutability": "mutating",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [
+        "business.engine.generateDoc"
+      ],
+      "Tags": [
+        "gateway"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "gateway.actions.executeDebtCreate",
+      "OwnerModule": "gateway/actions.ts",
+      "ExportName": "executeDebtCreate",
+      "Category": "gateway",
+      "Description": "Action API — preview/execute pattern สำหรับ payment, document.create, debt.create พร้อม token guard",
+      "Version": "1.0.0",
+      "InputContract": "payload: {\n  customer_name: string;\n  principal_amount: number;\n  fee_rate?: number;\n  interest_start_at?: string;\n}",
+      "OutputContract": "Promise<ActionResponse>",
+      "ExecutionType": "async",
+      "Mutability": "mutating",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [
+        "business.engine.generateDoc"
+      ],
+      "Tags": [
+        "gateway"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "gateway.actions.executeDocumentCreate",
+      "OwnerModule": "gateway/actions.ts",
+      "ExportName": "executeDocumentCreate",
+      "Category": "gateway",
+      "Description": "Action API — preview/execute pattern สำหรับ payment, document.create, debt.create พร้อม token guard",
+      "Version": "1.0.0",
+      "InputContract": "payload: {\n  document_type: string;\n  document_number?: string;\n  party_name: string;\n  customer_company_id?: string;\n  net_amount: number;\n  issue_date?: string;\n  note?: string;\n  items?: DocItem[];\n}",
+      "OutputContract": "Promise<ActionResponse>",
+      "ExecutionType": "async",
+      "Mutability": "mutating",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [
+        "business.engine.generateDoc"
+      ],
+      "Tags": [
+        "gateway"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "gateway.actions.executePayment",
+      "OwnerModule": "gateway/actions.ts",
+      "ExportName": "executePayment",
+      "Category": "gateway",
+      "Description": "Action API — preview/execute pattern สำหรับ payment, document.create, debt.create พร้อม token guard",
+      "Version": "1.0.0",
+      "InputContract": "payload: {\n  invoice_debt_id: string;\n  payment_amount: number;\n  note?: string;\n}",
+      "OutputContract": "Promise<ActionResponse>",
+      "ExecutionType": "async",
+      "Mutability": "mutating",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [
+        "business.engine.generateDoc"
+      ],
+      "Tags": [
+        "gateway"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "gateway.actions.previewDebtCreate",
+      "OwnerModule": "gateway/actions.ts",
+      "ExportName": "previewDebtCreate",
+      "Category": "gateway",
+      "Description": "Action API — preview/execute pattern สำหรับ payment, document.create, debt.create พร้อม token guard",
+      "Version": "1.0.0",
+      "InputContract": "payload: Record<string, unknown>",
+      "OutputContract": "Promise<ActionResponse>",
+      "ExecutionType": "async",
+      "Mutability": "mutating",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [
+        "business.engine.generateDoc"
+      ],
+      "Tags": [
+        "gateway"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "gateway.actions.previewDocumentCreate",
+      "OwnerModule": "gateway/actions.ts",
+      "ExportName": "previewDocumentCreate",
+      "Category": "gateway",
+      "Description": "Action API — preview/execute pattern สำหรับ payment, document.create, debt.create พร้อม token guard",
+      "Version": "1.0.0",
+      "InputContract": "payload: Record<string, unknown>",
+      "OutputContract": "Promise<ActionResponse>",
+      "ExecutionType": "async",
+      "Mutability": "mutating",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [
+        "business.engine.generateDoc"
+      ],
+      "Tags": [
+        "gateway"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "gateway.actions.previewPayment",
+      "OwnerModule": "gateway/actions.ts",
+      "ExportName": "previewPayment",
+      "Category": "gateway",
+      "Description": "Action API — preview/execute pattern สำหรับ payment, document.create, debt.create พร้อม token guard",
+      "Version": "1.0.0",
+      "InputContract": "invoiceDebtId: string",
+      "OutputContract": "Promise<ActionResponse>",
+      "ExecutionType": "async",
+      "Mutability": "mutating",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [
+        "business.engine.generateDoc"
+      ],
+      "Tags": [
+        "gateway"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "gateway.connectors.createConnector",
+      "OwnerModule": "gateway/connectors.ts",
+      "ExportName": "createConnector",
+      "Category": "gateway",
+      "Description": "[Auto-detected] gateway/connectors.ts",
+      "Version": "1.0.0",
+      "InputContract": "input: CreateConnectorInput",
+      "OutputContract": "Promise<ConnectorRecord>",
+      "ExecutionType": "async",
+      "Mutability": "mutating",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "gateway"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "gateway.connectors.deleteConnector",
+      "OwnerModule": "gateway/connectors.ts",
+      "ExportName": "deleteConnector",
+      "Category": "gateway",
+      "Description": "[Auto-detected] gateway/connectors.ts",
+      "Version": "1.0.0",
+      "InputContract": "id: string",
+      "OutputContract": "Promise<void>",
+      "ExecutionType": "async",
+      "Mutability": "mutating",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "gateway"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "gateway.connectors.getConnectorById",
+      "OwnerModule": "gateway/connectors.ts",
+      "ExportName": "getConnectorById",
+      "Category": "gateway",
+      "Description": "[Auto-detected] gateway/connectors.ts",
+      "Version": "1.0.0",
+      "InputContract": "id: string",
+      "OutputContract": "Promise<ConnectorRecord | null>",
+      "ExecutionType": "async",
+      "Mutability": "mutating",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "gateway"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "gateway.connectors.listConnectors",
+      "OwnerModule": "gateway/connectors.ts",
+      "ExportName": "listConnectors",
+      "Category": "gateway",
+      "Description": "[Auto-detected] gateway/connectors.ts",
+      "Version": "1.0.0",
+      "InputContract": "()",
+      "OutputContract": "Promise<ConnectorRecord[]>",
+      "ExecutionType": "async",
+      "Mutability": "mutating",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "gateway"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "gateway.connectors.recordConnectorTest",
+      "OwnerModule": "gateway/connectors.ts",
+      "ExportName": "recordConnectorTest",
+      "Category": "gateway",
+      "Description": "[Auto-detected] gateway/connectors.ts",
+      "Version": "1.0.0",
+      "InputContract": "id: string,\n  result: { ok: boolean; error?: string }",
+      "OutputContract": "Promise<ConnectorRecord>",
+      "ExecutionType": "async",
+      "Mutability": "mutating",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "gateway"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "gateway.connectors.recordWebhookEvent",
+      "OwnerModule": "gateway/connectors.ts",
+      "ExportName": "recordWebhookEvent",
+      "Category": "gateway",
+      "Description": "[Auto-detected] gateway/connectors.ts",
+      "Version": "1.0.0",
+      "InputContract": "connectorId: string,\n  headers: Record<string, unknown>,\n  payload: unknown,\n  verified: boolean",
+      "OutputContract": "Promise<void>",
+      "ExecutionType": "async",
+      "Mutability": "mutating",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "gateway"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "gateway.connectors.runConnectorTest",
+      "OwnerModule": "gateway/connectors.ts",
+      "ExportName": "runConnectorTest",
+      "Category": "gateway",
+      "Description": "[Auto-detected] gateway/connectors.ts",
+      "Version": "1.0.0",
+      "InputContract": "id: string",
+      "OutputContract": "Promise<ConnectorRecord>",
+      "ExecutionType": "async",
+      "Mutability": "mutating",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "gateway"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "gateway.connectors.setConnectorEnabled",
+      "OwnerModule": "gateway/connectors.ts",
+      "ExportName": "setConnectorEnabled",
+      "Category": "gateway",
+      "Description": "[Auto-detected] gateway/connectors.ts",
+      "Version": "1.0.0",
+      "InputContract": "id: string, enabled: boolean",
+      "OutputContract": "Promise<ConnectorRecord>",
+      "ExecutionType": "async",
+      "Mutability": "mutating",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "gateway"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "gateway.connectors.updateConnector",
+      "OwnerModule": "gateway/connectors.ts",
+      "ExportName": "updateConnector",
+      "Category": "gateway",
+      "Description": "[Auto-detected] gateway/connectors.ts",
+      "Version": "1.0.0",
+      "InputContract": "id: string,\n  patch: { name?: string; config?: Record<string, unknown>; secret?: Record<string, unknown> }",
+      "OutputContract": "Promise<ConnectorRecord>",
+      "ExecutionType": "async",
+      "Mutability": "mutating",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "gateway"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "gateway.domains.executeDnsRecordCreate",
+      "OwnerModule": "gateway/domains.ts",
+      "ExportName": "executeDnsRecordCreate",
+      "Category": "gateway",
+      "Description": "[Auto-detected] gateway/domains.ts",
+      "Version": "1.0.0",
+      "InputContract": "token: string",
+      "OutputContract": "Promise<DomainActionResponse>",
+      "ExecutionType": "async",
+      "Mutability": "mutating",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "gateway"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "gateway.domains.executeDnsRecordDelete",
+      "OwnerModule": "gateway/domains.ts",
+      "ExportName": "executeDnsRecordDelete",
+      "Category": "gateway",
+      "Description": "[Auto-detected] gateway/domains.ts",
+      "Version": "1.0.0",
+      "InputContract": "token: string",
+      "OutputContract": "Promise<DomainActionResponse>",
+      "ExecutionType": "async",
+      "Mutability": "mutating",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "gateway"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "gateway.domains.executeDnsRecordUpdate",
+      "OwnerModule": "gateway/domains.ts",
+      "ExportName": "executeDnsRecordUpdate",
+      "Category": "gateway",
+      "Description": "[Auto-detected] gateway/domains.ts",
+      "Version": "1.0.0",
+      "InputContract": "token: string",
+      "OutputContract": "Promise<DomainActionResponse>",
+      "ExecutionType": "async",
+      "Mutability": "mutating",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "gateway"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "gateway.domains.executeDomainRegister",
+      "OwnerModule": "gateway/domains.ts",
+      "ExportName": "executeDomainRegister",
+      "Category": "gateway",
+      "Description": "[Auto-detected] gateway/domains.ts",
+      "Version": "1.0.0",
+      "InputContract": "token: string",
+      "OutputContract": "Promise<DomainActionResponse>",
+      "ExecutionType": "async",
+      "Mutability": "mutating",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "gateway"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "gateway.domains.executeNameserverSet",
+      "OwnerModule": "gateway/domains.ts",
+      "ExportName": "executeNameserverSet",
+      "Category": "gateway",
+      "Description": "[Auto-detected] gateway/domains.ts",
+      "Version": "1.0.0",
+      "InputContract": "token: string",
+      "OutputContract": "Promise<DomainActionResponse>",
+      "ExecutionType": "async",
+      "Mutability": "mutating",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "gateway"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "gateway.domains.executeVercelDomainAdd",
+      "OwnerModule": "gateway/domains.ts",
+      "ExportName": "executeVercelDomainAdd",
+      "Category": "gateway",
+      "Description": "[Auto-detected] gateway/domains.ts",
+      "Version": "1.0.0",
+      "InputContract": "token: string",
+      "OutputContract": "Promise<DomainActionResponse>",
+      "ExecutionType": "async",
+      "Mutability": "mutating",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "gateway"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "gateway.domains.executeVercelDomainRemove",
+      "OwnerModule": "gateway/domains.ts",
+      "ExportName": "executeVercelDomainRemove",
+      "Category": "gateway",
+      "Description": "[Auto-detected] gateway/domains.ts",
+      "Version": "1.0.0",
+      "InputContract": "token: string",
+      "OutputContract": "Promise<DomainActionResponse>",
+      "ExecutionType": "async",
+      "Mutability": "mutating",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "gateway"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "gateway.domains.executeZoneCreate",
+      "OwnerModule": "gateway/domains.ts",
+      "ExportName": "executeZoneCreate",
+      "Category": "gateway",
+      "Description": "[Auto-detected] gateway/domains.ts",
+      "Version": "1.0.0",
+      "InputContract": "token: string",
+      "OutputContract": "Promise<DomainActionResponse>",
+      "ExecutionType": "async",
+      "Mutability": "mutating",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "gateway"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "gateway.domains.previewDnsRecordCreate",
+      "OwnerModule": "gateway/domains.ts",
+      "ExportName": "previewDnsRecordCreate",
+      "Category": "gateway",
+      "Description": "[Auto-detected] gateway/domains.ts",
+      "Version": "1.0.0",
+      "InputContract": "zoneId: string, record: DnsRecord",
+      "OutputContract": "DomainActionResponse",
+      "ExecutionType": "sync",
+      "Mutability": "mutating",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "gateway"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "gateway.domains.previewDnsRecordDelete",
+      "OwnerModule": "gateway/domains.ts",
+      "ExportName": "previewDnsRecordDelete",
+      "Category": "gateway",
+      "Description": "[Auto-detected] gateway/domains.ts",
+      "Version": "1.0.0",
+      "InputContract": "zoneId: string, recordId: string, description: string",
+      "OutputContract": "DomainActionResponse",
+      "ExecutionType": "sync",
+      "Mutability": "mutating",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "gateway"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "gateway.domains.previewDnsRecordUpdate",
+      "OwnerModule": "gateway/domains.ts",
+      "ExportName": "previewDnsRecordUpdate",
+      "Category": "gateway",
+      "Description": "[Auto-detected] gateway/domains.ts",
+      "Version": "1.0.0",
+      "InputContract": "zoneId: string, recordId: string, patch: Partial<DnsRecord>",
+      "OutputContract": "DomainActionResponse",
+      "ExecutionType": "sync",
+      "Mutability": "mutating",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "gateway"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "gateway.domains.previewDomainRegister",
+      "OwnerModule": "gateway/domains.ts",
+      "ExportName": "previewDomainRegister",
+      "Category": "gateway",
+      "Description": "[Auto-detected] gateway/domains.ts",
+      "Version": "1.0.0",
+      "InputContract": "req: DomainRegistrationRequest",
+      "OutputContract": "DomainActionResponse",
+      "ExecutionType": "sync",
+      "Mutability": "mutating",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "gateway"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "gateway.domains.previewNameserverSet",
+      "OwnerModule": "gateway/domains.ts",
+      "ExportName": "previewNameserverSet",
+      "Category": "gateway",
+      "Description": "[Auto-detected] gateway/domains.ts",
+      "Version": "1.0.0",
+      "InputContract": "domain: string, nameservers: string[]",
+      "OutputContract": "DomainActionResponse",
+      "ExecutionType": "sync",
+      "Mutability": "mutating",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "gateway"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "gateway.domains.previewVercelDomainAdd",
+      "OwnerModule": "gateway/domains.ts",
+      "ExportName": "previewVercelDomainAdd",
+      "Category": "gateway",
+      "Description": "[Auto-detected] gateway/domains.ts",
+      "Version": "1.0.0",
+      "InputContract": "domain: string",
+      "OutputContract": "DomainActionResponse",
+      "ExecutionType": "sync",
+      "Mutability": "mutating",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "gateway"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "gateway.domains.previewVercelDomainRemove",
+      "OwnerModule": "gateway/domains.ts",
+      "ExportName": "previewVercelDomainRemove",
+      "Category": "gateway",
+      "Description": "[Auto-detected] gateway/domains.ts",
+      "Version": "1.0.0",
+      "InputContract": "domain: string",
+      "OutputContract": "DomainActionResponse",
+      "ExecutionType": "sync",
+      "Mutability": "mutating",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "gateway"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "gateway.domains.previewZoneCreate",
+      "OwnerModule": "gateway/domains.ts",
+      "ExportName": "previewZoneCreate",
+      "Category": "gateway",
+      "Description": "[Auto-detected] gateway/domains.ts",
+      "Version": "1.0.0",
+      "InputContract": "domain: string",
+      "OutputContract": "DomainActionResponse",
+      "ExecutionType": "sync",
+      "Mutability": "mutating",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "gateway"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "gateway.presentation.getDebtSummary",
+      "OwnerModule": "core/workspace/gateway/presentationGateway.ts",
+      "ExportName": "getDebtSummary",
+      "Category": "gateway",
+      "Description": "Presentation Gateway — sole server boundary for auth + real Supabase reads, returns DTOs never raw rows",
+      "Version": "1.0.0",
+      "InputContract": "()",
+      "OutputContract": "Promise<DebtSummaryDTO>",
+      "ExecutionType": "async",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "gateway",
+        "core",
+        "workspace"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "gateway.presentation.getDocumentSummary",
+      "OwnerModule": "core/workspace/gateway/presentationGateway.ts",
+      "ExportName": "getDocumentSummary",
+      "Category": "gateway",
+      "Description": "Presentation Gateway — sole server boundary for auth + real Supabase reads, returns DTOs never raw rows",
+      "Version": "1.0.0",
+      "InputContract": "()",
+      "OutputContract": "Promise<DocumentSummaryDTO>",
+      "ExecutionType": "async",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "gateway",
+        "core",
+        "workspace"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "gateway.presentation.getInvoiceSummary",
+      "OwnerModule": "core/workspace/gateway/presentationGateway.ts",
+      "ExportName": "getInvoiceSummary",
+      "Category": "gateway",
+      "Description": "Presentation Gateway — sole server boundary for auth + real Supabase reads, returns DTOs never raw rows",
+      "Version": "1.0.0",
+      "InputContract": "()",
+      "OutputContract": "Promise<InvoiceSummaryDTO>",
+      "ExecutionType": "async",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "gateway",
+        "core",
+        "workspace"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "gateway.presentation.getMaterialSummary",
+      "OwnerModule": "core/workspace/gateway/presentationGateway.ts",
+      "ExportName": "getMaterialSummary",
+      "Category": "gateway",
+      "Description": "Presentation Gateway — sole server boundary for auth + real Supabase reads, returns DTOs never raw rows",
+      "Version": "1.0.0",
+      "InputContract": "()",
+      "OutputContract": "Promise<MaterialSummaryDTO>",
+      "ExecutionType": "async",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "gateway",
+        "core",
+        "workspace"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "gateway.presentation.getOrderSummary",
+      "OwnerModule": "core/workspace/gateway/presentationGateway.ts",
+      "ExportName": "getOrderSummary",
+      "Category": "gateway",
+      "Description": "Presentation Gateway — sole server boundary for auth + real Supabase reads, returns DTOs never raw rows",
+      "Version": "1.0.0",
+      "InputContract": "()",
+      "OutputContract": "Promise<OrderSummaryDTO>",
+      "ExecutionType": "async",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "gateway",
+        "core",
+        "workspace"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "gateway.presentation.getPartnerSummary",
+      "OwnerModule": "core/workspace/gateway/presentationGateway.ts",
+      "ExportName": "getPartnerSummary",
+      "Category": "gateway",
+      "Description": "Presentation Gateway — sole server boundary for auth + real Supabase reads, returns DTOs never raw rows",
+      "Version": "1.0.0",
+      "InputContract": "()",
+      "OutputContract": "Promise<PartnerSummaryDTO>",
+      "ExecutionType": "async",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "gateway",
+        "core",
+        "workspace"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "gateway.presentation.getTransportSummary",
+      "OwnerModule": "core/workspace/gateway/presentationGateway.ts",
+      "ExportName": "getTransportSummary",
+      "Category": "gateway",
+      "Description": "Presentation Gateway — sole server boundary for auth + real Supabase reads, returns DTOs never raw rows",
+      "Version": "1.0.0",
+      "InputContract": "()",
+      "OutputContract": "Promise<TransportSummaryDTO>",
+      "ExecutionType": "async",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "gateway",
+        "core",
+        "workspace"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "gateway.presentation.getWorkflowSummary",
+      "OwnerModule": "core/workspace/gateway/presentationGateway.ts",
+      "ExportName": "getWorkflowSummary",
+      "Category": "gateway",
+      "Description": "Presentation Gateway — sole server boundary for auth + real Supabase reads, returns DTOs never raw rows",
+      "Version": "1.0.0",
+      "InputContract": "()",
+      "OutputContract": "Promise<WorkflowSummaryDTO>",
+      "ExecutionType": "async",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "gateway",
+        "core",
+        "workspace"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "gateway.presentermap.resolvePanelRenderModel",
+      "OwnerModule": "core/workspace/gateway/presenterMap.ts",
+      "ExportName": "resolvePanelRenderModel",
+      "Category": "gateway",
+      "Description": "Server-only map from PresenterId to real Gateway+Presenter composition",
+      "Version": "1.0.0",
+      "InputContract": "id: PresenterId",
+      "OutputContract": "Promise<RenderModel | null>",
+      "ExecutionType": "async",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "gateway",
+        "core",
+        "workspace"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "presentation.dashboardboard.DashboardBoard",
+      "OwnerModule": "components/workspace/boards/DashboardBoard.tsx",
+      "ExportName": "DashboardBoard",
+      "Category": "presentation",
+      "Description": "Generic Board renderer — renders any RenderModel it receives, no business content knowledge",
+      "Version": "1.0.0",
+      "InputContract": "{ model }: { model: RenderModel }",
+      "OutputContract": "inferred",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "presentation",
+        "components",
+        "workspace",
+        "boards"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "presentation.debt.toRenderModel",
+      "OwnerModule": "core/workspace/presenters/debtPresenter.ts",
+      "ExportName": "toRenderModel",
+      "Category": "presentation",
+      "Description": "Pure transform: DebtSummaryDTO -> RenderModel, zero I/O",
+      "Version": "1.0.0",
+      "InputContract": "dto: DebtSummaryDTO",
+      "OutputContract": "RenderModel",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "presentation",
+        "core",
+        "workspace",
+        "presenters"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "presentation.document.toRenderModel",
+      "OwnerModule": "core/workspace/presenters/documentPresenter.ts",
+      "ExportName": "toRenderModel",
+      "Category": "presentation",
+      "Description": "Pure transform: DocumentSummaryDTO -> RenderModel, zero I/O",
+      "Version": "1.0.0",
+      "InputContract": "dto: DocumentSummaryDTO",
+      "OutputContract": "RenderModel",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "presentation",
+        "core",
+        "workspace",
+        "presenters"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "presentation.formatter.formatDebtResults",
+      "OwnerModule": "presenter/formatter.ts",
+      "ExportName": "formatDebtResults",
+      "Category": "presentation",
+      "Description": "จัดรูปแบบผลลัพธ์เป็น structured response สำหรับ UI",
+      "Version": "1.0.0",
+      "InputContract": "records: Record<string, unknown>[], keyword: string",
+      "OutputContract": "FormattedResult",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "presentation",
+        "presenter"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "presentation.formatter.formatDocumentCreateResult",
+      "OwnerModule": "presenter/formatter.ts",
+      "ExportName": "formatDocumentCreateResult",
+      "Category": "presentation",
+      "Description": "จัดรูปแบบผลลัพธ์เป็น structured response สำหรับ UI",
+      "Version": "1.0.0",
+      "InputContract": "record: Record<string, unknown>",
+      "OutputContract": "FormattedResult",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "presentation",
+        "presenter"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "presentation.formatter.formatPartnerResults",
+      "OwnerModule": "presenter/formatter.ts",
+      "ExportName": "formatPartnerResults",
+      "Category": "presentation",
+      "Description": "จัดรูปแบบผลลัพธ์เป็น structured response สำหรับ UI",
+      "Version": "1.0.0",
+      "InputContract": "records: EnrichedRecord[], keyword: string",
+      "OutputContract": "FormattedResult",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "presentation",
+        "presenter"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "presentation.formatter.formatPitResults",
+      "OwnerModule": "presenter/formatter.ts",
+      "ExportName": "formatPitResults",
+      "Category": "presentation",
+      "Description": "จัดรูปแบบผลลัพธ์เป็น structured response สำหรับ UI",
+      "Version": "1.0.0",
+      "InputContract": "records: EnrichedRecord[], keyword: string",
+      "OutputContract": "FormattedResult",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "presentation",
+        "presenter"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "presentation.invoice.toRenderModel",
+      "OwnerModule": "core/workspace/presenters/invoicePresenter.ts",
+      "ExportName": "toRenderModel",
+      "Category": "presentation",
+      "Description": "Pure transform: InvoiceSummaryDTO -> RenderModel, zero I/O",
+      "Version": "1.0.0",
+      "InputContract": "dto: InvoiceSummaryDTO",
+      "OutputContract": "RenderModel",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "presentation",
+        "core",
+        "workspace",
+        "presenters"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "presentation.material.toRenderModel",
+      "OwnerModule": "core/workspace/presenters/materialPresenter.ts",
+      "ExportName": "toRenderModel",
+      "Category": "presentation",
+      "Description": "Pure transform: MaterialSummaryDTO -> RenderModel, zero I/O",
+      "Version": "1.0.0",
+      "InputContract": "dto: MaterialSummaryDTO",
+      "OutputContract": "RenderModel",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "presentation",
+        "core",
+        "workspace",
+        "presenters"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "presentation.notimplementedboard.NotImplementedBoard",
+      "OwnerModule": "components/workspace/boards/NotImplementedBoard.tsx",
+      "ExportName": "NotImplementedBoard",
+      "Category": "presentation",
+      "Description": "Honest placeholder for Boards with no real Presenter — never fabricates content",
+      "Version": "1.0.0",
+      "InputContract": "{ model }: { model: RenderModel }",
+      "OutputContract": "inferred",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "presentation",
+        "components",
+        "workspace",
+        "boards"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "presentation.order.toRenderModel",
+      "OwnerModule": "core/workspace/presenters/orderPresenter.ts",
+      "ExportName": "toRenderModel",
+      "Category": "presentation",
+      "Description": "Pure transform: OrderSummaryDTO -> RenderModel, zero I/O",
+      "Version": "1.0.0",
+      "InputContract": "dto: OrderSummaryDTO",
+      "OutputContract": "RenderModel",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "presentation",
+        "core",
+        "workspace",
+        "presenters"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "presentation.partner.toRenderModel",
+      "OwnerModule": "core/workspace/presenters/partnerPresenter.ts",
+      "ExportName": "toRenderModel",
+      "Category": "presentation",
+      "Description": "Pure transform: PartnerSummaryDTO -> RenderModel, zero I/O",
+      "Version": "1.0.0",
+      "InputContract": "dto: PartnerSummaryDTO",
+      "OutputContract": "RenderModel",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "presentation",
+        "core",
+        "workspace",
+        "presenters"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "presentation.ranker.detectRankContext",
+      "OwnerModule": "presenter/ranker.ts",
+      "ExportName": "detectRankContext",
+      "Category": "presentation",
+      "Description": "จัดอันดับผลลัพธ์ตาม context (ระยะทาง/ราคา/วัสดุ/ชื่อ)",
+      "Version": "1.0.0",
+      "InputContract": "question: string",
+      "OutputContract": "RankContext",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "presentation",
+        "presenter"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "presentation.ranker.rankResults",
+      "OwnerModule": "presenter/ranker.ts",
+      "ExportName": "rankResults",
+      "Category": "presentation",
+      "Description": "จัดอันดับผลลัพธ์ตาม context (ระยะทาง/ราคา/วัสดุ/ชื่อ)",
+      "Version": "1.0.0",
+      "InputContract": "records: EnrichedRecord[], ctx: RankContext",
+      "OutputContract": "EnrichedRecord[]",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "presentation",
+        "presenter"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "presentation.template-resolver.resolvePresentationTemplate",
+      "OwnerModule": "engines/presentation/template-resolver.ts",
+      "ExportName": "resolvePresentationTemplate",
+      "Category": "presentation",
+      "Description": "Presentation Template Resolver — single source of truth for mapping runtime feed sources to one selected timeline presentation template",
+      "Version": "1.0.0",
+      "InputContract": "input: TemplateResolutionInput",
+      "OutputContract": "PresentationTemplate",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "presentation",
+        "engines"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "presentation.transport.toRenderModel",
+      "OwnerModule": "core/workspace/presenters/transportPresenter.ts",
+      "ExportName": "toRenderModel",
+      "Category": "presentation",
+      "Description": "Pure transform with explicit availability state — no real transport table exists in production",
+      "Version": "1.0.0",
+      "InputContract": "dto: TransportSummaryDTO",
+      "OutputContract": "RenderModel",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "presentation",
+        "core",
+        "workspace",
+        "presenters"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "presentation.workflow.toRenderModel",
+      "OwnerModule": "core/workspace/presenters/workflowPresenter.ts",
+      "ExportName": "toRenderModel",
+      "Category": "presentation",
+      "Description": "Pure transform: WorkflowSummaryDTO -> RenderModel, composes real order status + engines/transactions/state-machine.ts",
+      "Version": "1.0.0",
+      "InputContract": "dto: WorkflowSummaryDTO",
+      "OutputContract": "RenderModel",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "presentation",
+        "core",
+        "workspace",
+        "presenters"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "workspace.applicationrouter.listVisibleApplications",
+      "OwnerModule": "core/workspace/applicationRouter.ts",
+      "ExportName": "listVisibleApplications",
+      "Category": "workspace",
+      "Description": "Application Registry lookup + permission check, never calls Gateway/Presenter itself",
+      "Version": "1.0.0",
+      "InputContract": "role: AppRole",
+      "OutputContract": "ApplicationDefinition[]",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "workspace",
+        "core"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "workspace.applicationrouter.resolveApplication",
+      "OwnerModule": "core/workspace/applicationRouter.ts",
+      "ExportName": "resolveApplication",
+      "Category": "workspace",
+      "Description": "Application Registry lookup + permission check, never calls Gateway/Presenter itself",
+      "Version": "1.0.0",
+      "InputContract": "id: string, role: AppRole",
+      "OutputContract": "ApplicationDefinition | null",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "workspace",
+        "core"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "workspace.applicationworkspace.loadOrCreateApplicationWorkspace",
+      "OwnerModule": "core/workspace/applicationWorkspace.ts",
+      "ExportName": "loadOrCreateApplicationWorkspace",
+      "Category": "workspace",
+      "Description": "Namespaces a saved Workspace by Application id, reuses workspaceLayoutStore unchanged",
+      "Version": "1.0.0",
+      "InputContract": "app: ApplicationDefinition",
+      "OutputContract": "WorkspaceLayout",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "workspace",
+        "core"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "workspace.attachment.attachmentRegistry",
+      "OwnerModule": "core/workspace/attachmentRegistry.ts",
+      "ExportName": "attachmentRegistry",
+      "Category": "workspace",
+      "Description": "Tracks which runtimes are attached/visible/positioned, decoupled from execution",
+      "Version": "1.0.0",
+      "InputContract": "()",
+      "OutputContract": "",
+      "ExecutionType": "sync",
+      "Mutability": "mutating",
+      "StatePolicy": "stateful",
+      "MultipleInstanceSupport": false,
+      "Dependencies": [],
+      "Tags": [
+        "workspace",
+        "core"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "workspace.boardrouter.resolveBoard",
+      "OwnerModule": "core/workspace/boardRouter.ts",
+      "ExportName": "resolveBoard",
+      "Category": "workspace",
+      "Description": "Maps BoardType to its React component, structurally isolated from Business Engine/DB",
+      "Version": "1.0.0",
+      "InputContract": "type: BoardType",
+      "OutputContract": "ComponentType<",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [
+        "presentation.dashboardboard.DashboardBoard",
+        "presentation.notimplementedboard.NotImplementedBoard"
+      ],
+      "Tags": [
+        "workspace",
+        "core"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "workspace.canvas.Canvas",
+      "OwnerModule": "components/workspace/canvas/Canvas.tsx",
+      "ExportName": "Canvas",
+      "Category": "workspace",
+      "Description": "Visual Workspace editor — composes Palette, pan/zoom surface, Dock System, Inspectors, Screen/Workspace management",
+      "Version": "1.0.0",
+      "InputContract": "{ initialLayout }: { initialLayout: WorkspaceLayout }",
+      "OutputContract": "inferred",
+      "ExecutionType": "sync",
+      "Mutability": "mutating",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [
+        "workspace.workspacelayout.workspaceLayoutStore"
+      ],
+      "Tags": [
+        "workspace",
+        "components",
+        "canvas"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "workspace.connectionlayer.ConnectionLayer",
+      "OwnerModule": "components/workspace/canvas/ConnectionLayer.tsx",
+      "ExportName": "ConnectionLayer",
+      "Category": "workspace",
+      "Description": "SVG rendering of recorded node connections — drawing a line never executes anything",
+      "Version": "1.0.0",
+      "InputContract": "{\n  nodes,\n  connections,\n  nodeInputPorts,\n  nodeOutputPorts,\n  onRemoveConnection,\n}: {\n  nodes: CanvasNode[];\n  connections: CanvasConnection[];\n  nodeInputPorts: (instanceId: string",
+      "OutputContract": "=> string[];\n  nodeOutputPorts: (instanceId: string) => string[];\n  onRemoveConnection: (id: string) => void;\n})",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "workspace",
+        "components",
+        "canvas"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "workspace.module.generateModuleNodes",
+      "OwnerModule": "core/workspace/moduleRegistry.ts",
+      "ExportName": "generateModuleNodes",
+      "Category": "workspace",
+      "Description": "Generates Node metadata automatically from registry/module-registry.json + dependency-graph.json",
+      "Version": "1.0.0",
+      "InputContract": "()",
+      "OutputContract": "ModuleNode[]",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateful",
+      "MultipleInstanceSupport": false,
+      "Dependencies": [],
+      "Tags": [
+        "workspace",
+        "core"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "workspace.module.moduleRegistry",
+      "OwnerModule": "core/workspace/moduleRegistry.ts",
+      "ExportName": "moduleRegistry",
+      "Category": "workspace",
+      "Description": "Generates Node metadata automatically from registry/module-registry.json + dependency-graph.json",
+      "Version": "1.0.0",
+      "InputContract": "()",
+      "OutputContract": "",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateful",
+      "MultipleInstanceSupport": false,
+      "Dependencies": [],
+      "Tags": [
+        "workspace",
+        "core"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "workspace.moduleinspector.ModuleInspector",
+      "OwnerModule": "components/workspace/canvas/ModuleInspector.tsx",
+      "ExportName": "ModuleInspector",
+      "Category": "workspace",
+      "Description": "Read-only view of a selected Panel's Module Registry metadata + connected modules",
+      "Version": "1.0.0",
+      "InputContract": "{\n  node,\n  nodes,\n  connections,\n}: {\n  node: CanvasNode;\n  nodes: CanvasNode[];\n  connections: CanvasConnection[];\n}",
+      "OutputContract": "inferred",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "workspace",
+        "components",
+        "canvas"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "workspace.modulepalette.ModulePalette",
+      "OwnerModule": "components/workspace/canvas/ModulePalette.tsx",
+      "ExportName": "ModulePalette",
+      "Category": "workspace",
+      "Description": "Lists moduleRegistry.list() only — never hardcodes a module node",
+      "Version": "1.0.0",
+      "InputContract": "{ onAddNode }: { onAddNode: (moduleId: string",
+      "OutputContract": "=> void })",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "workspace",
+        "components",
+        "canvas"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "workspace.node.NodeRenderer",
+      "OwnerModule": "components/workspace/canvas/NodeRenderer.tsx",
+      "ExportName": "NodeRenderer",
+      "Category": "workspace",
+      "Description": "Renders one placed module instance — floating (draggable) or docked (static) mode",
+      "Version": "1.0.0",
+      "InputContract": "{\n  node,\n  selected,\n  docked = false,\n  onMove,\n  onSelect,\n  onRemove,\n  onPortDragStart,\n  onPortDrop,\n  onDragEnd,\n}: {\n  node: CanvasNode;\n  selected: boolean;\n  // Docked mode (Dock System, Phase 3B",
+      "OutputContract": "rendered as a static block inside\n  // a fixed Left/Right/Bottom dock slot, not absolutely positioned or\n  // draggable — position there is \"which dock slot\", not x/y.\n  docked?: boolean;\n  onMove: (instanceId: string, x: number, y: number) => void;\n  onSelect: (instanceId: string, additive: boolean) => void;\n  onRemove: (instanceId: string) => void;\n  onPortDragStart: (instanceId: string, port: string) => void;\n  onPortDrop: (instanceId: string, port: string) => void;\n  // Cross-screen move (Phase 3C) — reports the release point so Canvas can\n  // check whether it landed on a Screen tab. Reuses the same pointer-drag\n  // gesture as in-canvas repositioning rather than a second (native HTML5)\n  // drag mechanism, which would conflict with it.\n  onDragEnd?: (instanceId: string, clientX: number, clientY: number) => void;\n})",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "workspace",
+        "components",
+        "canvas"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "workspace.panel.panelRegistry",
+      "OwnerModule": "core/workspace/panelRegistry.ts",
+      "ExportName": "panelRegistry",
+      "Category": "workspace",
+      "Description": "Registry of content units Screen Controller may attach",
+      "Version": "1.0.0",
+      "InputContract": "()",
+      "OutputContract": "",
+      "ExecutionType": "sync",
+      "Mutability": "mutating",
+      "StatePolicy": "stateful",
+      "MultipleInstanceSupport": false,
+      "Dependencies": [],
+      "Tags": [
+        "workspace",
+        "core"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "workspace.permissioncomposer.isApplicationVisible",
+      "OwnerModule": "core/workspace/permissionComposer.ts",
+      "ExportName": "isApplicationVisible",
+      "Category": "workspace",
+      "Description": "Visibility layer only — reads existing AppRole, creates no new auth logic",
+      "Version": "1.0.0",
+      "InputContract": "app: ApplicationDefinition, role: AppRole",
+      "OutputContract": "boolean",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "workspace",
+        "core"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "workspace.permissioncomposer.isBoardVisible",
+      "OwnerModule": "core/workspace/permissionComposer.ts",
+      "ExportName": "isBoardVisible",
+      "Category": "workspace",
+      "Description": "Visibility layer only — reads existing AppRole, creates no new auth logic",
+      "Version": "1.0.0",
+      "InputContract": "app: ApplicationDefinition, role: AppRole",
+      "OutputContract": "boolean",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "workspace",
+        "core"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "workspace.permissioncomposer.isWidgetVisible",
+      "OwnerModule": "core/workspace/permissionComposer.ts",
+      "ExportName": "isWidgetVisible",
+      "Category": "workspace",
+      "Description": "Visibility layer only — reads existing AppRole, creates no new auth logic",
+      "Version": "1.0.0",
+      "InputContract": "app: ApplicationDefinition, role: AppRole",
+      "OutputContract": "boolean",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "workspace",
+        "core"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "workspace.presenter.presenterRegistry",
+      "OwnerModule": "core/workspace/presenterRegistry.ts",
+      "ExportName": "presenterRegistry",
+      "Category": "workspace",
+      "Description": "Separated Presentation bridge — converts runtime data to view-models",
+      "Version": "1.0.0",
+      "InputContract": "()",
+      "OutputContract": "",
+      "ExecutionType": "sync",
+      "Mutability": "mutating",
+      "StatePolicy": "stateful",
+      "MultipleInstanceSupport": false,
+      "Dependencies": [],
+      "Tags": [
+        "workspace",
+        "core"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "workspace.presenter.presentModuleInstance",
+      "OwnerModule": "core/workspace/presenter.ts",
+      "ExportName": "presentModuleInstance",
+      "Category": "workspace",
+      "Description": "Composition point: CanvasNode.moduleId -> Presenter -> RenderModel, honest fallback when no Presenter registered",
+      "Version": "1.0.0",
+      "InputContract": "moduleId: string",
+      "OutputContract": "RenderModel",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "workspace",
+        "core"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "workspace.propertyinspector.PropertyInspector",
+      "OwnerModule": "components/workspace/canvas/PropertyInspector.tsx",
+      "ExportName": "PropertyInspector",
+      "Category": "workspace",
+      "Description": "Edits a Panel's position/size/color/visibility/dock position — routes through screenController",
+      "Version": "1.0.0",
+      "InputContract": "{\n  node,\n  onMove,\n  onResize,\n  onRecolor,\n  onSetDockPosition,\n  onSetVisibility,\n}: {\n  node: CanvasNode;\n  onMove: (instanceId: string, x: number, y: number",
+      "OutputContract": "=> void;\n  onResize: (instanceId: string, width: number, height: number) => void;\n  onRecolor: (instanceId: string, color: string) => void;\n  onSetDockPosition: (instanceId: string, position: DockPosition) => void;\n  onSetVisibility: (instanceId: string, visibility: Visibility) => void;\n})",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "workspace",
+        "components",
+        "canvas"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "workspace.runtime.runtimeRegistry",
+      "OwnerModule": "core/workspace/runtimeRegistry.ts",
+      "ExportName": "runtimeRegistry",
+      "Category": "workspace",
+      "Description": "Module-singleton registry of running systems, independent of page lifecycle",
+      "Version": "1.0.0",
+      "InputContract": "()",
+      "OutputContract": "",
+      "ExecutionType": "sync",
+      "Mutability": "mutating",
+      "StatePolicy": "stateful",
+      "MultipleInstanceSupport": false,
+      "Dependencies": [],
+      "Tags": [
+        "workspace",
+        "core"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "workspace.usecanvasstate.useCanvasState",
+      "OwnerModule": "components/workspace/canvas/useCanvasState.ts",
+      "ExportName": "useCanvasState",
+      "Category": "workspace",
+      "Description": "Canvas interaction state (placement/selection/viewport/screens), bridges to screenController on attach/dock/visibility changes",
+      "Version": "1.0.0",
+      "InputContract": "initial: WorkspaceLayout",
+      "OutputContract": "inferred",
+      "ExecutionType": "sync",
+      "Mutability": "mutating",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [
+        "workspace.workspacelayout.workspaceLayoutStore"
+      ],
+      "Tags": [
+        "workspace",
+        "components",
+        "canvas"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "workspace.workspacecontext.useWorkspaceIdentity",
+      "OwnerModule": "components/workspace/WorkspaceContext.tsx",
+      "ExportName": "useWorkspaceIdentity",
+      "Category": "workspace",
+      "Description": "Identity context + read-only Screen Controller snapshot subscription (not mounted anywhere yet)",
+      "Version": "1.0.0",
+      "InputContract": "()",
+      "OutputContract": "WorkspaceIdentity",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "workspace",
+        "components"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "workspace.workspacecontext.useWorkspaceState",
+      "OwnerModule": "components/workspace/WorkspaceContext.tsx",
+      "ExportName": "useWorkspaceState",
+      "Category": "workspace",
+      "Description": "Identity context + read-only Screen Controller snapshot subscription (not mounted anywhere yet)",
+      "Version": "1.0.0",
+      "InputContract": "()",
+      "OutputContract": "WorkspaceSnapshot",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "workspace",
+        "components"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "workspace.workspacecontext.WorkspaceProvider",
+      "OwnerModule": "components/workspace/WorkspaceContext.tsx",
+      "ExportName": "WorkspaceProvider",
+      "Category": "workspace",
+      "Description": "Identity context + read-only Screen Controller snapshot subscription (not mounted anywhere yet)",
+      "Version": "1.0.0",
+      "InputContract": "{\n  identity,\n  children,\n}: {\n  identity: WorkspaceIdentity;\n  children: React.ReactNode;\n}",
+      "OutputContract": "inferred",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "workspace",
+        "components"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "workspace.workspacelayout.workspaceLayoutStore",
+      "OwnerModule": "core/workspace/workspaceLayout.ts",
+      "ExportName": "workspaceLayoutStore",
+      "Category": "workspace",
+      "Description": "Workspace JSON persistence (save/load/list/clone) — localStorage, not database",
+      "Version": "1.0.0",
+      "InputContract": "()",
+      "OutputContract": "",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "workspace",
+        "core"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "workspace.workspacestate.workspaceState",
+      "OwnerModule": "core/workspace/workspaceState.ts",
+      "ExportName": "workspaceState",
+      "Category": "workspace",
+      "Description": "Single-writer render snapshot store, written only by screenController.ts",
+      "Version": "1.0.0",
+      "InputContract": "()",
+      "OutputContract": "",
+      "ExecutionType": "sync",
+      "Mutability": "mutating",
+      "StatePolicy": "stateful",
+      "MultipleInstanceSupport": false,
+      "Dependencies": [],
+      "Tags": [
+        "workspace",
+        "core"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    },
+    {
+      "CapabilityId": "workspace.workspacetemplate.createWorkspaceFromApplication",
+      "OwnerModule": "core/workspace/workspaceTemplate.ts",
+      "ExportName": "createWorkspaceFromApplication",
+      "Category": "workspace",
+      "Description": "Generates a real Canvas Workspace from an ApplicationDefinition's real panel list",
+      "Version": "1.0.0",
+      "InputContract": "app: ApplicationDefinition",
+      "OutputContract": "WorkspaceLayout",
+      "ExecutionType": "sync",
+      "Mutability": "readOnly",
+      "StatePolicy": "stateless",
+      "MultipleInstanceSupport": true,
+      "Dependencies": [],
+      "Tags": [
+        "workspace",
+        "core"
+      ],
+      "Status": "active",
+      "DiscoveryMetadata": {
+        "discoveredFrom": "registry/module-registry.json",
+        "discoveredAt": "2026-07-14T03:41:56.284Z",
+        "classifierVersion": "v2-phase7.3a",
+        "granularity": "per-export"
+      }
+    }
+  ]
+}

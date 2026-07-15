@@ -19,7 +19,7 @@ export interface FuelResult {
 }
 
 export async function calcFuel(input: FuelInput): Promise<FuelResult> {
-  const configs = await loadConfigs();
+  const configs = await loadConfigs(supabase());
   const fuelPrice = getNum(configs, "fuel-price");
 
   // ── Temporal provenance check — ราคาน้ำมันต้องไม่เก่าเกิน 7 วัน ────────────

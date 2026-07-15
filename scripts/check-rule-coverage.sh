@@ -11,7 +11,12 @@ fi
 
 # Count covered rules
 COVERED=$(grep -c '"enforced_by"' "$REGISTRY" 2>/dev/null || echo "0")
-TOTAL=100
+# Evidence-First Automation (registry/EXECUTION_CONTRACT.json, DNA-000041): a
+# hardcoded rule-total constant here went stale 5 real times this session
+# (once per Rule 100-104 added), each requiring a manual fix across 3 scripts.
+# Computed from the real registry instead — adding Rule 105+ never requires
+# touching this file again.
+TOTAL=$(node -e "const r=require('./$REGISTRY'); console.log(Object.keys(r.rules).length + r.uncovered_rules.length)")
 
 # Check each enforced_by file actually exists
 BROKEN=0

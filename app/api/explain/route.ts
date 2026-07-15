@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireAuth } from "@/core/auth/requireAuth";
 import { ANY_AUTHENTICATED } from "@/core/auth/session";
 import { loadConfigs } from "@/core/config-loader";
+import { supabase } from "@/services/supabase/queries";
 import { haversine } from "@/engines/distance";
 import { explainQuote } from "@/presenter/explainer";
 
@@ -16,7 +17,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: false, error: "ต้องระบุ pit_id" }, { status: 400 });
     }
 
-    const configs = await loadConfigs();
+    const configs = await loadConfigs(supabase());
     const result = await explainQuote({
       pit_id: body.pit_id,
       site_lat: body.site_lat ?? 16.4314,

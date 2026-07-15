@@ -1,0 +1,45 @@
+{
+  "generated_at": "2026-07-14T09:27:01Z",
+  "intelligence": {
+    "business_rules": 26,
+    "config_keys": 16,
+    "workflows": 19,
+    "commands": 95,
+    "modules": 466,
+    "document_types": 7,
+    "event_types": 1,
+    "active_domains": 8
+  },
+  "decisions": {
+    "automated_commands": 68,
+    "human_decisions": 27,
+    "ai_tool_modules": 0
+0,
+    "automation_rate_pct": 71
+  },
+  "knowledge_coverage": {
+    "sales": 100,
+    "debt": 100,
+    "tax": 100,
+    "transport": 100,
+    "documents": 100,
+    "purchase": 66,
+    "communication": 66,
+    "maintenance": 20,
+    "inventory": 0,
+    "hr": 0,
+    "accounting": 0,
+    "overall_pct": 59
+  },
+  "decision_coverage": {
+    "pricing": 100,
+    "document_approval": 100,
+    "vehicle_dispatch": 80,
+    "supplier_selection": 60,
+    "debt_collection": 100,
+    "line_response": 75,
+    "total_decision_points": 33,
+    "codified_points": 29,
+    "overall_pct": 87
+  }
+}

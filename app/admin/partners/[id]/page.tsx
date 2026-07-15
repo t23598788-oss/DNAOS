@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { useParams } from "next/navigation"
 import Link from "next/link"
 import type { PartnerTimelineEntry, PartnerSummary } from "@/core/shared/types"
+import { EVENT_STYLE } from "@/engines/presentation/event-style"
 
 // ── helpers ──
 
@@ -38,24 +39,7 @@ function groupByMonth(entries: PartnerTimelineEntry[]) {
 }
 
 // ── icon + color per event type ──
-
-const EVENT_STYLE: Record<string, { bg: string; text: string; icon: string }> = {
-  invoice:         { bg: "bg-blue-100",   text: "text-blue-700",   icon: "📄" },
-  receipt:         { bg: "bg-emerald-100",text: "text-emerald-700",icon: "✅" },
-  quotation:       { bg: "bg-amber-100",  text: "text-amber-700",  icon: "📋" },
-  delivery_order:  { bg: "bg-orange-100", text: "text-orange-700", icon: "🚚" },
-  purchase_order:  { bg: "bg-violet-100", text: "text-violet-700", icon: "🛒" },
-  payment_voucher: { bg: "bg-purple-100", text: "text-purple-700", icon: "💳" },
-  debt_notice:     { bg: "bg-rose-100",   text: "text-rose-700",   icon: "⚠️" },
-  payment_received:{ bg: "bg-emerald-100",text: "text-emerald-700",icon: "💰" },
-  quotation_sent:  { bg: "bg-amber-100",  text: "text-amber-700",  icon: "📤" },
-  delivery_made:   { bg: "bg-orange-100", text: "text-orange-700", icon: "📦" },
-  invoice_issued:  { bg: "bg-blue-100",   text: "text-blue-700",   icon: "🧾" },
-  po_received:     { bg: "bg-violet-100", text: "text-violet-700", icon: "📬" },
-  credit_note_issued:{ bg: "bg-pink-100", text: "text-pink-700",   icon: "📝" },
-  line_chat:       { bg: "bg-green-100",  text: "text-green-700",  icon: "💬" },
-  note:            { bg: "bg-stone-100",  text: "text-stone-600",  icon: "📌" },
-}
+// Canonical owner: engines/presentation/event-style.ts (Architecture Governance, 2026-07-13)
 
 const STATUS_COLOR: Record<string, string> = {
   "ร่าง": "bg-amber-100 text-amber-700",
@@ -165,6 +149,18 @@ function TimelineEntry({ entry }: { entry: PartnerTimelineEntry }) {
             )}
             {entry.subtitle && (
               <div className="text-[10px] text-stone-400 mt-0.5">{entry.subtitle}</div>
+            )}
+            {entry.artifacts && entry.artifacts.length > 0 && (
+              <div className="flex flex-wrap gap-1.5 mt-2">
+                {entry.artifacts.map((artifact) => (
+                  <span
+                    key={artifact.document_id}
+                    className="text-[10px] font-semibold px-2 py-0.5 rounded border border-stone-200 bg-white text-stone-500"
+                  >
+                    {artifact.document_type} {artifact.document_number}
+                  </span>
+                ))}
+              </div>
             )}
           </div>
           <div className="flex items-center gap-2 shrink-0">
@@ -391,8 +387,8 @@ export default function PartnerTimelinePage() {
                 <div className="flex items-center gap-3 mb-3">
                   <div className="text-xs font-bold text-stone-500 uppercase tracking-wider">💬 แชท LINE ({lineMessages.length} ข้อความ)</div>
                   <div className="flex-1 h-px bg-stone-200" />
-                  <Link href="/admin/line-customers" className="text-[10px] font-semibold text-emerald-600 hover:underline">
-                    ดูหน้าลูกค้า LINE →
+                  <Link href={`/admin/relationships/${partnerId}`} className="text-[10px] font-semibold text-emerald-600 hover:underline">
+                    เปิด Workspace →
                   </Link>
                 </div>
                 <div className="bg-white border border-stone-200 rounded-2xl px-4 py-3">
@@ -462,7 +458,7 @@ export default function PartnerTimelinePage() {
 
                 <div>
                   {group.entries.map((entry, i) => (
-                    <TimelineEntry key={entry.document_id ?? entry.business_event_id ?? i} entry={entry} />
+                    <TimelineEntry key={entry.template_key ?? entry.document_id ?? entry.business_event_id ?? i} entry={entry} />
                   ))}
                 </div>
               </div>

@@ -46,11 +46,25 @@
     "Registry is the single source of truth",
     "Before stopping, CURRENT_STATE.json must have: status (IN_PROGRESS|BLOCKED|DONE), current_file, next_step, handoff, open_questions",
     "Leave the repository in a resumable state — the next AI must continue without asking the user; if a genuine human decision is required, status=BLOCKED with a precise open_question is itself the resumable state, never guess an answer to unblock",
-    "One Entry. One Architecture. One Registry. One Source of Truth."
+    "One Entry. One Architecture. One Registry. One Source of Truth.",
+    "Evidence-First Rule Creation Policy (owner directive 2026-07-14, DNA-000041, MISSION: Runtime Capability Evolution): Failure -> Knowledge -> Capability -> Automation -> Intelligence. Every real Runtime failure, error, or AI misinterpretation must be logged with root cause and a preventability assessment as Runtime Knowledge (registry/existence.json) FIRST. Only once the SAME failure pattern has recurred 2+ times with real evidence should a new Guard or Capability be considered — never build one from a single occurrence or a hypothetical. A new Constitution Rule (registry/CONSTITUTION.json iron_rules) is the LAST resort, not the default response to a mission statement — most of what missions ask for should resolve at the Guard/Capability/Automation layer, using real, already-observed evidence, not a new numbered law. Every new Capability must be able to answer: which real incident caused it, what work it reduces, what it prevents, and which other modules can reuse it. Do not build a Feature to solve a problem that has not actually happened. | Evidence Definition, redefined (owner directive 2026-07-14, DNA-000048): \"Evidence\" is NOT limited to git history/commits. Any Runtime layer that can prove a relationship counts as Evidence — Runtime State, Registry, Dependency Graph, Import Graph, Execution Graph, Event Graph, Workflow, Runtime Trace, Validation Result, Health Report, Module Relationship, Architecture Graph, Existing Knowledge (registry/existence.json), CHANGELOG, Owner Request, Task Queue, Runtime Report. Do not stop investigating just because git has no answer. Never say 'insufficient evidence' until every real Runtime layer has actually been checked. Every time evidence is declared insufficient, state explicitly: which layers were checked, which were not, which layers genuinely have no data for this question (and why, structurally), and which would require new tooling to check — before concluding evidence is insufficient. Real case that triggered this: DNA-000045 marked 3 root-cause items UNKNOWN after checking only git commit titles and git author identity; DNA-000048 re-checked full commit bodies, commit trailers, and 4 other registries (CHANGELOG.json, TASK_QUEUE.json, HANDOFF.json, AI_SESSIONS.json), resolving 2 of the 3 items with real evidence and confirming the 3rd is structurally absent (not merely unsearched) — see registry/existence.json known_mistakes.confirmed_duplicate_pairs KM-002-line.",
+    "Root Cause Engine Output Contract (owner directive 2026-07-15, DNA-000057, refines Rule 106's existing root-cause-analysis requirement — not a new substantive rule): whenever an AI reports a problem as solved/fixed, the response is incomplete until it can answer all 8 of: Symptom (what was observed) -> Evidence (what was actually captured/run to confirm it, not assumed) -> Root Cause (the real underlying mechanism, not the surface bug) -> Why it happened (the structural gap that allowed it) -> Fix Applied (what changed, real diff/command) -> Verification (real before/after evidence, not assumed to work) -> Knowledge Extracted (a structured registry/existence.json known_mistakes entry, not just prose in a chat reply) -> Preventive Rule Added (a Constitution rule id if the gap was structural, or an explicit note that none was needed and why). If any of these 8 cannot be answered, the analysis is not finished — say so explicitly rather than declaring 'problem solved'. Real example this session that fully satisfies the contract: DNA-000056/057's Audit Self Feedback Loop fix, recorded end to end as registry/existence.json known_mistakes#KM-005 (knowledge_id DNA-KB-000056)."
   ],
   "output_contract": {
     "note": "Every completed task must append a CHANGELOG.json entry with exactly these fields",
-    "fields": ["change_id", "agent_id", "provider", "model", "session_id", "files_modified", "started_at", "finished_at", "status", "summary", "next_task"]
+    "fields": [
+      "change_id",
+      "agent_id",
+      "provider",
+      "model",
+      "session_id",
+      "files_modified",
+      "started_at",
+      "finished_at",
+      "status",
+      "summary",
+      "next_task"
+    ]
   },
   "session_tracking": "registry/AI_SESSIONS.json — live roster of individual agent sessions (not just agent types). Every session must upsert its own entry on start and keep status honest — never guess another session's status.",
   "lock_management": "registry/LOCK_MANAGER.json — per-file lock ledger, supports N agents locking N different files simultaneously; never locks the whole project.",

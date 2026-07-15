@@ -17,6 +17,44 @@ const HEADER_COLOR: Partial<Record<DocType, string>> = {
   boq: "#1565C0",
 };
 
+// Real company header + terms/notes shown on every card — sourced from
+// core/config/company-settings.ts (real app_configs, not hardcoded), owner
+// request 2026-07-11: "หัวข้อระบบ ชื่อบริษัทเรา กติกาข้อตกลง หมายเหตุ...
+// สร้างเป็นการ์ดส่งให้ลูกค้าด้วย". All optional — a field left blank in
+// settings just doesn't render that line, never fabricated.
+export interface CardBranding {
+  ourCompanyName?: string;
+  ourCompanyTaxId?: string;
+  terms?: string;
+  footerNote?: string;
+}
+
+function brandingFooter(branding?: CardBranding): { type: "box"; layout: "vertical"; contents: unknown[] } | null {
+  if (!branding) return null;
+  const lines: unknown[] = [];
+
+  if (branding.ourCompanyName) {
+    lines.push({ type: "separator", margin: "md" });
+    lines.push({
+      type: "text",
+      text: branding.ourCompanyTaxId ? `${branding.ourCompanyName} • เลขผู้เสียภาษี ${branding.ourCompanyTaxId}` : branding.ourCompanyName,
+      size: "xxs",
+      color: "#999999",
+      wrap: true,
+      margin: "md",
+    });
+  }
+  if (branding.terms) {
+    lines.push({ type: "text", text: branding.terms, size: "xxs", color: "#999999", wrap: true, margin: "sm" });
+  }
+  if (branding.footerNote) {
+    lines.push({ type: "text", text: branding.footerNote, size: "xxs", color: "#999999", wrap: true, margin: "sm" });
+  }
+
+  if (lines.length === 0) return null;
+  return { type: "box", layout: "vertical", contents: lines };
+}
+
 export interface DocumentFlexProps {
   documentType: DocType;
   documentNumber: string;
@@ -28,9 +66,10 @@ export interface DocumentFlexProps {
   // real items for a fuller card.
   items?: DocItem[];
   summary: { subtotal: number; vat: number; total: number };
+  branding?: CardBranding;
 }
 
-export function documentFlex({ documentType, documentNumber, partyName, items, summary }: DocumentFlexProps): object {
+export function documentFlex({ documentType, documentNumber, partyName, items, summary, branding }: DocumentFlexProps): object {
   const label = DOC_LABELS[documentType] ?? DOC_LABELS.quotation;
   const color = HEADER_COLOR[documentType] ?? "#37474F";
 
@@ -58,6 +97,8 @@ export function documentFlex({ documentType, documentNumber, partyName, items, s
       ],
     },
   ]);
+
+  const footerBox = brandingFooter(branding);
 
   return {
     type: "bubble",
@@ -106,6 +147,7 @@ export function documentFlex({ documentType, documentNumber, partyName, items, s
             { type: "text", text: summary.total.toLocaleString("th-TH", { minimumFractionDigits: 2 }) + " ฿", weight: "bold", color, align: "end", flex: 2 },
           ],
         },
+        ...(footerBox ? [footerBox] : []),
       ],
     },
   };
@@ -115,11 +157,13 @@ export interface DebtReminderFlexProps {
   companyName: string;
   totalOutstanding: number;
   daysOverdue: number;
+  branding?: CardBranding;
 }
 
-export function debtReminderFlex({ companyName, totalOutstanding, daysOverdue }: DebtReminderFlexProps): object {
+export function debtReminderFlex({ companyName, totalOutstanding, daysOverdue, branding }: DebtReminderFlexProps): object {
   const severe = daysOverdue > 30;
   const color = severe ? "#C62828" : "#EF6C00";
+  const footerBox = brandingFooter(branding);
 
   return {
     type: "bubble",
@@ -150,6 +194,7 @@ export function debtReminderFlex({ companyName, totalOutstanding, daysOverdue }:
           ],
         },
         { type: "text", text: `ผิดนัดชำระ ${daysOverdue} วัน`, size: "xs", color: "#888888" },
+        ...(footerBox ? [footerBox] : []),
       ],
     },
   };

@@ -1,4 +1,5 @@
 import { loadConfigs, getNum, audit, type AuditTrail } from "@/core/config-loader";
+import { supabase } from "@/services/supabase/queries";
 
 export interface PricingInput {
   total_cost: number;
@@ -22,7 +23,7 @@ export interface PricingResult {
 }
 
 export async function calcPricing(input: PricingInput): Promise<PricingResult> {
-  const configs = await loadConfigs();
+  const configs = await loadConfigs(supabase());
   const markupPercent = getNum(configs, "pricing-markup-percent");
   const systemFeePercent = getNum(configs, "system-fee-percent");
   const urgentFeePercent = getNum(configs, "urgent-fee-percent");

@@ -6,6 +6,8 @@
  */
 
 import type { PartnerTimelineEntry, PartnerSummary } from "@/core/shared/types";
+import { resolvePresentationTemplate, uniqueResolvedTemplates } from "@/engines/presentation/template-resolver";
+import { linkDocumentsToEvents } from "@/engines/presentation/timeline-engine";
 import { canonicalDocumentType } from "@/services/supabase/queries";
 
 // ── labels สำหรับแสดงผล ──
@@ -72,13 +74,66 @@ export function buildPartnerTimeline(
 ): PartnerTimelineEntry[] {
   const entries: PartnerTimelineEntry[] = [];
 
-  for (const doc of docs) {
+  // Shared linking primitive (engines/presentation/timeline-engine.ts) — same
+  // logic app/admin/relationships/feed.ts's buildFeed() uses. A document's
+  // business_event_id may reference an event outside this `events` array
+  // (already-deleted event, or a doc resolved against a different partner
+  // query) — those must still render standalone, not vanish, so orphaned
+  // linked docs are folded back into the standalone set below rather than
+  // trusted blindly.
+  const { documentsByEventId, standaloneDocuments: unlinkedDocuments } = linkDocumentsToEvents(docs);
+  const realEventIds = new Set(events.map((e) => e.id));
+  const orphanedDocuments = Array.from(documentsByEventId.entries())
+    .filter(([eventId]) => !realEventIds.has(eventId))
+    .flatMap(([, orphanDocs]) => orphanDocs);
+  const standaloneDocuments = [...unlinkedDocuments, ...orphanedDocuments];
+
+  for (const ev of events) {
+    const template = resolvePresentationTemplate({ source_kind: "business_event", source_id: ev.id });
+    const linkedDocs = documentsByEventId.get(ev.id) ?? [];
+    let amount: number | null = null;
+    let status: string | null = null;
+    const artifacts = linkedDocs.map((doc) => {
+      const canonical = canonicalDocumentType(doc.document_type);
+      amount = amount ?? doc.net_amount;
+      status = status ?? (STATUS_LABEL[doc.status] ?? doc.status);
+      return {
+        kind: "document" as const,
+        document_id: doc.id,
+        document_number: doc.document_number,
+        document_type: canonical,
+        status: STATUS_LABEL[doc.status] ?? doc.status,
+        amount: doc.net_amount,
+      };
+    });
+    entries.push({
+      date: ev.event_date,
+      kind: "business_event",
+      ...template,
+      event_type: ev.event_type,
+      title: ev.title ?? BUSINESS_EVENT_LABEL[ev.event_type] ?? ev.event_type,
+      subtitle: ev.description ?? null,
+      amount,
+      status,
+      business_event_id: ev.id,
+      transaction_id: ev.transaction_id ?? undefined,
+      artifacts,
+    });
+  }
+
+  for (const doc of standaloneDocuments) {
     const canonical = canonicalDocumentType(doc.document_type);
     const meta = DOCUMENT_TYPE_LABEL[canonical];
     const date = doc.issue_date ?? doc.created_at.split("T")[0];
+    const template = resolvePresentationTemplate({
+      source_kind: "document",
+      source_id: doc.id,
+      business_event_id: doc.business_event_id ?? null,
+    });
     entries.push({
       date,
       kind: "document",
+      ...template,
       event_type: canonical,
       title: meta ? `${meta.th} ${doc.document_number}` : doc.document_number,
       subtitle: meta?.prefix ?? null,
@@ -90,21 +145,7 @@ export function buildPartnerTimeline(
     });
   }
 
-  for (const ev of events) {
-    entries.push({
-      date: ev.event_date,
-      kind: "business_event",
-      event_type: ev.event_type,
-      title: ev.title ?? BUSINESS_EVENT_LABEL[ev.event_type] ?? ev.event_type,
-      subtitle: ev.description ?? null,
-      amount: null,
-      status: null,
-      business_event_id: ev.id,
-      transaction_id: ev.transaction_id ?? undefined,
-    });
-  }
-
-  return entries.sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0));
+  return uniqueResolvedTemplates(entries).sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0));
 }
 
 export function buildPartnerSummary(

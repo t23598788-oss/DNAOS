@@ -3,6 +3,7 @@ import { requireAuth } from "@/core/auth/requireAuth"
 import { ADMIN_TIER } from "@/core/auth/session"
 import { supabaseAdmin as supabase } from "@/services/supabase/queries"
 import { debtReminderFlex } from "@/engines/documents/flex-template"
+import { loadCompanySettings } from "@/core/config/company-settings"
 
 type Params = { params: Promise<{ lineUserId: string }> }
 
@@ -12,11 +13,18 @@ type Params = { params: Promise<{ lineUserId: string }> }
 // trusting whatever the client had cached, since this is a real financial
 // figure going out to a customer.
 
-export async function POST(_req: Request, { params }: Params) {
+// Owner request 2026-07-11: "ให้เห็นภาพรายการก่อนที่จะกดส่งยืนยัน" — this route
+// now takes an optional body { mode: "preview" | "execute" } (default
+// "preview"). Preview builds and returns the real Flex card without pushing
+// or writing anything; only "execute" actually sends and logs. The admin UI
+// calls preview first, shows the card, then re-POSTs with mode:"execute".
+export async function POST(req: Request, { params }: Params) {
   const auth = await requireAuth(ADMIN_TIER)
   if (auth instanceof NextResponse) return auth
 
   const { lineUserId } = await params
+  const body = await req.json().catch(() => ({}))
+  const mode = body?.mode === "execute" ? "execute" : "preview"
   const db = supabase()
 
   const { data: link } = await db
@@ -37,11 +45,22 @@ export async function POST(_req: Request, { params }: Params) {
   const token = process.env.LINE_CHANNEL_ACCESS_TOKEN
   if (!token) return NextResponse.json({ error: "LINE_CHANNEL_ACCESS_TOKEN ยังไม่ได้ตั้งค่า" }, { status: 503 })
 
+  const branding = await loadCompanySettings()
   const flex = debtReminderFlex({
     companyName: company.name,
     totalOutstanding: Number(debt.total_outstanding),
     daysOverdue: debt.days_overdue ?? 0,
+    branding: {
+      ourCompanyName: branding.companyName || undefined,
+      ourCompanyTaxId: branding.companyTaxId || undefined,
+      terms: branding.documentTerms || undefined,
+      footerNote: branding.documentFooterNote || undefined,
+    },
   })
+
+  if (mode === "preview") {
+    return NextResponse.json({ ok: true, flex_preview: flex })
+  }
 
   const lineRes = await fetch("https://api.line.me/v2/bot/message/push", {
     method: "POST",

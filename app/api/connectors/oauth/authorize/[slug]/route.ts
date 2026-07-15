@@ -9,6 +9,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { getAuthedUser, ADMIN_TIER } from "@/core/auth/session"
 import { getConnector } from "@/core/connector-loader"
+import { supabaseAdmin } from "@/services/supabase/queries"
 
 type Params = { params: Promise<{ slug: string }> }
 
@@ -21,7 +22,7 @@ export async function GET(req: NextRequest, { params }: Params) {
   }
 
   const { slug } = await params
-  const connector = await getConnector(slug)
+  const connector = await getConnector(supabaseAdmin(), slug)
 
   if (!connector || connector.auth_type !== "oauth") {
     return NextResponse.json({ error: "ไม่พบ OAuth Connector นี้" }, { status: 404 })

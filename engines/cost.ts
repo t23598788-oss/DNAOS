@@ -21,7 +21,7 @@ export interface CostResult {
 }
 
 export async function calcCost(input: CostInput): Promise<CostResult> {
-  const configs = await loadConfigs();
+  const configs = await loadConfigs(supabase());
   const driverWage = getNum(configs, "driver-wage-per-trip");
 
   let materialPrice = 0;

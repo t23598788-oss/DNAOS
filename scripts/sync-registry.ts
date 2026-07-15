@@ -41,6 +41,9 @@ function saveRegistry(reg: ModuleRegistry) {
   writeFileSync(REGISTRY_PATH, JSON.stringify(reg, null, 2) + "\n", "utf-8");
 }
 
+// KM-001 (registry/existence.json known_mistakes): this duplicates scripts/build-arch-book.ts's
+// extractExportsFromFile. Both independently had the same .tsx-blindness bug class 3 times this
+// session — check that file too when fixing a parsing bug here.
 function extractExports(content: string): string[] {
   const exports: string[] = [];
   const patterns = [
@@ -50,6 +53,8 @@ function extractExports(content: string): string[] {
     /export\s+type\s+(\w+)/g,
     /export\s+interface\s+(\w+)/g,
     /export\s+enum\s+(\w+)/g,
+    /export\s+default\s+(?:async\s+)?function\s+(\w+)/g,
+    /export\s+default\s+(?:abstract\s+)?class\s+(\w+)/g,
   ];
   for (const pattern of patterns) {
     for (const match of content.matchAll(pattern)) {
@@ -65,6 +70,10 @@ function extractExports(content: string): string[] {
       if (trimmed && !exports.includes(trimmed)) exports.push(trimmed);
     }
   }
+  // bare `export default <expr>` (anonymous, or an identifier already covered above)
+  if (exports.length === 0 && /export\s+default\s+/.test(content)) {
+    exports.push("default");
+  }
   return exports.sort();
 }
 
@@ -77,14 +86,28 @@ function layerFromPath(relPath: string): string {
   return parts[0];
 }
 
+// Rule 100 — Core Learning Policy (registry/existence.json known_mistakes). Single source
+// of truth read here, not hardcoded — the same list scripts/check-imports.sh and
+// scripts/build-arch-book.ts read. Module Registration is the earliest point a new file
+// can be checked against a known confirmed duplicate, before it's ever committed.
+function loadConfirmedDuplicatePairs(): { keep: string; deprecated: string; reason: string }[] {
+  try {
+    const existence = JSON.parse(readFileSync(join(ROOT, "registry/existence.json"), "utf-8"));
+    return existence.known_mistakes?.confirmed_duplicate_pairs?.pairs ?? [];
+  } catch {
+    return [];
+  }
+}
+
 // ── Main ───────────────────────────────────────────
 
 async function syncRegistry() {
   const registry = loadRegistry();
+  const confirmedPairs = loadConfirmedDuplicatePairs();
   let added = 0;
   let updated = 0;
 
-  const files = await glob("**/*.ts", {
+  const files = await glob("**/*.{ts,tsx}", {
     cwd: ROOT,
     ignore: [
       "node_modules/**",
@@ -92,6 +115,8 @@ async function syncRegistry() {
       "**/*.d.ts",
       "**/*.test.ts",
       "**/*.spec.ts",
+      "**/*.test.tsx",
+      "**/*.spec.tsx",
     ],
   });
 
@@ -115,6 +140,17 @@ async function syncRegistry() {
       };
       console.log(`  + เพิ่ม: ${file} (${exports.length} exports)`);
       added++;
+
+      // Rule 100 / KM-002: warn immediately if this brand-new file is one half of an
+      // already-known confirmed duplicate pair — earliest possible warning point.
+      const asKeep = confirmedPairs.find((p) => p.keep === file);
+      const asDeprecated = confirmedPairs.find((p) => p.deprecated === file);
+      if (asKeep) {
+        console.log(`  WARNING: '${file}' is the KEEP side of a confirmed duplicate pair (${asKeep.deprecated} is deprecated) — ${asKeep.reason}`);
+      }
+      if (asDeprecated) {
+        console.log(`  WARNING: '${file}' is the DEPRECATED side of a confirmed duplicate pair — โปรดใช้ '${asDeprecated.keep}' แทน. ${asDeprecated.reason}`);
+      }
     } else {
       const prevExports = JSON.stringify([...(existing.exports ?? [])].sort());
       const newExports = JSON.stringify(exports);

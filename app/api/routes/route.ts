@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import { requireAuth } from "@/core/auth/requireAuth";
+import { ADMIN_TIER } from "@/core/auth/session";
 import { readFileSync, existsSync, readdirSync, statSync } from "fs";
 import { join, relative } from "path";
 
@@ -57,7 +59,12 @@ function scanRoutes(dir: string, results: any[]) {
 }
 
 // GET /api/routes — รายการ route จริงจาก Source Code + purpose จาก api-registry.json
+// Real, live security fix (TASK-001, DNA-000070): was unauthenticated, leaked
+// a full real listing of every API route + purpose.
 export async function GET() {
+  const auth = await requireAuth(ADMIN_TIER);
+  if (auth instanceof NextResponse) return auth;
+
   const registry = loadApiRegistry();
   const raw: { method: string; path: string; doc: string | null }[] = [];
   scanRoutes(API_ROOT, raw);

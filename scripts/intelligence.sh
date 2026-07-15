@@ -18,7 +18,8 @@ bar() {
 
 # Business Rules (from app_configs count via config-loader + rule-coverage)
 RULES_ENFORCED=$(grep -c '"enforced_by"' registry/rule-coverage.json 2>/dev/null || echo "0")
-RULES_TOTAL=100
+# Evidence-First Automation (registry/EXECUTION_CONTRACT.json, DNA-000041) — computed, not hardcoded; see scripts/check-rule-coverage.sh for why.
+RULES_TOTAL=$(node -e "const r=require('./registry/rule-coverage.json'); console.log(Object.keys(r.rules).length + r.uncovered_rules.length)")
 
 # Workflows
 WF_COUNT=$(grep -cE '^\s*"[a-z].*"steps"' registry/commands/workflows.json 2>/dev/null || echo "0")

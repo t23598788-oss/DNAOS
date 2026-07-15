@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import { requireAuth } from "@/core/auth/requireAuth";
+import { ADMIN_TIER } from "@/core/auth/session";
 import { readFileSync, existsSync } from "fs";
 import { join } from "path";
 import { execSync } from "child_process";
@@ -34,7 +36,12 @@ function getVercelInfo() {
 }
 
 // GET /api/deploy — ข้อมูล deployment ปัจจุบัน
+// Real, live security fix (TASK-001, DNA-000070): was unauthenticated, leaked
+// real filesystem paths, git commit history, and Vercel project config.
 export async function GET() {
+  const auth = await requireAuth(ADMIN_TIER);
+  if (auth instanceof NextResponse) return auth;
+
   const git = getGitInfo();
   const vercel = getVercelInfo();
 

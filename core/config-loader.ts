@@ -1,4 +1,9 @@
-import { supabase } from "@/services/supabase/queries";
+import type { SupabaseClient } from "@supabase/supabase-js";
+
+// Phase 2.3A: core must not import services/* directly (registry/
+// dependency-graph.json: allowed_imports.core = ["registry"]). loadConfigs
+// now takes the Supabase client as a parameter — callers (already allowed
+// to import services/) pass in supabase() themselves.
 
 export interface RulesConfig {
   [key: string]: number | string;
@@ -16,10 +21,10 @@ export function clearConfigCache(): void {
   _cacheExpiry = 0;
 }
 
-export async function loadConfigs(): Promise<RulesConfig> {
+export async function loadConfigs(db: SupabaseClient): Promise<RulesConfig> {
   if (_cache && Date.now() < _cacheExpiry) return _cache;
 
-  const { data, error } = await supabase()
+  const { data, error } = await db
     .from("app_configs")
     .select("title, data, updated_at");
 
