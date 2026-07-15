@@ -47,6 +47,31 @@ export interface ArchNode {
   error_th?: string;
   symbols?: ArchSymbol[];
   import_sites?: ArchImportSite[];
+
+  // Navigation-metadata extension (DNA-000074) — every field here is either
+  // computed from real source/registry evidence or explicitly "UNKNOWN" per
+  // the owner's instruction to never fabricate a relationship. None of these
+  // duplicate an existing field: entry_point/dependencies/dependents/
+  // data_tables/capabilities are newly computed from source; domain_owner/
+  // lifecycle_status/deprecated are pass-throughs exposing module-registry.json
+  // fields that already existed there but were never surfaced on the node
+  // itself. "Public API" is intentionally NOT a new field — the existing
+  // `exports` field already is that; duplicating it would violate Rule 103.
+  runtime_entry_point: boolean;
+  internal_dependencies: string[];   // outgoing imports resolved to real files (module: ids)
+  dependents: string[];              // incoming — who actually imports this (module: ids)
+  data_tables: string[] | "UNKNOWN"; // real supabase.from("table") calls found in source
+  business_capabilities: string[] | "UNKNOWN"; // CapabilityId[] from registry/capability-registry.json where OwnerModule === this file
+  domain_owner: string | "UNKNOWN";  // module-registry.json's existing `owner` field, surfaced (coarse: top-level dir tag, not a real domain model — see registry/rule-coverage.json)
+  lifecycle_status: string | "UNKNOWN"; // module-registry.json's existing `status` field
+  deprecated: boolean;
+  event_producer: boolean | "UNKNOWN";  // true only if source contains a real business_events INSERT
+  event_consumer: boolean | "UNKNOWN";  // true only if source contains a real business_events SELECT
+  related_workflows: "UNKNOWN";      // registry/execution/*.registry.json's loader has zero real importers
+  related_business_events: "UNKNOWN"; // no mechanical per-module link exists beyond the event_producer/consumer boolean above
+  related_documents: "UNKNOWN";      // same — no reliable mechanical link found
+  related_commands: "UNKNOWN";       // registry/command-registry.json has no per-file back-reference
+  related_services: "UNKNOWN";       // services/ layer has no per-module declared-consumer list
 }
 
 export interface ArchEdge {
@@ -128,7 +153,15 @@ function extractExportsFromFile(absPath: string): string[] {
 
 function extractImportsFromFile(absPath: string): string[] {
   if (!existsSync(absPath)) return [];
-  const content = readFileSync(absPath, "utf-8");
+  const rawContent = readFileSync(absPath, "utf-8");
+  // Strip // line comments before matching (DNA-000074 fix — found via the new
+  // circular-dependency detector: a commented-out example import in
+  // components/ui-kit/index.ts's own header comment was being counted as a
+  // real import, producing a false self-cycle). Doesn't strip /* */ block
+  // comments or string contents with "//" — good enough for this codebase's
+  // real usage, not a full lexer; verified against real file content, not
+  // guessed.
+  const content = rawContent.replace(/^\s*\/\/.*$/gm, "");
   const imports: string[] = [];
   // named imports: from "..."
   for (const match of content.matchAll(/from\s+['"]([^'"]+)['"]/g)) {
@@ -216,6 +249,44 @@ function extractImportSites(absPath: string, resolver: (specifier: string) => st
     sites.push({ specifier, line, resolved_target: resolver(specifier) });
   }
   return sites;
+}
+
+// ── Navigation Metadata Extraction (DNA-000074) ─────
+// Each function here only returns what it can directly prove from real
+// source text or an existing registry — no inference, no guessing.
+
+function extractDataTables(absPath: string): string[] {
+  if (!existsSync(absPath)) return [];
+  const content = readFileSync(absPath, "utf-8");
+  const tables = new Set<string>();
+  for (const m of content.matchAll(/\.from\(\s*["'`]([a-zA-Z0-9_]+)["'`]\s*\)/g)) {
+    tables.add(m[1]);
+  }
+  return [...tables].sort();
+}
+
+function detectEventRole(absPath: string, tables: string[]): { producer: boolean; consumer: boolean } {
+  if (!tables.includes("business_events")) return { producer: false, consumer: false };
+  if (!existsSync(absPath)) return { producer: false, consumer: false };
+  const content = readFileSync(absPath, "utf-8");
+  // Real call shape check, not just table-name presence — .from("business_events").insert(
+  const producer = /\.from\(\s*["'`]business_events["'`]\s*\)[\s\S]{0,120}?\.insert\(/.test(content);
+  const consumer = /\.from\(\s*["'`]business_events["'`]\s*\)[\s\S]{0,120}?\.select\(/.test(content);
+  return { producer, consumer };
+}
+
+function buildCapabilityIndex(): Map<string, string[]> {
+  const capReg = load("capability-registry.json");
+  const index = new Map<string, string[]>();
+  const capabilities: any[] = capReg.capabilities ?? [];
+  for (const cap of capabilities) {
+    const owner = cap.OwnerModule;
+    const id = cap.CapabilityId;
+    if (!owner || !id) continue;
+    if (!index.has(owner)) index.set(owner, []);
+    index.get(owner)!.push(id);
+  }
+  return index;
 }
 
 // ── Status Calculator ──────────────────────────────
@@ -338,6 +409,7 @@ function calcStatus(
 async function buildArchBook() {
   const moduleReg = load("module-registry.json");
   const archReg = load("architecture.json");
+  const capabilityIndex = buildCapabilityIndex();
 
   const nodes: ArchNode[] = [];
   const edges: ArchEdge[] = [];
@@ -402,12 +474,15 @@ async function buildArchBook() {
   }
 
   // Build edges from import graph
+  const outgoingByFile: Map<string, Set<string>> = new Map();
   for (const { from, to } of importEdges) {
     edges.push({
       source: `module:${from}`,
       target: `module:${to}`,
       label: "imports",
     });
+    if (!outgoingByFile.has(from)) outgoingByFile.set(from, new Set());
+    outgoingByFile.get(from)!.add(to);
   }
 
   // Layer nodes from architecture.json
@@ -421,6 +496,21 @@ async function buildArchBook() {
       purpose_th: layerData.purpose ?? layerId,
       exports: [],
       status: "OK",
+      runtime_entry_point: false,
+      internal_dependencies: [],
+      dependents: [],
+      data_tables: "UNKNOWN",
+      business_capabilities: "UNKNOWN",
+      domain_owner: layerId,
+      lifecycle_status: "UNKNOWN",
+      deprecated: false,
+      event_producer: "UNKNOWN",
+      event_consumer: "UNKNOWN",
+      related_workflows: "UNKNOWN",
+      related_business_events: "UNKNOWN",
+      related_documents: "UNKNOWN",
+      related_commands: "UNKNOWN",
+      related_services: "UNKNOWN",
     });
   }
 
@@ -438,6 +528,11 @@ async function buildArchBook() {
 
     const layerId = data.layer ?? filePath.split("/")[1] ?? "unknown";
 
+    const absPath = join(ROOT, filePath);
+    const dataTables = extractDataTables(absPath);
+    const eventRole = detectEventRole(absPath, dataTables);
+    const capabilities = capabilityIndex.get(filePath) ?? null;
+
     const node: ArchNode = {
       id: `module:${filePath}`,
       type: "Module",
@@ -446,6 +541,21 @@ async function buildArchBook() {
       purpose_th: data.purpose_th ?? data.purpose ?? filePath,
       exports: registeredExports,
       status,
+      runtime_entry_point: isEntryPoint(filePath) || data.entry_point === true,
+      internal_dependencies: [...(outgoingByFile.get(filePath) ?? [])].sort().map((t) => `module:${t}`),
+      dependents: [...(importedBy.get(filePath) ?? [])].sort().map((f) => `module:${f}`),
+      data_tables: dataTables.length > 0 ? dataTables : "UNKNOWN",
+      business_capabilities: capabilities && capabilities.length > 0 ? capabilities : "UNKNOWN",
+      domain_owner: data.owner ?? "UNKNOWN",
+      lifecycle_status: data.status ?? "UNKNOWN",
+      deprecated: data.deprecated === true,
+      event_producer: dataTables.includes("business_events") ? eventRole.producer : "UNKNOWN",
+      event_consumer: dataTables.includes("business_events") ? eventRole.consumer : "UNKNOWN",
+      related_workflows: "UNKNOWN",
+      related_business_events: "UNKNOWN",
+      related_documents: "UNKNOWN",
+      related_commands: "UNKNOWN",
+      related_services: "UNKNOWN",
     };
     if (error_th) node.error_th = error_th;
     const symbols = symbolsByFile.get(filePath);

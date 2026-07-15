@@ -26,6 +26,7 @@
     "why": "npx tsx core/runtime/cockpit.ts why",
     "dbd": "npx tsx core/runtime/dbd.ts",
     "precommit": "bash scripts/pre-commit-check.sh",
+    "arch-health": "npx tsx scripts/build-arch-book.ts && npx tsx scripts/arch-health-report.ts",
     "backup": "npx tsx scripts/backup.ts",
     "restore": "npx tsx scripts/backup.ts restore",
     "sync": "npx tsx scripts/sync-registry.ts && npx tsx scripts/build-arch-book.ts",
