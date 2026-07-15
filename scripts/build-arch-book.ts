@@ -9,11 +9,32 @@
 import { readFileSync, writeFileSync, existsSync } from "fs";
 import { join } from "path";
 import { glob } from "glob";
+import * as ts from "typescript";
 
 const ROOT = join(__dirname, "..");
 const REGISTRY = join(ROOT, "registry");
 
 // ── Types ──────────────────────────────────────────
+
+// Symbol/line-range traceability (extension of the existing exports:string[]
+// field, not a replacement — Rule 101/103: extend, don't duplicate). Computed
+// via the real TypeScript AST (ts.createSourceFile), not regex, since line
+// ranges need real node positions.
+export interface ArchSymbol {
+  name: string;
+  kind: "function" | "class" | "const" | "interface" | "type" | "enum" | "default";
+  line_start: number;
+  line_end: number;
+}
+
+// Import-site line traceability — which line each import statement is on in
+// the source file, resolved to the same target-file id used by ArchEdge so
+// a symbol/import can be traced back to the exact edge it produced.
+export interface ArchImportSite {
+  specifier: string;
+  line: number;
+  resolved_target: string | null;
+}
 
 export interface ArchNode {
   id: string;
@@ -24,6 +45,8 @@ export interface ArchNode {
   exports: string[];
   status: "OK" | "BROKEN" | "UNUSED" | "UNREGISTERED";
   error_th?: string;
+  symbols?: ArchSymbol[];
+  import_sites?: ArchImportSite[];
 }
 
 export interface ArchEdge {
@@ -122,6 +145,77 @@ function extractImportsFromFile(absPath: string): string[] {
     }
   }
   return imports;
+}
+
+// ── Symbol / Line-Range Extraction (real TS AST) ────
+//
+// Additive only — does not feed calcStatus or the existing import/export
+// regex logic above, so it cannot change any existing OK/BROKEN/UNUSED
+// verdict. Purely new fields (ArchSymbol[]/ArchImportSite[]) per Rule 101/103.
+
+function symbolKindOf(node: ts.Node): ArchSymbol["kind"] | null {
+  if (ts.isFunctionDeclaration(node)) return "function";
+  if (ts.isClassDeclaration(node)) return "class";
+  if (ts.isInterfaceDeclaration(node)) return "interface";
+  if (ts.isTypeAliasDeclaration(node)) return "type";
+  if (ts.isEnumDeclaration(node)) return "enum";
+  if (ts.isVariableStatement(node)) return "const";
+  return null;
+}
+
+function hasExportModifier(node: ts.Node): boolean {
+  const mods = ts.canHaveModifiers(node) ? ts.getModifiers(node) : undefined;
+  return !!mods?.some((m) => m.kind === ts.SyntaxKind.ExportKeyword);
+}
+
+function extractSymbols(absPath: string): ArchSymbol[] {
+  if (!existsSync(absPath)) return [];
+  const content = readFileSync(absPath, "utf-8");
+  const sf = ts.createSourceFile(absPath, content, ts.ScriptTarget.Latest, true, absPath.endsWith(".tsx") ? ts.ScriptKind.TSX : ts.ScriptKind.TS);
+  const symbols: ArchSymbol[] = [];
+
+  const lineOf = (pos: number) => sf.getLineAndCharacterOfPosition(pos).line + 1;
+
+  for (const stmt of sf.statements) {
+    if (ts.isExportAssignment(stmt)) {
+      symbols.push({ name: "default", kind: "default", line_start: lineOf(stmt.getStart(sf)), line_end: lineOf(stmt.getEnd()) });
+      continue;
+    }
+    if (!hasExportModifier(stmt)) continue;
+    const kind = symbolKindOf(stmt);
+    if (!kind) continue;
+
+    if (ts.isVariableStatement(stmt)) {
+      for (const decl of stmt.declarationList.declarations) {
+        if (ts.isIdentifier(decl.name)) {
+          symbols.push({ name: decl.name.text, kind: "const", line_start: lineOf(stmt.getStart(sf)), line_end: lineOf(stmt.getEnd()) });
+        }
+      }
+      continue;
+    }
+
+    const name = (stmt as unknown as ts.NamedDeclaration).name;
+    const symName = name && ts.isIdentifier(name) ? name.text : "default";
+    symbols.push({ name: symName, kind, line_start: lineOf(stmt.getStart(sf)), line_end: lineOf(stmt.getEnd()) });
+  }
+
+  return symbols;
+}
+
+function extractImportSites(absPath: string, resolver: (specifier: string) => string | null): ArchImportSite[] {
+  if (!existsSync(absPath)) return [];
+  const content = readFileSync(absPath, "utf-8");
+  const sf = ts.createSourceFile(absPath, content, ts.ScriptTarget.Latest, true, absPath.endsWith(".tsx") ? ts.ScriptKind.TSX : ts.ScriptKind.TS);
+  const sites: ArchImportSite[] = [];
+
+  for (const stmt of sf.statements) {
+    if (!ts.isImportDeclaration(stmt) || !ts.isStringLiteral(stmt.moduleSpecifier)) continue;
+    const specifier = stmt.moduleSpecifier.text;
+    if (!(specifier.startsWith("@/") || specifier.startsWith("./") || specifier.startsWith("../"))) continue;
+    const line = sf.getLineAndCharacterOfPosition(stmt.getStart(sf)).line + 1;
+    sites.push({ specifier, line, resolved_target: resolver(specifier) });
+  }
+  return sites;
 }
 
 // ── Status Calculator ──────────────────────────────
@@ -256,42 +350,55 @@ async function buildArchBook() {
 
   const importedBy: Map<string, Set<string>> = new Map();
   const importEdges: Array<{ from: string; to: string }> = [];
+  const importSitesByFile: Map<string, ArchImportSite[]> = new Map();
+  const symbolsByFile: Map<string, ArchSymbol[]> = new Map();
+
+  // Same specifier→file resolution rule used for the import graph, extracted
+  // so extractImportSites() (real line numbers) can resolve to the identical
+  // target id as importEdges below — one resolution rule, not two.
+  function resolveSpecifier(file: string, imp: string): string | null {
+    let resolvedBase: string | null = null;
+    if (imp.startsWith("@/")) {
+      resolvedBase = imp.replace("@/", "");
+    } else if (imp.startsWith("./") || imp.startsWith("../")) {
+      const fileDir = file.substring(0, file.lastIndexOf("/"));
+      resolvedBase = join(fileDir, imp);
+    }
+    if (!resolvedBase) return null;
+
+    // Try direct .ts, then .tsx, then /index.ts fallback (directory import
+    // pattern). Previously always appended .ts even when the real target
+    // was .tsx (e.g. @/components/documents/DocumentBuilder) — every such
+    // import silently resolved to a nonexistent path and never counted,
+    // which is why real, actively-imported .tsx components were showing
+    // up as UNUSED.
+    let target = resolvedBase.endsWith(".ts") || resolvedBase.endsWith(".tsx") ? resolvedBase : `${resolvedBase}.ts`;
+    if (!existsSync(join(ROOT, target))) {
+      const tsxTarget = resolvedBase.replace(/\.tsx?$/, "") + ".tsx";
+      if (existsSync(join(ROOT, tsxTarget))) {
+        target = tsxTarget;
+      } else {
+        const indexTsTarget = resolvedBase.replace(/\.tsx?$/, "") + "/index.ts";
+        const indexTsxTarget = resolvedBase.replace(/\.tsx?$/, "") + "/index.tsx";
+        if (existsSync(join(ROOT, indexTsTarget))) target = indexTsTarget;
+        else if (existsSync(join(ROOT, indexTsxTarget))) target = indexTsxTarget;
+      }
+    }
+    return target;
+  }
 
   for (const file of allFiles) {
     const absPath = join(ROOT, file);
     const imports = extractImportsFromFile(absPath);
     for (const imp of imports) {
-      let resolvedBase: string | null = null;
-      if (imp.startsWith("@/")) {
-        resolvedBase = imp.replace("@/", "");
-      } else if (imp.startsWith("./") || imp.startsWith("../")) {
-        const fileDir = file.substring(0, file.lastIndexOf("/"));
-        resolvedBase = join(fileDir, imp);
-      }
-      if (!resolvedBase) continue;
-
-      // Try direct .ts, then .tsx, then /index.ts fallback (directory import
-      // pattern). Previously always appended .ts even when the real target
-      // was .tsx (e.g. @/components/documents/DocumentBuilder) — every such
-      // import silently resolved to a nonexistent path and never counted,
-      // which is why real, actively-imported .tsx components were showing
-      // up as UNUSED.
-      let target = resolvedBase.endsWith(".ts") || resolvedBase.endsWith(".tsx") ? resolvedBase : `${resolvedBase}.ts`;
-      if (!existsSync(join(ROOT, target))) {
-        const tsxTarget = resolvedBase.replace(/\.tsx?$/, "") + ".tsx";
-        if (existsSync(join(ROOT, tsxTarget))) {
-          target = tsxTarget;
-        } else {
-          const indexTsTarget = resolvedBase.replace(/\.tsx?$/, "") + "/index.ts";
-          const indexTsxTarget = resolvedBase.replace(/\.tsx?$/, "") + "/index.tsx";
-          if (existsSync(join(ROOT, indexTsTarget))) target = indexTsTarget;
-          else if (existsSync(join(ROOT, indexTsxTarget))) target = indexTsxTarget;
-        }
-      }
+      const target = resolveSpecifier(file, imp);
+      if (!target) continue;
       if (!importedBy.has(target)) importedBy.set(target, new Set());
       importedBy.get(target)!.add(file);
       importEdges.push({ from: file, to: target });
     }
+    symbolsByFile.set(file, extractSymbols(absPath));
+    importSitesByFile.set(file, extractImportSites(absPath, (spec) => resolveSpecifier(file, spec)));
   }
 
   // Build edges from import graph
@@ -341,6 +448,10 @@ async function buildArchBook() {
       status,
     };
     if (error_th) node.error_th = error_th;
+    const symbols = symbolsByFile.get(filePath);
+    if (symbols && symbols.length > 0) node.symbols = symbols;
+    const importSites = importSitesByFile.get(filePath);
+    if (importSites && importSites.length > 0) node.import_sites = importSites;
     nodes.push(node);
 
     // layer → module edge

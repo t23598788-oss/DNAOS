@@ -133,7 +133,9 @@
       "purpose_th": "Script สร้าง architecture-book.json จาก registry + source",
       "exports": [
         "ArchEdge",
+        "ArchImportSite",
         "ArchNode",
+        "ArchSymbol",
         "ArchitectureBook"
       ],
       "status": "active",
