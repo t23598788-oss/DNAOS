@@ -91,16 +91,24 @@ fi
 log_head "Level 2: Module Registry → Files on disk"
 
 L2_MISSING=0
+# Process substitution (`< <(...)`) requires /dev/fd support that Vercel's
+# build container does not provide ("/dev/fd/63: No such file or directory")
+# — a real, environment-specific portability gap (owner, 2026-07-18), not
+# something masked by the earlier jq removal; jq's own "not installed" check
+# simply exited before ever reaching these lines. A plain temp file works
+# everywhere a POSIX shell runs.
+MODULE_KEYS_FILE="$(mktemp)"
+rq keys "$MODULE_REGISTRY" modules > "$MODULE_KEYS_FILE"
 while IFS= read -r reg_path; do
   [[ "$reg_path" == _* ]] && continue
   if [ ! -f "$reg_path" ]; then
     log_err "Registry entry has no file on disk: $reg_path"
     L2_MISSING=$((L2_MISSING + 1))
   fi
-done < <(rq keys "$MODULE_REGISTRY" modules)
+done < "$MODULE_KEYS_FILE"
 
 if [ "$L2_MISSING" -eq 0 ]; then
-  TOTAL_REG=$(rq keys "$MODULE_REGISTRY" modules | grep -vc '^_' || true)
+  TOTAL_REG=$(grep -vc '^_' "$MODULE_KEYS_FILE" || true)
   log_ok "All $TOTAL_REG registry entries point to real files"
 fi
 
@@ -110,12 +118,14 @@ fi
 log_head "Level 3: Command owners → Module Registry"
 
 L3_MISSING=0
+COMMAND_OWNERS_FILE="$(mktemp)"
+rq command-owners "$COMMAND_REGISTRY" > "$COMMAND_OWNERS_FILE"
 while IFS= read -r cmd_owner; do
-  if ! rq keys "$MODULE_REGISTRY" modules | grep -q "$cmd_owner" 2>/dev/null; then
+  if ! grep -q "$cmd_owner" "$MODULE_KEYS_FILE" 2>/dev/null; then
     log_warn "Command owner not traceable to any module: $cmd_owner"
     L3_MISSING=$((L3_MISSING + 1))
   fi
-done < <(rq command-owners "$COMMAND_REGISTRY")
+done < "$COMMAND_OWNERS_FILE"
 
 if [ "$L3_MISSING" -eq 0 ]; then
   log_ok "All command owners are traceable to registered modules"
@@ -126,11 +136,14 @@ fi
 # ══════════════════════════════════════════════════════════
 log_head "Level 4: Workflow commands → Command Registry"
 
+WORKFLOW_STEPS_FILE=""
 if [ ! -f "$WORKFLOW_REGISTRY" ]; then
   log_warn "Workflow registry not found: $WORKFLOW_REGISTRY (skipping)"
 else
   COMMAND_NAMES=$(rq keys "$COMMAND_REGISTRY" commands)
   L4_MISSING=0
+  WORKFLOW_STEPS_FILE="$(mktemp)"
+  rq workflow-steps "$WORKFLOW_REGISTRY" > "$WORKFLOW_STEPS_FILE" 2>/dev/null || true
 
   while IFS= read -r ref_cmd; do
     [[ -z "$ref_cmd" ]] && continue
@@ -138,11 +151,16 @@ else
       log_warn "Workflow references unknown command: $ref_cmd"
       L4_MISSING=$((L4_MISSING + 1))
     fi
-  done < <(rq workflow-steps "$WORKFLOW_REGISTRY" 2>/dev/null || true)
+  done < "$WORKFLOW_STEPS_FILE"
 
   if [ "$L4_MISSING" -eq 0 ]; then
     log_ok "All workflow command references resolve"
   fi
+fi
+
+rm -f "$MODULE_KEYS_FILE" "$COMMAND_OWNERS_FILE" 2>/dev/null || true
+if [ -n "$WORKFLOW_STEPS_FILE" ]; then
+  rm -f "$WORKFLOW_STEPS_FILE" 2>/dev/null || true
 fi
 
 # ══════════════════════════════════════════════════════════

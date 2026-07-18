@@ -179,6 +179,13 @@ done <<< "$FILES"
 # ---------------------------------------------------------------------------
 echo -e "${CYAN}--- Known Duplicate Enforcement (Rule 100 / KM-002) ---${NC}"
 KM_VIOLATIONS=0
+# Process substitution (`< <(...)`) needs /dev/fd, which Vercel's build
+# container doesn't provide ("/dev/fd/63: No such file or directory") — a
+# real, environment-specific portability gap (owner, 2026-07-18), not caused
+# by the earlier jq removal (jq's own missing-binary check simply exited
+# before ever reaching this line). A plain temp file works everywhere.
+DUP_PAIRS_FILE="$(mktemp)"
+rq dup-pairs-tsv "$PROJECT_DIR/registry/existence.json" > "$DUP_PAIRS_FILE" 2>/dev/null || true
 while IFS=$'\t' read -r deprecated_path keep_path reason; do
   [ -z "$deprecated_path" ] && continue
   while IFS= read -r file; do
@@ -192,7 +199,8 @@ while IFS=$'\t' read -r deprecated_path keep_path reason; do
       echo -e "  Registry เดิมมีอยู่แล้ว: ${keep_path} — ${reason}"
     fi
   done <<< "$FILES"
-done < <(rq dup-pairs-tsv "$PROJECT_DIR/registry/existence.json" 2>/dev/null)
+done < "$DUP_PAIRS_FILE"
+rm -f "$DUP_PAIRS_FILE" 2>/dev/null || true
 
 if [ "$KM_VIOLATIONS" -gt 0 ]; then
   echo ""
