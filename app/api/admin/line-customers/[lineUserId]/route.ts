@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { requireAuth } from "@/core/auth/requireAuth"
 import { ADMIN_TIER } from "@/core/auth/session"
 import { supabaseAdmin as supabase } from "@/services/supabase/queries"
+import { getCurrentDebt } from "@/engines/debt/tracking"
 
 type Params = { params: Promise<{ lineUserId: string }> }
 
@@ -46,10 +47,11 @@ export async function GET(_req: Request, { params }: Params) {
   const company = linkedCompany ?? (lineName ? (await db.from("companies").select("id, name, tax_id, phone").eq("name", lineName).maybeSingle()).data : null)
 
   if (company) {
-    const [{ data: invoices }, { data: standalone }, { data: debtRow }] = await Promise.all([
+    const [{ data: invoices }, { data: standalone }, { data: debtRow }, currentDebt] = await Promise.all([
       db.from("invoices").select("id, invoice_no, invoice_status, total_amount, invoice_date").eq("customer_company_id", company.id),
       db.from("standalone_documents").select("id, document_no, document_type, total_amount, document_date").eq("customer_company_id", company.id),
-      db.from("debt_snapshots").select("total_outstanding, collection_state, days_overdue, debt_start_at").eq("customer_company_id", company.id).maybeSingle(),
+      db.from("debt_snapshots").select("collection_state").eq("customer_company_id", company.id).maybeSingle(),
+      getCurrentDebt(company.id),
     ])
     // Tag each row with which real table it came from — the send-document
     // route needs to know where to re-read it from (owner request 2026-07-11:
@@ -58,7 +60,14 @@ export async function GET(_req: Request, { params }: Params) {
       ...(invoices ?? []).map((d) => ({ ...d, table: "invoices" as const })),
       ...(standalone ?? []).map((d) => ({ ...d, table: "standalone_documents" as const })),
     ]
-    debt = debtRow ?? null
+    // Debt Single Source of Truth (owner, 2026-07-17, PRIORITY task) — was
+    // reading debt_snapshots.total_outstanding raw (stale, never recomputed
+    // — see engines/debt/tracking.ts's getCurrentDebt comment). This is the
+    // legacy /admin/line-customers page (parallel to /admin/relationships,
+    // both still real and in use), same fix applied.
+    debt = currentDebt
+      ? { total_outstanding: currentDebt.total_due, collection_state: debtRow?.collection_state ?? null, days_overdue: currentDebt.overdue_days }
+      : null
   }
 
   const { data: events } = await db

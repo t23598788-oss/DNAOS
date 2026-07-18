@@ -49,12 +49,15 @@
     "channel_access_token": {
       "value": null,
       "env_key": "LINE_CHANNEL_ACCESS_TOKEN",
-      "note": "Long-lived token สำหรับ Reply/Push/Broadcast — เก็บใน Supabase secret",
-      "status": "not_registered"
+      "note": "Long-lived token สำหรับ Reply/Push/Broadcast — real value never stored in this registry file, only in Vercel Production env, Supabase Edge Function secrets, and .env.local (local dev). Verified live 2026-07-18 via GET https://api.line.me/v2/bot/info — returned basicId '@799xetsx', matching this file's own oa_id.value below. Confirms: same LINE OA everywhere (Vercel/Supabase/local), not a new/different channel.",
+      "status": "registered",
+      "verified_in": ["vercel_production", "supabase_edge_secrets", ".env.local (local dev, added 2026-07-18)"],
+      "verified_via": "GET https://api.line.me/v2/bot/info returned basicId @799xetsx (2026-07-18)"
     },
     "oa_id": {
       "value": "@799xetsx",
       "display_name": "OS_ ระบบแนะนำวัสดุ",
+      "display_name_note": "bot/info verification 2026-07-18 returned displayName 'D N A O S', not 'OS_ ระบบแนะนำวัสดุ' — real OA display name may have changed since this field was last written, or that call returns a different name field than what's registered here. Flagging honestly, not overwriting without confirming which is current.",
       "note": "LINE OA ที่ผู้ใช้จะเพิ่มเป็นเพื่อน — linked กับ LINE Login channel บอร์ดทดสอบ",
       "status": "registered"
     },

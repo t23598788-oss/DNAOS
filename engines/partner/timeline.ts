@@ -39,6 +39,8 @@ const STATUS_LABEL: Record<string, string> = {
   confirmed: "ยืนยันแล้ว",
   cancelled: "ยกเลิก",
   paid:      "ชำระแล้ว",
+  sent:      "ส่งแล้ว",
+  void:      "ยกเลิก (Void)",
 };
 
 // ── types รับข้อมูลดิบจาก DB ──
@@ -148,6 +150,21 @@ export function buildPartnerTimeline(
   return uniqueResolvedTemplates(entries).sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0));
 }
 
+// Documents with no accounting effect (owner, 2026-07-18) — a voided/
+// cancelled invoice is still a real document (kept, never deleted, shown in
+// the timeline for its history), but it must not count toward what's owed.
+// Root cause this fixes: buildPartnerSummary summed every "invoice"-typed
+// document regardless of status, so a voided invoice inflated
+// total_invoiced/outstanding by its full amount (confirmed against a real
+// case: two invoices ฿16,856.53 sent + ฿16,741.84 void summed to the exact
+// ฿33,598.37 "คงเหลือ" shown, when only the sent one should count). "void" is
+// a real ad-hoc DB value seen in production, not yet in this file's own
+// STATUS_LABEL vocabulary (draft/saved/confirmed/cancelled/paid) — treated
+// as equivalent to "cancelled" here rather than silently ignored.
+function hasNoAccountingEffect(status: string): boolean {
+  return status === "cancelled" || status === "void";
+}
+
 export function buildPartnerSummary(
   partner: { id: string; name: string; partner_type_label: string | null; phone: string | null },
   docs: RawDocument[]
@@ -159,8 +176,10 @@ export function buildPartnerSummary(
   for (const d of docs) {
     const canonical = canonicalDocumentType(d.document_type);
     const amount = Number(d.net_amount ?? 0);
-    if (canonical === "invoice") total_invoiced += amount;
-    if (canonical === "receipt") total_received += amount;
+    if (!hasNoAccountingEffect(d.status)) {
+      if (canonical === "invoice") total_invoiced += amount;
+      if (canonical === "receipt") total_received += amount;
+    }
     const date = d.issue_date ?? d.created_at.split("T")[0];
     if (!last_activity || date > last_activity) last_activity = date;
   }

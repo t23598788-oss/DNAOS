@@ -42,10 +42,20 @@ export default function SettingsDrawer({ onSettingsLoaded }: { onSettingsLoaded?
     setSettingsLoaded(true)
   }, [onSettingsLoaded])
 
+  // Real bug fix (owner-reported 2026-07-16): re-fetches on every `open`
+  // transition ONLY, not whenever `loadSettings` changes identity. The parent
+  // (app/admin/relationships/workspace.tsx) passes an inline arrow function as
+  // `onSettingsLoaded`, which gets a new reference every parent re-render
+  // (the workspace polls every 30s) — that new reference flowed into
+  // `loadSettings`'s useCallback deps, which was in THIS effect's deps, so
+  // every parent re-render while the drawer was open re-ran loadSettings()
+  // and overwrote whatever the owner was mid-typing with the last-saved
+  // server value. `loadSettings` intentionally excluded from deps here.
   useEffect(() => {
     if (!open) return
     loadSettings()
-  }, [open, loadSettings])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open])
 
   // Load once on mount (regardless of drawer open state) so onSettingsLoaded
   // can feed the always-visible automation status pill without requiring the

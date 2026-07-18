@@ -6,7 +6,6 @@
  * ทุก execute ต้องผ่าน confirm จากมนุษย์ก่อน
  */
 
-import { supabase } from "@/services/supabase/queries";
 import { findTool } from "./capabilities";
 import "@/plugins/registerAllDrivers"; // registers all AppDrivers on startup
 import { get as getDriver } from "@/core/executor/registry";
@@ -43,7 +42,16 @@ export async function execute(req: ExecuteRequest): Promise<ExecuteResult> {
 
   switch (tool.handler) {
     case "supabase":
-      return executeSupabase(req);
+      // Removed 2026-07-17 (Architecture Correction — owner): this generic
+      // table-name-in/insert-out path let the AI write to any table with any
+      // payload, checked only by a self-reported `confirmed` boolean — no
+      // token, no DNA OS-level duplicate/business-rule check. Real writes go
+      // through gateway/actions.ts's preview→token→execute pattern instead,
+      // which knows the table, not the AI. Traced zero real callers of this
+      // path before removing (only caller of executeV6() anywhere is
+      // openLineRuntime(), which always uses tool_id:"line", never reaches
+      // here) — Rule 104: dead, not a regression.
+      return { ok: false, tool_id: req.tool_id, action: req.action, error: "handler ไม่รองรับ: supabase (removed — writes ต้องผ่าน gateway/actions.ts)" };
     case "url_scheme":
       return executeUrlScheme(tool, req);
     case "driver":
@@ -54,36 +62,6 @@ export async function execute(req: ExecuteRequest): Promise<ExecuteResult> {
       return { ok: false, tool_id: req.tool_id, action: req.action, error: "MCP ต้องเรียกผ่าน Mac terminal" };
     default:
       return { ok: false, tool_id: req.tool_id, action: req.action, error: `handler ไม่รองรับ: ${tool.handler}` };
-  }
-}
-
-async function executeSupabase(req: ExecuteRequest): Promise<ExecuteResult> {
-  const table = req.payload.table as string;
-  const data = req.payload.data as Record<string, unknown>;
-  const id = req.payload.id as string;
-
-  if (!table) return { ok: false, tool_id: req.tool_id, action: req.action, error: "ต้องระบุ table" };
-
-  switch (req.action) {
-    case "create": {
-      const { data: result, error } = await supabase().from(table).insert(data).select().single();
-      if (error) return { ok: false, tool_id: req.tool_id, action: req.action, error: error.message };
-      return { ok: true, tool_id: req.tool_id, action: "create", result: { id: result.id, table } };
-    }
-    case "update": {
-      if (!id) return { ok: false, tool_id: req.tool_id, action: req.action, error: "ต้องระบุ id" };
-      const { error } = await supabase().from(table).update(data).eq("id", id);
-      if (error) return { ok: false, tool_id: req.tool_id, action: req.action, error: error.message };
-      return { ok: true, tool_id: req.tool_id, action: "update", result: { id, table } };
-    }
-    case "delete": {
-      if (!id) return { ok: false, tool_id: req.tool_id, action: req.action, error: "ต้องระบุ id" };
-      const { error } = await supabase().from(table).update({ deleted_at: new Date().toISOString() }).eq("id", id);
-      if (error) return { ok: false, tool_id: req.tool_id, action: req.action, error: error.message };
-      return { ok: true, tool_id: req.tool_id, action: "delete", result: { id, table, soft_delete: true } };
-    }
-    default:
-      return { ok: false, tool_id: req.tool_id, action: req.action, error: `supabase ไม่รองรับ action: ${req.action}` };
   }
 }
 

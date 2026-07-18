@@ -4,13 +4,15 @@ import { useState, useEffect, useCallback, useMemo, useRef } from "react"
 import Link from "next/link"
 import {
   LayoutGrid, MessageCircle, Briefcase, Building2, FileText, Wallet, Mountain,
-  MapPin, FileSignature, Receipt, Truck, Banknote, Phone, Paperclip, Bot,
+  MapPin, FileSignature, Receipt, Truck, Banknote, Phone, Paperclip, Bot, X, ExternalLink, Settings,
 } from "lucide-react"
 import { formatMoney } from "@/engines/documents/document-editor"
 import { AppShell, ActionBar, MapView, FlexPreview, Inspector, type IconRailItem, type ListColumnItem, type ActionBarItem } from "@/components/ui-kit"
 import SettingsDrawer from "@/components/settings/SettingsDrawer"
+import ContactSettingsModal from "@/components/line/ContactSettingsModal"
+import AppHeader from "@/components/nav/AppHeader"
 import { WorkspaceProvider, useWorkspace } from "./workspace-state"
-import { buildFeed, buildInspectorFields, type Relationship, type RelationshipDetail, type ActionLogEntry, type FeedItem } from "./feed"
+import { buildFeed, buildInspectorFields, DOCUMENT_TYPE_LABEL, type Relationship, type RelationshipDetail, type ActionLogEntry, type FeedItem } from "./feed"
 
 const REASON_LABEL: Record<string, string> = {
   debt_inquiry: "ตอบคำถามยอดหนี้",
@@ -32,14 +34,20 @@ function nextActionLogId() {
 // instead of the workspace's own identity — a relationship can have zero,
 // one, or several linked LINE accounts (confirmed real case: a company with
 // 2 LINE accounts for different staff).
+// Navigation redesign (owner, 2026-07-16): left rail is the system's central
+// nav — Relationship Workspace (ข้อความ) is Home, every other real module
+// listed here. "รายงาน" intentionally omitted — no real report page exists
+// yet in this repo; adding a link to a page that doesn't exist would be a
+// guess, not a fix.
 const RAIL_ITEMS: IconRailItem[] = [
   { key: "dashboard", label: "เลขา", icon: LayoutGrid, href: "/admin/dashboard" },
-  { key: "relationships", label: "ลูกค้า", icon: MessageCircle, href: "/admin/relationships" },
+  { key: "relationships", label: "ข้อความ", icon: MessageCircle, href: "/admin/relationships" },
   { key: "jobs", label: "งาน", icon: Briefcase, href: "/admin/jobs" },
   { key: "partners", label: "คู่ค้า", icon: Building2, href: "/admin/partners" },
   { key: "transactions", label: "เอกสาร", icon: FileText, href: "/admin/transactions" },
   { key: "debt-tracking", label: "การเงิน", icon: Wallet, href: "/admin/debt-tracking" },
   { key: "pits", label: "บ่อวัสดุ", icon: Mountain, href: "/admin/pits" },
+  { key: "build", label: "ระบบ", icon: Settings, href: "/admin/build" },
 ]
 
 function fmtTime(d: string) {
@@ -106,15 +114,29 @@ function RelationshipWorkspace({ initialRelationshipId }: { initialRelationshipI
   const [actionLog, setActionLog] = useState<ActionLogEntry[]>([])
   const [actionSending, setActionSending] = useState(false)
   const [gpsOpen, setGpsOpen] = useState(false)
-  const [aiAskOpen, setAiAskOpen] = useState(false)
+  // Owner request 2026-07-16: AI/action results were rendering inline in the
+  // same timeline as real customer messages ("ข้อความสีเหลือง...ไม่ควรมาแสดงผล
+  // แบบนี้"), which could be misread as something actually sent to the
+  // customer. Cockpit Panel — a Copilot-style right-side drawer — separates
+  // "AI thinking/tool output" from "the real conversation" while staying on
+  // one screen (no tab switch), per the owner's explicit design: right side,
+  // slide-out on a button, results render inside the panel itself.
+  const [cockpitOpen, setCockpitOpen] = useState(false)
+  const [cockpitHtmlPreview, setCockpitHtmlPreview] = useState<string | null>(null)
+  // TASK-002 item 1 — fullscreen image lightbox on click.
+  const [lightboxUrl, setLightboxUrl] = useState<string | null>(null)
   const [aiAskText, setAiAskText] = useState("")
   const [replyText, setReplyText] = useState("")
   const [replySending, setReplySending] = useState(false)
   const [replyError, setReplyError] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
+  // Auto-opens the Cockpit whenever any command/tool result is produced
+  // (quick-action buttons, ask AI, file upload, etc.) — otherwise a result
+  // could land in a closed panel the owner never sees.
   const pushEntry = useCallback((entry: Omit<ActionLogEntry, "timestamp">) => {
     setActionLog((log) => [...log, { ...entry, timestamp: new Date().toISOString() }])
+    setCockpitOpen(true)
   }, [])
 
   useEffect(() => {
@@ -151,6 +173,7 @@ function RelationshipWorkspace({ initialRelationshipId }: { initialRelationshipI
       relationshipId: d.relationshipId, company: d.company,
       lineUserIds: d.lineUserIds ?? [], primaryLineUserId: d.primaryLineUserId ?? null,
       messages: d.messages ?? [], documents: d.documents ?? [], events: d.events ?? [],
+      receipts: d.receipts ?? [],
       unlinkedCount: d.unlinkedCount ?? 0, drafts: d.drafts ?? [],
     })
   }, [])
@@ -161,11 +184,14 @@ function RelationshipWorkspace({ initialRelationshipId }: { initialRelationshipI
     setBuildError(null)
     setActionLog([])
     setGpsOpen(false)
-    setAiAskOpen(false)
+    setCockpitHtmlPreview(null)
     setReplyText("")
     setReplyError(null)
     dispatch({ type: "SET_PENDING_PREVIEW", preview: null })
     dispatch({ type: "SELECT_ITEM", selection: null })
+    // TASK-002 item 5 (unread) — mark this room "viewed now" so its unread
+    // dot clears; real timestamp, not a guess.
+    localStorage.setItem(`dnaos.lastViewed.${relationshipId}`, new Date().toISOString())
     setDetailLoading(true)
     try {
       await loadDetail(relationshipId)
@@ -278,6 +304,11 @@ function RelationshipWorkspace({ initialRelationshipId }: { initialRelationshipI
         confirmAction: data.confirm_action,
         flexPreview: data.flex_preview,
         fullHtml: data.doc_html,
+        // UX Change (owner, 2026-07-17): Cockpit shows workflow status only
+        // — flexPreview/fullHtml above are kept on the entry purely so
+        // resolvePendingEntry can reuse the SAME approved card object when
+        // it later reaches the chat timeline, not for Cockpit to render.
+        workflowStatus: data.confirm_token ? "preparing" : undefined,
       })
       if (data.confirm_token) {
         dispatch({
@@ -320,17 +351,46 @@ function RelationshipWorkspace({ initialRelationshipId }: { initialRelationshipI
         }
       )
       const data = await res.json()
+
+      if (isDebt) {
+        // Unchanged — out of scope for this UX change (debt-send has its own
+        // separate flow, no invoice-preview/Cockpit-status concept applies).
+        const text = !data.ok
+          ? `ยืนยันไม่สำเร็จ: ${data.error ?? "ไม่ทราบสาเหตุ"}`
+          : "✅ ส่งแจ้งยอดค้างชำระให้ลูกค้าแล้ว"
+        pushEntry({ id: nextActionLogId(), role: "system", text })
+        if (data.ok) await loadDetail(activeId)
+        return
+      }
+
+      // UX Change (owner, 2026-07-17): AI Cockpit shows workflow status only
+      // (Preparing/Confirmed/Sent, or the failure reached) — updates the
+      // SAME entry in place rather than appending a new text bubble. The
+      // Flex Card itself moves to the customer chat timeline, and only once
+      // it was actually confirmed AND sent (never on a failure, so nothing
+      // in the LINE-style timeline can misrepresent what really happened).
+      const workflowStatus: ActionLogEntry["workflowStatus"] = !data.ok
+        ? "confirm_failed"
+        : data.line_send_error
+        ? "send_failed"
+        : "sent"
       const text = !data.ok
         ? `ยืนยันไม่สำเร็จ: ${data.error ?? "ไม่ทราบสาเหตุ"}`
-        : isDebt
-        ? "✅ ส่งแจ้งยอดค้างชำระให้ลูกค้าแล้ว"
         : data.line_send_error
-        ? `✅ บันทึกเรียบร้อยครับ แต่${data.line_send_error}`
-        : "✅ บันทึกและส่งให้ลูกค้าทาง LINE เรียบร้อยครับ"
-      pushEntry({ id: nextActionLogId(), role: "system", text })
+        ? String(data.line_send_error)
+        : ""
+      setActionLog((log) => log.map((x) => x.id === entry.id ? { ...x, workflowStatus, text } : x))
+
+      if (workflowStatus === "sent" && entry.flexPreview) {
+        // Do NOT modify SendInvoiceToLINE or ConfirmInvoice — this reuses
+        // the SAME flexPreview object already held client-side since
+        // Preview (the backend's preview_token is single-use and already
+        // consumed by now, but this object was always available here).
+        pushEntry({ id: nextActionLogId(), role: "system", text: "", flexPreview: entry.flexPreview, showAsChatBubble: true })
+      }
       if (data.ok) await loadDetail(activeId)
     } catch {
-      pushEntry({ id: nextActionLogId(), role: "system", text: "ยืนยันไม่สำเร็จ ลองใหม่อีกครั้งครับ" })
+      setActionLog((log) => log.map((x) => x.id === entry.id ? { ...x, workflowStatus: "confirm_failed", text: "เชื่อมต่อไม่สำเร็จ ลองใหม่อีกครั้งครับ" } : x))
     }
   }, [activeId, loadDetail, pushEntry, dispatch])
 
@@ -362,8 +422,7 @@ function RelationshipWorkspace({ initialRelationshipId }: { initialRelationshipI
   // deterministically whether the question names a real material first and
   // answers with the real pricing engine using this contact's own GPS —
   // anything else still falls through to the same pipeline as before.
-  const askAi = useCallback(async (question: string, companyName: string | null, lineUserId: string, relationshipId: string) => {
-    setAiAskOpen(false)
+  const askAi = useCallback(async (question: string, companyName: string | null, lineUserId: string) => {
     setAiAskText("")
     const text = companyName ? `คุณ${companyName} ${question}` : question
     setActionSending(true)
@@ -384,6 +443,11 @@ function RelationshipWorkspace({ initialRelationshipId }: { initialRelationshipI
         confirmAction: data.confirm_action,
         flexPreview: data.flex_preview,
         fullHtml: data.doc_html,
+        // UX Change (owner, 2026-07-17): Cockpit shows workflow status only
+        // — flexPreview/fullHtml above are kept on the entry purely so
+        // resolvePendingEntry can reuse the SAME approved card object when
+        // it later reaches the chat timeline, not for Cockpit to render.
+        workflowStatus: data.confirm_token ? "preparing" : undefined,
       })
       if (data.confirm_token) {
         dispatch({
@@ -436,18 +500,37 @@ function RelationshipWorkspace({ initialRelationshipId }: { initialRelationshipI
     }
   }, [pushEntry, dispatch])
 
+  // Owner request 2026-07-18: invoices now go through the real, canonical
+  // SendInvoiceToLINE pipe (gateway/actions.ts::sendInvoiceToLine, exposed
+  // here as the Retry Send endpoint) — same status-ladder Cockpit UI and
+  // chat-timeline bubble as the auto-send-after-confirm path, so a manual
+  // (re)send looks identical to an automatic one. standalone_documents
+  // (quotation/receipt/etc.) still has no invoice_items-equivalent table,
+  // so it stays on the older /send-document route for now — deliberately
+  // out of scope for this change (registry/intent-dictionary.json's
+  // document.send entry records this split honestly, not silently).
   const sendDocument = useCallback(async (lineUserId: string, doc: { id: string; table: "invoices" | "standalone_documents"; invoice_no?: string; document_no?: string }) => {
     const label = doc.invoice_no ?? doc.document_no ?? ""
     setActionSending(true)
     pushEntry({ id: nextActionLogId(), role: "user", text: `📄 ส่งเอกสาร ${label}` })
     try {
-      const res = await fetch(`/api/admin/line-customers/${lineUserId}/send-document`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ table: doc.table, documentId: doc.id }),
-      })
-      const data = await res.json()
-      pushEntry({ id: nextActionLogId(), role: "system", text: data.ok ? `✅ ส่ง ${label} ให้ลูกค้าแล้ว` : `ส่งไม่สำเร็จ: ${data.error ?? "ไม่ทราบสาเหตุ"}` })
+      if (doc.table === "invoices") {
+        const res = await fetch(`/api/admin/invoices/${doc.id}/send`, { method: "POST" })
+        const data = await res.json()
+        const workflowStatus: ActionLogEntry["workflowStatus"] = data.ok ? "sent" : "send_failed"
+        pushEntry({ id: nextActionLogId(), role: "system", text: data.ok ? "" : String(data.error ?? "ไม่ทราบสาเหตุ"), workflowStatus })
+        if (data.ok && data.result?.flex_preview) {
+          pushEntry({ id: nextActionLogId(), role: "system", text: "", flexPreview: data.result.flex_preview, showAsChatBubble: true })
+        }
+      } else {
+        const res = await fetch(`/api/admin/line-customers/${lineUserId}/send-document`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ table: doc.table, documentId: doc.id }),
+        })
+        const data = await res.json()
+        pushEntry({ id: nextActionLogId(), role: "system", text: data.ok ? `✅ ส่ง ${label} ให้ลูกค้าแล้ว` : `ส่งไม่สำเร็จ: ${data.error ?? "ไม่ทราบสาเหตุ"}` })
+      }
     } catch {
       pushEntry({ id: nextActionLogId(), role: "system", text: "ส่งไม่สำเร็จ ลองใหม่อีกครั้งครับ" })
     } finally {
@@ -455,27 +538,108 @@ function RelationshipWorkspace({ initialRelationshipId }: { initialRelationshipI
     }
   }, [pushEntry])
 
-  const listItems: ListColumnItem[] = relationships.map((r) => ({
-    id: r.relationship_id,
-    title: r.name,
-    subtitle: r.last_message ?? (r.line_user_ids.length ? "" : "ยังไม่มีข้อความ LINE"),
-    timestamp: r.last_message_at ? fmtTime(r.last_message_at) : "",
-    avatarUrl: r.line_picture ?? undefined,
-    highlighted: r.has_pending_draft,
-  }))
+  // TASK-002 Human Reality Chat UX (owner, 2026-07-17), items 5+6 — unread
+  // and sort-to-top. Client-only state (no DB field for "read/unread"
+  // exists, per the owner's own "ไม่แตะ Database" scope): a room is unread
+  // if its last_message_at is newer than the last time this browser opened
+  // it, tracked in localStorage. "Pin"/"Priority" (also requested) are
+  // NOT implemented in this pass — no trigger UI was specified for them and
+  // building one would be guessing the interaction, not fixing anything;
+  // flagged honestly rather than faked.
+  const sortedRelationships = [...relationships].sort((a, b) => {
+    const at = a.last_message_at ? new Date(a.last_message_at).getTime() : 0
+    const bt = b.last_message_at ? new Date(b.last_message_at).getTime() : 0
+    return bt - at
+  })
+
+  const listItems: ListColumnItem[] = sortedRelationships.map((r) => {
+    const lastViewed = typeof window !== "undefined" ? localStorage.getItem(`dnaos.lastViewed.${r.relationship_id}`) : null
+    const unread = !!r.last_message_at && (!lastViewed || new Date(r.last_message_at).getTime() > new Date(lastViewed).getTime())
+    return {
+      id: r.relationship_id,
+      title: r.name,
+      subtitle: r.last_message ?? (r.line_user_ids.length ? "" : "ยังไม่มีข้อความ LINE"),
+      timestamp: r.last_message_at ? fmtTime(r.last_message_at) : "",
+      avatarUrl: r.line_picture ?? undefined,
+      highlighted: r.has_pending_draft,
+      unread,
+      // Not an exact unread COUNT — the sidebar only ever loads one summary
+      // row per relationship (last_message/last_message_at), not full
+      // per-room message history, so there's no real number to show here
+      // without a much heavier fetch. A boolean dot (via `unread`, rendered
+      // bold + emerald timestamp by ListColumn) is what's honestly available.
+    }
+  })
 
   const activeRelationship = relationships.find((r) => r.relationship_id === activeId) ?? null
   const primaryLineUserId = detail?.primaryLineUserId ?? null
   const pendingDrafts = detail?.drafts.filter((d) => d.status === "pending_review") ?? []
+  const [contactSettingsOpen, setContactSettingsOpen] = useState(false)
 
   const companyName = activeRelationship?.name ?? null
   const lastLocation = [...(detail?.messages ?? [])].reverse().find((m) => m.raw_type === "location" && m.extracted?.latitude != null)
 
   // Owner request 2026-07-11 (Event Card Framework / Timeline module): one
-  // merged, time-sorted feed — messages + Action Bar results + business
-  // events + past documents — replaces the old split rendering (raw message
-  // list + a separate collapsed "รายละเอียดเพิ่มเติม" panel).
-  const feed = useMemo(() => buildFeed(detail, actionLog), [detail, actionLog])
+  // merged, time-sorted feed — messages + business events + past documents —
+  // replaces the old split rendering (raw message list + a separate
+  // collapsed "รายละเอียดเพิ่มเติม" panel).
+  // UX Change (owner, 2026-07-17): reverses the 2026-07-16 decision above —
+  // the chat timeline is the human's primary workspace, Cockpit is only an
+  // operational console. Only entries explicitly marked showAsChatBubble
+  // (an invoice that was actually confirmed AND sent) merge in here — never
+  // previews, never in-progress/failed states, so nothing here can be
+  // mistaken for a message that wasn't really sent.
+  const sentInvoiceEntries = useMemo(() => actionLog.filter((e) => e.showAsChatBubble), [actionLog])
+  const feed = useMemo(() => buildFeed(detail, sentInvoiceEntries), [detail, sentInvoiceEntries])
+
+  // TASK-002 item 4 (Human Reality Chat UX, owner 2026-07-17) — open a room
+  // scrolled to the BOTTOM (latest message), not the top, matching every
+  // real chat app. New items only auto-scroll if the user is already at the
+  // bottom; otherwise show a "N new messages" pill instead of yanking their
+  // scroll position while they're reading history.
+  const feedScrollRef = useRef<HTMLDivElement>(null)
+  const isAtBottomRef = useRef(true)
+  const prevFeedLengthRef = useRef(0)
+  const [newMessageCount, setNewMessageCount] = useState(0)
+
+  const scrollFeedToBottom = useCallback((behavior: ScrollBehavior = "auto") => {
+    const el = feedScrollRef.current
+    if (!el) return
+    el.scrollTo({ top: el.scrollHeight, behavior })
+    setNewMessageCount(0)
+  }, [])
+
+  // Room opened/switched — jump to bottom immediately, no animation (this
+  // isn't "a new message arrived", it's "entering the room").
+  useEffect(() => {
+    if (!detailLoading && detail) {
+      prevFeedLengthRef.current = feed.length
+      requestAnimationFrame(() => scrollFeedToBottom("auto"))
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeId, detailLoading])
+
+  // Feed grew (new message/event/document arrived) — auto-scroll only if
+  // already at the bottom; otherwise surface the "N new messages" pill.
+  useEffect(() => {
+    const grew = feed.length - prevFeedLengthRef.current
+    if (grew > 0) {
+      if (isAtBottomRef.current) {
+        requestAnimationFrame(() => scrollFeedToBottom("smooth"))
+      } else {
+        setNewMessageCount((n) => n + grew)
+      }
+    }
+    prevFeedLengthRef.current = feed.length
+  }, [feed.length, scrollFeedToBottom])
+
+  const handleFeedScroll = useCallback(() => {
+    const el = feedScrollRef.current
+    if (!el) return
+    const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 80
+    isAtBottomRef.current = atBottom
+    if (atBottom) setNewMessageCount(0)
+  }, [])
 
   const selectedInspector = useMemo(() => {
     if (!state.selection) return null
@@ -489,12 +653,104 @@ function RelationshipWorkspace({ initialRelationshipId }: { initialRelationshipI
       case "message.timeline-card": {
         if (!("message" in item)) return null
         const m = item.message
+        // TASK-002 Human Reality Chat UX item 1 (owner, 2026-07-17): image
+        // bubbles capped narrower (45-60% of chat width) than text bubbles,
+        // like every real chat app — a photo shouldn't dominate the screen.
+        const bubbleWidth = m.raw_type === "image" ? "max-w-[55%]" : "max-w-[70%]"
         return (
           <div key={item.template_key} className={"flex " + (m.direction === "out" ? "justify-end" : "justify-start")}>
-            <div className={"max-w-[70%] rounded-lg px-3 py-2 shadow-sm " + (m.direction === "out" ? "bg-[#a8e2a0]" : "bg-white border border-stone-200")}>
-              <p className="text-xs text-stone-800 whitespace-pre-line">{m.raw_text ?? `[${m.raw_type}]`}</p>
+            <div className={bubbleWidth + " rounded-lg px-3 py-2 shadow-sm " + (m.direction === "out" ? "bg-[#a8e2a0]" : "bg-white border border-stone-200")}>
+              {/* TASK-001 Restore Original Human Data (owner, 2026-07-17):
+                  original content shown first, always — text placeholders
+                  like "(ส่งรูปภาพ)" must never be the primary display, only a
+                  rare fallback for the small window before this pass (older
+                  messages) or a real fetch failure. AI/OCR/metadata are
+                  background-only, never shown in place of the original. */}
+              {m.raw_type === "image" && (
+                m.media_url ? (
+                  // Height auto, capped so a tall portrait photo can't push
+                  // the rest of the conversation down (owner: "รูปแนวตั้งไม่ยืดยาว
+                  // จนดันข้อความอื่นลงไป") — object-contain, never cropped/
+                  // stretched. Click opens fullscreen (owner: "กดแล้วเปิดเต็มจอ").
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={m.media_url}
+                    alt="รูปภาพต้นฉบับจากลูกค้า"
+                    onClick={() => setLightboxUrl(m.media_url!)}
+                    className="max-w-full max-h-[320px] w-auto rounded-lg mb-1 cursor-zoom-in object-contain"
+                  />
+                ) : (
+                  <p className="text-xs text-stone-400 italic">(รูปภาพ — ดึงต้นฉบับไม่สำเร็จ)</p>
+                )
+              )}
+              {m.raw_type === "file" && (
+                m.media_url ? (
+                  // PDF Preview Card (owner: "PDF ใช้ Preview Card") — a real
+                  // bordered card, not a bare link.
+                  <a
+                    href={m.media_url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex items-center gap-2 rounded-lg border border-stone-200 bg-stone-50 px-2.5 py-2 mb-1 hover:bg-stone-100 transition"
+                  >
+                    <div className="w-8 h-8 rounded bg-rose-100 text-rose-600 flex items-center justify-center flex-shrink-0">
+                      <FileText size={16} />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-xs font-medium text-stone-800 truncate">{m.raw_text || "เอกสาร PDF"}</p>
+                      <p className="text-[10px] text-stone-400">เปิดต้นฉบับ</p>
+                    </div>
+                  </a>
+                ) : (
+                  <p className="text-xs text-stone-400 italic">(ไฟล์ {m.raw_text} — ดึงต้นฉบับไม่สำเร็จ)</p>
+                )
+              )}
+              {m.raw_type === "audio" && (
+                m.media_url ? (
+                  <audio controls src={m.media_url} className="max-w-full mb-1" />
+                ) : (
+                  <p className="text-xs text-stone-400 italic">(ข้อความเสียง — ดึงต้นฉบับไม่สำเร็จ)</p>
+                )
+              )}
+              {m.raw_type !== "image" && m.raw_type !== "file" && m.raw_type !== "audio" && (
+                <p className="text-xs text-stone-800 whitespace-pre-line">{m.raw_text ?? `[${m.raw_type}]`}</p>
+              )}
               <p className="text-[9px] text-stone-500 mt-1 text-right">{fmtTime(m.created_at)}</p>
             </div>
+          </div>
+        )
+      }
+      case "receipt.timeline-card": {
+        if (!("receipt" in item)) return null
+        const r = item.receipt
+        const selected = state.selection?.kind === item.source_type && state.selection.id === item.id
+        // Owner request 2026-07-17: "การ์ดใช้ขนาดเดียวกับรูปภาพที่มีอยู่ตอนนี้"
+        // — same max-w-[55%] as the image bubble it replaces, just richer
+        // content (Document Card) instead of a bare photo.
+        return (
+          <div key={item.template_key} className="flex justify-start">
+            <button
+              onClick={() => dispatch({ type: "SELECT_ITEM", selection: selected ? null : { kind: item.source_type, id: item.id } })}
+              className={"max-w-[55%] text-left rounded-lg overflow-hidden shadow-sm border transition " + (selected ? "border-emerald-400 ring-1 ring-emerald-200" : "border-stone-200 hover:border-stone-300")}
+            >
+              {r.media_url && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={r.media_url} alt="เอกสารต้นฉบับ" className="w-full max-h-40 object-cover" onClick={(e) => { e.stopPropagation(); setLightboxUrl(r.media_url) }} />
+              )}
+              <div className="bg-white px-3 py-2">
+                <p className="text-xs font-semibold text-stone-800">{DOCUMENT_TYPE_LABEL[r.document_type] ?? "📄 เอกสารอื่นๆ"}</p>
+                {r.vendor_name && <p className="text-[11px] text-stone-600 mt-1">บริษัท: {r.vendor_name}</p>}
+                {r.sender_name && <p className="text-[11px] text-stone-500">ผู้ส่ง: {r.sender_name}</p>}
+                {r.document_date && <p className="text-[11px] text-stone-500">วันที่: {r.document_date}</p>}
+                {r.amount != null && <p className="text-xs font-semibold text-emerald-700 mt-1">{r.amount.toLocaleString("th-TH")} บาท</p>}
+                <p className="text-[10px] mt-1.5 flex items-center gap-1">
+                  <span className={"px-1.5 py-0.5 rounded-full " + (r.status === "confirmed" ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700")}>
+                    {r.status === "confirmed" ? "ยืนยันแล้ว" : "AI อ่านแล้ว · รอยืนยัน"}
+                  </span>
+                </p>
+                {r.error_th && <p className="text-[10px] text-rose-500 mt-1">{r.error_th}</p>}
+              </div>
+            </button>
           </div>
         )
       }
@@ -555,67 +811,137 @@ function RelationshipWorkspace({ initialRelationshipId }: { initialRelationshipI
         )
       }
       case "action-result.timeline-card": {
+        // UX Change (owner, 2026-07-17): re-enables this template id for the
+        // customer timeline (it existed already — see resolvePresentationTemplate,
+        // was only unused here since 2026-07-16). Only entries with
+        // showAsChatBubble reach this via the sentInvoiceEntries filter above,
+        // so this only ever renders an invoice that was actually confirmed
+        // AND sent — same visual container as a real outbound LINE message
+        // bubble (m.direction === "out" case above), so the timeline reads
+        // exactly like a LINE conversation where this was just sent.
         if (!("entry" in item)) return null
-        const entry = item.entry
+        const e = item.entry
+        if (!e.flexPreview) return null
         return (
-          <div key={item.template_key} className={"flex " + (entry.role === "user" ? "justify-end" : "justify-start")}>
-            <div className={"max-w-[75%] rounded-lg px-3 py-2 shadow-sm " + (entry.role === "user" ? "bg-stone-800 text-white" : "bg-amber-50 border border-amber-200")}>
-              <p className={"text-xs whitespace-pre-line " + (entry.role === "user" ? "text-white" : "text-stone-800")}>{entry.text}</p>
-
-              {entry.flexPreview && (
-                <div className="mt-2">
-                  <FlexPreview flex={entry.flexPreview} />
-                </div>
-              )}
-              {entry.fullHtml && (
-                <button
-                  onClick={() => openHtmlDocument(entry.fullHtml!)}
-                  className="mt-2 text-[10px] px-2 py-1 rounded-lg border border-stone-300 text-stone-600 bg-white hover:bg-stone-50"
-                >
-                  เปิดเอกสารเต็ม
-                </button>
-              )}
-
-              {entry.confirmToken && !entry.confirmResolved && (
-                <div className="mt-2 flex gap-2">
-                  <button
-                    onClick={() => resolvePendingEntry(entry, primaryLineUserId)}
-                    className="px-2.5 py-1 rounded-lg bg-emerald-600 text-white text-[11px] font-semibold hover:bg-emerald-700 transition"
-                  >
-                    ยืนยัน
-                  </button>
-                  <button
-                    onClick={() => cancelPendingEntry(entry)}
-                    className="px-2.5 py-1 rounded-lg border border-stone-300 text-stone-500 text-[11px] hover:bg-stone-50 transition"
-                  >
-                    ยกเลิก
-                  </button>
-                </div>
-              )}
-              {entry.debtSendPending && !entry.confirmResolved && (
-                <div className="mt-2 flex gap-2">
-                  <button
-                    onClick={() => resolvePendingEntry(entry, primaryLineUserId)}
-                    className="px-2.5 py-1 rounded-lg bg-emerald-600 text-white text-[11px] font-semibold hover:bg-emerald-700 transition"
-                  >
-                    ยืนยันส่ง
-                  </button>
-                  <button
-                    onClick={() => cancelPendingEntry(entry)}
-                    className="px-2.5 py-1 rounded-lg border border-stone-300 text-stone-500 text-[11px] hover:bg-stone-50 transition"
-                  >
-                    ยกเลิก
-                  </button>
-                </div>
-              )}
-              {entry.confirmResolved === "cancelled" && (
-                <p className="mt-1 text-[10px] text-stone-400">ยกเลิกแล้ว ยังไม่บันทึกอะไร</p>
-              )}
+          <div key={item.template_key} className="flex justify-end">
+            <div className="max-w-[70%] rounded-lg px-2 py-2 shadow-sm bg-[#a8e2a0]">
+              <FlexPreview flex={e.flexPreview} />
+              <p className="text-[9px] text-stone-600 mt-1 text-right">{fmtTime(e.timestamp)}</p>
             </div>
           </div>
         )
       }
     }
+  }
+
+  // UX Change (owner, 2026-07-17): AI Cockpit is an operational console —
+  // status only, never the Flex Card / full HTML preview (those moved to
+  // the customer chat timeline, see "action-result.timeline-card" above and
+  // sentInvoiceEntries). Entries already surfaced as a chat bubble render
+  // nothing here at all, so the card is never shown twice.
+  //
+  // Builds the ✓/❌ status ladder for one entry: always "Preparing", then
+  // "Confirmed"/"Confirm failed" once resolved, then "Sent"/"Send failed"
+  // only once Confirm actually succeeded — matches ConfirmInvoice/
+  // SendInvoiceToLINE's real sequencing (a failed Confirm never reaches
+  // Send, same as the backend itself enforces).
+  function workflowSteps(status: NonNullable<ActionLogEntry["workflowStatus"]>, reason: string) {
+    const steps: { icon: "✓" | "❌"; label: string; reason?: string }[] = [{ icon: "✓", label: "Preparing" }];
+    if (status === "preparing") return steps;
+    if (status === "confirm_failed") { steps.push({ icon: "❌", label: "Confirm failed", reason }); return steps; }
+    steps.push({ icon: "✓", label: "Confirmed" });
+    if (status === "confirmed") return steps;
+    steps.push(status === "send_failed" ? { icon: "❌", label: "Send failed", reason } : { icon: "✓", label: "Sent" });
+    return steps;
+  }
+
+  const renderActionEntry = (entry: ActionLogEntry) => {
+    if (entry.showAsChatBubble) return null
+
+    return (
+    <div key={entry.id} className={"flex " + (entry.role === "user" ? "justify-end" : "justify-start")}>
+      <div className={"max-w-[85%] rounded-lg px-3 py-2 shadow-sm " + (entry.role === "user" ? "bg-stone-800 text-white" : "bg-amber-50 border border-amber-200")}>
+        {entry.text && !entry.workflowStatus && (
+          <p className={"text-xs whitespace-pre-line " + (entry.role === "user" ? "text-white" : "text-stone-800")}>{entry.text}</p>
+        )}
+
+        {entry.workflowStatus && (
+          <div className="space-y-0.5">
+            {workflowSteps(entry.workflowStatus, entry.text).map((step, i) => (
+              <div key={i}>
+                <p className={"text-[11px] flex items-center gap-1 " + (step.icon === "❌" ? "text-rose-600" : "text-stone-700")}>
+                  <span>{step.icon}</span> {step.label}
+                </p>
+                {step.reason && <p className="text-[10px] text-rose-500 pl-4">Reason: {step.reason}</p>}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Regression fix (owner, 2026-07-18): entries still on the OLDER
+            confirm pattern (confirmToken for non-invoice document types,
+            debtSendPending for the debt-reminder card) never got a
+            workflowStatus/chat-timeline-bubble migration — they have no
+            other way to show what's about to be sent. Only render here
+            while awaiting confirmation; once resolved, the entry either
+            becomes a chat-timeline bubble (invoice path) or is superseded
+            by the next pushEntry (debt/older document path). Gated on
+            !entry.workflowStatus so this never re-appears for the invoice
+            flow, which intentionally shows nothing here per the earlier
+            UX Change. */}
+        {entry.flexPreview && !entry.workflowStatus && (entry.confirmToken || entry.debtSendPending) && !entry.confirmResolved && (
+          <div className="mt-2">
+            <FlexPreview flex={entry.flexPreview} />
+          </div>
+        )}
+
+        {entry.fullHtml && (
+          <button
+            onClick={() => setCockpitHtmlPreview(entry.fullHtml!)}
+            className="mt-2 text-[10px] px-2 py-1 rounded-lg border border-stone-300 text-stone-600 bg-white hover:bg-stone-50"
+          >
+            ดูเอกสารเต็ม
+          </button>
+        )}
+
+        {entry.confirmToken && !entry.confirmResolved && (
+          <div className="mt-2 flex gap-2">
+            <button
+              onClick={() => resolvePendingEntry(entry, primaryLineUserId)}
+              className="px-2.5 py-1 rounded-lg bg-emerald-600 text-white text-[11px] font-semibold hover:bg-emerald-700 transition"
+            >
+              ยืนยัน
+            </button>
+            <button
+              onClick={() => cancelPendingEntry(entry)}
+              className="px-2.5 py-1 rounded-lg border border-stone-300 text-stone-500 text-[11px] hover:bg-stone-50 transition"
+            >
+              ยกเลิก
+            </button>
+          </div>
+        )}
+        {entry.debtSendPending && !entry.confirmResolved && (
+          <div className="mt-2 flex gap-2">
+            <button
+              onClick={() => resolvePendingEntry(entry, primaryLineUserId)}
+              className="px-2.5 py-1 rounded-lg bg-emerald-600 text-white text-[11px] font-semibold hover:bg-emerald-700 transition"
+            >
+              ยืนยันส่ง
+            </button>
+            <button
+              onClick={() => cancelPendingEntry(entry)}
+              className="px-2.5 py-1 rounded-lg border border-stone-300 text-stone-500 text-[11px] hover:bg-stone-50 transition"
+            >
+              ยกเลิก
+            </button>
+          </div>
+        )}
+        {entry.confirmResolved === "cancelled" && (
+          <p className="mt-1 text-[10px] text-stone-400">ยกเลิกแล้ว ยังไม่บันทึกอะไร</p>
+        )}
+      </div>
+    </div>
+    )
   }
 
   const actionBarItems: ActionBarItem[] = activeRelationship ? [
@@ -657,7 +983,7 @@ function RelationshipWorkspace({ initialRelationshipId }: { initialRelationshipI
     },
     {
       key: "ai", label: "ถาม AI", icon: Bot,
-      onClick: () => setAiAskOpen((v) => !v),
+      onClick: () => setCockpitOpen(true),
       disabled: !primaryLineUserId,
       tooltip: primaryLineUserId ? undefined : "ยังไม่มีช่องทาง LINE สำหรับลูกค้ารายนี้",
     },
@@ -689,6 +1015,7 @@ function RelationshipWorkspace({ initialRelationshipId }: { initialRelationshipI
       onSelectList={selectRelationship}
       listSearchPlaceholder="ค้นหาชื่อหรือข้อความ..."
       listEmptyMessage={loading ? "กำลังโหลด..." : "ยังไม่มีลูกค้าในระบบ"}
+      listCollapsible
     >
       {!activeRelationship ? (
         <div className="flex items-center justify-center h-full text-sm text-stone-400">
@@ -697,44 +1024,68 @@ function RelationshipWorkspace({ initialRelationshipId }: { initialRelationshipI
       ) : (
         <div className="flex h-full">
           <div className="flex flex-col h-full flex-1 min-w-0">
-            {/* Header */}
-            <div className="flex items-center gap-3 px-4 py-3 border-b border-stone-200 flex-shrink-0 bg-white">
-              {activeRelationship.line_picture ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={activeRelationship.line_picture} alt="" className="w-9 h-9 rounded-full object-cover bg-stone-100" referrerPolicy="no-referrer" />
-              ) : (
-                <div className="w-9 h-9 rounded-full bg-stone-200" />
-              )}
-              <div className="min-w-0 flex-1">
-                <p className="text-sm font-semibold text-stone-800 truncate">{activeRelationship.name}</p>
-                <Link href={`/admin/partners/${activeRelationship.relationship_id}`} className="text-[11px] text-emerald-600 hover:underline">
-                  ดูรายละเอียดเพิ่มเติม →
-                </Link>
-              </div>
-              {/* Automation Engine status — owner request 2026-07-11: always
-                  visible without opening the Settings drawer */}
-              {state.automation && (
-                <span className={"text-[10px] px-2 py-1 rounded-full border flex-shrink-0 " + (state.automation.debtReminderEnabled ? "border-emerald-200 text-emerald-700 bg-emerald-50" : "border-stone-200 text-stone-400")}>
-                  {state.automation.debtReminderEnabled ? `อัตโนมัติ: เปิด ${String(state.automation.debtReminderHour).padStart(2, "0")}:00 น.` : "อัตโนมัติ: ปิด"}
-                </span>
-              )}
-              {activeRelationship.debt && (
-                <div className="text-right flex-shrink-0 flex items-center gap-2">
-                  <div>
-                    <p className="text-xs font-semibold text-rose-600">{formatMoney(activeRelationship.debt.total_outstanding)} บาท</p>
-                    <p className="text-[10px] text-stone-400">ผิดนัด {activeRelationship.debt.days_overdue} วัน</p>
-                  </div>
+            {/* Header — Navigation redesign (owner, 2026-07-16, final form):
+                AppHeader owns Back/Home/title (system's responsibility);
+                everything below is this module's own actions (contact
+                avatar/name, automation status, debt + send). */}
+            <AppHeader
+              title="ข้อความ"
+              actions={
+                <>
+                  {/* Contact Settings Popup (owner, 2026-07-18): "กดที่รูป
+                      โปรไฟล์หรือปุ่มตั้งค่า" — click the avatar to open the
+                      floating modal, no page navigation, per the owner's own
+                      spec. Only enabled when there's a real LINE contact to
+                      configure. */}
                   <button
-                    onClick={() => primaryLineUserId && sendDebt(primaryLineUserId)}
-                    disabled={actionSending || !primaryLineUserId}
-                    title={primaryLineUserId ? undefined : "ยังไม่มีช่องทาง LINE สำหรับลูกค้ารายนี้"}
-                    className="text-[11px] font-medium px-2.5 py-1.5 rounded-lg border border-rose-200 text-rose-700 hover:bg-rose-50 disabled:opacity-40 transition"
+                    onClick={() => primaryLineUserId && setContactSettingsOpen(true)}
+                    disabled={!primaryLineUserId}
+                    title={primaryLineUserId ? "ตั้งค่า Contact" : "ยังไม่มีช่องทาง LINE สำหรับลูกค้ารายนี้"}
+                    className="flex-shrink-0 disabled:cursor-default"
                   >
-                    ส่ง
+                    {activeRelationship.line_picture ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={activeRelationship.line_picture} alt="" className="w-9 h-9 rounded-full object-cover bg-stone-100 hover:ring-2 hover:ring-stone-300 transition" referrerPolicy="no-referrer" />
+                    ) : (
+                      <div className="w-9 h-9 rounded-full bg-stone-200 hover:ring-2 hover:ring-stone-300 transition" />
+                    )}
                   </button>
-                </div>
-              )}
-            </div>
+                  <div className="min-w-0 flex-1 text-left">
+                    <p className="text-sm font-semibold text-stone-800 truncate">{activeRelationship.name}</p>
+                    <Link href={`/admin/partners/${activeRelationship.relationship_id}`} className="text-[11px] text-emerald-600 hover:underline">
+                      ดูรายละเอียดเพิ่มเติม →
+                    </Link>
+                  </div>
+                  {/* Automation Engine status — owner request 2026-07-11: always
+                      visible without opening the Settings drawer */}
+                  {state.automation && (
+                    <span className={"text-[10px] px-2 py-1 rounded-full border flex-shrink-0 " + (state.automation.debtReminderEnabled ? "border-emerald-200 text-emerald-700 bg-emerald-50" : "border-stone-200 text-stone-400")}>
+                      {state.automation.debtReminderEnabled ? `อัตโนมัติ: เปิด ${String(state.automation.debtReminderHour).padStart(2, "0")}:00 น.` : "อัตโนมัติ: ปิด"}
+                    </span>
+                  )}
+                  {activeRelationship.debt && (
+                    <div className="text-right flex-shrink-0 flex items-center gap-2">
+                      <div>
+                        <p className="text-xs font-semibold text-rose-600">{formatMoney(activeRelationship.debt.total_outstanding)} บาท</p>
+                        <p className="text-[10px] text-stone-400">ผิดนัด {activeRelationship.debt.days_overdue} วัน</p>
+                      </div>
+                      <button
+                        onClick={() => primaryLineUserId && sendDebt(primaryLineUserId)}
+                        disabled={actionSending || !primaryLineUserId}
+                        title={primaryLineUserId ? undefined : "ยังไม่มีช่องทาง LINE สำหรับลูกค้ารายนี้"}
+                        className="text-[11px] font-medium px-2.5 py-1.5 rounded-lg border border-rose-200 text-rose-700 hover:bg-rose-50 disabled:opacity-40 transition"
+                      >
+                        ส่ง
+                      </button>
+                    </div>
+                  )}
+                </>
+              }
+            />
+
+            {contactSettingsOpen && primaryLineUserId && (
+              <ContactSettingsModal lineUserId={primaryLineUserId} onClose={() => setContactSettingsOpen(false)} />
+            )}
 
             {/* Pending drafts — Rule 72 approval banner */}
             {pendingDrafts.length > 0 && (
@@ -789,12 +1140,24 @@ function RelationshipWorkspace({ initialRelationshipId }: { initialRelationshipI
 
             {/* Unified Timeline feed — messages + Action Bar results + business
                 events + past documents, one chronological scroll, LINE-style. */}
-            <div className="flex-1 overflow-y-auto p-3 space-y-2 bg-[#e5ece5]">
-              {detailLoading && <div className="text-xs text-stone-400 text-center py-8 animate-pulse">กำลังโหลด...</div>}
-              {!detailLoading && feed.length === 0 && (
-                <div className="text-xs text-stone-400 text-center py-8">ยังไม่มีข้อความหรือประวัติสำหรับลูกค้ารายนี้</div>
+            <div className="flex-1 relative min-h-0">
+              <div ref={feedScrollRef} onScroll={handleFeedScroll} className="h-full overflow-y-auto p-3 space-y-2 bg-[#e5ece5]">
+                {detailLoading && <div className="text-xs text-stone-400 text-center py-8 animate-pulse">กำลังโหลด...</div>}
+                {!detailLoading && feed.length === 0 && (
+                  <div className="text-xs text-stone-400 text-center py-8">ยังไม่มีข้อความหรือประวัติสำหรับลูกค้ารายนี้</div>
+                )}
+                {!detailLoading && feed.map(renderTimelineCard)}
+              </div>
+              {/* TASK-002 item 4 — never yank scroll away from someone reading
+                  history; this pill is the explicit opt-in to jump down. */}
+              {newMessageCount > 0 && (
+                <button
+                  onClick={() => scrollFeedToBottom("smooth")}
+                  className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-stone-800 text-white text-[11px] font-semibold shadow-lg hover:bg-stone-700 transition"
+                >
+                  ↓ {newMessageCount} ข้อความใหม่
+                </button>
               )}
-              {!detailLoading && feed.map(renderTimelineCard)}
             </div>
 
             {/* พิมพ์ตอบลูกค้าโดยตรง — ข้อความจริงส่งเข้า LINE จริง ไม่ใช่ ephemeral */}
@@ -834,27 +1197,6 @@ function RelationshipWorkspace({ initialRelationshipId }: { initialRelationshipI
               </div>
             )}
 
-            {/* AI ask — scoped to this contact's matched company if known */}
-            {aiAskOpen && primaryLineUserId && (
-              <div className="border-t border-stone-200 bg-white flex-shrink-0 p-3 flex gap-2">
-                <input
-                  autoFocus
-                  value={aiAskText}
-                  onChange={(e) => setAiAskText(e.target.value)}
-                  onKeyDown={(e) => { if (e.key === "Enter" && aiAskText.trim()) askAi(aiAskText.trim(), companyName, primaryLineUserId, activeRelationship.relationship_id) }}
-                  placeholder={companyName ? `ถามเกี่ยวกับ ${companyName}...` : "ถามคำถามทั่วไป..."}
-                  className="flex-1 text-xs border border-stone-200 rounded-lg px-3 py-2 focus:outline-none focus:border-stone-400"
-                />
-                <button
-                  onClick={() => aiAskText.trim() && askAi(aiAskText.trim(), companyName, primaryLineUserId, activeRelationship.relationship_id)}
-                  disabled={!aiAskText.trim()}
-                  className="px-3 py-2 rounded-lg bg-stone-800 text-white text-xs font-semibold disabled:opacity-40 hover:bg-stone-700 transition"
-                >
-                  ถาม
-                </button>
-              </div>
-            )}
-
             {/* Action Bar */}
             {actionBarItems.length > 0 && (
               <ActionBar actions={actionBarItems} overflowActions={overflowActions} />
@@ -885,6 +1227,80 @@ function RelationshipWorkspace({ initialRelationshipId }: { initialRelationshipI
               />
             </div>
           )}
+
+          {/* Cockpit Panel (owner request 2026-07-16) — Copilot-style right
+              drawer for AI/tool interaction, separate from the customer
+              timeline on the left. Slides out on the "ถาม AI" button, stays
+              on this one screen (no tab switch). Everything that used to
+              write into the shared message feed (runCommand/askAi results,
+              confirm/cancel, document previews) now lives here only. */}
+          {cockpitOpen && (
+            <div className="w-[400px] flex-shrink-0 border-l border-stone-200 bg-white flex flex-col h-full">
+              <div className="flex items-center justify-between px-4 py-3 border-b border-stone-200 flex-shrink-0">
+                <div className="flex items-center gap-2">
+                  <Bot size={16} className="text-stone-500" />
+                  <span className="text-sm font-semibold text-stone-800">AI Cockpit</span>
+                </div>
+                <button onClick={() => setCockpitOpen(false)} className="text-stone-400 hover:text-stone-600">
+                  <X size={16} />
+                </button>
+              </div>
+
+              {cockpitHtmlPreview ? (
+                <div className="flex-1 min-h-0 flex flex-col">
+                  <div className="flex items-center justify-between px-3 py-2 border-b border-stone-100 flex-shrink-0">
+                    <span className="text-[11px] font-medium text-stone-500">ตัวอย่างเอกสาร</span>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => openHtmlDocument(cockpitHtmlPreview)}
+                        className="flex items-center gap-1 text-[10px] px-2 py-1 rounded-lg border border-stone-200 text-stone-600 hover:bg-stone-50"
+                      >
+                        <ExternalLink size={11} /> เปิดแท็บใหม่
+                      </button>
+                      <button
+                        onClick={() => setCockpitHtmlPreview(null)}
+                        className="text-[10px] px-2 py-1 rounded-lg border border-stone-200 text-stone-600 hover:bg-stone-50"
+                      >
+                        ปิดตัวอย่าง
+                      </button>
+                    </div>
+                  </div>
+                  <iframe
+                    title="เอกสารเต็ม"
+                    srcDoc={cockpitHtmlPreview}
+                    className="flex-1 w-full border-0"
+                  />
+                </div>
+              ) : (
+                <div className="flex-1 overflow-y-auto p-3 space-y-2">
+                  {actionLog.length === 0 && (
+                    <div className="text-xs text-stone-400 text-center py-8">
+                      สั่งงานหรือถามคำถามด้านล่าง — ผลลัพธ์จาก AI จะแสดงตรงนี้เท่านั้น ไม่ปนกับข้อความลูกค้า
+                    </div>
+                  )}
+                  {actionLog.map(renderActionEntry)}
+                </div>
+              )}
+
+              <div className="border-t border-stone-200 flex-shrink-0 p-2.5 flex gap-2">
+                <input
+                  value={aiAskText}
+                  onChange={(e) => setAiAskText(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === "Enter" && aiAskText.trim() && primaryLineUserId) { askAi(aiAskText.trim(), companyName, primaryLineUserId); setCockpitHtmlPreview(null) } }}
+                  placeholder={companyName ? `สั่งงานหรือถามเกี่ยวกับ ${companyName}...` : "ยังไม่มีช่องทาง LINE สำหรับลูกค้ารายนี้"}
+                  disabled={!primaryLineUserId}
+                  className="flex-1 text-xs border border-stone-200 rounded-lg px-3 py-2 focus:outline-none focus:border-stone-400 disabled:bg-stone-50 disabled:text-stone-400"
+                />
+                <button
+                  onClick={() => { if (aiAskText.trim() && primaryLineUserId) { askAi(aiAskText.trim(), companyName, primaryLineUserId); setCockpitHtmlPreview(null) } }}
+                  disabled={!aiAskText.trim() || !primaryLineUserId}
+                  className="px-3 py-2 rounded-lg bg-stone-800 text-white text-xs font-semibold disabled:opacity-40 hover:bg-stone-700 transition"
+                >
+                  ถาม
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -894,6 +1310,23 @@ function RelationshipWorkspace({ initialRelationshipId }: { initialRelationshipI
           onSettingsLoaded={(s) => dispatch({ type: "SET_AUTOMATION", automation: { debtReminderEnabled: s.debtReminderAutoEnabled, debtReminderHour: s.debtReminderHour } })}
         />
       </div>
+
+      {/* TASK-002 item 1 — fullscreen image lightbox (owner: "กดแล้วเปิดเต็มจอ") */}
+      {lightboxUrl && (
+        <div
+          className="fixed inset-0 z-[100] bg-black/90 flex items-center justify-center cursor-zoom-out"
+          onClick={() => setLightboxUrl(null)}
+        >
+          <button
+            onClick={() => setLightboxUrl(null)}
+            className="absolute top-4 right-4 text-white/80 hover:text-white text-2xl leading-none"
+          >
+            ✕
+          </button>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={lightboxUrl} alt="รูปภาพเต็มจอ" className="max-w-[92vw] max-h-[92vh] object-contain" />
+        </div>
+      )}
     </AppShell>
   )
 }

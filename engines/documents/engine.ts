@@ -86,6 +86,15 @@ export interface DocData {
   debt?: { principal: number; fee: number; daysOverdue: number; interestRate: number; interestAccrued: number; penalty?: number; defaultDate?: string };
 
   notes?: string;
+
+  // One Business Calculation, Many Renderers (owner, 2026-07-17, Invoice
+  // Consistency Fix). When a Business Capability (e.g. business.calculate_tax)
+  // has already computed the real subtotal/vat/total, pass it here — generateDoc()
+  // renders these exact values verbatim and does NOT recompute VAT/totals
+  // itself. Without this, generateDoc falls back to its own vatRate*subtotal
+  // math (unchanged, for callers with no upstream business calculation yet —
+  // e.g. the manual document builder UI).
+  precomputedSummary?: { subtotal: number; vatRate: number; vat: number; total: number };
 }
 
 export interface DocResult {
@@ -99,16 +108,28 @@ export interface DocResult {
 export function generateDoc(data: DocData): DocResult {
   const label = DOC_LABELS[data.type];
   const docNumber = data.docNumber ?? "";
-  const vatRate = data.vatRate ?? 0;
 
-  const subtotal = data.items.reduce((s, i) => s + i.qty * i.unitPrice - (i.discount ?? 0), 0);
   const shipping = data.shipping ?? 0;
   const serviceFee = data.serviceFee ?? 0;
   const discount = data.discount ?? 0;
-  const beforeVat = subtotal + shipping + serviceFee - discount;
-  const vat = vatRate > 0 ? Math.round(beforeVat * vatRate * 100) / 100 : 0;
-  const total = beforeVat + vat;
   const paid = data.paidAmount ?? 0;
+
+  let subtotal: number, vatRate: number, vat: number, total: number;
+
+  if (data.precomputedSummary) {
+    // Render-only path — see DocData.precomputedSummary's own comment.
+    // NOT a second calculation: these are the exact figures the Business
+    // Capability already computed, used verbatim.
+    ({ subtotal, vatRate, vat, total } = data.precomputedSummary);
+  } else {
+    subtotal = data.items.reduce((s, i) => s + i.qty * i.unitPrice - (i.discount ?? 0), 0);
+    vatRate = data.vatRate ?? 0;
+    const beforeVat = subtotal + shipping + serviceFee - discount;
+    vat = vatRate > 0 ? Math.round(beforeVat * vatRate * 100) / 100 : 0;
+    total = beforeVat + vat;
+  }
+
+  const beforeVat = subtotal + shipping + serviceFee - discount;
   const remaining = total - paid;
 
   const summary = { subtotal, shipping, serviceFee, discount, beforeVat, vat, total, paid, remaining };

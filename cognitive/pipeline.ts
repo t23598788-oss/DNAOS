@@ -1,5 +1,5 @@
 import OpenAI from "openai";
-import { getDebtTrackings, getDocuments, getJobs, getMaterialTypes, getOpenDebts, getPartners } from "@/services/supabase/queries";
+import { dispatch as dispatchCommand } from "@/engines/validation/dispatcher";
 import { composeBoard, type BoardResponse } from "@/cognitive/board";
 import { evaluate } from "@/cognitive/evaluation";
 import { executePlan } from "@/cognitive/executor";
@@ -394,16 +394,28 @@ function operatingIntent(input: string): EnrichedInput {
   };
 }
 
+// Owner, 2026-07-17, Architecture Correction: AI must not import
+// services/supabase/queries or engines directly — only call named DNA OS
+// capabilities through the same registry-gated dispatcher every other AI
+// path uses (see cognitive/executor/index.ts's dispatchToData). Swallows a
+// failed/empty dispatch into [], matching the .catch(() => []) behavior of
+// the raw calls this replaces.
+async function dispatchList(command: string, payload: Record<string, unknown> = {}): Promise<Record<string, unknown>[]> {
+  const dispatched = await dispatchCommand(command, payload).catch(() => null);
+  if (!dispatched?.ok || !dispatched.data) return [];
+  return Array.isArray(dispatched.data) ? dispatched.data as Record<string, unknown>[] : [dispatched.data as Record<string, unknown>];
+}
+
 async function fetchForSituation(who: string | null, what: string | null): Promise<Record<string, unknown[]>> {
   const results: Record<string, unknown[]> = {};
 
   if (who) {
     const [partners, trackings, debts, docs, jobs] = await Promise.all([
-      getPartners().catch(() => []),
-      getDebtTrackings().catch(() => []),
-      getOpenDebts().catch(() => []),
-      getDocuments().catch(() => []),
-      getJobs().catch(() => []),
+      dispatchList("partner.list"),
+      dispatchList("debt.trackings"),
+      dispatchList("debt.list"),
+      dispatchList("document.list"),
+      dispatchList("job.list"),
     ]);
     const needle = who.toLowerCase();
     const matchedDocs = docs.filter((doc) => String(doc.party_name ?? "").toLowerCase().includes(needle));
@@ -419,12 +431,13 @@ async function fetchForSituation(who: string | null, what: string | null): Promi
       String(job.contact_name ?? "").toLowerCase().includes(needle)
     );
   } else if (what) {
-    if (["debt", "invoice_debts"].includes(what)) results.invoice_debts = await getOpenDebts().catch(() => []);
-    if (["customer", "partner", "supplier"].includes(what)) results.partners = await getPartners().catch(() => []);
-    if (what === "job") results.jobs = await getJobs().catch(() => []);
-    if (what === "material") results.material_types = await getMaterialTypes().catch(() => []);
+    if (["debt", "invoice_debts"].includes(what)) results.invoice_debts = await dispatchList("debt.list");
+    if (["customer", "partner", "supplier"].includes(what)) results.partners = await dispatchList("partner.list");
+    if (what === "job") results.jobs = await dispatchList("job.list");
+    if (what === "material") results.material_types = await dispatchList("material.list");
     if (["document", "invoice", "quotation", "boq", "receipt"].includes(what)) {
-      results.documents = await getDocuments(what === "document" ? undefined : what).catch(() => []);
+      const command = what === "document" ? "document.list" : what === "invoice" ? "invoice.list" : what === "quotation" ? "document.boq" : what === "receipt" ? "document.receipt" : "document.list";
+      results.documents = await dispatchList(command);
     }
   }
 

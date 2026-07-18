@@ -9,6 +9,8 @@ import { handleText }     from "./handlers/text.ts"
 import { handleLocation } from "./handlers/location.ts"
 import { handlePostback } from "./handlers/postback.ts"
 import { handleImage }    from "./handlers/image.ts"
+import { handleFile }     from "./handlers/file.ts"
+import { handleAudio }    from "./handlers/audio.ts"
 import { handleGroup }    from "./handlers/group.ts"
 import { handleFallback } from "./handlers/fallback.ts"
 import type { LineWebhookPayload, HandlerContext, LineMessageEvent } from "./events/types.ts"
@@ -72,6 +74,8 @@ Deno.serve(async (req: Request) => {
         if (msgType === "text")     await handleText(ctx)
         else if (msgType === "location") await handleLocation(ctx)
         else if (msgType === "image")    await handleImage(ctx)
+        else if (msgType === "file")     await handleFile(ctx)
+        else if (msgType === "audio")    await handleAudio(ctx)
         else                             await handleFallback(ctx)
         break
       }

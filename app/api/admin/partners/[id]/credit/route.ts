@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { requireAuth } from "@/core/auth/requireAuth"
 import { ADMIN_TIER } from "@/core/auth/session"
 import { supabaseAdmin as supabase } from "@/services/supabase/queries"
+import { calcDebtTrackingSummary, deriveFreezeWindows } from "@/engines/debt/tracking"
 
 type Params = { params: Promise<{ id: string }> }
 
@@ -13,7 +14,7 @@ export async function GET(_req: NextRequest, { params }: Params) {
 
   const { id: partnerId } = await params
 
-  const [invoicesRes, debtRes, txRes] = await Promise.all([
+  const [invoicesRes, debtRes, txRes, debtEventsRes] = await Promise.all([
     supabase()
       .from("invoices")
       .select("id, total_amount, invoice_date, invoice_status, created_at")
@@ -21,19 +22,28 @@ export async function GET(_req: NextRequest, { params }: Params) {
 
     supabase()
       .from("debt_snapshots")
-      .select("id, total_outstanding, debt_start_at, created_at")
+      .select("id, total_outstanding, debt_start_at, created_at, freeze_from, freeze_until")
       .eq("customer_company_id", partnerId),
 
     supabase()
       .from("customer_orders")
       .select("id, status, created_at")
       .eq("customer_company_id", partnerId),
+
+    // Phase B (owner, 2026-07-18) — single partner, so this is one extra
+    // query total (not N+1 like the list-view routes).
+    supabase()
+      .from("debt_events")
+      .select("event_type, occurred_at")
+      .eq("customer_company_id", partnerId)
+      .in("event_type", ["collection_paused", "collection_resumed"]),
   ])
 
   const invoices = invoicesRes.data ?? []
   const receipts = invoices.filter((d: any) => d.invoice_status === "PAID")
   const debts = debtRes.data ?? []
   const transactions = txRes.data ?? []
+  const freezeWindows = deriveFreezeWindows(debtEventsRes.data ?? [])
 
   // ─── คำนวณ ────────────────────────────────────────────────────────────────
 
@@ -46,9 +56,27 @@ export async function GET(_req: NextRequest, { params }: Params) {
   const closedJobs = transactions.filter((t: any) => t.status === "PAID").length
   const totalJobs = transactions.length
 
-  // หนี้ค้างชำระ
+  // หนี้ค้างชำระ — Debt Single Source of Truth (owner, 2026-07-17, PRIORITY
+  // task): was summing raw total_outstanding (stale, never recomputed with
+  // interest/penalty — see engines/debt/tracking.ts's getCurrentDebt
+  // comment). Recomputed with the same real formula every other consumer
+  // now uses, so the credit score reflects the actual current amount owed.
   const openDebt = debts.length > 0
-  const totalDebt = debts.reduce((s, d: any) => s + Number(d.total_outstanding ?? 0), 0)
+  const totalDebt = debts.reduce((s, d: any) => {
+    if (!d.total_outstanding) return s
+    const summary = calcDebtTrackingSummary({
+      principalAmount: Number(d.total_outstanding),
+      feeRate: 0,
+      interestStartAt: d.debt_start_at ?? d.created_at,
+      // Debt Collection Freeze Window (owner, 2026-07-18) — same reason as
+      // every other calcDebtTrackingSummary caller: must read this or the
+      // credit score diverges from the reminder card/detail view.
+      freezeFrom: d.freeze_from ?? null,
+      freezeUntil: d.freeze_until ?? null,
+      freezeWindows,
+    })
+    return s + summary.totalAmount
+  }, 0)
 
   // ─── Score (0-100) ────────────────────────────────────────────────────────
 

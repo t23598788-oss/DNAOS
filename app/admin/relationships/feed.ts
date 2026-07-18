@@ -19,6 +19,20 @@ import {
 } from "@/engines/presentation/template-resolver"
 import { linkDocumentsToEvents } from "@/engines/presentation/timeline-engine"
 
+// Owner request 2026-07-17 — the 7 document types AI classifies a photo
+// into. Kept here, not duplicated in the edge function's ocr-classify.ts
+// (that file owns the classification VALUES; this owns the Thai LABELS
+// shown to a human, a UI concern, not a classification concern).
+export const DOCUMENT_TYPE_LABEL: Record<string, string> = {
+  receipt: "🧾 ใบเสร็จรับเงิน",
+  tax_invoice: "🧾 ใบกำกับภาษี",
+  invoice: "🧾 ใบแจ้งหนี้",
+  fuel_bill: "⛽ บิลน้ำมัน",
+  transfer_slip: "💸 สลิปโอนเงิน",
+  weight_slip: "⚖️ ใบชั่ง",
+  other: "📄 เอกสารอื่นๆ",
+}
+
 export interface Relationship {
   relationship_id: string
   name: string
@@ -40,6 +54,10 @@ export interface Message {
   raw_text: string | null
   direction: "in" | "out"
   extracted: { latitude?: number; longitude?: number; address?: string } | null
+  // Human Reality Timeline (owner, 2026-07-16/17) — the real original image,
+  // signed fresh per request (see app/api/admin/relationships/[relationshipId]/route.ts).
+  // null for non-image messages, or an image whose content wasn't fetched.
+  media_url?: string | null
   created_at: string
 }
 
@@ -75,6 +93,25 @@ export interface BizEvent {
   created_at: string
 }
 
+// Auto-classified receipt/bill photos (owner, 2026-07-17) — one row per
+// image AI has read and classified (registry/migrations/20260717000002).
+// Real fields only: no AI-invented data beyond what the model actually
+// returned, no fabricated defaults.
+export interface Receipt {
+  id: string
+  line_event_id: string
+  media_url: string | null // signed fresh per request, same pattern as Message.media_url
+  document_type: "receipt" | "tax_invoice" | "invoice" | "fuel_bill" | "transfer_slip" | "weight_slip" | "other"
+  vendor_name: string | null
+  amount: number | null
+  document_date: string | null
+  confidence: number | null
+  status: "ai_read" | "confirmed" | "rejected"
+  error_th: string | null
+  sender_name: string | null // from line_events.line_name via join — "ผู้ส่ง" on the card
+  created_at: string
+}
+
 export interface Draft {
   id: string
   line_user_id?: string
@@ -92,6 +129,7 @@ export interface RelationshipDetail {
   messages: Message[]
   documents: DocRow[]
   events: BizEvent[]
+  receipts: Receipt[]
   unlinkedCount: number
   drafts: Draft[]
 }
@@ -114,6 +152,21 @@ export interface ActionLogEntry {
   // token store (no DB row exists yet to protect) — confirming just re-POSTs
   // send-debt with mode:"execute" for this relationship's primary LINE thread.
   debtSendPending?: boolean
+  // UX Change (owner, 2026-07-17): presentation ownership split — AI Cockpit
+  // is an operational console (status only), the customer chat timeline
+  // owns the actual Flex Card. workflowStatus drives Cockpit's compact
+  // status ladder (Preparing/Confirmed/Sent or the failure it stopped at).
+  // No backend change — derived entirely from the same /api/chat/confirm
+  // response fields (`ok`, `line_send_error`) already returned today.
+  workflowStatus?: "preparing" | "confirmed" | "sent" | "confirm_failed" | "send_failed"
+  // When true, buildFeed() includes this entry in the customer-facing
+  // timeline (via source_kind "action_log" → "action-result.timeline-card")
+  // instead of — or in addition to — the Cockpit log. Set only once a
+  // SendInvoiceToLINE actually succeeded, reusing the SAME flexPreview
+  // object the human already approved in Preview (still held client-side —
+  // the backend's preview_token is single-use and already consumed by
+  // then, but this object was never backend-only).
+  showAsChatBubble?: boolean
 }
 
 export interface RuntimeOwnershipMap {
@@ -141,6 +194,7 @@ export type FeedItem =
   | { source_type: "action_log"; id: string; timestamp: string; template_id: PresentationTemplateId; template_key: string; presentation_template: PresentationTemplateId; presentation_type: PresentationTemplateId; entry: ActionLogEntry }
   | { source_type: "business_event"; id: string; timestamp: string; template_id: PresentationTemplateId; template_key: string; presentation_template: PresentationTemplateId; presentation_type: PresentationTemplateId; event: BizEvent; documents: DocRow[] }
   | { source_type: "document"; id: string; timestamp: string; template_id: PresentationTemplateId; template_key: string; presentation_template: PresentationTemplateId; presentation_type: PresentationTemplateId; doc: DocRow }
+  | { source_type: "receipt"; id: string; timestamp: string; template_id: PresentationTemplateId; template_key: string; presentation_template: PresentationTemplateId; presentation_type: PresentationTemplateId; receipt: Receipt }
 
 function presentation<T extends { template_id: PresentationTemplateId }>(template: T) {
   return {
@@ -154,7 +208,20 @@ export function buildFeed(detail: RelationshipDetail | null, actionLog: ActionLo
   const items: FeedItem[] = []
   const { documentsByEventId, standaloneDocuments } = linkDocumentsToEvents(detail?.documents ?? [])
 
+  // Owner request 2026-07-17: an image AI has classified as a receipt/bill
+  // shows the Document Card INSTEAD of the plain image bubble ("เปลี่ยนจาก
+  // แสดงรูปอย่างเดียว เป็นการ์ดสรุปข้อมูลแทน") — same timeline slot, richer
+  // content. The original image is still one click away via the card
+  // itself, never discarded (Human Reality Timeline).
+  const receiptByLineEventId = new Map((detail?.receipts ?? []).map((r) => [r.line_event_id, r]))
+
   for (const m of detail?.messages ?? []) {
+    const receipt = receiptByLineEventId.get(m.id)
+    if (receipt) {
+      const template = resolvePresentationTemplate({ source_kind: "receipt", source_id: receipt.id })
+      items.push({ source_type: "receipt", id: `receipt-${receipt.id}`, timestamp: m.created_at, ...presentation(template), receipt })
+      continue
+    }
     const template = resolvePresentationTemplate({ source_kind: "message", source_id: m.id })
     items.push({ source_type: "message", id: `msg-${m.id}`, timestamp: m.created_at, ...presentation(template), message: m })
   }
@@ -210,6 +277,21 @@ export function buildInspectorFields(item: FeedItem): { title: string; fields: I
           { label: "ยอดรวม", value: d.total_amount.toLocaleString("th-TH") + " บาท" },
           { label: "วันที่", value: d.invoice_date ?? d.document_date ?? null },
           { label: "ตาราง", value: d.table },
+        ],
+      }
+    }
+    case "receipt.timeline-card": {
+      if (!("receipt" in item)) return { title: "เอกสาร", fields: [] }
+      const r = item.receipt
+      return {
+        title: DOCUMENT_TYPE_LABEL[r.document_type] ?? "เอกสาร",
+        fields: [
+          { label: "บริษัท/ร้านค้า", value: r.vendor_name },
+          { label: "ผู้ส่ง", value: r.sender_name },
+          { label: "วันที่", value: r.document_date },
+          { label: "ยอดเงิน", value: r.amount != null ? r.amount.toLocaleString("th-TH") + " บาท" : null },
+          { label: "สถานะ", value: r.status === "confirmed" ? "ยืนยันแล้ว" : r.status === "rejected" ? "ปฏิเสธแล้ว" : "AI อ่านแล้ว รอยืนยัน" },
+          { label: "ความมั่นใจ AI", value: r.confidence != null ? `${Math.round(r.confidence * 100)}%` : null },
         ],
       }
     }

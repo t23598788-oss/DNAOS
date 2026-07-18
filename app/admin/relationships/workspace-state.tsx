@@ -33,7 +33,7 @@ export interface PendingPreview {
 }
 
 export interface Selection {
-  kind: "document" | "business_event" | "action_log" | "message"
+  kind: "document" | "business_event" | "action_log" | "message" | "receipt"
   id: string
 }
 

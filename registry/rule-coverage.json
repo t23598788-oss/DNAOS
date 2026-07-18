@@ -318,6 +318,42 @@
       ],
       "type": "real fix for the 1 known real violator, no general check",
       "detection": "Mechanical only for the one specific line fixed — verified live (bash governance.sh as a real subprocess, zero 'Illegal byte sequence' occurrences, confirmed by grep -c on the real output). NOT mechanical: no check scans scripts/*.sh for the `tail -c ... | tr` pattern generally; a new script reintroducing this exact pattern would not be caught automatically."
+    },
+    "111": {
+      "title": "Extend Capability, Never Duplicate Pipeline — owner commands by outcome (\"เพิ่ม X\"); AI must treat this as Extension of the existing system by default, never Replacement, unless owner explicitly signals a core change (CONST-111, 2026-07-17)",
+      "enforced_by": [
+        "registry/intent-dictionary.json (Phase 0 — records known intents, known_implementations, and invariant_compliance per implementation; human/AI-read reference, not yet a mechanical gate)"
+      ],
+      "type": "process/behavioral rule — no mechanical enforcement exists yet",
+      "detection": "NOT mechanical. No pre-commit guard or script scans for a new file/route that duplicates an existing registered intent — compliance today depends entirely on whoever is building (human or AI) reading registry/intent-dictionary.json first. This is the same honest limitation already documented under Rule 101/103 (\"nothing scans intent or purpose, only file names and import edges\"); Rule 111 names the failure mode explicitly, it does not yet close the gap. A real Intent Guard (Phase 3 of the Execution Registry initiative) is planned but not built."
+    },
+    "112": {
+      "title": "AI Memory Is Not Source of Truth — an AI's own working memory (CLAUDE.md/MEMORY.md/feedback_*.md or equivalent) may explain and remember, but rules must always derive from registry/CONSTITUTION.json, never originate in AI memory (CONST-112, 2026-07-17)",
+      "enforced_by": [],
+      "type": "process/behavioral rule — no mechanical enforcement",
+      "detection": "NOT mechanical. Nothing in this codebase verifies that an AI memory file's stated rules trace back to a real Constitution rule number — compliance depends on the AI itself (or a human reviewer) checking. Stated honestly as a discipline, not a claim of automated enforcement, matching this file's existing convention for process rules (e.g. Rule 101/103's own coverage notes)."
+    },
+    "113": {
+      "title": "Document Immutability — sent invoices are fixed once issued; corrections happen via Void + reissue (new number), never in-place edit. Debt Reminder is a snapshot, not a tax document; Receipt only on confirmed real payment; Tax Invoice only on a real taxable transaction (CONST-113, 2026-07-18)",
+      "enforced_by": [],
+      "type": "process/behavioral rule — no mechanical enforcement",
+      "detection": "NOT mechanical. app/api/admin/documents/[id]/route.ts's PATCH handler currently allows editing an invoice's subtotal/vat_rate/total_amount regardless of invoice_status (sent invoices are NOT currently protected from in-place edits at the code level) — this rule is a declared discipline, not yet a guard. Stated honestly per this file's existing convention for process rules."
+    },
+    "114": {
+      "title": "Documents Are Derived From Business Events, Not Button Clicks — a document is created only from a real business event (sale/payment/cancellation); if an active, not-yet-superseded document already exists for the same partner+debt, reuse/resend it instead of creating a new one (CONST-114, 2026-07-18)",
+      "enforced_by": [],
+      "type": "process/behavioral rule — no mechanical enforcement",
+      "detection": "NOT mechanical. engines/documents/draft-builders.ts's buildDraftFromPartner() and app/api/admin/documents' POST handler currently have no check for an existing active invoice before creating a new one — confirmed by a real incident (INV-20260717-352 void -> INV-20260718-649, same underlying debt, one day apart). Stated honestly as a declared discipline pending a real idempotency check, not a claim of automated enforcement."
+    },
+    "115": {
+      "title": "Payment Verification Priority Levels — payment_verified only becomes true once every currently-real verification level (LINE claim, OCR slip, and eventually bank email/statement) agrees; human confirmation stands in for the still-unbuilt Level 3/4 (CONST-115, 2026-07-18)",
+      "enforced_by": [
+        "supabase/functions/line-webhook-v2/engines/payment-claim.ts (sets verification_level=1 on a text-only claim)",
+        "supabase/functions/line-webhook-v2/handlers/image.ts (sets verification_level=2 on an OCR-read slip)",
+        "app/api/admin/receipt-documents/[id]/confirm/route.ts (sets payment_verified=true only on real human confirmation)"
+      ],
+      "type": "runtime (partial) — the level-1/level-2 tagging and the human-confirmation gate are real code; Level 3/4 themselves do not exist",
+      "detection": "Real for what exists today: verification_level is set mechanically by the code paths listed, and payment_verified cannot become true without a human hitting the confirm endpoint. NOT mechanical for the full 4-source cross-check the rule describes — bank email and bank statement/API integrations are confirmed absent from this codebase (see registry/CHANGELOG.json's Payment Verification Engine Phase 1 entries), so Level 3/4 are declared, not built. Stated honestly per this file's convention."
     }
   },
   "uncovered_rules": [

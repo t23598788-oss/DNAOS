@@ -1,0 +1,9 @@
+{
+    "chat.mcp.serverSampling": {
+        "dna-os-deadboard/.vscode/mcp.json: microsoft/playwright-mcp": {
+            "allowedModels": [
+                "copilotcli/auto"
+            ]
+        }
+    }
+}

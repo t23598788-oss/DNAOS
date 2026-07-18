@@ -2,6 +2,42 @@
   "version": 1,
   "policy": "ทุก command ต้องมีชื่อเดียว ห้ามสร้างชื่อซ้ำหรือชื่อเพี้ยน",
   "commands": {
+    "invoice.items": {
+      "owner": "engines/validation/dispatcher.ts",
+      "layer": "engines",
+      "input": { "partner_id": "string", "debt": "CurrentDebt | null" },
+      "output": "InvoiceItemsResult",
+      "description": "InvoiceItems(partnerId) — builds debt-priced line items from an already-fetched GetCurrentDebt result (invoice/billing/receipt only; material-priced documents use material.quote). Never re-fetches or guesses debt.",
+      "description_th": "สร้างรายการสินค้า/บริการของใบแจ้งหนี้จากผลลัพธ์ GetCurrentDebt ที่ดึงมาแล้ว",
+      "requires_confirmation": false
+    },
+    "partner.profile": {
+      "owner": "services/supabase/queries.ts",
+      "layer": "services",
+      "input": { "partner_id": "string" },
+      "output": "PartnerProfile",
+      "description": "PartnerProfile(partnerId) — single-partner lookup by id (name/tax_id/phone/address/type). Wraps the existing getPartnerById().",
+      "description_th": "ข้อมูลโปรไฟล์คู่ค้ารายเดียวตาม id",
+      "requires_confirmation": false
+    },
+    "material.quote": {
+      "owner": "engines/material-resolver.ts + engines/quote-price.ts (orchestrated)",
+      "layer": "engines",
+      "input": { "raw_input": "string", "quantity": "number", "customer_id?": "string" },
+      "output": "MaterialQuoteResult",
+      "description": "GenerateMaterialQuote — resolves material name, finds the nearest priced pit from the customer's GPS, and computes unit price. One business response; AI never sees Material Resolver / GPS lookup / Pricing Engine directly.",
+      "description_th": "จับคู่วัสดุ + หาบ่อที่ใกล้ลูกค้าที่สุด + คำนวณราคา — คืนค่าเดียว AI ไม่ต้องรู้จัก engine ภายใน",
+      "requires_confirmation": false
+    },
+    "debt.current": {
+      "owner": "engines/debt/tracking.ts",
+      "layer": "engines",
+      "input": { "partner_id": "string" },
+      "output": "CurrentDebt",
+      "description": "The one business capability for a single customer's current debt (principal/interest/penalty/collection_fee/total_due/overdue_days) — GetCurrentDebt(partnerId). AI must call this, never the underlying formula directly.",
+      "description_th": "หนี้ปัจจุบันของลูกค้ารายเดียว (single source of truth) — AI ต้องเรียกผ่านชื่อนี้เท่านั้น ห้ามเรียกสูตรคำนวณตรง",
+      "requires_confirmation": false
+    },
     "debt.list": {
       "owner": "cognitive/debts",
       "layer": "cognitive",

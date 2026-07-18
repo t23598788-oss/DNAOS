@@ -4,6 +4,7 @@ import { ADMIN_TIER } from "@/core/auth/session"
 import { supabaseAdmin as supabase } from "@/services/supabase/queries"
 import { debtReminderFlex } from "@/engines/documents/flex-template"
 import { loadCompanySettings } from "@/core/config/company-settings"
+import { getCurrentDebt } from "@/engines/debt/tracking"
 
 type Params = { params: Promise<{ lineUserId: string }> }
 
@@ -32,14 +33,30 @@ export async function POST(req: Request, { params }: Params) {
   const company = (link as any)?.companies ?? null
   if (!company) return NextResponse.json({ error: "ยังไม่จับคู่บริษัทลูกค้า" }, { status: 400 })
 
-  const { data: debt } = await db
-    .from("debt_snapshots")
-    .select("total_outstanding, days_overdue")
-    .eq("customer_company_id", company.id)
-    .maybeSingle()
+  // Debt Single Source of Truth (owner, 2026-07-17, PRIORITY task) — was
+  // reading debt_snapshots.total_outstanding raw, which is the stale
+  // never-recomputed principal (see engines/debt/tracking.ts's
+  // getCurrentDebt comment for the full root cause). This route sends a
+  // real amount to a real customer — the exact place a stale number does
+  // the most damage. Fixed to the same authoritative calculation as every
+  // other consumer, not a separate/new calculation.
+  const debt = await getCurrentDebt(company.id)
 
-  if (!debt || !debt.total_outstanding || Number(debt.total_outstanding) <= 0) {
+  if (!debt || debt.total_due <= 0) {
     return NextResponse.json({ error: "ไม่มียอดหนี้ค้างชำระให้ส่ง" }, { status: 400 })
+  }
+
+  // Debt Tracking Model — Phase B (owner, 2026-07-18): this button may only
+  // send the collection_reminder_notice card. A debt classified
+  // trade_receivable belongs to the Invoice module instead — document choice
+  // is a property of the debt row, not this button. document_type null
+  // (pre-migration data) is allowed through rather than blocked, since
+  // blocking would regress every existing customer before the backfill runs.
+  if (debt.document_type && debt.document_type !== "collection_reminder_notice") {
+    return NextResponse.json(
+      { error: `หนี้รายนี้จัดประเภทเป็น ${debt.debt_type} — ต้องออกเอกสารผ่านโมดูล Invoice ไม่ใช่การ์ดแจ้งยอดค้างชำระ` },
+      { status: 400 },
+    )
   }
 
   const token = process.env.LINE_CHANNEL_ACCESS_TOKEN
@@ -48,8 +65,15 @@ export async function POST(req: Request, { params }: Params) {
   const branding = await loadCompanySettings()
   const flex = debtReminderFlex({
     companyName: company.name,
-    totalOutstanding: Number(debt.total_outstanding),
-    daysOverdue: debt.days_overdue ?? 0,
+    totalOutstanding: debt.total_due,
+    daysOverdue: debt.overdue_days,
+    // Owner request 2026-07-18: itemize the card (principal/interest/
+    // penalty/collection_fee) instead of one lump total — getCurrentDebt()
+    // already computes all of these, just wasn't threading them through.
+    principal: debt.principal,
+    interest: debt.interest,
+    penalty: debt.penalty,
+    collectionFee: debt.collection_fee,
     branding: {
       ourCompanyName: branding.companyName || undefined,
       ourCompanyTaxId: branding.companyTaxId || undefined,
@@ -75,7 +99,7 @@ export async function POST(req: Request, { params }: Params) {
   await db.from("line_events").insert({
     line_user_id: lineUserId,
     raw_type: "flex",
-    raw_text: `💰 แจ้งยอดค้างชำระ ${Number(debt.total_outstanding).toLocaleString("th-TH")} บาท ส่งให้ลูกค้าแล้ว`,
+    raw_text: `💰 แจ้งยอดค้างชำระ ${debt.total_due.toLocaleString("th-TH")} บาท ส่งให้ลูกค้าแล้ว`,
     status: "processed",
     direction: "out",
   })
@@ -99,7 +123,7 @@ export async function POST(req: Request, { params }: Params) {
     event_code: eventCode,
     event_type: "แจ้งชำระเงิน",
     event_date: new Date().toISOString().slice(0, 10),
-    title: `แจ้งยอดค้างชำระ ${Number(debt.total_outstanding).toLocaleString("th-TH")} บาท`,
+    title: `แจ้งยอดค้างชำระ ${debt.total_due.toLocaleString("th-TH")} บาท`,
     source_line_user_id: lineUserId,
     partner_id: company.id,
     status: "awaiting_payment_date",

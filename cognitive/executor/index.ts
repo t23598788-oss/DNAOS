@@ -3,15 +3,10 @@
  * ทุก step ที่มี query handler ใน dispatcher จะถูกบังคับใช้กฎจาก command-registry.json
  */
 
-import { getDebtTrackings, getDocuments, getJobs, getMaterialTypes, getOpenDebts, getPartners, getCustomerGps } from "@/services/supabase/queries";
 import { previewDocumentCreate } from "@/gateway/actions";
-import { loadCompanySettings } from "@/core/config/company-settings";
-import { documentFlex } from "@/engines/documents/flex-template";
 import { dispatch as dispatchCommand, isRegistered } from "@/engines/validation/dispatcher";
-import { calcDebtFull } from "@/engines/debt/engine";
-import { generateDoc, DOC_LABELS, type DocData, type DocType } from "@/engines/documents/engine";
-import { resolveMaterial } from "@/engines/material-resolver";
-import { tryQuoteMaterialPrice } from "@/engines/quote-price";
+import { DOC_LABELS, type DocType } from "@/engines/documents/engine";
+import type { CurrentDebt } from "@/engines/debt/tracking";
 import { executeCapability } from "@/plugins/capability-manager";
 import { execute as executeV6 } from "@/plugins";
 import { formatDocumentCreateResult } from "@/presenter/formatter";
@@ -63,7 +58,7 @@ export async function executePlan(plan: ExecutionPlan, worldState: WorldState): 
 async function runStep(step: ToolStepPlan, worldState: WorldState, results: StepResult[]): Promise<StepData> {
   const args = resolveRuntimeArgs(step.args, results);
 
-  const registryCommand = toRegistryCommand(step.tool, args);
+  const registryCommand = toRegistryCommand(step.tool);
   if (registryCommand && isRegistered(registryCommand)) {
     const dispatched = await dispatchCommand(registryCommand, args, !step.tool.endsWith(".create"));
     if (!dispatched.ok && dispatched.violations.length > 0) {
@@ -86,13 +81,13 @@ async function runStep(step: ToolStepPlan, worldState: WorldState, results: Step
       return queryDocuments(args.customer_id, worldState, results, args.document_type);
     case "customer.list":
     case "partner.list":
-      return getPartners();
+      return dispatchToData("partner.list", {});
     case "material.list":
-      return getMaterialTypes();
+      return dispatchToData("material.list", {});
     case "job.query":
       return queryJobs(worldState);
     case "job.list":
-      return getJobs();
+      return dispatchToData("job.list", {});
     case "invoice.create":
     case "quotation.create":
     case "boq.create":
@@ -113,36 +108,50 @@ async function runStep(step: ToolStepPlan, worldState: WorldState, results: Step
   }
 }
 
-function toRegistryCommand(tool: string, args: Record<string, string>): string | null {
+function toRegistryCommand(tool: string): string | null {
   const TOOL_TO_COMMAND: Record<string, string> = {
     "partner.list": "partner.list",
     "customer.list": "partner.list",
     "material.list": "material.list",
     "job.list": "job.list",
-    "debt.query": "debt.list",
+    // "debt.query" deliberately NOT mapped to a registry command here — it
+    // was previously mapped to "debt.list" (unfiltered, ALL customers'
+    // open debts), which shadowed queryDebt()'s real per-customer
+    // resolution below and always returned first (found + fixed
+    // 2026-07-17). queryDebt() calls the "debt.current" capability
+    // (getCurrentDebt) itself, once it has resolved which customer.
   };
   if (tool in TOOL_TO_COMMAND) return TOOL_TO_COMMAND[tool];
-  if (tool === "document.query" || tool === "invoice.query") {
-    const t = args.document_type;
-    if (t === "invoice") return "invoice.list";
-    if (t === "quotation") return "document.boq";
-    if (t === "receipt") return "document.receipt";
-    return "document.list";
-  }
+  // "document.query"/"invoice.query" deliberately NOT auto-routed here —
+  // same shadowing class as the debt.query bug fixed above: the registry
+  // command returns ALL documents unfiltered, and would always win before
+  // queryDocuments() below ever got to filter by customer (found + fixed
+  // 2026-07-17). queryDocuments() calls the right registry command itself,
+  // then filters.
   return null;
 }
 
+// Small helper so every AI-facing function calls the same dispatcher path
+// (owner, 2026-07-17, Architecture Correction) instead of importing
+// services/engines directly. Swallows a failed/empty dispatch into an empty
+// result rather than throwing, matching the existing behavior of the raw
+// calls this replaces.
+async function dispatchToData(command: string, payload: Record<string, unknown>): Promise<Record<string, unknown>[]> {
+  const dispatched = await dispatchCommand(command, payload);
+  if (!dispatched.ok || !dispatched.data) return [];
+  return Array.isArray(dispatched.data) ? dispatched.data as Record<string, unknown>[] : [dispatched.data as Record<string, unknown>];
+}
+
 async function resolveIdentity(name: string): Promise<Record<string, unknown>[]> {
-  const query = name.trim().toLowerCase();
+  const query = name.trim();
   if (!query) return [];
-  const partners = await getPartners();
-  return partners.filter((p) => String(p.name ?? "").toLowerCase().includes(query));
+  return dispatchToData("partner.find", { keyword: query });
 }
 
 async function queryDebt(customerId: string | undefined, worldState: WorldState, results: StepResult[]): Promise<Record<string, unknown>[]> {
   const resolved = resolveCustomer(customerId, worldState, results);
   const customerName = resolved.name ?? worldState.context.who;
-  const [debts, docs, trackings] = await Promise.all([getOpenDebts(), getDocuments(), getDebtTrackings()]);
+  const [debts, docs] = await Promise.all([dispatchToData("debt.list", {}), dispatchToData("document.list", {})]);
 
   const invoiceDebts = debts
     .map((debt) => {
@@ -153,146 +162,247 @@ async function queryDebt(customerId: string | undefined, worldState: WorldState,
 
   if (invoiceDebts.length > 0) return invoiceDebts;
 
-  const matched = trackings.filter((t) => matchesCustomer(t.customer_name, customerName));
-  try {
-    const calculated = await Promise.all(
-      matched.map((t) =>
-        calcDebtFull({
-          principal: Number(t.principal_amount),
-          feeAmount: Number(t.principal_amount) * (Number(t.fee_rate ?? 5) / 100),
-          dueDate: t.interest_start_at ?? t.created_at,
-          paidAmount: 0,
-          status: "DEBT",
-        }),
-      ),
-    );
-    return matched.map((t, i) => ({
-      ...t,
-      outstanding_amount: calculated[i].remaining,
-      principal_amount: calculated[i].principal,
-      fee_amount: calculated[i].fee,
-      interest_amount: calculated[i].interestAccrued,
-      days_overdue: calculated[i].daysOverdue,
-      total_outstanding: calculated[i].totalOutstanding,
-    }));
-  } catch {
-    return matched.map((t) => ({ ...t, outstanding_amount: t.principal_amount }));
-  }
+  // Architecture Correction (owner, 2026-07-17): AI must not choose between
+  // debt formulas or even know they exist — it invokes the named capability
+  // "debt.current" (GetCurrentDebt(partnerId)) through the same registry-
+  // gated dispatcher every other command goes through, not the engine
+  // function directly. What runs behind that name (getCurrentDebt() today)
+  // is DNA OS's decision, not the AI's. Previously this called calcDebtFull()
+  // directly, which throws [CONFIG MISSING] on every real invocation
+  // (debt-interest-rate/grace-period-hours/collection-fee-rate/limit do not
+  // exist in app_configs) and was silently swallowed by a try/catch that
+  // fell back to raw, uninflated principal_amount.
+  if (!resolved.id) return [];
+  const dispatched = await dispatchCommand("debt.current", { partner_id: resolved.id });
+  if (!dispatched.ok || !dispatched.data) return [];
+  const debt = dispatched.data as {
+    principal: number; interest: number; penalty: number; collection_fee: number;
+    total_due: number; overdue_days: number; calculated_at: string;
+  };
+
+  return [{
+    customer_name: customerName,
+    principal_amount: debt.principal,
+    interest_amount: debt.interest,
+    fee_amount: debt.collection_fee,
+    outstanding_amount: debt.total_due,
+    total_outstanding: debt.total_due,
+    days_overdue: debt.overdue_days,
+    calculated_at: debt.calculated_at,
+  }];
+}
+
+function documentCommandFor(docType?: string): string {
+  if (docType === "invoice") return "invoice.list";
+  if (docType === "quotation") return "document.boq";
+  if (docType === "receipt") return "document.receipt";
+  return "document.list";
 }
 
 async function queryDocuments(customerId: string | undefined, worldState: WorldState, results: StepResult[], docType?: string): Promise<Record<string, unknown>[]> {
   const resolved = resolveCustomer(customerId, worldState, results);
-  const docs = await getDocuments(docType);
+  const docs = await dispatchToData(documentCommandFor(docType), {});
   return docs.filter((doc) => matchesCustomer(doc.party_name, resolved.name ?? worldState.context.who));
 }
 
 async function queryJobs(worldState: WorldState): Promise<Record<string, unknown>[]> {
-  const jobs = await getJobs();
+  const jobs = await dispatchToData("job.list", {});
   return jobs.filter((job) =>
     matchesCustomer(job.contact_name, worldState.context.who) ||
     matchesCustomer(job.project_name, worldState.context.who)
   );
 }
 
+const DEBT_DOCUMENT_TYPES = new Set<DocType>(["invoice", "billing", "receipt"]);
+
+interface InvoicePreviewResult {
+  status: "OK" | "NO_OUTSTANDING_DEBT" | "PARTNER_NOT_FOUND" | "ERROR";
+  reason?: string;
+  suggested_actions?: string[];
+  document_number?: string;
+  html?: string;
+  flex_preview?: unknown;
+  total?: number;
+  items?: unknown;
+  debt_summary?: unknown;
+  preview_token?: string;
+}
+
+// GenerateInvoicePreview(partnerId, documentType?, note?) — owner,
+// 2026-07-17, Invoice Preview Redesign (root cause: document preview
+// depended on a prior "debt.query" planner step's cached results[],
+// silently defaulting to ฿0.00 when that step never ran). Self-contained:
+// orchestrates PartnerProfile + GetCurrentDebt + InvoiceItems +
+// CalculateTax + GenerateDocument itself, every time, regardless of what
+// earlier plan steps did or didn't run. Same GetCurrentDebt call the
+// Relationship header uses — one source of truth for both. Per owner
+// decision 2026-07-17: never fabricates a ฿0.00 document — if there is no
+// outstanding debt, returns an explicit NO_OUTSTANDING_DEBT business state.
+//
+// Moved here from engines/validation/dispatcher.ts (owner, 2026-07-18,
+// Architecture Drift fix) — it needs GenerateDocument (gateway's
+// previewDocumentCreate), and engines/ is not allowed to import gateway/
+// (registry/dependency-graph.json: the intended direction is gateway ->
+// engines, never the reverse). cognitive/ is allowed to import both, same
+// pattern already used everywhere else in this file. No behavior changed,
+// only which file owns the orchestration.
+async function generateInvoicePreview(p: { partner_id: string; document_type: string; note?: string }): Promise<InvoicePreviewResult> {
+  const partnerResult = await dispatchCommand("partner.profile", { partner_id: p.partner_id });
+  if (!partnerResult.ok || !partnerResult.data) {
+    return { status: "PARTNER_NOT_FOUND", reason: "ไม่พบข้อมูลลูกค้ารายนี้ในระบบ" };
+  }
+  const partner = partnerResult.data as { id: string; name: string; tax_id?: string | null; phone?: string | null };
+
+  const debtResult = await dispatchCommand("debt.current", { partner_id: p.partner_id });
+  const debt = (debtResult.ok ? debtResult.data : null) as CurrentDebt | null;
+
+  const itemsResult = await dispatchCommand("invoice.items", { partner_id: p.partner_id, debt });
+  const itemsData = itemsResult.data as { status: "OK" | "NO_OUTSTANDING_DEBT"; items: { description: string; qty: number; unit: string; unitPrice: number }[] };
+
+  if (itemsData.status === "NO_OUTSTANDING_DEBT") {
+    return {
+      status: "NO_OUTSTANDING_DEBT",
+      reason: `${partner.name} ไม่มียอดหนี้ค้างชำระในระบบ`,
+      suggested_actions: ["view_debt_history", "create_quotation", "create_manual_invoice", "cancel"],
+    };
+  }
+
+  const items = itemsData.items;
+  const subtotal = items.reduce((sum, it) => sum + it.qty * it.unitPrice, 0);
+
+  // Invoice Consistency Fix (owner, 2026-07-17): business.calculate_tax is
+  // the ONLY VAT/total calculation in this whole flow. Its exact result
+  // (`tax`) is passed through to previewDocumentCreate() as `payload.tax`
+  // — which threads it into generateDoc() as DocData.precomputedSummary,
+  // so html/flex_preview render these SAME numbers instead of generateDoc
+  // computing its own. ConfirmInvoice later persists this exact same
+  // result via the preview_token — never a second calculation.
+  const taxResult = await dispatchCommand("business.calculate_tax", { amount: subtotal });
+  const tax = taxResult.data as { subtotal: number; vat: number; vat_rate: number; total: number };
+
+  const preview = await previewDocumentCreate({
+    document_type: p.document_type,
+    party_name: partner.name,
+    customer_company_id: p.partner_id,
+    net_amount: tax.total,
+    items,
+    note: p.note,
+    tax: { subtotal: tax.subtotal, vatRate: tax.vat_rate, vat: tax.vat, total: tax.total },
+  });
+
+  if (!preview.ok || !preview.preview) {
+    return { status: "ERROR", reason: preview.error ?? "ไม่สามารถสร้างพรีวิวเอกสารได้" };
+  }
+  const rendered = preview.preview as { document_number: string; html: string; flex_preview: unknown; summary: { subtotal: number; vat: number; total: number } };
+
+  return {
+    status: "OK",
+    debt_summary: debt,
+    items,
+    total: rendered.summary.total,
+    document_number: rendered.document_number,
+    html: rendered.html,
+    flex_preview: rendered.flex_preview,
+    preview_token: preview.preview_token,
+  };
+}
+
 async function executeDocumentCommand(tool: string, args: Record<string, string>, worldState: WorldState, results: StepResult[]): Promise<Record<string, unknown>> {
   const resolved = resolveCustomer(args.customer_id, worldState, results);
-  const debts = findResultArray(results, "debt.query");
   const documentType = tool.replace(".create", "") as DocType;
 
   if (!resolved.name) throw new Error("ต้องรู้ชื่อลูกค้าก่อนสร้างเอกสาร");
 
-  // Real bug fix 2026-07-13: quotation/BOQ/delivery-order documents were
-  // always built via buildDebtItems(debts) — a debt-only converter — so a
-  // normal "เสนอราคาให้..." request (no debt.query step, debts=[]) always
-  // produced one fake "เงินต้นยกมา / 0.00" row and a 0.00 total, never the
-  // actual material/quantity/price the customer asked for. Material-type
-  // documents now build real items from the raw message + the real pricing
-  // engine (engines/quote-price.ts) instead. Debt-related documents
-  // (invoice/billing when a real debt exists) are unchanged.
-  const { items, debtInfo } = MATERIAL_DOCUMENT_TYPES.has(documentType) && debts.length === 0
-    ? { items: await buildMaterialItems(worldState.context.raw_input, resolved.id), debtInfo: undefined }
-    : buildDebtItems(debts);
+  // Invoice Preview Redesign (owner, 2026-07-17): invoice/billing/receipt no
+  // longer read a prior "debt.query" plan step's cached results[] (root
+  // cause of the ฿0.00 preview bug — that step could be missing, fail, or
+  // run out of order). GenerateInvoicePreview is self-contained: it
+  // orchestrates PartnerProfile + GetCurrentDebt + InvoiceItems +
+  // CalculateTax + GenerateDocument itself, every time. Works even if the
+  // AI only ever said "create invoice for customer" with no prior steps.
+  if (DEBT_DOCUMENT_TYPES.has(documentType)) {
+    if (!resolved.id) throw new Error("ต้องระบุลูกค้าที่จับคู่กับบริษัทในระบบก่อนถึงจะออกเอกสารหนี้ได้");
+
+    const r = await generateInvoicePreview({
+      partner_id: resolved.id,
+      document_type: documentType,
+      note: [worldState.context.what].filter(Boolean).join("\n") || undefined,
+    });
+
+    // Owner decision 2026-07-17: never fabricate an empty financial
+    // document — surface the real business state instead of a ฿0.00 card.
+    if (r.status !== "OK") {
+      return {
+        document_type: documentType,
+        party_name: resolved.name,
+        status: r.status,
+        reason: r.reason,
+        suggested_actions: r.suggested_actions,
+        presenter: { title: "ไม่สามารถออกเอกสารได้", summary: r.reason ?? "" },
+      };
+    }
+
+    return {
+      document_type: documentType,
+      document_number: r.document_number,
+      party_name: resolved.name,
+      status: "preview",
+      net_amount: r.total,
+      html: r.html,
+      items: r.items,
+      debt_summary: r.debt_summary,
+      presenter: {
+        title: `${DOC_LABELS[documentType].th} ${r.document_number} (พรีวิว — ยังไม่บันทึก)`,
+        summary: `${resolved.name} • ${(r.total ?? 0).toLocaleString("th-TH")} บาท — กดยืนยันเพื่อบันทึกจริงครับ`,
+      },
+      _preview_pending: true,
+      _confirm_action: "document.create",
+      _confirm_token: r.preview_token,
+      _flex_preview: r.flex_preview,
+    };
+  }
+
+  // Material-priced documents (quotation/boq/delivery_order) — unchanged
+  // scope, separate capability (material.quote), not part of this redesign.
+  const items = await buildMaterialItems(worldState.context.raw_input, resolved.id);
   const label = DOC_LABELS[documentType] ?? DOC_LABELS.invoice;
-  const docNumber = `${label.prefix}-${new Date().toISOString().split("T")[0].replace(/-/g, "")}-${String(Date.now()).slice(-3)}`;
+  const netAmount = items.reduce((sum, it) => sum + it.qty * it.unitPrice, 0);
 
-  // Owner request 2026-07-11: การ์ดเอกสารต้องมีชื่อบริษัท/เลขภาษี/VAT จริง
-  // จาก app_configs (core/config/company-settings.ts) แทนของ hardcode เดิม
-  const company = await loadCompanySettings();
-
-  const docData: DocData = {
-    type: documentType,
-    docNumber,
-    date: new Date().toISOString().split("T")[0],
-    status: "draft",
-    company: { name: company.companyName || undefined, taxId: company.companyTaxId || undefined },
-    customer: { name: resolved.name },
-    items,
-    vatRate: company.vatRate,
-    payment: company.paymentBankName
-      ? { bank: company.paymentBankName, account: company.paymentAccountNumber, accountName: company.paymentAccountName }
-      : undefined,
-    paymentRequired: documentType === "invoice" || documentType === "billing",
-    debt: debtInfo,
-    notes: [worldState.context.what, company.documentTerms].filter(Boolean).join("\n") || undefined,
-  };
-
-  const rendered = generateDoc(docData);
-
-  // Rule 72: never write a real document straight from a chat command —
-  // preview first, require an explicit human confirm (token) before
-  // gateway/actions.ts touches the `documents` table. Owner-reported gap
-  // 2026-07-11: this used to call executeDocumentCreate() directly, so
-  // typing "เสนอราคาให้..." wrote a real document with zero confirmation.
   const preview = await previewDocumentCreate({
     document_type: documentType,
-    document_number: docNumber,
     party_name: resolved.name,
     customer_company_id: resolved.id || undefined,
-    net_amount: rendered.summary.total,
-    issue_date: docData.date,
-    note: docData.notes,
+    net_amount: netAmount,
+    note: [worldState.context.what].filter(Boolean).join("\n") || undefined,
     items,
   });
 
-  if (!preview.ok) {
+  if (!preview.ok || !preview.preview) {
     throw new Error(preview.error ?? "เตรียมพรีวิวเอกสารไม่สำเร็จ");
   }
 
-  // Owner request 2026-07-11: "ให้เห็นภาพรายการก่อนที่จะกดส่งยืนยัน" — build the
-  // exact Flex card that would be sent to the customer (same branding as the
-  // real send at confirm time) so the admin sees the real card, not just text.
-  const flexPreview = documentFlex({
-    documentType,
-    documentNumber: docNumber,
-    partyName: resolved.name,
-    items,
-    summary: rendered.summary,
-    branding: {
-      ourCompanyName: company.companyName || undefined,
-      ourCompanyTaxId: company.companyTaxId || undefined,
-      terms: company.documentTerms || undefined,
-      footerNote: company.documentFooterNote || undefined,
-    },
-  });
+  const p = preview.preview as {
+    document_number: string; html: string; summary: { total: number };
+    items: unknown; flex_preview: unknown;
+  };
 
   return {
     document_type: documentType,
-    document_number: docNumber,
+    document_number: p.document_number,
     party_name: resolved.name,
     status: "preview",
-    net_amount: rendered.summary.total,
-    html: rendered.html,
-    summary: rendered.summary,
-    items,
+    net_amount: p.summary.total,
+    html: p.html,
+    summary: p.summary,
+    items: p.items,
     presenter: {
-      title: `${rendered.label.th} ${docNumber} (พรีวิว — ยังไม่บันทึก)`,
-      summary: `${resolved.name} • ${rendered.summary.total.toLocaleString("th-TH")} บาท — กดยืนยันเพื่อบันทึกจริงครับ`,
+      title: `${label.th} ${p.document_number} (พรีวิว — ยังไม่บันทึก)`,
+      summary: `${resolved.name} • ${p.summary.total.toLocaleString("th-TH")} บาท — กดยืนยันเพื่อบันทึกจริงครับ`,
     },
     _preview_pending: true,
     _confirm_action: "document.create",
     _confirm_token: preview.preview_token,
-    _doc_data: docData,
-    _flex_preview: flexPreview,
+    _flex_preview: p.flex_preview,
   };
 }
 
@@ -414,8 +524,6 @@ function matchesCustomer(value: unknown, name: string | null | undefined): boole
   return String(value ?? "").toLowerCase().includes(name.toLowerCase());
 }
 
-const MATERIAL_DOCUMENT_TYPES = new Set<DocType>(["quotation", "boq", "delivery_order"]);
-
 // Real quantity+unit pattern from actual customer requests seen in
 // business_events.quantity_unit ("คิว", "ตัน", "คัน", "เที่ยว", "ถุง",
 // "ลบ.ม.") — see supabase/migrations/20260710000001_business_events.sql.
@@ -436,68 +544,46 @@ async function buildMaterialItems(rawInput: string, customerId: string) {
   }
   const quantity = Number(qtyMatch[1]);
 
-  const materialTypes = await getMaterialTypes();
-  const match = resolveMaterial(rawInput, materialTypes);
-  if (!match.matched) {
+  // GenerateMaterialQuote(raw_input, quantity, customer_id) — DNA OS
+  // capability, owner 2026-07-17, Architecture Correction. AI no longer
+  // imports Material Resolver / GPS lookup / Pricing Engine directly; it
+  // asks one named command and only knows the business response.
+  const dispatched = await dispatchCommand("material.quote", { raw_input: rawInput, quantity, customer_id: customerId });
+  if (!dispatched.ok) throw new Error(dispatched.violations.join("; ") || "ไม่สามารถคำนวณราคาวัสดุได้");
+  const quote = dispatched.data as {
+    matched: boolean; candidates?: string[]; material_name?: string;
+    quantity?: number; unit?: string; unit_price?: number; error?: string;
+  } | null;
+
+  if (!quote?.matched) {
     throw new Error(
-      match.candidates.length > 0
-        ? `ไม่แน่ใจว่าหมายถึงวัสดุไหน (${match.candidates.map((c) => c.name).join(", ")}) กรุณาระบุให้ชัดเจนกว่านี้`
+      quote?.candidates && quote.candidates.length > 0
+        ? `ไม่แน่ใจว่าหมายถึงวัสดุไหน (${quote.candidates.join(", ")}) กรุณาระบุให้ชัดเจนกว่านี้`
         : `ไม่พบวัสดุที่ตรงกับข้อความนี้ในระบบ: "${rawInput}" กรุณาระบุชื่อวัสดุที่ลงทะเบียนไว้`
     );
   }
-
-  const gps = await getCustomerGps(customerId);
-  if (!gps) {
+  if (quote.error === "no_gps") {
     throw new Error("ยังไม่มีพิกัดของลูกค้าคนนี้ในระบบ ไม่สามารถหาบ่อที่ใกล้ที่สุดเพื่อคำนวณราคาได้ — รอพิกัดจาก LINE ก่อน");
   }
-
-  const quote = await tryQuoteMaterialPrice(match.matched.name, quantity, gps);
-  if (!quote.ok || quote.unitPrice == null) {
-    throw new Error(quote.text);
+  if (quote.error || quote.unit_price == null) {
+    throw new Error(quote.error ?? "คำนวณราคาไม่สำเร็จ");
   }
 
   return [{
-    description: quote.materialName ?? match.matched.name,
+    description: quote.material_name ?? rawInput,
     qty: quantity,
-    unit: quote.quantityUnit ?? "คิว",
-    unitPrice: quote.unitPrice,
+    unit: quote.unit ?? "คิว",
+    unitPrice: quote.unit_price,
   }];
 }
 
-function buildDebtItems(debts: Record<string, unknown>[]) {
-  const items: { description: string; detail?: string; qty: number; unit: string; unitPrice: number }[] = [];
-  let principal = 0;
-  let fee = 0;
-  let interest = 0;
-  let daysOverdue = 0;
-  let interestRate = 25;
-
-  for (const d of debts) {
-    const p = Number(d.principal_amount ?? d.outstanding_amount ?? 0);
-    const f = Number(d.fee_amount ?? 0);
-    const int = Number(d.interest_amount ?? 0);
-    principal += p;
-    fee += f;
-    interest += int;
-    daysOverdue = Math.max(daysOverdue, Number(d.days_overdue ?? 0));
-  }
-
-  items.push({ description: "เงินต้นยกมา", qty: 1, unit: "รายการ", unitPrice: principal });
-  if (fee > 0) items.push({ description: "ค่าธรรมเนียม 5%", qty: 1, unit: "รายการ", unitPrice: fee });
-  if (interest > 0) items.push({ description: `ดอกเบี้ย ${interestRate}% (${daysOverdue} วัน)`, qty: 1, unit: "รายการ", unitPrice: interest });
-
-  if (items.length === 1 && principal === 0 && debts.length > 0) {
-    const total = Number(debts[0].outstanding_amount ?? debts[0].principal_amount ?? 0);
-    items[0].unitPrice = total;
-  }
-
-  const debtInfo = principal > 0 ? {
-    principal,
-    fee,
-    daysOverdue,
-    interestRate: interestRate / 100,
-    interestAccrued: interest,
-  } : undefined;
-
-  return { items, debtInfo };
-}
+// Removed 2026-07-17 (Invoice Preview Redesign, Rule 104 knowledge record):
+// buildDebtItems(debts) used to build invoice/billing/receipt line items
+// from `debts = findResultArray(results, "debt.query")` — a prior planner
+// step's cached output that could be missing, fail, or run out of order,
+// silently producing principal=0 → a ฿0.00 document (root cause traced and
+// confirmed in the 2026-07-17 preview-pipeline audit). Replaced by the
+// "invoice.items" capability in engines/validation/dispatcher.ts, which
+// takes the SAME request's own GetCurrentDebt result — never a cached one —
+// and returns an explicit NO_OUTSTANDING_DEBT state instead of a zero
+// principal when there's genuinely no debt.

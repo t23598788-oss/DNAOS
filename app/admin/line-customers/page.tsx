@@ -369,16 +369,27 @@ export default function LineCustomersPage() {
     }
   }, [])
 
+  // Owner request 2026-07-18: invoices go through the real, canonical
+  // SendInvoiceToLINE pipe (gateway/actions.ts::sendInvoiceToLine, exposed
+  // as the Retry Send endpoint) instead of the old /send-document route —
+  // same fix as app/admin/relationships/workspace.tsx. This page's Cockpit
+  // is a separate, simpler implementation (local ActionLogEntry type, no
+  // workflowStatus/flexPreview-bubble fields) that never received the
+  // status-ladder/chat-timeline redesign — kept to its existing plain-text
+  // pattern here rather than expanding scope into porting that UI to a
+  // second page; only the pipe changes, not the rendering.
   const sendDocument = useCallback(async (lineUserId: string, doc: DocRow) => {
     const label = doc.invoice_no ?? doc.document_no ?? ""
     setActionSending(true)
     setActionLog((log) => [...log, { id: nextActionLogId(), role: "user", text: `📄 ส่งเอกสาร ${label}` }])
     try {
-      const res = await fetch(`/api/admin/line-customers/${lineUserId}/send-document`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ table: doc.table, documentId: doc.id }),
-      })
+      const res = doc.table === "invoices"
+        ? await fetch(`/api/admin/invoices/${doc.id}/send`, { method: "POST" })
+        : await fetch(`/api/admin/line-customers/${lineUserId}/send-document`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ table: doc.table, documentId: doc.id }),
+          })
       const data = await res.json()
       setActionLog((log) => [...log, { id: nextActionLogId(), role: "system", text: data.ok ? `✅ ส่ง ${label} ให้ลูกค้าแล้ว` : `ส่งไม่สำเร็จ: ${data.error ?? "ไม่ทราบสาเหตุ"}` }])
     } catch {

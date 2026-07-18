@@ -14,6 +14,7 @@ export {
   executePayment,
   previewDocumentCreate,
   executeDocumentCreate,
+  sendInvoiceToLine,
   previewDebtCreate,
   executeDebtCreate,
   type ActionRequest,

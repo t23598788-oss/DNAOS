@@ -1,5 +1,18 @@
-import { supabase } from "@/services/supabase/queries";
+// Infrastructure fix (owner, 2026-07-17): was `supabase` — the shared
+// anon-key client (services/supabase/queries.ts), a bare singleton with no
+// session ever attached. Every table this gateway writes to (invoices,
+// invoice_items, standalone_documents, debt_snapshots, payments) has a
+// service_role_only RLS policy (`for all using (false)`), so every write in
+// this file was being rejected — confirmed empirically: a real anon-key
+// INSERT into invoices returns 42501 "new row violates row-level security
+// policy". This gateway is the DNA OS execution/write door, reached only
+// through the preview→token→execute pattern from trusted server code
+// (Rule 72) — never client-side — so supabaseAdmin() is correct here, same
+// as every admin API route already uses (`supabaseAdmin as supabase`).
+import { supabaseAdmin as supabase } from "@/services/supabase/queries";
 import { DOC_LABELS, generateDoc, type DocData, type DocItem, type DocType } from "@/engines/documents/engine";
+import { documentFlex } from "@/engines/documents/flex-template";
+import { loadCompanySettings } from "@/core/config/company-settings";
 import { randomUUID } from "crypto";
 
 // ---- Types ----
@@ -201,6 +214,53 @@ export async function previewDocumentCreate(payload: Record<string, unknown>): P
 
   const token = issueToken("document.create", payload);
 
+  // GenerateInvoicePreview (owner, 2026-07-17, Architecture Correction): the
+  // full rendered card (items/totals/html/Flex) is built here, inside DNA
+  // OS, not by the AI — previously cognitive/executor called generateDoc()
+  // and documentFlex() itself after this returned only bare fields, meaning
+  // the AI still had to import and drive two rendering engines directly to
+  // show a preview. AI now gets one complete business response.
+  const label = DOC_LABELS[documentType];
+  const docNum = String(payload.document_number ?? `${label.prefix}-${new Date().toISOString().split("T")[0].replace(/-/g, "")}-${String(Date.now()).slice(-3)}`);
+  const issueDate = String(payload.issue_date ?? new Date().toISOString().split("T")[0]);
+  const items = normalizeItems(payload.items as DocItem[] | undefined, Number(payload.net_amount), label.th);
+
+  // Invoice Consistency Fix (owner, 2026-07-17): business.calculate_tax is
+  // the ONLY place VAT/totals are computed for this flow (see
+  // engines/validation/dispatcher.ts's "invoice.preview"). When the caller
+  // passes its result as `payload.tax`, generateDoc() renders those exact
+  // figures verbatim (DocData.precomputedSummary) instead of recomputing —
+  // one business calculation, many renderers. Callers with no upstream tax
+  // capability yet (e.g. the manual document builder) omit `tax` and get
+  // generateDoc's unchanged internal calculation.
+  const tax = payload.tax as { subtotal: number; vatRate: number; vat: number; total: number } | undefined;
+
+  const rendered = generateDoc({
+    type: documentType,
+    docNumber: docNum,
+    date: issueDate,
+    status: "draft",
+    customer: { name: String(payload.party_name) },
+    items,
+    notes: payload.note as string | undefined,
+    precomputedSummary: tax,
+  });
+
+  const branding = await loadCompanySettings();
+  const flexPreview = documentFlex({
+    documentType,
+    documentNumber: docNum,
+    partyName: String(payload.party_name),
+    items,
+    summary: rendered.summary,
+    branding: {
+      ourCompanyName: branding.companyName || undefined,
+      ourCompanyTaxId: branding.companyTaxId || undefined,
+      terms: branding.documentTerms || undefined,
+      footerNote: branding.documentFooterNote || undefined,
+    },
+  });
+
   return {
     ok: true,
     mode: "preview",
@@ -208,10 +268,15 @@ export async function previewDocumentCreate(payload: Record<string, unknown>): P
     preview_token: token,
     preview: {
       document_type: payload.document_type,
+      document_number: docNum,
       party_name: payload.party_name,
-      net_amount: payload.net_amount,
-      issue_date: payload.issue_date ?? new Date().toISOString().split("T")[0],
+      net_amount: rendered.summary.total,
+      issue_date: issueDate,
       note: payload.note ?? null,
+      items,
+      html: rendered.html,
+      summary: rendered.summary,
+      flex_preview: flexPreview,
       will_create: {
         table: documentType === "invoice" ? "invoices" : "standalone_documents",
         source: "deadboard",
@@ -232,6 +297,7 @@ export async function executeDocumentCreate(payload: {
   issue_date?: string;
   note?: string;
   items?: DocItem[];
+  tax?: { subtotal: number; vatRate: number; vat: number; total: number };
 }): Promise<ActionResponse> {
   if (!payload.customer_company_id) {
     return { ok: false, mode: "execute", action: "document.create", error: "ต้องจับคู่บริษัทลูกค้าก่อนถึงจะออกเอกสารได้" };
@@ -250,6 +316,14 @@ export async function executeDocumentCreate(payload: {
     customer: { name: payload.party_name },
     items,
     notes: payload.note,
+    // ConfirmInvoice must persist the EXACT totals the human approved in
+    // Preview (owner, 2026-07-17) — payload.tax is the same
+    // business.calculate_tax result that was already threaded into
+    // previewDocumentCreate() and carried unchanged inside the preview_token
+    // (see dispatchAction's "execute must run on exactly what was
+    // previewed" comment). Re-rendering here with the same precomputedSummary
+    // guarantees this render is byte-identical to what was shown.
+    precomputedSummary: payload.tax,
   };
   const rendered = generateDoc(documentData);
 
@@ -257,27 +331,31 @@ export async function executeDocumentCreate(payload: {
   let savedStatus: string;
 
   if (documentType === "invoice") {
-    const { data, error } = await supabase()
-      .from("invoices")
-      .insert({
-        invoice_no: docNum,
-        customer_company_id: payload.customer_company_id,
-        invoice_date: issueDate,
-        subtotal: rendered.summary.subtotal,
-        vat_amount: rendered.summary.vat,
-        total_amount: rendered.summary.total,
-        notes: payload.note,
-        // Real gap caught by testing 2026-07-11: `updated_at` has no DB
-        // default on invoices/standalone_documents (same pattern as
-        // customer_sites/projects/document_groups/customer_orders found
-        // earlier this session) — omitting it fails the NOT NULL constraint.
-        updated_at: new Date().toISOString(),
-      })
-      .select("id, invoice_status")
-      .single();
+    // ConfirmInvoice (owner, 2026-07-17, Invoice Workflow Redesign): header
+    // + line items committed in ONE Postgres transaction via the
+    // confirm_invoice() function (supabase/migrations/
+    // 20260717000003_invoice_items.sql) — Supabase's JS/REST client has no
+    // multi-statement transaction primitive, so an RPC call is the only way
+    // to guarantee this per the owner's explicit "commit one transaction"
+    // requirement. Does NOT touch LINE — that is SendInvoiceToLINE's job
+    // alone (owner: "Do not combine ConfirmInvoice and SendInvoiceToLINE").
+    // vat_rate/vat_amount/total_amount come straight from rendered.summary,
+    // which (via precomputedSummary above) IS payload.tax verbatim — not
+    // recalculated here.
+    const { data: newInvoiceId, error } = await supabase().rpc("confirm_invoice", {
+      p_invoice_no: docNum,
+      p_customer_company_id: payload.customer_company_id,
+      p_invoice_date: issueDate,
+      p_subtotal: rendered.summary.subtotal,
+      p_vat_rate: payload.tax?.vatRate ?? 0,
+      p_vat_amount: rendered.summary.vat,
+      p_total_amount: rendered.summary.total,
+      p_notes: payload.note ?? null,
+      p_items: items,
+    });
     if (error) return { ok: false, mode: "execute", action: "document.create", error: error.message };
-    savedId = data.id;
-    savedStatus = data.invoice_status;
+    savedId = newInvoiceId as string;
+    savedStatus = "DRAFT"; // confirm_invoice() always inserts as DRAFT — "created, not yet sent to customer"
   } else {
     const enumValue = STANDALONE_ENUM[documentType];
     if (!enumValue) {
@@ -327,6 +405,111 @@ export async function executeDocumentCreate(payload: {
       `.invoice find ${docNum}`,
       `.doc list`,
     ],
+  };
+}
+
+// ---- SEND INVOICE TO LINE ----
+//
+// SendInvoiceToLINE(invoiceId) — owner, 2026-07-17, Invoice Workflow
+// Redesign. Deliberately a SEPARATE capability from ConfirmInvoice, called
+// only after it succeeds, never fused into one operation (explicit owner
+// instruction). Loads the SAVED invoice (never trusts caller-supplied
+// totals/items — re-reads from the committed rows), builds the Flex
+// message, pushes to LINE, and only then flips invoice_status → SENT.
+// If the LINE push fails, invoice_status is left untouched (still DRAFT —
+// this codebase's "created, not yet sent" state) so this same function can
+// be called again later with the same invoiceId: Retry Send, never
+// recreates the invoice or its items.
+export async function sendInvoiceToLine(invoiceId: string): Promise<ActionResponse> {
+  const { data: invoice, error: invoiceError } = await supabase()
+    .from("invoices")
+    .select("id, invoice_no, invoice_status, customer_company_id, subtotal, vat_amount, total_amount, companies(name)")
+    .eq("id", invoiceId)
+    .single();
+  if (invoiceError || !invoice) {
+    return { ok: false, mode: "execute", action: "invoice.send", error: invoiceError?.message ?? "ไม่พบใบแจ้งหนี้นี้ในระบบ" };
+  }
+  if (invoice.invoice_status === "SENT") {
+    return { ok: false, mode: "execute", action: "invoice.send", error: `ใบแจ้งหนี้ ${invoice.invoice_no} ถูกส่งไปแล้ว` };
+  }
+
+  const { data: itemRows, error: itemsError } = await supabase()
+    .from("invoice_items")
+    .select("description, qty, unit, unit_price")
+    .eq("invoice_id", invoiceId)
+    .order("sort_order", { ascending: true });
+  if (itemsError) {
+    return { ok: false, mode: "execute", action: "invoice.send", error: itemsError.message };
+  }
+  const items: DocItem[] = (itemRows ?? []).map((it) => ({
+    description: it.description, qty: Number(it.qty), unit: it.unit, unitPrice: Number(it.unit_price),
+  }));
+
+  const { data: link } = await supabase()
+    .from("company_line_links")
+    .select("line_user_id")
+    .eq("company_id", invoice.customer_company_id)
+    .maybeSingle();
+  if (!link?.line_user_id) {
+    return { ok: false, mode: "execute", action: "invoice.send", error: "ลูกค้ารายนี้ยังไม่ได้เชื่อมบัญชี LINE — ส่งอัตโนมัติไม่ได้" };
+  }
+
+  const token = process.env.LINE_CHANNEL_ACCESS_TOKEN;
+  if (!token) return { ok: false, mode: "execute", action: "invoice.send", error: "LINE_CHANNEL_ACCESS_TOKEN ยังไม่ได้ตั้งค่า" };
+
+  const branding = await loadCompanySettings();
+  const partyName = (invoice as { companies?: { name?: string } }).companies?.name ?? "";
+  const flex = documentFlex({
+    documentType: "invoice",
+    documentNumber: invoice.invoice_no,
+    partyName,
+    items,
+    summary: { subtotal: Number(invoice.subtotal), vat: Number(invoice.vat_amount), total: Number(invoice.total_amount) },
+    branding: {
+      ourCompanyName: branding.companyName || undefined,
+      ourCompanyTaxId: branding.companyTaxId || undefined,
+      terms: branding.documentTerms || undefined,
+      footerNote: branding.documentFooterNote || undefined,
+    },
+  });
+
+  const lineRes = await fetch("https://api.line.me/v2/bot/message/push", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ to: link.line_user_id, messages: [{ type: "flex", altText: `ใบแจ้งหนี้ ${invoice.invoice_no}`, contents: flex }] }),
+  });
+
+  if (!lineRes.ok) {
+    // Owner instruction: on LINE push failure, invoice stays saved as-is
+    // (status untouched — still DRAFT) so Retry Send can call this same
+    // function again without recreating anything.
+    return { ok: false, mode: "execute", action: "invoice.send", error: `ส่ง LINE ไม่สำเร็จ: ${(await lineRes.text()).slice(0, 200)}` };
+  }
+
+  const { error: statusError } = await supabase()
+    .from("invoices")
+    .update({ invoice_status: "SENT", updated_at: new Date().toISOString() })
+    .eq("id", invoiceId);
+  if (statusError) {
+    // LINE push already succeeded — do not report this as a send failure
+    // (that would invite an accidental duplicate push on retry). Surface it
+    // honestly as a separate, lower-severity problem instead.
+    return {
+      ok: true, mode: "execute", action: "invoice.send",
+      result: { invoice_id: invoiceId, invoice_no: invoice.invoice_no, line_pushed: true, flex_preview: flex },
+      error: `ส่ง LINE สำเร็จ แต่อัปเดตสถานะไม่สำเร็จ: ${statusError.message}`,
+    };
+  }
+
+  return {
+    ok: true,
+    mode: "execute",
+    action: "invoice.send",
+    // flex_preview included so the caller (e.g. Retry Send button) can
+    // render the same chat-timeline bubble the auto-send path already
+    // does — same object that was actually pushed to LINE, not rebuilt
+    // again client-side.
+    result: { invoice_id: invoiceId, invoice_no: invoice.invoice_no, status: "SENT", flex_preview: flex },
   };
 }
 

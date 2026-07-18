@@ -16,10 +16,19 @@ type Params = { params: Promise<{ id: string }> }
 async function findInvoice(id: string) {
   const { data } = await supabase()
     .from("invoices")
-    .select("id, invoice_no, invoice_status, customer_company_id, customer_order_id, total_amount, reference_no, invoice_date, due_date, created_at, companies!invoices_customer_company_id_fkey(id, name, phone, address)")
+    .select("id, invoice_no, invoice_status, customer_company_id, customer_order_id, total_amount, subtotal, vat_rate, notes, reference_no, invoice_date, due_date, created_at, companies!invoices_customer_company_id_fkey(id, name, phone, address)")
     .eq("id", id)
     .maybeSingle()
   return data
+}
+
+async function findInvoiceItems(invoiceId: string) {
+  const { data } = await supabase()
+    .from("invoice_items")
+    .select("description, qty, unit, unit_price")
+    .eq("invoice_id", invoiceId)
+    .order("sort_order", { ascending: true })
+  return data ?? []
 }
 
 async function findStandalone(id: string) {
@@ -31,7 +40,20 @@ async function findStandalone(id: string) {
   return data
 }
 
-function invoiceToDocument(d: NonNullable<Awaited<ReturnType<typeof findInvoice>>>) {
+function invoiceToDocument(
+  d: NonNullable<Awaited<ReturnType<typeof findInvoice>>>,
+  items: Awaited<ReturnType<typeof findInvoiceItems>>,
+) {
+  // No Double VAT on reopen (owner, 2026-07-18) — root cause of a real
+  // production bug: this function never returned subtotal/vat_rate/items,
+  // so DocumentBuilder.tsx's selectDoc() fell back to a single fake row
+  // priced at the already-VAT-inclusive total_amount and defaulted
+  // vatEnabled to true, recomputing 7% VAT on top of VAT every time an
+  // existing invoice was reopened/reprinted (confirmed against a real case:
+  // stored subtotal 15,753.77 + vat_amount 1,102.76 = total_amount 16,856.53
+  // — correct — but the reopened preview showed 16,856.53 + fresh 7% =
+  // 18,036.49). Returning the real stored breakdown here is what lets
+  // DocumentBuilder reconstruct the SAME numbers instead of re-deriving them.
   return {
     id: d.id,
     document_type: "invoice",
@@ -45,6 +67,16 @@ function invoiceToDocument(d: NonNullable<Awaited<ReturnType<typeof findInvoice>
     due_date: d.due_date ?? null,
     created_at: d.created_at,
     partners: d.companies ?? null,
+    note: d.notes ?? null,
+    vat_enabled: Number(d.vat_rate ?? 0) > 0,
+    data: {
+      items: items.map((it) => ({
+        description: it.description,
+        qty: Number(it.qty ?? 0),
+        unit_label: it.unit,
+        unit_price: Number(it.unit_price ?? 0),
+      })),
+    },
   }
 }
 
@@ -71,7 +103,10 @@ export async function GET(_req: NextRequest, { params }: Params) {
   const { id } = await params
 
   const invoice = await findInvoice(id)
-  if (invoice) return NextResponse.json({ document: invoiceToDocument(invoice) })
+  if (invoice) {
+    const items = await findInvoiceItems(invoice.id)
+    return NextResponse.json({ document: invoiceToDocument(invoice, items) })
+  }
 
   const standalone = await findStandalone(id)
   if (standalone) return NextResponse.json({ document: standaloneToDocument(standalone) })

@@ -5,6 +5,8 @@ import { tryRouteToTool } from "../engines/tool-router.ts"
 import { tryCompleteAwaitingEvent } from "../engines/event-followup.ts"
 import { tryAutoBuildEvent } from "../engines/auto-build-event.ts"
 import { tryFollowUpDebtAck } from "../engines/debt-followup.ts"
+import { tryRecordPaymentClaim } from "../engines/payment-claim.ts"
+import { isPaymentInfoRequest, tryBuildPaymentInstructionsReply } from "../engines/payment-instructions.ts"
 
 export async function handleText(ctx: HandlerContext): Promise<void> {
   const msgEvent = ctx.event as LineMessageEvent
@@ -63,6 +65,20 @@ export async function handleText(ctx: HandlerContext): Promise<void> {
     }
   }
 
+  // Owner-reported bug 2026-07-18: a customer asking "ส่งเลขบัญชีมาด้วยตงครับ"
+  // (please send the account number) was being swallowed by
+  // tryFollowUpDebtAck below — that function treats ANY non-acknowledgment
+  // reply while awaiting a payment date as the customer's scheduling answer.
+  // Must run BEFORE that check so a genuine request for bank details is
+  // recognized and answered for real, not silently misfiled.
+  if (ctx.userId && isPaymentInfoRequest(text)) {
+    const paymentInfoReply = await tryBuildPaymentInstructionsReply(ctx.supabase, ctx.userId)
+    if (paymentInfoReply) {
+      await ResponseGateway.replyText(ctx.replyToken, paymentInfoReply)
+      return
+    }
+  }
+
   // Owner-reported bug 2026-07-11: a plain "รับทราบครับ" reply to a debt
   // reminder card fell into the generic fallback below ("เดี๋ยวเช็คให้นะครับ"
   // — nonsensical, there's nothing to check). If we're waiting on this
@@ -72,6 +88,19 @@ export async function handleText(ctx: HandlerContext): Promise<void> {
     const debtFollowup = await tryFollowUpDebtAck(ctx.supabase, ctx.userId, text)
     if (debtFollowup) {
       await ResponseGateway.replyText(ctx.replyToken, debtFollowup)
+      return
+    }
+  }
+
+  // Payment Verification Engine — Waiting Bank Confirmation (owner,
+  // 2026-07-18): "โอนแล้วครับ" with no slip attached previously vanished into
+  // the generic fallback below. Checked late/narrow (same reasoning as
+  // tryFollowUpDebtAck above) since it's a specific pattern match, not a
+  // catch-all.
+  if (ctx.userId) {
+    const claimReply = await tryRecordPaymentClaim(ctx.supabase, ctx.userId, text, saved?.id ?? null)
+    if (claimReply) {
+      await ResponseGateway.replyText(ctx.replyToken, claimReply)
       return
     }
   }

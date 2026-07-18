@@ -119,6 +119,49 @@ print(sum(1 for k in d['modules'] if k.startswith(scanned) and not k.startswith(
   fi
 fi
 
+# 5. No Module exists without Registration — this previously only compared
+# FILE COUNT against module-registry.json's key count, which already matched
+# even for the 97 modules whose own status field literally says "unregistered"
+# (sync-registry.ts auto-adds a stub key for every unregistered file it finds,
+# so the count matched while the modules themselves were still genuinely
+# unregistered — a real enforcement gap, not a false alarm). This reads
+# architecture-book.json's real computed status instead of the raw key count
+# (System Invariant "No Module exists without Registration", owner, 2026-07-16
+# — measured by impossibility of violation, not existence of a rule).
+echo "--- Checking for unregistered modules (System Invariant) ---"
+if [ -f "registry/architecture-book.json" ]; then
+  UNREGISTERED=$(python3 -c "
+import json
+d = json.load(open('registry/architecture-book.json'))
+print(d.get('summary', {}).get('unregistered', 0))
+")
+  if [ "$UNREGISTERED" -gt 0 ]; then
+    echo "  DRIFT: $UNREGISTERED module(s) have status UNREGISTERED in architecture-book.json — every module must be registered with a real purpose_th/owner before deploy, not just auto-stubbed"
+    DRIFT=$((DRIFT + 1))
+  else
+    echo "  OK: 0 unregistered modules"
+  fi
+fi
+
+# 6. No Platform owns Knowledge — no directory under registry/ may be named
+# after an execution platform (System Invariant, owner, 2026-07-16). Real
+# incident this catches: this session built registry/platforms/{vercel,supabase}/
+# minutes before this check existed, self-corrected only because a human caught
+# it verbally — proof this needed a mechanical gate, not just discipline.
+echo "--- Checking Registry is not organized by platform ---"
+PLATFORM_NAMES="vercel supabase line github cloudflare google aws azure netlify"
+if [ -d "registry" ]; then
+  for sub in registry/*/; do
+    subname=$(basename "$sub")
+    for p in $PLATFORM_NAMES; do
+      if [ "$subname" = "$p" ]; then
+        echo "  DRIFT: registry/$subname/ exists — Registry must never be organized by platform folder (platform is an attribute on an entry, e.g. registry/constraints.json's \"platform\" field, not a directory)"
+        DRIFT=$((DRIFT + 1))
+      fi
+    done
+  done
+fi
+
 echo ""
 if [ $DRIFT -gt 0 ]; then
   echo "ERROR: $DRIFT architecture drifts detected"

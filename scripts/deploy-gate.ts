@@ -18,6 +18,7 @@
 import { readFileSync, existsSync } from "fs";
 import { join } from "path";
 import { execSync } from "child_process";
+import { recordKnowledgeEntry } from "../services/knowledge/client";
 
 const ROOT = join(__dirname, "..");
 function readJSON<T>(relPath: string): T {
@@ -60,7 +61,7 @@ function findKnowledgeLesson(rootCause: string | null): string | null {
   return match ? `[${match.id}] ${match.lesson}` : null;
 }
 
-function main() {
+async function main() {
   console.log("=== DNA OS Deploy Gate ===\n");
   console.log("Running real governance checks (scripts/governance.sh) — not simulated.\n");
 
@@ -83,9 +84,9 @@ function main() {
   }
 
   console.log(`Deploy Blocked\n`);
-  failedKeys.forEach((key) => {
+  for (const key of failedKeys) {
     const info = CHECK_KEY_TO_VALIDATOR[key];
-    if (!info) return;
+    if (!info) continue;
     const result = latestMatchingResult(info.validator);
     const rootCause = result?.root_cause
       ?? (result?.evidence ? `ยังไม่มีการวินิจฉัย root cause อย่างเป็นทางการ — แต่มี evidence จริงที่ capture ไว้: ${result.evidence.slice(0, 300)}` : "ยังไม่มีการวินิจฉัย root cause จริงสำหรับความล้มเหลวนี้ — รัน scripts/record-validation.ts พร้อม --root-cause จริงก่อน");
@@ -104,7 +105,31 @@ function main() {
     if (lesson) console.log(`\nKnown from Runtime Memory\n  ${lesson}`);
     console.log(`\nStatus\n  NOT READY\n`);
     console.log("-".repeat(60));
-  });
+
+    // First real Runtime Mapping consumer (registry/KNOWLEDGE_RUNTIME_MAPPING.md,
+    // owner, 2026-07-18). Best-effort, never blocks the gate — recordKnowledgeEntry
+    // never throws (see services/knowledge/client.ts). Silent today: the
+    // `knowledge` schema (Storage Adapter) has not been applied to production
+    // yet, so this always no-ops until it is — that's expected, not a bug.
+    const knowledge = await recordKnowledgeEntry({
+      code: `INC-${new Date().toISOString().slice(0, 10)}-${key}`,
+      entry_type: "incident",
+      title: `Deploy Gate blocked: ${info.validator} failed`,
+      summary: `${info.validator} failed during a real deploy-gate run — root cause: ${rootCause.slice(0, 200)}`,
+      detail: `Required action: ${suggestedFix}`,
+      source: "production",
+      confidence: "verified",
+      domains: ["infrastructure", "architecture"],
+      runtime_actionable: false,
+      ai_actionable: true,
+      human_actionable: true,
+      created_by: "deploy-gate.ts",
+      metadata: { check_key: key, validator: info.validator, command: result?.command ?? null },
+    });
+    if (knowledge.ok) {
+      console.log(`(recorded as Knowledge Entry ${knowledge.id})`);
+    }
+  }
 
   process.exit(1);
 }

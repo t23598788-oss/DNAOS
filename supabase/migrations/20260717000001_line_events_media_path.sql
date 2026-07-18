@@ -1,0 +1,12 @@
+-- Human Reality Timeline (owner, 2026-07-16/17): original content sent by a
+-- real human must be stored and shown as-is, before any AI interpretation.
+-- Root cause found: line_events had a line_message_id (needed to fetch
+-- content from LINE's Content API) but nothing ever called that API and
+-- nothing stored the result — images were logged as a text placeholder
+-- "(ส่งรูปภาพ)" only, the actual photo was never kept anywhere.
+--
+-- Stores a Storage PATH, not a signed URL — the 'attachments' bucket
+-- (already used by app/api/admin/upload/route.ts) is private, so URLs must
+-- be signed fresh on each read (5 min expiry, same pattern as that route),
+-- not persisted as a URL that would go stale.
+alter table public.line_events add column if not exists media_path text;

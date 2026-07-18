@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { requireAuth } from "@/core/auth/requireAuth"
 import { ADMIN_TIER } from "@/core/auth/session"
 import { supabaseAdmin as supabase } from "@/services/supabase/queries"
+import { calcDebtTrackingSummary, deriveFreezeWindows } from "@/engines/debt/tracking"
 
 // Cross-reference view: every distinct LINE contact, their message history,
 // and — where the LINE display name matches a real company/partner record —
@@ -77,10 +78,49 @@ export async function GET() {
   const allCompanyIds = [...companyByLineUserId.values(), ...(namedCompanies ?? [])].map((c: any) => c.id)
 
   const { data: debts } = allCompanyIds.length
-    ? await db.from("debt_snapshots").select("customer_company_id, total_outstanding, collection_state, days_overdue").in("customer_company_id", allCompanyIds)
+    ? await db.from("debt_snapshots").select("customer_company_id, total_outstanding, collection_state, debt_start_at, created_at, freeze_from, freeze_until").in("customer_company_id", allCompanyIds)
     : { data: [] }
 
-  const debtByCompanyId = new Map((debts ?? []).map((d) => [d.customer_company_id, d]))
+  // Phase B (owner, 2026-07-18) — batched, one query for the whole list, see
+  // app/api/admin/relationships/route.ts's identical comment.
+  const { data: debtEvents } = allCompanyIds.length
+    ? await db.from("debt_events").select("customer_company_id, event_type, occurred_at")
+        .in("customer_company_id", allCompanyIds)
+        .in("event_type", ["collection_paused", "collection_resumed"])
+    : { data: [] }
+  const eventsByCompanyId = new Map<string, { event_type: string; occurred_at: string }[]>()
+  for (const e of debtEvents ?? []) {
+    const arr = eventsByCompanyId.get(e.customer_company_id) ?? []
+    arr.push({ event_type: e.event_type, occurred_at: e.occurred_at })
+    eventsByCompanyId.set(e.customer_company_id, arr)
+  }
+
+  // Debt Single Source of Truth (owner, 2026-07-17, PRIORITY task) — was
+  // storing the raw stale total_outstanding (never recomputed with
+  // interest/penalty — see engines/debt/tracking.ts's getCurrentDebt
+  // comment). Same formula as every other consumer, computed once per row
+  // here (not getCurrentDebt(), which would be N+1 queries for a list).
+  const debtByCompanyId = new Map(
+    (debts ?? [])
+      .filter((d) => d.total_outstanding)
+      .map((d) => {
+        const summary = calcDebtTrackingSummary({
+          principalAmount: Number(d.total_outstanding),
+          feeRate: 0,
+          interestStartAt: d.debt_start_at ?? d.created_at,
+          // Debt Collection Freeze Window (owner, 2026-07-18) — see
+          // app/api/admin/relationships/route.ts's identical comment.
+          freezeFrom: d.freeze_from ?? null,
+          freezeUntil: d.freeze_until ?? null,
+          freezeWindows: deriveFreezeWindows(eventsByCompanyId.get(d.customer_company_id) ?? []),
+        })
+        return [d.customer_company_id, {
+          total_outstanding: summary.totalAmount,
+          collection_state: d.collection_state,
+          days_overdue: summary.daysOverdue,
+        }]
+      })
+  )
 
   // Outbound messages waiting on human approval (Rule 72) — flagged per
   // contact so the row itself shows red before anyone even expands it.

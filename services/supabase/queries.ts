@@ -120,7 +120,7 @@ export async function getAllDebts() {
 export async function getDebtTrackings() {
   const { data, error } = await supabaseAdmin()
     .from("debt_snapshots")
-    .select("id, customer_company_id, total_outstanding, overdue_amount, collection_state, debt_start_at, created_at, companies(id, name, phone, tax_id)")
+    .select("id, customer_company_id, total_outstanding, overdue_amount, collection_state, debt_start_at, created_at, freeze_from, freeze_until, companies(id, name, phone, tax_id)")
     .order("created_at", { ascending: false });
   if (error) throw new Error(error.message);
   return (data ?? []).map((d: any) => ({
@@ -130,6 +130,13 @@ export async function getDebtTrackings() {
     principal_amount: Number(d.total_outstanding ?? 0),
     fee_rate: 0,
     interest_start_at: d.debt_start_at ?? d.created_at,
+    // Debt Collection Freeze Window (owner, 2026-07-18) — was silently
+    // dropped here, so /admin/debt-tracking showed stale un-frozen numbers
+    // (61 days interest / 31 days penalty) while every other consumer
+    // (reminder card, relationships list, credit score) already respected
+    // the freeze. This is the plumbing gap that caused that mismatch.
+    freeze_from: d.freeze_from ?? null,
+    freeze_until: d.freeze_until ?? null,
     created_at: d.created_at,
     deleted_at: null,
     partners: d.companies ? { id: d.companies.id, name: d.companies.name, phone: d.companies.phone ?? "", tax_id: d.companies.tax_id ?? "", contact_name: "" } : null,

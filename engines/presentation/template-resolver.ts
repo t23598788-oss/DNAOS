@@ -10,7 +10,8 @@ export type PresentationTemplateId =
   | "message.timeline-card"
   | "action-result.timeline-card"
   | "business-event.timeline-card"
-  | "document-artifact.timeline-card";
+  | "document-artifact.timeline-card"
+  | "receipt.timeline-card";
 
 export interface PresentationTemplate {
   template_id: PresentationTemplateId;
@@ -18,7 +19,7 @@ export interface PresentationTemplate {
 }
 
 interface TemplateResolutionInput {
-  source_kind: "message" | "action_log" | "business_event" | "document";
+  source_kind: "message" | "action_log" | "business_event" | "document" | "receipt";
   source_id: string;
   business_event_id?: string | null;
 }
@@ -42,6 +43,13 @@ export function resolvePresentationTemplate(input: TemplateResolutionInput): Pre
     return {
       template_id: "document-artifact.timeline-card",
       template_key: `document:${input.source_id}`,
+    };
+  }
+
+  if (input.source_kind === "receipt") {
+    return {
+      template_id: "receipt.timeline-card",
+      template_key: `receipt:${input.source_id}`,
     };
   }
 

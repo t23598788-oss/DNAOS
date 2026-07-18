@@ -18,6 +18,7 @@ export default function AppShell({
   onSelectList,
   listSearchPlaceholder,
   listEmptyMessage,
+  listCollapsible,
   children,
 }: {
   railItems: IconRailItem[];
@@ -28,6 +29,7 @@ export default function AppShell({
   onSelectList: (id: string) => void;
   listSearchPlaceholder?: string;
   listEmptyMessage?: string;
+  listCollapsible?: boolean;
   children: ReactNode;
 }) {
   return (
@@ -39,6 +41,7 @@ export default function AppShell({
         onSelect={onSelectList}
         searchPlaceholder={listSearchPlaceholder}
         emptyMessage={listEmptyMessage}
+        collapsible={listCollapsible}
       />
       <div className="flex-1 min-w-0 h-full">{children}</div>
     </div>

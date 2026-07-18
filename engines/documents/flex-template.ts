@@ -158,12 +158,43 @@ export interface DebtReminderFlexProps {
   totalOutstanding: number;
   daysOverdue: number;
   branding?: CardBranding;
+  // Owner request 2026-07-18: the card only ever showed one lump total —
+  // getCurrentDebt() already computes these separately (engines/debt/
+  // tracking.ts), they just weren't threaded through to the template. No
+  // discount field (deliberate owner decision, same date): a discount
+  // implies someone typed a number: the real business event is "partial
+  // payment received" / "collection paused", which belongs to a future
+  // event-sourced Debt Engine phase, not a free-text field here.
+  principal?: number;
+  interest?: number;
+  penalty?: number;
+  collectionFee?: number;
 }
 
-export function debtReminderFlex({ companyName, totalOutstanding, daysOverdue, branding }: DebtReminderFlexProps): object {
+function debtLineItem(label: string, amount: number | undefined, color: string) {
+  if (amount == null || amount <= 0) return null;
+  return {
+    type: "box",
+    layout: "horizontal",
+    margin: "xs",
+    contents: [
+      { type: "text", text: label, size: "xs", color: "#666666", flex: 3 },
+      { type: "text", text: amount.toLocaleString("th-TH", { minimumFractionDigits: 2 }) + " ฿", size: "xs", color, align: "end", flex: 2 },
+    ],
+  };
+}
+
+export function debtReminderFlex({ companyName, totalOutstanding, daysOverdue, branding, principal, interest, penalty, collectionFee }: DebtReminderFlexProps): object {
   const severe = daysOverdue > 30;
   const color = severe ? "#C62828" : "#EF6C00";
   const footerBox = brandingFooter(branding);
+
+  const itemLines = [
+    debtLineItem("เงินต้น", principal, "#333333"),
+    debtLineItem("ดอกเบี้ย", interest, "#333333"),
+    debtLineItem("ค่าปรับ", penalty, "#333333"),
+    debtLineItem("ค่าธรรมเนียมติดตามหนี้", collectionFee, "#333333"),
+  ].filter((line): line is NonNullable<typeof line> => line !== null);
 
   return {
     type: "bubble",
@@ -184,12 +215,14 @@ export function debtReminderFlex({ companyName, totalOutstanding, daysOverdue, b
       contents: [
         { type: "text", text: companyName, weight: "bold", size: "sm", wrap: true },
         { type: "separator", margin: "sm" },
+        ...itemLines,
+        ...(itemLines.length > 0 ? [{ type: "separator", margin: "sm" }] : []),
         {
           type: "box",
           layout: "horizontal",
           margin: "sm",
           contents: [
-            { type: "text", text: "ยอดค้างชำระ", flex: 3 },
+            { type: "text", text: "ยอดสุทธิ", weight: "bold", flex: 3 },
             { type: "text", text: totalOutstanding.toLocaleString("th-TH", { minimumFractionDigits: 2 }) + " ฿", weight: "bold", color, align: "end", flex: 2 },
           ],
         },

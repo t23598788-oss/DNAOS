@@ -5,11 +5,10 @@
     "observatory/index.html": {
       "owner": "browser",
       "layer": "browser",
-      "purpose": "[Auto-detected] Standalone static Pipeline Debugger page — not part of the Next.js app, served independently; reads observatory/config.json for Supabase URL/anon key at runtime, no hardcoded credentials",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] หน้า Pipeline Debugger แบบ static แยกจาก Next.js app ให้บริการเอง อ่าน observatory/config.json สำหรับ Supabase URL/anon key ตอน runtime ไม่ hardcode credentials",
+      "purpose": "Standalone HTML page (DNA OS Observatory) — a dark-themed pipeline debugger UI, not part of the Next.js app build.",
+      "purpose_th": "หน้า HTML แยกต่างหาก (DNA OS Observatory) — UI สำหรับดีบั๊ก pipeline ธีมมืด ไม่ได้อยู่ใน build ของ Next.js app",
       "exports": [],
-      "entry_point": true,
-      "status": "unregistered"
+      "status": "active"
     },
     "app/api/command/route.ts": {
       "owner": "api",
@@ -1433,12 +1432,18 @@
       "purpose": "คำนวณ tracking สถานะหนี้ — ดอกเบี้ย, งวด, ยอดค้าง",
       "purpose_th": "คำนวณ tracking สถานะหนี้ — ดอกเบี้ย, งวด, ยอดค้าง",
       "exports": [
+        "CurrentDebt",
         "DEBT_TRACKING_GRACE_DAYS",
         "DEBT_TRACKING_INTEREST_RATE",
         "DEBT_TRACKING_PENALTY_PER_DAY",
+        "DEBT_TYPE_DOCUMENT_TYPE",
+        "DebtEventRow",
         "DebtTrackingInput",
         "DebtTrackingSummary",
-        "calcDebtTrackingSummary"
+        "FreezeWindow",
+        "calcDebtTrackingSummary",
+        "deriveFreezeWindows",
+        "getCurrentDebt"
       ],
       "status": "active"
     },
@@ -1752,13 +1757,14 @@
       "exports": [
         "ActionRequest",
         "ActionResponse",
-        "previewPayment",
-        "executePayment",
-        "previewDocumentCreate",
-        "executeDocumentCreate",
-        "previewDebtCreate",
+        "dispatchAction",
         "executeDebtCreate",
-        "dispatchAction"
+        "executeDocumentCreate",
+        "executePayment",
+        "previewDebtCreate",
+        "previewDocumentCreate",
+        "previewPayment",
+        "sendInvoiceToLine"
       ],
       "status": "active"
     },
@@ -1775,6 +1781,7 @@
         "previewDebtCreate",
         "previewDocumentCreate",
         "previewPayment",
+        "sendInvoiceToLine",
         "type ActionRequest",
         "type ActionResponse"
       ],
@@ -2337,14 +2344,14 @@
     "config/system-links.ts": {
       "owner": "config",
       "layer": "config",
-      "purpose": "[Auto-detected] config/system-links.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] config/system-links.ts",
+      "purpose": "Builds deep-link URLs into the Supabase dashboard SQL editor per real table (SUPABASE_TABLES list grepped from .from() calls across the codebase) for quick manual inspection.",
+      "purpose_th": "สร้างลิงก์ตรงเข้า Supabase dashboard SQL editor สำหรับแต่ละตารางจริงที่ระบบใช้ (รายชื่อตารางมาจากการ grep .from() ทั้งโค้ด) เพื่อตรวจสอบข้อมูลเร็ว ๆ",
       "exports": [
         "SYSTEM_LINKS",
         "SystemLinkGroup",
         "SystemLinkItem"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "services/supabase/queries.ts": {
       "owner": "services",
@@ -2389,42 +2396,42 @@
     "supabase/functions/line-webhook-v2/middleware/signature.ts": {
       "owner": "supabase",
       "layer": "supabase",
-      "purpose": "[Auto-detected] supabase/functions/line-webhook-v2/middleware/signature.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] supabase/functions/line-webhook-v2/middleware/signature.ts",
+      "purpose": "Verifies a LINE webhook request's HMAC-SHA256 signature against the channel secret per LINE's official signing spec.",
+      "purpose_th": "ตรวจสอบลายเซ็น HMAC-SHA256 ของ LINE webhook request เทียบกับ channel secret ตามสเปกของ LINE",
       "exports": [
         "verifyLineSignature"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "supabase/functions/line-webhook-v2/handlers/unfollow.ts": {
       "owner": "supabase",
       "layer": "supabase",
-      "purpose": "[Auto-detected] supabase/functions/line-webhook-v2/handlers/unfollow.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] supabase/functions/line-webhook-v2/handlers/unfollow.ts",
+      "purpose": "LINE webhook handler for the 'unfollow' event — saves the event via saveEvent(), no reply sent.",
+      "purpose_th": "handler ของ LINE webhook สำหรับ event 'unfollow' — บันทึก event ผ่าน saveEvent() ไม่มีการตอบกลับ",
       "exports": [
         "handleUnfollow"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "supabase/functions/line-webhook-v2/handlers/text.ts": {
       "owner": "supabase",
       "layer": "supabase",
-      "purpose": "[Auto-detected] supabase/functions/line-webhook-v2/handlers/text.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] supabase/functions/line-webhook-v2/handlers/text.ts",
+      "purpose": "LINE webhook handler for text messages — saves the event, dedupes redelivered webhooks, then routes to tool-router/event-followup/auto-build-event/debt-followup engines to decide the reply.",
+      "purpose_th": "handler ของ LINE webhook สำหรับข้อความ text — บันทึก event, กันการตอบซ้ำเมื่อ LINE ส่ง webhook ซ้ำ แล้วส่งต่อให้ engine ต่าง ๆ (tool-router, event-followup, auto-build-event, debt-followup) ตัดสินใจตอบกลับ",
       "exports": [
         "handleText"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "supabase/functions/line-webhook-v2/handlers/postback.ts": {
       "owner": "supabase",
       "layer": "supabase",
-      "purpose": "[Auto-detected] supabase/functions/line-webhook-v2/handlers/postback.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] supabase/functions/line-webhook-v2/handlers/postback.ts",
+      "purpose": "LINE webhook handler for postback events (quick-reply/button taps) — saves event, dedupes retries, and routes CONFIRM_JOB/CANCEL_JOB actions to change real job state.",
+      "purpose_th": "handler ของ LINE webhook สำหรับ postback event (การกดปุ่ม quick-reply) — บันทึก event, กันการทำซ้ำเมื่อ LINE re-deliver แล้วสั่ง CONFIRM_JOB/CANCEL_JOB ให้เปลี่ยนสถานะงานจริง",
       "exports": [
         "handlePostback"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "supabase/functions/line-webhook-v2/handlers/location.ts": {
       "owner": "supabase",
@@ -2440,48 +2447,48 @@
     "supabase/functions/line-webhook-v2/handlers/image.ts": {
       "owner": "supabase",
       "layer": "supabase",
-      "purpose": "[Auto-detected] supabase/functions/line-webhook-v2/handlers/image.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] supabase/functions/line-webhook-v2/handlers/image.ts",
+      "purpose": "LINE webhook handler for image messages — saves the event with status 'new'; actual OCR/scan processing is queued for an async worker (not implemented here).",
+      "purpose_th": "handler ของ LINE webhook สำหรับข้อความรูปภาพ — บันทึก event สถานะ 'new' ส่วนการประมวลผลจริง (OCR/สแกน) รอ worker แบบ async (ยังไม่ implement ในไฟล์นี้)",
       "exports": [
         "handleImage"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "supabase/functions/line-webhook-v2/handlers/group.ts": {
       "owner": "supabase",
       "layer": "supabase",
-      "purpose": "[Auto-detected] supabase/functions/line-webhook-v2/handlers/group.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] supabase/functions/line-webhook-v2/handlers/group.ts",
+      "purpose": "LINE webhook handler for group chat messages — stores the event only, deliberately no auto-reply to avoid business risk in group contexts.",
+      "purpose_th": "handler ของ LINE webhook สำหรับข้อความในกลุ่ม — บันทึก event เท่านั้น ตั้งใจไม่ตอบกลับอัตโนมัติเพื่อลดความเสี่ยงทางธุรกิจ",
       "exports": [
         "handleGroup"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "supabase/functions/line-webhook-v2/handlers/follow.ts": {
       "owner": "supabase",
       "layer": "supabase",
-      "purpose": "[Auto-detected] supabase/functions/line-webhook-v2/handlers/follow.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] supabase/functions/line-webhook-v2/handlers/follow.ts",
+      "purpose": "LINE webhook handler for the 'follow' event — saves the event and pushes a Thai welcome message explaining how to request materials.",
+      "purpose_th": "handler ของ LINE webhook สำหรับ event 'follow' — บันทึก event และส่งข้อความต้อนรับภาษาไทยอธิบายวิธีสั่งวัสดุ",
       "exports": [
         "handleFollow"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "supabase/functions/line-webhook-v2/handlers/fallback.ts": {
       "owner": "supabase",
       "layer": "supabase",
-      "purpose": "[Auto-detected] supabase/functions/line-webhook-v2/handlers/fallback.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] supabase/functions/line-webhook-v2/handlers/fallback.ts",
+      "purpose": "Catch-all LINE webhook handler for unrecognized event types — stores for audit only, no reply.",
+      "purpose_th": "handler สำรองของ LINE webhook สำหรับ event type ที่ไม่รู้จัก — บันทึกไว้เพื่อตรวจสอบภายหลังเท่านั้น ไม่ตอบกลับ",
       "exports": [
         "handleFallback"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "supabase/functions/line-webhook-v2/events/types.ts": {
       "owner": "supabase",
       "layer": "supabase",
-      "purpose": "[Auto-detected] supabase/functions/line-webhook-v2/events/types.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] supabase/functions/line-webhook-v2/events/types.ts",
+      "purpose": "TypeScript interfaces for every LINE webhook event/message sub-type (text, postback, source, base event) used across all handlers.",
+      "purpose_th": "นิยาม TypeScript interface สำหรับ event/message ทุกชนิดของ LINE webhook (text, postback, source, base event) ใช้ร่วมกันทุก handler",
       "exports": [
         "HandlerContext",
         "LineBaseEvent",
@@ -2497,13 +2504,13 @@
         "LineUnfollowEvent",
         "LineWebhookPayload"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "supabase/functions/line-webhook-v2/events/store.ts": {
       "owner": "supabase",
       "layer": "supabase",
-      "purpose": "[Auto-detected] supabase/functions/line-webhook-v2/events/store.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] supabase/functions/line-webhook-v2/events/store.ts",
+      "purpose": "Single save point for every LINE handler — saveEvent() writes to line_events, dedupes redelivered webhookEventIds, and fetches the LINE profile via engines/profile.ts.",
+      "purpose_th": "จุดบันทึกเดียวที่ทุก handler ของ LINE ต้องเรียก — saveEvent() เขียนลง line_events, กันการบันทึกซ้ำเมื่อ webhookEventId ถูกส่งซ้ำ และดึงโปรไฟล์ LINE ผ่าน engines/profile.ts",
       "exports": [
         "SaveEventInput",
         "SavedEvent",
@@ -2511,88 +2518,88 @@
         "markEventProcessed",
         "saveEvent"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "app/api/admin/pulse/route.ts": {
       "owner": "app",
       "layer": "app",
-      "purpose": "[Auto-detected] app/api/admin/pulse/route.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] app/api/admin/pulse/route.ts",
+      "purpose": "GET /api/admin/pulse — fetches invoices, orders, and standalone documents in one round-trip for the admin dashboard's overall business-status pulse.",
+      "purpose_th": "GET /api/admin/pulse — ดึงข้อมูลใบแจ้งหนี้, ออเดอร์, เอกสารเดี่ยว ในครั้งเดียวสำหรับหน้า dashboard ไม่ต้องยิงหลายรอบ",
       "exports": [
         "GET"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "app/api/admin/backup/route.ts": {
       "owner": "app",
       "layer": "app",
-      "purpose": "[Auto-detected] app/api/admin/backup/route.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] app/api/admin/backup/route.ts",
+      "purpose": "GET /api/admin/backup — super-admin-only route that dumps every row of a fixed list of core business tables (companies, invoices, orders, debts, etc.) as JSON for backup.",
+      "purpose_th": "GET /api/admin/backup — เฉพาะ super admin ดึงข้อมูลทุกแถวของตารางธุรกิจหลัก (companies, invoices, orders, debts ฯลฯ) ออกมาเป็น JSON เพื่อสำรองข้อมูล",
       "exports": [
         "GET",
         "POST"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "supabase/functions/line-webhook-v2/templates/quick-reply/vehicle-select.ts": {
       "owner": "supabase",
       "layer": "supabase",
-      "purpose": "[Auto-detected] supabase/functions/line-webhook-v2/templates/quick-reply/vehicle-select.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] supabase/functions/line-webhook-v2/templates/quick-reply/vehicle-select.ts",
+      "purpose": "Builds the LINE Quick Reply payload letting the customer pick a vehicle type (รถพ่วง/รถสิบล้อ/รถหกล้อ) or send a location pin.",
+      "purpose_th": "สร้าง payload Quick Reply ของ LINE ให้ลูกค้าเลือกประเภทรถ (รถพ่วง/รถสิบล้อ/รถหกล้อ) หรือส่งพิกัด",
       "exports": [
         "vehicleSelectQuickReply"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "supabase/functions/line-webhook-v2/templates/quick-reply/confirm-job.ts": {
       "owner": "supabase",
       "layer": "supabase",
-      "purpose": "[Auto-detected] supabase/functions/line-webhook-v2/templates/quick-reply/confirm-job.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] supabase/functions/line-webhook-v2/templates/quick-reply/confirm-job.ts",
+      "purpose": "Builds the LINE Quick Reply yes/no payload (CONFIRM_JOB/CANCEL_JOB postback) for confirming a job/quote.",
+      "purpose_th": "สร้าง payload Quick Reply ยืนยัน/ยกเลิกงาน (CONFIRM_JOB/CANCEL_JOB) สำหรับยืนยันใบเสนอราคา/งาน",
       "exports": [
         "confirmJobQuickReply"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "supabase/functions/line-webhook-v2/templates/flex/location-received.ts": {
       "owner": "supabase",
       "layer": "supabase",
-      "purpose": "[Auto-detected] supabase/functions/line-webhook-v2/templates/flex/location-received.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] supabase/functions/line-webhook-v2/templates/flex/location-received.ts",
+      "purpose": "Builds a LINE Flex Message bubble confirming a location pin (address/lat/lng) was received.",
+      "purpose_th": "สร้าง LINE Flex Message แจ้งยืนยันว่าได้รับพิกัด (address/lat/lng) แล้ว",
       "exports": [
         "locationReceivedFlex"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "supabase/functions/line-webhook-v2/templates/flex/job-status-card.ts": {
       "owner": "supabase",
       "layer": "supabase",
-      "purpose": "[Auto-detected] supabase/functions/line-webhook-v2/templates/flex/job-status-card.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] supabase/functions/line-webhook-v2/templates/flex/job-status-card.ts",
+      "purpose": "Builds a LINE Flex Message card summarizing job status (ASSIGNED/IN_TRANSIT/DELIVERED/etc.) sent to driver or customer, with per-status color coding.",
+      "purpose_th": "สร้าง LINE Flex Message การ์ดสรุปสถานะงาน (ASSIGNED/IN_TRANSIT/DELIVERED ฯลฯ) ส่งให้คนขับหรือลูกค้า พร้อมสีตามสถานะ",
       "exports": [
         "jobStatusCardFlex"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "supabase/functions/line-webhook-v2/templates/flex/boq-card.ts": {
       "owner": "supabase",
       "layer": "supabase",
-      "purpose": "[Auto-detected] supabase/functions/line-webhook-v2/templates/flex/boq-card.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] supabase/functions/line-webhook-v2/templates/flex/boq-card.ts",
+      "purpose": "Builds a LINE Flex Message card showing a BOQ (Bill of Quantities) draft — material, quantity, unit price, line items, total — for customer confirmation before the job is confirmed.",
+      "purpose_th": "สร้าง LINE Flex Message การ์ดแสดง BOQ (ใบประมาณราคา) ฉบับร่าง — วัสดุ, ปริมาณ, ราคาต่อหน่วย, รายการ, ยอดรวม — ให้ลูกค้ายืนยันก่อนปิดงาน",
       "exports": [
         "boqCardFlex"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "app/api/admin/partners/[id]/credit/route.ts": {
       "owner": "app",
       "layer": "app",
-      "purpose": "[Auto-detected] app/api/admin/partners/[id]/credit/route.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] app/api/admin/partners/[id]/credit/route.ts",
+      "purpose": "GET /api/admin/partners/[id]/credit — aggregates a partner's invoices, debt snapshots, and customer orders (transactions) into a credit/receivables summary.",
+      "purpose_th": "GET /api/admin/partners/[id]/credit — รวมข้อมูลใบแจ้งหนี้, ยอดหนี้คงค้าง, ออเดอร์ของพาร์ทเนอร์รายหนึ่งเป็นสรุปเครดิต/ยอดค้างรับ",
       "exports": [
         "GET"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "registry/index.ts": {
       "owner": "registry",
@@ -2961,76 +2968,76 @@
     "engines/connectors/tester.ts": {
       "owner": "engines",
       "layer": "engines",
-      "purpose": "[Auto-detected] engines/connectors/tester.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] engines/connectors/tester.ts",
+      "purpose": "Connector Tester — fires a real request (no mocks) against an external service based on its auth_type, returning ok/error used to set the connector's status in the DB.",
+      "purpose_th": "Connector Tester — ยิง request จริงไปหาบริการภายนอกตาม auth_type ไม่มี mock ผลลัพธ์ใช้ตัดสิน status ที่บันทึกกลับตาราง connectors",
       "exports": [
         "TestResult",
         "testConnector"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "app/api/admin/connectors/route.ts": {
       "owner": "app",
       "layer": "app",
-      "purpose": "[Auto-detected] app/api/admin/connectors/route.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] app/api/admin/connectors/route.ts",
+      "purpose": "GET/POST /api/admin/connectors — lists all registered Connectors, and registers a new one (auto-runs a connection test on create).",
+      "purpose_th": "GET/POST /api/admin/connectors — แสดงรายการ Connector ทั้งหมด และลงทะเบียน Connector ใหม่ (ทดสอบการเชื่อมต่อทันทีตอนสร้าง)",
       "exports": [
         "GET",
         "POST"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "app/api/connectors/webhook/[slug]/route.ts": {
       "owner": "app",
       "layer": "app",
-      "purpose": "[Auto-detected] app/api/connectors/webhook/[slug]/route.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] app/api/connectors/webhook/[slug]/route.ts",
+      "purpose": "POST /api/connectors/webhook/[slug] — generic inbound webhook endpoint any external service can be pointed at, verified via HMAC signature, without code changes or redeploys.",
+      "purpose_th": "POST /api/connectors/webhook/[slug] — endpoint รับ event ขาเข้าจากบริการภายนอกใด ๆ ตรวจสอบด้วย HMAC signature โดยไม่ต้องแก้โค้ดหรือ deploy ใหม่",
       "exports": [
         "POST"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "app/api/admin/connectors/[id]/route.ts": {
       "owner": "app",
       "layer": "app",
-      "purpose": "[Auto-detected] app/api/admin/connectors/[id]/route.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] app/api/admin/connectors/[id]/route.ts",
+      "purpose": "GET/PATCH/DELETE /api/admin/connectors/[id] — read, update (name/config/secret), or remove one Connector.",
+      "purpose_th": "GET/PATCH/DELETE /api/admin/connectors/[id] — ดู, แก้ไข (ชื่อ/config/secret), หรือลบ Connector หนึ่งตัว",
       "exports": [
         "DELETE",
         "GET",
         "PATCH"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "app/api/connectors/oauth/callback/[slug]/route.ts": {
       "owner": "app",
       "layer": "app",
-      "purpose": "[Auto-detected] app/api/connectors/oauth/callback/[slug]/route.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] app/api/connectors/oauth/callback/[slug]/route.ts",
+      "purpose": "GET /api/connectors/oauth/callback/[slug] — receives the OAuth redirect from an external service, exchanges the code for a real access token at token_url, and saves it to the connector.",
+      "purpose_th": "GET /api/connectors/oauth/callback/[slug] — รับ redirect กลับจาก OAuth ของบริการภายนอก แลก code เป็น access token จริงที่ token_url แล้วบันทึกกลับ connector",
       "exports": [
         "GET"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "app/api/connectors/oauth/authorize/[slug]/route.ts": {
       "owner": "app",
       "layer": "app",
-      "purpose": "[Auto-detected] app/api/connectors/oauth/authorize/[slug]/route.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] app/api/connectors/oauth/authorize/[slug]/route.ts",
+      "purpose": "GET /api/connectors/oauth/authorize/[slug] — the 'Connect' button target for an OAuth Connector; builds the authorize_url from stored config and redirects out to the external service.",
+      "purpose_th": "GET /api/connectors/oauth/authorize/[slug] — ปลายทางของปุ่ม 'Connect' สำหรับ OAuth Connector สร้าง authorize_url จาก config ที่กรอกไว้แล้ว redirect ออกไปหาบริการภายนอก",
       "exports": [
         "GET"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "app/api/admin/connectors/[id]/test/route.ts": {
       "owner": "app",
       "layer": "app",
-      "purpose": "[Auto-detected] app/api/admin/connectors/[id]/test/route.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] app/api/admin/connectors/[id]/test/route.ts",
+      "purpose": "POST /api/admin/connectors/[id]/test — re-runs the real connection test for one Connector on demand.",
+      "purpose_th": "POST /api/admin/connectors/[id]/test — สั่งทดสอบการเชื่อมต่อ Connector ตัวหนึ่งใหม่อีกครั้งตามต้องการ",
       "exports": [
         "POST"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "app/login/page.tsx": {
       "owner": "app",
@@ -3204,34 +3211,34 @@
     "app/api/admin/upload/route.ts": {
       "owner": "app",
       "layer": "app",
-      "purpose": "[Auto-detected] app/api/admin/upload/route.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] app/api/admin/upload/route.ts",
+      "purpose": "GET/POST/DELETE /api/admin/upload — the single authenticated door to the private 'attachments' Supabase Storage bucket (upload, get signed URL, delete); client never talks to Storage directly.",
+      "purpose_th": "GET/POST/DELETE /api/admin/upload — ประตูเดียวที่ยืนยันตัวตนแล้วเข้าถึง Supabase Storage bucket 'attachments' ที่เป็น private (อัปโหลด, ขอ signed URL, ลบ) client ไม่คุยกับ Storage ตรง ๆ",
       "exports": [
         "DELETE",
         "GET",
         "POST"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "app/api/admin/notifications/send/route.ts": {
       "owner": "app",
       "layer": "app",
-      "purpose": "[Auto-detected] app/api/admin/notifications/send/route.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] app/api/admin/notifications/send/route.ts",
+      "purpose": "POST /api/admin/notifications/send — sends a real LINE push message to a LINE userId, reusing the same Messaging API/credential as the LINE webhook edge function; requires explicit human confirmation, not auto-send.",
+      "purpose_th": "POST /api/admin/notifications/send — ส่งข้อความ LINE push จริงถึง userId ใช้ Messaging API/credential เดียวกับ edge function ของ LINE webhook ต้องมีการกดยืนยันจากคน ไม่ส่งอัตโนมัติ",
       "exports": [
         "POST"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "app/api/admin/connectors/[id]/enable/route.ts": {
       "owner": "app",
       "layer": "app",
-      "purpose": "[Auto-detected] app/api/admin/connectors/[id]/enable/route.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] app/api/admin/connectors/[id]/enable/route.ts",
+      "purpose": "POST /api/admin/connectors/[id]/enable — stage 4 of the Connect→Register→Test→Enable connector lifecycle; must always be manually clicked, never auto-enabled even after a passing test.",
+      "purpose_th": "POST /api/admin/connectors/[id]/enable — ขั้นที่ 4 ของ lifecycle Connect→Register→Test→Enable ต้องกดเองเสมอ ไม่ auto-enable แม้ทดสอบผ่านแล้ว",
       "exports": [
         "POST"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "app/admin/invoice/page.tsx": {
       "owner": "app",
@@ -3895,15 +3902,15 @@
     "engines/events/event-builder.ts": {
       "owner": "engines",
       "layer": "engines",
-      "purpose": "[Auto-detected] engines/events/event-builder.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] engines/events/event-builder.ts",
+      "purpose": "Event Builder — bridges message-centric LINE data to event-centric business data by synthesizing a cluster of raw LINE messages into one structured business event via OpenAI, translation only (no DB writes, no decisions).",
+      "purpose_th": "Event Builder — สะพานเชื่อมข้อมูลแบบข้อความ (LINE) ไปสู่ข้อมูลแบบ event ทางธุรกิจ โดยสังเคราะห์กลุ่มข้อความ LINE ดิบเป็น business event เดียวผ่าน OpenAI แปลอย่างเดียว ไม่เขียน DB ไม่ตัดสินใจ",
       "exports": [
         "ExtractedEvent",
         "RawMessage",
         "buildEventFromMessages",
         "generateEventCode"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "supabase/functions/line-webhook-v2/engines/relationship-qa.ts": {
       "owner": "supabase",
@@ -3950,12 +3957,12 @@
     "app/api/admin/event-inbox/route.ts": {
       "owner": "app",
       "layer": "app",
-      "purpose": "[Auto-detected] app/api/admin/event-inbox/route.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] app/api/admin/event-inbox/route.ts",
+      "purpose": "GET /api/admin/event-inbox — flat chronological feed of every business_events row across all contacts, the system's event-centric center per owner's 2026-07-10 direction.",
+      "purpose_th": "GET /api/admin/event-inbox — feed แสดง business_events ทั้งหมดตามเวลาแบบเรียงตรง เป็นศูนย์กลางแบบ event-centric ตามที่เจ้าของระบบสั่งไว้ 2026-07-10",
       "exports": [
         "GET"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "app/api/admin/partners/[id]/line-messages/route.ts": {
       "owner": "app",
@@ -3990,12 +3997,12 @@
     "app/api/admin/line-customers/[lineUserId]/build-event/route.ts": {
       "owner": "app",
       "layer": "app",
-      "purpose": "[Auto-detected] app/api/admin/line-customers/[lineUserId]/build-event/route.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] app/api/admin/line-customers/[lineUserId]/build-event/route.ts",
+      "purpose": "POST route that turns a LINE contact's un-eventized messages into one business_events row via event-builder, then tries to auto-open a real Job, merging into an existing 'awaiting_info' event if one is pending answer.",
+      "purpose_th": "route POST ที่แปลงข้อความ LINE ของ contact ที่ยังไม่ถูกทำเป็น event ให้เป็น business_events แถวเดียวผ่าน event-builder แล้วพยายามเปิดงาน (Job) จริงอัตโนมัติ รวมเข้ากับ event ที่รอคำตอบ (awaiting_info) เดิมถ้ามี",
       "exports": [
         "POST"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "supabase/functions/line-profile-reconcile/index.ts": {
       "owner": "supabase",
@@ -4188,7 +4195,8 @@
       "purpose_th": "คอลัมน์รายการกลางแบบแอป LINE (ค้นหา+รายชื่อ+badge) — layout primitive ของ AppShell",
       "exports": [
         "ListColumn",
-        "ListColumnItem"
+        "ListColumnItem",
+        "ListColumnWidth"
       ],
       "status": "active"
     },
@@ -4426,11 +4434,13 @@
       "exports": [
         "ActionLogEntry",
         "BizEvent",
+        "DOCUMENT_TYPE_LABEL",
         "DocRow",
         "Draft",
         "FeedItem",
         "Message",
         "RUNTIME_OWNERSHIP",
+        "Receipt",
         "Relationship",
         "RelationshipDetail",
         "RuntimeOwnershipMap",
@@ -4569,8 +4579,8 @@
     "gateway/domains.ts": {
       "owner": "gateway",
       "layer": "gateway",
-      "purpose": "[Auto-detected] gateway/domains.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] gateway/domains.ts",
+      "purpose": "Domains Gateway — the one door for irreversible domain actions (register, DNS mutation, nameserver change), mirroring gateway/actions.ts's preview→token→execute Rule-72 pattern; read-only domain ops bypass this gateway entirely.",
+      "purpose_th": "Domains Gateway — ประตูเดียวสำหรับการกระทำที่ย้อนกลับไม่ได้เกี่ยวกับโดเมน (จดทะเบียน, แก้ DNS, เปลี่ยน nameserver) ใช้รูปแบบ preview→token→execute ตาม Rule 72 เหมือน gateway/actions.ts ส่วนงาน read-only ไม่ต้องผ่าน gateway นี้",
       "exports": [
         "DomainAction",
         "DomainActionResponse",
@@ -4591,26 +4601,26 @@
         "previewVercelDomainRemove",
         "previewZoneCreate"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "engines/domains/vercel-binding.ts": {
       "owner": "engines",
       "layer": "engines",
-      "purpose": "[Auto-detected] engines/domains/vercel-binding.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] engines/domains/vercel-binding.ts",
+      "purpose": "Vercel API client for attaching/verifying/removing a custom domain on this project, using the real, already-linked projectId/orgId and VERCEL_TOKEN from env (treated as core infra, not a pluggable Connector).",
+      "purpose_th": "client เรียก Vercel API สำหรับผูก/ยืนยัน/ถอดโดเมนกำหนดเองของโปรเจกต์นี้ ใช้ projectId/orgId จริงที่ผูกไว้แล้วและ VERCEL_TOKEN จาก env (ถือเป็น infra หลัก ไม่ใช่ Connector ปลั๊กอิน)",
       "exports": [
         "VercelDomainBinding",
         "addDomainToProject",
         "removeDomainFromProject",
         "verifyDomain"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "engines/domains/types.ts": {
       "owner": "engines",
       "layer": "engines",
-      "purpose": "[Auto-detected] engines/domains/types.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] engines/domains/types.ts",
+      "purpose": "Shared TypeScript types for the domain infrastructure engines (availability, suggestions, registration request/result) — an owner-authorized exception to Plan Lock (2026-07-13).",
+      "purpose_th": "นิยาม type ที่ engines ด้านโดเมนใช้ร่วมกัน (availability, suggestions, registration request/result) — ข้อยกเว้นที่เจ้าของระบบอนุมัติจาก Plan Lock (2026-07-13)",
       "exports": [
         "ConnectorNotReadyError",
         "DnsRecord",
@@ -4623,13 +4633,13 @@
         "WhoisRecord",
         "connectorNotReady"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "engines/domains/hostinger.ts": {
       "owner": "engines",
       "layer": "engines",
-      "purpose": "[Auto-detected] engines/domains/hostinger.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] engines/domains/hostinger.ts",
+      "purpose": "Hostinger API client for domain search/registration/nameservers/WHOIS — endpoints are explicitly flagged UNVERIFIED (docs site unreachable via automated fetch), so every path is overridable per-connector to avoid a silently wrong hardcoded default.",
+      "purpose_th": "client เรียก Hostinger API สำหรับค้นหา/จดทะเบียน/ตั้งค่า nameserver/WHOIS ของโดเมน — ระบุชัดว่า endpoint ยัง 'ไม่ยืนยัน' (เข้าเว็บเอกสารอัตโนมัติไม่ได้) ทุก path จึงตั้งค่าทับได้ต่อ connector เพื่อไม่ให้ default ที่เดาไว้ผิดเงียบ ๆ",
       "exports": [
         "checkAvailability",
         "getNameservers",
@@ -4638,13 +4648,13 @@
         "setNameservers",
         "suggestDomains"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "engines/domains/cloudflare.ts": {
       "owner": "engines",
       "layer": "engines",
-      "purpose": "[Auto-detected] engines/domains/cloudflare.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] engines/domains/cloudflare.ts",
+      "purpose": "Cloudflare API client for DNS/zone management, verified against live Cloudflare API docs; requires a real, Tested, Enabled 'cloudflare' Connector or returns a connectorNotReady error (no mock fallback).",
+      "purpose_th": "client เรียก Cloudflare API สำหรับจัดการ DNS/zone ตรวจสอบกับเอกสาร Cloudflare จริงแล้ว ต้องมี Connector 'cloudflare' ที่ Test และ Enable แล้วจริง ไม่งั้นคืน error connectorNotReady ไม่มี mock",
       "exports": [
         "CloudflareZone",
         "createDnsRecord",
@@ -4654,68 +4664,68 @@
         "listDnsRecords",
         "updateDnsRecord"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "core/navigation/resolveNavItems.ts": {
       "owner": "core",
       "layer": "core",
-      "purpose": "[Auto-detected] core/navigation/resolveNavItems.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] core/navigation/resolveNavItems.ts",
+      "purpose": "The single place deciding which workspaces a role can switch between via the shared IconRail — an explicit allow-list of real workspaces (Enterprise Workspace Architecture Phase 2/3), excluding developer/architecture pages by construction.",
+      "purpose_th": "จุดเดียวที่ตัดสินว่า role หนึ่งสลับไปยัง workspace ไหนได้บ้างผ่าน IconRail — เป็น allow-list ของ workspace จริง (Enterprise Workspace Architecture Phase 2/3) ไม่รวมหน้า developer/architecture โดยการออกแบบ",
       "exports": [
         "WorkspaceNavItem",
         "resolveNavItems"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "core/auth/resolveDestination.ts": {
       "owner": "core",
       "layer": "core",
-      "purpose": "[Auto-detected] core/auth/resolveDestination.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] core/auth/resolveDestination.ts",
+      "purpose": "The single place deciding where a role lands after login; validates the ?next= redirect param against an open-redirect guard (AUTH-P3 fix 2026-07-14) before trusting it over the role's default landing page.",
+      "purpose_th": "จุดเดียวที่ตัดสินว่า role หนึ่งควรไปหน้าไหนหลัง login ตรวจสอบพารามิเตอร์ ?next= กันโจมตีแบบ open-redirect (แก้ไข AUTH-P3 2026-07-14) ก่อนเชื่อถือมันแทนหน้า default ของ role",
       "exports": [
         "resolveDestination"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "app/api/admin/domains/whois/route.ts": {
       "owner": "app",
       "layer": "app",
-      "purpose": "[Auto-detected] app/api/admin/domains/whois/route.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] app/api/admin/domains/whois/route.ts",
+      "purpose": "GET /api/admin/domains/whois — read-only WHOIS lookup for a domain via engines/domains/hostinger.ts.",
+      "purpose_th": "GET /api/admin/domains/whois — ดูข้อมูล WHOIS ของโดเมนแบบ read-only ผ่าน engines/domains/hostinger.ts",
       "exports": [
         "GET"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "app/api/admin/domains/register/route.ts": {
       "owner": "app",
       "layer": "app",
-      "purpose": "[Auto-detected] app/api/admin/domains/register/route.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] app/api/admin/domains/register/route.ts",
+      "purpose": "POST /api/admin/domains/register — real-money, irreversible domain registration; goes through gateway/domains.ts's preview→execute-with-token flow (Rule 72), never a single-call registration.",
+      "purpose_th": "POST /api/admin/domains/register — จดทะเบียนโดเมนที่เสียเงินจริงและย้อนกลับไม่ได้ ผ่าน gateway/domains.ts แบบ preview→execute ด้วย token (Rule 72) ไม่จดทะเบียนในคำสั่งเดียว",
       "exports": [
         "POST"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "app/api/admin/domains/suggestions/route.ts": {
       "owner": "app",
       "layer": "app",
-      "purpose": "[Auto-detected] app/api/admin/domains/suggestions/route.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] app/api/admin/domains/suggestions/route.ts",
+      "purpose": "GET /api/admin/domains/suggestions — read-only domain name suggestions for a keyword via engines/domains/hostinger.ts.",
+      "purpose_th": "GET /api/admin/domains/suggestions — แนะนำชื่อโดเมนจาก keyword แบบ read-only ผ่าน engines/domains/hostinger.ts",
       "exports": [
         "GET"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "app/api/admin/domains/availability/route.ts": {
       "owner": "app",
       "layer": "app",
-      "purpose": "[Auto-detected] app/api/admin/domains/availability/route.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] app/api/admin/domains/availability/route.ts",
+      "purpose": "GET /api/admin/domains/availability — read-only domain availability check, no Rule-72 gateway needed since it changes nothing.",
+      "purpose_th": "GET /api/admin/domains/availability — ตรวจสอบว่าโดเมนว่างไหมแบบ read-only ไม่ต้องผ่าน gateway Rule-72 เพราะไม่เปลี่ยนแปลงอะไร",
       "exports": [
         "GET"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "core/workspace/workspaceTemplate.ts": {
       "owner": "core",
@@ -5239,54 +5249,54 @@
     "core/workspace/planner/types.ts": {
       "owner": "core",
       "layer": "core",
-      "purpose": "[Auto-detected] core/workspace/planner/types.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] core/workspace/planner/types.ts",
+      "purpose": "Execution Plan Generator (Phase 7.6) pure types — ExecutionPlan describes the order/staging capabilities could run in, purely descriptive data derived from a validated CompositionPlan; never runs anything.",
+      "purpose_th": "type ล้วน ๆ ของ Execution Plan Generator (Phase 7.6) — ExecutionPlan อธิบายลำดับ/สเตจที่ capability จะรันได้ เป็นข้อมูลบรรยายจาก CompositionPlan ที่ validate แล้ว ไม่รันอะไรจริง",
       "exports": [
         "ExecutionPlan",
         "ExecutionValidationIssue",
         "ExecutionValidationIssueType",
         "ExecutionValidationResult"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "core/workspace/planner/index.ts": {
       "owner": "core",
       "layer": "core",
-      "purpose": "[Auto-detected] core/workspace/planner/index.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] core/workspace/planner/index.ts",
+      "purpose": "Barrel export for core/workspace/planner — re-exports executionPlanner, validateExecutionPlan, isPlanFrozen and their types.",
+      "purpose_th": "ไฟล์ barrel export ของ core/workspace/planner — re-export executionPlanner, validateExecutionPlan, isPlanFrozen และ type ที่เกี่ยวข้อง",
       "exports": [
         "executionPlanner",
         "isPlanFrozen",
         "validateExecutionPlan"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "core/workspace/planner/executionPlanner.ts": {
       "owner": "core",
       "layer": "core",
-      "purpose": "[Auto-detected] core/workspace/planner/executionPlanner.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] core/workspace/planner/executionPlanner.ts",
+      "purpose": "Execution Planner (Phase 7.6) — converts a CompositionPlan into an ExecutionPlan by grouping capabilities into dependency-free stages, purely descriptive, guarded against infinite loops on an undetected cycle.",
+      "purpose_th": "Execution Planner (Phase 7.6) — แปลง CompositionPlan เป็น ExecutionPlan โดยจัดกลุ่ม capability เป็นสเตจที่ไม่มี dependency ค้าง เป็นการบรรยายอย่างเดียว มีการ์ดกันลูปไม่รู้จบถ้ามี cycle หลุดมา",
       "exports": [
         "executionPlanner"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "core/workspace/planner/executionPlanValidator.ts": {
       "owner": "core",
       "layer": "core",
-      "purpose": "[Auto-detected] core/workspace/planner/executionPlanValidator.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] core/workspace/planner/executionPlanValidator.ts",
+      "purpose": "Execution Plan Validator (Phase 7.6) — pure checks (duplicate stage, missing capability, unresolved dependency, duplicate execution) over already-computed stage data; frozen-check kept separate to avoid a chicken-and-egg self-reference.",
+      "purpose_th": "Execution Plan Validator (Phase 7.6) — ตรวจสอบข้อมูลสเตจที่คำนวณแล้ว (สเตจซ้ำ, capability หาย, dependency ไม่ครบ, รันซ้ำ) แยกการเช็ค frozen ออกต่างหากกันปัญหา self-reference",
       "exports": [
         "isPlanFrozen",
         "validateExecutionPlan"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "core/workspace/orchestrator/types.ts": {
       "owner": "core",
       "layer": "core",
-      "purpose": "[Auto-detected] core/workspace/orchestrator/types.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] core/workspace/orchestrator/types.ts",
+      "purpose": "Types for the Runtime Orchestrator (ExecutionStatus, ExecutionProgress, ExecutionSession, ExecutionRetryPolicy, etc.) that tracks a running ExecutionPlan through its lifecycle.",
+      "purpose_th": "นิยาม type ของ Runtime Orchestrator (ExecutionStatus, ExecutionProgress, ExecutionSession, ExecutionRetryPolicy ฯลฯ) สำหรับติดตาม ExecutionPlan ที่กำลังรันตลอด lifecycle",
       "exports": [
         "ExecutionLifecycleIssue",
         "ExecutionLifecycleIssueType",
@@ -5301,23 +5311,23 @@
         "RuntimeOrchestrator",
         "ScheduledStage"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "core/workspace/orchestrator/runtimeOrchestrator.ts": {
       "owner": "core",
       "layer": "core",
-      "purpose": "[Auto-detected] core/workspace/orchestrator/runtimeOrchestrator.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] core/workspace/orchestrator/runtimeOrchestrator.ts",
+      "purpose": "Runtime Orchestrator — drives an ExecutionPlan through its session lifecycle (start/complete/fail capabilities), composing the state machine, scheduler, progress tracker, and lifecycle validator; asserts the plan is valid before starting.",
+      "purpose_th": "Runtime Orchestrator — ขับเคลื่อน ExecutionPlan ผ่านวงจรชีวิตของ session (เริ่ม/จบ/fail capability) ประกอบ state machine, scheduler, progress tracker, lifecycle validator เข้าด้วยกัน ตรวจว่า plan valid ก่อนเริ่มเสมอ",
       "exports": [
         "runtimeOrchestrator"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "core/workspace/orchestrator/index.ts": {
       "owner": "core",
       "layer": "core",
-      "purpose": "[Auto-detected] core/workspace/orchestrator/index.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] core/workspace/orchestrator/index.ts",
+      "purpose": "Barrel export for core/workspace/orchestrator — re-exports runtimeOrchestrator, executionStateMachine, executionScheduler, executionProgressTracker, executionLifecycleValidator and their types.",
+      "purpose_th": "ไฟล์ barrel export ของ core/workspace/orchestrator — re-export runtimeOrchestrator, executionStateMachine, executionScheduler, executionProgressTracker, executionLifecycleValidator และ type ที่เกี่ยวข้อง",
       "exports": [
         "executionLifecycleValidator",
         "executionProgressTracker",
@@ -5325,53 +5335,53 @@
         "executionStateMachine",
         "runtimeOrchestrator"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "core/workspace/orchestrator/executionStateMachine.ts": {
       "owner": "core",
       "layer": "core",
-      "purpose": "[Auto-detected] core/workspace/orchestrator/executionStateMachine.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] core/workspace/orchestrator/executionStateMachine.ts",
+      "purpose": "Defines allowed ExecutionStatus transitions (Created→Queued→Preparing→Running→...) and checks whether a given transition is legal; includes a deliberate Running→Running self-transition for multi-stage plans.",
+      "purpose_th": "นิยาม transition ที่อนุญาตของ ExecutionStatus (Created→Queued→Preparing→Running→...) และตรวจว่า transition หนึ่งถูกต้องไหม รวม self-transition Running→Running ที่จำเป็นสำหรับ plan หลายสเตจ",
       "exports": [
         "executionStateMachine"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "core/workspace/orchestrator/executionScheduler.ts": {
       "owner": "core",
       "layer": "core",
-      "purpose": "[Auto-detected] core/workspace/orchestrator/executionScheduler.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] core/workspace/orchestrator/executionScheduler.ts",
+      "purpose": "Turns an ExecutionPlan's stages into an ExecutionSchedule with cloned ScheduledStage objects and a flat list of pending capabilityIds.",
+      "purpose_th": "แปลงสเตจของ ExecutionPlan เป็น ExecutionSchedule พร้อม ScheduledStage ที่ clone แล้ว และรายการ capabilityId ที่รอดำเนินการแบบเรียงตรง",
       "exports": [
         "executionScheduler"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "core/workspace/orchestrator/executionProgressTracker.ts": {
       "owner": "core",
       "layer": "core",
-      "purpose": "[Auto-detected] core/workspace/orchestrator/executionProgressTracker.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] core/workspace/orchestrator/executionProgressTracker.ts",
+      "purpose": "Tracks and computes per-capability and per-stage progress (0-1 clamped) and overall progress for a running ExecutionPlan.",
+      "purpose_th": "ติดตามและคำนวณ progress ต่อ capability และต่อสเตจ (จำกัดค่า 0-1) รวมถึง progress รวมของ ExecutionPlan ที่กำลังรัน",
       "exports": [
         "executionProgressTracker"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "core/workspace/orchestrator/executionLifecycleValidator.ts": {
       "owner": "core",
       "layer": "core",
-      "purpose": "[Auto-detected] core/workspace/orchestrator/executionLifecycleValidator.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] core/workspace/orchestrator/executionLifecycleValidator.ts",
+      "purpose": "Validates ExecutionStatus transitions against executionStateMachine and checks for structural issues (e.g. duplicates) in an ExecutionSession.",
+      "purpose_th": "ตรวจสอบ transition ของ ExecutionStatus ตาม executionStateMachine และตรวจปัญหาโครงสร้าง (เช่นข้อมูลซ้ำ) ใน ExecutionSession",
       "exports": [
         "executionLifecycleValidator"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "core/workspace/composer/types.ts": {
       "owner": "core",
       "layer": "core",
-      "purpose": "[Auto-detected] core/workspace/composer/types.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] core/workspace/composer/types.ts",
+      "purpose": "Capability Composer Foundation (Phase 7.5) pure planning types — zero runtime dependency; deliberately a separate CapabilityId-based system from the existing PresenterId-based ApplicationDefinition.",
+      "purpose_th": "type ล้วน ๆ ของ Capability Composer Foundation (Phase 7.5) — ไม่มี runtime dependency ตั้งใจแยกจากระบบ ApplicationDefinition แบบ PresenterId ที่มีอยู่แล้ว เพราะใช้ CapabilityId คนละแบบ",
       "exports": [
         "CompositionPlan",
         "CompositionRequest",
@@ -5379,282 +5389,282 @@
         "ValidationIssueType",
         "ValidationResult"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "core/workspace/composer/index.ts": {
       "owner": "core",
       "layer": "core",
-      "purpose": "[Auto-detected] core/workspace/composer/index.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] core/workspace/composer/index.ts",
+      "purpose": "Barrel export for core/workspace/composer — re-exports capabilityComposer, composerResolver, validateComposition, capabilityRegistryAccess and their types.",
+      "purpose_th": "ไฟล์ barrel export ของ core/workspace/composer — re-export capabilityComposer, composerResolver, validateComposition, capabilityRegistryAccess และ type ที่เกี่ยวข้อง",
       "exports": [
         "capabilityComposer",
         "capabilityRegistryAccess",
         "composerResolver",
         "validateComposition"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "core/workspace/composer/composerValidator.ts": {
       "owner": "core",
       "layer": "core",
-      "purpose": "[Auto-detected] core/workspace/composer/composerValidator.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] core/workspace/composer/composerValidator.ts",
+      "purpose": "Composer Validator (Phase 7.5) — checks a resolved capability set against registry/capability-registry.json only (missing/duplicate capability, circular/missing dependency); never executes anything.",
+      "purpose_th": "Composer Validator (Phase 7.5) — ตรวจ capability set ที่ resolve แล้วกับ registry/capability-registry.json เท่านั้น (capability หาย/ซ้ำ, dependency วนลูป/หาย) ไม่รันอะไรจริง",
       "exports": [
         "validateComposition"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "core/workspace/composer/composerResolver.ts": {
       "owner": "core",
       "layer": "core",
-      "purpose": "[Auto-detected] core/workspace/composer/composerResolver.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] core/workspace/composer/composerResolver.ts",
+      "purpose": "Composer Resolver (Phase 7.5) — the named entry point converting an ApplicationDefinition into a CompositionPlan, delegating entirely to capabilityComposer; not yet wired to anything real.",
+      "purpose_th": "Composer Resolver (Phase 7.5) — จุดเข้าที่แปลง ApplicationDefinition เป็น CompositionPlan โดยส่งต่อให้ capabilityComposer ทั้งหมด ยังไม่ได้เชื่อมกับของจริง",
       "exports": [
         "ComposerApplicationDefinition",
         "composerResolver"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "core/workspace/composer/capabilityRegistryAccess.ts": {
       "owner": "core",
       "layer": "core",
-      "purpose": "[Auto-detected] core/workspace/composer/capabilityRegistryAccess.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] core/workspace/composer/capabilityRegistryAccess.ts",
+      "purpose": "Read-only accessor over registry/capability-registry.json — the only data source anything under core/workspace/composer/ may touch (no Runtime/Engine/Gateway/Presenter/Supabase import allowed, verified by grep).",
+      "purpose_th": "accessor แบบ read-only เข้าถึง registry/capability-registry.json — เป็นแหล่งข้อมูลเดียวที่ core/workspace/composer/ แตะได้ (ห้าม import Runtime/Engine/Gateway/Presenter/Supabase ตรวจด้วย grep แล้ว)",
       "exports": [
         "CapabilityEntry",
         "capabilityRegistryAccess"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "core/workspace/composer/capabilityComposer.ts": {
       "owner": "core",
       "layer": "core",
-      "purpose": "[Auto-detected] core/workspace/composer/capabilityComposer.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] core/workspace/composer/capabilityComposer.ts",
+      "purpose": "Capability Composer (Phase 7.5) — planning only; resolves requested CapabilityIds against the registry, expands transitive dependencies, topologically orders them, validates, and returns an immutable CompositionPlan.",
+      "purpose_th": "Capability Composer (Phase 7.5) — เฉพาะการวางแผน resolve CapabilityId ที่ขอมากับ registry ขยาย dependency ที่เชื่อมต่อกันเป็นทอด ๆ เรียงลำดับแบบ topological ตรวจสอบแล้วคืน CompositionPlan ที่แก้ไขไม่ได้",
       "exports": [
         "capabilityComposer"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "app/auth/confirm/route.ts": {
       "owner": "app",
       "layer": "app",
-      "purpose": "[Auto-detected] app/auth/confirm/route.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] app/auth/confirm/route.ts",
+      "purpose": "GET /auth/confirm — handles magic-link/OTP sign-in via verifyOtp (backup login path added 2026-07-14), with a per-IP sliding-window rate limiter against token_hash brute-forcing.",
+      "purpose_th": "GET /auth/confirm — จัดการ login แบบ magic-link/OTP ผ่าน verifyOtp (ช่องทาง login สำรอง เพิ่มมา 2026-07-14) มี rate limiter ต่อ IP กัน brute-force ที่ token_hash",
       "exports": [
         "GET"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "app/api/admin/line-customers/route.ts": {
       "owner": "app",
       "layer": "app",
-      "purpose": "[Auto-detected] app/api/admin/line-customers/route.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] app/api/admin/line-customers/route.ts",
+      "purpose": "GET /api/admin/line-customers — read-only cross-reference: every distinct LINE contact plus, where the LINE name matches a real company, that company's debt status; built from line_events + companies + debt_snapshots.",
+      "purpose_th": "GET /api/admin/line-customers — มุมมอง read-only ของ contact LINE ทุกคน และถ้าชื่อ LINE ตรงกับบริษัทจริง จะแสดงสถานะหนี้ด้วย สร้างจาก line_events + companies + debt_snapshots",
       "exports": [
         "GET"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "app/api/admin/line-customers/[lineUserId]/route.ts": {
       "owner": "app",
       "layer": "app",
-      "purpose": "[Auto-detected] app/api/admin/line-customers/[lineUserId]/route.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] app/api/admin/line-customers/[lineUserId]/route.ts",
+      "purpose": "GET /api/admin/line-customers/[lineUserId] — full message timeline for one LINE contact plus their matched company's real documents, read-only.",
+      "purpose_th": "GET /api/admin/line-customers/[lineUserId] — ไทม์ไลน์ข้อความทั้งหมดของ contact LINE คนหนึ่ง พร้อมเอกสารจริงของบริษัทที่จับคู่ได้ แบบ read-only",
       "exports": [
         "GET"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "app/workspace-preview/presentationGatewayDeps.ts": {
       "owner": "app",
       "layer": "app",
-      "purpose": "[Auto-detected] app/workspace-preview/presentationGatewayDeps.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] app/workspace-preview/presentationGatewayDeps.ts",
+      "purpose": "Phase 2.3A: supplies the real service/engine implementations (getOpenDebts, getPartners, getWorkflow, etc.) as injected deps to core/workspace/gateway/presentationGateway.ts, shared by every page under app/workspace-preview.",
+      "purpose_th": "Phase 2.3A: จ่าย implementation จริงของ service/engine (getOpenDebts, getPartners, getWorkflow ฯลฯ) แบบ inject ให้ core/workspace/gateway/presentationGateway.ts ใช้ร่วมกันทุกหน้าใน app/workspace-preview",
       "exports": [
         "presentationGatewayDeps"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "page.tsx": {
-      "owner": "page.tsx",
-      "layer": "page.tsx",
-      "purpose": "[Auto-detected] page.tsx",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] page.tsx",
+      "owner": "components",
+      "layer": "ui",
+      "purpose": "Client component root page rendering registry/module-registry.json's modules as a browsable table with colored status pills (active/stub/deprecated/unknown).",
+      "purpose_th": "หน้า root แบบ client component แสดง module ทั้งหมดจาก registry/module-registry.json เป็นตารางดูได้ พร้อมป้ายสถานะสี (active/stub/deprecated/unknown)",
       "exports": [
         "EngineExplorerPage"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "components/workspace/WorkspaceShell.tsx": {
       "owner": "components",
       "layer": "components",
-      "purpose": "[Auto-detected] components/workspace/WorkspaceShell.tsx",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] components/workspace/WorkspaceShell.tsx",
+      "purpose": "Shared shell (Enterprise Workspace Architecture Phase 2/3) for Admin/Business/Partner/User Workspace, reusing components/ui-kit/IconRail; resolves icon components client-side from string names passed by the server layout.",
+      "purpose_th": "shell ที่ Admin/Business/Partner/User Workspace ใช้ร่วมกัน (Enterprise Workspace Architecture Phase 2/3) ใช้ components/ui-kit/IconRail ซ้ำ resolve icon component ฝั่ง client จากชื่อ string ที่ server layout ส่งมา",
       "exports": [
         "WorkspaceShell"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "app/workspace-preview/page.tsx": {
       "owner": "app",
       "layer": "app",
-      "purpose": "[Auto-detected] app/workspace-preview/page.tsx",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] app/workspace-preview/page.tsx",
+      "purpose": "Entry page for the Visual Workspace Preview Environment (Phase 2), gated to ADMIN_TIER since it exposes internal module metadata; renders WorkspacePreviewClient.",
+      "purpose_th": "หน้าเข้าของ Visual Workspace Preview Environment (Phase 2) จำกัดสิทธิ์เฉพาะ ADMIN_TIER เพราะเปิดเผยข้อมูล module ภายใน แสดง WorkspacePreviewClient",
       "exports": [
         "WorkspacePreviewPage"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "app/workspace/page.tsx": {
       "owner": "app",
       "layer": "app",
-      "purpose": "[Auto-detected] app/workspace/page.tsx",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] app/workspace/page.tsx",
+      "purpose": "Single workspace entry point — thin redirect to the authed user's real workspace via resolveDestination(), or to /login if anonymous.",
+      "purpose_th": "จุดเข้า workspace เดียว — redirect บาง ๆ ไปหน้า workspace จริงของ user ที่ login แล้วผ่าน resolveDestination() หรือไป /login ถ้ายังไม่ login",
       "exports": [
         "WorkspaceEntryPage"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "app/user/layout.tsx": {
       "owner": "app",
       "layer": "app",
-      "purpose": "[Auto-detected] app/user/layout.tsx",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] app/user/layout.tsx",
+      "purpose": "Server layout for /user — enforces auth+role (Enterprise Workspace Architecture Phase 2), resolves nav items, and renders WorkspaceShell around page content.",
+      "purpose_th": "server layout ของ /user — บังคับตรวจสอบสิทธิ์+role (Enterprise Workspace Architecture Phase 2) resolve nav items แล้วห่อ content ด้วย WorkspaceShell",
       "exports": [
         "UserLayout"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "app/partner/layout.tsx": {
       "owner": "app",
       "layer": "app",
-      "purpose": "[Auto-detected] app/partner/layout.tsx",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] app/partner/layout.tsx",
+      "purpose": "Server layout for /partner — same pattern as app/user/layout.tsx: enforces auth+role, resolves nav items, renders WorkspaceShell.",
+      "purpose_th": "server layout ของ /partner — รูปแบบเดียวกับ app/user/layout.tsx: บังคับตรวจสอบสิทธิ์+role, resolve nav items, ห่อด้วย WorkspaceShell",
       "exports": [
         "PartnerLayout"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "app/workspace-preview/workflow/page.tsx": {
       "owner": "app",
       "layer": "app",
-      "purpose": "[Auto-detected] app/workspace-preview/workflow/page.tsx",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] app/workspace-preview/workflow/page.tsx",
+      "purpose": "Server page rendering the workflow widget: presentationGateway.getWorkflowSummary() → workflowPresenter.toRenderModel() → DashboardBoard.",
+      "purpose_th": "หน้า server แสดง widget workflow: presentationGateway.getWorkflowSummary() → workflowPresenter.toRenderModel() → DashboardBoard",
       "exports": [
         "WorkflowWidgetPage"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "app/workspace-preview/transport/page.tsx": {
       "owner": "app",
       "layer": "app",
-      "purpose": "[Auto-detected] app/workspace-preview/transport/page.tsx",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] app/workspace-preview/transport/page.tsx",
+      "purpose": "Server page rendering the transport widget: presentationGateway.getTransportSummary() → transportPresenter.toRenderModel() → DashboardBoard.",
+      "purpose_th": "หน้า server แสดง widget transport: presentationGateway.getTransportSummary() → transportPresenter.toRenderModel() → DashboardBoard",
       "exports": [
         "TransportWidgetPage"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "app/workspace-preview/partner/page.tsx": {
       "owner": "app",
       "layer": "app",
-      "purpose": "[Auto-detected] app/workspace-preview/partner/page.tsx",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] app/workspace-preview/partner/page.tsx",
+      "purpose": "Server page rendering the partner widget: presentationGateway.getPartnerSummary() → partnerPresenter.toRenderModel() → DashboardBoard.",
+      "purpose_th": "หน้า server แสดง widget partner: presentationGateway.getPartnerSummary() → partnerPresenter.toRenderModel() → DashboardBoard",
       "exports": [
         "PartnerWidgetPage"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "app/workspace-preview/order/page.tsx": {
       "owner": "app",
       "layer": "app",
-      "purpose": "[Auto-detected] app/workspace-preview/order/page.tsx",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] app/workspace-preview/order/page.tsx",
+      "purpose": "Server page rendering the order widget: presentationGateway.getOrderSummary() → orderPresenter.toRenderModel() → DashboardBoard.",
+      "purpose_th": "หน้า server แสดง widget order: presentationGateway.getOrderSummary() → orderPresenter.toRenderModel() → DashboardBoard",
       "exports": [
         "OrderWidgetPage"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "app/workspace-preview/material/page.tsx": {
       "owner": "app",
       "layer": "app",
-      "purpose": "[Auto-detected] app/workspace-preview/material/page.tsx",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] app/workspace-preview/material/page.tsx",
+      "purpose": "Server page rendering the material widget: presentationGateway.getMaterialSummary() → materialPresenter.toRenderModel() → DashboardBoard.",
+      "purpose_th": "หน้า server แสดง widget material: presentationGateway.getMaterialSummary() → materialPresenter.toRenderModel() → DashboardBoard",
       "exports": [
         "MaterialWidgetPage"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "app/workspace-preview/invoice/page.tsx": {
       "owner": "app",
       "layer": "app",
-      "purpose": "[Auto-detected] app/workspace-preview/invoice/page.tsx",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] app/workspace-preview/invoice/page.tsx",
+      "purpose": "Server page rendering the invoice widget: presentationGateway.getInvoiceSummary() → invoicePresenter.toRenderModel() → DashboardBoard.",
+      "purpose_th": "หน้า server แสดง widget invoice: presentationGateway.getInvoiceSummary() → invoicePresenter.toRenderModel() → DashboardBoard",
       "exports": [
         "InvoiceWidgetPage"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "app/workspace-preview/debt-widget/page.tsx": {
       "owner": "app",
       "layer": "app",
-      "purpose": "[Auto-detected] app/workspace-preview/debt-widget/page.tsx",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] app/workspace-preview/debt-widget/page.tsx",
+      "purpose": "First real vertical slice of the Visual Workspace (Phase 4B): Business Engine (getOpenDebts) → Presentation Gateway (auth + the only Supabase call) → Debt Presenter → RenderModel → DashboardBoard, entirely server-rendered.",
+      "purpose_th": "vertical slice จริงตัวแรกของ Visual Workspace (Phase 4B): Business Engine (getOpenDebts) → Presentation Gateway (ตรวจสิทธิ์ + เรียก Supabase จุดเดียว) → Debt Presenter → RenderModel → DashboardBoard ทำงานฝั่ง server ทั้งหมด",
       "exports": [
         "DebtWidgetPage"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "app/workspace-preview/document/page.tsx": {
       "owner": "app",
       "layer": "app",
-      "purpose": "[Auto-detected] app/workspace-preview/document/page.tsx",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] app/workspace-preview/document/page.tsx",
+      "purpose": "Server page rendering the document widget (getDocumentSummary → documentPresenter → DashboardBoard) plus mounting DocumentEngineRuntimeRegistration to register the Document Engine at runtime.",
+      "purpose_th": "หน้า server แสดง widget document (getDocumentSummary → documentPresenter → DashboardBoard) พร้อม mount DocumentEngineRuntimeRegistration เพื่อลงทะเบียน Document Engine ตอน runtime",
       "exports": [
         "DocumentWidgetPage"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "app/admin/line-customers/page.tsx": {
       "owner": "app",
       "layer": "app",
-      "purpose": "[Auto-detected] app/admin/line-customers/page.tsx",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] app/admin/line-customers/page.tsx",
+      "purpose": "Client page for the admin LINE-customers view — lists LINE contacts with message count, matched company, debt info, and pending drafts, using the AppShell/ActionBar/MapView UI-kit components.",
+      "purpose_th": "หน้า client ของ admin แสดงรายชื่อ contact LINE พร้อมจำนวนข้อความ, บริษัทที่จับคู่ได้, ข้อมูลหนี้, และร่างที่รอดำเนินการ ใช้ AppShell/ActionBar/MapView จาก ui-kit",
       "exports": [
         "LineCustomersPage"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "app/account/change-password/page.tsx": {
       "owner": "app",
       "layer": "app",
-      "purpose": "[Auto-detected] app/account/change-password/page.tsx",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] app/account/change-password/page.tsx",
+      "purpose": "Server page reached after the backup magic-link login flow (2026-07-14) where the user sets a real password; open to any authenticated user, not just magic-link arrivals.",
+      "purpose_th": "หน้า server ที่ผู้ใช้เข้าถึงหลัง login ด้วย magic link สำรอง (2026-07-14) เพื่อตั้งรหัสผ่านจริง เปิดให้ผู้ใช้ที่ login แล้วทุกคน ไม่จำกัดเฉพาะคนที่มาจาก magic link",
       "exports": [
         "ChangePasswordPage"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "app/account/change-password/ChangePasswordForm.tsx": {
       "owner": "app",
       "layer": "app",
-      "purpose": "[Auto-detected] app/account/change-password/ChangePasswordForm.tsx",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] app/account/change-password/ChangePasswordForm.tsx",
+      "purpose": "Client form component that validates and submits a new password via createBrowserSupabase, then redirects to the role's real destination via resolveDestination().",
+      "purpose_th": "component form ฝั่ง client ตรวจสอบและส่งรหัสผ่านใหม่ผ่าน createBrowserSupabase แล้ว redirect ไปหน้าจริงตาม role ผ่าน resolveDestination()",
       "exports": [
         "ChangePasswordForm"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "app/workspace-preview/apps/[appId]/page.tsx": {
       "owner": "app",
       "layer": "app",
-      "purpose": "[Auto-detected] app/workspace-preview/apps/[appId]/page.tsx",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] app/workspace-preview/apps/[appId]/page.tsx",
+      "purpose": "Application Composition demonstration (Phase 5) — Application Registry → permission-checked Application Router → existing Presentation Gateway/Presenter pipeline → DashboardBoard; composes only already-existing pieces.",
+      "purpose_th": "สาธิต Application Composition (Phase 5) — Application Registry → Application Router ที่เช็คสิทธิ์แล้ว → Presentation Gateway/Presenter pipeline เดิม → DashboardBoard ประกอบจากของที่มีอยู่แล้วเท่านั้น",
       "exports": [
         "ApplicationPage"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "engines/documents/selfDescription.ts": {
       "owner": "engines",
@@ -5675,22 +5685,22 @@
     "app/workspace-preview/document/DocumentEngineRuntimeRegistration.tsx": {
       "owner": "app",
       "layer": "app",
-      "purpose": "[Auto-detected] app/workspace-preview/document/DocumentEngineRuntimeRegistration.tsx",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] app/workspace-preview/document/DocumentEngineRuntimeRegistration.tsx",
+      "purpose": "SDRN-P3 client component — the first real call anywhere in the app to core/workspace/runtimeRegistry.ts's register(), proving the previously-unused registry actually works on a genuinely live route.",
+      "purpose_th": "component ฝั่ง client (SDRN-P3) — จุดแรกในแอปที่เรียก register() ของ core/workspace/runtimeRegistry.ts จริง พิสูจน์ว่า registry ที่ไม่เคยถูกใช้มาก่อนทำงานได้จริงบน route ที่ใช้งานอยู่จริง",
       "exports": [
         "DocumentEngineRuntimeRegistration"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "app/api/admin/runtime/document-engine/route.ts": {
       "owner": "app",
       "layer": "app",
-      "purpose": "[Auto-detected] app/api/admin/runtime/document-engine/route.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] app/api/admin/runtime/document-engine/route.ts",
+      "purpose": "GET /api/admin/runtime/document-engine — serves engines/documents/selfDescription.ts's computed Self Description over HTTP (bridging its Node-fs-only code to the browser), plus exposes individual Runtime Interface methods via ?method=.",
+      "purpose_th": "GET /api/admin/runtime/document-engine — เป็นสะพานให้ Self Description ของ engines/documents/selfDescription.ts (ที่อ่านไฟล์ผ่าน Node fs อย่างเดียว) เข้าถึงได้ผ่าน HTTP รวมถึงเรียกเมธอดของ Runtime Interface แต่ละตัวผ่าน ?method=",
       "exports": [
         "GET"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "scripts/record-validation.ts": {
       "owner": "scripts",
@@ -5747,18 +5757,18 @@
     "gateway/auth.ts": {
       "owner": "gateway",
       "layer": "gateway",
-      "purpose": "[Auto-detected] gateway/auth.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] gateway/auth.ts",
+      "purpose": "Thin Gateway wrapper (TASK-033) around createServerSupabase so core/auth/session.ts can resolve the live Supabase Auth session without core importing services/ directly, which the dependency graph disallows; read-only, no writes.",
+      "purpose_th": "wrapper บาง ๆ ของ Gateway (TASK-033) ครอบ createServerSupabase ให้ core/auth/session.ts เรียก session จริงของ Supabase Auth ได้โดยไม่ต้อง import services/ ตรง ๆ ซึ่ง dependency graph ไม่อนุญาต เป็น read-only ไม่มีการเขียนข้อมูล",
       "exports": [
         "getServerSupabaseClient"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "plugins/drivers/chrome.selfDescription.ts": {
       "owner": "plugins",
       "layer": "plugins",
-      "purpose": "[Auto-detected] plugins/drivers/chrome.selfDescription.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] plugins/drivers/chrome.selfDescription.ts",
+      "purpose": "Runtime Self-Describing Contract for the Chrome Driver (plugins/drivers/chrome.ts), SDRN-P11 — every field computed from real files at call time, no hardcoded values that could go stale.",
+      "purpose_th": "Runtime Self-Describing Contract ของ Chrome Driver (plugins/drivers/chrome.ts) ตาม SDRN-P11 — ทุกฟิลด์คำนวณจากไฟล์จริงตอนเรียกใช้ ไม่มีค่า hardcode ที่จะล้าสมัย",
       "exports": [
         "getChromeDriverContextBudget",
         "getChromeDriverDeltaContext",
@@ -5766,13 +5776,13 @@
         "getChromeDriverRuntimeContract",
         "getChromeDriverWorkOrder"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "plugins/drivers/vscode.selfDescription.ts": {
       "owner": "plugins",
       "layer": "plugins",
-      "purpose": "[Auto-detected] plugins/drivers/vscode.selfDescription.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] plugins/drivers/vscode.selfDescription.ts",
+      "purpose": "Self-description descriptor for the VS Code driver — declares its real search/click/type/read responsibilities (Quick Open, integrated terminal toggle, keystrokes, window title) and builds its RuntimeContract via selfDescriptionFactory.",
+      "purpose_th": "descriptor อธิบายตัวเองของ VS Code driver — ระบุพฤติกรรมจริงของ search/click/type/read (Quick Open, สลับ terminal, ส่งคีย์, อ่านชื่อหน้าต่าง) และสร้าง RuntimeContract ผ่าน selfDescriptionFactory",
       "exports": [
         "getVscodeDriverContextBudget",
         "getVscodeDriverDeltaContext",
@@ -5780,13 +5790,13 @@
         "getVscodeDriverRuntimeContract",
         "getVscodeDriverWorkOrder"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "plugins/drivers/terminal.selfDescription.ts": {
       "owner": "plugins",
       "layer": "plugins",
-      "purpose": "[Auto-detected] plugins/drivers/terminal.selfDescription.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] plugins/drivers/terminal.selfDescription.ts",
+      "purpose": "Self-description descriptor for the Terminal driver — declares real search (find shell command), click, type (runs shell command), read (last 500 chars of tab) responsibilities via selfDescriptionFactory.",
+      "purpose_th": "descriptor อธิบายตัวเองของ Terminal driver — ระบุพฤติกรรมจริงของ search (คำสั่ง find), click, type (รันคำสั่ง shell), read (500 ตัวอักษรล่าสุดของแท็บ) ผ่าน selfDescriptionFactory",
       "exports": [
         "getTerminalDriverContextBudget",
         "getTerminalDriverDeltaContext",
@@ -5794,13 +5804,13 @@
         "getTerminalDriverRuntimeContract",
         "getTerminalDriverWorkOrder"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "plugins/drivers/selfDescriptionFactory.ts": {
       "owner": "plugins",
       "layer": "plugins",
-      "purpose": "[Auto-detected] plugins/drivers/selfDescriptionFactory.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] plugins/drivers/selfDescriptionFactory.ts",
+      "purpose": "Shared RuntimeContract factory (TASK-037, SDRN-P12) computing the common self-description logic once for all 11 drivers, replacing duplicated ~140-line copies; each driver supplies only its own real descriptor.",
+      "purpose_th": "factory สร้าง RuntimeContract ที่ใช้ร่วมกัน (TASK-037, SDRN-P12) คำนวณ logic ที่เหมือนกันของ driver ทั้ง 11 ตัวครั้งเดียว แทนการก็อปโค้ด ~140 บรรทัดซ้ำ ๆ แต่ละ driver ส่งแค่ descriptor จริงของตัวเอง",
       "exports": [
         "DriverDescriptor",
         "createDriverContextBudget",
@@ -5809,13 +5819,13 @@
         "createDriverRuntimeContract",
         "createDriverWorkOrder"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "plugins/drivers/pdf.selfDescription.ts": {
       "owner": "plugins",
       "layer": "plugins",
-      "purpose": "[Auto-detected] plugins/drivers/pdf.selfDescription.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] plugins/drivers/pdf.selfDescription.ts",
+      "purpose": "Self-description descriptor for the PDF Viewer (Preview.app) driver — declares real search/print/export/keystroke/read-title responsibilities via selfDescriptionFactory.",
+      "purpose_th": "descriptor อธิบายตัวเองของ PDF Viewer driver (Preview.app) — ระบุพฤติกรรมจริง search/print/export/ส่งคีย์/อ่านชื่อหน้าต่าง ผ่าน selfDescriptionFactory",
       "exports": [
         "getPdfDriverContextBudget",
         "getPdfDriverDeltaContext",
@@ -5823,13 +5833,13 @@
         "getPdfDriverRuntimeContract",
         "getPdfDriverWorkOrder"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "plugins/drivers/maps.selfDescription.ts": {
       "owner": "plugins",
       "layer": "plugins",
-      "purpose": "[Auto-detected] plugins/drivers/maps.selfDescription.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] plugins/drivers/maps.selfDescription.ts",
+      "purpose": "Self-description descriptor for the Google Maps driver — declares it runs inside Chrome, real search-URL open, click(url:), keystroke, and read (active Chrome tab URL) responsibilities via selfDescriptionFactory.",
+      "purpose_th": "descriptor อธิบายตัวเองของ Google Maps driver — ระบุว่าทำงานอยู่ใน Chrome, เปิด URL ค้นหาจริง, click(url:), ส่งคีย์, อ่าน URL แท็บ Chrome ที่ใช้งานอยู่ ผ่าน selfDescriptionFactory",
       "exports": [
         "getMapsDriverContextBudget",
         "getMapsDriverDeltaContext",
@@ -5837,13 +5847,13 @@
         "getMapsDriverRuntimeContract",
         "getMapsDriverWorkOrder"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "plugins/drivers/mail.selfDescription.ts": {
       "owner": "plugins",
       "layer": "plugins",
-      "purpose": "[Auto-detected] plugins/drivers/mail.selfDescription.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] plugins/drivers/mail.selfDescription.ts",
+      "purpose": "Self-description descriptor for the Mail driver — declares real search shortcut, compose/subject/body click targets, keystrokes, and real inbox count read via AppleScript, via selfDescriptionFactory.",
+      "purpose_th": "descriptor อธิบายตัวเองของ Mail driver — ระบุ shortcut ค้นหาจริง, click สำหรับ compose/subject/body, ส่งคีย์, อ่านจำนวนอีเมลในกล่องขาเข้าจริงผ่าน AppleScript ผ่าน selfDescriptionFactory",
       "exports": [
         "getMailDriverContextBudget",
         "getMailDriverDeltaContext",
@@ -5851,13 +5861,13 @@
         "getMailDriverRuntimeContract",
         "getMailDriverWorkOrder"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "plugins/drivers/github.selfDescription.ts": {
       "owner": "plugins",
       "layer": "plugins",
-      "purpose": "[Auto-detected] plugins/drivers/github.selfDescription.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] plugins/drivers/github.selfDescription.ts",
+      "purpose": "Self-description descriptor for the GitHub Desktop driver — declares real search, commit/push/pull click targets, keystrokes, and window-title read via selfDescriptionFactory.",
+      "purpose_th": "descriptor อธิบายตัวเองของ GitHub Desktop driver — ระบุ search จริง, click สำหรับ commit/push/pull, ส่งคีย์, อ่านชื่อหน้าต่าง ผ่าน selfDescriptionFactory",
       "exports": [
         "getGithubDriverContextBudget",
         "getGithubDriverDeltaContext",
@@ -5865,13 +5875,13 @@
         "getGithubDriverRuntimeContract",
         "getGithubDriverWorkOrder"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "plugins/drivers/finder.selfDescription.ts": {
       "owner": "plugins",
       "layer": "plugins",
-      "purpose": "[Auto-detected] plugins/drivers/finder.selfDescription.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] plugins/drivers/finder.selfDescription.ts",
+      "purpose": "Self-description descriptor for the Finder driver — declares real POSIX-path search/open, new-folder click, keystrokes, selected-file read, and a REAL OVERRIDE close() (unlike other drivers which inherit BaseDriver's default).",
+      "purpose_th": "descriptor อธิบายตัวเองของ Finder driver — ระบุ search/เปิด path จริง, click สร้างโฟลเดอร์ใหม่, ส่งคีย์, อ่านไฟล์ที่เลือก และ close() ที่ override จริง (ต่างจาก driver อื่นที่ใช้ default ของ BaseDriver)",
       "exports": [
         "getFinderDriverContextBudget",
         "getFinderDriverDeltaContext",
@@ -5879,13 +5889,13 @@
         "getFinderDriverRuntimeContract",
         "getFinderDriverWorkOrder"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "plugins/drivers/earth.selfDescription.ts": {
       "owner": "plugins",
       "layer": "plugins",
-      "purpose": "[Auto-detected] plugins/drivers/earth.selfDescription.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] plugins/drivers/earth.selfDescription.ts",
+      "purpose": "Self-description descriptor for the Google Earth driver — declares real native AppleScript SearchLocation for search, but click() is a confirmed real no-op stub (verified by reading the file directly).",
+      "purpose_th": "descriptor อธิบายตัวเองของ Google Earth driver — ระบุ search จริงผ่าน AppleScript SearchLocation แต่ click() เป็น no-op จริง ๆ (ตรวจสอบจากการอ่านไฟล์โดยตรงแล้ว)",
       "exports": [
         "getEarthDriverContextBudget",
         "getEarthDriverDeltaContext",
@@ -5893,13 +5903,13 @@
         "getEarthDriverRuntimeContract",
         "getEarthDriverWorkOrder"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "plugins/drivers/calendar.selfDescription.ts": {
       "owner": "plugins",
       "layer": "plugins",
-      "purpose": "[Auto-detected] plugins/drivers/calendar.selfDescription.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] plugins/drivers/calendar.selfDescription.ts",
+      "purpose": "Self-description descriptor for the Calendar driver — declares real search (Cmd+F), new-event/submit click targets, keystrokes, and window-title read via selfDescriptionFactory.",
+      "purpose_th": "descriptor อธิบายตัวเองของ Calendar driver — ระบุ search จริง (Cmd+F), click สำหรับสร้าง event ใหม่/submit, ส่งคีย์, อ่านชื่อหน้าต่าง ผ่าน selfDescriptionFactory",
       "exports": [
         "getCalendarDriverContextBudget",
         "getCalendarDriverDeltaContext",
@@ -5907,7 +5917,186 @@
         "getCalendarDriverRuntimeContract",
         "getCalendarDriverWorkOrder"
       ],
-      "status": "unregistered"
+      "status": "active"
+    },
+    "components/nav/AppHeader.tsx": {
+      "owner": "components",
+      "layer": "components",
+      "purpose": "Shared page-header primitive (Navigation redesign, 2026-07-16/17): owns Back/Home buttons and the standard order (Back | Home | title | actions); every admin page supplies only its own title string and actions slot, so Navigation and module content stay separated by construction.",
+      "purpose_th": "Component กลางของ header หน้าเว็บ (Navigation redesign, 2026-07-16/17): เป็นเจ้าของปุ่ม Back/Home และลำดับมาตรฐาน (Back | Home | ชื่อหน้า | ปุ่มเฉพาะโมดูล) — แต่ละหน้าแอดมินส่งแค่ชื่อหน้ากับปุ่มของตัวเองเข้ามา แยกความรับผิดชอบ Navigation ออกจากเนื้อหาของโมดูลโดยโครงสร้าง",
+      "exports": [
+        "AppHeader",
+        "AppHeaderProps"
+      ],
+      "status": "active"
+    },
+    "supabase/functions/line-webhook-v2/engines/media.ts": {
+      "owner": "supabase",
+      "layer": "supabase",
+      "purpose": "Human Reality Timeline (2026-07-16/17): fetches the real original binary content of a LINE message (images first) via LINE's Content API and stores it in the private 'attachments' Storage bucket under line-media/, returning a storage path (not a URL, since the bucket is private and URLs must be signed fresh per read).",
+      "purpose_th": "Human Reality Timeline (16-17 ก.ค. 2026): ดึงเนื้อหาต้นฉบับจริง (เริ่มจากรูปภาพ) ของข้อความ LINE ผ่าน LINE Content API แล้วเก็บลง Storage bucket ส่วนตัว 'attachments' ใต้ path line-media/ คืนค่าเป็น storage path (ไม่ใช่ URL เพราะ bucket เป็น private ต้อง sign URL ใหม่ทุกครั้งที่อ่าน)",
+      "exports": [
+        "fetchAndStoreLineMedia"
+      ],
+      "status": "active"
+    },
+    "supabase/functions/line-webhook-v2/handlers/file.ts": {
+      "owner": "supabase",
+      "layer": "supabase",
+      "purpose": "TASK-001 Restore Original Human Data (2026-07-17): handles LINE 'file' messages (PDFs/documents) — saves the event then fetches and stores the real original file via fetchAndStoreLineMedia, so it can be opened as-is later, not just logged as a filename.",
+      "purpose_th": "TASK-001 Restore Original Human Data (17 ก.ค. 2026): จัดการข้อความประเภท 'file' ของ LINE (PDF/เอกสาร) — บันทึก event แล้วดึง+เก็บไฟล์ต้นฉบับจริงผ่าน fetchAndStoreLineMedia เพื่อให้เปิดดูของจริงได้ภายหลัง ไม่ใช่แค่บันทึกชื่อไฟล์",
+      "exports": [
+        "handleFile"
+      ],
+      "status": "active"
+    },
+    "supabase/functions/line-webhook-v2/handlers/audio.ts": {
+      "owner": "supabase",
+      "layer": "supabase",
+      "purpose": "TASK-001 Restore Original Human Data (2026-07-17): handles LINE 'audio' (voice) messages — saves the event then fetches and stores the real original audio file so it can be played back as-is later.",
+      "purpose_th": "TASK-001 Restore Original Human Data (17 ก.ค. 2026): จัดการข้อความเสียง (voice) ของ LINE — บันทึก event แล้วดึง+เก็บไฟล์เสียงต้นฉบับจริงเพื่อให้เล่นย้อนหลังได้",
+      "exports": [
+        "handleAudio"
+      ],
+      "status": "active"
+    },
+    "supabase/functions/line-webhook-v2/engines/ocr-classify.ts": {
+      "owner": "supabase",
+      "layer": "supabase",
+      "purpose": "Auto document classification (2026-07-17): sends a stored receipt/bill image URL to OpenAI gpt-4o-mini vision, classifies it into one of 7 real document types (receipt/tax_invoice/invoice/fuel_bill/transfer_slip/weight_slip/other) and extracts vendor/amount/date/OCR text as JSON, using the same text-in-JSON-out pattern auto-build-event.ts already uses.",
+      "purpose_th": "จำแนกเอกสารอัตโนมัติ (17 ก.ค. 2026): ส่ง URL รูปเอกสาร/บิลที่เก็บไว้ไปให้ OpenAI gpt-4o-mini แบบ vision จำแนกเป็น 1 ใน 7 ประเภทจริง (receipt/tax_invoice/invoice/fuel_bill/transfer_slip/weight_slip/other) และดึงชื่อร้าน/ยอดเงิน/วันที่/ข้อความ OCR ออกมาเป็น JSON ใช้รูปแบบเดียวกับ auto-build-event.ts",
+      "exports": [
+        "ClassifiedReceipt",
+        "DOCUMENT_TYPE_PROFILE",
+        "DocumentProfile",
+        "classifyReceiptImage"
+      ],
+      "status": "active"
+    },
+    "app/api/admin/invoices/[invoiceId]/send/route.ts": {
+      "owner": "api",
+      "layer": "app",
+      "purpose": "Retry Send for an already-confirmed invoice — calls sendInvoiceToLine(invoiceId) directly without recreating the invoice. Safe to call repeatedly (sendInvoiceToLine itself refuses to re-push an invoice already at status SENT).",
+      "purpose_th": "จุด Retry ส่ง Invoice ที่ยืนยันแล้วไปหา LINE — เรียก sendInvoiceToLine(invoiceId) ตรง ๆ ไม่สร้าง invoice ใหม่ ปลอดภัยต่อการเรียกซ้ำ",
+      "exports": [
+        "POST"
+      ],
+      "status": "active"
+    },
+    "services/knowledge/client.ts": {
+      "owner": "services",
+      "layer": "services",
+      "purpose": "First real consumer of the Knowledge Model Runtime Mapping — best-effort, never-throwing writes to the `knowledge` Postgres schema (entries/links). Every write is a safe no-op today since that schema has not been applied to production yet (supabase/migrations/20260717000004_knowledge_schema.sql).",
+      "purpose_th": "Client ตัวแรกที่ใช้งาน Knowledge Model Runtime Mapping จริง — เขียนข้อมูลแบบ best-effort ไม่มี throw ไปยัง schema knowledge (entries/links) ปัจจุบันยังเป็น no-op ปลอดภัยเพราะ schema ยังไม่ถูก apply ขึ้น production",
+      "exports": [
+        "KnowledgeConfidence",
+        "KnowledgeDomain",
+        "KnowledgeEntryType",
+        "KnowledgeSource",
+        "RecordKnowledgeEntryInput",
+        "RecordKnowledgeEntryResult",
+        "recordKnowledgeEntry",
+        "recordKnowledgeLink"
+      ],
+      "status": "active"
+    },
+    "registry/contact-settings-categories.ts": {
+      "owner": "registry",
+      "layer": "registry",
+      "purpose": "Declarative, plugin-style category tree for the Contact Settings popup — modules register a category entry here (with parent/target/fields) instead of the modal hardcoding each category's UI.",
+      "purpose_th": "ทะเบียนหมวดหมู่แบบต้นไม้สำหรับ Contact Settings popup — โมดูลใหม่ลงทะเบียนหมวดที่นี่แทนการแก้ไข modal โดยตรง",
+      "exports": [
+        "CONTACT_SETTINGS_CATEGORIES",
+        "childrenOf",
+        "findCategory",
+        "FieldDef",
+        "FieldType",
+        "CategoryNode"
+      ],
+      "status": "active"
+    },
+    "components/line/ContactSettingsModal.tsx": {
+      "owner": "components",
+      "layer": "presentation",
+      "purpose": "Generic tree-renderer for the Contact Settings floating modal — reads registry/contact-settings-categories.ts and renders whatever category tree is declared there (list -> subcategory list -> field form -> back), never hardcodes a category.",
+      "purpose_th": "Modal ลอยแบบ generic tree-renderer สำหรับ Contact Settings — อ่านจาก registry/contact-settings-categories.ts แล้วเรนเดอร์ตามที่ประกาศไว้ ไม่ hardcode หมวดใด ๆ",
+      "exports": [
+        "ContactSettingsModal"
+      ],
+      "status": "active"
+    },
+    "app/admin/line-profiles/page.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Admin page listing every distinct LINE contact with their role/trust-level/company match — bulk view/edit, separate from the per-contact Contact Settings popup opened from the chat header.",
+      "purpose_th": "หน้า admin แสดงรายชื่อผู้ติดต่อ LINE ทั้งหมดพร้อมบทบาท/ความน่าเชื่อถือ/บริษัทที่จับคู่ — มุมมองแบบรายการ แยกจาก Contact Settings popup ที่เปิดจากหน้าแชต",
+      "exports": [
+        "LineProfilesPage"
+      ],
+      "status": "active"
+    },
+    "supabase/functions/line-webhook-v2/engines/payment-claim.ts": {
+      "owner": "supabase-functions",
+      "layer": "plugins",
+      "purpose": "Detects a text-only payment claim ('โอนแล้วครับ', no slip) and creates a receipt_documents row with status=waiting_bank_confirmation (Payment Verification Priority Level 1) — previously such messages produced no record at all.",
+      "purpose_th": "ตรวจจับข้อความแจ้งโอนเงินแบบไม่มีสลิป แล้วสร้างแถว receipt_documents สถานะ waiting_bank_confirmation (Level 1 ของ Payment Verification Priority)",
+      "exports": [
+        "isPaymentClaim",
+        "tryRecordPaymentClaim"
+      ],
+      "status": "active"
+    },
+    "app/api/admin/line-profiles/route.ts": {
+      "owner": "api",
+      "layer": "app",
+      "purpose": "Lists every distinct LINE contact cross-referenced with their line_profiles role/trust/company match, for the /admin/line-profiles bulk list page.",
+      "purpose_th": "API รายการผู้ติดต่อ LINE ทั้งหมด พร้อมข้อมูล line_profiles (บทบาท/ความน่าเชื่อถือ/บริษัท) สำหรับหน้า /admin/line-profiles",
+      "exports": [
+        "GET"
+      ],
+      "status": "active"
+    },
+    "app/api/admin/line-profiles/[lineUserId]/route.ts": {
+      "owner": "api",
+      "layer": "app",
+      "purpose": "Single-contact fetch (GET, with sensible defaults for a contact with no line_profiles row yet) and merge-patch (PATCH, only overwrites keys actually sent) — feeds both the Contact Settings popup and the bulk list page's inline edits.",
+      "purpose_th": "API อ่าน/แก้ไข line_profiles รายผู้ติดต่อ — GET คืนค่า default ที่สมเหตุสมผลถ้ายังไม่มีแถว, PATCH merge เฉพาะ key ที่ส่งมาจริง",
+      "exports": [
+        "GET",
+        "PATCH"
+      ],
+      "status": "active"
+    },
+    "app/api/admin/receipt-documents/[id]/reject/route.ts": {
+      "owner": "api",
+      "layer": "app",
+      "purpose": "Rejected/Mismatch path for a receipt_documents row (slip or waiting_bank_confirmation claim) — marks it rejected, keeps the row for audit (never deletes, per Rule 104).",
+      "purpose_th": "จุดปฏิเสธ (Mismatch) สำหรับแถว receipt_documents — เปลี่ยนสถานะเป็น rejected แต่เก็บแถวไว้เป็นหลักฐาน ไม่ลบ (ตาม Rule 104)",
+      "exports": [
+        "POST"
+      ],
+      "status": "active"
+    },
+    "app/api/admin/receipt-documents/[id]/confirm/route.ts": {
+      "owner": "api",
+      "layer": "app",
+      "purpose": "The only place a Pending Review receipt_documents row (a LINE slip classification) becomes a real receipt_received debt event — a human confirming here deducts the amount from debt_snapshots.total_outstanding immediately (Rule 72 gate).",
+      "purpose_th": "จุดเดียวที่เปลี่ยนสลิปสถานะ Pending Review ให้กลายเป็น receipt_received debt event จริง — มนุษย์กดยืนยันที่นี่แล้วหักยอดหนี้ทันที (ผ่าน Rule 72)",
+      "exports": [
+        "POST"
+      ],
+      "status": "active"
+    },
+    "supabase/functions/line-webhook-v2/engines/payment-instructions.ts": {
+      "owner": "supabase-functions",
+      "layer": "plugins",
+      "purpose": "Detects a customer request for our bank account details and auto-replies with real payment instructions (bank/account/name from company-settings, reference/amount from the latest active invoice or debt_snapshots fallback) — the fourth of four separate card types (Invoice/Debt Reminder/Payment Instructions/Payment Verification). Must run before debt-followup.ts's tryFollowUpDebtAck, which previously misfiled such requests as a payment-date confirmation.",
+      "purpose_th": "ตรวจจับข้อความขอเลขบัญชี แล้วตอบข้อมูลการชำระเงินจริง (ธนาคาร/เลขบัญชี/ชื่อบัญชีจาก company-settings, อ้างอิง/ยอดจาก invoice ล่าสุดหรือ debt_snapshots) ต้องรันก่อน debt-followup.ts เพื่อไม่ให้ถูกเข้าใจผิดเป็นการยืนยันวันชำระ",
+      "exports": [
+        "isPaymentInfoRequest",
+        "tryBuildPaymentInstructionsReply"
+      ],
+      "status": "active"
     }
   },
   "excluded": [

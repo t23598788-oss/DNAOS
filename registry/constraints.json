@@ -1,0 +1,33 @@
+{
+  "_purpose": "Central Registry entity: real, evidence-backed execution constraints DNA OS has actually hit. Platform is an ATTRIBUTE on each entry, not an organizing folder (corrected 2026-07-16 — an earlier registry/platforms/{vercel,supabase}/ directory structure was built and immediately reverted for organizing by platform, which the owner explicitly ruled out: 'Never organize knowledge by platform'). DNA OS is the system; GitHub/Vercel/Supabase/LINE are only execution environments it runs on, none of them owns the architecture.",
+  "_population_rule": "Every entry must cite a real evidence_source (a CHANGELOG.json change_id or a specific file/doc in this repo). No entry may be added speculatively from general platform documentation. If no real incident exists yet for something, it does not get an entry here — that is the honest 'Not Registered' state, not a gap to fill with a guess.",
+  "constraints": [
+    {
+      "id": "CONSTRAINT-001",
+      "platform": "vercel",
+      "constraint": "deployment_protection_blocks_public_traffic",
+      "description": "Vercel's Deployment Protection ('Vercel Authentication') project setting was found returning 302 to vercel.com/sso-api for EVERY route, including fully public pages like / and /login — unrelated to middleware.ts (which only ever gates /admin/*). No real visitor (customer, partner) can reach the site without a Vercel team account. Fix location: Vercel Dashboard -> dna-os-deadboard project -> Settings -> Deployment Protection -> turn off 'Vercel Authentication' for Production. Not fixable from the repo itself.",
+      "evidence_source": "registry/CHANGELOG.json#DNA-000018; registry/TASK_QUEUE.json#TASK-019 (status: blocked, blocked_on: system owner)",
+      "date_discovered": "2026-07-08",
+      "resolution": null
+    },
+    {
+      "id": "CONSTRAINT-002",
+      "platform": "supabase",
+      "constraint": "edge_function_defaults_to_verify_jwt_true",
+      "description": "Supabase Edge Functions default to platform-level verify_jwt=true unless explicitly declared otherwise in supabase/config.toml. A function that authenticates callers itself with a non-Supabase-JWT mechanism (e.g. LINE's x-line-signature header) gets rejected at the platform gate with 401 UNAUTHORIZED_NO_AUTH_HEADER before its own code ever runs, if this isn't set.",
+      "evidence_source": "registry/CHANGELOG.json#DNA-000018; supabase/config.toml:407-413 ([functions.line-webhook-v2], verify_jwt = false, with inline comment explaining the outage this fixed)",
+      "date_discovered": "2026-07-08",
+      "resolution": "Add an explicit [functions.<name>] block with verify_jwt = false in supabase/config.toml for any Edge Function that authenticates callers itself, then redeploy via `supabase functions deploy <name>`."
+    },
+    {
+      "id": "CONSTRAINT-003",
+      "platform": "supabase",
+      "constraint": "migration_tracking_can_desync_from_live_schema",
+      "description": "`supabase migration list --linked` showed every local migration from 20260620000000 onward with an empty Remote column, meaning Supabase's own migration-tracking table did not record them as applied — even though the live tables demonstrably exist and work when queried directly. Risk: a future `supabase db push` could conflict with schema that is already live but untracked.",
+      "evidence_source": "DEPLOYMENT_READINESS.md (section on migration tracking, cited directly during the LINE→Gateway→Engine→Database deploy-readiness audit this session)",
+      "date_discovered": "2026-07-15",
+      "resolution": null
+    }
+  ]
+}
