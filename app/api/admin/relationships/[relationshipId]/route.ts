@@ -30,7 +30,52 @@ export async function GET(_req: Request, { params }: Params) {
     .maybeSingle()
 
   if (companyError) return NextResponse.json({ error: companyError.message }, { status: 500 })
-  if (!company) return NextResponse.json({ error: "ไม่พบความสัมพันธ์นี้ในระบบ" }, { status: 404 })
+
+  // "New customers never disappear" (owner, 2026-07-18) — relationship_id
+  // for an unmatched contact is the raw line_user_id, not a companies.id (see
+  // the list route's unmatchedContacts). Minimal workspace: real messages,
+  // no documents/debt/events (none can exist without a company yet), plus a
+  // status flag the UI uses to show "ยังไม่จับคู่บริษัท" and the match action.
+  if (!company) {
+    const { data: rawMessages, error: msgErr } = await db
+      .from("line_events")
+      .select("id, line_user_id, raw_type, raw_text, line_name, direction, extracted, media_path, created_at")
+      .eq("line_user_id", relationshipId)
+      .order("created_at", { ascending: true })
+    if (msgErr) return NextResponse.json({ error: msgErr.message }, { status: 500 })
+    if (!rawMessages || rawMessages.length === 0) {
+      return NextResponse.json({ error: "ไม่พบความสัมพันธ์นี้ในระบบ" }, { status: 404 })
+    }
+
+    const messages = await Promise.all(rawMessages.map(async (m) => {
+      let mediaUrl: string | null = null
+      if (m.media_path) {
+        const { data: signed } = await db.storage.from("attachments").createSignedUrl(m.media_path, 60 * 5)
+        mediaUrl = signed?.signedUrl ?? null
+      }
+      return {
+        ...m,
+        raw_text: m.raw_text || (m.raw_type === "sticker" ? "(ส่งสติกเกอร์)" : m.raw_type === "image" ? "(ส่งรูปภาพ)" : m.raw_type === "follow" ? "(กดเพิ่มเพื่อน)" : m.raw_text),
+        media_url: mediaUrl,
+      }
+    }))
+
+    return NextResponse.json({
+      relationshipId,
+      company: null,
+      unmatched: true,
+      lineUserIds: [relationshipId],
+      primaryLineUserId: relationshipId,
+      lineName: messages.find((m) => m.line_name)?.line_name ?? null,
+      messages,
+      documents: [],
+      debt: null,
+      events: [],
+      receipts: [],
+      unlinkedCount: messages.length,
+      drafts: [],
+    })
+  }
 
   // A relationship may have zero LINE threads (a company that has never
   // messaged us) — every real company still gets a workspace, per the
@@ -180,6 +225,7 @@ export async function GET(_req: Request, { params }: Params) {
   return NextResponse.json({
     relationshipId,
     company,
+    unmatched: false,
     lineUserIds,
     primaryLineUserId,
     lineName: messages.find((m) => m.line_name)?.line_name ?? null,

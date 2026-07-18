@@ -38,13 +38,10 @@ if [ ! -f "$GRAPH_FILE" ]; then
 fi
 
 # ---------------------------------------------------------------------------
-# Check for jq (required for JSON parsing)
+# Node-based JSON queries (owner, 2026-07-18) — jq is not installed in
+# Vercel's build environment; Node always is. See scripts/lib/registry-query.cjs.
 # ---------------------------------------------------------------------------
-if ! command -v jq &>/dev/null; then
-  echo -e "${RED}ERROR: jq is required but not installed.${NC}"
-  echo "  Install: brew install jq"
-  exit 1
-fi
+rq() { node "$SCRIPT_DIR/lib/registry-query.cjs" "$@"; }
 
 # ---------------------------------------------------------------------------
 # Build the allowed-edges lookup table
@@ -53,8 +50,7 @@ fi
 ALLOWED_EDGES_FILE="$(mktemp)"
 trap 'rm -f "$ALLOWED_EDGES_FILE"' EXIT
 
-jq -r '.allowed_imports | to_entries[] | .key as $src | .value[] | "\($src):\(.)"' \
-  "$GRAPH_FILE" > "$ALLOWED_EDGES_FILE"
+rq allowed-edges "$GRAPH_FILE" > "$ALLOWED_EDGES_FILE"
 
 # ---------------------------------------------------------------------------
 # Determine which files to scan
@@ -196,7 +192,7 @@ while IFS=$'\t' read -r deprecated_path keep_path reason; do
       echo -e "  Registry เดิมมีอยู่แล้ว: ${keep_path} — ${reason}"
     fi
   done <<< "$FILES"
-done < <(jq -r '.known_mistakes.confirmed_duplicate_pairs.pairs[] | [.deprecated, .keep, .reason] | @tsv' "$PROJECT_DIR/registry/existence.json" 2>/dev/null)
+done < <(rq dup-pairs-tsv "$PROJECT_DIR/registry/existence.json" 2>/dev/null)
 
 if [ "$KM_VIOLATIONS" -gt 0 ]; then
   echo ""

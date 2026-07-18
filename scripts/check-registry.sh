@@ -23,6 +23,7 @@ cd "$ROOT_DIR"
 MODULE_REGISTRY="registry/module-registry.json"
 COMMAND_REGISTRY="registry/command-registry.json"
 WORKFLOW_REGISTRY="07-workflow-registry.json"
+rq() { node "$ROOT_DIR/scripts/lib/registry-query.cjs" "$@"; }
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -39,10 +40,9 @@ log_warn() { echo -e "${YELLOW}  ⚠ WARN:${RESET} $1"; WARNINGS=$((WARNINGS + 1
 log_head() { echo -e "\n${CYAN}── $1 ──${RESET}"; }
 
 # ── Prerequisites ──
-if ! command -v jq &>/dev/null; then
-  echo "ERROR: jq is required — brew install jq"
-  exit 1
-fi
+# Node-based JSON queries (owner, 2026-07-18) — jq is not installed in
+# Vercel's build environment, which made every deploy fail at this exact
+# check since at least 2026-07-15 (DNA-000078). Node is always present.
 for f in "$MODULE_REGISTRY" "$COMMAND_REGISTRY"; do
   if [ ! -f "$f" ]; then
     echo "ERROR: Registry file not found: $f"
@@ -60,7 +60,7 @@ echo "╚═══════════════════════�
 # ══════════════════════════════════════════════════════════
 log_head "Level 1: Source files → Module Registry"
 
-REGISTERED=$(jq -r '.modules | keys[]' "$MODULE_REGISTRY")
+REGISTERED=$(rq keys "$MODULE_REGISTRY" modules)
 
 SOURCE_FILES=$(find app components core engines gateway cognitive presenter services plugins -type f \( -name "*.ts" -o -name "*.tsx" \) \
   ! -path "registry/*" \
@@ -97,10 +97,10 @@ while IFS= read -r reg_path; do
     log_err "Registry entry has no file on disk: $reg_path"
     L2_MISSING=$((L2_MISSING + 1))
   fi
-done < <(jq -r '.modules | keys[]' "$MODULE_REGISTRY")
+done < <(rq keys "$MODULE_REGISTRY" modules)
 
 if [ "$L2_MISSING" -eq 0 ]; then
-  TOTAL_REG=$(jq -r '.modules | keys[]' "$MODULE_REGISTRY" | grep -vc '^_' || true)
+  TOTAL_REG=$(rq keys "$MODULE_REGISTRY" modules | grep -vc '^_' || true)
   log_ok "All $TOTAL_REG registry entries point to real files"
 fi
 
@@ -111,11 +111,11 @@ log_head "Level 3: Command owners → Module Registry"
 
 L3_MISSING=0
 while IFS= read -r cmd_owner; do
-  if ! jq -r '.modules | keys[]' "$MODULE_REGISTRY" | grep -q "$cmd_owner" 2>/dev/null; then
+  if ! rq keys "$MODULE_REGISTRY" modules | grep -q "$cmd_owner" 2>/dev/null; then
     log_warn "Command owner not traceable to any module: $cmd_owner"
     L3_MISSING=$((L3_MISSING + 1))
   fi
-done < <(jq -r '.commands | to_entries[] | select(.key | startswith("_") | not) | .value.owner' "$COMMAND_REGISTRY" | sort -u)
+done < <(rq command-owners "$COMMAND_REGISTRY")
 
 if [ "$L3_MISSING" -eq 0 ]; then
   log_ok "All command owners are traceable to registered modules"
@@ -129,7 +129,7 @@ log_head "Level 4: Workflow commands → Command Registry"
 if [ ! -f "$WORKFLOW_REGISTRY" ]; then
   log_warn "Workflow registry not found: $WORKFLOW_REGISTRY (skipping)"
 else
-  COMMAND_NAMES=$(jq -r '.commands | keys[]' "$COMMAND_REGISTRY")
+  COMMAND_NAMES=$(rq keys "$COMMAND_REGISTRY" commands)
   L4_MISSING=0
 
   while IFS= read -r ref_cmd; do
@@ -138,12 +138,7 @@ else
       log_warn "Workflow references unknown command: $ref_cmd"
       L4_MISSING=$((L4_MISSING + 1))
     fi
-  done < <(jq -r '
-    .workflows // {} |
-    to_entries[] |
-    .value.steps_commands? // [] |
-    .[]
-  ' "$WORKFLOW_REGISTRY" 2>/dev/null || true)
+  done < <(rq workflow-steps "$WORKFLOW_REGISTRY" 2>/dev/null || true)
 
   if [ "$L4_MISSING" -eq 0 ]; then
     log_ok "All workflow command references resolve"
@@ -155,7 +150,7 @@ fi
 # ══════════════════════════════════════════════════════════
 log_head "Level 5: Command Registry → No duplicates"
 
-DUPES=$(jq -r '.commands | keys[]' "$COMMAND_REGISTRY" | tr '[:upper:]' '[:lower:]' | sort | uniq -d)
+DUPES=$(rq keys "$COMMAND_REGISTRY" commands | tr '[:upper:]' '[:lower:]' | sort | uniq -d)
 if [ -n "$DUPES" ]; then
   while IFS= read -r d; do
     log_err "Duplicate command name: $d"

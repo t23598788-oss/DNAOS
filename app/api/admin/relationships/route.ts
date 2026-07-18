@@ -133,6 +133,33 @@ export async function GET() {
     : { data: [] }
   const pendingLineUserIds = new Set((pendingDrafts ?? []).map((d) => d.line_user_id))
 
+  // "New customers never disappear" (owner, 2026-07-18): a LINE contact who
+  // has messaged but has no company match yet must still show up here
+  // immediately, not only after an admin manually creates the match. Root
+  // cause of the original complaint — this list was filtered to
+  // company_line_links-matched contacts only, so a brand-new lead with real
+  // messages in line_events was invisible on this page even though nothing
+  // was actually lost (still fully captured in line_events). No company or
+  // company_line_links row is created automatically here — only the
+  // read/display side changes; matching remains a deliberate human action
+  // (see POST .../match).
+  const unmatchedContacts = Array.from(activityByLineUserId.values())
+    .filter((a) => !companyIdByLineUserId.has(a.line_user_id))
+    .map((a) => ({
+      relationship_id: a.line_user_id,
+      name: a.line_name ?? `LINE ${a.line_user_id.slice(0, 10)}…`,
+      tax_id: null,
+      phone: null,
+      line_user_ids: [a.line_user_id],
+      line_picture: a.line_picture,
+      message_count: a.message_count,
+      last_message_at: a.last_message_at,
+      last_message: a.last_message,
+      debt: null,
+      has_pending_draft: pendingLineUserIds.has(a.line_user_id),
+      unmatched: true,
+    }))
+
   const relationships = companies.map((c) => {
     const lineUserIds = lineUserIdsByCompany.get(c.id) ?? []
     const activities = lineUserIds.map((id) => activityByLineUserId.get(id)).filter((a): a is LineActivity => !!a)
@@ -152,8 +179,9 @@ export async function GET() {
       last_message: mostRecent?.last_message ?? null,
       debt,
       has_pending_draft: lineUserIds.some((id) => pendingLineUserIds.has(id)),
+      unmatched: false,
     }
-  })
+  }).concat(unmatchedContacts)
 
   relationships.sort((a, b) => {
     if (a.has_pending_draft !== b.has_pending_draft) return a.has_pending_draft ? -1 : 1

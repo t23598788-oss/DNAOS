@@ -166,11 +166,42 @@ function RelationshipWorkspace({ initialRelationshipId }: { initialRelationshipI
     return () => { cancelled = true; clearInterval(id) }
   }, [])
 
+  // "New customers never disappear" (owner, 2026-07-18) — Relationship =
+  // LINE Contact, not Company. This is a purely OPTIONAL, later enrichment
+  // step (attaching a company to an already-usable contact), never a
+  // precondition for the contact to exist or be usable — chat/reply already
+  // works via lineUserId regardless of match status (see sendReply above).
+  const matchUnmatchedContact = useCallback(async (lineUserId: string, contactName: string) => {
+    const existingName = prompt("ค้นหาบริษัทที่มีอยู่แล้ว (พิมพ์ชื่อบริษัทให้ตรงเป๊ะ) หรือเว้นว่างเพื่อสร้างบริษัทใหม่:")
+    if (existingName === null) return
+    let body: Record<string, unknown>
+    if (existingName.trim()) {
+      const res = await fetch(`/api/admin/partners?search=${encodeURIComponent(existingName.trim())}`).catch(() => null)
+      const data = res && res.ok ? await res.json().catch(() => null) : null
+      const match = data?.partners?.find((p: { name: string }) => p.name === existingName.trim())
+      if (!match) { alert("ไม่พบบริษัทชื่อนี้ในระบบ — ลองพิมพ์ให้ตรงเป๊ะ หรือเว้นว่างเพื่อสร้างใหม่"); return }
+      body = { companyId: match.id }
+    } else {
+      const newName = prompt("ชื่อบริษัทใหม่:", contactName)
+      if (!newName?.trim()) return
+      body = { newCompany: { name: newName.trim() } }
+    }
+    const res = await fetch(`/api/admin/relationships/${lineUserId}/match`, {
+      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
+    })
+    const result = await res.json()
+    if (!res.ok) { alert(result.error ?? "จับคู่ไม่สำเร็จ"); return }
+    const listRes = await fetch("/api/admin/relationships")
+    const listData = await listRes.json()
+    setRelationships(listData.relationships ?? [])
+    setActiveId(result.companyId)
+  }, [])
+
   const loadDetail = useCallback(async (relationshipId: string) => {
     const res = await fetch(`/api/admin/relationships/${relationshipId}`)
     const d = await res.json()
     setDetail({
-      relationshipId: d.relationshipId, company: d.company,
+      relationshipId: d.relationshipId, company: d.company, unmatched: d.unmatched ?? false,
       lineUserIds: d.lineUserIds ?? [], primaryLineUserId: d.primaryLineUserId ?? null,
       messages: d.messages ?? [], documents: d.documents ?? [], events: d.events ?? [],
       receipts: d.receipts ?? [],
@@ -1052,9 +1083,18 @@ function RelationshipWorkspace({ initialRelationshipId }: { initialRelationshipI
                   </button>
                   <div className="min-w-0 flex-1 text-left">
                     <p className="text-sm font-semibold text-stone-800 truncate">{activeRelationship.name}</p>
-                    <Link href={`/admin/partners/${activeRelationship.relationship_id}`} className="text-[11px] text-emerald-600 hover:underline">
-                      ดูรายละเอียดเพิ่มเติม →
-                    </Link>
+                    {activeRelationship.unmatched ? (
+                      <button
+                        onClick={() => matchUnmatchedContact(activeRelationship.relationship_id, activeRelationship.name)}
+                        className="text-[11px] font-semibold text-amber-700 hover:underline"
+                      >
+                        ⚠ ยังไม่จับคู่บริษัท — กดเพื่อจับคู่/สร้างใหม่
+                      </button>
+                    ) : (
+                      <Link href={`/admin/partners/${activeRelationship.relationship_id}`} className="text-[11px] text-emerald-600 hover:underline">
+                        ดูรายละเอียดเพิ่มเติม →
+                      </Link>
+                    )}
                   </div>
                   {/* Automation Engine status — owner request 2026-07-11: always
                       visible without opening the Settings drawer */}

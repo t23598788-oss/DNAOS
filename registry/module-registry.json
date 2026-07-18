@@ -8,7 +8,8 @@
       "purpose": "Standalone HTML page (DNA OS Observatory) — a dark-themed pipeline debugger UI, not part of the Next.js app build.",
       "purpose_th": "หน้า HTML แยกต่างหาก (DNA OS Observatory) — UI สำหรับดีบั๊ก pipeline ธีมมืด ไม่ได้อยู่ใน build ของ Next.js app",
       "exports": [],
-      "status": "active"
+      "status": "active",
+      "entry_point": true
     },
     "app/api/command/route.ts": {
       "owner": "api",
@@ -2549,7 +2550,9 @@
       "exports": [
         "vehicleSelectQuickReply"
       ],
-      "status": "active"
+      "status": "active",
+      "archival_status": "ARCHIVED",
+      "archived_knowledge_ref": "registry/existence.json#archived_knowledge [AK-012]"
     },
     "supabase/functions/line-webhook-v2/templates/quick-reply/confirm-job.ts": {
       "owner": "supabase",
@@ -2559,7 +2562,9 @@
       "exports": [
         "confirmJobQuickReply"
       ],
-      "status": "active"
+      "status": "active",
+      "archival_status": "ARCHIVED",
+      "archived_knowledge_ref": "registry/existence.json#archived_knowledge [AK-013]"
     },
     "supabase/functions/line-webhook-v2/templates/flex/location-received.ts": {
       "owner": "supabase",
@@ -2579,7 +2584,9 @@
       "exports": [
         "jobStatusCardFlex"
       ],
-      "status": "active"
+      "status": "active",
+      "archival_status": "ARCHIVED",
+      "archived_knowledge_ref": "registry/existence.json#archived_knowledge [AK-014]"
     },
     "supabase/functions/line-webhook-v2/templates/flex/boq-card.ts": {
       "owner": "supabase",
@@ -2589,7 +2596,9 @@
       "exports": [
         "boqCardFlex"
       ],
-      "status": "active"
+      "status": "active",
+      "archival_status": "ARCHIVED",
+      "archived_knowledge_ref": "registry/existence.json#archived_knowledge [AK-015]"
     },
     "app/api/admin/partners/[id]/credit/route.ts": {
       "owner": "app",
@@ -5335,7 +5344,9 @@
         "executionStateMachine",
         "runtimeOrchestrator"
       ],
-      "status": "active"
+      "status": "active",
+      "archival_status": "ARCHIVED",
+      "archived_knowledge_ref": "registry/existence.json#archived_knowledge [AK-016]"
     },
     "core/workspace/orchestrator/executionStateMachine.ts": {
       "owner": "core",
@@ -5402,7 +5413,9 @@
         "composerResolver",
         "validateComposition"
       ],
-      "status": "active"
+      "status": "active",
+      "archival_status": "ARCHIVED",
+      "archived_knowledge_ref": "registry/existence.json#archived_knowledge [AK-017]"
     },
     "core/workspace/composer/composerValidator.ts": {
       "owner": "core",
@@ -5483,16 +5496,6 @@
       "purpose_th": "Phase 2.3A: จ่าย implementation จริงของ service/engine (getOpenDebts, getPartners, getWorkflow ฯลฯ) แบบ inject ให้ core/workspace/gateway/presentationGateway.ts ใช้ร่วมกันทุกหน้าใน app/workspace-preview",
       "exports": [
         "presentationGatewayDeps"
-      ],
-      "status": "active"
-    },
-    "page.tsx": {
-      "owner": "components",
-      "layer": "ui",
-      "purpose": "Client component root page rendering registry/module-registry.json's modules as a browsable table with colored status pills (active/stub/deprecated/unknown).",
-      "purpose_th": "หน้า root แบบ client component แสดง module ทั้งหมดจาก registry/module-registry.json เป็นตารางดูได้ พร้อมป้ายสถานะสี (active/stub/deprecated/unknown)",
-      "exports": [
-        "EngineExplorerPage"
       ],
       "status": "active"
     },
@@ -6095,6 +6098,26 @@
       "exports": [
         "isPaymentInfoRequest",
         "tryBuildPaymentInstructionsReply"
+      ],
+      "status": "active"
+    },
+    "app/admin/engine-explorer/page.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Engine Explorer — browses module-registry.json filtered to the 'engines' layer, with search across path/owner/purpose/exports. Was misplaced at the repo root (Next.js App Router only recognizes page.tsx under app/, so it was never actually reachable) — moved here 2026-07-18, no logic changed.",
+      "purpose_th": "หน้าสำรวจโมดูล layer 'engines' จาก module-registry.json พร้อมค้นหา — เดิมอยู่ผิดที่ (root ของ repo ทำให้ Next.js มองไม่เห็นเลย) ย้ายมาที่นี่ 2026-07-18 ไม่แก้ logic",
+      "exports": [
+        "EngineExplorerPage"
+      ],
+      "status": "active"
+    },
+    "app/api/admin/relationships/[relationshipId]/match/route.ts": {
+      "owner": "api",
+      "layer": "app",
+      "purpose": "Promotes an unmatched LINE contact into a real relationship — the only intentional write path for company_line_links (link to an existing company or create a new one first). Always admin-triggered (Rule 72), never automatic.",
+      "purpose_th": "จุดเดียวที่จับคู่ LINE contact ที่ยังไม่มีบริษัทเข้ากับบริษัทจริง (หรือสร้างบริษัทใหม่) — เป็น action ที่แอดมินกดเองเท่านั้น ไม่มีระบบสร้างอัตโนมัติ",
+      "exports": [
+        "POST"
       ],
       "status": "active"
     }

@@ -45,6 +45,7 @@ export interface Relationship {
   last_message: string | null
   debt: { total_outstanding: number; collection_state: string; days_overdue: number } | null
   has_pending_draft: boolean
+  unmatched: boolean
 }
 
 export interface Message {
@@ -123,7 +124,8 @@ export interface Draft {
 
 export interface RelationshipDetail {
   relationshipId: string
-  company: { id: string; name: string; tax_id: string | null; phone: string | null }
+  company: { id: string; name: string; tax_id: string | null; phone: string | null } | null
+  unmatched: boolean
   lineUserIds: string[]
   primaryLineUserId: string | null
   messages: Message[]
