@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from "next/server"
 import { requireAuth } from "@/core/auth/requireAuth"
 import { ADMIN_TIER } from "@/core/auth/session"
 import { getDebtTrackingById, updateDebtTracking, deleteDebtTracking, getFirstInvoiceForPartner } from "@/services/supabase/queries"
-import { calcDebtTrackingSummary } from "@/engines/debt/tracking"
+import { calcDebtTrackingSummary, deriveCollectionStatus, sumManualAdjustments, sumManualInterestAdjustments } from "@/engines/debt/tracking"
+import { supabaseAdmin } from "@/services/supabase/queries"
 
 type Params = { params: Promise<{ id: string }> }
 
@@ -14,12 +15,17 @@ export async function GET(_req: NextRequest, { params }: Params) {
   try {
     const tracking = await getDebtTrackingById(id)
     const firstInvoice = await getFirstInvoiceForPartner(tracking.partner_id, tracking.customer_name)
+    const { data: events } = await supabaseAdmin().from("debt_events")
+      .select("event_type, occurred_at, amount")
+      .eq("customer_company_id", tracking.partner_id)
     const summary = calcDebtTrackingSummary({
       principalAmount: Number(tracking.principal_amount ?? 0),
       feeRate: Number(tracking.fee_rate ?? 0),
       interestStartAt: tracking.interest_start_at,
+      manualAdjustmentAmount: sumManualAdjustments(events ?? []),
+      manualInterestAdjustmentAmount: sumManualInterestAdjustments(events ?? []),
     })
-    return NextResponse.json({ debtTracking: { ...tracking, summary, firstInvoice } })
+    return NextResponse.json({ debtTracking: { ...tracking, collectionStatus: deriveCollectionStatus(events ?? []), summary, firstInvoice } })
   } catch (e: unknown) {
     return NextResponse.json({ error: e instanceof Error ? e.message : "ไม่พบข้อมูล" }, { status: 404 })
   }

@@ -1438,13 +1438,16 @@
         "DEBT_TRACKING_INTEREST_RATE",
         "DEBT_TRACKING_PENALTY_PER_DAY",
         "DEBT_TYPE_DOCUMENT_TYPE",
+        "DebtCollectionStatus",
         "DebtEventRow",
         "DebtTrackingInput",
         "DebtTrackingSummary",
         "FreezeWindow",
         "calcDebtTrackingSummary",
+        "deriveCollectionStatus",
         "deriveFreezeWindows",
-        "getCurrentDebt"
+        "getCurrentDebt",
+        "sumManualAdjustments"
       ],
       "status": "active"
     },
@@ -6120,6 +6123,16 @@
         "POST"
       ],
       "status": "active"
+    },
+    "app/api/admin/debt-trackings/[id]/events/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "[Auto-detected] app/api/admin/debt-trackings/[id]/events/route.ts",
+      "purpose_th": "[ตรวจพบอัตโนมัติ] app/api/admin/debt-trackings/[id]/events/route.ts",
+      "exports": [
+        "POST"
+      ],
+      "status": "unregistered"
     }
   },
   "excluded": [

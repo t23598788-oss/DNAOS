@@ -2,7 +2,7 @@ import { NextResponse } from "next/server"
 import { requireAuth } from "@/core/auth/requireAuth"
 import { ADMIN_TIER } from "@/core/auth/session"
 import { supabaseAdmin as supabase } from "@/services/supabase/queries"
-import { calcDebtTrackingSummary, deriveFreezeWindows } from "@/engines/debt/tracking"
+import { calcDebtTrackingSummary, deriveFreezeWindows, sumManualAdjustments, sumManualInterestAdjustments } from "@/engines/debt/tracking"
 
 // Cross-reference view: every distinct LINE contact, their message history,
 // and — where the LINE display name matches a real company/partner record —
@@ -84,14 +84,14 @@ export async function GET() {
   // Phase B (owner, 2026-07-18) — batched, one query for the whole list, see
   // app/api/admin/relationships/route.ts's identical comment.
   const { data: debtEvents } = allCompanyIds.length
-    ? await db.from("debt_events").select("customer_company_id, event_type, occurred_at")
+    ? await db.from("debt_events").select("customer_company_id, event_type, occurred_at, amount")
         .in("customer_company_id", allCompanyIds)
-        .in("event_type", ["collection_paused", "collection_resumed"])
+        .in("event_type", ["collection_paused", "collection_resumed", "manual_adjustment", "manual_interest_adjustment", "debt_closed"])
     : { data: [] }
-  const eventsByCompanyId = new Map<string, { event_type: string; occurred_at: string }[]>()
+  const eventsByCompanyId = new Map<string, { event_type: string; occurred_at: string; amount?: number | null }[]>()
   for (const e of debtEvents ?? []) {
     const arr = eventsByCompanyId.get(e.customer_company_id) ?? []
-    arr.push({ event_type: e.event_type, occurred_at: e.occurred_at })
+    arr.push({ event_type: e.event_type, occurred_at: e.occurred_at, amount: e.amount })
     eventsByCompanyId.set(e.customer_company_id, arr)
   }
 
@@ -113,6 +113,8 @@ export async function GET() {
           freezeFrom: d.freeze_from ?? null,
           freezeUntil: d.freeze_until ?? null,
           freezeWindows: deriveFreezeWindows(eventsByCompanyId.get(d.customer_company_id) ?? []),
+          manualAdjustmentAmount: sumManualAdjustments(eventsByCompanyId.get(d.customer_company_id) ?? []),
+          manualInterestAdjustmentAmount: sumManualInterestAdjustments(eventsByCompanyId.get(d.customer_company_id) ?? []),
         })
         return [d.customer_company_id, {
           total_outstanding: summary.totalAmount,

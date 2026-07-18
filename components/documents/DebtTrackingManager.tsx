@@ -21,6 +21,7 @@ interface DebtTrackingRow {
   interest_start_at: string
   created_at: string
   summary: DebtTrackingSummary
+  collectionStatus: "active" | "paused" | "closed"
 }
 
 interface RecentDocument {
@@ -65,6 +66,12 @@ export default function DebtTrackingManager() {
   const [form, setForm] = useState(EMPTY_FORM)
   const [saving, setSaving] = useState(false)
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null)
+  const [eventBusy, setEventBusy] = useState<string | null>(null)
+  const [adjustmentRow, setAdjustmentRow] = useState<DebtTrackingRow | null>(null)
+  const [adjustmentType, setAdjustmentType] = useState<"fee" | "interest">("fee")
+  const [adjustmentDirection, setAdjustmentDirection] = useState<"increase" | "decrease">("increase")
+  const [adjustmentAmount, setAdjustmentAmount] = useState("")
+  const [adjustmentNote, setAdjustmentNote] = useState("")
 
   const loadRows = useCallback(async () => {
     setLoading(true)
@@ -157,6 +164,62 @@ export default function DebtTrackingManager() {
     await fetch(`/api/admin/debt-trackings/${id}`, { method: "DELETE" })
     if (editingId === id) resetForm()
     loadRows()
+  }
+
+  async function addDebtEvent(row: DebtTrackingRow, action: "pause" | "resume" | "close") {
+    const labels = { pause: "หยุดติดตาม", resume: "เปิดติดตามต่อ", close: "ปิดรายการ" }
+    if (!confirm(`${labels[action]} สำหรับ ${row.customer_name || "รายการนี้"}?`)) return
+    setEventBusy(`${row.id}:${action}`)
+    try {
+      const res = await fetch(`/api/admin/debt-trackings/${row.id}/events`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error ?? "บันทึกสถานะไม่สำเร็จ")
+      setMsg({ ok: true, text: `${labels[action]}แล้ว` })
+      await loadRows()
+    } catch (e: unknown) {
+      setMsg({ ok: false, text: e instanceof Error ? e.message : "เกิดข้อผิดพลาด" })
+    } finally {
+      setEventBusy(null)
+    }
+  }
+
+  async function saveAdjustment() {
+    if (!adjustmentRow || !adjustmentAmount || !adjustmentNote.trim()) {
+      setMsg({ ok: false, text: "กรุณาระบุยอดและเหตุผลการปรับยอด" })
+      return
+    }
+    const numericAmount = Number(adjustmentAmount)
+    if (!Number.isFinite(numericAmount) || numericAmount <= 0) {
+      setMsg({ ok: false, text: "ยอดปรับต้องมากกว่า 0" })
+      return
+    }
+    setEventBusy(`${adjustmentRow.id}:adjust_${adjustmentType}`)
+    try {
+      const res = await fetch(`/api/admin/debt-trackings/${adjustmentRow.id}/events`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: adjustmentType === "fee" ? "adjust_fee" : "adjust_interest",
+          amount: adjustmentDirection === "increase" ? numericAmount : -numericAmount,
+          note: adjustmentNote.trim(),
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error ?? "ปรับยอดไม่สำเร็จ")
+      setAdjustmentRow(null)
+      setAdjustmentAmount("")
+      setAdjustmentNote("")
+      setMsg({ ok: true, text: adjustmentType === "fee" ? "บันทึกการปรับค่าทวงถามแล้ว" : "บันทึกการปรับดอกเบี้ยแล้ว" })
+      await loadRows()
+    } catch (e: unknown) {
+      setMsg({ ok: false, text: e instanceof Error ? e.message : "เกิดข้อผิดพลาด" })
+    } finally {
+      setEventBusy(null)
+    }
   }
 
   // ── ยอดรวมทั้งหมด (คำนวณ live จาก rows ที่โหลดมา) ────────────────────────
@@ -363,6 +426,9 @@ export default function DebtTrackingManager() {
                           {row.customer_name || "—"}
                         </td>
                         <td className="px-3 py-3 text-stone-700">
+                          <span className={`inline-block mr-2 px-2 py-0.5 rounded-full text-[10px] font-semibold ${row.collectionStatus === "paused" ? "bg-amber-100 text-amber-800" : row.collectionStatus === "closed" ? "bg-stone-200 text-stone-600" : "bg-emerald-100 text-emerald-800"}`}>
+                            {row.collectionStatus === "paused" ? "หยุดติดตาม" : row.collectionStatus === "closed" ? "ปิดแล้ว" : "กำลังติดตาม"}
+                          </span>
                           {row.summary.daysOverdue > 0 ? `${row.summary.daysOverdue} วัน` : "ยังไม่ผิดนัด"}
                         </td>
                         <td className="px-4 py-3 text-right tabular-nums font-bold text-stone-900">{formatMoney(row.summary.totalAmount)}</td>
@@ -378,10 +444,16 @@ export default function DebtTrackingManager() {
                               <div>
                                 <div className="text-xs text-stone-500 mb-0.5">ค่าธรรมเนียม {row.fee_rate}%</div>
                                 <div className="text-sm font-semibold text-stone-900 tabular-nums">{formatMoney(row.summary.feeAmount)}</div>
+                                {row.summary.manualAdjustmentAmount !== 0 && (
+                                  <div className="text-[11px] text-violet-700">ปรับมือ {formatMoney(row.summary.manualAdjustmentAmount)}</div>
+                                )}
                               </div>
                               <div>
                                 <div className="text-xs text-stone-500 mb-0.5">ดอกเบี้ย 25%/ปี ({row.summary.daysElapsed} วัน)</div>
                                 <div className="text-sm font-semibold text-amber-700 tabular-nums">{formatMoney(row.summary.interestAmount)}</div>
+                                {row.summary.manualInterestAdjustmentAmount !== 0 && (
+                                  <div className="text-[11px] text-orange-700">ปรับดอกเบี้ยมือ {formatMoney(row.summary.manualInterestAdjustmentAmount)}</div>
+                                )}
                               </div>
                               <div>
                                 <div className="text-xs text-stone-500 mb-0.5">ค่าปรับ 100฿/วัน</div>
@@ -406,6 +478,13 @@ export default function DebtTrackingManager() {
                                 ออกใบทวงหนี้
                               </Link>
                               <button onClick={() => startEdit(row)} className="text-xs font-medium px-3 py-1.5 rounded-lg border border-stone-200 text-stone-700 hover:bg-stone-100 transition">แก้ไข</button>
+                              {row.collectionStatus === "active" && <button disabled={!!eventBusy} onClick={() => addDebtEvent(row, "pause")} className="text-xs font-medium px-3 py-1.5 rounded-lg border border-amber-200 text-amber-700 hover:bg-amber-50 disabled:opacity-40 transition">หยุดติดตาม</button>}
+                              {row.collectionStatus === "paused" && <button disabled={!!eventBusy} onClick={() => addDebtEvent(row, "resume")} className="text-xs font-medium px-3 py-1.5 rounded-lg border border-emerald-200 text-emerald-700 hover:bg-emerald-50 disabled:opacity-40 transition">เปิดติดตามต่อ</button>}
+                              {row.collectionStatus !== "closed" && <>
+                                <button disabled={!!eventBusy} onClick={() => { setAdjustmentType("fee"); setAdjustmentRow(row); setAdjustmentDirection("increase") }} className="text-xs font-medium px-3 py-1.5 rounded-lg border border-violet-200 text-violet-700 hover:bg-violet-50 disabled:opacity-40 transition">ปรับค่าทวงถาม</button>
+                                <button disabled={!!eventBusy} onClick={() => { setAdjustmentType("interest"); setAdjustmentRow(row); setAdjustmentDirection("increase") }} className="text-xs font-medium px-3 py-1.5 rounded-lg border border-orange-200 text-orange-700 hover:bg-orange-50 disabled:opacity-40 transition">ปรับดอกเบี้ย</button>
+                                <button disabled={!!eventBusy} onClick={() => addDebtEvent(row, "close")} className="text-xs font-medium px-3 py-1.5 rounded-lg border border-stone-300 text-stone-700 hover:bg-stone-100 disabled:opacity-40 transition">ปิดรายการ</button>
+                              </>}
                               <button onClick={() => remove(row.id)} className="text-xs font-medium px-3 py-1.5 rounded-lg border border-red-200 text-red-700 hover:bg-red-50 transition">ลบ</button>
                             </div>
                           </td>
@@ -420,6 +499,33 @@ export default function DebtTrackingManager() {
         </div>
 
       </div>
+
+      {adjustmentRow && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4" onClick={() => setAdjustmentRow(null)}>
+          <div className="w-full max-w-md rounded-2xl bg-white p-5 shadow-xl" onClick={(e) => e.stopPropagation()}>
+            <div className="text-base font-bold text-stone-900">{adjustmentType === "fee" ? "ปรับยอดค่าติดตามทวงถาม" : "ปรับยอดดอกเบี้ย"}</div>
+            <div className="mt-1 text-xs text-stone-500">{adjustmentRow.customer_name || "รายการลูกหนี้"} · บันทึกเป็นเหตุการณ์ถาวร</div>
+            <div className="mt-4 grid grid-cols-2 gap-3">
+              <label className="text-xs font-semibold text-stone-600">การปรับ
+                <select value={adjustmentDirection} onChange={(e) => setAdjustmentDirection(e.target.value as "increase" | "decrease")} className="mt-1 w-full rounded-lg border border-stone-200 px-3 py-2 text-sm font-normal">
+                  <option value="increase">เพิ่มยอด</option>
+                  <option value="decrease">ลด/หักยอด</option>
+                </select>
+              </label>
+              <label className="text-xs font-semibold text-stone-600">จำนวนเงิน (บาท)
+                <input type="number" min="0" step="0.01" value={adjustmentAmount} onChange={(e) => setAdjustmentAmount(e.target.value)} className="mt-1 w-full rounded-lg border border-stone-200 px-3 py-2 text-sm font-normal text-right" />
+              </label>
+            </div>
+            <label className="mt-3 block text-xs font-semibold text-stone-600">เหตุผล
+              <textarea value={adjustmentNote} onChange={(e) => setAdjustmentNote(e.target.value)} rows={3} className="mt-1 w-full rounded-lg border border-stone-200 px-3 py-2 text-sm font-normal" placeholder={adjustmentType === "fee" ? "เช่น อนุมัติลดค่าติดตามตามข้อตกลง" : "เช่น แก้ไขดอกเบี้ยตามข้อตกลง"} />
+            </label>
+            <div className="mt-4 flex justify-end gap-2">
+              <button onClick={() => setAdjustmentRow(null)} className="rounded-lg border border-stone-200 px-4 py-2 text-sm text-stone-600">ยกเลิก</button>
+              <button disabled={!!eventBusy} onClick={saveAdjustment} className={`rounded-lg px-4 py-2 text-sm font-semibold text-white disabled:opacity-40 ${adjustmentType === "fee" ? "bg-violet-700" : "bg-orange-600"}`}>{eventBusy ? "กำลังบันทึก..." : "บันทึกการปรับยอด"}</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

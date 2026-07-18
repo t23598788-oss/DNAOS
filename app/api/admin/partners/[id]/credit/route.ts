@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { requireAuth } from "@/core/auth/requireAuth"
 import { ADMIN_TIER } from "@/core/auth/session"
 import { supabaseAdmin as supabase } from "@/services/supabase/queries"
-import { calcDebtTrackingSummary, deriveFreezeWindows } from "@/engines/debt/tracking"
+import { calcDebtTrackingSummary, deriveFreezeWindows, sumManualAdjustments, sumManualInterestAdjustments } from "@/engines/debt/tracking"
 
 type Params = { params: Promise<{ id: string }> }
 
@@ -34,9 +34,9 @@ export async function GET(_req: NextRequest, { params }: Params) {
     // query total (not N+1 like the list-view routes).
     supabase()
       .from("debt_events")
-      .select("event_type, occurred_at")
+      .select("event_type, occurred_at, amount")
       .eq("customer_company_id", partnerId)
-      .in("event_type", ["collection_paused", "collection_resumed"]),
+      .in("event_type", ["collection_paused", "collection_resumed", "manual_adjustment", "manual_interest_adjustment", "debt_closed"]),
   ])
 
   const invoices = invoicesRes.data ?? []
@@ -74,6 +74,8 @@ export async function GET(_req: NextRequest, { params }: Params) {
       freezeFrom: d.freeze_from ?? null,
       freezeUntil: d.freeze_until ?? null,
       freezeWindows,
+      manualAdjustmentAmount: sumManualAdjustments(debtEventsRes.data ?? []),
+      manualInterestAdjustmentAmount: sumManualInterestAdjustments(debtEventsRes.data ?? []),
     })
     return s + summary.totalAmount
   }, 0)

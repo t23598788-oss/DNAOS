@@ -3,7 +3,7 @@ import { requireAuth } from "@/core/auth/requireAuth"
 import { ADMIN_TIER } from "@/core/auth/session"
 import { getDebtTrackings, createDebtTracking } from "@/services/supabase/queries"
 import { supabaseAdmin } from "@/services/supabase/queries"
-import { calcDebtTrackingSummary, deriveFreezeWindows } from "@/engines/debt/tracking"
+import { calcDebtTrackingSummary, deriveCollectionStatus, deriveFreezeWindows, sumManualAdjustments, sumManualInterestAdjustments } from "@/engines/debt/tracking"
 
 export async function GET() {
   const auth = await requireAuth(ADMIN_TIER)
@@ -17,19 +17,20 @@ export async function GET() {
     // route (e.g. app/api/admin/relationships/route.ts).
     const companyIds = trackings.map((t) => t.partner_id).filter(Boolean)
     const { data: debtEvents } = companyIds.length
-      ? await supabaseAdmin().from("debt_events").select("customer_company_id, event_type, occurred_at")
+      ? await supabaseAdmin().from("debt_events").select("customer_company_id, event_type, occurred_at, amount")
           .in("customer_company_id", companyIds)
-          .in("event_type", ["collection_paused", "collection_resumed"])
+          .in("event_type", ["collection_paused", "collection_resumed", "manual_adjustment", "manual_interest_adjustment", "debt_closed"])
       : { data: [] }
-    const eventsByCompanyId = new Map<string, { event_type: string; occurred_at: string }[]>()
+    const eventsByCompanyId = new Map<string, { event_type: string; occurred_at: string; amount?: number | null }[]>()
     for (const e of debtEvents ?? []) {
       const arr = eventsByCompanyId.get(e.customer_company_id) ?? []
-      arr.push({ event_type: e.event_type, occurred_at: e.occurred_at })
+      arr.push({ event_type: e.event_type, occurred_at: e.occurred_at, amount: e.amount })
       eventsByCompanyId.set(e.customer_company_id, arr)
     }
 
     const withSummary = trackings.map((t) => ({
       ...t,
+      collectionStatus: deriveCollectionStatus(eventsByCompanyId.get(t.partner_id) ?? []),
       summary: calcDebtTrackingSummary({
         principalAmount: Number(t.principal_amount ?? 0),
         feeRate: Number(t.fee_rate ?? 0),
@@ -37,6 +38,8 @@ export async function GET() {
         freezeFrom: t.freeze_from ?? null,
         freezeUntil: t.freeze_until ?? null,
         freezeWindows: deriveFreezeWindows(eventsByCompanyId.get(t.partner_id) ?? []),
+        manualAdjustmentAmount: sumManualAdjustments(eventsByCompanyId.get(t.partner_id) ?? []),
+        manualInterestAdjustmentAmount: sumManualInterestAdjustments(eventsByCompanyId.get(t.partner_id) ?? []),
       }),
     }))
     return NextResponse.json({ debtTrackings: withSummary })
