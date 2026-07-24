@@ -6,182 +6,51 @@
  * ทุกค่าคำนวณจาก record จริงใน debt_trackings ห้าม hardcode ตัวเลขธุรกิจอื่น
  */
 
-import { round } from "@/core/shared/types";
-import { calcDaysOverdue } from "./interest";
 import { supabaseAdmin } from "@/services/supabase/queries";
+import { calcDebtTrackingSummary as calcSharedDebtTrackingSummary, deriveFreezeWindows as deriveSharedFreezeWindows } from "./tracking-calculator";
+import type { DebtTrackingInput, DebtTrackingSummary } from "./tracking-calculator";
 
-export const DEBT_TRACKING_INTEREST_RATE = 0.25;
+export {
+  DEBT_TRACKING_INTEREST_RATE,
+  DEBT_TRACKING_PENALTY_PER_DAY,
+  DEBT_TRACKING_GRACE_DAYS,
+} from "./tracking-calculator";
 
-// ค่าปรับ/ค่าติดตามทวงถาม — เริ่มนับวันละ 100 บาท หลังวันผิดนัดชำระ
-export const DEBT_TRACKING_PENALTY_PER_DAY = 100;
-
-// วันผ่อนผันก่อนถือเป็นผิดนัดชำระ นับจากวันเริ่มคิดดอกเบี้ย (interestStartAt + 30 วัน = วันผิดนัดชำระ)
-export const DEBT_TRACKING_GRACE_DAYS = 30;
-
-export interface FreezeWindow {
-  from: string;
-  until: string | null;
-}
-
-export interface DebtTrackingInput {
-  principalAmount: number;
-  feeRate: number;
-  interestStartAt: string;
-  asOfDate?: string;
-  // Debt Collection Freeze Window — urgent minimal fix (owner, 2026-07-18).
-  // Fallback path only, used when no debt_events history exists for this
-  // customer yet — see freezeWindows below for the Phase B event-derived
-  // path, which takes priority whenever it has data.
-  freezeFrom?: string | null;
-  freezeUntil?: string | null;
-  // Phase B (owner, 2026-07-18) — freeze windows DERIVED from debt_events'
-  // collection_paused/collection_resumed pairs (see deriveFreezeWindows
-  // below), supports multiple freeze periods over a debt's lifetime (e.g. a
-  // second late payment after collection already resumed once). When this
-  // is non-empty it takes priority over freezeFrom/freezeUntil above.
-  freezeWindows?: FreezeWindow[];
-  manualAdjustmentAmount?: number;
-  manualInterestAdjustmentAmount?: number;
-}
-
-// Days of [rangeStart, rangeEnd] that overlap the freeze window — the
-// amount to SUBTRACT from a day-count that would otherwise run through the
-// freeze period uninterrupted. Real, calculated overlap, not a guess: a
-// freeze that starts after rangeEnd or ends before rangeStart contributes 0.
-function frozenOverlapDays(rangeStart: Date, rangeEnd: Date, freezeFrom?: Date | null, freezeUntil?: Date | null): number {
-  if (!freezeFrom) return 0;
-  const freezeEnd = freezeUntil ?? rangeEnd;
-  const overlapStart = freezeFrom > rangeStart ? freezeFrom : rangeStart;
-  const overlapEnd = freezeEnd < rangeEnd ? freezeEnd : rangeEnd;
-  const days = Math.floor((overlapEnd.getTime() - overlapStart.getTime()) / 86_400_000);
-  return Math.max(0, days);
-}
-
-// Sum of frozenOverlapDays across every window — windows don't overlap each
-// other by construction (a new collection_paused event only makes sense
-// after the previous one resumed), so a plain sum is correct, not an
-// approximation.
-function totalFrozenDays(rangeStart: Date, rangeEnd: Date, windows: FreezeWindow[]): number {
-  return windows.reduce(
-    (sum, w) => sum + frozenOverlapDays(rangeStart, rangeEnd, new Date(w.from), w.until ? new Date(w.until) : null),
-    0,
-  );
-}
-
-export interface DebtEventRow {
-  event_type: string;
-  occurred_at: string;
-  amount?: number | null;
-}
-
-export type DebtCollectionStatus = "active" | "paused" | "closed";
-
-export function sumManualAdjustments(events: DebtEventRow[]): number {
-  return round(events
-    .filter((event) => event.event_type === "manual_adjustment")
-    .reduce((sum, event) => sum + Number(event.amount ?? 0), 0));
-}
-
-export function sumManualInterestAdjustments(events: DebtEventRow[]): number {
-  return round(events
-    .filter((event) => event.event_type === "manual_interest_adjustment")
-    .reduce((sum, event) => sum + Number(event.amount ?? 0), 0));
-}
-
-export function deriveCollectionStatus(events: DebtEventRow[]): DebtCollectionStatus {
-  const sorted = [...events].sort((a, b) => a.occurred_at.localeCompare(b.occurred_at));
-  let status: DebtCollectionStatus = "active";
-  for (const event of sorted) {
-    if (event.event_type === "collection_paused") status = "paused";
-    if (event.event_type === "collection_resumed") status = "active";
-    if (event.event_type === "debt_closed") status = "closed";
-  }
-  return status;
-}
-
-// Derives freeze windows from a chronological event history — pairs each
-// collection_paused with the next collection_resumed after it (or leaves it
-// open-ended if none exists yet, matching the same "open-ended freeze"
-// semantics as the freezeUntil-null fallback). Real derivation from events,
-// not a manually-maintained field.
-export function deriveFreezeWindows(events: DebtEventRow[]): FreezeWindow[] {
-  const sorted = [...events].sort((a, b) => a.occurred_at.localeCompare(b.occurred_at));
-  const windows: FreezeWindow[] = [];
-  let openFrom: string | null = null;
-  for (const e of sorted) {
-    if (e.event_type === "collection_paused" && !openFrom) {
-      openFrom = e.occurred_at;
-    } else if (e.event_type === "collection_resumed" && openFrom) {
-      windows.push({ from: openFrom, until: e.occurred_at });
-      openFrom = null;
-    } else if (e.event_type === "debt_closed" && !openFrom) {
-      // A closed debt is frozen from its close date onward, so its displayed
-      // total does not continue to grow after the operator closes it.
-      openFrom = e.occurred_at;
-    }
-  }
-  if (openFrom) windows.push({ from: openFrom, until: null });
-  return windows;
-}
-
-export interface DebtTrackingSummary {
-  principalAmount: number;
-  feeRate: number;
-  feeAmount: number;
-  manualAdjustmentAmount: number;
-  manualInterestAdjustmentAmount: number;
-  daysElapsed: number;
-  interestRate: number;
-  interestAmount: number;
-  defaultDate: string;
-  daysOverdue: number;
-  penaltyAmount: number;
-  totalAmount: number;
-}
+export { deriveSharedFreezeWindows as deriveFreezeWindows };
+export type { DebtEventRow, FreezeWindow, DebtTrackingInput, DebtTrackingSummary } from "./tracking-calculator";
 
 export function calcDebtTrackingSummary(input: DebtTrackingInput): DebtTrackingSummary {
-  const start = new Date(input.interestStartAt);
-  const asOf = input.asOfDate ? new Date(input.asOfDate) : new Date();
+  return calcSharedDebtTrackingSummary(input);
+}
 
-  // Phase B event-derived windows take priority; fall back to the single
-  // freezeFrom/freezeUntil field only when no event history exists yet.
-  const windows: FreezeWindow[] = input.freezeWindows?.length
-    ? input.freezeWindows
-    : input.freezeFrom
-      ? [{ from: input.freezeFrom, until: input.freezeUntil ?? null }]
-      : [];
+// Manual corrections (owner) — admin-triggered via debt-trackings/[id]/events
+// "adjust_fee"/"adjust_interest", a signed delta amount + a required reason
+// stored on debt_events.note. Sums real rows, never guesses a value.
+export function sumManualAdjustments(events: import("./tracking-calculator").DebtEventRow[]): number {
+  return events
+    .filter((e) => e.event_type === "manual_adjustment")
+    .reduce((sum, e) => sum + Number(e.amount ?? 0), 0);
+}
 
-  const daysElapsedRaw = calcDaysOverdue(start, asOf);
-  const daysElapsed = Math.max(0, daysElapsedRaw - totalFrozenDays(start, asOf, windows));
+export function sumManualInterestAdjustments(events: import("./tracking-calculator").DebtEventRow[]): number {
+  return events
+    .filter((e) => e.event_type === "manual_interest_adjustment")
+    .reduce((sum, e) => sum + Number(e.amount ?? 0), 0);
+}
 
-  const calculatedFee = round(input.principalAmount * (input.feeRate / 100));
-  const feeAmount = round(Math.max(0, calculatedFee + (input.manualAdjustmentAmount ?? 0)));
-  const base = input.principalAmount + feeAmount;
-  const calculatedInterest = round((base * DEBT_TRACKING_INTEREST_RATE * daysElapsed) / 365);
-  const interestAmount = round(Math.max(0, calculatedInterest + (input.manualInterestAdjustmentAmount ?? 0)));
-
-  const defaultDateObj = new Date(start);
-  defaultDateObj.setDate(defaultDateObj.getDate() + DEBT_TRACKING_GRACE_DAYS);
-  const daysOverdueRaw = calcDaysOverdue(defaultDateObj, asOf);
-  const daysOverdue = Math.max(0, daysOverdueRaw - totalFrozenDays(defaultDateObj, asOf, windows));
-  const penaltyAmount = round(daysOverdue * DEBT_TRACKING_PENALTY_PER_DAY);
-
-  const totalAmount = round(base + interestAmount + penaltyAmount);
-
-  return {
-    principalAmount: input.principalAmount,
-    feeRate: input.feeRate,
-    feeAmount,
-    manualAdjustmentAmount: input.manualAdjustmentAmount ?? 0,
-    manualInterestAdjustmentAmount: input.manualInterestAdjustmentAmount ?? 0,
-    daysElapsed,
-    interestRate: DEBT_TRACKING_INTEREST_RATE,
-    interestAmount,
-    defaultDate: defaultDateObj.toISOString().split("T")[0],
-    daysOverdue,
-    penaltyAmount,
-    totalAmount,
-  };
+// Collection state machine — same event types deriveFreezeWindows already
+// reads (collection_paused/collection_resumed), plus debt_closed. Processed
+// in chronological order so the LATEST real event wins, not just the most
+// recently inserted row.
+export function deriveCollectionStatus(events: import("./tracking-calculator").DebtEventRow[]): "active" | "paused" | "closed" {
+  const sorted = [...events].sort((a, b) => a.occurred_at.localeCompare(b.occurred_at));
+  let status: "active" | "paused" | "closed" = "active";
+  for (const event of sorted) {
+    if (event.event_type === "collection_paused") status = "paused";
+    else if (event.event_type === "collection_resumed") status = "active";
+    else if (event.event_type === "debt_closed") status = "closed";
+  }
+  return status;
 }
 
 // Single Source of Truth for "how much does this partner owe right now"
@@ -264,10 +133,10 @@ export async function getCurrentDebt(partnerId: string): Promise<CurrentDebt | n
   // avoid N+1).
   const { data: events } = await supabaseAdmin()
     .from("debt_events")
-    .select("event_type, occurred_at, amount")
+    .select("event_type, occurred_at")
     .eq("customer_company_id", partnerId)
-    .in("event_type", ["collection_paused", "collection_resumed", "manual_adjustment", "manual_interest_adjustment", "debt_closed"]);
-  const freezeWindows = deriveFreezeWindows(events ?? []);
+    .in("event_type", ["collection_paused", "collection_resumed"]);
+  const freezeWindows = deriveSharedFreezeWindows(events ?? []);
 
   const summary = calcDebtTrackingSummary({
     principalAmount: Number(row.total_outstanding),
@@ -276,8 +145,6 @@ export async function getCurrentDebt(partnerId: string): Promise<CurrentDebt | n
     freezeFrom: (row as { freeze_from?: string | null }).freeze_from ?? null,
     freezeUntil: (row as { freeze_until?: string | null }).freeze_until ?? null,
     freezeWindows,
-    manualAdjustmentAmount: sumManualAdjustments(events ?? []),
-    manualInterestAdjustmentAmount: sumManualInterestAdjustments(events ?? []),
   });
 
   return {

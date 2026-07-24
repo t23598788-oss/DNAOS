@@ -14,9 +14,15 @@ export interface DebtTrackingInput {
   freezeFrom?: string | null
   freezeUntil?: string | null
   freezeWindows?: FreezeWindow[]
+  // Manual corrections (owner, admin-triggered via debt-trackings/[id]/events
+  // "adjust_fee"/"adjust_interest" — a signed delta, reason required at the
+  // API layer). Optional/defaulted to 0 so existing callers that never pass
+  // these are unaffected.
+  manualAdjustmentAmount?: number
+  manualInterestAdjustmentAmount?: number
 }
 
-export interface DebtEventRow { event_type: string; occurred_at: string }
+export interface DebtEventRow { event_type: string; occurred_at: string; amount?: number | null }
 
 export interface DebtTrackingSummary {
   principalAmount: number
@@ -28,6 +34,8 @@ export interface DebtTrackingSummary {
   defaultDate: string
   daysOverdue: number
   penaltyAmount: number
+  manualAdjustmentAmount: number
+  manualInterestAdjustmentAmount: number
   totalAmount: number
 }
 
@@ -79,6 +87,8 @@ export function calcDebtTrackingSummary(input: DebtTrackingInput): DebtTrackingS
   const daysOverdueRaw = daysBetween(defaultDate, asOf)
   const daysOverdue = Math.max(0, daysOverdueRaw - totalFrozenDays(defaultDate, asOf, windows))
   const penaltyAmount = roundMoney(daysOverdue * DEBT_TRACKING_PENALTY_PER_DAY)
+  const manualAdjustmentAmount = roundMoney(input.manualAdjustmentAmount ?? 0)
+  const manualInterestAdjustmentAmount = roundMoney(input.manualInterestAdjustmentAmount ?? 0)
   return {
     principalAmount: input.principalAmount,
     feeRate: input.feeRate,
@@ -89,6 +99,8 @@ export function calcDebtTrackingSummary(input: DebtTrackingInput): DebtTrackingS
     defaultDate: defaultDate.toISOString().split("T")[0],
     daysOverdue,
     penaltyAmount,
-    totalAmount: roundMoney(base + interestAmount + penaltyAmount),
+    manualAdjustmentAmount,
+    manualInterestAdjustmentAmount,
+    totalAmount: roundMoney(base + interestAmount + penaltyAmount + manualAdjustmentAmount + manualInterestAdjustmentAmount),
   }
 }

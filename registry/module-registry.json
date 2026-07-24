@@ -1439,8 +1439,11 @@
         "DEBT_TRACKING_PENALTY_PER_DAY",
         "DEBT_TYPE_DOCUMENT_TYPE",
         "calcDebtTrackingSummary",
+        "deriveCollectionStatus",
         "deriveFreezeWindows",
-        "getCurrentDebt"
+        "getCurrentDebt",
+        "sumManualAdjustments",
+        "sumManualInterestAdjustments"
       ],
       "status": "active"
     },
