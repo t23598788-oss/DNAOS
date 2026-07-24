@@ -4377,6 +4377,15 @@
       "status": "active",
       "entry_point": true
     },
+    "supabase/functions/fuel-price-sync/index.ts": {
+      "owner": "admin",
+      "layer": "services",
+      "purpose": "Fuel Price Auto-Sync (owner, 2026-07-24: \"เฮียจะเอา ai มาทำหน้าที่ดึงเว็บจากปั๊มน้ำมันจริงๆ...โดยที่มนุษย์ไม่ต้องมานั่งระบุ\"). pg_cron-triggered daily at 06:00: fetches Bangchak's real public retail oil price API (no key required, verified live), logs every fetch to fuel_price_log, upserts app_configs['fuel-price'] with the real DIESEL B20 price so engines/fuel.ts's calcFuel() never runs on a human-guessed number. Deployed + scheduled (migration 20260724000005/000006). Scope note: national/zone reference price, not per-partner-gas-station — that needs a separate gas-station registry + extending ocr-classify.ts's fuel_bill extraction (currently only extracts a total amount, not liters/price-per-liter), flagged as a real next phase, not built here",
+      "purpose_th": "ระบบดึงราคาน้ำมันอัตโนมัติ (owner 2026-07-24) pg_cron เรียกทุกวัน 06:00 ดึงราคาน้ำมันดีเซล B20 จริงจาก API สาธารณะของบางจาก (ไม่ต้องใช้ key ยืนยันแล้วว่าใช้งานได้จริง) บันทึกทุกครั้งที่ดึงลง fuel_price_log แล้วอัปเดต app_configs['fuel-price'] ให้ engines/fuel.ts คำนวณจากราคาจริงเสมอ ไม่ใช่ตัวเลขที่มนุษย์เดา deploy และตั้ง cron จริงแล้ว (ดู migration 20260724000005/000006) ยังเป็นราคาระดับประเทศ/โซน ไม่ใช่ราคาต่อปั๊มพันธมิตรแต่ละแห่ง — ส่วนนั้นต้องมี registry ปั๊มพันธมิตร + ขยาย OCR ให้อ่านลิตร/ราคาต่อลิตรจากใบเสร็จจริง (วันนี้ดึงได้แค่ยอดรวม) เป็นเฟสถัดไปที่ยังไม่ได้สร้าง",
+      "exports": [],
+      "status": "active",
+      "entry_point": true
+    },
     "app/api/admin/line-customers/[lineUserId]/send-debt/route.ts": {
       "owner": "admin",
       "layer": "api",
