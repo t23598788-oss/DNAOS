@@ -1,3 +1,5 @@
+import { getCanonicalDebtForCompany } from "./relationship-qa.ts"
+
 // Payment Instructions — auto-send (owner, 2026-07-18)
 //
 // Real bug this fixes: a customer typing "ส่งเลขบัญชีมาด้วยตงครับ" (please
@@ -41,10 +43,9 @@ export async function tryBuildPaymentInstructionsReply(supabase: any, userId: st
   const accountName = config["payment-account-name"]
   if (!bankName || !accountNumber || !accountName) return null // not configured — honest, don't send half-filled instructions
 
-  // Prefer a real, currently-active (non-void) invoice as the reference —
-  // matches the live incident exactly (INV-20260718-649). No invoice yet —
-  // fall back to the stored debt_snapshots figure, labeled as an estimate
-  // rather than pretending invoice-level precision.
+  // The amount is the same canonical debt calculation used by the workspace,
+  // debt inquiry, reminder route, and header. Invoice totals are references,
+  // not a second balance source.
   const { data: invoice } = await supabase
     .from("invoices")
     .select("invoice_no, total_amount")
@@ -56,15 +57,12 @@ export async function tryBuildPaymentInstructionsReply(supabase: any, userId: st
 
   let referenceLine = ""
   let amountLine = ""
+  const currentDebt = await getCanonicalDebtForCompany(supabase, company.id)
   if (invoice) {
     referenceLine = `อ้างอิง ${invoice.invoice_no}\n`
-    amountLine = `ยอดชำระ ${Number(invoice.total_amount).toLocaleString("th-TH", { minimumFractionDigits: 2 })} บาท\n`
-  } else {
-    const { data: debt } = await supabase
-      .from("debt_snapshots").select("total_outstanding").eq("customer_company_id", company.id).maybeSingle()
-    if (debt?.total_outstanding) {
-      amountLine = `ยอดคงเหลือโดยประมาณ ${Number(debt.total_outstanding).toLocaleString("th-TH", { minimumFractionDigits: 2 })} บาท\n`
-    }
+  }
+  if (currentDebt) {
+    amountLine = `ยอดคงเหลือ ${currentDebt.totalDue.toLocaleString("th-TH", { minimumFractionDigits: 2 })} บาท\n`
   }
 
   const replyText =

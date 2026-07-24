@@ -5,54 +5,9 @@
 // Never guesses: if we don't know who this is, say so plainly instead of
 // answering as if we knew (DNA OS rule — ห้ามเดาแล้วนำเสนอเป็นความจริง).
 
+import { calcDebtTrackingSummary, deriveFreezeWindows as deriveSharedFreezeWindows } from "../../../../engines/debt/tracking-calculator.ts"
+
 const DEBT_KEYWORDS = ["หนี้", "ค้างชำระ", "ค้างจ่าย", "ค้างเงิน", "ติดเงิน", "ค้างเท่าไหร่", "ค้างเท่าไร"]
-
-// Mirrors engines/debt/tracking.ts's calcDebtTrackingSummary exactly (Node
-// side, the canonical version) — 25%/yr simple interest, 100/day penalty
-// after a 30-day grace period, feeRate always 0 (no fee_rate column exists
-// in debt_snapshots yet). Any change to the real formula must be applied to
-// BOTH copies — see that file's own comment for why they can't share code
-// (Deno vs Node runtimes).
-const INTEREST_RATE = 0.25
-const PENALTY_PER_DAY = 100
-const GRACE_DAYS = 30
-
-// Debt Collection Freeze Window (owner, 2026-07-18) — mirrors the Node-side
-// frozenOverlapDays() in engines/debt/tracking.ts (canonical version).
-function frozenOverlapDays(rangeStart: Date, rangeEnd: Date, freezeFrom: Date | null, freezeUntil: Date | null): number {
-  if (!freezeFrom) return 0
-  const freezeEnd = freezeUntil ?? rangeEnd
-  const overlapStart = freezeFrom > rangeStart ? freezeFrom : rangeStart
-  const overlapEnd = freezeEnd < rangeEnd ? freezeEnd : rangeEnd
-  const days = Math.floor((overlapEnd.getTime() - overlapStart.getTime()) / 86_400_000)
-  return Math.max(0, days)
-}
-
-// Phase B (owner, 2026-07-18) — mirrors engines/debt/tracking.ts's
-// deriveFreezeWindows/FreezeWindow (Node canonical version), same as
-// supabase/functions/debt-reminder-cron/index.ts's identical copy.
-interface FreezeWindow { from: string; until: string | null }
-function deriveFreezeWindows(events: { event_type: string; occurred_at: string }[]): FreezeWindow[] {
-  const sorted = [...events].sort((a, b) => a.occurred_at.localeCompare(b.occurred_at))
-  const windows: FreezeWindow[] = []
-  let openFrom: string | null = null
-  for (const e of sorted) {
-    if (e.event_type === "collection_paused" && !openFrom) openFrom = e.occurred_at
-    else if (e.event_type === "collection_resumed" && openFrom) {
-      windows.push({ from: openFrom, until: e.occurred_at })
-      openFrom = null
-    }
-  }
-  if (openFrom) windows.push({ from: openFrom, until: null })
-  return windows
-}
-
-function totalFrozenDays(rangeStart: Date, rangeEnd: Date, windows: FreezeWindow[]): number {
-  return windows.reduce(
-    (sum, w) => sum + frozenOverlapDays(rangeStart, rangeEnd, new Date(w.from), w.until ? new Date(w.until) : null),
-    0,
-  )
-}
 
 function calcCurrentDebt(
   principal: number,
@@ -61,24 +16,34 @@ function calcCurrentDebt(
   freezeUntil: string | null = null,
   freezeWindows: FreezeWindow[] = [],
 ): { totalDue: number; daysOverdue: number } {
-  const start = new Date(interestStartAt)
-  const now = new Date()
+  const summary = calcDebtTrackingSummary({
+    principalAmount: principal,
+    feeRate: 0,
+    interestStartAt,
+    freezeFrom,
+    freezeUntil,
+    freezeWindows,
+  })
+  return { totalDue: summary.totalAmount, daysOverdue: summary.daysOverdue }
+}
 
-  const windows: FreezeWindow[] = freezeWindows.length
-    ? freezeWindows
-    : freezeFrom ? [{ from: freezeFrom, until: freezeUntil }] : []
-
-  const daysElapsedRaw = Math.max(0, Math.floor((now.getTime() - start.getTime()) / 86_400_000))
-  const daysElapsed = Math.max(0, daysElapsedRaw - totalFrozenDays(start, now, windows))
-  const interest = Math.round(principal * INTEREST_RATE * daysElapsed / 365 * 100) / 100
-
-  const defaultDate = new Date(start)
-  defaultDate.setDate(defaultDate.getDate() + GRACE_DAYS)
-  const daysOverdueRaw = Math.max(0, Math.floor((now.getTime() - defaultDate.getTime()) / 86_400_000))
-  const daysOverdue = Math.max(0, daysOverdueRaw - totalFrozenDays(defaultDate, now, windows))
-  const penalty = daysOverdue * PENALTY_PER_DAY
-
-  return { totalDue: Math.round((principal + interest + penalty) * 100) / 100, daysOverdue }
+// Deno-side adapter for engines/debt/tracking.ts#getCurrentDebt. All LINE
+// answers that contain a financial amount use the shared pure formula; callers must not
+// read debt_snapshots.total_outstanding as a customer-facing balance.
+export async function getCanonicalDebtForCompany(supabase: any, companyId: string): Promise<{ totalDue: number; daysOverdue: number } | null> {
+  const { data: debt } = await supabase
+    .from("debt_snapshots")
+    .select("total_outstanding, debt_start_at, created_at, freeze_from, freeze_until")
+    .eq("customer_company_id", companyId).maybeSingle()
+  if (!debt || !debt.total_outstanding || Number(debt.total_outstanding) <= 0) return null
+  const { data: freezeEvents } = await supabase
+    .from("debt_events").select("event_type, occurred_at")
+    .eq("customer_company_id", companyId)
+    .in("event_type", ["collection_paused", "collection_resumed"])
+  return calcCurrentDebt(
+    Number(debt.total_outstanding), debt.debt_start_at ?? debt.created_at,
+    debt.freeze_from ?? null, debt.freeze_until ?? null, deriveSharedFreezeWindows(freezeEvents ?? []),
+  )
 }
 
 export function isDebtInquiry(text: string): boolean {
@@ -118,21 +83,11 @@ export async function answerDebtInquiry(supabase: any, userId: string): Promise<
   }
 
   const { data: debt } = await supabase
-    .from("debt_snapshots")
-    .select("total_outstanding, debt_start_at, created_at, collection_state, freeze_from, freeze_until")
-    .eq("customer_company_id", company.id)
-    .maybeSingle()
-
-  if (!debt || !debt.total_outstanding || Number(debt.total_outstanding) <= 0) {
+    .from("debt_snapshots").select("collection_state").eq("customer_company_id", company.id).maybeSingle()
+  const currentDebt = await getCanonicalDebtForCompany(supabase, company.id)
+  if (!currentDebt) {
     return `เช็คในระบบแล้วครับ — ${company.name} ไม่มียอดหนี้ค้างชำระอยู่เลยครับ`
   }
-
-  const { data: freezeEvents } = await supabase
-    .from("debt_events")
-    .select("event_type, occurred_at")
-    .eq("customer_company_id", company.id)
-    .in("event_type", ["collection_paused", "collection_resumed"])
-  const freezeWindows = deriveFreezeWindows(freezeEvents ?? [])
 
   // Debt Single Source of Truth (owner, 2026-07-17, PRIORITY task) — was
   // quoting raw total_outstanding to a customer, the stale never-recomputed
@@ -142,10 +97,7 @@ export async function answerDebtInquiry(supabase: any, userId: string): Promise<
   // the Next.js app runs on Node — same deliberate cross-runtime-duplication
   // pattern already documented in this file's own directory (e.g.
   // supabase/functions/line-webhook-v2/engines/quote-price.ts).
-  const { totalDue, daysOverdue } = calcCurrentDebt(
-    Number(debt.total_outstanding), debt.debt_start_at ?? debt.created_at,
-    debt.freeze_from ?? null, debt.freeze_until ?? null, freezeWindows,
-  )
+  const { totalDue, daysOverdue } = currentDebt
 
   const amount = totalDue.toLocaleString("th-TH", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
   const proposedText = `เช็คในระบบแล้วครับ — ${company.name} มียอดหนี้ค้างชำระ ${amount} บาท ผิดนัดชำระ ${daysOverdue} วันครับ`

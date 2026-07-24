@@ -60,6 +60,10 @@ export async function GET(_req: Request, { params }: Params) {
       }
     }))
 
+    const { data: takeover } = await db.from("line_conversation_controls")
+      .select("mode, reason, detected_line_event_id, assigned_to, created_at, updated_at")
+      .eq("line_user_id", relationshipId).maybeSingle()
+
     return NextResponse.json({
       relationshipId,
       company: null,
@@ -74,6 +78,7 @@ export async function GET(_req: Request, { params }: Params) {
       receipts: [],
       unlinkedCount: messages.length,
       drafts: [],
+      takeover: takeover ?? null,
     })
   }
 
@@ -201,6 +206,13 @@ export async function GET(_req: Request, { params }: Params) {
         .order("created_at", { ascending: false })
     : { data: [] }
 
+  const { data: takeoverRows } = lineUserIds.length
+    ? await db.from("line_conversation_controls")
+        .select("line_user_id, mode, reason, detected_line_event_id, assigned_to, created_at, updated_at")
+        .in("line_user_id", lineUserIds).eq("mode", "human_takeover")
+    : { data: [] }
+  const takeover = takeoverRows?.[0] ?? null
+
   // Auto document classification (owner, 2026-07-17) — receipt_documents is
   // keyed by line_event_id, which is exactly `messages[].id` above (both
   // read from line_events). Same signed-URL-per-request pattern as message
@@ -236,5 +248,6 @@ export async function GET(_req: Request, { params }: Params) {
     receipts,
     unlinkedCount,
     drafts: drafts ?? [],
+    takeover,
   })
 }

@@ -6349,7 +6349,8 @@
         "translateWithAI"
       ],
       "declared_callers": [],
-      "entry_point": true
+      "entry_point": true,
+      "status": "active"
     },
     "supabase/functions/line-webhook-v2/engines/claude-client.ts": {
       "owner": "supabase",
@@ -6362,7 +6363,8 @@
         "callClaudeTool",
         "callClaudeVision"
       ],
-      "entry_point": true
+      "entry_point": true,
+      "status": "active"
     }
   },
   "excluded": [
