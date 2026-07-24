@@ -54,7 +54,13 @@ export interface Message {
   raw_type: string
   raw_text: string | null
   direction: "in" | "out"
-  extracted: { latitude?: number; longitude?: number; address?: string } | null
+  // Owner request 2026-07-24: "อยากให้หน้าจอควบคุมขึ้นแบบเดียวกันกับฝั่ง LINE
+  // ของลูกค้า...การ์ด Template เดียวกัน ข้อมูลเดียวกัน" — for an outbound Flex
+  // message (raw_type "flex"), `flex` holds the EXACT JSON object actually
+  // pushed to LINE (registry/communication.ts's sendLineMessage()), so
+  // components/ui-kit/FlexPreview.tsx can render the identical card the
+  // customer saw — not a separate internal summary of it.
+  extracted: { latitude?: number; longitude?: number; address?: string; flex?: object } | null
   // Human Reality Timeline (owner, 2026-07-16/17) — the real original image,
   // signed fresh per request (see app/api/admin/relationships/[relationshipId]/route.ts).
   // null for non-image messages, or an image whose content wasn't fetched.
@@ -134,6 +140,7 @@ export interface RelationshipDetail {
   receipts: Receipt[]
   unlinkedCount: number
   drafts: Draft[]
+  takeover?: { line_user_id?: string; mode: "ai" | "human_takeover"; reason: string | null; created_at: string; updated_at: string } | null
 }
 
 export interface ActionLogEntry {

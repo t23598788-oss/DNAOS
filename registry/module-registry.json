@@ -4228,6 +4228,7 @@
         "ActionBar",
         "AppShell",
         "EmptyState",
+        "FlexPreview",
         "IconRail",
         "Inspector",
         "ListColumn",
@@ -6261,6 +6262,16 @@
       "exports": [
         "AutoConfirmInput",
         "tryAutoConfirmPayment"
+      ],
+      "status": "active"
+    },
+    "components/ui-kit/FlexPreview.tsx": {
+      "owner": "components",
+      "layer": "components",
+      "purpose": "Rebuilt 2026-07-24 (real file archived as AK-018 after an earlier session deleted it without updating callers — see registry/existence.json#archived_knowledge). Renders real LINE Flex Message JSON (bubble/box/text/separator/button) as a visual card, same template the customer sees, for the admin control-room timeline — owner request: \"อยากให้มันเป็นรูปแบบเดียวกัน...การ์ด Template เดียวกัน ข้อมูลเดียวกัน\"",
+      "purpose_th": "สร้างใหม่ 2026-07-24 (ไฟล์จริงเคย archive เป็น AK-018 หลัง session ก่อนลบทิ้งโดยไม่แก้ผู้เรียกใช้ — ดู registry/existence.json#archived_knowledge) แปลง LINE Flex JSON จริง (bubble/box/text/separator/button) เป็นการ์ดที่เห็นในหน้าจอควบคุม เหมือนที่ลูกค้าเห็นทุกประการ — owner ขอ: \"อยากให้มันเป็นรูปแบบเดียวกัน...การ์ด Template เดียวกัน ข้อมูลเดียวกัน\"",
+      "exports": [
+        "FlexPreview"
       ],
       "status": "active"
     }

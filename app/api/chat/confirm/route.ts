@@ -86,6 +86,9 @@ export async function POST(request: Request) {
         raw_text: `📄 ${label} ${doc.document_number} ส่งให้ลูกค้าแล้ว`,
         status: "processed",
         direction: "out",
+        // Owner request 2026-07-24: admin control room must show the EXACT
+        // card the customer received, not a paraphrased summary.
+        extracted: { flex },
       });
     } else {
       lineSendError = `ส่ง LINE ไม่สำเร็จ: ${(lineRes.error ?? "").slice(0, 200)}`;

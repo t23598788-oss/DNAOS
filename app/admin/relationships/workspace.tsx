@@ -789,8 +789,15 @@ function RelationshipWorkspace({ initialRelationshipId }: { initialRelationshipI
                   <p className="text-xs text-stone-400 italic">(ข้อความเสียง — ดึงต้นฉบับไม่สำเร็จ)</p>
                 )
               )}
-              {m.raw_type !== "image" && m.raw_type !== "file" && m.raw_type !== "audio" && (
-                <p className="text-xs text-stone-800 whitespace-pre-line">{m.raw_text ?? `[${m.raw_type}]`}</p>
+              {m.raw_type === "flex" && m.extracted?.flex ? (
+                // Owner request 2026-07-24: the admin sees the EXACT card the
+                // customer received — real Flex JSON, real template, real
+                // numbers — never a paraphrased text summary of it.
+                <FlexPreview flex={m.extracted.flex} />
+              ) : (
+                m.raw_type !== "image" && m.raw_type !== "file" && m.raw_type !== "audio" && (
+                  <p className="text-xs text-stone-800 whitespace-pre-line">{m.raw_text ?? `[${m.raw_type}]`}</p>
+                )
               )}
               <p className="text-[9px] text-stone-500 mt-1 text-right">{fmtTime(m.created_at)}</p>
             </div>

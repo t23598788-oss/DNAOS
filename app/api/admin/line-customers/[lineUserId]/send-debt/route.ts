@@ -98,6 +98,9 @@ export async function POST(req: Request, { params }: Params) {
     raw_text: `💰 แจ้งยอดค้างชำระ ${debt.total_due.toLocaleString("th-TH")} บาท ส่งให้ลูกค้าแล้ว`,
     status: "processed",
     direction: "out",
+    // Owner request 2026-07-24: admin control room must show the EXACT card
+    // the customer received — the real Flex JSON, not a paraphrased summary.
+    extracted: { flex },
   })
 
   // Owner-reported gap 2026-07-11: after this card goes out, a customer

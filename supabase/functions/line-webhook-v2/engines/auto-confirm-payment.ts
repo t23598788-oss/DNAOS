@@ -29,12 +29,57 @@
 // `already_reconciled` check are the actual double-send guard, not
 // application-level code that could itself race.
 
-async function pushLineText(lineToken: string, lineUserId: string, text: string) {
-  await fetch("https://api.line.me/v2/bot/message/push", {
+// Owner request 2026-07-24: "อยากให้มันเป็นรูปแบบเดียวกัน...การ์ด Template
+// เดียวกัน" — a real card (same bubble/box/text/separator shape as
+// debtReminderFlex in send-debt/route.ts), not a plain text sentence, so the
+// customer's payment-confirmation message looks like every other real card
+// this system sends, and the admin timeline (FlexPreview) can render the
+// identical thing.
+function paymentConfirmedFlex(opts: { companyName: string; amountPaid: number; outstandingAfter: number }): object {
+  const paidOff = opts.outstandingAfter <= 0
+  const color = paidOff ? "#2E7D32" : "#EF6C00"
+  return {
+    type: "bubble",
+    size: "kilo",
+    header: {
+      type: "box", layout: "vertical", backgroundColor: color, paddingAll: "16px",
+      contents: [{ type: "text", text: "ยืนยันรับชำระเงิน", color: "#FFFFFF", weight: "bold", size: "md" }],
+    },
+    body: {
+      type: "box", layout: "vertical", spacing: "sm",
+      contents: [
+        { type: "text", text: opts.companyName, weight: "bold", size: "sm", wrap: true },
+        { type: "separator", margin: "sm" },
+        {
+          type: "box", layout: "horizontal", margin: "sm",
+          contents: [
+            { type: "text", text: "รับชำระแล้ว", flex: 3 },
+            { type: "text", text: opts.amountPaid.toLocaleString("th-TH", { minimumFractionDigits: 2 }) + " ฿", weight: "bold", color: "#2E7D32", align: "end", flex: 2 },
+          ],
+        },
+        { type: "separator", margin: "sm" },
+        {
+          type: "box", layout: "horizontal", margin: "sm",
+          contents: [
+            { type: "text", text: paidOff ? "คงเหลือ" : "ยอดค้างชำระคงเหลือ", weight: "bold", flex: 3 },
+            { type: "text", text: opts.outstandingAfter.toLocaleString("th-TH", { minimumFractionDigits: 2 }) + " ฿", weight: "bold", color, align: "end", flex: 2 },
+          ],
+        },
+        ...(paidOff
+          ? [{ type: "text", text: "ขอบคุณครับ 🙏", size: "xs", color: "#888888" }]
+          : [{ type: "text", text: "รบกวนแจ้งวันที่สะดวกชำระส่วนที่เหลือด้วยครับ", size: "xs", color: "#888888", wrap: true }]),
+      ],
+    },
+  }
+}
+
+async function pushLineFlex(lineToken: string, lineUserId: string, altText: string, flex: object) {
+  const res = await fetch("https://api.line.me/v2/bot/message/push", {
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${lineToken}` },
-    body: JSON.stringify({ to: lineUserId, messages: [{ type: "text", text }] }),
-  }).catch(() => {})
+    body: JSON.stringify({ to: lineUserId, messages: [{ type: "flex", altText, contents: flex }] }),
+  }).catch(() => null)
+  return res?.ok ?? false
 }
 
 export interface AutoConfirmInput {
@@ -69,14 +114,25 @@ export async function tryAutoConfirmPayment(supabase: any, input: AutoConfirmInp
   if (result.already_reconciled) return
 
   const outstandingAfter = Number(result.new_outstanding)
-  const remainingText = outstandingAfter > 0
-    ? `คงเหลือยอดค้างชำระ ${outstandingAfter.toLocaleString("th-TH", { minimumFractionDigits: 2 })} บาท (ยังไม่รวมดอกเบี้ย/ค่าปรับที่อาจเกิดเพิ่มภายหลัง) รบกวนแจ้งวันที่สะดวกชำระส่วนที่เหลือด้วยได้ไหมครับ`
-    : "ชำระครบยอดแล้วครับ ขอบคุณครับ 🙏"
-  await pushLineText(
-    lineToken,
-    input.lineUserId,
-    `ได้รับชำระเงิน ${input.amount.toLocaleString("th-TH", { minimumFractionDigits: 2 })} บาท เรียบร้อยแล้วครับ 🙏 ${remainingText}`,
-  )
+  const flex = paymentConfirmedFlex({ companyName: input.companyName, amountPaid: input.amount, outstandingAfter })
+  const sent = await pushLineFlex(lineToken, input.lineUserId, "ยืนยันรับชำระเงิน", flex)
+
+  // Owner request 2026-07-24: the admin control room must show the EXACT
+  // same card the customer received (via components/ui-kit/FlexPreview.tsx),
+  // not a separate internal summary — same pattern as send-debt/route.ts and
+  // debt-reminder-cron/index.ts. Previously this function sent a message but
+  // never recorded it here at all, so it wouldn't have shown up in the admin
+  // timeline in any form.
+  if (sent) {
+    await supabase.from("line_events").insert({
+      line_user_id: input.lineUserId,
+      raw_type: "flex",
+      raw_text: `💰 ยืนยันรับชำระเงิน ${input.amount.toLocaleString("th-TH")} บาท ส่งอัตโนมัติแล้ว`,
+      status: "processed",
+      direction: "out",
+      extracted: { flex },
+    })
+  }
 
   // Reuses the SAME awaiting_payment_date + tryFollowUpDebtAck flow already
   // built for the manual debt-reminder path — including its State-Specific

@@ -18,87 +18,7 @@
 // already sent to manually earlier the same day.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.43.4"
-
-// Mirrors engines/debt/tracking.ts's calcDebtTrackingSummary (Node side, the
-// canonical version) — same copy used in
-// line-webhook-v2/engines/relationship-qa.ts, kept in sync manually per
-// this repo's established cross-runtime-duplication convention (see header
-// comment above). Any change to the real formula must be applied to all
-// three copies.
-const DEBT_INTEREST_RATE = 0.25
-const DEBT_PENALTY_PER_DAY = 100
-const DEBT_GRACE_DAYS = 30
-
-// Debt Collection Freeze Window (owner, 2026-07-18) — mirrors the Node-side
-// frozenOverlapDays() in engines/debt/tracking.ts (canonical version). Real,
-// calculated overlap between [rangeStart, rangeEnd] and the freeze window,
-// not a guess.
-function frozenOverlapDays(rangeStart: Date, rangeEnd: Date, freezeFrom: Date | null, freezeUntil: Date | null): number {
-  if (!freezeFrom) return 0
-  const freezeEnd = freezeUntil ?? rangeEnd
-  const overlapStart = freezeFrom > rangeStart ? freezeFrom : rangeStart
-  const overlapEnd = freezeEnd < rangeEnd ? freezeEnd : rangeEnd
-  const days = Math.floor((overlapEnd.getTime() - overlapStart.getTime()) / 86_400_000)
-  return Math.max(0, days)
-}
-
-// Phase B (owner, 2026-07-18) — mirrors engines/debt/tracking.ts's
-// deriveFreezeWindows/FreezeWindow (Node canonical version). Pairs each
-// collection_paused with the next collection_resumed after it, chronologically.
-interface FreezeWindow { from: string; until: string | null }
-function deriveFreezeWindows(events: { event_type: string; occurred_at: string }[]): FreezeWindow[] {
-  const sorted = [...events].sort((a, b) => a.occurred_at.localeCompare(b.occurred_at))
-  const windows: FreezeWindow[] = []
-  let openFrom: string | null = null
-  for (const e of sorted) {
-    if (e.event_type === 'collection_paused' && !openFrom) openFrom = e.occurred_at
-    else if (e.event_type === 'collection_resumed' && openFrom) {
-      windows.push({ from: openFrom, until: e.occurred_at })
-      openFrom = null
-    }
-  }
-  if (openFrom) windows.push({ from: openFrom, until: null })
-  return windows
-}
-
-function totalFrozenDays(rangeStart: Date, rangeEnd: Date, windows: FreezeWindow[]): number {
-  return windows.reduce(
-    (sum, w) => sum + frozenOverlapDays(rangeStart, rangeEnd, new Date(w.from), w.until ? new Date(w.until) : null),
-    0,
-  )
-}
-
-function calcCurrentDebt(
-  principal: number,
-  interestStartAt: string,
-  freezeFrom: string | null = null,
-  freezeUntil: string | null = null,
-  freezeWindows: FreezeWindow[] = [],
-): { principal: number; interest: number; penalty: number; totalDue: number; daysOverdue: number } {
-  const start = new Date(interestStartAt)
-  const now = new Date()
-
-  // Phase B event-derived windows take priority; fall back to the single
-  // freeze_from/freeze_until field only when no event history exists yet.
-  const windows: FreezeWindow[] = freezeWindows.length
-    ? freezeWindows
-    : freezeFrom ? [{ from: freezeFrom, until: freezeUntil }] : []
-
-  const daysElapsedRaw = Math.max(0, Math.floor((now.getTime() - start.getTime()) / 86_400_000))
-  const daysElapsed = Math.max(0, daysElapsedRaw - totalFrozenDays(start, now, windows))
-  const interest = Math.round(principal * DEBT_INTEREST_RATE * daysElapsed / 365 * 100) / 100
-
-  const defaultDate = new Date(start)
-  defaultDate.setDate(defaultDate.getDate() + DEBT_GRACE_DAYS)
-  const daysOverdueRaw = Math.max(0, Math.floor((now.getTime() - defaultDate.getTime()) / 86_400_000))
-  const daysOverdue = Math.max(0, daysOverdueRaw - totalFrozenDays(defaultDate, now, windows))
-  const penalty = daysOverdue * DEBT_PENALTY_PER_DAY
-
-  // Owner request 2026-07-18: card itemizes principal/interest/penalty now
-  // (see Node-side engines/documents/flex-template.ts's debtReminderFlex,
-  // the canonical version this mirrors) instead of one lump total.
-  return { principal, interest, penalty, totalDue: Math.round((principal + interest + penalty) * 100) / 100, daysOverdue }
-}
+import { calcDebtTrackingSummary, deriveFreezeWindows } from "../../../engines/debt/tracking-calculator.ts"
 
 function debtReminderFlex(opts: {
   companyName: string
@@ -250,9 +170,19 @@ Deno.serve(async (req) => {
     // invoice/debt-notice document — that remains an explicit open decision
     // (auto-send of a real financial document without human confirmation
     // conflicts with Rule 72) pending the owner's answer, not built here.
-    const { principal, interest, penalty, totalDue, daysOverdue } = calcCurrentDebt(
-      Number(debt.total_outstanding), debt.debt_start_at ?? debt.created_at, debt.freeze_from ?? null, debt.freeze_until ?? null, freezeWindows,
-    )
+    const summary = calcDebtTrackingSummary({
+      principalAmount: Number(debt.total_outstanding),
+      feeRate: 0,
+      interestStartAt: debt.debt_start_at ?? debt.created_at,
+      freezeFrom: debt.freeze_from ?? null,
+      freezeUntil: debt.freeze_until ?? null,
+      freezeWindows,
+    })
+    const principal = summary.principalAmount
+    const interest = summary.interestAmount
+    const penalty = summary.penaltyAmount
+    const totalDue = summary.totalAmount
+    const daysOverdue = summary.daysOverdue
 
     const { count: sentToday } = await supabase
       .from('business_events')
@@ -292,6 +222,10 @@ Deno.serve(async (req) => {
       raw_text: `💰 แจ้งยอดค้างชำระ ${totalDue.toLocaleString('th-TH')} บาท ส่งอัตโนมัติแล้ว`,
       status: 'processed',
       direction: 'out',
+      // Owner request 2026-07-24: admin control room must show the EXACT
+      // card the customer received — the real Flex JSON, same as the manual
+      // send-debt/route.ts path, not a paraphrased summary.
+      extracted: { flex },
     })
 
     const { count } = await supabase
