@@ -1,4 +1,4 @@
-import { supabase } from "@/services/supabase/queries";
+import { supabaseAdmin as supabase } from "@/services/supabase/queries";
 
 export interface EnrichedRecord {
   id: string;

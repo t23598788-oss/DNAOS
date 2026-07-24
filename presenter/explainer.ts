@@ -7,7 +7,7 @@
  * 3. อัปเดตเมื่อไร (timestamp)
  */
 
-import { supabase } from "@/services/supabase/queries";
+import { supabaseAdmin as supabase } from "@/services/supabase/queries";
 
 export interface TracedValue {
   label: string;
@@ -52,23 +52,24 @@ export async function explainQuote(params: {
     .single();
 
   // 2. ระยะทาง (ใช้ haversine ที่ inject มาจาก caller)
-  const rawDist = params.calcDistanceFn(params.site_lat, params.site_lng, pit?.latitude ?? 0, pit?.longitude ?? 0);
-  const minDist = getNum(configs, "minimum-distance");
-  const distance = Math.max(rawDist, minDist);
+  // ไม่มีขั้นต่ำระยะทาง (owner, 2026-07-24): "ไม่มีขั้นต่ำระยะทาง...จะวิ่ง
+  // กิโลเดียวก็ราคานี้อยู่แล้ว" — ระยะทางจริงเสมอ ไม่มี floor
+  const distance = params.calcDistanceFn(params.site_lat, params.site_lng, pit?.latitude ?? 0, pit?.longitude ?? 0);
 
   items.push({
     label: "ระยะทาง",
     value: parseFloat(distance.toFixed(2)),
     unit: "กม.",
     source: `pit_profiles.id=${params.pit_id?.substring(0, 8)} (${pit?.pit_name ?? "?"}) → mission GPS (${params.site_lat}, ${params.site_lng})`,
-    formula: `haversine(${params.site_lat}, ${params.site_lng}, ${pit?.latitude}, ${pit?.longitude}) = ${rawDist.toFixed(2)} กม. → max(${rawDist.toFixed(2)}, minimum-distance=${minDist}) = ${distance.toFixed(2)}`,
+    formula: `haversine(${params.site_lat}, ${params.site_lng}, ${pit?.latitude}, ${pit?.longitude}) = ${distance.toFixed(2)} กม. (ไม่มีขั้นต่ำ)`,
     timestamp: pit?.updated_at ?? now,
   });
 
-  // 3. รถ + ความจุ
-  let capacity = getNum(configs, "vehicle-default-capacity");
+  // 3. รถ + ความจุ — vehicle_types คือของจริงต่อรถแต่ละคัน (owner, 2026-07-24)
+  // ใช้ config เป็น fallback ก็ต่อเมื่อไม่มี vehicle_type_id จริงเท่านั้น
+  let capacity: number | undefined;
   let vehicleName = "รถ 10 ล้อ (default)";
-  let fuelRate = getNum(configs, "default-fuel-consumption");
+  let fuelRate: number | undefined;
   let vehicleTs = now;
 
   if (params.vehicle_type_id) {
@@ -80,6 +81,8 @@ export async function explainQuote(params: {
       vehicleTs = vt.updated_at;
     }
   }
+  if (capacity === undefined) capacity = getNum(configs, "vehicle-default-capacity");
+  if (fuelRate === undefined) fuelRate = getNum(configs, "default-fuel-consumption");
 
   const trips = Math.ceil(params.quantity / capacity);
 

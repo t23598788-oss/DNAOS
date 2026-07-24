@@ -12,7 +12,7 @@
 // bot version. Never invents a price: if no pit sells the material, or GPS
 // is unknown, says so plainly instead of guessing.
 
-import { supabase } from "@/services/supabase/queries";
+import { supabaseAdmin as supabase } from "@/services/supabase/queries";
 import { findNearestPit } from "./distance";
 import { resolveMaterial, type MaterialTypeRow } from "./material-resolver";
 

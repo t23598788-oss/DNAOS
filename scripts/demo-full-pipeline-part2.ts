@@ -99,8 +99,8 @@ async function main() {
     console.log(`   ต้นทุนจริงทั้งหมด = ${cost.total_cost} บาท`);
     console.log(`   >>> กำไรที่เจ้าของระบบได้จากงานนี้ = ${margin} บาท <<<`);
   } catch (e) {
-    console.log(`   ⚠ ข้ามส่วนนี้ไม่ได้จริง — เอนจินคำนวณต้นทุน (calcCapacity/calcCost) มีโค้ดจริงครบ แต่ app_configs ยังไม่มีค่าคงที่ธุรกิจที่จำเป็น (vehicle-default-capacity / fuel-price / default-fuel-consumption / driver-wage-per-trip): ${(e as Error).message}`);
-    console.log(`   → นี่คือช่องว่างจริงที่ demo นี้เจอ ไม่ใช่ข้อจำกัดของโค้ด ต้องให้เฮียกรอกตัวเลขจริง 4 ค่านี้ก่อนถึงจะคำนวณต้นทุน/กำไรจริงได้`);
+    console.log(`   ⚠ ${(e as Error).message}`);
+    console.log(`   → เหลือแค่ driver-wage-per-trip ตัวเดียวที่ต้องได้ตัวเลขจริงจากเฮีย — vehicle capacity/fuel consumption ใช้ข้อมูลจริงจาก vehicle_types แล้ว ไม่ต้องถามซ้ำ`);
   }
 
   console.log("\n3) ออกใบส่งของจริง (standalone_documents, document_type='ORD')...");

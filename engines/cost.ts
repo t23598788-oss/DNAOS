@@ -1,4 +1,4 @@
-import { supabase } from "@/services/supabase/queries";
+import { supabase, supabaseAdmin } from "@/services/supabase/queries";
 import { loadConfigs, getNum, audit, assertAllKnown, type AuditTrail, type VerifiedValue } from "@/core/config-loader";
 import { calcFuel } from "./fuel";
 
@@ -32,7 +32,10 @@ export async function calcCost(input: CostInput): Promise<CostResult> {
   };
 
   if (input.pit_profile_id && input.material_type_id) {
-    const { data: pm } = await supabase()
+    // pit_materials RLS is service_role_only — anon client silently gets
+    // zero rows here always, which used to make every real cost calc fall
+    // through to assertAllKnown's "assumed" failure. Found live 2026-07-24.
+    const { data: pm } = await supabaseAdmin()
       .from("pit_materials")
       .select("price")
       .eq("pit_profile_id", input.pit_profile_id)
