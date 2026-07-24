@@ -4387,8 +4387,8 @@
     "supabase/functions/line-webhook-v2/engines/debt-followup.ts": {
       "owner": "supabase",
       "layer": "supabase",
-      "purpose": "Handles the two real cases after a debt-reminder card is sent: a plain acknowledgment (asks for a payment date) vs. an actual date reply (records it verbatim to business_events.schedule_text, never parses/guesses)",
-      "purpose_th": "แยกกรณีตอบกลับหลังส่งการ์ดแจ้งหนี้ — รับทราบเฉยๆ ถามวันที่ต่อ / ตอบวันที่มาแล้ว บันทึกจริงไม่เดารูปแบบ",
+      "purpose": "Handles replies after a debt-reminder card is sent: plain acknowledgment (asks for a payment date), a real date reply (records verbatim to business_events.schedule_text), or ambiguous text with no date signal (State-Specific Guard Rail, 2026-07-24 — asks again instead of silently recording confusion as a committed payment date, real incident found)",
+      "purpose_th": "แยกการตอบกลับหลังส่งการ์ดแจ้งหนี้ — รับทราบเฉยๆ ถามวันที่ต่อ / ตอบวันที่จริงมา บันทึกจริง / ข้อความกำกวมไม่มีสัญญาณวันที่ (State-Specific Guard Rail, 2026-07-24 — ถามซ้ำแทนที่จะบันทึกความสับสนของลูกค้าเป็นวันที่นัดชำระ เจอเหตุการณ์จริง)",
       "exports": [
         "tryFollowUpDebtAck"
       ],

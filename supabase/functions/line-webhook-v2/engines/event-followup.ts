@@ -26,6 +26,21 @@ function looksLikeAQuestion(text: string): boolean {
   return /เท่าไหร่|เท่าไร|ราคา|กี่|ไหม|หรือเปล่า|มั้ย|\?/.test(text)
 }
 
+// Same State-Specific Guard Rail class as debt-followup.ts's KM-006
+// (registry/existence.json known_mistakes, found 2026-07-24 from a real
+// screenshot: "งง"/"ไลน์ อะไรงั้นนี้" while an event was open). Without this,
+// the destination fallback below would happily store those as the delivery
+// address — and since it only fills destination when currently empty, a
+// REAL address sent afterward would never overwrite the garbage, silently
+// stalling the order forever. A real Thai address is either reasonably long
+// or contains a plausible address/location word; short reactions and
+// generic interrogatives ("อะไร", "ยังไง", "ทำไม") are neither.
+function looksLikeConfusionOrFiller(text: string): boolean {
+  const trimmed = text.trim()
+  if (trimmed.length <= 3) return true
+  return /อะไร|ยังไง|ทำไม|งง|หา\?|ไม่เข้าใจ/.test(trimmed)
+}
+
 function normalizeMaterialText(text: string): string {
   return text
     .replace(/\s+/g, "")
@@ -163,9 +178,10 @@ export async function tryCompleteAwaitingEvent(
     if (nameLeftover) updates.contact_name = nameLeftover
   }
 
-  if (!ev.destination && !materialInReply.matched && !quantityInReply && !looksLikeAQuestion(replyText)) {
-    // Not a material/quantity answer and destination is still open — treat this
-    // reply as the location (own words like "เหมือนเดิม" pass through as-is).
+  if (!ev.destination && !materialInReply.matched && !quantityInReply && !looksLikeAQuestion(replyText) && !looksLikeConfusionOrFiller(replyText)) {
+    // Not a material/quantity answer, not a question, not obvious filler/
+    // confusion, and destination is still open — treat this reply as the
+    // location (own words like "เหมือนเดิม" pass through as-is).
     updates.destination = replyText.trim()
   }
 

@@ -13,6 +13,20 @@ function isAcknowledgment(text: string): boolean {
   return ACK_PATTERN.test(text.trim())
 }
 
+// State-Specific Guard Rail (owner, 2026-07-24): real incident — while an
+// event sat "awaiting_payment_date", the customer sent confused/unrelated
+// text ("งง", "ไลน์ อะไรงั้นนี้", "พี่ตามอยู่ นี่ ยากใจครับ") and the code
+// below recorded it VERBATIM as the payment date, then closed the event as
+// "confirmed" — a customer's confusion silently became a committed payment
+// promise. A real date answer will contain either a digit (25/7, วันที่ 5)
+// or a real day/relative-time word; anything with neither is ambiguous —
+// don't guess, ask again instead of silently committing state.
+const DATE_SIGNAL_PATTERN = /\d|จันทร์|อังคาร|พุธ|พฤหัส(บดี)?|ศุกร์|เสาร์|อาทิตย์|พรุ่งนี้|มะรืน(นี้)?|วันนี้|คืนนี้|เช้านี้|สัปดาห์(นี้|หน้า)|อาทิตย์หน้า|เดือนหน้า|สิ้นเดือน|ต้นเดือน|งวดหน้า/
+
+function looksLikePaymentDateAnswer(text: string): boolean {
+  return DATE_SIGNAL_PATTERN.test(text)
+}
+
 export async function tryFollowUpDebtAck(supabase: any, userId: string, text: string): Promise<string | null> {
   const { data: pending } = await supabase
     .from("business_events")
@@ -31,11 +45,18 @@ export async function tryFollowUpDebtAck(supabase: any, userId: string, text: st
     return "ขอบคุณครับ 🙏 รบกวนแจ้งวันที่สะดวกชำระด้วยได้ไหมครับ"
   }
 
-  // Not a plain ack while we're waiting on this — treat the message itself
-  // as the customer's answer, recorded verbatim (no date parsing/guessing).
+  if (!looksLikePaymentDateAnswer(text)) {
+    // Ambiguous — no digit, no day/relative-time word. Don't touch the
+    // event's state at all; ask again instead of guessing what this was.
+    return "ขออภัยครับ รบกวนแจ้งวันที่สะดวกชำระเงินได้เลยครับ หรือพิมพ์ 'ติดต่อเจ้าหน้าที่' หากต้องการคุยกับคนจริงครับ"
+  }
+
+  // Not a plain ack, and contains a real date signal — treat the message
+  // itself as the customer's answer, recorded verbatim (no date parsing),
+  // trimmed only to drop incidental leading/trailing whitespace.
   await supabase
     .from("business_events")
-    .update({ schedule_text: text, status: "confirmed", updated_at: new Date().toISOString() })
+    .update({ schedule_text: text.trim(), status: "confirmed", updated_at: new Date().toISOString() })
     .eq("id", pending.id)
 
   return `รับทราบครับ บันทึกไว้แล้วว่าจะชำระ "${text}" ขอบคุณครับ 🙏`

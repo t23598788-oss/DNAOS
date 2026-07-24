@@ -8,6 +8,7 @@ import {
 } from "lucide-react"
 import { formatMoney } from "@/engines/documents/document-editor"
 import { AppShell, ActionBar, MapView, FlexPreview, Inspector, type IconRailItem, type ListColumnItem, type ActionBarItem } from "@/components/ui-kit"
+import { createBrowserSupabase } from "@/services/supabase/browser"
 import SettingsDrawer from "@/components/settings/SettingsDrawer"
 import ContactSettingsModal from "@/components/line/ContactSettingsModal"
 import AppHeader from "@/components/nav/AppHeader"
@@ -139,12 +140,15 @@ function RelationshipWorkspace({ initialRelationshipId }: { initialRelationshipI
     setCockpitOpen(true)
   }, [])
 
-  useEffect(() => {
-    fetch("/api/admin/relationships")
-      .then((r) => r.json())
-      .then((d) => setRelationships(d.relationships ?? []))
-      .finally(() => setLoading(false))
+  const loadRelationships = useCallback(async () => {
+    const res = await fetch("/api/admin/relationships", { cache: "no-store" })
+    const data = await res.json()
+    if (res.ok) setRelationships(data.relationships ?? [])
   }, [])
+
+  useEffect(() => {
+    loadRelationships().finally(() => setLoading(false))
+  }, [loadRelationships])
 
   useEffect(() => {
     let cancelled = false
@@ -198,8 +202,9 @@ function RelationshipWorkspace({ initialRelationshipId }: { initialRelationshipI
   }, [])
 
   const loadDetail = useCallback(async (relationshipId: string) => {
-    const res = await fetch(`/api/admin/relationships/${relationshipId}`)
+    const res = await fetch(`/api/admin/relationships/${relationshipId}`, { cache: "no-store" })
     const d = await res.json()
+    if (!res.ok) return
     setDetail({
       relationshipId: d.relationshipId, company: d.company, unmatched: d.unmatched ?? false,
       lineUserIds: d.lineUserIds ?? [], primaryLineUserId: d.primaryLineUserId ?? null,
@@ -208,6 +213,37 @@ function RelationshipWorkspace({ initialRelationshipId }: { initialRelationshipI
       unlinkedCount: d.unlinkedCount ?? 0, drafts: d.drafts ?? [],
     })
   }, [])
+
+  // LINE is the source of truth for the live conversation. Company matching
+  // is optional enrichment and must never gate a new contact or a new message
+  // from appearing in the workspace. INSERT covers inbound/outbound messages;
+  // UPDATE covers media_path arriving after the initial image/file row.
+  useEffect(() => {
+    const client = createBrowserSupabase()
+    const channel = client
+      .channel("line-events-workspace")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "line_events" },
+        (payload) => {
+          const row = (payload.new ?? payload.old) as { line_user_id?: string } | null
+          const lineUserId = row?.line_user_id
+          if (!lineUserId) return
+
+          // Refresh the sidebar so a brand-new LINE contact appears without
+          // refresh or company matching. Refresh the open room only when the
+          // changed row belongs to its LINE thread.
+          void loadRelationships()
+          const activeThread = activeId === lineUserId || detail?.lineUserIds.includes(lineUserId)
+          if (activeThread && activeId) void loadDetail(activeId)
+        }
+      )
+      .subscribe()
+
+    return () => {
+      void client.removeChannel(channel)
+    }
+  }, [activeId, detail?.lineUserIds, loadDetail, loadRelationships])
 
   const selectRelationship = useCallback(async (relationshipId: string) => {
     setActiveId(relationshipId)
@@ -279,6 +315,16 @@ function RelationshipWorkspace({ initialRelationshipId }: { initialRelationshipI
       if (!res.ok) {
         setBuildError(d.error ?? "สร้าง Event ไม่สำเร็จ")
         return
+      }
+      // Real incident 2026-07-24: this used to auto-send the missing-info
+      // question straight to the customer, no review — an ambiguous debt
+      // conversation got misclassified as a material order and the wrong
+      // message went out 3 times. Now it only pre-fills the existing reply
+      // box; the admin reads/edits/sends it themselves, or clears it if the
+      // classification was wrong for this cluster.
+      if (d.pendingReply) {
+        setReplyText(d.pendingReply)
+        setBuildError("AI แนะนำคำถามนี้ — ตรวจสอบก่อนกด \"ส่ง\" ด้านล่าง หรือลบทิ้งถ้าจัดหมวดผิด")
       }
       await loadDetail(relationshipId)
     } finally {
@@ -1125,6 +1171,13 @@ function RelationshipWorkspace({ initialRelationshipId }: { initialRelationshipI
 
             {contactSettingsOpen && primaryLineUserId && (
               <ContactSettingsModal lineUserId={primaryLineUserId} onClose={() => setContactSettingsOpen(false)} />
+            )}
+
+            {detail?.takeover?.mode === "human_takeover" && (
+              <div className="px-4 py-2.5 bg-rose-50 border-b border-rose-200 flex-shrink-0">
+                <div className="text-xs font-bold text-rose-700">มนุษย์รับช่วงต่อแล้ว — AI หยุดตอบอัตโนมัติ</div>
+                <div className="text-[11px] text-rose-600 mt-0.5">เหตุผล: {detail.takeover.reason ?? "ข้อความมีข้อขัดแย้งกับระบบ"}</div>
+              </div>
             )}
 
             {/* Pending drafts — Rule 72 approval banner */}

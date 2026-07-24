@@ -4,8 +4,6 @@ import { ADMIN_TIER } from "@/core/auth/session"
 import { supabaseAdmin as supabase } from "@/services/supabase/queries"
 import { buildEventFromMessages, generateEventCode } from "@/engines/events/event-builder"
 import { tryAutoCreateJob, composeMissingInfoMessage } from "@/engines/jobs/auto-create"
-import { sendLineMessage } from "@/registry/communication"
-
 type Params = { params: Promise<{ lineUserId: string }> }
 
 // Turns a LINE contact's not-yet-eventized messages into one business_events
@@ -15,8 +13,16 @@ type Params = { params: Promise<{ lineUserId: string }> }
 //
 // Immediately after, tries to auto-open a real Job from that event — no
 // admin has to fill in a form (owner instruction 2026-07-10: "ไม่ต้องให้คน
-// มานั่งสร้างงานเอง"). If something real is missing, it asks the customer
-// directly on LINE for exactly that, never guesses.
+// มานั่งสร้างงานเอง"). If something real is missing, this used to push a
+// LINE message to the customer automatically — real incident 2026-07-24:
+// an ambiguous debt-conversation cluster got misclassified as a material
+// order, and the auto-sent "ส่งชนิดวัสดุ..." question went out 3 times (the
+// awaiting_info status is deliberately excluded from "already linked" below
+// so a reply can merge into the same event — which also means every repeat
+// click on an unresolved event re-fires the same auto-send). Fixed: this
+// route no longer sends anything itself. It returns pendingReply — the
+// admin reviews/edits it in the existing reply box and sends it themselves
+// via /reply, same real preview-before-send principle as send-debt.
 //
 // If this contact already has an event sitting in "awaiting_info" (we asked
 // them something and they haven't answered yet), new messages are treated
@@ -24,10 +30,6 @@ type Params = { params: Promise<{ lineUserId: string }> }
 // disconnected new one — owner-reported bug 2026-07-10: a reply like
 // "ทรายหยาบ" was creating a brand new unrelated event instead of completing
 // the one that asked "ทราย ชนิดไหนครับ".
-
-async function pushLineText(userId: string, text: string) {
-  await sendLineMessage(userId, [{ type: "text", text }]).catch(() => {})
-}
 
 export async function POST(_req: Request, { params }: Params) {
   const auth = await requireAuth(ADMIN_TIER)
@@ -157,15 +159,20 @@ export async function POST(_req: Request, { params }: Params) {
   // Only requests that actually need a Job get the auto-create attempt —
   // general questions ("สอบถามทั่วไป") don't need one.
   let autoJob: Awaited<ReturnType<typeof tryAutoCreateJob>> | null = null
+  let pendingReply: string | null = null
   if (inserted.status === "quotation_pending") {
     autoJob = await tryAutoCreateJob(db, inserted)
     if (autoJob.status === "needs_info") {
-      await pushLineText(lineUserId, composeMissingInfoMessage(autoJob))
+      // Not sent automatically (2026-07-24 fix) — the caller shows this in
+      // the existing reply box for the admin to review/edit/send, or ignore
+      // entirely if the classification itself was wrong (e.g. this cluster
+      // wasn't actually a material request).
+      pendingReply = composeMissingInfoMessage(autoJob)
       await db.from("business_events").update({ status: "awaiting_info" }).eq("id", inserted.id)
     } else if (autoJob.status === "ready_to_quote") {
       await db.from("business_events").update({ status: "ready_to_quote" }).eq("id", inserted.id)
     }
   }
 
-  return NextResponse.json({ event: inserted, autoJob })
+  return NextResponse.json({ event: inserted, autoJob, pendingReply })
 }
