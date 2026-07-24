@@ -6,14 +6,20 @@ import { resolvePaymentDocumentLink } from "@/engines/transactions/document-link
 
 type Params = { params: Promise<{ id: string }> }
 
-// Payment Verification Engine — Phase 1 (owner, 2026-07-18): the ONLY place
+// Payment Verification Engine — Phase 1 (owner, 2026-07-18): the manual path
 // a LINE-slip classification (receipt_documents, status "ai_read" = Pending
 // Review under this table's pre-existing 3-state vocabulary) turns into a
 // real receipt_received debt event. A human clicking this button IS the
-// confirmation Rule 72 requires — no second evidence source exists yet to
-// auto-verify (bank email/gateway/statement feeds are all unbuilt, see the
-// migration header), so every transfer_slip stays Pending Review until a
-// person here says otherwise. Never auto-executed.
+// confirmation Rule 72 requires.
+//
+// UPDATED 2026-07-24 (owner decision, Autonomous Payment Confirmation): this
+// is no longer the ONLY path — supabase/functions/line-webhook-v2/handlers/
+// image.ts's tryAutoConfirmPayment() now does this same mutation
+// automatically, but ONLY when the OCR evidence is already fully legible
+// (amount + sender_name + transaction_datetime + a real matched company).
+// This manual route remains the path for everything else: incomplete
+// evidence, a customer_company_id that needed matching after the fact, or
+// any slip that stayed Pending Review for a human to check.
 export async function POST(_req: Request, { params }: Params) {
   const auth = await requireAuth(ADMIN_TIER)
   if (auth instanceof NextResponse) return auth
@@ -28,8 +34,13 @@ export async function POST(_req: Request, { params }: Params) {
     .maybeSingle()
   if (docErr) return NextResponse.json({ error: docErr.message }, { status: 500 })
   if (!doc) return NextResponse.json({ error: "ไม่พบเอกสาร" }, { status: 404 })
-  if (doc.document_type !== "transfer_slip") {
-    return NextResponse.json({ error: "ยืนยันได้เฉพาะสลิปโอนเงินเท่านั้น" }, { status: 400 })
+  // Real incident found 2026-07-24 (บจก. เคที คอนสตรัคชั่น, ฿5,000 slip):
+  // ocr-classify.ts's own DOCUMENT_TYPE_PROFILE treats "payment_advice" as an
+  // equally real incoming-payment type alongside "transfer_slip" — this
+  // guard only accepted transfer_slip, so a real payment classified as
+  // payment_advice could never be confirmed even once matched to a company.
+  if (doc.document_type !== "transfer_slip" && doc.document_type !== "payment_advice") {
+    return NextResponse.json({ error: "ยืนยันได้เฉพาะสลิปโอนเงินหรือ Payment Advice เท่านั้น" }, { status: 400 })
   }
   if (doc.status !== "ai_read") {
     return NextResponse.json({ error: `เอกสารนี้ถูกดำเนินการไปแล้ว (สถานะ: ${doc.status})` }, { status: 400 })

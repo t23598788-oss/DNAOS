@@ -4364,6 +4364,15 @@
       "status": "active",
       "entry_point": true
     },
+    "supabase/functions/receipt-reconcile-sweep/index.ts": {
+      "owner": "admin",
+      "layer": "services",
+      "purpose": "Self-healing sweep (owner request, 2026-07-24: \"ทำไมไม่ทำให้มันอัปเดตตัวเองแบบ real-time\"), pg_cron-triggered every 5 min: finds receipt_documents still Pending Review with complete OCR evidence (amount+sender_name+transaction_datetime), backfills company-matching if that's the only thing missing, then reuses tryAutoConfirmPayment (auto-confirm-payment.ts) — same reconciliation engine as the event-driven inline path, not a second implementation. Not yet deployed/scheduled — needs `supabase functions deploy` + a dedicated RECEIPT_RECONCILE_CRON_SECRET + the real cron.schedule call, all pending owner go-ahead (see migration 20260724000003)",
+      "purpose_th": "Sweep ตัวเอง (owner ขอ 2026-07-24: \"ทำไมไม่ทำให้มันอัปเดตตัวเองแบบ real-time\") pg_cron เรียกทุก 5 นาที หาสลิปที่ยังค้าง Pending Review แต่ข้อมูลครบ (ยอด+ชื่อผู้โอน+เวลา) จับคู่บริษัทย้อนหลังถ้าขาดแค่นั้น แล้วเรียก tryAutoConfirmPayment ตัวเดียวกับเส้นทางอัตโนมัติตอนรับสลิปใหม่ ไม่ใช่ implementation ที่สอง — ยังไม่ได้ deploy/schedule จริง รอ owner อนุมัติ (ดู migration 20260724000003)",
+      "exports": [],
+      "status": "active",
+      "entry_point": true
+    },
     "app/api/admin/line-customers/[lineUserId]/send-debt/route.ts": {
       "owner": "admin",
       "layer": "api",
@@ -6241,6 +6250,17 @@
       "purpose_th": "จุดส่งขอราคาที่แอดมินต้องกดยืนยันเอง — ยิงข้อความ LINE จริงถามราคาไปหาคู่ค้า (บ่อ/แพล้นท์) แล้วสร้างแถว pit_price_requests รอคำตอบให้ webhook LINE จับคู่ ไม่ส่งอัตโนมัติเด็ดขาด",
       "exports": [
         "POST"
+      ],
+      "status": "active"
+    },
+    "supabase/functions/line-webhook-v2/engines/auto-confirm-payment.ts": {
+      "owner": "supabase",
+      "layer": "supabase",
+      "purpose": "Autonomous Payment Confirmation (owner decision, 2026-07-24) — auto-applies the same ledger mutation as the manual confirm route (debt_events + debt_snapshots.total_outstanding + receipt_documents), but ONLY when OCR evidence is fully legible (amount + sender_name + transaction_datetime + matched company). Also messages the customer the new balance and pushes a real receipt document via the internal document-artifact bridge. A deliberate, owner-authorized narrowing of Rule 115's human-confirm requirement, not a general bypass",
+      "purpose_th": "ยืนยันรับเงินอัตโนมัติ (owner ตัดสินใจ 2026-07-24) — ทำ mutation เดียวกับ confirm route แบบ manual (debt_events + debt_snapshots.total_outstanding + receipt_documents) แต่เฉพาะเมื่อหลักฐาน OCR ครบถ้วนชัดเจน (ยอด+ชื่อผู้โอน+เวลา+จับคู่บริษัทแล้ว) พร้อมแจ้งยอดคงเหลือกลับลูกค้าและส่งใบเสร็จจริงผ่าน internal bridge เป็นการลดขอบเขต Rule 115 ที่ owner อนุมัติเอง ไม่ใช่การข้ามกฎทั่วไป",
+      "exports": [
+        "AutoConfirmInput",
+        "tryAutoConfirmPayment"
       ],
       "status": "active"
     }

@@ -18,10 +18,16 @@ export async function GET(_req: Request) {
   if (auth instanceof NextResponse) return auth
 
   const db = supabase()
+  // Real incident found 2026-07-24 (บจก. เคที คอนสตรัคชั่น, ฿5,000 slip):
+  // ocr-classify.ts treats "payment_advice" as an equally real incoming-
+  // payment type alongside "transfer_slip" (same business_category/workflow
+  // in its own DOCUMENT_TYPE_PROFILE) — this list only showed transfer_slip,
+  // so a real payment classified as payment_advice never appeared here at
+  // all, invisible to any human review.
   const { data: docs, error } = await db
     .from("receipt_documents")
     .select("id, amount, transaction_datetime, document_date, customer_company_id, sender_name, reference_number, status, verification_level, created_at")
-    .eq("document_type", "transfer_slip")
+    .in("document_type", ["transfer_slip", "payment_advice"])
     .eq("status", "ai_read")
     .order("created_at", { ascending: false })
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
