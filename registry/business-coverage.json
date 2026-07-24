@@ -79,11 +79,17 @@
     "maintenance": {
       "label": "ซ่อมบำรุง / เครื่องจักร",
       "status": "partial",
-      "modules": [],
+      "modules": [
+        "engines/equipment/relay-command.ts",
+        "app/api/admin/equipment/route.ts",
+        "app/api/admin/equipment/trigger-start/route.ts",
+        "app/api/admin/equipment/toggle-permission/route.ts",
+        "app/admin/equipment/page.tsx"
+      ],
       "commands": [],
       "workflows": [],
-      "documents": [],
-      "gap": "มี kis-webhook สำหรับรับ event จากเครื่องจักร แต่ยังไม่มี engine จัดการซ่อมบำรุง"
+      "documents": ["docs/equipment-maintenance-lock-module.md"],
+      "gap": "มี equipment_assets/driver_equipment_permissions + admin toggle + relay-command engine (gated, รอ SMS gateway จริง) แต่ยังไม่มี telemetry ingestion, engine-hours accumulation, maintenance ticket ที่ 250h, auto-lock ที่ +50h เกิน หรือ shift-lock 17:00 — รายละเอียดเต็มดู docs/equipment-maintenance-lock-module.md (correction 2026-07-24: ก่อนหน้านี้อ้าง 'kis-webhook' ซึ่งไม่มีไฟล์จริงรองรับ)"
     },
     "accounting": {
       "label": "บัญชี / งบการเงิน",
