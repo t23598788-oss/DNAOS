@@ -143,7 +143,18 @@ export default function ContactSettingsModal({ lineUserId, onClose }: { lineUser
             </div>
           )}
 
-          {currentCategory && isLeaf && currentCategory.built && (
+          {/* Equipment GPS/Relay Permission System (owner spec, 2026-07-24) —
+              special-cased, not the generic field-list renderer, because
+              the equipment list is real dynamic data (grows as units are
+              added at /admin/equipment), not a fixed FieldDef set. Reuses
+              the SAME /api/admin/equipment* routes and
+              driver_equipment_permissions table /admin/equipment already
+              uses — one real permission system, a second entry point. */}
+          {currentCategory && isLeaf && currentCategory.key === "equipment" && (
+            <EquipmentPermissionList lineUserId={lineUserId} />
+          )}
+
+          {currentCategory && isLeaf && currentCategory.key !== "equipment" && currentCategory.built && (
             <div className="p-4 space-y-3">
               {(currentCategory.fields ?? []).map((field) => (
                 <FieldControl
@@ -229,5 +240,75 @@ function FieldControl({
         onChange={(e) => onChange(e.target.value)}
       />
     </label>
+  )
+}
+
+// Equipment GPS/Relay Permission System (owner spec, 2026-07-24): "ติ๊กว่า
+// ผู้ใช้คนนี้ควรทำอะไรกับเครื่องจักรชนิดนี้ได้บ้าง...ผู้ควบคุมมีสิทธิ์สูงสุด...
+// ถึงมีกุญแจก็สตาร์ตไม่ได้ถ้าสิทธิ์ไม่ถูกติ๊ก" — one checkbox per equipment
+// unit, reusing the exact same /api/admin/equipment (list) and
+// /api/admin/equipment/toggle-permission (save) routes /admin/equipment
+// already calls. app/api/admin/equipment/trigger-start/route.ts is the
+// enforcement point: it checks driver_equipment_permissions.is_active
+// before ever sending a real unlock command — an untick here is the actual
+// lock, independent of whether the driver holds a physical key.
+interface EquipmentRow {
+  id: string
+  asset_code: string
+  name: string
+  permissions: { line_user_id: string; is_active: boolean }[]
+}
+
+function EquipmentPermissionList({ lineUserId }: { lineUserId: string }) {
+  const [equipment, setEquipment] = useState<EquipmentRow[] | null>(null)
+  const [pendingId, setPendingId] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
+
+  const load = useCallback(async () => {
+    const res = await fetch("/api/admin/equipment")
+    const data = await res.json()
+    setEquipment(data.equipment ?? [])
+  }, [])
+
+  useEffect(() => { load() }, [load])
+
+  async function toggle(equipmentId: string, next: boolean) {
+    setPendingId(equipmentId)
+    setError(null)
+    const res = await fetch("/api/admin/equipment/toggle-permission", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ lineUserId, equipmentId, isActive: next }),
+    })
+    const data = await res.json()
+    setPendingId(null)
+    if (!res.ok) { setError(data.error ?? "บันทึกไม่สำเร็จ"); return }
+    await load()
+  }
+
+  if (equipment === null) return <div className="p-6 text-center text-xs text-stone-400">โหลด...</div>
+  if (equipment.length === 0) {
+    return <div className="p-6 text-center text-xs text-stone-400">ยังไม่มีเครื่องจักรในระบบ — เพิ่มได้ที่ /admin/equipment</div>
+  }
+
+  return (
+    <div className="p-4 space-y-1">
+      {error && <div className="text-xs text-rose-600 bg-rose-50 border border-rose-200 rounded-lg px-3 py-2 mb-2">{error}</div>}
+      {equipment.map((eq) => {
+        const isActive = eq.permissions.find((p) => p.line_user_id === lineUserId)?.is_active ?? false
+        return (
+          <label key={eq.id} className="flex items-center gap-2.5 py-1.5 text-sm text-stone-700 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={isActive}
+              disabled={pendingId === eq.id}
+              onChange={(e) => toggle(eq.id, e.target.checked)}
+              className="rounded border-stone-300"
+            />
+            <span>{eq.name} <span className="text-[11px] text-stone-400">({eq.asset_code})</span></span>
+          </label>
+        )
+      })}
+    </div>
   )
 }

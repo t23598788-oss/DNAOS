@@ -6031,8 +6031,8 @@
     "components/line/ContactSettingsModal.tsx": {
       "owner": "components",
       "layer": "components",
-      "purpose": "Generic tree-renderer for the Contact Settings popup — reads registry/contact-settings-categories.ts and renders whatever categories are declared there, never hardcodes module-specific JSX",
-      "purpose_th": "Popup ตั้งค่าผู้ติดต่อ — เป็น generic tree-renderer อ่านจาก registry/contact-settings-categories.ts แล้ว render ตามที่ประกาศไว้ ไม่ hardcode JSX เฉพาะโมดูล",
+      "purpose": "Generic tree-renderer for the Contact Settings popup — reads registry/contact-settings-categories.ts and renders whatever categories are declared there, never hardcodes module-specific JSX. One deliberate special case (2026-07-24): the \"equipment\" category renders EquipmentPermissionList instead of the generic FieldDef form, since the equipment list is real dynamic data (grows at /admin/equipment), not a fixed field set — reuses the same driver_equipment_permissions API /admin/equipment already calls, a second entry point on one real permission system, not a parallel one",
+      "purpose_th": "Popup ตั้งค่าผู้ติดต่อ — เป็น generic tree-renderer อ่านจาก registry/contact-settings-categories.ts แล้ว render ตามที่ประกาศไว้ ไม่ hardcode JSX เฉพาะโมดูล มีข้อยกเว้นเดียวที่ตั้งใจ (2026-07-24): หมวด \"equipment\" render EquipmentPermissionList แทนฟอร์ม FieldDef ทั่วไป เพราะรายการเครื่องจักรเป็นข้อมูลจริงที่เพิ่มได้เรื่อยๆ (ที่ /admin/equipment) ไม่ใช่ field ตายตัว ใช้ API driver_equipment_permissions ตัวเดียวกับที่ /admin/equipment เรียกอยู่แล้ว",
       "exports": [
         "ContactSettingsModal"
       ],

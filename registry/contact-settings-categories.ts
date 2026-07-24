@@ -113,6 +113,18 @@ export const CONTACT_SETTINGS_CATEGORIES: CategoryNode[] = [
     key: "notes", label: "หมายเหตุ", parent: null, target: "profile", built: true,
     fields: [{ key: "notes", label: "หมายเหตุ", type: "textarea" }],
   },
+
+  // Equipment GPS/Relay Permission System (owner spec, 2026-07-24): "ในแอป
+  // UI ที่กดคลิกเข้าไปในรูปโปรไฟล์...ให้มีปุ่มให้แอดมินติ๊กว่าให้สิทธิ์เกี่ยวกับ
+  // เครื่องจักรอะไรบ้าง" — no static `fields` here on purpose: the equipment
+  // list is real, dynamic data (grows as units are added at /admin/equipment),
+  // not a fixed field set the declarative FieldDef system models. Rendered
+  // as a special case in ContactSettingsModal.tsx (EquipmentPermissionList),
+  // backed by the SAME driver_equipment_permissions table and the SAME
+  // /api/admin/equipment* routes /admin/equipment already uses — one real
+  // permission system, two entry points (per-contact here, per-equipment
+  // there), not a second parallel one.
+  { key: "equipment", label: "เครื่องจักร (GPS Relay)", parent: null, target: "permissions", built: true },
 ]
 
 export function childrenOf(key: string | null): CategoryNode[] {
