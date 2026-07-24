@@ -6274,6 +6274,71 @@
         "FlexPreview"
       ],
       "status": "active"
+    },
+    "registry/line-richmenu.ts": {
+      "owner": "registry",
+      "layer": "registry",
+      "purpose": "Equipment GPS/Relay Permission System (owner spec, 2026-07-24) — links/unlinks a per-user LINE Rich Menu so a driver's start button appears only while permission is active. Only links an EXISTING Rich Menu (creating one needs a real uploaded image, not done here); gates cleanly on missing LINE_RICHMENU_START_ID",
+      "purpose_th": "ระบบสิทธิ์ GPS Relay ของเครื่องจักร (owner สั่ง 2026-07-24) — ผูก/ถอด Rich Menu รายบุคคลบน LINE ให้ปุ่มสตาร์ตขึ้นเฉพาะตอนมีสิทธิ์ ผูกได้เฉพาะ Rich Menu ที่มีอยู่แล้ว (การสร้างต้องมีรูปจริงอัปโหลดก่อน ไม่ได้ทำในไฟล์นี้) gate สะอาดถ้ายังไม่มี LINE_RICHMENU_START_ID",
+      "exports": [
+        "RichMenuResult",
+        "setDriverStartButtonRichMenu"
+      ],
+      "status": "active"
+    },
+    "engines/equipment/relay-command.ts": {
+      "owner": "engines",
+      "layer": "engines",
+      "purpose": "Equipment GPS/Relay Permission System (owner spec, 2026-07-24) — builds the SMS relay command and sends it via an SMS gateway. Both the command syntax (buildRelayCommandText) and the gateway (sendRelayCommand) are honestly marked placeholder/gated — no real GPSDD GDD070 command manual or SMS provider chosen yet as of this pass",
+      "purpose_th": "ระบบสิทธิ์ GPS Relay ของเครื่องจักร (owner สั่ง 2026-07-24) — สร้างคำสั่ง SMS relay และส่งผ่าน SMS gateway ทั้งรูปแบบคำสั่ง (buildRelayCommandText) และตัวส่ง (sendRelayCommand) ทำเครื่องหมายไว้ตรงๆ ว่าเป็น placeholder/gate — ยังไม่มีคู่มือคำสั่งจริงของกล่อง GPSDD GDD070 หรือเลือกผู้ให้บริการ SMS ตอนนี้",
+      "exports": [
+        "RelayAction",
+        "RelayCommandResult",
+        "buildRelayCommandText",
+        "sendRelayCommand"
+      ],
+      "status": "active"
+    },
+    "app/admin/equipment/page.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Equipment GPS/Relay Permission System (owner spec, 2026-07-24) — admin page to create equipment units and toggle a driver's start permission per unit. Dedicated page (like /admin/pits), not folded into Contact Settings — a driver↔equipment relationship is many-to-many, which the generic per-contact settings jsonb doesn't model",
+      "purpose_th": "ระบบสิทธิ์ GPS Relay ของเครื่องจักร (owner สั่ง 2026-07-24) — หน้าแอดมินสร้างเครื่องจักรและเปิด/ปิดสิทธิ์คนขับต่อเครื่อง เป็นหน้าเฉพาะ (เหมือน /admin/pits) ไม่รวมเข้า Contact Settings เพราะความสัมพันธ์คนขับ↔เครื่องจักรเป็น many-to-many ที่ jsonb ต่อผู้ติดต่อธรรมดาโมเดลไม่ได้",
+      "exports": [
+        "EquipmentPage"
+      ],
+      "status": "active"
+    },
+    "app/api/admin/equipment/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Equipment GPS/Relay Permission System (owner spec, 2026-07-24) — GET lists equipment + their permissions, POST creates a new equipment unit. Real auth (requireAuth), unlike the original spec's route which had none",
+      "purpose_th": "ระบบสิทธิ์ GPS Relay ของเครื่องจักร (owner สั่ง 2026-07-24) — GET รายการเครื่องจักร+สิทธิ์, POST สร้างเครื่องจักรใหม่ มี auth จริง (requireAuth) ต่างจากสเปกต้นฉบับที่ไม่มี auth เลย",
+      "exports": [
+        "GET",
+        "POST"
+      ],
+      "status": "active"
+    },
+    "app/api/admin/equipment/trigger-start/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Equipment GPS/Relay Permission System (owner spec, 2026-07-24) — the real hardware-unlock trigger. Deliberately admin-confirmed (requireAuth), not auto-fired from an unattended LINE message as the original spec proposed — starting real heavy machinery carries a higher risk class than a financial confirmation, so Rule 72's confirm-before-act is applied more conservatively here than the payment auto-confirm case",
+      "purpose_th": "ระบบสิทธิ์ GPS Relay ของเครื่องจักร (owner สั่ง 2026-07-24) — จุดสั่งปลดล็อกเครื่องจักรจริง ตั้งใจให้ต้องมีแอดมินยืนยัน (requireAuth) ไม่ยิงอัตโนมัติจากข้อความ LINE แบบสเปกต้นฉบับ เพราะสตาร์ตเครื่องจักรหนักจริงมีความเสี่ยงสูงกว่าการยืนยันเรื่องเงิน จึงใช้หลัก Rule 72 (ยืนยันก่อนทำ) เข้มกว่ากรณี auto-confirm การชำระเงิน",
+      "exports": [
+        "POST"
+      ],
+      "status": "active"
+    },
+    "app/api/admin/equipment/toggle-permission/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Equipment GPS/Relay Permission System (owner spec, 2026-07-24) — the admin toggle ('ไม้กายสิทธิ์'): sets a driver's permission for one equipment unit and updates their LINE Rich Menu to match, so what they can do on LINE always reflects real permission, never a stale UI",
+      "purpose_th": "ระบบสิทธิ์ GPS Relay ของเครื่องจักร (owner สั่ง 2026-07-24) — ปุ่มไม้กายสิทธิ์ของแอดมิน ตั้งสิทธิ์คนขับต่อเครื่องจักรแล้วอัปเดต Rich Menu ให้ตรงกันทันที ป้องกัน UI ค้างไม่ตรงกับสิทธิ์จริง",
+      "exports": [
+        "POST"
+      ],
+      "status": "active"
     }
   },
   "excluded": [
