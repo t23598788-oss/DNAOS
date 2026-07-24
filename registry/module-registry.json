@@ -6211,6 +6211,38 @@
         "GET"
       ],
       "status": "active"
+    },
+    "engines/geocoding.ts": {
+      "owner": "engines",
+      "layer": "engines",
+      "purpose": "Longdo Map Search API geocoding — converts a customer's typed Thai address into lat/lng when they don't share a live LINE location pin. Gated cleanly on missing LONGDO_MAP_API_KEY (same pattern as LINE_CHANNEL_ACCESS_TOKEN/TASK-017), never guesses",
+      "purpose_th": "แปลงที่อยู่ข้อความไทยเป็น lat/lng ผ่าน Longdo Map Search API — ใช้เมื่อลูกค้าไม่ได้แชร์ location pin สดจาก LINE gate สะอาดถ้ายังไม่มี LONGDO_MAP_API_KEY (pattern เดียวกับ LINE_CHANNEL_ACCESS_TOKEN/TASK-017) ไม่เดา",
+      "exports": [
+        "GeocodeResult",
+        "geocodeThaiAddress"
+      ],
+      "status": "active"
+    },
+    "supabase/functions/line-webhook-v2/engines/supplier-quote-reply.ts": {
+      "owner": "supabase",
+      "layer": "supabase",
+      "purpose": "Outbound Supplier RFQ reply parser — the only place a pit/plant's LINE reply becomes a real pit_materials price update. Narrow match only: known pit's line_user_id + a real pending pit_price_requests row + a parseable number, else returns null and falls through",
+      "purpose_th": "ตัวอ่านคำตอบราคาจากบ่อ/แพล้นท์ผ่าน LINE — จุดเดียวที่คำตอบกลายเป็นการอัปเดต pit_materials จริง จับคู่เฉพาะเมื่อรู้ว่าเป็น line_user_id ของบ่อจริง + มี pit_price_requests ค้างอยู่จริง + อ่านตัวเลขได้ชัดเจน ไม่งั้นคืน null ให้ไหลผ่านไป",
+      "exports": [
+        "extractPrice",
+        "trySupplierQuoteReply"
+      ],
+      "status": "active"
+    },
+    "app/api/admin/pits/[pitId]/request-quote/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Admin-confirmed outbound RFQ send — the one send path asking a pit's real LINE contact for their current material price, creating a pending pit_price_requests row the LINE webhook's reply parser matches against. Admin-triggered only, never auto-sent",
+      "purpose_th": "จุดส่งขอราคาที่แอดมินต้องกดยืนยันเอง — ยิงข้อความ LINE จริงถามราคาไปหาคู่ค้า (บ่อ/แพล้นท์) แล้วสร้างแถว pit_price_requests รอคำตอบให้ webhook LINE จับคู่ ไม่ส่งอัตโนมัติเด็ดขาด",
+      "exports": [
+        "POST"
+      ],
+      "status": "active"
     }
   },
   "excluded": [

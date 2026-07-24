@@ -18,6 +18,8 @@ import { buildPartnerTimeline, buildPartnerSummary } from "@/engines/partner/tim
 import { getCurrentDebt, type CurrentDebt } from "@/engines/debt/tracking";
 import { resolveMaterial } from "@/engines/material-resolver";
 import { tryQuoteMaterialPrice } from "@/engines/quote-price";
+import { calcCapacity } from "@/engines/capacity";
+import { calcCost } from "@/engines/cost";
 import { loadCompanySettings } from "@/core/config/company-settings";
 import registry from "@/registry/command-registry.json";
 
@@ -107,12 +109,38 @@ const QUERY_MAP: Record<string, QueryFn> = {
       return { matched: true, material_name: match.matched.name, error: quote.text };
     }
 
+    // Real transport cost (owner, 2026-07-24) — document generation (unlike
+    // the chat quick-reply text, which deliberately says "ยังไม่รวมค่าขนส่ง")
+    // needs a real total. Reuses the SAME matched pit/distance quote already
+    // found above (never re-derives a possibly-different nearest pit), plus
+    // the existing, already-built, never-before-wired vehicle-capacity/fuel/
+    // driver-wage engines (engines/capacity.ts, engines/cost.ts) — no new
+    // pricing math invented here.
+    let transportCost = 0;
+    let trips: number | undefined;
+    if (quote.pitProfileId != null && quote.distanceKm != null) {
+      const capacity = await calcCapacity({ quantity });
+      const cost = await calcCost({
+        distance_km: quote.distanceKm,
+        quantity,
+        trips: capacity.trips_required,
+        material_type_id: match.matched.id,
+        pit_profile_id: quote.pitProfileId,
+      });
+      transportCost = cost.fuel_cost + cost.driver_wage;
+      trips = capacity.trips_required;
+    }
+
     return {
       matched: true,
       material_name: quote.materialName ?? match.matched.name,
       quantity,
       unit: quote.quantityUnit ?? "คิว",
       unit_price: quote.unitPrice,
+      distance_km: quote.distanceKm,
+      trips,
+      transport_cost: transportCost,
+      total_price: quote.unitPrice * quantity + transportCost,
     };
   },
   "partner.timeline": async (p) => {

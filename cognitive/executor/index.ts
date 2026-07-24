@@ -553,6 +553,7 @@ async function buildMaterialItems(rawInput: string, customerId: string) {
   const quote = dispatched.data as {
     matched: boolean; candidates?: string[]; material_name?: string;
     quantity?: number; unit?: string; unit_price?: number; error?: string;
+    distance_km?: number; trips?: number; transport_cost?: number;
   } | null;
 
   if (!quote?.matched) {
@@ -569,12 +570,29 @@ async function buildMaterialItems(rawInput: string, customerId: string) {
     throw new Error(quote.error ?? "คำนวณราคาไม่สำเร็จ");
   }
 
-  return [{
+  const items = [{
     description: quote.material_name ?? rawInput,
     qty: quantity,
     unit: quote.unit ?? "คิว",
     unitPrice: quote.unit_price,
   }];
+
+  // Real transport cost (owner, 2026-07-24): a generated document needs the
+  // actual total, unlike the chat quick-reply which deliberately omits it
+  // ("ยังไม่รวมค่าขนส่ง"). material.quote now additively returns this,
+  // computed via the existing, already-built vehicle-capacity/fuel/driver-
+  // wage engines (engines/capacity.ts, engines/cost.ts) — no new pricing
+  // math invented here, just wired for the first time.
+  if (quote.transport_cost && quote.transport_cost > 0) {
+    items.push({
+      description: `ค่าขนส่ง (${quote.distance_km?.toFixed(1) ?? "-"} กม.${quote.trips ? ` × ${quote.trips} เที่ยว` : ""})`,
+      qty: 1,
+      unit: "รายการ",
+      unitPrice: quote.transport_cost,
+    });
+  }
+
+  return items;
 }
 
 // Removed 2026-07-17 (Invoice Preview Redesign, Rule 104 knowledge record):

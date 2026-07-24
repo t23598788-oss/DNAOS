@@ -551,19 +551,45 @@ export async function getCustomerGps(customerId: string): Promise<{ lat: number;
     .select("line_user_id")
     .eq("company_id", customerId)
     .maybeSingle()
-  if (!link?.line_user_id) return null
 
-  const { data: rows } = await db
-    .from("line_events")
-    .select("extracted")
-    .eq("line_user_id", link.line_user_id)
-    .eq("raw_type", "location")
+  if (link?.line_user_id) {
+    const { data: rows } = await db
+      .from("line_events")
+      .select("extracted")
+      .eq("line_user_id", link.line_user_id)
+      .eq("raw_type", "location")
+      .order("created_at", { ascending: false })
+      .limit(1)
+
+    const extracted = rows?.[0]?.extracted as { latitude?: number; longitude?: number } | null
+    if (extracted?.latitude && extracted?.longitude) {
+      return { lat: extracted.latitude, lng: extracted.longitude }
+    }
+  }
+
+  // Fallback (owner, 2026-07-24): a live LINE location-share pin is the
+  // primary source, but a customer_sites row geocoded from typed text
+  // (engines/jobs/auto-create.ts's tryCreateSiteFromText, via
+  // engines/geocoding.ts) is real coordinate evidence too — without this,
+  // a text-only address could never be priced at all, even after real
+  // geocoding succeeded. Most recently active site wins, same recency rule
+  // as the LINE-location path above.
+  const { data: sites } = await db
+    .from("customer_sites")
+    .select("gps_lat, gps_lng")
+    .eq("customer_company_id", customerId)
+    .eq("is_active", true)
+    .not("gps_lat", "is", null)
+    .not("gps_lng", "is", null)
     .order("created_at", { ascending: false })
     .limit(1)
 
-  const extracted = rows?.[0]?.extracted as { latitude?: number; longitude?: number } | null
-  if (!extracted?.latitude || !extracted?.longitude) return null
-  return { lat: extracted.latitude, lng: extracted.longitude }
+  const site = sites?.[0] as { gps_lat?: number; gps_lng?: number } | undefined
+  if (site?.gps_lat && site?.gps_lng) {
+    return { lat: site.gps_lat, lng: site.gps_lng }
+  }
+
+  return null
 }
 
 // ---- PARTNER TIMELINE ----

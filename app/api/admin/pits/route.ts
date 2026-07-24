@@ -18,7 +18,7 @@ export async function GET() {
 
   const [{ data: pits, error }, { data: pitMaterials }, { data: materialTypes }] = await Promise.all([
     db.from("pit_profiles")
-      .select("id, pit_name, address, latitude, longitude, deleted_at")
+      .select("id, pit_name, address, latitude, longitude, deleted_at, line_user_id")
       .order("pit_name"),
     db.from("pit_materials")
       .select("pit_profile_id, material_type_id, price")
@@ -52,6 +52,7 @@ export async function GET() {
     lng: p.longitude && Number(p.longitude) !== 0 ? Number(p.longitude) : null,
     materials: materialsByPit.get(p.id) ?? [],
     active: !p.deleted_at,
+    line_user_id: p.line_user_id ?? null,
   }))
 
   return NextResponse.json({ pits: result, materialTypes: materialTypes ?? [] })

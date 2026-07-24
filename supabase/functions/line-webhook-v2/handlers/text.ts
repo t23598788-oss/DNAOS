@@ -7,6 +7,8 @@ import { tryAutoBuildEvent } from "../engines/auto-build-event.ts"
 import { tryFollowUpDebtAck } from "../engines/debt-followup.ts"
 import { tryRecordPaymentClaim } from "../engines/payment-claim.ts"
 import { isPaymentInfoRequest, tryBuildPaymentInstructionsReply } from "../engines/payment-instructions.ts"
+import { activateHumanTakeover, getConversationMode, isHumanTakeoverMessage } from "../engines/human-takeover.ts"
+import { trySupplierQuoteReply } from "../engines/supplier-quote-reply.ts"
 
 export async function handleText(ctx: HandlerContext): Promise<void> {
   const msgEvent = ctx.event as LineMessageEvent
@@ -25,7 +27,36 @@ export async function handleText(ctx: HandlerContext): Promise<void> {
   // already handled this exact event, don't reply again.
   if (saved?.duplicate) return
 
+  // Human Takeover is a hard gate. It runs before every AI/tool/event engine;
+  // once active, later messages are still stored in the timeline but no bot
+  // engine is allowed to answer over the human operator.
+  if (ctx.userId) {
+    const mode = await getConversationMode(ctx.supabase, ctx.userId)
+    if (mode === "human_takeover") return
+    if (isHumanTakeoverMessage(text)) {
+      await activateHumanTakeover(ctx.supabase, ctx.userId, saved?.id ?? null, text)
+      if (ctx.replyToken) {
+        await ResponseGateway.replyText(ctx.replyToken, "รับเรื่องแล้วครับ เจ้าหน้าที่จะเข้ามาตรวจสอบและตอบกลับโดยตรงครับ")
+      }
+      return
+    }
+  }
+
   if (!ctx.replyToken) return
+
+  // Outbound Supplier RFQ reply (owner, 2026-07-24) — checked before every
+  // customer-side engine below, since a supplier's line_user_id is never a
+  // matched company_line_links row anyway; this is just the cleanest place
+  // to give a real, specific confirmation instead of falling through to a
+  // generic reply. Narrow match only (known pit + a real pending request +
+  // a parseable number) — anything else returns null and falls through.
+  if (ctx.userId) {
+    const supplierReply = await trySupplierQuoteReply(ctx.supabase, ctx.userId, text)
+    if (supplierReply) {
+      await ResponseGateway.replyText(ctx.replyToken, supplierReply)
+      return
+    }
+  }
 
   // Real business questions get real answers looked up by person, not a
   // generic ack — e.g. "เราเคยเป็นหนี้กันไหม" gets the actual debt_snapshots

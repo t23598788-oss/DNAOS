@@ -1,4 +1,5 @@
 import { resolveMaterialText } from "@/engines/material-resolver"
+import { geocodeThaiAddress } from "@/engines/geocoding"
 
 // Two different intents need two different amounts of information — a price
 // question is not a commitment (owner instruction 2026-07-10: "ถ้าอยากได้
@@ -191,6 +192,16 @@ export async function tryAutoCreateJob(db: any, event: AutoCreateEventInput): Pr
 async function tryCreateSiteFromText(db: any, partnerId: string, destinationText: string): Promise<string | null> {
   const parsed = parseThaiAddress(destinationText)
   if (!parsed) return null
+
+  // Real geocoding (owner, 2026-07-24): before this, a typed address (as
+  // opposed to a live LINE location-share pin) never got gps_lat/gps_lng at
+  // all — findNearestPit()/the whole Location & Matching pipeline requires
+  // real coordinates, so a text-only address silently couldn't be priced.
+  // Best-effort: a failed/unconfigured geocode still creates the site with
+  // province/district/subdistrict/postal_code (same as before), just without
+  // coordinates — never blocks site creation on this being available.
+  const geocoded = await geocodeThaiAddress(destinationText)
+
   const { data, error } = await db
     .from("customer_sites")
     .insert({
@@ -201,6 +212,8 @@ async function tryCreateSiteFromText(db: any, partnerId: string, destinationText
       district: parsed.district,
       subdistrict: parsed.subdistrict,
       postal_code: parsed.postal_code,
+      gps_lat: geocoded.ok ? geocoded.lat : null,
+      gps_lng: geocoded.ok ? geocoded.lng : null,
       is_active: true,
       updated_at: new Date().toISOString(),
     })

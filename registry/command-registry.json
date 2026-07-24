@@ -25,8 +25,8 @@
       "layer": "engines",
       "input": { "raw_input": "string", "quantity": "number", "customer_id?": "string" },
       "output": "MaterialQuoteResult",
-      "description": "GenerateMaterialQuote — resolves material name, finds the nearest priced pit from the customer's GPS, and computes unit price. One business response; AI never sees Material Resolver / GPS lookup / Pricing Engine directly.",
-      "description_th": "จับคู่วัสดุ + หาบ่อที่ใกล้ลูกค้าที่สุด + คำนวณราคา — คืนค่าเดียว AI ไม่ต้องรู้จัก engine ภายใน",
+      "description": "GenerateMaterialQuote — resolves material name, finds the nearest priced pit from the customer's GPS, and computes unit price. Also additively returns distance_km/trips/transport_cost/total_price (2026-07-24, wires the existing never-before-connected engines/capacity.ts + engines/cost.ts into real document generation). One business response; AI never sees Material Resolver / GPS lookup / Pricing Engine directly.",
+      "description_th": "จับคู่วัสดุ + หาบ่อที่ใกล้ลูกค้าที่สุด + คำนวณราคา — คืนค่าเพิ่มเติม distance_km/trips/transport_cost/total_price ด้วย (2026-07-24) คืนค่าเดียว AI ไม่ต้องรู้จัก engine ภายใน",
       "requires_confirmation": false
     },
     "debt.current": {

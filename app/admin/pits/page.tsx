@@ -18,6 +18,7 @@ interface Pit {
   lng: number | null
   materials: PitMaterial[]
   active: boolean
+  line_user_id: string | null
 }
 
 interface MaterialType {
@@ -45,6 +46,14 @@ export default function PitsPage() {
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
 
+  // Outbound Supplier RFQ (owner, 2026-07-24) — admin-confirmed "ขอราคา"
+  // send to a pit's real LINE contact; reply is parsed by the LINE webhook,
+  // never auto-sent.
+  const [quoteMaterialId, setQuoteMaterialId] = useState("")
+  const [quoteQty, setQuoteQty] = useState("")
+  const [quoteSending, setQuoteSending] = useState(false)
+  const [quoteMessage, setQuoteMessage] = useState<string | null>(null)
+
   const load = useCallback(() => {
     setLoading(true)
     fetch("/api/admin/pits")
@@ -62,6 +71,30 @@ export default function PitsPage() {
     setEditLat(pit.lat != null ? String(pit.lat) : "")
     setEditLng(pit.lng != null ? String(pit.lng) : "")
     setSaveError(null)
+    setQuoteMaterialId("")
+    setQuoteQty("")
+    setQuoteMessage(null)
+  }
+
+  const sendPriceRequest = async (pitId: string) => {
+    if (!quoteMaterialId) return
+    setQuoteSending(true)
+    setQuoteMessage(null)
+    try {
+      const res = await fetch(`/api/admin/pits/${pitId}/request-quote`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          material_type_id: quoteMaterialId,
+          quantity: quoteQty.trim() ? Number(quoteQty) : null,
+        }),
+      })
+      const d = await res.json()
+      setQuoteMessage(res.ok ? "ส่งขอราคาแล้ว รอคำตอบจาก LINE" : (d.error ?? "ส่งไม่สำเร็จ"))
+      if (res.ok) { setQuoteMaterialId(""); setQuoteQty("") }
+    } finally {
+      setQuoteSending(false)
+    }
   }
 
   const saveMaterialPrice = async (pitId: string) => {
@@ -318,6 +351,31 @@ export default function PitsPage() {
                                 <button onClick={() => saveMaterialPrice(p.id)} disabled={saving || !newMaterialId || !newPrice.trim()} className="text-xs font-medium px-3 py-1.5 rounded-lg bg-emerald-600 text-white disabled:opacity-40">บันทึก</button>
                               </div>
                             </div>
+                          </div>
+
+                          <div className="mt-4 pt-4 border-t border-amber-200/60">
+                            <div className="text-[11px] font-bold text-stone-500 uppercase tracking-wide mb-2">ขอราคาผ่าน LINE (Outbound RFQ)</div>
+                            {!p.line_user_id ? (
+                              <div className="text-xs text-stone-400 italic">บ่อนี้ยังไม่ได้เชื่อมบัญชี LINE — ส่งขอราคาอัตโนมัติไม่ได้</div>
+                            ) : (
+                              <>
+                                {quoteMessage && <div className="text-xs text-stone-600 bg-white border border-stone-200 rounded-lg px-3 py-2 mb-2">{quoteMessage}</div>}
+                                <div className="flex gap-2">
+                                  <select value={quoteMaterialId} onChange={(e) => setQuoteMaterialId(e.target.value)} className="text-xs border border-stone-300 rounded-lg px-2 py-1.5 bg-white flex-1">
+                                    <option value="">เลือกวัสดุที่จะถามราคา...</option>
+                                    {materialTypes.map((mt) => <option key={mt.id} value={mt.id}>{mt.name}</option>)}
+                                  </select>
+                                  <input value={quoteQty} onChange={(e) => setQuoteQty(e.target.value)} placeholder="จำนวนคิว (ไม่บังคับ)" className="w-36 text-xs border border-stone-300 rounded-lg px-2 py-1.5" />
+                                  <button
+                                    onClick={() => sendPriceRequest(p.id)}
+                                    disabled={quoteSending || !quoteMaterialId}
+                                    className="text-xs font-medium px-3 py-1.5 rounded-lg bg-sky-600 text-white disabled:opacity-40"
+                                  >
+                                    {quoteSending ? "กำลังส่ง..." : "ส่งขอราคา"}
+                                  </button>
+                                </div>
+                              </>
+                            )}
                           </div>
                         </td>
                       </tr>

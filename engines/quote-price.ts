@@ -32,6 +32,14 @@ export interface QuoteResult {
   materialName?: string;
   unitPrice?: number;
   quantityUnit?: string;
+  // Additive (2026-07-24) — the nearest-pit match already computed inside
+  // this function, exposed so a document-generation caller can price real
+  // transport cost (engines/cost.ts's calcCost()) using the SAME matched
+  // pit/distance, instead of re-deriving a possibly-different nearest pit.
+  // Existing callers that only read ok/text/materialName/unitPrice are
+  // unaffected.
+  pitProfileId?: string;
+  distanceKm?: number;
 }
 
 export async function tryQuoteMaterialPrice(
@@ -78,5 +86,7 @@ export async function tryQuoteMaterialPrice(
     materialName: material.name,
     unitPrice,
     quantityUnit: "คิว",
+    pitProfileId: nearest_pit.id,
+    distanceKm: nearest_pit.distance_km,
   };
 }
