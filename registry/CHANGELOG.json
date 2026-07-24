@@ -1460,5 +1460,28 @@
     ],
     "summary": "Owner extended the Payment Verification Engine design (2026-07-18) with a formal 4-level evidence hierarchy (LINE Claim -> OCR Evidence -> Bank Notification email -> Bank Statement/API Confirmation) and a richer capture field set (transaction reference/datetime/amount, sender+receiver bank/account/name, payment method, confirmed_by) for future audit search (\"find which invoice/receipt/customer a specific bank deposit came from\"). Built the two pieces buildable without external credentials: (1) a text-only payment claim (\"โอนแล้วครับ\", no slip) now creates a tracked waiting_bank_confirmation record instead of vanishing into the generic reply, tagged verification_level=1; (2) an OCR-read slip is tagged verification_level=2. payment_verified only becomes true on real human confirmation (Rule 72), explicitly standing in for the still-unbuilt Level 3/4 (bank email inbox, bank statement/API) — both confirmed absent from this codebase in an earlier explore pass this session and requiring owner-provisioned external credentials. Formalized as Constitution Rule 115, honestly marked as partially enforced: the level-tagging and confirmation gate are real, but Level 3/4 themselves are declared, not built.",
     "date": "2026-07-18"
+  },
+  {
+    "change_id": "DNA-000078",
+    "agent": "Claude",
+    "agent_id": null,
+    "session_id": null,
+    "agent_id_note": "Not available to this session — not guessed.",
+    "files": [
+      "services/ai/bridge-openai.ts (deleted, no real importers found)",
+      "services/ai/bridge-claude.ts (new — same contract, Anthropic Claude Messages API)",
+      "engines/events/event-builder.ts (OpenAI -> Claude)",
+      "cognitive/pipeline.ts (answerWithAi(): OpenAI -> Claude)",
+      "supabase/functions/line-webhook-v2/engines/claude-client.ts (new shared helper: text/vision/tool-use)",
+      "supabase/functions/line-webhook-v2/engines/auto-build-event.ts (OpenAI fetch -> callClaudeText)",
+      "supabase/functions/line-webhook-v2/engines/ocr-classify.ts (OpenAI vision -> callClaudeVision)",
+      "supabase/functions/line-webhook-v2/engines/tool-router.ts (OpenAI function-calling -> callClaudeTool)",
+      "plugins/capabilities.ts, plugins/capability-manager.ts (openai entry/routing removed, Claude primary)",
+      "registry/module-registry.json, registry/infrastructure.json, registry/execution/engines.registry.json, registry/command-registry.json (purpose/routing text updated)",
+      "core/runtime/cockpit.ts, core/runtime/existence-intelligence.ts (Left Brain label OpenAI -> Claude)",
+      "package.json (removed openai, added @anthropic-ai/sdk)"
+    ],
+    "summary": "Owner instruction (2026-07-25, verbatim): \"เขียน AI ที่กูเอามาผูกไว้ในระบบ ChatGPT ออกไปจากระบบ good ให้ถาวรเลย\" — remove the OpenAI/ChatGPT AI provider from the system permanently. Found 6 real production call sites depending on it (business-event auto-clustering, receipt/slip OCR classification feeding the payment auto-confirm engine, a tool-router, 2 command-translation bridges) — flagged the breakage to the owner via AskUserQuestion before acting; owner chose to migrate to Claude rather than accept the functionality loss. Every real call site swapped to Anthropic's Claude API (model claude-haiku-4-5-20251001), same interfaces/contracts preserved (mode=preview guard in bridge-claude.ts unchanged, same JSON-in-text-then-parse pattern, same tool-selection constraint that the model only ever picks a tool name and never authors the reply). No ANTHROPIC_API_KEY exists yet (checked .env.local and Supabase secrets directly) — every real call site gates cleanly on its absence, same pattern as every other external credential in this codebase (LINE_CHANNEL_ACCESS_TOKEN, LONGDO_MAP_API_KEY). registry/infrastructure.json's openai entry kept with status=removed (not deleted) per Rule 104, new anthropic entry added with status=pending_credential and no guessed cost figure.",
+    "date": "2026-07-25"
   }
 ]

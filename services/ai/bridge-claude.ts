@@ -1,13 +1,24 @@
 /**
- * DNA OS V4 — AI Bridge (OpenAI)
+ * DNA OS V4 — AI Bridge (Claude)
  *
- * ใช้ GPT แปลภาษาคน → JSON command
+ * ใช้ Claude แปลภาษาคน → JSON command
  * ไม่แตะ DB ไม่ execute ไม่ตัดสินใจ
  * mode: "preview" เสมอ
+ *
+ * Owner instruction (2026-07-25): "เขียน AI ที่กูเอามาผูกไว้ในระบบ (ChatGPT)
+ * ออกไปจากระบบให้ถาวรเลย" — replaces services/ai/bridge-openai.ts
+ * (OpenAI/gpt-4o-mini). Same contract/signature, same guard (mode forced to
+ * "preview" regardless of what the model returns) — only the provider
+ * changed. Gated cleanly on ANTHROPIC_API_KEY, same pattern as every other
+ * external credential in this codebase (LINE_CHANNEL_ACCESS_TOKEN,
+ * LONGDO_MAP_API_KEY, etc.) — no real key exists yet, this fails clean
+ * until the owner supplies one.
  */
 
-import OpenAI from "openai";
+import Anthropic from "@anthropic-ai/sdk";
 import type { BridgeCommand, BridgeResult } from "./bridge-local";
+
+const MODEL = "claude-haiku-4-5-20251001";
 
 const SYSTEM_PROMPT = `คุณเป็นตัวแปลคำสั่งภาษาไทยเป็น JSON command ของระบบ DNA OS
 คุณไม่มีสิทธิ์ตัดสินใจ ไม่มีสิทธิ์แก้ข้อมูล แค่แปลภาษาเท่านั้น
@@ -41,24 +52,23 @@ mode ต้องเป็น "preview" เสมอ ห้ามใส่ "exec
 ถ้าถามแค่คำเดียวหรือสองคำที่เป็นชื่อสิ่งของ/สถานที่ ให้ใช้ partner.find เสมอ`;
 
 export async function translateWithAI(thai: string): Promise<BridgeResult> {
-  const apiKey = process.env.OPENAI_API_KEY;
+  const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
-    return { ok: false, raw: thai, error: "ไม่มี OPENAI_API_KEY" };
+    return { ok: false, raw: thai, error: "ไม่มี ANTHROPIC_API_KEY" };
   }
 
   try {
-    const client = new OpenAI({ apiKey });
-    const response = await client.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [
-        { role: "system", content: SYSTEM_PROMPT },
-        { role: "user", content: thai },
-      ],
+    const client = new Anthropic({ apiKey });
+    const response = await client.messages.create({
+      model: MODEL,
       max_tokens: 200,
       temperature: 0,
+      system: SYSTEM_PROMPT,
+      messages: [{ role: "user", content: thai }],
     });
 
-    const text = response.choices[0]?.message?.content?.trim() ?? "";
+    const block = response.content[0];
+    const text = block?.type === "text" ? block.text.trim() : "";
 
     const jsonMatch = text.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
@@ -72,7 +82,7 @@ export async function translateWithAI(thai: string): Promise<BridgeResult> {
 
     return { ok: true, raw: thai, command: cmd };
   } catch (e: unknown) {
-    const msg = e instanceof Error ? e.message : "OpenAI error";
+    const msg = e instanceof Error ? e.message : "Claude error";
     return { ok: false, raw: thai, error: msg };
   }
 }

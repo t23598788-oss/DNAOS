@@ -294,7 +294,7 @@ if (args.length === 0) {
   line("    Ghost Rules: 11 (rule/event ที่ไม่มีคนใช้)");
 } else if (args[0] === "body") {
   line("");
-  line("    [Left Brain: OpenAI]  [Right Brain: Gemini]");
+  line("    [Left Brain: Claude]  [Right Brain: Gemini]");
   line("            \\              /");
   line("         [Brain Stem: Node.js]");
   line("                |");

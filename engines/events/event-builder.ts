@@ -7,10 +7,15 @@
  * Owner's explicit direction 2026-07-10 — see registry/TASK_QUEUE.json.
  *
  * Translation only: does not touch DB, does not decide, does not write.
- * Matches the bridge-openai.ts convention (services/ai/bridge-openai.ts).
+ * Matches the bridge-claude.ts convention (services/ai/bridge-claude.ts).
+ *
+ * Owner instruction (2026-07-25): "เขียน AI ที่กูเอามาผูกไว้ในระบบ (ChatGPT)
+ * ออกไปจากระบบให้ถาวรเลย" — swapped from OpenAI/gpt-4o-mini to Claude.
  */
 
-import OpenAI from "openai"
+import Anthropic from "@anthropic-ai/sdk"
+
+const MODEL = "claude-haiku-4-5-20251001"
 
 export interface RawMessage {
   id: string
@@ -51,26 +56,25 @@ const SYSTEM_PROMPT = `คุณอ่าน "กลุ่มข้อควา�
 }`
 
 export async function buildEventFromMessages(messages: RawMessage[]): Promise<{ ok: true; event: ExtractedEvent } | { ok: false; error: string }> {
-  const apiKey = process.env.OPENAI_API_KEY
-  if (!apiKey) return { ok: false, error: "ไม่มี OPENAI_API_KEY" }
+  const apiKey = process.env.ANTHROPIC_API_KEY
+  if (!apiKey) return { ok: false, error: "ไม่มี ANTHROPIC_API_KEY" }
 
   const transcript = messages
     .map((m) => `[${m.created_at}] ${m.raw_type === "text" ? m.raw_text : `(${m.raw_type})`}`)
     .join("\n")
 
   try {
-    const client = new OpenAI({ apiKey })
-    const response = await client.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [
-        { role: "system", content: SYSTEM_PROMPT },
-        { role: "user", content: transcript },
-      ],
+    const client = new Anthropic({ apiKey })
+    const response = await client.messages.create({
+      model: MODEL,
       max_tokens: 500,
       temperature: 0,
+      system: SYSTEM_PROMPT,
+      messages: [{ role: "user", content: transcript }],
     })
 
-    const text = response.choices[0]?.message?.content?.trim() ?? ""
+    const block = response.content[0]
+    const text = block?.type === "text" ? block.text.trim() : ""
     const jsonMatch = text.match(/\{[\s\S]*\}/)
     if (!jsonMatch) return { ok: false, error: "AI ไม่ตอบเป็น JSON: " + text.slice(0, 200) }
 

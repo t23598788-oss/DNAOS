@@ -170,7 +170,7 @@ function renderCosts() {
   line(`  รวมรายเดือน: ${totalMonthly} THB`);
   line(`  รวมรายปี:    ${totalMonthly * 12} THB`);
   line("");
-  line("  ถ้าไม่จ่าย OpenAI:");
+  line("  ถ้าไม่จ่าย Claude (Anthropic):");
   line("    AI translation หยุด แต่ local keyword match ยังใช้ได้");
   line("    ระบบหลักไม่กระทบ");
 }
@@ -281,9 +281,9 @@ function renderSelfExplanation() {
     ["ผมทำอะไร", "รับคำสั่ง → ใช้กฎตัดสินใจ → คำนวณ → สร้างเอกสาร → ส่ง LINE"],
     ["ผมยังขาดอะไร", `Capability ${capMissing} ตัว (voice, camera, plc, mqtt, robot)`],
     ["ผมต้องการอะไร", "เพิ่ม module คลังสินค้า, บุคลากร, บัญชี, route optimization"],
-    ["ผมพึ่งพาใคร", `${svcCount} services (Supabase, Vercel, OpenAI, Gemini, LINE, Google Maps)`],
+    ["ผมพึ่งพาใคร", `${svcCount} services (Supabase, Vercel, Claude, Gemini, LINE, Google Maps)`],
     ["ใครพึ่งพาผม", "เฮีย (เจ้าของ), ลูกค้าผ่าน LINE, ทีมงานผ่าน Dashboard"],
-    ["ผมเสียเงินกับอะไร", `${costMonthly} THB/เดือน (ส่วนใหญ่ OpenAI API)`],
+    ["ผมเสียเงินกับอะไร", `${costMonthly} THB/เดือน (ส่วนใหญ่ Claude API)`],
     ["ผมจะหยุดทำงานเมื่อใด", "เมื่อ Supabase ล่ม หรือ Internet ขาด"],
     ["ผมจะเติบโตได้อย่างไร", "เพิ่ม Rule + Workflow + Module ใน DB ไม่ต้อง retrain AI"],
     ["ผมควรเชื่อมต่อกับอะไรต่อ", "Android (field), PLC (machine), Inventory system"],
@@ -478,7 +478,7 @@ function renderBodyMap() {
   const organMap: Record<string, { label: string; service: string; status: string }> = {
     brain_stem: { label: "Brain Stem", service: "Node.js", status: "?" },
     heart:      { label: "Heart",      service: "Supabase", status: "?" },
-    left_brain: { label: "Left Brain", service: "OpenAI", status: "?" },
+    left_brain: { label: "Left Brain", service: "Claude", status: "?" },
     right_brain:{ label: "Right Brain",service: "Gemini", status: "?" },
     eyes:       { label: "Eyes",       service: "Google Maps", status: "?" },
     ears:       { label: "Ears",       service: "LINE Messaging", status: "?" },
@@ -497,7 +497,7 @@ function renderBodyMap() {
 
   line("");
   line("              [Left Brain]  [Right Brain]");
-  line(`              ${organMap.left_brain.status === "OK" ? "  OpenAI  " : "  DOWN!!  "}  ${organMap.right_brain.status === "OK" ? "  Gemini  " : "  DOWN!!  "}`);
+  line(`              ${organMap.left_brain.status === "OK" ? "  Claude  " : "  DOWN!!  "}  ${organMap.right_brain.status === "OK" ? "  Gemini  " : "  DOWN!!  "}`);
   line("                  \\          /");
   line(`               [Brain Stem: ${organMap.brain_stem.status === "OK" ? "Node.js OK" : "DOWN!!"}]`);
   line("                      |");

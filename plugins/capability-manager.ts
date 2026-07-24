@@ -144,23 +144,24 @@ const registry: Record<CapabilityAction, MCPToolMapping> = {
     requireConfirm: false,
   },
 
-  // AI
+  // AI — OpenAI removed permanently (owner instruction, 2026-07-25); Claude
+  // is now primary everywhere OpenAI was, Gemini stays as fallback.
   "ai.translate": {
-    mcpServer: "openai-mcp",
+    mcpServer: "claude-mcp",
     toolName: "translate_text",
     fallbackServer: "gemini-mcp",
     fallbackTool: "translate",
     requireConfirm: false,
   },
   "ai.analyze": {
-    mcpServer: "openai-mcp",
+    mcpServer: "claude-mcp",
     toolName: "analyze_data",
-    fallbackServer: "claude-mcp",
+    fallbackServer: "gemini-mcp",
     fallbackTool: "analyze",
     requireConfirm: false,
   },
   "ai.generate": {
-    mcpServer: "openai-mcp",
+    mcpServer: "claude-mcp",
     toolName: "generate_text",
     fallbackServer: "gemini-mcp",
     fallbackTool: "generate",

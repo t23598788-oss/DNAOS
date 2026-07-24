@@ -25,13 +25,26 @@
     },
     "openai": {
       "name": "OpenAI API", "organ": "left_brain", "purpose": "AI Translation (bridge-openai)",
-      "critical": "medium", "status": "active",
+      "critical": "medium", "status": "removed",
       "owner": "เฮีย",
-      "cost_monthly_thb": 500, "plan": "Pay-as-you-go", "renew": "auto",
-      "expiration": null, "credit_remaining_thb": 412, "quota_used_pct": null,
-      "if_down": "AI translation หยุด แต่ local keyword match ยังทำงาน",
-      "if_removed_saves_thb": 500, "if_removed_loses": "Document AI, Smart Translation",
-      "affected_workflows": ["ai.translate"]
+      "cost_monthly_thb": 0, "plan": null, "renew": null,
+      "expiration": null, "credit_remaining_thb": null, "quota_used_pct": null,
+      "removed_at": "2026-07-25",
+      "removed_reason": "Owner instruction: \"เขียน AI ที่กูเอามาผูกไว้ในระบบ (ChatGPT) ออกไปจากระบบให้ถาวรเลย\" — replaced by anthropic below. Kept here (status=removed, not deleted) as a real decision record, per Rule 104.",
+      "if_down": "N/A — removed",
+      "if_removed_saves_thb": 0, "if_removed_loses": "N/A — already removed",
+      "affected_workflows": []
+    },
+    "anthropic": {
+      "name": "Anthropic Claude API", "organ": "left_brain", "purpose": "AI Translation + vision OCR classification (replaces bridge-openai/ocr-classify's OpenAI calls, owner instruction 2026-07-25)",
+      "critical": "medium", "status": "pending_credential",
+      "owner": "เฮีย",
+      "cost_monthly_thb": null, "plan": null, "renew": "auto",
+      "expiration": null, "credit_remaining_thb": null, "quota_used_pct": null,
+      "note": "ANTHROPIC_API_KEY not yet set (neither .env.local nor Supabase secrets) — every real call site (bridge-claude.ts, event-builder.ts, cognitive/pipeline.ts, and the 3 Deno LINE-webhook engines via claude-client.ts) is real code but gates cleanly until the owner supplies a real key. cost_monthly_thb intentionally null, not guessed — no real billing data exists yet.",
+      "if_down": "AI translation/auto-clustering/OCR classification stop; deterministic engines still work",
+      "if_removed_saves_thb": null, "if_removed_loses": "Document AI, Smart Translation, auto business-event clustering, receipt OCR classification",
+      "affected_workflows": ["ai.translate", "ai.analyze", "ai.generate"]
     },
     "gemini": {
       "name": "Google Gemini", "organ": "right_brain", "purpose": "LINE Webhook AI Processing",

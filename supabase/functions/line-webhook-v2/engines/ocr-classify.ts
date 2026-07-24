@@ -1,10 +1,10 @@
 // Auto-classify receipt/bill photos (owner, 2026-07-17): "AI อ่านข้อมูล OCR
-// → จำแนกเอกสาร → สร้าง Document Card อัตโนมัติ". Same OpenAI pattern
-// auto-build-event.ts already uses (gpt-4o-mini, JSON-in-text-then-parse,
-// not a separate OCR engine) — extended to vision input since gpt-4o-mini
-// accepts image_url content parts. AI reads and classifies; it never
-// replaces the original image, which stays exactly as fetched by
-// fetchAndStoreLineMedia (Human Reality Timeline law, TASK-001).
+// → จำแนกเอกสาร → สร้าง Document Card อัตโนมัติ". Same Claude vision pattern
+// auto-build-event.ts's text call uses (JSON-in-text-then-parse, not a
+// separate OCR engine), via the shared claude-client.ts helper. AI reads
+// and classifies; it never replaces the original image, which stays
+// exactly as fetched by fetchAndStoreLineMedia (Human Reality Timeline law,
+// TASK-001).
 
 // Business Evidence, not "attachments" (owner, 2026-07-18): a generic ERP
 // treats every incoming photo the same and guesses blind. Expanded from the
@@ -13,6 +13,13 @@
 // order, payment advice, bank statement, product/site photos, government
 // documents) — each with a fixed Document Profile below, not just a raw
 // type string.
+//
+// Owner instruction (2026-07-25): "เขียน AI ที่กูเอามาผูกไว้ในระบบ (ChatGPT)
+// ออกไปจากระบบให้ถาวรเลย" — swapped from OpenAI/gpt-4o-mini to Claude, via
+// the shared claude-client.ts helper (same file all 3 LINE-webhook AI call
+// sites now use).
+import { callClaudeVision } from "./claude-client.ts"
+
 const DOCUMENT_TYPES = [
   "receipt", "tax_invoice", "invoice", "fuel_bill", "toll_bill", "weight_slip",
   "delivery_order", "transfer_slip", "payment_advice", "bank_statement",
@@ -103,43 +110,13 @@ const ROLE_HINTS: Record<string, string> = {
 }
 
 export async function classifyReceiptImage(imageUrl: string, senderRole?: string | null): Promise<ClassifiedReceipt | null> {
-  const apiKey = Deno.env.get("OPENAI_API_KEY")
-  if (!apiKey) {
-    console.error("[ocr-classify] OPENAI_API_KEY not set")
-    return null
-  }
-
   const roleHint = senderRole ? ROLE_HINTS[senderRole] : null
   const systemPrompt = roleHint
     ? `${SYSTEM_PROMPT_BASE}\n\nบริบทผู้ส่ง (ใช้ช่วยจำแนก ไม่ใช่กฎตายตัว — อ่านรูปจริงเป็นหลักเสมอ): ${roleHint}`
     : SYSTEM_PROMPT_BASE
 
-  const res = await fetch("https://api.openai.com/v1/chat/completions", {
-    method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
-    body: JSON.stringify({
-      model: "gpt-4o-mini",
-      messages: [
-        { role: "system", content: systemPrompt },
-        {
-          role: "user",
-          content: [
-            { type: "text", text: "จำแนกเอกสารในรูปนี้" },
-            { type: "image_url", image_url: { url: imageUrl } },
-          ],
-        },
-      ],
-      max_tokens: 500,
-      temperature: 0,
-    }),
-  })
-  if (!res.ok) {
-    console.error("[ocr-classify] OpenAI failed:", res.status, await res.text())
-    return null
-  }
-
-  const json = await res.json()
-  const text = json.choices?.[0]?.message?.content?.trim() ?? ""
+  const text = await callClaudeVision(systemPrompt, "จำแนกเอกสารในรูปนี้", imageUrl, 500)
+  if (!text) return null
   const match = text.match(/\{[\s\S]*\}/)
   if (!match) return null
 

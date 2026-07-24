@@ -14,17 +14,17 @@
       "used_by": ["step_extract"],
       "cost_per_call": "free_tier"
     },
-    "openai_translator": {
-      "id": "openai_translator",
-      "label": "OpenAI GPT-4o-mini — Command Translator",
+    "claude_translator": {
+      "id": "claude_translator",
+      "label": "Claude Haiku 4.5 — Command Translator",
       "type": "ai_translation",
-      "model": "gpt-4o-mini",
-      "env_key": "OPENAI_API_KEY",
-      "endpoint": "https://api.openai.com/v1/chat/completions",
-      "status": "ACTIVE",
-      "purpose": "Translate Thai natural language commands to structured JSON for workflow engine",
+      "model": "claude-haiku-4-5-20251001",
+      "env_key": "ANTHROPIC_API_KEY",
+      "endpoint": "https://api.anthropic.com/v1/messages",
+      "status": "PENDING_CREDENTIAL",
+      "purpose": "Translate Thai natural language commands to structured JSON for workflow engine (swapped from openai_translator, owner instruction 2026-07-25 — removed OpenAI permanently). Real code, gated cleanly until ANTHROPIC_API_KEY is set",
       "used_by": ["step_workflow"],
-      "cost_per_call": "~0.01 THB"
+      "cost_per_call": null
     },
     "line_signature_verifier": {
       "id": "line_signature_verifier",

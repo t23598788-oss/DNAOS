@@ -59,7 +59,6 @@ const L = {
   onedrive:   "https://upload.wikimedia.org/wikipedia/commons/3/3c/Microsoft_Office_OneDrive_%282019%E2%80%93present%29.svg",
   dropbox:    "https://upload.wikimedia.org/wikipedia/commons/7/78/Dropbox_Icon.svg",
   supabase:   "https://seeklogo.com/images/S/supabase-logo-DCC676FFE2-seeklogo.com.png",
-  openai:     "https://upload.wikimedia.org/wikipedia/commons/0/04/ChatGPT_logo.svg",
   claude:     "https://upload.wikimedia.org/wikipedia/commons/8/8a/Claude_AI_logo.svg",
   gemini:     "https://upload.wikimedia.org/wikipedia/commons/8/8a/Google_Gemini_logo.svg",
   github:     "https://upload.wikimedia.org/wikipedia/commons/9/91/Octicons-mark-github.svg",
@@ -95,9 +94,13 @@ export const TOOLS: Tool[] = [
   // Database
   { id: "supabase",   name: "Supabase",     capability: "database", logo: L.supabase, status: "connected",    handler: "supabase", mcp_server: "supabase@openai-curated" },
 
-  // AI
-  { id: "openai",     name: "OpenAI",    capability: "ai", logo: L.openai, status: "connected",      handler: "api" },
-  { id: "claude",     name: "Claude",    capability: "ai", logo: L.claude, status: "connected",      handler: "mcp" },
+  // AI — OpenAI removed permanently (owner instruction, 2026-07-25): "เขียน
+  // AI ที่กูเอามาผูกไว้ในระบบ (ChatGPT) ออกไปจากระบบให้ถาวรเลย". All real
+  // call sites (auto-build-event.ts, ocr-classify.ts, tool-router.ts,
+  // cognitive/pipeline.ts, event-builder.ts, bridge-claude.ts) now call
+  // Claude instead — see registry/existence.json known_mistakes for the
+  // decision record.
+  { id: "claude",     name: "Claude",    capability: "ai", logo: L.claude, status: "connected",      handler: "api" },
   { id: "gemini",     name: "Gemini",    capability: "ai", logo: L.gemini, status: "connected",      handler: "mcp", mcp_server: "gemini" },
 
   // Automation

@@ -2231,18 +2231,6 @@
       ],
       "status": "active"
     },
-    "services/ai/bridge-openai.ts": {
-      "owner": "services",
-      "layer": "services",
-      "purpose": "AI Bridge แบบ OpenAI — ใช้ GPT-4o-mini แปลภาษาไทยเป็น JSON command",
-      "purpose_th": "สะพานเชื่อม AI (OpenAI) — ใช้ GPT-4o-mini แปลภาษาไทยเป็นคำสั่ง JSON",
-      "exports": [
-        "translateWithAI"
-      ],
-      "declared_callers": [],
-      "entry_point": true,
-      "status": "active"
-    },
     "services/ai/translator.ts": {
       "owner": "services",
       "layer": "services",
@@ -3913,8 +3901,8 @@
     "engines/events/event-builder.ts": {
       "owner": "engines",
       "layer": "engines",
-      "purpose": "Event Builder — bridges message-centric LINE data to event-centric business data by synthesizing a cluster of raw LINE messages into one structured business event via OpenAI, translation only (no DB writes, no decisions).",
-      "purpose_th": "Event Builder — สะพานเชื่อมข้อมูลแบบข้อความ (LINE) ไปสู่ข้อมูลแบบ event ทางธุรกิจ โดยสังเคราะห์กลุ่มข้อความ LINE ดิบเป็น business event เดียวผ่าน OpenAI แปลอย่างเดียว ไม่เขียน DB ไม่ตัดสินใจ",
+      "purpose": "Event Builder — bridges message-centric LINE data to event-centric business data by synthesizing a cluster of raw LINE messages into one structured business event via Claude (swapped from OpenAI, owner instruction 2026-07-25), translation only (no DB writes, no decisions).",
+      "purpose_th": "Event Builder — สะพานเชื่อมข้อมูลแบบข้อความ (LINE) ไปสู่ข้อมูลแบบ event ทางธุรกิจ โดยสังเคราะห์กลุ่มข้อความ LINE ดิบเป็น business event เดียวผ่าน Claude (สลับจาก OpenAI ตาม owner สั่ง 2026-07-25) แปลอย่างเดียว ไม่เขียน DB ไม่ตัดสินใจ",
       "exports": [
         "ExtractedEvent",
         "RawMessage",
@@ -4173,8 +4161,8 @@
     "supabase/functions/line-webhook-v2/engines/tool-router.ts": {
       "owner": "supabase",
       "layer": "supabase",
-      "purpose": "OpenAI function-calling tool-selection router for the LINE bot read-only tools",
-      "purpose_th": "ให้บอทเลือกเครื่องมือเอง (หนี้/สถานะงาน/ประวัติซื้อ) ผ่าน OpenAI function-calling",
+      "purpose": "Claude tool-use tool-selection router for the LINE bot read-only tools (swapped from OpenAI function-calling, owner instruction 2026-07-25)",
+      "purpose_th": "ให้บอทเลือกเครื่องมือเอง (หนี้/สถานะงาน/ประวัติซื้อ) ผ่าน Claude tool-use (สลับจาก OpenAI function-calling ตาม owner สั่ง 2026-07-25)",
       "exports": [
         "tryRouteToTool"
       ],
@@ -5975,8 +5963,8 @@
     "supabase/functions/line-webhook-v2/engines/ocr-classify.ts": {
       "owner": "supabase",
       "layer": "supabase",
-      "purpose": "Auto document classification (2026-07-17): sends a stored receipt/bill image URL to OpenAI gpt-4o-mini vision, classifies it into one of 7 real document types (receipt/tax_invoice/invoice/fuel_bill/transfer_slip/weight_slip/other) and extracts vendor/amount/date/OCR text as JSON, using the same text-in-JSON-out pattern auto-build-event.ts already uses.",
-      "purpose_th": "จำแนกเอกสารอัตโนมัติ (17 ก.ค. 2026): ส่ง URL รูปเอกสาร/บิลที่เก็บไว้ไปให้ OpenAI gpt-4o-mini แบบ vision จำแนกเป็น 1 ใน 7 ประเภทจริง (receipt/tax_invoice/invoice/fuel_bill/transfer_slip/weight_slip/other) และดึงชื่อร้าน/ยอดเงิน/วันที่/ข้อความ OCR ออกมาเป็น JSON ใช้รูปแบบเดียวกับ auto-build-event.ts",
+      "purpose": "Auto document classification (2026-07-17, swapped from OpenAI to Claude vision 2026-07-25): sends a stored receipt/bill image URL to Claude vision (via claude-client.ts), classifies it into one of 7 real document types (receipt/tax_invoice/invoice/fuel_bill/transfer_slip/weight_slip/other) and extracts vendor/amount/date/OCR text as JSON, using the same text-in-JSON-out pattern auto-build-event.ts already uses.",
+      "purpose_th": "จำแนกเอกสารอัตโนมัติ (17 ก.ค. 2026, สลับจาก OpenAI เป็น Claude vision 25 ก.ค. 2026): ส่ง URL รูปเอกสาร/บิลที่เก็บไว้ไปให้ Claude vision (ผ่าน claude-client.ts) จำแนกเป็น 1 ใน 7 ประเภทจริง (receipt/tax_invoice/invoice/fuel_bill/transfer_slip/weight_slip/other) และดึงชื่อร้าน/ยอดเงิน/วันที่/ข้อความ OCR ออกมาเป็น JSON ใช้รูปแบบเดียวกับ auto-build-event.ts",
       "exports": [
         "ClassifiedReceipt",
         "DOCUMENT_TYPE_PROFILE",
@@ -6351,6 +6339,30 @@
         "POST"
       ],
       "status": "active"
+    },
+    "services/ai/bridge-claude.ts": {
+      "owner": "services",
+      "layer": "services",
+      "purpose": "DNA OS V4 — AI Bridge (Claude). Translates Thai natural language into a JSON command, always mode='preview', never writes/executes/decides. Replaces services/ai/bridge-openai.ts (owner instruction 2026-07-25: remove OpenAI/ChatGPT permanently). Gated cleanly on ANTHROPIC_API_KEY, not yet set",
+      "purpose_th": "สะพานเชื่อม AI (Claude) — แปลภาษาไทยเป็นคำสั่ง JSON, mode='preview' เสมอ, ไม่เขียน/ไม่ execute/ไม่ตัดสินใจ แทนที่ services/ai/bridge-openai.ts (owner สั่ง 2026-07-25: ตัด OpenAI/ChatGPT ออกถาวร) ยังไม่มี ANTHROPIC_API_KEY จริง รอ owner ใส่",
+      "exports": [
+        "translateWithAI"
+      ],
+      "declared_callers": [],
+      "entry_point": true
+    },
+    "supabase/functions/line-webhook-v2/engines/claude-client.ts": {
+      "owner": "supabase",
+      "layer": "supabase",
+      "purpose": "Shared Claude (Anthropic Messages API) caller for the LINE webhook (owner instruction 2026-07-25: remove OpenAI/ChatGPT permanently, swap to Claude). One real fetch helper (text/vision/tool-use) reused by auto-build-event.ts, ocr-classify.ts, tool-router.ts instead of each duplicating the same HTTP call — Rule 103",
+      "purpose_th": "ตัวเรียก Claude (Anthropic Messages API) ที่ใช้ร่วมกันใน LINE webhook (owner สั่ง 2026-07-25: ตัด OpenAI/ChatGPT ออกถาวร สลับเป็น Claude) เป็น fetch helper จริงตัวเดียว (text/vision/tool-use) ให้ auto-build-event.ts, ocr-classify.ts, tool-router.ts เรียกใช้ร่วมกัน แทนที่จะก็อปปี้ HTTP call ซ้ำ 3 ที่ — Rule 103",
+      "exports": [
+        "ClaudeTool",
+        "callClaudeText",
+        "callClaudeTool",
+        "callClaudeVision"
+      ],
+      "entry_point": true
     }
   },
   "excluded": [

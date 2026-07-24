@@ -10,63 +10,28 @@
 // engine function reading real DB rows (same as before); the model never
 // sees or repeats that text.
 //
-// Duplicated (not imported) from auto-build-event.ts's OpenAI-fetch pattern
-// on purpose — Deno runtime, not Next.js/Node.
+// Owner instruction (2026-07-25): "เขียน AI ที่กูเอามาผูกไว้ในระบบ (ChatGPT)
+// ออกไปจากระบบให้ถาวรเลย" — swapped from OpenAI function-calling to Claude
+// tool-use, via the shared claude-client.ts helper.
 
 import { isDebtInquiry, answerDebtInquiry } from "./relationship-qa.ts"
 import { tryOrderStatus } from "./order-status.ts"
 import { tryPurchaseHistory } from "./purchase-history.ts"
+import { callClaudeTool } from "./claude-client.ts"
 
 const TOOLS = [
-  {
-    type: "function",
-    function: {
-      name: "check_debt",
-      description: "ลูกค้าถามเรื่องหนี้ค้างชำระ ยอดค้างจ่าย",
-    },
-  },
-  {
-    type: "function",
-    function: {
-      name: "order_status",
-      description: "ลูกค้าถามสถานะงาน/ออเดอร์ที่กำลังดำเนินอยู่ เช่น งานถึงไหนแล้ว ของถึงหรือยัง",
-    },
-  },
-  {
-    type: "function",
-    function: {
-      name: "purchase_history",
-      description: "ลูกค้าถามประวัติการสั่งซื้อ หรือเคยซื้อวัสดุอะไรไปบ้างในอดีต",
-    },
-  },
+  { name: "check_debt", description: "ลูกค้าถามเรื่องหนี้ค้างชำระ ยอดค้างจ่าย" },
+  { name: "order_status", description: "ลูกค้าถามสถานะงาน/ออเดอร์ที่กำลังดำเนินอยู่ เช่น งานถึงไหนแล้ว ของถึงหรือยัง" },
+  { name: "purchase_history", description: "ลูกค้าถามประวัติการสั่งซื้อ หรือเคยซื้อวัสดุอะไรไปบ้างในอดีต" },
 ]
 
 async function classify(text: string): Promise<string | null> {
-  const apiKey = Deno.env.get("OPENAI_API_KEY")
-  if (!apiKey) return null
-
-  const res = await fetch("https://api.openai.com/v1/chat/completions", {
-    method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
-    body: JSON.stringify({
-      model: "gpt-4o-mini",
-      messages: [
-        { role: "system", content: "เลือกเครื่องมือที่เหมาะกับข้อความลูกค้า ถ้าไม่เข้าเงื่อนไขไหนเลยห้ามเรียกเครื่องมือใดๆ" },
-        { role: "user", content: text },
-      ],
-      tools: TOOLS,
-      tool_choice: "auto",
-      temperature: 0,
-      max_tokens: 20,
-    }),
-  })
-  if (!res.ok) {
-    console.error("[tool-router] OpenAI failed:", res.status, await res.text())
-    return null
-  }
-  const json = await res.json()
-  const call = json.choices?.[0]?.message?.tool_calls?.[0]
-  return call?.function?.name ?? null
+  return await callClaudeTool(
+    "เลือกเครื่องมือที่เหมาะกับข้อความลูกค้า ถ้าไม่เข้าเงื่อนไขไหนเลยห้ามเรียกเครื่องมือใดๆ",
+    text,
+    TOOLS,
+    20,
+  )
 }
 
 // Returns the reply text to send back, or null if no tool matched (fall

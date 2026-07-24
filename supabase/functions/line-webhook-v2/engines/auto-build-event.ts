@@ -10,6 +10,7 @@
 // engines/jobs/auto-create.ts on purpose — Deno vs Next.js/Node runtimes.
 
 import { tryCompleteAwaitingEvent } from "./event-followup.ts"
+import { callClaudeText } from "./claude-client.ts"
 
 interface RawMessage {
   id: string
@@ -36,32 +37,12 @@ const SYSTEM_PROMPT = `คุณอ่าน "กลุ่มข้อควา�
 }`
 
 async function extractEvent(messages: RawMessage[]) {
-  const apiKey = Deno.env.get("OPENAI_API_KEY")
-  if (!apiKey) return null
-
   const transcript = messages
     .map((m) => `[${m.created_at}] ${m.raw_type === "text" ? m.raw_text : `(${m.raw_type})`}`)
     .join("\n")
 
-  const res = await fetch("https://api.openai.com/v1/chat/completions", {
-    method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
-    body: JSON.stringify({
-      model: "gpt-4o-mini",
-      messages: [
-        { role: "system", content: SYSTEM_PROMPT },
-        { role: "user", content: transcript },
-      ],
-      max_tokens: 500,
-      temperature: 0,
-    }),
-  })
-  if (!res.ok) {
-    console.error("[auto-build-event] OpenAI failed:", res.status, await res.text())
-    return null
-  }
-  const json = await res.json()
-  const text = json.choices?.[0]?.message?.content?.trim() ?? ""
+  const text = await callClaudeText(SYSTEM_PROMPT, transcript, 500)
+  if (!text) return null
   const match = text.match(/\{[\s\S]*\}/)
   if (!match) return null
   try {

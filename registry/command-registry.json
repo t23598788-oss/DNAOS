@@ -921,27 +921,27 @@
     "ai.translate": {
       "owner": "v6-executor/capability-manager",
       "layer": "core",
-      "primary": "openai-mcp/translate_text",
+      "primary": "claude-mcp/translate_text",
       "fallback": "gemini-mcp/translate",
-      "description": "แปลภาษา (OpenAI → fallback Gemini)",
+      "description": "แปลภาษา (Claude → fallback Gemini; OpenAI removed permanently, owner instruction 2026-07-25)",
       "requires_confirmation": false,
       "status": "stub"
     },
     "ai.analyze": {
       "owner": "v6-executor/capability-manager",
       "layer": "core",
-      "primary": "openai-mcp/analyze_data",
-      "fallback": "claude-mcp/analyze",
-      "description": "วิเคราะห์ข้อมูล",
+      "primary": "claude-mcp/analyze_data",
+      "fallback": "gemini-mcp/analyze",
+      "description": "วิเคราะห์ข้อมูล (Claude → fallback Gemini; OpenAI removed permanently, owner instruction 2026-07-25)",
       "requires_confirmation": false,
       "status": "stub"
     },
     "ai.generate": {
       "owner": "v6-executor/capability-manager",
       "layer": "core",
-      "primary": "openai-mcp/generate_text",
+      "primary": "claude-mcp/generate_text",
       "fallback": "gemini-mcp/generate",
-      "description": "สร้างข้อความ",
+      "description": "สร้างข้อความ (Claude → fallback Gemini; OpenAI removed permanently, owner instruction 2026-07-25)",
       "requires_confirmation": false,
       "status": "stub"
     },

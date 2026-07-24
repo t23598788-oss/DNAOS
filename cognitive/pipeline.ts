@@ -1,4 +1,4 @@
-import OpenAI from "openai";
+import Anthropic from "@anthropic-ai/sdk";
 import { dispatch as dispatchCommand } from "@/engines/validation/dispatcher";
 import { composeBoard, type BoardResponse } from "@/cognitive/board";
 import { evaluate } from "@/cognitive/evaluation";
@@ -39,7 +39,7 @@ const INTENT_CATALOG: Record<string, string[]> = {
 
 const WORKFLOW_INTENTS = new Set(["collect_debt", "continue_workflow"]);
 const TRANSPORT_INTENTS = new Set(["send_line", "execute_pending"]);
-let openai: OpenAI | null = null;
+let anthropic: Anthropic | null = null;
 
 const WORKFLOWS: Record<string, WorkflowDefinition> = {
   open_profile: {
@@ -336,17 +336,16 @@ export async function runCognitivePipeline(message: string): Promise<BoardRespon
 }
 
 async function answerWithAi(message: string) {
-  openai ??= new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-  const aiRes = await openai.chat.completions.create({
-    model: "gpt-4o-mini",
-    messages: [
-      { role: "system", content: "คุณคือ DNA OS ผู้ช่วยเจ้าของธุรกิจวัสดุก่อสร้าง จ.ขอนแก่น ตอบสั้นกระชับ ภาษาไทย" },
-      { role: "user", content: message },
-    ],
+  anthropic ??= new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+  const aiRes = await anthropic.messages.create({
+    model: "claude-haiku-4-5-20251001",
+    system: "คุณคือ DNA OS ผู้ช่วยเจ้าของธุรกิจวัสดุก่อสร้าง จ.ขอนแก่น ตอบสั้นกระชับ ภาษาไทย",
+    messages: [{ role: "user", content: message }],
     temperature: 0.7,
     max_tokens: 300,
   });
-  return { sender: "ai" as const, type: "text" as const, text: aiRes.choices[0]?.message?.content ?? "รับทราบครับ" };
+  const block = aiRes.content[0];
+  return { sender: "ai" as const, type: "text" as const, text: (block?.type === "text" ? block.text : null) ?? "รับทราบครับ" };
 }
 
 function operatingIntent(input: string): EnrichedInput {
