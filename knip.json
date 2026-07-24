@@ -42,7 +42,7 @@
     "engines/impact/engine.ts",
     "components/admin/AdminSidebarNav.tsx",
     "services/ai/bridge-local.ts",
-    "services/ai/bridge-openai.ts"
+    "services/ai/bridge-claude.ts"
   ],
   "ignoreDependencies": [
     "@tailwindcss/postcss",
