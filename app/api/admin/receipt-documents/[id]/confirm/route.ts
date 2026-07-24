@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { requireAuth } from "@/core/auth/requireAuth"
 import { ADMIN_TIER } from "@/core/auth/session"
 import { supabaseAdmin as supabase } from "@/services/supabase/queries"
+import { resolvePaymentDocumentLink } from "@/engines/transactions/document-link"
 
 type Params = { params: Promise<{ id: string }> }
 
@@ -43,6 +44,30 @@ export async function POST(_req: Request, { params }: Params) {
   const occurredAt = (doc.transaction_datetime ?? doc.document_date ?? new Date().toISOString()).slice(0, 10)
   const amount = Number(doc.amount)
 
+  // Debt Tracking Model is the Single Source of Truth (owner, 2026-07-17/18)
+  // — read outstanding BEFORE mutating it, so resolvePaymentDocumentLink()
+  // (engines/transactions/document-link.ts) classifies full vs. partial
+  // against the real pre-payment balance, same function the preview list
+  // (../route.ts GET) already used to show this slip's preview on the UI —
+  // one classification, not two guesses.
+  const { data: snapshot } = await db
+    .from("debt_snapshots")
+    .select("total_outstanding")
+    .eq("customer_company_id", doc.customer_company_id)
+    .maybeSingle()
+  const outstandingBefore = Number(snapshot?.total_outstanding ?? 0)
+
+  const { data: company } = await db
+    .from("companies").select("name").eq("id", doc.customer_company_id).maybeSingle()
+
+  const link = resolvePaymentDocumentLink({
+    amount,
+    transactionOutstanding: outstandingBefore,
+    transactionId: doc.customer_company_id,
+    partnerName: company?.name ?? undefined,
+    reference: doc.reference_number ?? undefined,
+  })
+
   const { data: event, error: eventErr } = await db
     .from("debt_events")
     .insert({
@@ -50,7 +75,7 @@ export async function POST(_req: Request, { params }: Params) {
       event_type: "receipt_received",
       amount,
       occurred_at: occurredAt,
-      note: doc.reference_number ? `สลิปโอนเงิน อ้างอิง ${doc.reference_number}` : "สลิปโอนเงิน (ไม่มีเลขอ้างอิง)",
+      note: link.document.note,
       source: "line_chat",
       created_by: auth.email,
     })
@@ -58,18 +83,10 @@ export async function POST(_req: Request, { params }: Params) {
     .single()
   if (eventErr) return NextResponse.json({ error: eventErr.message }, { status: 500 })
 
-  // Debt Tracking Model is the Single Source of Truth (owner, 2026-07-17/18)
-  // — principal reduces immediately on a confirmed receipt, per the owner's
-  // event flow. Clamped at 0 rather than going negative; an overpayment case
-  // isn't handled here (out of scope for this pass — flagged, not silently
-  // wrong).
-  const { data: snapshot } = await db
-    .from("debt_snapshots")
-    .select("total_outstanding")
-    .eq("customer_company_id", doc.customer_company_id)
-    .maybeSingle()
+  // Clamped at 0 rather than going negative; an overpayment case isn't
+  // handled here (out of scope for this pass — flagged, not silently wrong).
   if (snapshot) {
-    const newOutstanding = Math.max(0, Number(snapshot.total_outstanding ?? 0) - amount)
+    const newOutstanding = Math.max(0, outstandingBefore - amount)
     await db.from("debt_snapshots")
       .update({ total_outstanding: newOutstanding, updated_at: new Date().toISOString() })
       .eq("customer_company_id", doc.customer_company_id)
@@ -88,5 +105,11 @@ export async function POST(_req: Request, { params }: Params) {
     })
     .eq("id", id)
 
-  return NextResponse.json({ ok: true, debt_event_id: event.id, amount_deducted: amount })
+  return NextResponse.json({
+    ok: true,
+    debt_event_id: event.id,
+    amount_deducted: amount,
+    payment_kind: link.kind,
+    document: link.document,
+  })
 }

@@ -16,6 +16,84 @@ export interface DocLinkRule {
   biz_event_type: string  // business_events.event_type ที่จะบันทึก
 }
 
+export interface PaymentDocumentLinkInput {
+  /** Amount read from the incoming payment/slip event. */
+  amount: number
+  /** Current outstanding amount on the existing transaction. */
+  transactionOutstanding: number
+  transactionId?: string | null
+  partnerName?: string
+  reference?: string
+  /** Step 4 supplies the real gateway token. */
+  previewToken?: string
+}
+
+export interface PaymentDocumentLinkResult {
+  kind: "full_payment" | "partial_payment"
+  /** Partial payment must never carry the old transaction for close/advance. */
+  transactionId: string | undefined
+  targetEvent: "paid" | null
+  document: {
+    type: "receipt"
+    title: "ใบรับเงินชำระบางส่วน" | "ใบรับเงิน"
+    amount: number
+    reference: string
+    note: string
+  }
+  /** Passed unchanged to SecretaryChat.tsx / DocumentPreview.tsx by Step 4. */
+  preview_token: string | undefined
+}
+
+function moneyInSatang(value: number): number {
+  return Math.round(value * 100)
+}
+
+/**
+ * Resolve a payment event without allowing a partial payment to close the
+ * transaction that produced the original debt.
+ *
+ * This is intentionally a pure Step 3 decision. Persistence, preview-token
+ * storage and rendering remain owned by the existing Step 4 gateway/UI.
+ */
+export function resolvePaymentDocumentLink(input: PaymentDocumentLinkInput): PaymentDocumentLinkResult {
+  const amount = Math.max(0, Number(input.amount) || 0)
+  const outstanding = Math.max(0, Number(input.transactionOutstanding) || 0)
+  const isFullPayment = moneyInSatang(amount) === moneyInSatang(outstanding)
+  const reference = input.reference?.trim() || (input.transactionId ? `Transaction ${input.transactionId}` : "")
+
+  if (!isFullPayment) {
+    return {
+      kind: "partial_payment",
+      // Critical rule: do not pass the old transaction into Step 4 as the
+      // transaction to close. It may be kept as human-readable reference only.
+      transactionId: undefined,
+      targetEvent: null,
+      document: {
+        type: "receipt",
+        title: "ใบรับเงินชำระบางส่วน",
+        amount,
+        reference,
+        note: `รับชำระบางส่วน ${amount.toFixed(2)} บาท${input.partnerName ? ` จาก ${input.partnerName}` : ""}`,
+      },
+      preview_token: input.previewToken,
+    }
+  }
+
+  return {
+    kind: "full_payment",
+    transactionId: input.transactionId ?? undefined,
+    targetEvent: "paid",
+    document: {
+      type: "receipt",
+      title: "ใบรับเงิน",
+      amount,
+      reference,
+      note: `รับชำระเต็มจำนวน ${amount.toFixed(2)} บาท${input.partnerName ? ` จาก ${input.partnerName}` : ""}`,
+    },
+    preview_token: input.previewToken,
+  }
+}
+
 // doc_type → rule — ถ้าไม่อยู่ใน map จะไม่ advance state
 export const DOC_LINK_RULES: Record<string, DocLinkRule> = {
   quotation:       { tx_type: "sale",      target_event: "created",   biz_event_type: "quotation_sent" },

@@ -1438,16 +1438,9 @@
         "DEBT_TRACKING_INTEREST_RATE",
         "DEBT_TRACKING_PENALTY_PER_DAY",
         "DEBT_TYPE_DOCUMENT_TYPE",
-        "DebtCollectionStatus",
-        "DebtEventRow",
-        "DebtTrackingInput",
-        "DebtTrackingSummary",
-        "FreezeWindow",
         "calcDebtTrackingSummary",
-        "deriveCollectionStatus",
         "deriveFreezeWindows",
-        "getCurrentDebt",
-        "sumManualAdjustments"
+        "getCurrentDebt"
       ],
       "status": "active"
     },
@@ -1691,8 +1684,11 @@
       "exports": [
         "DOC_LINK_RULES",
         "DocLinkRule",
+        "PaymentDocumentLinkInput",
+        "PaymentDocumentLinkResult",
         "buildAutoTitle",
         "getLinkRule",
+        "resolvePaymentDocumentLink",
         "shouldAdvance"
       ],
       "status": "active"
@@ -2440,8 +2436,8 @@
     "supabase/functions/line-webhook-v2/handlers/location.ts": {
       "owner": "supabase",
       "layer": "supabase",
-      "purpose": "[Auto-detected] supabase/functions/line-webhook-v2/handlers/location.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] supabase/functions/line-webhook-v2/handlers/location.ts",
+      "purpose": "Parses LINE's own shared-location message (already geocoded to a Thai address string) directly into a real customer_sites row — no Google Maps call needed for this case",
+      "purpose_th": "แปลงข้อความแชร์ตำแหน่งของ LINE (ที่ geocode เป็นที่อยู่ไทยมาให้แล้ว) เป็นแถว customer_sites จริงทันที — ไม่ต้องเรียก Google Maps สำหรับกรณีนี้",
       "exports": [
         "handleLocation",
         "parseThaiAddress"
@@ -2555,7 +2551,7 @@
       ],
       "status": "active",
       "archival_status": "ARCHIVED",
-      "archived_knowledge_ref": "registry/existence.json#archived_knowledge [AK-012]"
+      "archived_knowledge_ref": "[AK-020] registry/existence.json#archived_knowledge"
     },
     "supabase/functions/line-webhook-v2/templates/quick-reply/confirm-job.ts": {
       "owner": "supabase",
@@ -2567,7 +2563,7 @@
       ],
       "status": "active",
       "archival_status": "ARCHIVED",
-      "archived_knowledge_ref": "registry/existence.json#archived_knowledge [AK-013]"
+      "archived_knowledge_ref": "[AK-021] registry/existence.json#archived_knowledge"
     },
     "supabase/functions/line-webhook-v2/templates/flex/location-received.ts": {
       "owner": "supabase",
@@ -2589,7 +2585,7 @@
       ],
       "status": "active",
       "archival_status": "ARCHIVED",
-      "archived_knowledge_ref": "registry/existence.json#archived_knowledge [AK-014]"
+      "archived_knowledge_ref": "[AK-022] registry/existence.json#archived_knowledge"
     },
     "supabase/functions/line-webhook-v2/templates/flex/boq-card.ts": {
       "owner": "supabase",
@@ -2601,7 +2597,7 @@
       ],
       "status": "active",
       "archival_status": "ARCHIVED",
-      "archived_knowledge_ref": "registry/existence.json#archived_knowledge [AK-015]"
+      "archived_knowledge_ref": "[AK-023] registry/existence.json#archived_knowledge"
     },
     "app/api/admin/partners/[id]/credit/route.ts": {
       "owner": "app",
@@ -2938,8 +2934,8 @@
     "gateway/connectors.ts": {
       "owner": "gateway",
       "layer": "gateway",
-      "purpose": "[Auto-detected] gateway/connectors.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] gateway/connectors.ts",
+      "purpose": "Single write gateway for the connectors table — every create/update/delete/test-result write goes through here, never direct @supabase/supabase-js from the Connectors UI or its API routes",
+      "purpose_th": "ประตูเดียวสำหรับเขียนตาราง connectors — ทุก create/update/delete/บันทึกผล test ต้องผ่านที่นี่ หน้า Connectors และ API routes ห้ามคุย @supabase/supabase-js ตรง",
       "exports": [
         "CreateConnectorInput",
         "createConnector",
@@ -2959,8 +2955,8 @@
     "core/connector-loader.ts": {
       "owner": "core",
       "layer": "core",
-      "purpose": "[Auto-detected] core/connector-loader.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] core/connector-loader.ts",
+      "purpose": "Dynamic Connector Registry — reads connectors live from the database (unlike static registry/*.json), so adding/editing/deleting a Connector from the Connectors page takes effect immediately, no redeploy; enforces the Connect→Register→Test→Enable→Run lifecycle",
+      "purpose_th": "Dynamic Registry ของ Connector — อ่านจากฐานข้อมูลสด (ต่างจาก registry/*.json ที่ static) เพิ่ม/แก้/ลบ Connector จากหน้า Connectors ใช้งานได้ทันทีไม่ต้อง deploy ใหม่ — บังคับ lifecycle Connect→Register→Test→Enable→Run",
       "exports": [
         "ConnectorAuthType",
         "ConnectorLifecycleAction",
@@ -3930,8 +3926,9 @@
       "purpose": "Answers real customer questions (e.g. debt inquiry) looked up by person via company_line_links; zero-debt answers reply directly, real amounts go to line_outbound_drafts for human approval (Rule 72)",
       "purpose_th": "ตอบคำถามลูกค้าจริง (เช่น ถามยอดหนี้) โดยค้นจากตัวบุคคลผ่าน company_line_links — ถ้าไม่มีหนี้ตอบได้ทันที ถ้ามียอดจริงต้องผ่านการอนุมัติก่อนส่ง",
       "exports": [
-        "isDebtInquiry",
-        "answerDebtInquiry"
+        "answerDebtInquiry",
+        "getCanonicalDebtForCompany",
+        "isDebtInquiry"
       ],
       "status": "active"
     },
@@ -4231,7 +4228,6 @@
         "ActionBar",
         "AppShell",
         "EmptyState",
-        "FlexPreview",
         "IconRail",
         "Inspector",
         "ListColumn",
@@ -4356,16 +4352,6 @@
         "DocumentFlexProps",
         "debtReminderFlex",
         "documentFlex"
-      ],
-      "status": "active"
-    },
-    "components/ui-kit/FlexPreview.tsx": {
-      "owner": "admin",
-      "layer": "ui",
-      "purpose": "Renders the subset of LINE Flex JSON produced by engines/documents/flex-template.ts (bubble/box/text/separator) as an HTML card, so the admin sees the real card before confirming a send — owner request 2026-07-11: \"ให้เห็นภาพรายการก่อนที่จะกดส่งยืนยัน\"",
-      "purpose_th": "แปลง Flex JSON ที่เราสร้างเองเป็นการ์ด HTML ให้เห็นหน้าตาจริงก่อนกดยืนยันส่ง",
-      "exports": [
-        "FlexPreview"
       ],
       "status": "active"
     },
@@ -5348,8 +5334,7 @@
         "runtimeOrchestrator"
       ],
       "status": "active",
-      "archival_status": "ARCHIVED",
-      "archived_knowledge_ref": "registry/existence.json#archived_knowledge [AK-016]"
+      "known_gap_ref": "TASK-038"
     },
     "core/workspace/orchestrator/executionStateMachine.ts": {
       "owner": "core",
@@ -5417,8 +5402,7 @@
         "validateComposition"
       ],
       "status": "active",
-      "archival_status": "ARCHIVED",
-      "archived_knowledge_ref": "registry/existence.json#archived_knowledge [AK-017]"
+      "known_gap_ref": "TASK-038"
     },
     "core/workspace/composer/composerValidator.ts": {
       "owner": "core",
@@ -5675,8 +5659,8 @@
     "engines/documents/selfDescription.ts": {
       "owner": "engines",
       "layer": "engines",
-      "purpose": "[Auto-detected] engines/documents/selfDescription.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] engines/documents/selfDescription.ts",
+      "purpose": "SDRN-P1 Self-Description Interface for the Document Engine — the one module this phase wires end-to-end per explicit owner scoping; kept in its own file since engine.ts is imported client-side and this does Node-only fs reads",
+      "purpose_th": "SDRN-P1 Self-Description ของ Document Engine — โมดูลเดียวที่ phase นี้ต่อครบจริงตามที่ owner scope ไว้ แยกไฟล์จาก engine.ts เพราะไฟล์นั้นถูก import ฝั่ง client แต่ตัวนี้อ่านไฟล์ผ่าน Node fs",
       "exports": [
         "createDocumentEngineRuntimeInterface",
         "describeDocumentEngine",
@@ -5729,8 +5713,8 @@
     "plugins/drivers/line.selfDescription.ts": {
       "owner": "plugins",
       "layer": "plugins",
-      "purpose": "[Auto-detected] plugins/drivers/line.selfDescription.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] plugins/drivers/line.selfDescription.ts",
+      "purpose": "SDRN-P6 full RuntimeContract for the LINE Driver (plugins/drivers/line.ts) — the second of exactly 2 modules wired this phase, chosen because this codebase already has a verified root-cause history for it (KM-002-line)",
+      "purpose_th": "SDRN-P6 RuntimeContract เต็มรูปแบบของ LINE Driver (plugins/drivers/line.ts) — โมดูลที่ 2 จาก 2 ที่ phase นี้ต่อครบ เลือกเพราะมีประวัติ root-cause ที่ยืนยันแล้วอยู่แล้ว (KM-002-line)",
       "exports": [
         "getLineDriverContextBudget",
         "getLineDriverDeltaContext",
@@ -5743,8 +5727,8 @@
     "core/runtime/contextBroker.ts": {
       "owner": "core",
       "layer": "core",
-      "purpose": "[Auto-detected] core/runtime/contextBroker.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] core/runtime/contextBroker.ts",
+      "purpose": "SDRN-P8 Runtime Context Broker — computes each module's RuntimeContract once, caches it, and serves all derived views (WorkOrder/ExecutionReadiness/etc.) from that same cached instance instead of recomputing per view",
+      "purpose_th": "SDRN-P8 Runtime Context Broker — คำนวณ RuntimeContract ของแต่ละโมดูลครั้งเดียวแล้ว cache ไว้ ให้ view ที่ derive ออกมา (WorkOrder/ExecutionReadiness ฯลฯ) ใช้ข้อมูล cache เดียวกัน ไม่คำนวณซ้ำทุกครั้ง",
       "exports": [
         "ArchitectureInfo",
         "ContractProvider",
@@ -5979,21 +5963,38 @@
       ],
       "status": "active"
     },
-    "app/api/admin/invoices/[invoiceId]/send/route.ts": {
-      "owner": "api",
-      "layer": "app",
-      "purpose": "Retry Send for an already-confirmed invoice — calls sendInvoiceToLine(invoiceId) directly without recreating the invoice. Safe to call repeatedly (sendInvoiceToLine itself refuses to re-push an invoice already at status SENT).",
-      "purpose_th": "จุด Retry ส่ง Invoice ที่ยืนยันแล้วไปหา LINE — เรียก sendInvoiceToLine(invoiceId) ตรง ๆ ไม่สร้าง invoice ใหม่ ปลอดภัยต่อการเรียกซ้ำ",
+    "registry/contact-settings-categories.ts": {
+      "owner": "registry",
+      "layer": "registry",
+      "purpose": "Declarative category/field tree for the Contact Settings popup — adding a new module's contact settings means adding one entry here, never touching ContactSettingsModal.tsx's JSX",
+      "purpose_th": "ทะเบียนหมวดหมู่/ฟิลด์แบบ declarative สำหรับ popup ตั้งค่าผู้ติดต่อ — เพิ่มการตั้งค่าของโมดูลใหม่แค่เพิ่ม entry ที่นี่ ไม่ต้องแก้ JSX ของ ContactSettingsModal.tsx",
       "exports": [
-        "POST"
+        "CONTACT_SETTINGS_CATEGORIES",
+        "CategoryNode",
+        "FieldDef",
+        "FieldType",
+        "childrenOf",
+        "findCategory"
+      ],
+      "status": "active"
+    },
+    "gateway/document-artifact-storage.ts": {
+      "owner": "gateway",
+      "layer": "gateway",
+      "purpose": "Stores a document's canonical PDF+image artifacts (from engines/documents/artifact.ts) into the attachments bucket and returns signed URLs, for the LINE-send routes to push",
+      "purpose_th": "บันทึกไฟล์ PDF+รูปของเอกสาร (จาก engines/documents/artifact.ts) ลง bucket attachments แล้วคืน signed URL ให้ route ที่จะส่งเข้า LINE ใช้",
+      "exports": [
+        "StoredDocumentArtifacts",
+        "lineDocumentMessages",
+        "storeDocumentArtifacts"
       ],
       "status": "active"
     },
     "services/knowledge/client.ts": {
       "owner": "services",
       "layer": "services",
-      "purpose": "First real consumer of the Knowledge Model Runtime Mapping — best-effort, never-throwing writes to the `knowledge` Postgres schema (entries/links). Every write is a safe no-op today since that schema has not been applied to production yet (supabase/migrations/20260717000004_knowledge_schema.sql).",
-      "purpose_th": "Client ตัวแรกที่ใช้งาน Knowledge Model Runtime Mapping จริง — เขียนข้อมูลแบบ best-effort ไม่มี throw ไปยัง schema knowledge (entries/links) ปัจจุบันยังเป็น no-op ปลอดภัยเพราะ schema ยังไม่ถูก apply ขึ้น production",
+      "purpose": "Knowledge Model client (services/ I/O boundary) — the first real consumer of the knowledge Postgres schema; every write is best-effort and never throws, since deploy-gate.ts and other callers must keep working whether or not the knowledge schema is live",
+      "purpose_th": "Client เขียนข้อมูลเข้า Knowledge Model (ชั้น services/ I/O) — ตัวแรกที่ใช้ knowledge schema จริง เขียนแบบ best-effort ไม่ throw เพราะ deploy-gate.ts และผู้เรียกอื่นต้องทำงานต่อได้ไม่ว่า schema นี้จะ apply แล้วหรือยัง",
       "exports": [
         "KnowledgeConfidence",
         "KnowledgeDomain",
@@ -6006,26 +6007,22 @@
       ],
       "status": "active"
     },
-    "registry/contact-settings-categories.ts": {
-      "owner": "registry",
-      "layer": "registry",
-      "purpose": "Declarative, plugin-style category tree for the Contact Settings popup — modules register a category entry here (with parent/target/fields) instead of the modal hardcoding each category's UI.",
-      "purpose_th": "ทะเบียนหมวดหมู่แบบต้นไม้สำหรับ Contact Settings popup — โมดูลใหม่ลงทะเบียนหมวดที่นี่แทนการแก้ไข modal โดยตรง",
+    "engines/documents/artifact.ts": {
+      "owner": "engines",
+      "layer": "engines",
+      "purpose": "Canonical document artifact generator — one DocData produces a printable PDF (pdfkit) and a LINE-expandable preview image (sharp), no channel-specific templates",
+      "purpose_th": "ตัวสร้างไฟล์เอกสารมาตรฐาน — DocData หนึ่งชุดสร้าง PDF (pdfkit) และรูปพรีวิวสำหรับ LINE (sharp) ไม่มี template แยกตามช่องทาง",
       "exports": [
-        "CONTACT_SETTINGS_CATEGORIES",
-        "childrenOf",
-        "findCategory",
-        "FieldDef",
-        "FieldType",
-        "CategoryNode"
+        "DocumentArtifacts",
+        "createDocumentArtifacts"
       ],
       "status": "active"
     },
     "components/line/ContactSettingsModal.tsx": {
       "owner": "components",
-      "layer": "presentation",
-      "purpose": "Generic tree-renderer for the Contact Settings floating modal — reads registry/contact-settings-categories.ts and renders whatever category tree is declared there (list -> subcategory list -> field form -> back), never hardcodes a category.",
-      "purpose_th": "Modal ลอยแบบ generic tree-renderer สำหรับ Contact Settings — อ่านจาก registry/contact-settings-categories.ts แล้วเรนเดอร์ตามที่ประกาศไว้ ไม่ hardcode หมวดใด ๆ",
+      "layer": "components",
+      "purpose": "Generic tree-renderer for the Contact Settings popup — reads registry/contact-settings-categories.ts and renders whatever categories are declared there, never hardcodes module-specific JSX",
+      "purpose_th": "Popup ตั้งค่าผู้ติดต่อ — เป็น generic tree-renderer อ่านจาก registry/contact-settings-categories.ts แล้ว render ตามที่ประกาศไว้ ไม่ hardcode JSX เฉพาะโมดูล",
       "exports": [
         "ContactSettingsModal"
       ],
@@ -6034,18 +6031,39 @@
     "app/admin/line-profiles/page.tsx": {
       "owner": "app",
       "layer": "app",
-      "purpose": "Admin page listing every distinct LINE contact with their role/trust-level/company match — bulk view/edit, separate from the per-contact Contact Settings popup opened from the chat header.",
-      "purpose_th": "หน้า admin แสดงรายชื่อผู้ติดต่อ LINE ทั้งหมดพร้อมบทบาท/ความน่าเชื่อถือ/บริษัทที่จับคู่ — มุมมองแบบรายการ แยกจาก Contact Settings popup ที่เปิดจากหน้าแชต",
+      "purpose": "Admin page listing every distinct LINE contact with whatever role/trust profile and matched company is set — read/manage view for LINE Profile business-evidence context",
+      "purpose_th": "หน้าแอดมินแสดงผู้ติดต่อ LINE ทุกรายพร้อม role/trust profile และบริษัทที่จับคู่ (ถ้ามี) — สำหรับดู/จัดการ LINE Profile Business Evidence",
       "exports": [
         "LineProfilesPage"
       ],
       "status": "active"
     },
+    "app/admin/engine-explorer/page.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Documentation Portal page — browses registry/module-registry.json itself, showing every module's real status (active/unregistered/stub/etc.) as colored pills",
+      "purpose_th": "หน้า Documentation Portal — เรียกดู registry/module-registry.json เอง แสดงสถานะจริงของแต่ละโมดูล (active/unregistered/stub ฯลฯ) เป็นป้ายสี",
+      "exports": [
+        "EngineExplorerPage"
+      ],
+      "status": "active"
+    },
+    "supabase/functions/line-webhook-v2/engines/payment-instructions.ts": {
+      "owner": "supabase",
+      "layer": "supabase",
+      "purpose": "Detects a customer asking for our bank account details (e.g. \"ส่งเลขบัญชีมาด้วย\") and replies with the real bank info — must run BEFORE debt-followup.ts's payment-date-answer check so this request isn't misfiled as a promise-to-pay date",
+      "purpose_th": "จับข้อความลูกค้าที่ขอเลขบัญชี (เช่น \"ส่งเลขบัญชีมาด้วย\") แล้วตอบข้อมูลธนาคารจริง — ต้องรันก่อน debt-followup.ts's ตัวเช็ควันที่นัดชำระ ไม่งั้นจะถูกบันทึกผิดเป็นวันที่นัดชำระ",
+      "exports": [
+        "isPaymentInfoRequest",
+        "tryBuildPaymentInstructionsReply"
+      ],
+      "status": "active"
+    },
     "supabase/functions/line-webhook-v2/engines/payment-claim.ts": {
-      "owner": "supabase-functions",
-      "layer": "plugins",
-      "purpose": "Detects a text-only payment claim ('โอนแล้วครับ', no slip) and creates a receipt_documents row with status=waiting_bank_confirmation (Payment Verification Priority Level 1) — previously such messages produced no record at all.",
-      "purpose_th": "ตรวจจับข้อความแจ้งโอนเงินแบบไม่มีสลิป แล้วสร้างแถว receipt_documents สถานะ waiting_bank_confirmation (Level 1 ของ Payment Verification Priority)",
+      "owner": "supabase",
+      "layer": "supabase",
+      "purpose": "Payment Verification Level 1 — records a customer's bare text claim (\"โอนแล้วครับ\", no slip yet) as a receipt_documents row with status waiting_bank_confirmation, since the claim itself is evidence worth keeping even before OCR/bank confirmation exists",
+      "purpose_th": "Payment Verification ระดับ 1 — บันทึกคำอ้างของลูกค้า (\"โอนแล้วครับ\" ไม่มีสลิป) เป็นแถว receipt_documents สถานะ waiting_bank_confirmation เพราะคำอ้างเองก็เป็นหลักฐานที่ควรเก็บไว้แม้ยังไม่มี OCR/แบงค์ยืนยัน",
       "exports": [
         "isPaymentClaim",
         "tryRecordPaymentClaim"
@@ -6053,72 +6071,71 @@
       "status": "active"
     },
     "app/api/admin/line-profiles/route.ts": {
-      "owner": "api",
+      "owner": "app",
       "layer": "app",
-      "purpose": "Lists every distinct LINE contact cross-referenced with their line_profiles role/trust/company match, for the /admin/line-profiles bulk list page.",
-      "purpose_th": "API รายการผู้ติดต่อ LINE ทั้งหมด พร้อมข้อมูล line_profiles (บทบาท/ความน่าเชื่อถือ/บริษัท) สำหรับหน้า /admin/line-profiles",
+      "purpose": "GET — read-only list of every LINE contact cross-referenced with their line_profiles role/trust and matched company, feeding the /admin/line-profiles page",
+      "purpose_th": "GET — รายชื่อผู้ติดต่อ LINE ทุกรายพร้อม role/trust จาก line_profiles และบริษัทที่จับคู่ ใช้เลี้ยงหน้า /admin/line-profiles",
       "exports": [
         "GET"
       ],
       "status": "active"
     },
-    "app/api/admin/line-profiles/[lineUserId]/route.ts": {
-      "owner": "api",
+    "app/api/internal/line/document-artifact/route.ts": {
+      "owner": "app",
       "layer": "app",
-      "purpose": "Single-contact fetch (GET, with sensible defaults for a contact with no line_profiles row yet) and merge-patch (PATCH, only overwrites keys actually sent) — feeds both the Contact Settings popup and the bulk list page's inline edits.",
-      "purpose_th": "API อ่าน/แก้ไข line_profiles รายผู้ติดต่อ — GET คืนค่า default ที่สมเหตุสมผลถ้ายังไม่มีแถว, PATCH merge เฉพาะ key ที่ส่งมาจริง",
+      "purpose": "Edge-cron bridge — Supabase Edge Functions can't import the Node PDF/image artifact renderer, so this narrowly-scoped, secret-gated server route generates and pushes the artifact on their behalf",
+      "purpose_th": "สะพานเชื่อม Edge-cron — Supabase Edge Function เรียก Node artifact renderer ตรงไม่ได้ เลยเรียก route นี้ (มี secret คุ้มกัน) ให้สร้างและส่งไฟล์เอกสารแทน",
+      "exports": [
+        "POST"
+      ],
+      "status": "active"
+    },
+    "app/api/admin/line-profiles/[lineUserId]/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Single-contact GET/PATCH for the Contact Settings popup — GET falls back to defaults for a contact with no line_profiles row yet, PATCH validates role/trust_level against fixed enums before writing",
+      "purpose_th": "GET/PATCH ผู้ติดต่อรายเดียว สำหรับ popup ตั้งค่าผู้ติดต่อ — GET คืนค่า default ถ้ายังไม่มีแถว line_profiles, PATCH ตรวจ role/trust_level กับ enum ที่กำหนดก่อนเขียน",
       "exports": [
         "GET",
         "PATCH"
       ],
       "status": "active"
     },
-    "app/api/admin/receipt-documents/[id]/reject/route.ts": {
-      "owner": "api",
+    "app/api/admin/relationships/[relationshipId]/match/route.ts": {
+      "owner": "app",
       "layer": "app",
-      "purpose": "Rejected/Mismatch path for a receipt_documents row (slip or waiting_bank_confirmation claim) — marks it rejected, keeps the row for audit (never deletes, per Rule 104).",
-      "purpose_th": "จุดปฏิเสธ (Mismatch) สำหรับแถว receipt_documents — เปลี่ยนสถานะเป็น rejected แต่เก็บแถวไว้เป็นหลักฐาน ไม่ลบ (ตาม Rule 104)",
+      "purpose": "\"New customers never disappear\" — the one intentional, admin-triggered write path that promotes an unmatched LINE contact into a real relationship by creating a company_line_link, either to an existing company or a newly-created one",
+      "purpose_th": "\"ลูกค้าใหม่ต้องไม่หายไป\" — จุดเขียนเดียวที่ตั้งใจไว้ (ต้องกดโดยแอดมิน) สำหรับจับคู่ผู้ติดต่อ LINE ที่ยังไม่ได้จับคู่เข้ากับบริษัทจริง (เดิมหรือสร้างใหม่) ผ่าน company_line_link",
+      "exports": [
+        "POST"
+      ],
+      "status": "active"
+    },
+    "app/api/admin/receipt-documents/[id]/reject/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Rejected/Mismatch path for a pending slip — marks receipt_documents status rejected, never deletes the row (Rule 104), keeping it in the audit trail",
+      "purpose_th": "เส้นทางปฏิเสธสลิปที่ยอด/ชื่อไม่ตรงหรือน่าสงสัย — เปลี่ยนสถานะ receipt_documents เป็น rejected ไม่ลบแถวทิ้ง (Rule 104) เก็บไว้เป็นหลักฐาน",
       "exports": [
         "POST"
       ],
       "status": "active"
     },
     "app/api/admin/receipt-documents/[id]/confirm/route.ts": {
-      "owner": "api",
+      "owner": "app",
       "layer": "app",
-      "purpose": "The only place a Pending Review receipt_documents row (a LINE slip classification) becomes a real receipt_received debt event — a human confirming here deducts the amount from debt_snapshots.total_outstanding immediately (Rule 72 gate).",
-      "purpose_th": "จุดเดียวที่เปลี่ยนสลิปสถานะ Pending Review ให้กลายเป็น receipt_received debt event จริง — มนุษย์กดยืนยันที่นี่แล้วหักยอดหนี้ทันที (ผ่าน Rule 72)",
+      "purpose": "The only place a LINE-slip classification (receipt_documents, status ai_read) becomes a real receipt_received debt_event — reads outstanding before mutating it, classifies full vs. partial via resolvePaymentDocumentLink(), then updates debt_snapshots; human confirmation IS the Rule 72 evidence today, since Level 3/4 auto-verification isn't built yet",
+      "purpose_th": "จุดเดียวที่การจำแนกสลิป LINE (receipt_documents สถานะ ai_read) กลายเป็น debt_event รับเงินจริง — อ่านยอดคงเหลือก่อนแก้ จำแนกเต็ม/บางส่วนด้วย resolvePaymentDocumentLink() แล้วอัปเดต debt_snapshots มนุษย์ยืนยันคือหลักฐานตาม Rule 72 ของวันนี้ เพราะ Level 3/4 (แบงค์ยืนยันอัตโนมัติ) ยังไม่มีจริง",
       "exports": [
         "POST"
       ],
       "status": "active"
     },
-    "supabase/functions/line-webhook-v2/engines/payment-instructions.ts": {
-      "owner": "supabase-functions",
-      "layer": "plugins",
-      "purpose": "Detects a customer request for our bank account details and auto-replies with real payment instructions (bank/account/name from company-settings, reference/amount from the latest active invoice or debt_snapshots fallback) — the fourth of four separate card types (Invoice/Debt Reminder/Payment Instructions/Payment Verification). Must run before debt-followup.ts's tryFollowUpDebtAck, which previously misfiled such requests as a payment-date confirmation.",
-      "purpose_th": "ตรวจจับข้อความขอเลขบัญชี แล้วตอบข้อมูลการชำระเงินจริง (ธนาคาร/เลขบัญชี/ชื่อบัญชีจาก company-settings, อ้างอิง/ยอดจาก invoice ล่าสุดหรือ debt_snapshots) ต้องรันก่อน debt-followup.ts เพื่อไม่ให้ถูกเข้าใจผิดเป็นการยืนยันวันชำระ",
-      "exports": [
-        "isPaymentInfoRequest",
-        "tryBuildPaymentInstructionsReply"
-      ],
-      "status": "active"
-    },
-    "app/admin/engine-explorer/page.tsx": {
+    "app/api/admin/invoices/[invoiceId]/send/route.ts": {
       "owner": "app",
       "layer": "app",
-      "purpose": "Engine Explorer — browses module-registry.json filtered to the 'engines' layer, with search across path/owner/purpose/exports. Was misplaced at the repo root (Next.js App Router only recognizes page.tsx under app/, so it was never actually reachable) — moved here 2026-07-18, no logic changed.",
-      "purpose_th": "หน้าสำรวจโมดูล layer 'engines' จาก module-registry.json พร้อมค้นหา — เดิมอยู่ผิดที่ (root ของ repo ทำให้ Next.js มองไม่เห็นเลย) ย้ายมาที่นี่ 2026-07-18 ไม่แก้ logic",
-      "exports": [
-        "EngineExplorerPage"
-      ],
-      "status": "active"
-    },
-    "app/api/admin/relationships/[relationshipId]/match/route.ts": {
-      "owner": "api",
-      "layer": "app",
-      "purpose": "Promotes an unmatched LINE contact into a real relationship — the only intentional write path for company_line_links (link to an existing company or create a new one first). Always admin-triggered (Rule 72), never automatic.",
-      "purpose_th": "จุดเดียวที่จับคู่ LINE contact ที่ยังไม่มีบริษัทเข้ากับบริษัทจริง (หรือสร้างบริษัทใหม่) — เป็น action ที่แอดมินกดเองเท่านั้น ไม่มีระบบสร้างอัตโนมัติ",
+      "purpose": "Retry Send — re-invokes sendInvoiceToLine() (gateway/actions.ts) directly on an already-confirmed invoice; safe to call repeatedly since that function itself refuses to re-push an invoice already SENT",
+      "purpose_th": "ปุ่มส่งซ้ำ — เรียก sendInvoiceToLine() (gateway/actions.ts) ตรงกับ invoice ที่ยืนยันแล้ว เรียกซ้ำได้ปลอดภัยเพราะฟังก์ชันนั้นเองปฏิเสธการส่งซ้ำถ้าสถานะเป็น SENT แล้ว",
       "exports": [
         "POST"
       ],
@@ -6127,12 +6144,73 @@
     "app/api/admin/debt-trackings/[id]/events/route.ts": {
       "owner": "app",
       "layer": "app",
-      "purpose": "[Auto-detected] app/api/admin/debt-trackings/[id]/events/route.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] app/api/admin/debt-trackings/[id]/events/route.ts",
+      "purpose": "Manual debt-tracking control actions (pause/resume/adjust_fee/adjust_interest/close) — each writes a real debt_events row of the matching event_type, admin-triggered only",
+      "purpose_th": "คำสั่งจัดการ debt tracking แบบมนุษย์กด (พัก/ต่อ/ปรับค่าธรรมเนียม/ปรับดอกเบี้ย/ปิด) — แต่ละคำสั่งเขียนแถว debt_events จริงตาม event_type แอดมินกดเท่านั้น",
       "exports": [
         "POST"
       ],
-      "status": "unregistered"
+      "status": "active"
+    },
+    "registry/communication.ts": {
+      "owner": "registry",
+      "layer": "registry",
+      "purpose": "Single outbound gateway for all LINE Messaging API push calls — every Next.js caller (chat/confirm, line-customers actions, notifications, gateway/actions.ts's invoice send, etc.) routes through sendLineMessage() here, not a direct fetch (owner, 2026-07-24 consolidation)",
+      "purpose_th": "ประตูเดียวสำหรับส่ง LINE Messaging API push ทุกจุดฝั่ง Next.js (chat/confirm, การ์ดต่างๆใน line-customers, notifications, invoice send ใน gateway/actions.ts ฯลฯ) เรียกผ่าน sendLineMessage() ตัวนี้ ไม่ fetch ตรงอีกต่อไป (รวมจุดยิงเมื่อ 2026-07-24)",
+      "exports": [
+        "SendMessageResponse",
+        "sendLineMessage"
+      ],
+      "status": "active"
+    },
+    "engines/debt/tracking-calculator.ts": {
+      "owner": "engines",
+      "layer": "engines",
+      "purpose": "Shared pure debt formula (principal/interest/penalty/freeze-window) usable from both Node (engines/debt/tracking.ts) and Supabase Edge (debt-reminder-cron, relationship-qa) — one calculation, not reimplemented per runtime",
+      "purpose_th": "สูตรคำนวณหนี้ล้วน (principal/ดอกเบี้ย/ค่าปรับ/ช่วง freeze) ใช้ได้ทั้งฝั่ง Node (engines/debt/tracking.ts) และ Supabase Edge (debt-reminder-cron, relationship-qa) — คำนวณสูตรเดียว ไม่เขียนซ้ำแยกตาม runtime",
+      "exports": [
+        "DEBT_TRACKING_GRACE_DAYS",
+        "DEBT_TRACKING_INTEREST_RATE",
+        "DEBT_TRACKING_PENALTY_PER_DAY",
+        "DebtEventRow",
+        "DebtTrackingInput",
+        "DebtTrackingSummary",
+        "FreezeWindow",
+        "calcDebtTrackingSummary",
+        "deriveFreezeWindows"
+      ],
+      "status": "active"
+    },
+    "app/admin/receipts/page.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Payment Verification Queue — lists OCR-classified transfer_slip receipt_documents rows awaiting human confirmation, with a full/partial-payment preview from resolvePaymentDocumentLink() before Confirm/Reject",
+      "purpose_th": "หน้าตรวจสอบสลิปโอนเงินที่ AI อ่านค่าแล้ว รอมนุษย์ยืนยัน — แสดงพรีวิวใบรับเงินเต็มจำนวน/บางส่วนจาก resolvePaymentDocumentLink() ก่อนกดยืนยันหรือปฏิเสธ",
+      "exports": [
+        "ReceiptsQueuePage"
+      ],
+      "status": "active"
+    },
+    "supabase/functions/line-webhook-v2/engines/human-takeover.ts": {
+      "owner": "supabase",
+      "layer": "supabase",
+      "purpose": "Detects conflict/distrust language (\"ไม่ใช่ยอด\", \"ขอคุยกับคน\", \"หลอกลวง\", etc.) and flips a LINE conversation's line_conversation_controls.mode to human_takeover, pausing the AI reply pipeline for that contact until a human resolves it",
+      "purpose_th": "ตรวจข้อความที่สื่อความขัดแย้ง/ไม่เชื่อใจ (\"ไม่ใช่ยอด\", \"ขอคุยกับคน\", \"หลอกลวง\" ฯลฯ) แล้วเปลี่ยน line_conversation_controls.mode ของแชทนั้นเป็น human_takeover หยุดให้ AI ตอบอัตโนมัติจนกว่ามนุษย์จะจัดการ",
+      "exports": [
+        "activateHumanTakeover",
+        "getConversationMode",
+        "isHumanTakeoverMessage"
+      ],
+      "status": "active"
+    },
+    "app/api/admin/receipt-documents/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "GET — lists pending transfer_slip receipt_documents (status ai_read) joined with partner name and live debt_snapshots.total_outstanding, classified via resolvePaymentDocumentLink() so the same full/partial decision the confirm route will execute is previewed here first",
+      "purpose_th": "GET — ดึงรายการสลิปโอนเงินที่รอตรวจสอบ (status ai_read) พร้อมชื่อคู่ค้าและยอดหนี้คงเหลือจริง จำแนกด้วย resolvePaymentDocumentLink() ตัวเดียวกับที่ confirm route จะใช้จริง ไม่ใช่การเดาแยกกัน",
+      "exports": [
+        "GET"
+      ],
+      "status": "active"
     }
   },
   "excluded": [

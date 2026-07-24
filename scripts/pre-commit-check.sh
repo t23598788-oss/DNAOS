@@ -262,4 +262,38 @@ if [ -x "$SCRIPT_DIR/check-evidence-isolation.sh" ]; then
   "$SCRIPT_DIR/check-evidence-isolation.sh"
 fi
 
+# Guard 13: No Unfilled Registry Stub On Staged Files (owner, 2026-07-24).
+# Real incident: 22 real, live, actively-imported modules (payment-claim.ts,
+# registry/communication.ts, receipt-documents confirm/reject routes, etc.,
+# built across several sessions since 2026-07-17) sat with the auto-generated
+# placeholder purpose_th ("[ตรวจพบอัตโนมัติ] ...") for days/weeks — because
+# Guard 0 only ever rejected BROKEN/UNUSED status, never "still an unfilled
+# stub". A file can be perfectly wired, imported, and running in production
+# and still never get a real description, silently, forever. This guard
+# closes exactly that gap: any file in THIS commit whose registry entry still
+# carries the literal auto-stub placeholder is a hard reject, not a warning —
+# same severity class as Guard 0, because the failure mode (silent, invisible,
+# accumulates across sessions/AI-agents) is identical.
+echo "--- Unfilled Registry Stub Check (Guard 13) ---"
+STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACM 2>/dev/null)
+if [ -n "$STAGED_FILES" ]; then
+  STUB_VIOLATIONS=$(node -e "
+    const fs = require('fs');
+    const r = JSON.parse(fs.readFileSync('registry/module-registry.json', 'utf8'));
+    const staged = \`$STAGED_FILES\`.split('\n').filter(Boolean);
+    const bad = staged.filter((f) => {
+      const m = r.modules[f];
+      if (!m) return false;
+      return m.status === 'unregistered' || String(m.purpose_th || '').startsWith('[ตรวจพบอัตโนมัติ]');
+    });
+    bad.forEach((f) => console.log(f));
+  " 2>/dev/null)
+  if [ -n "$STUB_VIOLATIONS" ]; then
+    echo "ERROR: ไฟล์ต่อไปนี้อยู่ในทะเบียนแต่ยังไม่มีคำอธิบายจริง (purpose_th ยังเป็น auto-stub) — ต้องเขียนคำอธิบายจริงใน registry/module-registry.json ก่อน commit:"
+    echo "$STUB_VIOLATIONS" | sed 's/^/    /'
+    exit 1
+  fi
+fi
+echo "Registry stub check OK"
+
 echo "All guards passed"

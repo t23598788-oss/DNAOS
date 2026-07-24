@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { requireAuth } from "@/core/auth/requireAuth"
 import { ADMIN_TIER } from "@/core/auth/session"
 import { supabaseAdmin as supabase } from "@/services/supabase/queries"
+import { sendLineMessage } from "@/registry/communication"
 
 type Params = { params: Promise<{ lineUserId: string }> }
 
@@ -23,18 +24,10 @@ export async function POST(req: NextRequest, { params }: Params) {
   const text = typeof body?.text === "string" ? body.text.trim() : ""
   if (!text) return NextResponse.json({ error: "ข้อความว่างเปล่า" }, { status: 400 })
 
-  const token = process.env.LINE_CHANNEL_ACCESS_TOKEN
-  if (!token) return NextResponse.json({ error: "LINE_CHANNEL_ACCESS_TOKEN ยังไม่ได้ตั้งค่า" }, { status: 503 })
+  const res = await sendLineMessage(lineUserId, [{ type: "text", text }])
 
-  const res = await fetch("https://api.line.me/v2/bot/message/push", {
-    method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-    body: JSON.stringify({ to: lineUserId, messages: [{ type: "text", text }] }),
-  })
-
-  if (!res.ok) {
-    const errText = await res.text()
-    return NextResponse.json({ error: `LINE API ปฏิเสธ: ${errText.slice(0, 300)}` }, { status: 502 })
+  if (!res.success) {
+    return NextResponse.json({ error: `LINE API ปฏิเสธ: ${(res.error ?? "").slice(0, 300)}` }, { status: 502 })
   }
 
   const db = supabase()

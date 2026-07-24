@@ -14,6 +14,7 @@ import { DOC_LABELS, generateDoc, type DocData, type DocItem, type DocType } fro
 import { documentFlex } from "@/engines/documents/flex-template";
 import { loadCompanySettings } from "@/core/config/company-settings";
 import { randomUUID } from "crypto";
+import { sendLineMessage } from "@/registry/communication";
 
 // ---- Types ----
 
@@ -454,9 +455,6 @@ export async function sendInvoiceToLine(invoiceId: string): Promise<ActionRespon
     return { ok: false, mode: "execute", action: "invoice.send", error: "ลูกค้ารายนี้ยังไม่ได้เชื่อมบัญชี LINE — ส่งอัตโนมัติไม่ได้" };
   }
 
-  const token = process.env.LINE_CHANNEL_ACCESS_TOKEN;
-  if (!token) return { ok: false, mode: "execute", action: "invoice.send", error: "LINE_CHANNEL_ACCESS_TOKEN ยังไม่ได้ตั้งค่า" };
-
   const branding = await loadCompanySettings();
   const partyName = (invoice as { companies?: { name?: string } }).companies?.name ?? "";
   const flex = documentFlex({
@@ -473,17 +471,15 @@ export async function sendInvoiceToLine(invoiceId: string): Promise<ActionRespon
     },
   });
 
-  const lineRes = await fetch("https://api.line.me/v2/bot/message/push", {
-    method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-    body: JSON.stringify({ to: link.line_user_id, messages: [{ type: "flex", altText: `ใบแจ้งหนี้ ${invoice.invoice_no}`, contents: flex }] }),
-  });
+  const lineRes = await sendLineMessage(link.line_user_id, [
+    { type: "flex", altText: `ใบแจ้งหนี้ ${invoice.invoice_no}`, contents: flex },
+  ]);
 
-  if (!lineRes.ok) {
+  if (!lineRes.success) {
     // Owner instruction: on LINE push failure, invoice stays saved as-is
     // (status untouched — still DRAFT) so Retry Send can call this same
     // function again without recreating anything.
-    return { ok: false, mode: "execute", action: "invoice.send", error: `ส่ง LINE ไม่สำเร็จ: ${(await lineRes.text()).slice(0, 200)}` };
+    return { ok: false, mode: "execute", action: "invoice.send", error: `ส่ง LINE ไม่สำเร็จ: ${(lineRes.error ?? "").slice(0, 200)}` };
   }
 
   const { error: statusError } = await supabase()

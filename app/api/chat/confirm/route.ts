@@ -6,6 +6,7 @@ import { supabaseAdmin as supabase } from "@/services/supabase/queries";
 import { documentFlex } from "@/engines/documents/flex-template";
 import { DOC_LABELS, type DocType } from "@/engines/documents/engine";
 import { loadCompanySettings } from "@/core/config/company-settings";
+import { sendLineMessage } from "@/registry/communication";
 
 // Rule 72 confirm step for the chat secretary — the preview_token already
 // carries the full payload from when cognitive/executor/index.ts called
@@ -72,27 +73,22 @@ export async function POST(request: Request) {
       },
     });
     const label = DOC_LABELS[doc.document_type]?.th ?? doc.document_type;
-    const token = process.env.LINE_CHANNEL_ACCESS_TOKEN;
 
-    if (token) {
-      const lineRes = await fetch("https://api.line.me/v2/bot/message/push", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ to: lineUserId, messages: [{ type: "flex", altText: `${label} ${doc.document_number}`, contents: flex }] }),
+    const lineRes = await sendLineMessage(lineUserId, [
+      { type: "flex", altText: `${label} ${doc.document_number}`, contents: flex },
+    ]);
+
+    const db = supabase();
+    if (lineRes.success) {
+      await db.from("line_events").insert({
+        line_user_id: lineUserId,
+        raw_type: "flex",
+        raw_text: `📄 ${label} ${doc.document_number} ส่งให้ลูกค้าแล้ว`,
+        status: "processed",
+        direction: "out",
       });
-
-      const db = supabase();
-      if (lineRes.ok) {
-        await db.from("line_events").insert({
-          line_user_id: lineUserId,
-          raw_type: "flex",
-          raw_text: `📄 ${label} ${doc.document_number} ส่งให้ลูกค้าแล้ว`,
-          status: "processed",
-          direction: "out",
-        });
-      } else {
-        lineSendError = `ส่ง LINE ไม่สำเร็จ: ${(await lineRes.text()).slice(0, 200)}`;
-      }
+    } else {
+      lineSendError = `ส่ง LINE ไม่สำเร็จ: ${(lineRes.error ?? "").slice(0, 200)}`;
     }
   }
 

@@ -2,16 +2,19 @@ import { NextRequest, NextResponse } from "next/server"
 import { requireAuth } from "@/core/auth/requireAuth"
 import { ADMIN_TIER } from "@/core/auth/session"
 import { supabaseAdmin as supabase } from "@/services/supabase/queries"
-import { documentFlex } from "@/engines/documents/flex-template"
 import { DOC_LABELS, type DocType } from "@/engines/documents/engine"
+import { storeDocumentArtifacts, lineDocumentMessages } from "@/gateway/document-artifact-storage"
+import { loadCompanySettings } from "@/core/config/company-settings"
+import { sendLineMessage } from "@/registry/communication"
 
 type Params = { params: Promise<{ lineUserId: string }> }
 
 // Owner request 2026-07-11: every document already shown in this page's
 // "รายละเอียดเพิ่มเติม" section (existing invoices/standalone_documents, not
 // just ones just created through the chat) needs a one-click "send" too, all
-// from this one screen. No line-items to show here (see flex-template.ts —
-// existing rows only ever stored totals), just the real document card.
+// from this one screen. Legacy rows may not have persisted line items, so the
+// canonical artifact falls back to a single total line while preserving the
+// same document form and PDF/image delivery contract.
 
 const ENUM_TO_DOC_TYPE: Record<string, DocType> = {
   QT: "quotation",
@@ -46,6 +49,7 @@ export async function POST(req: NextRequest, { params }: Params) {
   let total = 0;
   let subtotal = 0;
   let vat = 0;
+  let items: { description: string; qty: number; unit: string; unitPrice: number }[] = [];
 
   if (table === "invoices") {
     const { data: inv, error } = await db.from("invoices").select("invoice_no, subtotal, vat_amount, total_amount").eq("id", documentId).maybeSingle()
@@ -56,39 +60,43 @@ export async function POST(req: NextRequest, { params }: Params) {
     vat = Number(inv.vat_amount)
     total = Number(inv.total_amount)
   } else {
-    const { data: doc, error } = await db.from("standalone_documents").select("document_no, document_type, subtotal, vat_amount, total_amount").eq("id", documentId).maybeSingle()
+    const { data: doc, error } = await db.from("standalone_documents").select("document_no, document_type, document_date, subtotal, vat_amount, total_amount, customer_company_id").eq("id", documentId).maybeSingle()
     if (error || !doc) return NextResponse.json({ error: "ไม่พบเอกสาร" }, { status: 404 })
     documentType = ENUM_TO_DOC_TYPE[doc.document_type] ?? "quotation"
     documentNumber = doc.document_no
     subtotal = Number(doc.subtotal)
     vat = Number(doc.vat_amount)
     total = Number(doc.total_amount)
+    const { data: rows } = await db
+      .from("standalone_document_items")
+      .select("description, qty, unit, unit_price")
+      .eq("document_id", documentId)
+      .order("sort_order", { ascending: true })
+    items = (rows ?? []).map((row) => ({ description: row.description, qty: Number(row.qty), unit: row.unit, unitPrice: Number(row.unit_price) }))
   }
 
-  const token = process.env.LINE_CHANNEL_ACCESS_TOKEN
-  if (!token) return NextResponse.json({ error: "LINE_CHANNEL_ACCESS_TOKEN ยังไม่ได้ตั้งค่า" }, { status: 503 })
-
-  const flex = documentFlex({
-    documentType,
-    documentNumber,
-    partyName: companyName,
-    summary: { subtotal, vat, total },
+  const company = await loadCompanySettings()
+  const artifacts = await storeDocumentArtifacts(documentId, {
+    type: documentType,
+    docNumber: documentNumber,
+    date: new Date().toISOString().slice(0, 10),
+    status: "saved",
+    company: { name: company.companyName, taxId: company.companyTaxId },
+    customer: { name: companyName },
+    items,
+    precomputedSummary: { subtotal, vatRate: total > subtotal ? vat / Math.max(subtotal, 1) : 0, vat, total },
   })
   const label = DOC_LABELS[documentType]?.th ?? documentType
 
-  const lineRes = await fetch("https://api.line.me/v2/bot/message/push", {
-    method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-    body: JSON.stringify({ to: lineUserId, messages: [{ type: "flex", altText: `${label} ${documentNumber}`, contents: flex }] }),
-  })
+  const lineRes = await sendLineMessage(lineUserId, lineDocumentMessages(artifacts, `${label} ${documentNumber}`))
 
-  if (!lineRes.ok) {
-    return NextResponse.json({ error: `ส่ง LINE ไม่สำเร็จ: ${(await lineRes.text()).slice(0, 200)}` }, { status: 502 })
+  if (!lineRes.success) {
+    return NextResponse.json({ error: `ส่ง LINE ไม่สำเร็จ: ${(lineRes.error ?? "").slice(0, 200)}` }, { status: 502 })
   }
 
   await db.from("line_events").insert({
     line_user_id: lineUserId,
-    raw_type: "flex",
+    raw_type: "image",
     raw_text: `📄 ${label} ${documentNumber} ส่งให้ลูกค้าแล้ว`,
     status: "processed",
     direction: "out",

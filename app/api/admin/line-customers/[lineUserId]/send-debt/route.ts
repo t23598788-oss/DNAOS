@@ -5,6 +5,7 @@ import { supabaseAdmin as supabase } from "@/services/supabase/queries"
 import { debtReminderFlex } from "@/engines/documents/flex-template"
 import { loadCompanySettings } from "@/core/config/company-settings"
 import { getCurrentDebt } from "@/engines/debt/tracking"
+import { sendLineMessage } from "@/registry/communication"
 
 type Params = { params: Promise<{ lineUserId: string }> }
 
@@ -59,9 +60,6 @@ export async function POST(req: Request, { params }: Params) {
     )
   }
 
-  const token = process.env.LINE_CHANNEL_ACCESS_TOKEN
-  if (!token) return NextResponse.json({ error: "LINE_CHANNEL_ACCESS_TOKEN ยังไม่ได้ตั้งค่า" }, { status: 503 })
-
   const branding = await loadCompanySettings()
   const flex = debtReminderFlex({
     companyName: company.name,
@@ -86,14 +84,12 @@ export async function POST(req: Request, { params }: Params) {
     return NextResponse.json({ ok: true, flex_preview: flex })
   }
 
-  const lineRes = await fetch("https://api.line.me/v2/bot/message/push", {
-    method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-    body: JSON.stringify({ to: lineUserId, messages: [{ type: "flex", altText: "แจ้งยอดค้างชำระ", contents: flex }] }),
-  })
+  const lineRes = await sendLineMessage(lineUserId, [
+    { type: "flex", altText: "แจ้งยอดค้างชำระ", contents: flex },
+  ])
 
-  if (!lineRes.ok) {
-    return NextResponse.json({ error: `ส่ง LINE ไม่สำเร็จ: ${(await lineRes.text()).slice(0, 200)}` }, { status: 502 })
+  if (!lineRes.success) {
+    return NextResponse.json({ error: `ส่ง LINE ไม่สำเร็จ: ${(lineRes.error ?? "").slice(0, 200)}` }, { status: 502 })
   }
 
   await db.from("line_events").insert({

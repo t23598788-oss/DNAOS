@@ -1,0 +1,8 @@
+#!/bin/bash
+# Tracked in git (owner, 2026-07-24) — unlike the old .git/hooks/pre-commit
+# (DNA-000073), which was real but local-only and invisible to git, this file
+# lives in the repo itself. package.json's "prepare" script points
+# core.hooksPath here on every `npm install`, so any machine/session/AI agent
+# that runs npm install gets the identical enforcement automatically — no
+# manual hook installation step to forget.
+exec bash "$(git rev-parse --show-toplevel)/scripts/pre-commit-check.sh"

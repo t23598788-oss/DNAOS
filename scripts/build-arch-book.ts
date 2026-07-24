@@ -395,9 +395,36 @@ function calcStatus(
       };
     }
 
+    // Known-gap exception (owner, 2026-07-24): for a real, built subsystem that
+    // has zero callers ON PURPOSE because a tracked task hasn't wired it yet
+    // (e.g. TASK-038's Composer/Orchestrator chain — no Executor/Driver step
+    // exists for any of the 202 registered Capabilities) — this is neither a
+    // real caller (declared_callers requires an actual importing file, so a
+    // task-ID string there produces a false BROKEN "missing import" instead)
+    // nor abandoned code (archival_status would misrepresent a live, intended
+    // gap as a mistake to archive). Verified the same way archival_status is
+    // above: the referenced task ID must really exist in TASK_QUEUE.json and
+    // must not already be "done" — a stale known_gap_ref pointing at a
+    // finished task is exactly the kind of drift this whole check exists to
+    // catch, not something to wave through silently.
+    if (registryData?.known_gap_ref) {
+      const taskId: string = registryData.known_gap_ref;
+      const queue: any[] = load("TASK_QUEUE.json") ?? [];
+      const task = queue.find((t) => t.id === taskId);
+      if (task && task.status !== "done") {
+        return { status: "OK" };
+      }
+      return {
+        status: "BROKEN",
+        error_th: task
+          ? `known_gap_ref: "${taskId}" แต่ task นั้นมีสถานะ "done" แล้ว — โมดูลนี้ควรมี caller จริงแล้ว ไม่ใช่ known gap อีกต่อไป ต้องแก้ไข (ต่อสาย caller จริง หรือถอด known_gap_ref ออก)`
+          : `known_gap_ref: "${taskId}" ไม่พบ task นี้จริงใน registry/TASK_QUEUE.json — ห้ามอ้าง task ที่ไม่มีอยู่จริง`,
+      };
+    }
+
     return {
       status: "UNUSED",
-      error_th: `ไม่มีใครเรียกใช้ และไม่มี declared_callers — เพิ่ม declared_callers ใน module-registry.json หรือตั้ง entry_point: true (หรือถ้าจะ archive ตาม Rule 104 ต้องสกัดความรู้ก่อน แล้วตั้ง archival_status: "ARCHIVED" พร้อม archived_knowledge_ref ที่ชี้ไป entry จริง)`,
+      error_th: `ไม่มีใครเรียกใช้ และไม่มี declared_callers — เพิ่ม declared_callers ใน module-registry.json หรือตั้ง entry_point: true (หรือถ้าจะ archive ตาม Rule 104 ต้องสกัดความรู้ก่อน แล้วตั้ง archival_status: "ARCHIVED" พร้อม archived_knowledge_ref ที่ชี้ไป entry จริง) (หรือถ้าเป็น known gap จาก task ที่ track ไว้จริง ตั้ง known_gap_ref ชี้ไป TASK_QUEUE.json id จริงที่ยังไม่ done)`,
     };
   }
 

@@ -4,6 +4,7 @@ import { ADMIN_TIER } from "@/core/auth/session"
 import { supabaseAdmin as supabase } from "@/services/supabase/queries"
 import { buildEventFromMessages, generateEventCode } from "@/engines/events/event-builder"
 import { tryAutoCreateJob, composeMissingInfoMessage } from "@/engines/jobs/auto-create"
+import { sendLineMessage } from "@/registry/communication"
 
 type Params = { params: Promise<{ lineUserId: string }> }
 
@@ -25,13 +26,7 @@ type Params = { params: Promise<{ lineUserId: string }> }
 // the one that asked "ทราย ชนิดไหนครับ".
 
 async function pushLineText(userId: string, text: string) {
-  const token = process.env.LINE_CHANNEL_ACCESS_TOKEN
-  if (!token) return
-  await fetch("https://api.line.me/v2/bot/message/push", {
-    method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-    body: JSON.stringify({ to: userId, messages: [{ type: "text", text }] }),
-  }).catch(() => {})
+  await sendLineMessage(userId, [{ type: "text", text }]).catch(() => {})
 }
 
 export async function POST(_req: Request, { params }: Params) {
