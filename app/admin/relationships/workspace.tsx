@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useMemo, useRef } from "react"
 import Link from "next/link"
 import {
   LayoutGrid, MessageCircle, Briefcase, Building2, FileText, Wallet, Mountain,
-  MapPin, FileSignature, Receipt, Truck, Banknote, Phone, Paperclip, Bot, X, ExternalLink, Settings,
+  MapPin, FileSignature, Receipt, Truck, Banknote, Phone, Paperclip, Bot, X, ExternalLink, Settings, Wrench,
 } from "lucide-react"
 import { formatMoney } from "@/engines/documents/document-editor"
 import { AppShell, ActionBar, MapView, FlexPreview, Inspector, type IconRailItem, type ListColumnItem, type ActionBarItem } from "@/components/ui-kit"
@@ -48,6 +48,10 @@ const RAIL_ITEMS: IconRailItem[] = [
   { key: "transactions", label: "เอกสาร", icon: FileText, href: "/admin/transactions" },
   { key: "debt-tracking", label: "การเงิน", icon: Wallet, href: "/admin/debt-tracking" },
   { key: "pits", label: "บ่อวัสดุ", icon: Mountain, href: "/admin/pits" },
+  // Equipment GPS/Relay Permission System (owner spec, 2026-07-24): "เพิ่ม
+  // กล่องตั้งค่า Setting ของระบบควบคุมเครื่องยนต์อัตโนมัติขึ้นมาไว้ด้วย" — a real
+  // top-level nav entry, not just a URL only discoverable by typing it.
+  { key: "equipment", label: "เครื่องยนต์", icon: Wrench, href: "/admin/equipment" },
   { key: "build", label: "ระบบ", icon: Settings, href: "/admin/build" },
 ]
 
