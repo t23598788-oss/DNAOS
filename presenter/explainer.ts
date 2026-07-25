@@ -190,30 +190,12 @@ export async function explainQuote(params: {
     timestamp: now,
   });
 
-  // 6. ค่าแรง
-  const driverWage = getNum(configs, "driver-wage-per-trip");
-  const totalWage = driverWage * trips;
-
-  items.push({
-    label: "ค่าแรง/เที่ยว",
-    value: driverWage,
-    unit: "บาท",
-    source: "app_configs.driver-wage-per-trip",
-    formula: `คนขับได้ ${driverWage} บาท/เที่ยว`,
-    timestamp: now,
-  });
-
-  items.push({
-    label: "ค่าแรงรวม",
-    value: totalWage,
-    unit: "บาท",
-    source: "คำนวณจากค่าแรง/เที่ยว × เที่ยว",
-    formula: `${driverWage} × ${trips} = ${totalWage.toLocaleString()}`,
-    timestamp: now,
-  });
+  // ไม่มีค่าแรงคนขับแยก (owner correction, 2026-07-25): เจ้าของรถเป็นผู้รับ
+  // เหมาอิสระ เฮียเป็นคนเสนอราคาให้เขาจากระยะทางจริง × ราคาน้ำมันจริง —
+  // ไม่ใช่ค่าคงที่ที่ DNA OS จ่ายแยกต่างหาก
 
   // 7. ต้นทุน + ราคาขาย
-  const totalCost = materialCost + fuelCost + totalWage;
+  const totalCost = materialCost + fuelCost;
   const markup = getNum(configs, "pricing-markup-percent");
   const sellingPrice = Math.round(totalCost * (1 + markup / 100));
   const profit = sellingPrice - totalCost;
@@ -222,8 +204,8 @@ export async function explainQuote(params: {
     label: "ต้นทุนรวม",
     value: totalCost,
     unit: "บาท",
-    source: "คำนวณจากค่าวัสดุ + ค่าน้ำมัน + ค่าแรง",
-    formula: `${materialCost.toLocaleString()} + ${fuelCost.toLocaleString()} + ${totalWage.toLocaleString()} = ${totalCost.toLocaleString()}`,
+    source: "คำนวณจากค่าวัสดุ + ค่าน้ำมัน (ระยะทางจริง × ราคาน้ำมันจริง)",
+    formula: `${materialCost.toLocaleString()} + ${fuelCost.toLocaleString()} = ${totalCost.toLocaleString()}`,
     timestamp: now,
   });
 

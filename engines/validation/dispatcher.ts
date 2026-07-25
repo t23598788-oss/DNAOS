@@ -113,9 +113,10 @@ const QUERY_MAP: Record<string, QueryFn> = {
     // the chat quick-reply text, which deliberately says "ยังไม่รวมค่าขนส่ง")
     // needs a real total. Reuses the SAME matched pit/distance quote already
     // found above (never re-derives a possibly-different nearest pit), plus
-    // the existing, already-built, never-before-wired vehicle-capacity/fuel/
-    // driver-wage engines (engines/capacity.ts, engines/cost.ts) — no new
-    // pricing math invented here.
+    // the existing vehicle-capacity/fuel engines (engines/capacity.ts,
+    // engines/cost.ts) — real GPS distance x real pump fuel price, no
+    // driver-wage constant (owner correction 2026-07-25: the truck owner is
+    // an independent contractor, not a cost DNA OS pays separately).
     let transportCost = 0;
     let trips: number | undefined;
     if (quote.pitProfileId != null && quote.distanceKm != null) {
@@ -127,7 +128,7 @@ const QUERY_MAP: Record<string, QueryFn> = {
         material_type_id: match.matched.id,
         pit_profile_id: quote.pitProfileId,
       });
-      transportCost = cost.fuel_cost + cost.driver_wage;
+      transportCost = cost.fuel_cost;
       trips = capacity.trips_required;
     }
 

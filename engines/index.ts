@@ -41,7 +41,6 @@ export interface QuoteResult {
   hours_total: number;
   material_cost: number;
   fuel_cost: number;
-  driver_wage: number;
   wear_cost: number;
   total_cost: number;
   selling_price_ex_vat: number;
@@ -78,7 +77,6 @@ export async function calcFullQuote(input: QuoteInput): Promise<QuoteResult> {
     total_cost: cost.total_cost,
     material_cost: cost.material_cost,
     fuel_cost: cost.fuel_cost,
-    driver_wage: cost.driver_wage,
     trips: cap.trips_required,
     is_urgent: input.is_urgent,
   });
@@ -100,7 +98,6 @@ export async function calcFullQuote(input: QuoteInput): Promise<QuoteResult> {
     hours_total: time.total_hours,
     material_cost: cost.material_cost,
     fuel_cost: cost.fuel_cost,
-    driver_wage: cost.driver_wage,
     wear_cost: pricing.wear_cost,
     total_cost: cost.total_cost,
     selling_price_ex_vat: pricing.selling_price_ex_vat,

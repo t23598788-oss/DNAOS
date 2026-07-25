@@ -430,20 +430,25 @@ export async function executeBusinessValidation(
         .from('app_configs')
         .select('title, data');
 
+      // Owner correction (2026-07-25): no driver-wage-per-trip constant — the
+      // truck owner is an independent contractor, DNA OS proposes a price
+      // to them from real distance x real fuel price only, no separate
+      // driver-wage line. Also no minimum-distance floor (owner, same day:
+      // "ไม่มีขั้นต่ำระยะทาง") — real distance applies even under 15km.
+      // fuel-price is real now (auto-synced from Bangchak's public API daily,
+      // supabase/functions/fuel-price-sync) — 43.00 default kept only as a
+      // last-resort if that sync has never run yet.
       let fuelPrice = 43.00;
-      let driverWage = 450.00;
       let markupPercent = 25.00;
 
       if (configs) {
         configs.forEach((c: any) => {
           if (c.title === 'fuel-price') fuelPrice = parseFloat(c.data) || fuelPrice;
-          if (c.title === 'driver-wage-per-trip') driverWage = parseFloat(c.data) || driverWage;
           if (c.title === 'pricing-markup-percent') markupPercent = parseFloat(c.data) || markupPercent;
         });
       }
 
-      const effectiveDistance = targetDistance < 15 ? 15 : targetDistance;
-      const transportCostPerTrip = (effectiveDistance * fuelPrice) + driverWage;
+      const transportCostPerTrip = targetDistance * fuelPrice;
       const retailMaterialUnitPrice = Math.round(materialBasePrice * (1 + markupPercent / 100));
       const retailTransportUnitPrice = Math.round((transportCostPerTrip * (1 + markupPercent / 100)) / 5);
       const totalPricePerQ = retailMaterialUnitPrice + retailTransportUnitPrice;

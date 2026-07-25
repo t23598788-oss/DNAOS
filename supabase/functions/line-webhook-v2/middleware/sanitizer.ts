@@ -28,7 +28,7 @@ export interface SanitizedPricing {
 /**
  * Sanitizer Layer Firewall.
  * Applies retail markups (25%) to raw cost rates and masks internal variables
- * (fuelPrice, driverWage, profit margin) before customer exposure.
+ * (fuelPrice, profit margin) before customer exposure.
  */
 export function sanitizePricing(raw: RawPricingData): SanitizedPricing {
   const markupPercent = raw.configs?.markupPercent ?? 25.00;

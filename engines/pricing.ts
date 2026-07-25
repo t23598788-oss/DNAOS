@@ -5,7 +5,6 @@ export interface PricingInput {
   total_cost: number;
   material_cost: number;
   fuel_cost: number;
-  driver_wage: number;
   trips: number;
   is_urgent?: boolean;
 }
@@ -30,9 +29,11 @@ export async function calcPricing(input: PricingInput): Promise<PricingResult> {
   // wear-percent defaults to 1.7 per business law — configurable via app_configs
   const wearPercent = (configs["wear-percent"] as number | undefined) ?? 1.7;
 
-  // wear applies to transport cost only (fuel + driver), not to material cost
-  const transportCost = input.fuel_cost + input.driver_wage;
-  const wearCost = transportCost * (wearPercent / 100);
+  // wear applies to transport cost only (real GPS distance x real fuel
+  // price — no separate driver-wage constant, owner correction 2026-07-25:
+  // the truck owner is an independent contractor, wage isn't a cost DNA OS
+  // pays separately), not to material cost
+  const wearCost = input.fuel_cost * (wearPercent / 100);
 
   const totalWithWear = input.total_cost + wearCost;
   const markup = totalWithWear * (markupPercent / 100);

@@ -14,12 +14,13 @@
  *
  * - engines/capacity.ts calcCapacity() → real vehicle_types row + real
  *   trips_required (ceil(quantity / load_capacity))
- * - engines/cost.ts calcCost() → real material_cost + fuel_cost (from
- *   engines/fuel.ts, real fuel-price/consumption config) + driver_wage
- *   (real driver-wage-per-trip config) = total_cost — this is the number
- *   that answers "เจ้าของระบบเค้าจะกินอะไร": margin = quotation subtotal
- *   (what the customer pays) minus total_cost (what it actually costs to
- *   run).
+ * - engines/cost.ts calcCost() → real material_cost + fuel_cost (real GPS
+ *   distance x real pump fuel price) = total_cost. Owner correction
+ *   2026-07-25: no driver-wage-per-trip constant — the truck owner is an
+ *   independent contractor DNA OS proposes a price TO, not a cost DNA OS
+ *   pays separately. total_cost is the fair base rate to offer, not the
+ *   final agreed payout (see registry/CHANGELOG.json for the real
+ *   job_vehicle_pricings table this should be recorded into).
  * - a second standalone_documents row, document_type='ORD' (delivery
  *   order / ใบส่งของ — engines/documents/engine.ts's DOC_LABELS).
  * - engines/documents/flex-template.ts's documentFlex() → the REAL Flex
@@ -75,14 +76,14 @@ async function main() {
   if (!chosenVehicle) throw new Error("ไม่พบ vehicle_types ในระบบ — ยกเลิก");
 
   let tripsRequired = 1;
-  let costBreakdown: { material_cost: number; fuel_cost: number; driver_wage: number; total_cost: number } | null = null;
+  let costBreakdown: { material_cost: number; fuel_cost: number; total_cost: number } | null = null;
   let margin: number | null = null;
   try {
     const capacity = await calcCapacity({ quantity, vehicle_type_id: chosenVehicle.id });
     tripsRequired = capacity.trips_required;
     console.log(`   ใช้รถจริง: "${chosenVehicle.name}" (จุ ${chosenVehicle.load_capacity} คิว/เที่ยว) → ${tripsRequired} เที่ยว`);
 
-    console.log("\n2) คำนวณต้นทุนจริงทั้งก้อน (วัสดุ + น้ำมัน + ค่าแรงคนขับ) — calcCost() จริง...");
+    console.log("\n2) คำนวณต้นทุนจริงทั้งก้อน (วัสดุ + น้ำมัน จากระยะทางจริง × ราคาน้ำมันจริง — ไม่มีค่าแรงคนขับแยก, owner correction 2026-07-25) — calcCost() จริง...");
     const cost = await calcCost({
       distance_km: distanceKm,
       quantity,
@@ -92,15 +93,14 @@ async function main() {
       vehicle_type_id: chosenVehicle.id,
     });
     costBreakdown = cost;
-    console.log(`   material_cost=${cost.material_cost}  fuel_cost=${cost.fuel_cost}  driver_wage=${cost.driver_wage}  total_cost=${cost.total_cost}`);
+    console.log(`   material_cost=${cost.material_cost}  fuel_cost=${cost.fuel_cost}  total_cost=${cost.total_cost}`);
 
     margin = Math.round((Number(quotation.subtotal) - cost.total_cost) * 100) / 100;
     console.log(`   ลูกค้าจ่าย (subtotal ใบเสนอราคา) = ${quotation.subtotal} บาท`);
-    console.log(`   ต้นทุนจริงทั้งหมด = ${cost.total_cost} บาท`);
-    console.log(`   >>> กำไรที่เจ้าของระบบได้จากงานนี้ = ${margin} บาท <<<`);
+    console.log(`   ต้นทุนจริงทั้งหมด (วัสดุ+น้ำมัน) = ${cost.total_cost} บาท — นี่คือฐานราคาที่เสนอเจ้าของรถได้ ไม่ใช่ราคาสุดท้ายที่ตกลงจริง`);
+    console.log(`   >>> กำไรที่เจ้าของระบบได้จากงานนี้ (ก่อนหักค่าที่ตกลงจริงกับเจ้าของรถ) = ${margin} บาท <<<`);
   } catch (e) {
     console.log(`   ⚠ ${(e as Error).message}`);
-    console.log(`   → เหลือแค่ driver-wage-per-trip ตัวเดียวที่ต้องได้ตัวเลขจริงจากเฮีย — vehicle capacity/fuel consumption ใช้ข้อมูลจริงจาก vehicle_types แล้ว ไม่ต้องถามซ้ำ`);
   }
 
   console.log("\n3) ออกใบส่งของจริง (standalone_documents, document_type='ORD')...");
@@ -155,7 +155,6 @@ async function main() {
       trips_required: tripsRequired,
       material_cost: costBreakdown?.material_cost ?? null,
       fuel_cost: costBreakdown?.fuel_cost ?? null,
-      driver_wage: costBreakdown?.driver_wage ?? null,
       total_cost: costBreakdown?.total_cost ?? null,
       margin,
       delivery_order_document_id: deliveryDoc.id,

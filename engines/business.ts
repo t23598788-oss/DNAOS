@@ -34,23 +34,24 @@ export async function calculatePrice(args: {
   quantity: number;
   material_price: number;
 }): Promise<Record<string, unknown>> {
+  // Owner correction (2026-07-25): no driver-wage-per-trip constant — the
+  // truck owner is an independent contractor DNA OS proposes a price TO,
+  // computed from real GPS distance x real pump fuel price only.
   const rules = await loadConfigs(supabase());
   const fuelPrice = getNum(rules, "fuel-price");
-  const driverWage = getNum(rules, "driver-wage-per-trip");
   const markup = getNum(rules, "pricing-markup-percent");
   const capacity = getNum(rules, "vehicle-default-capacity");
 
   const trips = Math.ceil(args.quantity / capacity);
   const fuelCost = args.distance_km * fuelPrice * trips;
   const materialCost = args.quantity * args.material_price;
-  const driverCost = driverWage * trips;
-  const totalCost = materialCost + fuelCost + driverCost;
+  const totalCost = materialCost + fuelCost;
   const markupAmount = totalCost * (markup / 100);
   const sellingPrice = totalCost + markupAmount;
 
   return {
     trips, capacity, fuelCost: round(fuelCost), materialCost: round(materialCost),
-    driverCost: round(driverCost), totalCost: round(totalCost),
+    totalCost: round(totalCost),
     markup: round(markupAmount), sellingPrice: round(sellingPrice),
   };
 }
