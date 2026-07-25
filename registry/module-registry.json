@@ -6365,6 +6365,20 @@
       ],
       "entry_point": true,
       "status": "active"
+    },
+    "engines/distance.selfDescription.ts": {
+      "owner": "engines",
+      "layer": "engines",
+      "purpose": "Runtime Self-Describing Contract for engines/distance.ts (SDRN-P6 pattern, 13th module wired into contextBroker — owner directive 2026-07-25 to expand model/system capability). Real RuntimeContract computed live from module-registry.json/architecture-book.json/dependency-graph.json/existence.json/CHANGELOG.json — cites this session's real live RLS-fix bug (anon client silently returned zero rows from pit_profiles/pit_materials) as a known_problem, not fabricated",
+      "purpose_th": "สัญญาอธิบายตัวเอง (Runtime Self-Describing Contract) ของ engines/distance.ts (รูปแบบ SDRN-P6 โมดูลที่ 13 ที่ต่อเข้า contextBroker — owner สั่ง 2026-07-25 ให้ขยายความสามารถระบบ) คำนวณจริงจาก registry จริงหลายไฟล์ อ้างอิงบั๊ก RLS จริงที่แก้ไปแล้วในเซสชันนี้เป็น known_problem ไม่ได้กุขึ้น",
+      "exports": [
+        "getDistanceEngineContextBudget",
+        "getDistanceEngineDeltaContext",
+        "getDistanceEngineExecutionReadiness",
+        "getDistanceEngineRuntimeContract",
+        "getDistanceEngineWorkOrder"
+      ],
+      "status": "active"
     }
   },
   "excluded": [

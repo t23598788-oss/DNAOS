@@ -32,6 +32,7 @@ import { getMailDriverRuntimeContract, getMailDriverContextBudget, getMailDriver
 import { getCalendarDriverRuntimeContract, getCalendarDriverContextBudget, getCalendarDriverWorkOrder, getCalendarDriverExecutionReadiness, getCalendarDriverDeltaContext } from "@/plugins/drivers/calendar.selfDescription";
 import { getPdfDriverRuntimeContract, getPdfDriverContextBudget, getPdfDriverWorkOrder, getPdfDriverExecutionReadiness, getPdfDriverDeltaContext } from "@/plugins/drivers/pdf.selfDescription";
 import { getGithubDriverRuntimeContract, getGithubDriverContextBudget, getGithubDriverWorkOrder, getGithubDriverExecutionReadiness, getGithubDriverDeltaContext } from "@/plugins/drivers/github.selfDescription";
+import { getDistanceEngineRuntimeContract, getDistanceEngineContextBudget, getDistanceEngineWorkOrder, getDistanceEngineExecutionReadiness, getDistanceEngineDeltaContext } from "@/engines/distance.selfDescription";
 import { buildMeasurementReport } from "@/core/shared/types";
 import { registerProvider, getRuntimePacket, measureCurrentWindow, resetBroker, readCounter } from "@/core/runtime/contextBroker";
 
@@ -334,6 +335,7 @@ const WIRED_MODULES: Array<{ id: string; getContract: () => any; getBudget: () =
   { id: "calendar-driver", getContract: getCalendarDriverRuntimeContract, getBudget: getCalendarDriverContextBudget, getWorkOrder: getCalendarDriverWorkOrder, getReadiness: getCalendarDriverExecutionReadiness, getDelta: getCalendarDriverDeltaContext },
   { id: "pdf-driver", getContract: getPdfDriverRuntimeContract, getBudget: getPdfDriverContextBudget, getWorkOrder: getPdfDriverWorkOrder, getReadiness: getPdfDriverExecutionReadiness, getDelta: getPdfDriverDeltaContext },
   { id: "github-driver", getContract: getGithubDriverRuntimeContract, getBudget: getGithubDriverContextBudget, getWorkOrder: getGithubDriverWorkOrder, getReadiness: getGithubDriverExecutionReadiness, getDelta: getGithubDriverDeltaContext },
+  { id: "distance-engine", getContract: getDistanceEngineRuntimeContract, getBudget: getDistanceEngineContextBudget, getWorkOrder: getDistanceEngineWorkOrder, getReadiness: getDistanceEngineExecutionReadiness, getDelta: getDistanceEngineDeltaContext },
 ];
 
 function runBrokerReport() {
