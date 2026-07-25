@@ -6379,6 +6379,26 @@
         "getDistanceEngineWorkOrder"
       ],
       "status": "active"
+    },
+    "app/admin/finance/page.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Finance Summary page (owner request 2026-07-25: \"ยังไม่เห็นกำไรและงบดุลบริษัทเลย\"). Real cash-flow charts (bar graphs, no new chart dependency) from real documents already in the system — revenue, verified payments received, fuel bills, outstanding debt, plus a surfaced real gap (12 unverified transfer slips, ฿136,020). Reached via a small sidebar rail icon, not a new prominent destination, per explicit owner instruction. Honestly NOT a formal balance sheet — no fixed-asset/capital data exists to build one without fabricating numbers, stated plainly on the page itself",
+      "purpose_th": "หน้าสรุปการเงิน (owner ขอ 2026-07-25: \"ยังไม่เห็นกำไรและงบดุลบริษัทเลย\") กราฟแท่งจริงจากเอกสารจริงในระบบ — รายได้, เงินเข้าที่ยืนยันแล้ว, ค่าน้ำมัน, หนี้ค้างชำระ พร้อมเจอช่องว่างจริง (สลิปโอนเงิน 12 ใบ ฿136,020 ที่ยังไม่ยืนยัน) เข้าถึงผ่านไอคอนเล็กในแถบซ้าย ไม่ใช่หน้าใหม่เด่นๆ ตามที่ owner สั่งชัดเจน ไม่ใช่งบดุลทางบัญชีจริง — ยังไม่มีข้อมูลสินทรัพย์/ทุน จึงบอกตรงๆ ในหน้าเว็บเองว่าสร้างงบดุลจริงไม่ได้",
+      "exports": [
+        "FinancePage"
+      ],
+      "status": "active"
+    },
+    "app/api/admin/finance-summary/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Real cash-flow aggregation API for app/admin/finance/page.tsx — sums real invoices/standalone_documents (revenue), receipt_documents (verified transfer_slip payments + fuel_bill costs), debt_snapshots (outstanding debt), grouped by real document_date. Admin-only (requireAuth)",
+      "purpose_th": "API รวมข้อมูลกระแสเงินสดจริงสำหรับหน้า app/admin/finance/page.tsx — รวมยอดจากใบแจ้งหนี้/เอกสารอื่นจริง (รายได้), สลิปโอนเงินที่ยืนยันแล้ว+บิลน้ำมันจริง, หนี้ค้างชำระ จัดกลุ่มตามวันที่จริง ต้องล็อกอินแอดมิน",
+      "exports": [
+        "GET"
+      ],
+      "status": "active"
     }
   },
   "excluded": [
