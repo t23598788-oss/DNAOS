@@ -282,20 +282,6 @@
       ],
       "status": "active"
     },
-    "supabase/functions/line-webhook-v2/middleware/sanitizer.ts": {
-      "owner": "supabase",
-      "layer": "supabase",
-      "purpose": "Sanitizer middleware สำหรับ LINE webhook v2",
-      "purpose_th": "Sanitizer middleware สำหรับ LINE webhook v2",
-      "exports": [
-        "RawPricingData",
-        "SanitizedPricing",
-        "sanitizePricing"
-      ],
-      "status": "active",
-      "archival_status": "ARCHIVED",
-      "archived_knowledge_ref": "[AK-024]"
-    },
     "supabase/functions/line-webhook-v2/engines/response.ts": {
       "owner": "supabase",
       "layer": "supabase",
@@ -6413,21 +6399,6 @@
       ],
       "status": "active"
     },
-    "app/admin/telemetry/GlobeView.tsx": {
-      "owner": "app",
-      "layer": "app",
-      "purpose": "Three.js hologram globe renderer — real lat/lng node placement (Mac/Supabase/LINE), procedural 3D models (robot/cloud/satellite), UnrealBloomPass glow tied to real active/idle state, real command beams along real great-circle arcs.",
-      "purpose_th": "ตัวเรนเดอร์ลูกโลก 3D ด้วย Three.js — วางโหนดตามพิกัด GPS จริง (Mac/Supabase/LINE) โมเดล 3D แบบ procedural (หุ่นยนต์/เมฆ/ดาวเทียม) แสงเรือง UnrealBloomPass ตามสถานะ active/idle จริง ลำแสงคำสั่งจริงวิ่งตามเส้นโค้ง",
-      "exports": [
-        "BeamEvent",
-        "DeviceMarker",
-        "GlobeView",
-        "NodeId",
-        "NodeKind",
-        "TelemetryNode"
-      ],
-      "status": "active"
-    },
     "supabase/functions/line-webhook-v2/engines/thoughtful-fallback.ts": {
       "owner": "supabase",
       "layer": "supabase",
@@ -6509,26 +6480,6 @@
       ],
       "status": "active",
       "known_gap_ref": "TASK-040"
-    },
-    "app/api/admin/telemetry/ping/route.ts": {
-      "owner": "app",
-      "layer": "app",
-      "purpose": "Real server-side latency ping to Cloud Core (Supabase) and External Services (LINE API) — measures actual round-trip ms so GlobeView can scale beam travel-time to real latency, not a fake fixed duration.",
-      "purpose_th": "วัด latency จริงฝั่ง server ไปหา Cloud Core (Supabase) กับ LINE API จริง เอาไปคำนวณความเร็วลำแสงใน GlobeView ให้ตรงกับความหน่วงจริง ไม่ใช่ค่าคงที่ปลอม",
-      "exports": [
-        "GET"
-      ],
-      "status": "active"
-    },
-    "app/api/admin/telemetry/devices/route.ts": {
-      "owner": "app",
-      "layer": "app",
-      "purpose": "Real customer device markers — reads customer_sites.gps_lat/gps_lng (real LINE location shares already stored) for the telemetry globe's 📱 markers, no fabricated positions.",
-      "purpose_th": "ดึงพิกัดอุปกรณ์ลูกค้าจริงจาก customer_sites.gps_lat/gps_lng (พิกัดจริงจากการแชร์ location LINE ที่มีอยู่แล้ว) มาแสดงเป็นจุด 📱 บนลูกโลก ไม่ใช่พิกัดสมมติ",
-      "exports": [
-        "GET"
-      ],
-      "status": "active"
     }
   },
   "excluded": [

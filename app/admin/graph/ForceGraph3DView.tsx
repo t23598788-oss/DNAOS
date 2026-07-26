@@ -74,9 +74,22 @@ const ForceGraph3D = dynamic(() => import("react-force-graph-3d"), { ssr: false 
 interface Props {
   graphData: FGData;
   onNodeClick?: (node: FGNode) => void;
+  // Real-Time Signal Pulse (owner, 2026-07-26 — "REVERT AND RESTORE": no new
+  // globe, reuse this exact graph's real 539 nodes / real edges, just light
+  // up what's actually happening on them). `pulseNodeIds` = real modules a
+  // live event just touched (glow); `pulseLinkKeys` = real edges (already in
+  // graphData.links — never fabricated) between two currently-pulsing nodes,
+  // rendered via react-force-graph-3d's own native linkDirectionalParticles
+  // (no custom Three.js beam code needed — Rule 101/103 reuse).
+  pulseNodeIds?: Set<string>;
+  pulseLinkKeys?: Set<string>;
 }
 
-export default function ForceGraph3DView({ graphData, onNodeClick }: Props) {
+function linkKey(source: string, target: string): string {
+  return `${source}->${target}`;
+}
+
+export default function ForceGraph3DView({ graphData, onNodeClick, pulseNodeIds, pulseLinkKeys }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const fgRef = useRef<any>(null);
   const [dims, setDims] = useState({ w: 900, h: 680 });
@@ -160,18 +173,21 @@ export default function ForceGraph3DView({ graphData, onNodeClick }: Props) {
     setHighlightLinks(hLinks);
   }, [filteredData]);
 
-  // Node color
+  // Node color — a real live pulse (pulseNodeIds) always wins visually, even
+  // over hover-dimming, so an active node never gets grayed out mid-signal.
   const nodeColor = useCallback((node: FGNode) => {
+    if (pulseNodeIds?.has(node.id)) return "#38bdf8";
     if (highlightNodes.size > 0 && !highlightNodes.has(node.id)) return "#1e2030";
     return STATUS_COLOR[node.status] ?? "#64748b";
-  }, [highlightNodes]);
+  }, [highlightNodes, pulseNodeIds]);
 
-  // Node size
+  // Node size — pulsing nodes render larger, a real "it just lit up" cue.
   const nodeVal = useCallback((node: FGNode) => {
+    if (pulseNodeIds?.has(node.id)) return 6;
     if (node.status === "BROKEN") return 4;
     if (node.status === "UNUSED") return 2;
     return 2.5;
-  }, []);
+  }, [pulseNodeIds]);
 
   // Node label (tooltip)
   const nodeLabel = useCallback((node: FGNode) => {
@@ -185,18 +201,27 @@ export default function ForceGraph3DView({ graphData, onNodeClick }: Props) {
     </div>`;
   }, []);
 
+  const isPulseLink = useCallback((link: FGLink) => {
+    if (!pulseLinkKeys || pulseLinkKeys.size === 0) return false;
+    const src = typeof link.source === "object" ? (link.source as FGNode).id : link.source;
+    const tgt = typeof link.target === "object" ? (link.target as FGNode).id : link.target;
+    return pulseLinkKeys.has(linkKey(src, tgt));
+  }, [pulseLinkKeys]);
+
   // Link color
   const linkColor = useCallback((link: FGLink) => {
+    if (isPulseLink(link)) return "#38bdf8";
     if (highlightLinks.has(link)) {
       const src = typeof link.source === "object" ? (link.source as FGNode) : null;
       return src ? layerColor(src.layer) : "#c4b5fd";
     }
     return "#1e2535";
-  }, [highlightLinks]);
+  }, [highlightLinks, isPulseLink]);
 
   const linkWidth = useCallback((link: FGLink) => {
+    if (isPulseLink(link)) return 2.5;
     return highlightLinks.has(link) ? 1.5 : 0.5;
-  }, [highlightLinks]);
+  }, [highlightLinks, isPulseLink]);
 
   // Stats
   const stats = useMemo(() => {
@@ -301,9 +326,10 @@ export default function ForceGraph3DView({ graphData, onNodeClick }: Props) {
           linkColor={linkColor as any}
           linkWidth={linkWidth as any}
           linkOpacity={0.6}
-          linkDirectionalParticles={(link: any) => (highlightLinks.has(link as FGLink) ? 3 : 0)}
-          linkDirectionalParticleWidth={1.5}
-          linkDirectionalParticleSpeed={0.006}
+          linkDirectionalParticles={((link: any) => (isPulseLink(link as FGLink) ? 6 : highlightLinks.has(link as FGLink) ? 3 : 0)) as any}
+          linkDirectionalParticleWidth={((link: any) => (isPulseLink(link as FGLink) ? 3 : 1.5)) as any}
+          linkDirectionalParticleColor={((link: any) => (isPulseLink(link as FGLink) ? "#38bdf8" : "#94a3b8")) as any}
+          linkDirectionalParticleSpeed={((link: any) => (isPulseLink(link as FGLink) ? 0.02 : 0.006)) as any}
           linkDirectionalArrowLength={4}
           linkDirectionalArrowRelPos={1}
           enableNodeDrag={true}

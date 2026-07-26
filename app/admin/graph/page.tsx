@@ -462,7 +462,17 @@ const VIEW_LABELS: Record<View, string> = {
   "module-deps": "Module Deps",
 };
 
-export default function GraphPage() {
+// Real-Time Signal Pulse (owner, 2026-07-26 — "REVERT AND RESTORE: USE
+// ORIGINAL ARCHITECTURE GRAPH"): reused directly by app/admin/telemetry
+// (named export below) instead of building a second graph implementation —
+// same real 539 nodes / real edges / click-for-details sidebar, just handed
+// a live set of currently-active node ids + edge keys to light up.
+interface GraphPageProps {
+  pulseNodeIds?: Set<string>;
+  pulseLinkKeys?: Set<string>;
+}
+
+export default function GraphPage({ pulseNodeIds, pulseLinkKeys }: GraphPageProps = {}) {
   const router = useRouter();
   const [view, setView] = useState<View>("3d-force");
   const [data, setData] = useState<GovernanceData | null>(null);
@@ -580,6 +590,8 @@ export default function GraphPage() {
               <ForceGraph3DView
                 graphData={fgData}
                 onNodeClick={handle3DNodeClick}
+                pulseNodeIds={pulseNodeIds}
+                pulseLinkKeys={pulseLinkKeys}
               />
             </div>
 
@@ -704,3 +716,7 @@ function DepList({
     </div>
   );
 }
+
+// Named export so app/admin/telemetry/page.tsx can reuse this exact
+// component (real graph, no duplicate implementation) with live pulse data.
+export { GraphPage };
