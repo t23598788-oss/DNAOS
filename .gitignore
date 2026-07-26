@@ -2,6 +2,10 @@
 
 # dependencies
 /node_modules
+scripts/bank-statement-sync/node_modules
+scripts/bank-statement-sync/debug-*.png
+scripts/bank-statement-sync/debug-*.html
+scripts/bank-statement-sync/last-statement-parse.json
 /.pnp
 .pnp.*
 .yarn/*

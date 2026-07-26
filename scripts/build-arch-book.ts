@@ -444,7 +444,7 @@ async function buildArchBook() {
   // Build import graph from source
   const allFiles = await glob("**/*.{ts,tsx}", {
     cwd: ROOT,
-    ignore: ["node_modules/**", ".next/**", "**/*.d.ts"],
+    ignore: ["**/node_modules/**", ".next/**", "**/*.d.ts"], // fixed 2026-07-27, see sync-registry.ts's matching comment
   });
 
   const importedBy: Map<string, Set<string>> = new Map();

@@ -134,19 +134,39 @@ Deno.serve(async (req) => {
     return Response.json({ error: "Gmail access token ล้มเหลว — เช็ค GMAIL_CLIENT_ID/SECRET/REFRESH_TOKEN" }, { status: 502 })
   }
 
+  // One-time backfill support (owner, 2026-07-27): "อยากรู้ว่าเงินเข้ามาแล้ว
+  // เงินออกกับเงินออก...ชีพจรการเงินของบริษัท" — the recurring 5-minute cron
+  // only needs the last 2 days, but reconciling the real backlog (401
+  // pending receipt_documents at the time this was added) or building a
+  // real cash-flow view needs older real emails too. `days` in the request
+  // body widens the window for a one-off manual call; the cron job's own
+  // body is always `{}`, so it keeps using the safe 2-day default.
+  let days = 2
+  try {
+    const body = await req.json()
+    if (typeof body?.days === "number" && body.days > 0) days = body.days
+  } catch { /* cron sends {} or empty body — default stands */ }
+
   // K BIZ sender confirmed live from the owner's real inbox
-  // ("KBIZ@kasikornbank.com"). newer_than:2d — this job runs frequently, no
-  // need to ever re-scan the whole mailbox history.
-  const listRes = await fetch(
-    "https://gmail.googleapis.com/gmail/v1/users/me/messages?q=" +
-      encodeURIComponent("from:kasikornbank.com newer_than:2d") + "&maxResults=25",
-    { headers: { Authorization: `Bearer ${accessToken}` } },
-  )
-  if (!listRes.ok) {
-    return Response.json({ error: `Gmail list API HTTP ${listRes.status}` }, { status: 502 })
-  }
-  const listData = await listRes.json()
-  const messageIds: string[] = (listData.messages ?? []).map((m: any) => m.id)
+  // ("KBIZ@kasikornbank.com"). Paginates through every page Gmail returns
+  // (up to a real safety cap) instead of a fixed maxResults, since a wide
+  // backfill window can span hundreds of real emails.
+  const messageIds: string[] = []
+  let pageToken: string | undefined
+  let pages = 0
+  do {
+    const url = "https://gmail.googleapis.com/gmail/v1/users/me/messages?q=" +
+      encodeURIComponent(`from:kasikornbank.com newer_than:${days}d`) +
+      "&maxResults=100" + (pageToken ? `&pageToken=${pageToken}` : "")
+    const listRes = await fetch(url, { headers: { Authorization: `Bearer ${accessToken}` } })
+    if (!listRes.ok) {
+      return Response.json({ error: `Gmail list API HTTP ${listRes.status}`, collectedSoFar: messageIds.length }, { status: 502 })
+    }
+    const listData = await listRes.json()
+    messageIds.push(...(listData.messages ?? []).map((m: any) => m.id))
+    pageToken = listData.nextPageToken
+    pages++
+  } while (pageToken && pages < 20) // real safety cap — 20 pages * 100 = 2000 messages max per call
 
   let inserted = 0
   let skipped = 0

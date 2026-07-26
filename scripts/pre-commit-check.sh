@@ -144,18 +144,19 @@ fi
 # generic/conventional names, so this stays advisory rather than a hard reject.
 echo "--- Known Mistake Pattern Check (Guard 9 / KM-002) ---"
 DUPES=$(find app components core engines gateway cognitive presenter services plugins registry scripts config \
+  -path "*/node_modules/*" -prune -o \
   -type f \( -name "*.ts" -o -name "*.tsx" \) \
   ! -name "*.test.ts" ! -name "*.spec.ts" ! -name "*.d.ts" \
   ! -name "index.ts" ! -name "index.tsx" ! -name "route.ts" ! -name "page.tsx" \
   ! -name "layout.tsx" ! -name "loading.tsx" ! -name "types.ts" ! -name "engine.ts" \
   ! -name "_loader.ts" ! -name "_resolver.ts" ! -name "_schema.ts" ! -name "_validator.ts" \
-  2>/dev/null | xargs -n1 basename | sort | uniq -d)
+  -print 2>/dev/null | xargs -n1 basename | sort | uniq -d)
 if [ -n "$DUPES" ]; then
   echo "$DUPES" | while read -r name; do
     [ -z "$name" ] && continue
     echo "WARNING: Module '$name' exists in more than one location (KM-002):"
     find app components core engines gateway cognitive presenter services plugins registry scripts config \
-      -type f -name "$name" 2>/dev/null | sed 's/^/    /'
+      -path "*/node_modules/*" -prune -o -type f -name "$name" -print 2>/dev/null | sed 's/^/    /'
     echo "  Registry เดิมมีอยู่แล้ว — โปรดตรวจสอบว่าเป็น duplicate responsibility จริงหรือไม่ ก่อนสร้าง/แก้ไขต่อ"
   done
 fi
@@ -204,8 +205,19 @@ if [ -n "$ARCHIVED_BASENAMES" ]; then
     # (DNA-000067/TASK-034) finally passed for the first time this session.
     # || true is safe: the real violation check below (`if [ -n "$MATCHES" ]`)
     # is unaffected either way.
+    # Real crash found live 2026-07-27 (Rule 100): this find had no
+    # node_modules exclusion at all — a genuinely separate local package
+    # (scripts/bank-statement-sync/node_modules, its own Playwright
+    # dependency tree, deliberately outside the main app) contains a real
+    # @supabase/auth-js file named helpers.ts, which spuriously matched
+    # AK-001's archived supabase/functions/line-webhook-v2/helpers.ts by
+    # basename. That in turn fed a multi-line $MATCHES straight into an
+    # unescaped single-quoted JS string literal below, which is invalid JS
+    # the moment more than one line is present — SyntaxError, and under
+    # set -e that crashed the whole pre-commit run, not just this guard.
     MATCHES=$(find app components core engines gateway cognitive presenter services plugins registry scripts config supabase \
-      -type f -name "$basename" 2>/dev/null | grep -v "^\./${archived_file}$" | grep -v "^${archived_file}$" || true)
+      -path "*/node_modules/*" -prune -o \
+      -type f -name "$basename" -print 2>/dev/null | grep -v "^\./${archived_file}$" | grep -v "^${archived_file}$" || true)
     if [ -n "$MATCHES" ]; then
       GUARD10_VIOLATIONS=$((GUARD10_VIOLATIONS + 1))
       # Mission: Runtime Immune Memory (DNA-000040) — a rejection must cite

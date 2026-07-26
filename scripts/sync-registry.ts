@@ -110,7 +110,12 @@ async function syncRegistry() {
   const files = await glob("**/*.{ts,tsx}", {
     cwd: ROOT,
     ignore: [
-      "node_modules/**",
+      // Real gap found live 2026-07-27: "node_modules/**" only matched a
+      // top-level folder — scripts/bank-statement-sync/node_modules (a
+      // real, separate package.json for Playwright, deliberately kept out
+      // of the main app's dependency tree) got scanned as if it were real
+      // app source, flagging 88 real npm packages as UNREGISTERED modules.
+      "**/node_modules/**",
       ".next/**",
       "**/*.d.ts",
       "**/*.test.ts",
