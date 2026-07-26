@@ -157,6 +157,34 @@ export async function processClassifiedImage(
       .eq("reference_number", classified.reference_number)
   }
 
+  // Internal-Sender Expense Auto-Recording (owner, 2026-07-27): real gap
+  // found live — line_profiles.role/trust_level was set correctly (e.g.
+  // "พี่หนุ่ม" = manager, verified) but never once read anywhere in this
+  // pipeline. A tax_invoice/invoice/receipt/fuel_bill from a verified
+  // manager (covers both the owner and real staff) is a real company cost,
+  // not a customer payment claim — record it immediately, no human-confirm
+  // queue (that queue is for unverified/external claims, Rule 72/115).
+  // transfer_slip/payment_advice are deliberately excluded even from a
+  // manager — those still mean "money changed hands," which stays gated on
+  // the existing payment-verification path regardless of who sent it.
+  const EXPENSE_DOCUMENT_TYPES = new Set(["tax_invoice", "invoice", "receipt", "fuel_bill"])
+  if (classified && EXPENSE_DOCUMENT_TYPES.has(classified.document_type) && userId && insertedDoc) {
+    const { data: profile } = await supabase
+      .from("line_profiles").select("display_name, role, trust_level").eq("line_user_id", userId).maybeSingle()
+    if (profile?.role === "manager" && profile?.trust_level === "verified") {
+      await supabase.from("company_expenses").insert({
+        receipt_document_id: insertedDoc.id,
+        document_type: classified.document_type,
+        amount: classified.amount,
+        vendor_name: classified.vendor_name,
+        expense_date: classified.document_date,
+        submitted_by_line_user_id: userId,
+        submitted_by_name: profile.display_name,
+        submitted_by_role: profile.role,
+      })
+    }
+  }
+
   // Photocopy-shop-via-LINE (owner, 2026-07-25) — see engines/print-jobs.ts
   if (classified?.document_type === "government_document" && userId) {
     await maybeCreatePrintJob(supabase, {
