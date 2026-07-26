@@ -215,6 +215,17 @@ export default function DashboardPage() {
           />
         </div>
 
+        {/* ── Real-Time 3D Telemetry (owner, 2026-07-26) ── */}
+        <section>
+          <a
+            href="/admin/telemetry"
+            className="flex items-center justify-between px-4 py-2.5 rounded-xl text-xs font-medium border border-violet-200 bg-violet-50 text-violet-700 hover:bg-violet-100 transition"
+          >
+            <span>🛰️ Real-Time Telemetry — สถานะระบบสด 3D</span>
+            <span>→</span>
+          </a>
+        </section>
+
         {/* ── Quick actions ── */}
         <section>
           <div className="text-[10px] font-semibold text-stone-400 uppercase tracking-wider mb-2">สร้างเอกสาร</div>

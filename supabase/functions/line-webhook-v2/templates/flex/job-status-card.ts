@@ -56,7 +56,7 @@ export function jobStatusCardFlex({
       layout: "vertical",
       spacing: "sm",
       contents: [
-        { type: "text", text: `วัสดุ: ${material} ${quantity} คิว`, size: "sm", wrap: true },
+        { type: "text", text: `วัสดุ: ${material} ${quantity} ตัน`, size: "sm", wrap: true },
         { type: "text", text: `ปลายทาง: ${destination}`, size: "sm", wrap: true, color: "#555555" },
         ...(driverName ? [{ type: "text" as const, text: `คนขับ: ${driverName}`, size: "sm" as const }] : []),
       ],

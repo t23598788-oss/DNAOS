@@ -75,5 +75,5 @@ export async function trySupplierQuoteReply(
     })
   }
 
-  return `รับทราบครับ บันทึกราคา${material?.name ?? ""} ที่ ${price.toLocaleString()} บาท/คิว เรียบร้อยแล้วครับ ขอบคุณครับ`
+  return `รับทราบครับ บันทึกราคา${material?.name ?? ""} ที่ ${price.toLocaleString()} บาท/ตัน เรียบร้อยแล้วครับ ขอบคุณครับ`
 }

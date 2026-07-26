@@ -2,6 +2,7 @@ import type { HandlerContext, LineMessageEvent, LineLocationMessage } from "../e
 import { saveEvent, markEventError } from "../events/store.ts"
 import { ResponseGateway } from "../engines/response.ts"
 import { locationReceivedFlex } from "../templates/flex/location-received.ts"
+import { tryCompleteAwaitingEvent } from "../engines/event-followup.ts"
 
 // LINE's own location-share already geocodes into a Thai address string
 // (ตำบล/อำเภอ/จังหวัด/รหัสไปรษณีย์) — no need for Google Maps at all for this
@@ -78,5 +79,24 @@ export async function handleLocation(ctx: HandlerContext): Promise<void> {
 
   if (ctx.replyToken) {
     await ResponseGateway.replyFlex(ctx.replyToken, "พิกัดที่ได้รับ", flex)
+  }
+
+  // Real bug, live 2026-07-26: sending a GPS pin never advanced an open
+  // awaiting_info event on its own — the customer had to send a SEPARATE
+  // text message afterward before anything progressed, which is exactly
+  // what led to "ก็กูบอกกูส่งไปแล้ว" (frustrated) getting typed and then
+  // wrongly stored as the delivery address (see event-followup.ts's
+  // looksLikeConfusionOrFiller fix, same incident). A location pin IS a
+  // real answer — check for an open question right here. The reply token
+  // is already spent on the flex card above, so this goes out as a push.
+  if (ctx.userId) {
+    const followup = await tryCompleteAwaitingEvent(ctx.supabase, ctx.userId, address, saved.id)
+    if (followup) {
+      if (followup.flex?.length === 1) {
+        await ResponseGateway.pushFlex(ctx.userId, followup.text.slice(0, 100) || "ใบเสนอราคา", followup.flex[0])
+      } else {
+        await ResponseGateway.pushMessage(ctx.userId, followup.text)
+      }
+    }
   }
 }

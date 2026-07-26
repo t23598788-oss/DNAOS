@@ -25,12 +25,6 @@ Deno.serve(async (req: Request) => {
 
   const rawBody = await req.text()
   const signature = req.headers.get("x-line-signature")
-  const channelSecret = Deno.env.get("LINE_CHANNEL_SECRET") ?? ""
-
-  const valid = await verifyLineSignature(rawBody, signature, channelSecret)
-  if (!valid && channelSecret) {
-    return new Response("Unauthorized", { status: 401, headers: CORS })
-  }
 
   const supabase = createClient(
     Deno.env.get("SUPABASE_URL") ?? "",
@@ -45,6 +39,29 @@ Deno.serve(async (req: Request) => {
     return new Response("Bad JSON", { status: 400, headers: CORS })
   }
 
+  // Multi-storefront LINE (owner, 2026-07-25): `destination` identifies
+  // which real LINE Official Account this event arrived through — look up
+  // its own channel_secret/channel_access_token in line_channels first
+  // (village-photocopy-storefront style accounts), falling back to the
+  // single-channel env vars (main account) when no row matches, so nothing
+  // about the existing main account's behavior changes.
+  let channelSecret = Deno.env.get("LINE_CHANNEL_SECRET") ?? ""
+  let channelAccessToken: string | null = null
+  if (payload.destination) {
+    const { data: channelRow } = await supabase
+      .from("line_channels").select("channel_secret, channel_access_token")
+      .eq("channel_id", payload.destination).maybeSingle()
+    if (channelRow) {
+      channelSecret = channelRow.channel_secret
+      channelAccessToken = channelRow.channel_access_token
+    }
+  }
+
+  const valid = await verifyLineSignature(rawBody, signature, channelSecret)
+  if (!valid && channelSecret) {
+    return new Response("Unauthorized", { status: 401, headers: CORS })
+  }
+
   async function processEvent(event: LineWebhookPayload["events"][number]) {
     const userId  = event.source?.userId  ?? ""
     const groupId = event.source?.groupId ?? null
@@ -55,6 +72,7 @@ Deno.serve(async (req: Request) => {
       userId,
       groupId,
       replyToken: (event as any).replyToken ?? null,
+      channelAccessToken,
     }
 
     // Group events — store only, no pipeline

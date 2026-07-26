@@ -78,7 +78,16 @@ export async function handleText(ctx: HandlerContext): Promise<void> {
   if (ctx.userId) {
     const followupReply = await tryCompleteAwaitingEvent(ctx.supabase, ctx.userId, text, saved?.id ?? null)
     if (followupReply) {
-      await ResponseGateway.replyText(ctx.replyToken, followupReply)
+      // A reply token is single-use — can't send text then a flex card
+      // separately. Owner instruction (2026-07-26): show the real price as
+      // a Flex card when there is one; multi-material replies with several
+      // cards still go out fine via the async/push path (ai-callback),
+      // this synchronous path sends the first card if there's exactly one.
+      if (followupReply.flex?.length === 1) {
+        await ResponseGateway.replyFlex(ctx.replyToken, followupReply.text.slice(0, 100) || "ใบเสนอราคา", followupReply.flex[0])
+      } else {
+        await ResponseGateway.replyText(ctx.replyToken, followupReply.text)
+      }
       return
     }
   }
@@ -136,7 +145,30 @@ export async function handleText(ctx: HandlerContext): Promise<void> {
     }
   }
 
-  // Genuinely nothing to build (small talk, or extraction failed) — honest
-  // holding reply, not a fabricated answer.
-  await ResponseGateway.replyText(ctx.replyToken, "รับทราบครับ เดี๋ยวเช็คให้นะครับ")
+  // Genuinely nothing to build (small talk, or extraction failed). Owner
+  // correction (2026-07-25, four steps, same conversation): canned line
+  // "เดี๋ยวเช็คให้นะครับ" removed (fabricated promise) -> total silence tried
+  // and rejected ("เงียบแบบนี้ไม่ได้") -> a static warm line also rejected
+  // ("ให้ระบบมันคิดมากๆ หน่อย") -> root cause found live: ANTHROPIC_API_KEY
+  // was never actually set in production (`supabase secrets list` has no
+  // such key — every AI call in this whole handler, including tool-router
+  // and auto-build-event above, has been silently returning null this
+  // whole time). Owner: "ย้ายทุกอย่างมาประมวลผลในเครื่อง Mac" — no cloud AI
+  // budget, process locally with Ollama instead. Enqueue for the local
+  // watcher (ai-task-watcher.mjs) to think about and push a reply for —
+  // can't reply synchronously here since Ollama-on-a-home-Mac + a polling
+  // delay won't finish inside this request.
+  if (ctx.userId) {
+    await ctx.supabase.from("ai_tasks").insert({
+      kind: "handle_text",
+      line_user_id: ctx.userId,
+      line_event_id: saved?.id ?? null,
+      input_text: text,
+      status: "pending",
+    })
+    // Owner-reported bug (2026-07-26): "ไม่มีแจ้งเตือนว่าอ่านแล้วหรือยัง...
+    // ไม่รู้เลยว่ารอคำตอบจากใครวะ" — real "..." typing indicator while the
+    // local-AI queue actually works, not silence.
+    await ResponseGateway.showLoading(ctx.userId, 60)
+  }
 }

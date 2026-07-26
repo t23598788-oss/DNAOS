@@ -388,7 +388,7 @@ export async function executeBusinessValidation(
       return {
         isValid: false,
         missingFields: ['destination_location'],
-        message: 'รบกวนส่งโลเคชั่นหน้างาน/แชร์พิกัดจัดส่งเข้ามาหน่อยครับ เพื่อให้ระบบค้นหาแหล่งวัสดุที่ใกล้ที่สุดและคำนวณราคาต่อคิวรวมส่งให้ครับ'
+        message: 'รบกวนส่งโลเคชั่นหน้างาน/แชร์พิกัดจัดส่งเข้ามาหน่อยครับ เพื่อให้ระบบค้นหาแหล่งวัสดุที่ใกล้ที่สุดและคำนวณราคาต่อตันรวมส่งให้ครับ'
       };
     }
 
@@ -457,8 +457,8 @@ export async function executeBusinessValidation(
         isValid: false,
         missingFields: ['quantity'],
         message: `ราคาประเมินสำหรับ ${resolvedMatName}:\n` +
-                 `ราคาประมาณ ${totalPricePerQ.toLocaleString()} บาท/คิว (คำนวณที่ระยะทางประมาณ ${targetDistance.toFixed(1)} กม. ขนส่งด้วยรถหกล้อขั้นต่ำ 5 คิว)\n\n` +
-                 `ต้องการกี่คิวแจ้งได้เลยครับ`
+                 `ราคาประมาณ ${totalPricePerQ.toLocaleString()} บาท/ตัน (คำนวณที่ระยะทางประมาณ ${targetDistance.toFixed(1)} กม. ขนส่งด้วยรถหกล้อขั้นต่ำ 5 ตัน)\n\n` +
+                 `ต้องการกี่ตันแจ้งได้เลยครับ`
       };
     }
 
@@ -477,7 +477,7 @@ export async function executeBusinessValidation(
           return {
             isValid: false,
             missingFields: ['vehicle_type'],
-            message: `สำหรับจำนวน ${qty} คิว แนะนำขนส่งด้วยรถพ่วงหรือรถสิบล้อครับ รถพ่วงหรือรถสิบล้อสามารถเข้าหน้างานได้ไหมครับ?`
+            message: `สำหรับจำนวน ${qty} ตัน แนะนำขนส่งด้วยรถพ่วงหรือรถสิบล้อครับ รถพ่วงหรือรถสิบล้อสามารถเข้าหน้างานได้ไหมครับ?`
           };
         }
       } else {
@@ -548,9 +548,9 @@ export async function executeBusinessValidation(
     if (missingFields.includes('quantity')) {
       const val = state.quantity;
       if (val !== null && val > 1000) {
-        message += '- ปริมาณสั่งซื้อปูนเกินขีดจำกัดสูงสุด (จำกัดสูงสุด 1,000 คิว)\n';
+        message += '- ปริมาณสั่งซื้อปูนเกินขีดจำกัดสูงสุด (จำกัดสูงสุด 1,000 ตัน)\n';
       } else {
-        message += '- รบกวนระบุปริมาณปูนที่ต้องการใช้ (คิว)\n';
+        message += '- รบกวนระบุปริมาณปูนที่ต้องการใช้ (ตัน)\n';
       }
     }
     if (missingFields.includes('destination_location')) {

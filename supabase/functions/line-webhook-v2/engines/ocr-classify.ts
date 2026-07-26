@@ -75,7 +75,8 @@ const SYSTEM_PROMPT_BASE = `คุณคือระบบอ่านและ�
   "transaction_datetime": "วันเวลาที่โอนจริงตามสลิป รูปแบบ ISO 8601 (เฉพาะ transfer_slip/payment_advice) ถ้าไม่ใช่หรืออ่านไม่ได้ให้เป็น null"
 }
 ถ้ารูปไม่ใช่เอกสาร/บิลเลย ให้ document_type เป็น "product_photo" หรือ "site_photo" ตามความเหมาะสม (ไม่ใช่ "other" — "other" สงวนไว้เฉพาะกรณีจำแนกไม่ได้จริง ๆ)
-ฟิลด์ sender_name/sender_bank/reference_number/transaction_datetime ใช้เฉพาะตอน document_type เป็น transfer_slip หรือ payment_advice เท่านั้น เอกสารประเภทอื่นให้เป็น null เสมอ`
+ฟิลด์ sender_name/sender_bank/reference_number/transaction_datetime ใช้เฉพาะตอน document_type เป็น transfer_slip หรือ payment_advice เท่านั้น เอกสารประเภทอื่นให้เป็น null เสมอ
+ถ้า document_type เป็น "government_document" (เช่น บัตรประชาชน/ทะเบียนบ้าน/ใบขับขี่) นี่คือบริการถ่ายเอกสารตามคำขอลูกค้าจริงเท่านั้น ห้ามถอดเลขบัตรประชาชน/ชื่อ-สกุล/วันเกิด/ที่อยู่ออกมาใน raw_ocr_text เด็ดขาด — ให้ raw_ocr_text เป็น null เสมอสำหรับประเภทนี้ (ไม่จำเป็นต้องรู้เนื้อหาเพื่อสั่งพิมพ์) ให้ตอบแค่ document_type และ confidence เท่านั้น ฟิลด์อื่นเป็น null หมด`
 
 export interface ClassifiedReceipt {
   document_type: typeof DOCUMENT_TYPES[number]

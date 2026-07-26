@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useMemo, useRef } from "react"
 import Link from "next/link"
 import {
   LayoutGrid, MessageCircle, Briefcase, Building2, FileText, Wallet, Mountain,
-  MapPin, FileSignature, Receipt, Truck, Banknote, Phone, Paperclip, Bot, X, ExternalLink, Settings, Wrench, BarChart3,
+  MapPin, FileSignature, Receipt, Truck, Banknote, Phone, Paperclip, Bot, X, ExternalLink, Settings, Wrench, BarChart3, Satellite,
 } from "lucide-react"
 import { formatMoney } from "@/engines/documents/document-editor"
 import { AppShell, ActionBar, MapView, FlexPreview, Inspector, type IconRailItem, type ListColumnItem, type ActionBarItem } from "@/components/ui-kit"
@@ -56,6 +56,12 @@ const RAIL_ITEMS: IconRailItem[] = [
   // — a real cash-flow chart from real documents, reached via a small rail
   // icon per explicit instruction, not a new prominent destination.
   { key: "finance", label: "ภาพรวมการเงิน", icon: BarChart3, href: "/admin/finance" },
+  // Real-Time 3D Hologram Telemetry (owner, 2026-07-26): owner pointed out
+  // this rail — the system's one real central nav — never got the icon for
+  // /admin/telemetry, so there was no way to reach it except typing the URL.
+  // Placed directly before the settings gear per explicit instruction
+  // ("เอาสัญลักษณ์มาวางไว้บนคำสั่งก่อนลูกเฟืองตั้งค่า").
+  { key: "telemetry", label: "สถาปัตยกรรม", icon: Satellite, href: "/admin/telemetry" },
   { key: "build", label: "ระบบ", icon: Settings, href: "/admin/build" },
 ]
 

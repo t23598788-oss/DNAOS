@@ -292,7 +292,9 @@
         "SanitizedPricing",
         "sanitizePricing"
       ],
-      "status": "active"
+      "status": "active",
+      "archival_status": "ARCHIVED",
+      "archived_knowledge_ref": "[AK-024]"
     },
     "supabase/functions/line-webhook-v2/engines/response.ts": {
       "owner": "supabase",
@@ -300,8 +302,7 @@
       "purpose": "สร้าง response สำหรับ LINE webhook v2",
       "purpose_th": "สร้าง response สำหรับ LINE webhook v2",
       "exports": [
-        "ResponseGateway",
-        "ResponsePayload"
+        "ResponseGateway"
       ],
       "status": "active"
     },
@@ -4064,6 +4065,8 @@
       "purpose": "Closes the ask-then-answer loop — if a contact has an event awaiting a reply, uses the new message to fill the gap and either opens the Job for real or asks the next missing piece, instead of a generic echo",
       "purpose_th": "ปิดวงจรถาม-ตอบ — ถ้ามี event ที่รอคำตอบจากลูกค้าอยู่ เอาข้อความใหม่มาเติมข้อมูลที่ขาด แล้วเปิดงานจริงหรือถามสิ่งที่ยังขาดต่อ แทนการ echo ข้อความเฉยๆ",
       "exports": [
+        "FollowupReply",
+        "completeAfterMaterialResolved",
         "tryCompleteAwaitingEvent"
       ],
       "status": "active"
@@ -6395,6 +6398,133 @@
       "layer": "app",
       "purpose": "Real cash-flow aggregation API for app/admin/finance/page.tsx — sums real invoices/standalone_documents (revenue), receipt_documents (verified transfer_slip payments + fuel_bill costs), debt_snapshots (outstanding debt), grouped by real document_date. Admin-only (requireAuth)",
       "purpose_th": "API รวมข้อมูลกระแสเงินสดจริงสำหรับหน้า app/admin/finance/page.tsx — รวมยอดจากใบแจ้งหนี้/เอกสารอื่นจริง (รายได้), สลิปโอนเงินที่ยืนยันแล้ว+บิลน้ำมันจริง, หนี้ค้างชำระ จัดกลุ่มตามวันที่จริง ต้องล็อกอินแอดมิน",
+      "exports": [
+        "GET"
+      ],
+      "status": "active"
+    },
+    "app/admin/telemetry/page.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Real-Time 3D Telemetry landing page — fullscreen hologram globe view wired to Supabase Realtime (ai_tasks), live governance fault data (/api/governance), and real latency ping, no click/menu required to see it.",
+      "purpose_th": "หน้าจอ Real-Time 3D Telemetry เต็มจอ — เชื่อม Supabase Realtime (ai_tasks) ข้อมูลพังจริงจาก /api/governance และ latency จริง เปิดมาเจอเลยไม่ต้องคลิก/มีเมนูบัง",
+      "exports": [
+        "TelemetryPage"
+      ],
+      "status": "active"
+    },
+    "app/admin/telemetry/GlobeView.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Three.js hologram globe renderer — real lat/lng node placement (Mac/Supabase/LINE), procedural 3D models (robot/cloud/satellite), UnrealBloomPass glow tied to real active/idle state, real command beams along real great-circle arcs.",
+      "purpose_th": "ตัวเรนเดอร์ลูกโลก 3D ด้วย Three.js — วางโหนดตามพิกัด GPS จริง (Mac/Supabase/LINE) โมเดล 3D แบบ procedural (หุ่นยนต์/เมฆ/ดาวเทียม) แสงเรือง UnrealBloomPass ตามสถานะ active/idle จริง ลำแสงคำสั่งจริงวิ่งตามเส้นโค้ง",
+      "exports": [
+        "BeamEvent",
+        "DeviceMarker",
+        "GlobeView",
+        "NodeId",
+        "NodeKind",
+        "TelemetryNode"
+      ],
+      "status": "active"
+    },
+    "supabase/functions/line-webhook-v2/engines/thoughtful-fallback.ts": {
+      "owner": "supabase",
+      "layer": "supabase",
+      "purpose": "Local-AI conversational fallback prompt builder — the text sent to Ollama (thawatchai) on the owner's Mac when no deterministic handler matched, kept in sync by hand with ai-task-watcher.mjs's own copy of this prompt.",
+      "purpose_th": "สร้าง prompt สำหรับ Local AI (thawatchai/Ollama) ตอบคำถามทั่วไปที่ไม่มี handler จับได้ — ต้องซิงค์มือกับสำเนา prompt เดียวกันใน ai-task-watcher.mjs",
+      "exports": [
+        "buildThoughtfulReply"
+      ],
+      "status": "active",
+      "archival_status": "ARCHIVED",
+      "archived_knowledge_ref": "[AK-025]"
+    },
+    "supabase/functions/line-webhook-v2/engines/process-classified-image.ts": {
+      "owner": "supabase",
+      "layer": "supabase",
+      "purpose": "Real business logic for a document photo once ai-task-watcher.mjs's local Ollama classification comes back via ai-callback — receipt_documents insert, print-job creation/payment matching, and the real payment-before-dispatch gate (business_events awaiting_payment -> payment_confirmed).",
+      "purpose_th": "ตรรกะธุรกิจจริงหลังรูปเอกสารถูกจำแนกโดย local AI แล้วส่งกลับผ่าน ai-callback — บันทึก receipt_documents, สร้าง/จับคู่ print_jobs, และ payment gate จริงก่อนสั่งรถ (awaiting_payment -> payment_confirmed)",
+      "exports": [
+        "processClassifiedImage"
+      ],
+      "status": "active"
+    },
+    "supabase/functions/line-webhook-v2/engines/print-jobs.ts": {
+      "owner": "supabase",
+      "layer": "supabase",
+      "purpose": "Photocopy-shop-via-LINE real business logic — creates print_jobs from a classified government_document photo, matches an incoming payment slip to a pending print job by line_user_id+amount.",
+      "purpose_th": "ตรรกะร้านถ่ายเอกสารผ่าน LINE จริง — สร้าง print_jobs จากรูปเอกสารราชการที่จำแนกแล้ว จับคู่สลิปโอนเงินจริงกับงานพิมพ์ที่ค้างอยู่ด้วย line_user_id+ยอดเงิน",
+      "exports": [
+        "handlePrintCopiesSelected",
+        "handlePrintPaymentMethodSelected",
+        "matchPaymentToPrintJob",
+        "maybeCreatePrintJob"
+      ],
+      "status": "active"
+    },
+    "supabase/functions/line-webhook-v2/engines/material-density.ts": {
+      "owner": "supabase",
+      "layer": "supabase",
+      "purpose": "Real คิว(m3)<->ตัน density conversion — cbmToTon/tonToCbm using material_types.density_ton_per_cbm (owner's real engineering reference table, never a single hardcoded factor), validateDensity() sanity-checks bounds.",
+      "purpose_th": "แปลงคิว(m3)<->ตัน ด้วยความหนาแน่นจริงต่อวัสดุจาก material_types.density_ton_per_cbm (ตารางอ้างอิงวิศวกรรมจริงจากเฮีย ไม่ใช้ตัวเลขคงที่ตัวเดียว) validateDensity() ตรวจค่าที่ผิดปกติ",
+      "exports": [
+        "cbmToTon",
+        "tonToCbm",
+        "validateDensity"
+      ],
+      "status": "active"
+    },
+    "supabase/functions/line-webhook-v2/engines/customer-memory.ts": {
+      "owner": "supabase",
+      "layer": "supabase",
+      "purpose": "Real per-customer behavioral memory (line_customer_memory) — read/update helpers used by the local-AI text fallback to keep tone/history consistent across sessions, updated by the Mac's Ollama pass, not this file's own AI call.",
+      "purpose_th": "หน่วยความจำพฤติกรรมลูกค้าจริงต่อราย (line_customer_memory) — ฟังก์ชันอ่าน/อัปเดตที่ local AI (Ollama บนเครื่อง Mac) ใช้รักษาน้ำเสียง/ประวัติการคุยให้ต่อเนื่อง ไม่ได้เรียก AI เองในไฟล์นี้",
+      "exports": [
+        "getCustomerMemory",
+        "updateCustomerMemory"
+      ],
+      "status": "active"
+    },
+    "supabase/functions/line-webhook-v2/engines/build-event-from-extraction.ts": {
+      "owner": "supabase",
+      "layer": "supabase",
+      "purpose": "Builds a real business_events row from local-AI-extracted order fields (material/quantity/destination/contact) once ai-task-watcher.mjs resolves them — the ai_tasks-queue-era counterpart to the older auto-build-event.ts (still calls the dead Claude path, known gap).",
+      "purpose_th": "สร้างแถว business_events จริงจากข้อมูลที่ local AI สกัดได้ (วัสดุ/จำนวน/ที่อยู่/ผู้ติดต่อ) หลัง ai-task-watcher.mjs ประมวลผลเสร็จ — เป็นคู่ขนานยุค ai_tasks ของ auto-build-event.ts เดิม (ตัวเก่ายังเรียก Claude ที่ตายแล้วอยู่ เป็น known gap)",
+      "exports": [
+        "ExtractedEvent",
+        "buildEventFromExtraction"
+      ],
+      "status": "active"
+    },
+    "supabase/functions/line-webhook-v2/engines/authorization-check.ts": {
+      "owner": "supabase",
+      "layer": "supabase",
+      "purpose": "Cross-company 'team without a LINE group' fraud-prevention primitive — checkSiteOwnership()/requestAuthorization() push a real yes/no postback to a company's first-linked company_line_links contact. Built as reusable infrastructure but not yet wired to a live trigger point (owner-acknowledged open item).",
+      "purpose_th": "โครงสร้างป้องกันการแอบอ้ามข้ามบริษัทแบบไม่ต้องตั้งกลุ่ม LINE — checkSiteOwnership()/requestAuthorization() ส่ง postback ใช่/ไม่ใช่จริงไปหาผู้ติดต่อคนแรกที่ผูกบริษัทไว้ (company_line_links) สร้างเป็นโครงสร้างใช้ซ้ำได้แล้วแต่ยังไม่ต่อสายเข้าจุดใช้งานจริง (ค้างไว้ตามที่เฮียรับทราบ)",
+      "exports": [
+        "SiteOwnershipCheck",
+        "checkSiteOwnership",
+        "requestAuthorization"
+      ],
+      "status": "active",
+      "known_gap_ref": "TASK-040"
+    },
+    "app/api/admin/telemetry/ping/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Real server-side latency ping to Cloud Core (Supabase) and External Services (LINE API) — measures actual round-trip ms so GlobeView can scale beam travel-time to real latency, not a fake fixed duration.",
+      "purpose_th": "วัด latency จริงฝั่ง server ไปหา Cloud Core (Supabase) กับ LINE API จริง เอาไปคำนวณความเร็วลำแสงใน GlobeView ให้ตรงกับความหน่วงจริง ไม่ใช่ค่าคงที่ปลอม",
+      "exports": [
+        "GET"
+      ],
+      "status": "active"
+    },
+    "app/api/admin/telemetry/devices/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Real customer device markers — reads customer_sites.gps_lat/gps_lng (real LINE location shares already stored) for the telemetry globe's 📱 markers, no fabricated positions.",
+      "purpose_th": "ดึงพิกัดอุปกรณ์ลูกค้าจริงจาก customer_sites.gps_lat/gps_lng (พิกัดจริงจากการแชร์ location LINE ที่มีอยู่แล้ว) มาแสดงเป็นจุด 📱 บนลูกโลก ไม่ใช่พิกัดสมมติ",
       "exports": [
         "GET"
       ],

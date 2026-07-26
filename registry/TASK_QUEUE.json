@@ -301,5 +301,12 @@
       "registry/CHANGELOG.json DNA-000055"
     ],
     "completed_note": "Unblocked — TASK-033/034/035/036 all done, real npm run build already verified successful in this same pass. Actual production deploy (vercel deploy or equivalent) still requires explicit owner go-ahead, not run automatically."
+  },
+  {
+    "id": "TASK-040",
+    "title": "Wire cross-company authorization primitive (engines/authorization-check.ts) to a live trigger",
+    "priority": "P2",
+    "status": "pending",
+    "detail": "Built 2026-07-26 per owner request (fraud-prevention: first LINE contact from a company is the responsible/auto-approving party for unlinked-party requests, real yes/no postback to company_line_links first contact). Real functions exist (checkSiteOwnership/requestAuthorization) and pending_authorizations table is live, but no code path in handlers/*.ts calls requestAuthorization() yet — owner explicitly deferred deciding the live trigger point (\"อยากให้พักเรื่องเครือข่ายใยแมงมุมนี้ไว้เป็นงานถัดไป\"). Not a bug, a scoped-out follow-up."
   }
 ]

@@ -110,5 +110,11 @@ export async function answerDebtInquiry(supabase: any, userId: string): Promise<
     context:       { total_outstanding: totalDue, days_overdue: daysOverdue, collection_state: debt.collection_state },
   })
 
-  return "เดี๋ยวขอเช็คยอดให้ละเอียดอีกครั้งแป๊บนึงนะครับ เดี๋ยวแจ้งกลับไปครับ"
+  // Owner correction (2026-07-26): a vague "เดี๋ยว...แป๊บนึง" with no real
+  // bound is the same broken-promise pattern already fixed elsewhere today.
+  // This one genuinely does wait on a human (Rule 72 — AI can't push
+  // financial figures out on its own; a real staff member reviews the draft
+  // in line_outbound_drafts above) — say that honestly instead of implying
+  // an automatic instant follow-up.
+  return "เช็คให้แล้วครับ ยอดหนี้กำลังรอเจ้าหน้าที่ยืนยันก่อนแจ้งกลับนะครับ"
 }

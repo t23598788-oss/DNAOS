@@ -468,6 +468,32 @@
         "replacement_successor": "None — capability composition today is manual (cognitive/executor + gateway dispatch), not routed through this composer.",
         "lessons_learned": "Same as AK-016.",
         "historical_references": "First captured in this Rule 104 pass, 2026-07-18."
+      },
+      {
+        "id": "AK-024",
+        "file": "supabase/functions/line-webhook-v2/middleware/sanitizer.ts",
+        "lifecycle_state": "ARCHIVED",
+        "architectural_knowledge": "Exports sanitizePricing()/RawPricingData/SanitizedPricing — a markup+masking firewall layer meant to sit between raw pit/vehicle cost data and the customer-facing reply, applying a 25% markup and hiding internal pit identity.",
+        "business_knowledge": "Same real business rules it implemented (25% markup, generic pit masking) are now live in engines/quote-price.ts (MARKUP_MULTIPLIER, generic \"บ่อวัสดุในระบบ\" label) — not lost, just relocated to the file that actually computes real quotes end-to-end.",
+        "dependency_relationships": "Zero real importers confirmed via grep across the whole repo (2026-07-26) — the two remaining hits were code comments referencing it by name, not imports.",
+        "runtime_behavior": "N/A — never invoked. Was part of engines/response.ts ResponseGateway.dispatchResponse(), itself confirmed dead and removed 2026-07-26 (see AK-025 sibling cleanup same day).",
+        "replacement_successor": "engines/quote-price.ts (tryQuoteMaterialPrice) — the live, DB-driven pricing path built 2026-07-25/26.",
+        "failure_reason": "Belonged to an earlier-generation synchronous pricing/response pipeline (assumed a cloud LLM call inside the webhook request) that this repo confirmed never worked in production (no ANTHROPIC_API_KEY) — fully superseded, not a bug.",
+        "lessons_learned": "File deletion itself was attempted but blocked by the sandbox's rm restriction in this session — left on disk archived rather than force-removed.",
+        "historical_references": "Flagged by scripts/architecture-audit-report.txt (2026-07-26) and again by pre-commit Guard 0 UNUSED check same day."
+      },
+      {
+        "id": "AK-025",
+        "file": "supabase/functions/line-webhook-v2/engines/thoughtful-fallback.ts",
+        "lifecycle_state": "ARCHIVED",
+        "architectural_knowledge": "Exports buildThoughtfulReply() — builds a prompt asking an AI to read the real recent conversation and respond with judgment instead of a canned line, per 3 rounds of owner correction on 2026-07-25 (rejected \"เดี๋ยวเช็คให้นะครับ\", rejected silence, rejected a second static line).",
+        "business_knowledge": "The actual behavior this file specifies (read real context, respond thoughtfully, never fabricate business facts) is real and still wanted — but the local-AI pipeline migration (2026-07-25, same day) moved where that behavior lives: handlers/text.ts now enqueues an ai_tasks row (kind: \"handle_text\") directly and the prompt is re-implemented by hand inside ~/dna-os-ollama/ai-task-watcher.mjs (outside this repo), not by calling this file.",
+        "dependency_relationships": "Zero real importers in this repo confirmed via grep (2026-07-26) — still imports callClaudeText() from claude-client.ts, the dead cloud path (no ANTHROPIC_API_KEY ever set).",
+        "runtime_behavior": "N/A today — would return null even if called, same root cause as every other Claude-cloud call site in this repo.",
+        "replacement_successor": "ai-task-watcher.mjs (local, outside this repo) — hand-maintains its own copy of the same prompt intent for the Ollama (thawatchai) model.",
+        "failure_reason": "Written the same day the local-AI pipeline decision was made but before handlers/text.ts was updated to route through ai_tasks instead of calling it directly — overtaken by the architecture change within the same session.",
+        "lessons_learned": "A prompt/business-intent artifact can be fully correct in its own terms and still go dead the moment the calling architecture moves elsewhere — worth checking call sites right after any pipeline migration, not just at next audit.",
+        "historical_references": "Flagged by pre-commit Guard 0 UNUSED check 2026-07-26."
       }
     ]
   },

@@ -56,7 +56,7 @@ export function boqCardFlex({
       contents: [
         {
           type: "text",
-          text: `${material} ${quantity} คิว × ${unitPrice.toLocaleString("th-TH")} ฿/คิว`,
+          text: `${material} ${quantity} ตัน × ${unitPrice.toLocaleString("th-TH")} ฿/ตัน`,
           size: "sm",
           wrap: true,
         },
@@ -86,15 +86,18 @@ export function boqCardFlex({
       spacing: "sm",
       contents: [
         {
+          // Owner-reported bug (2026-07-26): plain "ยืนยัน"/"ยกเลิก" text
+          // didn't make clear what pressing it would actually do — real
+          // icon + explicit consequence in the label.
           type: "button",
-          action: { type: "postback", label: "ยืนยัน", data: `CONFIRM_JOB:${quoteId}` },
+          action: { type: "postback", label: "✅ ยืนยันสั่งซื้อ", data: `CONFIRM_JOB:${quoteId}` },
           style: "primary",
           color: "#2E7D32",
           height: "sm",
         },
         {
           type: "button",
-          action: { type: "postback", label: "ยกเลิก", data: `CANCEL_JOB:${quoteId}` },
+          action: { type: "postback", label: "❌ ยกเลิกใบนี้", data: `CANCEL_JOB:${quoteId}` },
           style: "secondary",
           height: "sm",
         },

@@ -89,4 +89,10 @@ export interface HandlerContext {
   userId: string
   groupId: string | null
   replyToken: string | null
+  // Multi-storefront LINE (owner, 2026-07-25) — which real LINE Official
+  // Account this event actually arrived through, so replies go back out
+  // through the SAME account the customer messaged (see line_channels
+  // table / index.ts). Null falls back to the single-channel env vars,
+  // preserving all existing behavior.
+  channelAccessToken: string | null
 }
