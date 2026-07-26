@@ -26,7 +26,7 @@ export async function GET(_req: Request) {
   // all, invisible to any human review.
   const { data: docs, error } = await db
     .from("receipt_documents")
-    .select("id, amount, transaction_datetime, document_date, customer_company_id, sender_name, reference_number, status, verification_level, created_at")
+    .select("id, amount, transaction_datetime, document_date, customer_company_id, sender_name, reference_number, status, verification_level, created_at, error_th")
     .in("document_type", ["transfer_slip", "payment_advice"])
     .eq("status", "ai_read")
     .order("created_at", { ascending: false })
@@ -68,6 +68,7 @@ export async function GET(_req: Request) {
       payment_preview: link
         ? { kind: link.kind, title: link.document.title, note: link.document.note }
         : null,
+      error_th: d.error_th ?? null,
     }
   })
 

@@ -13,6 +13,7 @@ interface ReceiptItem {
   partner_name: string | null
   outstanding_before: number
   payment_preview: { kind: "full_payment" | "partial_payment"; title: string; note: string } | null
+  error_th: string | null
 }
 
 // Payment Verification Queue (owner, 2026-07-24): the missing read side for
@@ -63,7 +64,19 @@ export default function ReceiptsQueuePage() {
 
       <div className="space-y-3">
         {items.map((item) => (
-          <div key={item.id} className="border border-stone-200 rounded-xl p-4 bg-white shadow-sm">
+          <div
+            key={item.id}
+            className={`border rounded-xl p-4 bg-white shadow-sm ${item.error_th ? "border-red-300 ring-1 ring-red-200" : "border-stone-200"}`}
+          >
+            {item.error_th && (
+              // Replayed-slip fraud gate (owner, 2026-07-26) — same
+              // reference_number already used on a confirmed payment before.
+              // This is the one place a human actually sees the warning; the
+              // customer is deliberately never told the specific reason.
+              <div className="mb-3 text-xs text-red-700 bg-red-50 border border-red-200 rounded-lg p-2.5 font-medium">
+                {item.error_th}
+              </div>
+            )}
             <div className="flex items-start justify-between gap-4">
               <div>
                 <div className="text-sm text-stone-500">{item.partner_name ?? "ไม่ทราบคู่ค้า"}</div>
