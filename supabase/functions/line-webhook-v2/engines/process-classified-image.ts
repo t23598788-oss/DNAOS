@@ -96,6 +96,31 @@ export async function processClassifiedImage(
     }
   }
 
+  // Payment Verification Engine — Level 3, real (owner, 2026-07-26): Rule
+  // 115 always documented Level 3 (bank notification email) as "ยังไม่มีใน
+  // ระบบวันนี้" — bank_notifications (populated by bank-email-sync, real
+  // Gmail API read of the owner's own K BIZ transfer-confirmation emails)
+  // is that real, independent evidence source now. A fraudster can fake a
+  // slip photo but cannot fake a real email arriving in the owner's inbox.
+  // A genuine match here is real confirmation the transaction actually
+  // happened — strong enough to override the OCR-date staleness heuristic
+  // (Gmail's own record is ground truth, not a guess at what the slip
+  // photo says), but NOT the reused-reference gate above: a real bank email
+  // confirms the transaction happened ONCE, it doesn't grant permission to
+  // use that same transaction to pay two different debts.
+  let bankEmailVerified = false
+  if (classified?.reference_number && classified?.amount) {
+    const { data: bankMatch } = await supabase
+      .from("bank_notifications")
+      .select("id, amount")
+      .eq("reference_number", classified.reference_number)
+      .limit(1).maybeSingle()
+    if (bankMatch && Math.abs(Number(bankMatch.amount) - Number(classified.amount)) <= 5) {
+      bankEmailVerified = true
+      if (!reusedSlipWarning) staleSlipWarning = null
+    }
+  }
+
   const insertRow = classified
     ? {
         line_event_id: lineEventId,
@@ -112,7 +137,7 @@ export async function processClassifiedImage(
         reference_number: classified.reference_number,
         transaction_datetime: classified.transaction_datetime,
         customer_company_id: customerCompanyId,
-        verification_level: 2,
+        verification_level: bankEmailVerified ? 3 : 2,
         error_th: [reusedSlipWarning, staleSlipWarning].filter(Boolean).join(" | ") || null,
       }
     : {
@@ -125,6 +150,12 @@ export async function processClassifiedImage(
       }
   const { data: insertedDoc } = await supabase
     .from("receipt_documents").insert(insertRow).select("id").single()
+
+  if (bankEmailVerified && insertedDoc && classified?.reference_number) {
+    await supabase.from("bank_notifications")
+      .update({ matched_receipt_document_id: insertedDoc.id })
+      .eq("reference_number", classified.reference_number)
+  }
 
   // Photocopy-shop-via-LINE (owner, 2026-07-25) — see engines/print-jobs.ts
   if (classified?.document_type === "government_document" && userId) {

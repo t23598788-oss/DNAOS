@@ -1,0 +1,26 @@
+-- Runs supabase/functions/bank-email-sync every 5 minutes so
+-- bank_notifications (real K BIZ transfer-confirmation emails, via Gmail
+-- API read-only access) stays current — the real Level 3 evidence source
+-- Rule 115 always documented as "ยังไม่มีในระบบวันนี้", cross-checked against
+-- receipt_documents.reference_number in engines/process-classified-image.ts.
+--
+-- Same per-function secret pattern as fuel-price-sync/
+-- receipt-reconcile-sweep (Rule 108 — no shared secret reused across jobs).
+--
+-- pg_cron / pg_net already enabled by migration 20260711000003.
+
+-- Applied live with the real secret substituted in place of the placeholder below:
+-- select cron.schedule(
+--   'bank-email-sync',
+--   '*/5 * * * *',
+--   $$
+--   select net.http_post(
+--     url := 'https://xeytcavxejhyzxwevgto.supabase.co/functions/v1/bank-email-sync',
+--     headers := jsonb_build_object(
+--       'Content-Type', 'application/json',
+--       'x-bank-email-sync-secret', '<BANK_EMAIL_SYNC_CRON_SECRET value>'
+--     ),
+--     body := '{}'::jsonb
+--   );
+--   $$
+-- );
