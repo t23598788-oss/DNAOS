@@ -66,6 +66,36 @@ export async function processClassifiedImage(
     }
   }
 
+  // Implausible-date sanity gate (owner, 2026-07-26 — real case found live,
+  // receipt_documents b717a143-...): a real slip actually said "3 พ.ค. 69"
+  // (3 May 2569 BE = 2026 CE) but the local OCR model recorded
+  // transaction_datetime as 2016-05-03 — a real 10-year misread. Nothing
+  // ever compared the extracted date against "now" to notice this reads as
+  // a transaction from a decade ago being presented today. Same principle
+  // as material-density.ts's validateDensity(): a value can be perfectly
+  // well-formed and still be obviously wrong — the code must check
+  // plausibility, not just presence. Owner's own framing: "ถ้าเป็นคนจริงๆ
+  // ก็บอกว่า...วันที่ก็ไม่ตรง...ถ้าเป็นมนุษย์จะรู้ทันที" — unlike the reused-
+  // reference case, an implausible date is safe to state to the customer
+  // directly (a wrong photo/misread is a normal honest mistake, not proof
+  // of fraud), so this one DOES get mentioned in the reply.
+  let staleSlipWarning: string | null = null
+  const txnDateRaw = classified?.transaction_datetime ?? classified?.document_date ?? null
+  if (
+    txnDateRaw &&
+    (classified?.document_type === "transfer_slip" || classified?.document_type === "payment_advice")
+  ) {
+    const txnDate = new Date(txnDateRaw)
+    if (!isNaN(txnDate.getTime())) {
+      const ageDays = (Date.now() - txnDate.getTime()) / 86_400_000
+      if (ageDays > 7) {
+        staleSlipWarning = `วันที่/เวลาโอนบนสลิป (${txnDateRaw}) ห่างจากตอนนี้ ${Math.round(ageDays)} วัน ผิดปกติมาก — อาจเป็นสลิปเก่า หรือ AI อ่านวันที่ผิด (พบเคสจริง 2026-07-26: อ่าน พ.ศ.69 เป็น ค.ศ.2016)`
+      } else if (ageDays < -1) {
+        staleSlipWarning = `วันที่/เวลาโอนบนสลิป (${txnDateRaw}) เป็นวันที่ในอนาคต ผิดปกติ`
+      }
+    }
+  }
+
   const insertRow = classified
     ? {
         line_event_id: lineEventId,
@@ -83,7 +113,7 @@ export async function processClassifiedImage(
         transaction_datetime: classified.transaction_datetime,
         customer_company_id: customerCompanyId,
         verification_level: 2,
-        error_th: reusedSlipWarning,
+        error_th: [reusedSlipWarning, staleSlipWarning].filter(Boolean).join(" | ") || null,
       }
     : {
         line_event_id: lineEventId,
@@ -135,6 +165,15 @@ export async function processClassifiedImage(
         userId,
         `รับสลิปแล้วครับ รบกวนรอเจ้าหน้าที่ตรวจสอบก่อนดำเนินการต่อนะครับ`,
       )
+    } else if (staleSlipWarning && pendingOrder) {
+      // Unlike reusedSlipWarning, an implausible date is safe to state
+      // plainly — a genuine customer sending the wrong old screenshot is a
+      // normal mistake, not something a fraud-flag reveal would help hide.
+      const { ResponseGateway } = await import("./response.ts")
+      await ResponseGateway.pushMessage(
+        userId,
+        `รับสลิปแล้วครับ แต่วันที่/เวลาโอนบนสลิปดูไม่ตรงกับตอนนี้เลย รบกวนเช็คว่าส่งสลิปถูกใบไหมครับ ถ้าถูกใบแล้วรอเจ้าหน้าที่ตรวจสอบอีกทีนะครับ`,
+      )
     } else if (pendingOrder && Math.abs(Number(pendingOrder.quoted_amount) - amount) <= 5) {
       await supabase.from("business_events")
         .update({ status: "payment_confirmed" }).eq("id", pendingOrder.id)
@@ -168,7 +207,7 @@ export async function processClassifiedImage(
   const hasCompleteEvidence = Boolean(
     classified?.amount && classified?.sender_name && classified?.transaction_datetime && customerCompanyId,
   )
-  if (isPaymentDoc && hasCompleteEvidence && !reusedSlipWarning && insertedDoc && userId) {
+  if (isPaymentDoc && hasCompleteEvidence && !reusedSlipWarning && !staleSlipWarning && insertedDoc && userId) {
     const { data: company } = await supabase
       .from("companies").select("name").eq("id", customerCompanyId).maybeSingle()
     await tryAutoConfirmPayment(supabase, {
