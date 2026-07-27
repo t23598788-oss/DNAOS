@@ -108,6 +108,21 @@ export async function handlePostback(ctx: HandlerContext): Promise<void> {
     return
   }
 
+  // Owner Dispatcher — Partner-Payable acknowledge (owner, 2026-07-27): the
+  // real payment confirmation trigger is still the owner's own slip photo
+  // (handlers/image.ts, matchOwnerSlipToPartnerPayable) — this button only
+  // records that the owner has seen and accepted the request.
+  if (action === "OWNER_PAYABLE_ACK") {
+    await ctx.supabase
+      .from("partner_payable_requests")
+      .update({ status: "owner_acknowledged", owner_acknowledged_at: new Date().toISOString() })
+      .eq("id", payload).eq("status", "pending")
+    if (ctx.replyToken) {
+      await ResponseGateway.replyText(ctx.replyToken, "รับทราบครับ โอนเสร็จส่งสลิปมาในแชทนี้ได้เลย")
+    }
+    return
+  }
+
   if (ctx.replyToken) {
     await ResponseGateway.replyText(ctx.replyToken, "รับทราบครับ")
   }

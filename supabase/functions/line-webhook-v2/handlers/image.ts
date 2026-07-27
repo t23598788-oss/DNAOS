@@ -4,6 +4,7 @@ import { fetchAndStoreLineMedia } from "../engines/media.ts"
 import { ResponseGateway } from "../engines/response.ts"
 import { classifyReceiptImage } from "../engines/ocr-classify.ts"
 import { processClassifiedImage } from "../engines/process-classified-image.ts"
+import { matchOwnerSlipToPartnerPayable } from "../engines/owner-dispatcher.ts"
 
 function guessMediaType(path: string): string {
   if (path.endsWith(".png")) return "image/png"
@@ -68,6 +69,31 @@ export async function handleImage(ctx: HandlerContext): Promise<void> {
     : null
 
   if (classified) {
+    // Owner Dispatcher — Owner Surface routing (owner, 2026-07-27): a slip
+    // FROM the owner's own chat is never a customer payment claim (the
+    // owner is never the customer) — it is the real Trigger for stage 2 of
+    // the partner-payable cascade (see engines/owner-dispatcher.ts). Route
+    // it there first; only fall through to the normal customer-payment
+    // path if no matching partner-payable request is actually open.
+    if (
+      profile?.role === "owner" &&
+      (classified.document_type === "transfer_slip" || classified.document_type === "payment_advice") &&
+      classified.amount
+    ) {
+      const matched = await matchOwnerSlipToPartnerPayable(ctx.supabase, {
+        amount: Number(classified.amount),
+        referenceNumber: classified.reference_number ?? null,
+        lineEventId: saved.id,
+      })
+      if (matched) {
+        await ResponseGateway.pushMessage(
+          ctx.userId,
+          `รับทราบครับ ยืนยันโอนให้ ${matched.partnerName} เรียบร้อยแล้ว`,
+        )
+        return
+      }
+    }
+
     await processClassifiedImage(ctx.supabase, {
       classified, mediaPath, lineEventId: saved.id, userId: ctx.userId,
     })

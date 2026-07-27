@@ -6480,6 +6480,20 @@
       ],
       "status": "active",
       "known_gap_ref": "TASK-040"
+    },
+    "supabase/functions/line-webhook-v2/engines/owner-dispatcher.ts": {
+      "owner": "supabase",
+      "layer": "supabase",
+      "purpose": "Owner Dispatcher / Exception Router (owner, 2026-07-27) — the one real place that answers \"is this the owner's own LINE chat?\" (line_profiles.role='owner') and routes the two Owner Surface signals requested: Anomaly Detection alerts (reused/stale slip, previously only recorded silently in receipt_documents.error_th) and the Partner-Payable cascade (notify owner a partner needs paying -> owner acknowledges -> owner's own slip is the real Trigger for stage 2, matched here against open partner_payable_requests, with bank_notifications as Consensus since the owner is genuinely the transfer initiator here, unlike incoming customer payments)",
+      "purpose_th": "ตัวจัดการ Owner Surface / Exception Router (owner, 2026-07-27) — จุดเดียวที่ตอบว่า \"นี่คือแชทของเฮียเองหรือเปล่า\" (line_profiles.role='owner') แล้ว route 2 สัญญาณที่ขอ: แจ้งเตือน Anomaly (สลิปซ้ำ/วันที่ผิดปกติ เดิมบันทึกเงียบๆใน error_th เท่านั้น) และ Partner-Payable cascade (แจ้งเฮียว่ามีบิลต้องจ่ายออก -> เฮียกดรับทราบ -> สลิปที่เฮียส่งเองคือ Trigger จริงของสเตจ 2 จับคู่กับ partner_payable_requests ที่ยังเปิดอยู่ ใช้ bank_notifications เป็น Consensus เพราะกรณีนี้เฮียเป็นผู้โอนจริง ต่างจากเงินลูกค้าเข้าที่อีเมลยืนยันไม่ได้)",
+      "exports": [
+        "alertOwnerAnomaly",
+        "getOwnerLineUserId",
+        "isOwnerSurface",
+        "matchOwnerSlipToPartnerPayable",
+        "requestPartnerPayableApproval"
+      ],
+      "status": "active"
     }
   },
   "excluded": [

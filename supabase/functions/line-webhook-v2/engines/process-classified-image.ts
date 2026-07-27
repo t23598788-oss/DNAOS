@@ -11,6 +11,7 @@
 import type { ClassifiedReceipt } from "./ocr-classify.ts"
 import { tryAutoConfirmPayment } from "./auto-confirm-payment.ts"
 import { maybeCreatePrintJob, matchPaymentToPrintJob } from "./print-jobs.ts"
+import { alertOwnerAnomaly } from "./owner-dispatcher.ts"
 
 export async function processClassifiedImage(
   supabase: any,
@@ -155,6 +156,15 @@ export async function processClassifiedImage(
     await supabase.from("bank_notifications")
       .update({ matched_receipt_document_id: insertedDoc.id })
       .eq("reference_number", classified.reference_number)
+  }
+
+  // Owner Dispatcher — Anomaly Detection routing (owner, 2026-07-27):
+  // reusedSlipWarning used to only sit silently in error_th for a human to
+  // find later. A reused reference number is the one gate that's genuinely
+  // suspicious (not just a likely OCR misread like staleSlipWarning), so it
+  // now also alerts the owner's own chat in real time.
+  if (reusedSlipWarning && insertedDoc) {
+    await alertOwnerAnomaly(supabase, `${reusedSlipWarning}\n(receipt_documents id: ${insertedDoc.id})`)
   }
 
   // Internal-Sender Expense Auto-Recording (owner, 2026-07-27): real gap

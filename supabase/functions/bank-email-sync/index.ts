@@ -185,6 +185,37 @@ async function matchPendingOnNewEmail(supabase: any, referenceNumber: string, em
       )
     }
   }
+
+  await matchPendingPartnerPayableOnNewEmail(supabase, emailAmount)
+}
+
+// Owner Dispatcher — Partner-Payable Consensus (owner, 2026-07-27): the
+// owner's slip photo (handlers/image.ts) may arrive before this email does
+// — reverse-match here covers that ordering, mirroring matchPendingOnNewEmail
+// above. Unlike customer slips, a bank email genuinely CAN confirm this
+// transaction (the owner is the one initiating the transfer), so a real
+// amount match here is enough to close the loop without waiting on anything
+// else. Ambiguity-safe: more than one open request at the same amount is
+// left alone rather than guessed.
+async function matchPendingPartnerPayableOnNewEmail(supabase: any, emailAmount: number): Promise<void> {
+  const { data: pending } = await supabase
+    .from("partner_payable_requests")
+    .select("id, partner_name, partner_line_user_id, amount")
+    .in("status", ["pending", "owner_acknowledged", "paid_confirmed"])
+  const matches = (pending ?? []).filter((r: any) => Math.abs(Number(r.amount) - emailAmount) <= 5)
+  if (matches.length !== 1) return
+
+  const match = matches[0]
+  await supabase.from("partner_payable_requests")
+    .update({ status: "completed", bank_email_verified: true, completed_at: new Date().toISOString() })
+    .eq("id", match.id)
+
+  if (match.partner_line_user_id) {
+    await ResponseGateway.pushMessage(
+      match.partner_line_user_id,
+      `✅ โอนเงินยอด ${Number(match.amount).toLocaleString()} บาทให้เรียบร้อยแล้วครับ`,
+    )
+  }
 }
 
 Deno.serve(async (req) => {
