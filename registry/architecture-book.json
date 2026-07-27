@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-27T15:05:01.108Z",
+  "generated_at": "2026-07-27T15:05:46.211Z",
   "version": 1,
   "nodes": [
     {
@@ -35051,6 +35051,31 @@
       "label": "imports"
     },
     {
+      "source": "module:services/supabase/state-cache.ts",
+      "target": "module:services/supabase/queries.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:services/supabase/server.ts",
+      "target": "module:services/supabase/browser.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:services/supabase/realtime.ts",
+      "target": "module:services/supabase/queries.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:services/knowledge/client.ts",
+      "target": "module:services/supabase/queries.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:services/ai/bridge-claude.ts",
+      "target": "module:services/ai/bridge-local.ts",
+      "label": "imports"
+    },
+    {
       "source": "module:registry/trace/_validator.ts",
       "target": "module:registry/trace/_schema.ts",
       "label": "imports"
@@ -35466,31 +35491,6 @@
       "label": "imports"
     },
     {
-      "source": "module:services/supabase/state-cache.ts",
-      "target": "module:services/supabase/queries.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:services/supabase/server.ts",
-      "target": "module:services/supabase/browser.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:services/supabase/realtime.ts",
-      "target": "module:services/supabase/queries.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:services/knowledge/client.ts",
-      "target": "module:services/supabase/queries.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:services/ai/bridge-claude.ts",
-      "target": "module:services/ai/bridge-local.ts",
-      "label": "imports"
-    },
-    {
       "source": "module:engines/validation/dispatcher.ts",
       "target": "module:services/supabase/queries.ts",
       "label": "imports"
@@ -35551,16 +35551,6 @@
       "label": "imports"
     },
     {
-      "source": "module:engines/jobs/auto-create.ts",
-      "target": "module:engines/material-resolver.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:engines/jobs/auto-create.ts",
-      "target": "module:engines/geocoding.ts",
-      "label": "imports"
-    },
-    {
       "source": "module:engines/impact/engine.ts",
       "target": "module:services/supabase/queries.ts",
       "label": "imports"
@@ -35573,6 +35563,16 @@
     {
       "source": "module:engines/impact/engine.ts",
       "target": "module:core/shared/types.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:engines/jobs/auto-create.ts",
+      "target": "module:engines/material-resolver.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:engines/jobs/auto-create.ts",
+      "target": "module:engines/geocoding.ts",
       "label": "imports"
     },
     {
@@ -35703,6 +35703,11 @@
     {
       "source": "module:engines/documents/artifact.ts",
       "target": "module:engines/documents/engine.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:engines/connectors/tester.ts",
+      "target": "module:core/connector-loader.ts",
       "label": "imports"
     },
     {
@@ -35853,576 +35858,6 @@
     {
       "source": "module:engines/debt/calculator.ts",
       "target": "module:engines/debt/status.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:engines/connectors/tester.ts",
-      "target": "module:core/connector-loader.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:components/workspace/WorkspaceShell.tsx",
-      "target": "module:components/ui-kit/IconRail.tsx",
-      "label": "imports"
-    },
-    {
-      "source": "module:components/workspace/WorkspaceShell.tsx",
-      "target": "module:components/auth/LogoutButton.tsx",
-      "label": "imports"
-    },
-    {
-      "source": "module:components/workspace/WorkspaceShell.tsx",
-      "target": "module:core/navigation/resolveNavItems.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:components/workspace/WorkspaceContext.tsx",
-      "target": "module:core/workspace/index.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:components/workspace/WorkspaceContext.tsx",
-      "target": "module:core/workspace/index.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:components/ui-kit/index.ts",
-      "target": "module:components/ui-kit/Window.tsx",
-      "label": "imports"
-    },
-    {
-      "source": "module:components/ui-kit/index.ts",
-      "target": "module:components/ui-kit/EmptyState.tsx",
-      "label": "imports"
-    },
-    {
-      "source": "module:components/ui-kit/index.ts",
-      "target": "module:components/ui-kit/Inspector.tsx",
-      "label": "imports"
-    },
-    {
-      "source": "module:components/ui-kit/index.ts",
-      "target": "module:components/ui-kit/Inspector.tsx",
-      "label": "imports"
-    },
-    {
-      "source": "module:components/ui-kit/index.ts",
-      "target": "module:components/ui-kit/MapView.tsx",
-      "label": "imports"
-    },
-    {
-      "source": "module:components/ui-kit/index.ts",
-      "target": "module:components/ui-kit/MapView.tsx",
-      "label": "imports"
-    },
-    {
-      "source": "module:components/ui-kit/index.ts",
-      "target": "module:components/ui-kit/IconRail.tsx",
-      "label": "imports"
-    },
-    {
-      "source": "module:components/ui-kit/index.ts",
-      "target": "module:components/ui-kit/IconRail.tsx",
-      "label": "imports"
-    },
-    {
-      "source": "module:components/ui-kit/index.ts",
-      "target": "module:components/ui-kit/ListColumn.tsx",
-      "label": "imports"
-    },
-    {
-      "source": "module:components/ui-kit/index.ts",
-      "target": "module:components/ui-kit/ListColumn.tsx",
-      "label": "imports"
-    },
-    {
-      "source": "module:components/ui-kit/index.ts",
-      "target": "module:components/ui-kit/AppShell.tsx",
-      "label": "imports"
-    },
-    {
-      "source": "module:components/ui-kit/index.ts",
-      "target": "module:components/ui-kit/ActionBar.tsx",
-      "label": "imports"
-    },
-    {
-      "source": "module:components/ui-kit/index.ts",
-      "target": "module:components/ui-kit/ActionBar.tsx",
-      "label": "imports"
-    },
-    {
-      "source": "module:components/ui-kit/index.ts",
-      "target": "module:components/ui-kit/FlexPreview.tsx",
-      "label": "imports"
-    },
-    {
-      "source": "module:components/ui-kit/MapView.tsx",
-      "target": "module:components/ui-kit/Window.tsx",
-      "label": "imports"
-    },
-    {
-      "source": "module:components/ui-kit/MapView.tsx",
-      "target": "module:components/ui-kit/EmptyState.tsx",
-      "label": "imports"
-    },
-    {
-      "source": "module:components/ui-kit/ListColumn.tsx",
-      "target": "module:components/ui-kit/EmptyState.tsx",
-      "label": "imports"
-    },
-    {
-      "source": "module:components/ui-kit/Inspector.tsx",
-      "target": "module:components/ui-kit/Window.tsx",
-      "label": "imports"
-    },
-    {
-      "source": "module:components/ui-kit/Inspector.tsx",
-      "target": "module:components/ui-kit/EmptyState.tsx",
-      "label": "imports"
-    },
-    {
-      "source": "module:components/ui-kit/AppShell.tsx",
-      "target": "module:components/ui-kit/IconRail.tsx",
-      "label": "imports"
-    },
-    {
-      "source": "module:components/ui-kit/AppShell.tsx",
-      "target": "module:components/ui-kit/ListColumn.tsx",
-      "label": "imports"
-    },
-    {
-      "source": "module:components/portal/PortalShell.tsx",
-      "target": "module:registry/portals.json.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:components/transactions/TransactionPanel.tsx",
-      "target": "module:engines/transactions/workflows.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:components/transactions/TransactionPanel.tsx",
-      "target": "module:engines/documents/engine.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:components/settings/SettingsDrawer.tsx",
-      "target": "module:core/config/company-settings.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:components/line/ContactSettingsModal.tsx",
-      "target": "module:registry/contact-settings-categories.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:components/documents/DocumentPreview.tsx",
-      "target": "module:engines/documents/document-editor.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:components/documents/DocumentPreview.tsx",
-      "target": "module:core/config/company-settings.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:components/documents/DocumentPreview.tsx",
-      "target": "module:engines/documents/engine.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:components/documents/DocumentBuilder.tsx",
-      "target": "module:engines/documents/document-editor.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:components/documents/DocumentBuilder.tsx",
-      "target": "module:engines/documents/engine.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:components/documents/DocumentBuilder.tsx",
-      "target": "module:config/document-service-categories.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:components/documents/DocumentBuilder.tsx",
-      "target": "module:engines/transactions/document-link.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:components/documents/DocumentBuilder.tsx",
-      "target": "module:engines/documents/draft-builders.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:components/documents/DocumentBuilder.tsx",
-      "target": "module:engines/transactions/workflows.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:components/documents/DocumentBuilder.tsx",
-      "target": "module:engines/transactions/workflows.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:components/documents/DocumentBuilder.tsx",
-      "target": "module:core/config/company-settings.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:components/documents/DocumentBuilder.tsx",
-      "target": "module:engines/debt/tracking.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:components/documents/DocumentBuilder.tsx",
-      "target": "module:components/documents/DocumentPreview.tsx",
-      "label": "imports"
-    },
-    {
-      "source": "module:components/documents/DocumentBuilder.tsx",
-      "target": "module:components/documents/FileUpload.tsx",
-      "label": "imports"
-    },
-    {
-      "source": "module:components/documents/DebtTrackingManager.tsx",
-      "target": "module:engines/documents/document-editor.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:components/documents/DebtTrackingManager.tsx",
-      "target": "module:engines/debt/tracking.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:components/admin/AdminSidebarNav.tsx",
-      "target": "module:components/auth/LogoutButton.tsx",
-      "label": "imports"
-    },
-    {
-      "source": "module:cognitive/state/world-state.ts",
-      "target": "module:cognitive/state/types.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:cognitive/state/timeline.ts",
-      "target": "module:cognitive/state/types.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:cognitive/state/resource-graph.ts",
-      "target": "module:cognitive/state/types.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:cognitive/state/index.ts",
-      "target": "module:cognitive/state/resource-graph.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:cognitive/state/index.ts",
-      "target": "module:cognitive/state/timeline.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:cognitive/state/index.ts",
-      "target": "module:cognitive/state/constraint-engine.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:cognitive/state/index.ts",
-      "target": "module:cognitive/state/world-state.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:cognitive/state/index.ts",
-      "target": "module:cognitive/state/types.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:cognitive/state/constraint-engine.ts",
-      "target": "module:cognitive/state/types.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:cognitive/situation/index.ts",
-      "target": "module:cognitive/situation/builder.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:cognitive/situation/index.ts",
-      "target": "module:cognitive/situation/entity-extractor.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:cognitive/situation/index.ts",
-      "target": "module:cognitive/situation/event-extractor.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:cognitive/situation/event-extractor.ts",
-      "target": "module:cognitive/state/types.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:cognitive/situation/entity-extractor.ts",
-      "target": "module:cognitive/state/types.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:cognitive/situation/builder.ts",
-      "target": "module:cognitive/state/types.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:cognitive/situation/builder.ts",
-      "target": "module:cognitive/situation/entity-extractor.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:cognitive/situation/builder.ts",
-      "target": "module:cognitive/situation/event-extractor.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:cognitive/situation/builder.ts",
-      "target": "module:cognitive/state/resource-graph.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:cognitive/situation/builder.ts",
-      "target": "module:cognitive/state/timeline.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:cognitive/situation/builder.ts",
-      "target": "module:cognitive/state/constraint-engine.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:cognitive/situation/builder.ts",
-      "target": "module:cognitive/state/world-state.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:cognitive/reasoning/index.ts",
-      "target": "module:cognitive/reasoning/engine.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:cognitive/reasoning/index.ts",
-      "target": "module:cognitive/reasoning/engine.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:cognitive/reasoning/engine.test.ts",
-      "target": "module:cognitive/reasoning/engine.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:cognitive/reflection/index.ts",
-      "target": "module:cognitive/reflection/engine.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:cognitive/reflection/index.ts",
-      "target": "module:cognitive/reflection/engine.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:cognitive/reflection/engine.ts",
-      "target": "module:cognitive/state/types.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:cognitive/planner/index.ts",
-      "target": "module:cognitive/planner/engine.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:cognitive/planner/index.ts",
-      "target": "module:cognitive/planner/engine.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:cognitive/planner/engine.ts",
-      "target": "module:cognitive/objective/contract.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:cognitive/planner/engine.test.ts",
-      "target": "module:cognitive/planner/engine.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:cognitive/planner/engine.test.ts",
-      "target": "module:cognitive/objective/contract.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:cognitive/objective/manager.ts",
-      "target": "module:cognitive/objective/contract.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:cognitive/objective/manager.test.ts",
-      "target": "module:cognitive/objective/manager.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:cognitive/objective/index.ts",
-      "target": "module:cognitive/objective/contract.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:cognitive/objective/index.ts",
-      "target": "module:cognitive/objective/contract.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:cognitive/objective/index.ts",
-      "target": "module:cognitive/objective/manager.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:cognitive/objective/index.ts",
-      "target": "module:cognitive/objective/manager.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:cognitive/memory/session.ts",
-      "target": "module:cognitive/state/types.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:cognitive/memory/session.ts",
-      "target": "module:cognitive/reflection/engine.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:cognitive/memory/index.ts",
-      "target": "module:cognitive/memory/session.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:cognitive/memory/index.ts",
-      "target": "module:cognitive/memory/session.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:cognitive/memory/index.ts",
-      "target": "module:cognitive/memory/context.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:cognitive/learning/index.ts",
-      "target": "module:cognitive/evaluation/index.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:cognitive/learning/index.ts",
-      "target": "module:cognitive/reflection/index.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:cognitive/hypothesis/index.ts",
-      "target": "module:cognitive/hypothesis/engine.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:cognitive/hypothesis/index.ts",
-      "target": "module:cognitive/hypothesis/engine.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:cognitive/hypothesis/engine.ts",
-      "target": "module:cognitive/state/types.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:cognitive/evaluation/index.ts",
-      "target": "module:cognitive/evaluation/engine.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:cognitive/evaluation/index.ts",
-      "target": "module:cognitive/evaluation/engine.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:cognitive/evaluation/engine.ts",
-      "target": "module:cognitive/state/types.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:cognitive/board/index.ts",
-      "target": "module:cognitive/evaluation/index.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:cognitive/board/index.ts",
-      "target": "module:cognitive/hypothesis/index.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:cognitive/board/index.ts",
-      "target": "module:cognitive/reflection/index.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:cognitive/board/index.ts",
-      "target": "module:cognitive/state/index.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:cognitive/executor/index.ts",
-      "target": "module:gateway/actions.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:cognitive/executor/index.ts",
-      "target": "module:engines/validation/dispatcher.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:cognitive/executor/index.ts",
-      "target": "module:engines/documents/engine.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:cognitive/executor/index.ts",
-      "target": "module:engines/debt/tracking.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:cognitive/executor/index.ts",
-      "target": "module:plugins/capability-manager.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:cognitive/executor/index.ts",
-      "target": "module:plugins/index.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:cognitive/executor/index.ts",
-      "target": "module:presenter/formatter.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:cognitive/executor/index.ts",
-      "target": "module:cognitive/planner/index.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:cognitive/executor/index.ts",
-      "target": "module:cognitive/state/index.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:cognitive/executor/index.ts",
-      "target": "module:cognitive/evaluation/index.ts",
       "label": "imports"
     },
     {
@@ -36726,36 +36161,6 @@
       "label": "imports"
     },
     {
-      "source": "module:core/executor/registry.ts",
-      "target": "module:core/shared/types.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:core/executor/init.ts",
-      "target": "module:core/executor/engine.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:core/executor/engine.ts",
-      "target": "module:core/shared/types.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:core/executor/engine.ts",
-      "target": "module:core/executor/audit.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:core/executor/engine.ts",
-      "target": "module:registry/commands/workflows.json.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:core/executor/audit.ts",
-      "target": "module:core/shared/types.ts",
-      "label": "imports"
-    },
-    {
       "source": "module:core/runtime/self-awareness.ts",
       "target": "module:core/runtime/existence-intelligence.ts",
       "label": "imports"
@@ -36788,6 +36193,46 @@
     {
       "source": "module:core/config/company-settings.ts",
       "target": "module:core/config-loader.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:core/executor/registry.ts",
+      "target": "module:core/shared/types.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:core/executor/init.ts",
+      "target": "module:core/executor/engine.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:core/executor/engine.ts",
+      "target": "module:core/shared/types.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:core/executor/engine.ts",
+      "target": "module:core/executor/audit.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:core/executor/engine.ts",
+      "target": "module:registry/commands/workflows.json.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:core/executor/audit.ts",
+      "target": "module:core/shared/types.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:core/navigation/resolveNavItems.ts",
+      "target": "module:registry/permissions.json.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:core/navigation/resolveNavItems.ts",
+      "target": "module:core/auth/session.ts",
       "label": "imports"
     },
     {
@@ -36836,13 +36281,578 @@
       "label": "imports"
     },
     {
-      "source": "module:core/navigation/resolveNavItems.ts",
-      "target": "module:registry/permissions.json.ts",
+      "source": "module:components/workspace/WorkspaceShell.tsx",
+      "target": "module:components/ui-kit/IconRail.tsx",
       "label": "imports"
     },
     {
-      "source": "module:core/navigation/resolveNavItems.ts",
+      "source": "module:components/workspace/WorkspaceShell.tsx",
+      "target": "module:components/auth/LogoutButton.tsx",
+      "label": "imports"
+    },
+    {
+      "source": "module:components/workspace/WorkspaceShell.tsx",
+      "target": "module:core/navigation/resolveNavItems.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:components/workspace/WorkspaceContext.tsx",
+      "target": "module:core/workspace/index.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:components/workspace/WorkspaceContext.tsx",
+      "target": "module:core/workspace/index.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:components/ui-kit/index.ts",
+      "target": "module:components/ui-kit/Window.tsx",
+      "label": "imports"
+    },
+    {
+      "source": "module:components/ui-kit/index.ts",
+      "target": "module:components/ui-kit/EmptyState.tsx",
+      "label": "imports"
+    },
+    {
+      "source": "module:components/ui-kit/index.ts",
+      "target": "module:components/ui-kit/Inspector.tsx",
+      "label": "imports"
+    },
+    {
+      "source": "module:components/ui-kit/index.ts",
+      "target": "module:components/ui-kit/Inspector.tsx",
+      "label": "imports"
+    },
+    {
+      "source": "module:components/ui-kit/index.ts",
+      "target": "module:components/ui-kit/MapView.tsx",
+      "label": "imports"
+    },
+    {
+      "source": "module:components/ui-kit/index.ts",
+      "target": "module:components/ui-kit/MapView.tsx",
+      "label": "imports"
+    },
+    {
+      "source": "module:components/ui-kit/index.ts",
+      "target": "module:components/ui-kit/IconRail.tsx",
+      "label": "imports"
+    },
+    {
+      "source": "module:components/ui-kit/index.ts",
+      "target": "module:components/ui-kit/IconRail.tsx",
+      "label": "imports"
+    },
+    {
+      "source": "module:components/ui-kit/index.ts",
+      "target": "module:components/ui-kit/ListColumn.tsx",
+      "label": "imports"
+    },
+    {
+      "source": "module:components/ui-kit/index.ts",
+      "target": "module:components/ui-kit/ListColumn.tsx",
+      "label": "imports"
+    },
+    {
+      "source": "module:components/ui-kit/index.ts",
+      "target": "module:components/ui-kit/AppShell.tsx",
+      "label": "imports"
+    },
+    {
+      "source": "module:components/ui-kit/index.ts",
+      "target": "module:components/ui-kit/ActionBar.tsx",
+      "label": "imports"
+    },
+    {
+      "source": "module:components/ui-kit/index.ts",
+      "target": "module:components/ui-kit/ActionBar.tsx",
+      "label": "imports"
+    },
+    {
+      "source": "module:components/ui-kit/index.ts",
+      "target": "module:components/ui-kit/FlexPreview.tsx",
+      "label": "imports"
+    },
+    {
+      "source": "module:components/ui-kit/MapView.tsx",
+      "target": "module:components/ui-kit/Window.tsx",
+      "label": "imports"
+    },
+    {
+      "source": "module:components/ui-kit/MapView.tsx",
+      "target": "module:components/ui-kit/EmptyState.tsx",
+      "label": "imports"
+    },
+    {
+      "source": "module:components/ui-kit/ListColumn.tsx",
+      "target": "module:components/ui-kit/EmptyState.tsx",
+      "label": "imports"
+    },
+    {
+      "source": "module:components/ui-kit/Inspector.tsx",
+      "target": "module:components/ui-kit/Window.tsx",
+      "label": "imports"
+    },
+    {
+      "source": "module:components/ui-kit/Inspector.tsx",
+      "target": "module:components/ui-kit/EmptyState.tsx",
+      "label": "imports"
+    },
+    {
+      "source": "module:components/ui-kit/AppShell.tsx",
+      "target": "module:components/ui-kit/IconRail.tsx",
+      "label": "imports"
+    },
+    {
+      "source": "module:components/ui-kit/AppShell.tsx",
+      "target": "module:components/ui-kit/ListColumn.tsx",
+      "label": "imports"
+    },
+    {
+      "source": "module:components/settings/SettingsDrawer.tsx",
+      "target": "module:core/config/company-settings.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:components/portal/PortalShell.tsx",
+      "target": "module:registry/portals.json.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:components/transactions/TransactionPanel.tsx",
+      "target": "module:engines/transactions/workflows.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:components/transactions/TransactionPanel.tsx",
+      "target": "module:engines/documents/engine.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:components/documents/DocumentPreview.tsx",
+      "target": "module:engines/documents/document-editor.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:components/documents/DocumentPreview.tsx",
+      "target": "module:core/config/company-settings.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:components/documents/DocumentPreview.tsx",
+      "target": "module:engines/documents/engine.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:components/documents/DocumentBuilder.tsx",
+      "target": "module:engines/documents/document-editor.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:components/documents/DocumentBuilder.tsx",
+      "target": "module:engines/documents/engine.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:components/documents/DocumentBuilder.tsx",
+      "target": "module:config/document-service-categories.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:components/documents/DocumentBuilder.tsx",
+      "target": "module:engines/transactions/document-link.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:components/documents/DocumentBuilder.tsx",
+      "target": "module:engines/documents/draft-builders.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:components/documents/DocumentBuilder.tsx",
+      "target": "module:engines/transactions/workflows.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:components/documents/DocumentBuilder.tsx",
+      "target": "module:engines/transactions/workflows.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:components/documents/DocumentBuilder.tsx",
+      "target": "module:core/config/company-settings.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:components/documents/DocumentBuilder.tsx",
+      "target": "module:engines/debt/tracking.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:components/documents/DocumentBuilder.tsx",
+      "target": "module:components/documents/DocumentPreview.tsx",
+      "label": "imports"
+    },
+    {
+      "source": "module:components/documents/DocumentBuilder.tsx",
+      "target": "module:components/documents/FileUpload.tsx",
+      "label": "imports"
+    },
+    {
+      "source": "module:components/documents/DebtTrackingManager.tsx",
+      "target": "module:engines/documents/document-editor.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:components/documents/DebtTrackingManager.tsx",
+      "target": "module:engines/debt/tracking.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:components/line/ContactSettingsModal.tsx",
+      "target": "module:registry/contact-settings-categories.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:cognitive/state/world-state.ts",
+      "target": "module:cognitive/state/types.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:cognitive/state/timeline.ts",
+      "target": "module:cognitive/state/types.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:cognitive/state/resource-graph.ts",
+      "target": "module:cognitive/state/types.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:cognitive/state/index.ts",
+      "target": "module:cognitive/state/resource-graph.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:cognitive/state/index.ts",
+      "target": "module:cognitive/state/timeline.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:cognitive/state/index.ts",
+      "target": "module:cognitive/state/constraint-engine.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:cognitive/state/index.ts",
+      "target": "module:cognitive/state/world-state.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:cognitive/state/index.ts",
+      "target": "module:cognitive/state/types.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:cognitive/state/constraint-engine.ts",
+      "target": "module:cognitive/state/types.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:cognitive/reflection/index.ts",
+      "target": "module:cognitive/reflection/engine.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:cognitive/reflection/index.ts",
+      "target": "module:cognitive/reflection/engine.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:cognitive/reflection/engine.ts",
+      "target": "module:cognitive/state/types.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:cognitive/reasoning/index.ts",
+      "target": "module:cognitive/reasoning/engine.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:cognitive/reasoning/index.ts",
+      "target": "module:cognitive/reasoning/engine.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:cognitive/reasoning/engine.test.ts",
+      "target": "module:cognitive/reasoning/engine.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:components/admin/AdminSidebarNav.tsx",
+      "target": "module:components/auth/LogoutButton.tsx",
+      "label": "imports"
+    },
+    {
+      "source": "module:cognitive/planner/index.ts",
+      "target": "module:cognitive/planner/engine.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:cognitive/planner/index.ts",
+      "target": "module:cognitive/planner/engine.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:cognitive/planner/engine.ts",
+      "target": "module:cognitive/objective/contract.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:cognitive/planner/engine.test.ts",
+      "target": "module:cognitive/planner/engine.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:cognitive/planner/engine.test.ts",
+      "target": "module:cognitive/objective/contract.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:cognitive/situation/index.ts",
+      "target": "module:cognitive/situation/builder.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:cognitive/situation/index.ts",
+      "target": "module:cognitive/situation/entity-extractor.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:cognitive/situation/index.ts",
+      "target": "module:cognitive/situation/event-extractor.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:cognitive/situation/event-extractor.ts",
+      "target": "module:cognitive/state/types.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:cognitive/situation/entity-extractor.ts",
+      "target": "module:cognitive/state/types.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:cognitive/situation/builder.ts",
+      "target": "module:cognitive/state/types.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:cognitive/situation/builder.ts",
+      "target": "module:cognitive/situation/entity-extractor.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:cognitive/situation/builder.ts",
+      "target": "module:cognitive/situation/event-extractor.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:cognitive/situation/builder.ts",
+      "target": "module:cognitive/state/resource-graph.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:cognitive/situation/builder.ts",
+      "target": "module:cognitive/state/timeline.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:cognitive/situation/builder.ts",
+      "target": "module:cognitive/state/constraint-engine.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:cognitive/situation/builder.ts",
+      "target": "module:cognitive/state/world-state.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:cognitive/objective/manager.ts",
+      "target": "module:cognitive/objective/contract.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:cognitive/objective/manager.test.ts",
+      "target": "module:cognitive/objective/manager.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:cognitive/objective/index.ts",
+      "target": "module:cognitive/objective/contract.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:cognitive/objective/index.ts",
+      "target": "module:cognitive/objective/contract.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:cognitive/objective/index.ts",
+      "target": "module:cognitive/objective/manager.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:cognitive/objective/index.ts",
+      "target": "module:cognitive/objective/manager.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:cognitive/memory/session.ts",
+      "target": "module:cognitive/state/types.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:cognitive/memory/session.ts",
+      "target": "module:cognitive/reflection/engine.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:cognitive/memory/index.ts",
+      "target": "module:cognitive/memory/session.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:cognitive/memory/index.ts",
+      "target": "module:cognitive/memory/session.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:cognitive/memory/index.ts",
+      "target": "module:cognitive/memory/context.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:cognitive/learning/index.ts",
+      "target": "module:cognitive/evaluation/index.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:cognitive/learning/index.ts",
+      "target": "module:cognitive/reflection/index.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:cognitive/hypothesis/index.ts",
+      "target": "module:cognitive/hypothesis/engine.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:cognitive/hypothesis/index.ts",
+      "target": "module:cognitive/hypothesis/engine.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:cognitive/hypothesis/engine.ts",
+      "target": "module:cognitive/state/types.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:cognitive/board/index.ts",
+      "target": "module:cognitive/evaluation/index.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:cognitive/board/index.ts",
+      "target": "module:cognitive/hypothesis/index.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:cognitive/board/index.ts",
+      "target": "module:cognitive/reflection/index.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:cognitive/board/index.ts",
+      "target": "module:cognitive/state/index.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:cognitive/executor/index.ts",
+      "target": "module:gateway/actions.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:cognitive/executor/index.ts",
+      "target": "module:engines/validation/dispatcher.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:cognitive/executor/index.ts",
+      "target": "module:engines/documents/engine.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:cognitive/executor/index.ts",
+      "target": "module:engines/debt/tracking.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:cognitive/executor/index.ts",
+      "target": "module:plugins/capability-manager.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:cognitive/executor/index.ts",
+      "target": "module:plugins/index.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:cognitive/executor/index.ts",
+      "target": "module:presenter/formatter.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:cognitive/executor/index.ts",
+      "target": "module:cognitive/planner/index.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:cognitive/executor/index.ts",
+      "target": "module:cognitive/state/index.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:cognitive/executor/index.ts",
+      "target": "module:cognitive/evaluation/index.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:cognitive/evaluation/index.ts",
+      "target": "module:cognitive/evaluation/engine.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:cognitive/evaluation/index.ts",
+      "target": "module:cognitive/evaluation/engine.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:cognitive/evaluation/engine.ts",
+      "target": "module:cognitive/state/types.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/workspace/page.tsx",
       "target": "module:core/auth/session.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/workspace/page.tsx",
+      "target": "module:core/auth/resolveDestination.ts",
       "label": "imports"
     },
     {
@@ -36911,13 +36921,18 @@
       "label": "imports"
     },
     {
-      "source": "module:app/workspace/page.tsx",
-      "target": "module:core/auth/session.ts",
+      "source": "module:app/solutions/page.tsx",
+      "target": "module:registry/business-coverage.json.ts",
       "label": "imports"
     },
     {
-      "source": "module:app/workspace/page.tsx",
-      "target": "module:core/auth/resolveDestination.ts",
+      "source": "module:app/solutions/page.tsx",
+      "target": "module:components/landing/CapabilityPageShell.tsx",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/solutions/loading.tsx",
+      "target": "module:components/landing/CapabilitySkeleton.tsx",
       "label": "imports"
     },
     {
@@ -37011,91 +37026,6 @@
       "label": "imports"
     },
     {
-      "source": "module:app/solutions/page.tsx",
-      "target": "module:registry/business-coverage.json.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/solutions/page.tsx",
-      "target": "module:components/landing/CapabilityPageShell.tsx",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/solutions/loading.tsx",
-      "target": "module:components/landing/CapabilitySkeleton.tsx",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/observer.json/route.ts",
-      "target": "module:registry/command-registry.json.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/observer.json/route.ts",
-      "target": "module:registry/module-registry.json.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/observer.json/route.ts",
-      "target": "module:registry/business-coverage.json.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/observer.json/route.ts",
-      "target": "module:registry/existence.json.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/observer.json/route.ts",
-      "target": "module:registry/drivers.json.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/observer.json/route.ts",
-      "target": "module:07-workflow-registry.json.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/observer.json/route.ts",
-      "target": "module:08-document-registry.json.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/marketplace/page.tsx",
-      "target": "module:registry/architecture.json.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/marketplace/page.tsx",
-      "target": "module:registry/connector-lifecycle.json.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/marketplace/page.tsx",
-      "target": "module:components/landing/CapabilityPageShell.tsx",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/marketplace/loading.tsx",
-      "target": "module:components/landing/CapabilitySkeleton.tsx",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/login/page.tsx",
-      "target": "module:services/supabase/browser.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/login/page.tsx",
-      "target": "module:core/auth/resolveDestination.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/login/page.tsx",
-      "target": "module:core/auth/session.ts",
-      "label": "imports"
-    },
-    {
       "source": "module:app/partner/page.tsx",
       "target": "module:registry/business-coverage.json.ts",
       "label": "imports"
@@ -37166,6 +37096,76 @@
       "label": "imports"
     },
     {
+      "source": "module:app/login/page.tsx",
+      "target": "module:services/supabase/browser.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/login/page.tsx",
+      "target": "module:core/auth/resolveDestination.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/login/page.tsx",
+      "target": "module:core/auth/session.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/marketplace/page.tsx",
+      "target": "module:registry/architecture.json.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/marketplace/page.tsx",
+      "target": "module:registry/connector-lifecycle.json.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/marketplace/page.tsx",
+      "target": "module:components/landing/CapabilityPageShell.tsx",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/marketplace/loading.tsx",
+      "target": "module:components/landing/CapabilitySkeleton.tsx",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/observer.json/route.ts",
+      "target": "module:registry/command-registry.json.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/observer.json/route.ts",
+      "target": "module:registry/module-registry.json.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/observer.json/route.ts",
+      "target": "module:registry/business-coverage.json.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/observer.json/route.ts",
+      "target": "module:registry/existence.json.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/observer.json/route.ts",
+      "target": "module:registry/drivers.json.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/observer.json/route.ts",
+      "target": "module:07-workflow-registry.json.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/observer.json/route.ts",
+      "target": "module:08-document-registry.json.ts",
+      "label": "imports"
+    },
+    {
       "source": "module:app/download/page.tsx",
       "target": "module:components/portal/PortalShell.tsx",
       "label": "imports"
@@ -37183,36 +37183,6 @@
     {
       "source": "module:app/download/loading.tsx",
       "target": "module:components/landing/CapabilitySkeleton.tsx",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/ai-services/page.tsx",
-      "target": "module:registry/AI_REGISTRY.json.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/ai-services/page.tsx",
-      "target": "module:registry/AI_SESSIONS.json.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/ai-services/page.tsx",
-      "target": "module:components/landing/CapabilityPageShell.tsx",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/ai-services/loading.tsx",
-      "target": "module:components/landing/CapabilitySkeleton.tsx",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/admin/layout.tsx",
-      "target": "module:core/auth/requireAuthPage.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/admin/layout.tsx",
-      "target": "module:core/auth/session.ts",
       "label": "imports"
     },
     {
@@ -37261,13 +37231,38 @@
       "label": "imports"
     },
     {
-      "source": "module:supabase/functions/trigger-complete/index.ts",
-      "target": "module:supabase/functions/line-webhook-v2/engines/event-followup.ts",
+      "source": "module:app/ai-services/page.tsx",
+      "target": "module:registry/AI_REGISTRY.json.ts",
       "label": "imports"
     },
     {
-      "source": "module:supabase/functions/trigger-auto-build/index.ts",
-      "target": "module:supabase/functions/line-webhook-v2/engines/auto-build-event.ts",
+      "source": "module:app/ai-services/page.tsx",
+      "target": "module:registry/AI_SESSIONS.json.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/ai-services/page.tsx",
+      "target": "module:components/landing/CapabilityPageShell.tsx",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/ai-services/loading.tsx",
+      "target": "module:components/landing/CapabilitySkeleton.tsx",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/admin/layout.tsx",
+      "target": "module:core/auth/requireAuthPage.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/admin/layout.tsx",
+      "target": "module:core/auth/session.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:supabase/functions/trigger-complete/index.ts",
+      "target": "module:supabase/functions/line-webhook-v2/engines/event-followup.ts",
       "label": "imports"
     },
     {
@@ -37341,8 +37336,8 @@
       "label": "imports"
     },
     {
-      "source": "module:supabase/functions/debt-reminder-cron/index.ts",
-      "target": "module:engines/debt/tracking-calculator.ts",
+      "source": "module:supabase/functions/trigger-auto-build/index.ts",
+      "target": "module:supabase/functions/line-webhook-v2/engines/auto-build-event.ts",
       "label": "imports"
     },
     {
@@ -37383,6 +37378,11 @@
     {
       "source": "module:supabase/functions/ai-callback/index.ts",
       "target": "module:supabase/functions/line-webhook-v2/engines/event-followup.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:supabase/functions/debt-reminder-cron/index.ts",
+      "target": "module:engines/debt/tracking-calculator.ts",
       "label": "imports"
     },
     {
@@ -37473,6 +37473,356 @@
     {
       "source": "module:plugins/platform/mac/accessibility.ts",
       "target": "module:plugins/platform/mac/applescript.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:core/workspace/presenters/workflowPresenter.ts",
+      "target": "module:core/workspace/renderModel.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:core/workspace/presenters/transportPresenter.ts",
+      "target": "module:core/workspace/renderModel.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:core/workspace/presenters/partnerPresenter.ts",
+      "target": "module:core/workspace/renderModel.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:core/workspace/presenters/orderPresenter.ts",
+      "target": "module:core/workspace/renderModel.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:core/workspace/presenters/materialPresenter.ts",
+      "target": "module:core/workspace/renderModel.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:core/workspace/presenters/invoicePresenter.ts",
+      "target": "module:core/workspace/renderModel.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:core/workspace/presenters/documentPresenter.ts",
+      "target": "module:core/workspace/renderModel.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:core/workspace/presenters/debtPresenter.ts",
+      "target": "module:core/workspace/renderModel.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:core/workspace/planner/index.ts",
+      "target": "module:core/workspace/planner/executionPlanner.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:core/workspace/planner/index.ts",
+      "target": "module:core/workspace/planner/executionPlanValidator.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:core/workspace/planner/index.ts",
+      "target": "module:core/workspace/planner/types.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:core/workspace/planner/executionPlanner.ts",
+      "target": "module:core/workspace/composer/types.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:core/workspace/planner/executionPlanner.ts",
+      "target": "module:core/workspace/planner/executionPlanValidator.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:core/workspace/planner/executionPlanner.ts",
+      "target": "module:core/workspace/planner/types.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:core/workspace/planner/executionPlanValidator.ts",
+      "target": "module:core/workspace/planner/types.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:core/workspace/gateway/presenterMap.ts",
+      "target": "module:core/workspace/application.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:core/workspace/gateway/presenterMap.ts",
+      "target": "module:core/workspace/renderModel.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:core/workspace/gateway/presenterMap.ts",
+      "target": "module:core/workspace/gateway/presentationGateway.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:core/workspace/gateway/presenterMap.ts",
+      "target": "module:core/workspace/presenters/debtPresenter.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:core/workspace/gateway/presenterMap.ts",
+      "target": "module:core/workspace/presenters/partnerPresenter.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:core/workspace/gateway/presenterMap.ts",
+      "target": "module:core/workspace/presenters/invoicePresenter.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:core/workspace/gateway/presenterMap.ts",
+      "target": "module:core/workspace/presenters/orderPresenter.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:core/workspace/gateway/presenterMap.ts",
+      "target": "module:core/workspace/presenters/documentPresenter.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:core/workspace/gateway/presenterMap.ts",
+      "target": "module:core/workspace/presenters/materialPresenter.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:core/workspace/gateway/presenterMap.ts",
+      "target": "module:core/workspace/presenters/transportPresenter.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:core/workspace/gateway/presenterMap.ts",
+      "target": "module:core/workspace/presenters/workflowPresenter.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:core/workspace/gateway/presentationGateway.ts",
+      "target": "module:core/auth/session.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:core/workspace/gateway/presentationGateway.ts",
+      "target": "module:core/workspace/presenters/debtPresenter.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:core/workspace/gateway/presentationGateway.ts",
+      "target": "module:core/workspace/presenters/partnerPresenter.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:core/workspace/gateway/presentationGateway.ts",
+      "target": "module:core/workspace/presenters/invoicePresenter.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:core/workspace/gateway/presentationGateway.ts",
+      "target": "module:core/workspace/presenters/orderPresenter.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:core/workspace/gateway/presentationGateway.ts",
+      "target": "module:core/workspace/presenters/documentPresenter.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:core/workspace/gateway/presentationGateway.ts",
+      "target": "module:core/workspace/presenters/materialPresenter.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:core/workspace/gateway/presentationGateway.ts",
+      "target": "module:core/workspace/presenters/transportPresenter.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:core/workspace/gateway/presentationGateway.ts",
+      "target": "module:core/workspace/presenters/workflowPresenter.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:core/workspace/composer/index.ts",
+      "target": "module:core/workspace/composer/capabilityComposer.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:core/workspace/composer/index.ts",
+      "target": "module:core/workspace/composer/composerResolver.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:core/workspace/composer/index.ts",
+      "target": "module:core/workspace/composer/composerResolver.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:core/workspace/composer/index.ts",
+      "target": "module:core/workspace/composer/composerValidator.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:core/workspace/composer/index.ts",
+      "target": "module:core/workspace/composer/capabilityRegistryAccess.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:core/workspace/composer/index.ts",
+      "target": "module:core/workspace/composer/capabilityRegistryAccess.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:core/workspace/composer/index.ts",
+      "target": "module:core/workspace/composer/types.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:core/workspace/composer/composerValidator.ts",
+      "target": "module:core/workspace/composer/capabilityRegistryAccess.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:core/workspace/composer/composerValidator.ts",
+      "target": "module:core/workspace/composer/types.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:core/workspace/composer/composerResolver.ts",
+      "target": "module:core/workspace/composer/capabilityComposer.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:core/workspace/composer/composerResolver.ts",
+      "target": "module:core/workspace/composer/types.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:core/workspace/composer/capabilityRegistryAccess.ts",
+      "target": "module:registry/capability-registry.json.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:core/workspace/composer/capabilityComposer.ts",
+      "target": "module:core/workspace/composer/capabilityRegistryAccess.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:core/workspace/composer/capabilityComposer.ts",
+      "target": "module:core/workspace/composer/composerValidator.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:core/workspace/composer/capabilityComposer.ts",
+      "target": "module:core/workspace/composer/types.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:core/workspace/orchestrator/types.ts",
+      "target": "module:core/workspace/planner/index.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:core/workspace/orchestrator/runtimeOrchestrator.ts",
+      "target": "module:core/workspace/planner/index.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:core/workspace/orchestrator/runtimeOrchestrator.ts",
+      "target": "module:core/workspace/orchestrator/executionLifecycleValidator.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:core/workspace/orchestrator/runtimeOrchestrator.ts",
+      "target": "module:core/workspace/orchestrator/executionProgressTracker.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:core/workspace/orchestrator/runtimeOrchestrator.ts",
+      "target": "module:core/workspace/orchestrator/executionScheduler.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:core/workspace/orchestrator/runtimeOrchestrator.ts",
+      "target": "module:core/workspace/orchestrator/executionStateMachine.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:core/workspace/orchestrator/runtimeOrchestrator.ts",
+      "target": "module:core/workspace/orchestrator/types.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:core/workspace/orchestrator/index.ts",
+      "target": "module:core/workspace/orchestrator/runtimeOrchestrator.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:core/workspace/orchestrator/index.ts",
+      "target": "module:core/workspace/orchestrator/executionStateMachine.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:core/workspace/orchestrator/index.ts",
+      "target": "module:core/workspace/orchestrator/executionScheduler.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:core/workspace/orchestrator/index.ts",
+      "target": "module:core/workspace/orchestrator/executionProgressTracker.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:core/workspace/orchestrator/index.ts",
+      "target": "module:core/workspace/orchestrator/executionLifecycleValidator.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:core/workspace/orchestrator/index.ts",
+      "target": "module:core/workspace/orchestrator/types.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:core/workspace/orchestrator/executionStateMachine.ts",
+      "target": "module:core/workspace/orchestrator/types.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:core/workspace/orchestrator/executionScheduler.ts",
+      "target": "module:core/workspace/planner/index.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:core/workspace/orchestrator/executionScheduler.ts",
+      "target": "module:core/workspace/orchestrator/types.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:core/workspace/orchestrator/executionProgressTracker.ts",
+      "target": "module:core/workspace/orchestrator/types.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:core/workspace/orchestrator/executionLifecycleValidator.ts",
+      "target": "module:core/workspace/planner/index.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:core/workspace/orchestrator/executionLifecycleValidator.ts",
+      "target": "module:core/workspace/orchestrator/executionStateMachine.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:core/workspace/orchestrator/executionLifecycleValidator.ts",
+      "target": "module:core/workspace/orchestrator/types.ts",
       "label": "imports"
     },
     {
@@ -37636,412 +37986,122 @@
       "label": "imports"
     },
     {
-      "source": "module:core/workspace/presenters/workflowPresenter.ts",
-      "target": "module:core/workspace/renderModel.ts",
+      "source": "module:app/workspace-preview/transport/page.tsx",
+      "target": "module:core/auth/requireAuthPage.ts",
       "label": "imports"
     },
     {
-      "source": "module:core/workspace/presenters/transportPresenter.ts",
-      "target": "module:core/workspace/renderModel.ts",
+      "source": "module:app/workspace-preview/transport/page.tsx",
+      "target": "module:core/auth/session.ts",
       "label": "imports"
     },
     {
-      "source": "module:core/workspace/presenters/partnerPresenter.ts",
-      "target": "module:core/workspace/renderModel.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:core/workspace/presenters/orderPresenter.ts",
-      "target": "module:core/workspace/renderModel.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:core/workspace/presenters/materialPresenter.ts",
-      "target": "module:core/workspace/renderModel.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:core/workspace/presenters/invoicePresenter.ts",
-      "target": "module:core/workspace/renderModel.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:core/workspace/presenters/documentPresenter.ts",
-      "target": "module:core/workspace/renderModel.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:core/workspace/presenters/debtPresenter.ts",
-      "target": "module:core/workspace/renderModel.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:core/workspace/composer/index.ts",
-      "target": "module:core/workspace/composer/capabilityComposer.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:core/workspace/composer/index.ts",
-      "target": "module:core/workspace/composer/composerResolver.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:core/workspace/composer/index.ts",
-      "target": "module:core/workspace/composer/composerResolver.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:core/workspace/composer/index.ts",
-      "target": "module:core/workspace/composer/composerValidator.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:core/workspace/composer/index.ts",
-      "target": "module:core/workspace/composer/capabilityRegistryAccess.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:core/workspace/composer/index.ts",
-      "target": "module:core/workspace/composer/capabilityRegistryAccess.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:core/workspace/composer/index.ts",
-      "target": "module:core/workspace/composer/types.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:core/workspace/composer/composerValidator.ts",
-      "target": "module:core/workspace/composer/capabilityRegistryAccess.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:core/workspace/composer/composerValidator.ts",
-      "target": "module:core/workspace/composer/types.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:core/workspace/composer/composerResolver.ts",
-      "target": "module:core/workspace/composer/capabilityComposer.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:core/workspace/composer/composerResolver.ts",
-      "target": "module:core/workspace/composer/types.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:core/workspace/composer/capabilityRegistryAccess.ts",
-      "target": "module:registry/capability-registry.json.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:core/workspace/composer/capabilityComposer.ts",
-      "target": "module:core/workspace/composer/capabilityRegistryAccess.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:core/workspace/composer/capabilityComposer.ts",
-      "target": "module:core/workspace/composer/composerValidator.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:core/workspace/composer/capabilityComposer.ts",
-      "target": "module:core/workspace/composer/types.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:core/workspace/gateway/presenterMap.ts",
-      "target": "module:core/workspace/application.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:core/workspace/gateway/presenterMap.ts",
-      "target": "module:core/workspace/renderModel.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:core/workspace/gateway/presenterMap.ts",
+      "source": "module:app/workspace-preview/transport/page.tsx",
       "target": "module:core/workspace/gateway/presentationGateway.ts",
       "label": "imports"
     },
     {
-      "source": "module:core/workspace/gateway/presenterMap.ts",
-      "target": "module:core/workspace/presenters/debtPresenter.ts",
+      "source": "module:app/workspace-preview/transport/page.tsx",
+      "target": "module:core/workspace/presenters/transportPresenter.ts",
       "label": "imports"
     },
     {
-      "source": "module:core/workspace/gateway/presenterMap.ts",
+      "source": "module:app/workspace-preview/transport/page.tsx",
+      "target": "module:components/workspace/boards/DashboardBoard.tsx",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/workspace-preview/transport/page.tsx",
+      "target": "module:app/workspace-preview/presentationGatewayDeps.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/workspace-preview/workflow/page.tsx",
+      "target": "module:core/auth/requireAuthPage.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/workspace-preview/workflow/page.tsx",
+      "target": "module:core/auth/session.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/workspace-preview/workflow/page.tsx",
+      "target": "module:core/workspace/gateway/presentationGateway.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/workspace-preview/workflow/page.tsx",
+      "target": "module:core/workspace/presenters/workflowPresenter.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/workspace-preview/workflow/page.tsx",
+      "target": "module:components/workspace/boards/DashboardBoard.tsx",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/workspace-preview/workflow/page.tsx",
+      "target": "module:app/workspace-preview/presentationGatewayDeps.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/workspace-preview/partner/page.tsx",
+      "target": "module:core/auth/requireAuthPage.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/workspace-preview/partner/page.tsx",
+      "target": "module:core/auth/session.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/workspace-preview/partner/page.tsx",
+      "target": "module:core/workspace/gateway/presentationGateway.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/workspace-preview/partner/page.tsx",
       "target": "module:core/workspace/presenters/partnerPresenter.ts",
       "label": "imports"
     },
     {
-      "source": "module:core/workspace/gateway/presenterMap.ts",
-      "target": "module:core/workspace/presenters/invoicePresenter.ts",
+      "source": "module:app/workspace-preview/partner/page.tsx",
+      "target": "module:components/workspace/boards/DashboardBoard.tsx",
       "label": "imports"
     },
     {
-      "source": "module:core/workspace/gateway/presenterMap.ts",
+      "source": "module:app/workspace-preview/partner/page.tsx",
+      "target": "module:app/workspace-preview/presentationGatewayDeps.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/workspace-preview/order/page.tsx",
+      "target": "module:core/auth/requireAuthPage.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/workspace-preview/order/page.tsx",
+      "target": "module:core/auth/session.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/workspace-preview/order/page.tsx",
+      "target": "module:core/workspace/gateway/presentationGateway.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/workspace-preview/order/page.tsx",
       "target": "module:core/workspace/presenters/orderPresenter.ts",
       "label": "imports"
     },
     {
-      "source": "module:core/workspace/gateway/presenterMap.ts",
-      "target": "module:core/workspace/presenters/documentPresenter.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:core/workspace/gateway/presenterMap.ts",
-      "target": "module:core/workspace/presenters/materialPresenter.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:core/workspace/gateway/presenterMap.ts",
-      "target": "module:core/workspace/presenters/transportPresenter.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:core/workspace/gateway/presenterMap.ts",
-      "target": "module:core/workspace/presenters/workflowPresenter.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:core/workspace/gateway/presentationGateway.ts",
-      "target": "module:core/auth/session.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:core/workspace/gateway/presentationGateway.ts",
-      "target": "module:core/workspace/presenters/debtPresenter.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:core/workspace/gateway/presentationGateway.ts",
-      "target": "module:core/workspace/presenters/partnerPresenter.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:core/workspace/gateway/presentationGateway.ts",
-      "target": "module:core/workspace/presenters/invoicePresenter.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:core/workspace/gateway/presentationGateway.ts",
-      "target": "module:core/workspace/presenters/orderPresenter.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:core/workspace/gateway/presentationGateway.ts",
-      "target": "module:core/workspace/presenters/documentPresenter.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:core/workspace/gateway/presentationGateway.ts",
-      "target": "module:core/workspace/presenters/materialPresenter.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:core/workspace/gateway/presentationGateway.ts",
-      "target": "module:core/workspace/presenters/transportPresenter.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:core/workspace/gateway/presentationGateway.ts",
-      "target": "module:core/workspace/presenters/workflowPresenter.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:core/workspace/planner/index.ts",
-      "target": "module:core/workspace/planner/executionPlanner.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:core/workspace/planner/index.ts",
-      "target": "module:core/workspace/planner/executionPlanValidator.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:core/workspace/planner/index.ts",
-      "target": "module:core/workspace/planner/types.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:core/workspace/planner/executionPlanner.ts",
-      "target": "module:core/workspace/composer/types.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:core/workspace/planner/executionPlanner.ts",
-      "target": "module:core/workspace/planner/executionPlanValidator.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:core/workspace/planner/executionPlanner.ts",
-      "target": "module:core/workspace/planner/types.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:core/workspace/planner/executionPlanValidator.ts",
-      "target": "module:core/workspace/planner/types.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:core/workspace/orchestrator/types.ts",
-      "target": "module:core/workspace/planner/index.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:core/workspace/orchestrator/runtimeOrchestrator.ts",
-      "target": "module:core/workspace/planner/index.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:core/workspace/orchestrator/runtimeOrchestrator.ts",
-      "target": "module:core/workspace/orchestrator/executionLifecycleValidator.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:core/workspace/orchestrator/runtimeOrchestrator.ts",
-      "target": "module:core/workspace/orchestrator/executionProgressTracker.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:core/workspace/orchestrator/runtimeOrchestrator.ts",
-      "target": "module:core/workspace/orchestrator/executionScheduler.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:core/workspace/orchestrator/runtimeOrchestrator.ts",
-      "target": "module:core/workspace/orchestrator/executionStateMachine.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:core/workspace/orchestrator/runtimeOrchestrator.ts",
-      "target": "module:core/workspace/orchestrator/types.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:core/workspace/orchestrator/index.ts",
-      "target": "module:core/workspace/orchestrator/runtimeOrchestrator.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:core/workspace/orchestrator/index.ts",
-      "target": "module:core/workspace/orchestrator/executionStateMachine.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:core/workspace/orchestrator/index.ts",
-      "target": "module:core/workspace/orchestrator/executionScheduler.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:core/workspace/orchestrator/index.ts",
-      "target": "module:core/workspace/orchestrator/executionProgressTracker.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:core/workspace/orchestrator/index.ts",
-      "target": "module:core/workspace/orchestrator/executionLifecycleValidator.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:core/workspace/orchestrator/index.ts",
-      "target": "module:core/workspace/orchestrator/types.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:core/workspace/orchestrator/executionStateMachine.ts",
-      "target": "module:core/workspace/orchestrator/types.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:core/workspace/orchestrator/executionScheduler.ts",
-      "target": "module:core/workspace/planner/index.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:core/workspace/orchestrator/executionScheduler.ts",
-      "target": "module:core/workspace/orchestrator/types.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:core/workspace/orchestrator/executionProgressTracker.ts",
-      "target": "module:core/workspace/orchestrator/types.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:core/workspace/orchestrator/executionLifecycleValidator.ts",
-      "target": "module:core/workspace/planner/index.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:core/workspace/orchestrator/executionLifecycleValidator.ts",
-      "target": "module:core/workspace/orchestrator/executionStateMachine.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:core/workspace/orchestrator/executionLifecycleValidator.ts",
-      "target": "module:core/workspace/orchestrator/types.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/workspace-preview/workflow/page.tsx",
-      "target": "module:core/auth/requireAuthPage.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/workspace-preview/workflow/page.tsx",
-      "target": "module:core/auth/session.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/workspace-preview/workflow/page.tsx",
-      "target": "module:core/workspace/gateway/presentationGateway.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/workspace-preview/workflow/page.tsx",
-      "target": "module:core/workspace/presenters/workflowPresenter.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/workspace-preview/workflow/page.tsx",
+      "source": "module:app/workspace-preview/order/page.tsx",
       "target": "module:components/workspace/boards/DashboardBoard.tsx",
       "label": "imports"
     },
     {
-      "source": "module:app/workspace-preview/workflow/page.tsx",
-      "target": "module:app/workspace-preview/presentationGatewayDeps.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/workspace-preview/transport/page.tsx",
-      "target": "module:core/auth/requireAuthPage.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/workspace-preview/transport/page.tsx",
-      "target": "module:core/auth/session.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/workspace-preview/transport/page.tsx",
-      "target": "module:core/workspace/gateway/presentationGateway.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/workspace-preview/transport/page.tsx",
-      "target": "module:core/workspace/presenters/transportPresenter.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/workspace-preview/transport/page.tsx",
-      "target": "module:components/workspace/boards/DashboardBoard.tsx",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/workspace-preview/transport/page.tsx",
+      "source": "module:app/workspace-preview/order/page.tsx",
       "target": "module:app/workspace-preview/presentationGatewayDeps.ts",
       "label": "imports"
     },
@@ -38102,36 +38162,6 @@
     },
     {
       "source": "module:app/workspace-preview/invoice/page.tsx",
-      "target": "module:app/workspace-preview/presentationGatewayDeps.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/workspace-preview/debt-widget/page.tsx",
-      "target": "module:core/auth/requireAuthPage.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/workspace-preview/debt-widget/page.tsx",
-      "target": "module:core/auth/session.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/workspace-preview/debt-widget/page.tsx",
-      "target": "module:core/workspace/gateway/presentationGateway.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/workspace-preview/debt-widget/page.tsx",
-      "target": "module:core/workspace/presenters/debtPresenter.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/workspace-preview/debt-widget/page.tsx",
-      "target": "module:components/workspace/boards/DashboardBoard.tsx",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/workspace-preview/debt-widget/page.tsx",
       "target": "module:app/workspace-preview/presentationGatewayDeps.ts",
       "label": "imports"
     },
@@ -38186,68 +38216,33 @@
       "label": "imports"
     },
     {
-      "source": "module:app/workspace-preview/partner/page.tsx",
+      "source": "module:app/workspace-preview/debt-widget/page.tsx",
       "target": "module:core/auth/requireAuthPage.ts",
       "label": "imports"
     },
     {
-      "source": "module:app/workspace-preview/partner/page.tsx",
+      "source": "module:app/workspace-preview/debt-widget/page.tsx",
       "target": "module:core/auth/session.ts",
       "label": "imports"
     },
     {
-      "source": "module:app/workspace-preview/partner/page.tsx",
+      "source": "module:app/workspace-preview/debt-widget/page.tsx",
       "target": "module:core/workspace/gateway/presentationGateway.ts",
       "label": "imports"
     },
     {
-      "source": "module:app/workspace-preview/partner/page.tsx",
-      "target": "module:core/workspace/presenters/partnerPresenter.ts",
+      "source": "module:app/workspace-preview/debt-widget/page.tsx",
+      "target": "module:core/workspace/presenters/debtPresenter.ts",
       "label": "imports"
     },
     {
-      "source": "module:app/workspace-preview/partner/page.tsx",
+      "source": "module:app/workspace-preview/debt-widget/page.tsx",
       "target": "module:components/workspace/boards/DashboardBoard.tsx",
       "label": "imports"
     },
     {
-      "source": "module:app/workspace-preview/partner/page.tsx",
+      "source": "module:app/workspace-preview/debt-widget/page.tsx",
       "target": "module:app/workspace-preview/presentationGatewayDeps.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/workspace-preview/order/page.tsx",
-      "target": "module:core/auth/requireAuthPage.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/workspace-preview/order/page.tsx",
-      "target": "module:core/auth/session.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/workspace-preview/order/page.tsx",
-      "target": "module:core/workspace/gateway/presentationGateway.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/workspace-preview/order/page.tsx",
-      "target": "module:core/workspace/presenters/orderPresenter.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/workspace-preview/order/page.tsx",
-      "target": "module:components/workspace/boards/DashboardBoard.tsx",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/workspace-preview/order/page.tsx",
-      "target": "module:app/workspace-preview/presentationGatewayDeps.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/auth/confirm/route.ts",
-      "target": "module:services/supabase/server.ts",
       "label": "imports"
     },
     {
@@ -38266,36 +38261,6 @@
       "label": "imports"
     },
     {
-      "source": "module:app/api/reader/route.ts",
-      "target": "module:core/auth/requireAuth.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/api/reader/route.ts",
-      "target": "module:core/auth/session.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/api/routes/route.ts",
-      "target": "module:core/auth/requireAuth.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/api/routes/route.ts",
-      "target": "module:core/auth/session.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/api/governance/route.ts",
-      "target": "module:core/auth/requireAuth.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/api/governance/route.ts",
-      "target": "module:core/auth/session.ts",
-      "label": "imports"
-    },
-    {
       "source": "module:app/api/self-description/route.ts",
       "target": "module:core/auth/requireAuth.ts",
       "label": "imports"
@@ -38308,6 +38273,26 @@
     {
       "source": "module:app/api/self-description/route.ts",
       "target": "module:core/runtime/self-awareness.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/routes/route.ts",
+      "target": "module:core/auth/requireAuth.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/routes/route.ts",
+      "target": "module:core/auth/session.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/reader/route.ts",
+      "target": "module:core/auth/requireAuth.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/reader/route.ts",
+      "target": "module:core/auth/session.ts",
       "label": "imports"
     },
     {
@@ -38341,28 +38326,28 @@
       "label": "imports"
     },
     {
-      "source": "module:app/api/deploy/route.ts",
+      "source": "module:app/api/document/route.ts",
       "target": "module:core/auth/requireAuth.ts",
       "label": "imports"
     },
     {
-      "source": "module:app/api/deploy/route.ts",
+      "source": "module:app/api/document/route.ts",
       "target": "module:core/auth/session.ts",
       "label": "imports"
     },
     {
-      "source": "module:app/api/command/route.ts",
+      "source": "module:app/api/document/route.ts",
+      "target": "module:engines/documents/engine.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/governance/route.ts",
       "target": "module:core/auth/requireAuth.ts",
       "label": "imports"
     },
     {
-      "source": "module:app/api/command/route.ts",
-      "target": "module:cognitive/pipeline.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/api/command/route.ts",
-      "target": "module:services/supabase/state-cache.ts",
+      "source": "module:app/api/governance/route.ts",
+      "target": "module:core/auth/session.ts",
       "label": "imports"
     },
     {
@@ -38386,18 +38371,28 @@
       "label": "imports"
     },
     {
-      "source": "module:app/api/document/route.ts",
+      "source": "module:app/api/deploy/route.ts",
       "target": "module:core/auth/requireAuth.ts",
       "label": "imports"
     },
     {
-      "source": "module:app/api/document/route.ts",
+      "source": "module:app/api/deploy/route.ts",
       "target": "module:core/auth/session.ts",
       "label": "imports"
     },
     {
-      "source": "module:app/api/document/route.ts",
-      "target": "module:engines/documents/engine.ts",
+      "source": "module:app/api/command/route.ts",
+      "target": "module:core/auth/requireAuth.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/command/route.ts",
+      "target": "module:cognitive/pipeline.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/command/route.ts",
+      "target": "module:services/supabase/state-cache.ts",
       "label": "imports"
     },
     {
@@ -38451,6 +38446,16 @@
       "label": "imports"
     },
     {
+      "source": "module:app/auth/confirm/route.ts",
+      "target": "module:services/supabase/server.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/admin/transactions/page.tsx",
+      "target": "module:components/transactions/TransactionPanel.tsx",
+      "label": "imports"
+    },
+    {
       "source": "module:app/admin/users/page.tsx",
       "target": "module:core/auth/requireAuthPage.ts",
       "label": "imports"
@@ -38466,8 +38471,18 @@
       "label": "imports"
     },
     {
-      "source": "module:app/admin/transactions/page.tsx",
-      "target": "module:components/transactions/TransactionPanel.tsx",
+      "source": "module:app/admin/telemetry/page.tsx",
+      "target": "module:services/supabase/browser.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/admin/telemetry/page.tsx",
+      "target": "module:app/admin/graph/page.tsx",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/admin/receipts/page.tsx",
+      "target": "module:engines/documents/document-editor.ts",
       "label": "imports"
     },
     {
@@ -38531,23 +38546,8 @@
       "label": "imports"
     },
     {
-      "source": "module:app/admin/telemetry/page.tsx",
-      "target": "module:services/supabase/browser.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/admin/telemetry/page.tsx",
-      "target": "module:app/admin/graph/page.tsx",
-      "label": "imports"
-    },
-    {
       "source": "module:app/admin/receipt/page.tsx",
       "target": "module:components/documents/DocumentBuilder.tsx",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/admin/receipts/page.tsx",
-      "target": "module:engines/documents/document-editor.ts",
       "label": "imports"
     },
     {
@@ -38556,13 +38556,13 @@
       "label": "imports"
     },
     {
-      "source": "module:app/admin/pending/page.tsx",
-      "target": "module:components/transactions/TransactionPanel.tsx",
+      "source": "module:app/admin/payment-voucher/page.tsx",
+      "target": "module:components/documents/DocumentBuilder.tsx",
       "label": "imports"
     },
     {
-      "source": "module:app/admin/payment-voucher/page.tsx",
-      "target": "module:components/documents/DocumentBuilder.tsx",
+      "source": "module:app/admin/pending/page.tsx",
+      "target": "module:components/transactions/TransactionPanel.tsx",
       "label": "imports"
     },
     {
@@ -38591,13 +38591,13 @@
       "label": "imports"
     },
     {
-      "source": "module:app/admin/invoice/page.tsx",
-      "target": "module:components/documents/DocumentBuilder.tsx",
+      "source": "module:app/admin/graph/page.tsx",
+      "target": "module:app/admin/graph/ForceGraph3DView.tsx",
       "label": "imports"
     },
     {
-      "source": "module:app/admin/graph/page.tsx",
-      "target": "module:app/admin/graph/ForceGraph3DView.tsx",
+      "source": "module:app/admin/invoice/page.tsx",
+      "target": "module:components/documents/DocumentBuilder.tsx",
       "label": "imports"
     },
     {
@@ -39021,6 +39021,16 @@
       "label": "imports"
     },
     {
+      "source": "module:app/api/v1/spec/route.ts",
+      "target": "module:registry/command-registry.json.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/v1/modules/route.ts",
+      "target": "module:registry/module-registry.json.ts",
+      "label": "imports"
+    },
+    {
       "source": "module:app/api/v1/query/route.ts",
       "target": "module:services/supabase/api-tokens.ts",
       "label": "imports"
@@ -39031,18 +39041,8 @@
       "label": "imports"
     },
     {
-      "source": "module:app/api/v1/modules/route.ts",
-      "target": "module:registry/module-registry.json.ts",
-      "label": "imports"
-    },
-    {
       "source": "module:app/api/v1/drivers/route.ts",
       "target": "module:registry/drivers.json.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/api/v1/constitution/route.ts",
-      "target": "module:registry/CONSTITUTION.json.ts",
       "label": "imports"
     },
     {
@@ -39051,8 +39051,8 @@
       "label": "imports"
     },
     {
-      "source": "module:app/api/v1/spec/route.ts",
-      "target": "module:registry/command-registry.json.ts",
+      "source": "module:app/api/v1/constitution/route.ts",
+      "target": "module:registry/CONSTITUTION.json.ts",
       "label": "imports"
     },
     {
@@ -39131,6 +39131,21 @@
       "label": "imports"
     },
     {
+      "source": "module:app/api/admin/transactions/route.ts",
+      "target": "module:core/auth/requireAuth.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/transactions/route.ts",
+      "target": "module:core/auth/session.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/transactions/route.ts",
+      "target": "module:services/supabase/queries.ts",
+      "label": "imports"
+    },
+    {
       "source": "module:app/api/admin/settings/route.ts",
       "target": "module:core/auth/requireAuth.ts",
       "label": "imports"
@@ -39161,26 +39176,6 @@
       "label": "imports"
     },
     {
-      "source": "module:app/api/admin/receipt-documents/route.ts",
-      "target": "module:core/auth/requireAuth.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/api/admin/receipt-documents/route.ts",
-      "target": "module:core/auth/session.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/api/admin/receipt-documents/route.ts",
-      "target": "module:services/supabase/queries.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/api/admin/receipt-documents/route.ts",
-      "target": "module:engines/transactions/document-link.ts",
-      "label": "imports"
-    },
-    {
       "source": "module:app/api/admin/relationships/route.ts",
       "target": "module:core/auth/requireAuth.ts",
       "label": "imports"
@@ -39201,21 +39196,6 @@
       "label": "imports"
     },
     {
-      "source": "module:app/api/admin/transactions/route.ts",
-      "target": "module:core/auth/requireAuth.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/api/admin/transactions/route.ts",
-      "target": "module:core/auth/session.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/api/admin/transactions/route.ts",
-      "target": "module:services/supabase/queries.ts",
-      "label": "imports"
-    },
-    {
       "source": "module:app/api/admin/sites/route.ts",
       "target": "module:core/auth/requireAuth.ts",
       "label": "imports"
@@ -39228,6 +39208,26 @@
     {
       "source": "module:app/api/admin/sites/route.ts",
       "target": "module:services/supabase/queries.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/receipt-documents/route.ts",
+      "target": "module:core/auth/requireAuth.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/receipt-documents/route.ts",
+      "target": "module:core/auth/session.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/receipt-documents/route.ts",
+      "target": "module:services/supabase/queries.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/receipt-documents/route.ts",
+      "target": "module:engines/transactions/document-link.ts",
       "label": "imports"
     },
     {
@@ -39266,47 +39266,32 @@
       "label": "imports"
     },
     {
-      "source": "module:app/api/admin/outbound-drafts/route.ts",
+      "source": "module:app/api/admin/partners/route.ts",
       "target": "module:core/auth/requireAuth.ts",
       "label": "imports"
     },
     {
-      "source": "module:app/api/admin/outbound-drafts/route.ts",
+      "source": "module:app/api/admin/partners/route.ts",
       "target": "module:core/auth/session.ts",
       "label": "imports"
     },
     {
-      "source": "module:app/api/admin/outbound-drafts/route.ts",
+      "source": "module:app/api/admin/partners/route.ts",
       "target": "module:services/supabase/queries.ts",
       "label": "imports"
     },
     {
-      "source": "module:app/api/admin/pits/route.ts",
+      "source": "module:app/api/admin/outbound-drafts/route.ts",
       "target": "module:core/auth/requireAuth.ts",
       "label": "imports"
     },
     {
-      "source": "module:app/api/admin/pits/route.ts",
+      "source": "module:app/api/admin/outbound-drafts/route.ts",
       "target": "module:core/auth/session.ts",
       "label": "imports"
     },
     {
-      "source": "module:app/api/admin/pits/route.ts",
-      "target": "module:services/supabase/queries.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/api/admin/partners/route.ts",
-      "target": "module:core/auth/requireAuth.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/api/admin/partners/route.ts",
-      "target": "module:core/auth/session.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/api/admin/partners/route.ts",
+      "source": "module:app/api/admin/outbound-drafts/route.ts",
       "target": "module:services/supabase/queries.ts",
       "label": "imports"
     },
@@ -39346,6 +39331,36 @@
       "label": "imports"
     },
     {
+      "source": "module:app/api/admin/pits/route.ts",
+      "target": "module:core/auth/requireAuth.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/pits/route.ts",
+      "target": "module:core/auth/session.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/pits/route.ts",
+      "target": "module:services/supabase/queries.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/finance-summary/route.ts",
+      "target": "module:core/auth/requireAuth.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/finance-summary/route.ts",
+      "target": "module:core/auth/session.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/finance-summary/route.ts",
+      "target": "module:services/supabase/queries.ts",
+      "label": "imports"
+    },
+    {
       "source": "module:app/api/admin/event-inbox/route.ts",
       "target": "module:core/auth/requireAuth.ts",
       "label": "imports"
@@ -39372,21 +39387,6 @@
     },
     {
       "source": "module:app/api/admin/equipment/route.ts",
-      "target": "module:services/supabase/queries.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/api/admin/finance-summary/route.ts",
-      "target": "module:core/auth/requireAuth.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/api/admin/finance-summary/route.ts",
-      "target": "module:core/auth/session.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/api/admin/finance-summary/route.ts",
       "target": "module:services/supabase/queries.ts",
       "label": "imports"
     },
@@ -39418,6 +39418,21 @@
     {
       "source": "module:app/api/admin/documents/route.ts",
       "target": "module:core/config/company-settings.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/connectors/route.ts",
+      "target": "module:core/auth/requireAuth.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/connectors/route.ts",
+      "target": "module:core/auth/session.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/connectors/route.ts",
+      "target": "module:gateway/connectors.ts",
       "label": "imports"
     },
     {
@@ -39476,18 +39491,8 @@
       "label": "imports"
     },
     {
-      "source": "module:app/api/admin/connectors/route.ts",
-      "target": "module:core/auth/requireAuth.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/api/admin/connectors/route.ts",
-      "target": "module:core/auth/session.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/api/admin/connectors/route.ts",
-      "target": "module:gateway/connectors.ts",
+      "source": "module:app/admin/relationships/[relationshipId]/page.tsx",
+      "target": "module:app/admin/relationships/workspace.tsx",
       "label": "imports"
     },
     {
@@ -39521,11 +39526,6 @@
       "label": "imports"
     },
     {
-      "source": "module:app/admin/relationships/[relationshipId]/page.tsx",
-      "target": "module:app/admin/relationships/workspace.tsx",
-      "label": "imports"
-    },
-    {
       "source": "module:app/api/internal/line/document-artifact/route.ts",
       "target": "module:gateway/document-artifact-storage.ts",
       "label": "imports"
@@ -39552,6 +39552,21 @@
     },
     {
       "source": "module:app/api/connectors/webhook/[slug]/route.ts",
+      "target": "module:services/supabase/queries.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/transactions/[id]/route.ts",
+      "target": "module:core/auth/requireAuth.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/transactions/[id]/route.ts",
+      "target": "module:core/auth/session.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/transactions/[id]/route.ts",
       "target": "module:services/supabase/queries.ts",
       "label": "imports"
     },
@@ -39596,17 +39611,17 @@
       "label": "imports"
     },
     {
-      "source": "module:app/api/admin/transactions/[id]/route.ts",
+      "source": "module:app/api/admin/line-profiles/[lineUserId]/route.ts",
       "target": "module:core/auth/requireAuth.ts",
       "label": "imports"
     },
     {
-      "source": "module:app/api/admin/transactions/[id]/route.ts",
+      "source": "module:app/api/admin/line-profiles/[lineUserId]/route.ts",
       "target": "module:core/auth/session.ts",
       "label": "imports"
     },
     {
-      "source": "module:app/api/admin/transactions/[id]/route.ts",
+      "source": "module:app/api/admin/line-profiles/[lineUserId]/route.ts",
       "target": "module:services/supabase/queries.ts",
       "label": "imports"
     },
@@ -39631,56 +39646,6 @@
       "label": "imports"
     },
     {
-      "source": "module:app/api/admin/pits/[pitId]/route.ts",
-      "target": "module:core/auth/requireAuth.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/api/admin/pits/[pitId]/route.ts",
-      "target": "module:core/auth/session.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/api/admin/pits/[pitId]/route.ts",
-      "target": "module:services/supabase/queries.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/api/admin/line-profiles/[lineUserId]/route.ts",
-      "target": "module:core/auth/requireAuth.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/api/admin/line-profiles/[lineUserId]/route.ts",
-      "target": "module:core/auth/session.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/api/admin/line-profiles/[lineUserId]/route.ts",
-      "target": "module:services/supabase/queries.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/api/admin/equipment/trigger-start/route.ts",
-      "target": "module:core/auth/requireAuth.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/api/admin/equipment/trigger-start/route.ts",
-      "target": "module:core/auth/session.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/api/admin/equipment/trigger-start/route.ts",
-      "target": "module:services/supabase/queries.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/api/admin/equipment/trigger-start/route.ts",
-      "target": "module:engines/equipment/relay-command.ts",
-      "label": "imports"
-    },
-    {
       "source": "module:app/api/admin/line-customers/[lineUserId]/route.ts",
       "target": "module:core/auth/requireAuth.ts",
       "label": "imports"
@@ -39698,6 +39663,21 @@
     {
       "source": "module:app/api/admin/line-customers/[lineUserId]/route.ts",
       "target": "module:engines/debt/tracking.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/pits/[pitId]/route.ts",
+      "target": "module:core/auth/requireAuth.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/pits/[pitId]/route.ts",
+      "target": "module:core/auth/session.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/pits/[pitId]/route.ts",
+      "target": "module:services/supabase/queries.ts",
       "label": "imports"
     },
     {
@@ -39721,68 +39701,23 @@
       "label": "imports"
     },
     {
-      "source": "module:app/api/admin/domains/whois/route.ts",
+      "source": "module:app/api/admin/equipment/trigger-start/route.ts",
       "target": "module:core/auth/requireAuth.ts",
       "label": "imports"
     },
     {
-      "source": "module:app/api/admin/domains/whois/route.ts",
+      "source": "module:app/api/admin/equipment/trigger-start/route.ts",
       "target": "module:core/auth/session.ts",
       "label": "imports"
     },
     {
-      "source": "module:app/api/admin/domains/whois/route.ts",
-      "target": "module:engines/domains/hostinger.ts",
+      "source": "module:app/api/admin/equipment/trigger-start/route.ts",
+      "target": "module:services/supabase/queries.ts",
       "label": "imports"
     },
     {
-      "source": "module:app/api/admin/domains/register/route.ts",
-      "target": "module:core/auth/requireAuth.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/api/admin/domains/register/route.ts",
-      "target": "module:core/auth/session.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/api/admin/domains/register/route.ts",
-      "target": "module:gateway/domains.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/api/admin/domains/register/route.ts",
-      "target": "module:engines/domains/types.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/api/admin/domains/suggestions/route.ts",
-      "target": "module:core/auth/requireAuth.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/api/admin/domains/suggestions/route.ts",
-      "target": "module:core/auth/session.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/api/admin/domains/suggestions/route.ts",
-      "target": "module:engines/domains/hostinger.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/api/admin/domains/availability/route.ts",
-      "target": "module:core/auth/requireAuth.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/api/admin/domains/availability/route.ts",
-      "target": "module:core/auth/session.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/api/admin/domains/availability/route.ts",
-      "target": "module:engines/domains/hostinger.ts",
+      "source": "module:app/api/admin/equipment/trigger-start/route.ts",
+      "target": "module:engines/equipment/relay-command.ts",
       "label": "imports"
     },
     {
@@ -39816,6 +39751,21 @@
       "label": "imports"
     },
     {
+      "source": "module:app/api/admin/connectors/[id]/route.ts",
+      "target": "module:core/auth/requireAuth.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/connectors/[id]/route.ts",
+      "target": "module:core/auth/session.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/connectors/[id]/route.ts",
+      "target": "module:gateway/connectors.ts",
+      "label": "imports"
+    },
+    {
       "source": "module:app/api/admin/debt-trackings/[id]/route.ts",
       "target": "module:core/auth/requireAuth.ts",
       "label": "imports"
@@ -39841,6 +39791,71 @@
       "label": "imports"
     },
     {
+      "source": "module:app/api/admin/domains/whois/route.ts",
+      "target": "module:core/auth/requireAuth.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/domains/whois/route.ts",
+      "target": "module:core/auth/session.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/domains/whois/route.ts",
+      "target": "module:engines/domains/hostinger.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/domains/suggestions/route.ts",
+      "target": "module:core/auth/requireAuth.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/domains/suggestions/route.ts",
+      "target": "module:core/auth/session.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/domains/suggestions/route.ts",
+      "target": "module:engines/domains/hostinger.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/domains/register/route.ts",
+      "target": "module:core/auth/requireAuth.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/domains/register/route.ts",
+      "target": "module:core/auth/session.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/domains/register/route.ts",
+      "target": "module:gateway/domains.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/domains/register/route.ts",
+      "target": "module:engines/domains/types.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/domains/availability/route.ts",
+      "target": "module:core/auth/requireAuth.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/domains/availability/route.ts",
+      "target": "module:core/auth/session.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/domains/availability/route.ts",
+      "target": "module:engines/domains/hostinger.ts",
+      "label": "imports"
+    },
+    {
       "source": "module:app/api/admin/api-tokens/[id]/route.ts",
       "target": "module:core/auth/requireAuth.ts",
       "label": "imports"
@@ -39856,18 +39871,18 @@
       "label": "imports"
     },
     {
-      "source": "module:app/api/admin/connectors/[id]/route.ts",
-      "target": "module:core/auth/requireAuth.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/api/admin/connectors/[id]/route.ts",
+      "source": "module:app/api/connectors/oauth/authorize/[slug]/route.ts",
       "target": "module:core/auth/session.ts",
       "label": "imports"
     },
     {
-      "source": "module:app/api/admin/connectors/[id]/route.ts",
-      "target": "module:gateway/connectors.ts",
+      "source": "module:app/api/connectors/oauth/authorize/[slug]/route.ts",
+      "target": "module:core/connector-loader.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/connectors/oauth/authorize/[slug]/route.ts",
+      "target": "module:services/supabase/queries.ts",
       "label": "imports"
     },
     {
@@ -39897,6 +39912,41 @@
     },
     {
       "source": "module:app/api/admin/users/[id]/role/route.ts",
+      "target": "module:services/supabase/queries.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/transactions/[id]/advance/route.ts",
+      "target": "module:core/auth/requireAuth.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/transactions/[id]/advance/route.ts",
+      "target": "module:core/auth/session.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/transactions/[id]/advance/route.ts",
+      "target": "module:services/supabase/queries.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/transactions/[id]/advance/route.ts",
+      "target": "module:engines/transactions/state-machine.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/relationships/[relationshipId]/match/route.ts",
+      "target": "module:core/auth/requireAuth.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/relationships/[relationshipId]/match/route.ts",
+      "target": "module:core/auth/session.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/relationships/[relationshipId]/match/route.ts",
       "target": "module:services/supabase/queries.ts",
       "label": "imports"
     },
@@ -39936,76 +39986,6 @@
       "label": "imports"
     },
     {
-      "source": "module:app/api/admin/relationships/[relationshipId]/match/route.ts",
-      "target": "module:core/auth/requireAuth.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/api/admin/relationships/[relationshipId]/match/route.ts",
-      "target": "module:core/auth/session.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/api/admin/relationships/[relationshipId]/match/route.ts",
-      "target": "module:services/supabase/queries.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/api/admin/transactions/[id]/advance/route.ts",
-      "target": "module:core/auth/requireAuth.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/api/admin/transactions/[id]/advance/route.ts",
-      "target": "module:core/auth/session.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/api/admin/transactions/[id]/advance/route.ts",
-      "target": "module:services/supabase/queries.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/api/admin/transactions/[id]/advance/route.ts",
-      "target": "module:engines/transactions/state-machine.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/api/admin/outbound-drafts/[id]/send/route.ts",
-      "target": "module:core/auth/requireAuth.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/api/admin/outbound-drafts/[id]/send/route.ts",
-      "target": "module:core/auth/session.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/api/admin/outbound-drafts/[id]/send/route.ts",
-      "target": "module:services/supabase/queries.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/api/admin/outbound-drafts/[id]/send/route.ts",
-      "target": "module:registry/communication.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/api/admin/outbound-drafts/[id]/reject/route.ts",
-      "target": "module:core/auth/requireAuth.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/api/admin/outbound-drafts/[id]/reject/route.ts",
-      "target": "module:core/auth/session.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/api/admin/outbound-drafts/[id]/reject/route.ts",
-      "target": "module:services/supabase/queries.ts",
-      "label": "imports"
-    },
-    {
       "source": "module:app/api/admin/partners/[id]/timeline/route.ts",
       "target": "module:core/auth/requireAuth.ts",
       "label": "imports"
@@ -40026,6 +40006,21 @@
       "label": "imports"
     },
     {
+      "source": "module:app/api/admin/partners/[id]/line-messages/route.ts",
+      "target": "module:core/auth/requireAuth.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/partners/[id]/line-messages/route.ts",
+      "target": "module:core/auth/session.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/partners/[id]/line-messages/route.ts",
+      "target": "module:services/supabase/queries.ts",
+      "label": "imports"
+    },
+    {
       "source": "module:app/api/admin/partners/[id]/credit/route.ts",
       "target": "module:core/auth/requireAuth.ts",
       "label": "imports"
@@ -40046,103 +40041,53 @@
       "label": "imports"
     },
     {
-      "source": "module:app/api/connectors/oauth/authorize/[slug]/route.ts",
-      "target": "module:core/auth/session.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/api/connectors/oauth/authorize/[slug]/route.ts",
-      "target": "module:core/connector-loader.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/api/connectors/oauth/authorize/[slug]/route.ts",
-      "target": "module:services/supabase/queries.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/api/admin/partners/[id]/line-messages/route.ts",
+      "source": "module:app/api/admin/partners/[id]/chain/route.ts",
       "target": "module:core/auth/requireAuth.ts",
       "label": "imports"
     },
     {
-      "source": "module:app/api/admin/partners/[id]/line-messages/route.ts",
+      "source": "module:app/api/admin/partners/[id]/chain/route.ts",
       "target": "module:core/auth/session.ts",
       "label": "imports"
     },
     {
-      "source": "module:app/api/admin/partners/[id]/line-messages/route.ts",
+      "source": "module:app/api/admin/partners/[id]/chain/route.ts",
       "target": "module:services/supabase/queries.ts",
       "label": "imports"
     },
     {
-      "source": "module:app/api/admin/pits/[pitId]/request-quote/route.ts",
+      "source": "module:app/api/admin/outbound-drafts/[id]/send/route.ts",
       "target": "module:core/auth/requireAuth.ts",
       "label": "imports"
     },
     {
-      "source": "module:app/api/admin/pits/[pitId]/request-quote/route.ts",
+      "source": "module:app/api/admin/outbound-drafts/[id]/send/route.ts",
       "target": "module:core/auth/session.ts",
       "label": "imports"
     },
     {
-      "source": "module:app/api/admin/pits/[pitId]/request-quote/route.ts",
+      "source": "module:app/api/admin/outbound-drafts/[id]/send/route.ts",
       "target": "module:services/supabase/queries.ts",
       "label": "imports"
     },
     {
-      "source": "module:app/api/admin/pits/[pitId]/request-quote/route.ts",
+      "source": "module:app/api/admin/outbound-drafts/[id]/send/route.ts",
       "target": "module:registry/communication.ts",
       "label": "imports"
     },
     {
-      "source": "module:app/api/admin/partners/[id]/chain/route.ts",
+      "source": "module:app/api/admin/outbound-drafts/[id]/reject/route.ts",
       "target": "module:core/auth/requireAuth.ts",
       "label": "imports"
     },
     {
-      "source": "module:app/api/admin/partners/[id]/chain/route.ts",
+      "source": "module:app/api/admin/outbound-drafts/[id]/reject/route.ts",
       "target": "module:core/auth/session.ts",
       "label": "imports"
     },
     {
-      "source": "module:app/api/admin/partners/[id]/chain/route.ts",
+      "source": "module:app/api/admin/outbound-drafts/[id]/reject/route.ts",
       "target": "module:services/supabase/queries.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/api/admin/line-customers/[lineUserId]/send-debt/route.ts",
-      "target": "module:core/auth/requireAuth.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/api/admin/line-customers/[lineUserId]/send-debt/route.ts",
-      "target": "module:core/auth/session.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/api/admin/line-customers/[lineUserId]/send-debt/route.ts",
-      "target": "module:services/supabase/queries.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/api/admin/line-customers/[lineUserId]/send-debt/route.ts",
-      "target": "module:engines/documents/flex-template.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/api/admin/line-customers/[lineUserId]/send-debt/route.ts",
-      "target": "module:core/config/company-settings.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/api/admin/line-customers/[lineUserId]/send-debt/route.ts",
-      "target": "module:engines/debt/tracking.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/api/admin/line-customers/[lineUserId]/send-debt/route.ts",
-      "target": "module:registry/communication.ts",
       "label": "imports"
     },
     {
@@ -40181,18 +40126,38 @@
       "label": "imports"
     },
     {
-      "source": "module:app/api/admin/pits/[pitId]/materials/route.ts",
+      "source": "module:app/api/admin/line-customers/[lineUserId]/send-debt/route.ts",
       "target": "module:core/auth/requireAuth.ts",
       "label": "imports"
     },
     {
-      "source": "module:app/api/admin/pits/[pitId]/materials/route.ts",
+      "source": "module:app/api/admin/line-customers/[lineUserId]/send-debt/route.ts",
       "target": "module:core/auth/session.ts",
       "label": "imports"
     },
     {
-      "source": "module:app/api/admin/pits/[pitId]/materials/route.ts",
+      "source": "module:app/api/admin/line-customers/[lineUserId]/send-debt/route.ts",
       "target": "module:services/supabase/queries.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/line-customers/[lineUserId]/send-debt/route.ts",
+      "target": "module:engines/documents/flex-template.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/line-customers/[lineUserId]/send-debt/route.ts",
+      "target": "module:core/config/company-settings.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/line-customers/[lineUserId]/send-debt/route.ts",
+      "target": "module:engines/debt/tracking.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/line-customers/[lineUserId]/send-debt/route.ts",
+      "target": "module:registry/communication.ts",
       "label": "imports"
     },
     {
@@ -40286,6 +40251,41 @@
       "label": "imports"
     },
     {
+      "source": "module:app/api/admin/pits/[pitId]/materials/route.ts",
+      "target": "module:core/auth/requireAuth.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/pits/[pitId]/materials/route.ts",
+      "target": "module:core/auth/session.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/pits/[pitId]/materials/route.ts",
+      "target": "module:services/supabase/queries.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/pits/[pitId]/request-quote/route.ts",
+      "target": "module:core/auth/requireAuth.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/pits/[pitId]/request-quote/route.ts",
+      "target": "module:core/auth/session.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/pits/[pitId]/request-quote/route.ts",
+      "target": "module:services/supabase/queries.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/pits/[pitId]/request-quote/route.ts",
+      "target": "module:registry/communication.ts",
+      "label": "imports"
+    },
+    {
       "source": "module:app/api/admin/documents/[id]/confirm/route.ts",
       "target": "module:core/auth/requireAuth.ts",
       "label": "imports"
@@ -40297,6 +40297,51 @@
     },
     {
       "source": "module:app/api/admin/documents/[id]/confirm/route.ts",
+      "target": "module:services/supabase/queries.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/connectors/[id]/test/route.ts",
+      "target": "module:core/auth/requireAuth.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/connectors/[id]/test/route.ts",
+      "target": "module:core/auth/session.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/connectors/[id]/test/route.ts",
+      "target": "module:gateway/connectors.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/connectors/[id]/enable/route.ts",
+      "target": "module:core/auth/requireAuth.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/connectors/[id]/enable/route.ts",
+      "target": "module:core/auth/session.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/connectors/[id]/enable/route.ts",
+      "target": "module:gateway/connectors.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/debt-trackings/[id]/events/route.ts",
+      "target": "module:core/auth/requireAuth.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/debt-trackings/[id]/events/route.ts",
+      "target": "module:core/auth/session.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/debt-trackings/[id]/events/route.ts",
       "target": "module:services/supabase/queries.ts",
       "label": "imports"
     },
@@ -40313,51 +40358,6 @@
     {
       "source": "module:app/api/admin/debt-trackings/[id]/draft/route.ts",
       "target": "module:engines/documents/debt-notice-draft.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/api/admin/debt-trackings/[id]/events/route.ts",
-      "target": "module:core/auth/requireAuth.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/api/admin/debt-trackings/[id]/events/route.ts",
-      "target": "module:core/auth/session.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/api/admin/debt-trackings/[id]/events/route.ts",
-      "target": "module:services/supabase/queries.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/api/admin/connectors/[id]/test/route.ts",
-      "target": "module:core/auth/requireAuth.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/api/admin/connectors/[id]/test/route.ts",
-      "target": "module:core/auth/session.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/api/admin/connectors/[id]/test/route.ts",
-      "target": "module:gateway/connectors.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/api/admin/connectors/[id]/enable/route.ts",
-      "target": "module:core/auth/requireAuth.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/api/admin/connectors/[id]/enable/route.ts",
-      "target": "module:core/auth/session.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/api/admin/connectors/[id]/enable/route.ts",
-      "target": "module:gateway/connectors.ts",
       "label": "imports"
     },
     {
