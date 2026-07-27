@@ -112,6 +112,13 @@
       "status": "complete",
       "done": "Owner's explicit principle: \"ถึงแม้ AI ตัวเดียวยืนยัน 100% ว่าสลิปถูกต้อง...แต่เงินเข้าหรือยัง เห็นจากธนาคารเค้าบอกว่าเงินเข้าแล้วหรือยัง\" — hasCompleteEvidence (OCR read every field on the slip) was previously sufficient on its own to auto-issue a real receipt (tryAutoConfirmPayment) or dispatch a truck (payment_confirmed). Both paths in process-classified-image.ts now additionally require bankEmailVerified (#9, real independent bank-email confirmation) — OCR completeness alone no longer auto-confirms either action; falls back to Pending Review for a human, with an honest message to the customer either way.",
       "started": "2026-07-27"
+    },
+    {
+      "number": 16,
+      "name": "Reverse-match on bank email arrival (no premature customer messages)",
+      "status": "complete",
+      "done": "Owner correction to #15: \"ไม่ต้องบอกให้เค้ารอ...ระบบรับข้อมูลเข้ามาก่อน ประมวลผลเสร็จสรรพในคลังหลังบ้านก่อน แล้วค่อยออกไปเลย\" — removed the interim 'รอตรวจสอบกับธนาคาร' customer message entirely (announcing an in-progress state isn't an honest answer either). bank-email-sync now reverse-matches every newly-inserted real bank email against receipt_documents.reference_number and completes the real confirmation (receipt or dispatch) the moment true bank confirmation exists, not just at the moment the slip photo first arrived. Checked against the current backlog: no matches yet (all synced emails are the owner's own outgoing transactions), but live for the next real one.",
+      "started": "2026-07-27"
     }
   ]
 }
