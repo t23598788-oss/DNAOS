@@ -105,6 +105,13 @@
       "status": "complete",
       "done": "sync-registry.ts, build-arch-book.ts, and pre-commit-check.sh Guard 9/10 all only excluded a TOP-LEVEL node_modules — fixed to **/node_modules/** everywhere, after scripts/bank-statement-sync's own package.json (deliberately separate from the main app) surfaced the gap and briefly crashed Guard 10 outright.",
       "started": "2026-07-27"
+    },
+    {
+      "number": 15,
+      "name": "Require real bank confirmation (not just OCR) before receipt-issuance/dispatch",
+      "status": "complete",
+      "done": "Owner's explicit principle: \"ถึงแม้ AI ตัวเดียวยืนยัน 100% ว่าสลิปถูกต้อง...แต่เงินเข้าหรือยัง เห็นจากธนาคารเค้าบอกว่าเงินเข้าแล้วหรือยัง\" — hasCompleteEvidence (OCR read every field on the slip) was previously sufficient on its own to auto-issue a real receipt (tryAutoConfirmPayment) or dispatch a truck (payment_confirmed). Both paths in process-classified-image.ts now additionally require bankEmailVerified (#9, real independent bank-email confirmation) — OCR completeness alone no longer auto-confirms either action; falls back to Pending Review for a human, with an honest message to the customer either way.",
+      "started": "2026-07-27"
     }
   ]
 }

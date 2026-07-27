@@ -233,13 +233,33 @@ export async function processClassifiedImage(
         userId,
         `รับสลิปแล้วครับ แต่วันที่/เวลาโอนบนสลิปดูไม่ตรงกับตอนนี้เลย รบกวนเช็คว่าส่งสลิปถูกใบไหมครับ ถ้าถูกใบแล้วรอเจ้าหน้าที่ตรวจสอบอีกทีนะครับ`,
       )
-    } else if (pendingOrder && Math.abs(Number(pendingOrder.quoted_amount) - amount) <= 5) {
+    } else if (pendingOrder && Math.abs(Number(pendingOrder.quoted_amount) - amount) <= 5 && bankEmailVerified) {
+      // Tightened 2026-07-27 (owner): "ต้องผูกสองโมเดลนี้เข้าทำงานร่วมกัน...
+      // เห็นเงินจากธนาคารเค้าบอกว่าเงินเข้าแล้วหรือยัง" — a real truck only
+      // dispatches when the amount matches AND a real bank record
+      // (bankEmailVerified, Level 3) independently confirms the transfer
+      // happened. Amount-match alone (OCR reading the slip correctly) is
+      // no longer sufficient on its own — same principle just applied to
+      // receipt-issuance above, extended here at the owner's explicit
+      // confirmation since dispatching a real truck carries the same risk.
       await supabase.from("business_events")
         .update({ status: "payment_confirmed" }).eq("id", pendingOrder.id)
       const { ResponseGateway } = await import("./response.ts")
       await ResponseGateway.pushMessage(
         userId,
         `✅ ตรวจสอบสลิปแล้ว ยอด ${amount.toLocaleString()} บาท ตรงกับใบเสนอราคา ${pendingOrder.event_code} ครับ เดี๋ยวจัดรถให้เลยนะครับ`,
+      )
+    } else if (pendingOrder && Math.abs(Number(pendingOrder.quoted_amount) - amount) <= 5 && !bankEmailVerified) {
+      // Amount matches the slip's own OCR reading, but no independent bank
+      // confirmation exists yet (no matching bank_notifications email found
+      // — could be a delay in the email arriving, a bank/channel that
+      // doesn't email this account, or the slip's own reference_number
+      // wasn't legible). Never silently dispatch on OCR alone — stays
+      // Pending Review; the customer is told honestly, not left guessing.
+      const { ResponseGateway } = await import("./response.ts")
+      await ResponseGateway.pushMessage(
+        userId,
+        `รับสลิปแล้วครับ ยอด ${amount.toLocaleString()} บาท ตรงกับใบเสนอราคา ${pendingOrder.event_code} ครับ กำลังรอตรวจสอบกับธนาคารอีกชั้นก่อนจัดรถให้นะครับ`,
       )
     } else if (pendingOrder) {
       // Real gap found live 2026-07-26 (owner-directed trace of a real
@@ -260,13 +280,25 @@ export async function processClassifiedImage(
     }
   }
 
-  // Autonomous Payment Confirmation (owner, 2026-07-24) — cash/company
-  // invoice flow, unchanged from the original synchronous version.
+  // Autonomous Payment Confirmation (owner, 2026-07-24, tightened
+  // 2026-07-27): "ถึงแม้ให้ AI ตัวเดียวไปจับสลิปโอนเงินเข้ามาแล้วยืนยัน 100%
+  // ว่าเงินเข้าจริง...แต่เงินเข้าหรือยังเห็นจากธนาคารเค้าบอกว่าเงินเข้าแล้ว
+  // หรือยัง ถ้ายังไม่เห็นจะมั่นใจได้ยังไง" — real gap found live: this path
+  // used to issue a real receipt (tryPushReceiptDocument) whenever the OCR
+  // read every FIELD on the slip completely (amount/sender/time/company),
+  // never once checking whether the bank itself had independently confirmed
+  // the money actually arrived. hasCompleteEvidence alone only proves the
+  // slip photo was legible — it is not a second source. bankEmailVerified
+  // (computed above, real Gmail bank-notification cross-check) is now a
+  // hard requirement here too: no real bank confirmation yet, no auto-
+  // issued receipt — it stays Pending Review (/admin/receipts) for a human,
+  // exactly the Rule 115 design (payment_verified needs every currently-
+  // available level to agree, not just Level 2 OCR alone).
   const isPaymentDoc = classified?.document_type === "transfer_slip" || classified?.document_type === "payment_advice"
   const hasCompleteEvidence = Boolean(
     classified?.amount && classified?.sender_name && classified?.transaction_datetime && customerCompanyId,
   )
-  if (isPaymentDoc && hasCompleteEvidence && !reusedSlipWarning && !staleSlipWarning && insertedDoc && userId) {
+  if (isPaymentDoc && hasCompleteEvidence && bankEmailVerified && !reusedSlipWarning && !staleSlipWarning && insertedDoc && userId) {
     const { data: company } = await supabase
       .from("companies").select("name").eq("id", customerCompanyId).maybeSingle()
     await tryAutoConfirmPayment(supabase, {
