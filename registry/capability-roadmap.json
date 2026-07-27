@@ -1,0 +1,110 @@
+{
+  "version": "1.0.0",
+  "policy": "Sequential capability progress log (owner, 2026-07-27): \"พัฒนาเรื่อยๆ เพิ่มความสามารถขึ้นไปเรื่อยๆ...ตัวไหนที่เรายังหยุด ไม่เสร็จ หรือข้ามไปทำที่ 14 แต่ไม่ได้ไปกระทบ 10/11 ที่ยังไม่เสร็จ...เพื่อเฮียจะกลับมาทำอีกตัวที่ยังไม่เสร็จโดยไม่หลง\" — a real, sequentially-numbered list of major capability areas, each with an honest status. Numbers are assigned in the order a capability was FIRST started, never reused or reordered — jumping ahead to build #14 while #10/#11 stay paused is expected and fine; this file is exactly what lets any future session (human or AI) resume the paused ones without re-deriving context. Different from registry/capability-registry.json (an auto-generated, frozen, per-function inventory) — this is a human-scale roadmap of real feature areas, hand-maintained. Per Rule 112, this lives in registry/ (not any one AI's own memory) so any AI reading it later gets the same picture.",
+  "status_values": ["complete", "paused", "blocked_external", "in_progress"],
+  "capabilities": [
+    {
+      "number": 1,
+      "name": "Local-AI Pipeline (Ollama on owner's Mac)",
+      "status": "paused",
+      "done": "classify_image, handle_text, resolve_material all run via ai-task-watcher.mjs + Ollama, wired through ai_tasks queue + ai-callback edge function.",
+      "missing": "tool-router.ts (debt/order-status/purchase-history routing) and auto-build-event.ts (material quote from free text) still call the dead Claude cloud path (no ANTHROPIC_API_KEY at the time) and silently return null. Not yet converted to local-AI or the new Claude-document-reading path (#12).",
+      "started": "2026-07-25"
+    },
+    {
+      "number": 2,
+      "name": "Volume↔Weight (คิว↔ตัน) density-based pricing",
+      "status": "complete",
+      "done": "material-density.ts real per-material density table (owner's own engineering figures), validateDensity() wired into quote-price.ts.",
+      "started": "2026-07-26"
+    },
+    {
+      "number": 3,
+      "name": "Full delivered pricing (material + transport + vehicle/site-access rules)",
+      "status": "complete",
+      "done": "quote-price.ts computes real material + real transport cost via GPS/haversine + vehicle_types + site access_restriction, 25% markup, generic pit masking.",
+      "started": "2026-07-26"
+    },
+    {
+      "number": 4,
+      "name": "LINE Flex quoting card wired to real business_events",
+      "status": "complete",
+      "done": "boq-card.ts reused with real business_events.id as quoteId; CONFIRM_JOB/CANCEL_JOB postback handlers move real status.",
+      "started": "2026-07-26"
+    },
+    {
+      "number": 5,
+      "name": "Payment-before-dispatch gate",
+      "status": "complete",
+      "done": "business_events never reach payment_confirmed without a real slip amount match (±5 THB) against quoted_amount.",
+      "started": "2026-07-26"
+    },
+    {
+      "number": 6,
+      "name": "Real-time '...' typing indicator during AI queue wait",
+      "status": "complete",
+      "done": "ResponseGateway.showLoading() calls LINE's real loading-animation API whenever work goes into the async AI queue.",
+      "started": "2026-07-26"
+    },
+    {
+      "number": 7,
+      "name": "Cross-company fraud-prevention authorization ('เครือข่ายใยแมงมุม')",
+      "status": "paused",
+      "done": "engines/authorization-check.ts (checkSiteOwnership/requestAuthorization) + pending_authorizations table are real and built; postback.ts has AUTH_APPROVE/AUTH_DENY handlers.",
+      "missing": "Never wired to a live trigger point — no code path yet decides WHEN to fire requestAuthorization(). Tracked as TASK-040 in registry/TASK_QUEUE.json.",
+      "started": "2026-07-25"
+    },
+    {
+      "number": 8,
+      "name": "3D Architecture Graph with real-time signal pulse",
+      "status": "complete",
+      "done": "/admin/telemetry reuses the real 539-node/1700+-edge graph (GraphPage, ForceGraph3DView) — real ai_tasks INSERT/UPDATE events light up the real modules that handle that task kind and pulse the real import edge between them (linkDirectionalParticles). Rail icon added.",
+      "started": "2026-07-26",
+      "note": "An earlier 3D-globe/satellite version was built and explicitly rejected by the owner same day — reverted in favor of this, per owner's direct instruction. Not a separate open item, just historical context."
+    },
+    {
+      "number": 9,
+      "name": "Payment Verification Level 3 — real bank notification email (Gmail)",
+      "status": "complete",
+      "done": "bank-email-sync edge function (Gmail OAuth read-only, cron every 5 min) parses real K BIZ transfer-confirmation emails into bank_notifications; process-classified-image.ts cross-checks reference_number+amount, upgrades verification_level to 3 automatically. Rule 115 corrected to reflect this.",
+      "started": "2026-07-26"
+    },
+    {
+      "number": 10,
+      "name": "Full bank statement ledger automation (K-Docportal, real incoming+outgoing)",
+      "status": "paused",
+      "done": "scripts/bank-statement-sync (Playwright) fully automates login+password+OTP(read from Gmail)+download+decrypt+parse into bank_statement_transactions. Verified working end-to-end for May and June 2026 (totals match the bank's own printed figures exactly).",
+      "missing": "1) Only 2 months of history synced — most of the 401 pending customer transfer_slip rows predate this and still can't be matched (April 2026 and earlier statements never pulled). 2) Not scheduled to run automatically each month — still a manual `npm run sync` in scripts/bank-statement-sync. 3) bank_statement_transactions data isn't yet wired into any automatic reconciliation of the 401-slip backlog — only ad-hoc SQL joins have been run manually so far.",
+      "started": "2026-07-27"
+    },
+    {
+      "number": 11,
+      "name": "Internal-sender document → automatic company expense recording",
+      "status": "complete",
+      "done": "company_expenses table + process-classified-image.ts logic: tax_invoice/invoice/receipt/fuel_bill from a line_profiles role='manager'+trust_level='verified' sender auto-records as a real expense, no human-confirm queue. Backfilled 2 real pre-existing tax invoices from 'พี่หนุ่ม'.",
+      "started": "2026-07-27"
+    },
+    {
+      "number": 12,
+      "name": "Claude (Anthropic) vision — document/receipt reading only",
+      "status": "blocked_external",
+      "done": "handlers/image.ts calls classifyReceiptImage() (real Claude Messages API, base64 image, role-aware via line_profiles) synchronously — no ai_tasks queue wait for this task type specifically. Falls back to the existing local-Ollama queue if Claude fails for any reason. Real ANTHROPIC_API_KEY set and deployed.",
+      "missing": "Live-tested against the real API with a real receipt image — auth succeeded but the account has zero credit balance ('Your credit balance is too low'). Blocked purely on the owner adding billing/credits at console.anthropic.com/settings/billing — no code work remains.",
+      "started": "2026-07-27"
+    },
+    {
+      "number": 13,
+      "name": "Replayed-slip + implausible-date fraud gates",
+      "status": "complete",
+      "done": "process-classified-image.ts blocks both auto-confirm paths when a slip's reference_number was already used on a different confirmed payment, or its transaction date is >7 days old/in the future — regardless of amount match. Real bank-email Level 3 evidence can override the date-staleness check but never the reused-reference check.",
+      "started": "2026-07-26"
+    },
+    {
+      "number": 14,
+      "name": "Registry scanner node_modules exclusion gaps",
+      "status": "complete",
+      "done": "sync-registry.ts, build-arch-book.ts, and pre-commit-check.sh Guard 9/10 all only excluded a TOP-LEVEL node_modules — fixed to **/node_modules/** everywhere, after scripts/bank-statement-sync's own package.json (deliberately separate from the main app) surfaced the gap and briefly crashed Guard 10 outright.",
+      "started": "2026-07-27"
+    }
+  ]
+}

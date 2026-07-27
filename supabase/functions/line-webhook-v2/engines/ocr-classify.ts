@@ -110,13 +110,13 @@ const ROLE_HINTS: Record<string, string> = {
   admin:      "ผู้ส่งเป็นแอดมินภายใน",
 }
 
-export async function classifyReceiptImage(imageUrl: string, senderRole?: string | null): Promise<ClassifiedReceipt | null> {
+export async function classifyReceiptImage(image: { base64: string; mediaType: string }, senderRole?: string | null): Promise<ClassifiedReceipt | null> {
   const roleHint = senderRole ? ROLE_HINTS[senderRole] : null
   const systemPrompt = roleHint
     ? `${SYSTEM_PROMPT_BASE}\n\nบริบทผู้ส่ง (ใช้ช่วยจำแนก ไม่ใช่กฎตายตัว — อ่านรูปจริงเป็นหลักเสมอ): ${roleHint}`
     : SYSTEM_PROMPT_BASE
 
-  const text = await callClaudeVision(systemPrompt, "จำแนกเอกสารในรูปนี้", imageUrl, 500)
+  const text = await callClaudeVision(systemPrompt, "จำแนกเอกสารในรูปนี้", image, 500)
   if (!text) return null
   const match = text.match(/\{[\s\S]*\}/)
   if (!match) return null

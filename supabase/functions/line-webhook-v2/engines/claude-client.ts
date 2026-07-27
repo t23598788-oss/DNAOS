@@ -55,7 +55,15 @@ export async function callClaudeText(systemPrompt: string, userText: string, max
   return firstText(await res.json())
 }
 
-export async function callClaudeVision(systemPrompt: string, promptText: string, imageUrl: string, maxTokens: number): Promise<string | null> {
+// Real fix (owner, 2026-07-27, first real ANTHROPIC_API_KEY set): the
+// original {type:"url"} shape never actually worked and couldn't have —
+// media.ts stores every LINE image in the PRIVATE 'attachments' Storage
+// bucket on purpose (owner instruction, private customer data), so
+// Anthropic's servers could never have fetched a bare URL anyway. Takes
+// real base64 image bytes instead — the caller already has to download the
+// bytes from private Storage itself, so this is the only shape that could
+// ever have worked here.
+export async function callClaudeVision(systemPrompt: string, promptText: string, image: { base64: string; mediaType: string }, maxTokens: number): Promise<string | null> {
   const apiKey = Deno.env.get("ANTHROPIC_API_KEY")
   if (!apiKey) {
     console.error("[claude-client] ANTHROPIC_API_KEY not set")
@@ -73,7 +81,7 @@ export async function callClaudeVision(systemPrompt: string, promptText: string,
         role: "user",
         content: [
           { type: "text", text: promptText },
-          { type: "image", source: { type: "url", url: imageUrl } },
+          { type: "image", source: { type: "base64", media_type: image.mediaType, data: image.base64 } },
         ],
       }],
     }),

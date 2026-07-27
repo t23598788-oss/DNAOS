@@ -149,6 +149,7 @@ npm run restore -- backups/DIR # Restore จาก backup
 - `registry/EXECUTION_CONTRACT.json` — วิธีปฏิบัติตามกฎหมาย (Execution Order/Rules/Output contract) แยกออกจาก Constitution โดยตั้งใจ
 - `registry/CURRENT_STATE.json` / `TASK_QUEUE.json` / `CHANGELOG.json` / `LOCK_MANAGER.json` / `AI_SESSIONS.json` / `HANDOFF.json` / `AI_REGISTRY.json` — AI Execution Protocol ledger, ดู `registry/README.md`
 - `registry/capability-registry.json` — 202 Capabilities (frozen v1.0.0), ดู `core/workspace/composer|planner|orchestrator/`
+- `registry/capability-roadmap.json` — คนละไฟล์จากด้านบนโดยตั้งใจ: ไม่ใช่ auto-generated/frozen แต่เป็น roadmap ความสามารถระดับ feature-area ที่คนดูแลเอง มีเลขลำดับ+status (complete/paused/blocked_external/in_progress) ต่อรายการ (ประกาศ owner 2026-07-27) — อ่านก่อนเริ่มงานถ้าจะสานต่อความสามารถที่ค้างไว้ ไม่ต้องไล่บทสนทนาเก่าเพื่อรู้ว่าอะไรทำค้างตรงไหน
 - `registry/architecture.json` / `architecture-book.json` — layer map + generated module/import graph (แหล่งข้อมูลของ `/admin/architecture`, `/admin/graph`)
 - `registry/drivers.json` / `services.json` / `events.json` / `interfaces.json` / `schemas.json` / `modules.json` — resolved via `registry/index.ts` → `core/runtime/engine.ts` (the real, live Runtime Engine)
 - `registry/portals.json` / `permissions.json` / `connector-lifecycle.json` / `GOVERNANCE_REGISTRY.json` / `SCHEDULER.json` / `owner-context.json` — supporting registries, each single-purpose per its filename

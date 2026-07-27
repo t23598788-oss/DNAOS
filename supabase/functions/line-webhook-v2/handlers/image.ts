@@ -2,6 +2,26 @@ import type { HandlerContext, LineMessageEvent } from "../events/types.ts"
 import { saveEvent } from "../events/store.ts"
 import { fetchAndStoreLineMedia } from "../engines/media.ts"
 import { ResponseGateway } from "../engines/response.ts"
+import { classifyReceiptImage } from "../engines/ocr-classify.ts"
+import { processClassifiedImage } from "../engines/process-classified-image.ts"
+
+function guessMediaType(path: string): string {
+  if (path.endsWith(".png")) return "image/png"
+  if (path.endsWith(".gif")) return "image/gif"
+  return "image/jpeg"
+}
+
+// Real base64 encode without blowing the call stack on a real photo's byte
+// count (String.fromCharCode(...bytes) on a multi-MB array throws
+// "Maximum call stack size exceeded" — chunked to stay real-world safe).
+function bytesToBase64(bytes: Uint8Array): string {
+  let binary = ""
+  const chunkSize = 8192
+  for (let i = 0; i < bytes.length; i += chunkSize) {
+    binary += String.fromCharCode(...bytes.subarray(i, i + chunkSize))
+  }
+  return btoa(binary)
+}
 
 export async function handleImage(ctx: HandlerContext): Promise<void> {
   const msgEvent = ctx.event as LineMessageEvent
@@ -27,25 +47,43 @@ export async function handleImage(ctx: HandlerContext): Promise<void> {
   if (!mediaPath) return
   await ctx.supabase.from("line_events").update({ media_path: mediaPath }).eq("id", saved.id)
 
-  // Local-AI pipeline (owner, 2026-07-25): classification used to call
-  // Claude directly here — confirmed dead in production (`supabase secrets
-  // list` has no ANTHROPIC_API_KEY, never did). Owner has no cloud AI
-  // budget and wants everything processed locally via Ollama on his own
-  // Mac instead. Enqueue the work; a local watcher script
-  // (ai-task-watcher.mjs) polls ai_tasks, classifies with Ollama, and posts
-  // the result to functions/ai-callback, which runs the real downstream
-  // logic (engines/process-classified-image.ts) — unchanged from before,
-  // just no longer reachable synchronously from this handler.
-  if (ctx.userId) {
-    await ctx.supabase.from("ai_tasks").insert({
-      kind: "classify_image",
-      line_user_id: ctx.userId,
-      line_event_id: saved.id,
-      media_path: mediaPath,
-      status: "pending",
+  if (!ctx.userId) return
+
+  // Document reading via Claude, real ANTHROPIC_API_KEY set 2026-07-27
+  // (owner instruction: "ใช้เฉพาะในกรณีอ่านบิลในแชท...ใช้เรื่องเดียวนี่" —
+  // scoped to document/receipt reading only, every other AI touchpoint
+  // — text fallback, material-name resolution — stays on local Ollama).
+  // Synchronous now: no ai_tasks queue wait for this task, since Claude's
+  // API is directly reachable from this cloud function (unlike the
+  // OTP/bank-portal automation, nothing here needs the owner's own Mac).
+  const { data: profile } = await ctx.supabase
+    .from("line_profiles").select("role").eq("line_user_id", ctx.userId).maybeSingle()
+
+  const { data: fileData } = await ctx.supabase.storage.from("attachments").download(mediaPath)
+  const classified = fileData
+    ? await classifyReceiptImage(
+        { base64: bytesToBase64(new Uint8Array(await fileData.arrayBuffer())), mediaType: guessMediaType(mediaPath) },
+        profile?.role ?? null,
+      ).catch((e: Error) => { console.error("[handleImage] Claude classify failed:", e.message); return null })
+    : null
+
+  if (classified) {
+    await processClassifiedImage(ctx.supabase, {
+      classified, mediaPath, lineEventId: saved.id, userId: ctx.userId,
     })
-    // Owner-reported bug (2026-07-26): real "..." typing indicator while
-    // the local-AI queue processes, instead of silence.
-    await ResponseGateway.showLoading(ctx.userId, 60)
+    return
   }
+
+  // Real fallback (owner, 2026-07-25 pipeline, kept intentionally): if
+  // Claude fails for any real reason (rate limit, no credit left, network),
+  // this must not just drop the document silently — same local-AI queue as
+  // before still catches it via ai-task-watcher.mjs + Ollama on the Mac.
+  await ctx.supabase.from("ai_tasks").insert({
+    kind: "classify_image",
+    line_user_id: ctx.userId,
+    line_event_id: saved.id,
+    media_path: mediaPath,
+    status: "pending",
+  })
+  await ResponseGateway.showLoading(ctx.userId, 60)
 }
