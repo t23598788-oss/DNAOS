@@ -13,6 +13,8 @@
 // Same per-function cron-secret pattern as fuel-price-sync/
 // receipt-reconcile-sweep (Rule 108 — no shared secret reused across jobs).
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.43.4"
+import { tryAutoConfirmPayment } from "../line-webhook-v2/engines/auto-confirm-payment.ts"
+import { ResponseGateway } from "../line-webhook-v2/engines/response.ts"
 
 async function getAccessToken(): Promise<string | null> {
   const clientId = Deno.env.get("GMAIL_CLIENT_ID")
@@ -118,6 +120,73 @@ function parseKBizEmail(body: string) {
   }
 }
 
+// Reverse-match on new bank email (owner, 2026-07-27): "ระบบรับข้อมูลเข้ามา
+// ก่อน ประมวลผลเสร็จสรรพในคลังหลังบ้านก่อน แล้วค่อยออกไปเลย" — a slip can
+// arrive before its bank-confirmation email does (the email is real but not
+// instant). process-classified-image.ts only checked bank_notifications at
+// the MOMENT the slip arrived; if the email wasn't there yet, the order/
+// receipt just sat Pending Review forever with nothing ever re-checking it
+// once the email showed up. This is that missing other half — whenever a
+// NEW real bank email lands, look for a receipt_documents row already
+// waiting on this exact reference_number and complete it now, for real,
+// instead of leaving a human to notice and confirm manually.
+async function matchPendingOnNewEmail(supabase: any, referenceNumber: string, emailAmount: number): Promise<void> {
+  const { data: pendingDocs } = await supabase
+    .from("receipt_documents")
+    .select("id, amount, sender_name, transaction_datetime, customer_company_id, document_type, line_event_id")
+    .eq("reference_number", referenceNumber)
+    .eq("status", "ai_read")
+  if (!pendingDocs?.length) return
+
+  for (const doc of pendingDocs) {
+    if (Math.abs(Number(doc.amount ?? 0) - emailAmount) > 5) continue // real email amount is ground truth — a non-match here means this slip is NOT what this email confirms
+
+    const { data: lineEvent } = await supabase
+      .from("line_events").select("line_user_id").eq("id", doc.line_event_id).maybeSingle()
+    const userId = lineEvent?.line_user_id
+    if (!userId) continue
+
+    // Half A: cash/company invoice flow (same bar as process-classified-image.ts —
+    // full OCR evidence + a real company link), now with real bank confirmation too.
+    if (
+      (doc.document_type === "transfer_slip" || doc.document_type === "payment_advice") &&
+      doc.amount && doc.sender_name && doc.transaction_datetime && doc.customer_company_id
+    ) {
+      const { data: company } = await supabase
+        .from("companies").select("name").eq("id", doc.customer_company_id).maybeSingle()
+      await tryAutoConfirmPayment(supabase, {
+        receiptDocumentId: doc.id,
+        customerCompanyId: doc.customer_company_id,
+        companyName: company?.name ?? "-",
+        amount: Number(doc.amount),
+        occurredAt: (doc.transaction_datetime ?? new Date().toISOString()).slice(0, 10),
+        referenceNumber,
+        lineUserId: userId,
+      })
+    }
+
+    // Half B: order/quote dispatch flow — the oldest real order this same
+    // customer already confirmed (awaiting_payment) whose quoted_amount now
+    // matches the real bank-confirmed amount.
+    const { data: pendingOrder } = await supabase
+      .from("business_events")
+      .select("id, event_code, quoted_amount")
+      .eq("source_line_user_id", userId)
+      .eq("status", "awaiting_payment")
+      .not("quoted_amount", "is", null)
+      .order("created_at", { ascending: true })
+      .limit(1).maybeSingle()
+    if (pendingOrder && Math.abs(Number(pendingOrder.quoted_amount) - emailAmount) <= 5) {
+      await supabase.from("business_events")
+        .update({ status: "payment_confirmed" }).eq("id", pendingOrder.id)
+      await ResponseGateway.pushMessage(
+        userId,
+        `✅ ตรวจสอบกับธนาคารแล้ว ยอด ${emailAmount.toLocaleString()} บาท ตรงกับใบเสนอราคา ${pendingOrder.event_code} ครับ เดี๋ยวจัดรถให้เลยนะครับ`,
+      )
+    }
+  }
+}
+
 Deno.serve(async (req) => {
   const expected = Deno.env.get("BANK_EMAIL_SYNC_CRON_SECRET")
   const got = req.headers.get("x-bank-email-sync-secret")
@@ -200,7 +269,12 @@ Deno.serve(async (req) => {
       raw_body: body.slice(0, 4000), // real audit trail, bounded so one huge email can't bloat storage
     })
     if (error) errors.push(`message ${id}: ${error.message}`)
-    else inserted++
+    else {
+      inserted++
+      if (parsed.reference_number && parsed.amount) {
+        await matchPendingOnNewEmail(supabase, parsed.reference_number, Number(parsed.amount))
+      }
+    }
   }
 
   return Response.json({ ok: true, scanned: messageIds.length, inserted, skipped, errors })

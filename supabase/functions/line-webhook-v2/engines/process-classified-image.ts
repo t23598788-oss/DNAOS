@@ -250,17 +250,16 @@ export async function processClassifiedImage(
         `✅ ตรวจสอบสลิปแล้ว ยอด ${amount.toLocaleString()} บาท ตรงกับใบเสนอราคา ${pendingOrder.event_code} ครับ เดี๋ยวจัดรถให้เลยนะครับ`,
       )
     } else if (pendingOrder && Math.abs(Number(pendingOrder.quoted_amount) - amount) <= 5 && !bankEmailVerified) {
-      // Amount matches the slip's own OCR reading, but no independent bank
-      // confirmation exists yet (no matching bank_notifications email found
-      // — could be a delay in the email arriving, a bank/channel that
-      // doesn't email this account, or the slip's own reference_number
-      // wasn't legible). Never silently dispatch on OCR alone — stays
-      // Pending Review; the customer is told honestly, not left guessing.
-      const { ResponseGateway } = await import("./response.ts")
-      await ResponseGateway.pushMessage(
-        userId,
-        `รับสลิปแล้วครับ ยอด ${amount.toLocaleString()} บาท ตรงกับใบเสนอราคา ${pendingOrder.event_code} ครับ กำลังรอตรวจสอบกับธนาคารอีกชั้นก่อนจัดรถให้นะครับ`,
-      )
+      // Owner correction (2026-07-27): "ไม่ต้องบอกให้เค้ารอ...ระบบรับข้อมูล
+      // เข้ามาก่อน ประมวลผลเสร็จสรรพในคลังหลังบ้านก่อน แล้วค่อยออกไปเลย" —
+      // amount matches the slip's own OCR reading, but no independent bank
+      // confirmation exists yet. Deliberately says NOTHING to the customer
+      // here — no "please wait" message, since that itself is a premature
+      // claim (system hasn't actually finished verifying). Stays silently
+      // Pending Review; bank-email-sync's own reverse-match (see its
+      // matchPendingOrdersOnNewEmail()) is what actually completes this and
+      // sends the real customer message, at the moment real confirmation
+      // exists — not before.
     } else if (pendingOrder) {
       // Real gap found live 2026-07-26 (owner-directed trace of a real
       // stuck case, EV260726-0006): a mismatched slip amount correctly
