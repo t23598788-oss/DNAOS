@@ -119,6 +119,13 @@
       "status": "complete",
       "done": "Owner correction to #15: \"ไม่ต้องบอกให้เค้ารอ...ระบบรับข้อมูลเข้ามาก่อน ประมวลผลเสร็จสรรพในคลังหลังบ้านก่อน แล้วค่อยออกไปเลย\" — removed the interim 'รอตรวจสอบกับธนาคาร' customer message entirely (announcing an in-progress state isn't an honest answer either). bank-email-sync now reverse-matches every newly-inserted real bank email against receipt_documents.reference_number and completes the real confirmation (receipt or dispatch) the moment true bank confirmation exists, not just at the moment the slip photo first arrived. Checked against the current backlog: no matches yet (all synced emails are the owner's own outgoing transactions), but live for the next real one.",
       "started": "2026-07-27"
+    },
+    {
+      "number": 17,
+      "name": "Reverse-match against real bank STATEMENT (incoming customer payments)",
+      "status": "complete",
+      "done": "Real trace of a live case (บจก. เคที คอนสตรัคชั่น 1988, 5,000 บาท, TRBS260723374064276) found a permanent structural gap in #15/#16: a bank's transfer-confirmation EMAIL always goes to whoever INITIATED the transfer, never the recipient — so bankEmailVerified can never be satisfied by a real incoming customer payment, only by the owner's own outgoing transactions. The real independent second source for incoming money is the bank's own STATEMENT (bank_statement_transactions, #10). New edge function supabase/functions/bank-statement-reconcile does the same reverse-match as #16 but against real statement rows: for every pending receipt_documents claim (payment_advice/transfer_slip, status ai_read) whose amount+calendar date match a real 'รับโอนเงิน'/'ฝากเงินสด' row, completes the same real downstream chain (reconcile_receipt_payment() via tryAutoConfirmPayment, or the order-dispatch gate) — never guesses when ambiguous (>1 same-day-same-amount statement row is explicitly left for a human). scripts/bank-statement-sync/index.mjs now calls this endpoint automatically right after every real sync. Live-tested against the real 396-document backlog: 0 false-positive confirmations, 384 skipped for bad/missing dates (pre-existing OCR date-misread issue, not this function's bug), 12 correctly found no match yet (statement data only covers May-June so far).",
+      "started": "2026-07-27"
     }
   ]
 }

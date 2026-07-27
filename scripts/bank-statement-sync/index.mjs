@@ -328,6 +328,23 @@ async function run() {
         if (!error) inserted++;
       }
       console.log(`   บันทึกเข้า Supabase จริง ${inserted}/${transactions.length} รายการ`);
+
+      // Real trace (owner, 2026-07-27, บจก. เคที คอนสตรัคชั่น case): bank
+      // notification EMAILS can never confirm an incoming customer payment
+      // (they only ever go to whoever initiated the transfer) — the real
+      // statement is the only real independent source for that. Trigger
+      // the reverse-match against everything just synced.
+      const reconcileSecret = ENV.BANK_STATEMENT_RECONCILE_SECRET;
+      if (reconcileSecret) {
+        console.log("   ตรวจสอบสลิปที่ค้างอยู่กับใบแจ้งยอดนี้...");
+        const res = await fetch(`${SUPABASE_URL}/functions/v1/bank-statement-reconcile`, {
+          method: "POST",
+          headers: { "x-bank-statement-reconcile-secret": reconcileSecret },
+        }).then((r) => r.json()).catch((e) => ({ error: e.message }));
+        console.log("   ผลตรวจสอบ:", JSON.stringify(res));
+      } else {
+        console.log("   (ไม่มี BANK_STATEMENT_RECONCILE_SECRET — ข้ามการตรวจสอบสลิปค้าง)");
+      }
     } else {
       writeFileSync(path.join(process.cwd(), "last-statement-parse.json"), JSON.stringify(transactions, null, 2));
       console.log("   (ไม่มี SUPABASE_URL/SERVICE_KEY — บันทึกผลไว้ที่ last-statement-parse.json แทน)");

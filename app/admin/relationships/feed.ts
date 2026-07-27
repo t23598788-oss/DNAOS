@@ -23,13 +23,27 @@ import { linkDocumentsToEvents } from "@/engines/presentation/timeline-engine"
 // into. Kept here, not duplicated in the edge function's ocr-classify.ts
 // (that file owns the classification VALUES; this owns the Thai LABELS
 // shown to a human, a UI concern, not a classification concern).
+// Real gap found live 2026-07-27: this map only ever covered 7 of the 14
+// real DOCUMENT_TYPES ocr-classify.ts actually classifies against — a real
+// payment_advice from a real customer (บจก. เคที คอนสตรัคชั่น 1988,
+// TRBS260723374064276, correctly classified with every field read) showed
+// up in the admin chat card as "📄 เอกสารอื่นๆ" (the fallback), making it
+// look like classification had failed when it hadn't — the backend was
+// right, the label lookup just never covered every real type.
 export const DOCUMENT_TYPE_LABEL: Record<string, string> = {
   receipt: "🧾 ใบเสร็จรับเงิน",
   tax_invoice: "🧾 ใบกำกับภาษี",
   invoice: "🧾 ใบแจ้งหนี้",
   fuel_bill: "⛽ บิลน้ำมัน",
-  transfer_slip: "💸 สลิปโอนเงิน",
+  toll_bill: "🛣️ ค่าทางด่วน",
   weight_slip: "⚖️ ใบชั่ง",
+  delivery_order: "🚚 ใบส่งของ",
+  transfer_slip: "💸 สลิปโอนเงิน",
+  payment_advice: "💸 หลักฐานการโอนเงิน",
+  bank_statement: "🏦 รายการเดินบัญชี",
+  product_photo: "📦 รูปสินค้า",
+  site_photo: "📍 รูปหน้างาน",
+  government_document: "🪪 เอกสารราชการ",
   other: "📄 เอกสารอื่นๆ",
 }
 
