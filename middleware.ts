@@ -41,9 +41,24 @@ export async function middleware(req: NextRequest) {
   // Also refreshes the access/refresh token cookies via setAll above if the
   // access token is near expiry — this is what makes "remember login" work
   // across visits without the user re-entering a password.
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  //
+  // Real incident (owner, 2026-07-29): a real Supabase Auth slowdown left
+  // this call hanging until Vercel itself killed the request
+  // (MIDDLEWARE_INVOCATION_TIMEOUT) — every single protected page 504'd,
+  // not just the one request. This had no timeout at all before. Racing
+  // against a timeout and failing to "not logged in" (redirect to login,
+  // never silently letting a request through) keeps one slow upstream call
+  // from taking down every admin/business/partner page at once.
+  let user: { id: string } | null = null;
+  try {
+    const result = await Promise.race([
+      supabase.auth.getUser(),
+      new Promise<never>((_, reject) => setTimeout(() => reject(new Error("auth.getUser timeout")), 8000)),
+    ]);
+    user = result.data.user;
+  } catch {
+    user = null;
+  }
 
   const isExempt = PAGE_EXEMPTIONS.some((p) => pathname.startsWith(p));
   const isProtectedPage = !isExempt && PROTECTED_PAGE_PREFIXES.some((p) => pathname.startsWith(p));
