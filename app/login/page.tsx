@@ -1,6 +1,6 @@
 'use client'
 
-import { Suspense, useState, useRef } from "react"
+import { Suspense, useRef, useState } from "react"
 import { useSearchParams } from "next/navigation"
 import { createBrowserSupabase } from "@/services/supabase/browser"
 import { resolveDestination } from "@/core/auth/resolveDestination"
@@ -15,17 +15,22 @@ import type { AppRole } from "@/core/auth/session"
 // Where that role actually lands is decided in exactly one place:
 // core/auth/resolveDestination.ts (Enterprise Workspace Architecture, Phase 1)
 // — this file only fetches the role, it does not decide the destination.
+//
+// Sign-in only, no sign-up (owner, 2026-07-29): during this single-owner
+// development phase there is exactly one real account (dnaos.tech@gmail.com)
+// and no public users are meant to reach this system at all yet. A visible
+// "create account" toggle was pure surface area to get confused by (or land
+// on by accident) while troubleshooting something unrelated — removed
+// entirely rather than hidden behind a flag, since re-adding it later (once
+// the system is actually customer-facing) is a small, deliberate change, not
+// a regression risk today.
 
 function LoginForm() {
   const searchParams = useSearchParams()
   const nextPath = searchParams.get("next")
   const forbidden = searchParams.get("error") === "forbidden"
 
-  const [mode, setMode] = useState<"signin" | "signup">("signin")
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
   const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
   // Login-flow debug instrumentation (2026-07-14) — DOM refs so submit can
@@ -49,7 +54,6 @@ function LoginForm() {
     e.preventDefault()
     setLoading(true)
     setError(null)
-    setSuccess(null)
 
     // DOM values only — no fallback to React state. Some autofill mechanisms
     // set an input's value via the native property setter, bypassing React's
@@ -82,47 +86,13 @@ function LoginForm() {
       // setTimeout-based workaround.
       window.location.href = dest
     } catch {
-      setError("เกิดข้อผิดพลาด กรุณาลองใหม่")
-      setLoading(false)
-    }
-  }
-
-  async function handleSignUp(e: React.FormEvent) {
-    e.preventDefault()
-    setLoading(true)
-    setError(null)
-    setSuccess(null)
-
-    try {
-      const sb = createBrowserSupabase()
-      const { data, error: authError } = await sb.auth.signUp({
-        email,
-        password,
-        options: { emailRedirectTo: `${window.location.origin}/login` },
-      })
-
-      if (authError) {
-        setError(authError.message)
-        return
-      }
-
-      if (data.session) {
-        const dest = await landingPathFor(data.session.user.id)
-        // Same reasoning as handleSignIn — hard navigation, not router.push().
-        window.location.href = dest
-      } else {
-        setSuccess("สร้างบัญชีแล้ว — กรุณาตรวจสอบอีเมลเพื่อยืนยันก่อน login")
-        setMode("signin")
-      }
-    } catch {
-      setError("เกิดข้อผิดพลาด กรุณาลองใหม่")
-    } finally {
+      setError("เกิดข้อผิดพลาด กรุณาลองใหม่ — ถ้ายังไม่ได้ ลองเปิด Incognito window หรือเช็คอินเทอร์เน็ต")
       setLoading(false)
     }
   }
 
   return (
-    <form onSubmit={mode === "signin" ? handleSignIn : handleSignUp} className="space-y-4">
+    <form onSubmit={handleSignIn} className="space-y-4">
       <div>
         <label className="block text-xs font-semibold text-stone-600 mb-1.5">Email</label>
         <input
@@ -130,8 +100,6 @@ function LoginForm() {
           name="email"
           type="email"
           autoComplete="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
           required
           disabled={loading}
           className="w-full text-sm border border-stone-200 rounded-xl px-4 py-2.5 focus:outline-none focus:border-stone-500 focus:ring-1 focus:ring-stone-500 transition bg-stone-50 disabled:opacity-50"
@@ -145,18 +113,12 @@ function LoginForm() {
           ref={passwordInputRef}
           name="password"
           type="password"
-          autoComplete={mode === "signin" ? "current-password" : "new-password"}
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          autoComplete="current-password"
           required
-          minLength={mode === "signup" ? 6 : undefined}
           disabled={loading}
           className="w-full text-sm border border-stone-200 rounded-xl px-4 py-2.5 focus:outline-none focus:border-stone-500 focus:ring-1 focus:ring-stone-500 transition bg-stone-50 disabled:opacity-50"
           placeholder="••••••••"
         />
-        {mode === "signup" && (
-          <p className="mt-1 text-[10px] text-stone-400">อย่างน้อย 6 ตัวอักษร</p>
-        )}
       </div>
 
       {forbidden && (
@@ -169,41 +131,14 @@ function LoginForm() {
           {error}
         </div>
       )}
-      {success && (
-        <div className="text-xs text-emerald-700 bg-emerald-50 border border-emerald-100 rounded-lg px-3 py-2">
-          {success}
-        </div>
-      )}
 
       <button
         type="submit"
-        disabled={loading || !email || !password}
+        disabled={loading}
         className="w-full py-2.5 rounded-xl bg-stone-900 text-white text-sm font-semibold hover:bg-stone-800 transition disabled:opacity-40 disabled:cursor-not-allowed"
       >
-        {loading
-          ? "กำลังดำเนินการ..."
-          : mode === "signin" ? "Sign in" : "สร้างบัญชี"}
+        {loading ? "กำลังดำเนินการ..." : "Sign in"}
       </button>
-
-      <div className="pt-1 text-center">
-        {mode === "signin" ? (
-          <button
-            type="button"
-            onClick={() => { setMode("signup"); setError(null); setSuccess(null) }}
-            className="text-xs text-stone-400 hover:text-stone-600 transition underline underline-offset-2"
-          >
-            ยังไม่มีบัญชี? สร้างบัญชี
-          </button>
-        ) : (
-          <button
-            type="button"
-            onClick={() => { setMode("signin"); setError(null); setSuccess(null) }}
-            className="text-xs text-stone-400 hover:text-stone-600 transition underline underline-offset-2"
-          >
-            มีบัญชีแล้ว? กลับไป Sign in
-          </button>
-        )}
-      </div>
     </form>
   )
 }
