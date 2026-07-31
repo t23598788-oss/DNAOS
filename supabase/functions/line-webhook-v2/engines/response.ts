@@ -85,7 +85,28 @@ async function resolveUserIdFromReplyToken(replyToken: string): Promise<string |
   }
 }
 
+// Customer Auto-Reply Kill Switch (owner, 2026-07-31): "ปิดท่อตัดท่อการต่อ
+// ข้อความอัตโนมัติลูกค้าก่อน...ยังรับข้อมูลเข้ามาประมวลผลเข้าเก็บในคลัง
+// หลังบ้านเราเหมือนเดิม แต่ไม่มีการตอบพูดคุยกับลูกค้า...ของเฮีย LINE ของเฮีย
+// ห้ามปิด" — owner is auditing the cognitive/session-isolation work before
+// letting the bot talk to real customers again. Nothing about inbound
+// processing changes (saveEvent, classification, ai_tasks, receipt/
+// business-event writes all still run exactly as before) — this is
+// deliberately the single outbound choke point every reply/push method
+// funnels through, so no per-handler edits were needed anywhere else.
+// To re-enable customer replies, remove this block (or delete the env var).
+async function isOwnerLineUserId(userId: string | null): Promise<boolean> {
+  const ownerId = Deno.env.get('OWNER_LINE_USER_ID')
+  return !!ownerId && userId === ownerId
+}
+
 async function replyMessages(replyToken: string, messages: object[]) {
+  const targetUserId = await resolveUserIdFromReplyToken(replyToken)
+  if (!(await isOwnerLineUserId(targetUserId))) {
+    console.log(`[LINE Reply SUPPRESSED — customer auto-reply is off] would have sent to ${targetUserId}:`, JSON.stringify(messages))
+    return
+  }
+
   const lineAccessToken = Deno.env.get('LINE_CHANNEL_ACCESS_TOKEN')
   if (!lineAccessToken) {
     console.log(`[LINE Reply Mock]`, JSON.stringify(messages))
@@ -102,8 +123,7 @@ async function replyMessages(replyToken: string, messages: object[]) {
     await logErrorToDb(`LINE reply failed: ${err}`)
     return
   }
-  const userId = await resolveUserIdFromReplyToken(replyToken)
-  await logOutboundToDb(userId, messages)
+  await logOutboundToDb(targetUserId, messages)
 }
 
 // Owner-reported bug (2026-07-26): "ทำไมไม่มีเห็นแจ้งเตือนว่าอ่านแล้วหรือยัง
@@ -113,6 +133,7 @@ async function replyMessages(replyToken: string, messages: object[]) {
 // indicator in the chat for a bounded, real number of seconds — not a fake
 // promise, an actual visual cue the platform provides for exactly this.
 async function showLoadingAnimation(userId: string, seconds: number) {
+  if (!(await isOwnerLineUserId(userId))) return // customer auto-reply is off — see replyMessages
   const lineAccessToken = Deno.env.get('LINE_CHANNEL_ACCESS_TOKEN')
   if (!lineAccessToken) return
   // LINE requires a multiple of 5, clamped 5-60.
@@ -128,6 +149,11 @@ async function showLoadingAnimation(userId: string, seconds: number) {
 }
 
 async function pushMessages(to: string, messages: object[]) {
+  if (!(await isOwnerLineUserId(to))) {
+    console.log(`[LINE Push SUPPRESSED — customer auto-reply is off] would have sent to ${to}:`, JSON.stringify(messages))
+    return
+  }
+
   const lineAccessToken = Deno.env.get('LINE_CHANNEL_ACCESS_TOKEN')
   if (!lineAccessToken) {
     console.log(`[LINE Push Mock]`, JSON.stringify(messages))
