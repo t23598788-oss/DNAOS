@@ -304,10 +304,14 @@ echo "--- Unfilled Registry Stub Check (Guard 13) ---"
 # correct, honest answer — same as nothing staged.
 STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACM 2>/dev/null || true)
 if [ -n "$STAGED_FILES" ]; then
-  STUB_VIOLATIONS=$(node -e "
+  # Passed via env var, not inlined into the -e string — a staged filename
+  # with a space, backtick, or quote would otherwise break the generated JS
+  # (or worse, get interpreted as code) since git filenames are not shell-
+  # escaped here.
+  STUB_VIOLATIONS=$(STAGED_FILES_LIST="$STAGED_FILES" node -e "
     const fs = require('fs');
     const r = JSON.parse(fs.readFileSync('registry/module-registry.json', 'utf8'));
-    const staged = \`$STAGED_FILES\`.split('\n').filter(Boolean);
+    const staged = (process.env.STAGED_FILES_LIST || '').split('\n').filter(Boolean);
     const bad = staged.filter((f) => {
       const m = r.modules[f];
       if (!m) return false;
