@@ -412,6 +412,17 @@ s3_secret_key = "env(S3_SECRET_KEY)"
 [functions.line-webhook-v2]
 verify_jwt = false
 
+# ai-callback is called by ai-task-watcher.mjs on the owner's own Mac, which
+# authenticates via its own x-callback-secret header (verified in code,
+# index.ts) — not a Supabase JWT. Same missing setting, same failure mode as
+# line-webhook-v2 above. Found live 2026-07-31: all 9 of the owner's real
+# LINE image uploads that day failed with "ai-callback http 401: Missing
+# authorization header" — Supabase's platform gate was rejecting every
+# callback before the function's own secret check ever ran, so every
+# receipt/document the owner sent through LINE was silently dropped.
+[functions.ai-callback]
+verify_jwt = false
+
 # pg-delta is the schema diff engine for db diff / db pull / db remote commit.
 # Set enabled = false to fall back to the legacy migra engine.
 [experimental.pgdelta]
