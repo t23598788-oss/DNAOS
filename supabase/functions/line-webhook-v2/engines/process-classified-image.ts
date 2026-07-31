@@ -179,10 +179,19 @@ export async function processClassifiedImage(
   // manager — those still mean "money changed hands," which stays gated on
   // the existing payment-verification path regardless of who sent it.
   const EXPENSE_DOCUMENT_TYPES = new Set(["tax_invoice", "invoice", "receipt", "fuel_bill"])
+  // Bug found live 2026-07-31 (owner, during LINE/customer isolation review):
+  // this only ever checked role === "manager" — the owner's own line_profiles
+  // row is role === "owner", so a receipt the owner sent himself was silently
+  // never auto-recorded, contradicting this code's own original intent
+  // ("covers both the owner and real staff like พี่หนุ่ม," per the migration
+  // comment). Code-level gate, not a prompt instruction: still only these
+  // two exact roles, still requires verified trust — a customer/supplier/
+  // driver role can never reach this regardless of what the AI classifies.
+  const INTERNAL_EXPENSE_ROLES = new Set(["owner", "manager"])
   if (classified && EXPENSE_DOCUMENT_TYPES.has(classified.document_type) && userId && insertedDoc) {
     const { data: profile } = await supabase
       .from("line_profiles").select("display_name, role, trust_level").eq("line_user_id", userId).maybeSingle()
-    if (profile?.role === "manager" && profile?.trust_level === "verified") {
+    if (profile?.role && INTERNAL_EXPENSE_ROLES.has(profile.role) && profile?.trust_level === "verified") {
       await supabase.from("company_expenses").insert({
         receipt_document_id: insertedDoc.id,
         document_type: classified.document_type,
