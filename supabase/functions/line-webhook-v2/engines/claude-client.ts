@@ -63,12 +63,21 @@ export async function callClaudeText(systemPrompt: string, userText: string, max
 // real base64 image bytes instead — the caller already has to download the
 // bytes from private Storage itself, so this is the only shape that could
 // ever have worked here.
+// Owner request (2026-07-31): "ไฟล์ PDF จะให้ทำยังไงก็ให้อ่านสิ" — real PDFs
+// (LINE's "file" message type, handlers/file.ts) were never actually
+// readable here: Anthropic's API needs a `type: "document"` content block
+// for PDFs, a different shape from the `type: "image"` block this always
+// hardcoded. Branches on image.mediaType instead of assuming every caller
+// sends a photo.
 export async function callClaudeVision(systemPrompt: string, promptText: string, image: { base64: string; mediaType: string }, maxTokens: number): Promise<string | null> {
   const apiKey = Deno.env.get("ANTHROPIC_API_KEY")
   if (!apiKey) {
     console.error("[claude-client] ANTHROPIC_API_KEY not set")
     return null
   }
+  const contentBlock = image.mediaType === "application/pdf"
+    ? { type: "document", source: { type: "base64", media_type: image.mediaType, data: image.base64 } }
+    : { type: "image", source: { type: "base64", media_type: image.mediaType, data: image.base64 } }
   const res = await fetch(ANTHROPIC_API, {
     method: "POST",
     headers: headers(apiKey),
@@ -81,7 +90,7 @@ export async function callClaudeVision(systemPrompt: string, promptText: string,
         role: "user",
         content: [
           { type: "text", text: promptText },
-          { type: "image", source: { type: "base64", media_type: image.mediaType, data: image.base64 } },
+          contentBlock,
         ],
       }],
     }),

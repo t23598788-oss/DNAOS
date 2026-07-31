@@ -6,7 +6,11 @@ import { classifyReceiptImage } from "../engines/ocr-classify.ts"
 import { processClassifiedImage } from "../engines/process-classified-image.ts"
 import { matchOwnerSlipToPartnerPayable } from "../engines/owner-dispatcher.ts"
 
-function guessMediaType(path: string): string {
+// Exported for handlers/file.ts (owner, 2026-07-31: PDFs sent via LINE's
+// "file" message type need the exact same classify pipeline this handler
+// already has — Rule 103, reuse before build).
+export function guessMediaType(path: string): string {
+  if (path.endsWith(".pdf")) return "application/pdf"
   if (path.endsWith(".png")) return "image/png"
   if (path.endsWith(".gif")) return "image/gif"
   return "image/jpeg"
@@ -15,7 +19,7 @@ function guessMediaType(path: string): string {
 // Real base64 encode without blowing the call stack on a real photo's byte
 // count (String.fromCharCode(...bytes) on a multi-MB array throws
 // "Maximum call stack size exceeded" — chunked to stay real-world safe).
-function bytesToBase64(bytes: Uint8Array): string {
+export function bytesToBase64(bytes: Uint8Array): string {
   let binary = ""
   const chunkSize = 8192
   for (let i = 0; i < bytes.length; i += chunkSize) {

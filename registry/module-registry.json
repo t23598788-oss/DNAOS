@@ -2488,6 +2488,8 @@
       "purpose": "LINE webhook handler for image messages — saves the event with status 'new'; actual OCR/scan processing is queued for an async worker (not implemented here).",
       "purpose_th": "handler ของ LINE webhook สำหรับข้อความรูปภาพ — บันทึก event สถานะ 'new' ส่วนการประมวลผลจริง (OCR/สแกน) รอ worker แบบ async (ยังไม่ implement ในไฟล์นี้)",
       "exports": [
+        "bytesToBase64",
+        "guessMediaType",
         "handleImage"
       ],
       "status": "active"
@@ -6002,8 +6004,8 @@
     "supabase/functions/line-webhook-v2/handlers/file.ts": {
       "owner": "supabase",
       "layer": "supabase",
-      "purpose": "TASK-001 Restore Original Human Data (2026-07-17): handles LINE 'file' messages (PDFs/documents) — saves the event then fetches and stores the real original file via fetchAndStoreLineMedia, so it can be opened as-is later, not just logged as a filename.",
-      "purpose_th": "TASK-001 Restore Original Human Data (17 ก.ค. 2026): จัดการข้อความประเภท 'file' ของ LINE (PDF/เอกสาร) — บันทึก event แล้วดึง+เก็บไฟล์ต้นฉบับจริงผ่าน fetchAndStoreLineMedia เพื่อให้เปิดดูของจริงได้ภายหลัง ไม่ใช่แค่บันทึกชื่อไฟล์",
+      "purpose": "Handles LINE file-type messages (PDFs and other document attachments) — stores the original, then runs the same Claude classify + processClassifiedImage pipeline as handlers/image.ts (Claude vision now supports PDF via a document content block), with the same local-Ollama ai_tasks fallback on failure.",
+      "purpose_th": "จัดการข้อความประเภทไฟล์จาก LINE (PDF และเอกสารแนบอื่นๆ) — เก็บต้นฉบับแล้วส่งเข้า pipeline จำแนกเอกสารด้วย Claude + processClassifiedImage เดียวกับ handlers/image.ts (Claude vision รองรับ PDF แล้วผ่าน document content block) พร้อม fallback ไปคิว ai_tasks/Ollama ในเครื่องถ้า Claude ล้มเหลว เหมือนรูปภาพ",
       "exports": [
         "handleFile"
       ],
