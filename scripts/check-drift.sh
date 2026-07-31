@@ -45,7 +45,10 @@ echo "--- Checking for undeclared top-level directories ---"
 # around the existing Next.js app, per the local-migration effort (wraps
 # the same app, no separate business logic of its own — just window/build
 # config + a Rust entrypoint that loads the real Next.js UI).
-DECLARED_TOP_LEVEL="core gateway engines cognitive presenter services plugins registry app components scripts supabase config node_modules backups public observatory docs styles src-tauri"
+# local-runtime/ (owner, 2026-07-31) — the persistent Mac LaunchAgent workers
+# (ai-task-watcher.mjs etc.) that were previously outside git entirely at
+# ~/dna-os-ollama/; see local-runtime/README.md.
+DECLARED_TOP_LEVEL="core gateway engines cognitive presenter services plugins registry app components scripts supabase config node_modules backups public observatory docs styles src-tauri local-runtime"
 
 for dir in */; do
   dirname=$(basename "$dir")
