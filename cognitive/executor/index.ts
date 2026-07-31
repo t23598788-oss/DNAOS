@@ -495,9 +495,24 @@ function readPath(value: unknown, path: string): unknown {
 function resolveCustomer(customerId: string | undefined, worldState: WorldState, results: StepResult[]) {
   const identity = findResultArray(results, "identity.resolve");
   const first = identity.length === 1 ? identity[0] : null;
+  // Real incident (owner, 2026-07-31): worldState.context.who_id is a
+  // process-wide, cross-request session singleton (cognitive/memory/
+  // context.ts) — when this turn DID attempt to resolve a named customer
+  // (identity.resolve was actually invoked) but got zero or multiple
+  // ambiguous matches, silently falling back to that stale global "who_id"
+  // produced a real invoice for a completely different, previously-active
+  // company. Only fall back to the global context when identity.resolve was
+  // never attempted this turn at all (a genuine continuation of the same
+  // conversation, e.g. "ส่งให้ด้วย" with no name mentioned) — an attempted-
+  // but-ambiguous resolution must leave id empty instead, which the
+  // existing "ต้องจับคู่บริษัทลูกค้าก่อนถึงจะออกเอกสารได้" guard in
+  // gateway/actions.ts already handles correctly.
+  const identityAttempted = results.some((r) => r.tool === "identity.resolve");
   return {
-    id: customerId && !customerId.startsWith("$") ? customerId : String(first?.id ?? worldState.context.who_id ?? ""),
-    name: String(first?.name ?? worldState.context.who ?? ""),
+    id: customerId && !customerId.startsWith("$")
+      ? customerId
+      : String(first?.id ?? (identityAttempted ? "" : worldState.context.who_id ?? "")),
+    name: String(first?.name ?? (identityAttempted ? "" : worldState.context.who ?? "")),
   };
 }
 

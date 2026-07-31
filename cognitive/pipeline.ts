@@ -955,8 +955,15 @@ async function answerWithAi(message: string, contactContext?: string | null) {
 
 function operatingIntent(input: string): EnrichedInput {
   const memory = getMemory();
-  const nameMatch = input.match(/คุณ\s*(\S+)/);
-  const who = nameMatch ? nameMatch[1] : null;
+  // Real incident (owner, 2026-07-31): \S+ stops at the first whitespace, so
+  // "ออกบิลให้คุณบจก. เคแพค คอนกรีต 2004 (สำราญ)" only ever captured "บจก."
+  // — a prefix shared by every company name, which then resolved ambiguously
+  // and (via resolveCustomer's fallback below) produced an invoice for a
+  // completely different, previously-active company. Capture the rest of
+  // the phrase instead, trimming trailing politeness particles a Thai name
+  // never ends with.
+  const nameMatch = input.match(/คุณ\s*(.+)/);
+  const who = nameMatch ? nameMatch[1].replace(/\s*(ครับ|ค่ะ|นะครับ|นะคะ|หน่อยครับ|หน่อยค่ะ|หน่อย|ด้วยครับ|ด้วยค่ะ|ด้วย)\s*$/, "").trim() || null : null;
   const isNewSession = !!who && who !== memory.who;
   const clean = input.replace(/คุณ\s*\S+/, "").replace(/กลับไป/, "").trim();
   let matched: string | null = null;
