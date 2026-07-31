@@ -295,7 +295,14 @@ fi
 # same severity class as Guard 0, because the failure mode (silent, invisible,
 # accumulates across sessions/AI-agents) is identical.
 echo "--- Unfilled Registry Stub Check (Guard 13) ---"
-STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACM 2>/dev/null)
+# Guard against running outside a git working tree (e.g. Vercel's build
+# environment, which deploys the uploaded file tree without .git) — under
+# `set -e`, a bare `git diff --cached` failing there would silently abort
+# this whole script, misreporting as "Pre-commit Guards failed" with no real
+# diagnosis (found live 2026-07-31: deploy-gate blocked on Vercel for this
+# reason, root cause traced here). No staged files outside a git repo is the
+# correct, honest answer — same as nothing staged.
+STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACM 2>/dev/null || true)
 if [ -n "$STAGED_FILES" ]; then
   STUB_VIOLATIONS=$(node -e "
     const fs = require('fs');
