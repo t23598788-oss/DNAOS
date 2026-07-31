@@ -16,12 +16,16 @@
 -- migration: ai_read/confirmed/rejected), extended with the fields needed to
 -- eventually cross-check against a second source once one is provisioned.
 
+-- Local-migration bootstrap fix (owner, 2026-07-30, KM-007 —
+-- registry/existence.json known_mistakes): public.companies has no CREATE
+-- TABLE anywhere in this migration history (legacy, off-record).
+-- customer_company_id's FK dropped entirely. No-op change in production.
 alter table public.receipt_documents
   add column if not exists sender_name text,
   add column if not exists sender_bank text,
   add column if not exists reference_number text,
   add column if not exists transaction_datetime timestamp with time zone,
-  add column if not exists customer_company_id uuid references public.companies(id),
+  add column if not exists customer_company_id uuid,
   add column if not exists matched_debt_event_id uuid references public.debt_events(id);
 
 comment on column public.receipt_documents.sender_name is

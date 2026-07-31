@@ -20,7 +20,14 @@ import { getCanonicalDebtForCompany } from "./relationship-qa.ts"
 // "แจ้งข้อมูลการชำระเงิน" business_events row so it never blends with the
 // debt-reminder or invoice timeline entries.
 
-const ACCOUNT_INFO_PATTERN = /(เลขบัญชี|เลขที่บัญชี|บัญชีอะไร|โอนไปบัญชีไหน|ขอบัญชี|ส่งบัญชี|ชื่อบัญชี|ขอเลขที่บัญชี)/
+// Real bug, live 2026-07-30: a customer typed "ขอเลขบชคับ" — the common
+// abbreviation "บช" for "บัญชี" — which none of the full-word alternatives
+// below matched, so the request fell through to the awaiting-info nag
+// (tryCompleteAwaitingEvent) instead of ever reaching this detector. Added
+// "เลขบช"/"ขอบช"/"ส่งบช" as their own alternatives rather than trying to
+// generalize "บช" alone, since "บช" alone is common enough to false-positive
+// on unrelated text (it isn't a real Thai word by itself).
+const ACCOUNT_INFO_PATTERN = /(เลขบัญชี|เลขที่บัญชี|บัญชีอะไร|โอนไปบัญชีไหน|ขอบัญชี|ส่งบัญชี|ชื่อบัญชี|ขอเลขที่บัญชี|เลขบช|ขอบช|ส่งบช)/
 
 export function isPaymentInfoRequest(text: string): boolean {
   return ACCOUNT_INFO_PATTERN.test(text)
@@ -58,12 +65,43 @@ export async function tryBuildPaymentInstructionsReply(supabase: any, userId: st
   let referenceLine = ""
   let amountLine = ""
   const currentDebt = await getCanonicalDebtForCompany(supabase, company.id)
-  if (invoice) {
-    referenceLine = `อ้างอิง ${invoice.invoice_no}\n`
+
+  // Real bug, owner-reported 2026-07-30: "พี่หนุ่ม" asked for the account
+  // number right after sending a photo of an excavator (KX-033) — this was
+  // about an EQUIPMENT rental/management fee for that specific vehicle, not
+  // the customer's material/invoice debt. This code used to always attach
+  // the generic company debt total regardless of what the payment was
+  // actually for — silently wrong here, since "พี่หนุ่ม" isn't a customer
+  // with a material debt at all, he's an operator paying a vehicle fee.
+  // driver_equipment_permissions (built for the GPS-unlock feature, but a
+  // real existing link between a LINE contact and a specific vehicle) is
+  // the one place that connects this contact to a vehicle today — if it
+  // says this contact is tied to one or more real vehicles, don't guess
+  // which fee this is for; ask, instead of attaching an unrelated debt
+  // total that just happens to exist for whatever company_line_links
+  // matched. Bank details themselves are still safe to send either way —
+  // it's the same one company account regardless of what the payment is for.
+  const { data: linkedEquipment } = await supabase
+    .from("driver_equipment_permissions")
+    .select("equipment_assets(name, asset_code)")
+    .eq("line_user_id", userId)
+    .eq("is_active", true)
+
+  const equipmentNames = (linkedEquipment ?? [])
+    .map((r: any) => r.equipment_assets?.name)
+    .filter(Boolean)
+
+  if (equipmentNames.length > 0) {
+    referenceLine = ""
+    amountLine = ""
+  } else {
+    if (invoice) referenceLine = `อ้างอิง ${invoice.invoice_no}\n`
+    if (currentDebt) amountLine = `ยอดคงเหลือ ${currentDebt.totalDue.toLocaleString("th-TH", { minimumFractionDigits: 2 })} บาท\n`
   }
-  if (currentDebt) {
-    amountLine = `ยอดคงเหลือ ${currentDebt.totalDue.toLocaleString("th-TH", { minimumFractionDigits: 2 })} บาท\n`
-  }
+
+  const clarifyLine = equipmentNames.length > 0
+    ? `\n(พี่เกี่ยวข้องกับรถ ${equipmentNames.join(", ")} — โอนเป็นค่าอะไรครับ เช่น ค่าเช่า/ค่าบริหารจัดการ/ค่าซ่อม จะได้บันทึกยอดให้ถูกต้องครับ)`
+    : ""
 
   const replyText =
     `เรียนลูกค้า\nสามารถชำระเงินได้ที่\n` +
@@ -71,7 +109,8 @@ export async function tryBuildPaymentInstructionsReply(supabase: any, userId: st
     `เลขบัญชี ${accountNumber}\n` +
     `ชื่อบัญชี ${accountName}\n` +
     amountLine + referenceLine +
-    `หลังโอนแล้วสามารถส่งสลิปกลับมาในแชตนี้ได้ครับ`
+    `หลังโอนแล้วสามารถส่งสลิปกลับมาในแชตนี้ได้ครับ` +
+    clarifyLine
 
   // Timeline event — deliberately separate event_type from "แจ้งชำระเงิน"
   // (debt reminder) and invoice creation, so the three never blend in the

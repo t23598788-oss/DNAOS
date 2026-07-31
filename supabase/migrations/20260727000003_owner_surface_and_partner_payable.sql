@@ -24,7 +24,11 @@ where line_user_id = 'U32e25304fda44c95d41094480bcc120d' and role = 'manager';
 -- applies here in the direction it was always structurally valid for.
 create table if not exists public.partner_payable_requests (
   id                    uuid primary key default gen_random_uuid(),
-  partner_company_id    uuid references public.companies(id),
+  -- Local-migration bootstrap fix (owner, 2026-07-30, KM-007 —
+  -- registry/existence.json known_mistakes): public.companies has no
+  -- CREATE TABLE anywhere in this migration history (legacy, off-record).
+  -- FK dropped entirely. No-op change in production.
+  partner_company_id    uuid,
   partner_name          text not null,
   partner_line_user_id  text,
   amount                numeric not null,

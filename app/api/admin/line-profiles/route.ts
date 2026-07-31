@@ -21,7 +21,10 @@ export async function GET() {
     .from("line_events")
     .select("line_user_id, line_name, line_picture, created_at")
     .order("created_at", { ascending: true })
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  if (error) {
+    console.error("[line-profiles] list query failed:", error.message)
+    return NextResponse.json({ contacts: [] })
+  }
 
   const byUser = new Map<string, { line_user_id: string; line_name: string | null; line_picture: string | null; first_seen_at: string }>()
   for (const e of events ?? []) {

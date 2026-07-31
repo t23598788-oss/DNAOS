@@ -4,8 +4,14 @@
 -- one value, so the old link would've been overwritten and lost). A LINE
 -- account still belongs to exactly one company (unique on line_user_id).
 
+-- Local-migration bootstrap fix (owner, 2026-07-30, KM-007 —
+-- registry/existence.json known_mistakes): public.companies has no CREATE
+-- TABLE in any migration (legacy, off-record). company_id's FK dropped
+-- (no later point in this history where companies exists locally either);
+-- the backfill INSERT below is guarded since it directly SELECTs FROM
+-- companies. No-op change in production (companies exists there).
 create table if not exists public.company_line_links (
-  company_id    uuid not null references public.companies(id),
+  company_id    uuid not null,
   line_user_id  text not null,
   created_at    timestamptz not null default now(),
   primary key (company_id, line_user_id)
@@ -18,6 +24,10 @@ drop policy if exists service_role_only on public.company_line_links;
 create policy service_role_only on public.company_line_links for all using (false);
 
 -- Backfill from the existing single-value column so nothing already linked breaks.
-insert into public.company_line_links (company_id, line_user_id)
-select id, line_user_id from public.companies where line_user_id is not null
-on conflict do nothing;
+do $$ begin
+  if to_regclass('public.companies') is not null then
+    insert into public.company_line_links (company_id, line_user_id)
+    select id, line_user_id from public.companies where line_user_id is not null
+    on conflict do nothing;
+  end if;
+end $$;

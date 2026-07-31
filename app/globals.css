@@ -29,3 +29,45 @@ body {
   from { opacity: 0; transform: translateY(4px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+/* Thin scrollbar (owner, 2026-07-30): "แถบสัญลักษณ์เป็นการเลื่อนขึ้นเลื่อนลง
+   ไม่ต้องทำแท่งใหญ่ขนาดนั้น ทำแท่งเล็กๆ" — now that the app is a locked-
+   viewport native desktop wrap (Tauri) instead of a normal scrolling
+   webpage, the default fat OS scrollbar reads as out of place next to a
+   chat-app-style UI (e.g. Gemini's own thin scroll thumb). Applied only
+   where explicitly opted in via .thin-scrollbar, not globally — most other
+   admin pages still rely on normal page scrolling and were never asked to
+   change. */
+.thin-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(120, 113, 108, 0.35) transparent;
+}
+.thin-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+.thin-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.thin-scrollbar::-webkit-scrollbar-thumb {
+  background-color: rgba(120, 113, 108, 0.35);
+  border-radius: 9999px;
+}
+.thin-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(120, 113, 108, 0.55);
+}
+
+/* Voice Standby Widget ambient waveform (owner, 2026-07-30) — see
+   components/admin/VoiceStandbyWidget.tsx. A stylized "listening" loop, not
+   literally reactive to live voice amplitude (that would need the daemon to
+   stream real audio levels over a WebSocket — a separate, bigger feature not
+   built this round). Global CSS keyframe (not styled-jsx, to stay consistent
+   with the rest of this codebase, which uses plain Tailwind + globals.css
+   everywhere else). */
+.voice-wave-bar {
+  height: 6px;
+  animation: voice-wave 1.1s ease-in-out infinite;
+}
+@keyframes voice-wave {
+  0%, 100% { height: 6px; opacity: 0.5; }
+  50% { height: 28px; opacity: 1; }
+}

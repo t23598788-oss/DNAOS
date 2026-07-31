@@ -26,7 +26,10 @@ export async function GET() {
     db.from("material_types").select("id, name"),
   ])
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  if (error) {
+    console.error("[pits] list query failed:", error.message)
+    return NextResponse.json({ pits: [], materialTypes: materialTypes ?? [] })
+  }
 
   const materialNameById = new Map((materialTypes ?? []).map((m) => [m.id, m.name]))
   const materialsByPit = new Map<string, { material_type_id: string; name: string; price: number }[]>()

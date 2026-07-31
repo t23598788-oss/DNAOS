@@ -16,6 +16,11 @@ interface MonthRow {
   fuel_bills: number
 }
 
+interface ExpenseCategory {
+  category: string
+  total: number
+}
+
 interface FinanceSummary {
   ok: boolean
   months: MonthRow[]
@@ -26,7 +31,9 @@ interface FinanceSummary {
     outstanding_debt: number
     unverified_transfer_slips: number
     unverified_transfer_slips_count: number
+    company_expenses: number
   }
+  expense_categories: ExpenseCategory[]
   latest_fuel_price: string | null
   honesty_note: string
 }
@@ -120,6 +127,42 @@ export default function FinancePage() {
 
       {data.latest_fuel_price && (
         <p style={{ fontSize: 12, color: "#888", marginTop: 16 }}>ราคาน้ำมันล่าสุดในระบบ: {data.latest_fuel_price} บาท/ลิตร</p>
+      )}
+
+      {/* Real expense category breakdown (owner, 2026-07-31): "แยกหมวดหมู่
+          ค่าใช้จ่ายตามในจากตารางเดิม...ตามบิลจริง" — no pie chart per the
+          owner's own instruction, just real totals grouped by category from
+          company_expenses (document_type/vendor_name), same source as the
+          totals cards above. */}
+      {data.expense_categories.length > 0 && (
+        <div style={{ marginTop: 32 }}>
+          <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 8, color: "#333" }}>
+            ค่าใช้จ่ายบริษัทแยกตามหมวดหมู่ (จากบิลจริงในระบบ) — รวม {thb(data.totals.company_expenses)} ฿
+          </div>
+          <div style={{ border: "1px solid #eee", borderRadius: 8, overflow: "hidden" }}>
+            {data.expense_categories.map((c, i) => {
+              const pct = data.totals.company_expenses > 0 ? (c.total / data.totals.company_expenses) * 100 : 0
+              return (
+                <div
+                  key={c.category}
+                  style={{
+                    display: "flex", alignItems: "center", justifyContent: "space-between",
+                    padding: "10px 14px", borderTop: i === 0 ? "none" : "1px solid #f0f0f0",
+                  }}
+                >
+                  <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
+                    <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#7c5cd6", flexShrink: 0 }} />
+                    <span style={{ fontSize: 13 }}>{c.category}</span>
+                  </div>
+                  <div style={{ display: "flex", alignItems: "baseline", gap: 8, flexShrink: 0 }}>
+                    <span style={{ fontSize: 11, color: "#888" }}>{pct.toFixed(1)}%</span>
+                    <span style={{ fontSize: 13, fontWeight: 700 }}>{thb(c.total)} ฿</span>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
       )}
     </div>
   )

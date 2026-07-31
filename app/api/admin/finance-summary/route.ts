@@ -17,18 +17,42 @@ function monthKey(d: string | null): string {
   return d.slice(0, 7) // YYYY-MM
 }
 
+// Real expense category breakdown (owner, 2026-07-31): "แยกหมวดหมู่ค่าใช้จ่าย
+// ตามในจากตารางเดิม...แยกหมวดหมู่ค่าใช้จ่ายตามบิลจริง" — no pie chart (owner
+// explicitly said skip it), just real totals grouped by category, derived
+// from company_expenses' own existing real fields (document_type/vendor_name)
+// — never a new invented taxonomy. document_type is already real and
+// populated (tax_invoice/invoice/receipt/fuel_bill/partner_payable, #11/#37);
+// vendor_name is checked first for known real vendors (e.g. "Supabase", from
+// #37's auto-detected billing) since "partner_payable" alone is too broad a
+// bucket to be useful (it covers both material-supplier payments and SaaS
+// billing) — same real distinction the data itself already carries.
+function expenseCategory(documentType: string, vendorName: string | null): string {
+  const vendor = (vendorName ?? "").toLowerCase()
+  if (vendor.includes("supabase")) return "ค่าบริการซอฟต์แวร์/Hosting"
+  switch (documentType) {
+    case "fuel_bill": return "ค่าน้ำมัน"
+    case "partner_payable": return "จ่ายพาร์ทเนอร์/ซัพพลายเออร์"
+    case "tax_invoice": return "ใบกำกับภาษี"
+    case "invoice": return "ใบแจ้งหนี้"
+    case "receipt": return "ใบเสร็จ"
+    default: return "อื่นๆ"
+  }
+}
+
 export async function GET() {
   const auth = await requireAuth(ADMIN_TIER)
   if (auth instanceof NextResponse) return auth
 
   const db = supabase()
 
-  const [invoicesRes, standaloneRes, receiptsRes, debtRes, fuelRes] = await Promise.all([
+  const [invoicesRes, standaloneRes, receiptsRes, debtRes, fuelRes, expensesRes] = await Promise.all([
     db.from("invoices").select("total_amount, created_at"),
     db.from("standalone_documents").select("total_amount, document_date, document_type"),
     db.from("receipt_documents").select("amount, document_date, document_type, payment_verified"),
     db.from("debt_snapshots").select("total_outstanding"),
     db.from("fuel_price_log").select("price, fetched_at").order("fetched_at", { ascending: false }).limit(1),
+    db.from("company_expenses").select("document_type, vendor_name, amount, expense_date"),
   ])
 
   const revenueByMonth = new Map<string, number>()
@@ -75,6 +99,16 @@ export async function GET() {
     fuel_bills: Math.round((fuelBillsByMonth.get(m) ?? 0) * 100) / 100,
   }))
 
+  const expenseByCategory = new Map<string, number>()
+  for (const e of expensesRes.data ?? []) {
+    const cat = expenseCategory(e.document_type, e.vendor_name)
+    expenseByCategory.set(cat, (expenseByCategory.get(cat) ?? 0) + Number(e.amount ?? 0))
+  }
+  const expenseCategories = [...expenseByCategory.entries()]
+    .map(([category, total]) => ({ category, total: Math.round(total * 100) / 100 }))
+    .sort((a, b) => b.total - a.total)
+  const totalCompanyExpenses = expenseCategories.reduce((s, c) => s + c.total, 0)
+
   const totalOutstandingDebt = (debtRes.data ?? []).reduce((s, d) => s + Number(d.total_outstanding ?? 0), 0)
   const totalRevenueDocumented = months.reduce((s, m) => s + m.revenue_documented, 0)
   const totalPaymentsReceived = months.reduce((s, m) => s + m.payments_received_verified, 0)
@@ -91,7 +125,9 @@ export async function GET() {
       outstanding_debt: Math.round(totalOutstandingDebt * 100) / 100,
       unverified_transfer_slips: Math.round(unverifiedTransferSlipTotal * 100) / 100,
       unverified_transfer_slips_count: unverifiedTransferSlipCount,
+      company_expenses: Math.round(totalCompanyExpenses * 100) / 100,
     },
+    expense_categories: expenseCategories,
     latest_fuel_price: latestFuelPrice,
     honesty_note:
       "นี่คือสรุปกระแสเงินสดจากเอกสาร/สลิปจริงในระบบ ไม่ใช่งบดุลทางบัญชีที่ถูกต้องตามมาตรฐาน — ระบบยังไม่มีข้อมูลสินทรัพย์ถาวร/ทุน/หนี้สินโครงสร้างจริง จึงยังสร้างงบดุลจริงไม่ได้ ตัวเลขข้างต้นคำนวณจากเอกสารที่มีอยู่จริงในระบบเท่านั้น เอกสาร/สลิปที่ไม่เคยถูกบันทึกเข้าระบบจะไม่ปรากฏในนี้",

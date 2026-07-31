@@ -164,8 +164,22 @@ export function translate(text: string): TranslationResult {
 
 // ── Extractors ──
 
+// Owner correction, 2026-07-30: "รู้จักแต่ทราย ไม่รู้จักราคาน้ำมัน...ทำไมมึง
+// มาสร้างแยก เมื่อไหร่ระบบมันจะคุยกันรู้เรื่อง" — fuel is a real product this
+// business's own trucks run on and the owner asks about routinely; it
+// belongs in the SAME product-recognition list as construction materials,
+// not invisible to this extractor while handled by a totally separate,
+// parallel regex system (cognitive/pipeline.ts's answerExternalFact). The
+// actual PRICE computation for fuel vs. construction material still comes
+// from two genuinely different real engines (Bangchak live API vs.
+// pit_materials/quote-price.ts's GPS+vehicle logic) — that split is real and
+// stays — but recognizing "is this a product I know about at all" is now
+// one shared list instead of two blind spots.
 function extractProduct(t: string): string | undefined {
-  const products = ["หิน", "ทราย", "ดิน", "ลูกรัง", "คอนกรีต", "หินคลุก", "ทรายหยาบ", "ดินถม", "ดินลูกรัง"];
+  const products = [
+    "หิน", "ทราย", "ดิน", "ลูกรัง", "คอนกรีต", "หินคลุก", "ทรายหยาบ", "ดินถม", "ดินลูกรัง",
+    "น้ำมัน", "ดีเซล", "เบนซิน", "แก๊สโซฮอล์",
+  ];
   for (const p of products) { if (t.includes(p)) return p; }
   return undefined;
 }

@@ -131,6 +131,7 @@ export async function processClassifiedImage(
         amount: classified.amount,
         document_date: classified.document_date,
         raw_ocr_text: classified.raw_ocr_text,
+        description: classified.description,
         confidence: classified.confidence,
         status: "ai_read",
         sender_name: classified.sender_name,
@@ -192,6 +193,59 @@ export async function processClassifiedImage(
         submitted_by_name: profile.display_name,
         submitted_by_role: profile.role,
       })
+    }
+  }
+
+  // Real conversation understanding for product/site photos (owner-reported
+  // 2026-07-30, widened same day): "ไม่ต้องมองว่าลูกค้าคือแชทคนคุยกัน...
+  // ถามแลกเปลี่ยนเหตุการณ์ เปิดประเด็นต่างๆ ก่อนจะเป็นอิเวนต์ ก่อนจะเป็นการขาย
+  // ...ถ้าเราไม่เอารูปภาพเข้าไปเชื่อมโยง แล้วไปเก็บเป็นไฟล์ทำไม" — the first
+  // pass of this fix only attached a photo's meaning to a formal
+  // business_events row, and only when one already existed with
+  // status="awaiting_info" (i.e. only once it had already become a sales
+  // flow). That's backwards from what was asked: the photo's meaning belongs
+  // to the CONVERSATION it happened in, whether or not that conversation has
+  // become a formal "Event" yet — a picture is never just a stored file, it
+  // is a specific reply at a specific moment in an ongoing chat.
+  //
+  // Fix: always record what the photo actually shows directly on ITS OWN
+  // line_events row (ai_summary — the real per-message conversation-timeline
+  // field every inbound message already has, independent of any
+  // business_events row existing at all). This is the one write that always
+  // happens, formal Event or not. Separately, if this contact does have a
+  // recent business_events row (ANY status, not just awaiting_info — a
+  // photo sent while an order is already quoted/awaiting_payment is just as
+  // much "part of that conversation" as one sent while still awaiting
+  // info), also mirror it there as extra context for whoever's handling that
+  // Event — a bonus, not the only place the understanding lives.
+  if (
+    (classified?.document_type === "product_photo" || classified?.document_type === "site_photo") &&
+    classified?.description
+  ) {
+    await supabase.from("line_events").update({ ai_summary: classified.description }).eq("id", lineEventId)
+
+    if (userId) {
+      const { data: recentEvent } = await supabase
+        .from("business_events")
+        .select("id, context")
+        .eq("source_line_user_id", userId)
+        .order("created_at", { ascending: false })
+        .limit(1).maybeSingle()
+      if (recentEvent) {
+        const priorPhotos = Array.isArray(recentEvent.context?.photos) ? recentEvent.context.photos : []
+        await supabase.from("business_events").update({
+          context: { ...(recentEvent.context ?? {}), photos: [...priorPhotos, classified.description] },
+        }).eq("id", recentEvent.id)
+      }
+      // Owner-reported 2026-07-30 (same conversation as the vehicle-payment
+      // gap above): "เค้ากำลังซ่อมรถแม็คโครใช่ไหม เราต้องถามเค้าว่ายังไง
+      // รถเป็นอะไรพี่" — an equipment/vehicle photo deserves a real
+      // conversational follow-up, not just a flat acknowledgment that
+      // silently logs the picture and moves on.
+      const looksLikeVehicle = /รถ|แม็คโคร|แมกโค|รถแบคโฮ|เครื่องยนต์|ซ่อม/.test(classified.description)
+      const followUp = looksLikeVehicle ? " รถเป็นอะไรครับพี่ พอบอกอาการได้ไหมครับ" : ""
+      const { ResponseGateway } = await import("./response.ts")
+      await ResponseGateway.pushMessage(userId, `รับรูปแล้วครับ (${classified.description})${followUp}`)
     }
   }
 

@@ -59,9 +59,17 @@ fi
 # --exclude semantics) that is NOT what a real `bash scripts/pre-commit-check.sh`
 # process uses. Verified against the real binary directly (bash -x trace +
 # /usr/bin/grep), not just an interactive command, before trusting this fix.
+# Same exact bug shape found again live 2026-07-30 (local-migration effort):
+# --exclude="supabase/.temp/*" ALSO only matches a basename, never a nested
+# path — supabase's own local CLI cache (supabase/.temp/pgdelta/catalog-*.json,
+# a real build/tool artifact from running `supabase db dump` locally, already
+# gitignored via supabase/.gitignore) was still being scanned and flagged as
+# a hardcoded-URL violation. --exclude-dir=.temp (matches the directory's own
+# basename, recursive) is the correct form — verified this doesn't accidentally
+# widen scope, since no other real source directory is named .temp.
 if grep -rEn '\.supabase\.co' --include="*.ts" --include="*.tsx" --include="*.json" \
-   --exclude-dir=node_modules --exclude-dir=.next \
-   --exclude="supabase/.temp/*" --exclude="package*.json" \
+   --exclude-dir=node_modules --exclude-dir=.next --exclude-dir=.temp \
+   --exclude="package*.json" \
    --exclude="VALIDATION_RESULTS.json" . 2>/dev/null \
    | grep -v '\.supabase\.com' | grep -v "process.env" | grep -v "NEXT_PUBLIC"; then
   echo "ERROR: Supabase URL hardcoded in source — use env var"

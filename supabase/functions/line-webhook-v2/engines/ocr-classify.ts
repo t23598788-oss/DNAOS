@@ -68,6 +68,7 @@ const SYSTEM_PROMPT_BASE = `คุณคือระบบอ่านและ�
   "amount": ตัวเลขยอดเงินรวม ถ้าอ่านไม่ได้ให้เป็น null (ไม่ใส่ comma/สกุลเงิน),
   "document_date": "YYYY-MM-DD ถ้าอ่านไม่ได้ให้เป็น null",
   "raw_ocr_text": "ข้อความทั้งหมดที่อ่านได้จากรูป",
+  "description": "อธิบายสั้นๆ ว่ารูปนี้เป็นภาพอะไรจริงๆ (เฉพาะตอน document_type เป็น product_photo หรือ site_photo เช่น 'ภาพกองทรายหยาบ', 'ภาพหน้างานก่อสร้างมีรถแบคโฮ' — ไม่ใช่แค่บอกประเภทเอกสารซ้ำ) ประเภทอื่นให้เป็น null เสมอ",
   "confidence": ตัวเลข 0-1 ความมั่นใจว่าจำแนกประเภทถูกต้อง,
   "sender_name": "ชื่อผู้โอน (เฉพาะ transfer_slip/payment_advice) ถ้าไม่ใช่หรืออ่านไม่ได้ให้เป็น null",
   "sender_bank": "ชื่อธนาคารผู้โอน (เฉพาะ transfer_slip/payment_advice) ถ้าไม่ใช่หรืออ่านไม่ได้ให้เป็น null",
@@ -84,6 +85,7 @@ export interface ClassifiedReceipt {
   amount: number | null
   document_date: string | null
   raw_ocr_text: string | null
+  description: string | null
   confidence: number
   sender_name: string | null
   sender_bank: string | null

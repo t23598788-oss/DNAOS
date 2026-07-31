@@ -3,12 +3,12 @@ import { saveEvent } from "../events/store.ts"
 import { ResponseGateway } from "../engines/response.ts"
 import { tryRouteToTool } from "../engines/tool-router.ts"
 import { tryCompleteAwaitingEvent } from "../engines/event-followup.ts"
-import { tryAutoBuildEvent } from "../engines/auto-build-event.ts"
 import { tryFollowUpDebtAck } from "../engines/debt-followup.ts"
 import { tryRecordPaymentClaim } from "../engines/payment-claim.ts"
 import { isPaymentInfoRequest, tryBuildPaymentInstructionsReply } from "../engines/payment-instructions.ts"
 import { activateHumanTakeover, getConversationMode, isHumanTakeoverMessage } from "../engines/human-takeover.ts"
 import { trySupplierQuoteReply } from "../engines/supplier-quote-reply.ts"
+import { answerExternalFact, isExternalFactQuestion } from "../engines/external-facts.ts"
 
 export async function handleText(ctx: HandlerContext): Promise<void> {
   const msgEvent = ctx.event as LineMessageEvent
@@ -58,6 +58,23 @@ export async function handleText(ctx: HandlerContext): Promise<void> {
     }
   }
 
+  // Real Ground-Truth Layer (owner, 2026-07-30): "รวบสมองเข้าด้วยกัน...ให้
+  // เหตุการณ์มันเป็นเรื่องเดียวกัน" — same real-data-first check
+  // cognitive/pipeline.ts's answerExternalFact() runs on the admin side,
+  // ported here so the LINE side never guesses fuel price/weather/date
+  // either. Checked early/unconditionally (not gated on ctx.userId, since
+  // these facts have nothing to do with which company this contact is) —
+  // deliberately before tryCompleteAwaitingEvent so a real question about
+  // fuel/weather/date is never misread as an answer to an unrelated open
+  // quote's missing fields (same class of bug as KM-008).
+  if (isExternalFactQuestion(text)) {
+    const factReply = await answerExternalFact(text)
+    if (factReply) {
+      await ResponseGateway.replyText(ctx.replyToken, factReply)
+      return
+    }
+  }
+
   // Real business questions get real answers looked up by person, not a
   // generic ack — e.g. "เราเคยเป็นหนี้กันไหม" gets the actual debt_snapshots
   // figure for whichever company this LINE contact is matched to. The router
@@ -67,6 +84,27 @@ export async function handleText(ctx: HandlerContext): Promise<void> {
     const toolReply = await tryRouteToTool(ctx.supabase, ctx.userId, text)
     if (toolReply) {
       await ResponseGateway.replyText(ctx.replyToken, toolReply)
+      return
+    }
+  }
+
+  // Owner-reported bug 2026-07-18, widened 2026-07-30: a customer asking
+  // "ส่งเลขบัญชีมาด้วยตงครับ" (please send the account number) was being
+  // swallowed by tryFollowUpDebtAck further below. Moved from its original
+  // spot (right before tryFollowUpDebtAck) to run here — BEFORE
+  // tryCompleteAwaitingEvent too — because the same swallowing happens when
+  // this contact has an open awaiting_info business event (e.g. a quote in
+  // progress): tryCompleteAwaitingEvent treats any non-matching reply as an
+  // attempt to answer whatever's still missing and returns its own canned
+  // "ส่งชนิดวัสดุ.../ส่ง GPS..." nag, so a real bank-account question never
+  // reached this check at all (real customer report: "พี่หนุ่ม" asked for the
+  // account number mid-quote and got the material/GPS nag instead). A
+  // request for payment info is never a legitimate answer to a
+  // material/quantity/destination question, so it must be checked first.
+  if (ctx.userId && isPaymentInfoRequest(text)) {
+    const paymentInfoReply = await tryBuildPaymentInstructionsReply(ctx.supabase, ctx.userId)
+    if (paymentInfoReply) {
+      await ResponseGateway.replyText(ctx.replyToken, paymentInfoReply)
       return
     }
   }
@@ -92,32 +130,20 @@ export async function handleText(ctx: HandlerContext): Promise<void> {
     }
   }
 
-  // No open question and not a debt inquiry — try to build a real event out
-  // of this message right now instead of waiting for an admin to click
-  // "สร้าง Event" (owner-reported bug 2026-07-10: a real customer sent 5
-  // messages asking for a price and got zero response because nobody had
-  // opened the dashboard yet).
-  if (ctx.userId) {
-    const builtReply = await tryAutoBuildEvent(ctx.supabase, ctx.userId)
-    if (builtReply) {
-      await ResponseGateway.replyText(ctx.replyToken, builtReply)
-      return
-    }
-  }
-
-  // Owner-reported bug 2026-07-18: a customer asking "ส่งเลขบัญชีมาด้วยตงครับ"
-  // (please send the account number) was being swallowed by
-  // tryFollowUpDebtAck below — that function treats ANY non-acknowledgment
-  // reply while awaiting a payment date as the customer's scheduling answer.
-  // Must run BEFORE that check so a genuine request for bank details is
-  // recognized and answered for real, not silently misfiled.
-  if (ctx.userId && isPaymentInfoRequest(text)) {
-    const paymentInfoReply = await tryBuildPaymentInstructionsReply(ctx.supabase, ctx.userId)
-    if (paymentInfoReply) {
-      await ResponseGateway.replyText(ctx.replyToken, paymentInfoReply)
-      return
-    }
-  }
+  // Real fix, 2026-07-31 (roadmap #1): tryAutoBuildEvent() used to sit here
+  // as a synchronous, Claude-dependent attempt to build a business event
+  // from this message right away — but it always returned null in
+  // production (ANTHROPIC_API_KEY missing/blocked, same dead-path bug as
+  // tool-router.ts). The exact same event-building job is ALREADY done for
+  // real by the async local-AI pipeline this file already falls through to
+  // below (ai_tasks kind="handle_text" → ai-task-watcher.mjs on the owner's
+  // Mac runs local Ollama extraction → ai-callback's buildEventFromExtraction,
+  // engines/build-event-from-extraction.ts — verified live, real code path,
+  // not assumed). Keeping the dead synchronous call here just added latency
+  // for a check that could never succeed; removed rather than "fixed" since
+  // the working version already exists elsewhere (Rule 101/103 — no second
+  // parallel implementation). See existence.json KM-011 and
+  // capability-roadmap.json #1 for the full removal record.
 
   // Owner-reported bug 2026-07-11: a plain "รับทราบครับ" reply to a debt
   // reminder card fell into the generic fallback below ("เดี๋ยวเช็คให้นะครับ"

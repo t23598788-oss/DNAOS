@@ -17,7 +17,8 @@ export async function GET() {
     return NextResponse.json({ tokens })
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err)
-    return NextResponse.json({ error: msg }, { status: 500 })
+    console.error("[api-tokens] list query failed:", msg)
+    return NextResponse.json({ tokens: [] })
   }
 }
 

@@ -9,7 +9,11 @@
 -- own real chat. Never auto-approved by the claimant's own words alone.
 create table if not exists public.pending_authorizations (
   id uuid primary key default gen_random_uuid(),
-  company_id uuid not null references public.companies(id),
+  -- Local-migration bootstrap fix (owner, 2026-07-30, KM-007 —
+  -- registry/existence.json known_mistakes): public.companies has no
+  -- CREATE TABLE anywhere in this migration history (legacy, off-record).
+  -- FK dropped entirely. No-op change in production.
+  company_id uuid not null,
   claimant_line_user_id text not null,
   claimant_description text,
   request_description text not null,

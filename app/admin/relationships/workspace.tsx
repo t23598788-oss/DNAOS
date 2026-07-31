@@ -118,6 +118,10 @@ function RelationshipWorkspace({ initialRelationshipId }: { initialRelationshipI
   // (event stuck at ready_to_quote — see event-followup.ts's ok/text fix) —
   // reuses the existing quotation-queue instead of a new alerts table.
   const [pendingQuotesCount, setPendingQuotesCount] = useState(0)
+  // Owner request 2026-07-31: badge on "ภาพรวมการเงิน" so pending
+  // company-payable items (incl. real auto-detected Supabase billing
+  // invoices) are visible right here, same real pattern as pendingQuotesCount.
+  const [pendingFinanceCount, setPendingFinanceCount] = useState(0)
   const [activeId, setActiveId] = useState<string | null>(null)
   const [detail, setDetail] = useState<RelationshipDetail | null>(null)
   const [detailLoading, setDetailLoading] = useState(false)
@@ -177,6 +181,19 @@ function RelationshipWorkspace({ initialRelationshipId }: { initialRelationshipI
           const count = (d.queue ?? []).filter((e: { status: string }) => e.status === "ready_to_quote").length
           setPendingQuotesCount(count)
         })
+        .catch(() => {})
+    }
+    poll()
+    const id = setInterval(poll, 30000)
+    return () => { cancelled = true; clearInterval(id) }
+  }, [])
+
+  useEffect(() => {
+    let cancelled = false
+    function poll() {
+      fetch("/api/admin/finance-alerts")
+        .then((r) => r.json())
+        .then((d) => { if (!cancelled) setPendingFinanceCount(d.pendingCount ?? 0) })
         .catch(() => {})
     }
     poll()
@@ -1100,9 +1117,11 @@ function RelationshipWorkspace({ initialRelationshipId }: { initialRelationshipI
     },
   ] : []
 
-  const railItems: IconRailItem[] = RAIL_ITEMS.map((item) =>
-    item.key === "pits" && pendingQuotesCount > 0 ? { ...item, badge: pendingQuotesCount } : item
-  )
+  const railItems: IconRailItem[] = RAIL_ITEMS.map((item) => {
+    if (item.key === "pits" && pendingQuotesCount > 0) return { ...item, badge: pendingQuotesCount }
+    if (item.key === "finance" && pendingFinanceCount > 0) return { ...item, badge: pendingFinanceCount }
+    return item
+  })
 
   return (
     <AppShell

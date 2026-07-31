@@ -43,10 +43,20 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Create AFTER trigger to sync document_items
-CREATE OR REPLACE TRIGGER trigger_sync_document_items
-    AFTER INSERT OR UPDATE OF data ON public.documents
-    FOR EACH ROW
-    EXECUTE FUNCTION public.sync_document_items_from_data();
+-- Local-migration bootstrap fix (owner, 2026-07-30, KM-007 —
+-- registry/existence.json known_mistakes): public.documents (and
+-- document_items) have no CREATE TABLE in any migration — legacy tables
+-- created directly against production, off-record. Guarded so a fresh
+-- local bootstrap doesn't fail here; real pg_dump import later brings in
+-- the actual tables (and these triggers, already present in production).
+DO $$ BEGIN
+  IF to_regclass('public.documents') IS NOT NULL THEN
+    CREATE OR REPLACE TRIGGER trigger_sync_document_items
+        AFTER INSERT OR UPDATE OF data ON public.documents
+        FOR EACH ROW
+        EXECUTE FUNCTION public.sync_document_items_from_data();
+  END IF;
+END $$;
 
 -- 2. Create function to trigger back-to-back webhook on document confirmation
 CREATE OR REPLACE FUNCTION public.trg_documents_webhook()
@@ -82,8 +92,12 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- Create AFTER UPDATE trigger for webhooks on documents
-CREATE OR REPLACE TRIGGER trigger_documents_webhook
-    AFTER UPDATE ON public.documents
-    FOR EACH ROW
-    EXECUTE FUNCTION public.trg_documents_webhook();
+-- Create AFTER UPDATE trigger for webhooks on documents (same guard as above)
+DO $$ BEGIN
+  IF to_regclass('public.documents') IS NOT NULL THEN
+    CREATE OR REPLACE TRIGGER trigger_documents_webhook
+        AFTER UPDATE ON public.documents
+        FOR EACH ROW
+        EXECUTE FUNCTION public.trg_documents_webhook();
+  END IF;
+END $$;

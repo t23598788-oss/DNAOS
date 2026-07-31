@@ -15,9 +15,18 @@
 -- Phase B). This is two nullable columns + a formula change that respects
 -- them, nothing else.
 
-alter table public.debt_snapshots
-  add column if not exists freeze_from timestamp without time zone,
-  add column if not exists freeze_until timestamp without time zone;
+-- Local-migration bootstrap fix (owner, 2026-07-30, KM-007 —
+-- registry/existence.json known_mistakes): public.debt_snapshots has no
+-- CREATE TABLE in any migration — legacy, off-record, real schema only
+-- recoverable via pg_dump. Guarded so a fresh local bootstrap doesn't fail
+-- here. No-op change in production (these columns already exist there).
+do $$ begin
+  if to_regclass('public.debt_snapshots') is not null then
+    alter table public.debt_snapshots
+      add column if not exists freeze_from timestamp without time zone,
+      add column if not exists freeze_until timestamp without time zone;
 
-comment on column public.debt_snapshots.freeze_from is 'Interest/penalty accrual pauses starting this date (e.g. a confirmed partial payment or negotiated pause). Null = no freeze.';
-comment on column public.debt_snapshots.freeze_until is 'Freeze ends this date (accrual resumes, NOT retroactively — see engines/debt/tracking.ts). Null + freeze_from set = freeze still open-ended (ongoing).';
+    comment on column public.debt_snapshots.freeze_from is 'Interest/penalty accrual pauses starting this date (e.g. a confirmed partial payment or negotiated pause). Null = no freeze.';
+    comment on column public.debt_snapshots.freeze_until is 'Freeze ends this date (accrual resumes, NOT retroactively — see engines/debt/tracking.ts). Null + freeze_from set = freeze still open-ended (ongoing).';
+  end if;
+end $$;

@@ -24,7 +24,10 @@ export async function GET() {
     `)
     .order("created_at", { ascending: false })
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  if (error) {
+    console.error("[event-inbox] list query failed:", error.message)
+    return NextResponse.json({ events: [] })
+  }
 
   return NextResponse.json({ events: events ?? [] })
 }

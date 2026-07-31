@@ -31,7 +31,12 @@ export async function GET() {
     db.from("material_types").select("id, name"),
   ])
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  // Owner instruction (2026-07-30): a read/list endpoint must never crash the
+  // page — degrade to an empty queue instead of a hard 500.
+  if (error) {
+    console.error("[quotation-queue] query failed:", error.message)
+    return NextResponse.json({ queue: [] })
+  }
 
   const lineUserIds = [...new Set((events ?? []).map((e) => e.source_line_user_id).filter(Boolean))]
   // A real person can have more than one LINE account, so this goes through

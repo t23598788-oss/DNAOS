@@ -27,7 +27,7 @@ const SYSTEM_PROMPT = `คุณคือแอดมิน DNA OS ตอบแ�
 อ่านข้อความล่าสุด พร้อมบริบทการสนทนาก่อนหน้า และบันทึกลักษณะนิสัยลูกค้ารายนี้ (ถ้ามี) แล้วตอบอย่างเป็นธรรมชาติ สั้น กระชับ เหมือนแอดมินจริงคนหนึ่งที่จำลูกค้าคนนี้ได้และคิดก่อนตอบ ไม่ใช่ท่องประโยคสำเร็จรูป
 
 ห้ามเด็ดขาด:
-- ห้ามบอกราคา/จำนวน/วันที่/ข้อมูลธุรกิจใดๆ ที่ไม่ได้อยู่ในบริบทที่ให้มา (ถ้าลูกค้าถามราคา ให้ชวนคุยรายละเอียดต่อ เช่นวัสดุอะไร ปริมาณเท่าไหร่ แทนที่จะเดาราคา)
+- ห้ามบอกราคา/จำนวน/ข้อมูลธุรกิจใดๆ ที่ไม่ได้อยู่ในบริบทที่ให้มา (ถ้าลูกค้าถามราคา ให้ชวนคุยรายละเอียดต่อ เช่นวัสดุอะไร ปริมาณเท่าไหร่ แทนที่จะเดาราคา) — ข้อยกเว้นเดียวคือ "วันที่/เวลาปัจจุบัน" ที่ให้มาจริงด้านล่าง (real system clock ไม่ใช่เดา) ตอบได้ตามนั้นเลยถ้าลูกค้าถาม แต่ห้ามใช้ไปคำนวณ/สัญญาวันที่ส่งของ/นัดหมายทางธุรกิจใดๆ ที่ไม่มีข้อมูลจริงรองรับ
 - ห้ามสัญญาว่าจะ "ไปเช็คแล้วแจ้งกลับ" ถ้าไม่มีระบบจริงรองรับการติดตามนั้น
 - ห้ามยาวเกินไป ตอบสั้นแบบแชทจริง ไม่ใช่ย่อหน้า
 - ห้ามตอบแบบ list/bullet/หัวข้อในวงเล็บ แบบฟอร์มอัตโนมัติ — คุยแบบคนจริงคุยกัน
@@ -65,9 +65,20 @@ export async function buildThoughtfulReply(
   const memory = await getCustomerMemory(supabase, userId)
   const memoryBlock = memory ? `บันทึกลักษณะลูกค้ารายนี้ (จากการคุยครั้งก่อนๆ):\n${memory}\n\n` : ""
 
+  // Real bug, owner-reported 2026-07-30 (admin secretary chat side): an LLM
+  // has no real clock and will hallucinate a wrong date if asked, unless
+  // told the real one. This side used to just prohibit ANY date mention as
+  // its fix — safe, but it means a customer asking "วันนี้วันที่เท่าไหร่"
+  // just gets deflected instead of a real correct answer. Owner correction
+  // same day: "ทำไมไม่พัฒนาสองอย่างไปพร้อมกัน" — inject the real date/time
+  // here too (same as cognitive/pipeline.ts's answerWithAi), so this side
+  // can actually answer correctly instead of only refusing.
+  const now = new Date()
+  const dateTimeBlock = `วันที่/เวลาปัจจุบันจริง (พ.ศ.): ${now.toLocaleDateString("th-TH", { weekday: "long", year: "numeric", month: "long", day: "numeric" })} เวลา ${now.toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit" })} น.\n\n`
+
   const userPrompt = history
-    ? `${memoryBlock}บทสนทนาล่าสุด:\n${history}\n\nข้อความล่าสุดที่ต้องตอบ: "${currentText}"`
-    : `${memoryBlock}ข้อความจากลูกค้า (ยังไม่เคยคุยกันมาก่อน): "${currentText}"`
+    ? `${dateTimeBlock}${memoryBlock}บทสนทนาล่าสุด:\n${history}\n\nข้อความล่าสุดที่ต้องตอบ: "${currentText}"`
+    : `${dateTimeBlock}${memoryBlock}ข้อความจากลูกค้า (ยังไม่เคยคุยกันมาก่อน): "${currentText}"`
 
   const reply = await callClaudeText(SYSTEM_PROMPT, userPrompt, 200)
   const trimmed = reply?.trim() || null

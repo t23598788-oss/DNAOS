@@ -31,6 +31,12 @@
       "purpose_th": "รับข้อความและเหตุการณ์จาก LINE API",
       "method": "POST",
       "auth_required": false
+    },
+    "/api/internal/openclaw/command": {
+      "purpose": "Internal bridge for the openclaw-webhook Supabase Edge Function to run text commands from the OpenClaw/Pinto mobile channel through the cognitive pipeline",
+      "purpose_th": "สะพานภายในให้ openclaw-webhook Edge Function ส่งคำสั่งข้อความจากมือถือ (OpenClaw/Pinto) เข้า Cognitive Pipeline (auth ผ่าน shared secret แทน session)",
+      "method": "POST",
+      "auth_required": true
     }
   }
 }

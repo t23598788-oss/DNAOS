@@ -24,7 +24,11 @@ create table if not exists public.line_profiles (
   display_name  text,
   role          text not null default 'external'
     check (role in ('employee', 'customer', 'supplier', 'driver', 'owner', 'contractor', 'accountant', 'manager', 'admin', 'external')),
-  company_id    uuid references public.companies(id),
+  -- Local-migration bootstrap fix (owner, 2026-07-30, KM-007 —
+  -- registry/existence.json known_mistakes): public.companies has no
+  -- CREATE TABLE anywhere in this migration history (legacy, off-record).
+  -- FK dropped entirely. No-op change in production.
+  company_id    uuid,
   department    text,
   trust_level   text not null default 'unverified'
     check (trust_level in ('verified', 'unverified', 'flagged')),

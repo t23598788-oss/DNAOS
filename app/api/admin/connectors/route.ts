@@ -17,7 +17,8 @@ export async function GET() {
     return NextResponse.json({ connectors: redactConnectors(connectors) })
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err)
-    return NextResponse.json({ error: msg }, { status: 500 })
+    console.error("[connectors] list query failed:", msg)
+    return NextResponse.json({ connectors: [] })
   }
 }
 

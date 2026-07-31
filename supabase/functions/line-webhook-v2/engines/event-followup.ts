@@ -220,7 +220,7 @@ export async function tryCompleteAwaitingEvent(
 ): Promise<FollowupReply | null> {
   const { data: ev } = await supabase
     .from("business_events")
-    .select("id, event_type, partner_id, material_text, quantity, quantity_unit, destination, contact_name, contact_phone, source_message_ids")
+    .select("id, event_type, partner_id, material_text, quantity, quantity_unit, destination, contact_name, contact_phone, source_message_ids, created_at")
     .eq("source_line_user_id", userId)
     .eq("status", "awaiting_info")
     .order("created_at", { ascending: false })
@@ -228,6 +228,32 @@ export async function tryCompleteAwaitingEvent(
     .maybeSingle()
 
   if (!ev) return null // no open question — caller falls back to normal handling
+
+  // Real bug, owner-reported 2026-07-30 (live, real customer harm — a
+  // debtor's message describing genuine financial hardship, replying to a
+  // debt-collection event, got hijacked into re-asking for material/
+  // quantity/GPS/contact info from an old, unrelated, forgotten quote
+  // request): this query only ever looked within status="awaiting_info"
+  // rows, completely blind to whether a NEWER event of a DIFFERENT status
+  // (e.g. "awaiting_payment_date" from the debt-follow-up flow) exists for
+  // the same contact — meaning a stale awaiting_info quote from long ago
+  // permanently hijacked every future message from that contact, no matter
+  // what the conversation had actually moved on to. Guard: if this contact
+  // has ANY business_events row created more recently than this awaiting_info
+  // one, the conversation has moved on — don't hijack, let the caller's
+  // other handlers (tryFollowUpDebtAck etc.) resolve the ACTUAL current
+  // context instead of reviving a dead one.
+  const { data: newerEvent } = await supabase
+    .from("business_events")
+    .select("id, created_at")
+    .eq("source_line_user_id", userId)
+    .neq("id", ev.id)
+    .gt("created_at", ev.created_at)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle()
+
+  if (newerEvent) return null // a newer, different event exists — this one is stale, don't revive it
 
   const { data: materialTypes } = await supabase.from("material_types").select("id, name")
   const updates: Record<string, unknown> = {}
@@ -360,7 +386,16 @@ export async function tryCompleteAwaitingEvent(
       // Only when there's exactly one missing thing AND the reply reads as
       // a real question: don't nag, let it fall through to whatever engine
       // can actually answer instead of hijacking it as bad data.
-      if (missing.length === 1 && looksLikeAQuestion(replyText)) {
+      // Real bug, live 2026-07-30 (audit widening): this guard used to only
+      // fire when exactly one field was missing — a customer whose open
+      // event was missing TWO fields (e.g. material + destination) who then
+      // asked something totally unrelated ("เชื้อเพลิง", "ขอเลขบชคับ") still
+      // got force-fed the same canned two-field nag on every message, since
+      // `missing.length === 1` never held. A message that reads as a
+      // question is never a legitimate answer to a missing-field prompt
+      // regardless of how many fields are still open — drop the
+      // missing.length gate entirely.
+      if (looksLikeAQuestion(replyText)) {
         return null
       }
 

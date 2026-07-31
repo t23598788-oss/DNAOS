@@ -32,7 +32,15 @@ const PULSE_HOLD_MS = 2500;
 export default function TelemetryPage() {
   const [pulseNodeIds, setPulseNodeIds] = useState<Set<string>>(new Set());
   const [pulseLinkKeys, setPulseLinkKeys] = useState<Set<string>>(new Set());
-  const [isFullscreen, setIsFullscreen] = useState(false);
+  // Inside the Tauri desktop wrap, the window itself now opens already
+  // maximized/fullscreen (src-tauri/tauri.conf.json) — the browser Fullscreen
+  // API this "click anywhere" prompt was built for doesn't apply there, and
+  // the Tauri webview never reliably fires `fullscreenchange`, so
+  // `isFullscreen` could never flip to true and the tooltip stayed stuck on
+  // screen forever (owner-reported, 2026-07-30). Detect Tauri the same way
+  // app/login/page.tsx does and just skip the whole prompt in that context.
+  const isTauri = typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
+  const [isFullscreen, setIsFullscreen] = useState(isTauri);
   const timers = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
 
   const enterFullscreen = useCallback(() => {
@@ -41,10 +49,11 @@ export default function TelemetryPage() {
   }, []);
 
   useEffect(() => {
+    if (isTauri) return;
     const onFsChange = () => setIsFullscreen(Boolean(document.fullscreenElement));
     document.addEventListener("fullscreenchange", onFsChange);
     return () => document.removeEventListener("fullscreenchange", onFsChange);
-  }, []);
+  }, [isTauri]);
 
   const firePulse = useCallback((kind: string) => {
     const target = KIND_TARGET[kind];

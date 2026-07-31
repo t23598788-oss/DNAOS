@@ -21,7 +21,10 @@ export async function GET(req: NextRequest) {
     .eq("is_active", true)
     .order("created_at", { ascending: false })
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  if (error) {
+    console.error("[sites] list query failed:", error.message)
+    return NextResponse.json({ sites: [] })
+  }
   return NextResponse.json({ sites: data ?? [] })
 }
 

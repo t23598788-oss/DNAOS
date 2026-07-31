@@ -89,7 +89,10 @@ export async function GET(req: NextRequest) {
     if (search) q = q.ilike("invoice_no", `%${search}%`)
 
     const { data, error } = await q
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    if (error) {
+      console.error("[documents] invoices list query failed:", error.message)
+      return NextResponse.json({ documents: [] })
+    }
 
     const documents = (data ?? []).map((d: any) => ({
       id: d.id,
@@ -119,7 +122,10 @@ export async function GET(req: NextRequest) {
   if (search) q = q.ilike("document_no", `%${search}%`)
 
   const { data, error } = await q
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  if (error) {
+    console.error("[documents] standalone_documents list query failed:", error.message)
+    return NextResponse.json({ documents: [] })
+  }
 
   const documents = (data ?? []).map((d: any) => ({
     id: d.id,

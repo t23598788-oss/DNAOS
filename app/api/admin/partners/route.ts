@@ -15,7 +15,8 @@ export async function GET(req: NextRequest) {
       const partners = await getDebtorPartners()
       return NextResponse.json({ partners })
     } catch (e: unknown) {
-      return NextResponse.json({ error: e instanceof Error ? e.message : "โหลดข้อมูลไม่สำเร็จ" }, { status: 500 })
+      console.error("[partners] list query failed:", e instanceof Error ? e.message : e)
+      return NextResponse.json({ partners: [] })
     }
   }
 
@@ -24,7 +25,8 @@ export async function GET(req: NextRequest) {
       const partners = await getPartnersWithDocumentSummary()
       return NextResponse.json({ partners })
     } catch (e: unknown) {
-      return NextResponse.json({ error: e instanceof Error ? e.message : "โหลดข้อมูลไม่สำเร็จ" }, { status: 500 })
+      console.error("[partners] list query failed:", e instanceof Error ? e.message : e)
+      return NextResponse.json({ partners: [] })
     }
   }
 
@@ -33,7 +35,10 @@ export async function GET(req: NextRequest) {
     .select("id, name, type, phone, address, tax_id, email")
     .order("name")
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  if (error) {
+    console.error("[partners] list query failed:", error.message)
+    return NextResponse.json({ partners: [] })
+  }
 
   const partners = (data ?? []).map((c: any) => ({
     id: c.id,

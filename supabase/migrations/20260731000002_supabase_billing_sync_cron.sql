@@ -1,0 +1,29 @@
+-- Runs supabase/functions/supabase-billing-sync every 30 minutes so a real
+-- Supabase invoice-overdue email (Gmail API, read-only) gets detected,
+-- converted USD→THB via the real BOT exchange rate, and pushed to the
+-- owner's own LINE chat for approval — same real partner-payable cascade
+-- already used for outgoing partner payments (capability #18), reused here
+-- rather than a second parallel notify system. 30 minutes (not 5, like
+-- bank-email-sync) since billing emails are genuinely rare, not real-time
+-- transaction-critical.
+--
+-- Same per-function secret pattern as bank-email-sync/fuel-price-sync
+-- (Rule 108 — no shared secret reused across jobs).
+--
+-- pg_cron / pg_net already enabled by migration 20260711000003.
+
+-- Applied live with the real secret substituted in place of the placeholder below:
+-- select cron.schedule(
+--   'supabase-billing-sync',
+--   '*/30 * * * *',
+--   $$
+--   select net.http_post(
+--     url := 'https://xeytcavxejhyzxwevgto.supabase.co/functions/v1/supabase-billing-sync',
+--     headers := jsonb_build_object(
+--       'Content-Type', 'application/json',
+--       'x-cron-secret', '<BILLING_SYNC_CRON_SECRET value>'
+--     ),
+--     body := '{}'::jsonb
+--   );
+--   $$
+-- );

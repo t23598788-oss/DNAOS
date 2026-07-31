@@ -3,10 +3,18 @@
 -- Non-sensitive answers (e.g. "no debt") still reply immediately; anything
 -- with a real amount lands here as a draft until a human clicks send.
 
+-- Local-migration bootstrap fix (owner, 2026-07-30, KM-007 —
+-- registry/existence.json known_mistakes): public.companies has no CREATE
+-- TABLE in ANY migration (unlike partners/pit_profiles, which do get
+-- created eventually) — legacy table, off-record, real schema only
+-- recoverable via pg_dump. company_id's FK dropped entirely rather than
+-- deferred, since there's no later point in this migration history where
+-- companies would exist locally either. No-op change in production
+-- (companies already exists there, this FK already applies there).
 create table if not exists public.line_outbound_drafts (
   id             uuid primary key default gen_random_uuid(),
   line_user_id   text not null,
-  company_id     uuid references public.companies(id),
+  company_id     uuid,
   reason         text not null,
   proposed_text  text not null,
   final_text     text,

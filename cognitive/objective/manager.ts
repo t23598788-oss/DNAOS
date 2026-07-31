@@ -73,6 +73,19 @@ const VOCABULARY: Record<string, string> = {
   "ลูกค้า": "customer", "เอกสาร": "document",
 };
 
+// Real bug, owner-reported 2026-07-30: "พนักงาน" (employee) got matched to
+// "job" here — "งาน" is a blind substring of "พนักงาน". Same class of bug
+// as cognitive/reasoning/engine.ts's own (separately duplicated — known
+// architectural debt, not yet unified) vocabulary scan; fixed the same way
+// in both.
+const VOCAB_NEGATIVE_LOOKBEHIND: Record<string, RegExp> = {
+  "งาน": /(?<!พนัก)งาน/,
+};
+function matchesVocabWord(raw: string, word: string): boolean {
+  const guard = VOCAB_NEGATIVE_LOOKBEHIND[word];
+  return guard ? guard.test(raw) : raw.includes(word);
+}
+
 const BUSINESS_OBJECTS: Record<string, string[]> = {
   customer: ["customer", "debt", "invoice", "job"],
   debt: ["customer", "debt", "invoice", "payment"],
@@ -220,7 +233,7 @@ export function resolveObjective(input: EnrichedInput, session: Session): Object
   let domain = input.what ? (VOCABULARY[input.what] ?? input.what) : null;
   if (!domain && input.raw_input) {
     for (const [word, obj] of Object.entries(VOCABULARY)) {
-      if (input.raw_input.includes(word)) { domain = obj; break; }
+      if (matchesVocabWord(input.raw_input, word)) { domain = obj; break; }
     }
   }
 

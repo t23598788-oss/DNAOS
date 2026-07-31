@@ -10,9 +10,15 @@
 -- history and it does not exist in the live schema today — this migration
 -- is the first real creation of it.
 
+-- Local-migration bootstrap fix (owner, 2026-07-30, KM-007 —
+-- registry/existence.json known_mistakes): public.invoices has no CREATE
+-- TABLE in any migration — legacy, off-record, real schema only
+-- recoverable via pg_dump. invoice_id's FK dropped entirely (no later
+-- point in this history where invoices exists locally either). No-op
+-- change in production (invoices already exists there).
 create table if not exists public.invoice_items (
   id uuid primary key default gen_random_uuid(),
-  invoice_id uuid not null references public.invoices(id) on delete cascade,
+  invoice_id uuid not null,
   description text not null,
   qty numeric not null default 1,
   unit text not null default 'รายการ',

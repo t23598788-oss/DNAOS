@@ -18,6 +18,13 @@ export async function GET() {
     .select("id, line_user_id, company_id, reason, proposed_text, final_text, context, status, created_at, companies:company_id(name)")
     .order("created_at", { ascending: false })
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  // Owner instruction (2026-07-30): a read/list endpoint must never crash the
+  // whole page — if the DB can't answer, show an empty table, not a broken
+  // screen. Logged server-side so the gap is still visible to us, just not
+  // to the customer/admin's UI as a hard failure.
+  if (error) {
+    console.error("[outbound-drafts] list query failed:", error.message)
+    return NextResponse.json({ drafts: [] })
+  }
   return NextResponse.json({ drafts: data ?? [] })
 }

@@ -852,6 +852,7 @@
       "purpose": "Cognitive Pipeline กลาง — Intent → Plan → Execute → Reflect → Board",
       "purpose_th": "กระบวนการคิดหลักของระบบ — เจตนา → วางแผน → ปฏิบัติ → ประเมินผล → แสดงผล",
       "exports": [
+        "ClientDirective",
         "runCognitivePipeline"
       ],
       "status": "active"
@@ -1554,6 +1555,63 @@
       ],
       "status": "active"
     },
+    "supabase/functions/line-webhook-v2/engines/external-facts.ts": {
+      "owner": "line-webhook-v2",
+      "layer": "engines",
+      "purpose": "Deno-side mirror of cognitive/pipeline.ts's answerExternalFact() (fuel price/weather/date) — both sides call the SAME real external APIs (Bangchak, Open-Meteo, system clock) directly since the two runtimes (Supabase cloud edge function vs the owner's own Mac) cannot reach each other over HTTP; kept in sync by hand.",
+      "purpose_th": "เวอร์ชัน Deno ของ answerExternalFact() ฝั่งแอดมิน (ราคาน้ำมัน/อากาศ/วันที่) — ทั้งสองฝั่งเรียก API จริงแหล่งเดียวกันตรงๆ เพราะสองรันไทม์ (Supabase cloud กับเครื่อง Mac ของเฮีย) เชื่อมถึงกันไม่ได้จริง — sync มือให้ตรงกัน",
+      "exports": [
+        "isExternalFactQuestion",
+        "answerExternalFact"
+      ],
+      "status": "active"
+    },
+    "cognitive/normalize.ts": {
+      "owner": "cognitive",
+      "layer": "cognitive",
+      "purpose": "Thai colloquial/spoken-form normalization (มั้ย→ไหม, Thai day-of-month words→digits, etc.) run before any intent/fact pattern in cognitive/pipeline.ts — deterministic substitution only, never a guess.",
+      "purpose_th": "แปลงภาษาพูด/สแลงไทยให้เป็นรูปแบบมาตรฐานก่อนเข้าสู่การจับคู่ pattern ใดๆ ใน cognitive/pipeline.ts — แทนที่ regex ตรงๆ ทีละคำ",
+      "exports": [
+        "normalizeThaiColloquial"
+      ],
+      "status": "active"
+    },
+    "engines/bot-exchange-rate.ts": {
+      "owner": "engines",
+      "layer": "engines",
+      "purpose": "Real-time THB exchange rates from Bank of Thailand's API portal (owner-registered app, portal.api.bot.or.th) — used to evaluate currency direction for partner credit terms and machinery/parts purchase decisions.",
+      "purpose_th": "ดึงอัตราแลกเปลี่ยนเงินบาทจริงจาก API ธนาคารแห่งประเทศไทย (แอปที่เฮียลงทะเบียนเอง) — ใช้ประเมินทิศทางค่าเงินสำหรับวงเงินเครดิตคู่ค้าและการสั่งซื้อเครื่องจักร/อะไหล่",
+      "exports": [
+        "ExchangeRateRow",
+        "getLatestExchangeRates",
+        "getExchangeRateFor"
+      ],
+      "status": "active"
+    },
+    "engines/fuel-live.ts": {
+      "owner": "engines",
+      "layer": "engines",
+      "purpose": "Real-time full fuel-price list (all types) from Bangchak's public API — separate from fuel-price-sync's single-value diesel sync used by engines/fuel.ts's cost calc.",
+      "purpose_th": "ดึงราคาน้ำมันทุกชนิดแบบ real-time จาก Bangchak — คนละจุดประสงค์กับ fuel-price-sync ที่ sync ค่าดีเซลค่าเดียวไว้ให้ engines/fuel.ts คำนวณต้นทุน",
+      "exports": [
+        "FuelPriceRow",
+        "getAllBangchakFuelPrices"
+      ],
+      "status": "active"
+    },
+    "engines/weather.ts": {
+      "owner": "engines",
+      "layer": "engines",
+      "purpose": "Real-time Khon Kaen weather lookup (Open-Meteo, free, no API key) — rain forecast matters for ready-mix delivery timing/site access, not just small talk.",
+      "purpose_th": "ดึงสภาพอากาศ/พยากรณ์ฝนจริงของ จ.ขอนแก่น (Open-Meteo ฟรี ไม่ต้องใช้ API key) — มีผลจริงต่อการจัดส่งงานคอนกรีต/เข้าหน้างาน ไม่ใช่แค่คุยเล่น",
+      "exports": [
+        "WeatherDay",
+        "WeatherNow",
+        "getKhonKaenWeatherForDay",
+        "getKhonKaenWeatherNow"
+      ],
+      "status": "active"
+    },
     "engines/impact/engine.ts": {
       "owner": "engines",
       "layer": "engines",
@@ -2221,8 +2279,8 @@
     "services/ai/translator.ts": {
       "owner": "services",
       "layer": "services",
-      "purpose": "AI Translation Layer — แปล Intent+Entity จากภาษาไทย + register เข้า Runtime",
-      "purpose_th": "ชั้นแปลภาษาด้วย AI — แปลเจตนาและข้อมูลจากภาษาไทย และลงทะเบียนคำสั่งเข้าสู่ Runtime",
+      "purpose": "Entity extractor (product/quantity/customer/document_type) via regex intent-matching. Wired in 2026-07-30 (owner: found unused, wired in) as an enrichment pass in cognitive/pipeline.ts's enrichWithTranslator() — fills gaps operatingIntent() leaves null, never overrides/gates it. extractProduct() now recognizes fuel (น้ำมัน/ดีเซล/เบนซิน) alongside construction materials, same owner correction — one shared product-recognition list instead of fuel being invisible to it.",
+      "purpose_th": "ตัวแยกข้อมูล (สินค้า/จำนวน/ลูกค้า/ประเภทเอกสาร) ด้วย regex — เสียบเข้าเป็นชั้นเสริมข้อมูลใน cognitive/pipeline.ts's enrichWithTranslator() เติมข้อมูลที่ operatingIntent() ปล่อยว่างไว้เท่านั้น ไม่แทนที่/ไม่กั้นหน้า extractProduct() รู้จักน้ำมันแล้วเหมือนวัสดุก่อสร้าง",
       "exports": [
         "Entity",
         "Intent",
@@ -2230,8 +2288,10 @@
         "translate"
       ],
       "status": "active",
-      "declared_callers": [],
-      "entry_point": true
+      "declared_callers": [
+        "cognitive/pipeline.ts"
+      ],
+      "entry_point": false
     },
     "services/middleware/sanitize.ts": {
       "owner": "services",
@@ -2505,6 +2565,16 @@
       "purpose_th": "GET /api/admin/pulse — ดึงข้อมูลใบแจ้งหนี้, ออเดอร์, เอกสารเดี่ยว ในครั้งเดียวสำหรับหน้า dashboard ไม่ต้องยิงหลายรอบ",
       "exports": [
         "GET"
+      ],
+      "status": "active"
+    },
+    "app/api/admin/screen-vision/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Screen Vision, read-only (owner, 2026-07-30) — reads a screenshot file (captured on-demand by src-tauri's capture_screen Tauri command, macOS's own `screencapture` CLI, never a background watcher) and sends it to the local Ollama vision model (qwen2.5vl:7b, already used for real document OCR elsewhere — Rule 103 reuse) to transcribe/describe what's on screen. Never clicks or types anything — a deliberate, explained scope limit (full Accessibility-based autonomous input control was explicitly declined the same conversation, a separate risk axis).",
+      "purpose_th": "อ่านหน้าจอแบบอ่านอย่างเดียว (owner, 2026-07-30) — อ่านไฟล์ภาพหน้าจอ (ถ่ายตามคำสั่งเท่านั้นผ่าน Tauri command capture_screen ใน src-tauri ใช้ screencapture ของ macOS เอง ไม่ใช่ตัวคอยแอบดูตลอด) ส่งให้โมเดล vision ในเครื่อง (qwen2.5vl:7b เดิมที่ใช้อ่านเอกสารจริงอยู่แล้ว) อ่าน/บรรยายสิ่งที่เห็น ไม่กด/พิมพ์แทนเด็ดขาด (ตั้งใจจำกัดขอบเขต — ส่วนควบคุมอัตโนมัติเต็มรูปแบบถูกปฏิเสธไปแล้วในบทสนทนาเดียวกัน คนละความเสี่ยง)",
+      "exports": [
+        "POST"
       ],
       "status": "active"
     },
@@ -3921,6 +3991,16 @@
       ],
       "status": "active"
     },
+    "app/api/admin/finance-alerts/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Real notification-count source for the finance icon badge (owner, 2026-07-31) — counts real partner_payable_requests still awaiting the owner's action (pending/owner_acknowledged), which now includes real auto-detected Supabase billing invoices (supabase-billing-sync edge function) alongside the existing partner-material-purchase payable cascade.",
+      "purpose_th": "แหล่งข้อมูลจำนวนแจ้งเตือนจริงสำหรับไอคอนการเงิน (owner, 2026-07-31) — นับ partner_payable_requests ที่ยังรอเฮียดำเนินการจริง (pending/owner_acknowledged) รวมบิล Supabase ที่ตรวจจับอัตโนมัติด้วย",
+      "exports": [
+        "GET"
+      ],
+      "status": "active"
+    },
     "app/api/admin/quotation-queue/route.ts": {
       "owner": "app",
       "layer": "app",
@@ -4094,16 +4174,6 @@
       "purpose_th": "หน้าห้องควบคุมแสดงบ่อวัสดุทั้งหมด พร้อมจังหวัด/พิกัด/สถานะราคา ดึงจากฐานข้อมูลจริงสด",
       "exports": [
         "PitsPage"
-      ],
-      "status": "active"
-    },
-    "supabase/functions/line-webhook-v2/engines/auto-build-event.ts": {
-      "owner": "supabase",
-      "layer": "supabase",
-      "purpose": "Builds a real business_event live from a customer's message the moment it arrives — no admin click needed. Real incident 2026-07-10: a live customer sent 5 messages asking for a price and got zero response because Event Builder only ran on manual admin trigger",
-      "purpose_th": "สร้าง business_event จริงทันทีที่ลูกค้าส่งข้อความมา ไม่ต้องรอแอดมินกดปุ่ม — แก้จากเหตุการณ์จริงที่ลูกค้าถามราคา 5 ข้อความแล้วไม่มีใครตอบเลย",
-      "exports": [
-        "tryAutoBuildEvent"
       ],
       "status": "active"
     },
@@ -6492,6 +6562,88 @@
         "isOwnerSurface",
         "matchOwnerSlipToPartnerPayable",
         "requestPartnerPayableApproval"
+      ],
+      "status": "active"
+    },
+    "app/api/cron/supabase-project-status/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Supabase Project Health Monitor (owner, 2026-07-29) — real incident: the dna-os-deadboard Supabase project was suspended by a failed Pro-plan invoice on 2026-07-15, and nobody knew until the owner clicked into /admin two weeks later and hit a 504. Runs on Vercel Cron (vercel.json, every 6h), deliberately NOT hosted on Supabase itself (an unhealthy Supabase project can't check its own health) — calls the Supabase Management API (SUPABASE_MANAGEMENT_API_TOKEN, account-level) to check every project across every organization this account has, and alerts the owner's real LINE chat directly via registry/communication.ts if any project isn't ACTIVE_HEALTHY. Uses OWNER_LINE_USER_ID (a plain env var, not a line_profiles DB lookup) specifically so the alert still fires even if the unhealthy project IS the one line_profiles normally lives in",
+      "purpose_th": "ตัวเฝ้าดูสุขภาพโปรเจกต์ Supabase (owner, 2026-07-29) — เหตุการณ์จริง: โปรเจกต์ dna-os-deadboard ถูกพักเพราะใบแจ้งหนี้ Pro plan จ่ายไม่ผ่านตั้งแต่ 15 ก.ค. 69 ไม่มีใครรู้จนเฮียเปิด /admin เอง 2 สัปดาห์ต่อมาแล้วเจอ 504 รันบน Vercel Cron (vercel.json ทุก 6 ชม.) ตั้งใจไม่ให้รันบน Supabase เอง (โปรเจกต์ที่ป่วยเช็คสุขภาพตัวเองไม่ได้) เรียก Supabase Management API (SUPABASE_MANAGEMENT_API_TOKEN ระดับบัญชี) เช็คทุกโปรเจกต์ทุกองค์กรของบัญชีนี้ แจ้งเข้า LINE เฮียโดยตรงผ่าน registry/communication.ts ถ้าเจอโปรเจกต์ไหนไม่ ACTIVE_HEALTHY ใช้ OWNER_LINE_USER_ID (env var ธรรมดา ไม่ query จาก DB) เพื่อให้แจ้งเตือนทำงานได้แม้โปรเจกต์ที่ป่วยจะเป็นตัวที่ line_profiles อยู่ก็ตาม",
+      "exports": [
+        "GET"
+      ],
+      "status": "active"
+    },
+    "supabase/functions/line-webhook-v2/engines/local-event-buffer.ts": {
+      "owner": "supabase",
+      "layer": "supabase",
+      "purpose": "Local Event Buffer (owner, 2026-07-30) — real gap found live: events/store.ts's saveEvent() silently returned null on any DB error, and every handler just gave up entirely (no reply, nothing recorded, the customer's message gone). File-based (not in-memory-only, so a Deno edge-runtime restart can't lose it) — on insert failure, the event is appended to a local JSONL file instead of dropped. flushBufferedEvents() drains it back into the real table, called opportunistically at the start of every new saveEvent() plus removes the buffer file entirely once fully drained, per the owner's own instruction ('ลบ Cache/Buffer ชั่วคราวออกทันที เพื่อคืน Memory'). See roadmap #19 — the save step itself is now non-blocking, but downstream handlers assuming a real row id still need individual hardening.",
+      "purpose_th": "ที่พักข้อมูล Event ในเครื่อง (owner, 2026-07-30) — พบช่องว่างจริง: saveEvent() เดิม คืนค่า null เงียบๆ เมื่อ DB error ทำให้ทุก handler ล้มเลิกไปเลย (ไม่ตอบกลับ ไม่บันทึกอะไร ข้อความลูกค้าหายไป) ใช้ไฟล์เก็บ (ไม่ใช่แค่ในหน่วยความจำ เพราะ Deno edge-runtime รีสตาร์ทได้ทุกเมื่อ) — ถ้า insert ไม่ผ่าน จะเก็บ event ไว้ในไฟล์ JSONL แทนการทิ้ง flushBufferedEvents() ดึงกลับเข้าตารางจริงอัตโนมัติทุกครั้งที่มี saveEvent() ใหม่ และลบไฟล์ทิ้งทันทีเมื่อดึงหมดแล้ว ตามคำสั่งเฮียเป๊ะ ('ลบ Cache/Buffer ชั่วคราวออกทันที เพื่อคืน Memory') ดู roadmap #19 — ตอนนี้ครอบคลุมแค่ขั้นตอนบันทึก ส่วน handler ปลายทางที่คาดว่าจะได้ id จริงยังต้องปรับแก้เพิ่มทีละจุด",
+      "exports": [
+        "BufferedEventRecord",
+        "bufferEvent",
+        "flushBufferedEvents"
+      ],
+      "status": "active"
+    },
+    "components/nav/HomeBackBar.tsx": {
+      "owner": "components",
+      "layer": "components",
+      "purpose": "Home/Back navigation bar (owner, 2026-07-30) — real need surfaced by wrapping the admin app in a native Tauri desktop window (src-tauri/): unlike a browser tab, a Tauri webview has no back button, no address bar, nothing to navigate with except whatever the page itself provides. A 2026-07-16 attempt at this used a floating overlay and was reverted the same day because it covered real page content (see app/admin/layout.tsx's history). This renders in NORMAL DOCUMENT FLOW (not floating/absolute) — it takes its own real space and pushes page content down, so it can never cover anything. Wired once into app/admin/layout.tsx so every admin page gets it.",
+      "purpose_th": "แถบนำทางย้อนกลับ/หน้าหลัก (owner, 2026-07-30) — ความจำเป็นจริงที่เจอตอนห่อแอป admin เป็นหน้าต่าง Tauri (src-tauri/): ต่างจากแท็บเบราว์เซอร์ตรงที่ Tauri webview ไม่มีปุ่มย้อนกลับ ไม่มีแถบที่อยู่เว็บ ไม่มีอะไรให้กดนำทางเลยนอกจากที่หน้านั้นๆ มีเอง ความพยายามก่อนหน้า (2026-07-16) ใช้ overlay ลอยแล้วถูกยกเลิกวันเดียวกันเพราะบังเนื้อหาจริง (ดูประวัติใน app/admin/layout.tsx) ตัวนี้เรนเดอร์แบบ normal document flow (ไม่ลอย/absolute) กินพื้นที่จริงแล้วดันเนื้อหาลง จึงไม่มีทางไปบังอะไรได้เลย เชื่อมเข้า app/admin/layout.tsx ครั้งเดียว ทุกหน้า admin ได้แถบนี้หมด",
+      "exports": [
+        "HomeBackBar"
+      ],
+      "status": "active"
+    },
+    "components/admin/ttsSpeak.ts": {
+      "owner": "components",
+      "layer": "components",
+      "purpose": "Text-to-speech helper (owner, 2026-07-30) — extracted out of SecretaryChat.tsx so VoiceStandbyWidget.tsx can reuse the exact same speak() function instead of a second copy (Rule 101/103). Wraps the browser's built-in speechSynthesis (Web Speech API), macOS's real Thai voice.",
+      "purpose_th": "ฟังก์ชันแปลงข้อความเป็นเสียงพูด (owner, 2026-07-30) — แยกออกมาจาก SecretaryChat.tsx เพื่อให้ VoiceStandbyWidget.tsx เรียกใช้ฟังก์ชัน speak() ตัวเดียวกันได้ ไม่ต้องสร้างซ้ำ ใช้ speechSynthesis ในตัวเบราว์เซอร์ เสียงไทยจริงจาก macOS",
+      "exports": [
+        "speak"
+      ],
+      "status": "active"
+    },
+    "components/admin/VoiceStandbyWidget.tsx": {
+      "owner": "components",
+      "layer": "components",
+      "purpose": "Global Background Voice Listener, UI half (owner, 2026-07-30) — subscribes to real Supabase Realtime INSERT events on voice_wake_events (migration 20260730000003), written exclusively by ~/dna-os-ollama/voice-wake-watcher.mjs (a macOS launchd daemon running continuously, independent of this app/window, real local Whisper transcription). On a real event: speaks 'ครับเฮีย' aloud (ttsSpeak.ts) and shows a small ambient waveform widget, no text overlay, staying visible until the owner manually closes it. Never touches a microphone or runs speech recognition itself — this component is pure UI, per the owner's explicit architecture correction ('แอปมีหน้าที่แค่หน้าต่าง UI...แยก Layer ของแอปออกจาก Background Service และ Supabase'). Not a revival of the earlier, deleted components/admin/AssistantWakeOverlay.tsx (see KM-009, registry/existence.json) — different signal source entirely (real independent daemon + DB event, not client-side text pattern matching).",
+      "purpose_th": "ตัวรับสัญญาณดักฟังเสียงเบื้องหลัง ฝั่ง UI (owner, 2026-07-30) — subscribe Realtime INSERT จริงบนตาราง voice_wake_events ที่เขียนโดย ~/dna-os-ollama/voice-wake-watcher.mjs (macOS launchd daemon รันตลอด แยกจากแอปนี้ ใช้ Whisper local จริง) พอมี event จริง พูด 'ครับเฮีย' ออกเสียง แสดงคลื่นเสียงเล็กๆ ไม่มีข้อความบัง ค้างอยู่จนกว่าเฮียจะปิดเอง ไม่แตะไมโครโฟน/ไม่รันเสียงจดจำเองเลย เป็น UI ล้วนๆ ตามคำสั่งแยกชั้นของเฮีย ไม่ใช่การรื้อฟื้น AssistantWakeOverlay.tsx เดิม (ดู KM-009)",
+      "exports": [
+        "VoiceStandbyWidget"
+      ],
+      "status": "active"
+    },
+    "app/api/auth/auto-login/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Auto-login for the native desktop wrap (owner, 2026-07-30) — single-owner system (see feedback_single_owner_dev_phase_auth memory), running as a native app on the owner's own machine, so there's no real reason to re-type a password every launch. Reads ADMIN_EMAIL/ADMIN_PASSWORD (server-side only, never sent to the client — were already sitting unused in .env.local since the earlier signup-flow removal), signs in via a real server-side Supabase client, writes the session cookies the same way middleware.ts does. Only ever called by app/login/page.tsx when it detects window.__TAURI_INTERNALS__ (only present inside the Tauri webview) — a normal browser tab still shows the real login form untouched.",
+      "purpose_th": "เข้าสู่ระบบอัตโนมัติสำหรับแอปเดสก์ท็อป (owner, 2026-07-30) — ระบบเจ้าของคนเดียว (ดู feedback_single_owner_dev_phase_auth) รันเป็นแอปในเครื่องเฮียเอง ไม่มีเหตุผลต้องพิมพ์รหัสผ่านใหม่ทุกครั้งที่เปิด อ่าน ADMIN_EMAIL/ADMIN_PASSWORD (server-side เท่านั้น ไม่เคยส่งไปฝั่ง client — ค้างอยู่เฉยๆ ใน .env.local ตั้งแต่ตัดระบบสมัครสมาชิกออก) ล็อกอินจริงผ่าน Supabase server-side client เขียน session cookie แบบเดียวกับที่ middleware.ts ทำ เรียกใช้เฉพาะตอน app/login/page.tsx ตรวจพบ window.__TAURI_INTERNALS__ (มีแค่ใน Tauri webview เท่านั้น) — เบราว์เซอร์ปกติยังเห็นฟอร์ม login จริงเหมือนเดิม",
+      "exports": [
+        "POST"
+      ],
+      "status": "active"
+    },
+    "supabase/functions/openclaw-webhook/middleware/signature.ts": {
+      "owner": "supabase",
+      "layer": "supabase",
+      "purpose": "Verifies an OpenClaw/Pinto webhook request signature (HMAC-SHA256 of the raw body) against the shared OPENCLAW_WEBHOOK_SECRET, same scheme as the LINE webhook.",
+      "purpose_th": "ตรวจสอบลายเซ็น HMAC-SHA256 ของ OpenClaw/Pinto webhook request เทียบกับ OPENCLAW_WEBHOOK_SECRET ที่ตั้งไว้ร่วมกัน รูปแบบเดียวกับ LINE webhook",
+      "exports": [
+        "verifyOpenClawSignature"
+      ],
+      "status": "active"
+    },
+    "app/api/internal/openclaw/command/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Edge-function bridge for the OpenClaw + Pinto mobile channel — Supabase Edge Functions (Deno) cannot import the Node cognitive pipeline directly, so the openclaw-webhook edge function calls this narrowly-scoped, secret-gated server route instead, same bridge pattern as app/api/internal/line/document-artifact.",
+      "purpose_th": "สะพานเชื่อมสำหรับช่องทางมือถือ OpenClaw + Pinto — Supabase Edge Function (Deno) เรียก cognitive pipeline ของ Node ตรงไม่ได้ เลยเรียก route นี้ (มี secret คุ้มกัน) แทน รูปแบบเดียวกับ app/api/internal/line/document-artifact",
+      "exports": [
+        "POST"
       ],
       "status": "active"
     }

@@ -1,6 +1,6 @@
 'use client'
 
-import { Suspense, useRef, useState } from "react"
+import { Suspense, useEffect, useRef, useState } from "react"
 import { useSearchParams } from "next/navigation"
 import { createBrowserSupabase } from "@/services/supabase/browser"
 import { resolveDestination } from "@/core/auth/resolveDestination"
@@ -32,6 +32,31 @@ function LoginForm() {
 
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [autoLoggingIn, setAutoLoggingIn] = useState(false)
+
+  // Auto-login for the native desktop wrap (owner, 2026-07-30): "ล็อกอินกับ
+  // เครื่องเลย...ถ้าเป็นแอปพลิเคชั่น" — single-owner system (see
+  // feedback_single_owner_dev_phase_auth memory), running as a native app on
+  // the owner's own machine, so there's no real reason to re-type a password
+  // every launch. window.__TAURI_INTERNALS__ only exists inside the Tauri
+  // webview (src-tauri/) — a normal browser tab still shows the real form,
+  // untouched, since this global is never present there.
+  useEffect(() => {
+    if (typeof window === "undefined" || !("__TAURI_INTERNALS__" in window)) return
+    setAutoLoggingIn(true)
+    fetch("/api/auth/auto-login", { method: "POST" })
+      .then((r) => r.json())
+      .then((res) => {
+        if (res.ok) {
+          window.location.href = nextPath && nextPath.startsWith("/") ? nextPath : res.dest
+        } else {
+          setAutoLoggingIn(false)
+          setError(res.error ?? "เข้าสู่ระบบอัตโนมัติไม่สำเร็จ")
+        }
+      })
+      .catch(() => setAutoLoggingIn(false))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   // Login-flow debug instrumentation (2026-07-14) — DOM refs so submit can
   // read the input's actual value directly, not just React's tracked state.
@@ -62,15 +87,40 @@ function LoginForm() {
     const submitEmail = emailInputRef.current?.value ?? ""
     const submitPassword = passwordInputRef.current?.value ?? ""
 
-    try {
-      const sb = createBrowserSupabase()
-      const { data, error: authError } = await sb.auth.signInWithPassword({ email: submitEmail, password: submitPassword })
+    // Silent auto-retry (owner, 2026-07-29): a real "Failed to fetch" was
+    // seen live — signInWithPassword's own fetch() throwing (network-level,
+    // not a wrong-password response) is exactly the kind of transient blip
+    // that shouldn't force a human to notice and click "Sign in" again.
+    // Real Supabase-side outages are now caught independently by
+    // supabase/functions/system-health-check, which alerts the owner
+    // directly — this retry only smooths over a one-off hiccup so it never
+    // reaches the screen at all.
+    let result: Awaited<ReturnType<ReturnType<typeof createBrowserSupabase>["auth"]["signInWithPassword"]>> | null = null
+    let networkFailed = false
+    for (let attempt = 0; attempt < 3; attempt++) {
+      networkFailed = false
+      try {
+        const sb = createBrowserSupabase()
+        result = await sb.auth.signInWithPassword({ email: submitEmail, password: submitPassword })
+      } catch {
+        networkFailed = true
+      }
+      if (!networkFailed) break
+      if (attempt < 2) await new Promise((r) => setTimeout(r, 1000 * (attempt + 1)))
+    }
 
-      if (authError || !data.session) {
-        setError(authError?.message ?? "อีเมลหรือรหัสผ่านไม่ถูกต้อง")
+    try {
+      if (networkFailed || !result || result.error || !result.data.session) {
+        setError(
+          networkFailed
+            ? "เชื่อมต่อ Supabase ไม่ได้ ลองเช็คอินเทอร์เน็ต หรือเปิด Incognito window ดู"
+            : (result?.error?.message ?? "อีเมลหรือรหัสผ่านไม่ถูกต้อง"),
+        )
         setLoading(false)
         return
       }
+
+      const { data } = result
 
       const dest = await landingPathFor(data.session.user.id)
 
@@ -89,6 +139,14 @@ function LoginForm() {
       setError("เกิดข้อผิดพลาด กรุณาลองใหม่ — ถ้ายังไม่ได้ ลองเปิด Incognito window หรือเช็คอินเทอร์เน็ต")
       setLoading(false)
     }
+  }
+
+  if (autoLoggingIn) {
+    return (
+      <div className="py-8 text-center text-sm text-stone-400">
+        กำลังเข้าสู่ระบบอัตโนมัติ...
+      </div>
+    )
   }
 
   return (

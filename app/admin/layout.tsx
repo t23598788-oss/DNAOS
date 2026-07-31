@@ -1,5 +1,7 @@
 import { requireAuthPage } from "@/core/auth/requireAuthPage";
 import { ADMIN_TIER } from "@/core/auth/session";
+import { HomeBackBar } from "@/components/nav/HomeBackBar";
+import { VoiceStandbyWidget } from "@/components/admin/VoiceStandbyWidget";
 
 /**
  * Main layout for the admin area.
@@ -17,10 +19,32 @@ import { ADMIN_TIER } from "@/core/auth/session";
  *
  * Navigation redesign (owner, 2026-07-16): a floating HomeBackBar overlay was
  * tried here and reverted the same day — it covered real page content (e.g.
- * the debt amount in the relationships header). Owner's correction: Home/Back
- * must be part of each page's own header layout, not a layer on top of it —
- * see components/nav/HomeBackInline.tsx, added into each page's real header
- * individually instead.
+ * the debt amount in the relationships header). The referenced per-page
+ * HomeBackInline.tsx was never actually built (comment-only, found live
+ * 2026-07-30 while wiring the Tauri desktop wrap — that wrap has no browser
+ * chrome at all, no back button, nothing).
+ *
+ * Real fix (2026-07-30): components/nav/HomeBackBar.tsx, rendered here in
+ * NORMAL DOCUMENT FLOW (not floating/absolute) — it takes its own real
+ * space and pushes page content down, so it can never cover anything the
+ * way the 2026-07-16 overlay did.
+ *
+ * Locked-viewport layout (owner, 2026-07-30): "ล็อกหน้าจอให้พอดีกับหน้าจอ
+ * โน๊ตบุ๊ก ไม่อยากให้มันดิ้นได้...กล่องบล็อกการพิมพ์/หัวข้อด้านบน ไม่ต้องให้
+ * มันเลื่อน" — reference was Gemini's own app chrome: header and input stay
+ * fixed, only the message list scrolls, whole window never bounces. Root
+ * cause of the old "whole page scrolls/reflows" behavior: this wrapper used
+ * `min-h-screen` (a MINIMUM — grows past the viewport if content is taller)
+ * stacked with pages like app/admin/dashboard/page.tsx that ALSO used
+ * `min-h-screen` for themselves — two stacked "at least 100vh" boxes render
+ * taller than one real viewport, so the whole native window scrolled as one
+ * long page instead of behaving like a locked app frame. Changed to a real
+ * `h-screen` (a FIXED size) flex column with HomeBackBar pinned and a single
+ * `overflow-y-auto` region below it — this preserves normal scrolling for
+ * every other admin page (that region scrolls exactly like `<body>` used
+ * to), while giving pages that want a fully locked frame (the dashboard/
+ * chat screen) a bounded, correctly-measured parent to fill with `h-full`
+ * instead of another unbounded `min-h-screen`.
  */
 export default async function AdminLayout({
   children,
@@ -30,8 +54,16 @@ export default async function AdminLayout({
   await requireAuthPage("/admin", ADMIN_TIER);
 
   return (
-    <div className="min-h-screen bg-stone-50">
-      {children}
+    <div className="h-screen flex flex-col bg-stone-50">
+      <HomeBackBar />
+      <div className="flex-1 min-h-0 overflow-y-auto">
+        {children}
+      </div>
+      {/* Global Background Voice Listener — UI half (owner, 2026-07-30):
+          mounted globally so it's reachable from every admin page. Never
+          touches a microphone itself — see VoiceStandbyWidget.tsx's own
+          comment for the real daemon/Realtime architecture. */}
+      <VoiceStandbyWidget />
     </div>
   );
 }

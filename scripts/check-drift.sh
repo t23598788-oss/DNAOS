@@ -41,7 +41,11 @@ echo "--- Checking for undeclared top-level directories ---"
 # named — found via scripts/check-drift.sh's own DRIFT output (Autonomous
 # Runtime Evolution pass, DNA-000044). Added rather than left flagging real,
 # legitimate folders as a "Shadow Layer" every run.
-DECLARED_TOP_LEVEL="core gateway engines cognitive presenter services plugins registry app components scripts supabase config node_modules backups public observatory docs styles"
+# src-tauri/ (owner, 2026-07-30) — the native desktop wrapper (Tauri/Rust)
+# around the existing Next.js app, per the local-migration effort (wraps
+# the same app, no separate business logic of its own — just window/build
+# config + a Rust entrypoint that loads the real Next.js UI).
+DECLARED_TOP_LEVEL="core gateway engines cognitive presenter services plugins registry app components scripts supabase config node_modules backups public observatory docs styles src-tauri"
 
 for dir in */; do
   dirname=$(basename "$dir")

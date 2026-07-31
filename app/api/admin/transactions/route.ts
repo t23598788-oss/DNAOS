@@ -21,7 +21,10 @@ export async function GET(req: NextRequest) {
   if (partnerId) query = query.eq("customer_company_id", partnerId)
 
   const { data, error } = await query
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  if (error) {
+    console.error("[transactions] list query failed:", error.message)
+    return NextResponse.json({ transactions: [] })
+  }
 
   const transactions = (data ?? []).map((t: any) => ({
     id: t.id,

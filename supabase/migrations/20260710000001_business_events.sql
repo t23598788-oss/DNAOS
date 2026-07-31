@@ -15,27 +15,49 @@ create table if not exists public.material_types (
   name        text not null
 );
 
+-- Local-migration bootstrap fix (owner, 2026-07-30, KM-007 —
+-- registry/existence.json known_mistakes): 20260705000001_business_events_
+-- partner_timeline.sql already CREATEs a much narrower public.business_events
+-- (id/partner_id/event_type/event_date/title/description/metadata) — this
+-- file's CREATE TABLE IF NOT EXISTS is THIS session's real, canonical,
+-- event-centric-core definition, but on a fresh local bootstrap it silently
+-- no-ops if the table already exists from that earlier file, leaving out
+-- every column below. Explicit ADD COLUMN IF NOT EXISTS after the CREATE
+-- makes this converge to the real full schema either way — a no-op change
+-- in production, where this file already ran when business_events didn't
+-- exist yet there (matching every other real-app usage this whole session
+-- of event_code/quoted_amount/status etc., which only this definition has).
 create table if not exists public.business_events (
   id                uuid primary key default gen_random_uuid(),
-  event_code        text not null unique,            -- EV250710-0001, human-referenceable
-  event_type        text,                             -- e.g. "purchase_request", "inquiry", "complaint"
-  source_line_user_id  text,                           -- which LINE contact this came from
-  source_message_ids   uuid[],                         -- line_events.id[] this event was built from
-  partner_id        uuid references public.companies(id),
-  material_id       uuid references public.material_types(id),
-  material_text     text,                             -- raw material text if not matched to material_types
-  quantity          numeric,
-  quantity_unit      text,
-  destination       text,
-  schedule_text      text,
-  contact_name       text,
-  contact_phone      text,
-  status            text not null default 'new',       -- new | quotation_pending | quoted | confirmed | delivered | cancelled
-  context           jsonb,                             -- free-form: anything the extractor found but didn't fit a column
-  confidence        numeric,                            -- 0-1, how sure the extractor was
+  event_code        text unique,
+  status            text not null default 'new',
   created_at        timestamptz not null default now(),
   updated_at        timestamptz not null default now()
 );
+
+alter table public.business_events
+  add column if not exists event_code text unique,
+  add column if not exists status text not null default 'new',
+  add column if not exists event_type text,
+  add column if not exists source_line_user_id text,
+  add column if not exists source_message_ids uuid[],
+  add column if not exists material_id uuid references public.material_types(id),
+  add column if not exists material_text text,
+  add column if not exists quantity numeric,
+  add column if not exists quantity_unit text,
+  add column if not exists destination text,
+  add column if not exists schedule_text text,
+  add column if not exists contact_name text,
+  add column if not exists contact_phone text,
+  add column if not exists context jsonb,
+  add column if not exists confidence numeric;
+
+-- partner_id already exists from the narrower July 5 definition (references
+-- public.partners, deferred there) — this file originally wanted it to
+-- reference public.companies(id) instead. Both companies and partners are
+-- real distinct tables in this codebase; not resolving that discrepancy
+-- here (out of scope for a bootstrap fix) — left exactly as July 5 defined
+-- it, since that's what's real in production today.
 
 create index if not exists business_events_source_line_user_id_idx on public.business_events (source_line_user_id);
 create index if not exists business_events_partner_id_idx on public.business_events (partner_id);

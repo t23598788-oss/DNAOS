@@ -1,4 +1,11 @@
 import Anthropic from "@anthropic-ai/sdk";
+import { supabase } from "@/services/supabase/queries";
+import { loadConfigs, getNum, getConfigUpdatedAt } from "@/core/config-loader";
+import { getKhonKaenWeatherNow, getKhonKaenWeatherForDay } from "@/engines/weather";
+import { getAllBangchakFuelPrices } from "@/engines/fuel-live";
+import { getLatestExchangeRates } from "@/engines/bot-exchange-rate";
+import { normalizeThaiColloquial } from "@/cognitive/normalize";
+import { translate as translateEntities } from "@/services/ai/translator";
 import { dispatch as dispatchCommand } from "@/engines/validation/dispatcher";
 import { composeBoard, type BoardResponse } from "@/cognitive/board";
 import { evaluate } from "@/cognitive/evaluation";
@@ -267,7 +274,394 @@ const WORKFLOWS: Record<string, WorkflowDefinition> = {
   },
 };
 
-export async function runCognitivePipeline(message: string): Promise<BoardResponse | { sender: "ai"; type: "command" | "text"; text?: string; command?: string }> {
+// Real Data Analysis Layer (owner, 2026-07-30): "ai ในเครื่องมันตัวเล็กมาก
+// มันไม่สามารถประมวลผลด้วยตัวของมันเองและวิเคราะห์ได้รวดเร็ว เราต้องใช้
+// ข้อมูลที่ถูกต้องจริงๆ เล็กๆ ไร้ขยะ สะอาดจริง ให้ ai มันค่อยวิเคราะห์แล้วก็
+// ตอบ...มันจะไม่มั่วเลย" — every question that touches an external, checkable
+// fact (fuel price, weather, exchange rate, today's date) must pass through
+// a REAL analysis step (call the actual data source, verify the result)
+// BEFORE any AI ever sees the question — never "AI thinks then answers" for
+// things that are actually knowable facts. Moved here from
+// app/api/chat/route.ts (owner correction, same conversation: "ทำไมไม่ย้าย
+// เข้าไปเป็นส่วนหนึ่งของขั้นวิเคราะห์เจตนา") so EVERY caller of
+// runCognitivePipeline (admin secretary chat, /ask route, anything future)
+// goes through this same one real analysis layer — not duplicated per route.
+// Returns null (never a guess) when the question isn't one of these facts,
+// letting the normal intent/workflow pipeline continue as before.
+// Real "Command Intercept" (owner, 2026-07-30): "คำสั่ง 'เปิดหน้าแอดมิน',
+// 'เปิดหน้าผู้ช่วย', 'ไปหน้า...' ให้ซอร์สโค้ดเปลี่ยนหน้าจอทันที ห้ามปล่อยหลุด
+// ไปให้ AI นั่งตอบปฏิเสธ" — covers every real admin route in this codebase
+// (verified against the actual `ls app/admin` folder list, not guessed).
+// Requires an explicit navigation verb (เปิด/ไป/พาไป/สลับ) alongside a
+// screen keyword — not a bare keyword alone — since some keywords (เช่น
+// "งาน") are short enough to appear inside unrelated real sentences.
+const NAV_VERB_PATTERN = /เปิด|ไปหน้า|ไปที่|พาไป|สลับ.*หน้า|เข้าไปหน้า|ไปดู/;
+const NAV_KEYWORDS: [RegExp, string][] = [
+  [/ผู้ช่วย|เลขา/, "/admin/dashboard"],
+  [/แอดมิน|หน้าหลัก/, "/admin/relationships"],
+  [/คู่ค้า|พาร์ทเนอร์|บริษัทคู่ค้า/, "/admin/partners"],
+  [/ลูกค้า|ความสัมพันธ์/, "/admin/relationships"],
+  [/หนี้|ติดตามหนี้/, "/admin/debt-tracking"],
+  [/ใบเสร็จ|เอกสาร/, "/admin/receipts"],
+  [/บ่อ(วัสดุ|หิน|ทราย|ดิน)?/, "/admin/pits"],
+  [/คิวเสนอราคา|รอเสนอราคา/, "/admin/quotation-queue"],
+  [/ภาพรวมการเงิน|การเงิน/, "/admin/finance"],
+  [/เครื่องยนต์|เครื่องจักร/, "/admin/equipment"],
+  [/โปรไฟล์.*(ไลน์|line)/i, "/admin/line-profiles"],
+  [/ตัวเชื่อมต่อ|connector/i, "/admin/connectors"],
+  // Real gap, owner-reported 2026-07-31: "สถาปัตยกรรม" used to map only to
+  // /admin/graph (the 3D node-cloud view) — but the new Flow View page the
+  // owner asked to be built lives at /admin/architecture (extends the real,
+  // pre-existing Registry Viewer, per Rule 101/103 — not a new page). Needs
+  // its OWN distinct keywords so "เปิดผังการไหล"/"เปิดทะเบียนโมดูล" lands on
+  // the right one instead of both colliding on "สถาปัตยกรรม".
+  [/ผังการไหล|ทะเบียนโมดูล|registry viewer/i, "/admin/architecture"],
+  [/กราฟ|โครงสร้างระบบ|สถาปัตยกรรม/, "/admin/graph"],
+  [/เรียลไทม์|สถานะระบบสด|telemetry/i, "/admin/telemetry"],
+  [/งาน/, "/admin/jobs"],
+  [/ผู้ใช้งาน/, "/admin/users"],
+];
+
+function tryNavigationIntercept(text: string): { sender: "ai"; type: "text"; text: string; navigate_url: string; pulse_node: string } | null {
+  if (!NAV_VERB_PATTERN.test(text)) return null;
+  for (const [pattern, url] of NAV_KEYWORDS) {
+    if (pattern.test(text)) {
+      // Real module id for the Live State Signal (owner, 2026-07-30): "ให้มัน
+      // ส่ง Pulse ไฟวิ่งผ่านเส้น Node นั้นจริงๆ" — derived directly from the
+      // real page file this navigation actually lands on, matching
+      // registry/architecture.json's own "module:<path>" node id scheme —
+      // never a decorative/guessed node.
+      return { sender: "ai", type: "text", text: "เปิดหน้าให้แล้วครับ", navigate_url: url, pulse_node: `module:app${url}/page.tsx` };
+    }
+  }
+  return null;
+}
+
+const FUEL_PRICE_PATTERN = /(ราคา|ค่า|เท่าไหร่|เท่าไร|ดึง|ขอ|เอา).*(น้ำมัน|ดีเซล|เบนซิน|diesel)|(\bน้ำมัน|ดีเซล|เบนซิน\b).*(ราคา|ค่า|เท่าไหร่|เท่าไร)/i;
+const ALL_FUEL_TYPES_PATTERN = /ทุกชนิด|ทั้งหมด/;
+const WEATHER_PATTERN = /สภาพอากาศ|อากาศ(วันนี้|เป็นไง|เป็นยังไง)|ฝน(ตก|ไหม|จะตก|หรือเปล่า)|จะมีฝน|พายุ|มีพายุ/;
+const EXCHANGE_RATE_PATTERN = /อัตราแลกเปลี่ยน|เรทเงิน|ค่าเงิน(บาท|ดอลลาร์|ยูโร)?|(ดอลลาร์|USD|EUR|ยูโร|GBP|JPY|เยน).*(เท่าไหร่|เท่าไร|กี่บาท)/i;
+const TODAY_DATE_PATTERN = /วันนี้.*วันที่เท่าไหร่|วันที่เท่าไหร่.*วันนี้|today.*date|^วันที่เท่าไหร่/i;
+
+type ChatReply = { sender: "ai"; type: "text"; text: string };
+
+async function answerExternalFact(rawText: string): Promise<ChatReply | null> {
+  // Real fix, owner-reported 2026-07-30: "วันที่ห้ามีฝนมั้ย" matched nothing —
+  // "มั้ย" isn't "ไหม" and "ห้า" isn't "5" to a literal regex. Normalize
+  // spoken/informal Thai to a canonical form BEFORE any pattern below runs,
+  // instead of patching one exact spelling at a time forever.
+  const text = normalizeThaiColloquial(rawText);
+  if (TODAY_DATE_PATTERN.test(text)) {
+    const now = new Date();
+    return {
+      sender: "ai", type: "text",
+      text: `วันนี้วันที่ ${now.toLocaleDateString("th-TH", { weekday: "long", year: "numeric", month: "long", day: "numeric" })} ครับ`,
+    };
+  }
+
+  if (FUEL_PRICE_PATTERN.test(text) && ALL_FUEL_TYPES_PATTERN.test(text)) {
+    const all = await getAllBangchakFuelPrices();
+    if (all) {
+      const lines = all.prices.map((p) => `${p.name}: ${p.priceToday.toLocaleString("th-TH")} บาท/ลิตร`);
+      return { sender: "ai", type: "text", text: `ราคาน้ำมันบางจากวันนี้ (ทุกชนิด):\n${lines.join("\n")}\n(ข้อมูลจริง real-time จาก Bangchak, มีผล ${all.effectiveDate})` };
+    }
+    return { sender: "ai", type: "text", text: "เรียกข้อมูลราคาน้ำมันไม่สำเร็จตอนนี้ครับ (แหล่งข้อมูลภายนอกไม่ตอบสนอง) ลองใหม่อีกครั้งครับ" };
+  }
+
+  if (FUEL_PRICE_PATTERN.test(text)) {
+    const configs = await loadConfigs(supabase());
+    const price = getNum(configs, "fuel-price");
+    const updatedAt = getConfigUpdatedAt("fuel-price");
+    if (price) {
+      const dateStr = updatedAt ? new Date(updatedAt).toLocaleDateString("th-TH", { day: "numeric", month: "short", year: "numeric" }) : null;
+      return { sender: "ai", type: "text", text: `ราคาน้ำมันดีเซล (B20) วันนี้อยู่ที่ ${price.toLocaleString("th-TH")} บาท/ลิตร${dateStr ? ` (ข้อมูลอัปเดตล่าสุด ${dateStr}, ซิงค์อัตโนมัติจากบางจากทุกวัน)` : ""}` };
+    }
+  }
+
+  if (WEATHER_PATTERN.test(text)) {
+    const isTomorrow = /พรุ่งนี้/.test(text);
+    const isDayAfter = /มะรืนนี้/.test(text);
+
+    const dayOfMonthMatch = text.match(/วันที่\s*(\d{1,2})(?!\s*บาท)/);
+    let specificDayOffset: number | null = null;
+    let specificDateLabel = "";
+    if (dayOfMonthMatch && !isTomorrow && !isDayAfter) {
+      const targetDay = Number(dayOfMonthMatch[1]);
+      if (targetDay >= 1 && targetDay <= 31) {
+        const now = new Date();
+        const candidate = new Date(now.getFullYear(), now.getMonth(), targetDay);
+        if (candidate.getDate() === targetDay && candidate < now) {
+          candidate.setMonth(candidate.getMonth() + 1);
+        }
+        if (candidate.getDate() === targetDay) {
+          const diffDays = Math.round((candidate.setHours(0, 0, 0, 0) - now.setHours(0, 0, 0, 0)) / 86_400_000);
+          specificDayOffset = diffDays;
+          specificDateLabel = candidate.toLocaleDateString("th-TH", { day: "numeric", month: "long" });
+        }
+      }
+    }
+
+    if (specificDayOffset !== null) {
+      if (specificDayOffset < 0 || specificDayOffset > 15) {
+        return { sender: "ai", type: "text", text: `วันที่ ${specificDateLabel} อยู่นอกช่วงที่พยากรณ์อากาศแม่นยำได้ (ทำนายล่วงหน้าได้จริงประมาณ 16 วัน) ยังตอบไม่ได้ตอนนี้ครับ ต้องรอใกล้วันนั้นก่อน` };
+      }
+      const forecast = await getKhonKaenWeatherForDay(specificDayOffset);
+      if (forecast) {
+        const rainLine = forecast.rainChancePct != null
+          ? `โอกาสฝนตก ${forecast.rainChancePct}%${forecast.rainSumMm ? ` (คาดปริมาณฝนรวม ${forecast.rainSumMm} มม.)` : ""}`
+          : null;
+        return {
+          sender: "ai", type: "text",
+          text: [
+            `พยากรณ์อากาศ จ.ขอนแก่น วันที่ ${specificDateLabel} (${forecast.date}): ${forecast.conditionTh} อุณหภูมิ ${forecast.tempMinC}–${forecast.tempMaxC}°C`,
+            rainLine,
+            "(ข้อมูลพยากรณ์จริงจาก Open-Meteo)",
+          ].filter((s): s is string => Boolean(s)).join("\n"),
+        };
+      }
+      return { sender: "ai", type: "text", text: "เรียกข้อมูลพยากรณ์อากาศไม่สำเร็จตอนนี้ครับ (แหล่งข้อมูลภายนอกไม่ตอบสนอง) ลองใหม่อีกครั้งครับ" };
+    }
+
+    if (isTomorrow || isDayAfter) {
+      const dayOffset = isDayAfter ? 2 : 1;
+      const forecast = await getKhonKaenWeatherForDay(dayOffset);
+      if (forecast) {
+        const rainLine = forecast.rainChancePct != null
+          ? `โอกาสฝนตก ${forecast.rainChancePct}%${forecast.rainSumMm ? ` (คาดปริมาณฝนรวม ${forecast.rainSumMm} มม.)` : ""}`
+          : null;
+        return {
+          sender: "ai", type: "text",
+          text: [
+            `พยากรณ์อากาศ จ.ขอนแก่น ${isDayAfter ? "มะรืนนี้" : "พรุ่งนี้"} (${forecast.date}): ${forecast.conditionTh} อุณหภูมิ ${forecast.tempMinC}–${forecast.tempMaxC}°C`,
+            rainLine,
+            "(ข้อมูลพยากรณ์จริงจาก Open-Meteo)",
+          ].filter((s): s is string => Boolean(s)).join("\n"),
+        };
+      }
+      return { sender: "ai", type: "text", text: "เรียกข้อมูลพยากรณ์อากาศไม่สำเร็จตอนนี้ครับ (แหล่งข้อมูลภายนอกไม่ตอบสนอง) ลองใหม่อีกครั้งครับ" };
+    }
+
+    const weather = await getKhonKaenWeatherNow();
+    if (weather) {
+      const rainLine = weather.rainChanceTodayPct != null
+        ? `โอกาสฝนตกวันนี้ ${weather.rainChanceTodayPct}%${weather.rainTodayMm ? ` (คาดปริมาณฝนรวม ${weather.rainTodayMm} มม.)` : ""}`
+        : null;
+      return {
+        sender: "ai", type: "text",
+        text: [
+          `สภาพอากาศ จ.ขอนแก่น ตอนนี้: ${weather.conditionTh} อุณหภูมิ ${weather.temperatureC}°C`,
+          rainLine,
+          "(ข้อมูลจริงจาก Open-Meteo, real-time)",
+        ].filter((s): s is string => Boolean(s)).join("\n"),
+      };
+    }
+    return { sender: "ai", type: "text", text: "เรียกข้อมูลอากาศไม่สำเร็จตอนนี้ครับ (แหล่งข้อมูลภายนอกไม่ตอบสนอง) ลองใหม่อีกครั้งครับ" };
+  }
+
+  if (EXCHANGE_RATE_PATTERN.test(text)) {
+    const result = await getLatestExchangeRates();
+    if (result) {
+      const lines = result.rates.map((r) => `${r.currencyId}: ซื้อ ${r.buyingTransfer.toFixed(2)} / ขาย ${r.selling.toFixed(2)} บาท (เฉลี่ย ${r.midRate.toFixed(2)})`);
+      return { sender: "ai", type: "text", text: `อัตราแลกเปลี่ยนล่าสุด (${result.period}):\n${lines.join("\n")}\n(ข้อมูลจริงจาก ธนาคารแห่งประเทศไทย)` };
+    }
+    return { sender: "ai", type: "text", text: "เรียกข้อมูลอัตราแลกเปลี่ยนไม่สำเร็จตอนนี้ครับ (แหล่งข้อมูลภายนอกไม่ตอบสนอง) ลองใหม่อีกครั้งครับ" };
+  }
+
+  return null;
+}
+
+// Central Intent Dispatcher (owner, 2026-07-30): "ห้ามให้ไฟล์ UI แต่ละหน้าไป
+// นั่งดักจับคำสั่งเสียงกันเองแบบสะเปะสะปะ...ข้อความทั้งหมดจากเฮียต้องวิ่งเข้า
+// Central Brain Pipeline ที่เดียว" — real bug this fixes: wake-word,
+// back/home, window-control, and external-app-open detection used to live
+// as separate regex piles inside components/admin/SecretaryChat.tsx (a UI
+// file), completely disconnected from this pipeline's own separate
+// classification (tryNavigationIntercept/answerExternalFact). ONE
+// classification function now covers all of it, here, server-side — the
+// client becomes a thin executor that just carries out whatever this
+// function decided, for the few actions that genuinely can ONLY run in the
+// browser/Tauri process (window minimize/maximize, opening an external URL,
+// taking a screenshot) and can never run on a Node server.
+//
+// Real module IDs below match the actual real architecture graph nodes
+// (registry/architecture.json's node id scheme, "module:<path>") — used to
+// drive a REAL pulse signal on the 3D graph overlay (owner: "ให้มันส่ง Pulse
+// ไฟวิ่งผ่านเส้น Node นั้นจริงๆ...เพื่อให้เฮียเห็นกระแสสมองของมันจริงๆ")
+// instead of the overlay just decoratively appearing with no connection to
+// what actually ran.
+export type ClientDirective = {
+  back?: boolean;
+  window_action?: "minimize" | "maximize" | "close";
+  external_url?: string;
+  screen_vision?: boolean;
+  // Vision-Guided Step Assistant (owner, 2026-07-30): "เป็นหูเป็นตาเป็น
+  // ประสาทสัมผัสช่วย...บอกว่าช่องนี้คืออะไร กดตรงไหน" — the owner explicitly
+  // does NOT want a hardcoded/scripted automation ("เขียนโค้ดล็อกไว้ตายตัว")
+  // that breaks the moment a website changes its UI, and does NOT want
+  // synthetic clicking either (same declined risk as Accessibility API,
+  // #25) — what he wants is live, adaptive narration: he clicks himself,
+  // guided by what the vision model actually sees on screen right now,
+  // toward a goal he states once. This carries that stated goal through to
+  // the vision prompt so each read is actionable ("กดปุ่มสีฟ้ามุมขวาบน
+  // เขียนว่า Get API Key") instead of a generic description.
+  screen_vision_goal?: string;
+  open_app?: string;
+  // Chain Action / "line.copilot" (owner, 2026-07-31): "มันก็เป็นอีกโมเดล
+  // ความสามารถหนึ่งที่ระบบเราต้องมี" — the real workflow shape already sat
+  // unused in registry/commands/workflows.json (OPEN_APP → CAPTURE_WINDOW →
+  // OCR_WINDOW → SEARCH_DATABASE → CALCULATE → GENERATE → PREVIEW → APPROVE
+  // → EXECUTE) with zero trigger wired to it. Built from pieces that already
+  // exist and were already verified working this session: open_app (real
+  // native launch), Screen Vision (real OCR/translate, read-only), and the
+  // normal cognitive reasoning pipeline (material.quote etc, already gated
+  // by Rule 72's confirm-before-write). This directive only triggers the
+  // CLIENT-side chain (open LINE, wait, screenshot, OCR) — the OCR'd text is
+  // then fed back through the SAME /api/chat pipeline as an ordinary
+  // message, so quoting/document-drafting reuses the real engine instead of
+  // a second parallel one. EXECUTE (creating a real document) still always
+  // requires the owner's explicit confirm click — same as every other
+  // document.create flow — never happens automatically.
+  line_copilot?: boolean;
+  pulse_node?: string;
+};
+
+const BACK_PATTERN = /^(กลับ|ย้อนกลับ|ปิดหน้านี้|back)[\s!.]*$/i;
+const HOME_PATTERN = /^(กลับหน้าหลัก|หน้าหลัก|home)[\s!.]*$/i;
+const MINIMIZE_PATTERN = /^(ย่อหน้าต่าง|ย่อแอป|ย่อ|minimize)[\s!.]*$/i;
+const MAXIMIZE_PATTERN = /^(ขยายหน้าต่าง|ขยายแอป|ขยาย|เต็มจอ|maximize)[\s!.]*$/i;
+const CLOSE_APP_PATTERN = /^(ปิดแอป|ปิดโปรแกรม|ปิดแอปพลิเคชัน|close app|quit)[\s!.]*$/i;
+const EXTERNAL_APP_MAP: [RegExp, string][] = [
+  [/tiktok/i, "https://www.tiktok.com"],
+  [/facebook|เฟซบุ๊ก|เฟสบุ๊ก/i, "https://www.facebook.com"],
+];
+const GOOGLE_SEARCH_PATTERN = /(ค้น(หา)?|search).*(google|กูเกิล)|google.*(ค้น(หา)?|search)/i;
+const OPEN_VERB_PATTERN = /^(เปิด|ไป(ที่)?)\s/;
+// Loosened from an exact-phrase match to also capture an optional trailing
+// goal (owner, 2026-07-30 — see screen_vision_goal above): "อ่านหน้าจอ หา
+// API key ให้หน่อย" now carries "หา API key ให้หน่อย" through as the goal,
+// while a bare "อ่านหน้าจอ" still works exactly as before (goal undefined).
+const SCREEN_VISION_PATTERN = /^(อ่านหน้าจอ|อ่านจอ|ดูหน้าจอให้หน่อย|screen vision)\s*(.*)$/i;
+
+// Native App Launch (owner, 2026-07-30): "เปิดแอปพลิเคชัน...open_app
+// (app_name)" — real capability, scoped to "launch a named macOS app" (see
+// src-tauri/src/lib.rs's open_app command + its comment for why the
+// broader "AI controls the whole Mac" framing wasn't adopted). Checked only
+// when the text does NOT match a real internal admin screen keyword
+// (NAV_KEYWORDS, above) — otherwise "เปิดหน้าแอดมิน" would get misread as an
+// attempt to launch an app literally named "หน้าแอดมิน". A small alias map
+// covers common Thai spellings for apps the owner actually uses; anything
+// else is passed through to macOS's own `open -a` as-is (safe: it's an argv
+// element, never shell-interpreted — worst case macOS replies "app not
+// found", never runs an arbitrary command).
+const APP_NAME_ALIASES: [RegExp, string][] = [
+  [/ไลน์|line/i, "LINE"],
+  [/โครม|chrome/i, "Google Chrome"],
+  [/เซฟารี|safari/i, "Safari"],
+  [/ไฟน์เดอร์|finder/i, "Finder"],
+  [/เทอร์มินอล|terminal/i, "Terminal"],
+  [/เมล(์)?|mail/i, "Mail"],
+  [/ปฏิทิน|calendar/i, "Calendar"],
+  [/โน้ต|notes/i, "Notes"],
+  [/แคลคูเลเตอร์|เครื่องคิดเลข|calculator/i, "Calculator"],
+  [/พรีวิว|preview/i, "Preview"],
+];
+const OPEN_APP_PATTERN = /^(เปิด(แอป)?|เปิดโปรแกรม)\s+(.+)$/;
+
+// Chain Action / "line.copilot" (owner, 2026-07-31) — see ClientDirective's
+// own comment. Requires BOTH a LINE mention AND a real intent word (อ่าน/
+// แชท/เสนอราคา/ราคา) so a plain "เปิดไลน์" (just launch the app) keeps going
+// through the ordinary open_app path below, not this heavier chain.
+const LINE_COPILOT_PATTERN = /(ไลน์|line).*(อ่าน|แชท|เสนอราคา|ราคา)|(อ่าน|แชท|เสนอราคา).*(ไลน์|line)/i;
+
+function classifyClientCommand(text: string): ClientDirective {
+  const directive: ClientDirective = {};
+  if (LINE_COPILOT_PATTERN.test(text)) {
+    directive.line_copilot = true;
+    directive.pulse_node = "module:app/api/admin/screen-vision/route.ts";
+    return directive;
+  }
+  if (BACK_PATTERN.test(text) || HOME_PATTERN.test(text)) {
+    directive.back = HOME_PATTERN.test(text) ? undefined : true;
+    directive.pulse_node = "module:components/admin/SecretaryChat.tsx";
+  }
+  if (MINIMIZE_PATTERN.test(text)) directive.window_action = "minimize";
+  else if (MAXIMIZE_PATTERN.test(text)) directive.window_action = "maximize";
+  else if (CLOSE_APP_PATTERN.test(text)) directive.window_action = "close";
+  if (directive.window_action) directive.pulse_node = "module:src-tauri/src/lib.rs";
+  if (GOOGLE_SEARCH_PATTERN.test(text)) {
+    const query = text.replace(/ค้น(หา)?|search|google|กูเกิล/gi, "").trim();
+    directive.external_url = `https://www.google.com/search?q=${encodeURIComponent(query || text)}`;
+  } else if (OPEN_VERB_PATTERN.test(text)) {
+    for (const [pattern, url] of EXTERNAL_APP_MAP) {
+      if (pattern.test(text)) { directive.external_url = url; break; }
+    }
+  }
+  const visionMatch = text.match(SCREEN_VISION_PATTERN);
+  if (visionMatch) {
+    directive.screen_vision = true;
+    directive.screen_vision_goal = visionMatch[2]?.trim() || undefined;
+    directive.pulse_node = "module:app/api/admin/screen-vision/route.ts";
+  }
+  if (!directive.external_url && !directive.window_action && !directive.screen_vision) {
+    const isInternalNavCommand = NAV_VERB_PATTERN.test(text) && NAV_KEYWORDS.some(([pattern]) => pattern.test(text));
+    const openMatch = text.match(OPEN_APP_PATTERN);
+    if (openMatch && !isInternalNavCommand) {
+      const raw = openMatch[3].trim();
+      const alias = APP_NAME_ALIASES.find(([pattern]) => pattern.test(raw));
+      directive.open_app = alias ? alias[1] : raw;
+      directive.pulse_node = "module:src-tauri/src/lib.rs";
+    }
+  }
+  return directive;
+}
+
+type PipelineResult = BoardResponse | ({ sender: "ai"; type: "command" | "text"; text?: string; command?: string; navigate_url?: string } & ClientDirective);
+
+export async function runCognitivePipeline(
+  message: string,
+  contactContext?: string | null,
+): Promise<PipelineResult> {
+  // Central Intent Dispatcher, checked first — see classifyClientCommand()'s
+  // header comment.
+  const clientDirective = classifyClientCommand(message);
+  if (clientDirective.back || clientDirective.window_action || clientDirective.external_url || clientDirective.screen_vision || clientDirective.open_app || clientDirective.line_copilot) {
+    const label = clientDirective.back ? "ย้อนกลับให้แล้วครับ"
+      : clientDirective.window_action === "minimize" ? "ย่อหน้าต่างให้แล้วครับ"
+      : clientDirective.window_action === "maximize" ? "ขยายเต็มจอให้แล้วครับ"
+      : clientDirective.window_action === "close" ? "ปิดแอปให้แล้วครับ"
+      : clientDirective.external_url ? "เปิดให้แล้วครับ"
+      : clientDirective.screen_vision ? "กำลังอ่านหน้าจอให้ครับ..."
+      : clientDirective.open_app ? `กำลังเปิด ${clientDirective.open_app} ให้ครับ...`
+      : clientDirective.line_copilot ? "กำลังเปิด LINE และอ่านแชทให้ครับ..."
+      : "รับทราบครับ";
+    return { sender: "ai", type: "text", text: label, ...clientDirective };
+  }
+  if (HOME_PATTERN.test(message)) {
+    return { sender: "ai", type: "text", text: "กลับหน้าหลักให้แล้วครับ", navigate_url: "/admin/relationships", pulse_node: clientDirective.pulse_node };
+  }
+
+  return runCognitiveCore(message, contactContext);
+}
+
+async function runCognitiveCore(
+  message: string,
+  contactContext?: string | null,
+): Promise<PipelineResult> {
+  // Real bug, owner-reported 2026-07-30: "เปิดไปหน้าแอดมินหน่อย" fell through
+  // to the LLM fallback entirely (no deterministic check recognized it as a
+  // navigation command at all — the previous navigate_url logic only fired
+  // AFTER the full cognitive pipeline resolved a business entity, e.g.
+  // asking about a job/material), which then wrongly told the OWNER to
+  // "contact the system owner." Real, deterministic intercept for ANY
+  // "เปิดหน้า X / ไปหน้า X" phrasing across every real admin route, checked
+  // before anything else — never let a screen-navigation request reach the
+  // AI at all.
+  const navIntercept = tryNavigationIntercept(message);
+  if (navIntercept) return navIntercept;
+
+  const factReply = await answerExternalFact(message);
+  if (factReply) return factReply;
+
   if (/^DELETE:/.test(message)) {
     const [, table, id] = message.match(/^DELETE:(\w+):(.+)$/) ?? [];
     if (table && id) {
@@ -279,7 +673,7 @@ export async function runCognitivePipeline(message: string): Promise<BoardRespon
     }
   }
 
-  const enriched = operatingIntent(message);
+  const enriched = enrichWithTranslator(operatingIntent(message), message);
   const memory = getMemory();
 
   if (enriched.intent_type === "navigation") {
@@ -327,7 +721,30 @@ export async function runCognitivePipeline(message: string): Promise<BoardRespon
   }
 
   if (executionPlan.workflow_id === "none") {
-    return answerWithAi(message);
+    // Real gap, owner-reported 2026-07-30 — see classifyIntentViaAi()'s own
+    // comment: before just talking about the message, check whether it
+    // actually intends one of the real, already-built client actions
+    // (open_app/external_url/window_action/screen_vision) that the exact-
+    // regex Central Intent Dispatcher (classifyClientCommand) might have
+    // missed due to looser phrasing. Only ever executes real capabilities —
+    // never invents new ones.
+    const aiAction = await classifyIntentViaAi(message);
+    if (aiAction?.action === "open_app" && aiAction.app_name) {
+      return { sender: "ai", type: "text", text: `กำลังเปิด ${aiAction.app_name} ให้ครับ...`, open_app: aiAction.app_name, pulse_node: "module:src-tauri/src/lib.rs" };
+    }
+    if (aiAction?.action === "external_url" && aiAction.url) {
+      return { sender: "ai", type: "text", text: "เปิดให้แล้วครับ", external_url: aiAction.url };
+    }
+    if (aiAction?.action === "window_action" && aiAction.window_action) {
+      const label = aiAction.window_action === "minimize" ? "ย่อหน้าต่างให้แล้วครับ"
+        : aiAction.window_action === "maximize" ? "ขยายเต็มจอให้แล้วครับ"
+        : "ปิดแอปให้แล้วครับ";
+      return { sender: "ai", type: "text", text: label, window_action: aiAction.window_action, pulse_node: "module:src-tauri/src/lib.rs" };
+    }
+    if (aiAction?.action === "screen_vision") {
+      return { sender: "ai", type: "text", text: "กำลังอ่านหน้าจอให้ครับ...", screen_vision: true, screen_vision_goal: aiAction.goal, pulse_node: "module:app/api/admin/screen-vision/route.ts" };
+    }
+    return answerWithAi(message, contactContext);
   }
 
   const board = composeBoard(worldState, hypotheses, executionResults, reflection, memory.turn_count + 1);
@@ -335,17 +752,205 @@ export async function runCognitivePipeline(message: string): Promise<BoardRespon
   return board;
 }
 
-async function answerWithAi(message: string) {
-  anthropic ??= new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-  const aiRes = await anthropic.messages.create({
-    model: "claude-haiku-4-5-20251001",
-    system: "คุณคือ DNA OS ผู้ช่วยเจ้าของธุรกิจวัสดุก่อสร้าง จ.ขอนแก่น ตอบสั้นกระชับ ภาษาไทย",
-    messages: [{ role: "user", content: message }],
-    temperature: 0.7,
-    max_tokens: 300,
-  });
-  const block = aiRes.content[0];
-  return { sender: "ai" as const, type: "text" as const, text: (block?.type === "text" ? block.text : null) ?? "รับทราบครับ" };
+// Real bug, owner-reported 2026-07-30: asking "ถาม AI" a free-text question
+// ("พี่หนุ่มมีหน้าที่อะไร เป็นใครในระบบบริษัท DNA OS") crashed outright
+// ("เชื่อมต่อไม่สำเร็จ ลองใหม่อีกครั้งครับ") — this called the Anthropic SDK
+// directly and synchronously with no try/catch, and ANTHROPIC_API_KEY was
+// never actually set (confirmed: zero occurrences in .env.local). The
+// LINE-webhook side of this exact problem was already fixed 2026-07-25 by
+// moving to local Ollama via an async ai_tasks queue (owner: "ย้ายทุกอย่างมา
+// ประมวลผลในเครื่อง Mac") — but that queue pattern doesn't fit here: this is
+// an admin sitting in front of the screen waiting for an answer right now,
+// not a customer who can wait for a 20-second poll cycle. Since this Next.js
+// server itself now runs AS the desktop app on the owner's own Mac (Tauri
+// wrap, 2026-07-30), it can reach http://localhost:11434 (Ollama) directly
+// and synchronously — something a Supabase Edge Function never could.
+// Real fallback chain: try cloud Claude only if a key is actually configured,
+// otherwise (or on any failure) call the same local "thawatchai" model the
+// LINE conversational-fallback already uses — never let this throw
+// unhandled up to the frontend again.
+// Real bug, owner-reported 2026-07-30: asked "วันนี้วันที่เท่าไหร่" and the
+// LLM hallucinated a completely wrong date ("30 ตุลาคม 2566" — Oct 2023) —
+// an LLM has no real clock, it only guesses from training data unless told.
+// A narrow regex-matched "what's today's date" check (app/api/chat/route.ts)
+// only catches ONE specific phrasing; this is the real, general fix — the
+// actual current Thai date/time (real system clock, Buddhist Era via
+// th-TH locale) is now injected into EVERY LLM system prompt here, so any
+// question that touches date/time context (however it's phrased) is
+// grounded in the real calendar instead of the model's own guess.
+function currentThaiDateTimeContext(): string {
+  const now = new Date();
+  const dateStr = now.toLocaleDateString("th-TH", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
+  const timeStr = now.toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit" });
+  return `วันที่/เวลาปัจจุบันจริง (ใช้ปีพ.ศ.): ${dateStr} เวลา ${timeStr} น. — ห้ามเดาหรือใช้วันที่อื่นเด็ดขาด`;
+}
+
+// Real bug, owner-reported 2026-07-30: asked "มีบริการให้เช่าเครื่องจักรไหม"
+// and "ขอเบอร์โทรหน่อย" — the AI confidently answered BOTH (one flat "no,
+// we don't do that," one invented "LINE only" policy) with zero real data
+// behind either claim — this reached answerWithAi with nothing in
+// answerExternalFact/operatingIntent to ground it, so the LLM just
+// fabricated a definitive-sounding business fact. Same class of problem as
+// the earlier date-hallucination bug, but for business capability/policy
+// facts instead of dates — and this one is more dangerous since a wrong
+// "we don't offer that" or a fake contact policy could actually mislead a
+// real customer. Same fix pattern already proven safe on the LINE side
+// (supabase/functions/line-webhook-v2/engines/thoughtful-fallback.ts's own
+// "ห้ามบอกราคา/จำนวน/ข้อมูลธุรกิจใดๆ ที่ไม่ได้อยู่ในบริบทที่ให้มา" rule):
+// forbid asserting ANY business fact not in the given context, explicitly.
+// Note: unlike the LINE customer-facing side (where "check with the owner"
+// is correct — a real customer isn't the owner), this admin-side prompt
+// must never tell the person to check with "the owner," since they ARE the
+// owner (see OWNER_IDENTITY_RULE below) — phrased as "say plainly you don't
+// have real data for that" instead.
+const NO_UNGROUNDED_FACTS_RULE = "ห้ามเด็ดขาด: ห้ามยืนยันหรือปฏิเสธข้อเท็จจริงทางธุรกิจใดๆ (บริการที่มี/ไม่มี, นโยบายติดต่อ, เบอร์โทร, ราคา) ที่ไม่ได้อยู่ในข้อมูลที่ให้มาจริงด้านบนนี้ — ถ้าไม่รู้ ให้บอกตรงๆ ว่าไม่มีข้อมูลจริงเรื่องนี้ในระบบตอนนี้ ห้ามเดาหรือมั่นใจไปเองเด็ดขาด";
+
+// Real bug, owner-reported 2026-07-30: the local model's own baked persona
+// (~/dna-os-ollama/Modelfile) introduces itself as "ธวัชชัย" — and it turns
+// out the owner's OWN real name is also ธวัชชัย มูลลาด (a genuine
+// coincidence, only revealed live in this conversation) — the model got
+// confused between "ธวัชชัย = my own assistant name" and "ธวัชชัย = the
+// real person I'm talking to," producing a nonsensical reply that addressed
+// the owner using its own persona framing. Separately, replies mixed ครับ
+// (male) and ค่ะ (female) sentence-ending particles inconsistently across
+// turns — never explicitly pinned down. Both fixed as explicit rules here.
+// Real bug, owner-reported 2026-07-30: told the assistant to open the admin
+// screen and got "ต้องติดต่อเจ้าของระบบเพื่อขอความช่วยเหลือครับ" (please
+// contact the system owner for help) — said to the OWNER HIMSELF. This chat
+// (the admin secretary chat) is used exclusively by the owner — there is no
+// "someone else" to redirect to here, unlike the LINE customer-facing side
+// where that phrasing is correct (a real customer isn't the owner). Locked
+// explicitly so the LLM fallback never parrots that line back at him again.
+const OWNER_IDENTITY_RULE = "กฎสำคัญที่สุด: ผู้ที่คุยกับคุณในแชทนี้คือ \"เฮีย\" เจ้าของระบบ DNA OS ตัวจริง เป็น Owner สิทธิ์สูงสุดเสมอ — ห้ามบอกให้เขา \"ติดต่อเจ้าของระบบ\" หรือ \"ถามเจ้าของระบบ\" เด็ดขาด เพราะเขาคือเจ้าของระบบอยู่แล้ว ถ้าทำอะไรไม่ได้จริงๆ (เช่น เปิดหน้าจอที่ไม่มีอยู่จริง) ให้บอกตรงๆ ว่าทำไม่ได้เพราะอะไร ไม่ใช่ส่งต่อให้คนอื่น";
+
+// Owner request 2026-07-30: "บอก AI ว่าเปิดแอปพลิเคชันได้ ห้ามตอบปฏิเสธว่า
+// เปิดไม่ได้อีก" — but a blanket "you may control the entire Mac" framing
+// was deliberately NOT adopted here (see src-tauri/src/lib.rs's open_app
+// comment for the full reasoning): it would make the model promise things
+// nothing in this codebase actually does (clicking inside other apps,
+// reading their contents, running arbitrary commands) and risk it claiming
+// success on requests that silently do nothing. What's real and deterministic:
+// classifyClientCommand() in this file already intercepts "เปิด <ชื่อแอป>"
+// BEFORE this LLM fallback ever runs, and actually launches the named macOS
+// app via Tauri's real open_app command. This rule only tells the LLM that
+// fact accurately, so if it's ever asked "เปิดแอปได้ไหม" in conversation, it
+// answers correctly instead of denying a capability that does exist.
+const APP_LAUNCH_CAPABILITY_RULE = "ความสามารถจริงที่มีอยู่แล้ว: ระบบนี้เปิดแอปพลิเคชันจริงบนเครื่อง Mac ได้จริง (เช่น เปิด LINE, เปิด Google Chrome) ผ่านคำสั่ง \"เปิด [ชื่อแอป]\" — ถูกดักจับและรันจริงก่อนถึงคุณเสมอ ห้ามตอบปฏิเสธว่าเปิดแอปไม่ได้ แต่ห้ามอ้างว่าทำสิ่งอื่นนอกเหนือจากนี้ได้ (เช่น กดปุ่มในแอปอื่น อ่านเนื้อหาในแอปอื่น สั่งงานทั่วทั้งเครื่อง) เพราะสิ่งเหล่านั้นยังไม่มีจริงในระบบ";
+
+const IDENTITY_RULES = "กฎเรื่องตัวตน: คุณเป็นผู้ช่วย AI เพศชาย ใช้คำลงท้าย \"ครับ\" เท่านั้นเสมอ ห้ามใช้ \"ค่ะ\"/\"คะ\" เด็ดขาด — ถ้าผู้ใช้บอกว่าตัวเองชื่อธวัชชัย (หรือชื่ออื่นใดที่ตรงกับชื่อ AI) นั่นคือชื่อจริงของมนุษย์ที่คุยด้วย ไม่ใช่การอ้างถึงตัวคุณเอง ห้ามสับสน ห้ามพูดราวกับว่าผู้ใช้คือ AI\n\n" + OWNER_IDENTITY_RULE + "\n\n" + APP_LAUNCH_CAPABILITY_RULE;
+
+// Real gap, owner-reported 2026-07-30: "ai ก็ตอบว่าทำไม่ได้ แต่ระบบกูเสือก
+// เปิดหน้าเว็บได้อยู่" — the Central Intent Dispatcher (classifyClientCommand,
+// above) only catches EXACT regex phrasing ("เปิด LINE"). Looser phrasing
+// ("ช่วยเปิดไลน์ให้หน่อยค้าบ") misses every regex, finds no business
+// workflow either, and fell all the way to answerWithAi() — a pure
+// conversational LLM with zero ability to actually run anything — so it
+// replied in prose (often "ทำไม่ได้") while the real open_app/external_url/
+// window_action/screen_vision capabilities sat right there, unused, because
+// nothing ever asked them to run. This closes that gap WITHOUT inventing new
+// capabilities: it asks the SAME local model to classify (not converse)
+// whether the message intends one of the real, already-built actions, and
+// if so, this function executes that real action for real — the model
+// never gets to just talk about doing something the system doesn't
+// actually do; it can only select from actions this codebase can actually
+// carry out.
+type AiActionDirective =
+  | { action: "open_app"; app_name: string }
+  | { action: "external_url"; url: string }
+  | { action: "window_action"; window_action: "minimize" | "maximize" | "close" }
+  | { action: "screen_vision"; goal?: string }
+  | { action: "none" };
+
+async function classifyIntentViaAi(message: string): Promise<AiActionDirective | null> {
+  // Model choice verified live, 2026-07-30: "thawatchai" (the persona/chat
+  // model used by answerWithAi() above) reliably answered {"action":"none"}
+  // even for a clear "เปิดไลน์" request when asked to classify — its baked
+  // persona apparently interferes with a plain structured-classification
+  // task. The base "qwen3:8b" model (no persona, already installed for
+  // other local-AI work) correctly classified all 4 real test phrasings
+  // (open_app/external_url/window_action/none) in live curl tests. Also:
+  // `format: "json"` made qwen3:8b return an empty object — omitted here,
+  // relying on the prompt's own instruction instead (verified: it does not
+  // emit <think> preamble via /api/generate the way its chat mode can).
+  const prompt = `ข้อความจากผู้ใช้: "${message}"\n\nระบบนี้มีความสามารถจริงต่อไปนี้เท่านั้น (ไม่มีความสามารถอื่นนอกจากนี้):\n1. เปิดแอปพลิเคชันบนเครื่อง Mac — {"action":"open_app","app_name":"<ชื่อแอปภาษาอังกฤษ เช่น LINE, Google Chrome, Finder>"}\n2. เปิดเว็บไซต์/ค้นหาเว็บ — {"action":"external_url","url":"<URL เต็ม>"}\n3. ย่อ/ขยาย/ปิดหน้าต่างแอปนี้เอง — {"action":"window_action","window_action":"minimize"|"maximize"|"close"}\n4. อ่านหน้าจอปัจจุบันเพื่อช่วยแปล/อธิบาย/ชี้ทางว่าต้องกดตรงไหน — {"action":"screen_vision","goal":"<สิ่งที่ผู้ใช้ต้องการทำบนหน้าจอนี้ ถ้าบอกมา เช่น หา API key, สมัครสมาชิก — ถ้าไม่ได้บอกเป้าหมายชัดเจน ไม่ต้องใส่ goal>"}\n\nถ้าข้อความนี้ตั้งใจสั่งอย่างใดอย่างหนึ่งข้างต้นจริงๆ ตอบ JSON ตามรูปแบบนั้นเท่านั้น ห้ามมีข้อความอื่นปนเลย ถ้าไม่ตรงกับความสามารถใดเลย ตอบ {"action":"none"} เท่านั้น`;
+  try {
+    const res = await fetch("http://localhost:11434/api/generate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ model: "qwen3:8b", prompt, stream: false }),
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    if (typeof data?.response !== "string") return null;
+    const jsonMatch = data.response.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) return null;
+    const parsed = JSON.parse(jsonMatch[0]);
+    if (parsed && typeof parsed.action === "string") return parsed as AiActionDirective;
+  } catch (err) {
+    console.error("[cognitive/pipeline] classifyIntentViaAi failed:", err);
+  }
+  return null;
+}
+
+async function answerWithAi(message: string, contactContext?: string | null) {
+  const dateTimeContext = currentThaiDateTimeContext();
+  const systemPrompt = contactContext
+    ? `คุณคือ DNA OS ผู้ช่วยเจ้าของธุรกิจวัสดุก่อสร้าง จ.ขอนแก่น ตอบสั้นกระชับ ภาษาไทย\n\n${dateTimeContext}\n\n${IDENTITY_RULES}\n\n${NO_UNGROUNDED_FACTS_RULE}\n\nข้อมูลจริงเกี่ยวกับผู้ติดต่อที่กำลังถามถึง (ใช้ตอบ ห้ามเดานอกเหนือจากนี้):\n${contactContext}`
+    : `คุณคือ DNA OS ผู้ช่วยเจ้าของธุรกิจวัสดุก่อสร้าง จ.ขอนแก่น ตอบสั้นกระชับ ภาษาไทย\n\n${dateTimeContext}\n\n${IDENTITY_RULES}\n\n${NO_UNGROUNDED_FACTS_RULE}`;
+
+  if (process.env.ANTHROPIC_API_KEY) {
+    try {
+      anthropic ??= new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+      const aiRes = await anthropic.messages.create({
+        model: "claude-haiku-4-5-20251001",
+        system: systemPrompt,
+        messages: [{ role: "user", content: message }],
+        temperature: 0.7,
+        max_tokens: 300,
+      });
+      const block = aiRes.content[0];
+      const text = block?.type === "text" ? block.text : null;
+      if (text) return { sender: "ai" as const, type: "text" as const, text };
+    } catch (err) {
+      console.error("[cognitive/pipeline] cloud Claude call failed, falling back to local Ollama:", err);
+    }
+  }
+
+  try {
+    // Real bug, owner-reported 2026-07-30: folding systemPrompt into `prompt`
+    // (instead of Ollama's dedicated `system` field) meant the model's own
+    // baked Modelfile SYSTEM instruction (~/dna-os-ollama/Modelfile —
+    // introduces itself as "ธวัชชัย", the AI's persona name) never actually
+    // got overridden — it just layered underneath our instructions,
+    // producing inconsistent gender particles (ครับ/ค่ะ mixing) and, once
+    // the owner revealed his own real name is ALSO ธวัชชัย (a genuine
+    // coincidence, "เฮียตั้ม" = ธวัชชัย มูลลาด), real identity confusion
+    // (the model started addressing the OWNER using its own assistant-
+    // persona framing). Passing `system` explicitly here — the same
+    // pattern ~/dna-os-ollama/ai-task-watcher.mjs's own ollamaGenerate()
+    // already used correctly — makes our system prompt actually replace the
+    // Modelfile default for this call, not just add to it.
+    const res = await fetch("http://localhost:11434/api/generate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "thawatchai",
+        system: systemPrompt,
+        prompt: `คำถาม: ${message}`,
+        stream: false,
+      }),
+    });
+    if (res.ok) {
+      const data = await res.json();
+      if (typeof data?.response === "string" && data.response.trim()) {
+        return { sender: "ai" as const, type: "text" as const, text: data.response.trim() };
+      }
+    }
+  } catch (err) {
+    console.error("[cognitive/pipeline] local Ollama call also failed:", err);
+  }
+
+  return { sender: "ai" as const, type: "text" as const, text: "ตอบไม่ได้ตอนนี้ครับ (AI ไม่พร้อมใช้งาน) ลองใหม่อีกครั้งครับ" };
 }
 
 function operatingIntent(input: string): EnrichedInput {
@@ -390,6 +995,37 @@ function operatingIntent(input: string): EnrichedInput {
     intent_id: matched,
     is_new_session: isNewSession,
     raw_input: input,
+  };
+}
+
+// Real Entity-Enrichment Layer (owner, 2026-07-30): "ของมันมีอยู่ ไม่เอามาใช้
+// อ่ะ...เอามาเพื่อกลั่นกรองวิเคราะห์ให้มันละเอียดขึ้น" — services/ai/
+// translator.ts was written but never wired in (confirmed via grep: zero
+// importers anywhere). It cannot sit as a hard first-pass GATE (its own
+// CHECK_PRICE pattern — "ราคา"/"เท่าไหร่" — is the exact same trigger text
+// as the fuel-price/exchange-rate checks in answerExternalFact() above, so
+// forcing it in front would hijack those and misclassify "ราคาน้ำมัน" as a
+// construction-material price lookup). Its real, safe value is the entity
+// extraction operatingIntent() above doesn't do (product/quantity/customer
+// name) — used here ONLY to fill in gaps operatingIntent left null, never to
+// override or short-circuit anything it already determined.
+function enrichWithTranslator(enriched: EnrichedInput, rawMessage: string): EnrichedInput {
+  const translated = translateEntities(rawMessage);
+  if (!translated.ok) return enriched; // nothing extra to add — leave as-is
+
+  // Real bug, owner-reported 2026-07-30: the guard `enriched.action ? enriched.what : null`
+  // treated "no action matched" (a perfectly normal state for a plain
+  // question like "ราคาทรายหยาบกับทรายละเอียดคิวละเท่าไหร่") as "what is
+  // empty," discarding the already-good full sentence and replacing it with
+  // just the translator's single extracted noun ("ทราย") — losing
+  // "ทรายละเอียด" entirely. Fixed: only ever fill `what` when it was
+  // genuinely null, never override an existing value.
+  const { entities } = translated;
+  return {
+    ...enriched,
+    who: enriched.who ?? entities.customer ?? null,
+    what: enriched.what ?? entities.product ?? null,
+    detail: enriched.detail ?? (entities.quantity ? `${entities.quantity} ${entities.unit ?? ""}`.trim() : null),
   };
 }
 

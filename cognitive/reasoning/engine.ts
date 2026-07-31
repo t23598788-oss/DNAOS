@@ -193,6 +193,45 @@ const DOMAIN: DomainKnowledge = {
   },
 };
 
+// Real bug, owner-reported 2026-07-30: user-facing decision text used
+// `domainObj.type` directly — an internal English dictionary key
+// ("material", "job") — producing leaked-English sentences like
+// "ดูmaterialทั้งหมด". Every display string below must go through this Thai
+// label instead of the raw internal type.
+const DOMAIN_TH: Record<string, string> = {
+  customer: "ลูกค้า", debt: "หนี้", invoice: "ใบแจ้งหนี้", quotation: "ใบเสนอราคา",
+  job: "งาน", partner: "คู่ค้า", material: "วัสดุ", document: "เอกสาร", boq: "BOQ",
+};
+function domainLabel(type: string | null | undefined): string {
+  if (!type) return "";
+  return DOMAIN_TH[type] ?? type;
+}
+
+// Real bug, owner-reported 2026-07-30: "พนักงาน" (employee) got matched to
+// the "job" domain because the vocabulary scan below was a blind substring
+// check — "งาน" is literally contained inside "พนักงาน". Same class of bug
+// exists in cognitive/objective/manager.ts's own (separately duplicated —
+// known architectural debt, not yet unified) vocabulary scan; fixed the same
+// way in both rather than leaving one fixed and one not. A real Thai word-
+// segmentation library would solve this generally; this is the narrower,
+// deterministic fix for the specific false positives actually observed live.
+const VOCAB_NEGATIVE_LOOKBEHIND: Record<string, RegExp> = {
+  "งาน": /(?<!พนัก)งาน/,
+};
+function matchesVocabWord(raw: string, word: string): boolean {
+  const guard = VOCAB_NEGATIVE_LOOKBEHIND[word];
+  return guard ? guard.test(raw) : raw.includes(word);
+}
+
+// Real gap, owner-reported 2026-07-30: a real, working material-price
+// engine already exists (engines/material-resolver.ts + engines/
+// quote-price.ts, registered as dispatcher command "material.quote") but
+// this reasoning engine only ever knew "material.list" (show everything) —
+// so "ราคาทรายหยาบกับทรายละเอียดคิวละเท่าไหร่" got answered with a full
+// material listing instead of an actual price. Detect a real price question
+// and route to the existing command instead of defaulting to a list.
+const PRICE_QUESTION_PATTERN = /ราคา|เท่าไหร่|เท่าไร|คิวละ|ตันละ/;
+
 // ═══════════════════════════════════════
 // REASONING ENGINE (Pure Function)
 // ═══════════════════════════════════════
@@ -234,7 +273,7 @@ export function reason(goal: Goal, session: Session): ReasoningOutput {
   // ── Resolve what จากคำใน raw_input ──
   if (!what) {
     for (const [word, obj] of Object.entries(DOMAIN.vocabulary)) {
-      if (goal.raw_input.includes(word)) {
+      if (matchesVocabWord(goal.raw_input, word)) {
         what = obj;
         trace.push(`Vocabulary scan: พบ "${word}" → ${obj}`);
         break;
@@ -387,7 +426,7 @@ export function reason(goal: Goal, session: Session): ReasoningOutput {
         });
 
         return {
-          decision: `ดู${domainObj.type}ของ ${who}`,
+          decision: `ดู${domainLabel(domainObj.type)}ของ ${who}`,
           confidence: who_id ? 0.95 : 0.7,
           plan,
           need_more_info: null,
@@ -402,12 +441,38 @@ export function reason(goal: Goal, session: Session): ReasoningOutput {
         trace.push("R3: ตรวจ session → ไม่มี who");
         trace.push("R4: confidence ต่ำ → ต้องถาม");
         return {
-          decision: `ต้องรู้ว่าดู${domainObj.type}ของใคร`,
+          decision: `ต้องรู้ว่าดู${domainLabel(domainObj.type)}ของใคร`,
           confidence: 0.3,
           plan: [],
-          need_more_info: `ดู${goal.what}ของใครครับ`,
+          need_more_info: `ดู${domainLabel(what)}ของใครครับ`,
           workspace_action: "keep",
           next_actions: [],
+          reasoning_trace: trace,
+        };
+      }
+
+      // ── material + คำถามราคาจริง → ใช้เครื่องมือคำนวณราคาจริงที่มีอยู่แล้ว
+      // (engines/material-resolver.ts + engines/quote-price.ts, ลงทะเบียนไว้
+      // เป็นคำสั่ง "material.quote" ใน dispatcher) แทนที่จะ list วัสดุทั้งหมด ──
+      if (what === "material" && PRICE_QUESTION_PATTERN.test(goal.raw_input)) {
+        trace.push("B6: คำถามราคาวัสดุจริง → material.quote (ไม่ใช่ material.list)");
+        return {
+          decision: `คำนวณราคา${domainLabel(what)}`,
+          confidence: 0.85,
+          // Real dispatcher contract (engines/validation/dispatcher.ts's
+          // "material.quote", verified by reading its actual implementation
+          // — NOT guessed): needs `raw_input` (not "text"), a real
+          // `quantity` (throws if missing/falsy — extract one here,
+          // defaulting to 1 the same way engines/quote-price.ts's own
+          // ask-route caller does for a bare "what's the price" question
+          // with no amount mentioned), and `customer_id` (who_id if this
+          // session has one — the command itself handles a missing one
+          // honestly by returning `{matched:true, error:"no_customer_id"}`,
+          // not a crash).
+          plan: [{ tool: "material.quote", args: { raw_input: goal.raw_input, quantity: String(extractQuantityOrDefault(goal.raw_input)), customer_id: who_id ?? "" } }],
+          need_more_info: null,
+          workspace_action: goal.is_continuation ? "extend" : "open",
+          next_actions: domainObj.possible_actions,
           reasoning_trace: trace,
         };
       }
@@ -415,7 +480,7 @@ export function reason(goal: Goal, session: Session): ReasoningOutput {
       // ── ไม่ต้องการ who (วัสดุ, partner list) ──
       trace.push(`B6: ลงมือทำ → query ${what}.list`);
       return {
-        decision: `ดู${domainObj.type}ทั้งหมด`,
+        decision: `ดู${domainLabel(domainObj.type)}ทั้งหมด`,
         confidence: 0.9,
         plan: [{ tool: `${what}.list`, args: {} }],
         need_more_info: null,
@@ -430,10 +495,10 @@ export function reason(goal: Goal, session: Session): ReasoningOutput {
       if (!who && !session.who) {
         trace.push("R4: ไม่มี who → confidence ต่ำ → ถาม");
         return {
-          decision: `ต้องรู้ว่าสร้าง${goal.what}ให้ใคร`,
+          decision: `ต้องรู้ว่าสร้าง${domainLabel(goal.what)}ให้ใคร`,
           confidence: 0.3,
           plan: [],
-          need_more_info: `สร้าง${goal.what}ให้ใครครับ`,
+          need_more_info: `สร้าง${domainLabel(goal.what)}ให้ใครครับ`,
           workspace_action: "keep",
           next_actions: [],
           reasoning_trace: trace,
@@ -474,7 +539,7 @@ export function reason(goal: Goal, session: Session): ReasoningOutput {
       }
 
       return {
-        decision: `สร้าง${goal.what}ให้ ${targetWho}`,
+        decision: `สร้าง${domainLabel(goal.what)}ให้ ${targetWho}`,
         confidence: who_id ? 0.95 : 0.7,
         plan,
         need_more_info: null,
@@ -520,10 +585,10 @@ export function reason(goal: Goal, session: Session): ReasoningOutput {
     // ต้องการ who แต่ไม่มี
     trace.push("R4: confidence ต่ำ → ถาม");
     return {
-      decision: `ต้องรู้ว่าดู${goal.what ?? what}ของใคร`,
+      decision: `ต้องรู้ว่าดู${domainLabel(goal.what ?? what)}ของใคร`,
       confidence: 0.3,
       plan: [],
-      need_more_info: `ดู${goal.what ?? what}ของใครครับ`,
+      need_more_info: `ดู${domainLabel(goal.what ?? what)}ของใครครับ`,
       workspace_action: "keep",
       next_actions: [],
       reasoning_trace: trace,
@@ -575,6 +640,16 @@ export function reason(goal: Goal, session: Session): ReasoningOutput {
 // ═══════════════════════════════════════
 // HELPERS
 // ═══════════════════════════════════════
+
+// A bare "ราคาทรายเท่าไหร่" (no amount mentioned at all) still needs SOME
+// quantity to feed the dispatcher's "material.quote" (which throws on a
+// falsy quantity) — 1 is the same neutral default already used elsewhere in
+// this codebase (app/api/admin/line-customers/[lineUserId]/ask/route.ts's
+// own extractQuantity()) for exactly this case: a per-unit price question.
+function extractQuantityOrDefault(raw: string): number {
+  const match = raw.match(/\d+(\.\d+)?/);
+  return match ? Number(match[0]) : 1;
+}
 
 function resolveAction(action: string | null, raw: string): string | null {
   if (action) {

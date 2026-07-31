@@ -1,9 +1,13 @@
 -- One document structure for every non-invoice document type.
 -- Existing standalone_documents remain valid; new and edited documents can
 -- now preserve the same line-item form used by invoices and artifacts.
+-- Local-migration bootstrap fix (owner, 2026-07-30, KM-007 —
+-- registry/existence.json known_mistakes): public.standalone_documents has
+-- no CREATE TABLE anywhere in this migration history (legacy, off-record).
+-- FK dropped entirely. No-op change in production.
 create table if not exists public.standalone_document_items (
   id uuid primary key default gen_random_uuid(),
-  document_id uuid not null references public.standalone_documents(id) on delete cascade,
+  document_id uuid not null,
   description text not null,
   qty numeric not null default 1,
   unit text not null default 'รายการ',

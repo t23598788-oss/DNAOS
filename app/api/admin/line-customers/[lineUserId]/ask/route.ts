@@ -56,6 +56,31 @@ export async function POST(req: NextRequest, { params }: Params) {
 
   // Not a price question — fall through to the existing chat pipeline
   // (create documents, view debt/jobs, general Q&A) unchanged.
-  const result = await runCognitivePipeline(question)
+  //
+  // Real gap, owner-reported 2026-07-30: asking "พี่หนุ่มมีหน้าที่อะไร เป็นใคร
+  // ในระบบบริษัท DNA OS" (who is this contact / what's their role) got
+  // answered with zero real identity — this route never looked up who the
+  // contact actually IS before asking the AI about them; `line_profiles`
+  // (role/trust_level), `company_line_links` (which company), and
+  // `driver_equipment_permissions` (which vehicles they're responsible for)
+  // all already exist as real per-contact data and were simply never read
+  // here. Gathered as plain facts and handed to the AI as context — never
+  // as something the AI reasons about or guesses beyond (ห้ามเดา).
+  const [{ data: profile }, { data: link }, { data: equipmentLinks }] = await Promise.all([
+    db.from("line_profiles").select("display_name, role, trust_level").eq("line_user_id", lineUserId).maybeSingle(),
+    db.from("company_line_links").select("company_id, companies(name)").eq("line_user_id", lineUserId).maybeSingle(),
+    db.from("driver_equipment_permissions").select("equipment_assets(name, asset_code)").eq("line_user_id", lineUserId).eq("is_active", true),
+  ])
+  const companyName = (link as any)?.companies?.name ?? null
+  const equipmentNames = (equipmentLinks ?? []).map((r: any) => r.equipment_assets?.name).filter(Boolean)
+
+  const contextLines: string[] = []
+  if (profile?.display_name) contextLines.push(`ชื่อที่แสดงใน LINE: ${profile.display_name}`)
+  if (profile?.role) contextLines.push(`บทบาทในระบบ: ${profile.role}${profile.trust_level ? ` (${profile.trust_level})` : ""}`)
+  if (companyName) contextLines.push(`บริษัท/คู่ค้าที่ผูกไว้: ${companyName}`)
+  if (equipmentNames.length > 0) contextLines.push(`รถ/เครื่องจักรที่รับผิดชอบ: ${equipmentNames.join(", ")}`)
+  if (contextLines.length === 0) contextLines.push("ไม่มีข้อมูลบทบาท/บริษัท/เครื่องจักรที่ผูกไว้กับผู้ติดต่อนี้ในระบบ")
+
+  const result = await runCognitivePipeline(question, contextLines.join("\n"))
   return NextResponse.json(result)
 }

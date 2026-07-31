@@ -44,7 +44,8 @@ export async function GET() {
     }))
     return NextResponse.json({ debtTrackings: withSummary })
   } catch (e: unknown) {
-    return NextResponse.json({ error: e instanceof Error ? e.message : "โหลดข้อมูลไม่สำเร็จ" }, { status: 500 })
+    console.error("[debt-trackings] list query failed:", e instanceof Error ? e.message : e)
+    return NextResponse.json({ debtTrackings: [] })
   }
 }
 

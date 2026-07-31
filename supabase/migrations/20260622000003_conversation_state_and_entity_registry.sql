@@ -44,10 +44,17 @@ CREATE POLICY "Allow service_role full access to conversation_states"
     WITH CHECK (true);
 
 -- Create table for auditing extracted entities
+-- Local-migration bootstrap fix (owner, 2026-07-30, KM-007 —
+-- registry/existence.json known_mistakes): public.line_events is only
+-- really CREATEd later (20260709000002_line_events.sql). event_id's FK
+-- constraint is deferred to 20260710000011_geom_columns_bootstrap_fix.sql
+-- (which runs safely after line_events exists) instead of inline here, so
+-- a fresh local bootstrap can create this table at all. No-op change in
+-- production (that FK already exists there).
 CREATE TABLE public.entity_registry (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     line_user_id VARCHAR(255) NOT NULL,
-    event_id UUID NOT NULL REFERENCES public.line_events(id) ON DELETE CASCADE,
+    event_id UUID NOT NULL,
     entity_type VARCHAR(100) NOT NULL, -- 'material', 'quantity', 'vehicle_type', 'destination_location', 'destination_text', 'concrete_type', 'tax_id', 'pickup'
     entity_value JSONB NOT NULL, -- Stored actual value: {"value": "ทรายถม"}, {"lat": 16.4, "lng": 102.8}
     confidence NUMERIC NOT NULL DEFAULT 1.0,

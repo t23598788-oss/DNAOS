@@ -107,6 +107,31 @@ export async function matchOwnerSlipToPartnerPayable(
     completed_at: bankEmailVerified ? new Date().toISOString() : null,
   }).eq("id", match.id)
 
+  // Real gap, owner-reported 2026-07-31: "โอนแล้ว...นำค่าใช้จ่ายเข้าไปลง
+  // บันทึกไว้ในค่าใช้จ่าย รายรับรายจ่ายของบริษัทซะ" — the owner's own slip
+  // confirming a partner/bill payment is real evidence of a real company
+  // cost, same standing as an internal-sender document (capability #11) —
+  // record it into company_expenses here, the one real place this
+  // confirmation happens, instead of only marking the request row done.
+  const ownerLineUserId = await getOwnerLineUserId(supabase)
+  await supabase.from("company_expenses").insert({
+    document_type: "partner_payable",
+    amount: Number(match.amount),
+    vendor_name: match.partner_name,
+    expense_date: new Date().toISOString().slice(0, 10),
+    submitted_by_line_user_id: ownerLineUserId ?? "unknown",
+    submitted_by_name: "เฮีย (owner)",
+    submitted_by_role: "owner",
+  })
+
+  // Supabase billing events are one real kind of partner-payable request —
+  // close the loop back to that table too, so its own status (pending →
+  // owner_notified → paid) reflects the real outcome instead of staying
+  // stuck at owner_notified forever once the slip lands.
+  await supabase.from("supabase_billing_events")
+    .update({ status: "paid" })
+    .eq("partner_payable_request_id", match.id)
+
   if (match.partner_line_user_id) {
     await ResponseGateway.pushMessage(
       match.partner_line_user_id,
