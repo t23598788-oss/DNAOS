@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { speak } from "@/components/admin/ttsSpeak"
+import { createBrowserSupabase } from "@/services/supabase/browser"
 
 interface BoardSection {
   type: string
@@ -153,6 +154,45 @@ export function SecretaryChat({ openingText }: { openingText?: string }) {
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" })
   }, [messages])
+
+  // Live push from LINE (owner, 2026-07-31): "กูสั่งจาก LINE โน้ตบุ๊กนี้ขยับ
+  // ตามได้เลยแหละ" — a command the owner types in LINE runs through the same
+  // cognitive/pipeline.ts as this chat box (via
+  // app/api/internal/line/command/route.ts), which inserts a row into
+  // live_commands. Whatever dashboard tab is already open here subscribes
+  // and reacts exactly like it would to a message typed in this box.
+  useEffect(() => {
+    const supabase = createBrowserSupabase()
+    const channel = supabase
+      .channel("live_commands_dashboard")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "live_commands" },
+        (payload) => {
+          const row = payload.new as {
+            reply_text: string | null
+            navigate_url: string | null
+            workspace: { sections?: BoardSection[] } | null
+          }
+          setMessages((m) => [...m, {
+            id: nextId(),
+            role: "ai",
+            text: row.reply_text ?? "รับคำสั่งจาก LINE แล้วครับ",
+            sections: row.workspace?.sections,
+          }])
+          if (voiceOn && row.reply_text) speak(row.reply_text)
+          if (row.navigate_url) {
+            setTimeout(() => router.push(row.navigate_url as string), 600)
+          }
+        }
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   async function send() {
     const text = input.trim()

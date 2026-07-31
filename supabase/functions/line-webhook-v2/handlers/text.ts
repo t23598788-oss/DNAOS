@@ -44,6 +44,38 @@ export async function handleText(ctx: HandlerContext): Promise<void> {
 
   if (!ctx.replyToken) return
 
+  // Owner's own LINE chat as a remote control for the admin dashboard
+  // (owner, 2026-07-31: "กูสั่งจาก LINE โน้ตบุ๊กนี้ขยับตามได้เลยแหละ").
+  // Checked first/exclusively for the owner's line_user_id — everything
+  // below this (tool-router, follow-ups, human-takeover ack, etc.) is
+  // customer-facing deterministic logic that doesn't apply here. Routes
+  // through the exact same cognitive/pipeline.ts the admin dashboard's own
+  // SecretaryChat uses, via the Node bridge (Deno can't import it
+  // directly) — same bridge pattern as document-artifact/openclaw-webhook.
+  // Rule 72 still applies: this only proposes/plans, real mutations still
+  // need an explicit follow-up "ส่งเลย" from the owner, same as every
+  // other channel.
+  const ownerLineUserId = Deno.env.get("OWNER_LINE_USER_ID")
+  if (ctx.userId && ownerLineUserId && ctx.userId === ownerLineUserId) {
+    const appUrl = Deno.env.get("DNA_OS_APP_URL") ?? ""
+    const internalSecret = Deno.env.get("LINE_COMMAND_INTERNAL_SECRET") ?? ""
+    try {
+      const res = await fetch(`${appUrl}/api/internal/line/command`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-line-command-internal-secret": internalSecret,
+        },
+        body: JSON.stringify({ lineUserId: ctx.userId, commandText: text }),
+      })
+      const data = await res.json()
+      await ResponseGateway.replyText(ctx.replyToken, typeof data.reply === "string" ? data.reply : "รับคำสั่งแล้วครับ")
+    } catch {
+      await ResponseGateway.replyText(ctx.replyToken, "ขออภัยครับ ระบบประมวลผลคำสั่งไม่สำเร็จตอนนี้ ลองใหม่อีกครั้งครับ")
+    }
+    return
+  }
+
   // Outbound Supplier RFQ reply (owner, 2026-07-24) — checked before every
   // customer-side engine below, since a supplier's line_user_id is never a
   // matched company_line_links row anyway; this is just the cleanest place

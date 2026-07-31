@@ -6646,6 +6646,16 @@
         "POST"
       ],
       "status": "active"
+    },
+    "app/api/internal/line/command/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Edge-function bridge for the owner's own LINE chat as a remote control for the admin dashboard — routes the owner's LINE commands through cognitive/pipeline.ts (same brain as SecretaryChat) and writes to live_commands so any open dashboard tab reacts live via Realtime.",
+      "purpose_th": "สะพานเชื่อมสำหรับแชท LINE ของเจ้าของระบบเอง ให้เป็นรีโมทควบคุมแดชบอร์ด — ส่งคำสั่งผ่าน cognitive/pipeline.ts (สมองเดียวกับ SecretaryChat) แล้วเขียนลง live_commands ให้แท็บแดชบอร์ดที่เปิดอยู่ขยับตามผ่าน Realtime",
+      "exports": [
+        "POST"
+      ],
+      "status": "active"
     }
   },
   "excluded": [
