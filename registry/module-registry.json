@@ -6658,6 +6658,159 @@
         "POST"
       ],
       "status": "active"
+    },
+    "local-runtime/ai-task-watcher.mjs": {
+      "owner": "local-runtime",
+      "layer": "scripts",
+      "purpose": "Persistent local-AI worker (LaunchAgent, polls every 20s) — classifies LINE documents via Ollama, drafts conversational replies, and now self-heals its own backlog of never-processed documents each cycle.",
+      "purpose_th": "Worker AI ในเครื่อง (รันผ่าน LaunchAgent ทุก 20 วิ) — จำแนกเอกสารจาก LINE ผ่าน Ollama, ร่างคำตอบแชท, และสแกนหาเอกสารตกหล่นของตัวเองทุกรอบเพื่อเข้าคิวใหม่อัตโนมัติ",
+      "exports": [],
+      "status": "active",
+      "entry_point": true
+    },
+    "local-runtime/backfill-slips.mjs": {
+      "owner": "local-runtime",
+      "layer": "scripts",
+      "purpose": "One-time/manual backfill tool for historical payment slips — real script, run by hand when needed.",
+      "purpose_th": "สคริปต์ backfill สลิปเก่าย้อนหลัง — รันมือเมื่อจำเป็น",
+      "exports": [],
+      "status": "active",
+      "entry_point": true
+    },
+    "local-runtime/backfill-slips-test.mjs": {
+      "owner": "local-runtime",
+      "layer": "scripts",
+      "purpose": "Test/dry-run variant of backfill-slips.mjs.",
+      "purpose_th": "เวอร์ชันทดสอบของ backfill-slips.mjs",
+      "exports": [],
+      "status": "active",
+      "entry_point": true
+    },
+    "local-runtime/print-watcher.mjs": {
+      "owner": "local-runtime",
+      "layer": "scripts",
+      "purpose": "LaunchAgent worker — watches for print jobs and sends them to the physical printer.",
+      "purpose_th": "Worker เฝ้าคิวงานพิมพ์แล้วสั่งพิมพ์จริงไปเครื่องพิมพ์",
+      "exports": [],
+      "status": "active",
+      "entry_point": true
+    },
+    "local-runtime/voice-wake-watcher.mjs": {
+      "owner": "local-runtime",
+      "layer": "scripts",
+      "purpose": "Voice wake-word watcher (Node half of the voice pipeline).",
+      "purpose_th": "ตัวเฝ้าฟังคำปลุก (wake word) ฝั่ง Node",
+      "exports": [],
+      "status": "active",
+      "entry_point": true
+    },
+    "local-runtime/voice-wake-watcher.sh": {
+      "owner": "local-runtime",
+      "layer": "scripts",
+      "purpose": "Shell entrypoint for the voice wake-word LaunchAgent.",
+      "purpose_th": "สคริปต์ shell ตั้งต้นของ voice wake watcher (LaunchAgent)",
+      "exports": [],
+      "status": "active",
+      "entry_point": true
+    },
+    "local-runtime/watch-drive.mjs": {
+      "owner": "local-runtime",
+      "layer": "scripts",
+      "purpose": "LaunchAgent worker — watches a Google Drive folder for new files to ingest.",
+      "purpose_th": "Worker เฝ้าโฟลเดอร์ Google Drive หาไฟล์ใหม่มาดึงเข้าระบบ",
+      "exports": [],
+      "status": "active",
+      "entry_point": true
+    },
+    "local-runtime/report-wake.mjs": {
+      "owner": "local-runtime",
+      "layer": "scripts",
+      "purpose": "Reports voice wake-word events back to the system.",
+      "purpose_th": "ส่งรายงานเหตุการณ์ wake word กลับเข้าระบบ",
+      "exports": [],
+      "status": "active",
+      "entry_point": true
+    },
+    "local-runtime/voice-print.mjs": {
+      "owner": "local-runtime",
+      "layer": "scripts",
+      "purpose": "Voice-triggered printing helper.",
+      "purpose_th": "ตัวช่วยสั่งพิมพ์ด้วยเสียง",
+      "exports": [],
+      "status": "active",
+      "entry_point": true
+    },
+    "local-runtime/ask.sh": {
+      "owner": "local-runtime",
+      "layer": "scripts",
+      "purpose": "CLI helper script for local Ollama queries.",
+      "purpose_th": "สคริปต์ CLI ช่วยถาม Ollama ในเครื่อง",
+      "exports": [],
+      "status": "active",
+      "entry_point": true
+    },
+    "local-runtime/print-screen.sh": {
+      "owner": "local-runtime",
+      "layer": "scripts",
+      "purpose": "Shell helper to capture the screen for screen-vision.",
+      "purpose_th": "สคริปต์ shell ช่วยจับภาพหน้าจอสำหรับ screen-vision",
+      "exports": [],
+      "status": "active",
+      "entry_point": true
+    },
+    "local-runtime/Modelfile": {
+      "owner": "local-runtime",
+      "layer": "scripts",
+      "purpose": "Ollama Modelfile defining the thawatchai custom model (base qwen3:8b).",
+      "purpose_th": "ไฟล์ Modelfile ของ Ollama กำหนดโมเดล thawatchai (ต่อยอดจาก qwen3:8b)",
+      "exports": [],
+      "status": "active",
+      "entry_point": true
+    },
+    "local-runtime/package.json": {
+      "owner": "local-runtime",
+      "layer": "scripts",
+      "purpose": "package.json for local-runtime scripts (symlinks node_modules to the main project).",
+      "purpose_th": "package.json ของ local-runtime (symlink node_modules ไปโปรเจคหลัก)",
+      "exports": [],
+      "status": "active",
+      "entry_point": true
+    },
+    "local-runtime/launchagents/com.dnaos.ai-task-watcher.plist": {
+      "owner": "local-runtime",
+      "layer": "scripts",
+      "purpose": "macOS LaunchAgent config for ai-task-watcher.mjs — runs it every 20s forever.",
+      "purpose_th": "ตั้งค่า LaunchAgent ของ macOS ให้รัน ai-task-watcher.mjs ทุก 20 วิตลอดไป",
+      "exports": [],
+      "status": "active",
+      "entry_point": true
+    },
+    "local-runtime/launchagents/com.dnaos.drive-watcher.plist": {
+      "owner": "local-runtime",
+      "layer": "scripts",
+      "purpose": "macOS LaunchAgent config for watch-drive.mjs.",
+      "purpose_th": "ตั้งค่า LaunchAgent ของ macOS สำหรับ watch-drive.mjs",
+      "exports": [],
+      "status": "active",
+      "entry_point": true
+    },
+    "local-runtime/launchagents/com.dnaos.print-watcher.plist": {
+      "owner": "local-runtime",
+      "layer": "scripts",
+      "purpose": "macOS LaunchAgent config for print-watcher.mjs.",
+      "purpose_th": "ตั้งค่า LaunchAgent ของ macOS สำหรับ print-watcher.mjs",
+      "exports": [],
+      "status": "active",
+      "entry_point": true
+    },
+    "local-runtime/launchagents/com.dnaos.voice-wake-watcher.plist": {
+      "owner": "local-runtime",
+      "layer": "scripts",
+      "purpose": "macOS LaunchAgent config for voice-wake-watcher.sh.",
+      "purpose_th": "ตั้งค่า LaunchAgent ของ macOS สำหรับ voice-wake-watcher.sh",
+      "exports": [],
+      "status": "active",
+      "entry_point": true
     }
   },
   "excluded": [
