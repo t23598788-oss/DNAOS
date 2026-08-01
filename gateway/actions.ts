@@ -209,6 +209,23 @@ export async function previewDocumentCreate(payload: Record<string, unknown>): P
     return { ok: false, mode: "preview", action: "document.create", error: "ต้องจับคู่บริษัทลูกค้าก่อนถึงจะออกเอกสารได้" };
   }
   const documentType = normalizeDocumentType(String(payload.document_type));
+  // Real incident (owner, 2026-07-31): a receipt (REC-20260731-302) was
+  // created through this exact path with zero real payment — this generic
+  // document builder has no concept of payment evidence at all, unlike the
+  // real Rule 115 evidence pipeline (receipt_documents / bank_notifications
+  // / payment-claim / OCR slip levels 1-4, human-confirmed at
+  // app/api/admin/receipt-documents/[id]/confirm). A receipt asserts money
+  // was actually received — that can only ever come from that verified
+  // pipeline, never from a text command through the AI. Refuse here rather
+  // than let a receipt be fabricated from thin air.
+  if (documentType === "receipt") {
+    return {
+      ok: false,
+      mode: "preview",
+      action: "document.create",
+      error: "ออกใบเสร็จผ่านช่องทางนี้ไม่ได้ครับ — ใบเสร็จต้องมีหลักฐานรับเงินจริงยืนยันก่อนเท่านั้น (สลิป/แจ้งเตือนธนาคาร) ไปที่หน้าเอกสารรอตรวจสอบเพื่อยืนยันการรับเงินแทนครับ",
+    };
+  }
   if (documentType !== "invoice" && !STANDALONE_ENUM[documentType]) {
     return { ok: false, mode: "preview", action: "document.create", error: `ยังไม่รองรับเอกสารประเภทนี้: ${documentType}` };
   }
@@ -305,6 +322,17 @@ export async function executeDocumentCreate(payload: {
   }
 
   const documentType = normalizeDocumentType(payload.document_type);
+  // Same guard as previewDocumentCreate — belt-and-suspenders in case a
+  // preview_token for a receipt was issued before this fix and someone
+  // still tries to confirm/execute it.
+  if (documentType === "receipt") {
+    return {
+      ok: false,
+      mode: "execute",
+      action: "document.create",
+      error: "ออกใบเสร็จผ่านช่องทางนี้ไม่ได้ครับ — ใบเสร็จต้องมีหลักฐานรับเงินจริงยืนยันก่อนเท่านั้น",
+    };
+  }
   const label = DOC_LABELS[documentType];
   const docNum = payload.document_number ?? `${label.prefix}-${new Date().toISOString().split("T")[0].replace(/-/g, "")}-${String(Date.now()).slice(-3)}`;
   const issueDate = payload.issue_date ?? new Date().toISOString().split("T")[0];
