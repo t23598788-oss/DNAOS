@@ -23,8 +23,17 @@ export async function POST(request: Request) {
     // pipeline.ts's runCognitivePipeline for the real incident this fixes.
     // Distinct from contactContext, which is free-text AI-prompt context,
     // not an identifier.
-    const { message, sessionKey } = await request.json();
-    const response = await runCognitivePipeline(String(message ?? ""), null, sessionKey ?? null);
+    // knownCustomerId/knownCustomerName (owner, 2026-08-01): "เรื่องการเงิน
+    // เอกสารไม่ต้องให้ ai เข้ามา" — when the caller (an Action Bar button)
+    // already knows exactly which customer this is, skip AI name-matching
+    // for identity entirely (see runCognitiveCore's knownCustomer handling).
+    const { message, sessionKey, knownCustomerId, knownCustomerName } = await request.json();
+    const response = await runCognitivePipeline(
+      String(message ?? ""),
+      null,
+      sessionKey ?? null,
+      knownCustomerId ? { id: String(knownCustomerId), name: String(knownCustomerName ?? "") } : null,
+    );
     return NextResponse.json(response);
   } catch (error) {
     return NextResponse.json({

@@ -394,6 +394,11 @@ function RelationshipWorkspace({ initialRelationshipId }: { initialRelationshipI
   // Engine / Rule Engine all read that one slot instead of separate flags.
   const runCommand = useCallback(async (text: string, lineUserId: string | null) => {
     if (!activeId) return
+    // Duplicate of the companyName derivation further below (kept as its
+    // own small lookup, not hoisted, to avoid reordering unrelated
+    // declarations this callback doesn't otherwise need) — see
+    // knownCustomerId/knownCustomerName in the fetch body below.
+    const companyNameForKnownCustomer = relationships.find((r) => r.relationship_id === activeId)?.name ?? null
     setActionSending(true)
     pushEntry({ id: nextActionLogId(), role: "user", text })
     try {
@@ -407,7 +412,19 @@ function RelationshipWorkspace({ initialRelationshipId }: { initialRelationshipI
         // wrong company. lineUserId (already in hand here) is passed as the
         // session key; `relationship:${activeId}` covers relationships not
         // yet linked to a LINE account.
-        body: JSON.stringify({ message: text, sessionKey: lineUserId || `relationship:${activeId}` }),
+        //
+        // knownCustomerId (owner, 2026-08-01): "เรื่องการเงินเอกสารไม่ต้องให้
+        // ai เข้ามา...มันเป็นตรรกะการบวกเลขเฉยๆ" — this component already
+        // knows exactly which company activeId/companyName refer to (it's
+        // the relationship the operator has open), so send that identity as
+        // a real, code-supplied fact instead of only writing it into the
+        // Thai text and making the AI re-derive it via name-matching.
+        body: JSON.stringify({
+          message: text,
+          sessionKey: lineUserId || `relationship:${activeId}`,
+          knownCustomerId: activeId,
+          knownCustomerName: companyNameForKnownCustomer,
+        }),
       })
       const data = await res.json()
       const entryId = nextActionLogId()
@@ -440,7 +457,7 @@ function RelationshipWorkspace({ initialRelationshipId }: { initialRelationshipI
     } finally {
       setActionSending(false)
     }
-  }, [activeId, pushEntry, dispatch])
+  }, [activeId, relationships, pushEntry, dispatch])
 
   // Owner request 2026-07-11: unifies the two previously-separate confirm
   // handlers (document.create's Rule-72 token vs debt-reminder's mode param)

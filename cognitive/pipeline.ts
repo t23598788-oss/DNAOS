@@ -621,6 +621,7 @@ export async function runCognitivePipeline(
   message: string,
   contactContext?: string | null,
   sessionKey?: string | null,
+  knownCustomer?: { id: string; name: string } | null,
 ): Promise<PipelineResult> {
   // Central Intent Dispatcher, checked first — see classifyClientCommand()'s
   // header comment.
@@ -641,14 +642,30 @@ export async function runCognitivePipeline(
     return { sender: "ai", type: "text", text: "กลับหน้าหลักให้แล้วครับ", navigate_url: "/admin/relationships", pulse_node: clientDirective.pulse_node };
   }
 
-  return runCognitiveCore(message, contactContext, sessionKey);
+  return runCognitiveCore(message, contactContext, sessionKey, knownCustomer);
 }
 
 async function runCognitiveCore(
   message: string,
   contactContext?: string | null,
   sessionKey?: string | null,
+  knownCustomer?: { id: string; name: string } | null,
 ): Promise<PipelineResult> {
+  // Owner directive (2026-08-01): "เกี่ยวกับเรื่องการเงินเอกสารไม่ต้องให้ ai
+  // เข้ามาอยู่...มันเป็นตรรกะการบวกเลขเฉยๆ" — when the caller already knows
+  // exactly which customer this is (e.g. an Action Bar button clicked from
+  // inside that customer's own relationship view), seed the session with
+  // that id BEFORE the AI ever sees the message. cognitive/planner/engine.ts
+  // already skips identity.resolve entirely whenever objective.who_id is
+  // set (`skipResolve = !!objective.who_id`) — this was already the
+  // deterministic override path, it just never received a real id from any
+  // UI button, so every document.create still went through AI name-matching
+  // even when the identity was 100% known in code already (the real cause
+  // of the 2026-07-31 wrong-company invoice/receipt incident).
+  if (knownCustomer?.id) {
+    newSession(knownCustomer.name, sessionKey, knownCustomer.id);
+  }
+
   // Real bug, owner-reported 2026-07-30: "เปิดไปหน้าแอดมินหน่อย" fell through
   // to the LLM fallback entirely (no deterministic check recognized it as a
   // navigation command at all — the previous navigate_url logic only fired

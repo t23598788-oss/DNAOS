@@ -99,9 +99,9 @@ export function resetMemory(sessionKey?: string | null): SessionMemory {
   return getMemory(key);
 }
 
-export function newSession(who: string, sessionKey?: string | null): SessionMemory {
+export function newSession(who: string, sessionKey?: string | null, whoId?: string | null): SessionMemory {
   const key = keyOf(sessionKey);
-  _sessions.set(key, { ...createFreshMemory(), who, started_at: new Date().toISOString(), updated_at: new Date().toISOString() });
+  _sessions.set(key, { ...createFreshMemory(), who, who_id: whoId ?? null, started_at: new Date().toISOString(), updated_at: new Date().toISOString() });
   return getMemory(key);
 }
 

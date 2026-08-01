@@ -87,6 +87,17 @@ export async function POST(req: NextRequest, { params }: Params) {
   // could pick up whatever customer's session was last resolved anywhere
   // in the process. Distinct from the second arg (contactContext, the
   // free-text facts above), which stays as AI-prompt context, not an id.
-  const result = await runCognitivePipeline(question, contextLines.join("\n"), lineUserId)
+  // knownCustomer (owner, 2026-08-01): "เรื่องการเงินเอกสารไม่ต้องให้ ai
+  // เข้ามา" — company_line_links already gave us the real, code-resolved
+  // company_id above; pass it through so identity.resolve is skipped
+  // entirely for this contact's financial documents instead of relying on
+  // AI name-matching against whatever the question text says.
+  const companyId = (link as any)?.company_id ?? null
+  const result = await runCognitivePipeline(
+    question,
+    contextLines.join("\n"),
+    lineUserId,
+    companyId ? { id: String(companyId), name: companyName ?? "" } : null,
+  )
   return NextResponse.json(result)
 }
