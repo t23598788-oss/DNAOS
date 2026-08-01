@@ -11,7 +11,7 @@
     "windows": [
       {
         "title": "DNA OS — ควบคุมแชทลูกค้า",
-        "url": "/admin/relationships",
+        "url": "https://dnaos.dev/admin/relationships",
         "width": 1440,
         "height": 900,
         "resizable": true,
