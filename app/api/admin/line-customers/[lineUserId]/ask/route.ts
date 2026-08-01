@@ -81,6 +81,12 @@ export async function POST(req: NextRequest, { params }: Params) {
   if (equipmentNames.length > 0) contextLines.push(`รถ/เครื่องจักรที่รับผิดชอบ: ${equipmentNames.join(", ")}`)
   if (contextLines.length === 0) contextLines.push("ไม่มีข้อมูลบทบาท/บริษัท/เครื่องจักรที่ผูกไว้กับผู้ติดต่อนี้ในระบบ")
 
-  const result = await runCognitivePipeline(question, contextLines.join("\n"))
+  // sessionKey = lineUserId (owner, 2026-07-31 fix): this route always
+  // asks on behalf of one specific contact (it's in the URL), but never
+  // told cognitive/memory/session.ts that — the singleton it used to be
+  // could pick up whatever customer's session was last resolved anywhere
+  // in the process. Distinct from the second arg (contactContext, the
+  // free-text facts above), which stays as AI-prompt context, not an id.
+  const result = await runCognitivePipeline(question, contextLines.join("\n"), lineUserId)
   return NextResponse.json(result)
 }

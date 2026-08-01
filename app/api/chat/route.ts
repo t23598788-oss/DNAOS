@@ -17,8 +17,14 @@ export async function POST(request: Request) {
   if (auth instanceof NextResponse) return auth;
 
   try {
-    const { message } = await request.json();
-    const response = await runCognitivePipeline(String(message ?? ""));
+    // sessionKey (owner, 2026-07-31 fix): the caller's session key, so
+    // cognitive/memory/session.ts keeps each customer/relationship's memory
+    // isolated instead of one process-wide singleton — see cognitive/
+    // pipeline.ts's runCognitivePipeline for the real incident this fixes.
+    // Distinct from contactContext, which is free-text AI-prompt context,
+    // not an identifier.
+    const { message, sessionKey } = await request.json();
+    const response = await runCognitivePipeline(String(message ?? ""), null, sessionKey ?? null);
     return NextResponse.json(response);
   } catch (error) {
     return NextResponse.json({

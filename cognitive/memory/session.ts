@@ -32,8 +32,6 @@ export interface SessionMemory {
   updated_at: string;
 }
 
-let _memory: SessionMemory = createFreshMemory();
-
 function createFreshMemory(): SessionMemory {
   return {
     who: null, who_id: null, current_goal: null,
@@ -44,51 +42,93 @@ function createFreshMemory(): SessionMemory {
   };
 }
 
-// ── Read ──
+// Real incident (owner, 2026-07-31): this used to be one `let _memory`
+// singleton shared by EVERY request the Node process serves — every admin
+// tab, every customer chat thread, concurrently. Typing "ออกบิลให้คุณ
+// [company A]" while a DIFFERENT company's session was the last one
+// resolved anywhere in the process silently produced an invoice for that
+// stale company instead. Now keyed by `contactContext` (already an existing
+// parameter on runCognitivePipeline, just never threaded down to here) —
+// each customer/relationship/LINE user gets its own real, isolated memory.
+// Callers that genuinely have no session key (should be rare — every real
+// caller has a customer id, a LINE user id, or "owner") fall back to a
+// single shared "__default__" bucket, same behavior as before this fix,
+// not worse.
+const DEFAULT_KEY = "__default__";
+const SESSION_TTL_MS = 30 * 60 * 1000; // unbounded growth guard — old sessions are just abandoned conversations
+const _sessions = new Map<string, SessionMemory>();
 
-export function getMemory(): Readonly<SessionMemory> {
-  return { ..._memory };
+function keyOf(sessionKey?: string | null): string {
+  return sessionKey && sessionKey.trim() ? sessionKey : DEFAULT_KEY;
 }
 
-export function isStale(): boolean {
+function getOrCreate(sessionKey?: string | null): SessionMemory {
+  const key = keyOf(sessionKey);
+  sweepStale();
+  let mem = _sessions.get(key);
+  if (!mem) {
+    mem = createFreshMemory();
+    _sessions.set(key, mem);
+  }
+  return mem;
+}
+
+function sweepStale(): void {
+  const now = Date.now();
+  for (const [key, mem] of _sessions) {
+    if (now - new Date(mem.updated_at).getTime() > SESSION_TTL_MS) _sessions.delete(key);
+  }
+}
+
+// ── Read ──
+
+export function getMemory(sessionKey?: string | null): Readonly<SessionMemory> {
+  return { ...getOrCreate(sessionKey) };
+}
+
+export function isStale(sessionKey?: string | null): boolean {
   const fiveMin = 5 * 60 * 1000;
-  return Date.now() - new Date(_memory.updated_at).getTime() > fiveMin;
+  return Date.now() - new Date(getOrCreate(sessionKey).updated_at).getTime() > fiveMin;
 }
 
 // ── Reset ──
 
-export function resetMemory(): SessionMemory {
-  _memory = createFreshMemory();
-  return getMemory();
+export function resetMemory(sessionKey?: string | null): SessionMemory {
+  const key = keyOf(sessionKey);
+  _sessions.set(key, createFreshMemory());
+  return getMemory(key);
 }
 
-export function newSession(who: string): SessionMemory {
-  _memory = { ...createFreshMemory(), who, started_at: new Date().toISOString(), updated_at: new Date().toISOString() };
-  return getMemory();
+export function newSession(who: string, sessionKey?: string | null): SessionMemory {
+  const key = keyOf(sessionKey);
+  _sessions.set(key, { ...createFreshMemory(), who, started_at: new Date().toISOString(), updated_at: new Date().toISOString() });
+  return getMemory(key);
 }
 
 // ── Apply Reflection ──
 
-export function applyReflection(reflection: ReflectionOutput): SessionMemory {
+export function applyReflection(reflection: ReflectionOutput, sessionKey?: string | null): SessionMemory {
+  const mem = getOrCreate(sessionKey);
+
   for (const update of reflection.memory_updates) {
-    applyUpdate(update);
+    applyUpdate(mem, update);
   }
 
   for (const entity of reflection.resolved_entities) {
-    if (!_memory.known_entities.some(e => e.id === entity.id)) {
-      _memory.known_entities.push(entity);
+    if (!mem.known_entities.some(e => e.id === entity.id)) {
+      mem.known_entities.push(entity);
     }
   }
 
-  _memory.state_transitions.push(...reflection.state_transitions);
-  _memory.turn_count++;
-  _memory.updated_at = new Date().toISOString();
+  mem.state_transitions.push(...reflection.state_transitions);
+  mem.turn_count++;
+  mem.updated_at = new Date().toISOString();
 
-  return getMemory();
+  return getMemory(sessionKey);
 }
 
-function applyUpdate(update: MemoryUpdate) {
-  const m = _memory as any;
+function applyUpdate(mem: SessionMemory, update: MemoryUpdate) {
+  const m = mem as any;
   switch (update.action) {
     case "set":
       m[update.key] = update.value;
@@ -108,8 +148,8 @@ function applyUpdate(update: MemoryUpdate) {
 
 // ── Enrich WorldState ──
 
-export function enrichWithMemory(worldState: WorldState): WorldState {
-  const mem = _memory;
+export function enrichWithMemory(worldState: WorldState, sessionKey?: string | null): WorldState {
+  const mem = getOrCreate(sessionKey);
   const entities = [...worldState.entities];
   const events = [...worldState.timeline.events];
 
@@ -161,30 +201,32 @@ export function enrichWithMemory(worldState: WorldState): WorldState {
 
 // ── Query: ตอบคำถามเกี่ยวกับสถานะโลก ──
 
-export function whatChanged(): StateTransition[] {
-  return _memory.state_transitions.slice(-10);
+export function whatChanged(sessionKey?: string | null): StateTransition[] {
+  return getOrCreate(sessionKey).state_transitions.slice(-10);
 }
 
-export function whatIsPending(): string[] {
-  return _memory.pending_actions;
+export function whatIsPending(sessionKey?: string | null): string[] {
+  return getOrCreate(sessionKey).pending_actions;
 }
 
-export function whatWasCancelled(): string[] {
-  return _memory.cancelled_actions;
+export function whatWasCancelled(sessionKey?: string | null): string[] {
+  return getOrCreate(sessionKey).cancelled_actions;
 }
 
-export function whatIsCurrentGoal(): string | null {
-  return _memory.current_goal;
+export function whatIsCurrentGoal(sessionKey?: string | null): string | null {
+  return getOrCreate(sessionKey).current_goal;
 }
 
-export function cancelPending(action: string): void {
-  _memory.pending_actions = _memory.pending_actions.filter(a => a !== action);
-  _memory.cancelled_actions.push(action);
-  _memory.updated_at = new Date().toISOString();
+export function cancelPending(action: string, sessionKey?: string | null): void {
+  const mem = getOrCreate(sessionKey);
+  mem.pending_actions = mem.pending_actions.filter(a => a !== action);
+  mem.cancelled_actions.push(action);
+  mem.updated_at = new Date().toISOString();
 }
 
-export function executePending(action: string): void {
-  _memory.pending_actions = _memory.pending_actions.filter(a => a !== action);
-  _memory.previous_actions.push(action);
-  _memory.updated_at = new Date().toISOString();
+export function executePending(action: string, sessionKey?: string | null): void {
+  const mem = getOrCreate(sessionKey);
+  mem.pending_actions = mem.pending_actions.filter(a => a !== action);
+  mem.previous_actions.push(action);
+  mem.updated_at = new Date().toISOString();
 }

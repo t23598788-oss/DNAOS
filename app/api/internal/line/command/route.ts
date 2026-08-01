@@ -34,7 +34,13 @@ export async function POST(req: Request) {
   }
 
   try {
-    const result = await runCognitivePipeline(body.commandText, body.lineUserId)
+    // sessionKey = lineUserId (owner, 2026-07-31 fix): keeps the owner's LINE
+    // command session isolated from every other caller of the pipeline
+    // (admin dashboard tabs, other customers) instead of sharing the old
+    // process-wide singleton. This route is owner-only (see text.ts's
+    // caller), so contactContext is left null — no extra free-text facts
+    // needed here.
+    const result = await runCognitivePipeline(body.commandText, null, body.lineUserId)
     const navigateUrl = "navigate_url" in result ? result.navigate_url ?? null : null
     const workspace = "workspace" in result ? result.workspace ?? null : null
 

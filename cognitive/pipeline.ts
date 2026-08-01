@@ -620,6 +620,7 @@ type PipelineResult = BoardResponse | ({ sender: "ai"; type: "command" | "text";
 export async function runCognitivePipeline(
   message: string,
   contactContext?: string | null,
+  sessionKey?: string | null,
 ): Promise<PipelineResult> {
   // Central Intent Dispatcher, checked first — see classifyClientCommand()'s
   // header comment.
@@ -640,12 +641,13 @@ export async function runCognitivePipeline(
     return { sender: "ai", type: "text", text: "กลับหน้าหลักให้แล้วครับ", navigate_url: "/admin/relationships", pulse_node: clientDirective.pulse_node };
   }
 
-  return runCognitiveCore(message, contactContext);
+  return runCognitiveCore(message, contactContext, sessionKey);
 }
 
 async function runCognitiveCore(
   message: string,
   contactContext?: string | null,
+  sessionKey?: string | null,
 ): Promise<PipelineResult> {
   // Real bug, owner-reported 2026-07-30: "เปิดไปหน้าแอดมินหน่อย" fell through
   // to the LLM fallback entirely (no deterministic check recognized it as a
@@ -673,11 +675,11 @@ async function runCognitiveCore(
     }
   }
 
-  const enriched = enrichWithTranslator(operatingIntent(message), message);
-  const memory = getMemory();
+  const enriched = enrichWithTranslator(operatingIntent(message, sessionKey), message);
+  const memory = getMemory(sessionKey);
 
   if (enriched.intent_type === "navigation") {
-    resetMemory();
+    resetMemory(sessionKey);
     return { sender: "ai", type: "command", command: "CLEAR_SCREEN" };
   }
 
@@ -697,7 +699,7 @@ async function runCognitiveCore(
   };
 
   const rawWorldState = buildSituation(situationInput);
-  const worldState = enrichWithMemory(rawWorldState);
+  const worldState = enrichWithMemory(rawWorldState, sessionKey);
   const hypotheses = generateHypotheses(worldState);
   const reasoning = reason(toGoal(enriched), session);
   const decision: Decision = {
@@ -714,7 +716,7 @@ async function runCognitiveCore(
   const reflection = reflect(executionResults as ExecutionResult[], worldState, decision.decision);
   const learned = learn(reflection, evaluation);
 
-  applyReflection(reflection);
+  applyReflection(reflection, sessionKey);
 
   if (executionPlan.ask_user) {
     return { sender: "ai", type: "text", text: executionPlan.ask_user };
@@ -953,8 +955,8 @@ async function answerWithAi(message: string, contactContext?: string | null) {
   return { sender: "ai" as const, type: "text" as const, text: "ตอบไม่ได้ตอนนี้ครับ (AI ไม่พร้อมใช้งาน) ลองใหม่อีกครั้งครับ" };
 }
 
-function operatingIntent(input: string): EnrichedInput {
-  const memory = getMemory();
+function operatingIntent(input: string, sessionKey?: string | null): EnrichedInput {
+  const memory = getMemory(sessionKey);
   // Real incident (owner, 2026-07-31): \S+ stops at the first whitespace, so
   // "ออกบิลให้คุณบจก. เคแพค คอนกรีต 2004 (สำราญ)" only ever captured "บจก."
   // — a prefix shared by every company name, which then resolved ambiguously
@@ -991,7 +993,7 @@ function operatingIntent(input: string): EnrichedInput {
   else if (matched?.startsWith("create_")) { action = "create"; what = matched.replace("create_", ""); }
   else if (matched?.startsWith("review_")) { action = "view"; what = matched.replace("review_", ""); }
 
-  if (isNewSession && who) newSession(who);
+  if (isNewSession && who) newSession(who, sessionKey);
 
   return {
     who: who ?? (!isNewSession ? memory.who : null),

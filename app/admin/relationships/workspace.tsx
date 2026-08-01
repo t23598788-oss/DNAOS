@@ -400,7 +400,14 @@ function RelationshipWorkspace({ initialRelationshipId }: { initialRelationshipI
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: text }),
+        // Real incident (owner, 2026-07-31): this request never told the
+        // server which customer it was for — cognitive/memory/session.ts's
+        // singleton silently used whichever customer's session had been
+        // resolved most recently ANYWHERE, producing a real invoice for the
+        // wrong company. lineUserId (already in hand here) is passed as the
+        // session key; `relationship:${activeId}` covers relationships not
+        // yet linked to a LINE account.
+        body: JSON.stringify({ message: text, sessionKey: lineUserId || `relationship:${activeId}` }),
       })
       const data = await res.json()
       const entryId = nextActionLogId()
