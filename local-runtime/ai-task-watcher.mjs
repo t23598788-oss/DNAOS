@@ -13,11 +13,12 @@ import { createClient } from "@supabase/supabase-js";
 import { readFileSync } from "fs";
 import { readFile, writeFile } from "fs/promises";
 import { join } from "path";
-import { ensurePodRunning, stopPod } from "./runpod-controller.mjs";
+import { ensurePodRunning, stopPod, waitForOllamaReady } from "./runpod-controller.mjs";
 
 const PROJECT_DIR = "/Users/tam/Desktop/DNA OS-โฟลเดอร์หลักต้นฉบับ /dna-os-deadboard";
 const VISION_MODEL = "qwen2.5vl:7b";
 const TEXT_MODEL = "thawatchai";
+const LOCAL_OLLAMA_URL = "http://localhost:11434";
 
 const env = Object.fromEntries(
   readFileSync(join(PROJECT_DIR, ".env.local"), "utf8")
@@ -31,31 +32,69 @@ const AI_CALLBACK_SECRET = env.AI_CALLBACK_SECRET;
 const db = createClient(env.NEXT_PUBLIC_SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY, { auth: { persistSession: false } });
 const CALLBACK_URL = `${env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/ai-callback`;
 
+// Real request tracer (owner, 2026-08-04): "ลองดูว่าคำสั่งนั้นถูกแปลสภาพ
+// กลับขึ้นมาเป็นคำตอบไหม หรือว่าจะไปค้างอยู่ที่ระบบไหน...ถ้ามันไม่มีเครื่อง
+// ตรวจสอบ มนุษย์ก็จะไม่รู้ว่าระบบไปถึงไฟล์หรือโค้ดตัวไหนแล้ว" — appends a
+// real stage+timestamp to ai_tasks.trace (migration 20260804000003) at
+// every real hop a task passes through, instead of the task just sitting
+// at "pending" with no visibility into where it's actually stuck.
+// CURRENT_TASK_ID is safe as module-level state because this watcher
+// processes one task at a time in a sequential for-loop, never concurrently.
+let CURRENT_TASK_ID = null;
+let OLLAMA_BASE_URL = LOCAL_OLLAMA_URL;
+
+async function appendTrace(stage, detail) {
+  if (!CURRENT_TASK_ID) return;
+  try {
+    const { data } = await db.from("ai_tasks").select("trace").eq("id", CURRENT_TASK_ID).maybeSingle();
+    const trace = [...(data?.trace ?? []), { stage, at: new Date().toISOString(), ...(detail ? { detail } : {}) }];
+    await db.from("ai_tasks").update({ trace }).eq("id", CURRENT_TASK_ID);
+  } catch (e) {
+    console.error(`[ai-task-watcher] appendTrace(${stage}) เขียนไม่สำเร็จ: ${e.message}`);
+  }
+}
+
 async function ollamaGenerate(model, systemPrompt, prompt, images) {
-  const res = await fetch("http://localhost:11434/api/generate", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      model,
-      system: systemPrompt,
-      prompt,
-      images,
-      stream: false,
-      format: images ? "json" : undefined,
-    }),
-  });
-  if (!res.ok) throw new Error(`ollama http ${res.status}`);
+  await appendTrace("ollama_request_sent", `${model} @ ${OLLAMA_BASE_URL}`);
+  let res;
+  try {
+    res = await fetch(`${OLLAMA_BASE_URL}/api/generate`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model,
+        system: systemPrompt,
+        prompt,
+        images,
+        stream: false,
+        format: images ? "json" : undefined,
+      }),
+    });
+  } catch (e) {
+    await appendTrace("ollama_request_failed", e.message);
+    throw e;
+  }
+  if (!res.ok) {
+    await appendTrace("ollama_request_failed", `http ${res.status}`);
+    throw new Error(`ollama http ${res.status}`);
+  }
   const json = await res.json();
+  await appendTrace("ollama_response_received", model);
   return json.response;
 }
 
 async function postCallback(payload) {
+  await appendTrace("callback_posting");
   const res = await fetch(CALLBACK_URL, {
     method: "POST",
     headers: { "Content-Type": "application/json", "x-callback-secret": AI_CALLBACK_SECRET },
     body: JSON.stringify(payload),
   });
-  if (!res.ok) throw new Error(`ai-callback http ${res.status}: ${await res.text()}`);
+  if (!res.ok) {
+    await appendTrace("callback_failed", `http ${res.status}`);
+    throw new Error(`ai-callback http ${res.status}: ${await res.text()}`);
+  }
+  await appendTrace("callback_posted");
 }
 
 // Mirrors supabase/functions/line-webhook-v2/engines/ocr-classify.ts's
@@ -461,24 +500,48 @@ async function main() {
 
   console.log(`[ai-task-watcher] ${new Date().toISOString()} พบงาน ${tasks.length} รายการ`);
   await touchLastActive();
+
+  // Real wiring (owner, 2026-08-04: "เดินสายไฟเชื่อมใช้งานจริงเลย"): try
+  // the remote pod first, but never leave real customer document
+  // classification stuck waiting on a slow-booting/broken Cloud GPU — a
+  // pod that isn't answering /api/tags within the timeout falls back to
+  // this Mac's own Ollama for THIS batch, honestly logged either way, not
+  // silently retried forever.
+  OLLAMA_BASE_URL = LOCAL_OLLAMA_URL;
   try {
     const ensured = await ensurePodRunning();
-    if (!ensured.ok) console.error(`[ai-task-watcher] ensurePodRunning ล้มเหลว: ${JSON.stringify(ensured.errors)}`);
+    if (ensured.ok && ensured.pod?.id) {
+      console.log(`[ai-task-watcher] ${ensured.action} — รอ Ollama บน Pod พร้อม...`);
+      const readiness = await waitForOllamaReady(ensured.pod.id);
+      if (readiness.ready) {
+        OLLAMA_BASE_URL = readiness.url;
+        console.log(`[ai-task-watcher] Pod พร้อมแล้ว ใช้ ${OLLAMA_BASE_URL}`);
+      } else {
+        console.error(`[ai-task-watcher] ${readiness.error} — fallback กลับมาใช้ Ollama ในเครื่อง Mac รอบนี้`);
+      }
+    } else {
+      console.error(`[ai-task-watcher] ensurePodRunning ล้มเหลว: ${JSON.stringify(ensured.errors)} — ใช้ Ollama ในเครื่อง Mac แทน`);
+    }
   } catch (e) {
-    console.error(`[ai-task-watcher] ensurePodRunning error: ${e.message}`);
+    console.error(`[ai-task-watcher] ensurePodRunning error: ${e.message} — ใช้ Ollama ในเครื่อง Mac แทน`);
   }
 
   for (const task of tasks) {
+    CURRENT_TASK_ID = task.id;
+    await appendTrace("dequeued", `${task.kind} via ${OLLAMA_BASE_URL}`);
     try {
       if (task.kind === "classify_image") await classifyImage(task);
       else if (task.kind === "handle_text") await handleText(task);
       else if (task.kind === "resolve_material") await resolveMaterialSemantic(task);
+      await appendTrace("done");
       console.log(`[ai-task-watcher]   ✓ ${task.kind} ${task.id}`);
     } catch (e) {
+      await appendTrace("failed", e.message);
       console.error(`[ai-task-watcher]   ✗ ${task.kind} ${task.id}: ${e.message}`);
       await db.from("ai_tasks").update({ status: "failed", error: e.message }).eq("id", task.id);
     }
   }
+  CURRENT_TASK_ID = null;
 }
 
 main().catch((e) => console.error("[ai-task-watcher] FATAL:", e));
