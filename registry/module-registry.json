@@ -3408,7 +3408,7 @@
       "purpose": "Shows latest build status (clean/has_issues/not_built) + health/summary counts — dev tool.",
       "purpose_th": "หน้าแสดงสถานะ build ล่าสุด — เครื่องมือนักพัฒนา",
       "exports": [
-        "BuildPage"
+        "BuildRedirectPage"
       ],
       "status": "active"
     },
@@ -3468,7 +3468,7 @@
       "purpose": "2D controls + data-fetch wrapper around ForceGraph3DView — architecture dependency graph explorer, dev tool.",
       "purpose_th": "หน้าควบคุม + ดึงข้อมูลให้กราฟ 3D สถาปัตยกรรม — เครื่องมือนักพัฒนา",
       "exports": [
-        "GraphPage"
+        "GraphRedirectPage"
       ],
       "status": "active"
     },
@@ -6505,13 +6505,43 @@
       ],
       "status": "active"
     },
+    "components/admin/useAiTaskPulse.ts": {
+      "owner": "components",
+      "layer": "components",
+      "purpose": "Real-time ai_tasks Realtime subscription hook, extracted out of app/admin/telemetry/page.tsx (owner directive 2026-08-04, unified Build/Graph/Telemetry into one screen) so app/admin/system/page.tsx can reuse the exact same pulse logic instead of a second copy.",
+      "purpose_th": "hook สมัคร Supabase Realtime ของ ai_tasks — แยกออกมาจาก app/admin/telemetry/page.tsx (คำสั่งเจ้าของ 2026-08-04 รวมหน้า Build/Graph/Telemetry เป็นหน้าเดียว) เพื่อให้ app/admin/system/page.tsx เรียกใช้ logic เดียวกัน ไม่สร้างซ้ำ",
+      "exports": [
+        "useAiTaskPulse"
+      ],
+      "status": "active"
+    },
+    "app/admin/graph/GraphView.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Architecture graph rendering (ForceGraph3DView) + node inspector — the exact same implementation app/admin/system/page.tsx now imports and reuses, not a second graph.",
+      "purpose_th": "แสดงผลกราฟสถาปัตยกรรม (ForceGraph3DView) + inspector รายละเอียด node — เป็น implementation เดียวกับที่ app/admin/system/page.tsx เรียกใช้ ไม่ใช่กราฟตัวที่สอง",
+      "exports": [
+        "GraphPage"
+      ],
+      "status": "active"
+    },
+    "app/admin/system/page.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Unified Build + Architecture Graph + Realtime Pulse screen (owner directive 2026-08-04) — merges app/admin/build, app/admin/graph, and app/admin/telemetry into one screen; all three now redirect here. Reuses GraphPage (app/admin/graph/GraphView.tsx) and useAiTaskPulse unchanged, no second graph or pulse implementation.",
+      "purpose_th": "หน้ารวม Build + กราฟสถาปัตยกรรม + Realtime Pulse (คำสั่งเจ้าของ 2026-08-04) — รวม app/admin/build, app/admin/graph, app/admin/telemetry เป็นหน้าเดียว ทั้ง 3 หน้าเดิม redirect มาที่นี่ ใช้ GraphPage กับ useAiTaskPulse เดิมไม่สร้างซ้ำ",
+      "exports": [
+        "SystemOperationsPage"
+      ],
+      "status": "active"
+    },
     "app/admin/telemetry/page.tsx": {
       "owner": "app",
       "layer": "app",
       "purpose": "Real-Time 3D Telemetry landing page — fullscreen hologram globe view wired to Supabase Realtime (ai_tasks), live governance fault data (/api/governance), and real latency ping, no click/menu required to see it.",
       "purpose_th": "หน้าจอ Real-Time 3D Telemetry เต็มจอ — เชื่อม Supabase Realtime (ai_tasks) ข้อมูลพังจริงจาก /api/governance และ latency จริง เปิดมาเจอเลยไม่ต้องคลิก/มีเมนูบัง",
       "exports": [
-        "TelemetryPage"
+        "TelemetryRedirectPage"
       ],
       "status": "active"
     },
@@ -6712,6 +6742,19 @@
         "POST"
       ],
       "status": "active"
+    },
+    "local-runtime/runpod-controller.mjs": {
+      "owner": "local-runtime",
+      "layer": "scripts",
+      "purpose": "The one place DNA OS talks to RunPod directly — ensurePodRunning()/stopPod()/getPodStatus(), with a real GPU-fallback chain since RunPod's advertised availability doesn't reliably predict create-pod success. Plumbing for the Smart Dynamic Trigger (spin up Cloud GPU only on real work, sleep otherwise) discussed 2026-08-04; not yet wired into ai-task-watcher.mjs's poll loop, and blocked from a real successful pod creation pending the owner's RunPod account verification.",
+      "purpose_th": "จุดเดียวที่ DNA OS คุยกับ RunPod ตรงๆ — ensurePodRunning()/stopPod()/getPodStatus() พร้อมลำดับ GPU สำรองจริง เพราะตัวเลข availability ของ RunPod ทำนายผลตอนสร้างจริงไม่แม่น เป็นฐานของ Smart Dynamic Trigger (ปลุก Cloud GPU เฉพาะตอนมีงานจริง ปิดเองตอนว่าง) ที่คุยกันไว้ 2026-08-04 — ยังไม่ได้ต่อเข้ากับ ai-task-watcher.mjs และยังสร้าง Pod จริงไม่สำเร็จเพราะบัญชี RunPod ของเจ้าของรออนุมัติยืนยันตัวตนอยู่",
+      "exports": [
+        "ensurePodRunning",
+        "stopPod",
+        "getPodStatus"
+      ],
+      "status": "active",
+      "entry_point": true
     },
     "local-runtime/ai-task-watcher.mjs": {
       "owner": "local-runtime",
