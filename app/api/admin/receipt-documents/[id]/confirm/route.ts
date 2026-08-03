@@ -79,12 +79,27 @@ export async function POST(_req: Request, { params }: Params) {
     reference: doc.reference_number ?? undefined,
   })
 
+  // Real gap found live 2026-08-03: debt_snapshots.total_outstanding only
+  // ever tracks principal (verified against a real debt-reminder card that
+  // showed "เงินต้น 31,424.66" matching this field exactly). A payment that
+  // covers the interest/penalty shown on that same reminder card was
+  // recorded as one lump receipt_received for the FULL amount, then
+  // total_outstanding was clamped at 0 — the interest/penalty portion
+  // vanished from any structured record (still a real bank deposit, just no
+  // longer traceable as interest income vs. principal collected). Split
+  // into two typed events instead: principal against what was actually
+  // owed, and a separate interest_penalty_received event for whatever the
+  // payment covered beyond that — same total money, now honestly
+  // attributed.
+  const principalPortion = Math.min(amount, outstandingBefore)
+  const interestPenaltyPortion = Math.round((amount - principalPortion) * 100) / 100
+
   const { data: event, error: eventErr } = await db
     .from("debt_events")
     .insert({
       customer_company_id: doc.customer_company_id,
       event_type: "receipt_received",
-      amount,
+      amount: principalPortion,
       occurred_at: occurredAt,
       note: link.document.note,
       source: "line_chat",
@@ -94,10 +109,24 @@ export async function POST(_req: Request, { params }: Params) {
     .single()
   if (eventErr) return NextResponse.json({ error: eventErr.message }, { status: 500 })
 
-  // Clamped at 0 rather than going negative; an overpayment case isn't
-  // handled here (out of scope for this pass — flagged, not silently wrong).
+  if (interestPenaltyPortion > 0) {
+    const { error: interestErr } = await db.from("debt_events").insert({
+      customer_company_id: doc.customer_company_id,
+      event_type: "interest_penalty_received",
+      amount: interestPenaltyPortion,
+      occurred_at: occurredAt,
+      note: `ดอกเบี้ย/ค่าปรับที่ได้รับพร้อมเงินต้น (สลิป ${doc.reference_number ?? id}, ยอดรวมที่โอนมาจริง ${amount.toLocaleString("th-TH")} บาท)`,
+      source: "line_chat",
+      created_by: auth.email,
+    })
+    if (interestErr) console.error("[receipt-documents/confirm] interest_penalty_received insert failed:", interestErr.message)
+  }
+
+  // Clamped at 0 rather than going negative; an overpayment beyond
+  // principal + this transaction's real interest/penalty still isn't
+  // handled (out of scope for this pass — flagged, not silently wrong).
   if (snapshot) {
-    const newOutstanding = Math.max(0, outstandingBefore - amount)
+    const newOutstanding = Math.max(0, outstandingBefore - principalPortion)
     await db.from("debt_snapshots")
       .update({ total_outstanding: newOutstanding, updated_at: new Date().toISOString() })
       .eq("customer_company_id", doc.customer_company_id)
