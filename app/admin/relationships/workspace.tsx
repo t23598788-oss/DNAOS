@@ -4,9 +4,10 @@ import { useState, useEffect, useCallback, useMemo, useRef } from "react"
 import Link from "next/link"
 import {
   LayoutGrid, MessageCircle, Briefcase, Building2, FileText, Wallet, Mountain,
-  MapPin, FileSignature, Receipt, Truck, Banknote, Phone, Paperclip, Bot, X, ExternalLink, Settings, Wrench, BarChart3, Satellite, Server,
+  MapPin, FileSignature, Receipt, Truck, Banknote, Phone, Paperclip, Bot, X, ExternalLink, Settings, Wrench, BarChart3, Satellite, Server, Cloud,
 } from "lucide-react"
 import { formatMoney } from "@/engines/documents/document-editor"
+import { openExternal } from "@/components/admin/openExternal"
 import { AppShell, ActionBar, MapView, FlexPreview, Inspector, type IconRailItem, type ListColumnItem, type ActionBarItem } from "@/components/ui-kit"
 import { createBrowserSupabase } from "@/services/supabase/browser"
 import SettingsDrawer from "@/components/settings/SettingsDrawer"
@@ -69,8 +70,19 @@ const RAIL_ITEMS: IconRailItem[] = [
   // telemetry (สถาปัตยกรรม), same "what does the system actually depend on"
   // family of pages.
   { key: "infrastructure", label: "ค่าใช้จ่าย", icon: Server, href: "/admin/infrastructure" },
+  // RunPod / Cloud GPU console shortcut (owner, 2026-08-03): "เปิด URL
+  // https://console.runpod.io/pods ผ่าน Default Browser ของเครื่อง macOS
+  // ทันที" — deliberately NO href: IconRail renders href items as a Next
+  // <Link>, which inside the Tauri desktop app just navigates the app's own
+  // webview to runpod.io instead of opening the real system browser. This
+  // item has no href on purpose so IconRail falls back to calling
+  // onSelectRail (wired below to openExternal), the same
+  // works-in-both-web-and-Tauri pattern already used for speak_native.
+  { key: "runpod", label: "Cloud GPU", icon: Cloud },
   { key: "build", label: "ระบบ", icon: Settings, href: "/admin/build" },
 ]
+
+const RUNPOD_CONSOLE_URL = "https://console.runpod.io/pods"
 
 function fmtTime(d: string) {
   return new Date(d).toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit" })
@@ -1158,6 +1170,9 @@ function RelationshipWorkspace({ initialRelationshipId }: { initialRelationshipI
     <AppShell
       railItems={railItems}
       activeRailKey="relationships"
+      onSelectRail={(key) => {
+        if (key === "runpod") openExternal(RUNPOD_CONSOLE_URL)
+      }}
       listItems={listItems}
       activeListId={activeId}
       onSelectList={selectRelationship}

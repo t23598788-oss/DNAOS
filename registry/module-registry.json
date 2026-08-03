@@ -6619,6 +6619,16 @@
       ],
       "status": "active"
     },
+    "components/admin/openExternal.ts": {
+      "owner": "components",
+      "layer": "components",
+      "purpose": "Open a URL in the OS's real default browser (owner, 2026-08-03) — sidebar RunPod/Cloud GPU shortcut. Calls the open_url Tauri command inside the desktop app (a plain <a target=\"_blank\"> only opens a second in-app WKWebView window, not Safari/Chrome), falls back to window.open in a plain browser tab.",
+      "purpose_th": "เปิด URL ผ่านเบราว์เซอร์ default จริงของเครื่อง (owner, 2026-08-03) — ใช้กับปุ่ม RunPod/Cloud GPU บน sidebar เรียก Tauri command open_url ภายในแอปเดสก์ท็อป (a target=\"_blank\" ธรรมดาเปิดแค่ WKWebView อีกหน้าต่างในแอป ไม่ใช่ Safari/Chrome จริง) ถ้าไม่ใช่ Tauri ใช้ window.open แทน",
+      "exports": [
+        "openExternal"
+      ],
+      "status": "active"
+    },
     "components/admin/ttsSpeak.ts": {
       "owner": "components",
       "layer": "components",

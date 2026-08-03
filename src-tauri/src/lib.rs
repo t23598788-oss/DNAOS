@@ -77,6 +77,27 @@ fn open_app(app_name: String) -> Result<String, String> {
   Ok(format!("เปิด {name} ให้แล้วครับ"))
 }
 
+// Open URL in system default browser (owner, 2026-08-03): sidebar shortcut to
+// the RunPod Cloud GPU console. Reuses the exact same `/usr/bin/open`
+// mechanism as open_app above (same argv-array safety — url is a single
+// .arg(), never a shell), just with a URL instead of `-a <app name>`. Needed
+// because a plain <a target="_blank"> inside this Tauri WKWebView opens a
+// second webview window pointed at the URL, not the user's actual default
+// browser (Safari/Chrome) — same "silently not what it looks like" class of
+// WKWebView gap already hit with speechSynthesis (see speak_native above).
+#[tauri::command]
+fn open_url(url: String) -> Result<(), String> {
+  let trimmed = url.trim();
+  if !trimmed.starts_with("https://") && !trimmed.starts_with("http://") {
+    return Err("อนุญาตเฉพาะ URL แบบ http(s) เท่านั้น".to_string());
+  }
+  Command::new("/usr/bin/open")
+    .arg(trimmed)
+    .status()
+    .map_err(|e| format!("เปิด URL ไม่สำเร็จ: {e}"))?;
+  Ok(())
+}
+
 // Native Text-to-Speech (owner, 2026-07-31): real bug found live — the
 // browser's own Web Speech API (window.speechSynthesis, used by
 // components/admin/ttsSpeak.ts) produced completely silent, error-free
@@ -106,7 +127,7 @@ fn speak_native(text: String) -> Result<(), String> {
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
   tauri::Builder::default()
-    .invoke_handler(tauri::generate_handler![capture_screen, open_app, speak_native])
+    .invoke_handler(tauri::generate_handler![capture_screen, open_app, speak_native, open_url])
     .setup(|app| {
       if cfg!(debug_assertions) {
         app.handle().plugin(
