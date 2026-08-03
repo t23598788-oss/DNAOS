@@ -40,20 +40,30 @@ const POD_NAME = "dna-os-ollama";
 // AFTER boot via Ollama's own real HTTP API (POST /api/pull, /api/create),
 // which is what ensureModelsInstalled() below does.
 const IMAGE = "ollama/ollama:latest";
-const CONTAINER_DISK_GB = 30;
+// Bumped 30GB -> 100GB (owner, 2026-08-04, model-size upgrade): 72b+32b
+// models alone are ~65GB on disk (Q4_K_M), plus the base ollama/ollama
+// image layers — 30GB genuinely isn't enough anymore.
+const CONTAINER_DISK_GB = 100;
 const PORTS = ["11434/http", "22/tcp"];
-const REQUIRED_MODELS = ["qwen2.5vl:7b", "qwen3:8b"]; // thawatchai is built from qwen3:8b via /api/create, not pulled
+// Upgraded 2026-08-04 (owner: "เลือกโมเดลตามความเหมาะสมของงาน...ไม่ต้องยึด
+// ตามข้อจำกัดของ Mac อีกต่อไป") from qwen2.5vl:7b/qwen3:8b now that
+// inference runs on a real Cloud GPU, not the Mac's own RAM ceiling.
+// thawatchai is built from qwen3:32b via /api/create (see Modelfile), not
+// pulled directly.
+const REQUIRED_MODELS = ["qwen2.5vl:72b", "qwen3:32b"];
 
-// Ordered cheapest-first, real prices/VRAM confirmed live via list-gpu-types
-// 2026-08-04 — every model this project runs (qwen2.5vl:7b, thawatchai,
-// qwen3:8b) fits comfortably in 24GB, so the fallback chain only exists to
-// route around RunPod's own real-time stock churn, not a capability need.
+// Ordered cheapest-first among real 80GB+-class GPUs — confirmed live via
+// list-gpu-types 2026-08-04: qwen2.5vl:72b alone needs ~45GB VRAM (Q4_K_M),
+// so the old 24-48GB chain (RTX 3090/4090/A6000/A40/5090) can no longer fit
+// it — replaced, not just extended, since none of those GPUs are usable
+// for this model size regardless of stock.
 const GPU_FALLBACK_CHAIN = [
-  "NVIDIA GeForce RTX 3090",
-  "NVIDIA GeForce RTX 4090",
-  "NVIDIA RTX A6000",
-  "NVIDIA A40",
-  "NVIDIA GeForce RTX 5090",
+  "NVIDIA A100 80GB PCIe",
+  "NVIDIA A100-SXM4-80GB",
+  "NVIDIA H100 NVL",
+  "NVIDIA RTX PRO 6000 Blackwell Server Edition",
+  "NVIDIA H100 80GB HBM3",
+  "NVIDIA H200",
 ];
 
 function loadEnv() {
@@ -139,13 +149,21 @@ export async function waitForOllamaServerUp(podId, timeoutMs = 120000) {
 
 // Real model install, via Ollama's own documented HTTP API — not a shell
 // hack fighting the container entrypoint (see the comment on IMAGE above
-// for why the first attempt at this failed). `stream:false` on both
-// endpoints blocks until the real pull/build finishes instead of requiring
-// NDJSON stream parsing, at the cost of a long-held request while a
-// multi-GB model downloads — acceptable here since this only runs once
-// per freshly-created pod (a stopped→started pod keeps its container disk,
-// so re-installing is skipped once /api/tags already lists everything).
-async function pullModel(baseUrl, name, timeoutMs) {
+// for why the first attempt at this failed).
+//
+// Real infra limit found live 2026-08-04: RunPod's http-port proxy sits
+// behind Cloudflare, which 524s (origin timeout) any request with no bytes
+// flowing for ~100s — a `stream:false` pull silently blocks for the whole
+// download with zero bytes sent until the very end, so a 72b model (tens
+// of GB, many minutes) always hit the 524 wall regardless of client-side
+// timeoutMs, and re-checking /api/tags afterward showed the model never
+// actually landed (the pull's own request context appears to be what keeps
+// it running server-side — abandoning the connection abandons the pull,
+// it is not a fire-and-forget background job). Fixed by consuming the real
+// NDJSON progress stream instead (`stream: true`, Ollama's default) — the
+// periodic progress lines keep bytes flowing through Cloudflare, which is
+// what actually avoids the 524, not a bigger timeout number.
+async function pullModel(baseUrl, name, timeoutMs, onProgress) {
   // Real bug found live 2026-08-04: this pod's Ollama version 404s on
   // {"name": ...} — the older /api/pull field name — and only accepts the
   // newer {"model": ...}. Sending both is harmless and covers either
@@ -153,10 +171,28 @@ async function pullModel(baseUrl, name, timeoutMs) {
   const res = await fetch(`${baseUrl}/api/pull`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ model: name, name, stream: false }),
+    body: JSON.stringify({ model: name, name, stream: true }),
     signal: AbortSignal.timeout(timeoutMs),
   });
   if (!res.ok) throw new Error(`ollama pull ${name} http ${res.status}: ${await res.text()}`);
+
+  const decoder = new TextDecoder();
+  let buffer = "";
+  let lastStatus = null;
+  for await (const chunk of res.body) {
+    buffer += decoder.decode(chunk, { stream: true });
+    let newlineIdx;
+    while ((newlineIdx = buffer.indexOf("\n")) !== -1) {
+      const line = buffer.slice(0, newlineIdx).trim();
+      buffer = buffer.slice(newlineIdx + 1);
+      if (!line) continue;
+      const evt = JSON.parse(line);
+      lastStatus = evt.status;
+      if (onProgress) onProgress(evt);
+      if (evt.error) throw new Error(`ollama pull ${name} stream error: ${evt.error}`);
+    }
+  }
+  if (lastStatus !== "success") throw new Error(`ollama pull ${name} จบสตรีมโดยไม่สำเร็จ (status สุดท้าย: ${lastStatus})`);
 }
 
 // Real bug found live 2026-08-04: this pod's Ollama version 400s a raw
@@ -193,9 +229,25 @@ export async function ensureModelsInstalled(podId, { pullTimeoutMs = 600000 } = 
   if (!tagsRes.ok) throw new Error(`ollama /api/tags http ${tagsRes.status}`);
   const existing = new Set(((await tagsRes.json()).models ?? []).map((m) => m.name));
 
+  // Real bug found live 2026-08-04 (caught before shipping, not after a
+  // wrong-model incident): matching by base name only (`m.startsWith(...)`)
+  // would treat an old qwen2.5vl:7b as already satisfying a
+  // qwen2.5vl:72b requirement after a model-size upgrade — silently keeping
+  // the small model loaded instead of pulling the real one asked for. Exact
+  // tag match only (both bare "qwen3:32b" and Ollama's own normalized
+  // "qwen3:32b" form, which is the only variance actually seen live).
   for (const model of REQUIRED_MODELS) {
-    if (existing.has(model) || [...existing].some((m) => m.startsWith(model.split(":")[0]))) continue;
-    await pullModel(url, model, pullTimeoutMs);
+    if (existing.has(model)) continue;
+    let lastLoggedPct = -10;
+    await pullModel(url, model, pullTimeoutMs, (evt) => {
+      if (evt.total && evt.completed) {
+        const pct = Math.floor((evt.completed / evt.total) * 100);
+        if (pct >= lastLoggedPct + 10) {
+          console.log(`[runpod-controller] pulling ${model}: ${pct}%`);
+          lastLoggedPct = pct;
+        }
+      }
+    });
   }
   if (![...existing].includes("thawatchai:latest") && !existing.has("thawatchai")) {
     await createThawatchaiModel(url, pullTimeoutMs);

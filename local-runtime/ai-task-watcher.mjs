@@ -16,7 +16,14 @@ import { join } from "path";
 import { ensurePodRunning, stopPod, waitForOllamaReady } from "./runpod-controller.mjs";
 
 const PROJECT_DIR = "/Users/tam/Desktop/DNA OS-โฟลเดอร์หลักต้นฉบับ /dna-os-deadboard";
-const VISION_MODEL = "qwen2.5vl:7b";
+// Upgraded 2026-08-04 (owner: "ข้อจำกัดเดิมเรื่องทรัพยากรเครื่องไม่มีผลเหมือน
+// เดิมแล้ว...เลือกโมเดลตามความเหมาะสมของงาน ความแม่นยำ...ไม่ต้องยึดตาม
+// ข้อจำกัดของ Mac อีกต่อไป") from qwen2.5vl:7b/qwen3:8b — real document/
+// slip OCR accuracy now outweighs the old Mac-RAM ceiling since inference
+// runs on the RunPod GPU (runpod-controller.mjs), not this Mac. Needs an
+// 80GB-class GPU (GPU_FALLBACK_CHAIN in runpod-controller.mjs updated to
+// match) — qwen2.5vl:72b alone needs ~45GB VRAM.
+const VISION_MODEL = "qwen2.5vl:72b";
 const TEXT_MODEL = "thawatchai";
 const LOCAL_OLLAMA_URL = "http://localhost:11434";
 
