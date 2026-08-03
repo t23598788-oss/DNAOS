@@ -6461,6 +6461,26 @@
       ],
       "status": "active"
     },
+    "app/admin/infrastructure/page.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Cost/infrastructure dashboard — renders registry/infrastructure.json (real per-service cost/status/quota) plus a research_metrics section (financial/intelligence/hardware) for the planned Cloud GPU dynamic-trigger setup, honestly shown as \"ยังไม่มีข้อมูลจริง\" until real telemetry exists.",
+      "purpose_th": "หน้าจอค่าใช้จ่าย/โครงสร้างพื้นฐาน — แสดง registry/infrastructure.json (cost/status/quota จริงต่อ service) และช่องงานวิจัยตัววัดค่า (การเงิน/ความฉลาด/ฮาร์ดแวร์) สำหรับ Cloud GPU แบบ Dynamic Trigger ที่ยังไม่ได้สมัคร แสดงตรงๆ ว่า \"ยังไม่มีข้อมูลจริง\" จนกว่าจะมี telemetry จริง",
+      "exports": [
+        "InfrastructurePage"
+      ],
+      "status": "active"
+    },
+    "app/api/admin/infrastructure/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "GET route serving registry/infrastructure.json to the admin infrastructure dashboard, ADMIN_TIER-gated.",
+      "purpose_th": "GET route ส่งข้อมูล registry/infrastructure.json ให้หน้าแดชบอร์ดค่าใช้จ่าย ผ่าน requireAuth(ADMIN_TIER)",
+      "exports": [
+        "GET"
+      ],
+      "status": "active"
+    },
     "app/admin/telemetry/page.tsx": {
       "owner": "app",
       "layer": "app",

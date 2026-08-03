@@ -151,11 +151,44 @@
     { "name": "Twilio (Voice)", "cost_thb": 800, "benefit": "เปิด 4 workflows ใหม่ (โทรทวงหนี้, IVR, Voice Command, Call Center)", "impact": "high" },
     { "name": "Camera API (Android)", "cost_thb": 0, "benefit": "ตรวจสินค้า, OCR, QR, ตรวจหน้างาน — เพิ่ม capability 12%", "impact": "medium" },
     { "name": "PLC Gateway", "cost_thb": 18000, "benefit": "ควบคุมโรงงาน, อ่าน sensor, ดูสถานะเครื่องจักร real-time", "impact": "high" },
-    { "name": "Cloud Backup (S3/R2)", "cost_thb": 200, "benefit": "Resilience → 90% — off-site backup + point-in-time recovery", "impact": "critical" }
+    { "name": "Cloud Backup (S3/R2)", "cost_thb": 200, "benefit": "Resilience → 90% — off-site backup + point-in-time recovery", "impact": "critical" },
+    {
+      "name": "cloud_gpu_dynamic_trigger",
+      "status": "planned",
+      "cost_thb": null,
+      "cost_range_thb": "500-2500/mo (แทนที่จะเป็น 9000-35000/mo แบบเปิดค้าง 24 ชม.)",
+      "impact": "high",
+      "note_owner": "2026-08-03: อนุมัติจ่าย Cloud GPU แล้วแต่ยังไม่ได้สมัครบัญชีจริง (ต้องใช้บัตรเครดิต/KYC ของเจ้าของเอง Claude สมัครแทนไม่ได้)",
+      "architecture": "Mac ตรวจ event (สลิป/งานเข้า) → เรียก API/SSH ปลุก Cloud GPU instance → รันโมเดล (32B/72B) → ส่งผลกลับ Mac/Supabase → Mac สั่ง pause/auto-sleep GPU ทันทีที่คิวว่าง — จ่ายเฉพาะวินาทีที่ AI กำลังคิดงานจริง ไม่ใช่เปิดทิ้งไว้ 24 ชม.",
+      "benefit": "ประหยัด 70-90% เทียบกับเปิด Cloud GPU ทิ้งไว้ตลอดเวลา",
+      "blocked_by": "รอเจ้าของสมัครบัญชี RunPod/Vast.ai เอง (ต้องชำระเงิน) — ยังไม่เริ่มเขียนโค้ด local-runtime/*.mjs ให้ชี้ไป remote Ollama URL"
+    }
   ],
 
   "cost_summary": {
     "monthly_thb": 550,
     "yearly_thb": 6600
+  },
+
+  "research_metrics": {
+    "policy": "Silicon Valley Lab Metrics — พารามิเตอร์ที่เจ้าของต้องการ (2026-08-03) สำหรับหน้าจอวิจัยต้นทุน/ความฉลาด/ฮาร์ดแวร์ ของ Cloud GPU ที่ยังไม่ได้สมัคร ทุกฟิลด์เป็น null โดยตั้งใจ — ห้ามใส่ตัวเลขสมมติ (Rule 100/C-009) จนกว่าจะมี telemetry จริงจาก Cloud GPU + local-runtime",
+    "financial": {
+      "realtime_spent_thb": null,
+      "cost_per_task_thb": null,
+      "always_on_projection_thb_per_month": null,
+      "dynamic_trigger_actual_thb_per_month": null,
+      "savings_pct": null
+    },
+    "intelligence": {
+      "accuracy_rate_pct_by_model": null,
+      "hallucination_refuse_rate_pct": null,
+      "latency_ms": null
+    },
+    "hardware": {
+      "vram_usage_mb": null,
+      "ram_usage_mb": null,
+      "tokens_per_second": null
+    },
+    "data_source_when_built": "local-runtime/ai-task-watcher.mjs ต้อง log ต่อ task: start_time/end_time/model/token_count/vram_used/result_correct(human-confirmed) ก่อนถึงจะคำนวณค่าจริงได้ — ยังไม่เริ่มสร้าง"
   }
 }

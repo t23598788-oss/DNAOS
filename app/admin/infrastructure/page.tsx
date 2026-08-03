@@ -1,0 +1,223 @@
+"use client"
+
+import { useEffect, useState } from "react"
+
+// Cost/infrastructure dashboard (owner, 2026-08-03): "หน้าจอค่าใช้จ่าย...
+// ขึ้นมาแสดงผลในค่าใช้จ่ายและตัวประมวลผลต่างๆ ... ทำงานวิจัยตัววัดค่าต่างๆ"
+// Reads registry/infrastructure.json (already real data, Rule 103) via
+// /api/admin/infrastructure — no new data source, this is display-only.
+
+type Service = {
+  name: string
+  organ?: string
+  purpose?: string
+  critical?: boolean
+  status?: string
+  owner?: string
+  cost_monthly_thb?: number
+  plan?: string
+  renew?: string
+  expiration?: string
+  quota_used_pct?: number
+  if_down?: string
+  if_removed_saves_thb?: number
+  if_removed_loses?: string
+  affected_workflows?: string[]
+}
+
+type ResearchMetrics = {
+  policy?: string
+  financial?: Record<string, number | null>
+  intelligence?: Record<string, number | null | unknown>
+  hardware?: Record<string, number | null>
+  data_source_when_built?: string
+}
+
+type InfraData = {
+  version?: number
+  policy?: string
+  services?: Record<string, Service>
+  backup?: Record<string, unknown>
+  future_additions?: unknown[]
+  cost_summary?: { monthly_thb?: number; yearly_thb?: number }
+  research_metrics?: ResearchMetrics
+}
+
+function fmtMetric(v: unknown, unit?: string) {
+  if (v === null || v === undefined) return "ยังไม่มีข้อมูลจริง"
+  return unit ? `${v} ${unit}` : String(v)
+}
+
+function statusColor(status?: string) {
+  switch (status) {
+    case "active": return "bg-emerald-100 text-emerald-800 border-emerald-300"
+    case "pending_credential": return "bg-amber-100 text-amber-800 border-amber-300"
+    case "removed": return "bg-stone-100 text-stone-500 border-stone-300"
+    case "planned": return "bg-sky-100 text-sky-800 border-sky-300"
+    default: return "bg-stone-100 text-stone-700 border-stone-300"
+  }
+}
+
+export default function InfrastructurePage() {
+  const [data, setData] = useState<InfraData | null>(null)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    fetch("/api/admin/infrastructure")
+      .then(async (r) => {
+        if (!r.ok) throw new Error(await r.text())
+        return r.json()
+      })
+      .then(setData)
+      .catch((e) => setError(e.message ?? "โหลดข้อมูลไม่สำเร็จ"))
+  }, [])
+
+  if (error) {
+    return <div className="p-6 text-red-700">โหลดข้อมูลค่าใช้จ่ายไม่สำเร็จ: {error}</div>
+  }
+  if (!data) {
+    return <div className="p-6 text-stone-500">กำลังโหลด...</div>
+  }
+
+  const services = Object.entries(data.services ?? {})
+  const activeCount = services.filter(([, s]) => s.status === "active").length
+  const monthly = data.cost_summary?.monthly_thb ?? 0
+  const yearly = data.cost_summary?.yearly_thb ?? 0
+
+  return (
+    <div className="p-6 space-y-6 max-w-5xl mx-auto">
+      <div>
+        <h1 className="text-2xl font-semibold text-stone-900">ค่าใช้จ่ายระบบ / โครงสร้างพื้นฐาน</h1>
+        <p className="text-sm text-stone-500 mt-1">
+          บริการภายนอกทั้งหมดที่ DNA OS พึ่งพา — อ่านจาก registry/infrastructure.json
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="rounded-xl border border-stone-200 bg-white p-4">
+          <div className="text-xs text-stone-500">ค่าใช้จ่ายต่อเดือน</div>
+          <div className="text-2xl font-semibold text-stone-900 tabular-nums">
+            {monthly.toLocaleString("th-TH")} บาท
+          </div>
+        </div>
+        <div className="rounded-xl border border-stone-200 bg-white p-4">
+          <div className="text-xs text-stone-500">ค่าใช้จ่ายต่อปี</div>
+          <div className="text-2xl font-semibold text-stone-900 tabular-nums">
+            {yearly.toLocaleString("th-TH")} บาท
+          </div>
+        </div>
+        <div className="rounded-xl border border-stone-200 bg-white p-4">
+          <div className="text-xs text-stone-500">บริการที่ใช้งานอยู่</div>
+          <div className="text-2xl font-semibold text-stone-900 tabular-nums">
+            {activeCount} / {services.length}
+          </div>
+        </div>
+      </div>
+
+      <div className="space-y-3">
+        {services.map(([key, s]) => (
+          <div key={key} className="rounded-xl border border-stone-200 bg-white p-4">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="font-medium text-stone-900">{s.name ?? key}</span>
+                  {s.critical && (
+                    <span className="text-[10px] px-1.5 py-0.5 rounded border border-red-300 bg-red-50 text-red-700">
+                      สำคัญ
+                    </span>
+                  )}
+                  <span className={`text-[10px] px-1.5 py-0.5 rounded border ${statusColor(s.status)}`}>
+                    {s.status ?? "unknown"}
+                  </span>
+                </div>
+                {s.purpose && <div className="text-sm text-stone-600 mt-1">{s.purpose}</div>}
+                {s.organ && <div className="text-xs text-stone-400 mt-1">ทำหน้าที่: {s.organ}</div>}
+              </div>
+              <div className="text-right shrink-0">
+                <div className="text-sm font-medium text-stone-900 tabular-nums">
+                  {(s.cost_monthly_thb ?? 0).toLocaleString("th-TH")} บาท/เดือน
+                </div>
+                {s.plan && <div className="text-xs text-stone-400">{s.plan}</div>}
+              </div>
+            </div>
+
+            {typeof s.quota_used_pct === "number" && (
+              <div className="mt-3">
+                <div className="flex items-center justify-between text-xs text-stone-500 mb-1">
+                  <span>โควต้าใช้ไป</span>
+                  <span className="tabular-nums">{s.quota_used_pct}%</span>
+                </div>
+                <div className="h-1.5 rounded-full bg-stone-100 overflow-hidden">
+                  <div
+                    className={`h-full rounded-full ${s.quota_used_pct >= 80 ? "bg-red-500" : s.quota_used_pct >= 50 ? "bg-amber-500" : "bg-emerald-500"}`}
+                    style={{ width: `${Math.min(100, s.quota_used_pct)}%` }}
+                  />
+                </div>
+              </div>
+            )}
+
+            {s.if_down && (
+              <div className="mt-3 text-xs text-stone-500">
+                <span className="text-stone-400">ถ้าล่ม:</span> {s.if_down}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+
+      <div className="rounded-xl border border-stone-200 bg-white p-4">
+        <div className="flex items-center justify-between mb-1">
+          <h2 className="text-sm font-semibold text-stone-900">งานวิจัยตัววัดค่า (Cloud GPU — ยังไม่ได้สมัคร)</h2>
+          <span className="text-[10px] px-1.5 py-0.5 rounded border border-sky-300 bg-sky-50 text-sky-700">planned</span>
+        </div>
+        <p className="text-xs text-stone-500 mb-4">
+          พารามิเตอร์ที่ขอไว้ — แสดงเป็น &quot;ยังไม่มีข้อมูลจริง&quot; ตรงๆ จนกว่าจะสมัคร Cloud GPU และต่อ telemetry จริง จะไม่ใส่ตัวเลขสมมติ
+        </p>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+          <div>
+            <div className="text-xs font-medium text-stone-700 mb-2">การเงิน</div>
+            <ul className="space-y-1 text-stone-500">
+              <li>Real-time Spent: {fmtMetric(data.research_metrics?.financial?.realtime_spent_thb, "บาท")}</li>
+              <li>Cost/Task เฉลี่ย: {fmtMetric(data.research_metrics?.financial?.cost_per_task_thb, "บาท")}</li>
+              <li>เปิดค้าง 24 ชม.: {fmtMetric(data.research_metrics?.financial?.always_on_projection_thb_per_month, "บาท/เดือน")}</li>
+              <li>Dynamic Trigger จริง: {fmtMetric(data.research_metrics?.financial?.dynamic_trigger_actual_thb_per_month, "บาท/เดือน")}</li>
+              <li>ประหยัดได้: {fmtMetric(data.research_metrics?.financial?.savings_pct, "%")}</li>
+            </ul>
+          </div>
+          <div>
+            <div className="text-xs font-medium text-stone-700 mb-2">ความฉลาด</div>
+            <ul className="space-y-1 text-stone-500">
+              <li>Accuracy Rate: {fmtMetric(data.research_metrics?.intelligence?.accuracy_rate_pct_by_model)}</li>
+              <li>Hallucination/Refuse Rate: {fmtMetric(data.research_metrics?.intelligence?.hallucination_refuse_rate_pct, "%")}</li>
+              <li>Latency: {fmtMetric(data.research_metrics?.intelligence?.latency_ms, "ms")}</li>
+            </ul>
+          </div>
+          <div>
+            <div className="text-xs font-medium text-stone-700 mb-2">ฮาร์ดแวร์</div>
+            <ul className="space-y-1 text-stone-500">
+              <li>VRAM Usage: {fmtMetric(data.research_metrics?.hardware?.vram_usage_mb, "MB")}</li>
+              <li>RAM Usage: {fmtMetric(data.research_metrics?.hardware?.ram_usage_mb, "MB")}</li>
+              <li>Tokens/Second: {fmtMetric(data.research_metrics?.hardware?.tokens_per_second, "tok/s")}</li>
+            </ul>
+          </div>
+        </div>
+
+        {data.research_metrics?.data_source_when_built && (
+          <div className="mt-4 text-xs text-stone-400 border-t border-stone-100 pt-3">
+            {data.research_metrics.data_source_when_built}
+          </div>
+        )}
+      </div>
+
+      {Array.isArray(data.future_additions) && data.future_additions.length > 0 && (
+        <div className="rounded-xl border border-dashed border-stone-300 bg-stone-50 p-4">
+          <div className="text-sm font-medium text-stone-700 mb-2">รอเพิ่มในอนาคต</div>
+          <pre className="text-xs text-stone-500 overflow-x-auto whitespace-pre-wrap">
+            {JSON.stringify(data.future_additions, null, 2)}
+          </pre>
+        </div>
+      )}
+    </div>
+  )
+}

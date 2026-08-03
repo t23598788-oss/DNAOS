@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useMemo, useRef } from "react"
 import Link from "next/link"
 import {
   LayoutGrid, MessageCircle, Briefcase, Building2, FileText, Wallet, Mountain,
-  MapPin, FileSignature, Receipt, Truck, Banknote, Phone, Paperclip, Bot, X, ExternalLink, Settings, Wrench, BarChart3, Satellite,
+  MapPin, FileSignature, Receipt, Truck, Banknote, Phone, Paperclip, Bot, X, ExternalLink, Settings, Wrench, BarChart3, Satellite, Server,
 } from "lucide-react"
 import { formatMoney } from "@/engines/documents/document-editor"
 import { AppShell, ActionBar, MapView, FlexPreview, Inspector, type IconRailItem, type ListColumnItem, type ActionBarItem } from "@/components/ui-kit"
@@ -62,6 +62,13 @@ const RAIL_ITEMS: IconRailItem[] = [
   // Placed directly before the settings gear per explicit instruction
   // ("เอาสัญลักษณ์มาวางไว้บนคำสั่งก่อนลูกเฟืองตั้งค่า").
   { key: "telemetry", label: "สถาปัตยกรรม", icon: Satellite, href: "/admin/telemetry" },
+  // Infrastructure & Costs (owner request, 2026-08-03): "หน้าจอค่าใช้จ่าย...
+  // ขึ้นมาแสดงผลในค่าใช้จ่ายและตัวประมวลผลต่างๆ" — real registry/
+  // infrastructure.json data already existed (every service + real
+  // cost_monthly_thb) but had zero UI ever reading it. Placed next to
+  // telemetry (สถาปัตยกรรม), same "what does the system actually depend on"
+  // family of pages.
+  { key: "infrastructure", label: "ค่าใช้จ่าย", icon: Server, href: "/admin/infrastructure" },
   { key: "build", label: "ระบบ", icon: Settings, href: "/admin/build" },
 ]
 
