@@ -2,6 +2,9 @@
   "name": "dna-os",
   "version": "0.1.0",
   "private": true,
+  "workspaces": [
+    "dna-os-mcp-server"
+  ],
   "scripts": {
     "prepare": "git config core.hooksPath .githooks || true",
     "dev": "next dev",
