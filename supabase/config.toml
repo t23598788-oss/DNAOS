@@ -423,6 +423,70 @@ verify_jwt = false
 [functions.ai-callback]
 verify_jwt = false
 
+# subscription-email-sync is called by pg_cron (net.http_post) and manually
+# for backfills, authenticating via its own x-subscription-email-sync-secret
+# header (verified in code, index.ts) — not a Supabase JWT. Same missing-
+# setting failure mode as line-webhook-v2/ai-callback above, caught live
+# 2026-08-03 before this ever ran unattended: a manual test call returned
+# "UNAUTHORIZED_NO_AUTH_HEADER" from Supabase's platform gate, before the
+# function's own secret check ever ran.
+[functions.subscription-email-sync]
+verify_jwt = false
+
+# Real recurring bug found live 2026-08-03 (Rule 106 — same root cause
+# already fixed once for ai-callback, 2026-07-31, never applied here):
+# bank-email-sync and supabase-billing-sync both authenticate via their own
+# per-function secret header (x-bank-email-sync-secret / x-cron-secret,
+# verified in each function's own code), never a Supabase JWT — but neither
+# ever had verify_jwt = false set. A manual test call against BOTH returned
+# Supabase's platform-level "UNAUTHORIZED_NO_AUTH_HEADER" before either
+# function's own secret check ever ran, meaning their pg_cron jobs
+# (bank-email-sync every 5 min since 2026-07-26, supabase-billing-sync
+# since 2026-07-31) had likely been failing silently at the platform gate
+# this entire time — the exact same failure shape ai-callback had, just
+# never checked for these two. Fixed together, not patched one at a time,
+# per Rule 106 ("ปัญหาเดิมห้ามเกิดซ้ำ" — a known root cause recurring
+# elsewhere must be swept for and fixed everywhere it applies).
+[functions.bank-email-sync]
+verify_jwt = false
+
+[functions.supabase-billing-sync]
+verify_jwt = false
+
+# Same sweep, same root cause, same day (2026-08-03): every other
+# cron/webhook-driven function in this project also authenticates via its
+# own secret header, never a Supabase JWT — checked each one's index.ts
+# directly rather than assuming. All 10 had the identical gap.
+[functions.bank-statement-reconcile]
+verify_jwt = false
+
+[functions.debt-reminder-cron]
+verify_jwt = false
+
+[functions.fuel-price-sync]
+verify_jwt = false
+
+[functions.line-profile-reconcile]
+verify_jwt = false
+
+[functions.openclaw-webhook]
+verify_jwt = false
+
+[functions.quotation-queue-nudge]
+verify_jwt = false
+
+[functions.receipt-reconcile-sweep]
+verify_jwt = false
+
+[functions.system-health-check]
+verify_jwt = false
+
+[functions.trigger-auto-build]
+verify_jwt = false
+
+[functions.trigger-complete]
+verify_jwt = false
+
 # pg-delta is the schema diff engine for db diff / db pull / db remote commit.
 # Set enabled = false to fall back to the legacy migra engine.
 [experimental.pgdelta]
