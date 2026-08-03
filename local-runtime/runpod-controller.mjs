@@ -8,15 +8,20 @@
 // copy of GPU-fallback logic or RunPod's REST API shape.
 //
 // Same manual .env.local read pattern as ai-task-watcher.mjs (no dotenv
-// dependency in this project). Needs RUNPOD_API_KEY set there — the owner's
-// account was still pending RunPod's own verification as of this writing
-// (every create-pod attempt across 5 GPU types/2 cloud types/3 datacenters
-// failed with the same "no longer any instances available" error, which
-// isn't a real stock signal at that consistency — see chat 2026-08-04).
-// This script is real, tested plumbing; it cannot succeed until that
-// account-level block clears on RunPod's side.
+// dependency in this project). Needs RUNPOD_API_KEY set there — real key
+// obtained 2026-08-04 (rpa_... prefix, via console.runpod.io/user/settings
+// "API keys"; a distinct AWS_ACCESS_KEY_ID-shaped "S3 API key" and a
+// user_-prefixed passkey ID were both mistaken for this at first — neither
+// authenticates against the real API). Verified live: GET /v2/pods and
+// creating a CPU pod both succeeded with this key — the account itself is
+// NOT blocked. Every GPU pod create attempt (7 tries, 5 GPU types, both
+// cloud types, 3 datacenters) failed with "no longer any instances
+// available" while the CPU test succeeded instantly, pointing at a
+// GPU-specific account tier/approval gate on RunPod's side rather than
+// real stock exhaustion or a broken key — see chat 2026-08-04.
 import { readFileSync } from "fs";
 import { join } from "path";
+import { fileURLToPath } from "url";
 
 const PROJECT_DIR = "/Users/tam/Desktop/DNA OS-โฟลเดอร์หลักต้นฉบับ /dna-os-deadboard";
 const POD_NAME = "dna-os-ollama";
@@ -56,7 +61,11 @@ async function runpodRequest(apiKey, path, options = {}) {
 
 async function listPods(apiKey) {
   const data = await runpodRequest(apiKey, "/pods");
-  return (data.items ?? []).filter((p) => p.name === POD_NAME);
+  // Real bug found live 2026-08-04: assumed {items: [...]} (the shape most
+  // other RunPod list endpoints use); GET /v2/pods actually returns
+  // {pods: [...]} — caught by directly curling the endpoint with the real
+  // key rather than trusting the assumption.
+  return (data.pods ?? []).filter((p) => p.name === POD_NAME);
 }
 
 // Real gap found live 2026-08-04: RunPod's own "availability" summary per
@@ -65,16 +74,24 @@ async function listPods(apiKey) {
 // confirmed by 5 different GPU types all failing back-to-back). Trying each
 // GPU in the fallback chain for real, not just trusting the catalog's
 // advertised availability field, is the only honest way to find real stock.
+//
+// Real request shape verified live against GET https://api.runpod.io/v2/
+// openapi.json 2026-08-04 (the MCP tool's own parameter names — imageName/
+// gpuTypeIds/cloudType/containerDiskInGb — are its own abstraction, not the
+// real wire format): POST /v2/pods wants {name, image, disk, ports,
+// gpu:{id,count}, cloud}. A first attempt using the MCP-shaped names got a
+// real 422 "missing property 'image'" — caught and fixed against the real
+// schema, not guessed a second time.
 async function tryCreatePod(apiKey, gpuTypeId) {
   return runpodRequest(apiKey, "/pods", {
     method: "POST",
     body: JSON.stringify({
       name: POD_NAME,
-      imageName: IMAGE,
-      gpuTypeIds: [gpuTypeId],
-      cloudType: "COMMUNITY",
-      containerDiskInGb: CONTAINER_DISK_GB,
+      image: IMAGE,
+      disk: CONTAINER_DISK_GB,
       ports: PORTS,
+      gpu: { id: gpuTypeId, count: 1 },
+      cloud: "COMMUNITY",
     }),
   });
 }
@@ -84,13 +101,21 @@ export async function ensurePodRunning() {
   const apiKey = env.RUNPOD_API_KEY;
   if (!apiKey) throw new Error("RUNPOD_API_KEY ไม่ได้ตั้งค่าใน .env.local");
 
+  // Real PodStatus enum verified against the OpenAPI spec: PROVISIONING/
+  // STARTING/RUNNING/EXITED/ERROR/TERMINATED — a single `status` field, not
+  // the desiredStatus/status pair an earlier draft assumed.
   const existing = await listPods(apiKey);
-  const running = existing.find((p) => p.desiredStatus === "RUNNING" || p.status === "RUNNING");
+  const running = existing.find((p) => p.status === "RUNNING" || p.status === "PROVISIONING" || p.status === "STARTING");
   if (running) return { ok: true, action: "already_running", pod: running };
 
-  const stopped = existing.find((p) => p.id);
+  const stopped = existing.find((p) => p.status === "EXITED");
   if (stopped) {
-    const started = await runpodRequest(apiKey, `/pods/${stopped.id}/start`, { method: "POST" });
+    // Real action endpoint verified against the spec: POST /pods/{id}/action
+    // with body {action: "start"}, not a /pods/{id}/start path.
+    const started = await runpodRequest(apiKey, `/pods/${stopped.id}/action`, {
+      method: "POST",
+      body: JSON.stringify({ action: "start" }),
+    });
     return { ok: true, action: "started_existing", pod: started };
   }
 
@@ -115,7 +140,10 @@ export async function stopPod() {
   if (!existing.length) return { ok: true, action: "no_pod" };
   const results = [];
   for (const pod of existing) {
-    const stopped = await runpodRequest(apiKey, `/pods/${pod.id}/stop`, { method: "POST" });
+    const stopped = await runpodRequest(apiKey, `/pods/${pod.id}/action`, {
+      method: "POST",
+      body: JSON.stringify({ action: "stop" }),
+    });
     results.push(stopped);
   }
   return { ok: true, action: "stopped", pods: results };
@@ -133,9 +161,17 @@ export async function getPodStatus() {
 // This is the manual/testable path; wiring ensurePodRunning()/stopPod()
 // into ai-task-watcher.mjs's own poll loop (real Smart Dynamic Trigger:
 // wake on a real queued ai_tasks row, sleep after N minutes idle) is the
-// next real step once RunPod's account verification actually clears and a
-// real create-pod call has been confirmed to succeed at least once.
-if (import.meta.url === `file://${process.argv[1]}`) {
+// next real step once a GPU pod create has been confirmed to succeed at
+// least once (currently blocked on a GPU-specific RunPod account gate —
+// CPU pod creation already verified working with the real key).
+//
+// Real bug found live 2026-08-04: `import.meta.url === 'file://' +
+// process.argv[1]` silently never matched on this project's real path
+// (contains a space and Thai characters — file:// URLs percent-encode
+// those, argv[1] doesn't), so the CLI block never ran and the script
+// exited 0 with zero output, zero error. fileURLToPath() decodes the URL
+// back to a real filesystem path first so the comparison is apples-to-apples.
+if (fileURLToPath(import.meta.url) === process.argv[1]) {
   const cmd = process.argv[2];
   const fn = { ensure: ensurePodRunning, stop: stopPod, status: getPodStatus }[cmd];
   if (!fn) {
