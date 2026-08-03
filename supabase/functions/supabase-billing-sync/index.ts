@@ -17,35 +17,12 @@
 // on the other end (verified by reading the migration before reusing it).
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.43.4"
 import { requestPartnerPayableApproval } from "../line-webhook-v2/engines/owner-dispatcher.ts"
+import { getGmailAccessToken, extractBodyText } from "../_shared/gmail-client.ts"
 
-function base64UrlDecode(data: string): string {
-  const padded = data.replace(/-/g, "+").replace(/_/g, "/") + "=".repeat((4 - (data.length % 4)) % 4)
-  const binary = atob(padded)
-  const bytes = Uint8Array.from(binary, (c) => c.charCodeAt(0))
-  return new TextDecoder("utf-8").decode(bytes)
-}
-
-function findPart(payload: any, mimeType: string): string | null {
-  if (payload?.mimeType === mimeType && payload?.body?.data) return base64UrlDecode(payload.body.data)
-  for (const part of payload?.parts ?? []) {
-    const found = findPart(part, mimeType)
-    if (found) return found
-  }
-  return null
-}
-
-function htmlToPlainText(html: string): string {
-  return html
-    .replace(/<br\s*\/?>/gi, "\n").replace(/<\/(p|div|tr)>/gi, "\n").replace(/<[^>]+>/g, "")
-    .replace(/&nbsp;/gi, " ").replace(/&amp;/gi, "&").replace(/&lt;/gi, "<").replace(/&gt;/gi, ">")
-}
-
-function extractBodyText(payload: any): string {
-  const plain = findPart(payload, "text/plain")
-  if (plain) return plain
-  const html = findPart(payload, "text/html") ?? (payload?.body?.data ? base64UrlDecode(payload.body.data) : "")
-  return html ? htmlToPlainText(html) : ""
-}
+// base64UrlDecode/findPart/htmlToPlainText/extractBodyText + the inline
+// token-fetch below moved to ../_shared/gmail-client.ts (2026-08-03) — this
+// was the THIRD copy of the exact same Gmail plumbing (bank-email-sync had
+// the other two), caught while building subscription-email-sync.
 
 // Real format confirmed live: "outstanding invoice STUIEQ-00006 with
 // $39.51 due since July 15" — invoice number and $ amount both appear on
@@ -94,19 +71,10 @@ Deno.serve(async (req) => {
 
   const supabase = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!)
 
-  const clientId = Deno.env.get("GMAIL_CLIENT_ID")
-  const clientSecret = Deno.env.get("GMAIL_CLIENT_SECRET")
-  const refreshToken = Deno.env.get("GMAIL_REFRESH_TOKEN")
-  if (!clientId || !clientSecret || !refreshToken) {
-    return Response.json({ error: "Gmail credentials not configured" }, { status: 500 })
+  const accessToken = await getGmailAccessToken()
+  if (!accessToken) {
+    return Response.json({ error: "Gmail access token ล้มเหลว — เช็ค GMAIL_CLIENT_ID/SECRET/REFRESH_TOKEN" }, { status: 502 })
   }
-  const tokenRes = await fetch("https://oauth2.googleapis.com/token", {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams({ client_id: clientId, client_secret: clientSecret, refresh_token: refreshToken, grant_type: "refresh_token" }),
-  })
-  if (!tokenRes.ok) return Response.json({ error: "Gmail token refresh failed" }, { status: 502 })
-  const { access_token: accessToken } = await tokenRes.json()
 
   const listRes = await fetch(
     "https://gmail.googleapis.com/gmail/v1/users/me/messages?q=" +

@@ -58,9 +58,25 @@ function statusColor(status?: string) {
   }
 }
 
+type SubscriptionService = {
+  id: string
+  provider: string
+  service_name: string
+  category: string | null
+  amount: number | null
+  currency: string
+  billing_cycle: string | null
+  status: string
+  auto_renew: boolean | null
+  confidence: string
+  raw_subject: string | null
+}
+
 export default function InfrastructurePage() {
   const [data, setData] = useState<InfraData | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [subs, setSubs] = useState<SubscriptionService[] | null>(null)
+  const [subsError, setSubsError] = useState<string | null>(null)
 
   useEffect(() => {
     fetch("/api/admin/infrastructure")
@@ -70,6 +86,14 @@ export default function InfrastructurePage() {
       })
       .then(setData)
       .catch((e) => setError(e.message ?? "โหลดข้อมูลไม่สำเร็จ"))
+
+    fetch("/api/admin/subscriptions")
+      .then(async (r) => {
+        if (!r.ok) throw new Error(await r.text())
+        return r.json()
+      })
+      .then((d) => setSubs(d.services ?? []))
+      .catch((e) => setSubsError(e.message ?? "โหลดข้อมูลไม่สำเร็จ"))
   }, [])
 
   if (error) {
@@ -163,6 +187,48 @@ export default function InfrastructurePage() {
             )}
           </div>
         ))}
+      </div>
+
+      <div className="rounded-xl border border-stone-200 bg-white p-4">
+        <div className="flex items-center justify-between mb-1">
+          <h2 className="text-sm font-semibold text-stone-900">บริการที่ระบบตรวจจับเองจากอีเมล</h2>
+          <span className="text-[10px] px-1.5 py-0.5 rounded border border-emerald-300 bg-emerald-50 text-emerald-700">observer</span>
+        </div>
+        <p className="text-xs text-stone-500 mb-3">
+          ระบบไล่อ่านอีเมลใบเสร็จ/แจ้งต่ออายุอัตโนมัติเอง (Gmail, ทุก 5 นาที) ไม่ต้องเฮียไล่เช็คเอง — รายการ confidence &quot;low&quot; คือรูปแบบที่ระบบไม่แน่ใจ ควรตรวจด้วยตา
+        </p>
+        {subsError && <div className="text-xs text-red-600">โหลดไม่สำเร็จ: {subsError}</div>}
+        {!subsError && !subs && <div className="text-xs text-stone-400">กำลังโหลด...</div>}
+        {subs && subs.length === 0 && (
+          <div className="text-xs text-stone-400">ยังไม่พบรายการ — ตัวจับอีเมลยังไม่เคยรันหรือยังไม่เจออีเมลที่ตรงเงื่อนไข</div>
+        )}
+        {subs && subs.length > 0 && (
+          <div className="space-y-2">
+            {subs.map((s) => (
+              <div key={s.id} className="flex items-center justify-between gap-3 rounded-lg border border-stone-100 bg-stone-50 px-3 py-2">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium text-stone-900 truncate">{s.service_name}</span>
+                    <span className="text-[9px] px-1 py-0.5 rounded border border-stone-300 text-stone-500">{s.provider}</span>
+                    {s.confidence === "low" && (
+                      <span className="text-[9px] px-1 py-0.5 rounded border border-amber-300 bg-amber-50 text-amber-700">ต้องตรวจสอบ</span>
+                    )}
+                  </div>
+                  {s.raw_subject && <div className="text-[11px] text-stone-400 truncate mt-0.5">{s.raw_subject}</div>}
+                </div>
+                <div className="text-right shrink-0">
+                  <div className="text-sm font-medium text-stone-900 tabular-nums">
+                    {s.amount !== null ? `${s.amount.toLocaleString("th-TH")} ${s.currency}` : "ไม่ทราบยอด"}
+                  </div>
+                  <div className="text-[10px] text-stone-400">
+                    {s.billing_cycle === "monthly" ? "รายเดือน" : s.billing_cycle === "yearly" ? "รายปี" : s.billing_cycle === "usage" ? "ตามการใช้งาน" : "ไม่ทราบรอบบิล"}
+                    {s.auto_renew === true && " · ต่ออายุอัตโนมัติ"}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="rounded-xl border border-stone-200 bg-white p-4">

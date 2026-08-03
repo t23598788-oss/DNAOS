@@ -15,67 +15,13 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.43.4"
 import { tryAutoConfirmPayment } from "../line-webhook-v2/engines/auto-confirm-payment.ts"
 import { ResponseGateway } from "../line-webhook-v2/engines/response.ts"
+import { getGmailAccessToken, extractBodyText } from "../_shared/gmail-client.ts"
 
-async function getAccessToken(): Promise<string | null> {
-  const clientId = Deno.env.get("GMAIL_CLIENT_ID")
-  const clientSecret = Deno.env.get("GMAIL_CLIENT_SECRET")
-  const refreshToken = Deno.env.get("GMAIL_REFRESH_TOKEN")
-  if (!clientId || !clientSecret || !refreshToken) return null
-
-  const res = await fetch("https://oauth2.googleapis.com/token", {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams({
-      client_id: clientId, client_secret: clientSecret,
-      refresh_token: refreshToken, grant_type: "refresh_token",
-    }),
-  })
-  if (!res.ok) return null
-  const data = await res.json()
-  return data.access_token ?? null
-}
-
-function base64UrlDecode(data: string): string {
-  const padded = data.replace(/-/g, "+").replace(/_/g, "/") + "=".repeat((4 - (data.length % 4)) % 4)
-  // Gmail bodies are UTF-8 — atob() alone mangles Thai text, decode bytes properly.
-  const binary = atob(padded)
-  const bytes = Uint8Array.from(binary, (c) => c.charCodeAt(0))
-  return new TextDecoder("utf-8").decode(bytes)
-}
-
-// Real bug found live 2026-07-26 (first sync run, 25 real emails): K BIZ
-// corporate-banking emails arrive as text/html (not text/plain) — a raw
-// regex against un-stripped HTML let one greedy `.+` swallow the entire
-// rest of the message, because there were no real newlines, only `<br>`
-// tags. Converts to real plain text (line breaks + decoded entities) before
-// any field extraction runs.
-function htmlToPlainText(html: string): string {
-  return html
-    .replace(/<br\s*\/?>/gi, "\n")
-    .replace(/<\/(p|div|tr)>/gi, "\n")
-    .replace(/<[^>]+>/g, "")
-    .replace(/&nbsp;/gi, " ")
-    .replace(/&emsp;/gi, "  ")
-    .replace(/&amp;/gi, "&")
-    .replace(/&lt;/gi, "<")
-    .replace(/&gt;/gi, ">")
-}
-
-function findPart(payload: any, mimeType: string): string | null {
-  if (payload?.mimeType === mimeType && payload?.body?.data) return base64UrlDecode(payload.body.data)
-  for (const part of payload?.parts ?? []) {
-    const found = findPart(part, mimeType)
-    if (found) return found
-  }
-  return null
-}
-
-function extractBodyText(payload: any): string {
-  const plain = findPart(payload, "text/plain")
-  if (plain) return plain
-  const html = findPart(payload, "text/html") ?? (payload?.body?.data ? base64UrlDecode(payload.body.data) : "")
-  return html ? htmlToPlainText(html) : ""
-}
+// getAccessToken/base64UrlDecode/htmlToPlainText/findPart/extractBodyText
+// moved to ../_shared/gmail-client.ts (2026-08-03) — this file and
+// supabase-billing-sync had grown identical copies (real KM-002 duplication,
+// caught while building a third copy for subscription-email-sync).
+const getAccessToken = getGmailAccessToken
 
 // Real K BIZ (กสิกรไทย corporate banking) transfer-confirmation email
 // format, confirmed live 2026-07-26 against real emails from the owner's

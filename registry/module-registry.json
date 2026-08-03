@@ -178,6 +178,20 @@
       "archival_status": "ARCHIVED",
       "archived_knowledge_ref": "registry/existence.json#archived_knowledge.entries[AK-001]"
     },
+    "supabase/functions/_shared/gmail-client.ts": {
+      "owner": "supabase",
+      "layer": "supabase",
+      "purpose": "Shared Gmail OAuth (read-only) connector — extracted 2026-08-03 out of bank-email-sync and supabase-billing-sync, which had grown identical copies of the token-fetch/HTML-decode/body-extraction logic (real KM-002 duplication caught while adding a third copy for subscription-email-sync). All 3 real Gmail-reading edge functions now import from here.",
+      "purpose_th": "ตัวเชื่อม Gmail OAuth (read-only) ที่ใช้ร่วมกัน — แยกออกมา 2026-08-03 จาก bank-email-sync กับ supabase-billing-sync ที่มีโค้ดดึง token/แปลง HTML/ดึงเนื้อหาอีเมลซ้ำกันเป๊ะ (KM-002 จริง เจอตอนจะสร้างสำเนาที่ 3 ให้ subscription-email-sync) ตอนนี้ทั้ง 3 ฟังก์ชันที่อ่าน Gmail จริง import จากที่นี่ที่เดียว",
+      "exports": [
+        "getGmailAccessToken",
+        "extractBodyText",
+        "searchGmailMessageIds",
+        "fetchGmailMessage",
+        "getSubjectHeader"
+      ],
+      "status": "active"
+    },
     "supabase/functions/_shared/haversine.ts": {
       "owner": "supabase",
       "layer": "supabase",
@@ -6468,6 +6482,16 @@
       "purpose_th": "หน้าจอค่าใช้จ่าย/โครงสร้างพื้นฐาน — แสดง registry/infrastructure.json (cost/status/quota จริงต่อ service) และช่องงานวิจัยตัววัดค่า (การเงิน/ความฉลาด/ฮาร์ดแวร์) สำหรับ Cloud GPU แบบ Dynamic Trigger ที่ยังไม่ได้สมัคร แสดงตรงๆ ว่า \"ยังไม่มีข้อมูลจริง\" จนกว่าจะมี telemetry จริง",
       "exports": [
         "InfrastructurePage"
+      ],
+      "status": "active"
+    },
+    "app/api/admin/subscriptions/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "GET route serving subscription_services (populated by supabase/functions/subscription-email-sync) to the admin infrastructure dashboard, ADMIN_TIER-gated.",
+      "purpose_th": "GET route ส่งข้อมูล subscription_services (จาก subscription-email-sync) ให้หน้าแดชบอร์ดค่าใช้จ่าย ผ่าน requireAuth(ADMIN_TIER)",
+      "exports": [
+        "GET"
       ],
       "status": "active"
     },
