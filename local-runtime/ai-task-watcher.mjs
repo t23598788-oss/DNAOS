@@ -11,7 +11,9 @@
 // (com.dnaos.ai-task-watcher.plist), independent of any Claude/chat session.
 import { createClient } from "@supabase/supabase-js";
 import { readFileSync } from "fs";
+import { readFile, writeFile } from "fs/promises";
 import { join } from "path";
+import { ensurePodRunning, stopPod } from "./runpod-controller.mjs";
 
 const PROJECT_DIR = "/Users/tam/Desktop/DNA OS-โฟลเดอร์หลักต้นฉบับ /dna-os-deadboard";
 const VISION_MODEL = "qwen2.5vl:7b";
@@ -404,6 +406,45 @@ async function backfillMissingDocuments() {
   }
 }
 
+// Smart Dynamic Trigger — plumbing half (runpod-controller.mjs), calling
+// half (here) (owner, 2026-08-04: "สร้างเครื่องมือให้เปิดเครื่องเมื่อเรียก...
+// อย่าเปิดเครื่องไว้ 24 ชั่วโมง"). This LaunchAgent runs main() once per
+// 20s tick (launchd owns the interval, not a setInterval in-process), so
+// "idle for N minutes" can't be tracked in memory — a small local
+// timestamp file is the real state across separate process runs.
+//
+// Honest scope note: this only calls ensurePodRunning()/stopPod() — it
+// does NOT yet route ollamaGenerate() calls to the remote pod (still
+// hits http://localhost:11434 below). The pod itself has no Ollama
+// installed yet either. Wiring those two together is the next real step;
+// doing it now would silently point real customer document classification
+// at a GPU box that can't answer.
+const LAST_ACTIVE_PATH = join(PROJECT_DIR, "local-runtime", ".runpod-last-active");
+const IDLE_STOP_MINUTES = 15;
+
+async function touchLastActive() {
+  await writeFile(LAST_ACTIVE_PATH, new Date().toISOString()).catch(() => {});
+}
+
+async function maybeStopIfIdle() {
+  let lastActiveIso;
+  try {
+    lastActiveIso = (await readFile(LAST_ACTIVE_PATH, "utf8")).trim();
+  } catch {
+    return; // never recorded activity — pod was never started by this trigger, nothing to stop
+  }
+  const idleMinutes = (Date.now() - new Date(lastActiveIso).getTime()) / 60000;
+  if (idleMinutes < IDLE_STOP_MINUTES) return;
+  try {
+    const result = await stopPod();
+    if (result.action === "stopped") {
+      console.log(`[ai-task-watcher] Pod ว่างเกิน ${IDLE_STOP_MINUTES} นาที — สั่งปิดแล้ว`);
+    }
+  } catch (e) {
+    console.error(`[ai-task-watcher] stopPod ล้มเหลว: ${e.message}`);
+  }
+}
+
 async function main() {
   await backfillMissingDocuments();
 
@@ -413,9 +454,19 @@ async function main() {
     console.error(`[ai-task-watcher] ${new Date().toISOString()} query error: ${error.message}`);
     return;
   }
-  if (!tasks || tasks.length === 0) return;
+  if (!tasks || tasks.length === 0) {
+    await maybeStopIfIdle();
+    return;
+  }
 
   console.log(`[ai-task-watcher] ${new Date().toISOString()} พบงาน ${tasks.length} รายการ`);
+  await touchLastActive();
+  try {
+    const ensured = await ensurePodRunning();
+    if (!ensured.ok) console.error(`[ai-task-watcher] ensurePodRunning ล้มเหลว: ${JSON.stringify(ensured.errors)}`);
+  } catch (e) {
+    console.error(`[ai-task-watcher] ensurePodRunning error: ${e.message}`);
+  }
 
   for (const task of tasks) {
     try {
