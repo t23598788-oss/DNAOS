@@ -40,11 +40,52 @@ const POD_NAME = "dna-os-ollama";
 // AFTER boot via Ollama's own real HTTP API (POST /api/pull, /api/create),
 // which is what ensureModelsInstalled() below does.
 const IMAGE = "ollama/ollama:latest";
-// Bumped 30GB -> 100GB (owner, 2026-08-04, model-size upgrade): 72b+32b
-// models alone are ~65GB on disk (Q4_K_M), plus the base ollama/ollama
-// image layers — 30GB genuinely isn't enough anymore.
-const CONTAINER_DISK_GB = 100;
+// Real bug found live 2026-08-04: RunPod's own OpenAPI spec documents
+// `disk` (Container Disk) as "ephemeral, wiped on restart" — not just on
+// terminate/recreate as first assumed. Confirmed live: stopped this exact
+// pod, started it again (same pod id, `started_existing` path), and
+// /api/tags came back empty — both 72b/32b models the previous boot had
+// pulled were gone, meaning every single wake-up after idle would have
+// re-downloaded ~65GB from scratch, defeating the whole point of the Smart
+// Dynamic Trigger (fast wake, low cost per use). Fixed per owner directive
+// 2026-08-04 ("แก้ระบบจัดเก็บโมเดลทันที โดยใช้ RunPod Network Volume เป็น
+// Persistent Model Storage...ห้ามเก็บโมเดลไว้ใน Container Disk") — models
+// now live on a real Network Volume (survives stop/start AND
+// terminate+recreate, unlike Container Disk), mounted via OLLAMA_MODELS.
+// Container disk only needs to hold the base ollama/ollama image now.
+const CONTAINER_DISK_GB = 20;
 const PORTS = ["11434/http", "22/tcp"];
+
+// Real Network Volume, created live 2026-08-04 via mcp__runpod__create-
+// network-volume (150GB, STANDARD tier) specifically to fix the ephemeral-
+// disk bug above. A network volume is pinned to one real datacenter at
+// creation and cannot move — every pod that wants these persisted models
+// MUST be created in this exact datacenter, per owner directive ("Dynamic
+// Trigger ต้องค้นหา GPU ภายในดาต้าเซ็นเตอร์ที่ Network Volume อยู่เท่านั้น...
+// ห้ามสร้าง Pod ในพื้นที่อื่นแบบเงียบๆ") — GPU_FALLBACK_CHAIN below varies
+// GPU type only, never datacenter.
+//
+// Real gap found live 2026-08-04, before any pod was created on it: the
+// first volume was created in CA-MTL-3 (chosen because get-gpu-type showed
+// real A100 80GB PCIe stock there minutes earlier) — by the time the pod
+// create call ran, real stock had already dropped to zero for every 80GB+
+// GPU type in that one datacenter (spot-market churn, same class of
+// finding as the original GPU_FALLBACK_CHAIN work). Per owner instruction
+// ("ห้ามสร้าง Pod ในพื้นที่อื่นแบบเงียบๆ") every dead end was reported, not
+// silently worked around: CA-MTL-3 (real stock moments earlier, gone by
+// create time) -> US-MD-1 (confirmed real network-volume-capable AND real
+// A100 SXM stock via get-gpu-type, but COMMUNITY cloud create still 400'd
+// "no longer any instances available" 3 retries running) -> EUR-IS-1
+// (same COMMUNITY 400 across all 6 GPU types). The real root cause,
+// isolated by testing the identical request with only `cloud` changed:
+// COMMUNITY cloud (shared/spot hosts) had zero real matching capacity for
+// an 80GB+ GPU + network-volume-mount combination across every datacenter
+// tried that hour; SECURE cloud (dedicated reserved capacity) succeeded on
+// the very first attempt in EUR-IS-1. tryCreatePod's cloud-fallback below
+// (community first for cost, secure as a real fallback) reflects this.
+const NETWORK_VOLUME_ID = "gomvik56ok";
+const NETWORK_VOLUME_DATACENTER_ID = "EUR-IS-1";
+const VOLUME_MOUNT_PATH = "/runpod-volume";
 // Upgraded 2026-08-04 (owner: "เลือกโมเดลตามความเหมาะสมของงาน...ไม่ต้องยึด
 // ตามข้อจำกัดของ Mac อีกต่อไป") from qwen2.5vl:7b/qwen3:8b now that
 // inference runs on a real Cloud GPU, not the Mac's own RAM ceiling.
@@ -107,18 +148,39 @@ async function listPods(apiKey) {
 // gpu:{id,count}, cloud}. A first attempt using the MCP-shaped names got a
 // real 422 "missing property 'image'" — caught and fixed against the real
 // schema, not guessed a second time.
+// Real finding live 2026-08-04: COMMUNITY cloud (shared/spot hosts) had
+// zero real matching capacity for an 80GB+ GPU + network-volume-mount
+// combination across 3 different datacenters that hour; SECURE cloud
+// (dedicated reserved capacity) succeeded on the first real attempt.
+// Tries COMMUNITY first (cheaper — e.g. A100 SXM $1.39 vs $1.49/hr) and
+// falls back to SECURE within the SAME datacenter/GPU only if that fails —
+// never silently drifts to a different datacenter (the volume can't
+// follow it there anyway).
 async function tryCreatePod(apiKey, gpuTypeId) {
-  return runpodRequest(apiKey, "/pods", {
-    method: "POST",
-    body: JSON.stringify({
-      name: POD_NAME,
-      image: IMAGE,
-      disk: CONTAINER_DISK_GB,
-      ports: PORTS,
-      gpu: { id: gpuTypeId, count: 1 },
-      cloud: "COMMUNITY",
-    }),
-  });
+  const baseBody = {
+    name: POD_NAME,
+    image: IMAGE,
+    disk: CONTAINER_DISK_GB,
+    ports: PORTS,
+    gpu: { id: gpuTypeId, count: 1 },
+    // Pinned to the volume's real datacenter — never omit this, or
+    // RunPod's scheduler could place the pod somewhere the volume can't
+    // reach at all (real schema requirement: NetworkMount.volumeId
+    // "must be an existing NetworkVolume in the same data center as the
+    // pod").
+    dataCenterIds: [NETWORK_VOLUME_DATACENTER_ID],
+    mounts: { network: [{ volumeId: NETWORK_VOLUME_ID, path: VOLUME_MOUNT_PATH }] },
+    env: { OLLAMA_MODELS: VOLUME_MOUNT_PATH },
+  };
+  try {
+    return await runpodRequest(apiKey, "/pods", { method: "POST", body: JSON.stringify({ ...baseBody, cloud: "COMMUNITY" }) });
+  } catch (communityErr) {
+    try {
+      return await runpodRequest(apiKey, "/pods", { method: "POST", body: JSON.stringify({ ...baseBody, cloud: "SECURE" }) });
+    } catch (secureErr) {
+      throw new Error(`community: ${communityErr.message} | secure: ${secureErr.message}`);
+    }
+  }
 }
 
 // RunPod's real proxy URL pattern for an http-type port — confirmed live
@@ -255,6 +317,81 @@ export async function ensureModelsInstalled(podId, { pullTimeoutMs = 600000 } = 
   return { ok: true, url };
 }
 
+// Real digests captured live 2026-08-04 right after the first successful
+// pull onto the Network Volume (via GET /api/tags on pod 3a00uxb91q3woz —
+// the only real source for this, never hand-typed/guessed). model_verified
+// below checks a pod's actual digest against these, so a corrupted or
+// short-download would be caught rather than assumed fine just because
+// /api/tags lists the name.
+const EXPECTED_MODEL_DIGESTS = {
+  "qwen2.5vl:72b": "05ea68274581d182f474987ced445c380fccff8c0f9ef8a9bdb48c4ee2ba9620",
+  "qwen3:32b": "030ee887880fc378860c2dd35101da424377520441ae4bfe7be6deff8ade7840",
+  "thawatchai": "a440c727735eba3533be92248c48571d9df556d412abb721a706811f2c4c0f0d",
+};
+
+// Real bug found live 2026-08-04: /api/show's response body (license,
+// modelfile, parameters, template, system, details, model_info, tensors,
+// capabilities, modified_at) does NOT include a top-level `digest` field
+// on this Ollama version — confirmed by printing its real keys, not
+// assumed from docs. /api/tags DOES carry a real digest per model, so
+// this reads from there instead (the same endpoint model_present already
+// calls, just also keeping the digest this time).
+async function getModelDigest(baseUrl, name) {
+  const res = await fetch(`${baseUrl}/api/tags`, { signal: AbortSignal.timeout(15000) });
+  if (!res.ok) return null;
+  const data = await res.json();
+  // "thawatchai" (bare, no tag) must also match Ollama's own normalized
+  // "thawatchai:latest" — real form confirmed live via /api/tags output.
+  const entry = (data.models ?? []).find((m) => m.name === name || m.model === name || m.name === `${name}:latest`);
+  return entry?.digest ?? null;
+}
+
+// Owner directive 2026-08-04: "เพิ่มสถานะ volume_attached, model_present,
+// model_verified และ runtime_ready ก่อนเปิดรับงาน" — 4 real, independently
+// checkable signals instead of one opaque "ready" boolean, so a failure
+// mode is visible at the exact layer it happened (volume never mounted vs.
+// mounted but empty vs. present but corrupted vs. server itself down).
+export async function getReadinessStatus(podId) {
+  const env = loadEnv();
+  const apiKey = env.RUNPOD_API_KEY;
+  const url = ollamaUrlForPod(podId);
+
+  let volume_attached = false;
+  try {
+    const pod = await runpodRequest(apiKey, `/pods/${podId}`);
+    volume_attached = (pod.mounts?.network ?? []).some((m) => m.volumeId === NETWORK_VOLUME_ID);
+  } catch { /* pod not reachable via API yet — real false, not a guess */ }
+
+  let model_present = false;
+  let modelsFound = [];
+  try {
+    const res = await fetch(`${url}/api/tags`, { signal: AbortSignal.timeout(8000) });
+    if (res.ok) {
+      modelsFound = ((await res.json()).models ?? []).map((m) => m.name);
+      model_present = REQUIRED_MODELS.every((m) => modelsFound.includes(m)) &&
+        (modelsFound.includes("thawatchai") || modelsFound.includes("thawatchai:latest"));
+    }
+  } catch { /* server not reachable yet */ }
+
+  let model_verified = false;
+  if (model_present) {
+    const checks = await Promise.all(
+      [...REQUIRED_MODELS, "thawatchai"].map(async (name) => {
+        const expected = EXPECTED_MODEL_DIGESTS[name];
+        const actual = await getModelDigest(url, name);
+        if (!actual) return false;
+        return expected ? actual === expected : true; // no recorded baseline yet -> presence + a real digest is the best available signal
+      }),
+    );
+    model_verified = checks.every(Boolean);
+  }
+
+  const serverUp = await waitForOllamaServerUp(podId, 5000).then((r) => r.up).catch(() => false);
+  const runtime_ready = volume_attached && model_present && model_verified && serverUp;
+
+  return { volume_attached, model_present, model_verified, runtime_ready, modelsFound };
+}
+
 // Combines both real checks — server up, then models present (installing
 // any that are missing) — into the one call ai-task-watcher.mjs actually
 // needs before it's safe to send a real inference request.
@@ -266,7 +403,11 @@ export async function waitForOllamaReady(podId, { serverTimeoutMs = 120000, pull
   } catch (e) {
     return { ready: false, url: serverUp.url, error: `ติดตั้งโมเดลไม่สำเร็จ: ${e.message}` };
   }
-  return { ready: true, url: serverUp.url };
+  const status = await getReadinessStatus(podId);
+  if (!status.runtime_ready) {
+    return { ready: false, url: serverUp.url, error: `ตรวจสอบความพร้อมไม่ผ่าน: ${JSON.stringify(status)}` };
+  }
+  return { ready: true, url: serverUp.url, status };
 }
 
 export async function ensurePodRunning() {
@@ -292,6 +433,11 @@ export async function ensurePodRunning() {
     return { ok: true, action: "started_existing", pod: started, url: ollamaUrlForPod(started.id) };
   }
 
+  // Owner directive 2026-08-04: "หาก A100 ไม่มีในพื้นที่นั้น ให้รายงานและ
+  // เลือก GPU ที่รองรับโดยห้ามสร้าง Pod ในพื้นที่อื่นแบบเงียบๆ" — every
+  // tryCreatePod call already pins dataCenterIds to
+  // NETWORK_VOLUME_DATACENTER_ID, so this loop only ever varies GPU type
+  // within that one real datacenter; it never silently tries elsewhere.
   const errors = [];
   for (const gpuTypeId of GPU_FALLBACK_CHAIN) {
     try {
@@ -301,7 +447,12 @@ export async function ensurePodRunning() {
       errors.push(`${gpuTypeId}: ${e.message}`);
     }
   }
-  return { ok: false, action: "no_capacity", errors };
+  return {
+    ok: false,
+    action: "no_capacity",
+    errors,
+    note: `ไม่มี GPU รุ่นไหนว่างใน datacenter ${NETWORK_VOLUME_DATACENTER_ID} เลย (จุดที่ Network Volume ตั้งอยู่) — ไม่ได้ลองไปสร้างที่ datacenter อื่น เพราะ volume ไม่สามารถย้ายไปใช้ที่อื่นได้จริง`,
+  };
 }
 
 export async function stopPod() {
