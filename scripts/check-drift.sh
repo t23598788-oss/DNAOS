@@ -48,7 +48,13 @@ echo "--- Checking for undeclared top-level directories ---"
 # local-runtime/ (owner, 2026-07-31) — the persistent Mac LaunchAgent workers
 # (ai-task-watcher.mjs etc.) that were previously outside git entirely at
 # ~/dna-os-ollama/; see local-runtime/README.md.
-DECLARED_TOP_LEVEL="core gateway engines cognitive presenter services plugins registry app components scripts supabase config node_modules backups public observatory docs styles src-tauri local-runtime"
+# dna-os-mcp-server/ (owner-approved Phase 1B, 2026-08-04) — the MCP protocol
+# adapter for DNA OS. Standalone npm package (own package.json/tsconfig/
+# node_modules) by design, so it cannot resolve the main app's path aliases
+# and its cross-layer isolation is structural, not just conventional; see
+# registry/dependency-graph.json's "mcp" layer (empty allow-list) and
+# registry/mcp-planned-manifest.json.
+DECLARED_TOP_LEVEL="core gateway engines cognitive presenter services plugins registry app components scripts supabase config node_modules backups public observatory docs styles src-tauri local-runtime dna-os-mcp-server"
 
 for dir in */; do
   dirname=$(basename "$dir")

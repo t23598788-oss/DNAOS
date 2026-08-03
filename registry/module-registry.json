@@ -6909,24 +6909,6 @@
       "status": "active",
       "entry_point": true
     },
-    "registry/mcp-resource-registry.json": {
-      "owner": "registry",
-      "layer": "registry",
-      "purpose": "Declares MCP-exposed read-only resources. Separate from command-registry.json (commands are invoked; resources are read/subscribed). Not loaded by /api/v1/spec or the dispatcher.",
-      "purpose_th": "รายการ MCP resource แบบอ่านอย่างเดียว แยกจาก command-registry.json",
-      "exports": [],
-      "status": "active",
-      "entry_point": true
-    },
-    "registry/mcp-planned-manifest.json": {
-      "owner": "registry",
-      "layer": "registry",
-      "purpose": "Describes the 5 planned MCP tools and 1 planned resource plus the exact HTTP endpoint each will read, before any is promoted into command-registry.json with status:active. Explicitly NOT loaded by /api/v1/spec or engines/validation/dispatcher.ts.",
-      "purpose_th": "manifest ฉบับร่างของ MCP tools/resource พร้อม endpoint ที่จะอ่าน ยังไม่ถูก runtime โหลด",
-      "exports": [],
-      "status": "active",
-      "entry_point": true
-    },
     "app/api/v1/mcp/manifest/route.ts": {
       "owner": "api",
       "layer": "app",
