@@ -57,6 +57,7 @@
     "top",
     "awk",
     "tail",
-    "memory_pressure"
+    "memory_pressure",
+    "supabase"
   ]
 }

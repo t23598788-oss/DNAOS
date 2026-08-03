@@ -19,6 +19,7 @@
     "status": "bash scripts/dashboard.sh && bash scripts/intelligence.sh && bash scripts/existence.sh",
     "hello": "npx tsx scripts/hello.ts",
     "sync-demand": "npx tsx scripts/sync-owner-requests.ts",
+    "sync-infra-deps": "npx tsx scripts/sync-infrastructure-dependencies.ts",
     "deploy-gate": "npx tsx scripts/deploy-gate.ts",
     "verify-env": "bash scripts/verify-environment.sh",
     "diagnosis": "npx tsx core/runtime/self-awareness.ts",

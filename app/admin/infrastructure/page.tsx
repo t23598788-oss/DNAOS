@@ -1,11 +1,34 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { ChevronDown, ChevronRight, ShieldCheck, ShieldAlert, ShieldX } from "lucide-react"
 
 // Cost/infrastructure dashboard (owner, 2026-08-03): "หน้าจอค่าใช้จ่าย...
 // ขึ้นมาแสดงผลในค่าใช้จ่ายและตัวประมวลผลต่างๆ ... ทำงานวิจัยตัววัดค่าต่างๆ"
 // Reads registry/infrastructure.json (already real data, Rule 103) via
 // /api/admin/infrastructure — no new data source, this is display-only.
+
+type DependencyGraph = {
+  modules: string[]
+  api_routes: string[]
+  edge_functions: string[]
+  scheduled_jobs: Array<{ jobname: string; schedule: string; active: boolean }> | "not_refreshed"
+}
+
+type HealthCheck = {
+  service_key: string
+  check_kind: string
+  status: string
+  last_check_at: string | null
+  detail: Record<string, unknown>
+}
+
+type Health = {
+  status: "active" | "warning" | "critical"
+  reasons: string[]
+  last_verified_at: string | null
+  checks: HealthCheck[]
+}
 
 type Service = {
   name: string
@@ -23,6 +46,23 @@ type Service = {
   if_removed_saves_thb?: number
   if_removed_loses?: string
   affected_workflows?: string[]
+  dependency_graph?: DependencyGraph
+  health?: Health
+}
+
+function HealthBadge({ health }: { health?: Health }) {
+  if (!health) return null
+  const map = {
+    active: { icon: ShieldCheck, cls: "border-emerald-300 bg-emerald-50 text-emerald-700", label: "Active" },
+    warning: { icon: ShieldAlert, cls: "border-amber-300 bg-amber-50 text-amber-700", label: "Warning" },
+    critical: { icon: ShieldX, cls: "border-red-300 bg-red-50 text-red-700", label: "Critical" },
+  }[health.status]
+  const Icon = map.icon
+  return (
+    <span className={`inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded border ${map.cls}`} title={health.reasons.join(", ")}>
+      <Icon size={11} /> {map.label}
+    </span>
+  )
 }
 
 type ResearchMetrics = {
@@ -77,6 +117,7 @@ export default function InfrastructurePage() {
   const [error, setError] = useState<string | null>(null)
   const [subs, setSubs] = useState<SubscriptionService[] | null>(null)
   const [subsError, setSubsError] = useState<string | null>(null)
+  const [expanded, setExpanded] = useState<Set<string>>(new Set())
 
   useEffect(() => {
     fetch("/api/admin/infrastructure")
@@ -139,11 +180,15 @@ export default function InfrastructurePage() {
       </div>
 
       <div className="space-y-3">
-        {services.map(([key, s]) => (
+        {services.map(([key, s]) => {
+          const isOpen = expanded.has(key)
+          const dg = s.dependency_graph
+          const hasGraph = dg && (dg.modules.length || dg.api_routes.length || dg.edge_functions.length)
+          return (
           <div key={key} className="rounded-xl border border-stone-200 bg-white p-4">
             <div className="flex items-start justify-between gap-3">
               <div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                   <span className="font-medium text-stone-900">{s.name ?? key}</span>
                   {s.critical && (
                     <span className="text-[10px] px-1.5 py-0.5 rounded border border-red-300 bg-red-50 text-red-700">
@@ -153,6 +198,7 @@ export default function InfrastructurePage() {
                   <span className={`text-[10px] px-1.5 py-0.5 rounded border ${statusColor(s.status)}`}>
                     {s.status ?? "unknown"}
                   </span>
+                  <HealthBadge health={s.health} />
                 </div>
                 {s.purpose && <div className="text-sm text-stone-600 mt-1">{s.purpose}</div>}
                 {s.organ && <div className="text-xs text-stone-400 mt-1">ทำหน้าที่: {s.organ}</div>}
@@ -185,8 +231,90 @@ export default function InfrastructurePage() {
                 <span className="text-stone-400">ถ้าล่ม:</span> {s.if_down}
               </div>
             )}
+
+            {hasGraph && (
+              <button
+                onClick={() => setExpanded((prev) => {
+                  const next = new Set(prev)
+                  if (next.has(key)) next.delete(key); else next.add(key)
+                  return next
+                })}
+                className="mt-3 flex items-center gap-1 text-xs text-stone-500 hover:text-stone-800"
+              >
+                {isOpen ? <ChevronDown size={13} /> : <ChevronRight size={13} />}
+                Dependency Graph &amp; Impact Analysis
+                {dg && (dg.modules.length + dg.api_routes.length + dg.edge_functions.length) > 0 && (
+                  <span className="text-stone-400">({dg.modules.length + dg.api_routes.length + dg.edge_functions.length} รายการ)</span>
+                )}
+              </button>
+            )}
+
+            {isOpen && dg && (
+              <div className="mt-2 rounded-lg bg-stone-50 border border-stone-100 p-3 text-xs space-y-3">
+                <div className="text-stone-600">
+                  <span className="font-medium">ถ้าบริการนี้หายไป จะกระทบ:</span>{" "}
+                  {dg.modules.length} module, {dg.api_routes.length} API route, {dg.edge_functions.length} scheduled/edge function
+                  {Array.isArray(s.affected_workflows) && s.affected_workflows.length > 0 && (
+                    <> และ workflow: {s.affected_workflows.join(", ")}</>
+                  )}
+                </div>
+                {dg.modules.length > 0 && (
+                  <div>
+                    <div className="text-stone-400 mb-1">Runtime modules ({dg.modules.length})</div>
+                    <div className="flex flex-wrap gap-1">
+                      {dg.modules.map((m) => <code key={m} className="bg-white border border-stone-200 rounded px-1 py-0.5 text-[10px]">{m}</code>)}
+                    </div>
+                  </div>
+                )}
+                {dg.api_routes.length > 0 && (
+                  <div>
+                    <div className="text-stone-400 mb-1">API routes ({dg.api_routes.length})</div>
+                    <div className="flex flex-wrap gap-1">
+                      {dg.api_routes.map((m) => <code key={m} className="bg-white border border-stone-200 rounded px-1 py-0.5 text-[10px]">{m}</code>)}
+                    </div>
+                  </div>
+                )}
+                {dg.edge_functions.length > 0 && (
+                  <div>
+                    <div className="text-stone-400 mb-1">Edge functions ({dg.edge_functions.length})</div>
+                    <div className="flex flex-wrap gap-1">
+                      {dg.edge_functions.map((m) => <code key={m} className="bg-white border border-stone-200 rounded px-1 py-0.5 text-[10px]">{m}</code>)}
+                    </div>
+                  </div>
+                )}
+                {Array.isArray(dg.scheduled_jobs) && dg.scheduled_jobs.length > 0 && (
+                  <div>
+                    <div className="text-stone-400 mb-1">Scheduled jobs (จาก pg_cron จริง)</div>
+                    <div className="space-y-1">
+                      {dg.scheduled_jobs.map((j) => (
+                        <div key={j.jobname} className="flex items-center justify-between bg-white border border-stone-200 rounded px-2 py-1">
+                          <code className="text-[10px]">{j.jobname}</code>
+                          <span className="text-[10px] text-stone-400">{j.schedule}{!j.active && " · ปิดอยู่"}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {s.health && s.health.checks.length > 0 && (
+                  <div>
+                    <div className="text-stone-400 mb-1">Runtime verification ล่าสุด</div>
+                    <div className="space-y-1">
+                      {s.health.checks.map((c) => (
+                        <div key={c.service_key} className="flex items-center justify-between bg-white border border-stone-200 rounded px-2 py-1">
+                          <span className="text-[10px]">{c.service_key} · {c.check_kind}</span>
+                          <span className={`text-[10px] ${c.status === "healthy" ? "text-emerald-600" : "text-red-600"}`}>
+                            {c.status}{c.last_check_at ? ` · ${new Date(c.last_check_at).toLocaleTimeString("th-TH")}` : ""}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
-        ))}
+          )
+        })}
       </div>
 
       <div className="rounded-xl border border-stone-200 bg-white p-4">
