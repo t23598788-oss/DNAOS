@@ -125,11 +125,40 @@ export async function POST(_req: Request, { params }: Params) {
   // Clamped at 0 rather than going negative; an overpayment beyond
   // principal + this transaction's real interest/penalty still isn't
   // handled (out of scope for this pass — flagged, not silently wrong).
+  //
+  // Real gap found live 2026-08-03 (คุณเท่ห์/เทย่า ขอนแก่น): reaching 0
+  // outstanding here never closed collection_state — the debt-tracking
+  // admin page kept showing "กำลังติดตาม" and a still-accruing daily
+  // penalty (calcDebtTrackingSummary's penalty is flat-per-day, independent
+  // of the remaining balance) for a debt that was already fully paid, until
+  // someone noticed the mismatch and clicked "ปิดรายการ" by hand. Auto-close
+  // whenever a payment actually brings the balance to 0, using the exact
+  // same debt_closed event the manual button inserts (app/api/admin/
+  // debt-trackings/[id]/events/route.ts) so this isn't a second parallel
+  // close mechanism.
   if (snapshot) {
     const newOutstanding = Math.max(0, outstandingBefore - principalPortion)
+    const snapshotUpdate: Record<string, unknown> = { total_outstanding: newOutstanding, updated_at: new Date().toISOString() }
+    if (newOutstanding === 0) {
+      snapshotUpdate.collection_state = "CLOSED"
+      snapshotUpdate.overdue_amount = 0
+      snapshotUpdate.days_overdue = 0
+    }
     await db.from("debt_snapshots")
-      .update({ total_outstanding: newOutstanding, updated_at: new Date().toISOString() })
+      .update(snapshotUpdate)
       .eq("customer_company_id", doc.customer_company_id)
+
+    if (newOutstanding === 0) {
+      await db.from("debt_events").insert({
+        customer_company_id: doc.customer_company_id,
+        event_type: "debt_closed",
+        amount: null,
+        occurred_at: occurredAt,
+        note: `จ่ายครบแล้ว (สลิป ${doc.reference_number ?? id}) — ปิดรายการติดตามทวงหนี้อัตโนมัติ`,
+        source: "line_chat",
+        created_by: auth.email,
+      })
+    }
   }
 
   // Payment Verification Priority (owner, 2026-07-18) — payment_verified=true
