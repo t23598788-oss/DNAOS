@@ -6908,6 +6908,316 @@
       "exports": [],
       "status": "active",
       "entry_point": true
+    },
+    "registry/mcp-resource-registry.json": {
+      "owner": "registry",
+      "layer": "registry",
+      "purpose": "Declares MCP-exposed read-only resources. Separate from command-registry.json (commands are invoked; resources are read/subscribed). Not loaded by /api/v1/spec or the dispatcher.",
+      "purpose_th": "รายการ MCP resource แบบอ่านอย่างเดียว แยกจาก command-registry.json",
+      "exports": [],
+      "status": "active",
+      "entry_point": true
+    },
+    "registry/mcp-planned-manifest.json": {
+      "owner": "registry",
+      "layer": "registry",
+      "purpose": "Describes the 5 planned MCP tools and 1 planned resource plus the exact HTTP endpoint each will read, before any is promoted into command-registry.json with status:active. Explicitly NOT loaded by /api/v1/spec or engines/validation/dispatcher.ts.",
+      "purpose_th": "manifest ฉบับร่างของ MCP tools/resource พร้อม endpoint ที่จะอ่าน ยังไม่ถูก runtime โหลด",
+      "exports": [],
+      "status": "active",
+      "entry_point": true
+    },
+    "app/api/v1/mcp/manifest/route.ts": {
+      "owner": "api",
+      "layer": "app",
+      "purpose": "GET returns the same tool-name to endpoint mapping as registry/mcp-planned-manifest.json, for MCP client discovery. Does not exist until Phase 1.",
+      "purpose_th": "endpoint สำหรับ MCP discovery ตาม manifest",
+      "exports": [
+        "GET"
+      ],
+      "status": "active"
+    },
+    "app/api/v1/mcp/architecture/summary/route.ts": {
+      "owner": "api",
+      "layer": "app",
+      "purpose": "GET returns layer stack + canonical principles + authority model, read from registry/CONSTITUTION.json and registry/dependency-graph.json. Backs architecture.system_summary.",
+      "purpose_th": "endpoint สรุปสถาปัตยกรรมระบบ",
+      "exports": [
+        "GET"
+      ],
+      "status": "active"
+    },
+    "app/api/v1/mcp/registry/commands/route.ts": {
+      "owner": "api",
+      "layer": "app",
+      "purpose": "GET returns filtered contents of registry/command-registry.json (active commands only). Backs registry.list_commands. Distinct from the existing public /api/v1/spec (which returns OpenAI/Claude tool-schema-shaped output for external LLM tool-use, not raw registry listing).",
+      "purpose_th": "endpoint รายการคำสั่งจาก command-registry.json แยกจาก /api/v1/spec เดิม",
+      "exports": [
+        "GET"
+      ],
+      "status": "active"
+    },
+    "app/api/v1/mcp/architecture/dependency-graph/route.ts": {
+      "owner": "api",
+      "layer": "app",
+      "purpose": "GET returns registry/dependency-graph.json's allowed_imports and notes verbatim. Backs architecture.get_dependency_graph.",
+      "purpose_th": "endpoint กราฟการ import",
+      "exports": [
+        "GET"
+      ],
+      "status": "active"
+    },
+    "app/api/v1/mcp/_lib/envelope.ts": {
+      "owner": "mcp-adapter",
+      "layer": "app",
+      "purpose": "Shared response envelope (trace_id/source_files/registry_version/confidence/generated_at/read_only) for every /api/v1/mcp/* route. Pure formatting, no business logic, no DB access.",
+      "purpose_th": "helper สร้าง response envelope กลางสำหรับทุก route ใต้ /api/v1/mcp",
+      "exports": [
+        "McpEnvelopeMeta",
+        "mcpCorsHeaders",
+        "mcpEnvelope"
+      ],
+      "status": "active"
+    },
+    "dna-os-mcp-server/src/stdio.ts": {
+      "owner": "mcp",
+      "layer": "mcp",
+      "purpose": "stdio transport entrypoint — the only file in this package that knows the transport is stdio.",
+      "purpose_th": "จุดเริ่มต้น transport แบบ stdio เท่านั้น",
+      "exports": [
+        "startStdioServer"
+      ],
+      "status": "active",
+      "entry_point": true,
+      "note": "entry_point:true here means 'outside the main app's import-graph scan root', not 'a process entrypoint' — dna-os-mcp-server is a standalone npm package (own tsconfig/node_modules), so scripts/build-arch-book.ts's import scanner cannot see its internal relative imports across files. Real internal caller graph: see this package's own src/server.ts (registers all 5 tools + 1 resource) and src/stdio.ts / src/http.ts (the two real transport entrypoints). Same pattern already used for local-runtime/package.json in this registry."
+    },
+    "dna-os-mcp-server/src/server.ts": {
+      "owner": "mcp",
+      "layer": "mcp",
+      "purpose": "Transport-agnostic MCP tool/resource registration (tools/list, resources/list, call handlers) for the 5 read tools + 1 resource. Knows nothing about stdio or any other transport — a future remote transport connects to the same createDnaOsMcpServer() without changing this file.",
+      "purpose_th": "ลงทะเบียน MCP tool/resource ทั้งหมด ไม่ผูกกับ transport",
+      "exports": [
+        "createDnaOsMcpServer"
+      ],
+      "status": "active",
+      "entry_point": true,
+      "note": "entry_point:true here means 'outside the main app's import-graph scan root', not 'a process entrypoint' — dna-os-mcp-server is a standalone npm package (own tsconfig/node_modules), so scripts/build-arch-book.ts's import scanner cannot see its internal relative imports across files. Real internal caller graph: see this package's own src/server.ts (registers all 5 tools + 1 resource) and src/stdio.ts / src/http.ts (the two real transport entrypoints). Same pattern already used for local-runtime/package.json in this registry."
+    },
+    "dna-os-mcp-server/src/normalize.ts": {
+      "owner": "mcp",
+      "layer": "mcp",
+      "purpose": "Guarantees trace_id/source_files/registry_version/confidence/generated_at/read_only on every tool result, whether the backing endpoint already returns that envelope (/api/v1/mcp/*) or predates it (/api/v1/modules, /api/v1/constitution). Never recomputes or alters the underlying data; when registry_version/source_files can't be honestly derived from a legacy endpoint's response, confidence drops to \"medium\" with a stated confidence_reason instead of fabricating the missing value.",
+      "purpose_th": "รับประกัน envelope fields ครบทุก response โดยไม่แตะเนื้อหาข้อมูลจริง",
+      "exports": [
+        "NormalizedResult",
+        "normalizeEnvelopedResponse",
+        "normalizeLegacyResponse"
+      ],
+      "status": "active",
+      "entry_point": true,
+      "note": "entry_point:true here means 'outside the main app's import-graph scan root', not 'a process entrypoint' — dna-os-mcp-server is a standalone npm package (own tsconfig/node_modules), so scripts/build-arch-book.ts's import scanner cannot see its internal relative imports across files. Real internal caller graph: see this package's own src/server.ts (registers all 5 tools + 1 resource) and src/stdio.ts / src/http.ts (the two real transport entrypoints). Same pattern already used for local-runtime/package.json in this registry."
+    },
+    "dna-os-mcp-server/src/manifestClient.ts": {
+      "owner": "mcp",
+      "layer": "mcp",
+      "purpose": "Fetches GET /api/v1/mcp/manifest (the live rendering of registry/mcp-planned-manifest.json + mcp-resource-registry.json) once per process, and is the ONLY place tool/resource names are mapped to endpoints — no endpoint path is hardcoded a second time anywhere else in this package. Parses the manifest's \"METHOD /path\" reads_endpoint convention back into a bare path (real bug found and fixed during Phase 1B integration testing: the method prefix was originally being concatenated straight into the fetch URL).",
+      "purpose_th": "จุดเดียวที่ map ชื่อ tool ไปยัง endpoint ตาม manifest",
+      "exports": [
+        "ManifestToolEntry",
+        "ManifestResourceEntry",
+        "loadManifest",
+        "resolveToolEndpoint",
+        "resolveResourceEndpoint"
+      ],
+      "status": "active",
+      "entry_point": true,
+      "note": "entry_point:true here means 'outside the main app's import-graph scan root', not 'a process entrypoint' — dna-os-mcp-server is a standalone npm package (own tsconfig/node_modules), so scripts/build-arch-book.ts's import scanner cannot see its internal relative imports across files. Real internal caller graph: see this package's own src/server.ts (registers all 5 tools + 1 resource) and src/stdio.ts / src/http.ts (the two real transport entrypoints). Same pattern already used for local-runtime/package.json in this registry."
+    },
+    "dna-os-mcp-server/src/httpClient.ts": {
+      "owner": "mcp",
+      "layer": "mcp",
+      "purpose": "The only place this adapter calls fetch(). Adds X-DNA-Token only when explicitly requested (runtime.query). No retries, no response caching, no business interpretation.",
+      "purpose_th": "จุดเดียวที่ยิง HTTP ไปยัง DNA OS",
+      "exports": [
+        "HttpOutcome",
+        "HttpResult",
+        "HttpFailure",
+        "httpGet",
+        "httpPost"
+      ],
+      "status": "active",
+      "entry_point": true,
+      "note": "entry_point:true here means 'outside the main app's import-graph scan root', not 'a process entrypoint' — dna-os-mcp-server is a standalone npm package (own tsconfig/node_modules), so scripts/build-arch-book.ts's import scanner cannot see its internal relative imports across files. Real internal caller graph: see this package's own src/server.ts (registers all 5 tools + 1 resource) and src/stdio.ts / src/http.ts (the two real transport entrypoints). Same pattern already used for local-runtime/package.json in this registry."
+    },
+    "dna-os-mcp-server/src/errors.ts": {
+      "owner": "mcp",
+      "layer": "mcp",
+      "purpose": "Structured error contract (code/message/endpoint/trace_id/retryable) shared by every tool/resource. Never carries a token or header.",
+      "purpose_th": "โครงสร้าง error กลาง ไม่มี token หลุดออกไป",
+      "exports": [
+        "McpAdapterError",
+        "configurationError",
+        "networkError",
+        "fromHttpResponse"
+      ],
+      "status": "active",
+      "entry_point": true,
+      "note": "entry_point:true here means 'outside the main app's import-graph scan root', not 'a process entrypoint' — dna-os-mcp-server is a standalone npm package (own tsconfig/node_modules), so scripts/build-arch-book.ts's import scanner cannot see its internal relative imports across files. Real internal caller graph: see this package's own src/server.ts (registers all 5 tools + 1 resource) and src/stdio.ts / src/http.ts (the two real transport entrypoints). Same pattern already used for local-runtime/package.json in this registry."
+    },
+    "dna-os-mcp-server/src/config.ts": {
+      "owner": "mcp",
+      "layer": "mcp",
+      "purpose": "Reads DNA_OS_BASE_URL / DNA_OS_API_TOKEN from environment variables only. No hardcoded token, no fallback that masks a missing token.",
+      "purpose_th": "อ่านค่า config จาก environment variable เท่านั้น",
+      "exports": [
+        "DnaOsConfig",
+        "loadConfig",
+        "tokenStatus"
+      ],
+      "status": "active",
+      "entry_point": true,
+      "note": "entry_point:true here means 'outside the main app's import-graph scan root', not 'a process entrypoint' — dna-os-mcp-server is a standalone npm package (own tsconfig/node_modules), so scripts/build-arch-book.ts's import scanner cannot see its internal relative imports across files. Real internal caller graph: see this package's own src/server.ts (registers all 5 tools + 1 resource) and src/stdio.ts / src/http.ts (the two real transport entrypoints). Same pattern already used for local-runtime/package.json in this registry."
+    },
+    "dna-os-mcp-server/src/resources/constitutionGetRules.ts": {
+      "owner": "mcp",
+      "layer": "mcp",
+      "purpose": "Implements the constitution.get_rules MCP resource — calls the pre-existing GET /api/v1/constitution route, extracts its real version field for registry_version. Integration-tested live via stdio (resources/read): success.",
+      "purpose_th": "resource constitution.get_rules — reuse ของเดิม ทดสอบผ่านจริง",
+      "exports": [
+        "RESOURCE_NAME",
+        "RESOURCE_URI",
+        "readConstitutionGetRules"
+      ],
+      "status": "active",
+      "entry_point": true,
+      "note": "entry_point:true here means 'outside the main app's import-graph scan root', not 'a process entrypoint' — dna-os-mcp-server is a standalone npm package (own tsconfig/node_modules), so scripts/build-arch-book.ts's import scanner cannot see its internal relative imports across files. Real internal caller graph: see this package's own src/server.ts (registers all 5 tools + 1 resource) and src/stdio.ts / src/http.ts (the two real transport entrypoints). Same pattern already used for local-runtime/package.json in this registry."
+    },
+    "dna-os-mcp-server/src/tools/runtimeQuery.ts": {
+      "owner": "mcp",
+      "layer": "mcp",
+      "purpose": "Implements runtime.query — pure passthrough to POST /api/v1/query, forwards X-DNA-Token only here, never calls engines/validation/dispatcher.ts directly. Returns a CONFIGURATION_ERROR (not a silent failure) when DNA_OS_API_TOKEN is unset. Integration-tested live: no-token and invalid-token cases verified (CONFIGURATION_ERROR / UNAUTHORIZED respectively); the successful-read-command and confirmation-required-rejection cases still need a real DNA OS API token to verify (none available in this environment) — file is implemented but the tool's manifest+command-registry promotion should wait for that verification, see registry/mcp-planned-manifest.json.",
+      "purpose_th": "ทูล runtime.query — ส่งต่อไป /api/v1/query เดิมเท่านั้น ยังทดสอบไม่ครบทุก case",
+      "exports": [
+        "TOOL_NAME",
+        "RuntimeQueryInput",
+        "runRuntimeQuery"
+      ],
+      "status": "active",
+      "entry_point": true,
+      "note": "entry_point:true here means 'outside the main app's import-graph scan root', not 'a process entrypoint' — dna-os-mcp-server is a standalone npm package (own tsconfig/node_modules), so scripts/build-arch-book.ts's import scanner cannot see its internal relative imports across files. Real internal caller graph: see this package's own src/server.ts (registers all 5 tools + 1 resource) and src/stdio.ts / src/http.ts (the two real transport entrypoints). Same pattern already used for local-runtime/package.json in this registry."
+    },
+    "dna-os-mcp-server/src/tools/registryListModules.ts": {
+      "owner": "mcp",
+      "layer": "mcp",
+      "purpose": "Implements registry.list_modules — reuses the pre-existing GET /api/v1/modules route and the pre-existing registry.list_modules command (owner: runtime/engine); no new command-registry entry. Integration-tested live via stdio (tools/call): success.",
+      "purpose_th": "ทูล registry.list_modules — reuse ของเดิมทั้งหมด ทดสอบผ่านจริง",
+      "exports": [
+        "TOOL_NAME",
+        "runRegistryListModules"
+      ],
+      "status": "active",
+      "entry_point": true,
+      "note": "entry_point:true here means 'outside the main app's import-graph scan root', not 'a process entrypoint' — dna-os-mcp-server is a standalone npm package (own tsconfig/node_modules), so scripts/build-arch-book.ts's import scanner cannot see its internal relative imports across files. Real internal caller graph: see this package's own src/server.ts (registers all 5 tools + 1 resource) and src/stdio.ts / src/http.ts (the two real transport entrypoints). Same pattern already used for local-runtime/package.json in this registry."
+    },
+    "dna-os-mcp-server/src/tools/registryListCommands.ts": {
+      "owner": "mcp",
+      "layer": "mcp",
+      "purpose": "Implements registry.list_commands — calls GET /api/v1/mcp/registry/commands, distinct from the OpenAI-schema-shaped /api/v1/spec. Integration-tested live via stdio (tools/call): success.",
+      "purpose_th": "ทูล registry.list_commands — ทดสอบผ่านจริง",
+      "exports": [
+        "TOOL_NAME",
+        "runRegistryListCommands"
+      ],
+      "status": "active",
+      "entry_point": true,
+      "note": "entry_point:true here means 'outside the main app's import-graph scan root', not 'a process entrypoint' — dna-os-mcp-server is a standalone npm package (own tsconfig/node_modules), so scripts/build-arch-book.ts's import scanner cannot see its internal relative imports across files. Real internal caller graph: see this package's own src/server.ts (registers all 5 tools + 1 resource) and src/stdio.ts / src/http.ts (the two real transport entrypoints). Same pattern already used for local-runtime/package.json in this registry."
+    },
+    "dna-os-mcp-server/src/tools/architectureSystemSummary.ts": {
+      "owner": "mcp",
+      "layer": "mcp",
+      "purpose": "Implements architecture.system_summary — calls GET /api/v1/mcp/architecture/summary via the manifest-resolved endpoint, normalizes the response. Integration-tested live via stdio (tools/call): success.",
+      "purpose_th": "ทูล architecture.system_summary — ทดสอบผ่านจริงผ่าน stdio",
+      "exports": [
+        "TOOL_NAME",
+        "runArchitectureSystemSummary"
+      ],
+      "status": "active",
+      "entry_point": true,
+      "note": "entry_point:true here means 'outside the main app's import-graph scan root', not 'a process entrypoint' — dna-os-mcp-server is a standalone npm package (own tsconfig/node_modules), so scripts/build-arch-book.ts's import scanner cannot see its internal relative imports across files. Real internal caller graph: see this package's own src/server.ts (registers all 5 tools + 1 resource) and src/stdio.ts / src/http.ts (the two real transport entrypoints). Same pattern already used for local-runtime/package.json in this registry."
+    },
+    "dna-os-mcp-server/src/tools/architectureDependencyGraph.ts": {
+      "owner": "mcp",
+      "layer": "mcp",
+      "purpose": "Implements architecture.get_dependency_graph — calls GET /api/v1/mcp/architecture/dependency-graph. Integration-tested live via stdio (tools/call): success.",
+      "purpose_th": "ทูล architecture.get_dependency_graph — ทดสอบผ่านจริง",
+      "exports": [
+        "TOOL_NAME",
+        "runArchitectureGetDependencyGraph"
+      ],
+      "status": "active",
+      "entry_point": true,
+      "note": "entry_point:true here means 'outside the main app's import-graph scan root', not 'a process entrypoint' — dna-os-mcp-server is a standalone npm package (own tsconfig/node_modules), so scripts/build-arch-book.ts's import scanner cannot see its internal relative imports across files. Real internal caller graph: see this package's own src/server.ts (registers all 5 tools + 1 resource) and src/stdio.ts / src/http.ts (the two real transport entrypoints). Same pattern already used for local-runtime/package.json in this registry."
+    },
+    "dna-os-mcp-server/package.json": {
+      "owner": "mcp",
+      "layer": "mcp",
+      "purpose": "Standalone npm package manifest for the MCP adapter. Separate node_modules/tsconfig from the main Next.js app by design, so it cannot accidentally resolve the app's path aliases (@/core, @/engines, etc.) — isolation enforced structurally, not just by convention.",
+      "purpose_th": "package.json แยกเป็น package อิสระ ป้องกันการ import ข้ามเลเยอร์โดยโครงสร้าง",
+      "exports": [],
+      "status": "active",
+      "entry_point": true
+    },
+    "dna-os-mcp-server/tsconfig.json": {
+      "owner": "mcp",
+      "layer": "mcp",
+      "purpose": "TypeScript config for the MCP adapter package, rootDir=src, no path aliases configured.",
+      "purpose_th": "tsconfig ของ MCP adapter",
+      "exports": [],
+      "status": "active",
+      "entry_point": true
+    },
+    "dna-os-mcp-server/src/index.ts": {
+      "owner": "mcp",
+      "layer": "mcp",
+      "purpose": "Process entrypoint — starts the stdio transport.",
+      "purpose_th": "entrypoint ของโปรเซส MCP server",
+      "exports": [],
+      "status": "active",
+      "entry_point": true
+    },
+    "dna-os-mcp-server/src/httpTransportConfig.ts": {
+      "owner": "mcp",
+      "layer": "mcp",
+      "purpose": "Config for the remote (Streamable HTTP) transport's own access gate — MCP_HTTP_PORT / MCP_SERVER_ACCESS_TOKEN. Deliberately separate from config.ts's DNA_OS_API_TOKEN: this token gates reaching the MCP server at all, not runtime.query's call into DNA OS.",
+      "purpose_th": "config สำหรับ HTTP transport (port + access token) แยกจาก DNA OS token",
+      "exports": [
+        "HttpTransportConfig",
+        "loadHttpTransportConfig"
+      ],
+      "status": "active",
+      "entry_point": true,
+      "note": "entry_point:true here means 'outside the main app's import-graph scan root', not 'a process entrypoint' — dna-os-mcp-server is a standalone npm package (own tsconfig/node_modules), so scripts/build-arch-book.ts's import scanner cannot see its internal relative imports across files. Real internal caller graph: see this package's own src/server.ts (registers all 5 tools + 1 resource) and src/stdio.ts / src/http.ts (the two real transport entrypoints). Same pattern already used for local-runtime/package.json in this registry."
+    },
+    "dna-os-mcp-server/src/http.ts": {
+      "owner": "mcp",
+      "layer": "mcp",
+      "purpose": "Remote (Streamable HTTP) transport entrypoint, sibling to stdio.ts. Reuses createDnaOsMcpServer() from server.ts unmodified — same tool implementations, same isolation guarantees. Refuses to start without MCP_SERVER_ACCESS_TOKEN configured (no silent open-access fallback). One transport instance per client session (keyed by the protocol's mcp-session-id), fixing a real bug found live during Phase 1B/2 integration testing where a single shared transport rejected every second concurrent client with \"Server already initialized\". Not deployed anywhere by this file — starts a local HTTP listener only.",
+      "purpose_th": "transport แบบ HTTP ระยะไกล ใช้ tool implementation เดิมทั้งหมด ต้องมี access token จึงจะเริ่มทำงานได้ ยังไม่ deploy",
+      "exports": [
+        "startHttpServer"
+      ],
+      "status": "active",
+      "entry_point": true,
+      "note": "entry_point:true here means 'outside the main app's import-graph scan root', not 'a process entrypoint' — dna-os-mcp-server is a standalone npm package (own tsconfig/node_modules), so scripts/build-arch-book.ts's import scanner cannot see its internal relative imports across files. Real internal caller graph: see this package's own src/server.ts (registers all 5 tools + 1 resource) and src/stdio.ts / src/http.ts (the two real transport entrypoints). Same pattern already used for local-runtime/package.json in this registry."
+    },
+    "dna-os-mcp-server/src/index-http.ts": {
+      "owner": "mcp",
+      "layer": "mcp",
+      "purpose": "Process entrypoint for the HTTP transport (npm run start:http / dev:http).",
+      "purpose_th": "entrypoint ของโปรเซส MCP server แบบ HTTP",
+      "exports": [],
+      "status": "active",
+      "entry_point": true
     }
   },
   "excluded": [

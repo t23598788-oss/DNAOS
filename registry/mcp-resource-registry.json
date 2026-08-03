@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "policy": "MCP resources are read-only and separate from command-registry.json. A resource entry here becomes callable by MCP clients only once its status is active AND its backing endpoint (see registry/mcp-planned-manifest.json) is implemented. ห้ามเป็น source of truth ใหม่ — ทุก resource ต้องชี้กลับไปยังไฟล์ที่มีอยู่แล้ว",
+  "resources": {
+    "constitution.get_rules": {
+      "owner": "dna-os-mcp-server",
+      "source_file": "registry/CONSTITUTION.json",
+      "reads_endpoint": "GET /api/v1/constitution",
+      "reuses_existing_route": true,
+      "mime_type": "application/json",
+      "description": "Read-only MCP resource exposing the full Constitution (rules, canonical_principles, authority_model), independent of any tool call.",
+      "description_th": "resource อ่าน Constitution ทั้งฉบับ แยกจากการเรียก tool ใดๆ",
+      "read_only": true,
+      "implementation": "dna-os-mcp-server/src/resources/constitutionGetRules.ts",
+      "integration_tested": true,
+      "note_2": "Read live via a real MCP client's resources/read call during Phase 1B integration testing (stdio transport) — content verified to include registry/CONSTITUTION.json's real version field.",
+      "status": "active"
+    }
+  }
+}

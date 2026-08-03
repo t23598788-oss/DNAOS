@@ -1,0 +1,23 @@
+{
+  "name": "dna-os-mcp-server",
+  "version": "0.1.0",
+  "private": true,
+  "description": "MCP protocol adapter for DNA OS. Translates MCP tool/resource calls into HTTP calls against DNA OS's existing /api/v1/* routes. No business logic, no database access, no dispatcher access — read-only by construction (see registry/dependency-graph.json's mcp layer, which allows zero internal imports).",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc -p .",
+    "start": "node dist/index.js",
+    "start:http": "node dist/index-http.js",
+    "dev": "tsx src/index.ts",
+    "dev:http": "tsx src/index-http.ts"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.30.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.0",
+    "tsx": "^4.19.0",
+    "@types/node": "^22.0.0"
+  }
+}

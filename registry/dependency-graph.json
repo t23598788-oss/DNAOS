@@ -57,9 +57,11 @@
     ],
     "registry": [
       "core"
-    ]
+    ],
+    "mcp": []
   },
   "notes": {
+    "mcp_isolation": "dna-os-mcp-server is a protocol adapter only. Empty allow-list is intentional and enforced by this graph: it must not import engines/, services/supabase client, core/runtime, gateway, cognitive, presenter, or plugins. It reaches DNA OS state only via HTTP fetch to the endpoints listed in registry/mcp-planned-manifest.json (currently: existing /api/v1/spec, /api/v1/query, plus four new GET endpoints not yet implemented).",
     "app_wide": "app/ (pages + API routes) can import from all presentation and execution layers for command dispatch",
     "app_cognitive": "app/api/chat/route.ts uses cognitive/pipeline for the cognitive command pipeline",
     "cognitive_all": "cognitive/ orchestrates the full pipeline — imports from services, engines, presenter, gateway, plugins",
