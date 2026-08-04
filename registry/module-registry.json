@@ -7200,6 +7200,131 @@
       "exports": [],
       "status": "active",
       "entry_point": true
+    },
+    "app/playground/_lib/resultFormatters.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Single registry (RESULT_FORMATTERS) turning a /api/v1/query result into human-readable text for ResultCard. Generic fallback formatter covers any command without a specific formatter — never raw JSON.",
+      "purpose_th": "จุดเดียวที่แปลผลลัพธ์ดิบเป็นข้อความอ่านง่าย",
+      "exports": [
+        "formatResult"
+      ],
+      "status": "active"
+    },
+    "app/playground/_lib/intentRouter.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Deterministic alias/description matching first (char-bigram similarity over commandCorpus.ts); calls the real ai.translate command via /api/v1/query only when deterministic confidence is low, as a tiebreaker. Never calls an AI provider for high-confidence matches.",
+      "purpose_th": "จับคู่ข้อความภาษาคนกับคำสั่งจริง — deterministic ก่อน แล้วค่อยใช้ ai.translate เมื่อความมั่นใจต่ำ",
+      "exports": [
+        "RouteOptions",
+        "RoutedIntent",
+        "routeIntent"
+      ],
+      "status": "active"
+    },
+    "app/playground/_lib/entityResolver.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Resolves a free-text name to an ID by calling the existing partner.find command (engines/validation/dispatcher.ts) via /api/v1/query — 0/1/N branching, never surfaces raw UUIDs.",
+      "purpose_th": "resolve ชื่อคนเป็น ID ผ่านคำสั่ง *.find เดิม ไม่แสดง UUID ให้ผู้ใช้เห็น",
+      "exports": [
+        "resolveEntity",
+        "EntityResolution"
+      ],
+      "status": "active"
+    },
+    "app/playground/_lib/conversationState.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Types + pure helpers for the console's per-session pending state (clarification / entity-await) and chat message shape. Actual storage is React useState in page.tsx — in-memory only, cleared on reload. Never stores a full business-data payload, only pending intent/args and resolved id+label pairs.",
+      "purpose_th": "type และ helper สำหรับ state การสนทนาแบบ in-memory เท่านั้น",
+      "exports": [
+        "ChatMessage",
+        "PendingAwaitEntityKeyword",
+        "PendingAwaitKeyword",
+        "PendingClarifyCommand",
+        "PendingClarifyEntity",
+        "PendingState",
+        "ResolvedEntity"
+      ],
+      "status": "active"
+    },
+    "app/playground/_lib/commandCorpus.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "UI-only classification of commands into three buckets for the Playground's Conversational Command Surface: EXECUTABLE_READ_COMMANDS (callable via /api/v1/query, with aliases + optional entity-resolution requirement), RECOGNITION_ONLY_WRITE_INTENTS (requires_confirmation:true commands, recognized and redirected to /admin only, never sent to /api/v1/query). Does not modify registry/command-registry.json.",
+      "purpose_th": "จัดกลุ่มคำสั่งสำหรับ Playground (read/write-intent) แบบ UI-only ไม่แตะ command-registry.json",
+      "exports": [
+        "EXECUTABLE_READ_COMMANDS",
+        "EntityType",
+        "RECOGNITION_ONLY_WRITE_INTENTS",
+        "ReadCommandEntry",
+        "WriteIntentEntry"
+      ],
+      "status": "active"
+    },
+    "app/playground/_lib/apiClient.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "The only place the Playground's Conversational Command Surface calls POST /api/v1/query. Every intent-routing, entity-resolution, and chaining step goes through this one function.",
+      "purpose_th": "จุดเดียวที่ Playground เรียก /api/v1/query",
+      "exports": [
+        "callQuery",
+        "QueryResult"
+      ],
+      "status": "active"
+    },
+    "app/playground/_components/ResultCard.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Displays a formatted (human-readable) /api/v1/query result in the chat.",
+      "purpose_th": "แสดงผลลัพธ์คำสั่งแบบอ่านง่าย",
+      "exports": [
+        "ResultCard"
+      ],
+      "status": "active"
+    },
+    "app/playground/_components/ConfirmationPreview.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Shown for requires_confirmation:true intents. No confirm button that calls anything — /api/v1/query cannot execute a write command regardless — only a link to the relevant /admin page.",
+      "purpose_th": "preview คำสั่งที่ต้องยืนยัน Rule 72 พร้อมลิงก์ไปหน้า admin ไม่มีปุ่มยิงคำสั่ง",
+      "exports": [
+        "ConfirmationPreview"
+      ],
+      "status": "active"
+    },
+    "app/playground/_components/ClarifyingChoice.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Renders entity/command clarification options as human-name chips (never raw IDs).",
+      "purpose_th": "แสดงตัวเลือกเมื่อระบบไม่แน่ใจ (ชื่อคนเท่านั้น ไม่แสดง UUID)",
+      "exports": [
+        "ClarifyingChoice"
+      ],
+      "status": "active"
+    },
+    "app/playground/_components/ChatMessageList.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Renders the Conversational Command Surface's message history, dispatching each message to ResultCard/ClarifyingChoice/ConfirmationPreview by kind.",
+      "purpose_th": "แสดงประวัติข้อความแชทของ Playground",
+      "exports": [
+        "ChatMessageList",
+        "ClarifyMeta"
+      ],
+      "status": "active"
+    },
+    "app/playground/_components/ChatInput.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "The 'ต้องการให้ DNA OS ทำอะไร' input box + send button + example-sentence chips (not command cards).",
+      "purpose_th": "ช่องพิมพ์ข้อความของ Playground",
+      "exports": [
+        "ChatInput"
+      ],
+      "status": "active"
     }
   },
   "excluded": [
