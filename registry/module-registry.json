@@ -3408,7 +3408,7 @@
       "purpose": "Shows latest build status (clean/has_issues/not_built) + health/summary counts — dev tool.",
       "purpose_th": "หน้าแสดงสถานะ build ล่าสุด — เครื่องมือนักพัฒนา",
       "exports": [
-        "BuildRedirectPage"
+        "BuildPage"
       ],
       "status": "active"
     },
@@ -3465,8 +3465,8 @@
     "app/admin/graph/page.tsx": {
       "owner": "app",
       "layer": "app",
-      "purpose": "2D controls + data-fetch wrapper around ForceGraph3DView — architecture dependency graph explorer, dev tool.",
-      "purpose_th": "หน้าควบคุม + ดึงข้อมูลให้กราฟ 3D สถาปัตยกรรม — เครื่องมือนักพัฒนา",
+      "purpose": "Redirect stub to /admin/system. Part of the 2026-08-04 merge of /admin/build, /admin/graph, /admin/telemetry into one screen — the real graph component moved to GraphView.tsx.",
+      "purpose_th": "หน้า redirect ไป /admin/system ตามแผนรวม 3 หน้าเป็นหน้าเดียว",
       "exports": [
         "GraphRedirectPage"
       ],
@@ -6506,14 +6506,16 @@
       "status": "active"
     },
     "components/admin/useAiTaskPulse.ts": {
-      "owner": "components",
-      "layer": "components",
-      "purpose": "Real-time ai_tasks Realtime subscription hook, extracted out of app/admin/telemetry/page.tsx (owner directive 2026-08-04, unified Build/Graph/Telemetry into one screen) so app/admin/system/page.tsx can reuse the exact same pulse logic instead of a second copy.",
-      "purpose_th": "hook สมัคร Supabase Realtime ของ ai_tasks — แยกออกมาจาก app/admin/telemetry/page.tsx (คำสั่งเจ้าของ 2026-08-04 รวมหน้า Build/Graph/Telemetry เป็นหน้าเดียว) เพื่อให้ app/admin/system/page.tsx เรียกใช้ logic เดียวกัน ไม่สร้างซ้ำ",
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Realtime ai_tasks pulse-overlay hook, extracted out of the old app/admin/telemetry/page.tsx so /admin/system can reuse the same subscription instead of a second copy.",
+      "purpose_th": "hook สำหรับ realtime pulse overlay แยกออกจาก telemetry เดิม",
       "exports": [
         "useAiTaskPulse"
       ],
-      "status": "active"
+      "status": "active",
+      "entry_point": true,
+      "note": "Real code, currently unused-by-import because its only caller (app/admin/system/page.tsx) is deferred to a separate commit (GraphView.tsx props gap, unresolved pending owner decision) — see registry/CHANGELOG.json 2026-08-04 auth-token audit session."
     },
     "app/admin/graph/GraphView.tsx": {
       "owner": "app",
@@ -6523,17 +6525,9 @@
       "exports": [
         "GraphPage"
       ],
-      "status": "active"
-    },
-    "app/admin/system/page.tsx": {
-      "owner": "app",
-      "layer": "app",
-      "purpose": "Unified Build + Architecture Graph + Realtime Pulse screen (owner directive 2026-08-04) — merges app/admin/build, app/admin/graph, and app/admin/telemetry into one screen; all three now redirect here. Reuses GraphPage (app/admin/graph/GraphView.tsx) and useAiTaskPulse unchanged, no second graph or pulse implementation.",
-      "purpose_th": "หน้ารวม Build + กราฟสถาปัตยกรรม + Realtime Pulse (คำสั่งเจ้าของ 2026-08-04) — รวม app/admin/build, app/admin/graph, app/admin/telemetry เป็นหน้าเดียว ทั้ง 3 หน้าเดิม redirect มาที่นี่ ใช้ GraphPage กับ useAiTaskPulse เดิมไม่สร้างซ้ำ",
-      "exports": [
-        "SystemOperationsPage"
-      ],
-      "status": "active"
+      "status": "active",
+      "entry_point": true,
+      "note": "Real code, currently unused-by-import because its only caller (app/admin/system/page.tsx) is deferred to a separate commit (GraphView.tsx props gap, unresolved pending owner decision) — see registry/CHANGELOG.json 2026-08-04 auth-token audit session."
     },
     "app/admin/telemetry/page.tsx": {
       "owner": "app",
@@ -7325,6 +7319,34 @@
         "ChatInput"
       ],
       "status": "active"
+    },
+    "engines/governance/hardcode-decision-engine.ts": {
+      "owner": "engines",
+      "layer": "engines",
+      "purpose": "Classifies a value found in source code into one category from registry/hardcode-governance/hardcode-policy-registry.json and returns a verdict (never a blanket no-hardcode rule; UNKNOWN always blocked pending human review). Not wired into npm run guard/precommit/deploy-gate — invoked on demand via hardcode.* commands in command-registry.json.",
+      "purpose_th": "จัดหมวดหมู่ค่าที่ hardcode ในซอร์สโค้ดตาม policy registry แล้วคืน verdict เรียกใช้ผ่านคำสั่ง hardcode.* ตามต้องการ ไม่ได้ผูกกับ guard/precommit/deploy-gate อัตโนมัติ",
+      "exports": [
+        "Category",
+        "Verdict",
+        "ScanHit",
+        "Classification",
+        "classify",
+        "scanFile",
+        "scanRepository",
+        "findDuplicates",
+        "explain",
+        "MigrationPlanItem",
+        "generateMigrationPlan",
+        "ScanReport",
+        "buildReport",
+        "ExternalConstraintCheck",
+        "verifyExternalConstraint",
+        "RegisteredException",
+        "registerException"
+      ],
+      "status": "active",
+      "entry_point": true,
+      "note": "Real code, currently unused-by-import because its only caller (app/admin/system/page.tsx) is deferred to a separate commit (GraphView.tsx props gap, unresolved pending owner decision) — see registry/CHANGELOG.json 2026-08-04 auth-token audit session."
     }
   },
   "excluded": [
