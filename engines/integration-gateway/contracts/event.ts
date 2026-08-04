@@ -41,7 +41,10 @@ export type GatewayCapability =
   | "database.migration.observed"
   | "deployment.status.observed"
   | "workspace.file.changed"
-  | "intent.received";
+  | "intent.received"
+  // Proposal Channel (owner, 2026-08-05) — requests a run of an
+  // already-whitelisted Automation command; never runs on its own.
+  | "automation.command.proposed";
 
 export interface GatewayEvent {
   event_id: string;

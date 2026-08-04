@@ -16,7 +16,12 @@ export type AiProviderName = "anthropic" | "ollama";
 
 export interface AiGatewayImage {
   base64: string;
-  mediaType: string;
+  // Real Anthropic SDK accepted literals (node_modules/@anthropic-ai/sdk
+  // resources/messages/messages.d.ts's Base64ImageSource for images,
+  // Base64PDFSource for documents) — a bare `string` doesn't narrow to
+  // these, which is what made anthropicProvider()'s content-block call
+  // fail type-check.
+  mediaType: "image/jpeg" | "image/png" | "image/gif" | "image/webp" | "application/pdf";
 }
 
 export interface AiGatewayRequest {

@@ -69,6 +69,14 @@ const ForceGraph3DView = dynamic(
 interface GraphPageProps {
   pulseNodeIds?: Set<string>;
   pulseLinkKeys?: Set<string>;
+  // app/admin/system/page.tsx already passes these (embedded mode inside the
+  // unified Build/Graph/Telemetry screen) — type widened to match real
+  // callers (owner, 2026-08-05: was a real type-check failure blocking
+  // deploy). Not wired into behavior here yet — that's a separate, real
+  // design decision for embedded mode the owner hasn't made yet.
+  embedded?: boolean;
+  showHeader?: boolean;
+  focusNodeId?: string | null;
 }
 
 export default function GraphPage({ pulseNodeIds, pulseLinkKeys }: GraphPageProps = {}) {

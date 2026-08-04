@@ -264,18 +264,78 @@ function RuntimeSidebar({ onOpenTab }: { onOpenTab: (t: Tab) => void }) {
 // ---- Automation ----
 function AutomationSidebar({ onRunAutomation }: { onRunAutomation: (key: string) => void }) {
   const [data, setData] = useState<any>(null);
+  const [proposals, setProposals] = useState<any[]>([]);
+  const [busyId, setBusyId] = useState<string | null>(null);
+
+  const loadProposals = useCallback(async () => {
+    const { body } = await fetchJSON("/api/gateway/proposals");
+    setProposals(body.proposals ?? []);
+  }, []);
+
   useEffect(() => {
     fetchJSON("/api/admin/workspace/automation").then(({ body }) => setData(body));
-  }, []);
+    void loadProposals();
+    const client = createBrowserSupabase();
+    const channel = client
+      .channel("ide-shell-proposals")
+      .on("postgres_changes", { event: "*", schema: "public", table: "integration_gateway_proposals" }, () => void loadProposals())
+      .subscribe();
+    return () => {
+      void client.removeChannel(channel);
+    };
+  }, [loadProposals]);
+
+  const propose = async (key: string) => {
+    await fetchJSON("/api/gateway/proposals", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ provider: "vscode", command: key }),
+    });
+    void loadProposals();
+  };
+
+  const decide = async (id: string, decision: "approved" | "rejected") => {
+    setBusyId(id);
+    await fetchJSON(`/api/gateway/proposals/${id}/decide`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ decision }),
+    });
+    setBusyId(null);
+    void loadProposals();
+  };
+
   if (!data) return <SidebarMessage text="Loading…" />;
+  const pending = proposals.filter((p) => p.status === "pending");
   return (
     <div>
+      <div style={{ padding: "6px 12px 2px", fontSize: 10, textTransform: "uppercase", color: "#858585" }}>Run directly</div>
       {data.commands?.map((c: any) => (
-        <SidebarItem key={c.key} label={`▶ ${c.key}`} onClick={() => onRunAutomation(c.key)} />
+        <div key={c.key} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "2px 12px" }}>
+          <SidebarItem label={`▶ ${c.key}`} onClick={() => onRunAutomation(c.key)} />
+          <button onClick={() => propose(c.key)} style={{ fontSize: 10, background: "none", border: "1px solid #454545", color: "#ccc", borderRadius: 3, padding: "1px 6px", cursor: "pointer" }}>
+            propose
+          </button>
+        </div>
       ))}
       {data.not_implemented?.map((c: any) => (
         <div key={c.key} style={{ padding: "3px 12px", fontSize: 11, color: "#858585" }}>
           {c.key}: NOT_IMPLEMENTED — {c.reason}
+        </div>
+      ))}
+      <div style={{ padding: "6px 12px 2px", fontSize: 10, textTransform: "uppercase", color: "#858585" }}>Pending Proposals ({pending.length})</div>
+      {pending.length === 0 && <div style={{ padding: "3px 12px", fontSize: 11, color: "#5a5a5a" }}>None</div>}
+      {pending.map((p) => (
+        <div key={p.id} style={{ padding: "4px 12px" }}>
+          <div style={{ fontSize: 11.5 }}>{(p.evidence as any)?.command} <span style={{ color: "#858585" }}>· {p.provider}</span></div>
+          <div style={{ display: "flex", gap: 6, marginTop: 2 }}>
+            <button disabled={busyId === p.id} onClick={() => decide(p.id, "approved")} style={{ fontSize: 10, background: "#1e9e5a", border: "none", color: "#fff", borderRadius: 3, padding: "1px 8px", cursor: "pointer" }}>
+              approve
+            </button>
+            <button disabled={busyId === p.id} onClick={() => decide(p.id, "rejected")} style={{ fontSize: 10, background: "#c9312b", border: "none", color: "#fff", borderRadius: 3, padding: "1px 8px", cursor: "pointer" }}>
+              reject
+            </button>
+          </div>
         </div>
       ))}
     </div>

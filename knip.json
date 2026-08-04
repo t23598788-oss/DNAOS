@@ -24,8 +24,11 @@
   "ignore": [
     "next-env.d.ts",
     "supabase/functions/**",
+    "src-tauri/**",
     "plugins/line/**",
     "**/*.test.ts",
+    "scripts/**",
+    "local-runtime/**",
     "core/workspace/composer/**",
     "core/workspace/orchestrator/**",
     "core/workspace/planner/**",
@@ -49,8 +52,22 @@
     "services/ai-connection/healthCheck.ts",
     "services/ai-connection/hmac.ts",
     "services/ai-connection/vault.ts",
-    "services/ai-connection/statusRepository.ts"
+    "services/ai-connection/statusRepository.ts",
+    "engines/governance/hardcode-dependency-context.ts",
+    "engines/integration-gateway/selfDescription.ts",
+    "engines/storage/adapters/googleDriveLocal.ts",
+    "engines/workspace/registryWriter.ts",
+    "dna-os-mcp-server/_diag-token-test.mjs",
+    "engine.ts",
+    "gateway/index.ts",
+    "app/admin/system/page 2.tsx"
   ],
+  "workspaces": {
+    "dna-os-mcp-server": {
+      "entry": ["src/index.ts", "src/index-http.ts", "src/index-governance-http.ts"],
+      "project": ["src/**/*.ts"]
+    }
+  },
   "ignoreDependencies": [
     "@tailwindcss/postcss",
     "eslint-config-next",

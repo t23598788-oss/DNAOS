@@ -7908,17 +7908,6 @@
       ],
       "status": "active"
     },
-    "components/admin/useAiTaskPulse 2.ts": {
-      "owner": "components",
-      "layer": "components",
-      "purpose": "Byte-for-byte duplicate of components/admin/useAiTaskPulse.ts (identical content, same hook, same comments) — appears to be a stray accidental copy left in the working tree with a space-plus-number filename, not a distinct module. No import in the codebase references this exact filename; it should likely be deleted/merged rather than treated as real, separate source.",
-      "purpose_th": "เป็นไฟล์ที่มีเนื้อหาเหมือนกันทุกตัวอักษรกับ components/admin/useAiTaskPulse.ts (hook เดียวกัน คอมเมนต์เดียวกัน) — ดูเหมือนเป็นไฟล์สำเนาที่หลงเหลืออยู่โดยไม่ได้ตั้งใจ ชื่อไฟล์มีช่องว่างและเลข 2 ต่อท้าย ไม่ใช่โมดูลจริงที่แยกต่างหาก ไม่มีจุดใดใน codebase ที่ import ไฟล์ชื่อนี้ตรงๆ ควรพิจารณาลบหรือรวมเข้ากับไฟล์หลักแทนที่จะถือเป็น source จริง",
-      "exports": [
-        "useAiTaskPulse"
-      ],
-      "status": "active",
-      "entry_point": true
-    },
     "engines/storage/adapters/trashAdapter.ts": {
       "owner": "engines",
       "layer": "engines",
@@ -8749,6 +8738,78 @@
       "layer": "app",
       "purpose": "GET /api/admin/workspace/database — IDE shell Database tool's real data source: SUPABASE_TABLES (config/system-links.ts, real .from() grep) + latest database.health.observed evidence. Column-level schema browsing explicitly reports NOT_IMPLEMENTED with the real reason (would need a new information_schema RPC).",
       "purpose_th": "GET /api/admin/workspace/database — แหล่งข้อมูลจริงของเครื่องมือ Database ใน IDE shell: SUPABASE_TABLES (config/system-links.ts, grep .from() จริง) + evidence database.health.observed ล่าสุด การดู schema ระดับคอลัมน์รายงาน NOT_IMPLEMENTED ตรงๆ พร้อมเหตุผลจริง (ต้องมี information_schema RPC ใหม่)",
+      "exports": [
+        "GET"
+      ],
+      "status": "active"
+    },
+    "engines/integration-gateway/automationCommands.ts": {
+      "owner": "engines",
+      "layer": "engines",
+      "purpose": "Integration Gateway Proposal Channel (owner, 2026-08-05) — single source of truth for the Automation command whitelist + exec, shared by the direct-run tool (app/api/admin/workspace/automation/route.ts) and the propose/approve flow (app/api/gateway/proposals/*) so both run the exact same command the exact same way, never two copies.",
+      "purpose_th": "Integration Gateway Proposal Channel (เฮีย, 2026-08-05) — แหล่งความจริงเดียวของรายการคำสั่ง Automation ที่อนุญาต + การรัน ใช้ร่วมกันทั้งเครื่องมือรันตรง (app/api/admin/workspace/automation/route.ts) และ flow propose/approve (app/api/gateway/proposals/*) เพื่อให้รันคำสั่งเดียวกันแบบเดียวกันเสมอ ไม่มีสำเนาซ้ำ",
+      "exports": [
+        "AUTOMATION_COMMANDS",
+        "AUTOMATION_NOT_IMPLEMENTED",
+        "AutomationRunResult",
+        "runAutomationCommand"
+      ],
+      "status": "active"
+    },
+    "engines/integration-gateway/evidence/proposalStore.ts": {
+      "owner": "engines",
+      "layer": "engines",
+      "purpose": "Integration Gateway Proposal Channel — the one place that writes/reads integration_gateway_proposals. event-bus/bus.ts calls recordProposal() after a channel='propose' event passes the policy gate; the decide route calls decideProposal() — the only place status ever changes from pending.",
+      "purpose_th": "Integration Gateway Proposal Channel — จุดเดียวที่เขียน/อ่าน integration_gateway_proposals event-bus/bus.ts เรียก recordProposal() หลัง event channel='propose' ผ่าน policy gate แล้ว ส่วน decide route เรียก decideProposal() — จุดเดียวที่สถานะจะเปลี่ยนจาก pending",
+      "exports": [
+        "GatewayProposal",
+        "decideProposal",
+        "listPendingProposals",
+        "recordProposal"
+      ],
+      "status": "active",
+      "declared_callers": [
+        "engines/integration-gateway/event-bus/bus.ts",
+        "app/api/gateway/proposals/route.ts",
+        "app/api/gateway/proposals/[id]/decide/route.ts"
+      ]
+    },
+    "app/api/gateway/proposals/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "GET/POST /api/gateway/proposals — Proposal Channel entry point. GET lists recent proposals; POST proposes a run of a whitelisted Automation command (channel='propose') via the event bus — never runs it. Rejects any command not in AUTOMATION_COMMANDS outright.",
+      "purpose_th": "GET/POST /api/gateway/proposals — ทางเข้า Proposal Channel GET แสดงรายการข้อเสนอล่าสุด POST เสนอให้รันคำสั่ง Automation ที่อยู่ใน whitelist (channel='propose') ผ่าน event bus — ไม่รันเอง ปฏิเสธคำสั่งที่ไม่อยู่ใน AUTOMATION_COMMANDS ทันที",
+      "exports": [
+        "GET",
+        "POST"
+      ],
+      "status": "active"
+    },
+    "app/api/gateway/proposals/[id]/decide/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "POST /api/gateway/proposals/[id]/decide { decision } — the ONLY path that turns a Proposal Channel row into a real run, and only for the exact whitelisted command it named. Approval executes via automationCommands.ts's runAutomationCommand() (same function the direct-run tool uses); rejection just records the decision. No Execution Channel exists yet — deliberately narrow.",
+      "purpose_th": "POST /api/gateway/proposals/[id]/decide { decision } — จุดเดียวที่ทำให้ข้อเสนอใน Proposal Channel กลายเป็นการรันจริง และรันเฉพาะคำสั่งที่ระบุไว้เท่านั้น อนุมัติจะเรียก runAutomationCommand() ตัวเดียวกับที่เครื่องมือรันตรงใช้ ปฏิเสธแค่บันทึกผลตัดสินใจ ยังไม่มี Execution Channel — จงใจทำให้แคบไว้ก่อน",
+      "exports": [
+        "POST"
+      ],
+      "status": "active"
+    },
+    "app/.well-known/oauth-authorization-server/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "GET /.well-known/oauth-authorization-server — RFC 8414 Authorization Server Metadata, public, no auth. DNA OS acts as its own Authorization Server (same origin as the Resource Server, permitted by the MCP Authorization spec). Reads services/ai-connection/resourceConfig.ts's appOrigin() for every endpoint URL, never hardcodes the origin.",
+      "purpose_th": "GET /.well-known/oauth-authorization-server — ข้อมูล Authorization Server Metadata ตาม RFC 8414 สาธารณะ ไม่ต้อง auth DNA OS ทำหน้าที่เป็น Authorization Server ของตัวเอง (origin เดียวกับ Resource Server ตามสเปก MCP Authorization) อ่าน appOrigin() จาก services/ai-connection/resourceConfig.ts เสมอ ไม่ hardcode origin",
+      "exports": [
+        "GET"
+      ],
+      "status": "active"
+    },
+    "app/.well-known/oauth-protected-resource/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "GET /.well-known/oauth-protected-resource — RFC 9728 Protected Resource Metadata, public, no auth. Tells an MCP client which Authorization Server(s) it must use to reach the resource named here (canonicalMcpResourceUri() from services/ai-connection/resourceConfig.ts).",
+      "purpose_th": "GET /.well-known/oauth-protected-resource — ข้อมูล Protected Resource Metadata ตาม RFC 9728 สาธารณะ ไม่ต้อง auth บอก MCP client ว่าต้องใช้ Authorization Server ตัวไหนเพื่อเข้าถึง resource นี้ (canonicalMcpResourceUri() จาก services/ai-connection/resourceConfig.ts)",
       "exports": [
         "GET"
       ],

@@ -38,7 +38,7 @@
     {
       "id": "FHP-SUPABASE-SERVICE-ROLE-KEY",
       "category": "ENVIRONMENT_SECRET",
-      "pattern": "(?i)supabase.*service_role.*['\"]eyJ",
+      "pattern": "(?i)supabase.*service_role.*['\"]ey[J]",
       "verdict": "SECURITY_VIOLATION",
       "rationale": "Supabase service-role JWTs bypass RLS; must only ever come from env/secret provider.",
       "owner": "platform",

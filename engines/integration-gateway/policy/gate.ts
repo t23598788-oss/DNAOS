@@ -1,17 +1,21 @@
 /**
  * Integration Gateway — Policy Gate (owner, 2026-08-05).
  * One real switch, not a stub with a TODO: which channels are enabled right
- * now. Per explicit instruction, only Observe Channel is built — Proposal
- * opens once GitHub + Supabase + Vercel are all observing cleanly, Execution
- * opens last and only for commands the Deploy Gate + Owner already approved.
- * event-bus/bus.ts calls channelIsEnabled() before every publish — this is
- * what actually prevents a Proposal/Execution event from reaching Registry/
- * Governance/Runtime before those channels are real, not just a naming
- * convention.
+ * now. Observe opened first (2026-08-05). Propose opened the same day, once
+ * Observe was proven end-to-end for the Supabase adapter — a Proposal
+ * Channel event can only ever request a run of an already-whitelisted
+ * Automation command (engines/integration-gateway/automationCommands.ts)
+ * and never executes on its own; approval still requires a real Owner
+ * session via app/api/gateway/proposals/[id]/decide/route.ts. Execution
+ * Channel (a general-purpose "run anything approved" path beyond the
+ * Automation whitelist) is not open yet. event-bus/bus.ts calls
+ * channelIsEnabled() before every publish — this is what actually prevents
+ * an Execute-channel event from reaching Registry/Governance/Runtime before
+ * that channel is real, not just a naming convention.
  */
 import type { GatewayChannel } from "../contracts/event";
 
-const ENABLED_CHANNELS: readonly GatewayChannel[] = ["observe"];
+const ENABLED_CHANNELS: readonly GatewayChannel[] = ["observe", "propose"];
 
 export function channelIsEnabled(channel: GatewayChannel): boolean {
   return ENABLED_CHANNELS.includes(channel);
