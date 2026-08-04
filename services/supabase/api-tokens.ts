@@ -24,7 +24,11 @@ export interface ApiToken {
   revoked_at: string | null;
 }
 
-export async function validateApiToken(token: string): Promise<ApiToken | null> {
+// TEMPORARY DIAGNOSTIC (owner-approved, 2026-08-04) — API token UNAUTHORIZED
+// root-cause audit. requestId is optional so every other caller of this
+// function is unaffected. Logs shape only, never the raw token or a hash.
+// Remove once root cause is confirmed from real Production logs.
+export async function validateApiToken(token: string, requestId?: string): Promise<ApiToken | null> {
   const { data, error } = await serviceClient()
     .from("api_tokens")
     .select("id, user_email, token, label, scopes, last_used_at, created_at, revoked_at")
@@ -32,14 +36,33 @@ export async function validateApiToken(token: string): Promise<ApiToken | null> 
     .is("revoked_at", null)
     .single();
 
+  if (requestId) {
+    console.log("[validateApiToken][diag]", JSON.stringify({
+      request_id: requestId,
+      database_query_error_code: error?.code ?? null,
+      matching_row_found: !!data,
+      matched_row_revoked: data ? data.revoked_at !== null : null,
+    }))
+  }
+
   if (error || !data) return null;
 
   // อัพเดท last_used_at แบบ fire-and-forget
-  serviceClient()
+  const updatePromise = serviceClient()
     .from("api_tokens")
     .update({ last_used_at: new Date().toISOString() })
     .eq("id", data.id)
-    .then(() => {})
+
+  if (requestId) {
+    updatePromise.then(({ error: updateError }) => {
+      console.log("[validateApiToken][diag]", JSON.stringify({
+        request_id: requestId,
+        last_used_update_success: !updateError,
+      }))
+    })
+  } else {
+    updatePromise.then(() => {})
+  }
 
   return data as ApiToken;
 }
