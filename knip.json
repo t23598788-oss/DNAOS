@@ -44,7 +44,12 @@
     "services/ai/bridge-local.ts",
     "services/ai/bridge-claude.ts",
     "components/admin/useAiTaskPulse.ts",
-    "engines/governance/hardcode-decision-engine.ts"
+    "engines/governance/hardcode-decision-engine.ts",
+    "services/ai-connection/manager.ts",
+    "services/ai-connection/healthCheck.ts",
+    "services/ai-connection/hmac.ts",
+    "services/ai-connection/vault.ts",
+    "services/ai-connection/statusRepository.ts"
   ],
   "ignoreDependencies": [
     "@tailwindcss/postcss",

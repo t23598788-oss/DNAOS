@@ -2324,11 +2324,12 @@
       "purpose": "API Token CRUD — ใช้ service role key, validate/list/create/revoke tokens สำหรับ External AI Pipe",
       "purpose_th": "จัดการ token สำหรับ AI ภายนอก: validate, list, สร้างใหม่, revoke — ผ่าน service role key เท่านั้น",
       "exports": [
-        "validateApiToken",
-        "listTokensForEmail",
+        "ApiToken",
         "createApiToken",
+        "listTokensForEmail",
         "revokeApiToken",
-        "ApiToken"
+        "serviceClient",
+        "validateApiToken"
       ],
       "status": "active"
     },
@@ -7347,6 +7348,74 @@
       "status": "active",
       "entry_point": true,
       "note": "Real code, currently unused-by-import because its only caller (app/admin/system/page.tsx) is deferred to a separate commit (GraphView.tsx props gap, unresolved pending owner decision) — see registry/CHANGELOG.json 2026-08-04 auth-token audit session."
+    },
+    "services/ai-connection/hmac.ts": {
+      "owner": "services",
+      "layer": "services",
+      "purpose": "HMAC-SHA-256 (server-only pepper, constant-time compare) fallback hashing for system AI Connection credentials — used only when a connection_kind='system' api_tokens row stores token_hash instead of vault_secret_id. Never plain SHA-256, never logs the raw token/pepper/hash.",
+      "purpose_th": "hash แบบ HMAC-SHA-256 พร้อม pepper สำหรับ credential ของ system connection (ทางเลือกเมื่อไม่ใช้ Vault)",
+      "exports": [
+        "hashToken",
+        "verifyTokenHash"
+      ],
+      "status": "active"
+    },
+    "services/ai-connection/vault.ts": {
+      "owner": "services",
+      "layer": "services",
+      "purpose": "Thin wrapper around the SECURITY DEFINER RPC functions in 20260804000007_ai_connection_stage1.sql (ai_connection_vault_write/read/delete) — the real, live-verified path to Supabase Vault from application code, since the vault schema itself is not exposed to PostgREST.",
+      "purpose_th": "เรียก Vault ผ่าน RPC function ที่ verify แล้วว่าใช้งานได้จริงผ่าน service-role path",
+      "exports": [
+        "vaultWriteSecret",
+        "vaultReadSecret",
+        "vaultDeleteSecret"
+      ],
+      "status": "active"
+    },
+    "services/ai-connection/statusRepository.ts": {
+      "owner": "services",
+      "layer": "services",
+      "purpose": "Repository for the ai_connection_status singleton row (singleton enforced by the table's own singleton_key boolean PK, not by this code). getConnectionStatus/upsertConnectionStatus only — never holds or logs a credential.",
+      "purpose_th": "อ่าน/เขียนสถานะ ai_connection_status (singleton) เท่านั้น",
+      "exports": [
+        "ConnectionStatus",
+        "McpReachability",
+        "AiConnectionStatusRow",
+        "AiConnectionStatusUpdate",
+        "getConnectionStatus",
+        "upsertConnectionStatus"
+      ],
+      "status": "active"
+    },
+    "services/ai-connection/healthCheck.ts": {
+      "owner": "services",
+      "layer": "services",
+      "purpose": "Safe health-check for the system AI Connection: credential presence, auth (Vault round-trip or HMAC shape check), a low-impact read probe, and a registry-metadata-only Rule 72 write-block check (never dispatches a write-shaped command). Stays engines/registry-import-free per dependency-graph.json (services->core only) by accepting dispatchFn/commandMetadata as injected deps from the caller.",
+      "purpose_th": "ตรวจสุขภาพ system AI Connection แบบปลอดภัย ไม่ import engines/registry ตรง ใช้ dependency injection แทน",
+      "exports": [
+        "CommandMetadataLookup",
+        "DispatchFn",
+        "HealthCheckDeps",
+        "runHealthCheck"
+      ],
+      "status": "active"
+    },
+    "services/ai-connection/manager.ts": {
+      "owner": "services",
+      "layer": "services",
+      "purpose": "AI Connection Manager — the one service allowed to create/rotate/revoke a connection_kind='system' api_tokens row. Stage 1 (2026-08-04): real, working skeleton, NOT invoked anywhere yet — no route/script/cron calls it in this commit. Creating a real system credential is deferred until the migration diff is reviewed.",
+      "purpose_th": "จุดเดียวที่สร้าง/หมุน/เพิกถอน system AI Connection — Stage 1 ยังไม่ถูกเรียกใช้จริงที่ไหนเลย",
+      "exports": [
+        "CredentialStorageMechanism",
+        "createSystemConnection",
+        "validateAndActivate",
+        "getStatus",
+        "rotateSystemConnection",
+        "revokeSystemConnection"
+      ],
+      "status": "active",
+      "entry_point": true,
+      "note": "Stage 1: real skeleton, deliberately not invoked by any route/script/cron yet — no system credential is created until the migration diff is reviewed and a caller (an app/gateway-layer route) is built in a later stage."
     }
   },
   "excluded": [
