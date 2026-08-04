@@ -19,7 +19,10 @@ export interface SystemLinkGroup {
 }
 
 // ตารางจริงที่ระบบใช้งานอยู่ (grep จาก .from() ทั่ว core/, engines/, cognitive/, services/, plugins/ กับ app/)
-const SUPABASE_TABLES = [
+// Exported (owner, 2026-08-05) for the IDE shell's Database tool
+// (app/api/admin/workspace/database/route.ts) to reuse — same real list,
+// not a second copy.
+export const SUPABASE_TABLES = [
   "companies",
   "partners",
   "transport_jobs",

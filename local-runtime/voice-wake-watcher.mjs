@@ -30,8 +30,10 @@ import { createClient } from "@supabase/supabase-js";
 import { readFileSync, unlinkSync } from "fs";
 import { execFileSync } from "child_process";
 import { join } from "path";
+import { fileURLToPath } from "url";
+import { dirname } from "path";
 
-const PROJECT_DIR = "/Users/tam/Desktop/DNA OS-โฟลเดอร์หลักต้นฉบับ /dna-os-deadboard";
+const PROJECT_DIR = join(dirname(fileURLToPath(import.meta.url)), "..");
 const WHISPER_MODEL = "/Users/tam/whisper-models/ggml-base.bin";
 const CHUNK_SECONDS = 4;
 const CHUNK_PATH = "/tmp/dna-os-voice-wake-chunk.wav";

@@ -1,0 +1,36 @@
+{
+  "version": 1,
+  "note": "Limits imposed by the OS/runtime/framework itself — not business rules, must never be moved into business config even though they look like 'settings'.",
+  "entries": [
+    {
+      "id": "PLAT-NEXTJS-API-ROUTE-BODY-LIMIT",
+      "category": "PLATFORM_CONSTRAINT",
+      "value_type": "framework_default",
+      "scope": "next.js runtime",
+      "source": "Next.js docs — default route handler body size ceiling",
+      "owner": "platform",
+      "version": "1.0",
+      "allowed_locations": ["next.config.ts / framework config only"],
+      "forbidden_locations": ["business logic reasoning about this number as if it were a tunable business threshold"],
+      "rationale": "Framework-imposed, not a DNA OS business decision; changing it means overriding framework config, not writing a policy.",
+      "validation_rule": "only referenced from framework config files",
+      "review_required": false,
+      "last_verified_at": "2026-08-04"
+    },
+    {
+      "id": "PLAT-SUPABASE-MAX-ROW-JSONB-DEPTH",
+      "category": "PLATFORM_CONSTRAINT",
+      "value_type": "database_engine_limit",
+      "scope": "postgres/supabase",
+      "source": "PostgreSQL implementation limit",
+      "owner": "platform",
+      "version": "1.0",
+      "allowed_locations": ["schema design docs, migration comments"],
+      "forbidden_locations": ["application code treating it as configurable"],
+      "rationale": "Fixed by the database engine, not by DNA OS.",
+      "validation_rule": "informational only, not enforced in app code",
+      "review_required": false,
+      "last_verified_at": "2026-08-04"
+    }
+  ]
+}

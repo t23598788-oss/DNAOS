@@ -1,0 +1,12 @@
+[storage-threshold-watcher] free=70.9GB breached=true reclaimable=10.6GB
+[storage-threshold-watcher] free=75.0GB breached=true reclaimable=0.0GB
+[storage-threshold-watcher] architecture drift: clean=true findings=0
+env: node: No such file or directory
+[storage-threshold-watcher] free=94.7GB breached=true reclaimable=0.1GB
+[storage-threshold-watcher] architecture drift: clean=true findings=0
+[storage-threshold-watcher] free=91.5GB breached=true reclaimable=2.3GB
+[storage-threshold-watcher] architecture drift: clean=true findings=0
+[storage-threshold-watcher] scan/classify failed, reporting free-space only: scan run insert failed
+[storage-threshold-watcher] free=98.0GB breached=true reclaimable=unknown
+[storage-threshold-watcher] alert push failed: fetch failed
+[storage-threshold-watcher] architecture drift: clean=true findings=0

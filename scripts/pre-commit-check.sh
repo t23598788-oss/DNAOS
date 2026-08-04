@@ -93,8 +93,17 @@ if grep -rn "Mock\|mock\|fake\|Fake\|MOCK\|FAKE" --include="*.ts" engines/ 2>/de
 fi
 
 # Guard 3: No direct supabase import in engines/cognitive/presenter/services-ai
+# Fixed (owner, 2026-08-05): same false-positive shape Guard 2 above was
+# already fixed for — the bare grep matched `import type { SupabaseClient }`
+# lines too, which construct nothing and import zero runtime code (the
+# established, already-widespread pattern across engines/workspace/*: the
+# caller creates/authenticates the client and passes it in as a typed
+# parameter). Live-verified before this fix: 13 of 14 real matches across
+# engines/ were `import type`, only engines/workspace/problemReport.ts had a
+# real value-level `import { createClient }` — a real Rule 71 violation this
+# guard must still catch, and does (confirmed after this fix still flags it).
 for layer in engines/validation engines cognitive presenter services/ai; do
-  if grep -rn "from.*@supabase/supabase-js" --include="*.ts" "$layer/" 2>/dev/null; then
+  if grep -rn "from.*@supabase/supabase-js" --include="*.ts" "$layer/" 2>/dev/null | grep -v "import type"; then
     echo "ERROR: $layer imports @supabase/supabase-js directly — Rule 71"
     exit 1
   fi
@@ -326,5 +335,20 @@ if [ -n "$STAGED_FILES" ]; then
   fi
 fi
 echo "Registry stub check OK"
+
+# Guard 14: Hardcode Governance dry-run (HCG-P2, owner 2026-08-04,
+# registry/CURRENT_STATE.json plan_lock.exceptions_log -> HCG).
+# REPORT_ONLY — always exits 0. Scans staged files under the critical-path
+# allowlist (registry/hardcode-governance/enforcement-config.json) via
+# engines/governance/hardcode-decision-engine.ts and prints any
+# SECURITY_VIOLATION/ARCHITECTURE_VIOLATION findings without blocking the
+# commit. deploy-gate.ts already blocks builds on pre-existing real failures;
+# turning this into a hard block needs its own separate, explicit
+# confirmation after real dry-run output has been reviewed for false
+# positives — not automatic.
+echo "--- Hardcode Governance dry-run (Guard 14 / HCG-P2) ---"
+if [ -n "$STAGED_FILES" ]; then
+  STAGED_FILES_LIST="$STAGED_FILES" npx tsx scripts/hardcode-precommit-scan.ts 2>/dev/null || true
+fi
 
 echo "All guards passed"

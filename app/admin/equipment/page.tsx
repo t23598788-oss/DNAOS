@@ -26,6 +26,16 @@ interface Contact {
   role: string | null
 }
 
+interface MaintenanceTicket {
+  id: string
+  trigger_hours: number
+  status: "open" | "closed"
+  opened_at: string
+  closed_at: string | null
+  overdue_locked: boolean
+  equipment_assets: { asset_code: string; name: string; total_engine_hours: number; current_status: string } | null
+}
+
 // Equipment GPS/Relay Permission System (owner spec, 2026-07-24) — the real
 // admin surface for "เสียบปลั๊ก Y-Socket ใส่ซิม กรอกเบอร์ซิมหน้าจอจบ": create
 // an equipment unit once, assign which driver's LINE account may unlock it,
@@ -36,6 +46,7 @@ interface Contact {
 export default function EquipmentPage() {
   const [equipment, setEquipment] = useState<Equipment[]>([])
   const [contacts, setContacts] = useState<Contact[]>([])
+  const [tickets, setTickets] = useState<MaintenanceTicket[]>([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
@@ -49,16 +60,33 @@ export default function EquipmentPage() {
 
   const load = useCallback(async () => {
     setLoading(true)
-    const [eqRes, cRes] = await Promise.all([
+    const [eqRes, cRes, tRes] = await Promise.all([
       fetch("/api/admin/equipment"),
       fetch("/api/admin/line-profiles"),
+      fetch("/api/admin/equipment/maintenance-tickets"),
     ])
     const eqData = await eqRes.json()
     const cData = await cRes.json()
+    const tData = await tRes.json()
     setEquipment(eqData.equipment ?? [])
     setContacts((cData.contacts ?? []).map((c: any) => ({ line_user_id: c.line_user_id, line_name: c.line_name, role: c.role })))
+    setTickets(tData.tickets ?? [])
     setLoading(false)
   }, [])
+
+  const closeTicket = async (ticketId: string) => {
+    setSaving(true)
+    setMessage(null)
+    try {
+      const res = await fetch(`/api/admin/equipment/maintenance-tickets/${ticketId}/close`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({}) })
+      const d = await res.json()
+      if (!res.ok) { setMessage(d.error ?? "ปิดใบงานไม่สำเร็จ"); return }
+      setMessage(d.unlock_warning ? `ปิดใบงานแล้ว — ${d.unlock_warning}` : "ปิดใบงานซ่อมบำรุงแล้ว (รีเซ็ตชั่วโมงเครื่อง)")
+      await load()
+    } finally {
+      setSaving(false)
+    }
+  }
 
   useEffect(() => { load() }, [load])
 
@@ -186,6 +214,34 @@ export default function EquipmentPage() {
                 </div>
               )}
             </Fragment>
+          ))}
+        </div>
+      </div>
+
+      <div className="bg-white rounded-xl border border-stone-200 overflow-hidden">
+        <div className="px-4 py-3 border-b border-stone-100">
+          <div className="text-xs font-bold text-stone-500 uppercase tracking-wide">ใบงานซ่อมบำรุง (ทุก 250 ชม.)</div>
+        </div>
+        {tickets.length === 0 && <div className="text-center text-stone-400 py-8 text-sm">ยังไม่มีใบงานซ่อมบำรุง</div>}
+        <div className="divide-y divide-stone-100">
+          {tickets.map((t) => (
+            <div key={t.id} className="px-4 py-3 flex items-center justify-between">
+              <div>
+                <div className="text-sm font-medium text-stone-800">
+                  {t.equipment_assets?.name ?? "?"} <span className="text-xs text-stone-400">({t.equipment_assets?.asset_code})</span> — ครบ {t.trigger_hours.toLocaleString("th-TH")} ชม.
+                </div>
+                <div className="text-xs text-stone-500 mt-0.5">
+                  เปิด {new Date(t.opened_at).toLocaleString("th-TH")} ·{" "}
+                  <span className={t.status === "open" ? "text-amber-600 font-medium" : "text-stone-400"}>{t.status === "open" ? "ยังเปิดอยู่" : "ปิดแล้ว"}</span>
+                  {t.overdue_locked && <span className="text-rose-600 font-medium"> · ล็อกอัตโนมัติแล้ว (เกิน 50 ชม.)</span>}
+                </div>
+              </div>
+              {t.status === "open" && (
+                <button onClick={() => closeTicket(t.id)} disabled={saving} className="text-[11px] font-medium px-2.5 py-1 rounded-lg border border-emerald-200 text-emerald-700 hover:bg-emerald-50 disabled:opacity-40">
+                  ปิดใบงาน (ซ่อมเสร็จแล้ว)
+                </button>
+              )}
+            </div>
           ))}
         </div>
       </div>

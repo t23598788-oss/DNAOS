@@ -1,0 +1,59 @@
+{
+  "version": 1,
+  "note": "External services DNA OS talks to. For each: does the provider force a fixed endpoint, does it vary by region/environment, is there an official SDK/discovery endpoint, is the API versioned. Values that vary per environment must be MOVE_TO_CONFIG/MOVE_TO_ENV even though the provider's PATH shape may be a PROTOCOL_CONSTANT.",
+  "entries": [
+    {
+      "id": "SVC-SUPABASE",
+      "category": "CONFIGURABLE_VALUE",
+      "provider": "Supabase",
+      "endpoint_varies_by": ["project (per DNA OS Supabase project id)", "environment (dev/staging/prod use different projects)"],
+      "official_sdk": true,
+      "versioned_api": true,
+      "must_come_from": "Environment Variable (NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)",
+      "protocol_constant_part": "PostgREST path conventions (/rest/v1/...) may live in a service adapter module",
+      "owner": "platform",
+      "version": "1.0",
+      "allowed_locations": ["services/supabase/client.ts reading from process.env only"],
+      "forbidden_locations": ["any literal project URL or key in application code"],
+      "rationale": "Project URL and keys differ per environment and are partially secret.",
+      "validation_rule": "no literal Supabase project hostname (the *.supabase[.]co pattern) outside env-var read — worded with a bracket here so this rule description doesn't itself trip scripts/pre-commit-check.sh's own literal-substring check (owner, 2026-08-05)",
+      "review_required": true,
+      "last_verified_at": "2026-08-04"
+    },
+    {
+      "id": "SVC-LINE-MESSAGING-API",
+      "category": "PROTOCOL_CONSTANT",
+      "provider": "LINE Messaging API",
+      "endpoint_varies_by": [],
+      "official_sdk": true,
+      "versioned_api": true,
+      "must_come_from": "api.line.me is a fixed, provider-mandated host (LINE does not offer per-region endpoints) — safe as PROTOCOL_CONSTANT in the LINE service adapter",
+      "protocol_constant_part": "https://api.line.me/v2/bot/message/push and sibling paths",
+      "owner": "platform",
+      "version": "1.0",
+      "allowed_locations": ["services/line/client.ts (single adapter module)"],
+      "forbidden_locations": ["duplicated literal host string in multiple files"],
+      "rationale": "Provider documents this as a fixed endpoint; the channel access TOKEN (secret) is the part that must come from env, not the host.",
+      "validation_rule": "host constant appears exactly once, in the adapter module; token read from env",
+      "review_required": true,
+      "last_verified_at": "2026-08-04"
+    },
+    {
+      "id": "SVC-VERCEL-DEPLOY-DOMAIN",
+      "category": "CONFIGURABLE_VALUE",
+      "provider": "Vercel (dnaos.dev + preview domains)",
+      "endpoint_varies_by": ["environment (production vs preview vs local)"],
+      "official_sdk": false,
+      "versioned_api": false,
+      "must_come_from": "NEXT_PUBLIC_APP_URL environment variable",
+      "owner": "platform",
+      "version": "1.0",
+      "allowed_locations": ["config/system-links.ts reading process.env.NEXT_PUBLIC_APP_URL"],
+      "forbidden_locations": ["literal https://dnaos.dev in application code"],
+      "rationale": "Already the subject of a real fix during the DOMAIN program (2026-07-13/14) — production URL must never be hardcoded since it changes across environments.",
+      "validation_rule": "no literal dnaos.dev outside config/system-links.ts default fallback (if any) and env docs",
+      "review_required": false,
+      "last_verified_at": "2026-08-04"
+    }
+  ]
+}

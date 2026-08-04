@@ -65,10 +65,10 @@
     "app/page.tsx": {
       "owner": "app",
       "layer": "app",
-      "purpose": "หน้าแรก — แสดงลิงก์ไป Dead Board + Dashboard",
-      "purpose_th": "หน้าแรกของเว็บ — แสดงลิงก์เพื่อไปยัง Dead Board และ Dashboard",
+      "purpose": "Root Domain UI Conversion: Server Component gate for \"/\" — calls requireAuthPage(ADMIN_TIER) then renders OperationalWorkspace.tsx. \"/\" is the Owner Control Center now, not a public landing page.",
+      "purpose_th": "Root Domain UI Conversion: จุดตรวจสิทธิ์ (Server Component) ของ \"/\" — เรียก requireAuthPage(ADMIN_TIER) แล้ว render OperationalWorkspace.tsx เพราะ \"/\" กลายเป็น Owner Control Center แล้ว ไม่ใช่หน้าเว็บสาธารณะ",
       "exports": [
-        "LandingPage"
+        "RootPage"
       ],
       "status": "active"
     },
@@ -137,6 +137,38 @@
         "ArchNode",
         "ArchSymbol",
         "ArchitectureBook"
+      ],
+      "status": "active",
+      "entry_point": true,
+      "declared_callers": []
+    },
+    "scripts/build-system-control-graph.ts": {
+      "owner": "system",
+      "layer": "scripts",
+      "purpose": "Generator for the Owner Architecture Control Surface — reads architecture-book.json + command/event/capability/infrastructure/driver/connector registries and cross-references them into registry/system-control-graph.json + system-control-summary.json for /admin/architecture",
+      "purpose_th": "สร้าง system-control-graph.json/system-control-summary.json สำหรับหน้า /admin/architecture โดยอ้างอิงข้อมูลจริงจาก registry อื่นเท่านั้น ไม่มี hardcode",
+      "exports": [],
+      "status": "active",
+      "entry_point": true,
+      "declared_callers": []
+    },
+    "scripts/check-system-control-graph.ts": {
+      "owner": "system",
+      "layer": "scripts",
+      "purpose": "CI-suitable wrapper: runs build-system-control-graph.ts then verifies the two output files parse and have the documented shape",
+      "purpose_th": "รัน generator แล้วตรวจสอบผลลัพธ์ซ้ำอีกชั้นสำหรับ CI",
+      "exports": [],
+      "status": "active",
+      "entry_point": true,
+      "declared_callers": []
+    },
+    "app/api/admin/architecture/control-graph/route.ts": {
+      "owner": "system",
+      "layer": "app",
+      "purpose": "Owner-only GET endpoint that reads registry/system-control-graph.json fresh off disk, for the Refresh button on /admin/architecture (does not regenerate — regeneration is build-time only)",
+      "purpose_th": "endpoint อ่าน system-control-graph.json สดจากดิสก์ สำหรับปุ่ม Refresh ในหน้า /admin/architecture",
+      "exports": [
+        "GET"
       ],
       "status": "active",
       "entry_point": true,
@@ -1246,13 +1278,32 @@
         "ContextBudget",
         "DebtStatus",
         "DeltaContext",
+        "DependencyDiscoveryReport",
+        "DependencyEdge",
+        "DependencyEvidenceItem",
+        "DependencyGraphDiff",
+        "DependencyImpact",
+        "DependencyKind",
+        "DependencyScannerName",
+        "DestructiveAction",
+        "DestructiveActionPreview",
+        "DestructiveActionResult",
         "ExecutionPlan",
         "ExecutionReadiness",
+        "FileDuplicateClass",
+        "FileExistenceRecord",
+        "FileGitState",
+        "FileRecoverability",
+        "FileRegistrationState",
+        "FileSnapshotRecord",
+        "LockAcquireResult",
         "MeasurementReport",
+        "MigrationPlanStatus",
         "NegotiationFlowState",
         "NegotiationStage",
         "PartnerSummary",
         "PartnerTimelineEntry",
+        "ResourceMigrationPlan",
         "RuntimeCommand",
         "RuntimeCompatibility",
         "RuntimeConnectionState",
@@ -1265,15 +1316,27 @@
         "SelfDescription",
         "SelfDescriptionStatus",
         "StepResult",
+        "StorageClassificationResult",
+        "StorageEventEnvelope",
+        "StorageEvidenceItem",
+        "StorageOperationError",
+        "StorageReclaimPlan",
+        "StorageResource",
+        "StorageResourceClassification",
+        "StorageResourceState",
+        "TRASH_ELIGIBLE_CLASSIFICATIONS",
         "TimelineEntryKind",
         "Transaction",
         "TxState",
         "TxType",
+        "UnknownDependency",
         "VerificationContract",
         "ViewMode",
         "WorkOrder",
         "WorkflowDef",
         "WorkflowResult",
+        "WorkspaceLock",
+        "WorkspaceResourceType",
         "buildMeasurementReport",
         "computeBriefing",
         "computeContextBudget",
@@ -1647,9 +1710,11 @@
       "purpose": "Re-export รวมทุก engine + calcFullQuote pipeline",
       "purpose_th": "ส่งออก Engine ทั้งหมดอีกครั้ง และรวมกระบวนการคำนวณใบเสนอราคาเต็มรูปแบบ",
       "exports": [
+        "FILE_COMMANDS_REGISTERED",
         "QuoteInput",
         "QuoteResult",
         "STALENESS_HOURS",
+        "STORAGE_WORKSPACE_COMMANDS_REGISTERED",
         "assertAllKnown",
         "assertNotStale",
         "calcCapacity",
@@ -2400,6 +2465,7 @@
       "purpose": "Builds deep-link URLs into the Supabase dashboard SQL editor per real table (SUPABASE_TABLES list grepped from .from() calls across the codebase) for quick manual inspection.",
       "purpose_th": "สร้างลิงก์ตรงเข้า Supabase dashboard SQL editor สำหรับแต่ละตารางจริงที่ระบบใช้ (รายชื่อตารางมาจากการ grep .from() ทั้งโค้ด) เพื่อตรวจสอบข้อมูลเร็ว ๆ",
       "exports": [
+        "SUPABASE_TABLES",
         "SYSTEM_LINKS",
         "SystemLinkGroup",
         "SystemLinkItem"
@@ -4432,6 +4498,15 @@
       "status": "active",
       "entry_point": true
     },
+    "supabase/functions/equipment-maintenance-cron/index.ts": {
+      "owner": "admin",
+      "layer": "services",
+      "purpose": "Equipment GPS/Relay — Maintenance Ticket + Auto-Lock cron (owner spec 2026-07-24, implemented 2026-08-04). pg_cron-triggered every 10 min (see migration 20260804000009): (1) opens a maintenance_tickets row per 250h boundary crossed, (2) fires a real lock command via the internal bridge when an open ticket is >=50h overdue (system-initiated safety lock, not admin-gated per Rule 72's action-vs-default-safe-state reasoning), (3) locks every unlocked asset at 17:00 Bangkok time (no override/exception mechanism exists in driver_equipment_permissions today — flagged in the report as a possible gap). Not yet scheduled live — needs `supabase functions deploy` + real secrets, same pending-owner-go-ahead state as receipt-reconcile-sweep",
+      "purpose_th": "Cron ใบงานซ่อมบำรุง+ล็อกอัตโนมัติของเครื่องจักร (owner สั่ง 2026-07-24, ทำจริง 2026-08-04) pg_cron ทุก 10 นาที: (1) เปิดใบงานทุกครบ 250 ชม. (2) สั่งล็อกจริงเมื่อใบงานเปิดค้างเกิน 50 ชม. (ล็อกเพื่อความปลอดภัยที่ระบบสั่งเอง ไม่ต้องรอแอดมินตาม Rule 72) (3) ล็อกทุกเครื่องที่ยังไม่ล็อกตอน 17:00 เวลาไทย (ยังไม่มีกลไกยกเว้นใน driver_equipment_permissions — ระบุไว้ในรายงานว่าอาจเป็นช่องโหว่จริง) ยังไม่ได้ deploy/schedule จริง รอ owner อนุมัติเหมือน receipt-reconcile-sweep",
+      "exports": [],
+      "status": "active",
+      "entry_point": true
+    },
     "supabase/functions/receipt-reconcile-sweep/index.ts": {
       "owner": "admin",
       "layer": "services",
@@ -6409,8 +6484,63 @@
     "app/api/admin/equipment/toggle-permission/route.ts": {
       "owner": "app",
       "layer": "app",
-      "purpose": "Equipment GPS/Relay Permission System (owner spec, 2026-07-24) — the admin toggle ('ไม้กายสิทธิ์'): sets a driver's permission for one equipment unit and updates their LINE Rich Menu to match, so what they can do on LINE always reflects real permission, never a stale UI",
-      "purpose_th": "ระบบสิทธิ์ GPS Relay ของเครื่องจักร (owner สั่ง 2026-07-24) — ปุ่มไม้กายสิทธิ์ของแอดมิน ตั้งสิทธิ์คนขับต่อเครื่องจักรแล้วอัปเดต Rich Menu ให้ตรงกันทันที ป้องกัน UI ค้างไม่ตรงกับสิทธิ์จริง",
+      "purpose": "Equipment GPS/Relay Permission System (owner spec, 2026-07-24; extended 2026-08-04) — the admin toggle ('ไม้กายสิทธิ์'): sets a driver's permission for one equipment unit and updates their LINE Rich Menu to match. Extended 2026-08-04: when a permission is revoked and zero other active permissions remain for that equipment, automatically sends a real hardware lock command (assumed business rule — see file comment — flagged for owner confirmation)",
+      "purpose_th": "ระบบสิทธิ์ GPS Relay ของเครื่องจักร (owner สั่ง 2026-07-24; ต่อยอด 2026-08-04) — ปุ่มไม้กายสิทธิ์ของแอดมิน ตั้งสิทธิ์คนขับต่อเครื่องจักรแล้วอัปเดต Rich Menu ให้ตรงกัน ต่อยอด 2026-08-04: เมื่อตัดสิทธิ์แล้วไม่มีใครมีสิทธิ์เหลือเลย จะสั่งล็อกฮาร์ดแวร์อัตโนมัติ (สมมติฐาน business rule — ดูคอมเมนต์ในไฟล์ — รอ owner ยืนยัน)",
+      "exports": [
+        "POST"
+      ],
+      "status": "active"
+    },
+    "engines/equipment/engine-hours.ts": {
+      "owner": "engines",
+      "layer": "engines",
+      "purpose": "Equipment GPS/Relay — Engine-Hours Accumulator (owner spec 2026-07-24, implemented 2026-08-04). Computes real accumulated engine-running hours from a stream of telemetry pings (time-delta between consecutive engine-running pings, capped at MAX_GAP_HOURS=0.5h so a dropped-connection gap can't be miscounted as running time). Writes to equipment_assets.total_engine_hours",
+      "purpose_th": "ตัวสะสมชั่วโมงเครื่องจักร (owner สั่ง 2026-07-24, ทำจริง 2026-08-04) — คำนวณชั่วโมงเครื่องยนต์ทำงานจริงจากลำดับ telemetry ping (ผลต่างเวลาระหว่าง ping ที่เครื่องยังทำงานติดกัน จำกัดเพดานไว้ที่ 0.5 ชม. กัน gap การเชื่อมต่อขาดหายถูกนับเป็นเวลาทำงาน) เขียนลง equipment_assets.total_engine_hours",
+      "exports": [
+        "MAX_GAP_HOURS",
+        "TelemetryPing",
+        "EngineHoursDelta",
+        "computeEngineHoursDelta",
+        "AccumulateResult",
+        "accumulateEngineHours"
+      ],
+      "status": "active"
+    },
+    "app/api/internal/equipment/telemetry/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Equipment GPS/Relay — Telemetry Ingestion (owner spec 2026-07-24, implemented 2026-08-04). Provider-agnostic inbound endpoint (bearer secret EQUIPMENT_TELEMETRY_SECRET) accepting {imei, vccVoltage, recordedAt}, derives engine-running from VCC>=13.5V, stores the ping, and calls engines/equipment/engine-hours.ts to accumulate hours. No hardware/SMS-gateway provider chosen yet — provider-specific payload parsing is a stated TODO in the file, not fabricated",
+      "purpose_th": "จุดรับ telemetry เครื่องจักร (owner สั่ง 2026-07-24, ทำจริง 2026-08-04) — endpoint กลาง ไม่ผูกยี่ห้อฮาร์ดแวร์ (secret EQUIPMENT_TELEMETRY_SECRET) รับ {imei, vccVoltage, recordedAt} แปลงเป็นสถานะเครื่องทำงาน (VCC>=13.5V) บันทึก ping แล้วเรียก engine-hours.ts สะสมชั่วโมง ยังไม่มีผู้ให้บริการ GPS/SMS gateway จริง — parser เฉพาะยี่ห้อทำเป็น TODO ไว้ตรงๆ ในไฟล์",
+      "exports": [
+        "POST"
+      ],
+      "status": "active"
+    },
+    "app/api/internal/equipment/lock-command/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Equipment GPS/Relay — internal Edge-cron -> Next.js lock bridge (implemented 2026-08-04), same pattern as app/api/internal/line/document-artifact/route.ts. Lets supabase/functions/equipment-maintenance-cron (Deno) fire the real engines/equipment/relay-command.ts lock path without duplicating the SMS command logic. Used for automatic (non-admin-confirmed) safety locks only — +50h-overdue and 17:00 shift-end",
+      "purpose_th": "สะพานเชื่อม Edge-cron -> Next.js สำหรับสั่งล็อกฮาร์ดแวร์ (ทำจริง 2026-08-04) รูปแบบเดียวกับ document-artifact bridge ให้ Deno cron เรียกใช้ relay-command.ts จริงได้โดยไม่ก็อปปี้ตรรกะคำสั่ง SMS ใช้เฉพาะการล็อกอัตโนมัติที่ไม่ต้องมีแอดมินยืนยัน (เกิน 50 ชม. และล็อกเลิกงาน 17:00)",
+      "exports": [
+        "POST"
+      ],
+      "status": "active"
+    },
+    "app/api/admin/equipment/maintenance-tickets/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Equipment GPS/Relay — Maintenance Tickets list (implemented 2026-08-04). Extends /admin/equipment's data surface rather than a new page (Rule 101/103)",
+      "purpose_th": "รายการใบงานซ่อมบำรุงเครื่องจักร (ทำจริง 2026-08-04) — ต่อยอดหน้า /admin/equipment เดิม ไม่สร้างหน้าใหม่",
+      "exports": [
+        "GET"
+      ],
+      "status": "active"
+    },
+    "app/api/admin/equipment/maintenance-tickets/[id]/close/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Equipment GPS/Relay — Close Maintenance Ticket (implemented 2026-08-04). Human-confirmed (requireAuth, Rule 72): resets total_engine_hours/last_ticket_trigger_hours to 0 and sends a real unlock command if the asset was overdue-locked, per the doc's literal business-event chain (\"Mechanic closes ticket -> Reset hour counter, send RELAY unlock\")",
+      "purpose_th": "ปิดใบงานซ่อมบำรุง (ทำจริง 2026-08-04) — ต้องมีแอดมินยืนยัน (Rule 72) รีเซ็ตชั่วโมงเครื่องเป็น 0 และปลดล็อกจริงถ้าเครื่องถูกล็อกจากการเกินกำหนด ตามลำดับเหตุการณ์ในเอกสารต้นฉบับ",
       "exports": [
         "POST"
       ],
@@ -6529,6 +6659,27 @@
       "status": "active",
       "entry_point": true,
       "note": "Real code, currently unused-by-import because its only caller (app/admin/system/page.tsx) is deferred to a separate commit (GraphView.tsx props gap, unresolved pending owner decision) — see registry/CHANGELOG.json 2026-08-04 auth-token audit session."
+    },
+    "app/admin/system/page.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Unified Build + Architecture Graph + Realtime Pulse screen (owner directive, 2026-08-04). Merges /admin/build, /admin/graph, /admin/telemetry into one screen — canonical route going forward.",
+      "purpose_th": "หน้ารวม Build/Graph/Telemetry เป็นหน้าเดียว — canonical route ใหม่",
+      "exports": [
+        "SystemOperationsPage"
+      ],
+      "status": "active"
+    },
+    "app/admin/system/page 2.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Owner's real working copy of app/admin/system/page.tsx, kept as a separate file on purpose while iterating on the Owner Control Center screen redesign (owner, 2026-08-05) — not an accidental duplicate. Currently byte-identical to page.tsx; will diverge as the redesign continues. Both copies share a real pre-existing bug: pass embedded/showHeader/focusNodeId to <GraphPage> (app/admin/graph/GraphView.tsx), which only declares pulseNodeIds/pulseLinkKeys in GraphPageProps — not fixed here, owner's call on how embedded mode should work.",
+      "purpose_th": "ไฟล์ทำงานจริงของเฮีย ก็อปจาก app/admin/system/page.tsx ไว้ตั้งใจแยกไฟล์ระหว่างปรับหน้าจอ Owner Control Center ใหม่ (เฮีย, 2026-08-05) — ไม่ใช่ไฟล์ซ้ำโดยไม่ตั้งใจ ตอนนี้เนื้อหาเหมือน page.tsx เป๊ะ จะเริ่มต่างกันเมื่อแก้ต่อ ทั้งสองไฟล์มีบั๊กจริงร่วมกัน: ส่ง embedded/showHeader/focusNodeId ให้ <GraphPage> แต่ GraphPageProps ประกาศแค่ pulseNodeIds/pulseLinkKeys — ยังไม่แก้ตรงนี้ รอเฮียตัดสินใจว่า embedded mode ควรทำงานยังไง",
+      "exports": [
+        "SystemOperationsPage"
+      ],
+      "status": "active",
+      "entry_point": true
     },
     "app/admin/telemetry/page.tsx": {
       "owner": "app",
@@ -7328,37 +7479,314 @@
       "purpose_th": "จัดหมวดหมู่ค่าที่ hardcode ในซอร์สโค้ดตาม policy registry แล้วคืน verdict เรียกใช้ผ่านคำสั่ง hardcode.* ตามต้องการ ไม่ได้ผูกกับ guard/precommit/deploy-gate อัตโนมัติ",
       "exports": [
         "Category",
-        "Verdict",
-        "ScanHit",
         "Classification",
+        "ExternalConstraintCheck",
+        "MigrationPlanItem",
+        "RegisteredException",
+        "ScanHit",
+        "ScanReport",
+        "Verdict",
+        "buildReport",
         "classify",
+        "explain",
+        "findDuplicates",
+        "generateMigrationPlan",
+        "registerException",
         "scanFile",
         "scanRepository",
-        "findDuplicates",
-        "explain",
-        "MigrationPlanItem",
-        "generateMigrationPlan",
-        "ScanReport",
-        "buildReport",
-        "ExternalConstraintCheck",
-        "verifyExternalConstraint",
-        "RegisteredException",
-        "registerException"
-      ],
-      "status": "active",
-      "entry_point": true,
-      "note": "Real code, currently unused-by-import because its only caller (app/admin/system/page.tsx) is deferred to a separate commit (GraphView.tsx props gap, unresolved pending owner decision) — see registry/CHANGELOG.json 2026-08-04 auth-token audit session."
-    },
-    "services/ai-connection/hmac.ts": {
-      "owner": "services",
-      "layer": "services",
-      "purpose": "HMAC-SHA-256 (server-only pepper, constant-time compare) fallback hashing for system AI Connection credentials — used only when a connection_kind='system' api_tokens row stores token_hash instead of vault_secret_id. Never plain SHA-256, never logs the raw token/pepper/hash.",
-      "purpose_th": "hash แบบ HMAC-SHA-256 พร้อม pepper สำหรับ credential ของ system connection (ทางเลือกเมื่อไม่ใช้ Vault)",
-      "exports": [
-        "hashToken",
-        "verifyTokenHash"
+        "scanText",
+        "verifyExternalConstraint"
       ],
       "status": "active"
+    },
+    "engines/workspace/lockManager.ts": {
+      "owner": "engines/workspace",
+      "layer": "engines",
+      "purpose": "Workspace Lock Manager — real atomic locking via a Postgres partial unique index. Extends registry/LOCK_MANAGER.json (advisory JSON ledger, zero atomicity) after a real concurrent-overwrite incident 2026-08-04.",
+      "purpose_th": "ตัวจัดการ lock แบบ atomic จริง ผ่าน Postgres unique index",
+      "exports": [
+        "acquireLock",
+        "releaseLock",
+        "acquireLockWithRetry",
+        "withLock"
+      ],
+      "status": "active"
+    },
+    "engines/workspace/registryWriter.ts": {
+      "owner": "engines/workspace",
+      "layer": "engines",
+      "purpose": "Safe registry writer — wraps JSON registry read-modify-write in a workspace lock. Scoped to JSON only, NOT core/shared/types.ts (real TS, needs an AST codemod that doesn't exist yet). Owner (2026-08-05): verified zero real `import`/`require` of this file anywhere in the repo — engines/workspace/selfDescription.ts and lockManager.ts only mention it in prose comments, not real usage. Marked entry_point (not a fabricated declared_caller) since it's a real, intentionally-public utility not yet wired to a caller.",
+      "purpose_th": "ตัวเขียน registry JSON แบบปลอดภัย ผ่าน lock ก่อนเขียนทุกครั้ง (เฮีย, 2026-08-05): ตรวจแล้วไม่มี import จริงที่ไหนเลย selfDescription.ts/lockManager.ts แค่พูดถึงในคอมเมนต์ ไม่ได้เรียกใช้จริง ตั้ง entry_point ไว้ตรงๆ ไม่ปั้น declared_caller ปลอม",
+      "exports": [
+        "withRegistryLock"
+      ],
+      "status": "active",
+      "entry_point": true
+    },
+    "engines/workspace/dependencyRegistry.ts": {
+      "owner": "engines/workspace",
+      "layer": "engines",
+      "purpose": "Dependency Registry — merges registry/architecture-book.json's real import graph with registry/infra-dependency-graph.json's hand-verified infra edges. Never fabricates a third source.",
+      "purpose_th": "รวม dependency graph จริงจากสองแหล่ง ไม่เดาเพิ่มเอง",
+      "exports": [
+        "getDependents",
+        "analyzeImpact"
+      ],
+      "status": "active"
+    },
+    "engines/workspace/migrationEngine.ts": {
+      "owner": "engines/workspace",
+      "layer": "engines",
+      "purpose": "Resource Migration Engine — real Scan->DependencyAnalysis->ImpactAnalysis->Plan->Approval->MoveToTrash->Audit pipeline. safe=false immediately on any real dependent.",
+      "purpose_th": "เอนจิ้นย้ายทรัพยากรผ่านการตรวจ dependency จริงก่อนย้ายทุกครั้ง",
+      "exports": [
+        "createMigrationPlan",
+        "approveMigrationPlan",
+        "executeMigration"
+      ],
+      "status": "active"
+    },
+    "app/api/admin/workspace/route.ts": {
+      "owner": "app/api/admin",
+      "layer": "gateway",
+      "purpose": "Workspace Lock Manager + Dependency Registry + Migration Engine — Command Gateway. approve_migration_plan/execute_migration locked to super_admin.",
+      "purpose_th": "ประตูเดียวสำหรับคำสั่ง workspace.* ทั้งหมด",
+      "exports": [
+        "POST"
+      ],
+      "status": "active"
+    },
+    "app/admin/workspace/page.tsx": {
+      "owner": "app/admin",
+      "layer": "presentation",
+      "purpose": "Workspace dashboard — active locks, dependency lookup, migration queue, conflict history in one page.",
+      "purpose_th": "หน้าจอ Workspace: lock ที่ถืออยู่/dependency/migration queue/conflict history",
+      "exports": [
+        "WorkspacePage"
+      ],
+      "status": "active"
+    },
+    "local-runtime/workspace-acceptance-test.ts": {
+      "owner": "local-runtime",
+      "layer": "scripts",
+      "purpose": "Real acceptance test for workspace-lock-manager (npx tsx local-runtime/workspace-acceptance-test.ts): concurrent lock race (exactly 1 winner), dependency-blocked migration plan, safe-when-no-dependents. All 3 passed live 2026-08-04.",
+      "purpose_th": "ทดสอบจริงของ Workspace Lock Manager: แข่ง lock พร้อมกัน, แผนย้ายถูกบล็อกเมื่อมี dependency, ปลอดภัยเมื่อไม่มี dependent",
+      "exports": [],
+      "status": "active",
+      "entry_point": true
+    },
+    "engines/workspace/dependencyDiscovery/common.ts": {
+      "owner": "engines/workspace",
+      "layer": "engines",
+      "purpose": "Shared helpers for the 9 discovery scanners: edge()/unknown() builders, CONFIDENCE_THRESHOLD (0.6) enforcement.",
+      "purpose_th": "ตัวช่วยกลางของ scanner ทั้ง 9 ตัว",
+      "exports": [
+        "ROOT",
+        "CONFIDENCE_THRESHOLD",
+        "edge",
+        "unknown"
+      ],
+      "status": "active"
+    },
+    "engines/workspace/dependencyDiscovery/scanTypescriptImports.ts": {
+      "owner": "engines/workspace",
+      "layer": "engines",
+      "purpose": "Wraps registry/architecture-book.json's real import graph with evidence for the auto-discovery report.",
+      "purpose_th": "ห่อ import graph จริงด้วยหลักฐาน",
+      "exports": [
+        "scanTypescriptImports"
+      ],
+      "status": "active"
+    },
+    "engines/workspace/dependencyDiscovery/scanJsonRegistry.ts": {
+      "owner": "engines/workspace",
+      "layer": "engines",
+      "purpose": "Real cross-registry references: permissions.json prefixes -> real route files, module-registry.json owners -> real folders.",
+      "purpose_th": "ตรวจ cross-reference ระหว่าง registry จริง",
+      "exports": [
+        "scanJsonRegistry"
+      ],
+      "status": "active"
+    },
+    "engines/workspace/dependencyDiscovery/scanRuntimeCommands.ts": {
+      "owner": "engines/workspace",
+      "layer": "engines",
+      "purpose": "Real command->owner-file edges from command-registry.json's own owner field.",
+      "purpose_th": "ตรวจ command->file จาก command-registry.json",
+      "exports": [
+        "scanRuntimeCommands"
+      ],
+      "status": "active"
+    },
+    "engines/workspace/dependencyDiscovery/scanLaunchAgents.ts": {
+      "owner": "engines/workspace",
+      "layer": "engines",
+      "purpose": "Real XML parse of local-runtime/launchagents/*.plist -> LaunchAgent->Script edges.",
+      "purpose_th": "อ่าน plist จริงเพื่อหา LaunchAgent->Script",
+      "exports": [
+        "scanLaunchAgents"
+      ],
+      "status": "active"
+    },
+    "engines/workspace/dependencyDiscovery/scanDocker.ts": {
+      "owner": "engines/workspace",
+      "layer": "engines",
+      "purpose": "Reuses engines/storage/adapters/dockerAdapter.ts; real UNKNOWN when the daemon isn't running.",
+      "purpose_th": "ตรวจ Docker จริง ผ่าน adapter เดิม",
+      "exports": [
+        "scanDocker"
+      ],
+      "status": "active"
+    },
+    "engines/workspace/dependencyDiscovery/scanAiModelsRuntime.ts": {
+      "owner": "engines/workspace",
+      "layer": "engines",
+      "purpose": "Extracts REQUIRED_MODELS from runpod-controller.mjs's real source, greps for real usages elsewhere.",
+      "purpose_th": "หา Model->Workflow จากโค้ดจริง",
+      "exports": [
+        "scanAiModelsRuntime"
+      ],
+      "status": "active"
+    },
+    "engines/workspace/dependencyDiscovery/scanSupabaseFunctions.ts": {
+      "owner": "engines/workspace",
+      "layer": "engines",
+      "purpose": "Real .from(\"table\") greps across every supabase/functions/*/index.ts.",
+      "purpose_th": "หา Function->Table จาก .from() จริง",
+      "exports": [
+        "scanSupabaseFunctions"
+      ],
+      "status": "active"
+    },
+    "engines/workspace/dependencyDiscovery/scanConfigReferences.ts": {
+      "owner": "engines/workspace",
+      "layer": "engines",
+      "purpose": "Real Deno.env.get/process.env greps, cross-checked against registry/infrastructure.json.",
+      "purpose_th": "หา Module->Config จาก env reference จริง",
+      "exports": [
+        "scanConfigReferences"
+      ],
+      "status": "active"
+    },
+    "engines/workspace/dependencyDiscovery/scanWorkflowReferences.ts": {
+      "owner": "engines/workspace",
+      "layer": "engines",
+      "purpose": "Real cross-check of commands.json's workflow field against workflows.json's real keys.",
+      "purpose_th": "ตรวจ Workflow->Command จริง",
+      "exports": [
+        "scanWorkflowReferences"
+      ],
+      "status": "active"
+    },
+    "engines/workspace/dependencyDiscovery/generate.ts": {
+      "owner": "engines/workspace",
+      "layer": "engines",
+      "purpose": "Orchestrator — runs all 9 scanners, writes registry/auto-dependency-graph.json. Never deletes the hand-maintained seed.",
+      "purpose_th": "รวมผล scanner ทั้งหมด เขียน auto-dependency-graph.json",
+      "exports": [
+        "generateDependencyGraph",
+        "writeDependencyGraph"
+      ],
+      "status": "active"
+    },
+    "engines/workspace/dependencyDiscovery/diff.ts": {
+      "owner": "engines/workspace",
+      "layer": "engines",
+      "purpose": "Diffs the auto graph against the hand-maintained seed, computes real coverage against module-registry.json.",
+      "purpose_th": "เทียบ auto graph กับ seed เดิม คำนวณ coverage จริง",
+      "exports": [
+        "diffAgainstSeed"
+      ],
+      "status": "active"
+    },
+    "local-runtime/generate-dependency-graph.ts": {
+      "owner": "local-runtime",
+      "layer": "scripts",
+      "purpose": "CLI: npx tsx local-runtime/generate-dependency-graph.ts — regenerates registry/auto-dependency-graph.json.",
+      "purpose_th": "คำสั่งสร้าง dependency graph อัตโนมัติใหม่",
+      "exports": [],
+      "status": "active",
+      "entry_point": true
+    },
+    "local-runtime/dependency-graph-report.ts": {
+      "owner": "local-runtime",
+      "layer": "scripts",
+      "purpose": "CLI: npx tsx local-runtime/dependency-graph-report.ts — prints scanner counts, unknowns, seed diff, coverage.",
+      "purpose_th": "คำสั่งดูรายงาน dependency graph",
+      "exports": [],
+      "status": "active",
+      "entry_point": true
+    },
+    "local-runtime/dependency-discovery-acceptance-test.ts": {
+      "owner": "local-runtime",
+      "layer": "scripts",
+      "purpose": "Real acceptance test for Roadmap #46's 5 requested criteria — all passed live 2026-08-04.",
+      "purpose_th": "ทดสอบจริงของ Roadmap #46 ทั้ง 5 ข้อ",
+      "exports": [],
+      "status": "active",
+      "entry_point": true
+    },
+    "engines/governance/hardcode-dependency-context.ts": {
+      "owner": "engines/governance",
+      "layer": "engines",
+      "purpose": "Additive real wiring: attaches getDependents() blast-radius to a Hardcode Governance Classification. Owner (2026-08-05): verified zero real import anywhere in the repo — genuinely not wired to a caller yet. Marked entry_point (not a fabricated declared_caller).",
+      "purpose_th": "เสริม context dependency จริงให้ผล Hardcode Governance (เฮีย, 2026-08-05): ตรวจแล้วไม่มี import จริงที่ไหนเลย ยังไม่ได้ต่อเข้ากับ caller จริงๆ ตั้ง entry_point ไว้ตรงๆ ไม่ปั้น declared_caller ปลอม",
+      "exports": [
+        "ClassificationWithDependencyContext",
+        "withDependencyContext"
+      ],
+      "status": "active",
+      "entry_point": true
+    },
+    "local-runtime/ollama-cloud-gateway.mjs": {
+      "owner": "local-runtime",
+      "layer": "scripts",
+      "purpose": "Single real entry point every local script uses to reach Ollama (Migration Completion, 2026-08-04). No local fallback — returns null if Cloud Runtime isn't ready, callers must handle retry themselves. Real callers confirmed (owner, 2026-08-05): local-runtime/{watch-drive,print-watcher,backfill-slips,backfill-slips-test}.mjs all `import { getReadyOllamaUrl } from \"./ollama-cloud-gateway.mjs\"`. Marked entry_point instead of declared_callers — the arch-book generator's scanner does not trace .mjs-to-.mjs imports at all (a real, pre-existing scanner gap, out of scope here), so declaring these real callers there flips it to BROKEN ('declared but no import found') instead of fixing it; entry_point is the honest option that doesn't claim a caller the scanner can verify.",
+      "purpose_th": "จุดเดียวที่ script ในเครื่องใช้เรียก Ollama ผ่าน Cloud Runtime ไม่มี fallback ในเครื่อง มี caller จริงยืนยันแล้ว (เฮีย, 2026-08-05): local-runtime/{watch-drive,print-watcher,backfill-slips,backfill-slips-test}.mjs import ใช้จริงทุกไฟล์ ตั้ง entry_point แทน declared_callers เพราะตัวสแกนไม่ไล่ import ของไฟล์ .mjs เลย (ช่องโหว่เดิมของตัวสแกน) ถ้าประกาศ declared_callers จะกลายเป็น BROKEN แทน entry_point เลยตรงกับความจริงกว่า",
+      "exports": [
+        "getReadyOllamaUrl"
+      ],
+      "status": "active",
+      "entry_point": true
+    },
+    "local-runtime/migrate-ollama.ts": {
+      "owner": "local-runtime",
+      "layer": "scripts",
+      "purpose": "Migration Completion CLI (npx tsx local-runtime/migrate-ollama.ts [--confirm]) — live-verifies zero script dependents on localhost:11434 + Cloud Runtime readiness, then runs the real Storage Intelligence + Migration Engine pipeline to move ~/.ollama to Trash. Run live 2026-08-04: moved ~/.ollama (11.2GB) + 6 other SAFE resources (21.8GB total) to ~/.Trash.",
+      "purpose_th": "คำสั่งปิดงานย้าย ~/.ollama ผ่าน pipeline จริง ตรวจสอบก่อนย้ายทุกครั้ง",
+      "exports": [],
+      "status": "active",
+      "entry_point": true
+    },
+    "engines/workspace/architectureDriftDetector.ts": {
+      "owner": "engines/workspace",
+      "layer": "engines",
+      "purpose": "Development Machine Policy (Constitution Rule 117) drift detector — real lsof/ps process check, real fs.existsSync for ~/.ollama and .gguf/.safetensors files, real grep for live localhost:11434 fetch() calls. Never assumes clean.",
+      "purpose_th": "ตรวจจับ Local AI Runtime/Model จริงบนเครื่อง ไม่เดา",
+      "exports": [
+        "DriftFinding",
+        "DriftReport",
+        "detectArchitectureDrift"
+      ],
+      "status": "active"
+    },
+    "supabase/functions/architecture-drift-alert/index.ts": {
+      "owner": "supabase/functions",
+      "layer": "services",
+      "purpose": "Development Machine Policy — drift alert relay. Pushes a LINE message to the owner when architectureDriftDetector.ts finds a real violation. Requires verify_jwt=false.",
+      "purpose_th": "Edge Function ส่งแจ้งเตือน Architecture Drift ผ่าน LINE",
+      "exports": [],
+      "status": "active",
+      "entry_point": true
+    },
+    "local-runtime/architecture-drift-acceptance-test.ts": {
+      "owner": "local-runtime",
+      "layer": "scripts",
+      "purpose": "Real acceptance test for Rule 117's drift detector — proves both directions (clean machine reports clean; a synthetic real violation is caught). Passed live 2026-08-04.",
+      "purpose_th": "ทดสอบจริงของตัวตรวจจับ Architecture Drift ทั้งสองทิศทาง",
+      "exports": [],
+      "status": "active",
+      "entry_point": true
     },
     "services/ai-connection/vault.ts": {
       "owner": "services",
@@ -7387,19 +7815,6 @@
       ],
       "status": "active"
     },
-    "services/ai-connection/healthCheck.ts": {
-      "owner": "services",
-      "layer": "services",
-      "purpose": "Safe health-check for the system AI Connection: credential presence, auth (Vault round-trip or HMAC shape check), a low-impact read probe, and a registry-metadata-only Rule 72 write-block check (never dispatches a write-shaped command). Stays engines/registry-import-free per dependency-graph.json (services->core only) by accepting dispatchFn/commandMetadata as injected deps from the caller.",
-      "purpose_th": "ตรวจสุขภาพ system AI Connection แบบปลอดภัย ไม่ import engines/registry ตรง ใช้ dependency injection แทน",
-      "exports": [
-        "CommandMetadataLookup",
-        "DispatchFn",
-        "HealthCheckDeps",
-        "runHealthCheck"
-      ],
-      "status": "active"
-    },
     "services/ai-connection/manager.ts": {
       "owner": "services",
       "layer": "services",
@@ -7416,6 +7831,928 @@
       "status": "active",
       "entry_point": true,
       "note": "Stage 1: real skeleton, deliberately not invoked by any route/script/cron yet — no system credential is created until the migration diff is reviewed and a caller (an app/gateway-layer route) is built in a later stage."
+    },
+    "services/ai-connection/hmac.ts": {
+      "owner": "services",
+      "layer": "services",
+      "purpose": "HMAC-SHA-256 (server-only pepper, constant-time compare) fallback hashing for system AI Connection credentials — used only when a connection_kind='system' api_tokens row stores token_hash instead of vault_secret_id. Never plain SHA-256, never logs the raw token/pepper/hash.",
+      "purpose_th": "hash แบบ HMAC-SHA-256 พร้อม pepper สำหรับ credential ของ system connection (ทางเลือกเมื่อไม่ใช้ Vault)",
+      "exports": [
+        "hashToken",
+        "verifyTokenHash"
+      ],
+      "status": "active"
+    },
+    "services/ai-connection/healthCheck.ts": {
+      "owner": "services",
+      "layer": "services",
+      "purpose": "Safe health-check for the system AI Connection: credential presence, auth (Vault round-trip or HMAC shape check), a low-impact read probe, and a registry-metadata-only Rule 72 write-block check (never dispatches a write-shaped command). Stays engines/registry-import-free per dependency-graph.json (services->core only) by accepting dispatchFn/commandMetadata as injected deps from the caller.",
+      "purpose_th": "ตรวจสุขภาพ system AI Connection แบบปลอดภัย ไม่ import engines/registry ตรง ใช้ dependency injection แทน",
+      "exports": [
+        "CommandMetadataLookup",
+        "DispatchFn",
+        "HealthCheckDeps",
+        "runHealthCheck"
+      ],
+      "status": "active"
+    },
+    "engines/storage/evidenceEngine.ts": {
+      "owner": "engines",
+      "layer": "engines",
+      "purpose": "Gathers observable evidence (size, mtime, sha256, git status, age) for one path via gatherEvidence(), and exposes matchesAny()/PATTERNS (cache/log/build-artifact/generated/AI-model/Docker regexes) that classifier.ts consumes — this module never decides anything, only observes and reports.",
+      "purpose_th": "รวบรวมหลักฐานที่สังเกตได้ (ขนาด, mtime, sha256, สถานะ git, อายุไฟล์) สำหรับแต่ละ path ผ่าน gatherEvidence() และ export matchesAny()/PATTERNS (regex สำหรับ cache/log/build-artifact/generated/AI-model/Docker) ให้ classifier.ts ใช้งาน — โมดูลนี้ไม่ตัดสินใจอะไรเอง มีหน้าที่สังเกตและรายงานเท่านั้น",
+      "exports": [
+        "GatheredEvidence",
+        "PATTERNS",
+        "gatherEvidence",
+        "matchesAny"
+      ],
+      "status": "active"
+    },
+    "engines/storage/engine.ts": {
+      "owner": "engines",
+      "layer": "engines",
+      "purpose": "Orchestrator implementing the 7 registered storage.* commands (scan/classify/report/move_safe_to_trash/inspect_docker/verify_supabase/check_threshold) against a bounded, curated set of roots (npm/cache dirs, clone candidates, ~/.ollama) — the only module callers touch. moveSafeToTrash() re-verifies dependencies live via engines/workspace/migrationEngine.ts immediately before every real move, and checkThreshold() reads real free disk space via `df -k`.",
+      "purpose_th": "Orchestrator ที่ implement คำสั่ง storage.* ทั้ง 7 ตัว (scan/classify/report/move_safe_to_trash/inspect_docker/verify_supabase/check_threshold) บนขอบเขต root ที่กำหนดไว้ชัดเจน (โฟลเดอร์ cache/npm, clone candidates, ~/.ollama) เป็นโมดูลเดียวที่ผู้เรียกภายนอกใช้งาน — moveSafeToTrash() ตรวจสอบ dependency ผ่าน engines/workspace/migrationEngine.ts ซ้ำแบบ live ก่อนย้ายไฟล์จริงทุกครั้ง และ checkThreshold() อ่านพื้นที่ว่างดิสก์จริงผ่าน `df -k`",
+      "exports": [
+        "StorageReport",
+        "checkThreshold",
+        "classifyScan",
+        "inspectDocker",
+        "moveSafeToTrash",
+        "report",
+        "scanStorage",
+        "verifySupabase"
+      ],
+      "status": "active"
+    },
+    "engines/storage/decisionEngine.ts": {
+      "owner": "engines",
+      "layer": "engines",
+      "purpose": "The sole place that assigns state SAFE: decideState() rejects UNKNOWN, any recommended_action of keep/manual_prune_only/review, any classification outside the trash-eligible list, or confidence below 0.6, returning BLOCKED otherwise. buildReclaimPlan() aggregates all current SAFE resources into a StorageReclaimPlan with total reclaimable bytes.",
+      "purpose_th": "จุดเดียวที่กำหนดสถานะ SAFE — decideState() ปฏิเสธ UNKNOWN, recommended_action ที่เป็น keep/manual_prune_only/review, ประเภทที่ไม่อยู่ในรายการ trash-eligible หรือ confidence ต่ำกว่า 0.6 (คืนค่า BLOCKED แทน) buildReclaimPlan() รวมทรัพยากรที่เป็น SAFE ทั้งหมดเป็น StorageReclaimPlan พร้อมขนาดรวมที่คืนได้",
+      "exports": [
+        "buildReclaimPlan",
+        "decideState"
+      ],
+      "status": "active"
+    },
+    "engines/storage/classifier.ts": {
+      "owner": "engines",
+      "layer": "engines",
+      "purpose": "Pure classification function classify() that turns GatheredEvidence + ClassifyContext into one of 14 real classifications (PROTECTED_CONFIG, ACTIVE_PROJECT_FILE, LOCAL_AI_MODEL, DOCKER_RESOURCE, UNUSED_PROJECT_CLONE, CLOUD_BACKED_UP, DUPLICATE, CACHE, LOG, BUILD_ARTIFACT, GENERATED_FILE, etc.) plus UNKNOWN, in a fixed hard-block-first order — a dirty git repo, an active process reference, or a source reference always wins over any trash-eligible signal, and LOCAL_AI_MODEL only reaches SAFE with a caller-verified policy object.",
+      "purpose_th": "ฟังก์ชัน classify() แบบ pure ที่แปลง GatheredEvidence + ClassifyContext เป็นหนึ่งใน 14 ประเภทการจำแนกจริง (PROTECTED_CONFIG, ACTIVE_PROJECT_FILE, LOCAL_AI_MODEL, DOCKER_RESOURCE, UNUSED_PROJECT_CLONE, CLOUD_BACKED_UP, DUPLICATE, CACHE, LOG, BUILD_ARTIFACT, GENERATED_FILE ฯลฯ) หรือ UNKNOWN ตามลำดับ hard-block ก่อนเสมอ — git repo ที่ dirty, การอ้างอิงจาก process ที่กำลังรัน, หรือการอ้างอิงจาก source code จะชนะสัญญาณ trash-eligible ใดๆ เสมอ และ LOCAL_AI_MODEL จะถึงสถานะ SAFE ได้ก็ต่อเมื่อมี policy object ที่ผู้เรียกยืนยันแล้วเท่านั้น",
+      "exports": [
+        "ClassifyContext",
+        "classify"
+      ],
+      "status": "active"
+    },
+    "components/admin/useAiTaskPulse 2.ts": {
+      "owner": "components",
+      "layer": "components",
+      "purpose": "Byte-for-byte duplicate of components/admin/useAiTaskPulse.ts (identical content, same hook, same comments) — appears to be a stray accidental copy left in the working tree with a space-plus-number filename, not a distinct module. No import in the codebase references this exact filename; it should likely be deleted/merged rather than treated as real, separate source.",
+      "purpose_th": "เป็นไฟล์ที่มีเนื้อหาเหมือนกันทุกตัวอักษรกับ components/admin/useAiTaskPulse.ts (hook เดียวกัน คอมเมนต์เดียวกัน) — ดูเหมือนเป็นไฟล์สำเนาที่หลงเหลืออยู่โดยไม่ได้ตั้งใจ ชื่อไฟล์มีช่องว่างและเลข 2 ต่อท้าย ไม่ใช่โมดูลจริงที่แยกต่างหาก ไม่มีจุดใดใน codebase ที่ import ไฟล์ชื่อนี้ตรงๆ ควรพิจารณาลบหรือรวมเข้ากับไฟล์หลักแทนที่จะถือเป็น source จริง",
+      "exports": [
+        "useAiTaskPulse"
+      ],
+      "status": "active",
+      "entry_point": true
+    },
+    "engines/storage/adapters/trashAdapter.ts": {
+      "owner": "engines",
+      "layer": "engines",
+      "purpose": "The only module in Storage Intelligence permitted to physically move a file — moveToTrash() renames a file into ~/.Trash (auto-disambiguating name collisions with a timestamp prefix), never rm/unlink/Empty Trash. Called exclusively from engine.ts's moveSafeToTrash() for resources already classified state SAFE by decisionEngine.ts.",
+      "purpose_th": "โมดูลเดียวใน Storage Intelligence ที่มีสิทธิ์ย้ายไฟล์จริง — moveToTrash() ย้าย (rename) ไฟล์ไปยัง ~/.Trash (เติม timestamp กันชื่อชนกัน) ไม่มีการ rm/unlink/Empty Trash เรียกใช้จาก moveSafeToTrash() ใน engine.ts เท่านั้น สำหรับทรัพยากรที่ decisionEngine.ts จัดสถานะ SAFE แล้วเท่านั้น",
+      "exports": [
+        "TrashMoveResult",
+        "moveToTrash"
+      ],
+      "status": "active"
+    },
+    "engines/storage/adapters/supabaseVerifier.ts": {
+      "owner": "engines",
+      "layer": "engines",
+      "purpose": "Supabase Storage verification adapter. verifyObjectExists() genuinely checks a bucket+path against Supabase Storage (list/download/ETag checksum) and works today. verifyLocalFileBackedUp() is an honest stub — the file's own header states no local-path-to-bucket-object mapping convention exists yet in this codebase, so it always returns verified:false rather than guessing.",
+      "purpose_th": "Adapter ตรวจสอบ Supabase Storage — verifyObjectExists() ตรวจสอบ bucket+path กับ Supabase Storage จริง (list/download/เทียบ checksum จาก ETag) ใช้งานได้จริงแล้ว ส่วน verifyLocalFileBackedUp() เป็น stub ที่ยอมรับตรงๆ ว่ายังไม่มี convention เชื่อมไฟล์ local เข้ากับ object ใน bucket จึงคืนค่า verified:false เสมอแทนการเดา",
+      "exports": [
+        "SupabaseObjectVerification",
+        "verifyLocalFileBackedUp",
+        "verifyObjectExists"
+      ],
+      "status": "active"
+    },
+    "engines/storage/adapters/gitAdapter.ts": {
+      "owner": "engines",
+      "layer": "engines",
+      "purpose": "Read-only Git adapter used as classifier evidence: inspectGitRepo() runs `git status --short`/`remote get-url origin`/`rev-parse` to report clean/dirty state, remote, and latest commit, while isTrackedOrIgnored() checks `git ls-files`/`git check-ignore` so the classifier never treats tracked source as a stray file with uncommitted changes.",
+      "purpose_th": "Adapter Git แบบอ่านอย่างเดียว ใช้เป็นหลักฐานให้ classifier: inspectGitRepo() รัน `git status --short`/`remote get-url origin`/`rev-parse` เพื่อรายงานสถานะ clean/dirty, remote และ commit ล่าสุด ส่วน isTrackedOrIgnored() ใช้ `git ls-files`/`git check-ignore` เพื่อป้องกันไม่ให้ classifier มองไฟล์ source ที่ tracked เป็นไฟล์แปลกปลอมที่มีการเปลี่ยนแปลงยังไม่ commit",
+      "exports": [
+        "GitInfo",
+        "inspectGitRepo",
+        "isTrackedOrIgnored"
+      ],
+      "status": "active"
+    },
+    "engines/storage/adapters/fsAdapter.ts": {
+      "owner": "engines",
+      "layer": "engines",
+      "purpose": "Read-only filesystem primitives for Storage Intelligence: walk() recursively lists entries up to a max depth, dirSizeBytes() sums file sizes under a directory, sha256File() streams a file's checksum, plus fileExt() and daysOld() helpers. Never writes, moves, or deletes — mutation authority lives only in trashAdapter.ts.",
+      "purpose_th": "ฟังก์ชันพื้นฐานด้าน filesystem แบบอ่านอย่างเดียวสำหรับ Storage Intelligence: walk() ไล่ดูไฟล์แบบ recursive จำกัดความลึก, dirSizeBytes() รวมขนาดไฟล์ในโฟลเดอร์, sha256File() คำนวณ checksum แบบ stream, รวมถึง fileExt() และ daysOld() — ไม่มีการเขียน ย้าย หรือลบไฟล์ สิทธิ์แก้ไขอยู่ที่ trashAdapter.ts เท่านั้น",
+      "exports": [
+        "FsEntry",
+        "daysOld",
+        "dirSizeBytes",
+        "fileExt",
+        "sha256File",
+        "walk"
+      ],
+      "status": "active"
+    },
+    "engines/storage/adapters/dockerAdapter.ts": {
+      "owner": "engines",
+      "layer": "engines",
+      "purpose": "Read-only Docker inspection adapter using `docker system df` and `docker images/volume ls` shell calls to report reclaimable bytes per resource type (images/containers/volumes/build cache) plus dangling image IDs and unused volume names; can never move or prune anything itself — inspectDocker() is only ever called from engines/storage/engine.ts.",
+      "purpose_th": "Adapter ตรวจสอบ Docker แบบอ่านอย่างเดียว ใช้คำสั่ง `docker system df` และ `docker images/volume ls` เพื่อรายงานพื้นที่ที่คืนได้ต่อประเภททรัพยากร (images/containers/volumes/build cache) พร้อม dangling image IDs และ unused volumes — ไม่สามารถย้ายหรือ prune อะไรได้เอง inspectDocker() ถูกเรียกจาก engines/storage/engine.ts เท่านั้น",
+      "exports": [
+        "DockerResourceReport",
+        "inspectDocker"
+      ],
+      "status": "active"
+    },
+    "app/admin/storage/page.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Client-side admin UI for Storage Intelligence: buttons drive scan → classify+verify → dry-run reclaim plan → move-to-Trash → inspect-Docker, all via POST to /api/admin/storage-intelligence, rendering SAFE/BLOCKED/UNKNOWN resource tables with size/classification/confidence/reason columns. It never touches the filesystem directly and every mutating action requires explicit confirm (Thai-language confirm() dialog before a real Trash move).",
+      "purpose_th": "หน้า UI (client component) ของ Storage Intelligence — ปุ่มควบคุม scan → classify+verify → สร้างแผน reclaim (dry-run) → ย้ายไฟล์ SAFE ไป Trash → ตรวจสอบ Docker ทั้งหมดผ่าน POST ไปยัง /api/admin/storage-intelligence แสดงตาราง SAFE/BLOCKED/UNKNOWN พร้อมขนาด/ประเภท/confidence/เหตุผล หน้านี้ไม่แตะ filesystem โดยตรง และการย้ายไฟล์จริงต้องยืนยันผ่าน confirm() ภาษาไทยก่อนเสมอ",
+      "exports": [
+        "StorageIntelligencePage"
+      ],
+      "status": "active"
+    },
+    "app/api/admin/storage-intelligence/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Single POST command gateway for all 7 storage.* commands (scan/classify/report/move_safe_to_trash/inspect_docker/verify_supabase/check_threshold), dispatching to engines/storage/engine.ts after requireAuth — move_safe_to_trash is restricted to SUPER_ADMIN_ONLY and every other command to ADMIN_TIER, with move_safe_to_trash defaulting dryRun to true unless explicitly set false.",
+      "purpose_th": "Gateway API เดียวสำหรับคำสั่ง storage.* ทั้ง 7 ตัว (scan/classify/report/move_safe_to_trash/inspect_docker/verify_supabase/check_threshold) ส่งต่อไปยัง engines/storage/engine.ts หลังผ่าน requireAuth — move_safe_to_trash จำกัดเฉพาะ SUPER_ADMIN_ONLY ส่วนคำสั่งอื่นใช้ ADMIN_TIER และ move_safe_to_trash ค่าเริ่มต้นเป็น dry-run เสมอเว้นแต่ระบุ false ชัดเจน",
+      "exports": [
+        "POST"
+      ],
+      "status": "active"
+    },
+    "scripts/hcg-build-schema-cache.ts": {
+      "owner": "owner (HCG program)",
+      "layer": "scripts",
+      "purpose": "Generates registry/hardcode-governance/schema-identifier-cache.json (real table/column names) from supabase/migrations/*.sql — the evidence source for the SCHEMA_IDENTIFIER classification added in HCG Phase 2.7. Re-run after schema changes.",
+      "purpose_th": "สร้าง cache รายชื่อ table/column จริงจาก migration SQL ใช้เป็นหลักฐานสำหรับ SCHEMA_IDENTIFIER",
+      "exports": [],
+      "status": "active"
+    },
+    "scripts/hardcode-hook.test.ts": {
+      "owner": "owner (HCG program)",
+      "layer": "scripts",
+      "purpose": "HCG Phase 2.6 (Hook Noise Cleanup) acceptance tests — runs the real scripts/hardcode-precommit-hook.ts via child process, verifying ALLOWED values pass silently and UNKNOWN/business/security values are handled per spec.",
+      "purpose_th": "ชุดทดสอบ hook AI ตาม Phase 2.6",
+      "exports": [],
+      "status": "active"
+    },
+    "scripts/hardcode-governance-phase27.test.ts": {
+      "owner": "owner (HCG program)",
+      "layer": "scripts",
+      "purpose": "HCG Phase 2.7 (UNKNOWN Noise Reduction) regression tests — one pass/reject pair per new evidence-based category (MODULE_PATH/COMMAND_NAME/EVENT_NAME/SCHEMA_IDENTIFIER/UI_LITERAL/TEST_FIXTURE) plus explicit checks that security/business classification was not weakened.",
+      "purpose_th": "ชุดทดสอบ regression สำหรับประเภทใหม่ 6 ประเภทของ Phase 2.7",
+      "exports": [],
+      "status": "active"
+    },
+    "engines/governance/ast-extractor.ts": {
+      "owner": "owner (HCG program)",
+      "layer": "engines",
+      "purpose": "HCG Phase 2.8 — real AST-based literal extractor using the TypeScript compiler API, replacing the regex-based CANDIDATE_RE walk for .ts/.tsx files. Captures identifier/property/parent-function/call-target/argument-position/import-export/file-category context per literal.",
+      "purpose_th": "ตัวสกัดค่าจากซอร์สโค้ดแบบ AST จริง (ใช้ TypeScript compiler API) แทน regex เดิม",
+      "exports": [
+        "ASTLiteralHit",
+        "extractLiteralsAST"
+      ],
+      "status": "active"
+    },
+    "scripts/hardcode-ast-extractor.test.ts": {
+      "owner": "owner (HCG program)",
+      "layer": "scripts",
+      "purpose": "HCG Phase 2.8 (Scanner Context Coverage) extractor regression tests — 13 required cases run against the real AST-based scanText()/classify() pipeline.",
+      "purpose_th": "ชุดทดสอบ regression สำหรับ AST extractor ของ Phase 2.8",
+      "exports": [],
+      "status": "active"
+    },
+    "engines/workspace/registerCommands.ts": {
+      "owner": "engines",
+      "layer": "engines",
+      "purpose": "Load-time side-effect module that registers all 7 storage.* and 7 workspace.* commands with core/runtime/engine.ts's registerCommand() (the same mechanism engines/business.ts uses), making them actually invocable through executeCommand() — before this file, these 14 commands existed only as JSON documentation plus HTTP routes.",
+      "purpose_th": "โมดูลที่มี side-effect ตอนโหลด — ลงทะเบียนคำสั่ง storage.* 7 ตัวและ workspace.* 7 ตัว กับ registerCommand() ของ core/runtime/engine.ts (กลไกเดียวกับที่ engines/business.ts ใช้) ทำให้เรียกใช้ผ่าน executeCommand() ได้จริง — ก่อนหน้าไฟล์นี้คำสั่งทั้ง 14 ตัวมีแค่เอกสาร JSON และ HTTP route เท่านั้น",
+      "exports": [
+        "STORAGE_WORKSPACE_COMMANDS_REGISTERED"
+      ],
+      "status": "active"
+    },
+    "local-runtime/file-existence-acceptance-test.ts": {
+      "owner": "local-runtime",
+      "layer": "local-runtime",
+      "purpose": "8-scenario real acceptance test for File Existence Intelligence & Recovery, operating only inside the gitignored .dna-os/test-scratch/ scratch directory with zero rm/unlink calls — verifies new-file registration+snapshot, exact-duplicate vs content-diverged classification (never filename-only), snapshot restore, the destructive-action gate blocking unsnapshotted/untokened/cross-session deletes, and a missing-registered-path check; cleanup always moves scratch files to ~/.Trash via moveToTrash(), never deletes them.",
+      "purpose_th": "การทดสอบ acceptance แบบจริง 8 สถานการณ์สำหรับ File Existence Intelligence & Recovery ทำงานเฉพาะในโฟลเดอร์ทดสอบ .dna-os/test-scratch/ (gitignored) และไม่มีการเรียก rm/unlink เลย — ตรวจสอบการลงทะเบียนไฟล์ใหม่+snapshot, การจำแนกไฟล์ซ้ำแบบ exact กับแบบเนื้อหาต่างกัน (ไม่ใช้ชื่อไฟล์อย่างเดียว), การ restore จาก snapshot, การบล็อกของ destructive-action gate เมื่อไม่มี snapshot/ไม่มี token/ข้าม session, และการตรวจ path ที่ registry ระบุไว้แต่ไม่มีไฟล์จริง — ขั้นตอนล้างข้อมูลย้ายไฟล์ scratch ไปยัง ~/.Trash ผ่าน moveToTrash() เสมอ ไม่มีการลบจริง",
+      "exports": [
+        "A",
+        "NEW",
+        "OWNED",
+        "T",
+        "V",
+        "Widget",
+        "X"
+      ],
+      "status": "active",
+      "entry_point": true
+    },
+    "services/ai-connection/resourceConfig.ts": {
+      "owner": "services",
+      "layer": "services",
+      "purpose": "Single source of truth for the app's own origin (appOrigin(), from AI_CONNECTION_APP_ORIGIN or NEXT_PUBLIC_APP_URL) and the canonical MCP resource URI (canonicalMcpResourceUri(), `${origin}/api/v1/query`) that RFC 8707's resource parameter must match exactly — every OAuth route reads from here rather than hardcoding a second copy.",
+      "purpose_th": "แหล่งความจริงเดียวสำหรับ origin ของแอป (appOrigin() จาก AI_CONNECTION_APP_ORIGIN หรือ NEXT_PUBLIC_APP_URL) และ canonical MCP resource URI (canonicalMcpResourceUri(), `${origin}/api/v1/query`) ที่พารามิเตอร์ resource ตาม RFC 8707 ต้องตรงกันเป๊ะ — ทุก OAuth route อ่านค่าจากที่นี่แทนการ hardcode ซ้ำ",
+      "exports": [
+        "appOrigin",
+        "canonicalMcpResourceUri"
+      ],
+      "status": "active"
+    },
+    "services/ai-connection/oauth.ts": {
+      "owner": "services",
+      "layer": "services",
+      "purpose": "Core OAuth 2.1 logic (RFC 8414/9728/7591/8707) for AI Connection Stage 2: registerClient()/validateRedirectUri() for dynamic registration, verifyPkce() for PKCE, createAuthorizationCode()/exchangeAuthorizationCode() for the code flow (single-use enforced via a consumed_at race-safe update), issueTokenPair() signing stateless HS256 JWT access tokens via jose, and refreshTokenGrant() implementing rotation with theft-detection that revokes the whole token family on reuse.",
+      "purpose_th": "ตรรกะหลักของ OAuth 2.1 (RFC 8414/9728/7591/8707) สำหรับ AI Connection Stage 2 — registerClient()/validateRedirectUri() สำหรับลงทะเบียน client แบบ dynamic, verifyPkce() สำหรับ PKCE, createAuthorizationCode()/exchangeAuthorizationCode() สำหรับ code flow (บังคับใช้ครั้งเดียวผ่านการ update consumed_at แบบกัน race), issueTokenPair() เซ็น access token เป็น JWT (HS256) แบบ stateless ด้วย jose, และ refreshTokenGrant() implement การหมุนเวียน token พร้อมตรวจจับการขโมย (reuse) ที่จะเพิกถอนทั้ง family เมื่อพบการใช้ซ้ำ",
+      "exports": [
+        "CreateAuthorizationCodeInput",
+        "OAuthError",
+        "RegisteredClient",
+        "TokenPair",
+        "VerifiedToken",
+        "createAuthorizationCode",
+        "exchangeAuthorizationCode",
+        "refreshTokenGrant",
+        "registerClient",
+        "validateRedirectUri",
+        "verifyAccessToken",
+        "verifyPkce"
+      ],
+      "status": "active"
+    },
+    "engines/workspace/snapshotStore.ts": {
+      "owner": "engines",
+      "layer": "engines",
+      "purpose": "Content-addressed snapshot store — createSnapshot() sha256-hashes content, writes it to .dna-os/snapshots/<hash>/content on disk (metadata to file_snapshots table), but if contentLooksLikeSecret() matches the shared forbidden-hardcode-patterns.json, content is never written to disk (is_secret=true, storage_path is a placeholder) while the metadata record itself is still kept for audit; restoreSnapshot() reads content back by hash and refuses for secret-flagged snapshots.",
+      "purpose_th": "ที่เก็บ snapshot แบบ content-addressed — createSnapshot() คำนวณ sha256 ของเนื้อหา เขียนลงดิสก์ที่ .dna-os/snapshots/<hash>/content (metadata เก็บในตาราง file_snapshots) แต่ถ้า contentLooksLikeSecret() ตรงกับ forbidden-hardcode-patterns.json ที่ใช้ร่วมกัน จะไม่เขียนเนื้อหาลงดิสก์เลย (is_secret=true, storage_path เป็นค่าจำลอง) แต่ยังคง record metadata ไว้เพื่อ audit; restoreSnapshot() อ่านเนื้อหากลับตาม hash และปฏิเสธ snapshot ที่ถูกทำเครื่องหมายเป็น secret",
+      "exports": [
+        "CreateSnapshotOpts",
+        "contentLooksLikeSecret",
+        "createSnapshot",
+        "restoreSnapshot",
+        "snapshotExistsOnDisk"
+      ],
+      "status": "active"
+    },
+    "engines/workspace/registerFileCommands.ts": {
+      "owner": "engines",
+      "layer": "engines",
+      "purpose": "Registers 6 file.* commands (inspect/snapshot/delete.preview/delete.execute/restore/find_duplicates) as Runtime-callable commands via the same registerCommand() load-time side-effect pattern; honestly notes that file.reconstruct/file.compare/file.find_owner remain declared in command-registry.json but NOT implemented in this pass.",
+      "purpose_th": "ลงทะเบียนคำสั่ง file.* 6 ตัว (inspect/snapshot/delete.preview/delete.execute/restore/find_duplicates) เป็น Runtime-callable command ผ่าน registerCommand() แบบ side-effect ตอนโหลดเดียวกัน — ระบุตรงไปตรงมาว่า file.reconstruct/file.compare/file.find_owner ยังประกาศไว้ใน command-registry.json แต่ยังไม่ implement ในรอบนี้",
+      "exports": [
+        "FILE_COMMANDS_REGISTERED"
+      ],
+      "status": "active"
+    },
+    "engines/workspace/fileExistenceRegistry.ts": {
+      "owner": "engines",
+      "layer": "engines",
+      "purpose": "Real per-file existence state derived from git (getGitState via `git ls-files`/`check-ignore`/`status --porcelain`), registration (getRegistrationState cross-checked against the real registry/module-registry.json), and content (hashFile/classifyDuplicate — filename patterns alone never classify something as junk, always requiring a real sha256 comparison against a canonical sibling via findCanonicalSibling()); registerFile() upserts the composite record into file_existence_registry and dispatches FILE_REGISTERED/FILE_UNCLASSIFIED/FILE_DUPLICATE_DETECTED events.",
+      "purpose_th": "สถานะจริงของแต่ละไฟล์ ได้มาจาก git (getGitState ผ่าน `git ls-files`/`check-ignore`/`status --porcelain`), การลงทะเบียน (getRegistrationState เทียบกับ registry/module-registry.json จริง) และเนื้อหา (hashFile/classifyDuplicate — รูปแบบชื่อไฟล์อย่างเดียวไม่เพียงพอที่จะจัดว่าเป็นขยะ ต้องเทียบ sha256 จริงกับไฟล์พี่น้องที่ canonical ผ่าน findCanonicalSibling() เสมอ); registerFile() upsert ข้อมูลรวมลงตาราง file_existence_registry และยิง event FILE_REGISTERED/FILE_UNCLASSIFIED/FILE_DUPLICATE_DETECTED",
+      "exports": [
+        "classifyDuplicate",
+        "findCanonicalSibling",
+        "getGitState",
+        "getRegistrationState",
+        "hasSuspiciousName",
+        "hashFile",
+        "registerFile",
+        "scanForNewFiles"
+      ],
+      "status": "active"
+    },
+    "engines/workspace/destructiveActionGate.ts": {
+      "owner": "engines",
+      "layer": "engines",
+      "purpose": "The gate every rm/trash/overwrite/rename-over/dedup action is meant to route through, built after a real incident where `rm -f` permanently lost a file mid-session. previewDestructiveAction() checks session-lock ownership, git recovery state (untracked/ignored both count as no-recovery), a real snapshot, and real import-dependents to compute blockers+risk_level; executeDestructiveAction() refuses without an ≥8-char confirmation token and zero blockers, always snapshots before mutation, and always moves via moveToTrash() — never a real rm — regardless of the requested action.",
+      "purpose_th": "ประตูตรวจสอบที่ทุกการกระทำแบบทำลาย (rm/trash/overwrite/rename-over/dedup) ควรผ่าน สร้างขึ้นหลังเหตุการณ์จริงที่ `rm -f` ทำให้ไฟล์หายถาวรกลางเซสชัน — previewDestructiveAction() ตรวจสอบความเป็นเจ้าของ session lock, สถานะการกู้คืนจาก git (untracked และ ignored นับเป็นกู้คืนไม่ได้ทั้งคู่), snapshot จริง และ dependents ที่ import จริง เพื่อคำนวณ blockers+risk_level; executeDestructiveAction() ปฏิเสธหากไม่มี confirmation token ยาว ≥8 ตัวอักษรหรือยังมี blockers, สร้าง snapshot ก่อนแก้ไขเสมอ และย้ายผ่าน moveToTrash() เท่านั้น — ไม่มีการ rm จริง ไม่ว่า action ที่ขอจะเป็นอะไร",
+      "exports": [
+        "executeDestructiveAction",
+        "previewDestructiveAction"
+      ],
+      "status": "active"
+    },
+    "app/oauth/token/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "OAuth token endpoint handling both authorization_code (PKCE) and refresh_token grants via services/ai-connection/oauth.ts's exchangeAuthorizationCode()/refreshTokenGrant(), returning JSON error codes for OAuthError instances and a generic server_error for anything else so internal error detail never leaks.",
+      "purpose_th": "Endpoint token ของ OAuth รองรับทั้ง grant แบบ authorization_code (PKCE) และ refresh_token ผ่าน exchangeAuthorizationCode()/refreshTokenGrant() ใน services/ai-connection/oauth.ts คืน error code เป็น JSON เมื่อเจอ OAuthError และคืน server_error ทั่วไปสำหรับข้อผิดพลาดอื่นเพื่อไม่ให้รายละเอียด internal รั่วไหล",
+      "exports": [
+        "POST"
+      ],
+      "status": "active"
+    },
+    "app/oauth/register/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "RFC 7591 Dynamic Client Registration endpoint — public POST that validates client_name and redirect_uris, calls registerClient(), and returns client_id with token_endpoint_auth_method 'none'; registration alone grants no token access, an admin must still approve via /oauth/authorize.",
+      "purpose_th": "Endpoint RFC 7591 Dynamic Client Registration — POST แบบสาธารณะ ตรวจสอบ client_name และ redirect_uris เรียก registerClient() แล้วคืน client_id พร้อม token_endpoint_auth_method เป็น 'none' — การลงทะเบียนอย่างเดียวไม่ได้สิทธิ์เข้าถึง token ต้องรอ admin อนุมัติผ่าน /oauth/authorize ก่อน",
+      "exports": [
+        "POST"
+      ],
+      "status": "active"
+    },
+    "app/oauth/authorize/page.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Server-rendered OAuth authorize page gated by requireAuthPage(ADMIN_TIER) — validates client_id/redirect_uri/code_challenge_method=S256/resource, looks up the client's display name from oauth_clients, and renders a Thai-language approve/deny form posting to /api/oauth/authorize; it never mints an authorization code itself.",
+      "purpose_th": "หน้า OAuth authorize (server component) ที่ป้องกันด้วย requireAuthPage(ADMIN_TIER) — ตรวจสอบ client_id/redirect_uri/code_challenge_method=S256/resource, ดึงชื่อ client จากตาราง oauth_clients แล้วแสดงฟอร์มอนุมัติ/ปฏิเสธภาษาไทยที่ POST ไปยัง /api/oauth/authorize — หน้านี้ไม่สร้าง authorization code เอง",
+      "exports": [
+        "AuthorizePage"
+      ],
+      "status": "active"
+    },
+    "app/api/oauth/authorize/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "POST handler behind the OAuth approve/deny form — re-validates client_id/redirect_uri/code_challenge/resource server-side under requireAuth(ADMIN_TIER) regardless of what the form claims, and on approval calls createAuthorizationCode() then redirects with the code; denial or invalid resource redirects with an error param.",
+      "purpose_th": "Handler POST เบื้องหลังฟอร์มอนุมัติ/ปฏิเสธ OAuth — ตรวจสอบ client_id/redirect_uri/code_challenge/resource ใหม่ฝั่งเซิร์ฟเวอร์ภายใต้ requireAuth(ADMIN_TIER) โดยไม่เชื่อค่าจากฟอร์ม เมื่ออนุมัติจะเรียก createAuthorizationCode() แล้ว redirect พร้อม code หากปฏิเสธหรือ resource ไม่ถูกต้องจะ redirect พร้อม error",
+      "exports": [
+        "POST"
+      ],
+      "status": "active"
+    },
+    "engines/workspace/selfDescription.ts": {
+      "owner": "engines",
+      "layer": "engines",
+      "purpose": "SDRN-P1 Self Description Interface exporting 3 functions — describeWorkspaceLockManager(), describeFileExistenceIntelligence(), describeArchitectureDriftDetector() — each computing identity/capabilities/health from live registry reads and honestly stating real gaps (e.g. no Capability→Orchestrator chain exists, file.reconstruct not implemented, and the 2026-08-04 folder-rename incident that broke 4 LaunchAgents + 18 scripts).",
+      "purpose_th": "Self Description Interface (SDRN-P1) export ฟังก์ชัน 3 ตัว — describeWorkspaceLockManager(), describeFileExistenceIntelligence(), describeArchitectureDriftDetector() — แต่ละตัวคำนวณ identity/capabilities/health จากการอ่าน registry แบบสด และระบุช่องว่างจริงตรงไปตรงมา (เช่น ยังไม่มี Capability→Orchestrator chain, file.reconstruct ยังไม่ implement, และเหตุการณ์เปลี่ยนชื่อโฟลเดอร์เมื่อ 2026-08-04 ที่ทำให้ LaunchAgent 4 ตัวและสคริปต์ 18 ตัวพัง)",
+      "exports": [
+        "describeArchitectureDriftDetector",
+        "describeFileExistenceIntelligence",
+        "describeWorkspaceLockManager"
+      ],
+      "status": "active"
+    },
+    "engines/storage/selfDescription.ts": {
+      "owner": "engines",
+      "layer": "engines",
+      "purpose": "SDRN-P1 Self Description Interface for engines/storage/engine.ts — computes identity/capabilities/runtimeConnection/health from live reads of registry/module-registry.json, architecture-book.json, and capability-roadmap.json, honestly reporting that the module is only reachable via HTTP and Runtime commands (no Capability→Orchestrator chain exists yet for any capability).",
+      "purpose_th": "Self Description Interface (SDRN-P1) สำหรับ engines/storage/engine.ts — คำนวณ identity/capabilities/runtimeConnection/health จากการอ่าน registry/module-registry.json, architecture-book.json และ capability-roadmap.json แบบสด รายงานตรงไปตรงมาว่าโมดูลนี้เข้าถึงได้ผ่าน HTTP และ Runtime commands เท่านั้น (ยังไม่มี Capability→Orchestrator chain สำหรับ capability ใดเลย)",
+      "exports": [
+        "describeStorageIntelligence"
+      ],
+      "status": "active"
+    },
+    "engines/workspace/evidenceStore.ts": {
+      "owner": "engines",
+      "layer": "engines",
+      "purpose": "Dev Loop Pipeline: logs every file add/change/unlink the watcher sees into dev_loop_evidence_events (content hash + git diff --stat summary), tied to a dev-loop session.",
+      "purpose_th": "Dev Loop Pipeline: บันทึกทุกการ add/change/unlink ที่ watcher เจอลง dev_loop_evidence_events (content hash + สรุป git diff --stat) ผูกกับ session",
+      "exports": [
+        "diffSummary",
+        "logEvidenceEvent"
+      ],
+      "status": "active",
+      "declared_callers": [
+        "scripts/watch-registry.ts"
+      ]
+    },
+    "engines/workspace/devLoopSession.ts": {
+      "owner": "engines",
+      "layer": "engines",
+      "purpose": "Dev Loop Pipeline: starts/closes one dev_loop_sessions row per local watcher run (npm run watch), so every evidence event/check result/registry proposal is tied to who owns a change and whether it's still open.",
+      "purpose_th": "Dev Loop Pipeline: เปิด/ปิด session ใน dev_loop_sessions หนึ่งแถวต่อการรัน watcher หนึ่งครั้ง (npm run watch) เพื่อให้ evidence/ผลตรวจ/ข้อเสนอ registry ทุกอันผูกกับเจ้าของและสถานะ session",
+      "exports": [
+        "DevLoopSession",
+        "closeSession",
+        "startSession"
+      ],
+      "status": "active",
+      "declared_callers": [
+        "scripts/watch-registry.ts"
+      ]
+    },
+    "app/admin/dev-loop/page.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Dev Loop Pipeline dashboard route (/admin/dev-loop) — gates access via requireAuthPage(ADMIN_TIER), renders DevLoopDashboard.",
+      "purpose_th": "หน้า dashboard ของ Dev Loop Pipeline (/admin/dev-loop) — ตรวจสิทธิ์ด้วย requireAuthPage(ADMIN_TIER) แล้ว render DevLoopDashboard",
+      "exports": [
+        "DevLoopPage"
+      ],
+      "status": "active"
+    },
+    "app/admin/dev-loop/DevLoopDashboard.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Realtime client component: subscribes to dev_loop_evidence_events/check_results/registry_proposals via Supabase Realtime (postgres_changes) and shows changed files, Impact Analyzer verdicts, and pending registry proposals with Approve/Reject buttons.",
+      "purpose_th": "Client component แบบ realtime: subscribe dev_loop_evidence_events/check_results/registry_proposals ผ่าน Supabase Realtime แสดงไฟล์ที่เปลี่ยน ผลตรวจ Impact Analyzer และข้อเสนอ registry พร้อมปุ่มอนุมัติ/ปฏิเสธ",
+      "exports": [
+        "DevLoopDashboard"
+      ],
+      "status": "active"
+    },
+    "app/api/admin/dev-loop/approve/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "POST /api/admin/dev-loop/approve — the only writer of dev_loop_registry_proposals.status (approved/rejected), auth-gated via requireAuth(ADMIN_TIER). Never applies the patch to module-registry.json itself.",
+      "purpose_th": "POST /api/admin/dev-loop/approve — จุดเดียวที่เขียน dev_loop_registry_proposals.status (approved/rejected) ตรวจสิทธิ์ด้วย requireAuth(ADMIN_TIER) ไม่เคยเขียน patch ลง module-registry.json เอง",
+      "exports": [
+        "POST"
+      ],
+      "status": "active"
+    },
+    "scripts/verification/dev-loop-e2e-harness.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "Isolated proof script for the Dev Loop pipeline using an in-memory MemoryDb adapter (no Supabase, no real registries) — exercises startSession()/logEvidenceEvent() from engines/workspace/, a local fixture impact-analysis function, and a fake pending registry proposal, then asserts the real registry file was never touched and Deploy Gate source contains the expected wiring strings; prints a PASS/FAIL JSON report. Run via `npx tsx scripts/verification/dev-loop-e2e-harness.ts`.",
+      "purpose_th": "สคริปต์พิสูจน์ Dev Loop pipeline แบบแยกตัว (isolated) ใช้ MemoryDb adapter ในหน่วยความจำ (ไม่แตะ Supabase หรือ registry จริง) — ทดสอบ startSession()/logEvidenceEvent() จาก engines/workspace/, ฟังก์ชันวิเคราะห์ผลกระทบจาก fixture ในเครื่อง, และข้อเสนอ registry แบบ pending จำลอง จากนั้นยืนยันว่าไฟล์ registry จริงไม่ถูกแตะต้องและซอร์ส Deploy Gate มี wiring ที่คาดไว้ พิมพ์รายงาน PASS/FAIL เป็น JSON — รันด้วย `npx tsx scripts/verification/dev-loop-e2e-harness.ts`",
+      "exports": [
+        "fixture"
+      ],
+      "status": "active"
+    },
+    "engines/integration-gateway/selfDescription.ts": {
+      "owner": "engines",
+      "layer": "engines",
+      "purpose": "Integration Gateway: real, hand-maintained record of which adapters/channels exist and are enabled today — read by the Control Environment page instead of the UI hardcoding its own copy.",
+      "purpose_th": "Integration Gateway: ข้อมูลจริงที่เขียนด้วยมือว่ามี adapter/channel อะไรและเปิดใช้อยู่ตอนนี้ — หน้า Control Environment เรียกอันนี้แทนที่จะ hardcode logic ไว้เอง",
+      "exports": [
+        "ADAPTERS",
+        "AdapterDescription",
+        "CHANNELS",
+        "describeGateway"
+      ],
+      "status": "active",
+      "declared_callers": [],
+      "entry_point": true
+    },
+    "engines/integration-gateway/policy/gate.ts": {
+      "owner": "engines",
+      "layer": "engines",
+      "purpose": "Integration Gateway: the real switch for which channels (observe/propose/execute) are enabled — event-bus/bus.ts checks this before every publish. Only 'observe' is enabled until Proposal/Execution are built.",
+      "purpose_th": "Integration Gateway: สวิตช์จริงว่า channel ไหน (observe/propose/execute) เปิดใช้อยู่ — event-bus/bus.ts เช็คก่อน publish ทุกครั้ง ตอนนี้เปิดแค่ observe",
+      "exports": [
+        "canExecute",
+        "channelIsEnabled"
+      ],
+      "status": "active",
+      "declared_callers": [
+        "engines/integration-gateway/event-bus/bus.ts"
+      ]
+    },
+    "engines/integration-gateway/adapters/vercel.ts": {
+      "owner": "engines",
+      "layer": "engines",
+      "purpose": "Integration Gateway: normalizes real Vercel deployment webhook payloads into GatewayEvent (Observe Channel only), plus HMAC-SHA1 signature verification for the ingress route.",
+      "purpose_th": "Integration Gateway: แปลง Vercel deployment webhook payload จริงเป็น GatewayEvent (Observe Channel เท่านั้น) พร้อมตรวจ signature HMAC-SHA1 ให้ ingress route",
+      "exports": [
+        "normalizeVercelWebhook",
+        "verifyVercelSignature"
+      ],
+      "status": "active",
+      "declared_callers": [
+        "app/api/gateway/observe/vercel/route.ts"
+      ]
+    },
+    "engines/integration-gateway/adapters/supabase.ts": {
+      "owner": "engines",
+      "layer": "engines",
+      "purpose": "Integration Gateway: poll-based Supabase adapter (no single webhook exists) — real health check + on-disk migration listing, normalized into GatewayEvent (Observe Channel only). Called by scripts/gateway-observe-supabase.ts.",
+      "purpose_th": "Integration Gateway: adapter แบบ poll สำหรับ Supabase (ไม่มี webhook เดียวให้ใช้) — เช็ค health จริง + list migration บนดิสก์ แปลงเป็น GatewayEvent (Observe เท่านั้น) เรียกจาก scripts/gateway-observe-supabase.ts",
+      "exports": [
+        "observeMigrationState",
+        "observeSupabaseHealth"
+      ],
+      "status": "active",
+      "declared_callers": [
+        "scripts/gateway-observe-supabase.ts"
+      ]
+    },
+    "engines/integration-gateway/adapters/github.ts": {
+      "owner": "engines",
+      "layer": "engines",
+      "purpose": "Integration Gateway: normalizes real GitHub webhook payloads (push/pull_request/workflow_run) into GatewayEvent (Observe Channel only), plus HMAC-SHA256 signature verification for the ingress route.",
+      "purpose_th": "Integration Gateway: แปลง GitHub webhook payload จริง (push/pull_request/workflow_run) เป็น GatewayEvent (Observe Channel เท่านั้น) พร้อมตรวจ signature HMAC-SHA256 ให้ ingress route",
+      "exports": [
+        "normalizeGithubWebhook",
+        "verifyGithubSignature"
+      ],
+      "status": "active",
+      "declared_callers": [
+        "app/api/gateway/observe/github/route.ts"
+      ]
+    },
+    "engines/integration-gateway/contracts/event.ts": {
+      "owner": "engines",
+      "layer": "engines",
+      "purpose": "Integration Gateway: the canonical GatewayEvent contract every provider adapter must translate into before anything reaches DNA OS Core — the shared language across GitHub/Supabase/Vercel/VS Code/ChatGPT MCP.",
+      "purpose_th": "Integration Gateway: สัญญากลาง GatewayEvent ที่ทุก provider adapter ต้องแปลงข้อมูลเข้ามาก่อนถึง DNA OS Core — ภาษากลางของ GitHub/Supabase/Vercel/VS Code/ChatGPT MCP",
+      "exports": [
+        "GatewayCapability",
+        "GatewayChannel",
+        "GatewayEvent",
+        "GatewayProvider",
+        "isGatewayEvent"
+      ],
+      "status": "active",
+      "declared_callers": []
+    },
+    "engines/integration-gateway/event-bus/bus.ts": {
+      "owner": "engines",
+      "layer": "engines",
+      "purpose": "Integration Gateway: the single door between Provider Adapters and DNA OS Core — dispatches every GatewayEvent in-process (core/runtime/engine.dispatchEvent) and durably (evidence/store.ts), after checking policy/gate.ts allows the channel.",
+      "purpose_th": "Integration Gateway: ประตูเดียวระหว่าง Provider Adapter กับ DNA OS Core — ส่งทุก GatewayEvent เข้า runtime (dispatchEvent) และบันทึกถาวร (evidence/store.ts) หลังเช็ค policy/gate.ts ว่า channel เปิดอยู่",
+      "exports": [
+        "PublishResult",
+        "publish"
+      ],
+      "status": "active",
+      "declared_callers": [
+        "app/api/gateway/observe/github/route.ts",
+        "app/api/gateway/observe/vercel/route.ts",
+        "scripts/gateway-observe-supabase.ts"
+      ]
+    },
+    "engines/integration-gateway/evidence/store.ts": {
+      "owner": "engines",
+      "layer": "engines",
+      "purpose": "Integration Gateway: the one place that writes/reads integration_gateway_events — adapters never talk to Supabase directly, only through event-bus/bus.ts calling this.",
+      "purpose_th": "Integration Gateway: จุดเดียวที่เขียน/อ่าน integration_gateway_events — adapter ไม่คุยกับ Supabase ตรงๆ ต้องผ่าน event-bus/bus.ts เรียกอันนี้",
+      "exports": [
+        "recentGatewayEvents",
+        "recordGatewayEvent"
+      ],
+      "status": "active",
+      "declared_callers": [
+        "engines/integration-gateway/event-bus/bus.ts"
+      ]
+    },
+    "app/api/gateway/observe/github/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "POST /api/gateway/observe/github — GitHub webhook ingress for the Integration Gateway Observe Channel. No requireAuth (GitHub is the caller); authenticity via HMAC signature instead.",
+      "purpose_th": "POST /api/gateway/observe/github — ทางเข้า webhook ของ GitHub สำหรับ Integration Gateway Observe Channel ไม่ใช้ requireAuth (GitHub เป็นผู้เรียก) ตรวจสอบตัวตนด้วย HMAC signature แทน",
+      "exports": [
+        "POST"
+      ],
+      "status": "active"
+    },
+    "app/api/gateway/observe/vercel/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "POST /api/gateway/observe/vercel — Vercel deployment webhook ingress for the Integration Gateway Observe Channel. No requireAuth (Vercel is the caller); authenticity via HMAC signature instead.",
+      "purpose_th": "POST /api/gateway/observe/vercel — ทางเข้า webhook ของ Vercel สำหรับ Integration Gateway Observe Channel ไม่ใช้ requireAuth (Vercel เป็นผู้เรียก) ตรวจสอบตัวตนด้วย HMAC signature แทน",
+      "exports": [
+        "POST"
+      ],
+      "status": "active"
+    },
+    "scripts/verification/real-dev-loop-integration.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "Bounded real-Supabase integration test for the dev-loop pipeline — loads .env.local, calls the real startSession()/logEvidenceEvent(), shells out to the real scripts/impact-analyzer.ts via execFileSync, then asserts a dev_loop_check_results row and a linked dev_loop_registry_proposals row exist with correct session/path linkage; writes only test rows to dev_loop_* tables, never registry/*.json, never calls Deploy Gate, git, or any AI runtime, and closes the session + removes its temp fixture in a finally block.",
+      "purpose_th": "การทดสอบ integration แบบมีขอบเขตกับ Supabase จริง สำหรับ dev-loop pipeline — โหลด .env.local เรียก startSession()/logEvidenceEvent() จริง เรียก scripts/impact-analyzer.ts จริงผ่าน execFileSync จากนั้นยืนยันว่ามีแถว dev_loop_check_results และ dev_loop_registry_proposals ที่เชื่อมโยง session/path ถูกต้อง เขียนเฉพาะแถวทดสอบลงตาราง dev_loop_* เท่านั้น ไม่แตะ registry/*.json ไม่เรียก Deploy Gate, git หรือ AI runtime ใดๆ และปิด session พร้อมลบไฟล์ fixture ชั่วคราวใน finally block",
+      "exports": [
+        "realIntegrationFixture"
+      ],
+      "status": "active"
+    },
+    "dna-os-mcp-server/src/governanceServer.ts": {
+      "owner": "dna-os-mcp-server",
+      "layer": "dna-os-mcp-server",
+      "purpose": "Builds the MCP Server instance exposing 5 governance tools (governance.read_status, governance.propose_session, governance.propose_registry_patch, governance.read_impact, governance.read_deploy_approval_status) that proxy 1:1 to the /api/v1/mcp/governance/* HTTP routes via governanceHttp.ts, returning tool results as JSON text content or an isError block on failure.",
+      "purpose_th": "สร้าง instance ของ MCP Server ที่ expose 5 governance tools (governance.read_status, governance.propose_session, governance.propose_registry_patch, governance.read_impact, governance.read_deploy_approval_status) ซึ่ง proxy ไปยัง HTTP route /api/v1/mcp/governance/* แบบ 1:1 ผ่าน governanceHttp.ts คืนผลลัพธ์เป็น JSON text content หรือ isError block เมื่อล้มเหลว",
+      "exports": [
+        "createGovernanceMcpServer"
+      ],
+      "status": "active",
+      "entry_point": true
+    },
+    "dna-os-mcp-server/src/governanceHttp.ts": {
+      "owner": "dna-os-mcp-server",
+      "layer": "dna-os-mcp-server",
+      "purpose": "Thin fetch wrapper for the MCP server's governance tools — request() attaches X-DNA-Token from DnaOsConfig.apiToken, throws if the token is missing or the response is non-OK (surfacing the server's own error string), and governanceGet()/governancePost() are the two exported convenience callers.",
+      "purpose_th": "Wrapper fetch แบบบางๆ สำหรับ governance tools ของ MCP server — request() แนบ header X-DNA-Token จาก DnaOsConfig.apiToken โยน error ถ้าไม่มี token หรือ response ไม่ ok (ส่งต่อข้อความ error จากเซิร์ฟเวอร์) governanceGet()/governancePost() เป็นฟังก์ชันเรียกใช้สะดวก 2 ตัวที่ export ออกมา",
+      "exports": [
+        "GovernanceResult",
+        "governanceGet",
+        "governancePost"
+      ],
+      "status": "active",
+      "entry_point": true
+    },
+    "app/api/v1/_lib/envelope.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "A one-line compatibility re-export shim — re-exports mcpEnvelope and mcpCorsHeaders from the canonical app/api/v1/mcp/_lib/envelope.ts so the nested governance/impact/[evidenceEventId] route's relative import path resolves correctly.",
+      "purpose_th": "ไฟล์ shim สำหรับ re-export บรรทัดเดียว — re-export mcpEnvelope และ mcpCorsHeaders จากไฟล์หลัก app/api/v1/mcp/_lib/envelope.ts เพื่อให้ relative import ของ route governance/impact/[evidenceEventId] ที่ซ้อนลึกทำงานได้ถูกต้อง",
+      "exports": [
+        "mcpCorsHeaders",
+        "mcpEnvelope"
+      ],
+      "status": "active"
+    },
+    "app/api/v1/mcp/governance/status/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "GET route aggregating the 20 most recent dev_loop_sessions, 50 most recent evidence events, 50 most recent check results, and 50 most recent registry proposals into one mcpEnvelope with human_approval_required=true — the main read surface for MCP governance clients.",
+      "purpose_th": "Route GET รวบรวม dev_loop_sessions ล่าสุด 20 รายการ, evidence events ล่าสุด 50 รายการ, check results ล่าสุด 50 รายการ และ registry proposals ล่าสุด 50 รายการเข้าเป็น mcpEnvelope เดียวพร้อม human_approval_required=true — เป็นจุดอ่านข้อมูลหลักสำหรับ MCP governance client",
+      "exports": [
+        "GET"
+      ],
+      "status": "active"
+    },
+    "app/api/v1/mcp/governance/session-proposals/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "POST route creating a new dev_loop_sessions row bound to the caller's authenticated email as owner (from goal + file_scope, max 100 paths) — requires governance:propose scope, returns 201 with approval_required=true and a note that evidence is required before any registry proposal.",
+      "purpose_th": "Route POST สร้างแถว dev_loop_sessions ใหม่ ผูก owner เป็นอีเมลของผู้เรียกที่ยืนยันตัวตนแล้ว (จาก goal + file_scope สูงสุด 100 path) — ต้องมี scope governance:propose คืน 201 พร้อม approval_required=true และหมายเหตุว่าต้องมี evidence ก่อนจะเสนอ registry ได้",
+      "exports": [
+        "POST"
+      ],
+      "status": "active"
+    },
+    "app/api/v1/mcp/governance/registry-proposals/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "POST route creating a pending dev_loop_registry_proposals row — requires governance:propose scope, validates the session/evidence/check chain (ownership, open status, linkage) and rejects a proposal path outside module-registry.json or one linked to a passing check, returning 201 with approval_required=true; never writes the real registry itself.",
+      "purpose_th": "Route POST สร้างแถวข้อเสนอ dev_loop_registry_proposals แบบ pending — ต้องมี scope governance:propose ตรวจสอบความเชื่อมโยง session/evidence/check (ความเป็นเจ้าของ, สถานะ open, ความสัมพันธ์) และปฏิเสธหาก path ไม่ใช่ module-registry.json หรือเชื่อมกับผลตรวจที่ pass แล้ว คืน 201 พร้อม approval_required=true — ไม่มีการเขียน registry จริงจากไฟล์นี้",
+      "exports": [
+        "POST"
+      ],
+      "status": "active"
+    },
+    "app/api/v1/mcp/governance/deploy-approval-status/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "GET route reporting deploy-blocking evidence — queries dev_loop_registry_proposals (status=pending) and dev_loop_check_results (result=fail), wraps them in an mcpEnvelope with human_owner_approval_required=true and deploy_executed=false; it never deploys or approves anything itself.",
+      "purpose_th": "Route GET รายงานหลักฐานที่บล็อกการ deploy — query dev_loop_registry_proposals (status=pending) และ dev_loop_check_results (result=fail) ห่อด้วย mcpEnvelope พร้อม human_owner_approval_required=true และ deploy_executed=false — ไม่มีการ deploy หรืออนุมัติใดๆ จากไฟล์นี้เอง",
+      "exports": [
+        "GET"
+      ],
+      "status": "active"
+    },
+    "app/api/v1/mcp/governance/_lib/auth.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Shared authenticate() helper for all MCP governance routes — reads the X-DNA-Token header, validates it via validateApiToken(), and enforces scope (read requires read/governance:read/governance:propose; governance:propose requires exactly that scope), returning either the token+serviceClient or a 401/403 NextResponse.",
+      "purpose_th": "ฟังก์ชัน authenticate() ที่ใช้ร่วมกันในทุก route ของ MCP governance — อ่าน header X-DNA-Token ตรวจสอบผ่าน validateApiToken() และบังคับ scope (read ต้องมี read/governance:read/governance:propose อย่างใดอย่างหนึ่ง, governance:propose ต้องมี scope นั้นตรงๆ) คืนค่า token+serviceClient หรือ NextResponse แบบ 401/403",
+      "exports": [
+        "authenticate"
+      ],
+      "status": "active"
+    },
+    "app/api/v1/mcp/governance/impact/[evidenceEventId]/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "GET route returning one evidence event (dev_loop_evidence_events) plus every linked dev_loop_check_results row for it, wrapped in an mcpEnvelope with human_approval_required=true — 404s if the evidence event id doesn't exist.",
+      "purpose_th": "Route GET คืนข้อมูล evidence event หนึ่งรายการ (dev_loop_evidence_events) พร้อมผลตรวจ dev_loop_check_results ที่เชื่อมโยงทั้งหมด ห่อด้วย mcpEnvelope พร้อม human_approval_required=true — คืน 404 หาก evidence_event_id ไม่มีอยู่จริง",
+      "exports": [
+        "GET"
+      ],
+      "status": "active"
+    },
+    "app/OperationalWorkspace.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Owner Control Center client UI (Root Domain UI Conversion, 2026-08-05) — real Runtime/Registry/Gateway/Database/Connectors/Workers/Deployment/System Health/Costs status, no marketing copy. Database + Costs are live via Supabase Realtime; everything else reads registry JSON snapshotted at build time. Rendered by app/page.tsx after requireAuthPage.",
+      "purpose_th": "หน้าจอควบคุมสำหรับ Owner (Root Domain UI Conversion, 2026-08-05) — สถานะจริงของ Runtime/Registry/Gateway/Database/Connectors/Workers/Deployment/System Health/Costs ไม่มีข้อความประชาสัมพันธ์ Database กับ Costs เป็นแบบเรียลไทม์ผ่าน Supabase Realtime ส่วนอื่นอ่านจาก registry JSON ที่ build ไว้ render โดย app/page.tsx หลังผ่าน requireAuthPage",
+      "exports": [
+        "OperationalWorkspace"
+      ],
+      "status": "active"
+    },
+    "services/ai/gateway.ts": {
+      "owner": "services",
+      "layer": "services",
+      "purpose": "Server-only AI capability gateway — invokeAiGateway() validates request context (origin/owner/session/capability/effect/prompt length), routes each of 8 declared capabilities to a fixed provider (Anthropic claude-haiku-4-5 for document.ocr/event_extract, self-hosted Ollama for the rest via AI_GATEWAY_OLLAMA_URL), and emits requested/completed/failed/denied evidence into system_health_status (service_key dna_os_ai_gateway) before/after every call, calling an optional reportFailure hook on provider errors.",
+      "purpose_th": "Gateway ความสามารถ AI ฝั่งเซิร์ฟเวอร์เท่านั้น — invokeAiGateway() ตรวจสอบ context ของคำขอ (origin/owner/session/capability/effect/ความยาว prompt) กำหนดเส้นทางแต่ละ capability ใน 8 ตัวไปยัง provider ที่กำหนดไว้ตายตัว (Anthropic claude-haiku-4-5 สำหรับ document.ocr/event_extract, Ollama self-hosted ผ่าน AI_GATEWAY_OLLAMA_URL สำหรับที่เหลือ) และบันทึกหลักฐานสถานะ requested/completed/failed/denied เข้า system_health_status (service_key dna_os_ai_gateway) ก่อน/หลังทุกครั้งที่เรียก พร้อมเรียก hook reportFailure เสริมเมื่อ provider ล้มเหลว",
+      "exports": [
+        "AiCapability",
+        "AiEffect",
+        "AiEvidenceEvent",
+        "AiGatewayDependencies",
+        "AiGatewayImage",
+        "AiGatewayRequest",
+        "AiGatewayResult",
+        "AiProvenance",
+        "AiProvider",
+        "AiProviderName",
+        "AiProviderRequest",
+        "aiGatewayProviderFor",
+        "invokeAiGateway"
+      ],
+      "status": "active"
+    },
+    "components/admin/devLoopVoiceAlertLogic.ts": {
+      "owner": "components",
+      "layer": "components",
+      "purpose": "Pure decision logic extracted for testability: shouldAnnounceDevLoopAlert() returns true only when the report is new, voice is enabled, status is open+critical, has a spoken_summary, and hasn't already been spoken; addSpokenReportId() maintains a bounded (max 50) spoken-IDs set.",
+      "purpose_th": "ตรรกะการตัดสินใจแบบ pure function แยกออกมาเพื่อทดสอบง่าย — shouldAnnounceDevLoopAlert() คืนค่า true เฉพาะเมื่อรายงานใหม่, เปิดเสียงไว้, status เป็น open+critical, มี spoken_summary และยังไม่เคยพูดมาก่อน; addSpokenReportId() ดูแล set ของ ID ที่พูดแล้วไม่ให้เกิน 50 รายการ",
+      "exports": [
+        "DevLoopAlertPayload",
+        "addSpokenReportId",
+        "shouldAnnounceDevLoopAlert"
+      ],
+      "status": "active"
+    },
+    "components/admin/DevLoopVoiceAlerts.tsx": {
+      "owner": "components",
+      "layer": "components",
+      "purpose": "Client component that polls /api/admin/dev-loop/problem-report every 15s and, only when the owner has explicitly toggled a localStorage voice setting on, speaks new open+critical reports via the local speak() TTS helper — tracks already-spoken report IDs in localStorage so re-enabling voice never replays old incidents, and never opens or reactivates a closed voice session itself.",
+      "purpose_th": "Client component ที่ poll /api/admin/dev-loop/problem-report ทุก 15 วินาที และจะพูดรายงานใหม่ที่ status=open และ severity=critical ผ่าน speak() (TTS) ก็ต่อเมื่อ owner เปิดสวิตช์เสียงใน localStorage เองเท่านั้น — เก็บ report ID ที่เคยพูดแล้วใน localStorage เพื่อไม่ให้เปิดเสียงซ้ำเหตุการณ์เก่า และไม่มีการเปิด/reactivate voice session ที่ปิดไปแล้วเอง",
+      "exports": [
+        "DevLoopVoiceAlerts"
+      ],
+      "status": "active"
+    },
+    "engines/workspace/workspaceRootVerifier.ts": {
+      "owner": "engines",
+      "layer": "engines",
+      "purpose": "Read-only preflight check verifyWorkspaceRoot() for any worker/watcher before it's allowed to act — verifies the path exists and is a directory, resolves the real git repository root via `git rev-parse --show-toplevel`, checks for package.json and the registry/core/engines DNA OS markers, and optionally compares against a declared expectedRepositoryRoot, failing closed (never falling back to another path) with a structured checks[] evidence array.",
+      "purpose_th": "ตรวจสอบเบื้องต้นแบบอ่านอย่างเดียว verifyWorkspaceRoot() สำหรับ worker/watcher ก่อนอนุญาตให้ทำงาน — ตรวจสอบว่า path มีอยู่จริงและเป็นโฟลเดอร์ resolve git repository root จริงผ่าน `git rev-parse --show-toplevel` ตรวจหา package.json และ marker ของ DNA OS (registry/core/engines) และเทียบกับ expectedRepositoryRoot ที่ประกาศไว้ (ถ้ามี) หากล้มเหลวจะปฏิเสธทันที (ไม่ fallback ไป path อื่น) พร้อมหลักฐานแบบ checks[] ที่มีโครงสร้างชัดเจน",
+      "exports": [
+        "VerifyWorkspaceRootInput",
+        "WorkspaceRootCheck",
+        "verifyWorkspaceRoot"
+      ],
+      "status": "active"
+    },
+    "engines/workspace/problemReport.ts": {
+      "owner": "engines",
+      "layer": "engines",
+      "purpose": "Dev Loop problem-report boundary — buildDevLoopProblemReport() constructs a fingerprinted report with a Thai-language spoken_summary, shouldUpdateOpenReport() dedupes within a time window, and persistDevLoopProblemReport()/resolvePersistedDevLoopProblem() write to a local JSON artifact plus upsert into system_health_status if a db client is injected. Fixed a real Guard-3 violation (2026-08-05) where this file used to self-construct a Supabase client from env vars instead of receiving one via dependency injection.",
+      "purpose_th": "ขอบเขตของ Dev Loop problem-report — buildDevLoopProblemReport() สร้างรายงานพร้อม fingerprint และ spoken_summary ภาษาไทย, shouldUpdateOpenReport() กันการรายงานซ้ำภายในช่วงเวลาที่กำหนด, persistDevLoopProblemReport()/resolvePersistedDevLoopProblem() เขียนไฟล์ JSON ในเครื่องพร้อม upsert เข้า system_health_status หากมีการฉีด db client เข้ามา แก้ไขการละเมิด Guard 3 จริง (2026-08-05) ที่ไฟล์นี้เคยสร้าง Supabase client เองจาก env var แทนที่จะรับผ่าน dependency injection",
+      "exports": [
+        "DEFAULT_PROBLEM_REPORT_PATH",
+        "DevLoopProblemReport",
+        "DevLoopProblemSeverity",
+        "buildDevLoopProblemReport",
+        "persistDevLoopProblemReport",
+        "resolveDevLoopProblem",
+        "resolvePersistedDevLoopProblem",
+        "shouldUpdateOpenReport"
+      ],
+      "status": "active"
+    },
+    "engines/storage/adapters/googleDriveLocal.ts": {
+      "owner": "engines",
+      "layer": "engines",
+      "purpose": "Local-only, read-only Google Drive Desktop sync adapter: discoverGoogleDriveSyncRoots() checks only known local sync folder locations (never calls Google APIs), validateGoogleDriveScope() enforces an explicit approved sub-folder before any read, and ingestApprovedGoogleDriveScope() hashes/previews files strictly within that approved scope; getGoogleDriveConnectionState()/reportGoogleDriveHealth() surface connection status into system_health_status.",
+      "purpose_th": "Adapter สำหรับ Google Drive Desktop local-sync แบบอ่านอย่างเดียวและทำงานในเครื่องเท่านั้น — discoverGoogleDriveSyncRoots() ตรวจหาเฉพาะโฟลเดอร์ sync ที่รู้จัก (ไม่เรียก Google API เลย), validateGoogleDriveScope() บังคับให้ต้องมี scope โฟลเดอร์ที่อนุมัติชัดเจนก่อนอ่านไฟล์ใดๆ, ingestApprovedGoogleDriveScope() คำนวณ hash/preview เฉพาะใน scope ที่อนุมัติ; getGoogleDriveConnectionState()/reportGoogleDriveHealth() รายงานสถานะเชื่อมต่อเข้า system_health_status",
+      "exports": [
+        "GoogleDriveConnectionState",
+        "GoogleDriveConnectionStatus",
+        "GoogleDriveFileEvidence",
+        "GoogleDriveIngestionResult",
+        "discoverGoogleDriveSyncRoots",
+        "getGoogleDriveConnectionState",
+        "ingestApprovedGoogleDriveScope",
+        "reportGoogleDriveHealth",
+        "validateGoogleDriveScope"
+      ],
+      "status": "active",
+      "entry_point": true
+    },
+    "app/api/internal/ai/gateway/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Internal-only POST boundary for remote AI callers (Edge Functions, local workers) — requires both a shared-secret header (x-dna-os-ai-gateway-secret matching AI_GATEWAY_INTERNAL_SECRET) and a matching x-dna-os-ai-origin header before calling invokeAiGateway(); on provider failure it builds and persists a critical Dev Loop problem report via engines/workspace/problemReport.ts so a failed AI call surfaces to the owner-alert UI.",
+      "purpose_th": "จุดเชื่อมต่อ POST สำหรับผู้เรียก AI ภายในเท่านั้น (Edge Functions, local workers) — ต้องมีทั้ง header shared-secret (x-dna-os-ai-gateway-secret ต้องตรงกับ AI_GATEWAY_INTERNAL_SECRET) และ header x-dna-os-ai-origin ที่ตรงกันก่อนจะเรียก invokeAiGateway() — เมื่อ provider ล้มเหลวจะสร้างและบันทึกรายงานปัญหา Dev Loop ระดับ critical ผ่าน engines/workspace/problemReport.ts เพื่อให้ปรากฏใน UI แจ้งเตือน owner",
+      "exports": [
+        "POST"
+      ],
+      "status": "active"
+    },
+    "app/api/admin/dev-loop/problem-report/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Read-only GET route for the Dev Loop dashboard's owner-alert widget — requires ADMIN_TIER, reads the single system_health_status row keyed dna_os_dev_loop, and returns its detail/status/last_check_at/last_alert_at (defaulting to healthy if no row exists).",
+      "purpose_th": "Route GET แบบอ่านอย่างเดียวสำหรับ widget แจ้งเตือน owner ใน Dev Loop dashboard — ต้องมีสิทธิ์ ADMIN_TIER อ่านแถวเดียวใน system_health_status ที่ service_key เป็น dna_os_dev_loop คืนค่า detail/status/last_check_at/last_alert_at (ค่าเริ่มต้น healthy หากไม่พบแถว)",
+      "exports": [
+        "GET"
+      ],
+      "status": "active"
+    },
+    "engines/workspace/fileTree.ts": {
+      "owner": "engines",
+      "layer": "engines",
+      "purpose": "Integrated Development Workspace shell — Explorer tool's real data source. Real hierarchical directory listing (readdirSync) scoped to EXPLORER_ROOTS (the same real source dirs scripts/watch-registry.ts already watches), not a whole-disk walk. Different job than fileExistenceRegistry.ts's flat scanForNewFiles.",
+      "purpose_th": "Integrated Development Workspace shell — แหล่งข้อมูลจริงของเครื่องมือ Explorer อ่าน directory listing จริง (readdirSync) จำกัดแค่ EXPLORER_ROOTS (เหมือนที่ scripts/watch-registry.ts เฝ้าดูอยู่แล้ว) ไม่ใช่เดินดูทั้งดิสก์ คนละหน้าที่กับ scanForNewFiles ของ fileExistenceRegistry.ts",
+      "exports": [
+        "EXPLORER_ROOTS",
+        "FileTreeNode",
+        "buildFileTree"
+      ],
+      "status": "active",
+      "declared_callers": [
+        "app/api/admin/workspace/tree/route.ts"
+      ]
+    },
+    "app/admin/settings/page.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Integrated Development Workspace shell — Settings tool's real page (owner, 2026-08-05). Reads registry/permissions.json (roles), config/system-links.ts (SYSTEM_LINKS), and .env.local.example variable NAMES cross-checked against process.env for configured/missing — values never read or rendered.",
+      "purpose_th": "Integrated Development Workspace shell — หน้า Settings จริง (เฮีย, 2026-08-05) อ่าน registry/permissions.json (roles), config/system-links.ts (SYSTEM_LINKS), และชื่อตัวแปรจาก .env.local.example เทียบกับ process.env ว่ามี/ไม่มี — ไม่เคยอ่านหรือแสดงค่าจริงของตัวแปร",
+      "exports": [
+        "SettingsPage"
+      ],
+      "status": "active"
+    },
+    "app/api/admin/workspace/tree/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "GET /api/admin/workspace/tree?root=&depth= — Explorer tool's real API, backed by engines/workspace/fileTree.ts. Rejects any root outside EXPLORER_ROOTS rather than walking the whole disk.",
+      "purpose_th": "GET /api/admin/workspace/tree?root=&depth= — API จริงของเครื่องมือ Explorer ใช้ engines/workspace/fileTree.ts ปฏิเสธ root ที่ไม่อยู่ใน EXPLORER_ROOTS แทนที่จะเดินดูทั้งดิสก์",
+      "exports": [
+        "GET"
+      ],
+      "status": "active"
+    },
+    "app/api/admin/workspace/automation/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "GET/POST /api/admin/workspace/automation — Automation tool's real command trigger. Whitelisted commands copied verbatim from package.json scripts (type-check/sync/deploy-gate/architecture-check/guard/dead-code/duplicates/test) — command key never concatenated into a shell string. 'build' is explicitly NOT_IMPLEMENTED here (real reason: next build exceeds serverless time limits — real trigger stays git push -> Vercel).",
+      "purpose_th": "GET/POST /api/admin/workspace/automation — จุดสั่งรันคำสั่งจริงของเครื่องมือ Automation คำสั่งที่อนุญาตก็อปมาจาก package.json scripts ตรงตัว (ไม่เคยเอา key ไปต่อ string เป็นคำสั่ง shell) 'build' ใส่เป็น NOT_IMPLEMENTED ตรงๆ (เหตุผลจริง: next build ใช้เวลาเกิน serverless timeout — ทางจริงยังคงเป็น git push -> Vercel)",
+      "exports": [
+        "GET",
+        "POST"
+      ],
+      "status": "active"
+    },
+    "app/api/admin/workspace/ai-agents/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "GET /api/admin/workspace/ai-agents — AI Agents tool's real data source: AI_REGISTRY.json/AI_SESSIONS.json + real dev_loop_sessions + Integration Gateway channel state. Execute/control capability explicitly reports NOT_IMPLEMENTED with the real reason (Execution Channel closed, engines/integration-gateway/policy/gate.ts) — never fabricates a run result.",
+      "purpose_th": "GET /api/admin/workspace/ai-agents — แหล่งข้อมูลจริงของเครื่องมือ AI Agents: AI_REGISTRY.json/AI_SESSIONS.json + dev_loop_sessions จริง + สถานะ channel ของ Integration Gateway ความสามารถสั่งงาน/ควบคุม รายงาน NOT_IMPLEMENTED พร้อมเหตุผลจริง (Execution Channel ยังปิดอยู่) ไม่เคยปลอมผลลัพธ์การรัน",
+      "exports": [
+        "GET"
+      ],
+      "status": "active"
+    },
+    "components/ide-shell/IDEWorkspace.tsx": {
+      "owner": "components",
+      "layer": "components",
+      "purpose": "Integrated Development Workspace shell (owner, 2026-08-05) — VS Code-shaped Application Shell (Activity Bar/Sidebar/tabbed Editor/Bottom Panel/Status Bar) wired only to real capabilities: app/api/admin/workspace/* routes, /api/governance, and real existing pages embedded via same-origin iframe (/admin/architecture, /admin/schema-audit, /admin/telemetry, /admin/settings, /admin/event-inbox, /admin/traces). No business logic — pure shell.",
+      "purpose_th": "เชลล์ Integrated Development Workspace (เฮีย, 2026-08-05) — Application Shell ทรง VS Code (Activity Bar/Sidebar/Editor แบบแท็บ/Bottom Panel/Status Bar) เชื่อมกับความสามารถจริงเท่านั้น: app/api/admin/workspace/* /api/governance และหน้าจริงที่มีอยู่แล้วฝังผ่าน iframe same-origin ไม่มี business logic อยู่ในนี้เลย เป็น shell ล้วนๆ",
+      "exports": [
+        "IDEWorkspace"
+      ],
+      "status": "active"
+    },
+    "app/admin/ide/page.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "/admin/ide route — Server Component gate (requireAuthPage(ADMIN_TIER)) for IDEWorkspace.tsx. Additive only, does not replace or remove any existing page.",
+      "purpose_th": "route /admin/ide — จุดตรวจสิทธิ์ (requireAuthPage(ADMIN_TIER)) ให้ IDEWorkspace.tsx เป็นการเพิ่มเข้ามาเท่านั้น ไม่ได้แทนที่หรือลบหน้าเดิม",
+      "exports": [
+        "IDEPage"
+      ],
+      "status": "active"
+    },
+    "app/api/admin/workspace/status/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "GET /api/admin/workspace/status — IDE shell Status Bar + Problems panel's single real data source: git branch, DNA_OS_HEALTH.json, architecture-book.json summary, latest database.health.observed event, real process.env runtime environment, and a problems list built from real failed governance checks + dev_loop_check_results fail/warning rows.",
+      "purpose_th": "GET /api/admin/workspace/status — แหล่งข้อมูลจริงเดียวของ Status Bar + Problems panel: git branch จริง, DNA_OS_HEALTH.json, สรุป architecture-book.json, event database.health.observed ล่าสุด, runtime environment จาก process.env จริง และรายการ problems จาก governance check ที่ fail จริง + dev_loop_check_results ที่ fail/warning",
+      "exports": [
+        "GET"
+      ],
+      "status": "active"
+    },
+    "app/api/admin/workspace/file/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "GET /api/admin/workspace/file?path= — IDE shell Source Code / System Docs tab's real content source. Path-traversal safe (resolves + verifies absolute path stays under EXPLORER_ROOTS or a curated top-level docs whitelist before reading).",
+      "purpose_th": "GET /api/admin/workspace/file?path= — แหล่งเนื้อหาจริงของแท็บ Source Code / System Docs ใน IDE shell ป้องกัน path traversal (resolve แล้วตรวจว่า path จริงอยู่ใต้ EXPLORER_ROOTS หรือใน docs whitelist ก่อนอ่านไฟล์เสมอ)",
+      "exports": [
+        "GET"
+      ],
+      "status": "active"
+    },
+    "app/api/admin/workspace/database/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "GET /api/admin/workspace/database — IDE shell Database tool's real data source: SUPABASE_TABLES (config/system-links.ts, real .from() grep) + latest database.health.observed evidence. Column-level schema browsing explicitly reports NOT_IMPLEMENTED with the real reason (would need a new information_schema RPC).",
+      "purpose_th": "GET /api/admin/workspace/database — แหล่งข้อมูลจริงของเครื่องมือ Database ใน IDE shell: SUPABASE_TABLES (config/system-links.ts, grep .from() จริง) + evidence database.health.observed ล่าสุด การดู schema ระดับคอลัมน์รายงาน NOT_IMPLEMENTED ตรงๆ พร้อมเหตุผลจริง (ต้องมี information_schema RPC ใหม่)",
+      "exports": [
+        "GET"
+      ],
+      "status": "active"
     }
   },
   "excluded": [

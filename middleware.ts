@@ -10,6 +10,13 @@ import { SESSION_COOKIE_MAX_AGE } from "@/services/supabase/browser";
 // reading registry/permissions.json — kept out of middleware so this file
 // never needs a DB round trip per request, just a JWT check + refresh.
 const PROTECTED_PAGE_PREFIXES = ["/admin", "/business", "/user", "/partner", "/account", "/workspace-preview"];
+// Exact-match only, never startsWith — "/" as a PREFIX would match every
+// route in the app (every pathname starts with "/"), locking out /login,
+// /api/*, /liff, /oauth, everything. Root Domain UI Conversion (owner,
+// 2026-08-05): "/" is now the Owner Control Center (real System
+// Health/Database/Costs data, see app/page.tsx), no longer a public landing
+// page — gated the same way /admin is, but scoped to exactly this one path.
+const PROTECTED_EXACT_PAGES = ["/"];
 const PROTECTED_API_PREFIXES = ["/api/admin", "/api/document", "/api/action", "/api/explain"];
 const PAGE_EXEMPTIONS = ["/admin/login"];
 
@@ -61,7 +68,9 @@ export async function middleware(req: NextRequest) {
   }
 
   const isExempt = PAGE_EXEMPTIONS.some((p) => pathname.startsWith(p));
-  const isProtectedPage = !isExempt && PROTECTED_PAGE_PREFIXES.some((p) => pathname.startsWith(p));
+  const isProtectedPage =
+    !isExempt &&
+    (PROTECTED_PAGE_PREFIXES.some((p) => pathname.startsWith(p)) || PROTECTED_EXACT_PAGES.includes(pathname));
   const isProtectedApi = PROTECTED_API_PREFIXES.some((p) => pathname.startsWith(p));
 
   if (!user && isProtectedPage) {
@@ -79,6 +88,7 @@ export async function middleware(req: NextRequest) {
 
 export const config = {
   matcher: [
+    "/",
     "/admin/:path*",
     "/business/:path*",
     "/user/:path*",

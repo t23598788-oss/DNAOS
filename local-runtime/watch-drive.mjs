@@ -1,15 +1,19 @@
 // Persistent Google Drive watcher — reads NEW financial document images from
-// the locally-synced Google Drive folder using thawatchai (local Ollama
-// vision, qwen2.5vl:7b), inserts real rows into receipt_documents. Designed
-// to run independently forever via a macOS LaunchAgent (see
+// the locally-synced Google Drive folder using Cloud Runtime vision
+// (qwen2.5vl:72b via ollama-cloud-gateway.mjs, Migration Completion
+// 2026-08-04 — no local Ollama), inserts real rows into receipt_documents.
+// Designed to run independently forever via a macOS LaunchAgent (see
 // com.dnaos.drive-watcher.plist) — does NOT depend on any Claude/AI chat
 // session being open. Tracks already-processed files in a local log so it
 // never double-processes on repeated runs.
 import { createClient } from "@supabase/supabase-js";
 import { readFileSync, readdirSync, statSync, existsSync, appendFileSync, writeFileSync } from "fs";
 import { join } from "path";
+import { getReadyOllamaUrl } from "./ollama-cloud-gateway.mjs";
+import { fileURLToPath } from "url";
+import { dirname } from "path";
 
-const PROJECT_DIR = "/Users/tam/Desktop/DNA OS-โฟลเดอร์หลักต้นฉบับ /dna-os-deadboard";
+const PROJECT_DIR = join(dirname(fileURLToPath(import.meta.url)), "..");
 const DRIVE_ROOT = "/Users/tam/Library/CloudStorage/GoogleDrive-t23598788@gmail.com/ไดรฟ์ของฉัน";
 const PROCESSED_LOG = "/Users/tam/dna-os-ollama/drive-processed.log";
 
@@ -49,11 +53,13 @@ function listImagesRecursive(dir, depth = 0, maxDepth = 3) {
 async function extractSlip(imagePath) {
   const buf = readFileSync(imagePath);
   const b64 = buf.toString("base64");
-  const res = await fetch("http://localhost:11434/api/generate", {
+  const ollamaUrl = await getReadyOllamaUrl("[watch-drive]");
+  if (!ollamaUrl) throw new Error("Cloud Runtime ยังไม่พร้อม — จะลองใหม่รอบถัดไป");
+  const res = await fetch(`${ollamaUrl}/api/generate`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      model: "qwen2.5vl:7b",
+      model: "qwen2.5vl:72b",
       prompt: "อ่านรูปนี้ ตอบเป็น JSON เท่านั้น format: {\"sender\":\"ชื่อผู้โอน หรือ null\",\"receiver\":\"ชื่อผู้รับ หรือ null\",\"amount\":ตัวเลขเงินอย่างเดียว หรือ null,\"bank\":\"ธนาคาร หรือ null\",\"is_receipt_type\":true หรือ false (true เฉพาะสลิปโอนเงิน/ใบเสร็จ/ใบแจ้งหนี้จริง)}",
       images: [b64],
       stream: false,

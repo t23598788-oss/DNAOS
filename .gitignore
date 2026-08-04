@@ -3,6 +3,11 @@
 # dependencies
 /node_modules
 scripts/bank-statement-sync/node_modules
+
+# File Existence Intelligence — local content-addressed snapshot store
+# (engines/workspace/snapshotStore.ts). Never committed: may contain full
+# content of files that were never meant to be tracked in the first place.
+/.dna-os
 scripts/bank-statement-sync/debug-*.png
 scripts/bank-statement-sync/debug-*.html
 scripts/bank-statement-sync/last-statement-parse.json

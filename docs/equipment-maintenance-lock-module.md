@@ -55,12 +55,12 @@ controlled                (engine running)       .total_engine_hours
 | Contact Settings checklist ("เครื่องจักร (GPS Relay)" category) | **COVERED** | `registry/contact-settings-categories.ts`, `components/line/ContactSettingsModal.tsx` (`EquipmentPermissionList`) |
 | LINE Rich Menu reflects current permission (start button shown/hidden) | **PARTIAL** | `registry/line-richmenu.ts` — real code, gated cleanly: needs a real `LINE_RICHMENU_START_ID` (a Rich Menu image + tap-area must still be created in the LINE console — not automatable from here) |
 | Unlock command (admin-confirmed "start" trigger → SMS relay) | **PARTIAL** | `app/api/admin/equipment/trigger-start/route.ts`, `engines/equipment/relay-command.ts` — real code, gated cleanly on `SMS_GATEWAY_API_URL`/`SMS_GATEWAY_API_KEY` (no provider chosen yet) and on `buildRelayCommandText()`'s command string, which is an **unverified placeholder** (`RELAY,<password>,<0\|1>#`) pending the real GPSDD GDD070 command manual |
-| Telemetry ingestion (engine-running signal, VCC ≥ 13.5V stream) | **PLANNED — no code yet** | nothing implemented; needs an inbound endpoint once the hardware/SMS-gateway path is chosen |
-| Engine-hours accumulation from telemetry | **PLANNED — no code yet** | `equipment_assets.total_engine_hours` column exists (defaults to 0) but nothing currently writes to it |
-| Maintenance ticket generation at 250h intervals | **PLANNED — no code yet** | no `maintenance_tickets` table or engine exists |
-| Auto-lock safety at +50h overdue | **PLANNED — no code yet** | depends on the two rows above |
-| 17:00 shift-end auto-lock | **PLANNED — no code yet** | no scheduled job exists for this |
-| Permission-revocation → actual hardware lock command | **NOT WIRED YET** | today, toggling a driver's permission off in Contact Settings only updates the LINE Rich Menu (`setDriverStartButtonRichMenu`) — it does **not** send a lock command to the box. Closing this gap requires the same SMS gateway/command-manual inputs listed above |
+| Telemetry ingestion (engine-running signal, VCC ≥ 13.5V stream) | **COVERED (code), PENDING (hardware)** | `app/api/internal/equipment/telemetry/route.ts` — real inbound endpoint, bearer-secret auth (`EQUIPMENT_TELEMETRY_SECRET`), generic `{imei, vccVoltage, recordedAt}` body since no hardware/SMS-gateway provider is chosen yet (provider-specific payload parsing left as a clearly-marked TODO, per Rule 108 — never fabricated) |
+| Engine-hours accumulation from telemetry | **COVERED** | `engines/equipment/engine-hours.ts` — real time-delta accumulation between consecutive engine-running pings, capped at `MAX_GAP_HOURS=0.5h` (documented reasoning in-file: pings expected every 10-30s, so a gap over 30 min is a dropped connection, not real running time) — writes to `equipment_assets.total_engine_hours` |
+| Maintenance ticket generation at 250h intervals | **COVERED (code), PENDING (deploy)** | `supabase/migrations/20260804000008_equipment_maintenance_telemetry.sql` (`maintenance_tickets` table), `supabase/functions/equipment-maintenance-cron/index.ts` opens a ticket per 250h boundary crossed; `app/api/admin/equipment/maintenance-tickets/route.ts` (list) + `.../[id]/close/route.ts` (admin-confirmed close, resets hour counter, sends real unlock if overdue-locked) — surfaced in `/admin/equipment`. Cron not yet deployed/scheduled live (same pending-owner-go-ahead state as `receipt-reconcile-sweep`, see migration 20260804000009) |
+| Auto-lock safety at +50h overdue | **COVERED (code), PENDING (deploy)** | same cron — fires a real lock command via `app/api/internal/equipment/lock-command/route.ts` (bridges to the real `relay-command.ts`) once an open ticket is ≥50h past its 250h trigger point. System-initiated safety lock, deliberately NOT admin-gated (Rule 72 applies to the system taking a risky action; defaulting to the safe/locked state is the opposite case — see Constitution Alignment below) |
+| 17:00 shift-end auto-lock | **COVERED (code), PENDING (deploy)** | same cron function, checked at Bangkok UTC+7 (same fixed-offset convention as `debt-reminder-cron`). **Flagged, not resolved**: `driver_equipment_permissions` has no "always allowed"/override column today, so this is genuinely lock-everyone-at-17:00 with no exception path — implemented per the doc's literal intent, but worth the owner confirming this is truly wanted with no exceptions |
+| Permission-revocation → actual hardware lock command | **COVERED (code), PENDING (hardware)** | `app/api/admin/equipment/toggle-permission/route.ts` now sends a real lock command when a permission is revoked AND zero other active permissions remain for that equipment (assumed reading of a many-to-many model — see in-file comment; flagged for owner confirmation, since the original chain diagram doesn't disambiguate "a driver's permission revoked" vs "the last driver's permission revoked") |
 
 ## What is NOT this session's/AI's task
 
@@ -83,3 +83,43 @@ change, not a rewrite.
   risk class than confirming a financial state.
 - Rule 108 (no silent config override) — every unbuilt piece above gates
   cleanly on a named missing env var / manual, never a guessed default.
+
+## 2026-08-04 implementation pass
+
+All rows previously marked PLANNED/NOT WIRED YET now have real code:
+`supabase/migrations/20260804000008_equipment_maintenance_telemetry.sql`
+(`equipment_telemetry_pings`, `maintenance_tickets`,
+`equipment_assets.last_ticket_trigger_hours`),
+`engines/equipment/engine-hours.ts`,
+`app/api/internal/equipment/telemetry/route.ts`,
+`app/api/internal/equipment/lock-command/route.ts`,
+`supabase/functions/equipment-maintenance-cron/index.ts` (+ migration
+`20260804000009_equipment_maintenance_cron.sql`),
+`app/api/admin/equipment/maintenance-tickets/route.ts` +
+`.../[id]/close/route.ts`, and an extension to
+`app/api/admin/equipment/toggle-permission/route.ts`. What is still
+genuinely NOT real, honestly:
+
+- No SMS gateway provider chosen — `SMS_GATEWAY_API_URL`/`SMS_GATEWAY_API_KEY`
+  still unset, same gate as before.
+- No real GPSDD GDD070 command manual confirmed — `buildRelayCommandText()`
+  is still an unverified placeholder, unchanged.
+- No hardware/telemetry provider chosen — the ingestion endpoint's wire
+  format (`{imei, vccVoltage, recordedAt}`) is a reasonable generic shape,
+  not a confirmed vendor protocol; provider-specific parsing is a stated
+  TODO in the route file.
+- The cron function is written but not deployed/scheduled against the live
+  Supabase project (`supabase functions deploy` + real secrets +
+  uncommenting the `cron.schedule` call in the migration file are still
+  owner actions, same posture as `receipt-reconcile-sweep`).
+- Two business rules were assumed rather than found explicitly in the
+  schema, both flagged in their respective files for owner confirmation:
+  (1) closing a maintenance ticket resets `total_engine_hours` to 0 (read
+  literally from "Mechanic closes maintenance ticket -> Reset hour
+  counter"); (2) permission-revocation only auto-locks when it leaves zero
+  active permissions for that equipment unit (chosen because
+  `driver_equipment_permissions` is many-to-many by design — locking on
+  every single revoke would strand a different, still-authorized driver).
+- The 17:00 shift-end lock has no override/exception mechanism in the
+  schema — implemented as literal lock-everyone, flagged above as
+  something worth the owner confirming is truly intended.

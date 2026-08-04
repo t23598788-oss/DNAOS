@@ -1,0 +1,38 @@
+{
+  "version": 1,
+  "policy": "Extends registry/architecture-book.json (621 nodes/1973 edges, auto-generated from real TypeScript import statements via scripts/build-arch-book.ts) — that generator can only see static code imports. This file covers the real relationships it structurally cannot derive: LaunchAgent->Script, Script->Runtime, Runtime->Service, Service->Docker, Docker->Volume, Volume->Files, Model->Workflow, API->Route, Database->Module. Same edge shape (source/target/label), plus a `kind` field matching core/shared/types.ts's DependencyKind. Every edge here is a REAL relationship verified to exist at the time it was added — never fabricated to look complete. This is a seed set (owner-built extension registered 2026-08-04, see roadmap #45-49), not full infra coverage.",
+  "edges": [
+    { "source": "launchagent:com.dnaos.ai-task-watcher", "target": "script:local-runtime/ai-task-watcher.mjs", "label": "runs", "kind": "launchagent_runs" },
+    { "source": "launchagent:com.dnaos.print-watcher", "target": "script:local-runtime/print-watcher.mjs", "label": "runs", "kind": "launchagent_runs" },
+    { "source": "launchagent:com.dnaos.drive-watcher", "target": "script:local-runtime/watch-drive.mjs", "label": "runs", "kind": "launchagent_runs" },
+    { "source": "launchagent:com.dnaos.voice-wake-watcher", "target": "script:local-runtime/voice-wake-watcher.sh", "label": "runs", "kind": "launchagent_runs" },
+    { "source": "launchagent:com.dnaos.storage-threshold-watcher", "target": "script:local-runtime/storage-threshold-watcher.ts", "label": "runs", "kind": "launchagent_runs" },
+
+    { "source": "script:local-runtime/ai-task-watcher.mjs", "target": "runtime:local-runtime/runpod-controller.mjs", "label": "calls", "kind": "script_calls_runtime" },
+    { "source": "script:local-runtime/storage-threshold-watcher.ts", "target": "runtime:engines/storage/engine.ts", "label": "calls", "kind": "script_calls_runtime" },
+    { "source": "script:local-runtime/print-watcher.mjs", "target": "runtime:local Ollama (localhost:11434)", "label": "calls", "kind": "script_calls_runtime" },
+    { "source": "script:local-runtime/watch-drive.mjs", "target": "runtime:local Ollama (localhost:11434)", "label": "calls", "kind": "script_calls_runtime" },
+    { "source": "script:local-runtime/ai-task-watcher.mjs", "target": "runtime:local Ollama (localhost:11434)", "label": "calls (fallback only, real Cloud-first routing exists)", "kind": "script_calls_runtime" },
+
+    { "source": "runtime:engines/storage/engine.ts", "target": "service:services/supabase/queries.ts#supabaseAdmin", "label": "uses", "kind": "runtime_calls_service" },
+    { "source": "runtime:local-runtime/runpod-controller.mjs", "target": "service:RunPod REST API v2", "label": "uses", "kind": "runtime_calls_service" },
+
+    { "source": "runtime:local-runtime/runpod-controller.mjs", "target": "docker:ollama/ollama:latest (RunPod pod image)", "label": "provisions", "kind": "service_uses_docker" },
+    { "source": "docker:ollama/ollama:latest (RunPod pod dna-os-ollama)", "target": "volume:RunPod Network Volume gomvik56ok", "label": "mounts at /runpod-volume", "kind": "docker_uses_volume" },
+
+    { "source": "volume:RunPod Network Volume gomvik56ok", "target": "model:qwen2.5vl:72b", "label": "stores", "kind": "volume_stores_files" },
+    { "source": "volume:RunPod Network Volume gomvik56ok", "target": "model:qwen3:32b", "label": "stores", "kind": "volume_stores_files" },
+    { "source": "volume:RunPod Network Volume gomvik56ok", "target": "model:thawatchai", "label": "stores", "kind": "volume_stores_files" },
+
+    { "source": "model:qwen2.5vl:72b", "target": "workflow:LINE document/slip OCR classification", "label": "used by", "kind": "model_used_by_workflow" },
+    { "source": "model:thawatchai", "target": "workflow:LINE conversational fallback reply", "label": "used by", "kind": "model_used_by_workflow" },
+
+    { "source": "api:app/api/admin/storage-intelligence", "target": "route:app/admin/storage/page.tsx", "label": "called by", "kind": "api_called_by_route" },
+    { "source": "api:supabase/functions/storage-threshold-alert", "target": "route:local-runtime/storage-threshold-watcher.ts", "label": "called by", "kind": "api_called_by_route" },
+    { "source": "api:supabase/functions/ai-callback", "target": "route:local-runtime/ai-task-watcher.mjs", "label": "called by", "kind": "api_called_by_route" },
+
+    { "source": "database:storage_resources", "target": "module:engines/storage/engine.ts", "label": "used by", "kind": "database_used_by_module" },
+    { "source": "database:ai_tasks", "target": "module:local-runtime/ai-task-watcher.mjs", "label": "used by", "kind": "database_used_by_module" },
+    { "source": "database:workspace_locks", "target": "module:engines/workspace/lockManager.ts", "label": "used by", "kind": "database_used_by_module" }
+  ]
+}

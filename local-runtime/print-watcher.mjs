@@ -8,8 +8,11 @@
 import { createClient } from "@supabase/supabase-js";
 import { readFileSync, writeFileSync, unlinkSync } from "fs";
 import { execSync } from "child_process";
+import { getReadyOllamaUrl } from "./ollama-cloud-gateway.mjs";
+import { fileURLToPath } from "url";
+import { dirname, join } from "path";
 
-const PROJECT_DIR = "/Users/tam/Desktop/DNA OS-โฟลเดอร์หลักต้นฉบับ /dna-os-deadboard";
+const PROJECT_DIR = join(dirname(fileURLToPath(import.meta.url)), "..");
 const PRINTER = "Brother_DCP_T430W";
 
 const env = Object.fromEntries(
@@ -39,8 +42,9 @@ async function sendLineText(lineUserId, text) {
 // ประชาชนเท่านั้น...สแกนตัดเอาเฉพาะขอบบัตรประชาชนสี่เหลี่ยม" — the raw photo
 // includes whatever background/table the customer photographed it on;
 // detect the card's edges and crop to just the card before laying it out.
-// Uses the same local vision model (qwen2.5vl:7b) already proven for OCR
-// classification, asked instead for a bounding box — an approximate,
+// Uses the same Cloud Runtime vision model (qwen2.5vl:72b, via
+// ollama-cloud-gateway.mjs) already proven for OCR classification, asked
+// instead for a bounding box — an approximate,
 // best-effort estimate (vision-model spatial grounding is not pixel-exact),
 // not a calibrated computer-vision edge detector. ImageMagick (`convert`/
 // `identify`, installed via `brew install imagemagick` for this) does the
@@ -57,10 +61,15 @@ function imageDimensions(path) {
 
 async function detectCardBoundingBox(imagePath) {
   const b64 = readFileSync(imagePath).toString("base64");
-  const res = await fetch("http://localhost:11434/api/generate", {
+  const ollamaUrl = await getReadyOllamaUrl("[print-watcher]");
+  if (!ollamaUrl) return null; // Cloud Runtime not ready — skip auto-crop this round rather than fail the whole print job
+  const res = await fetch(`${ollamaUrl}/api/generate`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ model: "qwen2.5vl:7b", system: BBOX_PROMPT, prompt: "ระบุกรอบบัตร", images: [b64], stream: false, format: "json" }),
+    // Upgraded from qwen2.5vl:7b (Mac-only model, never installed on the
+    // Cloud Runtime's Network Volume) to qwen2.5vl:72b — the same model
+    // already required/verified there (runpod-controller.mjs REQUIRED_MODELS).
+    body: JSON.stringify({ model: "qwen2.5vl:72b", system: BBOX_PROMPT, prompt: "ระบุกรอบบัตร", images: [b64], stream: false, format: "json" }),
   });
   if (!res.ok) return null;
   const json = await res.json();

@@ -1,5 +1,5 @@
-import Anthropic from "@anthropic-ai/sdk";
 import { supabase } from "@/services/supabase/queries";
+import { invokeAiGateway } from "@/services/ai/gateway";
 import { loadConfigs, getNum, getConfigUpdatedAt } from "@/core/config-loader";
 import { getKhonKaenWeatherNow, getKhonKaenWeatherForDay } from "@/engines/weather";
 import { getAllBangchakFuelPrices } from "@/engines/fuel-live";
@@ -46,7 +46,7 @@ const INTENT_CATALOG: Record<string, string[]> = {
 
 const WORKFLOW_INTENTS = new Set(["collect_debt", "continue_workflow"]);
 const TRANSPORT_INTENTS = new Set(["send_line", "execute_pending"]);
-let anthropic: Anthropic | null = null;
+type GatewayContext = { ownerId: string; sessionId: string };
 
 const WORKFLOWS: Record<string, WorkflowDefinition> = {
   open_profile: {
@@ -622,6 +622,7 @@ export async function runCognitivePipeline(
   contactContext?: string | null,
   sessionKey?: string | null,
   knownCustomer?: { id: string; name: string } | null,
+  gatewayContext?: GatewayContext,
 ): Promise<PipelineResult> {
   // Central Intent Dispatcher, checked first — see classifyClientCommand()'s
   // header comment.
@@ -642,7 +643,7 @@ export async function runCognitivePipeline(
     return { sender: "ai", type: "text", text: "กลับหน้าหลักให้แล้วครับ", navigate_url: "/admin/relationships", pulse_node: clientDirective.pulse_node };
   }
 
-  return runCognitiveCore(message, contactContext, sessionKey, knownCustomer);
+  return runCognitiveCore(message, contactContext, sessionKey, knownCustomer, gatewayContext);
 }
 
 async function runCognitiveCore(
@@ -650,6 +651,7 @@ async function runCognitiveCore(
   contactContext?: string | null,
   sessionKey?: string | null,
   knownCustomer?: { id: string; name: string } | null,
+  gatewayContext?: GatewayContext,
 ): Promise<PipelineResult> {
   // Owner directive (2026-08-01): "เกี่ยวกับเรื่องการเงินเอกสารไม่ต้องให้ ai
   // เข้ามาอยู่...มันเป็นตรรกะการบวกเลขเฉยๆ" — when the caller already knows
@@ -747,7 +749,7 @@ async function runCognitiveCore(
     // regex Central Intent Dispatcher (classifyClientCommand) might have
     // missed due to looser phrasing. Only ever executes real capabilities —
     // never invents new ones.
-    const aiAction = await classifyIntentViaAi(message);
+    const aiAction = await classifyIntentViaAi(message, gatewayContext);
     if (aiAction?.action === "open_app" && aiAction.app_name) {
       return { sender: "ai", type: "text", text: `กำลังเปิด ${aiAction.app_name} ให้ครับ...`, open_app: aiAction.app_name, pulse_node: "module:src-tauri/src/lib.rs" };
     }
@@ -763,7 +765,7 @@ async function runCognitiveCore(
     if (aiAction?.action === "screen_vision") {
       return { sender: "ai", type: "text", text: "กำลังอ่านหน้าจอให้ครับ...", screen_vision: true, screen_vision_goal: aiAction.goal, pulse_node: "module:app/api/admin/screen-vision/route.ts" };
     }
-    return answerWithAi(message, contactContext);
+    return answerWithAi(message, contactContext, gatewayContext);
   }
 
   const board = composeBoard(worldState, hypotheses, executionResults, reflection, memory.turn_count + 1);
@@ -880,7 +882,7 @@ type AiActionDirective =
   | { action: "screen_vision"; goal?: string }
   | { action: "none" };
 
-async function classifyIntentViaAi(message: string): Promise<AiActionDirective | null> {
+async function classifyIntentViaAi(message: string, gatewayContext?: GatewayContext): Promise<AiActionDirective | null> {
   // Model choice verified live, 2026-07-30: "thawatchai" (the persona/chat
   // model used by answerWithAi() above) reliably answered {"action":"none"}
   // even for a clear "เปิดไลน์" request when asked to classify — its baked
@@ -892,16 +894,18 @@ async function classifyIntentViaAi(message: string): Promise<AiActionDirective |
   // relying on the prompt's own instruction instead (verified: it does not
   // emit <think> preamble via /api/generate the way its chat mode can).
   const prompt = `ข้อความจากผู้ใช้: "${message}"\n\nระบบนี้มีความสามารถจริงต่อไปนี้เท่านั้น (ไม่มีความสามารถอื่นนอกจากนี้):\n1. เปิดแอปพลิเคชันบนเครื่อง Mac — {"action":"open_app","app_name":"<ชื่อแอปภาษาอังกฤษ เช่น LINE, Google Chrome, Finder>"}\n2. เปิดเว็บไซต์/ค้นหาเว็บ — {"action":"external_url","url":"<URL เต็ม>"}\n3. ย่อ/ขยาย/ปิดหน้าต่างแอปนี้เอง — {"action":"window_action","window_action":"minimize"|"maximize"|"close"}\n4. อ่านหน้าจอปัจจุบันเพื่อช่วยแปล/อธิบาย/ชี้ทางว่าต้องกดตรงไหน — {"action":"screen_vision","goal":"<สิ่งที่ผู้ใช้ต้องการทำบนหน้าจอนี้ ถ้าบอกมา เช่น หา API key, สมัครสมาชิก — ถ้าไม่ได้บอกเป้าหมายชัดเจน ไม่ต้องใส่ goal>"}\n\nถ้าข้อความนี้ตั้งใจสั่งอย่างใดอย่างหนึ่งข้างต้นจริงๆ ตอบ JSON ตามรูปแบบนั้นเท่านั้น ห้ามมีข้อความอื่นปนเลย ถ้าไม่ตรงกับความสามารถใดเลย ตอบ {"action":"none"} เท่านั้น`;
+  if (!gatewayContext) return null;
   try {
-    const res = await fetch("http://localhost:11434/api/generate", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ model: "qwen3:8b", prompt, stream: false }),
+    const result = await invokeAiGateway({
+      ...gatewayContext,
+      origin: "cognitive/pipeline.classifyIntentViaAi",
+      capability: "intent.classify",
+      effect: "classification",
+      systemPrompt: "ตอบ JSON เท่านั้น ห้ามสั่ง execute หรือแก้ไขข้อมูล",
+      prompt,
     });
-    if (!res.ok) return null;
-    const data = await res.json();
-    if (typeof data?.response !== "string") return null;
-    const jsonMatch = data.response.match(/\{[\s\S]*\}/);
+    if (!result.ok || !result.output) return null;
+    const jsonMatch = result.output.match(/\{[\s\S]*\}/);
     if (!jsonMatch) return null;
     const parsed = JSON.parse(jsonMatch[0]);
     if (parsed && typeof parsed.action === "string") return parsed as AiActionDirective;
@@ -911,65 +915,26 @@ async function classifyIntentViaAi(message: string): Promise<AiActionDirective |
   return null;
 }
 
-async function answerWithAi(message: string, contactContext?: string | null) {
+async function answerWithAi(message: string, contactContext?: string | null, gatewayContext?: GatewayContext) {
   const dateTimeContext = currentThaiDateTimeContext();
   const systemPrompt = contactContext
     ? `คุณคือ DNA OS ผู้ช่วยเจ้าของธุรกิจวัสดุก่อสร้าง จ.ขอนแก่น ตอบสั้นกระชับ ภาษาไทย\n\n${dateTimeContext}\n\n${IDENTITY_RULES}\n\n${NO_UNGROUNDED_FACTS_RULE}\n\nข้อมูลจริงเกี่ยวกับผู้ติดต่อที่กำลังถามถึง (ใช้ตอบ ห้ามเดานอกเหนือจากนี้):\n${contactContext}`
     : `คุณคือ DNA OS ผู้ช่วยเจ้าของธุรกิจวัสดุก่อสร้าง จ.ขอนแก่น ตอบสั้นกระชับ ภาษาไทย\n\n${dateTimeContext}\n\n${IDENTITY_RULES}\n\n${NO_UNGROUNDED_FACTS_RULE}`;
 
-  if (process.env.ANTHROPIC_API_KEY) {
-    try {
-      anthropic ??= new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-      const aiRes = await anthropic.messages.create({
-        model: "claude-haiku-4-5-20251001",
-        system: systemPrompt,
-        messages: [{ role: "user", content: message }],
-        temperature: 0.7,
-        max_tokens: 300,
-      });
-      const block = aiRes.content[0];
-      const text = block?.type === "text" ? block.text : null;
-      if (text) return { sender: "ai" as const, type: "text" as const, text };
-    } catch (err) {
-      console.error("[cognitive/pipeline] cloud Claude call failed, falling back to local Ollama:", err);
-    }
+  if (!gatewayContext) {
+    return { sender: "ai" as const, type: "text" as const, text: "ตอบไม่ได้ตอนนี้ครับ (ไม่มี AI session context)" };
   }
-
-  try {
-    // Real bug, owner-reported 2026-07-30: folding systemPrompt into `prompt`
-    // (instead of Ollama's dedicated `system` field) meant the model's own
-    // baked Modelfile SYSTEM instruction (~/dna-os-ollama/Modelfile —
-    // introduces itself as "ธวัชชัย", the AI's persona name) never actually
-    // got overridden — it just layered underneath our instructions,
-    // producing inconsistent gender particles (ครับ/ค่ะ mixing) and, once
-    // the owner revealed his own real name is ALSO ธวัชชัย (a genuine
-    // coincidence, "เฮียตั้ม" = ธวัชชัย มูลลาด), real identity confusion
-    // (the model started addressing the OWNER using its own assistant-
-    // persona framing). Passing `system` explicitly here — the same
-    // pattern ~/dna-os-ollama/ai-task-watcher.mjs's own ollamaGenerate()
-    // already used correctly — makes our system prompt actually replace the
-    // Modelfile default for this call, not just add to it.
-    const res = await fetch("http://localhost:11434/api/generate", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: "thawatchai",
-        system: systemPrompt,
-        prompt: `คำถาม: ${message}`,
-        stream: false,
-      }),
-    });
-    if (res.ok) {
-      const data = await res.json();
-      if (typeof data?.response === "string" && data.response.trim()) {
-        return { sender: "ai" as const, type: "text" as const, text: data.response.trim() };
-      }
-    }
-  } catch (err) {
-    console.error("[cognitive/pipeline] local Ollama call also failed:", err);
-  }
-
-  return { sender: "ai" as const, type: "text" as const, text: "ตอบไม่ได้ตอนนี้ครับ (AI ไม่พร้อมใช้งาน) ลองใหม่อีกครั้งครับ" };
+  const result = await invokeAiGateway({
+    ...gatewayContext,
+    origin: "cognitive/pipeline.answerWithAi",
+    capability: "conversation.answer",
+    effect: "draft",
+    systemPrompt,
+    prompt: `คำถาม: ${message}`,
+  });
+  return result.ok && result.output
+    ? { sender: "ai" as const, type: "text" as const, text: result.output }
+    : { sender: "ai" as const, type: "text" as const, text: "ตอบไม่ได้ตอนนี้ครับ (AI Gateway ไม่พร้อมใช้งาน) ลองใหม่อีกครั้งครับ" };
 }
 
 function operatingIntent(input: string, sessionKey?: string | null): EnrichedInput {

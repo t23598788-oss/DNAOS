@@ -81,15 +81,21 @@
       "status": "partial",
       "modules": [
         "engines/equipment/relay-command.ts",
+        "engines/equipment/engine-hours.ts",
         "app/api/admin/equipment/route.ts",
         "app/api/admin/equipment/trigger-start/route.ts",
         "app/api/admin/equipment/toggle-permission/route.ts",
-        "app/admin/equipment/page.tsx"
+        "app/api/admin/equipment/maintenance-tickets/route.ts",
+        "app/api/admin/equipment/maintenance-tickets/[id]/close/route.ts",
+        "app/api/internal/equipment/telemetry/route.ts",
+        "app/api/internal/equipment/lock-command/route.ts",
+        "app/admin/equipment/page.tsx",
+        "supabase/functions/equipment-maintenance-cron/index.ts"
       ],
       "commands": [],
       "workflows": [],
       "documents": ["docs/equipment-maintenance-lock-module.md"],
-      "gap": "มี equipment_assets/driver_equipment_permissions + admin toggle + relay-command engine (gated, รอ SMS gateway จริง) แต่ยังไม่มี telemetry ingestion, engine-hours accumulation, maintenance ticket ที่ 250h, auto-lock ที่ +50h เกิน หรือ shift-lock 17:00 — รายละเอียดเต็มดู docs/equipment-maintenance-lock-module.md (correction 2026-07-24: ก่อนหน้านี้อ้าง 'kis-webhook' ซึ่งไม่มีไฟล์จริงรองรับ)"
+      "gap": "แก้ไข 2026-08-04: telemetry ingestion, engine-hours accumulation (real time-delta math, capped gap), maintenance ticket generation ที่ 250h, auto-lock ที่ +50h เกิน, shift-lock 17:00 และ permission-revocation→hardware-lock เป็นโค้ดจริงแล้วทั้งหมด — ที่ยังไม่จริงคือการเชื่อมต่อฮาร์ดแวร์จริง: ยังไม่มี SMS gateway provider จริง (SMS_GATEWAY_API_URL/API_KEY), ยังไม่ยืนยันรูปแบบคำสั่งกล่อง GPSDD GDD070 จริง, cron ยังไม่ได้ deploy/schedule จริงบน live Supabase (รอ owner สั่ง `supabase functions deploy` + ตั้ง secret จริง) — รายละเอียดเต็มดู docs/equipment-maintenance-lock-module.md"
     },
     "accounting": {
       "label": "บัญชี / งบการเงิน",

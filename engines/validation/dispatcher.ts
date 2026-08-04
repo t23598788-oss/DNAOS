@@ -22,6 +22,7 @@ import { calcCapacity } from "@/engines/capacity";
 import { calcCost } from "@/engines/cost";
 import { loadCompanySettings } from "@/core/config/company-settings";
 import registry from "@/registry/command-registry.json";
+import { classify, type Classification } from "@/engines/governance/hardcode-decision-engine";
 
 // ── Types ──
 
@@ -31,6 +32,7 @@ export interface DispatchResult {
   data: unknown;
   requires_confirmation: boolean;
   violations: string[];
+  hardcode_warnings?: Classification[];
 }
 
 interface CommandDef {
@@ -242,6 +244,30 @@ export function listCommands(): string[] {
   return Object.keys(commands);
 }
 
+/**
+ * HCG-P2 — Command Execution Layer wiring, REPORT_ONLY (registry/hardcode-governance/
+ * enforcement-config.json -> integration_points.command_execution_layer). Classifies
+ * string/number payload values before dispatch executes; never blocks — findings are
+ * returned on DispatchResult.hardcode_warnings and logged, not enforced, at this phase.
+ */
+function scanPayloadForHardcodes(command: string, payload: Record<string, unknown>): Classification[] {
+  const findings: Classification[] = [];
+  for (const [key, value] of Object.entries(payload)) {
+    if (typeof value !== "string" && typeof value !== "number") continue;
+    const c = classify({ value: String(value), context_key: key, file: `dispatcher:${command}`, line: 0 });
+    if (c.verdict !== "ALLOWED" && c.category !== "UNKNOWN") {
+      findings.push(c);
+    }
+  }
+  if (findings.length > 0) {
+    console.warn(
+      `[hardcode-governance][REPORT_ONLY] command "${command}" payload has ${findings.length} flagged value(s):`,
+      findings.map((f) => `${f.value} (${f.category}/${f.verdict})`).join("; ")
+    );
+  }
+  return findings;
+}
+
 export function validateInput(command: string, payload: Record<string, unknown>): string[] {
   const def = commands[command];
   if (!def) return [`command "${command}" ไม่อยู่ใน registry — ปฏิเสธ`];
@@ -291,15 +317,18 @@ export async function dispatch(
     return { ok: false, command, data: null, requires_confirmation: def.requires_confirmation, violations };
   }
 
+  const hardcode_warnings = scanPayloadForHardcodes(command, payload);
+
   const queryFn = QUERY_MAP[command];
   if (queryFn) {
     try {
       const data = await queryFn(payload);
-      return { ok: true, command, data, requires_confirmation: false, violations: [] };
+      return { ok: true, command, data, requires_confirmation: false, violations: [], hardcode_warnings };
     } catch (err) {
       return {
         ok: false, command, data: null, requires_confirmation: false,
         violations: [`query error: ${err instanceof Error ? err.message : String(err)}`],
+        hardcode_warnings,
       };
     }
   }
@@ -310,5 +339,6 @@ export async function dispatch(
     data: { message: `command "${command}" registered แต่ยังไม่มี query handler — ต้องพัฒนาเพิ่ม` },
     requires_confirmation: def.requires_confirmation,
     violations: [],
+    hardcode_warnings,
   };
 }

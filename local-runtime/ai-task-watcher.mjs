@@ -14,8 +14,10 @@ import { readFileSync } from "fs";
 import { readFile, writeFile } from "fs/promises";
 import { join } from "path";
 import { ensurePodRunning, stopPod, waitForOllamaReady } from "./runpod-controller.mjs";
+import { fileURLToPath } from "url";
+import { dirname } from "path";
 
-const PROJECT_DIR = "/Users/tam/Desktop/DNA OS-โฟลเดอร์หลักต้นฉบับ /dna-os-deadboard";
+const PROJECT_DIR = join(dirname(fileURLToPath(import.meta.url)), "..");
 // Upgraded 2026-08-04 (owner: "ข้อจำกัดเดิมเรื่องทรัพยากรเครื่องไม่มีผลเหมือน
 // เดิมแล้ว...เลือกโมเดลตามความเหมาะสมของงาน ความแม่นยำ...ไม่ต้องยึดตาม
 // ข้อจำกัดของ Mac อีกต่อไป") from qwen2.5vl:7b/qwen3:8b — real document/
@@ -25,7 +27,8 @@ const PROJECT_DIR = "/Users/tam/Desktop/DNA OS-โฟลเดอร์หลั
 // match) — qwen2.5vl:72b alone needs ~45GB VRAM.
 const VISION_MODEL = "qwen2.5vl:72b";
 const TEXT_MODEL = "thawatchai";
-const LOCAL_OLLAMA_URL = "http://localhost:11434";
+// No local Ollama URL — Migration Completion (owner, 2026-08-04): Cloud
+// Runtime only, ~/.ollama removed from this Mac. See main()'s routing below.
 
 const env = Object.fromEntries(
   readFileSync(join(PROJECT_DIR, ".env.local"), "utf8")
@@ -48,7 +51,7 @@ const CALLBACK_URL = `${env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/ai-callback`;
 // CURRENT_TASK_ID is safe as module-level state because this watcher
 // processes one task at a time in a sequential for-loop, never concurrently.
 let CURRENT_TASK_ID = null;
-let OLLAMA_BASE_URL = LOCAL_OLLAMA_URL;
+let OLLAMA_BASE_URL = null;
 
 async function appendTrace(stage, detail) {
   if (!CURRENT_TASK_ID) return;
@@ -459,12 +462,8 @@ async function backfillMissingDocuments() {
 // "idle for N minutes" can't be tracked in memory — a small local
 // timestamp file is the real state across separate process runs.
 //
-// Honest scope note: this only calls ensurePodRunning()/stopPod() — it
-// does NOT yet route ollamaGenerate() calls to the remote pod (still
-// hits http://localhost:11434 below). The pod itself has no Ollama
-// installed yet either. Wiring those two together is the next real step;
-// doing it now would silently point real customer document classification
-// at a GPU box that can't answer.
+// Cloud-only since Migration Completion (owner, 2026-08-04): main() routes
+// every ollamaGenerate() call to the pod's real URL, no local fallback.
 const LAST_ACTIVE_PATH = join(PROJECT_DIR, "local-runtime", ".runpod-last-active");
 const IDLE_STOP_MINUTES = 15;
 
@@ -508,13 +507,13 @@ async function main() {
   console.log(`[ai-task-watcher] ${new Date().toISOString()} พบงาน ${tasks.length} รายการ`);
   await touchLastActive();
 
-  // Real wiring (owner, 2026-08-04: "เดินสายไฟเชื่อมใช้งานจริงเลย"): try
-  // the remote pod first, but never leave real customer document
-  // classification stuck waiting on a slow-booting/broken Cloud GPU — a
-  // pod that isn't answering /api/tags within the timeout falls back to
-  // this Mac's own Ollama for THIS batch, honestly logged either way, not
-  // silently retried forever.
-  OLLAMA_BASE_URL = LOCAL_OLLAMA_URL;
+  // Migration Completion (owner, 2026-08-04: "ยกเลิก Local Ollama...ห้าม
+  // เก็บโมเดล AI ทุกชนิดไว้ในเครื่อง"): Cloud Runtime only, no local
+  // fallback. If the pod isn't ready in time, tasks stay status=pending and
+  // are retried on the next 20s tick — never silently routed to this Mac's
+  // Ollama, which no longer has any real models to serve after ~/.ollama is
+  // removed.
+  OLLAMA_BASE_URL = null;
   try {
     const ensured = await ensurePodRunning();
     if (ensured.ok && ensured.pod?.id) {
@@ -524,13 +523,18 @@ async function main() {
         OLLAMA_BASE_URL = readiness.url;
         console.log(`[ai-task-watcher] Pod พร้อมแล้ว ใช้ ${OLLAMA_BASE_URL}`);
       } else {
-        console.error(`[ai-task-watcher] ${readiness.error} — fallback กลับมาใช้ Ollama ในเครื่อง Mac รอบนี้`);
+        console.error(`[ai-task-watcher] ${readiness.error} — Cloud Runtime ยังไม่พร้อม จะลองใหม่รอบถัดไป (ไม่ fallback ไปเครื่องแล้ว)`);
       }
     } else {
-      console.error(`[ai-task-watcher] ensurePodRunning ล้มเหลว: ${JSON.stringify(ensured.errors)} — ใช้ Ollama ในเครื่อง Mac แทน`);
+      console.error(`[ai-task-watcher] ensurePodRunning ล้มเหลว: ${JSON.stringify(ensured.errors)} — จะลองใหม่รอบถัดไป`);
     }
   } catch (e) {
-    console.error(`[ai-task-watcher] ensurePodRunning error: ${e.message} — ใช้ Ollama ในเครื่อง Mac แทน`);
+    console.error(`[ai-task-watcher] ensurePodRunning error: ${e.message} — จะลองใหม่รอบถัดไป`);
+  }
+
+  if (!OLLAMA_BASE_URL) {
+    console.log(`[ai-task-watcher] Cloud Runtime ไม่พร้อมรอบนี้ — เก็บ ${tasks.length} งานไว้เป็น pending ต่อ`);
+    return;
   }
 
   for (const task of tasks) {

@@ -487,6 +487,24 @@ verify_jwt = false
 [functions.trigger-complete]
 verify_jwt = false
 
+# storage-threshold-alert is called by local-runtime/storage-threshold-watcher.ts
+# on the owner's own Mac, authenticating via its own X-DNA-Internal-Secret
+# header (verified in code, index.ts) — not a Supabase JWT. Same recurring
+# root cause as every function above (Rule 106) — caught before it caused a
+# real silent-failure incident this time, during the watcher's first live
+# trigger test (2026-08-04): a manual curl call returned
+# "UNAUTHORIZED_NO_AUTH_HEADER" from Supabase's platform gate.
+[functions.storage-threshold-alert]
+verify_jwt = false
+
+# architecture-drift-alert is called by local-runtime/storage-threshold-watcher.ts,
+# authenticating via its own X-DNA-Internal-Secret header — not a Supabase
+# JWT. Same pattern as storage-threshold-alert above; set correctly from the
+# start this time (Rule 106 — a recurring root cause, learned once already
+# the same day).
+[functions.architecture-drift-alert]
+verify_jwt = false
+
 # pg-delta is the schema diff engine for db diff / db pull / db remote commit.
 # Set enabled = false to fall back to the legacy migra engine.
 [experimental.pgdelta]

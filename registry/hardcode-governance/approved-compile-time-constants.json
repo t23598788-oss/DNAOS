@@ -1,0 +1,36 @@
+{
+  "version": 1,
+  "note": "Language-level/enum/math constants explicitly approved for inline use. Anything NOT listed here that looks like a compile-time constant is UNKNOWN, not auto-approved.",
+  "entries": [
+    {
+      "id": "CTC-MATH-PI",
+      "category": "COMPILE_TIME_CONSTANT",
+      "value_type": "math_constant",
+      "scope": "global",
+      "source": "mathematics",
+      "owner": "platform",
+      "version": "1.0",
+      "allowed_locations": ["anywhere as Math.PI or equivalent language builtin"],
+      "forbidden_locations": [],
+      "rationale": "Universal mathematical constant, not domain-specific.",
+      "validation_rule": "n/a — use language builtin, do not re-literal it",
+      "review_required": false,
+      "last_verified_at": "2026-08-04"
+    },
+    {
+      "id": "CTC-DOCUMENT-TYPE-ENUM",
+      "category": "COMPILE_TIME_CONSTANT",
+      "value_type": "typescript_enum",
+      "scope": "app",
+      "source": "engines/documents type definitions",
+      "owner": "platform",
+      "version": "1.0",
+      "allowed_locations": ["engines/documents/types.ts"],
+      "forbidden_locations": ["re-declared string literals elsewhere instead of importing the enum"],
+      "rationale": "Document type set (invoice/receipt/quote/...) is a closed, compile-time-known set defined once in the codebase's own type system.",
+      "validation_rule": "must be imported from the single source enum, not re-typed as a string literal",
+      "review_required": false,
+      "last_verified_at": "2026-08-04"
+    }
+  ]
+}

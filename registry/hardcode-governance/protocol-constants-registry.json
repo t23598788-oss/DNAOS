@@ -1,0 +1,51 @@
+{
+  "version": 1,
+  "note": "Values REQUIRED by an external protocol/standard. Safe to hardcode inside a dedicated protocol-definition module only — never scattered inline.",
+  "entries": [
+    {
+      "id": "PROTO-HTTP-STATUS-404",
+      "category": "PROTOCOL_CONSTANT",
+      "value_type": "http_status_code",
+      "scope": "global",
+      "source": "RFC 7231 §6.5.4",
+      "owner": "platform",
+      "version": "1.0",
+      "allowed_locations": ["lib/http/status-codes.ts", "any route's typed response helper"],
+      "forbidden_locations": ["business logic branching on a raw magic number without the named constant"],
+      "rationale": "HTTP status codes are fixed by the HTTP standard; not configurable, not environment-dependent.",
+      "validation_rule": "value in [100-599] used as a response status, referenced by name not raw literal outside the constants module",
+      "review_required": false,
+      "last_verified_at": "2026-08-04"
+    },
+    {
+      "id": "PROTO-MIME-JSON",
+      "category": "PROTOCOL_CONSTANT",
+      "value_type": "mime_type",
+      "scope": "global",
+      "source": "IANA media types registry",
+      "owner": "platform",
+      "version": "1.0",
+      "allowed_locations": ["lib/http/content-types.ts"],
+      "forbidden_locations": [],
+      "rationale": "application/json is a fixed IANA-registered media type.",
+      "validation_rule": "matches IANA media type grammar",
+      "review_required": false,
+      "last_verified_at": "2026-08-04"
+    },
+    {
+      "id": "PROTO-OAUTH-AUTHORIZE-PATH",
+      "category": "PROTOCOL_CONSTANT",
+      "value_type": "oauth_standard_path",
+      "scope": "per_service_adapter",
+      "source": "OAuth 2.0 (RFC 6749) conventional path shape",
+      "owner": "platform",
+      "version": "1.0",
+      "allowed_locations": ["service adapter's own protocol module, e.g. services/<provider>/oauth-paths.ts"],
+      "forbidden_locations": ["UI code", "route handlers directly"],
+      "rationale": "Path shape (/authorize, /token) is protocol-conventional; the HOST/domain portion is NOT — that must come from service-endpoint-registry.",
+      "validation_rule": "only the path segment is hardcoded; host is injected from config/registry",
+      "review_required": true,
+      "last_verified_at": "2026-08-04"
+    }
+  ]
+}

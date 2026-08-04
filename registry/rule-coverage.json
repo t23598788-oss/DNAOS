@@ -354,6 +354,26 @@
       ],
       "type": "runtime (partial) — the level-1/level-2 tagging and the human-confirmation gate are real code; Level 3/4 themselves do not exist",
       "detection": "Real for what exists today: verification_level is set mechanically by the code paths listed, and payment_verified cannot become true without a human hitting the confirm endpoint. NOT mechanical for the full 4-source cross-check the rule describes — bank email and bank statement/API integrations are confirmed absent from this codebase (see registry/CHANGELOG.json's Payment Verification Engine Phase 1 entries), so Level 3/4 are declared, not built. Stated honestly per this file's convention."
+    },
+    "116": {
+      "title": "Workspace Lock Manager & Dependency-Gated Migration — every registry/type edit should go through Lock Manager + Dependency Registry before commit; every resource move must be blocked the instant a real dependent is found (CONST-116, 2026-08-04)",
+      "enforced_by": [
+        "supabase/migrations/20260804000005_workspace_lock_manager.sql (workspace_locks_active_resource_idx — real Postgres partial unique index, atomic)",
+        "engines/workspace/lockManager.ts (acquireLock/withLock — real DB-backed acquire, proven live: concurrent acquires for the same path only ever have one winner)",
+        "engines/storage/engine.ts's moveSafeToTrash() (calls createMigrationPlan() as a hard pre-check — real dependents force state BLOCKED, no override path)"
+      ],
+      "type": "runtime (partial) — lock atomicity and the storage-intelligence move pre-check are real, verified code. The 'no direct file writes' half of the rule is discipline-based, not mechanical.",
+      "detection": "Real for what exists today: two concurrent workspace_locks INSERTs for the same resource_path can only have one succeed (Postgres-enforced), and engines/storage/engine.ts cannot move a file with a real dependent found in registry/architecture-book.json or registry/infra-dependency-graph.json. NOT mechanical: nothing in this repository can intercept a different AI session's or a human's direct Edit/Write tool call, or a plain text editor, bypassing engines/workspace/registryWriter.ts entirely — this is the same honest boundary Rule 105/108 already document. Stated per this file's convention, not overclaimed."
+    },
+    "117": {
+      "title": "Development Machine Policy — no Production AI Runtime or model on the dev Mac; real drift check every 6h, alerts the owner via LINE when found (CONST-117, 2026-08-04)",
+      "enforced_by": [
+        "engines/workspace/architectureDriftDetector.ts (real lsof/ps process check, real fs.existsSync for ~/.ollama and .gguf/.safetensors files, real grep of local-runtime scripts for live localhost:11434 fetch() calls)",
+        "local-runtime/storage-threshold-watcher.ts (calls detectArchitectureDrift() every 6h via the existing LaunchAgent, writes architecture_drift_events, posts to architecture-drift-alert when not clean)",
+        "supabase/functions/architecture-drift-alert (real LINE push to the owner)"
+      ],
+      "type": "runtime (partial) — the 4 known drift signals (local process, ~/.ollama, model weight files, live script references) are mechanically checked and alerted; broader Local AI Runtime shapes are not.",
+      "detection": "Real for what's checked: verified live both directions via local-runtime/architecture-drift-acceptance-test.ts (clean machine reports clean; a synthetic violation with a real fetch() call to localhost:11434 is caught and classified). NOT mechanical for local AI runtimes outside the known pattern set (different port, different tool, no localhost:11434 literal) — stated honestly, not claimed as universal coverage."
     }
   },
   "uncovered_rules": [

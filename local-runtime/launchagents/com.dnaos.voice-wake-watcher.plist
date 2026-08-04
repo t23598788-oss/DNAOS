@@ -7,17 +7,17 @@
     <key>ProgramArguments</key>
     <array>
         <string>/bin/bash</string>
-        <string>/Users/tam/dna-os-ollama/voice-wake-watcher.sh</string>
+        <string>/Users/tam/dna-os-local-runtime/voice-wake-watcher.sh</string>
     </array>
     <key>WorkingDirectory</key>
-    <string>/Users/tam/dna-os-ollama</string>
+    <string>/Users/tam/dna-os-local-runtime</string>
     <key>RunAtLoad</key>
     <true/>
     <key>KeepAlive</key>
     <true/>
     <key>StandardOutPath</key>
-    <string>/Users/tam/dna-os-ollama/voice-wake-watcher.log</string>
+    <string>/Users/tam/dna-os-local-runtime/voice-wake-watcher.log</string>
     <key>StandardErrorPath</key>
-    <string>/Users/tam/dna-os-ollama/voice-wake-watcher.log</string>
+    <string>/Users/tam/dna-os-local-runtime/voice-wake-watcher.log</string>
 </dict>
 </plist>

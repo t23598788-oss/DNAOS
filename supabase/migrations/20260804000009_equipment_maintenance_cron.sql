@@ -1,0 +1,34 @@
+-- Runs supabase/functions/equipment-maintenance-cron every 10 minutes —
+-- same interval/pattern as migration 20260711000003_debt_reminder_cron.sql
+-- and 20260724000003_receipt_reconcile_sweep_cron.sql. Handles maintenance
+-- ticket generation at 250h intervals, +50h-overdue auto-lock, and 17:00
+-- Bangkok shift-end auto-lock in one job (see the function's own header
+-- comment for why these three are combined rather than three schedules).
+--
+-- Same secret pattern as the two migrations above — the real
+-- EQUIPMENT_MAINTENANCE_CRON_SECRET value is NOT in this file (generated
+-- via `supabase secrets set` and inlined directly against the live DB via
+-- `supabase db query --linked`). This file documents the shape for
+-- reproducibility. Also requires APP_BASE_URL and
+-- EQUIPMENT_LOCK_INTERNAL_SECRET to be set as function secrets before the
+-- lock triggers can actually fire (gated cleanly per Rule 108 — the
+-- function degrades to reporting "cannot lock" rather than silently no-op
+-- if either is missing).
+
+-- pg_cron / pg_net already enabled by migration 20260711000003.
+
+-- Applied live with the real secret substituted in place of the placeholder below:
+-- select cron.schedule(
+--   'equipment-maintenance-cron',
+--   '*/10 * * * *',
+--   $$
+--   select net.http_post(
+--     url := 'https://xeytcavxejhyzxwevgto.supabase.co/functions/v1/equipment-maintenance-cron',
+--     headers := jsonb_build_object(
+--       'Content-Type', 'application/json',
+--       'x-reconcile-secret', '<EQUIPMENT_MAINTENANCE_CRON_SECRET value>'
+--     ),
+--     body := '{}'::jsonb
+--   );
+--   $$
+-- );

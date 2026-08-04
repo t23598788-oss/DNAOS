@@ -21,6 +21,8 @@
 import { readFileSync } from "fs";
 import { join } from "path";
 import { describeDocumentEngine, getDocumentEngineRuntimeContract, getDocumentEngineContextBudget, getDocumentEngineWorkOrder, getDocumentEngineExecutionReadiness, getDocumentEngineDeltaContext } from "@/engines/documents/selfDescription";
+import { describeStorageIntelligence } from "@/engines/storage/selfDescription";
+import { describeWorkspaceLockManager, describeFileExistenceIntelligence, describeArchitectureDriftDetector } from "@/engines/workspace/selfDescription";
 import { getLineDriverRuntimeContract, getLineDriverContextBudget, getLineDriverWorkOrder, getLineDriverExecutionReadiness, getLineDriverDeltaContext } from "@/plugins/drivers/line.selfDescription";
 import { getChromeDriverRuntimeContract, getChromeDriverContextBudget, getChromeDriverWorkOrder, getChromeDriverExecutionReadiness, getChromeDriverDeltaContext } from "@/plugins/drivers/chrome.selfDescription";
 import { getVscodeDriverRuntimeContract, getVscodeDriverContextBudget, getVscodeDriverWorkOrder, getVscodeDriverExecutionReadiness, getVscodeDriverDeltaContext } from "@/plugins/drivers/vscode.selfDescription";
@@ -496,16 +498,35 @@ function main() {
   section("LEARNING UPDATES");
   (existence.known_mistakes?.entries ?? []).forEach((km: any) => console.log(`  ${km.id} (${km.date}): detection=${km.detection}`));
 
-  section("SELF-DESCRIBING MODULES (SDRN-P1 — 1 of 464 wired so far)");
-  const doc = describeDocumentEngine();
-  console.log(`  ${doc.identity}`);
-  console.log(`  Status: ${doc.status}  |  Owner: ${doc.owner}`);
-  console.log(`  Capabilities: ${doc.capabilities.join(", ")}`);
-  console.log(`  Runtime connection: ${doc.runtimeConnection} — ${doc.runtimeConnectionNote}`);
-  console.log(`  Called by (${doc.calledBy.length}): ${doc.calledBy.join(", ")}`);
-  console.log(`  Missing: ${doc.missing.join(" | ")}`);
-  doc.aiShouldKnow.forEach((note) => console.log(`  AI should know: ${note}`));
-  console.log(`\n  (The other 463 registered modules do not yet have a Self Description Interface — SDRN-P1 was deliberately scoped to this one subsystem only, per registry/GOVERNANCE_REGISTRY.json -> SDRN.)`);
+  // Real, computed count — this exact number was stale before (hardcoded
+  // "1 of 464") despite 13 modules already having a real RuntimeContract.
+  // Fixed live 2026-08-04 per owner instruction ("ขยาย SDRN-P1... ไม่ต้อง
+  // hardcode รายชื่อ") — WIRED_MODULES.length + the SelfDescription-shaped
+  // modules below, read from the real arrays, not typed as a literal.
+  const fullDescriptions = [describeDocumentEngine(), describeStorageIntelligence(), describeWorkspaceLockManager(), describeFileExistenceIntelligence(), describeArchitectureDriftDetector()];
+  const totalWired = WIRED_MODULES.length + (fullDescriptions.length - 1); // document-engine counted once, already in WIRED_MODULES
+  const totalRegistered = (archBook as any).summary?.total ?? "UNKNOWN";
+  section(`SELF-DESCRIBING MODULES (SDRN-P1 — ${totalWired} of ${totalRegistered} wired so far)`);
+
+  for (const doc of fullDescriptions) {
+    console.log(`  ${doc.identity}`);
+    console.log(`  Status: ${doc.status}  |  Owner: ${doc.owner}`);
+    console.log(`  Capabilities: ${doc.capabilities.join(", ")}`);
+    console.log(`  Runtime connection: ${doc.runtimeConnection} — ${doc.runtimeConnectionNote}`);
+    console.log(`  Called by (${doc.calledBy.length}): ${doc.calledBy.join(", ") || "(none found in architecture-book.json)"}`);
+    if (doc.missing.length > 0) console.log(`  Missing: ${doc.missing.join(" | ")}`);
+    doc.aiShouldKnow.forEach((note) => console.log(`  AI should know: ${note}`));
+    console.log("");
+  }
+
+  console.log(`  Also wired (RuntimeContract only, not full SelfDescription — see each module's own .selfDescription.ts):`);
+  for (const m of WIRED_MODULES) {
+    if (m.id === "document-engine") continue; // already shown in full above
+    const c = m.getContract();
+    console.log(`    ${m.id}: ${c.currentState} — ${(c.capabilities ?? []).length} capabilities`);
+  }
+
+  console.log(`\n  (The other ${Number(totalRegistered) - totalWired} registered modules do not yet have a Self Description Interface.)`);
 
   console.log(`\n  Generated: ${new Date().toISOString()}`);
   console.log(`  Source: registry/*.json, DNA_OS_HEALTH.json — no source code read to produce this report.\n`);

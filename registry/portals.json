@@ -1,7 +1,24 @@
 {
-  "version": 1,
+  "version": 2,
   "note": "Portal Registry — Single Source of Truth สำหรับทุก Portal ของ DNA OS. ทุก Portal ใช้ Core, Gateway, Registry, Database ชุดเดียวกันเสมอ — ความต่างระหว่าง Portal อนุญาตให้ต่างกันได้แค่ 2 อย่างเท่านั้น: UI และสิทธิ์การเข้าถึง ห้ามสร้าง Business Logic ใหม่ต่อ Portal (Portal คือ View เท่านั้น)",
+  "workspace_directive_note": "v2 (owner, 2026-08-04, 'DNA OS Workspace Transformation Directive'): this domain is the operational workspace of DNA OS, not a marketing site. No architecture change — same routes, same components, same logic, same DB. Only presentation/navigation/labeling changed: `docs[]` entries below gained a real `workspace_category` field (one of `workspace_categories` below), replacing the old business/dev binary grouping. Every category maps only to routes that already existed before this directive — zero new routes created.",
   "shared_shell_component": "components/portal/PortalShell.tsx",
+  "workspace_categories": [
+    { "id": "control-center", "label_en": "Control Center", "label_th": "ศูนย์ควบคุม", "icon": "Cpu" },
+    { "id": "operations", "label_en": "Operations", "label_th": "ปฏิบัติการ", "icon": "Database" },
+    { "id": "registry", "label_en": "Registry", "label_th": "ทะเบียนระบบ", "icon": "Puzzle" },
+    { "id": "resources", "label_en": "Resources", "label_th": "ทรัพยากร", "icon": "Database" },
+    { "id": "finance", "label_en": "Finance", "label_th": "การเงิน", "icon": "Database" },
+    { "id": "logistics", "label_en": "Logistics", "label_th": "โลจิสติกส์", "icon": "Database" },
+    { "id": "ai", "label_en": "AI", "label_th": "ปัญญาประดิษฐ์", "icon": "Cpu" },
+    { "id": "hardware", "label_en": "Hardware", "label_th": "ฮาร์ดแวร์", "icon": "Plug" },
+    { "id": "documents", "label_en": "Documents", "label_th": "เอกสาร", "icon": "FileText" },
+    { "id": "automation", "label_en": "Automation", "label_th": "ระบบอัตโนมัติ", "icon": "Network" },
+    { "id": "monitoring", "label_en": "Monitoring", "label_th": "การเฝ้าระวัง", "icon": "Network" },
+    { "id": "developer", "label_en": "Engineering Workspace", "label_th": "พื้นที่ทำงานวิศวกร", "icon": "BookOpen" },
+    { "id": "system-health", "label_en": "System Health", "label_th": "สุขภาพระบบ", "icon": "Shield" },
+    { "id": "settings", "label_en": "Settings", "label_th": "การตั้งค่า", "icon": "Shield" }
+  ],
   "main": [
     {
       "label": "Control Center",
@@ -9,12 +26,12 @@
       "icon": "Cpu"
     },
     {
-      "label": "Developer Portal",
+      "label": "Engineering Workspace",
       "href": "/start",
       "icon": "BookOpen"
     },
     {
-      "label": "Documentation",
+      "label": "System Workspace",
       "href": "/admin",
       "icon": "FileText"
     },
@@ -67,7 +84,7 @@
       "href": "/partner"
     },
     {
-      "label": "Developer Portal",
+      "label": "Engineering Workspace",
       "href": "/start"
     },
     {
@@ -87,172 +104,55 @@
       "href": "/admin/login"
     }
   ],
-  "_main_nav_note": "main/nav เป็น convenience view สำหรับหน้า Landing Page (app/page.tsx) เท่านั้น — ข้อมูลจริง (name/route/status/access) อยู่ที่ object `portals` ด้านล่าง ห้ามเพิ่ม Portal ใหม่ที่นี่โดยไม่เพิ่มใน `portals` ด้วย. ข้อยกเว้น: 'Documentation' (/admin) และ 'Login' (/admin/login) ถูกเพิ่มที่นี่ 2026-07-07 เป็น nav link ไปยังของจริงที่มีอยู่แล้ว (app/admin ถูกเปลี่ยนเป็น Documentation Portal โดย session อื่นก่อนหน้านี้ — ยังเป็นคำถามค้างใน CURRENT_STATE.json open_questions[0] ว่าตั้งใจหรือไม่ — ไม่ใช่ Portal ลำดับที่ 7 ใน object `portals` ด้านล่าง เพราะ 6 Portal ถูก lock ไว้แล้วตามคำสั่งก่อนหน้า)",
+  "_main_nav_note": "main/nav เป็น convenience view สำหรับหน้า Landing Page (app/page.tsx) เท่านั้น — ข้อมูลจริง (name/route/status/access) อยู่ที่ object `portals` ด้านล่าง ห้ามเพิ่ม Portal ใหม่ที่นี่โดยไม่เพิ่มใน `portals` ด้วย. ข้อยกเว้น: 'Documentation' (/admin) และ 'Login' (/admin/login) ถูกเพิ่มที่นี่ 2026-07-07 เป็น nav link ไปยังของจริงที่มีอยู่แล้ว (app/admin ถูกเปลี่ยนเป็น Documentation Portal โดย session อื่นก่อนหน้านี้ — ยังเป็นคำถามค้างใน CURRENT_STATE.json open_questions[0] ว่าตั้งใจหรือไม่ — ไม่ใช่ Portal ลำดับที่ 7 ใน object `portals` ด้านล่าง เพราะ 6 Portal ถูก lock ไว้แล้วตามคำสั่งก่อนหน้า). 2026-08-04: label 'Developer Portal' เปลี่ยนเป็น 'Engineering Workspace' ตาม Workspace Transformation Directive — route/implementation เดิมทั้งหมด ไม่มีการย้าย/สร้างหน้าใหม่",
   "docs": [
-    {
-      "label": "Overview",
-      "href": "/admin",
-      "icon": "LayoutGrid",
-      "group": "business"
-    },
-    {
-      "label": "Dashboard",
-      "href": "/admin/dashboard",
-      "icon": "LayoutGrid",
-      "group": "business"
-    },
-    {
-      "label": "Architecture",
-      "href": "/admin/architecture",
-      "icon": "Cpu",
-      "group": "dev"
-    },
-    {
-      "label": "🛡️ ประวัติเปลี่ยนโครงสร้าง DB",
-      "href": "/admin/schema-audit",
-      "icon": "Shield",
-      "group": "dev"
-    },
-    {
-      "label": "DNA",
-      "href": "/admin/dna",
-      "icon": "Cpu",
-      "group": "dev"
-    },
-    {
-      "label": "Graph",
-      "href": "/admin/graph",
-      "icon": "Network",
-      "group": "dev"
-    },
-    {
-      "label": "API Explorer",
-      "href": "/admin/api-explorer",
-      "icon": "Network",
-      "group": "dev"
-    },
-    {
-      "label": "API Tokens",
-      "href": "/admin/api-tokens",
-      "icon": "Shield",
-      "group": "dev"
-    },
-    {
-      "label": "Users & Roles",
-      "href": "/admin/users",
-      "icon": "Shield",
-      "group": "dev"
-    },
-    {
-      "label": "Connectors",
-      "href": "/admin/connectors",
-      "icon": "Plug",
-      "group": "dev"
-    },
-    {
-      "label": "Build",
-      "href": "/admin/build",
-      "icon": "BookOpen",
-      "group": "dev"
-    },
-    {
-      "label": "Deploy",
-      "href": "/admin/deploy",
-      "icon": "BookOpen",
-      "group": "dev"
-    },
-    {
-      "label": "Traces",
-      "href": "/admin/traces",
-      "icon": "Network",
-      "group": "dev"
-    },
-    {
-      "label": "Reader",
-      "href": "/admin/reader",
-      "icon": "BookOpen",
-      "group": "dev"
-    },
-    {
-      "label": "Links",
-      "href": "/admin/links",
-      "icon": "BookOpen",
-      "group": "dev"
-    },
-    {
-      "label": "Backup",
-      "href": "/admin/backup",
-      "icon": "Database",
-      "group": "dev"
-    },
-    {
-      "label": "Jobs",
-      "href": "/admin/jobs",
-      "icon": "Database",
-      "group": "business"
-    },
-    {
-      "label": "Partners",
-      "href": "/admin/partners",
-      "icon": "Database",
-      "group": "business"
-    },
-    {
-      "label": "Transactions",
-      "href": "/admin/transactions",
-      "icon": "Database",
-      "group": "business"
-    },
-    {
-      "label": "ธุรกิจการเงิน",
-      "href": "/admin/debt-tracking",
-      "icon": "Database",
-      "group": "business"
-    },
-    {
-      "label": "📥 เหตุการณ์เข้า",
-      "href": "/admin/event-inbox",
-      "icon": "Database",
-      "group": "business"
-    },
-    {
-      "label": "ลูกค้า LINE",
-      "href": "/admin/line-customers",
-      "icon": "LineChat",
-      "group": "business"
-    },
-    {
-      "label": "คำขอราคาค้าง",
-      "href": "/admin/quotation-queue",
-      "icon": "Database",
-      "group": "business"
-    },
-    {
-      "label": "🪨 บ่อวัสดุ",
-      "href": "/admin/pits",
-      "icon": "Database",
-      "group": "business"
-    },
-    {
-      "label": "ออกเอกสาร",
-      "href": "/admin/create-document",
-      "icon": "Database",
-      "group": "business"
-    },
-    {
-      "label": "Pending",
-      "href": "/admin/pending",
-      "icon": "LayoutGrid",
-      "group": "business"
-    },
-    {
-      "label": "DBD",
-      "href": "/admin/dbd",
-      "icon": "Puzzle",
-      "group": "business"
-    }
+    { "label": "Overview", "href": "/admin", "icon": "LayoutGrid", "group": "business", "workspace_category": "control-center" },
+    { "label": "Dashboard", "href": "/admin/dashboard", "icon": "LayoutGrid", "group": "business", "workspace_category": "control-center" },
+    { "label": "Architecture", "href": "/admin/architecture", "icon": "Cpu", "group": "dev", "workspace_category": "developer" },
+    { "label": "🛡️ ประวัติเปลี่ยนโครงสร้าง DB", "href": "/admin/schema-audit", "icon": "Shield", "group": "dev", "workspace_category": "registry" },
+    { "label": "DNA", "href": "/admin/dna", "icon": "Cpu", "group": "dev", "workspace_category": "ai" },
+    { "label": "Graph", "href": "/admin/graph", "icon": "Network", "group": "dev", "workspace_category": "developer" },
+    { "label": "API Explorer", "href": "/admin/api-explorer", "icon": "Network", "group": "dev", "workspace_category": "developer" },
+    { "label": "API Tokens", "href": "/admin/api-tokens", "icon": "Shield", "group": "dev", "workspace_category": "settings" },
+    { "label": "Users & Roles", "href": "/admin/users", "icon": "Shield", "group": "dev", "workspace_category": "settings" },
+    { "label": "Connectors", "href": "/admin/connectors", "icon": "Plug", "group": "dev", "workspace_category": "automation" },
+    { "label": "Build", "href": "/admin/build", "icon": "BookOpen", "group": "dev", "workspace_category": "developer" },
+    { "label": "Deploy", "href": "/admin/deploy", "icon": "BookOpen", "group": "dev", "workspace_category": "developer" },
+    { "label": "Traces", "href": "/admin/traces", "icon": "Network", "group": "dev", "workspace_category": "monitoring" },
+    { "label": "Reader", "href": "/admin/reader", "icon": "BookOpen", "group": "dev", "workspace_category": "documents" },
+    { "label": "Links", "href": "/admin/links", "icon": "BookOpen", "group": "dev", "workspace_category": "documents" },
+    { "label": "Backup", "href": "/admin/backup", "icon": "Database", "group": "dev", "workspace_category": "system-health" },
+    { "label": "Jobs", "href": "/admin/jobs", "icon": "Database", "group": "business", "workspace_category": "operations" },
+    { "label": "Partners", "href": "/admin/partners", "icon": "Database", "group": "business", "workspace_category": "operations" },
+    { "label": "Transactions", "href": "/admin/transactions", "icon": "Database", "group": "business", "workspace_category": "operations" },
+    { "label": "ธุรกิจการเงิน", "href": "/admin/debt-tracking", "icon": "Database", "group": "business", "workspace_category": "finance" },
+    { "label": "📥 เหตุการณ์เข้า", "href": "/admin/event-inbox", "icon": "Database", "group": "business", "workspace_category": "monitoring" },
+    { "label": "ลูกค้า LINE", "href": "/admin/line-customers", "icon": "LineChat", "group": "business", "workspace_category": "operations" },
+    { "label": "คำขอราคาค้าง", "href": "/admin/quotation-queue", "icon": "Database", "group": "business", "workspace_category": "operations" },
+    { "label": "🪨 บ่อวัสดุ", "href": "/admin/pits", "icon": "Database", "group": "business", "workspace_category": "resources" },
+    { "label": "ออกเอกสาร", "href": "/admin/create-document", "icon": "Database", "group": "business", "workspace_category": "documents" },
+    { "label": "Pending", "href": "/admin/pending", "icon": "LayoutGrid", "group": "business", "workspace_category": "operations" },
+    { "label": "DBD", "href": "/admin/dbd", "icon": "Puzzle", "group": "business", "workspace_category": "registry" },
+    { "label": "Debt Notice", "href": "/admin/debt-notice", "icon": "Database", "group": "business", "workspace_category": "finance" },
+    { "label": "Delivery Order", "href": "/admin/delivery-order", "icon": "Database", "group": "business", "workspace_category": "logistics" },
+    { "label": "Equipment", "href": "/admin/equipment", "icon": "Plug", "group": "business", "workspace_category": "hardware" },
+    { "label": "Engine Explorer", "href": "/admin/engine-explorer", "icon": "Cpu", "group": "dev", "workspace_category": "developer" },
+    { "label": "Finance", "href": "/admin/finance", "icon": "Database", "group": "business", "workspace_category": "finance" },
+    { "label": "Infrastructure", "href": "/admin/infrastructure", "icon": "Shield", "group": "dev", "workspace_category": "system-health" },
+    { "label": "Invoice", "href": "/admin/invoice", "icon": "FileText", "group": "business", "workspace_category": "documents" },
+    { "label": "Line Profiles", "href": "/admin/line-profiles", "icon": "LineChat", "group": "business", "workspace_category": "operations" },
+    { "label": "Notifications", "href": "/admin/notifications", "icon": "Network", "group": "business", "workspace_category": "automation" },
+    { "label": "Payment Voucher", "href": "/admin/payment-voucher", "icon": "Database", "group": "business", "workspace_category": "finance" },
+    { "label": "Purchase Order", "href": "/admin/purchase-order", "icon": "Database", "group": "business", "workspace_category": "logistics" },
+    { "label": "Receipt", "href": "/admin/receipt", "icon": "FileText", "group": "business", "workspace_category": "documents" },
+    { "label": "Receipts", "href": "/admin/receipts", "icon": "FileText", "group": "business", "workspace_category": "documents" },
+    { "label": "Relationships", "href": "/admin/relationships", "icon": "Database", "group": "business", "workspace_category": "operations" },
+    { "label": "Storage", "href": "/admin/storage", "icon": "Shield", "group": "dev", "workspace_category": "system-health" },
+    { "label": "System", "href": "/admin/system", "icon": "Cpu", "group": "dev", "workspace_category": "system-health" },
+    { "label": "Telemetry", "href": "/admin/telemetry", "icon": "Network", "group": "dev", "workspace_category": "monitoring" },
+    { "label": "Workspace", "href": "/admin/workspace", "icon": "Puzzle", "group": "dev", "workspace_category": "automation" }
   ],
-  "_docs_note": "เพิ่ม 2026-07-07 เพื่อแก้ tsc/build error ใน app/admin/layout.tsx ที่อ่าน portals.docs — เป็น real route ทั้งหมดที่มีอยู่จริงใน app/admin/*/page.tsx (28 หน้า, ไม่รวม /admin/login เพราะเป็นหน้า login เอง ไม่ใช่ nav destination), label มาจากชื่อ route ตรงๆ ไม่ได้แต่งใหม่ ครอบคลุมทั้งหน้า business admin จริง (jobs/partners/invoice/transactions/debt-tracking ฯลฯ) และหน้า documentation/explorer (architecture/connectors/api-explorer ฯลฯ) โดยตั้งใจ — เพื่อไม่ให้หน้าธุรกิจจริงหายไปจาก sidebar ระหว่างที่ยังไม่ได้คำตอบจากเจ้าของระบบว่า /admin ตั้งใจเปลี่ยนเป็น Documentation Portal ทั้งหมดหรือไม่ (ดู CURRENT_STATE.json open_questions[0] — ยังไม่ resolved)",
+  "_docs_note": "เพิ่ม 2026-07-07 เพื่อแก้ tsc/build error ใน app/admin/layout.tsx ที่อ่าน portals.docs — เป็น real route ทั้งหมดที่มีอยู่จริงใน app/admin/*/page.tsx label มาจากชื่อ route ตรงๆ ไม่ได้แต่งใหม่ ครอบคลุมทั้งหน้า business admin จริงและหน้า documentation/explorer โดยตั้งใจ. 2026-08-04: ขยายจาก 28 เป็น 44 รายการให้ตรงกับ page.tsx จริงทุกไฟล์ใต้ app/admin (เดิมมี 16 หน้าตกหล่นจาก sidebar — invoice/receipt/finance/infrastructure/storage/system/telemetry/workspace ฯลฯ) และเพิ่ม workspace_category ให้ทุกรายการ (14 หมวดตาม Workspace Transformation Directive) แทนที่ group business/dev แบบเดิมเป็น grouping หลัก — group เดิมยังคงไว้เพื่อความเข้ากันได้กับโค้ดที่อ่านอยู่ ไม่ได้ลบ",
   "business": [
     {
       "label": "Dashboard",
@@ -268,7 +168,7 @@
       "route": "/",
       "implementation": "app/page.tsx",
       "status": "official",
-      "note": "มีอยู่แล้วก่อนตั้ง Portal Registry — เปลี่ยนสถานะเป็น official ตามคำสั่ง ไม่ได้แก้โค้ดภายใน",
+      "note": "มีอยู่แล้วก่อนตั้ง Portal Registry — เปลี่ยนสถานะเป็น official ตามคำสั่ง ไม่ได้แก้โค้ดภายใน. 2026-08-04: เนื้อหาเปลี่ยนจาก marketing sections (hero/platform/modules/ecosystem ฯลฯ) เป็น Workspace Console จริง อ่าน workspace_categories + docs[] จาก registry นี้โดยตรง ตาม Workspace Transformation Directive — route/component เดิม (app/page.tsx) ไม่มีไฟล์ใหม่",
       "access": {
         "auth_required": false,
         "verified_from": "middleware.ts (matcher: /admin/:path* เท่านั้น)",
@@ -276,12 +176,12 @@
       }
     },
     "developer_portal": {
-      "name": "Developer Portal",
-      "purpose_th": "สำหรับนักพัฒนา — Observer, API spec, Modules/Commands/Workflows/Constitution/Capabilities/Drivers, Examples, Playground",
+      "name": "Engineering Workspace",
+      "purpose_th": "สำหรับวิศวกร — Observer, API spec, Modules/Commands/Workflows/Constitution/Capabilities/Drivers, Examples, Playground",
       "route": "/start",
       "implementation": "app/start/page.tsx",
       "status": "official",
-      "note": "มีอยู่แล้วก่อนตั้ง Portal Registry — เปลี่ยนสถานะเป็น official ตามคำสั่ง ไม่ได้แก้โค้ดภายใน",
+      "note": "มีอยู่แล้วก่อนตั้ง Portal Registry — เปลี่ยนสถานะเป็น official ตามคำสั่ง ไม่ได้แก้โค้ดภายใน. 2026-08-04: ชื่อเปลี่ยนจาก 'Developer Portal' เป็น 'Engineering Workspace' ตาม Workspace Transformation Directive (route/implementation เดิมทุกอย่าง)",
       "access": {
         "auth_required": false,
         "verified_from": "middleware.ts (matcher: /admin/:path* เท่านั้น)",
@@ -341,6 +241,7 @@
     "ทุก Portal ต้องใช้ Core, Gateway, Registry, Database ชุดเดียวกัน ห้ามสร้างชุดใหม่แยกต่างหากต่อ Portal",
     "ห้ามสร้าง Business Logic ใหม่ต่อ Portal — Portal คือ View ของระบบเดียวเท่านั้น",
     "ความต่างระหว่าง Portal อนุญาตให้ต่างกันได้แค่ 2 อย่าง: UI และสิทธิ์การเข้าถึง",
-    "Portal ที่มีอยู่ก่อนแล้ว (Control Center, Developer Portal) ถูกเปลี่ยนสถานะเป็น official โดยไม่แก้โค้ดภายใน — การลงทะเบียนนี้คือการรับรองสถานะ ไม่ใช่การ refactor"
+    "Portal ที่มีอยู่ก่อนแล้ว (Control Center, Developer Portal/Engineering Workspace) ถูกเปลี่ยนสถานะเป็น official โดยไม่แก้โค้ดภายใน — การลงทะเบียนนี้คือการรับรองสถานะ ไม่ใช่การ refactor",
+    "Workspace Transformation Directive (owner, 2026-08-04): เปลี่ยนได้เฉพาะ label/wording/navigation/UI grouping/dashboard layout เท่านั้น ห้ามแก้ route/component/business logic/database/registry schema — ทุกอย่างที่แสดงต้องมาจาก docs[]/workspace_categories ใน registry นี้ ห้าม duplicate metadata ใน UI"
   ]
 }

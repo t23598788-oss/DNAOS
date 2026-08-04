@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.dnaos.storage-threshold-watcher</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/usr/local/bin/npx</string>
+        <string>tsx</string>
+        <string>local-runtime/storage-threshold-watcher.ts</string>
+    </array>
+    <key>WorkingDirectory</key>
+    <string>/Users/tam/Desktop/DNA OS-ต้นฉบับ /dna-os-deadboard</string>
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key>
+        <string>/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+    </dict>
+    <key>StartInterval</key>
+    <integer>21600</integer>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>StandardOutPath</key>
+    <string>/Users/tam/Desktop/DNA OS-ต้นฉบับ /dna-os-deadboard/local-runtime/storage-threshold-watcher.log</string>
+    <key>StandardErrorPath</key>
+    <string>/Users/tam/Desktop/DNA OS-ต้นฉบับ /dna-os-deadboard/local-runtime/storage-threshold-watcher.log</string>
+</dict>
+</plist>

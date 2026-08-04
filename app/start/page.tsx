@@ -1,5 +1,11 @@
 /**
- * /start — DNA OS Developer Portal
+ * /start — DNA OS Engineering Workspace (Main Domain UI Operational
+ * Conversion, owner, 2026-08-04). Same route, same cards, same hrefs — only
+ * the framing changed from "Developer Portal" to "Engineering Workspace",
+ * and the 3 existing groups were relabeled Inspect/Build/Test to match what
+ * each actually does (Learn's cards are all read-only inspection tools).
+ * Nothing here was removed — Observer, JSON registries, API spec, and
+ * Playground are real tools, not marketing content.
  */
 
 import Link from "next/link"
@@ -18,7 +24,7 @@ const WORKFLOW_COUNT = Object.keys((workflowRegistry as any).workflows ?? {}).le
 
 const GROUPS = [
   {
-    label: "Learn",
+    label: "Inspect",
     sublabel: "เรียนรู้โครงสร้างระบบ",
     cards: [
       {
@@ -127,7 +133,7 @@ const BADGE_COLOR: Record<string, string> = {
 }
 
 const GROUP_LABEL_COLOR: Record<string, string> = {
-  Learn: "text-sky-700 border-sky-200",
+  Inspect: "text-sky-700 border-sky-200",
   Build: "text-violet-700 border-violet-200",
   Test:  "text-rose-700 border-rose-200",
 }
@@ -139,7 +145,7 @@ export default function StartPage() {
 
         {/* ── Header ── */}
         <div className="mb-10">
-          <div className="text-[10px] font-mono text-stone-400 uppercase tracking-widest mb-2">Developer Portal</div>
+          <div className="text-[10px] font-mono text-stone-400 uppercase tracking-widest mb-2">Engineering Workspace</div>
           <h1 className="text-3xl font-bold text-stone-900 mb-1">DNA OS</h1>
           <p className="text-stone-400 text-sm mb-6">
             Registry-Driven ERP Platform — Architecture, Business Rules, Registry, and API in one place
@@ -246,9 +252,9 @@ export default function StartPage() {
           </div>
         </div>
 
-        {/* ── Quick Start ── */}
+        {/* ── Execute ── */}
         <div className="mb-14">
-          <h2 className="text-base font-bold text-stone-800 mb-5">Quick Start — External AI</h2>
+          <h2 className="text-base font-bold text-stone-800 mb-5">Execute — Quick Start for External AI</h2>
           <div className="space-y-2">
             {[
               { n: "1", title: "โหลดโครงสร้างระบบ",   code: "GET /observer.json",                                         detail: "หรือวาง /observer ใน AI chat" },

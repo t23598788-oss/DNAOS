@@ -22,8 +22,9 @@
 import { readFileSync } from "fs";
 import { join } from "path";
 import { fileURLToPath } from "url";
+import { dirname } from "path";
 
-const PROJECT_DIR = "/Users/tam/Desktop/DNA OS-โฟลเดอร์หลักต้นฉบับ /dna-os-deadboard";
+const PROJECT_DIR = join(dirname(fileURLToPath(import.meta.url)), "..");
 const POD_NAME = "dna-os-ollama";
 // Real Ollama image (owner, 2026-08-04: "เดินสายไฟเชื่อมใช้งานจริงเลย") —
 // switched from the bare PyTorch image (which needed a manual SSH install
@@ -424,13 +425,24 @@ export async function ensurePodRunning() {
 
   const stopped = existing.find((p) => p.status === "EXITED");
   if (stopped) {
-    // Real action endpoint verified against the spec: POST /pods/{id}/action
-    // with body {action: "start"}, not a /pods/{id}/start path.
-    const started = await runpodRequest(apiKey, `/pods/${stopped.id}/action`, {
-      method: "POST",
-      body: JSON.stringify({ action: "start" }),
-    });
-    return { ok: true, action: "started_existing", pod: started, url: ollamaUrlForPod(started.id) };
+    // Real bug found live 2026-08-04: resuming a specific stopped pod is
+    // pinned to whatever GPU type it was originally created with — if that
+    // exact type has no free capacity right now, the old code threw here
+    // uncaught instead of falling through to GPU_FALLBACK_CHAIN below (which
+    // only ran when there was no stopped pod at all). The Network Volume
+    // itself isn't GPU-pinned, only the existing pod object is — so on a
+    // real resume failure, delete the stale stopped pod and fall through to
+    // the create-loop, which can try other GPU types in the same datacenter.
+    try {
+      const started = await runpodRequest(apiKey, `/pods/${stopped.id}/action`, {
+        method: "POST",
+        body: JSON.stringify({ action: "start" }),
+      });
+      return { ok: true, action: "started_existing", pod: started, url: ollamaUrlForPod(started.id) };
+    } catch (e) {
+      console.error(`[runpod-controller] resume of stopped pod ${stopped.id} failed (${e.message}) — deleting it and trying GPU_FALLBACK_CHAIN instead`);
+      await runpodRequest(apiKey, `/pods/${stopped.id}`, { method: "DELETE" }).catch(() => {});
+    }
   }
 
   // Owner directive 2026-08-04: "หาก A100 ไม่มีในพื้นที่นั้น ให้รายงานและ

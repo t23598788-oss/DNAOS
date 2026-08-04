@@ -1,0 +1,149 @@
+{
+  "version": 1,
+  "owner": "owner",
+  "created_at": "2026-08-04",
+  "note": "Source of truth for engines/governance/hardcode-decision-engine.ts classify(). Categories are mutually exclusive — every value found in source gets exactly one.",
+  "policy": "ห้ามใช้กฎแบบห้ามฮาร์ดโค้ดทั้งหมดโดยไม่แยกบริบท — every value must be classified before a verdict is given. UNKNOWN is always blocked pending human review; the engine must never guess ALLOWED.",
+  "categories": {
+    "FORBIDDEN_HARDCODE": {
+      "description": "Value must never appear literally in source: secrets, IDs that vary per tenant/environment, prices/thresholds/business rules, workflow state, machine-dependent paths, environment-dependent domains.",
+      "must_come_from": ["Registry", "Environment Variable", "Database", "Runtime", "Service Discovery", "Configuration Provider", "Policy Engine"],
+      "verdicts": ["MOVE_TO_ENV", "MOVE_TO_REGISTRY", "MOVE_TO_CONFIG", "MOVE_TO_DATABASE", "SECURITY_VIOLATION"],
+      "examples": ["API key", "token", "secret", "password", "database URL", "Supabase URL", "user ID", "company ID", "workspace ID", "bucket name", "region", "GPU type", "model name", "model version", "price", "threshold", "timeout", "retry count", "feature flag", "permission", "business rule", "workflow state", "machine-specific file path", "environment-dependent domain/endpoint"]
+    },
+    "REQUIRED_HARDCODE": {
+      "description": "Standard/fixed values that must live in source, but only inside a constants or protocol-definition module with full provenance metadata — never scattered across files.",
+      "must_have": ["clear name", "reference source", "owner", "version", "reason it must stay fixed"],
+      "must_not": "duplicate the same constant across multiple files",
+      "verdicts": ["ALLOWED", "ALLOWED_WITH_REGISTRATION", "DUPLICATED_CONSTANT"],
+      "examples": ["protocol standard value", "HTTP status code", "MIME type", "standard header", "magic byte / file signature", "standard packet size", "hardware register address", "vendor command code", "device protocol opcode", "fixed-board GPIO pin mapping", "USB vendor/product ID", "serial protocol constant", "mathematical constant", "compile-time enum", "language-level constant", "protocol-contract schema version", "manufacturer-mandated fixed value"]
+    },
+    "PROTOCOL_CONSTANT": {
+      "description": "Value defined by an external protocol/standard the app must speak correctly (HTTP, MIME, OAuth path shape, etc). Safe to hardcode inside a protocol-definition module.",
+      "verdicts": ["ALLOWED"]
+    },
+    "HARDWARE_CONSTANT": {
+      "description": "Value tied to a specific, unchanging hardware model — datasheet register map, fixed-board pin map, firmware-fixed opcode. If it varies by device model, it is NOT this category — see hardware-profile-registry.",
+      "verdicts": ["ALLOWED_WITH_REGISTRATION", "MOVE_TO_REGISTRY"]
+    },
+    "PLATFORM_CONSTRAINT": {
+      "description": "Limit imposed by the OS/runtime/framework itself (e.g. max path length, framework-reserved config keys). May live in the framework's own config file, never mixed with business config.",
+      "verdicts": ["ALLOWED"]
+    },
+    "COMPILE_TIME_CONSTANT": {
+      "description": "Language-level or enum constant resolved at compile time, no runtime variability possible.",
+      "verdicts": ["ALLOWED"]
+    },
+    "CONFIGURABLE_VALUE": {
+      "description": "Varies by deploy/environment but is not secret. Belongs in a config file or env var, never inline.",
+      "verdicts": ["MOVE_TO_CONFIG", "MOVE_TO_ENV"]
+    },
+    "REGISTRY_VALUE": {
+      "description": "Belongs in one of the DNA OS registry/*.json files (business rule, capability mapping, service metadata) — the existing registry pattern used throughout this repo.",
+      "verdicts": ["MOVE_TO_REGISTRY"]
+    },
+    "ENVIRONMENT_SECRET": {
+      "description": "Any credential, key, token, or password. Always a SECURITY_VIOLATION if found literally in source.",
+      "must_come_from": ["Environment Variable", "Secret Provider"],
+      "verdicts": ["SECURITY_VIOLATION"]
+    },
+    "BUSINESS_RULE": {
+      "description": "Pricing, thresholds, workflow logic specific to this business. Must come from Policy Engine or Database, never inline in route/UI/business logic.",
+      "verdicts": ["MOVE_TO_DATABASE", "MOVE_TO_REGISTRY", "ARCHITECTURE_VIOLATION"]
+    },
+    "RUNTIME_RESOLVED_VALUE": {
+      "description": "Value that can only be known at runtime (request context, current user, current session). Must never be hardcoded as a stand-in/default.",
+      "verdicts": ["ARCHITECTURE_VIOLATION"]
+    },
+    "UNKNOWN": {
+      "description": "Engine cannot confidently classify. Always blocked pending human review — never presented as allowed.",
+      "verdicts": ["UNKNOWN_REVIEW_REQUIRED"]
+    },
+    "MODULE_PATH": {
+      "description": "A relative or path-aliased module specifier used in an import/require-shaped position (e.g. './queries', '../lib/x', '@/engines/tax'). Structural to the module system, not a business or protocol value.",
+      "added": "HCG Phase 2.7 (2026-08-04), owner-authorized, evidence-based",
+      "allow_conditions": "Value matches ^(\\.\\.?/|@/)[\\w\\-./]+$ (relative or @-aliased path shape), contains no whitespace, no '://' (not a URL), no query string.",
+      "reject_conditions": "Value starts with http(s):// (that's CONFIGURABLE_VALUE/service endpoint, not a module path). Value contains a space or Thai character (not a valid module specifier — likely misclassified). Value is used as a runtime file-system path built from user input (that's FORBIDDEN_HARDCODE, machine-specific path).",
+      "pass_examples": ["./bridge-local", "../engines/tax", "@/engines/governance/hardcode-decision-engine"],
+      "fail_examples": ["https://api.line.me/v2/bot", "/Users/tam/project/file.ts", "ไฟล์ต้นทาง"],
+      "registry_reference": "n/a — validated by shape only (import specifiers aren't centrally registered in this codebase); deliberately narrow shape regex substitutes for a registry cross-reference here.",
+      "why_not_business_rule_or_secret": "A module import path carries no business meaning and is never a credential — it identifies which source file is loaded, resolved at build/bundle time by the module system, not read as configuration.",
+      "verdicts": ["ALLOWED"]
+    },
+    "EVENT_NAME": {
+      "description": "A dot.case event-type string (e.g. 'hardcode.detected') that literally appears as a key in registry/events.json — the codebase's single real event-name registry.",
+      "added": "HCG Phase 2.7 (2026-08-04), owner-authorized, evidence-based",
+      "allow_conditions": "Value matches ^[a-z][a-z0-9_]*\\.[a-z][a-z0-9_.]*$ AND the exact string is a real key in registry/events.json's `events` object.",
+      "reject_conditions": "Dot.case-shaped string that is NOT a registered event name (stays UNKNOWN, not guessed as an event just because it looks like one — shape alone is insufficient, verified in HCG-P1's own investigation).",
+      "pass_examples": ["hardcode.detected", "command.parsed", "line.message_received"],
+      "fail_examples": ["some.made.up.name (not in events.json)", "debt.find (that's a COMMAND_NAME, not an event)"],
+      "registry_reference": "registry/events.json (events object keys) — cross-referenced at classify() time, not guessed from shape.",
+      "why_not_business_rule_or_secret": "An event-type identifier names a structural occurrence in the system's own event registry; it carries no price/threshold/credential meaning and is meaningless without the already-registered schema behind it.",
+      "verdicts": ["ALLOWED"]
+    },
+    "COMMAND_NAME": {
+      "description": "A dot.case command string (e.g. 'invoice.items') that literally appears as a key in registry/command-registry.json — the codebase's single real command registry (also the Command Dispatcher's own source of truth, engines/validation/dispatcher.ts).",
+      "added": "HCG Phase 2.7 (2026-08-04), owner-authorized, evidence-based",
+      "allow_conditions": "Value matches ^[a-z][a-z0-9_]*\\.[a-z][a-z0-9_.]*$ AND the exact string is a real key in registry/command-registry.json's `commands` object.",
+      "reject_conditions": "Dot.case-shaped string not present in command-registry.json — the Command Dispatcher itself would reject it as a 'Shadow Command' (engines/validation/dispatcher.ts dispatch(), 'ไม่อยู่ใน registry — Shadow Command ถูกปฏิเสธ'), so an unregistered lookalike string is exactly the case that must stay UNKNOWN, not be waved through.",
+      "pass_examples": ["debt.find", "partner.find", "invoice.items", "hardcode.classify"],
+      "fail_examples": ["debt.delete (not a registered command as of this entry)", "invoice.frobnicate"],
+      "registry_reference": "registry/command-registry.json (commands object keys) — the exact same source engines/validation/dispatcher.ts's isRegistered() checks against.",
+      "why_not_business_rule_or_secret": "A command name selects which already-vetted, already-schema-defined operation runs; it is a structural dispatch key, not a price/threshold or a credential — and it is meaningless unless independently already registered, which is the whole point of the cross-reference.",
+      "verdicts": ["ALLOWED"]
+    },
+    "SCHEMA_IDENTIFIER": {
+      "description": "A snake_case, underscore-containing literal (e.g. 'line_user_id', 'created_at') that matches a real table or column name extracted from supabase/migrations/*.sql.",
+      "added": "HCG Phase 2.7 (2026-08-04), owner-authorized, evidence-based",
+      "allow_conditions": "Value matches ^[a-z][a-z0-9_]*$, contains at least one underscore (deliberately excludes single dictionary words like 'amount'/'label'/'item'/'error'/'key' that coincidentally collide with a real column name elsewhere but are actually generic property names in this call site — checked live: 44 raw matches against the schema cache dropped to 6 once the underscore requirement was added, removing exactly the ambiguous single-word false-approval risk), AND the exact string is present in registry/hardcode-governance/schema-identifier-cache.json's tables[] or columns[] array.",
+      "reject_conditions": "snake_case value NOT present in the schema cache (stays UNKNOWN). Value also matches a business-rule keyword (threshold/price/timeout/retry/ราคา) — that check runs earlier in classify() and wins, since a column NAME and a column's business-meaningful VALUE are different things (e.g. 'debt_threshold' the identifier vs. 5000 the value — this category only ever classifies the identifier-shaped literal, never a business number).",
+      "pass_examples": ["line_user_id", "created_at", "service_key", "debt_events"],
+      "fail_examples": ["amount (ambiguous single word, not schema-specific enough)", "debt_threshold (business rule identifier, not a schema reference — see BUSINESS_RULE)"],
+      "registry_reference": "registry/hardcode-governance/schema-identifier-cache.json, generated by scripts/hcg-build-schema-cache.ts from supabase/migrations/*.sql (102 files, 63 tables, 326 columns as of 2026-08-04) — regenerate after schema changes; this is a cache, not a live query.",
+      "why_not_business_rule_or_secret": "A table/column name is structural database metadata (what a value is called), never the value itself, never a threshold/price, and never a credential.",
+      "verdicts": ["ALLOWED"]
+    },
+    "UI_LITERAL": {
+      "description": "Human-readable display/message text — UI labels, log lines, error/status messages — identified by containing whitespace or Thai-script characters (a real, non-guessable structural signal: no machine identifier, business key, or credential is ever written with embedded spaces or Thai prose in this codebase's real conventions).",
+      "added": "HCG Phase 2.7 (2026-08-04), owner-authorized, evidence-based",
+      "allow_conditions": "Value contains a space character OR a Thai-script character (U+0E00–U+0E7F), length >= 4, AND does not match any FORBIDDEN_HARDCODE/ENVIRONMENT_SECRET pattern (checked earlier in classify() and always wins), AND context_key does not match a security-sensitive keyword (key|token|secret|password|pwd|credential|รหัส|ผ่าน) — defensive check since forbidden-pattern keyword coverage is English-only today (see forbidden-hardcode-patterns.json) and a Thai-labeled secret must not slip through via this category.",
+      "reject_conditions": "Value matches a forbidden secret pattern (wins first, always). Value's context_key suggests a security-sensitive field even in Thai. Value contains '${' (template-literal interpolation) — that is not a pure literal at all, stays UNKNOWN/unclassified by this category (a separate, not-yet-solved gap, noted honestly in this phase's report).",
+      "pass_examples": ["ไม่มี ANTHROPIC_API_KEY", "preview_token ไม่ถูกต้องหรือหมดอายุ — ต้อง preview ก่อน", "Claude error"],
+      "fail_examples": ["รหัสผ่าน = ... (if context_key matched a Thai security keyword, excluded defensively)", "sk_live_abc... (caught earlier by FORBIDDEN_HARDCODE, never reaches this rule)"],
+      "registry_reference": "n/a — validated by shape (whitespace/Thai-script presence) plus the defensive keyword exclusion above, not a registry cross-reference; human-readable text has no central registry to check against in this codebase.",
+      "why_not_business_rule_or_secret": "Display/log/error text conveys meaning to a human reader, not a machine-consumed threshold, price, or credential — and the security-keyword exclusion is a deliberate extra guard specifically so this category cannot be used to launder a Thai-labeled secret past the (currently English-only) forbidden-pattern keyword list.",
+      "verdicts": ["ALLOWED"]
+    },
+    "TEST_FIXTURE": {
+      "description": "A literal value that only exists inside a test/fixture file — defined for completeness per the owner's allowed-category list, but found ZERO real matches in this phase's critical-path scan (services/gateway/engines/validation/engines/debt/engines/documents/core/executor/app/api/admin/supabase/functions contain no *.test.ts/*.spec.ts/__tests__/__fixtures__ files as of 2026-08-04) — reported honestly rather than fabricating examples.",
+      "added": "HCG Phase 2.7 (2026-08-04), owner-authorized, evidence-based (definition only, 0 real hits this phase)",
+      "allow_conditions": "File path matches /\\.(test|spec)\\.tsx?$/ or contains /__tests__/ or /__fixtures__/ or /fixtures/, AND the value is not itself a real secret shape (forbidden-pattern check still runs first and wins — a test file with a real-looking credential should still be flagged, since 'it's just a test' doesn't guarantee the value is fake).",
+      "reject_conditions": "File is not under a test/fixture path (falls through to whatever other category applies, or UNKNOWN). Value inside a test file matches a forbidden secret pattern — the file being a test does not grant amnesty for what looks like a real credential.",
+      "pass_examples": ["expect(result).toBe(\"mock-partner-id\") inside *.test.ts"],
+      "fail_examples": ["const apiKey = \"sk_live_...\" inside *.test.ts — still SECURITY_VIOLATION, test files aren't exempt"],
+      "registry_reference": "n/a — validated by file-path shape only.",
+      "why_not_business_rule_or_secret": "Test fixture data exists solely to exercise code paths in isolation from production data/config; it never governs real runtime business behavior and (per the reject condition above) is still subject to the same secret-detection rules as production code.",
+      "verdicts": ["ALLOWED"]
+    }
+  },
+  "layer_rules": {
+    "ui": "sends intent only — never originates a constant",
+    "route": "Request → Validation → Runtime → Response — no constant origination",
+    "business_logic": "business rules come from Policy or Registry, never inline",
+    "hardware_values": "must come from Hardware Profile registry, not central logic",
+    "external_service_values": "must come from Service Registry",
+    "secrets": "must come from Secret Provider"
+  },
+  "verdict_levels": [
+    "ALLOWED",
+    "ALLOWED_WITH_REGISTRATION",
+    "MOVE_TO_CONFIG",
+    "MOVE_TO_REGISTRY",
+    "MOVE_TO_ENV",
+    "MOVE_TO_DATABASE",
+    "DUPLICATED_CONSTANT",
+    "SECURITY_VIOLATION",
+    "ARCHITECTURE_VIOLATION",
+    "UNKNOWN_REVIEW_REQUIRED"
+  ]
+}

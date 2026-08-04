@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "note": "Values tied to a specific hardware model. Fixed-board constants may be HARDWARE_CONSTANT (allowed inline in that board's own module). Values that vary BY DEVICE MODEL must live here, keyed by model, and never inline in shared logic.",
+  "device_profiles": [
+    {
+      "id": "HW-EXAMPLE-BOARD-V1",
+      "category": "HARDWARE_CONSTANT",
+      "value_type": "gpio_pin_map",
+      "scope": "fixed_board_model",
+      "source": "manufacturer datasheet (placeholder — no real device wired into DNA OS yet as of 2026-08-04)",
+      "owner": "hardware-integration (unassigned)",
+      "version": "1.0",
+      "allowed_locations": ["drivers/hardware/<model>/pinmap.ts"],
+      "forbidden_locations": ["engines/*, core business logic, any module shared across device models"],
+      "rationale": "Pin numbers are fixed by the physical board revision named in the id; a different board revision needs its own profile entry, not an edit to this one.",
+      "validation_rule": "pin map object keyed by logical signal name, only referenced through drivers/hardware/<model>/pinmap.ts",
+      "review_required": true,
+      "last_verified_at": "2026-08-04",
+      "status": "placeholder — DNA OS has no live hardware driver as of this entry; created as the schema example, not an active device"
+    }
+  ],
+  "rule": "If a value changes across device models/revisions, it is NOT a plain HARDWARE_CONSTANT — it MUST be added as its own device_profiles entry here (or a hardware registry row keyed by model), never hardcoded into shared/central logic."
+}

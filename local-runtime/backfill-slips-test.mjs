@@ -1,13 +1,17 @@
 // Backfill real slip images (owner's local folders, March-July 2026) into
-// receipt_documents via local Ollama vision (qwen2.5vl:7b) — no
-// ANTHROPIC_API_KEY needed, runs 100% locally per owner's stated preference.
+// receipt_documents via Cloud Runtime vision (qwen2.5vl:72b via
+// ollama-cloud-gateway.mjs, Migration Completion 2026-08-04 — no local
+// Ollama, no ANTHROPIC_API_KEY needed either).
 // Real extraction, real insert — logs every file processed/skipped/failed,
 // never fabricates a row for an image that didn't parse cleanly.
 import { createClient } from "@supabase/supabase-js";
 import { readFileSync, readdirSync, statSync } from "fs";
 import { join } from "path";
+import { getReadyOllamaUrl } from "./ollama-cloud-gateway.mjs";
+import { fileURLToPath } from "url";
+import { dirname } from "path";
 
-const PROJECT_DIR = "/Users/tam/Desktop/DNA OS-โฟลเดอร์หลักต้นฉบับ /dna-os-deadboard";
+const PROJECT_DIR = join(dirname(fileURLToPath(import.meta.url)), "..");
 const env = Object.fromEntries(
   readFileSync(join(PROJECT_DIR, ".env.local"), "utf8")
     .split("\n").filter((l) => l.includes("=") && !l.startsWith("#"))
@@ -41,11 +45,13 @@ function thaiToIsoDate(thaiDateTime, fileModTime) {
 async function extractSlip(imagePath) {
   const buf = readFileSync(imagePath);
   const b64 = buf.toString("base64");
-  const res = await fetch("http://localhost:11434/api/generate", {
+  const ollamaUrl = await getReadyOllamaUrl("[backfill-slips-test]");
+  if (!ollamaUrl) throw new Error("Cloud Runtime ยังไม่พร้อม");
+  const res = await fetch(`${ollamaUrl}/api/generate`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      model: "qwen2.5vl:7b",
+      model: "qwen2.5vl:72b",
       prompt: "อ่านสลิปโอนเงินนี้ ตอบเป็น JSON เท่านั้น ห้ามมีข้อความอื่น format: {\"sender\":\"ชื่อผู้โอน หรือ null\",\"receiver\":\"ชื่อผู้รับ หรือ null\",\"amount\":ตัวเลขจำนวนเงินอย่างเดียว ไม่มีหน่วย หรือ null,\"bank\":\"ธนาคาร หรือ null\",\"is_receipt_type\":true หรือ false (true ถ้าเป็นสลิปโอนเงิน/ใบเสร็จจริง false ถ้าไม่ใช่)}",
       images: [b64],
       stream: false,

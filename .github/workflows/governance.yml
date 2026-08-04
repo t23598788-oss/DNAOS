@@ -32,3 +32,14 @@ jobs:
 
       - name: Governance guards (registry sync, drift, dead code, duplicates, dependency graph, evidence isolation, registry stub check)
         run: bash scripts/pre-commit-check.sh
+
+      # Dev Loop Pipeline (owner, 2026-08-05): scripts/watch-registry.ts + scripts/impact-analyzer.ts
+      # write real pass/warning/fail verdicts and registry proposals to Supabase as the
+      # AI edits files locally. This is the second, CI-side half of that loop — it blocks
+      # the same way governance.sh above does if the latest verdict for any path is
+      # 'fail' or a registry proposal is still pending Owner approval. See scripts/deploy-gate.ts.
+      - name: Dev Loop Deploy Gate (blocks on Impact Analyzer fails / unapproved registry proposals)
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: npx tsx scripts/deploy-gate.ts

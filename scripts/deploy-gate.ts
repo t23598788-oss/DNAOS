@@ -19,8 +19,40 @@ import { readFileSync, existsSync } from "fs";
 import { join } from "path";
 import { execSync } from "child_process";
 import { recordKnowledgeEntry } from "../services/knowledge/client";
+import {
+  buildDevLoopProblemReport,
+  persistDevLoopProblemReport,
+  resolvePersistedDevLoopProblem,
+} from "../engines/workspace/problemReport";
+
+// Rule 71 fix (owner, 2026-08-05): engines/workspace/problemReport.ts used to
+// construct its own Supabase client as a fallback when no `db` was passed —
+// a real engines/ -> @supabase/supabase-js direct import, caught by
+// scripts/pre-commit-check.sh's Guard 3. This script (not under engines/) is
+// the right place to construct the client; problemReport.ts now requires the
+// caller to inject it, same as every other engines/workspace/* module.
+async function getDb() {
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) return undefined;
+  const { createClient } = await import("@supabase/supabase-js");
+  return createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, { auth: { persistSession: false } });
+}
 
 const ROOT = join(__dirname, "..");
+
+// Standalone CLI runs do not receive Next.js env loading. Without this, the
+// Dev Loop check is skipped even when the local Supabase credentials exist.
+try {
+  const envFile = readFileSync(join(ROOT, ".env.local"), "utf8");
+  for (const line of envFile.split("\n")) {
+    if (!line.includes("=") || line.startsWith("#")) continue;
+    const i = line.indexOf("=");
+    const key = line.slice(0, i);
+    if (!process.env[key]) process.env[key] = line.slice(i + 1);
+  }
+} catch {
+  // CI/deploy environments provide variables through the process environment.
+}
+
 function readJSON<T>(relPath: string): T {
   return JSON.parse(readFileSync(join(ROOT, relPath), "utf-8"));
 }
@@ -61,6 +93,46 @@ function findKnowledgeLesson(rootCause: string | null): string | null {
   return match ? `[${match.id}] ${match.lesson}` : null;
 }
 
+// Dev Loop Pipeline gate (owner, 2026-08-05): reads the REAL, already-written
+// dev_loop_check_results / dev_loop_registry_proposals tables (written by
+// scripts/impact-analyzer.ts off scripts/watch-registry.ts's evidence) — does
+// not recompute impact here. Blocks on: the latest verdict for any path being
+// 'fail', or any registry proposal still 'pending' (unapproved). If Supabase
+// env vars are missing (e.g. a CI runner not yet configured with them), this
+// missing required variables are themselves a blocked condition and are
+// reported; the gate must not silently pass while Dev Loop evidence is absent.
+async function checkDevLoopGate(): Promise<{ blocked: boolean; reasons: string[] }> {
+  const reasons: string[] = [];
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    reasons.push("Required Supabase environment values are missing; Dev Loop evidence gate cannot be evaluated");
+    return { blocked: true, reasons };
+  }
+
+  const { createClient } = await import("@supabase/supabase-js");
+  const db = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, { auth: { persistSession: false } });
+
+  const { data: results } = await db
+    .from("dev_loop_check_results")
+    .select("path, result, reason, checked_at")
+    .order("checked_at", { ascending: false })
+    .limit(200);
+
+  const latestPerPath = new Map<string, { result: string; reason: string }>();
+  for (const row of results ?? []) {
+    if (!latestPerPath.has(row.path)) latestPerPath.set(row.path, { result: row.result, reason: row.reason });
+  }
+  for (const [path, verdict] of latestPerPath) {
+    if (verdict.result === "fail") reasons.push(`Impact Analyzer FAIL: ${path} — ${verdict.reason}`);
+  }
+
+  const { data: pending } = await db.from("dev_loop_registry_proposals").select("path, target_registry").eq("status", "pending");
+  for (const p of pending ?? []) {
+    reasons.push(`Unapproved registry proposal pending: ${p.path} -> ${p.target_registry} (needs Owner approval on the dashboard)`);
+  }
+
+  return { blocked: reasons.length > 0, reasons };
+}
+
 async function main() {
   console.log("=== DNA OS Deploy Gate ===\n");
   console.log("Running real governance checks (scripts/governance.sh) — not simulated.\n");
@@ -75,15 +147,50 @@ async function main() {
   const health = readJSON<any>("DNA_OS_HEALTH.json");
   const failedKeys = Object.entries(health.checks).filter(([, v]) => v === 0).map(([k]) => k);
 
+  const devLoop = await checkDevLoopGate();
+
+  const problemCauses = [
+    ...failedKeys.map((key) => `${CHECK_KEY_TO_VALIDATOR[key]?.validator ?? key} failed`),
+    ...devLoop.reasons,
+  ];
+  if (problemCauses.length > 0) {
+    const report = buildDevLoopProblemReport({
+      source: "scripts/deploy-gate.ts",
+      severity: "critical",
+      checkName: "DNA OS Deploy Gate",
+      cause: problemCauses.join("; ").slice(0, 1800),
+      evidenceRefs: ["registry/VALIDATION_RESULTS.json", "public.dev_loop_check_results", "public.dev_loop_registry_proposals"],
+      affectedFiles: failedKeys.map((key) => CHECK_KEY_TO_VALIDATOR[key]?.module ?? key),
+      recommendedOwnerAction: "ตรวจหลักฐานใน Governance UI แล้วให้ Owner ตัดสินใจแก้ไข/อนุมัติ/ปฏิเสธตามขั้นตอน ห้ามระบบแก้หรืออนุมัติเอง",
+    });
+    const persisted = await persistDevLoopProblemReport(report, { db: await getDb() });
+    console.log(`[deploy-gate] problem report ${persisted.deduplicated ? "deduplicated" : "recorded"}: ${report.report_id}`);
+    console.log(`[deploy-gate] owner alert payload: ${report.owner_alert.spoken_summary}`);
+  } else {
+    const resolved = await resolvePersistedDevLoopProblem({ db: await getDb() });
+    if (resolved) console.log(`[deploy-gate] resolved problem report: ${resolved.report_id}`);
+  }
+
   console.log("\n" + "=".repeat(60));
 
-  if (failedKeys.length === 0) {
+  if (failedKeys.length === 0 && !devLoop.blocked) {
     console.log("Deploy Gate: PASS");
     console.log("Status\n  READY");
     process.exit(0);
   }
 
-  console.log(`Deploy Blocked\n`);
+  if (devLoop.blocked) {
+    console.log(`Deploy Blocked — Dev Loop Pipeline\n`);
+    for (const reason of devLoop.reasons) console.log(`  - ${reason}`);
+    console.log(`\nRequired Action`);
+    console.log(`  - Fix the failing path(s) and let the watcher re-check them, or approve/reject the pending registry proposal(s) on the dashboard`);
+    console.log(`\nStatus\n  NOT READY\n`);
+    console.log("-".repeat(60));
+  }
+
+  if (failedKeys.length === 0) process.exit(1);
+
+  console.log(`Deploy Blocked — Governance\n`);
   for (const key of failedKeys) {
     const info = CHECK_KEY_TO_VALIDATOR[key];
     if (!info) continue;

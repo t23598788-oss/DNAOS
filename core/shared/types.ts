@@ -629,6 +629,330 @@ export interface AuditTrail {
   calculated_at: string;
 }
 
+// ── Storage Intelligence Types (owner, 2026-08-04) ──
+// engines/storage/* — infrastructure maintenance capability for the dev
+// machine's local disk. Kept here per the single-source-of-truth rule
+// (CLAUDE.md "Types — Single Source of Truth"), not duplicated in engines/storage.
+// Re-added 2026-08-04 after a concurrent session's edit reverted this file and
+// silently dropped this block — TRASH_ELIGIBLE_CLASSIFICATIONS is a real
+// runtime const (not type-only), so its loss broke decisionEngine.ts at
+// runtime (`Cannot read properties of undefined (reading 'includes')`) even
+// though `npx tsc --noEmit` had passed earlier — a real gap: type-checking a
+// module doesn't protect its runtime exports from a later overwrite by a
+// different session. See registry/CHANGELOG.json / AI_SESSIONS.json for the
+// concurrent-edit protocol this points at needing better enforcement of.
+
+export type StorageResourceClassification =
+  | "PRODUCTION_SOURCE"
+  | "ACTIVE_PROJECT_FILE"
+  | "PROTECTED_CONFIG"
+  | "TEST_FIXTURE"
+  | "EXPERIMENTAL_FILE"
+  | "GENERATED_FILE"
+  | "BUILD_ARTIFACT"
+  | "CACHE"
+  | "LOG"
+  | "DUPLICATE"
+  | "CLOUD_BACKED_UP"
+  | "UNUSED_PROJECT_CLONE"
+  | "LOCAL_AI_MODEL"
+  | "DOCKER_RESOURCE"
+  | "UNKNOWN";
+
+// Only these classifications may ever reach a SAFE decision — enforced in
+// engines/storage/decisionEngine.ts, not just documented here.
+export const TRASH_ELIGIBLE_CLASSIFICATIONS: StorageResourceClassification[] = [
+  "CACHE",
+  "LOG",
+  "BUILD_ARTIFACT",
+  "GENERATED_FILE",
+  "DUPLICATE",
+  "CLOUD_BACKED_UP",
+  "UNUSED_PROJECT_CLONE",
+  "TEST_FIXTURE",
+  "EXPERIMENTAL_FILE",
+  // Added Migration Completion (owner, 2026-08-04) — gated entirely by
+  // classifier.ts's ClassifyContext.localAiModelPolicy, which only ever
+  // returns recommended_action="trash_eligible" after a real, live check
+  // (no script references localhost:11434 AND Cloud Runtime readiness
+  // verified). Adding it here does not weaken that gate — the classifier
+  // still defaults to manual_prune_only/BLOCKED whenever the policy wasn't
+  // verified.
+  "LOCAL_AI_MODEL",
+];
+
+export type StorageResourceState =
+  | "DISCOVERED"
+  | "CLASSIFIED"
+  | "VERIFIED"
+  | "SAFE"
+  | "BLOCKED"
+  | "PLANNED"
+  | "MOVED_TO_TRASH"
+  | "FAILED";
+
+export interface StorageEvidenceItem {
+  kind:
+    | "filesystem"
+    | "checksum"
+    | "git_status"
+    | "git_remote"
+    | "git_commit"
+    | "reference_scan"
+    | "docker_reference"
+    | "supabase_object"
+    | "process_reference"
+    | "age";
+  detail: string;
+  value?: string | number | boolean | null;
+}
+
+export interface StorageClassificationResult {
+  classification: StorageResourceClassification;
+  confidence: number; // 0..1 — never 1.0 from filename/path alone
+  evidence: StorageEvidenceItem[];
+  recommended_action: "trash_eligible" | "review" | "keep" | "manual_prune_only";
+  blocked_reason: string | null;
+}
+
+export interface StorageResource {
+  path: string;
+  size_bytes: number;
+  sha256: string | null;
+  modified_at: string | null;
+  classification: StorageClassificationResult;
+  state: StorageResourceState;
+}
+
+export interface StorageReclaimPlan {
+  plan_id: string;
+  created_at: string;
+  resources: StorageResource[];
+  total_bytes: number;
+  scan_run_id: string;
+}
+
+// Event envelope — every storage.* event carries this exact shape (see
+// registry/events.json). correlation_id ties a whole scan→plan→move chain
+// together; operation_id identifies one command invocation.
+export interface StorageEventEnvelope {
+  event_id: string;
+  event_type:
+    | "storage.scan.started"
+    | "storage.scan.completed"
+    | "storage.resource.classified"
+    | "storage.remote.verified"
+    | "storage.reclaim.plan.created"
+    | "storage.resource.moved_to_trash"
+    | "storage.threshold.breached"
+    | "storage.operation.blocked"
+    | "storage.operation.failed";
+  timestamp: string;
+  actor: string; // user id, "scheduler", or service name
+  machine_id: string;
+  resource_path: string | null;
+  resource_type: StorageResourceClassification | null;
+  classification: StorageResourceClassification | null;
+  size_bytes: number | null;
+  checksum: string | null;
+  evidence: StorageEvidenceItem[] | null;
+  decision: StorageResourceState | null;
+  reason: string | null;
+  operation_id: string;
+  correlation_id: string;
+}
+
+export interface StorageOperationError {
+  code: string;
+  reason: string;
+  context: Record<string, unknown>;
+  recovery_action: string;
+}
+
+// ── Workspace Lock Manager + Resource Migration Engine Types (owner, 2026-08-04) ──
+// engines/workspace/* — extends registry/LOCK_MANAGER.json with real atomic
+// backing (supabase/migrations/20260804000005_workspace_lock_manager.sql).
+// Built directly in response to a real incident the same day: a concurrent
+// session overwrote core/shared/types.ts + 4 registry files mid-session with
+// zero conflict detection, because LOCK_MANAGER.json is an advisory JSON
+// ledger with no atomicity — two sessions read-modify-writing it can clobber
+// each other exactly like they clobbered these files.
+
+export type WorkspaceResourceType = "file" | "folder" | "registry" | "migration" | "config" | "database_schema";
+
+export interface WorkspaceLock {
+  id: string;
+  resource_type: WorkspaceResourceType;
+  resource_path: string;
+  holder_actor: string;
+  holder_session_id: string;
+  operation_id: string;
+  acquired_at: string;
+  expires_at: string;
+  released_at: string | null;
+}
+
+export interface LockAcquireResult {
+  acquired: boolean;
+  lock: WorkspaceLock | null;
+  conflict: { held_by_actor: string; held_by_session_id: string; expires_at: string } | null;
+}
+
+export type DependencyKind =
+  | "imports" | "launchagent_runs" | "script_calls_runtime" | "runtime_calls_service"
+  | "service_uses_docker" | "docker_uses_volume" | "volume_stores_files"
+  | "model_used_by_workflow" | "api_called_by_route" | "database_used_by_module"
+  // Added for Roadmap #46 Automatic Dependency Discovery (owner, 2026-08-04):
+  | "command_owned_by_module" | "registry_references_file" | "function_queries_table"
+  | "config_referenced_by_module" | "workflow_references_command";
+
+export interface DependencyEdge {
+  source: string;
+  target: string;
+  kind: DependencyKind;
+  source_generated: "architecture-book" | "infra-dependency-graph" | "auto-discovery"; // never fabricated — always traceable to a real generator
+  evidence?: DependencyEvidenceItem[]; // present on auto-discovery edges — absent means "hand-verified seed / generated import graph", not "no evidence"
+  confidence?: number; // 0..1 — absent means 1.0 (architecture-book/infra seed are already verified). Auto-discovery edges below CONFIDENCE_THRESHOLD never become edges at all — see dependencyDiscovery/types.ts
+}
+
+// ── Automatic Dependency Discovery Types (Roadmap #46, owner, 2026-08-04) ──
+// engines/workspace/dependencyDiscovery/* — real, evidence-based scanners.
+// "ห้ามสร้าง Edge จากการเดา หากยืนยันไม่ได้ ให้จัดเป็น UNKNOWN" — every
+// DiscoveredDependencyEdge must carry real evidence; anything a scanner
+// could not verify becomes an UnknownDependency, never a guessed edge.
+
+export interface DependencyEvidenceItem {
+  kind: "typescript_import" | "json_registry_field" | "plist_program_arguments"
+      | "docker_inspect" | "grep_literal" | "env_reference" | "model_tag_reference";
+  file: string;
+  line?: number;
+  detail: string;
+}
+
+export type DependencyScannerName =
+  | "typescript_imports" | "json_registry" | "runtime_commands" | "launchagents"
+  | "docker" | "ai_models_runtime" | "supabase_functions" | "config_references" | "workflow_references";
+
+export interface UnknownDependency {
+  resource_path: string;
+  scanner: DependencyScannerName;
+  reason: string; // why it could not be verified — e.g. "Docker daemon not running"
+}
+
+export interface DependencyDiscoveryReport {
+  generated_at: string;
+  edges: DependencyEdge[];
+  unknowns: UnknownDependency[];
+  scanner_counts: Record<DependencyScannerName, { edges: number; unknowns: number }>;
+}
+
+export interface DependencyGraphDiff {
+  matched: number; // edges present in both auto and seed graphs
+  seed_only: DependencyEdge[]; // in the hand-maintained seed but not (yet) auto-discovered
+  auto_only: DependencyEdge[]; // newly discovered, not in the hand-maintained seed
+  coverage: { known_resources: number; resources_with_edges: number; coverage_ratio: number };
+}
+
+export interface DependencyImpact {
+  resource_path: string;
+  dependents: DependencyEdge[];
+  dependency_count: number;
+  safe_to_migrate: boolean; // false the instant dependents.length > 0 — decisionEngine-equivalent for this capability
+}
+
+export type MigrationPlanStatus = "planned" | "approved" | "moved" | "blocked" | "failed";
+
+export interface ResourceMigrationPlan {
+  id: string;
+  resource_path: string;
+  resource_type: string;
+  dependency_count: number;
+  dependents: DependencyEdge[];
+  safe: boolean;
+  approved: boolean;
+  status: MigrationPlanStatus;
+  correlation_id: string;
+}
+
+// ── File Existence Intelligence & Recovery Types (owner, 2026-08-04) ──
+// engines/workspace/{fileExistenceRegistry,snapshotStore,destructiveActionGate}.ts
+// Built directly after a real incident: an untracked file was permanently
+// deleted mid-session, with no recovery path. Every field below is UNKNOWN
+// when genuinely unknown — never fabricated.
+
+export type FileGitState = "tracked" | "untracked" | "ignored" | "UNKNOWN";
+export type FileRegistrationState = "REGISTERED" | "UNREGISTERED" | "UNCLASSIFIED";
+export type FileDuplicateClass =
+  | "ACTIVE" | "EXACT_DUPLICATE" | "CONTENT_DIVERGED_COPY" | "GENERATED_OUTPUT"
+  | "ACTIVE_CONCURRENT_WORK" | "TEMPORARY_FILE" | "UNKNOWN_DUPLICATE" | "UNKNOWN";
+export type FileRecoverability = "SNAPSHOT_AVAILABLE" | "GIT_AVAILABLE" | "RECONSTRUCTABLE" | "UNRECOVERABLE" | "UNKNOWN";
+
+export interface FileExistenceRecord {
+  id: string;
+  path: string;
+  canonical_path: string | null;
+  file_type: string;
+  owning_module: string | null;
+  owning_session: string | null;
+  purpose: string | null;
+  route: string | null;
+  exports: string[];
+  imports: string[];
+  dependencies: string[];
+  content_hash: string | null;
+  size_bytes: number | null;
+  created_at: string;
+  updated_at: string;
+  last_seen_at: string;
+  git_state: FileGitState;
+  registration_state: FileRegistrationState;
+  active_or_duplicate: FileDuplicateClass;
+  recoverability: FileRecoverability;
+  source_of_truth: string | null;
+  generation_recipe: string | null;
+  last_known_snapshot_hash: string | null;
+}
+
+export interface FileSnapshotRecord {
+  content_hash: string;
+  original_path: string;
+  size_bytes: number;
+  created_at: string;
+  session_id: string | null;
+  command: string | null;
+  reason: string | null;
+  related_module: string | null;
+  registry_references: string[];
+  storage_path: string;
+  is_secret: boolean;
+}
+
+export type DestructiveAction = "rm" | "rm_f" | "rm_rf" | "unlink" | "trash" | "overwrite" | "rename_over" | "cleanup" | "dedup";
+
+export interface DestructiveActionPreview {
+  target_path: string;
+  action: DestructiveAction;
+  created_by: string | null; // session/actor that created this file, if known
+  held_by_active_session: boolean;
+  tracked: boolean;
+  registered: boolean;
+  imported: boolean;
+  route_in_use: boolean;
+  has_snapshot: boolean;
+  recovery_path: string | null;
+  canonical_replacement: string | null;
+  risk_level: "low" | "medium" | "high" | "critical";
+  blockers: string[]; // non-empty means execute must be refused
+}
+
+export interface DestructiveActionResult {
+  ok: boolean;
+  blocked: boolean;
+  block_reason: string | null;
+  snapshot_hash: string | null;
+  trash_path: string | null;
+}
+
 // ── Utility ──
 
 export function round(n: number): number {

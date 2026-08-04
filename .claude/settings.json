@@ -1,0 +1,17 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "npx tsx scripts/hardcode-precommit-hook.ts",
+            "timeout": 15,
+            "statusMessage": "hardcode-governance: checking critical-path write..."
+          }
+        ]
+      }
+    ]
+  }
+}

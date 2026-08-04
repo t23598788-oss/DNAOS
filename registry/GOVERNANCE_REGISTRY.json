@@ -308,6 +308,28 @@
       "freeze_status": "CONN is itself a standing freeze/law, not subject to one",
       "exception_status": "none permitted by design — amendment requires explicit owner confirmation only, same bar as amending the 5 Architectural Laws",
       "source": "registry/connector-lifecycle.json"
+    },
+    "HCG": {
+      "name": "Hardcode Governance — value classification capability",
+      "owner": "owner (real-time conversation authorization, AskUserQuestion selection)",
+      "status": "done (pending owner /hooks reload to activate PreToolUse hook)",
+      "current_phase": "HCG-P2",
+      "dependencies": [],
+      "freeze_status": "none",
+      "exception_status": "FORMALLY RECORDED at grant time — see registry/CURRENT_STATE.json -> plan_lock.exceptions_log -> HCG. HCG-P1's original record was lost to a concurrent overwrite and is folded into the HCG-P2 entry along with an honest note about the loss.",
+      "phases": [
+        {
+          "id": "HCG-P1",
+          "name": "registry/hardcode-governance/ (7 sub-registries + README), engines/governance/hardcode-decision-engine.ts (classify/scan/explain, 12-category taxonomy, 10 verdict levels), hardcode.* commands in command-registry.json, hardcode.* events in events.json, acceptance tests",
+          "status": "done (files on disk verified) — command-registry.json/events.json hardcode.* entries and this program's own GOVERNANCE_REGISTRY.json record were separately lost to a concurrent overwrite and are being re-applied as part of HCG-P2"
+        },
+        {
+          "id": "HCG-P2",
+          "name": "Command Execution Layer wiring (dispatcher.ts, REPORT_ONLY) + Software Development Pipeline dry-run Guard (pre-commit, not yet blocking) + AI Code Generation PreToolUse hook (.claude/settings.json, BLOCK_CRITICAL on SECURITY_VIOLATION/ARCHITECTURE_VIOLATION only, scoped to a critical-path file allowlist)",
+          "status": "done — see registry/hardcode-governance/enforcement-config.json, engines/validation/dispatcher.ts, scripts/pre-commit-check.sh Guard 14, .claude/settings.json"
+        }
+      ],
+      "source": "registry/hardcode-governance/hardcode-policy-registry.json"
     }
   },
   "dependency_graph": {

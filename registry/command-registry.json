@@ -5,7 +5,10 @@
     "invoice.items": {
       "owner": "engines/validation/dispatcher.ts",
       "layer": "engines",
-      "input": { "partner_id": "string", "debt": "CurrentDebt | null" },
+      "input": {
+        "partner_id": "string",
+        "debt": "CurrentDebt | null"
+      },
       "output": "InvoiceItemsResult",
       "description": "InvoiceItems(partnerId) — builds debt-priced line items from an already-fetched GetCurrentDebt result (invoice/billing/receipt only; material-priced documents use material.quote). Never re-fetches or guesses debt.",
       "description_th": "สร้างรายการสินค้า/บริการของใบแจ้งหนี้จากผลลัพธ์ GetCurrentDebt ที่ดึงมาแล้ว",
@@ -14,7 +17,9 @@
     "partner.profile": {
       "owner": "services/supabase/queries.ts",
       "layer": "services",
-      "input": { "partner_id": "string" },
+      "input": {
+        "partner_id": "string"
+      },
       "output": "PartnerProfile",
       "description": "PartnerProfile(partnerId) — single-partner lookup by id (name/tax_id/phone/address/type). Wraps the existing getPartnerById().",
       "description_th": "ข้อมูลโปรไฟล์คู่ค้ารายเดียวตาม id",
@@ -23,7 +28,11 @@
     "material.quote": {
       "owner": "engines/material-resolver.ts + engines/quote-price.ts (orchestrated)",
       "layer": "engines",
-      "input": { "raw_input": "string", "quantity": "number", "customer_id?": "string" },
+      "input": {
+        "raw_input": "string",
+        "quantity": "number",
+        "customer_id?": "string"
+      },
       "output": "MaterialQuoteResult",
       "description": "GenerateMaterialQuote — resolves material name, finds the nearest priced pit from the customer's GPS, and computes unit price. Also additively returns distance_km/trips/transport_cost/total_price (2026-07-24, wires the existing never-before-connected engines/capacity.ts + engines/cost.ts into real document generation). One business response; AI never sees Material Resolver / GPS lookup / Pricing Engine directly.",
       "description_th": "จับคู่วัสดุ + หาบ่อที่ใกล้ลูกค้าที่สุด + คำนวณราคา — คืนค่าเพิ่มเติม distance_km/trips/transport_cost/total_price ด้วย (2026-07-24) คืนค่าเดียว AI ไม่ต้องรู้จัก engine ภายใน",
@@ -32,7 +41,9 @@
     "debt.current": {
       "owner": "engines/debt/tracking.ts",
       "layer": "engines",
-      "input": { "partner_id": "string" },
+      "input": {
+        "partner_id": "string"
+      },
       "output": "CurrentDebt",
       "description": "The one business capability for a single customer's current debt (principal/interest/penalty/collection_fee/total_due/overdue_days) — GetCurrentDebt(partnerId). AI must call this, never the underlying formula directly.",
       "description_th": "หนี้ปัจจุบันของลูกค้ารายเดียว (single source of truth) — AI ต้องเรียกผ่านชื่อนี้เท่านั้น ห้ามเรียกสูตรคำนวณตรง",
@@ -682,6 +693,380 @@
       "description": "ตรวจสถานะทุกแอปที่ลงทะเบียน",
       "description_th": "ตรวจสอบสถานะของทุกโปรแกรมที่ลงทะเบียนไว้",
       "requires_confirmation": false
+    },
+    "storage.scan": {
+      "owner": "engines/storage/engine.ts",
+      "layer": "engines",
+      "input": {
+        "actor": "string"
+      },
+      "output": "{ scanRunId, resources, events }",
+      "description": "Walks the curated, bounded scan surface (cache roots + clone candidates), records each real resource in storage_resources, state DISCOVERED.",
+      "description_th": "สแกนพื้นที่ที่กำหนดไว้ (cache/clone candidates) บันทึกทรัพยากรจริงลง storage_resources สถานะ DISCOVERED",
+      "requires_confirmation": false
+    },
+    "storage.classify": {
+      "owner": "engines/storage/engine.ts",
+      "layer": "engines",
+      "input": {
+        "scanRunId": "string",
+        "actor": "string"
+      },
+      "output": "{ resources, events }",
+      "description": "Gathers real evidence per resource (fs/git/pattern) and classifies via engines/storage/classifier.ts + decisionEngine.ts, writes storage_classifications/storage_evidence, updates state.",
+      "description_th": "รวบรวมหลักฐานจริงต่อทรัพยากร จำแนกประเภท และตัดสินสถานะ",
+      "requires_confirmation": false
+    },
+    "storage.report": {
+      "owner": "engines/storage/engine.ts",
+      "layer": "engines",
+      "input": {
+        "scanRunId": "string"
+      },
+      "output": "StorageReport",
+      "description": "Aggregates SAFE/BLOCKED/UNKNOWN breakdown for a scan run plus real free-space vs 150GB target via df.",
+      "description_th": "สรุปผล SAFE/BLOCKED/UNKNOWN ของการสแกน พร้อมพื้นที่ว่างจริงเทียบเป้าหมาย 150GB",
+      "requires_confirmation": false
+    },
+    "storage.move_safe_to_trash": {
+      "owner": "engines/storage/engine.ts",
+      "layer": "engines",
+      "input": {
+        "scanRunId": "string",
+        "actor": "string",
+        "dryRun": "boolean (default true)"
+      },
+      "output": "{ plan, moved, events }",
+      "description": "Moves only resources already in state SAFE to ~/.Trash via adapters/trashAdapter.ts (rename, never rm). Defaults to dry-run; requires explicit dryRun:false. super_admin only.",
+      "description_th": "ย้ายเฉพาะทรัพยากรสถานะ SAFE ไปยัง macOS Trash เท่านั้น (ไม่ใช่การลบถาวร) ค่าเริ่มต้นคือ dry-run",
+      "requires_confirmation": true
+    },
+    "storage.inspect_docker": {
+      "owner": "engines/storage/engine.ts",
+      "layer": "engines",
+      "input": {},
+      "output": "DockerResourceReport",
+      "description": "Read-only Docker inspection (docker system df/images/volumes). Reclaim plan only, never prunes — Docker storage lives in the Desktop VM disk, not Trash-movable.",
+      "description_th": "ตรวจสอบ Docker แบบอ่านอย่างเดียว สร้างแผนคืนพื้นที่เท่านั้น ไม่ prune อัตโนมัติ",
+      "requires_confirmation": false
+    },
+    "storage.verify_supabase": {
+      "owner": "engines/storage/engine.ts",
+      "layer": "engines",
+      "input": {
+        "bucket": "string",
+        "objectPath": "string",
+        "expectedSha256": "string?"
+      },
+      "output": "SupabaseObjectVerification",
+      "description": "Verifies a real Supabase Storage object (existence/size/checksum/readability) via adapters/supabaseVerifier.ts. Incomplete verification always returns verified:false — never guessed.",
+      "description_th": "ตรวจสอบ object บน Supabase Storage จริง (มีอยู่/ขนาด/checksum/อ่านได้) ตรวจไม่ครบ = unverified เสมอ",
+      "requires_confirmation": false
+    },
+    "storage.check_threshold": {
+      "owner": "engines/storage/engine.ts",
+      "layer": "engines",
+      "input": {
+        "actor": "string",
+        "reclaimableBytes": "number?"
+      },
+      "output": "{ freeBytes, breached, events }",
+      "description": "Real df check against the 150GB free-space target, records storage_threshold_events. Called by both the UI and local-runtime/storage-threshold-watcher.ts (LaunchAgent, every 6h). Never moves or deletes.",
+      "description_th": "ตรวจพื้นที่ว่างจริงเทียบเป้าหมาย 150GB บันทึกเหตุการณ์ ไม่ย้ายหรือลบไฟล์ใดๆ",
+      "requires_confirmation": false
+    },
+    "workspace.acquire_lock": {
+      "owner": "engines/workspace/lockManager.ts",
+      "layer": "engines",
+      "input": {
+        "resourceType": "file|folder|registry|migration|config|database_schema",
+        "resourcePath": "string",
+        "actor": "string",
+        "sessionId": "string"
+      },
+      "output": "LockAcquireResult",
+      "description": "Real atomic lock acquire via a Postgres partial unique index — concurrent callers for the same resourcePath only ever have one winner.",
+      "description_th": "ขอ lock แบบ atomic จริงผ่าน Postgres unique index",
+      "requires_confirmation": false
+    },
+    "workspace.release_lock": {
+      "owner": "engines/workspace/lockManager.ts",
+      "layer": "engines",
+      "input": {
+        "lockId": "string"
+      },
+      "output": "void",
+      "description": "Releases a held lock (sets released_at). Safe to call even if already released.",
+      "description_th": "ปล่อย lock ที่ถืออยู่",
+      "requires_confirmation": false
+    },
+    "workspace.get_dependents": {
+      "owner": "engines/workspace/dependencyRegistry.ts",
+      "layer": "engines",
+      "input": {
+        "resourcePath": "string"
+      },
+      "output": "DependencyEdge[]",
+      "description": "Real dependents merged from registry/architecture-book.json (import graph) + registry/infra-dependency-graph.json (infra edges). Never fabricated.",
+      "description_th": "หา dependent จริงของทรัพยากรหนึ่งรายการ",
+      "requires_confirmation": false
+    },
+    "workspace.analyze_impact": {
+      "owner": "engines/workspace/dependencyRegistry.ts",
+      "layer": "engines",
+      "input": {
+        "resourcePath": "string"
+      },
+      "output": "DependencyImpact",
+      "description": "safe_to_migrate=false the instant any real dependent is found.",
+      "description_th": "วิเคราะห์ผลกระทบก่อนย้าย/ลบทรัพยากร",
+      "requires_confirmation": false
+    },
+    "workspace.create_migration_plan": {
+      "owner": "engines/workspace/migrationEngine.ts",
+      "layer": "engines",
+      "input": {
+        "resourcePath": "string",
+        "resourceType": "string",
+        "actor": "string"
+      },
+      "output": "ResourceMigrationPlan",
+      "description": "Scan->DependencyAnalysis->ImpactAnalysis->Plan. Writes resource_migration_blocks for every real dependent found.",
+      "description_th": "สร้างแผนย้ายทรัพยากรพร้อมตรวจ dependency จริง",
+      "requires_confirmation": false
+    },
+    "workspace.approve_migration_plan": {
+      "owner": "engines/workspace/migrationEngine.ts",
+      "layer": "engines",
+      "input": {
+        "planId": "string",
+        "actor": "string"
+      },
+      "output": "{ ok, reason? }",
+      "description": "Refuses to approve a plan that isn't SAFE. super_admin only.",
+      "description_th": "อนุมัติแผนย้ายทรัพยากร เฉพาะ super_admin",
+      "requires_confirmation": true
+    },
+    "workspace.execute_migration": {
+      "owner": "engines/workspace/migrationEngine.ts",
+      "layer": "engines",
+      "input": {
+        "planId": "string",
+        "actor": "string"
+      },
+      "output": "{ ok, trashPath?, reason? }",
+      "description": "Moves to ~/.Trash via engines/storage/adapters/trashAdapter.ts — only for a SAFE + approved plan. super_admin only.",
+      "description_th": "ดำเนินการย้ายทรัพยากรไป Trash เฉพาะแผนที่ SAFE และอนุมัติแล้ว",
+      "requires_confirmation": true
+    },
+    "workspace.verify_root": {
+      "owner": "engines/workspace/workspaceRootVerifier.ts",
+      "layer": "engines",
+      "input": {
+        "workspacePath": "string?",
+        "expectedRepositoryRoot": "string?"
+      },
+      "output": "WorkspaceRootCheck",
+      "description": "Read-only workspace preflight. Verifies that a requested worker path exists, is a Git workspace, contains the DNA OS source markers, and—when supplied—matches the declared source of truth. It never falls back to a different directory.",
+      "description_th": "ตรวจ path ของ worker ก่อนเริ่มงาน ยืนยันว่าเป็น source DNA OS จริง และปฏิเสธเมื่อ path หายหรือชี้คนละโครงการ โดยไม่เดาหรือสลับโฟลเดอร์เอง",
+      "requires_confirmation": false
+    },
+    "hardcode.scan": {
+      "owner": "engines/governance/hardcode-decision-engine.ts",
+      "layer": "engines",
+      "input": {
+        "path": "string (file or directory)"
+      },
+      "output": "ScanReport",
+      "description": "Scans a file or directory for candidate hardcoded values and classifies each one via classify(). Heuristic literal extraction, not a full AST parse.",
+      "description_th": "สแกนไฟล์หรือโฟลเดอร์หาค่าที่อาจฮาร์ดโค้ด แล้วจำแนกประเภทแต่ละค่า",
+      "requires_confirmation": false
+    },
+    "hardcode.classify": {
+      "owner": "engines/governance/hardcode-decision-engine.ts",
+      "layer": "engines",
+      "input": {
+        "value": "string",
+        "context_key": "string?",
+        "file": "string",
+        "line": "number",
+        "layer?": "string"
+      },
+      "output": "Classification",
+      "description": "Classifies a single value into one of the 12 hardcode-policy-registry.json categories and returns a verdict. Never guesses ALLOWED for an unrecognized value.",
+      "description_th": "จำแนกค่าหนึ่งค่าเข้าประเภทใดประเภทหนึ่งใน 12 ประเภท พร้อมผลตัดสิน",
+      "requires_confirmation": false
+    },
+    "hardcode.explain": {
+      "owner": "engines/governance/hardcode-decision-engine.ts",
+      "layer": "engines",
+      "input": {
+        "classification": "Classification"
+      },
+      "output": "string",
+      "description": "Renders a Classification as a human-readable explanation (what/where/environment-dependence/protocol-or-hardware/where-it-should-live/verdict/rationale).",
+      "description_th": "อธิบายผลการจำแนกเป็นภาษาที่มนุษย์อ่านเข้าใจ",
+      "requires_confirmation": false
+    },
+    "hardcode.register_exception": {
+      "owner": "engines/governance/hardcode-decision-engine.ts",
+      "layer": "engines",
+      "input": {
+        "value_or_pattern": "string",
+        "category": "Category",
+        "registered_by": "string",
+        "reason": "string"
+      },
+      "output": "RegisteredException",
+      "description": "Builds a RegisteredException record for a value that should be allowed to hardcode outside the existing registries. Does not write the registry file itself — that write is a reviewed step (review_required per entry).",
+      "description_th": "สร้างระเบียนข้อยกเว้นสำหรับค่าที่อนุญาตให้ฮาร์ดโค้ดนอกเหนือ registry เดิม (ยังไม่เขียนไฟล์เอง ต้องมีการรีวิว)",
+      "requires_confirmation": true
+    },
+    "hardcode.validate_file": {
+      "owner": "engines/governance/hardcode-decision-engine.ts",
+      "layer": "engines",
+      "input": {
+        "path": "string"
+      },
+      "output": "ScanReport",
+      "description": "scanFile() + buildReport() for exactly one file.",
+      "description_th": "ตรวจสอบไฟล์เดียว คืนรายงานผลการจำแนกทุกค่าที่พบ",
+      "requires_confirmation": false
+    },
+    "hardcode.validate_repository": {
+      "owner": "engines/governance/hardcode-decision-engine.ts",
+      "layer": "engines",
+      "input": {
+        "path": "string",
+        "extensions": "string[]?"
+      },
+      "output": "ScanReport",
+      "description": "scanRepository() + buildReport() across a directory tree. On-demand only — NOT wired into npm run guard/precommit/deploy-gate as of HCG-P1/P2 (see registry/CURRENT_STATE.json plan_lock.exceptions_log -> HCG).",
+      "description_th": "ตรวจสอบทั้งโฟลเดอร์/repository เรียกใช้ตามต้องการเท่านั้น ยังไม่ผูกกับ guard/precommit/deploy-gate",
+      "requires_confirmation": false
+    },
+    "hardcode.generate_migration_plan": {
+      "owner": "engines/governance/hardcode-decision-engine.ts",
+      "layer": "engines",
+      "input": {
+        "classifications": "Classification[]"
+      },
+      "output": "MigrationPlanItem[]",
+      "description": "Produces a per-value migration action list (move-to-target or block-for-review) from a set of Classifications.",
+      "description_th": "สร้างแผน migration รายค่า (ย้ายไปที่ใด หรือบล็อกรอตรวจสอบ)",
+      "requires_confirmation": false
+    },
+    "hardcode.verify_external_constraint": {
+      "owner": "engines/governance/hardcode-decision-engine.ts",
+      "layer": "engines",
+      "input": {
+        "provider": "string",
+        "endpoint_forced_fixed": "boolean?",
+        "varies_by_region_or_env": "boolean?",
+        "has_official_sdk_or_discovery": "boolean?",
+        "is_versioned_api": "boolean?"
+      },
+      "output": "ExternalConstraintCheck",
+      "description": "Section 3/4 checklist for a service/hardware value — does the provider force a fixed endpoint, does it vary by region/environment, is there an official SDK/discovery endpoint, is the API versioned.",
+      "description_th": "ตรวจข้อจำกัดของบริการ/ฮาร์ดแวร์ภายนอกตามเช็คลิสต์ 4 ข้อ",
+      "requires_confirmation": false
+    },
+    "file.inspect": {
+      "owner": "engines/workspace/registerFileCommands.ts",
+      "layer": "engines",
+      "input": {
+        "path": "string"
+      },
+      "output": "{ exists, git_state, registration_state, owning_module, canonical_sibling, duplicate_class, content_hash }",
+      "description": "Real per-file state: git status, registration status (cross-checked vs module-registry.json), duplicate classification via real content hash comparison.",
+      "description_th": "ตรวจสถานะไฟล์จริง (git/registry/duplicate) ไม่เดา",
+      "requires_confirmation": false
+    },
+    "file.snapshot": {
+      "owner": "engines/workspace/registerFileCommands.ts",
+      "layer": "engines",
+      "input": {
+        "path": "string",
+        "reason": "string?"
+      },
+      "output": "FileSnapshotRecord",
+      "description": "Content-addressed snapshot under .dna-os/snapshots/<sha256>/. Secret content (matched against forbidden-hardcode-patterns.json) is never written to disk.",
+      "description_th": "สร้าง snapshot แบบ content-addressed ไม่เขียน secret ลงดิสก์",
+      "requires_confirmation": false
+    },
+    "file.delete.preview": {
+      "owner": "engines/workspace/registerFileCommands.ts",
+      "layer": "engines",
+      "input": {
+        "path": "string",
+        "action": "DestructiveAction?"
+      },
+      "output": "DestructiveActionPreview",
+      "description": "Real preview before any destructive action — session ownership (Rule 116 lock check), git/ignored state, snapshot existence, import usage. Never executes.",
+      "description_th": "ดูตัวอย่างก่อนลบ ตรวจ session/git/snapshot/import จริง",
+      "requires_confirmation": false
+    },
+    "file.delete.execute": {
+      "owner": "engines/workspace/registerFileCommands.ts",
+      "layer": "engines",
+      "input": {
+        "path": "string",
+        "action": "DestructiveAction?",
+        "confirmationToken": "string (>=8 chars)"
+      },
+      "output": "DestructiveActionResult",
+      "description": "The only real path to a destructive action in this capability. Refuses without a real confirmation token, refuses if preview has any blocker, always snapshots before moving to Trash (never rm/unlink even when action='rm').",
+      "description_th": "ทำลายไฟล์จริงได้เฉพาะผ่านทางนี้ ต้องมี token และผ่านทุกเงื่อนไขก่อน ย้ายเข้า Trash เสมอ ไม่ rm จริง",
+      "requires_confirmation": true
+    },
+    "file.restore": {
+      "owner": "engines/workspace/registerFileCommands.ts",
+      "layer": "engines",
+      "input": {
+        "contentHash": "string"
+      },
+      "output": "{ ok, content?, reason? }",
+      "description": "Real content-addressed restore from a snapshot. Refuses if the snapshot was secret content (never written) or missing.",
+      "description_th": "กู้คืนไฟล์จริงจาก snapshot ตาม hash",
+      "requires_confirmation": false
+    },
+    "file.find_duplicates": {
+      "owner": "engines/workspace/registerFileCommands.ts",
+      "layer": "engines",
+      "input": {
+        "path": "string"
+      },
+      "output": "{ path, sibling, classification }",
+      "description": "Real canonical-sibling lookup + content hash comparison. Never classifies from filename alone.",
+      "description_th": "หา sibling และเทียบเนื้อหาจริง ไม่ตัดสินจากชื่อไฟล์อย่างเดียว",
+      "requires_confirmation": false
+    },
+    "file.reconstruct": {
+      "owner": "engines/workspace/registerFileCommands.ts",
+      "layer": "engines",
+      "input": {},
+      "output": "NOT_IMPLEMENTED",
+      "description": "Declared, not implemented this pass — reconstruct-from-contract (registry/import-graph/route/sibling/session-transcript evidence) needs real design work not attempted yet. See registry/capability-roadmap.json.",
+      "description_th": "ยังไม่ implement — ประกาศไว้เฉยๆ",
+      "requires_confirmation": false
+    },
+    "file.compare": {
+      "owner": "engines/workspace/registerFileCommands.ts",
+      "layer": "engines",
+      "input": {},
+      "output": "NOT_IMPLEMENTED",
+      "description": "Declared, not implemented this pass.",
+      "description_th": "ยังไม่ implement",
+      "requires_confirmation": false
+    },
+    "file.find_owner": {
+      "owner": "engines/workspace/registerFileCommands.ts",
+      "layer": "engines",
+      "input": {},
+      "output": "NOT_IMPLEMENTED",
+      "description": "Declared, not implemented this pass — session-ownership-at-creation-time attribution needs real session-transcript search, only prototyped manually (see the page 2.tsx recovery investigation), not automated.",
+      "description_th": "ยังไม่ implement",
+      "requires_confirmation": false
     }
   },
   "query_constraints": {
@@ -1038,7 +1423,9 @@
       "status": "active",
       "query_constraints": {
         "table": "partners",
-        "filters": ["deleted_at IS NULL"]
+        "filters": [
+          "deleted_at IS NULL"
+        ]
       }
     },
     "observer.read": {
@@ -1065,7 +1452,10 @@
       "status": "active",
       "query_constraints": {
         "table": "documents",
-        "filters": ["partner_id = :partner_id", "deleted_at IS NULL"]
+        "filters": [
+          "partner_id = :partner_id",
+          "deleted_at IS NULL"
+        ]
       }
     }
   }

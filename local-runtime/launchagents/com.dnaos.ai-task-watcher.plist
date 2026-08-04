@@ -7,17 +7,18 @@
     <key>ProgramArguments</key>
     <array>
         <string>/usr/local/bin/node</string>
-        <string>/Users/tam/dna-os-ollama/ai-task-watcher.mjs</string>
+        <string>/Users/tam/Desktop/DNA OS-ต้นฉบับ /dna-os-deadboard/local-runtime/ai-task-watcher.mjs</string>
+        
     </array>
     <key>WorkingDirectory</key>
-    <string>/Users/tam/dna-os-ollama</string>
+    <string>/Users/tam/Desktop/DNA OS-ต้นฉบับ /dna-os-deadboard</string>
     <key>StartInterval</key>
     <integer>20</integer>
     <key>RunAtLoad</key>
     <true/>
     <key>StandardOutPath</key>
-    <string>/Users/tam/dna-os-ollama/ai-task-watcher.log</string>
+    <string>/Users/tam/Desktop/DNA OS-ต้นฉบับ /dna-os-deadboard/local-runtime/ai-task-watcher.log</string>
     <key>StandardErrorPath</key>
-    <string>/Users/tam/dna-os-ollama/ai-task-watcher.log</string>
+    <string>/Users/tam/Desktop/DNA OS-ต้นฉบับ /dna-os-deadboard/local-runtime/ai-task-watcher.log</string>
 </dict>
 </plist>

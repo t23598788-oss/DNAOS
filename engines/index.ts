@@ -12,6 +12,8 @@ export { calcDebtFull, calcCompoundInterest, calcDaysOverdue, checkOverdue, next
 export type { DebtStatus } from "./debt/engine";
 export { calcCapacity } from "./capacity";
 export { loadBusinessRules, calculatePrice, calculateDebt } from "./business";
+export { STORAGE_WORKSPACE_COMMANDS_REGISTERED } from "./workspace/registerCommands";
+export { FILE_COMMANDS_REGISTERED } from "./workspace/registerFileCommands";
 
 import type { AuditTrail } from "@/core/config-loader";
 import { findNearestPit } from "./distance";
