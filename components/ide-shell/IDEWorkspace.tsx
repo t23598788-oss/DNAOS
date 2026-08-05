@@ -5,12 +5,21 @@
  * VS Code-shaped Application Shell ONLY — Activity Bar / Sidebar / tabbed
  * Editor / Bottom Panel / Status Bar. No business logic lives here: every
  * panel below either fetches a real existing API (app/api/admin/workspace/*,
- * /api/governance) or embeds a real existing page (/admin/architecture,
- * /admin/schema-audit, /admin/telemetry, /admin/settings, /admin/event-inbox,
- * /admin/traces) via same-origin iframe — nothing here re-implements what
- * those pages/routes already do. Anything without a real backend capability
- * renders a NOT_IMPLEMENTED badge with the real reason from that API,
- * never a fabricated result.
+ * /api/governance) — this part is Permanent Architecture — or embeds a real
+ * existing page via same-origin `kind: "iframe"` tab (see EditorPane below):
+ * /admin/architecture, /admin/schema-audit, /admin/telemetry, /admin/settings,
+ * /admin/event-inbox, /admin/traces, /admin/dev-loop.
+ *
+ * TRANSITIONAL LAYER (owner, 2026-08-05): the iframe embeds are explicitly
+ * NOT the permanent destination — they exist only until each embedded page
+ * is migrated into a real Native Module inside this shell (its own data
+ * fetch + render using this shell's design system, tabs, and Bottom Panel,
+ * the same way the "source"/"json" tab kinds already work natively). No
+ * iframe embed here should be treated as a finished feature; each is a
+ * compatibility bridge that can be deleted once its page is natively
+ * rewired, without changing this shell's Activity Bar/Sidebar/tab contract.
+ * Anything without a real backend capability renders a NOT_IMPLEMENTED
+ * badge with the real reason from that API, never a fabricated result.
  *
  * Single shared shell, not one page per tool (explicit instruction,
  * 2026-08-05) — tool switching is client-side state (activeTool), and every
@@ -439,6 +448,11 @@ function EditorPane({ tab }: { tab: Tab | null }) {
     return <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", color: "#5a5a5a" }}>No file open</div>;
   }
   if (tab.kind === "iframe") {
+    // TRANSITIONAL LAYER — not the permanent architecture. Real target is a
+    // native "source"/"json"-style tab (own fetch + render inside this
+    // shell); this iframe bridge is what makes the embedded page reachable
+    // today without redesigning it. Safe to delete per-page once that page
+    // is natively rewired — this shell's tab/Sidebar contract doesn't change.
     return <iframe src={tab.payload} style={{ flex: 1, border: "none", background: "#fff" }} title={tab.title} />;
   }
   return (
