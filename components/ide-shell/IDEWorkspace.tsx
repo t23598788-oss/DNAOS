@@ -256,6 +256,7 @@ function RuntimeSidebar({ onOpenTab }: { onOpenTab: (t: Tab) => void }) {
   return (
     <div>
       <SidebarItem label="Runtime Flow (Telemetry)" onClick={() => onOpenTab({ id: "iframe:telemetry", title: "Runtime Flow", kind: "iframe", payload: "/admin/telemetry" })} />
+      <SidebarItem label="Dev Loop Pipeline" onClick={() => onOpenTab({ id: "iframe:dev-loop", title: "Dev Loop Pipeline", kind: "iframe", payload: "/admin/dev-loop" })} />
       <div style={{ padding: "4px 12px", fontSize: 10, color: "#858585" }}>Live events shown in Bottom Panel → Runtime Events</div>
     </div>
   );

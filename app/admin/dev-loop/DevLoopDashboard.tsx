@@ -46,6 +46,36 @@ interface RegistryProposal {
   decided_at: string | null;
 }
 
+interface DevLoopSession {
+  id: string;
+  owner: string | null;
+  status: "open" | "closed";
+  started_at: string;
+  closed_at: string | null;
+}
+
+type WatcherStatus = "WATCHER_RUNNING" | "WATCHER_STOPPED" | "STALE";
+
+// No heartbeat table exists — this reads only what scripts/watch-registry.ts
+// already writes for real: dev_loop_sessions.status (open until the process
+// gets a clean Ctrl+C, engines/workspace/devLoopSession.ts's closeSession())
+// and the latest evidence event's occurred_at. STALE_MS is an honest
+// inference, not a certainty: a session left "open" with no evidence for
+// this long likely means the local process died without closing it (killed,
+// laptop slept, etc) — never presented as live data past this point.
+const STALE_MS = 15 * 60 * 1000;
+
+function computeWatcherStatus(session: DevLoopSession | null, latestEvidenceAt: string | null): { status: WatcherStatus; lastActivityAt: string | null } {
+  const lastActivityAt = latestEvidenceAt ?? session?.started_at ?? null;
+  if (!session || session.status === "closed") {
+    return { status: "WATCHER_STOPPED", lastActivityAt };
+  }
+  if (lastActivityAt && Date.now() - new Date(lastActivityAt).getTime() > STALE_MS) {
+    return { status: "STALE", lastActivityAt };
+  }
+  return { status: "WATCHER_RUNNING", lastActivityAt };
+}
+
 const RESULT_COLOR: Record<CheckResult["result"], string> = {
   pass: "#1e9e5a",
   warning: "#c98a12",
@@ -56,18 +86,21 @@ export default function DevLoopDashboard() {
   const [events, setEvents] = useState<EvidenceEvent[]>([]);
   const [checks, setChecks] = useState<CheckResult[]>([]);
   const [proposals, setProposals] = useState<RegistryProposal[]>([]);
+  const [session, setSession] = useState<DevLoopSession | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
 
   const loadAll = useCallback(async () => {
     const client = createBrowserSupabase();
-    const [{ data: e }, { data: c }, { data: p }] = await Promise.all([
+    const [{ data: e }, { data: c }, { data: p }, { data: s }] = await Promise.all([
       client.from("dev_loop_evidence_events").select("*").order("occurred_at", { ascending: false }).limit(30),
       client.from("dev_loop_check_results").select("*").order("checked_at", { ascending: false }).limit(30),
       client.from("dev_loop_registry_proposals").select("*").order("proposed_at", { ascending: false }).limit(30),
+      client.from("dev_loop_sessions").select("*").order("started_at", { ascending: false }).limit(1),
     ]);
     setEvents((e as EvidenceEvent[]) ?? []);
     setChecks((c as CheckResult[]) ?? []);
     setProposals((p as RegistryProposal[]) ?? []);
+    setSession((s?.[0] as DevLoopSession) ?? null);
   }, []);
 
   useEffect(() => {
@@ -78,12 +111,21 @@ export default function DevLoopDashboard() {
       .on("postgres_changes", { event: "*", schema: "public", table: "dev_loop_evidence_events" }, () => void loadAll())
       .on("postgres_changes", { event: "*", schema: "public", table: "dev_loop_check_results" }, () => void loadAll())
       .on("postgres_changes", { event: "*", schema: "public", table: "dev_loop_registry_proposals" }, () => void loadAll())
+      .on("postgres_changes", { event: "*", schema: "public", table: "dev_loop_sessions" }, () => void loadAll())
       .subscribe();
+
+    // Re-derive STALE on a plain timer too — no new event fires when a
+    // watcher silently dies, so without this the badge would only update on
+    // the next real DB write (which, for a dead process, is never).
+    const staleCheckInterval = setInterval(() => setSession((s) => (s ? { ...s } : s)), 30_000);
 
     return () => {
       void client.removeChannel(channel);
+      clearInterval(staleCheckInterval);
     };
   }, [loadAll]);
+
+  const { status: watcherStatus, lastActivityAt } = computeWatcherStatus(session, events[0]?.occurred_at ?? null);
 
   async function decide(id: string, decision: "approved" | "rejected") {
     setBusyId(id);
@@ -106,9 +148,11 @@ export default function DevLoopDashboard() {
   return (
     <div style={{ padding: 24, fontFamily: "system-ui, sans-serif", maxWidth: 1100, margin: "0 auto" }}>
       <h1 style={{ fontSize: 20, fontWeight: 600, marginBottom: 4 }}>Dev Loop Pipeline</h1>
-      <p style={{ color: "#666", marginBottom: 24 }}>
-        ไฟล์เปลี่ยน → หลักฐาน → วิเคราะห์ผลกระทบ → ข้อเสนอ registry (ต้องอนุมัติ) — real-time
+      <p style={{ color: "#666", marginBottom: 16 }}>
+        ไฟล์เปลี่ยน → หลักฐาน → วิเคราะห์ผลกระทบ → ข้อเสนอ registry (ต้องอนุมัติ)
       </p>
+
+      <WatcherStatusBanner status={watcherStatus} lastActivityAt={lastActivityAt} session={session} />
 
       <DevLoopVoiceAlerts />
 
@@ -184,6 +228,56 @@ function Section({ title, children }: { title: string; children: React.ReactNode
       <h2 style={{ fontSize: 15, fontWeight: 600, marginBottom: 8 }}>{title}</h2>
       <div style={{ border: "1px solid #e5e5e5", borderRadius: 8 }}>{children}</div>
     </section>
+  );
+}
+
+function timeAgo(iso: string): string {
+  const ms = Date.now() - new Date(iso).getTime();
+  const min = Math.round(ms / 60000);
+  if (min < 1) return "เมื่อครู่นี้";
+  if (min < 60) return `${min} นาทีที่แล้ว`;
+  const hr = Math.round(min / 60);
+  if (hr < 24) return `${hr} ชั่วโมงที่แล้ว`;
+  return `${Math.round(hr / 24)} วันที่แล้ว`;
+}
+
+function WatcherStatusBanner({
+  status,
+  lastActivityAt,
+  session,
+}: {
+  status: "WATCHER_RUNNING" | "WATCHER_STOPPED" | "STALE";
+  lastActivityAt: string | null;
+  session: { id: string; owner: string | null; started_at: string; closed_at: string | null } | null;
+}) {
+  const copy: Record<typeof status, { label: string; color: string; detail: string }> = {
+    WATCHER_RUNNING: {
+      label: "WATCHER_RUNNING",
+      color: "#1e9e5a",
+      detail: `session เปิดอยู่ (${session?.owner ?? "ไม่ทราบเจ้าของ"}, เริ่ม ${session ? timeAgo(session.started_at) : "-"})${lastActivityAt ? ` · activity ล่าสุด ${timeAgo(lastActivityAt)}` : ""}`,
+    },
+    STALE: {
+      label: "STALE",
+      color: "#c98a12",
+      detail: `session ระบุว่า "open" แต่ไม่มี evidence event ใหม่มา ${lastActivityAt ? timeAgo(lastActivityAt) : "นาน"}แล้ว — process ในเครื่องอาจถูกปิดโดยไม่ได้กด Ctrl+C (เช่น เครื่องหลับ/ถูก kill) ข้อมูลด้านล่างเป็นข้อมูลเก่า ไม่ใช่ real-time`,
+    },
+    WATCHER_STOPPED: {
+      label: "WATCHER_STOPPED",
+      color: "#6b6b6b",
+      detail: session
+        ? `session ล่าสุดปิดแล้ว (${session.closed_at ? timeAgo(session.closed_at) : "-"}) — รัน \`npm run watch\` ในเครื่องเฮียเพื่อเริ่มใหม่`
+        : `ยังไม่เคยรัน npm run watch เลย — ข้อมูลด้านล่างว่างเปล่าเพราะยังไม่มี session ใดๆ`,
+    },
+  };
+  const c = copy[status];
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", borderRadius: 8, marginBottom: 20, background: `${c.color}15`, border: `1px solid ${c.color}55` }}>
+      <span style={{ width: 8, height: 8, borderRadius: "50%", background: c.color, flexShrink: 0 }} />
+      <div>
+        <span style={{ fontWeight: 700, fontSize: 12, color: c.color, letterSpacing: 0.3 }}>{c.label}</span>
+        <span style={{ fontSize: 12, color: "#666", marginLeft: 8 }}>{c.detail}</span>
+      </div>
+    </div>
   );
 }
 
