@@ -1,0 +1,91 @@
+{
+  "version": "1.0.0",
+  "policy": "Every Compatibility Layer / Transitional Layer in the codebase must have a real Exit Strategy recorded here before it ships (owner, 2026-08-05) — no iframe embed, shim, or bridge is allowed to exist without one. removal_condition_met stays false until the owner has actually verified the Removal Condition true (Runtime + Registry + End-to-End all real-checked, never inferred) — scripts/check-transitional-layers.ts only proposes removal for entries where this is already true; it never flips it itself. Different from registry/capability-roadmap.json (feature progress) — this is specifically the removal contract for temporary bridges.",
+  "status_values": ["TRANSITIONAL", "REMOVAL_PROPOSED", "REMOVED"],
+  "layers": [
+    {
+      "component": "app/admin/dev-loop (iframe in components/ide-shell/IDEWorkspace.tsx)",
+      "owner_module": "components/ide-shell/IDEWorkspace.tsx",
+      "temporary_reason": "อยู่ระหว่างย้ายเข้าสู่ Native Runtime — Dev Loop Pipeline ยังเป็นหน้าเว็บแยก (app/admin/dev-loop/DevLoopDashboard.tsx) ไม่ได้ fetch/render อยู่ในเชลล์โดยตรง",
+      "replacement_target": "Native Runtime Panel — RuntimeSidebar's tool renders evidence/checks/proposals/watcher-status directly via app/api/admin/workspace/* pattern, kind: \"json\" tab, no iframe",
+      "removal_condition": "Native Panel ผ่าน Runtime, Registry และ End-to-End ครบ (Owner login เข้าจริง เห็นข้อมูล evidence/checks/proposals/watcher-status ถูกต้อง)",
+      "removal_phase": "Wave 5",
+      "blocking_dependency": "Runtime Panel ยังไม่เสร็จ — DevLoopDashboard.tsx's realtime Supabase queries + approve/reject flow ยังไม่ได้เขียนใหม่เป็น native tab",
+      "estimated_removal": "TBD — no date committed, blocked on Wave 5 scheduling",
+      "removal_condition_met": false,
+      "status": "TRANSITIONAL"
+    },
+    {
+      "component": "app/admin/schema-audit (iframe in components/ide-shell/IDEWorkspace.tsx)",
+      "owner_module": "components/ide-shell/IDEWorkspace.tsx",
+      "temporary_reason": "Database tool ต้องการ DDL change log (schema_change_log table) ที่หน้า /admin/schema-audit อ่านอยู่แล้ว ยังไม่ได้ย้าย fetch logic เข้าเชลล์",
+      "replacement_target": "Native Database Panel — DatabaseSidebar's tool renders schema_change_log directly via a new read path in app/api/admin/workspace/database/route.ts, kind: \"json\" tab",
+      "removal_condition": "Native Panel อ่าน schema_change_log ผ่าน app/api/admin/workspace/database/route.ts ได้ครบ ตรงกับที่ /admin/schema-audit แสดงทุกประการ",
+      "removal_phase": "Wave 5",
+      "blocking_dependency": "app/api/admin/workspace/database/route.ts ยังไม่มี endpoint อ่าน schema_change_log (มีแค่ table list + connection health)",
+      "estimated_removal": "TBD",
+      "removal_condition_met": false,
+      "status": "TRANSITIONAL"
+    },
+    {
+      "component": "app/admin/telemetry (iframe in components/ide-shell/IDEWorkspace.tsx)",
+      "owner_module": "components/ide-shell/IDEWorkspace.tsx",
+      "temporary_reason": "Runtime Flow ใช้ ForceGraph3DView (3D dependency graph + realtime pulse) ที่ผูกกับ /admin/telemetry โดยตรง เป็นงานสร้าง UI ใหม่ถ้าจะย้ายเข้าเชลล์",
+      "replacement_target": "Native Runtime Flow Panel — reuse the real GraphView/ForceGraph3DView component directly as a React child inside EditorPane, same component import as /admin/telemetry already does, not re-implemented",
+      "removal_condition": "GraphView component render ตรงในเชลล์ได้จริง โดยไม่มี layout/scroll ผิดเพี้ยนเทียบกับ /admin/telemetry",
+      "removal_phase": "Wave 5",
+      "blocking_dependency": "ยังไม่ได้ทดสอบว่า ForceGraph3DView (ใช้ three.js canvas) render ได้ปกติเมื่ออยู่ใน constrained iframe-replacement container ของเชลล์",
+      "estimated_removal": "TBD",
+      "removal_condition_met": false,
+      "status": "TRANSITIONAL"
+    },
+    {
+      "component": "app/admin/settings (iframe in components/ide-shell/IDEWorkspace.tsx)",
+      "owner_module": "components/ide-shell/IDEWorkspace.tsx",
+      "temporary_reason": "Settings tool's data (permissions.json/system-links.ts/env var presence) is already served by app/admin/settings/page.tsx as a Server Component — the shell has no native read path for it yet",
+      "replacement_target": "Native Settings Panel — a new app/api/admin/workspace/settings/route.ts GET exposing the same 3 read sources app/admin/settings/page.tsx already reads, kind: \"json\" tab",
+      "removal_condition": "app/api/admin/workspace/settings/route.ts ส่งข้อมูลครบเท่ากับที่ /admin/settings แสดง และ SettingsSidebar render ได้เหมือนกัน",
+      "removal_phase": "Wave 5",
+      "blocking_dependency": "app/api/admin/workspace/settings/route.ts ยังไม่มีอยู่ (Settings page เป็น Server Component อ่าน fs/env ตรง ไม่ใช่ API route ที่เชลล์เรียกได้)",
+      "estimated_removal": "TBD",
+      "removal_condition_met": false,
+      "status": "TRANSITIONAL"
+    },
+    {
+      "component": "app/admin/event-inbox (iframe in components/ide-shell/IDEWorkspace.tsx)",
+      "owner_module": "components/ide-shell/IDEWorkspace.tsx",
+      "temporary_reason": "Logs tool ต้องการ event inbox data ที่หน้า /admin/event-inbox มี read/action logic อยู่แล้ว (มาร์คอ่านแล้ว/ตอบกลับ ฯลฯ) ซึ่งเป็น business logic จริง ไม่ใช่แค่การอ่าน",
+      "replacement_target": "Native Logs Panel — read-only view is straightforward to natively fetch; any write actions (mark read, reply) need their own real API route before being safe to move, not yet designed",
+      "removal_condition": "Native Panel แสดง event inbox ได้ตรงกับ /admin/event-inbox และ (ถ้ามี write action) ผ่าน API route จริงที่ requireAuth เหมือนเดิม",
+      "removal_phase": "Wave 6",
+      "blocking_dependency": "ยังไม่มีการออกแบบว่า write actions (ถ้ามี) จะย้ายยังไงโดยไม่ซ้ำ business logic — ต้องตัดสินใจโดย owner ก่อน ไม่ใช่แค่ read migration",
+      "estimated_removal": "TBD",
+      "removal_condition_met": false,
+      "status": "TRANSITIONAL"
+    },
+    {
+      "component": "app/admin/traces (iframe in components/ide-shell/IDEWorkspace.tsx)",
+      "owner_module": "components/ide-shell/IDEWorkspace.tsx",
+      "temporary_reason": "Logs tool's Traces view — read-only runtime trace explorer, no native fetch path in the shell yet",
+      "replacement_target": "Native Traces Panel — read-only, likely the simplest of the 7 to migrate (no write actions known)",
+      "removal_condition": "Native Panel แสดง trace data ตรงกับ /admin/traces ผ่าน API route ใหม่ที่อ่านแหล่งข้อมูลเดียวกัน",
+      "removal_phase": "Wave 5",
+      "blocking_dependency": "ยังไม่มี API route ให้เชลล์เรียกอ่าน trace data",
+      "estimated_removal": "TBD",
+      "removal_condition_met": false,
+      "status": "TRANSITIONAL"
+    },
+    {
+      "component": "app/admin/architecture?layer=<key> (iframe in components/ide-shell/IDEWorkspace.tsx)",
+      "owner_module": "components/ide-shell/IDEWorkspace.tsx",
+      "temporary_reason": "Architecture tool's per-layer view — /admin/architecture already has real System Map explorer UI (click-to-inspect) that's non-trivial to reproduce natively without redesigning it",
+      "replacement_target": "Native Architecture Panel — likely reuses architecture-book.json data already available via GET /api/governance (already used elsewhere in this shell for the Registry JSON tab), rendered as a real native tree/list instead of the existing explorer's UI",
+      "removal_condition": "Native Panel แสดง layer/module structure ตรงกับสิ่งที่ /admin/architecture?layer= แสดง และคลิกดู module รายตัวได้เหมือนเดิม",
+      "removal_phase": "Wave 6",
+      "blocking_dependency": "ต้องออกแบบ native list/tree UI ใหม่ที่ยังไม่ทำ (ไม่ใช่แค่ดึงข้อมูล — ต้องคิดวิธีแสดงผลด้วย) — เป็นงานใหญ่กว่ารายการอื่น",
+      "estimated_removal": "TBD",
+      "removal_condition_met": false,
+      "status": "TRANSITIONAL"
+    }
+  ]
+}

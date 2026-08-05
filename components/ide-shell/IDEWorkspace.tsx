@@ -18,6 +18,15 @@
  * iframe embed here should be treated as a finished feature; each is a
  * compatibility bridge that can be deleted once its page is natively
  * rewired, without changing this shell's Activity Bar/Sidebar/tab contract.
+ * Every one of these 7 iframe entries has a real Exit Strategy recorded in
+ * registry/transitional-layers.json (owner_module/temporary_reason/
+ * replacement_target/removal_condition/removal_phase/blocking_dependency/
+ * estimated_removal/status) — that file is the source of truth, not this
+ * comment, so it stays accurate without needing every future edit here to
+ * also update prose in two places. scripts/check-transitional-layers.ts
+ * reads it and proposes removal (via the existing Proposal Channel, never
+ * auto-deletes) only for entries the owner has already marked
+ * removal_condition_met: true.
  * Anything without a real backend capability renders a NOT_IMPLEMENTED
  * badge with the real reason from that API, never a fabricated result.
  *
@@ -448,11 +457,12 @@ function EditorPane({ tab }: { tab: Tab | null }) {
     return <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", color: "#5a5a5a" }}>No file open</div>;
   }
   if (tab.kind === "iframe") {
-    // TRANSITIONAL LAYER — not the permanent architecture. Real target is a
-    // native "source"/"json"-style tab (own fetch + render inside this
-    // shell); this iframe bridge is what makes the embedded page reachable
-    // today without redesigning it. Safe to delete per-page once that page
-    // is natively rewired — this shell's tab/Sidebar contract doesn't change.
+    // TRANSITIONAL LAYER — Exit Strategy per entry in registry/transitional-layers.json.
+    // Real target is a native "source"/"json"-style tab (own fetch + render
+    // inside this shell); this iframe bridge is what makes the embedded page
+    // reachable today without redesigning it. Safe to delete per-page once
+    // that page is natively rewired — this shell's tab/Sidebar contract
+    // doesn't change.
     return <iframe src={tab.payload} style={{ flex: 1, border: "none", background: "#fff" }} title={tab.title} />;
   }
   return (

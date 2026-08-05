@@ -44,7 +44,14 @@ export type GatewayCapability =
   | "intent.received"
   // Proposal Channel (owner, 2026-08-05) — requests a run of an
   // already-whitelisted Automation command; never runs on its own.
-  | "automation.command.proposed";
+  | "automation.command.proposed"
+  // Proposal Channel (owner, 2026-08-05) — scripts/check-transitional-layers.ts
+  // proposes removing a Compatibility/Transitional Layer entry from
+  // registry/transitional-layers.json, but ONLY for entries the owner
+  // already marked removal_condition_met: true, and only after a real
+  // dependents check. This never edits code — it's a visibility/review
+  // record for the owner, same as every other proposal here.
+  | "transitional_layer.removal_proposed";
 
 export interface GatewayEvent {
   event_id: string;
