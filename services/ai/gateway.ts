@@ -9,7 +9,8 @@ export type AiCapability =
   | "document.event_extract"
   | "document.crop"
   | "memory.draft"
-  | "material.resolve";
+  | "material.resolve"
+  | "code.generate";
 
 export type AiEffect = "analysis" | "classification" | "draft";
 export type AiProviderName = "anthropic" | "ollama";
@@ -98,6 +99,7 @@ const CAPABILITY_PROVIDER: Record<AiCapability, AiProviderName> = {
   "document.crop": "ollama",
   "memory.draft": "ollama",
   "material.resolve": "ollama",
+  "code.generate": "anthropic",
 };
 
 function id(prefix: string): string {

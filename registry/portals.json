@@ -116,6 +116,7 @@
     { "label": "API Tokens", "href": "/admin/api-tokens", "icon": "Shield", "group": "dev", "workspace_category": "settings" },
     { "label": "Users & Roles", "href": "/admin/users", "icon": "Shield", "group": "dev", "workspace_category": "settings" },
     { "label": "Connectors", "href": "/admin/connectors", "icon": "Plug", "group": "dev", "workspace_category": "automation" },
+    { "label": "System Configuration", "href": "/admin/system-config", "icon": "Settings", "group": "business", "workspace_category": "settings" },
     { "label": "Build", "href": "/admin/build", "icon": "BookOpen", "group": "dev", "workspace_category": "developer" },
     { "label": "Deploy", "href": "/admin/deploy", "icon": "BookOpen", "group": "dev", "workspace_category": "developer" },
     { "label": "Traces", "href": "/admin/traces", "icon": "Network", "group": "dev", "workspace_category": "monitoring" },

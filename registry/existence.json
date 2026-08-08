@@ -547,6 +547,19 @@
         "failure_reason": "Written the same day the local-AI pipeline decision was made but before handlers/text.ts was updated to route through ai_tasks instead of calling it directly — overtaken by the architecture change within the same session.",
         "lessons_learned": "A prompt/business-intent artifact can be fully correct in its own terms and still go dead the moment the calling architecture moves elsewhere — worth checking call sites right after any pipeline migration, not just at next audit.",
         "historical_references": "Flagged by pre-commit Guard 0 UNUSED check 2026-07-26."
+      },
+      {
+        "id": "AK-026",
+        "file": "engine.ts",
+        "lifecycle_state": "ARCHIVED",
+        "architectural_knowledge": "Genuinely empty (0 bytes) file at the workspace root. Contains no exports, no code, nothing to extract — there is no real architecture to describe.",
+        "business_knowledge": "None — an empty file carries no business logic.",
+        "dependency_relationships": "Zero real importers confirmed via grep (2026-08-08) — cannot have any, since importing an empty file yields nothing.",
+        "runtime_behavior": "N/A — never executed, never imported.",
+        "replacement_successor": "None identified. registry/module-registry.json already carried a prior note ('Never deleted per this Factory's file-preservation policy') before this entry was added, but no dated CHANGELOG/CONSTITUTION entry documenting the original reason for that policy could be found during this pass (searched registry/CHANGELOG.json and registry/CONSTITUTION.json 2026-08-08) — honestly reported as unknown provenance rather than inventing a reason.",
+        "failure_reason": "Unknown — file has been empty since at least the DNA OS v2.0 squash commit (99ce113); no evidence of it ever having real content in this repo's history.",
+        "lessons_learned": "An explicit 'never delete' note without a cited reason is real, standing instruction and must be honored even when the file itself provides no evidence for why — this entry exists so a future pass has a real, dated record instead of re-deriving the same 'should this be deleted?' question from scratch.",
+        "historical_references": "Flagged by scripts/pre-commit-check.sh's UNUSED check during production deploy-gate cleanup, 2026-08-08 — kept per the pre-existing file-preservation policy (not deleted), archived here instead per Rule 104 so the real gate can pass honestly."
       }
     ]
   },

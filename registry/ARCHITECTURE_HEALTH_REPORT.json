@@ -1,470 +1,49 @@
 {
-  "generated_at": "2026-08-04T05:41:46.853Z",
+  "generated_at": "2026-08-08T01:39:28.739Z",
   "source": "registry/architecture-book.json + registry/module-registry.json (via scripts/build-arch-book.ts)",
-  "total_modules": 669,
+  "total_modules": 1082,
   "missing_metadata": {
-    "data_tables": 540,
-    "business_capabilities": 575,
+    "data_tables": 900,
+    "business_capabilities": 988,
     "domain_owner": 0,
     "lifecycle_status": 0,
     "note": "Counts of modules where the field could not be proven from source and was honestly marked UNKNOWN, not fabricated."
   },
   "duplicate_registrations": {
-    "count": 22,
-    "entries": [
-      {
-        "basename": "route.ts",
-        "paths": [
-          "app/api/command/route.ts",
-          "app/api/chat/route.ts",
-          "app/api/chat/confirm/route.ts",
-          "app/api/document/route.ts",
-          "app/api/explain/route.ts",
-          "app/api/admin/architecture/control-graph/route.ts",
-          "app/api/traces/route.ts",
-          "app/api/self-description/route.ts",
-          "app/api/reader/route.ts",
-          "app/api/governance/route.ts",
-          "app/api/routes/route.ts",
-          "app/api/manual-doc/route.ts",
-          "app/api/deploy/route.ts",
-          "app/api/dbd/route.ts",
-          "app/api/build/route.ts",
-          "app/api/admin/settings/route.ts",
-          "app/api/admin/partners/route.ts",
-          "app/api/admin/debt-trackings/route.ts",
-          "app/api/admin/documents/route.ts",
-          "app/api/admin/debt-trackings/[id]/route.ts",
-          "app/api/admin/documents/[id]/route.ts",
-          "app/api/admin/debt-trackings/[id]/draft/route.ts",
-          "app/api/admin/documents/[id]/confirm/route.ts",
-          "app/api/admin/partners/[id]/timeline/route.ts",
-          "app/api/v1/spec/route.ts",
-          "app/api/v1/query/route.ts",
-          "app/api/admin/api-tokens/route.ts",
-          "app/api/admin/api-tokens/[id]/route.ts",
-          "app/observer.json/route.ts",
-          "app/api/v1/modules/route.ts",
-          "app/api/v1/workflows/route.ts",
-          "app/api/v1/constitution/route.ts",
-          "app/api/v1/capabilities/route.ts",
-          "app/api/v1/drivers/route.ts",
-          "app/api/admin/transactions/route.ts",
-          "app/api/admin/transactions/[id]/route.ts",
-          "app/api/admin/transactions/[id]/advance/route.ts",
-          "app/api/admin/partners/[id]/chain/route.ts",
-          "app/api/admin/pulse/route.ts",
-          "app/api/admin/screen-vision/route.ts",
-          "app/api/admin/backup/route.ts",
-          "app/api/admin/partners/[id]/credit/route.ts",
-          "app/api/admin/connectors/route.ts",
-          "app/api/connectors/webhook/[slug]/route.ts",
-          "app/api/admin/connectors/[id]/route.ts",
-          "app/api/connectors/oauth/callback/[slug]/route.ts",
-          "app/api/connectors/oauth/authorize/[slug]/route.ts",
-          "app/api/admin/connectors/[id]/test/route.ts",
-          "app/api/auth/logout/route.ts",
-          "app/api/admin/users/route.ts",
-          "app/api/admin/users/[id]/role/route.ts",
-          "app/api/admin/upload/route.ts",
-          "app/api/admin/notifications/send/route.ts",
-          "app/api/admin/connectors/[id]/enable/route.ts",
-          "app/api/admin/finance-alerts/route.ts",
-          "app/api/admin/quotation-queue/route.ts",
-          "app/api/admin/outbound-drafts/route.ts",
-          "app/api/admin/event-inbox/route.ts",
-          "app/api/admin/partners/[id]/line-messages/route.ts",
-          "app/api/admin/outbound-drafts/[id]/send/route.ts",
-          "app/api/admin/outbound-drafts/[id]/reject/route.ts",
-          "app/api/admin/line-customers/[lineUserId]/build-event/route.ts",
-          "app/api/admin/sites/route.ts",
-          "app/api/admin/schema-audit/route.ts",
-          "app/api/admin/pits/route.ts",
-          "app/api/admin/line-customers/[lineUserId]/reply/route.ts",
-          "app/api/admin/line-customers/[lineUserId]/ask/route.ts",
-          "app/api/admin/pits/[pitId]/materials/route.ts",
-          "app/api/admin/pits/[pitId]/route.ts",
-          "app/api/admin/line-customers/[lineUserId]/send-debt/route.ts",
-          "app/api/admin/line-customers/[lineUserId]/send-document/route.ts",
-          "app/api/admin/relationships/route.ts",
-          "app/api/admin/relationships/[relationshipId]/route.ts",
-          "app/api/admin/domains/whois/route.ts",
-          "app/api/admin/domains/register/route.ts",
-          "app/api/admin/domains/suggestions/route.ts",
-          "app/api/admin/domains/availability/route.ts",
-          "app/auth/confirm/route.ts",
-          "app/api/admin/line-customers/route.ts",
-          "app/api/admin/line-customers/[lineUserId]/route.ts",
-          "app/api/admin/runtime/document-engine/route.ts",
-          "app/api/admin/line-profiles/route.ts",
-          "app/api/internal/line/document-artifact/route.ts",
-          "app/api/admin/line-profiles/[lineUserId]/route.ts",
-          "app/api/admin/relationships/[relationshipId]/match/route.ts",
-          "app/api/admin/receipt-documents/[id]/reject/route.ts",
-          "app/api/admin/receipt-documents/[id]/confirm/route.ts",
-          "app/api/admin/invoices/[invoiceId]/send/route.ts",
-          "app/api/admin/debt-trackings/[id]/events/route.ts",
-          "app/api/admin/receipt-documents/route.ts",
-          "app/api/admin/pits/[pitId]/request-quote/route.ts",
-          "app/api/admin/equipment/route.ts",
-          "app/api/admin/equipment/trigger-start/route.ts",
-          "app/api/admin/equipment/toggle-permission/route.ts",
-          "app/api/admin/finance-summary/route.ts",
-          "app/api/admin/subscriptions/route.ts",
-          "app/api/admin/infrastructure/route.ts",
-          "app/api/cron/supabase-project-status/route.ts",
-          "app/api/auth/auto-login/route.ts",
-          "app/api/internal/openclaw/command/route.ts",
-          "app/api/internal/line/command/route.ts",
-          "app/api/v1/mcp/manifest/route.ts",
-          "app/api/v1/mcp/architecture/summary/route.ts",
-          "app/api/v1/mcp/registry/commands/route.ts",
-          "app/api/v1/mcp/architecture/dependency-graph/route.ts",
-          "app/api/admin/workspace/route.ts",
-          "app/api/admin/storage-intelligence/route.ts"
-        ]
-      },
-      {
-        "basename": "page.tsx",
-        "paths": [
-          "app/page.tsx",
-          "app/admin/partners/page.tsx",
-          "app/admin/partners/[id]/page.tsx",
-          "app/observer/page.tsx",
-          "app/admin/api-tokens/page.tsx",
-          "app/start/page.tsx",
-          "app/examples/page.tsx",
-          "app/playground/page.tsx",
-          "app/login/page.tsx",
-          "app/admin/login/page.tsx",
-          "app/admin/users/page.tsx",
-          "app/admin/invoice/page.tsx",
-          "app/admin/purchase-order/page.tsx",
-          "app/admin/delivery-order/page.tsx",
-          "app/admin/payment-voucher/page.tsx",
-          "app/admin/receipt/page.tsx",
-          "app/admin/debt-notice/page.tsx",
-          "app/admin/api-explorer/page.tsx",
-          "app/admin/architecture/page.tsx",
-          "app/admin/backup/page.tsx",
-          "app/admin/build/page.tsx",
-          "app/admin/connectors/page.tsx",
-          "app/admin/dashboard/page.tsx",
-          "app/admin/dbd/page.tsx",
-          "app/admin/deploy/page.tsx",
-          "app/admin/dna/page.tsx",
-          "app/admin/graph/page.tsx",
-          "app/admin/jobs/page.tsx",
-          "app/admin/jobs/[id]/page.tsx",
-          "app/admin/jobs/create/page.tsx",
-          "app/admin/links/page.tsx",
-          "app/admin/notifications/page.tsx",
-          "app/admin/page.tsx",
-          "app/admin/pending/page.tsx",
-          "app/admin/reader/page.tsx",
-          "app/admin/traces/page.tsx",
-          "app/admin/transactions/page.tsx",
-          "app/ai-services/page.tsx",
-          "app/business/page.tsx",
-          "app/download/page.tsx",
-          "app/liff/add-friend/page.tsx",
-          "app/marketplace/page.tsx",
-          "app/partner/page.tsx",
-          "app/products/page.tsx",
-          "app/report/page.tsx",
-          "app/solutions/page.tsx",
-          "app/user/page.tsx",
-          "app/admin/create-document/page.tsx",
-          "app/admin/debt-tracking/page.tsx",
-          "app/admin/quotation-queue/page.tsx",
-          "app/admin/event-inbox/page.tsx",
-          "app/admin/schema-audit/page.tsx",
-          "app/admin/pits/page.tsx",
-          "app/admin/relationships/page.tsx",
-          "app/admin/relationships/[relationshipId]/page.tsx",
-          "app/workspace-preview/page.tsx",
-          "app/workspace/page.tsx",
-          "app/workspace-preview/workflow/page.tsx",
-          "app/workspace-preview/transport/page.tsx",
-          "app/workspace-preview/partner/page.tsx",
-          "app/workspace-preview/order/page.tsx",
-          "app/workspace-preview/material/page.tsx",
-          "app/workspace-preview/invoice/page.tsx",
-          "app/workspace-preview/debt-widget/page.tsx",
-          "app/workspace-preview/document/page.tsx",
-          "app/admin/line-customers/page.tsx",
-          "app/account/change-password/page.tsx",
-          "app/workspace-preview/apps/[appId]/page.tsx",
-          "app/admin/line-profiles/page.tsx",
-          "app/admin/engine-explorer/page.tsx",
-          "app/admin/receipts/page.tsx",
-          "app/admin/equipment/page.tsx",
-          "app/admin/finance/page.tsx",
-          "app/admin/infrastructure/page.tsx",
-          "app/admin/system/page.tsx",
-          "app/admin/telemetry/page.tsx",
-          "app/admin/workspace/page.tsx",
-          "app/admin/storage/page.tsx"
-        ]
-      },
-      {
-        "basename": "layout.tsx",
-        "paths": [
-          "app/layout.tsx",
-          "app/admin/layout.tsx",
-          "app/business/layout.tsx",
-          "app/liff/layout.tsx",
-          "app/observer/layout.tsx",
-          "app/user/layout.tsx",
-          "app/partner/layout.tsx"
-        ]
-      },
-      {
-        "basename": "index.ts",
-        "paths": [
-          "cognitive/board/index.ts",
-          "cognitive/evaluation/index.ts",
-          "cognitive/executor/index.ts",
-          "cognitive/hypothesis/index.ts",
-          "cognitive/intent/index.ts",
-          "cognitive/knowledge/index.ts",
-          "cognitive/learning/index.ts",
-          "cognitive/memory/index.ts",
-          "cognitive/objective/index.ts",
-          "cognitive/planner/index.ts",
-          "cognitive/priority/index.ts",
-          "cognitive/reasoning/index.ts",
-          "cognitive/reflection/index.ts",
-          "cognitive/situation/index.ts",
-          "cognitive/state/index.ts",
-          "engines/index.ts",
-          "gateway/index.ts",
-          "plugins/index.ts",
-          "presenter/index.ts",
-          "registry/index.ts",
-          "core/auth/index.ts",
-          "supabase/functions/line-profile-reconcile/index.ts",
-          "supabase/functions/trigger-auto-build/index.ts",
-          "supabase/functions/trigger-complete/index.ts",
-          "components/ui-kit/index.ts",
-          "supabase/functions/debt-reminder-cron/index.ts",
-          "supabase/functions/receipt-reconcile-sweep/index.ts",
-          "supabase/functions/fuel-price-sync/index.ts",
-          "core/workspace/index.ts",
-          "components/workspace/canvas/index.ts",
-          "core/workspace/planner/index.ts",
-          "core/workspace/orchestrator/index.ts",
-          "core/workspace/composer/index.ts",
-          "dna-os-mcp-server/src/index.ts",
-          "supabase/functions/architecture-drift-alert/index.ts"
-        ]
-      },
-      {
-        "basename": "engine.ts",
-        "paths": [
-          "cognitive/evaluation/engine.ts",
-          "cognitive/hypothesis/engine.ts",
-          "cognitive/planner/engine.ts",
-          "cognitive/reasoning/engine.ts",
-          "cognitive/reflection/engine.ts",
-          "core/executor/engine.ts",
-          "core/runtime/engine.ts",
-          "engines/debt/engine.ts",
-          "engines/documents/engine.ts",
-          "engines/impact/engine.ts",
-          "engines/storage/engine.ts"
-        ]
-      },
-      {
-        "basename": "session.ts",
-        "paths": [
-          "cognitive/memory/session.ts",
-          "core/auth/session.ts"
-        ]
-      },
-      {
-        "basename": "manager.ts",
-        "paths": [
-          "cognitive/objective/manager.ts",
-          "services/ai-connection/manager.ts"
-        ]
-      },
-      {
-        "basename": "engine.test.ts",
-        "paths": [
-          "cognitive/planner/engine.test.ts",
-          "cognitive/reasoning/engine.test.ts"
-        ]
-      },
-      {
-        "basename": "timeline.ts",
-        "paths": [
-          "cognitive/state/timeline.ts",
-          "engines/partner/timeline.ts"
-        ]
-      },
-      {
-        "basename": "types.ts",
-        "paths": [
-          "cognitive/state/types.ts",
-          "core/shared/types.ts",
-          "supabase/functions/line-webhook-v2/events/types.ts",
-          "engines/domains/types.ts",
-          "core/workspace/types.ts",
-          "components/workspace/canvas/types.ts",
-          "core/workspace/planner/types.ts",
-          "core/workspace/orchestrator/types.ts",
-          "core/workspace/composer/types.ts"
-        ]
-      },
-      {
-        "basename": "normalize.ts",
-        "paths": [
-          "cognitive/normalize.ts",
-          "dna-os-mcp-server/src/normalize.ts"
-        ]
-      },
-      {
-        "basename": "line.ts",
-        "paths": [
-          "plugins/drivers/line.ts",
-          "plugins/line/line.ts"
-        ]
-      },
-      {
-        "basename": "signature.ts",
-        "paths": [
-          "supabase/functions/line-webhook-v2/middleware/signature.ts",
-          "supabase/functions/openclaw-webhook/middleware/signature.ts"
-        ]
-      },
-      {
-        "basename": "_validator.ts",
-        "paths": [
-          "registry/trace/_validator.ts",
-          "registry/communication/_validator.ts",
-          "registry/execution/_validator.ts",
-          "registry/conversation/_validator.ts"
-        ]
-      },
-      {
-        "basename": "_schema.ts",
-        "paths": [
-          "registry/trace/_schema.ts",
-          "registry/communication/_schema.ts",
-          "registry/execution/_schema.ts",
-          "registry/conversation/_schema.ts"
-        ]
-      },
-      {
-        "basename": "_resolver.ts",
-        "paths": [
-          "registry/trace/_resolver.ts",
-          "registry/communication/_resolver.ts",
-          "registry/execution/_resolver.ts",
-          "registry/conversation/_resolver.ts"
-        ]
-      },
-      {
-        "basename": "_loader.ts",
-        "paths": [
-          "registry/trace/_loader.ts",
-          "registry/communication/_loader.ts",
-          "registry/execution/_loader.ts",
-          "registry/conversation/_loader.ts"
-        ]
-      },
-      {
-        "basename": "server.ts",
-        "paths": [
-          "services/supabase/server.ts",
-          "dna-os-mcp-server/src/server.ts"
-        ]
-      },
-      {
-        "basename": "loading.tsx",
-        "paths": [
-          "app/ai-services/loading.tsx",
-          "app/business/loading.tsx",
-          "app/download/loading.tsx",
-          "app/marketplace/loading.tsx",
-          "app/partner/loading.tsx",
-          "app/products/loading.tsx",
-          "app/report/loading.tsx",
-          "app/solutions/loading.tsx",
-          "app/user/loading.tsx"
-        ]
-      },
-      {
-        "basename": "quote-price.ts",
-        "paths": [
-          "supabase/functions/line-webhook-v2/engines/quote-price.ts",
-          "engines/quote-price.ts"
-        ]
-      },
-      {
-        "basename": "package.json",
-        "paths": [
-          "local-runtime/package.json",
-          "dna-os-mcp-server/package.json"
-        ]
-      },
-      {
-        "basename": "page 2.tsx",
-        "paths": [
-          "app/admin/system/page 2.tsx",
-          "app/admin/graph/page 2.tsx"
-        ]
-      }
-    ]
+    "count": 0,
+    "entries": []
   },
   "orphan_modules": {
-    "count": 3,
+    "count": 6,
     "entries": [
-      "module:engines/workspace/registryWriter.ts",
-      "module:engines/governance/hardcode-dependency-context.ts",
-      "module:local-runtime/ollama-cloud-gateway.mjs"
+      "module:engine.ts",
+      "module:local-runtime/workspace-root-verifier-acceptance-test.ts",
+      "module:local-runtime/storage-threshold-watcher.ts",
+      "module:local-runtime/storage-smoke-test.ts",
+      "module:local-runtime/runtime-registration-test.ts",
+      "module:dna-os-mcp-server/src/index-governance-http.ts"
     ]
   },
   "dead_modules": {
-    "count": 3,
+    "count": 6,
     "entries": [
-      "module:engines/workspace/registryWriter.ts",
-      "module:engines/governance/hardcode-dependency-context.ts",
-      "module:local-runtime/ollama-cloud-gateway.mjs"
+      "module:engine.ts",
+      "module:local-runtime/workspace-root-verifier-acceptance-test.ts",
+      "module:local-runtime/storage-threshold-watcher.ts",
+      "module:local-runtime/storage-smoke-test.ts",
+      "module:local-runtime/runtime-registration-test.ts",
+      "module:dna-os-mcp-server/src/index-governance-http.ts"
     ]
   },
   "unregistered_modules": {
-    "count": 15,
-    "entries": [
-      "module:engines/storage/evidenceEngine.ts",
-      "module:engines/storage/engine.ts",
-      "module:engines/storage/decisionEngine.ts",
-      "module:engines/storage/classifier.ts",
-      "module:components/admin/useAiTaskPulse 2.ts",
-      "module:engines/storage/adapters/trashAdapter.ts",
-      "module:engines/storage/adapters/supabaseVerifier.ts",
-      "module:engines/storage/adapters/gitAdapter.ts",
-      "module:engines/storage/adapters/fsAdapter.ts",
-      "module:engines/storage/adapters/dockerAdapter.ts",
-      "module:app/admin/system/page 2.tsx",
-      "module:app/admin/storage/page.tsx",
-      "module:app/admin/graph/page 2.tsx",
-      "module:app/api/admin/storage-intelligence/route.ts",
-      "module:engines/workspace/registerCommands.ts"
-    ]
+    "count": 0,
+    "entries": []
   },
   "circular_dependencies": {
-    "count": 1,
-    "cycles": [
-      [
-        "module:engines/documents/engine.ts",
-        "module:engines/documents/template.ts",
-        "module:engines/documents/engine.ts"
-      ]
-    ]
+    "count": 0,
+    "cycles": []
   },
-  "registry_completeness_pct": 1.49,
+  "registry_completeness_pct": 0.92,
   "permanently_unknown_fields": [
     "related_workflows",
     "related_business_events",

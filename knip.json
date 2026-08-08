@@ -60,7 +60,8 @@
     "dna-os-mcp-server/_diag-token-test.mjs",
     "engine.ts",
     "gateway/index.ts",
-    "app/admin/system/page 2.tsx"
+    "app/admin/system/page 2.tsx",
+    "app/api/admin/ide/_lib/openCapabilityArchitecture.ts"
   ],
   "workspaces": {
     "dna-os-mcp-server": {
@@ -82,6 +83,10 @@
     "awk",
     "tail",
     "memory_pressure",
-    "supabase"
+    "supabase",
+    "which",
+    "httpx",
+    "subfinder",
+    "claude"
   ]
 }

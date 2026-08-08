@@ -1,0 +1,63 @@
+{
+  "policy": "Decision Registry (owner, 2026-08-06) — not what the system IS, but WHY it was built this way. Every entry is a real design decision actually made during /admin/ide's development, with the real reason, the real evidence that drove it, and the real alternative(s) that were considered and rejected. Nothing here is retrofitted or speculative — see app/api/admin/ide/_lib/decisions.ts for the loader. New entries are appended, never rewritten in place (same discipline as registry/CONSTITUTION.json's C-010).",
+  "decisions": [
+    {
+      "id": "floating-bottom-console",
+      "decision": "Bottom Work Panel (Terminal/Runtime Events/Build Output/Problems/AI Execution) is a floating, collapsible overlay (position: absolute, anchored above the Status Bar) instead of a fixed panel that pushes the Editor.",
+      "reason": "The Editor must keep the maximum visible area at all times — a fixed bottom panel permanently shrinks it even when the user isn't looking at console output.",
+      "evidence": "Owner's explicit redesign request (2026-08-05): 'ไม่ทำให้ Browser scroll และไม่ดันพื้นที่ Editor ขึ้นลงตลอดเวลา' — collapsed defaults to a 32px strip, expanded caps at 45% of the editor column's real measured height.",
+      "alternatives_rejected": [
+        "Fixed Bottom Panel that always reserves vertical space (the original Phase 1-4 layout) — rejected because it permanently reduces Editor area even when console output isn't needed.",
+        "Full-screen modal for console output — rejected explicitly (owner: 'ห้ามใช้ modal เต็มจอ')."
+      ],
+      "implemented_in": ["components/ide-shell/IDEWorkspace.tsx (BottomPanel, useStickToBottom)"],
+      "date": "2026-08-05"
+    },
+    {
+      "id": "locked-files-server-enforced",
+      "decision": "LOCKED-risk files are rejected at the PUT /api/admin/ide/file route itself, before any write — never a client-side/UI-only read-only state.",
+      "reason": "A UI-disabled textarea can be bypassed by anyone who calls the API directly (curl, another client, a bug in a future caller) — only the server can be trusted to actually refuse the write.",
+      "evidence": "Owner's explicit instruction (2026-08-06): 'อย่าพึ่ง UI อย่าพึ่ง CSS Server ต้องเป็นคนตัดสิน UI แค่แสดงผล' plus registry/CONSTITUTION.json Rule 107 (generated/ledger files are immutable once written).",
+      "alternatives_rejected": [
+        "UI-only read-only textarea (readOnly attribute + disabled Save button) with no server-side check — rejected as not real enforcement."
+      ],
+      "implemented_in": ["app/api/admin/ide/file/route.ts (PUT — classification.riskLevel === \"LOCKED\" checked before writeFileAtomic)"],
+      "date": "2026-08-06"
+    },
+    {
+      "id": "workspace-trash-not-permanent-delete",
+      "decision": "File/folder deletion in the Explorer moves items into a workspace-internal .dnaos-trash/ with a restore path, instead of any permanent delete capability.",
+      "reason": "Prevent irreversible data loss from an Explorer UI action — restoring to the exact original path must always be possible.",
+      "evidence": "Owner's explicit constraint (Phase 3 spec): 'ห้าม permanent delete' — engines/workspace/adapters/trashAdapter.ts (the existing ~/.Trash-based system) was checked first and found unsuitable: it has no concept of restoring to an original relative path.",
+      "alternatives_rejected": [
+        "Reusing the existing engines/storage/adapters/trashAdapter.ts (~/.Trash, OS-level trash) — rejected: no restore-to-original-path capability, and it's part of a different subsystem (Storage Intelligence's whole-repo cleanup), not IDE-scoped.",
+        "Permanent rm on Explorer delete — explicitly forbidden by the owner."
+      ],
+      "implemented_in": ["app/api/admin/ide/_lib/trash.ts"],
+      "date": "2026-08-05"
+    },
+    {
+      "id": "execution-lock-not-db-lock-manager",
+      "decision": "The Execution Runtime's exclusiveLockKey (one active run per lock key, e.g. for `build`/`governance`/`architecture.check`) is a new in-memory, single-process guard — NOT a reuse of the existing DB-backed engines/workspace/lockManager.ts.",
+      "reason": "The DB lock manager solves a different problem (coordinating file/folder/registry/migration/config/database_schema EDITS across concurrent AI sessions via a Postgres unique index, with a live Supabase client + actor + sessionId + a 5-minute TTL tuned for a human/AI editing a file). A spawned child process needs no DB round-trip and is freed synchronously the instant it exits — forcing it onto the DB lock would add a live Supabase dependency to every governed command run for a poor conceptual fit.",
+      "evidence": "engines/workspace/lockManager.ts's real signature (requires a SupabaseClient, actor, sessionId, WorkspaceResourceType) and TTL semantics, read directly before deciding — not assumed.",
+      "alternatives_rejected": [
+        "Reusing engines/workspace/lockManager.ts's acquireLock/withLock directly for command execution slots — rejected as a genuine conceptual mismatch, documented in app/api/admin/ide/_lib/executionRuntime.ts's header comment."
+      ],
+      "implemented_in": ["app/api/admin/ide/_lib/executionRuntime.ts"],
+      "date": "2026-08-05"
+    },
+    {
+      "id": "evidence-based-classification-not-extension",
+      "decision": "Semantic Code Classification (category, capability, risk) is derived from registry/module-registry.json + real path structure + registry/CONSTITUTION.json text — never from file extension alone. No match = UNKNOWN, never guessed.",
+      "reason": "A classifier that guesses accumulates silent errors over time; a classifier that honestly says 'no evidence' is more trustworthy long-term, even though it's less complete on day one.",
+      "evidence": "Owner's explicit principle (2026-08-06): 'UNKNOWN ดีกว่า AI แบบเดา เพราะระบบที่เดาจะค่อยๆ สะสมความผิดพลาด' — now Constitution Rule 118.",
+      "alternatives_rejected": [
+        "Classifying by file extension/language (e.g. .ts → generic 'code', .sql → 'database') — rejected: too coarse, and extension alone was explicitly forbidden by the owner as the sole signal.",
+        "A curated capability enum (e.g. Vision/OCR/LLM/Prompt/Inference for AI) applied uniformly regardless of whether this repo actually has that structure — rejected after a real directory audit found no such subdirectories exist here; capability is instead the real path segment under each category's real root."
+      ],
+      "implemented_in": ["app/api/admin/ide/_lib/classification.ts"],
+      "date": "2026-08-06"
+    }
+  ]
+}

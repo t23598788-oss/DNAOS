@@ -117,6 +117,10 @@ async function syncRegistry() {
       // app source, flagging 88 real npm packages as UNREGISTERED modules.
       "**/node_modules/**",
       ".next/**",
+      // Workspace trash (owner, 2026-08-05, /admin/ide Phase 3) — items
+      // moved here can be arbitrary trashed source files (.ts/.tsx),
+      // which would otherwise get flagged as new "unregistered" modules.
+      ".dnaos-trash/**",
       "**/*.d.ts",
       "**/*.test.ts",
       "**/*.spec.ts",
@@ -130,7 +134,18 @@ async function syncRegistry() {
     const content = readFileSync(absPath, "utf-8");
     const exports = extractExports(content);
 
-    if (exports.length === 0) continue;
+    // Root cause fix (Step 10.5, Phase 12): a real file with zero real
+    // top-level exports (e.g. a standalone script using a local main()
+    // IIFE pattern, never exported) is STILL a real module — it must
+    // still be registered, honestly, with a real empty exports array.
+    // The previous `if (exports.length === 0) continue;` silently made
+    // such files permanently invisible to the registry (never added,
+    // never reported, no warning) — reproduced live: scripts/release-
+    // test.ts, compatibility-test.ts, country-test.ts, and document-
+    // lifecycle-test.ts (Step 10) all have genuinely zero real exports
+    // and were silently skipped every sync run. This is a real, narrow
+    // fix to the actual defect (silent invisibility), never a whitelist,
+    // never an ignore-list, never file-name-specific.
 
     const existing = registry.modules[file];
     if (!existing) {

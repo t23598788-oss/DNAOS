@@ -19,6 +19,7 @@
  * NOT have one yet. This script's per-module section reflects that honestly.
  */
 import { readFileSync } from "fs";
+import { execSync } from "child_process";
 import { join } from "path";
 import { describeDocumentEngine, getDocumentEngineRuntimeContract, getDocumentEngineContextBudget, getDocumentEngineWorkOrder, getDocumentEngineExecutionReadiness, getDocumentEngineDeltaContext } from "@/engines/documents/selfDescription";
 import { describeStorageIntelligence } from "@/engines/storage/selfDescription";
@@ -35,7 +36,7 @@ import { getCalendarDriverRuntimeContract, getCalendarDriverContextBudget, getCa
 import { getPdfDriverRuntimeContract, getPdfDriverContextBudget, getPdfDriverWorkOrder, getPdfDriverExecutionReadiness, getPdfDriverDeltaContext } from "@/plugins/drivers/pdf.selfDescription";
 import { getGithubDriverRuntimeContract, getGithubDriverContextBudget, getGithubDriverWorkOrder, getGithubDriverExecutionReadiness, getGithubDriverDeltaContext } from "@/plugins/drivers/github.selfDescription";
 import { getDistanceEngineRuntimeContract, getDistanceEngineContextBudget, getDistanceEngineWorkOrder, getDistanceEngineExecutionReadiness, getDistanceEngineDeltaContext } from "@/engines/distance.selfDescription";
-import { buildMeasurementReport } from "@/core/shared/types";
+import { buildMeasurementReport, type RuntimeContract, type ContextBudget, type WorkOrder, type ExecutionReadiness, type DeltaContext } from "@/core/shared/types";
 import { registerProvider, getRuntimePacket, measureCurrentWindow, resetBroker, readCounter } from "@/core/runtime/contextBroker";
 
 const ROOT = join(__dirname, "..");
@@ -78,8 +79,22 @@ interface KnowledgeMatch {
   summary: string[];
 }
 
+// Real, minimal shapes of the registry/existence.json sections this file
+// actually reads — mirrors core/runtime/existence-intelligence.ts's own
+// modeling of the same file, kept local since that file's interfaces
+// aren't exported.
+interface ArchivedKnowledgeEntry { id: string; file: string; lifecycle_state: string; replacement_successor?: string; failure_reason?: string; lessons_learned?: string }
+interface KnownMistakeEntry { id: string; what_happened?: string; root_cause?: string; lesson?: string; detection?: string; date?: string }
+interface DuplicatePairEntry { id: string; keep: string; deprecated: string; reason?: string; [key: string]: unknown }
+interface OwnerRequestEntry { id: string; category: string; status: string; priority?: string; owner_approval_required?: boolean; reason?: string; impact?: string; suggested_resolution?: string }
+interface ExistenceFile {
+  archived_knowledge?: { entries?: ArchivedKnowledgeEntry[] };
+  known_mistakes?: { entries?: KnownMistakeEntry[]; confirmed_duplicate_pairs?: { pairs?: DuplicatePairEntry[] } };
+  owner_requests?: { requests?: OwnerRequestEntry[] };
+}
+
 function searchRuntimeKnowledge(query: string) {
-  const existence = readJSON<any>("registry/existence.json");
+  const existence = readJSON<ExistenceFile>("registry/existence.json");
   const q = query.toLowerCase();
   const matches: KnowledgeMatch[] = [];
 
@@ -104,7 +119,7 @@ function searchRuntimeKnowledge(query: string) {
   for (const p of existence.known_mistakes?.confirmed_duplicate_pairs?.pairs ?? []) {
     if (deepContainsText(p, q)) {
       const summary = [`Keep: ${p.keep}`, `Deprecated: ${p.deprecated}`, `Reason: ${p.reason}`];
-      const rca = Object.entries(p).find(([k]) => k.startsWith("root_cause_analysis"))?.[1] as any;
+      const rca = Object.entries(p).find(([k]) => k.startsWith("root_cause_analysis"))?.[1] as { "20_final_report"?: { decision?: string; root_cause?: string; confidence?: string | number } } | undefined;
       if (rca?.["20_final_report"]) {
         const r = rca["20_final_report"];
         summary.push(`Root cause analysis on file — Decision: ${r.decision}. Root cause: ${r.root_cause}. Confidence: ${r.confidence}`);
@@ -190,7 +205,7 @@ function checkEvidenceLayers(query: string) {
   const results: EvidenceLayerResult[] = [];
 
   function checkFiles(order: number, layer: string, files: string[]): EvidenceLayerResult {
-    const loaded = files.map((f) => ({ f, data: safeReadJSON<any>(f) }));
+    const loaded = files.map((f) => ({ f, data: safeReadJSON<unknown>(f) }));
     const present = loaded.filter((l) => l.data !== null);
     if (present.length === 0) {
       return { order, layer, sources: files, status: "no_data", detail: "None of this layer's real files exist/are readable in this repo." };
@@ -278,7 +293,6 @@ function checkEvidenceLayers(query: string) {
  * separately-maintained file list that could drift out of sync.
  */
 function scanContractCoverage() {
-  const { execSync } = require("child_process") as typeof import("child_process");
   const moduleRegistry = readJSON<{ modules: Record<string, unknown> }>("registry/module-registry.json");
   const totalModules = Object.keys(moduleRegistry.modules).length;
 
@@ -324,7 +338,7 @@ function scanContractCoverage() {
 // "duplicate workflow" gap, repeating the same registration/measurement code
 // per module would itself be the anti-pattern this session has repeatedly
 // flagged and fixed elsewhere.
-const WIRED_MODULES: Array<{ id: string; getContract: () => any; getBudget: () => any; getWorkOrder: () => any; getReadiness: () => any; getDelta: (h?: string) => any }> = [
+const WIRED_MODULES: Array<{ id: string; getContract: () => RuntimeContract; getBudget: () => ContextBudget; getWorkOrder: () => WorkOrder; getReadiness: () => ExecutionReadiness; getDelta: (h?: string) => DeltaContext }> = [
   { id: "document-engine", getContract: getDocumentEngineRuntimeContract, getBudget: getDocumentEngineContextBudget, getWorkOrder: getDocumentEngineWorkOrder, getReadiness: getDocumentEngineExecutionReadiness, getDelta: getDocumentEngineDeltaContext },
   { id: "line-driver", getContract: getLineDriverRuntimeContract, getBudget: getLineDriverContextBudget, getWorkOrder: getLineDriverWorkOrder, getReadiness: getLineDriverExecutionReadiness, getDelta: getLineDriverDeltaContext },
   { id: "chrome-driver", getContract: getChromeDriverRuntimeContract, getBudget: getChromeDriverContextBudget, getWorkOrder: getChromeDriverWorkOrder, getReadiness: getChromeDriverExecutionReadiness, getDelta: getChromeDriverDeltaContext },
@@ -384,6 +398,31 @@ function runBrokerReport() {
   console.log(`\nScope note: this measures the broker's OWN real behavior for ${WIRED_MODULES.length} modules under a repeated-access pattern within one process. It does NOT measure and does NOT claim anything about an AI session's overall token usage or repository reads outside this broker — that remains outside this repository's observability (Rule 102 known_gaps).`);
 }
 
+// Real, minimal shapes of the remaining registry files main() reads.
+interface CurrentStateFile {
+  change_id?: string; status?: string; current_task?: string;
+  plan_lock?: { gate_tasks_in_order?: string[] };
+  architecture_freeze?: { scope?: string; declared_by?: string; declared_at?: string };
+}
+interface TaskEntry { id: string; status: string; title?: string; task?: string }
+// registry/TASK_QUEUE.json is a flat array today (confirmed live) but this
+// script has always defensively tolerated a future/legacy { tasks: [...] }
+// wrapper too — kept as a real union rather than assuming one shape.
+type TaskQueueFile = TaskEntry[] | { tasks: TaskEntry[] };
+function getTaskEntries(tq: TaskQueueFile): TaskEntry[] {
+  return Array.isArray(tq) ? tq : (tq.tasks ?? []);
+}
+interface ConstitutionFile { version?: string | number; iron_rules?: unknown[] }
+interface ArchBookMainFile { summary: { total: number; ok: number; broken: number; unused: number; unregistered: number } }
+interface HealthFile {
+  evolution: { constitution_pct: number; workflow_pct: number; business_pct: number; governance_pct: number };
+  risk: { overall: string; duplicate_logic: number; ghost_rules: number; dead_code_files: number };
+  metrics: { rules_total: number; rules_enforced: number };
+}
+interface ChangelogEntry { change_id: string; status?: string }
+interface GovernanceFile { programs: Record<string, { status: string; current_phase?: string; name?: string }> }
+interface RuleCoverageFile { rules: Record<string, unknown> }
+
 function main() {
   if (process.argv.includes("--contract-coverage")) {
     scanContractCoverage();
@@ -419,14 +458,15 @@ function main() {
     return;
   }
 
-  const existence = readJSON<any>("registry/existence.json");
-  const currentState = readJSON<any>("registry/CURRENT_STATE.json");
-  const taskQueue = readJSON<any>("registry/TASK_QUEUE.json");
-  const constitution = readJSON<any>("registry/CONSTITUTION.json");
-  const archBook = readJSON<any>("registry/architecture-book.json");
-  const health = readJSON<any>("DNA_OS_HEALTH.json");
-  const changelog = readJSON<any[]>("registry/CHANGELOG.json");
-  const governance = readJSON<any>("registry/GOVERNANCE_REGISTRY.json");
+  const existence = readJSON<ExistenceFile>("registry/existence.json");
+  const currentState = readJSON<CurrentStateFile>("registry/CURRENT_STATE.json");
+  const taskQueue = readJSON<TaskQueueFile>("registry/TASK_QUEUE.json");
+  const constitution = readJSON<ConstitutionFile>("registry/CONSTITUTION.json");
+  const archBook = readJSON<ArchBookMainFile>("registry/architecture-book.json");
+  const health = readJSON<HealthFile>("DNA_OS_HEALTH.json");
+  const changelog = readJSON<ChangelogEntry[]>("registry/CHANGELOG.json");
+  const governance = readJSON<GovernanceFile>("registry/GOVERNANCE_REGISTRY.json");
+  const taskEntries = getTaskEntries(taskQueue);
 
   console.log("\n  ╔════════════════════════════════════════════════════════╗");
   console.log("  ║                    HELLO DNA OS                          ║");
@@ -434,16 +474,16 @@ function main() {
 
   section("IDENTITY");
   console.log(`  DNA OS v${constitution.version ?? "?"} — self-governing multi-agent operating system`);
-  console.log(`  Constitution: ${constitution.iron_rules?.length ?? 0} iron rules, ${Object.keys(readJSON<any>("registry/rule-coverage.json").rules).length} enforced with real code`);
+  console.log(`  Constitution: ${constitution.iron_rules?.length ?? 0} iron rules, ${Object.keys(readJSON<RuleCoverageFile>("registry/rule-coverage.json").rules).length} enforced with real code`);
 
   section("CURRENT STATE");
   console.log(`  change_id: ${currentState.change_id}  |  status: ${currentState.status}`);
   console.log(`  ${currentState.current_task}`);
 
   section("CURRENT PHASE");
-  const activePrograms = Object.entries(governance.programs).filter(([, p]: any) => p.status === "in_progress");
+  const activePrograms = Object.entries(governance.programs).filter(([, p]) => p.status === "in_progress");
   if (activePrograms.length === 0) console.log("  No program currently marked in_progress in registry/GOVERNANCE_REGISTRY.json.");
-  activePrograms.forEach(([id, p]: any) => console.log(`  ${id}: ${p.current_phase} — ${p.name}`));
+  activePrograms.forEach(([id, p]) => console.log(`  ${id}: ${p.current_phase} — ${p.name}`));
 
   section("ARCHITECTURE");
   console.log(`  ${archBook.summary.total} modules  |  OK: ${archBook.summary.ok}  BROKEN: ${archBook.summary.broken}  UNUSED: ${archBook.summary.unused}  UNREGISTERED: ${archBook.summary.unregistered}`);
@@ -454,16 +494,16 @@ function main() {
 
   section("PRIORITY");
   const gateTasks = currentState.plan_lock?.gate_tasks_in_order ?? [];
-  const gateTaskDetail = gateTasks.map((id: string) => taskQueue.tasks?.find((t: any) => t.id === id) ?? taskQueue.find?.((t: any) => t.id === id));
+  const gateTaskDetail = gateTasks.map((id: string) => taskEntries.find((t) => t.id === id));
   console.log(`  Plan Lock gate tasks (must be DONE before any new Module/Page/Feature): ${gateTasks.join(", ")}`);
-  gateTaskDetail.filter(Boolean).forEach((t: any) => console.log(`    ${t.id}: ${t.status} — ${(t.title ?? t.task ?? "").slice(0, 90)}`));
+  gateTaskDetail.filter((t): t is TaskEntry => !!t).forEach((t) => console.log(`    ${t.id}: ${t.status} — ${(t.title ?? t.task ?? "").slice(0, 90)}`));
 
   section("OWNER REQUESTS");
   const ownerRequests = existence.owner_requests?.requests ?? [];
   if (ownerRequests.length === 0) console.log("  None declared.");
   ownerRequests
-    .filter((r: any) => r.status === "open")
-    .forEach((r: any) => {
+    .filter((r) => r.status === "open")
+    .forEach((r) => {
       console.log(`  [${r.id}] ${r.category} (priority: ${r.priority}, owner approval required: ${r.owner_approval_required})`);
       console.log(`    Reason: ${r.reason}`);
       console.log(`    Impact: ${r.impact}`);
@@ -478,25 +518,25 @@ function main() {
   console.log(`  Frozen by: ${currentState.architecture_freeze?.declared_by} on ${currentState.architecture_freeze?.declared_at}`);
 
   section("AVAILABLE WORK");
-  const pending = (taskQueue.tasks ?? taskQueue).filter?.((t: any) => t.status === "pending") ?? [];
-  pending.slice(0, 5).forEach((t: any) => console.log(`  ${t.id}: ${(t.title ?? t.task ?? "").slice(0, 90)}`));
+  const pending = taskEntries.filter((t) => t.status === "pending");
+  pending.slice(0, 5).forEach((t) => console.log(`  ${t.id}: ${(t.title ?? t.task ?? "").slice(0, 90)}`));
   if (pending.length > 5) console.log(`  ...and ${pending.length - 5} more pending tasks in registry/TASK_QUEUE.json`);
 
   section("RECOMMENDED TASK");
-  const firstOpenGate = gateTaskDetail.find((t: any) => t && t.status !== "done" && t.status !== "DONE");
+  const firstOpenGate = gateTaskDetail.find((t) => t && t.status !== "done" && t.status !== "DONE");
   console.log(firstOpenGate
     ? `  ${firstOpenGate.id} (Plan Lock gate, status: ${firstOpenGate.status}) — everything else waits on this per Constitution iron_rules.`
     : "  All Plan Lock gate tasks show DONE — re-verify against registry/CONSTITUTION.json before treating the lock as lifted.");
 
   section("WARNINGS");
-  (existence.known_mistakes?.entries ?? []).forEach((km: any) => console.log(`  [${km.id}] ${km.lesson}`));
+  (existence.known_mistakes?.entries ?? []).forEach((km) => console.log(`  [${km.id}] ${km.lesson}`));
   if (currentState.architecture_freeze) console.log(`  Active freeze in effect — see BLOCKED AREAS above.`);
 
   section("RECENTLY CHANGED");
-  changelog.slice(-3).forEach((c: any) => console.log(`  ${c.change_id}: ${(c.status ?? "").slice(0, 90)}`));
+  changelog.slice(-3).forEach((c) => console.log(`  ${c.change_id}: ${(c.status ?? "").slice(0, 90)}`));
 
   section("LEARNING UPDATES");
-  (existence.known_mistakes?.entries ?? []).forEach((km: any) => console.log(`  ${km.id} (${km.date}): detection=${km.detection}`));
+  (existence.known_mistakes?.entries ?? []).forEach((km) => console.log(`  ${km.id} (${km.date}): detection=${km.detection}`));
 
   // Real, computed count — this exact number was stale before (hardcoded
   // "1 of 464") despite 13 modules already having a real RuntimeContract.
@@ -505,7 +545,7 @@ function main() {
   // modules below, read from the real arrays, not typed as a literal.
   const fullDescriptions = [describeDocumentEngine(), describeStorageIntelligence(), describeWorkspaceLockManager(), describeFileExistenceIntelligence(), describeArchitectureDriftDetector()];
   const totalWired = WIRED_MODULES.length + (fullDescriptions.length - 1); // document-engine counted once, already in WIRED_MODULES
-  const totalRegistered = (archBook as any).summary?.total ?? "UNKNOWN";
+  const totalRegistered = archBook.summary?.total ?? "UNKNOWN";
   section(`SELF-DESCRIBING MODULES (SDRN-P1 — ${totalWired} of ${totalRegistered} wired so far)`);
 
   for (const doc of fullDescriptions) {

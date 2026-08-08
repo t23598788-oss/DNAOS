@@ -1,0 +1,708 @@
+{
+  "generated_at": "2026-08-08T12:14:23.586Z",
+  "note": "Computed live from registry/CONSTITUTION.json + registry/rule-coverage.json + registry/factory-mapping.json by app/api/admin/ide/_lib/governanceRuntime.ts — never hand-edited, never a cached stale number. Re-run via `npm run sync` or `npx tsx scripts/build-governance-summary.ts`.",
+  "totalRules": 268,
+  "enforced": 173,
+  "declaredNotEnforced": 8,
+  "notImplemented": 7,
+  "deprecated": 0,
+  "ghost": 74,
+  "unknown": 6,
+  "coveragePercent": 64.6,
+  "bySource": {
+    "rule-coverage": 168,
+    "uncovered": 74,
+    "iron-rule": 15,
+    "runtime-contract": 11
+  },
+  "inspectionCoveragePercent": 61.9,
+  "factories": [
+    {
+      "factoryId": "executive-office",
+      "factoryName": "Executive Office",
+      "ruleCount": 0,
+      "coveragePercent": 0,
+      "missingRuleCount": 0,
+      "health": "UNGOVERNED",
+      "unknownFileCount": 6
+    },
+    {
+      "factoryId": "architecture-office",
+      "factoryName": "Architecture Office",
+      "ruleCount": 6,
+      "coveragePercent": 100,
+      "missingRuleCount": 0,
+      "health": "HEALTHY",
+      "unknownFileCount": 90
+    },
+    {
+      "factoryId": "software-factory",
+      "factoryName": "Software Factory",
+      "ruleCount": 122,
+      "coveragePercent": 100,
+      "missingRuleCount": 0,
+      "health": "HEALTHY",
+      "unknownFileCount": 345
+    },
+    {
+      "factoryId": "ai-factory",
+      "factoryName": "AI Factory",
+      "ruleCount": 0,
+      "coveragePercent": 0,
+      "missingRuleCount": 0,
+      "health": "UNGOVERNED",
+      "unknownFileCount": 56
+    },
+    {
+      "factoryId": "business-factory",
+      "factoryName": "Business Factory",
+      "ruleCount": 2,
+      "coveragePercent": 100,
+      "missingRuleCount": 0,
+      "health": "HEALTHY",
+      "unknownFileCount": 158
+    },
+    {
+      "factoryId": "communication-factory",
+      "factoryName": "Communication Factory",
+      "ruleCount": 0,
+      "coveragePercent": 0,
+      "missingRuleCount": 0,
+      "health": "UNGOVERNED",
+      "unknownFileCount": 27
+    },
+    {
+      "factoryId": "document-factory",
+      "factoryName": "Document Factory",
+      "ruleCount": 3,
+      "coveragePercent": 100,
+      "missingRuleCount": 0,
+      "health": "HEALTHY",
+      "unknownFileCount": 23
+    },
+    {
+      "factoryId": "runtime-factory",
+      "factoryName": "Runtime Factory",
+      "ruleCount": 3,
+      "coveragePercent": 100,
+      "missingRuleCount": 0,
+      "health": "HEALTHY",
+      "unknownFileCount": 39
+    },
+    {
+      "factoryId": "infrastructure-factory",
+      "factoryName": "Infrastructure Factory",
+      "ruleCount": 9,
+      "coveragePercent": 100,
+      "missingRuleCount": 0,
+      "health": "HEALTHY",
+      "unknownFileCount": 93
+    },
+    {
+      "factoryId": "qa-factory",
+      "factoryName": "QA Factory",
+      "ruleCount": 0,
+      "coveragePercent": 0,
+      "missingRuleCount": 0,
+      "health": "UNGOVERNED",
+      "unknownFileCount": 66
+    },
+    {
+      "factoryId": "deployment-factory",
+      "factoryName": "Deployment Factory",
+      "ruleCount": 2,
+      "coveragePercent": 100,
+      "missingRuleCount": 0,
+      "health": "HEALTHY",
+      "unknownFileCount": 71
+    },
+    {
+      "factoryId": "operations-center",
+      "factoryName": "Operations Center",
+      "ruleCount": 1,
+      "coveragePercent": 100,
+      "missingRuleCount": 0,
+      "health": "HEALTHY",
+      "unknownFileCount": 20
+    }
+  ],
+  "ghostFindingCount": 96,
+  "ghostFindings": [
+    {
+      "kind": "GHOST_RULE",
+      "ruleId": "4",
+      "file": null,
+      "message": "Rule 4 has no title or implementation anywhere in the repository (bare number in rule-coverage.json's uncovered_rules)"
+    },
+    {
+      "kind": "GHOST_RULE",
+      "ruleId": "5",
+      "file": null,
+      "message": "Rule 5 has no title or implementation anywhere in the repository (bare number in rule-coverage.json's uncovered_rules)"
+    },
+    {
+      "kind": "GHOST_RULE",
+      "ruleId": "7",
+      "file": null,
+      "message": "Rule 7 has no title or implementation anywhere in the repository (bare number in rule-coverage.json's uncovered_rules)"
+    },
+    {
+      "kind": "GHOST_RULE",
+      "ruleId": "8",
+      "file": null,
+      "message": "Rule 8 has no title or implementation anywhere in the repository (bare number in rule-coverage.json's uncovered_rules)"
+    },
+    {
+      "kind": "GHOST_RULE",
+      "ruleId": "9",
+      "file": null,
+      "message": "Rule 9 has no title or implementation anywhere in the repository (bare number in rule-coverage.json's uncovered_rules)"
+    },
+    {
+      "kind": "GHOST_RULE",
+      "ruleId": "10",
+      "file": null,
+      "message": "Rule 10 has no title or implementation anywhere in the repository (bare number in rule-coverage.json's uncovered_rules)"
+    },
+    {
+      "kind": "GHOST_RULE",
+      "ruleId": "13",
+      "file": null,
+      "message": "Rule 13 has no title or implementation anywhere in the repository (bare number in rule-coverage.json's uncovered_rules)"
+    },
+    {
+      "kind": "GHOST_RULE",
+      "ruleId": "15",
+      "file": null,
+      "message": "Rule 15 has no title or implementation anywhere in the repository (bare number in rule-coverage.json's uncovered_rules)"
+    },
+    {
+      "kind": "GHOST_RULE",
+      "ruleId": "16",
+      "file": null,
+      "message": "Rule 16 has no title or implementation anywhere in the repository (bare number in rule-coverage.json's uncovered_rules)"
+    },
+    {
+      "kind": "GHOST_RULE",
+      "ruleId": "17",
+      "file": null,
+      "message": "Rule 17 has no title or implementation anywhere in the repository (bare number in rule-coverage.json's uncovered_rules)"
+    },
+    {
+      "kind": "GHOST_RULE",
+      "ruleId": "18",
+      "file": null,
+      "message": "Rule 18 has no title or implementation anywhere in the repository (bare number in rule-coverage.json's uncovered_rules)"
+    },
+    {
+      "kind": "GHOST_RULE",
+      "ruleId": "20",
+      "file": null,
+      "message": "Rule 20 has no title or implementation anywhere in the repository (bare number in rule-coverage.json's uncovered_rules)"
+    },
+    {
+      "kind": "GHOST_RULE",
+      "ruleId": "21",
+      "file": null,
+      "message": "Rule 21 has no title or implementation anywhere in the repository (bare number in rule-coverage.json's uncovered_rules)"
+    },
+    {
+      "kind": "GHOST_RULE",
+      "ruleId": "22",
+      "file": null,
+      "message": "Rule 22 has no title or implementation anywhere in the repository (bare number in rule-coverage.json's uncovered_rules)"
+    },
+    {
+      "kind": "GHOST_RULE",
+      "ruleId": "23",
+      "file": null,
+      "message": "Rule 23 has no title or implementation anywhere in the repository (bare number in rule-coverage.json's uncovered_rules)"
+    },
+    {
+      "kind": "GHOST_RULE",
+      "ruleId": "24",
+      "file": null,
+      "message": "Rule 24 has no title or implementation anywhere in the repository (bare number in rule-coverage.json's uncovered_rules)"
+    },
+    {
+      "kind": "GHOST_RULE",
+      "ruleId": "25",
+      "file": null,
+      "message": "Rule 25 has no title or implementation anywhere in the repository (bare number in rule-coverage.json's uncovered_rules)"
+    },
+    {
+      "kind": "GHOST_RULE",
+      "ruleId": "26",
+      "file": null,
+      "message": "Rule 26 has no title or implementation anywhere in the repository (bare number in rule-coverage.json's uncovered_rules)"
+    },
+    {
+      "kind": "GHOST_RULE",
+      "ruleId": "27",
+      "file": null,
+      "message": "Rule 27 has no title or implementation anywhere in the repository (bare number in rule-coverage.json's uncovered_rules)"
+    },
+    {
+      "kind": "GHOST_RULE",
+      "ruleId": "28",
+      "file": null,
+      "message": "Rule 28 has no title or implementation anywhere in the repository (bare number in rule-coverage.json's uncovered_rules)"
+    },
+    {
+      "kind": "GHOST_RULE",
+      "ruleId": "29",
+      "file": null,
+      "message": "Rule 29 has no title or implementation anywhere in the repository (bare number in rule-coverage.json's uncovered_rules)"
+    },
+    {
+      "kind": "GHOST_RULE",
+      "ruleId": "30",
+      "file": null,
+      "message": "Rule 30 has no title or implementation anywhere in the repository (bare number in rule-coverage.json's uncovered_rules)"
+    },
+    {
+      "kind": "GHOST_RULE",
+      "ruleId": "32",
+      "file": null,
+      "message": "Rule 32 has no title or implementation anywhere in the repository (bare number in rule-coverage.json's uncovered_rules)"
+    },
+    {
+      "kind": "GHOST_RULE",
+      "ruleId": "33",
+      "file": null,
+      "message": "Rule 33 has no title or implementation anywhere in the repository (bare number in rule-coverage.json's uncovered_rules)"
+    },
+    {
+      "kind": "GHOST_RULE",
+      "ruleId": "34",
+      "file": null,
+      "message": "Rule 34 has no title or implementation anywhere in the repository (bare number in rule-coverage.json's uncovered_rules)"
+    },
+    {
+      "kind": "GHOST_RULE",
+      "ruleId": "35",
+      "file": null,
+      "message": "Rule 35 has no title or implementation anywhere in the repository (bare number in rule-coverage.json's uncovered_rules)"
+    },
+    {
+      "kind": "GHOST_RULE",
+      "ruleId": "36",
+      "file": null,
+      "message": "Rule 36 has no title or implementation anywhere in the repository (bare number in rule-coverage.json's uncovered_rules)"
+    },
+    {
+      "kind": "GHOST_RULE",
+      "ruleId": "37",
+      "file": null,
+      "message": "Rule 37 has no title or implementation anywhere in the repository (bare number in rule-coverage.json's uncovered_rules)"
+    },
+    {
+      "kind": "GHOST_RULE",
+      "ruleId": "38",
+      "file": null,
+      "message": "Rule 38 has no title or implementation anywhere in the repository (bare number in rule-coverage.json's uncovered_rules)"
+    },
+    {
+      "kind": "GHOST_RULE",
+      "ruleId": "41",
+      "file": null,
+      "message": "Rule 41 has no title or implementation anywhere in the repository (bare number in rule-coverage.json's uncovered_rules)"
+    },
+    {
+      "kind": "GHOST_RULE",
+      "ruleId": "42",
+      "file": null,
+      "message": "Rule 42 has no title or implementation anywhere in the repository (bare number in rule-coverage.json's uncovered_rules)"
+    },
+    {
+      "kind": "GHOST_RULE",
+      "ruleId": "43",
+      "file": null,
+      "message": "Rule 43 has no title or implementation anywhere in the repository (bare number in rule-coverage.json's uncovered_rules)"
+    },
+    {
+      "kind": "GHOST_RULE",
+      "ruleId": "44",
+      "file": null,
+      "message": "Rule 44 has no title or implementation anywhere in the repository (bare number in rule-coverage.json's uncovered_rules)"
+    },
+    {
+      "kind": "GHOST_RULE",
+      "ruleId": "47",
+      "file": null,
+      "message": "Rule 47 has no title or implementation anywhere in the repository (bare number in rule-coverage.json's uncovered_rules)"
+    },
+    {
+      "kind": "GHOST_RULE",
+      "ruleId": "48",
+      "file": null,
+      "message": "Rule 48 has no title or implementation anywhere in the repository (bare number in rule-coverage.json's uncovered_rules)"
+    },
+    {
+      "kind": "GHOST_RULE",
+      "ruleId": "49",
+      "file": null,
+      "message": "Rule 49 has no title or implementation anywhere in the repository (bare number in rule-coverage.json's uncovered_rules)"
+    },
+    {
+      "kind": "GHOST_RULE",
+      "ruleId": "50",
+      "file": null,
+      "message": "Rule 50 has no title or implementation anywhere in the repository (bare number in rule-coverage.json's uncovered_rules)"
+    },
+    {
+      "kind": "GHOST_RULE",
+      "ruleId": "51",
+      "file": null,
+      "message": "Rule 51 has no title or implementation anywhere in the repository (bare number in rule-coverage.json's uncovered_rules)"
+    },
+    {
+      "kind": "GHOST_RULE",
+      "ruleId": "52",
+      "file": null,
+      "message": "Rule 52 has no title or implementation anywhere in the repository (bare number in rule-coverage.json's uncovered_rules)"
+    },
+    {
+      "kind": "GHOST_RULE",
+      "ruleId": "53",
+      "file": null,
+      "message": "Rule 53 has no title or implementation anywhere in the repository (bare number in rule-coverage.json's uncovered_rules)"
+    },
+    {
+      "kind": "GHOST_RULE",
+      "ruleId": "54",
+      "file": null,
+      "message": "Rule 54 has no title or implementation anywhere in the repository (bare number in rule-coverage.json's uncovered_rules)"
+    },
+    {
+      "kind": "GHOST_RULE",
+      "ruleId": "55",
+      "file": null,
+      "message": "Rule 55 has no title or implementation anywhere in the repository (bare number in rule-coverage.json's uncovered_rules)"
+    },
+    {
+      "kind": "GHOST_RULE",
+      "ruleId": "56",
+      "file": null,
+      "message": "Rule 56 has no title or implementation anywhere in the repository (bare number in rule-coverage.json's uncovered_rules)"
+    },
+    {
+      "kind": "GHOST_RULE",
+      "ruleId": "57",
+      "file": null,
+      "message": "Rule 57 has no title or implementation anywhere in the repository (bare number in rule-coverage.json's uncovered_rules)"
+    },
+    {
+      "kind": "GHOST_RULE",
+      "ruleId": "58",
+      "file": null,
+      "message": "Rule 58 has no title or implementation anywhere in the repository (bare number in rule-coverage.json's uncovered_rules)"
+    },
+    {
+      "kind": "GHOST_RULE",
+      "ruleId": "59",
+      "file": null,
+      "message": "Rule 59 has no title or implementation anywhere in the repository (bare number in rule-coverage.json's uncovered_rules)"
+    },
+    {
+      "kind": "GHOST_RULE",
+      "ruleId": "60",
+      "file": null,
+      "message": "Rule 60 has no title or implementation anywhere in the repository (bare number in rule-coverage.json's uncovered_rules)"
+    },
+    {
+      "kind": "GHOST_RULE",
+      "ruleId": "61",
+      "file": null,
+      "message": "Rule 61 has no title or implementation anywhere in the repository (bare number in rule-coverage.json's uncovered_rules)"
+    },
+    {
+      "kind": "GHOST_RULE",
+      "ruleId": "62",
+      "file": null,
+      "message": "Rule 62 has no title or implementation anywhere in the repository (bare number in rule-coverage.json's uncovered_rules)"
+    },
+    {
+      "kind": "GHOST_RULE",
+      "ruleId": "63",
+      "file": null,
+      "message": "Rule 63 has no title or implementation anywhere in the repository (bare number in rule-coverage.json's uncovered_rules)"
+    },
+    {
+      "kind": "GHOST_RULE",
+      "ruleId": "64",
+      "file": null,
+      "message": "Rule 64 has no title or implementation anywhere in the repository (bare number in rule-coverage.json's uncovered_rules)"
+    },
+    {
+      "kind": "GHOST_RULE",
+      "ruleId": "65",
+      "file": null,
+      "message": "Rule 65 has no title or implementation anywhere in the repository (bare number in rule-coverage.json's uncovered_rules)"
+    },
+    {
+      "kind": "GHOST_RULE",
+      "ruleId": "66",
+      "file": null,
+      "message": "Rule 66 has no title or implementation anywhere in the repository (bare number in rule-coverage.json's uncovered_rules)"
+    },
+    {
+      "kind": "GHOST_RULE",
+      "ruleId": "68",
+      "file": null,
+      "message": "Rule 68 has no title or implementation anywhere in the repository (bare number in rule-coverage.json's uncovered_rules)"
+    },
+    {
+      "kind": "GHOST_RULE",
+      "ruleId": "70",
+      "file": null,
+      "message": "Rule 70 has no title or implementation anywhere in the repository (bare number in rule-coverage.json's uncovered_rules)"
+    },
+    {
+      "kind": "GHOST_RULE",
+      "ruleId": "75",
+      "file": null,
+      "message": "Rule 75 has no title or implementation anywhere in the repository (bare number in rule-coverage.json's uncovered_rules)"
+    },
+    {
+      "kind": "GHOST_RULE",
+      "ruleId": "76",
+      "file": null,
+      "message": "Rule 76 has no title or implementation anywhere in the repository (bare number in rule-coverage.json's uncovered_rules)"
+    },
+    {
+      "kind": "GHOST_RULE",
+      "ruleId": "77",
+      "file": null,
+      "message": "Rule 77 has no title or implementation anywhere in the repository (bare number in rule-coverage.json's uncovered_rules)"
+    },
+    {
+      "kind": "GHOST_RULE",
+      "ruleId": "78",
+      "file": null,
+      "message": "Rule 78 has no title or implementation anywhere in the repository (bare number in rule-coverage.json's uncovered_rules)"
+    },
+    {
+      "kind": "GHOST_RULE",
+      "ruleId": "82",
+      "file": null,
+      "message": "Rule 82 has no title or implementation anywhere in the repository (bare number in rule-coverage.json's uncovered_rules)"
+    },
+    {
+      "kind": "GHOST_RULE",
+      "ruleId": "83",
+      "file": null,
+      "message": "Rule 83 has no title or implementation anywhere in the repository (bare number in rule-coverage.json's uncovered_rules)"
+    },
+    {
+      "kind": "GHOST_RULE",
+      "ruleId": "84",
+      "file": null,
+      "message": "Rule 84 has no title or implementation anywhere in the repository (bare number in rule-coverage.json's uncovered_rules)"
+    },
+    {
+      "kind": "GHOST_RULE",
+      "ruleId": "85",
+      "file": null,
+      "message": "Rule 85 has no title or implementation anywhere in the repository (bare number in rule-coverage.json's uncovered_rules)"
+    },
+    {
+      "kind": "GHOST_RULE",
+      "ruleId": "86",
+      "file": null,
+      "message": "Rule 86 has no title or implementation anywhere in the repository (bare number in rule-coverage.json's uncovered_rules)"
+    },
+    {
+      "kind": "GHOST_RULE",
+      "ruleId": "87",
+      "file": null,
+      "message": "Rule 87 has no title or implementation anywhere in the repository (bare number in rule-coverage.json's uncovered_rules)"
+    },
+    {
+      "kind": "GHOST_RULE",
+      "ruleId": "88",
+      "file": null,
+      "message": "Rule 88 has no title or implementation anywhere in the repository (bare number in rule-coverage.json's uncovered_rules)"
+    },
+    {
+      "kind": "GHOST_RULE",
+      "ruleId": "90",
+      "file": null,
+      "message": "Rule 90 has no title or implementation anywhere in the repository (bare number in rule-coverage.json's uncovered_rules)"
+    },
+    {
+      "kind": "GHOST_RULE",
+      "ruleId": "91",
+      "file": null,
+      "message": "Rule 91 has no title or implementation anywhere in the repository (bare number in rule-coverage.json's uncovered_rules)"
+    },
+    {
+      "kind": "GHOST_RULE",
+      "ruleId": "92",
+      "file": null,
+      "message": "Rule 92 has no title or implementation anywhere in the repository (bare number in rule-coverage.json's uncovered_rules)"
+    },
+    {
+      "kind": "GHOST_RULE",
+      "ruleId": "93",
+      "file": null,
+      "message": "Rule 93 has no title or implementation anywhere in the repository (bare number in rule-coverage.json's uncovered_rules)"
+    },
+    {
+      "kind": "GHOST_RULE",
+      "ruleId": "95",
+      "file": null,
+      "message": "Rule 95 has no title or implementation anywhere in the repository (bare number in rule-coverage.json's uncovered_rules)"
+    },
+    {
+      "kind": "GHOST_RULE",
+      "ruleId": "96",
+      "file": null,
+      "message": "Rule 96 has no title or implementation anywhere in the repository (bare number in rule-coverage.json's uncovered_rules)"
+    },
+    {
+      "kind": "GHOST_RULE",
+      "ruleId": "97",
+      "file": null,
+      "message": "Rule 97 has no title or implementation anywhere in the repository (bare number in rule-coverage.json's uncovered_rules)"
+    },
+    {
+      "kind": "GHOST_RULE",
+      "ruleId": "99",
+      "file": null,
+      "message": "Rule 99 has no title or implementation anywhere in the repository (bare number in rule-coverage.json's uncovered_rules)"
+    },
+    {
+      "kind": "DUPLICATE_RULE",
+      "ruleId": "IRON-1",
+      "file": null,
+      "message": "IRON-1 restates Rule 1 — not a distinct rule"
+    },
+    {
+      "kind": "DUPLICATE_RULE",
+      "ruleId": "IRON-2",
+      "file": null,
+      "message": "IRON-2 restates Rule 2 — not a distinct rule"
+    },
+    {
+      "kind": "DUPLICATE_RULE",
+      "ruleId": "IRON-3",
+      "file": null,
+      "message": "IRON-3 restates Rule 72 — not a distinct rule"
+    },
+    {
+      "kind": "DUPLICATE_RULE",
+      "ruleId": "IRON-4",
+      "file": null,
+      "message": "IRON-4 restates Rule 73 — not a distinct rule"
+    },
+    {
+      "kind": "DUPLICATE_RULE",
+      "ruleId": "IRON-6",
+      "file": null,
+      "message": "IRON-6 restates Rule 31 — not a distinct rule"
+    },
+    {
+      "kind": "DUPLICATE_RULE",
+      "ruleId": "IRON-7",
+      "file": null,
+      "message": "IRON-7 restates Rule 39 — not a distinct rule"
+    },
+    {
+      "kind": "DUPLICATE_RULE",
+      "ruleId": "IRON-8",
+      "file": null,
+      "message": "IRON-8 restates Rule 14 — not a distinct rule"
+    },
+    {
+      "kind": "DUPLICATE_RULE",
+      "ruleId": "IRON-9",
+      "file": null,
+      "message": "IRON-9 restates Rule 118 — not a distinct rule"
+    },
+    {
+      "kind": "DUPLICATE_RULE",
+      "ruleId": "IRON-10",
+      "file": null,
+      "message": "IRON-10 restates Rule 101 — not a distinct rule"
+    },
+    {
+      "kind": "DUPLICATE_RULE",
+      "ruleId": "IRON-14",
+      "file": null,
+      "message": "IRON-14 restates Rule 101 — not a distinct rule"
+    },
+    {
+      "kind": "ORPHAN_ENFORCEMENT",
+      "ruleId": null,
+      "file": "scripts/build-governance-summary.ts",
+      "message": "scripts/build-governance-summary.ts is a real governance-shaped script but no rule's enforced_by cites it"
+    },
+    {
+      "kind": "ORPHAN_ENFORCEMENT",
+      "ruleId": null,
+      "file": "scripts/check-business-coverage.sh",
+      "message": "scripts/check-business-coverage.sh is a real governance-shaped script but no rule's enforced_by cites it"
+    },
+    {
+      "kind": "ORPHAN_ENFORCEMENT",
+      "ruleId": null,
+      "file": "scripts/check-connector-lifecycle.sh",
+      "message": "scripts/check-connector-lifecycle.sh is a real governance-shaped script but no rule's enforced_by cites it"
+    },
+    {
+      "kind": "ORPHAN_ENFORCEMENT",
+      "ruleId": null,
+      "file": "scripts/check-cross-script-consistency.sh",
+      "message": "scripts/check-cross-script-consistency.sh is a real governance-shaped script but no rule's enforced_by cites it"
+    },
+    {
+      "kind": "ORPHAN_ENFORCEMENT",
+      "ruleId": null,
+      "file": "scripts/check-evidence-isolation.sh",
+      "message": "scripts/check-evidence-isolation.sh is a real governance-shaped script but no rule's enforced_by cites it"
+    },
+    {
+      "kind": "ORPHAN_ENFORCEMENT",
+      "ruleId": null,
+      "file": "scripts/check-rule-coverage.sh",
+      "message": "scripts/check-rule-coverage.sh is a real governance-shaped script but no rule's enforced_by cites it"
+    },
+    {
+      "kind": "ORPHAN_ENFORCEMENT",
+      "ruleId": null,
+      "file": "scripts/check-system-control-graph.ts",
+      "message": "scripts/check-system-control-graph.ts is a real governance-shaped script but no rule's enforced_by cites it"
+    },
+    {
+      "kind": "ORPHAN_ENFORCEMENT",
+      "ruleId": null,
+      "file": "scripts/check-transitional-layers.ts",
+      "message": "scripts/check-transitional-layers.ts is a real governance-shaped script but no rule's enforced_by cites it"
+    },
+    {
+      "kind": "ORPHAN_ENFORCEMENT",
+      "ruleId": null,
+      "file": "scripts/check-workflow-coverage.sh",
+      "message": "scripts/check-workflow-coverage.sh is a real governance-shaped script but no rule's enforced_by cites it"
+    },
+    {
+      "kind": "ORPHAN_ENFORCEMENT",
+      "ruleId": null,
+      "file": "scripts/existence.sh",
+      "message": "scripts/existence.sh is a real governance-shaped script but no rule's enforced_by cites it"
+    },
+    {
+      "kind": "ORPHAN_ENFORCEMENT",
+      "ruleId": null,
+      "file": "scripts/intelligence.sh",
+      "message": "scripts/intelligence.sh is a real governance-shaped script but no rule's enforced_by cites it"
+    },
+    {
+      "kind": "ORPHAN_ENFORCEMENT",
+      "ruleId": null,
+      "file": "scripts/record-validation.ts",
+      "message": "scripts/record-validation.ts is a real governance-shaped script but no rule's enforced_by cites it"
+    }
+  ]
+}

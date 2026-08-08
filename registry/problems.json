@@ -1,0 +1,45 @@
+{
+  "policy": "Problem Registry (owner, 2026-08-06) — the system is not built from features; every capability traces back to a real problem it solves. Each entry: Problem → Solution → Capability → Outcome. See app/api/admin/ide/_lib/problems.ts for the loader. New entries are appended, never rewritten in place (same discipline as registry/CONSTITUTION.json's C-010).",
+  "problems": [
+    {
+      "id": "context-switching-across-tools",
+      "problem": "การพัฒนาต้องสลับหลายโปรแกรม/แท็บตลอดเวลา (editor, terminal, git client, browser) เพื่อดู code, git status, build output",
+      "solution": "/admin/ide — a single IDE Workspace page combining Explorer, Editor, Source Control, and an Execution console",
+      "capability": ["Explorer/Search/File Reader/Editor (Phase 1-2)", "Source Control read-only (Phase 1)", "Execution Runtime (Phase 4)"],
+      "outcome": "ลดการสลับบริบทระหว่างเครื่องมือ เห็นสถานะไฟล์/git/คำสั่งจริงในหน้าเดียว",
+      "date": "2026-08-05"
+    },
+    {
+      "id": "unsafe-file-edits",
+      "problem": "ไม่รู้ว่าไฟล์ไหนแก้ได้อย่างปลอดภัย ไฟล์ไหนเป็นแกนกลางของระบบที่แก้ผิดแล้วเสียหายรุนแรง",
+      "solution": "Semantic Code Classification — category, capability, and risk level for every real file, evidence-based only",
+      "capability": ["classification.ts (Category/Capability/Risk)", "LOCKED read-only enforcement (server-side)", "CRITICAL save confirmation + required checks"],
+      "outcome": "ลดความเสี่ยงแก้ไฟล์ผิดพลาด — LOCKED ไฟล์แก้ไม่ได้จริงแม้ยิง API ตรง, CRITICAL ไฟล์ต้องยืนยันและมี required check จริงก่อน save",
+      "date": "2026-08-06"
+    },
+    {
+      "id": "no-safe-command-execution-path",
+      "problem": "ไม่มีทางกลางที่ปลอดภัยให้ UI/AI/Voice/Workflow ในอนาคตรันคำสั่งจริง (typecheck, test, build, governance) — เสี่ยง shell injection ถ้าต้องรับ command string ตรงๆ",
+      "solution": "Execution Runtime — a fixed Command Registry (9 real, checked commands) + Validated Runner, client only ever sends a commandId, never a shell string or executable path",
+      "capability": ["executionRegistry.ts (Command Registry)", "executionRuntime.ts (spawn shell:false, timeout/cancel/output-limit/redaction)", "Execution API routes (run/runs/cancel/stream)"],
+      "outcome": "รันคำสั่งจริงได้โดยไม่มี arbitrary shell — พิสูจน์ผ่าน regression test ว่า shell metacharacters ใน argument ไม่ถูกตีความ",
+      "date": "2026-08-05"
+    },
+    {
+      "id": "untraceable-warnings",
+      "problem": "คำเตือน/ผลการตรวจสอบของระบบไม่มีที่มาที่ชัดเจน ผู้ใช้ต้องเดาว่ามาจากมาตรฐานอะไร",
+      "solution": "External Standards Registry (registry/standards.json) + a real evidence chain returned on every Save",
+      "capability": ["standards.ts (citeStandard — never fabricates a source)", "file/route.ts's evidence_chain (Classification → Risk → Required Checks → Execution Runtime → Result)"],
+      "outcome": "ผู้ใช้เห็นได้ทันทีว่าการตัดสินใจของระบบมาจากหลักฐานอะไร ไม่ใช่ error text ลอยๆ",
+      "date": "2026-08-06"
+    },
+    {
+      "id": "bottom-panel-crowds-editor",
+      "problem": "Bottom Work Panel เดิมเป็น fixed layout ที่ดันพื้นที่ Editor ขึ้นลงตลอดเวลาเมื่อเปิด/ปิด ทำให้พื้นที่แก้โค้ดไม่นิ่ง",
+      "solution": "Floating Bottom Console แบบพับเก็บได้ (position: absolute overlay, ไม่ reflow โครง Layout หลัก)",
+      "capability": ["BottomPanel (floating, collapsible, drag-resize capped at 45% of editor column height)", "useStickToBottom (auto-scroll only while already at bottom)"],
+      "outcome": "Editor เห็นพื้นที่มากที่สุดเสมอเมื่อ console พับ ไม่มี layout jump รุนแรงเมื่อเปิด/ปิด",
+      "date": "2026-08-05"
+    }
+  ]
+}

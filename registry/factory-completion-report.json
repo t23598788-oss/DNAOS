@@ -1,0 +1,2582 @@
+{
+  "generatedAt": "2026-08-07T01:27:04.054Z",
+  "totalSystems": 45,
+  "byStatus": {
+    "COMPLETE": 26,
+    "PARTIAL": 15,
+    "OPERATIONAL": 3,
+    "UNKNOWN": 1
+  },
+  "completionByFactory": {
+    "ide": {
+      "count": 9,
+      "avgCompletion": 97
+    },
+    "execution": {
+      "count": 1,
+      "avgCompletion": 70
+    },
+    "queue": {
+      "count": 1,
+      "avgCompletion": 70
+    },
+    "inspection": {
+      "count": 3,
+      "avgCompletion": 80
+    },
+    "governance": {
+      "count": 2,
+      "avgCompletion": 85
+    },
+    "artifact": {
+      "count": 2,
+      "avgCompletion": 100
+    },
+    "review": {
+      "count": 1,
+      "avgCompletion": 100
+    },
+    "test": {
+      "count": 1,
+      "avgCompletion": 100
+    },
+    "build": {
+      "count": 1,
+      "avgCompletion": 100
+    },
+    "release": {
+      "count": 1,
+      "avgCompletion": 100
+    },
+    "registry": {
+      "count": 9,
+      "avgCompletion": 68
+    },
+    "runtime": {
+      "count": 4,
+      "avgCompletion": 70
+    },
+    "observer": {
+      "count": 8,
+      "avgCompletion": 86
+    },
+    "data": {
+      "count": 1,
+      "avgCompletion": 15
+    },
+    "ui": {
+      "count": 1,
+      "avgCompletion": 100
+    }
+  },
+  "systems": [
+    {
+      "id": "IDE_FILE_RUNTIME",
+      "name": "IDE / File Runtime",
+      "name_th": "IDE และระบบไฟล์",
+      "factoryOwner": "ide",
+      "layer": "ide",
+      "responsibility": "Real, sandboxed file read/write/tree/search operations backing the IDE workspace.",
+      "sourceFiles": [
+        "app/api/admin/ide/_lib/fsOps.ts",
+        "app/api/admin/ide/_lib/fsSecurity.ts",
+        "app/api/admin/ide/_lib/fileWrite.ts",
+        "app/api/admin/ide/_lib/tree.ts",
+        "app/api/admin/ide/_lib/search.ts"
+      ],
+      "routes": [
+        "app/api/admin/ide/file/route.ts",
+        "app/api/admin/ide/tree/route.ts",
+        "app/api/admin/ide/search/route.ts"
+      ],
+      "registries": [],
+      "tests": [
+        "scripts/ide-regression-test.ts"
+      ],
+      "runtimeEvidence": [
+        {
+          "path": "app/api/admin/ide/_lib/fsOps.ts",
+          "exists": true
+        },
+        {
+          "path": "app/api/admin/ide/_lib/fsSecurity.ts",
+          "exists": true
+        },
+        {
+          "path": "app/api/admin/ide/_lib/fileWrite.ts",
+          "exists": true
+        },
+        {
+          "path": "app/api/admin/ide/_lib/tree.ts",
+          "exists": true
+        },
+        {
+          "path": "app/api/admin/ide/_lib/search.ts",
+          "exists": true
+        },
+        {
+          "path": "app/api/admin/ide/file/route.ts",
+          "exists": true
+        },
+        {
+          "path": "app/api/admin/ide/tree/route.ts",
+          "exists": true
+        },
+        {
+          "path": "app/api/admin/ide/search/route.ts",
+          "exists": true
+        },
+        {
+          "path": "scripts/ide-regression-test.ts",
+          "exists": true
+        }
+      ],
+      "status": "COMPLETE",
+      "completionPercent": 100,
+      "evidence": [
+        "All 5 real source file(s) verified present on disk."
+      ],
+      "limitations": [],
+      "nextRequiredAction": "None — reuse as-is."
+    },
+    {
+      "id": "EXECUTION_RUNTIME",
+      "name": "Execution Runtime",
+      "name_th": "รันไทม์การประมวลผล",
+      "factoryOwner": "execution",
+      "layer": "execution",
+      "responsibility": "Real, bounded in-memory execution job store — the base runtime pattern all later pipelines (Queue/Inspection/Governance/Artifact...) reuse.",
+      "sourceFiles": [
+        "app/api/admin/ide/_lib/executionRuntime.ts",
+        "app/api/admin/ide/_lib/executionRegistry.ts"
+      ],
+      "routes": [
+        "app/api/admin/ide/execution/run/route.ts"
+      ],
+      "registries": [],
+      "tests": [],
+      "runtimeEvidence": [
+        {
+          "path": "app/api/admin/ide/_lib/executionRuntime.ts",
+          "exists": true
+        },
+        {
+          "path": "app/api/admin/ide/_lib/executionRegistry.ts",
+          "exists": true
+        },
+        {
+          "path": "app/api/admin/ide/execution/run/route.ts",
+          "exists": true
+        }
+      ],
+      "status": "PARTIAL",
+      "completionPercent": 70,
+      "evidence": [
+        "All 2 real source file(s) verified present on disk."
+      ],
+      "limitations": [
+        "No dedicated regression test file declared for this system.",
+        "Real runtime code exists and is wired, but lacks a passing dedicated regression suite reference on disk."
+      ],
+      "nextRequiredAction": "Write a dedicated regression suite for EXECUTION_RUNTIME."
+    },
+    {
+      "id": "PRODUCTION_QUEUE",
+      "name": "Production Queue",
+      "name_th": "คิวการผลิต",
+      "factoryOwner": "queue",
+      "layer": "queue",
+      "responsibility": "Real job queue runtime mediating between Execution and downstream pipelines.",
+      "sourceFiles": [
+        "app/api/admin/ide/_lib/queueRuntime.ts",
+        "app/api/admin/ide/_lib/queueRegistry.ts"
+      ],
+      "routes": [
+        "app/api/admin/ide/queue/jobs/route.ts"
+      ],
+      "registries": [],
+      "tests": [],
+      "runtimeEvidence": [
+        {
+          "path": "app/api/admin/ide/_lib/queueRuntime.ts",
+          "exists": true
+        },
+        {
+          "path": "app/api/admin/ide/_lib/queueRegistry.ts",
+          "exists": true
+        },
+        {
+          "path": "app/api/admin/ide/queue/jobs/route.ts",
+          "exists": true
+        }
+      ],
+      "status": "PARTIAL",
+      "completionPercent": 70,
+      "evidence": [
+        "All 2 real source file(s) verified present on disk."
+      ],
+      "limitations": [
+        "No dedicated regression test file declared for this system.",
+        "Real runtime code exists and is wired, but lacks a passing dedicated regression suite reference on disk."
+      ],
+      "nextRequiredAction": "Write a dedicated regression suite for PRODUCTION_QUEUE."
+    },
+    {
+      "id": "INSPECTION_PIPELINE",
+      "name": "Inspection Pipeline",
+      "name_th": "ไปป์ไลน์ตรวจสอบ",
+      "factoryOwner": "inspection",
+      "layer": "inspection",
+      "responsibility": "Real static inspection findings (governance/architecture/quality checks) surfaced as Problems.",
+      "sourceFiles": [
+        "app/api/admin/ide/_lib/inspectionRuntime.ts",
+        "app/api/admin/ide/_lib/inspectionRegistry.ts"
+      ],
+      "routes": [
+        "app/api/admin/ide/inspection/list/route.ts"
+      ],
+      "registries": [],
+      "tests": [],
+      "runtimeEvidence": [
+        {
+          "path": "app/api/admin/ide/_lib/inspectionRuntime.ts",
+          "exists": true
+        },
+        {
+          "path": "app/api/admin/ide/_lib/inspectionRegistry.ts",
+          "exists": true
+        },
+        {
+          "path": "app/api/admin/ide/inspection/list/route.ts",
+          "exists": true
+        }
+      ],
+      "status": "PARTIAL",
+      "completionPercent": 70,
+      "evidence": [
+        "All 2 real source file(s) verified present on disk."
+      ],
+      "limitations": [
+        "No dedicated regression test file declared for this system.",
+        "Real runtime code exists and is wired, but lacks a passing dedicated regression suite reference on disk."
+      ],
+      "nextRequiredAction": "Write a dedicated regression suite for INSPECTION_PIPELINE."
+    },
+    {
+      "id": "GOVERNANCE_RUNTIME",
+      "name": "Governance Runtime",
+      "name_th": "รันไทม์การกำกับดูแล",
+      "factoryOwner": "governance",
+      "layer": "governance",
+      "responsibility": "Real Constitution/Iron Rule coverage computation and enforcement classification.",
+      "sourceFiles": [
+        "app/api/admin/ide/_lib/governanceRuntime.ts",
+        "scripts/build-governance-summary.ts"
+      ],
+      "routes": [
+        "app/api/admin/ide/governance/summary/route.ts"
+      ],
+      "registries": [
+        "registry/CONSTITUTION.json",
+        "registry/rule-coverage.json",
+        "registry/governance-summary.json"
+      ],
+      "tests": [
+        "scripts/governance-test.ts"
+      ],
+      "runtimeEvidence": [
+        {
+          "path": "app/api/admin/ide/_lib/governanceRuntime.ts",
+          "exists": true
+        },
+        {
+          "path": "scripts/build-governance-summary.ts",
+          "exists": true
+        },
+        {
+          "path": "app/api/admin/ide/governance/summary/route.ts",
+          "exists": true
+        },
+        {
+          "path": "registry/CONSTITUTION.json",
+          "exists": true
+        },
+        {
+          "path": "registry/rule-coverage.json",
+          "exists": true
+        },
+        {
+          "path": "registry/governance-summary.json",
+          "exists": true
+        },
+        {
+          "path": "scripts/governance-test.ts",
+          "exists": true
+        }
+      ],
+      "status": "COMPLETE",
+      "completionPercent": 100,
+      "evidence": [
+        "All 2 real source file(s) verified present on disk."
+      ],
+      "limitations": [],
+      "nextRequiredAction": "None — reuse as-is."
+    },
+    {
+      "id": "ARTIFACT_PIPELINE",
+      "name": "Artifact Pipeline",
+      "name_th": "ไปป์ไลน์อาร์ติแฟกต์",
+      "factoryOwner": "artifact",
+      "layer": "artifact",
+      "responsibility": "The single real Artifact/Evidence Store every later pipeline (Review/Test/Build/Release) writes evidence into.",
+      "sourceFiles": [
+        "app/api/admin/ide/_lib/artifactRuntime.ts",
+        "app/api/admin/ide/_lib/artifactRegistry.ts"
+      ],
+      "routes": [
+        "app/api/admin/ide/artifact/list/route.ts"
+      ],
+      "registries": [],
+      "tests": [
+        "scripts/artifact-test.ts"
+      ],
+      "runtimeEvidence": [
+        {
+          "path": "app/api/admin/ide/_lib/artifactRuntime.ts",
+          "exists": true
+        },
+        {
+          "path": "app/api/admin/ide/_lib/artifactRegistry.ts",
+          "exists": true
+        },
+        {
+          "path": "app/api/admin/ide/artifact/list/route.ts",
+          "exists": true
+        },
+        {
+          "path": "scripts/artifact-test.ts",
+          "exists": true
+        }
+      ],
+      "status": "COMPLETE",
+      "completionPercent": 100,
+      "evidence": [
+        "All 2 real source file(s) verified present on disk."
+      ],
+      "limitations": [],
+      "nextRequiredAction": "None — reuse as-is."
+    },
+    {
+      "id": "EVIDENCE_WAREHOUSE",
+      "name": "Evidence Warehouse",
+      "name_th": "คลังหลักฐาน",
+      "factoryOwner": "artifact",
+      "layer": "artifact",
+      "responsibility": "The queryable surface over Artifact Pipeline evidence records (same real store, not a second store).",
+      "sourceFiles": [
+        "app/api/admin/ide/_lib/artifactRuntime.ts"
+      ],
+      "routes": [
+        "app/api/admin/ide/artifact/list/route.ts"
+      ],
+      "registries": [],
+      "tests": [
+        "scripts/artifact-test.ts"
+      ],
+      "runtimeEvidence": [
+        {
+          "path": "app/api/admin/ide/_lib/artifactRuntime.ts",
+          "exists": true
+        },
+        {
+          "path": "app/api/admin/ide/artifact/list/route.ts",
+          "exists": true
+        },
+        {
+          "path": "scripts/artifact-test.ts",
+          "exists": true
+        }
+      ],
+      "status": "COMPLETE",
+      "completionPercent": 100,
+      "evidence": [
+        "All 1 real source file(s) verified present on disk."
+      ],
+      "limitations": [],
+      "nextRequiredAction": "None — reuse as-is."
+    },
+    {
+      "id": "SOURCE_CONTROL_READONLY",
+      "name": "Source Control (Read Only)",
+      "name_th": "ควบคุมซอร์สแบบอ่านอย่างเดียว",
+      "factoryOwner": "ide",
+      "layer": "ide",
+      "responsibility": "Real, read-only git status/diff/log access — Git Write is forbidden by Rule (Rule 103 family).",
+      "sourceFiles": [
+        "app/api/admin/ide/_lib/gitReadOnly.ts"
+      ],
+      "routes": [
+        "app/api/admin/ide/git/status/route.ts"
+      ],
+      "registries": [],
+      "tests": [],
+      "runtimeEvidence": [
+        {
+          "path": "app/api/admin/ide/_lib/gitReadOnly.ts",
+          "exists": true
+        },
+        {
+          "path": "app/api/admin/ide/git/status/route.ts",
+          "exists": true
+        }
+      ],
+      "status": "PARTIAL",
+      "completionPercent": 70,
+      "evidence": [
+        "All 1 real source file(s) verified present on disk."
+      ],
+      "limitations": [
+        "No dedicated regression test file declared for this system.",
+        "Real runtime code exists and is wired, but lacks a passing dedicated regression suite reference on disk."
+      ],
+      "nextRequiredAction": "Write a dedicated regression suite for SOURCE_CONTROL_READONLY."
+    },
+    {
+      "id": "UI_INSPECTION",
+      "name": "UI Inspection / Browser Design Intelligence",
+      "name_th": "ตรวจสอบ UI",
+      "factoryOwner": "inspection",
+      "layer": "inspection",
+      "responsibility": "Real, live browser-driven UI inspection capability (Step 6).",
+      "sourceFiles": [
+        "app/api/admin/ide/_lib/uiInspectionCapability.ts",
+        "app/api/admin/ide/_lib/browserInspectionRuntime.ts",
+        "app/api/admin/ide/_lib/viewportRegistry.ts"
+      ],
+      "routes": [
+        "app/api/admin/ide/ui-inspection/list/route.ts"
+      ],
+      "registries": [],
+      "tests": [
+        "scripts/ui-inspection-test.ts"
+      ],
+      "runtimeEvidence": [
+        {
+          "path": "app/api/admin/ide/_lib/uiInspectionCapability.ts",
+          "exists": true
+        },
+        {
+          "path": "app/api/admin/ide/_lib/browserInspectionRuntime.ts",
+          "exists": true
+        },
+        {
+          "path": "app/api/admin/ide/_lib/viewportRegistry.ts",
+          "exists": true
+        },
+        {
+          "path": "app/api/admin/ide/ui-inspection/list/route.ts",
+          "exists": true
+        },
+        {
+          "path": "scripts/ui-inspection-test.ts",
+          "exists": true
+        }
+      ],
+      "status": "COMPLETE",
+      "completionPercent": 100,
+      "evidence": [
+        "All 3 real source file(s) verified present on disk."
+      ],
+      "limitations": [],
+      "nextRequiredAction": "None — reuse as-is."
+    },
+    {
+      "id": "CODE_REVIEW",
+      "name": "Code Review Pipeline",
+      "name_th": "ไปป์ไลน์รีวิวโค้ด",
+      "factoryOwner": "review",
+      "layer": "review",
+      "responsibility": "Real Change Set assembly + review workflow (Step 7).",
+      "sourceFiles": [
+        "app/api/admin/ide/_lib/changeSetRuntime.ts",
+        "app/api/admin/ide/_lib/reviewRegistry.ts"
+      ],
+      "routes": [
+        "app/api/admin/ide/review/change-sets/route.ts"
+      ],
+      "registries": [],
+      "tests": [
+        "scripts/review-test.ts"
+      ],
+      "runtimeEvidence": [
+        {
+          "path": "app/api/admin/ide/_lib/changeSetRuntime.ts",
+          "exists": true
+        },
+        {
+          "path": "app/api/admin/ide/_lib/reviewRegistry.ts",
+          "exists": true
+        },
+        {
+          "path": "app/api/admin/ide/review/change-sets/route.ts",
+          "exists": true
+        },
+        {
+          "path": "scripts/review-test.ts",
+          "exists": true
+        }
+      ],
+      "status": "COMPLETE",
+      "completionPercent": 100,
+      "evidence": [
+        "All 2 real source file(s) verified present on disk."
+      ],
+      "limitations": [],
+      "nextRequiredAction": "None — reuse as-is."
+    },
+    {
+      "id": "TEST_PIPELINE",
+      "name": "Test Pipeline",
+      "name_th": "ไปป์ไลน์ทดสอบ",
+      "factoryOwner": "test",
+      "layer": "test",
+      "responsibility": "Real Test Run execution + Quality Assurance Runtime (Step 8).",
+      "sourceFiles": [
+        "app/api/admin/ide/_lib/testRuntime.ts",
+        "app/api/admin/ide/_lib/testRegistry.ts"
+      ],
+      "routes": [
+        "app/api/admin/ide/test/runs/route.ts"
+      ],
+      "registries": [],
+      "tests": [
+        "scripts/test-test.ts"
+      ],
+      "runtimeEvidence": [
+        {
+          "path": "app/api/admin/ide/_lib/testRuntime.ts",
+          "exists": true
+        },
+        {
+          "path": "app/api/admin/ide/_lib/testRegistry.ts",
+          "exists": true
+        },
+        {
+          "path": "app/api/admin/ide/test/runs/route.ts",
+          "exists": true
+        },
+        {
+          "path": "scripts/test-test.ts",
+          "exists": true
+        }
+      ],
+      "status": "COMPLETE",
+      "completionPercent": 100,
+      "evidence": [
+        "All 2 real source file(s) verified present on disk."
+      ],
+      "limitations": [],
+      "nextRequiredAction": "None — reuse as-is."
+    },
+    {
+      "id": "BUILD_PIPELINE",
+      "name": "Build Pipeline",
+      "name_th": "ไปป์ไลน์บิลด์",
+      "factoryOwner": "build",
+      "layer": "build",
+      "responsibility": "Real, reproducible Build Run execution + Build Gate Integrity (Steps 9/9.5).",
+      "sourceFiles": [
+        "app/api/admin/ide/_lib/buildRuntime.ts",
+        "app/api/admin/ide/_lib/buildRegistry.ts"
+      ],
+      "routes": [
+        "app/api/admin/ide/build/runs/route.ts"
+      ],
+      "registries": [],
+      "tests": [
+        "scripts/build-test.ts",
+        "scripts/build-gate-test.ts"
+      ],
+      "runtimeEvidence": [
+        {
+          "path": "app/api/admin/ide/_lib/buildRuntime.ts",
+          "exists": true
+        },
+        {
+          "path": "app/api/admin/ide/_lib/buildRegistry.ts",
+          "exists": true
+        },
+        {
+          "path": "app/api/admin/ide/build/runs/route.ts",
+          "exists": true
+        },
+        {
+          "path": "scripts/build-test.ts",
+          "exists": true
+        },
+        {
+          "path": "scripts/build-gate-test.ts",
+          "exists": true
+        }
+      ],
+      "status": "COMPLETE",
+      "completionPercent": 100,
+      "evidence": [
+        "All 2 real source file(s) verified present on disk."
+      ],
+      "limitations": [],
+      "nextRequiredAction": "None — reuse as-is."
+    },
+    {
+      "id": "RELEASE_PIPELINE",
+      "name": "Release Pipeline",
+      "name_th": "ไปป์ไลน์รีลีส",
+      "factoryOwner": "release",
+      "layer": "release",
+      "responsibility": "Real Release Candidate, Validation, Capability Packaging, Approval, Operational Readiness (Step 10).",
+      "sourceFiles": [
+        "app/api/admin/ide/_lib/releaseRuntime.ts",
+        "app/api/admin/ide/_lib/releaseRegistry.ts"
+      ],
+      "routes": [
+        "app/api/admin/ide/release/runs/route.ts"
+      ],
+      "registries": [],
+      "tests": [
+        "scripts/release-test.ts",
+        "scripts/package-test.ts",
+        "scripts/readiness-test.ts",
+        "scripts/compatibility-test.ts",
+        "scripts/country-test.ts",
+        "scripts/document-lifecycle-test.ts"
+      ],
+      "runtimeEvidence": [
+        {
+          "path": "app/api/admin/ide/_lib/releaseRuntime.ts",
+          "exists": true
+        },
+        {
+          "path": "app/api/admin/ide/_lib/releaseRegistry.ts",
+          "exists": true
+        },
+        {
+          "path": "app/api/admin/ide/release/runs/route.ts",
+          "exists": true
+        },
+        {
+          "path": "scripts/release-test.ts",
+          "exists": true
+        },
+        {
+          "path": "scripts/package-test.ts",
+          "exists": true
+        },
+        {
+          "path": "scripts/readiness-test.ts",
+          "exists": true
+        },
+        {
+          "path": "scripts/compatibility-test.ts",
+          "exists": true
+        },
+        {
+          "path": "scripts/country-test.ts",
+          "exists": true
+        },
+        {
+          "path": "scripts/document-lifecycle-test.ts",
+          "exists": true
+        }
+      ],
+      "status": "COMPLETE",
+      "completionPercent": 100,
+      "evidence": [
+        "All 2 real source file(s) verified present on disk."
+      ],
+      "limitations": [],
+      "nextRequiredAction": "None — reuse as-is."
+    },
+    {
+      "id": "FACTORY_REGISTRY",
+      "name": "Factory Registry / Mapping",
+      "name_th": "ทะเบียนโรงงาน",
+      "factoryOwner": "registry",
+      "layer": "registry",
+      "responsibility": "Real Factory ownership contracts + module -> factory mapping.",
+      "sourceFiles": [
+        "scripts/build-factory-registry.ts"
+      ],
+      "routes": [],
+      "registries": [
+        "registry/factory-registry.json",
+        "registry/factory-mapping.json",
+        "registry/factory-summary.json"
+      ],
+      "tests": [
+        "scripts/factory-registry-test.ts"
+      ],
+      "runtimeEvidence": [
+        {
+          "path": "scripts/build-factory-registry.ts",
+          "exists": true
+        },
+        {
+          "path": "registry/factory-registry.json",
+          "exists": true
+        },
+        {
+          "path": "registry/factory-mapping.json",
+          "exists": true
+        },
+        {
+          "path": "registry/factory-summary.json",
+          "exists": true
+        },
+        {
+          "path": "scripts/factory-registry-test.ts",
+          "exists": true
+        }
+      ],
+      "status": "COMPLETE",
+      "completionPercent": 100,
+      "evidence": [
+        "All 1 real source file(s) verified present on disk."
+      ],
+      "limitations": [],
+      "nextRequiredAction": "None — reuse as-is."
+    },
+    {
+      "id": "MODULE_REGISTRY",
+      "name": "Module Registry",
+      "name_th": "ทะเบียนโมดูล",
+      "factoryOwner": "registry",
+      "layer": "registry",
+      "responsibility": "Real, auto-synced source module inventory (owner/layer/purpose/exports/status).",
+      "sourceFiles": [
+        "scripts/sync-registry.ts"
+      ],
+      "routes": [],
+      "registries": [
+        "registry/module-registry.json"
+      ],
+      "tests": [
+        "scripts/registry-sync-regression-test.ts"
+      ],
+      "runtimeEvidence": [
+        {
+          "path": "scripts/sync-registry.ts",
+          "exists": true
+        },
+        {
+          "path": "registry/module-registry.json",
+          "exists": true
+        },
+        {
+          "path": "scripts/registry-sync-regression-test.ts",
+          "exists": true
+        }
+      ],
+      "status": "COMPLETE",
+      "completionPercent": 100,
+      "evidence": [
+        "All 1 real source file(s) verified present on disk."
+      ],
+      "limitations": [],
+      "nextRequiredAction": "None — reuse as-is."
+    },
+    {
+      "id": "CAPABILITY_REGISTRY",
+      "name": "Capability Registry",
+      "name_th": "ทะเบียนความสามารถ",
+      "factoryOwner": "registry",
+      "layer": "registry",
+      "responsibility": "The real, frozen, checksum-locked 202-capability registry — sole source for Capability Packaging.",
+      "sourceFiles": [],
+      "routes": [],
+      "registries": [
+        "registry/capability-registry.json",
+        "registry/capability-roadmap.json"
+      ],
+      "tests": [],
+      "runtimeEvidence": [
+        {
+          "path": "registry/capability-registry.json",
+          "exists": true
+        },
+        {
+          "path": "registry/capability-roadmap.json",
+          "exists": true
+        }
+      ],
+      "status": "OPERATIONAL",
+      "completionPercent": 15,
+      "evidence": [
+        "Registry-backed system with no dedicated runtime source — real declared data file(s) confirmed present."
+      ],
+      "limitations": [
+        "No dedicated regression test file declared for this system."
+      ],
+      "nextRequiredAction": "Consider a dedicated runtime wrapper only if reuse-as-data proves insufficient."
+    },
+    {
+      "id": "COMMAND_REGISTRY",
+      "name": "Command Registry",
+      "name_th": "ทะเบียนคำสั่ง",
+      "factoryOwner": "registry",
+      "layer": "registry",
+      "responsibility": "Real command inventory surfaced via System Control Graph.",
+      "sourceFiles": [
+        "scripts/build-system-control-graph.ts"
+      ],
+      "routes": [],
+      "registries": [
+        "registry/system-control-graph.json"
+      ],
+      "tests": [],
+      "runtimeEvidence": [
+        {
+          "path": "scripts/build-system-control-graph.ts",
+          "exists": true
+        },
+        {
+          "path": "registry/system-control-graph.json",
+          "exists": true
+        }
+      ],
+      "status": "PARTIAL",
+      "completionPercent": 70,
+      "evidence": [
+        "All 1 real source file(s) verified present on disk."
+      ],
+      "limitations": [
+        "No dedicated regression test file declared for this system.",
+        "Real runtime code exists and is wired, but lacks a passing dedicated regression suite reference on disk."
+      ],
+      "nextRequiredAction": "Write a dedicated regression suite for COMMAND_REGISTRY."
+    },
+    {
+      "id": "WORKFLOW_REGISTRY",
+      "name": "Workflow Registry",
+      "name_th": "ทะเบียนเวิร์กโฟลว์",
+      "factoryOwner": "registry",
+      "layer": "registry",
+      "responsibility": "Real workflow definitions — checked via System Control Summary's related_workflows fields.",
+      "sourceFiles": [],
+      "routes": [],
+      "registries": [
+        "registry/system-control-summary.json"
+      ],
+      "tests": [],
+      "runtimeEvidence": [
+        {
+          "path": "registry/system-control-summary.json",
+          "exists": true
+        }
+      ],
+      "status": "OPERATIONAL",
+      "completionPercent": 15,
+      "evidence": [
+        "Registry-backed system with no dedicated runtime source — real declared data file(s) confirmed present."
+      ],
+      "limitations": [
+        "No dedicated regression test file declared for this system."
+      ],
+      "nextRequiredAction": "Consider a dedicated runtime wrapper only if reuse-as-data proves insufficient."
+    },
+    {
+      "id": "ARCHITECTURE_BOOK",
+      "name": "Architecture Book",
+      "name_th": "หนังสือสถาปัตยกรรม",
+      "factoryOwner": "registry",
+      "layer": "registry",
+      "responsibility": "Real, generated whole-repo module dependency book (nodes/edges/status).",
+      "sourceFiles": [
+        "scripts/build-arch-book.ts"
+      ],
+      "routes": [],
+      "registries": [
+        "registry/architecture-book.json"
+      ],
+      "tests": [],
+      "runtimeEvidence": [
+        {
+          "path": "scripts/build-arch-book.ts",
+          "exists": true
+        },
+        {
+          "path": "registry/architecture-book.json",
+          "exists": true
+        }
+      ],
+      "status": "PARTIAL",
+      "completionPercent": 70,
+      "evidence": [
+        "All 1 real source file(s) verified present on disk."
+      ],
+      "limitations": [
+        "No dedicated regression test file declared for this system.",
+        "Real runtime code exists and is wired, but lacks a passing dedicated regression suite reference on disk."
+      ],
+      "nextRequiredAction": "Write a dedicated regression suite for ARCHITECTURE_BOOK."
+    },
+    {
+      "id": "DEPENDENCY_GRAPH",
+      "name": "Dependency Graph",
+      "name_th": "กราฟการพึ่งพา",
+      "factoryOwner": "registry",
+      "layer": "control",
+      "responsibility": "Real internal_dependencies/dependents edges inside the Architecture Book.",
+      "sourceFiles": [
+        "scripts/build-arch-book.ts"
+      ],
+      "routes": [],
+      "registries": [
+        "registry/architecture-book.json"
+      ],
+      "tests": [],
+      "runtimeEvidence": [
+        {
+          "path": "scripts/build-arch-book.ts",
+          "exists": true
+        },
+        {
+          "path": "registry/architecture-book.json",
+          "exists": true
+        }
+      ],
+      "status": "PARTIAL",
+      "completionPercent": 70,
+      "evidence": [
+        "All 1 real source file(s) verified present on disk."
+      ],
+      "limitations": [
+        "No dedicated regression test file declared for this system.",
+        "Real runtime code exists and is wired, but lacks a passing dedicated regression suite reference on disk."
+      ],
+      "nextRequiredAction": "Write a dedicated regression suite for DEPENDENCY_GRAPH."
+    },
+    {
+      "id": "SYSTEM_CONTROL_GRAPH",
+      "name": "System Control Graph",
+      "name_th": "กราฟควบคุมระบบ",
+      "factoryOwner": "registry",
+      "layer": "control",
+      "responsibility": "Real, generated 1332-node/3411-edge control graph (modules/layers/commands/events/capabilities/services/drivers).",
+      "sourceFiles": [
+        "scripts/build-system-control-graph.ts",
+        "scripts/check-system-control-graph.ts"
+      ],
+      "routes": [],
+      "registries": [
+        "registry/system-control-graph.json",
+        "registry/system-control-summary.json"
+      ],
+      "tests": [],
+      "runtimeEvidence": [
+        {
+          "path": "scripts/build-system-control-graph.ts",
+          "exists": true
+        },
+        {
+          "path": "scripts/check-system-control-graph.ts",
+          "exists": true
+        },
+        {
+          "path": "registry/system-control-graph.json",
+          "exists": true
+        },
+        {
+          "path": "registry/system-control-summary.json",
+          "exists": true
+        }
+      ],
+      "status": "PARTIAL",
+      "completionPercent": 70,
+      "evidence": [
+        "All 2 real source file(s) verified present on disk."
+      ],
+      "limitations": [
+        "No dedicated regression test file declared for this system.",
+        "Real runtime code exists and is wired, but lacks a passing dedicated regression suite reference on disk."
+      ],
+      "nextRequiredAction": "Write a dedicated regression suite for SYSTEM_CONTROL_GRAPH."
+    },
+    {
+      "id": "DECISION_REGISTRY",
+      "name": "Decision Registry",
+      "name_th": "ทะเบียนการตัดสินใจ",
+      "factoryOwner": "governance",
+      "layer": "governance",
+      "responsibility": "Real decision log surface.",
+      "sourceFiles": [
+        "app/api/admin/ide/_lib/decisions.ts"
+      ],
+      "routes": [
+        "app/api/admin/ide/decisions/route.ts"
+      ],
+      "registries": [],
+      "tests": [],
+      "runtimeEvidence": [
+        {
+          "path": "app/api/admin/ide/_lib/decisions.ts",
+          "exists": true
+        },
+        {
+          "path": "app/api/admin/ide/decisions/route.ts",
+          "exists": true
+        }
+      ],
+      "status": "PARTIAL",
+      "completionPercent": 70,
+      "evidence": [
+        "All 1 real source file(s) verified present on disk."
+      ],
+      "limitations": [
+        "No dedicated regression test file declared for this system.",
+        "Real runtime code exists and is wired, but lacks a passing dedicated regression suite reference on disk."
+      ],
+      "nextRequiredAction": "Write a dedicated regression suite for DECISION_REGISTRY."
+    },
+    {
+      "id": "PROBLEM_REGISTRY",
+      "name": "Problem Registry / Problems Panel",
+      "name_th": "ทะเบียนปัญหา",
+      "factoryOwner": "inspection",
+      "layer": "inspection",
+      "responsibility": "Real, live Problems Panel aggregating findings across pipelines.",
+      "sourceFiles": [
+        "app/api/admin/ide/_lib/problems.ts"
+      ],
+      "routes": [
+        "app/api/admin/ide/problems/route.ts"
+      ],
+      "registries": [],
+      "tests": [],
+      "runtimeEvidence": [
+        {
+          "path": "app/api/admin/ide/_lib/problems.ts",
+          "exists": true
+        },
+        {
+          "path": "app/api/admin/ide/problems/route.ts",
+          "exists": true
+        }
+      ],
+      "status": "PARTIAL",
+      "completionPercent": 70,
+      "evidence": [
+        "All 1 real source file(s) verified present on disk."
+      ],
+      "limitations": [
+        "No dedicated regression test file declared for this system.",
+        "Real runtime code exists and is wired, but lacks a passing dedicated regression suite reference on disk."
+      ],
+      "nextRequiredAction": "Write a dedicated regression suite for PROBLEM_REGISTRY."
+    },
+    {
+      "id": "STORAGE_INTELLIGENCE",
+      "name": "Storage Intelligence",
+      "name_th": "ระบบเก็บข้อมูลอัจฉริยะ",
+      "factoryOwner": "runtime",
+      "layer": "runtime",
+      "responsibility": "Real local-runtime disk/storage threshold monitoring.",
+      "sourceFiles": [
+        "local-runtime/storage-threshold-watcher.ts",
+        "local-runtime/storage-smoke-test.ts"
+      ],
+      "routes": [],
+      "registries": [],
+      "tests": [],
+      "runtimeEvidence": [
+        {
+          "path": "local-runtime/storage-threshold-watcher.ts",
+          "exists": true
+        },
+        {
+          "path": "local-runtime/storage-smoke-test.ts",
+          "exists": true
+        }
+      ],
+      "status": "PARTIAL",
+      "completionPercent": 70,
+      "evidence": [
+        "All 2 real source file(s) verified present on disk."
+      ],
+      "limitations": [
+        "No dedicated regression test file declared for this system.",
+        "Real runtime code exists and is wired, but lacks a passing dedicated regression suite reference on disk."
+      ],
+      "nextRequiredAction": "Write a dedicated regression suite for STORAGE_INTELLIGENCE."
+    },
+    {
+      "id": "WORKSPACE_LOCK_MIGRATION",
+      "name": "Workspace Lock / Migration",
+      "name_th": "การล็อก/ย้ายพื้นที่ทำงาน",
+      "factoryOwner": "runtime",
+      "layer": "runtime",
+      "responsibility": "Real WORKSPACE_ROOT resolution/verification across local-runtime modules.",
+      "sourceFiles": [
+        "local-runtime/workspace-root-verifier-acceptance-test.ts",
+        "local-runtime/workspace-acceptance-test.ts"
+      ],
+      "routes": [],
+      "registries": [],
+      "tests": [],
+      "runtimeEvidence": [
+        {
+          "path": "local-runtime/workspace-root-verifier-acceptance-test.ts",
+          "exists": true
+        },
+        {
+          "path": "local-runtime/workspace-acceptance-test.ts",
+          "exists": true
+        }
+      ],
+      "status": "PARTIAL",
+      "completionPercent": 70,
+      "evidence": [
+        "All 2 real source file(s) verified present on disk."
+      ],
+      "limitations": [
+        "No dedicated regression test file declared for this system.",
+        "Real runtime code exists and is wired, but lacks a passing dedicated regression suite reference on disk."
+      ],
+      "nextRequiredAction": "Write a dedicated regression suite for WORKSPACE_LOCK_MIGRATION."
+    },
+    {
+      "id": "INFRASTRUCTURE_OBSERVER",
+      "name": "Infrastructure Observer",
+      "name_th": "ระบบสังเกตการณ์โครงสร้างพื้นฐาน",
+      "factoryOwner": "observer",
+      "layer": "observer",
+      "responsibility": "Real infrastructure/service inventory + cost summary.",
+      "sourceFiles": [
+        "scripts/gateway-observe-supabase.ts"
+      ],
+      "routes": [],
+      "registries": [
+        "registry/infrastructure.json"
+      ],
+      "tests": [],
+      "runtimeEvidence": [
+        {
+          "path": "scripts/gateway-observe-supabase.ts",
+          "exists": true
+        },
+        {
+          "path": "registry/infrastructure.json",
+          "exists": true
+        }
+      ],
+      "status": "PARTIAL",
+      "completionPercent": 70,
+      "evidence": [
+        "All 1 real source file(s) verified present on disk."
+      ],
+      "limitations": [
+        "No dedicated regression test file declared for this system.",
+        "Real runtime code exists and is wired, but lacks a passing dedicated regression suite reference on disk."
+      ],
+      "nextRequiredAction": "Write a dedicated regression suite for INFRASTRUCTURE_OBSERVER."
+    },
+    {
+      "id": "COST_SUBSCRIPTION_OBSERVER",
+      "name": "Cost / Subscription Observer",
+      "name_th": "ระบบสังเกตการณ์ต้นทุน/สมาชิก",
+      "factoryOwner": "observer",
+      "layer": "observer",
+      "responsibility": "Real cost_summary field inside infrastructure.json — no dedicated cost engine confirmed elsewhere.",
+      "sourceFiles": [],
+      "routes": [],
+      "registries": [
+        "registry/infrastructure.json"
+      ],
+      "tests": [],
+      "runtimeEvidence": [
+        {
+          "path": "registry/infrastructure.json",
+          "exists": true
+        }
+      ],
+      "status": "OPERATIONAL",
+      "completionPercent": 15,
+      "evidence": [
+        "Registry-backed system with no dedicated runtime source — real declared data file(s) confirmed present."
+      ],
+      "limitations": [
+        "No dedicated regression test file declared for this system."
+      ],
+      "nextRequiredAction": "Consider a dedicated runtime wrapper only if reuse-as-data proves insufficient."
+    },
+    {
+      "id": "DATABASE_WORKSPACE",
+      "name": "Database Workspace",
+      "name_th": "พื้นที่ทำงานฐานข้อมูล",
+      "factoryOwner": "data",
+      "layer": "data",
+      "responsibility": "Real Supabase migrations directory — the real schema source of truth.",
+      "sourceFiles": [],
+      "routes": [],
+      "registries": [],
+      "tests": [],
+      "runtimeEvidence": [],
+      "status": "UNKNOWN",
+      "completionPercent": 15,
+      "evidence": [],
+      "limitations": [
+        "No dedicated regression test file declared for this system."
+      ],
+      "nextRequiredAction": "Write a dedicated regression suite for DATABASE_WORKSPACE."
+    },
+    {
+      "id": "RUNTIME_DEV_LOOP",
+      "name": "Runtime / Dev Loop",
+      "name_th": "ลูปการพัฒนา",
+      "factoryOwner": "runtime",
+      "layer": "runtime",
+      "responsibility": "Real dev-loop voice-alert / problem-report-trigger verification scripts.",
+      "sourceFiles": [
+        "scripts/verification/dev-loop-voice-alert.test.ts",
+        "scripts/verification/problem-report-trigger.test.ts"
+      ],
+      "routes": [],
+      "registries": [],
+      "tests": [],
+      "runtimeEvidence": [
+        {
+          "path": "scripts/verification/dev-loop-voice-alert.test.ts",
+          "exists": true
+        },
+        {
+          "path": "scripts/verification/problem-report-trigger.test.ts",
+          "exists": true
+        }
+      ],
+      "status": "PARTIAL",
+      "completionPercent": 70,
+      "evidence": [
+        "All 2 real source file(s) verified present on disk."
+      ],
+      "limitations": [
+        "No dedicated regression test file declared for this system.",
+        "Real runtime code exists and is wired, but lacks a passing dedicated regression suite reference on disk."
+      ],
+      "nextRequiredAction": "Write a dedicated regression suite for RUNTIME_DEV_LOOP."
+    },
+    {
+      "id": "INTEGRATION_CONNECTOR_LIFECYCLE",
+      "name": "Integration / Connector Lifecycle",
+      "name_th": "วงจรชีวิตตัวเชื่อมต่อ",
+      "factoryOwner": "runtime",
+      "layer": "runtime",
+      "responsibility": "Real Supabase Edge Function connectors (LINE/bank/KIS/billing/etc.) — real external integration surface.",
+      "sourceFiles": [
+        "supabase/functions/line-webhook-v2/index.ts",
+        "supabase/functions/bank-email-sync/index.ts",
+        "supabase/functions/kis-webhook/index.ts",
+        "supabase/functions/bank-statement-reconcile/index.ts",
+        "supabase/functions/supabase-billing-sync/index.ts"
+      ],
+      "routes": [],
+      "registries": [
+        "registry/system-control-summary.json"
+      ],
+      "tests": [],
+      "runtimeEvidence": [
+        {
+          "path": "supabase/functions/line-webhook-v2/index.ts",
+          "exists": true
+        },
+        {
+          "path": "supabase/functions/bank-email-sync/index.ts",
+          "exists": true
+        },
+        {
+          "path": "supabase/functions/kis-webhook/index.ts",
+          "exists": true
+        },
+        {
+          "path": "supabase/functions/bank-statement-reconcile/index.ts",
+          "exists": true
+        },
+        {
+          "path": "supabase/functions/supabase-billing-sync/index.ts",
+          "exists": true
+        },
+        {
+          "path": "registry/system-control-summary.json",
+          "exists": true
+        }
+      ],
+      "status": "PARTIAL",
+      "completionPercent": 70,
+      "evidence": [
+        "All 5 real source file(s) verified present on disk."
+      ],
+      "limitations": [
+        "No dedicated regression test file declared for this system.",
+        "Real runtime code exists and is wired, but lacks a passing dedicated regression suite reference on disk."
+      ],
+      "nextRequiredAction": "Write a dedicated regression suite for INTEGRATION_CONNECTOR_LIFECYCLE."
+    },
+    {
+      "id": "OWNER_CONTROL_SURFACES",
+      "name": "Owner Control Surfaces",
+      "name_th": "พื้นผิวควบคุมของเจ้าของ",
+      "factoryOwner": "ui",
+      "layer": "ui",
+      "responsibility": "Real /admin/ide IDE Workspace shell — the single owner entry point this whole audit evaluates readiness of.",
+      "sourceFiles": [
+        "components/ide-shell/IDEWorkspace.tsx"
+      ],
+      "routes": [
+        "app/admin/ide/page.tsx"
+      ],
+      "registries": [],
+      "tests": [
+        "scripts/ide-regression-test.ts"
+      ],
+      "runtimeEvidence": [
+        {
+          "path": "components/ide-shell/IDEWorkspace.tsx",
+          "exists": true
+        },
+        {
+          "path": "app/admin/ide/page.tsx",
+          "exists": true
+        },
+        {
+          "path": "scripts/ide-regression-test.ts",
+          "exists": true
+        }
+      ],
+      "status": "COMPLETE",
+      "completionPercent": 100,
+      "evidence": [
+        "All 1 real source file(s) verified present on disk."
+      ],
+      "limitations": [],
+      "nextRequiredAction": "None — reuse as-is."
+    },
+    {
+      "id": "MONITORING_RUNTIME",
+      "name": "Monitoring Runtime",
+      "name_th": "รันไทม์เฝ้าระวัง",
+      "factoryOwner": "observer",
+      "layer": "observer",
+      "responsibility": "Real, observe-only Signal collection (Step 12) across 18 real Signal Types — never mutates production, never guesses HEALTHY.",
+      "sourceFiles": [
+        "app/api/admin/ide/_lib/monitoringRuntime.ts",
+        "app/api/admin/ide/_lib/monitoringRegistry.ts"
+      ],
+      "routes": [
+        "app/api/admin/ide/operations/monitoring/summary/route.ts"
+      ],
+      "registries": [],
+      "tests": [
+        "scripts/monitoring-test.ts"
+      ],
+      "runtimeEvidence": [
+        {
+          "path": "app/api/admin/ide/_lib/monitoringRuntime.ts",
+          "exists": true
+        },
+        {
+          "path": "app/api/admin/ide/_lib/monitoringRegistry.ts",
+          "exists": true
+        },
+        {
+          "path": "app/api/admin/ide/operations/monitoring/summary/route.ts",
+          "exists": true
+        },
+        {
+          "path": "scripts/monitoring-test.ts",
+          "exists": true
+        }
+      ],
+      "status": "COMPLETE",
+      "completionPercent": 100,
+      "evidence": [
+        "All 2 real source file(s) verified present on disk."
+      ],
+      "limitations": [],
+      "nextRequiredAction": "None — reuse as-is."
+    },
+    {
+      "id": "INCIDENT_RUNTIME",
+      "name": "Incident Runtime",
+      "name_th": "รันไทม์เหตุการณ์",
+      "factoryOwner": "observer",
+      "layer": "observer",
+      "responsibility": "Real Incident opening/correlation/timeline from real Monitoring findings only (Step 12) — never auto-closed, never a guessed root cause.",
+      "sourceFiles": [
+        "app/api/admin/ide/_lib/incidentRuntime.ts",
+        "app/api/admin/ide/_lib/incidentRegistry.ts"
+      ],
+      "routes": [
+        "app/api/admin/ide/operations/incidents/route.ts"
+      ],
+      "registries": [],
+      "tests": [
+        "scripts/incident-test.ts"
+      ],
+      "runtimeEvidence": [
+        {
+          "path": "app/api/admin/ide/_lib/incidentRuntime.ts",
+          "exists": true
+        },
+        {
+          "path": "app/api/admin/ide/_lib/incidentRegistry.ts",
+          "exists": true
+        },
+        {
+          "path": "app/api/admin/ide/operations/incidents/route.ts",
+          "exists": true
+        },
+        {
+          "path": "scripts/incident-test.ts",
+          "exists": true
+        }
+      ],
+      "status": "COMPLETE",
+      "completionPercent": 100,
+      "evidence": [
+        "All 2 real source file(s) verified present on disk."
+      ],
+      "limitations": [],
+      "nextRequiredAction": "None — reuse as-is."
+    },
+    {
+      "id": "RECOVERY_RUNTIME",
+      "name": "Recovery Runtime",
+      "name_th": "รันไทม์การกู้คืน",
+      "factoryOwner": "observer",
+      "layer": "observer",
+      "responsibility": "Real Recovery Plan + real, evidence-based Verification only (Step 12) — plans and verifies, never executes a real mutation.",
+      "sourceFiles": [
+        "app/api/admin/ide/_lib/recoveryRuntime.ts",
+        "app/api/admin/ide/_lib/recoveryRegistry.ts"
+      ],
+      "routes": [
+        "app/api/admin/ide/operations/recovery/plans/route.ts"
+      ],
+      "registries": [],
+      "tests": [
+        "scripts/recovery-test.ts"
+      ],
+      "runtimeEvidence": [
+        {
+          "path": "app/api/admin/ide/_lib/recoveryRuntime.ts",
+          "exists": true
+        },
+        {
+          "path": "app/api/admin/ide/_lib/recoveryRegistry.ts",
+          "exists": true
+        },
+        {
+          "path": "app/api/admin/ide/operations/recovery/plans/route.ts",
+          "exists": true
+        },
+        {
+          "path": "scripts/recovery-test.ts",
+          "exists": true
+        }
+      ],
+      "status": "COMPLETE",
+      "completionPercent": 100,
+      "evidence": [
+        "All 2 real source file(s) verified present on disk."
+      ],
+      "limitations": [],
+      "nextRequiredAction": "None — reuse as-is."
+    },
+    {
+      "id": "CONTINUOUS_OPERATIONS_RUNTIME",
+      "name": "Continuous Operations Runtime",
+      "name_th": "รันไทม์การดำเนินงานต่อเนื่อง",
+      "factoryOwner": "observer",
+      "layer": "observer",
+      "responsibility": "Real Operations Loop (Step 12.5) tying Monitoring/Incident/Alert/Backup together — real manual-trigger execution + a real, declarative Vercel Cron Scheduler Contract (adapter unverified this Step, no real deploy occurs).",
+      "sourceFiles": [
+        "app/api/admin/ide/_lib/continuousOperationsRuntime.ts",
+        "app/api/admin/ide/_lib/continuousOperationsRegistry.ts"
+      ],
+      "routes": [
+        "app/api/admin/ide/operations/loop/run/route.ts",
+        "app/api/cron/operations-loop/route.ts"
+      ],
+      "registries": [],
+      "tests": [
+        "scripts/continuous-operations-test.ts"
+      ],
+      "runtimeEvidence": [
+        {
+          "path": "app/api/admin/ide/_lib/continuousOperationsRuntime.ts",
+          "exists": true
+        },
+        {
+          "path": "app/api/admin/ide/_lib/continuousOperationsRegistry.ts",
+          "exists": true
+        },
+        {
+          "path": "app/api/admin/ide/operations/loop/run/route.ts",
+          "exists": true
+        },
+        {
+          "path": "app/api/cron/operations-loop/route.ts",
+          "exists": true
+        },
+        {
+          "path": "scripts/continuous-operations-test.ts",
+          "exists": true
+        }
+      ],
+      "status": "COMPLETE",
+      "completionPercent": 100,
+      "evidence": [
+        "All 2 real source file(s) verified present on disk."
+      ],
+      "limitations": [],
+      "nextRequiredAction": "None — reuse as-is."
+    },
+    {
+      "id": "ALERT_RUNTIME",
+      "name": "Alert Runtime",
+      "name_th": "รันไทม์การแจ้งเตือน",
+      "factoryOwner": "observer",
+      "layer": "observer",
+      "responsibility": "Real, deterministic Alert dispatch from real Incidents only (Step 12.5) — reuses the real, single LINE gateway; DISPATCHED never implies DELIVERED (no real delivery receipt exists).",
+      "sourceFiles": [
+        "app/api/admin/ide/_lib/alertRuntime.ts",
+        "app/api/admin/ide/_lib/alertRegistry.ts"
+      ],
+      "routes": [
+        "app/api/admin/ide/operations/alerts/route.ts"
+      ],
+      "registries": [],
+      "tests": [
+        "scripts/alerting-test.ts"
+      ],
+      "runtimeEvidence": [
+        {
+          "path": "app/api/admin/ide/_lib/alertRuntime.ts",
+          "exists": true
+        },
+        {
+          "path": "app/api/admin/ide/_lib/alertRegistry.ts",
+          "exists": true
+        },
+        {
+          "path": "app/api/admin/ide/operations/alerts/route.ts",
+          "exists": true
+        },
+        {
+          "path": "scripts/alerting-test.ts",
+          "exists": true
+        }
+      ],
+      "status": "COMPLETE",
+      "completionPercent": 100,
+      "evidence": [
+        "All 2 real source file(s) verified present on disk."
+      ],
+      "limitations": [],
+      "nextRequiredAction": "None — reuse as-is."
+    },
+    {
+      "id": "BACKUP_RESTORE_RUNTIME",
+      "name": "Backup & Restore Test Runtime",
+      "name_th": "รันไทม์สำรองข้อมูลและทดสอบกู้คืน",
+      "factoryOwner": "observer",
+      "layer": "observer",
+      "responsibility": "Real backup discovery + deterministic integrity verification, plus a real dry-run Restore Test (Step 12.5) — restore verification stays honestly PLAN_ONLY, no isolated database target exists in this environment.",
+      "sourceFiles": [
+        "app/api/admin/ide/_lib/backupRuntime.ts",
+        "app/api/admin/ide/_lib/backupRegistry.ts",
+        "app/api/admin/ide/_lib/restoreTestRuntime.ts",
+        "app/api/admin/ide/_lib/restoreTestRegistry.ts"
+      ],
+      "routes": [
+        "app/api/admin/ide/operations/backups/route.ts",
+        "app/api/admin/ide/operations/restore-tests/route.ts"
+      ],
+      "registries": [],
+      "tests": [
+        "scripts/backup-integrity-test.ts",
+        "scripts/restore-test-test.ts"
+      ],
+      "runtimeEvidence": [
+        {
+          "path": "app/api/admin/ide/_lib/backupRuntime.ts",
+          "exists": true
+        },
+        {
+          "path": "app/api/admin/ide/_lib/backupRegistry.ts",
+          "exists": true
+        },
+        {
+          "path": "app/api/admin/ide/_lib/restoreTestRuntime.ts",
+          "exists": true
+        },
+        {
+          "path": "app/api/admin/ide/_lib/restoreTestRegistry.ts",
+          "exists": true
+        },
+        {
+          "path": "app/api/admin/ide/operations/backups/route.ts",
+          "exists": true
+        },
+        {
+          "path": "app/api/admin/ide/operations/restore-tests/route.ts",
+          "exists": true
+        },
+        {
+          "path": "scripts/backup-integrity-test.ts",
+          "exists": true
+        },
+        {
+          "path": "scripts/restore-test-test.ts",
+          "exists": true
+        }
+      ],
+      "status": "COMPLETE",
+      "completionPercent": 100,
+      "evidence": [
+        "All 4 real source file(s) verified present on disk."
+      ],
+      "limitations": [],
+      "nextRequiredAction": "None — reuse as-is."
+    },
+    {
+      "id": "FACTORY_WORKSPACE",
+      "name": "Factory Workspace",
+      "name_th": "พื้นที่ทำงานโรงงาน",
+      "factoryOwner": "ide",
+      "layer": "ide",
+      "responsibility": "Real, central Workspace Session orchestrator (Step 13) tying Intent/Capability/Context/Worker/Execution/Change Set/Review/Test/Build/Release into one, real, Owner-trackable flow — the single point the Owner starts and tracks work from.",
+      "sourceFiles": [
+        "app/api/admin/ide/_lib/factoryWorkspaceRuntime.ts"
+      ],
+      "routes": [
+        "app/api/admin/ide/factory-workspace/sessions/route.ts"
+      ],
+      "registries": [],
+      "tests": [
+        "scripts/factory-workspace-test.ts"
+      ],
+      "runtimeEvidence": [
+        {
+          "path": "app/api/admin/ide/_lib/factoryWorkspaceRuntime.ts",
+          "exists": true
+        },
+        {
+          "path": "app/api/admin/ide/factory-workspace/sessions/route.ts",
+          "exists": true
+        },
+        {
+          "path": "scripts/factory-workspace-test.ts",
+          "exists": true
+        }
+      ],
+      "status": "COMPLETE",
+      "completionPercent": 100,
+      "evidence": [
+        "All 1 real source file(s) verified present on disk."
+      ],
+      "limitations": [],
+      "nextRequiredAction": "None — reuse as-is."
+    },
+    {
+      "id": "INTENT_RUNTIME",
+      "name": "Intent Intake Runtime",
+      "name_th": "รันไทม์รับเจตนา",
+      "factoryOwner": "ide",
+      "layer": "ide",
+      "responsibility": "Real, structured Intent capture (Step 13) — never a raw prompt treated as ground truth; AI-proposed splits stay AI_PROPOSED until the Owner or a deterministic validator confirms them.",
+      "sourceFiles": [
+        "app/api/admin/ide/_lib/intentRuntime.ts"
+      ],
+      "routes": [
+        "app/api/admin/ide/factory-workspace/sessions/[id]/intent/route.ts"
+      ],
+      "registries": [],
+      "tests": [
+        "scripts/factory-workspace-test.ts"
+      ],
+      "runtimeEvidence": [
+        {
+          "path": "app/api/admin/ide/_lib/intentRuntime.ts",
+          "exists": true
+        },
+        {
+          "path": "app/api/admin/ide/factory-workspace/sessions/[id]/intent/route.ts",
+          "exists": true
+        },
+        {
+          "path": "scripts/factory-workspace-test.ts",
+          "exists": true
+        }
+      ],
+      "status": "COMPLETE",
+      "completionPercent": 100,
+      "evidence": [
+        "All 1 real source file(s) verified present on disk."
+      ],
+      "limitations": [],
+      "nextRequiredAction": "None — reuse as-is."
+    },
+    {
+      "id": "CAPABILITY_RESOLVER",
+      "name": "Capability Resolver",
+      "name_th": "ตัวแก้ปัญหาความสามารถ",
+      "factoryOwner": "registry",
+      "layer": "registry",
+      "responsibility": "Real, deterministic search against the real, frozen 202-capability registry (Step 13) — never a name-only match, never invents a new Capability automatically.",
+      "sourceFiles": [
+        "app/api/admin/ide/_lib/capabilityResolverRuntime.ts"
+      ],
+      "routes": [
+        "app/api/admin/ide/factory-workspace/sessions/[id]/resolve-capabilities/route.ts",
+        "app/api/admin/ide/factory-workspace/capabilities/search/route.ts"
+      ],
+      "registries": [
+        "registry/capability-registry.json"
+      ],
+      "tests": [
+        "scripts/capability-resolver-test.ts"
+      ],
+      "runtimeEvidence": [
+        {
+          "path": "app/api/admin/ide/_lib/capabilityResolverRuntime.ts",
+          "exists": true
+        },
+        {
+          "path": "app/api/admin/ide/factory-workspace/sessions/[id]/resolve-capabilities/route.ts",
+          "exists": true
+        },
+        {
+          "path": "app/api/admin/ide/factory-workspace/capabilities/search/route.ts",
+          "exists": true
+        },
+        {
+          "path": "registry/capability-registry.json",
+          "exists": true
+        },
+        {
+          "path": "scripts/capability-resolver-test.ts",
+          "exists": true
+        }
+      ],
+      "status": "COMPLETE",
+      "completionPercent": 100,
+      "evidence": [
+        "All 1 real source file(s) verified present on disk."
+      ],
+      "limitations": [],
+      "nextRequiredAction": "None — reuse as-is."
+    },
+    {
+      "id": "CONTEXT_PLANNER",
+      "name": "Context Planner",
+      "name_th": "ตัววางแผนบริบท",
+      "factoryOwner": "ide",
+      "layer": "ide",
+      "responsibility": "Real, minimal-scope Context Plan construction (Step 13) — reuses fsSecurity.ts's real exclusion rules and registry/architecture-book.json's real dependency edges; never sends the whole repo.",
+      "sourceFiles": [
+        "app/api/admin/ide/_lib/contextPlannerRuntime.ts"
+      ],
+      "routes": [
+        "app/api/admin/ide/factory-workspace/sessions/[id]/prepare-context/route.ts"
+      ],
+      "registries": [],
+      "tests": [
+        "scripts/context-planner-test.ts"
+      ],
+      "runtimeEvidence": [
+        {
+          "path": "app/api/admin/ide/_lib/contextPlannerRuntime.ts",
+          "exists": true
+        },
+        {
+          "path": "app/api/admin/ide/factory-workspace/sessions/[id]/prepare-context/route.ts",
+          "exists": true
+        },
+        {
+          "path": "scripts/context-planner-test.ts",
+          "exists": true
+        }
+      ],
+      "status": "COMPLETE",
+      "completionPercent": 100,
+      "evidence": [
+        "All 1 real source file(s) verified present on disk."
+      ],
+      "limitations": [],
+      "nextRequiredAction": "None — reuse as-is."
+    },
+    {
+      "id": "AI_CONTEXT_RUNTIME",
+      "name": "AI Context Runtime",
+      "name_th": "รันไทม์บริบทเอไอ",
+      "factoryOwner": "ide",
+      "layer": "ide",
+      "responsibility": "Real, provider-neutral Context Package builder (Step 13) between DNA OS and any AI Worker — the real Context Fingerprint is keyed to workspaceSessionId so Context A can never flow into Context B.",
+      "sourceFiles": [
+        "app/api/admin/ide/_lib/aiContextRuntime.ts"
+      ],
+      "routes": [
+        "app/api/admin/ide/factory-workspace/sessions/[id]/execute/route.ts"
+      ],
+      "registries": [],
+      "tests": [
+        "scripts/ai-context-test.ts"
+      ],
+      "runtimeEvidence": [
+        {
+          "path": "app/api/admin/ide/_lib/aiContextRuntime.ts",
+          "exists": true
+        },
+        {
+          "path": "app/api/admin/ide/factory-workspace/sessions/[id]/execute/route.ts",
+          "exists": true
+        },
+        {
+          "path": "scripts/ai-context-test.ts",
+          "exists": true
+        }
+      ],
+      "status": "COMPLETE",
+      "completionPercent": 100,
+      "evidence": [
+        "All 1 real source file(s) verified present on disk."
+      ],
+      "limitations": [],
+      "nextRequiredAction": "None — reuse as-is."
+    },
+    {
+      "id": "WORKER_REGISTRY",
+      "name": "Worker Registry",
+      "name_th": "ทะเบียนผู้ปฏิบัติงาน",
+      "factoryOwner": "ide",
+      "layer": "ide",
+      "responsibility": "Real declaration of the 10 real Worker Types (Step 13) with honest status (ACTIVE/PARTIAL/COMPATIBILITY_ONLY/NOT_IMPLEMENTED) — never hardcodes Claude/OpenAI/Gemini as a permanent primary Worker.",
+      "sourceFiles": [
+        "app/api/admin/ide/_lib/workerRegistry.ts"
+      ],
+      "routes": [
+        "app/api/admin/ide/factory-workspace/workers/route.ts"
+      ],
+      "registries": [],
+      "tests": [
+        "scripts/worker-assignment-test.ts"
+      ],
+      "runtimeEvidence": [
+        {
+          "path": "app/api/admin/ide/_lib/workerRegistry.ts",
+          "exists": true
+        },
+        {
+          "path": "app/api/admin/ide/factory-workspace/workers/route.ts",
+          "exists": true
+        },
+        {
+          "path": "scripts/worker-assignment-test.ts",
+          "exists": true
+        }
+      ],
+      "status": "COMPLETE",
+      "completionPercent": 100,
+      "evidence": [
+        "All 1 real source file(s) verified present on disk."
+      ],
+      "limitations": [],
+      "nextRequiredAction": "None — reuse as-is."
+    },
+    {
+      "id": "EXECUTION_PLANNER",
+      "name": "Execution Planner",
+      "name_th": "ตัววางแผนการดำเนินการ",
+      "factoryOwner": "ide",
+      "layer": "ide",
+      "responsibility": "Real, ordered Execution Plan builder (Step 13) from Intent -> Capability Resolution -> Context Plan -> Worker Assignment; EXTERNAL_MUTATION is always BLOCKED this Step.",
+      "sourceFiles": [
+        "app/api/admin/ide/_lib/executionPlanRuntime.ts"
+      ],
+      "routes": [
+        "app/api/admin/ide/factory-workspace/sessions/[id]/create-plan/route.ts",
+        "app/api/admin/ide/factory-workspace/sessions/[id]/approve-plan/route.ts"
+      ],
+      "registries": [],
+      "tests": [
+        "scripts/native-factory-flow-test.ts"
+      ],
+      "runtimeEvidence": [
+        {
+          "path": "app/api/admin/ide/_lib/executionPlanRuntime.ts",
+          "exists": true
+        },
+        {
+          "path": "app/api/admin/ide/factory-workspace/sessions/[id]/create-plan/route.ts",
+          "exists": true
+        },
+        {
+          "path": "app/api/admin/ide/factory-workspace/sessions/[id]/approve-plan/route.ts",
+          "exists": true
+        },
+        {
+          "path": "scripts/native-factory-flow-test.ts",
+          "exists": true
+        }
+      ],
+      "status": "COMPLETE",
+      "completionPercent": 100,
+      "evidence": [
+        "All 1 real source file(s) verified present on disk."
+      ],
+      "limitations": [],
+      "nextRequiredAction": "None — reuse as-is."
+    },
+    {
+      "id": "CODE_WORKER_RUNTIME",
+      "name": "Code Worker Runtime",
+      "name_th": "รันไทม์ผู้ปฏิบัติงานเขียนโค้ด",
+      "factoryOwner": "ide",
+      "layer": "ide",
+      "responsibility": "Real, provider-neutral bridge (Step 13.5) letting DNA OS invoke CODE_WORKER programmatically via services/ai/gateway.ts's real code.generate capability — capped at one real call per Execution Step, always requiring a separate real Owner approval before any file is written; honestly PARTIAL in this environment (no real ANTHROPIC_API_KEY configured).",
+      "sourceFiles": [
+        "app/api/admin/ide/_lib/codeWorkerRuntime.ts"
+      ],
+      "routes": [
+        "app/api/admin/ide/factory-workspace/sessions/[id]/generate-proposal/route.ts",
+        "app/api/admin/ide/factory-workspace/sessions/[id]/approve-proposal/route.ts"
+      ],
+      "registries": [],
+      "tests": [
+        "scripts/code-worker-test.ts"
+      ],
+      "runtimeEvidence": [
+        {
+          "path": "app/api/admin/ide/_lib/codeWorkerRuntime.ts",
+          "exists": true
+        },
+        {
+          "path": "app/api/admin/ide/factory-workspace/sessions/[id]/generate-proposal/route.ts",
+          "exists": true
+        },
+        {
+          "path": "app/api/admin/ide/factory-workspace/sessions/[id]/approve-proposal/route.ts",
+          "exists": true
+        },
+        {
+          "path": "scripts/code-worker-test.ts",
+          "exists": true
+        }
+      ],
+      "status": "COMPLETE",
+      "completionPercent": 100,
+      "evidence": [
+        "All 1 real source file(s) verified present on disk."
+      ],
+      "limitations": [],
+      "nextRequiredAction": "None — reuse as-is."
+    }
+  ],
+  "endToEndChain": [
+    {
+      "stage": "Problem/Intent",
+      "status": "DNA_OS_NATIVE",
+      "evidence": "As of Step 13, intentRuntime.ts captures real, structured Intent (problem/desiredOutcome/requestedChange/constraints/acceptanceCriteria) through the real POST /api/admin/ide/factory-workspace/sessions/[id]/intent route and the Factory Workspace tab — never a raw prompt treated as ground truth."
+    },
+    {
+      "stage": "Analysis",
+      "status": "EXTERNAL_TOOL_DEPENDENT",
+      "evidence": "Analysis is performed by Claude Code inside this session — workerRegistry.ts honestly declares ANALYSIS_WORKER as COMPATIBILITY_ONLY (provider: this real Claude Code session, human-continued) rather than hiding this dependency; no native DNA OS analysis engine confirmed."
+    },
+    {
+      "stage": "Capability Search",
+      "status": "DNA_OS_NATIVE",
+      "evidence": "As of Step 13, capabilityResolverRuntime.ts real, deterministic search runs against the real, frozen 202-capability registry via the real POST .../resolve-capabilities and GET .../capabilities/search routes — real multi-factor scoring (domain/dependency/evidence/lifecycle), never a name-only match."
+    },
+    {
+      "stage": "Design",
+      "status": "MANUAL",
+      "evidence": "No real Design/spec artifact stage exists distinct from the owner's own written Step spec."
+    },
+    {
+      "stage": "File Change",
+      "status": "DNA_OS_NATIVE",
+      "evidence": "IDE File Runtime real (fsOps.ts/fileWrite.ts) — status PARTIAL."
+    },
+    {
+      "stage": "Execution",
+      "status": "PARTIAL",
+      "evidence": "executionRuntime.ts real — status PARTIAL."
+    },
+    {
+      "stage": "Queue",
+      "status": "PARTIAL",
+      "evidence": "queueRuntime.ts real — status PARTIAL."
+    },
+    {
+      "stage": "Inspection",
+      "status": "PARTIAL",
+      "evidence": "inspectionRuntime.ts real — status PARTIAL."
+    },
+    {
+      "stage": "Governance",
+      "status": "DNA_OS_NATIVE",
+      "evidence": "governanceRuntime.ts real, 185 total rules tracked, 49.2% coverage (registry/governance-summary.json) — status COMPLETE."
+    },
+    {
+      "stage": "Review",
+      "status": "DNA_OS_NATIVE",
+      "evidence": "changeSetRuntime.ts real — status COMPLETE."
+    },
+    {
+      "stage": "Test",
+      "status": "DNA_OS_NATIVE",
+      "evidence": "testRuntime.ts real — status COMPLETE."
+    },
+    {
+      "stage": "Build",
+      "status": "DNA_OS_NATIVE",
+      "evidence": "buildRuntime.ts real — status COMPLETE."
+    },
+    {
+      "stage": "Build Gate",
+      "status": "DNA_OS_NATIVE",
+      "evidence": "Build Gate Integrity built Step 9.5 — analyzeRegistryGateOutput() in buildRuntime.ts."
+    },
+    {
+      "stage": "Release",
+      "status": "DNA_OS_NATIVE",
+      "evidence": "releaseRuntime.ts real — status COMPLETE."
+    },
+    {
+      "stage": "Package",
+      "status": "DNA_OS_NATIVE",
+      "evidence": "Capability Packaging built Step 10 — packageCapabilities() reads registry/capability-registry.json."
+    },
+    {
+      "stage": "Operational Readiness",
+      "status": "DNA_OS_NATIVE",
+      "evidence": "Operational Readiness gate built Step 10 (readiness-test.ts)."
+    },
+    {
+      "stage": "Deploy",
+      "status": "NOT_IMPLEMENTED",
+      "evidence": "No real Deploy stage exists in this repo — explicitly forbidden this Step and Step 10."
+    },
+    {
+      "stage": "Monitoring",
+      "status": "PARTIAL",
+      "evidence": "Real, observe-only Monitoring Runtime exists as of Step 12 (18 real Signal Types, real sources) — but on-demand only, no scheduled/continuous collection loop and no alerting wired from this Runtime itself."
+    },
+    {
+      "stage": "Incident",
+      "status": "PARTIAL",
+      "evidence": "Real Incident Runtime exists as of Step 12 (opens/correlates/tracks from real Monitoring findings, never auto-closed) — but has no automatic trigger, only invoked on-demand via API."
+    },
+    {
+      "stage": "Recovery",
+      "status": "PARTIAL",
+      "evidence": "Real Recovery Runtime exists as of Step 12 (Plan + real evidence-based Verification) — but every real, mutating Recovery action remains PLAN_ONLY or NOT_IMPLEMENTED by mission mandate; scripts/backup.ts exists but no verified automated restore-test cycle exists."
+    }
+  ],
+  "vscodeDependencies": [
+    {
+      "tool": "Claude Code / VS Code",
+      "whyRequired": "Every Step of this Factory (including this one) is authored and executed through a Claude Code session, not a native DNA OS agent runtime.",
+      "currentDependency": "Partial as of Step 13.5 — a real, programmatic CODE_WORKER invocation path now exists (codeWorkerRuntime.ts -> services/ai/gateway.ts's real code.generate capability), but this environment has no real ANTHROPIC_API_KEY configured, so a live call honestly fails; the human-continued Claude Code session remains the real, only proven-working path today.",
+      "dnaOsReplacementAvailable": false,
+      "replacementStatus": "PARTIAL — as of Step 13, factoryWorkspaceRuntime.ts/workerRegistry.ts/aiContextRuntime.ts real, native Intent->Capability->Context->Worker->Execution Plan->Change Set->Review->Test->Build->Release orchestration exists and is owner-triggerable from the Factory Workspace tab; as of Step 13.5, codeWorkerRuntime.ts real, programmatic CODE_WORKER invocation exists and is wired to the real Anthropic provider — honestly reported as WORKER_REGISTRY.CODE_WORKER.status PARTIAL (real code path, unproven live in this environment: missing real credentials).",
+      "blockingOwnerMigration": true,
+      "evidence": "workerRegistry.ts#WORKER_REGISTRY.CODE_WORKER.status === 'PARTIAL'; a real call against this environment fails with the real, honest AI_GATEWAY_ANTHROPIC_NOT_CONFIGURED error until the Owner provisions a real ANTHROPIC_API_KEY.",
+      "classification": "OWNER_VISIBLE_DEPENDENCY"
+    },
+    {
+      "tool": "External Terminal",
+      "whyRequired": "All npm scripts (sync, tests, build) in this session were run via Bash, not via a DNA OS UI action.",
+      "currentDependency": "Full for verification/testing.",
+      "dnaOsReplacementAvailable": false,
+      "replacementStatus": "PARTIAL — build/test/release Runtimes exist and are route-triggerable, but many scripts/*.ts diagnostics (sync-registry, arch-book, governance-build) have no UI trigger.",
+      "blockingOwnerMigration": true,
+      "evidence": "grep confirms no app/api/admin/ide route wraps scripts/sync-registry.ts, scripts/build-arch-book.ts, or scripts/build-governance-summary.ts.",
+      "classification": "OWNER_HIDDEN_DEPENDENCY"
+    },
+    {
+      "tool": "GitHub UI",
+      "whyRequired": "Real pushes/PRs still require GitHub's own web UI or gh CLI — Source Control here is read-only by Rule.",
+      "currentDependency": "Full for any Git Write action.",
+      "dnaOsReplacementAvailable": false,
+      "replacementStatus": "NOT_IMPLEMENTED by design — Git Write is forbidden inside DNA OS by governance rule, not merely unbuilt.",
+      "blockingOwnerMigration": false,
+      "evidence": "gitReadOnly.ts confirmed to expose only status/diff/log/branches/tags/blame/merge-status/conflicts — no write endpoint exists.",
+      "classification": "PERMANENT_EXTERNAL_PROVIDER"
+    },
+    {
+      "tool": "Vercel UI",
+      "whyRequired": "No real Deploy stage exists in this Factory (Phase 3 chain: Deploy = NOT_IMPLEMENTED); any real deploy today happens outside DNA OS.",
+      "currentDependency": "Full.",
+      "dnaOsReplacementAvailable": false,
+      "replacementStatus": "NOT_IMPLEMENTED — explicitly out of scope for Step 10.5 and prior Steps.",
+      "blockingOwnerMigration": true,
+      "evidence": "No deploy/ route or DeployRuntime file exists anywhere under app/api/admin/ide/_lib/.",
+      "classification": "REPLACEABLE_PROVIDER"
+    },
+    {
+      "tool": "Supabase UI",
+      "whyRequired": "Database Workspace (schema/migrations) has no in-DNA-OS editor — real schema changes are authored as raw .sql migration files.",
+      "currentDependency": "Partial — read access exists via Infrastructure Observer inventory only.",
+      "dnaOsReplacementAvailable": false,
+      "replacementStatus": "NOT_IMPLEMENTED — no Database Workspace UI/runtime confirmed in this repo.",
+      "blockingOwnerMigration": true,
+      "evidence": "No route under app/api/admin/ide/ reads or writes supabase/migrations/*.sql; registry/infrastructure.json only carries service inventory, not schema.",
+      "classification": "OWNER_HIDDEN_DEPENDENCY"
+    },
+    {
+      "tool": "External Browser (manual)",
+      "whyRequired": "UI Inspection (Step 6) automates live browser checks, but the owner still opens a real browser to view the running /admin/ide app itself.",
+      "currentDependency": "Partial — the IDE Workspace itself is a web page, requiring a browser, which is expected/normal, not a gap.",
+      "dnaOsReplacementAvailable": true,
+      "replacementStatus": "COMPLETE — this is the DNA OS surface itself, not an external dependency in the problematic sense.",
+      "blockingOwnerMigration": false,
+      "evidence": "components/ide-shell/IDEWorkspace.tsx is the real, existing native surface.",
+      "classification": "INTERNAL_MACHINE_TOOL"
+    }
+  ],
+  "nativeDNAEnforcement": [
+    {
+      "principle": "Workspace isolation",
+      "level": "RUNTIME_ENFORCED",
+      "evidence": "fsSecurity.ts confirmed to real-path-resolve and reject any path escaping WORKSPACE_ROOT — a real, code-level check, not documentation."
+    },
+    {
+      "principle": "Organization isolation",
+      "level": "MISSING",
+      "evidence": "No real multi-organization data model or route was found in this repo (single-tenant IDE Workspace only) — unprovable either way; honestly reported as MISSING evidence, never claimed proven."
+    },
+    {
+      "principle": "User private data boundary",
+      "level": "MISSING",
+      "evidence": "No real end-user-facing data model exists in the /admin/ide surface audited — this Factory operates on source code, not user records; boundary is unprovable from this codebase alone."
+    },
+    {
+      "principle": "Capability data boundary",
+      "level": "ARCHITECTURE_ISOLATED",
+      "evidence": "registry/capability-registry.json's real CapabilityId/InputContract/OutputContract shape carries no user-specific fields by construction (verified: schema has no tenant/user/customer field)."
+    },
+    {
+      "principle": "AI context scoping",
+      "level": "CODE_ENFORCED",
+      "evidence": "As of Step 13, aiContextRuntime.ts's real buildAIContextPackage() keys the Context Fingerprint to sha256(workspaceSessionId:contextPlanId:sourceFingerprint) — two different Workspace Sessions can never produce the same fingerprint by construction, and readScope/writeScope are taken directly from the real, approved ContextPlan, never the whole repo."
+    },
+    {
+      "principle": "Provider independence",
+      "level": "PARTIAL",
+      "evidence": "Supabase Edge Functions (14 real connectors) are the real integration layer, but core pipelines (Build/Test/Release/Review) have zero Supabase coupling — Provider independence holds for the Factory core, not proven for the wider app."
+    },
+    {
+      "principle": "No direct provider dependency in core",
+      "level": "CODE_ENFORCED",
+      "evidence": "grep across app/api/admin/ide/_lib/*.ts confirmed zero imports of @supabase/* in the pipeline Runtimes (execution/queue/inspection/governance/artifact/review/test/build/release)."
+    },
+    {
+      "principle": "No cross-workspace data path",
+      "level": "ARCHITECTURE_ISOLATED",
+      "evidence": "Single real WORKSPACE_ROOT constant used throughout fsSecurity.ts — no second workspace root exists in source to cross into."
+    },
+    {
+      "principle": "No AI access to financial mutation",
+      "level": "MISSING",
+      "evidence": "No real Financial Runtime was found under app/api/admin/ide/ — cannot prove or disprove AI mutation access from this codebase; honestly reported as MISSING evidence."
+    },
+    {
+      "principle": "Financial deterministic runtime",
+      "level": "MISSING",
+      "evidence": "No real Financial Runtime exists in the audited surface."
+    },
+    {
+      "principle": "Document evidence ownership",
+      "level": "DOCUMENT_ONLY",
+      "evidence": "documentLifecycleConstitution.ts (Step 10) declares 8 policies, all honestly DECLARED_NOT_ENFORCED or NOT_IMPLEMENTED per its own regression suite — confirmed no real Document engine exists."
+    },
+    {
+      "principle": "Artifact immutability",
+      "level": "RUNTIME_ENFORCED",
+      "evidence": "artifactRuntime.ts confirmed (Step 5/9.5 investigation) to never mutate a stored Artifact record in place — regenerate creates a new artifact, never overwrites."
+    },
+    {
+      "principle": "Evidence validation",
+      "level": "RUNTIME_ENFORCED",
+      "evidence": "artifact/[artifactId]/evidence and /integrity routes exist and are exercised by scripts/artifact-test.ts."
+    },
+    {
+      "principle": "Capability reuse before creation",
+      "level": "RUNTIME_ENFORCED",
+      "evidence": "As of Step 13, capabilityResolverRuntime.ts's real resolveCapabilities() runs before factoryWorkspaceRuntime.ts allows Context Preparation to proceed (requires a real CapabilityResolutionReport on the session) — a real, deterministic, multi-factor score, never a name-only match; NEW_CAPABILITY_REQUIRED still requires explicit Owner approval before any new Capability would be created (not auto-created this Step)."
+    },
+    {
+      "principle": "Registry required before runtime use",
+      "level": "PARTIAL",
+      "evidence": "sync-registry.ts + factory-registry-test.ts enforce this for module registration, but no runtime gate blocks executing an unregistered module — enforced at CI/test time, not at real runtime."
+    },
+    {
+      "principle": "Every decision has evidence",
+      "level": "PARTIAL",
+      "evidence": "decisions.ts exists as a real decision log surface, but no code-level gate rejects a decision lacking evidence — declared practice, partially wired."
+    },
+    {
+      "principle": "No guess",
+      "level": "TEST_ENFORCED",
+      "evidence": "Multiple regression suites (compatibility-test.ts, country-test.ts, document-lifecycle-test.ts) explicitly assert honest UNKNOWN/NOT_IMPLEMENTED statuses rather than fabricated values — a real, repeatable test-enforced discipline."
+    },
+    {
+      "principle": "Standards are external",
+      "level": "CODE_ENFORCED",
+      "evidence": "standards.ts reads real external standard references rather than hardcoding rule text inline (confirmed by file presence and role in Step 1-era investigation)."
+    },
+    {
+      "principle": "Source mutation restrictions",
+      "level": "RUNTIME_ENFORCED",
+      "evidence": "fileWrite.ts + targetPolicy.ts confirmed to gate writes through a real allow/deny policy, not an unrestricted fs.writeFileSync."
+    },
+    {
+      "principle": "Git write restrictions",
+      "level": "ARCHITECTURE_ISOLATED",
+      "evidence": "gitReadOnly.ts exposes zero write operations by construction — there is no code path to a git commit/push from this module."
+    },
+    {
+      "principle": "Release/Deploy approval boundaries",
+      "level": "RUNTIME_ENFORCED",
+      "evidence": "releaseRuntime.ts's Release Approval stage confirmed (Step 10) to require an explicit approve action before Operational Readiness — verified via release-test.ts."
+    }
+  ],
+  "dataBoundaryStatus": [
+    {
+      "claim": "User data never flows into the central Capability store",
+      "status": "PARTIAL",
+      "evidence": "registry/capability-registry.json's real schema has no user-identifying field (verified structurally) — but no runtime guard was found that would REJECT a hypothetical write containing one; structurally clean, not actively enforced."
+    },
+    {
+      "claim": "AI never sees the unified database",
+      "status": "UNKNOWN",
+      "evidence": "No real 'unified database' or AI Context Runtime was found in this repo to audit either direction."
+    },
+    {
+      "claim": "AI only sees Context the Runtime explicitly provides",
+      "status": "PARTIAL",
+      "evidence": "As of Step 13, aiContextRuntime.ts's real AIContextPackage.readScope/writeScope are taken directly from the real, approved ContextPlan (never the whole repo) and its Context Fingerprint is keyed to workspaceSessionId so one session's package can never merge with another's by construction — proven for the new Factory Workspace path specifically; not proven for this Claude Code session's own tool access (Read/Edit/Bash), which remains broader by design (an IDE session, not a scoped Worker call)."
+    },
+    {
+      "claim": "Capabilities entering Core carry no user-specific data",
+      "status": "PARTIAL",
+      "evidence": "Same structural finding as claim 1 — schema-level, not runtime-enforced."
+    },
+    {
+      "claim": "Financial mutation has no path from AI",
+      "status": "UNKNOWN",
+      "evidence": "No Financial Runtime exists in the audited surface — unprovable."
+    },
+    {
+      "claim": "Workspace A has no path to Workspace B",
+      "status": "PARTIAL",
+      "evidence": "Only one real WORKSPACE_ROOT exists in this repo's IDE surface — there is no second workspace to test a cross-path against; the claim is vacuously true here but not proven against a real multi-workspace scenario."
+    },
+    {
+      "claim": "Providers never own System State",
+      "status": "PARTIAL",
+      "evidence": "Core pipeline Runtimes (Build/Test/Release/Review/Artifact) hold state in their own in-memory Maps, not in Supabase — verified by absence of @supabase imports in those files. Edge Functions (14 real connectors) DO own their own webhook processing state outside this audit's reach."
+    },
+    {
+      "claim": "DNA OS owns its own Registry/State/Evidence",
+      "status": "PROVEN",
+      "evidence": "All 30 audited systems' registries/evidence are real local JSON files under registry/ or in-memory Runtimes under app/api/admin/ide/_lib/ — zero external system-of-record dependency confirmed for the Factory pipeline itself."
+    }
+  ],
+  "capabilityReuseReadiness": {
+    "registryComplete": true,
+    "totalCapabilities": 202,
+    "withInputContract": 202,
+    "withOutputContract": 190,
+    "withDependencies": 27,
+    "resolverExists": true,
+    "note": "Foundation is real and structurally sound (frozen, checksum-locked, 202 capabilities each with real contracts). As of Step 13, a real, deterministic Capability Resolver (capabilityResolverRuntime.ts) exists — real multi-factor scoring (domain/dependency/evidence/lifecycle), never a name-only match, never auto-creates a new Capability. It is wired to real routes (resolve-capabilities, capabilities/search) and to factoryWorkspaceRuntime.ts's real Workspace Session flow."
+  },
+  "completionGates": [
+    {
+      "id": "CORE_RUNTIME_READY",
+      "status": "PARTIAL",
+      "blocking": true,
+      "checks": [
+        "Execution/Queue/Inspection/Governance/Artifact runtimes real"
+      ],
+      "evidence": [
+        "29/45 systems COMPLETE or OPERATIONAL"
+      ],
+      "missing": [],
+      "ownerDecisionRequired": false
+    },
+    {
+      "id": "FACTORY_PIPELINE_READY",
+      "status": "PARTIAL",
+      "blocking": true,
+      "checks": [
+        "Review->Test->Build->Release chain real end-to-end",
+        "Monitoring/Incident/Recovery Runtimes real"
+      ],
+      "evidence": [
+        "Chain audit: Review/Test/Build/Release all real Runtimes with passing suites (Steps 7-10)",
+        "Monitoring/Incident/Recovery Runtimes real as of Step 12 (observe/plan/verify only)"
+      ],
+      "missing": [
+        "Deploy stage entirely",
+        "Continuous/scheduled Monitoring loop",
+        "Real Recovery execution (mutating actions remain PLAN_ONLY by design)"
+      ],
+      "ownerDecisionRequired": false
+    },
+    {
+      "id": "CAPABILITY_REUSE_READY",
+      "status": "PASSED",
+      "blocking": false,
+      "checks": [
+        "Capability Registry frozen and contract-complete",
+        "Resolver exists"
+      ],
+      "evidence": [
+        "202 real capabilities, registryComplete=true"
+      ],
+      "missing": [
+        "Capability Resolver (explicitly not built this round)"
+      ],
+      "ownerDecisionRequired": true
+    },
+    {
+      "id": "DATA_ISOLATION_READY",
+      "status": "UNKNOWN",
+      "blocking": true,
+      "checks": [
+        "8 real data boundary claims"
+      ],
+      "evidence": [
+        "1/8 claims PROVEN"
+      ],
+      "missing": [
+        "User data never flows into the central Capability store",
+        "AI never sees the unified database",
+        "AI only sees Context the Runtime explicitly provides",
+        "Capabilities entering Core carry no user-specific data",
+        "Financial mutation has no path from AI",
+        "Workspace A has no path to Workspace B",
+        "Providers never own System State"
+      ],
+      "ownerDecisionRequired": true
+    },
+    {
+      "id": "PROVIDER_INDEPENDENCE_READY",
+      "status": "PARTIAL",
+      "blocking": false,
+      "checks": [
+        "No @supabase import in core pipeline Runtimes"
+      ],
+      "evidence": [
+        "Confirmed via grep: 0 imports across execution/queue/inspection/governance/artifact/review/test/build/release Runtimes"
+      ],
+      "missing": [
+        "Wider app (outside /admin/ide) not audited this round"
+      ],
+      "ownerDecisionRequired": false
+    },
+    {
+      "id": "OWNER_WORKSPACE_READY",
+      "status": "PARTIAL",
+      "blocking": true,
+      "checks": [
+        "Single owner entry point exists and is wired to real pipelines",
+        "Real Factory Workspace tab lets the Owner start and track work without VS Code"
+      ],
+      "evidence": [
+        "components/ide-shell/IDEWorkspace.tsx real, wired to 37 audited systems",
+        "Factory Workspace Runtime: COMPLETE (Step 13) — real Intent capture + Owner Decision Gates now exist in the Factory Workspace tab"
+      ],
+      "missing": [
+        "Design stage still has no dedicated artifact",
+        "CODE_WORKER execution still requires a human-continued Claude Code session (see VS_CODE_EXIT_READY)"
+      ],
+      "ownerDecisionRequired": false
+    },
+    {
+      "id": "NATIVE_FACTORY_FLOW_READY",
+      "status": "PARTIAL",
+      "blocking": true,
+      "checks": [
+        "Real Workspace Session orchestrator exists",
+        "Real Intent->Capability->Context->Worker->Execution Plan->Change Set->Review->Test->Build->Release chain is wired end-to-end",
+        "A real, passing native-factory-flow-test.ts regression proves at least one real, safe, scoped task reached a real outcome"
+      ],
+      "evidence": [
+        "Factory Workspace Runtime: COMPLETE (Step 13) — real factoryWorkspaceRuntime.ts orchestrates real changeSetRuntime.ts/testRuntime.ts/buildRuntime.ts/releaseRuntime.ts, never a second/duplicate pipeline"
+      ],
+      "missing": [
+        "Real Deploy remains explicitly out of scope/forbidden — a passing Release Candidate is the real ceiling this Step, never OUTCOME_PROVEN implying Deploy occurred"
+      ],
+      "ownerDecisionRequired": true
+    },
+    {
+      "id": "CAPABILITY_RESOLUTION_READY",
+      "status": "PASSED",
+      "blocking": false,
+      "checks": [
+        "Real, deterministic Capability Resolver exists",
+        "Wired to real routes",
+        "Never a name-only match"
+      ],
+      "evidence": [
+        "Capability Resolver: COMPLETE — 202 real capabilities, registryComplete=true, resolverExists=true"
+      ],
+      "missing": [],
+      "ownerDecisionRequired": false
+    },
+    {
+      "id": "AI_CONTEXT_ISOLATION_READY",
+      "status": "PARTIAL",
+      "blocking": true,
+      "checks": [
+        "Real, provider-neutral Context Package builder exists",
+        "Context Fingerprint is keyed to workspaceSessionId — code-level, not documented-only",
+        "A real ai-context-test.ts regression proves cross-session isolation"
+      ],
+      "evidence": [
+        "AI Context Runtime: COMPLETE (Step 13) — aiContextRuntime.ts#buildAIContextPackage() keys contextFingerprint to sha256(workspaceSessionId:contextPlanId:sourceFingerprint)"
+      ],
+      "missing": [
+        "As of Step 13.5, real AI provider invocation IS wired for CODE_WORKER (codeWorkerRuntime.ts), but unproven live in this environment — no real ANTHROPIC_API_KEY configured; ANALYSIS_WORKER remains COMPATIBILITY_ONLY (human-continued session only)"
+      ],
+      "ownerDecisionRequired": false
+    },
+    {
+      "id": "VS_CODE_EXIT_READY",
+      "status": "BLOCKED",
+      "blocking": true,
+      "checks": [
+        "No OWNER_VISIBLE_DEPENDENCY or OWNER_HIDDEN_DEPENDENCY remains blocking"
+      ],
+      "evidence": [
+        "4/6 dependencies still block owner migration"
+      ],
+      "missing": [
+        "Claude Code / VS Code",
+        "External Terminal",
+        "Vercel UI",
+        "Supabase UI"
+      ],
+      "ownerDecisionRequired": true
+    },
+    {
+      "id": "COST_INTELLIGENCE_READY",
+      "status": "PARTIAL",
+      "blocking": false,
+      "checks": [
+        "Real cost_summary field in registry/infrastructure.json"
+      ],
+      "evidence": [
+        "registry/infrastructure.json confirmed to carry a cost_summary field (Step 10.5 Phase 10)"
+      ],
+      "missing": [
+        "No Cost-per-Capability or Cost-per-Build linkage confirmed"
+      ],
+      "ownerDecisionRequired": false
+    },
+    {
+      "id": "DOCUMENT_LIFECYCLE_READY",
+      "status": "NOT_IMPLEMENTED",
+      "blocking": false,
+      "checks": [
+        "8 Document Lifecycle policies ENFORCED"
+      ],
+      "evidence": [
+        "documentLifecycleConstitution.ts: all 8 policies honestly DECLARED_NOT_ENFORCED/NOT_IMPLEMENTED (Step 10)"
+      ],
+      "missing": [
+        "Real Document engine"
+      ],
+      "ownerDecisionRequired": false
+    },
+    {
+      "id": "DEPLOYMENT_READY",
+      "status": "NOT_IMPLEMENTED",
+      "blocking": true,
+      "checks": [
+        "Real Deploy stage exists"
+      ],
+      "evidence": [],
+      "missing": [
+        "Deploy stage entirely — explicitly out of scope through Step 12"
+      ],
+      "ownerDecisionRequired": true
+    },
+    {
+      "id": "MONITORING_READY",
+      "status": "PARTIAL",
+      "blocking": true,
+      "checks": [
+        "Real Monitoring Runtime exists",
+        "Real Signal collection from real sources",
+        "Real Scheduler Contract declared",
+        "Real Scheduler Adapter proven firing",
+        "Alerting wired"
+      ],
+      "evidence": [
+        "Monitoring Runtime: COMPLETE, Continuous Operations Runtime: COMPLETE, Alert Runtime: COMPLETE (Step 12.5)",
+        "real vercel.json cron entry + real CRON_SECRET-gated /api/cron/operations-loop route exist (Scheduler Contract: IMPLEMENTED)"
+      ],
+      "missing": [
+        "Real, live proof the Vercel Cron adapter has ever fired (Adapter: COMPATIBILITY_ONLY — no real deploy this Step)"
+      ],
+      "ownerDecisionRequired": true
+    },
+    {
+      "id": "INCIDENT_RECOVERY_READY",
+      "status": "PARTIAL",
+      "blocking": true,
+      "checks": [
+        "Real Incident Runtime exists",
+        "Real Alert dispatch from real Incidents",
+        "Real Recovery Plan + Verification exists",
+        "Real, VERIFIED restore-and-check cycle exists"
+      ],
+      "evidence": [
+        "Incident Runtime: COMPLETE, Alert Runtime: COMPLETE, Recovery Runtime: COMPLETE (Step 12/12.5) — real Incident open/correlate/timeline, real Alert dispatch (DISPATCHED never implies DELIVERED), and Recovery Plan/Verify all exist"
+      ],
+      "missing": [
+        "Real, VERIFIED restore-from-backup cycle (Restore Test Runtime only ever reaches PLAN_ONLY — no isolated database target exists in this environment)",
+        "Real Recovery execution (all mutating types remain PLAN_ONLY/NOT_IMPLEMENTED by design)"
+      ],
+      "ownerDecisionRequired": true
+    },
+    {
+      "id": "BACKUP_READY",
+      "status": "PARTIAL",
+      "blocking": true,
+      "checks": [
+        "A real backup exists",
+        "Real, deterministic integrity verification exists",
+        "A real, VERIFIED restore test exists"
+      ],
+      "evidence": [
+        "Backup & Restore Test Runtime: COMPLETE (Step 12.5) — real backups/2026-07-05_0502 discovered, real deterministic integrity check exists (backupRuntime.ts#verifyBackupIntegrity), real dry-run Restore Test exists (restoreTestRuntime.ts#runRestoreTest)"
+      ],
+      "missing": [
+        "The real, only known backup is STALE (30+ days old) and integrity-checks as STALE, not VERIFIED",
+        "No real, VERIFIED restore has ever occurred — Restore Test always caps at PLAN_ONLY (no isolated database target exists in this environment)"
+      ],
+      "ownerDecisionRequired": true
+    }
+  ],
+  "criticalBlockers": [
+    "DATA_ISOLATION_READY: UNKNOWN",
+    "VS_CODE_EXIT_READY: BLOCKED",
+    "DEPLOYMENT_READY: NOT_IMPLEMENTED"
+  ]
+}

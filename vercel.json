@@ -3,6 +3,10 @@
     {
       "path": "/api/cron/supabase-project-status",
       "schedule": "0 */6 * * *"
+    },
+    {
+      "path": "/api/cron/operations-loop",
+      "schedule": "*/10 * * * *"
     }
   ]
 }

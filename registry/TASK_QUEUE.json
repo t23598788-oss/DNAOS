@@ -308,5 +308,12 @@
     "priority": "P2",
     "status": "pending",
     "detail": "Built 2026-07-26 per owner request (fraud-prevention: first LINE contact from a company is the responsible/auto-approving party for unlinked-party requests, real yes/no postback to company_line_links first contact). Real functions exist (checkSiteOwnership/requestAuthorization) and pending_authorizations table is live, but no code path in handlers/*.ts calls requestAuthorization() yet — owner explicitly deferred deciding the live trigger point (\"อยากให้พักเรื่องเครือข่ายใยแมงมุมนี้ไว้เป็นงานถัดไป\"). Not a bug, a scoped-out follow-up."
+  },
+  {
+    "id": "TASK-041",
+    "title": "Open Capability Architecture — build the real Review Process runner + Community/Country/Business/Legal Capability submission path",
+    "priority": "P3",
+    "status": "not_started",
+    "detail": "app/api/admin/ide/_lib/openCapabilityArchitecture.ts (owner, 2026-08-07, Software Factory Step 10, Phase 9) declares the real contract types (CommunityCapabilityContract/CountryCapabilityContract/BusinessCapabilityContract/LegalCapabilityContract), the real Review Process steps, Evidence Requirements, and Factory Acceptance Rules for a future Capability ecosystem — every entry is honestly status: \"NOT_IMPLEMENTED\" by the file's own design (Constitution Principle 6 — Community Capability). No real Review Process runner or submission path exists yet, and this file is deliberately not imported by anything today — it is structure-only, tracked as a known gap rather than dead code (found during production deploy-gate cleanup, 2026-08-08: knip flagged it as an unused file; confirmed via real code search there is genuinely no caller, and confirmed via this file's own docstring/status fields that non-use is intentional, not abandonment)."
   }
 ]
