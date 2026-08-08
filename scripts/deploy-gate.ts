@@ -75,19 +75,31 @@ const CHECK_KEY_TO_VALIDATOR: Record<string, { validator: string; module: string
   architecture_drift: { validator: "Architecture Drift", module: "governance" },
 };
 
-function latestMatchingResult(validator: string): any | null {
+interface ValidationResultEntry {
+  validator: string;
+  result: string;
+  root_cause?: string;
+  evidence?: string;
+  suggested_fix?: string;
+  command?: string;
+}
+
+function latestMatchingResult(validator: string): ValidationResultEntry | null {
   const ledger = existsSync(join(ROOT, "registry/VALIDATION_RESULTS.json"))
-    ? readJSON<any[]>("registry/VALIDATION_RESULTS.json")
+    ? readJSON<ValidationResultEntry[]>("registry/VALIDATION_RESULTS.json")
     : [];
   const matches = ledger.filter((r) => r.validator === validator && r.result === "FAIL");
   return matches.length > 0 ? matches[matches.length - 1] : null;
 }
 
+interface KnownMistakeEntry { id: string; lesson: string }
+interface ExistenceFile { known_mistakes?: { entries?: KnownMistakeEntry[] } }
+
 function findKnowledgeLesson(rootCause: string | null): string | null {
   if (!rootCause) return null;
-  const existence = readJSON<any>("registry/existence.json");
+  const existence = readJSON<ExistenceFile>("registry/existence.json");
   const q = rootCause.toLowerCase();
-  const match = (existence.known_mistakes?.entries ?? []).find((km: any) =>
+  const match = (existence.known_mistakes?.entries ?? []).find((km) =>
     JSON.stringify(km).toLowerCase().includes(q.slice(0, 40))
   );
   return match ? `[${match.id}] ${match.lesson}` : null;
@@ -144,7 +156,7 @@ async function main() {
     governanceFailed = true;
   }
 
-  const health = readJSON<any>("DNA_OS_HEALTH.json");
+  const health = readJSON<{ checks: Record<string, number> }>("DNA_OS_HEALTH.json");
   const failedKeys = Object.entries(health.checks).filter(([, v]) => v === 0).map(([k]) => k);
 
   const devLoop = await checkDevLoopGate();

@@ -31,13 +31,44 @@ import * as path from "path";
 const ROOT = path.resolve(__dirname, "..");
 const REGISTRY_DIR = path.join(ROOT, "registry");
 
-type AnyRec = Record<string, any>;
+type AnyRec = Record<string, unknown>;
 
 interface RequiredSource {
   key: string;
   file: string; // relative to registry/
   required: boolean;
 }
+
+// Real, minimal shapes of the fields this generator actually reads from
+// each source registry — loosely typed with optional fields since these are
+// external JSON files this script defensively tolerates being malformed
+// (see the structural sanity checks below), never assumed complete.
+interface ArchBookNode {
+  id: string;
+  type?: string;
+  name_en?: string;
+  layer?: string;
+  status?: string;
+  runtime_entry_point?: boolean;
+  internal_dependencies?: string[];
+  dependents?: string[];
+  business_capabilities?: string[] | "UNKNOWN";
+}
+interface ArchBookEdge { source?: string; target?: string; label?: string }
+interface ArchBookFile { nodes: ArchBookNode[]; edges: ArchBookEdge[]; summary?: unknown }
+interface ModuleRegistryFile { modules: Record<string, unknown> }
+interface CommandEntry { owner?: string; layer?: string }
+interface CommandRegistryFile { commands: Record<string, CommandEntry> }
+interface EventEntry { source?: string }
+interface EventsFile { events: Record<string, EventEntry> }
+interface CapabilityEntry { CapabilityId?: string; Category?: string; OwnerModule?: string; Version?: string | number }
+interface CapabilityRegistryFile { capabilities: CapabilityEntry[] | Record<string, CapabilityEntry> }
+interface InfraServiceEntry { name?: string; status?: string; cost_monthly_thb?: number; dependency_graph?: { modules?: string[] } }
+interface InfrastructureFile { services: Record<string, InfraServiceEntry> }
+interface DriverEntry { id?: string; module?: string; status?: string; platform?: string }
+interface DriversFile { drivers: DriverEntry[] | Record<string, DriverEntry> }
+interface ConnectorLifecycleFile { stages: string[]; status?: string }
+interface HealthReportFile { registry_completeness_pct?: number; circular_dependencies?: number; duplicate_registrations?: { count?: number } }
 
 // Every registry this generator reads. `required:true` ones abort the run
 // if missing/malformed (per the "fail loudly" contract) — `required:false`
@@ -132,20 +163,20 @@ function main() {
   const rootDir = process.env.SCG_REGISTRY_DIR ? path.resolve(process.env.SCG_REGISTRY_DIR) : REGISTRY_DIR;
   const outDir = process.env.SCG_OUT_DIR ? path.resolve(process.env.SCG_OUT_DIR) : REGISTRY_DIR;
 
-  const loaded: AnyRec = {};
+  const loaded: Record<string, AnyRec | null> = {};
   for (const s of SOURCES) {
     loaded[s.key] = loadSource(rootDir, s);
   }
 
-  const archBook = loaded.archBook;
-  const moduleRegistry = loaded.moduleRegistry;
-  const commandRegistry = loaded.commandRegistry;
-  const eventsReg = loaded.events;
-  const capReg = loaded.capabilityRegistry;
-  const infra = loaded.infrastructure;
-  const drivers = loaded.drivers;
-  const connLife = loaded.connectorLifecycle;
-  const healthReport = loaded.healthReport;
+  const archBook = loaded.archBook as unknown as ArchBookFile;
+  const moduleRegistry = loaded.moduleRegistry as unknown as ModuleRegistryFile;
+  const commandRegistry = loaded.commandRegistry as unknown as CommandRegistryFile;
+  const eventsReg = loaded.events as unknown as EventsFile;
+  const capReg = loaded.capabilityRegistry as unknown as CapabilityRegistryFile;
+  const infra = loaded.infrastructure as unknown as InfrastructureFile;
+  const drivers = loaded.drivers as unknown as DriversFile;
+  const connLife = loaded.connectorLifecycle as unknown as ConnectorLifecycleFile;
+  const healthReport = loaded.healthReport as unknown as HealthReportFile | null;
 
   // ---- structural sanity checks (fail loudly on malformed shape, not just missing file) ----
   if (!Array.isArray(archBook.nodes)) fail("architecture-book.json: nodes is not an array — regenerate with `npm run arch` first");
@@ -172,10 +203,10 @@ function main() {
   }
 
   // ---- 1. Module + Layer nodes, straight from architecture-book.json (real, already-computed AST graph) ----
-  const bookNodeById = new Map<string, AnyRec>();
-  for (const bn of archBook.nodes as AnyRec[]) bookNodeById.set(bn.id, bn);
+  const bookNodeById = new Map<string, ArchBookNode>();
+  for (const bn of archBook.nodes) bookNodeById.set(bn.id, bn);
 
-  for (const bn of archBook.nodes as AnyRec[]) {
+  for (const bn of archBook.nodes) {
     const type = bn.type === "Layer" ? "Layer" : "Module";
     const path_ = typeof bn.id === "string" ? bn.id.replace(/^(module|layer):/, "") : "UNKNOWN";
     addNode({
@@ -199,7 +230,7 @@ function main() {
 
   // Real edges: imports/contains, straight from architecture-book.json's `label` field
   // (confirmed real field name by reading the file — NOT `type`).
-  for (const be of archBook.edges as AnyRec[]) {
+  for (const be of archBook.edges) {
     if (!be.source || !be.target) continue;
     const label = be.label === "contains" ? "governed_by" : "imports";
     addEdge({ source: be.source, target: be.target, type: label as ControlEdge["type"] });
@@ -207,7 +238,7 @@ function main() {
 
   // ---- 2. Command nodes, cross-referenced to their owner module (real `owner` field in command-registry.json) ----
   const commandOwnerIndex = new Map<string, string[]>(); // module path -> command names
-  for (const [cmdName, cmdData] of Object.entries(commandRegistry.commands as AnyRec)) {
+  for (const [cmdName, cmdData] of Object.entries(commandRegistry.commands)) {
     const owner: string | undefined = cmdData?.owner;
     const nodeId = `command:${cmdName}`;
     addNode({
@@ -255,7 +286,7 @@ function main() {
   // file — only `source` (a layer name like "cognitive") and `data` (field list)).
   // We can therefore only place events at the LAYER level, never claim a specific
   // module owns an event — emitting a module-level edge here would be a fabrication.
-  for (const [eventName, eventData] of Object.entries(eventsReg.events as AnyRec)) {
+  for (const [eventName, eventData] of Object.entries(eventsReg.events)) {
     const nodeId = `event:${eventName}`;
     const sourceLayer: string | undefined = eventData?.source;
     addNode({
@@ -287,9 +318,9 @@ function main() {
   // capability-registry.json uses PascalCase fields (CapabilityId/OwnerModule/
   // Category/Description/Version/InputContract...) — confirmed by reading a
   // real sample, distinct casing from every other registry read here.
-  const capabilities: AnyRec[] = Array.isArray(capReg.capabilities)
+  const capabilities: CapabilityEntry[] = Array.isArray(capReg.capabilities)
     ? capReg.capabilities
-    : Object.entries(capReg.capabilities as AnyRec).map(([k, v]) => ({ CapabilityId: k, ...(v as AnyRec) }));
+    : Object.entries(capReg.capabilities).map(([k, v]) => ({ CapabilityId: k, ...v }));
   for (const cap of capabilities) {
     const capId = cap.CapabilityId;
     if (!capId) continue;
@@ -336,8 +367,7 @@ function main() {
   }
 
   // ---- 5. Infrastructure Service nodes (real, from infrastructure.json) ----
-  for (const [svcKey, svcData0] of Object.entries(infra.services as AnyRec)) {
-    const svcData = svcData0 as AnyRec;
+  for (const [svcKey, svcData] of Object.entries(infra.services)) {
     const nodeId = `service:${svcKey}`;
     addNode({
       id: nodeId,
@@ -368,11 +398,10 @@ function main() {
   }
 
   // ---- 6. Driver nodes (real, from drivers.json) ----
-  const driverEntries: [string, AnyRec][] = Array.isArray(drivers.drivers)
-    ? drivers.drivers.map((d: AnyRec, i: number) => [d.id || `driver_${i}`, d])
-    : Object.entries(drivers.drivers as AnyRec);
-  for (const [driverKey, driverData0] of driverEntries) {
-    const driverData = driverData0 as AnyRec;
+  const driverEntries: [string, DriverEntry][] = Array.isArray(drivers.drivers)
+    ? drivers.drivers.map((d, i): [string, DriverEntry] => [d.id || `driver_${i}`, d])
+    : Object.entries(drivers.drivers);
+  for (const [driverKey, driverData] of driverEntries) {
     const nodeId = `driver:${driverKey}`;
     addNode({
       id: nodeId,
@@ -483,9 +512,21 @@ function main() {
   );
 }
 
+// Real shape of the graph object main() constructs above and hands to this
+// validator — kept as its own interface (rather than reusing AnyRec) since
+// every field here is already known/constructed, not arbitrary external JSON.
+interface ControlGraphOutput {
+  generated_at: string;
+  nodes: ControlNode[];
+  edges: ControlEdge[];
+  summary: unknown;
+  sources: string[];
+  unknown_dimensions: string[];
+}
+
 // Simple runtime schema check (no new JSON-schema dependency, per the task
 // constraint) — checks shape, not content correctness.
-function validateGraph(graph: AnyRec) {
+function validateGraph(graph: ControlGraphOutput) {
   const errs: string[] = [];
   if (typeof graph.generated_at !== "string") errs.push("generated_at must be a string");
   if (!Array.isArray(graph.nodes) || graph.nodes.length === 0) errs.push("nodes must be a non-empty array");
@@ -500,14 +541,14 @@ function validateGraph(graph: AnyRec) {
     "provider", "dependencies", "dependents", "commands", "events", "capabilities",
     "health", "cost_source",
   ];
-  for (const n of graph.nodes as AnyRec[]) {
+  for (const n of graph.nodes) {
     for (const f of requiredNodeFields) {
       if (!(f in n)) errs.push(`node ${n.id ?? "?"} missing field ${f}`);
     }
     if (typeof n.id === "string") nodeIds.add(n.id);
   }
   let danglingEdges = 0;
-  for (const e of graph.edges as AnyRec[]) {
+  for (const e of graph.edges) {
     if (!e.source || !e.target || !e.type) errs.push(`edge missing source/target/type: ${JSON.stringify(e)}`);
     if (!nodeIds.has(e.source) || !nodeIds.has(e.target)) danglingEdges++;
   }

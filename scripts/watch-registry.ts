@@ -81,8 +81,8 @@ async function logDevLoopEvidence(relPath: string, eventType: "add" | "change" |
     const db = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, { auth: { persistSession: false } });
     const event = await logEvidenceEvent(db, sessionId, relPath, eventType);
     execSync(`npx tsx scripts/impact-analyzer.ts ${event.id}`, { cwd: ROOT, stdio: "inherit" });
-  } catch (e: any) {
-    console.error("[watch-registry] dev-loop evidence/impact failed:", e.message);
+  } catch (e) {
+    console.error("[watch-registry] dev-loop evidence/impact failed:", e instanceof Error ? e.message : String(e));
   }
 }
 
@@ -145,8 +145,8 @@ process.on("SIGINT", async () => {
       const { createClient } = await import("@supabase/supabase-js");
       const db = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, { auth: { persistSession: false } });
       await closeSession(db, devLoopSessionId);
-    } catch (e: any) {
-      console.error("[watch-registry] failed to close dev-loop session:", e.message);
+    } catch (e) {
+      console.error("[watch-registry] failed to close dev-loop session:", e instanceof Error ? e.message : String(e));
     }
   }
   process.exit(0);

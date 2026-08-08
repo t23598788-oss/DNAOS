@@ -96,11 +96,11 @@ export interface ArchitectureBook {
 
 // ── Loaders ────────────────────────────────────────
 
-function load(filename: string): any {
+function load<T>(filename: string): T {
   const p = join(REGISTRY, filename);
-  if (!existsSync(p)) return {};
-  try { return JSON.parse(readFileSync(p, "utf-8")); }
-  catch { return {}; }
+  if (!existsSync(p)) return {} as T;
+  try { return JSON.parse(readFileSync(p, "utf-8")) as T; }
+  catch { return {} as T; }
 }
 
 // KM-001 (registry/existence.json known_mistakes): this duplicates scripts/sync-registry.ts's
@@ -275,10 +275,12 @@ function detectEventRole(absPath: string, tables: string[]): { producer: boolean
   return { producer, consumer };
 }
 
+interface CapabilityRegistryEntry { OwnerModule?: string; CapabilityId?: string }
+
 function buildCapabilityIndex(): Map<string, string[]> {
-  const capReg = load("capability-registry.json");
+  const capReg = load<{ capabilities?: CapabilityRegistryEntry[] }>("capability-registry.json");
   const index = new Map<string, string[]>();
-  const capabilities: any[] = capReg.capabilities ?? [];
+  const capabilities: CapabilityRegistryEntry[] = capReg.capabilities ?? [];
   for (const cap of capabilities) {
     const owner = cap.OwnerModule;
     const id = cap.CapabilityId;
@@ -307,11 +309,27 @@ function isEntryPoint(filePath: string): boolean {
   return ENTRY_POINT_PATTERNS.some((p) => p.test(filePath));
 }
 
+interface ModuleRegistryEntry {
+  exports?: string[];
+  status?: string;
+  deprecated?: boolean;
+  entry_point?: boolean;
+  declared_callers?: string[];
+  archival_status?: string;
+  archived_knowledge_ref?: string;
+  known_gap_ref?: string;
+  layer?: string;
+  purpose_th?: string;
+  purpose?: string;
+  owner?: string;
+  [key: string]: unknown;
+}
+
 function calcStatus(
   filePath: string,
   registeredExports: string[],
   isImported: boolean,
-  registryData?: Record<string, any>
+  registryData?: ModuleRegistryEntry
 ): { status: ArchNode["status"]; error_th?: string } {
   const absPath = join(ROOT, filePath);
 
@@ -383,8 +401,8 @@ function calcStatus(
       const ref: string = registryData?.archived_knowledge_ref ?? "";
       const idMatch = ref.match(/\[([A-Z]+-\d+)\]/);
       const archiveId = idMatch?.[1];
-      const existence = load("existence.json");
-      const entries: any[] = existence.archived_knowledge?.entries ?? [];
+      const existence = load<{ archived_knowledge?: { entries?: { id: string }[] } }>("existence.json");
+      const entries = existence.archived_knowledge?.entries ?? [];
       const found = archiveId ? entries.find((e) => e.id === archiveId) : undefined;
       if (found) {
         return { status: "OK" };
@@ -409,7 +427,7 @@ function calcStatus(
     // catch, not something to wave through silently.
     if (registryData?.known_gap_ref) {
       const taskId: string = registryData.known_gap_ref;
-      const queue: any[] = load("TASK_QUEUE.json") ?? [];
+      const queue = load<{ id: string; status: string }[]>("TASK_QUEUE.json") ?? [];
       const task = queue.find((t) => t.id === taskId);
       if (task && task.status !== "done") {
         return { status: "OK" };
@@ -434,8 +452,8 @@ function calcStatus(
 // ── Main ───────────────────────────────────────────
 
 async function buildArchBook() {
-  const moduleReg = load("module-registry.json");
-  const archReg = load("architecture.json");
+  const moduleReg = load<{ modules?: Record<string, ModuleRegistryEntry> }>("module-registry.json");
+  const archReg = load<{ layers?: Record<string, { purpose?: string }> }>("architecture.json");
   const capabilityIndex = buildCapabilityIndex();
 
   const nodes: ArchNode[] = [];
@@ -444,7 +462,7 @@ async function buildArchBook() {
   // Build import graph from source
   const allFiles = await glob("**/*.{ts,tsx}", {
     cwd: ROOT,
-    ignore: ["**/node_modules/**", ".next/**", "**/*.d.ts"], // fixed 2026-07-27, see sync-registry.ts's matching comment
+    ignore: ["**/node_modules/**", ".next/**", ".dnaos-trash/**", "**/*.d.ts"], // fixed 2026-07-27 + 2026-08-05 (workspace trash), see sync-registry.ts's matching comment
   });
 
   const importedBy: Map<string, Set<string>> = new Map();
@@ -514,7 +532,7 @@ async function buildArchBook() {
 
   // Layer nodes from architecture.json
   const layers = archReg.layers ?? {};
-  for (const [layerId, layerData] of Object.entries(layers) as [string, any][]) {
+  for (const [layerId, layerData] of Object.entries(layers)) {
     nodes.push({
       id: `layer:${layerId}`,
       type: "Layer",
@@ -543,7 +561,7 @@ async function buildArchBook() {
 
   // Module nodes from module-registry.json
   const modules = moduleReg.modules ?? {};
-  for (const [filePath, data] of Object.entries(modules) as [string, any][]) {
+  for (const [filePath, data] of Object.entries(modules)) {
     const isImported = importedBy.has(filePath) && importedBy.get(filePath)!.size > 0;
     const registeredExports: string[] = data.exports ?? [];
 

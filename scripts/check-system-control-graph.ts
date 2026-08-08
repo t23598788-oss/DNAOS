@@ -37,7 +37,8 @@ function main() {
     if (!fs.existsSync(p)) fail(`expected output file missing: ${p}`);
   }
 
-  let graph: any, summary: any;
+  let graph: { nodes: unknown[]; edges: unknown[]; sources: unknown[] };
+  let summary: { total_nodes: number };
   try {
     graph = JSON.parse(fs.readFileSync(graphPath, "utf-8"));
     summary = JSON.parse(fs.readFileSync(summaryPath, "utf-8"));
