@@ -68,7 +68,7 @@ async function main() {
   const raw = await readStdin();
   if (!raw) return allow();
 
-  let payload: any;
+  let payload: { tool_name?: string; tool_input?: { file_path?: string; content?: string; new_string?: string } };
   try {
     payload = JSON.parse(raw);
   } catch {

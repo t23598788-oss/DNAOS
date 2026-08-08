@@ -1,7 +1,7 @@
-import { scanRepository } from "@/engines/governance/hardcode-decision-engine";
+import { scanRepository, type Classification } from "@/engines/governance/hardcode-decision-engine";
 
 const dirs = ["services", "gateway", "engines/validation", "engines/debt", "engines/documents", "core/executor", "app/api/admin", "supabase/functions"];
-let all: any[] = [];
+let all: Classification[] = [];
 for (const d of dirs) {
   try { all = all.concat(scanRepository(d)); } catch {}
 }

@@ -94,12 +94,22 @@ function loadForbiddenPatterns(): ForbiddenPattern[] {
 
 // ── Known-good registries (protocol/hardware/platform/compile-time/service) ──
 
+// Real, minimal shapes matching exactly what this file reads from
+// registry/hardcode-governance/*.json — never independently schema-
+// validated, so these describe the fields actually accessed below, not a
+// guessed full schema. protocolConstants/platformConstraints are loaded
+// (and returned) but never field-accessed within classify() today, so
+// their entries are honestly `unknown`, not a fabricated shape.
+interface ServiceEndpointEntry { id?: string; category?: string; rationale: string }
+interface HardwareProfileEntry { id?: string }
+interface CompileTimeConstantEntry { value_type?: string; source?: string; rationale: string }
+
 function loadKnownEntries() {
-  const protocolConstants = readJSON<{ entries: any[] }>("protocol-constants-registry.json").entries;
-  const platformConstraints = readJSON<{ entries: any[] }>("platform-constraint-registry.json").entries;
-  const compileTimeConstants = readJSON<{ entries: any[] }>("approved-compile-time-constants.json").entries;
-  const serviceEndpoints = readJSON<{ entries: any[] }>("service-endpoint-registry.json").entries;
-  const hardwareProfiles = readJSON<{ device_profiles: any[] }>("hardware-profile-registry.json").device_profiles;
+  const protocolConstants = readJSON<{ entries: unknown[] }>("protocol-constants-registry.json").entries;
+  const platformConstraints = readJSON<{ entries: unknown[] }>("platform-constraint-registry.json").entries;
+  const compileTimeConstants = readJSON<{ entries: CompileTimeConstantEntry[] }>("approved-compile-time-constants.json").entries;
+  const serviceEndpoints = readJSON<{ entries: ServiceEndpointEntry[] }>("service-endpoint-registry.json").entries;
+  const hardwareProfiles = readJSON<{ device_profiles: HardwareProfileEntry[] }>("hardware-profile-registry.json").device_profiles;
   return { protocolConstants, platformConstraints, compileTimeConstants, serviceEndpoints, hardwareProfiles };
 }
 
@@ -362,7 +372,7 @@ export function classify(input: {
       should_live_in: "source_code",
       allowed: true,
       move_to: null,
-      evidence_required: compileMatch.source,
+      evidence_required: compileMatch.source ?? null,
       rationale: compileMatch.rationale,
     };
   }
