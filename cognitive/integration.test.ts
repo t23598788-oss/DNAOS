@@ -134,7 +134,7 @@ function operatingIntent(input: string, session: Session): EnrichedInput {
   // Reasoning จะไม่ classify ซ้ำ — รับ intent_type ที่เสร็จแล้ว
 
   let intent_type: EnrichedInput["intent_type"] = "business";
-  let intent_id: string | null = matchedIntent;
+  const intent_id: string | null = matchedIntent;
   let action: string | null = null;
   let what: string | null = null;
 

@@ -13,7 +13,7 @@ export interface SessionSnapshot {
   current_workspace: string | null;
   current_business_object: { type: string; id: string | null; name: string | null } | null;
   pending_actions: string[];
-  last_tool_results: any[];
+  last_tool_results: unknown[];
   history: string[];
 }
 

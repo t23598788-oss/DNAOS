@@ -194,7 +194,7 @@ function checkRequiredInputs(
       continue; // identity.resolve จะหาให้
     }
     if (req.source === "user" && req.ask_if_missing) {
-      const val = (objective as any)[req.field]
+      const val = (objective as unknown as Record<string, unknown>)[req.field]
         ?? objective.context[req.field as keyof typeof objective.context];
       if (!val) return req.ask_if_missing;
     }

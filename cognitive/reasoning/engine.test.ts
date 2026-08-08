@@ -186,7 +186,7 @@ for (const test of tests) {
   const errors: string[] = [];
 
   for (const [key, expected] of Object.entries(test.expect)) {
-    const actual = (result as any)[key];
+    const actual = (result as unknown as Record<string, unknown>)[key];
     if (JSON.stringify(actual) !== JSON.stringify(expected)) {
       errors.push(`  ${key}: expected ${JSON.stringify(expected)} got ${JSON.stringify(actual)}`);
     }

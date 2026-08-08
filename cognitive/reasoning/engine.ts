@@ -39,7 +39,7 @@ export interface Session {
   pending_actions: string[];
   confidence: number;
   open_questions: string[];
-  last_tool_results: any[];
+  last_tool_results: unknown[];
   history: string[];
   who: string | null;
   who_id: string | null;
