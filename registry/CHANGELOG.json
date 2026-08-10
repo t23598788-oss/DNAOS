@@ -2313,5 +2313,44 @@
       "registry/FACTORY_CENTRAL_REGISTRY.json (FCR-022: TRACKED -> RESOLVED_BY_MANAGER)"
     ],
     "summary": "Closes TASK-060/FCR-022. Local main's pre-existing compile break (11 real tsc errors, introduced by commit bce2c4c) is fixed via commit 3bf47cd, which pulls in 5 real, complete, tested files from the concurrent Factory Architecture Advisor session's in-progress work — done only after a dedicated read-only investigation confirmed each file was complete (no stubs/TODOs) and had real test coverage, and after MANAGER-07's own independent isolated-worktree re-verification (not trusting the investigation's claims alone): tsc 11 errors -> 0, execution-hand:test 26/37 -> 36/37. switch-based-orchestrator:test remains 7/22 in isolation, but every one of its 15 remaining failures is now cleanly attributable to a single, disclosed, external dependency (registry/WORKER_IDENTITIES.json) rather than any code defect — a separate, tracked gap, not part of this fix. Local main can now build and be pushed without breaking real production once the Owner approves a push/deploy. This also directly unblocks capability #59's Phase 2/3, which MANAGER-07 already determined (TASK-061) should build on switchBasedOrchestratorRuntime.ts/workerTaskOrchestrator.ts — both of which are now part of a cleanly-compiling local main."
+  },
+  {
+    "change_id": "DNA-000140",
+    "agent": "Claude",
+    "agent_id": null,
+    "agent_id_note": "Not available to this session — not guessed.",
+    "session_id": null,
+    "date": "2026-08-10",
+    "files": [
+      "registry/capability-roadmap.json (capability #59 renamed + architecture refined)",
+      "registry/TASK_QUEUE.json (TASK-063 added)"
+    ],
+    "summary": "Owner reviewed TASK-061's Phase 1 findings and refined capability #59: renamed from a Gemini-specific framing to EXTERNAL WORKER ADAPTER FRAMEWORK (Gemini Spark is one Worker among many future ones), and specified a refined 12-layer architecture adding two real layers not previously named distinctly: Execution Planner (decomposes a complex Owner command into an ordered task sequence before dispatch) and a clarified Capability Resolver role (which Worker/Department should act, never Owner-selected). MANAGER-07 independently verified both against real code before accepting the Owner's framing: Execution Planner is confirmed MISSING (commandSurfaceRuntime.ts, the real live Owner Command Surface, is explicitly a fixed ~16-pattern intent router, not a decomposer); the Owner's intended Capability Resolver already EXISTS IN CODE as switchBasedOrchestratorRuntime.ts#classifyCapability but has zero real route callers (already known from TASK-061) — needs wiring, not rebuilding. Dispatched TASK-063: a design-only (non-code) Phase 2+3 spec covering the generalized Comparison Matrix, a real Execution Planner spec, a concrete Resolver-wiring plan, and an Integration Contract extending the existing workerContract.ts/workerAdapter.ts with named adapters for the Owner's full provider list."
+  },
+  {
+    "change_id": "DNA-000141",
+    "agent": "Claude",
+    "agent_id": null,
+    "agent_id_note": "Not available to this session — not guessed.",
+    "session_id": null,
+    "date": "2026-08-10",
+    "files": [
+      "registry/TASK_QUEUE.json (TASK-063: not_started -> done; TASK-064 added)",
+      "registry/capability-roadmap.json (capability #59: Phase 2+3 design complete)"
+    ],
+    "summary": "Closes TASK-063 (Phase 2+3 design for External Worker Adapter Framework). Key finding beyond the original brief: classifyCapability() is not exported at all, and wiring it today would hit a guaranteed DISPATCH_DENIED_UNREGISTERED because its real data dependency (WORKER_IDENTITIES.json, 0/6 Departments registered) is itself uncommitted, owned by a concurrent session. MANAGER-07 accepted the design's recommended sequencing: build the Execution Planner first, fully isolated from the Resolver/registry risk, dispatched now as TASK-064. Resolver wiring and new provider adapters (GeminiSparkAdapter etc.) are deliberately deferred with clear, evidence-based reasons, not silently dropped."
+  },
+  {
+    "change_id": "DNA-000142",
+    "agent": "Claude",
+    "agent_id": null,
+    "agent_id_note": "Not available to this session — not guessed.",
+    "session_id": null,
+    "date": "2026-08-10",
+    "files": [
+      "registry/TASK_QUEUE.json (TASK-064: not_started -> done)",
+      "registry/capability-roadmap.json (capability #59: Execution Planner built)"
+    ],
+    "summary": "Closes TASK-064. Real Execution Planner built and committed (0e834b9), independently re-verified by MANAGER-07 in an isolated worktree (tsc clean, 11/11 test pass, exactly 3 files touched) before acceptance -- not trusted from the CODE_WORKER's own report alone, consistent with this session's standing verification discipline. Capability #59's build order (Planner first, Resolver wiring and new adapters deferred with clear evidence-based reasons) proceeds as designed in TASK-063."
   }
 ]
