@@ -35,7 +35,8 @@ export type ArtifactType =
   | "MCP_EXECUTION_RECORD" | "LOCAL_MODEL_EXECUTION_RECORD" | "EXECUTION_BUDGET_REPORT" | "CODE_WORKER_PROPOSAL_V2" | "WORKER_HEALTH_REPORT"
   | "DOMAIN_ASSET_RECORD" | "SUBDOMAIN_DISCOVERY_REPORT" | "DNS_VERIFICATION_REPORT" | "HTTP_PROBE_REPORT" | "TLS_EVIDENCE_RECORD" | "EXTERNAL_DRIFT_REPORT"
   | "COMMAND_INVOCATION" | "EXECUTION_CONTEXT_CHECKPOINT" | "FACTORY_READINESS_REPORT"
-  | "MANAGER_QUESTION_RECORD" | "ORCHESTRATOR_WORK_ITEM_RECORD" | "COST_GATE_DECISION" | "EDGE_FUNCTION_DISPATCH_RECORD";
+  | "MANAGER_QUESTION_RECORD" | "ORCHESTRATOR_WORK_ITEM_RECORD" | "COST_GATE_DECISION" | "EDGE_FUNCTION_DISPATCH_RECORD"
+  | "CONFIG_CHANGE_RECORD";
 
 export type ArtifactRegistrationStatus = "IMPLEMENTED" | "NOT_IMPLEMENTED";
 export type ArtifactFormat = "json" | "text" | "png" | "n/a";
@@ -809,6 +810,12 @@ export const ARTIFACT_TYPE_REGISTRY: Record<ArtifactType, ArtifactTypeDefinition
     description: "Real, immutable snapshot of one real EDGE_FUNCTION_WORKER dispatch attempt (owner, 2026-08-09, TASK-045 — 11th WorkerType, Owner-authorized Rule 252 exception, DNA-000082/083): the real targetFunction/payload shape, the real Cost Gate outcome checked BEFORE any network call, and — once dispatched — the real, constructed request URL and fire-and-forget/awaited outcome. This is the honest, local analog of supabase/functions/line-webhook-v2/engines/profile-refresh.ts's line_profile_refresh_queue insert step (see edgeFunctionWorkerRuntime.ts's header for why this is a local Evidence Warehouse record rather than a new, generic, cross-domain Supabase queue table this task was not scoped to design/migrate).",
     producer: "app/api/admin/ide/_lib/edgeFunctionWorkerRuntime.ts", consumer: ["Owner Console (internal only)", "scripts/edge-function-worker-test.ts"],
     source: "real EdgeFunctionWorkerJobContract input, real checkCostGate() outcome, real constructed fetch() request", format: "json", immutable: true, retention: "bounded artifact history (MAX_ARTIFACT_HISTORY)", supportsRegenerate: false, status: "IMPLEMENTED",
+  },
+  CONFIG_CHANGE_RECORD: {
+    artifactType: "CONFIG_CHANGE_RECORD", displayName: "Config Change Record",
+    description: "Real, immutable snapshot of one real app_configs key/value write via a settings API route (owner, 2026-08-10, TASK-068 — /admin/ide Settings tab real wiring, capability #61 Phase 1) — the real key, the real new value, and the real app_configs.updated_at timestamp re-read from core/config-loader.ts's cache right after the write, never a fabricated evidence entry.",
+    producer: "app/api/admin/ide/settings/route.ts (PUT), core/config/company-settings.ts's future callers", consumer: ["Owner Console (internal only)", "/admin/ide Settings tab"],
+    source: "real app_configs upsert result + core/config-loader.ts#getConfigUpdatedAt", format: "json", immutable: true, retention: "bounded artifact history (MAX_ARTIFACT_HISTORY)", supportsRegenerate: false, status: "IMPLEMENTED",
   },
 };
 

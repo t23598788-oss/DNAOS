@@ -8691,7 +8691,8 @@
       "exports": [
         "FileTabState",
         "IDEWorkspace",
-        "isDirty"
+        "isDirty",
+        "isSettingCheckboxEnabled"
       ],
       "status": "active"
     },
@@ -9603,6 +9604,7 @@
         "computeLineage",
         "createArchitectureResultArtifact",
         "createBuildArtifact",
+        "createConfigChangeArtifact",
         "createDeploymentArtifact",
         "createEditorSaveArtifact",
         "createExecutionResultArtifact",
@@ -13774,6 +13776,42 @@
       "purpose_th": "ชุดทดสอบจริง 12 ข้อสำหรับส่วนแยกเส้นทางงานแบบ ASYNCHRONOUS ในตัวจ่ายงาน — พิสูจน์ว่าฟังก์ชันจัดหมวดถูกเปิดให้เรียกจากภายนอกได้จริง งานแบบ ASYNCHRONOUS ไปถึงระบบเชื่อมต่อภายนอกจริงถูกต้อง และเส้นทางเดิม (SYNCHRONOUS) ไม่เปลี่ยนแปลงแม้แต่บรรทัดเดียว",
       "exports": [
         "classifyCapability"
+      ],
+      "status": "active"
+    },
+    "scripts/settings-real-wiring-test.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "Real acceptance suite (12 cases) for the /admin/ide Settings real-wiring build (TASK-068) — proves honest UNAVAILABLE status computation (never hardcoded ACTIVE), proves the checkbox-clickability gate is real, proves the Database Provider label reflects a live signal, and proves settings changes produce real, verifiable audit evidence.",
+      "purpose_th": "ชุดทดสอบจริง 12 ข้อสำหรับการเชื่อมต่อหน้าตั้งค่า IDE ให้ใช้งานได้จริง — พิสูจน์ว่าสถานะ ใช้งานไม่ได้จริง คำนวณจากของจริงไม่ใช่ค่าตายตัว พิสูจน์ว่าช่องกาเครื่องหมายกดได้เฉพาะเมื่อมีระบบรองรับจริง และพิสูจน์ว่าทุกการเปลี่ยนค่ามีหลักฐานยืนยันจริง",
+      "exports": [
+        "computeSettingStatus"
+      ],
+      "status": "active"
+    },
+    "core/config/ide-settings.ts": {
+      "owner": "core",
+      "layer": "core",
+      "purpose": "Real IDE editor settings storage, mirroring core/config/company-settings.ts exactly — reuses the shared app_configs key-value mechanism (core/config-loader.ts). 3 real keys (auto-save/format-on-save/telemetry, all currently UNAVAILABLE since no runtime consumer exists yet) plus computeSettingStatus() for real, evidence-based per-item status.",
+      "purpose_th": "ที่เก็บค่าตั้งค่าจริงของหน้าต่างแก้ไขโค้ดใน IDE ใช้กลไกเดิมที่มีอยู่แล้วร่วมกับข้อมูลบริษัท (ไม่สร้างระบบเก็บค่าใหม่) มี 3 ค่าจริง (บันทึกอัตโนมัติ/จัดรูปแบบอัตโนมัติ/การส่งข้อมูลใช้งาน) ซึ่งทั้งหมดยังแสดงสถานะ ใช้งานไม่ได้จริง อย่างตรงไปตรงมา เพราะยังไม่มีระบบใดใช้ค่านี้จริง",
+      "exports": [
+        "IDE_SETTINGS_KEYS",
+        "IdeSettingStatus",
+        "IdeSettings",
+        "computeSettingStatus",
+        "loadIdeSettings",
+        "saveIdeSettings"
+      ],
+      "status": "active"
+    },
+    "app/api/admin/ide/settings/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Real GET/PUT API for IDE settings, mirroring app/api/admin/settings/route.ts's exact requireAuth(ADMIN_TIER) pattern — a distinct route from the CompanySettings one. PUT persists via ide-settings.ts and records real CONFIG_CHANGE audit evidence per key changed.",
+      "purpose_th": "API จริงสำหรับอ่าน/เขียนค่าตั้งค่า IDE (คนละเส้นทางกับการตั้งค่าบริษัท) ต้องยืนยันตัวตนระดับ Admin ก่อนใช้งานเสมอ ทุกการบันทึกค่าจะสร้างหลักฐานการเปลี่ยนแปลงจริงไว้ด้วย",
+      "exports": [
+        "GET",
+        "PUT"
       ],
       "status": "active"
     }

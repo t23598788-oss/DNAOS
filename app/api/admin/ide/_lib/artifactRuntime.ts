@@ -24,9 +24,22 @@ import { type InspectionRecord } from "./inspectionRuntime";
 import { getRule, computeCoverageSummary, runGovernanceVerification, type GovernanceEvent } from "./governanceRuntime";
 import { getDecision } from "./decisions";
 import { getProblem } from "./problems";
+import { encodeAtBoundary } from "@/services/data-boundary/dataBoundaryRuntime";
+import { getConfigUpdatedAt } from "@/core/config-loader";
+
+// DATA_BOUNDARY_INTEGRITY_GATE (owner, 2026-08-09) — QUEUE_ARTIFACT_EVIDENCE
+// boundary. Every artifact's contentForChecksum is what gets hashed and
+// persisted as the immutable evidence record; encodeAtBoundary produces
+// byte-identical JSON to plain JSON.stringify for well-formed input, but
+// fails closed (throws DataIntegrityBoundaryFailure) instead of silently
+// writing `{}` for a Map/Set, throwing an unstructured native TypeError
+// for a BigInt, or writing `null` for an undefined array element.
+function stringifyAtArtifactBoundary(value: unknown, correlationId: string | null): string {
+  return encodeAtBoundary("QUEUE_ARTIFACT_EVIDENCE", { kind: "unknown" }, value, { correlationId });
+}
 
 export type ArtifactStatus = "PENDING" | "READY" | "FAILED" | "ARCHIVED" | "INVALID";
-export type EvidenceKind = "QUEUE" | "INSPECTION" | "RUNTIME" | "GOVERNANCE" | "FACTORY" | "REGISTRY" | "DECISION" | "PROBLEM" | "UI_NODE" | "UI_SCREENSHOT_REGION" | "CHANGE_SET" | "TEST_RUN" | "BUILD_RUN" | "RELEASE_RUN" | "DEPLOYMENT_PLAN";
+export type EvidenceKind = "QUEUE" | "INSPECTION" | "RUNTIME" | "GOVERNANCE" | "FACTORY" | "REGISTRY" | "DECISION" | "PROBLEM" | "UI_NODE" | "UI_SCREENSHOT_REGION" | "CHANGE_SET" | "TEST_RUN" | "BUILD_RUN" | "RELEASE_RUN" | "DEPLOYMENT_PLAN" | "CONFIG_CHANGE";
 
 export interface EvidenceRef {
   evidenceId: string;
@@ -268,7 +281,7 @@ export function createEditorSaveArtifact(jobId: string, relPath: string, hash: s
 
 export function createQueueJobArtifact(job: Job, actor: string, ownerId: string, parentIds: string[] = []): ArtifactRecord {
   const record = createArtifactInternal({
-    artifactType: "QUEUE_JOB", actor, ownerId, contentForChecksum: JSON.stringify(job), mimeType: "application/json",
+    artifactType: "QUEUE_JOB", actor, ownerId, contentForChecksum: stringifyAtArtifactBoundary(job, job.jobId), mimeType: "application/json",
     jobId: job.jobId, executionId: job.executionId ?? null, durationMs: job.duration ?? null, generatedFrom: job.jobId, parentIds,
   });
   record.evidence.push(makeEvidence("QUEUE", job.jobId, `Job record itself (type ${job.type}, status ${job.status})`));
@@ -277,7 +290,7 @@ export function createQueueJobArtifact(job: Job, actor: string, ownerId: string,
 
 export function createExecutionResultArtifact(run: RunRecord, actor: string, ownerId: string, parentIds: string[] = []): ArtifactRecord {
   const record = createArtifactInternal({
-    artifactType: "EXECUTION_RESULT", actor, ownerId, contentForChecksum: JSON.stringify({ runId: run.runId, exitCode: run.exitCode, stdoutHash: run.stdoutHash, status: run.status }),
+    artifactType: "EXECUTION_RESULT", actor, ownerId, contentForChecksum: stringifyAtArtifactBoundary({ runId: run.runId, exitCode: run.exitCode, stdoutHash: run.stdoutHash, status: run.status }, run.runId),
     mimeType: "application/json", sourceHash: run.stdoutHash, executionId: run.runId, durationMs: run.durationMs, generatedFrom: run.runId, parentIds,
   });
   record.evidence.push(makeEvidence("RUNTIME", run.runId, `Execution Runtime RunRecord for command "${run.commandId}"`));
@@ -287,7 +300,7 @@ export function createExecutionResultArtifact(run: RunRecord, actor: string, own
 export function createInspectionResultArtifact(record: InspectionRecord, actor: string, ownerId: string, parentIds: string[] = []): ArtifactRecord {
   const rec = createArtifactInternal({
     artifactType: "INSPECTION_RESULT", actor, ownerId,
-    contentForChecksum: JSON.stringify({ id: record.inspectionId, status: record.status, findingCount: record.findingCount, sourceHash: record.sourceHash }),
+    contentForChecksum: stringifyAtArtifactBoundary({ id: record.inspectionId, status: record.status, findingCount: record.findingCount, sourceHash: record.sourceHash }, record.inspectionId),
     mimeType: "application/json", sourceHash: record.sourceHash, jobId: record.jobId, executionId: record.executionId,
     inspectionId: record.inspectionId, durationMs: record.durationMs, generatedFrom: record.inspectionId, parentIds,
   });
@@ -306,7 +319,7 @@ export function createGovernanceResultArtifact(actor: string, ownerId: string, e
   const runId = randomUUID();
   const rec = createArtifactInternal({
     artifactType: "GOVERNANCE_RESULT", actor, ownerId,
-    contentForChecksum: JSON.stringify({ summary, eventCount: events.length }),
+    contentForChecksum: stringifyAtArtifactBoundary({ summary, eventCount: events.length }, runId),
     mimeType: "application/json", durationMs: null, generatedFrom: `verify-run:${runId}`,
   });
   rec.evidence.push(makeEvidence("GOVERNANCE", "summary", `Coverage Summary: ${summary.enforced}/${summary.totalRules} enforced`));
@@ -393,6 +406,13 @@ function makeEvidence(kind: EvidenceKind, refId: string, description: string): E
       case "TEST_RUN": verifiedReal = !!refId; break;
       case "BUILD_RUN": verifiedReal = !!refId; break;
       case "RELEASE_RUN": verifiedReal = !!refId; break;
+      // CONFIG_CHANGE — real, not a truthy-refId-only check like QUEUE/
+      // RUNTIME above: refId is the app_configs key, verified real against
+      // core/config-loader.ts's real _cacheMeta (populated by its most
+      // recent loadConfigs() call) actually having a real updated_at
+      // timestamp for that exact key — a fabricated/never-written key
+      // resolves to undefined and is honestly refused, never attached.
+      case "CONFIG_CHANGE": verifiedReal = getConfigUpdatedAt(refId) !== undefined; break;
     }
   } catch { verifiedReal = false; }
   return { evidenceId: randomUUID(), kind, refId, description, verifiedReal };
@@ -620,6 +640,29 @@ export function createOperationsArtifact(input: {
   if (input.relatedIncidentId) rec.evidence.push(makeEvidence("RUNTIME", input.relatedIncidentId, `real ${input.artifactType} produced for Incident ${input.relatedIncidentId}`));
   else if (input.relatedRecoveryPlanId) rec.evidence.push(makeEvidence("RUNTIME", input.relatedRecoveryPlanId, `real ${input.artifactType} produced for Recovery Plan ${input.relatedRecoveryPlanId}`));
   else if (input.relatedSignalId) rec.evidence.push(makeEvidence("RUNTIME", input.relatedSignalId, `real ${input.artifactType} produced for Signal ${input.relatedSignalId}`));
+  return rec;
+}
+
+/** Real, typed producer for a settings change (owner, 2026-08-10,
+ * TASK-068 — /admin/ide Settings tab real wiring, capability #61 Phase 1).
+ * Called by app/api/admin/ide/settings/route.ts's PUT handler right after
+ * core/config/ide-settings.ts's saveIdeSettings() + a fresh loadIdeSettings()
+ * (which repopulates core/config-loader.ts's cache/meta, so
+ * getConfigUpdatedAt(key) below reflects the real, just-written
+ * app_configs.updated_at — never a stale or pre-write timestamp). Same
+ * real pattern as every other typed producer above — wraps real content
+ * this caller itself just wrote/read, through the SAME
+ * createArtifactInternal(), never a second store. */
+export function createConfigChangeArtifact(key: string, value: string, actor: string, ownerId: string): ArtifactRecord {
+  const rec = createArtifactInternal({
+    artifactType: "CONFIG_CHANGE_RECORD", actor, ownerId,
+    contentForChecksum: stringifyAtArtifactBoundary({ key, value }, key),
+    mimeType: "application/json", generatedFrom: key,
+  });
+  const updatedAt = getConfigUpdatedAt(key);
+  rec.evidence.push(makeEvidence("CONFIG_CHANGE", key, updatedAt
+    ? `real app_configs.updated_at=${updatedAt} for key "${key}" (new value "${value}")`
+    : `app_configs key "${key}" written (new value "${value}"), but no real updated_at was found in core/config-loader.ts's cache at evidence time — honestly unverified, not fabricated`));
   return rec;
 }
 

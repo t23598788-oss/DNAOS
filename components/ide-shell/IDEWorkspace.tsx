@@ -18,13 +18,19 @@
  * Bridge), Context (real, file-persisted Execution Context, survives a
  * dev-server restart — executionContextRuntime.ts), and the Owner
  * Command Surface (real, deterministic intent routing —
- * commandSurfaceRuntime.ts).
+ * commandSurfaceRuntime.ts), and — as of 2026-08-10, TASK-068, capability
+ * #61 Phase 1 — Settings (real app_configs-backed storage/API, see
+ * core/config/ide-settings.ts + app/api/admin/ide/settings/route.ts; all 3
+ * checkboxes honestly display real, computed UNAVAILABLE status and stay
+ * non-clickable, since zero real runtime consumer exists for any of them
+ * yet — never a fabricated ACTIVE/enabled look; Database Provider now
+ * really reflects the live DATABASE_HEALTH monitoring signal).
  *
  * Still honestly NOT_CONNECTED / static: left-sidebar Runtime/AI panels
- * (labeled "Not connected", not faked), Settings (no real config store),
- * and there is no free-form Terminal — the Execution tab is a real but
- * intentionally allow-listed command runner, not a general shell (see
- * this pass's final report for the reasoning).
+ * (labeled "Not connected", not faked), and there is no free-form
+ * Terminal — the Execution tab is a real but intentionally allow-listed
+ * command runner, not a general shell (see this pass's final report for
+ * the reasoning).
  */
 import { useState, useCallback, useRef, useEffect, useMemo } from "react";
 import {
@@ -2094,17 +2100,105 @@ function DocumentsPanel({ onOpenTab }: { onOpenTab: (path: string, title: string
   );
 }
 
-// ---- Settings (no real config store yet) ----
+// ---- Real IDE Settings (owner, 2026-08-10, TASK-068 — /admin/ide Settings
+// tab real wiring, capability #61 Phase 1). Mirrors core/config/ide-
+// settings.ts's real IdeSettings/IdeSettingStatus shapes exactly — real
+// fetch/save via app/api/admin/ide/settings/route.ts, never a client-side
+// mock. ----
+interface IdeSettingsClient { autoSaveEnabled: boolean; formatOnSaveEnabled: boolean; telemetryEnabled: boolean }
+type IdeSettingStatusClient = "ACTIVE" | "NOT_WIRED" | "UNAVAILABLE" | "ERROR";
+type IdeSettingsStatusMapClient = Record<keyof IdeSettingsClient, IdeSettingStatusClient>;
+type IdeSettingsGetResponse = { settings: IdeSettingsClient; status: IdeSettingsStatusMapClient } | { error: string };
+type IdeSettingsPutResponse = { ok: true } | { error: string };
+
+const IDE_SETTINGS_ITEMS: { field: keyof IdeSettingsClient; label: string }[] = [
+  { field: "autoSaveEnabled", label: "Auto-save" },
+  { field: "formatOnSaveEnabled", label: "Format on save" },
+  { field: "telemetryEnabled", label: "Telemetry" },
+];
+
+// Exported purely so scripts/settings-real-wiring-test.ts can import the
+// real gate function instead of re-implementing it (same convention as
+// isDirty above) — the ONE place that decides whether a settings checkbox
+// may render as clickable. Owner's explicit rule: never show a clickable
+// checkbox with no real Runtime behind it — a real per-item status of
+// exactly "ACTIVE" is required, never a UI-only `disabled` literal that
+// could silently drift from the real fetched status.
+export function isSettingCheckboxEnabled(status: IdeSettingStatusClient | undefined): boolean {
+  return status === "ACTIVE";
+}
+
 function SettingsPanel() {
+  const [settings, setSettings] = useState<IdeSettingsClient | null>(null);
+  const [status, setStatus] = useState<IdeSettingsStatusMapClient | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [busyField, setBusyField] = useState<keyof IdeSettingsClient | null>(null);
+  const [dbSignal, setDbSignal] = useState<SignalRecordClient | null | "loading" | "error">("loading");
+
+  const refreshSettings = useCallback(async () => {
+    const body = await fetchIde<IdeSettingsGetResponse>("/api/admin/ide/settings");
+    if ("settings" in body) { setSettings(body.settings); setStatus(body.status); setError(null); }
+    else setError(body.error);
+  }, []);
+
+  // Real fetch of the existing, already-live DATABASE_HEALTH signal
+  // (monitoringRuntime.ts#collectDatabaseHealth, backed by a real deployed
+  // Edge Function + system_health_status table) — replaces the old static
+  // "Database Provider: Not connected" string entirely.
+  const refreshDbHealth = useCallback(async () => {
+    const body = await fetchIde<{ ok: boolean; signals?: SignalRecordClient[] }>("/api/admin/ide/operations/monitoring/signals");
+    if (!body.ok || !body.signals) { setDbSignal("error"); return; }
+    const dbSignals = body.signals.filter((s) => s.signalType === "DATABASE_HEALTH").sort((a, b) => b.observedAt.localeCompare(a.observedAt));
+    setDbSignal(dbSignals[0] ?? null);
+  }, []);
+
+  useEffect(() => { void refreshSettings(); void refreshDbHealth(); }, [refreshSettings, refreshDbHealth]);
+
+  const onToggle = useCallback(async (field: keyof IdeSettingsClient) => {
+    // Real, load-bearing gate — mirrors isSettingCheckboxEnabled() exactly.
+    // Never even attempts a PUT for an item with no real Runtime behind it.
+    if (!settings || !status || !isSettingCheckboxEnabled(status[field])) return;
+    setBusyField(field);
+    const next: IdeSettingsClient = { ...settings, [field]: !settings[field] };
+    const res = await fetch("/api/admin/ide/settings", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(next),
+    });
+    const result: IdeSettingsPutResponse = await res.json().catch(() => ({ error: "invalid response" }));
+    if ("ok" in result && result.ok) { setSettings(next); setError(null); }
+    else setError("error" in result ? result.error : "บันทึกไม่สำเร็จ");
+    setBusyField(null);
+  }, [settings, status]);
+
+  const dbLabel =
+    dbSignal === "loading" ? "Database Provider: checking real monitoring signal…" :
+    dbSignal === "error" ? "Database Provider: could not reach real monitoring signal endpoint" :
+    dbSignal === null ? "Database Provider: no real DATABASE_HEALTH signal collected yet" :
+    `Database Provider: ${dbSignal.status}${dbSignal.reason ? ` — ${dbSignal.reason}` : ""}`;
+
   return (
     <div style={{ padding: 10 }}>
-      <div style={{ fontSize: 11.5, color: "#858585", marginBottom: 8 }}>Database Provider: Not connected</div>
-      {["Auto-save", "Format on save", "Telemetry"].map((label) => (
-        <label key={label} style={{ display: "flex", alignItems: "center", gap: 8, padding: "4px 0", fontSize: 12, color: "#858585" }}>
-          <input type="checkbox" disabled />
-          {label}
-        </label>
-      ))}
+      <div style={{ fontSize: 11.5, color: "#858585", marginBottom: 8 }}>{dbLabel}</div>
+      {error && <div style={{ fontSize: 11, color: "#f37c7c", marginBottom: 8 }}>{error}</div>}
+      {IDE_SETTINGS_ITEMS.map(({ field, label }) => {
+        const itemStatus = status?.[field];
+        const enabled = isSettingCheckboxEnabled(itemStatus);
+        return (
+          <label key={field} style={{ display: "flex", alignItems: "center", gap: 8, padding: "4px 0", fontSize: 12, color: "#858585" }}>
+            <input
+              type="checkbox"
+              checked={!!settings?.[field]}
+              disabled={!enabled || busyField === field || !settings}
+              onChange={() => void onToggle(field)}
+            />
+            {label}
+            <span style={{ fontSize: 10, color: enabled ? "#4ec9b0" : "#6a6a6a", marginLeft: "auto" }}>
+              {itemStatus ?? "…"}
+            </span>
+          </label>
+        );
+      })}
     </div>
   );
 }
