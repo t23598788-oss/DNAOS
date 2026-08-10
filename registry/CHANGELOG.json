@@ -2536,5 +2536,18 @@
       "registry/capability-roadmap.json (capability #62: STEP 7 spec received)"
     ],
     "summary": "Owner gave a full 12-point spec for a Provider Registry / External Services panel inside /admin/ide (capability #62 STEP 7), viewed live on the production deployment. Dispatched TASK-072 as a real audit+design task, explicitly building on TASK-070/071's already-gathered evidence (capability #56's real GitHub/Vercel/Supabase adapters, the separate real /admin/connectors page with its real 3-way provider join, capability #59's real API worker adapters) rather than re-auditing from zero, per the Owner's own reuse-first instruction. No code will be written until this design returns."
+  },
+  {
+    "change_id": "DNA-000157",
+    "agent": "Claude",
+    "agent_id": null,
+    "agent_id_note": "Not available to this session — not guessed.",
+    "session_id": null,
+    "date": "2026-08-10",
+    "files": [
+      "registry/TASK_QUEUE.json (TASK-072: not_started -> done; TASK-073 added)",
+      "registry/capability-roadmap.json (capability #62: STEP 7 design complete)"
+    ],
+    "summary": "Closes TASK-072. Real design confirms capability #62 STEP 7 needs far less new backend than assumed -- DNA OS already has a complete, generic, live OAuth engine and a real Provider Registry (catalog.ts) both already exercised by the existing /admin/connectors page; the real gap is /admin/ide UI exposure plus zero registered OAuth credentials for any provider. Corrected an earlier, less-informed claim that TikTok had zero related code -- a real research report and a real, runnable (but uncredentialed) registration script already exist. Dispatched TASK-073: a minimal GitHub-only build slice, explicitly gated on the Owner creating a real GitHub OAuth App before true end-to-end live verification is possible -- code scaffolding proceeds now, honest disclosure of what remains blocked."
   }
 ]
