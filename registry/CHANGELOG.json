@@ -2680,5 +2680,18 @@
       "registry/FACTORY_CENTRAL_REGISTRY.json (FCR-026 updated)"
     ],
     "summary": "MANAGER-07's independent verification of TASK-076 (registry-integrity-gate) found a severe, real gap the CODE_WORKER's own isolated-worktree tests structurally could not surface: running the gate against the REAL, shared, multi-session working tree (not a clean test worktree) blocks with 26 real, legitimate, pre-existing untracked files belonging to concurrent work, unrelated to any specific commit. Activating this as originally delivered would have halted all future commits in this repo. The gate/test code itself is otherwise real, sound, and well-reasoned -- kept as a real foundation, not discarded. The live pre-commit-check.sh wiring was correctly NOT committed. Dispatched TASK-077 to add commit-relevance scoping (hard-block only what's actually part of the commit; report-only for pre-existing, unrelated registry noise) before this can safely go live -- exactly the kind of catch this session's independent-verification discipline exists for."
+  },
+  {
+    "change_id": "DNA-000168",
+    "agent": "Claude",
+    "agent_id": null,
+    "agent_id_note": "Not available to this session — not guessed.",
+    "session_id": null,
+    "date": "2026-08-11",
+    "files": [
+      "registry/TASK_QUEUE.json (TASK-076/077: done)",
+      "registry/FACTORY_CENTRAL_REGISTRY.json (FCR-026: resolved)"
+    ],
+    "summary": "Closes TASK-076/077 and resolves FCR-026. The registry-integrity-gate (Owner directive, following MANAGER-07's own discovery of 2 real registry bugs during FCR-025) is now real, correctly scoped, and live in the real pre-commit pipeline. The first delivery (TASK-076) had a severe design gap -- would have blocked all future commits in this shared repo -- caught by MANAGER-07's own independent verification against the real working tree (not just an isolated test worktree), before it ever reached the live hook. The fix (TASK-077) was verified even more rigorously: the commit recording this fix was itself the real, live proof the hook works correctly, plus a deliberate re-injection of the original bug confirmed real blocking still works. This is exactly the multi-layered, never-trust-a-single-report discipline this session has maintained throughout, applied to its highest-stakes target yet -- the shared pre-commit hook every future commit depends on."
   }
 ]
