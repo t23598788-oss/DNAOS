@@ -2523,5 +2523,18 @@
       "registry/capability-roadmap.json (capability #62: STEP 1 complete)"
     ],
     "summary": "Closes TASK-070. Real /admin/ide UI audit complete, blocked from live browser interaction by a real, confirmed credential problem (FCR-023, escalated to Owner) but completed via rigorous structural tracing of the full 5686-line IDEWorkspace.tsx. Confirms most of the system is genuinely real (not mock), matching TASK-071's independent finding. Most important correction: this session's own TASK-064 (Execution Planner) and TASK-066 (Dispatcher) builds are confirmed orphaned/unreachable from the real, live Owner Command UI flow, which uses a different, pre-existing, working implementation instead -- capability #62's remaining steps must build on what's actually live, not on this session's own newest, unwired machinery."
+  },
+  {
+    "change_id": "DNA-000156",
+    "agent": "Claude",
+    "agent_id": null,
+    "agent_id_note": "Not available to this session — not guessed.",
+    "session_id": null,
+    "date": "2026-08-10",
+    "files": [
+      "registry/TASK_QUEUE.json (TASK-072 added)",
+      "registry/capability-roadmap.json (capability #62: STEP 7 spec received)"
+    ],
+    "summary": "Owner gave a full 12-point spec for a Provider Registry / External Services panel inside /admin/ide (capability #62 STEP 7), viewed live on the production deployment. Dispatched TASK-072 as a real audit+design task, explicitly building on TASK-070/071's already-gathered evidence (capability #56's real GitHub/Vercel/Supabase adapters, the separate real /admin/connectors page with its real 3-way provider join, capability #59's real API worker adapters) rather than re-auditing from zero, per the Owner's own reuse-first instruction. No code will be written until this design returns."
   }
 ]
