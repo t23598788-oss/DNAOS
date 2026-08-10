@@ -8694,7 +8694,10 @@
         "FileTabState",
         "IDEWorkspace",
         "isDirty",
-        "isSettingCheckboxEnabled"
+        "isSettingCheckboxEnabled",
+        "lineColAt",
+        "offsetOfLine",
+        "shouldSoftWrapPath"
       ],
       "status": "active"
     },
@@ -13902,6 +13905,16 @@
       "layer": "scripts",
       "purpose": "Real acceptance suite (22 cases) for the GitHub Connections rail (TASK-073) — proves the Owner Command intent recognition, the GitHub-specific test check's honesty (rejects false positives), and the registration script's real, honest SKIP when uncredentialed.",
       "purpose_th": "ชุดทดสอบจริง 22 ข้อสำหรับส่วนเชื่อมต่อ GitHub ใหม่ — พิสูจน์ว่าคำสั่ง Owner จดจำได้ถูกต้อง การตรวจสอบเฉพาะ GitHub ไม่หลอกผลบวกปลอม และสคริปต์ลงทะเบียนหยุดทำงานอย่างตรงไปตรงมาเมื่อยังไม่มีกุญแจเชื่อมต่อจริง",
+      "exports": [],
+      "status": "active"
+    },
+    "scripts/ide-editor-overflow-verify.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "Real structural test (TASK-074) proving the FileEditor overflow/wrap-mode fix — a real >5000-character line does not break page layout, and the required overflow-containment CSS is really present in the source.",
+      "purpose_th": [
+        "ชุดทดสอบจริงพิสูจน์ว่าการแก้ไขปัญหาบรรทัดยาวล้นจอได้ผลจริง — บรรทัดยาวเกิน 5,000 ตัวอักษรไม่ทำให้หน้าจอพัง และมีโค้ดจำกัดขอบเขตการเลื่อนจริงในไฟล์"
+      ],
       "exports": [],
       "status": "active"
     }

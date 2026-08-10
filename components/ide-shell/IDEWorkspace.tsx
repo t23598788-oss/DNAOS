@@ -37,6 +37,37 @@
  * Terminal — the Execution tab is a real but intentionally allow-listed
  * command runner, not a general shell (see this pass's final report for
  * the reasoning).
+ *
+ * LIGHT THEME PASS (owner, 2026-08-10, TASK-074 / FCR-025 Round 1, Rule
+ * 262/263) — this file's entire visual surface was converted from a
+ * hardcoded VS-Code-dark palette (background #1e1e1e etc.) to Light
+ * Theme. Every color VALUE below is sourced from the SAME real,
+ * already-established tokens app/OperationalWorkspace.tsx (the DNA OS
+ * home page) already uses — styles/tokens/colors.ts's light palette
+ * (background #F5F7FA, section #EEF2F7, card #FFFFFF, border
+ * #E2E8F0/#CBD5E1, heading #0F172A, body #334155, description #64748B,
+ * interactiveCard #F1F5F9/hover #E8EDF3) and styles/tokens/
+ * semantic-colors.ts's light status colors (success #0F766E, warning
+ * #B45309, error #B91C1C, info #334155, incl. their real chip rgba
+ * backgrounds, e.g. success chip rgba(15,118,110,0.08)). This is a pure
+ * color-VALUE swap — the file's inline style={{}} MECHANISM is
+ * unchanged (converting to Tailwind classes is out of scope for this
+ * round). Where no token exists for a role VS Code's dark theme used a
+ * saturated accent for (e.g. the blue "active tab" underline, or a
+ * primary-action button fill), heading (#0F172A) is reused as the
+ * strongest available accent rather than inventing a new color, per
+ * Rule 101/103 (reuse before invent). The per-classification swatch
+ * colors (CATEGORY_COLORS/RISK_COLORS below) are the one place hues
+ * beyond the 4 semantic tones remain (they encode ~10 distinct
+ * categories) — those were re-tuned for contrast against a light
+ * surface rather than a dark one, same hue family, not new tokens
+ * borrowed from elsewhere.
+ *
+ * Editor Wrap Mode (SMART/ON/OFF, see EditorToolbar/FileEditor below) is
+ * a pure client-side visual toggle (useState + localStorage), NOT wired
+ * to the Settings API/app_configs — it intentionally does not survive a
+ * real server restart, only a client refresh, per this round's explicit
+ * scope (backend wiring is future work).
  */
 import { useState, useCallback, useRef, useEffect, useMemo } from "react";
 import { AUTO_SAVE_DEBOUNCE_MS, createAutoSaveScheduler } from "@/app/api/admin/ide/_lib/autoSaveRuntime";
@@ -409,25 +440,32 @@ interface ClassificationInfo {
 interface ClassificationEntry { path: string; category: CodeCategory; categoryLabel: string; capability: string | null; riskLevel: RiskLevel; registered: boolean }
 type ClassificationListResponse = { ok: true; entries: ClassificationEntry[] } | { ok: false; code: IdeErrorCode; message: string };
 
-// Muted, low-saturation tones per spec ("โทนหม่น ไม่จัดจ้าน") — checked
-// against the #1e1e1e/#252526 dark chrome for real contrast, not picked for
-// vibrance. Distinct hue per category; CONFIGURATION/DOCUMENTATION/UNKNOWN
-// aren't in the spec's example list but need a real color too, chosen to
-// stay visually distinct from the 7 examples.
+// Muted, low-saturation tones per spec ("โทนหม่น ไม่จัดจ้าน") — re-tuned
+// (owner, 2026-08-10, TASK-074 Light Theme pass) for real contrast against
+// the light styles/tokens/colors.ts surface (card #FFFFFF / background
+// #F5F7FA), not picked for vibrance. Distinct hue per category, same hue
+// family as the original dark-theme swatches, just darkened/saturated for
+// legibility on a light background; UI/UNKNOWN intentionally reuse the
+// real description/border-strong neutrals rather than inventing a new gray.
 const CATEGORY_COLORS: Record<CodeCategory, string> = {
-  CORE_LOGIC: "#c07575",
-  AI: "#6fa87f",
-  INTEGRATION: "#6f96b8",
-  WORKFLOW: "#9482b8",
-  DATABASE: "#c08f5f",
-  SECURITY: "#b8a75f",
-  UI: "#969696",
-  CONFIGURATION: "#6ba3a0",
-  DOCUMENTATION: "#7d8fae",
-  UNKNOWN: "#5a5a5a",
+  CORE_LOGIC: "#A6484B",
+  AI: "#3F7A54",
+  INTEGRATION: "#3E6690",
+  WORKFLOW: "#6B4E9E",
+  DATABASE: "#A06A2E",
+  SECURITY: "#8A7A2E",
+  UI: "#64748B",
+  CONFIGURATION: "#2F7D78",
+  DOCUMENTATION: "#4C5D80",
+  UNKNOWN: "#94A3B8",
 };
+// RISK_COLORS reuses the real semantic-colors.ts tones directly where a
+// role matches (SENSITIVE=warning, CRITICAL=error); LOCKED reuses heading
+// (the strongest available dark accent — read as "most severe/final",
+// distinct from CRITICAL's red) since no 5th semantic tone exists to
+// invent from; NORMAL/UNKNOWN reuse the real neutral tokens.
 const RISK_COLORS: Record<RiskLevel, string> = {
-  NORMAL: "#5a5a5a", SENSITIVE: "#c9a94e", CRITICAL: "#c96a6a", LOCKED: "#8a5a5a", UNKNOWN: "#4a4a4a",
+  NORMAL: "#94A3B8", SENSITIVE: "#B45309", CRITICAL: "#B91C1C", LOCKED: "#0F172A", UNKNOWN: "#64748B",
 };
 const RISK_LABELS_TH: Record<RiskLevel, string> = {
   NORMAL: "ปกติ", SENSITIVE: "ละเอียดอ่อน", CRITICAL: "วิกฤต", LOCKED: "ล็อก (อ่านอย่างเดียว)", UNKNOWN: "ไม่ทราบ",
@@ -1120,6 +1158,32 @@ export default function IDEWorkspace() {
   // meaningful while the active tab is a file; toggled by Cmd/Ctrl+F below.
   const [findBarOpen, setFindBarOpen] = useState(false);
 
+  // Editor Wrap Mode (owner, 2026-08-10, TASK-074 — fixes the Owner's
+  // separate "FIX EDITOR HORIZONTAL OVERFLOW" request). SMART (default) /
+  // ON / OFF, a PURE client-side visual toggle — never calls an API and
+  // never touches app_configs/Settings backend (unlike Auto-save above,
+  // which is real server-backed). Persisted only in localStorage, so it
+  // survives a page refresh but honestly does NOT survive a real server
+  // restart / a different browser — real backend wiring (mirroring
+  // ide-settings.ts) is future work, out of scope for this visual-only
+  // round. Starts as "smart" on every render (server and first client
+  // paint) to avoid a hydration mismatch; the effect below then adopts any
+  // real stored preference immediately after mount.
+  const [wrapMode, setWrapMode] = useState<"smart" | "on" | "off">("smart");
+  useEffect(() => {
+    try {
+      const stored = window.localStorage.getItem("dna-ide-wrap-mode");
+      if (stored === "smart" || stored === "on" || stored === "off") setWrapMode(stored);
+    } catch {
+      // localStorage unavailable (private mode / disabled) — stay on the
+      // real default "smart" rather than throwing.
+    }
+  }, []);
+  const onWrapModeChange = useCallback((mode: "smart" | "on" | "off") => {
+    setWrapMode(mode);
+    try { window.localStorage.setItem("dna-ide-wrap-mode", mode); } catch { /* best-effort only */ }
+  }, []);
+
   // Cmd/Ctrl+S (save active file), Cmd/Ctrl+F (toggle find-in-file), and
   // Cmd/Ctrl+J (toggle the bottom console) — preventDefault stops the
   // browser's own save-page/find/(no native binding for J) behavior.
@@ -1148,7 +1212,7 @@ export default function IDEWorkspace() {
   }, [saveFile]);
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100vh", width: "100%", overflow: "hidden", fontFamily: "system-ui, sans-serif", fontSize: 13, background: "#1e1e1e", color: "#d4d4d4" }}>
+    <div style={{ display: "flex", flexDirection: "column", height: "100vh", width: "100%", overflow: "hidden", fontFamily: "system-ui, sans-serif", fontSize: 13, background: "#F5F7FA", color: "#334155" }}>
       <style>{`
         @media (prefers-reduced-motion: no-preference) {
           @keyframes dna-ide-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.45; } }
@@ -1181,11 +1245,11 @@ export default function IDEWorkspace() {
                 onAutoSaveChanged={setAutoSaveEnabled}
               />
             </div>
-            <div onMouseDown={leftResize.onMouseDown} style={{ width: 4, cursor: "col-resize", flexShrink: 0, background: "#1e1e1e" }} />
+            <div onMouseDown={leftResize.onMouseDown} style={{ width: 4, cursor: "col-resize", flexShrink: 0, background: "#E2E8F0" }} />
           </>
         )}
         {leftCollapsed && (
-          <button onClick={() => setLeftCollapsed(false)} title="Expand panel" style={{ width: 14, flexShrink: 0, background: "#252526", border: "none", borderRight: "1px solid #1e1e1e", color: "#858585", cursor: "pointer" }}>
+          <button onClick={() => setLeftCollapsed(false)} title="Expand panel" style={{ width: 14, flexShrink: 0, background: "#EEF2F7", border: "none", borderRight: "1px solid #E2E8F0", color: "#64748B", cursor: "pointer" }}>
             <ChevronRight size={12} />
           </button>
         )}
@@ -1200,6 +1264,8 @@ export default function IDEWorkspace() {
             onSaveAll={saveAllDirty}
             onReload={() => activeTabObj && reloadFromDisk(activeTabObj.id, activeTabObj.path)}
             onToggleFind={() => setFindBarOpen((v) => !v)}
+            wrapMode={wrapMode}
+            onWrapModeChange={onWrapModeChange}
           />
           <EditorPane
             tab={activeTabObj}
@@ -1211,6 +1277,7 @@ export default function IDEWorkspace() {
             findBarOpen={findBarOpen}
             onCloseFindBar={() => setFindBarOpen(false)}
             gitRefreshNonce={gitRefreshNonce}
+            wrapMode={wrapMode}
           />
           {/* Floating Bottom Console — position:absolute inside this
               position:relative column, so it overlays the Editor from below
@@ -1283,7 +1350,7 @@ function useResizeHandle({ axis, value, setValue, min, max, invert }: {
 // ---- Top bar: system status ----
 function TopBar({ onRefresh, lastRefreshedAt, workspaceStatus, realBranch }: { onRefresh: () => void; lastRefreshedAt: string | null; workspaceStatus: "connecting" | "connected" | "error"; realBranch: string | null }) {
   return (
-    <div style={{ height: 40, flexShrink: 0, display: "flex", alignItems: "center", gap: 14, padding: "0 12px", background: "#252526", borderBottom: "1px solid #1e1e1e" }}>
+    <div style={{ height: 40, flexShrink: 0, display: "flex", alignItems: "center", gap: 14, padding: "0 12px", background: "#EEF2F7", borderBottom: "1px solid #E2E8F0" }}>
       <span style={{ fontWeight: 600, fontSize: 12.5 }}>DNA OS Workspace</span>
       <Divider />
       <StatusChip label="Repository" value="Not connected" tone="muted" />
@@ -1295,7 +1362,7 @@ function TopBar({ onRefresh, lastRefreshedAt, workspaceStatus, realBranch }: { o
         tone={workspaceStatus === "connected" ? "ok" : workspaceStatus === "error" ? "error" : "muted"}
       />
       <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 8 }}>
-        {lastRefreshedAt && <span style={{ fontSize: 10.5, color: "#6a6a6a" }}>Refreshed {lastRefreshedAt}</span>}
+        {lastRefreshedAt && <span style={{ fontSize: 10.5, color: "#64748B" }}>Refreshed {lastRefreshedAt}</span>}
         <button onClick={onRefresh} title="Refresh — re-checks the real workspace connection" style={topBtnStyle}>
           <RefreshCw size={13} /> Refresh
         </button>
@@ -1307,16 +1374,16 @@ function TopBar({ onRefresh, lastRefreshedAt, workspaceStatus, realBranch }: { o
   );
 }
 const topBtnStyle: React.CSSProperties = {
-  display: "flex", alignItems: "center", gap: 5, background: "#2d2d2d", border: "1px solid #3a3a3a",
-  color: "#ccc", borderRadius: 4, padding: "4px 9px", fontSize: 11.5, cursor: "pointer",
+  display: "flex", alignItems: "center", gap: 5, background: "#F1F5F9", border: "1px solid #CBD5E1",
+  color: "#334155", borderRadius: 4, padding: "4px 9px", fontSize: 11.5, cursor: "pointer",
 };
 function Divider() {
-  return <span style={{ width: 1, height: 18, background: "#3a3a3a" }} />;
+  return <span style={{ width: 1, height: 18, background: "#CBD5E1" }} />;
 }
 function StatusChip({ label, value, tone }: { label: string; value: string; tone: "info" | "muted" | "ok" | "error" }) {
-  const color = tone === "ok" ? "#4ec9b0" : tone === "error" ? "#f14c4c" : tone === "info" ? "#9cdcfe" : "#858585";
+  const color = tone === "ok" ? "#0F766E" : tone === "error" ? "#B91C1C" : tone === "info" ? "#334155" : "#64748B";
   return (
-    <span style={{ fontSize: 11.5, color: "#858585" }}>
+    <span style={{ fontSize: 11.5, color: "#64748B" }}>
       {label}: <span style={{ color }}>{value}</span>
     </span>
   );
@@ -1335,7 +1402,7 @@ interface CommandResultClient {
   evidenceArtifactId: string | null;
 }
 const COMMAND_STATUS_COLORS: Record<string, string> = {
-  RESOLVED: "#4ec9b0", DISPATCHED: "#4ec9b0", BLOCKED: "#f37c7c", OWNER_ACTION_REQUIRED: "#e0a860", UNRECOGNIZED: "#858585", FAILED: "#f37c7c",
+  RESOLVED: "#0F766E", DISPATCHED: "#0F766E", BLOCKED: "#B91C1C", OWNER_ACTION_REQUIRED: "#B45309", UNRECOGNIZED: "#64748B", FAILED: "#B91C1C",
 };
 
 interface AutoOrchestrationResultClient {
@@ -1429,15 +1496,15 @@ function CommandSurfaceBar({ onOpenConnections }: { onOpenConnections: () => voi
   }, [orchestration]);
 
   return (
-    <div style={{ flexShrink: 0, background: "#1e1e1e", borderBottom: "1px solid #2d2d2d" }}>
+    <div style={{ flexShrink: 0, background: "#EEF2F7", borderBottom: "1px solid #E2E8F0" }}>
       <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 12px" }}>
-        <Bot size={14} color="#858585" />
+        <Bot size={14} color="#64748B" />
         <input
           value={text}
           onChange={(e) => setText(e.target.value)}
           onKeyDown={(e) => { if (e.key === "Enter") void submit(); }}
           placeholder='Owner Command — e.g. "ทำ Step 14", "ตรวจ architecture", "รันทดสอบ governance"'
-          style={{ flex: 1, background: "#2d2d2d", border: "1px solid #3a3a3a", color: "#ccc", borderRadius: 4, padding: "5px 8px", fontSize: 12 }}
+          style={{ flex: 1, background: "#F1F5F9", border: "1px solid #CBD5E1", color: "#334155", borderRadius: 4, padding: "5px 8px", fontSize: 12 }}
         />
         <button onClick={() => void submit()} disabled={busy || !text.trim()} style={{ ...topBtnStyle, opacity: busy || !text.trim() ? 0.4 : 1 }}>
           {busy ? "…" : "Run"}
@@ -1445,42 +1512,42 @@ function CommandSurfaceBar({ onOpenConnections }: { onOpenConnections: () => voi
         {(result || orchestration || errorMsg) && <button onClick={() => setOpen((o) => !o)} style={topBtnStyle}>{open ? "Hide" : "Show"} last result</button>}
       </div>
       {open && errorMsg && (
-        <div style={{ padding: "6px 12px 10px", fontSize: 11.5, color: "#f37c7c" }}>{errorMsg}</div>
+        <div style={{ padding: "6px 12px 10px", fontSize: 11.5, color: "#B91C1C" }}>{errorMsg}</div>
       )}
       {open && result && (
         <div style={{ padding: "6px 12px 10px", fontSize: 11.5 }}>
-          <div style={{ color: "#858585" }}>&quot;{result.rawText}&quot; → intent: <span style={{ color: "#9cdcfe" }}>{result.intent}</span>, status: <span style={{ color: COMMAND_STATUS_COLORS[result.status] ?? "#858585" }}>{result.status}</span></div>
-          <div style={{ color: "#ccc", marginTop: 2 }}>{result.detail}</div>
+          <div style={{ color: "#64748B" }}>&quot;{result.rawText}&quot; → intent: <span style={{ color: "#334155" }}>{result.intent}</span>, status: <span style={{ color: COMMAND_STATUS_COLORS[result.status] ?? "#64748B" }}>{result.status}</span></div>
+          <div style={{ color: "#334155", marginTop: 2 }}>{result.detail}</div>
           {result.stepGate && (
-            <div style={{ color: result.stepGate.allowed ? "#8fd3a3" : "#e0a860", marginTop: 2 }}>
+            <div style={{ color: result.stepGate.allowed ? "#0F766E" : "#B45309", marginTop: 2 }}>
               Gate: Step {result.stepGate.step} — {result.stepGate.allowed ? "ALLOWED" : "BLOCKED"}
               {!result.stepGate.allowed && <ul style={{ margin: "2px 0 0 16px", padding: 0 }}>{result.stepGate.reasons.map((r, i) => <li key={i}>{r}</li>)}</ul>}
             </div>
           )}
-          {result.dispatchedJob && <div style={{ color: "#6a6a6a", marginTop: 2 }}>Job: {result.dispatchedJob.jobId} ({result.dispatchedJob.type}, {result.dispatchedJob.status}) — see Execution/Queue tab</div>}
+          {result.dispatchedJob && <div style={{ color: "#64748B", marginTop: 2 }}>Job: {result.dispatchedJob.jobId} ({result.dispatchedJob.type}, {result.dispatchedJob.status}) — see Execution/Queue tab</div>}
         </div>
       )}
       {open && orchestration && (
         <div style={{ padding: "6px 12px 10px", fontSize: 11.5 }}>
           <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 6 }}>
             {orchestrationSteps(orchestration).map((step, i) => (
-              <span key={i} style={{ color: step.reached ? "#4ec9b0" : "#6a6a6a" }}>{step.reached ? "✓" : "○"} {step.label}</span>
+              <span key={i} style={{ color: step.reached ? "#0F766E" : "#64748B" }}>{step.reached ? "✓" : "○"} {step.label}</span>
             ))}
           </div>
           {orchestration.outcome === "ANSWERED" && orchestration.answer && (
-            <div style={{ color: "#ccc", whiteSpace: "pre-wrap" }}>{orchestration.answer}</div>
+            <div style={{ color: "#334155", whiteSpace: "pre-wrap" }}>{orchestration.answer}</div>
           )}
           {orchestration.outcome === "BLOCKED" && (
-            <div style={{ color: "#e0a860" }}>blocked: {orchestration.blockedReason}</div>
+            <div style={{ color: "#B45309" }}>blocked: {orchestration.blockedReason}</div>
           )}
           {orchestration.outcome === "AWAITING_APPROVAL" && orchestration.proposal && !resumeResult && (
             <div>
-              <div style={{ color: "#e0a860", marginBottom: 4 }}>real file change proposed — review the diff before approving</div>
-              {orchestration.proposal.requiresDestructiveApproval && <div style={{ color: "#f0a0a0", marginBottom: 4 }}>includes a real DELETE/RENAME</div>}
+              <div style={{ color: "#B45309", marginBottom: 4 }}>real file change proposed — review the diff before approving</div>
+              {orchestration.proposal.requiresDestructiveApproval && <div style={{ color: "#B91C1C", marginBottom: 4 }}>includes a real DELETE/RENAME</div>}
               {orchestration.proposal.operations.map((op, i) => (
-                <div key={i} style={{ border: "1px solid #2a2a2a", borderRadius: 3, padding: "4px 6px", marginBottom: 4 }}>
-                  <div style={{ color: "#9cdcfe" }}>{op.operation} · {op.path}</div>
-                  {op.content !== null && <pre style={{ margin: "4px 0 0", maxHeight: 160, overflow: "auto", color: "#ccc", fontSize: 10.5, whiteSpace: "pre-wrap" }}>{op.content}</pre>}
+                <div key={i} style={{ border: "1px solid #E2E8F0", borderRadius: 3, padding: "4px 6px", marginBottom: 4 }}>
+                  <div style={{ color: "#334155" }}>{op.operation} · {op.path}</div>
+                  {op.content !== null && <pre style={{ margin: "4px 0 0", maxHeight: 160, overflow: "auto", color: "#334155", fontSize: 10.5, whiteSpace: "pre-wrap" }}>{op.content}</pre>}
                 </div>
               ))}
               <button disabled={busy} onClick={() => void approveAndWrite()} style={{ ...topBtnStyle, marginTop: 4 }}>Approve &amp; Write (real files)</button>
@@ -1489,15 +1556,15 @@ function CommandSurfaceBar({ onOpenConnections }: { onOpenConnections: () => voi
           {resumeResult && (
             <div style={{ marginTop: 6 }}>
               {resumeResult.blockedReason ? (
-                <div style={{ color: "#e0a860" }}>{resumeResult.blockedReason}</div>
+                <div style={{ color: "#B45309" }}>{resumeResult.blockedReason}</div>
               ) : (
-                <div style={{ color: "#4ec9b0" }}>
+                <div style={{ color: "#0F766E" }}>
                   written to real disk · Change Set: {resumeResult.changeSet?.status ?? "—"} · Test: {resumeResult.testRun ? `${resumeResult.testRun.totals.passed}/${resumeResult.testRun.totals.total} passed` : "—"}
                 </div>
               )}
-              {buildBusy && <div style={{ color: "#9cdcfe", marginTop: 2 }}>building (real, may take a few minutes)…</div>}
+              {buildBusy && <div style={{ color: "#334155", marginTop: 2 }}>building (real, may take a few minutes)…</div>}
               {buildRun && (
-                <div style={{ color: buildRun.gateReport?.overallStatus === "ALL_PASSED" ? "#4ec9b0" : "#e0a860", marginTop: 2 }}>
+                <div style={{ color: buildRun.gateReport?.overallStatus === "ALL_PASSED" ? "#0F766E" : "#B45309", marginTop: 2 }}>
                   Build: {buildRun.status} · Gate: {buildRun.gateReport?.overallStatus ?? "—"}
                 </div>
               )}
@@ -1512,7 +1579,7 @@ function CommandSurfaceBar({ onOpenConnections }: { onOpenConnections: () => voi
 // ---- Activity bar ----
 function ActivityBar({ activeTool, onSelect }: { activeTool: ToolId; onSelect: (t: ToolId) => void }) {
   return (
-    <div style={{ width: 52, background: "#252526", display: "flex", flexDirection: "column", alignItems: "center", paddingTop: 8, gap: 4, flexShrink: 0 }}>
+    <div style={{ width: 52, background: "#EEF2F7", display: "flex", flexDirection: "column", alignItems: "center", paddingTop: 8, gap: 4, flexShrink: 0 }}>
       {TOOLS.map((t) => {
         const Icon = t.icon;
         const active = activeTool === t.id;
@@ -1523,8 +1590,8 @@ function ActivityBar({ activeTool, onSelect }: { activeTool: ToolId; onSelect: (
             onClick={() => onSelect(t.id)}
             style={{
               width: 40, height: 40, display: "flex", alignItems: "center", justifyContent: "center",
-              background: active ? "#37373d" : "transparent", border: "none", borderLeft: active ? "2px solid #fff" : "2px solid transparent",
-              color: active ? "#fff" : "#858585", cursor: "pointer", borderRadius: 4,
+              background: active ? "#E8EDF3" : "transparent", border: "none", borderLeft: active ? "2px solid #0F172A" : "2px solid transparent",
+              color: active ? "#0F172A" : "#64748B", cursor: "pointer", borderRadius: 4,
             }}
           >
             <Icon size={20} />
@@ -1554,9 +1621,9 @@ function LeftPanel({
   onAutoSaveChanged: (enabled: boolean) => void;
 }) {
   return (
-    <div style={{ height: "100%", background: "#252526", borderRight: "1px solid #1e1e1e", overflowY: "auto", overflowX: "hidden", display: "flex", flexDirection: "column" }}>
+    <div style={{ height: "100%", background: "#EEF2F7", borderRight: "1px solid #E2E8F0", overflowY: "auto", overflowX: "hidden", display: "flex", flexDirection: "column" }}>
       <div style={{ padding: "8px 10px", display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0 }}>
-        <span style={{ fontSize: 11, fontWeight: 600, textTransform: "uppercase", color: "#bbb" }}>{TOOLS.find((t) => t.id === tool)?.label}</span>
+        <span style={{ fontSize: 11, fontWeight: 600, textTransform: "uppercase", color: "#64748B" }}>{TOOLS.find((t) => t.id === tool)?.label}</span>
         <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
           {tool === "explorer" && (
             <>
@@ -1565,7 +1632,7 @@ function LeftPanel({
               <button onClick={onRefreshExplorer} title="Refresh Folder" style={iconBtnStyle}><RefreshCw size={12} /></button>
             </>
           )}
-          <button onClick={onCollapse} title="Collapse panel" style={{ background: "none", border: "none", color: "#858585", cursor: "pointer", padding: 2 }}>
+          <button onClick={onCollapse} title="Collapse panel" style={{ background: "none", border: "none", color: "#64748B", cursor: "pointer", padding: 2 }}>
             <ChevronRight size={12} style={{ transform: "rotate(180deg)" }} />
           </button>
         </div>
@@ -1697,7 +1764,7 @@ function TreeNode({ node, depth, onOpenTab, refreshNonce, classification, onCrea
     <div>
       <div
         onClick={onClick}
-        onMouseEnter={(e) => { setHovering(true); e.currentTarget.style.background = "#2a2d2e"; }}
+        onMouseEnter={(e) => { setHovering(true); e.currentTarget.style.background = "#E8EDF3"; }}
         onMouseLeave={(e) => { setHovering(false); e.currentTarget.style.background = "transparent"; }}
         style={{ display: "flex", alignItems: "center", gap: 4, padding: "3px 4px", paddingLeft: 8 + depth * 12, cursor: "pointer", borderRadius: 3, fontSize: 12.5 }}
       >
@@ -1730,16 +1797,16 @@ function TreeNode({ node, depth, onOpenTab, refreshNonce, classification, onCrea
       </div>
       {expanded && (
         <div>
-          {loading && <div style={{ paddingLeft: 20 + depth * 12, fontSize: 11.5, color: "#858585" }}>Loading…</div>}
-          {error && <div style={{ paddingLeft: 20 + depth * 12, fontSize: 11.5, color: "#f14c4c" }}>Error: {error}</div>}
+          {loading && <div style={{ paddingLeft: 20 + depth * 12, fontSize: 11.5, color: "#64748B" }}>Loading…</div>}
+          {error && <div style={{ paddingLeft: 20 + depth * 12, fontSize: 11.5, color: "#B91C1C" }}>Error: {error}</div>}
           {children?.map((c) => <TreeNode key={c.path} node={c} depth={depth + 1} onOpenTab={onOpenTab} refreshNonce={refreshNonce} classification={childClassification[c.path]} {...ops} />)}
         </div>
       )}
     </div>
   );
 }
-const iconBtnStyle: React.CSSProperties = { background: "none", border: "none", color: "#858585", cursor: "pointer", padding: 3, display: "flex" };
-const rowIconBtnStyle: React.CSSProperties = { background: "none", border: "none", color: "#aaa", cursor: "pointer", padding: 2, display: "flex" };
+const iconBtnStyle: React.CSSProperties = { background: "none", border: "none", color: "#64748B", cursor: "pointer", padding: 3, display: "flex" };
+const rowIconBtnStyle: React.CSSProperties = { background: "none", border: "none", color: "#64748B", cursor: "pointer", padding: 2, display: "flex" };
 
 // ---- Search — real, read-only text search across the workspace via
 // GET /api/admin/ide/search (owner, 2026-08-05). Runs only on Enter or the
@@ -1814,18 +1881,18 @@ function SearchPanel({ onOpenResult, invalidateNonce }: { onOpenResult: (relPath
           onChange={(e) => setQ(e.target.value)}
           onKeyDown={(e) => { if (e.key === "Enter") runSearch(); }}
           placeholder="Search workspace… (min 2 chars)"
-          style={{ flex: 1, minWidth: 0, boxSizing: "border-box", background: "#3c3c3c", border: "1px solid #4a4a4a", color: "#ccc", borderRadius: 3, padding: "5px 8px", fontSize: 12 }}
+          style={{ flex: 1, minWidth: 0, boxSizing: "border-box", background: "#FFFFFF", border: "1px solid #CBD5E1", color: "#334155", borderRadius: 3, padding: "5px 8px", fontSize: 12 }}
         />
         <button onClick={runSearch} style={{ ...topBtnStyle, padding: "4px 10px" }}>Search</button>
       </div>
 
-      {state === "loading" && <div style={{ marginTop: 8, fontSize: 11.5, color: "#858585" }}>Searching…</div>}
-      {state === "error" && <div style={{ marginTop: 8, fontSize: 11.5, color: "#f14c4c" }}>{errorMsg}</div>}
+      {state === "loading" && <div style={{ marginTop: 8, fontSize: 11.5, color: "#64748B" }}>Searching…</div>}
+      {state === "error" && <div style={{ marginTop: 8, fontSize: 11.5, color: "#B91C1C" }}>{errorMsg}</div>}
       {state === "done" && (
-        <div style={{ marginTop: 8, fontSize: 10.5, color: "#858585", flexShrink: 0 }}>
+        <div style={{ marginTop: 8, fontSize: 10.5, color: "#64748B", flexShrink: 0 }}>
           {results.length} result{results.length === 1 ? "" : "s"} in {grouped.length} file{grouped.length === 1 ? "" : "s"}
           {summary && ` · ${summary.durationMs}ms · ${summary.filesScanned} files scanned`}
-          {summary?.truncated && <div style={{ color: "#f0a020", marginTop: 2 }}>Stopped early ({summary.reason === "SEARCH_TIMEOUT" ? "time limit" : "result limit"} reached) — results may be incomplete.</div>}
+          {summary?.truncated && <div style={{ color: "#B45309", marginTop: 2 }}>Stopped early ({summary.reason === "SEARCH_TIMEOUT" ? "time limit" : "result limit"} reached) — results may be incomplete.</div>}
         </div>
       )}
       {state === "done" && results.length === 0 && <SidebarMessage text="No matches" />}
@@ -1833,18 +1900,18 @@ function SearchPanel({ onOpenResult, invalidateNonce }: { onOpenResult: (relPath
       <div style={{ marginTop: 6, flex: 1, minHeight: 0, overflowY: "auto" }}>
         {grouped.map(([relPath, matches]) => (
           <div key={relPath} style={{ marginBottom: 4 }}>
-            <div style={{ padding: "3px 4px", fontSize: 11.5, fontWeight: 600, color: "#ccc", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-              {relPath} <span style={{ color: "#858585", fontWeight: 400 }}>({matches.length})</span>
+            <div style={{ padding: "3px 4px", fontSize: 11.5, fontWeight: 600, color: "#334155", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+              {relPath} <span style={{ color: "#64748B", fontWeight: 400 }}>({matches.length})</span>
             </div>
             {matches.map((m, i) => (
               <div
                 key={i}
                 onClick={() => onOpenResult(m.relativePath, m.line, m.column, m.matchLength)}
-                style={{ padding: "2px 4px 2px 14px", fontSize: 11.5, color: "#aaa", cursor: "pointer", fontFamily: "ui-monospace, monospace", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}
-                onMouseEnter={(e) => (e.currentTarget.style.background = "#2a2d2e")}
+                style={{ padding: "2px 4px 2px 14px", fontSize: 11.5, color: "#64748B", cursor: "pointer", fontFamily: "ui-monospace, monospace", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}
+                onMouseEnter={(e) => (e.currentTarget.style.background = "#E8EDF3")}
                 onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
               >
-                <span style={{ color: "#6a9955" }}>{m.line}:</span> {m.preview}
+                <span style={{ color: "#0F766E" }}>{m.line}:</span> {m.preview}
               </div>
             ))}
           </div>
@@ -1886,7 +1953,7 @@ function TrashPanel({ refreshNonce, onRestore }: { refreshNonce: number; onResto
   return (
     <div style={{ padding: 6 }}>
       {corruptCount > 0 && (
-        <div style={{ fontSize: 11, color: "#f0a020", padding: "4px 6px", marginBottom: 6 }}>
+        <div style={{ fontSize: 11, color: "#B45309", padding: "4px 6px", marginBottom: 6 }}>
           {corruptCount} trash entr{corruptCount === 1 ? "y" : "ies"} could not be read (CORRUPT_TRASH_ENTRY) and {corruptCount === 1 ? "is" : "are"} hidden.
         </div>
       )}
@@ -1894,10 +1961,10 @@ function TrashPanel({ refreshNonce, onRestore }: { refreshNonce: number; onResto
         const Icon = e.itemType === "directory" ? Folder : File;
         return (
           <div key={e.id} style={{ display: "flex", alignItems: "center", gap: 6, padding: "5px 6px", borderRadius: 3, fontSize: 12 }}>
-            <Icon size={13} style={{ flexShrink: 0, color: "#858585" }} />
+            <Icon size={13} style={{ flexShrink: 0, color: "#64748B" }} />
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", color: "#ccc" }}>{e.originalPath}</div>
-              <div style={{ fontSize: 10.5, color: "#858585" }}>{new Date(e.trashedAt).toLocaleString()}</div>
+              <div style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", color: "#334155" }}>{e.originalPath}</div>
+              <div style={{ fontSize: 10.5, color: "#64748B" }}>{new Date(e.trashedAt).toLocaleString()}</div>
             </div>
             <button title="Restore" style={rowIconBtnStyle} onClick={() => onRestore(e.id)}><RotateCcw size={13} /></button>
           </div>
@@ -1912,7 +1979,7 @@ const KIND_LABEL: Record<ChangeKind, string> = {
   added: "A", modified: "M", deleted: "D", renamed: "R", copied: "C", untracked: "U",
 };
 const KIND_COLOR: Record<ChangeKind, string> = {
-  added: "#4ec9b0", modified: "#cca700", deleted: "#f14c4c", renamed: "#9cdcfe", copied: "#9cdcfe", untracked: "#858585",
+  added: "#0F766E", modified: "#B45309", deleted: "#B91C1C", renamed: "#334155", copied: "#334155", untracked: "#64748B",
 };
 
 function ChangedFileRow({ file, staged, onOpenDiffTab }: { file: ChangedFile; staged: boolean; onOpenDiffTab: (path: string, staged: boolean) => void }) {
@@ -1920,11 +1987,11 @@ function ChangedFileRow({ file, staged, onOpenDiffTab }: { file: ChangedFile; st
     <div
       onClick={() => onOpenDiffTab(file.path, staged)}
       style={{ display: "flex", alignItems: "center", gap: 6, padding: "2px 12px", fontSize: 12, cursor: "pointer" }}
-      onMouseEnter={(e) => (e.currentTarget.style.background = "#2a2d2e")}
+      onMouseEnter={(e) => (e.currentTarget.style.background = "#E8EDF3")}
       onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
     >
       <span style={{ width: 14, textAlign: "center", fontWeight: 700, color: KIND_COLOR[file.kind] }}>{KIND_LABEL[file.kind]}</span>
-      <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", color: "#ccc" }}>
+      <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", color: "#334155" }}>
         {file.path}{file.renamedFrom ? ` ← ${file.renamedFrom}` : ""}
       </span>
     </div>
@@ -1959,26 +2026,26 @@ function SourceControlPanel({ onOpenDiffTab, refreshNonce, activeFilePath }: { o
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", minHeight: 0 }}>
-      <div style={{ padding: "8px 12px", fontSize: 11.5, flexShrink: 0, borderBottom: "1px solid #333" }}>
-        <div style={{ color: "#ccc" }}>{status.repositoryRoot} <span style={{ color: "#858585" }}>· {status.branch ?? "(detached)"}</span></div>
+      <div style={{ padding: "8px 12px", fontSize: 11.5, flexShrink: 0, borderBottom: "1px solid #E2E8F0" }}>
+        <div style={{ color: "#334155" }}>{status.repositoryRoot} <span style={{ color: "#64748B" }}>· {status.branch ?? "(detached)"}</span></div>
         {status.headCommit && (
-          <div style={{ color: "#858585", marginTop: 3, fontSize: 11 }}>
+          <div style={{ color: "#64748B", marginTop: 3, fontSize: 11 }}>
             <span style={{ fontFamily: "ui-monospace, monospace" }}>{status.headCommit.hash.slice(0, 7)}</span> {status.headCommit.message}
             <div>{status.headCommit.author} · {new Date(status.headCommit.time).toLocaleString()}</div>
           </div>
         )}
         <div style={{ marginTop: 4, display: "flex", gap: 10, fontSize: 11 }}>
-          <span style={{ color: status.clean ? "#4ec9b0" : "#f0a020" }}>{status.clean ? "Clean" : "Dirty"}</span>
-          {status.hasUpstream && <span style={{ color: "#858585" }}>↑{status.ahead} ↓{status.behind}</span>}
-          {status.conflicted.length > 0 && <span style={{ color: "#f37c7c" }}>{status.conflicted.length} conflicted</span>}
+          <span style={{ color: status.clean ? "#0F766E" : "#B45309" }}>{status.clean ? "Clean" : "Dirty"}</span>
+          {status.hasUpstream && <span style={{ color: "#64748B" }}>↑{status.ahead} ↓{status.behind}</span>}
+          {status.conflicted.length > 0 && <span style={{ color: "#B91C1C" }}>{status.conflicted.length} conflicted</span>}
         </div>
       </div>
 
-      <div style={{ display: "flex", borderBottom: "1px solid #333", flexShrink: 0 }}>
+      <div style={{ display: "flex", borderBottom: "1px solid #E2E8F0", flexShrink: 0 }}>
         {SOURCE_CONTROL_SUB_TABS.map((t) => (
           <div
             key={t.id} onClick={() => setSubTab(t.id)}
-            style={{ padding: "5px 9px", fontSize: 10.5, cursor: "pointer", color: subTab === t.id ? "#fff" : "#969696", borderBottom: subTab === t.id ? "1px solid #4da6ff" : "1px solid transparent" }}
+            style={{ padding: "5px 9px", fontSize: 10.5, cursor: "pointer", color: subTab === t.id ? "#0F172A" : "#64748B", borderBottom: subTab === t.id ? "1px solid #0F172A" : "1px solid transparent" }}
           >
             {t.label}{t.id === "merge" && status.conflicted.length > 0 ? ` (${status.conflicted.length})` : ""}
           </div>
@@ -1988,14 +2055,14 @@ function SourceControlPanel({ onOpenDiffTab, refreshNonce, activeFilePath }: { o
       <div style={{ flex: 1, minHeight: 0, overflowY: "auto" }}>
         {subTab === "changes" && (
           <>
-            <div style={{ padding: "6px 12px 2px", fontSize: 10, textTransform: "uppercase", color: "#858585" }}>Staged ({status.staged.length})</div>
+            <div style={{ padding: "6px 12px 2px", fontSize: 10, textTransform: "uppercase", color: "#64748B" }}>Staged ({status.staged.length})</div>
             {status.staged.map((f) => <ChangedFileRow key={`s:${f.path}`} file={f} staged onOpenDiffTab={onOpenDiffTab} />)}
-            <div style={{ padding: "6px 12px 2px", fontSize: 10, textTransform: "uppercase", color: "#858585" }}>Unstaged ({status.unstaged.length})</div>
+            <div style={{ padding: "6px 12px 2px", fontSize: 10, textTransform: "uppercase", color: "#64748B" }}>Unstaged ({status.unstaged.length})</div>
             {status.unstaged.map((f) => <ChangedFileRow key={`u:${f.path}`} file={f} staged={false} onOpenDiffTab={onOpenDiffTab} />)}
-            <div style={{ padding: "6px 12px 2px", fontSize: 10, textTransform: "uppercase", color: "#858585" }}>Untracked ({status.untracked.length})</div>
+            <div style={{ padding: "6px 12px 2px", fontSize: 10, textTransform: "uppercase", color: "#64748B" }}>Untracked ({status.untracked.length})</div>
             {status.untracked.map((f) => <ChangedFileRow key={`t:${f.path}`} file={f} staged={false} onOpenDiffTab={onOpenDiffTab} />)}
             {status.clean && status.staged.length === 0 && status.unstaged.length === 0 && status.untracked.length === 0 && (
-              <div style={{ padding: "4px 12px", fontSize: 11.5, color: "#858585" }}>No changes</div>
+              <div style={{ padding: "4px 12px", fontSize: 11.5, color: "#64748B" }}>No changes</div>
             )}
           </>
         )}
@@ -2005,8 +2072,8 @@ function SourceControlPanel({ onOpenDiffTab, refreshNonce, activeFilePath }: { o
         {subTab === "merge" && <MergeSubPanel refreshNonce={refreshNonce} />}
       </div>
 
-      <div style={{ padding: 10, borderTop: "1px solid #333", flexShrink: 0 }}>
-        <div style={{ fontSize: 10, color: "#6a6a6a", marginBottom: 6 }}>Read Only — Source Control Workspace (Step 6)</div>
+      <div style={{ padding: 10, borderTop: "1px solid #E2E8F0", flexShrink: 0 }}>
+        <div style={{ fontSize: 10, color: "#64748B", marginBottom: 6 }}>Read Only — Source Control Workspace (Step 6)</div>
         <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
           {["Commit", "Push", "Pull"].map((label) => (
             <button key={label} disabled title="Read-only phase — not available yet" style={disabledBtnStyle}>{label}</button>
@@ -2030,20 +2097,20 @@ function BranchesSubPanel() {
   return (
     <div style={{ fontSize: 11.5 }}>
       {branches.map((b) => (
-        <div key={b.name} style={{ padding: "5px 12px", borderBottom: "1px solid #232323" }}>
+        <div key={b.name} style={{ padding: "5px 12px", borderBottom: "1px solid #E2E8F0" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-            {b.current && <span style={{ color: "#4ec9b0" }}>●</span>}
-            <span style={{ color: b.remote ? "#858585" : "#ccc", fontFamily: "ui-monospace, monospace" }}>{b.name}</span>
-            {b.upstream && <span style={{ color: "#6a6a6a", fontSize: 10 }}>→ {b.upstream}</span>}
+            {b.current && <span style={{ color: "#0F766E" }}>●</span>}
+            <span style={{ color: b.remote ? "#64748B" : "#334155", fontFamily: "ui-monospace, monospace" }}>{b.name}</span>
+            {b.upstream && <span style={{ color: "#64748B", fontSize: 10 }}>→ {b.upstream}</span>}
           </div>
           {b.lastCommitSubject && (
-            <div style={{ color: "#858585", fontSize: 10.5, marginTop: 2 }}>
+            <div style={{ color: "#64748B", fontSize: 10.5, marginTop: 2 }}>
               <span style={{ fontFamily: "ui-monospace, monospace" }}>{b.lastCommitHash}</span> {b.lastCommitSubject}
             </div>
           )}
         </div>
       ))}
-      {branches.length === 0 && <div style={{ padding: 12, color: "#6a6a6a" }}>No branches.</div>}
+      {branches.length === 0 && <div style={{ padding: 12, color: "#64748B" }}>No branches.</div>}
     </div>
   );
 }
@@ -2061,15 +2128,15 @@ function TagsSubPanel() {
   return (
     <div style={{ fontSize: 11.5 }}>
       {tags.map((t) => (
-        <div key={t.name} style={{ padding: "5px 12px", borderBottom: "1px solid #232323" }}>
+        <div key={t.name} style={{ padding: "5px 12px", borderBottom: "1px solid #E2E8F0" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-            <span style={{ color: "#ccc", fontFamily: "ui-monospace, monospace" }}>{t.name}</span>
-            <span style={{ color: "#6a6a6a", fontSize: 10 }}>{t.annotated ? "annotated" : "lightweight"}</span>
+            <span style={{ color: "#334155", fontFamily: "ui-monospace, monospace" }}>{t.name}</span>
+            <span style={{ color: "#64748B", fontSize: 10 }}>{t.annotated ? "annotated" : "lightweight"}</span>
           </div>
-          {t.subject && <div style={{ color: "#858585", fontSize: 10.5, marginTop: 2 }}><span style={{ fontFamily: "ui-monospace, monospace" }}>{t.hash}</span> {t.subject}</div>}
+          {t.subject && <div style={{ color: "#64748B", fontSize: 10.5, marginTop: 2 }}><span style={{ fontFamily: "ui-monospace, monospace" }}>{t.hash}</span> {t.subject}</div>}
         </div>
       ))}
-      {tags.length === 0 && <div style={{ padding: 12, color: "#6a6a6a" }}>No tags.</div>}
+      {tags.length === 0 && <div style={{ padding: 12, color: "#64748B" }}>No tags.</div>}
     </div>
   );
 }
@@ -2102,22 +2169,22 @@ function HistorySubPanel({ activeFilePath }: { activeFilePath: string | null }) 
   return (
     <div style={{ fontSize: 11 }}>
       <div style={{ padding: "6px 12px 2px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <span style={{ color: "#858585", fontFamily: "ui-monospace, monospace" }}>{activeFilePath}</span>
+        <span style={{ color: "#64748B", fontFamily: "ui-monospace, monospace" }}>{activeFilePath}</span>
         <button onClick={loadBlame} style={miniBtnStyle}>Blame</button>
       </div>
       {!showBlame ? (
-        !history ? <SidebarMessage text="Loading…" /> : history.length === 0 ? <div style={{ padding: 12, color: "#6a6a6a" }}>No history — untracked or new file.</div> : history.map((h) => (
-          <div key={h.hash} style={{ padding: "5px 12px", borderBottom: "1px solid #232323" }}>
-            <div><span style={{ fontFamily: "ui-monospace, monospace", color: "#9cdcfe" }}>{h.shortHash}</span> {h.subject}</div>
-            <div style={{ color: "#858585", fontSize: 10 }}>{h.author} · {new Date(h.date).toLocaleString()}</div>
+        !history ? <SidebarMessage text="Loading…" /> : history.length === 0 ? <div style={{ padding: 12, color: "#64748B" }}>No history — untracked or new file.</div> : history.map((h) => (
+          <div key={h.hash} style={{ padding: "5px 12px", borderBottom: "1px solid #E2E8F0" }}>
+            <div><span style={{ fontFamily: "ui-monospace, monospace", color: "#334155" }}>{h.shortHash}</span> {h.subject}</div>
+            <div style={{ color: "#64748B", fontSize: 10 }}>{h.author} · {new Date(h.date).toLocaleString()}</div>
           </div>
         ))
       ) : (
         !blame ? <SidebarMessage text="Loading blame…" /> : blame.map((l) => (
           <div key={l.line} style={{ display: "flex", gap: 8, padding: "1px 12px", fontFamily: "ui-monospace, monospace", fontSize: 10.5 }} title={`${l.author} · ${new Date(l.date).toLocaleString()}`}>
-            <span style={{ color: "#6a6a6a", width: 40, textAlign: "right", flexShrink: 0 }}>{l.line}</span>
-            <span style={{ color: "#9cdcfe", width: 60, flexShrink: 0 }}>{l.shortHash}</span>
-            <span style={{ color: "#ccc", whiteSpace: "pre" }}>{l.content}</span>
+            <span style={{ color: "#64748B", width: 40, textAlign: "right", flexShrink: 0 }}>{l.line}</span>
+            <span style={{ color: "#334155", width: 60, flexShrink: 0 }}>{l.shortHash}</span>
+            <span style={{ color: "#334155", whiteSpace: "pre" }}>{l.content}</span>
           </div>
         ))
       )}
@@ -2141,21 +2208,21 @@ function MergeSubPanel({ refreshNonce }: { refreshNonce: number }) {
   if (!mergeStatus || !mergeStatus.ok) return <SidebarMessage text="Loading…" />;
   return (
     <div style={{ fontSize: 11.5, padding: "8px 12px" }}>
-      <div style={{ color: mergeStatus.inProgress ? "#f0a020" : "#4ec9b0" }}>
+      <div style={{ color: mergeStatus.inProgress ? "#B45309" : "#0F766E" }}>
         {mergeStatus.inProgress ? `${mergeStatus.kind} in progress` : "No merge/rebase/cherry-pick/revert in progress"}
       </div>
       {mergeStatus.mergeHeads.length > 0 && (
-        <div style={{ color: "#858585", marginTop: 4, fontFamily: "ui-monospace, monospace", fontSize: 10.5 }}>
+        <div style={{ color: "#64748B", marginTop: 4, fontFamily: "ui-monospace, monospace", fontSize: 10.5 }}>
           {mergeStatus.mergeHeads.map((h) => <div key={h}>{h}</div>)}
         </div>
       )}
-      <div style={{ marginTop: 10, color: "#bbb", fontSize: 10, textTransform: "uppercase" }}>Conflicts ({conflicts?.length ?? 0})</div>
+      <div style={{ marginTop: 10, color: "#64748B", fontSize: 10, textTransform: "uppercase" }}>Conflicts ({conflicts?.length ?? 0})</div>
       {(conflicts ?? []).map((c) => (
-        <div key={c.path} style={{ padding: "4px 0", color: "#f37c7c" }}>
+        <div key={c.path} style={{ padding: "4px 0", color: "#B91C1C" }}>
           {c.path} — {c.markersFound ? `${c.markerCount} conflict marker(s) found in working tree` : "no markers found (resolved?)"}
         </div>
       ))}
-      {conflicts?.length === 0 && <div style={{ color: "#6a6a6a", marginTop: 4 }}>No conflicts.</div>}
+      {conflicts?.length === 0 && <div style={{ color: "#64748B", marginTop: 4 }}>No conflicts.</div>}
     </div>
   );
 }
@@ -2164,8 +2231,8 @@ function MergeSubPanel({ refreshNonce }: { refreshNonce: number }) {
 function RuntimePanel() {
   return (
     <div style={{ padding: 10 }}>
-      <div style={{ fontSize: 11.5, color: "#f0a020" }}>Runtime Provider: Not connected</div>
-      <div style={{ fontSize: 11, color: "#858585", marginTop: 6 }}>Live runtime events will appear in the Bottom Panel → Runtime Events once connected.</div>
+      <div style={{ fontSize: 11.5, color: "#B45309" }}>Runtime Provider: Not connected</div>
+      <div style={{ fontSize: 11, color: "#64748B", marginTop: 6 }}>Live runtime events will appear in the Bottom Panel → Runtime Events once connected.</div>
     </div>
   );
 }
@@ -2174,7 +2241,7 @@ function RuntimePanel() {
 function AiPanel() {
   return (
     <div style={{ padding: 10 }}>
-      <div style={{ fontSize: 11.5, color: "#f0a020", marginBottom: 8 }}>AI Provider: Not connected</div>
+      <div style={{ fontSize: 11.5, color: "#B45309", marginBottom: 8 }}>AI Provider: Not connected</div>
       <button disabled title="Not connected" style={disabledBtnStyle}>Run</button>
     </div>
   );
@@ -2286,13 +2353,13 @@ function SettingsPanel({ onAutoSaveChanged }: { onAutoSaveChanged: (enabled: boo
 
   return (
     <div style={{ padding: 10 }}>
-      <div style={{ fontSize: 11.5, color: "#858585", marginBottom: 8 }}>{dbLabel}</div>
-      {error && <div style={{ fontSize: 11, color: "#f37c7c", marginBottom: 8 }}>{error}</div>}
+      <div style={{ fontSize: 11.5, color: "#64748B", marginBottom: 8 }}>{dbLabel}</div>
+      {error && <div style={{ fontSize: 11, color: "#B91C1C", marginBottom: 8 }}>{error}</div>}
       {IDE_SETTINGS_ITEMS.map(({ field, label }) => {
         const itemStatus = status?.[field];
         const enabled = isSettingCheckboxEnabled(itemStatus);
         return (
-          <label key={field} style={{ display: "flex", alignItems: "center", gap: 8, padding: "4px 0", fontSize: 12, color: "#858585" }}>
+          <label key={field} style={{ display: "flex", alignItems: "center", gap: 8, padding: "4px 0", fontSize: 12, color: "#64748B" }}>
             <input
               type="checkbox"
               checked={!!settings?.[field]}
@@ -2300,7 +2367,7 @@ function SettingsPanel({ onAutoSaveChanged }: { onAutoSaveChanged: (enabled: boo
               onChange={() => void onToggle(field)}
             />
             {label}
-            <span style={{ fontSize: 10, color: enabled ? "#4ec9b0" : "#6a6a6a", marginLeft: "auto" }}>
+            <span style={{ fontSize: 10, color: enabled ? "#0F766E" : "#64748B", marginLeft: "auto" }}>
               {itemStatus ?? "…"}
             </span>
           </label>
@@ -2329,10 +2396,10 @@ type ConnectionsCatalogResponse = { catalog: CatalogEntry[] } | { error: string 
 
 function connectionHealthDotColor(h: CatalogEntry["healthStatus"]): string {
   switch (h) {
-    case "HEALTHY": return "#4ec9b0";
-    case "DEGRADED": return "#e0a860";
-    case "UNAVAILABLE": return "#f37c7c";
-    default: return "#6a6a6a"; // NOT_CONFIGURED / UNKNOWN — never rendered as if healthy
+    case "HEALTHY": return "#0F766E";
+    case "DEGRADED": return "#B45309";
+    case "UNAVAILABLE": return "#B91C1C";
+    default: return "#64748B"; // NOT_CONFIGURED / UNKNOWN — never rendered as if healthy
   }
 }
 
@@ -2378,31 +2445,31 @@ function ConnectionsPanel() {
         const canTest = entry.kind === "db_connector" && entry.connectionType !== "webhook";
         const note = connectionKindNote(entry);
         return (
-          <div key={entry.id} style={{ border: "1px solid #3a3a3a", borderRadius: 5, padding: 8, background: "#2d2d2d" }}>
+          <div key={entry.id} style={{ border: "1px solid #CBD5E1", borderRadius: 5, padding: 8, background: "#F1F5F9" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
               {entry.logo && <img src={entry.logo} alt="" style={{ width: 16, height: 16, objectFit: "contain", flexShrink: 0 }} />}
-              <span style={{ fontSize: 12, fontWeight: 600, color: "#ddd" }}>{entry.product}</span>
+              <span style={{ fontSize: 12, fontWeight: 600, color: "#334155" }}>{entry.product}</span>
               <span
                 title={`healthStatus: ${entry.healthStatus}`}
                 style={{ marginLeft: "auto", width: 7, height: 7, borderRadius: "50%", background: connectionHealthDotColor(entry.healthStatus), flexShrink: 0 }}
               />
             </div>
-            <div style={{ fontSize: 10.5, color: "#858585", marginTop: 2 }}>{entry.role} · {entry.healthStatus}</div>
+            <div style={{ fontSize: 10.5, color: "#64748B", marginTop: 2 }}>{entry.role} · {entry.healthStatus}</div>
             {entry.capabilities.length > 0 && (
               <div style={{ display: "flex", flexWrap: "wrap", gap: 3, marginTop: 5 }}>
                 {entry.capabilities.map((c) => (
-                  <span key={c} style={{ fontSize: 9.5, padding: "1px 5px", borderRadius: 8, background: "#3a3a3a", color: "#9cdcfe" }}>{c}</span>
+                  <span key={c} style={{ fontSize: 9.5, padding: "1px 5px", borderRadius: 8, background: "#F1F5F9", color: "#334155" }}>{c}</span>
                 ))}
               </div>
             )}
-            {entry.lastError && <div style={{ fontSize: 10, color: "#f37c7c", marginTop: 4 }}>{entry.lastError}</div>}
-            {note && <div style={{ fontSize: 10, color: "#6a6a6a", marginTop: 4 }}>{note}</div>}
+            {entry.lastError && <div style={{ fontSize: 10, color: "#B91C1C", marginTop: 4 }}>{entry.lastError}</div>}
+            {note && <div style={{ fontSize: 10, color: "#64748B", marginTop: 4 }}>{note}</div>}
             {(canConnect || canTest) && (
               <div style={{ display: "flex", gap: 5, marginTop: 6 }}>
                 {canConnect && (
                   <a
                     href={`/api/connectors/oauth/authorize/${entry.slug}`}
-                    style={{ fontSize: 10.5, padding: "3px 8px", borderRadius: 4, border: "1px solid #5b3fa8", background: "#5b3fa8", color: "#fff", textDecoration: "none" }}
+                    style={{ fontSize: 10.5, padding: "3px 8px", borderRadius: 4, border: "1px solid #0F172A", background: "#0F172A", color: "#FFFFFF", textDecoration: "none" }}
                   >
                     Connect
                   </a>
@@ -2421,15 +2488,15 @@ function ConnectionsPanel() {
   );
 }
 const connectionsBtnStyle: React.CSSProperties = {
-  fontSize: 10.5, padding: "3px 8px", borderRadius: 4, border: "1px solid #3a3a3a", background: "#2d2d2d", color: "#ccc", cursor: "pointer",
+  fontSize: 10.5, padding: "3px 8px", borderRadius: 4, border: "1px solid #CBD5E1", background: "#F1F5F9", color: "#334155", cursor: "pointer",
 };
 
 function SidebarItem({ label, onClick }: { label: string; onClick: () => void }) {
   return (
     <div
       onClick={onClick}
-      style={{ padding: "5px 12px", fontSize: 12.5, cursor: "pointer", color: "#ccc" }}
-      onMouseEnter={(e) => (e.currentTarget.style.background = "#2a2d2e")}
+      style={{ padding: "5px 12px", fontSize: 12.5, cursor: "pointer", color: "#334155" }}
+      onMouseEnter={(e) => (e.currentTarget.style.background = "#E8EDF3")}
       onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
     >
       {label}
@@ -2437,10 +2504,10 @@ function SidebarItem({ label, onClick }: { label: string; onClick: () => void })
   );
 }
 function SidebarMessage({ text }: { text: string }) {
-  return <div style={{ padding: 12, fontSize: 12, color: "#858585" }}>{text}</div>;
+  return <div style={{ padding: 12, fontSize: 12, color: "#64748B" }}>{text}</div>;
 }
 const disabledBtnStyle: React.CSSProperties = {
-  background: "#2d2d2d", border: "1px solid #3a3a3a", color: "#6a6a6a", borderRadius: 4,
+  background: "#F1F5F9", border: "1px solid #CBD5E1", color: "#64748B", borderRadius: 4,
   padding: "5px 10px", fontSize: 12, cursor: "not-allowed", textAlign: "left",
 };
 
@@ -2449,10 +2516,10 @@ function TabStrip({ tabs, activeTabId, onSelect, onClose, dirtyTabIds, fileState
   tabs: Tab[]; activeTabId: string | null; onSelect: (id: string) => void; onClose: (id: string) => void; dirtyTabIds: string[];
   fileStates: Record<string, FileTabState>;
 }) {
-  if (tabs.length === 0) return <div style={{ height: 35, background: "#252526", borderBottom: "1px solid #1e1e1e", flexShrink: 0 }} />;
+  if (tabs.length === 0) return <div style={{ height: 35, background: "#EEF2F7", borderBottom: "1px solid #E2E8F0", flexShrink: 0 }} />;
   const dirtySet = new Set(dirtyTabIds);
   return (
-    <div style={{ display: "flex", background: "#252526", borderBottom: "1px solid #1e1e1e", overflowX: "auto", overflowY: "hidden", flexShrink: 0 }}>
+    <div style={{ display: "flex", background: "#EEF2F7", borderBottom: "1px solid #E2E8F0", overflowX: "auto", overflowY: "hidden", flexShrink: 0 }}>
       {tabs.map((t) => {
         const dirty = dirtySet.has(t.id);
         const classification = fileStates[t.id]?.classification;
@@ -2464,12 +2531,12 @@ function TabStrip({ tabs, activeTabId, onSelect, onClose, dirtyTabIds, fileState
             title={classification ? classificationTooltip(classification) : (dirty ? `${t.title} — unsaved changes` : t.title)}
             style={{
               display: "flex", alignItems: "center", gap: 6, padding: "8px 10px", fontSize: 12.5, cursor: "pointer",
-              background: activeTabId === t.id ? "#1e1e1e" : "transparent", borderRight: "1px solid #1e1e1e",
+              background: activeTabId === t.id ? "#FFFFFF" : "transparent", borderRight: "1px solid #E2E8F0",
               borderTop: categoryColor ? `2px solid ${categoryColor}` : "2px solid transparent",
-              color: activeTabId === t.id ? "#fff" : "#969696", whiteSpace: "nowrap", flexShrink: 0,
+              color: activeTabId === t.id ? "#0F172A" : "#64748B", whiteSpace: "nowrap", flexShrink: 0,
             }}
           >
-            {dirty && <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#e2c08d", flexShrink: 0 }} />}
+            {dirty && <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#B45309", flexShrink: 0 }} />}
             {classification?.riskLevel === "LOCKED" && <Lock size={11} style={{ color: RISK_COLORS.LOCKED, flexShrink: 0 }} />}
             {t.title}
             <X size={12} onClick={(e) => { e.stopPropagation(); onClose(t.id); }} />
@@ -2481,20 +2548,37 @@ function TabStrip({ tabs, activeTabId, onSelect, onClose, dirtyTabIds, fileState
 }
 
 // ---- Editor toolbar — Save / Save All / Refresh / Find, cursor position ----
-function EditorToolbar({ tab, dirty, anyDirty, classification, onSave, onSaveAll, onReload, onToggleFind }: {
+const WRAP_MODE_ORDER: readonly ("smart" | "on" | "off")[] = ["smart", "on", "off"];
+const WRAP_MODE_LABEL: Record<"smart" | "on" | "off", string> = { smart: "Wrap: Smart", on: "Wrap: On", off: "Wrap: Off" };
+const WRAP_MODE_TITLE: Record<"smart" | "on" | "off", string> = {
+  smart: "Wrap: Smart — soft-wraps Markdown/Text/Log/Report/JSON files; preserves line structure for source code (never overflows the page). Click to cycle to On.",
+  on: "Wrap: On — always soft-wraps this file. Click to cycle to Off.",
+  off: "Wrap: Off — never wraps; horizontal scroll stays confined to the editor pane. Click to cycle to Smart.",
+};
+
+function EditorToolbar({ tab, dirty, anyDirty, classification, onSave, onSaveAll, onReload, onToggleFind, wrapMode, onWrapModeChange }: {
   tab: Tab | null; dirty: boolean; anyDirty: boolean; classification: ClassificationInfo | null | undefined;
   onSave: () => void; onSaveAll: () => void; onReload: () => void; onToggleFind: () => void;
+  wrapMode: "smart" | "on" | "off"; onWrapModeChange: (mode: "smart" | "on" | "off") => void;
 }) {
   if (!tab || tab.kind !== "file") return null;
   const locked = classification?.riskLevel === "LOCKED";
+  const cycleWrapMode = () => {
+    const next = WRAP_MODE_ORDER[(WRAP_MODE_ORDER.indexOf(wrapMode) + 1) % WRAP_MODE_ORDER.length];
+    onWrapModeChange(next);
+  };
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "4px 10px", background: "#252526", borderBottom: "1px solid #1e1e1e", flexShrink: 0 }}>
-      <span style={{ fontSize: 10.5, color: "#4ec9b0", fontWeight: 600, marginRight: 4 }}>EDIT MODE</span>
+    <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "4px 10px", background: "#EEF2F7", borderBottom: "1px solid #E2E8F0", flexShrink: 0 }}>
+      <span style={{ fontSize: 10.5, color: "#0F766E", fontWeight: 600, marginRight: 4 }}>EDIT MODE</span>
       {classification && <ClassificationBadge classification={classification} />}
       <button onClick={onSave} disabled={!dirty || locked} title={locked ? "LOCKED — read-only, cannot be saved" : "Save (Cmd/Ctrl+S)"} style={{ ...topBtnStyle, opacity: !dirty || locked ? 0.4 : 1, cursor: !dirty || locked ? "not-allowed" : "pointer" }}>Save</button>
       <button onClick={onSaveAll} disabled={!anyDirty} style={{ ...topBtnStyle, opacity: anyDirty ? 1 : 0.4, cursor: anyDirty ? "pointer" : "not-allowed" }}>Save All</button>
       <button onClick={onReload} style={topBtnStyle} title="Reload from disk">Reload</button>
       <button onClick={onToggleFind} style={topBtnStyle} title="Find (Cmd/Ctrl+F)">Find</button>
+      {/* Editor Wrap Mode (TASK-074) — a real, client-side 3-state toggle
+          (SMART default / ON / OFF), never wired to the Settings API; see
+          the wrapMode useState comment in IDEWorkspace for why. */}
+      <button onClick={cycleWrapMode} title={WRAP_MODE_TITLE[wrapMode]} style={topBtnStyle}>{WRAP_MODE_LABEL[wrapMode]}</button>
       {locked && (
         <span style={{ display: "flex", alignItems: "center", gap: 4, marginLeft: "auto", fontSize: 10.5, color: RISK_COLORS.LOCKED }}>
           <Lock size={11} /> LOCKED — read-only
@@ -2533,7 +2617,7 @@ function formatBytes(n: number): string {
 
 interface EditorHighlight { tabId: string; line: number; column: number; matchLength: number }
 
-function EditorPane({ tab, highlight, fileState, onChangeContent, onConflictReload, onConflictKeepMine, findBarOpen, onCloseFindBar, gitRefreshNonce }: {
+function EditorPane({ tab, highlight, fileState, onChangeContent, onConflictReload, onConflictKeepMine, findBarOpen, onCloseFindBar, gitRefreshNonce, wrapMode }: {
   tab: Tab | null;
   highlight: EditorHighlight | null;
   fileState: FileTabState | undefined;
@@ -2543,10 +2627,11 @@ function EditorPane({ tab, highlight, fileState, onChangeContent, onConflictRelo
   findBarOpen: boolean;
   onCloseFindBar: () => void;
   gitRefreshNonce: number;
+  wrapMode: "smart" | "on" | "off";
 }) {
   if (!tab) {
     return (
-      <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", color: "#5a5a5a", minWidth: 0 }}>
+      <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", color: "#94A3B8", minWidth: 0 }}>
         No file open
       </div>
     );
@@ -2567,19 +2652,37 @@ function EditorPane({ tab, highlight, fileState, onChangeContent, onConflictRelo
       onConflictKeepMine={onConflictKeepMine}
       findBarOpen={findBarOpen}
       onCloseFindBar={onCloseFindBar}
+      wrapMode={wrapMode}
     />
   );
 }
 
+// Editor Wrap Mode (TASK-074) — SMART soft-wraps file kinds where long
+// lines are prose/data (Markdown/Text/Log/Report/JSON), and preserves real
+// line structure for source code (page overflow is prevented structurally
+// by the container below, never by forcing source code to wrap). Extension
+// list intentionally mirrors the Owner's own spec wording, not a guess.
+const SOFT_WRAP_EXTENSIONS = new Set(["md", "markdown", "txt", "log", "report", "json"]);
+// Exported (TASK-074) purely so scripts/ide-editor-overflow-verify.ts can
+// import the real function instead of re-implementing it — same
+// "exported only for a real test to reuse the real logic" convention as
+// isDirty/isSettingCheckboxEnabled above, not a behavior change.
+export function shouldSoftWrapPath(path: string): boolean {
+  const ext = path.split(".").pop()?.toLowerCase() ?? "";
+  return SOFT_WRAP_EXTENSIONS.has(ext);
+}
+
 // ---- Real, editable file editor (owner, 2026-08-05, Phase 2) ----
-function lineColAt(text: string, offset: number): { line: number; column: number } {
+// Exported (TASK-074) for the same real-test-reuse reason as
+// shouldSoftWrapPath above.
+export function lineColAt(text: string, offset: number): { line: number; column: number } {
   let line = 1, lastNewline = -1;
   for (let i = 0; i < offset; i++) {
     if (text[i] === "\n") { line++; lastNewline = i; }
   }
   return { line, column: offset - lastNewline };
 }
-function offsetOfLine(text: string, targetLine: number): number {
+export function offsetOfLine(text: string, targetLine: number): number {
   if (targetLine <= 1) return 0;
   let line = 1;
   for (let i = 0; i < text.length; i++) {
@@ -2591,11 +2694,12 @@ function offsetOfLine(text: string, targetLine: number): number {
   return text.length;
 }
 
-function FileEditor({ tabId, path, state, highlight, onChangeContent, onConflictReload, onConflictKeepMine, findBarOpen, onCloseFindBar }: {
+function FileEditor({ tabId, path, state, highlight, onChangeContent, onConflictReload, onConflictKeepMine, findBarOpen, onCloseFindBar, wrapMode }: {
   tabId: string; path: string; state: FileTabState | undefined; highlight: EditorHighlight | null;
   onChangeContent: (tabId: string, content: string) => void;
   onConflictReload: (tabId: string) => void; onConflictKeepMine: (tabId: string) => void;
   findBarOpen: boolean; onCloseFindBar: () => void;
+  wrapMode: "smart" | "on" | "off";
 }) {
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const gutterRef = useRef<HTMLDivElement | null>(null);
@@ -2677,17 +2781,27 @@ function FileEditor({ tabId, path, state, highlight, onChangeContent, onConflict
   }, [goToLineValue, state, updateCursor]);
 
   if (!state || state.loading) {
-    return <div style={{ flex: 1, padding: 16, fontSize: 12.5, color: "#858585" }}>Loading…</div>;
+    return <div style={{ flex: 1, padding: 16, fontSize: 12.5, color: "#64748B" }}>Loading…</div>;
   }
   if (state.error) {
-    return <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", color: "#f14c4c", minWidth: 0, padding: 16, textAlign: "center" }}>{state.error}</div>;
+    return <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", color: "#B91C1C", minWidth: 0, padding: 16, textAlign: "center" }}>{state.error}</div>;
   }
 
   const lineCount = state.content.split("\n").length;
 
+  // Editor Wrap Mode (TASK-074) — SMART soft-wraps prose/data-shaped files
+  // and keeps real line structure for source code; ON always soft-wraps;
+  // OFF never wraps. Whichever mode is active, the page can never overflow
+  // horizontally: the row below is min-width:0 + overflow:hidden, and the
+  // textarea itself (the actual scrollable child) gets overflowX:auto —
+  // OFF's horizontal scrollbar stays confined to the textarea, never the
+  // page (verified structurally against a real >5000-char line — see
+  // scripts/ide-editor-overflow-verify.ts).
+  const softWrap = wrapMode === "on" || (wrapMode === "smart" && shouldSoftWrapPath(path));
+
   return (
     <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0, minHeight: 0 }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 14, padding: "5px 12px", fontSize: 10.5, color: "#858585", background: "#1a1a1a", borderBottom: "1px solid #1e1e1e", flexShrink: 0 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 14, padding: "5px 12px", fontSize: 10.5, color: "#64748B", background: "#EEF2F7", borderBottom: "1px solid #E2E8F0", flexShrink: 0 }}>
         <span title={path}>{path}</span>
         <span>{formatBytes(new Blob([state.content]).size)}</span>
         {state.encoding && <span>{state.encoding}</span>}
@@ -2696,14 +2810,14 @@ function FileEditor({ tabId, path, state, highlight, onChangeContent, onConflict
         <span style={{ position: "relative" }}>
           <button onClick={() => setGoToLineOpen((v) => !v)} style={{ ...miniBtnStyle }}>Go to Line</button>
           {goToLineOpen && (
-            <span style={{ position: "absolute", top: "100%", left: 0, marginTop: 4, background: "#2d2d2d", border: "1px solid #3a3a3a", borderRadius: 4, padding: 4, display: "flex", gap: 4, zIndex: 10 }}>
+            <span style={{ position: "absolute", top: "100%", left: 0, marginTop: 4, background: "#FFFFFF", border: "1px solid #CBD5E1", borderRadius: 4, padding: 4, display: "flex", gap: 4, zIndex: 10, boxShadow: "0 2px 8px rgba(15,23,42,0.12)" }}>
               <input
                 autoFocus
                 value={goToLineValue}
                 onChange={(e) => setGoToLineValue(e.target.value)}
                 onKeyDown={(e) => { if (e.key === "Enter") goToLine(); if (e.key === "Escape") setGoToLineOpen(false); }}
                 placeholder="Line #"
-                style={{ width: 60, background: "#3c3c3c", border: "1px solid #4a4a4a", color: "#ccc", borderRadius: 3, padding: "2px 6px", fontSize: 11 }}
+                style={{ width: 60, background: "#FFFFFF", border: "1px solid #CBD5E1", color: "#334155", borderRadius: 3, padding: "2px 6px", fontSize: 11 }}
               />
             </span>
           )}
@@ -2716,8 +2830,8 @@ function FileEditor({ tabId, path, state, highlight, onChangeContent, onConflict
       </div>
 
       {state.conflict && (
-        <div style={{ padding: 10, background: "#3a1e1e", borderBottom: "1px solid #5a2e2e", flexShrink: 0 }}>
-          <div style={{ fontSize: 12, color: "#e8c3c3", marginBottom: 6 }}>
+        <div style={{ padding: 10, background: "rgba(185,28,28,0.08)", borderBottom: "1px solid rgba(185,28,28,0.35)", flexShrink: 0 }}>
+          <div style={{ fontSize: 12, color: "#B91C1C", marginBottom: 6 }}>
             File changed on disk since it was opened — your edits were NOT overwritten and NOT saved.
           </div>
           <div style={{ display: "flex", gap: 6 }}>
@@ -2730,7 +2844,7 @@ function FileEditor({ tabId, path, state, highlight, onChangeContent, onConflict
       )}
 
       {findBarOpen && (
-        <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "5px 10px", background: "#2d2d2d", borderBottom: "1px solid #1e1e1e", flexShrink: 0 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "5px 10px", background: "#F1F5F9", borderBottom: "1px solid #E2E8F0", flexShrink: 0 }}>
           <input
             autoFocus
             value={findQuery}
@@ -2740,9 +2854,9 @@ function FileEditor({ tabId, path, state, highlight, onChangeContent, onConflict
               if (e.key === "Escape") onCloseFindBar();
             }}
             placeholder="Find in file…"
-            style={{ flex: 1, minWidth: 0, background: "#3c3c3c", border: "1px solid #4a4a4a", color: "#ccc", borderRadius: 3, padding: "4px 8px", fontSize: 12 }}
+            style={{ flex: 1, minWidth: 0, background: "#FFFFFF", border: "1px solid #CBD5E1", color: "#334155", borderRadius: 3, padding: "4px 8px", fontSize: 12 }}
           />
-          <span style={{ fontSize: 11, color: "#858585", whiteSpace: "nowrap" }}>
+          <span style={{ fontSize: 11, color: "#64748B", whiteSpace: "nowrap" }}>
             {findMatches.length > 0 ? `${findIndex + 1}/${findMatches.length}` : "0 results"}
           </span>
           <button onClick={() => jumpToMatch(findIndex - 1)} disabled={findMatches.length === 0} style={miniBtnStyle}>Prev</button>
@@ -2751,7 +2865,14 @@ function FileEditor({ tabId, path, state, highlight, onChangeContent, onConflict
         </div>
       )}
 
-      <div style={{ flex: 1, display: "flex", minHeight: 0, minWidth: 0 }}>
+      {/* Horizontal overflow containment (TASK-074) — this row is the ONE
+          place in the whole editor column allowed to scroll horizontally.
+          minWidth:0 lets it actually shrink inside the flex column instead
+          of forcing the column (and the page) wider; overflow:hidden means
+          ANY child that doesn't wrap its own scrolling can never push this
+          row's own box past its container. The textarea below is the real
+          scrollable child (overflowX:auto) when wrap is off. */}
+      <div style={{ flex: 1, display: "flex", minHeight: 0, minWidth: 0, overflow: "hidden" }}>
         {/* Category side strip — a thin accent bar, never a full-file wash
             (spec: "ห้ามย้อม syntax ทั้งไฟล์เป็นสีเดียว"). Real syntax
             highlighting doesn't exist in this plain-textarea editor to
@@ -2762,7 +2883,7 @@ function FileEditor({ tabId, path, state, highlight, onChangeContent, onConflict
             style={{ width: 4, flexShrink: 0, background: CATEGORY_COLORS[state.classification.category] }}
           />
         )}
-        <div ref={gutterRef} style={{ width: 48, flexShrink: 0, overflow: "hidden", background: "#1e1e1e", color: "#5a5a5a", fontSize: 12.5, fontFamily: "ui-monospace, monospace", lineHeight: "18px", textAlign: "right", padding: "8px 8px 8px 0", userSelect: "none" }}>
+        <div ref={gutterRef} style={{ width: 48, flexShrink: 0, overflow: "hidden", background: "#EEF2F7", color: "#94A3B8", fontSize: 12.5, fontFamily: "ui-monospace, monospace", lineHeight: "18px", textAlign: "right", padding: "8px 8px 8px 0", userSelect: "none" }}>
           {Array.from({ length: lineCount }, (_, i) => <div key={i}>{i + 1}</div>)}
         </div>
         <textarea
@@ -2774,16 +2895,24 @@ function FileEditor({ tabId, path, state, highlight, onChangeContent, onConflict
           onClick={updateCursor}
           onKeyUp={updateCursor}
           spellCheck={false}
-          wrap="off"
+          wrap={softWrap ? "soft" : "off"}
           readOnly={state.classification?.riskLevel === "LOCKED"}
           title={state.classification?.riskLevel === "LOCKED" ? "LOCKED — read-only" : undefined}
           style={{
             flex: 1, minWidth: 0, resize: "none", border: "none", outline: "none",
-            background: state.classification?.riskLevel === "LOCKED" ? "#1a1a1a" : "#1e1e1e",
-            color: state.classification?.riskLevel === "LOCKED" ? "#9a9a9a" : "#d4d4d4",
+            background: state.classification?.riskLevel === "LOCKED" ? "#F1F5F9" : "#FFFFFF",
+            color: state.classification?.riskLevel === "LOCKED" ? "#64748B" : "#334155",
             cursor: state.classification?.riskLevel === "LOCKED" ? "not-allowed" : "text",
             fontSize: 12.5, fontFamily: "ui-monospace, monospace",
-            lineHeight: "18px", padding: "8px 12px", whiteSpace: "pre",
+            lineHeight: "18px", padding: "8px 12px",
+            // OFF (and SMART on source code) keep real line structure
+            // (whiteSpace: "pre") — the horizontal scrollbar this produces
+            // is the textarea's OWN native overflow-x, confined to this
+            // element (overflowX: "auto" below), never the page. ON (and
+            // SMART on prose/data files) soft-wrap instead.
+            whiteSpace: softWrap ? "pre-wrap" : "pre",
+            overflowWrap: softWrap ? "break-word" : "normal",
+            overflowX: "auto",
           }}
         />
       </div>
@@ -2831,13 +2960,13 @@ function computeLineDiff(oldText: string, newText: string): DiffLine[] {
 function DiskVsEditorDiff({ diskContent, editorContent }: { diskContent: string; editorContent: string }) {
   const lines = useMemo(() => computeLineDiff(diskContent, editorContent), [diskContent, editorContent]);
   return (
-    <div style={{ marginTop: 8, maxHeight: 240, overflow: "auto", background: "#1e1e1e", border: "1px solid #3a3a3a", borderRadius: 4, fontSize: 12, fontFamily: "ui-monospace, monospace" }}>
+    <div style={{ marginTop: 8, maxHeight: 240, overflow: "auto", background: "#FFFFFF", border: "1px solid #CBD5E1", borderRadius: 4, fontSize: 12, fontFamily: "ui-monospace, monospace" }}>
       {lines.map((line, i) => {
         const style = DIFF_LINE_STYLE[line.type];
         return (
           <div key={i} style={{ display: "flex", padding: "0 10px", whiteSpace: "pre", background: style.bg, color: style.color }}>
-            <span style={{ width: 30, flexShrink: 0, textAlign: "right", marginRight: 6, color: "#5a5a5a", userSelect: "none" }}>{line.oldLine ?? ""}</span>
-            <span style={{ width: 30, flexShrink: 0, textAlign: "right", marginRight: 10, color: "#5a5a5a", userSelect: "none" }}>{line.newLine ?? ""}</span>
+            <span style={{ width: 30, flexShrink: 0, textAlign: "right", marginRight: 6, color: "#64748B", userSelect: "none" }}>{line.oldLine ?? ""}</span>
+            <span style={{ width: 30, flexShrink: 0, textAlign: "right", marginRight: 10, color: "#64748B", userSelect: "none" }}>{line.newLine ?? ""}</span>
             <span>{style.prefix}{line.content}</span>
           </div>
         );
@@ -2846,15 +2975,15 @@ function DiskVsEditorDiff({ diskContent, editorContent }: { diskContent: string;
   );
 }
 const miniBtnStyle: React.CSSProperties = {
-  background: "#2d2d2d", border: "1px solid #3a3a3a", color: "#ccc", borderRadius: 3, padding: "3px 8px", fontSize: 11, cursor: "pointer",
+  background: "#F1F5F9", border: "1px solid #CBD5E1", color: "#334155", borderRadius: 3, padding: "3px 8px", fontSize: 11, cursor: "pointer",
 };
 
 // ---- Diff viewer — real git diff for one file (owner, 2026-08-05, Phase 1) ----
 const DIFF_LINE_STYLE: Record<DiffLine["type"], { bg: string; color: string; prefix: string }> = {
-  add: { bg: "#1e3a1e", color: "#c3e8c3", prefix: "+" },
-  del: { bg: "#3a1e1e", color: "#e8c3c3", prefix: "-" },
-  context: { bg: "transparent", color: "#d4d4d4", prefix: " " },
-  hunk: { bg: "#252526", color: "#9cdcfe", prefix: "" },
+  add: { bg: "rgba(15,118,110,0.08)", color: "#0F766E", prefix: "+" },
+  del: { bg: "rgba(185,28,28,0.08)", color: "#B91C1C", prefix: "-" },
+  context: { bg: "transparent", color: "#334155", prefix: " " },
+  hunk: { bg: "#EEF2F7", color: "#334155", prefix: "" },
 };
 
 function DiffPane({ path, staged, refreshNonce }: { path: string; staged: boolean; refreshNonce: number }) {
@@ -2872,33 +3001,33 @@ function DiffPane({ path, staged, refreshNonce }: { path: string; staged: boolea
 
   if (error) {
     return (
-      <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", color: "#f14c4c", minWidth: 0, padding: 16, textAlign: "center" }}>
+      <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", color: "#B91C1C", minWidth: 0, padding: 16, textAlign: "center" }}>
         {error}
       </div>
     );
   }
   if (!diff) {
-    return <div style={{ flex: 1, padding: 16, fontSize: 12.5, color: "#858585" }}>Loading diff…</div>;
+    return <div style={{ flex: 1, padding: 16, fontSize: 12.5, color: "#64748B" }}>Loading diff…</div>;
   }
 
   return (
     <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0, minHeight: 0 }}>
-      <div style={{ display: "flex", gap: 14, padding: "5px 12px", fontSize: 10.5, color: "#858585", background: "#1a1a1a", borderBottom: "1px solid #1e1e1e", flexShrink: 0 }}>
+      <div style={{ display: "flex", gap: 14, padding: "5px 12px", fontSize: 10.5, color: "#64748B", background: "#EEF2F7", borderBottom: "1px solid #E2E8F0", flexShrink: 0 }}>
         <span>{diff.path}</span>
         <span>{diff.staged ? "staged" : "unstaged"}</span>
         <span style={{ marginLeft: "auto" }}>Read-only diff</span>
       </div>
       <div style={{ flex: 1, overflow: "auto", minWidth: 0, fontSize: 12.5, fontFamily: "ui-monospace, monospace" }}>
-        {diff.binary && <div style={{ padding: 16, color: "#858585" }}>Binary file — diff not shown</div>}
+        {diff.binary && <div style={{ padding: 16, color: "#64748B" }}>Binary file — diff not shown</div>}
         {!diff.binary && diff.lines.length === 0 && (
-          <div style={{ padding: 16, color: "#858585" }}>Untracked file — no diff against HEAD available yet.</div>
+          <div style={{ padding: 16, color: "#64748B" }}>Untracked file — no diff against HEAD available yet.</div>
         )}
         {!diff.binary && diff.lines.map((line, i) => {
           const style = DIFF_LINE_STYLE[line.type];
           return (
             <div key={i} style={{ display: "flex", padding: "0 12px", whiteSpace: "pre", background: style.bg, color: style.color }}>
-              <span style={{ width: 36, flexShrink: 0, textAlign: "right", marginRight: 6, color: "#5a5a5a", userSelect: "none" }}>{line.oldLine ?? ""}</span>
-              <span style={{ width: 36, flexShrink: 0, textAlign: "right", marginRight: 10, color: "#5a5a5a", userSelect: "none" }}>{line.newLine ?? ""}</span>
+              <span style={{ width: 36, flexShrink: 0, textAlign: "right", marginRight: 6, color: "#64748B", userSelect: "none" }}>{line.oldLine ?? ""}</span>
+              <span style={{ width: 36, flexShrink: 0, textAlign: "right", marginRight: 10, color: "#64748B", userSelect: "none" }}>{line.newLine ?? ""}</span>
               <span>{style.prefix}{line.content}</span>
             </div>
           );
@@ -2962,9 +3091,9 @@ function JumpToLatestButton({ onClick }: { onClick: () => void }) {
     <button
       onClick={onClick}
       style={{
-        position: "absolute", bottom: 10, right: 14, background: "rgba(9,105,218,0.85)", color: "#fff",
+        position: "absolute", bottom: 10, right: 14, background: "rgba(15,23,42,0.85)", color: "#FFFFFF",
         border: "none", borderRadius: 12, padding: "5px 12px", fontSize: 10.5, cursor: "pointer",
-        boxShadow: "0 2px 8px rgba(0,0,0,0.35)", display: "flex", alignItems: "center", gap: 4,
+        boxShadow: "0 2px 8px rgba(15,23,42,0.18)", display: "flex", alignItems: "center", gap: 4,
       }}
     >
       <ChevronDown size={12} /> ไปข้อความล่าสุด
@@ -2996,15 +3125,15 @@ function BottomPanel({
   const activeLabel = BOTTOM_TABS.find((t) => t.id === activeTab)?.label ?? activeTab;
   const runtimeEvents = useStickToBottom(exec.execEventLog.length);
 
-  const dotColor = isExecRunning ? "#4da6ff" : hasUnreadFailure ? "#f37c7c" : hasUnreadOutput ? "#8fd3a3" : null;
+  const dotColor = isExecRunning ? "#334155" : hasUnreadFailure ? "#B91C1C" : hasUnreadOutput ? "#0F766E" : null;
   const showIndicator = collapsed && dotColor !== null;
 
   const glassStyle: React.CSSProperties = {
-    background: "rgba(30,30,32,0.88)",
+    background: "rgba(255,255,255,0.88)",
     backdropFilter: "blur(10px) saturate(1.1)",
     WebkitBackdropFilter: "blur(10px) saturate(1.1)",
-    borderTop: "1px solid rgba(255,255,255,0.09)",
-    boxShadow: "0 -8px 24px rgba(0,0,0,0.35)",
+    borderTop: "1px solid rgba(15,23,42,0.08)",
+    boxShadow: "0 -8px 24px rgba(15,23,42,0.12)",
   };
 
   return (
@@ -3012,7 +3141,7 @@ function BottomPanel({
       style={{
         position: "absolute", left: 0, right: 0, bottom: 0, zIndex: CONSOLE_Z_INDEX,
         height: collapsed ? BOTTOM_COLLAPSED_HEIGHT : height,
-        display: "flex", flexDirection: "column", minWidth: 0, color: "#d4d4d4",
+        display: "flex", flexDirection: "column", minWidth: 0, color: "#334155",
         transition: "height 120ms ease-out",
         ...glassStyle,
       }}
@@ -3024,7 +3153,7 @@ function BottomPanel({
           title="เปิดแผงการทำงาน (Cmd/Ctrl+J)"
           style={{
             display: "flex", alignItems: "center", gap: 8, width: "100%", height: "100%",
-            background: "none", border: "none", color: "#ccc", cursor: "pointer", padding: "0 12px", fontSize: 11.5, minHeight: 32,
+            background: "none", border: "none", color: "#334155", cursor: "pointer", padding: "0 12px", fontSize: 11.5, minHeight: 32,
           }}
         >
           {showIndicator && (
@@ -3050,18 +3179,18 @@ function BottomPanel({
             title="ลากเพื่อปรับความสูง"
             style={{ height: 6, marginTop: -3, cursor: "row-resize", flexShrink: 0 }}
           />
-          <div style={{ display: "flex", alignItems: "center", background: "transparent", flexShrink: 0, borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+          <div style={{ display: "flex", alignItems: "center", background: "transparent", flexShrink: 0, borderBottom: "1px solid #E2E8F0" }}>
             {BOTTOM_TABS.map((t) => {
               const tabDot = t.id === "execution" ? (isExecRunning || hasUnreadFailure) : t.id === "runtime-events" ? hasUnreadOutput : false;
-              const tabDotColor = t.id === "execution" && isExecRunning ? "#4da6ff" : t.id === "execution" && hasUnreadFailure ? "#f37c7c" : "#8fd3a3";
+              const tabDotColor = t.id === "execution" && isExecRunning ? "#334155" : t.id === "execution" && hasUnreadFailure ? "#B91C1C" : "#0F766E";
               return (
                 <div
                   key={t.id}
                   onClick={() => onSelectTab(t.id)}
                   style={{
                     display: "flex", alignItems: "center", gap: 5, padding: "7px 12px", fontSize: 11.5, cursor: "pointer",
-                    color: activeTab === t.id ? "#fff" : "#969696",
-                    borderBottom: activeTab === t.id ? "1px solid #4da6ff" : "1px solid transparent", flexShrink: 0,
+                    color: activeTab === t.id ? "#0F172A" : "#64748B",
+                    borderBottom: activeTab === t.id ? "1px solid #0F172A" : "1px solid transparent", flexShrink: 0,
                   }}
                 >
                   {t.label}
@@ -3072,7 +3201,7 @@ function BottomPanel({
             <button
               onClick={onToggleCollapse}
               title="พับแผงการทำงาน (Cmd/Ctrl+J)"
-              style={{ marginLeft: "auto", width: 32, height: 32, display: "flex", alignItems: "center", justifyContent: "center", background: "none", border: "none", color: "#858585", cursor: "pointer", flexShrink: 0 }}
+              style={{ marginLeft: "auto", width: 32, height: 32, display: "flex", alignItems: "center", justifyContent: "center", background: "none", border: "none", color: "#64748B", cursor: "pointer", flexShrink: 0 }}
             >
               <ChevronDown size={13} />
             </button>
@@ -3116,9 +3245,9 @@ function BottomPanel({
               >
                 {activeTab === "runtime-events" && (
                   exec.execEventLog.length === 0
-                    ? <div style={{ color: "#858585" }}>No runtime events yet — run a command from the Execution tab.</div>
+                    ? <div style={{ color: "#64748B" }}>No runtime events yet — run a command from the Execution tab.</div>
                     : exec.execEventLog.map((e, i) => (
-                      <div key={i} style={{ padding: "2px 0", color: "#858585" }}>[{e.ts}] {e.text}</div>
+                      <div key={i} style={{ padding: "2px 0", color: "#64748B" }}>[{e.ts}] {e.text}</div>
                     ))
                 )}
               </div>
@@ -3146,31 +3275,31 @@ function ExecutionPanel({
   const { containerRef: outputContainerRef, onScroll: outputOnScroll, atBottom: outputAtBottom, scrollToBottom: outputScrollToBottom } = useStickToBottom(activeOutput.length);
 
   const statusColor: Record<ExecRunStatus, string> = {
-    queued: "#cca700", running: "#9cdcfe", passed: "#4ec9b0", failed: "#f14c4c",
-    cancelled: "#858585", timed_out: "#f14c4c", output_limited: "#f0a020",
+    queued: "#B45309", running: "#334155", passed: "#0F766E", failed: "#B91C1C",
+    cancelled: "#64748B", timed_out: "#B91C1C", output_limited: "#B45309",
   };
 
   return (
     <div style={{ display: "flex", height: "100%", minHeight: 0 }}>
       {/* Command selector + run controls */}
-      <div style={{ width: 240, flexShrink: 0, borderRight: "1px solid #2d2d2d", display: "flex", flexDirection: "column", padding: 8, gap: 6, overflowY: "auto" }}>
+      <div style={{ width: 240, flexShrink: 0, borderRight: "1px solid #E2E8F0", display: "flex", flexDirection: "column", padding: 8, gap: 6, overflowY: "auto" }}>
         <select
           value={execSelectedCommandId ?? ""}
           onChange={(e) => onExecSelectCommand(e.target.value)}
-          style={{ background: "#3c3c3c", border: "1px solid #4a4a4a", color: "#ccc", borderRadius: 3, padding: "5px 6px", fontSize: 11.5 }}
+          style={{ background: "#FFFFFF", border: "1px solid #CBD5E1", color: "#334155", borderRadius: 3, padding: "5px 6px", fontSize: 11.5 }}
         >
           {execCommands.map((c) => <option key={c.id} value={c.id}>{c.label}</option>)}
         </select>
         {selectedMeta && (
-          <div style={{ fontSize: 10.5, color: "#858585" }}>
+          <div style={{ fontSize: 10.5, color: "#64748B" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 5, textTransform: "uppercase", letterSpacing: 0.3 }}>
               <span>{selectedMeta.category}</span>
-              <span style={{ padding: "1px 6px", borderRadius: 8, background: selectedMeta.mode === "READ_ONLY" ? "#2d3a2d" : "#3a2d1e", color: selectedMeta.mode === "READ_ONLY" ? "#8fd3a3" : "#e0a860" }}>
+              <span style={{ padding: "1px 6px", borderRadius: 8, background: selectedMeta.mode === "READ_ONLY" ? "rgba(15,118,110,0.08)" : "rgba(180,83,9,0.08)", color: selectedMeta.mode === "READ_ONLY" ? "#0F766E" : "#B45309" }}>
                 {selectedMeta.mode === "READ_ONLY" ? "Read Only" : "Workspace Write"}
               </span>
             </div>
             <div style={{ marginTop: 3 }}>{selectedMeta.description}</div>
-            {selectedMeta.requiresOwnerConfirmation && <div style={{ marginTop: 3, color: "#e0a860" }}>Requires confirmation before running.</div>}
+            {selectedMeta.requiresOwnerConfirmation && <div style={{ marginTop: 3, color: "#B45309" }}>Requires confirmation before running.</div>}
           </div>
         )}
         <div style={{ display: "flex", gap: 6, marginTop: 4 }}>
@@ -3190,11 +3319,11 @@ function ExecutionPanel({
           </button>
           <button onClick={onExecClear} style={topBtnStyle}>Clear</button>
         </div>
-        {execStartError && <div style={{ color: "#f14c4c", fontSize: 10.5 }}>{execStartError}</div>}
+        {execStartError && <div style={{ color: "#B91C1C", fontSize: 10.5 }}>{execStartError}</div>}
 
-        <div style={{ marginTop: 8, fontSize: 10.5, color: "#bbb", textTransform: "uppercase", letterSpacing: 0.3 }}>Run History</div>
+        <div style={{ marginTop: 8, fontSize: 10.5, color: "#64748B", textTransform: "uppercase", letterSpacing: 0.3 }}>Run History</div>
         <div style={{ flex: 1, minHeight: 0, overflowY: "auto", display: "flex", flexDirection: "column", gap: 2 }}>
-          {execHistory.length === 0 && <div style={{ color: "#6a6a6a", fontSize: 10.5 }}>No runs yet</div>}
+          {execHistory.length === 0 && <div style={{ color: "#64748B", fontSize: 10.5 }}>No runs yet</div>}
           {execHistory.map((runId) => {
             const r = execRuns[runId];
             if (!r) return null;
@@ -3203,13 +3332,13 @@ function ExecutionPanel({
               <div
                 key={runId}
                 onClick={() => onExecSelectRun(runId)}
-                style={{ padding: "4px 6px", borderRadius: 3, cursor: "pointer", background: runId === execActiveRunId ? "#2a2d2e" : "transparent", fontSize: 10.5 }}
+                style={{ padding: "4px 6px", borderRadius: 3, cursor: "pointer", background: runId === execActiveRunId ? "#E8EDF3" : "transparent", fontSize: 10.5 }}
               >
                 <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
                   <span style={{ width: 6, height: 6, borderRadius: 3, background: statusColor[r.status], flexShrink: 0 }} />
-                  <span style={{ color: "#ccc", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.commandId}</span>
+                  <span style={{ color: "#334155", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.commandId}</span>
                 </div>
-                <div style={{ color: "#6a6a6a" }}>{running ? "running…" : r.status}{r.durationMs != null ? ` · ${r.durationMs}ms` : ""}</div>
+                <div style={{ color: "#64748B" }}>{running ? "running…" : r.status}{r.durationMs != null ? ` · ${r.durationMs}ms` : ""}</div>
               </div>
             );
           })}
@@ -3219,19 +3348,19 @@ function ExecutionPanel({
       {/* Output + status */}
       <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column" }}>
         {activeRun && (
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 12, padding: "6px 10px", borderBottom: "1px solid #2d2d2d", fontSize: 10.5, color: "#aaa", flexShrink: 0 }}>
-            <span>Command: <span style={{ color: "#ccc" }}>{activeRun.commandId}</span></span>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 12, padding: "6px 10px", borderBottom: "1px solid #E2E8F0", fontSize: 10.5, color: "#64748B", flexShrink: 0 }}>
+            <span>Command: <span style={{ color: "#334155" }}>{activeRun.commandId}</span></span>
             <span>Status: <span style={{ color: statusColor[activeRun.status] }}>{activeRun.status}</span></span>
             {activeRun.workingDirectory && <span title={activeRun.workingDirectory}>cwd: workspace root</span>}
             {activeRun.startedAt && <span>Started: {new Date(activeRun.startedAt).toLocaleTimeString("th-TH")}</span>}
             {activeRun.durationMs != null && <span>Duration: {activeRun.durationMs}ms</span>}
             {activeRun.exitCode != null && <span>Exit code: {activeRun.exitCode}</span>}
-            {activeRun.truncated && <span style={{ color: "#f0a020" }}>Output truncated (limit reached)</span>}
-            {activeRun.timedOut && <span style={{ color: "#f14c4c" }}>Timed out</span>}
-            {activeRun.status === "cancelled" && <span style={{ color: "#858585" }}>Cancelled</span>}
-            {activeRun.errorCode === "COMMAND_BUSY" && <span style={{ color: "#e0a860" }}>Locked — another run holds this command&apos;s exclusive lock</span>}
+            {activeRun.truncated && <span style={{ color: "#B45309" }}>Output truncated (limit reached)</span>}
+            {activeRun.timedOut && <span style={{ color: "#B91C1C" }}>Timed out</span>}
+            {activeRun.status === "cancelled" && <span style={{ color: "#64748B" }}>Cancelled</span>}
+            {activeRun.errorCode === "COMMAND_BUSY" && <span style={{ color: "#B45309" }}>Locked — another run holds this command&apos;s exclusive lock</span>}
             {activeRun.workspacePolicyViolation && (
-              <span style={{ color: "#f14c4c" }}>
+              <span style={{ color: "#B91C1C" }}>
                 Policy violation: READ_ONLY command changed the workspace ({(activeRun.workspaceChangedPaths ?? []).length} path{(activeRun.workspaceChangedPaths ?? []).length === 1 ? "" : "s"})
               </span>
             )}
@@ -3239,9 +3368,9 @@ function ExecutionPanel({
         )}
         <div style={{ flex: 1, minHeight: 0, position: "relative" }}>
           <div ref={outputContainerRef} onScroll={outputOnScroll} style={{ height: "100%", overflowY: "auto", padding: 8 }}>
-            {!activeRun && <div style={{ color: "#858585" }}>Select a command and press Run — output will appear here.</div>}
+            {!activeRun && <div style={{ color: "#64748B" }}>Select a command and press Run — output will appear here.</div>}
             {activeOutput.map((line) => (
-              <div key={line.seq} style={{ whiteSpace: "pre-wrap", color: line.stream === "stderr" ? "#f14c4c" : "#ccc" }}>{line.text}</div>
+              <div key={line.seq} style={{ whiteSpace: "pre-wrap", color: line.stream === "stderr" ? "#B91C1C" : "#334155" }}>{line.text}</div>
             ))}
           </div>
           {!outputAtBottom && activeOutput.length > 0 && <JumpToLatestButton onClick={outputScrollToBottom} />}
@@ -3260,8 +3389,8 @@ function ExecutionPanel({
 // Bottom Console tab-visibility mechanism for start/stop — no new
 // infrastructure, matching the "ห้ามทำ Dashboard ใหม่" instruction). ----
 const JOB_STATUS_COLORS: Record<JobStatus, string> = {
-  QUEUED: "#cca700", READY: "#9cdcfe", RUNNING: "#9cdcfe", WAITING: "#cca700",
-  SUCCEEDED: "#4ec9b0", FAILED: "#f37c7c", CANCELLED: "#858585", REJECTED: "#f0a020",
+  QUEUED: "#B45309", READY: "#334155", RUNNING: "#334155", WAITING: "#B45309",
+  SUCCEEDED: "#0F766E", FAILED: "#B91C1C", CANCELLED: "#64748B", REJECTED: "#B45309",
 };
 function QueuePanel({ active }: { active: boolean }) {
   const [jobs, setJobs] = useState<Job[]>([]);
@@ -3309,32 +3438,32 @@ function QueuePanel({ active }: { active: boolean }) {
 
   return (
     <div style={{ height: "100%", display: "flex", flexDirection: "column", fontSize: 11 }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 14, padding: "6px 10px", borderBottom: "1px solid #2d2d2d", flexShrink: 0, color: "#aaa" }}>
-        <span>Queue: <span style={{ color: "#cca700" }}>{counts.queued}</span></span>
-        <span>Running: <span style={{ color: "#9cdcfe" }}>{counts.running}</span></span>
-        <span>Completed: <span style={{ color: "#4ec9b0" }}>{counts.completed}</span></span>
-        <span>Failed: <span style={{ color: "#f37c7c" }}>{counts.failed}</span></span>
-        <span>Cancelled: <span style={{ color: "#858585" }}>{counts.cancelled}</span></span>
+      <div style={{ display: "flex", alignItems: "center", gap: 14, padding: "6px 10px", borderBottom: "1px solid #E2E8F0", flexShrink: 0, color: "#64748B" }}>
+        <span>Queue: <span style={{ color: "#B45309" }}>{counts.queued}</span></span>
+        <span>Running: <span style={{ color: "#334155" }}>{counts.running}</span></span>
+        <span>Completed: <span style={{ color: "#0F766E" }}>{counts.completed}</span></span>
+        <span>Failed: <span style={{ color: "#B91C1C" }}>{counts.failed}</span></span>
+        <span>Cancelled: <span style={{ color: "#64748B" }}>{counts.cancelled}</span></span>
         <span style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 8 }}>
-          <span style={{ color: "#6a6a6a" }}>Auto-refreshing every 2s</span>
+          <span style={{ color: "#64748B" }}>Auto-refreshing every 2s</span>
           <button onClick={doClearFinished} style={topBtnStyle}>Clear Finished</button>
         </span>
       </div>
-      {error && <div style={{ padding: 8, color: "#f37c7c" }}>{error}</div>}
+      {error && <div style={{ padding: 8, color: "#B91C1C" }}>{error}</div>}
       <div style={{ flex: 1, minHeight: 0, overflowY: "auto" }}>
-        {jobs.length === 0 && <div style={{ padding: 12, color: "#6a6a6a" }}>No jobs yet — Save a file or Run a command to create one.</div>}
+        {jobs.length === 0 && <div style={{ padding: 12, color: "#64748B" }}>No jobs yet — Save a file or Run a command to create one.</div>}
         {jobs.map((j) => (
-          <div key={j.jobId} style={{ display: "flex", alignItems: "center", gap: 10, padding: "5px 10px", borderBottom: "1px solid #232323" }}>
+          <div key={j.jobId} style={{ display: "flex", alignItems: "center", gap: 10, padding: "5px 10px", borderBottom: "1px solid #E2E8F0" }}>
             <span style={{ width: 7, height: 7, borderRadius: 4, background: JOB_STATUS_COLORS[j.status], flexShrink: 0 }} title={j.status} />
-            <span style={{ width: 90, flexShrink: 0, color: "#9cdcfe" }}>{j.type}</span>
-            <span style={{ width: 90, flexShrink: 0, color: "#858585" }}>{j.factory}</span>
-            <span style={{ flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: "#ccc" }} title={j.file ?? j.command ?? ""}>
+            <span style={{ width: 90, flexShrink: 0, color: "#334155" }}>{j.type}</span>
+            <span style={{ width: 90, flexShrink: 0, color: "#64748B" }}>{j.factory}</span>
+            <span style={{ flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: "#334155" }} title={j.file ?? j.command ?? ""}>
               {j.file ?? j.command ?? "—"}
             </span>
-            <span style={{ width: 70, flexShrink: 0, color: "#858585" }}>{j.progress}%</span>
-            <span style={{ width: 70, flexShrink: 0, color: "#858585" }}>{j.duration != null ? `${j.duration}ms` : "—"}</span>
-            <span style={{ width: 130, flexShrink: 0, color: "#6a6a6a", fontFamily: "ui-monospace, monospace", overflow: "hidden", textOverflow: "ellipsis" }} title={j.jobId}>{j.jobId.slice(0, 8)}</span>
-            <span style={{ width: 130, flexShrink: 0, color: "#6a6a6a", fontFamily: "ui-monospace, monospace", overflow: "hidden", textOverflow: "ellipsis" }} title={j.executionId ?? ""}>{j.executionId ? j.executionId.slice(0, 8) : "—"}</span>
+            <span style={{ width: 70, flexShrink: 0, color: "#64748B" }}>{j.progress}%</span>
+            <span style={{ width: 70, flexShrink: 0, color: "#64748B" }}>{j.duration != null ? `${j.duration}ms` : "—"}</span>
+            <span style={{ width: 130, flexShrink: 0, color: "#64748B", fontFamily: "ui-monospace, monospace", overflow: "hidden", textOverflow: "ellipsis" }} title={j.jobId}>{j.jobId.slice(0, 8)}</span>
+            <span style={{ width: 130, flexShrink: 0, color: "#64748B", fontFamily: "ui-monospace, monospace", overflow: "hidden", textOverflow: "ellipsis" }} title={j.executionId ?? ""}>{j.executionId ? j.executionId.slice(0, 8) : "—"}</span>
             <span style={{ width: 90, flexShrink: 0, color: JOB_STATUS_COLORS[j.status] }}>{j.status}</span>
             <span style={{ width: 110, flexShrink: 0, display: "flex", gap: 4 }}>
               {isActive(j) && (
@@ -3359,7 +3488,7 @@ function QueuePanel({ active }: { active: boolean }) {
 // marked STALE, never presented as a current result. Clicking a finding
 // opens the file and jumps to its real line/column via the same
 // openSearchResult() the Search panel already uses. ----
-const FINDING_SEVERITY_COLOR: Record<FindingSeverity, string> = { INFO: "#9cdcfe", WARNING: "#e0c880", ERROR: "#f37c7c", CRITICAL: "#ff5f5f" };
+const FINDING_SEVERITY_COLOR: Record<FindingSeverity, string> = { INFO: "#334155", WARNING: "#B45309", ERROR: "#B91C1C", CRITICAL: "#B91C1C" };
 
 // Governance (Step 4.5) sub-category badges — derived from the real
 // GOVERNANCE_CHECK finding.code (GOVERNANCE_RULE_ENFORCED/GHOST/
@@ -3367,12 +3496,12 @@ const FINDING_SEVERITY_COLOR: Record<FindingSeverity, string> = { INFO: "#9cdcfe
 // second classification — the code already reflects governanceRuntime.ts's
 // real computed status.
 const GOVERNANCE_CODE_LABEL: Record<string, { label: string; color: string; bg: string }> = {
-  GOVERNANCE_RULE_GHOST: { label: "Ghost Rule", color: "#ff9a9a", bg: "#3a1e1e" },
-  GOVERNANCE_RULE_NOT_IMPLEMENTED: { label: "Not Implemented", color: "#f0a020", bg: "#3a2d1e" },
-  GOVERNANCE_RULE_DEPRECATED: { label: "Deprecated Rule", color: "#c0c0c0", bg: "#2a2a2a" },
-  GOVERNANCE_RULE_UNKNOWN: { label: "Unknown Rule", color: "#e0c880", bg: "#3a331e" },
-  GOVERNANCE_RULE_DECLARED_NOT_ENFORCED: { label: "Unenforced Rule", color: "#9cdcfe", bg: "#1e2d3a" },
-  GOVERNANCE_RULE_ENFORCED: { label: "Enforced", color: "#8fd3a3", bg: "#1e3a24" },
+  GOVERNANCE_RULE_GHOST: { label: "Ghost Rule", color: "#B91C1C", bg: "rgba(185,28,28,0.08)" },
+  GOVERNANCE_RULE_NOT_IMPLEMENTED: { label: "Not Implemented", color: "#B45309", bg: "rgba(180,83,9,0.08)" },
+  GOVERNANCE_RULE_DEPRECATED: { label: "Deprecated Rule", color: "#64748B", bg: "#F1F5F9" },
+  GOVERNANCE_RULE_UNKNOWN: { label: "Unknown Rule", color: "#B45309", bg: "rgba(180,83,9,0.08)" },
+  GOVERNANCE_RULE_DECLARED_NOT_ENFORCED: { label: "Unenforced Rule", color: "#334155", bg: "rgba(51,65,85,0.06)" },
+  GOVERNANCE_RULE_ENFORCED: { label: "Enforced", color: "#0F766E", bg: "rgba(15,118,110,0.08)" },
 };
 const GOVERNANCE_FILTER_CODES = ["GOVERNANCE_RULE_GHOST", "GOVERNANCE_RULE_DECLARED_NOT_ENFORCED", "GOVERNANCE_RULE_DEPRECATED", "GOVERNANCE_RULE_UNKNOWN"] as const;
 
@@ -3400,7 +3529,7 @@ const REVIEW_FINDING_CATEGORIES = ["Scope", "Diff", "Architecture", "Dependency"
 // here, not a second implementation, just a focused health-only view. ----
 interface WorkerAdapterClient { id: string; type: string; provider: string; capabilities: string[]; availability: { available: boolean; reason: string }; limitations: string[] }
 interface WorkerHealthClient { status: string; reason: string; lastLiveCallAt: string | null; lastLiveCallOk: boolean | null }
-const HEALTH_COLORS: Record<string, string> = { HEALTHY: "#4ec9b0", DEGRADED: "#e0a860", NOT_CONFIGURED: "#858585", UNAVAILABLE: "#f37c7c", UNKNOWN: "#858585" };
+const HEALTH_COLORS: Record<string, string> = { HEALTHY: "#0F766E", DEGRADED: "#B45309", NOT_CONFIGURED: "#64748B", UNAVAILABLE: "#B91C1C", UNKNOWN: "#64748B" };
 function WorkerHealthPanel({ active }: { active: boolean }) {
   const [adapters, setAdapters] = useState<WorkerAdapterClient[]>([]);
   const [health, setHealth] = useState<Record<string, WorkerHealthClient>>({});
@@ -3429,23 +3558,23 @@ function WorkerHealthPanel({ active }: { active: boolean }) {
   return (
     <div style={{ padding: 10, height: "100%", overflowY: "auto" }}>
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
-        <span style={{ fontSize: 11, color: "#858585", textTransform: "uppercase", letterSpacing: 0.3 }}>Worker / Provider Health (Step 13.6 Bridge)</span>
+        <span style={{ fontSize: 11, color: "#64748B", textTransform: "uppercase", letterSpacing: 0.3 }}>Worker / Provider Health (Step 13.6 Bridge)</span>
         <button onClick={() => void refresh()} disabled={loading} style={{ ...topBtnStyle, opacity: loading ? 0.5 : 1 }}>{loading ? "Refreshing…" : "Refresh"}</button>
       </div>
-      {error && <div style={{ color: "#f14c4c", fontSize: 11.5, marginBottom: 8 }}>{error}</div>}
-      {adapters.length === 0 && !loading && <div style={{ color: "#858585", fontSize: 12 }}>No real Worker Adapters registered.</div>}
+      {error && <div style={{ color: "#B91C1C", fontSize: 11.5, marginBottom: 8 }}>{error}</div>}
+      {adapters.length === 0 && !loading && <div style={{ color: "#64748B", fontSize: 12 }}>No real Worker Adapters registered.</div>}
       {adapters.map((a) => {
         const h = health[a.id];
         return (
-          <div key={a.id} style={{ padding: "8px 10px", marginBottom: 6, background: "#252526", borderRadius: 4, border: "1px solid #2d2d2d" }}>
+          <div key={a.id} style={{ padding: "8px 10px", marginBottom: 6, background: "#EEF2F7", borderRadius: 4, border: "1px solid #E2E8F0" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <span style={{ width: 7, height: 7, borderRadius: 4, background: h ? HEALTH_COLORS[h.status] ?? "#858585" : "#858585", flexShrink: 0 }} />
-              <span style={{ color: "#ccc", fontSize: 12.5 }}>{a.id}</span>
-              <span style={{ color: "#858585", fontSize: 10.5 }}>{a.type} · {a.provider}</span>
-              <span style={{ marginLeft: "auto", color: h ? HEALTH_COLORS[h.status] ?? "#858585" : "#858585", fontSize: 10.5 }}>{h?.status ?? "…"}</span>
+              <span style={{ width: 7, height: 7, borderRadius: 4, background: h ? HEALTH_COLORS[h.status] ?? "#64748B" : "#64748B", flexShrink: 0 }} />
+              <span style={{ color: "#334155", fontSize: 12.5 }}>{a.id}</span>
+              <span style={{ color: "#64748B", fontSize: 10.5 }}>{a.type} · {a.provider}</span>
+              <span style={{ marginLeft: "auto", color: h ? HEALTH_COLORS[h.status] ?? "#64748B" : "#64748B", fontSize: 10.5 }}>{h?.status ?? "…"}</span>
             </div>
-            <div style={{ color: "#858585", fontSize: 10.5, marginTop: 3 }}>{h?.reason ?? "loading…"}</div>
-            {a.limitations.length > 0 && <div style={{ color: "#6a6a6a", fontSize: 10, marginTop: 3 }}>{a.limitations[0]}</div>}
+            <div style={{ color: "#64748B", fontSize: 10.5, marginTop: 3 }}>{h?.reason ?? "loading…"}</div>
+            {a.limitations.length > 0 && <div style={{ color: "#64748B", fontSize: 10, marginTop: 3 }}>{a.limitations[0]}</div>}
           </div>
         );
       })}
@@ -3479,8 +3608,8 @@ function ExecutionContextPanel({ active }: { active: boolean }) {
   useEffect(() => { if (active) void refresh(); }, [active, refresh]);
 
   if (!active) return null;
-  if (ctx === undefined) return <div style={{ padding: 10, color: "#858585", fontSize: 12 }}>Loading…</div>;
-  if (ctx === null) return <div style={{ padding: 10, color: "#e0a860", fontSize: 12 }}>No Execution Context checkpoint exists yet.</div>;
+  if (ctx === undefined) return <div style={{ padding: 10, color: "#64748B", fontSize: 12 }}>Loading…</div>;
+  if (ctx === null) return <div style={{ padding: 10, color: "#B45309", fontSize: 12 }}>No Execution Context checkpoint exists yet.</div>;
 
   const partialCaps = ctx.capability_state.filter((c) => c.status === "PARTIAL");
   return (
@@ -3494,40 +3623,40 @@ function ExecutionContextPanel({ active }: { active: boolean }) {
         <Field label="Branch" value={ctx.working_tree_state.branch ?? "—"} />
       </div>
       <SectionLabel text="Next Allowed / Blocked Action" />
-      <div style={{ color: "#8fd3a3", marginBottom: 4 }}>{ctx.next_allowed_action}</div>
-      <div style={{ color: "#e0a860", marginBottom: 10 }}>{ctx.next_blocked_action}</div>
+      <div style={{ color: "#0F766E", marginBottom: 4 }}>{ctx.next_allowed_action}</div>
+      <div style={{ color: "#B45309", marginBottom: 10 }}>{ctx.next_blocked_action}</div>
 
       <SectionLabel text={`Blockers (${ctx.blockers.length})`} />
-      {ctx.blockers.length === 0 && <div style={{ color: "#858585", marginBottom: 10 }}>None.</div>}
+      {ctx.blockers.length === 0 && <div style={{ color: "#64748B", marginBottom: 10 }}>None.</div>}
       {ctx.blockers.map((b) => (
-        <div key={b.id} style={{ color: b.severity === "BLOCKING" ? "#f37c7c" : "#858585", marginBottom: 3 }}>
-          [{b.severity}] {b.description} <span style={{ color: "#6a6a6a" }}>(Step {b.relatedStep})</span>
+        <div key={b.id} style={{ color: b.severity === "BLOCKING" ? "#B91C1C" : "#64748B", marginBottom: 3 }}>
+          [{b.severity}] {b.description} <span style={{ color: "#64748B" }}>(Step {b.relatedStep})</span>
         </div>
       ))}
 
       <SectionLabel text={`Partial Capabilities (${partialCaps.length})`} />
-      {partialCaps.length === 0 && <div style={{ color: "#858585", marginBottom: 10 }}>None.</div>}
-      {partialCaps.map((c) => <div key={c.id} style={{ color: "#e0a860", marginBottom: 2 }}>{c.id} — PARTIAL ({c.riskLevel})</div>)}
+      {partialCaps.length === 0 && <div style={{ color: "#64748B", marginBottom: 10 }}>None.</div>}
+      {partialCaps.map((c) => <div key={c.id} style={{ color: "#B45309", marginBottom: 2 }}>{c.id} — PARTIAL ({c.riskLevel})</div>)}
 
       <SectionLabel text="Latest Verification" />
       <div style={{ marginBottom: 10 }}>
         {Object.entries(ctx.test_baseline).map(([name, r]) => (
-          <div key={name} style={{ color: r.status === "PASSED" ? "#8fd3a3" : "#f37c7c" }}>{name}: {r.passed}/{r.total} ({r.status})</div>
+          <div key={name} style={{ color: r.status === "PASSED" ? "#0F766E" : "#B91C1C" }}>{name}: {r.passed}/{r.total} ({r.status})</div>
         ))}
-        <div style={{ color: "#858585", marginTop: 4 }}>Architecture: {ctx.architecture_state.ok ?? "?"}/{ctx.architecture_state.totalModules ?? "?"} OK, {ctx.architecture_state.unregistered ?? "?"} unregistered</div>
-        <div style={{ color: "#858585" }}>Governance: {ctx.governance_state.enforced ?? "?"}/{ctx.governance_state.totalRules ?? "?"} enforced ({ctx.governance_state.coveragePercent ?? "?"}%)</div>
+        <div style={{ color: "#64748B", marginTop: 4 }}>Architecture: {ctx.architecture_state.ok ?? "?"}/{ctx.architecture_state.totalModules ?? "?"} OK, {ctx.architecture_state.unregistered ?? "?"} unregistered</div>
+        <div style={{ color: "#64748B" }}>Governance: {ctx.governance_state.enforced ?? "?"}/{ctx.governance_state.totalRules ?? "?"} enforced ({ctx.governance_state.coveragePercent ?? "?"}%)</div>
       </div>
 
       <SectionLabel text="Worker/Provider Runtime Summary" />
-      {ctx.worker_state.map((w) => <div key={w.id} style={{ color: HEALTH_COLORS[w.healthStatus] ?? "#858585" }}>{w.id}: {w.healthStatus}</div>)}
+      {ctx.worker_state.map((w) => <div key={w.id} style={{ color: HEALTH_COLORS[w.healthStatus] ?? "#64748B" }}>{w.id}: {w.healthStatus}</div>)}
     </div>
   );
 }
 function Field({ label, value }: { label: string; value: string }) {
-  return <div><div style={{ color: "#6a6a6a", fontSize: 10, textTransform: "uppercase" }}>{label}</div><div style={{ color: "#ccc" }}>{value}</div></div>;
+  return <div><div style={{ color: "#64748B", fontSize: 10, textTransform: "uppercase" }}>{label}</div><div style={{ color: "#334155" }}>{value}</div></div>;
 }
 function SectionLabel({ text }: { text: string }) {
-  return <div style={{ color: "#858585", fontSize: 10.5, textTransform: "uppercase", letterSpacing: 0.3, margin: "8px 0 4px" }}>{text}</div>;
+  return <div style={{ color: "#64748B", fontSize: 10.5, textTransform: "uppercase", letterSpacing: 0.3, margin: "8px 0 4px" }}>{text}</div>;
 }
 
 function ProblemsPanel({ active, onOpenFinding }: { active: boolean; onOpenFinding: (relPath: string, line: number, column: number) => void }) {
@@ -3708,8 +3837,8 @@ function ProblemsPanel({ active, onOpenFinding }: { active: boolean; onOpenFindi
   return (
     <div style={{ height: "100%", display: "flex", flexDirection: "column" }}>
       {governanceCounts && GOVERNANCE_FILTER_CODES.some((c) => governanceCounts[c] > 0) && (
-        <div style={{ display: "flex", gap: 6, padding: "6px 8px", borderBottom: "1px solid #2d2d2d", flexShrink: 0, flexWrap: "wrap" }}>
-          <span style={{ fontSize: 10.5, color: "#858585", alignSelf: "center" }}>Governance:</span>
+        <div style={{ display: "flex", gap: 6, padding: "6px 8px", borderBottom: "1px solid #E2E8F0", flexShrink: 0, flexWrap: "wrap" }}>
+          <span style={{ fontSize: 10.5, color: "#64748B", alignSelf: "center" }}>Governance:</span>
           {GOVERNANCE_FILTER_CODES.map((code) => {
             const meta = GOVERNANCE_CODE_LABEL[code];
             const count = governanceCounts[code];
@@ -3728,12 +3857,12 @@ function ProblemsPanel({ active, onOpenFinding }: { active: boolean; onOpenFindi
               </button>
             );
           })}
-          {governanceFilter && <button onClick={() => setGovernanceFilter(null)} style={{ fontSize: 10.5, color: "#858585", background: "none", border: "none", cursor: "pointer" }}>Clear filter</button>}
+          {governanceFilter && <button onClick={() => setGovernanceFilter(null)} style={{ fontSize: 10.5, color: "#64748B", background: "none", border: "none", cursor: "pointer" }}>Clear filter</button>}
         </div>
       )}
       {UI_CATEGORY_GROUPS.some((g) => uiCounts[g.label] > 0) && (
-        <div style={{ display: "flex", gap: 6, padding: "6px 8px", borderBottom: "1px solid #2d2d2d", flexShrink: 0, flexWrap: "wrap" }}>
-          <span style={{ fontSize: 10.5, color: "#858585", alignSelf: "center" }}>UI Inspection:</span>
+        <div style={{ display: "flex", gap: 6, padding: "6px 8px", borderBottom: "1px solid #E2E8F0", flexShrink: 0, flexWrap: "wrap" }}>
+          <span style={{ fontSize: 10.5, color: "#64748B", alignSelf: "center" }}>UI Inspection:</span>
           {UI_CATEGORY_GROUPS.map((g) => {
             const count = uiCounts[g.label];
             if (count === 0) return null;
@@ -3744,19 +3873,19 @@ function ProblemsPanel({ active, onOpenFinding }: { active: boolean; onOpenFindi
                 onClick={() => setUiCategoryFilter(isActive ? null : g.label)}
                 style={{
                   fontSize: 10.5, padding: "2px 8px", borderRadius: 10, cursor: "pointer",
-                  border: isActive ? "1px solid #9cdcfe" : "1px solid transparent", background: "#1e2d3a", color: "#9cdcfe",
+                  border: isActive ? "1px solid #334155" : "1px solid transparent", background: "rgba(51,65,85,0.06)", color: "#334155",
                 }}
               >
                 {g.label} ({count})
               </button>
             );
           })}
-          {uiCategoryFilter && <button onClick={() => setUiCategoryFilter(null)} style={{ fontSize: 10.5, color: "#858585", background: "none", border: "none", cursor: "pointer" }}>Clear filter</button>}
+          {uiCategoryFilter && <button onClick={() => setUiCategoryFilter(null)} style={{ fontSize: 10.5, color: "#64748B", background: "none", border: "none", cursor: "pointer" }}>Clear filter</button>}
         </div>
       )}
       {REVIEW_FINDING_CATEGORIES.some((c) => reviewCounts[c] > 0) && (
-        <div style={{ display: "flex", gap: 6, padding: "6px 8px", borderBottom: "1px solid #2d2d2d", flexShrink: 0, flexWrap: "wrap" }}>
-          <span style={{ fontSize: 10.5, color: "#858585", alignSelf: "center" }}>Code Review:</span>
+        <div style={{ display: "flex", gap: 6, padding: "6px 8px", borderBottom: "1px solid #E2E8F0", flexShrink: 0, flexWrap: "wrap" }}>
+          <span style={{ fontSize: 10.5, color: "#64748B", alignSelf: "center" }}>Code Review:</span>
           {REVIEW_FINDING_CATEGORIES.map((cat) => {
             const count = reviewCounts[cat];
             if (count === 0) return null;
@@ -3767,19 +3896,19 @@ function ProblemsPanel({ active, onOpenFinding }: { active: boolean; onOpenFindi
                 onClick={() => setReviewCategoryFilter(isActive ? null : cat)}
                 style={{
                   fontSize: 10.5, padding: "2px 8px", borderRadius: 10, cursor: "pointer",
-                  border: isActive ? "1px solid #cba6f7" : "1px solid transparent", background: "#2a1e3a", color: "#cba6f7",
+                  border: isActive ? "1px solid #334155" : "1px solid transparent", background: "rgba(51,65,85,0.06)", color: "#334155",
                 }}
               >
                 {cat} ({count})
               </button>
             );
           })}
-          {reviewCategoryFilter && <button onClick={() => setReviewCategoryFilter(null)} style={{ fontSize: 10.5, color: "#858585", background: "none", border: "none", cursor: "pointer" }}>Clear filter</button>}
+          {reviewCategoryFilter && <button onClick={() => setReviewCategoryFilter(null)} style={{ fontSize: 10.5, color: "#64748B", background: "none", border: "none", cursor: "pointer" }}>Clear filter</button>}
         </div>
       )}
       {TEST_PROBLEM_CATEGORIES.some((c) => testCounts[c] > 0) && (
-        <div style={{ display: "flex", gap: 6, padding: "6px 8px", borderBottom: "1px solid #2d2d2d", flexShrink: 0, flexWrap: "wrap" }}>
-          <span style={{ fontSize: 10.5, color: "#858585", alignSelf: "center" }}>Test:</span>
+        <div style={{ display: "flex", gap: 6, padding: "6px 8px", borderBottom: "1px solid #E2E8F0", flexShrink: 0, flexWrap: "wrap" }}>
+          <span style={{ fontSize: 10.5, color: "#64748B", alignSelf: "center" }}>Test:</span>
           {TEST_PROBLEM_CATEGORIES.map((cat) => {
             const count = testCounts[cat];
             if (count === 0) return null;
@@ -3790,19 +3919,19 @@ function ProblemsPanel({ active, onOpenFinding }: { active: boolean; onOpenFindi
                 onClick={() => setTestCategoryFilter(isActive ? null : cat)}
                 style={{
                   fontSize: 10.5, padding: "2px 8px", borderRadius: 10, cursor: "pointer",
-                  border: isActive ? "1px solid #e0a860" : "1px solid transparent", background: "#3a2d1e", color: "#e0a860",
+                  border: isActive ? "1px solid #B45309" : "1px solid transparent", background: "rgba(180,83,9,0.08)", color: "#B45309",
                 }}
               >
                 {cat} ({count})
               </button>
             );
           })}
-          {testCategoryFilter && <button onClick={() => setTestCategoryFilter(null)} style={{ fontSize: 10.5, color: "#858585", background: "none", border: "none", cursor: "pointer" }}>Clear filter</button>}
+          {testCategoryFilter && <button onClick={() => setTestCategoryFilter(null)} style={{ fontSize: 10.5, color: "#64748B", background: "none", border: "none", cursor: "pointer" }}>Clear filter</button>}
         </div>
       )}
       {BUILD_PROBLEM_CATEGORIES.some((c) => buildCounts[c] > 0) && (
-        <div style={{ display: "flex", gap: 6, padding: "6px 8px", borderBottom: "1px solid #2d2d2d", flexShrink: 0, flexWrap: "wrap" }}>
-          <span style={{ fontSize: 10.5, color: "#858585", alignSelf: "center" }}>Build:</span>
+        <div style={{ display: "flex", gap: 6, padding: "6px 8px", borderBottom: "1px solid #E2E8F0", flexShrink: 0, flexWrap: "wrap" }}>
+          <span style={{ fontSize: 10.5, color: "#64748B", alignSelf: "center" }}>Build:</span>
           {BUILD_PROBLEM_CATEGORIES.map((cat) => {
             const count = buildCounts[cat];
             if (count === 0) return null;
@@ -3813,19 +3942,19 @@ function ProblemsPanel({ active, onOpenFinding }: { active: boolean; onOpenFindi
                 onClick={() => setBuildCategoryFilter(isActive ? null : cat)}
                 style={{
                   fontSize: 10.5, padding: "2px 8px", borderRadius: 10, cursor: "pointer",
-                  border: isActive ? "1px solid #4ec9b0" : "1px solid transparent", background: "#1e3a2d", color: "#4ec9b0",
+                  border: isActive ? "1px solid #0F766E" : "1px solid transparent", background: "rgba(15,118,110,0.08)", color: "#0F766E",
                 }}
               >
                 {cat} ({count})
               </button>
             );
           })}
-          {buildCategoryFilter && <button onClick={() => setBuildCategoryFilter(null)} style={{ fontSize: 10.5, color: "#858585", background: "none", border: "none", cursor: "pointer" }}>Clear filter</button>}
+          {buildCategoryFilter && <button onClick={() => setBuildCategoryFilter(null)} style={{ fontSize: 10.5, color: "#64748B", background: "none", border: "none", cursor: "pointer" }}>Clear filter</button>}
         </div>
       )}
       {GATE_PROBLEM_CATEGORIES.some((c) => gateCounts[c] > 0) && (
-        <div style={{ display: "flex", gap: 6, padding: "6px 8px", borderBottom: "1px solid #2d2d2d", flexShrink: 0, flexWrap: "wrap" }}>
-          <span style={{ fontSize: 10.5, color: "#858585", alignSelf: "center" }}>Build Gate:</span>
+        <div style={{ display: "flex", gap: 6, padding: "6px 8px", borderBottom: "1px solid #E2E8F0", flexShrink: 0, flexWrap: "wrap" }}>
+          <span style={{ fontSize: 10.5, color: "#64748B", alignSelf: "center" }}>Build Gate:</span>
           {GATE_PROBLEM_CATEGORIES.map((cat) => {
             const count = gateCounts[cat];
             if (count === 0) return null;
@@ -3836,19 +3965,19 @@ function ProblemsPanel({ active, onOpenFinding }: { active: boolean; onOpenFindi
                 onClick={() => setGateCategoryFilter(isActive ? null : cat)}
                 style={{
                   fontSize: 10.5, padding: "2px 8px", borderRadius: 10, cursor: "pointer",
-                  border: isActive ? "1px solid #cba6f7" : "1px solid transparent", background: "#2a1e3a", color: "#cba6f7",
+                  border: isActive ? "1px solid #334155" : "1px solid transparent", background: "rgba(51,65,85,0.06)", color: "#334155",
                 }}
               >
                 {cat} ({count})
               </button>
             );
           })}
-          {gateCategoryFilter && <button onClick={() => setGateCategoryFilter(null)} style={{ fontSize: 10.5, color: "#858585", background: "none", border: "none", cursor: "pointer" }}>Clear filter</button>}
+          {gateCategoryFilter && <button onClick={() => setGateCategoryFilter(null)} style={{ fontSize: 10.5, color: "#64748B", background: "none", border: "none", cursor: "pointer" }}>Clear filter</button>}
         </div>
       )}
       {RELEASE_PROBLEM_CATEGORIES.some((c) => releaseCounts[c] > 0) && (
-        <div style={{ display: "flex", gap: 6, padding: "6px 8px", borderBottom: "1px solid #2d2d2d", flexShrink: 0, flexWrap: "wrap" }}>
-          <span style={{ fontSize: 10.5, color: "#858585", alignSelf: "center" }}>Release:</span>
+        <div style={{ display: "flex", gap: 6, padding: "6px 8px", borderBottom: "1px solid #E2E8F0", flexShrink: 0, flexWrap: "wrap" }}>
+          <span style={{ fontSize: 10.5, color: "#64748B", alignSelf: "center" }}>Release:</span>
           {RELEASE_PROBLEM_CATEGORIES.map((cat) => {
             const count = releaseCounts[cat];
             if (count === 0) return null;
@@ -3859,19 +3988,19 @@ function ProblemsPanel({ active, onOpenFinding }: { active: boolean; onOpenFindi
                 onClick={() => setReleaseCategoryFilter(isActive ? null : cat)}
                 style={{
                   fontSize: 10.5, padding: "2px 8px", borderRadius: 10, cursor: "pointer",
-                  border: isActive ? "1px solid #4ec9b0" : "1px solid transparent", background: "#1e3a2d", color: "#4ec9b0",
+                  border: isActive ? "1px solid #0F766E" : "1px solid transparent", background: "rgba(15,118,110,0.08)", color: "#0F766E",
                 }}
               >
                 {cat} ({count})
               </button>
             );
           })}
-          {releaseCategoryFilter && <button onClick={() => setReleaseCategoryFilter(null)} style={{ fontSize: 10.5, color: "#858585", background: "none", border: "none", cursor: "pointer" }}>Clear filter</button>}
+          {releaseCategoryFilter && <button onClick={() => setReleaseCategoryFilter(null)} style={{ fontSize: 10.5, color: "#64748B", background: "none", border: "none", cursor: "pointer" }}>Clear filter</button>}
         </div>
       )}
       <div style={{ flex: 1, minHeight: 0, overflowY: "auto", padding: 8, fontSize: 12, fontFamily: "ui-monospace, monospace" }}>
-      {error && <div style={{ color: "#f37c7c", marginBottom: 6 }}>{error}</div>}
-      {findings.length === 0 && <div style={{ color: "#858585" }}>No findings — Save a file or run a check-type command to inspect it.</div>}
+      {error && <div style={{ color: "#B91C1C", marginBottom: 6 }}>{error}</div>}
+      {findings.length === 0 && <div style={{ color: "#64748B" }}>No findings — Save a file or run a check-type command to inspect it.</div>}
       {findings.map(({ finding: f, stale, record }) => (
         <div
           key={f.findingId}
@@ -3890,16 +4019,16 @@ function ProblemsPanel({ active, onOpenFinding }: { active: boolean; onOpenFindi
                 {GOVERNANCE_CODE_LABEL[f.code].label}
               </span>
             )}
-            {stale && <span style={{ marginLeft: 6, padding: "0 5px", borderRadius: 3, background: "#3a2d1e", color: "#e0a860", fontSize: 10 }}>STALE</span>}
-            {f.blocking && <span style={{ marginLeft: 6, padding: "0 5px", borderRadius: 3, background: "#3a1e1e", color: "#f0a0a0", fontSize: 10 }}>BLOCKING</span>}
+            {stale && <span style={{ marginLeft: 6, padding: "0 5px", borderRadius: 3, background: "rgba(180,83,9,0.08)", color: "#B45309", fontSize: 10 }}>STALE</span>}
+            {f.blocking && <span style={{ marginLeft: 6, padding: "0 5px", borderRadius: 3, background: "rgba(185,28,28,0.08)", color: "#B91C1C", fontSize: 10 }}>BLOCKING</span>}
           </span>
         </div>
       ))}
       {artifactFindings.length > 0 && (
         <>
-          <div style={{ marginTop: 10, marginBottom: 4, color: "#bbb", fontSize: 10.5, textTransform: "uppercase", letterSpacing: 0.3 }}>Artifact Integrity ({artifactFindings.length})</div>
+          <div style={{ marginTop: 10, marginBottom: 4, color: "#64748B", fontSize: 10.5, textTransform: "uppercase", letterSpacing: 0.3 }}>Artifact Integrity ({artifactFindings.length})</div>
           {artifactFindings.map((f, i) => (
-            <div key={i} style={{ display: "flex", gap: 6, padding: "3px 0", alignItems: "flex-start", color: "#f0a020" }} title={f.artifactId}>
+            <div key={i} style={{ display: "flex", gap: 6, padding: "3px 0", alignItems: "flex-start", color: "#B45309" }} title={f.artifactId}>
               <AlertTriangle size={13} style={{ flexShrink: 0, marginTop: 1 }} />
               <span>[{f.kind}] {f.message}</span>
             </div>
@@ -3908,22 +4037,22 @@ function ProblemsPanel({ active, onOpenFinding }: { active: boolean; onOpenFindi
       )}
       {reviewFindings.length > 0 && (
         <>
-          <div style={{ marginTop: 10, marginBottom: 4, color: "#bbb", fontSize: 10.5, textTransform: "uppercase", letterSpacing: 0.3 }}>Code Review ({reviewFindings.length})</div>
+          <div style={{ marginTop: 10, marginBottom: 4, color: "#64748B", fontSize: 10.5, textTransform: "uppercase", letterSpacing: 0.3 }}>Code Review ({reviewFindings.length})</div>
           {reviewFindings.map(({ finding: f, changeSet: cs }) => (
             <div
               key={f.reviewFindingId}
               onClick={() => f.file && f.line != null && onOpenFinding(f.file, f.line, f.column ?? 1)}
               style={{
                 display: "flex", gap: 6, padding: "3px 0", alignItems: "flex-start",
-                color: FINDING_SEVERITY_COLOR[f.severity] ?? "#e0c880", cursor: f.file && f.line != null ? "pointer" : "default",
+                color: FINDING_SEVERITY_COLOR[f.severity] ?? "#B45309", cursor: f.file && f.line != null ? "pointer" : "default",
               }}
               title={f.evidence}
             >
               {f.severity === "ERROR" || f.severity === "CRITICAL" ? <XCircle size={13} style={{ flexShrink: 0, marginTop: 1 }} /> : <AlertTriangle size={13} style={{ flexShrink: 0, marginTop: 1 }} />}
               <span>
                 [{f.category}] {f.file ?? cs.title}{f.line != null ? `:${f.line}:${f.column ?? 0}` : ""} — {f.message}
-                {cs.stale && <span style={{ marginLeft: 6, padding: "0 5px", borderRadius: 3, background: "#3a2d1e", color: "#e0a860", fontSize: 10 }}>STALE</span>}
-                {f.blocking && <span style={{ marginLeft: 6, padding: "0 5px", borderRadius: 3, background: "#3a1e1e", color: "#f0a0a0", fontSize: 10 }}>BLOCKING</span>}
+                {cs.stale && <span style={{ marginLeft: 6, padding: "0 5px", borderRadius: 3, background: "rgba(180,83,9,0.08)", color: "#B45309", fontSize: 10 }}>STALE</span>}
+                {f.blocking && <span style={{ marginLeft: 6, padding: "0 5px", borderRadius: 3, background: "rgba(185,28,28,0.08)", color: "#B91C1C", fontSize: 10 }}>BLOCKING</span>}
               </span>
             </div>
           ))}
@@ -3931,13 +4060,13 @@ function ProblemsPanel({ active, onOpenFinding }: { active: boolean; onOpenFindi
       )}
       {testProblems.length > 0 && (
         <>
-          <div style={{ marginTop: 10, marginBottom: 4, color: "#bbb", fontSize: 10.5, textTransform: "uppercase", letterSpacing: 0.3 }}>Test ({testProblems.length})</div>
+          <div style={{ marginTop: 10, marginBottom: 4, color: "#64748B", fontSize: 10.5, textTransform: "uppercase", letterSpacing: 0.3 }}>Test ({testProblems.length})</div>
           {testProblems.map(({ result: r, category }) => (
-            <div key={r.id} style={{ display: "flex", gap: 6, padding: "3px 0", alignItems: "flex-start", color: r.status === "NOT_IMPLEMENTED" ? "#6a6a6a" : "#e0a860" }} title={r.evidence}>
+            <div key={r.id} style={{ display: "flex", gap: 6, padding: "3px 0", alignItems: "flex-start", color: r.status === "NOT_IMPLEMENTED" ? "#64748B" : "#B45309" }} title={r.evidence}>
               <AlertTriangle size={13} style={{ flexShrink: 0, marginTop: 1 }} />
               <span>
                 [{category}] {r.testTypeId} — {r.status === "NOT_IMPLEMENTED" ? "not implemented (no real harness exists)" : (r.failures[0] ?? "real failure")}
-                {r.blocking && <span style={{ marginLeft: 6, padding: "0 5px", borderRadius: 3, background: "#3a1e1e", color: "#f0a0a0", fontSize: 10 }}>BLOCKING</span>}
+                {r.blocking && <span style={{ marginLeft: 6, padding: "0 5px", borderRadius: 3, background: "rgba(185,28,28,0.08)", color: "#B91C1C", fontSize: 10 }}>BLOCKING</span>}
               </span>
             </div>
           ))}
@@ -3945,18 +4074,18 @@ function ProblemsPanel({ active, onOpenFinding }: { active: boolean; onOpenFindi
       )}
       {buildProblems.length > 0 && (
         <>
-          <div style={{ marginTop: 10, marginBottom: 4, color: "#bbb", fontSize: 10.5, textTransform: "uppercase", letterSpacing: 0.3 }}>Build ({buildProblems.length})</div>
+          <div style={{ marginTop: 10, marginBottom: 4, color: "#64748B", fontSize: 10.5, textTransform: "uppercase", letterSpacing: 0.3 }}>Build ({buildProblems.length})</div>
           {buildProblems.map(({ finding: f, category }) => (
             <div
               key={f.findingId}
               onClick={() => f.file && f.line != null && onOpenFinding(f.file, f.line, f.column ?? 1)}
-              style={{ display: "flex", gap: 6, padding: "3px 0", alignItems: "flex-start", color: f.blocking ? "#f37c7c" : "#e0c880", cursor: f.file && f.line != null ? "pointer" : "default" }}
+              style={{ display: "flex", gap: 6, padding: "3px 0", alignItems: "flex-start", color: f.blocking ? "#B91C1C" : "#B45309", cursor: f.file && f.line != null ? "pointer" : "default" }}
               title={f.source}
             >
               {f.blocking ? <XCircle size={13} style={{ flexShrink: 0, marginTop: 1 }} /> : <AlertTriangle size={13} style={{ flexShrink: 0, marginTop: 1 }} />}
               <span>
                 [{category}] {f.file ?? f.buildRunId.slice(0, 8)}{f.line != null ? `:${f.line}:${f.column ?? 0}` : ""} — {f.message.slice(0, 160)}
-                {f.blocking && <span style={{ marginLeft: 6, padding: "0 5px", borderRadius: 3, background: "#3a1e1e", color: "#f0a0a0", fontSize: 10 }}>BLOCKING</span>}
+                {f.blocking && <span style={{ marginLeft: 6, padding: "0 5px", borderRadius: 3, background: "rgba(185,28,28,0.08)", color: "#B91C1C", fontSize: 10 }}>BLOCKING</span>}
               </span>
             </div>
           ))}
@@ -3964,9 +4093,9 @@ function ProblemsPanel({ active, onOpenFinding }: { active: boolean; onOpenFindi
       )}
       {gateProblems.length > 0 && (
         <>
-          <div style={{ marginTop: 10, marginBottom: 4, color: "#bbb", fontSize: 10.5, textTransform: "uppercase", letterSpacing: 0.3 }}>Build Gate ({gateProblems.length})</div>
+          <div style={{ marginTop: 10, marginBottom: 4, color: "#64748B", fontSize: 10.5, textTransform: "uppercase", letterSpacing: 0.3 }}>Build Gate ({gateProblems.length})</div>
           {gateProblems.map((p, i) => (
-            <div key={i} style={{ display: "flex", gap: 6, padding: "3px 0", alignItems: "flex-start", color: "#f0a0a0" }} title={p.evidence}>
+            <div key={i} style={{ display: "flex", gap: 6, padding: "3px 0", alignItems: "flex-start", color: "#B91C1C" }} title={p.evidence}>
               <XCircle size={13} style={{ flexShrink: 0, marginTop: 1 }} />
               <span>[{p.category}] {p.message.slice(0, 200)}</span>
             </div>
@@ -3975,9 +4104,9 @@ function ProblemsPanel({ active, onOpenFinding }: { active: boolean; onOpenFindi
       )}
       {releaseProblems.length > 0 && (
         <>
-          <div style={{ marginTop: 10, marginBottom: 4, color: "#bbb", fontSize: 10.5, textTransform: "uppercase", letterSpacing: 0.3 }}>Release ({releaseProblems.length})</div>
+          <div style={{ marginTop: 10, marginBottom: 4, color: "#64748B", fontSize: 10.5, textTransform: "uppercase", letterSpacing: 0.3 }}>Release ({releaseProblems.length})</div>
           {releaseProblems.map((p, i) => (
-            <div key={i} style={{ display: "flex", gap: 6, padding: "3px 0", alignItems: "flex-start", color: "#e0a860" }} title={p.evidence}>
+            <div key={i} style={{ display: "flex", gap: 6, padding: "3px 0", alignItems: "flex-start", color: "#B45309" }} title={p.evidence}>
               <AlertTriangle size={13} style={{ flexShrink: 0, marginTop: 1 }} />
               <span>[{p.category}] {p.message.slice(0, 200)}</span>
             </div>
@@ -3996,8 +4125,8 @@ function ProblemsPanel({ active, onOpenFinding }: { active: boolean; onOpenFindi
 // Cancel. Never a second dashboard — this reuses the exact same Bottom
 // Console tab-strip QueuePanel/ExecutionPanel already established. ----
 const INSPECTION_STATUS_COLORS: Record<InspectionStatus, string> = {
-  QUEUED: "#cca700", RUNNING: "#9cdcfe", PASSED: "#4ec9b0", FAILED: "#f37c7c", WARNING: "#e0c880",
-  CANCELLED: "#858585", TIMED_OUT: "#f37c7c", REJECTED: "#f0a020", NOT_IMPLEMENTED: "#6a6a6a",
+  QUEUED: "#B45309", RUNNING: "#334155", PASSED: "#0F766E", FAILED: "#B91C1C", WARNING: "#B45309",
+  CANCELLED: "#64748B", TIMED_OUT: "#B91C1C", REJECTED: "#B45309", NOT_IMPLEMENTED: "#64748B",
 };
 
 function InspectionPanel({ active, onOpenFinding }: { active: boolean; onOpenFinding: (relPath: string, line: number, column: number) => void }) {
@@ -4036,26 +4165,26 @@ function InspectionPanel({ active, onOpenFinding }: { active: boolean; onOpenFin
 
   return (
     <div style={{ height: "100%", display: "flex", flexDirection: "column", fontSize: 11 }}>
-      {error && <div style={{ padding: 8, color: "#f37c7c" }}>{error}</div>}
+      {error && <div style={{ padding: 8, color: "#B91C1C" }}>{error}</div>}
       <div style={{ flex: 1, minHeight: 0, overflowY: "auto" }}>
-        {inspections.length === 0 && <div style={{ padding: 12, color: "#6a6a6a" }}>No inspections yet — Save a file or run a check-type command to create one.</div>}
+        {inspections.length === 0 && <div style={{ padding: 12, color: "#64748B" }}>No inspections yet — Save a file or run a check-type command to create one.</div>}
         {inspections.map((r) => (
-          <div key={r.inspectionId} style={{ borderBottom: "1px solid #232323" }}>
+          <div key={r.inspectionId} style={{ borderBottom: "1px solid #E2E8F0" }}>
             <div
               onClick={() => setExpandedId(expandedId === r.inspectionId ? null : r.inspectionId)}
               style={{ display: "flex", alignItems: "center", gap: 10, padding: "5px 10px", cursor: "pointer" }}
             >
               <span style={{ width: 7, height: 7, borderRadius: 4, background: INSPECTION_STATUS_COLORS[r.status], flexShrink: 0 }} title={r.status} />
-              <span style={{ width: 150, flexShrink: 0, color: "#9cdcfe" }}>{r.inspectionType}</span>
-              <span style={{ flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: "#ccc" }} title={r.targetPath}>
+              <span style={{ width: 150, flexShrink: 0, color: "#334155" }}>{r.inspectionType}</span>
+              <span style={{ flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: "#334155" }} title={r.targetPath}>
                 {r.targetPath}
-                {r.stale && <span style={{ marginLeft: 6, padding: "0 5px", borderRadius: 3, background: "#3a2d1e", color: "#e0a860", fontSize: 10 }}>STALE</span>}
+                {r.stale && <span style={{ marginLeft: 6, padding: "0 5px", borderRadius: 3, background: "rgba(180,83,9,0.08)", color: "#B45309", fontSize: 10 }}>STALE</span>}
               </span>
-              <span style={{ width: 60, flexShrink: 0, color: "#f37c7c" }}>{r.errorCount} err</span>
-              <span style={{ width: 70, flexShrink: 0, color: "#e0c880" }}>{r.warningCount} warn</span>
-              <span style={{ width: 70, flexShrink: 0, color: "#858585" }}>{r.durationMs != null ? `${r.durationMs}ms` : "—"}</span>
-              <span style={{ width: 110, flexShrink: 0, color: "#6a6a6a", fontFamily: "ui-monospace, monospace", overflow: "hidden", textOverflow: "ellipsis" }} title={r.jobId ?? ""}>{r.jobId ? r.jobId.slice(0, 8) : "—"}</span>
-              <span style={{ width: 110, flexShrink: 0, color: "#6a6a6a", fontFamily: "ui-monospace, monospace", overflow: "hidden", textOverflow: "ellipsis" }} title={r.executionId ?? ""}>{r.executionId ? r.executionId.slice(0, 8) : "—"}</span>
+              <span style={{ width: 60, flexShrink: 0, color: "#B91C1C" }}>{r.errorCount} err</span>
+              <span style={{ width: 70, flexShrink: 0, color: "#B45309" }}>{r.warningCount} warn</span>
+              <span style={{ width: 70, flexShrink: 0, color: "#64748B" }}>{r.durationMs != null ? `${r.durationMs}ms` : "—"}</span>
+              <span style={{ width: 110, flexShrink: 0, color: "#64748B", fontFamily: "ui-monospace, monospace", overflow: "hidden", textOverflow: "ellipsis" }} title={r.jobId ?? ""}>{r.jobId ? r.jobId.slice(0, 8) : "—"}</span>
+              <span style={{ width: 110, flexShrink: 0, color: "#64748B", fontFamily: "ui-monospace, monospace", overflow: "hidden", textOverflow: "ellipsis" }} title={r.executionId ?? ""}>{r.executionId ? r.executionId.slice(0, 8) : "—"}</span>
               <span style={{ width: 100, flexShrink: 0, color: INSPECTION_STATUS_COLORS[r.status] }}>{r.status}</span>
               <span style={{ width: 130, flexShrink: 0, display: "flex", gap: 4 }}>
                 {isActive(r) ? (
@@ -4066,14 +4195,14 @@ function InspectionPanel({ active, onOpenFinding }: { active: boolean; onOpenFin
               </span>
             </div>
             {expandedId === r.inspectionId && (
-              <div style={{ padding: "4px 10px 10px 27px", fontSize: 10.5, color: "#aaa" }}>
+              <div style={{ padding: "4px 10px 10px 27px", fontSize: 10.5, color: "#64748B" }}>
                 <div style={{ marginBottom: 4 }}>
                   Actor: {r.actor} · Blocking: {r.blocking ? "yes" : "no"} · Source Hash: {r.sourceHash ? r.sourceHash.slice(0, 12) : "—"} · Exit Code: {r.exitCode ?? "—"}
                 </div>
-                <div style={{ marginBottom: 4, color: "#858585" }}>{r.evidence}</div>
-                {r.error && <div style={{ marginBottom: 4, color: "#f37c7c" }}>Error: {r.error}</div>}
+                <div style={{ marginBottom: 4, color: "#64748B" }}>{r.evidence}</div>
+                {r.error && <div style={{ marginBottom: 4, color: "#B91C1C" }}>Error: {r.error}</div>}
                 {r.findings.length === 0 ? (
-                  <div style={{ color: "#6a6a6a" }}>No findings.</div>
+                  <div style={{ color: "#64748B" }}>No findings.</div>
                 ) : r.findings.map((f) => (
                   <div
                     key={f.findingId}
@@ -4098,7 +4227,7 @@ function InspectionPanel({ active, onOpenFinding }: { active: boolean; onOpenFin
 // Governance — never a second dashboard, reuses the exact same Bottom
 // Console tab-strip pattern as Queue/Execution/Inspection. ----
 const ARTIFACT_STATUS_COLORS: Record<ArtifactStatus, string> = {
-  PENDING: "#cca700", READY: "#4ec9b0", FAILED: "#f37c7c", ARCHIVED: "#858585", INVALID: "#f0a020",
+  PENDING: "#B45309", READY: "#0F766E", FAILED: "#B91C1C", ARCHIVED: "#64748B", INVALID: "#B45309",
 };
 function ArtifactsPanel({ active }: { active: boolean }) {
   const [artifacts, setArtifacts] = useState<ArtifactRecord[]>([]);
@@ -4140,28 +4269,28 @@ function ArtifactsPanel({ active }: { active: boolean }) {
   return (
     <div style={{ height: "100%", display: "flex", flexDirection: "column", fontSize: 11 }}>
       {integrityFindings.length > 0 && (
-        <div style={{ padding: "6px 10px", borderBottom: "1px solid #2d2d2d", color: "#f0a020", flexShrink: 0 }}>
+        <div style={{ padding: "6px 10px", borderBottom: "1px solid #E2E8F0", color: "#B45309", flexShrink: 0 }}>
           {integrityFindings.length} integrity finding{integrityFindings.length === 1 ? "" : "s"} — see Problems tab for details
         </div>
       )}
-      {error && <div style={{ padding: 8, color: "#f37c7c" }}>{error}</div>}
+      {error && <div style={{ padding: 8, color: "#B91C1C" }}>{error}</div>}
       <div style={{ flex: 1, minHeight: 0, overflowY: "auto" }}>
-        {artifacts.length === 0 && <div style={{ padding: 12, color: "#6a6a6a" }}>No artifacts yet — Save a file, run a command, or run a Governance verification to produce one.</div>}
+        {artifacts.length === 0 && <div style={{ padding: 12, color: "#64748B" }}>No artifacts yet — Save a file, run a command, or run a Governance verification to produce one.</div>}
         {artifacts.map((a) => {
           const artifactFindings = findingsForArtifact(a.artifactId);
           return (
-            <div key={a.artifactId} style={{ borderBottom: "1px solid #232323" }}>
+            <div key={a.artifactId} style={{ borderBottom: "1px solid #E2E8F0" }}>
               <div onClick={() => doExpand(a.artifactId)} style={{ display: "flex", alignItems: "center", gap: 10, padding: "5px 10px", cursor: "pointer" }}>
                 <span style={{ width: 7, height: 7, borderRadius: 4, background: ARTIFACT_STATUS_COLORS[a.status], flexShrink: 0 }} title={a.status} />
-                <span style={{ width: 150, flexShrink: 0, color: "#9cdcfe" }}>{a.artifactType}</span>
-                <span style={{ flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: "#ccc" }} title={a.generatedFrom}>
+                <span style={{ width: 150, flexShrink: 0, color: "#334155" }}>{a.artifactType}</span>
+                <span style={{ flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: "#334155" }} title={a.generatedFrom}>
                   {a.generatedFrom}
-                  {artifactFindings.length > 0 && <span style={{ marginLeft: 6, padding: "0 5px", borderRadius: 3, background: "#3a1e1e", color: "#f0a0a0", fontSize: 10 }}>{artifactFindings.length} issue{artifactFindings.length === 1 ? "" : "s"}</span>}
+                  {artifactFindings.length > 0 && <span style={{ marginLeft: 6, padding: "0 5px", borderRadius: 3, background: "rgba(185,28,28,0.08)", color: "#B91C1C", fontSize: 10 }}>{artifactFindings.length} issue{artifactFindings.length === 1 ? "" : "s"}</span>}
                 </span>
-                <span style={{ width: 50, flexShrink: 0, color: "#858585" }}>v{a.version}</span>
-                <span style={{ width: 90, flexShrink: 0, color: "#6a6a6a", fontFamily: "ui-monospace, monospace" }} title={a.checksum}>{a.checksum.slice(0, 10)}</span>
-                <span style={{ width: 90, flexShrink: 0, color: "#858585" }}>{a.childIds.length} child{a.childIds.length === 1 ? "" : "ren"}</span>
-                <span style={{ width: 90, flexShrink: 0, color: "#858585" }}>{a.parentIds.length} parent{a.parentIds.length === 1 ? "" : "s"}</span>
+                <span style={{ width: 50, flexShrink: 0, color: "#64748B" }}>v{a.version}</span>
+                <span style={{ width: 90, flexShrink: 0, color: "#64748B", fontFamily: "ui-monospace, monospace" }} title={a.checksum}>{a.checksum.slice(0, 10)}</span>
+                <span style={{ width: 90, flexShrink: 0, color: "#64748B" }}>{a.childIds.length} child{a.childIds.length === 1 ? "" : "ren"}</span>
+                <span style={{ width: 90, flexShrink: 0, color: "#64748B" }}>{a.parentIds.length} parent{a.parentIds.length === 1 ? "" : "s"}</span>
                 <span style={{ width: 100, flexShrink: 0, color: ARTIFACT_STATUS_COLORS[a.status] }}>{a.status}</span>
                 <span style={{ width: 90, flexShrink: 0 }}>
                   <button
@@ -4175,31 +4304,31 @@ function ArtifactsPanel({ active }: { active: boolean }) {
                 </span>
               </div>
               {expandedId === a.artifactId && (
-                <div style={{ padding: "4px 10px 10px 27px", fontSize: 10.5, color: "#aaa" }}>
+                <div style={{ padding: "4px 10px 10px 27px", fontSize: 10.5, color: "#64748B" }}>
                   <div style={{ marginBottom: 4 }}>
                     Producer: {a.producer} · Actor: {a.actor} · Created: {new Date(a.createdAt).toLocaleTimeString()} · Size: {a.sizeBytes}B · Immutable: {a.immutable ? "yes" : "no"}
                   </div>
-                  <div style={{ marginBottom: 4, color: "#858585" }}>{a.description}</div>
+                  <div style={{ marginBottom: 4, color: "#64748B" }}>{a.description}</div>
                   {a.jobId && <div>Job: <span style={{ fontFamily: "ui-monospace, monospace" }}>{a.jobId.slice(0, 8)}</span></div>}
                   {a.executionId && <div>Execution: <span style={{ fontFamily: "ui-monospace, monospace" }}>{a.executionId.slice(0, 8)}</span></div>}
                   {a.inspectionId && <div>Inspection: <span style={{ fontFamily: "ui-monospace, monospace" }}>{a.inspectionId.slice(0, 8)}</span></div>}
                   {a.sourceHash && <div>Source Hash: <span style={{ fontFamily: "ui-monospace, monospace" }}>{a.sourceHash.slice(0, 16)}</span></div>}
                   {a.supersedes && <div>Supersedes: <span style={{ fontFamily: "ui-monospace, monospace" }}>{a.supersedes.slice(0, 8)}</span> (previous version)</div>}
-                  <div style={{ marginTop: 6, color: "#bbb" }}>Evidence ({a.evidence.length}):</div>
-                  {a.evidence.length === 0 ? <div style={{ color: "#6a6a6a" }}>No evidence attached.</div> : a.evidence.map((ev) => (
-                    <div key={ev.evidenceId} style={{ padding: "1px 0", color: ev.verifiedReal ? "#8fd3a3" : "#f37c7c" }}>
+                  <div style={{ marginTop: 6, color: "#64748B" }}>Evidence ({a.evidence.length}):</div>
+                  {a.evidence.length === 0 ? <div style={{ color: "#64748B" }}>No evidence attached.</div> : a.evidence.map((ev) => (
+                    <div key={ev.evidenceId} style={{ padding: "1px 0", color: ev.verifiedReal ? "#0F766E" : "#B91C1C" }}>
                       [{ev.kind}:{ev.refId.slice(0, 12)}] {ev.description} {!ev.verifiedReal && "(unverified)"}
                     </div>
                   ))}
                   {lineage && (
                     <>
-                      <div style={{ marginTop: 6, color: "#bbb" }}>Lineage — Ancestors ({lineage.ancestors.length}):</div>
-                      {lineage.ancestors.length === 0 ? <div style={{ color: "#6a6a6a" }}>None (this is a root artifact).</div> : lineage.ancestors.map((n) => (
-                        <div key={n.artifactId} style={{ color: "#9cdcfe" }}>{n.artifactType} — {n.displayName}</div>
+                      <div style={{ marginTop: 6, color: "#64748B" }}>Lineage — Ancestors ({lineage.ancestors.length}):</div>
+                      {lineage.ancestors.length === 0 ? <div style={{ color: "#64748B" }}>None (this is a root artifact).</div> : lineage.ancestors.map((n) => (
+                        <div key={n.artifactId} style={{ color: "#334155" }}>{n.artifactType} — {n.displayName}</div>
                       ))}
-                      <div style={{ marginTop: 6, color: "#bbb" }}>Lineage — Descendants ({lineage.descendants.length}):</div>
-                      {lineage.descendants.length === 0 ? <div style={{ color: "#6a6a6a" }}>None (leaf artifact so far).</div> : lineage.descendants.map((n) => (
-                        <div key={n.artifactId} style={{ color: "#9cdcfe" }}>{n.artifactType} — {n.displayName}</div>
+                      <div style={{ marginTop: 6, color: "#64748B" }}>Lineage — Descendants ({lineage.descendants.length}):</div>
+                      {lineage.descendants.length === 0 ? <div style={{ color: "#64748B" }}>None (leaf artifact so far).</div> : lineage.descendants.map((n) => (
+                        <div key={n.artifactId} style={{ color: "#334155" }}>{n.artifactType} — {n.displayName}</div>
                       ))}
                     </>
                   )}
@@ -4218,7 +4347,7 @@ function ArtifactsPanel({ active }: { active: boolean }) {
 // the exact same Bottom Console tab-strip / Inspection Pipeline / Artifact
 // Pipeline every other panel already uses. Real Chromium via Playwright
 // produces every finding; this panel only displays it. ----
-const UI_SCAN_STATUS_COLORS: Record<string, string> = { PASSED: "#4ec9b0", WARNING: "#e0c880", FAILED: "#f37c7c" };
+const UI_SCAN_STATUS_COLORS: Record<string, string> = { PASSED: "#0F766E", WARNING: "#B45309", FAILED: "#B91C1C" };
 
 function UiInspectionPanel({ active }: { active: boolean }) {
   const [scans, setScans] = useState<UiScanRecord[]>([]);
@@ -4282,8 +4411,8 @@ function UiInspectionPanel({ active }: { active: boolean }) {
 
   return (
     <div style={{ height: "100%", display: "flex", minHeight: 0 }}>
-      <div style={{ width: 260, flexShrink: 0, borderRight: "1px solid #2d2d2d", display: "flex", flexDirection: "column", padding: 8, gap: 6, overflowY: "auto" }}>
-        <select value={targetType} onChange={(e) => setTargetType(e.target.value as typeof targetType)} style={{ background: "#3c3c3c", border: "1px solid #4a4a4a", color: "#ccc", borderRadius: 3, padding: "5px 6px", fontSize: 11.5 }}>
+      <div style={{ width: 260, flexShrink: 0, borderRight: "1px solid #E2E8F0", display: "flex", flexDirection: "column", padding: 8, gap: 6, overflowY: "auto" }}>
+        <select value={targetType} onChange={(e) => setTargetType(e.target.value as typeof targetType)} style={{ background: "#FFFFFF", border: "1px solid #CBD5E1", color: "#334155", borderRadius: 3, padding: "5px 6px", fontSize: 11.5 }}>
           <option value="CURRENT_PREVIEW">Current Preview (this app)</option>
           <option value="REGISTERED_ROUTE">Registered Route (this app)</option>
           <option value="DEPLOYED_URL">Deployed URL (allowlisted host)</option>
@@ -4291,17 +4420,17 @@ function UiInspectionPanel({ active }: { active: boolean }) {
         <input
           value={route} onChange={(e) => setRoute(e.target.value)}
           placeholder={targetType === "DEPLOYED_URL" ? "https://..." : "/admin/ide"}
-          style={{ background: "#3c3c3c", border: "1px solid #4a4a4a", color: "#ccc", borderRadius: 3, padding: "5px 6px", fontSize: 11.5 }}
+          style={{ background: "#FFFFFF", border: "1px solid #CBD5E1", color: "#334155", borderRadius: 3, padding: "5px 6px", fontSize: 11.5 }}
         />
-        <div style={{ fontSize: 10.5, color: "#bbb", marginTop: 4 }}>Viewports</div>
+        <div style={{ fontSize: 10.5, color: "#64748B", marginTop: 4 }}>Viewports</div>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
           {UI_VIEWPORT_CHOICES.map((id) => (
             <button
               key={id} onClick={() => toggleViewport(id)}
               style={{
                 fontSize: 9.5, padding: "2px 6px", borderRadius: 8, cursor: "pointer",
-                border: selectedViewports.includes(id) ? "1px solid #4da6ff" : "1px solid #3a3a3a",
-                background: selectedViewports.includes(id) ? "#1e2d3a" : "#2d2d2d", color: selectedViewports.includes(id) ? "#9cdcfe" : "#858585",
+                border: selectedViewports.includes(id) ? "1px solid #0F172A" : "1px solid #CBD5E1",
+                background: selectedViewports.includes(id) ? "rgba(51,65,85,0.06)" : "#F1F5F9", color: selectedViewports.includes(id) ? "#334155" : "#64748B",
               }}
             >
               {id}
@@ -4311,22 +4440,22 @@ function UiInspectionPanel({ active }: { active: boolean }) {
         <button disabled={busy || selectedViewports.length === 0} onClick={doRun} style={{ ...topBtnStyle, opacity: busy || selectedViewports.length === 0 ? 0.5 : 1, marginTop: 4 }}>
           {busy ? "Running…" : "Run Scan"}
         </button>
-        {error && <div style={{ color: "#f37c7c", fontSize: 10.5 }}>{error}</div>}
-        <div style={{ fontSize: 10, color: "#6a6a6a", marginTop: 4 }}>
+        {error && <div style={{ color: "#B91C1C", fontSize: 10.5 }}>{error}</div>}
+        <div style={{ fontSize: 10, color: "#64748B", marginTop: 4 }}>
           Real Chromium via Playwright. Read-only — never auto-fixes UI, never edits source files or application DOM permanently.
         </div>
       </div>
 
       <div style={{ flex: 1, minHeight: 0, overflowY: "auto" }}>
-        {scans.length === 0 && <div style={{ padding: 12, color: "#6a6a6a", fontSize: 11.5 }}>No scans yet — configure a target and Run Scan.</div>}
+        {scans.length === 0 && <div style={{ padding: 12, color: "#64748B", fontSize: 11.5 }}>No scans yet — configure a target and Run Scan.</div>}
         {scans.map((s) => (
-          <div key={s.scanId} style={{ borderBottom: "1px solid #232323" }}>
+          <div key={s.scanId} style={{ borderBottom: "1px solid #E2E8F0" }}>
             <div onClick={() => doExpand(s.scanId)} style={{ display: "flex", alignItems: "center", gap: 10, padding: "6px 10px", cursor: "pointer", fontSize: 11 }}>
               <span style={{ width: 7, height: 7, borderRadius: 4, background: UI_SCAN_STATUS_COLORS[s.status ?? "PASSED"], flexShrink: 0 }} />
-              <span style={{ flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: "#ccc" }} title={s.targetUrl}>{s.targetUrl}</span>
-              <span style={{ width: 130, flexShrink: 0, color: "#858585" }}>{s.viewportsRun.length} viewport(s)</span>
-              <span style={{ width: 60, flexShrink: 0, color: "#f37c7c" }}>{s.errorCount ?? 0} err</span>
-              <span style={{ width: 70, flexShrink: 0, color: "#e0c880" }}>{s.warningCount ?? 0} warn</span>
+              <span style={{ flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: "#334155" }} title={s.targetUrl}>{s.targetUrl}</span>
+              <span style={{ width: 130, flexShrink: 0, color: "#64748B" }}>{s.viewportsRun.length} viewport(s)</span>
+              <span style={{ width: 60, flexShrink: 0, color: "#B91C1C" }}>{s.errorCount ?? 0} err</span>
+              <span style={{ width: 70, flexShrink: 0, color: "#B45309" }}>{s.warningCount ?? 0} warn</span>
               <span style={{ width: 90, flexShrink: 0, color: UI_SCAN_STATUS_COLORS[s.status ?? "PASSED"] }}>{s.status ?? "PASSED"}</span>
               <span style={{ width: 140, flexShrink: 0, display: "flex", gap: 4 }}>
                 <button onClick={(e) => { e.stopPropagation(); doRerun(s.scanId); }} style={miniBtnStyle}>Rerun</button>
@@ -4334,14 +4463,14 @@ function UiInspectionPanel({ active }: { active: boolean }) {
               </span>
             </div>
             {expandedScanId === s.scanId && (
-              <div style={{ padding: "4px 10px 10px 27px", fontSize: 10.5, color: "#aaa" }}>
+              <div style={{ padding: "4px 10px 10px 27px", fontSize: 10.5, color: "#64748B" }}>
                 <div style={{ marginBottom: 4 }}>
                   Environment: {s.environment} · Job: <span style={{ fontFamily: "ui-monospace, monospace" }}>{s.jobId?.slice(0, 8) ?? "—"}</span> · Manifest Artifact:{" "}
-                  <span style={{ color: "#9cdcfe", cursor: "pointer", textDecoration: "underline" }} onClick={() => openSnapshot(s.scanId, s.manifestArtifactId)}>{s.manifestArtifactId.slice(0, 8)}</span>
+                  <span style={{ color: "#334155", cursor: "pointer", textDecoration: "underline" }} onClick={() => openSnapshot(s.scanId, s.manifestArtifactId)}>{s.manifestArtifactId.slice(0, 8)}</span>
                 </div>
-                {!detail ? <div style={{ color: "#6a6a6a" }}>Loading…</div> : detail.map((rec) => (
+                {!detail ? <div style={{ color: "#64748B" }}>Loading…</div> : detail.map((rec) => (
                   <div key={rec.inspectionId} style={{ marginBottom: 8 }}>
-                    <div style={{ color: "#9cdcfe" }}>
+                    <div style={{ color: "#334155" }}>
                       {rec.inspectionType} — {rec.status} ({rec.findingCount} finding{rec.findingCount === 1 ? "" : "s"})
                     </div>
                     {rec.findings.map((f) => (
@@ -4367,10 +4496,10 @@ function UiInspectionPanel({ active }: { active: boolean }) {
 // SAME DiffLine/DIFF_LINE_STYLE the Source Control panel's diff viewer
 // already established. ----
 const CHANGE_SET_STATUS_COLORS: Record<string, string> = {
-  DRAFT: "#858585", COLLECTING: "#cca700", READY_FOR_REVIEW: "#9cdcfe", REVIEWING: "#cca700",
-  CHANGES_REQUESTED: "#e0a860", APPROVED: "#4ec9b0", REJECTED: "#f37c7c", STALE: "#f0a020", INVALID: "#f37c7c",
+  DRAFT: "#64748B", COLLECTING: "#B45309", READY_FOR_REVIEW: "#334155", REVIEWING: "#B45309",
+  CHANGES_REQUESTED: "#B45309", APPROVED: "#0F766E", REJECTED: "#B91C1C", STALE: "#B45309", INVALID: "#B91C1C",
 };
-const REVIEW_RISK_COLORS: Record<string, string> = { LOW: "#4ec9b0", MEDIUM: "#e0c880", HIGH: "#e0a860", CRITICAL: "#f37c7c", UNKNOWN: "#858585" };
+const REVIEW_RISK_COLORS: Record<string, string> = { LOW: "#0F766E", MEDIUM: "#B45309", HIGH: "#B45309", CRITICAL: "#B91C1C", UNKNOWN: "#64748B" };
 
 function CodeReviewPanel({ active, onOpenFinding }: { active: boolean; onOpenFinding: (relPath: string, line: number, column: number) => void }) {
   const [changeSets, setChangeSets] = useState<ChangeSetClient[]>([]);
@@ -4422,33 +4551,33 @@ function CodeReviewPanel({ active, onOpenFinding }: { active: boolean; onOpenFin
 
   return (
     <div style={{ height: "100%", display: "flex", minHeight: 0 }}>
-      <div style={{ width: 240, flexShrink: 0, borderRight: "1px solid #2d2d2d", display: "flex", flexDirection: "column", padding: 8, gap: 6, overflowY: "auto" }}>
+      <div style={{ width: 240, flexShrink: 0, borderRight: "1px solid #E2E8F0", display: "flex", flexDirection: "column", padding: 8, gap: 6, overflowY: "auto" }}>
         <button disabled={busy} onClick={doCreate} style={{ ...topBtnStyle, opacity: busy ? 0.5 : 1 }}>Create Change Set</button>
-        {error && <div style={{ color: "#f37c7c", fontSize: 10.5 }}>{error}</div>}
-        <div style={{ fontSize: 10, color: "#6a6a6a", marginTop: 4 }}>
+        {error && <div style={{ color: "#B91C1C", fontSize: 10.5 }}>{error}</div>}
+        <div style={{ fontSize: 10, color: "#64748B", marginTop: 4 }}>
           Read Only against Source Control — no Stage/Commit/Push. &quot;Approved&quot; means passed review in this system only.
         </div>
       </div>
 
       <div style={{ flex: 1, minHeight: 0, overflowY: "auto", display: "flex" }}>
         <div style={{ flex: diffPath ? 1 : 2, minWidth: 0, overflowY: "auto" }}>
-          {changeSets.length === 0 && <div style={{ padding: 12, color: "#6a6a6a", fontSize: 11.5 }}>No Change Sets yet — Create Change Set from the current working tree.</div>}
+          {changeSets.length === 0 && <div style={{ padding: 12, color: "#64748B", fontSize: 11.5 }}>No Change Sets yet — Create Change Set from the current working tree.</div>}
           {changeSets.map((cs) => (
-            <div key={cs.changeSetId} style={{ borderBottom: "1px solid #232323" }}>
+            <div key={cs.changeSetId} style={{ borderBottom: "1px solid #E2E8F0" }}>
               <div onClick={() => setExpandedId(expandedId === cs.changeSetId ? null : cs.changeSetId)} style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 10px", cursor: "pointer", fontSize: 11 }}>
-                <span style={{ width: 7, height: 7, borderRadius: 4, background: CHANGE_SET_STATUS_COLORS[cs.status] ?? "#858585", flexShrink: 0 }} />
-                <span style={{ flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: "#ccc" }} title={cs.title}>{cs.title}</span>
-                <span style={{ width: 90, flexShrink: 0, color: "#858585" }}>{cs.changedFiles.length} files</span>
-                <span style={{ width: 60, flexShrink: 0, color: "#4ec9b0" }}>+{cs.totalInsertions}</span>
-                <span style={{ width: 60, flexShrink: 0, color: "#f37c7c" }}>-{cs.totalDeletions}</span>
-                <span style={{ width: 70, flexShrink: 0, color: REVIEW_RISK_COLORS[cs.riskSummary.level] ?? "#858585" }}>{cs.riskSummary.level}</span>
-                <span style={{ width: 110, flexShrink: 0, color: CHANGE_SET_STATUS_COLORS[cs.status] ?? "#858585" }}>{cs.status}</span>
+                <span style={{ width: 7, height: 7, borderRadius: 4, background: CHANGE_SET_STATUS_COLORS[cs.status] ?? "#64748B", flexShrink: 0 }} />
+                <span style={{ flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: "#334155" }} title={cs.title}>{cs.title}</span>
+                <span style={{ width: 90, flexShrink: 0, color: "#64748B" }}>{cs.changedFiles.length} files</span>
+                <span style={{ width: 60, flexShrink: 0, color: "#0F766E" }}>+{cs.totalInsertions}</span>
+                <span style={{ width: 60, flexShrink: 0, color: "#B91C1C" }}>-{cs.totalDeletions}</span>
+                <span style={{ width: 70, flexShrink: 0, color: REVIEW_RISK_COLORS[cs.riskSummary.level] ?? "#64748B" }}>{cs.riskSummary.level}</span>
+                <span style={{ width: 110, flexShrink: 0, color: CHANGE_SET_STATUS_COLORS[cs.status] ?? "#64748B" }}>{cs.status}</span>
               </div>
               {expandedId === cs.changeSetId && (
-                <div style={{ padding: "4px 10px 10px 25px", fontSize: 10.5, color: "#aaa" }}>
+                <div style={{ padding: "4px 10px 10px 25px", fontSize: 10.5, color: "#64748B" }}>
                   <div style={{ marginBottom: 4 }}>
                     Base: <span style={{ fontFamily: "ui-monospace, monospace" }}>{cs.baseRevision?.slice(0, 10) ?? "—"}</span> · Fingerprint: <span style={{ fontFamily: "ui-monospace, monospace" }}>{cs.workingTreeFingerprint.slice(0, 12)}</span>
-                    {cs.stale && <span style={{ marginLeft: 6, padding: "0 5px", borderRadius: 3, background: "#3a2d1e", color: "#e0a860", fontSize: 10 }}>STALE</span>}
+                    {cs.stale && <span style={{ marginLeft: 6, padding: "0 5px", borderRadius: 3, background: "rgba(180,83,9,0.08)", color: "#B45309", fontSize: 10 }}>STALE</span>}
                   </div>
                   <div style={{ marginBottom: 4 }}>Factories: {cs.factoriesAffected.join(", ") || "—"}</div>
                   <div style={{ marginBottom: 4 }}>Routes: {cs.routesAffected.join(", ") || "—"}</div>
@@ -4462,24 +4591,24 @@ function CodeReviewPanel({ active, onOpenFinding }: { active: boolean; onOpenFin
                     <button disabled={busy} onClick={() => doRefresh(cs.changeSetId)} style={miniBtnStyle}>Refresh</button>
                     <button disabled={busy} onClick={() => doReview(cs.changeSetId)} style={miniBtnStyle}>Start Review</button>
                   </div>
-                  <input value={reasonDraft} onChange={(e) => setReasonDraft(e.target.value)} placeholder="decision reason (required)" style={{ width: "100%", background: "#3c3c3c", border: "1px solid #4a4a4a", color: "#ccc", borderRadius: 3, padding: "4px 6px", fontSize: 10.5, marginBottom: 4 }} />
+                  <input value={reasonDraft} onChange={(e) => setReasonDraft(e.target.value)} placeholder="decision reason (required)" style={{ width: "100%", background: "#FFFFFF", border: "1px solid #CBD5E1", color: "#334155", borderRadius: 3, padding: "4px 6px", fontSize: 10.5, marginBottom: 4 }} />
                   <div style={{ display: "flex", gap: 4, marginBottom: 8 }}>
                     <button disabled={busy} onClick={() => doDecision(cs.changeSetId, "APPROVE")} style={miniBtnStyle}>Approve</button>
                     <button disabled={busy} onClick={() => doDecision(cs.changeSetId, "REQUEST_CHANGES")} style={miniBtnStyle}>Request Changes</button>
                     <button disabled={busy} onClick={() => doDecision(cs.changeSetId, "REJECT")} style={miniBtnStyle}>Reject</button>
                   </div>
 
-                  <div style={{ color: "#bbb", marginBottom: 2 }}>Changed Files ({cs.diffFiles.length}):</div>
+                  <div style={{ color: "#64748B", marginBottom: 2 }}>Changed Files ({cs.diffFiles.length}):</div>
                   {cs.diffFiles.map((f) => (
-                    <div key={f.path} onClick={() => setDiffPath(diffPath === f.path ? null : f.path)} style={{ padding: "2px 0", cursor: "pointer", color: diffPath === f.path ? "#9cdcfe" : "#ccc" }}>
-                      [{f.status}] {f.path} <span style={{ color: "#4ec9b0" }}>+{f.additions}</span> <span style={{ color: "#f37c7c" }}>-{f.deletions}</span>
-                      {f.binary && <span style={{ marginLeft: 6, color: "#858585" }}>(binary)</span>}
+                    <div key={f.path} onClick={() => setDiffPath(diffPath === f.path ? null : f.path)} style={{ padding: "2px 0", cursor: "pointer", color: diffPath === f.path ? "#334155" : "#334155" }}>
+                      [{f.status}] {f.path} <span style={{ color: "#0F766E" }}>+{f.additions}</span> <span style={{ color: "#B91C1C" }}>-{f.deletions}</span>
+                      {f.binary && <span style={{ marginLeft: 6, color: "#64748B" }}>(binary)</span>}
                     </div>
                   ))}
 
                   {cs.findings.length > 0 && (
                     <>
-                      <div style={{ color: "#bbb", margin: "8px 0 2px" }}>Findings ({cs.findings.length}):</div>
+                      <div style={{ color: "#64748B", margin: "8px 0 2px" }}>Findings ({cs.findings.length}):</div>
                       {cs.findings.map((f) => (
                         <div
                           key={f.reviewFindingId}
@@ -4488,7 +4617,7 @@ function CodeReviewPanel({ active, onOpenFinding }: { active: boolean; onOpenFin
                           title={f.evidence}
                         >
                           [{f.checkId}] {f.file ?? "(change set)"} — {f.message}
-                          {f.blocking && <span style={{ marginLeft: 6, padding: "0 5px", borderRadius: 3, background: "#3a1e1e", color: "#f0a0a0", fontSize: 10 }}>BLOCKING</span>}
+                          {f.blocking && <span style={{ marginLeft: 6, padding: "0 5px", borderRadius: 3, background: "rgba(185,28,28,0.08)", color: "#B91C1C", fontSize: 10 }}>BLOCKING</span>}
                         </div>
                       ))}
                     </>
@@ -4516,23 +4645,23 @@ function ChangeSetDiffPane({ changeSetId, path, onClose }: { changeSetId: string
   }, [changeSetId]);
   const file = diffFiles?.find((f) => f.path === path);
   return (
-    <div style={{ flex: 1, minWidth: 0, borderLeft: "1px solid #2d2d2d", display: "flex", flexDirection: "column" }}>
-      <div style={{ display: "flex", gap: 14, padding: "5px 12px", fontSize: 10.5, color: "#858585", background: "#1a1a1a", borderBottom: "1px solid #1e1e1e", flexShrink: 0 }}>
+    <div style={{ flex: 1, minWidth: 0, borderLeft: "1px solid #E2E8F0", display: "flex", flexDirection: "column" }}>
+      <div style={{ display: "flex", gap: 14, padding: "5px 12px", fontSize: 10.5, color: "#64748B", background: "#EEF2F7", borderBottom: "1px solid #E2E8F0", flexShrink: 0 }}>
         <span>{path}</span>
         <span style={{ marginLeft: "auto" }}>Read-only diff — Change Set snapshot</span>
-        <button onClick={onClose} style={{ background: "none", border: "none", color: "#858585", cursor: "pointer" }}>✕</button>
+        <button onClick={onClose} style={{ background: "none", border: "none", color: "#64748B", cursor: "pointer" }}>✕</button>
       </div>
       <div style={{ flex: 1, overflow: "auto", minWidth: 0, fontSize: 12.5, fontFamily: "ui-monospace, monospace" }}>
-        {!file ? <div style={{ padding: 16, color: "#858585" }}>Loading…</div> : file.binary ? (
-          <div style={{ padding: 16, color: "#858585" }}>Binary file ({file.status}) — real metadata only, no text diff shown</div>
+        {!file ? <div style={{ padding: 16, color: "#64748B" }}>Loading…</div> : file.binary ? (
+          <div style={{ padding: 16, color: "#64748B" }}>Binary file ({file.status}) — real metadata only, no text diff shown</div>
         ) : file.hunks.length === 0 ? (
-          <div style={{ padding: 16, color: "#858585" }}>{file.status === "untracked" ? "Untracked file — no diff against HEAD available yet." : "No real diff content."}</div>
+          <div style={{ padding: 16, color: "#64748B" }}>{file.status === "untracked" ? "Untracked file — no diff against HEAD available yet." : "No real diff content."}</div>
         ) : file.hunks.map((line, i) => {
           const style = DIFF_LINE_STYLE[line.type];
           return (
             <div key={i} style={{ display: "flex", padding: "0 12px", whiteSpace: "pre", background: style.bg, color: style.color }}>
-              <span style={{ width: 36, flexShrink: 0, textAlign: "right", marginRight: 6, color: "#5a5a5a", userSelect: "none" }}>{line.oldLine ?? ""}</span>
-              <span style={{ width: 36, flexShrink: 0, textAlign: "right", marginRight: 10, color: "#5a5a5a", userSelect: "none" }}>{line.newLine ?? ""}</span>
+              <span style={{ width: 36, flexShrink: 0, textAlign: "right", marginRight: 6, color: "#64748B", userSelect: "none" }}>{line.oldLine ?? ""}</span>
+              <span style={{ width: 36, flexShrink: 0, textAlign: "right", marginRight: 10, color: "#64748B", userSelect: "none" }}>{line.newLine ?? ""}</span>
               <span>{style.prefix}{line.content}</span>
             </div>
           );
@@ -4548,10 +4677,10 @@ function ChangeSetDiffPane({ changeSetId, path, onClose }: { changeSetId: string
 // Deploy control anywhere here — "Run Test" only ever runs the real,
 // registered Test Types, never a build. ----
 const TEST_RUN_STATUS_COLORS: Record<string, string> = {
-  RUNNING: "#9cdcfe", PASSED: "#4ec9b0", FAILED: "#e0a860", BLOCKED: "#f37c7c", CANCELLED: "#858585",
+  RUNNING: "#334155", PASSED: "#0F766E", FAILED: "#B45309", BLOCKED: "#B91C1C", CANCELLED: "#64748B",
 };
 const TEST_RESULT_STATUS_COLORS: Record<string, string> = {
-  PASSED: "#4ec9b0", FAILED: "#f37c7c", SKIPPED: "#858585", NOT_IMPLEMENTED: "#6a6a6a", CANCELLED: "#858585",
+  PASSED: "#0F766E", FAILED: "#B91C1C", SKIPPED: "#64748B", NOT_IMPLEMENTED: "#64748B", CANCELLED: "#64748B",
 };
 
 function TestPanel({ active, onOpenFinding }: { active: boolean; onOpenFinding: (relPath: string, line: number, column: number) => void }) {
@@ -4588,52 +4717,52 @@ function TestPanel({ active, onOpenFinding }: { active: boolean; onOpenFinding: 
 
   return (
     <div style={{ height: "100%", display: "flex", minHeight: 0 }}>
-      <div style={{ width: 220, flexShrink: 0, borderRight: "1px solid #2d2d2d", display: "flex", flexDirection: "column", padding: 8, gap: 6, overflowY: "auto" }}>
+      <div style={{ width: 220, flexShrink: 0, borderRight: "1px solid #E2E8F0", display: "flex", flexDirection: "column", padding: 8, gap: 6, overflowY: "auto" }}>
         <button disabled={busy} onClick={doRun} style={{ ...topBtnStyle, opacity: busy ? 0.5 : 1 }}>{busy ? "Running…" : "Run Test"}</button>
-        {error && <div style={{ color: "#f37c7c", fontSize: 10.5 }}>{error}</div>}
-        <div style={{ fontSize: 10, color: "#6a6a6a", marginTop: 4 }}>
+        {error && <div style={{ color: "#B91C1C", fontSize: 10.5 }}>{error}</div>}
+        <div style={{ fontSize: 10, color: "#64748B", marginTop: 4 }}>
           Runs the 15 real registered Test Types. Never Build, never Git Write, never Deploy, never Auto-Fix.
         </div>
       </div>
 
       <div style={{ flex: 1, minHeight: 0, overflowY: "auto" }}>
-        {testRuns.length === 0 && <div style={{ padding: 12, color: "#6a6a6a", fontSize: 11.5 }}>No Test Runs yet — Run Test to execute the real Test Pipeline.</div>}
+        {testRuns.length === 0 && <div style={{ padding: 12, color: "#64748B", fontSize: 11.5 }}>No Test Runs yet — Run Test to execute the real Test Pipeline.</div>}
         {testRuns.map((tr) => {
           const suites = [...new Set(tr.results.map((r) => r.suite))];
           return (
-            <div key={tr.testRunId} style={{ borderBottom: "1px solid #232323" }}>
+            <div key={tr.testRunId} style={{ borderBottom: "1px solid #E2E8F0" }}>
               <div onClick={() => setExpandedId(expandedId === tr.testRunId ? null : tr.testRunId)} style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 10px", cursor: "pointer", fontSize: 11 }}>
-                <span style={{ width: 7, height: 7, borderRadius: 4, background: TEST_RUN_STATUS_COLORS[tr.status] ?? "#858585", flexShrink: 0 }} />
-                <span style={{ flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: "#ccc" }} title={tr.testRunId}>
+                <span style={{ width: 7, height: 7, borderRadius: 4, background: TEST_RUN_STATUS_COLORS[tr.status] ?? "#64748B", flexShrink: 0 }} />
+                <span style={{ flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: "#334155" }} title={tr.testRunId}>
                   {new Date(tr.startedAt).toLocaleString()}{tr.sourceChangeSet ? ` — Change Set ${tr.sourceChangeSet.slice(0, 8)}` : ""}
                 </span>
-                <span style={{ width: 50, flexShrink: 0, color: "#4ec9b0" }}>{tr.passed}✓</span>
-                <span style={{ width: 50, flexShrink: 0, color: "#f37c7c" }}>{tr.failed}✗</span>
-                <span style={{ width: 90, flexShrink: 0, color: "#6a6a6a" }}>{tr.notImplemented} n/a</span>
-                <span style={{ width: 70, flexShrink: 0, color: "#858585" }}>{tr.duration != null ? `${(tr.duration / 1000).toFixed(1)}s` : "—"}</span>
-                <span style={{ width: 90, flexShrink: 0, color: TEST_RUN_STATUS_COLORS[tr.status] ?? "#858585" }}>{tr.status}</span>
+                <span style={{ width: 50, flexShrink: 0, color: "#0F766E" }}>{tr.passed}✓</span>
+                <span style={{ width: 50, flexShrink: 0, color: "#B91C1C" }}>{tr.failed}✗</span>
+                <span style={{ width: 90, flexShrink: 0, color: "#64748B" }}>{tr.notImplemented} n/a</span>
+                <span style={{ width: 70, flexShrink: 0, color: "#64748B" }}>{tr.duration != null ? `${(tr.duration / 1000).toFixed(1)}s` : "—"}</span>
+                <span style={{ width: 90, flexShrink: 0, color: TEST_RUN_STATUS_COLORS[tr.status] ?? "#64748B" }}>{tr.status}</span>
               </div>
               {expandedId === tr.testRunId && (
-                <div style={{ padding: "4px 10px 10px 25px", fontSize: 10.5, color: "#aaa" }}>
+                <div style={{ padding: "4px 10px 10px 25px", fontSize: 10.5, color: "#64748B" }}>
                   <div style={{ marginBottom: 6, display: "flex", gap: 10, alignItems: "center" }}>
                     <span>Suites: {suites.join(", ")}</span>
                     <button disabled={busy} onClick={() => doRerun(tr.testRunId)} style={{ ...miniBtnStyle, opacity: busy ? 0.5 : 1 }}>Rerun</button>
                   </div>
                   {tr.blockingReasons.length > 0 && (
-                    <div style={{ marginBottom: 6, padding: "4px 8px", borderRadius: 3, background: "#3a1e1e", color: "#f0a0a0" }}>
+                    <div style={{ marginBottom: 6, padding: "4px 8px", borderRadius: 3, background: "rgba(185,28,28,0.08)", color: "#B91C1C" }}>
                       Blocking: {tr.blockingReasons.join(" | ")}
                     </div>
                   )}
                   {tr.results.map((r) => (
                     <div key={r.id} style={{ display: "flex", gap: 8, padding: "3px 0", alignItems: "flex-start" }}>
-                      <span style={{ width: 8, height: 8, borderRadius: 4, background: TEST_RESULT_STATUS_COLORS[r.status] ?? "#858585", flexShrink: 0, marginTop: 2 }} />
-                      <span style={{ width: 130, flexShrink: 0, color: "#9cdcfe" }}>{r.testTypeId}</span>
-                      <span style={{ width: 70, flexShrink: 0, color: TEST_RESULT_STATUS_COLORS[r.status] ?? "#858585" }}>{r.status}</span>
-                      <span style={{ width: 60, flexShrink: 0, color: "#6a6a6a" }}>{r.duration}ms</span>
-                      <span style={{ flex: 1, minWidth: 0, color: "#888" }}>
+                      <span style={{ width: 8, height: 8, borderRadius: 4, background: TEST_RESULT_STATUS_COLORS[r.status] ?? "#64748B", flexShrink: 0, marginTop: 2 }} />
+                      <span style={{ width: 130, flexShrink: 0, color: "#334155" }}>{r.testTypeId}</span>
+                      <span style={{ width: 70, flexShrink: 0, color: TEST_RESULT_STATUS_COLORS[r.status] ?? "#64748B" }}>{r.status}</span>
+                      <span style={{ width: 60, flexShrink: 0, color: "#64748B" }}>{r.duration}ms</span>
+                      <span style={{ flex: 1, minWidth: 0, color: "#64748B" }}>
                         {r.factoryOwner && <span style={{ marginRight: 6 }}>[{r.factoryOwner}]</span>}
-                        {r.blocking && <span style={{ marginRight: 6, padding: "0 5px", borderRadius: 3, background: "#3a1e1e", color: "#f0a0a0", fontSize: 9.5 }}>BLOCKING</span>}
-                        {r.failures.slice(0, 3).map((f, i) => <div key={i} style={{ color: "#e0a0a0" }}>{f}</div>)}
+                        {r.blocking && <span style={{ marginRight: 6, padding: "0 5px", borderRadius: 3, background: "rgba(185,28,28,0.08)", color: "#B91C1C", fontSize: 9.5 }}>BLOCKING</span>}
+                        {r.failures.slice(0, 3).map((f, i) => <div key={i} style={{ color: "#B91C1C" }}>{f}</div>)}
                       </span>
                     </div>
                   ))}
@@ -4652,9 +4781,9 @@ function TestPanel({ active, onOpenFinding }: { active: boolean; onOpenFinding: 
 // Console tab-strip Test/Code Review panels already established. No
 // Release/Deploy/Commit/Push/Stage/Git Write control anywhere here.
 const BUILD_RUN_STATUS_COLORS: Record<string, string> = {
-  REQUESTED: "#858585", VALIDATING: "#cca700", BLOCKED: "#f37c7c", QUEUED: "#cca700", RUNNING: "#9cdcfe", VERIFYING: "#9cdcfe",
-  SUCCEEDED: "#4ec9b0", SUCCEEDED_WITH_WARNINGS: "#e0c880", FAILED: "#f37c7c", TIMED_OUT: "#f37c7c", CANCELLED: "#858585",
-  INVALID: "#f37c7c", STALE: "#f0a020", NOT_IMPLEMENTED: "#6a6a6a",
+  REQUESTED: "#64748B", VALIDATING: "#B45309", BLOCKED: "#B91C1C", QUEUED: "#B45309", RUNNING: "#334155", VERIFYING: "#334155",
+  SUCCEEDED: "#0F766E", SUCCEEDED_WITH_WARNINGS: "#B45309", FAILED: "#B91C1C", TIMED_OUT: "#B91C1C", CANCELLED: "#64748B",
+  INVALID: "#B91C1C", STALE: "#B45309", NOT_IMPLEMENTED: "#64748B",
 };
 
 function BuildPanel({ active, onOpenFinding }: { active: boolean; onOpenFinding: (relPath: string, line: number, column: number) => void }) {
@@ -4721,52 +4850,52 @@ function BuildPanel({ active, onOpenFinding }: { active: boolean; onOpenFinding:
 
   return (
     <div style={{ height: "100%", display: "flex", minHeight: 0 }}>
-      <div style={{ width: 260, flexShrink: 0, borderRight: "1px solid #2d2d2d", display: "flex", flexDirection: "column", padding: 8, gap: 6, overflowY: "auto" }}>
-        <label style={{ fontSize: 10, color: "#858585" }}>Change Set (APPROVED)</label>
-        <select value={selectedChangeSetId} onChange={(e) => setSelectedChangeSetId(e.target.value)} style={{ fontSize: 11, background: "#1e1e1e", color: "#ccc", border: "1px solid #333", borderRadius: 3, padding: "3px 4px" }}>
+      <div style={{ width: 260, flexShrink: 0, borderRight: "1px solid #E2E8F0", display: "flex", flexDirection: "column", padding: 8, gap: 6, overflowY: "auto" }}>
+        <label style={{ fontSize: 10, color: "#64748B" }}>Change Set (APPROVED)</label>
+        <select value={selectedChangeSetId} onChange={(e) => setSelectedChangeSetId(e.target.value)} style={{ fontSize: 11, background: "#FFFFFF", color: "#334155", border: "1px solid #E2E8F0", borderRadius: 3, padding: "3px 4px" }}>
           <option value="">— select —</option>
           {changeSets.map((cs) => <option key={cs.changeSetId} value={cs.changeSetId}>{cs.title} ({cs.status})</option>)}
         </select>
-        <label style={{ fontSize: 10, color: "#858585" }}>Test Run</label>
-        <select value={selectedTestRunId} onChange={(e) => setSelectedTestRunId(e.target.value)} style={{ fontSize: 11, background: "#1e1e1e", color: "#ccc", border: "1px solid #333", borderRadius: 3, padding: "3px 4px" }}>
+        <label style={{ fontSize: 10, color: "#64748B" }}>Test Run</label>
+        <select value={selectedTestRunId} onChange={(e) => setSelectedTestRunId(e.target.value)} style={{ fontSize: 11, background: "#FFFFFF", color: "#334155", border: "1px solid #E2E8F0", borderRadius: 3, padding: "3px 4px" }}>
           <option value="">— select —</option>
           {testRuns.map((tr) => <option key={tr.testRunId} value={tr.testRunId}>{new Date(tr.startedAt).toLocaleTimeString()} ({tr.status})</option>)}
         </select>
-        <label style={{ fontSize: 10, color: "#858585" }}>Reason</label>
-        <input value={reason} onChange={(e) => setReason(e.target.value)} placeholder="why this Build" style={{ fontSize: 11, background: "#1e1e1e", color: "#ccc", border: "1px solid #333", borderRadius: 3, padding: "3px 4px" }} />
+        <label style={{ fontSize: 10, color: "#64748B" }}>Reason</label>
+        <input value={reason} onChange={(e) => setReason(e.target.value)} placeholder="why this Build" style={{ fontSize: 11, background: "#FFFFFF", color: "#334155", border: "1px solid #E2E8F0", borderRadius: 3, padding: "3px 4px" }} />
         <button disabled={busy} onClick={doRequestBuild} style={{ ...topBtnStyle, opacity: busy ? 0.5 : 1 }}>{busy ? "Working…" : "Request Build"}</button>
-        {error && <div style={{ color: "#f37c7c", fontSize: 10.5 }}>{error}</div>}
-        <div style={{ fontSize: 10, color: "#6a6a6a", marginTop: 4 }}>
+        {error && <div style={{ color: "#B91C1C", fontSize: 10.5 }}>{error}</div>}
+        <div style={{ fontSize: 10, color: "#64748B", marginTop: 4 }}>
           Environment Profile: LOCAL_PRODUCTION_BUILD. Never Release, Deploy, Commit, Push, Stage, or Git Write.
         </div>
       </div>
 
       <div style={{ flex: 1, minHeight: 0, overflowY: "auto" }}>
-        {runs.length === 0 && <div style={{ padding: 12, color: "#6a6a6a", fontSize: 11.5 }}>No Build Runs yet — select an APPROVED Change Set and its Test Run, then Request Build.</div>}
+        {runs.length === 0 && <div style={{ padding: 12, color: "#64748B", fontSize: 11.5 }}>No Build Runs yet — select an APPROVED Change Set and its Test Run, then Request Build.</div>}
         {runs.map((run) => (
-          <div key={run.buildRunId} style={{ borderBottom: "1px solid #232323" }}>
+          <div key={run.buildRunId} style={{ borderBottom: "1px solid #E2E8F0" }}>
             <div onClick={() => setExpandedId(expandedId === run.buildRunId ? null : run.buildRunId)} style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 10px", cursor: "pointer", fontSize: 11 }}>
-              <span style={{ width: 7, height: 7, borderRadius: 4, background: BUILD_RUN_STATUS_COLORS[run.status] ?? "#858585", flexShrink: 0 }} />
-              <span style={{ flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: "#ccc" }} title={run.buildRunId}>
+              <span style={{ width: 7, height: 7, borderRadius: 4, background: BUILD_RUN_STATUS_COLORS[run.status] ?? "#64748B", flexShrink: 0 }} />
+              <span style={{ flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: "#334155" }} title={run.buildRunId}>
                 {new Date(run.startedAt).toLocaleString()}
-                {run.staleForRelease && <span style={{ marginLeft: 6, padding: "0 5px", borderRadius: 3, background: "#3a2d1e", color: "#e0a860", fontSize: 10 }}>STALE_FOR_RELEASE</span>}
+                {run.staleForRelease && <span style={{ marginLeft: 6, padding: "0 5px", borderRadius: 3, background: "rgba(180,83,9,0.08)", color: "#B45309", fontSize: 10 }}>STALE_FOR_RELEASE</span>}
               </span>
-              <span style={{ width: 60, flexShrink: 0, color: "#858585" }}>{run.outputFiles.length} files</span>
-              <span style={{ width: 90, flexShrink: 0, color: "#858585" }}>{(run.outputBytes / 1024 / 1024).toFixed(1)}MB</span>
-              <span style={{ width: 90, flexShrink: 0, color: "#858585" }}>{run.durationMs != null ? `${(run.durationMs / 1000).toFixed(1)}s` : "—"}</span>
-              <span style={{ width: 130, flexShrink: 0, color: BUILD_RUN_STATUS_COLORS[run.status] ?? "#858585" }}>{run.status}</span>
+              <span style={{ width: 60, flexShrink: 0, color: "#64748B" }}>{run.outputFiles.length} files</span>
+              <span style={{ width: 90, flexShrink: 0, color: "#64748B" }}>{(run.outputBytes / 1024 / 1024).toFixed(1)}MB</span>
+              <span style={{ width: 90, flexShrink: 0, color: "#64748B" }}>{run.durationMs != null ? `${(run.durationMs / 1000).toFixed(1)}s` : "—"}</span>
+              <span style={{ width: 130, flexShrink: 0, color: BUILD_RUN_STATUS_COLORS[run.status] ?? "#64748B" }}>{run.status}</span>
             </div>
             {expandedId === run.buildRunId && (
-              <div style={{ padding: "4px 10px 10px 25px", fontSize: 10.5, color: "#aaa" }}>
+              <div style={{ padding: "4px 10px 10px 25px", fontSize: 10.5, color: "#64748B" }}>
                 <div style={{ marginBottom: 4 }}>Change Set: {run.sourceChangeSetId.slice(0, 8)} · Test Run: {run.sourceTestRunId.slice(0, 8)} · Env: {run.environmentProfileId}</div>
                 <div style={{ marginBottom: 4 }}>Source fingerprint: <span style={{ fontFamily: "ui-monospace, monospace" }}>{run.sourceFingerprintBefore.slice(0, 16)}</span> · Exit code: {run.exitCode ?? "—"}</div>
                 {run.blockingReasons.length > 0 && (
-                  <div style={{ marginBottom: 6, padding: "4px 8px", borderRadius: 3, background: "#3a1e1e", color: "#f0a0a0" }}>
+                  <div style={{ marginBottom: 6, padding: "4px 8px", borderRadius: 3, background: "rgba(185,28,28,0.08)", color: "#B91C1C" }}>
                     Blocked: {run.blockingReasons.join(" | ")}
                   </div>
                 )}
                 {run.decision && (
-                  <div style={{ marginBottom: 6, padding: "4px 8px", borderRadius: 3, background: run.decision.decision === "ALLOWED" ? "#1e3a2d" : "#3a1e1e", color: run.decision.decision === "ALLOWED" ? "#4ec9b0" : "#f0a0a0" }}>
+                  <div style={{ marginBottom: 6, padding: "4px 8px", borderRadius: 3, background: run.decision.decision === "ALLOWED" ? "rgba(15,118,110,0.08)" : "rgba(185,28,28,0.08)", color: run.decision.decision === "ALLOWED" ? "#0F766E" : "#B91C1C" }}>
                     Decision: {run.decision.decision} — {run.decision.reasons[0]}
                   </div>
                 )}
@@ -4775,8 +4904,8 @@ function BuildPanel({ active, onOpenFinding }: { active: boolean; onOpenFinding:
                     {run.gateReport.gates.map((g) => (
                       <span key={g.gate} title={g.evidence} style={{
                         fontSize: 9.5, padding: "1px 6px", borderRadius: 8,
-                        background: g.status === "PASSED" ? "#1e3a2d" : g.status === "FAILED" || g.status === "BLOCKED" ? "#3a1e1e" : "#2a2a2a",
-                        color: g.status === "PASSED" ? "#4ec9b0" : g.status === "FAILED" || g.status === "BLOCKED" ? "#f0a0a0" : "#888",
+                        background: g.status === "PASSED" ? "rgba(15,118,110,0.08)" : g.status === "FAILED" || g.status === "BLOCKED" ? "rgba(185,28,28,0.08)" : "#F1F5F9",
+                        color: g.status === "PASSED" ? "#0F766E" : g.status === "FAILED" || g.status === "BLOCKED" ? "#B91C1C" : "#64748B",
                       }}>
                         {g.gate}: {g.status}
                       </span>
@@ -4784,12 +4913,12 @@ function BuildPanel({ active, onOpenFinding }: { active: boolean; onOpenFinding:
                   </div>
                 )}
                 {run.registryGateAnalysis && run.registryGateAnalysis.falsePositives.length > 0 && (
-                  <div style={{ marginBottom: 6, padding: "4px 8px", borderRadius: 3, background: "#1e2d3a", color: "#9cdcfe" }}>
+                  <div style={{ marginBottom: 6, padding: "4px 8px", borderRadius: 3, background: "rgba(51,65,85,0.06)", color: "#334155" }}>
                     Registry Gate: {run.registryGateAnalysis.evidence}
                   </div>
                 )}
                 {run.migrationIntegrity && run.migrationIntegrity.conflicts.length > 0 && (
-                  <div style={{ marginBottom: 6, padding: "4px 8px", borderRadius: 3, background: "#3a2d1e", color: "#e0a860" }}>
+                  <div style={{ marginBottom: 6, padding: "4px 8px", borderRadius: 3, background: "rgba(180,83,9,0.08)", color: "#B45309" }}>
                     Migration Integrity: {run.migrationIntegrity.conflicts.length} real duplicate-timestamp conflict(s) across {run.migrationIntegrity.totalMigrations} real migrations
                   </div>
                 )}
@@ -4801,14 +4930,14 @@ function BuildPanel({ active, onOpenFinding }: { active: boolean; onOpenFinding:
                 <div style={{ display: "flex", gap: 8, marginBottom: 6, flexWrap: "wrap" }}>
                   {(run.status === "RUNNING" || run.status === "VERIFYING") && <button disabled={busy} onClick={() => doCancel(run.buildRunId)} style={miniBtnStyle}>Cancel</button>}
                   <button disabled={busy} onClick={() => doRerun(run.buildRunId)} style={miniBtnStyle}>Rerun</button>
-                  <select value={compareTargetId[run.buildRunId] ?? ""} onChange={(e) => setCompareTargetId((s) => ({ ...s, [run.buildRunId]: e.target.value }))} style={{ fontSize: 10, background: "#1e1e1e", color: "#ccc", border: "1px solid #333", borderRadius: 3 }}>
+                  <select value={compareTargetId[run.buildRunId] ?? ""} onChange={(e) => setCompareTargetId((s) => ({ ...s, [run.buildRunId]: e.target.value }))} style={{ fontSize: 10, background: "#FFFFFF", color: "#334155", border: "1px solid #E2E8F0", borderRadius: 3 }}>
                     <option value="">— compare against —</option>
                     {runs.filter((r) => r.buildRunId !== run.buildRunId).map((r) => <option key={r.buildRunId} value={r.buildRunId}>{r.buildRunId.slice(0, 8)}</option>)}
                   </select>
                   <button disabled={busy} onClick={() => doCompare(run.buildRunId)} style={miniBtnStyle}>Compare Build</button>
                 </div>
                 {compareResult?.buildRunId === run.buildRunId && (
-                  <div style={{ marginBottom: 6, padding: "4px 8px", borderRadius: 3, background: "#1e2d3a", color: "#9cdcfe" }}>
+                  <div style={{ marginBottom: 6, padding: "4px 8px", borderRadius: 3, background: "rgba(51,65,85,0.06)", color: "#334155" }}>
                     Reproducibility: {compareResult.result.status} — matched {compareResult.result.matchedFiles}, mismatched {compareResult.result.mismatchedFiles?.length ?? 0}
                   </div>
                 )}
@@ -4816,24 +4945,24 @@ function BuildPanel({ active, onOpenFinding }: { active: boolean; onOpenFinding:
                   <div
                     key={f.findingId}
                     onClick={() => f.file && f.line != null && onOpenFinding(f.file, f.line, f.column ?? 1)}
-                    style={{ padding: "2px 0", color: f.blocking ? "#f37c7c" : "#e0c880", cursor: f.file && f.line != null ? "pointer" : "default" }}
+                    style={{ padding: "2px 0", color: f.blocking ? "#B91C1C" : "#B45309", cursor: f.file && f.line != null ? "pointer" : "default" }}
                   >
                     [{f.category}] {f.message.slice(0, 160)}
-                    {f.blocking && <span style={{ marginLeft: 6, padding: "0 5px", borderRadius: 3, background: "#3a1e1e", color: "#f0a0a0", fontSize: 9.5 }}>BLOCKING</span>}
+                    {f.blocking && <span style={{ marginLeft: 6, padding: "0 5px", borderRadius: 3, background: "rgba(185,28,28,0.08)", color: "#B91C1C", fontSize: 9.5 }}>BLOCKING</span>}
                   </div>
                 ))}
                 {run.outputFiles.length > 0 && (
                   <div style={{ marginTop: 6 }}>
-                    <div style={{ color: "#bbb", marginBottom: 2 }}>Output Inventory ({run.outputFiles.length} files):</div>
+                    <div style={{ color: "#64748B", marginBottom: 2 }}>Output Inventory ({run.outputFiles.length} files):</div>
                     {run.outputFiles.slice(0, 30).map((f) => (
-                      <div key={f.relativePath} style={{ display: "flex", gap: 8, color: f.status === "OK" ? "#888" : "#e0a860" }}>
+                      <div key={f.relativePath} style={{ display: "flex", gap: 8, color: f.status === "OK" ? "#64748B" : "#B45309" }}>
                         <span style={{ flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{f.relativePath}</span>
                         <span style={{ width: 60, flexShrink: 0 }}>{f.type}</span>
                         <span style={{ width: 70, flexShrink: 0 }}>{(f.size / 1024).toFixed(1)}KB</span>
                         <span style={{ width: 80, flexShrink: 0 }}>{f.status}</span>
                       </div>
                     ))}
-                    {run.outputFiles.length > 30 && <div style={{ color: "#6a6a6a" }}>…and {run.outputFiles.length - 30} more real files</div>}
+                    {run.outputFiles.length > 30 && <div style={{ color: "#64748B" }}>…and {run.outputFiles.length - 30} more real files</div>}
                   </div>
                 )}
               </div>
@@ -4851,8 +4980,8 @@ function BuildPanel({ active, onOpenFinding }: { active: boolean; onOpenFinding:
 // No Deploy/Git Write control anywhere here — "Request Release" only
 // ever validates a real, already-successful Build Run.
 const RELEASE_RUN_STATUS_COLORS: Record<string, string> = {
-  REQUESTED: "#858585", VALIDATING: "#cca700", BLOCKED: "#f37c7c", PACKAGING: "#9cdcfe", APPROVING: "#9cdcfe",
-  READY: "#4ec9b0", FAILED: "#f37c7c",
+  REQUESTED: "#64748B", VALIDATING: "#B45309", BLOCKED: "#B91C1C", PACKAGING: "#334155", APPROVING: "#334155",
+  READY: "#0F766E", FAILED: "#B91C1C",
 };
 
 function ReleasePanel({ active }: { active: boolean }) {
@@ -4897,39 +5026,39 @@ function ReleasePanel({ active }: { active: boolean }) {
 
   return (
     <div style={{ height: "100%", display: "flex", minHeight: 0 }}>
-      <div style={{ width: 260, flexShrink: 0, borderRight: "1px solid #2d2d2d", display: "flex", flexDirection: "column", padding: 8, gap: 6, overflowY: "auto" }}>
-        <label style={{ fontSize: 10, color: "#858585" }}>Build Run (SUCCEEDED)</label>
-        <select value={selectedBuildRunId} onChange={(e) => setSelectedBuildRunId(e.target.value)} style={{ fontSize: 11, background: "#1e1e1e", color: "#ccc", border: "1px solid #333", borderRadius: 3, padding: "3px 4px" }}>
+      <div style={{ width: 260, flexShrink: 0, borderRight: "1px solid #E2E8F0", display: "flex", flexDirection: "column", padding: 8, gap: 6, overflowY: "auto" }}>
+        <label style={{ fontSize: 10, color: "#64748B" }}>Build Run (SUCCEEDED)</label>
+        <select value={selectedBuildRunId} onChange={(e) => setSelectedBuildRunId(e.target.value)} style={{ fontSize: 11, background: "#FFFFFF", color: "#334155", border: "1px solid #E2E8F0", borderRadius: 3, padding: "3px 4px" }}>
           <option value="">— select —</option>
           {buildRuns.map((b) => <option key={b.buildRunId} value={b.buildRunId}>{new Date(b.startedAt).toLocaleTimeString()} ({b.status})</option>)}
         </select>
-        <label style={{ fontSize: 10, color: "#858585" }}>Reason</label>
-        <input value={reason} onChange={(e) => setReason(e.target.value)} placeholder="why this Release" style={{ fontSize: 11, background: "#1e1e1e", color: "#ccc", border: "1px solid #333", borderRadius: 3, padding: "3px 4px" }} />
+        <label style={{ fontSize: 10, color: "#64748B" }}>Reason</label>
+        <input value={reason} onChange={(e) => setReason(e.target.value)} placeholder="why this Release" style={{ fontSize: 11, background: "#FFFFFF", color: "#334155", border: "1px solid #E2E8F0", borderRadius: 3, padding: "3px 4px" }} />
         <button disabled={busy} onClick={doRequestRelease} style={{ ...topBtnStyle, opacity: busy ? 0.5 : 1 }}>{busy ? "Working…" : "Request Release"}</button>
-        {error && <div style={{ color: "#f37c7c", fontSize: 10.5 }}>{error}</div>}
-        <div style={{ fontSize: 10, color: "#6a6a6a", marginTop: 4 }}>
+        {error && <div style={{ color: "#B91C1C", fontSize: 10.5 }}>{error}</div>}
+        <div style={{ fontSize: 10, color: "#64748B", marginTop: 4 }}>
           Real Capability Packaging + Operational Readiness only. Never Deploy, never Git Write.
         </div>
       </div>
 
       <div style={{ flex: 1, minHeight: 0, overflowY: "auto" }}>
-        {runs.length === 0 && <div style={{ padding: 12, color: "#6a6a6a", fontSize: 11.5 }}>No Release Runs yet — select a real SUCCEEDED Build Run, then Request Release.</div>}
+        {runs.length === 0 && <div style={{ padding: 12, color: "#64748B", fontSize: 11.5 }}>No Release Runs yet — select a real SUCCEEDED Build Run, then Request Release.</div>}
         {runs.map((run) => (
-          <div key={run.releaseRunId} style={{ borderBottom: "1px solid #232323" }}>
+          <div key={run.releaseRunId} style={{ borderBottom: "1px solid #E2E8F0" }}>
             <div onClick={() => setExpandedId(expandedId === run.releaseRunId ? null : run.releaseRunId)} style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 10px", cursor: "pointer", fontSize: 11 }}>
-              <span style={{ width: 7, height: 7, borderRadius: 4, background: RELEASE_RUN_STATUS_COLORS[run.status] ?? "#858585", flexShrink: 0 }} />
-              <span style={{ flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: "#ccc" }} title={run.releaseRunId}>
+              <span style={{ width: 7, height: 7, borderRadius: 4, background: RELEASE_RUN_STATUS_COLORS[run.status] ?? "#64748B", flexShrink: 0 }} />
+              <span style={{ flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: "#334155" }} title={run.releaseRunId}>
                 {new Date(run.startedAt).toLocaleString()} — {run.reason}
               </span>
-              <span style={{ width: 90, flexShrink: 0, color: "#858585" }}>{run.packages.length} packages</span>
-              <span style={{ width: 130, flexShrink: 0, color: run.operationalReadiness ? (run.operationalReadiness.overallStatus === "ALL_READY" ? "#4ec9b0" : "#e0a860") : "#858585" }}>{run.operationalReadiness?.overallStatus ?? "—"}</span>
-              <span style={{ width: 110, flexShrink: 0, color: RELEASE_RUN_STATUS_COLORS[run.status] ?? "#858585" }}>{run.status}</span>
+              <span style={{ width: 90, flexShrink: 0, color: "#64748B" }}>{run.packages.length} packages</span>
+              <span style={{ width: 130, flexShrink: 0, color: run.operationalReadiness ? (run.operationalReadiness.overallStatus === "ALL_READY" ? "#0F766E" : "#B45309") : "#64748B" }}>{run.operationalReadiness?.overallStatus ?? "—"}</span>
+              <span style={{ width: 110, flexShrink: 0, color: RELEASE_RUN_STATUS_COLORS[run.status] ?? "#64748B" }}>{run.status}</span>
             </div>
             {expandedId === run.releaseRunId && (
-              <div style={{ padding: "4px 10px 10px 25px", fontSize: 10.5, color: "#aaa" }}>
+              <div style={{ padding: "4px 10px 10px 25px", fontSize: 10.5, color: "#64748B" }}>
                 <div style={{ marginBottom: 4 }}>Build Run: {run.buildRunId.slice(0, 8)} · Candidate fingerprint: <span style={{ fontFamily: "ui-monospace, monospace" }}>{run.releaseCandidate?.sourceFingerprint.slice(0, 16) ?? "—"}</span></div>
                 {run.decision && (
-                  <div style={{ marginBottom: 6, padding: "4px 8px", borderRadius: 3, background: run.decision.decision === "ALLOWED" ? "#1e3a2d" : "#3a1e1e", color: run.decision.decision === "ALLOWED" ? "#4ec9b0" : "#f0a0a0" }}>
+                  <div style={{ marginBottom: 6, padding: "4px 8px", borderRadius: 3, background: run.decision.decision === "ALLOWED" ? "rgba(15,118,110,0.08)" : "rgba(185,28,28,0.08)", color: run.decision.decision === "ALLOWED" ? "#0F766E" : "#B91C1C" }}>
                     Decision: {run.decision.decision} — {run.decision.reasons[0]}
                   </div>
                 )}
@@ -4943,8 +5072,8 @@ function ReleasePanel({ active }: { active: boolean }) {
                     {run.operationalReadiness.dimensions.map((d) => (
                       <span key={d.dimension} title={d.evidence} style={{
                         fontSize: 9.5, padding: "1px 6px", borderRadius: 8,
-                        background: d.status === "PASSED" ? "#1e3a2d" : d.status === "FAILED" || d.status === "BLOCKED" ? "#3a1e1e" : "#2a2a2a",
-                        color: d.status === "PASSED" ? "#4ec9b0" : d.status === "FAILED" || d.status === "BLOCKED" ? "#f0a0a0" : "#888",
+                        background: d.status === "PASSED" ? "rgba(15,118,110,0.08)" : d.status === "FAILED" || d.status === "BLOCKED" ? "rgba(185,28,28,0.08)" : "#F1F5F9",
+                        color: d.status === "PASSED" ? "#0F766E" : d.status === "FAILED" || d.status === "BLOCKED" ? "#B91C1C" : "#64748B",
                       }}>
                         {d.dimension}: {d.status}
                       </span>
@@ -4969,12 +5098,12 @@ function ReleasePanel({ active }: { active: boolean }) {
 // number here is computed by factoryCompletionRuntime.ts from real
 // fs/registry evidence, never a second, invented dashboard number.
 const FACTORY_STATUS_COLORS: Record<string, string> = {
-  COMPLETE: "#4ec9b0", OPERATIONAL: "#4ec9b0", PARTIAL: "#e0a860", DECLARED: "#e0a860",
-  UI_ONLY: "#f0a0a0", CONTRACT_ONLY: "#f0a0a0", NOT_IMPLEMENTED: "#f37c7c", BLOCKED: "#f37c7c",
-  STALE: "#858585", UNKNOWN: "#858585", DUPLICATED: "#cca700", MISPLACED: "#cca700",
+  COMPLETE: "#0F766E", OPERATIONAL: "#0F766E", PARTIAL: "#B45309", DECLARED: "#B45309",
+  UI_ONLY: "#B91C1C", CONTRACT_ONLY: "#B91C1C", NOT_IMPLEMENTED: "#B91C1C", BLOCKED: "#B91C1C",
+  STALE: "#64748B", UNKNOWN: "#64748B", DUPLICATED: "#B45309", MISPLACED: "#B45309",
 };
 const GATE_STATUS_COLORS: Record<string, string> = {
-  PASSED: "#4ec9b0", PARTIAL: "#e0a860", BLOCKED: "#f37c7c", NOT_IMPLEMENTED: "#f37c7c", UNKNOWN: "#858585",
+  PASSED: "#0F766E", PARTIAL: "#B45309", BLOCKED: "#B91C1C", NOT_IMPLEMENTED: "#B91C1C", UNKNOWN: "#64748B",
 };
 
 // ---- Real Factory Completion Report (owner, 2026-08-07, Software Factory
@@ -5025,8 +5154,8 @@ function FactoryCompletionPanel({ active }: { active: boolean }) {
     return () => clearInterval(interval);
   }, [active, refresh]);
 
-  if (error) return <div style={{ padding: 12, color: "#f37c7c", fontSize: 11.5 }}>{error}</div>;
-  if (!report) return <div style={{ padding: 12, color: "#6a6a6a", fontSize: 11.5 }}>Loading real Factory Completion Report…</div>;
+  if (error) return <div style={{ padding: 12, color: "#B91C1C", fontSize: 11.5 }}>{error}</div>;
+  if (!report) return <div style={{ padding: 12, color: "#64748B", fontSize: 11.5 }}>Loading real Factory Completion Report…</div>;
 
   const sections: { id: typeof section; label: string }[] = [
     { id: "gates", label: `Gates (${report.criticalBlockers.length} blockers)` },
@@ -5038,11 +5167,11 @@ function FactoryCompletionPanel({ active }: { active: boolean }) {
 
   return (
     <div style={{ height: "100%", display: "flex", minHeight: 0 }}>
-      <div style={{ width: 200, flexShrink: 0, borderRight: "1px solid #2d2d2d", display: "flex", flexDirection: "column", padding: 8, gap: 4, overflowY: "auto" }}>
+      <div style={{ width: 200, flexShrink: 0, borderRight: "1px solid #E2E8F0", display: "flex", flexDirection: "column", padding: 8, gap: 4, overflowY: "auto" }}>
         {sections.map((s) => (
-          <button key={s.id} onClick={() => setSection(s.id)} style={{ ...topBtnStyle, textAlign: "left", background: section === s.id ? "#2d2d2d" : "transparent" }}>{s.label}</button>
+          <button key={s.id} onClick={() => setSection(s.id)} style={{ ...topBtnStyle, textAlign: "left", background: section === s.id ? "#F1F5F9" : "transparent" }}>{s.label}</button>
         ))}
-        <div style={{ fontSize: 10, color: "#6a6a6a", marginTop: 8 }}>
+        <div style={{ fontSize: 10, color: "#64748B", marginTop: 8 }}>
           Real, evidence-derived report. Never a fabricated 100%. Generated {new Date(report.generatedAt).toLocaleString()}.
         </div>
       </div>
@@ -5051,16 +5180,16 @@ function FactoryCompletionPanel({ active }: { active: boolean }) {
         {section === "gates" && (
           <div>
             {report.completionGates.map((g) => (
-              <div key={g.id} style={{ marginBottom: 8, padding: "6px 8px", borderRadius: 3, border: "1px solid #2a2a2a" }}>
+              <div key={g.id} style={{ marginBottom: 8, padding: "6px 8px", borderRadius: 3, border: "1px solid #E2E8F0" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <span style={{ width: 7, height: 7, borderRadius: 4, background: GATE_STATUS_COLORS[g.status] ?? "#858585", flexShrink: 0 }} />
-                  <span style={{ color: "#ccc", fontWeight: 600 }}>{g.id}</span>
-                  <span style={{ color: GATE_STATUS_COLORS[g.status] ?? "#858585" }}>{g.status}</span>
-                  {g.blocking && <span style={{ fontSize: 9.5, padding: "1px 5px", borderRadius: 6, background: "#3a1e1e", color: "#f0a0a0" }}>blocking</span>}
-                  {g.ownerDecisionRequired && <span style={{ fontSize: 9.5, padding: "1px 5px", borderRadius: 6, background: "#2a2a2a", color: "#e0a860" }}>owner decision required</span>}
+                  <span style={{ width: 7, height: 7, borderRadius: 4, background: GATE_STATUS_COLORS[g.status] ?? "#64748B", flexShrink: 0 }} />
+                  <span style={{ color: "#334155", fontWeight: 600 }}>{g.id}</span>
+                  <span style={{ color: GATE_STATUS_COLORS[g.status] ?? "#64748B" }}>{g.status}</span>
+                  {g.blocking && <span style={{ fontSize: 9.5, padding: "1px 5px", borderRadius: 6, background: "rgba(185,28,28,0.08)", color: "#B91C1C" }}>blocking</span>}
+                  {g.ownerDecisionRequired && <span style={{ fontSize: 9.5, padding: "1px 5px", borderRadius: 6, background: "#F1F5F9", color: "#B45309" }}>owner decision required</span>}
                 </div>
-                {g.evidence.length > 0 && <div style={{ color: "#858585", marginTop: 4 }}>{g.evidence.join("; ")}</div>}
-                {g.missing.length > 0 && <div style={{ color: "#f0a0a0", marginTop: 2 }}>Missing: {g.missing.join(", ")}</div>}
+                {g.evidence.length > 0 && <div style={{ color: "#64748B", marginTop: 4 }}>{g.evidence.join("; ")}</div>}
+                {g.missing.length > 0 && <div style={{ color: "#B91C1C", marginTop: 2 }}>Missing: {g.missing.join(", ")}</div>}
               </div>
             ))}
           </div>
@@ -5068,19 +5197,19 @@ function FactoryCompletionPanel({ active }: { active: boolean }) {
         {section === "systems" && (
           <div>
             {report.systems.map((s) => (
-              <div key={s.id} style={{ borderBottom: "1px solid #232323" }}>
+              <div key={s.id} style={{ borderBottom: "1px solid #E2E8F0" }}>
                 <div onClick={() => setExpandedSystem(expandedSystem === s.id ? null : s.id)} style={{ display: "flex", alignItems: "center", gap: 8, padding: "5px 4px", cursor: "pointer" }}>
-                  <span style={{ width: 7, height: 7, borderRadius: 4, background: FACTORY_STATUS_COLORS[s.status] ?? "#858585", flexShrink: 0 }} />
-                  <span style={{ flex: 1, color: "#ccc" }}>{s.name}</span>
-                  <span style={{ width: 60, textAlign: "right", color: "#858585" }}>{s.completionPercent}%</span>
-                  <span style={{ width: 110, textAlign: "right", color: FACTORY_STATUS_COLORS[s.status] ?? "#858585" }}>{s.status}</span>
+                  <span style={{ width: 7, height: 7, borderRadius: 4, background: FACTORY_STATUS_COLORS[s.status] ?? "#64748B", flexShrink: 0 }} />
+                  <span style={{ flex: 1, color: "#334155" }}>{s.name}</span>
+                  <span style={{ width: 60, textAlign: "right", color: "#64748B" }}>{s.completionPercent}%</span>
+                  <span style={{ width: 110, textAlign: "right", color: FACTORY_STATUS_COLORS[s.status] ?? "#64748B" }}>{s.status}</span>
                 </div>
                 {expandedSystem === s.id && (
-                  <div style={{ padding: "2px 10px 8px 25px", color: "#aaa", fontSize: 10.5 }}>
+                  <div style={{ padding: "2px 10px 8px 25px", color: "#64748B", fontSize: 10.5 }}>
                     <div>{s.responsibility}</div>
-                    {s.evidence.map((e: string, i: number) => <div key={i} style={{ color: "#4ec9b0" }}>✓ {e}</div>)}
-                    {s.limitations.map((l: string, i: number) => <div key={i} style={{ color: "#f0a0a0" }}>⚠ {l}</div>)}
-                    <div style={{ color: "#858585", marginTop: 2 }}>Next: {s.nextRequiredAction}</div>
+                    {s.evidence.map((e: string, i: number) => <div key={i} style={{ color: "#0F766E" }}>✓ {e}</div>)}
+                    {s.limitations.map((l: string, i: number) => <div key={i} style={{ color: "#B91C1C" }}>⚠ {l}</div>)}
+                    <div style={{ color: "#64748B", marginTop: 2 }}>Next: {s.nextRequiredAction}</div>
                   </div>
                 )}
               </div>
@@ -5090,10 +5219,10 @@ function FactoryCompletionPanel({ active }: { active: boolean }) {
         {section === "chain" && (
           <div>
             {report.endToEndChain.map((c) => (
-              <div key={c.stage} style={{ display: "flex", gap: 8, padding: "4px 2px", borderBottom: "1px solid #1c1c1c" }}>
-                <span style={{ width: 170, color: "#ccc", flexShrink: 0 }}>{c.stage}</span>
-                <span style={{ width: 170, flexShrink: 0, color: c.status === "DNA_OS_NATIVE" ? "#4ec9b0" : c.status === "NOT_IMPLEMENTED" ? "#f37c7c" : "#e0a860" }}>{c.status}</span>
-                <span style={{ color: "#858585" }}>{c.evidence}</span>
+              <div key={c.stage} style={{ display: "flex", gap: 8, padding: "4px 2px", borderBottom: "1px solid #E2E8F0" }}>
+                <span style={{ width: 170, color: "#334155", flexShrink: 0 }}>{c.stage}</span>
+                <span style={{ width: 170, flexShrink: 0, color: c.status === "DNA_OS_NATIVE" ? "#0F766E" : c.status === "NOT_IMPLEMENTED" ? "#B91C1C" : "#B45309" }}>{c.status}</span>
+                <span style={{ color: "#64748B" }}>{c.evidence}</span>
               </div>
             ))}
           </div>
@@ -5101,10 +5230,10 @@ function FactoryCompletionPanel({ active }: { active: boolean }) {
         {section === "vscode" && (
           <div>
             {report.vscodeDependencies.map((v, i) => (
-              <div key={i} style={{ marginBottom: 8, padding: "6px 8px", borderRadius: 3, border: "1px solid #2a2a2a" }}>
-                <div style={{ color: "#ccc", fontWeight: 600 }}>{v.tool} {v.blockingOwnerMigration && <span style={{ color: "#f37c7c" }}>(blocking)</span>}</div>
-                <div style={{ color: "#858585", marginTop: 2 }}>{v.evidence}</div>
-                <div style={{ color: "#e0a860", marginTop: 2 }}>{v.replacementStatus}</div>
+              <div key={i} style={{ marginBottom: 8, padding: "6px 8px", borderRadius: 3, border: "1px solid #E2E8F0" }}>
+                <div style={{ color: "#334155", fontWeight: 600 }}>{v.tool} {v.blockingOwnerMigration && <span style={{ color: "#B91C1C" }}>(blocking)</span>}</div>
+                <div style={{ color: "#64748B", marginTop: 2 }}>{v.evidence}</div>
+                <div style={{ color: "#B45309", marginTop: 2 }}>{v.replacementStatus}</div>
               </div>
             ))}
           </div>
@@ -5112,10 +5241,10 @@ function FactoryCompletionPanel({ active }: { active: boolean }) {
         {section === "dna" && (
           <div>
             {report.nativeDNAEnforcement.map((p, i) => (
-              <div key={i} style={{ display: "flex", gap: 8, padding: "4px 2px", borderBottom: "1px solid #1c1c1c" }}>
-                <span style={{ width: 260, color: "#ccc", flexShrink: 0 }}>{p.principle}</span>
-                <span style={{ width: 150, flexShrink: 0, color: ["RUNTIME_ENFORCED", "ARCHITECTURE_ISOLATED", "CODE_ENFORCED", "BUILD_ENFORCED", "TEST_ENFORCED"].includes(p.level) ? "#4ec9b0" : p.level === "MISSING" ? "#f37c7c" : "#e0a860" }}>{p.level}</span>
-                <span style={{ color: "#858585" }}>{p.evidence}</span>
+              <div key={i} style={{ display: "flex", gap: 8, padding: "4px 2px", borderBottom: "1px solid #E2E8F0" }}>
+                <span style={{ width: 260, color: "#334155", flexShrink: 0 }}>{p.principle}</span>
+                <span style={{ width: 150, flexShrink: 0, color: ["RUNTIME_ENFORCED", "ARCHITECTURE_ISOLATED", "CODE_ENFORCED", "BUILD_ENFORCED", "TEST_ENFORCED"].includes(p.level) ? "#0F766E" : p.level === "MISSING" ? "#B91C1C" : "#B45309" }}>{p.level}</span>
+                <span style={{ color: "#64748B" }}>{p.evidence}</span>
               </div>
             ))}
           </div>
@@ -5130,10 +5259,10 @@ function FactoryCompletionPanel({ active }: { active: boolean }) {
 // Recovery are all real, live Runtimes — every number here drills down
 // to real Evidence/Artifacts. Never displays HEALTHY from missing data.
 const MONITORING_STATUS_COLORS: Record<string, string> = {
-  HEALTHY: "#4ec9b0", DEGRADED: "#e0a860", UNHEALTHY: "#f37c7c", STALE: "#cca700",
-  MISSING: "#f37c7c", UNKNOWN: "#858585", NOT_IMPLEMENTED: "#858585",
+  HEALTHY: "#0F766E", DEGRADED: "#B45309", UNHEALTHY: "#B91C1C", STALE: "#B45309",
+  MISSING: "#B91C1C", UNKNOWN: "#64748B", NOT_IMPLEMENTED: "#64748B",
 };
-const SEVERITY_COLORS: Record<string, string> = { INFO: "#858585", LOW: "#9cdcfe", MEDIUM: "#e0a860", HIGH: "#f0a0a0", CRITICAL: "#f37c7c" };
+const SEVERITY_COLORS: Record<string, string> = { INFO: "#64748B", LOW: "#334155", MEDIUM: "#B45309", HIGH: "#B91C1C", CRITICAL: "#B91C1C" };
 
 // ---- Real Operations Runtimes (owner, 2026-08-08, Software Factory Step
 // 12/12.5) — client types mirror monitoringRuntime.ts/incidentRuntime.ts/
@@ -5283,7 +5412,7 @@ function OperationsPanel({ active }: { active: boolean }) {
     void refresh();
   }, [refresh]);
 
-  if (!status) return <div style={{ padding: 12, color: "#6a6a6a", fontSize: 11.5 }}>{error ?? "Loading real Operations status…"}</div>;
+  if (!status) return <div style={{ padding: 12, color: "#64748B", fontSize: 11.5 }}>{error ?? "Loading real Operations status…"}</div>;
 
   const sections: { id: typeof section; label: string }[] = [
     { id: "status", label: `Status (${status.ownerDecisionsRequired.length} decisions)` },
@@ -5297,14 +5426,14 @@ function OperationsPanel({ active }: { active: boolean }) {
 
   return (
     <div style={{ height: "100%", display: "flex", minHeight: 0 }}>
-      <div style={{ width: 220, flexShrink: 0, borderRight: "1px solid #2d2d2d", display: "flex", flexDirection: "column", padding: 8, gap: 4, overflowY: "auto" }}>
+      <div style={{ width: 220, flexShrink: 0, borderRight: "1px solid #E2E8F0", display: "flex", flexDirection: "column", padding: 8, gap: 4, overflowY: "auto" }}>
         {sections.map((s) => (
-          <button key={s.id} onClick={() => setSection(s.id)} style={{ ...topBtnStyle, textAlign: "left", background: section === s.id ? "#2d2d2d" : "transparent" }}>{s.label}</button>
+          <button key={s.id} onClick={() => setSection(s.id)} style={{ ...topBtnStyle, textAlign: "left", background: section === s.id ? "#F1F5F9" : "transparent" }}>{s.label}</button>
         ))}
         <button disabled={busy} onClick={doCollect} style={{ ...topBtnStyle, opacity: busy ? 0.5 : 1, marginTop: 8 }}>{busy ? "Working…" : "Collect Signals Now"}</button>
         <button disabled={busy} onClick={doRunLoop} style={{ ...topBtnStyle, opacity: busy ? 0.5 : 1 }}>{busy ? "Working…" : "Run Operations Loop"}</button>
-        {error && <div style={{ color: "#f37c7c", fontSize: 10.5, marginTop: 6 }}>{error}</div>}
-        <div style={{ fontSize: 10, color: "#6a6a6a", marginTop: 8 }}>
+        {error && <div style={{ color: "#B91C1C", fontSize: 10.5, marginTop: 6 }}>{error}</div>}
+        <div style={{ fontSize: 10, color: "#64748B", marginTop: 8 }}>
           Observe-only. Never mutates production. Missing/stale signal is never shown as HEALTHY.
         </div>
       </div>
@@ -5313,32 +5442,32 @@ function OperationsPanel({ active }: { active: boolean }) {
         {section === "status" && (
           <div>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
-              <span style={{ width: 9, height: 9, borderRadius: 5, background: MONITORING_STATUS_COLORS[status.monitoring.overallStatus] ?? "#858585" }} />
-              <span style={{ fontWeight: 600, color: "#ccc" }}>Overall: {status.monitoring.overallStatus}</span>
-              <span style={{ color: "#858585" }}>({status.monitoring.total} real signals)</span>
+              <span style={{ width: 9, height: 9, borderRadius: 5, background: MONITORING_STATUS_COLORS[status.monitoring.overallStatus] ?? "#64748B" }} />
+              <span style={{ fontWeight: 600, color: "#334155" }}>Overall: {status.monitoring.overallStatus}</span>
+              <span style={{ color: "#64748B" }}>({status.monitoring.total} real signals)</span>
             </div>
             <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginBottom: 12 }}>
               {Object.entries(status.monitoring.byStatus).map(([k, v]) => v > 0 && (
-                <span key={k} style={{ fontSize: 9.5, padding: "1px 6px", borderRadius: 8, background: "#2a2a2a", color: MONITORING_STATUS_COLORS[k] ?? "#858585" }}>{k}: {v}</span>
+                <span key={k} style={{ fontSize: 9.5, padding: "1px 6px", borderRadius: 8, background: "#F1F5F9", color: MONITORING_STATUS_COLORS[k] ?? "#64748B" }}>{k}: {v}</span>
               ))}
             </div>
-            <div style={{ color: "#ccc", marginBottom: 4 }}>Incidents: {status.incidents.total} total, {status.incidents.open} open, {status.incidents.critical} critical</div>
-            <div style={{ color: "#ccc", marginBottom: 4 }}>Recovery: {status.recovery.total} total, {status.recovery.blocked} blocked, {status.recovery.unverified} unverified</div>
-            <div style={{ color: "#ccc", marginBottom: 10 }}>Stale/Missing signals: {status.staleOrMissingSignals}</div>
-            <div style={{ color: "#e0a860", fontWeight: 600, marginBottom: 4 }}>Owner Decisions Required ({status.ownerDecisionsRequired.length})</div>
+            <div style={{ color: "#334155", marginBottom: 4 }}>Incidents: {status.incidents.total} total, {status.incidents.open} open, {status.incidents.critical} critical</div>
+            <div style={{ color: "#334155", marginBottom: 4 }}>Recovery: {status.recovery.total} total, {status.recovery.blocked} blocked, {status.recovery.unverified} unverified</div>
+            <div style={{ color: "#334155", marginBottom: 10 }}>Stale/Missing signals: {status.staleOrMissingSignals}</div>
+            <div style={{ color: "#B45309", fontWeight: 600, marginBottom: 4 }}>Owner Decisions Required ({status.ownerDecisionsRequired.length})</div>
             {status.ownerDecisionsRequired.map((d, i) => (
-              <div key={i} style={{ padding: "3px 0", color: "#e0a860" }}>[{d.kind}] {d.id.slice(0, 8)} — {d.reason}</div>
+              <div key={i} style={{ padding: "3px 0", color: "#B45309" }}>[{d.kind}] {d.id.slice(0, 8)} — {d.reason}</div>
             ))}
           </div>
         )}
         {section === "signals" && (
           <div>
             {signals.map((s) => (
-              <div key={s.signalId} style={{ display: "flex", alignItems: "center", gap: 8, padding: "4px 2px", borderBottom: "1px solid #1c1c1c" }}>
-                <span style={{ width: 7, height: 7, borderRadius: 4, background: MONITORING_STATUS_COLORS[s.status] ?? "#858585", flexShrink: 0 }} />
-                <span style={{ width: 190, flexShrink: 0, color: "#ccc" }}>{s.signalType}</span>
-                <span style={{ width: 90, flexShrink: 0, color: MONITORING_STATUS_COLORS[s.status] ?? "#858585" }}>{s.status}</span>
-                <span style={{ flex: 1, color: "#858585", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={s.reason}>{s.reason}</span>
+              <div key={s.signalId} style={{ display: "flex", alignItems: "center", gap: 8, padding: "4px 2px", borderBottom: "1px solid #E2E8F0" }}>
+                <span style={{ width: 7, height: 7, borderRadius: 4, background: MONITORING_STATUS_COLORS[s.status] ?? "#64748B", flexShrink: 0 }} />
+                <span style={{ width: 190, flexShrink: 0, color: "#334155" }}>{s.signalType}</span>
+                <span style={{ width: 90, flexShrink: 0, color: MONITORING_STATUS_COLORS[s.status] ?? "#64748B" }}>{s.status}</span>
+                <span style={{ flex: 1, color: "#64748B", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={s.reason}>{s.reason}</span>
                 {(s.status === "UNHEALTHY" || s.status === "DEGRADED" || s.status === "STALE" || s.status === "MISSING") && (
                   <button disabled={busy} onClick={() => doOpenIncident(s.signalId)} style={{ ...topBtnStyle, fontSize: 9.5, padding: "1px 6px" }}>Open Incident</button>
                 )}
@@ -5349,79 +5478,79 @@ function OperationsPanel({ active }: { active: boolean }) {
         {section === "incidents" && (
           <div>
             {incidents.map((inc) => (
-              <div key={inc.incidentId} style={{ marginBottom: 8, padding: "6px 8px", borderRadius: 3, border: "1px solid #2a2a2a" }}>
+              <div key={inc.incidentId} style={{ marginBottom: 8, padding: "6px 8px", borderRadius: 3, border: "1px solid #E2E8F0" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <span style={{ width: 7, height: 7, borderRadius: 4, background: SEVERITY_COLORS[inc.severity] ?? "#858585", flexShrink: 0 }} />
-                  <span style={{ color: "#ccc", fontWeight: 600 }}>{inc.type}</span>
+                  <span style={{ width: 7, height: 7, borderRadius: 4, background: SEVERITY_COLORS[inc.severity] ?? "#64748B", flexShrink: 0 }} />
+                  <span style={{ color: "#334155", fontWeight: 600 }}>{inc.type}</span>
                   <span style={{ color: SEVERITY_COLORS[inc.severity] }}>{inc.severity}</span>
-                  <span style={{ color: "#858585" }}>{inc.status}</span>
+                  <span style={{ color: "#64748B" }}>{inc.status}</span>
                 </div>
-                <div style={{ color: "#858585", marginTop: 3 }}>{inc.title}</div>
-                <div style={{ color: "#6a6a6a", marginTop: 2 }}>observed: {inc.observedCause}</div>
-                {inc.inferredCause && <div style={{ color: "#9cdcfe", marginTop: 2 }}>{inc.inferredCause}</div>}
+                <div style={{ color: "#64748B", marginTop: 3 }}>{inc.title}</div>
+                <div style={{ color: "#64748B", marginTop: 2 }}>observed: {inc.observedCause}</div>
+                {inc.inferredCause && <div style={{ color: "#334155", marginTop: 2 }}>{inc.inferredCause}</div>}
               </div>
             ))}
-            {incidents.length === 0 && <div style={{ color: "#6a6a6a" }}>No real Incidents open.</div>}
+            {incidents.length === 0 && <div style={{ color: "#64748B" }}>No real Incidents open.</div>}
           </div>
         )}
         {section === "recovery" && (
           <div>
             {plans.map((p) => (
-              <div key={p.recoveryPlanId} style={{ marginBottom: 8, padding: "6px 8px", borderRadius: 3, border: "1px solid #2a2a2a" }}>
-                <div style={{ color: "#ccc", fontWeight: 600 }}>{p.recoveryType}</div>
-                <div style={{ color: "#858585", marginTop: 2 }}>execution: {p.executionStatus} · approval: {p.approvalStatus}</div>
-                {p.verification && <div style={{ color: p.verification.status === "VERIFIED" ? "#4ec9b0" : "#e0a860", marginTop: 2 }}>verification: {p.verification.status} — {p.verification.reason}</div>}
-                <div style={{ color: "#6a6a6a", marginTop: 2 }}>{p.limitations}</div>
+              <div key={p.recoveryPlanId} style={{ marginBottom: 8, padding: "6px 8px", borderRadius: 3, border: "1px solid #E2E8F0" }}>
+                <div style={{ color: "#334155", fontWeight: 600 }}>{p.recoveryType}</div>
+                <div style={{ color: "#64748B", marginTop: 2 }}>execution: {p.executionStatus} · approval: {p.approvalStatus}</div>
+                {p.verification && <div style={{ color: p.verification.status === "VERIFIED" ? "#0F766E" : "#B45309", marginTop: 2 }}>verification: {p.verification.status} — {p.verification.reason}</div>}
+                <div style={{ color: "#64748B", marginTop: 2 }}>{p.limitations}</div>
               </div>
             ))}
-            {plans.length === 0 && <div style={{ color: "#6a6a6a" }}>No real Recovery Plans yet.</div>}
+            {plans.length === 0 && <div style={{ color: "#64748B" }}>No real Recovery Plans yet.</div>}
           </div>
         )}
         {section === "alerts" && (
           <div>
             {alerts.map((a) => (
-              <div key={a.alertId} style={{ marginBottom: 8, padding: "6px 8px", borderRadius: 3, border: "1px solid #2a2a2a" }}>
+              <div key={a.alertId} style={{ marginBottom: 8, padding: "6px 8px", borderRadius: 3, border: "1px solid #E2E8F0" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <span style={{ width: 7, height: 7, borderRadius: 4, background: SEVERITY_COLORS[a.severity] ?? "#858585", flexShrink: 0 }} />
-                  <span style={{ color: "#ccc", fontWeight: 600 }}>{a.title}</span>
-                  <span style={{ color: a.status === "DISPATCHED" ? "#4ec9b0" : a.status === "SUPPRESSED" ? "#858585" : a.status === "ACKNOWLEDGED" ? "#9cdcfe" : "#f0a0a0" }}>{a.status}</span>
+                  <span style={{ width: 7, height: 7, borderRadius: 4, background: SEVERITY_COLORS[a.severity] ?? "#64748B", flexShrink: 0 }} />
+                  <span style={{ color: "#334155", fontWeight: 600 }}>{a.title}</span>
+                  <span style={{ color: a.status === "DISPATCHED" ? "#0F766E" : a.status === "SUPPRESSED" ? "#64748B" : a.status === "ACKNOWLEDGED" ? "#334155" : "#B91C1C" }}>{a.status}</span>
                   {a.status === "DISPATCHED" && !a.acknowledgedAt && (
                     <button disabled={busy} onClick={() => doAcknowledge(a.alertId)} style={{ ...topBtnStyle, fontSize: 9.5, padding: "1px 6px" }}>Acknowledge</button>
                   )}
                 </div>
-                <div style={{ color: "#858585", marginTop: 2 }}>{a.reason}</div>
-                {a.suppressionReason && <div style={{ color: "#6a6a6a", marginTop: 2 }}>suppressed: {a.suppressionReason}</div>}
+                <div style={{ color: "#64748B", marginTop: 2 }}>{a.reason}</div>
+                {a.suppressionReason && <div style={{ color: "#64748B", marginTop: 2 }}>suppressed: {a.suppressionReason}</div>}
                 {a.channelResults?.length > 0 && (
                   <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginTop: 4 }}>
                     {a.channelResults.map((c, i) => (
-                      <span key={i} title={c.detail} style={{ fontSize: 9.5, padding: "1px 6px", borderRadius: 8, background: "#2a2a2a", color: c.ok ? "#4ec9b0" : "#f0a0a0" }}>{c.channel}: {c.attempted ? (c.ok ? "ok" : "fail") : "not attempted"}</span>
+                      <span key={i} title={c.detail} style={{ fontSize: 9.5, padding: "1px 6px", borderRadius: 8, background: "#F1F5F9", color: c.ok ? "#0F766E" : "#B91C1C" }}>{c.channel}: {c.attempted ? (c.ok ? "ok" : "fail") : "not attempted"}</span>
                     ))}
                   </div>
                 )}
-                <div style={{ color: "#6a6a6a", marginTop: 2, fontSize: 9.5 }}>DISPATCHED never implies DELIVERED — no real delivery receipt exists for any channel.</div>
+                <div style={{ color: "#64748B", marginTop: 2, fontSize: 9.5 }}>DISPATCHED never implies DELIVERED — no real delivery receipt exists for any channel.</div>
               </div>
             ))}
-            {alerts.length === 0 && <div style={{ color: "#6a6a6a" }}>No real Alerts yet.</div>}
+            {alerts.length === 0 && <div style={{ color: "#64748B" }}>No real Alerts yet.</div>}
           </div>
         )}
         {section === "backups" && (
           <div>
             {backups.map((b) => (
-              <div key={b.backupId} style={{ marginBottom: 8, padding: "6px 8px", borderRadius: 3, border: "1px solid #2a2a2a" }}>
+              <div key={b.backupId} style={{ marginBottom: 8, padding: "6px 8px", borderRadius: 3, border: "1px solid #E2E8F0" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <span style={{ color: "#ccc", fontWeight: 600 }}>{b.backupId}</span>
+                  <span style={{ color: "#334155", fontWeight: 600 }}>{b.backupId}</span>
                   <button disabled={busy} onClick={() => doVerifyBackup(b.backupId)} style={{ ...topBtnStyle, fontSize: 9.5, padding: "1px 6px" }}>Verify Integrity</button>
                   <button disabled={busy} onClick={() => doRunRestoreTest(b.backupId)} style={{ ...topBtnStyle, fontSize: 9.5, padding: "1px 6px" }}>Run Restore Test (dry-run)</button>
                 </div>
-                <div style={{ color: "#858585", marginTop: 2 }}>{b.manifest.success}/{b.manifest.tables} tables, {b.manifest.total_rows} rows, {b.manifest.errors} error(s) — created {new Date(b.manifest.created_at).toLocaleString()}</div>
+                <div style={{ color: "#64748B", marginTop: 2 }}>{b.manifest.success}/{b.manifest.tables} tables, {b.manifest.total_rows} rows, {b.manifest.errors} error(s) — created {new Date(b.manifest.created_at).toLocaleString()}</div>
               </div>
             ))}
-            {backups.length === 0 && <div style={{ color: "#6a6a6a" }}>No real backups discovered.</div>}
-            <div style={{ color: "#e0a860", fontWeight: 600, marginTop: 12, marginBottom: 4 }}>Restore Tests ({restoreTests.length})</div>
+            {backups.length === 0 && <div style={{ color: "#64748B" }}>No real backups discovered.</div>}
+            <div style={{ color: "#B45309", fontWeight: 600, marginTop: 12, marginBottom: 4 }}>Restore Tests ({restoreTests.length})</div>
             {restoreTests.map((r) => (
-              <div key={r.restoreTestId} style={{ marginBottom: 6, padding: "4px 8px", borderRadius: 3, border: "1px solid #2a2a2a" }}>
-                <div style={{ color: "#ccc" }}>{r.backupId} — <span style={{ color: r.status === "FAILED" ? "#f0a0a0" : "#e0a860" }}>{r.status}</span></div>
-                <div style={{ color: "#6a6a6a", fontSize: 9.5, marginTop: 2 }}>{r.limitations}</div>
+              <div key={r.restoreTestId} style={{ marginBottom: 6, padding: "4px 8px", borderRadius: 3, border: "1px solid #E2E8F0" }}>
+                <div style={{ color: "#334155" }}>{r.backupId} — <span style={{ color: r.status === "FAILED" ? "#B91C1C" : "#B45309" }}>{r.status}</span></div>
+                <div style={{ color: "#64748B", fontSize: 9.5, marginTop: 2 }}>{r.limitations}</div>
               </div>
             ))}
           </div>
@@ -5429,19 +5558,19 @@ function OperationsPanel({ active }: { active: boolean }) {
         {section === "readiness" && readiness && (
           <div>
             {readiness.gates.map((g) => (
-              <div key={g.id} style={{ marginBottom: 8, padding: "6px 8px", borderRadius: 3, border: "1px solid #2a2a2a" }}>
+              <div key={g.id} style={{ marginBottom: 8, padding: "6px 8px", borderRadius: 3, border: "1px solid #E2E8F0" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <span style={{ width: 7, height: 7, borderRadius: 4, background: GATE_STATUS_COLORS[g.status] ?? "#858585", flexShrink: 0 }} />
-                  <span style={{ color: "#ccc", fontWeight: 600 }}>{g.id}</span>
-                  <span style={{ color: GATE_STATUS_COLORS[g.status] ?? "#858585" }}>{g.status}</span>
+                  <span style={{ width: 7, height: 7, borderRadius: 4, background: GATE_STATUS_COLORS[g.status] ?? "#64748B", flexShrink: 0 }} />
+                  <span style={{ color: "#334155", fontWeight: 600 }}>{g.id}</span>
+                  <span style={{ color: GATE_STATUS_COLORS[g.status] ?? "#64748B" }}>{g.status}</span>
                 </div>
-                {g.evidence.map((e: string, i: number) => <div key={i} style={{ color: "#858585", marginTop: 2 }}>{e}</div>)}
-                {g.missing.map((m: string, i: number) => <div key={i} style={{ color: "#f0a0a0", marginTop: 2 }}>missing: {m}</div>)}
+                {g.evidence.map((e: string, i: number) => <div key={i} style={{ color: "#64748B", marginTop: 2 }}>{e}</div>)}
+                {g.missing.map((m: string, i: number) => <div key={i} style={{ color: "#B91C1C", marginTop: 2 }}>missing: {m}</div>)}
               </div>
             ))}
-            <div style={{ color: "#e0a860", fontWeight: 600, marginTop: 8 }}>Scheduler Contract</div>
-            <div style={{ color: "#858585", marginTop: 2 }}>contract: {readiness.schedulerContract.contract} · adapter: {readiness.schedulerContract.adapter} · loop: {readiness.schedulerContract.loop}</div>
-            {readiness.schedulerContract.evidence.map((e: string, i: number) => <div key={i} style={{ color: "#6a6a6a", fontSize: 9.5, marginTop: 2 }}>{e}</div>)}
+            <div style={{ color: "#B45309", fontWeight: 600, marginTop: 8 }}>Scheduler Contract</div>
+            <div style={{ color: "#64748B", marginTop: 2 }}>contract: {readiness.schedulerContract.contract} · adapter: {readiness.schedulerContract.adapter} · loop: {readiness.schedulerContract.loop}</div>
+            {readiness.schedulerContract.evidence.map((e: string, i: number) => <div key={i} style={{ color: "#64748B", fontSize: 9.5, marginTop: 2 }}>{e}</div>)}
           </div>
         )}
       </div>
@@ -5455,17 +5584,17 @@ function OperationsPanel({ active }: { active: boolean }) {
 // Change Flow -> Result. Every action here calls a real, owner-scoped
 // API route — nothing here is mocked or simulated.
 const WORKSPACE_STATUS_COLORS: Record<string, string> = {
-  DRAFT: "#858585", ANALYZING: "#9cdcfe", CAPABILITY_MATCHING: "#9cdcfe", CONTEXT_PREPARING: "#9cdcfe",
-  AWAITING_OWNER: "#e0a860", READY_FOR_EXECUTION: "#4ec9b0", EXECUTING: "#9cdcfe", REVIEWING: "#9cdcfe",
-  TESTING: "#9cdcfe", BUILDING: "#9cdcfe", RELEASE_CANDIDATE: "#4ec9b0", BLOCKED: "#f37c7c",
-  COMPLETED: "#4ec9b0", CANCELLED: "#858585", UNKNOWN: "#858585",
+  DRAFT: "#64748B", ANALYZING: "#334155", CAPABILITY_MATCHING: "#334155", CONTEXT_PREPARING: "#334155",
+  AWAITING_OWNER: "#B45309", READY_FOR_EXECUTION: "#0F766E", EXECUTING: "#334155", REVIEWING: "#334155",
+  TESTING: "#334155", BUILDING: "#334155", RELEASE_CANDIDATE: "#0F766E", BLOCKED: "#B91C1C",
+  COMPLETED: "#0F766E", CANCELLED: "#64748B", UNKNOWN: "#64748B",
 };
 const RESULT_STATUS_COLORS: Record<string, string> = {
-  OUTCOME_PROVEN: "#4ec9b0", TECHNICALLY_COMPLETE: "#9cdcfe", PARTIAL: "#e0a860", BLOCKED: "#f37c7c",
-  UNVERIFIED: "#858585", FAILED: "#f37c7c", UNKNOWN: "#858585",
+  OUTCOME_PROVEN: "#0F766E", TECHNICALLY_COMPLETE: "#334155", PARTIAL: "#B45309", BLOCKED: "#B91C1C",
+  UNVERIFIED: "#64748B", FAILED: "#B91C1C", UNKNOWN: "#64748B",
 };
 const fwInputStyle: React.CSSProperties = {
-  background: "#1e1e1e", border: "1px solid #3c3c3c", borderRadius: 3, color: "#ccc", fontSize: 11, padding: "4px 6px", outline: "none",
+  background: "#FFFFFF", border: "1px solid #CBD5E1", borderRadius: 3, color: "#334155", fontSize: 11, padding: "4px 6px", outline: "none",
 };
 
 // ---- Real Factory Workspace Runtime (owner, 2026-08-08, Software Factory
@@ -5627,37 +5756,37 @@ function FactoryWorkspacePanel({ active }: { active: boolean }) {
 
   return (
     <div style={{ height: "100%", display: "flex", minHeight: 0 }}>
-      <div style={{ width: 240, flexShrink: 0, borderRight: "1px solid #2d2d2d", display: "flex", flexDirection: "column", padding: 8, gap: 4, overflowY: "auto" }}>
+      <div style={{ width: 240, flexShrink: 0, borderRight: "1px solid #E2E8F0", display: "flex", flexDirection: "column", padding: 8, gap: 4, overflowY: "auto" }}>
         <button disabled={busy} onClick={doCreate} style={{ ...topBtnStyle, opacity: busy ? 0.5 : 1 }}>{busy ? "Working…" : "+ New Workspace Session"}</button>
         {sessions.map((s) => (
-          <button key={s.workspaceSessionId} onClick={() => setSelectedId(s.workspaceSessionId)} style={{ ...topBtnStyle, textAlign: "left", background: selectedId === s.workspaceSessionId ? "#2d2d2d" : "transparent" }}>
-            <span style={{ width: 7, height: 7, borderRadius: 4, background: WORKSPACE_STATUS_COLORS[s.status] ?? "#858585", display: "inline-block", marginRight: 6 }} />
+          <button key={s.workspaceSessionId} onClick={() => setSelectedId(s.workspaceSessionId)} style={{ ...topBtnStyle, textAlign: "left", background: selectedId === s.workspaceSessionId ? "#F1F5F9" : "transparent" }}>
+            <span style={{ width: 7, height: 7, borderRadius: 4, background: WORKSPACE_STATUS_COLORS[s.status] ?? "#64748B", display: "inline-block", marginRight: 6 }} />
             {s.workspaceSessionId.slice(0, 8)} — {s.status}
           </button>
         ))}
-        {error && <div style={{ color: "#f37c7c", fontSize: 10.5, marginTop: 6 }}>{error}</div>}
-        <div style={{ fontSize: 10, color: "#6a6a6a", marginTop: 8 }}>
+        {error && <div style={{ color: "#B91C1C", fontSize: 10.5, marginTop: 6 }}>{error}</div>}
+        <div style={{ fontSize: 10, color: "#64748B", marginTop: 8 }}>
           Human owns Intent and Approval. DNA OS owns Context, Capability, Execution Plan, Evidence. AI is a Worker only.
         </div>
       </div>
 
       <div style={{ flex: 1, minHeight: 0, overflowY: "auto", padding: 10, fontSize: 11 }}>
-        {!session && <div style={{ color: "#6a6a6a" }}>Select or create a real Workspace Session.</div>}
+        {!session && <div style={{ color: "#64748B" }}>Select or create a real Workspace Session.</div>}
         {session && (
           <div>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
-              <span style={{ width: 9, height: 9, borderRadius: 5, background: WORKSPACE_STATUS_COLORS[session.status] ?? "#858585" }} />
-              <span style={{ fontWeight: 600, color: "#ccc" }}>{session.workspaceSessionId}</span>
-              <span style={{ color: WORKSPACE_STATUS_COLORS[session.status] ?? "#858585" }}>{session.status}</span>
+              <span style={{ width: 9, height: 9, borderRadius: 5, background: WORKSPACE_STATUS_COLORS[session.status] ?? "#64748B" }} />
+              <span style={{ fontWeight: 600, color: "#334155" }}>{session.workspaceSessionId}</span>
+              <span style={{ color: WORKSPACE_STATUS_COLORS[session.status] ?? "#64748B" }}>{session.status}</span>
             </div>
 
             {session.blockers.length > 0 && (
               <div style={{ marginBottom: 10 }}>
-                {session.blockers.map((b: string, i: number) => <div key={i} style={{ color: "#f37c7c" }}>blocked: {b}</div>)}
+                {session.blockers.map((b: string, i: number) => <div key={i} style={{ color: "#B91C1C" }}>blocked: {b}</div>)}
               </div>
             )}
 
-            <div style={{ color: "#e0a860", fontWeight: 600, marginBottom: 4 }}>1. Intent</div>
+            <div style={{ color: "#B45309", fontWeight: 600, marginBottom: 4 }}>1. Intent</div>
             {!session.intentId ? (
               <div style={{ display: "flex", flexDirection: "column", gap: 4, marginBottom: 10, maxWidth: 480 }}>
                 <input placeholder="Problem" value={problem} onChange={(e) => setProblem(e.target.value)} style={fwInputStyle} />
@@ -5667,35 +5796,35 @@ function FactoryWorkspacePanel({ active }: { active: boolean }) {
               </div>
             ) : (
               <div style={{ marginBottom: 10 }}>
-                <div style={{ color: "#858585" }}>real Intent {session.intentId.slice(0, 8)} attached</div>
+                <div style={{ color: "#64748B" }}>real Intent {session.intentId.slice(0, 8)} attached</div>
                 {!session.ownerDecisions.some((d) => d.gate === "INTENT_CONFIRMED" && d.decision === "APPROVED") && (
                   <button disabled={busy} onClick={doConfirmIntent} style={{ ...topBtnStyle, marginTop: 4 }}>Confirm Intent (Owner Decision Gate)</button>
                 )}
               </div>
             )}
 
-            <div style={{ color: "#e0a860", fontWeight: 600, marginBottom: 4 }}>2. Capability Resolver</div>
+            <div style={{ color: "#B45309", fontWeight: 600, marginBottom: 4 }}>2. Capability Resolver</div>
             <div style={{ marginBottom: 10 }}>
               {!session.capabilityResolution ? (
                 <button disabled={busy || session.status !== "CAPABILITY_MATCHING"} onClick={doResolveCapabilities} style={topBtnStyle}>Resolve Capabilities</button>
               ) : (
                 <div>
-                  <div style={{ color: "#858585" }}>overall: {session.capabilityResolution.overallClass} · {session.capabilityResolution.selected.length} selected of {session.capabilityResolution.matches.length} matched</div>
+                  <div style={{ color: "#64748B" }}>overall: {session.capabilityResolution.overallClass} · {session.capabilityResolution.selected.length} selected of {session.capabilityResolution.matches.length} matched</div>
                   {session.capabilityResolution.selected.map((m) => (
-                    <div key={m.capabilityId} style={{ color: "#4ec9b0", marginTop: 2 }}>{m.capabilityId} — {m.matchClass} (score {m.score.toFixed(2)})</div>
+                    <div key={m.capabilityId} style={{ color: "#0F766E", marginTop: 2 }}>{m.capabilityId} — {m.matchClass} (score {m.score.toFixed(2)})</div>
                   ))}
-                  {session.capabilityResolution.missing.map((m: string, i: number) => <div key={i} style={{ color: "#f0a0a0", marginTop: 2 }}>missing: {m}</div>)}
+                  {session.capabilityResolution.missing.map((m: string, i: number) => <div key={i} style={{ color: "#B91C1C", marginTop: 2 }}>missing: {m}</div>)}
                 </div>
               )}
             </div>
 
-            <div style={{ color: "#e0a860", fontWeight: 600, marginBottom: 4 }}>3. Context Plan</div>
+            <div style={{ color: "#B45309", fontWeight: 600, marginBottom: 4 }}>3. Context Plan</div>
             <div style={{ marginBottom: 10 }}>
               {!session.contextPlanId ? (
                 <button disabled={busy || !session.capabilityResolution} onClick={doPrepareContext} style={topBtnStyle}>Prepare Context Plan</button>
               ) : (
                 <div>
-                  <div style={{ color: "#858585" }}>real Context Plan {session.contextPlanId.slice(0, 8)}</div>
+                  <div style={{ color: "#64748B" }}>real Context Plan {session.contextPlanId.slice(0, 8)}</div>
                   {!session.ownerDecisions.some((d) => d.gate === "CONTEXT_SCOPE_APPROVED" && d.decision === "APPROVED") && (
                     <button disabled={busy} onClick={doApproveContext} style={{ ...topBtnStyle, marginTop: 4 }}>Approve Context Scope (Owner Decision Gate)</button>
                   )}
@@ -5703,7 +5832,7 @@ function FactoryWorkspacePanel({ active }: { active: boolean }) {
               )}
             </div>
 
-            <div style={{ color: "#e0a860", fontWeight: 600, marginBottom: 4 }}>4. Execution Plan</div>
+            <div style={{ color: "#B45309", fontWeight: 600, marginBottom: 4 }}>4. Execution Plan</div>
             <div style={{ marginBottom: 10 }}>
               {!session.executionPlanId ? (
                 <button disabled={busy || session.status !== "READY_FOR_EXECUTION"} onClick={doCreatePlan} style={topBtnStyle}>Create Execution Plan</button>
@@ -5712,17 +5841,17 @@ function FactoryWorkspacePanel({ active }: { active: boolean }) {
               )}
             </div>
 
-            <div style={{ color: "#e0a860", fontWeight: 600, marginBottom: 4 }}>4.4 Worker Selection (Universal Worker Bridge — Step 13.6)</div>
+            <div style={{ color: "#B45309", fontWeight: 600, marginBottom: 4 }}>4.4 Worker Selection (Universal Worker Bridge — Step 13.6)</div>
             <div style={{ marginBottom: 10 }}>
               <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginBottom: 6 }}>
                 {workerAdapters.map((a) => {
                   const health = adapterHealth[a.id];
-                  const healthColor = health?.status === "HEALTHY" ? "#4ec9b0" : health?.status === "DEGRADED" ? "#e0a860" : health?.status === "UNAVAILABLE" ? "#f37c7c" : "#858585";
+                  const healthColor = health?.status === "HEALTHY" ? "#0F766E" : health?.status === "DEGRADED" ? "#B45309" : health?.status === "UNAVAILABLE" ? "#B91C1C" : "#64748B";
                   return (
-                    <button key={a.id} onClick={() => { setSelectedAdapterId(a.id); void doCheckAdapterHealth(a.id); }} style={{ ...topBtnStyle, textAlign: "left", background: selectedAdapterId === a.id ? "#2d2d2d" : "transparent", display: "flex", flexDirection: "column", alignItems: "flex-start", minWidth: 150 }}>
-                      <span style={{ color: "#ccc", fontWeight: 600 }}>{a.id}</span>
-                      <span style={{ fontSize: 9.5, color: "#858585" }}>{a.type} · {a.provider}</span>
-                      <span style={{ fontSize: 9.5, color: a.availability?.available ? "#4ec9b0" : "#f37c7c" }}>{a.availability?.available ? "available" : "unavailable"}</span>
+                    <button key={a.id} onClick={() => { setSelectedAdapterId(a.id); void doCheckAdapterHealth(a.id); }} style={{ ...topBtnStyle, textAlign: "left", background: selectedAdapterId === a.id ? "#F1F5F9" : "transparent", display: "flex", flexDirection: "column", alignItems: "flex-start", minWidth: 150 }}>
+                      <span style={{ color: "#334155", fontWeight: 600 }}>{a.id}</span>
+                      <span style={{ fontSize: 9.5, color: "#64748B" }}>{a.type} · {a.provider}</span>
+                      <span style={{ fontSize: 9.5, color: a.availability?.available ? "#0F766E" : "#B91C1C" }}>{a.availability?.available ? "available" : "unavailable"}</span>
                       {health && <span style={{ fontSize: 9.5, color: healthColor }}>health: {health.status}</span>}
                     </button>
                   );
@@ -5733,62 +5862,62 @@ function FactoryWorkspacePanel({ active }: { active: boolean }) {
                 const health = adapterHealth[selectedAdapterId];
                 if (!a) return null;
                 return (
-                  <div style={{ padding: "6px 8px", border: "1px solid #2a2a2a", borderRadius: 3, fontSize: 10.5 }}>
-                    <div style={{ color: "#ccc" }}>Selected: {a.id} · Adapter: {a.type} · Provider: {a.provider} · Local/Cloud: {a.type === "LOCAL_RUNTIME" ? "Local" : a.type === "HUMAN" ? "N/A" : "Cloud"}</div>
-                    <div style={{ color: "#858585", marginTop: 2 }}>Health: {health?.status ?? "not yet checked"} — {health?.reason ?? ""}</div>
-                    {a.limitations?.map((l: string, i: number) => <div key={i} style={{ color: "#e0a860", marginTop: 2 }}>limitation: {l}</div>)}
+                  <div style={{ padding: "6px 8px", border: "1px solid #E2E8F0", borderRadius: 3, fontSize: 10.5 }}>
+                    <div style={{ color: "#334155" }}>Selected: {a.id} · Adapter: {a.type} · Provider: {a.provider} · Local/Cloud: {a.type === "LOCAL_RUNTIME" ? "Local" : a.type === "HUMAN" ? "N/A" : "Cloud"}</div>
+                    <div style={{ color: "#64748B", marginTop: 2 }}>Health: {health?.status ?? "not yet checked"} — {health?.reason ?? ""}</div>
+                    {a.limitations?.map((l: string, i: number) => <div key={i} style={{ color: "#B45309", marginTop: 2 }}>limitation: {l}</div>)}
                   </div>
                 );
               })()}
-              <div style={{ color: "#6a6a6a", fontSize: 9.5, marginTop: 4 }}>Owner can override the Worker before Execute — real selection still passes through the real Selector/Contract/Policy.</div>
+              <div style={{ color: "#64748B", fontSize: 9.5, marginTop: 4 }}>Owner can override the Worker before Execute — real selection still passes through the real Selector/Contract/Policy.</div>
             </div>
 
-            <div style={{ color: "#e0a860", fontWeight: 600, marginBottom: 4 }}>4.5 CODE_WORKER Proposal (real, programmatic — Step 13.6)</div>
+            <div style={{ color: "#B45309", fontWeight: 600, marginBottom: 4 }}>4.5 CODE_WORKER Proposal (real, programmatic — Step 13.6)</div>
             <div style={{ marginBottom: 10 }}>
               <div style={{ display: "flex", gap: 6, marginBottom: 6 }}>
                 <input placeholder="Task description for the real provider call" value={proposalTask} onChange={(e) => setProposalTask(e.target.value)} style={{ ...fwInputStyle, flex: 1 }} />
                 <button disabled={busy || !session.contextPlanId} onClick={doGenerateProposal} style={topBtnStyle}>Generate Proposal (1 real provider call)</button>
               </div>
               {proposal && (
-                <div style={{ padding: "6px 8px", border: "1px solid #2a2a2a", borderRadius: 3 }}>
-                  <div style={{ color: proposal.ok ? "#4ec9b0" : "#f37c7c" }}>ok={String(proposal.ok)} · adapter={proposal.workerAdapterId ?? "none"} · provider={proposal.provider} · {proposal.files?.length ?? 0} real file(s) proposed{proposal.error ? ` — ${proposal.error}` : ""}</div>
-                  {proposal.answer && <div style={{ color: "#ccc", fontSize: 11, marginTop: 4, whiteSpace: "pre-wrap" }}>{proposal.answer}</div>}
-                  {proposal.cost && <div style={{ color: "#858585", fontSize: 10.5, marginTop: 2 }}>cost: {proposal.cost.amount ?? "?"} {proposal.cost.currency ?? ""} ({proposal.cost.kind})</div>}
-                  {proposal.selection && proposal.selection.fallbackChain.length > 0 && <div style={{ color: "#858585", fontSize: 10.5, marginTop: 2 }}>fallback chain: {proposal.selection.fallbackChain.join(" → ")}</div>}
-                  {proposal.requiresDestructiveApproval && <div style={{ color: "#e0a860", fontSize: 10.5, marginTop: 2 }}>contains real DELETE/RENAME — requires a separate destructive approval</div>}
-                  {proposal.rejectedFiles?.map((r, i) => <div key={i} style={{ color: "#e0a860", fontSize: 10.5 }}>rejected: {r.path} — {r.reason}</div>)}
+                <div style={{ padding: "6px 8px", border: "1px solid #E2E8F0", borderRadius: 3 }}>
+                  <div style={{ color: proposal.ok ? "#0F766E" : "#B91C1C" }}>ok={String(proposal.ok)} · adapter={proposal.workerAdapterId ?? "none"} · provider={proposal.provider} · {proposal.files?.length ?? 0} real file(s) proposed{proposal.error ? ` — ${proposal.error}` : ""}</div>
+                  {proposal.answer && <div style={{ color: "#334155", fontSize: 11, marginTop: 4, whiteSpace: "pre-wrap" }}>{proposal.answer}</div>}
+                  {proposal.cost && <div style={{ color: "#64748B", fontSize: 10.5, marginTop: 2 }}>cost: {proposal.cost.amount ?? "?"} {proposal.cost.currency ?? ""} ({proposal.cost.kind})</div>}
+                  {proposal.selection && proposal.selection.fallbackChain.length > 0 && <div style={{ color: "#64748B", fontSize: 10.5, marginTop: 2 }}>fallback chain: {proposal.selection.fallbackChain.join(" → ")}</div>}
+                  {proposal.requiresDestructiveApproval && <div style={{ color: "#B45309", fontSize: 10.5, marginTop: 2 }}>contains real DELETE/RENAME — requires a separate destructive approval</div>}
+                  {proposal.rejectedFiles?.map((r, i) => <div key={i} style={{ color: "#B45309", fontSize: 10.5 }}>rejected: {r.path} — {r.reason}</div>)}
                   {proposal.ok && proposal.files.length > 0 && !proposal.approved && (
                     <button disabled={busy} onClick={doApproveProposal} style={{ ...topBtnStyle, marginTop: 4 }}>Approve &amp; Apply Diff (Owner Decision Gate — writes real files)</button>
                   )}
-                  {proposal.applied && <div style={{ color: "#4ec9b0", marginTop: 4 }}>applied to real disk at {proposal.appliedAt}</div>}
+                  {proposal.applied && <div style={{ color: "#0F766E", marginTop: 4 }}>applied to real disk at {proposal.appliedAt}</div>}
                 </div>
               )}
             </div>
 
-            <div style={{ color: "#e0a860", fontWeight: 600, marginBottom: 4 }}>5. Native File Change Flow</div>
+            <div style={{ color: "#B45309", fontWeight: 600, marginBottom: 4 }}>5. Native File Change Flow</div>
             <div style={{ display: "flex", gap: 6, marginBottom: 10, flexWrap: "wrap" }}>
               <button disabled={busy || !session.executionPlanId} onClick={doExecute} style={topBtnStyle}>Capture Change Set + Review + Test</button>
               <button disabled={busy || !session.changeSetId} onClick={doApproveReview} style={topBtnStyle}>Approve Review (Owner Decision Gate)</button>
               <button disabled={busy || !session.changeSetId} onClick={doBuild} style={topBtnStyle}>Run Real Build</button>
               <button disabled={busy || !session.buildRunId} onClick={doRelease} style={topBtnStyle}>Request Release Candidate</button>
             </div>
-            {session.changeSetId && <div style={{ color: "#858585" }}>Change Set: {session.changeSetId.slice(0, 8)} · Test Run: {session.testRunId?.slice(0, 8) ?? "—"} · Build Run: {session.buildRunId?.slice(0, 8) ?? "—"} · Release Run: {session.releaseRunId?.slice(0, 8) ?? "—"}</div>}
+            {session.changeSetId && <div style={{ color: "#64748B" }}>Change Set: {session.changeSetId.slice(0, 8)} · Test Run: {session.testRunId?.slice(0, 8) ?? "—"} · Build Run: {session.buildRunId?.slice(0, 8) ?? "—"} · Release Run: {session.releaseRunId?.slice(0, 8) ?? "—"}</div>}
 
-            <div style={{ color: "#e0a860", fontWeight: 600, marginTop: 12, marginBottom: 4 }}>6. Result</div>
+            <div style={{ color: "#B45309", fontWeight: 600, marginTop: 12, marginBottom: 4 }}>6. Result</div>
             <button disabled={busy} onClick={doResult} style={topBtnStyle}>Compute Real Outcome Report</button>
             {result && (
-              <div style={{ marginTop: 8, padding: "6px 8px", border: "1px solid #2a2a2a", borderRadius: 3 }}>
-                <div style={{ color: RESULT_STATUS_COLORS[result.status] ?? "#858585", fontWeight: 600 }}>{result.status}</div>
-                <div style={{ color: "#858585", marginTop: 2 }}>{result.realWorldReadiness}</div>
-                {result.limitations.map((l: string, i: number) => <div key={i} style={{ color: "#e0a860", marginTop: 2, fontSize: 10.5 }}>limitation: {l}</div>)}
-                {result.ownerActionsRequired.map((a: string, i: number) => <div key={i} style={{ color: "#9cdcfe", marginTop: 2, fontSize: 10.5 }}>owner action: {a}</div>)}
+              <div style={{ marginTop: 8, padding: "6px 8px", border: "1px solid #E2E8F0", borderRadius: 3 }}>
+                <div style={{ color: RESULT_STATUS_COLORS[result.status] ?? "#64748B", fontWeight: 600 }}>{result.status}</div>
+                <div style={{ color: "#64748B", marginTop: 2 }}>{result.realWorldReadiness}</div>
+                {result.limitations.map((l: string, i: number) => <div key={i} style={{ color: "#B45309", marginTop: 2, fontSize: 10.5 }}>limitation: {l}</div>)}
+                {result.ownerActionsRequired.map((a: string, i: number) => <div key={i} style={{ color: "#334155", marginTop: 2, fontSize: 10.5 }}>owner action: {a}</div>)}
               </div>
             )}
 
-            <div style={{ color: "#6a6a6a", fontWeight: 600, marginTop: 14, marginBottom: 4 }}>Worker Registry ({workers.length})</div>
+            <div style={{ color: "#64748B", fontWeight: 600, marginTop: 14, marginBottom: 4 }}>Worker Registry ({workers.length})</div>
             <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
               {workers.map((w) => (
-                <span key={w.id} title={w.capabilities.join("; ")} style={{ fontSize: 9.5, padding: "1px 6px", borderRadius: 8, background: "#2a2a2a", color: w.status === "ACTIVE" ? "#4ec9b0" : w.status === "COMPATIBILITY_ONLY" || w.status === "PARTIAL" ? "#e0a860" : "#858585" }}>{w.id}: {w.status}</span>
+                <span key={w.id} title={w.capabilities.join("; ")} style={{ fontSize: 9.5, padding: "1px 6px", borderRadius: 8, background: "#F1F5F9", color: w.status === "ACTIVE" ? "#0F766E" : w.status === "COMPATIBILITY_ONLY" || w.status === "PARTIAL" ? "#B45309" : "#64748B" }}>{w.id}: {w.status}</span>
               ))}
             </div>
           </div>
@@ -5806,7 +5935,7 @@ function StatusBar({ problemsCount, workspaceStatus, realBranch }: { problemsCou
   // Foundation audit; replaces a literal "development (mock)" string).
   const nodeEnv = process.env.NODE_ENV ?? "unknown";
   return (
-    <div style={{ height: 22, background: isError ? "#a1260d" : "#007acc", display: "flex", alignItems: "center", gap: 16, padding: "0 10px", fontSize: 11, color: "#fff", flexShrink: 0 }}>
+    <div style={{ height: 22, background: isError ? "#B91C1C" : "#0F172A", display: "flex", alignItems: "center", gap: 16, padding: "0 10px", fontSize: 11, color: "#FFFFFF", flexShrink: 0 }}>
       <span style={{ display: "flex", alignItems: "center", gap: 4 }} title={realBranch ? "real git branch, from /api/admin/ide/git/status" : "no real branch resolved yet"}>
         <GitBranch size={12} /> {realBranch ?? "unknown"}
       </span>
