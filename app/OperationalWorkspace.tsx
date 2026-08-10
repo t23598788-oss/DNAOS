@@ -18,6 +18,7 @@ import {
   FileText, LogIn, AlertTriangle, XCircle, Cable, Network,
 } from 'lucide-react';
 import { ThemeProvider, ThemeToggle, useTheme, elevation, typography, fontWeight, semanticColors, spacing, type SemanticTone } from '@/styles/tokens';
+import { SystemRealityReportSection } from '@/components/workspace/SystemRealityReportSection';
 
 const iconMap: { [key: string]: React.ElementType } = {
   LayoutGrid, BookOpen, Cpu, Database, Plug, Shield, Bot, Server, Puzzle, Workflow, Layers,
@@ -309,6 +310,28 @@ function OperationalWorkspaceContent() {
           </div>
 
           <HeroArchitectureDiagram layerEntries={layerEntries} broken={(archBook as any).summary?.broken ?? 0} />
+        </section>
+
+        {/* System Reality Report — Owner Capability #57 (2026-08-10, STEP
+            4+5, registry/TASK_QUEUE.json TASK-053 follow-on). Real, live,
+            evidence-based answer to what works/doesn't/is connected today,
+            in plain business language, sourced from a one-time real fetch
+            to /api/admin/system-reality (app/api/admin/ide/_lib/
+            systemRealityRuntime.ts's buildSystemRealityModel(), STEP 2+3,
+            already built/tested — this section only renders it). Placed
+            first, right after the hero, per the Owner's own instruction
+            that this is meant to be the first, most important view. Self-
+            contained component — see components/workspace/
+            SystemRealityReportSection.tsx for the real 5-section render. */}
+        <section id="system-reality" className={spacing.section}>
+          <SectionHeading
+            eyebrow="Owner System Reality Report"
+            title="What Actually Works Right Now"
+            description="Live, evidence-based status for every real business capability — computed fresh each time this page loads, never hardcoded or AI-summarized ad hoc."
+          />
+          <div className="mt-12">
+            <SystemRealityReportSection />
+          </div>
         </section>
 
         {/* Workspace — the real operational entry point */}

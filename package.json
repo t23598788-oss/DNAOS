@@ -109,7 +109,12 @@
     "cost-gate:test": "npx tsx scripts/cost-gate-test.ts",
     "execution-hand:test": "npx tsx scripts/execution-hand-test.ts",
     "edge-function-worker:test": "npx tsx scripts/edge-function-worker-test.ts",
-    "gap-loop:test": "npx tsx scripts/gap-loop-test.ts"
+    "gap-loop:test": "npx tsx scripts/gap-loop-test.ts",
+    "system-reality-model:test": "npx tsx scripts/system-reality-model-test.ts",
+    "system-reality-report:test": "npx tsx scripts/system-reality-report-test.ts",
+    "system-reality-gaploop:test": "npx tsx scripts/system-reality-gaploop-test.ts",
+    "dead-end-sweep:test": "npx tsx scripts/dead-end-sweep-test.ts",
+    "architecture-summary:test": "npx tsx scripts/architecture-summary-test.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.115.0",

@@ -13369,8 +13369,8 @@
     "app/api/admin/ide/_lib/registryWriterRuntime.ts": {
       "owner": "app",
       "layer": "app",
-      "purpose": "[Auto-detected] app/api/admin/ide/_lib/registryWriterRuntime.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] app/api/admin/ide/_lib/registryWriterRuntime.ts",
+      "purpose": "The one sanctioned writer for registry/FACTORY_CENTRAL_REGISTRY.json (GAP-1 Advisor exception). Never decides — every finding it writes lands as NEW or IMPLEMENTED_PENDING_MANAGER_VERIFY, never with MANAGER-07's own evaluation filled in.",
+      "purpose_th": "ตัวเขียนข้อมูลตัวเดียวที่ได้รับอนุญาตจริงให้เขียน registry/FACTORY_CENTRAL_REGISTRY.json (ข้อยกเว้น GAP-1) ไม่ตัดสินใจแทนใคร — ทุกรายการที่เขียนจะมีสถานะเป็น 'ใหม่' หรือ 'รอ MANAGER-07 ตรวจสอบ' เท่านั้น ไม่ใส่ผลการประเมินของ MANAGER-07 เอง",
       "exports": [
         "FindingSource",
         "LockResult",
@@ -13379,7 +13379,7 @@
         "releaseLock",
         "writeFinding"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "app/api/admin/ide/_lib/normalizationRuntime.ts": {
       "owner": "app",
@@ -13459,8 +13459,8 @@
     "app/api/admin/ide/_lib/evidenceCollectorRuntime.ts": {
       "owner": "app",
       "layer": "app",
-      "purpose": "[Auto-detected] app/api/admin/ide/_lib/evidenceCollectorRuntime.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] app/api/admin/ide/_lib/evidenceCollectorRuntime.ts",
+      "purpose": "GAP-1 Evidence Collector (one-time Advisor-role exception): validates that a real observation carries real, non-empty evidence[] before it can enter the Factory Central Registry pipeline — an observation with no evidence is rejected here, never reaches Normalization.",
+      "purpose_th": "ตัวรับและตรวจสอบหลักฐานขั้นแรกของ GAP-1 (ข้อยกเว้นเฉพาะกิจที่ Owner อนุญาต) — ตรวจว่าข้อสังเกตแต่ละรายการมีหลักฐานจริงแนบมาก่อนเข้าสู่ระบบ ถ้าไม่มีหลักฐานจะถูกปฏิเสธตั้งแต่ขั้นนี้ ไม่ผ่านไปถึงขั้น Normalization",
       "exports": [
         "EvidenceItem",
         "EvidenceSourceType",
@@ -13470,7 +13470,7 @@
         "collectEvidence",
         "validateObservation"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "app/api/admin/ide/_lib/costGateRuntime.ts": {
       "owner": "app",
@@ -13564,6 +13564,184 @@
         "listDeployedEdgeFunctions",
         "resolveAuthHeader",
         "validateEdgeFunctionWorkerJobContract"
+      ],
+      "status": "active"
+    },
+    "scripts/system-reality-report-test.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "Real acceptance suite (10 cases) for ownerLanguage.ts — full-sweep (not spot-check) scan proving zero banned technical terms ever reach Owner-facing text, while the same real technical detail remains available in the drill-down layer.",
+      "purpose_th": "ชุดทดสอบจริง 10 ข้อสำหรับ ownerLanguage.ts — สแกนข้อความทั้งหมด (ไม่ใช่สุ่มตรวจ) พิสูจน์ว่าไม่มีศัพท์เทคนิคต้องห้ามหลุดไปถึงเจ้าของเลย ในขณะที่รายละเอียดทางเทคนิคจริงยังคงอยู่ในชั้นเจาะลึกให้ตรวจสอบได้",
+      "exports": [],
+      "status": "active"
+    },
+    "scripts/system-reality-model-test.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "Real acceptance suite (26 cases) for systemRealityRuntime.ts — cross-checks every claimed capability status and connection gap against real, currently-live registry/architecture-book.json evidence, including a test-integrity check that its own cited findings still really exist.",
+      "purpose_th": "ชุดทดสอบจริง 26 ข้อสำหรับ systemRealityRuntime.ts — ตรวจสอบสถานะและช่องว่างการเชื่อมต่อทุกรายการที่อ้างว่าพบ เทียบกับหลักฐานจริงปัจจุบันใน registry/architecture-book.json รวมถึงตรวจว่าหลักฐานที่อ้างถึงยังมีอยู่จริง",
+      "exports": [],
+      "status": "active"
+    },
+    "scripts/system-reality-gaploop-test.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "Real acceptance suite (17 cases) for gapLoopBridge.ts — proves it real-writes exactly one new finding, correctly detects duplicates on a second run, and is never wired into any auto-trigger anywhere in the repo; cleans up its own disposable test finding after running.",
+      "purpose_th": "ชุดทดสอบจริง 17 ข้อสำหรับ gapLoopBridge.ts — พิสูจน์ว่าการเขียนข้อมูลจริงเกิดขึ้นครั้งเดียวตามที่ควร ตรวจจับรายการซ้ำได้ถูกต้องเมื่อรันซ้ำ และไม่ถูกเชื่อมให้ทำงานอัตโนมัติที่ไหนในระบบเลย พร้อมลบรายการทดสอบของตัวเองหลังรันเสร็จ",
+      "exports": [],
+      "status": "active"
+    },
+    "components/workspace/systemRealityPolling.ts": {
+      "owner": "components",
+      "layer": "components",
+      "purpose": "Real 120s setInterval polling helper for the System Reality Report section, reusing the existing admin-dashboard polling convention rather than inventing a new one; genuine realtime was investigated and honestly rejected (no real Supabase subscription covers this data).",
+      "purpose_th": "ตัวช่วย polling จริงทุก 120 วินาทีสำหรับส่วนรายงานสถานะระบบ ใช้รูปแบบเดิมที่มีอยู่แล้วในหน้า dashboard ไม่สร้างรูปแบบใหม่ ได้ตรวจสอบแล้วว่าไม่มีช่องทาง realtime จริงที่ครอบคลุมข้อมูลนี้ จึงไม่อ้างว่าเป็น realtime",
+      "exports": [
+        "SYSTEM_REALITY_POLL_INTERVAL_MS",
+        "startSystemRealityPolling"
+      ],
+      "status": "active"
+    },
+    "components/workspace/SystemRealityReportSection.tsx": {
+      "owner": "components",
+      "layer": "components",
+      "purpose": "The real 5-section client component rendering the Owner System Reality Report (SYSTEM STATUS / WORKING NOW / NOT WORKING / CONNECTION GAPS / NEXT SYSTEM ACTION) on the home page, including its own real polling for near-real-time updates.",
+      "purpose_th": "หน้าจอจริง 5 ส่วนที่แสดงรายงานสถานะระบบให้เจ้าของบนหน้าแรก (สถานะระบบ / ที่ทำงานได้ / ที่ยังไม่ทำงาน / จุดที่ยังไม่เชื่อมต่อ / ขั้นตอนถัดไป) รวมถึงกลไก polling ของตัวเองเพื่ออัปเดตใกล้เคียงเวลาจริง",
+      "exports": [
+        "SystemRealityReportSection"
+      ],
+      "status": "active"
+    },
+    "app/api/admin/system-reality/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Real GET route (ADMIN_TIER auth required) serving the Owner System Reality Report — the one real HTTP entrypoint the Owner-facing UI section fetches from.",
+      "purpose_th": "จุดเชื่อมต่อ API จริง (ต้องยืนยันตัวตนระดับ Admin) สำหรับส่งรายงานสถานะจริงของระบบให้เจ้าของ — เป็นทางเข้าเดียวที่หน้าจอ Owner เรียกใช้จริง",
+      "exports": [
+        "GET"
+      ],
+      "status": "active"
+    },
+    "app/api/admin/system-reality/_lib/ownerLanguage.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Owner-language translation layer: sanitizeOwnerText() mechanically strips TypeScript/Git/registry-filename/technical jargon from Owner-facing text (never via an LLM call), computeSystemStatus() and buildOwnerSystemRealityReport() assemble the 5-section Thai business report from the real System Reality Model.",
+      "purpose_th": "ชั้นแปลงข้อความให้เจ้าของอ่านเข้าใจ — sanitizeOwnerText() ตัดศัพท์เทคนิค (TypeScript, Git, ชื่อไฟล์ registry) ออกด้วยกลไกจริง ไม่ใช้ AI สรุป ส่วน computeSystemStatus() และ buildOwnerSystemRealityReport() ประกอบรายงาน 5 หัวข้อภาษาไทยจากแบบจำลองสถานะจริงของระบบ",
+      "exports": [
+        "CONNECTION_STATE_LABELS",
+        "OwnerCapabilityCard",
+        "OwnerCapabilityDrilldown",
+        "OwnerConnectionCard",
+        "OwnerConnectionDrilldown",
+        "OwnerNextAction",
+        "OwnerSystemRealityReport",
+        "OwnerSystemStatus",
+        "STATUS_LABELS",
+        "SystemStatusSummary",
+        "buildOwnerSystemRealityReport",
+        "computeSystemStatus",
+        "containsHardBannedTerm",
+        "sanitizeOwnerText"
+      ],
+      "status": "active"
+    },
+    "app/api/admin/system-reality/_lib/gapLoopBridge.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Deliberate, one-shot bridge from the Owner System Reality Report into the real Factory Gap Loop — writes a real finding via registryWriterRuntime.ts only when explicitly invoked, never auto-triggered by a page view; duplicate-detects against existing findings before writing.",
+      "purpose_th": "สะพานเชื่อมจากรายงานสถานะจริงของ Owner เข้าสู่ Factory Gap Loop จริง — เขียนข้อมูลจริงผ่าน registryWriterRuntime.ts ก็ต่อเมื่อถูกสั่งอย่างชัดเจนเท่านั้น ไม่ทำงานอัตโนมัติเพียงเพราะมีคนเปิดดูหน้ารายงาน และตรวจสอบรายการซ้ำก่อนเขียนเสมอ",
+      "exports": [
+        "GapBridgeAction",
+        "GapBridgeResult",
+        "RunGapLoopBridgeOptions",
+        "TRIGGER_STATUSES",
+        "runGapLoopBridge"
+      ],
+      "status": "active"
+    },
+    "app/api/admin/ide/_lib/systemRealityRuntime.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Builds the real, evidence-only System Reality Model — one real fetch composes CapabilityStatus per real business capability from architecture-book.json's live reverse-dependency graph, FACTORY_CENTRAL_REGISTRY.json findings, and REALITY_INVENTORY_STEP1.md's cited research. Never hardcodes or fabricates a status; a capability with no real source is reported UNKNOWN, never guessed.",
+      "purpose_th": "สร้างแบบจำลองสถานะจริงของระบบทั้งหมด (Owner System Reality) จากหลักฐานจริงเท่านั้น — อ่าน architecture-book.json, FACTORY_CENTRAL_REGISTRY.json และ REALITY_INVENTORY_STEP1.md มาประกอบเป็นสถานะแต่ละความสามารถทางธุรกิจ ห้ามเดาหรือมโนสถานะเด็ดขาด ถ้าไม่มีหลักฐานจริงจะรายงานว่า 'ไม่ทราบ' เท่านั้น",
+      "exports": [
+        "ArchNode",
+        "ArchitectureBook",
+        "CAPABILITY_STATUSES",
+        "CapabilityRealityEntry",
+        "CapabilityStatus",
+        "ConnectionGapEntry",
+        "ConnectionLinkState",
+        "FcrFinding",
+        "PATCH",
+        "ReachabilityResult",
+        "Step1State",
+        "SystemRealityModel",
+        "SystemRealityModelOptions",
+        "__debugResetArchitectureBookCache",
+        "buildSystemRealityModel",
+        "computeLiveReachability",
+        "isLiveProductionSurface",
+        "loadArchitectureBook",
+        "mapStep1State"
+      ],
+      "status": "active"
+    },
+    "scripts/dead-end-sweep-test.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "Real acceptance suite (24 cases) for deadEndSweepRuntime.ts — proves every finding cites real evidence, checks known real dead ends (engines/tax.ts, engines/vehicle-selector.ts) are found, and known-healthy modules are never falsely flagged.",
+      "purpose_th": "ชุดทดสอบจริง 24 ข้อสำหรับ deadEndSweepRuntime.ts — พิสูจน์ว่าทุกรายการที่พบมีหลักฐานจริงอ้างอิง ตรวจพบจุดที่รู้อยู่แล้วว่าเป็น Dead End จริง (engines/tax.ts, engines/vehicle-selector.ts) และไม่ชี้ผิดว่าไฟล์ที่ทำงานปกติเป็น Dead End",
+      "exports": [],
+      "status": "active"
+    },
+    "scripts/architecture-summary-test.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "Real acceptance suite (18 cases) for architectureSummaryRuntime.ts — proves the 4-layer summary never fabricates content, correctly cites real sources, and honestly reports 'not yet documented' for genuinely undocumented files.",
+      "purpose_th": "ชุดทดสอบจริง 18 ข้อสำหรับ architectureSummaryRuntime.ts — พิสูจน์ว่าไม่มีการมโนเนื้อหา อ้างอิงแหล่งข้อมูลจริงถูกต้อง และรายงานตรงๆ ว่า 'ยังไม่มีเอกสาร' สำหรับไฟล์ที่ยังไม่มีคำอธิบายจริง",
+      "exports": [
+        "getFolderSummary",
+        "loadModuleRegistry"
+      ],
+      "status": "active"
+    },
+    "app/api/admin/ide/_lib/deadEndSweepRuntime.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Repo-wide Dead-End Sweep: classifies every real module/registry/worker-entry against 5 real dead-end patterns (Engine no caller / API no route / Registry no runtime / Worker no dispatcher / UI no consumer), reusing systemRealityRuntime.ts's reverse-dependency-graph technique rather than reimplementing it.",
+      "purpose_th": "ตรวจสแกนทั้งระบบหาจุดที่สร้างไว้แต่ไม่มีใครเรียกใช้จริง (Dead End) 5 รูปแบบ — Engine ไม่มีผู้เรียก, API ไม่มี route, Registry ไม่มีตัวอ่านจริง, Worker ไม่มีตัวสั่งงาน, หน้าจอไม่มีผู้ใช้งาน — โดยใช้เทคนิค reverse-dependency graph เดิมจาก systemRealityRuntime.ts ไม่เขียนซ้ำ",
+      "exports": [
+        "DEAD_END_PATTERNS",
+        "DeadEndFinding",
+        "DeadEndPattern",
+        "DeadEndSweepResult",
+        "DeadEndSweepScopeCounts",
+        "runDeadEndSweep"
+      ],
+      "status": "active"
+    },
+    "app/api/admin/ide/_lib/architectureSummaryRuntime.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "On-demand 4-layer file/folder summary builder (Computer/AI/Business/Owner language), composed purely from real, already-structured sources (module-registry.json, capability-roadmap.json, FCR evidence). Never runs a live LLM per file; a file with no real documentation honestly reports 'not yet documented'.",
+      "purpose_th": "สร้างคำอธิบายไฟล์/โฟลเดอร์ 4 ชั้นภาษา (คอมพิวเตอร์/AI/ธุรกิจ/เจ้าของ) แบบเรียกตามต้องการ ประกอบจากข้อมูลจริงที่มีโครงสร้างอยู่แล้วเท่านั้น (module-registry.json, capability-roadmap.json, หลักฐาน FCR) ไม่เรียก AI สรุปสดทีละไฟล์ ไฟล์ที่ยังไม่มีคำอธิบายจริงจะรายงานตรงๆ ว่า 'ยังไม่มีเอกสาร'",
+      "exports": [
+        "AiLanguageLayer",
+        "AiLanguageState",
+        "BusinessLanguageCitation",
+        "BusinessLanguageLayer",
+        "BusinessLanguageSource",
+        "ComputerLanguageLayer",
+        "FileSummary",
+        "FolderHealthCounts",
+        "FolderPurposeExample",
+        "FolderSummary",
+        "GetFileSummaryOptions",
+        "OwnerLanguageLayer",
+        "getFileSummary",
+        "getFolderSummary",
+        "loadModuleRegistry"
       ],
       "status": "active"
     }

@@ -2121,5 +2121,158 @@
     "date": "2026-08-10",
     "files": [],
     "summary": "STEP 5 (Board Readiness) checked, closing the Owner's Factory Stabilization & Baseline Phase. No dedicated Control-Plane Board UI exists yet — building one would be new-feature work, explicitly out of scope this phase (Owner: 'ห้ามเพิ่ม Feature ใหม่ที่ไม่จำเป็น'). Verified the underlying principle already holds regardless: components/ide-shell/IDEWorkspace.tsx's pre-existing Factory Completion panel (owner, 2026-08-07, unrelated to this session's work) is explicitly documented in its own code comment as 'Pure read-only view over the real, live Factory Completion Report — every number here is computed...from real fs/registry evidence, never a second, invented dashboard number' — confirming this repo's existing Board precedent already avoids hardcoding. app/api/admin/ide/_lib/gapLoopRuntime.ts#computeFactoryStatus() and registry/FACTORY_CENTRAL_REGISTRY.json's factory_status field are equally real and live, ready for any future Control-Plane board to read from without hardcoding, whenever one is built. grep across app/ and components/ found no hardcoded factory_status/governance-score-style literal values relevant to this baseline's scope. \n\nFactory Stabilization & Baseline Phase: COMPLETE. STEP 1 (Gap Closure), STEP 2 (Structure Memory), STEP 3 (Baseline Verify), STEP 4 (Freeze — FACTORY_BASELINE_V1 declared, commits bce2c4c + 5c68145, local only), STEP 5 (Board Readiness) all done. Restart/Resume contract verified achievable: MASTER_EXECUTION_STATE.md + registry/CURRENT_STATE.json + BASELINE_MANIFEST_V1.md together let a fresh session bootstrap without losing context, per this phase's own end condition."
+  },
+  {
+    "change_id": "DNA-000125",
+    "agent": "Claude",
+    "agent_id": null,
+    "agent_id_note": "Not available to this session — not guessed.",
+    "session_id": null,
+    "date": "2026-08-10",
+    "files": [],
+    "summary": "Owner opened the Factory Reality Validation Phase, explicit continuation AFTER FACTORY_BASELINE_V1 (frozen, DNA-000123/commits bce2c4c+5c68145) — no retroactive baseline edits, all new work is a new Change. Goal: prove DNA OS works as a real system end-to-end (LINE -> AI -> business event -> pricing -> quotation -> job confirm -> delivery -> invoice -> VAT -> payment -> ledger -> notification -> state update), not just that code/tests/registries pass. 7 steps: (1) Inventory real capabilities across 17 domains against a 7-state taxonomy (NOT_BUILT/BUILT_NOT_WIRED/WIRED_NOT_TESTED/TESTED/DEPLOYED/LIVE_VERIFIED/BROKEN), never guessed from file names; (2) build real-business-flow test scenarios; (3) a safe test environment (same real Workflow/Formula/Document Engine/Event Engine/Registry schema, sandboxed external side effects — no real documents to real people, no real money movement, no real tax filing, no real production data changes); (4) dispatch builds for only what's genuinely missing, reuse before creating; (5) run one real end-to-end scenario with full evidence, PASS meaning the real end-state matches every expected layer, not just a green test script; (6) controlled failure injection (LINE/provider/network down, duplicate event, missing credential, wrong data, payment mismatch, runtime restart, queue interruption) checking self-awareness/resume/no-data-loss/Gap-Loop pickup; (7) an Owner-facing summary (READY/DEGRADED/BLOCKED, flow pass/fail counts, blockers in business language, system action, Owner action — never file names/git/commits/TypeScript/Worker-selection/technical-repair choices; the Factory decides those itself from real Evidence). Starting STEP 1 now: dispatching real, read-only capability inventory across the 17 named domains."
+  },
+  {
+    "change_id": "DNA-000126",
+    "agent": "Claude",
+    "agent_id": null,
+    "agent_id_note": "Not available to this session — not guessed.",
+    "session_id": null,
+    "date": "2026-08-10",
+    "files": [
+      "REALITY_INVENTORY_STEP1.md (new, repo root)",
+      "registry/FACTORY_CENTRAL_REGISTRY.json (FCR-013 through FCR-020 added)"
+    ],
+    "summary": "Factory Reality Validation Phase, STEP 1 (Inventory Real Capabilities) complete. 3 parallel, read-only research agents covered all 17 named domains (LINE, AI, Vision/OCR, Documents, Quotation, Invoice, Payment, VAT/Tax, Debt, Logistics, Resources, Finance, Cost calculation, Notifications, External connectors, Runtime, Black Box/Algorithm components) against the real 7-state taxonomy, citing real source/registry/DB/CHANGELOG evidence throughout — no guessing from file names. One agent additionally ran real, read-only checks against live production infrastructure (Supabase secrets list, Supabase SELECT-only queries, Vercel env ls, RunPod status) to verify real deployment/runtime state, not just source code. MANAGER-07 independently spot-checked several of the most consequential claims (Rule 113 PATCH gate, the 3 independent VAT implementations, calcFullQuote's real zero-caller status, the wear-percent hardcoded fallback) before accepting the reports. Logged 8 real findings (FCR-013 through FCR-020) covering the most business-critical gaps found: live quotes carrying zero markup/profit margin, Vercel Production missing most non-core secrets (breaking Next.js-side AI/cron/webhook routes silently), the local AI pipeline stalled ~5-6 days with real customer tasks stuck, the Customer Auto-Reply Kill Switch (real, owner-authorized, but means no bot reply to real customers today), a live Rule 113 violation (sent invoices editable), an unauthenticated webhook writing to a non-existent table, the pre-existing issueReceiptForDebtEvent compile error, and a migration that was never actually applied live (wrong hardcoded project ref). Full findings in REALITY_INVENTORY_STEP1.md. Next: STEP 2, building real business-flow test scenarios informed by this inventory."
+  },
+  {
+    "change_id": "DNA-000127",
+    "agent": "Claude",
+    "agent_id": null,
+    "agent_id_note": "Not available to this session — not guessed.",
+    "session_id": null,
+    "date": "2026-08-10",
+    "files": [
+      "registry/capability-roadmap.json (capability #57 added, STEP 1 of OWNER SYSTEM REALITY REPORT)"
+    ],
+    "summary": "Owner ordered a new, permanent Factory capability: OWNER SYSTEM REALITY REPORT — a live, evidence-based, self-updating answer to 'what works, what doesn't, what's connected, what isn't, what connecting X to Y would unlock' across the entire system, never AI-summarized ad hoc, never hardcoded, never fabricated. STEP 1 (Lock Capability into Factory) done: registered as capability #57 in the existing, real, human-curated registry/capability-roadmap.json (reuse, not a parallel registry, per the Owner's own explicit prohibition this turn and Constitution Rule 101/103). Real reuse survey completed for STEP 2 before any code is written: identified every existing registry/runtime this capability must read from rather than duplicate (CAPABILITY_DIRECTORY/WORKER_RUNTIME_MAP/CONNECTOR_DIRECTORY/PROVIDER_DIRECTORY/FACTORY_CENTRAL_REGISTRY/TASK_QUEUE/dependency-graph/architecture-book, DNA_OS_HEALTH+DASHBOARD, gapLoopRuntime.ts, costGateRuntime.ts), and confirmed the real Owner-facing home page to extend for STEP 4 (app/page.tsx -> app/OperationalWorkspace.tsx, 709 lines, already real and rich — not a page to replace). Real build work (STEPs 2-7) now dispatched to CODE_WORKER per Rule 252."
+  },
+  {
+    "change_id": "DNA-000128",
+    "agent": "Claude",
+    "agent_id": null,
+    "agent_id_note": "Not available to this session — not guessed.",
+    "session_id": null,
+    "date": "2026-08-10",
+    "files": [
+      "registry/TASK_QUEUE.json (TASK-053: not_started -> done)",
+      "registry/capability-roadmap.json (capability #57: STEP 2+3 progress recorded)"
+    ],
+    "summary": "Closes TASK-053 (System Reality Model + Connection Gap Map), STEP 2+3 of capability #57 (OWNER SYSTEM REALITY REPORT). MANAGER-07 independently re-verified every material claim before accepting: re-ran system-reality-model:test (26/26, matched exactly, including real structural proofs that the runtime composes gapLoopRuntime.ts/costGateRuntime.ts rather than reimplementing them), re-ran all 9 existing Control-Plane regression suites (unchanged), re-ran tsc --noEmit (unchanged, 1 known pre-existing error only), and confirmed package.json's diff was exactly the one expected added line. Notable real finding surfaced by this build's own independent reachability analysis: 2 additional dead capabilities beyond what STEP 1's inventory had already found (engines/tax.ts, engines/vehicle-selector.ts — both structurally unreachable from any real production surface, same pattern as the already-known pricing-engine gap). Next: STEP 4+5 (extend app/OperationalWorkspace.tsx with a real Owner Report section, in business language)."
+  },
+  {
+    "change_id": "DNA-000129",
+    "agent": "Claude",
+    "agent_id": null,
+    "agent_id_note": "Not available to this session — not guessed.",
+    "session_id": null,
+    "date": "2026-08-10",
+    "files": [
+      "registry/TASK_QUEUE.json (TASK-054 added, done)",
+      "registry/capability-roadmap.json (capability #57: STEP 4+5 progress recorded)"
+    ],
+    "summary": "Closes TASK-054 (Owner Report Page, STEP 4+5 of capability #57). MANAGER-07 independently re-verified before accepting: confirmed registry/WORKER_IDENTITIES.json (the concurrent session's file, briefly corrupted mid-development by a real bug the builder found and fixed) is genuinely valid JSON with sane content right now, not just claimed fixed; re-ran system-reality-report:test (10/10, matched exactly); re-ran system-reality-model:test (26/26, unchanged, confirming the new UI layer didn't destabilize the backend it depends on); re-ran tsc --noEmit (unchanged); confirmed via grep that the only change to the shared, concurrently-edited app/OperationalWorkspace.tsx is exactly the 2 additive hunks the builder claimed (1 import, 1 new <section>) — no other content touched. The Owner's home page now shows a real, live, evidence-based capability report, in business language, with technical detail reachable but not default-visible. Next: STEP 6 (realtime/polling update wiring)."
+  },
+  {
+    "change_id": "DNA-000130",
+    "agent": "Claude",
+    "agent_id": null,
+    "agent_id_note": "Not available to this session — not guessed.",
+    "session_id": null,
+    "date": "2026-08-10",
+    "files": [
+      "registry/TASK_QUEUE.json (TASK-055 added, done)",
+      "registry/capability-roadmap.json (capability #57: STEP 6+7 progress recorded)"
+    ],
+    "summary": "Closes TASK-055 (STEP 6+7 of capability #57). MANAGER-07 independently re-verified before accepting: re-ran system-reality-gaploop:test (17/17, matched exactly, including its own real cleanup verification), directly re-confirmed registry/FACTORY_CENTRAL_REGISTRY.json's real finding count is exactly 20 with no FCR-021 residue (not just trusted from the builder's report), re-ran tsc --noEmit and the 3 most relevant existing suites (system-reality-report 10/10, system-reality-model 26/26, gap-loop 20/20, all unchanged), and confirmed LOCK_MANAGER.json clean. The Owner System Reality Report now updates itself every 2 minutes without a manual refresh, and any BLOCKED/DEGRADED/NOT_CONNECTED/BUILT_NOT_WIRED capability can flow into the real Factory Gap Loop through a real, deliberately-invoked (never auto-triggered by page views) write path. Next: STEP 8 (full 10-criteria acceptance sweep, then declare capability #57 part of the next Factory Baseline)."
+  },
+  {
+    "change_id": "DNA-000131",
+    "agent": "Claude",
+    "agent_id": null,
+    "agent_id_note": "Not available to this session — not guessed.",
+    "session_id": null,
+    "date": "2026-08-10",
+    "files": [
+      "registry/TASK_QUEUE.json (TASK-056 added, done)",
+      "registry/capability-roadmap.json (capability #57: status -> complete)"
+    ],
+    "summary": "Closes the OWNER SYSTEM REALITY REPORT capability (#57), all 8 Owner-specified steps. STEP 8's 10-criteria acceptance sweep performed directly by MANAGER-07 (verification/summarization is explicitly MANAGER-07's own job, not delegated) rather than dispatched, drawing on the cumulative real evidence from TASK-053/054/055's own independently-verified test results plus one additional live proof MANAGER-07 ran itself this turn: called buildOwnerSystemRealityReport() twice, one second apart, and confirmed the two results are genuinely distinct objects whose only content difference is live timestamps (generated_at and a live computeFactoryStatus() call) - direct, first-hand proof the model is never cached and always reflects current real state (Owner's criterion 9), not merely inferred from the unit tests. All 10 criteria real and verified. Real totals across the whole build: 6 new runtime/UI files, 3 real test suites, 53 real passing test assertions, 12 pre-existing suites confirmed never regressed, zero real money spent, zero real findings left as test pollution, zero off-limits or concurrent-session files touched. Declared a permanent capability of the Factory, targeted for the NEXT Factory Baseline (FACTORY_BASELINE_V1 stays frozen and untouched, per its own explicit no-retroactive-edit rule)."
+  },
+  {
+    "change_id": "DNA-000132",
+    "agent": "Claude",
+    "agent_id": null,
+    "agent_id_note": "Not available to this session — not guessed.",
+    "session_id": null,
+    "date": "2026-08-10",
+    "files": [
+      "registry/CONSTITUTION.json (Rule 260 appended)",
+      "registry/rule-coverage.json (entry for rule 260)",
+      "registry/TASK_QUEUE.json (TASK-057 added)"
+    ],
+    "summary": "Owner issued an Owner Constitution Update declaring DNA OS the Root Operating System — Factory, AI, Vercel, Supabase, RunPod, GitHub, MCP, and every Dashboard are real Subsystems, never independent systems; external Providers are never Source of Truth. Recorded as new Constitution Rule 260. Real audit (which parts of this repo's own documentation/registries/UI currently frame Factory/a Provider as the center) and a non-destructive migration plan tracked as TASK-057, dispatched as read-only research per the Owner's own explicit 'propose first, do not touch real code until I approve the plan' instruction for this specific migration."
+  },
+  {
+    "change_id": "DNA-000133",
+    "agent": "Claude",
+    "agent_id": null,
+    "agent_id_note": "Not available to this session — not guessed.",
+    "session_id": null,
+    "date": "2026-08-10",
+    "files": [
+      "registry/capability-roadmap.json (capability #58 added)",
+      "registry/TASK_QUEUE.json (TASK-058, TASK-059 added)"
+    ],
+    "summary": "Owner ordered a new capability, ARCHITECTURE GAP EXPLORER (10-point spec: capability status symbols, connection chain tracing, dead-end detection, dependency-graph drill-down, 4-layer human-language translation, per-folder/per-file summaries, gap resolution guidance, and Owner-clickable Factory command dispatch). Before building anything, MANAGER-07 found this overlaps heavily with capability #57 (OWNER SYSTEM REALITY REPORT, completed the same day) and the not-yet-approved /admin/ide command-dispatch plan proposed the same turn — registered as capability #58, explicitly built as an extension/generalization of #57's real infrastructure (systemRealityRuntime.ts's status taxonomy, Connection Gap Map, and — critically — its already-proven computeLiveReachability() reverse-dependency-graph technique, which today independently found 2 real dead-end modules) rather than a second, parallel reality-reporting system, per Constitution Rule 101/103/260. Staged into real build waves given the scope (~1000+ files, cannot be built or verified in one pass): Wave 1 (Dead-End Sweep + 4-layer File/Folder Summary, dispatched now as TASK-058/059), Wave 2 (dependency drill-down UI + per-file Gap Resolution guidance), Wave 3 (Owner Command dispatch — the previously-proposed CONNECT/BUILD/REPAIR/VERIFY plan, now proceeding under this capability's explicit spec). The 4-layer translation is built ONLY from real, already-structured sources (module-registry.json's real purpose fields, capability-roadmap.json, FCR evidence) — never a live, per-file LLM-fabricated summary, per the Owner's own explicit 'ห้ามสรุปแบบข้อความลอย' instruction."
+  },
+  {
+    "change_id": "DNA-000134",
+    "agent": "Claude",
+    "agent_id": null,
+    "agent_id_note": "Not available to this session — not guessed.",
+    "session_id": null,
+    "date": "2026-08-10",
+    "files": [
+      "registry/TASK_QUEUE.json (TASK-058: not_started -> done)",
+      "registry/capability-roadmap.json (capability #58: Wave 1a progress recorded)"
+    ],
+    "summary": "Closes TASK-058 (Dead-End Sweep, Wave 1a of capability #58). MANAGER-07 independently re-verified before accepting: re-ran dead-end-sweep:test (24/24, matched exactly including all 5 real finding counts), re-ran tsc --noEmit (unchanged) and the 3 most relevant existing suites (system-reality-model/report/gaploop, all unchanged), confirming the generalized computeLiveReachability() signature change broke nothing for existing callers. This is now the second real gap-detection technique proven live today (after the original 2-module finding) — a full, repo-wide sweep, citing real evidence for all 85 findings, correctly excluding the task's own suggested-but-wrong candidate after real verification rather than trusting it blindly. Next: Wave 1b, the 4-layer File/Folder Summary builder."
+  },
+  {
+    "change_id": "DNA-000135",
+    "agent": "Claude",
+    "agent_id": null,
+    "agent_id_note": "Not available to this session — not guessed.",
+    "session_id": null,
+    "date": "2026-08-10",
+    "files": [
+      "registry/TASK_QUEUE.json (TASK-059: not_started -> done)",
+      "registry/capability-roadmap.json (capability #58: Wave 1 marked complete)"
+    ],
+    "summary": "Closes TASK-059 (4-layer File/Folder Summary), completing Wave 1 of capability #58 (ARCHITECTURE GAP EXPLORER). MANAGER-07 independently re-verified before accepting: re-ran architecture-summary:test (18/18, matched exactly), re-ran dead-end-sweep:test/system-reality-model:test/system-reality-report:test/system-reality-gaploop:test (all unchanged), re-ran tsc --noEmit (unchanged). The single most important property of this build — never fabricating a summary when real documentation doesn't exist — was independently confirmed on real data, not just trusted from the agent's report: systemRealityRuntime.ts (real, live, 6 real dependents) still honestly reports 'not yet documented' because it has no real module-registry.json purpose written yet, proving the honesty discipline holds even for genuinely important, functioning files. Wave 1 of capability #58 is complete: a real dead-end detector (85 findings) and a real, on-demand, never-fabricating 4-layer documentation layer, both built entirely by reusing today's existing Control-Plane infrastructure rather than duplicating it. Next: Wave 2 (surface this real data as a drill-down UI in /admin/ide) or Wave 3 (Owner Command dispatch), per Owner direction."
+  },
+  {
+    "change_id": "DNA-000136",
+    "agent": "Claude",
+    "agent_id": null,
+    "agent_id_note": "Not available to this session — not guessed.",
+    "session_id": null,
+    "date": "2026-08-10",
+    "files": [
+      "registry/FACTORY_CENTRAL_REGISTRY.json (FCR-022 added)",
+      "registry/TASK_QUEUE.json (TASK-060 added)"
+    ],
+    "summary": "Owner issued FACTORY DIRECTOR MODE directive (2026-08-10): before any further work, verify real VERIFIED/PUSH/DEPLOY/LIVE status of the most recent work and walk the loop to real LIVE status without re-auditing the whole repo. Found: capability #57 (OWNER SYSTEM REALITY REPORT) and capability #58 Wave 1 (ARCHITECTURE GAP EXPLORER: Dead-End Sweep + 4-layer Summary) were real, tested, and registry-closed as done, but their actual source files were never committed to git at all — TESTED had silently been conflated with VERIFIED/BUILT-into-the-repo. Also found the shared working tree contains extensive, deeply interleaved uncommitted changes from a concurrent AI session (Factory Architecture Advisor) — including one file, app/OperationalWorkspace.tsx, where my own real, tested capability #57 mount and the other session's untested CapabilityMapSection rewrite were interleaved in the same diff. Resolved via git plumbing (hash-object + update-index) to stage only my own verified hunk into the commit without touching the shared working-tree file or disturbing the other session's in-progress, uncommitted work. Independently built and verified the exact candidate commit content in an isolated git worktree (git commit-tree + worktree add, zero shared-state contamination) before committing — this isolation testing is what surfaced FCR-022 (see above): local main already had 11 real pre-existing tsc errors, invisible until now because every prior verification pass (including this session's own) ran against the shared, contaminated working tree rather than the actual committed tree. Confirmed real origin/main (live production) is healthy and unaffected — the break is confined to local, unpushed commits. This commit (following DNA-000136) contains ONLY files independently confirmed as clean, self-contained, and free of any new errors in isolation: capability #57's real runtime/route/UI files, capability #58 Wave 1's real runtime files, their test scripts, the pre-existing engines/documents/engine.ts + types.ts circular-dependency fix, REALITY_INVENTORY_STEP1.md, and this session's own registry entries (Rule 260, TASK-057/058/059/060, capability #58, FCR-013 through FCR-022). Explicitly excludes: all other-session files (front-office/, back-office/, connectors/, providers/, queue/, knowledge/, manager/, logs/, WORKER_*.json, TEAM_ORGANIZATION.json, CAPABILITY_*.json, and more), the 2 pre-existing broken files from bce2c4c (left as-is pending TASK-060), and the LINE-webhook / connectors / line-profiles / relationships files that are mid-edit by the other session. NOT pushed to origin, NOT deployed — per the Owner's own directive rule 11, real production deploy requires explicit Owner approval, and per FCR-022, local main cannot be safely pushed until TASK-060 is resolved regardless."
   }
 ]

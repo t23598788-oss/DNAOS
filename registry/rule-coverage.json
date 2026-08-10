@@ -1477,6 +1477,12 @@
       ],
       "type": "process",
       "detection": "Partial, honestly split by resource: (1) EXECUTION_HAND calling — real code exists (app/api/admin/ide/_lib/executionHandRuntime.ts) but not yet independently verified by MANAGER-07 as of this entry; see rule 258, pending TASK-049. (2) Factory Architecture Advisor — real, live, already-working exchange via registry/FACTORY_CENTRAL_REGISTRY.json (8+ real findings already logged by both sessions); MANAGER-07 has no code path that contacts it directly (verified: MANAGER-07's own tool set is Bash/Read/Edit/Write/Agent against this local repo only, no channel to another AI session exists or is claimed). (3) Rapid Integration Team — real today only in the sense that MANAGER-07 can dispatch a read-only research Agent under the named constraints; no dedicated runtime module exists or is needed — detection is manual (did the dispatched Agent's prompt and actual tool access honor read-only/no-deploy/no-secret-printing) same class of limitation as Rule 250's own detection. No mechanical check yet enforces the 'no duplicate connector' / 'no provider integration without capability mapping' hard restrictions — that requires the capability-map registry app/api/admin/capability-map already found to exist in this repo to be consulted programmatically by whatever calls EXECUTION_HAND for a connector/provider job; not yet wired, real gap, not hidden."
+    },
+    "260": {
+      "title": "DNA OS Is The Root Operating System",
+      "enforced_by": [],
+      "type": "process",
+      "detection": "NOT_IMPLEMENTED — declared architectural principle only as of DNA-000132. Real audit of every place Factory/Vercel/Provider/External-Platform is framed as the system's center tracked as TASK-057 (read-only research, no code change). A non-destructive migration plan is Owner deliverable #2 of that task — real code changes for the migration itself are explicitly gated on Owner approval of that plan, per the Owner's own instruction, not auto-applied."
     }
   },
   "uncovered_rules": [
