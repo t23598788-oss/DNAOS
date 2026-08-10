@@ -301,6 +301,18 @@
       "status": "TRACKED",
       "task_id": null,
       "escalated_to_owner": true
+    },
+    {
+      "finding_id": "FCR-024",
+      "type": "CODE_GAP",
+      "SOURCE": "MANAGER",
+      "source_entity": "MANAGER-07",
+      "reported_by": "TASK-073's CODE_WORKER, cross-verified by MANAGER-07 reading the real code directly",
+      "description": "app/api/admin/connectors/_lib/catalog.ts#gatewayEntries() (line ~178, part of a concurrent session's in-progress /admin/connectors rewrite, now partially committed via TASK-073's scoped commit) hardcodes a GitHub/Vercel gateway-adapter CatalogEntry's `slug` field to the literal provider name (e.g. 'github'), never the real DB connector's actual slug. gateway/connectors.ts's real slugify() always appends a random suffix to every real connector row (e.g. 'github-a1b2c3'), and core/connector-loader.ts requires an exact slug match to resolve a connector. Real consequence: once a real GitHub (or Vercel) connector row exists, any UI Connect button using this catalog entry's slug (including TASK-073's new /admin/ide Connections rail, which intentionally mirrors /admin/connectors's own existing pattern) will link to /api/connectors/oauth/authorize/github and 404, since no connector literally has that slug.",
+      "evaluation": "Real, low-urgency bug -- currently LATENT, not actively breaking anything, since zero GitHub/Vercel connector rows exist yet in this environment (confirmed no real credentials configured). Same limitation already silently affects the existing, committed /admin/connectors page today (it also never shows a Connect button for GitHub, gated on a different kind check). One-line fix once someone owns it: `slug: matchingConnector?.slug ?? a.provider`. Deliberately not fixed by TASK-073 (out of its authorized scope, and catalog.ts partially belongs to a concurrent session's in-progress work) -- tracked here so it's not silently forgotten before the Owner's real GitHub connector row gets created.",
+      "status": "TRACKED",
+      "task_id": null,
+      "escalated_to_owner": false
     }
   ],
   "summary": {

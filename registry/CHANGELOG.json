@@ -2549,5 +2549,19 @@
       "registry/capability-roadmap.json (capability #62: STEP 7 design complete)"
     ],
     "summary": "Closes TASK-072. Real design confirms capability #62 STEP 7 needs far less new backend than assumed -- DNA OS already has a complete, generic, live OAuth engine and a real Provider Registry (catalog.ts) both already exercised by the existing /admin/connectors page; the real gap is /admin/ide UI exposure plus zero registered OAuth credentials for any provider. Corrected an earlier, less-informed claim that TikTok had zero related code -- a real research report and a real, runnable (but uncredentialed) registration script already exist. Dispatched TASK-073: a minimal GitHub-only build slice, explicitly gated on the Owner creating a real GitHub OAuth App before true end-to-end live verification is possible -- code scaffolding proceeds now, honest disclosure of what remains blocked."
+  },
+  {
+    "change_id": "DNA-000158",
+    "agent": "Claude",
+    "agent_id": null,
+    "agent_id_note": "Not available to this session — not guessed.",
+    "session_id": null,
+    "date": "2026-08-10",
+    "files": [
+      "registry/TASK_QUEUE.json (TASK-073: not_started -> done)",
+      "registry/FACTORY_CENTRAL_REGISTRY.json (FCR-024 added)",
+      "registry/capability-roadmap.json (capability #62: STEP 7 minimal slice built)"
+    ],
+    "summary": "Closes TASK-073. Real GitHub Connections rail built and committed (e6450a6), independently isolation-verified by MANAGER-07 -- including catching and resolving a real cross-session file-mixing issue in engines/connectors/tester.ts before commit, and reviewing 4 real files from a concurrent session's in-progress work that this slice genuinely needed to compile. Registered FCR-024 for a real, disclosed, currently-latent slug bug found in the shared catalog.ts. Capability #62 STEP 7's minimal slice is code-complete; true end-to-end verification is blocked on the Owner creating a real GitHub OAuth App -- a real, external, unavoidable manual step."
   }
 ]
