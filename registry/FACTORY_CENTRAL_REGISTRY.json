@@ -289,6 +289,18 @@
       "status": "RESOLVED_BY_MANAGER",
       "task_id": "TASK-060",
       "escalated_to_owner": false
+    },
+    {
+      "finding_id": "FCR-023",
+      "type": "CONNECTOR_GAP",
+      "SOURCE": "MANAGER",
+      "source_entity": "MANAGER-07",
+      "reported_by": "TASK-070's real, live-tested audit (2026-08-10) — Playwright login flow against the real /login form, independently cross-checked via direct curl to Supabase Auth REST",
+      "description": "The real ADMIN_EMAIL/ADMIN_PASSWORD credentials in .env.local (used by the real /login form and app/api/auth/auto-login) are currently REJECTED by the real, live Supabase Auth backend (HTTP 400, invalid_credentials) — confirmed twice, independently (Playwright form submission AND a direct curl to /auth/v1/token with the same values). This blocks any real, live browser-based testing or interaction with any /admin/* page for the one real Owner account (dnaos.tech@gmail.com) using the credentials currently on file.",
+      "evaluation": "Real, credential-level finding — MANAGER-07 explicitly declined to use SUPABASE_SERVICE_ROLE_KEY to mint or reset a session for the real Owner account, since that would mutate real production auth state without explicit Owner authorization. This requires the Owner to either confirm the current real password (if .env.local is simply stale) or explicitly authorize a password reset/rotation. Blocks: any future live-interaction UI audit (13 real Playwright tests already written and ready, e2e/admin-ide-audit.spec.ts), and by extension slows capability #62's steps 2-10 (which benefit from live verification, though structural tracing remains available as a fallback).",
+      "status": "TRACKED",
+      "task_id": null,
+      "escalated_to_owner": true
     }
   ],
   "summary": {

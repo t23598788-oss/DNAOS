@@ -2509,5 +2509,19 @@
       "registry/rule-coverage.json (Rule 261 detection updated)"
     ],
     "summary": "Closes TASK-071. Real Owner Operability Matrix delivered, correcting an initial working assumption: most of DNA OS's priority-area capabilities (AI command, File workspace, Search, Save, Test, Build, Connections, Runtime status) are already genuinely OWNER_OPERABLE via real, live, pre-existing infrastructure -- not just backend code with no UI, as might have been assumed given how much of this session's own recent work (Cap #59/#60's newest Dispatcher layer) is confirmed BACKEND_ONLY. Only that newest layer remains genuinely gapped, with the same root cause already known (WORKER_IDENTITIES.json 0/6 registered). Found a real, systemic persistence gap (in-memory-only Map state across most Software Factory backends) cutting across nearly every OWNER_OPERABLE row -- functional but not restart-durable. TASK-070 (live UI interaction audit) still running; a single combined report to the Owner will follow once it completes."
+  },
+  {
+    "change_id": "DNA-000155",
+    "agent": "Claude",
+    "agent_id": null,
+    "agent_id_note": "Not available to this session — not guessed.",
+    "session_id": null,
+    "date": "2026-08-10",
+    "files": [
+      "registry/TASK_QUEUE.json (TASK-070: not_started -> done)",
+      "registry/FACTORY_CENTRAL_REGISTRY.json (FCR-023 added, escalated)",
+      "registry/capability-roadmap.json (capability #62: STEP 1 complete)"
+    ],
+    "summary": "Closes TASK-070. Real /admin/ide UI audit complete, blocked from live browser interaction by a real, confirmed credential problem (FCR-023, escalated to Owner) but completed via rigorous structural tracing of the full 5686-line IDEWorkspace.tsx. Confirms most of the system is genuinely real (not mock), matching TASK-071's independent finding. Most important correction: this session's own TASK-064 (Execution Planner) and TASK-066 (Dispatcher) builds are confirmed orphaned/unreachable from the real, live Owner Command UI flow, which uses a different, pre-existing, working implementation instead -- capability #62's remaining steps must build on what's actually live, not on this session's own newest, unwired machinery."
   }
 ]

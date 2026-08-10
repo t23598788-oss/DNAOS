@@ -13860,6 +13860,26 @@
         "createAutoSaveScheduler"
       ],
       "status": "active"
+    },
+    "playwright.config.ts": {
+      "owner": "playwright.config.ts",
+      "layer": "playwright.config.ts",
+      "purpose": "Real Playwright configuration for live, browser-driven interaction testing of /admin/ide (TASK-070, capability #62) — reuses the already-installed playwright package, zero new dependencies. Defines a real auth-setup project plus a no-auth project for unauthenticated route/redirect checks.",
+      "purpose_th": "ค่าตั้งค่าจริงสำหรับการทดสอบคลิกจริงผ่านเบราว์เซอร์ ใช้แพ็กเกจที่มีอยู่แล้วในระบบ ไม่ได้เพิ่มของใหม่ กำหนดขั้นตอนเข้าสู่ระบบจริงแยกจากการทดสอบเส้นทางที่ไม่ต้องยืนยันตัวตน",
+      "exports": [
+        "default"
+      ],
+      "status": "active",
+      "entry_point": true
+    },
+    "e2e/auth.setup.ts": {
+      "owner": "e2e",
+      "layer": "e2e",
+      "purpose": "Real Playwright login flow — drives the actual /login form with real ADMIN_EMAIL/ADMIN_PASSWORD from .env.local (never a fabricated auth bypass) and saves the resulting real Supabase session for reuse by other e2e specs. Currently fails live: FCR-023, the on-file password is rejected by the real Supabase Auth backend.",
+      "purpose_th": "ขั้นตอนเข้าสู่ระบบจริงสำหรับการทดสอบอัตโนมัติ ใช้แบบฟอร์มเข้าสู่ระบบจริงกับข้อมูลบัญชีจริงที่มีอยู่ ไม่ใช่ทางลัดปลอม ปัจจุบันล็อกอินไม่ผ่านจริง (FCR-023) เพราะรหัสผ่านที่บันทึกไว้ถูกปฏิเสธจากระบบยืนยันตัวตนจริง",
+      "exports": [],
+      "status": "active",
+      "entry_point": true
     }
   },
   "excluded": [

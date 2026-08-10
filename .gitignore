@@ -23,6 +23,16 @@ local-runtime/.runpod-last-active
 # testing
 /coverage
 
+# Playwright (TASK-070, capability #62 STEP 1 — real /admin/ide UI audit
+# infrastructure) — real, per-run output/traces and the real saved Supabase
+# session storage state (contains live session cookies, must never be
+# committed).
+/test-results
+/playwright-report
+/blob-report
+/playwright/.cache
+e2e/.auth
+
 # next.js
 /.next/
 /out/
