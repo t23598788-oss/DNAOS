@@ -1212,7 +1212,23 @@ export default function IDEWorkspace() {
   }, [saveFile]);
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100vh", width: "100%", overflow: "hidden", fontFamily: "system-ui, sans-serif", fontSize: 13, background: "#F5F7FA", color: "#334155" }}>
+    // TASK-075 (Round 2 real containment fix) — height:"100%" (NOT
+    // "100vh"), with maxHeight:"100%" as a redundant safety net, same
+    // pattern app/admin/layout.tsx's own real wrapper already uses
+    // ("h-full" for pages that want a fully locked frame, per that file's
+    // own code comment). 100vh is the viewport's raw height and ignores
+    // real ancestor chrome — this page's real parent chain is html→body→
+    // app/admin/layout.tsx's `h-screen` column→HomeBackBar (a real, non-
+    // zero `sticky` flow element, see components/nav/HomeBackBar.tsx) +
+    // the `flex-1 min-h-0 overflow-y-auto` region this component actually
+    // renders inside. 100vh made this root taller than that real region by
+    // exactly HomeBackBar's height, so that ancestor's own overflow-y-auto
+    // had to scroll to reveal the clipped bottom (StatusBar/BottomPanel) —
+    // the real, reproducible cause of the Owner's reported "browser-level
+    // scrollbar" / "whole page scrolls" bugs. height:"100%" makes this
+    // root fill exactly the real space its real parent already measured
+    // out for it, so that ancestor's overflow-y-auto never triggers.
+    <div style={{ display: "flex", flexDirection: "column", height: "100%", maxHeight: "100%", width: "100%", overflow: "hidden", fontFamily: "system-ui, sans-serif", fontSize: 13, background: "#F5F7FA", color: "#334155" }}>
       <style>{`
         @media (prefers-reduced-motion: no-preference) {
           @keyframes dna-ide-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.45; } }
@@ -1220,7 +1236,12 @@ export default function IDEWorkspace() {
       `}</style>
       <TopBar onRefresh={refresh} lastRefreshedAt={lastRefreshedAt} workspaceStatus={workspaceStatus} realBranch={realBranch} />
       <CommandSurfaceBar onOpenConnections={() => { setActiveTool("connections"); setLeftCollapsed(false); }} />
-      <div style={{ flex: 1, display: "flex", minHeight: 0, minWidth: 0 }}>
+      {/* TASK-075 — middle workspace row: flex:1 + minHeight:0 (the real
+          root cause the Owner's own diagnosis called out: without
+          minHeight:0 a flex child refuses to shrink below its content's
+          natural height) + overflow:hidden so nothing here can ever push
+          past the real IDEWorkspace root box. */}
+      <div style={{ flex: 1, display: "flex", minHeight: 0, minWidth: 0, overflow: "hidden" }}>
         <ActivityBar activeTool={activeTool} onSelect={setActiveTool} />
         {!leftCollapsed && (
           <>
@@ -1253,7 +1274,7 @@ export default function IDEWorkspace() {
             <ChevronRight size={12} />
           </button>
         )}
-        <div ref={editorColumnRef} style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0, position: "relative", overflow: "hidden" }}>
+        <div ref={editorColumnRef} style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0, minHeight: 0, overflow: "hidden" }}>
           <TabStrip tabs={tabs} activeTabId={activeTabId} onSelect={setActiveTabId} onClose={closeTab} dirtyTabIds={tabs.filter((t) => isDirty(fileStates[t.id])).map((t) => t.id)} fileStates={fileStates} />
           <EditorToolbar
             tab={activeTabObj}
@@ -1279,10 +1300,17 @@ export default function IDEWorkspace() {
             gitRefreshNonce={gitRefreshNonce}
             wrapMode={wrapMode}
           />
-          {/* Floating Bottom Console — position:absolute inside this
-              position:relative column, so it overlays the Editor from below
-              instead of pushing it (Editor keeps flex:1 of the FULL column
-              height at all times, collapsed or expanded). */}
+          {/* TASK-075 (Round 2) — Bottom Console: was position:"absolute"
+              overlaying the Editor from below (deliberate prior design,
+              Owner's own real visual inspection explicitly overrode it —
+              it covered real content). Now a REAL, in-flow flex sibling
+              of TabStrip/EditorToolbar/EditorPane in this flexDirection:
+              "column" Editor Column: EditorPane above keeps flex:1 (grows
+              to fill whatever remains), BottomPanel below is flexShrink:0
+              with an explicit height (collapsed strip or the real
+              drag-resized height) — so expanding/resizing it genuinely
+              shrinks EditorPane's real available space; it can never cover
+              content again. */}
           <BottomPanel
             activeTab={bottomTab}
             onSelectTab={handleSelectBottomTab}
@@ -1579,7 +1607,7 @@ function CommandSurfaceBar({ onOpenConnections }: { onOpenConnections: () => voi
 // ---- Activity bar ----
 function ActivityBar({ activeTool, onSelect }: { activeTool: ToolId; onSelect: (t: ToolId) => void }) {
   return (
-    <div style={{ width: 52, background: "#EEF2F7", display: "flex", flexDirection: "column", alignItems: "center", paddingTop: 8, gap: 4, flexShrink: 0 }}>
+    <div style={{ width: 52, height: "100%", overflow: "hidden", background: "#EEF2F7", display: "flex", flexDirection: "column", alignItems: "center", paddingTop: 8, gap: 4, flexShrink: 0 }}>
       {TOOLS.map((t) => {
         const Icon = t.icon;
         const active = activeTool === t.id;
@@ -1621,7 +1649,7 @@ function LeftPanel({
   onAutoSaveChanged: (enabled: boolean) => void;
 }) {
   return (
-    <div style={{ height: "100%", background: "#EEF2F7", borderRight: "1px solid #E2E8F0", overflowY: "auto", overflowX: "hidden", display: "flex", flexDirection: "column" }}>
+    <div style={{ height: "100%", minHeight: 0, minWidth: 0, background: "#EEF2F7", borderRight: "1px solid #E2E8F0", overflowY: "auto", overflowX: "hidden", display: "flex", flexDirection: "column" }}>
       <div style={{ padding: "8px 10px", display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0 }}>
         <span style={{ fontSize: 11, fontWeight: 600, textTransform: "uppercase", color: "#64748B" }}>{TOOLS.find((t) => t.id === tool)?.label}</span>
         <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
@@ -2631,7 +2659,7 @@ function EditorPane({ tab, highlight, fileState, onChangeContent, onConflictRelo
 }) {
   if (!tab) {
     return (
-      <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", color: "#94A3B8", minWidth: 0 }}>
+      <div style={{ flex: 1, minHeight: 0, overflow: "auto", display: "flex", alignItems: "center", justifyContent: "center", color: "#94A3B8", minWidth: 0 }}>
         No file open
       </div>
     );
@@ -2800,7 +2828,7 @@ function FileEditor({ tabId, path, state, highlight, onChangeContent, onConflict
   const softWrap = wrapMode === "on" || (wrapMode === "smart" && shouldSoftWrapPath(path));
 
   return (
-    <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0, minHeight: 0 }}>
+    <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0, minHeight: 0, overflow: "auto" }}>
       <div style={{ display: "flex", alignItems: "center", gap: 14, padding: "5px 12px", fontSize: 10.5, color: "#64748B", background: "#EEF2F7", borderBottom: "1px solid #E2E8F0", flexShrink: 0 }}>
         <span title={path}>{path}</span>
         <span>{formatBytes(new Blob([state.content]).size)}</span>
@@ -3011,7 +3039,7 @@ function DiffPane({ path, staged, refreshNonce }: { path: string; staged: boolea
   }
 
   return (
-    <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0, minHeight: 0 }}>
+    <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0, minHeight: 0, overflow: "auto" }}>
       <div style={{ display: "flex", gap: 14, padding: "5px 12px", fontSize: 10.5, color: "#64748B", background: "#EEF2F7", borderBottom: "1px solid #E2E8F0", flexShrink: 0 }}>
         <span>{diff.path}</span>
         <span>{diff.staged ? "staged" : "unstaged"}</span>
@@ -3108,16 +3136,6 @@ interface BottomPanelProps {
   onOpenFinding: (relPath: string, line: number, column: number) => void;
 }
 
-// z-index hierarchy (owner, 2026-08-05, Floating Console pass): Editor
-// content is normal flow (implicit stacking, z-index: auto). This console
-// floats at z-index 30 — above the Editor, below anything that must appear
-// "on top of everything" (native window.prompt/confirm/alert dialogs used
-// elsewhere in this file are OS-level chrome and always render above any
-// page z-index regardless; the one existing in-page dropdown in
-// EditorToolbar's Save-All menu uses z-index 10 but is anchored near the
-// TOP toolbar, never overlapping this bottom-anchored console).
-const CONSOLE_Z_INDEX = 30;
-
 function BottomPanel({
   activeTab, onSelectTab, height, collapsed, onToggleCollapse, onResizeStart,
   isExecRunning, hasUnreadFailure, hasUnreadOutput, onOpenFinding, ...exec
@@ -3137,11 +3155,18 @@ function BottomPanel({
   };
 
   return (
+    // TASK-075 (Round 2) — real, in-flow flex sibling (flexShrink:0, an
+    // explicit real height), NOT position:"absolute": a real flex sibling
+    // of TabStrip/EditorToolbar/EditorPane inside the Editor Column's
+    // flexDirection:"column" flow. EditorPane above has flex:1, so it
+    // genuinely shrinks by this element's real height whenever it changes
+    // (collapsed strip vs. the real drag-resized height) — it is never
+    // covered.
     <div
       style={{
-        position: "absolute", left: 0, right: 0, bottom: 0, zIndex: CONSOLE_Z_INDEX,
+        flexShrink: 0, minWidth: 0, minHeight: 0,
         height: collapsed ? BOTTOM_COLLAPSED_HEIGHT : height,
-        display: "flex", flexDirection: "column", minWidth: 0, color: "#334155",
+        display: "flex", flexDirection: "column", color: "#334155",
         transition: "height 120ms ease-out",
         ...glassStyle,
       }}
