@@ -13744,6 +13744,27 @@
         "loadModuleRegistry"
       ],
       "status": "active"
+    },
+    "scripts/execution-planner-test.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "Real acceptance suite (11 cases) for executionPlannerRuntime.ts — proves the Owner's own worked example (8 ordered, dependency-chained steps) decomposes correctly, proves the isolation scope limit holds via a structural import-scan, and proves decomposition is genuinely input-driven (a non-matching command produces a different real plan).",
+      "purpose_th": "ชุดทดสอบจริง 11 ข้อสำหรับตัวแตกคำสั่ง Execution Planner — พิสูจน์ว่าตัวอย่างจริงที่ Owner กำหนด (8 ขั้นตอนตามลำดับ) ถูกแตกออกมาถูกต้อง พิสูจน์ว่าขอบเขตการแยกเดี่ยวเป็นจริง และพิสูจน์ว่าการแตกงานขึ้นกับคำสั่งจริง ไม่ใช่จับคู่ข้อความตายตัว",
+      "exports": [],
+      "status": "active"
+    },
+    "app/api/admin/ide/_lib/executionPlannerRuntime.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Real, pure Execution Planner — decomposes a raw Owner command plus a StructuredIntent into an ordered, dependency-chained TaskPlan of WorkItem-shaped draft steps (real keyword/regex classification, never a live LLM call). Deliberately isolated: never calls classifyCapability/submitGateInput/attemptDispatch or reads WORKER_IDENTITIES.json/TEAM_ORGANIZATION.json — produces a plan only, never dispatches.",
+      "purpose_th": "ตัวแตกคำสั่ง Owner เป็นขั้นตอนงานตามลำดับจริง (ไม่ใช้ AI ตัดสิน ใช้การจับรูปแบบคำจริง) แต่ละขั้นเชื่อมโยงพึ่งพากันจริงตามลำดับ ถูกออกแบบให้แยกเดี่ยวจงใจ ไม่เรียกใช้ตัวจ่ายงานหรือข้อมูลทีม Worker ที่ยังไม่พร้อม — ทำหน้าที่แค่วางแผน ไม่สั่งงานเอง",
+      "exports": [
+        "CommandPatternKind",
+        "PlannedWorkItem",
+        "TaskPlan",
+        "planExecution"
+      ],
+      "status": "active"
     }
   },
   "excluded": [
