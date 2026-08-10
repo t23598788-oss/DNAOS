@@ -91,9 +91,17 @@ import { randomUUID } from "crypto";
 import { WORKSPACE_ROOT } from "./fsSecurity";
 import { createOperationsArtifact, getArtifact } from "./artifactRuntime";
 import { extractKeywords, overlapCoefficient, submitWorkerQuestion, type SubmitWorkerQuestionOutcome } from "./managerQuestionRuntime";
-import { WORKER_REGISTRY, selectWorker, type WorkerType } from "./workerRegistry";
+import { WORKER_REGISTRY, selectWorker, type WorkerType, type WorkerDefinition } from "./workerRegistry";
 import { buildMinimalContextPlan, type ContextPlan } from "./contextPlannerRuntime";
 import { checkCostGate } from "./costGateRuntime";
+// TASK-066 (per TASK-065's "one Dispatcher, two real Adapter families"
+// design) — the real, existing Integration Gateway event bus that
+// ASYNCHRONOUS-mode WorkItems route through instead of the synchronous
+// WorkerAdapter path below. Reuses the real GatewayEvent contract exactly
+// (contracts/event.ts) — never a new, parallel event shape/type.
+import { publish } from "@/engines/integration-gateway/event-bus/bus";
+import type { GatewayEvent } from "@/engines/integration-gateway/contracts/event";
+import { supabaseAdmin } from "@/services/supabase/queries";
 
 const ROOT = WORKSPACE_ROOT;
 function nowIso(): string { return new Date().toISOString(); }
@@ -283,7 +291,13 @@ export interface CapabilityClassification {
   workerId: string; department: string; matchKind: "LITERAL_SUBSTRING" | "KEYWORD_OVERLAP"; matchScore: number; workerType: WorkerType | null;
 }
 
-function classifyCapability(capabilityText: string): CapabilityClassification | null {
+/** Exported (2026-08-10, TASK-066, per TASK-065's design) so a FUTURE task
+ * can wire this into commandSurfaceRuntime.ts's live Owner-facing dispatch
+ * path once registry/WORKER_IDENTITIES.json has at least 1 real registrant
+ * — purely additive, signature/behavior unchanged. This task does NOT add
+ * any new call site itself; classifyCapability's only 2 real callers
+ * remain internal to this file (submitGateInput/attemptDispatch below). */
+export function classifyCapability(capabilityText: string): CapabilityClassification | null {
   const identities = loadWorkerIdentities();
   const typeMap = loadDepartmentWorkerTypeMap();
   const lower = capabilityText.toLowerCase().trim();
@@ -413,6 +427,70 @@ export interface DispatchOutcome { taskId: string; outcome: DispatchOutcomeKind;
 
 function intersect(a: string[], b: string[]): string[] { const setB = new Set(b); return a.filter((x) => setB.has(x)); }
 
+// ============================================================
+// ASYNCHRONOUS dispatch -> Integration Gateway (owner, 2026-08-10,
+// TASK-066, per TASK-065's design). Real, honest, fire-and-forget publish
+// of a real GatewayEvent (contracts/event.ts's exact, unmodified shape —
+// never a new/parallel type) for a WorkItem whose resolved Worker's real
+// executionMode is ASYNCHRONOUS. Fire-and-forget because attemptDispatch()
+// below is a real, synchronous function (every existing caller/test calls
+// it synchronously, expecting a synchronous DispatchOutcome return —
+// changing that signature would be a real, unauthorized behavior change to
+// the SYNCHRONOUS/HUMAN_IN_LOOP path this task must leave untouched) while
+// publish() is real, async I/O (a real Supabase write). This is the exact
+// same disclosed, already-established pattern this repo already uses for
+// EDGE_FUNCTION_WORKER's own detached dispatch (workerRegistry.ts's
+// EDGE_FUNCTION_WORKER limitations[] — "genuinely fire-and-forget by
+// default"). A publish()/supabaseAdmin() failure (e.g. this environment's
+// real, disclosed lack of configured Supabase env vars) is caught and
+// audited, never left as an unhandled rejection, never allowed to throw
+// out of the synchronous attemptDispatch() call below.
+//
+// Field-mapping, honestly disclosed: GatewayEvent's real `provider`
+// (contracts/event.ts) is a closed union of 5 literal external providers
+// (github/supabase/vercel/vscode/chatgpt-mcp) — none literally names "an
+// internal DNA OS Worker" (a real, disclosed gap for a future task to
+// close by extending GatewayProvider itself; out of this narrow task's
+// scope). This reuses the EXACT SAME real precedent
+// app/api/gateway/proposals/route.ts already established for this
+// identical situation (an internal/non-external-provider-sourced
+// proposal): default to "vscode" (this Dispatcher itself lives under
+// app/api/admin/ide/_lib/ — the same real IDE surface
+// proposals/route.ts's own ALLOWED_PROVIDERS already names) rather than
+// inventing a 6th literal or fabricating a misleading provider name.
+// channel/action are real "propose" (not "execute" — policy/gate.ts's
+// ENABLED_CHANNELS does not open Execute yet, so an ASYNCHRONOUS WorkItem
+// is honestly proposed, the same real Owner-approval requirement
+// CODE_WORKER's own real capability text already discloses, never
+// silently auto-run) — capability "automation.command.proposed" is the
+// closest real, already-existing GatewayCapability literal to "a system
+// proposes running a capability," reused as-is, never invented.
+function publishAsyncWorkItem(item: WorkItem, classification: CapabilityClassification, workerDef: WorkerDefinition, ownerId: string, actor: string): void {
+  const event: GatewayEvent = {
+    event_id: randomUUID(),
+    provider: "vscode",
+    capability: "automation.command.proposed",
+    channel: "propose",
+    action: "propose",
+    session_id: null,
+    change_id: null,
+    evidence: {
+      task_id: item.task_id, capability: item.capability, department: classification.workerId,
+      workerType: classification.workerType, workerProvider: workerDef.provider, ownerId, actor,
+    },
+    requested_effect: `dispatch WorkItem ${item.task_id} (capability "${item.capability}") to Department ${classification.workerId} via ASYNCHRONOUS WorkerType ${classification.workerType}`,
+    requires_owner_approval: true,
+    occurred_at: nowIso(),
+  };
+  try {
+    publish(supabaseAdmin(), event).catch((err) => {
+      recordAudit(item, "WORKER", `real ASYNCHRONOUS GatewayEvent publish() call failed (fire-and-forget, non-blocking): ${err instanceof Error ? err.message : String(err)}`);
+    });
+  } catch (err) {
+    recordAudit(item, "WORKER", `real ASYNCHRONOUS GatewayEvent publish() could not even be attempted (e.g. supabaseAdmin() construction failed — real, disclosed environment gap, non-blocking): ${err instanceof Error ? err.message : String(err)}`);
+  }
+}
+
 /** Real lock-scope contention check (Owner rule 5/6): an item may not
  * acquire a lock over any path another in-flight item (LOCKED/RUNNING/
  * VERIFYING) already holds. Disclosed gap: does not yet special-case an
@@ -523,6 +601,29 @@ export function attemptDispatch(taskId: string, ownerId: string, actor: string):
   // Real registration path — not exercised in this environment today
   // (0/6 registered), but real: transitions RUNNING on an actually
   // registered Department.
+  //
+  // TASK-066 (per TASK-065's design: one Registry + one Dispatcher, two
+  // real Adapter families under it) — branch on the real, existing
+  // WorkerDefinition.executionMode (workerRegistry.ts). SYNCHRONOUS/
+  // HUMAN_IN_LOOP items keep the exact prior behavior below, byte-for-byte
+  // unchanged — this remains the only real path this environment's own
+  // 0/6-registered WORKER_IDENTITIES.json ever actually reaches today.
+  // ASYNCHRONOUS items are instead published as a real GatewayEvent to
+  // engines/integration-gateway/event-bus/bus.ts#publish() — capability
+  // #56's real event/webhook transport — rather than the synchronous
+  // WorkerAdapter family (workerContract.ts/workerAdapter.ts), per
+  // TASK-065's finding that the two transports must stay two real
+  // families under one Dispatcher switch, never merged into one
+  // interface. See publishAsyncWorkItem() above for the full, honest
+  // field-mapping disclosure.
+  if (workerDef.executionMode === "ASYNCHRONOUS") {
+    publishAsyncWorkItem(item, classification, workerDef, ownerId, actor);
+    item.state = "RUNNING";
+    recordAudit(item, "WORKER", `real ASYNCHRONOUS dispatch — a real GatewayEvent publish() call to engines/integration-gateway/event-bus/bus.ts was initiated (fire-and-forget, channel=propose) for Department ${classification.workerId} (${classification.workerType}, executionMode=ASYNCHRONOUS); never a synchronous WorkerAdapter call for this executionMode`);
+    persistWorkItemEvidence(item, actor, ownerId);
+    return { taskId, outcome: "DISPATCHED", detail: `published ASYNCHRONOUS GatewayEvent for ${classification.workerId} via event-bus/bus.ts#publish()`, contextPlan };
+  }
+
   item.state = "RUNNING";
   recordAudit(item, "WORKER", `real dispatch to ${classification.workerId} (${classification.workerType})`);
   persistWorkItemEvidence(item, actor, ownerId);

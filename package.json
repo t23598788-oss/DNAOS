@@ -115,7 +115,8 @@
     "system-reality-gaploop:test": "npx tsx scripts/system-reality-gaploop-test.ts",
     "dead-end-sweep:test": "npx tsx scripts/dead-end-sweep-test.ts",
     "architecture-summary:test": "npx tsx scripts/architecture-summary-test.ts",
-    "execution-planner:test": "npx tsx scripts/execution-planner-test.ts"
+    "execution-planner:test": "npx tsx scripts/execution-planner-test.ts",
+    "dispatcher-execution-mode:test": "npx tsx scripts/dispatcher-execution-mode-test.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.115.0",

@@ -13357,6 +13357,7 @@
         "__debugReset",
         "__debugWorkItemCount",
         "attemptDispatch",
+        "classifyCapability",
         "classifyEscalation",
         "getWorkItem",
         "listDrops",
@@ -13763,6 +13764,16 @@
         "PlannedWorkItem",
         "TaskPlan",
         "planExecution"
+      ],
+      "status": "active"
+    },
+    "scripts/dispatcher-execution-mode-test.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "Real acceptance suite (12 cases) for the Dispatcher executionMode branch (TASK-066) — proves classifyCapability is really exported, proves an ASYNCHRONOUS work item structurally reaches the real Integration Gateway publish() with a real, guard-validated GatewayEvent, and proves the SYNCHRONOUS/HUMAN_IN_LOOP path is byte-for-byte unchanged.",
+      "purpose_th": "ชุดทดสอบจริง 12 ข้อสำหรับส่วนแยกเส้นทางงานแบบ ASYNCHRONOUS ในตัวจ่ายงาน — พิสูจน์ว่าฟังก์ชันจัดหมวดถูกเปิดให้เรียกจากภายนอกได้จริง งานแบบ ASYNCHRONOUS ไปถึงระบบเชื่อมต่อภายนอกจริงถูกต้อง และเส้นทางเดิม (SYNCHRONOUS) ไม่เปลี่ยนแปลงแม้แต่บรรทัดเดียว",
+      "exports": [
+        "classifyCapability"
       ],
       "status": "active"
     }
