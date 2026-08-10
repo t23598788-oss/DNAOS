@@ -143,8 +143,20 @@ echo "  Generated: $(date '+%Y-%m-%d %H:%M:%S')"
 echo ""
 
 # ── Generate JSON ──
-
-cat > DNA_OS_HEALTH.json << EOF
+# TASK-051/FCR-012 fix (2026-08-10): this used to write DNA_OS_HEALTH.json,
+# the SAME file scripts/governance.sh writes with a genuinely different,
+# incompatible schema (checks/summary/governance_score vs this script's
+# evolution/risk/metrics) — whichever script ran last silently clobbered the
+# other's readers, producing 4 real TS2339 errors on app/OperationalWorkspace.tsx
+# (a compile-time `import systemHealth from '@/DNA_OS_HEALTH.json'`, so tsc's
+# inferred type depended on which script wrote last). Real investigation found
+# load-bearing, still-current consumers of BOTH shapes at once (governance.sh's
+# shape: app/OperationalWorkspace.tsx, app/api/admin/workspace/status/route.ts,
+# scripts/deploy-gate.ts — the actual deploy-blocking gate; this script's shape:
+# scripts/hello.ts's HEALTH section) — two genuinely different purposes (a
+# pass/fail CI gate vs an executive evolution/risk report), not one dataset
+# duplicated, so a separate file is correct rather than forcing a merged schema.
+cat > DNA_OS_DASHBOARD.json << EOF
 {
   "generated_at": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")",
   "evolution": {

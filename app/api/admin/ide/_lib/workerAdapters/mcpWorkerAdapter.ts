@@ -16,6 +16,11 @@ import type { WorkerRequest, WorkerResponse } from "../workerContract";
 
 export const mcpWorkerAdapter: WorkerAdapter = {
   id: "mcp-foundation", type: "MCP", provider: "mcp",
+  // Real, honest costClass (Rule 257) — UNKNOWN_COST: FOUNDATION_ONLY,
+  // no real MCP client exists, no real cost model has ever been
+  // established for whatever external tool a future real client might
+  // call — never assumed FREE just because it's unreachable today.
+  costClass: "UNKNOWN_COST",
   availability(): WorkerAvailability {
     return { available: false, reason: "no real MCP CLIENT abstraction exists in this repo — dna-os-mcp-server/app/api/v1/mcp/* make DNA OS an MCP SERVER, the opposite direction; FOUNDATION_ONLY this Step" };
   },

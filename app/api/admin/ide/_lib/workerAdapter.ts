@@ -55,10 +55,32 @@ export interface WorkerCostEstimate {
   confidence: "LOW" | "MEDIUM" | "HIGH" | "UNKNOWN";
 }
 
+/** Real Cost Class taxonomy (owner, 2026-08-09, Constitution Rule 257 —
+ * Execution Plane Cost Gate, TASK-048/FCR-009). Every real Adapter must
+ * honestly declare one of these 4 — mirrors workerRegistry.ts's own
+ * CostClass exactly (kept as a same-shaped, separately-declared literal
+ * union here rather than importing workerRegistry.ts, since Adapters
+ * classify PER-PROVIDER, not per-WorkerType, and this file must stay
+ * provider-neutral / import nothing from a specific Worker's registry).
+ * costGateRuntime.ts is the one real place PAID/UNKNOWN_COST is ever
+ * gated on. */
+export type AdapterCostClass = "FREE" | "ESTIMATED_COST" | "PAID" | "UNKNOWN_COST";
+
 export interface WorkerAdapter {
   id: string;
   type: WorkerAdapterType;
   provider: string;
+  /** Real, honest, static declaration (Rule 257) — never derived from a
+   * live call. Set once per real Adapter, based on that Adapter's own
+   * real, disclosed cost evidence (see each Adapter file's header).
+   * Optional so this stays backward-compatible with real, disposable,
+   * in-process test-stub Adapters built ad hoc by acceptance suites
+   * (e.g. scripts/worker-01-acceptance-test.ts's makeStubAdapter()) —
+   * costGateRuntime.ts's caller treats an absent costClass as FREE,
+   * which is honestly correct for a stub documented as "never a real
+   * provider call," never a loophole for a real production Adapter
+   * (all 5 real Adapters in workerAdapters/* declare it explicitly). */
+  costClass?: AdapterCostClass;
   /** Real, deterministic, synchronous check — real config/binary/env
    * presence only, never a live network call (that's health()'s job). */
   availability(): WorkerAvailability;

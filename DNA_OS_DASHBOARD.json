@@ -1,0 +1,31 @@
+{
+  "generated_at": "2026-08-10T00:51:06Z",
+  "evolution": {
+    "constitution_pct": 70,
+    "workflow_pct": 94,
+    "business_pct": 70,
+    "documents_pct": 100,
+    "registry_pct": 100,
+    "governance_pct": 100
+  },
+  "risk": {
+    "shadow_system": 0,
+    "duplicate_logic": 378,
+    "ghost_rules": 43,
+    "dead_code_files": 5,
+    "business_gaps": 3,
+    "type_errors": 1,
+    "overall": "High",
+    "score": 8
+  },
+  "metrics": {
+    "modules_registered": 1130,
+    "commands_registered": 131,
+    "rules_enforced": 178,
+    "rules_total": 252,
+    "workflows_complete": 18,
+    "workflows_total": 19,
+    "business_covered": 8,
+    "business_total": 12
+  }
+}

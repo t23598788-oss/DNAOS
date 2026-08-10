@@ -414,6 +414,13 @@ function getTaskEntries(tq: TaskQueueFile): TaskEntry[] {
 }
 interface ConstitutionFile { version?: string | number; iron_rules?: unknown[] }
 interface ArchBookMainFile { summary: { total: number; ok: number; broken: number; unused: number; unregistered: number } }
+// TASK-051/FCR-012 fix (2026-08-10): this is scripts/dashboard.sh's real
+// schema (evolution/risk/metrics), now read from its own file,
+// DNA_OS_DASHBOARD.json — previously both this script AND scripts/governance.sh
+// wrote to the same DNA_OS_HEALTH.json with incompatible schemas, so whichever
+// ran last silently broke the other's readers (governance.sh's real consumers:
+// app/OperationalWorkspace.tsx, app/api/admin/workspace/status/route.ts,
+// scripts/deploy-gate.ts — those keep reading DNA_OS_HEALTH.json unchanged).
 interface HealthFile {
   evolution: { constitution_pct: number; workflow_pct: number; business_pct: number; governance_pct: number };
   risk: { overall: string; duplicate_logic: number; ghost_rules: number; dead_code_files: number };
@@ -463,7 +470,7 @@ function main() {
   const taskQueue = readJSON<TaskQueueFile>("registry/TASK_QUEUE.json");
   const constitution = readJSON<ConstitutionFile>("registry/CONSTITUTION.json");
   const archBook = readJSON<ArchBookMainFile>("registry/architecture-book.json");
-  const health = readJSON<HealthFile>("DNA_OS_HEALTH.json");
+  const health = readJSON<HealthFile>("DNA_OS_DASHBOARD.json");
   const changelog = readJSON<ChangelogEntry[]>("registry/CHANGELOG.json");
   const governance = readJSON<GovernanceFile>("registry/GOVERNANCE_REGISTRY.json");
   const taskEntries = getTaskEntries(taskQueue);
@@ -569,7 +576,7 @@ function main() {
   console.log(`\n  (The other ${Number(totalRegistered) - totalWired} registered modules do not yet have a Self Description Interface.)`);
 
   console.log(`\n  Generated: ${new Date().toISOString()}`);
-  console.log(`  Source: registry/*.json, DNA_OS_HEALTH.json — no source code read to produce this report.\n`);
+  console.log(`  Source: registry/*.json, DNA_OS_DASHBOARD.json — no source code read to produce this report.\n`);
 }
 
 main();

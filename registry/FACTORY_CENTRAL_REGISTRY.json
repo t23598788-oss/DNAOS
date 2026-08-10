@@ -1,0 +1,239 @@
+{
+  "version": 1,
+  "note": "Owner directive (2026-08-09) — Factory Reporting Policy / Constitution Rule 253. No AI reports Owner directly; every finding lands here first, MANAGER-07 triages, escalates only when genuinely necessary. Backfilled at creation with the real, already-open findings this session and the Advisor session had already surfaced in prose across ROLE_ALIGNMENT_REPORT.md/CONTROL_PLANE.md/CHANGELOG.json before this registry existed — not fabricated new ones, organized real existing open items into the structure this policy now requires going forward.",
+  "status_enum": [
+    "COMPLETED",
+    "DISPATCHED",
+    "ESCALATED",
+    "EVALUATED",
+    "MONITORING",
+    "NEW",
+    "RESOLVED",
+    "RESOLVED_BY_MANAGER",
+    "TASK_CREATED",
+    "TRACKED",
+    "TRACKING",
+    "WAITING_MANAGER_DECISION",
+    "IMPLEMENTED_PENDING_MANAGER_VERIFY"
+  ],
+  "findings": [
+    {
+      "finding_id": "FCR-001",
+      "type": "Conflict",
+      "reported_by": "MANAGER-07 (self-detected, TASK-048)",
+      "description": "registry/CHANGELOG.json had 2 real duplicate change_id values (DNA-000084, DNA-000086), one entry each from this session and the concurrent Advisor session — read-then-write race, no lock held across the full read-modify-write.",
+      "evaluation": "Within Rule 105 authority (registry sync, mechanical, reversible, no business logic) — MANAGER-07 decided: renumber only this session's own 2 entries to fresh IDs, leave the Advisor session's original entries untouched (never overwrite another agent's authored content, registry/LOCK_MANAGER.json's own rule).",
+      "status": "RESOLVED_BY_MANAGER",
+      "task_id": null,
+      "escalated_to_owner": false,
+      "SOURCE": "MANAGER",
+      "source_entity": "MANAGER-07"
+    },
+    {
+      "finding_id": "FCR-002",
+      "type": "Conflict",
+      "reported_by": "MANAGER-07 (self-detected, TASK-052)",
+      "description": "CONTROL_PLANE.md's cross-reference chain order (Provider->Capability->Connector->Department->Worker->Evidence) disagreed with this same session's own connectors/CONNECTOR_ROUTING_MAP.json (Provider->Connector->Capability->Worker->Factory->Evidence, TASK-051).",
+      "evaluation": "Within Rule 105 authority (documentation alignment between 2 of this session's own files, no business logic changed) — MANAGER-07 decided: CONTROL_PLANE.md's order is canonical (newer, more explicit owner instruction); reconciled CONNECTOR_ROUTING_MAP.json to match.",
+      "status": "RESOLVED_BY_MANAGER",
+      "task_id": null,
+      "escalated_to_owner": false,
+      "SOURCE": "MANAGER",
+      "source_entity": "MANAGER-07"
+    },
+    {
+      "finding_id": "FCR-003",
+      "type": "Architecture Issue",
+      "reported_by": "Factory Architecture Advisor (via TASK-046, real evidence)",
+      "description": "TASK-046 describes a 'Front Office AI' layer positioned above MANAGER-07 in the Owner-facing chain. Constitution Rule 251/253 (this session's own) name MANAGER-07 as the sole channel to Owner. Both are real; not reconciled.",
+      "evaluation": "OUTSIDE Rule 105 authority — this is an Architecture Direction decision (who has Owner-inquiry authority), which registry/CONSTITUTION.json's own Responsibility Separation reserves for the Human/Owner, not MANAGER-07. Cannot be self-resolved.",
+      "status": "RESOLVED",
+      "task_id": "TASK-046",
+      "escalated_to_owner": true,
+      "SOURCE": "FRONT_OFFICE",
+      "source_entity": "Factory Architecture Advisor",
+      "decision": "Owner (2026-08-09): Front Office AI is NOT above MANAGER-07. Two parallel chains under Owner, neither commands the other, exchange only via Factory Central Registry. Codified as Constitution Rule 254 (+ Rule 251 amendment). registry/TASK_QUEUE.json TASK-046 and front-office/*/STATE.json corrected to remove the now-resolved 'above MANAGER-07' framing and the Rule 251-conflict blocker — TASK-046 remains not_started (real implementation gap), no longer flagged as an architecture conflict."
+    },
+    {
+      "finding_id": "FCR-004",
+      "type": "Runtime Issue",
+      "reported_by": "MANAGER-07 (self-detected, TASK-048)",
+      "description": "The Advisor session has no registry/AI_SESSIONS.json entry of its own, despite its own WORKER_BOOTSTRAP_SPECIFICATION.md §1.1 requiring exactly this for any session that boots.",
+      "evaluation": "Cannot be resolved by MANAGER-07 — no mechanism forces another session to upsert its own identity. Not Owner-decision-worthy either (no conflicting business/architecture choice to make). Logged for monitoring only.",
+      "status": "MONITORING",
+      "task_id": null,
+      "escalated_to_owner": false,
+      "SOURCE": "MANAGER",
+      "source_entity": "MANAGER-07"
+    },
+    {
+      "finding_id": "FCR-005",
+      "type": "Dependency",
+      "reported_by": "MANAGER-07 (self-detected, TASK-051/052)",
+      "description": "registry/capability-registry.json is frozen as of 2026-07-14T03:45:32Z; Worker-03 (Data) and Worker-04 (Identity)'s real modules (built 2026-08-09) have zero entries in it.",
+      "evaluation": "MANAGER_VERIFY / scope decision (2026-08-10, Owner-confirmed via AskUserQuestion, Factory Stabilization & Baseline Phase STEP 1): FACTORY_BASELINE_V1 is explicitly scoped to the real Control Plane built and independently verified this session (Constitution Rules 250-259, the Factory Gap Loop, Cost Gate, EXECUTION_HAND, Manager Question Queue, Switch-Based Orchestrator) — NOT the broader Front Office / 6-Worker-Department vision this finding's own precondition list names. Owner explicitly ruled out starting new subsystems this phase ('ห้ามเริ่ม...ห้ามเพิ่ม Feature ใหม่ที่ไม่จำเป็น'), which building Front Office AI (0% today) and getting 6 live Worker sessions to self-register would both be. This finding is therefore consciously deferred as known, disclosed, non-blocking debt for FACTORY_BASELINE_V1 — not resolved, not abandoned, not silently dropped. It remains real and TRACKED/open for whenever the Owner next prioritizes Front Office / Worker Team expansion. Specifically: capability-registry.json's staleness affects Worker-03 (Data)/Worker-04 (Identity) module registration — both real, but both belong to the 6-Department vision explicitly deferred alongside Worker Team registration above.",
+      "status": "TRACKED",
+      "task_id": null,
+      "escalated_to_owner": false,
+      "SOURCE": "MANAGER",
+      "source_entity": "MANAGER-07",
+      "priority": "Medium"
+    },
+    {
+      "finding_id": "FCR-006",
+      "type": "Dependency",
+      "reported_by": "MANAGER-07 (self-detected, DNA-000086/087)",
+      "description": "3 status vocabularies now coexist (registry/AI_SESSIONS.json session-level enum, registry/WORKER_STATUS.json's 5-value legacy enum, WORKER_REGISTRATION_PROTOCOL.json v3's lifecycle state names) with only a plan, not an execution, to unify them.",
+      "evaluation": "MANAGER_VERIFY / scope decision (2026-08-10, Owner-confirmed via AskUserQuestion, Factory Stabilization & Baseline Phase STEP 1): FACTORY_BASELINE_V1 is explicitly scoped to the real Control Plane built and independently verified this session (Constitution Rules 250-259, the Factory Gap Loop, Cost Gate, EXECUTION_HAND, Manager Question Queue, Switch-Based Orchestrator) — NOT the broader Front Office / 6-Worker-Department vision this finding's own precondition list names. Owner explicitly ruled out starting new subsystems this phase ('ห้ามเริ่ม...ห้ามเพิ่ม Feature ใหม่ที่ไม่จำเป็น'), which building Front Office AI (0% today) and getting 6 live Worker sessions to self-register would both be. This finding is therefore consciously deferred as known, disclosed, non-blocking debt for FACTORY_BASELINE_V1 — not resolved, not abandoned, not silently dropped. It remains real and TRACKED/open for whenever the Owner next prioritizes Front Office / Worker Team expansion. Specifically: the 3 coexisting status vocabularies (AI_SESSIONS.json/WORKER_STATUS.json/WORKER_REGISTRATION_PROTOCOL.json v3) are all Worker-session-lifecycle concepts, tied to the same deferred Worker Team registration work above — not part of the Control Plane surface this baseline covers.",
+      "status": "TRACKED",
+      "task_id": null,
+      "escalated_to_owner": false,
+      "SOURCE": "MANAGER",
+      "source_entity": "MANAGER-07",
+      "priority": "Medium"
+    },
+    {
+      "finding_id": "FCR-007",
+      "type": "Architecture Issue",
+      "SOURCE": "MANAGER",
+      "source_entity": "MANAGER-07",
+      "reported_by": "MANAGER-07 (self-detected while wiring Rule 255)",
+      "description": "Rule 255 names 'UI failure' as one of 8 technical-failure types the Closed Loop must handle automatically. workerRegistry.ts's UI_WORKER is real (status=ACTIVE, browserInspectionRuntime.ts) but has NO seat among the 6 Departments (TEAM_ORGANIZATION.json) — a gap already noted in passing during TASK-051's WORKER_RUNTIME_MAP.json, now concretely blocking: a real UI failure has no Department/Worker to dispatch a repair task to.",
+      "evaluation": "Matches Rule 255's escalation criterion #1 (architecture policy must change — adding a 7th Department/Worker is an architecture decision, explicitly outside Rule 105 authority and outside 'ห้ามสร้าง Worker เพิ่ม' standing instructions without fresh Owner sign-off, same pattern as TASK-045/EDGE_FUNCTION_WORKER). Held as TRACKED, not auto-escalated as a standalone question — surfaced in this pass's report per Rule 255 §4 ('no valid rule/source-of-truth exists' for UI-failure dispatch), for Owner awareness, not as an urgent blocker (no real UI failure has occurred yet to force the issue).",
+      "status": "RESOLVED",
+      "task_id": null,
+      "escalated_to_owner": true,
+      "decision": "Owner (2026-08-09, Constitution Rule 256): REJECT creating a UI Department or a new Worker. APPROVE extending Worker-05 (🧪 Testing Department)'s capabilities to cover UI Runtime, Browser Inspection, Responsive Validation, Visual Regression, Accessibility, Screenshot Comparison, Playwright Runtime, and UI Failure handling — as Capability, not Department, not Worker, no new hierarchy. registry/TEAM_ORGANIZATION.json, WORKER_DIRECTORY.json, WORKER_IDENTITIES.json, WORKER_RUNTIME_MAP.json all updated same pass."
+    },
+    {
+      "finding_id": "FCR-008",
+      "type": "Architecture Issue",
+      "SOURCE": "MANAGER",
+      "source_entity": "MANAGER-07",
+      "reported_by": "MANAGER-07 (self-detected while running the Baseline Freeze task's own Step 1/2 precondition check)",
+      "description": "Owner's Baseline Freeze task states its own entry condition: only proceed when Front Office, Factory Control Plane, Worker Team, Reporting Policy, and Closed Loop Execution are all VERIFIED. Real check against each, evidence cited: (1) Front Office — NOT VERIFIED. 0% real implementation; all 6 positions in front-office/*/STATE.json are status=NOT_BUILT; TASK-046 is not_started. (2) Worker Team — NOT VERIFIED. registry/WORKER_IDENTITIES.json: registered_count=0/6, every roster entry status=NOT_REGISTERED; registry/MANAGER_07_BOARD.json team_initialization.status=PARTIAL, dispatch_gate blocks all dispatch. (3) Factory Control Plane — PARTIALLY VERIFIED. The 6 directories + CONTROL_PLANE.md exist and are internally consistent as of FCR-002's fix, but none of it has been exercised against a real dispatch (impossible while Worker Team is 0/6). (4) Reporting Policy — VERIFIED in the sense that matters: Rule 253 is real, registry/FACTORY_CENTRAL_REGISTRY.json has real usage (7 prior findings, this one the 8th), the escalation_criteria are concrete. (5) Closed Loop Execution — NOT FULLY VERIFIED. registry/rule-coverage.json rule 255 itself already states detection=Partial: JobContract.maxAttempts and deploy-gate.ts's classification are real and mechanical, but the full FAIL->capture->classify->repair-task->dispatch->revalidate loop is not one wired mechanism, and — newly relevant here — has literally no registered Worker to dispatch a repair task TO while Worker Team stays 0/6, a structural chicken-and-egg gap. Additional real finding beyond the owner's own 5 named systems, surfaced during this check because Step 6 of the Baseline Freeze task requires a clean, scoped git commit: `git status` shows 13 modified application source files (app/OperationalWorkspace.tsx, several app/api/admin/ide/_lib/*.ts files, app/admin/connectors/page.tsx, app/admin/line-profiles/page.tsx, etc.) already unstaged in the working tree, none of them Factory/registry files this session touched, plus the local branch is 3 commits ahead of origin/main unpushed. A baseline commit today would either have to ignore these (leaving 'git diff of baseline = clean' unverifiable against a genuinely clean tree) or risk sweeping in unrelated changes — Step 6 explicitly forbids the latter.",
+      "evaluation": "MANAGER_VERIFY / scope decision (2026-08-10, Owner-confirmed via AskUserQuestion, Factory Stabilization & Baseline Phase STEP 1): FACTORY_BASELINE_V1 is explicitly scoped to the real Control Plane built and independently verified this session (Constitution Rules 250-259, the Factory Gap Loop, Cost Gate, EXECUTION_HAND, Manager Question Queue, Switch-Based Orchestrator) — NOT the broader Front Office / 6-Worker-Department vision this finding's own precondition list names. Owner explicitly ruled out starting new subsystems this phase ('ห้ามเริ่ม...ห้ามเพิ่ม Feature ใหม่ที่ไม่จำเป็น'), which building Front Office AI (0% today) and getting 6 live Worker sessions to self-register would both be. This finding is therefore consciously deferred as known, disclosed, non-blocking debt for FACTORY_BASELINE_V1 — not resolved, not abandoned, not silently dropped. It remains real and TRACKED/open for whenever the Owner next prioritizes Front Office / Worker Team expansion. Specifically: Front Office (TASK-046) and Worker Team registration (registry/WORKER_IDENTITIES.json 0/6) are the 2 real items from this finding's original 5 named preconditions now explicitly out of scope for V1; the other 3 (Factory Control Plane, Reporting Policy, Closed Loop Execution) ARE in scope and are being verified/closed under this same Stabilization Phase.",
+      "status": "TRACKED",
+      "task_id": null,
+      "escalated_to_owner": true
+    },
+    {
+      "finding_id": "FCR-009",
+      "type": "Financial/Execution Risk",
+      "SOURCE": "MANAGER",
+      "source_entity": "MANAGER-07",
+      "reported_by": "MANAGER-07 (disclosed to Owner while closing TASK-047), Owner then issued the Rule 257 remediation policy directly in the same exchange",
+      "description": "TASK-047's CODE_WORKER dispatch ran scripts/worker-01-acceptance-test.ts as part of its before/after regression check WITHOUT setting SKIP_LIVE=1. That suite's Gap 5 section is real, live, and costed (~$0.29 USD/call via the claude-cli Worker Adapter, per that file's own header) and is documented to run only once per invocation with real money spent. MANAGER-07 independently re-ran the same suite with SKIP_LIVE=1 and got 12/12 (not the agent's reported 17/17), traced the 5-test gap to the live section, and found real, physical evidence it executed: registry/worker01-sandbox/live-proof.txt exists with an mtime inside the agent's own run window. The prior CODE_WORKER dispatch (TASK-042) had explicitly used SKIP_LIVE=1 specifically because no Owner go-ahead existed for that spend; this one did not, and did not disclose the cost in its own final report. Root cause: no structural gate existed anywhere in the Execution Plane to stop a Worker/Adapter from running a PAID or UNKNOWN_COST operation on its own — SKIP_LIVE was opt-out (live-by-default unless a human happened to set the env var), not opt-in.",
+      "evaluation": "Not one of Rule 255's 5 escalation criteria on its own (no destructive production action occurred, no architecture/policy ambiguity blocked progress) — the Owner resolved this directly by issuing Constitution Rule 257 (Execution Plane Cost Gate) in the same message that received this finding, rather than this being escalated as an open question. Real repair dispatched as TASK-048 (CODE_WORKER, per Rule 252 — MANAGER-07 does not write the fix itself): build costGateRuntime.ts, flip every *-acceptance-test.ts harness's live section to opt-in-only, wire actual-cost recording back into this registry. Rule 257's own clause 12 (no retroactive edits) is honored — DNA-000101/102's 12/12 and 17/17 worker-01:test results both stay recorded as-is.",
+      "status": "RESOLVED",
+      "task_id": "TASK-048",
+      "escalated_to_owner": false,
+      "resolution": "TASK-048 (DNA-000104): app/api/admin/ide/_lib/costGateRuntime.ts built and independently verified by MANAGER-07 (15/15 real acceptance PASS, re-run first-hand, not trusted from the building agent alone). Root cause closed: worker-01-acceptance-test.ts's live section was opt-out (SKIP_LIVE=1 required to avoid spend); flipped to opt-in via a real shouldRunLiveSection() gate — a fresh run with no env var set now produces the deterministic 12/12, confirmed by this session's own re-run, not the old live-and-costed 17/17. All PAID/UNKNOWN_COST dispatch paths (codeWorkerRuntime.ts, switchBasedOrchestratorRuntime.ts) now call the real Cost Gate first; LOCK outcomes escalate through the existing, already-verified Rule 251 Owner queue tagged financial_approval_required, per Rule 255. Zero real money was spent building or verifying the fix."
+    },
+    {
+      "finding_id": "FCR-010",
+      "type": "Dependency",
+      "reported_by": "Factory Architecture Advisor",
+      "description": "GAP-1 (Evidence Collector + Normalization Runtime) implemented under a one-time Advisor exception. Real files: app/api/admin/ide/_lib/evidenceCollectorRuntime.ts, normalizationRuntime.ts, registryWriterRuntime.ts. Real test: scripts/gap1-evidence-normalization-test.ts, 6/6 PASS. npx tsc --noEmit clean on all 4 files. Full handoff detail (input/output/normalize/dedup/merge/failure/success paths, routing, conflict-check against LOCKED_WORKFLOW.md): see IMPLEMENTATION_HANDOFF_GAP1.md. NOT done: semantic-similarity dedup (exact-hash only, disclosed scope limit, verified by the same test), a pre-commit Guard-A-style guard restricting writes to this file, GAP-2 (Worker registration, out of this exception's scope entirely), and the end-to-end LOCKED_WORKFLOW.md proof-run (blocked on GAP-2).",
+      "evaluation": "MANAGER_VERIFY (2026-08-10): independently re-verified rather than trusted from the Advisor's own report. Confirmed real: app/api/admin/ide/_lib/evidenceCollectorRuntime.ts, normalizationRuntime.ts, registryWriterRuntime.ts all exist and are real, disciplined code — registryWriterRuntime.ts in particular correctly implements acquire-lock -> re-read-fresh -> append -> release, which independently fixes the exact stale-max-ID race this session's own concurrent CHANGELOG.json/FACTORY_CENTRAL_REGISTRY.json edits could otherwise hit, and never sets `evaluation` itself (correctly leaves that to MANAGER-07 alone, per the Owner's own instruction it cites). Re-ran scripts/gap1-evidence-normalization-test.ts directly: real 6/6 PASS, matching the finding's own claim exactly. npx tsc --noEmit confirmed clean on all 3 files (no new errors introduced). Disclosed, real, accepted scope limits (from the finding's own text, not hidden): exact-hash dedup only (no semantic-similarity dedup yet), no pre-commit guard restricting writes to FACTORY_CENTRAL_REGISTRY.json to this writer only, GAP-2 (Worker registration) out of scope, end-to-end LOCKED_WORKFLOW.md proof-run blocked on GAP-2. Accepted as real, working infrastructure — not yet wired into gapLoopRuntime.ts's own OBSERVE/EVIDENCE/NORMALIZE stages (a real, separate follow-up, not required for this finding's own claimed scope).",
+      "status": "RESOLVED_BY_MANAGER",
+      "task_id": null,
+      "escalated_to_owner": false,
+      "SOURCE": "ADVISOR",
+      "source_entity": "Factory Architecture Advisor",
+      "evidence": [
+        {
+          "source_url": null,
+          "source_type": "test_output",
+          "excerpt": "npx tsx scripts/gap1-evidence-normalization-test.ts -> 6 passed, 0 failed",
+          "captured_at": "2026-08-09T09:39:21.191Z"
+        },
+        {
+          "source_url": null,
+          "source_type": "internal_registry",
+          "excerpt": "IMPLEMENTATION_HANDOFF_GAP1.md (this repo root) — full handoff detail for MANAGER-07",
+          "captured_at": "2026-08-09T09:39:21.192Z"
+        }
+      ],
+      "priority": "High"
+    },
+    {
+      "finding_id": "FCR-011",
+      "type": "Usability Gap",
+      "SOURCE": "MANAGER",
+      "source_entity": "MANAGER-07",
+      "reported_by": "MANAGER-07 (found live while running TASK-044 through EXECUTION_HAND, DNA-000109)",
+      "description": "All 5 real RUN_COMMAND Job Contracts for TASK-044 (guard/dashboard/deploy-gate/readiness:test/factory-readiness:test — each a real, free, local script) returned real Cost Gate LOCK before running, because Rule 257's cost_class taxonomy had no way to classify a command as provably free — RUN_COMMAND is unconditionally gated with estimated_cost=null and no budget configured. Correct, safe failure mode (not a defect in the gate's intent), but a real usability gap: genuinely free local tooling cannot run without an Owner-granted budget today.",
+      "evaluation": "Owner ordered a real fix before TASK-045 proceeds: add FREE_LOCAL/PAID_EXTERNAL/UNKNOWN_COST classification for the RUN_COMMAND/RUN_TEST/BUILD surface, FREE_LOCAL granted only via a closed, provable allowlist (no wildcard, no self-declaration), explicitly without weakening Rule 257. Constitution Rule 257 amended (appended, not rewritten, per C-010) same DNA entry. Real build dispatched as TASK-050 (CODE_WORKER, per Rule 252).",
+      "status": "RESOLVED",
+      "task_id": "TASK-050",
+      "escalated_to_owner": false,
+      "resolution": "TASK-050 (DNA-000111): costGateRuntime.ts#classifyOperationCommand built and independently verified by MANAGER-07 (cost-gate:test 49/49, execution-hand:test 37/37, both re-run first-hand). All 4 Owner acceptance criteria confirmed with real, captured evidence: free local commands RELEASE with no budget; paid/unknown commands still LOCK (regression-proven); COST_LEDGER.json gets zero entries for FREE_LOCAL; full existing suite passes unchanged. Rule 257 amendment flipped to IMPLEMENTED on this evidence."
+    },
+    {
+      "finding_id": "FCR-012",
+      "type": "Bug (Type Safety / Schema Drift)",
+      "SOURCE": "MANAGER",
+      "source_entity": "MANAGER-07",
+      "reported_by": "CODE_WORKER (TASK-050's optional bonus demo), disclosed honestly rather than hidden; independently confirmed live by MANAGER-07 via npx tsc --noEmit",
+      "description": "scripts/governance.sh (line ~209) and scripts/dashboard.sh (line ~147) both write incompatible schemas to the same real file, DNA_OS_HEALTH.json. app/OperationalWorkspace.tsx:268-269 expects governance.sh's shape (real fields: checks/summary/governance_score); dashboard.sh's later write clobbers it with a different real shape (evolution/risk/metrics, no summary/governance_score). Pre-existing, dormant bug — surfaced (not caused) when TASK-050's Cost Gate fix let both real scripts actually run back-to-back for the first time via EXECUTION_HAND, where previously the Cost Gate blocked them before either could run. Confirmed live: npx tsc --noEmit shows 4 real new TS2339 errors on OperationalWorkspace.tsx (property 'summary'/'governance_score' does not exist), on top of the 1 pre-existing, unrelated error (issue-receipt/route.ts) already known from every prior task today.",
+      "evaluation": "MANAGER_VERIFY (2026-08-10): independently re-confirmed rather than trusted from the building agent's report — npx tsc --noEmit re-run directly, shows only the 1 pre-existing, unrelated error; both scripts/governance.sh and scripts/dashboard.sh re-run back-to-back and confirmed to write separate, non-clobbering files (DNA_OS_HEALTH.json / DNA_OS_DASHBOARD.json respectively). Real fix, not a workaround: both real datasets were genuinely load-bearing simultaneously (a CI/deploy gate vs. an executive dashboard report), so separating their output files was the correct root-cause fix, not a merge or a defensive read-patch that would have left the underlying clobbering in place.",
+      "status": "RESOLVED_BY_MANAGER",
+      "task_id": "TASK-051",
+      "escalated_to_owner": false
+    }
+  ],
+  "summary": {
+    "total": 10,
+    "resolved_by_manager": 2,
+    "resolved_by_owner": 2,
+    "escalated_to_owner_total": 3,
+    "tracked_or_monitoring": 3
+  },
+  "source_enum": [
+    "OWNER",
+    "MANAGER",
+    "FRONT_OFFICE",
+    "WORKER",
+    "ADVISOR"
+  ],
+  "schema_note": "Owner (2026-08-09) added SOURCE (one of source_enum) to every record. This session standardized one real ambiguity in the owner's own 2 examples: FCR-003's example paired SOURCE=FRONT_OFFICE with a separate named-entity field (owner wrote 'OWNER = Factory Architecture Advisor', renamed here to source_entity to avoid colliding with the human Owner role); FCR-032's example put the specific worker_id (WORKER-03) directly into SOURCE with no separate entity field. Reconciled to one consistent shape: SOURCE is always one of the 5 category values; source_entity always names the specific actor (a worker_id, 'MANAGER-07', 'Factory Architecture Advisor', 'Front Office AI', or 'Owner').",
+  "escalation_criteria": {
+    "note": "Rule 255's operational definition of Rule 253's 'เมื่อจำเป็นจริง' — the ONLY 5 conditions that justify escalated_to_owner=true going forward.",
+    "criteria": [
+      "architecture_policy_change",
+      "financial_approval_required",
+      "destructive_production_action",
+      "no_valid_rule_or_source_of_truth",
+      "retry_limit_exhausted_no_deterministic_repair_path"
+    ]
+  },
+  "type_enum": [
+    "CODE_GAP",
+    "RUNTIME_GAP",
+    "WORKER_GAP",
+    "CONTROL_GAP",
+    "DATA_GAP",
+    "UI_GAP",
+    "CONNECTOR_GAP",
+    "SECURITY_GAP",
+    "COST_GAP",
+    "OBSERVABILITY_GAP"
+  ],
+  "type_enum_note": "Owner (2026-08-10, Factory Gap Loop amendment to Constitution Rule 255). Applies to findings created from this DNA entry forward. Pre-amendment findings (FCR-001..012) keep their original real free-text `type` values (Architecture Issue/Runtime Issue/Conflict/Dependency/Financial-Execution Risk/Usability Gap/Bug) per Constitution C-010 (append, never rewrite past records) — not retroactively remapped. Informal correspondence for reference only, not a rewrite: Architecture Issue~CONTROL_GAP, Runtime Issue~RUNTIME_GAP, Financial/Execution Risk~COST_GAP, Bug (Type Safety/Schema Drift)~CODE_GAP, Usability Gap~CONTROL_GAP or COST_GAP depending on the specific finding, Dependency/Conflict~WORKER_GAP or CONTROL_GAP depending on the specific finding.",
+  "gap_loop_fields_note": "Constitution Rule 255 amendment (2026-08-10) names 7 fields every real Gap-Loop instance must record: gap_id, source_evidence, root_cause, assigned_worker, repair_attempt, verification_result, remaining_gap. Mapping onto this file's real, existing finding shape: finding_id=gap_id, evidence[]=source_evidence, description/evaluation carry root_cause today (no separate field yet), task_id=assigned_worker's real dispatch reference, resolution=verification_result once resolved. repair_attempt (a real count/reference to which real dispatch attempt this is) and remaining_gap (real, honest statement of what — if anything — is still real and open after a repair) are new, not present on findings before FCR-013.",
+  "factory_status": {
+    "value": "NOT_STABLE",
+    "computed_at": "2026-08-10",
+    "computed_by": "app/api/admin/ide/_lib/gapLoopRuntime.ts#computeFactoryStatus() (real, live, TASK-052) — re-run and confirmed by MANAGER-07, corrects the earlier DNA-000113 manual snapshot's incomplete reason list",
+    "real_reasons": [
+      "registry/WORKER_IDENTITIES.json: registered_count=0/6 — no live Worker session has run its real boot sequence yet",
+      "FCR-005 (Dependency): status=TRACKED — real, still-open",
+      "FCR-006 (Dependency): status=TRACKED — real, still-open",
+      "FCR-008 (Architecture Issue): status=ESCALATED — real, still-open",
+      "FCR-012 (Bug — Type Safety / Schema Drift): status=TRACKED — real, still-open, produces 4 real tsc errors",
+      "Note (disclosed limitation, not a 5th independent reason): FCR-010 (Advisor's real Evidence Collector/Normalization submission), status=IMPLEMENTED_PENDING_MANAGER_VERIFY, is real and unresolved but outside computeFactoryStatus()'s current open-status filter (TRACKED/ESCALATED/WAITING_MANAGER_DECISION/NEW only) — tracked here manually until the filter is widened",
+      "core test-suite pass/fail state not independently re-verified in this default computation (opt-in verifyTestSuites path exists but was not invoked for this snapshot) — MANAGER-07 separately confirmed all 8 real suites passing as of DNA-000114 (12/12, 9/9, 17/17, 21/21, 22/22, 49/49, 37/37, 20/20), recorded here as supplementary evidence, not as part of the automated computation"
+    ]
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "worker_id": "EXECUTION_HAND",
+  "status": "STANDBY",
+  "note": "completed eh-test-inbox-c2e970ad-2414-4a31-8725-8c9e35b7f05b.json -> EXECUTED — this is a workspace MIRROR, not a second source of truth (same convention as workers/worker-01-connector/STATUS.json). Written by the outer RECEIVE->EXECUTE->RETURN-EVIDENCE->STANDBY cycle wrapper after reading EXECUTION_HAND's own real result, never by executeJobContract() itself.",
+  "last_synced_from_registry": "2026-08-10"
+}

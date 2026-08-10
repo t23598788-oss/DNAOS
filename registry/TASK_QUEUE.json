@@ -14,7 +14,14 @@
     "priority": "P0",
     "status": "pending",
     "detail": "Declared by owner 2026-07-08, second of 3 gate tasks — depends on TASK-001's session model. Renumbered from TASK-024 same day, see CURRENT_STATE.json → plan_lock.renumbering_note. Goal: eliminate all mock/fake/demo data across Supabase Database, Registry, Module Registry, Command Registry, Workflow Registry, Business Rules, App Config, Partner, Document, Debt, Job, Events, Timeline, Dashboard, Observer, Business Portal, User Portal. Verify: no Mock, no Fake, no Demo Data anywhere; every page reads from the DB. Definition of Done: editing a row in the DB is immediately reflected on every page that shows it; Observer reads the real Registry; Dashboard reads real data. This overlaps with existing blockers TASK-021 (customer_orders needs real Site/Project address data) and TASK-022 (app_configs company/bank info empty) — those are sub-parts of this gate, not separate work.",
-    "gate": true
+    "gate": true,
+    "routing": {
+      "bucket": "BLOCKED_ON_DEPENDENCY",
+      "reason": "Too broad for one Job Contract (spans DB/Registry/every Portal); depends on TASK-001's session model per its own text; needs Advisor decomposition into scoped, allowed_paths-bounded jobs before any bucket can take a piece of it.",
+      "classified_by": "MANAGER-07",
+      "classified_at": "2026-08-09",
+      "reference": "DNA-000108"
+    }
   },
   {
     "id": "TASK-003",
@@ -22,7 +29,14 @@
     "priority": "P0",
     "status": "pending",
     "detail": "Declared by owner 2026-07-08, third of 3 gate tasks — depends on TASK-001 and TASK-002 landing first. Renumbered from TASK-025 same day, see CURRENT_STATE.json → plan_lock.renumbering_note. Goal: clean repository, ready to deploy. Scope: check git status, commit every real file, resolve conflicts, delete experimental/dead files and dead code, npm run lint, npm run type-check, npm run build, test every route, deploy to production, check the error log, tag the release. Checklist: git clean / build passes / type-check passes / lint passes / deploy passes / production actually usable. Definition of Done: git status clean, no stray files, no build errors, production genuinely usable. Related open item: CURRENT_STATE.json's working_tree_note records ~344 modified, uncommitted files as of DNA-000019 — this task is what finally resolves that.",
-    "gate": true
+    "gate": true,
+    "routing": {
+      "bucket": "BLOCKED_ON_DEPENDENCY",
+      "reason": "Explicitly depends on TASK-001 and TASK-002 landing first, per its own text — cannot start.",
+      "classified_by": "MANAGER-07",
+      "classified_at": "2026-08-09",
+      "reference": "DNA-000108"
+    }
   },
   {
     "id": "TASK-019",
@@ -104,8 +118,15 @@
     "id": "TASK-018",
     "title": "plugins/agent/server.ts is missing — referenced by services.json and by plugins/agent/start.sh itself, but does not exist",
     "priority": "medium",
-    "status": "pending",
-    "detail": "Discovered 2026-07-07 (DNA-000015) while fixing TASK-010's stale paths. registry/services.json's 'agent' service declares module: plugins/agent/server.ts (now correctly pointing at the post-reorg location) — but the file genuinely does not exist there; plugins/agent/ contains only start.sh, which itself runs `npx tsx \"$DIR/server.ts\"`, meaning the agent's own startup script is already broken independent of the registry. This is a real missing-file bug (possibly dropped during the 2026-07-06 reorg's git mv pass, or never existed under this exact name) — needs investigation into where the real agent server logic currently lives (if anywhere) before deciding whether to restore/relocate it or update start.sh."
+    "status": "done",
+    "detail": "Discovered 2026-07-07 (DNA-000015) while fixing TASK-010's stale paths. registry/services.json's 'agent' service declares module: plugins/agent/server.ts (now correctly pointing at the post-reorg location) — but the file genuinely does not exist there; plugins/agent/ contains only start.sh, which itself runs `npx tsx \"$DIR/server.ts\"`, meaning the agent's own startup script is already broken independent of the registry. This is a real missing-file bug (possibly dropped during the 2026-07-06 reorg's git mv pass, or never existed under this exact name) — needs investigation into where the real agent server logic currently lives (if anywhere) before deciding whether to restore/relocate it or update start.sh. RESOLVED 2026-08-09 (DNA-000109) via real EXECUTION_HAND Job Contract: created plugins/agent/server.ts, a minimal, honestly-labeled NOT_IMPLEMENTED HTTP stub on port 7777 (registry/services.json's declared value) — fixes the real startup crash in plugins/agent/start.sh without inventing any unspecified route/request behavior. Independently verified live by MANAGER-07: started the real server, curl localhost:7777/ returned real HTTP 501 with the honest NOT_IMPLEMENTED body, server killed cleanly after.",
+    "routing": {
+      "bucket": "EXECUTION_HAND",
+      "reason": "Concrete missing-file bug at a known path — a real CREATE_FILE Job Contract, once its minimal real content is specified in the contract.",
+      "classified_by": "MANAGER-07",
+      "classified_at": "2026-08-09",
+      "reference": "DNA-000108"
+    }
   },
   {
     "id": "TASK-004",
@@ -126,47 +147,96 @@
     "title": "Real browser/visual QA (responsive Desktop/Tablet/Mobile, animations) across all Frontend Platform pages",
     "priority": "medium",
     "status": "pending",
-    "detail": "No real browser/screenshot tool has been available in this environment across DNA-000007, DNA-000008, or DNA-000009 (presentation-layer pass: stagger animations, PortalShell re-skin, loading skeletons) — all verification so far is npm run build (exit 0) + curl HTTP 200/HTML checks + Tailwind responsive-class review, not actual rendered/visual confirmation."
+    "detail": "No real browser/screenshot tool has been available in this environment across DNA-000007, DNA-000008, or DNA-000009 (presentation-layer pass: stagger animations, PortalShell re-skin, loading skeletons) — all verification so far is npm run build (exit 0) + curl HTTP 200/HTML checks + Tailwind responsive-class review, not actual rendered/visual confirmation.",
+    "routing": {
+      "bucket": "DEPARTMENT",
+      "reason": "Open-ended visual/responsive QA judgment across many pages — QA Department (Worker-02) scope, not a bounded EXECUTION_HAND operation.",
+      "classified_by": "MANAGER-07",
+      "classified_at": "2026-08-09",
+      "reference": "DNA-000108"
+    }
   },
   {
     "id": "TASK-012",
     "title": "Group /admin sidebar nav by category instead of one flat 28-item list",
     "priority": "low",
     "status": "pending",
-    "detail": "registry/portals.json → docs[] currently renders as one flat list in app/admin/layout.tsx. Once TASK-026 (renumbered 2026-07-08 from TASK-001) is resolved, consider grouping (e.g. Business vs. Documentation/Developer) for usability — not done now to avoid making an information-architecture decision ahead of the user's answer."
+    "detail": "registry/portals.json → docs[] currently renders as one flat list in app/admin/layout.tsx. Once TASK-026 (renumbered 2026-07-08 from TASK-001) is resolved, consider grouping (e.g. Business vs. Documentation/Developer) for usability — not done now to avoid making an information-architecture decision ahead of the user's answer.",
+    "routing": {
+      "bucket": "BLOCKED_ON_DEPENDENCY",
+      "reason": "Own text: deliberately withheld pending TASK-026's information-architecture decision — an Owner UX call, not an execution gap.",
+      "classified_by": "MANAGER-07",
+      "classified_at": "2026-08-09",
+      "reference": "DNA-000108"
+    }
   },
   {
     "id": "TASK-005",
     "title": "Decide on ~9 duplicate Vercel projects + 1 dead Supabase project + 1 empty org",
     "priority": "low",
     "status": "pending",
-    "detail": "Flagged during infra sprawl audit, not yet actioned — awaiting user go-ahead before any deletion."
+    "detail": "Flagged during infra sprawl audit, not yet actioned — awaiting user go-ahead before any deletion.",
+    "routing": {
+      "bucket": "BLOCKED_ON_DEPENDENCY",
+      "reason": "Infra deletion — explicitly 'awaiting user go-ahead before any deletion,' an Owner-only decision (destructive_production_action-adjacent), not executable work.",
+      "classified_by": "MANAGER-07",
+      "classified_at": "2026-08-09",
+      "reference": "DNA-000108"
+    }
   },
   {
     "id": "TASK-006",
     "title": "Identify base44.app ('cherubic-zenith-admin-flow') found in credentials file",
     "priority": "low",
-    "status": "pending"
+    "status": "pending",
+    "routing": {
+      "bucket": "DEPARTMENT",
+      "reason": "Investigation/identification, not a build — QA/Security-shaped discovery work, not a scoped file/command operation EXECUTION_HAND's contract covers.",
+      "classified_by": "MANAGER-07",
+      "classified_at": "2026-08-09",
+      "reference": "DNA-000108"
+    }
   },
   {
     "id": "TASK-007",
     "title": "Decide whether to fix weak admin/password credentials on soil-app-orpin.vercel.app",
     "priority": "low",
-    "status": "pending"
+    "status": "pending",
+    "routing": {
+      "bucket": "BLOCKED_ON_DEPENDENCY",
+      "reason": "Security risk-acceptance decision required from Owner before any fix is even authorized.",
+      "classified_by": "MANAGER-07",
+      "classified_at": "2026-08-09",
+      "reference": "DNA-000108"
+    }
   },
   {
     "id": "TASK-008",
     "title": "Real per-portal content/access-control design for User/Partner/Business Portal, Download Center",
     "priority": "deferred",
     "status": "pending",
-    "detail": "Explicitly deferred by user: รายละเอียดจะกำหนดภายหลัง"
+    "detail": "Explicitly deferred by user: รายละเอียดจะกำหนดภายหลัง",
+    "routing": {
+      "bucket": "BLOCKED_ON_DEPENDENCY",
+      "reason": "Explicitly deferred by Owner ('รายละเอียดจะกำหนดภายหลัง') — no real spec exists yet to build against.",
+      "classified_by": "MANAGER-07",
+      "classified_at": "2026-08-09",
+      "reference": "DNA-000108"
+    }
   },
   {
     "id": "TASK-009",
     "title": "Complete DocumentBuilder.tsx category-picker removal",
     "priority": "low",
-    "status": "pending",
-    "detail": "User rejected first attempt, asked to confirm file purpose first — confirmed, but removal itself was never completed before conversation moved to tax-logic investigation."
+    "status": "blocked",
+    "detail": "User rejected first attempt, asked to confirm file purpose first — confirmed, but removal itself was never completed before conversation moved to tax-logic investigation. ATTEMPTED 2026-08-09 (DNA-000109) via real EXECUTION_HAND Job Contract, real BLOCKED result: the only category-related UI in components/documents/DocumentBuilder.tsx (DOCUMENT_SERVICE_CATEGORIES picker, ~lines 750-764) is fully wired to real state (serviceCategoryKey) and a real DB column, not dead/orphaned code — no CHANGELOG/HANDOFF/CURRENT_STATE/git-history record of the 'user rejected first attempt' episode this task's own text references was found. EXECUTION_HAND correctly refused to guess (CONTRACT.md's 'ห้ามตีความเพิ่มเอง'). File confirmed untouched by MANAGER-07 (zero git diff). Real open question for the Owner: what specifically should be removed, given the current picker is not dead code today.",
+    "routing": {
+      "bucket": "EXECUTION_HAND",
+      "reason": "Small, scoped: purpose already confirmed, only the removal itself remains — a real EDIT_FILE Job Contract.",
+      "classified_by": "MANAGER-07",
+      "classified_at": "2026-08-09",
+      "reference": "DNA-000108"
+    }
   },
   {
     "id": "TASK-021",
@@ -288,7 +358,14 @@
     "context_sources": [
       "registry/existence.json owner_requests OR-001",
       "TASK-032"
-    ]
+    ],
+    "routing": {
+      "bucket": "BLOCKED_ON_DEPENDENCY",
+      "reason": "System-wide architecture wiring across 202 Capabilities (Composer->Planner->Orchestrator->Executor->Driver) — needs Advisor architecture design before it is scoped enough for any Worker.",
+      "classified_by": "MANAGER-07",
+      "classified_at": "2026-08-09",
+      "reference": "DNA-000108"
+    }
   },
   {
     "id": "TASK-039",
@@ -307,13 +384,126 @@
     "title": "Wire cross-company authorization primitive (engines/authorization-check.ts) to a live trigger",
     "priority": "P2",
     "status": "pending",
-    "detail": "Built 2026-07-26 per owner request (fraud-prevention: first LINE contact from a company is the responsible/auto-approving party for unlinked-party requests, real yes/no postback to company_line_links first contact). Real functions exist (checkSiteOwnership/requestAuthorization) and pending_authorizations table is live, but no code path in handlers/*.ts calls requestAuthorization() yet — owner explicitly deferred deciding the live trigger point (\"อยากให้พักเรื่องเครือข่ายใยแมงมุมนี้ไว้เป็นงานถัดไป\"). Not a bug, a scoped-out follow-up."
+    "detail": "Built 2026-07-26 per owner request (fraud-prevention: first LINE contact from a company is the responsible/auto-approving party for unlinked-party requests, real yes/no postback to company_line_links first contact). Real functions exist (checkSiteOwnership/requestAuthorization) and pending_authorizations table is live, but no code path in handlers/*.ts calls requestAuthorization() yet — owner explicitly deferred deciding the live trigger point (\"อยากให้พักเรื่องเครือข่ายใยแมงมุมนี้ไว้เป็นงานถัดไป\"). Not a bug, a scoped-out follow-up.",
+    "routing": {
+      "bucket": "BLOCKED_ON_DEPENDENCY",
+      "reason": "Owner explicitly deferred deciding the live trigger point — not yet scoped to execute.",
+      "classified_by": "MANAGER-07",
+      "classified_at": "2026-08-09",
+      "reference": "DNA-000108"
+    }
   },
   {
     "id": "TASK-041",
     "title": "Open Capability Architecture — build the real Review Process runner + Community/Country/Business/Legal Capability submission path",
     "priority": "P3",
     "status": "not_started",
-    "detail": "app/api/admin/ide/_lib/openCapabilityArchitecture.ts (owner, 2026-08-07, Software Factory Step 10, Phase 9) declares the real contract types (CommunityCapabilityContract/CountryCapabilityContract/BusinessCapabilityContract/LegalCapabilityContract), the real Review Process steps, Evidence Requirements, and Factory Acceptance Rules for a future Capability ecosystem — every entry is honestly status: \"NOT_IMPLEMENTED\" by the file's own design (Constitution Principle 6 — Community Capability). No real Review Process runner or submission path exists yet, and this file is deliberately not imported by anything today — it is structure-only, tracked as a known gap rather than dead code (found during production deploy-gate cleanup, 2026-08-08: knip flagged it as an unused file; confirmed via real code search there is genuinely no caller, and confirmed via this file's own docstring/status fields that non-use is intentional, not abandonment)."
+    "detail": "app/api/admin/ide/_lib/openCapabilityArchitecture.ts (owner, 2026-08-07, Software Factory Step 10, Phase 9) declares the real contract types (CommunityCapabilityContract/CountryCapabilityContract/BusinessCapabilityContract/LegalCapabilityContract), the real Review Process steps, Evidence Requirements, and Factory Acceptance Rules for a future Capability ecosystem — every entry is honestly status: \"NOT_IMPLEMENTED\" by the file's own design (Constitution Principle 6 — Community Capability). No real Review Process runner or submission path exists yet, and this file is deliberately not imported by anything today — it is structure-only, tracked as a known gap rather than dead code (found during production deploy-gate cleanup, 2026-08-08: knip flagged it as an unused file; confirmed via real code search there is genuinely no caller, and confirmed via this file's own docstring/status fields that non-use is intentional, not abandonment).",
+    "routing": {
+      "bucket": "BLOCKED_ON_DEPENDENCY",
+      "reason": "Roadmap item, honestly NOT_IMPLEMENTED by its own file's design, no real priority/scope decided yet.",
+      "classified_by": "MANAGER-07",
+      "classified_at": "2026-08-09",
+      "reference": "DNA-000108"
+    }
+  },
+  {
+    "id": "TASK-042",
+    "title": "Build Single Owner Inquiry Authority (Rule 251) into workerTaskOrchestrator.ts",
+    "priority": "P2",
+    "status": "done",
+    "detail": "Declared 2026-08-09 (DNA-000079, Constitution Rule 251) — owner designed a Manager-07/Worker-01..06 pipeline where only the Factory Manager may ask the Owner questions directly; Workers/Validators must route questions up through the Manager first, which checks the Registry, dedupes, and only escalates what the system genuinely cannot answer. Owner chose (via AskUserQuestion, 2026-08-09) to EXTEND the existing app/api/admin/ide/_lib/workerTaskOrchestrator.ts rather than build a new orchestration layer — it already dispatches JobContracts into the 10 WorkerType entries in workerRegistry.ts and does minimal-context planning via contextPlannerRuntime.ts, but has zero real question-aggregation/dedup/escalation code today (grep-verified, no question/escalate/blocker handling in the file). Real work: add a question-intake function that (1) checks Registry/Constitution/CURRENT_STATE/CHANGELOG/rule-coverage per Rule 250 before treating anything as unanswerable, (2) dedupes concurrent Worker questions, (3) only surfaces genuinely Owner-only decisions to a real Owner-question queue. RESOLVED 2026-08-09 (DNA-000101): built app/api/admin/ide/_lib/managerQuestionRuntime.ts (submitWorkerQuestion/getOwnerFacingQueue/answerAggregatedQuestion/getAnswerForAsk) + scripts/manager-question-queue-test.ts, wired into workerTaskOrchestrator.ts via submitJobContractQuestion(). Real acceptance: 21/21 PASS (independently re-run by the Manager session, not just trusted from the building agent). Regression confirmed unchanged: worker-01:test 12/12, worker-02:test 9/9, native-factory-flow:test 17/17. rule-coverage.json rule 251 flipped NOT_IMPLEMENTED -> IMPLEMENTED on this real evidence only, per the Owner's explicit instruction not to declare it before Acceptance passed."
+  },
+  {
+    "id": "TASK-043",
+    "title": "Reorganize external connections (🔌 Connector Department)",
+    "priority": "P3",
+    "status": "done",
+    "detail": "Declared 2026-08-09 as part of the owner's MANAGER-07/6-Department design (DNA-000080, registry/MANAGER_07_BOARD.json). Scope beyond the title itself is not yet defined — registry/connector-lifecycle.json is a LOCKED Architectural Law (\"ห้ามแก้ Core เพื่อรองรับ Connector ใหม่\", amendment_policy requires explicit owner confirmation, same tier as the Constitution). Whoever (human or AI, as the Connector Department) picks this up must first read connector-lifecycle.json's 5 stages (connect/register/test/enable/run) and confirm with the owner what 'reorganize' targets before touching anything — not a license to refactor the locked lifecycle. Owner scoped 'reorganize' (2026-08-09, via AskUserQuestion) to: register the owner's connector list into the existing connectors table through the existing Connect->Register->Test flow, real credentials only, no core changes (DNA-000084). Done: line-messaging-api, supabase-management-api (both TEST PASSED, enabled=false pending owner Enable at /admin/connectors). Not done, no real credential available: github, vercel, anthropic, sip. Not attempted: gmail (real creds exist but don't fit the oauth tester's no-refresh design). Resolved (DNA-000086): this session mistakenly registered an openai connector row before checking registry/infrastructure.json (openai.status was 'removed', DNA-000078); owner confirmed deletion, row deleted. Owner then clarified (same turn) that OpenAI is being reintroduced under a DIFFERENT role — 'Front Office AI' (Owner Command Team), not a Business Connector — tracked separately as TASK-046, out of this task's scope. Closing this task at the scope the owner actually gave it; github/vercel/anthropic/sip remain open only in the sense that they need the owner to supply a real credential — not blocked on anything this session can resolve."
+  },
+  {
+    "id": "TASK-046",
+    "title": "Build Front Office AI (🎙️ Voice Operator) — Owner's parallel assistant chain, NOT above MANAGER-07 (corrected 2026-08-09, FCR-003)",
+    "priority": "P2",
+    "status": "not_started",
+    "detail": "Owner decision (2026-08-09, via AskUserQuestion, DNA-000086): OpenAI is reassigned from its old, permanently-removed Business Connector role (DNA-000078) to a new role, 'Front Office AI', positioned as Owner Command Team — OWNER -> Front Office AI (ChatGPT/OpenAI Realtime/Gemini/Claude/...) -> MANAGER-07 -> Workers 1-6 -> DNA OS Factory. Real scope per the owner's own description: receives commands from Owner via conversation/voice/realtime/tool-calling, dispatches into DNA OS only through MANAGER-07 (Rule 251's single inquiry channel, same direction reversed — Owner-to-system instead of just system-to-Owner). Explicitly forbidden: direct Core Business access, writing Business Logic, editing Database, acting on behalf of a Worker. registry/infrastructure.json's openai entry already updated to record this role (status=role_reassigned_not_implemented) — this task is the real build. Nothing built yet: no Realtime/voice/tool-calling runtime exists anywhere in this repo (grep-verified before writing this task). Real blocker before any of this can be tested live: the real OPENAI_API_KEY in .env.local is dead (HTTP 401, verified twice independently 2026-08-09) — owner needs to supply a live key. First real design question for whoever picks this up: how Front Office AI's tool-calling reaches MANAGER-07 specifically (a new API route? MCP tool exposed to the Realtime session? reuses workerTaskOrchestrator.ts's JobContract shape or needs its own?) — not yet decided, do not assume. CORRECTED 2026-08-09 (Owner decision, FCR-003, Constitution Rule 254): Front Office AI is NOT positioned above MANAGER-07 — it is a parallel, separate command chain under Owner (Front Office AI handles Owner conversation/proposals; MANAGER-07 runs the Factory). Neither commands the other; they exchange only through registry/FACTORY_CENTRAL_REGISTRY.json. The original title's 'above MANAGER-07' framing was the Advisor session's own initial proposal and is now superseded by this explicit Owner ruling — real implementation (building Front Office AI itself) remains not_started, unaffected by this correction.",
+    "routing": {
+      "bucket": "BLOCKED_ON_DEPENDENCY",
+      "reason": "New AI/model-provider integration (Voice Operator) — per Constitution Rule 259, this must go through the full Advisor-analyzes -> Rapid-Integration-Team-surveys -> EXECUTION_HAND-builds sequence, not straight to EXECUTION_HAND; Advisor design pass has not happened yet.",
+      "classified_by": "MANAGER-07",
+      "classified_at": "2026-08-09",
+      "reference": "DNA-000108",
+      "baseline_note": "Explicitly deferred from FACTORY_BASELINE_V1 (DNA-000116, Owner-confirmed) — real, known non-blocking debt, not abandoned."
+    }
+  },
+  {
+    "id": "TASK-044",
+    "title": "ตรวจสอบความพร้อม DNA OS — refresh readiness audit (🛡 QA Department)",
+    "priority": "P2",
+    "status": "blocked",
+    "detail": "Declared 2026-08-09 (DNA-000080). DEPLOYMENT_READINESS.md (Phase 2.5) is dated 2026-07-14 — 26 days stale as of this task, predating Constitution Rules 118 through 252, the entire Software Factory system (factory-registry.json's 12 factories, workerRegistry.ts's 10 WorkerTypes, workerTaskOrchestrator.ts), the Data Boundary gate, and LINE Profile Refresh. Reuse the real, already-existing tooling (npm run guard / dashboard / deploy-gate / readiness:test / factory-readiness:test) — do not build new QA tooling (Rule 103) — and produce a refreshed readiness doc against the current registry state. ATTEMPTED 2026-08-09 (DNA-000109) via 5 real EXECUTION_HAND RUN_COMMAND Job Contracts (guard/dashboard/deploy-gate/readiness:test/factory-readiness:test), all 5 real BLOCKED before any command ran: Rule 257's Cost Gate gates every RUN_COMMAND unconditionally (no field in the Job Contract schema declares a command as locally-free), and registry/COST_BUDGETS.json has no budget configured — so even a real, free local script like `bash scripts/governance.sh` LOCKs today. This is the Cost Gate correctly failing safe/conservative, not a bug in it — but it is a real usability gap worth a real follow-up (e.g. a FREE cost_class fast-path for known-local npm scripts, or an Owner-granted standing budget for governance/readiness tooling). A real, honest finding artifact was written instead: DEPLOYMENT_READINESS_REFRESH_ATTEMPT_2026-08-09.md — explicitly states it does NOT supersede the existing, still-stale DEPLOYMENT_READINESS.md. Independently verified by MANAGER-07: registry/COST_LEDGER.json confirmed still empty (0 entries), registry/worker01-sandbox/live-proof.txt mtime unchanged — zero real money spent.",
+    "routing": {
+      "bucket": "EXECUTION_HAND",
+      "reason": "Own text: 'reuse the real, already-existing tooling...do not build new' — a real RUN_COMMAND/RUN_TEST + GENERATE_ARTIFACT Job Contract, exactly EXECUTION_HAND's shape.",
+      "classified_by": "MANAGER-07",
+      "classified_at": "2026-08-09",
+      "reference": "DNA-000108"
+    }
+  },
+  {
+    "id": "TASK-045",
+    "title": "Build EDGE_FUNCTION_WORKER (11th WorkerType) — real dispatch path into Supabase Edge Functions",
+    "priority": "P2",
+    "status": "done",
+    "detail": "Owner decision (2026-08-09, via AskUserQuestion, DNA-000082/083): Worker-04 (👤 Identity Department) cannot be dispatched today — app/api/admin/ide/_lib/workerTaskOrchestrator.ts#createJobContract() only accepts the 10 real WorkerType values in app/api/admin/ide/_lib/workerRegistry.ts, none of which reach Supabase Edge Functions (a separate Deno runtime, e.g. supabase/functions/line-webhook-v2/engines/profile-refresh.ts). Owner explicitly chose to add an 11th WorkerType (EDGE_FUNCTION_WORKER) rather than a manual handoff or accepting the 5/6 gap — this is a real, explicit exception to the Constitution Rule 252 (Manager-07 'ห้ามสร้าง Worker ใหม่') prohibition, authorized by the Owner specifically for this one case, same pattern as other real Plan Lock exceptions already in this registry (e.g. AI_SESSIONS.json's 2026-07-13 Domain Infrastructure exception). Real starting point already exists and should be reused, not reinvented (Rule 101/103): profile-refresh.ts already implements a real fire-and-forget dispatch pattern (enqueue into line_profile_refresh_queue, then EdgeRuntime.waitUntil(fetch(...)) to trigger line-profile-refresh-worker) — EDGE_FUNCTION_WORKER's real dispatch mechanism should likely be 'insert a queue row + fire-and-forget HTTP call to the target Edge Function', not a new synchronous RPC mechanism. Scope: (1) add 'EDGE_FUNCTION_WORKER' to the WorkerType union + a real WorkerDefinition entry in workerRegistry.ts (capabilities/limitations/inputContract/outputContract/evidenceRequirements honestly stated, same shape as the other 10), (2) wire workerTaskOrchestrator.ts (or a clearly-scoped sibling function — do not overload runScopedWorkerJob() if the Edge Function contract doesn't fit it) so a JobContract with workerRole=EDGE_FUNCTION_WORKER can actually reach a real Edge Function. This is real source-code work — per Constitution Rule 252, MANAGER-07 itself must not write it; it must be dispatched to and implemented by a Worker (CODE_WORKER, software-factory scope) in a separate session. RESOLVED 2026-08-10 (DNA-000112): app/api/admin/ide/_lib/edgeFunctionWorkerRuntime.ts built — 11th WorkerType (EDGE_FUNCTION_WORKER) added to workerRegistry.ts with a real, honestly-stated WorkerDefinition; reuses profile-refresh.ts's real fire-and-forget dispatch pattern; every real dispatch runs through the existing, unweakened Cost Gate (Rule 257) first via checkCostGate() before any network call; workerTaskOrchestrator.ts#runScopedWorkerJob() real-refuses a workerRole=EDGE_FUNCTION_WORKER contract as NO_COMPATIBLE_WORKER rather than silently misrouting it into CODE_WORKER. The building agent's session dropped mid-response (infrastructure error) right before adding scripts/edge-function-worker-test.ts to manager-question-queue-test.ts's structural-scan allowlist (same precedent already used twice today for cost-gate-test.ts/execution-hand-test.ts) — MANAGER-07 caught the resulting real 20/21 regression on manager-question-queue:test via its own independent re-run, resumed the same agent with full context to finish the one-line fix, then re-verified everything itself from scratch rather than trusting either the original or resumed report: edge-function-worker:test 20/20, manager-question-queue:test 21/21, npx tsc --noEmit showing zero new errors (only the 5 already-tracked pre-existing ones), zero real money spent (registry/worker01-sandbox/live-proof.txt mtime unchanged, registry/COST_LEDGER.json still 0 entries), zero real production Edge Function invocations triggered, all 5 off-limits registry files and every other Department's workspace confirmed untouched, and registry/LOCK_MANAGER.json confirmed empty of the 8 stale CODE_WORKER-TASK-045 entries left by the crash. A security-classifier warning attached to the resumed agent's completion notification was independently investigated and found to be a false positive — no unauthorized file, no off-limits touch, no unexplained git diff beyond what was reported.",
+    "routing": {
+      "bucket": "EXECUTION_HAND",
+      "reason": "Owner already decided the design (DNA-000082/083, via AskUserQuestion) — only the build (new WorkerType + dispatch path) remains, a real CREATE_FILE/EDIT_FILE/UPDATE_IMPORT Job Contract. Larger than TASK-009/018/044 — recommend its own dedicated Job Contract, not bundled.",
+      "classified_by": "MANAGER-07",
+      "classified_at": "2026-08-09",
+      "reference": "DNA-000108"
+    }
+  },
+  {
+    "id": "TASK-047",
+    "title": "Build Switch-Based Orchestrator gate pipeline (Closed-Loop Factory Mode) for MANAGER-07",
+    "priority": "P1",
+    "status": "done",
+    "detail": "Owner (2026-08-09) ordered MANAGER-07 switched into Closed-Loop Factory Mode / a Switch-Based Orchestrator: the Manager must not process work content itself, only validate/classify/dedup/noise-filter/dependency-check/lock/route work items to real Workers, using a fixed 9-state machine (BLOCKED/READY/LOCKED/RUNNING/VERIFYING/PASSED/REPAIR/REJECTED/DONE) and escalating to the Owner only via Rule 255's 5 real escalation_criteria. Manager dispatched to CODE_WORKER per Rule 252 rather than writing code itself. Before writing any code, the agent inventoried the concurrent session's Rules 253-256 + FACTORY_CENTRAL_REGISTRY.json/WORKER_IDENTITIES.json/TEAM_ORGANIZATION.json/WORKER_COMMUNICATION_MAP.json/WORKER_REGISTRATION_PROTOCOL.json + 5 root .md design docs and confirmed (every one of DNA-000080-101's own entries says so directly) that no work-item gate/state-machine runtime existed anywhere yet — built fresh, not duplicated. Real files: app/api/admin/ide/_lib/switchBasedOrchestratorRuntime.ts (625 lines) + scripts/switch-based-orchestrator-test.ts (357 lines, wired as `npm run switch-based-orchestrator:test`). Reuses managerQuestionRuntime.ts's dedup (Rule 251), contextPlannerRuntime.ts's minimal Context Slice, workerRegistry.ts's capability-based selection, and honestly respects WORKER_IDENTITIES.json's real 0/6-registered dispatch gate (a dispatch attempt is reported as genuinely DISPATCH_DENIED_UNREGISTERED, never faked as succeeding). RESOLVED 2026-08-09 (DNA-000102): this session independently re-ran `npm run switch-based-orchestrator:test` itself (not just trusted from the building agent) — 22/22 real PASS, first-hand-verified. Regression independently re-run by this session too: worker-01:test 12/12 (SKIP_LIVE=1), worker-02:test 9/9, native-factory-flow:test 17/17, manager-question-queue:test 21/21 — all unchanged. Honest disclosure: the building agent's own regression report claimed worker-01:test as 17/17 (not 12/12) both before and after, which this session traced to the agent running that suite WITHOUT SKIP_LIVE=1 — worker-01-acceptance-test.ts's own header documents this as a real, live, costed path (~$0.29 USD/call via the claude-cli Worker Adapter, real full-agent-context loading cost) that the EARLIER agent (TASK-042) explicitly avoided specifically because 'no owner go-ahead was given for that specific spend today.' Hard evidence this really executed live (not merely claimed): registry/worker01-sandbox/live-proof.txt exists with a real mtime inside this agent's run window. Real cost likely incurred: on the order of $0.29-0.58 USD, not pre-authorized for this specific run, not flagged in the agent's own final report. Disclosed here plainly per Constitution Rule 100 (accurate knowledge over convenient omission) rather than left undiscovered."
+  },
+  {
+    "id": "TASK-048",
+    "title": "Build Execution Plane Cost Gate (Rule 257 / FCR-009) — costGateRuntime.ts",
+    "priority": "P1",
+    "status": "done",
+    "detail": "Owner (2026-08-09) mandated a Cost Gate after MANAGER-07 disclosed TASK-047's real, unauthorized ~$0.29-0.58 USD live-test spend (FCR-009). Real work: (1) a cost_class field/taxonomy (FREE/ESTIMATED_COST/PAID/UNKNOWN_COST) declared per Tool/Test/Adapter — start with workerRegistry.ts's WORKER_REGISTRY and every *-acceptance-test.ts harness's live section; (2) costGateRuntime.ts implementing the COST_GATE check (provider/operation/estimated_cost/currency/max_cost/reason/task_id/worker_id/evidence-of-necessity) with real RELEASE (cost=0, or within a real pre-approved budget) vs LOCK+escalate-as-financial_approval_required (no budget or over budget) outcomes, reusing Rule 251's managerQuestionRuntime.ts/Rule 255's escalation_criteria for the actual escalation path rather than inventing a second one; (3) flip every existing *-acceptance-test.ts harness so SKIP_LIVE defaults to true (opt-in LIVE via an explicit flag, never opt-out) — worker-01-acceptance-test.ts is the known real example, audit worker-02 and any other harness for the same live-section pattern; (4) a Worker/Adapter must not be able to flip its own SKIP_LIVE/LIVE mode — prove structurally, same import-graph-scan technique already used for Rules 251/252; (5) real actual-cost recording (estimated_cost/actual_cost/provider/model/timestamp/task_id/worker_id/approval_reference) written back to registry/FACTORY_CENTRAL_REGISTRY.json after a paid execution completes. MUST NOT retroactively alter any past test-result record (Rule 257 clause 12) — DNA-000101/102's worker-01:test 12/12 and 17/17 results both stay as recorded, this task only adds forward-looking gating, never rewrites history. Dispatch to CODE_WORKER per Rule 252 (Manager does not write code itself). RESOLVED 2026-08-09 (DNA-000104): built app/api/admin/ide/_lib/costGateRuntime.ts + registry/COST_BUDGETS.json + registry/COST_LEDGER.json + scripts/cost-gate-test.ts, wired into codeWorkerRuntime.ts and switchBasedOrchestratorRuntime.ts's attemptDispatch(), added costClass to all 10 WorkerType definitions and 5 real Adapters, fixed the real FCR-009 root cause (worker-01-acceptance-test.ts's SKIP_LIVE was opt-out; now opt-in via shouldRunLiveSection(), confirmed live default is now 12/12 not 17/17). Real acceptance: 15/15 PASS, independently re-run by the Manager session. All 5 pre-existing regression suites independently re-run and confirmed unchanged (worker-01 12/12 as the intended new default, worker-02 9/9, native-factory-flow 17/17, manager-question-queue 21/21, switch-based-orchestrator 22/22). Zero real money spent during this build (confirmed: live-proof.txt mtime unchanged, COST_LEDGER.json real and empty). Rule 257 flipped NOT_IMPLEMENTED -> IMPLEMENTED on this evidence only."
+  },
+  {
+    "id": "TASK-049",
+    "title": "Build EXECUTION_HAND runtime (Rule 258) — app/api/admin/ide/_lib/executionHandRuntime.ts",
+    "priority": "P1",
+    "status": "done",
+    "detail": "Owner (2026-08-09) ordered a new, minimal-context Worker role, EXECUTION_HAND — a direct hand of MANAGER-07 with a deliberately narrow contract (RECEIVE -> EXECUTE -> RETURN EVIDENCE only, 10 required Job Contract fields, 10 gated operation types, lock/allowed_paths/evidence protocol, terminal states EXECUTED/FAILED/BLOCKED only — never self-declared PASS). Full contract text: workers/execution-hand/ROLE.md + CONTRACT.md (already created by MANAGER-07, declarative workspace scaffolding). Real work: app/api/admin/ide/_lib/executionHandRuntime.ts implementing the real Job Contract validator (BLOCKED on any missing of the 10 fields, never interpreted), the 10 allowed-operation gate, and the lock -> allowed_paths-only -> evidence -> return -> unlock -> STANDBY protocol — reuse existing path-scoping logic (contextPlannerRuntime.ts/codeWorkerRuntime.ts's permittedWriteScope enforcement) and existing cost-gating (costGateRuntime.ts, Rule 257) rather than reimplementing either. Critically, prove structurally (same import-graph-scan technique already used for Rules 251/252/257) that EXECUTION_HAND's own code: cannot read/glob the full registry/ directory or full CONSTITUTION.json/CURRENT_STATE.json (only files explicitly named in a Job Contract's allowed_paths), cannot import managerQuestionRuntime.ts's Owner-facing functions, cannot import workerTaskOrchestrator.ts's or switchBasedOrchestratorRuntime.ts's dispatch-into-other-Workers functions, and never returns a PASS/FAIL status (only EXECUTED/FAILED/BLOCKED). Wire the workers/execution-hand/{INBOX,OUTBOX,EVIDENCE}/ folders as the real file-based interchange the runtime reads/writes. Dispatch to CODE_WORKER per Rule 252 (Manager does not write code itself). AFTER this is real and verified: MANAGER-07 must reclassify the full pending backlog (16 tasks as of DNA-000105: TASK-002/003/005/006/007/008/009/012/014/018/038/040/041/044/045/046) into needs-EXECUTION_HAND / Department-specific / blocked-on-dependency before dispatching any of them — no automatic resumption under the old, undifferentiated dispatch model. RESOLVED 2026-08-09 (DNA-000107): built app/api/admin/ide/_lib/executionHandRuntime.ts (874 lines) + scripts/execution-hand-test.ts (484 lines), wired against workers/execution-hand/'s real INBOX/WORK/OUTBOX/EVIDENCE/STATUS.json convention, reusing costGateRuntime.ts (Rule 257) for RUN_COMMAND/INSTALL_PACKAGE/BUILD gating and the existing path-scoping/Command-Policy denylist patterns. Real acceptance: 34/34 PASS, independently re-run by the Manager session, including all 5 named negative/structural guarantees each with a positive control. Regression confirmed unchanged: manager-question-queue 21/21, switch-based-orchestrator 22/22, cost-gate 15/15. Zero real money spent. Rule 258 flipped NOT_IMPLEMENTED -> IMPLEMENTED on this evidence only."
+  },
+  {
+    "id": "TASK-050",
+    "title": "Add Cost Gate FREE_LOCAL fast-path (Rule 257 amendment / FCR-011)",
+    "priority": "P1",
+    "status": "done",
+    "detail": "Owner (2026-08-09) ordered this before TASK-045 proceeds. Real gap found live in TASK-044/DNA-000109: RUN_COMMAND is unconditionally Cost-Gated (Rule 257) with no way to classify a command as provably free, so even `bash scripts/governance.sh` LOCKs with no budget configured. Real work: in app/api/admin/ide/_lib/costGateRuntime.ts, add a real, closed-allowlist classifier for the RUN_COMMAND/RUN_TEST/BUILD operation surface producing FREE_LOCAL/PAID_EXTERNAL/UNKNOWN_COST (distinct dimension from the per-Worker costClass already on WORKER_REGISTRY, do not conflate). FREE_LOCAL allowed ONLY for: `npm run <script>` where that script's real command text (read live from package.json, never trusted from the caller/Job Contract) contains no external paid adapter/network/cloud/model/API call; `npx tsc --noEmit`; `eslint`; real, already-verified-free local test scripts; `git status`; `git diff`; `grep`; read-only shell (`cat` and equivalent); local governance scripts (scripts/governance.sh, dashboard.sh, etc.). No wildcard matching. The classification must be computed by the gate itself from the real command text — a Job Contract/Worker must never be able to just declare cost_class=FREE_LOCAL and have it trusted. Any command referencing an API, paid CLI provider, network, cloud, model, or external service, or whose safety cannot be proven, must be PAID_EXTERNAL or UNKNOWN_COST and go through the existing, unweakened Rule 257 flow. FREE_LOCAL executions must NOT write a registry/COST_LEDGER.json entry. Acceptance (owner's exact 4 criteria): (1) a real local free command (e.g. `git status`, `npm run type-check`) passes through the gate without any budget configured; (2) a real paid/unknown command is still blocked exactly as before (regression); (3) registry/COST_LEDGER.json gets zero new entries for FREE_LOCAL executions; (4) the full existing cost-gate:test suite (Rule 257's regression) still passes unchanged. Dispatch to CODE_WORKER per Rule 252. After this is real and independently verified, TASK-045 (EDGE_FUNCTION_WORKER) proceeds. RESOLVED 2026-08-09 (DNA-000111): app/api/admin/ide/_lib/costGateRuntime.ts#classifyOperationCommand built (real, closed allowlist, cross-checked live against package.json, never caller-trusted), wired into executionHandRuntime.ts's runCostGateCheck(). Real acceptance: all 4 Owner criteria met with real evidence, cost-gate:test 49/49 and execution-hand:test 37/37 independently re-run and verified by MANAGER-07. manager-question-queue:test 21/21 and switch-based-orchestrator:test 22/22 confirmed unchanged. Zero real money spent. Bonus demo re-ran TASK-044's guard/dashboard Job Contracts for real (previously LOCKed, now RELEASE and actually execute) — surfaced one real, unrelated pre-existing bug (DNA_OS_HEALTH.json schema collision, FCR-012/TASK-051), disclosed and tracked separately, not blocking this task's completion. TASK-045 now proceeds per the Owner's explicit gate condition."
+  },
+  {
+    "id": "TASK-051",
+    "title": "Fix DNA_OS_HEALTH.json schema collision between governance.sh and dashboard.sh (FCR-012)",
+    "priority": "P3",
+    "status": "done",
+    "detail": "Real, pre-existing, dormant bug surfaced (not caused) by TASK-050's bonus demo, 2026-08-09 (DNA-000111/FCR-012): scripts/governance.sh (~line 209) and scripts/dashboard.sh (~line 147) both write real but incompatible schemas to the same registry-adjacent file, DNA_OS_HEALTH.json. app/OperationalWorkspace.tsx:268-269 reads governance.sh's shape (checks/summary/governance_score); whichever script ran last wins, and dashboard.sh's shape (evolution/risk/metrics) has neither field, producing 4 real TS2339 errors under npx tsc --noEmit. Real fix options, not yet decided: (1) give each script its own output file and have OperationalWorkspace.tsx read the specific one it needs, (2) reconcile the two schemas into one real, shared shape both scripts write compatibly, or (3) make OperationalWorkspace.tsx defensively read either shape. DNA_OS_HEALTH.json was deliberately NOT reverted to a stale snapshot when this was found — it reflects the real, current output of whichever script ran last, per this repo's evidence-honesty culture. RESOLVED 2026-08-10 (DNA-000119): real investigation found both schemas are genuinely, simultaneously load-bearing (governance.sh's checks/summary/governance_score feeds OperationalWorkspace.tsx, workspace/status/route.ts, AND deploy-gate.ts's real deploy-blocking gate; dashboard.sh's evolution/risk/metrics feeds scripts/hello.ts, the mandatory session-start command) — ruling out a merge. Fixed by giving dashboard.sh its own real output file, DNA_OS_DASHBOARD.json, and repointing scripts/hello.ts at it; governance.sh keeps writing DNA_OS_HEALTH.json unchanged. Independently re-verified by MANAGER-07: npx tsc --noEmit down to the 1 pre-existing, unrelated error; re-ran both scripts back-to-back and confirmed neither clobbers the other's file; LOCK_MANAGER.json confirmed clean. Zero real money spent."
+  },
+  {
+    "id": "TASK-052",
+    "title": "Build Factory Gap Loop runtime (Rule 255 amendment) — classify/dedup/status-compute",
+    "priority": "P1",
+    "status": "done",
+    "detail": "Owner (2026-08-10) opened the Factory Gap Loop, operationalizing Constitution Rule 255's own already-flagged gap (no full automatic classify/capture-evidence). Real work: app/api/admin/ide/_lib/gapLoopRuntime.ts with (1) a real GapType classifier over the 10-category closed enum (registry/FACTORY_CENTRAL_REGISTRY.json's new type_enum: CODE_GAP/RUNTIME_GAP/WORKER_GAP/CONTROL_GAP/DATA_GAP/UI_GAP/CONNECTOR_GAP/SECURITY_GAP/COST_GAP/OBSERVABILITY_GAP) that never silently guesses — an unclear Gap must be honestly reported as unclassified rather than forced into the nearest category; (2) real duplicate-Gap detection/merge reusing managerQuestionRuntime.ts's real, already-tested overlap-coefficient keyword-dedup logic (Rule 251) against registry/FACTORY_CENTRAL_REGISTRY.json's real existing findings, never creating a second Task for the same real Gap; (3) a real, evidence-based computeFactoryStatus() reading real current state (registry/WORKER_IDENTITIES.json registration count, open Critical/High findings in FACTORY_CENTRAL_REGISTRY.json, and real pass/fail of the existing test suites — reuse, don't reinvent, whatever real test-running mechanism already exists in this repo rather than hardcoding a duplicate list) producing STABLE only when Rule 255's amendment's own real definition is met, never fabricated. Does NOT need to build a standalone monitoring daemon — the loop's OBSERVE step is triggered by MANAGER-07 processing a real Gap as it's found during real dispatched work (the same pattern already demonstrated 3 times this session for FCR-009/011/012), not continuous background polling; scope this runtime as the classify/dedup/status-compute helpers MANAGER-07 calls into each time, not a cron job. Dispatch to CODE_WORKER per Rule 252 — MANAGER-07 does not write this itself. RESOLVED 2026-08-10 (DNA-000114): app/api/admin/ide/_lib/gapLoopRuntime.ts built (classifyGap/findDuplicateGap/computeFactoryStatus), reusing managerQuestionRuntime.ts's real dedup logic directly. Real acceptance: 20/20 PASS, independently re-run by MANAGER-07. All 8 regression suites re-confirmed unchanged. Real bug found and fixed by the building agent during its own verification: concurrent Promise.all test-suite execution caused spurious failures from shared mutable state (git tree, COST_BUDGETS.json/COST_LEDGER.json) — fixed to run sequentially. computeFactoryStatus()'s real, live output corrected MANAGER-07's own earlier, incomplete DNA-000113 factory_status snapshot (found 4 real open findings, not just 2)."
   }
 ]

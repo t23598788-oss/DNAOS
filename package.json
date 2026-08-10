@@ -23,6 +23,7 @@
     "existence": "bash scripts/existence.sh",
     "status": "bash scripts/dashboard.sh && bash scripts/intelligence.sh && bash scripts/existence.sh",
     "hello": "npx tsx scripts/hello.ts",
+    "connectors:register-known": "npx tsx scripts/register-known-connectors.ts",
     "sync-demand": "npx tsx scripts/sync-owner-requests.ts",
     "sync-infra-deps": "npx tsx scripts/sync-infrastructure-dependencies.ts",
     "deploy-gate": "npx tsx scripts/deploy-gate.ts",
@@ -98,7 +99,17 @@
     "external-attack-surface:test": "npx tsx scripts/external-attack-surface-test.ts",
     "execution-context:test": "npx tsx scripts/execution-context-test.ts",
     "command-surface:test": "npx tsx scripts/command-surface-test.ts",
-    "factory-readiness:test": "npx tsx scripts/factory-readiness-test.ts"
+    "factory-readiness:test": "npx tsx scripts/factory-readiness-test.ts",
+    "worker-01:test": "npx tsx scripts/worker-01-acceptance-test.ts",
+    "worker-01-lock:test": "npx tsx scripts/worker-01-reference-lock-test.ts",
+    "worker-02:test": "npx tsx scripts/worker-02-acceptance-test.ts",
+    "manager-question-queue:test": "npx tsx scripts/manager-question-queue-test.ts",
+    "switch-based-orchestrator:test": "npx tsx scripts/switch-based-orchestrator-test.ts",
+    "data-boundary:test": "npx tsx scripts/data-boundary-test.ts",
+    "cost-gate:test": "npx tsx scripts/cost-gate-test.ts",
+    "execution-hand:test": "npx tsx scripts/execution-hand-test.ts",
+    "edge-function-worker:test": "npx tsx scripts/edge-function-worker-test.ts",
+    "gap-loop:test": "npx tsx scripts/gap-loop-test.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.115.0",

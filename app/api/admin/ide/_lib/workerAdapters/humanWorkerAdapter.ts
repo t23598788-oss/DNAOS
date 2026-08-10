@@ -14,6 +14,10 @@ import type { WorkerRequest, WorkerResponse } from "../workerContract";
 
 export const humanWorkerAdapter: WorkerAdapter = {
   id: "human-worker", type: "HUMAN", provider: "human",
+  // Real, honest costClass (Rule 257) — FREE: the human Owner's own
+  // action is never a metered provider spend this Cost Gate is scoped
+  // to (Owner time is real but out of financial-approval scope here).
+  costClass: "FREE",
   availability(): WorkerAvailability { return { available: true, reason: "the real, human Owner is always a real, available fallback" }; },
   capabilities() { return ["code.generate", "analysis", "review", "decision", "external-action"]; },
   estimate(): WorkerCostEstimate { return { estimatedCost: null, estimatedTokens: null, currency: null, confidence: "UNKNOWN" }; },

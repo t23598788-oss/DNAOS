@@ -1,85 +1,99 @@
-# MASTER EXECUTION STATE
+# MASTER EXECUTION STATE — FACTORY REFERENCE INDEX
 
-**This is a human-readable RENDERING, not a second source of truth.** Real data lives in `registry/CURRENT_STATE.json` + `registry/TASK_QUEUE.json` + `registry/architecture-book.json` — same relationship `CLAUDE.md` has to `registry/CONSTITUTION.json`. If this file and those JSON registries ever disagree, the JSON wins; regenerate this file to match, not the other way around. Last regenerated: 2026-07-15, against `registry/CHANGELOG.json` DNA-000067.
+**This is a human-readable RENDERING and pointer index, not a second source of truth.** Real data lives in the JSON registries this file points to — same relationship `CLAUDE.md` has to `registry/CONSTITUTION.json`. If this file and those JSON registries ever disagree, the JSON wins; regenerate this file to match, not the other way around. Last regenerated: 2026-08-10, against `registry/CHANGELOG.json` DNA-000117, as STEP 2 (Structure Memory) of the Owner's Factory Stabilization & Baseline Phase.
+
+**A new AI session should be able to bootstrap entirely from this file** — it names the real file for every real subsystem rather than re-explaining what each one does; read the cited file itself for detail, don't guess from the one-line description here.
 
 ## PROJECT STATUS
 
-- Project: DNA OS
-- Current Phase: **System Integration** — **Deploy Gate: PASS, `npm run build` verified successful end to end**
-- Real module count: 475 registered, 389 OK, 0 broken, 0 unused, 86 unregistered (`registry/architecture-book.json`)
+- Project: DNA OS — `dna-os-deadboard`
+- Current phase: **Factory Stabilization & Baseline Phase** (Owner, 2026-08-10) — closing real Gaps, then freezing `FACTORY_BASELINE_V1`
+- `FACTORY_BASELINE_V1` scope, Owner-confirmed: **Control Plane only** — Front Office and Worker Team self-registration are real, disclosed, non-blocking debt for this baseline, not in scope (see Known Remaining Gaps below)
+- Real, live `factory_status`: **NOT_STABLE** — computed by `app/api/admin/ide/_lib/gapLoopRuntime.ts#computeFactoryStatus()`, not asserted; re-run it for the current answer, don't trust a cached number here
 
-## LOCKED — verified, do not recreate
+## 1. ARCHITECTURE
 
-Read-only. Do not rebuild, rename, or fork these — extend them (Rule 101/103).
-
-| Component | Real file(s) |
+| What | Real file |
 |---|---|
-| Runtime Contract (19 fields) | `core/shared/types.ts` |
-| Runtime Context Broker | `core/runtime/contextBroker.ts` |
-| ExecutionPlan / ExecutionReport | `core/shared/types.ts` / `core/runtime/contextBroker.ts` |
-| DeltaContext / ContextBudget / NegotiationFlow / WorkOrder | `core/shared/types.ts` |
-| Document Engine self-description | `engines/documents/selfDescription.ts` |
-| LINE Driver self-description | `plugins/drivers/line.selfDescription.ts` |
-| Deploy Gate | `scripts/deploy-gate.ts` (wired into `npm run build` via `prebuild`) |
-| Validation Result Ledger | `registry/VALIDATION_RESULTS.json` + `scripts/record-validation.ts` |
-| Constitution Rules 100–110, C-001–C-011 | `registry/CONSTITUTION.json` |
+| Layer stack (core/gateway/engines/cognitive/presenter/services/plugins/registry) | `registry/CONSTITUTION.json` → `layer_stack`, rendered in `CLAUDE.md` |
+| Module/import graph | `registry/architecture.json`, `registry/architecture-book.json` |
+| Factory departments (12) | `registry/factory-registry.json` |
+| Dependency rules (cross-layer imports) | `registry/dependency-graph.json` |
 
-**AI ACTION: READ ONLY on the above.** Do not create a parallel Runtime, a parallel Rule set, or a parallel Registry. This file's own existence is itself governed by that rule — see the reuse-check in `registry/CHANGELOG.json` DNA-000066 before assuming anything here needs a new file.
+## 2. CONTROL PLANE (real, built and independently verified this session — DNA-000079 through DNA-000117)
 
-## DEPLOYABLE
+MANAGER-07 is the Command/Planning/Dispatch Authority (Constitution Rule 252) — never writes source code itself, only CLASSIFY → PLAN → DISPATCH → VERIFY → ROUTE NEXT (Rule 259).
 
-Workspace, Registry, Validation, Runtime, Document Engine, LINE Driver, Dashboard, Authentication — all real, all already built. **`npm run build` verified successful end to end (exit 0)** — the Deploy Gate mechanically confirms this on every build, not just a label.
-
-## BLOCKERS — ALL 4 RESOLVED (`npm run deploy-gate` → PASS, Health Score 100/100)
-
-| Priority | Task | Resolution |
+| Component | Real file | Constitution Rule |
 |---|---|---|
-| 1 | `TASK-033` | `core/auth/session.ts` now routes through `gateway/auth.ts` (thin wrapper) instead of importing `services/supabase/server` directly — `core → gateway` added to `dependency-graph.json` as the sanctioned pattern |
-| 2 | `TASK-034` | Hardcoded URL replaced with a templated reference in `registry/communication/line.registry.json` (field was never programmatically read — no functional change) |
-| 3 | `TASK-035` | Real root cause: `--exit-code` and `-t`/`--threshold` are independent jscpd flags — `--exit-code` ignored the config's real 10% tolerance. Fixed to `-t 10`; real duplication is 2.00%, well under threshold |
-| 4 | `TASK-036` | Files/deps/binaries fully resolved (42/4/9 → 0, real fixes + `Rule 104` knowledge extraction, `AK-005`–`AK-011`). Unused exports/types (121+141) verified individually — all genuinely zero-consumer — excluded from the gate, still visible via plain `npx knip` |
+| Registry-First Inquiry | (process discipline — check Registry before asking Owner) | Rule 250 |
+| Manager Question Queue | `app/api/admin/ide/_lib/managerQuestionRuntime.ts` | Rule 251 |
+| Manager Non-Mutation | (structural — enforced by every Runtime below never containing Manager-authored business logic) | Rule 252 |
+| Switch-Based Orchestrator (gate pipeline: VALIDATE→CLASSIFY→DEDUP→NOISE_FILTER→DEPENDENCY_CHECK→LOCK→ROUTE→WORKER→EVIDENCE→VERIFY) | `app/api/admin/ide/_lib/switchBasedOrchestratorRuntime.ts` | Rule 252 (Closed-Loop Factory Mode) |
+| Factory Central Registry Reporting Policy | `registry/FACTORY_CENTRAL_REGISTRY.json` | Rule 253 |
+| Front Office AI / MANAGER-07 parallel command chains | `TEAM_ROLE_CONTRACT.md`, `LOCKED_WORKFLOW.md` (Advisor session's real output) | Rule 254 |
+| Closed Loop Execution Policy (5 Owner-escalation criteria) + **Factory Gap Loop amendment** (10-category Gap taxonomy, dedup/merge, `FACTORY_STATUS`) | `app/api/admin/ide/_lib/gapLoopRuntime.ts` | Rule 255 |
+| Capability-First Expansion Principle | (policy — see Rule text) | Rule 256 |
+| Execution Plane Cost Gate (FREE_LOCAL / PAID_EXTERNAL / UNKNOWN_COST) | `app/api/admin/ide/_lib/costGateRuntime.ts` | Rule 257 |
+| EXECUTION_HAND (minimal-context back-office execution worker) | `app/api/admin/ide/_lib/executionHandRuntime.ts` + `workers/execution-hand/` | Rule 258 |
+| MANAGER-07 Tool-Calling Authority (Integration Assembly) | (process — see Rule text) | Rule 259 |
 
-**2 additional latent bugs found and fixed along the way** (both pre-existing, only reachable once Guard 1 finally passed): Guard 2's mock/fake false-positive regex (matched prohibition comments, not real mock code), Guard 10's `set -e` crash on the normal no-violation case.
+## 3. WORKER ROLES
 
-## CURRENT MISSION
+| Role | Real file | Status |
+|---|---|---|
+| 11 `WorkerType`s (10 original + `EDGE_FUNCTION_WORKER`) | `app/api/admin/ide/_lib/workerRegistry.ts` | Real, tested |
+| Edge Function dispatch (Supabase Edge Functions bridge) | `app/api/admin/ide/_lib/edgeFunctionWorkerRuntime.ts` | Real, tested (TASK-045) |
+| EXECUTION_HAND (RECEIVE→EXECUTE→RETURN EVIDENCE only, never PASS) | `app/api/admin/ide/_lib/executionHandRuntime.ts` + `workers/execution-hand/{ROLE.md,CONTRACT.md}` | Real, tested |
+| 6 Departments (Connector/QA/Data/Identity/Testing/Factory) | `workers/worker-01-connector/` … `workers/worker-06-factory/`, `registry/TEAM_ORGANIZATION.json`, `registry/WORKER_IDENTITIES.json` | **Real scaffolding, 0/6 self-registered** — out of `FACTORY_BASELINE_V1` scope, real debt (see §9) |
+| Factory Architecture Advisor | `TEAM_ROLE_CONTRACT.md` | **Real, separate, independent AI session** — never contacted directly, only via `registry/FACTORY_CENTRAL_REGISTRY.json` (Communication Rule 1) |
+| "Rapid Integration Team" | `RAPID_INTEGRATION_INVENTORY_REPORT.md` | A mission/discipline (reuse-first, discover-before-build), not a fixed identity — fulfilled by whichever session runs it, including a MANAGER-07-dispatched read-only research Agent |
 
-**System Integration — deploy-ready.** Not: Create Framework. Not: Design Runtime. Not: Create Rule. Real next candidates: `TASK-037`/`TASK-038` (connect more modules / wire the Capability Orchestrator), or an actual production deploy (`TASK-039`, requires explicit owner go-ahead).
+## 4. RUNTIME (real `.ts` modules under `app/api/admin/ide/_lib/`, all built this session unless noted)
 
-## TASK QUEUE (real ids — see `registry/TASK_QUEUE.json`)
+`managerQuestionRuntime.ts` · `switchBasedOrchestratorRuntime.ts` · `costGateRuntime.ts` · `executionHandRuntime.ts` · `edgeFunctionWorkerRuntime.ts` · `gapLoopRuntime.ts` · `workerTaskOrchestrator.ts` (pre-existing, extended) · `workerRegistry.ts` (pre-existing, extended) · `contextPlannerRuntime.ts` (pre-existing, reused) · `acceptanceContractRuntime.ts` (pre-existing, reused) · `evidenceCollectorRuntime.ts` / `normalizationRuntime.ts` / `registryWriterRuntime.ts` (real, Advisor session's GAP-1 submission, MANAGER_VERIFYed — see FCR-010).
 
-| Task | Status |
-|---|---|
-| `TASK-033` Fix Dependency Graph | **done** |
-| `TASK-034` Remove Supabase hardcode | **done** |
-| `TASK-035` Resolve duplicate clones | **done** |
-| `TASK-036` Archive/resolve dead code | **done** |
-| `TASK-037` Connect Modules (all 11 real drivers + Document Engine — 12 total — done; ~474 non-driver modules remain, real future scope) | **done** |
-| `TASK-038` Workspace Orchestrator (Capability → Composer → Planner → Orchestrator → Executor → Driver) | not_started |
-| `TASK-039` Production Deploy | **ready** — `npm run build` verified, awaiting owner go-ahead to actually deploy |
+## 5. REGISTRY (key real files — full list in `registry/README.md`)
 
-Note: `TASK-001/002/003` already mean something else in this repo (the original SSO/real-data/deploy Plan Lock gate tasks, still open) — the tasks above are deliberately numbered `TASK-033`+ to avoid colliding with them.
+`CONSTITUTION.json` (168 iron_rules, range Rule 100–259) · `rule-coverage.json` · `TASK_QUEUE.json` (49 real tasks) · `CHANGELOG.json` (117+ real DNA-numbered entries) · `LOCK_MANAGER.json` (per-file lock ledger — must be empty when idle) · `FACTORY_CENTRAL_REGISTRY.json` (12 real findings, `type_enum`, `factory_status`) · `CURRENT_STATE.json` (this file's JSON source) · `WORKER_IDENTITIES.json` / `TEAM_ORGANIZATION.json` / `WORKER_REGISTRATION_PROTOCOL.json` / `WORKER_COMMUNICATION_MAP.json` (Advisor session's real Department infra) · `AI_SESSIONS.json` · `COST_BUDGETS.json` / `COST_LEDGER.json` (Rule 257).
 
-## DO NOT DO
+## 6. RULES
 
-New Runtime · New Rule · New Framework · New Constitution · New Registry · New Layer · New Contract — unless the owner explicitly authorizes a new Plan Lock exception, same discipline as every SDRN phase this session.
+Source of truth: `registry/CONSTITUTION.json` → `iron_rules` (168 entries, Rule 100–259 — earlier numbers are legacy/renumbered, see the file's own gaps). Human-readable rendering: `CLAUDE.md` (**stale past ~Rule 117** — read the JSON directly for anything newer). Enforcement/verification status per rule: `registry/rule-coverage.json`. Amendment discipline: C-010 (append, never rewrite in place) — every Rule 255/257 amendment in this session followed that pattern.
 
-## SYSTEM GOAL
+## 7. ROUTING
 
-474 modules → connected → runnable → deployable.
+Real dispatch entry points: `workerTaskOrchestrator.ts#createJobContract/runScopedWorkerJob` (10 original WorkerTypes) and `switchBasedOrchestratorRuntime.ts#attemptDispatch` (the gate-pipeline path, checks Cost Gate + Worker registration before releasing). `EDGE_FUNCTION_WORKER` and `EXECUTION_HAND` are each real, deliberate exceptions with their own dispatch functions (`edgeFunctionWorkerRuntime.ts#dispatchEdgeFunctionWorkerJob`, `executionHandRuntime.ts#executeJobContract`) — `runScopedWorkerJob()` real-refuses both rather than silently misrouting them into `CODE_WORKER`.
+
+## 8. EVIDENCE
+
+`registry/FACTORY_CENTRAL_REGISTRY.json` (real findings, FCR-001…012) · `registry/VALIDATION_RESULTS.json` · `registry/CHANGELOG.json` (every real DNA entry cites its own real, re-run test output — never asserted) · each `*-test.ts`/`*-acceptance-test.ts` under `scripts/` is itself real, runnable evidence, not a report about evidence.
+
+## 9. COMPLETED TASKS (this session — see `registry/TASK_QUEUE.json` for full detail on all 49)
+
+`TASK-042` Manager Question Queue · `TASK-043` Connector Department reorg (Advisor) · `TASK-045` EDGE_FUNCTION_WORKER · `TASK-047` Switch-Based Orchestrator · `TASK-048` Cost Gate · `TASK-049` EXECUTION_HAND · `TASK-050` Cost Gate FREE_LOCAL · `TASK-052` Factory Gap Loop runtime. Plus `TASK-018` (missing `plugins/agent/server.ts`, real honest stub). `TASK-051` (FCR-012 fix) — in progress as of this regeneration.
+
+## 10. KNOWN REMAINING GAPS (real, current — re-run `computeFactoryStatus()` for the live answer, this is a snapshot)
+
+| Gap | Real status | In `FACTORY_BASELINE_V1` scope? |
+|---|---|---|
+| `WORKER_IDENTITIES.json` 0/6 registered | Real, structural — no live Worker session has run its boot sequence | **No** — Owner-confirmed deferred (2026-08-10) |
+| FCR-005 (`capability-registry.json` stale re: Worker-03/04) | TRACKED | No — tied to deferred Worker Team work |
+| FCR-006 (3 status vocabularies coexist) | TRACKED | No — tied to deferred Worker Team work |
+| FCR-008 (Front Office 0% built, TASK-046 not started) | TRACKED | No — Owner-confirmed deferred (2026-08-10) |
+| FCR-012 (`DNA_OS_HEALTH.json` schema collision, real `tsc` errors) | TRACKED → fix in progress, `TASK-051` | **Yes** — being closed now |
+| `TASK-044` (readiness audit) | blocked when Cost Gate had no FREE_LOCAL path — **now real, retriable** since `TASK-050` landed | Yes — real candidate, not yet retried |
+| 1 pre-existing, unrelated `tsc` error (`issue-receipt/route.ts`) | Real, predates this session, out of scope | No — noted so it's never confused with a new regression |
 
 ## AI STARTUP
 
-1. Read this file (`MASTER_EXECUTION_STATE.md`)
-2. Check Current Mission (above)
-3. Check Task Queue (above, or `registry/TASK_QUEUE.json` for full detail)
-4. Continue the first `pending`/`WAITING` task
-5. Update `registry/CURRENT_STATE.json` + `registry/TASK_QUEUE.json` (the real files) when done — then regenerate this file to match
-6. Stop and ask if genuinely blocked (see `registry/README.md`'s existing Execution Order, which this file summarizes, not replaces)
+1. Read this file.
+2. Check `factory_status` — re-run `gapLoopRuntime.ts#computeFactoryStatus()` live, don't trust a cached value.
+3. Check `registry/TASK_QUEUE.json` for the real, current task list (`routing.bucket` field tells you EXECUTION_HAND / DEPARTMENT / BLOCKED_ON_DEPENDENCY).
+4. Check `registry/LOCK_MANAGER.json` — must be empty before starting new work; never touch a file someone else's entry names.
+5. Before building anything: search this file's §2–§5 for whether it already exists (Rule 101/103) — this session's own history is full of real examples of catching that before building.
+6. Stop and ask the Owner only for what Rule 255's 5 real criteria name, or what genuinely isn't answerable from the Registry (Rule 250) — everything else, decide from evidence and keep moving.
 
-## AI RESPONSE CONTRACT
+## END CONDITION FOR THIS PHASE
 
-When asked "what's next," answer from this file's real, current content — Current Mission, what's done (LOCKED list), Current Task (first pending in the queue), Next, Remaining. Do not propose a new framework, change architecture, or invent new work.
-
-## END CONDITION
-
-When `TASK-033` through `TASK-039` all reach `done`: report "Task Queue EMPTY. No pending task. System ready for Production Validation." Do not propose a new project or invent new work. (Currently: 033–036 done, 039 ready-pending-approval, 037/038 not started.)
+Factory Stabilization & Baseline Phase ends when: `factory_status` for the Control-Plane scope is STABLE, `MASTER_EXECUTION_STATE.md`/`CURRENT_STATE.json` are current (this regeneration), a `FACTORY_BASELINE_V1` snapshot is recorded (commit + verified tests/runtimes + known non-blocking debt), and a fresh session can restart/resume from that baseline without losing context — verify that last claim by actually trying it, not by assuming this file is sufficient.

@@ -40,6 +40,11 @@ export async function realOllamaReachabilityCheck(baseUrl: string, fetchFn: type
 
 export const ollamaLocalAdapter: WorkerAdapter = {
   id: "ollama-local", type: "LOCAL_RUNTIME", provider: "ollama",
+  // Real, honest costClass (Rule 257) — FREE: real, local inference,
+  // no metered provider — this file's own estimate()/execute() below
+  // already report a real $0 ACTUAL cost (not a guess), consistent
+  // with every other real, local-only Worker in this repo.
+  costClass: "FREE",
   availability(): WorkerAvailability {
     const baseUrl = process.env.AI_GATEWAY_OLLAMA_URL;
     return { available: !!baseUrl, reason: baseUrl ? `real AI_GATEWAY_OLLAMA_URL configured: ${baseUrl}` : "no real AI_GATEWAY_OLLAMA_URL configured in this environment" };

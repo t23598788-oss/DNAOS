@@ -1,0 +1,27 @@
+{
+  "task_id": "TASK-044-factory-readiness-test",
+  "operation": "RUN_COMMAND",
+  "status": "BLOCKED",
+  "reason": "Cost Gate LOCKED this RUN_COMMAND — real financial approval required before it may run: Cost Gate decision for RUN_COMMAND: LOCK — LOCKED — no real, pre-approved budget covers this real cost; escalated as financial_approval_required via Rule 251's real Owner Inquiry channel (submitWorkerQuestion), outcome status=PENDING_OWNER",
+  "missingFields": [],
+  "attemptsUsed": 0,
+  "maxAttempts": 1,
+  "evidence": [
+    {
+      "kind": "REFUSAL",
+      "detail": "Cost Gate decision for RUN_COMMAND: LOCK — LOCKED — no real, pre-approved budget covers this real cost; escalated as financial_approval_required via Rule 251's real Owner Inquiry channel (submitWorkerQuestion), outcome status=PENDING_OWNER",
+      "path": null,
+      "before": null,
+      "after": null,
+      "stdout": null,
+      "stderr": null,
+      "exitCode": null,
+      "capturedAt": "2026-08-09T10:30:13.413Z"
+    }
+  ],
+  "lockAcquired": true,
+  "lockReleased": true,
+  "costGateOutcome": "LOCK",
+  "evidenceFilePath": null,
+  "computedAt": "2026-08-09T10:30:13.413Z"
+}

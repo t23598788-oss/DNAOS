@@ -37,6 +37,13 @@ function parseProposal(raw: string): { files: WorkerResponse["proposedChanges"];
 
 export const anthropicApiAdapter: WorkerAdapter = {
   id: "anthropic-api", type: "API", provider: "anthropic",
+  // Real, honest costClass (Rule 257) — UNKNOWN_COST, not PAID: a real
+  // paid Anthropic API call underlies this path in principle, but this
+  // file's own estimate()/execute() below return estimatedCost: null
+  // and cost.amount: null respectively ("real per-token cost is not
+  // exposed by services/ai/gateway.ts") — this repo genuinely cannot
+  // quantify it pre- or post-call, the literal UNKNOWN_COST case.
+  costClass: "UNKNOWN_COST",
   availability(): WorkerAvailability {
     const configured = !!process.env.ANTHROPIC_API_KEY;
     return { available: configured, reason: configured ? "real ANTHROPIC_API_KEY present" : "no real ANTHROPIC_API_KEY configured in this environment" };
@@ -101,6 +108,11 @@ export const anthropicApiAdapter: WorkerAdapter = {
 
 export const openaiApiAdapter: WorkerAdapter = {
   id: "openai-api", type: "API", provider: "openai",
+  // Real, honest costClass (Rule 257) — UNKNOWN_COST: OpenAI's API is a
+  // real, known-paid provider in principle, but zero real integration
+  // code exists in this repo (always NOT_SUPPORTED below) — no real
+  // cost model has ever been established here to quantify.
+  costClass: "UNKNOWN_COST",
   availability(): WorkerAvailability { return { available: false, reason: "real OPENAI_API_KEY exists in .env.local but zero real OpenAI SDK/call code exists anywhere in this repo — not a real, existing integration to adapt" }; },
   capabilities() { return []; },
   estimate() { return { estimatedCost: null, estimatedTokens: null, currency: null, confidence: "UNKNOWN" }; },
@@ -113,6 +125,10 @@ export const openaiApiAdapter: WorkerAdapter = {
 
 export const geminiApiAdapter: WorkerAdapter = {
   id: "gemini-api", type: "API", provider: "gemini",
+  // Real, honest costClass (Rule 257) — UNKNOWN_COST: same reasoning as
+  // openaiApiAdapter above — Gemini usage is real elsewhere (separate
+  // Supabase Edge Functions) but unreachable/unquantified from here.
+  costClass: "UNKNOWN_COST",
   availability(): WorkerAvailability { return { available: false, reason: "real Gemini usage exists only inside separate Supabase Edge Functions (Deno runtime, LINE chat concern) — unreachable from this Node.js IDE Runtime" }; },
   capabilities() { return []; },
   estimate() { return { estimatedCost: null, estimatedTokens: null, currency: null, confidence: "UNKNOWN" }; },

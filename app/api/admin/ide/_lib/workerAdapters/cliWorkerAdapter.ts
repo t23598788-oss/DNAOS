@@ -130,6 +130,13 @@ export async function realClaudeCliInvoke(
 
 export const claudeCliAdapter: WorkerAdapter = {
   id: "claude-cli", type: "CLI", provider: "anthropic-cli",
+  // Real, honest costClass (Rule 257) — PAID: this file's own header
+  // documents the real, live-proven ~$0.29 USD/call floor (the exact
+  // real cost FCR-009's incident spent, unauthorized) and execute()
+  // below returns a real, ACTUAL total_cost_usd from the CLI's own
+  // JSON envelope after every real call — the one Adapter in this repo
+  // with BOTH a real pre-call estimate AND a real post-call actual cost.
+  costClass: "PAID",
   availability(): WorkerAvailability {
     const p = resolveBinaryPath();
     return { available: !!p, reason: p ? `real claude binary found at ${p}` : "real claude binary not found on PATH" };
@@ -156,7 +163,22 @@ export const claudeCliAdapter: WorkerAdapter = {
     // output) — see realClaudeCliSearchInvoke's header for the real
     // safety boundary (--tools restricts the tool SET itself).
     if (request.capabilityRequired === "repository.search") {
-      const search = await realClaudeCliSearchInvoke(request.taskDescription, process.cwd(), request.timeoutMs || SEARCH_TIMEOUT_MS_DEFAULT);
+      // Real Worker Contract enforcement (Software Factory Readiness gap
+      // fill, 2026-08-09, Gap 1) — the real tool SET passed to --tools is
+      // now driven by the real request.permittedTools/forbiddenTools
+      // fields, not a silent hardcode: intersect the safe, read-only
+      // default with whatever the Job Contract actually permits, then
+      // strip anything it explicitly forbids. A request that forbids
+      // every read-only tool gets a real, honest BLOCKED — never a
+      // silent full-access fallback.
+      const requestedTools = request.permittedTools.length > 0
+        ? READ_ONLY_TOOLS.split(",").filter((t) => request.permittedTools.includes(t))
+        : READ_ONLY_TOOLS.split(",");
+      const allowedTools = requestedTools.filter((t) => !request.forbiddenTools.includes(t));
+      if (allowedTools.length === 0) {
+        return { workerRequestId: request.workerRequestId, workerId: "CODE_WORKER", adapterId: this.id, provider: this.provider, model: null, status: "BLOCKED", output: null, proposedChanges: [], toolCalls: [], tokenUsage: { input: null, output: null }, cost: { amount: null, currency: null, kind: "UNKNOWN" }, durationMs: Date.now() - started, evidence: [], limitations: [], error: "real Worker Contract forbids every tool this capability needs (Read/Grep/Glob) — refused before any real provider call", finishedAt: new Date().toISOString() };
+      }
+      const search = await realClaudeCliSearchInvoke(request.taskDescription, process.cwd(), request.timeoutMs || SEARCH_TIMEOUT_MS_DEFAULT, spawn, allowedTools.join(","));
       // realClaudeCliSearchInvoke already updates lastLiveCallAt/lastLiveCallOk.
       const durationMs = Date.now() - started;
       if (search.timedOut) return { workerRequestId: request.workerRequestId, workerId: "CODE_WORKER", adapterId: this.id, provider: this.provider, model: null, status: "TIMEOUT", output: null, proposedChanges: [], toolCalls: [], tokenUsage: search.tokenUsage, cost: search.cost, durationMs, evidence: search.sessionId ? [search.sessionId] : [], limitations: [], error: "real CLI search exceeded the real timeout", finishedAt: new Date().toISOString() };
@@ -284,7 +306,7 @@ export interface CliSearchResult {
 
 export async function realClaudeCliSearchInvoke(
   question: string, cwd: string, timeoutMs: number = SEARCH_TIMEOUT_MS_DEFAULT,
-  spawnFn: typeof spawn = spawn,
+  spawnFn: typeof spawn = spawn, allowedTools: string = READ_ONLY_TOOLS,
 ): Promise<CliSearchResult> {
   const started = Date.now();
   const binaryPath = resolveBinaryPath();
@@ -292,7 +314,7 @@ export async function realClaudeCliSearchInvoke(
     return { ok: false, answer: null, sessionId: null, cost: { amount: null, currency: null, kind: "UNKNOWN" }, tokenUsage: { input: null, output: null }, durationMs: Date.now() - started, error: "claude binary not found on PATH", timedOut: false };
   }
   const result = await new Promise<{ ok: boolean; stdout: string; stderr: string; timedOut: boolean }>((resolve) => {
-    const child = spawnFn(binaryPath, ["-p", question, "--output-format", "json", "--max-turns", SEARCH_MAX_TURNS, "--tools", READ_ONLY_TOOLS, "--permission-mode", "bypassPermissions"], {
+    const child = spawnFn(binaryPath, ["-p", question, "--output-format", "json", "--max-turns", SEARCH_MAX_TURNS, "--tools", allowedTools, "--permission-mode", "bypassPermissions"], {
       cwd, env: buildIsolatedEnv(), shell: false, stdio: ["ignore", "pipe", "pipe"],
     });
     let stdout = "", stderr = "", timedOut = false, settled = false;

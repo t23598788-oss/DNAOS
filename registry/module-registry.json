@@ -216,8 +216,6 @@
       "purpose": "Shared Gmail OAuth (read-only) connector — extracted 2026-08-03 out of bank-email-sync and supabase-billing-sync, which had grown identical copies of the token-fetch/HTML-decode/body-extraction logic (real KM-002 duplication caught while adding a third copy for subscription-email-sync). All 3 real Gmail-reading edge functions now import from here.",
       "purpose_th": "ตัวเชื่อม Gmail OAuth (read-only) ที่ใช้ร่วมกัน — แยกออกมา 2026-08-03 จาก bank-email-sync กับ supabase-billing-sync ที่มีโค้ดดึง token/แปลง HTML/ดึงเนื้อหาอีเมลซ้ำกันเป๊ะ (KM-002 จริง เจอตอนจะสร้างสำเนาที่ 3 ให้ subscription-email-sync) ตอนนี้ทั้ง 3 ฟังก์ชันที่อ่าน Gmail จริง import จากที่นี่ที่เดียว",
       "exports": [
-        "GmailMessage",
-        "GmailMessagePayload",
         "extractBodyText",
         "fetchGmailMessage",
         "getGmailAccessToken",
@@ -1601,7 +1599,6 @@
       "purpose": "Document Engine — STRICT RENDER MODE, template เดียว เปลี่ยนแค่ document_type",
       "purpose_th": "เครื่องมือสร้างเอกสาร — โหมดการแสดงผลแบบเข้มงวด, ใช้ template เดียวสำหรับทุกประเภทเอกสาร",
       "exports": [
-        "DOC_LABELS",
         "DocResult",
         "generateDoc"
       ],
@@ -1886,7 +1883,6 @@
         "executeDebtCreate",
         "executeDocumentCreate",
         "executePayment",
-        "issueReceiptForDebtEvent",
         "previewDebtCreate",
         "previewDocumentCreate",
         "previewPayment",
@@ -2598,10 +2594,8 @@
       "purpose_th": "นิยาม TypeScript interface สำหรับ event/message ทุกชนิดของ LINE webhook (text, postback, source, base event) ใช้ร่วมกันทุก handler",
       "exports": [
         "HandlerContext",
-        "LineAudioMessage",
         "LineBaseEvent",
         "LineEvent",
-        "LineFileMessage",
         "LineFollowEvent",
         "LineImageMessage",
         "LineLocationMessage",
@@ -4078,17 +4072,6 @@
         "answerDebtInquiry",
         "getCanonicalDebtForCompany",
         "isDebtInquiry"
-      ],
-      "status": "active"
-    },
-    "supabase/functions/line-webhook-v2/engines/profile.ts": {
-      "owner": "supabase",
-      "layer": "supabase",
-      "purpose": "Fetch a LINE contact's real displayName/pictureUrl via LINE Get Profile API, with retry on transient failure",
-      "purpose_th": "ดึงชื่อ/รูปโปรไฟล์จริงของผู้ติดต่อ LINE ผ่าน Get Profile API พร้อม retry เมื่อล้มเหลวชั่วคราว",
-      "exports": [
-        "fetchLineProfile",
-        "LineProfile"
       ],
       "status": "active"
     },
@@ -8872,6 +8855,7 @@
         "auditLog",
         "auditSearchLog",
         "isExcludedName",
+        "isHighRiskInfraPath",
         "isValidEntryName",
         "looksBinary",
         "resolveNewEntryPath",
@@ -11782,6 +11766,7 @@
       "purpose": "Worker Registry — declares the 10 real Worker Types (ANALYSIS/CODE/REVIEW/TEST/DOCUMENT/UI/SECURITY/DATA/HUMAN/TOOL) with honest status (ACTIVE/PARTIAL/COMPATIBILITY_ONLY/NOT_IMPLEMENTED); never hardcodes one AI provider as a permanent primary Worker.",
       "purpose_th": "ทะเบียนผู้ปฏิบัติงาน — ประกาศผู้ปฏิบัติงานจริง 10 ประเภท พร้อมสถานะที่ตรงความจริง (ใช้งานได้/บางส่วน/ใช้ได้เฉพาะกรณี/ยังไม่ได้สร้าง) ห้าม hardcode ผู้ให้บริการเอไอรายใดรายหนึ่งเป็นผู้ปฏิบัติงานหลักถาวร",
       "exports": [
+        "CostClass",
         "ProviderSelectionCriteria",
         "WORKER_REGISTRY",
         "WorkerDefinition",
@@ -11893,6 +11878,7 @@
         "__debugContextPlanCount",
         "approveContextPlan",
         "buildContextPlan",
+        "buildMinimalContextPlan",
         "getContextPlan",
         "listContextPlans"
       ],
@@ -12185,7 +12171,8 @@
         "approveDestructiveOperations",
         "generateCodeWorkerProposal",
         "getCodeWorkerProposal",
-        "listCodeWorkerProposals"
+        "listCodeWorkerProposals",
+        "validateOperationScope"
       ],
       "status": "active"
     },
@@ -12507,6 +12494,7 @@
       "purpose": "Worker Adapter Interface — the real interface every Adapter (API/CLI/MCP/Local/Remote/Human) implements: availability/capabilities/estimate/execute/health/limitations.",
       "purpose_th": "อินเทอร์เฟซผู้ปฏิบัติงาน — อินเทอร์เฟซจริงที่ Adapter ทุกประเภทต้องมี ได้แก่ ความพร้อมใช้งาน ความสามารถ การประมาณการ การทำงาน สุขภาพ และข้อจำกัด",
       "exports": [
+        "AdapterCostClass",
         "WorkerAdapter",
         "WorkerAvailability",
         "WorkerCostEstimate",
@@ -12903,10 +12891,12 @@
       "purpose": "Factory Readiness Gate — real, live, evidence-based READY/NOT_READY verdict across the full Instruction->Release Gate closed loop; every stage computed from a live check (file existence, live worker health, live registry status), never hardcoded (owner, 2026-08-07, full-pipeline audit).",
       "purpose_th": "ประตูความพร้อมของโรงงาน — ตัดสิน READY/NOT_READY ตามหลักฐานจริงและสดตลอดวงจรปิดตั้งแต่คำสั่งจนถึงประตูปล่อยรุ่น ทุกขั้นคำนวณจากการตรวจสอบจริง ไม่มีการฮาร์ดโค้ด",
       "exports": [
+        "DataBoundaryGateReport",
         "FactoryReadinessReport",
         "FactoryStageId",
         "FactoryStageReport",
         "StageStatus",
+        "WorkerReadiness",
         "computeFactoryReadinessReport",
         "recordFactoryReadinessEvidence"
       ],
@@ -12961,6 +12951,619 @@
       "purpose_th": "POST /api/admin/ide/owner-command/approve — เจ้าของอนุมัติข้อเสนอจริง แล้วต่อเนื่องเขียนไฟล์/อนุมัติการลบ/Execute-Review-Test อัตโนมัติในคำขอเดียว เฉพาะผู้ดูแลระบบ",
       "exports": [
         "POST"
+      ],
+      "status": "active"
+    },
+    "scripts/worker-02-acceptance-test.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "[Auto-detected] scripts/worker-02-acceptance-test.ts",
+      "purpose_th": "[ตรวจพบอัตโนมัติ] scripts/worker-02-acceptance-test.ts",
+      "exports": [
+        "Page"
+      ],
+      "status": "unregistered"
+    },
+    "scripts/worker-01-reference-lock-test.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "[Auto-detected] scripts/worker-01-reference-lock-test.ts",
+      "purpose_th": "[ตรวจพบอัตโนมัติ] scripts/worker-01-reference-lock-test.ts",
+      "exports": [
+        "validateOperationScope"
+      ],
+      "status": "unregistered"
+    },
+    "scripts/worker-01-acceptance-test.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "[Auto-detected] scripts/worker-01-acceptance-test.ts",
+      "purpose_th": "[ตรวจพบอัตโนมัติ] scripts/worker-01-acceptance-test.ts",
+      "exports": [],
+      "status": "unregistered"
+    },
+    "scripts/data-boundary-test.ts": {
+      "owner": "qa",
+      "layer": "scripts",
+      "purpose": "Deterministic acceptance suite for the DATA_BOUNDARY_INTEGRITY_GATE (services/data-boundary/dataBoundaryRuntime.ts) — every mandatory test case from the gate spec (unsafe long ID precision, PATCH tri-state round trip, undefined-in-array, Date/Map/Set/BigInt exotic rejection, money precision, nested required-field loss). Run: npm run data-boundary:test.",
+      "purpose_th": "ชุดทดสอบแบบกำหนดผลลัพธ์แน่นอนสำหรับ DATA_BOUNDARY_INTEGRITY_GATE ครอบคลุมทุกกรณีทดสอบบังคับตามสเปค",
+      "exports": [],
+      "status": "active"
+    },
+    "services/data-boundary/dataBoundaryRuntime.ts": {
+      "owner": "services",
+      "layer": "services",
+      "purpose": "DATA_BOUNDARY_INTEGRITY_GATE — canonical shared runtime that detects silent semantic corruption (unsafe long IDs, float money drift, undeclared Date/Map/Set/BigInt, undefined-as-patch, required-field loss) when data crosses a JSON/API/Queue/Worker/Storage boundary. Fails closed via DataIntegrityBoundaryFailure. Used by Worker Request/Response and Artifact/Evidence boundaries; ready for API/Event/Document-Finance boundaries.",
+      "purpose_th": "ประตูตรวจสอบความถูกต้องของข้อมูลที่ข้ามขอบเขต JSON/API/Queue/Worker/Storage แบบรวมศูนย์ — ตรวจจับ ID จำนวนเต็มไม่ปลอดภัย, ความคลาดเคลื่อนของทศนิยมเงิน, Date/Map/Set/BigInt ที่ไม่ได้ประกาศ, undefined ที่แฝงความหมาย PATCH, และฟิลด์ที่หายไปหลัง round-trip แล้วปฏิเสธข้อมูลทันทีเมื่อพิสูจน์ความถูกต้องไม่ได้",
+      "exports": [
+        "BoundaryId",
+        "BoundaryVerdict",
+        "BoundaryEvidenceEntry",
+        "DATA_INTEGRITY_BOUNDARY_FAILURE",
+        "DataIntegrityBoundaryFailure",
+        "BoundaryOutcome",
+        "PatchState",
+        "FieldContract",
+        "parseJsonPreservingPrecision",
+        "moneyStringToMinorUnits",
+        "minorUnitsToMoneyString",
+        "GateOptions",
+        "decodeAtBoundary",
+        "decodeParsedAtBoundary",
+        "encodeAtBoundary",
+        "encodeValueAtBoundary",
+        "checkAtBoundary"
+      ],
+      "status": "active"
+    },
+    "app/worker02-preview/page.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "[Auto-detected] app/worker02-preview/page.tsx",
+      "purpose_th": "[ตรวจพบอัตโนมัติ] app/worker02-preview/page.tsx",
+      "exports": [
+        "Page"
+      ],
+      "status": "unregistered"
+    },
+    "app/admin/system/page 2.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "[Auto-detected] app/admin/system/page 2.tsx",
+      "purpose_th": "[ตรวจพบอัตโนมัติ] app/admin/system/page 2.tsx",
+      "exports": [
+        "SystemOperationsPage"
+      ],
+      "status": "unregistered"
+    },
+    "app/api/admin/ide/_lib/workerTaskOrchestrator.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Job Contract dispatch core (owner, 2026-08-09, Software Factory Readiness gap fill; extended by MANAGER-07 this session). createJobContract()/runScopedWorkerJob() dispatch a scoped Job Contract to a real WorkerType Adapter with permittedReadScope/permittedWriteScope enforcement. This session added submitJobContractQuestion() (Rule 251's only Worker-facing entry point) and a real, deliberate refusal (NO_COMPATIBLE_WORKER) for workerRole=EDGE_FUNCTION_WORKER rather than silently misrouting it into CODE_WORKER.",
+      "purpose_th": "แกนกลาง dispatch ของ Job Contract (owner, 2026-08-09, Software Factory Readiness; MANAGER-07 ต่อเติมใน session นี้) createJobContract()/runScopedWorkerJob() ส่งงานตาม Job Contract ที่จำกัดขอบเขตไปยัง Worker Adapter จริง session นี้เพิ่ม submitJobContractQuestion() และการปฏิเสธ EDGE_FUNCTION_WORKER อย่างจงใจแทนการส่งผิดไปที่ CODE_WORKER",
+      "exports": [
+        "AttemptRecord",
+        "ConcurrentMutationEvidence",
+        "JobContract",
+        "JobContractUiScanConfig",
+        "LiveAcceptanceProofOutcome",
+        "WorkerJobResult",
+        "WorkerJobStatus",
+        "__debugResetWorkerAcceptanceProof",
+        "createJobContract",
+        "createUiWorkerJobContract",
+        "getLastWorkerAcceptanceProof",
+        "runLiveAcceptanceProofAndUpdateReadiness",
+        "runScopedWorkerJob",
+        "submitJobContractQuestion"
+      ],
+      "status": "active"
+    },
+    "app/api/admin/ide/_lib/acceptanceContractRuntime.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "[Auto-detected] app/api/admin/ide/_lib/acceptanceContractRuntime.ts",
+      "purpose_th": "[ตรวจพบอัตโนมัติ] app/api/admin/ide/_lib/acceptanceContractRuntime.ts",
+      "exports": [
+        "AcceptanceEvidence",
+        "CompiledCriterion",
+        "CompiledCriterionKind",
+        "CriterionResult",
+        "UiScanEvidenceLike",
+        "compileAcceptanceCriteria",
+        "evaluateAcceptanceContract"
+      ],
+      "status": "unregistered"
+    },
+    "components/workspace/CapabilityMapSection.tsx": {
+      "owner": "components",
+      "layer": "components",
+      "purpose": "[Auto-detected] components/workspace/CapabilityMapSection.tsx",
+      "purpose_th": "[ตรวจพบอัตโนมัติ] components/workspace/CapabilityMapSection.tsx",
+      "exports": [
+        "CapabilityMapSection"
+      ],
+      "status": "unregistered"
+    },
+    "engines/line-profile/freshness.ts": {
+      "owner": "engines",
+      "layer": "engines",
+      "purpose": "[Auto-detected] engines/line-profile/freshness.ts",
+      "purpose_th": "[ตรวจพบอัตโนมัติ] engines/line-profile/freshness.ts",
+      "exports": [
+        "LINE_PROFILE_TTL_MS",
+        "ProfileFreshness",
+        "ProfileSource",
+        "effectiveProfileFreshness",
+        "isProfileStale"
+      ],
+      "status": "unregistered"
+    },
+    "supabase/functions/line-profile-refresh-worker/index.ts": {
+      "owner": "supabase",
+      "layer": "supabase",
+      "purpose": "[Auto-detected] supabase/functions/line-profile-refresh-worker/index.ts",
+      "purpose_th": "[ตรวจพบอัตโนมัติ] supabase/functions/line-profile-refresh-worker/index.ts",
+      "exports": [],
+      "status": "unregistered"
+    },
+    "supabase/functions/line-webhook-v2/engines/profile-refresh.ts": {
+      "owner": "supabase",
+      "layer": "supabase",
+      "purpose": "[Auto-detected] supabase/functions/line-webhook-v2/engines/profile-refresh.ts",
+      "purpose_th": "[ตรวจพบอัตโนมัติ] supabase/functions/line-webhook-v2/engines/profile-refresh.ts",
+      "exports": [
+        "LineProfileSnapshot",
+        "ProfileSource",
+        "ensureFreshLineProfile"
+      ],
+      "status": "unregistered"
+    },
+    "app/api/admin/capability-map/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "[Auto-detected] app/api/admin/capability-map/route.ts",
+      "purpose_th": "[ตรวจพบอัตโนมัติ] app/api/admin/capability-map/route.ts",
+      "exports": [
+        "GET"
+      ],
+      "status": "unregistered"
+    },
+    "app/admin/connectors/_lib/types.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "[Auto-detected] app/admin/connectors/_lib/types.ts",
+      "purpose_th": "[ตรวจพบอัตโนมัติ] app/admin/connectors/_lib/types.ts",
+      "exports": [
+        "CatalogEntry",
+        "ConnectorFamily",
+        "Direction",
+        "FAMILY_LABELS",
+        "WorkerHealthStatus",
+        "healthColor"
+      ],
+      "status": "unregistered"
+    },
+    "app/admin/connectors/_components/StatusFooter.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "[Auto-detected] app/admin/connectors/_components/StatusFooter.tsx",
+      "purpose_th": "[ตรวจพบอัตโนมัติ] app/admin/connectors/_components/StatusFooter.tsx",
+      "exports": [
+        "StatusFooter"
+      ],
+      "status": "unregistered"
+    },
+    "app/admin/connectors/_components/ConnectorLeftList.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "[Auto-detected] app/admin/connectors/_components/ConnectorLeftList.tsx",
+      "purpose_th": "[ตรวจพบอัตโนมัติ] app/admin/connectors/_components/ConnectorLeftList.tsx",
+      "exports": [
+        "ConnectorLeftList"
+      ],
+      "status": "unregistered"
+    },
+    "app/admin/connectors/_components/ConnectorCenterPanel.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "[Auto-detected] app/admin/connectors/_components/ConnectorCenterPanel.tsx",
+      "purpose_th": "[ตรวจพบอัตโนมัติ] app/admin/connectors/_components/ConnectorCenterPanel.tsx",
+      "exports": [
+        "ConnectorCenterPanel"
+      ],
+      "status": "unregistered"
+    },
+    "app/api/admin/connectors/catalog/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "[Auto-detected] app/api/admin/connectors/catalog/route.ts",
+      "purpose_th": "[ตรวจพบอัตโนมัติ] app/api/admin/connectors/catalog/route.ts",
+      "exports": [
+        "GET"
+      ],
+      "status": "unregistered"
+    },
+    "app/api/admin/connectors/_lib/providerDescriptors.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "[Auto-detected] app/api/admin/connectors/_lib/providerDescriptors.ts",
+      "purpose_th": "[ตรวจพบอัตโนมัติ] app/api/admin/connectors/_lib/providerDescriptors.ts",
+      "exports": [
+        "AI_WORKER_DESCRIPTORS",
+        "KNOWN_PROVIDER_DESCRIPTORS",
+        "ProviderDescriptor",
+        "describeConnectorSlug"
+      ],
+      "status": "unregistered"
+    },
+    "app/api/admin/connectors/_lib/catalog.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "[Auto-detected] app/api/admin/connectors/_lib/catalog.ts",
+      "purpose_th": "[ตรวจพบอัตโนมัติ] app/api/admin/connectors/_lib/catalog.ts",
+      "exports": [
+        "CatalogEntry",
+        "ConnectorFamily",
+        "Direction",
+        "FunctionGroup",
+        "buildConnectorCatalog",
+        "groupByFamily",
+        "groupByFunction"
+      ],
+      "status": "unregistered"
+    },
+    "app/admin/connectors/_components/console/index.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "[Auto-detected] app/admin/connectors/_components/console/index.tsx",
+      "purpose_th": "[ตรวจพบอัตโนมัติ] app/admin/connectors/_components/console/index.tsx",
+      "exports": [
+        "ConnectorConsole"
+      ],
+      "status": "unregistered"
+    },
+    "app/admin/connectors/_components/console/ProviderConsoles.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "[Auto-detected] app/admin/connectors/_components/console/ProviderConsoles.tsx",
+      "purpose_th": "[ตรวจพบอัตโนมัติ] app/admin/connectors/_components/console/ProviderConsoles.tsx",
+      "exports": [
+        "GenericApiConsole",
+        "GithubConsole",
+        "OtherConsole",
+        "VercelConsole"
+      ],
+      "status": "unregistered"
+    },
+    "app/admin/connectors/_components/console/AiWorkerConsole.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "[Auto-detected] app/admin/connectors/_components/console/AiWorkerConsole.tsx",
+      "purpose_th": "[ตรวจพบอัตโนมัติ] app/admin/connectors/_components/console/AiWorkerConsole.tsx",
+      "exports": [
+        "AiWorkerConsole"
+      ],
+      "status": "unregistered"
+    },
+    "app/api/admin/connectors/ai-console/test/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "[Auto-detected] app/api/admin/connectors/ai-console/test/route.ts",
+      "purpose_th": "[ตรวจพบอัตโนมัติ] app/api/admin/connectors/ai-console/test/route.ts",
+      "exports": [
+        "POST"
+      ],
+      "status": "unregistered"
+    },
+    "scripts/switch-based-orchestrator-test.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "Real acceptance suite for switchBasedOrchestratorRuntime.ts (Constitution Rule 252) — proves DROP on invalid/duplicate/no-evidence input, BLOCKED on unresolved dependency, honest DISPATCH_DENIED_UNREGISTERED against the real 0/6 Worker registration state, lock contention/independence, and the REPAIR-loop-never-asks-Owner-unless-Rule-255-criteria-match behavior. 22/22 passing.",
+      "purpose_th": "ชุดทดสอบจริงของ switchBasedOrchestratorRuntime.ts (Constitution Rule 252) — พิสูจน์การ DROP เมื่อ input ไม่ถูกต้อง/ซ้ำ/ไม่มีหลักฐาน, BLOCKED เมื่อมี dependency ค้าง, การปฏิเสธ dispatch อย่างตรงไปตรงมาตามสถานะ Worker จริงที่ยัง 0/6 และ REPAIR loop ที่ไม่ถาม Owner จนกว่าจะเข้าเงื่อนไข Rule 255 จริง ผ่านจริง 22/22",
+      "exports": [],
+      "status": "active"
+    },
+    "scripts/register-known-connectors.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "[Auto-detected] scripts/register-known-connectors.ts",
+      "purpose_th": "[ตรวจพบอัตโนมัติ] scripts/register-known-connectors.ts",
+      "exports": [],
+      "status": "unregistered"
+    },
+    "scripts/manager-question-queue-test.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "Real acceptance suite for managerQuestionRuntime.ts (Constitution Rule 251) — proves 10-Worker question dedup into 1 real entry, registry-first auto-resolution across 2 independent shapes, single-Owner-answer fan-out including a late 11th asker, and a real whole-repo import scan (with an ALLOWED_FILES list for legitimate read-only verifiers) confirming only this module may expose Owner-facing functions. 21/21 passing.",
+      "purpose_th": "ชุดทดสอบจริงของ managerQuestionRuntime.ts (Constitution Rule 251) — พิสูจน์การรวมคำถามซ้ำจาก Worker 10 ตัวเหลือ 1 รายการจริง, การตอบอัตโนมัติจาก Registry, การกระจายคำตอบของ Owner ไปยังผู้ถามทุกคน และสแกน import ทั้ง repo ยืนยันว่ามีเพียงไฟล์นี้เท่านั้นที่เข้าถึง Owner ได้ ผ่านจริง 21/21",
+      "exports": [],
+      "status": "active"
+    },
+    "scripts/gap1-submit-handoff.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "[Auto-detected] scripts/gap1-submit-handoff.ts",
+      "purpose_th": "[ตรวจพบอัตโนมัติ] scripts/gap1-submit-handoff.ts",
+      "exports": [],
+      "status": "unregistered"
+    },
+    "scripts/gap1-evidence-normalization-test.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "[Auto-detected] scripts/gap1-evidence-normalization-test.ts",
+      "purpose_th": "[ตรวจพบอัตโนมัติ] scripts/gap1-evidence-normalization-test.ts",
+      "exports": [],
+      "status": "unregistered"
+    },
+    "scripts/execution-hand-test.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "Real acceptance suite for executionHandRuntime.ts (Constitution Rule 258) — proves Job Contract validation, all 10 gated operations, Cost Gate integration, the lock/evidence/STANDBY protocol, and all 5 structural negative guarantees (cannot ask Owner, cannot dispatch Workers, cannot read the full Registry/Constitution/CURRENT_STATE, cannot invent work, cannot self-declare PASS) each with a positive control. 37/37 passing.",
+      "purpose_th": "ชุดทดสอบจริงของ executionHandRuntime.ts (Constitution Rule 258) — พิสูจน์การตรวจ Job Contract, ปฏิบัติการทั้ง 10 ประเภท, การต่อ Cost Gate, และข้อห้ามเชิงโครงสร้างทั้ง 5 ข้อ (อ่าน Registry เต็ม/ถาม Owner/dispatch Worker อื่น/สร้างงานเอง/ประกาศ PASS เอง) ผ่านจริง 37/37",
+      "exports": [
+        "ExecutionHandStatus",
+        "WorkerJobStatus"
+      ],
+      "status": "active"
+    },
+    "scripts/execution-hand-dispatch-run.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "Small, real, reusable CLI helper that calls executionHandRuntime.ts's real runExecutionHandJobFromInbox() to actually run a Job Contract sitting in workers/execution-hand/INBOX/ — built because no CLI entry point existed to run a single real Job Contract outside the acceptance suite (checked first, per Rule 101). Used to run the real TASK-009/018/044 backlog dispatches.",
+      "purpose_th": "เครื่องมือ CLI เล็กๆ ที่เรียก runExecutionHandJobFromInbox() จริงของ executionHandRuntime.ts เพื่อรัน Job Contract ที่วางไว้ใน workers/execution-hand/INBOX/ จริง สร้างขึ้นเพราะยังไม่มีทางรันงานเดี่ยวนอกชุดทดสอบมาก่อน ใช้จริงกับ TASK-009/018/044",
+      "exports": [],
+      "status": "active"
+    },
+    "scripts/cost-gate-test.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "Real acceptance suite for costGateRuntime.ts (Constitution Rule 257) — proves FREE_LOCAL/PAID_EXTERNAL/UNKNOWN_COST classification, budget-based RELEASE/LOCK outcomes with real file-persisted bookkeeping, LOCK escalation landing in Rule 251's real Owner queue, and structural proof no Worker/Adapter can self-approve its own spend. 49/49 passing.",
+      "purpose_th": "ชุดทดสอบจริงของ costGateRuntime.ts (Constitution Rule 257) — พิสูจน์การจัดประเภท FREE_LOCAL/PAID_EXTERNAL/UNKNOWN_COST, ผล RELEASE/LOCK ตามงบประมาณจริง, การ escalate LOCK ไปยังคิว Owner จริงของ Rule 251 ผ่านจริง 49/49",
+      "exports": [],
+      "status": "active"
+    },
+    "plugins/agent/server.ts": {
+      "owner": "plugins",
+      "layer": "plugins",
+      "purpose": "Real, minimal, honestly-labeled NOT_IMPLEMENTED HTTP stub (TASK-018, DNA-000109) — fixes plugins/agent/start.sh's real startup crash (the file was registered in registry/services.json, port 7777, but genuinely did not exist on disk since the 2026-07-06 reorg). Listens on the one real, concrete value registry/services.json declares; every request gets an honest 501 NOT_IMPLEMENTED — no route/dispatch behavior is invented since none is specified anywhere in this repo.",
+      "purpose_th": "HTTP stub ที่ตอบ NOT_IMPLEMENTED อย่างตรงไปตรงมา (TASK-018, DNA-000109) — แก้ปัญหา plugins/agent/start.sh สตาร์ทไม่ได้จริง (ไฟล์นี้ถูกลงทะเบียนใน services.json พอร์ต 7777 แต่ไม่มีอยู่จริงมาตั้งแต่การจัดโครงสร้างใหม่ 2026-07-06) ทุก request ได้รับคำตอบ 501 ตรงไปตรงมา ไม่มีการมโนพฤติกรรมที่ไม่มีสเปกจริง",
+      "exports": [],
+      "status": "active",
+      "entry_point": true
+    },
+    "app/api/admin/ide/_lib/switchBasedOrchestratorRuntime.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Switch-Based Orchestrator (Constitution Rule 252, Closed-Loop Factory Mode) — the real gate pipeline (VALIDATE->CLASSIFY->DEDUP->NOISE_FILTER->DEPENDENCY_CHECK->LOCK->ROUTE->WORKER->EVIDENCE->VERIFY) and 9-state work-item machine (BLOCKED/READY/LOCKED/RUNNING/VERIFYING/PASSED/REPAIR/REJECTED/DONE). MANAGER-07 only controls/routes/locks/schedules/observes here — never computes Worker-role content itself, proven structurally.",
+      "purpose_th": "Switch-Based Orchestrator (Constitution Rule 252, Closed-Loop Factory Mode) — สายพาน gate จริง (VALIDATE->CLASSIFY->DEDUP->NOISE_FILTER->DEPENDENCY_CHECK->LOCK->ROUTE->WORKER->EVIDENCE->VERIFY) และ state machine 9 สถานะของงานแต่ละชิ้น MANAGER-07 ทำหน้าที่ควบคุม/ส่งงาน/ล็อกเท่านั้น ไม่คำนวณเนื้องานของ Worker เอง",
+      "exports": [
+        "CapabilityClassification",
+        "DispatchOutcome",
+        "DispatchOutcomeKind",
+        "GateAuditEvent",
+        "GateDropReason",
+        "GateDropRecord",
+        "GateInputSubmission",
+        "GateIntakeResult",
+        "OrchestratorError",
+        "RepairAttempt",
+        "VerificationHandlingResult",
+        "VerificationOutcomeInput",
+        "WorkItem",
+        "WorkItemState",
+        "__debugDropLogCount",
+        "__debugForceRunning",
+        "__debugReset",
+        "__debugWorkItemCount",
+        "attemptDispatch",
+        "classifyEscalation",
+        "getWorkItem",
+        "listDrops",
+        "listWorkItems",
+        "reportVerificationOutcome",
+        "submitGateInput"
+      ],
+      "status": "active"
+    },
+    "app/api/admin/ide/_lib/registryWriterRuntime.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "[Auto-detected] app/api/admin/ide/_lib/registryWriterRuntime.ts",
+      "purpose_th": "[ตรวจพบอัตโนมัติ] app/api/admin/ide/_lib/registryWriterRuntime.ts",
+      "exports": [
+        "FindingSource",
+        "LockResult",
+        "WriteFindingInput",
+        "acquireLock",
+        "releaseLock",
+        "writeFinding"
+      ],
+      "status": "unregistered"
+    },
+    "app/api/admin/ide/_lib/normalizationRuntime.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "[Auto-detected] app/api/admin/ide/_lib/normalizationRuntime.ts",
+      "purpose_th": "[ตรวจพบอัตโนมัติ] app/api/admin/ide/_lib/normalizationRuntime.ts",
+      "exports": [
+        "NormalizedFinding",
+        "classify",
+        "hashObservation",
+        "normalizeAndDedup",
+        "normalizeSubject"
+      ],
+      "status": "unregistered"
+    },
+    "app/api/admin/ide/_lib/managerQuestionRuntime.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Manager Question Queue (Constitution Rule 251, Single Owner Inquiry Authority) — the only real, Owner-facing question surface in the Factory. submitWorkerQuestion() dedupes concurrent Workers' same underlying question (real keyword-overlap coefficient), does a real registry-first lookup across 5 mandated files before ever escalating, and getOwnerFacingQueue()/answerAggregatedQuestion() are the sole functions any code may import to reach the Owner — proven via a real, repo-wide import-graph scan with a positive control.",
+      "purpose_th": "Manager Question Queue (Constitution Rule 251, สิทธิ์ถาม Owner โดยตรงมีเพียง Manager) — ช่องทางเดียวที่แท้จริงในการถาม Owner ของโรงงาน รวมคำถามซ้ำจาก Worker หลายตัวที่ถามเรื่องเดียวกัน ตรวจ Registry ก่อนเสมอก่อน escalate เป็นฟังก์ชันเดียวในระบบที่ได้รับอนุญาตให้ถึง Owner ได้จริง",
+      "exports": [
+        "AnswerAggregatedQuestionOutcome",
+        "MANAGED_REGISTRY_FILES",
+        "ManagerQuestionAuditEvent",
+        "ManagerQuestionError",
+        "ManagerQuestionRecord",
+        "ManagerQuestionStatus",
+        "OwnerFacingQuestion",
+        "OwnerFacingQuestionAsker",
+        "RegistryLookupHit",
+        "SubmitWorkerQuestionInput",
+        "SubmitWorkerQuestionOutcome",
+        "WorkerQuestionAsk",
+        "__debugGetQuestionRecord",
+        "__debugQuestionCount",
+        "__debugResetManagerQuestionQueue",
+        "answerAggregatedQuestion",
+        "extractKeywords",
+        "getAnswerForAsk",
+        "getOwnerFacingQueue",
+        "overlapCoefficient",
+        "submitWorkerQuestion"
+      ],
+      "status": "active"
+    },
+    "app/api/admin/ide/_lib/executionHandRuntime.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "EXECUTION_HAND (Constitution Rule 258) — minimal-context Back Office Execution Worker. Real Job Contract validation (10 required fields, BLOCKED on any missing, never inferred), 10 gated operation types, lock->allowed_paths-only->evidence->return->unlock->STANDBY protocol, terminal states EXECUTED/FAILED/BLOCKED only (never self-declares PASS). Cannot read the full Registry/Constitution/CURRENT_STATE, ask the Owner, or dispatch other Workers — proven structurally, not just by convention.",
+      "purpose_th": "EXECUTION_HAND (Constitution Rule 258) — Worker ปฏิบัติการฝ่ายหลังบ้านที่จำกัดบริบทให้น้อยที่สุด ตรวจสอบ Job Contract จริง (10 ฟิลด์บังคับ ขาดฟิลด์ใดคืน BLOCKED ทันที ห้ามเดา) มี 10 ประเภทปฏิบัติการที่อนุญาต สถานะปลายทางมีเพียง EXECUTED/FAILED/BLOCKED เท่านั้น ห้ามประกาศ PASS เอง",
+      "exports": [
+        "EXECUTION_HAND_OPERATIONS",
+        "ExecutionHandEvidenceItem",
+        "ExecutionHandJobContract",
+        "ExecutionHandOperation",
+        "ExecutionHandResult",
+        "ExecutionHandStatus",
+        "JobContractValidationBlocked",
+        "JobContractValidationOk",
+        "LocalCriterionCheck",
+        "PathScopeCheck",
+        "ScopeLockResult",
+        "__debugClearExecutionHandLock",
+        "__debugClearOutboxAndEvidence",
+        "acquireScopeLock",
+        "evaluateLocalAcceptanceCriteria",
+        "executeJobContract",
+        "isPathWithinAllowedScope",
+        "listInboxJobContracts",
+        "readExecutionHandStatusMirror",
+        "releaseScopeLock",
+        "runExecutionHandJobFromInbox",
+        "validateJobContract"
+      ],
+      "status": "active"
+    },
+    "app/api/admin/ide/_lib/evidenceCollectorRuntime.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "[Auto-detected] app/api/admin/ide/_lib/evidenceCollectorRuntime.ts",
+      "purpose_th": "[ตรวจพบอัตโนมัติ] app/api/admin/ide/_lib/evidenceCollectorRuntime.ts",
+      "exports": [
+        "EvidenceItem",
+        "EvidenceSourceType",
+        "ObservationOrigin",
+        "RawObservation",
+        "ValidationResult",
+        "collectEvidence",
+        "validateObservation"
+      ],
+      "status": "unregistered"
+    },
+    "app/api/admin/ide/_lib/costGateRuntime.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Execution Plane Cost Gate (Constitution Rule 257) — real cost_class classification (FREE/ESTIMATED_COST/PAID/UNKNOWN_COST per Worker, FREE_LOCAL/PAID_EXTERNAL/UNKNOWN_COST closed-allowlist per RUN_COMMAND/RUN_TEST/BUILD), checkCostGate()/grantCostBudget()/revokeCostBudget()/recordActualCost(). Gates every real dispatch path (codeWorkerRuntime.ts, switchBasedOrchestratorRuntime.ts, executionHandRuntime.ts) before a costed operation runs; LOCK escalates through Rule 251's real Owner queue tagged financial_approval_required.",
+      "purpose_th": "Execution Plane Cost Gate (Constitution Rule 257) — จัดประเภทค่าใช้จ่ายจริง (FREE/ESTIMATED_COST/PAID/UNKNOWN_COST ต่อ Worker, FREE_LOCAL/PAID_EXTERNAL/UNKNOWN_COST แบบ allowlist ปิดสำหรับคำสั่ง RUN_COMMAND/RUN_TEST/BUILD) ตรวจก่อนทุกการ dispatch ที่มีค่าใช้จ่ายจริง LOCK จะส่งต่อผ่านคิว Owner ของ Rule 251 พร้อม tag financial_approval_required",
+      "exports": [
+        "CostBudgetEntry",
+        "CostBudgetScope",
+        "CostBudgetStatus",
+        "CostClass",
+        "CostGateOutcome",
+        "CostGateOutcomeKind",
+        "CostGateRequest",
+        "CostLedgerEntry",
+        "GrantCostBudgetInput",
+        "OperationCostClass",
+        "OperationCostClassification",
+        "__debugClearBudgets",
+        "checkCostGate",
+        "classifyOperationCommand",
+        "grantCostBudget",
+        "listCostBudgets",
+        "listCostLedgerEntries",
+        "recordActualCost",
+        "revokeCostBudget",
+        "shouldRunLiveSection"
+      ],
+      "status": "active"
+    },
+    "scripts/gap-loop-test.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "Real acceptance suite for gapLoopRuntime.ts (Rule 255 amendment) — proves real classification of FCR-009/011/012's actual live description text, real duplicate detection reusing managerQuestionRuntime.ts's dedup, real NOT_STABLE computation against live repo state (WORKER_IDENTITIES.json, open findings), and structural proof of zero daemon/cron/auto-trigger code. 20/20 passing.",
+      "purpose_th": "ชุดทดสอบจริงของ gapLoopRuntime.ts (ส่วนขยาย Rule 255) — พิสูจน์การจัดหมวดจริงของ FCR-009/011/012, การตรวจจับ Gap ซ้ำจริง, การคำนวณ NOT_STABLE จากสถานะจริงของระบบ และไม่มีโค้ด daemon/cron ใดๆ ผ่านจริง 20/20",
+      "exports": [
+        "extractKeywords",
+        "overlapCoefficient"
+      ],
+      "status": "active"
+    },
+    "scripts/edge-function-worker-test.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "Real acceptance suite for edgeFunctionWorkerRuntime.ts (11th WorkerType) — proves selectWorker() registration, real Cost Gate ordering before any network call (structural + behavioral), URL/auth-header construction against real profile-refresh.ts/storage-threshold-watcher.ts precedent, and workerTaskOrchestrator.ts's real refusal to misroute this WorkerType. 20/20 passing, zero real money spent, zero real Edge Function invocations triggered.",
+      "purpose_th": "ชุดทดสอบจริงของ edgeFunctionWorkerRuntime.ts (WorkerType ที่ 11) — พิสูจน์การลงทะเบียนจริง, ลำดับการตรวจ Cost Gate ก่อนเรียก network จริงเสมอ, และการปฏิเสธ misroute ของ workerTaskOrchestrator.ts ผ่านจริง 20/20 ไม่เสียเงินจริง ไม่เรียก Edge Function จริงเลย",
+      "exports": [
+        "__debugDispatchAfterRelease",
+        "dispatchEdgeFunctionWorkerJob"
+      ],
+      "status": "active"
+    },
+    "app/api/admin/ide/_lib/gapLoopRuntime.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Factory Gap Loop (Constitution Rule 255 amendment) — classifyGap() over the real 10-category type_enum (CODE_GAP..OBSERVABILITY_GAP, never a forced guess), findDuplicateGap() reusing managerQuestionRuntime.ts's real keyword-overlap dedup to merge duplicate Gaps instead of creating a second Task, computeFactoryStatus() reading real, live state (WORKER_IDENTITIES.json registration count, open FACTORY_CENTRAL_REGISTRY.json findings) to produce an honest STABLE/NOT_STABLE verdict, never asserted.",
+      "purpose_th": "Factory Gap Loop (ส่วนขยายของ Constitution Rule 255) — classifyGap() จัดหมวด Gap จริงตาม type_enum 10 หมวด (ไม่เดาถ้าไม่ชัด), findDuplicateGap() ใช้ตัวรวมคำถามซ้ำเดิมของ managerQuestionRuntime.ts เพื่อรวม Gap ซ้ำแทนสร้างงานใหม่ซ้ำ, computeFactoryStatus() อ่านสถานะจริงเพื่อสรุป STABLE/NOT_STABLE อย่างตรงไปตรงมา",
+      "exports": [
+        "DuplicateGapResult",
+        "ExistingFindingForDedup",
+        "FactoryStatusOptions",
+        "FactoryStatusResult",
+        "GAP_TYPES",
+        "GapClassification",
+        "GapType",
+        "classifyGap",
+        "computeFactoryStatus",
+        "findDuplicateGap"
+      ],
+      "status": "active"
+    },
+    "app/api/admin/ide/_lib/edgeFunctionWorkerRuntime.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "EDGE_FUNCTION_WORKER (11th WorkerType, Owner-authorized exception to Rule 252, DNA-000082/083) — real dispatch bridge from Next.js server code into a Supabase Edge Function, reusing profile-refresh.ts's real fire-and-forget queue+fetch pattern. Real Cost Gate check (PAID/UNKNOWN_COST) before any network call; workerTaskOrchestrator.ts#runScopedWorkerJob() real-refuses this WorkerType rather than silently misrouting it into CODE_WORKER.",
+      "purpose_th": "EDGE_FUNCTION_WORKER (WorkerType ที่ 11 ข้อยกเว้นที่ Owner อนุญาตต่อ Rule 252, DNA-000082/083) — สะพาน dispatch จริงจากโค้ด server ของ Next.js ไปยัง Supabase Edge Function ใช้รูปแบบ queue+fetch แบบ fire-and-forget เดิมจาก profile-refresh.ts ตรวจ Cost Gate จริงก่อนเรียก network ทุกครั้ง",
+      "exports": [
+        "AwaitedDeliveryOutcome",
+        "DispatchEdgeFunctionWorkerJobOptions",
+        "EdgeFunctionAuthMode",
+        "EdgeFunctionDispatchResult",
+        "EdgeFunctionDispatchStatus",
+        "EdgeFunctionWorkerJobContract",
+        "JobContractValidationBlocked",
+        "JobContractValidationOk",
+        "ResolvedAuthHeader",
+        "__debugDispatchAfterRelease",
+        "buildEdgeFunctionUrl",
+        "createEdgeFunctionWorkerJobContract",
+        "dispatchEdgeFunctionWorkerJob",
+        "listDeployedEdgeFunctions",
+        "resolveAuthHeader",
+        "validateEdgeFunctionWorkerJobContract"
       ],
       "status": "active"
     }

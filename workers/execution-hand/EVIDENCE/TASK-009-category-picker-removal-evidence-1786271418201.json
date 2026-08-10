@@ -1,0 +1,13 @@
+[
+  {
+    "kind": "REFUSAL",
+    "detail": "operation payload missing 'content' for EDIT_FILE",
+    "path": "components/documents/DocumentBuilder.tsx",
+    "before": null,
+    "after": null,
+    "stdout": null,
+    "stderr": null,
+    "exitCode": null,
+    "capturedAt": "2026-08-09T10:30:18.201Z"
+  }
+]

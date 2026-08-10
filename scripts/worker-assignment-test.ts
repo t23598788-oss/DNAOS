@@ -12,7 +12,13 @@ import path from "path";
 import { WORKER_REGISTRY, listWorkers, getWorkerDefinition, selectWorker, type WorkerType } from "../app/api/admin/ide/_lib/workerRegistry";
 
 const ROOT = path.join(__dirname, "..");
-const ALL_WORKER_TYPES: WorkerType[] = ["ANALYSIS_WORKER", "CODE_WORKER", "REVIEW_WORKER", "TEST_WORKER", "DOCUMENT_WORKER", "UI_WORKER", "SECURITY_WORKER", "DATA_WORKER", "HUMAN_WORKER", "TOOL_WORKER"];
+// 11 as of 2026-08-09 (TASK-045, Owner decision DNA-000082/083) — a real,
+// explicit, Owner-authorized exception to Constitution Rule 252 added
+// EDGE_FUNCTION_WORKER as the 11th WorkerType (see workerRegistry.ts's own
+// AMENDMENT header for the full authorization trail). Was exactly 10
+// before this date; this list is intentionally kept in lockstep with
+// workerRegistry.ts's real WorkerType union, never left stale.
+const ALL_WORKER_TYPES: WorkerType[] = ["ANALYSIS_WORKER", "CODE_WORKER", "REVIEW_WORKER", "TEST_WORKER", "DOCUMENT_WORKER", "UI_WORKER", "SECURITY_WORKER", "DATA_WORKER", "HUMAN_WORKER", "TOOL_WORKER", "EDGE_FUNCTION_WORKER"];
 const VALID_STATUSES = ["ACTIVE", "CONFIGURED", "PARTIAL", "COMPATIBILITY_ONLY", "NOT_IMPLEMENTED", "UNKNOWN"];
 
 interface TestResult { name: string; pass: boolean; detail?: string }
@@ -24,7 +30,7 @@ async function test(name: string, fn: () => Promise<void> | void) {
 function assert(cond: boolean, message: string) { if (!cond) throw new Error(message); }
 
 async function main() {
-  await test("All 10 real, minimum Worker Types are declared, no more no less than the spec's minimum set", () => {
+  await test("All 11 real Worker Types are declared, no more no less (10 original + EDGE_FUNCTION_WORKER, TASK-045)", () => {
     for (const t of ALL_WORKER_TYPES) assert(!!WORKER_REGISTRY[t], `expected Worker Type ${t} to be declared`);
     assert(listWorkers().length === ALL_WORKER_TYPES.length, `expected exactly ${ALL_WORKER_TYPES.length} real Worker Types, got ${listWorkers().length}`);
   });

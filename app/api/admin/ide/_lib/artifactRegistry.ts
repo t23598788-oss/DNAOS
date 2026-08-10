@@ -34,7 +34,8 @@ export type ArtifactType =
   | "WORKER_REQUEST" | "WORKER_SELECTION_REPORT" | "WORKER_EXECUTION_RECORD" | "PROVIDER_CALL_RECORD" | "CLI_EXECUTION_RECORD"
   | "MCP_EXECUTION_RECORD" | "LOCAL_MODEL_EXECUTION_RECORD" | "EXECUTION_BUDGET_REPORT" | "CODE_WORKER_PROPOSAL_V2" | "WORKER_HEALTH_REPORT"
   | "DOMAIN_ASSET_RECORD" | "SUBDOMAIN_DISCOVERY_REPORT" | "DNS_VERIFICATION_REPORT" | "HTTP_PROBE_REPORT" | "TLS_EVIDENCE_RECORD" | "EXTERNAL_DRIFT_REPORT"
-  | "COMMAND_INVOCATION" | "EXECUTION_CONTEXT_CHECKPOINT" | "FACTORY_READINESS_REPORT";
+  | "COMMAND_INVOCATION" | "EXECUTION_CONTEXT_CHECKPOINT" | "FACTORY_READINESS_REPORT"
+  | "MANAGER_QUESTION_RECORD" | "ORCHESTRATOR_WORK_ITEM_RECORD" | "COST_GATE_DECISION" | "EDGE_FUNCTION_DISPATCH_RECORD";
 
 export type ArtifactRegistrationStatus = "IMPLEMENTED" | "NOT_IMPLEMENTED";
 export type ArtifactFormat = "json" | "text" | "png" | "n/a";
@@ -784,6 +785,30 @@ export const ARTIFACT_TYPE_REGISTRY: Record<ArtifactType, ArtifactTypeDefinition
     description: "Real, live, evidence-based READY/NOT_READY verdict across the full Instruction -> Release Gate closed loop — every stage computed from a live check (file existence, live worker health, live registry status), never hardcoded (owner, 2026-08-07, Software Factory Foundation full-pipeline audit).",
     producer: "app/api/admin/ide/_lib/factoryReadinessGateRuntime.ts", consumer: ["Owner Console (internal only)"],
     source: "live, real evidence across executionContextRuntime/workerSelectorRuntime/restrictedCapabilityRegistry/executionRegistry/deploymentRegistry/gitReadOnly", format: "json", immutable: true, retention: "bounded artifact history (MAX_ARTIFACT_HISTORY)", supportsRegenerate: true, status: "IMPLEMENTED",
+  },
+  MANAGER_QUESTION_RECORD: {
+    artifactType: "MANAGER_QUESTION_RECORD", displayName: "Manager Question Record",
+    description: "Real, immutable, versioned snapshot of one aggregated Worker/Job question's lifecycle inside the Manager Question Queue (submit/dedupe/registry-lookup/resolve-internally/escalate/owner-answer/fan-out) — the real build for Constitution Rule 251 (Single Owner Inquiry Authority): only the Factory Manager may ask the Owner directly, Workers route every question through it first (owner, 2026-08-09, TASK-042).",
+    producer: "app/api/admin/ide/_lib/managerQuestionRuntime.ts", consumer: ["Factory Workspace tab", "Owner Console (Manager Question Queue)"],
+    source: "real WorkerQuestionAsk submissions, real registry-first lookup results (CONSTITUTION.json/CURRENT_STATE.json/CHANGELOG.json/rule-coverage.json/factory-registry.json), real Owner answer", format: "json", immutable: true, retention: "bounded artifact history (MAX_ARTIFACT_HISTORY)", supportsRegenerate: false, status: "IMPLEMENTED",
+  },
+  ORCHESTRATOR_WORK_ITEM_RECORD: {
+    artifactType: "ORCHESTRATOR_WORK_ITEM_RECORD", displayName: "Orchestrator Work Item Record",
+    description: "Real, immutable, versioned snapshot of one Work Item's lifecycle through the Switch-Based Orchestrator's gate pipeline (VALIDATE/CLASSIFY/DEDUP/NOISE_FILTER/DEPENDENCY_CHECK/LOCK/ROUTE/WORKER/VERIFY/REPAIR) and its 9-value state machine (BLOCKED/READY/LOCKED/RUNNING/VERIFYING/PASSED/REPAIR/REJECTED/DONE) — MANAGER-07's own control/route/lock/unlock/schedule/observe boundary (Constitution Rule 252) never Worker-role content computation (owner, 2026-08-09, Switch-Based Orchestrator).",
+    producer: "app/api/admin/ide/_lib/switchBasedOrchestratorRuntime.ts", consumer: ["Owner Console (internal only)", "scripts/switch-based-orchestrator-test.ts"],
+    source: "real GateInputSubmission intake, real registry-first classification/lock/route decisions, real dispatch-denial evidence from registry/WORKER_IDENTITIES.json", format: "json", immutable: true, retention: "bounded artifact history (MAX_ARTIFACT_HISTORY)", supportsRegenerate: false, status: "IMPLEMENTED",
+  },
+  COST_GATE_DECISION: {
+    artifactType: "COST_GATE_DECISION", displayName: "Cost Gate Decision",
+    description: "Real, immutable snapshot of one real COST_GATE RELEASE/LOCK decision (Constitution Rule 257 — Execution Plane Cost Gate, TASK-048/FCR-009): the real provider/operation/estimated_cost/currency/max_cost/reason/task_id/worker_id/evidence checked, which real budget (if any) covered it, and — for a LOCK — the real financial_approval_required escalation outcome via managerQuestionRuntime.ts's single Owner Inquiry channel. Separate from registry/COST_LEDGER.json (which records real ACTUAL post-execution cost, not the gate decision itself).",
+    producer: "app/api/admin/ide/_lib/costGateRuntime.ts", consumer: ["Owner Console (internal only)", "scripts/cost-gate-test.ts"],
+    source: "real CostGateRequest input, real registry/COST_BUDGETS.json lookup, real submitWorkerQuestion() escalation outcome when LOCKed", format: "json", immutable: true, retention: "bounded artifact history (MAX_ARTIFACT_HISTORY)", supportsRegenerate: false, status: "IMPLEMENTED",
+  },
+  EDGE_FUNCTION_DISPATCH_RECORD: {
+    artifactType: "EDGE_FUNCTION_DISPATCH_RECORD", displayName: "Edge Function Dispatch Record",
+    description: "Real, immutable snapshot of one real EDGE_FUNCTION_WORKER dispatch attempt (owner, 2026-08-09, TASK-045 — 11th WorkerType, Owner-authorized Rule 252 exception, DNA-000082/083): the real targetFunction/payload shape, the real Cost Gate outcome checked BEFORE any network call, and — once dispatched — the real, constructed request URL and fire-and-forget/awaited outcome. This is the honest, local analog of supabase/functions/line-webhook-v2/engines/profile-refresh.ts's line_profile_refresh_queue insert step (see edgeFunctionWorkerRuntime.ts's header for why this is a local Evidence Warehouse record rather than a new, generic, cross-domain Supabase queue table this task was not scoped to design/migrate).",
+    producer: "app/api/admin/ide/_lib/edgeFunctionWorkerRuntime.ts", consumer: ["Owner Console (internal only)", "scripts/edge-function-worker-test.ts"],
+    source: "real EdgeFunctionWorkerJobContract input, real checkCostGate() outcome, real constructed fetch() request", format: "json", immutable: true, retention: "bounded artifact history (MAX_ARTIFACT_HISTORY)", supportsRegenerate: false, status: "IMPLEMENTED",
   },
 };
 
