@@ -325,6 +325,18 @@
       "status": "TRACKED",
       "task_id": null,
       "escalated_to_owner": true
+    },
+    {
+      "finding_id": "FCR-026",
+      "type": "PIPELINE_GAP",
+      "SOURCE": "OWNER",
+      "source_entity": "Owner",
+      "reported_by": "Owner directive, 2026-08-11, following MANAGER-07's own real discovery+fix of 2 registry integrity bugs during FCR-025 Round 2 (TASK-075)",
+      "description": "The real pre-commit pipeline (scripts/pre-commit-check.sh + its sync-registry/build-arch-book sub-steps) allows a registry entry with a malformed value (wrong type/shape) or a stale path (referencing a deleted file) to be committed -- Guard 13 only checks for the literal auto-stub placeholder string, not real type/shape validity; a separate, later-discovered BROKEN-module check catches missing files but only after architecture-book regeneration, not before. No single, hard-blocking gate reconciles Source reality, Registry reality, Git reality, and Pipeline reality together before a commit is allowed.",
+      "evaluation": "Real, systemic gap -- not a one-off data-entry mistake. Ordered fix: a permanent registry-integrity-gate tool, 4-layer check, 9-state classification, hard-block on everything except VALID/reconciled-MOVED/removed-DELETED, wired into the real pipeline before governance/commit/push/deploy. Tracked as TASK-076.",
+      "status": "TRACKED",
+      "task_id": "TASK-076",
+      "escalated_to_owner": false
     }
   ],
   "summary": {

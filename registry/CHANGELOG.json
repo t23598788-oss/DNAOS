@@ -2654,5 +2654,18 @@
       "registry/FACTORY_CENTRAL_REGISTRY.json (FCR-025 updated)"
     ],
     "summary": "Closes TASK-075's build side. Real viewport containment fix for /admin/ide committed (d6e6d2d) and independently verified with a real npm install + real production build (exit 0). Also found and fixed, during that same independent verification, a critical registry data bug (a Python trailing-comma mistake in MANAGER-07's own earlier Guard-13 fix) that may have silently broken Round 1's real Vercel build -- an important, honest self-correction. Pushed to origin/main. Awaiting real Owner visual re-verification, per Rule 262/263 -- not yet declared complete."
+  },
+  {
+    "change_id": "DNA-000166",
+    "agent": "Claude",
+    "agent_id": null,
+    "agent_id_note": "Not available to this session — not guessed.",
+    "session_id": null,
+    "date": "2026-08-11",
+    "files": [
+      "registry/TASK_QUEUE.json (TASK-076 added)",
+      "registry/FACTORY_CENTRAL_REGISTRY.json (FCR-026 added)"
+    ],
+    "summary": "Owner ordered a permanent, systemic fix following MANAGER-07's own discovery of 2 real registry integrity bugs during FCR-025 Round 2 -- not a patch, a durable pipeline gate. Registered FCR-026 (the real pipeline gap: no single hard-blocking Source<->Registry<->Git reconciliation step exists today) and dispatched TASK-076: a 4-phase build (root-gap investigation first, then the real registry-integrity-gate tool with 9-state classification, then wiring it into the real pre-commit pipeline ahead of governance/commit/push, then a real regression + 9-scenario synthetic test suite). Explicit extra caution required: this touches the one pre-commit hook every future commit (this session's and the concurrent session's) depends on."
   }
 ]
