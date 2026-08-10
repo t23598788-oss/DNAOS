@@ -2417,5 +2417,18 @@
       "registry/TASK_QUEUE.json (TASK-067 added)"
     ],
     "summary": "Owner ordered MAKE SETTINGS REAL: the /admin/ide Settings tab must become a genuinely wired production settings system (UI -> API -> storage -> runtime consumer -> verification -> reality report), never mock/placeholder, with strict per-item ACTIVE/NOT_WIRED/UNAVAILABLE/ERROR status and 10 explicit correctness rules. MANAGER-07 located the real target before registering: SettingsPanel() in components/ide-shell/IDEWorkspace.tsx, whose own source comment already discloses 'no real config store yet' -- 3 checkboxes (Auto-save/Format on save/Telemetry), all already rendered disabled (technically compliant with the Owner's no-fake-checkbox rule already, but backed by zero real state/API/storage/runtime). Found and will reuse (per the Owner's own explicit no-duplicate-settings-system instruction): DNA OS already has a real, generic, working settings persistence mechanism (the app_configs Supabase table via core/config-loader.ts), currently used only by an unrelated domain (CompanySettings/SettingsDrawer.tsx). Registered as capability #61, staged as TASK-067 (real per-setting audit + reuse-first design) before any build."
+  },
+  {
+    "change_id": "DNA-000148",
+    "agent": "Claude",
+    "agent_id": null,
+    "agent_id_note": "Not available to this session — not guessed.",
+    "session_id": null,
+    "date": "2026-08-10",
+    "files": [
+      "registry/TASK_QUEUE.json (TASK-067: not_started -> done; TASK-068 added)",
+      "registry/capability-roadmap.json (capability #61: design complete)"
+    ],
+    "summary": "Closes TASK-067. Real, reuse-first design for capability #61 confirmed: DNA OS's existing app_configs mechanism (company-settings.ts's exact pattern) is directly reusable for IDE settings, no new storage system needed. Honest, grep-verified finding: the 3 checkboxes on the Settings panel have zero real runtime behavior anywhere to gate — they must display UNAVAILABLE, not a fake ACTIVE state, until real behavior is separately built. Telemetry specifically requires an Owner privacy/product decision before any engineering, not a technical judgment call. Dispatched TASK-068: a tightly-scoped real build (storage, API, honest per-item status, the one real quick win of a live Database health signal, real audit evidence) explicitly excluding the 3 behaviors that don't exist yet."
   }
 ]
