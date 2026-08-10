@@ -2563,5 +2563,19 @@
       "registry/capability-roadmap.json (capability #62: STEP 7 minimal slice built)"
     ],
     "summary": "Closes TASK-073. Real GitHub Connections rail built and committed (e6450a6), independently isolation-verified by MANAGER-07 -- including catching and resolving a real cross-session file-mixing issue in engines/connectors/tester.ts before commit, and reviewing 4 real files from a concurrent session's in-progress work that this slice genuinely needed to compile. Registered FCR-024 for a real, disclosed, currently-latent slug bug found in the shared catalog.ts. Capability #62 STEP 7's minimal slice is code-complete; true end-to-end verification is blocked on the Owner creating a real GitHub OAuth App -- a real, external, unavoidable manual step."
+  },
+  {
+    "change_id": "DNA-000159",
+    "agent": "Claude",
+    "agent_id": null,
+    "agent_id_note": "Not available to this session — not guessed.",
+    "session_id": null,
+    "date": "2026-08-10",
+    "files": [
+      "registry/CONSTITUTION.json (Rule 262 appended)",
+      "registry/rule-coverage.json (entry for rule 262)",
+      "registry/FACTORY_CENTRAL_REGISTRY.json (FCR-025 added, escalated)"
+    ],
+    "summary": "Owner issued OWNER UI RULE + VISUAL POLICY: every UI change must be locally tested, built, DEPLOYED to a real URL, and OWNER VISUALLY VERIFIED before being declared done -- and Owner-facing UI must default to Light Theme, never the current VS-Code-style dark appearance. Recorded as Constitution Rule 262. Immediately cross-checked against MANAGER-07's own just-completed visual audit of /admin/ide (components/ide-shell/IDEWorkspace.tsx) and confirmed a real, direct violation -- the entire file is dark-themed by default with no light-mode path at all. Registered as FCR-025, escalated. Per Rule 261's no-grandfathering precedent, none of today's own /admin/ide UI work (Settings, Auto-save, Connections) yet meets the new DEPLOYED + OWNER VISUALLY VERIFIED bar either, since nothing has been pushed/deployed. Not yet dispatched as a build task -- flagged to the Owner given the real scale of a full light-theme conversion, awaiting confirmation on scope/priority before committing agent time."
   }
 ]

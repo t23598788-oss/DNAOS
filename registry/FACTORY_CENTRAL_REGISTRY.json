@@ -313,6 +313,18 @@
       "status": "TRACKED",
       "task_id": null,
       "escalated_to_owner": false
+    },
+    {
+      "finding_id": "FCR-025",
+      "type": "UI_GAP",
+      "SOURCE": "MANAGER",
+      "source_entity": "MANAGER-07",
+      "reported_by": "MANAGER-07's own real, detailed visual audit of components/ide-shell/IDEWorkspace.tsx completed the same day, immediately before this rule was issued",
+      "description": "/admin/ide's entire real, shipped visual surface (components/ide-shell/IDEWorkspace.tsx, 5822 lines) is styled as a VS-Code-style dark IDE by default — root background #1e1e1e, every panel/toolbar/tab/status-bar hardcoded to dark hex values (#252526, #1e1e1e, #d4d4d4 text, etc.), zero theme/token system, zero light-mode path. This is a direct, real violation of Rule 262's Owner-facing default-Light-Theme requirement, confirmed by MANAGER-07's own real, line-by-line visual audit of the file completed this same turn.",
+      "evaluation": "Real, substantial UI gap — not a small fix. The file has no existing color-token abstraction; every one of its ~49 real components hardcodes its own hex values inline. A real light-theme conversion needs: (1) a real, defined light color-token set (background/surface/border/text/accent/status) satisfying Rule 262's contrast/distinct-buttons/no-overlap requirements, (2) a scoped build order (the shell/chrome components — TopBar/ActivityBar/LeftPanel/TabStrip/EditorToolbar/StatusBar — define the page's first impression and are the smallest real, coherent first slice, per this session's established 'small slice, verify, then expand' pattern), (3) the real new Rule 262 workflow itself — local test, real build, real deploy, real Owner visual confirmation — before any part of this may be declared done. Not yet dispatched; awaiting Owner confirmation this is the right next priority and scope before MANAGER-07 commits agent time to a project of this size.",
+      "status": "TRACKED",
+      "task_id": null,
+      "escalated_to_owner": true
     }
   ],
   "summary": {

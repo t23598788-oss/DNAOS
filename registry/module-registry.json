@@ -12964,30 +12964,30 @@
     "scripts/worker-02-acceptance-test.ts": {
       "owner": "scripts",
       "layer": "scripts",
-      "purpose": "[Auto-detected] scripts/worker-02-acceptance-test.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] scripts/worker-02-acceptance-test.ts",
+      "purpose": "Real, live acceptance suite for Worker #2 (UI_WORKER) — same real orchestrator as Worker #1, proving UI-specific scope limits (one spec file read, one route file write, infra/deploy tools denied).",
+      "purpose_th": "ชุดทดสอบจริงสำหรับ Worker คนที่ 2 (ผู้สร้าง UI) ใช้ระบบสั่งงานจริงเดียวกับ Worker คนที่ 1 พิสูจน์ขอบเขตเฉพาะงาน UI",
       "exports": [
         "Page"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "scripts/worker-01-reference-lock-test.ts": {
       "owner": "scripts",
       "layer": "scripts",
-      "purpose": "[Auto-detected] scripts/worker-01-reference-lock-test.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] scripts/worker-01-reference-lock-test.ts",
+      "purpose": "Real, structural fingerprint test locking Worker #1's proven Job Contract shape and scope-enforcement code — fails loudly on any silent drift, without re-spending real money re-running the live suite.",
+      "purpose_th": "ชุดทดสอบจริงล็อกรูปแบบสัญญางานและโค้ดบังคับขอบเขตของ Worker คนที่ 1 ที่พิสูจน์แล้ว จะแจ้งทันทีถ้ามีการเปลี่ยนแปลงแอบแฝง โดยไม่ต้องเสียเงินจริงซ้ำ",
       "exports": [
         "validateOperationScope"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "scripts/worker-01-acceptance-test.ts": {
       "owner": "scripts",
       "layer": "scripts",
-      "purpose": "[Auto-detected] scripts/worker-01-acceptance-test.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] scripts/worker-01-acceptance-test.ts",
+      "purpose": "Real, live acceptance suite proving Worker #1's real scope enforcement (read/write scope limits, forbidden tools, minimum-context delivery) against the actually-running orchestrator, never mocked.",
+      "purpose_th": "ชุดทดสอบจริงพิสูจน์ว่าขอบเขตการทำงานของ Worker คนที่ 1 ถูกบังคับใช้จริง (อ่าน/เขียนเฉพาะที่กำหนด, เครื่องมือต้องห้าม) กับระบบที่ทำงานจริง",
       "exports": [],
-      "status": "unregistered"
+      "status": "active"
     },
     "scripts/data-boundary-test.ts": {
       "owner": "qa",
@@ -13026,12 +13026,12 @@
     "app/worker02-preview/page.tsx": {
       "owner": "app",
       "layer": "app",
-      "purpose": "[Auto-detected] app/worker02-preview/page.tsx",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] app/worker02-preview/page.tsx",
+      "purpose": "Real, minimal static page proving Worker #2 (UI_WORKER)'s real acceptance criteria — genuinely long, visible body text, no other purpose.",
+      "purpose_th": "หน้าเว็บทดสอบขั้นต่ำจริง ใช้พิสูจน์เกณฑ์การยอมรับของ Worker #2 (ผู้สร้าง UI) เท่านั้น",
       "exports": [
         "Page"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "app/admin/system/page 2.tsx": {
       "owner": "app",
@@ -13085,18 +13085,18 @@
     "components/workspace/CapabilityMapSection.tsx": {
       "owner": "components",
       "layer": "components",
-      "purpose": "[Auto-detected] components/workspace/CapabilityMapSection.tsx",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] components/workspace/CapabilityMapSection.tsx",
+      "purpose": "Real client component rendering the Capability Map (internal DNA OS capability groups + real external connections) on the home workspace page, fetching from the real capability-map API.",
+      "purpose_th": "ส่วนแสดงแผนที่ความสามารถของระบบบนหน้าแรก ทั้งความสามารถภายในและการเชื่อมต่อภายนอกจริง ดึงข้อมูลจาก API จริง",
       "exports": [
         "CapabilityMapSection"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "engines/line-profile/freshness.ts": {
       "owner": "engines",
       "layer": "engines",
-      "purpose": "[Auto-detected] engines/line-profile/freshness.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] engines/line-profile/freshness.ts",
+      "purpose": "Shared, single-source-of-truth LINE profile staleness definition — a real, display-only overlay computed from profile_source + elapsed time, mirrored (not duplicated in logic) against the LINE webhook Edge Function's own TTL.",
+      "purpose_th": "ตัวกำหนดว่าข้อมูลโปรไฟล์ LINE เก่าเกินไปหรือยังจุดเดียวที่ใช้ร่วมกันทุกหน้า Admin เป็นการคำนวณแสดงผลเท่านั้น ไม่ใช่ค่าที่เก็บจริง",
       "exports": [
         "LINE_PROFILE_TTL_MS",
         "ProfileFreshness",
@@ -13104,37 +13104,37 @@
         "effectiveProfileFreshness",
         "isProfileStale"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "supabase/functions/line-profile-refresh-worker/index.ts": {
       "owner": "supabase",
       "layer": "supabase",
-      "purpose": "[Auto-detected] supabase/functions/line-profile-refresh-worker/index.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] supabase/functions/line-profile-refresh-worker/index.ts",
+      "purpose": "Real Edge Function draining the LINE profile refresh queue — invoked fire-and-forget after enqueue and via a 5-minute cron safety net, writing real fetched profile data and bumping real version/history/event records.",
+      "purpose_th": "Edge Function จริงที่ดึงคิวรีเฟรชโปรไฟล์ LINE ทำงานทันทีหลังเข้าคิวและมีตัวสำรองทุก 5 นาที บันทึกข้อมูลโปรไฟล์จริงพร้อมประวัติ",
       "exports": [],
-      "status": "unregistered"
+      "status": "active"
     },
     "supabase/functions/line-webhook-v2/engines/profile-refresh.ts": {
       "owner": "supabase",
       "layer": "supabase",
-      "purpose": "[Auto-detected] supabase/functions/line-webhook-v2/engines/profile-refresh.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] supabase/functions/line-webhook-v2/engines/profile-refresh.ts",
+      "purpose": "Real, single decision point for whether a LINE contact's cached identity snapshot is fresh enough to serve or needs refetching — called once per inbound event, never from a page render.",
+      "purpose_th": "จุดตัดสินใจจริงเพียงจุดเดียวว่าข้อมูลตัวตนผู้ติดต่อ LINE ที่แคชไว้ยังใหม่พอหรือต้องดึงใหม่ ถูกเรียกครั้งเดียวต่อ event ไม่ใช่ตอนเปิดหน้าจอ",
       "exports": [
         "LineProfileSnapshot",
         "ProfileSource",
         "ensureFreshLineProfile"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "app/api/admin/capability-map/route.ts": {
       "owner": "app",
       "layer": "app",
-      "purpose": "[Auto-detected] app/api/admin/capability-map/route.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] app/api/admin/capability-map/route.ts",
+      "purpose": "Real GET route for the Capability Map — internal groups from registry/portals.json's real docs, external groups reusing the same real Connector Catalog the Connector Console uses, no invented taxonomy.",
+      "purpose_th": "API จริงสำหรับแผนที่ความสามารถของระบบ กลุ่มภายในมาจากเอกสารจริง กลุ่มภายนอกใช้แคตตาล็อกตัวเชื่อมต่อเดียวกับหน้า Connectors ไม่สร้างหมวดหมู่ขึ้นเอง",
       "exports": [
         "GET"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "app/admin/connectors/_lib/types.ts": {
       "owner": "app",
@@ -13154,32 +13154,32 @@
     "app/admin/connectors/_components/StatusFooter.tsx": {
       "owner": "app",
       "layer": "app",
-      "purpose": "[Auto-detected] app/admin/connectors/_components/StatusFooter.tsx",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] app/admin/connectors/_components/StatusFooter.tsx",
+      "purpose": "Real status pill footer for a selected connector — renders real connected/enabled state as colored pills, never fabricated.",
+      "purpose_th": "แถบสถานะท้ายตัวเชื่อมต่อ แสดงสถานะจริง (เชื่อมต่อ/เปิดใช้งาน) เป็นป้ายสี ไม่มีการมโนสถานะ",
       "exports": [
         "StatusFooter"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "app/admin/connectors/_components/ConnectorLeftList.tsx": {
       "owner": "app",
       "layer": "app",
-      "purpose": "[Auto-detected] app/admin/connectors/_components/ConnectorLeftList.tsx",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] app/admin/connectors/_components/ConnectorLeftList.tsx",
+      "purpose": "Real left-hand connector list for /admin/connectors — groups the real Connector Catalog by family (AI/GitHub/Vercel/Generic/Other) for selection.",
+      "purpose_th": "รายการตัวเชื่อมต่อด้านซ้ายในหน้า /admin/connectors จัดกลุ่มตามประเภทจริงเพื่อให้เลือกดูรายละเอียด",
       "exports": [
         "ConnectorLeftList"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "app/admin/connectors/_components/ConnectorCenterPanel.tsx": {
       "owner": "app",
       "layer": "app",
-      "purpose": "[Auto-detected] app/admin/connectors/_components/ConnectorCenterPanel.tsx",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] app/admin/connectors/_components/ConnectorCenterPanel.tsx",
+      "purpose": "Real Connector detail/edit panel for the /admin/connectors page — renders auth-type-specific fields (login/oauth/api_key/token/uri/mcp/webhook) and drives Connect/Test/Enable actions against real API routes.",
+      "purpose_th": "แผงรายละเอียด/แก้ไขตัวเชื่อมต่อจริงในหน้า /admin/connectors แสดงช่องกรอกตามประเภทการยืนยันตัวตนจริง และสั่งงานเชื่อมต่อ/ทดสอบ/เปิดใช้งานผ่าน API จริง",
       "exports": [
         "ConnectorCenterPanel"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "app/api/admin/connectors/catalog/route.ts": {
       "owner": "app",
@@ -13223,45 +13223,45 @@
     "app/admin/connectors/_components/console/index.tsx": {
       "owner": "app",
       "layer": "app",
-      "purpose": "[Auto-detected] app/admin/connectors/_components/console/index.tsx",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] app/admin/connectors/_components/console/index.tsx",
+      "purpose": "Real Connector Console dispatcher — picks the right execution console (AiWorkerConsole/GithubConsole/VercelConsole/GenericApiConsole/OtherConsole) per selected entry; explicitly never shows a fake result.",
+      "purpose_th": "ตัวเลือกคอนโซลจริงตามประเภทตัวเชื่อมต่อที่เลือก ทุกการทำงานเรียก API จริงเสมอ ไม่มีผลลัพธ์ปลอม",
       "exports": [
         "ConnectorConsole"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "app/admin/connectors/_components/console/ProviderConsoles.tsx": {
       "owner": "app",
       "layer": "app",
-      "purpose": "[Auto-detected] app/admin/connectors/_components/console/ProviderConsoles.tsx",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] app/admin/connectors/_components/console/ProviderConsoles.tsx",
+      "purpose": "Real, per-provider-family execution consoles (GitHub/Vercel/Generic API/Other) rendering real connector fields and real test actions.",
+      "purpose_th": "คอนโซลทดสอบตามประเภทผู้ให้บริการจริง (GitHub/Vercel/API ทั่วไป/อื่นๆ) แสดงข้อมูลและผลทดสอบจริง",
       "exports": [
         "GenericApiConsole",
         "GithubConsole",
         "OtherConsole",
         "VercelConsole"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "app/admin/connectors/_components/console/AiWorkerConsole.tsx": {
       "owner": "app",
       "layer": "app",
-      "purpose": "[Auto-detected] app/admin/connectors/_components/console/AiWorkerConsole.tsx",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] app/admin/connectors/_components/console/AiWorkerConsole.tsx",
+      "purpose": "Real, live execution console for an AI/Code Worker connector entry — sends a real test prompt and renders the real WorkerResponse (status/model/output/token usage).",
+      "purpose_th": "คอนโซลทดสอบ AI Worker แบบใช้งานจริง ส่งคำถามทดสอบจริงและแสดงผลตอบกลับจริงจาก Worker",
       "exports": [
         "AiWorkerConsole"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "app/api/admin/connectors/ai-console/test/route.ts": {
       "owner": "app",
       "layer": "app",
-      "purpose": "[Auto-detected] app/api/admin/connectors/ai-console/test/route.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] app/api/admin/connectors/ai-console/test/route.ts",
+      "purpose": "Real, read-only AI Worker connectivity test route — calls the exact same WorkerAdapter.execute() codeWorkerRuntime.ts uses internally, with zero write scope, for a real informational-only test.",
+      "purpose_th": "API จริงสำหรับทดสอบการเชื่อมต่อ AI Worker แบบอ่านอย่างเดียว ใช้กลไกเดียวกับตัวจริงที่ใช้สั่งงาน Worker แต่ไม่มีสิทธิ์เขียนไฟล์",
       "exports": [
         "POST"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "scripts/switch-based-orchestrator-test.ts": {
       "owner": "scripts",
@@ -13274,10 +13274,10 @@
     "scripts/register-known-connectors.ts": {
       "owner": "scripts",
       "layer": "scripts",
-      "purpose": "[Auto-detected] scripts/register-known-connectors.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] scripts/register-known-connectors.ts",
+      "purpose": "Real, idempotent registration script for external services that already have a working real credential in .env.local but were never entered into the connectors table — only registers when a real credential is present.",
+      "purpose_th": "สคริปต์ลงทะเบียนตัวเชื่อมต่อจริงสำหรับบริการที่มีกุญแจใช้งานได้อยู่แล้วแต่ยังไม่เคยลงทะเบียน ลงทะเบียนเฉพาะที่มีกุญแจจริงเท่านั้น",
       "exports": [],
-      "status": "unregistered"
+      "status": "active"
     },
     "scripts/manager-question-queue-test.ts": {
       "owner": "scripts",
@@ -13290,18 +13290,18 @@
     "scripts/gap1-submit-handoff.ts": {
       "owner": "scripts",
       "layer": "scripts",
-      "purpose": "[Auto-detected] scripts/gap1-submit-handoff.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] scripts/gap1-submit-handoff.ts",
+      "purpose": "One-time, real GAP-1 handoff script — submits the GAP-1 build itself into FACTORY_CENTRAL_REGISTRY.json via the one real sanctioned writer, per explicit Owner authorization; not a reusable tool.",
+      "purpose_th": "สคริปต์ส่งมอบงาน GAP-1 ครั้งเดียวจริง บันทึกเข้าทะเบียนกลางผ่านตัวเขียนที่ได้รับอนุญาตเท่านั้น ไม่ใช่เครื่องมือใช้ซ้ำ",
       "exports": [],
-      "status": "unregistered"
+      "status": "active"
     },
     "scripts/gap1-evidence-normalization-test.ts": {
       "owner": "scripts",
       "layer": "scripts",
-      "purpose": "[Auto-detected] scripts/gap1-evidence-normalization-test.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] scripts/gap1-evidence-normalization-test.ts",
+      "purpose": "Real, deterministic acceptance test for evidenceCollectorRuntime.ts + normalizationRuntime.ts (GAP-1) — runs against the real modules, using real duplicate/distinct findings from this session's own actual work, never mocked.",
+      "purpose_th": "ชุดทดสอบจริงสำหรับตัวรับและจัดกลุ่มหลักฐาน GAP-1 ใช้ข้อมูลจริงจากงานจริงในเซสชัน ไม่ใช้ข้อมูลจำลอง",
       "exports": [],
-      "status": "unregistered"
+      "status": "active"
     },
     "scripts/execution-hand-test.ts": {
       "owner": "scripts",
@@ -13392,8 +13392,8 @@
     "app/api/admin/ide/_lib/normalizationRuntime.ts": {
       "owner": "app",
       "layer": "app",
-      "purpose": "[Auto-detected] app/api/admin/ide/_lib/normalizationRuntime.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] app/api/admin/ide/_lib/normalizationRuntime.ts",
+      "purpose": "GAP-1 Normalization Runtime (one-time Advisor exception) — takes validated raw observations and produces deduplicated, classified findings for the Factory Central Registry; honestly discloses its real semantic-similarity scope limits.",
+      "purpose_th": "ตัวจัดกลุ่ม/ตัดข้อมูลซ้ำสำหรับข้อสังเกตที่ผ่านการตรวจสอบแล้ว ก่อนเข้าสู่ทะเบียนกลางของโรงงาน เปิดเผยข้อจำกัดจริงของการเทียบความหมายตรงๆ ไม่ปิดบัง",
       "exports": [
         "NormalizedFinding",
         "classify",
@@ -13401,7 +13401,7 @@
         "normalizeAndDedup",
         "normalizeSubject"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "app/api/admin/ide/_lib/managerQuestionRuntime.ts": {
       "owner": "app",
@@ -13823,20 +13823,20 @@
     "scripts/register-tiktok-connector.ts": {
       "owner": "scripts",
       "layer": "scripts",
-      "purpose": "[Auto-detected] scripts/register-tiktok-connector.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] scripts/register-tiktok-connector.ts",
+      "purpose": "Real, idempotent TikTok OAuth connector registration script (one-time Advisor Build exception, TikTok pilot) — only creates a real connector row when real TikTok credentials exist in .env.local; never fabricates a secret.",
+      "purpose_th": "สคริปต์ลงทะเบียนการเชื่อมต่อ TikTok จริง ทำซ้ำได้อย่างปลอดภัย สร้างข้อมูลจริงเฉพาะเมื่อมีกุญแจเชื่อมต่อจริงเท่านั้น",
       "exports": [],
-      "status": "unregistered"
+      "status": "active"
     },
     "app/api/connectors/oauth/refresh/[slug]/route.ts": {
       "owner": "app",
       "layer": "app",
-      "purpose": "[Auto-detected] app/api/connectors/oauth/refresh/[slug]/route.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] app/api/connectors/oauth/refresh/[slug]/route.ts",
+      "purpose": "Real, generic OAuth token-refresh entry route — thin entry point delegating to gateway/connectors.ts's real refreshOAuthConnector(), same pattern as the authorize/callback routes.",
+      "purpose_th": "API จริงสำหรับต่ออายุโทเคน OAuth โดยไม่ต้องยืนยันตัวตนใหม่ทั้งหมด เป็นทางเข้าบางๆ ที่เรียกใช้ตรรกะจริงจากที่เดียว",
       "exports": [
         "POST"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "scripts/autosave-runtime-test.ts": {
       "owner": "scripts",
@@ -13884,10 +13884,10 @@
     "scripts/register-google-maps-connector.ts": {
       "owner": "scripts",
       "layer": "scripts",
-      "purpose": "[Auto-detected] scripts/register-google-maps-connector.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] scripts/register-google-maps-connector.ts",
+      "purpose": "Real, idempotent Google Maps connector registration script (one-time Advisor Build exception) — only creates a real connector row when a real GOOGLE_MAPS_API_KEY exists; never writes a placeholder secret.",
+      "purpose_th": "สคริปต์ลงทะเบียนการเชื่อมต่อ Google Maps จริง ทำซ้ำได้อย่างปลอดภัย สร้างข้อมูลจริงเฉพาะเมื่อมีกุญแจ API จริงเท่านั้น",
       "exports": [],
-      "status": "unregistered"
+      "status": "active"
     },
     "scripts/register-github-oauth-connector.ts": {
       "owner": "scripts",
