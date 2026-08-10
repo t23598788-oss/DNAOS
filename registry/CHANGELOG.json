@@ -2378,5 +2378,18 @@
       "registry/capability-roadmap.json (capability #60: real design complete, 1 Owner decision pending)"
     ],
     "summary": "Closes TASK-065. Real reconciliation design for capability #60 delivered: #56 and #59 confirmed as 2 necessarily-separate real Adapter interface families (event/webhook vs synchronous request/response) that share 1 Registry + 1 Dispatcher rather than merging into 1 interface, using workerRegistry.ts's existing executionMode field as the real switch point. All 8 named targets independently re-verified with real file:line evidence; notably found a 3rd, real, unrelated-in-shape VS Code automation system (plugins/drivers/vscode.ts) worth reusing plumbing from. Confirmed (not guessed) a genuine architecture-ordering conflict between the Owner's #60 diagram and the already-built #59 Execution Planner -- MANAGER-07 escalated this one specific question to the Owner rather than picking unilaterally, since it is a real, materially-different-outcome architecture fork (per this Factory's own escalation criteria), not AI uncertainty."
+  },
+  {
+    "change_id": "DNA-000145",
+    "agent": "Claude",
+    "agent_id": null,
+    "agent_id_note": "Not available to this session — not guessed.",
+    "session_id": null,
+    "date": "2026-08-10",
+    "files": [
+      "registry/capability-roadmap.json (capability #60: Owner ordering decision recorded)",
+      "registry/TASK_QUEUE.json (TASK-066 added)"
+    ],
+    "summary": "Owner confirmed capability #60's Dispatcher should follow the already-built Execution Planner's order (Planner before Resolver) rather than the literally-diagrammed Registry->Resolver->Planner order -- avoiding rework of TASK-064's real, tested component. Resolved via a direct, explicit Owner question since this was a genuine architecture fork with materially different real outcomes, not something MANAGER-07 should decide unilaterally from AI uncertainty. Dispatched TASK-066: a narrow, real Dispatcher extension (export classifyCapability, add an executionMode-keyed routing branch to attemptDispatch() connecting to the real Integration Gateway event bus for async work) -- still deliberately not wiring classifyCapability into any live Owner-facing route, since WORKER_IDENTITIES.json remains at 0/6 real registrants."
   }
 ]
