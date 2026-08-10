@@ -15,7 +15,12 @@ const REGISTRY_PATH = join(ROOT, "registry/module-registry.json");
 
 // ── Types ──────────────────────────────────────────
 
-interface ModuleEntry {
+// Exported (TASK-076 / FCR-026, registry-integrity-gate.ts) — the gate reuses
+// this exact shape via `import type` (erased at compile time, isolatedModules:
+// true in tsconfig.json, so this adds zero runtime coupling and cannot trigger
+// this file's own syncRegistry().catch(...) side effect at the bottom) instead
+// of inventing a second, competing registry-entry schema (Rule 101/103).
+export interface ModuleEntry {
   owner: string;
   layer: string;
   purpose: string;

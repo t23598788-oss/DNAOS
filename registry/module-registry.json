@@ -119,6 +119,7 @@
       "purpose": "Script sync module-registry.json กับ source code จริง",
       "purpose_th": "Script sync module-registry.json กับ source code จริง",
       "exports": [
+        "ModuleEntry",
         "bar",
         "foo"
       ],
@@ -136,7 +137,8 @@
         "ArchImportSite",
         "ArchNode",
         "ArchSymbol",
-        "ArchitectureBook"
+        "ArchitectureBook",
+        "ModuleRegistryEntry"
       ],
       "status": "active",
       "entry_point": true,
@@ -13914,6 +13916,37 @@
       "purpose": "Real structural test (TASK-074) proving the FileEditor overflow/wrap-mode fix — a real >5000-character line does not break page layout, and the required overflow-containment CSS is really present in the source.",
       "purpose_th": "ชุดทดสอบจริงพิสูจน์ว่าการแก้ไขปัญหาบรรทัดยาวล้นจอได้ผลจริง — บรรทัดยาวเกิน 5,000 ตัวอักษรไม่ทำให้หน้าจอพัง และมีโค้ดจำกัดขอบเขตการเลื่อนจริงในไฟล์",
       "exports": [],
+      "status": "active"
+    },
+    "scripts/registry-integrity-gate.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "Real, permanent Source<->Registry<->Git integrity gate (TASK-076/FCR-026) — classifies every module-registry.json entry into VALID/MOVED/DELETED/UNTRACKED/STALE/DUPLICATE/TYPE_MISMATCH/CASE_MISMATCH/UNKNOWN against real, current disk/git state. Currently NOT wired into the live pre-commit hook pending a scope fix (TASK-077).",
+      "purpose_th": "เครื่องมือตรวจสอบความถูกต้องระหว่างไฟล์จริง/ทะเบียน/Git แบบถาวร จำแนกทุกรายการในทะเบียนตามสถานะจริง ยังไม่ต่อเข้าขั้นตอน commit จริงจนกว่าจะแก้ขอบเขตการตรวจให้ถูกต้องก่อน",
+      "exports": [
+        "Classification",
+        "EntryVerdict",
+        "GateContext",
+        "GateOptions",
+        "GateResult",
+        "classifyEntry",
+        "formatReport",
+        "runGate",
+        "validateShape"
+      ],
+      "status": "active"
+    },
+    "scripts/registry-integrity-gate-test.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "Real regression + synthetic acceptance suite (16 cases) for registry-integrity-gate.ts — reproduces both real bugs found this session and covers all 9 required synthetic scenarios (deleted/renamed/moved/untracked/duplicate/wrong-case/wrong-type/written-after-validation/concurrent-modification).",
+      "purpose_th": "ชุดทดสอบจริง 16 ข้อสำหรับเครื่องมือตรวจสอบทะเบียน — จำลองบั๊กจริงที่เจอในเซสชันนี้ และครอบคลุมสถานการณ์จำลองที่กำหนดไว้ทั้ง 9 แบบ",
+      "exports": [
+        "content",
+        "forSimilarity",
+        "ok",
+        "same"
+      ],
       "status": "active"
     }
   },

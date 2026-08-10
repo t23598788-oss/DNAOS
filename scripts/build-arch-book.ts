@@ -309,7 +309,16 @@ function isEntryPoint(filePath: string): boolean {
   return ENTRY_POINT_PATTERNS.some((p) => p.test(filePath));
 }
 
-interface ModuleRegistryEntry {
+// Exported (TASK-076 / FCR-026, registry-integrity-gate.ts) — the gate reuses
+// this exact shape via `import type` (erased at compile time, isolatedModules:
+// true in tsconfig.json, so this adds zero runtime coupling and cannot trigger
+// this file's own buildArchBook().catch(...) side effect at the bottom)
+// instead of inventing a second, competing registry-entry schema (Rule
+// 101/103). This is the broader of the two real registry-entry shapes in
+// this repo (sync-registry.ts's ModuleEntry is the narrower "what the
+// auto-sync writer produces" shape); the gate validates a real entry against
+// both.
+export interface ModuleRegistryEntry {
   exports?: string[];
   status?: string;
   deprecated?: boolean;

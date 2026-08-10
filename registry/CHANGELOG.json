@@ -2667,5 +2667,18 @@
       "registry/FACTORY_CENTRAL_REGISTRY.json (FCR-026 added)"
     ],
     "summary": "Owner ordered a permanent, systemic fix following MANAGER-07's own discovery of 2 real registry integrity bugs during FCR-025 Round 2 -- not a patch, a durable pipeline gate. Registered FCR-026 (the real pipeline gap: no single hard-blocking Source<->Registry<->Git reconciliation step exists today) and dispatched TASK-076: a 4-phase build (root-gap investigation first, then the real registry-integrity-gate tool with 9-state classification, then wiring it into the real pre-commit pipeline ahead of governance/commit/push, then a real regression + 9-scenario synthetic test suite). Explicit extra caution required: this touches the one pre-commit hook every future commit (this session's and the concurrent session's) depends on."
+  },
+  {
+    "change_id": "DNA-000167",
+    "agent": "Claude",
+    "agent_id": null,
+    "agent_id_note": "Not available to this session — not guessed.",
+    "session_id": null,
+    "date": "2026-08-11",
+    "files": [
+      "registry/TASK_QUEUE.json (TASK-076 marked blocked; TASK-077 added)",
+      "registry/FACTORY_CENTRAL_REGISTRY.json (FCR-026 updated)"
+    ],
+    "summary": "MANAGER-07's independent verification of TASK-076 (registry-integrity-gate) found a severe, real gap the CODE_WORKER's own isolated-worktree tests structurally could not surface: running the gate against the REAL, shared, multi-session working tree (not a clean test worktree) blocks with 26 real, legitimate, pre-existing untracked files belonging to concurrent work, unrelated to any specific commit. Activating this as originally delivered would have halted all future commits in this repo. The gate/test code itself is otherwise real, sound, and well-reasoned -- kept as a real foundation, not discarded. The live pre-commit-check.sh wiring was correctly NOT committed. Dispatched TASK-077 to add commit-relevance scoping (hard-block only what's actually part of the commit; report-only for pre-existing, unrelated registry noise) before this can safely go live -- exactly the kind of catch this session's independent-verification discipline exists for."
   }
 ]
