@@ -2641,5 +2641,18 @@
       "registry/FACTORY_CENTRAL_REGISTRY.json (FCR-025 updated -- Round 1 rejected)"
     ],
     "summary": "Owner opened the real, deployed /admin/ide page and rejected Round 1 (TASK-074) -- real, specific layout bugs remain: browser-level scrollbar, whole-page scroll, BottomPanel covering content, Editor not accounting for BottomPanel height, overflow controlled at the wrong level. This is exactly the discipline Rule 262 exists for -- a pure code-level/structural verification pass (everything MANAGER-07 could check without live-browser access) was insufficient to catch a real flex-containment layout bug, which only surfaced via genuine Owner visual inspection of the live page. Dispatched TASK-075 (Round 2) with the Owner's own precise, complete CSS containment fix spec, including a real structural change to BottomPanel (from position:absolute overlay to a real in-flow flex sibling) that reverses an earlier, deliberate design choice, now explicitly overridden based on real visual evidence."
+  },
+  {
+    "change_id": "DNA-000165",
+    "agent": "Claude",
+    "agent_id": null,
+    "agent_id_note": "Not available to this session — not guessed.",
+    "session_id": null,
+    "date": "2026-08-11",
+    "files": [
+      "registry/TASK_QUEUE.json (TASK-075: not_started -> done, build side)",
+      "registry/FACTORY_CENTRAL_REGISTRY.json (FCR-025 updated)"
+    ],
+    "summary": "Closes TASK-075's build side. Real viewport containment fix for /admin/ide committed (d6e6d2d) and independently verified with a real npm install + real production build (exit 0). Also found and fixed, during that same independent verification, a critical registry data bug (a Python trailing-comma mistake in MANAGER-07's own earlier Guard-13 fix) that may have silently broken Round 1's real Vercel build -- an important, honest self-correction. Pushed to origin/main. Awaiting real Owner visual re-verification, per Rule 262/263 -- not yet declared complete."
   }
 ]
