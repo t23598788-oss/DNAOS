@@ -2404,5 +2404,18 @@
       "registry/capability-roadmap.json (capability #60: Dispatcher unification built)"
     ],
     "summary": "Closes TASK-066. Real Dispatcher unification for capability #60 committed (72ed99f): attemptDispatch() routes ASYNCHRONOUS work items to capability #56's real event-bus publish(), SYNCHRONOUS/HUMAN_IN_LOOP unchanged. MANAGER-07's independent isolated-worktree re-verification caught a real discrepancy the CODE_WORKER's own report didn't — its claimed 12/12 on the new test suite was measured in the shared, contaminated working tree; true isolation scores 8/12, with all 4 gaps confirmed as the same pre-existing, disclosed WORKER_IDENTITIES.json dependency, not new defects. This is exactly the kind of discrepancy this session's isolated-worktree verification discipline exists to catch, consistent with the earlier FCR-022 finding."
+  },
+  {
+    "change_id": "DNA-000147",
+    "agent": "Claude",
+    "agent_id": null,
+    "agent_id_note": "Not available to this session — not guessed.",
+    "session_id": null,
+    "date": "2026-08-10",
+    "files": [
+      "registry/capability-roadmap.json (capability #61 added)",
+      "registry/TASK_QUEUE.json (TASK-067 added)"
+    ],
+    "summary": "Owner ordered MAKE SETTINGS REAL: the /admin/ide Settings tab must become a genuinely wired production settings system (UI -> API -> storage -> runtime consumer -> verification -> reality report), never mock/placeholder, with strict per-item ACTIVE/NOT_WIRED/UNAVAILABLE/ERROR status and 10 explicit correctness rules. MANAGER-07 located the real target before registering: SettingsPanel() in components/ide-shell/IDEWorkspace.tsx, whose own source comment already discloses 'no real config store yet' -- 3 checkboxes (Auto-save/Format on save/Telemetry), all already rendered disabled (technically compliant with the Owner's no-fake-checkbox rule already, but backed by zero real state/API/storage/runtime). Found and will reuse (per the Owner's own explicit no-duplicate-settings-system instruction): DNA OS already has a real, generic, working settings persistence mechanism (the app_configs Supabase table via core/config-loader.ts), currently used only by an unrelated domain (CompanySettings/SettingsDrawer.tsx). Registered as capability #61, staged as TASK-067 (real per-setting audit + reuse-first design) before any build."
   }
 ]
