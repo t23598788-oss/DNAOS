@@ -235,5 +235,16 @@
       "Note (disclosed limitation, not a 5th independent reason): FCR-010 (Advisor's real Evidence Collector/Normalization submission), status=IMPLEMENTED_PENDING_MANAGER_VERIFY, is real and unresolved but outside computeFactoryStatus()'s current open-status filter (TRACKED/ESCALATED/WAITING_MANAGER_DECISION/NEW only) — tracked here manually until the filter is widened",
       "core test-suite pass/fail state not independently re-verified in this default computation (opt-in verifyTestSuites path exists but was not invoked for this snapshot) — MANAGER-07 separately confirmed all 8 real suites passing as of DNA-000114 (12/12, 9/9, 17/17, 21/21, 22/22, 49/49, 37/37, 20/20), recorded here as supplementary evidence, not as part of the automated computation"
     ]
+  },
+  "FACTORY_BASELINE_V1": {
+    "declared_at": "2026-08-10",
+    "declared_by": "MANAGER-07, on explicit Owner command (Factory Stabilization & Baseline Phase)",
+    "commit": "bce2c4cad571a1b6c8b860fb3151ded680d3d838",
+    "commit_note": "Local commit only, not pushed to origin — pushing was never requested and was not assumed.",
+    "scope": "Control Plane only (Owner-confirmed via AskUserQuestion, 2026-08-10) — Rules 250-259 + Rule 255 Factory Gap Loop amendment. Front Office and Worker Team self-registration explicitly out of scope, real disclosed debt.",
+    "manifest": "BASELINE_MANIFEST_V1.md (repo root) — full accounting of files frozen, tests passed, registries involved, known gaps deferred, what's outside baseline.",
+    "tests_passed": "207/207 across 9 real suites, independently re-run by MANAGER-07 before and after the commit — see manifest for the itemized table.",
+    "amendment_policy": "No silent retroactive edits. Any change after this declaration is a new, separate Change (new DNA-numbered CHANGELOG entry, new commit) — never an amendment to this record or the frozen commit.",
+    "deploy_readiness_track": "Explicitly separate and NOT part of this baseline — npm run deploy-gate is real and currently NOT READY (pre-existing/cross-session issues, see manifest), tracked independently per Owner's instruction not to mix the two."
   }
 }

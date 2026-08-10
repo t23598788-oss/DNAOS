@@ -2098,5 +2098,18 @@
       "registry/module-registry.json (plugins/agent/server.ts: entry_point=true)"
     ],
     "summary": "Real fix for scripts/pre-commit-check.sh Guard 0 (UNUSED), a side effect of DNA-000121's own real fix: filling in plugins/agent/server.ts's real purpose_th also flipped its status from 'unregistered' to 'active', which made the arch-book scanner correctly start checking it for real callers — and it genuinely has none, by design: it's a standalone HTTP server, started directly via `npx tsx server.ts` from plugins/agent/start.sh, never imported by other TypeScript code (same real shape as any other server-entry file in this repo). Setting entry_point=true is the accurate, honest classification the guard's own error message names as the correct mechanism for this exact case — not a workaround, since it really is an entry point, unlike engines/documents/types.ts's UNUSED finding earlier today (DNA fix, a genuine dead-code gap) which was fixed by actually wiring the real import instead."
+  },
+  {
+    "change_id": "DNA-000123",
+    "agent": "Claude",
+    "agent_id": null,
+    "agent_id_note": "Not available to this session — not guessed.",
+    "session_id": null,
+    "date": "2026-08-10",
+    "files": [
+      "registry/FACTORY_CENTRAL_REGISTRY.json (FACTORY_BASELINE_V1 declared)",
+      "BASELINE_MANIFEST_V1.md (new, repo root)"
+    ],
+    "summary": "**FACTORY_BASELINE_V1 declared.** Completes the Owner's 5-step Factory Stabilization & Baseline Phase: STEP 1 (Gap Closure — FCR-009/010/011/012 resolved, FCR-005/006/008 consciously deferred with Owner sign-off, 0 lock residue, 0 unapproved paid execution), STEP 2 (Structure Memory — MASTER_EXECUTION_STATE.md + registry/CURRENT_STATE.json regenerated as the real Reference Index), STEP 3 (Baseline Verify — typecheck/9 test suites/registry+lock integrity/deployment-readiness all run, pre-existing vs new regressions clearly separated), STEP 4 (Freeze — real git commit bce2c4cad571a1b6c8b860fb3151ded680d3d838, 79 files, Control-Plane scope only per Owner's explicit 3 prohibitions: no other-session files, no whole working tree, no unverified files; 5 real pre-commit-hook fixes made along the way, all independently verified, none silently bypassed). STEP 5 (Board Readiness) next. Full accounting in BASELINE_MANIFEST_V1.md — file list, test results, registries involved, deferred gaps, and what's explicitly outside this baseline (Front Office, Worker Team, the Advisor session's own work, whole-repo deploy readiness — tracked as its own separate track, never mixed with this baseline per the Owner's explicit instruction)."
   }
 ]
