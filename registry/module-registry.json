@@ -13139,8 +13139,8 @@
     "app/admin/connectors/_lib/types.ts": {
       "owner": "app",
       "layer": "app",
-      "purpose": "[Auto-detected] app/admin/connectors/_lib/types.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] app/admin/connectors/_lib/types.ts",
+      "purpose": "Client-side mirror of catalog.ts's real CatalogEntry shape (manually kept in sync across the client/server route boundary) for the /admin/connectors page and the new /admin/ide Connections rail.",
+      "purpose_th": "สำเนาชนิดข้อมูลจริงของรายการผู้ให้บริการที่ใช้ฝั่งหน้าเว็บ ให้ตรงกับข้อมูลจริงฝั่งเซิร์ฟเวอร์เสมอ",
       "exports": [
         "CatalogEntry",
         "ConnectorFamily",
@@ -13149,7 +13149,7 @@
         "WorkerHealthStatus",
         "healthColor"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "app/admin/connectors/_components/StatusFooter.tsx": {
       "owner": "app",
@@ -13184,31 +13184,31 @@
     "app/api/admin/connectors/catalog/route.ts": {
       "owner": "app",
       "layer": "app",
-      "purpose": "[Auto-detected] app/api/admin/connectors/catalog/route.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] app/api/admin/connectors/catalog/route.ts",
+      "purpose": "Real GET API serving the merged Connector Catalog (ADMIN_TIER auth required) — the one real endpoint both /admin/connectors and the new /admin/ide Connections rail fetch from.",
+      "purpose_th": "API จริงสำหรับดึงรายการผู้ให้บริการภายนอกที่รวมแล้ว ต้องยืนยันตัวตนระดับ Admin เป็นจุดเดียวที่ทั้งหน้า Connectors และแท็บ Connections ใหม่ใน IDE เรียกใช้ร่วมกัน",
       "exports": [
         "GET"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "app/api/admin/connectors/_lib/providerDescriptors.ts": {
       "owner": "app",
       "layer": "app",
-      "purpose": "[Auto-detected] app/api/admin/connectors/_lib/providerDescriptors.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] app/api/admin/connectors/_lib/providerDescriptors.ts",
+      "purpose": "Static, declared-only descriptive facts (name, capabilities, logo, permissions) for known providers — deliberately never contains status/health, which always comes from a real, live source.",
+      "purpose_th": "ข้อมูลอธิบายผู้ให้บริการที่รู้จักแล้ว (ชื่อ, ความสามารถ, โลโก้) เป็นข้อมูลคงที่เท่านั้น ไม่มีสถานะการเชื่อมต่อปนอยู่ สถานะจริงมาจากแหล่งอื่นเสมอ",
       "exports": [
         "AI_WORKER_DESCRIPTORS",
         "KNOWN_PROVIDER_DESCRIPTORS",
         "ProviderDescriptor",
         "describeConnectorSlug"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "app/api/admin/connectors/_lib/catalog.ts": {
       "owner": "app",
       "layer": "app",
-      "purpose": "[Auto-detected] app/api/admin/connectors/_lib/catalog.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] app/api/admin/connectors/_lib/catalog.ts",
+      "purpose": "Real, read-only 3-way join of DB connectors, the AI/Code Worker Adapter Registry, and Integration Gateway adapters into one Connector Catalog — every status/health field is copied verbatim from a real source or a static declared fact, never fabricated.",
+      "purpose_th": "รวมข้อมูลผู้ให้บริการภายนอกจริงจาก 3 แหล่ง (ตัวเชื่อมต่อในฐานข้อมูล, ทะเบียน AI Worker, Integration Gateway) เป็นรายการเดียว ทุกสถานะมาจากของจริงเท่านั้น ไม่มีการมโนสถานะ",
       "exports": [
         "CatalogEntry",
         "ConnectorFamily",
@@ -13218,7 +13218,7 @@
         "groupByFamily",
         "groupByFunction"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "app/admin/connectors/_components/console/index.tsx": {
       "owner": "app",
@@ -13880,6 +13880,30 @@
       "exports": [],
       "status": "active",
       "entry_point": true
+    },
+    "scripts/register-google-maps-connector.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "[Auto-detected] scripts/register-google-maps-connector.ts",
+      "purpose_th": "[ตรวจพบอัตโนมัติ] scripts/register-google-maps-connector.ts",
+      "exports": [],
+      "status": "unregistered"
+    },
+    "scripts/register-github-oauth-connector.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "Real, idempotent GitHub OAuth connector registration script, mirroring the existing register-tiktok-connector.ts pattern — honestly SKIPs (no fake connector row) when GITHUB_OAUTH_CLIENT_ID/SECRET are not configured.",
+      "purpose_th": "สคริปต์ลงทะเบียนการเชื่อมต่อ GitHub จริง ทำซ้ำได้อย่างปลอดภัย จะหยุดทำงานตรงไปตรงมา (ไม่สร้างข้อมูลปลอม) ถ้ายังไม่มีกุญแจเชื่อมต่อจริงตั้งค่าไว้",
+      "exports": [],
+      "status": "active"
+    },
+    "scripts/github-connector-test.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "Real acceptance suite (22 cases) for the GitHub Connections rail (TASK-073) — proves the Owner Command intent recognition, the GitHub-specific test check's honesty (rejects false positives), and the registration script's real, honest SKIP when uncredentialed.",
+      "purpose_th": "ชุดทดสอบจริง 22 ข้อสำหรับส่วนเชื่อมต่อ GitHub ใหม่ — พิสูจน์ว่าคำสั่ง Owner จดจำได้ถูกต้อง การตรวจสอบเฉพาะ GitHub ไม่หลอกผลบวกปลอม และสคริปต์ลงทะเบียนหยุดทำงานอย่างตรงไปตรงมาเมื่อยังไม่มีกุญแจเชื่อมต่อจริง",
+      "exports": [],
+      "status": "active"
     }
   },
   "excluded": [

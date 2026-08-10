@@ -43,8 +43,16 @@ import { AUTO_SAVE_DEBOUNCE_MS, createAutoSaveScheduler } from "@/app/api/admin/
 import {
   FolderTree, Search as SearchIcon, GitBranch, Activity, Bot, FileText, Settings as SettingsIcon,
   File, Folder, ChevronRight, ChevronDown, ChevronUp, X, XCircle, AlertTriangle, RefreshCw, FolderOpen,
-  FilePlus, FolderPlus, Pencil, FolderInput, Trash2, Copy, RotateCcw, Trash, Lock,
+  FilePlus, FolderPlus, Pencil, FolderInput, Trash2, Copy, RotateCcw, Trash, Lock, Cable,
 } from "lucide-react";
+// TASK-073 (capability #62 STEP 7, GitHub Connections rail, minimal
+// slice) — real, client-safe mirror of app/api/admin/connectors/_lib/
+// catalog.ts's CatalogEntry (server-only file: imports supabaseAdmin
+// etc.) already used by /admin/connectors's own client page for the
+// exact same "one side is a Next.js API route, the other a 'use client'
+// page" reason documented in that file. Reused here rather than
+// duplicated a second time.
+import type { CatalogEntry } from "@/app/admin/connectors/_lib/types";
 
 // ---- Real workspace API client (app/api/admin/ide/*) ----
 type IdeErrorCode =
@@ -294,7 +302,7 @@ async function fetchIde<T>(url: string, signal?: AbortSignal): Promise<T> {
   return res.json().catch(() => ({ ok: false, code: "INTERNAL_ERROR", message: "invalid response" })) as Promise<T>;
 }
 
-type ToolId = "explorer" | "search" | "source-control" | "trash" | "runtime" | "ai" | "documents" | "settings";
+type ToolId = "explorer" | "search" | "source-control" | "trash" | "runtime" | "ai" | "documents" | "settings" | "connections";
 
 const TOOLS: { id: ToolId; label: string; icon: React.ElementType }[] = [
   { id: "explorer", label: "Explorer", icon: FolderTree },
@@ -305,6 +313,11 @@ const TOOLS: { id: ToolId; label: string; icon: React.ElementType }[] = [
   { id: "ai", label: "AI", icon: Bot },
   { id: "documents", label: "Documents", icon: FileText },
   { id: "settings", label: "Settings", icon: SettingsIcon },
+  // TASK-073 (capability #62 STEP 7) — real Connections rail: renders the
+  // SAME real Provider Catalog /admin/connectors already uses (see
+  // ConnectionsPanel below). Purely additive — every tool above is
+  // untouched.
+  { id: "connections", label: "Connections", icon: Cable },
 ];
 
 type BottomTabId = "problems" | "runtime-events" | "execution" | "queue" | "inspection" | "artifacts" | "ui-inspection" | "code-review" | "test" | "build" | "release" | "ai-execution" | "factory-completion" | "operations" | "factory-workspace" | "context";
@@ -1142,7 +1155,7 @@ export default function IDEWorkspace() {
         }
       `}</style>
       <TopBar onRefresh={refresh} lastRefreshedAt={lastRefreshedAt} workspaceStatus={workspaceStatus} realBranch={realBranch} />
-      <CommandSurfaceBar />
+      <CommandSurfaceBar onOpenConnections={() => { setActiveTool("connections"); setLeftCollapsed(false); }} />
       <div style={{ flex: 1, display: "flex", minHeight: 0, minWidth: 0 }}>
         <ActivityBar activeTool={activeTool} onSelect={setActiveTool} />
         {!leftCollapsed && (
@@ -1356,7 +1369,7 @@ function orchestrationSteps(o: AutoOrchestrationResultClient): { label: string; 
   ];
 }
 
-function CommandSurfaceBar() {
+function CommandSurfaceBar({ onOpenConnections }: { onOpenConnections: () => void }) {
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<CommandResultClient | null>(null);
@@ -1375,13 +1388,21 @@ function CommandSurfaceBar() {
     try {
       const body = await postIde<OwnerCommandResponse>("/api/admin/ide/owner-command", { text: t });
       if (!body.ok) { setErrorMsg(`${body.code} — ${body.message}`); setOpen(true); }
-      else if (body.mode === "FAST_PATH") { setResult(body.result); setOpen(true); }
+      else if (body.mode === "FAST_PATH") {
+        setResult(body.result);
+        setOpen(true);
+        // TASK-073 — CONNECT_PROVIDER is a real, client-side navigation
+        // hint (commandSurfaceRuntime.ts never calls an API for it): open
+        // the real Connections rail so the Owner lands on the real,
+        // existing Connect/Test actions instead of just reading text.
+        if (body.result.intent === "CONNECT_PROVIDER") onOpenConnections();
+      }
       else { setOrchestration(body.orchestration); setOpen(true); }
       setText("");
     } finally {
       setBusy(false);
     }
-  }, [text, busy]);
+  }, [text, busy, onOpenConnections]);
 
   const approveAndWrite = useCallback(async () => {
     if (!orchestration?.proposal) return;
@@ -1569,6 +1590,7 @@ function LeftPanel({
         {tool === "ai" && <AiPanel />}
         {tool === "documents" && <DocumentsPanel onOpenTab={onOpenFileTab} />}
         {tool === "settings" && <SettingsPanel onAutoSaveChanged={onAutoSaveChanged} />}
+        {tool === "connections" && <ConnectionsPanel />}
       </div>
     </div>
   );
@@ -2287,6 +2309,120 @@ function SettingsPanel({ onAutoSaveChanged }: { onAutoSaveChanged: (enabled: boo
     </div>
   );
 }
+
+// ---- Connections (owner, 2026-08-10, TASK-073 — capability #62 STEP 7,
+// GitHub Connections rail, minimal slice). Real, additive-only rail:
+// fetches the SAME real, existing Provider Catalog /admin/connectors
+// already renders — GET /api/admin/connectors/catalog
+// (app/api/admin/connectors/_lib/catalog.ts's real 3-way join: DB
+// connectors table + AI/Code Worker Adapter Registry + Integration
+// Gateway adapters). No new registry, no new connector engine, no second
+// OAuth flow — Connect links straight to the existing, real
+// /api/connectors/oauth/authorize/[slug] route (same href pattern
+// app/admin/connectors/_components/ConnectorCenterPanel.tsx already
+// uses), and Test posts to the existing, real
+// /api/admin/connectors/[id]/test route. Every field rendered
+// (logo/product/healthStatus/capabilities/lastError) is copied verbatim
+// from the real CatalogEntry — nothing here fabricates a "connected"
+// state. ----
+type ConnectionsCatalogResponse = { catalog: CatalogEntry[] } | { error: string };
+
+function connectionHealthDotColor(h: CatalogEntry["healthStatus"]): string {
+  switch (h) {
+    case "HEALTHY": return "#4ec9b0";
+    case "DEGRADED": return "#e0a860";
+    case "UNAVAILABLE": return "#f37c7c";
+    default: return "#6a6a6a"; // NOT_CONFIGURED / UNKNOWN — never rendered as if healthy
+  }
+}
+
+function connectionKindNote(entry: CatalogEntry): string | null {
+  if (entry.kind === "ai_worker") return "AI/Code Worker Adapter — configured via env/config, not this form.";
+  if (entry.kind === "gateway_adapter") return "Integration Gateway adapter (webhook observe) — see /admin/connectors Console for live channel status.";
+  return null;
+}
+
+function ConnectionsPanel() {
+  const [catalog, setCatalog] = useState<CatalogEntry[] | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [testingId, setTestingId] = useState<string | null>(null);
+  const [nonce, setNonce] = useState(0);
+
+  const load = useCallback(async () => {
+    const body = await fetchIde<ConnectionsCatalogResponse>("/api/admin/connectors/catalog");
+    if ("catalog" in body) { setCatalog(body.catalog); setError(null); }
+    else setError(body.error);
+  }, []);
+
+  useEffect(() => { void load(); }, [load, nonce]);
+
+  const runTest = useCallback(async (entry: CatalogEntry) => {
+    if (!entry.connectorId) return;
+    setTestingId(entry.id);
+    try {
+      await fetch(`/api/admin/connectors/${entry.connectorId}/test`, { method: "POST" });
+      setNonce((n) => n + 1);
+    } finally {
+      setTestingId(null);
+    }
+  }, []);
+
+  if (error) return <SidebarMessage text={`Error: ${error}`} />;
+  if (!catalog) return <SidebarMessage text="Loading…" />;
+  if (catalog.length === 0) return <SidebarMessage text="No real providers in the Catalog yet." />;
+
+  return (
+    <div style={{ padding: 8, display: "flex", flexDirection: "column", gap: 8 }}>
+      {catalog.map((entry) => {
+        const canConnect = entry.kind === "db_connector" && entry.connectionType === "oauth" && entry.runtimeStatus !== "connected";
+        const canTest = entry.kind === "db_connector" && entry.connectionType !== "webhook";
+        const note = connectionKindNote(entry);
+        return (
+          <div key={entry.id} style={{ border: "1px solid #3a3a3a", borderRadius: 5, padding: 8, background: "#2d2d2d" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              {entry.logo && <img src={entry.logo} alt="" style={{ width: 16, height: 16, objectFit: "contain", flexShrink: 0 }} />}
+              <span style={{ fontSize: 12, fontWeight: 600, color: "#ddd" }}>{entry.product}</span>
+              <span
+                title={`healthStatus: ${entry.healthStatus}`}
+                style={{ marginLeft: "auto", width: 7, height: 7, borderRadius: "50%", background: connectionHealthDotColor(entry.healthStatus), flexShrink: 0 }}
+              />
+            </div>
+            <div style={{ fontSize: 10.5, color: "#858585", marginTop: 2 }}>{entry.role} · {entry.healthStatus}</div>
+            {entry.capabilities.length > 0 && (
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 3, marginTop: 5 }}>
+                {entry.capabilities.map((c) => (
+                  <span key={c} style={{ fontSize: 9.5, padding: "1px 5px", borderRadius: 8, background: "#3a3a3a", color: "#9cdcfe" }}>{c}</span>
+                ))}
+              </div>
+            )}
+            {entry.lastError && <div style={{ fontSize: 10, color: "#f37c7c", marginTop: 4 }}>{entry.lastError}</div>}
+            {note && <div style={{ fontSize: 10, color: "#6a6a6a", marginTop: 4 }}>{note}</div>}
+            {(canConnect || canTest) && (
+              <div style={{ display: "flex", gap: 5, marginTop: 6 }}>
+                {canConnect && (
+                  <a
+                    href={`/api/connectors/oauth/authorize/${entry.slug}`}
+                    style={{ fontSize: 10.5, padding: "3px 8px", borderRadius: 4, border: "1px solid #5b3fa8", background: "#5b3fa8", color: "#fff", textDecoration: "none" }}
+                  >
+                    Connect
+                  </a>
+                )}
+                {canTest && (
+                  <button onClick={() => void runTest(entry)} disabled={testingId === entry.id} style={{ ...connectionsBtnStyle, opacity: testingId === entry.id ? 0.5 : 1 }}>
+                    {testingId === entry.id ? "…" : "Test"}
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+const connectionsBtnStyle: React.CSSProperties = {
+  fontSize: 10.5, padding: "3px 8px", borderRadius: 4, border: "1px solid #3a3a3a", background: "#2d2d2d", color: "#ccc", cursor: "pointer",
+};
 
 function SidebarItem({ label, onClick }: { label: string; onClick: () => void }) {
   return (

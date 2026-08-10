@@ -24,6 +24,7 @@
     "status": "bash scripts/dashboard.sh && bash scripts/intelligence.sh && bash scripts/existence.sh",
     "hello": "npx tsx scripts/hello.ts",
     "connectors:register-known": "npx tsx scripts/register-known-connectors.ts",
+    "connectors:register-github": "npx tsx scripts/register-github-oauth-connector.ts",
     "sync-demand": "npx tsx scripts/sync-owner-requests.ts",
     "sync-infra-deps": "npx tsx scripts/sync-infrastructure-dependencies.ts",
     "deploy-gate": "npx tsx scripts/deploy-gate.ts",
@@ -118,7 +119,8 @@
     "execution-planner:test": "npx tsx scripts/execution-planner-test.ts",
     "dispatcher-execution-mode:test": "npx tsx scripts/dispatcher-execution-mode-test.ts",
     "settings-real-wiring:test": "npx tsx scripts/settings-real-wiring-test.ts",
-    "autosave-runtime:test": "npx tsx scripts/autosave-runtime-test.ts"
+    "autosave-runtime:test": "npx tsx scripts/autosave-runtime-test.ts",
+    "github-connector:test": "npx tsx scripts/github-connector-test.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.115.0",

@@ -51,6 +51,39 @@ async function testLogin(config: Record<string, unknown>, secret: Record<string,
   return { ok: true };
 }
 
+/**
+ * GitHub-specific real check (TASK-073, capability #62 STEP 7) — the one
+ * new outbound execution call this task adds. GitHub's own REST docs
+ * recommend `Accept: application/vnd.github+json` +
+ * `X-GitHub-Api-Version` on every call, and a real GET /user response
+ * always includes a "login" field — checking for it (rather than
+ * trusting any HTTP 200) is what makes this a real GitHub-shaped check
+ * instead of a generic ping that happens to reuse GitHub's URL: a
+ * misconfigured test_url that still returns 200 with an unrelated body
+ * must NOT be reported as ok:true.
+ */
+async function testGithubUser(testUrl: string, accessToken: string): Promise<TestResult> {
+  const res = await timedFetch(testUrl, {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      Accept: "application/vnd.github+json",
+      "X-GitHub-Api-Version": "2022-11-28",
+    },
+  });
+  if (!res.ok) return { ok: false, error: `GitHub API (${testUrl}) ตอบกลับ HTTP ${res.status}` };
+  let body: unknown;
+  try {
+    body = await res.json();
+  } catch {
+    return { ok: false, error: "GitHub API ไม่ตอบกลับเป็น JSON ที่ถูกต้อง" };
+  }
+  const login = body && typeof body === "object" ? (body as Record<string, unknown>).login : undefined;
+  if (typeof login !== "string" || !login) {
+    return { ok: false, error: 'GitHub API ตอบกลับ 200 แต่ body ไม่ใช่ user object จริง (ไม่มี field "login") — ปฏิเสธเพื่อกันผลบวกลวง' };
+  }
+  return { ok: true };
+}
+
 async function testOAuth(config: Record<string, unknown>, secret: Record<string, unknown>): Promise<TestResult> {
   const accessToken = secret.access_token as string | undefined;
   if (!accessToken) {
@@ -62,6 +95,14 @@ async function testOAuth(config: Record<string, unknown>, secret: Record<string,
   }
   const testUrl = config.test_url as string | undefined;
   if (!testUrl) return { ok: true };
+
+  // GitHub-specific real check — reuses this SAME [id]/test route
+  // pattern, never a new/parallel test mechanism (registered by
+  // scripts/register-github-oauth-connector.ts's config.test_url, exactly
+  // like every other provider's test_url handled generically below).
+  if (testUrl.includes("api.github.com")) {
+    return await testGithubUser(testUrl, accessToken);
+  }
 
   const res = await timedFetch(testUrl, {
     headers: { Authorization: `Bearer ${accessToken}` },

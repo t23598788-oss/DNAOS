@@ -41,6 +41,7 @@ export type CommandIntentType =
   | "MODIFY_MODULE_HINT"
   | "OPEN_FILE_HINT"
   | "SEARCH_REPOSITORY"
+  | "CONNECT_PROVIDER"
   | "UNRECOGNIZED";
 
 export type CommandInvocationStatus = "RESOLVED" | "DISPATCHED" | "BLOCKED" | "OWNER_ACTION_REQUIRED" | "UNRECOGNIZED" | "FAILED";
@@ -54,6 +55,11 @@ export interface CommandInvocationResult {
   stepGate: StepGateResult | null;
   dispatchedJob: { jobId: string; type: string; status: string } | null;
   hintTargetPath: string | null;
+  /** Real, literal provider name extracted from a CONNECT_PROVIDER match
+   * (e.g. "github") — TASK-073. Null for every other intent. Never
+   * inferred/guessed — only ever one of the real, explicit
+   * KNOWN_CONNECT_PROVIDERS entries this pattern table recognizes. */
+  providerHint: string | null;
   evidenceArtifactId: string | null;
   createdAt: string;
   /** Real, live Worker answer for a SEARCH_REPOSITORY intent — the
@@ -79,6 +85,22 @@ const MODIFY_MODULE_PATTERN = /(?:แก้\s*module|แก้ไข\s*module|mo
 // file path. Checked AFTER ARCHITECTURE_PATTERN/PROBLEMS_PATTERN above so
 // "ตรวจ architecture"/"ตรวจปัญหา" are never shadowed by this broader match.
 const SEARCH_PATTERN = /^(?:หา|ค้นหา|search\b|find\b)|ตรวจว่า/i;
+// TASK-073 (capability #62 STEP 7, GitHub minimal slice) — real, explicit
+// provider allow-list, same "small, explicit, deterministic pattern"
+// philosophy as every other entry in this table (never a freeform NLP
+// guess at an arbitrary noun after "เปิด"/"open"). GitHub is the only
+// provider actually wired end-to-end today (a real OAuth Connector +
+// Connections rail, see components/ide-shell/IDEWorkspace.tsx); the other
+// names are listed because catalog.ts's Provider Catalog already knows
+// about them (Vercel/Supabase gateway adapters, TikTok's real-but-
+// uncredentialed register script) — recognizing the phrase costs nothing,
+// and the Connections panel honestly shows each provider's real, current
+// connection state regardless of which one the Owner typed.
+const KNOWN_CONNECT_PROVIDERS = ["github", "vercel", "supabase", "tiktok", "line"];
+const CONNECT_PROVIDER_PATTERN = new RegExp(
+  `(?:เชื่อม(?:ต่อ)?|เปิด|connect(?:\\s+to)?|open)\\s+(${KNOWN_CONNECT_PROVIDERS.join("|")})\\b`,
+  "i"
+);
 
 const TEST_NAME_TO_COMMAND_ID: Record<string, string> = {
   ide: "ide.test", factory: "factory.test", governance: "governance.test",
@@ -102,7 +124,7 @@ function interpretDispatchedJob(job: Job, commandId: string): { status: CommandI
   return { status: "DISPATCHED", detail: `Dispatched real "${commandId}" via the existing Execution Runtime — see Execution/Queue tab for live output.` };
 }
 
-function resolveIntent(rawText: string): { intent: CommandIntentType; step?: string; filePath?: string; testName?: string; moduleHint?: string } {
+function resolveIntent(rawText: string): { intent: CommandIntentType; step?: string; filePath?: string; testName?: string; moduleHint?: string; providerHint?: string } {
   const text = rawText.trim();
   const stepMatch = text.match(STEP_PATTERN);
   if (stepMatch) return { intent: "STEP_GATE_CHECK", step: stepMatch[1] };
@@ -118,6 +140,9 @@ function resolveIntent(rawText: string): { intent: CommandIntentType; step?: str
 
   const modifyMatch = text.match(MODIFY_MODULE_PATTERN);
   if (modifyMatch) return { intent: "MODIFY_MODULE_HINT", moduleHint: modifyMatch[1].trim() };
+
+  const connectMatch = text.match(CONNECT_PROVIDER_PATTERN);
+  if (connectMatch) return { intent: "CONNECT_PROVIDER", providerHint: connectMatch[1].toLowerCase() };
 
   if (SEARCH_PATTERN.test(text)) return { intent: "SEARCH_REPOSITORY" };
 
@@ -138,6 +163,7 @@ export async function handleOwnerCommand(rawText: string, actor: string, ownerId
   let stepGate: StepGateResult | null = null;
   let dispatchedJob: CommandInvocationResult["dispatchedJob"] = null;
   let hintTargetPath: string | null = null;
+  let providerHint: string | null = null;
   let workerAnswer: CommandInvocationResult["workerAnswer"] = null;
 
   switch (resolved.intent) {
@@ -260,16 +286,30 @@ export async function handleOwnerCommand(rawText: string, actor: string, ownerId
       detail = `Modifying "${resolved.moduleHint}" must go through the real Factory Workspace → Context Plan → Worker Contract → Change Set → Owner Diff Approval flow (Step 13.6, now Queue-wired) — switch to the Factory Workspace tab to start that real, governed flow. This Command Surface never edits files directly.`;
       break;
     }
+    case "CONNECT_PROVIDER": {
+      // Real, client-side navigation hint only — same shape as
+      // OPEN_FILE_HINT above. This Command Surface never performs the
+      // OAuth handshake itself (never fetches/redirects server-side); it
+      // just names the real, existing Connections rail
+      // (components/ide-shell/IDEWorkspace.tsx's "connections" tool) and
+      // the real, existing OAuth authorize route the panel's own Connect
+      // button already links to (app/api/connectors/oauth/authorize/
+      // [slug]/route.ts) — no second/parallel OAuth flow.
+      providerHint = resolved.providerHint ?? null;
+      status = "OWNER_ACTION_REQUIRED";
+      detail = `Opening the Connections panel for "${providerHint}" — use its real "Connect" button to start the real OAuth flow (/api/connectors/oauth/authorize/${providerHint}). This Command Surface never performs the OAuth handshake itself.`;
+      break;
+    }
     case "UNRECOGNIZED":
     default: {
       status = "UNRECOGNIZED";
-      detail = `Not a recognized command. Recognized patterns: "ทำ Step N", "เปิดไฟล์ X", "ตรวจปัญหาปัจจุบัน", "แก้ module X", "รันทดสอบ [name]", "ตรวจ architecture", "หา.../ค้นหา.../ตรวจว่า... (real repository search)".`;
+      detail = `Not a recognized command. Recognized patterns: "ทำ Step N", "เปิดไฟล์ X", "ตรวจปัญหาปัจจุบัน", "แก้ module X", "รันทดสอบ [name]", "ตรวจ architecture", "หา.../ค้นหา.../ตรวจว่า... (real repository search)", "เชื่อม/เปิด/connect <provider> (open the Connections panel)".`;
       break;
     }
   }
 
   const record: Omit<CommandInvocationResult, "evidenceArtifactId"> = {
-    invocationId, rawText, intent: resolved.intent, status, detail, stepGate, dispatchedJob, hintTargetPath, workerAnswer, createdAt,
+    invocationId, rawText, intent: resolved.intent, status, detail, stepGate, dispatchedJob, hintTargetPath, providerHint, workerAnswer, createdAt,
   };
   const artifact = createOperationsArtifact({
     artifactType: "COMMAND_INVOCATION", content: JSON.stringify({ ...record, currentStepAtInvocation: context?.current_step ?? null }),
