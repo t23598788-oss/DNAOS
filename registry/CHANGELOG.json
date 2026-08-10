@@ -2496,5 +2496,18 @@
       "registry/TASK_QUEUE.json (TASK-071 added)"
     ],
     "summary": "Owner issued a durable policy directive: no capability may be declared ACTIVE/READY/CONNECTED/COMPLETE based on code/tests alone — only genuine Owner-facing operability (see/understand/invoke/run/status/result/evidence/survives-refresh, all 8 real) counts. Recorded as Constitution Rule 261, applying retroactively to this session's own prior declarations, not grandfathered. New rule explicitly blocks registering further new capabilities until the priority set (AI command, File workspace, Search, Save, Test, Build, Worker dispatch, Connections, Runtime status) reaches real OWNER_OPERABLE status. Dispatched TASK-071 (Owner Operability Matrix) in parallel with the already-running TASK-070 (live UI interaction audit of /admin/ide specifically) -- scoped to avoid duplication: TASK-071 covers the broader, registry-driven capability classification across all 9 priority areas, several of which (Worker dispatch, Connections) have zero UI anywhere in the system today, not just outside /admin/ide."
+  },
+  {
+    "change_id": "DNA-000154",
+    "agent": "Claude",
+    "agent_id": null,
+    "agent_id_note": "Not available to this session — not guessed.",
+    "session_id": null,
+    "date": "2026-08-10",
+    "files": [
+      "registry/TASK_QUEUE.json (TASK-071: not_started -> done)",
+      "registry/rule-coverage.json (Rule 261 detection updated)"
+    ],
+    "summary": "Closes TASK-071. Real Owner Operability Matrix delivered, correcting an initial working assumption: most of DNA OS's priority-area capabilities (AI command, File workspace, Search, Save, Test, Build, Connections, Runtime status) are already genuinely OWNER_OPERABLE via real, live, pre-existing infrastructure -- not just backend code with no UI, as might have been assumed given how much of this session's own recent work (Cap #59/#60's newest Dispatcher layer) is confirmed BACKEND_ONLY. Only that newest layer remains genuinely gapped, with the same root cause already known (WORKER_IDENTITIES.json 0/6 registered). Found a real, systemic persistence gap (in-memory-only Map state across most Software Factory backends) cutting across nearly every OWNER_OPERABLE row -- functional but not restart-durable. TASK-070 (live UI interaction audit) still running; a single combined report to the Owner will follow once it completes."
   }
 ]

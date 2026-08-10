@@ -1488,7 +1488,7 @@
       "title": "Owner Operability Is The Only Real Definition Of Done",
       "enforced_by": [],
       "type": "process",
-      "detection": "NOT_IMPLEMENTED — declared policy only as of DNA-000153. Real audit tracked as TASK-071 (Owner Operability Matrix, priority-scoped to AI command/File workspace/Search/Save/Test/Build/Worker dispatch/Connections/Runtime status first)."
+      "detection": "PARTIALLY IMPLEMENTED as of DNA-000154 — TASK-071's real Owner Operability Matrix confirms 7-8 of 9 priority areas already genuinely OWNER_OPERABLE with fresh evidence; Worker dispatch's newest layer (Cap #59 Phase 2/3 + #60) is BACKEND_ONLY, root cause = WORKER_IDENTITIES.json 0/6 registered. A cross-cutting persistence gap (in-memory-only state surviving refresh but not restart) affects Rule 261 point 8 across most areas. TASK-070 (live /admin/ide UI interaction audit) still in progress, will complete the full picture."
     }
   },
   "uncovered_rules": [
