@@ -2391,5 +2391,18 @@
       "registry/TASK_QUEUE.json (TASK-066 added)"
     ],
     "summary": "Owner confirmed capability #60's Dispatcher should follow the already-built Execution Planner's order (Planner before Resolver) rather than the literally-diagrammed Registry->Resolver->Planner order -- avoiding rework of TASK-064's real, tested component. Resolved via a direct, explicit Owner question since this was a genuine architecture fork with materially different real outcomes, not something MANAGER-07 should decide unilaterally from AI uncertainty. Dispatched TASK-066: a narrow, real Dispatcher extension (export classifyCapability, add an executionMode-keyed routing branch to attemptDispatch() connecting to the real Integration Gateway event bus for async work) -- still deliberately not wiring classifyCapability into any live Owner-facing route, since WORKER_IDENTITIES.json remains at 0/6 real registrants."
+  },
+  {
+    "change_id": "DNA-000146",
+    "agent": "Claude",
+    "agent_id": null,
+    "agent_id_note": "Not available to this session — not guessed.",
+    "session_id": null,
+    "date": "2026-08-10",
+    "files": [
+      "registry/TASK_QUEUE.json (TASK-066: not_started -> done)",
+      "registry/capability-roadmap.json (capability #60: Dispatcher unification built)"
+    ],
+    "summary": "Closes TASK-066. Real Dispatcher unification for capability #60 committed (72ed99f): attemptDispatch() routes ASYNCHRONOUS work items to capability #56's real event-bus publish(), SYNCHRONOUS/HUMAN_IN_LOOP unchanged. MANAGER-07's independent isolated-worktree re-verification caught a real discrepancy the CODE_WORKER's own report didn't — its claimed 12/12 on the new test suite was measured in the shared, contaminated working tree; true isolation scores 8/12, with all 4 gaps confirmed as the same pre-existing, disclosed WORKER_IDENTITIES.json dependency, not new defects. This is exactly the kind of discrepancy this session's isolated-worktree verification discipline exists to catch, consistent with the earlier FCR-022 finding."
   }
 ]
