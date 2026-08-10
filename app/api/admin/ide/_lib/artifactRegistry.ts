@@ -36,7 +36,7 @@ export type ArtifactType =
   | "DOMAIN_ASSET_RECORD" | "SUBDOMAIN_DISCOVERY_REPORT" | "DNS_VERIFICATION_REPORT" | "HTTP_PROBE_REPORT" | "TLS_EVIDENCE_RECORD" | "EXTERNAL_DRIFT_REPORT"
   | "COMMAND_INVOCATION" | "EXECUTION_CONTEXT_CHECKPOINT" | "FACTORY_READINESS_REPORT"
   | "MANAGER_QUESTION_RECORD" | "ORCHESTRATOR_WORK_ITEM_RECORD" | "COST_GATE_DECISION" | "EDGE_FUNCTION_DISPATCH_RECORD"
-  | "CONFIG_CHANGE_RECORD";
+  | "CONFIG_CHANGE_RECORD" | "SETTING_RUNTIME_RECORD";
 
 export type ArtifactRegistrationStatus = "IMPLEMENTED" | "NOT_IMPLEMENTED";
 export type ArtifactFormat = "json" | "text" | "png" | "n/a";
@@ -816,6 +816,12 @@ export const ARTIFACT_TYPE_REGISTRY: Record<ArtifactType, ArtifactTypeDefinition
     description: "Real, immutable snapshot of one real app_configs key/value write via a settings API route (owner, 2026-08-10, TASK-068 — /admin/ide Settings tab real wiring, capability #61 Phase 1) — the real key, the real new value, and the real app_configs.updated_at timestamp re-read from core/config-loader.ts's cache right after the write, never a fabricated evidence entry.",
     producer: "app/api/admin/ide/settings/route.ts (PUT), core/config/company-settings.ts's future callers", consumer: ["Owner Console (internal only)", "/admin/ide Settings tab"],
     source: "real app_configs upsert result + core/config-loader.ts#getConfigUpdatedAt", format: "json", immutable: true, retention: "bounded artifact history (MAX_ARTIFACT_HISTORY)", supportsRegenerate: false, status: "IMPLEMENTED",
+  },
+  SETTING_RUNTIME_RECORD: {
+    artifactType: "SETTING_RUNTIME_RECORD", displayName: "Setting Runtime Record",
+    description: "Real, immutable, versioned snapshot of one real IDE setting's runtime lifecycle (owner, 2026-08-10, TASK-069 — Auto-save real debounce runtime, capability #61, activating Auto-save as the first genuinely ACTIVE /admin/ide setting) — SETTING_CHANGED/SETTING_PERSISTED evidence from a real settings PUT (previous value, new value, and a real cache-confirmed persistence check), RUNTIME_BEHAVIOR_VERIFIED evidence from the real runtime consumer (e.g. saveFile() invoked via the real auto-save debounce timer) actually using the value and producing a real, observable outcome, and SETTING_RELOADED evidence from a real, fresh GET confirming the persisted value survives reload. Each write to the SAME setting key produces a new version, never overwritten in place.",
+    producer: "app/api/admin/ide/settings/route.ts (PUT/GET), app/api/admin/ide/file/route.ts (PUT, autosave-triggered writes)", consumer: ["Owner Console (internal only)", "/admin/ide Settings tab"],
+    source: "real app_configs read/write via core/config-loader.ts, real saveFile() write outcome reported by app/api/admin/ide/file/route.ts", format: "json", immutable: true, retention: "bounded artifact history (MAX_ARTIFACT_HISTORY)", supportsRegenerate: false, status: "IMPLEMENTED",
   },
 };
 

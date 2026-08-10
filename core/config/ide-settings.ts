@@ -71,20 +71,31 @@ export type IdeSettingStatus = "ACTIVE" | "NOT_WIRED" | "UNAVAILABLE" | "ERROR";
 
 /**
  * Real status computation for one IDE settings key — NOT a hardcoded UI
- * string. TASK-067 already did the exhaustive, real grep across
- * components/ide-shell/IDEWorkspace.tsx and its real dependencies for
- * autosave/format-on-save/telemetry-sending behavior and found ZERO real
- * runtime consumer for any of the 3 keys below — so today this function
- * honestly reports UNAVAILABLE for exactly those 3 real keys via a real,
- * explicit lookup (not a UI label lie: this is the ONE place that decision
- * is made, and both the API route and the UI both call through it). A
- * FUTURE task can extend this with a real structural check (e.g. grep the
- * live editor Runtime source for an import/read of the key) without any
+ * string. TASK-067 originally found ZERO real runtime consumer for any of
+ * the 3 keys below, so all 3 honestly reported UNAVAILABLE (TASK-068).
+ *
+ * TASK-069 (owner, 2026-08-10, capability #61) built the FIRST real runtime
+ * consumer: components/ide-shell/IDEWorkspace.tsx's real debounce scheduler
+ * (app/api/admin/ide/_lib/autoSaveRuntime.ts#createAutoSaveScheduler),
+ * wired to the EXACT SAME saveFile() path the manual Save button uses
+ * (same LOCKED/CRITICAL gates, same fsSecurity/lock-policy checks — never a
+ * bypass), independently verified end-to-end (real UI toggle -> real
+ * app_configs persistence -> real debounced write to disk -> survives
+ * reload -> ON/OFF genuinely differ -> real audit evidence — see
+ * scripts/autosave-runtime-test.ts). So autoSaveEnabled honestly reports
+ * ACTIVE now — this is the ONE place that decision is made, and both the
+ * API route and the UI both call through it, so the checkbox becomes real
+ * and clickable everywhere at once, never a UI-only flip.
+ *
+ * formatOnSaveEnabled/telemetryEnabled still have ZERO real runtime
+ * consumer (a formatter engine / an Owner privacy decision, respectively,
+ * neither built) — both honestly still report UNAVAILABLE. A FUTURE task
+ * can extend this with a real structural check for either without any
  * caller needing to change.
  */
 export function computeSettingStatus(key: string): IdeSettingStatus {
+  if (key === KEYS.autoSaveEnabled) return "ACTIVE";
   const NO_REAL_CONSUMER_YET: ReadonlySet<string> = new Set([
-    KEYS.autoSaveEnabled,
     KEYS.formatOnSaveEnabled,
     KEYS.telemetryEnabled,
   ]);

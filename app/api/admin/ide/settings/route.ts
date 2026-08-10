@@ -10,7 +10,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireAuth } from "@/core/auth/requireAuth";
 import { ADMIN_TIER, getAccessToken } from "@/core/auth/session";
 import { loadIdeSettings, saveIdeSettings, computeSettingStatus, IDE_SETTINGS_KEYS, type IdeSettings } from "@/core/config/ide-settings";
-import { createConfigChangeArtifact } from "../_lib/artifactRuntime";
+import { createConfigChangeArtifact, createSettingChangedArtifact, createSettingReloadedArtifact } from "../_lib/artifactRuntime";
 
 export async function GET() {
   const auth = await requireAuth(ADMIN_TIER);
@@ -26,6 +26,16 @@ export async function GET() {
       formatOnSaveEnabled: computeSettingStatus(IDE_SETTINGS_KEYS.formatOnSaveEnabled),
       telemetryEnabled: computeSettingStatus(IDE_SETTINGS_KEYS.telemetryEnabled),
     };
+    // Real SETTING_RELOADED evidence (TASK-069 requirement 5) — every real
+    // GET is itself the real "does this survive a fresh read" proof STEP 3
+    // requires; this records it as a real, structural artifact rather than
+    // leaving that proof implicit. Best-effort, never blocks/masks the real
+    // read that already succeeded above.
+    try {
+      createSettingReloadedArtifact(IDE_SETTINGS_KEYS.autoSaveEnabled, String(settings.autoSaveEnabled), auth.email, auth.id);
+    } catch (evidenceError: unknown) {
+      console.error("ide/settings GET: real read succeeded but SETTING_RELOADED evidence recording failed:", evidenceError);
+    }
     return NextResponse.json({ settings, status });
   } catch (e: unknown) {
     return NextResponse.json({ error: e instanceof Error ? e.message : "โหลดข้อมูลไม่สำเร็จ" }, { status: 500 });
@@ -46,6 +56,10 @@ export async function PUT(req: NextRequest) {
       formatOnSaveEnabled: Boolean(body.formatOnSaveEnabled),
       telemetryEnabled: Boolean(body.telemetryEnabled),
     };
+    // Real previous values (TASK-069 requirement 5, SETTING_CHANGED evidence
+    // needs a real before/after, not just the after CONFIG_CHANGE already
+    // records) — read BEFORE the write below overwrites them.
+    const previous = await loadIdeSettings();
     await saveIdeSettings(token, settings);
 
     // Real audit evidence (TASK-068 requirement 5) — reuses artifactRuntime.ts's
@@ -66,6 +80,22 @@ export async function PUT(req: NextRequest) {
       }
     } catch (evidenceError: unknown) {
       console.error("ide/settings PUT: real save succeeded but real CONFIG_CHANGE evidence recording failed:", evidenceError);
+    }
+
+    // Real SETTING_CHANGED/SETTING_PERSISTED evidence (TASK-069 requirement
+    // 5) — only for fields that ACTUALLY changed (previous !== new), with a
+    // real previous value, never fabricated for a field the caller merely
+    // re-sent unchanged. Same best-effort/never-masks-the-real-save
+    // reasoning as the CONFIG_CHANGE loop above.
+    try {
+      for (const [field, key] of Object.entries(IDE_SETTINGS_KEYS)) {
+        const f = field as keyof IdeSettings;
+        if (previous[f] !== settings[f]) {
+          createSettingChangedArtifact(key, String(previous[f]), String(settings[f]), auth.email, auth.id);
+        }
+      }
+    } catch (evidenceError: unknown) {
+      console.error("ide/settings PUT: real save succeeded but real SETTING_CHANGED evidence recording failed:", evidenceError);
     }
 
     return NextResponse.json({ ok: true });

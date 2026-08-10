@@ -24,7 +24,9 @@ import { citeStandard } from "../_lib/standards";
 import { recordCompletedJob } from "../_lib/queueRuntime";
 import { createInspection } from "../_lib/inspectionRuntime";
 import { getInspectionTypeDefinition } from "../_lib/inspectionRegistry";
-import { createQueueJobArtifact, createEditorSaveArtifact, createInspectionResultArtifact, linkArtifacts } from "../_lib/artifactRuntime";
+import { createQueueJobArtifact, createEditorSaveArtifact, createInspectionResultArtifact, createRuntimeBehaviorArtifact, linkArtifacts } from "../_lib/artifactRuntime";
+import { AUTO_SAVE_DEBOUNCE_MS } from "../_lib/autoSaveRuntime";
+import { loadIdeSettings, IDE_SETTINGS_KEYS } from "@/core/config/ide-settings";
 
 function errorResponse(code: IdeErrorCode, message: string, status: number) {
   return NextResponse.json({ ok: false, code, message }, { status });
@@ -107,19 +109,25 @@ export async function PUT(req: NextRequest) {
   const auth = await requireAuth(ADMIN_TIER);
   if (auth instanceof NextResponse) return auth;
 
-  let body: { path?: unknown; content?: unknown; expectedHash?: unknown; expectedLastModified?: unknown };
+  let body: { path?: unknown; content?: unknown; expectedHash?: unknown; expectedLastModified?: unknown; trigger?: unknown };
   try {
     body = await req.json();
   } catch {
     return errorResponse("INVALID_PATH", "invalid JSON body", 400);
   }
 
-  const { path: clientPath, content, expectedHash, expectedLastModified } = body;
+  const { path: clientPath, content, expectedHash, expectedLastModified, trigger } = body;
   if (typeof clientPath !== "string") return errorResponse("INVALID_PATH", "path is required", 400);
   if (typeof content !== "string") return errorResponse("INVALID_PATH", "content must be a string", 400);
   if (typeof expectedHash !== "string" || typeof expectedLastModified !== "string") {
     return errorResponse("INVALID_PATH", "expectedHash and expectedLastModified are required", 400);
   }
+  // Real, defensive default (owner, 2026-08-10, TASK-069 — Auto-save real
+  // debounce runtime) — `trigger` affects ONLY which real audit evidence
+  // gets recorded below, never write permission: LOCKED/CRITICAL/conflict
+  // checks below are identical regardless of trigger, so a client can never
+  // use this field to bypass anything.
+  const saveTrigger: "manual" | "autosave" = trigger === "autosave" ? "autosave" : "manual";
   // Byte length, not JS string length — a 1MB cap means 1MB of real UTF-8
   // bytes on disk, not 1M UTF-16 code units.
   if (Buffer.byteLength(content, "utf-8") > MAX_FILE_BYTES) {
@@ -272,6 +280,31 @@ export async function PUT(req: NextRequest) {
       linkArtifacts(jobArtifact.artifactId, saveArtifact.artifactId, auth.id, auth.email);
       editorSaveArtifactId = saveArtifact.artifactId;
     } catch { /* artifact wrapping never blocks or reverses a real save */ }
+
+    // Real RUNTIME_BEHAVIOR_VERIFIED evidence (owner, 2026-08-10, TASK-069
+    // — Auto-save real debounce runtime, capability #61) — recorded ONLY
+    // when this write was really triggered by the real auto-save debounce
+    // timer (components/ide-shell/IDEWorkspace.tsx), never for a manual
+    // save. `expectedOnValue` is a real, freshly-loaded app_configs read
+    // (never the client's unverified claim) — makeEvidence's
+    // RUNTIME_BEHAVIOR_VERIFIED case cross-checks it against the live cache
+    // again before marking verifiedReal, so this can never be fabricated
+    // even if this handler's own read were somehow stale. Best-effort,
+    // logged, never blocks/reverses the real write that already succeeded.
+    if (saveTrigger === "autosave") {
+      try {
+        const ideSettings = await loadIdeSettings();
+        const expectedOnValue = String(ideSettings.autoSaveEnabled);
+        createRuntimeBehaviorArtifact(
+          IDE_SETTINGS_KEYS.autoSaveEnabled,
+          expectedOnValue,
+          `Auto-save consumer saveFile() (components/ide-shell/IDEWorkspace.tsx) invoked via the real ${AUTO_SAVE_DEBOUNCE_MS}ms debounce timer for path "${relPath}" — write succeeded, ${finalBuf.byteLength} bytes`,
+          auth.email, auth.id
+        );
+      } catch (evidenceError: unknown) {
+        console.error("ide/file PUT: real autosave write succeeded but RUNTIME_BEHAVIOR_VERIFIED evidence recording failed:", evidenceError);
+      }
+    }
 
     // Real Inspection Pipeline (Step 4) — triggered ONLY for the file just
     // saved, ONLY on a successful write, never blocking this response

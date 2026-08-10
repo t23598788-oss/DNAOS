@@ -117,7 +117,8 @@
     "architecture-summary:test": "npx tsx scripts/architecture-summary-test.ts",
     "execution-planner:test": "npx tsx scripts/execution-planner-test.ts",
     "dispatcher-execution-mode:test": "npx tsx scripts/dispatcher-execution-mode-test.ts",
-    "settings-real-wiring:test": "npx tsx scripts/settings-real-wiring-test.ts"
+    "settings-real-wiring:test": "npx tsx scripts/settings-real-wiring-test.ts",
+    "autosave-runtime:test": "npx tsx scripts/autosave-runtime-test.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.115.0",

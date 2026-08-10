@@ -50,6 +50,19 @@ export function getConfigUpdatedAt(key: string): string | undefined {
   return _cacheMeta[key];
 }
 
+/** Real, current cached value for one key (owner, 2026-08-10, TASK-069 —
+ * Auto-save real debounce runtime, capability #61) — reads the SAME `_cache`
+ * loadConfigs() populates, never a second store. Used by
+ * app/api/admin/ide/_lib/artifactRuntime.ts's SETTING_PERSISTED/
+ * RUNTIME_BEHAVIOR_VERIFIED/SETTING_RELOADED evidence checks to verify a
+ * real, CURRENT persisted value (not just "a write happened at some point",
+ * which getConfigUpdatedAt() alone proves) — returns undefined when nothing
+ * has been loaded into cache for that key, same honest-undefined contract
+ * as getConfigUpdatedAt(). */
+export function getConfigCachedValue(key: string): string | number | undefined {
+  return _cache ? _cache[key] : undefined;
+}
+
 export function getNum(configs: RulesConfig, key: string): number {
   const v = configs[key];
   if (typeof v !== "number") {

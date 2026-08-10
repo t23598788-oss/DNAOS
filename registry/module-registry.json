@@ -2434,6 +2434,7 @@
         "assertNotStale",
         "audit",
         "clearConfigCache",
+        "getConfigCachedValue",
         "getConfigUpdatedAt",
         "getNum",
         "getStr",
@@ -3059,6 +3060,7 @@
         "recordWebhookEvent",
         "redactConnector",
         "redactConnectors",
+        "refreshOAuthConnector",
         "runConnectorTest",
         "setConnectorEnabled",
         "updateConnector"
@@ -9617,6 +9619,9 @@
         "createRegistryResultArtifact",
         "createReleaseArtifact",
         "createReviewArtifact",
+        "createRuntimeBehaviorArtifact",
+        "createSettingChangedArtifact",
+        "createSettingReloadedArtifact",
         "createTestArtifact",
         "createUiInspectionArtifact",
         "createValidationResultArtifact",
@@ -13812,6 +13817,47 @@
       "exports": [
         "GET",
         "PUT"
+      ],
+      "status": "active"
+    },
+    "scripts/register-tiktok-connector.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "[Auto-detected] scripts/register-tiktok-connector.ts",
+      "purpose_th": "[ตรวจพบอัตโนมัติ] scripts/register-tiktok-connector.ts",
+      "exports": [],
+      "status": "unregistered"
+    },
+    "app/api/connectors/oauth/refresh/[slug]/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "[Auto-detected] app/api/connectors/oauth/refresh/[slug]/route.ts",
+      "purpose_th": "[ตรวจพบอัตโนมัติ] app/api/connectors/oauth/refresh/[slug]/route.ts",
+      "exports": [
+        "POST"
+      ],
+      "status": "unregistered"
+    },
+    "scripts/autosave-runtime-test.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "Real acceptance suite (27 cases) for the Auto-save debounce runtime (TASK-069) — proves OFF never leaves a live timer, proves a fire-time re-check catches OFF-during-wait, proves LOCKED files are never scheduled, and proves real audit evidence is produced end to end.",
+      "purpose_th": "ชุดทดสอบจริง 27 ข้อสำหรับตัวบันทึกไฟล์อัตโนมัติ — พิสูจน์ว่าปิดใช้งานแล้วไม่มีตัวจับเวลาค้างอยู่ พิสูจน์ว่าปิดระหว่างรอก็ยังตรวจจับได้ พิสูจน์ว่าไฟล์ที่ถูกล็อกจะไม่ถูกตั้งเวลาบันทึกเด็ดขาด และพิสูจน์ว่ามีหลักฐานการทำงานจริงครบทุกขั้นตอน",
+      "exports": [
+        "GET"
+      ],
+      "status": "active"
+    },
+    "app/api/admin/ide/_lib/autoSaveRuntime.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Real, pure debounce scheduler for the Auto-save IDE setting — double-checks the live enabled state at both schedule time and fire time so turning Auto-save off can never leave a stale timer running. Fires into the exact same saveFile() path a manual Save uses, never a reimplementation of the write logic.",
+      "purpose_th": "ตัวจับเวลาสำหรับบันทึกไฟล์อัตโนมัติจริง ตรวจสอบสถานะเปิด/ปิดสดทั้งตอนตั้งเวลาและตอนจะบันทึกจริง เพื่อไม่ให้มีการบันทึกค้างหลังปิดใช้งานแล้ว เมื่อถึงเวลาบันทึกจะเรียกกลไกบันทึกไฟล์เดียวกับปุ่มบันทึกด้วยมือทุกประการ ไม่มีทางลัด",
+      "exports": [
+        "AUTO_SAVE_DEBOUNCE_MS",
+        "AutoSaveScheduler",
+        "AutoSaveSchedulerOptions",
+        "createAutoSaveScheduler"
       ],
       "status": "active"
     }

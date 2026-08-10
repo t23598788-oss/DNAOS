@@ -26,12 +26,17 @@
  *     non-interactively, and saveIdeSettings' own RLS-enforcing
  *     user-scoped client construction is proved separately by TASK-067's
  *     already-verified RLS re-check against the real migration file.
- *  2. computeSettingStatus() is a real, non-hardcoded function: all 3 real
- *     IDE settings keys compute to UNAVAILABLE (Owner's rule — no real
- *     runtime consumer exists yet for any of them), with a positive
- *     control (an unrecognized key reports a DIFFERENT status, NOT_WIRED)
- *     proving the function genuinely branches on its `key` argument
- *     rather than returning a hardcoded constant.
+ *  2. computeSettingStatus() is a real, non-hardcoded function. UPDATED
+ *     2026-08-10 (TASK-069 — Auto-save real debounce runtime, capability
+ *     #61): autoSaveEnabled now real-computes to ACTIVE (a real runtime
+ *     consumer — components/ide-shell/IDEWorkspace.tsx's real debounce
+ *     scheduler — now exists; see scripts/autosave-runtime-test.ts for the
+ *     full independent verification of that claim). formatOnSaveEnabled/
+ *     telemetryEnabled still real-compute to UNAVAILABLE (Owner's rule — no
+ *     real runtime consumer exists yet for either), with a positive control
+ *     (an unrecognized key reports a DIFFERENT status, NOT_WIRED) proving
+ *     the function genuinely branches on its `key` argument rather than
+ *     returning a hardcoded constant.
  *  3. isSettingCheckboxEnabled() is a real, non-vacuous gate (ACTIVE ->
  *     enabled is the positive control; UNAVAILABLE/NOT_WIRED/ERROR/
  *     undefined -> disabled), AND SettingsPanel()'s real JSX source
@@ -111,10 +116,13 @@ function stripComments(src: string): string {
  * to (not including) the NEXT top-level `function ` declaration, which is
  * a real, robust boundary regardless of nested braces/JSX inside it
  * (an exact-brace-matching regex would be fragile against this file's
- * real nested arrow functions and JSX). */
+ * real nested arrow functions and JSX). Matches `function SettingsPanel(`
+ * (open paren only, not the full `()`) so this stays real and robust
+ * across a legitimate signature change (TASK-069, 2026-08-10, added a real
+ * `{ onAutoSaveChanged }` prop) rather than breaking on cosmetic drift. */
 function extractSettingsPanelSource(strippedSrc: string): string {
-  const startIdx = strippedSrc.indexOf("function SettingsPanel()");
-  assert(startIdx !== -1, "expected to find `function SettingsPanel()` in the real, comment-stripped source");
+  const startIdx = strippedSrc.indexOf("function SettingsPanel(");
+  assert(startIdx !== -1, "expected to find `function SettingsPanel(` in the real, comment-stripped source");
   const after = strippedSrc.slice(startIdx);
   const nextFnIdx = after.indexOf("\nfunction ", 1);
   return nextFnIdx === -1 ? after : after.slice(0, nextFnIdx);
@@ -170,12 +178,12 @@ async function main() {
   // ============================================================
   // 2 — computeSettingStatus() real, non-hardcoded
   // ============================================================
-  await test("Acceptance 2a — all 3 real IDE settings keys compute to UNAVAILABLE via the real computeSettingStatus() function (never hardcoded as a UI string)", () => {
-    const keys = [IDE_SETTINGS_KEYS.autoSaveEnabled, IDE_SETTINGS_KEYS.formatOnSaveEnabled, IDE_SETTINGS_KEYS.telemetryEnabled];
-    assert(keys.length === 3, "expected exactly 3 real IDE settings keys");
-    for (const key of keys) {
-      const status: IdeSettingStatus = computeSettingStatus(key);
-      assert(status === "UNAVAILABLE", `expected computeSettingStatus("${key}") === "UNAVAILABLE" (zero real runtime consumer exists yet, TASK-067), got "${status}"`);
+  await test("Acceptance 2a — real per-key status via the real computeSettingStatus() function (never hardcoded as a UI string): autoSaveEnabled now ACTIVE (TASK-069's real debounce runtime), formatOnSaveEnabled/telemetryEnabled still honestly UNAVAILABLE (no real runtime consumer built for either)", () => {
+    const status: IdeSettingStatus = computeSettingStatus(IDE_SETTINGS_KEYS.autoSaveEnabled);
+    assert(status === "ACTIVE", `expected computeSettingStatus("${IDE_SETTINGS_KEYS.autoSaveEnabled}") === "ACTIVE" (TASK-069 built its real runtime consumer — see scripts/autosave-runtime-test.ts), got "${status}"`);
+    for (const key of [IDE_SETTINGS_KEYS.formatOnSaveEnabled, IDE_SETTINGS_KEYS.telemetryEnabled]) {
+      const s: IdeSettingStatus = computeSettingStatus(key);
+      assert(s === "UNAVAILABLE", `expected computeSettingStatus("${key}") === "UNAVAILABLE" (zero real runtime consumer exists yet, TASK-067/TASK-068), got "${s}"`);
     }
   });
   await test("Acceptance 2b — positive control: an unrecognized key computes to a DIFFERENT status (NOT_WIRED), proving computeSettingStatus() really branches on its `key` argument rather than vacuously always returning UNAVAILABLE", () => {

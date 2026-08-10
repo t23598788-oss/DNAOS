@@ -25,7 +25,8 @@ import { getRule, computeCoverageSummary, runGovernanceVerification, type Govern
 import { getDecision } from "./decisions";
 import { getProblem } from "./problems";
 import { encodeAtBoundary } from "@/services/data-boundary/dataBoundaryRuntime";
-import { getConfigUpdatedAt } from "@/core/config-loader";
+import { getConfigUpdatedAt, getConfigCachedValue } from "@/core/config-loader";
+import { computeSettingStatus } from "@/core/config/ide-settings";
 
 // DATA_BOUNDARY_INTEGRITY_GATE (owner, 2026-08-09) — QUEUE_ARTIFACT_EVIDENCE
 // boundary. Every artifact's contentForChecksum is what gets hashed and
@@ -39,7 +40,7 @@ function stringifyAtArtifactBoundary(value: unknown, correlationId: string | nul
 }
 
 export type ArtifactStatus = "PENDING" | "READY" | "FAILED" | "ARCHIVED" | "INVALID";
-export type EvidenceKind = "QUEUE" | "INSPECTION" | "RUNTIME" | "GOVERNANCE" | "FACTORY" | "REGISTRY" | "DECISION" | "PROBLEM" | "UI_NODE" | "UI_SCREENSHOT_REGION" | "CHANGE_SET" | "TEST_RUN" | "BUILD_RUN" | "RELEASE_RUN" | "DEPLOYMENT_PLAN" | "CONFIG_CHANGE";
+export type EvidenceKind = "QUEUE" | "INSPECTION" | "RUNTIME" | "GOVERNANCE" | "FACTORY" | "REGISTRY" | "DECISION" | "PROBLEM" | "UI_NODE" | "UI_SCREENSHOT_REGION" | "CHANGE_SET" | "TEST_RUN" | "BUILD_RUN" | "RELEASE_RUN" | "DEPLOYMENT_PLAN" | "CONFIG_CHANGE" | "SETTING_CHANGED" | "SETTING_PERSISTED" | "RUNTIME_BEHAVIOR_VERIFIED" | "SETTING_RELOADED";
 
 export interface EvidenceRef {
   evidenceId: string;
@@ -413,6 +414,42 @@ function makeEvidence(kind: EvidenceKind, refId: string, description: string): E
       // timestamp for that exact key — a fabricated/never-written key
       // resolves to undefined and is honestly refused, never attached.
       case "CONFIG_CHANGE": verifiedReal = getConfigUpdatedAt(refId) !== undefined; break;
+      // SETTING_CHANGED/SETTING_PERSISTED/RUNTIME_BEHAVIOR_VERIFIED/
+      // SETTING_RELOADED (owner, 2026-08-10, TASK-069 — Auto-save real
+      // debounce runtime, capability #61). Same real-cache-backed
+      // verification philosophy as CONFIG_CHANGE above, extended to real,
+      // structural questions specific to a setting's RUNTIME lifecycle
+      // (not just "was a write recorded", but "does the live cache's
+      // CURRENT value really equal what this evidence claims", and "does
+      // this key really have a real, registered runtime consumer at all").
+      // SETTING_PERSISTED/RUNTIME_BEHAVIOR_VERIFIED/SETTING_RELOADED encode
+      // their expected value into refId as "key::expectedValue" (never a
+      // second parameter bolted onto makeEvidence — every other kind here
+      // already treats refId as the one real lookup key, this just reuses
+      // that same slot) so this switch can check the ACTUAL current cached
+      // value, never just trust the caller's claim.
+      case "SETTING_CHANGED": verifiedReal = getConfigUpdatedAt(refId) !== undefined; break;
+      case "SETTING_PERSISTED": {
+        const [key, expected] = refId.split("::");
+        verifiedReal = getConfigUpdatedAt(key) !== undefined && String(getConfigCachedValue(key)) === expected;
+        break;
+      }
+      case "RUNTIME_BEHAVIOR_VERIFIED": {
+        // Two-factor real check: (1) this key really has a real,
+        // registered runtime consumer at all (the SAME computeSettingStatus()
+        // gate that decides whether the Settings UI checkbox is even
+        // clickable — never a duplicated/parallel judgment), AND (2) the
+        // live cache's CURRENT value really equals what the caller
+        // observed at the moment the runtime behavior fired.
+        const [key, expectedOnValue] = refId.split("::");
+        verifiedReal = computeSettingStatus(key) === "ACTIVE" && String(getConfigCachedValue(key)) === expectedOnValue;
+        break;
+      }
+      case "SETTING_RELOADED": {
+        const [key, expected] = refId.split("::");
+        verifiedReal = getConfigUpdatedAt(key) !== undefined && String(getConfigCachedValue(key)) === expected;
+        break;
+      }
     }
   } catch { verifiedReal = false; }
   return { evidenceId: randomUUID(), kind, refId, description, verifiedReal };
@@ -663,6 +700,67 @@ export function createConfigChangeArtifact(key: string, value: string, actor: st
   rec.evidence.push(makeEvidence("CONFIG_CHANGE", key, updatedAt
     ? `real app_configs.updated_at=${updatedAt} for key "${key}" (new value "${value}")`
     : `app_configs key "${key}" written (new value "${value}"), but no real updated_at was found in core/config-loader.ts's cache at evidence time — honestly unverified, not fabricated`));
+  return rec;
+}
+
+/** Real, typed producer for a setting VALUE change with real before/after
+ * tracking (owner, 2026-08-10, TASK-069 — Auto-save real debounce runtime,
+ * capability #61). Distinct from createConfigChangeArtifact() above (which
+ * TASK-068 already built and which keeps firing unconditionally on every
+ * settings PUT for all 3 keys) — this one is called only when a value
+ * ACTUALLY changed, carries the real previous value alongside the new one,
+ * and produces 2 evidence kinds (SETTING_CHANGED + SETTING_PERSISTED) on
+ * ONE new "SETTING_RUNTIME_RECORD" artifact version. Same real pattern as
+ * every other typed producer in this file — wraps real content the caller
+ * itself just wrote, through the SAME createArtifactInternal(), never a
+ * second store. Each call for the SAME key produces a NEW version
+ * (generatedFrom=key), never overwritten in place — same policy as
+ * CONFIG_CHANGE_RECORD. */
+export function createSettingChangedArtifact(key: string, previousValue: string, newValue: string, actor: string, ownerId: string): ArtifactRecord {
+  const rec = createArtifactInternal({
+    artifactType: "SETTING_RUNTIME_RECORD", actor, ownerId,
+    contentForChecksum: stringifyAtArtifactBoundary({ key, previousValue, newValue, changedAt: new Date().toISOString() }, key),
+    mimeType: "application/json", generatedFrom: key,
+  });
+  rec.evidence.push(makeEvidence("SETTING_CHANGED", key, `setting "${key}" changed from "${previousValue}" to "${newValue}"`));
+  rec.evidence.push(makeEvidence("SETTING_PERSISTED", `${key}::${newValue}`, `real app_configs cache for "${key}" confirmed to equal the new value "${newValue}" immediately after write (core/config-loader.ts)`));
+  return rec;
+}
+
+/** Real, typed producer for RUNTIME_BEHAVIOR_VERIFIED evidence (owner,
+ * 2026-08-10, TASK-069) — called by a real runtime CONSUMER right after it
+ * actually used a setting's value and produced a real, observable outcome
+ * (e.g. app/api/admin/ide/file/route.ts's PUT handler, after a real
+ * autosave-triggered write succeeds). `expectedOnValue` is the real value
+ * the consumer observed the setting holding at that moment (checked against
+ * the live cache by makeEvidence's RUNTIME_BEHAVIOR_VERIFIED case, never
+ * trusted blindly), `observedBehavior` is a free-text description of the
+ * concrete real thing that happened (e.g. which function ran, on what
+ * path, with what result) — never a log line, a real ArtifactRecord. */
+export function createRuntimeBehaviorArtifact(key: string, expectedOnValue: string, observedBehavior: string, actor: string, ownerId: string): ArtifactRecord {
+  const rec = createArtifactInternal({
+    artifactType: "SETTING_RUNTIME_RECORD", actor, ownerId,
+    contentForChecksum: stringifyAtArtifactBoundary({ key, expectedOnValue, observedBehavior }, key),
+    mimeType: "application/json", generatedFrom: key,
+  });
+  rec.evidence.push(makeEvidence("RUNTIME_BEHAVIOR_VERIFIED", `${key}::${expectedOnValue}`, observedBehavior));
+  return rec;
+}
+
+/** Real, typed producer for SETTING_RELOADED evidence (owner, 2026-08-10,
+ * TASK-069) — called by app/api/admin/ide/settings/route.ts's GET handler
+ * right after a real, fresh loadIdeSettings() read, so `reloadedValue` is
+ * exactly what a real, independent GET request just returned (never what
+ * the PUT that changed it assumed would happen). Real, structural proof a
+ * setting survives reload — checked against the live cache by makeEvidence,
+ * never trusted blindly. */
+export function createSettingReloadedArtifact(key: string, reloadedValue: string, actor: string, ownerId: string): ArtifactRecord {
+  const rec = createArtifactInternal({
+    artifactType: "SETTING_RUNTIME_RECORD", actor, ownerId,
+    contentForChecksum: stringifyAtArtifactBoundary({ key, reloadedValue }, key),
+    mimeType: "application/json", generatedFrom: key,
+  });
+  rec.evidence.push(makeEvidence("SETTING_RELOADED", `${key}::${reloadedValue}`, `fresh GET /api/admin/ide/settings read for "${key}" returned "${reloadedValue}"`));
   return rec;
 }
 

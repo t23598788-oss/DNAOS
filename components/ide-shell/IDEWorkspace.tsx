@@ -20,11 +20,17 @@
  * Command Surface (real, deterministic intent routing —
  * commandSurfaceRuntime.ts), and — as of 2026-08-10, TASK-068, capability
  * #61 Phase 1 — Settings (real app_configs-backed storage/API, see
- * core/config/ide-settings.ts + app/api/admin/ide/settings/route.ts; all 3
- * checkboxes honestly display real, computed UNAVAILABLE status and stay
- * non-clickable, since zero real runtime consumer exists for any of them
- * yet — never a fabricated ACTIVE/enabled look; Database Provider now
- * really reflects the live DATABASE_HEALTH monitoring signal).
+ * core/config/ide-settings.ts + app/api/admin/ide/settings/route.ts) — and,
+ * as of 2026-08-10, TASK-069, Auto-save is the FIRST setting to reach real
+ * ACTIVE status: a real debounce timer (app/api/admin/ide/_lib/
+ * autoSaveRuntime.ts#createAutoSaveScheduler, AUTO_SAVE_DEBOUNCE_MS) wired
+ * to the EXACT SAME saveFile() path the manual Save button uses (same
+ * LOCKED/CRITICAL gates, same fsSecurity/lock-policy checks server-side —
+ * never a bypass), so its checkbox is now real and clickable. Format on
+ * save / Telemetry still honestly display real, computed UNAVAILABLE
+ * status and stay non-clickable (no formatter engine / no Owner privacy
+ * decision yet — never a fabricated ACTIVE/enabled look). Database
+ * Provider really reflects the live DATABASE_HEALTH monitoring signal.
  *
  * Still honestly NOT_CONNECTED / static: left-sidebar Runtime/AI panels
  * (labeled "Not connected", not faked), and there is no free-form
@@ -33,6 +39,7 @@
  * the reasoning).
  */
 import { useState, useCallback, useRef, useEffect, useMemo } from "react";
+import { AUTO_SAVE_DEBOUNCE_MS, createAutoSaveScheduler } from "@/app/api/admin/ide/_lib/autoSaveRuntime";
 import {
   FolderTree, Search as SearchIcon, GitBranch, Activity, Bot, FileText, Settings as SettingsIcon,
   File, Folder, ChevronRight, ChevronDown, ChevronUp, X, XCircle, AlertTriangle, RefreshCw, FolderOpen,
@@ -546,6 +553,48 @@ export default function IDEWorkspace() {
   const tabsRef = useRef(tabs);
   useEffect(() => { tabsRef.current = tabs; }, [tabs]);
 
+  // Auto-save (owner, 2026-08-10, TASK-069, capability #61) — real, live
+  // value of the `ide-auto-save-enabled` setting, fetched from the real
+  // /api/admin/ide/settings API on mount (never hardcoded) and kept in sync
+  // via SettingsPanel's onAutoSaveChanged callback the instant the Owner
+  // flips the real toggle, so the debounce scheduler below never acts on a
+  // stale value. autoSaveEnabledRef mirrors it for the same "ref read
+  // inside a stable callback" reason fileStatesRef/tabsRef exist above.
+  const [autoSaveEnabled, setAutoSaveEnabled] = useState(false);
+  const autoSaveEnabledRef = useRef(autoSaveEnabled);
+  useEffect(() => { autoSaveEnabledRef.current = autoSaveEnabled; }, [autoSaveEnabled]);
+  useEffect(() => {
+    // Real, honest no-op on failure — autoSaveEnabled just stays false,
+    // never guessed true.
+    fetchIde<IdeSettingsGetResponse>("/api/admin/ide/settings").then((body) => {
+      if ("settings" in body) setAutoSaveEnabled(body.settings.autoSaveEnabled);
+    }).catch(() => {});
+  }, []);
+  // The instant Auto-save flips OFF, cancel every pending timer — real
+  // belt-and-suspenders on top of the scheduler's own re-check-at-fire-time
+  // (see autoSaveRuntime.ts) so no already-scheduled timer can go on to
+  // fire after the setting changed.
+  useEffect(() => {
+    if (!autoSaveEnabled) autoSaveSchedulerRef.current.cancelAll();
+  }, [autoSaveEnabled]);
+  // saveFileRef mirrors the real saveFile() callback (defined below) so the
+  // scheduler — created once, here, before saveFile's own declaration in
+  // source order — always calls the CURRENT real saveFile(), never a stale
+  // closure. saveFile's own useCallback deps are [] (identity never
+  // actually changes), so this is purely a source-order convenience, not a
+  // staleness risk.
+  const saveFileRef = useRef<((tabId: string, path: string, trigger?: "manual" | "autosave") => Promise<boolean>) | null>(null);
+  const autoSaveSchedulerRef = useRef(
+    createAutoSaveScheduler({
+      isEnabled: () => autoSaveEnabledRef.current,
+      debounceMs: AUTO_SAVE_DEBOUNCE_MS,
+      // Real production wiring — calls the EXACT SAME saveFile() the
+      // manual Save button calls (same LOCKED/CRITICAL gates, same
+      // fsSecurity checks server-side), never a reimplementation.
+      onFire: (tabId, path) => { void saveFileRef.current?.(tabId, path, "autosave"); },
+    })
+  );
+
   const openTab = useCallback((kind: "file", path: string, title: string) => {
     const id = `${kind}:${path}`;
     setTabs((prev) => (prev.find((t) => t.id === id) ? prev : [...prev, { id, title, kind, path }]));
@@ -592,6 +641,8 @@ export default function IDEWorkspace() {
       }
       setTabs((prevTabs) => prevTabs.filter((t) => t.id !== id));
       setActiveTabId((cur) => (cur === id ? null : cur));
+      // A closed tab must never go on to auto-save later.
+      autoSaveSchedulerRef.current.cancel(id);
       const next = { ...prev };
       delete next[id];
       return next;
@@ -600,6 +651,19 @@ export default function IDEWorkspace() {
 
   const updateFileContent = useCallback((tabId: string, content: string) => {
     setFileStates((prev) => (prev[tabId] ? { ...prev, [tabId]: { ...prev[tabId], content } } : prev));
+    // Auto-save (TASK-069) — real debounce trigger on every edit. Never
+    // scheduled for a LOCKED file (defense in depth on top of saveFile()'s
+    // own real LOCKED gate below, and the textarea already being readOnly
+    // for LOCKED files — this call site should be structurally unreachable
+    // for a LOCKED tab, but the scheduler is skipped explicitly here too
+    // rather than relying on that alone). A no-op with zero live-timer
+    // side effect whenever Auto-save is OFF (see autoSaveSchedulerRef's
+    // isEnabled check inside autoSaveRuntime.ts).
+    const tab = tabsRef.current.find((t) => t.id === tabId);
+    const classification = fileStatesRef.current[tabId]?.classification;
+    if (tab && tab.kind === "file" && classification?.riskLevel !== "LOCKED") {
+      autoSaveSchedulerRef.current.schedule(tabId, tab.path);
+    }
   }, []);
 
   // ---- Execution Runtime (Phase 4) ----
@@ -607,19 +671,25 @@ export default function IDEWorkspace() {
     setExecEventLog((prev) => [...prev.slice(-199), { ts: new Date().toLocaleTimeString("th-TH"), text }]);
   }, []);
 
-  const saveFile = useCallback(async (tabId: string, path: string): Promise<boolean> => {
+  const saveFile = useCallback(async (tabId: string, path: string, trigger: "manual" | "autosave" = "manual"): Promise<boolean> => {
     const state = fileStatesRef.current[tabId];
     if (!state || state.loading || state.content === state.originalContent) return true;
 
     // Defense in depth — the textarea is already readOnly for LOCKED files
     // (so content should never actually diverge from originalContent), but
-    // this is the real, load-bearing gate: never even attempt the PUT.
+    // this is the real, load-bearing gate: never even attempt the PUT. The
+    // real auto-save debounce timer (TASK-069) calls this SAME function via
+    // the SAME code path — a LOCKED file is skipped identically regardless
+    // of trigger, never forced.
     if (state.classification?.riskLevel === "LOCKED") {
       setFileStates((prev) => ({ ...prev, [tabId]: { ...state, error: "This file is classified LOCKED — read-only, cannot be saved." } }));
       return false;
     }
     // CRITICAL requires an explicit human acknowledgement before the write
-    // is even attempted — real confirm(), not a silent pass-through.
+    // is even attempted — real confirm(), not a silent pass-through. This
+    // applies identically to an auto-save-triggered call (same function,
+    // same gate) — a CRITICAL file's debounce fire will surface the same
+    // real confirm() prompt a manual Save would.
     if (state.classification?.riskLevel === "CRITICAL") {
       const checks = state.classification.requiredChecks;
       const checksText = checks.length > 0 ? `\n\nSaving will trigger these required checks: ${checks.join(", ")}.` : "";
@@ -629,7 +699,7 @@ export default function IDEWorkspace() {
     const res = await fetch("/api/admin/ide/file", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ path, content: state.content, expectedHash: state.hash, expectedLastModified: state.modifiedAt }),
+      body: JSON.stringify({ path, content: state.content, expectedHash: state.hash, expectedLastModified: state.modifiedAt, trigger }),
     });
     const result: FileWriteResponse = await res.json().catch(() => ({ ok: false, code: "INTERNAL_ERROR", message: "invalid response" }));
     if (result.ok) {
@@ -668,6 +738,9 @@ export default function IDEWorkspace() {
     return false;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+  // Real ref mirror (TASK-069) — see saveFileRef's declaration above for
+  // why this is a ref rather than a direct closure capture.
+  useEffect(() => { saveFileRef.current = saveFile; }, [saveFile]);
 
   const saveAllDirty = useCallback(async () => {
     for (const tab of tabsRef.current) {
@@ -1092,6 +1165,7 @@ export default function IDEWorkspace() {
                 onCopyRelativePath={doCopyRelativePath}
                 onRefreshExplorer={refreshAfterFsOp}
                 activeFilePath={activeTabObj?.path ?? null}
+                onAutoSaveChanged={setAutoSaveEnabled}
               />
             </div>
             <div onMouseDown={leftResize.onMouseDown} style={{ width: 4, cursor: "col-resize", flexShrink: 0, background: "#1e1e1e" }} />
@@ -1444,7 +1518,7 @@ function ActivityBar({ activeTool, onSelect }: { activeTool: ToolId; onSelect: (
 function LeftPanel({
   tool, onOpenFileTab, onOpenSearchResult, onOpenDiffTab, onCollapse, gitRefreshNonce,
   explorerRefreshNonce, onCreateFile, onCreateFolder, onRename, onMove, onTrash, onRestore, onCopyRelativePath, onRefreshExplorer,
-  activeFilePath,
+  activeFilePath, onAutoSaveChanged,
 }: {
   tool: ToolId; onOpenFileTab: (path: string, title: string) => void;
   onOpenSearchResult: (relPath: string, line: number, column: number, matchLength: number) => void;
@@ -1454,6 +1528,9 @@ function LeftPanel({
   onRename: (path: string, newName: string) => void; onMove: (path: string, destinationDir: string) => void;
   onTrash: (path: string) => void; onRestore: (id: string) => void; onCopyRelativePath: (path: string) => void;
   onRefreshExplorer: () => void; activeFilePath: string | null;
+  /** TASK-069 — real, immediate sync of the page-level Auto-save debounce
+   * scheduler the instant the real toggle succeeds (see SettingsPanel). */
+  onAutoSaveChanged: (enabled: boolean) => void;
 }) {
   return (
     <div style={{ height: "100%", background: "#252526", borderRight: "1px solid #1e1e1e", overflowY: "auto", overflowX: "hidden", display: "flex", flexDirection: "column" }}>
@@ -1491,7 +1568,7 @@ function LeftPanel({
         {tool === "runtime" && <RuntimePanel />}
         {tool === "ai" && <AiPanel />}
         {tool === "documents" && <DocumentsPanel onOpenTab={onOpenFileTab} />}
-        {tool === "settings" && <SettingsPanel />}
+        {tool === "settings" && <SettingsPanel onAutoSaveChanged={onAutoSaveChanged} />}
       </div>
     </div>
   );
@@ -2128,7 +2205,7 @@ export function isSettingCheckboxEnabled(status: IdeSettingStatusClient | undefi
   return status === "ACTIVE";
 }
 
-function SettingsPanel() {
+function SettingsPanel({ onAutoSaveChanged }: { onAutoSaveChanged: (enabled: boolean) => void }) {
   const [settings, setSettings] = useState<IdeSettingsClient | null>(null);
   const [status, setStatus] = useState<IdeSettingsStatusMapClient | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -2166,10 +2243,18 @@ function SettingsPanel() {
       body: JSON.stringify(next),
     });
     const result: IdeSettingsPutResponse = await res.json().catch(() => ({ error: "invalid response" }));
-    if ("ok" in result && result.ok) { setSettings(next); setError(null); }
+    if ("ok" in result && result.ok) {
+      setSettings(next);
+      setError(null);
+      // Real, immediate sync (TASK-069) — the page-level auto-save
+      // scheduler must reflect a real toggle the instant it succeeds, never
+      // waiting for a future poll (which might not happen if the Owner
+      // never revisits this tab).
+      if (field === "autoSaveEnabled") onAutoSaveChanged(next.autoSaveEnabled);
+    }
     else setError("error" in result ? result.error : "บันทึกไม่สำเร็จ");
     setBusyField(null);
-  }, [settings, status]);
+  }, [settings, status, onAutoSaveChanged]);
 
   const dbLabel =
     dbSignal === "loading" ? "Database Provider: checking real monitoring signal…" :
