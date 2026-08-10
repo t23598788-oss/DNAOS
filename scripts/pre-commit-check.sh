@@ -9,6 +9,40 @@ npx tsx scripts/sync-registry.ts
 npx tsx scripts/build-arch-book.ts
 echo "Registry synced"
 
+# Step 0.5: Registry Integrity Gate (TASK-076 / TASK-077, FCR-026, Owner
+# directive 2026-08-11). Real Source<->Registry<->Git 4-layer check, right
+# after Step 0 (so it validates the registry sync-registry.ts just really
+# wrote to disk — `--source worktree` reads that exact file, not a stale
+# staged blob) and before every other guard, per the Owner's required
+# pipeline order (Source Scan -> Git Reality Check -> Registry Reconcile ->
+# Integrity Gate -> Governance -> ...).
+#
+# TASK-077 scoping fix (MANAGER-07's own independent verification, 2026-08-
+# 11): the original TASK-076 delivery validated the ENTIRE registry against
+# the entire git-tracked-files universe unconditionally — run against this
+# repo's real, live, shared, multi-session working tree it produced Status:
+# BLOCKED on 26 real, legitimate, pre-existing UNTRACKED entries belonging to
+# a different concurrent session's real in-progress work, which would have
+# halted ALL future commits here indefinitely. The gate now only hard-blocks
+# on registry entries relevant to THIS commit (staged files, or entries
+# genuinely new/changed vs HEAD — i.e. what sync-registry.ts just did above);
+# everything else is still fully reported, never silently hidden, but never
+# blocking. See scripts/registry-integrity-gate.ts's computeRelevantPaths().
+#
+# Verified exhaustively (TASK-077) in an isolated `git worktree`, seeded with
+# real copies of this repo's actual 26 real, currently-untracked concurrent-
+# session files, before this was wired live here: (a) a clean, legitimate
+# staged commit passes through this exact hook end-to-end (all guards) with
+# those 26 real, unrelated, untracked files present and correctly reported
+# but never blocking; (b) re-injecting the exact historical trailing-comma-
+# array bug into a real, staged, in-scope file hard-blocks here, before any
+# later guard runs, and the same commit passes cleanly once fixed.
+echo "--- Registry Integrity Gate (Step 0.5 / TASK-076+077 / FCR-026) ---"
+if ! npx tsx scripts/registry-integrity-gate.ts --source worktree; then
+  echo "ERROR: Registry Integrity Gate BLOCKED this commit — see report above (only entries relevant to THIS commit can cause this; pre-existing, unrelated registry noise is reported above but never blocks)"
+  exit 1
+fi
+
 # Guard 0: Architecture health — ไม่ยอมรับ BROKEN หรือ UNUSED โมดูลใหม่
 ARCH_BOOK="registry/architecture-book.json"
 if [ -f "$ARCH_BOOK" ]; then

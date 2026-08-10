@@ -2,6 +2,33 @@
 /**
  * DNA OS — Registry Integrity Gate (TASK-076 / FCR-026, Owner directive 2026-08-11)
  *
+ * COMMIT-RELEVANCE SCOPING (TASK-077 follow-up, MANAGER-07's own independent
+ * verification 2026-08-11): the original TASK-076 delivery validated the
+ * ENTIRE registry against the entire git-tracked-files universe on every
+ * run, with no way to scope hard-blocking to just the files relevant to the
+ * commit actually being made. Running it against this repo's real, current,
+ * shared, multi-session working tree (not an isolated test worktree)
+ * produced Status: BLOCKED with 26 real, legitimate, pre-existing UNTRACKED
+ * entries belonging to a DIFFERENT, concurrent session's real in-progress
+ * work — wiring that into the live pre-commit hook would have halted ALL
+ * future commits in this shared repo indefinitely.
+ *
+ * The fix: every entry is still classified by the full 4-layer check below
+ * (nothing is hidden — see `reportOnly` in GateResult), but only entries
+ * INSIDE the real "commit-relevant" set (computeRelevantPaths()) can cause
+ * `pass: false`. Relevant = (a) any path in `git diff --cached --name-only`
+ * (this commit's real staged files) UNION (b) any registry path whose entry
+ * value differs from — or doesn't exist in — the registry at real HEAD (i.e.
+ * an entry scripts/sync-registry.ts, Step 0, just added or modified this
+ * exact run, whether or not it has been re-staged yet — a genuinely new/
+ * changed entry must never silently skip validation just because it isn't
+ * staged). Entries OUTSIDE that set are real, pre-existing registry content
+ * unrelated to this commit — still reported, never silently hidden, but
+ * never hard-blocking. This is not the "mark stale and keep going" pattern
+ * the Owner explicitly prohibited: that rule is about a bug reaching THIS
+ * commit undetected, not about every other session's independent, real,
+ * in-progress work being forced to resolve before anyone can commit anything.
+ *
  * WHY THIS EXISTS (real incident, this session): a Python trailing-comma bug
  * turned `module-registry.json`'s scripts/ide-editor-overflow-verify.ts
  * entry's `purpose_th` from a string into a 1-element array. Nothing in the
@@ -90,7 +117,17 @@ export interface GateResult {
   pass: boolean;
   total: number;
   verdicts: EntryVerdict[];
+  /** Non-VALID entries INSIDE the commit-relevant set — these, and only these, determine `pass`. */
   blockers: EntryVerdict[];
+  /**
+   * Non-VALID entries OUTSIDE the commit-relevant set (TASK-077) — real,
+   * pre-existing registry content unrelated to this commit. Always fully
+   * reported for transparency (nothing is ever silently hidden), but never
+   * contributes to `pass`.
+   */
+  reportOnly: EntryVerdict[];
+  /** The real, computed set of registry paths relevant to THIS commit (TASK-077's computeRelevantPaths()). */
+  relevantPaths: string[];
   byClassification: Record<Classification, number>;
   raceDetected: boolean;
   raceDetail?: string;
@@ -128,7 +165,14 @@ export interface GateOptions {
 // ── Small git helpers ────────────────────────────────────────────────────
 
 function git(root: string, args: string[]): string {
-  return execFileSync("git", args, { cwd: root, encoding: "utf-8", maxBuffer: 64 * 1024 * 1024 });
+  // stderr explicitly ignored: every real call site wraps this in try/catch
+  // and silently falls back on failure (e.g. "no HEAD yet" / "not staged" /
+  // "not a rename") — these are real, EXPECTED, routine outcomes, not
+  // diagnostic-worthy errors, so git's own "fatal: ..." text must never leak
+  // to this process's stderr (confirmed live: without this, a fresh-repo
+  // fixture's expected-to-fail `git show HEAD:...` printed a raw "fatal:
+  // path ... exists on disk, but not in 'HEAD'" line into real test output).
+  return execFileSync("git", args, { cwd: root, encoding: "utf-8", maxBuffer: 64 * 1024 * 1024, stdio: ["ignore", "pipe", "ignore"] });
 }
 
 function isGitRepo(root: string): boolean {
@@ -188,6 +232,92 @@ function gitRenameMap(root: string, threshold: number): Map<string, { to: string
     // No git / not a repo / detached — leave map empty, callers fall back to DELETED.
   }
   return map;
+}
+
+// ── Commit-relevance scoping (TASK-077 / FCR-026 follow-up) ─────────────
+//
+// Real gap this closes: without this, EVERY registry entry — including
+// entries that are real, legitimate, pre-existing, and belong to a
+// different concurrent session's real in-progress work — would hard-block
+// this commit, forever, in a real shared multi-session repo.
+
+/**
+ * The real, current staged file list (this commit's own real changes).
+ * Uses `--name-status -M` rather than plain `--name-only`, because a staged
+ * `git mv` collapses to a single "R100  old -> new" record and `--name-only`
+ * alone reports ONLY the new path — verified live: a registry entry still
+ * keyed under the file's OLD path (not yet reconciled/renamed in the
+ * registry itself) would then never show up as staged, silently falling
+ * outside this commit's relevant set. Both the old and new side of a real
+ * staged rename/copy are added here so either path a registry entry might
+ * still reference is correctly treated as relevant.
+ */
+function gitStagedFiles(root: string): Set<string> {
+  if (!isGitRepo(root)) return new Set();
+  const paths = new Set<string>();
+  try {
+    const out = git(root, ["diff", "--cached", "--name-status", "-M"]);
+    for (const line of out.split("\n")) {
+      if (!line) continue;
+      const fields = line.split("\t");
+      const status = fields[0];
+      if (status.startsWith("R") || status.startsWith("C")) {
+        // Rename/copy: "R100\told-path\tnew-path" — both sides are real and relevant.
+        if (fields[1]) paths.add(fields[1]);
+        if (fields[2]) paths.add(fields[2]);
+      } else if (fields[1]) {
+        paths.add(fields[1]);
+      }
+    }
+  } catch {
+    return new Set();
+  }
+  return paths;
+}
+
+/** The real `modules` object as it existed at the real, last-committed HEAD — the baseline "already-real-before-this-run" state. Empty if there's no HEAD yet (first-ever commit — everything in it is real and new) or the registry didn't exist there. */
+function readHeadModules(root: string, registryPath: string): Record<string, unknown> {
+  if (!isGitRepo(root)) return {};
+  try {
+    const raw = git(root, ["show", `HEAD:${registryPath}`]);
+    const parsed = JSON.parse(raw) as { modules?: Record<string, unknown> };
+    return parsed.modules ?? {};
+  } catch {
+    // No HEAD (fresh repo before any commit) / registry didn't exist at HEAD
+    // yet / not valid JSON at HEAD — treat baseline as empty. Every current
+    // entry is then correctly "new relative to HEAD", i.e. real and relevant.
+    return {};
+  }
+}
+
+/**
+ * The real set of registry paths relevant to THIS commit:
+ *   (a) every path really staged for this commit right now (`git diff --cached`), UNION
+ *   (b) every registry path whose entry value genuinely differs from (or is
+ *       absent from) the real registry at HEAD — i.e. an entry
+ *       scripts/sync-registry.ts (Step 0, which runs immediately before this
+ *       gate) just really added or modified this exact run. This must be
+ *       true regardless of whether that change has been re-staged yet — a
+ *       genuinely new/changed entry must never silently skip validation
+ *       just because `git add` hasn't run on it yet.
+ * Everything NOT in this set is real, pre-existing registry content — still
+ * fully classified and reported (see runGate()'s `reportOnly`), never hidden,
+ * but never a reason to hard-block a commit it has nothing to do with.
+ */
+export function computeRelevantPaths(
+  root: string,
+  registryPath: string,
+  currentModules: Record<string, unknown>,
+): Set<string> {
+  const relevant = gitStagedFiles(root);
+  const headModules = readHeadModules(root, registryPath);
+  for (const [path, data] of Object.entries(currentModules)) {
+    const priorValue = headModules[path];
+    if (priorValue === undefined || JSON.stringify(priorValue) !== JSON.stringify(data)) {
+      relevant.add(path);
+    }
+  }
+  return relevant;
 }
 
 // ── Case-sensitive filesystem helpers ───────────────────────────────────
@@ -496,7 +626,7 @@ export async function runGate(opts: GateOptions = {}): Promise<GateResult> {
     rawText = readRegistryRawText(root, registryPath, source);
   } catch (e) {
     return {
-      pass: false, total: 0, verdicts: [], blockers: [], byClassification: emptyByClass(),
+      pass: false, total: 0, verdicts: [], blockers: [], reportOnly: [], relevantPaths: [], byClassification: emptyByClass(),
       raceDetected: false, parseError: `could not read registry at '${registryPath}': ${e instanceof Error ? e.message : String(e)}`,
     };
   }
@@ -507,7 +637,7 @@ export async function runGate(opts: GateOptions = {}): Promise<GateResult> {
     parsed = JSON.parse(rawText);
   } catch (e) {
     return {
-      pass: false, total: 0, verdicts: [], blockers: [], byClassification: emptyByClass(),
+      pass: false, total: 0, verdicts: [], blockers: [], reportOnly: [], relevantPaths: [], byClassification: emptyByClass(),
       raceDetected: false, parseError: `registry is not valid JSON: ${e instanceof Error ? e.message : String(e)}`,
     };
   }
@@ -546,10 +676,20 @@ export async function runGate(opts: GateOptions = {}): Promise<GateResult> {
   const byClassification = emptyByClass();
   for (const v of verdicts) byClassification[v.classification]++;
 
-  const blockers = verdicts.filter((v) => v.classification !== "VALID");
+  // TASK-077 scoping: real, pre-existing registry content unrelated to this
+  // commit is still fully classified above (nothing hidden) but must not
+  // hard-block a commit it has nothing to do with — only non-VALID entries
+  // INSIDE the real commit-relevant set determine `pass`.
+  const relevantPaths = computeRelevantPaths(root, registryPath, modules);
+  const nonValid = verdicts.filter((v) => v.classification !== "VALID");
+  const blockers = nonValid.filter((v) => relevantPaths.has(v.path));
+  const reportOnly = nonValid.filter((v) => !relevantPaths.has(v.path));
   const pass = blockers.length === 0 && !raceDetected;
 
-  return { pass, total: verdicts.length, verdicts, blockers, byClassification, raceDetected, raceDetail };
+  return {
+    pass, total: verdicts.length, verdicts, blockers, reportOnly,
+    relevantPaths: [...relevantPaths].sort(), byClassification, raceDetected, raceDetail,
+  };
 }
 
 // ── Reporting ──────────────────────────────────────────────────────────
@@ -563,15 +703,24 @@ export function formatReport(result: GateResult): string {
     return lines.join("\n");
   }
   lines.push(`Total entries checked: ${result.total}`);
+  lines.push(`Commit-relevant paths (staged + newly added/changed this run): ${result.relevantPaths.length}`);
   for (const [cls, count] of Object.entries(result.byClassification)) {
     if (count > 0) lines.push(`  ${cls}: ${count}`);
   }
   if (result.blockers.length > 0) {
     lines.push("");
-    lines.push(`${result.blockers.length} BLOCKING entr${result.blockers.length === 1 ? "y" : "ies"}:`);
+    lines.push(`${result.blockers.length} BLOCKING entr${result.blockers.length === 1 ? "y" : "ies"} (part of THIS commit):`);
     for (const b of result.blockers) {
       lines.push(`  [${b.classification}] ${b.path}`);
       lines.push(`    ${b.reason}`);
+    }
+  }
+  if (result.reportOnly.length > 0) {
+    lines.push("");
+    lines.push(`${result.reportOnly.length} non-VALID entr${result.reportOnly.length === 1 ? "y" : "ies"} OUTSIDE this commit's scope (reported, NOT blocking — real, pre-existing registry content unrelated to this commit, e.g. a concurrent session's real in-progress work):`);
+    for (const r of result.reportOnly) {
+      lines.push(`  [${r.classification}] ${r.path}`);
+      lines.push(`    ${r.reason}`);
     }
   }
   if (result.raceDetected) {

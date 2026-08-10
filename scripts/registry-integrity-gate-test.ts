@@ -94,9 +94,15 @@ async function main() {
   // REGRESSION TESTS — the 2 real bugs found this session
   // ══════════════════════════════════════════════════════════════════
 
-  await test("REGRESSION 1/2 — trailing-comma-array bug: purpose_th as a 1-element array (the exact real historical shape from commit d6e6d2d, scripts/ide-editor-overflow-verify.ts) is classified TYPE_MISMATCH and blocks", async () => {
+  await test("REGRESSION 1/2 — trailing-comma-array bug: purpose_th as a 1-element array (the exact real historical shape from commit d6e6d2d, scripts/ide-editor-overflow-verify.ts) is classified TYPE_MISMATCH and blocks (real, staged, IN this commit's scope — TASK-077)", async () => {
     const dir = newFixtureRepo();
     try {
+      // Baseline commit WITHOUT the bug — this run's own real, staged change
+      // (below) is what introduces it, matching the real shape of "this
+      // commit's own real changes" that TASK-077's relevance scoping must
+      // still hard-block on with zero weakening.
+      writeFileEnsuringDir(dir, "README.md", "fixture repo\n");
+      commitAll(dir, "baseline (no fixture entry yet)");
       writeFileEnsuringDir(dir, "scripts/ide-editor-overflow-verify.ts", "export {};\n");
       writeRegistry(dir, {
         "scripts/ide-editor-overflow-verify.ts": {
@@ -110,17 +116,18 @@ async function main() {
           status: "active",
         },
       });
-      commitAll(dir, "fixture: trailing-comma-array bug");
+      git(dir, ["add", "-A"]); // stage — this is this commit's own real, in-scope change
       const result = await runGate({ root: dir, source: "worktree" });
       assertEqual(result.pass, false, "gate must block a registry with the real trailing-comma-array shape");
       const v = result.verdicts.find((v) => v.path === "scripts/ide-editor-overflow-verify.ts");
       assert(!!v, "expected a verdict for the fixture path");
       assertEqual(v!.classification, "TYPE_MISMATCH", "must classify the array-instead-of-string field as TYPE_MISMATCH");
       assert(v!.reason.includes("purpose_th"), `reason should name the real broken field, got: ${v!.reason}`);
+      assert(result.blockers.some((b) => b.path === "scripts/ide-editor-overflow-verify.ts"), "must be a real hard blocker, not report-only");
     } finally { cleanup(dir); }
   });
 
-  await test("REGRESSION 2/2 — stale-fixture-style deleted file: a registry entry for a deleted test-fixture-shaped path is classified DELETED and blocks", async () => {
+  await test("REGRESSION 2/2 — stale-fixture-style deleted file: a registry entry for a deleted test-fixture-shaped path is classified DELETED and blocks (real, staged, IN this commit's scope — TASK-077)", async () => {
     const dir = newFixtureRepo();
     try {
       // Real historical shape: scripts/_ide_regression_fixtures/* entries
@@ -128,15 +135,17 @@ async function main() {
       // registration outlived them. Never create the file on disk at all —
       // that's the real end-state that tripped the BROKEN-module guard.
       writeFileEnsuringDir(dir, "README.md", "fixture repo\n");
+      commitAll(dir, "baseline (no fixture entry yet)");
       writeRegistry(dir, {
         "scripts/_ide_regression_fixtures/some-fixture.ts": realEntry({ status: "stale" }),
       });
-      commitAll(dir, "fixture: stale deleted-file entry");
+      git(dir, ["add", "-A"]); // stage — this is this commit's own real, in-scope change
       const result = await runGate({ root: dir, source: "worktree" });
       assertEqual(result.pass, false, "gate must block a registry entry pointing at a deleted file");
       const v = result.verdicts.find((v) => v.path === "scripts/_ide_regression_fixtures/some-fixture.ts");
       assert(!!v, "expected a verdict for the fixture path");
       assertEqual(v!.classification, "DELETED", "a file that genuinely does not exist, with no rename trace, must be DELETED");
+      assert(result.blockers.some((b) => b.path === "scripts/_ide_regression_fixtures/some-fixture.ts"), "must be a real hard blocker, not report-only");
     } finally { cleanup(dir); }
   });
 
@@ -144,17 +153,22 @@ async function main() {
   // 9 REQUIRED SYNTHETIC SCENARIOS (TASK-076 Phase 4)
   // ══════════════════════════════════════════════════════════════════
 
-  await test("SYNTHETIC 1/9 — file deleted: committed file removed from disk after registration -> DELETED, blocks", async () => {
+  await test("SYNTHETIC 1/9 — file deleted: committed file removed from disk after registration -> DELETED, blocks (real, staged deletion — TASK-077 in-scope)", async () => {
     const dir = newFixtureRepo();
     try {
       writeFileEnsuringDir(dir, "scripts/will-be-deleted.ts", "export {};\n");
       writeRegistry(dir, { "scripts/will-be-deleted.ts": realEntry() });
       commitAll(dir, "add file + registry entry");
       rmSync(join(dir, "scripts/will-be-deleted.ts"));
+      // TASK-077: stage the real deletion — this is what makes it THIS
+      // commit's own real change (as opposed to a pre-existing, unrelated
+      // deletion nobody has staged yet), which must still hard-block.
+      git(dir, ["add", "-A"]);
       const result = await runGate({ root: dir, source: "worktree" });
       const v = result.verdicts.find((v) => v.path === "scripts/will-be-deleted.ts");
       assertEqual(v?.classification, "DELETED", "deleted file must classify DELETED");
       assertEqual(result.pass, false, "must block");
+      assert(result.blockers.some((b) => b.path === "scripts/will-be-deleted.ts"), "must be a real hard blocker, not report-only");
     } finally { cleanup(dir); }
   });
 
@@ -204,9 +218,11 @@ async function main() {
     } finally { cleanup(dir); }
   });
 
-  await test("SYNTHETIC 5/9 — registry duplicate entry: same key appears twice in the raw JSON text -> DUPLICATE, blocks", async () => {
+  await test("SYNTHETIC 5/9 — registry duplicate entry: same key appears twice in the raw JSON text -> DUPLICATE, blocks (real, staged, IN this commit's scope — TASK-077)", async () => {
     const dir = newFixtureRepo();
     try {
+      writeFileEnsuringDir(dir, "README.md", "fixture repo\n");
+      commitAll(dir, "baseline (no fixture entry yet)");
       writeFileEnsuringDir(dir, "scripts/dup.ts", "export {};\n");
       // Hand-write raw JSON with a literal duplicate key — JSON.parse would
       // silently collapse this to one entry, which is exactly the real gap
@@ -223,36 +239,42 @@ async function main() {
 }
 `;
       writeRegistryRaw(dir, raw);
-      commitAll(dir, "fixture: duplicate registry key");
+      git(dir, ["add", "-A"]); // stage — this commit's own real, in-scope change
       const result = await runGate({ root: dir, source: "worktree" });
       const v = result.verdicts.find((v) => v.path === "scripts/dup.ts");
       assertEqual(v?.classification, "DUPLICATE", "a literal duplicate JSON key must classify DUPLICATE");
       assertEqual(result.pass, false, "must block");
+      assert(result.blockers.some((b) => b.path === "scripts/dup.ts"), "must be a real hard blocker, not report-only");
     } finally { cleanup(dir); }
   });
 
-  await test("SYNTHETIC 6/9 — wrong-case path: real file 'Foo.ts', registry key 'foo.ts' -> CASE_MISMATCH with the real-case reconciledPath, blocks", async () => {
+  await test("SYNTHETIC 6/9 — wrong-case path: real file 'Foo.ts', registry key 'foo.ts' -> CASE_MISMATCH with the real-case reconciledPath, blocks (real, staged, IN this commit's scope — TASK-077)", async () => {
     const dir = newFixtureRepo();
     try {
+      writeFileEnsuringDir(dir, "README.md", "fixture repo\n");
+      commitAll(dir, "baseline (no fixture entry yet)");
       writeFileEnsuringDir(dir, "scripts/Foo.ts", "export {};\n");
       writeRegistry(dir, { "scripts/foo.ts": realEntry() });
-      commitAll(dir, "fixture: case mismatch");
+      git(dir, ["add", "-A"]); // stage — this commit's own real, in-scope change
       const result = await runGate({ root: dir, source: "worktree" });
       const v = result.verdicts.find((v) => v.path === "scripts/foo.ts");
       assertEqual(v?.classification, "CASE_MISMATCH", "wrong-case registry path must classify CASE_MISMATCH");
       assertEqual(v?.reconciledPath, "scripts/Foo.ts", "reconciledPath must be the real, correctly-cased path");
       assertEqual(result.pass, false, "must block");
+      assert(result.blockers.some((b) => b.path === "scripts/foo.ts"), "must be a real hard blocker, not report-only");
     } finally { cleanup(dir); }
   });
 
-  await test("SYNTHETIC 7/9 — wrong type/shape: exports is a string instead of string[] -> TYPE_MISMATCH, blocks", async () => {
+  await test("SYNTHETIC 7/9 — wrong type/shape: exports is a string instead of string[] -> TYPE_MISMATCH, blocks (real, staged, IN this commit's scope — TASK-077)", async () => {
     const dir = newFixtureRepo();
     try {
+      writeFileEnsuringDir(dir, "README.md", "fixture repo\n");
+      commitAll(dir, "baseline (no fixture entry yet)");
       writeFileEnsuringDir(dir, "scripts/bad-shape.ts", "export {};\n");
       writeRegistry(dir, {
         "scripts/bad-shape.ts": realEntry({ exports: "shouldBeAnArray" }),
       });
-      commitAll(dir, "fixture: wrong shape");
+      git(dir, ["add", "-A"]); // stage — this commit's own real, in-scope change
       const result = await runGate({ root: dir, source: "worktree" });
       const v = result.verdicts.find((v) => v.path === "scripts/bad-shape.ts");
       assertEqual(v?.classification, "TYPE_MISMATCH", "wrong-type exports field must classify TYPE_MISMATCH");
@@ -306,6 +328,68 @@ async function main() {
       });
       assertEqual(result.raceDetected, true, "a mid-check write must be detected as a real race");
       assertEqual(result.pass, false, "a detected race must force a block, never a silent pass");
+    } finally { cleanup(dir); }
+  });
+
+  // ══════════════════════════════════════════════════════════════════
+  // TASK-077 / FCR-026 follow-up — commit-relevance scoping
+  //
+  // Proves the exact real-world distinction MANAGER-07's own independent
+  // verification found missing: an UNTRACKED-classified entry that is real,
+  // pre-existing registry content unrelated to THIS commit (nothing staged,
+  // nothing changed since HEAD — e.g. a concurrent session's real,
+  // in-progress work) must PASS, report-only, never block. An otherwise
+  // IDENTICAL UNTRACKED entry that genuinely IS part of THIS commit (its
+  // registry entry is new/changed relative to HEAD, exactly what
+  // scripts/sync-registry.ts, Step 0, would really do) must still hard-block
+  // — zero weakening for the actual bug class the gate exists to catch.
+  // ══════════════════════════════════════════════════════════════════
+
+  await test("SCOPE 1/2 — UNTRACKED entry OUTSIDE this commit's scope (real, pre-existing, already at HEAD, nothing staged/changed) -> PASS, report-only, never blocks", async () => {
+    const dir = newFixtureRepo();
+    try {
+      // The source file genuinely exists on disk but was never `git add`ed —
+      // yet the registry ENTRY referencing it was already committed to HEAD
+      // in a real, prior commit (a real, historical registration gap, same
+      // shape as this repo's own real concurrent-session noise). Nothing
+      // about this commit touches it: nothing staged, and the entry's value
+      // is byte-identical to what's already at HEAD.
+      writeFileEnsuringDir(dir, "scripts/legacy-untracked.ts", "export {};\n");
+      writeRegistry(dir, { "scripts/legacy-untracked.ts": realEntry() });
+      git(dir, ["add", "registry/module-registry.json"]); // registry entry committed; the .ts file itself deliberately never added
+      git(dir, ["commit", "-q", "-m", "baseline: pre-existing untracked-referencing entry, already real at HEAD"]);
+      // Nothing further staged, nothing further changed — this run has
+      // nothing to do with this entry at all.
+      const result = await runGate({ root: dir, source: "worktree" });
+      const v = result.verdicts.find((v) => v.path === "scripts/legacy-untracked.ts");
+      assert(!!v, "expected a verdict for the fixture path");
+      assertEqual(v!.classification, "UNTRACKED", "real file never added to git must still classify UNTRACKED (full, honest 4-layer classification, never skipped)");
+      assert(result.reportOnly.some((r) => r.path === "scripts/legacy-untracked.ts"), "must be reported (transparency — never silently hidden)");
+      assert(!result.blockers.some((b) => b.path === "scripts/legacy-untracked.ts"), "must NOT be a hard blocker — real, pre-existing, unrelated to this commit");
+      assertEqual(result.pass, true, "overall gate result must PASS — nothing relevant to this commit is broken");
+    } finally { cleanup(dir); }
+  });
+
+  await test("SCOPE 2/2 — otherwise-IDENTICAL UNTRACKED entry INSIDE this commit's scope (registry entry newly added/changed this run, exactly what sync-registry.ts Step 0 really does) -> BLOCK, zero weakening", async () => {
+    const dir = newFixtureRepo();
+    try {
+      writeFileEnsuringDir(dir, "README.md", "fixture repo\n");
+      commitAll(dir, "baseline (no fixture entry yet)");
+      // Same real shape as SCOPE 1/2 (file exists, never `git add`ed) — but
+      // this time the registry entry itself is genuinely NEW relative to
+      // HEAD (added this run, staged, exactly the real
+      // scripts/sync-registry.ts Step 0 shape) — a real, in-scope change
+      // this commit is actually making.
+      writeFileEnsuringDir(dir, "scripts/legacy-untracked.ts", "export {};\n");
+      writeRegistry(dir, { "scripts/legacy-untracked.ts": realEntry() });
+      git(dir, ["add", "registry/module-registry.json"]); // stage the registry change; the .ts file itself deliberately never added (still real UNTRACKED)
+      const result = await runGate({ root: dir, source: "worktree" });
+      const v = result.verdicts.find((v) => v.path === "scripts/legacy-untracked.ts");
+      assert(!!v, "expected a verdict for the fixture path");
+      assertEqual(v!.classification, "UNTRACKED", "same real classification as SCOPE 1/2 — the only real difference is commit-relevance");
+      assert(result.blockers.some((b) => b.path === "scripts/legacy-untracked.ts"), "must be a real hard blocker — this registry entry is genuinely new/changed as part of THIS commit");
+      assert(!result.reportOnly.some((r) => r.path === "scripts/legacy-untracked.ts"), "must not be miscategorized as report-only");
+      assertEqual(result.pass, false, "overall gate result must BLOCK — zero weakening for this commit's own real changes");
     } finally { cleanup(dir); }
   });
 
