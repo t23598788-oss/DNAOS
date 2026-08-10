@@ -2482,5 +2482,19 @@
       "registry/TASK_QUEUE.json (TASK-070 added)"
     ],
     "summary": "Owner ordered MAKE DNA OS UI ACTUALLY USABLE (capability #62), a 10-step full UI/UX overhaul of /admin/ide on the principle 'UI must be a real Control Surface, not a data display' -- explicitly folding in and superseding a separate, interrupted 'FIX EDITOR HORIZONTAL OVERFLOW' request as part of STEP 2. Before any building, MANAGER-07 mapped heavy reuse targets across 5 already-built capabilities this session (#56 Integration Gateway, #57 Reality Report, #59/#60 Worker Adapter Framework + Execution Planner + Dispatcher, #61 Settings Runtime) so STEP 3 (Live Workspace) and STEP 5 (Owner Command -> Runtime) reuse existing real machinery rather than rebuilding it. Found Playwright is already an installed dependency but has zero existing e2e config/tests -- real interaction-tested auditing (the Owner's explicit 'ห้ามเดา' requirement) will need a first, minimal real e2e setup. Dispatched TASK-070: STEP 1 only, a real, interaction-tested audit of every UI element in /admin/ide -- nothing else in this capability begins until that real map exists, per the Owner's own explicit ordering."
+  },
+  {
+    "change_id": "DNA-000153",
+    "agent": "Claude",
+    "agent_id": null,
+    "agent_id_note": "Not available to this session — not guessed.",
+    "session_id": null,
+    "date": "2026-08-10",
+    "files": [
+      "registry/CONSTITUTION.json (Rule 261 appended)",
+      "registry/rule-coverage.json (entry for rule 261)",
+      "registry/TASK_QUEUE.json (TASK-071 added)"
+    ],
+    "summary": "Owner issued a durable policy directive: no capability may be declared ACTIVE/READY/CONNECTED/COMPLETE based on code/tests alone — only genuine Owner-facing operability (see/understand/invoke/run/status/result/evidence/survives-refresh, all 8 real) counts. Recorded as Constitution Rule 261, applying retroactively to this session's own prior declarations, not grandfathered. New rule explicitly blocks registering further new capabilities until the priority set (AI command, File workspace, Search, Save, Test, Build, Worker dispatch, Connections, Runtime status) reaches real OWNER_OPERABLE status. Dispatched TASK-071 (Owner Operability Matrix) in parallel with the already-running TASK-070 (live UI interaction audit of /admin/ide specifically) -- scoped to avoid duplication: TASK-071 covers the broader, registry-driven capability classification across all 9 priority areas, several of which (Worker dispatch, Connections) have zero UI anywhere in the system today, not just outside /admin/ide."
   }
 ]

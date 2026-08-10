@@ -1483,6 +1483,12 @@
       "enforced_by": [],
       "type": "process",
       "detection": "NOT_IMPLEMENTED — declared architectural principle only as of DNA-000132. Real audit of every place Factory/Vercel/Provider/External-Platform is framed as the system's center tracked as TASK-057 (read-only research, no code change). A non-destructive migration plan is Owner deliverable #2 of that task — real code changes for the migration itself are explicitly gated on Owner approval of that plan, per the Owner's own instruction, not auto-applied."
+    },
+    "261": {
+      "title": "Owner Operability Is The Only Real Definition Of Done",
+      "enforced_by": [],
+      "type": "process",
+      "detection": "NOT_IMPLEMENTED — declared policy only as of DNA-000153. Real audit tracked as TASK-071 (Owner Operability Matrix, priority-scoped to AI command/File workspace/Search/Save/Test/Build/Worker dispatch/Connections/Runtime status first)."
     }
   },
   "uncovered_rules": [
