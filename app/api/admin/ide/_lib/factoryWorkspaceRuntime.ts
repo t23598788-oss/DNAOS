@@ -275,12 +275,13 @@ export function recordWorkerAssignment(workspaceSessionId: string, ownerId: stri
  * session. Never writes a byte to disk by itself. */
 export async function generateWorkerProposal(
   workspaceSessionId: string, ownerId: string, actor: string, executionStepId: string, taskDescription: string, acceptanceCriteria: string[],
-  ownerPreference: string[] = []
+  ownerPreference: string[] = [],
+  scopeOverride?: { permittedTools?: string[]; forbiddenTools?: string[]; approvalPolicy?: "OWNER_APPROVAL_REQUIRED" | "AUTO_LOW_RISK" }
 ): Promise<{ session: WorkspaceSession; proposal: CodeWorkerProposal }> {
   const s = getWorkspaceSession(workspaceSessionId, ownerId);
   if (!s.contextPlanId) throw new FactoryWorkspaceError("INVALID_TRANSITION", "no real, approved Context Plan yet");
   const contextPlan = getContextPlan(s.contextPlanId, ownerId);
-  const proposal = await generateCodeWorkerProposal(contextPlan, executionStepId, taskDescription, acceptanceCriteria, ownerId, actor, ownerPreference);
+  const proposal = await generateCodeWorkerProposal(contextPlan, executionStepId, taskDescription, acceptanceCriteria, ownerId, actor, ownerPreference, scopeOverride);
   s.artifactIds.push(...proposal.artifactIds);
   touch(s);
   emit(workspaceSessionId, "WORKER_ASSIGNED", `real CODE_WORKER proposal ${proposal.proposalId}: ok=${proposal.ok}, ${proposal.files.length} real file(s) proposed via provider "${proposal.provider}"`);

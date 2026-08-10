@@ -72,6 +72,34 @@ const EXCLUDED_FILE_PATTERNS: RegExp[] = [
   /secret/i,
 ];
 
+// Real, defense-in-depth denylist (Software Factory Readiness, Worker
+// #2/UI_WORKER gap fill, 2026-08-09) — real, structurally dangerous
+// paths (DB migrations, CI/CD, infra-as-code, deploy config) that no
+// scoped Worker may ever write to, REGARDLESS of what a Job Contract's
+// permittedWriteScope says. This is a second, independent check on top
+// of scope matching — a JobContract author's mistake (accidentally
+// including one of these in permittedWriteScope) is still refused here.
+// Checked by codeWorkerRuntime.ts#validateOperationScope for every
+// Worker (Worker #1's CODE_WORKER and Worker #2's UI_WORKER alike).
+const HIGH_RISK_INFRA_PATTERNS: RegExp[] = [
+  /^supabase\/migrations\//i,
+  /^supabase\/functions\//i,
+  /^\.github\/workflows\//i,
+  /^\.githooks\//i,
+  /^infra\//i,
+  /^terraform\//i,
+  /^k8s\//i,
+  /^helm\//i,
+  /^\.vercel\//i,
+  /^vercel\.json$/i,
+  /^docker-compose[\w.-]*\.ya?ml$/i,
+  /^Dockerfile[\w.-]*$/i,
+];
+
+export function isHighRiskInfraPath(relPath: string): boolean {
+  return HIGH_RISK_INFRA_PATTERNS.some((p) => p.test(relPath));
+}
+
 export function isExcludedName(name: string, isDirectory: boolean): boolean {
   if (isDirectory) {
     return EXCLUDED_DIR_NAMES.has(name) || EXCLUDED_DIR_PATTERN.test(name);

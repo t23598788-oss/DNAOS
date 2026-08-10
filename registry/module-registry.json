@@ -13062,8 +13062,8 @@
     "app/api/admin/ide/_lib/acceptanceContractRuntime.ts": {
       "owner": "app",
       "layer": "app",
-      "purpose": "[Auto-detected] app/api/admin/ide/_lib/acceptanceContractRuntime.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] app/api/admin/ide/_lib/acceptanceContractRuntime.ts",
+      "purpose": "Real deterministic criterion compiler/evaluator — compiles a Worker task real acceptance_criteria strings into typed CompiledCriterion entries (FILE_EXISTS, TEST_MUST_PASS, and more), then evaluates real evidence against them. Never a live LLM judgment call.",
+      "purpose_th": "ตัวแปลและตรวจเงื่อนไขการยอมรับงานแบบกำหนดแน่นอน (ไม่ใช้ AI ตัดสิน) — แปลเงื่อนไขจริงของงาน (เช่น ไฟล์ต้องมีอยู่จริง, การทดสอบต้องผ่านจริง) แล้วตรวจหลักฐานจริงเทียบกับเงื่อนไขเหล่านั้น",
       "exports": [
         "AcceptanceEvidence",
         "CompiledCriterion",
@@ -13073,7 +13073,7 @@
         "compileAcceptanceCriteria",
         "evaluateAcceptanceContract"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "components/workspace/CapabilityMapSection.tsx": {
       "owner": "components",

@@ -151,6 +151,62 @@ export function buildContextPlan(
   return plan;
 }
 
+/** Real, minimum-context Context Plan constructor (Software Factory
+ * Readiness gap fill — Job Contract minimum context, 2026-08-09). Unlike
+ * buildContextPlan() above, this NEVER expands via the Capability
+ * Registry or the Architecture Book's dependency graph — it includes
+ * ONLY the literal files a Job Contract's own permittedReadScope names,
+ * nothing else. This is the real, minimum-context delivery path for a
+ * scoped Worker task (Job Contract) that must not see the repo beyond
+ * what it was explicitly given. Reuses the exact same real
+ * isExcludedName/MAX_INCLUDED_FILES/existence checks as
+ * buildContextPlan() — never a second, weaker safety check. */
+export function buildMinimalContextPlan(
+  workspaceSessionId: string, ownerId: string, actor: string,
+  permittedReadScope: string[], permittedWriteScope: string[],
+): ContextPlan {
+  const includedFiles: ContextFileEntry[] = [];
+  const excludedFiles: { path: string; reason: string }[] = [];
+  const seen = new Set<string>();
+
+  for (const file of permittedReadScope) {
+    if (seen.has(file)) continue;
+    seen.add(file);
+    const segments = file.split("/");
+    const isExcluded = segments.some((seg, i) => isExcludedName(seg, i < segments.length - 1));
+    if (isExcluded) { excludedFiles.push({ path: file, reason: "matches a real, already-enforced fsSecurity.ts exclusion pattern (.env/secret/credential/node_modules/etc.)" }); continue; }
+    const absPath = path.join(ROOT, file);
+    if (!existsSync(absPath)) { excludedFiles.push({ path: file, reason: "real file does not exist on disk" }); continue; }
+    if (includedFiles.length >= MAX_INCLUDED_FILES) { excludedFiles.push({ path: file, reason: `real MAX_INCLUDED_FILES (${MAX_INCLUDED_FILES}) scope guard reached — never send the whole repo` }); continue; }
+    const size = statSync(absPath).size;
+    includedFiles.push({ path: file, reason: "real, literal file named in this Job Contract's permittedReadScope — never dependency-graph-expanded", sizeBytes: size });
+  }
+
+  const sizeBytes = includedFiles.reduce((sum, f) => sum + f.sizeBytes, 0);
+  const tokenEstimate = Math.round(sizeBytes / 4);
+  const forbiddenPaths = [".env", ".env.local", "**/*.pem", "**/*.key", "**/*credential*", "**/*secret*", "node_modules/**", ".git/**"];
+  const sourceFingerprint = sha256Hex(includedFiles.map((f) => `${f.path}:${f.sizeBytes}`).sort().join("|"));
+
+  const contextPlanId = randomUUID();
+  const plan: ContextPlan = {
+    contextPlanId, workspaceSessionId, includedFiles, excludedFiles, forbiddenPaths,
+    permittedReadScope: includedFiles.map((f) => f.path), permittedWriteScope,
+    requiredContracts: [], requiredTests: [], requiredEvidence: ["real Job Contract (minimum-context path — no Capability Resolver, no dependency-graph expansion)"],
+    tokenEstimate, sizeBytes, sourceFingerprint, approved: false, approvedAt: null,
+    createdAt: new Date().toISOString(), ownerId, actor, artifactIds: [],
+  };
+
+  const artifact = createOperationsArtifact({
+    artifactType: "CONTEXT_PLAN", content: JSON.stringify(plan), mimeType: "application/json",
+    actor, ownerId, generatedFrom: contextPlanId, jobId: null, workspaceSessionId,
+  });
+  plan.artifactIds.push(artifact.artifactId);
+
+  contextPlans.set(contextPlanId, plan);
+  evictOld(ownerId);
+  return plan;
+}
+
 export function approveContextPlan(contextPlanId: string, ownerId: string, actor: string): ContextPlan {
   const plan = getContextPlan(contextPlanId, ownerId);
   if (plan.includedFiles.length >= MAX_INCLUDED_FILES) throw new ContextPlannerError("SCOPE_TOO_BROAD", `real Context Plan hit the MAX_INCLUDED_FILES (${MAX_INCLUDED_FILES}) guard — narrow the intent before approving`);
