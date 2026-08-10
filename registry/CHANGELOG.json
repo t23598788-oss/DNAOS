@@ -2443,5 +2443,18 @@
       "registry/capability-roadmap.json (capability #61: Phase 1 built + verified)"
     ],
     "summary": "Closes TASK-068. Real Settings storage/API/UI/audit-evidence layer for /admin/ide built and committed (67a1ead), independently re-verified by MANAGER-07 in an isolated worktree (tsc clean, 11/12 test pass matching the CODE_WORKER's own report exactly -- no discrepancy this time, unlike TASK-066). All 3 settings honestly report UNAVAILABLE rather than a fabricated ACTIVE state, satisfying the Owner's explicit no-fake-checkbox rule. Capability #61 is not yet fully OWNER_SETTINGS_RUNTIME = ACTIVE -- that requires at least one setting to reach genuine ACTIVE status with a real runtime consumer, which is intentionally the next task."
+  },
+  {
+    "change_id": "DNA-000150",
+    "agent": "Claude",
+    "agent_id": null,
+    "agent_id_note": "Not available to this session — not guessed.",
+    "session_id": null,
+    "date": "2026-08-10",
+    "files": [
+      "registry/TASK_QUEUE.json (TASK-069 added)",
+      "registry/capability-roadmap.json (capability #61: TASK-069 dispatched)"
+    ],
+    "summary": "Owner ordered ACTIVATE FIRST REAL SETTING: build the real Auto-save debounce runtime, wiring it to the existing saveFile() path (components/ide-shell/IDEWorkspace.tsx:610) without bypassing any fileWrite/fsSecurity/lock policy, using TASK-068's already-real storage/API/UI layer -- no new settings system. Dispatched TASK-069 with the Owner's exact 7-step spec (inventory re-check, debounce build respecting lock policy, real ON/OFF round-trip proof using an isolated sandbox fixture only, 4 required real evidence types, full regression). This is the first setting expected to reach genuine ACTIVE status."
   }
 ]
