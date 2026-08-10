@@ -2469,5 +2469,18 @@
       "registry/capability-roadmap.json (capability #61: AUTO_SAVE_SETTING/OWNER_SETTINGS_RUNTIME declared ACTIVE)"
     ],
     "summary": "Closes TASK-069. AUTO_SAVE_SETTING = ACTIVE and OWNER_SETTINGS_RUNTIME = ACTIVE declared (commit 5dde89d) after MANAGER-07's full, independent, isolated-worktree re-verification of every element of the Owner's Definition of Done -- not a rubber stamp on the CODE_WORKER's own report. One apparent test regression (ide:test 202/204 vs the claimed 204/204) was investigated by controlled comparison against the pre-TASK-069 commit under the identical verification setup, proving it was an artifact of the verification method (symlinked node_modules / worktree .git file) rather than a real defect -- exactly the kind of rigor this session's isolation-verification discipline exists for. Final per-setting status reported to Owner: Auto-save=ACTIVE, Format on save=UNAVAILABLE, Telemetry=UNAVAILABLE (blocked on Owner decision), Database Provider=ACTIVE. Stopping per the Owner's explicit instruction to await their choice of the next setting."
+  },
+  {
+    "change_id": "DNA-000152",
+    "agent": "Claude",
+    "agent_id": null,
+    "agent_id_note": "Not available to this session — not guessed.",
+    "session_id": null,
+    "date": "2026-08-10",
+    "files": [
+      "registry/capability-roadmap.json (capability #62 added)",
+      "registry/TASK_QUEUE.json (TASK-070 added)"
+    ],
+    "summary": "Owner ordered MAKE DNA OS UI ACTUALLY USABLE (capability #62), a 10-step full UI/UX overhaul of /admin/ide on the principle 'UI must be a real Control Surface, not a data display' -- explicitly folding in and superseding a separate, interrupted 'FIX EDITOR HORIZONTAL OVERFLOW' request as part of STEP 2. Before any building, MANAGER-07 mapped heavy reuse targets across 5 already-built capabilities this session (#56 Integration Gateway, #57 Reality Report, #59/#60 Worker Adapter Framework + Execution Planner + Dispatcher, #61 Settings Runtime) so STEP 3 (Live Workspace) and STEP 5 (Owner Command -> Runtime) reuse existing real machinery rather than rebuilding it. Found Playwright is already an installed dependency but has zero existing e2e config/tests -- real interaction-tested auditing (the Owner's explicit 'ห้ามเดา' requirement) will need a first, minimal real e2e setup. Dispatched TASK-070: STEP 1 only, a real, interaction-tested audit of every UI element in /admin/ide -- nothing else in this capability begins until that real map exists, per the Owner's own explicit ordering."
   }
 ]
