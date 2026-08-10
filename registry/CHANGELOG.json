@@ -2456,5 +2456,18 @@
       "registry/capability-roadmap.json (capability #61: TASK-069 dispatched)"
     ],
     "summary": "Owner ordered ACTIVATE FIRST REAL SETTING: build the real Auto-save debounce runtime, wiring it to the existing saveFile() path (components/ide-shell/IDEWorkspace.tsx:610) without bypassing any fileWrite/fsSecurity/lock policy, using TASK-068's already-real storage/API/UI layer -- no new settings system. Dispatched TASK-069 with the Owner's exact 7-step spec (inventory re-check, debounce build respecting lock policy, real ON/OFF round-trip proof using an isolated sandbox fixture only, 4 required real evidence types, full regression). This is the first setting expected to reach genuine ACTIVE status."
+  },
+  {
+    "change_id": "DNA-000151",
+    "agent": "Claude",
+    "agent_id": null,
+    "agent_id_note": "Not available to this session — not guessed.",
+    "session_id": null,
+    "date": "2026-08-10",
+    "files": [
+      "registry/TASK_QUEUE.json (TASK-069: not_started -> done)",
+      "registry/capability-roadmap.json (capability #61: AUTO_SAVE_SETTING/OWNER_SETTINGS_RUNTIME declared ACTIVE)"
+    ],
+    "summary": "Closes TASK-069. AUTO_SAVE_SETTING = ACTIVE and OWNER_SETTINGS_RUNTIME = ACTIVE declared (commit 5dde89d) after MANAGER-07's full, independent, isolated-worktree re-verification of every element of the Owner's Definition of Done -- not a rubber stamp on the CODE_WORKER's own report. One apparent test regression (ide:test 202/204 vs the claimed 204/204) was investigated by controlled comparison against the pre-TASK-069 commit under the identical verification setup, proving it was an artifact of the verification method (symlinked node_modules / worktree .git file) rather than a real defect -- exactly the kind of rigor this session's isolation-verification discipline exists for. Final per-setting status reported to Owner: Auto-save=ACTIVE, Format on save=UNAVAILABLE, Telemetry=UNAVAILABLE (blocked on Owner decision), Database Provider=ACTIVE. Stopping per the Owner's explicit instruction to await their choice of the next setting."
   }
 ]
