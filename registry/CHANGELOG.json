@@ -2352,5 +2352,18 @@
       "registry/capability-roadmap.json (capability #59: Execution Planner built)"
     ],
     "summary": "Closes TASK-064. Real Execution Planner built and committed (0e834b9), independently re-verified by MANAGER-07 in an isolated worktree (tsc clean, 11/11 test pass, exactly 3 files touched) before acceptance -- not trusted from the CODE_WORKER's own report alone, consistent with this session's standing verification discipline. Capability #59's build order (Planner first, Resolver wiring and new adapters deferred with clear evidence-based reasons) proceeds as designed in TASK-063."
+  },
+  {
+    "change_id": "DNA-000143",
+    "agent": "Claude",
+    "agent_id": null,
+    "agent_id_note": "Not available to this session — not guessed.",
+    "session_id": null,
+    "date": "2026-08-10",
+    "files": [
+      "registry/capability-roadmap.json (capability #60 added)",
+      "registry/TASK_QUEUE.json (TASK-065 added)"
+    ],
+    "summary": "Owner specified capability #60 (Universal Worker Adapter Framework) as a terse pipeline diagram. Before registering as new work, MANAGER-07 checked the registry first and found major real overlap with 2 existing capabilities the Owner's message didn't reference: #56 (Integration Gateway, complete/live, real GitHub/Vercel/Supabase adapters, event/webhook-shaped) and #59 (External Worker Adapter Framework, real synchronous workerContract.ts/workerAdapter.ts + the new Execution Planner from TASK-064). Registered #60 explicitly as a UNIFICATION target, not a third parallel system. Grep-verified real status per named target: GitHub/Vercel/Supabase already real (via #56); Docker has real code but for an unrelated purpose (storage adapter + dependency scanning, not worker dispatch — needs disambiguation); VS Code is only a type/enum value with no real adapter behind it; Google Workspace is confirmed fully missing. Also flagged an honest architecture ordering conflict: the Owner's #60 diagram places Resolver before Execution Planner, while #59's own architecture (from TASK-063, already built as TASK-064) places Execution Planner first — not silently resolved, flagged for TASK-065 to surface explicitly. Dispatched TASK-065 as read-only research + design, not implementation."
   }
 ]
