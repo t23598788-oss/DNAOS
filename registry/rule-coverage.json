@@ -1495,6 +1495,12 @@
       "enforced_by": [],
       "type": "process",
       "detection": "NOT_IMPLEMENTED — declared policy only as of DNA-000159. Real, tracked violation: FCR-025 (/admin/ide's default dark theme). No task yet dispatched to fix it — awaiting Owner direction on scope/priority given the scale (a full, ~5822-line file currently styled entirely with hardcoded dark hex values, no theme/token system)."
+    },
+    "263": {
+      "title": "Stable Owner URL — same route, no duplicate/alternate pages, old UI trashed only after real confirmation",
+      "enforced_by": [],
+      "type": "process",
+      "detection": "NOT_IMPLEMENTED — declared policy only as of DNA-000160. Governs how the still-pending /admin/ide light-theme work (FCR-025) and all future UI work must be deployed once dispatched."
     }
   },
   "uncovered_rules": [

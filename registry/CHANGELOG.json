@@ -2577,5 +2577,18 @@
       "registry/FACTORY_CENTRAL_REGISTRY.json (FCR-025 added, escalated)"
     ],
     "summary": "Owner issued OWNER UI RULE + VISUAL POLICY: every UI change must be locally tested, built, DEPLOYED to a real URL, and OWNER VISUALLY VERIFIED before being declared done -- and Owner-facing UI must default to Light Theme, never the current VS-Code-style dark appearance. Recorded as Constitution Rule 262. Immediately cross-checked against MANAGER-07's own just-completed visual audit of /admin/ide (components/ide-shell/IDEWorkspace.tsx) and confirmed a real, direct violation -- the entire file is dark-themed by default with no light-mode path at all. Registered as FCR-025, escalated. Per Rule 261's no-grandfathering precedent, none of today's own /admin/ide UI work (Settings, Auto-save, Connections) yet meets the new DEPLOYED + OWNER VISUALLY VERIFIED bar either, since nothing has been pushed/deployed. Not yet dispatched as a build task -- flagged to the Owner given the real scale of a full light-theme conversion, awaiting confirmation on scope/priority before committing agent time."
+  },
+  {
+    "change_id": "DNA-000160",
+    "agent": "Claude",
+    "agent_id": null,
+    "agent_id_note": "Not available to this session — not guessed.",
+    "session_id": null,
+    "date": "2026-08-10",
+    "files": [
+      "registry/CONSTITUTION.json (Rule 263 appended)",
+      "registry/rule-coverage.json (entry for rule 263)"
+    ],
+    "summary": "Owner issued RULE 263 — STABLE OWNER URL, extending Rule 262: any redesigned page must deploy back to its same real route (never a new URL/duplicate page without explicit Owner command), preview routes are never the final judged result, and old UI may only be trashed after a real same-URL deploy + real Owner visual confirmation -- shared backend/API/Runtime must never be removed alongside retired UI. Recorded as Constitution Rule 263. Sent together with a repeated statement of Rule 262/Visual Policy, already recorded the same day (DNA-000159) -- not re-registered, per the append-only/no-duplicate-rule discipline. Both rules now govern the still-pending /admin/ide light-theme conversion (FCR-025) once it's dispatched."
   }
 ]
