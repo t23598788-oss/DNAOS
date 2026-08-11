@@ -2693,5 +2693,18 @@
       "registry/FACTORY_CENTRAL_REGISTRY.json (FCR-026: resolved)"
     ],
     "summary": "Closes TASK-076/077 and resolves FCR-026. The registry-integrity-gate (Owner directive, following MANAGER-07's own discovery of 2 real registry bugs during FCR-025) is now real, correctly scoped, and live in the real pre-commit pipeline. The first delivery (TASK-076) had a severe design gap -- would have blocked all future commits in this shared repo -- caught by MANAGER-07's own independent verification against the real working tree (not just an isolated test worktree), before it ever reached the live hook. The fix (TASK-077) was verified even more rigorously: the commit recording this fix was itself the real, live proof the hook works correctly, plus a deliberate re-injection of the original bug confirmed real blocking still works. This is exactly the multi-layered, never-trust-a-single-report discipline this session has maintained throughout, applied to its highest-stakes target yet -- the shared pre-commit hook every future commit depends on."
+  },
+  {
+    "change_id": "DNA-000169",
+    "agent": "Claude",
+    "agent_id": null,
+    "agent_id_note": "Not available to this session — not guessed.",
+    "session_id": null,
+    "date": "2026-08-11",
+    "files": [
+      "app/api/admin/connectors/_lib/providerDescriptors.ts (added tiktok descriptor)",
+      "registry/TASK_QUEUE.json (TASK-078 added, done)"
+    ],
+    "summary": "Following the Owner's general go-ahead, continued with buildable work not blocked on Owner-only actions: closed the TikTok labeling gap in the Connections provider catalog, mirroring the already-verified GitHub pattern from TASK-073. Small, additive, no-secrets change; independently re-verified in isolation (real npm install + tsc + next build, all exit 0) and confirmed the live registry-integrity-gate (TASK-076/077) correctly passed the real commit while correctly reporting 26 unrelated concurrent-session files as non-blocking -- a real-world proof the gate works as intended under actual concurrent load. Committed 3e628f2, pushed to origin/main."
   }
 ]
