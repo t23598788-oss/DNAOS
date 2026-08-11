@@ -2731,5 +2731,17 @@
       "registry/TASK_QUEUE.json (TASK-080 added)"
     ],
     "summary": "MANAGER-07's own routine registry-only commit was blocked, live, by the registry-integrity-gate (TASK-076/077) -- a residual false-positive gap in TASK-077's own fix: any brand-new untracked file appearing anywhere in the shared working tree (here, a concurrent session's new digitalOceanWorkerAdapter.ts) gets auto-registered by Step 0 every run and, since it differs from HEAD, is wrongly treated as relevant to ANY commit, not just ones that actually touch registry/module-registry.json. Root cause and exact fix already diagnosed (restrict the HEAD-diff clause to only apply when registry/module-registry.json is itself staged). Registered FCR-027/TASK-080 to fix and re-verify with the same rigor as the original gate build, given this hook gates every future commit for every session in this repo and is currently, actively blocking real work."
+  },
+  {
+    "change_id": "DNA-000172",
+    "agent": "Claude",
+    "agent_id": null,
+    "agent_id_note": "Not available to this session — not guessed.",
+    "session_id": null,
+    "date": "2026-08-11",
+    "files": [
+      "registry/TASK_QUEUE.json (TASK-079 superseded, TASK-081 added)"
+    ],
+    "summary": "Owner directly confirmed the intended connector architecture (build plumbing now, real humans fill credentials via real UI later). MANAGER-07 confirmed a real, concrete gap against that: the concurrent session's real FCR-028 DigitalOcean build has no actual UI path for a human to enter the credential (app/admin/infrastructure/page.tsx only displays a status label; the adapter only reads process.env). Superseded TASK-079 (would have been a duplicate build) with TASK-081: a combined independent-verification-of-FCR-028 + small, additive credential-source extension reusing the already-live /admin/connectors API-key form MANAGER-07 already confirmed exists, rather than building new UI."
   }
 ]
