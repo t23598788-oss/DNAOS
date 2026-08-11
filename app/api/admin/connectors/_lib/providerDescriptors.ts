@@ -73,6 +73,16 @@ export const KNOWN_PROVIDER_DESCRIPTORS: Record<string, ProviderDescriptor> = {
     permissions: ["send:message"],
     functionGroup: "COMMUNICATION",
   },
+  tiktok: {
+    provider: "tiktok",
+    product: "TikTok",
+    model: null,
+    logo: findTool("tiktok")?.logo ?? null,
+    role: "Social Media",
+    capabilities: ["profile", "video_list", "stats"],
+    permissions: ["read:profile", "read:video_list", "read:stats"],
+    functionGroup: "OTHER",
+  },
 };
 
 // AI / Code Worker adapters (app/api/admin/ide/_lib/workerAdapters) —
