@@ -293,16 +293,40 @@ function readHeadModules(root: string, registryPath: string): Record<string, unk
 /**
  * The real set of registry paths relevant to THIS commit:
  *   (a) every path really staged for this commit right now (`git diff --cached`), UNION
- *   (b) every registry path whose entry value genuinely differs from (or is
+ *   (b) — ONLY WHEN registryPath itself is part of (a), i.e. `registry/
+ *       module-registry.json` is genuinely staged for this commit — every
+ *       registry path whose entry value genuinely differs from (or is
  *       absent from) the real registry at HEAD — i.e. an entry
  *       scripts/sync-registry.ts (Step 0, which runs immediately before this
  *       gate) just really added or modified this exact run. This must be
  *       true regardless of whether that change has been re-staged yet — a
  *       genuinely new/changed entry must never silently skip validation
- *       just because `git add` hasn't run on it yet.
- * Everything NOT in this set is real, pre-existing registry content — still
- * fully classified and reported (see runGate()'s `reportOnly`), never hidden,
- * but never a reason to hard-block a commit it has nothing to do with.
+ *       just because `git add` hasn't run on it yet, PROVIDED the registry
+ *       itself is actually part of this commit in the first place.
+ *
+ * TASK-080 / FCR-027 fix: clause (b) used to run UNCONDITIONALLY, with no
+ * check that the registry file itself was staged. Step 0
+ * (scripts/sync-registry.ts) rewrites the real, on-disk registry on every
+ * pre-commit run for the ENTIRE working tree — including a fresh stub entry
+ * for a completely different, concurrent session's brand-new, still-
+ * unstaged file. That stub entry didn't exist at HEAD, so unconditional
+ * clause (b) added its path to the relevant/blocking set even though
+ * `registry/module-registry.json` was never staged for, and has nothing to
+ * do with, the commit actually being made (live, reproduced case: a commit
+ * staging only registry/TASK_QUEUE.json + registry/CHANGELOG.json was
+ * hard-blocked by a stub entry for
+ * app/api/admin/ide/_lib/workerAdapters/digitalOceanWorkerAdapter.ts, a
+ * different session's untracked file, whose registry stub was never staged
+ * either). Gating clause (b) on the registry itself being staged closes
+ * that gap while leaving the original TASK-076 bug class (a bad edit to
+ * module-registry.json that IS part of the staged/committed diff) fully
+ * caught — see the TASK-080 regression tests in
+ * scripts/registry-integrity-gate-test.ts.
+ *
+ * If registryPath is not staged, any drift between the on-disk registry and
+ * HEAD is real but is pre-existing, unrelated noise — it is still fully
+ * classified and reported (see runGate()'s `reportOnly`), never hidden, just
+ * never allowed to block a commit it has nothing to do with.
  */
 export function computeRelevantPaths(
   root: string,
@@ -310,11 +334,13 @@ export function computeRelevantPaths(
   currentModules: Record<string, unknown>,
 ): Set<string> {
   const relevant = gitStagedFiles(root);
-  const headModules = readHeadModules(root, registryPath);
-  for (const [path, data] of Object.entries(currentModules)) {
-    const priorValue = headModules[path];
-    if (priorValue === undefined || JSON.stringify(priorValue) !== JSON.stringify(data)) {
-      relevant.add(path);
+  if (relevant.has(registryPath)) {
+    const headModules = readHeadModules(root, registryPath);
+    for (const [path, data] of Object.entries(currentModules)) {
+      const priorValue = headModules[path];
+      if (priorValue === undefined || JSON.stringify(priorValue) !== JSON.stringify(data)) {
+        relevant.add(path);
+      }
     }
   }
   return relevant;

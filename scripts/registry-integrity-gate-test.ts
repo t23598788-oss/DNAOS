@@ -19,10 +19,34 @@ import { mkdtempSync, mkdirSync, writeFileSync, rmSync, readFileSync, existsSync
 import { join, dirname } from "path";
 import { tmpdir } from "os";
 import { execFileSync } from "child_process";
-import { classifyEntry, validateShape, runGate, type GateContext } from "./registry-integrity-gate";
+import { classifyEntry, validateShape, runGate, computeRelevantPaths, type GateContext } from "./registry-integrity-gate";
 
 const REAL_ROOT = join(__dirname, "..");
 const REAL_REGISTRY = join(REAL_ROOT, "registry/module-registry.json");
+
+/**
+ * The real, primary, shared working tree this repository was originally
+ * checked out into — e.g. `/Users/.../dna-os-deadboard`, the one place
+ * scripts/pre-commit-check.sh actually runs and every session actually
+ * commits to. Deliberately NOT the same as REAL_ROOT (`join(__dirname,
+ * "..")`): this exact test file is designed to also run from inside a
+ * disposable, isolated `git worktree add` copy (this file's own required
+ * verification protocol, TASK-076/077/080), where `__dirname` resolves to
+ * that copy, not the real shared repo. `git worktree list --porcelain`'s
+ * FIRST entry is always the original/primary worktree a repo's `.git`
+ * directory was created from, regardless of which worktree this process is
+ * actually running out of (every worktree shares the same underlying git
+ * object database) — fully dynamic, never a hardcoded machine-specific
+ * path. Used only by the TASK-080 LIVE ACCEPTANCE test below, which is
+ * meaningless against a fixture/copy and must always target the real thing.
+ */
+function findPrimaryWorktreeRoot(): string {
+  const out = execFileSync("git", ["worktree", "list", "--porcelain"], { cwd: __dirname, encoding: "utf-8" });
+  const firstLine = out.split("\n")[0] ?? "";
+  const m = /^worktree (.+)$/.exec(firstLine);
+  if (!m) throw new Error(`could not parse 'git worktree list --porcelain' output to find the real, primary, shared working tree: ${out.slice(0, 200)}`);
+  return m[1];
+}
 
 interface TestResult { name: string; pass: boolean; detail?: string }
 const results: TestResult[] = [];
@@ -210,7 +234,13 @@ async function main() {
       commitAll(dir, "initial commit (no fixture file yet)");
       writeFileEnsuringDir(dir, "scripts/never-added.ts", "export {};\n");
       writeRegistry(dir, { "scripts/never-added.ts": realEntry() });
-      // Deliberately no `git add` for scripts/never-added.ts.
+      // Deliberately no `git add` for scripts/never-added.ts — but DO stage
+      // the registry change itself (TASK-080: computeRelevantPaths()'s
+      // "differs from HEAD" scan only runs when registry/module-registry.json
+      // is itself staged, so this new entry must be made real+relevant via
+      // that route, exactly like scripts/sync-registry.ts staging its own
+      // real registry edit as part of a real commit).
+      git(dir, ["add", "registry/module-registry.json"]);
       const result = await runGate({ root: dir, source: "worktree" });
       const v = result.verdicts.find((v) => v.path === "scripts/never-added.ts");
       assertEqual(v?.classification, "UNTRACKED", "real file never added to git must classify UNTRACKED");
@@ -300,6 +330,13 @@ async function main() {
         "scripts/clean.ts": realEntry(),
         "scripts/newly-broken.ts": realEntry({ purpose_th: ["broken after first validation"] }),
       });
+      // TASK-080: stage the corrupted registry edit itself — this scenario is
+      // proving that a SECOND, independent run catches a genuinely new,
+      // in-scope violation (no stale cache), not proving anything about
+      // relevance-scoping, so it must reflect a real staged registry change
+      // (exactly like the original TASK-076 bug shape) rather than an
+      // unstaged, pre-existing-noise-shaped edit.
+      git(dir, ["add", "-A"]);
 
       const secondRun = await runGate({ root: dir, source: "worktree" });
       assertEqual(secondRun.pass, false, "second, independent run must catch the new violation — proves no stale state carried over from the first run");
@@ -391,6 +428,118 @@ async function main() {
       assert(!result.reportOnly.some((r) => r.path === "scripts/legacy-untracked.ts"), "must not be miscategorized as report-only");
       assertEqual(result.pass, false, "overall gate result must BLOCK — zero weakening for this commit's own real changes");
     } finally { cleanup(dir); }
+  });
+
+  // ══════════════════════════════════════════════════════════════════
+  // TASK-080 / FCR-027 — real, live bug fix: computeRelevantPaths()'s
+  // "differs from HEAD" scan used to run UNCONDITIONALLY, with no check
+  // that registry/module-registry.json itself was staged for THIS commit.
+  // scripts/sync-registry.ts (Step 0) rewrites the real, on-disk registry
+  // on every pre-commit run for the ENTIRE working tree — including a fresh
+  // stub entry for a different, concurrent session's brand-new, still-
+  // unstaged file. That stub differs from HEAD (it didn't exist there), so
+  // the unconditional scan added its path to the relevant/blocking set even
+  // though the registry itself was never part of the commit being made.
+  // Live, reproduced case: a commit staging only registry/TASK_QUEUE.json +
+  // registry/CHANGELOG.json was hard-blocked by a stub entry for
+  // app/api/admin/ide/_lib/workerAdapters/digitalOceanWorkerAdapter.ts — a
+  // different session's real, untracked file whose registry stub was never
+  // staged either.
+  // ══════════════════════════════════════════════════════════════════
+
+  await test("TASK-080 1/3 — regression: fresh registry entry (differs from HEAD) whose OWN path is not staged, and registry/module-registry.json itself is ALSO not staged (only an unrelated file is staged) -> computeRelevantPaths() excludes it, full runGate() is Status: PASS (report-only), never BLOCKED", async () => {
+    const dir = newFixtureRepo();
+    try {
+      writeFileEnsuringDir(dir, "unrelated.txt", "unrelated baseline file\n");
+      writeRegistry(dir, {}); // empty registry at HEAD
+      commitAll(dir, "baseline: empty registry, no fixture entry yet");
+
+      // Simulate scripts/sync-registry.ts's Step 0: it rewrites the real,
+      // on-disk registry with a fresh stub for a brand-new file belonging to
+      // a different, concurrent session — genuinely differs from HEAD (it
+      // didn't exist there at all) but is never staged, and neither is the
+      // registry file itself.
+      writeFileEnsuringDir(dir, "app/concurrent-session-file.ts", "export {};\n");
+      const currentModules = { "app/concurrent-session-file.ts": realEntry({ status: "unregistered" }) };
+      writeRegistry(dir, currentModules);
+
+      // Only an unrelated file is staged for THIS commit — neither the fresh
+      // entry's own path nor registry/module-registry.json itself.
+      writeFileEnsuringDir(dir, "unrelated.txt", "unrelated, changed for this commit\n");
+      git(dir, ["add", "unrelated.txt"]);
+
+      const relevant = computeRelevantPaths(dir, "registry/module-registry.json", currentModules);
+      assert(!relevant.has("app/concurrent-session-file.ts"), "computeRelevantPaths() must NOT include a fresh-vs-HEAD entry when registry/module-registry.json itself is not staged");
+
+      const result = await runGate({ root: dir, source: "worktree" });
+      const v = result.verdicts.find((v) => v.path === "app/concurrent-session-file.ts");
+      assert(!!v, "expected a verdict for the fixture path");
+      assert(v!.classification !== "VALID", "sanity: this entry must be genuinely non-VALID (UNTRACKED — real file, never git-added) for this test to be meaningful");
+      assert(result.reportOnly.some((r) => r.path === "app/concurrent-session-file.ts"), "must still be reported (transparency — never silently hidden)");
+      assert(!result.blockers.some((b) => b.path === "app/concurrent-session-file.ts"), "must NOT be a hard blocker — registry/module-registry.json was never staged for this commit");
+      assertEqual(result.pass, true, "Status: PASS — a commit that never staged the registry must not be blocked by an unstaged, sync-registry.ts-authored stub entry");
+    } finally { cleanup(dir); }
+  });
+
+  await test("TASK-080 2/3 — regression-confirm: identical shape, but registry/module-registry.json IS staged this run, carrying a malformed (TYPE_MISMATCH) entry -> Status: BLOCKED (proves the original TASK-076 bug class — a bad edit to module-registry.json that's part of the staged/committed diff — is still fully caught after the TASK-080 fix, zero weakening)", async () => {
+    const dir = newFixtureRepo();
+    try {
+      writeFileEnsuringDir(dir, "README.md", "fixture repo\n");
+      commitAll(dir, "baseline (no fixture entry yet)");
+      writeFileEnsuringDir(dir, "scripts/task080-bad-shape.ts", "export {};\n");
+      const currentModules = {
+        "scripts/task080-bad-shape.ts": realEntry({ purpose_th: ["TASK-080 regression-confirm: still the real historical bug shape"] }),
+      };
+      writeRegistry(dir, currentModules);
+      // The registry itself IS staged as part of this commit — the exact
+      // real TASK-076 bug shape (a bad edit landing inside the staged diff).
+      git(dir, ["add", "registry/module-registry.json"]);
+
+      const relevant = computeRelevantPaths(dir, "registry/module-registry.json", currentModules);
+      assert(relevant.has("scripts/task080-bad-shape.ts"), "computeRelevantPaths() must still include a fresh-vs-HEAD entry when registry/module-registry.json itself IS staged");
+
+      const result = await runGate({ root: dir, source: "worktree" });
+      const v = result.verdicts.find((v) => v.path === "scripts/task080-bad-shape.ts");
+      assertEqual(v?.classification, "TYPE_MISMATCH", "malformed purpose_th must still classify TYPE_MISMATCH");
+      assert(result.blockers.some((b) => b.path === "scripts/task080-bad-shape.ts"), "must still be a real hard blocker");
+      assertEqual(result.pass, false, "Status: BLOCKED — the original TASK-076 bug class must still be caught with zero weakening by the TASK-080 fix");
+    } finally { cleanup(dir); }
+  });
+
+  await test("TASK-080 3/3 — LIVE ACCEPTANCE: real gate run against the actual, current, shared working tree, staging only registry/TASK_QUEUE.json + registry/CHANGELOG.json via a scratch git index (GIT_INDEX_FILE) -> Status: PASS, with the real digitalOceanWorkerAdapter.ts stub appearing only in the report-only section, never blocking (the literal real-world case that triggered TASK-080)", async () => {
+    const sharedRoot = findPrimaryWorktreeRoot();
+    assert(
+      existsSync(join(sharedRoot, "app/api/admin/ide/_lib/workerAdapters/digitalOceanWorkerAdapter.ts")),
+      "sanity: the real concurrent-session file must still be present on disk for this to be a meaningful live check (if this fails, the live scenario this test proves no longer exists — not a bug in the fix itself)",
+    );
+    const scratchDir = mkdtempSync(join(tmpdir(), "dna-os-scratch-index-"));
+    const scratchIndex = join(scratchDir, "index");
+    const prevIndexEnv = process.env.GIT_INDEX_FILE;
+    try {
+      process.env.GIT_INDEX_FILE = scratchIndex;
+      // Seed the scratch index from the real shared repo's real HEAD, then
+      // stage ONLY the two real paths this live case is about — never
+      // touches the real repo's real index, never touches any other
+      // session's real staged work.
+      execFileSync("git", ["read-tree", "HEAD"], { cwd: sharedRoot, env: process.env });
+      execFileSync("git", ["add", "registry/TASK_QUEUE.json", "registry/CHANGELOG.json"], { cwd: sharedRoot, env: process.env });
+
+      const staged = execFileSync("git", ["diff", "--cached", "--name-only"], { cwd: sharedRoot, env: process.env, encoding: "utf-8" })
+        .split("\n").filter(Boolean).sort();
+      assertEqual(staged.join(","), ["registry/CHANGELOG.json", "registry/TASK_QUEUE.json"].sort().join(","), `scratch index must stage exactly these two real paths, got: ${staged.join(", ")}`);
+
+      const result = await runGate({ root: sharedRoot, source: "worktree" });
+      assert(!result.parseError, `real registry must parse cleanly: ${result.parseError}`);
+      const v = result.verdicts.find((v) => v.path === "app/api/admin/ide/_lib/workerAdapters/digitalOceanWorkerAdapter.ts");
+      assert(!!v, "expected a real verdict for the real digitalOceanWorkerAdapter.ts stub entry");
+      assert(v!.classification !== "VALID", "sanity: the real stub entry (untracked file) must be genuinely non-VALID for this to be meaningful");
+      assert(result.reportOnly.some((r) => r.path === "app/api/admin/ide/_lib/workerAdapters/digitalOceanWorkerAdapter.ts"), "the real stub entry must appear in the report-only section — reported, never hidden");
+      assert(!result.blockers.some((b) => b.path === "app/api/admin/ide/_lib/workerAdapters/digitalOceanWorkerAdapter.ts"), "the real stub entry must NEVER block this commit — registry/module-registry.json was never staged");
+      assertEqual(result.pass, true, `Status must be PASS for this real, live scenario — got BLOCKED with blockers: ${JSON.stringify(result.blockers.map((b) => b.path))}`);
+    } finally {
+      if (prevIndexEnv === undefined) delete process.env.GIT_INDEX_FILE; else process.env.GIT_INDEX_FILE = prevIndexEnv;
+      cleanup(scratchDir);
+    }
   });
 
   // ══════════════════════════════════════════════════════════════════

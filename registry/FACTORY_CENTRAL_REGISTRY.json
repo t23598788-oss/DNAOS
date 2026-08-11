@@ -337,6 +337,18 @@
       "status": "RESOLVED_BY_MANAGER",
       "task_id": "TASK-077",
       "escalated_to_owner": false
+    },
+    {
+      "finding_id": "FCR-027",
+      "type": "PIPELINE_GAP",
+      "SOURCE": "MANAGER-07",
+      "source_entity": "MANAGER-07",
+      "reported_by": "MANAGER-07's own real, live experience -- own routine registry-only commit (DNA-000170, TASK_QUEUE.json + CHANGELOG.json only, zero relation to any AI adapter file) was BLOCKED by the real, live pre-commit registry-integrity-gate (TASK-076/077) on 2026-08-11.",
+      "description": "computeRelevantPaths() (scripts/registry-integrity-gate.ts:307) treats ANY registry entry whose current (post-Step-0-sync, on-disk) value differs from HEAD as commit-relevant and hard-blocking, with NO check that the registry file itself (registry/module-registry.json) is part of what's actually staged for the current commit. Since Step 0 (sync-registry.ts) re-scans the ENTIRE working tree and writes a fresh stub entry for ANY new on-disk file every single pre-commit run -- including a different concurrent session's brand-new, still-unstaged, in-progress file -- that stub differs from HEAD (which has no entry for a file that didn't exist yet) and is therefore wrongly classified as 'relevant to THIS commit,' hard-blocking it, even when neither that file nor registry/module-registry.json itself has anything to do with what's actually staged. Live reproduction: a new, real, legitimate, uncommitted file (app/api/admin/ide/_lib/workerAdapters/digitalOceanWorkerAdapter.ts, owned by a concurrent AI session, not staged) caused the gate to BLOCK an unrelated commit staging only registry/TASK_QUEUE.json and registry/CHANGELOG.json. This is the same class of failure TASK-077 was meant to close (one session's real, legitimate, unstaged work blocking a different, unrelated commit) -- TASK-077 closed it for PRE-EXISTING untracked noise but missed the case of NEWLY APPEARING untracked files each pre-commit run, since Step 0 always re-syncs against the live disk state, not a snapshot.",
+      "evaluation": "Real, residual gap in TASK-077's own fix -- not a new class of bug, the same root cause (cross-session interference via the shared registry) manifesting through a path TASK-077's test suite didn't cover (a FRESH untracked file appearing between gate runs, rather than one that was already untracked before the fix was verified). ROOT FIX: computeRelevantPaths()'s clause (b) ('registry entries differing from HEAD') must only activate when registry/module-registry.json itself is present in the real staged-files set (clause a) -- i.e. only when a registry change is actually part of what's being committed right now. This preserves catching the original TASK-076 historical bug (that malformed entry WAS staged/committed as part of registry/module-registry.json in the bad commit) while eliminating the false-positive block from a concurrent session's disk-only stub that was never staged and therefore could never actually ship in this commit regardless of what the gate does. Tracked as TASK-080.",
+      "status": "TRACKED",
+      "task_id": "TASK-080",
+      "escalated_to_owner": false
     }
   ],
   "summary": {

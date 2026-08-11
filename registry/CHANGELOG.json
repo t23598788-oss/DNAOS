@@ -2706,5 +2706,30 @@
       "registry/TASK_QUEUE.json (TASK-078 added, done)"
     ],
     "summary": "Following the Owner's general go-ahead, continued with buildable work not blocked on Owner-only actions: closed the TikTok labeling gap in the Connections provider catalog, mirroring the already-verified GitHub pattern from TASK-073. Small, additive, no-secrets change; independently re-verified in isolation (real npm install + tsc + next build, all exit 0) and confirmed the live registry-integrity-gate (TASK-076/077) correctly passed the real commit while correctly reporting 26 unrelated concurrent-session files as non-blocking -- a real-world proof the gate works as intended under actual concurrent load. Committed 3e628f2, pushed to origin/main."
+  },
+  {
+    "change_id": "DNA-000170",
+    "agent": "Claude",
+    "agent_id": null,
+    "agent_id_note": "Not available to this session — not guessed.",
+    "session_id": null,
+    "date": "2026-08-11",
+    "files": [
+      "registry/TASK_QUEUE.json (TASK-079 added)"
+    ],
+    "summary": "Owner instructed MANAGER-07 to start building DigitalOcean Inference support ahead of receiving the real API token, with an explicit ask for a real settings control integrated into the existing system rather than a new one. MANAGER-07's own investigation (before dispatch) found the real, already-live /admin/connectors page already has a fully generic API-key connector form -- exactly the settings UI the Owner is asking for, requiring zero new UI code -- and resolved a real architecture conflict (WorkerAdapter.availability()'s documented synchronous-only contract vs. a DB-backed credential) via a preflight()-populated module cache mirroring the existing anthropicApiAdapter pattern. Registered TASK-079 with this resolved design so the CODE_WORKER builds the correct shape on the first pass rather than improvising."
+  },
+  {
+    "change_id": "DNA-000171",
+    "agent": "Claude",
+    "agent_id": null,
+    "agent_id_note": "Not available to this session — not guessed.",
+    "session_id": null,
+    "date": "2026-08-11",
+    "files": [
+      "registry/FACTORY_CENTRAL_REGISTRY.json (FCR-027 added)",
+      "registry/TASK_QUEUE.json (TASK-080 added)"
+    ],
+    "summary": "MANAGER-07's own routine registry-only commit was blocked, live, by the registry-integrity-gate (TASK-076/077) -- a residual false-positive gap in TASK-077's own fix: any brand-new untracked file appearing anywhere in the shared working tree (here, a concurrent session's new digitalOceanWorkerAdapter.ts) gets auto-registered by Step 0 every run and, since it differs from HEAD, is wrongly treated as relevant to ANY commit, not just ones that actually touch registry/module-registry.json. Root cause and exact fix already diagnosed (restrict the HEAD-diff clause to only apply when registry/module-registry.json is itself staged). Registered FCR-027/TASK-080 to fix and re-verify with the same rigor as the original gate build, given this hook gates every future commit for every session in this repo and is currently, actively blocking real work."
   }
 ]
