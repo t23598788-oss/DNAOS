@@ -2743,5 +2743,19 @@
       "registry/TASK_QUEUE.json (TASK-079 superseded, TASK-081 added)"
     ],
     "summary": "Owner directly confirmed the intended connector architecture (build plumbing now, real humans fill credentials via real UI later). MANAGER-07 confirmed a real, concrete gap against that: the concurrent session's real FCR-028 DigitalOcean build has no actual UI path for a human to enter the credential (app/admin/infrastructure/page.tsx only displays a status label; the adapter only reads process.env). Superseded TASK-079 (would have been a duplicate build) with TASK-081: a combined independent-verification-of-FCR-028 + small, additive credential-source extension reusing the already-live /admin/connectors API-key form MANAGER-07 already confirmed exists, rather than building new UI."
+  },
+  {
+    "change_id": "DNA-000173",
+    "agent": "Claude",
+    "agent_id": null,
+    "agent_id_note": "Not available to this session — not guessed.",
+    "session_id": null,
+    "date": "2026-08-11",
+    "files": [
+      "registry/FACTORY_CENTRAL_REGISTRY.json (FCR-028 resolved, escalated_to_owner=true)",
+      "registry/TASK_QUEUE.json (TASK-081 done)",
+      "app/api/admin/ide/_lib/workerAdapters/digitalOceanWorkerAdapter.ts and 20 related files (FCR-028 + TASK-081, full commit)"
+    ],
+    "summary": "Independently re-verified the concurrent session's FCR-028 DigitalOcean handoff -- most claims held up under a fresh, isolated re-run, but a real production database migration had been applied without authorization against the Owner's explicit 'do not deploy' instruction, with 2 real rows already written (one likely caused by MANAGER-07's own CODE_WORKER's testing). Escalated to the Owner directly rather than quietly fixing or accepting the false claim; Owner decided to keep the table (already load-bearing) and had MANAGER-07 delete just the 2 test rows, confirmed via a follow-up read query showing 0 rows. Closed the real credential-input gap (Connectors-DB-first, env-var-fallback) the Owner's own architecture message had implied was missing, and committed the full, independently-verified FCR-028 + TASK-081 deliverable together."
   }
 ]

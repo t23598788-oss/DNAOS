@@ -11,6 +11,7 @@
 import { randomUUID } from "crypto";
 import { WORKER_ADAPTER_REGISTRY, getWorkerAdapter } from "../app/api/admin/ide/_lib/workerSelectorRuntime";
 import { anthropicApiAdapter, openaiApiAdapter, geminiApiAdapter } from "../app/api/admin/ide/_lib/workerAdapters/apiWorkerAdapter";
+import { digitalOceanApiAdapter } from "../app/api/admin/ide/_lib/workerAdapters/digitalOceanWorkerAdapter";
 import { claudeCliAdapter } from "../app/api/admin/ide/_lib/workerAdapters/cliWorkerAdapter";
 import { mcpWorkerAdapter } from "../app/api/admin/ide/_lib/workerAdapters/mcpWorkerAdapter";
 import { ollamaLocalAdapter } from "../app/api/admin/ide/_lib/workerAdapters/localModelWorkerAdapter";
@@ -40,9 +41,9 @@ function baseRequest(): WorkerRequest {
 }
 
 async function main() {
-  await test("Registry completeness: all 7 real Adapters (3 API + CLI + MCP + Local + Human) are registered in WORKER_ADAPTER_REGISTRY", () => {
-    assert(WORKER_ADAPTER_REGISTRY.length === 7, `expected 7 real Adapters, got ${WORKER_ADAPTER_REGISTRY.length}`);
-    for (const a of [anthropicApiAdapter, openaiApiAdapter, geminiApiAdapter, claudeCliAdapter, mcpWorkerAdapter, ollamaLocalAdapter, humanWorkerAdapter]) {
+  await test("Registry completeness: all 8 real Adapters (4 API + CLI + MCP + Local + Human) are registered in WORKER_ADAPTER_REGISTRY", () => {
+    assert(WORKER_ADAPTER_REGISTRY.length === 8, `expected 8 real Adapters, got ${WORKER_ADAPTER_REGISTRY.length}`);
+    for (const a of [anthropicApiAdapter, openaiApiAdapter, geminiApiAdapter, digitalOceanApiAdapter, claudeCliAdapter, mcpWorkerAdapter, ollamaLocalAdapter, humanWorkerAdapter]) {
       assert(getWorkerAdapter(a.id) === a, `expected getWorkerAdapter("${a.id}") to return the real, exact same object`);
     }
   });
@@ -73,6 +74,16 @@ async function main() {
     assert(response.proposedChanges.length === 0, "expected zero real proposedChanges for an unconfigured Adapter");
   });
 
+  await test("DigitalOcean Adapter honesty: real integration exists (unlike OpenAI/Gemini) but is honestly NOT_CONFIGURED without a real DIGITALOCEAN_INFERENCE_API_KEY in this environment", async () => {
+    assert(digitalOceanApiAdapter.availability().available === (process.env.DIGITALOCEAN_INFERENCE_API_KEY !== undefined), "availability() must reflect the real, live env var state, not a hardcoded assumption");
+    const response = await digitalOceanApiAdapter.execute(baseRequest());
+    if (!digitalOceanApiAdapter.availability().available) {
+      assert(response.status === "NOT_CONFIGURED", `expected NOT_CONFIGURED with no real key configured, got ${response.status}`);
+      assert(response.error === "DIGITALOCEAN_INFERENCE_NOT_CONFIGURED", `expected the real, specific error code, got ${response.error}`);
+    }
+    assert(response.proposedChanges.length === 0 || response.status === "SUCCEEDED", "expected zero real proposedChanges unless a real, live call actually succeeded");
+  });
+
   await test("MCP Adapter honestly reports NOT_SUPPORTED — FOUNDATION_ONLY, never a fabricated tool call", async () => {
     const response = await mcpWorkerAdapter.execute(baseRequest());
     assert(response.status === "NOT_SUPPORTED", `expected NOT_SUPPORTED, got ${response.status}`);
@@ -80,7 +91,7 @@ async function main() {
   });
 
   await test("Structured response: every real WorkerResponse uses only the real, spec-defined status enum", async () => {
-    for (const a of [openaiApiAdapter, geminiApiAdapter, mcpWorkerAdapter, humanWorkerAdapter]) {
+    for (const a of [openaiApiAdapter, geminiApiAdapter, digitalOceanApiAdapter, mcpWorkerAdapter, humanWorkerAdapter]) {
       const response = await a.execute(baseRequest());
       assert(VALID_RESPONSE_STATUSES.includes(response.status), `Adapter ${a.id} returned invalid status ${response.status}`);
       assert(typeof response.finishedAt === "string" && response.finishedAt.length > 0, `Adapter ${a.id} missing real finishedAt`);

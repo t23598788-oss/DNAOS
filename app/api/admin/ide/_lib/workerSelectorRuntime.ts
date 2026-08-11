@@ -8,6 +8,7 @@
 import type { WorkerAdapter, WorkerHealthStatus } from "./workerAdapter";
 import type { WorkerRequest } from "./workerContract";
 import { anthropicApiAdapter, openaiApiAdapter, geminiApiAdapter } from "./workerAdapters/apiWorkerAdapter";
+import { digitalOceanApiAdapter } from "./workerAdapters/digitalOceanWorkerAdapter";
 import { claudeCliAdapter } from "./workerAdapters/cliWorkerAdapter";
 import { mcpWorkerAdapter } from "./workerAdapters/mcpWorkerAdapter";
 import { ollamaLocalAdapter } from "./workerAdapters/localModelWorkerAdapter";
@@ -16,7 +17,7 @@ import { humanWorkerAdapter } from "./workerAdapters/humanWorkerAdapter";
 /** The one, real, provider-neutral Adapter Registry — every Adapter
  * this Runtime knows about, regardless of real availability. */
 export const WORKER_ADAPTER_REGISTRY: WorkerAdapter[] = [
-  anthropicApiAdapter, openaiApiAdapter, geminiApiAdapter, claudeCliAdapter, mcpWorkerAdapter, ollamaLocalAdapter, humanWorkerAdapter,
+  anthropicApiAdapter, openaiApiAdapter, geminiApiAdapter, digitalOceanApiAdapter, claudeCliAdapter, mcpWorkerAdapter, ollamaLocalAdapter, humanWorkerAdapter,
 ];
 
 export function getWorkerAdapter(id: string): WorkerAdapter | undefined {

@@ -282,6 +282,15 @@ export function listCostBudgets(): CostBudgetEntry[] {
 export interface CostLedgerEntry {
   entry_id: string;
   task_id: string;
+  /** Real, optional, additive field (owner, 2026-08-10-11, Infrastructure
+   * Control & Usage Billing) — the real WorkerRequest.workerRequestId,
+   * distinct from task_id (executionStepId) and previously not recorded
+   * here at all. Lets a Cost Ledger entry join back to the same
+   * worker_usage_events row it came from, per the Owner's own explicit
+   * "ทุกตัวเลขต้องย้อนกลับไปหา request_id เดียวกันได้". Optional so every
+   * pre-existing entry (recorded before this field existed) stays valid —
+   * never backfilled or guessed for old entries. */
+  request_id?: string;
   worker_id: string;
   provider: string;
   model: string | null;
@@ -309,12 +318,12 @@ function saveLedgerFile(file: CostLedgerFile): void {
  * adapter.execute() returns a real response). Never mutates or removes
  * an existing entry — Rule 257 clause 12. */
 export function recordActualCost(input: {
-  task_id: string; worker_id: string; provider: string; model: string | null;
+  task_id: string; request_id?: string; worker_id: string; provider: string; model: string | null;
   estimated_cost: number | null; actual_cost: number | null; currency: string; approval_reference: string;
 }): CostLedgerEntry {
   const file = loadLedgerFile();
   const entry: CostLedgerEntry = {
-    entry_id: randomUUID(), task_id: input.task_id, worker_id: input.worker_id, provider: input.provider, model: input.model,
+    entry_id: randomUUID(), task_id: input.task_id, request_id: input.request_id, worker_id: input.worker_id, provider: input.provider, model: input.model,
     estimated_cost: input.estimated_cost, actual_cost: input.actual_cost, currency: input.currency,
     timestamp: new Date().toISOString(), approval_reference: input.approval_reference,
   };

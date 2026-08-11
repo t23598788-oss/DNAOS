@@ -83,6 +83,24 @@ export const KNOWN_PROVIDER_DESCRIPTORS: Record<string, ProviderDescriptor> = {
     permissions: ["read:profile", "read:video_list", "read:stats"],
     functionGroup: "OTHER",
   },
+  // TASK-081 (2026-08-11) — mirrors the tiktok entry above in shape. Real
+  // AI Code Worker provider (app/api/admin/ide/_lib/workerAdapters/
+  // digitalOceanWorkerAdapter.ts, registered in WORKER_ADAPTER_REGISTRY as
+  // "digitalocean-api"), unlike TikTok — functionGroup is
+  // AI_DEVELOPMENT_WORKERS here, not "OTHER". No real DigitalOcean logo
+  // entry exists yet in plugins/capabilities.ts (checked, not guessed) —
+  // logo is honestly null, never a fabricated URL. capabilities mirrors
+  // exactly what digitalOceanApiAdapter.capabilities() itself declares.
+  digitalocean: {
+    provider: "digitalocean",
+    product: "DigitalOcean",
+    model: null,
+    logo: findTool("digitalocean")?.logo ?? null,
+    role: "AI Code Worker",
+    capabilities: ["code.generate"],
+    permissions: ["scoped read", "scoped write (owner-approved only)"],
+    functionGroup: "AI_DEVELOPMENT_WORKERS",
+  },
 };
 
 // AI / Code Worker adapters (app/api/admin/ide/_lib/workerAdapters) —

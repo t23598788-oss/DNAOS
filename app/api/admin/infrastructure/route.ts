@@ -4,6 +4,9 @@ import path from "node:path"
 import { requireAuth } from "@/core/auth/requireAuth"
 import { ADMIN_TIER } from "@/core/auth/session"
 import { supabaseAdmin as supabase } from "@/services/supabase/queries"
+import { listProviderRegistry } from "@/app/api/admin/ide/_lib/providerRegistryRuntime"
+import { listComputeResources } from "@/app/api/admin/ide/_lib/computeResourceRegistryRuntime"
+import { listCostLedgerWithMargin, listProviderPayables, listUsageWithCost, getAccumulatedUsageSummary } from "@/app/api/admin/ide/_lib/costLedgerViewRuntime"
 
 // Cost/infrastructure dashboard (owner, 2026-08-03): "หน้าจอค่าใช้จ่าย...
 // ขึ้นมาแสดงผลในค่าใช้จ่ายและตัวประมวลผลต่างๆ". registry/infrastructure.json
@@ -17,6 +20,17 @@ import { supabaseAdmin as supabase } from "@/services/supabase/queries"
 // duplicated, and the Active/Warning/Critical status below is computed at
 // request time from real fields already present, never stored as a
 // separate guess.
+//
+// Extended 2026-08-10 (owner: DigitalOcean AI Inference Infrastructure
+// Control & Billing Layer) — becomes the Infrastructure Control &
+// Billing Center (Owner's own instruction: extend this existing page,
+// never a new one). Merges 4 more real, already-built sources at request
+// time, same discipline as above: Provider Registry, Compute Resource
+// Registry, Cost Ledger (with derived margin/THB), and Usage Meter.
+// worker_usage_events is a brand-new migration this same build wrote but
+// did NOT apply (Owner's explicit "ห้าม deploy") — listUsageEvents() is
+// wrapped so a not-yet-migrated table degrades this section honestly to
+// an empty list with a disclosed reason, never a 500 for the whole page.
 export async function GET() {
   const auth = await requireAuth(ADMIN_TIER)
   if (auth instanceof NextResponse) return auth
@@ -63,5 +77,30 @@ export async function GET() {
     }
   }
 
-  return NextResponse.json(raw)
+  const [providers, computeResources, costLedger, providerPayables, usageResult, accumulatedResult] = await Promise.all([
+    listProviderRegistry(),
+    Promise.resolve(listComputeResources()),
+    listCostLedgerWithMargin(),
+    Promise.resolve(listProviderPayables()),
+    listUsageWithCost(50).then((rows) => ({ rows, error: null as string | null })).catch((e) => ({
+      rows: [] as Awaited<ReturnType<typeof listUsageWithCost>>,
+      error: `worker_usage_events not readable yet in this environment — migration 20260810000002 likely not applied: ${e instanceof Error ? e.message : String(e)}`,
+    })),
+    getAccumulatedUsageSummary().then((summary) => ({ summary, error: null as string | null })).catch((e) => ({
+      summary: [] as Awaited<ReturnType<typeof getAccumulatedUsageSummary>>,
+      error: `accumulated usage not computable yet: ${e instanceof Error ? e.message : String(e)}`,
+    })),
+  ])
+
+  return NextResponse.json({
+    ...raw,
+    providers,
+    computeResources,
+    costLedger,
+    providerPayables,
+    usage: usageResult.rows,
+    usageError: usageResult.error,
+    accumulatedUsage: accumulatedResult.summary,
+    accumulatedUsageError: accumulatedResult.error,
+  })
 }

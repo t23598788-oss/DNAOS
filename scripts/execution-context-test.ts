@@ -69,7 +69,7 @@ async function main() {
     const f = tmpFile();
     const cp = await writeExecutionContextCheckpoint({}, "test@dnaos.local", "owner-test", "live snapshot check", f);
     assert(typeof cp.git_head === "string" && cp.git_head!.length === 40, `expected a real 40-char git hash, got ${cp.git_head}`);
-    assert(cp.worker_state.length === 7, `expected 7 real registered Worker Adapters, got ${cp.worker_state.length}`);
+    assert(cp.worker_state.length === 8, `expected 8 real registered Worker Adapters, got ${cp.worker_state.length}`);
   });
 
   await test("Live snapshot fields read the real registry files with the real field names — never silently null from a key-name mismatch", async () => {

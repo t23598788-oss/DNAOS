@@ -73,6 +73,112 @@ type ResearchMetrics = {
   data_source_when_built?: string
 }
 
+// Infrastructure Control & Billing Center extension (owner, 2026-08-10,
+// DigitalOcean AI Inference Infrastructure Control & Billing Layer) —
+// same page, same discipline: every field below is served by
+// /api/admin/infrastructure, which merges real, already-built sources
+// (providerRegistryRuntime.ts, computeResourceRegistryRuntime.ts,
+// costLedgerViewRuntime.ts, usageMeterRuntime.ts) at request time. No new
+// page, per the Owner's explicit instruction.
+
+type ProviderWorkerAdapterView = {
+  id: string
+  type: string
+  capabilities: string[]
+  availability: { available: boolean; reason: string }
+  credentialStatus: "CONFIGURED" | "MISSING" | "INVALID" | "NOT_APPLICABLE"
+}
+
+type ProviderRegistryEntry = {
+  provider: string
+  directoryStatus: string
+  purpose: string
+  workerAdapters: ProviderWorkerAdapterView[]
+  costMonthlyThb: number | null
+  infraStatus: string | null
+}
+
+type ComputeResource = {
+  provider: string
+  provider_resource_id: string
+  cpu_cores: number | null
+  ram_gb: number | null
+  gpu: string | null
+  vram_gb: number | null
+  storage_gb: number | null
+  region: string | null
+  price_per_hour: number | null
+  currency: string | null
+  runtime_status: string
+  health: string
+  current_workload: string | null
+}
+
+type CostLedgerEntryWithMargin = {
+  entryId: string
+  provider: string
+  model: string | null
+  timestamp: string
+  providerCost: number | null
+  currency: string
+  providerCostThb: number | null
+  customerChargeThb: number | null
+  grossMarginThb: number | null
+}
+
+type ProviderPayable = {
+  provider: string
+  entryCount: number
+  totalOwed: Record<string, number>
+  paymentStatus: "OWED_NOT_PAID"
+}
+
+type UsageWithCost = {
+  requestId: string
+  provider: string
+  service: string
+  model: string | null
+  adapterId: string
+  inputTokens: number | null
+  outputTokens: number | null
+  totalTokens: number | null
+  tokenSource: "PROVIDER_REPORTED" | "UNKNOWN"
+  tokenUnknownReason: string | null
+  latencyMs: number
+  status: string
+  error: string | null
+  startedAt: string
+  completedAt: string
+  providerCost: number | null
+  currency: string | null
+  providerCostThb: number | null
+  costStatus: "ACTUAL" | "NO_COST_RECORDED"
+}
+
+type AccumulatedUsageSummary = {
+  provider: string
+  requestCount: number
+  successCount: number
+  totalInputTokens: number | null
+  totalOutputTokens: number | null
+  totalTokens: number | null
+  unknownTokenRequestCount: number
+  totalProviderCostByCurrency: Record<string, number>
+  totalProviderCostThb: number | null
+  hasLiveUsage: boolean
+}
+
+function credentialBadge(status: ProviderWorkerAdapterView["credentialStatus"]) {
+  const map: Record<string, string> = {
+    CONFIGURED: "border-emerald-300 bg-emerald-50 text-emerald-700",
+    MISSING: "border-amber-300 bg-amber-50 text-amber-700",
+    INVALID: "border-red-300 bg-red-50 text-red-700",
+    NOT_APPLICABLE: "border-stone-200 bg-stone-50 text-stone-400",
+  }
+  const label = status === "MISSING" ? "WAITING_FOR_CREDENTIAL" : status
+  return <span className={`text-[10px] px-1.5 py-0.5 rounded border ${map[status]}`}>{label}</span>
+}
+
 type InfraData = {
   version?: number
   policy?: string
@@ -81,6 +187,14 @@ type InfraData = {
   future_additions?: unknown[]
   cost_summary?: { monthly_thb?: number; yearly_thb?: number }
   research_metrics?: ResearchMetrics
+  providers?: ProviderRegistryEntry[]
+  computeResources?: ComputeResource[]
+  costLedger?: CostLedgerEntryWithMargin[]
+  providerPayables?: ProviderPayable[]
+  usage?: UsageWithCost[]
+  usageError?: string | null
+  accumulatedUsage?: AccumulatedUsageSummary[]
+  accumulatedUsageError?: string | null
 }
 
 function fmtMetric(v: unknown, unit?: string) {
@@ -402,6 +516,141 @@ export default function InfrastructurePage() {
             {data.research_metrics.data_source_when_built}
           </div>
         )}
+      </div>
+
+      <div className="rounded-xl border border-stone-200 bg-white p-4">
+        <h2 className="text-lg font-semibold text-stone-900">Infrastructure Control & Billing Center</h2>
+        <p className="text-xs text-stone-500 mt-1">Provider Registry, Compute Resources, Cost Ledger, Usage Meter — DigitalOcean AI Inference, 2026-08-10</p>
+
+        <div className="mt-4">
+          <div className="text-sm font-medium text-stone-700 mb-2">Providers</div>
+          <div className="space-y-2">
+            {(data.providers ?? []).map((p) => (
+              <div key={p.provider} className="border border-stone-100 rounded-lg p-3">
+                <div className="flex items-center justify-between flex-wrap gap-2">
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium text-stone-900">{p.provider}</span>
+                    <span className="text-[10px] px-1.5 py-0.5 rounded border border-stone-200 bg-stone-50 text-stone-500">{p.directoryStatus}</span>
+                    {typeof p.costMonthlyThb === "number" && <span className="text-[10px] text-stone-400">{p.costMonthlyThb.toLocaleString("th-TH")} บาท/เดือน</span>}
+                  </div>
+                </div>
+                <div className="text-xs text-stone-500 mt-1">{p.purpose}</div>
+                {p.workerAdapters.length > 0 && (
+                  <div className="mt-2 space-y-1">
+                    {p.workerAdapters.map((a) => (
+                      <div key={a.id} className="flex items-center gap-2 text-xs">
+                        <span className="text-stone-600">{a.id}</span>
+                        <span className="text-stone-400">{a.capabilities.join(", ")}</span>
+                        {credentialBadge(a.credentialStatus)}
+                        <span className="text-stone-400">{a.availability.reason}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="mt-5">
+          <div className="text-sm font-medium text-stone-700 mb-2">Compute Resources</div>
+          {(data.computeResources ?? []).length === 0 ? (
+            <div className="text-xs text-stone-400">ยังไม่มี Compute Resource จริงลงทะเบียน — ไม่มีการ query สด RunPod/DigitalOcean รอบนี้</div>
+          ) : (
+            <div className="space-y-2">
+              {(data.computeResources ?? []).map((r) => (
+                <div key={`${r.provider}-${r.provider_resource_id}`} className="text-xs border border-stone-100 rounded-lg p-2 flex flex-wrap gap-3">
+                  <span className="font-medium text-stone-800">{r.provider}/{r.provider_resource_id}</span>
+                  <span className="text-stone-500">{r.gpu ?? "no GPU"} {r.vram_gb ? `(${r.vram_gb}GB VRAM)` : ""}</span>
+                  <span className="text-stone-500">{r.cpu_cores ?? "?"} vCPU / {r.ram_gb ?? "?"}GB RAM</span>
+                  <span className="text-stone-500">{r.region ?? "?"}</span>
+                  <span className="text-stone-500">{r.price_per_hour != null ? `${r.price_per_hour} ${r.currency}/hr` : "?"}</span>
+                  <span className="text-stone-500">{r.runtime_status} / {r.health}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="mt-5">
+          <div className="text-sm font-medium text-stone-700 mb-2">Provider Payable (ยอดที่ต้องจ่าย — ยังไม่มีการชำระอัตโนมัติ)</div>
+          {(data.providerPayables ?? []).length === 0 ? (
+            <div className="text-xs text-stone-400">ยังไม่มีรายการต้นทุนจริงในบัญชี</div>
+          ) : (
+            <div className="space-y-1">
+              {(data.providerPayables ?? []).map((pp) => (
+                <div key={pp.provider} className="text-xs flex flex-wrap gap-3 items-center">
+                  <span className="font-medium text-stone-800">{pp.provider}</span>
+                  <span className="text-stone-500">{Object.entries(pp.totalOwed).map(([cur, amt]) => `${amt.toFixed(4)} ${cur}`).join(", ")}</span>
+                  <span className="text-[10px] px-1.5 py-0.5 rounded border border-amber-300 bg-amber-50 text-amber-700">{pp.paymentStatus}</span>
+                  <span className="text-stone-400">({pp.entryCount} รายการ)</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="mt-5">
+          <div className="text-sm font-medium text-stone-700 mb-2">Accumulated Usage (สะสม ต่อ provider)</div>
+          {data.accumulatedUsageError && <div className="text-xs text-amber-700 mb-2">{data.accumulatedUsageError}</div>}
+          {(data.accumulatedUsage ?? []).filter((s) => s.hasLiveUsage).length === 0 ? (
+            <div className="text-[10px] px-1.5 py-0.5 rounded border border-stone-200 bg-stone-50 text-stone-500 inline-block">NO_LIVE_USAGE</div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {(data.accumulatedUsage ?? []).filter((s) => s.hasLiveUsage).map((s) => (
+                <div key={s.provider} className="border border-stone-100 rounded-lg p-3 text-xs">
+                  <div className="font-medium text-stone-900">{s.provider}</div>
+                  <div className="text-stone-500 mt-1">{s.requestCount} requests ({s.successCount} success)</div>
+                  <div className="text-stone-500">
+                    tokens: {s.totalTokens != null ? s.totalTokens.toLocaleString() : "NO_LIVE_USAGE"}
+                    {s.unknownTokenRequestCount > 0 && <span className="text-amber-600"> ({s.unknownTokenRequestCount} request มี token UNKNOWN ไม่ถูกนับรวม)</span>}
+                  </div>
+                  <div className="text-stone-500">
+                    cost: {Object.keys(s.totalProviderCostByCurrency).length > 0
+                      ? Object.entries(s.totalProviderCostByCurrency).map(([cur, amt]) => `${amt.toFixed(4)} ${cur}`).join(", ")
+                      : "NO_LIVE_USAGE"}
+                    {s.totalProviderCostThb != null && <span> (~{s.totalProviderCostThb.toFixed(2)} บาท)</span>}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="mt-5">
+          <div className="text-sm font-medium text-stone-700 mb-2">Usage ล่าสุด (request_id / token / latency / cost / THB / status)</div>
+          {data.usageError && <div className="text-xs text-amber-700 mb-2">{data.usageError}</div>}
+          {(data.usage ?? []).length === 0 ? (
+            <div className="text-[10px] px-1.5 py-0.5 rounded border border-stone-200 bg-stone-50 text-stone-500 inline-block">NO_LIVE_USAGE</div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="text-xs w-full">
+                <thead className="text-stone-400 text-left">
+                  <tr>
+                    <th className="pr-3">request_id</th><th className="pr-3">provider</th><th className="pr-3">model</th>
+                    <th className="pr-3">tokens</th><th className="pr-3">latency</th><th className="pr-3">cost</th><th className="pr-3">THB</th><th className="pr-3">status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {(data.usage ?? []).map((u) => (
+                    <tr key={u.requestId} className="border-t border-stone-100">
+                      <td className="pr-3 py-1 text-stone-400 font-mono">{u.requestId.slice(0, 8)}…</td>
+                      <td className="pr-3 py-1 text-stone-700">{u.provider}</td>
+                      <td className="pr-3 py-1 text-stone-500">{u.model ?? "-"}</td>
+                      <td className="pr-3 py-1 text-stone-500" title={u.tokenSource === "UNKNOWN" ? (u.tokenUnknownReason ?? "") : ""}>
+                        {u.tokenSource === "PROVIDER_REPORTED" ? u.totalTokens : "UNKNOWN"}
+                      </td>
+                      <td className="pr-3 py-1 text-stone-500">{u.latencyMs}ms</td>
+                      <td className="pr-3 py-1 text-stone-500">{u.costStatus === "ACTUAL" ? `${u.providerCost?.toFixed(4)} ${u.currency}` : "NO_COST_RECORDED"}</td>
+                      <td className="pr-3 py-1 text-stone-500">{u.providerCostThb != null ? u.providerCostThb.toFixed(2) : "NO_COST_RECORDED"}</td>
+                      <td className="pr-3 py-1 text-stone-500">{u.status}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
       </div>
 
       {Array.isArray(data.future_additions) && data.future_additions.length > 0 && (
