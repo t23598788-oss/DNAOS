@@ -47,12 +47,18 @@ own business is made of multiple real Business Domains (distinct business
 lines/operating areas — that codebase already has real, live precedent for
 this split: `factory_app_role` vs `business_app_role` Postgres roles,
 Factory/Infrastructure-Control kept separate from Business
-Finance/invoicing at the DB-permission layer). Each real Business Domain
-is its own Account under this repo's model, with its own scope — same as
-any external program's Account, structurally — not a single blob, and
-never a "master account" over the others just because they share one
-human Owner. Which concrete domains dna-os-deadboard actually has is not
-decided here; that needs its own evidence pass, not a guess.
+Finance/invoicing at the DB-permission layer).
+
+**Corrected again, 2026-08-14 (second pass): Account != Business Domain.**
+Account is only the ownership/responsibility boundary; a Business Domain
+is a resource an Account can be granted (`AccountResourceGrant` in
+`contracts/identity-model.ts`), the same way Software is. The likely
+default shape — each real Business Domain held by its own dedicated
+Account, so domains don't leak into each other even under one human
+Owner — is an expected OUTCOME of that grant model, not a hardcoded rule;
+nothing in the types requires it to stay 1:1. Which concrete domains
+dna-os-deadboard actually has is not decided here; that needs its own
+evidence pass, not a guess.
 
 **Corrected top-level shape:**
 
@@ -82,7 +88,7 @@ repo's contracts define where that capability actually belongs.
 
 | Folder | Real content today | Status |
 |---|---|---|
-| `contracts/` | Identity/Account/Tenant/Software/Workspace type definitions, Command/Event envelope, Operational↔Infrastructure bridge contract | Types only — no runtime enforcement yet |
+| `contracts/` | Identity/Account/Tenant/Software/BusinessDomain/Workspace type definitions + Membership/AccountResourceGrant/AccountTenantAssignment relationships, Command/Event envelope, Operational↔Infrastructure bridge contract | Types only — no runtime enforcement yet |
 | `permissions/` | The enforceable permission boundary spec (Owner/Tenant/Service/cross-tenant rules) | Spec only — nothing calls this yet |
 | `execution/` | Command lifecycle state machine spec | Spec only — no executor exists |
 | `registry/` | Source-code-level schema for what an Account/Tenant/Software/Adapter registration record looks like | Type definitions only — **no real database**, no persistence |

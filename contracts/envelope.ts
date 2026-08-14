@@ -12,10 +12,20 @@
 
 import type { IdentityKind } from "./identity-model";
 
+/**
+ * Corrected 2026-08-14 (second pass): an Identity is not fixed to one
+ * Account (see identity-model.ts's Membership). A request still must
+ * resolve to exactly ONE Account's scope, but that Account is whichever
+ * one the caller is currently ACTING AS for this specific request — i.e.
+ * a real Membership row (identity_id, scope_type="account",
+ * scope_id=acting_as_account_id, revoked_at=null) must exist before the
+ * controller may authorize this envelope. tenant_id is resolved from that
+ * account's active AccountTenantAssignment, not asserted by the caller.
+ */
 interface EnvelopeIdentity {
   identity_id: string;
-  account_id: string;
-  tenant_id: string;
+  acting_as_account_id: string; // which Membership's account scope this request is exercised under — verified, not trusted
+  acting_as_tenant_id: string; // resolved server-side from AccountTenantAssignment for acting_as_account_id
   software_id: string;
   kind: IdentityKind;
 }

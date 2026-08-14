@@ -39,12 +39,21 @@ export const PLATFORM_OWNER_CAPABILITIES: readonly PlatformCapability[] = [
 
 /**
  * Default authorization rule for any CommandEnvelope: an Identity may only
- * act within its own account_id's scope. Denied by default, no exceptions
- * baked in here — including for the Platform Owner, who must go through
- * BreakGlassRequest below instead of an ambient always-allow rule.
+ * act within the Account scope it is currently exercising
+ * (issued_by.acting_as_account_id) — never a fixed "home account," since
+ * Identity now holds Membership across possibly many Accounts (see
+ * identity-model.ts). Denied by default, no exceptions baked in here —
+ * including for the Platform Owner, who must go through BreakGlassRequest
+ * below instead of an ambient always-allow rule.
+ *
+ * This function only checks the envelope's OWN internal consistency
+ * (does it claim to act as the account it's targeting). It does NOT
+ * verify a real Membership row backs that claim — that lookup needs a
+ * real registry/data source and belongs in the controller once one
+ * exists (see ../controller/README.md), not in this pure function.
  */
 export function isWithinOwnScope(envelope: CommandEnvelope, targetAccountId: string): boolean {
-  return envelope.issued_by.account_id === targetAccountId;
+  return envelope.issued_by.acting_as_account_id === targetAccountId;
 }
 
 /**

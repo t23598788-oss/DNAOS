@@ -8,13 +8,35 @@
  * NOT_YET_BUILT: no storage backend chosen, no migration, no table.
  */
 
-import type { Account, Tenant, Software } from "../contracts/identity-model";
+import type { Account, Tenant, Software, Identity, BusinessDomain } from "../contracts/identity-model";
 
 /**
- * A registered Account — an external program/AI/future customer that has
- * been given a scope. Distinct from Account in identity-model.ts: that
- * type is "what an Account is," this is "the record that says an Account
- * has been registered and is active."
+ * Membership, AccountResourceGrant, and AccountTenantAssignment
+ * (identity-model.ts) are already registry-shaped records — each carries
+ * its own granted_at/assigned_at + revoked_at/ended_at lifecycle fields —
+ * so they are re-exported here for discoverability rather than wrapped in
+ * a redundant *Registration type. No behavior added, just a single place
+ * to find every registrable record.
+ */
+export type { Membership, AccountResourceGrant, AccountTenantAssignment } from "../contracts/identity-model";
+
+/**
+ * A registered Identity — a real, known principal (human/ai_agent/
+ * external_program/service). Distinct from Identity in identity-model.ts
+ * the same way every *Registration type here is: that type is "what it
+ * is," this is "the record that says it's been registered."
+ */
+export interface IdentityRegistration {
+  identity: Identity;
+  status: "active" | "suspended" | "revoked";
+  registered_at: string;
+}
+
+/**
+ * A registered Account — an ownership/responsibility boundary that has
+ * been given a scope. Says nothing about what the Account IS for
+ * (business domain vs external program vs anything else) — that's what
+ * AccountResourceGrant records against it.
  */
 export interface AccountRegistration {
   account: Account;
@@ -31,6 +53,12 @@ export interface TenantRegistration {
 /** A registered Software type — a known kind of external caller. */
 export interface SoftwareRegistration {
   software: Software;
+  registered_at: string;
+}
+
+/** A registered Business Domain — a known business line/operating area an Account may be granted (see AccountResourceGrant). Which real domains dna-os-deadboard has is still not decided here (NOT_YET_BUILT — needs an evidence pass, not a guess). */
+export interface BusinessDomainRegistration {
+  business_domain: BusinessDomain;
   registered_at: string;
 }
 
