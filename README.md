@@ -49,7 +49,10 @@ ai/                  ระบบ AI
   agent-registry/        ทะเบียน Agent
   model-router/           เลือกและส่งงานให้โมเดล
 connections/         การเชื่อมระบบภายนอก
-  github/ vercel/ supabase/ ai-providers/ servers/ external-software/
+  github/ vercel/ vercel-webhooks/ vercel-drains/ supabase/ ai-providers/
+  servers/ external-software/
+    (vercel-webhooks/, vercel-drains/ = inbound ingress, แยกจาก vercel/'s
+    outbound adapter — ดู governance/architecture-rules/VERCEL_BOUNDARY_PLAN.md)
 permissions/         สิทธิ์การควบคุมซอฟต์แวร์
   access-control/        Identity, Membership, break-glass, platform capability
   software-scope/        Account, Tenant, resource grants, Business Domain reference

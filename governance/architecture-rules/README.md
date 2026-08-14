@@ -10,6 +10,12 @@
 ใด ข้อมูลเหล่านี้อยู่ในฐานข้อมูลของ Business Domain ของมันเองเสมอ ยังไม่มี
 mechanical check — บังคับใช้ด้วยวินัยของผู้สร้างเท่านั้นวันนี้
 
+**ตัวอย่างจริง (Owner, 2026-08-14):** `connections/vercel/` ห้ามเรียก
+Vercel `GET /v1/billing/charges`, `/v1/billing/contract-commitments`,
+`POST /v1/billing/buy` เด็ดขาด แม้ token จะเข้าถึงได้ก็ตาม — endpoint นี้
+คืนข้อมูลการเงินระดับ invoice ตรงตามที่กฎข้อนี้ห้ามพอดี ดูเหตุผลเต็มที่
+[`VERCEL_BOUNDARY_PLAN.md`](./VERCEL_BOUNDARY_PLAN.md) Rule 2
+
 ## G-ARCH-002 — ทุก field ต้องมีเหตุผลที่ต้องมี
 
 ห้ามใส่ identity_id/account_id/tenant_id/software_id ลงทุก record เพียง
