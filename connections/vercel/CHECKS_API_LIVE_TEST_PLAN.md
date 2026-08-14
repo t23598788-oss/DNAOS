@@ -68,7 +68,7 @@ real deployment while testing.
 
 | Response | Meaning | Consequence for `governance/release-gate/` |
 |---|---|---|
-| `201` with a check object, `id` present | A project-scoped token IS sufficient for Checks writes | `connections/vercel/` can implement Checks writes directly with the project token — no App needed |
+| `200` with a check object, `id` present | A project-scoped token IS sufficient for Checks writes | `connections/vercel/` can implement Checks writes directly with the project token — no App needed |
 | `400`/`403` whose message contains "OAuth2" (matching the documented text above) | Confirms the OAuth2-only claim | `governance/release-gate/` cannot report through Vercel Checks with a plain token — needs a future Vercel Integration/App capability, same shape as `../github/ARCHITECTURE_DECISIONS.md`'s ADR-GH-001 trigger condition #2 |
 | Any other 4xx/5xx | Genuinely new information, not covered by existing docs | Stop. Record the verbatim response. Do not guess — report to Owner as a new finding before proceeding |
 
