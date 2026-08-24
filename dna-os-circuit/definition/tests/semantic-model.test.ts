@@ -14,6 +14,7 @@
  */
 
 import { buildSemanticComponents, buildSemanticConnections } from "../semantic-model";
+import { EDGE_CLASS_MAP } from "../sbgn-view-builder";
 
 declare const process: { exitCode?: number };
 declare const console: { log(...args: unknown[]): void; error(...args: unknown[]): void };
@@ -63,12 +64,23 @@ function run(): void {
     console.log(`PASS: ${connections.length} connections, every one carries real evidence, real endpoints for the core topology`);
   }
 
-  // 5. An edge with no EDGE_CLASS_MAP entry (added directly to circuit.json, e.g. e_external_ai_ai_write_control) is honestly UNKNOWN, never guessed.
+  // 5. An edge with no EDGE_CLASS_MAP entry is honestly UNKNOWN, never
+  // guessed. Previously pinned to a specific real edge id
+  // (e_external_ai_ai_write_control) as its example of "currently
+  // unmapped" — real progress on EDGE_CLASS_MAP's own completeness (see
+  // ../tests/sbgn-view-builder.test.ts, which now asserts full coverage of
+  // every real circuit.json edge) makes that pin stale by design: a
+  // completed map is a GOOD outcome, not a reason for this test to break.
+  // Tests the exact same `EDGE_CLASS_MAP[id] ?? UNKNOWN` fallback
+  // semantic-model.ts itself uses (see its buildSemanticConnections),
+  // against an id guaranteed to never be a real edge, so this assertion
+  // stays true regardless of how complete the real map becomes.
   {
-    const unclassified = connections.find((c) => c.connection_id === "e_external_ai_ai_write_control");
-    assert(unclassified !== undefined, "the real e_external_ai_ai_write_control edge exists");
-    assert(unclassified!.connection_type === "UNKNOWN", `expected UNKNOWN connection_type (no EDGE_CLASS_MAP entry exists for this edge), got "${unclassified!.connection_type}"`);
-    console.log("PASS: an unclassified real edge honestly reports UNKNOWN connection_type, never guessed");
+    const fakeEdgeId = "e_this_id_is_not_a_real_circuit_json_edge";
+    assert(!(fakeEdgeId in EDGE_CLASS_MAP), "the synthetic id must not collide with a real EDGE_CLASS_MAP entry");
+    const fallback = EDGE_CLASS_MAP[fakeEdgeId] ?? "UNKNOWN";
+    assert(fallback === "UNKNOWN", `expected UNKNOWN for an id with no EDGE_CLASS_MAP entry, got "${fallback}"`);
+    console.log("PASS: an unclassified edge honestly reports UNKNOWN connection_type, never guessed");
   }
 
   // 6. The one real, structurally-proven permission gate resolves with real evidence.

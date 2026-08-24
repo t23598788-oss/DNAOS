@@ -51,6 +51,12 @@ export interface SbgnEdge {
 /** SBGN PD glyph class assigned to each real DNA OS semantic node type — see DNA_OS_VISUAL_LANGUAGE.md §DNA_OS_SYMBOL_MAPPING for the justification of each choice. */
 export const NODE_CLASS_MAP: Record<string, string> = {
   INPUT: "simple chemical",
+  // Same "EVENT" semantic type as INPUT (semantic-model.ts's
+  // TOP_NODE_TYPE_MAP — "conceptual entry point, no backing transport
+  // yet") — same glyph for the same reason. Missing entry, real bug found
+  // live 2026-08-24 (peer review): semantic-model.ts added this node
+  // without this map being updated, so building a view for it threw.
+  EXTERNAL_AI: "simple chemical",
   OWNER_COMMAND: "macromolecule",
   // ENTRY_CONTEXT resolves/assembles Identity+Account+Workspace+Membership+CommandPolicy+Grant
   // before permission evaluation — an active resolution step, same conceptual role as
@@ -84,6 +90,27 @@ export const NODE_CLASS_MAP: Record<string, string> = {
   REGISTRY: "nucleic acid feature",
   RESULT: "tag",
   OWNER_UI: "macromolecule",
+  // The next 5 entries were also missing (real bug found live 2026-08-24,
+  // same cause as EXTERNAL_AI above — semantic-model.ts's TOP_NODE_TYPE_MAP
+  // grew these nodes without this map being updated, and this function
+  // throws on the FIRST missing entry, so fixing EXTERNAL_AI alone just
+  // surfaced the next one). Each mapped to the same glyph already used for
+  // its same semantic type elsewhere in this file.
+  AI_WRITE_CONTROL: "macromolecule", // CAPABILITY, same as OWNER_COMMAND
+  WRITE_INTENT: "tag", // CONTRACT, same as RESULT
+  CAPABILITY_REGISTRY_INDEX: "nucleic acid feature", // STORAGE, same as REGISTRY/IDENTITY
+  WRITE_GATE: "complex", // PERMISSION, same as PERMISSION
+  FILE_WRITE_EXECUTION: "complex", // EXECUTION, same as EXECUTION
+  // Also missing (found running this file's own test to completion after
+  // the fixes above, 2026-08-24) — these 4 are real circuit.json top-level
+  // nodes with no TOP_NODE_TYPE_MAP entry at all (a separate, independently
+  // -maintained classification in semantic-model.ts), so they were never
+  // caught by that map either. Mapped from each node's own real
+  // source_note/label, matching the closest existing convention below.
+  WORLD_EVIDENCE: "nucleic acid feature", // data/registry artifact (reports/phase16-world-evidence/*.json), same reasoning as REGISTRY/IDENTITY
+  CONNECTOR_EXECUTION_BOUNDARY: "association", // generic routing/DI seam control/command-router reaches through, same reasoning as COMMAND_ROUTER
+  DIGITALOCEAN_CONNECTOR: "macromolecule", // an active connector module, same reasoning as DO_CONNECTOR below
+  SOURCE_REGISTRY: "nucleic acid feature", // providers/_shared/source-registry/ — a real store, same reasoning as REGISTRY
   // PERMISSION sub-circuit
   PERM_IDENTITY_CHECK: "process",
   PERM_ACCOUNT_CHECK: "process",
@@ -159,6 +186,19 @@ export const EDGE_CLASS_MAP: Record<string, string> = {
   se_do_binding_connector: "necessary stimulation", // COMMAND — a resolved+authorized binding is required before the connector proceeds, same reasoning as se_grant_policy
   se_do_connector_api: "necessary stimulation", // COMMAND — the connector directs the real API call
   se_do_api_result: "production", // RESPONSE — the API call produces the result, same reasoning as se_process_sanitize
+  // The following 10 were also missing (found running this file's own test
+  // to completion, 2026-08-24, same root cause as NODE_CLASS_MAP above —
+  // circuit.json grew these edges without this map being updated).
+  e_external_ai_ai_write_control: "necessary stimulation", // COMMAND — external AI request forwarded into the write-control capability, same reasoning as e_input_owner_command
+  e_ai_write_control_write_intent: "production", // RESPONSE — write control produces the real WriteIntent contract
+  e_write_intent_capability_registry: "consumption", // DATA — the intent is checked against the real capability registry index, same reasoning as e_entry_context_identity
+  e_capability_registry_write_gate: "consumption", // DATA — registry lookup result feeds the gate's decision, chain continuation
+  e_write_gate_file_write_execution: "stimulation", // PERMISSION (gate passed) — same semantics as e_permission_execution
+  e_input_world_evidence: "necessary stimulation", // COMMAND — same reasoning as e_input_owner_command
+  e_world_evidence_result: "production", // RESPONSE — same reasoning as e_execution_result/e_result_owner_ui
+  e_router_connector_boundary: "necessary stimulation", // COMMAND — router dispatches to the boundary, same reasoning as e_router_permission
+  e_connector_boundary_digitalocean: "necessary stimulation", // COMMAND — boundary forwards to the specific connector, same reasoning
+  e_source_registry_registry: "production", // RESPONSE — real SourcePointers registered INTO the Persistent Software Registry (circuit.json's own source_note)
 };
 
 /** DNA OS domain container groupings — honest, minimal, drawn only from the real fixed top-level topology (never invented). */
