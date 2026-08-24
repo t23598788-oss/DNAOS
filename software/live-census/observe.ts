@@ -20,6 +20,7 @@ import {
   registryByName, readVerificationLedger, liveRepoProcesses,
 } from "./host-runtime";
 import { deriveCensus, type Observation } from "./derive";
+import { applyImpact } from "./impact";
 import type { CapabilityRecord, LiveCensus } from "./types";
 
 export const REPOSITORY = "dna-os-infrastructure";
@@ -63,7 +64,22 @@ export function loadPreviousSnapshot(): CapabilityRecord[] {
 }
 
 export function observeCensus(): LiveCensus {
-  return deriveCensus(REPOSITORY, headCommit(), observeObservations(), readVerificationLedger(), loadPreviousSnapshot());
+  const base = deriveCensus(REPOSITORY, headCommit(), observeObservations(), readVerificationLedger(), loadPreviousSnapshot());
+  // CHANGE-IMPACT PASS. Without this a capability keeps reporting VERIFIED while
+  // the dependency it was proven against has moved underneath it — proven live
+  // on control/command-router vs permissions/execution-policy before ./impact.ts
+  // existed. Applied HERE, in the single shared observation path, so the CLI and
+  // control/scheduler cannot diverge on what "verified" means.
+  const capabilities = applyImpact(base.capabilities);
+  const totals: Record<string, number> = {};
+  for (const c of capabilities) {
+    totals[`status:${c.current_status}`] = (totals[`status:${c.current_status}`] ?? 0) + 1;
+    totals[`registration:${c.registration_state}`] = (totals[`registration:${c.registration_state}`] ?? 0) + 1;
+    totals[`runtime:${c.runtime_state}`] = (totals[`runtime:${c.runtime_state}`] ?? 0) + 1;
+    totals[`test:${c.test_state}`] = (totals[`test:${c.test_state}`] ?? 0) + 1;
+  }
+  totals["capabilities:total"] = capabilities.length;
+  return { ...base, capabilities, totals };
 }
 
 export { SNAPSHOT };

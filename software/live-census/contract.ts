@@ -10,6 +10,8 @@
  * Dependency ที่อนุญาต: ./derive.ts, ./types.ts.
  */
 
+export { deriveImpact, applyImpact, impactOf } from "./impact";
+export type { ImpactFinding } from "./impact";
 export { deriveCensus, deriveCapability, deriveStatus, deriveDrift, deriveEdges, deriveDomain, capabilityKey } from "./derive";
 export type { Observation } from "./derive";
 export type {

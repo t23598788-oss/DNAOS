@@ -22,6 +22,7 @@ import { writeFileSync, mkdirSync } from "node:fs";
 import { join } from "node:path";
 import { REPO_ROOT, nowIso, sourceDigest, appendVerification } from "./host-runtime";
 import { deriveEdges, capabilityKey } from "./derive";
+import { impactOf } from "./impact";
 import { observeCensus, SNAPSHOT, REPOSITORY } from "./observe";
 
 
@@ -66,6 +67,20 @@ function main(): void {
     const byState: Record<string, number> = {};
     for (const e of edges) byState[e.state] = (byState[e.state] ?? 0) + 1;
     console.log(`\n${edges.length} edges: ${Object.entries(byState).map(([k, v]) => `${k}=${v}`).join(" ")}`);
+  } else if (argv[0] === "--impact") {
+    const target = argv[1];
+    if (!target) { console.log("usage: --impact <capability-path>"); process.exitCode = 1; return; }
+    const affected = impactOf(target, census.capabilities);
+    console.log(`CHANGE IMPACT of ${target}: ${affected.length} capability/capabilities must be re-verified if it changes\n`);
+    for (const a of affected) console.log(`  depth ${a.depth}  ${a.path.padEnd(44)} currently ${a.status}`);
+  } else if (argv.includes("--invalidated")) {
+    // NOTE: `census.capabilities` has ALREADY had applyImpact run on it in
+    // observe.ts, so nothing VERIFIED remains for deriveImpact to find — running
+    // it here reported "none" while --status showed REQUIRES_REVERIFICATION.
+    // The post-impact records ARE the answer; read them directly.
+    const invalidated = census.capabilities.filter((c) => c.current_status === "REQUIRES_REVERIFICATION");
+    if (invalidated.length === 0) console.log("no VERIFIED capability is currently invalidated by a moved dependency");
+    for (const c of invalidated) console.log(`${c.path}\n    ${c.status_reason}`);
   } else if (argv[0] === "--status") {
     const target = argv[1];
     const found = census.capabilities.filter((c) => c.path === target || c.path.endsWith(`/${target}`));
