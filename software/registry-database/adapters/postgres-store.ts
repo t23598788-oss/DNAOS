@@ -9,27 +9,23 @@
  * software_registry_runtime / registry_writer), which has no clean
  * equivalent in Supabase's client-key+RLS model.
  *
- * NOT INVOKED ANYWHERE THIS ROUND. Nothing in this repo constructs a
- * `pg.Pool`, loads a connection string, or contacts a real database. Every
- * function here takes an already-built `pg.Pool` as a parameter — exactly
- * like `WriteGateContext`/`ExecutionPolicyContext` consume already-resolved
- * context rather than looking anything up themselves. A connection pool
- * would be constructed by a future transport from a
- * `SoftwareRegistryConnectionRef` (a `vault://`-style reference, same
- * discipline as `../../../credentials/provider-accounts/digitalocean/
- * credential-reference.ts`'s `VaultReference`) — that resolution step is
- * NOT_YET_BUILT and out of scope this round; this file never reads an env
- * var or a secret itself.
+ * INVOKED FOR REAL as of 2026-08-24 (Railway migration — real Postgres
+ * provisioned, schema/roles migrated, verified against the live
+ * database). Every raw function here still takes an already-built
+ * `pg.Pool` as a parameter — this file never reads an env var or resolves
+ * a credential itself; `transport/owner-command-http/server.ts` builds
+ * the real `Pool` from a Railway-injected connection string and passes it
+ * in, same discipline as `WriteGateContext`/`ExecutionPolicyContext`.
  *
- * Deliberately NOT shaped as a `RegistryStore` (see `../store-port.ts`):
- * `RegistryStore`'s methods are synchronous, matching
- * `../adapters/local-file-store.ts` (this round's only real caller,
- * exercised by `../tests/registry-writer.test.ts`); a genuine `pg` round
- * trip is inherently async. Forcing an async client behind a sync
- * interface (or making `RegistryStore` itself async, a real port change)
- * is a decision for whichever future round wires a real transport — not
- * invented here. These functions are real and typed so the SQL itself is
- * reviewable now.
+ * `PostgresAsyncRegistryStore` (below) is the real, live-used
+ * implementation of `AsyncRegistryStore` (`../store-port.ts`) — NOT
+ * `RegistryStore`: that interface's methods are synchronous, matching
+ * `../adapters/local-file-store.ts`/`persistent-file-store.ts`, and a
+ * genuine `pg` round trip is inherently async. Rather than force this
+ * behind a sync interface, `AsyncRegistryStore` is a distinct,
+ * Promise-returning port that only the live registration-candidate/
+ * lookup/update HTTP request path uses — everything else in this repo
+ * keeps using plain synchronous `RegistryStore`, untouched.
  *
  * Input: a `pg.Pool` + the same row-shaped inputs `store-port.ts` defines.
  * Output: `writeApprovedCandidateAsync`, `findCapabilityByIdAsync`,
@@ -43,8 +39,8 @@
  */
 
 import type { Pool } from "pg";
-import type { ApprovedCandidateWrite, WriteOutcome } from "../store-port";
-import type { CapabilityLookupResult, CapabilityRow, IngressMetadataRow, RelationshipEdge, ResourceRow } from "../types";
+import type { ApprovedCandidateWrite, AsyncRegistryStore, WriteOutcome } from "../store-port";
+import type { CapabilityLookupResult, CapabilityRow, EvidenceRow, IngressMetadataRow, RelationshipEdge, RelationshipRow, ResourceRow, VersionRow } from "../types";
 
 interface CapabilityLookupRow {
   capability_id: string;
@@ -88,7 +84,7 @@ const CAPABILITY_LOOKUP_QUERY_TEMPLATE = `
     c.ingress_metadata,
     array_remove(array_agg(distinct rc.resource_id), null) as resource_ids,
     array_remove(array_agg(distinct r.source_location), null) as source_locations,
-    array_remove(array_agg(distinct r.version), null) as versions,
+    array_remove(array_agg(distinct v.version), null) as versions,
     array_remove(array_agg(distinct case when rel.relationship_kind = 'CAPABILITY_TO_DEPENDENCY' then rel.to_id end), null) as dependencies,
     array_remove(array_agg(distinct case when rel.relationship_kind = 'CAPABILITY_TO_WORKER' then rel.to_id end), null) as eligible_workers,
     array_remove(array_agg(distinct e.evidence_ref), null) as evidence_refs,
@@ -96,6 +92,7 @@ const CAPABILITY_LOOKUP_QUERY_TEMPLATE = `
   from software_registry.capabilities c
   left join software_registry.resource_capabilities rc on rc.capability_id = c.capability_id
   left join software_registry.resources r on r.resource_id = rc.resource_id
+  left join software_registry.versions v on v.resource_id = r.resource_id
   left join software_registry.relationships rel on rel.from_id = c.capability_id
     left join software_registry.evidence e on e.capability_id = c.capability_id
   where %WHERE%
@@ -120,19 +117,85 @@ export function findCapabilityByCanonicalNameAsync(pool: Pool, canonical_name: s
   return runLookup(pool, "c.canonical_name", canonical_name);
 }
 
+/**
+ * Real column mapping, not `select *` (2026-08-24 fix — verified live
+ * against the actual applied schema before this file was ever invoked for
+ * real): `resources` has NO `version` column — every other adapter
+ * (`local-file-store.ts`, `persistent-file-store.ts`) treats
+ * `ResourceRow.version` as the resource's current version, sourced from
+ * its most recent `versions` row, so this subquery reproduces that.
+ * `ResourceRow.content_hash` is, everywhere else in this codebase
+ * (`registry-writer.ts#commitRegisteredCandidate` sets it to
+ * `fingerprint.exact`), the EXACT-match fingerprint — the real,
+ * unique-constrained SQL column for that is `exact_fingerprint`, not the
+ * separate, never-written `content_hash` column, so it is read from
+ * there. The real `content_hash` SQL column is left alone (part of the
+ * reviewed migration; not this file's decision to add/drop).
+ */
+const RESOURCE_ROW_QUERY = `
+  select r.resource_id, r.resource_type, r.owner_id, r.repository_id, r.source_location, r.module,
+         coalesce((select v.version from software_registry.versions v where v.resource_id = r.resource_id order by v.created_at desc limit 1), '') as version,
+         r.exact_fingerprint as content_hash,
+         r.status, r.created_at, r.updated_at
+  from software_registry.resources r
+  where %WHERE%
+`;
+
 export async function findResourceByContentHashAsync(pool: Pool, content_hash: string): Promise<ResourceRow | null> {
-  const { rows } = await pool.query<ResourceRow>(`select * from software_registry.resources where content_hash = $1`, [content_hash]);
+  const { rows } = await pool.query<ResourceRow>(RESOURCE_ROW_QUERY.replace("%WHERE%", "r.exact_fingerprint = $1"), [content_hash]);
   return rows.length > 0 ? rows[0] : null;
 }
 
 export async function findResourceByExactFingerprintAsync(pool: Pool, exact_fingerprint: string): Promise<ResourceRow | null> {
-  const { rows } = await pool.query<ResourceRow>(`select * from software_registry.resources where exact_fingerprint = $1`, [exact_fingerprint]);
+  const { rows } = await pool.query<ResourceRow>(RESOURCE_ROW_QUERY.replace("%WHERE%", "r.exact_fingerprint = $1"), [exact_fingerprint]);
   return rows.length > 0 ? rows[0] : null;
 }
 
 export async function findResourceByIdAsync(pool: Pool, resource_id: string): Promise<ResourceRow | null> {
-  const { rows } = await pool.query<ResourceRow>(`select * from software_registry.resources where resource_id = $1`, [resource_id]);
+  const { rows } = await pool.query<ResourceRow>(RESOURCE_ROW_QUERY.replace("%WHERE%", "r.resource_id = $1"), [resource_id]);
   return rows.length > 0 ? rows[0] : null;
+}
+
+export async function addRelationshipAsync(pool: Pool, row: Omit<RelationshipRow, "relationship_id" | "created_at">): Promise<{ added: boolean }> {
+  const { rows } = await pool.query<{ inserted: boolean }>(
+    `insert into software_registry.relationships (relationship_id, from_type, from_id, to_type, to_id, relationship_kind)
+     values (gen_random_uuid(), $1, $2, $3, $4, $5)
+     on conflict (from_type, from_id, to_type, to_id, relationship_kind) do nothing
+     returning true as inserted`,
+    [row.from_type, row.from_id, row.to_type, row.to_id, row.relationship_kind],
+  );
+  return { added: rows.length > 0 };
+}
+
+export async function removeRelationshipAsync(pool: Pool, from_id: string, to_id: string, relationship_kind: string): Promise<{ removed: boolean }> {
+  const { rowCount } = await pool.query(
+    `delete from software_registry.relationships where from_id = $1 and to_id = $2 and relationship_kind = $3`,
+    [from_id, to_id, relationship_kind],
+  );
+  return { removed: (rowCount ?? 0) > 0 };
+}
+
+export async function addEvidenceAsync(pool: Pool, row: Omit<EvidenceRow, "evidence_id" | "created_at">): Promise<{ added: boolean }> {
+  const { rows } = await pool.query<{ inserted: boolean }>(
+    `insert into software_registry.evidence (evidence_id, resource_id, capability_id, evidence_type, evidence_ref)
+     values (gen_random_uuid(), $1, $2, $3, $4)
+     on conflict (evidence_ref, resource_id, capability_id) do nothing
+     returning true as inserted`,
+    [row.related_resource_id, row.related_capability_id, row.evidence_type, row.evidence_ref],
+  );
+  return { added: rows.length > 0 };
+}
+
+/** Also advances the resource's own current version, same real behavior as `persistent-file-store.ts#addVersion` — reproduced here via `RESOURCE_ROW_QUERY`'s latest-version subquery rather than a write, since `resources` has no `version` column to update. */
+export async function addVersionAsync(pool: Pool, row: Omit<VersionRow, "version_id" | "created_at">): Promise<{ added: boolean }> {
+  const { rows } = await pool.query<{ inserted: boolean }>(
+    `insert into software_registry.versions (version_id, resource_id, version, commit_sha, content_hash, source_location)
+     values (gen_random_uuid(), $1, $2, $3, $4, $5)
+     on conflict (resource_id, version) do nothing
+     returning true as inserted`,
+    [row.resource_id, row.version, row.commit_sha, row.hash, row.source_location],
+  );
+  return { added: rows.length > 0 };
 }
 
 export async function appendRegistrationEventAsync(pool: Pool, event: { candidate_id: string; decision: string; duplicate_result: string | null; evidence_ref: readonly string[] }): Promise<void> {
@@ -215,5 +278,51 @@ export async function writeApprovedCandidateAsync(pool: Pool, input: ApprovedCan
     throw error;
   } finally {
     client.release();
+  }
+}
+
+/**
+ * The real, live `AsyncRegistryStore` implementation — one thin object
+ * bundling every function above around a single already-built `Pool`.
+ * Never constructs the `Pool` itself (see file header) — the caller
+ * (`transport/owner-command-http/server.ts`) builds it from a real
+ * Railway-injected connection string and passes it in here.
+ */
+export class PostgresAsyncRegistryStore implements AsyncRegistryStore {
+  constructor(private readonly pool: Pool) {}
+
+  writeApprovedCandidate(input: ApprovedCandidateWrite): Promise<WriteOutcome> {
+    return writeApprovedCandidateAsync(this.pool, input);
+  }
+  appendRegistrationEvent(event: { candidate_id: string; decision: string; duplicate_result: string | null; evidence_ref: readonly string[] }): Promise<void> {
+    return appendRegistrationEventAsync(this.pool, event);
+  }
+  findCapabilityById(capability_id: string): Promise<CapabilityLookupResult | null> {
+    return findCapabilityByIdAsync(this.pool, capability_id);
+  }
+  findCapabilityBySemanticFingerprint(semantic_fingerprint: string): Promise<CapabilityLookupResult | null> {
+    return findCapabilityBySemanticFingerprintAsync(this.pool, semantic_fingerprint);
+  }
+  findCapabilityByCanonicalName(canonical_name: string): Promise<CapabilityLookupResult | null> {
+    return findCapabilityByCanonicalNameAsync(this.pool, canonical_name);
+  }
+  /** Routed to the real, unique-constrained `exact_fingerprint` column — see `RESOURCE_ROW_QUERY`'s own doc comment on why the separate `content_hash` column would silently break duplicate detection. */
+  findResourceByContentHash(content_hash: string): Promise<ResourceRow | null> {
+    return findResourceByExactFingerprintAsync(this.pool, content_hash);
+  }
+  findResourceById(resource_id: string): Promise<ResourceRow | null> {
+    return findResourceByIdAsync(this.pool, resource_id);
+  }
+  addRelationship(row: Omit<RelationshipRow, "relationship_id" | "created_at">): Promise<{ added: boolean }> {
+    return addRelationshipAsync(this.pool, row);
+  }
+  removeRelationship(from_id: string, to_id: string, relationship_kind: string): Promise<{ removed: boolean }> {
+    return removeRelationshipAsync(this.pool, from_id, to_id, relationship_kind);
+  }
+  addEvidence(row: Omit<EvidenceRow, "evidence_id" | "created_at">): Promise<{ added: boolean }> {
+    return addEvidenceAsync(this.pool, row);
+  }
+  addVersion(row: Omit<VersionRow, "version_id" | "created_at">): Promise<{ added: boolean }> {
+    return addVersionAsync(this.pool, row);
   }
 }

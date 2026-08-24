@@ -79,3 +79,55 @@ export interface RegistryStore {
   debugCounts(): { resources: number; capabilities: number; resource_capabilities: number; relationships: number; versions: number; evidence: number; registration_events: number };
   debugCallCounts(): { writeApprovedCandidateCalls: number; appendRegistrationEventCalls: number };
 }
+
+/**
+ * หน้าที่: the same port as `RegistryStore`, Promise-returning throughout
+ * (2026-08-24, Railway migration — a real `pg.Pool` round trip is
+ * inherently async; see `adapters/postgres-store.ts`'s own header on why
+ * it was deliberately never shaped as a synchronous `RegistryStore`).
+ * Every orchestration function that needs to run against a real Postgres
+ * store (`./lookup.ts`, `control/registration-pipeline/duplicate-resolution.ts`,
+ * `./registry-writer.ts`, `control/registration-pipeline/pipeline.ts`,
+ * `control/registration-update/mutation.ts`) takes this instead of
+ * `RegistryStore` directly. `wrapAsAsyncStore` lets every existing
+ * synchronous store (`local-file-store.ts` for tests,
+ * `persistent-file-store.ts` for today's real Mac-local usage) satisfy
+ * this port unchanged — a sync value awaited through `Promise.resolve()`
+ * resolves immediately, so this is a zero-behavior-change wrapper for
+ * every caller that isn't using Postgres. The *other* ~40 files across
+ * this repo that consume plain `RegistryStore` for unrelated flows
+ * (admission, duplicate-reservation, permission-policy-resolution, etc.)
+ * are deliberately untouched by this — this port exists only for the live
+ * registration-candidate/lookup/update HTTP request path that actually
+ * needs Postgres durability, not as a repo-wide interface change.
+ */
+export interface AsyncRegistryStore {
+  writeApprovedCandidate(input: ApprovedCandidateWrite): Promise<WriteOutcome>;
+  appendRegistrationEvent(event: { candidate_id: string; decision: string; duplicate_result: string | null; evidence_ref: readonly string[] }): Promise<void>;
+  findCapabilityById(capability_id: string): Promise<CapabilityLookupResult | null>;
+  findCapabilityBySemanticFingerprint(semantic_fingerprint: string): Promise<CapabilityLookupResult | null>;
+  findCapabilityByCanonicalName(canonical_name: string): Promise<CapabilityLookupResult | null>;
+  findResourceByContentHash(content_hash: string): Promise<ResourceRow | null>;
+  findResourceById(resource_id: string): Promise<ResourceRow | null>;
+  addRelationship(row: Omit<RelationshipRow, "relationship_id" | "created_at">): Promise<{ added: boolean }>;
+  removeRelationship(from_id: string, to_id: string, relationship_kind: string): Promise<{ removed: boolean }>;
+  addEvidence(row: Omit<EvidenceRow, "evidence_id" | "created_at">): Promise<{ added: boolean }>;
+  addVersion(row: Omit<VersionRow, "version_id" | "created_at">): Promise<{ added: boolean }>;
+}
+
+/** Adapts any synchronous `RegistryStore` (local-file-store, persistent-file-store) to `AsyncRegistryStore` — every method just resolves immediately with the same value the sync call already produced. */
+export function wrapAsAsyncStore(store: RegistryStore): AsyncRegistryStore {
+  return {
+    writeApprovedCandidate: async (input) => store.writeApprovedCandidate(input),
+    appendRegistrationEvent: async (event) => store.appendRegistrationEvent(event),
+    findCapabilityById: async (capability_id) => store.findCapabilityById(capability_id),
+    findCapabilityBySemanticFingerprint: async (semantic_fingerprint) => store.findCapabilityBySemanticFingerprint(semantic_fingerprint),
+    findCapabilityByCanonicalName: async (canonical_name) => store.findCapabilityByCanonicalName(canonical_name),
+    findResourceByContentHash: async (content_hash) => store.findResourceByContentHash(content_hash),
+    findResourceById: async (resource_id) => store.findResourceById(resource_id),
+    addRelationship: async (row) => store.addRelationship(row),
+    removeRelationship: async (from_id, to_id, relationship_kind) => store.removeRelationship(from_id, to_id, relationship_kind),
+    addEvidence: async (row) => store.addEvidence(row),
+    addVersion: async (row) => store.addVersion(row),
+  };
+}
