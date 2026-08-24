@@ -30,7 +30,7 @@ railway status --json         # real Railway service ids/repo/startCommand
 | Contract | in: `commandText`, optional `WorkOrder`, `ownerIdentity`, `Authorization: Bearer <secret>`; out: `SubmitOwnerCommandOutcome`, `OwnerCommandLifecycle` |
 | Dependencies | `control/owner-command/contract.ts`, `control/agent-gateway/contract.ts`, `permissions/network-auth-gate/contract.ts`, `software/registry-database/adapters/persistent-file-store.ts` |
 | Depended on by | Dead Board (`dna-os-deadboard`, separate repo, Mac-local, out of migration scope) |
-| WHERE it executes | Real launchd process on the Mac today (`com.dnaos.owner-command-http`, port 8791); Railway service `owner-command-http` (id `8d67c28f-75bb-4ead-8e7b-d4050e47afcc`) created, **not yet deployed** (blocked on GitHub App authorization) |
+| WHERE it executes | Real launchd process on the Mac today (`com.dnaos.owner-command-http`, port 8791); **Railway deployment `3247c5ac-cf51-424c-9131-4e5f834c8ddd`, status SUCCESS, instance RUNNING, commit `ca3e3249db96c264d56a03810d6b4cc9fc54f953`** — real startup log: `owner-command-http listening on http://0.0.0.0:8080`. No public domain by design (see permissions/network-auth-gate — public exposure of this specific service was deliberately deferred pending Dead Board's own reachability); Railway's own `/health` healthcheck gate held the deploy at non-success until it passed |
 | HOW to restore | `git clone` → `npm install` → `npx tsx transport/owner-command-http/tests/wiring.test.ts` and `.../tests/auth-gate.test.ts` — both proven clean from a fresh clone this session |
 | Superseded | n/a (no prior version) |
 
@@ -45,7 +45,7 @@ railway status --json         # real Railway service ids/repo/startCommand
 | Registration state | `REGISTERED_STALE` |
 | Contract | in: `CircuitState`, HTTP requests; out: circuit UI, SSE stream, findings/evaluation/decision JSON, agent-gateway dispatch results |
 | Dependencies | `control/agent-gateway/contract.ts`, `permissions/network-auth-gate/contract.ts`, `dna-os-circuit/definition/semantic-model.ts`, `execution/run/contract.ts` |
-| WHERE it executes | Not currently running locally; Railway service `dna-os-circuit` (id `4c04fb88-4711-4bd8-b42e-e25bb5ab909a`) created, **not yet deployed** (same GitHub-auth block) |
+| WHERE it executes | **Railway deployment `40ffd5ab-3033-4c14-9fd6-23b153cb9fd5`, status SUCCESS, instance RUNNING, commit `ca3e3249db96c264d56a03810d6b4cc9fc54f953`. Real public URL: https://dna-os-circuit-production.up.railway.app** — `GET /circuit.json` returns real 200; unauthenticated `POST /evaluate` returns real 401 `{"error":"unauthorized"}` (auth gate live-verified in production, not just in tests) |
 | HOW to restore | `git clone` → `npm install` → `npx tsx dna-os-circuit/runtime/tests/server.test.ts`, `dna-os-circuit/definition/tests/semantic-model.test.ts`, `.../sbgn-view-builder.test.ts` — all proven clean from a fresh clone this session |
 | Superseded | n/a |
 
@@ -58,7 +58,7 @@ railway status --json         # real Railway service ids/repo/startCommand
 | GitHub commit | `a4aa971790591ea4c13ed9f49bee85962123c7ca` |
 | Capability ID (registry) | `capability-6099780b-29c7-4c52-9e74-6ad00efb4b45` |
 | Registration state | `REGISTERED_STALE` (registered before this migration round; not touched here) |
-| WHERE it executes | Not currently running locally; Railway service `joint-monitor` (id `bf8e17d1-0d3a-4c7a-a5a9-f8a326fcd4fe`) created, **not yet deployed** |
+| WHERE it executes | **Railway deployment `0a0ecaca-e4fe-4b90-976b-d6822a567763`, status SUCCESS, instance RUNNING, commit `ca3e3249db96c264d56a03810d6b4cc9fc54f953`. Real public URL: https://joint-monitor-production.up.railway.app** — `GET /joints` returns real 200 |
 | HOW to restore | `git clone` → `npm install` → `npx tsx observability/joint-monitor/tests/joint-broadcast-proof.test.ts`, `.../router-wiring-proof.test.ts` — **known pre-existing flake**, reproduced identically on the unmodified repo (not a restore defect) |
 | Superseded | n/a |
 
@@ -111,11 +111,13 @@ Railway target):
 
 - `GITHUB_VERIFIED`: true for the 4 capabilities above (remote SHA matches local HEAD).
 - `RESTORE_VERIFIED`: true (clean-clone proof this session — install, typecheck, and the relevant test suites all pass from a fresh `git clone`, independent of this working directory).
-- `RAILWAY_RUNTIME_VERIFIED`: **false for all three deploy targets** — Railway services exist but have never been deployed (blocked on GitHub App authorization for this repo).
-- Registration completeness: 35 real capabilities repo-wide remain unregistered.
+- `RAILWAY_RUNTIME_VERIFIED`: **true for all three deploy targets as of this update** — GitHub App authorized, all three redeployed from commit `ca3e3249db96c264d56a03810d6b4cc9fc54f953`, all three `SUCCESS`/`RUNNING`, real HTTP health + auth-gate enforcement confirmed live in production for the two with public domains (dna-os-circuit, joint-monitor); owner-command-http verified via Railway's own healthcheck gate + startup log (no public domain, by design).
+- Registration completeness: **still 35 real capabilities repo-wide remain unregistered** — unchanged by the deploy.
 
 **LOCAL_SOURCE_RETIREMENT_READY = false.** No local source should be
-removed. The blocking evidence is concrete and machine-checkable: zero of
-the three Railway deploy targets have a real running remote deployment
-yet, and the majority of real capabilities in this repo have never been
-registered.
+removed. Railway runtime verification is now real and complete for the
+three migrated services, but the registration-completeness gate is not:
+35 real capabilities across the repo have never been through the
+registration pipeline. Local source retirement requires
+`REGISTRY_COMPLETE=true` repo-wide, not just for the capabilities this
+migration round happened to touch.
