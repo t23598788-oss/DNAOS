@@ -3925,5 +3925,93 @@
     "new_status": "ROUTABLE",
     "decided_at": "2026-08-19T10:30:47.819Z",
     "decision_evidence_id": "dec-0b376f8f-291f-4e51-8e65-3cba9a5a0a88"
+  },
+  {
+    "finding_id": "finding-decide-test-lpfo4t97z0q",
+    "scan_id": "scan-decide-test",
+    "decision": "NEEDS_FIX",
+    "rule_fired": "real_issue_needs_fix",
+    "matched_evidence": "classification=REAL_ISSUE, warning_type=ORPHAN",
+    "based_on_evaluation_evidence_id": "eval-7eceea64-26ac-4fb5-8363-00a4c51c044f",
+    "new_status": "ROUTABLE",
+    "decided_at": "2026-08-24T11:43:31.820Z",
+    "decision_evidence_id": "dec-eeab9a9b-eccf-4e7e-9d77-0787f6919769"
+  },
+  {
+    "finding_id": "finding-decide-test-f1m2ueg3axi",
+    "scan_id": "scan-decide-test",
+    "decision": "REJECT",
+    "rule_fired": "test_fixture_rejected",
+    "matched_evidence": "classification=TEST_FIXTURE",
+    "based_on_evaluation_evidence_id": "eval-b4bb532b-ffb3-444f-88be-82a6dd879e03",
+    "new_status": "RESOLVED",
+    "decided_at": "2026-08-24T11:43:31.863Z",
+    "decision_evidence_id": "dec-3311b994-4022-44d0-a9fb-c979e054ac9c"
+  },
+  {
+    "finding_id": "finding-decide-test-31rofit5s1",
+    "scan_id": "scan-decide-test",
+    "decision": "FORBIDDEN",
+    "rule_fired": "security_sensitive_warning_type_forbidden",
+    "matched_evidence": "warning_type=HARDCODED_CREDENTIAL",
+    "based_on_evaluation_evidence_id": "eval-7814e5d2-082a-43e2-85d2-dc79534d19e3",
+    "new_status": "BLOCKED",
+    "decided_at": "2026-08-24T11:43:31.901Z",
+    "decision_evidence_id": "dec-f5db0ade-a194-4b4f-bea8-3bddc5ef3b6e"
+  },
+  {
+    "finding_id": "finding-decide-test-d1jmbssa3r5",
+    "scan_id": "scan-decide-test",
+    "decision": "NEEDS_FIX",
+    "rule_fired": "real_issue_needs_fix",
+    "matched_evidence": "classification=REAL_ISSUE, warning_type=ORPHAN",
+    "based_on_evaluation_evidence_id": "eval-04e1c550-dbd8-4bcd-9a6d-29a9f22f3ad4",
+    "new_status": "ROUTABLE",
+    "decided_at": "2026-08-24T11:43:31.946Z",
+    "decision_evidence_id": "dec-a9c02a29-0e60-4238-b3b1-2653a7a47b3c"
+  },
+  {
+    "finding_id": "finding-decide-test-mcoz7z48tw",
+    "scan_id": "scan-decide-test",
+    "decision": "NEEDS_FIX",
+    "rule_fired": "real_issue_needs_fix",
+    "matched_evidence": "classification=REAL_ISSUE, warning_type=ORPHAN",
+    "based_on_evaluation_evidence_id": "eval-9c5be06a-0c10-4df6-82bd-ddc76e7abfd4",
+    "new_status": "ROUTABLE",
+    "decided_at": "2026-08-24T11:52:50.992Z",
+    "decision_evidence_id": "dec-4b65840d-279d-4c7e-ab31-e5061c06527f"
+  },
+  {
+    "finding_id": "finding-decide-test-z4ysz2tndlo",
+    "scan_id": "scan-decide-test",
+    "decision": "REJECT",
+    "rule_fired": "test_fixture_rejected",
+    "matched_evidence": "classification=TEST_FIXTURE",
+    "based_on_evaluation_evidence_id": "eval-e5303586-2dbf-405f-a2f1-cb7bf4f135b8",
+    "new_status": "RESOLVED",
+    "decided_at": "2026-08-24T11:52:51.041Z",
+    "decision_evidence_id": "dec-f646a2e7-7695-44ec-91ef-595de83f4b66"
+  },
+  {
+    "finding_id": "finding-decide-test-iswd7wnurd",
+    "scan_id": "scan-decide-test",
+    "decision": "FORBIDDEN",
+    "rule_fired": "security_sensitive_warning_type_forbidden",
+    "matched_evidence": "warning_type=HARDCODED_CREDENTIAL",
+    "based_on_evaluation_evidence_id": "eval-8cbdc9e6-bead-4f07-b9ab-16bc7a2b2855",
+    "new_status": "BLOCKED",
+    "decided_at": "2026-08-24T11:52:51.086Z",
+    "decision_evidence_id": "dec-0a76da4d-144d-4a2c-9e0c-25ee935ad9a1"
+  },
+  {
+    "finding_id": "finding-decide-test-0ma17yrnmat",
+    "scan_id": "scan-decide-test",
+    "decision": "NEEDS_FIX",
+    "rule_fired": "real_issue_needs_fix",
+    "matched_evidence": "classification=REAL_ISSUE, warning_type=ORPHAN",
+    "based_on_evaluation_evidence_id": "eval-cc935247-7596-4886-b93e-698e4910790f",
+    "new_status": "ROUTABLE",
+    "decided_at": "2026-08-24T11:52:51.145Z",
+    "decision_evidence_id": "dec-371badcc-1744-4711-8344-10710e7bad8e"
   }
 ]

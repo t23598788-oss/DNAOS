@@ -1,0 +1,11 @@
+{
+  "install_id": "install-20260824T132156Z-344072ba5430",
+  "build_id": "build-20260824T132124Z-b16da158cd41",
+  "installed_path": "/Users/tam/Desktop/DNA DEV.app",
+  "desktop_launcher_sha256": "7da23370533b5d952958a5c96866f7c4dde2b9d8ab9a0db84b253f0243456ef3",
+  "desktop_bundle_sha256": "7b99fc3261bcf12a5eec38e4a3b94068161a610cdcab93b727d530c07ce23aa8",
+  "built_launcher_sha256": "7da23370533b5d952958a5c96866f7c4dde2b9d8ab9a0db84b253f0243456ef3",
+  "built_bundle_sha256": "7b99fc3261bcf12a5eec38e4a3b94068161a610cdcab93b727d530c07ce23aa8",
+  "provenance_match": true,
+  "installed_at": "2026-08-24T13:21:56Z"
+}

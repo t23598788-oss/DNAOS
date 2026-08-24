@@ -1,0 +1,17 @@
+{
+  "build_id": "build-20260824T132124Z-b16da158cd41",
+  "capability_id": "dna-dev-app-host",
+  "owner_folder": "local-runtime/dna-dev-app-host/",
+  "source_hashes": {
+    "launcher.template.sh": "1928c7eb37a0f607fefc5608624c0453ac0b9753a20dd79338e9063713ffda97",
+    "Info.plist": "4564f053e77424efe8cf0a0f978c511f78b017e0e74612adc3e08872896998d5",
+    "config.ts": "adc4289572aae15a061fd1cc41f078cb9d9451248c0a549b819cb2ca6f353a25",
+    "types.ts": "06559b4555986ae66847dd5b9042add530cf3114cff34013be6464eb2bbc916d",
+    "contract.ts": "1f0969e47dfb24f999bec8e34beb0fcfb9cb64562bb8e826dd75ea8548ecf8be"
+  },
+  "artifact_launcher_sha256": "7da23370533b5d952958a5c96866f7c4dde2b9d8ab9a0db84b253f0243456ef3",
+  "artifact_bundle_sha256": "7b99fc3261bcf12a5eec38e4a3b94068161a610cdcab93b727d530c07ce23aa8",
+  "launch_target": { "url": "https://dna-os-circuit-production.up.railway.app", "runtime_kind": "RAILWAY_DEPLOYMENT", "railway_service": "dna-os-circuit" },
+  "icon": "no governed app.icns present — bundle uses the system default icon",
+  "built_at": "2026-08-24T13:21:24Z"
+}
