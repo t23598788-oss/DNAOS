@@ -44,7 +44,7 @@ export interface HostHttpResponse {
 }
 interface NodeHttpModule {
   createServer(handler: (req: HostHttpRequest, res: HostHttpResponse) => void): {
-    listen(port: number, callback?: () => void): void;
+    listen(port: number, host?: string, callback?: () => void): void;
     close(callback?: () => void): void;
   };
 }

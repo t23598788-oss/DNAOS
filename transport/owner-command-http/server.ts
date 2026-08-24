@@ -43,15 +43,24 @@
  * ../../permissions/access-control/*-registry.ts,
  * ../../permissions/software-scope/*-registry.ts. Node's built-in `http`
  * only — no framework, no new dependency.
- * สิ่งที่ห้ามแตะ: never bind to a non-loopback host — this is a local
- * bridge for the Dead Board process on the same machine, not a public
- * endpoint. The Work Order is handed to the existing router/dispatcher;
- * this transport never executes it directly.
+ * สิ่งที่ห้ามแตะ: this server performs no request authentication of its
+ * own (see the identity note above — auth happens in the external
+ * caller). Never give this a PUBLIC Railway domain / public internet
+ * exposure without adding real request auth here first (2026-08-24,
+ * migration hardening — verified live, this file had zero auth). Binding
+ * host is env-driven (`HOST`, default `127.0.0.1`) so this can run inside
+ * a Railway container (which requires binding wider than loopback to be
+ * reachable even over Railway's *private* network) — but "reachable on
+ * Railway's private network" and "reachable from the public internet" are
+ * different things; only the former is authorized here. The Work Order is
+ * handed to the existing router/dispatcher; this transport never executes
+ * it directly.
  */
 
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import { fileURLToPath } from "node:url";
 import { resolve } from "node:path";
+import { verifySharedSecret, evaluateBindPolicy } from "../../permissions/network-auth-gate/contract";
 import type { EnvelopeIdentity } from "../../contracts/identity/envelope-identity";
 import { submitOwnerCommand, renderOwnerSurface } from "../../control/owner-command/contract";
 import { ingestCommandEnvelope, newEnvelopeId } from "../../control/owner-command/input-gateway";
@@ -458,9 +467,33 @@ async function handleRegistryLookup(req: IncomingMessage, res: ServerResponse): 
   sendJson(res, 200, { matches: capability ? [capability] : [], lookup_layer: "software/registry-database/lookup.ts", raw_sql_exposed: false });
 }
 
+/**
+ * Network auth gate (2026-08-24, migration hardening — verified live and
+ * flagged independently by two reviews: this server had none of its own,
+ * relying entirely on loopback-only reachability plus an external caller's
+ * (dna-os-deadboard's) already-verified Supabase auth. `ownerIdentity` is
+ * NEVER trusted for authorization (see the identity note above) — but the
+ * single-owner grant it falls back to already IS full execution.run
+ * access, so on a public network that reassurance doesn't mean what it
+ * looks like it means. Real decision logic lives in
+ * `permissions/network-auth-gate/` (shared with dna-os-circuit/runtime,
+ * to avoid two independently-drifting copies of a security check) — this
+ * is just the thin Node-`http`-specific glue around it.
+ */
+function requireSharedSecret(req: IncomingMessage, res: ServerResponse): boolean {
+  const expected = process.env.OWNER_COMMAND_HTTP_SHARED_SECRET;
+  if (!expected) return true;
+  if (verifySharedSecret(req.headers.authorization, expected)) return true;
+  sendJson(res, 401, { error: "unauthorized" });
+  return false;
+}
+
 const server = createServer((req, res) => {
   if (req.method === "GET" && req.url === "/health") {
     sendJson(res, 200, { ok: true });
+    return;
+  }
+  if (req.method !== "GET" && req.method !== "HEAD" && !requireSharedSecret(req, res)) {
     return;
   }
   if (req.method === "GET" && req.url === "/runtime/inventory") {
@@ -510,12 +543,18 @@ const server = createServer((req, res) => {
 });
 
 const port = Number(process.env.PORT ?? 8791);
+const host = process.env.HOST ?? "127.0.0.1";
 
 const isMainModule = process.argv[1] !== undefined && resolve(process.argv[1]) === fileURLToPath(import.meta.url);
 if (isMainModule) {
+  const bindPolicy = evaluateBindPolicy(host, process.env.OWNER_COMMAND_HTTP_SHARED_SECRET);
+  if (!bindPolicy.allowed) {
+    console.error(`owner-command-http refusing to start: ${bindPolicy.reason}`);
+    process.exit(1);
+  }
   supervisor = startAgentGatewaySupervisor(DEFAULT_AGENT_WORKERS);
-  server.listen(port, "127.0.0.1", () => {
-    console.log(`owner-command-http listening on http://127.0.0.1:${port}`);
+  server.listen(port, host, () => {
+    console.log(`owner-command-http listening on http://${host}:${port}`);
   });
 }
 

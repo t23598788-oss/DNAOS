@@ -25,6 +25,28 @@
 import { appendJsonlLine, createHttpServer, hostRandomId, joinPath, nowIso, readRequestBody, repoRootDirname, type HostHttpRequest, type HostHttpResponse } from "./host-runtime";
 import { JointStore } from "./joint-store";
 import type { ReportJointInput, ReportViolationInput } from "./types";
+import { verifySharedSecret, evaluateBindPolicy } from "../../permissions/network-auth-gate/contract";
+
+declare const process: { env: Record<string, string | undefined> };
+
+/**
+ * Network auth gate (2026-08-24, migration hardening). Lower risk than
+ * transport/owner-command-http or dna-os-circuit/runtime — this server
+ * reaches no execution path, only its own JointStore — but its two POST
+ * routes are unauthenticated writes into an evidence store that the
+ * census/registry derive real facts from (see peer review finding, same
+ * date: forged joint/violation rows could make the system believe false
+ * things about itself). Same shared decision logic as the other two
+ * servers, see `permissions/network-auth-gate/`.
+ */
+function requireSharedSecret(req: HostHttpRequest, res: HostHttpResponse): boolean {
+  const expected = process.env.JOINT_MONITOR_SHARED_SECRET;
+  if (!expected) return true;
+  const header = req.headers.authorization;
+  if (verifySharedSecret(typeof header === "string" ? header : undefined, expected)) return true;
+  sendJson(res, 401, { error: "unauthorized" });
+  return false;
+}
 
 function safeSend(res: HostHttpResponse, status: number, contentType: string, body: string): void {
   try {
@@ -168,6 +190,9 @@ export function startJointMonitorServer(store: JointStore, port: number): Return
   const server = createHttpServer((req, res) => {
     try {
       const url = req.url ?? "/";
+      if (req.method !== "GET" && req.method !== "HEAD" && req.method !== undefined && !requireSharedSecret(req, res)) {
+        return;
+      }
       if (url === "/events") return handleSse(store, req, res);
       if (url === "/joints" && req.method === "POST") {
         handleReceiveJoint(store, dataDir, req, res).catch((error) => safeSend(res, 500, "text/plain; charset=utf-8", `internal error: ${error instanceof Error ? error.message : String(error)}`));
@@ -187,6 +212,11 @@ export function startJointMonitorServer(store: JointStore, port: number): Return
     }
   });
 
-  server.listen(port);
+  const host = process.env.HOST ?? "127.0.0.1";
+  const bindPolicy = evaluateBindPolicy(host, process.env.JOINT_MONITOR_SHARED_SECRET);
+  if (!bindPolicy.allowed) {
+    throw new Error(`joint-monitor refusing to start: ${bindPolicy.reason}`);
+  }
+  server.listen(port, host);
   return server;
 }

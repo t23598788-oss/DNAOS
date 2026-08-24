@@ -53,6 +53,7 @@ import { submitTask, getTask, getResult, explain, ownerDecision, listCapabilitie
 import { readTelemetry } from "../../connections/telemetry/summary";
 import { startTelemetryCollector } from "../../connections/telemetry/collector-loop";
 import { listRegisteredAgents } from "../../connections/agent-registry/registry";
+import { verifySharedSecret, evaluateBindPolicy } from "../../permissions/network-auth-gate/contract";
 
 // Owner Work Order 2026-08-20 (DATA INTEGRATION BUILD): one periodic
 // collector per server process, same recovery-only-heartbeat shape as
@@ -295,6 +296,26 @@ function sendJson(res: HostHttpResponse, status: number, body: unknown): void {
   safeSend(res, status, "application/json; charset=utf-8", JSON.stringify(body));
 }
 
+/**
+ * Network auth gate (2026-08-24, migration hardening — verified live, this
+ * server had none). Every write-capable route here — most sharply
+ * /gateway/dna_submit_task and /gateway/dna_owner_decision, which reach
+ * real agent-gateway dispatch, and /resolve-problem, which reaches a real
+ * Process Gate execution — was written assuming loopback-only reachability.
+ * Real decision logic lives in `permissions/network-auth-gate/` (shared
+ * with transport/owner-command-http, to avoid two independently-drifting
+ * copies of a security check) — this is just the thin transport-specific
+ * glue around it.
+ */
+function requireSharedSecret(req: HostHttpRequest, res: HostHttpResponse): boolean {
+  const expected = process.env.DNA_OS_CIRCUIT_SHARED_SECRET;
+  if (!expected) return true;
+  const header = req.headers.authorization;
+  if (verifySharedSecret(typeof header === "string" ? header : undefined, expected)) return true;
+  sendJson(res, 401, { error: "unauthorized" });
+  return false;
+}
+
 /** Real tier ordering — index = "how deep you must zoom before this becomes prominent". Never touched by ./semantic-model.ts itself (that file only classifies one component at a time); this ordering is a pure presentation-layer fact used only to pick a connection's DEEPEST endpoint tier below. */
 const LOD_TIER_ORDER: readonly SemanticLodTier[] = ["DOMAIN_SYSTEM", "CAPABILITY", "COMPONENT_PROCESS", "FUNCTION_PORT_CONNECTION_API_STORAGE", "CONTRACT_RUNTIME_EVIDENCE_SOURCE"];
 
@@ -405,6 +426,9 @@ export function startCircuitServer(state: CircuitState, port: number): ReturnTyp
   const server = createHttpServer((req, res) => {
     try {
       const url = req.url ?? "/";
+      if (req.method !== "GET" && req.method !== "HEAD" && req.method !== undefined && !requireSharedSecret(req, res)) {
+        return;
+      }
       if (url === "/events") {
         handleSse(state, req, res);
         return;
@@ -504,6 +528,18 @@ export function startCircuitServer(state: CircuitState, port: number): ReturnTyp
     }
   });
 
-  server.listen(port);
+  // Bind host is explicit and env-driven (2026-08-24, migration hardening
+  // — verified live: `server.listen(port)` with no host arg defaults to
+  // `0.0.0.0`, so this server was already listening on every interface,
+  // the one of the four Railway candidates whose exposure was implicit
+  // rather than chosen). Default stays 127.0.0.1, matching
+  // transport/owner-command-http/server.ts's existing pattern and this
+  // server's real current Mac-local usage.
+  const host = process.env.HOST ?? "127.0.0.1";
+  const bindPolicy = evaluateBindPolicy(host, process.env.DNA_OS_CIRCUIT_SHARED_SECRET);
+  if (!bindPolicy.allowed) {
+    throw new Error(`dna-os-circuit/runtime refusing to start: ${bindPolicy.reason}`);
+  }
+  server.listen(port, host);
   return server;
 }
