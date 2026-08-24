@@ -20,3 +20,17 @@ software/registry-database/data/
 tests/__sandbox__/
 control/scheduler/data/*.jsonl
 software/live-census/data/last-census.json
+
+# Machine-local process cursors (byte offset + timestamp into a local
+# session transcript) — regenerates continuously by design, committing it
+# just churns diffs and leaks a local absolute file path (found live,
+# 2026-08-24, during migration push prep).
+connections/os-ui/data/*.cursor.json
+
+# Recorded voice/audio evidence — real captured audio content, not source
+# code. Genuinely large (one file was 2.8GB) and a real sensitivity risk if
+# pushed to a shared GitHub repo (found live, 2026-08-24, during migration
+# push prep — required a local git history rewrite to remove after being
+# committed once by mistake).
+connections/voice-command/data/observation-audio/
+connections/human-verified-text/data/sessions/
