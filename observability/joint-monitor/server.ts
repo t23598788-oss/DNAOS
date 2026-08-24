@@ -166,20 +166,39 @@ h1{font-size:15px;color:#58a6ff}
 .row{padding:6px 8px;border-bottom:1px solid #21262d;white-space:pre-wrap}
 .joint{color:#7ee787}.violation{color:#ff7b72;font-weight:bold}
 #status{color:#8b949e;margin-bottom:8px}</style></head>
-<body><h1>DNA OS — Joint Monitor (:5178)</h1><div id="status">connecting...</div><div id="rows"></div>
+<body><h1>DNA OS — Joint Monitor</h1><div id="status">connecting...</div><div id="rows"></div>
 <script>
 const rows = document.getElementById("rows");
 const status = document.getElementById("status");
 function line(cls, text) { const d = document.createElement("div"); d.className = "row " + cls; d.textContent = text; rows.prepend(d); }
+function jointLine(row) { line("joint", \`[\${row.at}] JOINT \${row.from_capability} -> \${row.to_capability} (\${row.status}) \${row.summary}\`); }
+function violationLine(row) { line("violation", \`[\${row.at}] VIOLATION launch=\${row.launch_id} enforced=\${row.enforced} \${row.reason}: \${row.detail}\`); }
 const es = new EventSource("/events");
 es.onopen = () => { status.textContent = "live"; };
 es.onerror = () => { status.textContent = "disconnected — retrying..."; };
 es.onmessage = (msg) => {
   const payload = JSON.parse(msg.data);
+  if (payload.type === "snapshot") {
+    // Real bug, found live 2026-08-24 diagnosing a blank production page:
+    // this branch never existed, so the initial snapshot this server
+    // already sends on every /events connect (see handleSse below) was
+    // silently discarded — a fresh page load (or reconnect) could never
+    // show any joint/violation that happened before the tab opened, only
+    // ones that arrived while it stayed connected. Merge both real arrays
+    // by their own real timestamp so the combined view is genuinely
+    // chronological, same ordering live "change" events already produce.
+    const combined = [
+      ...payload.snapshot.recent_joints.map((row) => ({ at: row.at, render: () => jointLine(row) })),
+      ...payload.snapshot.recent_violations.map((row) => ({ at: row.at, render: () => violationLine(row) })),
+    ].sort((a, b) => a.at.localeCompare(b.at));
+    for (const item of combined) item.render();
+    if (combined.length === 0) status.textContent = "live — no joints or violations recorded yet";
+    return;
+  }
   if (payload.type !== "change") return;
   const ev = payload.event;
-  if (ev.kind === "joint") line("joint", \`[\${ev.row.at}] JOINT \${ev.row.from_capability} -> \${ev.row.to_capability} (\${ev.row.status}) \${ev.row.summary}\`);
-  if (ev.kind === "violation") line("violation", \`[\${ev.row.at}] VIOLATION launch=\${ev.row.launch_id} enforced=\${ev.row.enforced} \${ev.row.reason}: \${ev.row.detail}\`);
+  if (ev.kind === "joint") jointLine(ev.row);
+  if (ev.kind === "violation") violationLine(ev.row);
 };
 </script></body></html>`;
 }
