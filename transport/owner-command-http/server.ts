@@ -488,7 +488,8 @@ function requireSharedSecret(req: IncomingMessage, res: ServerResponse): boolean
   return false;
 }
 
-const server = createServer((req, res) => {
+/** Exported for tests only — mirrors dna-os-circuit/runtime/server.ts's exported `startCircuitServer`: a test binds this to an ephemeral port (0) itself, real HTTP, never the hardcoded production port. `isMainModule` below still gates the real self-start/supervisor boot, so importing this in a test never triggers production startup. */
+export const server = createServer((req, res) => {
   if (req.method === "GET" && req.url === "/health") {
     sendJson(res, 200, { ok: true });
     return;
