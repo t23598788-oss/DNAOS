@@ -36,11 +36,19 @@ async function run(): Promise<void> {
   console.log("=== dna-os-circuit/runtime/server.test.ts ===");
 
   const state = new CircuitState();
-  const port = 8791;
-  const server = startCircuitServer(state, port);
+  // Port 0 = OS-assigned ephemeral port (2026-08-24 fix — peer review,
+  // verified live: this hardcoded 8791, which collides with
+  // transport/owner-command-http's real launchd-managed process on this
+  // exact port, EADDRINUSE before any assertion ever ran, and made this
+  // suite — the one exercising the real HTTP server, the part actually
+  // deployed to Railway — unverifiable on any machine already running
+  // owner-command-http, including the scheduler's own loop).
+  const server = startCircuitServer(state, 0);
 
   try {
     await sleep(200); // real server needs a beat to bind the real port
+    const port = server.address()?.port;
+    if (!port) throw new Error("server did not report a bound port after listen()");
 
     const events: string[] = [];
     let buffer = "";
