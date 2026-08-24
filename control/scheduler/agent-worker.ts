@@ -43,7 +43,24 @@ interface AgentInput {
 
 const input = workerData as AgentInput;
 
-/** Tests report "N passed, M failed" on their own line. Sum across every file this order covers. */
+/**
+ * This repo's test files use two summary conventions (real finding, peer
+ * review, 2026-08-24 — verified against 26 real test files using the
+ * second form, none of them previously countable):
+ *   1. "N passed, M failed" on its own line (~84 files).
+ *   2. Individual "PASS: ..." lines ending in a single
+ *      "=== ALL <name> CASES PASSED ===" line, no numeric count at all
+ *      (~26 files, e.g. permissions/write-gate/tests/policy.test.ts).
+ * Counting ONLY form 1 made every form-2 PASS invisible to this tally —
+ * `sawResult` stayed false, `\bFAIL\b` didn't match a passing run either,
+ * so a fully-passing suite fell through to `!sawResult -> BLOCKED` after
+ * burning the full timeout. The `\bFAIL\b` fallback below still catches a
+ * form-2 suite that genuinely fails, so the old bug was one-directional
+ * and worse than blind: these suites could be SEEN to fail but never seen
+ * to pass. `completedSuiteCount` (below) shares this same form-1-or-2
+ * recognition so the interleave-wait loop stops waiting for a form-2
+ * suite's result instead of always timing out on it.
+ */
 function tally(output: string): { passed: number; failed: number; sawResult: boolean } {
   let passed = 0;
   let failed = 0;
@@ -53,6 +70,10 @@ function tally(output: string): { passed: number; failed: number; sawResult: boo
     failed += Number(m[2]);
     sawResult = true;
   }
+  for (const _m of output.matchAll(/=== ALL .* CASES PASSED ===/g)) {
+    passed += (output.match(/^PASS:/gm) ?? []).length;
+    sawResult = true;
+  }
   // Some suites report only failures, e.g. the boundary scan's
   // "PROCESS_BOUNDARY_VIOLATION: 8 raw ... call site(s) found".
   if (!sawResult && /\bFAIL\b/.test(output)) {
@@ -60,6 +81,13 @@ function tally(output: string): { passed: number; failed: number; sawResult: boo
     sawResult = true;
   }
   return { passed, failed, sawResult };
+}
+
+/** Shared by the interleave-wait loop below — a suite has "reported" once it produces either summary form ./tally reads. */
+function completedSuiteCount(output: string): number {
+  const form1 = (output.match(/(\d+)\s+passed,\s*(\d+)\s+failed/g) ?? []).length;
+  const form2 = (output.match(/=== ALL .* CASES PASSED ===/g) ?? []).length;
+  return form1 + form2;
 }
 
 async function run(): Promise<WorkResult> {
@@ -83,7 +111,6 @@ async function run(): Promise<WorkResult> {
     // find the second file's line and reports a false TIMEOUT even though every
     // check passed. Observed exactly that on control/event-pipeline: "9 passed,
     // 0 failed (TIMEOUT)". Waiting for the Nth result line is interleave-proof.
-    const resultLineCount = (): number => (captured.match(/(\d+)\s+passed,\s*(\d+)\s+failed/g) ?? []).length;
     let expectedResults = 0;
 
     for (const testFile of input.test_files) {
@@ -99,11 +126,11 @@ async function run(): Promise<WorkResult> {
       // Wait until this suite's result line has landed — i.e. the total number of
       // result lines has caught up to the number of suites imported so far.
       const deadline = Date.now() + input.timeout_ms;
-      while (Date.now() < deadline && resultLineCount() < expectedResults) {
+      while (Date.now() < deadline && completedSuiteCount(captured) < expectedResults) {
         await new Promise((r) => setTimeout(r, 100));
       }
-      if (resultLineCount() < expectedResults) {
-        captured += `TIMEOUT ${testFile}: only ${resultLineCount()} of ${expectedResults} result line(s) within ${input.timeout_ms}ms\n`;
+      if (completedSuiteCount(captured) < expectedResults) {
+        captured += `TIMEOUT ${testFile}: only ${completedSuiteCount(captured)} of ${expectedResults} result line(s) within ${input.timeout_ms}ms\n`;
       }
     }
   } finally {
@@ -114,10 +141,17 @@ async function run(): Promise<WorkResult> {
   const { passed, failed, sawResult } = tally(captured);
   const timedOut = captured.includes("TIMEOUT ");
   const importFailed = captured.includes("IMPORT_ERROR ");
+  // Fail-closed guard (real incident, peer review, 2026-08-24): a degenerate
+  // "0 passed, 0 failed" match (or any other zero-count reading) must never
+  // read as VERIFIED — that is "certifies success while executing nothing,"
+  // the worst failure mode a verification harness can have. `input.test_files`
+  // being empty is already covered (the loop never runs, sawResult stays
+  // false), this additionally covers a result line existing but counting zero.
+  const nothingActuallyRan = passed + failed === 0;
 
   // The agent reports an OUTCOME for its own bounded order only. The coordinator
   // decides what that means for the system.
-  const outcome: WorkResult["outcome"] = !sawResult || timedOut || importFailed
+  const outcome: WorkResult["outcome"] = !sawResult || timedOut || importFailed || nothingActuallyRan
     ? "BLOCKED"
     : failed > 0
       ? "FAILED"
