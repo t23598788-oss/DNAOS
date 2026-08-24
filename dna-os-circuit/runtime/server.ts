@@ -538,7 +538,19 @@ export function startCircuitServer(state: CircuitState, port: number): ReturnTyp
   const host = process.env.HOST ?? "127.0.0.1";
   const bindPolicy = evaluateBindPolicy(host, process.env.DNA_OS_CIRCUIT_SHARED_SECRET);
   if (!bindPolicy.allowed) {
-    throw new Error(`dna-os-circuit/runtime refusing to start: ${bindPolicy.reason}`);
+    // A thrown Error here previously left the process alive with empty
+    // stdout/stderr (peer review, 2026-08-24, live-verified): this file's
+    // own top-level `startTelemetryCollector()` call (line 61) creates a
+    // live timer handle independent of this server, so an uncaught throw
+    // during startup did not terminate the event loop or print anything —
+    // a silent zombie: no listening socket (secure) but no diagnostic
+    // either (undebuggable on Railway, where "process alive" alone reads
+    // as healthy). Explicit console.error + process.exit(1) makes the
+    // refusal loud and the exit code real, matching
+    // transport/owner-command-http/server.ts's and
+    // observability/joint-monitor/server.ts's already-correct behavior.
+    console.error(`dna-os-circuit/runtime refusing to start: ${bindPolicy.reason}`);
+    process.exit(1);
   }
   server.listen(port, host);
   return server;
