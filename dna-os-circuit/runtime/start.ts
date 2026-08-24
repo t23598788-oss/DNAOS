@@ -23,7 +23,13 @@ async function main(): Promise<void> {
   const state = new CircuitState();
   await initializeCircuitFromRepo(state);
 
-  const port = Number(readEnvVar("CIRCUIT_PORT") ?? "8790");
+  // PORT read first (2026-08-24, migration hardening — real finding, peer
+  // review: Railway injects PORT and routes traffic to it; this only read
+  // CIRCUIT_PORT, so a Railway deploy would bind 8790 while Railway routed
+  // to its own assigned port — healthcheck failures with no clear cause).
+  // CIRCUIT_PORT preserved as the fallback so existing Mac usage/scripts
+  // are unaffected.
+  const port = Number(readEnvVar("PORT") ?? readEnvVar("CIRCUIT_PORT") ?? "8790");
   startCircuitServer(state, port);
   console.log(`[dna-os-circuit] server listening on http://localhost:${port}`);
 

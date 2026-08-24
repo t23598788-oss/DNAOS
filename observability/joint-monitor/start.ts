@@ -28,6 +28,10 @@ import { readEnvVar } from "./host-runtime";
 declare const console: { log(...args: unknown[]): void };
 
 const store = new JointStore();
-const port = Number(readEnvVar("JOINT_MONITOR_PORT") ?? "5178");
+// PORT read first (2026-08-24, migration hardening — same real finding as
+// dna-os-circuit/runtime/start.ts: Railway injects PORT and routes traffic
+// to it). JOINT_MONITOR_PORT preserved as the fallback for existing Mac
+// usage.
+const port = Number(readEnvVar("PORT") ?? readEnvVar("JOINT_MONITOR_PORT") ?? "5178");
 startJointMonitorServer(store, port);
 console.log(`[joint-monitor] server listening on http://localhost:${port}`);
