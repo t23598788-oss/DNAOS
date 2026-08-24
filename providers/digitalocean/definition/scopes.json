@@ -1,0 +1,57 @@
+{
+  "$schema_note": "DigitalOcean's real scope taxonomy and every scope string actually found in official docs. Never invent a scope string not listed here — if actions.json needs one that isn't present, mark it 'not_confirmed', don't guess.",
+  "last_verified": "2026-08-17",
+  "taxonomy": {
+    "pattern": "resource:action",
+    "actions": ["read", "create", "update", "delete"],
+    "resource_specific_extras_example": "database:view_credentials, spaces_key:create_credentials"
+  },
+  "alias_scopes": [
+    { "scope": "api:read", "expands_to": "every read scope", "selectable_in_ui": false, "ui_equivalent": "Read Only button" },
+    { "scope": "api:write", "expands_to": "every scope (full access)", "selectable_in_ui": false, "ui_equivalent": "Full Access button" }
+  ],
+  "confirmed_scopes": [
+    "droplet:read", "droplet:create", "droplet:update", "droplet:delete",
+    "database:read", "database:create", "database:update", "database:view_credentials",
+    "vpc:read", "vpc:create",
+    "firewall:update",
+    "load_balancer:delete",
+    "block_storage:read",
+    "spaces:update",
+    "snapshot:delete",
+    "billing:read",
+    "dedicated_inference:read", "dedicated_inference:create", "dedicated_inference:update", "dedicated_inference:delete",
+    "genai:read", "genai:create", "genai:update", "genai:delete",
+    "app:read", "app:create", "app:update", "app:delete",
+    "kubernetes:read", "kubernetes:create", "kubernetes:update", "kubernetes:delete",
+    "spaces_key:create_credentials", "spaces_key:read", "spaces_key:update", "spaces_key:delete",
+    "account:read"
+  ],
+  "inferred_not_independently_confirmed": [
+    "monitoring:read", "monitoring:create", "monitoring:update", "monitoring:delete"
+  ],
+  "naming_inconsistency_flagged": {
+    "observed": ["spaces_key:create_credentials", "spaces_keys:create"],
+    "note": "Both strings appear in the same official scope listing page (singular 'spaces_key' vs plural 'spaces_keys'). Not resolved as of 2026-08-17 — use spaces_key:create_credentials unless disproven by a live test."
+  },
+  "separate_credential_systems_not_scope_based": [
+    {
+      "system": "spaces_data_plane",
+      "credential_shape": "AWS Signature v4 access-key/secret pair",
+      "notes": "Used only for the S3-compatible Spaces data-plane host, not api.digitalocean.com. Distinct from spaces_key:* scopes, which govern managing the key resource itself via the standard v2 API."
+    },
+    {
+      "system": "inference_bearer_auth",
+      "credential_shape": "bearer token, multiple accepted prefixes",
+      "accepted_prefixes": ["dop_v1_ (PAT)", "doo_v1_ / dor_v1_ (OAuth)", "agent_access_key"],
+      "notes": "Used for Serverless Inference and Batch Inference (inference.do-ai.run host). Dedicated Inference uses standard v2 scopes instead."
+    }
+  ],
+  "token_lifecycle_facts": {
+    "pat_scope_mutability": "immutable after creation — must issue a new token to change scope",
+    "pat_expiry": "user-set interval at creation time; full option list not enumerated in fetched docs",
+    "oauth_access_token_ttl_seconds": 2592000,
+    "oauth_refresh_token_issued": true,
+    "team_role_change_effect": "retroactively affects Read-Only/Full-Access PATs but NOT Custom-Scope PATs"
+  }
+}

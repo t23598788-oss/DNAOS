@@ -1,0 +1,86 @@
+{
+  "app": "TextEdit",
+  "title": "hello.txt",
+  "state": "window_active",
+  "visible_text_redacted": [
+    "ปุ่มปิด",
+    "ปุ่มซูม",
+    "ปุ่มย่อ",
+    "แก้ไขอยู่",
+    "—",
+    "hello.txt",
+    "ไม่สามารถบันทึกเอกสาร “hello.txt” นี้ได้ ไฟล์ถูกแก้ไขโดยแอปพลิเคชันอื่น",
+    "คลิกยืนยันจะบันทึก เพื่อให้การแก้ไขของคุณและบันทึกการแก้ไขที่กระทำโดยแอปพลิเคชันอื่นนั้นเก็บไว้เป็นหนึ่งเวอร์ชั่น หรือคลิกแปลงกลับเพื่อให้การแก้ไขจากแอปพลิเคชันอื่นและบันทึกการแก้ไขของคุณเก็บไว้เป็นหนึ่งเวอร์ชั่น คุณยังสามารถคลิกบันทึกเป็น เพื่อบันทึกการเปลี่ยนแปลงของคุณเป็นอีกไฟล์หนึ่งได้อีกด้วย",
+    "ยืนยันจะบันทึก",
+    "แปลงกลับ",
+    "บันทึกเป็น…"
+  ],
+  "controls": [
+    {
+      "role": "AXTextArea",
+      "label": "[REDACTED]",
+      "redacted": true
+    },
+    {
+      "role": "AXButton",
+      "label": "ปุ่มปิด",
+      "redacted": false
+    },
+    {
+      "role": "AXButton",
+      "label": "ปุ่มซูม",
+      "redacted": false
+    },
+    {
+      "role": "AXButton",
+      "label": "ปุ่มย่อ",
+      "redacted": false
+    },
+    {
+      "role": "AXMenuButton",
+      "label": "แก้ไขอยู่",
+      "redacted": false
+    },
+    {
+      "role": "AXStaticText",
+      "label": "—",
+      "redacted": false
+    },
+    {
+      "role": "AXStaticText",
+      "label": "hello.txt",
+      "redacted": false
+    },
+    {
+      "role": "AXStaticText",
+      "label": "ไม่สามารถบันทึกเอกสาร “hello.txt” นี้ได้ ไฟล์ถูกแก้ไขโดยแอปพลิเคชันอื่น",
+      "redacted": false
+    },
+    {
+      "role": "AXStaticText",
+      "label": "คลิกยืนยันจะบันทึก เพื่อให้การแก้ไขของคุณและบันทึกการแก้ไขที่กระทำโดยแอปพลิเคชันอื่นนั้นเก็บไว้เป็นหนึ่งเวอร์ชั่น หรือคลิกแปลงกลับเพื่อให้การแก้ไขจากแอปพลิเคชันอื่นและบันทึกการแก้ไขของคุณเก็บไว้เป็นหนึ่งเวอร์ชั่น คุณยังสามารถคลิกบันทึกเป็น เพื่อบันทึกการเปลี่ยนแปลงของคุณเป็นอีกไฟล์หนึ่งได้อีกด้วย",
+      "redacted": false
+    },
+    {
+      "role": "AXButton",
+      "label": "ยืนยันจะบันทึก",
+      "redacted": false
+    },
+    {
+      "role": "AXButton",
+      "label": "แปลงกลับ",
+      "redacted": false
+    },
+    {
+      "role": "AXButton",
+      "label": "บันทึกเป็น…",
+      "redacted": false
+    }
+  ],
+  "warnings": [
+    "1 text field value(s) redacted — never included regardless of field type"
+  ],
+  "suggested_next_action": "Review the app directly for any field value — this summary never includes typed content",
+  "confidence": 1,
+  "evidence_timestamp": "2026-08-20T01:51:08.439Z"
+}

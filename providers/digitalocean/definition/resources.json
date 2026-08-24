@@ -1,0 +1,31 @@
+{
+  "$schema_note": "Product/resource catalog for DigitalOcean. `automatable` here is a resource-level summary; see actions.json for the per-action breakdown and automation.json for the full capability grid.",
+  "last_verified": "2026-08-17",
+  "resource_groups": {
+    "compute": [
+      { "resource_id": "droplets", "name": "Droplets", "distinct_api": true, "api_host": "core_v2", "automatable": "YES" },
+      { "resource_id": "gpu_droplets", "name": "GPU Droplets", "distinct_api": false, "same_api_as": "droplets", "api_host": "core_v2", "automatable": "YES", "notes": "No separate resource type — created via the same /v2/droplets endpoint with a GPU-enabled size slug." },
+      { "resource_id": "bare_metal_gpus", "name": "Bare Metal GPUs", "distinct_api": true, "api_host": null, "automatable": "NO", "notes": "Real, distinct product (dedicated 8-GPU single-tenant servers, NVIDIA HGX H100/H200, AMD MI300X; NYC1/AMS3 only). Zero REST API surface found — sales/contract-provisioned only." },
+      { "resource_id": "app_platform", "name": "App Platform", "distinct_api": true, "api_host": "core_v2", "automatable": "YES" },
+      { "resource_id": "kubernetes", "name": "Kubernetes (DOKS)", "distinct_api": true, "api_host": "core_v2", "automatable": "YES" }
+    ],
+    "data": [
+      { "resource_id": "managed_databases", "name": "Managed Databases", "distinct_api": true, "api_host": "core_v2", "automatable": "YES", "engines": ["postgresql", "mysql", "kafka", "mongodb", "opensearch", "valkey"], "notes": "All 6 engines confirmed real and distinct, one shared API surface distinguished by an `engine` field. Redis is being phased toward Valkey per DigitalOcean's own messaging — do not assume Redis remains a first-class engine long-term." },
+      { "resource_id": "spaces", "name": "Spaces (S3-compatible object storage)", "distinct_api": true, "api_host": "spaces_data_plane", "automatable": "YES", "notes": "Data-plane (buckets/objects) uses a separate S3-compatible host + AWS-Sig-v4 credential. Key management (creation/rotation of that credential) is a SEPARATE, standard-v2-API resource — see auth_methods.spaces_key in provider.json. Corrected 2026-08-17." },
+      { "resource_id": "volumes", "name": "Volumes / Block Storage", "distinct_api": true, "api_host": "core_v2", "automatable": "YES" }
+    ],
+    "networking": [
+      { "resource_id": "vpc", "name": "VPC", "distinct_api": true, "api_host": "core_v2", "automatable": "YES", "sub_resources": ["vpc_peering (endpoint path unconfirmed)"] },
+      { "resource_id": "load_balancers", "name": "Load Balancers", "distinct_api": true, "api_host": "core_v2", "automatable": "YES", "notes": "\"Global Load Balancers\" existence as a separate resource vs. a flag on the regional object is unconfirmed." },
+      { "resource_id": "cloud_firewalls", "name": "Cloud Firewalls", "distinct_api": true, "api_host": "core_v2", "automatable": "YES" },
+      { "resource_id": "domains", "name": "Domains / DNS", "distinct_api": true, "api_host": "core_v2", "automatable": "YES", "sub_resources": ["domain_records"] },
+      { "resource_id": "reserved_ips", "name": "Reserved IPs", "distinct_api": true, "api_host": "core_v2", "automatable": "YES", "notes": "Formerly \"Floating IPs\" (renamed 2022-06-16). Legacy /v2/floating_ips endpoints still function as aliases." }
+    ],
+    "ai": [
+      { "resource_id": "serverless_inference", "name": "Serverless Inference", "distinct_api": true, "api_host": "inference", "automatable": "YES", "notes": "Stateless call surface (chat/embeddings/images/etc.) — no CRUD/DELETE, nothing to manage as a resource." },
+      { "resource_id": "dedicated_inference", "name": "Dedicated Inference", "distinct_api": true, "api_host": "core_v2", "automatable": "YES", "status": "public preview" },
+      { "resource_id": "batch_inference", "name": "Batch Inference", "distinct_api": true, "api_host": "inference", "automatable": "YES", "notes": "Async jobs, 24hr guaranteed completion window, JSONL input <=200MB/50000 requests." },
+      { "resource_id": "agent_platform", "name": "Agent Platform", "brand_name": "GradientAI Platform", "distinct_api": true, "api_host": "core_v2", "automatable": "YES", "sub_resources": ["knowledge_bases", "data_sources", "models (discovery)", "regions (discovery)"] }
+    ]
+  }
+}

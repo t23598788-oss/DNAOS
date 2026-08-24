@@ -18,54 +18,12 @@
  * authority. The snapshot exists for drift only.
  */
 
-import { writeFileSync, mkdirSync, existsSync, readFileSync } from "node:fs";
+import { writeFileSync, mkdirSync } from "node:fs";
 import { join } from "node:path";
-import {
-  REPO_ROOT, nowIso, discoverCapabilityFolders, codeFilesIn, testFilesFor, sourceDigest, testDigest,
-  headCommit, lastCommitFor, isDirty, newestMtime, importersOf, declaredDependencies,
-  registryByName, readVerificationLedger, appendVerification, liveRepoProcesses,
-} from "./host-runtime";
-import { deriveCensus, deriveEdges, capabilityKey, type Observation } from "./derive";
-import type { CapabilityRecord } from "./types";
+import { REPO_ROOT, nowIso, sourceDigest, appendVerification } from "./host-runtime";
+import { deriveEdges, capabilityKey } from "./derive";
+import { observeCensus, SNAPSHOT, REPOSITORY } from "./observe";
 
-const REPOSITORY = "dna-os-infrastructure";
-const SNAPSHOT = join(REPO_ROOT, "software/live-census/data/last-census.json");
-
-function gather(): Observation[] {
-  const at = nowIso();
-  const registry = registryByName();
-  const runtime = liveRepoProcesses();
-  return discoverCapabilityFolders().map((path) => {
-    const abs = join(REPO_ROOT, path);
-    const code = codeFilesIn(abs);
-    return {
-      repository: REPOSITORY,
-      path,
-      code_files: code,
-      test_files: testFilesFor(path),
-      source_digest: sourceDigest(path),
-      test_digest: testDigest(path),
-      entrypoint: code.includes("contract.ts") ? `${path}/contract.ts` : code.includes("index.ts") ? `${path}/index.ts` : null,
-      last_commit: lastCommitFor(path),
-      dirty: isDirty(path),
-      newest_mtime: newestMtime(path),
-      importers: importersOf(path),
-      dependencies: declaredDependencies(path),
-      registry_matches: registry.get(path.split("/").slice(1).join("/")) ?? registry.get(path.split("/").pop()!) ?? [],
-      runtime_refs: runtime.filter((cmd) => cmd.includes(path)),
-      observed_at: at,
-    };
-  });
-}
-
-function loadPrevious(): CapabilityRecord[] {
-  if (!existsSync(SNAPSHOT)) return [];
-  try {
-    return (JSON.parse(readFileSync(SNAPSHOT, "utf8")) as { capabilities?: CapabilityRecord[] }).capabilities ?? [];
-  } catch {
-    return [];
-  }
-}
 
 function main(): void {
   const argv = process.argv.slice(2);
@@ -95,9 +53,7 @@ function main(): void {
     return;
   }
 
-  const observations = gather();
-  const ledger = readVerificationLedger();
-  const census = deriveCensus(REPOSITORY, headCommit(), observations, ledger, loadPrevious());
+  const census = observeCensus();
 
   if (argv.includes("--json")) {
     console.log(JSON.stringify(census, null, 2));

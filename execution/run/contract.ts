@@ -35,3 +35,13 @@ export { projectCommandPolicyDescriptor, listCommandPolicyDescriptors } from "./
 export { ExecutionError } from "./types";
 export type { ExecutionAuditEvent } from "./audit";
 export type { CommandDescriptor, DynamicArgSpec, ExecutionErrorCode, ExecutionEvent, ExecutionEventType, ExecutionRequest, ExecutionResult, ExecutionStatus } from "./types";
+// Owner, "Single Process Creation Gate — Consolidation" (2026-08-24): the
+// prior "HARD BLOCK: no runtime caller yet" note above is stale — this
+// contract now has real internal callers (control/agent-gateway/adapters/
+// file-intelligence-adapter.ts, dna-os-circuit/runtime/server.ts,
+// credentials/macos-keychain/*.ts, connections/agent-registry/
+// codex-session-bridge.ts) via requestProcessExecution below.
+export { requestProcessExecution } from "./process-gate";
+export type { ProcessRequest, ProcessResult, ProcessResultStatus } from "./process-gate";
+export { PROCESS_REGISTRY, resolveProcessDescriptor, NPM_CLI_JS_PATH } from "./process-registry";
+export type { ProcessDescriptor, ProcessResolution, NetworkProfile, CredentialProfile } from "./process-registry";

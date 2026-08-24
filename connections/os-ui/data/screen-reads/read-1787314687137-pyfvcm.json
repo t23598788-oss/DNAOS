@@ -1,0 +1,26 @@
+{
+  "app": "TextEdit",
+  "title": "e2e-test-text.txt",
+  "state": "window_active",
+  "visible_text_redacted": [
+    "e2e-test-text.txt"
+  ],
+  "controls": [
+    {
+      "role": "AXTextArea",
+      "label": "[REDACTED]",
+      "redacted": true
+    },
+    {
+      "role": "AXStaticText",
+      "label": "e2e-test-text.txt",
+      "redacted": false
+    }
+  ],
+  "warnings": [
+    "1 text field value(s) redacted — never included regardless of field type"
+  ],
+  "suggested_next_action": "Review the app directly for any field value — this summary never includes typed content",
+  "confidence": 1,
+  "evidence_timestamp": "2026-08-21T12:18:06.822Z"
+}

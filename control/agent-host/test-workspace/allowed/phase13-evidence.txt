@@ -1,0 +1,1 @@
+capability_id=permission-reasoner-evaluate software_id=permission-reasoner task_id=task_fd8239dd-b8c4-4075-aec0-71adae15f95d decision=ALLOW (written by Docker-isolated Agent, Phase 13)

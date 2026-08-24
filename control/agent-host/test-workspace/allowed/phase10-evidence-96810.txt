@@ -1,0 +1,1 @@
+capability_id=permission-reasoner task_id=task_558e7bfe-17c5-4f7d-8624-360787607a45 decision=ALLOW

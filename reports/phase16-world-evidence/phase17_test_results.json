@@ -1,0 +1,81 @@
+{
+  "results": [
+    {
+      "name": "1. FindingEvent.RealFileIntelligenceWarningType still has exactly 14 values (unchanged)",
+      "pass": true,
+      "detail": "found 14"
+    },
+    {
+      "name": "1b. FindingEvent contract has no business/world fields added",
+      "pass": true,
+      "detail": "grep clean"
+    },
+    {
+      "name": "2. contracts/observation/observation-event.ts defines all required semantic primitives",
+      "pass": true,
+      "detail": "all present"
+    },
+    {
+      "name": "2b. ObservationEvent contract forbids conclusion fields as actual code (doc-comment mentions of the prohibition itself are fine)",
+      "pass": true,
+      "detail": "grep clean outside comments"
+    },
+    {
+      "name": "3. Every provenance-bearing graph node retains origin_registry + origin_record_id",
+      "pass": true,
+      "detail": "0 missing"
+    },
+    {
+      "name": "3b. observation_events[] count matches evidence_registry.json record count",
+      "pass": true,
+      "detail": "9 events"
+    },
+    {
+      "name": "4. Every DECISION_STATE node traces back to at least one SOURCE with a real source_url",
+      "pass": true,
+      "detail": "2 decision states checked"
+    },
+    {
+      "name": "5. circuit.json contains both a technical node (COMMAND_ROUTER) and the new WORLD_EVIDENCE node",
+      "pass": true,
+      "detail": "world=true technical=true"
+    },
+    {
+      "name": "9. Live Circuit server serves BOTH /circuit.json (with WORLD_EVIDENCE) and /world-evidence",
+      "pass": true,
+      "detail": "server_up=true circuit_has_node=true world_endpoint_ok=true"
+    },
+    {
+      "name": "6. At least one COMPUTATION node has multiple independent incoming edges (EVIDENCE + RESOURCE)",
+      "pass": true,
+      "detail": "2 incoming edges to COMPUTATION:P4"
+    },
+    {
+      "name": "7. Computed fields expose {formula, inputs, source, status}",
+      "pass": true,
+      "detail": "[\"name\",\"formula\",\"inputs\",\"source\",\"status\",\"value\",\"reason\"]"
+    },
+    {
+      "name": "8. No UNCOMPUTABLE field carries a non-null value (no silent substitution)",
+      "pass": true,
+      "detail": "checked 2 candidates"
+    },
+    {
+      "name": "13. CAPITAL_RELEASED remains 0",
+      "pass": true,
+      "detail": "value=0"
+    },
+    {
+      "name": "11/12. No PROPOSE_GO exists this round (no real capital/customer step was reached)",
+      "pass": true,
+      "detail": "WAITING_EVIDENCE,WAITING_EVIDENCE"
+    },
+    {
+      "name": "10. No new HTML page/dashboard file created this phase",
+      "pass": true,
+      "detail": "contracts/observation/observation-event.ts, reports/phase16-world-evidence/adapter.mjs, reports/phase16-world-evidence/evidence_graph.json, reports/phase16-world-evidence/phase17_acceptance_test.mjs"
+    }
+  ],
+  "passed": 15,
+  "failed": 0
+}

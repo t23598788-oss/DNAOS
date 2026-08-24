@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>DNA OS — Evidence Trace Viewer</title>
+<style>
+  html, body { margin: 0; padding: 0; height: 100%; background: #0b0f14; color: #e6edf3; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+  #header { padding: 12px 18px; border-bottom: 1px solid #22303c; display: flex; align-items: center; justify-content: space-between; }
+  #header h1 { font-size: 16px; margin: 0; font-weight: 600; letter-spacing: 0.3px; }
+  #header .sub { font-size: 11.5px; color: #6e7681; margin-top: 2px; }
+  #status { font-size: 12px; color: #8fa3b3; }
+  button { background: #161b22; color: #e6edf3; border: 1px solid #30363d; border-radius: 5px; padding: 5px 10px; font-size: 12px; cursor: pointer; }
+  button:hover { border-color: #58a6ff; }
+  #main { display: flex; height: calc(100vh - 52px); }
+
+  #finding-list { flex: 0 0 300px; border-right: 1px solid #22303c; overflow-y: auto; }
+  #finding-list .list-header { padding: 10px 12px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: #6e7681; border-bottom: 1px solid #1c2530; position: sticky; top: 0; background: #0b0f14; }
+  .finding-row { padding: 9px 12px; border-bottom: 1px solid #161b22; cursor: pointer; font-size: 12.5px; }
+  .finding-row:hover { background: #10161d; }
+  .finding-row.selected { background: #132030; border-left: 3px solid #58a6ff; padding-left: 9px; }
+  .finding-row .fid { color: #8fa3b3; font-size: 10.5px; font-family: ui-monospace, monospace; }
+  .finding-row .wtype { font-weight: 600; margin: 2px 0; }
+  .finding-row .status-pill { display: inline-block; font-size: 10px; padding: 1px 6px; border-radius: 9px; margin-top: 3px; }
+
+  #trace-column { flex: 0 0 340px; border-right: 1px solid #22303c; overflow-y: auto; padding: 16px; box-sizing: border-box; }
+  #trace-column .placeholder { color: #5b6b7a; font-size: 12.5px; }
+  .trace-node { border: 1px solid #22303c; border-radius: 8px; padding: 12px; margin-bottom: 8px; cursor: pointer; background: #0d1218; }
+  .trace-node:hover { border-color: #58a6ff; }
+  .trace-node.active { border-color: #58a6ff; background: #10203a; }
+  .trace-node .label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: #8fa3b3; }
+  .trace-node .value { font-size: 14px; font-weight: 700; margin-top: 3px; }
+  .trace-node .hint { font-size: 11px; color: #5b6b7a; margin-top: 4px; }
+  .trace-arrow { text-align: center; color: #3a4552; font-size: 16px; margin: 2px 0; }
+  .trace-node.missing { border-style: dashed; opacity: 0.55; cursor: default; }
+
+  #detail-panel { flex: 1 1 auto; overflow-y: auto; padding: 18px 22px; box-sizing: border-box; }
+  #detail-panel .placeholder { color: #5b6b7a; font-size: 12.5px; }
+  #detail-panel h2 { font-size: 16px; margin: 0 0 2px; }
+  #detail-panel .detail-sub { font-size: 11.5px; color: #6e7681; margin-bottom: 14px; }
+  .field-row { display: flex; border-bottom: 1px solid #161b22; padding: 7px 0; font-size: 13px; }
+  .field-row .k { flex: 0 0 220px; color: #8fa3b3; font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 12px; }
+  .field-row .v { flex: 1 1 auto; word-break: break-word; }
+  .field-row .v.mono { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 12px; }
+  .evidence-list { margin: 4px 0 0; padding-left: 18px; }
+  .evidence-list li { margin-bottom: 4px; font-size: 12.5px; }
+  .link-check { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; padding: 4px 8px; border-radius: 5px; margin-top: 6px; cursor: pointer; }
+  .link-check.ok { background: rgba(63,185,80,0.12); color: #3fb950; border: 1px solid rgba(63,185,80,0.35); }
+  .link-check.fail { background: rgba(248,81,73,0.12); color: #f85149; border: 1px solid rgba(248,81,73,0.35); }
+  .link-check:hover { filter: brightness(1.15); }
+  .section-title { font-size: 11px; text-transform: uppercase; letter-spacing: 0.6px; color: #6e7681; margin: 18px 0 6px; }
+  .not-found-banner { background: rgba(248,81,73,0.1); border: 1px solid rgba(248,81,73,0.3); color: #f85149; padding: 8px 10px; border-radius: 6px; font-size: 12.5px; }
+</style>
+</head>
+<body>
+  <div id="header">
+    <div>
+      <h1>Evidence Trace Viewer</h1>
+      <div class="sub">reads only — DETECTED / EVALUATED / DECISION / current status, from Circuit's own real endpoints</div>
+    </div>
+    <div style="display:flex; align-items:center; gap:10px;">
+      <div id="status">loading…</div>
+      <button id="refresh-btn">Refresh</button>
+    </div>
+  </div>
+  <div id="main">
+    <div id="finding-list"><div class="list-header">Findings</div></div>
+    <div id="trace-column"><div class="placeholder">Select a finding to see its DETECTED → EVALUATED → DECISION → status chain.</div></div>
+    <div id="detail-panel"><div class="placeholder">Click a node in the chain to see the exact real evidence behind it — every value shown is a literal field from Circuit's stored data, never a generated summary.</div></div>
+  </div>
+  <script src="/evidence-trace/trace-viewer.js"></script>
+</body>
+</html>

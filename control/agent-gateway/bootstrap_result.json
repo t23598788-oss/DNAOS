@@ -1,0 +1,106 @@
+{
+  "generated_at": "2026-08-19T18:05:15.563Z",
+  "steps": [
+    {
+      "step": "1_check_dependencies",
+      "node": {
+        "ok": true,
+        "version": "24.19.0",
+        "required": ">=18"
+      }
+    },
+    {
+      "step": "2_check_missing",
+      "required_files": [
+        {
+          "file": "control/agent-gateway/gateway.ts",
+          "exists": true
+        },
+        {
+          "file": "control/agent-gateway/contract.ts",
+          "exists": true
+        },
+        {
+          "file": "control/agent-gateway/types.ts",
+          "exists": true
+        },
+        {
+          "file": "reports/phase16-world-evidence/capability_index.json",
+          "exists": true
+        },
+        {
+          "file": "permissions/write-gate/contract.ts",
+          "exists": true
+        },
+        {
+          "file": "software/capability-registrar/contract.ts",
+          "exists": true
+        }
+      ],
+      "missing_count": 0
+    },
+    {
+      "step": "3_resolve_external_tools",
+      "file_intelligence": {
+        "path": "/Users/tam/Desktop/DNA-LAB-FILE-INTELLIGENCE",
+        "resolved_via": "filesystem_probe:sibling_directory_name_match"
+      }
+    },
+    {
+      "step": "3b_install_policy",
+      "note": "No automatic installation performed — this bootstrap only detects and reports. Any install requires an explicit, separate, Owner-authorized step (matches Phase 23's own 'safe and authorized only' rule)."
+    },
+    {
+      "step": "4_register_adapters",
+      "config_written_to": "/Users/tam/Desktop/DNA-OS-INFRASTRUCTURE/control/agent-gateway/config.json",
+      "config": {
+        "file_intelligence_root": "/Users/tam/Desktop/DNA-LAB-FILE-INTELLIGENCE",
+        "resolved_via": "filesystem_probe:sibling_directory_name_match",
+        "generated_at": "2026-08-19T18:05:15.563Z"
+      }
+    },
+    {
+      "step": "5_verify_gateway",
+      "reachable": true,
+      "response": {
+        "ok": true,
+        "capabilities": 9,
+        "adapters": [
+          {
+            "adapter_id": "file-intelligence-adapter",
+            "capabilities": [
+              "file_duplicate_or_orphan_detection"
+            ]
+          },
+          {
+            "adapter_id": "external-provider-adapter",
+            "capabilities": [
+              "generic_llm_completion"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "step": "6_self_test",
+      "ok": true,
+      "response": {
+        "task_id": "task-63e88b01-29f7-407b-8575-de3f41840caa",
+        "memory": {
+          "user_id": "bootstrap",
+          "workspace_id": "bootstrap-ws",
+          "conversation_id": "bootstrap-conv",
+          "parent_task_id": null,
+          "task_id": "task-63e88b01-29f7-407b-8575-de3f41840caa",
+          "created_at": "2026-08-19T18:05:15.574Z"
+        },
+        "intent_text": "bootstrap self-test: ตรวจสอบไฟล์ซ้ำในระบบ",
+        "submitted_by_client": "bootstrap-self-test",
+        "status": "COMPLETED",
+        "created_at": "2026-08-19T18:05:15.574Z",
+        "updated_at": "2026-08-19T18:05:21.916Z"
+      }
+    }
+  ],
+  "overall": "BOOTSTRAP_OK"
+}

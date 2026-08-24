@@ -1,0 +1,14 @@
+{
+  "demand_registry": [
+    { "problem_id": "P3", "demand_ladder_level": "D2", "evidence_ids": ["ev-p3-01","ev-p3-02"], "rationale": "repeated independent job-board + vendor-pricing sources agree the task category exists and is paid for internationally; no D3 (identifiable buyer) reached" },
+    { "problem_id": "P4", "demand_ladder_level": "D2", "evidence_ids": ["ev-p4-01"], "rationale": "cross-confirmed across 9 independent agency pricing pages in one search result set; no D3 reached" }
+  ],
+  "buyer_registry": [
+    { "problem_id": "P3", "buyer_type": "UNKNOWN", "buyer_identified": false, "buyer_reachability": "UNKNOWN", "notes": "target_group_size is a proxy (job-listing count), not a buyer count; no single buyer named" },
+    { "problem_id": "P4", "buyer_type": "UNKNOWN", "buyer_identified": false, "buyer_reachability": "UNKNOWN", "notes": "no single buyer named; price evidence is international agency pricing, not a TH SME survey" }
+  ],
+  "channel_registry": [
+    { "problem_id": "P3", "channel_candidates": ["Fiverr", "Fastwork.co", "Upwork"], "channel_status": "EXISTS_EXTERNALLY", "channel_owned_by_dna_os": false, "evidence_ids": ["ev-p3-02"] },
+    { "problem_id": "P4", "channel_candidates": ["Fiverr", "Upwork", "Fastwork.co"], "channel_status": "EXISTS_EXTERNALLY", "channel_owned_by_dna_os": false, "evidence_ids": ["ev-p4-01"] }
+  ]
+}

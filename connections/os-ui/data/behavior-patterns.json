@@ -1,0 +1,132 @@
+{
+  "generated_at": "2026-08-20T22:09:27.430Z",
+  "source": [
+    "work-order-audit.jsonl",
+    "window-state.jsonl"
+  ],
+  "action_counts": {
+    "open_path": 166,
+    "open_app": 38,
+    "screenshot": 32,
+    "open_url": 6,
+    "read_screen": 33,
+    "speak": 70,
+    "focus": 3,
+    "type": 38,
+    "key": 26,
+    "click": 28,
+    "wait": 14
+  },
+  "status_counts": {
+    "BLOCKED": 89,
+    "DRY_RUN_OK": 114,
+    "OWNER_ACTION_REQUIRED": 35,
+    "COMPLETED": 191,
+    "FAILED": 25
+  },
+  "recent_window_observations": [
+    {
+      "app": "",
+      "title": "",
+      "state": "read_error"
+    },
+    {
+      "app": "",
+      "title": "",
+      "state": "read_error"
+    },
+    {
+      "app": "",
+      "title": "",
+      "state": "read_error"
+    },
+    {
+      "app": "",
+      "title": "",
+      "state": "read_error"
+    },
+    {
+      "app": "",
+      "title": "",
+      "state": "read_error"
+    },
+    {
+      "app": "",
+      "title": "",
+      "state": "read_error"
+    },
+    {
+      "app": "",
+      "title": "",
+      "state": "read_error"
+    },
+    {
+      "app": "",
+      "title": "",
+      "state": "read_error"
+    },
+    {
+      "app": "",
+      "title": "",
+      "state": "read_error"
+    },
+    {
+      "app": "",
+      "title": "",
+      "state": "read_error"
+    },
+    {
+      "app": "",
+      "title": "",
+      "state": "read_error"
+    },
+    {
+      "app": "",
+      "title": "",
+      "state": "read_error"
+    },
+    {
+      "app": "",
+      "title": "",
+      "state": "read_error"
+    },
+    {
+      "app": "",
+      "title": "",
+      "state": "read_error"
+    },
+    {
+      "app": "",
+      "title": "",
+      "state": "read_error"
+    },
+    {
+      "app": "",
+      "title": "",
+      "state": "read_error"
+    },
+    {
+      "app": "",
+      "title": "",
+      "state": "read_error"
+    },
+    {
+      "app": "",
+      "title": "",
+      "state": "read_error"
+    },
+    {
+      "app": "",
+      "title": "",
+      "state": "read_error"
+    },
+    {
+      "app": "",
+      "title": "",
+      "state": "read_error"
+    }
+  ],
+  "recent_window_transitions": 0,
+  "learning_mode": "OBSERVE_ONLY",
+  "policy_mutation": "DISABLED"
+}

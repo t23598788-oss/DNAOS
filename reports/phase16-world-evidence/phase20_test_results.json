@@ -1,0 +1,145 @@
+{
+  "results": [
+    {
+      "name": "Real HTTP POST /resolve-problem returns 200 (same server, same page, no CLI/tool used by the caller)",
+      "pass": true,
+      "detail": "status=200"
+    },
+    {
+      "name": "Response is valid JSON",
+      "pass": true,
+      "detail": "ok"
+    },
+    {
+      "name": "Owner input contained NO model/Lab/worker/repo/scanner/tool selection — only free text",
+      "pass": true,
+      "detail": "input=\"ระบบ DNA OS ที่สร้างอยู่ซับซ้อนมาก ฉันไม่รู้ว่าต้องใช้ระบบ AI เครื่องมือ หรือโปรเจกต์ใดเพื่อทำงานให้สำเร็จ\""
+    },
+    {
+      "name": "All 4 required status stages fired in order",
+      "pass": true,
+      "detail": "กำลังตรวจ -> กำลังจัดเส้นทาง -> กำลังทำ -> กำลังตรวจผล -> สำเร็จ"
+    },
+    {
+      "name": "Final result is one of สำเร็จ/ยังไม่สำเร็จ (not a raw tool-execution count)",
+      "pass": true,
+      "detail": "สำเร็จ"
+    },
+    {
+      "name": "Result is NOT equated with 'a tool ran' — resolver required a real HTTP verification (nodes>=20), not just execution_result.ok",
+      "pass": true,
+      "detail": "true"
+    },
+    {
+      "name": "Evidence block present: what_changed / what_verified_it / what_remains_unresolved",
+      "pass": true,
+      "detail": "[\"what_changed\",\"what_verified_it\",\"what_remains_unresolved\"]"
+    },
+    {
+      "name": "Owner never selected the routing capability — 'routed_via' shows the SYSTEM chose it (registry check first, resolution table fallback)",
+      "pass": true,
+      "detail": "Phase 20 resolution table (registry had no match — this is a meta/navigational complaint, not a routable command)"
+    },
+    {
+      "name": "The registry check used the REAL existing control/command-router registry (not reimplemented) before falling back",
+      "pass": true,
+      "detail": "{\"status\":\"UNSUPPORTED_COMMAND\",\"reason\":\"no registered capability's match_keyword_sets matched \\\"ระบบ DNA OS ที่สร้างอยู่ซับซ้อนมาก ฉันไม่รู้ว่าต้องใช้ระบบ AI เครื่องมือ หรือโปรเจกต์ใดเพื่อทำงานให้สำเร็จ\\\"\"}"
+    },
+    {
+      "name": "Owner interface is the SAME existing page (index.html modified in place, not a new file)",
+      "pass": true,
+      "detail": "checked existing index.html"
+    },
+    {
+      "name": "No new dashboard/page file created this phase",
+      "pass": true,
+      "detail": "0 new .html files"
+    }
+  ],
+  "passed": 11,
+  "failed": 0,
+  "live_response": {
+    "problem_text": "ระบบ DNA OS ที่สร้างอยู่ซับซ้อนมาก ฉันไม่รู้ว่าต้องใช้ระบบ AI เครื่องมือ หรือโปรเจกต์ใดเพื่อทำงานให้สำเร็จ",
+    "status_log": [
+      {
+        "stage": "กำลังตรวจ",
+        "at": "2026-08-19T18:05:39.565Z"
+      },
+      {
+        "stage": "กำลังจัดเส้นทาง",
+        "at": "2026-08-19T18:05:39.567Z",
+        "registry_check": {
+          "status": "UNSUPPORTED_COMMAND",
+          "reason": "no registered capability's match_keyword_sets matched \"ระบบ DNA OS ที่สร้างอยู่ซับซ้อนมาก ฉันไม่รู้ว่าต้องใช้ระบบ AI เครื่องมือ หรือโปรเจกต์ใดเพื่อทำงานให้สำเร็จ\""
+        }
+      },
+      {
+        "stage": "กำลังทำ",
+        "at": "2026-08-19T18:05:39.567Z",
+        "executing": {
+          "kind": "http_check",
+          "url": "http://localhost:8790/"
+        }
+      },
+      {
+        "stage": "กำลังตรวจผล",
+        "at": "2026-08-19T18:05:39.577Z"
+      },
+      {
+        "stage": "สำเร็จ",
+        "at": "2026-08-19T18:05:39.579Z"
+      }
+    ],
+    "routed_via": "Phase 20 resolution table (registry had no match — this is a meta/navigational complaint, not a routable command)",
+    "resolution": {
+      "resolution_id": "confusion-about-which-tool",
+      "match_keyword_sets": [
+        [
+          "ซับซ้อน",
+          "ไม่รู้ว่าต้องใช้"
+        ],
+        [
+          "complex",
+          "which tool"
+        ],
+        [
+          "don't know",
+          "which"
+        ]
+      ],
+      "required_outcome": "Owner has one place to look that answers 'what's real, what's running, what's next' — WITHOUT choosing any AI/Lab/worker/repo/scanner/tool",
+      "relevant_existing_capability": "dna-os-circuit (Owner View / World View) — control/command-router, permissions/*, execution/*, DNA-LAB-FILE-INTELLIGENCE, DNA-LAB-PERMISSION-REASONER all already surface through this ONE running interface, built Phase 4-19",
+      "required_tools": [],
+      "execution_path": {
+        "kind": "http_check",
+        "url": "http://localhost:8790/"
+      },
+      "verify": {
+        "kind": "http_content_check",
+        "url": "http://localhost:8790/circuit.json",
+        "expect_field": "nodes",
+        "expect_min_length": 20
+      },
+      "acceptance_condition": "the Owner can open exactly one URL, with zero prior tool/repo/AI selection, and see a real, live-computed status of the whole system (nodes, statuses, evidence) rendered on screen"
+    },
+    "execution_result": {
+      "ok": true,
+      "status_code": 200
+    },
+    "verification": {
+      "acceptance_condition": "the Owner can open exactly one URL, with zero prior tool/repo/AI selection, and see a real, live-computed status of the whole system (nodes, statuses, evidence) rendered on screen",
+      "verified": true,
+      "detail": {
+        "field": "nodes",
+        "length": 23,
+        "required_min": 20
+      }
+    },
+    "result": "สำเร็จ",
+    "evidence": {
+      "what_changed": "Owner directed to http://localhost:8790/ — a real, already-running interface, zero new tool built",
+      "what_verified_it": "GET http://localhost:8790/circuit.json — real HTTP check, field 'nodes' length=23",
+      "what_remains_unresolved": "the Owner still has to read the page themselves — this resolver proves the PATH exists and works, not that every future problem will route this cleanly"
+    }
+  }
+}

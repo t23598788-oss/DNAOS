@@ -1,0 +1,14 @@
+{"recorded_at":"2026-08-20T17:45:55.423Z","operation":"resolve","service":"dna-os-github-device-flow:t23598788-oss/-DNA-OS-INFRASTRUCTURE-","account":"t23598788-oss","kind":"api_key","outcome":"RESOLVED","prompt":"OS_NATIVE_ONLY"}
+{"recorded_at":"2026-08-20T17:46:05.175Z","operation":"resolve","service":"dna-os-github-device-flow:t23598788-oss/-DNA-OS-INFRASTRUCTURE-","account":"t23598788-oss","kind":"api_key","outcome":"RESOLVED","prompt":"OS_NATIVE_ONLY"}
+{"recorded_at":"2026-08-20T17:54:56.607Z","operation":"resolve","service":"dna-os-github-device-flow:t23598788-oss/-DNA-OS-INFRASTRUCTURE-","account":"t23598788-oss","kind":"api_key","outcome":"RESOLVED","prompt":"OS_NATIVE_ONLY"}
+{"recorded_at":"2026-08-20T17:55:44.152Z","operation":"resolve","service":"dna-os-github-device-flow:t23598788-oss/-DNA-OS-INFRASTRUCTURE-","account":"t23598788-oss","kind":"api_key","outcome":"RESOLVED","prompt":"OS_NATIVE_ONLY"}
+{"recorded_at":"2026-08-21T10:48:16.122Z","operation":"resolve","service":"dna-os-runtime-verify-probe","account":"dna-os-runtime-verify-probe","kind":"password","outcome":"NOT_FOUND","prompt":"OS_NATIVE_ONLY"}
+{"recorded_at":"2026-08-21T11:42:45.401Z","operation":"resolve","service":"dna-os-external-system-lifecycle-rerun-probe","account":"dna-os-external-system-lifecycle-rerun-probe","kind":"password","outcome":"NOT_FOUND","prompt":"OS_NATIVE_ONLY"}
+{"recorded_at":"2026-08-22T18:51:27.616Z","operation":"resolve","service":"dna-os-railway-dna-os-infrastructure-production","account":"t23598788-oss","kind":"api_key","outcome":"RESOLVED","prompt":"OS_NATIVE_ONLY"}
+{"recorded_at":"2026-08-22T18:51:54.633Z","operation":"resolve","service":"dna-os-railway-dna-os-infrastructure-production","account":"t23598788-oss","kind":"api_key","outcome":"RESOLVED","prompt":"OS_NATIVE_ONLY"}
+{"recorded_at":"2026-08-22T18:52:05.773Z","operation":"resolve","service":"dna-os-railway-dna-os-infrastructure-production","account":"t23598788-oss","kind":"api_key","outcome":"RESOLVED","prompt":"OS_NATIVE_ONLY"}
+{"recorded_at":"2026-08-22T18:53:23.484Z","operation":"resolve","service":"dna-os-railway-dna-os-infrastructure-production","account":"t23598788-oss","kind":"api_key","outcome":"RESOLVED","prompt":"OS_NATIVE_ONLY"}
+{"recorded_at":"2026-08-24T02:54:15.832Z","operation":"resolve","service":"Supabase CLI","account":"supabase","kind":"api_token","outcome":"FAILED","prompt":"OS_NATIVE_ONLY"}
+{"recorded_at":"2026-08-24T02:54:58.285Z","operation":"resolve","service":"Supabase CLI","account":"supabase","kind":"api_token","outcome":"NOT_FOUND","prompt":"OS_NATIVE_ONLY"}
+{"recorded_at":"2026-08-24T02:56:54.331Z","operation":"resolve","service":"Supabase CLI","account":"supabase","kind":"api_token","outcome":"RESOLVED","prompt":"OS_NATIVE_ONLY"}
+{"recorded_at":"2026-08-24T02:59:16.060Z","operation":"resolve","service":"Supabase CLI","account":"supabase","kind":"api_token","outcome":"RESOLVED","prompt":"OS_NATIVE_ONLY"}

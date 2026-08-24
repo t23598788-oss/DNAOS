@@ -1,0 +1,102 @@
+[
+  {
+    "problem_type": "server_hang_or_timeout",
+    "available_capability": "async spawn pattern (dna-os-circuit/runtime/server.ts runResolver, mirrors execution/run/host-runtime.ts + control/agent-host/host-runtime.ts)",
+    "input_contract": "command + args + cwd",
+    "execution_method": "node:child_process spawn (async), never execFileSync in a detached tsx-loaded process \u2014 Phase 20/21 diagnosis",
+    "required_permission": "none (process-local fix, no capability-registry write required for THIS specific pattern reuse)",
+    "verification_method": "live HTTP re-request against the previously-failing endpoint; still_reproduces must be false",
+    "cost_source": "N/A \u2014 no external cost, engineering time only",
+    "current_status": "PROVEN \u2014 applied and verified in Phase 20/21"
+  },
+  {
+    "problem_type": "file_duplicate_or_orphan_detection",
+    "available_capability": "DNA-LAB-FILE-INTELLIGENCE",
+    "input_contract": "repo path (string)",
+    "execution_method": "npx ts-node src/cli.ts <path> (real CLI, Phase 8/12/19 proof)",
+    "required_permission": "none registered \u2014 runs as a standalone tool outside DNA-OS-INFRASTRUCTURE's own capability registry",
+    "verification_method": "reports/latest-summary.json diff before/after",
+    "cost_source": "N/A \u2014 local compute only",
+    "current_status": "PROVEN \u2014 real run executed Phase 19 (entry_point.mjs), 301 files, 46 duplicates, 23 orphans"
+  },
+  {
+    "problem_type": "permission_or_execution_authorization_decision",
+    "available_capability": "permissions/execution-policy (evaluateExecutionPermission)",
+    "input_contract": "ExecutionPermissionRequest + ExecutionPolicyContext (contracts already defined, permissions/execution-policy/types.ts)",
+    "execution_method": "direct TS import, permissions/execution-policy/contract.ts",
+    "required_permission": "capability_id=permission-reasoner, registered CONNECTED in control/command-router/capability-registry.ts",
+    "verification_method": "permissions/execution-policy/tests/policy.test.ts (22/22 passing, Phase 10 reuse)",
+    "cost_source": "N/A",
+    "current_status": "PROVEN \u2014 real ALLOW/DENY decisions in Phase 10/13"
+  },
+  {
+    "problem_type": "capability_ownership_write_authorization",
+    "available_capability": "permissions/write-gate (evaluateWriteIntent)",
+    "input_contract": "WriteIntent + WriteGateContext{registryIndex: CAPABILITY_INDEX}",
+    "execution_method": "direct TS import, permissions/write-gate/contract.ts",
+    "required_permission": "registry overlap match against software/capability-registrar's real CAPABILITY_INDEX (OWNER_FOLDER granularity)",
+    "verification_method": "permissions/write-gate/tests/policy.test.ts + Phase 21's real DENY/ALLOW positive-control pair",
+    "cost_source": "N/A",
+    "current_status": "PROVEN \u2014 Phase 21 real DENY (dna-os-circuit/runtime/*) and real ALLOW_MODIFY (dna-os-circuit/definition/*)"
+  },
+  {
+    "problem_type": "real_file_write_after_authorization",
+    "available_capability": "execution/file-write (executeFileWrite)",
+    "input_contract": "FileWriteRequest + WriteGateDecision (must be ALLOW_CREATE/ALLOW_MODIFY)",
+    "execution_method": "direct TS import, execution/file-write/contract.ts",
+    "required_permission": "a real, matching, non-expired WriteGateDecision \u2014 refuses otherwise (executor.ts's own fail-closed design)",
+    "verification_method": "execution/file-write/tests/{executor,end-to-end}.test.ts + write-audit-log.json real audit trail",
+    "cost_source": "N/A",
+    "current_status": "PROVEN \u2014 real writes in Phase 9/10/13 (phase13-evidence.txt etc.)"
+  },
+  {
+    "problem_type": "sandboxed_agent_process_execution",
+    "available_capability": "control/agent-host (launchAgent)",
+    "input_contract": "AgentLaunchRequest{allowedWorkspaceDir, agentExecutable, agentArgv, timeoutMs}",
+    "execution_method": "macOS sandbox-exec (Phase 9) or Docker (Phase 12/13 qualified upgrade)",
+    "required_permission": "none registered \u2014 this is the launcher itself, sits upstream of permission checks",
+    "verification_method": "Phase 9/13 real bypass tests (7/7 vectors blocked, all machine-verified)",
+    "cost_source": "N/A \u2014 local compute",
+    "current_status": "PROVEN"
+  },
+  {
+    "problem_type": "codebase_dependency_graph_analysis",
+    "available_capability": "ts-morph (Phase 12 qualified)",
+    "input_contract": "tsconfig.json path",
+    "execution_method": "Project.getSourceFiles() + getImportDeclarations(), real npm package",
+    "required_permission": "none",
+    "verification_method": "cross-validated against DNA-LAB-FILE-INTELLIGENCE's own count (Phase 12: 161 files vs 153-161 range)",
+    "cost_source": "N/A",
+    "current_status": "PROVEN \u2014 QUALIFIED in Phase 12"
+  },
+  {
+    "problem_type": "engineering_bottleneck_measurement_via_monitor-ui_dashboard",
+    "available_capability": "DNA-LAB-PERMISSION-REASONER/research/dashboard/monitor-ui (bottleneckScore.ts + recurrenceMetrics.ts)",
+    "input_contract": "Issue[] (occurrence_count, total_time_lost, cost_impact, severity)",
+    "execution_method": "React app, computeBottleneckScores()",
+    "required_permission": "N/A",
+    "verification_method": "NONE AGAINST REAL DATA \u2014 see current_status",
+    "cost_source": "MOCK \u2014 App.tsx line 106: `const provider = MockTelemetryProvider;` (hardcoded, real DNAOSTelemetryProvider exists but is NOT wired for issues/tasks/capabilities, only for a separate 'research' panel)",
+    "current_status": "BLOCKED_MOCK_DATA \u2014 the formula (computeBottleneckScores) is real and deterministic, but its INPUT is hardcoded mock data (mockIssues.ts, mockTasks.ts, mockCapabilities.ts, mockResources.ts). Any bottleneck_score/frequency/cost_impact number from this dashboard today is MOCK, not measured, and per Phase 22's own rule MUST NOT authorize autonomous modification."
+  },
+  {
+    "problem_type": "sync_spawn_hang_in_detached_server",
+    "available_capability": "async spawn pattern (proven 3x now: server.ts runResolver, file-intelligence-adapter.ts runAsync)",
+    "input_contract": "command + args + cwd + timeoutMs",
+    "execution_method": "node:child_process spawn (async) with explicit setTimeout+kill \u2014 never execFileSync/spawnSync from inside a detached tsx-loaded process",
+    "required_permission": "none",
+    "verification_method": "live re-invocation via the same caller path; must complete without TIMEOUT and match a known-good standalone run duration",
+    "cost_source": "N/A",
+    "current_status": "PROVEN_RECOVERY \u2014 first proven Phase 20 (server.ts), re-applied Phase 23 (file-intelligence-adapter.ts) after real evidence (PID 67397, 2min+ hang vs 4.15s standalone) confirmed the same failure signature"
+  },
+  {
+    "problem_type": "external_system_lifecycle_registration",
+    "available_capability": "control/external-system-lifecycle (runExternalSystemLifecycle)",
+    "input_contract": "ExternalSystemLifecycleInput (RegistrationCandidate + relationships + integration_proofs + delivery_target_evidence + runtime_evidence_ref)",
+    "execution_method": "direct TS import, control/external-system-lifecycle/contract.ts \u2014 composes control/registration-pipeline, control/registration-update, control/integration-verification, control/target-resolution, control/permission-policy-resolution, control/admission, execution/deploy, control/runtime-verification; never its own execution",
+    "required_permission": "REGISTER_CAPABILITY, evaluated for real by control/permission-policy-resolution (resolvePolicy) and control/admission (evaluateAdmission) \u2014 this capability_index entry only makes the intent routable, it never grants the permission itself",
+    "verification_method": "npm run test:integration (control/external-system-lifecycle/tests/external-system-lifecycle.test.ts) + a real end-to-end run against an already-REGISTERED capability, evidence chained resource_id/capability_id -> relationship -> integration -> target -> deploy/install -> runtime verification",
+    "cost_source": "N/A \u2014 local compute only",
+    "current_status": "PROVEN \u2014 built and regression-tested 2026-08-21; routes DISCOVER..COMPLETE for any Model/Model Family/Provider/External System/capability, never one specific capability"
+  }
+]

@@ -1,0 +1,437 @@
+{
+  "capital_state": {
+    "CAPITAL_AVAILABLE": 10001,
+    "CAPITAL_BLOCKED": 10001,
+    "CAPITAL_PROPOSED": 0,
+    "CAPITAL_RELEASED": 0
+  },
+  "candidates": [
+    {
+      "problem_id": "P3",
+      "computed_at": "2026-08-19T16:38:56.891Z",
+      "target_group_size": {
+        "name": "target_group_size",
+        "formula": "count of identified buyer entities",
+        "inputs": [
+          "UNKNOWN"
+        ],
+        "source": [],
+        "status": "UNCOMPUTABLE",
+        "value": null,
+        "reason": "missing/UNKNOWN input(s): [\"UNKNOWN\"]"
+      },
+      "reachable_target_group": {
+        "name": "reachable_target_group",
+        "formula": "target_group_size * channel_reach_rate",
+        "inputs": [
+          "UNKNOWN"
+        ],
+        "source": [],
+        "status": "UNCOMPUTABLE",
+        "value": null,
+        "reason": "missing/UNKNOWN input(s): [\"UNKNOWN\"]"
+      },
+      "observed_market_price": {
+        "name": "observed_market_price",
+        "formula": "th_specific_price if present, else UNKNOWN (international price is NOT substituted silently)",
+        "inputs": [
+          null
+        ],
+        "source": [
+          "ev-p3-02"
+        ],
+        "status": "UNCOMPUTABLE",
+        "value": null,
+        "reason": "missing/UNKNOWN input(s): [null]"
+      },
+      "required_capital": {
+        "name": "required_capital",
+        "formula": "capped by Owner policy",
+        "inputs": [
+          10001
+        ],
+        "source": [
+          "owner-directive-phase15"
+        ],
+        "status": "COMPUTED",
+        "value": 10001
+      },
+      "CAC": {
+        "name": "CAC (customer acquisition cost)",
+        "formula": "capital_spent_on_acquisition / customers_acquired",
+        "inputs": [
+          "UNKNOWN",
+          "UNKNOWN"
+        ],
+        "source": [],
+        "status": "UNCOMPUTABLE",
+        "value": null,
+        "reason": "missing/UNKNOWN input(s): [\"UNKNOWN\",\"UNKNOWN\"]"
+      },
+      "delivery_cost": {
+        "name": "delivery_cost",
+        "formula": "hours_to_deliver * cost_per_hour (or 0 if fully automated by existing capability)",
+        "inputs": [
+          0
+        ],
+        "source": [],
+        "status": "COMPUTED",
+        "value": 0
+      },
+      "platform_fees": {
+        "name": "platform_fees",
+        "formula": "observed_market_price * platform_fee_rate",
+        "inputs": [
+          null,
+          "UNKNOWN"
+        ],
+        "source": [
+          "market-fiverr-fee",
+          "market-upwork-fee"
+        ],
+        "status": "UNCOMPUTABLE",
+        "value": null,
+        "reason": "missing/UNKNOWN input(s): [null,\"UNKNOWN\"]"
+      },
+      "tax": {
+        "name": "tax",
+        "formula": "revenue * applicable_tax_rate",
+        "inputs": [
+          "UNKNOWN"
+        ],
+        "source": [
+          "tax-th-wht-status"
+        ],
+        "status": "UNCOMPUTABLE",
+        "value": null,
+        "reason": "missing/UNKNOWN input(s): [\"UNKNOWN\"]"
+      },
+      "gross_margin": {
+        "name": "gross_margin",
+        "formula": "observed_market_price - delivery_cost",
+        "inputs": [
+          null,
+          0
+        ],
+        "source": [],
+        "status": "UNCOMPUTABLE",
+        "value": null,
+        "reason": "missing/UNKNOWN input(s): [null]"
+      },
+      "net_margin": {
+        "name": "net_margin",
+        "formula": "gross_margin - platform_fees - tax",
+        "inputs": [
+          null
+        ],
+        "source": [],
+        "status": "UNCOMPUTABLE",
+        "value": null,
+        "reason": "missing/UNKNOWN input(s): [null]"
+      },
+      "break_even_customers": {
+        "name": "break_even_customers",
+        "formula": "required_capital / net_margin_per_customer",
+        "inputs": [
+          10001,
+          "UNKNOWN"
+        ],
+        "source": [],
+        "status": "UNCOMPUTABLE",
+        "value": null,
+        "reason": "missing/UNKNOWN input(s): [\"UNKNOWN\"]"
+      },
+      "customers_required_for_40k_cash": {
+        "name": "customers_required_for_40k_cash",
+        "formula": "40000 / net_margin_per_customer",
+        "inputs": [
+          "UNKNOWN"
+        ],
+        "source": [],
+        "status": "UNCOMPUTABLE",
+        "value": null,
+        "reason": "missing/UNKNOWN input(s): [\"UNKNOWN\"]"
+      },
+      "required_conversion_rate": {
+        "name": "required_conversion_rate",
+        "formula": "customers_required / reachable_target_group",
+        "inputs": [
+          "UNKNOWN",
+          null
+        ],
+        "source": [],
+        "status": "UNCOMPUTABLE",
+        "value": null,
+        "reason": "missing/UNKNOWN input(s): [\"UNKNOWN\",null]"
+      },
+      "days_to_first_possible_cash": {
+        "name": "days_to_first_possible_cash",
+        "formula": "date(buyer_reachable) + date(delivery) + date(payment_settlement) - date(day_0)",
+        "inputs": [
+          "UNKNOWN"
+        ],
+        "source": [],
+        "status": "UNCOMPUTABLE",
+        "value": null,
+        "reason": "missing/UNKNOWN input(s): [\"UNKNOWN\"]"
+      },
+      "cash_possible_by_day_30": {
+        "name": "cash_possible_by_day_30",
+        "status": "UNCOMPUTABLE",
+        "value": null,
+        "reason": "depends on days_to_first_possible_cash, which is UNCOMPUTABLE"
+      },
+      "maximum_loss": {
+        "name": "maximum_loss",
+        "formula": "required_capital (capital not returned if zero sales)",
+        "inputs": [
+          10001
+        ],
+        "source": [],
+        "status": "COMPUTED",
+        "value": 10001
+      },
+      "capital_remaining": {
+        "name": "capital_remaining",
+        "formula": "CAPITAL_AVAILABLE - required_capital (before any spend)",
+        "inputs": [
+          10001,
+          10001
+        ],
+        "source": [],
+        "status": "COMPUTED",
+        "value": 0
+      },
+      "ROI": {
+        "name": "ROI",
+        "status": "UNCOMPUTABLE",
+        "value": null,
+        "reason": "net_margin and customer count both UNCOMPUTABLE"
+      },
+      "capital_gate": {
+        "gate_result": "WAITING_EVIDENCE",
+        "blocking_fields": [
+          "observed_market_price",
+          "CAC",
+          "days_to_first_possible_cash",
+          "net_margin",
+          "customers_required_for_40k_cash"
+        ]
+      }
+    },
+    {
+      "problem_id": "P4",
+      "computed_at": "2026-08-19T16:38:56.897Z",
+      "target_group_size": {
+        "name": "target_group_size",
+        "formula": "count of identified buyer entities",
+        "inputs": [
+          "UNKNOWN"
+        ],
+        "source": [],
+        "status": "UNCOMPUTABLE",
+        "value": null,
+        "reason": "missing/UNKNOWN input(s): [\"UNKNOWN\"]"
+      },
+      "reachable_target_group": {
+        "name": "reachable_target_group",
+        "formula": "target_group_size * channel_reach_rate",
+        "inputs": [
+          "UNKNOWN"
+        ],
+        "source": [],
+        "status": "UNCOMPUTABLE",
+        "value": null,
+        "reason": "missing/UNKNOWN input(s): [\"UNKNOWN\"]"
+      },
+      "observed_market_price": {
+        "name": "observed_market_price",
+        "formula": "th_specific_price if present, else UNKNOWN (international price is NOT substituted silently)",
+        "inputs": [
+          null
+        ],
+        "source": [
+          "ev-p4-01"
+        ],
+        "status": "UNCOMPUTABLE",
+        "value": null,
+        "reason": "missing/UNKNOWN input(s): [null]"
+      },
+      "required_capital": {
+        "name": "required_capital",
+        "formula": "capped by Owner policy",
+        "inputs": [
+          10001
+        ],
+        "source": [
+          "owner-directive-phase15"
+        ],
+        "status": "COMPUTED",
+        "value": 10001
+      },
+      "CAC": {
+        "name": "CAC (customer acquisition cost)",
+        "formula": "capital_spent_on_acquisition / customers_acquired",
+        "inputs": [
+          "UNKNOWN",
+          "UNKNOWN"
+        ],
+        "source": [],
+        "status": "UNCOMPUTABLE",
+        "value": null,
+        "reason": "missing/UNKNOWN input(s): [\"UNKNOWN\",\"UNKNOWN\"]"
+      },
+      "delivery_cost": {
+        "name": "delivery_cost",
+        "formula": "hours_to_deliver * cost_per_hour (or 0 if fully automated by existing capability)",
+        "inputs": [
+          "UNKNOWN"
+        ],
+        "source": [],
+        "status": "UNCOMPUTABLE",
+        "value": null,
+        "reason": "missing/UNKNOWN input(s): [\"UNKNOWN\"]"
+      },
+      "platform_fees": {
+        "name": "platform_fees",
+        "formula": "observed_market_price * platform_fee_rate",
+        "inputs": [
+          null,
+          "UNKNOWN"
+        ],
+        "source": [
+          "market-fiverr-fee",
+          "market-upwork-fee"
+        ],
+        "status": "UNCOMPUTABLE",
+        "value": null,
+        "reason": "missing/UNKNOWN input(s): [null,\"UNKNOWN\"]"
+      },
+      "tax": {
+        "name": "tax",
+        "formula": "revenue * applicable_tax_rate",
+        "inputs": [
+          "UNKNOWN"
+        ],
+        "source": [
+          "tax-th-wht-status"
+        ],
+        "status": "UNCOMPUTABLE",
+        "value": null,
+        "reason": "missing/UNKNOWN input(s): [\"UNKNOWN\"]"
+      },
+      "gross_margin": {
+        "name": "gross_margin",
+        "formula": "observed_market_price - delivery_cost",
+        "inputs": [
+          null,
+          null
+        ],
+        "source": [],
+        "status": "UNCOMPUTABLE",
+        "value": null,
+        "reason": "missing/UNKNOWN input(s): [null,null]"
+      },
+      "net_margin": {
+        "name": "net_margin",
+        "formula": "gross_margin - platform_fees - tax",
+        "inputs": [
+          null
+        ],
+        "source": [],
+        "status": "UNCOMPUTABLE",
+        "value": null,
+        "reason": "missing/UNKNOWN input(s): [null]"
+      },
+      "break_even_customers": {
+        "name": "break_even_customers",
+        "formula": "required_capital / net_margin_per_customer",
+        "inputs": [
+          10001,
+          "UNKNOWN"
+        ],
+        "source": [],
+        "status": "UNCOMPUTABLE",
+        "value": null,
+        "reason": "missing/UNKNOWN input(s): [\"UNKNOWN\"]"
+      },
+      "customers_required_for_40k_cash": {
+        "name": "customers_required_for_40k_cash",
+        "formula": "40000 / net_margin_per_customer",
+        "inputs": [
+          "UNKNOWN"
+        ],
+        "source": [],
+        "status": "UNCOMPUTABLE",
+        "value": null,
+        "reason": "missing/UNKNOWN input(s): [\"UNKNOWN\"]"
+      },
+      "required_conversion_rate": {
+        "name": "required_conversion_rate",
+        "formula": "customers_required / reachable_target_group",
+        "inputs": [
+          "UNKNOWN",
+          null
+        ],
+        "source": [],
+        "status": "UNCOMPUTABLE",
+        "value": null,
+        "reason": "missing/UNKNOWN input(s): [\"UNKNOWN\",null]"
+      },
+      "days_to_first_possible_cash": {
+        "name": "days_to_first_possible_cash",
+        "formula": "date(buyer_reachable) + date(delivery) + date(payment_settlement) - date(day_0)",
+        "inputs": [
+          "UNKNOWN"
+        ],
+        "source": [],
+        "status": "UNCOMPUTABLE",
+        "value": null,
+        "reason": "missing/UNKNOWN input(s): [\"UNKNOWN\"]"
+      },
+      "cash_possible_by_day_30": {
+        "name": "cash_possible_by_day_30",
+        "status": "UNCOMPUTABLE",
+        "value": null,
+        "reason": "depends on days_to_first_possible_cash, which is UNCOMPUTABLE"
+      },
+      "maximum_loss": {
+        "name": "maximum_loss",
+        "formula": "required_capital (capital not returned if zero sales)",
+        "inputs": [
+          10001
+        ],
+        "source": [],
+        "status": "COMPUTED",
+        "value": 10001
+      },
+      "capital_remaining": {
+        "name": "capital_remaining",
+        "formula": "CAPITAL_AVAILABLE - required_capital (before any spend)",
+        "inputs": [
+          10001,
+          10001
+        ],
+        "source": [],
+        "status": "COMPUTED",
+        "value": 0
+      },
+      "ROI": {
+        "name": "ROI",
+        "status": "UNCOMPUTABLE",
+        "value": null,
+        "reason": "net_margin and customer count both UNCOMPUTABLE"
+      },
+      "capital_gate": {
+        "gate_result": "WAITING_EVIDENCE",
+        "blocking_fields": [
+          "observed_market_price",
+          "CAC",
+          "days_to_first_possible_cash",
+          "net_margin",
+          "customers_required_for_40k_cash"
+        ]
+      }
+    }
+  ]
+}

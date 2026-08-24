@@ -1,9 +1,18 @@
 # DNA-OS-INFRASTRUCTURE
 
-**Status: skeleton only, reorganized 2026-08-14 (third pass). Nothing in
-this repo can command, read, or modify any external program, AI model,
-server, or software yet. Every capability is explicitly NOT_YET_BUILT
-unless a folder's README says otherwise.**
+**Status: control-plane product contract implemented for the local Owner
+Command path.** The verified scope is the loopback Owner Console transport,
+router/dispatcher/policy/worker pipeline, append-only task/evidence/handoff
+records, and sandbox-only file-write proof. Native credential/Keychain access,
+autofill, permission bypass, and production business-code writing remain
+blocked by policy.
+
+See [CONTROL_PLANE_PRODUCT_CONTRACT.md](CONTROL_PLANE_PRODUCT_CONTRACT.md)
+for setup, runtime flow, health/evidence endpoints, and phase evidence.
+
+**Runtime:** Node >= 18 (see `.nvmrc`; `npm install` refuses an older
+Node via `engine-strict=true` in `.npmrc`). Run `nvm use` at the repo
+root first.
 
 ## What this repo is
 

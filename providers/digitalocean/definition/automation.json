@@ -1,0 +1,59 @@
+{
+  "$schema_note": "Per-resource automation capability grid (YES/NO/PARTIAL per lifecycle facet) plus the consolidated known-gaps list. This is the summary view — actions.json has the per-action detail this rolls up from.",
+  "last_verified": "2026-08-17",
+  "capability_grid": [
+    { "resource": "droplets_gpu_droplets", "list": "YES", "get": "YES", "create": "YES", "update": "YES", "delete": "YES", "start_stop": "YES", "logs": "NO", "monitoring": "YES" },
+    { "resource": "bare_metal_gpus", "list": "NO", "get": "NO", "create": "NO", "update": "NO", "delete": "NO", "start_stop": "NO", "logs": "NO", "monitoring": "NO", "notes": "sales/contract-provisioned only" },
+    { "resource": "app_platform", "list": "YES", "get": "YES", "create": "YES", "update": "YES", "delete": "YES", "start_stop": "YES", "logs": "YES", "monitoring": "PARTIAL", "notes": "start_stop = restart only; monitoring = bandwidth only" },
+    { "resource": "kubernetes", "list": "YES", "get": "YES", "create": "YES", "update": "YES", "delete": "YES", "start_stop": "PARTIAL", "logs": "NO", "monitoring": "NO", "notes": "start_stop = node-pool recycle only, no cluster-level stop; monitoring = not found at cluster level" },
+    { "resource": "managed_databases", "list": "YES", "get": "YES", "create": "YES", "update": "YES", "delete": "YES", "start_stop": "n/a", "logs": "NO", "monitoring": "NO", "notes": "update = resize" },
+    { "resource": "spaces_data_plane", "list": "YES", "get": "YES", "create": "YES", "update": "YES", "delete": "YES", "start_stop": "n/a", "logs": "n/a", "monitoring": "n/a", "notes": "requires a Spaces key to already exist" },
+    { "resource": "spaces_keys", "list": "YES", "get": "YES", "create": "YES", "update": "YES", "delete": "YES", "start_stop": "n/a", "logs": "n/a", "monitoring": "n/a", "notes": "CORRECTED 2026-08-17 — previously reported NO/control-panel-only, verified wrong" },
+    { "resource": "volumes", "list": "YES", "get": "YES", "create": "YES", "update": "YES", "delete": "YES", "start_stop": "n/a", "logs": "n/a", "monitoring": "n/a", "notes": "update = resize/attach" },
+    { "resource": "vpc_load_balancers_firewalls_domains_reserved_ips", "list": "YES", "get": "YES", "create": "YES", "update": "YES", "delete": "YES", "start_stop": "n/a", "logs": "n/a", "monitoring": "n/a" },
+    { "resource": "serverless_batch_inference", "list": "PARTIAL", "get": "YES", "create": "YES", "update": "PARTIAL", "delete": "PARTIAL", "start_stop": "n/a", "logs": "n/a", "monitoring": "n/a", "notes": "list/update/delete = Dedicated Inference only; Serverless/Batch are stateless call surfaces" },
+    { "resource": "agent_platform", "list": "YES", "get": "YES", "create": "YES", "update": "YES", "delete": "YES", "start_stop": "n/a", "logs": "n/a", "monitoring": "YES", "notes": "monitoring = usage endpoint only" },
+    { "resource": "billing", "list": "n/a", "get": "YES", "create": "n/a", "update": "n/a", "delete": "n/a", "start_stop": "n/a", "logs": "n/a", "monitoring": "n/a" },
+    { "resource": "monitoring_alert_policies", "list": "YES", "get": "YES", "create": "YES", "update": "YES", "delete": "YES", "start_stop": "n/a", "logs": "n/a", "monitoring": "n/a" }
+  ],
+  "confirmed_absences": [
+    "No general-purpose webhooks/events API anywhere in the platform",
+    "No dedicated pricing-catalog API — derive from per-product size/plan list endpoints",
+    "No logs API for Droplets, Databases, or Kubernetes (App Platform is the only compute resource with one)",
+    "Bare Metal GPUs has zero REST API surface (sales-provisioned only)"
+  ],
+  "known_gaps": [
+    "Exact scope strings not independently confirmed for: Databases (any action), Regions, Sizes, Monitoring Alert Policies, VPC Peering, sub-resources of Dedicated/Batch Inference and Agent Platform",
+    "Database connection-pool exact path segment (/pools vs /connection_pools) not independently confirmed",
+    "Database users/firewall-rules/backups exact sub-resource paths not individually verified",
+    "Kafka topic-management endpoint referenced but not directly fetched",
+    "VPC Peering exact endpoint is an inference (/v2/vpc_peerings), not confirmed",
+    "Global Load Balancers — unclear if a distinct resource or a flag on the regional object",
+    "Status page component/incident-list endpoints assumed standard Statuspage.io convention, not DO-specific-confirmed",
+    "Full PAT expiration interval option list not enumerated",
+    "OAuth refresh-token rotation policy/endpoint not fully documented",
+    "Exact account-creation requirements (email/phone verification) inferred only indirectly",
+    "Whether Batch Inference needs an agent_access_key specifically, beyond inference_bearer_auth",
+    "Rate limit figures (5000/hr, 250/min) are community-sourced, not independently re-verified via direct docs.digitalocean.com fetch",
+    "doctl spaces keys create — corroborated via a real dated doctl-reference URL found via search, but returned HTTP 503 on direct re-fetch this session; not independently re-confirmed by raw content",
+    "Spaces key scope naming inconsistency: both spaces_key:create_credentials and spaces_keys:create appear in official docs — not resolved"
+  ],
+  "correction_log": [
+    {
+      "date": "2026-08-17",
+      "field": "spaces_keys automation",
+      "was": "NOT API-automatable, control-panel only",
+      "corrected_to": "API-automatable via /v2/spaces/keys, standard v2 auth, spaces_key:* scopes",
+      "verified_by": "direct raw fetch of docs.digitalocean.com/reference/api/reference/spaces-keys/, HTTP 200",
+      "source": "Owner-flagged correction, independently re-verified before applying"
+    },
+    {
+      "date": "2026-08-17",
+      "field": "account resource",
+      "was": "no actions.json entry for GET /v2/account — only referenced indirectly via droplet_limit gap note and an inferred account:read scope",
+      "corrected_to": "added a real actions.json record: GET /v2/account, scope account:read",
+      "verified_by": "direct raw fetch of docs.digitalocean.com/reference/api/reference/account/, HTTP 200",
+      "source": "Discovered while building connections/digitalocean/ Phase 1 (digitalocean.account.read needed a real source-of-truth entry)"
+    }
+  ]
+}

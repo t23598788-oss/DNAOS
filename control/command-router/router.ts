@@ -61,8 +61,10 @@ import type { ExecutionRequest } from "../../execution/run/contract";
 import { ExecutionError } from "../../execution/run/contract";
 import { handleGithubCommand } from "../../connections/github/github-adapter";
 import { fetchResearchEngineLatestResult } from "../../connections/research-engine/research-engine-adapter";
-import { dispatchTask, DEFAULT_AGENT_WORKERS, setVoiceBridgeEnabled, isVoiceBridgeEnabled, admitCompletedTask } from "../agent-gateway/contract";
-import type { Status as DispatcherTaskStatus } from "../agent-gateway/contract";
+import { dispatchTask, DEFAULT_AGENT_WORKERS, setVoiceBridgeEnabled, isVoiceBridgeEnabled, admitCompletedTask, runAgentWorkOrder, runCorrectiveLoop, createTaskWorkspace, transitionWorkspace } from "../agent-gateway/contract";
+import type { Status as DispatcherTaskStatus, WorkerKind, WorkOrder, TaskWorkspace } from "../agent-gateway/contract";
+import { resolveWorker } from "../agent-host/contract";
+import { join } from "node:path";
 import { parseOsLoginTarget, requestOsLogin } from "../../connections/os-login/adapter-contract";
 import { openOsUi, parseOsUiTarget, runUiWorkOrder } from "../../connections/os-ui/adapter-contract";
 import type { UiWorkOrder } from "../../connections/os-ui/work-order";
@@ -476,6 +478,126 @@ async function runDispatcherStep(step: RouterStep, envelope: CommandEnvelope): P
 }
 
 /**
+ * Deterministic, keyword-based WorkerKind selection — never an LLM
+ * decision, never free text passed straight through. Defaults to LOCAL
+ * (the fully sandbox-confined, no-external-CLI worker) whenever the
+ * intent text names no specific provider, matching this repo's existing
+ * fail-safe-to-the-narrowest-option convention.
+ */
+function selectWorkerKind(intentText: string): WorkerKind {
+  const normalized = intentText.toLocaleLowerCase();
+  if (normalized.includes("codex")) return "CODEX";
+  if (normalized.includes("gemini")) return "GEMINI";
+  if (normalized.includes("claude")) return "CLAUDE";
+  return "LOCAL";
+}
+
+/**
+ * REQUIREMENT 2 (BACKEND READER) — reads real, already-persisted system
+ * state BEFORE any Agent command is issued, so the Agent itself never
+ * determines authoritative system state. Reuses the existing capability
+ * registry read path (`../../software/capability-registrar/contract.ts`)
+ * — no new registry, no new reader.
+ */
+async function readBackendContextBeforeDispatch(): Promise<{ capability_count: number; capability_index_source: string }> {
+  const { getCapabilityIndex } = await import("../../software/capability-registrar/contract");
+  const index = getCapabilityIndex();
+  return { capability_count: index.length, capability_index_source: "software/capability-registrar/contract.ts#getCapabilityIndex" };
+}
+
+/**
+ * The real Agent Host worker execution step — DNA_OS_DECISION ->
+ * WORK_ORDER -> AGENT_SELECTOR -> AGENT_HOST -> SANDBOX_EXEC ->
+ * AGENT_WORKER -> MACHINE_RESULT -> RESULT_INGRESS -> VERIFY ->
+ * NEXT_DECISION, all through `../agent-gateway/contract.ts`'s
+ * `runAgentWorkOrder` (Agent Host wiring, unmodified) and
+ * `runCorrectiveLoop` (existing Decision Engine, unmodified) — this
+ * function adds no new sandbox, no new decision logic, only the real
+ * command-router entry point those two already-built pieces were
+ * missing.
+ */
+/**
+ * Builds the ONE real, unified work-unit representation (Owner, Phase
+ * 1A) — a real `WorkOrder` whose `agent_run` field carries everything
+ * `runAgentWorkOrder` needs. No second, ad hoc task-description shape.
+ * `agent_run.workspace_id` (Owner, Phase 2) is the real TaskWorkspace
+ * `createTaskWorkspace` already allocated — the Agent never chooses its
+ * own cwd/source here; WorkspaceManager already decided it before this
+ * function runs.
+ */
+function buildAgentHostWorkOrder(step: RouterStep, workerKind: WorkerKind, workspace: TaskWorkspace): WorkOrder {
+  const localWorker = workerKind === "LOCAL" ? resolveWorker("LOCAL") : null;
+  const instruction = workerKind === "LOCAL" && localWorker?.ok
+    ? JSON.stringify({ action: "credential_probe" })
+    : step.intent;
+  return {
+    operation: "MODIFY",
+    target_type: "FILE",
+    target_path: "(agent-host: no direct file target — see agent_run.workspace_id)",
+    requested_change: step.intent,
+    content: "",
+    workspace_scope: workspace.allowed_write_workspace,
+    mode: "sandbox",
+    required_tests: [],
+    forbidden_files: [],
+    evidence: [],
+    agent_run: {
+      worker_kind: workerKind,
+      instruction,
+      workspace_id: workspace.workspace_id,
+      assigned_source_paths: workspace.allowed_read_paths,
+      dependency_read_paths: workspace.dependency_paths,
+      workspace_path: workspace.allowed_write_workspace,
+      timeout_ms: 60_000,
+      expected_result_contract: "DNA_OS_AGENT_RESULT_V1",
+    },
+  };
+}
+
+async function runAgentHostStep(step: RouterStep, envelope: CommandEnvelope): Promise<StepOutcome> {
+  const backendContext = await readBackendContextBeforeDispatch();
+  const workerKind = selectWorkerKind(step.intent);
+  const workOrderId = `wo-${envelope.command_id}`;
+
+  // WORKSPACE_MANAGER (Owner, Phase 2): DNA OS selects assigned MASTER_SOURCE
+  // (read-only) and materializes a fresh TASK_WORKSPACE (read+write) BEFORE
+  // Agent Host is ever invoked -- the Agent never picks its own cwd/source.
+  const workspace = createTaskWorkspace({
+    work_order_id: workOrderId,
+    command_id: envelope.command_id,
+    assigned_source: [process.cwd()],
+    // Deliberately OUTSIDE MASTER_SOURCE entirely (Owner, Phase 2 —
+    // "Source Separation") -- createTaskWorkspace's own overlap check
+    // refuses any TASK_WORKSPACE root nested under assigned_source, and
+    // process.cwd() (the repo root) IS assigned_source here.
+    workspace_root: "/tmp/dna-os-agent-workspaces",
+  });
+  transitionWorkspace(workspace.workspace_id, "PREPARE_CONTEXT", "command-router: real WorkOrder built, about to dispatch");
+
+  const workOrder = buildAgentHostWorkOrder(step, workerKind, workspace);
+  const result = await runAgentWorkOrder(workOrder, envelope.command_id, process.env);
+
+  const loopOutcome = await runCorrectiveLoop(result, "command-router");
+
+  const status: CapabilityResultStatus = result.status === "PASS" ? "COMPLETED" : result.status === "BLOCKED" || result.status === "FAIL_CLOSED" ? "BLOCKED" : "FAILED";
+  return {
+    status,
+    evidenceEntries: [
+      evidence("agent-host", `backend_reader capability_count=${backendContext.capability_count} source=${backendContext.capability_index_source}`),
+      evidence("agent-host", `work_order_id=${result.work_order_id} workspace_id=${result.workspace_id} launch_id=${result.launch_id ?? "none"} task_id=${result.task_id} worker_id=${result.worker_id} status=${result.status} error_code=${result.error_code ?? "none"} exit_code=${result.exit_code} agent_pid=${result.runtime.agent_pid} sandbox_profile_hash=${result.runtime.sandbox_profile_hash ?? "none"}`),
+      evidence("agent-host", `result_id=${result.result_id} verification_id=${result.verification_id ?? "none"} evidence_refs=${result.evidence_refs.join(",")} corrective_loop_state=${loopOutcome.state} decision_id=${loopOutcome.decision_id ?? "none"}`),
+    ],
+    artifacts: [
+      { kind: "agent_host_work_order_id", ref: result.work_order_id },
+      { kind: "agent_host_task_id", ref: result.task_id },
+      ...result.artifacts.map((a) => ({ kind: "agent_host_artifact", ref: a })),
+    ],
+    warnings: status === "BLOCKED" ? [`agent-host task ${result.task_id} ended ${result.status} (error_code=${result.error_code})`] : [],
+    summary: `agent-host task "${result.task_id}" worker=${workerKind} status=${result.status} corrective_loop=${loopOutcome.state}`,
+  };
+}
+
+/**
  * Generic path for any capability whose `endpoint.kind === "connector"`
  * (see ./types.ts's `EndpointReference`). Never imports a provider
  * folder directly — always through `executeConnectorCommand`, which
@@ -529,6 +651,7 @@ async function runStep(step: RouterStep, envelope: CommandEnvelope, options: Rou
   if (capability.capability_id === "research-engine") return runResearchEngineStep();
   if (capability.capability_id === "permission-reasoner") return runPermissionReasonerStep(step, envelope, options);
   if (capability.capability_id === "dispatcher") return runDispatcherStep(step, envelope);
+  if (capability.capability_id === "agent-host") return runAgentHostStep(step, envelope);
   if (capability.capability_id === "os-login") return runOsLoginStep(step);
   if (capability.capability_id === "os-ui") return runOsUiStep(step);
   if (capability.capability_id === "voice-bridge") return runVoiceBridgeStep(step, envelope);

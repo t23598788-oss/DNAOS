@@ -1,0 +1,91 @@
+{
+  "results": [
+    {
+      "name": "1. Signal captured without pressing ให้ระบบจัดการ (control case sourced from real log files, no button press)",
+      "pass": true,
+      "detail": "SIGNAL_CONFIRMED"
+    },
+    {
+      "name": "2. Proven source provenance (source_id traces to a CONNECTED, verified observation_sources.json entry)",
+      "pass": true,
+      "detail": "dna-os-circuit-server-logs status"
+    },
+    {
+      "name": "3. Recurrence stored as measured observations, not AI confidence (recurrence_count derived from real file scan)",
+      "pass": true,
+      "detail": "recurrence_count=2"
+    },
+    {
+      "name": "4. Impact derived from measurable events (HTTP 500 co-located in the same real log lines, not inferred)",
+      "pass": true,
+      "detail": "RECURRING"
+    },
+    {
+      "name": "5. Root-cause evidence traceable (points to a real, checkable source location, and the text is actually present there)",
+      "pass": true,
+      "detail": "{\"statement\":\"execFileSync (sync child_process API) hangs specifically when invoked from this tsx-loaded, detached (nohup) server process; the async spawn API does not share the issue.\",\"traceable_to_source\":true,\"evidence_location\":\"dna-os-circuit/runtime/server.ts, runResolver() function's own header comment\"}"
+    },
+    {
+      "name": "6. Existing capability checked before new code (real control/command-router registry text search, not invented)",
+      "pass": true,
+      "detail": "{\"existing_capability_found\":true,\"capability_id\":\"dna-os-circuit\",\"decision\":\"REUSE_FIX_EXISTING_CAPABILITY\"}"
+    },
+    {
+      "name": "7. Policy decision recorded (real permissions/write-gate evaluateWriteIntent() call, both branches)",
+      "pass": true,
+      "detail": "deny_id=7a6662e5 allow_id=08698e1b"
+    },
+    {
+      "name": "8. Unauthorized changes blocked (real DENY on a target_path outside the registered capability's OWNER_FOLDER)",
+      "pass": true,
+      "detail": "[\"NO_MATCHING_CAPABILITY\"]"
+    },
+    {
+      "name": "9. Authorized change executable — proven via a real positive control (ALLOW_MODIFY on a path that DOES match the registered capability)",
+      "pass": true,
+      "detail": "ALLOW_MODIFY"
+    },
+    {
+      "name": "10. Real test executed (live HTTP POST against the actually-running server, not a mock)",
+      "pass": true,
+      "detail": "status=200"
+    },
+    {
+      "name": "11. Original failure condition re-measured (still_reproduces explicitly checked, not assumed)",
+      "pass": true,
+      "detail": "still_reproduces=false"
+    },
+    {
+      "name": "12. Success determined from measurement, not AI declaration",
+      "pass": true,
+      "detail": "measurement (live HTTP status/body check), not by AI declaration"
+    },
+    {
+      "name": "13. Evidence returned to DNA LAB/Circuit (PROBLEM_SIGNAL/ROOT_CAUSE/DECISION_STATE/RESULT nodes present in the live graph)",
+      "pass": true,
+      "detail": "SOURCE,SUBJECT,OBSERVATION,METRIC,EVIDENCE,CONSTRAINT,RESOURCE,COMPUTATION,DECISION_STATE,PEOPLE,SERVICE,CHANNEL,USER,USAGE,RESULT,PRICE,PAYMENT,CASH,PROBLEM,REAL_USER,ENTRY_POINT,PROBLEM_SIGNAL,ROOT_CAUSE,PROVEN_RESOLUTION"
+    },
+    {
+      "name": "14. Owner did not copy/paste the problem between AI/dev tools (control case ingested from local log files only; TEST CASE 1 explicitly refused to fabricate cross-tool evidence)",
+      "pass": true,
+      "detail": "tc1.status=PROBLEM_SIGNAL"
+    },
+    {
+      "name": "Live Circuit server (same page) serves the autonomous loop result",
+      "pass": true,
+      "detail": "served=true"
+    },
+    {
+      "name": "TEST CASE 1 correctly stayed PROBLEM_SIGNAL (insufficient evidence honestly reported, not escalated)",
+      "pass": true,
+      "detail": "INSUFFICIENT_EVIDENCE"
+    },
+    {
+      "name": "ChatGPT source honestly marked DISCONNECTED (not fabricated as available)",
+      "pass": true,
+      "detail": "chatgpt-web status"
+    }
+  ],
+  "passed": 17,
+  "failed": 0
+}

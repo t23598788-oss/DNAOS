@@ -1,0 +1,94 @@
+{
+  "$schema_note": "Machine-readable provider identity for DigitalOcean. Derived from ../evidence/DIGITALOCEAN_PROVIDER_DISCOVERY.md — never hand-invented. Do not add a fact here that isn't traceable to that evidence file.",
+  "provider_id": "digitalocean",
+  "display_name": "DigitalOcean",
+  "last_verified": "2026-08-17",
+  "evidence_file": "../evidence/DIGITALOCEAN_PROVIDER_DISCOVERY.md",
+  "api_hosts": {
+    "core_v2": "https://api.digitalocean.com/v2/",
+    "oauth": "https://cloud.digitalocean.com/v1/oauth/",
+    "spaces_data_plane": "https://{region}.digitaloceanspaces.com",
+    "inference": "https://inference.do-ai.run",
+    "status_page": "https://status.digitalocean.com/api/v2/",
+    "llms_txt": "https://docs.digitalocean.com/llms.txt"
+  },
+  "auth_methods": [
+    {
+      "method_id": "pat",
+      "name": "Personal Access Token",
+      "credential_shape": "bearer_token",
+      "scope_model": "resource:action, immutable after creation (must reissue to change scope)",
+      "automatable_bootstrap": "PARTIAL",
+      "notes": "Created via Control Panel (Account > API > Tokens) or API; secret shown once at creation; user-set expiry interval; deleting revokes immediately."
+    },
+    {
+      "method_id": "oauth2",
+      "name": "OAuth 2.0",
+      "credential_shape": "bearer_token",
+      "flow": "authorization_code",
+      "authorize_endpoint": "https://cloud.digitalocean.com/v1/oauth/authorize",
+      "token_endpoint": "https://cloud.digitalocean.com/v1/oauth/token",
+      "access_token_ttl_seconds": 2592000,
+      "refresh_token_issued": true,
+      "automatable_bootstrap": "NO",
+      "notes": "Authorize step requires interactive user consent (not automatable); token exchange step is automatable. Recommended for multi-account/team automation per Owner's stated long-term direction — system can self-refresh instead of an AI holding every user's PAT."
+    },
+    {
+      "method_id": "spaces_key",
+      "name": "Spaces Access Key/Secret",
+      "credential_shape": "aws_sigv4_key_secret",
+      "used_for": "Spaces S3-compatible data-plane calls only (bucket/object operations)",
+      "key_management_endpoint": "/v2/spaces/keys",
+      "key_management_uses_standard_auth": true,
+      "automatable_bootstrap": "YES",
+      "corrected_2026_08_17": "Key creation/management IS automatable via /v2/spaces/keys (standard v2 API, PAT/OAuth bearer + spaces_key:* scopes). Only the resulting key/secret PAIR is used for the separate AWS-Sig-v4 data-plane calls — that data-plane auth mechanism itself is unchanged.",
+      "notes": "Do not confuse the two layers: (1) managing the Spaces key resource = standard v2 API + spaces_key:* scope; (2) using the key to call the Spaces S3-compatible endpoint = AWS Signature v4, not a DO scope at all."
+    },
+    {
+      "method_id": "inference_bearer_auth",
+      "name": "Inference bearer auth",
+      "credential_shape": "bearer_token",
+      "used_for": "Serverless Inference, Batch Inference (inference.do-ai.run host)",
+      "accepted_token_prefixes": ["dop_v1_ (PAT)", "doo_v1_ / dor_v1_ (OAuth)", "agent_access_key (agent-scoped, not interchangeable with account tokens)"],
+      "automatable_bootstrap": "PARTIAL",
+      "notes": "Dedicated Inference uses the standard v2 host + dedicated_inference:* scopes instead — do not assume all three Inference products share one auth path."
+    }
+  ],
+  "account_model": {
+    "unit": "team",
+    "description": "All resources and billing are scoped to a Team, not an individual account.",
+    "organization": {
+      "exists": true,
+      "purpose": "optional layer grouping multiple Teams under consolidated billing/invoicing",
+      "cost": "free"
+    },
+    "project": {
+      "exists": true,
+      "purpose": "resource-grouping layer within a Team",
+      "resource_addressing": "URN format do:resource_type:resource_id",
+      "endpoint": "/v2/projects"
+    },
+    "billing_prerequisite": "a payment method must be added to the Team before any billable resource can be created or additional members invited"
+  },
+  "cli": {
+    "name": "doctl",
+    "auth_command": "doctl auth init",
+    "auth_model": "stores a PAT locally under a named context; doctl auth switch --context <name> for multi-account"
+  },
+  "mcp_server": {
+    "exists": true,
+    "modes": ["remote (DO-hosted)", "local (self-run, github.com/digitalocean/digitalocean-mcp)"],
+    "remote_services": ["Accounts", "App Platform", "Databases", "Kubernetes", "Droplets", "Insights", "Marketplace", "Networking", "Spaces"],
+    "remote_endpoint_pattern": "https://{service}.mcp.digitalocean.com/mcp",
+    "auth": "bearer PAT in client config headers — same credential/scope model as REST API"
+  },
+  "webhooks_events_api": {
+    "general_purpose_exists": false,
+    "notes": "No officially documented general webhooks/events subscription API was found anywhere in the platform. This is a confirmed absence, not a research gap."
+  },
+  "rate_limits": {
+    "per_token": { "requests_per_hour": 5000, "requests_per_minute": 250 },
+    "confidence": "community-sourced, not independently re-verified via direct fetch of a docs.digitalocean.com page — spot-check before relying on this as authoritative",
+    "response_headers": ["ratelimit-limit", "ratelimit-remaining"]
+  }
+}

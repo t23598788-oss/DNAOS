@@ -1,4 +1,4 @@
-# governance/source-validation/ — NOT_YET_BUILT (rules written, no checker built)
+# governance/source-validation/ — G-VAL-004's ข้อ 9 slice: BUILT (2026-08-22)
 
 ตรวจความถูกต้องของ Source Code — split มาจาก `governance/RULES.md` เดิม
 + กฎการจัดไฟล์ใหม่ (Owner, 2026-08-14)
@@ -29,6 +29,34 @@ code comment และในสถานะใดๆ ที่ระบบรา
 [`../architecture-rules/CAPABILITY_FOLDER_LAW.md`](../architecture-rules/CAPABILITY_FOLDER_LAW.md)
 ข้อ 10
 
-**สถานะ:** ยังไม่มี mechanical checker ที่ตรวจ 4 ข้อนี้อัตโนมัติ — ตรวจ
-ด้วยการ review เท่านั้นวันนี้ (เหมือนที่ dna-os-deadboard เองก็ยังไม่มี
-Guard ครอบคลุมกฎลักษณะนี้ทุกข้อ)
+**สถานะ (2026-08-22 — Owner: "Deterministic Circuit Breaker", see
+`/Users/tam/.claude/plans/zesty-spinning-ripple.md`):** หนึ่งใน 4 ข้อของ
+G-VAL-004 ตอนนี้มี mechanical checker จริงแล้ว — `checkImportBoundaries()`
+(`./boundary-checker.ts`) ตรวจข้อ "การเข้าถึง implementation ข้าม
+capability folder ตรงๆ" จริง โดย parse import จริงทุกไฟล์ resolve เป็น
+ไฟล์จริง แล้ว flag เมื่อ capability folder ต้นทาง-ปลายทางต่างกันและปลายทาง
+ไม่ใช่ `contract.ts`/`contracts/` — วิธีเดียวกับที่
+`../../reports/SYSTEM_JOINT_AND_SEARCH_WASTE_AUDIT_2026-08-22.md`'s
+`joint_graph.cjs` เคยพิสูจน์มาแล้ว (179 joint จริง, 91 bypass จริง) ตอนนี้
+ทำเป็น capability ที่ import ได้จริงแทนสคริปต์ครั้งเดียว ผู้เรียกหลักคือ
+`../../control/circuit-breaker/`
+
+**ยังไม่มี mechanical checker** สำหรับอีก 3 ข้อของ G-VAL-004 (capability
+ใหม่ไม่มีโฟลเดอร์ของตัวเอง / source file นอกขอบเขต / capability ซ้ำ) — ตรวจ
+ด้วยการ review เท่านั้น เหมือนเดิม
+
+## ไฟล์ในโฟลเดอร์นี้
+
+| ไฟล์ | ประเภท | หน้าที่ |
+|---|---|---|
+| `types.ts` | contract | `BoundaryViolation` |
+| `boundary-checker.ts` | source | `checkImportBoundaries()` — parse+resolve+flag |
+| `host-runtime.ts` | source | read-only ambient `fs`/`path` |
+| `contract.ts` | contract | **the only file a caller outside this folder may import** |
+| `tests/boundary-checker-proof.test.ts` | test | live proof against real, already-known files (one real violation, one real compliant call) |
+
+## วิธีรัน
+
+```
+npx tsx governance/source-validation/tests/boundary-checker-proof.test.ts
+```

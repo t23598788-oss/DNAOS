@@ -1,0 +1,31 @@
+{
+  "$schema_note": "Product/resource catalog for Hostinger, scoped to what this discovery round verified. `api_capability`/`mcp_capability` are per-resource summaries; UNKNOWN means no fetched official source confirms or denies it, never a guess.",
+  "last_verified": "2026-08-22",
+  "resource_groups": {
+    "compute": [
+      { "resource_id": "vps", "name": "VPS (Virtual Private Server)", "distinct_api": true, "api_host": "core_api_reference", "api_capability": "YES", "mcp_capability": "YES", "notes": "62 MCP tools (VPS_*), covering list/get/purchase/start/stop/restart/recreate, firewall, snapshots, backups, SSH keys, metrics, DNS/PTR, post-install scripts." },
+      { "resource_id": "gpu_instances", "name": "GPU Instances", "distinct_api": false, "api_host": null, "api_capability": "NO", "mcp_capability": "NO", "notes": "Confirmed NOT a VPS plan type ('Unlike VPS plans... GPU instances are billed hourly on-demand'). hPanel-only setup and management; no API or CLI mentioned in either official GPU support article. Zero GPU-named MCP tools in the 365-tool inventory." }
+    ],
+    "networking": [
+      { "resource_id": "dns", "name": "DNS", "distinct_api": true, "api_host": "core_api_reference", "api_capability": "YES", "mcp_capability": "YES", "notes": "8 MCP tools (DNS_*): get/update/delete/reset records, snapshot/restore, validate." },
+      { "resource_id": "domains", "name": "Domains", "distinct_api": true, "api_host": "core_api_reference", "api_capability": "YES", "mcp_capability": "YES", "notes": "40 MCP tools (domains_*)." }
+    ],
+    "hosting": [
+      { "resource_id": "websites", "name": "Website / Hosting infrastructure", "distinct_api": true, "api_host": "core_api_reference", "api_capability": "YES", "mcp_capability": "YES", "notes": "56 MCP tools (hosting_*): cron jobs, databases, subdomains, redirects, WordPress installs." },
+      { "resource_id": "wordpress", "name": "WordPress", "distinct_api": true, "api_host": "core_api_reference", "api_capability": "YES", "mcp_capability": "YES", "notes": "38 MCP tools (wordpress_*)." },
+      { "resource_id": "agency_hosting", "name": "Agency Plan hosting (h5g)", "distinct_api": true, "api_host": "core_api_reference", "api_capability": "YES", "mcp_capability": "YES", "notes": "38 MCP tools (agency-hosting_*): deploy node-static/PHP, datacenter listing, domain linking." }
+    ],
+    "billing": [
+      { "resource_id": "billing", "name": "Billing / Subscriptions", "distinct_api": true, "api_host": "core_api_reference", "api_capability": "YES", "mcp_capability": "YES", "notes": "9 MCP tools (billing_*): catalog, purchase orders, payment methods, auto-renewal." }
+    ],
+    "mail_and_ecommerce": [
+      { "resource_id": "mail", "name": "Mail", "distinct_api": true, "api_host": "core_api_reference", "api_capability": "YES", "mcp_capability": "YES", "notes": "38 MCP tools (mail_*)." },
+      { "resource_id": "reach", "name": "Reach (email marketing)", "distinct_api": true, "api_host": "core_api_reference", "api_capability": "YES", "mcp_capability": "YES", "notes": "45 MCP tools (reach_*)." },
+      { "resource_id": "ecommerce", "name": "Ecommerce", "distinct_api": true, "api_host": "core_api_reference", "api_capability": "YES", "mcp_capability": "YES", "notes": "29 MCP tools (ecommerce_*)." }
+    ],
+    "ai": [
+      { "resource_id": "horizons", "name": "Hostinger Horizons (AI app builder)", "distinct_api": true, "api_host": "core_api_reference", "api_capability": "PARTIAL", "mcp_capability": "YES", "notes": "2 MCP tools (horizons_*). Uses nexos.ai internally as its model-orchestration layer — see related_products_not_part_of_this_provider in provider.json." },
+      { "resource_id": "nexos_ai_gateway", "name": "nexos.ai (AI model gateway)", "distinct_api": true, "api_host": null, "api_capability": "PARTIAL", "mcp_capability": "NO", "notes": "Separate product/domain, OpenAI-compatible per direct-quote evidence (see evidence file). Not part of developers.hostinger.com or api-mcp-server." }
+    ]
+  }
+}

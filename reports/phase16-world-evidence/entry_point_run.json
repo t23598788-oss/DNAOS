@@ -1,0 +1,82 @@
+{
+  "run_id": "run-1787158463205",
+  "user_id": "REAL_USER_001",
+  "target": "/Users/tam/Desktop/DNA-OS-INFRASTRUCTURE",
+  "generated_at": "2026-08-19T16:54:23.205Z",
+  "events": [
+    {
+      "event": "USER_ENTERED",
+      "at": "2026-08-19T16:54:20.668Z",
+      "user_id": "REAL_USER_001",
+      "target": "/Users/tam/Desktop/DNA-OS-INFRASTRUCTURE"
+    },
+    {
+      "event": "SERVICE_STARTED",
+      "at": "2026-08-19T16:54:20.668Z",
+      "user_id": "REAL_USER_001",
+      "capability": "DNA-LAB-FILE-INTELLIGENCE (filesystemScanner + classifier + dependency-map)"
+    },
+    {
+      "event": "ACTION_PERFORMED",
+      "at": "2026-08-19T16:54:23.204Z",
+      "user_id": "REAL_USER_001",
+      "action": "real filesystem+git scan executed via DNA-LAB-FILE-INTELLIGENCE/src/cli.ts"
+    },
+    {
+      "event": "SERVICE_COMPLETED",
+      "at": "2026-08-19T16:54:23.205Z",
+      "user_id": "REAL_USER_001",
+      "summary_file": "reports/latest-summary.json"
+    },
+    {
+      "event": "RESULT_OBSERVED",
+      "at": "2026-08-19T16:54:23.205Z",
+      "user_id": "REAL_USER_001",
+      "totalFiles": 301,
+      "orphanCandidates": 23,
+      "duplicateCandidates": 46,
+      "crossFolderDependencies": 49
+    },
+    {
+      "event": "USER_ACCEPTED_RESULT",
+      "at": "2026-08-19T16:54:23.205Z",
+      "user_id": "REAL_USER_001",
+      "status": "UNOBSERVED — no real independent party reviewed the result this run"
+    },
+    {
+      "event": "PRICE_PRESENTED",
+      "at": "2026-08-19T16:54:23.205Z",
+      "user_id": "REAL_USER_001",
+      "price_range": "$4-25/hour (Fiverr data-entry reference, Phase 16 ev-p3-02) or a flat per-scan reference — no Thai-specific price confirmed",
+      "status": "REFERENCE_SHOWN_NOT_AGREED"
+    },
+    {
+      "event": "PAYMENT_INTENT",
+      "at": "2026-08-19T16:54:23.205Z",
+      "user_id": "REAL_USER_001",
+      "status": "NONE_OBSERVED"
+    }
+  ],
+  "measurements": {
+    "steps_to_start": 2,
+    "time_to_start_ms": 0,
+    "time_to_result_ms": 2536,
+    "manual_interventions": 0,
+    "failed_actions": 0,
+    "successful_actions": 1,
+    "completion_rate": 1,
+    "result_accepted": false
+  },
+  "before_after": {
+    "BEFORE_SERVICE": {
+      "known_duplicate_count": "UNKNOWN — no prior File Intelligence scan of this exact target was recorded before this run",
+      "known_orphan_count": "UNKNOWN"
+    },
+    "AFTER_SERVICE": {
+      "known_duplicate_count": 46,
+      "known_orphan_count": 23,
+      "total_files_scanned": 301
+    }
+  },
+  "service_execution_status": "COMPLETED"
+}

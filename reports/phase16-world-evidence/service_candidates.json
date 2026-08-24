@@ -1,0 +1,419 @@
+{
+  "generated_at": "2026-08-19T16:51:17.779Z",
+  "generator": "reports/phase16-world-evidence/service_candidates.mjs — Phase 18 Problem->User->Service->Cash loop, deterministic, no AI channel selection performed",
+  "capital_rule": "CAPITAL_RELEASED = 0. CASH_RECEIVED = 0 unless independently verified. TESTABLE reached for P3 does not authorize spend.",
+  "service_candidates": [
+    {
+      "problem_id": "P3",
+      "target_group": "UNKNOWN — no named entity, only a problem category",
+      "solution": "DNA-LAB-FILE-INTELLIGENCE (scanner/classifier, Phase 8 proof)",
+      "existing_capabilities": "PARTIALLY",
+      "delivery_channel": "CANDIDATE_CHANNELS_NAMED",
+      "entry_point": "UNPROVEN",
+      "user_action": "UNPROVEN — no defined activation flow yet",
+      "value_delivered": "UNPROVEN — no real delivery has occurred",
+      "price": "4-25 USD_per_hour (international reference only, not Thai-confirmed)",
+      "cost_to_deliver": "COMPUTED",
+      "payment_method": "UNPROVEN — no payment mechanism selected or tested",
+      "cash_destination": "UNPROVEN",
+      "measurement_events": [
+        "TARGET_GROUP",
+        "DISCOVERY_CHANNEL",
+        "ENTRY_POINT",
+        "SERVICE_INTERFACE",
+        "ACTIVATION",
+        "USAGE_EVENT",
+        "RESULT_EVENT",
+        "PAYMENT_EVENT",
+        "CASH_RECEIVED"
+      ],
+      "evidence_ids": [
+        "ev-p3-01",
+        "ev-p3-02"
+      ],
+      "unknowns": [
+        "FREQUENCY",
+        "SEVERITY",
+        "exact target group size",
+        "Thai-specific price"
+      ],
+      "status": "TESTABLE",
+      "problem_target": {
+        "problem_id": "P3",
+        "WHO_HAS_THE_PROBLEM": "UNKNOWN — no named entity, only a problem category",
+        "PROBLEM": "ธุรกิจต้องการคีย์/จัดระเบียบข้อมูล-เอกสารปริมาณมาก ไม่คุ้มจ้างประจำ",
+        "LOCATION": "GLOBAL",
+        "TIME": "2026-08-19 (single observation date)",
+        "FREQUENCY": "UNKNOWN — no repeated observation exists (see Phase 18 HISTORICAL_ALIGNMENT pass, status MISSING)",
+        "SEVERITY": "UNKNOWN — no severity scale was measured, only problem existence",
+        "CURRENT_WORKAROUND": "manual in-house data entry or offshore outsourcing (Fiverr-class providers)",
+        "CURRENT_COST": "4-25 USD_per_hour",
+        "EXISTING_PAID_SOLUTIONS": [
+          "Fiverr",
+          "Fastwork.co",
+          "Upwork"
+        ],
+        "SOURCE_EVIDENCE": [
+          "ev-p3-01",
+          "ev-p3-02"
+        ],
+        "CONFIDENCE": "D2 — repeated independent problem evidence",
+        "UNKNOWN_FIELDS": [
+          "FREQUENCY",
+          "SEVERITY",
+          "exact target group size",
+          "Thai-specific price"
+        ]
+      },
+      "capability_match": {
+        "problem_id": "P3",
+        "CAN_DNA_OS_SOLVE": "PARTIALLY",
+        "EXISTING_CAPABILITY": "DNA-LAB-FILE-INTELLIGENCE (scanner/classifier, Phase 8 proof)",
+        "MISSING_CAPABILITY": "OCR for scanned/image documents",
+        "DELIVERY_REQUIREMENT": "BUYABLE",
+        "ESTIMATED_DELIVERY_COST": "UNCOMPUTABLE — see Phase 16 compute.mjs delivery_cost field",
+        "LEGAL_CONSTRAINT": [
+          "tax-th-wht-status"
+        ],
+        "MEASUREMENT_METHOD": "manual before/after comparison of File Intelligence scan output vs. customer's original file set (no automated measurement built yet)"
+      },
+      "user_access_path": [
+        {
+          "stage": "TARGET_GROUP",
+          "status": "IDENTIFIED_CATEGORY_ONLY",
+          "evidence": "problem_registry.json",
+          "real_count": null
+        },
+        {
+          "stage": "DISCOVERY_CHANNEL",
+          "status": "CANDIDATE_CHANNELS_NAMED",
+          "evidence": "demand_buyer_channel_registry.json",
+          "real_count": null,
+          "note": "candidates: Fiverr, Fastwork.co, Upwork — named because they exist externally, NOT because DNA OS has evidence the target group uses them"
+        },
+        {
+          "stage": "ENTRY_POINT",
+          "status": "UNPROVEN",
+          "evidence": null,
+          "real_count": null,
+          "note": "no DNA OS-owned entry point (listing, page, form) exists yet on any named channel"
+        },
+        {
+          "stage": "SERVICE_INTERFACE",
+          "status": "PARTIAL",
+          "evidence": "DNA-LAB-FILE-INTELLIGENCE contract (Phase 8)",
+          "real_count": null,
+          "note": "the tool that WOULD deliver exists; no customer-facing interface wraps it"
+        },
+        {
+          "stage": "ACTIVATION",
+          "status": "UNPROVEN",
+          "evidence": null,
+          "real_count": 0
+        },
+        {
+          "stage": "USAGE_EVENT",
+          "status": "UNPROVEN",
+          "evidence": null,
+          "real_count": 0
+        },
+        {
+          "stage": "RESULT_EVENT",
+          "status": "UNPROVEN",
+          "evidence": null,
+          "real_count": 0
+        },
+        {
+          "stage": "PAYMENT_EVENT",
+          "status": "UNPROVEN",
+          "evidence": null,
+          "real_count": 0
+        },
+        {
+          "stage": "CASH_RECEIVED",
+          "status": "UNPROVEN",
+          "evidence": null,
+          "real_count": 0
+        }
+      ],
+      "funnel_metrics": {
+        "reach_rate": {
+          "status": "UNCOMPUTABLE",
+          "value": null,
+          "formula": "DISCOVERY_CHANNEL/TARGET_GROUP",
+          "reason": "TARGET_GROUP=null, DISCOVERY_CHANNEL=null"
+        },
+        "activation_rate": {
+          "status": "UNCOMPUTABLE",
+          "value": null,
+          "formula": "ACTIVATION/ENTRY_POINT",
+          "reason": "ENTRY_POINT=null, ACTIVATION=0"
+        },
+        "completion_rate": {
+          "status": "UNCOMPUTABLE",
+          "value": null,
+          "formula": "USAGE_EVENT/ACTIVATION",
+          "reason": "ACTIVATION=0, USAGE_EVENT=0"
+        },
+        "price_acceptance_rate": {
+          "status": "UNCOMPUTABLE",
+          "value": null,
+          "formula": "RESULT_EVENT/USAGE_EVENT",
+          "reason": "USAGE_EVENT=0, RESULT_EVENT=0"
+        },
+        "payment_conversion": {
+          "status": "UNCOMPUTABLE",
+          "value": null,
+          "formula": "PAYMENT_EVENT/RESULT_EVENT",
+          "reason": "RESULT_EVENT=0, PAYMENT_EVENT=0"
+        },
+        "cost_per_acquisition": {
+          "status": "UNCOMPUTABLE",
+          "value": null,
+          "reason": "no acquisition spend recorded (CAPITAL_RELEASED=0)"
+        },
+        "revenue_per_user": {
+          "status": "UNCOMPUTABLE",
+          "value": null,
+          "reason": "PAYMENT_EVENT=0"
+        },
+        "gross_margin": {
+          "status": "UNCOMPUTABLE",
+          "value": null,
+          "reason": "no cash received"
+        },
+        "net_margin": {
+          "status": "UNCOMPUTABLE",
+          "value": null,
+          "reason": "no cash received"
+        },
+        "days_to_cash": {
+          "status": "UNCOMPUTABLE",
+          "value": null,
+          "reason": "CASH_RECEIVED=0"
+        },
+        "repeat_rate": {
+          "status": "UNCOMPUTABLE",
+          "value": null,
+          "reason": "no first use has occurred"
+        }
+      },
+      "phase19_promotion_evidence": {
+        "problem_id": "P3",
+        "previous_status": "DELIVERY_UNPROVEN",
+        "conditions": {
+          "real_entry_point_exists": true,
+          "real_user_entered": true,
+          "service_can_execute": true,
+          "result_can_be_measured": true
+        },
+        "new_status": "TESTABLE"
+      }
+    },
+    {
+      "problem_id": "P4",
+      "target_group": "UNKNOWN — no named entity, only a problem category",
+      "solution": "scan->classify->report pattern (File Intelligence + ts-morph, Phase 12/13 proof)",
+      "existing_capabilities": "PARTIALLY",
+      "delivery_channel": "CANDIDATE_CHANNELS_NAMED",
+      "entry_point": "UNPROVEN",
+      "user_action": "UNPROVEN — no defined activation flow yet",
+      "value_delivered": "UNPROVEN — no real delivery has occurred",
+      "price": "100-5000 USD_per_report (international reference only, not Thai-confirmed)",
+      "cost_to_deliver": "UNCOMPUTABLE",
+      "payment_method": "UNPROVEN — no payment mechanism selected or tested",
+      "cash_destination": "UNPROVEN",
+      "measurement_events": [
+        "TARGET_GROUP",
+        "DISCOVERY_CHANNEL",
+        "ENTRY_POINT",
+        "SERVICE_INTERFACE",
+        "ACTIVATION",
+        "USAGE_EVENT",
+        "RESULT_EVENT",
+        "PAYMENT_EVENT",
+        "CASH_RECEIVED"
+      ],
+      "evidence_ids": [
+        "ev-p4-01"
+      ],
+      "unknowns": [
+        "FREQUENCY",
+        "SEVERITY",
+        "exact target group size",
+        "Thai-specific price"
+      ],
+      "status": "DELIVERY_UNPROVEN",
+      "problem_target": {
+        "problem_id": "P4",
+        "WHO_HAS_THE_PROBLEM": "UNKNOWN — no named entity, only a problem category",
+        "PROBLEM": "SME ต้องการรู้ปัญหาเทคนิค/SEO ของเว็บไซต์ตัวเอง",
+        "LOCATION": "GLOBAL",
+        "TIME": "2026-08-19 (single observation date)",
+        "FREQUENCY": "UNKNOWN — no repeated observation exists (see Phase 18 HISTORICAL_ALIGNMENT pass, status MISSING)",
+        "SEVERITY": "UNKNOWN — no severity scale was measured, only problem existence",
+        "CURRENT_WORKAROUND": "manual/DIY or hiring an SEO agency",
+        "CURRENT_COST": "100-5000 USD_per_report",
+        "EXISTING_PAID_SOLUTIONS": [
+          "Fiverr",
+          "Upwork",
+          "Fastwork.co"
+        ],
+        "SOURCE_EVIDENCE": [
+          "ev-p4-01"
+        ],
+        "CONFIDENCE": "D1 — single source",
+        "UNKNOWN_FIELDS": [
+          "FREQUENCY",
+          "SEVERITY",
+          "exact target group size",
+          "Thai-specific price"
+        ]
+      },
+      "capability_match": {
+        "problem_id": "P4",
+        "CAN_DNA_OS_SOLVE": "PARTIALLY",
+        "EXISTING_CAPABILITY": "scan->classify->report pattern (File Intelligence + ts-morph, Phase 12/13 proof)",
+        "MISSING_CAPABILITY": "SEO-specific analysis logic (backlink check, technical SEO rules), web crawler",
+        "DELIVERY_REQUIREMENT": "BUILD_REQUIRED",
+        "ESTIMATED_DELIVERY_COST": "UNCOMPUTABLE — see Phase 16 compute.mjs delivery_cost field",
+        "LEGAL_CONSTRAINT": [
+          "tax-th-wht-status"
+        ],
+        "MEASUREMENT_METHOD": "manual before/after comparison of File Intelligence scan output vs. customer's original file set (no automated measurement built yet)"
+      },
+      "user_access_path": [
+        {
+          "stage": "TARGET_GROUP",
+          "status": "IDENTIFIED_CATEGORY_ONLY",
+          "evidence": "problem_registry.json",
+          "real_count": null
+        },
+        {
+          "stage": "DISCOVERY_CHANNEL",
+          "status": "CANDIDATE_CHANNELS_NAMED",
+          "evidence": "demand_buyer_channel_registry.json",
+          "real_count": null,
+          "note": "candidates: Fiverr, Upwork, Fastwork.co — named because they exist externally, NOT because DNA OS has evidence the target group uses them"
+        },
+        {
+          "stage": "ENTRY_POINT",
+          "status": "UNPROVEN",
+          "evidence": null,
+          "real_count": null,
+          "note": "no DNA OS-owned entry point (listing, page, form) exists yet on any named channel"
+        },
+        {
+          "stage": "SERVICE_INTERFACE",
+          "status": "PARTIAL",
+          "evidence": "DNA-LAB-FILE-INTELLIGENCE contract (Phase 8)",
+          "real_count": null,
+          "note": "the tool that WOULD deliver exists; no customer-facing interface wraps it"
+        },
+        {
+          "stage": "ACTIVATION",
+          "status": "UNPROVEN",
+          "evidence": null,
+          "real_count": 0
+        },
+        {
+          "stage": "USAGE_EVENT",
+          "status": "UNPROVEN",
+          "evidence": null,
+          "real_count": 0
+        },
+        {
+          "stage": "RESULT_EVENT",
+          "status": "UNPROVEN",
+          "evidence": null,
+          "real_count": 0
+        },
+        {
+          "stage": "PAYMENT_EVENT",
+          "status": "UNPROVEN",
+          "evidence": null,
+          "real_count": 0
+        },
+        {
+          "stage": "CASH_RECEIVED",
+          "status": "UNPROVEN",
+          "evidence": null,
+          "real_count": 0
+        }
+      ],
+      "funnel_metrics": {
+        "reach_rate": {
+          "status": "UNCOMPUTABLE",
+          "value": null,
+          "formula": "DISCOVERY_CHANNEL/TARGET_GROUP",
+          "reason": "TARGET_GROUP=null, DISCOVERY_CHANNEL=null"
+        },
+        "activation_rate": {
+          "status": "UNCOMPUTABLE",
+          "value": null,
+          "formula": "ACTIVATION/ENTRY_POINT",
+          "reason": "ENTRY_POINT=null, ACTIVATION=0"
+        },
+        "completion_rate": {
+          "status": "UNCOMPUTABLE",
+          "value": null,
+          "formula": "USAGE_EVENT/ACTIVATION",
+          "reason": "ACTIVATION=0, USAGE_EVENT=0"
+        },
+        "price_acceptance_rate": {
+          "status": "UNCOMPUTABLE",
+          "value": null,
+          "formula": "RESULT_EVENT/USAGE_EVENT",
+          "reason": "USAGE_EVENT=0, RESULT_EVENT=0"
+        },
+        "payment_conversion": {
+          "status": "UNCOMPUTABLE",
+          "value": null,
+          "formula": "PAYMENT_EVENT/RESULT_EVENT",
+          "reason": "RESULT_EVENT=0, PAYMENT_EVENT=0"
+        },
+        "cost_per_acquisition": {
+          "status": "UNCOMPUTABLE",
+          "value": null,
+          "reason": "no acquisition spend recorded (CAPITAL_RELEASED=0)"
+        },
+        "revenue_per_user": {
+          "status": "UNCOMPUTABLE",
+          "value": null,
+          "reason": "PAYMENT_EVENT=0"
+        },
+        "gross_margin": {
+          "status": "UNCOMPUTABLE",
+          "value": null,
+          "reason": "no cash received"
+        },
+        "net_margin": {
+          "status": "UNCOMPUTABLE",
+          "value": null,
+          "reason": "no cash received"
+        },
+        "days_to_cash": {
+          "status": "UNCOMPUTABLE",
+          "value": null,
+          "reason": "CASH_RECEIVED=0"
+        },
+        "repeat_rate": {
+          "status": "UNCOMPUTABLE",
+          "value": null,
+          "reason": "no first use has occurred"
+        }
+      },
+      "phase19_promotion_evidence": {
+        "problem_id": "P4",
+        "previous_status": "DELIVERY_UNPROVEN",
+        "conditions": {
+          "real_entry_point_exists": false,
+          "real_user_entered": false,
+          "service_can_execute": false,
+          "result_can_be_measured": false
+        },
+        "new_status": "DELIVERY_UNPROVEN"
+      }
+    }
+  ]
+}

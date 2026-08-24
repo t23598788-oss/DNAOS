@@ -1,0 +1,7 @@
+(version 1)
+(allow default)
+(deny process-exec (literal "/usr/bin/git"))
+(deny process-exec (regex #"^/opt/homebrew/"))
+(deny file-write* (subpath "/"))
+(allow file-write* (subpath "/Users/tam/Desktop/DNA-OS-INFRASTRUCTURE/control/agent-host/test-workspace/allowed"))
+(deny file-read* (subpath "/Users/tam/Desktop/DNA-OS-INFRASTRUCTURE/control/agent-host/test-workspace/outside"))

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.dnaos.os-ui-voice-alert</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/Users/tam/.nvm/versions/node/v24.19.0/bin/node</string>
+    <string>/Users/tam/Desktop/DNA-OS-INFRASTRUCTURE/connections/os-ui/voice-alert-worker.mjs</string>
+  </array>
+  <key>WorkingDirectory</key>
+  <string>/Users/tam/Desktop/DNA-OS-INFRASTRUCTURE</string>
+  <key>RunAtLoad</key>
+  <true/>
+  <key>KeepAlive</key>
+  <true/>
+  <key>ProcessType</key>
+  <string>Interactive</string>
+  <key>StandardOutPath</key>
+  <string>/Users/tam/Desktop/DNA-OS-INFRASTRUCTURE/local-runtime/os-ui-voice-alert.log</string>
+  <key>StandardErrorPath</key>
+  <string>/Users/tam/Desktop/DNA-OS-INFRASTRUCTURE/local-runtime/os-ui-voice-alert.err.log</string>
+</dict>
+</plist>

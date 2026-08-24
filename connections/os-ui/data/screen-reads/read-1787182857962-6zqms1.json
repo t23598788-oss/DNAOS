@@ -1,0 +1,91 @@
+{
+  "app": "Finder",
+  "title": "DNA-OS-INFRASTRUCTURE",
+  "state": "window_active",
+  "visible_text_redacted": [
+    "ล่าสุด",
+    "แชร์อยู่",
+    "รายการโปรด",
+    "Desktop",
+    "ปุ่ม",
+    "แอปพลิเคชัน",
+    "รายการดาวน์โหลด",
+    "Documents",
+    "ปุ่ม",
+    "ตำแหน่ง",
+    "iCloud Drive",
+    "Google Drive",
+    "tam"
+  ],
+  "controls": [
+    {
+      "role": "AXStaticText",
+      "label": "ล่าสุด",
+      "redacted": false
+    },
+    {
+      "role": "AXStaticText",
+      "label": "แชร์อยู่",
+      "redacted": false
+    },
+    {
+      "role": "AXStaticText",
+      "label": "รายการโปรด",
+      "redacted": false
+    },
+    {
+      "role": "AXStaticText",
+      "label": "Desktop",
+      "redacted": false
+    },
+    {
+      "role": "AXButton",
+      "label": "ปุ่ม",
+      "redacted": false
+    },
+    {
+      "role": "AXStaticText",
+      "label": "แอปพลิเคชัน",
+      "redacted": false
+    },
+    {
+      "role": "AXStaticText",
+      "label": "รายการดาวน์โหลด",
+      "redacted": false
+    },
+    {
+      "role": "AXStaticText",
+      "label": "Documents",
+      "redacted": false
+    },
+    {
+      "role": "AXButton",
+      "label": "ปุ่ม",
+      "redacted": false
+    },
+    {
+      "role": "AXStaticText",
+      "label": "ตำแหน่ง",
+      "redacted": false
+    },
+    {
+      "role": "AXStaticText",
+      "label": "iCloud Drive",
+      "redacted": false
+    },
+    {
+      "role": "AXStaticText",
+      "label": "Google Drive",
+      "redacted": false
+    },
+    {
+      "role": "AXStaticText",
+      "label": "tam",
+      "redacted": false
+    }
+  ],
+  "warnings": [],
+  "suggested_next_action": "No further action suggested from structure alone",
+  "confidence": 1,
+  "evidence_timestamp": "2026-08-19T23:40:56.446Z"
+}

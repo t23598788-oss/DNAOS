@@ -1,0 +1,61 @@
+{
+  "results": [
+    {
+      "name": "Real entry point executed a real, existing capability (not a new engine)",
+      "pass": true,
+      "detail": "wraps DNA-LAB-FILE-INTELLIGENCE, status=COMPLETED"
+    },
+    {
+      "name": "All 8 required machine events fired",
+      "pass": true,
+      "detail": "all present"
+    },
+    {
+      "name": "No PAYMENT_RECEIVED event exists anywhere (forbidden without external verification)",
+      "pass": true,
+      "detail": "grep clean"
+    },
+    {
+      "name": "P3 SERVICE_CANDIDATE transitioned DELIVERY_UNPROVEN -> TESTABLE via the 4-condition rule",
+      "pass": true,
+      "detail": "status=TESTABLE"
+    },
+    {
+      "name": "Promotion required all 4 real conditions true, not payment",
+      "pass": true,
+      "detail": "{\"real_entry_point_exists\":true,\"real_user_entered\":true,\"service_can_execute\":true,\"result_can_be_measured\":true}"
+    },
+    {
+      "name": "P4 (no real run this phase) was NOT promoted — honestly unchanged",
+      "pass": true,
+      "detail": "status=DELIVERY_UNPROVEN"
+    },
+    {
+      "name": "result_accepted is false, not assumed true (no real independent reviewer observed)",
+      "pass": true,
+      "detail": "value=false"
+    },
+    {
+      "name": "payment_intent NONE_OBSERVED, not fabricated",
+      "pass": true,
+      "detail": "checked"
+    },
+    {
+      "name": "Full SOURCE->PROBLEM->REAL_USER_001->SERVICE->ENTRY_POINT->USAGE->RESULT->PRICE->PAYMENT->CASH chain represented as real graph nodes",
+      "pass": true,
+      "detail": "SOURCE,SUBJECT,OBSERVATION,METRIC,EVIDENCE,CONSTRAINT,RESOURCE,COMPUTATION,DECISION_STATE,PEOPLE,SERVICE,CHANNEL,USER,USAGE,RESULT,PRICE,PAYMENT,CASH,PROBLEM,REAL_USER,ENTRY_POINT"
+    },
+    {
+      "name": "CASH:P3 remains 0 / NONE_RECEIVED after promotion",
+      "pass": true,
+      "detail": "{\"id\":\"CASH:P3\",\"kind\":\"CASH\",\"amount_thb\":0,\"status\":\"NONE_RECEIVED\",\"origin_registry\":\"service_candidates.json\",\"origin_record_id\":\"P3\"}"
+    },
+    {
+      "name": "Live Circuit server (same page, same World View) reflects TESTABLE for P3",
+      "pass": true,
+      "detail": "served=true"
+    }
+  ],
+  "passed": 11,
+  "failed": 0
+}

@@ -1,0 +1,22 @@
+/**
+ * หน้าที่: the public boundary of `execution/file-write/`. Deliberately
+ * does NOT re-export `./host-runtime.ts`'s real fs primitives or
+ * `./audit.ts`'s `recordWriteAudit` — `executeFileWrite` is the only real
+ * write-capable surface a caller may reach from outside this folder.
+ *
+ * Input: re-exports only.
+ * Output: `executeFileWrite`, `executeFileWriteSandboxed` (added
+ * 2026-08-22 — the real-jail variant, see ./sandboxed-executor.ts's own
+ * header for the gate/scope discipline it shares with `executeFileWrite`),
+ * `listWriteAudit` (read-only trace-back), plus every type a caller needs.
+ * Dependency ที่อนุญาต: ./executor.ts, ./sandboxed-executor.ts,
+ * ./audit.ts (listWriteAudit only), ./types.ts.
+ * สิ่งที่ห้ามแตะ: never export `recordWriteAudit`, `writeFileReal`, or any
+ * other write-capable primitive here.
+ */
+
+export { executeFileWrite } from "./executor";
+export { executeFileWriteSandboxed } from "./sandboxed-executor";
+export { listWriteAudit } from "./audit";
+export type { WriteAuditEvent } from "./audit";
+export type { FileWriteRefusalCode, FileWriteRequest, FileWriteResult, FileWriteStatus } from "./types";

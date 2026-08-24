@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(PATH=/Users/tam/.nvm/versions/node/v24.19.0/bin:__TRACKED_VAR__ npx tsx control/agent-gateway/tests/automation-loop.e2e.test.ts)",
+      "Bash(PATH=/Users/tam/.nvm/versions/node/v24.19.0/bin:__TRACKED_VAR__ npx tsx control/command-router/tests/router.test.ts)",
+      "Bash(PATH=/Users/tam/.nvm/versions/node/v24.19.0/bin:__TRACKED_VAR__ npx tsc --noEmit -p tsconfig.json)",
+      "Bash(PATH=/Users/tam/.nvm/versions/node/v24.19.0/bin:__TRACKED_VAR__ npx tsx control/agent-gateway/tests/handoff.test.ts)",
+      "Bash(PATH=/Users/tam/.nvm/versions/node/v24.19.0/bin:__TRACKED_VAR__ npx tsx control/agent-gateway/tests/capability-routing.test.ts)",
+      "Bash(PATH=/Users/tam/.nvm/versions/node/v24.19.0/bin:__TRACKED_VAR__ npx tsx observability/joint-monitor/tests/router-wiring-proof.test.ts)",
+      "Bash(PATH=/Users/tam/.nvm/versions/node/v24.19.0/bin:__TRACKED_VAR__ npm run test:control-plane)"
+    ]
+  }
+}

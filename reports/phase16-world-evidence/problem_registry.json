@@ -1,0 +1,9 @@
+[
+  { "problem_id": "P1", "problem_statement": "SME ไทยรายเล็กจัดการบัญชี/เอกสารภาษีเองไม่ไหว", "evidence_ids": ["ev-p1-01","ev-p1-02"], "status": "NO_GO", "no_go_reason": "legal_gate: requires licensed accountant/auditor, DNA OS has none" },
+  { "problem_id": "P2", "problem_statement": "เจ้าหนี้รายย่อยต้องการติดตามหนี้แต่ขาดเวลา/ความรู้กฎหมาย", "evidence_ids": ["ev-p2-01","ev-p2-02"], "status": "NO_GO", "no_go_reason": "legal_gate: พ.ร.บ.การทวงถามหนี้ requires registration DNA OS does not hold" },
+  { "problem_id": "P3", "problem_statement": "ธุรกิจต้องการคีย์/จัดระเบียบข้อมูล-เอกสารปริมาณมาก ไม่คุ้มจ้างประจำ", "evidence_ids": ["ev-p3-01","ev-p3-02"], "status": "WAITING_EVIDENCE", "no_go_reason": null },
+  { "problem_id": "P4", "problem_statement": "SME ต้องการรู้ปัญหาเทคนิค/SEO ของเว็บไซต์ตัวเอง", "evidence_ids": ["ev-p4-01"], "status": "WAITING_EVIDENCE", "no_go_reason": null },
+  { "problem_id": "P5", "problem_statement": "SME/startup ไทยหา supplier/นำเข้าสินค้าเองไม่เป็น", "evidence_ids": [], "status": "NO_GO", "no_go_reason": "capability_gap: no supplier network, no acquisition path identified" },
+  { "problem_id": "P6", "problem_statement": "SME ต้องการงานธุรการ/แอดมินแต่จ้างประจำไม่คุ้ม", "evidence_ids": [], "status": "NO_GO", "no_go_reason": "capability_gap: generalist human labor, not a DNA OS proven capability" },
+  { "problem_id": "P7", "problem_statement": "ผู้รับเหมาไทยเจอราคาวัสดุก่อสร้างผันผวน/ขาดแคลนบ่อย", "evidence_ids": ["ev-p7-01","ev-p7-02"], "status": "NO_GO", "no_go_reason": "no_paid_solution_provider_identified; no DNA OS data source for real-time TH construction material pricing" }
+]

@@ -1,0 +1,489 @@
+{
+  "generated_at": "2026-08-19T16:48:40.269Z",
+  "pipeline": "reports/phase16-world-evidence/pipeline.mjs — Phase 18",
+  "fixture_size": {
+    "observations": 9,
+    "candidates": 2
+  },
+  "pass_results": [
+    {
+      "pass_name": "SOURCE_VALIDATION",
+      "input_contract": "ObservationEvent[].source",
+      "output_contract": "boolean per observation: has source_id + (source_url or documented url-less source_type)",
+      "status": "READY",
+      "output": {
+        "checked": 9,
+        "invalid": 0
+      },
+      "notes": "rule: source_id required, source_url required unless source_type is a named registry/absence-of-evidence type",
+      "error": null,
+      "duration_ms": 0,
+      "evidence_lineage_preserved": true
+    },
+    {
+      "pass_name": "PROVENANCE_VALIDATION",
+      "input_contract": "graph.nodes[]",
+      "output_contract": "boolean per provenance-bearing node: origin_registry+origin_record_id present",
+      "status": "READY",
+      "output": {
+        "checked": 31,
+        "missing": 0
+      },
+      "notes": "same check as Phase 17 acceptance test #3, re-run here as pass 2",
+      "error": null,
+      "duration_ms": 0,
+      "evidence_lineage_preserved": true
+    },
+    {
+      "pass_name": "TIME_NORMALIZATION",
+      "input_contract": "ObservationEvent.source.observed_at (string)",
+      "output_contract": "Date, valid ISO-8601, or explicit PARSE_FAILED per observation",
+      "status": "READY",
+      "output": {
+        "checked": 9,
+        "unparseable": 0
+      },
+      "notes": "all 9 observations share observed_at=2026-08-19 (single collection day, not a time series)",
+      "error": null,
+      "duration_ms": 0,
+      "evidence_lineage_preserved": true
+    },
+    {
+      "pass_name": "LOCATION_NORMALIZATION",
+      "input_contract": "Subject.geography (free string)",
+      "output_contract": "controlled vocabulary: TH | GLOBAL | UNKNOWN",
+      "status": "READY",
+      "output": {
+        "distinct_geographies": [
+          "TH",
+          "GLOBAL"
+        ]
+      },
+      "notes": "2-value controlled vocabulary, trivial at this scale",
+      "error": null,
+      "duration_ms": 0,
+      "evidence_lineage_preserved": true
+    },
+    {
+      "pass_name": "UNIT_NORMALIZATION",
+      "input_contract": "Metric.unit (free string)",
+      "output_contract": "dimension-tagged unit (currency/time, currency/event, percent, count) + cross-currency conversion where possible",
+      "status": "PARTIAL",
+      "output": {
+        "distinct_units": [
+          "THB",
+          "THB_starting_price",
+          "open_job_listings_count",
+          "USD_per_hour",
+          "USD_per_report",
+          "percent_of_contractors_reporting_delay"
+        ]
+      },
+      "notes": "dimension tagging is doable now (READY); USD->THB conversion requires a live FX rate this pipeline does not fetch — marking the conversion sub-step UNCOMPUTABLE, tagging as PARTIAL overall",
+      "error": null,
+      "duration_ms": 0,
+      "evidence_lineage_preserved": true
+    },
+    {
+      "pass_name": "ENTITY_RESOLUTION",
+      "input_contract": "Subject records across observations",
+      "output_contract": "canonical subject_id per real-world entity (exact market_domain+geography match)",
+      "status": "READY",
+      "output": {
+        "distinct_subjects": 6,
+        "method": "exact string match on market_domain+geography (no fuzzy matching implemented)"
+      },
+      "notes": "sufficient at n=9; would need real fuzzy/embedding matching at scale",
+      "error": null,
+      "duration_ms": 0,
+      "evidence_lineage_preserved": true
+    },
+    {
+      "pass_name": "DUPLICATE_DETECTION",
+      "input_contract": "ObservationEvent[]",
+      "output_contract": "list of observation_id pairs with identical (source_id, metric_name, value)",
+      "status": "READY",
+      "output": {
+        "duplicate_pairs": []
+      },
+      "notes": "exact-match method only",
+      "error": null,
+      "duration_ms": 0,
+      "evidence_lineage_preserved": true
+    },
+    {
+      "pass_name": "SOURCE_INDEPENDENCE_CHECK",
+      "input_contract": "EVIDENCE node -> supporting OBSERVATION -> SOURCE edges",
+      "output_contract": "independent_source_count per problem",
+      "status": "READY",
+      "output": {
+        "P1": 2,
+        "P2": 2,
+        "P3": 2,
+        "P4": 1,
+        "P5": 0,
+        "P6": 0,
+        "P7": 2
+      },
+      "notes": "counts distinct SOURCE nodes feeding each EVIDENCE node — P4 has the most (>=1 search returning 9 independent agency pages, but only 1 SOURCE node was created per search query in this fixture, not per page — see notes on adapter granularity)",
+      "error": null,
+      "duration_ms": 0,
+      "evidence_lineage_preserved": true
+    },
+    {
+      "pass_name": "FRESHNESS_CHECK",
+      "input_contract": "ObservationEvent.expires_at / freshness_rule + now()",
+      "output_contract": "FRESH | STALE | UNKNOWN per observation",
+      "status": "PARTIAL",
+      "output": {
+        "fresh": 0,
+        "no_rule": 9
+      },
+      "notes": "freshness_rule text exists per record but is not yet parsed into a computable expires_at — expires_at is null for all 9 records",
+      "error": null,
+      "duration_ms": 0,
+      "evidence_lineage_preserved": true
+    },
+    {
+      "pass_name": "HISTORICAL_ALIGNMENT",
+      "input_contract": "current observation vs prior observations of same metric+subject",
+      "output_contract": "trend/consistency verdict",
+      "status": "MISSING",
+      "output": null,
+      "notes": "no repeated-collection history exists — every observation was collected once, on 2026-08-19. Requires re-running WebSearch on the same queries on a later date to produce a second data point.",
+      "error": null,
+      "duration_ms": 1,
+      "evidence_lineage_preserved": true
+    },
+    {
+      "pass_name": "POPULATION_GROUP_SEGMENTATION",
+      "input_contract": "SUBJECT nodes",
+      "output_contract": "groups by market_domain",
+      "status": "READY",
+      "output": {
+        "accounting_compliance": 1,
+        "debt_collection": 1,
+        "data_entry": 2,
+        "technical_audit": 1,
+        "construction_materials": 1
+      },
+      "notes": null,
+      "error": null,
+      "duration_ms": 0,
+      "evidence_lineage_preserved": true
+    },
+    {
+      "pass_name": "EVENT_FREQUENCY",
+      "input_contract": "repeated timestamped events of the same type",
+      "output_contract": "events per unit time",
+      "status": "UNCOMPUTABLE",
+      "output": null,
+      "notes": "no event-level (timestamped occurrence) data exists — only point-in-time price/pricing-page observations. P7's '65% of contractors reporting delay' is a survey statistic, not an event log.",
+      "error": null,
+      "duration_ms": 0,
+      "evidence_lineage_preserved": true
+    },
+    {
+      "pass_name": "PRICE_DISTRIBUTION",
+      "input_contract": "price_cost_registry rows with {low, high}",
+      "output_contract": "min/max/mid per problem",
+      "status": "PARTIAL",
+      "output": {
+        "P3": {
+          "low": 4,
+          "high": 25,
+          "mid": 14.5,
+          "unit": "USD_per_hour"
+        },
+        "P4": {
+          "low": 100,
+          "high": 5000,
+          "mid": 2550,
+          "unit": "USD_per_report"
+        }
+      },
+      "notes": "each problem has exactly ONE observed price range (not a distribution across multiple independent price points) — mid/range computable, but no real statistical distribution (stddev, percentiles) exists at n=1 range per problem",
+      "error": null,
+      "duration_ms": 0,
+      "evidence_lineage_preserved": true
+    },
+    {
+      "pass_name": "DEMAND_MEASUREMENT",
+      "input_contract": "real transaction/order volume data",
+      "output_contract": "units sold per period",
+      "status": "UNCOMPUTABLE",
+      "output": null,
+      "notes": "no transaction volume data was collected — job-listing counts (P3) are a labor-demand proxy, not a measured service-purchase volume",
+      "error": null,
+      "duration_ms": 0,
+      "evidence_lineage_preserved": true
+    },
+    {
+      "pass_name": "SUPPLY_MEASUREMENT",
+      "input_contract": "count of named competitors/providers per problem",
+      "output_contract": "supplier count",
+      "status": "PARTIAL",
+      "output": {
+        "P1": 3,
+        "P2": 4,
+        "P3": 3,
+        "P4": "multiple (unenumerated, 9 agencies appeared in one search)",
+        "P5": "multiple (unenumerated)",
+        "P6": "multiple (unenumerated)",
+        "P7": 0
+      },
+      "notes": "counts are 'named vendors observed in search results', not a market census — real supply size is UNKNOWN for all 7",
+      "error": null,
+      "duration_ms": 0,
+      "evidence_lineage_preserved": true
+    },
+    {
+      "pass_name": "RESOURCE_AVAILABILITY",
+      "input_contract": "resource_registry rows",
+      "output_contract": "BUYABLE/RENTABLE/HIRABLE/BUILD_REQUIRED/UNAVAILABLE/UNKNOWN per problem",
+      "status": "READY",
+      "output": {
+        "P3": "BUYABLE",
+        "P4": "BUILD_REQUIRED"
+      },
+      "notes": null,
+      "error": null,
+      "duration_ms": 0,
+      "evidence_lineage_preserved": true
+    },
+    {
+      "pass_name": "COST_MEASUREMENT",
+      "input_contract": "computed_state.candidates[].delivery_cost",
+      "output_contract": "THB per delivery",
+      "status": "PARTIAL",
+      "output": {
+        "P3": "COMPUTED",
+        "P4": "UNCOMPUTABLE"
+      },
+      "notes": "carried verbatim from Phase 16 compute.mjs, not re-derived",
+      "error": null,
+      "duration_ms": 0,
+      "evidence_lineage_preserved": true
+    },
+    {
+      "pass_name": "ECONOMIC_RELATIONSHIP",
+      "input_contract": "computed_state.candidates[].{gross_margin,net_margin}",
+      "output_contract": "margin edges",
+      "status": "PARTIAL",
+      "output": {
+        "P3": {
+          "gross_margin": "UNCOMPUTABLE",
+          "net_margin": "UNCOMPUTABLE"
+        },
+        "P4": {
+          "gross_margin": "UNCOMPUTABLE",
+          "net_margin": "UNCOMPUTABLE"
+        }
+      },
+      "notes": "gross_margin COMPUTED where price+delivery_cost known; net_margin UNCOMPUTABLE (needs platform_fees/tax, both blocked upstream)",
+      "error": null,
+      "duration_ms": 0,
+      "evidence_lineage_preserved": true
+    },
+    {
+      "pass_name": "POLICY_LAW_CONSTRAINT",
+      "input_contract": "business_rules[] tagged LAW/REGULATION/PLATFORM_RULE/...",
+      "output_contract": "constraint edges into EVIDENCE nodes",
+      "status": "READY",
+      "output": [
+        {
+          "rule_id": "law-th-debt-collection-act",
+          "rule_class": "LAW",
+          "applies_to": "P2"
+        },
+        {
+          "rule_id": "market-fiverr-fee",
+          "rule_class": "PLATFORM_RULE",
+          "applies_to": "P3,P4"
+        },
+        {
+          "rule_id": "market-upwork-fee",
+          "rule_class": "PLATFORM_RULE",
+          "applies_to": "P3,P4"
+        },
+        {
+          "rule_id": "tax-th-wht-status",
+          "rule_class": "LAW",
+          "applies_to": "P3,P4"
+        }
+      ],
+      "notes": "never merged into a single risk score, per Phase 16 rule",
+      "error": null,
+      "duration_ms": 0,
+      "evidence_lineage_preserved": true
+    },
+    {
+      "pass_name": "RISK_RELATIONSHIP",
+      "input_contract": "qualitative legal/delivery/collection risk labels (Phase 15/16)",
+      "output_contract": "measured risk edges",
+      "status": "PARTIAL",
+      "output": {
+        "P3": "labels only (ต่ำ/กลาง/UNKNOWN), not measured probabilities",
+        "P4": "labels only"
+      },
+      "notes": "risk remains qualitative text, not a computed probability — this pass cannot upgrade it without real incident/loss-rate data",
+      "error": null,
+      "duration_ms": 0,
+      "evidence_lineage_preserved": true
+    },
+    {
+      "pass_name": "CORRELATION",
+      "input_contract": "paired numeric variable series",
+      "output_contract": "Pearson/Spearman coefficient + p-value",
+      "status": "UNCOMPUTABLE",
+      "output": null,
+      "notes": "n=9 categorical/single-point observations — no paired numeric time series exists to correlate",
+      "error": null,
+      "duration_ms": 0,
+      "evidence_lineage_preserved": true
+    },
+    {
+      "pass_name": "CAUSAL_EVIDENCE_CLASSIFICATION",
+      "input_contract": "every graph edge",
+      "output_contract": "OBSERVED_CORRELATION | ASSERTED_UNVERIFIED_CAUSAL | STRUCTURAL (schema edge, not a claim)",
+      "status": "READY",
+      "output": {
+        "total_edges": 56,
+        "unverified_causal_edges": 0
+      },
+      "notes": "every edge in this fixture is STRUCTURAL (schema-derived) — zero causal claims exist yet; this pass exists to catch one if a future pass ever adds an 'affects'/'causes' edge without evidence",
+      "error": null,
+      "duration_ms": 0,
+      "evidence_lineage_preserved": true
+    },
+    {
+      "pass_name": "CONFLICT_DETECTION",
+      "input_contract": "observations sharing the same subject+metric_name",
+      "output_contract": "contradicting-value pairs",
+      "status": "READY",
+      "output": {
+        "conflict_groups": 0
+      },
+      "notes": "0 direct value conflicts in this fixture; note P7 has a real internal tension (strong problem evidence, zero solution-provider evidence) already recorded as a distinct fact, not a numeric conflict",
+      "error": null,
+      "duration_ms": 0,
+      "evidence_lineage_preserved": true
+    },
+    {
+      "pass_name": "UNCERTAINTY",
+      "input_contract": "ObservationEvent.evidence_status",
+      "output_contract": "propagated uncertainty tag per derived node",
+      "status": "READY",
+      "output": {
+        "KNOWN": 4,
+        "UNKNOWN": 2,
+        "MEASURED": 1,
+        "ESTIMATED": 2
+      },
+      "notes": "MEASURED/KNOWN/ESTIMATED/UNKNOWN counted directly, not scored into one number",
+      "error": null,
+      "duration_ms": 0,
+      "evidence_lineage_preserved": true
+    },
+    {
+      "pass_name": "DERIVED_METRICS",
+      "input_contract": "price_distribution + resource_availability outputs",
+      "output_contract": "e.g. price_midpoint, capability_coverage_ratio",
+      "status": "READY",
+      "output": {
+        "capability_coverage_ratio": 1
+      },
+      "notes": "one real derived metric computed from existing pass outputs",
+      "error": null,
+      "duration_ms": 0,
+      "evidence_lineage_preserved": true
+    },
+    {
+      "pass_name": "ECONOMIC_MODEL",
+      "input_contract": "computed_state.json (Phase 16 compute.mjs)",
+      "output_contract": "per-candidate economic field set",
+      "status": "READY",
+      "output": {
+        "candidates": [
+          "P3",
+          "P4"
+        ]
+      },
+      "notes": "reused verbatim, not re-derived — same discipline as every other pass here",
+      "error": null,
+      "duration_ms": 0,
+      "evidence_lineage_preserved": true
+    },
+    {
+      "pass_name": "CAPITAL_MODEL",
+      "input_contract": "computed_state.capital_state",
+      "output_contract": "CAPITAL_AVAILABLE/BLOCKED/PROPOSED/RELEASED",
+      "status": "READY",
+      "output": {
+        "CAPITAL_AVAILABLE": 10001,
+        "CAPITAL_BLOCKED": 10001,
+        "CAPITAL_PROPOSED": 0,
+        "CAPITAL_RELEASED": 0
+      },
+      "notes": null,
+      "error": null,
+      "duration_ms": 0,
+      "evidence_lineage_preserved": true
+    },
+    {
+      "pass_name": "CASH_TIMING_MODEL",
+      "input_contract": "computed_state.candidates[].days_to_first_possible_cash",
+      "output_contract": "day-indexed cash event timeline",
+      "status": "UNCOMPUTABLE",
+      "output": {
+        "P3": "UNCOMPUTABLE",
+        "P4": "UNCOMPUTABLE"
+      },
+      "notes": "both candidates UNCOMPUTABLE upstream — no timeline can be built",
+      "error": null,
+      "duration_ms": 0,
+      "evidence_lineage_preserved": true
+    },
+    {
+      "pass_name": "HISTORICAL_BACKTEST",
+      "input_contract": "multiple historical evidence snapshots at distinct dates T1, T2, ... for the same metrics",
+      "output_contract": "prediction_error, false_GO_rate, false_NO_GO_rate across windows",
+      "status": "MISSING",
+      "output": null,
+      "notes": "MECHANISM NOT BUILT: this fixture has exactly one collection date (2026-08-19). A backtest requires >=2 historical snapshots of the same metrics at different dates plus a record of what actually happened after each — neither exists yet. Building the backtest RUNNER without data to run it on was judged premature; the runner will be written once a second dated snapshot exists (e.g. by re-running Phase 16's searches in 30/60/90 days).",
+      "error": null,
+      "duration_ms": 0,
+      "evidence_lineage_preserved": true
+    },
+    {
+      "pass_name": "DECISION_STATE",
+      "input_contract": "all prior pass outputs for a given problem_id",
+      "output_contract": "one of INSUFFICIENT_DATA/WAITING_EVIDENCE/MEASURABLE/SIMULATABLE/BACKTESTABLE/PROPOSE_NO_GO/PROPOSE_GO",
+      "status": "READY",
+      "output": {
+        "P3": "INSUFFICIENT_DATA",
+        "P4": "INSUFFICIENT_DATA"
+      },
+      "notes": "derived purely from pass outputs above via a fixed rule table — no AI call in this function",
+      "error": null,
+      "duration_ms": 0,
+      "evidence_lineage_preserved": true
+    }
+  ],
+  "pass_status_summary": {
+    "READY": 17,
+    "PARTIAL": 7,
+    "MISSING": 2,
+    "UNCOMPUTABLE": 4
+  },
+  "decision_states": {
+    "P3": "INSUFFICIENT_DATA",
+    "P4": "INSUFFICIENT_DATA"
+  },
+  "capital_state": {
+    "CAPITAL_AVAILABLE": 10001,
+    "CAPITAL_BLOCKED": 10001,
+    "CAPITAL_PROPOSED": 0,
+    "CAPITAL_RELEASED": 0
+  }
+}

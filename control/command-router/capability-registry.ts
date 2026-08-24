@@ -150,6 +150,24 @@ export const CAPABILITY_REGISTRY: Readonly<Record<string, CapabilityRegistration
     health_status: "CONNECTED",
   },
 
+  // Real Agent Host worker execution (Owner, "DNA OS Live Agent Control I/O",
+  // 2026-08-24). Distinct from "dispatcher" above — dispatcher routes to
+  // control/agent-gateway's own file-write/file-intelligence workers;
+  // agent-host routes to a REAL, provider-neutral coding-agent binary
+  // (CLAUDE/CODEX/GEMINI/LOCAL) launched under control/agent-host's
+  // sandbox-exec confinement, via control/agent-gateway/agent-host-dispatch.ts's
+  // runAgentWorkOrder — never a direct shell/CLI/manual invocation.
+  "agent-host": {
+    capability_id: "agent-host",
+    repo_id: "DNA-OS-INFRASTRUCTURE",
+    contract: "control/agent-gateway/contract.ts",
+    endpoint: { kind: "contract", module: "control/agent-gateway/contract.ts", entry: "runAgentWorkOrder" },
+    supported_commands: ["agent-host.run_worker"],
+    match_keyword_sets: [["agent", "host"], ["เรียก", "agent"], ["ตรวจ", "agent"]],
+    permission_requirement: "none", // agent-host enforces its own sandbox-exec confinement + write-gate for any requested_action, same pattern as dispatcher above
+    health_status: "CONNECTED",
+  },
+
   "os-login": {
     capability_id: "os-login",
     repo_id: "DNA-OS-INFRASTRUCTURE",
