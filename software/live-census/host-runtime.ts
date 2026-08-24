@@ -90,21 +90,61 @@ export function testFilesFor(relPath: string): string[] {
 }
 
 /**
- * Digest over the capability's non-test source: sorted filename + content. This
- * is what makes staleness detectable — change any implementation byte and the
- * digest moves, so a verification pinned to the old digest no longer applies.
- * Tests are excluded on purpose: editing a test must not silently invalidate
- * the implementation's verification, and TEST_CHANGED is tracked separately.
+ * Every non-test code file BENEATH a capability, recursively — not just the
+ * files sitting directly in its folder.
+ *
+ * Why recursive (found by dogfooding, 2026-08-24): the first version listed only
+ * the folder's own direct children. A peer then changed real production code in
+ * `software/registry-database/adapters/postgres-store.ts` and the census
+ * reported NO drift and NO digest change, because `adapters/` is a
+ * subdirectory. That is the same class of failure as a stale VERIFIED — code
+ * moved and the system did not notice. 15 real files were invisible this way,
+ * including `persistent-file-store.ts` (the live registry backend everything
+ * actually writes through), `postgres-store.ts`, and the MCP proxy's HTTP
+ * client.
+ *
+ * `excludeCapabilityPaths` prevents double-counting: if a nested folder is
+ * itself a discovered capability, its files belong to IT, not to its parent.
  */
-export function sourceDigest(relPath: string): string {
-  const abs = join(REPO_ROOT, relPath);
-  const files = codeFilesIn(abs);
+export function allCodeFilesIn(relPath: string, excludeCapabilityPaths: ReadonlySet<string> = new Set()): string[] {
+  const out: string[] = [];
+  const walk = (dirRel: string): void => {
+    const abs = join(REPO_ROOT, dirRel);
+    for (const entry of safeReaddir(abs)) {
+      if (entry.startsWith(".")) continue;
+      const childRel = `${dirRel}/${entry}`;
+      const childAbs = join(REPO_ROOT, entry === "" ? dirRel : childRel);
+      if (isDir(childAbs)) {
+        // never descend into tests/data/fixtures, and never into another capability
+        if (entry === "tests" || entry === "data" || entry === "node_modules" || entry === "__sandbox__" || entry === "test-workspace") continue;
+        if (excludeCapabilityPaths.has(childRel)) continue;
+        walk(childRel);
+      } else if ((entry.endsWith(".ts") || entry.endsWith(".mjs")) && !entry.endsWith(".test.ts")) {
+        out.push(childRel);
+      }
+    }
+  };
+  walk(relPath);
+  return out.sort();
+}
+
+/**
+ * Digest over the capability's non-test source: sorted repo-relative filename +
+ * content, RECURSIVELY (see `allCodeFilesIn`). This is what makes staleness
+ * detectable — change any implementation byte anywhere beneath the capability
+ * and the digest moves, so a verification pinned to the old digest no longer
+ * applies. Tests are excluded on purpose: editing a test must not silently
+ * invalidate the implementation's verification, and TEST_CHANGED is tracked
+ * separately.
+ */
+export function sourceDigest(relPath: string, excludeCapabilityPaths: ReadonlySet<string> = new Set()): string {
+  const files = allCodeFilesIn(relPath, excludeCapabilityPaths);
   if (files.length === 0) return "NO_SOURCE";
   const hash = createHash("sha256");
   for (const f of files) {
     hash.update(f);
     try {
-      hash.update(readFileSync(join(abs, f)));
+      hash.update(readFileSync(join(REPO_ROOT, f)));
     } catch {
       hash.update("UNREADABLE");
     }

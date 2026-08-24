@@ -15,7 +15,7 @@
 import { join } from "node:path";
 import { existsSync, readFileSync } from "node:fs";
 import {
-  REPO_ROOT, nowIso, discoverCapabilityFolders, codeFilesIn, testFilesFor, sourceDigest, testDigest,
+  REPO_ROOT, nowIso, discoverCapabilityFolders, codeFilesIn, allCodeFilesIn, testFilesFor, sourceDigest, testDigest,
   headCommit, lastCommitFor, isDirty, newestMtime, importersOf, declaredDependencies,
   registryByName, readVerificationLedger, liveRepoProcesses,
 } from "./host-runtime";
@@ -30,17 +30,22 @@ export function observeObservations(): Observation[] {
   const at = nowIso();
   const registry = registryByName();
   const runtime = liveRepoProcesses();
-  return discoverCapabilityFolders().map((path) => {
+  const folders = discoverCapabilityFolders();
+  // Nested capabilities are excluded from a parent's digest so their files are
+  // attributed to exactly one capability, never counted twice.
+  const capabilityPaths = new Set(folders);
+  return folders.map((path) => {
     const abs = join(REPO_ROOT, path);
-    const code = codeFilesIn(abs);
+    const direct = codeFilesIn(abs);            // entrypoint detection stays on DIRECT children
+    const code = allCodeFilesIn(path, capabilityPaths); // DECLARED_ONLY + digest see everything beneath
     return {
       repository: REPOSITORY,
       path,
       code_files: code,
       test_files: testFilesFor(path),
-      source_digest: sourceDigest(path),
+      source_digest: sourceDigest(path, capabilityPaths),
       test_digest: testDigest(path),
-      entrypoint: code.includes("contract.ts") ? `${path}/contract.ts` : code.includes("index.ts") ? `${path}/index.ts` : null,
+      entrypoint: direct.includes("contract.ts") ? `${path}/contract.ts` : direct.includes("index.ts") ? `${path}/index.ts` : null,
       last_commit: lastCommitFor(path),
       dirty: isDirty(path),
       newest_mtime: newestMtime(path),

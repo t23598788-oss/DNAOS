@@ -10,6 +10,7 @@
  * Dependency ที่อนุญาต: ./derive.ts, ./types.ts.
  */
 
+export { allCodeFilesIn } from "./host-runtime";
 export { deriveImpact, applyImpact, impactOf } from "./impact";
 export type { ImpactFinding } from "./impact";
 export { deriveCensus, deriveCapability, deriveStatus, deriveDrift, deriveEdges, deriveDomain, capabilityKey } from "./derive";

@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-24T09:25:19.148Z",
+  "generated_at": "2026-08-24T11:32:45.076Z",
   "capabilities": [
     {
       "capability_key": "dna-os-infrastructure:ai/agent-registry",
@@ -49,7 +49,7 @@
       "duplicates": [],
       "security_boundary": [],
       "source_digest": "NO_SOURCE",
-      "last_observed": "2026-08-24T09:25:19.148Z",
+      "last_observed": "2026-08-24T11:32:45.076Z",
       "last_verified": null,
       "current_status": "DECLARED_ONLY",
       "status_reason": "folder contains documentation/data but no .ts/.mjs implementation"
@@ -89,7 +89,7 @@
       "duplicates": [],
       "security_boundary": [],
       "source_digest": "NO_SOURCE",
-      "last_observed": "2026-08-24T09:25:19.148Z",
+      "last_observed": "2026-08-24T11:32:45.076Z",
       "last_verified": null,
       "current_status": "DECLARED_ONLY",
       "status_reason": "folder contains documentation/data but no .ts/.mjs implementation"
@@ -129,7 +129,7 @@
       "duplicates": [],
       "security_boundary": [],
       "source_digest": "NO_SOURCE",
-      "last_observed": "2026-08-24T09:25:19.148Z",
+      "last_observed": "2026-08-24T11:32:45.076Z",
       "last_verified": null,
       "current_status": "DECLARED_ONLY",
       "status_reason": "folder contains documentation/data but no .ts/.mjs implementation"
@@ -163,7 +163,7 @@
       "duplicates": [],
       "security_boundary": [],
       "source_digest": "NO_SOURCE",
-      "last_observed": "2026-08-24T09:25:19.148Z",
+      "last_observed": "2026-08-24T11:32:45.076Z",
       "last_verified": null,
       "current_status": "DECLARED_ONLY",
       "status_reason": "folder contains documentation/data but no .ts/.mjs implementation"
@@ -201,7 +201,7 @@
       "duplicates": [],
       "security_boundary": [],
       "source_digest": "NO_SOURCE",
-      "last_observed": "2026-08-24T09:25:19.148Z",
+      "last_observed": "2026-08-24T11:32:45.076Z",
       "last_verified": null,
       "current_status": "DECLARED_ONLY",
       "status_reason": "folder contains documentation/data but no .ts/.mjs implementation"
@@ -215,7 +215,7 @@
       "repository": "dna-os-infrastructure",
       "path": "audit/command-audit",
       "entrypoint": null,
-      "version_commit": "8cd4092",
+      "version_commit": "c87ae65",
       "last_changed": "2026-08-24T16:21:05+07:00",
       "owner_boundary": "audit",
       "input_contract": [],
@@ -240,8 +240,8 @@
       "security_boundary": [
         "execution/run (process gate)"
       ],
-      "source_digest": "95fca7e683900a8b",
-      "last_observed": "2026-08-24T09:25:19.148Z",
+      "source_digest": "99065aa0b75947f2",
+      "last_observed": "2026-08-24T11:32:45.076Z",
       "last_verified": null,
       "current_status": "UNVERIFIED",
       "status_reason": "no tests and no verification evidence"
@@ -255,7 +255,7 @@
       "repository": "dna-os-infrastructure",
       "path": "audit/credential-audit",
       "entrypoint": null,
-      "version_commit": "8cd4092",
+      "version_commit": "c87ae65",
       "last_changed": "2026-08-24T16:21:05+07:00",
       "owner_boundary": "audit",
       "input_contract": [],
@@ -275,7 +275,7 @@
       "duplicates": [],
       "security_boundary": [],
       "source_digest": "NO_SOURCE",
-      "last_observed": "2026-08-24T09:25:19.148Z",
+      "last_observed": "2026-08-24T11:32:45.076Z",
       "last_verified": null,
       "current_status": "DECLARED_ONLY",
       "status_reason": "folder contains documentation/data but no .ts/.mjs implementation"
@@ -309,7 +309,7 @@
       "duplicates": [],
       "security_boundary": [],
       "source_digest": "NO_SOURCE",
-      "last_observed": "2026-08-24T09:25:19.148Z",
+      "last_observed": "2026-08-24T11:32:45.076Z",
       "last_verified": null,
       "current_status": "DECLARED_ONLY",
       "status_reason": "folder contains documentation/data but no .ts/.mjs implementation"
@@ -343,7 +343,7 @@
       "duplicates": [],
       "security_boundary": [],
       "source_digest": "NO_SOURCE",
-      "last_observed": "2026-08-24T09:25:19.148Z",
+      "last_observed": "2026-08-24T11:32:45.076Z",
       "last_verified": null,
       "current_status": "DECLARED_ONLY",
       "status_reason": "folder contains documentation/data but no .ts/.mjs implementation"
@@ -383,7 +383,7 @@
       "duplicates": [],
       "security_boundary": [],
       "source_digest": "NO_SOURCE",
-      "last_observed": "2026-08-24T09:25:19.148Z",
+      "last_observed": "2026-08-24T11:32:45.076Z",
       "last_verified": null,
       "current_status": "DECLARED_ONLY",
       "status_reason": "folder contains documentation/data but no .ts/.mjs implementation"
@@ -417,7 +417,7 @@
       "duplicates": [],
       "security_boundary": [],
       "source_digest": "NO_SOURCE",
-      "last_observed": "2026-08-24T09:25:19.148Z",
+      "last_observed": "2026-08-24T11:32:45.076Z",
       "last_verified": null,
       "current_status": "DECLARED_ONLY",
       "status_reason": "folder contains documentation/data but no .ts/.mjs implementation"
@@ -431,7 +431,7 @@
       "repository": "dna-os-infrastructure",
       "path": "connections/agent-registry",
       "entrypoint": "connections/agent-registry/contract.ts",
-      "version_commit": "8cd4092",
+      "version_commit": "c87ae65",
       "last_changed": "2026-08-24T16:21:05+07:00",
       "owner_boundary": "connections",
       "input_contract": [],
@@ -468,8 +468,8 @@
       "security_boundary": [
         "execution/run (process gate)"
       ],
-      "source_digest": "043929cd94baa421",
-      "last_observed": "2026-08-24T09:25:19.148Z",
+      "source_digest": "33ec8ab2286b3c41",
+      "last_observed": "2026-08-24T11:32:45.076Z",
       "last_verified": null,
       "current_status": "UNVERIFIED",
       "status_reason": "has 7 test file(s) but no verification evidence recorded in the ledger"
@@ -503,7 +503,7 @@
       "duplicates": [],
       "security_boundary": [],
       "source_digest": "NO_SOURCE",
-      "last_observed": "2026-08-24T09:25:19.148Z",
+      "last_observed": "2026-08-24T11:32:45.076Z",
       "last_verified": null,
       "current_status": "DECLARED_ONLY",
       "status_reason": "folder contains documentation/data but no .ts/.mjs implementation"
@@ -517,7 +517,7 @@
       "repository": "dna-os-infrastructure",
       "path": "connections/audio-classifier",
       "entrypoint": null,
-      "version_commit": "8cd4092",
+      "version_commit": "c87ae65",
       "last_changed": "2026-08-24T16:21:05+07:00",
       "owner_boundary": "connections",
       "input_contract": [],
@@ -542,8 +542,8 @@
       "supersedes": [],
       "duplicates": [],
       "security_boundary": [],
-      "source_digest": "d31f1622ab17b593",
-      "last_observed": "2026-08-24T09:25:19.148Z",
+      "source_digest": "1767dc17385fd1b7",
+      "last_observed": "2026-08-24T11:32:45.076Z",
       "last_verified": "2026-08-24T07:04:53.136Z",
       "current_status": "BLOCKED",
       "status_reason": "ledger records BLOCKED: agent error: Cannot use import statement outside a module"
@@ -557,7 +557,7 @@
       "repository": "dna-os-infrastructure",
       "path": "connections/connection-registry",
       "entrypoint": "connections/connection-registry/contract.ts",
-      "version_commit": "8cd4092",
+      "version_commit": "c87ae65",
       "last_changed": "2026-08-24T16:21:05+07:00",
       "owner_boundary": "connections",
       "input_contract": [],
@@ -588,8 +588,8 @@
       "supersedes": [],
       "duplicates": [],
       "security_boundary": [],
-      "source_digest": "9462c00996da1e72",
-      "last_observed": "2026-08-24T09:25:19.148Z",
+      "source_digest": "ff8249208012ac83",
+      "last_observed": "2026-08-24T11:32:45.076Z",
       "last_verified": null,
       "current_status": "UNVERIFIED",
       "status_reason": "has 1 test file(s) but no verification evidence recorded in the ledger"
@@ -603,7 +603,7 @@
       "repository": "dna-os-infrastructure",
       "path": "connections/context-boundary",
       "entrypoint": null,
-      "version_commit": "8cd4092",
+      "version_commit": "c87ae65",
       "last_changed": "2026-08-24T16:21:05+07:00",
       "owner_boundary": "connections",
       "input_contract": [],
@@ -628,8 +628,8 @@
       "supersedes": [],
       "duplicates": [],
       "security_boundary": [],
-      "source_digest": "6b2bdb15cb019a52",
-      "last_observed": "2026-08-24T09:25:19.148Z",
+      "source_digest": "383f5f01093c383e",
+      "last_observed": "2026-08-24T11:32:45.076Z",
       "last_verified": "2026-08-24T07:04:53.137Z",
       "current_status": "BLOCKED",
       "status_reason": "ledger records BLOCKED: agent error: Cannot use import statement outside a module"
@@ -643,7 +643,7 @@
       "repository": "dna-os-infrastructure",
       "path": "connections/digitalocean",
       "entrypoint": null,
-      "version_commit": "8cd4092",
+      "version_commit": "c87ae65",
       "last_changed": "2026-08-24T16:21:05+07:00",
       "owner_boundary": "connections",
       "input_contract": [],
@@ -672,8 +672,8 @@
       "supersedes": [],
       "duplicates": [],
       "security_boundary": [],
-      "source_digest": "d962ab59c67b915c",
-      "last_observed": "2026-08-24T09:25:19.148Z",
+      "source_digest": "ad3fb4685d6fd9bb",
+      "last_observed": "2026-08-24T11:32:45.076Z",
       "last_verified": null,
       "current_status": "UNVERIFIED",
       "status_reason": "has 1 test file(s) but no verification evidence recorded in the ledger"
@@ -687,7 +687,7 @@
       "repository": "dna-os-infrastructure",
       "path": "connections/dna-os-mcp",
       "entrypoint": "connections/dna-os-mcp/contract.ts",
-      "version_commit": "8cd4092",
+      "version_commit": "c87ae65",
       "last_changed": "2026-08-24T16:21:05+07:00",
       "owner_boundary": "connections",
       "input_contract": [],
@@ -716,8 +716,8 @@
       "supersedes": [],
       "duplicates": [],
       "security_boundary": [],
-      "source_digest": "600f73dbd91cdc76",
-      "last_observed": "2026-08-24T09:25:19.148Z",
+      "source_digest": "d3092b2bbb7825aa",
+      "last_observed": "2026-08-24T11:32:45.076Z",
       "last_verified": "2026-08-24T06:46:05.343Z",
       "current_status": "FAILED",
       "status_reason": "last verification FAILED: connections/dna-os-mcp/tests/mcp-server.test.ts => 8 passed, 2 failed"
@@ -731,7 +731,7 @@
       "repository": "dna-os-infrastructure",
       "path": "connections/evidence-store",
       "entrypoint": null,
-      "version_commit": "8cd4092",
+      "version_commit": "c87ae65",
       "last_changed": "2026-08-24T16:21:05+07:00",
       "owner_boundary": "connections",
       "input_contract": [],
@@ -756,8 +756,8 @@
       "supersedes": [],
       "duplicates": [],
       "security_boundary": [],
-      "source_digest": "b3c9175aeafc8d69",
-      "last_observed": "2026-08-24T09:25:19.148Z",
+      "source_digest": "ef9e24087df95649",
+      "last_observed": "2026-08-24T11:32:45.076Z",
       "last_verified": "2026-08-24T07:04:53.137Z",
       "current_status": "BLOCKED",
       "status_reason": "ledger records BLOCKED: agent error: Cannot use import statement outside a module"
@@ -791,7 +791,7 @@
       "duplicates": [],
       "security_boundary": [],
       "source_digest": "NO_SOURCE",
-      "last_observed": "2026-08-24T09:25:19.148Z",
+      "last_observed": "2026-08-24T11:32:45.076Z",
       "last_verified": null,
       "current_status": "DECLARED_ONLY",
       "status_reason": "folder contains documentation/data but no .ts/.mjs implementation"
@@ -805,7 +805,7 @@
       "repository": "dna-os-infrastructure",
       "path": "connections/github",
       "entrypoint": null,
-      "version_commit": "8cd4092",
+      "version_commit": "c87ae65",
       "last_changed": "2026-08-24T16:21:05+07:00",
       "owner_boundary": "connections",
       "input_contract": [],
@@ -827,7 +827,7 @@
         "dna-os-circuit/adapter/internal-state-adapter.ts"
       ],
       "downstream": [],
-      "runtime_state": "UNKNOWN",
+      "runtime_state": "RUNNING",
       "test_state": "HAS_TESTS",
       "test_files": [
         "connections/github/adapter.test.ts",
@@ -835,23 +835,25 @@
       ],
       "verification_state": "PARTIAL",
       "evidence_references": [
-        "adapter.test.ts runs but LIVE suite SKIPPED: GITHUB_PAT_INFRASTRUCTURE unset — never executed against real GitHub (lead-observed)"
+        "adapter.test.ts runs but LIVE suite SKIPPED: GITHUB_PAT_INFRASTRUCTURE unset — never executed against real GitHub (lead-observed)",
+        "adapter.test.ts runs; LIVE suite still SKIPPED (GITHUB_PAT_INFRASTRUCTURE unset) — never executed against real GitHub [digest-method change 2026-08-24: digests are now RECURSIVE (repo-relative paths), so all prior evidence was correctly invalidated and re-proven]"
       ],
       "registration_state": "UNREGISTERED",
       "registry_matches": [],
       "lineage": [
-        "2026-08-24T06:00:09.336Z:PARTIAL:0ccfdd75189a7654"
+        "2026-08-24T06:00:09.336Z:PARTIAL:0ccfdd75189a7654",
+        "2026-08-24T11:32:44.789Z:PARTIAL:c1cc69b2c4cb5e57"
       ],
       "supersedes": [],
       "duplicates": [],
       "security_boundary": [
         "credentials/macos-keychain (secret material)"
       ],
-      "source_digest": "0ccfdd75189a7654",
-      "last_observed": "2026-08-24T09:25:19.148Z",
-      "last_verified": "2026-08-24T06:00:09.336Z",
+      "source_digest": "c1cc69b2c4cb5e57",
+      "last_observed": "2026-08-24T11:32:45.076Z",
+      "last_verified": "2026-08-24T11:32:44.789Z",
       "current_status": "PARTIAL",
-      "status_reason": "verified PARTIAL against the current source: adapter.test.ts runs but LIVE suite SKIPPED: GITHUB_PAT_INFRASTRUCTURE unset — never executed against real GitHub (lead-observed)"
+      "status_reason": "verified PARTIAL against the current source: adapter.test.ts runs; LIVE suite still SKIPPED (GITHUB_PAT_INFRASTRUCTURE unset) — never executed against real GitHub [digest-method change 2026-08-24: digests are now RECURSIVE (repo-relative paths), so all prior evidence was correctly invalidated and re-proven]"
     },
     {
       "capability_key": "dna-os-infrastructure:connections/human-verified-text",
@@ -862,7 +864,7 @@
       "repository": "dna-os-infrastructure",
       "path": "connections/human-verified-text",
       "entrypoint": null,
-      "version_commit": "8cd4092",
+      "version_commit": "c87ae65",
       "last_changed": "2026-08-24T16:21:05+07:00",
       "owner_boundary": "connections",
       "input_contract": [],
@@ -887,8 +889,8 @@
       "supersedes": [],
       "duplicates": [],
       "security_boundary": [],
-      "source_digest": "3df493f2b603eb71",
-      "last_observed": "2026-08-24T09:25:19.148Z",
+      "source_digest": "c3c11bcc9d54fc72",
+      "last_observed": "2026-08-24T11:32:45.076Z",
       "last_verified": "2026-08-24T07:05:27.246Z",
       "current_status": "BLOCKED",
       "status_reason": "ledger records BLOCKED: agent error: Cannot use import statement outside a module"
@@ -902,7 +904,7 @@
       "repository": "dna-os-infrastructure",
       "path": "connections/language-listening",
       "entrypoint": null,
-      "version_commit": "8cd4092",
+      "version_commit": "c87ae65",
       "last_changed": "2026-08-24T16:21:05+07:00",
       "owner_boundary": "connections",
       "input_contract": [],
@@ -927,8 +929,8 @@
       "supersedes": [],
       "duplicates": [],
       "security_boundary": [],
-      "source_digest": "e39c31f6e0859d91",
-      "last_observed": "2026-08-24T09:25:19.148Z",
+      "source_digest": "d7ef052d6d98e503",
+      "last_observed": "2026-08-24T11:32:45.076Z",
       "last_verified": "2026-08-24T07:05:27.247Z",
       "current_status": "BLOCKED",
       "status_reason": "ledger records BLOCKED: agent error: Cannot use import statement outside a module"
@@ -942,7 +944,7 @@
       "repository": "dna-os-infrastructure",
       "path": "connections/os-login",
       "entrypoint": null,
-      "version_commit": "8cd4092",
+      "version_commit": "c87ae65",
       "last_changed": "2026-08-24T16:21:05+07:00",
       "owner_boundary": "connections",
       "input_contract": [],
@@ -965,8 +967,8 @@
       "supersedes": [],
       "duplicates": [],
       "security_boundary": [],
-      "source_digest": "711036c61150f71c",
-      "last_observed": "2026-08-24T09:25:19.148Z",
+      "source_digest": "af048df9ceb2338b",
+      "last_observed": "2026-08-24T11:32:45.076Z",
       "last_verified": null,
       "current_status": "UNVERIFIED",
       "status_reason": "no tests and no verification evidence"
@@ -980,8 +982,8 @@
       "repository": "dna-os-infrastructure",
       "path": "connections/os-ui",
       "entrypoint": null,
-      "version_commit": "8cd4092",
-      "last_changed": "2026-08-24T16:21:05+07:00",
+      "version_commit": "c0a9ffb",
+      "last_changed": "2026-08-24T16:35:54+07:00",
       "owner_boundary": "connections",
       "input_contract": [],
       "output_contract": [],
@@ -1015,8 +1017,8 @@
       "supersedes": [],
       "duplicates": [],
       "security_boundary": [],
-      "source_digest": "5bf90053e8c99d87",
-      "last_observed": "2026-08-24T09:25:19.148Z",
+      "source_digest": "96cf391f5d895756",
+      "last_observed": "2026-08-24T11:32:45.076Z",
       "last_verified": null,
       "current_status": "UNVERIFIED",
       "status_reason": "running live (2 process ref(s)) but no verification evidence recorded"
@@ -1030,7 +1032,7 @@
       "repository": "dna-os-infrastructure",
       "path": "connections/provider-authorization",
       "entrypoint": "connections/provider-authorization/contract.ts",
-      "version_commit": "8cd4092",
+      "version_commit": "c87ae65",
       "last_changed": "2026-08-24T16:21:05+07:00",
       "owner_boundary": "connections",
       "input_contract": [],
@@ -1060,8 +1062,8 @@
       "security_boundary": [
         "credentials/macos-keychain (secret material)"
       ],
-      "source_digest": "0d4b9fc42f407a95",
-      "last_observed": "2026-08-24T09:25:19.148Z",
+      "source_digest": "ac90129283568175",
+      "last_observed": "2026-08-24T11:32:45.076Z",
       "last_verified": null,
       "current_status": "UNVERIFIED",
       "status_reason": "has 1 test file(s) but no verification evidence recorded in the ledger"
@@ -1075,7 +1077,7 @@
       "repository": "dna-os-infrastructure",
       "path": "connections/railway",
       "entrypoint": null,
-      "version_commit": "8cd4092",
+      "version_commit": "c87ae65",
       "last_changed": "2026-08-24T16:21:05+07:00",
       "owner_boundary": "connections",
       "input_contract": [],
@@ -1087,6 +1089,7 @@
         "credentials/registry"
       ],
       "callers": [
+        ".railway/railway.ts",
         "control/connector-execution-boundary/registry.ts"
       ],
       "downstream": [],
@@ -1103,8 +1106,8 @@
       "security_boundary": [
         "credentials/macos-keychain (secret material)"
       ],
-      "source_digest": "bab383c74be9413c",
-      "last_observed": "2026-08-24T09:25:19.148Z",
+      "source_digest": "f171b0ae9db80e21",
+      "last_observed": "2026-08-24T11:32:45.076Z",
       "last_verified": null,
       "current_status": "UNVERIFIED",
       "status_reason": "no tests and no verification evidence"
@@ -1118,7 +1121,7 @@
       "repository": "dna-os-infrastructure",
       "path": "connections/research-engine",
       "entrypoint": null,
-      "version_commit": "8cd4092",
+      "version_commit": "c87ae65",
       "last_changed": "2026-08-24T16:21:05+07:00",
       "owner_boundary": "connections",
       "input_contract": [],
@@ -1146,8 +1149,8 @@
       "supersedes": [],
       "duplicates": [],
       "security_boundary": [],
-      "source_digest": "8a2f5fd19e4acad2",
-      "last_observed": "2026-08-24T09:25:19.148Z",
+      "source_digest": "41b5a5e8893637c0",
+      "last_observed": "2026-08-24T11:32:45.076Z",
       "last_verified": null,
       "current_status": "UNVERIFIED",
       "status_reason": "has 1 test file(s) but no verification evidence recorded in the ledger"
@@ -1181,7 +1184,7 @@
       "duplicates": [],
       "security_boundary": [],
       "source_digest": "NO_SOURCE",
-      "last_observed": "2026-08-24T09:25:19.148Z",
+      "last_observed": "2026-08-24T11:32:45.076Z",
       "last_verified": null,
       "current_status": "DECLARED_ONLY",
       "status_reason": "folder contains documentation/data but no .ts/.mjs implementation"
@@ -1195,7 +1198,7 @@
       "repository": "dna-os-infrastructure",
       "path": "connections/stt-per-segment",
       "entrypoint": null,
-      "version_commit": "8cd4092",
+      "version_commit": "c87ae65",
       "last_changed": "2026-08-24T16:21:05+07:00",
       "owner_boundary": "connections",
       "input_contract": [],
@@ -1220,8 +1223,8 @@
       "supersedes": [],
       "duplicates": [],
       "security_boundary": [],
-      "source_digest": "eba495b21280b468",
-      "last_observed": "2026-08-24T09:25:19.148Z",
+      "source_digest": "3c377937421cc7e2",
+      "last_observed": "2026-08-24T11:32:45.076Z",
       "last_verified": "2026-08-24T07:05:27.247Z",
       "current_status": "BLOCKED",
       "status_reason": "ledger records BLOCKED: agent error: Cannot use import statement outside a module"
@@ -1255,7 +1258,7 @@
       "duplicates": [],
       "security_boundary": [],
       "source_digest": "NO_SOURCE",
-      "last_observed": "2026-08-24T09:25:19.148Z",
+      "last_observed": "2026-08-24T11:32:45.076Z",
       "last_verified": null,
       "current_status": "DECLARED_ONLY",
       "status_reason": "folder contains documentation/data but no .ts/.mjs implementation"
@@ -1269,7 +1272,7 @@
       "repository": "dna-os-infrastructure",
       "path": "connections/telemetry",
       "entrypoint": "connections/telemetry/contract.ts",
-      "version_commit": "8cd4092",
+      "version_commit": "c87ae65",
       "last_changed": "2026-08-24T16:21:05+07:00",
       "owner_boundary": "connections",
       "input_contract": [],
@@ -1294,8 +1297,8 @@
       "supersedes": [],
       "duplicates": [],
       "security_boundary": [],
-      "source_digest": "51176c97acb52110",
-      "last_observed": "2026-08-24T09:25:19.148Z",
+      "source_digest": "49dcf5ad3ff8323e",
+      "last_observed": "2026-08-24T11:32:45.076Z",
       "last_verified": null,
       "current_status": "UNVERIFIED",
       "status_reason": "has 1 test file(s) but no verification evidence recorded in the ledger"
@@ -1309,7 +1312,7 @@
       "repository": "dna-os-infrastructure",
       "path": "connections/vercel",
       "entrypoint": null,
-      "version_commit": "837abe4",
+      "version_commit": "e92a6a3",
       "last_changed": "2026-08-14T22:07:05+07:00",
       "owner_boundary": "connections",
       "input_contract": [],
@@ -1329,7 +1332,7 @@
       "duplicates": [],
       "security_boundary": [],
       "source_digest": "NO_SOURCE",
-      "last_observed": "2026-08-24T09:25:19.148Z",
+      "last_observed": "2026-08-24T11:32:45.076Z",
       "last_verified": null,
       "current_status": "DECLARED_ONLY",
       "status_reason": "folder contains documentation/data but no .ts/.mjs implementation"
@@ -1343,7 +1346,7 @@
       "repository": "dna-os-infrastructure",
       "path": "connections/vercel-drains",
       "entrypoint": null,
-      "version_commit": "381a429",
+      "version_commit": "b56f898",
       "last_changed": "2026-08-14T21:56:20+07:00",
       "owner_boundary": "connections",
       "input_contract": [],
@@ -1363,7 +1366,7 @@
       "duplicates": [],
       "security_boundary": [],
       "source_digest": "NO_SOURCE",
-      "last_observed": "2026-08-24T09:25:19.148Z",
+      "last_observed": "2026-08-24T11:32:45.076Z",
       "last_verified": null,
       "current_status": "DECLARED_ONLY",
       "status_reason": "folder contains documentation/data but no .ts/.mjs implementation"
@@ -1377,7 +1380,7 @@
       "repository": "dna-os-infrastructure",
       "path": "connections/vercel-webhooks",
       "entrypoint": null,
-      "version_commit": "381a429",
+      "version_commit": "b56f898",
       "last_changed": "2026-08-14T21:56:20+07:00",
       "owner_boundary": "connections",
       "input_contract": [],
@@ -1397,7 +1400,7 @@
       "duplicates": [],
       "security_boundary": [],
       "source_digest": "NO_SOURCE",
-      "last_observed": "2026-08-24T09:25:19.148Z",
+      "last_observed": "2026-08-24T11:32:45.076Z",
       "last_verified": null,
       "current_status": "DECLARED_ONLY",
       "status_reason": "folder contains documentation/data but no .ts/.mjs implementation"
@@ -1411,7 +1414,7 @@
       "repository": "dna-os-infrastructure",
       "path": "connections/voice-command",
       "entrypoint": "connections/voice-command/contract.ts",
-      "version_commit": "8cd4092",
+      "version_commit": "c87ae65",
       "last_changed": "2026-08-24T16:21:05+07:00",
       "owner_boundary": "connections",
       "input_contract": [],
@@ -1436,8 +1439,8 @@
       "supersedes": [],
       "duplicates": [],
       "security_boundary": [],
-      "source_digest": "4ac66369798416f9",
-      "last_observed": "2026-08-24T09:25:19.148Z",
+      "source_digest": "a9a40546340fe92c",
+      "last_observed": "2026-08-24T11:32:45.076Z",
       "last_verified": null,
       "current_status": "UNVERIFIED",
       "status_reason": "has 1 test file(s) but no verification evidence recorded in the ledger"
@@ -1451,7 +1454,7 @@
       "repository": "dna-os-infrastructure",
       "path": "contracts/command",
       "entrypoint": null,
-      "version_commit": "8cd4092",
+      "version_commit": "c87ae65",
       "last_changed": "2026-08-24T16:21:05+07:00",
       "owner_boundary": "contracts",
       "input_contract": [],
@@ -1503,8 +1506,8 @@
       "supersedes": [],
       "duplicates": [],
       "security_boundary": [],
-      "source_digest": "9eb42f3df714cb0f",
-      "last_observed": "2026-08-24T09:25:19.148Z",
+      "source_digest": "04336ec91d4a9215",
+      "last_observed": "2026-08-24T11:32:45.076Z",
       "last_verified": null,
       "current_status": "UNVERIFIED",
       "status_reason": "no tests and no verification evidence"
@@ -1518,7 +1521,7 @@
       "repository": "dna-os-infrastructure",
       "path": "contracts/connector",
       "entrypoint": null,
-      "version_commit": "8cd4092",
+      "version_commit": "c87ae65",
       "last_changed": "2026-08-24T16:21:05+07:00",
       "owner_boundary": "contracts",
       "input_contract": [],
@@ -1552,8 +1555,8 @@
       "supersedes": [],
       "duplicates": [],
       "security_boundary": [],
-      "source_digest": "6829ad6b260136cb",
-      "last_observed": "2026-08-24T09:25:19.148Z",
+      "source_digest": "e08784eea7cebf04",
+      "last_observed": "2026-08-24T11:32:45.076Z",
       "last_verified": null,
       "current_status": "UNVERIFIED",
       "status_reason": "no tests and no verification evidence"
@@ -1597,8 +1600,8 @@
       "supersedes": [],
       "duplicates": [],
       "security_boundary": [],
-      "source_digest": "39c5d0feab11ce1a",
-      "last_observed": "2026-08-24T09:25:19.148Z",
+      "source_digest": "a68be475d24eec54",
+      "last_observed": "2026-08-24T11:32:45.076Z",
       "last_verified": null,
       "current_status": "UNVERIFIED",
       "status_reason": "no tests and no verification evidence"
@@ -1654,8 +1657,8 @@
       "supersedes": [],
       "duplicates": [],
       "security_boundary": [],
-      "source_digest": "c3b05ad2035aba8d",
-      "last_observed": "2026-08-24T09:25:19.148Z",
+      "source_digest": "ee3cd675190777c8",
+      "last_observed": "2026-08-24T11:32:45.076Z",
       "last_verified": null,
       "current_status": "UNVERIFIED",
       "status_reason": "no tests and no verification evidence"
@@ -1669,7 +1672,7 @@
       "repository": "dna-os-infrastructure",
       "path": "contracts/observation",
       "entrypoint": null,
-      "version_commit": "8cd4092",
+      "version_commit": "c87ae65",
       "last_changed": "2026-08-24T16:21:05+07:00",
       "owner_boundary": "contracts",
       "input_contract": [],
@@ -1692,8 +1695,8 @@
       "supersedes": [],
       "duplicates": [],
       "security_boundary": [],
-      "source_digest": "b2cd0e9478359c0d",
-      "last_observed": "2026-08-24T09:25:19.148Z",
+      "source_digest": "09a25185486c199e",
+      "last_observed": "2026-08-24T11:32:45.076Z",
       "last_verified": "2026-08-24T07:09:15.550Z",
       "current_status": "BLOCKED",
       "status_reason": "ledger records BLOCKED:  => 0 passed, 0 failed"
@@ -1733,8 +1736,8 @@
       "supersedes": [],
       "duplicates": [],
       "security_boundary": [],
-      "source_digest": "dd70ab89ac8fb9a1",
-      "last_observed": "2026-08-24T09:25:19.148Z",
+      "source_digest": "6d7ee3b72472664c",
+      "last_observed": "2026-08-24T11:32:45.076Z",
       "last_verified": "2026-08-24T07:09:15.551Z",
       "current_status": "BLOCKED",
       "status_reason": "ledger records BLOCKED:  => 0 passed, 0 failed"
@@ -1770,7 +1773,7 @@
       "duplicates": [],
       "security_boundary": [],
       "source_digest": "NO_SOURCE",
-      "last_observed": "2026-08-24T09:25:19.148Z",
+      "last_observed": "2026-08-24T11:32:45.076Z",
       "last_verified": null,
       "current_status": "DECLARED_ONLY",
       "status_reason": "folder contains documentation/data but no .ts/.mjs implementation"
@@ -1784,7 +1787,7 @@
       "repository": "dna-os-infrastructure",
       "path": "contracts/worker",
       "entrypoint": null,
-      "version_commit": "8cd4092",
+      "version_commit": "c87ae65",
       "last_changed": "2026-08-24T16:21:05+07:00",
       "owner_boundary": "contracts",
       "input_contract": [],
@@ -1810,8 +1813,8 @@
       "supersedes": [],
       "duplicates": [],
       "security_boundary": [],
-      "source_digest": "f23b059aee53a413",
-      "last_observed": "2026-08-24T09:25:19.148Z",
+      "source_digest": "5817b8851cbe85d8",
+      "last_observed": "2026-08-24T11:32:45.076Z",
       "last_verified": null,
       "current_status": "UNVERIFIED",
       "status_reason": "no tests and no verification evidence"
@@ -1825,7 +1828,7 @@
       "repository": "dna-os-infrastructure",
       "path": "contracts/write-intent",
       "entrypoint": null,
-      "version_commit": "8cd4092",
+      "version_commit": "c87ae65",
       "last_changed": "2026-08-24T16:21:05+07:00",
       "owner_boundary": "contracts",
       "input_contract": [],
@@ -1854,8 +1857,8 @@
       "supersedes": [],
       "duplicates": [],
       "security_boundary": [],
-      "source_digest": "4e91d6e15b1af6ac",
-      "last_observed": "2026-08-24T09:25:19.148Z",
+      "source_digest": "dd621a223b8db245",
+      "last_observed": "2026-08-24T11:32:45.076Z",
       "last_verified": null,
       "current_status": "UNVERIFIED",
       "status_reason": "no tests and no verification evidence"
@@ -1869,7 +1872,7 @@
       "repository": "dna-os-infrastructure",
       "path": "control/admission",
       "entrypoint": "control/admission/contract.ts",
-      "version_commit": "8cd4092",
+      "version_commit": "c87ae65",
       "last_changed": "2026-08-24T16:21:05+07:00",
       "owner_boundary": "control",
       "input_contract": [],
@@ -1902,8 +1905,8 @@
       "supersedes": [],
       "duplicates": [],
       "security_boundary": [],
-      "source_digest": "ef38bdd731ea0d1f",
-      "last_observed": "2026-08-24T09:25:19.148Z",
+      "source_digest": "69f889e000d5e96e",
+      "last_observed": "2026-08-24T11:32:45.076Z",
       "last_verified": null,
       "current_status": "UNVERIFIED",
       "status_reason": "has 1 test file(s) but no verification evidence recorded in the ledger"
@@ -1917,7 +1920,7 @@
       "repository": "dna-os-infrastructure",
       "path": "control/agent-gateway",
       "entrypoint": "control/agent-gateway/contract.ts",
-      "version_commit": "8cd4092",
+      "version_commit": "c87ae65",
       "last_changed": "2026-08-24T16:21:05+07:00",
       "owner_boundary": "control",
       "input_contract": [],
@@ -1953,8 +1956,6 @@
         "control/agent-host/tests/real-agent-launch.test.ts",
         "control/ai-write-control/tests/write-result-registration.test.ts",
         "control/artifact-destination/tests/artifact-destination.test.ts",
-        "control/circuit-breaker/tests/__sandbox__/violation-dryrun.ts",
-        "control/circuit-breaker/tests/__sandbox__/violation-enforced.ts",
         "control/circuit-breaker/tests/violating-worker.mjs",
         "control/command-router/router.ts",
         "control/command-router/tests/output-classifier.test.ts",
@@ -2017,8 +2018,8 @@
         "permissions/write-gate (write authorization)",
         "execution/run (process gate)"
       ],
-      "source_digest": "6f9bf8ff31aba4be",
-      "last_observed": "2026-08-24T09:25:19.148Z",
+      "source_digest": "663d98f5fc647243",
+      "last_observed": "2026-08-24T11:32:45.076Z",
       "last_verified": null,
       "current_status": "UNVERIFIED",
       "status_reason": "has 10 test file(s) but no verification evidence recorded in the ledger"
@@ -2032,7 +2033,7 @@
       "repository": "dna-os-infrastructure",
       "path": "control/agent-host",
       "entrypoint": "control/agent-host/contract.ts",
-      "version_commit": "8cd4092",
+      "version_commit": "c87ae65",
       "last_changed": "2026-08-24T16:21:05+07:00",
       "owner_boundary": "control",
       "input_contract": [],
@@ -2053,7 +2054,7 @@
         "execution/run/process-gate.ts"
       ],
       "downstream": [],
-      "runtime_state": "UNKNOWN",
+      "runtime_state": "RUNNING",
       "test_state": "HAS_TESTS",
       "test_files": [
         "control/agent-host/tests/live-agent-execution-path.test.ts",
@@ -2063,25 +2064,27 @@
       ],
       "verification_state": "VERIFIED",
       "evidence_references": [
-        "control/agent-host/tests/sbpl-injection-regression.test.ts=7/0 real sandbox-exec + kernel egress (lead-run)"
+        "control/agent-host/tests/sbpl-injection-regression.test.ts=7/0 real sandbox-exec + kernel egress (lead-run)",
+        "test:safety re-run: sbpl-injection-regression=7/0 (real sandbox-exec + kernel egress) [digest-method change 2026-08-24: digests are now RECURSIVE (repo-relative paths), so all prior evidence was correctly invalidated and re-proven]"
       ],
       "registration_state": "REGISTERED_STALE",
       "registry_matches": [
         "capability-84f9dc65-4427-478d-8103-c42032ef4d46@unverified"
       ],
       "lineage": [
-        "2026-08-24T06:00:07.667Z:VERIFIED:0c6d46de0519623c"
+        "2026-08-24T06:00:07.667Z:VERIFIED:0c6d46de0519623c",
+        "2026-08-24T11:32:41.609Z:VERIFIED:67ad1b12a1e42ff5"
       ],
       "supersedes": [],
       "duplicates": [],
       "security_boundary": [
         "control/agent-host (sandbox profile rendering)"
       ],
-      "source_digest": "0c6d46de0519623c",
-      "last_observed": "2026-08-24T09:25:19.148Z",
-      "last_verified": "2026-08-24T06:00:07.667Z",
+      "source_digest": "67ad1b12a1e42ff5",
+      "last_observed": "2026-08-24T11:32:45.076Z",
+      "last_verified": "2026-08-24T11:32:41.609Z",
       "current_status": "VERIFIED",
-      "status_reason": "evidence matches the current source digest 0c6d46de0519623c: control/agent-host/tests/sbpl-injection-regression.test.ts=7/0 real sandbox-exec + kernel egress (lead-run)"
+      "status_reason": "evidence matches the current source digest 67ad1b12a1e42ff5: test:safety re-run: sbpl-injection-regression=7/0 (real sandbox-exec + kernel egress) [digest-method change 2026-08-24: digests are now RECURSIVE (repo-relative paths), so all prior evidence was correctly invalidated and re-proven]"
     },
     {
       "capability_key": "dna-os-infrastructure:control/agent-production-ingress",
@@ -2092,7 +2095,7 @@
       "repository": "dna-os-infrastructure",
       "path": "control/agent-production-ingress",
       "entrypoint": "control/agent-production-ingress/contract.ts",
-      "version_commit": "8cd4092",
+      "version_commit": "c87ae65",
       "last_changed": "2026-08-24T16:21:05+07:00",
       "owner_boundary": "control",
       "input_contract": [],
@@ -2125,8 +2128,8 @@
       "supersedes": [],
       "duplicates": [],
       "security_boundary": [],
-      "source_digest": "98f300d05d645f8d",
-      "last_observed": "2026-08-24T09:25:19.148Z",
+      "source_digest": "6bfc948731227a1b",
+      "last_observed": "2026-08-24T11:32:45.076Z",
       "last_verified": null,
       "current_status": "UNVERIFIED",
       "status_reason": "has 1 test file(s) but no verification evidence recorded in the ledger"
@@ -2140,7 +2143,7 @@
       "repository": "dna-os-infrastructure",
       "path": "control/ai-write-control",
       "entrypoint": "control/ai-write-control/contract.ts",
-      "version_commit": "8cd4092",
+      "version_commit": "c87ae65",
       "last_changed": "2026-08-24T16:21:05+07:00",
       "owner_boundary": "control",
       "input_contract": [],
@@ -2177,8 +2180,8 @@
       "security_boundary": [
         "permissions/write-gate (write authorization)"
       ],
-      "source_digest": "e29037a22b8cb78b",
-      "last_observed": "2026-08-24T09:25:19.148Z",
+      "source_digest": "3c1dd4cde050f014",
+      "last_observed": "2026-08-24T11:32:45.076Z",
       "last_verified": null,
       "current_status": "UNVERIFIED",
       "status_reason": "has 2 test file(s) but no verification evidence recorded in the ledger"
@@ -2192,7 +2195,7 @@
       "repository": "dna-os-infrastructure",
       "path": "control/artifact-destination",
       "entrypoint": "control/artifact-destination/contract.ts",
-      "version_commit": "8cd4092",
+      "version_commit": "c87ae65",
       "last_changed": "2026-08-24T16:21:05+07:00",
       "owner_boundary": "control",
       "input_contract": [],
@@ -2233,8 +2236,8 @@
       "supersedes": [],
       "duplicates": [],
       "security_boundary": [],
-      "source_digest": "c345fc3788c08686",
-      "last_observed": "2026-08-24T09:25:19.148Z",
+      "source_digest": "92c8d4471b038e99",
+      "last_observed": "2026-08-24T11:32:45.076Z",
       "last_verified": "2026-08-24T06:32:33.060Z",
       "current_status": "BLOCKED",
       "status_reason": "ledger records BLOCKED: control/artifact-destination/tests/artifact-destination.test.ts => 0 passed, 0 failed (IMPORT_ERROR)"
@@ -2248,7 +2251,7 @@
       "repository": "dna-os-infrastructure",
       "path": "control/circuit-breaker",
       "entrypoint": "control/circuit-breaker/contract.ts",
-      "version_commit": "8cd4092",
+      "version_commit": "c87ae65",
       "last_changed": "2026-08-24T16:21:05+07:00",
       "owner_boundary": "control",
       "input_contract": [],
@@ -2277,8 +2280,8 @@
       "security_boundary": [
         "control/agent-host (sandbox profile rendering)"
       ],
-      "source_digest": "b39104fc0c1e5892",
-      "last_observed": "2026-08-24T09:25:19.148Z",
+      "source_digest": "efb7ce559d5a4be1",
+      "last_observed": "2026-08-24T11:32:45.076Z",
       "last_verified": null,
       "current_status": "UNVERIFIED",
       "status_reason": "has 1 test file(s) but no verification evidence recorded in the ledger"
@@ -2292,7 +2295,7 @@
       "repository": "dna-os-infrastructure",
       "path": "control/command-router",
       "entrypoint": "control/command-router/contract.ts",
-      "version_commit": "8cd4092",
+      "version_commit": "c87ae65",
       "last_changed": "2026-08-24T16:21:05+07:00",
       "owner_boundary": "control",
       "input_contract": [],
@@ -2328,23 +2331,25 @@
         "transport/owner-command-http/server.ts"
       ],
       "downstream": [],
-      "runtime_state": "UNKNOWN",
+      "runtime_state": "RUNNING",
       "test_state": "HAS_TESTS",
       "test_files": [
         "control/command-router/tests/digitalocean-connector-routing.test.ts",
         "control/command-router/tests/output-classifier.test.ts",
         "control/command-router/tests/router.test.ts"
       ],
-      "verification_state": "REQUIRES_REVERIFICATION",
+      "verification_state": "VERIFIED",
       "evidence_references": [
-        "npm run test:control-plane exit 0 — router.test.ts + output-classifier.test.ts (lead-run)"
+        "npm run test:control-plane exit 0 — router.test.ts + output-classifier.test.ts (lead-run)",
+        "test:control-plane re-run exit 0 (13 suites all 0-failed): router.test.ts + output-classifier.test.ts [digest-method change 2026-08-24: digests are now RECURSIVE (repo-relative paths), so all prior evidence was correctly invalidated and re-proven]"
       ],
       "registration_state": "REGISTERED_STALE",
       "registry_matches": [
         "capability-aa001c88-2533-4f01-a394-602ac2e0ae5d@unverified"
       ],
       "lineage": [
-        "2026-08-24T06:00:08.876Z:VERIFIED:a25e4df373210de1"
+        "2026-08-24T06:00:08.876Z:VERIFIED:a25e4df373210de1",
+        "2026-08-24T11:32:42.788Z:VERIFIED:d9314d751cde23f1"
       ],
       "supersedes": [],
       "duplicates": [],
@@ -2353,11 +2358,11 @@
         "permissions/execution-policy (execution permission decision)",
         "execution/run (process gate)"
       ],
-      "source_digest": "a25e4df373210de1",
-      "last_observed": "2026-08-24T09:25:19.148Z",
-      "last_verified": "2026-08-24T06:00:08.876Z",
-      "current_status": "REQUIRES_REVERIFICATION",
-      "status_reason": "dependency code moved since this was verified: permissions/execution-policy via control/command-router -> permissions/execution-policy. Its own source is unchanged, so the evidence still describes THIS code — but not the code underneath it."
+      "source_digest": "d9314d751cde23f1",
+      "last_observed": "2026-08-24T11:32:45.076Z",
+      "last_verified": "2026-08-24T11:32:42.788Z",
+      "current_status": "VERIFIED",
+      "status_reason": "evidence matches the current source digest d9314d751cde23f1: test:control-plane re-run exit 0 (13 suites all 0-failed): router.test.ts + output-classifier.test.ts [digest-method change 2026-08-24: digests are now RECURSIVE (repo-relative paths), so all prior evidence was correctly invalidated and re-proven]"
     },
     {
       "capability_key": "dna-os-infrastructure:control/command-status",
@@ -2390,8 +2395,8 @@
       "supersedes": [],
       "duplicates": [],
       "security_boundary": [],
-      "source_digest": "656d6673149b66b6",
-      "last_observed": "2026-08-24T09:25:19.148Z",
+      "source_digest": "638634fd1449fcbb",
+      "last_observed": "2026-08-24T11:32:45.076Z",
       "last_verified": null,
       "current_status": "UNVERIFIED",
       "status_reason": "no tests and no verification evidence"
@@ -2405,7 +2410,7 @@
       "repository": "dna-os-infrastructure",
       "path": "control/connector-execution-boundary",
       "entrypoint": "control/connector-execution-boundary/contract.ts",
-      "version_commit": "8cd4092",
+      "version_commit": "c87ae65",
       "last_changed": "2026-08-24T16:21:05+07:00",
       "owner_boundary": "control",
       "input_contract": [],
@@ -2434,8 +2439,8 @@
       "supersedes": [],
       "duplicates": [],
       "security_boundary": [],
-      "source_digest": "baea7b4087a1d58c",
-      "last_observed": "2026-08-24T09:25:19.148Z",
+      "source_digest": "e2580bfd4f00e3cc",
+      "last_observed": "2026-08-24T11:32:45.076Z",
       "last_verified": null,
       "current_status": "UNVERIFIED",
       "status_reason": "no tests and no verification evidence"
@@ -2449,7 +2454,7 @@
       "repository": "dna-os-infrastructure",
       "path": "control/deployable-artifact-readiness",
       "entrypoint": "control/deployable-artifact-readiness/contract.ts",
-      "version_commit": "8cd4092",
+      "version_commit": "c87ae65",
       "last_changed": "2026-08-24T16:21:05+07:00",
       "owner_boundary": "control",
       "input_contract": [],
@@ -2479,8 +2484,8 @@
         "permissions/execution-policy (execution permission decision)",
         "execution/run (process gate)"
       ],
-      "source_digest": "49c56f89283e1383",
-      "last_observed": "2026-08-24T09:25:19.148Z",
+      "source_digest": "d01262824c6e37d8",
+      "last_observed": "2026-08-24T11:32:45.076Z",
       "last_verified": null,
       "current_status": "UNVERIFIED",
       "status_reason": "has 1 test file(s) but no verification evidence recorded in the ledger"
@@ -2494,7 +2499,7 @@
       "repository": "dna-os-infrastructure",
       "path": "control/duplicate-reservation",
       "entrypoint": "control/duplicate-reservation/contract.ts",
-      "version_commit": "8cd4092",
+      "version_commit": "c87ae65",
       "last_changed": "2026-08-24T16:21:05+07:00",
       "owner_boundary": "control",
       "input_contract": [],
@@ -2526,8 +2531,8 @@
       "security_boundary": [
         "execution/process-lock (cross-process mutex)"
       ],
-      "source_digest": "c5f123fc0a087802",
-      "last_observed": "2026-08-24T09:25:19.148Z",
+      "source_digest": "40a817e192752f9a",
+      "last_observed": "2026-08-24T11:32:45.076Z",
       "last_verified": null,
       "current_status": "UNVERIFIED",
       "status_reason": "has 1 test file(s) but no verification evidence recorded in the ledger"
@@ -2541,7 +2546,7 @@
       "repository": "dna-os-infrastructure",
       "path": "control/entry-context",
       "entrypoint": "control/entry-context/contract.ts",
-      "version_commit": "8cd4092",
+      "version_commit": "c87ae65",
       "last_changed": "2026-08-24T16:21:05+07:00",
       "owner_boundary": "control",
       "input_contract": [],
@@ -2578,8 +2583,8 @@
         "permissions/access-control (identity / membership)",
         "execution/run (process gate)"
       ],
-      "source_digest": "559047872e757313",
-      "last_observed": "2026-08-24T09:25:19.148Z",
+      "source_digest": "ea9d2eee294a9e1d",
+      "last_observed": "2026-08-24T11:32:45.076Z",
       "last_verified": null,
       "current_status": "UNVERIFIED",
       "status_reason": "has 2 test file(s) but no verification evidence recorded in the ledger"
@@ -2593,7 +2598,7 @@
       "repository": "dna-os-infrastructure",
       "path": "control/event-pipeline",
       "entrypoint": "control/event-pipeline/contract.ts",
-      "version_commit": "8cd4092",
+      "version_commit": "c87ae65",
       "last_changed": "2026-08-24T16:21:05+07:00",
       "owner_boundary": "control",
       "input_contract": [],
@@ -2654,8 +2659,8 @@
       "supersedes": [],
       "duplicates": [],
       "security_boundary": [],
-      "source_digest": "40236ba0cabc1f57",
-      "last_observed": "2026-08-24T09:25:19.148Z",
+      "source_digest": "575fb775651b3046",
+      "last_observed": "2026-08-24T11:32:45.076Z",
       "last_verified": "2026-08-24T06:40:36.836Z",
       "current_status": "BLOCKED",
       "status_reason": "ledger records BLOCKED: control/event-pipeline/tests/domain-classification.test.ts + control/event-pipeline/tests/registration-contract.test.ts => 9 passed, 0 failed (TIMEOUT)"
@@ -2669,7 +2674,7 @@
       "repository": "dna-os-infrastructure",
       "path": "control/external-system-lifecycle",
       "entrypoint": "control/external-system-lifecycle/contract.ts",
-      "version_commit": "8cd4092",
+      "version_commit": "c87ae65",
       "last_changed": "2026-08-24T16:21:05+07:00",
       "owner_boundary": "control",
       "input_contract": [],
@@ -2703,8 +2708,8 @@
       "supersedes": [],
       "duplicates": [],
       "security_boundary": [],
-      "source_digest": "1c5df902ad2898b3",
-      "last_observed": "2026-08-24T09:25:19.148Z",
+      "source_digest": "e2ad57e097b27080",
+      "last_observed": "2026-08-24T11:32:45.076Z",
       "last_verified": null,
       "current_status": "UNVERIFIED",
       "status_reason": "has 1 test file(s) but no verification evidence recorded in the ledger"
@@ -2718,7 +2723,7 @@
       "repository": "dna-os-infrastructure",
       "path": "control/integration-verification",
       "entrypoint": "control/integration-verification/contract.ts",
-      "version_commit": "8cd4092",
+      "version_commit": "c87ae65",
       "last_changed": "2026-08-24T16:21:05+07:00",
       "owner_boundary": "control",
       "input_contract": [],
@@ -2745,8 +2750,8 @@
       "supersedes": [],
       "duplicates": [],
       "security_boundary": [],
-      "source_digest": "c3a2a41bf9e17419",
-      "last_observed": "2026-08-24T09:25:19.148Z",
+      "source_digest": "cba529cf9540ccb5",
+      "last_observed": "2026-08-24T11:32:45.076Z",
       "last_verified": null,
       "current_status": "UNVERIFIED",
       "status_reason": "has 1 test file(s) but no verification evidence recorded in the ledger"
@@ -2760,7 +2765,7 @@
       "repository": "dna-os-infrastructure",
       "path": "control/output-routing",
       "entrypoint": "control/output-routing/contract.ts",
-      "version_commit": "8cd4092",
+      "version_commit": "c87ae65",
       "last_changed": "2026-08-24T16:21:05+07:00",
       "owner_boundary": "control",
       "input_contract": [],
@@ -2788,8 +2793,8 @@
       "supersedes": [],
       "duplicates": [],
       "security_boundary": [],
-      "source_digest": "8ae01cab266824d5",
-      "last_observed": "2026-08-24T09:25:19.148Z",
+      "source_digest": "d19d67a840a0592f",
+      "last_observed": "2026-08-24T11:32:45.076Z",
       "last_verified": null,
       "current_status": "UNVERIFIED",
       "status_reason": "has 1 test file(s) but no verification evidence recorded in the ledger"
@@ -2803,7 +2808,7 @@
       "repository": "dna-os-infrastructure",
       "path": "control/owner-command",
       "entrypoint": "control/owner-command/contract.ts",
-      "version_commit": "8cd4092",
+      "version_commit": "c87ae65",
       "last_changed": "2026-08-24T16:21:05+07:00",
       "owner_boundary": "control",
       "input_contract": [],
@@ -2826,7 +2831,7 @@
         "transport/owner-command-http/server.ts"
       ],
       "downstream": [],
-      "runtime_state": "UNKNOWN",
+      "runtime_state": "RUNNING",
       "test_state": "HAS_TESTS",
       "test_files": [
         "control/owner-command/tests/command-ingress.test.ts",
@@ -2835,16 +2840,18 @@
         "control/owner-command/tests/owner-command.test.ts",
         "control/owner-command/tests/phase10-enforced-route.test.ts"
       ],
-      "verification_state": "REQUIRES_REVERIFICATION",
+      "verification_state": "VERIFIED",
       "evidence_references": [
-        "npm run test:control-plane exit 0 — owner-command.test.ts 6/0 incl. full ALLOW->COMPLETED e2e (lead-run)"
+        "npm run test:control-plane exit 0 — owner-command.test.ts 6/0 incl. full ALLOW->COMPLETED e2e (lead-run)",
+        "test:control-plane re-run exit 0: owner-command.test.ts incl. full ALLOW->COMPLETED e2e [digest-method change 2026-08-24: digests are now RECURSIVE (repo-relative paths), so all prior evidence was correctly invalidated and re-proven]"
       ],
       "registration_state": "REGISTERED_STALE",
       "registry_matches": [
         "capability-30806194-fd2d-4a2e-9e1a-ed06b4e224c5@unverified"
       ],
       "lineage": [
-        "2026-08-24T06:00:09.111Z:VERIFIED:a09daf3948e35ec0"
+        "2026-08-24T06:00:09.111Z:VERIFIED:a09daf3948e35ec0",
+        "2026-08-24T11:32:43.036Z:VERIFIED:f54a666831ec9ba2"
       ],
       "supersedes": [],
       "duplicates": [],
@@ -2852,11 +2859,11 @@
         "permissions/execution-policy (execution permission decision)",
         "permissions/access-control (identity / membership)"
       ],
-      "source_digest": "a09daf3948e35ec0",
-      "last_observed": "2026-08-24T09:25:19.148Z",
-      "last_verified": "2026-08-24T06:00:09.111Z",
-      "current_status": "REQUIRES_REVERIFICATION",
-      "status_reason": "dependency code moved since this was verified: permissions/execution-policy via control/owner-command -> permissions/execution-policy. Its own source is unchanged, so the evidence still describes THIS code — but not the code underneath it."
+      "source_digest": "f54a666831ec9ba2",
+      "last_observed": "2026-08-24T11:32:45.076Z",
+      "last_verified": "2026-08-24T11:32:43.036Z",
+      "current_status": "VERIFIED",
+      "status_reason": "evidence matches the current source digest f54a666831ec9ba2: test:control-plane re-run exit 0: owner-command.test.ts incl. full ALLOW->COMPLETED e2e [digest-method change 2026-08-24: digests are now RECURSIVE (repo-relative paths), so all prior evidence was correctly invalidated and re-proven]"
     },
     {
       "capability_key": "dna-os-infrastructure:control/permission-policy-resolution",
@@ -2867,7 +2874,7 @@
       "repository": "dna-os-infrastructure",
       "path": "control/permission-policy-resolution",
       "entrypoint": "control/permission-policy-resolution/contract.ts",
-      "version_commit": "8cd4092",
+      "version_commit": "c87ae65",
       "last_changed": "2026-08-24T16:21:05+07:00",
       "owner_boundary": "control",
       "input_contract": [],
@@ -2902,8 +2909,8 @@
       "supersedes": [],
       "duplicates": [],
       "security_boundary": [],
-      "source_digest": "4eec709963dc184b",
-      "last_observed": "2026-08-24T09:25:19.148Z",
+      "source_digest": "1cfd3280f64930c7",
+      "last_observed": "2026-08-24T11:32:45.076Z",
       "last_verified": null,
       "current_status": "UNVERIFIED",
       "status_reason": "has 1 test file(s) but no verification evidence recorded in the ledger"
@@ -2917,7 +2924,7 @@
       "repository": "dna-os-infrastructure",
       "path": "control/post-commit-verification",
       "entrypoint": "control/post-commit-verification/contract.ts",
-      "version_commit": "8cd4092",
+      "version_commit": "c87ae65",
       "last_changed": "2026-08-24T16:21:05+07:00",
       "owner_boundary": "control",
       "input_contract": [],
@@ -2949,8 +2956,8 @@
         "permissions/execution-policy (execution permission decision)",
         "execution/run (process gate)"
       ],
-      "source_digest": "9258be048c2eb351",
-      "last_observed": "2026-08-24T09:25:19.148Z",
+      "source_digest": "1a76d2d1917eb214",
+      "last_observed": "2026-08-24T11:32:45.076Z",
       "last_verified": null,
       "current_status": "UNVERIFIED",
       "status_reason": "has 1 test file(s) but no verification evidence recorded in the ledger"
@@ -2964,7 +2971,7 @@
       "repository": "dna-os-infrastructure",
       "path": "control/registration-pipeline",
       "entrypoint": "control/registration-pipeline/contract.ts",
-      "version_commit": "8cd4092",
+      "version_commit": "c87ae65",
       "last_changed": "2026-08-24T16:21:05+07:00",
       "owner_boundary": "control",
       "input_contract": [],
@@ -3015,8 +3022,8 @@
       "supersedes": [],
       "duplicates": [],
       "security_boundary": [],
-      "source_digest": "3cbd3ec9c151aeb7",
-      "last_observed": "2026-08-24T09:25:19.148Z",
+      "source_digest": "03df7d9d24aaf7b6",
+      "last_observed": "2026-08-24T11:32:45.076Z",
       "last_verified": null,
       "current_status": "UNVERIFIED",
       "status_reason": "has 2 test file(s) but no verification evidence recorded in the ledger"
@@ -3030,7 +3037,7 @@
       "repository": "dna-os-infrastructure",
       "path": "control/registration-update",
       "entrypoint": "control/registration-update/contract.ts",
-      "version_commit": "8cd4092",
+      "version_commit": "c87ae65",
       "last_changed": "2026-08-24T16:21:05+07:00",
       "owner_boundary": "control",
       "input_contract": [],
@@ -3061,8 +3068,8 @@
       "supersedes": [],
       "duplicates": [],
       "security_boundary": [],
-      "source_digest": "229537983f072aa0",
-      "last_observed": "2026-08-24T09:25:19.148Z",
+      "source_digest": "22c6d6ccd9d604a1",
+      "last_observed": "2026-08-24T11:32:45.076Z",
       "last_verified": null,
       "current_status": "UNVERIFIED",
       "status_reason": "has 1 test file(s) but no verification evidence recorded in the ledger"
@@ -3076,7 +3083,7 @@
       "repository": "dna-os-infrastructure",
       "path": "control/repository-discovery",
       "entrypoint": "control/repository-discovery/contract.ts",
-      "version_commit": "8cd4092",
+      "version_commit": "c87ae65",
       "last_changed": "2026-08-24T16:21:05+07:00",
       "owner_boundary": "control",
       "input_contract": [],
@@ -3099,8 +3106,8 @@
       "supersedes": [],
       "duplicates": [],
       "security_boundary": [],
-      "source_digest": "6a26356f695cf69c",
-      "last_observed": "2026-08-24T09:25:19.148Z",
+      "source_digest": "86eefe4497b71138",
+      "last_observed": "2026-08-24T11:32:45.076Z",
       "last_verified": null,
       "current_status": "UNVERIFIED",
       "status_reason": "no tests and no verification evidence"
@@ -3114,7 +3121,7 @@
       "repository": "dna-os-infrastructure",
       "path": "control/runtime-adapter",
       "entrypoint": "control/runtime-adapter/contract.ts",
-      "version_commit": "8cd4092",
+      "version_commit": "c87ae65",
       "last_changed": "2026-08-24T16:21:05+07:00",
       "owner_boundary": "control",
       "input_contract": [],
@@ -3125,7 +3132,7 @@
         "execution/run/process-registry.ts"
       ],
       "downstream": [],
-      "runtime_state": "UNKNOWN",
+      "runtime_state": "RUNNING",
       "test_state": "HAS_TESTS",
       "test_files": [
         "control/runtime-adapter/tests/adversarial-seatbelt.test.ts",
@@ -3134,23 +3141,25 @@
       ],
       "verification_state": "VERIFIED",
       "evidence_references": [
-        "adversarial-seatbelt.test.ts=16/0; full-chain-adversarial.test.ts=13/0; pty-stream.test.ts=4/0 (lead-run 2026-08-24, node 24.19.0)"
+        "adversarial-seatbelt.test.ts=16/0; full-chain-adversarial.test.ts=13/0; pty-stream.test.ts=4/0 (lead-run 2026-08-24, node 24.19.0)",
+        "test:safety re-run: adversarial-seatbelt=16/0, full-chain-adversarial=13/0, pty-stream=4/0 [digest-method change 2026-08-24: digests are now RECURSIVE (repo-relative paths), so all prior evidence was correctly invalidated and re-proven]"
       ],
       "registration_state": "UNREGISTERED",
       "registry_matches": [],
       "lineage": [
-        "2026-08-24T06:00:07.431Z:VERIFIED:ebdbf92f304d987e"
+        "2026-08-24T06:00:07.431Z:VERIFIED:ebdbf92f304d987e",
+        "2026-08-24T11:32:41.366Z:VERIFIED:6e864afdef999b49"
       ],
       "supersedes": [],
       "duplicates": [],
       "security_boundary": [
         "control/runtime-adapter (seatbelt sandbox + PTY)"
       ],
-      "source_digest": "ebdbf92f304d987e",
-      "last_observed": "2026-08-24T09:25:19.148Z",
-      "last_verified": "2026-08-24T06:00:07.431Z",
+      "source_digest": "6e864afdef999b49",
+      "last_observed": "2026-08-24T11:32:45.076Z",
+      "last_verified": "2026-08-24T11:32:41.366Z",
       "current_status": "VERIFIED",
-      "status_reason": "evidence matches the current source digest ebdbf92f304d987e: adversarial-seatbelt.test.ts=16/0; full-chain-adversarial.test.ts=13/0; pty-stream.test.ts=4/0 (lead-run 2026-08-24, node 24.19.0)"
+      "status_reason": "evidence matches the current source digest 6e864afdef999b49: test:safety re-run: adversarial-seatbelt=16/0, full-chain-adversarial=13/0, pty-stream=4/0 [digest-method change 2026-08-24: digests are now RECURSIVE (repo-relative paths), so all prior evidence was correctly invalidated and re-proven]"
     },
     {
       "capability_key": "dna-os-infrastructure:control/runtime-control",
@@ -3161,7 +3170,7 @@
       "repository": "dna-os-infrastructure",
       "path": "control/runtime-control",
       "entrypoint": "control/runtime-control/contract.ts",
-      "version_commit": "8cd4092",
+      "version_commit": "c87ae65",
       "last_changed": "2026-08-24T16:21:05+07:00",
       "owner_boundary": "control",
       "input_contract": [],
@@ -3169,30 +3178,32 @@
       "dependencies": [],
       "callers": [],
       "downstream": [],
-      "runtime_state": "UNKNOWN",
+      "runtime_state": "RUNNING",
       "test_state": "HAS_TESTS",
       "test_files": [
         "control/runtime-control/tests/runtime-control.test.ts"
       ],
       "verification_state": "VERIFIED",
       "evidence_references": [
-        "control/runtime-control/tests/runtime-control.test.ts => 4 passed, 0 failed"
+        "control/runtime-control/tests/runtime-control.test.ts => 4 passed, 0 failed",
+        "runtime-control.test.ts=4/0 (lead-run) [digest-method change 2026-08-24: digests are now RECURSIVE (repo-relative paths), so all prior evidence was correctly invalidated and re-proven]"
       ],
       "registration_state": "REGISTERED_STALE",
       "registry_matches": [
         "capability-778281b5-3805-4a9a-b5ff-371062ffd52a@unverified"
       ],
       "lineage": [
-        "2026-08-24T07:09:59.814Z:VERIFIED:fac9943be8594be8"
+        "2026-08-24T07:09:59.814Z:VERIFIED:fac9943be8594be8",
+        "2026-08-24T11:32:43.819Z:VERIFIED:75e2ab9e834f9bef"
       ],
       "supersedes": [],
       "duplicates": [],
       "security_boundary": [],
-      "source_digest": "fac9943be8594be8",
-      "last_observed": "2026-08-24T09:25:19.148Z",
-      "last_verified": "2026-08-24T07:09:59.814Z",
+      "source_digest": "75e2ab9e834f9bef",
+      "last_observed": "2026-08-24T11:32:45.076Z",
+      "last_verified": "2026-08-24T11:32:43.819Z",
       "current_status": "VERIFIED",
-      "status_reason": "evidence matches the current source digest fac9943be8594be8: control/runtime-control/tests/runtime-control.test.ts => 4 passed, 0 failed"
+      "status_reason": "evidence matches the current source digest 75e2ab9e834f9bef: runtime-control.test.ts=4/0 (lead-run) [digest-method change 2026-08-24: digests are now RECURSIVE (repo-relative paths), so all prior evidence was correctly invalidated and re-proven]"
     },
     {
       "capability_key": "dna-os-infrastructure:control/runtime-verification",
@@ -3203,7 +3214,7 @@
       "repository": "dna-os-infrastructure",
       "path": "control/runtime-verification",
       "entrypoint": "control/runtime-verification/contract.ts",
-      "version_commit": "8cd4092",
+      "version_commit": "c87ae65",
       "last_changed": "2026-08-24T16:21:05+07:00",
       "owner_boundary": "control",
       "input_contract": [],
@@ -3213,30 +3224,32 @@
         "control/external-system-lifecycle/pipeline.ts"
       ],
       "downstream": [],
-      "runtime_state": "UNKNOWN",
+      "runtime_state": "RUNNING",
       "test_state": "HAS_TESTS",
       "test_files": [
         "control/runtime-verification/tests/runtime-verification.test.ts"
       ],
       "verification_state": "VERIFIED",
       "evidence_references": [
-        "control/runtime-verification/tests/runtime-verification.test.ts => 4 passed, 0 failed"
+        "control/runtime-verification/tests/runtime-verification.test.ts => 4 passed, 0 failed",
+        "runtime-verification.test.ts=4/0 (lead-run) [digest-method change 2026-08-24: digests are now RECURSIVE (repo-relative paths), so all prior evidence was correctly invalidated and re-proven]"
       ],
       "registration_state": "REGISTERED_STALE",
       "registry_matches": [
         "capability-10bfc7c7-69b3-46d5-b56e-5ac6a1ff02cd@unverified"
       ],
       "lineage": [
-        "2026-08-24T06:39:00.719Z:VERIFIED:2c633ea4653169cc"
+        "2026-08-24T06:39:00.719Z:VERIFIED:2c633ea4653169cc",
+        "2026-08-24T11:32:44.056Z:VERIFIED:65d4b9f851f27291"
       ],
       "supersedes": [],
       "duplicates": [],
       "security_boundary": [],
-      "source_digest": "2c633ea4653169cc",
-      "last_observed": "2026-08-24T09:25:19.148Z",
-      "last_verified": "2026-08-24T06:39:00.719Z",
+      "source_digest": "65d4b9f851f27291",
+      "last_observed": "2026-08-24T11:32:45.076Z",
+      "last_verified": "2026-08-24T11:32:44.056Z",
       "current_status": "VERIFIED",
-      "status_reason": "evidence matches the current source digest 2c633ea4653169cc: control/runtime-verification/tests/runtime-verification.test.ts => 4 passed, 0 failed"
+      "status_reason": "evidence matches the current source digest 65d4b9f851f27291: runtime-verification.test.ts=4/0 (lead-run) [digest-method change 2026-08-24: digests are now RECURSIVE (repo-relative paths), so all prior evidence was correctly invalidated and re-proven]"
     },
     {
       "capability_key": "dna-os-infrastructure:control/scheduler",
@@ -3247,7 +3260,7 @@
       "repository": "dna-os-infrastructure",
       "path": "control/scheduler",
       "entrypoint": "control/scheduler/contract.ts",
-      "version_commit": "8cd4092",
+      "version_commit": "c87ae65",
       "last_changed": "2026-08-24T16:21:05+07:00",
       "owner_boundary": "control",
       "input_contract": [],
@@ -3276,8 +3289,8 @@
       "security_boundary": [
         "control/agent-host (sandbox profile rendering)"
       ],
-      "source_digest": "b55ae85bd38dfe68",
-      "last_observed": "2026-08-24T09:25:19.148Z",
+      "source_digest": "90ecab120f745c87",
+      "last_observed": "2026-08-24T11:32:45.076Z",
       "last_verified": null,
       "current_status": "UNVERIFIED",
       "status_reason": "has 1 test file(s) but no verification evidence recorded in the ledger"
@@ -3291,7 +3304,7 @@
       "repository": "dna-os-infrastructure",
       "path": "control/self-understanding-ingress",
       "entrypoint": "control/self-understanding-ingress/contract.ts",
-      "version_commit": "8cd4092",
+      "version_commit": "c87ae65",
       "last_changed": "2026-08-24T16:21:05+07:00",
       "owner_boundary": "control",
       "input_contract": [],
@@ -3316,8 +3329,8 @@
       "supersedes": [],
       "duplicates": [],
       "security_boundary": [],
-      "source_digest": "efcca297c4f8053a",
-      "last_observed": "2026-08-24T09:25:19.148Z",
+      "source_digest": "0bc8c3e54413d0f6",
+      "last_observed": "2026-08-24T11:32:45.076Z",
       "last_verified": null,
       "current_status": "UNVERIFIED",
       "status_reason": "has 1 test file(s) but no verification evidence recorded in the ledger"
@@ -3331,7 +3344,7 @@
       "repository": "dna-os-infrastructure",
       "path": "control/source-execution",
       "entrypoint": "control/source-execution/contract.ts",
-      "version_commit": "8cd4092",
+      "version_commit": "c87ae65",
       "last_changed": "2026-08-24T16:21:05+07:00",
       "owner_boundary": "control",
       "input_contract": [],
@@ -3364,8 +3377,8 @@
       "supersedes": [],
       "duplicates": [],
       "security_boundary": [],
-      "source_digest": "6f692c56f8f957ec",
-      "last_observed": "2026-08-24T09:25:19.148Z",
+      "source_digest": "42b66796c32feb12",
+      "last_observed": "2026-08-24T11:32:45.076Z",
       "last_verified": null,
       "current_status": "UNVERIFIED",
       "status_reason": "has 1 test file(s) but no verification evidence recorded in the ledger"
@@ -3379,7 +3392,7 @@
       "repository": "dna-os-infrastructure",
       "path": "control/source-workspace",
       "entrypoint": "control/source-workspace/contract.ts",
-      "version_commit": "8cd4092",
+      "version_commit": "c87ae65",
       "last_changed": "2026-08-24T16:21:05+07:00",
       "owner_boundary": "control",
       "input_contract": [],
@@ -3390,30 +3403,32 @@
         "control/agent-production-ingress/types.ts"
       ],
       "downstream": [],
-      "runtime_state": "UNKNOWN",
+      "runtime_state": "RUNNING",
       "test_state": "HAS_TESTS",
       "test_files": [
         "control/source-workspace/tests/source-workspace.test.ts"
       ],
       "verification_state": "VERIFIED",
       "evidence_references": [
-        "control/source-workspace/tests/source-workspace.test.ts => 5 passed, 0 failed"
+        "control/source-workspace/tests/source-workspace.test.ts => 5 passed, 0 failed",
+        "source-workspace.test.ts=5/0 (lead-run) [digest-method change 2026-08-24: digests are now RECURSIVE (repo-relative paths), so all prior evidence was correctly invalidated and re-proven]"
       ],
       "registration_state": "REGISTERED_STALE",
       "registry_matches": [
         "capability-8c2d9714-e991-40fd-a167-70419164ffbd@unverified"
       ],
       "lineage": [
-        "2026-08-24T07:09:59.814Z:VERIFIED:e53d783e80a4afd6"
+        "2026-08-24T07:09:59.814Z:VERIFIED:e53d783e80a4afd6",
+        "2026-08-24T11:32:44.297Z:VERIFIED:cbcc4876588b40e2"
       ],
       "supersedes": [],
       "duplicates": [],
       "security_boundary": [],
-      "source_digest": "e53d783e80a4afd6",
-      "last_observed": "2026-08-24T09:25:19.148Z",
-      "last_verified": "2026-08-24T07:09:59.814Z",
+      "source_digest": "cbcc4876588b40e2",
+      "last_observed": "2026-08-24T11:32:45.076Z",
+      "last_verified": "2026-08-24T11:32:44.297Z",
       "current_status": "VERIFIED",
-      "status_reason": "evidence matches the current source digest e53d783e80a4afd6: control/source-workspace/tests/source-workspace.test.ts => 5 passed, 0 failed"
+      "status_reason": "evidence matches the current source digest cbcc4876588b40e2: source-workspace.test.ts=5/0 (lead-run) [digest-method change 2026-08-24: digests are now RECURSIVE (repo-relative paths), so all prior evidence was correctly invalidated and re-proven]"
     },
     {
       "capability_key": "dna-os-infrastructure:control/system-reference-resolution",
@@ -3424,7 +3439,7 @@
       "repository": "dna-os-infrastructure",
       "path": "control/system-reference-resolution",
       "entrypoint": "control/system-reference-resolution/contract.ts",
-      "version_commit": "8cd4092",
+      "version_commit": "c87ae65",
       "last_changed": "2026-08-24T16:21:05+07:00",
       "owner_boundary": "control",
       "input_contract": [],
@@ -3455,8 +3470,8 @@
       "supersedes": [],
       "duplicates": [],
       "security_boundary": [],
-      "source_digest": "9eb1d09afb8b5db8",
-      "last_observed": "2026-08-24T09:25:19.148Z",
+      "source_digest": "2c22553496c36f43",
+      "last_observed": "2026-08-24T11:32:45.076Z",
       "last_verified": null,
       "current_status": "UNVERIFIED",
       "status_reason": "has 4 test file(s) but no verification evidence recorded in the ledger"
@@ -3470,7 +3485,7 @@
       "repository": "dna-os-infrastructure",
       "path": "control/target-resolution",
       "entrypoint": "control/target-resolution/contract.ts",
-      "version_commit": "8cd4092",
+      "version_commit": "c87ae65",
       "last_changed": "2026-08-24T16:21:05+07:00",
       "owner_boundary": "control",
       "input_contract": [],
@@ -3504,8 +3519,8 @@
       "supersedes": [],
       "duplicates": [],
       "security_boundary": [],
-      "source_digest": "c94115d7d9ef89d3",
-      "last_observed": "2026-08-24T09:25:19.148Z",
+      "source_digest": "7a4d9f3ba68a4214",
+      "last_observed": "2026-08-24T11:32:45.076Z",
       "last_verified": null,
       "current_status": "UNVERIFIED",
       "status_reason": "has 1 test file(s) but no verification evidence recorded in the ledger"
@@ -3519,7 +3534,7 @@
       "repository": "dna-os-infrastructure",
       "path": "control/work-coordination",
       "entrypoint": "control/work-coordination/contract.ts",
-      "version_commit": "8cd4092",
+      "version_commit": "c87ae65",
       "last_changed": "2026-08-24T16:21:05+07:00",
       "owner_boundary": "control",
       "input_contract": [],
@@ -3539,7 +3554,7 @@
         "control/scheduler/coordinator.ts"
       ],
       "downstream": [],
-      "runtime_state": "UNKNOWN",
+      "runtime_state": "RUNNING",
       "test_state": "HAS_TESTS",
       "test_files": [
         "control/work-coordination/atomic-claim.test.ts",
@@ -3548,25 +3563,27 @@
       ],
       "verification_state": "VERIFIED",
       "evidence_references": [
-        "write-scope.test.ts=18/0 incl. 12-process overlapping-boundary race; atomic-claim.test.ts=9/0 (lead-run)"
+        "write-scope.test.ts=18/0 incl. 12-process overlapping-boundary race; atomic-claim.test.ts=9/0 (lead-run)",
+        "test:safety re-run: write-scope=18/0 (12-process overlapping-boundary race), atomic-claim=9/0 [digest-method change 2026-08-24: digests are now RECURSIVE (repo-relative paths), so all prior evidence was correctly invalidated and re-proven]"
       ],
       "registration_state": "REGISTERED_STALE",
       "registry_matches": [
         "capability-d94cce09-cd17-43c6-a68c-00b9759c1389@unverified"
       ],
       "lineage": [
-        "2026-08-24T06:00:08.175Z:VERIFIED:c8615de3ed6eaed5"
+        "2026-08-24T06:00:08.175Z:VERIFIED:c8615de3ed6eaed5",
+        "2026-08-24T11:32:42.076Z:VERIFIED:66a13a6f34a54def"
       ],
       "supersedes": [],
       "duplicates": [],
       "security_boundary": [
         "execution/process-lock (cross-process mutex)"
       ],
-      "source_digest": "c8615de3ed6eaed5",
-      "last_observed": "2026-08-24T09:25:19.148Z",
-      "last_verified": "2026-08-24T06:00:08.175Z",
+      "source_digest": "66a13a6f34a54def",
+      "last_observed": "2026-08-24T11:32:45.076Z",
+      "last_verified": "2026-08-24T11:32:42.076Z",
       "current_status": "VERIFIED",
-      "status_reason": "evidence matches the current source digest c8615de3ed6eaed5: write-scope.test.ts=18/0 incl. 12-process overlapping-boundary race; atomic-claim.test.ts=9/0 (lead-run)"
+      "status_reason": "evidence matches the current source digest 66a13a6f34a54def: test:safety re-run: write-scope=18/0 (12-process overlapping-boundary race), atomic-claim=9/0 [digest-method change 2026-08-24: digests are now RECURSIVE (repo-relative paths), so all prior evidence was correctly invalidated and re-proven]"
     },
     {
       "capability_key": "dna-os-infrastructure:control/work-graph",
@@ -3577,7 +3594,7 @@
       "repository": "dna-os-infrastructure",
       "path": "control/work-graph",
       "entrypoint": "control/work-graph/contract.ts",
-      "version_commit": "8cd4092",
+      "version_commit": "c87ae65",
       "last_changed": "2026-08-24T16:21:05+07:00",
       "owner_boundary": "control",
       "input_contract": [],
@@ -3610,8 +3627,8 @@
       "supersedes": [],
       "duplicates": [],
       "security_boundary": [],
-      "source_digest": "adf6ba37aaff2edf",
-      "last_observed": "2026-08-24T09:25:19.148Z",
+      "source_digest": "005e474f34d70786",
+      "last_observed": "2026-08-24T11:32:45.076Z",
       "last_verified": null,
       "current_status": "UNVERIFIED",
       "status_reason": "has 1 test file(s) but no verification evidence recorded in the ledger"
@@ -3625,7 +3642,7 @@
       "repository": "dna-os-infrastructure",
       "path": "control/work-result-ingress",
       "entrypoint": "control/work-result-ingress/contract.ts",
-      "version_commit": "8cd4092",
+      "version_commit": "c87ae65",
       "last_changed": "2026-08-24T16:21:05+07:00",
       "owner_boundary": "control",
       "input_contract": [],
@@ -3671,8 +3688,8 @@
       "supersedes": [],
       "duplicates": [],
       "security_boundary": [],
-      "source_digest": "66b90acb9bbbf393",
-      "last_observed": "2026-08-24T09:25:19.148Z",
+      "source_digest": "08bb1f9a231c0c93",
+      "last_observed": "2026-08-24T11:32:45.076Z",
       "last_verified": null,
       "current_status": "UNVERIFIED",
       "status_reason": "has 3 test file(s) but no verification evidence recorded in the ledger"
@@ -3686,7 +3703,7 @@
       "repository": "dna-os-infrastructure",
       "path": "credentials/macos-keychain",
       "entrypoint": "credentials/macos-keychain/index.ts",
-      "version_commit": "8cd4092",
+      "version_commit": "c87ae65",
       "last_changed": "2026-08-24T16:21:05+07:00",
       "owner_boundary": "credentials",
       "input_contract": [],
@@ -3723,8 +3740,8 @@
       "security_boundary": [
         "credentials/macos-keychain (secret material)"
       ],
-      "source_digest": "a07beee88d03dafd",
-      "last_observed": "2026-08-24T09:25:19.148Z",
+      "source_digest": "790c3b8f5b907e3e",
+      "last_observed": "2026-08-24T11:32:45.076Z",
       "last_verified": null,
       "current_status": "UNVERIFIED",
       "status_reason": "has 2 test file(s) but no verification evidence recorded in the ledger"
@@ -3738,7 +3755,7 @@
       "repository": "dna-os-infrastructure",
       "path": "credentials/provider-accounts",
       "entrypoint": null,
-      "version_commit": "8cd4092",
+      "version_commit": "c87ae65",
       "last_changed": "2026-08-24T16:21:05+07:00",
       "owner_boundary": "credentials",
       "input_contract": [],
@@ -3758,7 +3775,7 @@
       "duplicates": [],
       "security_boundary": [],
       "source_digest": "NO_SOURCE",
-      "last_observed": "2026-08-24T09:25:19.148Z",
+      "last_observed": "2026-08-24T11:32:45.076Z",
       "last_verified": null,
       "current_status": "DECLARED_ONLY",
       "status_reason": "folder contains documentation/data but no .ts/.mjs implementation"
@@ -3772,7 +3789,7 @@
       "repository": "dna-os-infrastructure",
       "path": "credentials/provider-accounts/digitalocean",
       "entrypoint": null,
-      "version_commit": "8cd4092",
+      "version_commit": "c87ae65",
       "last_changed": "2026-08-24T16:21:05+07:00",
       "owner_boundary": "credentials",
       "input_contract": [],
@@ -3805,8 +3822,8 @@
       "supersedes": [],
       "duplicates": [],
       "security_boundary": [],
-      "source_digest": "46585eae09b29e75",
-      "last_observed": "2026-08-24T09:25:19.148Z",
+      "source_digest": "ba74f457c2aa6c65",
+      "last_observed": "2026-08-24T11:32:45.076Z",
       "last_verified": "2026-08-24T07:12:34.469Z",
       "current_status": "BLOCKED",
       "status_reason": "ledger records BLOCKED: credentials/provider-accounts/digitalocean/tests/policies.test.ts => 0 passed, 0 failed (TIMEOUT)"
@@ -3820,7 +3837,7 @@
       "repository": "dna-os-infrastructure",
       "path": "credentials/registry",
       "entrypoint": null,
-      "version_commit": "8cd4092",
+      "version_commit": "c87ae65",
       "last_changed": "2026-08-24T16:21:05+07:00",
       "owner_boundary": "credentials",
       "input_contract": [],
@@ -3913,8 +3930,8 @@
       "security_boundary": [
         "credentials/macos-keychain (secret material)"
       ],
-      "source_digest": "b456fe6220ce7e10",
-      "last_observed": "2026-08-24T09:25:19.148Z",
+      "source_digest": "ff08daff41bd8c81",
+      "last_observed": "2026-08-24T11:32:45.076Z",
       "last_verified": null,
       "current_status": "UNVERIFIED",
       "status_reason": "has 2 test file(s) but no verification evidence recorded in the ledger"
@@ -3928,7 +3945,7 @@
       "repository": "dna-os-infrastructure",
       "path": "dna-os-circuit/adapter",
       "entrypoint": null,
-      "version_commit": "8cd4092",
+      "version_commit": "c87ae65",
       "last_changed": "2026-08-24T16:21:05+07:00",
       "owner_boundary": "dna-os-circuit",
       "input_contract": [],
@@ -3979,8 +3996,8 @@
         "permissions/access-control (identity / membership)",
         "execution/run (process gate)"
       ],
-      "source_digest": "f460af9d65a121f7",
-      "last_observed": "2026-08-24T09:25:19.148Z",
+      "source_digest": "bc53af51c0ec50da",
+      "last_observed": "2026-08-24T11:32:45.076Z",
       "last_verified": null,
       "current_status": "UNVERIFIED",
       "status_reason": "has 1 test file(s) but no verification evidence recorded in the ledger"
@@ -3994,8 +4011,8 @@
       "repository": "dna-os-infrastructure",
       "path": "dna-os-circuit/runtime",
       "entrypoint": null,
-      "version_commit": "8cd4092",
-      "last_changed": "2026-08-24T16:21:05+07:00",
+      "version_commit": "b692d4d",
+      "last_changed": "2026-08-24T17:16:03+07:00",
       "owner_boundary": "dna-os-circuit",
       "input_contract": [],
       "output_contract": [],
@@ -4005,7 +4022,8 @@
         "contracts/worker",
         "control/agent-gateway",
         "dna-os-circuit/adapter",
-        "dna-os-circuit/definition"
+        "dna-os-circuit/definition",
+        "permissions/network-auth-gate"
       ],
       "callers": [
         "connections/digitalocean/digitalocean-adapter.ts",
@@ -4071,12 +4089,13 @@
         "observability/joint-monitor/server.ts",
         "observability/joint-monitor/start.ts",
         "software/live-census/cli.ts",
+        "software/live-census/contract.ts",
         "software/live-census/observe.ts",
         "software/registry-database/adapters/local-file-store.ts",
         "software/registry-database/adapters/persistent-file-store.ts"
       ],
       "downstream": [],
-      "runtime_state": "UNKNOWN",
+      "runtime_state": "RUNNING",
       "test_state": "HAS_TESTS",
       "test_files": [
         "dna-os-circuit/runtime/tests/circuit-state.test.ts",
@@ -4093,11 +4112,11 @@
       "supersedes": [],
       "duplicates": [],
       "security_boundary": [],
-      "source_digest": "7a2e7134e4862731",
-      "last_observed": "2026-08-24T09:25:19.148Z",
+      "source_digest": "79b17f894ad4d0c0",
+      "last_observed": "2026-08-24T11:32:45.076Z",
       "last_verified": null,
       "current_status": "UNVERIFIED",
-      "status_reason": "has 5 test file(s) but no verification evidence recorded in the ledger"
+      "status_reason": "running live (8 process ref(s)) but no verification evidence recorded"
     },
     {
       "capability_key": "dna-os-infrastructure:dna-os-circuit/ui",
@@ -4108,7 +4127,7 @@
       "repository": "dna-os-infrastructure",
       "path": "dna-os-circuit/ui",
       "entrypoint": null,
-      "version_commit": "8cd4092",
+      "version_commit": "c87ae65",
       "last_changed": "2026-08-24T16:21:05+07:00",
       "owner_boundary": "dna-os-circuit",
       "input_contract": [],
@@ -4137,7 +4156,7 @@
       "duplicates": [],
       "security_boundary": [],
       "source_digest": "NO_SOURCE",
-      "last_observed": "2026-08-24T09:25:19.148Z",
+      "last_observed": "2026-08-24T11:32:45.076Z",
       "last_verified": null,
       "current_status": "DECLARED_ONLY",
       "status_reason": "folder contains documentation/data but no .ts/.mjs implementation"
@@ -4174,7 +4193,7 @@
       "duplicates": [],
       "security_boundary": [],
       "source_digest": "NO_SOURCE",
-      "last_observed": "2026-08-24T09:25:19.148Z",
+      "last_observed": "2026-08-24T11:32:45.076Z",
       "last_verified": null,
       "current_status": "DECLARED_ONLY",
       "status_reason": "folder contains documentation/data but no .ts/.mjs implementation"
@@ -4208,7 +4227,7 @@
       "duplicates": [],
       "security_boundary": [],
       "source_digest": "NO_SOURCE",
-      "last_observed": "2026-08-24T09:25:19.148Z",
+      "last_observed": "2026-08-24T11:32:45.076Z",
       "last_verified": null,
       "current_status": "DECLARED_ONLY",
       "status_reason": "folder contains documentation/data but no .ts/.mjs implementation"
@@ -4222,7 +4241,7 @@
       "repository": "dna-os-infrastructure",
       "path": "execution/deploy",
       "entrypoint": "execution/deploy/contract.ts",
-      "version_commit": "8cd4092",
+      "version_commit": "c87ae65",
       "last_changed": "2026-08-24T16:21:05+07:00",
       "owner_boundary": "execution",
       "input_contract": [],
@@ -4232,28 +4251,30 @@
         "control/external-system-lifecycle/pipeline.ts"
       ],
       "downstream": [],
-      "runtime_state": "UNKNOWN",
+      "runtime_state": "RUNNING",
       "test_state": "HAS_TESTS",
       "test_files": [
         "execution/deploy/tests/deploy.test.ts"
       ],
       "verification_state": "VERIFIED",
       "evidence_references": [
-        "execution/deploy/tests/deploy.test.ts => 5 passed, 0 failed"
+        "execution/deploy/tests/deploy.test.ts => 5 passed, 0 failed",
+        "deploy.test.ts=5/0 (lead-run) [digest-method change 2026-08-24: digests are now RECURSIVE (repo-relative paths), so all prior evidence was correctly invalidated and re-proven]"
       ],
       "registration_state": "UNREGISTERED",
       "registry_matches": [],
       "lineage": [
-        "2026-08-24T07:12:34.474Z:VERIFIED:0fa610328a316feb"
+        "2026-08-24T07:12:34.474Z:VERIFIED:0fa610328a316feb",
+        "2026-08-24T11:32:44.549Z:VERIFIED:d55a694b36992c7f"
       ],
       "supersedes": [],
       "duplicates": [],
       "security_boundary": [],
-      "source_digest": "0fa610328a316feb",
-      "last_observed": "2026-08-24T09:25:19.148Z",
-      "last_verified": "2026-08-24T07:12:34.474Z",
+      "source_digest": "d55a694b36992c7f",
+      "last_observed": "2026-08-24T11:32:45.076Z",
+      "last_verified": "2026-08-24T11:32:44.549Z",
       "current_status": "VERIFIED",
-      "status_reason": "evidence matches the current source digest 0fa610328a316feb: execution/deploy/tests/deploy.test.ts => 5 passed, 0 failed"
+      "status_reason": "evidence matches the current source digest d55a694b36992c7f: deploy.test.ts=5/0 (lead-run) [digest-method change 2026-08-24: digests are now RECURSIVE (repo-relative paths), so all prior evidence was correctly invalidated and re-proven]"
     },
     {
       "capability_key": "dna-os-infrastructure:execution/file-write",
@@ -4264,7 +4285,7 @@
       "repository": "dna-os-infrastructure",
       "path": "execution/file-write",
       "entrypoint": "execution/file-write/contract.ts",
-      "version_commit": "8cd4092",
+      "version_commit": "c87ae65",
       "last_changed": "2026-08-24T16:21:05+07:00",
       "owner_boundary": "execution",
       "input_contract": [],
@@ -4299,8 +4320,8 @@
       "security_boundary": [
         "control/agent-host (sandbox profile rendering)"
       ],
-      "source_digest": "84ada0f21e262773",
-      "last_observed": "2026-08-24T09:25:19.148Z",
+      "source_digest": "e7cb8e21282bcd84",
+      "last_observed": "2026-08-24T11:32:45.076Z",
       "last_verified": null,
       "current_status": "UNVERIFIED",
       "status_reason": "has 4 test file(s) but no verification evidence recorded in the ledger"
@@ -4314,7 +4335,7 @@
       "repository": "dna-os-infrastructure",
       "path": "execution/process-lock",
       "entrypoint": "execution/process-lock/contract.ts",
-      "version_commit": "8cd4092",
+      "version_commit": "c87ae65",
       "last_changed": "2026-08-24T16:21:05+07:00",
       "owner_boundary": "execution",
       "input_contract": [],
@@ -4328,30 +4349,32 @@
         "governance/release-gate/resolver.ts"
       ],
       "downstream": [],
-      "runtime_state": "UNKNOWN",
+      "runtime_state": "RUNNING",
       "test_state": "HAS_TESTS",
       "test_files": [
         "execution/process-lock/tests/process-lock.test.ts"
       ],
       "verification_state": "VERIFIED",
       "evidence_references": [
-        "execution/process-lock/tests/process-lock.test.ts=7/0 incl. 20-process cross-process race (lead-run)"
+        "execution/process-lock/tests/process-lock.test.ts=7/0 incl. 20-process cross-process race (lead-run)",
+        "test:safety re-run: process-lock=7/0 incl. 20-process cross-process race [digest-method change 2026-08-24: digests are now RECURSIVE (repo-relative paths), so all prior evidence was correctly invalidated and re-proven]"
       ],
       "registration_state": "UNREGISTERED",
       "registry_matches": [],
       "lineage": [
-        "2026-08-24T06:00:07.910Z:VERIFIED:801abe758026e84e"
+        "2026-08-24T06:00:07.910Z:VERIFIED:801abe758026e84e",
+        "2026-08-24T11:32:41.840Z:VERIFIED:f281a8db21a2ece7"
       ],
       "supersedes": [],
       "duplicates": [],
       "security_boundary": [
         "execution/process-lock (cross-process mutex)"
       ],
-      "source_digest": "801abe758026e84e",
-      "last_observed": "2026-08-24T09:25:19.148Z",
-      "last_verified": "2026-08-24T06:00:07.910Z",
+      "source_digest": "f281a8db21a2ece7",
+      "last_observed": "2026-08-24T11:32:45.076Z",
+      "last_verified": "2026-08-24T11:32:41.840Z",
       "current_status": "VERIFIED",
-      "status_reason": "evidence matches the current source digest 801abe758026e84e: execution/process-lock/tests/process-lock.test.ts=7/0 incl. 20-process cross-process race (lead-run)"
+      "status_reason": "evidence matches the current source digest f281a8db21a2ece7: test:safety re-run: process-lock=7/0 incl. 20-process cross-process race [digest-method change 2026-08-24: digests are now RECURSIVE (repo-relative paths), so all prior evidence was correctly invalidated and re-proven]"
     },
     {
       "capability_key": "dna-os-infrastructure:execution/rollback",
@@ -4382,7 +4405,7 @@
       "duplicates": [],
       "security_boundary": [],
       "source_digest": "NO_SOURCE",
-      "last_observed": "2026-08-24T09:25:19.148Z",
+      "last_observed": "2026-08-24T11:32:45.076Z",
       "last_verified": null,
       "current_status": "DECLARED_ONLY",
       "status_reason": "folder contains documentation/data but no .ts/.mjs implementation"
@@ -4396,7 +4419,7 @@
       "repository": "dna-os-infrastructure",
       "path": "execution/run",
       "entrypoint": "execution/run/contract.ts",
-      "version_commit": "8cd4092",
+      "version_commit": "c87ae65",
       "last_changed": "2026-08-24T16:21:05+07:00",
       "owner_boundary": "execution",
       "input_contract": [],
@@ -4425,7 +4448,7 @@
         "dna-os-circuit/adapter/internal-state-adapter.ts"
       ],
       "downstream": [],
-      "runtime_state": "UNKNOWN",
+      "runtime_state": "RUNNING",
       "test_state": "HAS_TESTS",
       "test_files": [
         "execution/run/tests/executor.test.ts",
@@ -4434,14 +4457,16 @@
         "execution/run/tests/process-boundary-scan.test.ts",
         "execution/run/tests/result.test.ts"
       ],
-      "verification_state": "REQUIRES_REVERIFICATION",
+      "verification_state": "VERIFIED",
       "evidence_references": [
-        "npm run test:control-plane exit 0 (106 checks); executor+result suites within it (lead-run)"
+        "npm run test:control-plane exit 0 (106 checks); executor+result suites within it (lead-run)",
+        "test:control-plane re-run exit 0: source-execution + executor path [digest-method change 2026-08-24: digests are now RECURSIVE (repo-relative paths), so all prior evidence was correctly invalidated and re-proven]"
       ],
       "registration_state": "UNREGISTERED",
       "registry_matches": [],
       "lineage": [
-        "2026-08-24T06:00:08.423Z:VERIFIED:2c16763051d3af52"
+        "2026-08-24T06:00:08.423Z:VERIFIED:2c16763051d3af52",
+        "2026-08-24T11:32:43.320Z:VERIFIED:1ac3ff1afdcb2c59"
       ],
       "supersedes": [],
       "duplicates": [],
@@ -4451,11 +4476,11 @@
         "permissions/execution-policy (execution permission decision)",
         "execution/run (process gate)"
       ],
-      "source_digest": "2c16763051d3af52",
-      "last_observed": "2026-08-24T09:25:19.148Z",
-      "last_verified": "2026-08-24T06:00:08.423Z",
-      "current_status": "REQUIRES_REVERIFICATION",
-      "status_reason": "dependency code moved since this was verified: permissions/execution-policy via execution/run -> permissions/execution-policy. Its own source is unchanged, so the evidence still describes THIS code — but not the code underneath it."
+      "source_digest": "1ac3ff1afdcb2c59",
+      "last_observed": "2026-08-24T11:32:45.076Z",
+      "last_verified": "2026-08-24T11:32:43.320Z",
+      "current_status": "VERIFIED",
+      "status_reason": "evidence matches the current source digest 1ac3ff1afdcb2c59: test:control-plane re-run exit 0: source-execution + executor path [digest-method change 2026-08-24: digests are now RECURSIVE (repo-relative paths), so all prior evidence was correctly invalidated and re-proven]"
     },
     {
       "capability_key": "dna-os-infrastructure:execution/test",
@@ -4486,7 +4511,7 @@
       "duplicates": [],
       "security_boundary": [],
       "source_digest": "NO_SOURCE",
-      "last_observed": "2026-08-24T09:25:19.148Z",
+      "last_observed": "2026-08-24T11:32:45.076Z",
       "last_verified": null,
       "current_status": "DECLARED_ONLY",
       "status_reason": "folder contains documentation/data but no .ts/.mjs implementation"
@@ -4500,7 +4525,7 @@
       "repository": "dna-os-infrastructure",
       "path": "governance/architecture-rules",
       "entrypoint": null,
-      "version_commit": "8cd4092",
+      "version_commit": "c87ae65",
       "last_changed": "2026-08-24T16:21:05+07:00",
       "owner_boundary": "governance",
       "input_contract": [],
@@ -4520,7 +4545,7 @@
       "duplicates": [],
       "security_boundary": [],
       "source_digest": "NO_SOURCE",
-      "last_observed": "2026-08-24T09:25:19.148Z",
+      "last_observed": "2026-08-24T11:32:45.076Z",
       "last_verified": null,
       "current_status": "DECLARED_ONLY",
       "status_reason": "folder contains documentation/data but no .ts/.mjs implementation"
@@ -4554,7 +4579,7 @@
       "duplicates": [],
       "security_boundary": [],
       "source_digest": "NO_SOURCE",
-      "last_observed": "2026-08-24T09:25:19.148Z",
+      "last_observed": "2026-08-24T11:32:45.076Z",
       "last_verified": null,
       "current_status": "DECLARED_ONLY",
       "status_reason": "folder contains documentation/data but no .ts/.mjs implementation"
@@ -4588,7 +4613,7 @@
       "duplicates": [],
       "security_boundary": [],
       "source_digest": "NO_SOURCE",
-      "last_observed": "2026-08-24T09:25:19.148Z",
+      "last_observed": "2026-08-24T11:32:45.076Z",
       "last_verified": null,
       "current_status": "DECLARED_ONLY",
       "status_reason": "folder contains documentation/data but no .ts/.mjs implementation"
@@ -4602,7 +4627,7 @@
       "repository": "dna-os-infrastructure",
       "path": "governance/release-gate",
       "entrypoint": "governance/release-gate/contract.ts",
-      "version_commit": "8cd4092",
+      "version_commit": "c87ae65",
       "last_changed": "2026-08-24T16:21:05+07:00",
       "owner_boundary": "governance",
       "input_contract": [],
@@ -4631,8 +4656,8 @@
       "security_boundary": [
         "execution/process-lock (cross-process mutex)"
       ],
-      "source_digest": "0e937319d7b59f5a",
-      "last_observed": "2026-08-24T09:25:19.148Z",
+      "source_digest": "d627529df08e3191",
+      "last_observed": "2026-08-24T11:32:45.076Z",
       "last_verified": null,
       "current_status": "UNVERIFIED",
       "status_reason": "has 1 test file(s) but no verification evidence recorded in the ledger"
@@ -4646,7 +4671,7 @@
       "repository": "dna-os-infrastructure",
       "path": "governance/source-validation",
       "entrypoint": "governance/source-validation/contract.ts",
-      "version_commit": "8cd4092",
+      "version_commit": "c87ae65",
       "last_changed": "2026-08-24T16:21:05+07:00",
       "owner_boundary": "governance",
       "input_contract": [],
@@ -4677,8 +4702,8 @@
       "supersedes": [],
       "duplicates": [],
       "security_boundary": [],
-      "source_digest": "233a71bd2fc2b99b",
-      "last_observed": "2026-08-24T09:25:19.148Z",
+      "source_digest": "40fa8f1f0f32accf",
+      "last_observed": "2026-08-24T11:32:45.076Z",
       "last_verified": "2026-08-24T06:48:11.134Z",
       "current_status": "BLOCKED",
       "status_reason": "ledger records BLOCKED: governance/source-validation/tests/boundary-checker-proof.test.ts => 0 passed, 0 failed (TIMEOUT)"
@@ -4692,12 +4717,14 @@
       "repository": "dna-os-infrastructure",
       "path": "observability/joint-monitor",
       "entrypoint": "observability/joint-monitor/contract.ts",
-      "version_commit": "8cd4092",
-      "last_changed": "2026-08-24T16:21:05+07:00",
+      "version_commit": "b692d4d",
+      "last_changed": "2026-08-24T17:16:03+07:00",
       "owner_boundary": "observability",
       "input_contract": [],
       "output_contract": [],
-      "dependencies": [],
+      "dependencies": [
+        "permissions/network-auth-gate"
+      ],
       "callers": [
         "control/agent-gateway/gateway.ts",
         "control/circuit-breaker/daemon.ts",
@@ -4720,8 +4747,8 @@
       "supersedes": [],
       "duplicates": [],
       "security_boundary": [],
-      "source_digest": "e905f3b0d3f884ff",
-      "last_observed": "2026-08-24T09:25:19.148Z",
+      "source_digest": "ad9ec352bca5a829",
+      "last_observed": "2026-08-24T11:32:45.076Z",
       "last_verified": null,
       "current_status": "UNVERIFIED",
       "status_reason": "has 2 test file(s) but no verification evidence recorded in the ledger"
@@ -4735,7 +4762,7 @@
       "repository": "dna-os-infrastructure",
       "path": "permissions/access-control",
       "entrypoint": null,
-      "version_commit": "8cd4092",
+      "version_commit": "c87ae65",
       "last_changed": "2026-08-24T16:21:05+07:00",
       "owner_boundary": "permissions",
       "input_contract": [],
@@ -4771,8 +4798,8 @@
       "security_boundary": [
         "permissions/access-control (identity / membership)"
       ],
-      "source_digest": "ecc896544927374d",
-      "last_observed": "2026-08-24T09:25:19.148Z",
+      "source_digest": "9fa7c263f2be5528",
+      "last_observed": "2026-08-24T11:32:45.076Z",
       "last_verified": null,
       "current_status": "UNVERIFIED",
       "status_reason": "no tests and no verification evidence"
@@ -4786,7 +4813,7 @@
       "repository": "dna-os-infrastructure",
       "path": "permissions/execution-policy",
       "entrypoint": "permissions/execution-policy/contract.ts",
-      "version_commit": "8cd4092",
+      "version_commit": "c87ae65",
       "last_changed": "2026-08-24T16:21:05+07:00",
       "owner_boundary": "permissions",
       "input_contract": [],
@@ -4821,16 +4848,18 @@
         "permissions/execution-policy/tests/grants.test.ts",
         "permissions/execution-policy/tests/policy.test.ts"
       ],
-      "verification_state": "CHANGED_SINCE_VERIFICATION",
+      "verification_state": "VERIFIED",
       "evidence_references": [
-        "npm run test:control-plane exit 0 — permission-policy-resolution + admission (lead-run)"
+        "npm run test:control-plane exit 0 — permission-policy-resolution + admission (lead-run)",
+        "test:control-plane re-run exit 0: permission-policy-resolution + admission [digest-method change 2026-08-24: digests are now RECURSIVE (repo-relative paths), so all prior evidence was correctly invalidated and re-proven]"
       ],
       "registration_state": "REGISTERED_STALE",
       "registry_matches": [
         "capability-10878d16-b979-4d88-b79f-264345480ae0@unverified"
       ],
       "lineage": [
-        "2026-08-24T06:00:08.647Z:VERIFIED:02298b1de42da1d6"
+        "2026-08-24T06:00:08.647Z:VERIFIED:02298b1de42da1d6",
+        "2026-08-24T11:32:43.578Z:VERIFIED:3b5242f7e0ae2672"
       ],
       "supersedes": [],
       "duplicates": [],
@@ -4838,11 +4867,57 @@
         "permissions/execution-policy (execution permission decision)",
         "permissions/access-control (identity / membership)"
       ],
-      "source_digest": "119f6c46b17e73cb",
-      "last_observed": "2026-08-24T09:25:19.148Z",
-      "last_verified": "2026-08-24T06:00:08.647Z",
-      "current_status": "CHANGED_SINCE_VERIFICATION",
-      "status_reason": "source digest moved 02298b1de42da1d6 -> 119f6c46b17e73cb since verification at 2026-08-24T06:00:08.647Z; prior evidence (npm run test:control-plane exit 0 — permission-policy-resolution + admission (lead-run)) no longer covers this code"
+      "source_digest": "3b5242f7e0ae2672",
+      "last_observed": "2026-08-24T11:32:45.076Z",
+      "last_verified": "2026-08-24T11:32:43.578Z",
+      "current_status": "VERIFIED",
+      "status_reason": "evidence matches the current source digest 3b5242f7e0ae2672: test:control-plane re-run exit 0: permission-policy-resolution + admission [digest-method change 2026-08-24: digests are now RECURSIVE (repo-relative paths), so all prior evidence was correctly invalidated and re-proven]"
+    },
+    {
+      "capability_key": "dna-os-infrastructure:permissions/network-auth-gate",
+      "capability_id": null,
+      "resource_id": null,
+      "canonical_name": "network-auth-gate",
+      "domain": "Permissions / policy",
+      "repository": "dna-os-infrastructure",
+      "path": "permissions/network-auth-gate",
+      "entrypoint": "permissions/network-auth-gate/contract.ts",
+      "version_commit": "7d89036",
+      "last_changed": "2026-08-24T17:02:28+07:00",
+      "owner_boundary": "permissions",
+      "input_contract": [],
+      "output_contract": [],
+      "dependencies": [],
+      "callers": [
+        "dna-os-circuit/runtime/server.ts",
+        "observability/joint-monitor/server.ts",
+        "transport/owner-command-http/server.ts"
+      ],
+      "downstream": [],
+      "runtime_state": "RUNNING",
+      "test_state": "HAS_TESTS",
+      "test_files": [
+        "permissions/network-auth-gate/tests/policy.test.ts"
+      ],
+      "verification_state": "VERIFIED",
+      "evidence_references": [
+        "permissions/network-auth-gate/tests=11/0 (lead-run) + LIVE fail-closed proof: HOST=0.0.0.0 with secret unset -> joint-monitor exited, dna-os-circuit/runtime 0 listening sockets (lsof); timingSafeEqual on equal-length buffers confirmed by read",
+        "test:safety re-run: network-auth-gate=11/0; plus live 401/401/200 + fail-closed exit at real entrypoint [digest-method change 2026-08-24: digests are now RECURSIVE (repo-relative paths), so all prior evidence was correctly invalidated and re-proven]"
+      ],
+      "registration_state": "UNREGISTERED",
+      "registry_matches": [],
+      "lineage": [
+        "2026-08-24T10:05:07.411Z:VERIFIED:57d3fe5411828ea9",
+        "2026-08-24T11:32:42.297Z:VERIFIED:705062459edc9823"
+      ],
+      "supersedes": [],
+      "duplicates": [],
+      "security_boundary": [],
+      "source_digest": "705062459edc9823",
+      "last_observed": "2026-08-24T11:32:45.076Z",
+      "last_verified": "2026-08-24T11:32:42.297Z",
+      "current_status": "VERIFIED",
+      "status_reason": "evidence matches the current source digest 705062459edc9823: test:safety re-run: network-auth-gate=11/0; plus live 401/401/200 + fail-closed exit at real entrypoint [digest-method change 2026-08-24: digests are now RECURSIVE (repo-relative paths), so all prior evidence was correctly invalidated and re-proven]"
     },
     {
       "capability_key": "dna-os-infrastructure:permissions/software-scope",
@@ -4853,7 +4928,7 @@
       "repository": "dna-os-infrastructure",
       "path": "permissions/software-scope",
       "entrypoint": null,
-      "version_commit": "8cd4092",
+      "version_commit": "c87ae65",
       "last_changed": "2026-08-24T16:21:05+07:00",
       "owner_boundary": "permissions",
       "input_contract": [],
@@ -4886,8 +4961,8 @@
       "supersedes": [],
       "duplicates": [],
       "security_boundary": [],
-      "source_digest": "db2253f294327c86",
-      "last_observed": "2026-08-24T09:25:19.148Z",
+      "source_digest": "d8508d202bcae6fa",
+      "last_observed": "2026-08-24T11:32:45.076Z",
       "last_verified": null,
       "current_status": "UNVERIFIED",
       "status_reason": "has 2 test file(s) but no verification evidence recorded in the ledger"
@@ -4901,7 +4976,7 @@
       "repository": "dna-os-infrastructure",
       "path": "permissions/write-gate",
       "entrypoint": "permissions/write-gate/contract.ts",
-      "version_commit": "8cd4092",
+      "version_commit": "c87ae65",
       "last_changed": "2026-08-24T16:21:05+07:00",
       "owner_boundary": "permissions",
       "input_contract": [],
@@ -4939,8 +5014,8 @@
       "security_boundary": [
         "permissions/write-gate (write authorization)"
       ],
-      "source_digest": "0c6581aada46451f",
-      "last_observed": "2026-08-24T09:25:19.148Z",
+      "source_digest": "3f8b882e9576fbe0",
+      "last_observed": "2026-08-24T11:32:45.076Z",
       "last_verified": null,
       "current_status": "UNVERIFIED",
       "status_reason": "has 2 test file(s) but no verification evidence recorded in the ledger"
@@ -4954,7 +5029,7 @@
       "repository": "dna-os-infrastructure",
       "path": "providers/_shared",
       "entrypoint": null,
-      "version_commit": "8cd4092",
+      "version_commit": "c87ae65",
       "last_changed": "2026-08-24T16:21:05+07:00",
       "owner_boundary": "providers",
       "input_contract": [],
@@ -4974,7 +5049,7 @@
       "duplicates": [],
       "security_boundary": [],
       "source_digest": "NO_SOURCE",
-      "last_observed": "2026-08-24T09:25:19.148Z",
+      "last_observed": "2026-08-24T11:32:45.076Z",
       "last_verified": null,
       "current_status": "DECLARED_ONLY",
       "status_reason": "folder contains documentation/data but no .ts/.mjs implementation"
@@ -4988,7 +5063,7 @@
       "repository": "dna-os-infrastructure",
       "path": "providers/_shared/source-registry",
       "entrypoint": null,
-      "version_commit": "8cd4092",
+      "version_commit": "c87ae65",
       "last_changed": "2026-08-24T16:21:05+07:00",
       "owner_boundary": "providers",
       "input_contract": [],
@@ -5018,8 +5093,8 @@
       "supersedes": [],
       "duplicates": [],
       "security_boundary": [],
-      "source_digest": "0d11e085e64080fe",
-      "last_observed": "2026-08-24T09:25:19.148Z",
+      "source_digest": "922ad58b407dd614",
+      "last_observed": "2026-08-24T11:32:45.076Z",
       "last_verified": null,
       "current_status": "UNVERIFIED",
       "status_reason": "has 2 test file(s) but no verification evidence recorded in the ledger"
@@ -5033,7 +5108,7 @@
       "repository": "dna-os-infrastructure",
       "path": "providers/digitalocean",
       "entrypoint": null,
-      "version_commit": "8cd4092",
+      "version_commit": "c87ae65",
       "last_changed": "2026-08-24T16:21:05+07:00",
       "owner_boundary": "providers",
       "input_contract": [],
@@ -5062,8 +5137,8 @@
       "supersedes": [],
       "duplicates": [],
       "security_boundary": [],
-      "source_digest": "ded1df453d2e33a6",
-      "last_observed": "2026-08-24T09:25:19.148Z",
+      "source_digest": "d2cbd87cf50ae3f1",
+      "last_observed": "2026-08-24T11:32:45.076Z",
       "last_verified": null,
       "current_status": "UNVERIFIED",
       "status_reason": "no tests and no verification evidence"
@@ -5077,7 +5152,7 @@
       "repository": "dna-os-infrastructure",
       "path": "providers/hostinger",
       "entrypoint": null,
-      "version_commit": "8cd4092",
+      "version_commit": "c87ae65",
       "last_changed": "2026-08-24T16:21:05+07:00",
       "owner_boundary": "providers",
       "input_contract": [],
@@ -5104,8 +5179,8 @@
       "supersedes": [],
       "duplicates": [],
       "security_boundary": [],
-      "source_digest": "f87938a7ecc7f6c4",
-      "last_observed": "2026-08-24T09:25:19.148Z",
+      "source_digest": "20882538721f2474",
+      "last_observed": "2026-08-24T11:32:45.076Z",
       "last_verified": "2026-08-24T07:09:15.551Z",
       "current_status": "BLOCKED",
       "status_reason": "ledger records BLOCKED:  => 0 passed, 0 failed"
@@ -5119,7 +5194,7 @@
       "repository": "dna-os-infrastructure",
       "path": "software/capability-registrar",
       "entrypoint": "software/capability-registrar/contract.ts",
-      "version_commit": "8cd4092",
+      "version_commit": "c87ae65",
       "last_changed": "2026-08-24T16:21:05+07:00",
       "owner_boundary": "software",
       "input_contract": [],
@@ -5158,8 +5233,8 @@
       "supersedes": [],
       "duplicates": [],
       "security_boundary": [],
-      "source_digest": "5a45085264706744",
-      "last_observed": "2026-08-24T09:25:19.148Z",
+      "source_digest": "6aedc4a0d321dc02",
+      "last_observed": "2026-08-24T11:32:45.076Z",
       "last_verified": "2026-08-24T07:12:34.475Z",
       "current_status": "BLOCKED",
       "status_reason": "ledger records BLOCKED: software/capability-registrar/tests/index.test.ts => 0 passed, 0 failed (TIMEOUT)"
@@ -5173,8 +5248,8 @@
       "repository": "dna-os-infrastructure",
       "path": "software/live-census",
       "entrypoint": "software/live-census/contract.ts",
-      "version_commit": "8cd4092",
-      "last_changed": "2026-08-24T16:21:05+07:00",
+      "version_commit": "1b83e7a",
+      "last_changed": "2026-08-24T16:26:36+07:00",
       "owner_boundary": "software",
       "input_contract": [],
       "output_contract": [],
@@ -5194,23 +5269,27 @@
         "software/live-census/tests/derive.test.ts",
         "software/live-census/tests/impact.test.ts"
       ],
-      "verification_state": "CHANGED_SINCE_VERIFICATION",
+      "verification_state": "VERIFIED",
       "evidence_references": [
-        "software/live-census/tests/derive.test.ts=29/0 (lead-run); live proof: VERIFIED->CHANGED_SINCE_VERIFICATION->VERIFIED on a real one-line source edit"
+        "software/live-census/tests/derive.test.ts=29/0 (lead-run); live proof: VERIFIED->CHANGED_SINCE_VERIFICATION->VERIFIED on a real one-line source edit",
+        "derive.test.ts=29/0 + impact.test.ts=22/0 (lead-run, post-rewrite HEAD c0a9ffb); change-impact hole proven closed on the original command-router/execution-policy probe",
+        "test:census re-run: derive=29/0, impact=22/0; recursive-digest fix proven (subfolder edit moves digest 088e4225->9a24d607->088e4225) [digest-method change 2026-08-24: digests are now RECURSIVE (repo-relative paths), so all prior evidence was correctly invalidated and re-proven]"
       ],
       "registration_state": "UNREGISTERED",
       "registry_matches": [],
       "lineage": [
-        "2026-08-24T06:08:31.457Z:VERIFIED:402532e3a36ac969"
+        "2026-08-24T06:08:31.457Z:VERIFIED:402532e3a36ac969",
+        "2026-08-24T09:40:43.215Z:VERIFIED:3899962f969aa5f8",
+        "2026-08-24T11:32:42.522Z:VERIFIED:26c61ad2ce6aeefa"
       ],
       "supersedes": [],
       "duplicates": [],
       "security_boundary": [],
-      "source_digest": "3899962f969aa5f8",
-      "last_observed": "2026-08-24T09:25:19.148Z",
-      "last_verified": "2026-08-24T06:08:31.457Z",
-      "current_status": "CHANGED_SINCE_VERIFICATION",
-      "status_reason": "source digest moved 402532e3a36ac969 -> 3899962f969aa5f8 since verification at 2026-08-24T06:08:31.457Z; prior evidence (software/live-census/tests/derive.test.ts=29/0 (lead-run); live proof: VERIFIED->CHANGED_SINCE_VERIFICATION->VERIFIED on a real one-line source edit) no longer covers this code"
+      "source_digest": "26c61ad2ce6aeefa",
+      "last_observed": "2026-08-24T11:32:45.076Z",
+      "last_verified": "2026-08-24T11:32:42.522Z",
+      "current_status": "VERIFIED",
+      "status_reason": "evidence matches the current source digest 26c61ad2ce6aeefa: test:census re-run: derive=29/0, impact=22/0; recursive-digest fix proven (subfolder edit moves digest 088e4225->9a24d607->088e4225) [digest-method change 2026-08-24: digests are now RECURSIVE (repo-relative paths), so all prior evidence was correctly invalidated and re-proven]"
     },
     {
       "capability_key": "dna-os-infrastructure:software/module-registry",
@@ -5241,7 +5320,7 @@
       "duplicates": [],
       "security_boundary": [],
       "source_digest": "NO_SOURCE",
-      "last_observed": "2026-08-24T09:25:19.148Z",
+      "last_observed": "2026-08-24T11:32:45.076Z",
       "last_verified": null,
       "current_status": "DECLARED_ONLY",
       "status_reason": "folder contains documentation/data but no .ts/.mjs implementation"
@@ -5255,8 +5334,8 @@
       "repository": "dna-os-infrastructure",
       "path": "software/registry-database",
       "entrypoint": "software/registry-database/contract.ts",
-      "version_commit": "8cd4092",
-      "last_changed": "2026-08-24T16:21:05+07:00",
+      "version_commit": "5af6766",
+      "last_changed": "2026-08-24T18:20:19+07:00",
       "owner_boundary": "software",
       "input_contract": [],
       "output_contract": [],
@@ -5324,8 +5403,8 @@
       "security_boundary": [
         "credentials/macos-keychain (secret material)"
       ],
-      "source_digest": "cf23e95060d723b6",
-      "last_observed": "2026-08-24T09:25:19.148Z",
+      "source_digest": "088e42255bb02fb2",
+      "last_observed": "2026-08-24T11:32:45.076Z",
       "last_verified": "2026-08-24T06:32:33.063Z",
       "current_status": "BLOCKED",
       "status_reason": "ledger records BLOCKED: software/registry-database/tests/ai-ingress-registration.test.ts + software/registry-database/tests/postgres-schema-contract.test.ts + software/registry-database/tests/registry-writer.test.ts => 0 passed, 0 failed (TIMEOUT) (IMPORT_ERROR)"
@@ -5339,7 +5418,7 @@
       "repository": "dna-os-infrastructure",
       "path": "software/repository-registry",
       "entrypoint": "software/repository-registry/contract.ts",
-      "version_commit": "8cd4092",
+      "version_commit": "c87ae65",
       "last_changed": "2026-08-24T16:21:05+07:00",
       "owner_boundary": "software",
       "input_contract": [],
@@ -5370,8 +5449,8 @@
       "supersedes": [],
       "duplicates": [],
       "security_boundary": [],
-      "source_digest": "39d125376df0c600",
-      "last_observed": "2026-08-24T09:25:19.148Z",
+      "source_digest": "187571615feb8ee7",
+      "last_observed": "2026-08-24T11:32:45.076Z",
       "last_verified": null,
       "current_status": "UNVERIFIED",
       "status_reason": "has 1 test file(s) but no verification evidence recorded in the ledger"
@@ -5408,8 +5487,8 @@
       "supersedes": [],
       "duplicates": [],
       "security_boundary": [],
-      "source_digest": "c244474bc09d44dd",
-      "last_observed": "2026-08-24T09:25:19.148Z",
+      "source_digest": "3ce296604d0185ff",
+      "last_observed": "2026-08-24T11:32:45.076Z",
       "last_verified": "2026-08-24T07:09:59.812Z",
       "current_status": "BLOCKED",
       "status_reason": "ledger records BLOCKED:  => 0 passed, 0 failed"
@@ -5454,8 +5533,8 @@
       "supersedes": [],
       "duplicates": [],
       "security_boundary": [],
-      "source_digest": "aa916d38e6d16516",
-      "last_observed": "2026-08-24T09:25:19.148Z",
+      "source_digest": "140f4bc81abdba1c",
+      "last_observed": "2026-08-24T11:32:45.076Z",
       "last_verified": null,
       "current_status": "UNVERIFIED",
       "status_reason": "no tests and no verification evidence"
@@ -5469,8 +5548,8 @@
       "repository": "dna-os-infrastructure",
       "path": "transport/owner-command-http",
       "entrypoint": null,
-      "version_commit": "8cd4092",
-      "last_changed": "2026-08-24T16:21:05+07:00",
+      "version_commit": "7d89036",
+      "last_changed": "2026-08-24T17:02:28+07:00",
       "owner_boundary": "transport",
       "input_contract": [],
       "output_contract": [],
@@ -5487,6 +5566,7 @@
         "control/work-result-ingress",
         "permissions/access-control",
         "permissions/execution-policy",
+        "permissions/network-auth-gate",
         "permissions/software-scope",
         "software/registry-database"
       ],
@@ -5508,8 +5588,8 @@
         "permissions/execution-policy (execution permission decision)",
         "permissions/access-control (identity / membership)"
       ],
-      "source_digest": "7664b14e475d0ba9",
-      "last_observed": "2026-08-24T09:25:19.148Z",
+      "source_digest": "4acbe6f8b03b3bc0",
+      "last_observed": "2026-08-24T11:32:45.076Z",
       "last_verified": null,
       "current_status": "UNVERIFIED",
       "status_reason": "running live (2 process ref(s)) but no verification evidence recorded"
