@@ -79,6 +79,14 @@ function isStringArray(value: unknown): value is string[] {
   return Array.isArray(value) && value.every((item) => typeof item === "string");
 }
 
+/** The reference strings that really exist in the input's pattern rows. A finding citing anything else is not checkable, and is refused. */
+export function knownPatternReferences(input: SandboxInput): Set<string> {
+  const references = new Set<string>();
+  for (const row of input.patterns.repeated_sequence as Record<string, unknown>[]) if (typeof row.state_sequence === "string") references.add(row.state_sequence);
+  for (const row of input.patterns.repeated_failure as Record<string, unknown>[]) if (typeof row.failure_class === "string") references.add(row.failure_class);
+  return references;
+}
+
 /** The occurrence counts the SQL patterns really hold, keyed by the reference string a finding may cite. */
 function trueOccurrenceCounts(input: SandboxInput): Map<string, number> {
   const counts = new Map<string, number>();
@@ -118,6 +126,7 @@ export function validateSandboxOutput(rawText: string, input: SandboxInput): Val
 
   const universe = referenceUniverse(input);
   const counts = trueOccurrenceCounts(input);
+  const references = knownPatternReferences(input);
   const findings: SandboxFinding[] = [];
 
   body.findings.forEach((raw, index) => {
@@ -143,6 +152,15 @@ export function validateSandboxOutput(rawText: string, input: SandboxInput): Val
       reasons.push(`findings[${index}].evidence_refs must be an array of strings`);
     } else {
       for (const ref of finding.evidence_refs) if (!universe.evidenceRefs.has(ref)) reasons.push(`findings[${index}] cites an evidence_ref that was never in the input: ${ref}`);
+    }
+    // A reference that is not one of the input's own pattern rows cannot be
+    // checked against anything, so it cannot be published either (added
+    // 2026-08-26 when wiring the report adapter: an uncheckable reference
+    // would have reached the Monitor as if it were established).
+    if (typeof finding.pattern_reference === "string" &&
+        (finding.pattern_type === "repeated_sequence" || finding.pattern_type === "repeated_failure") &&
+        !references.has(finding.pattern_reference)) {
+      reasons.push(`findings[${index}].pattern_reference is not one of the input's pattern rows: ${finding.pattern_reference}`);
     }
     if (typeof finding.occurrence_count === "number" && typeof finding.pattern_reference === "string") {
       const real = counts.get(finding.pattern_reference);

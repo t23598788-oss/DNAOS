@@ -16,6 +16,7 @@
  */
 
 export { buildInputFromSensor, runSandbox, type AnalysisRun } from "./analyze";
+export { publishAnalysis, ADAPTER_SOURCE, AI_REPORT_MARKER, type PublishOutcome } from "./report-adapter";
 export { projectEvent, referenceUniverse, type SandboxEvent, type SandboxInput, type SandboxPatterns } from "./input-contract";
 export {
   validateSandboxOutput,
