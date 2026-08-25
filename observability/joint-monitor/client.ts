@@ -23,8 +23,8 @@
  * through this file resolves, per the header above.
  */
 
-import { hostPostJson, readEnvVar } from "./host-runtime";
-import type { ReportJointInput, ReportViolationInput } from "./types";
+import { hostPostJson, hostRandomId, nowIso, readEnvVar } from "./host-runtime";
+import type { OccurrenceStamp, ReportJointInput, ReportViolationInput } from "./types";
 
 // Moved off 5177 2026-08-22 — that port is DNA-LAB-PERMISSION-REASONER's
 // real Research Monitor UI, not this repo's to claim (see start.ts's own
@@ -60,12 +60,42 @@ function authorizationHeader(): string | undefined {
   return secret && secret.length > 0 ? `Bearer ${secret}` : undefined;
 }
 
+/**
+ * EVENT_OCCURRED_ORDER, stamped here — inside the reporting process, at
+ * the moment the real call site fired, BEFORE the POST is handed to the
+ * network (2026-08-26, Owner).
+ *
+ * This is the whole ordering fix. `control/agent-gateway/gateway.ts`'s
+ * `persistStatus` fires `void reportJoint(...)` without awaiting, five
+ * times in a row for one task, so five POSTs are in flight at once; over
+ * a real network they land in arbitrary order, and the collector's
+ * arrival stamp then reports that arbitrary order as if it were the
+ * task's real history (proven live: a real task displayed FAILED before
+ * VERIFYING). Nothing about that concurrency is wrong — it is what keeps
+ * a dashboard from blocking a real Owner command — so the emission order
+ * is captured before it can be lost, instead of trying to serialise the
+ * sends.
+ *
+ * `RUN_ID` scopes the counter to this one process: two reporters each
+ * counting from 1 must never be compared as if they shared a sequence,
+ * so consumers order by (occurred_at, reporter_run_id, occurred_seq).
+ */
+const RUN_ID = hostRandomId();
+let occurredSeq = 0;
+
+function nextOccurrenceStamp(): OccurrenceStamp {
+  occurredSeq += 1;
+  return { occurred_at: nowIso(), occurred_seq: occurredSeq, reporter_run_id: RUN_ID };
+}
+
 export async function reportJoint(input: ReportJointInput): Promise<void> {
+  const stamp = nextOccurrenceStamp();
   const url = baseUrl();
-  await hostPostJson(`${url}/joints`, input, timeoutFor(url), authorizationHeader());
+  await hostPostJson(`${url}/joints`, { ...input, ...stamp }, timeoutFor(url), authorizationHeader());
 }
 
 export async function reportViolation(input: ReportViolationInput): Promise<void> {
+  const stamp = nextOccurrenceStamp();
   const url = baseUrl();
-  await hostPostJson(`${url}/violations`, input, timeoutFor(url), authorizationHeader());
+  await hostPostJson(`${url}/violations`, { ...input, ...stamp }, timeoutFor(url), authorizationHeader());
 }

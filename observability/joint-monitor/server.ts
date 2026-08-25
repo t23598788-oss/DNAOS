@@ -24,7 +24,7 @@
 
 import { appendJsonlLine, createHttpServer, hostRandomId, joinPath, nowIso, readRequestBody, repoRootDirname, type HostHttpRequest, type HostHttpResponse } from "./host-runtime";
 import { JointStore } from "./joint-store";
-import type { ReportJointInput, ReportViolationInput } from "./types";
+import type { OccurrenceStamp, ReportJointInput, ReportViolationInput } from "./types";
 import { verifySharedSecret, evaluateBindPolicy } from "../../permissions/network-auth-gate/contract";
 
 declare const process: { env: Record<string, string | undefined> };
@@ -103,7 +103,23 @@ function isNonEmptyString(value: unknown): value is string {
 }
 
 /** Loose validation, never trusts shape beyond "the required fields are real strings" — mirrors `../../dna-os-circuit/runtime/finding-receiver.ts`'s "validates loosely, never guesses a missing field" discipline. Rejects rather than silently coercing a malformed report. */
-function parseJointInput(body: unknown): { ok: true; input: ReportJointInput } | { ok: false; reason: string } {
+/**
+ * EVENT_OCCURRED_ORDER off the wire, or `undefined` when the reporter did
+ * not send one. Deliberately optional rather than required: a reporter
+ * running code older than 2026-08-26 (and every row already on disk from
+ * before it) has no stamp, and refusing those reports would turn an
+ * ordering fix into an outage for anything not yet redeployed. Unstamped
+ * reports are labelled as such at the call site below, never quietly
+ * given a stamp that looks reporter-supplied.
+ */
+function parseOccurrenceStamp(b: Record<string, unknown>): OccurrenceStamp | undefined {
+  if (!isNonEmptyString(b.occurred_at)) return undefined;
+  if (typeof b.occurred_seq !== "number" || !Number.isFinite(b.occurred_seq)) return undefined;
+  if (!isNonEmptyString(b.reporter_run_id)) return undefined;
+  return { occurred_at: b.occurred_at, occurred_seq: b.occurred_seq, reporter_run_id: b.reporter_run_id };
+}
+
+function parseJointInput(body: unknown): { ok: true; input: ReportJointInput; stamp: OccurrenceStamp | undefined } | { ok: false; reason: string } {
   if (!body || typeof body !== "object") return { ok: false, reason: "body is not an object" };
   const b = body as Record<string, unknown>;
   if (!isNonEmptyString(b.from_capability)) return { ok: false, reason: "from_capability is required" };
@@ -112,10 +128,10 @@ function parseJointInput(body: unknown): { ok: true; input: ReportJointInput } |
   if (!isNonEmptyString(b.summary)) return { ok: false, reason: "summary is required" };
   if (!isNonEmptyString(b.source)) return { ok: false, reason: "source is required" };
   const task_id = typeof b.task_id === "string" ? b.task_id : null;
-  return { ok: true, input: { from_capability: b.from_capability, to_capability: b.to_capability, task_id, status: b.status, summary: b.summary, source: b.source } };
+  return { ok: true, input: { from_capability: b.from_capability, to_capability: b.to_capability, task_id, status: b.status, summary: b.summary, source: b.source }, stamp: parseOccurrenceStamp(b) };
 }
 
-function parseViolationInput(body: unknown): { ok: true; input: ReportViolationInput } | { ok: false; reason: string } {
+function parseViolationInput(body: unknown): { ok: true; input: ReportViolationInput; stamp: OccurrenceStamp | undefined } | { ok: false; reason: string } {
   if (!body || typeof body !== "object") return { ok: false, reason: "body is not an object" };
   const b = body as Record<string, unknown>;
   if (!isNonEmptyString(b.launch_id)) return { ok: false, reason: "launch_id is required" };
@@ -123,7 +139,18 @@ function parseViolationInput(body: unknown): { ok: true; input: ReportViolationI
   if (!isNonEmptyString(b.detail)) return { ok: false, reason: "detail is required" };
   if (!isNonEmptyString(b.source)) return { ok: false, reason: "source is required" };
   const enforced = b.enforced === true;
-  return { ok: true, input: { launch_id: b.launch_id, reason: b.reason, detail: b.detail, source: b.source, enforced } };
+  return { ok: true, input: { launch_id: b.launch_id, reason: b.reason, detail: b.detail, source: b.source, enforced }, stamp: parseOccurrenceStamp(b) };
+}
+
+/**
+ * The stamp used for a reporter that sent none. `reporter_run_id` says so
+ * in plain text instead of inventing a plausible-looking id, so a row
+ * whose order came from arrival time can always be told apart from one
+ * whose order is the reporter's real emission order — the whole point of
+ * separating the two clocks.
+ */
+function unstampedFallback(): OccurrenceStamp {
+  return { occurred_at: nowIso(), occurred_seq: 0, reporter_run_id: "legacy-reporter-unstamped" };
 }
 
 async function handleReceiveJoint(store: JointStore, dataDir: string, req: HostHttpRequest, res: HostHttpResponse): Promise<void> {
@@ -137,7 +164,7 @@ async function handleReceiveJoint(store: JointStore, dataDir: string, req: HostH
   }
   const outcome = parseJointInput(parsed);
   if (!outcome.ok) return sendJson(res, 400, { ok: false, reason: outcome.reason });
-  const row = store.recordJoint(outcome.input, hostRandomId, nowIso);
+  const row = store.recordJoint({ ...outcome.input, ...(outcome.stamp ?? unstampedFallback()) }, hostRandomId, nowIso);
   appendJsonlLine(joinPath(dataDir, "joints.jsonl"), row);
   sendJson(res, 200, { ok: true, event: row });
 }
@@ -153,7 +180,7 @@ async function handleReceiveViolation(store: JointStore, dataDir: string, req: H
   }
   const outcome = parseViolationInput(parsed);
   if (!outcome.ok) return sendJson(res, 400, { ok: false, reason: outcome.reason });
-  const row = store.recordViolation(outcome.input, hostRandomId, nowIso);
+  const row = store.recordViolation({ ...outcome.input, ...(outcome.stamp ?? unstampedFallback()) }, hostRandomId, nowIso);
   appendJsonlLine(joinPath(dataDir, "violations.jsonl"), row);
   sendJson(res, 200, { ok: true, event: row });
 }
@@ -165,40 +192,85 @@ function renderViewerHtml(): string {
 h1{font-size:15px;color:#58a6ff}
 .row{padding:6px 8px;border-bottom:1px solid #21262d;white-space:pre-wrap}
 .joint{color:#7ee787}.violation{color:#ff7b72;font-weight:bold}
+.lag{color:#8b949e}
 #status{color:#8b949e;margin-bottom:8px}</style></head>
 <body><h1>DNA OS — Joint Monitor</h1><div id="status">connecting...</div><div id="rows"></div>
 <script>
 const rows = document.getElementById("rows");
 const status = document.getElementById("status");
-function line(cls, text) { const d = document.createElement("div"); d.className = "row " + cls; d.textContent = text; rows.prepend(d); }
-function jointLine(row) { line("joint", \`[\${row.at}] JOINT \${row.from_capability} -> \${row.to_capability} (\${row.status}) \${row.summary}\`); }
-function violationLine(row) { line("violation", \`[\${row.at}] VIOLATION launch=\${row.launch_id} enforced=\${row.enforced} \${row.reason}: \${row.detail}\`); }
+
+// The viewer's whole state: event_id -> row. A Map, not an append-only
+// DOM (real bug, found live 2026-08-26 on a real task): every snapshot
+// used to be appended to whatever was already on screen, so each
+// EventSource reconnect — which re-sends the full snapshot by design,
+// see handleSse — redrew the same five events again, with identical
+// event_id and identical timestamps. Keying by the collector's own
+// unique event_id makes redelivery idempotent no matter how often the
+// same row arrives.
+const state = new Map();
+
+// EVENT_OCCURRED_ORDER, mirroring joint-store.ts#compareByOccurrence.
+// Duplicated deliberately: this file's viewer is inline, dependency-free
+// JS served as a string (see this function's own header) and cannot
+// import the TypeScript one. Both are proven against the same
+// out-of-order arrival by tests/event-order-proof.test.ts — if one
+// changes, that test fails on the other.
+function compareByOccurrence(a, b) {
+  if (a.occurred_at !== b.occurred_at) return a.occurred_at < b.occurred_at ? -1 : 1;
+  if (a.reporter_run_id !== b.reporter_run_id) return a.reporter_run_id < b.reporter_run_id ? -1 : 1;
+  if (a.occurred_seq !== b.occurred_seq) return a.occurred_seq - b.occurred_seq;
+  if (a.received_at !== b.received_at) return a.received_at < b.received_at ? -1 : 1;
+  return a.event_id < b.event_id ? -1 : a.event_id > b.event_id ? 1 : 0;
+}
+
+// Both clocks stay visible: the occurrence time orders the row, and the
+// arrival lag beside it is the transport measurement that separating the
+// two clocks exists to make possible.
+function lagMs(row) {
+  const lag = Date.parse(row.received_at) - Date.parse(row.occurred_at);
+  return Number.isFinite(lag) ? lag : 0;
+}
+function text(entry) {
+  const row = entry.row;
+  const lag = \` (+\${lagMs(row)}ms to collector)\`;
+  if (entry.kind === "violation") return \`[\${row.occurred_at}] VIOLATION launch=\${row.launch_id} enforced=\${row.enforced} \${row.reason}: \${row.detail}\${lag}\`;
+  return \`[\${row.occurred_at}] JOINT \${row.from_capability} -> \${row.to_capability} (\${row.status}) \${row.summary}\${lag}\`;
+}
+
+// Full redraw from state, newest occurrence first. Cheap: the store is a
+// bounded ring buffer (MAX_JOINTS_IN_MEMORY), so this is never unbounded
+// work, and it removes any chance of the DOM and the state disagreeing.
+function render() {
+  const entries = [...state.values()].sort((a, b) => compareByOccurrence(a.row, b.row)).reverse();
+  rows.replaceChildren(...entries.map((entry) => {
+    const d = document.createElement("div");
+    d.className = "row " + entry.kind;
+    d.textContent = text(entry);
+    return d;
+  }));
+}
+
+function upsert(kind, row) { state.set(row.event_id, { kind: kind, row: row }); }
+
 const es = new EventSource("/events");
 es.onopen = () => { status.textContent = "live"; };
 es.onerror = () => { status.textContent = "disconnected — retrying..."; };
 es.onmessage = (msg) => {
   const payload = JSON.parse(msg.data);
   if (payload.type === "snapshot") {
-    // Real bug, found live 2026-08-24 diagnosing a blank production page:
-    // this branch never existed, so the initial snapshot this server
-    // already sends on every /events connect (see handleSse below) was
-    // silently discarded — a fresh page load (or reconnect) could never
-    // show any joint/violation that happened before the tab opened, only
-    // ones that arrived while it stayed connected. Merge both real arrays
-    // by their own real timestamp so the combined view is genuinely
-    // chronological, same ordering live "change" events already produce.
-    const combined = [
-      ...payload.snapshot.recent_joints.map((row) => ({ at: row.at, render: () => jointLine(row) })),
-      ...payload.snapshot.recent_violations.map((row) => ({ at: row.at, render: () => violationLine(row) })),
-    ].sort((a, b) => a.at.localeCompare(b.at));
-    for (const item of combined) item.render();
-    if (combined.length === 0) status.textContent = "live — no joints or violations recorded yet";
+    // Snapshot REPLACES state rather than adding to it (Owner,
+    // 2026-08-26). The server sends one on every connect, so on a
+    // reconnect this is the authoritative current state, not a delta.
+    state.clear();
+    for (const row of payload.snapshot.recent_joints) upsert("joint", row);
+    for (const row of payload.snapshot.recent_violations) upsert("violation", row);
+    render();
+    status.textContent = state.size === 0 ? "live — no joints or violations recorded yet" : "live";
     return;
   }
   if (payload.type !== "change") return;
   const ev = payload.event;
-  if (ev.kind === "joint") jointLine(ev.row);
-  if (ev.kind === "violation") violationLine(ev.row);
+  if (ev.kind === "joint" || ev.kind === "violation") { upsert(ev.kind, ev.row); render(); }
 };
 </script></body></html>`;
 }
