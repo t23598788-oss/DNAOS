@@ -21,6 +21,7 @@ declare const console: { log(...args: unknown[]): void; error(...args: unknown[]
 declare const __dirname: string;
 
 import { validateSandboxOutput } from "../output-contract";
+import { publishAnalysis, AI_REPORT_MARKER } from "../report-adapter";
 import type { SandboxInput } from "../input-contract";
 
 const fs = require("node:fs");
@@ -46,7 +47,7 @@ function runFixture(name: string): { input: SandboxInput; raw: string } {
   return { input, raw };
 }
 
-function run(): void {
+async function run(): Promise<void> {
   console.log("=== ai/sensor-analysis-sandbox/tests/sandbox-proof.test.ts ===");
 
   // PROOF 1 — input boundary, measured from inside the sandbox process.
@@ -127,8 +128,24 @@ function run(): void {
   assert(!forgedResult.ok && forgedResult.reasons.some((r) => r.includes("never in the input")), "rejection names the fabricated reference");
   console.log("PASS: fabricated event_ids/evidence_refs are rejected by the validator, whatever the model claims");
 
+  // The report adapter: a rejected analysis is dropped and recorded, and the
+  // Monitor is never called. Runs offline — reportViolation is fire-and-forget
+  // by design, so an unreachable Monitor cannot mask a wrong decision here.
+  const failureLog = path.join(FOLDER, "data", "validation-failures.jsonl");
+  const before = fs.existsSync(failureLog) ? fs.readFileSync(failureLog, "utf8").split("\n").length : 0;
+  const dropped = await publishAnalysis(forgedResult, negative.input);
+  assert(dropped.published === false && dropped.kind === "VALIDATION_FAILED", "a rejected analysis is not published");
+  const after = fs.readFileSync(failureLog, "utf8").split("\n").length;
+  assert(after > before, "a rejected analysis is recorded durably instead of vanishing");
+  console.log("PASS: rejected analysis is dropped, recorded, and never reaches the Monitor");
+
+  assert(AI_REPORT_MARKER === "ai-sensor-analysis", "the loop-breaker marker is the one the sink filters on");
+  const sink = fs.readFileSync(path.join(FOLDER, "..", "..", "observability", "joint-monitor", "supabase-sink.ts"), "utf8");
+  assert(sink.includes("ai-sensor-analysis:"), "the collector's sink refuses to mirror AI reports back into sensor input");
+  console.log("PASS: AI reports cannot re-enter the sandbox's own input");
+
   console.log("=== ALL sandbox-proof.test.ts CASES PASSED ===");
   process.exit(0);
 }
 
-try { run(); } catch (error) { console.error(error); process.exit(1); }
+run().catch((error) => { console.error(error); process.exit(1); });
