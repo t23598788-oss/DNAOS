@@ -24,6 +24,7 @@ declare const require: (id: string) => unknown;
 declare const process: { env: Record<string, string | undefined>; cwd(): string };
 declare const AbortSignal: { timeout(milliseconds: number): unknown };
 declare const fetch: (url: string, init: { method: string; headers: Record<string, string>; body: string; signal: unknown }) => Promise<{ ok: boolean; status: number }>;
+declare const Object: { entries<T>(o: Record<string, T>): [string, T][] };
 
 interface NodeBufferLike {
   length: number;
@@ -138,7 +139,7 @@ export function readRequestBody(req: HostHttpRequest): Promise<{ ok: true; body:
  * dashboard must never surface as an error to the real caller (a live
  * Owner command) that triggered the report.
  */
-export async function hostPostJson(url: string, body: unknown, timeoutMilliseconds: number, authorizationHeader?: string): Promise<{ ok: boolean }> {
+export async function hostPostJson(url: string, body: unknown, timeoutMilliseconds: number, authorizationHeader?: string, extraHeaders?: Record<string, string>): Promise<{ ok: boolean }> {
   try {
     // `Authorization` is sent only when the caller actually has a secret
     // to send (2026-08-26 — before this, every POST from ./client.ts went
@@ -148,6 +149,10 @@ export async function hostPostJson(url: string, body: unknown, timeoutMillisecon
     // this folder's "Reaching a remote joint-monitor" section).
     const headers: Record<string, string> = { "Content-Type": "application/json" };
     if (typeof authorizationHeader === "string" && authorizationHeader.length > 0) headers.Authorization = authorizationHeader;
+    // Supabase's gateway requires its own `apikey` header alongside the
+    // Authorization bearer (2026-08-26) — hence a general extra-header slot
+    // rather than a second Supabase-shaped function.
+    if (extraHeaders) for (const [name, value] of Object.entries(extraHeaders)) headers[name] = value;
     const response = await fetch(url, { method: "POST", headers, body: JSON.stringify(body), signal: AbortSignal.timeout(timeoutMilliseconds) });
     return { ok: response.ok };
   } catch {

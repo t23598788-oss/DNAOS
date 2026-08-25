@@ -24,6 +24,7 @@
 
 import { appendJsonlLine, createHttpServer, hostRandomId, joinPath, nowIso, readRequestBody, repoRootDirname, type HostHttpRequest, type HostHttpResponse } from "./host-runtime";
 import { JointStore } from "./joint-store";
+import { jointToSensorRow, sinkSensorEvents, violationToSensorRow } from "./supabase-sink";
 import type { OccurrenceStamp, ReportJointInput, ReportViolationInput } from "./types";
 import { verifySharedSecret, evaluateBindPolicy } from "../../permissions/network-auth-gate/contract";
 
@@ -166,6 +167,10 @@ async function handleReceiveJoint(store: JointStore, dataDir: string, req: HostH
   if (!outcome.ok) return sendJson(res, 400, { ok: false, reason: outcome.reason });
   const row = store.recordJoint({ ...outcome.input, ...(outcome.stamp ?? unstampedFallback()) }, hostRandomId, nowIso);
   appendJsonlLine(joinPath(dataDir, "joints.jsonl"), row);
+  // Storage mirror. `void`-fired AFTER the durable jsonl line is already on
+  // disk, so a slow or down Supabase can delay nothing and lose nothing that
+  // the collector itself already recorded.
+  void sinkSensorEvents([jointToSensorRow(row)]);
   sendJson(res, 200, { ok: true, event: row });
 }
 
@@ -182,6 +187,7 @@ async function handleReceiveViolation(store: JointStore, dataDir: string, req: H
   if (!outcome.ok) return sendJson(res, 400, { ok: false, reason: outcome.reason });
   const row = store.recordViolation({ ...outcome.input, ...(outcome.stamp ?? unstampedFallback()) }, hostRandomId, nowIso);
   appendJsonlLine(joinPath(dataDir, "violations.jsonl"), row);
+  void sinkSensorEvents([violationToSensorRow(row)]);
   sendJson(res, 200, { ok: true, event: row });
 }
 
