@@ -1,0 +1,15 @@
+{
+ "analysis_id": "proof4-insufficient",
+ "window": {
+  "from": "EMPTY",
+  "to": "EMPTY"
+ },
+ "patterns": {
+  "repeated_sequence": [],
+  "repeated_failure": [],
+  "joint_health": [],
+  "latency_outlier": [],
+  "unexpected_transition": []
+ },
+ "events": []
+}
