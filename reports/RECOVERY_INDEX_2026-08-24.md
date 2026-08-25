@@ -59,7 +59,7 @@ railway status --json         # real Railway service ids/repo/startCommand
 | Capability ID (registry) | `capability-6099780b-29c7-4c52-9e74-6ad00efb4b45` |
 | Registration state | `REGISTERED_STALE` (registered before this migration round; not touched here) |
 | WHERE it executes | **Railway deployment `0a0ecaca-e4fe-4b90-976b-d6822a567763`, status SUCCESS, instance RUNNING, commit `ca3e3249db96c264d56a03810d6b4cc9fc54f953`. Real public URL: https://joint-monitor-production.up.railway.app** — `GET /joints` returns real 200 |
-| HOW to restore | `git clone` → `npm install` → `npx tsx observability/joint-monitor/tests/joint-broadcast-proof.test.ts`, `.../router-wiring-proof.test.ts` — **known pre-existing flake**, reproduced identically on the unmodified repo (not a restore defect) |
+| HOW to restore | `git clone` → `npm install` → `npx tsx observability/joint-monitor/tests/joint-broadcast-proof.test.ts`, `.../router-wiring-proof.test.ts` — ~~**known pre-existing flake**~~ **CORRECTION (2026-08-26):** not a flake. Both tests pass deterministically under the repo's own pinned Node (`.nvmrc` = 24); the failures recorded here were run under Node 16, which has no global `fetch`, so `observability/joint-monitor/host-runtime.ts#hostPostJson` throws and `client.ts` swallows it by design — every POST silently does nothing while the SSE half still passes. Re-verified 2026-08-26 under Node 24: `joint-broadcast-proof`, `router-wiring-proof` and the new `authenticated-report-proof` all pass |
 | Superseded | n/a |
 
 ### permissions/network-auth-gate

@@ -138,9 +138,17 @@ export function readRequestBody(req: HostHttpRequest): Promise<{ ok: true; body:
  * dashboard must never surface as an error to the real caller (a live
  * Owner command) that triggered the report.
  */
-export async function hostPostJson(url: string, body: unknown, timeoutMilliseconds: number): Promise<{ ok: boolean }> {
+export async function hostPostJson(url: string, body: unknown, timeoutMilliseconds: number, authorizationHeader?: string): Promise<{ ok: boolean }> {
   try {
-    const response = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body), signal: AbortSignal.timeout(timeoutMilliseconds) });
+    // `Authorization` is sent only when the caller actually has a secret
+    // to send (2026-08-26 — before this, every POST from ./client.ts went
+    // out unauthenticated, so a joint-monitor with
+    // JOINT_MONITOR_SHARED_SECRET set answered every real reporter 401;
+    // proven live against the Railway deployment, see ../../README of
+    // this folder's "Reaching a remote joint-monitor" section).
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
+    if (typeof authorizationHeader === "string" && authorizationHeader.length > 0) headers.Authorization = authorizationHeader;
+    const response = await fetch(url, { method: "POST", headers, body: JSON.stringify(body), signal: AbortSignal.timeout(timeoutMilliseconds) });
     return { ok: response.ok };
   } catch {
     return { ok: false };
