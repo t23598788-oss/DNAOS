@@ -151,27 +151,13 @@ export function isSinkConfigured(): boolean {
 }
 
 /** Fire-and-forget, exactly like ./client.ts: a storage outage must never break the collector, and the durable jsonl log on disk is written before this is ever called. */
-/**
- * The loop breaker (2026-08-26). `ai/sensor-analysis-sandbox/` publishes its
- * validated analyses into this Monitor through the ordinary violation channel.
- * Those records are real Monitor records — but they must never become
- * `dna_os_sensor` rows, because that store is the sandbox's INPUT. Mirroring
- * them would mean the model reads its own conclusions back as if they were
- * sensor readings, which is a return path built by accident. Recognised by the
- * marker the adapter puts on `launch_id`, and dropped here.
- */
-export function isAiAnalysisReport(row: SensorEventRow): boolean {
-  return row.correlation_ref !== null && row.correlation_ref.startsWith("ai-sensor-analysis:");
-}
-
 export async function sinkSensorEvents(rows: readonly SensorEventRow[]): Promise<void> {
-  const forwarded = rows.filter((row) => !isAiAnalysisReport(row));
-  if (forwarded.length === 0) return;
+  if (rows.length === 0) return;
   const config = sinkConfig();
   if (!config) return;
   await hostPostJson(
     `${config.url}/rest/v1/rpc/dna_os_sensor_ingest`,
-    { events: forwarded },
+    { events: rows },
     INGEST_TIMEOUT_MS,
     `Bearer ${config.jwt}`,
     { apikey: config.anonKey },
