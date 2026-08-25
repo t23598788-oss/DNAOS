@@ -248,6 +248,12 @@ function text(entry) {
 // work, and it removes any chance of the DOM and the state disagreeing.
 function render() {
   const entries = [...state.values()].sort((a, b) => compareByOccurrence(a.row, b.row)).reverse();
+  // The status line is part of the render, not of one branch of onmessage
+  // (real defect, found 2026-08-26 while re-proving the restored Monitor: a
+  // page that connected while the store was empty kept saying "no joints or
+  // violations recorded yet" while five live rows were on screen beneath it,
+  // because only the snapshot branch ever touched this text).
+  status.textContent = entries.length === 0 ? "live — no joints or violations recorded yet" : \`live — \${entries.length} recorded\`;
   rows.replaceChildren(...entries.map((entry) => {
     const d = document.createElement("div");
     d.className = "row " + entry.kind;
@@ -271,7 +277,6 @@ es.onmessage = (msg) => {
     for (const row of payload.snapshot.recent_joints) upsert("joint", row);
     for (const row of payload.snapshot.recent_violations) upsert("violation", row);
     render();
-    status.textContent = state.size === 0 ? "live — no joints or violations recorded yet" : "live";
     return;
   }
   if (payload.type !== "change") return;
