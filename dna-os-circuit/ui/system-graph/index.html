@@ -1,0 +1,88 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>DNA OS — System Graph (derived)</title>
+<style>
+ body{font:13px/1.45 ui-monospace,monospace;background:#0b0e14;color:#c9d1d9;margin:0;padding:16px}
+ h1{font-size:15px;color:#58a6ff;margin:0 0 4px}
+ #meta{color:#8b949e;margin-bottom:12px}
+ .domain{border:1px solid #21262d;border-radius:6px;margin:0 0 10px;padding:8px 10px}
+ .domain h2{font-size:12px;margin:0 0 6px;color:#7ee787;letter-spacing:.06em}
+ .item{padding:3px 0;border-bottom:1px solid #161b22;white-space:pre-wrap}
+ .ev{color:#8b949e;font-size:11px}
+ .edge{color:#d2a8ff}
+ .unres{color:#ff7b72}
+ #cols{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:start}
+</style>
+<h1>DNA OS — System Graph <span style="color:#8b949e">(derived from real sources, not a maintained map)</span></h1>
+<div id="meta">loading…</div>
+<div id="cols"><div id="nodes"></div><div id="edges"></div></div>
+<script>
+// Generic renderer: it groups by whatever domains and edge kinds the endpoint
+// returns. Nothing here names a capability, so a new one added tomorrow shows
+// up with no edit to this file.
+const el = (t, cls, text) => { const d = document.createElement(t); if (cls) d.className = cls; if (text !== undefined) d.textContent = text; return d; };
+
+function groupBy(items, key) {
+  const map = new Map();
+  for (const item of items) { const k = item[key]; if (!map.has(k)) map.set(k, []); map.get(k).push(item); }
+  return [...map.entries()].sort((a, b) => b[1].length - a[1].length);
+}
+
+function render(graph) {
+  document.getElementById("meta").textContent =
+    `generated_at ${graph.generated_at} · nodes ${graph.nodes.length} · edges ${graph.edges.length} · unresolved ${graph.unresolved.length} · sources ${JSON.stringify(graph.source_counts)}`;
+
+  const nodesRoot = document.getElementById("nodes");
+  nodesRoot.replaceChildren();
+  for (const [domain, items] of groupBy(graph.nodes, "domain")) {
+    const box = el("div", "domain");
+    box.appendChild(el("h2", null, `${domain} — ${items.length}`));
+    for (const node of items.slice(0, 12)) {
+      const row = el("div", "item", node.label);
+      row.appendChild(el("div", "ev", `↳ ${node.source} · ${(node.evidence[0] || "").slice(0, 110)}`));
+      box.appendChild(row);
+    }
+    if (items.length > 12) box.appendChild(el("div", "ev", `… ${items.length - 12} more`));
+    nodesRoot.appendChild(box);
+  }
+
+  const edgesRoot = document.getElementById("edges");
+  edgesRoot.replaceChildren();
+  for (const [kind, items] of groupBy(graph.edges, "kind")) {
+    const box = el("div", "domain");
+    box.appendChild(el("h2", null, `${kind} — ${items.length}`));
+    for (const edge of items.slice(0, 8)) {
+      const row = el("div", "item edge", `${edge.from} → ${edge.to}`);
+      row.appendChild(el("div", "ev", `↳ ${(edge.evidence[0] || "").slice(0, 110)}`));
+      box.appendChild(row);
+    }
+    if (items.length > 8) box.appendChild(el("div", "ev", `… ${items.length - 8} more`));
+    edgesRoot.appendChild(box);
+  }
+  if (graph.unresolved.length > 0) {
+    const box = el("div", "domain");
+    box.appendChild(el("h2", null, `UNRESOLVED — ${graph.unresolved.length}`));
+    for (const item of graph.unresolved.slice(0, 8)) box.appendChild(el("div", "item unres", `${item.id}: ${item.reason.slice(0, 100)}`));
+    edgesRoot.appendChild(box);
+  }
+}
+
+async function refresh() {
+  const res = await fetch("/system-graph.json");
+  render(await res.json());
+}
+refresh();
+
+// `?live=0` renders once and opens no stream. A live page holds an
+// EventSource open forever, which is correct for an operator watching it and
+// wrong for anything that needs the page to finish loading — a headless
+// screenshot never settles against an open stream. This is the static mode for
+// those callers, not a different view: the same render from the same endpoint.
+const live = new URLSearchParams(location.search).get("live") !== "0";
+if (live) {
+  // The circuit server already streams change events; a change re-reads the
+  // derived graph rather than patching the DOM by hand.
+  try { new EventSource("/events").onmessage = () => refresh(); } catch (e) {}
+  setInterval(refresh, 15000);
+}
+</script>

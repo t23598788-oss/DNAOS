@@ -47,6 +47,7 @@ import { createHttpServer, extname, fileExists, joinPath, readFileUtf8, readRequ
 import { recordFinding, listPersistedFindings } from "./finding-receiver";
 import { readPathCircuitGraph, verifyReadPaths } from "../../control/system-read-paths/contract";
 import { changeFlowCircuitGraph, observationStatus } from "../../control/realtime-change/contract";
+import { buildSystemGraph } from "./derived-graph";
 import { observationCircuitGraph, listProcesses, observeProcesses, relationshipsFor, runtimeConsumerEvidenceFor, observationStoreStatus, readObservations, observationsForResource } from "../../control/machine-observation/contract";
 import { evaluateAllDetected, listEvaluationEvidence } from "./finding-evaluator";
 import { decideAllEvaluated, listDecisionEvidence } from "./finding-decider";
@@ -529,6 +530,21 @@ export function startCircuitServer(state: CircuitState, port: number): ReturnTyp
             derived_by: record.derived_by,
           })),
         });
+        return;
+      }
+      // The graph DERIVED from the running system. Every node and edge here
+      // came out of a source list — read paths, the census snapshot, the
+      // observation store, the watch scopes, the service registry — so a
+      // capability, read path or service added later appears with no edit to
+      // this file and none to the UI.
+      // Path compared without the query string: the page takes `?live=0`, and
+      // an exact-match route silently 404'd it.
+      if ((url === "/system-graph" || url === "/system-graph/" || url.startsWith("/system-graph?")) && (req.method === "GET" || req.method === undefined)) {
+        serveStaticFile(root, "ui/system-graph/index.html", res);
+        return;
+      }
+      if (url === "/system-graph.json" && (req.method === "GET" || req.method === undefined)) {
+        sendJson(res, 200, { ok: true, ...buildSystemGraph() });
         return;
       }
       if (url === "/circuit.json") {
