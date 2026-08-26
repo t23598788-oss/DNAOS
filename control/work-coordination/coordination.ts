@@ -161,6 +161,30 @@ function readJsonl<T>(path: string): T[] { if (!existsSync(path)) return []; try
  * checkpoint standing, so the resume engine reports the work at its last
  * durably-recorded phase, which is the truth.
  */
+/**
+ * PRODUCTION WAITING CALLER for this store. A work item refused completion is
+ * really blocked on a really-missing dependency, so it is recorded as waiting
+ * through the EXISTING `control/work-continuation/` store — not a second queue,
+ * and not a proof-only call.
+ *
+ * Lazy `require` for the same reason as `checkpointWorkItem`. Never throws.
+ */
+function recordBlockedItem(item: WorkItem, blocker: string): void {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const cc = require("../capability-creation/contract") as typeof import("../capability-creation/contract");
+    cc.recordBlockedWork({
+      work_id: item.task_id,
+      current_phase: item.status,
+      next_action: blocker,
+      affected_paths: item.target_files ?? [],
+      evidence_refs: [`${eventPathForEvidence}#${item.task_id}`],
+    });
+  } catch {
+    // never fail a real transition for this
+  }
+}
+
 function checkpointWorkItem(item: WorkItem, blockedBy: string | null, data?: Record<string, unknown>): void {
   try {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -293,6 +317,7 @@ export function createCoordinationStore(root = resolve(process.cwd(), "local-run
           save(items);
           emit("FAILED", item, { ...data, blocked_by: "COMPLETION_PROVENANCE_UNRESOLVED", detail: "target_files is absent on this work item — the change set could not be read, so completion fails closed" });
           checkpointWorkItem(item, "COMPLETION_PROVENANCE_UNRESOLVED", { detail: "target_files is absent on this work item — the change set could not be read, so completion fails closed" });
+          recordBlockedItem(item, "COMPLETION_PROVENANCE_UNRESOLVED");
           return item;
         }
         if (provenance.length > 0) {
@@ -301,7 +326,8 @@ export function createCoordinationStore(root = resolve(process.cwd(), "local-run
             item.status = "FAILED";
             save(items);
             emit("FAILED", item, { ...data, blocked_by: `UI_RENDER_NOT_VERIFIED:${decision.ui_impact}:${decision.render_verdict ?? "NO_EVIDENCE"}`, reason: decision.reason });
-            checkpointWorkItem(item, `UI_RENDER_NOT_VERIFIED:${decision.ui_impact}:${decision.render_verdict ?? "NO_EVIDENCE"}`, { detail: decision.reason, reason: decision.reason });
+              checkpointWorkItem(item, `UI_RENDER_NOT_VERIFIED:${decision.ui_impact}:${decision.render_verdict ?? "NO_EVIDENCE"}`, { detail: decision.reason, reason: decision.reason });
+            recordBlockedItem(item, `UI_RENDER_NOT_VERIFIED:${decision.ui_impact}:${decision.render_verdict ?? "NO_EVIDENCE"}`);
             return item;
           }
         }

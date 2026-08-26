@@ -118,6 +118,66 @@ function affectedPathsOf(task: Task): readonly string[] {
  * write leaves the previous checkpoint in place, so the resume engine sees the
  * work at its last durably-recorded phase, which is the truth.
  */
+/**
+ * Records a really-blocked task as waiting on its dependency, through the
+ * EXISTING `control/work-continuation/` store. Never throws at the caller: a
+ * real transition must not fail because a journal could not be written.
+ *
+ * Lazy `require` for the same reason as `checkpointTransition` above —
+ * `control/capability-creation` reaches `control/work-continuation`, which
+ * shares this file's evidence store through `control/work-resolution`.
+ */
+/**
+ * Runs the EXISTING continuation join after an authoritative verdict.
+ *
+ * It produces no events of its own and dispatches nothing: it hands the real
+ * census to `control/work-continuation`'s adapter, hands the recorded creation
+ * gaps to `control/capability-creation`'s wiring producer, and asks the ONE
+ * evaluator which waiting work is now eligible. A `RESUME_ELIGIBLE` decision is
+ * recorded; `control/scheduler/` remains the only thing that executes one.
+ *
+ * Never throws at the caller, and reads the census SNAPSHOT rather than
+ * recomputing it — a status transition must not become a census run.
+ */
+function emitDependencyEvents(task: Task): void {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const nodeFs = require("node:fs") as typeof import("node:fs");
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const cc = require("../capability-creation/contract") as typeof import("../capability-creation/contract");
+    const snapshotPath = `${process.cwd()}/software/live-census/data/last-census.json`;
+    if (!nodeFs.existsSync(snapshotPath)) return;
+    const census = JSON.parse(nodeFs.readFileSync(snapshotPath, "utf8")) as unknown;
+    const result = cc.runContinuationJoin({ census, source_revision: task.task_id });
+    for (const decision of result.decisions) {
+      record(task.task_id, "verification", "control/capability-creation/production.ts#runContinuationJoin", {
+        resumed_work_id: decision.work_id,
+        verdict: decision.evaluation.verdict,
+        triggered_by: decision.triggered_by.key,
+        next_action: decision.next_action,
+      });
+    }
+  } catch {
+    // a join that cannot run leaves every waiting row exactly as it was
+  }
+}
+
+function recordBlocked(task: Task, blocker: string, affected: readonly string[]): void {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const cc = require("../capability-creation/contract") as typeof import("../capability-creation/contract");
+    cc.recordBlockedWork({
+      work_id: task.task_id,
+      current_phase: task.status,
+      next_action: blocker,
+      affected_paths: affected,
+      evidence_refs: [`control/agent-gateway/data/tasks.jsonl#${task.task_id}`],
+    });
+  } catch {
+    // never fail a real transition for this
+  }
+}
+
 function checkpointTransition(task: Task, nextAction: string | null | undefined): void {
   try {
     // Required lazily: `control/work-session-state/authority.ts` reads
@@ -231,6 +291,12 @@ function persistStatus(task: Task, status: Status): Task {
         // any other — a crash here must not leave the work looking as though
         // it was still on its way to COMPLETED.
         checkpointTransition(blocked, `UI_RENDER_NOT_VERIFIED:${decision.ui_impact}:${decision.render_verdict ?? "NO_EVIDENCE"}`);
+        // PRODUCTION WAITING CALLER. This is the real point at which work
+        // becomes blocked on a deterministic missing dependency, so this is
+        // where it is recorded as waiting — not in a proof and not by hand. It
+        // records nothing when no deterministic key derives from the blocker,
+        // because a key nothing can ever emit is a silent forever-wait.
+        recordBlocked(blocked, `UI_RENDER_NOT_VERIFIED:${decision.ui_impact}:${decision.render_verdict ?? "NO_EVIDENCE"}`, affected);
         record(task.task_id, "verification", "control/ui-render-verification/gate.ts", { ui_impact: decision.ui_impact, render_verdict: decision.render_verdict, reason: decision.reason, affected_paths: affected });
         void reportJoint({ from_capability: task.submitted_by_client, to_capability: "agent-gateway", task_id: task.task_id, status: "BLOCKED", summary: `task ${task.task_id} -> BLOCKED (UI render not verified)`, source: "control/agent-gateway/gateway.ts#persistStatus" });
         return blocked;
@@ -253,6 +319,12 @@ function persistStatus(task: Task, status: Status): Task {
   // therefore detectable: the task store has moved and the checkpoint has not,
   // which the resume engine reports rather than resolving in anyone's favour.
   checkpointTransition(updated, nextAction);
+  // PRODUCTION DEPENDENCY-EVENT PRODUCER. A task reaching COMPLETED or FAILED
+  // is the moment a verification verdict becomes authoritative — the smallest
+  // existing boundary where deterministic state really changes. Only these two
+  // states run the join, so an ordinary ROUTING/EXECUTING transition does not
+  // pay for a census read it cannot possibly satisfy anything with.
+  if (status === "COMPLETED" || status === "FAILED") emitDependencyEvents(updated);
   // Pillar 1 (Owner, 2026-08-22 — see /Users/tam/.claude/plans/zesty-spinning-ripple.md):
   // the one true funnel for every status transition in this file (submitTask,
   // ownerDecision, recoverInterruptedTasks all route through here) — mirroring

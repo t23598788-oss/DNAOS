@@ -19,6 +19,10 @@ export {
   creationContractPath,
 } from "./store";
 export type { CreationRecord, ParkResult } from "./store";
+export { deriveWiringEvents, wiringFactsSatisfied, WIRING_NAMESPACES } from "./events";
+export type { WiringProbe } from "./events";
+export { recordBlockedWork, runContinuationJoin, blockerKeysFor } from "./production";
+export type { BlockedWorkInput, RecordBlockedResult, JoinResult } from "./production";
 export {
   UNKNOWN,
   TRIGGER_CLASSES,

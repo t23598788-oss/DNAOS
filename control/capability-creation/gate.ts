@@ -23,7 +23,7 @@
  */
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { join, resolve } from "node:path";
-import { normalizeScopePath } from "../work-coordination/contract";
+import { dependencyKey } from "../work-continuation/contract";
 import {
   LIFECYCLE_ORDER, REQUIRED_CONTRACT_FIELDS, REQUIRED_NONEMPTY_LISTS, TRIGGER_CLASSES, UNKNOWN,
   type CapabilityCreationContract, type CapabilityLifecycleState, type CreationGateResult,
@@ -32,25 +32,6 @@ import {
 
 const REPO_ROOT = process.env.CAPABILITY_CREATION_REPO_ROOT ?? process.cwd();
 
-
-/**
- * Builds a dependency key for `control/work-continuation/`.
- *
- * Its matching is WHOLE-STRING EQUALITY with no prefix handling, which means
- * the failure mode here is not collision — it is NEAR-MISS. `path:control/x`
- * and `path:control/x/` are different strings, nothing throws, and the waiting
- * row simply never wakes, which looks exactly like "still legitimately
- * blocked". So the path is normalised through the SAME function
- * `control/work-coordination/`'s write-scope layer uses, and the capability
- * portion is always the capability_root (the census `path` form, e.g.
- * `control/work-session-state`) — never a display name and never a last
- * segment, both of which have already made a real registration invisible in
- * this repo.
- */
-function dependencyKey(namespace: string, value: string): string {
-  const normalized = normalizeScopePath(value);
-  return `${namespace}:${normalized ?? value}`;
-}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // GATE 1 — before any file is written
@@ -73,7 +54,7 @@ export function evaluateCreationContract(contract: CapabilityCreationContract): 
       missing.push({
         kind: "CONTRACT_FIELD",
         detail: `${String(field)} is ${value === UNKNOWN ? "UNKNOWN" : "empty or absent"}`,
-        blocked_on: `contract_field:${String(field)}`,
+        blocked_on: dependencyKey("contract_field", String(field)),
         required_input: null, required_resource: null, required_evidence: null,
         next_action: `resolve ${String(field)} from a deterministic source before any file is written`,
       });
@@ -85,7 +66,7 @@ export function evaluateCreationContract(contract: CapabilityCreationContract): 
       missing.push({
         kind: "CONTRACT_FIELD",
         detail: `${String(field)} is empty — an empty list here is not a claim, it is an unanswered question`,
-        blocked_on: `contract_field:${String(field)}`,
+        blocked_on: dependencyKey("contract_field", String(field)),
         required_input: null, required_resource: null, required_evidence: null,
         next_action: `state at least one entry for ${String(field)}`,
       });
@@ -95,7 +76,7 @@ export function evaluateCreationContract(contract: CapabilityCreationContract): 
     missing.push({
       kind: "INPUT",
       detail: `trigger_type "${contract.trigger_type}" is not one of the declared trigger classes — a capability whose only caller is an Agent that remembers to call it has no trigger`,
-      blocked_on: "trigger_class", required_input: null, required_resource: null, required_evidence: null,
+      blocked_on: dependencyKey("contract_field", "trigger_type"), required_input: null, required_resource: null, required_evidence: null,
       next_action: "name a real trigger class, or connect a real one",
     });
   }
@@ -223,7 +204,7 @@ export function evaluateCompletionGate(input: CompletionGateInput): CreationGate
   if (!inputConnected) {
     missing.push({ kind: "INPUT", detail: "INPUT_NOT_CONNECTED — no declared trigger class and real input source", blocked_on: dependencyKey("trigger", contract.capability_root), required_input: contract.input_type, required_resource: null, required_evidence: null, next_action: "connect a real trigger; an Agent remembering to call it is not one" });
   } else if (!callerFound.found) {
-    missing.push({ kind: "INPUT", detail: `IMPLEMENTED_NOT_REACHABLE — nothing outside ${contract.capability_root} references ${input.entry_symbol}, so the declared trigger cannot actually reach it`, blocked_on: `caller:${contract.capability_root}#${input.entry_symbol}`, required_input: contract.input_type, required_resource: null, required_evidence: null, next_action: `add the real call from ${contract.input_source}` });
+    missing.push({ kind: "INPUT", detail: `IMPLEMENTED_NOT_REACHABLE — nothing outside ${contract.capability_root} references ${input.entry_symbol}, so the declared trigger cannot actually reach it`, blocked_on: dependencyKey("caller", `${contract.capability_root}#${input.entry_symbol}`), required_input: contract.input_type, required_resource: null, required_evidence: null, next_action: `add the real call from ${contract.input_source}` });
   } else {
     satisfied.push({ check: "input is connected and really reachable", evidence: `${trigger} via ${contract.input_source}; called from ${callerFound.where}` });
     advance("INPUT_CONNECTED");

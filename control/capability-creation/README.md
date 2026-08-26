@@ -83,8 +83,12 @@ event ที่มาจริงได้ near-miss จะได้มองเ
 | `types.ts` | contract | สัญญาการเกิด, `TriggerClass`, `CapabilityLifecycleState`, `PreWritePacket` |
 | `gate.ts` | source | GATE 1 + GATE 2 + ตัวสร้าง packet + `dependencyKey` ที่ normalize แล้ว |
 | `store.ts` | source | journal ของสัญญาการเกิด + `parkMissingConnections` ที่ส่งต่อไป work-continuation |
+| `events.ts` | source | **ครึ่งที่ยังไม่มีเจ้าของ** ของ event translator — 5 namespace เรื่องการต่อสาย |
+| `production.ts` | source | ผู้เรียกจริงสองด้าน: `recordBlockedWork` และ `runContinuationJoin` |
 | `contract.ts` | contract | **ไฟล์เดียวที่โฟลเดอร์อื่น import ได้** |
 | `tests/creation-gate-proof.ts` | test | CASE A–E 15/15 |
+| `tests/event-translator-proof.ts` | test | CASE A–G + targeted eval + production caller 15/15 |
+| `tests/canonical-status-proof.ts` | test | สถานะระบบชนะรายงาน Agent 8/8 |
 
 ## วิธีรัน
 
@@ -92,11 +96,41 @@ event ที่มาจริงได้ near-miss จะได้มองเ
 npx tsx control/capability-creation/tests/creation-gate-proof.ts
 ```
 
+## event translator — สองครึ่ง คนละเจ้าของ
+
+translator ไม่ใช่ component เดียว มันคือสองครึ่งที่ต่างกันโดยธรรมชาติ:
+
+| ครึ่ง | ผลิต namespace | เจ้าของ |
+|---|---|---|
+| ข้อเท็จจริงระดับระบบ (census / registry / verification / runtime) | `path` `registry` `runtime` `runtime_evidence` `verification` `capability` `resource` | `control/work-continuation/adapter.ts` |
+| **ข้อเท็จจริงเรื่องการต่อสาย** | `trigger` `routing` `caller` `consumer` `contract_field` | `./events.ts` |
+
+ครึ่งหลังเคยไม่มีผู้ผลิตเลย งานที่บล็อกด้วย 5 key นั้นจึงรอตลอดกาล —
+พฤติกรรมถูก (ไม่ปลุกมั่ว) แต่ไม่มีวันจบ
+
+`./events.ts` **ไม่ได้เฝ้าดูอะไร** มันเรียกประตูตัวเดิมกับสถานะจริง ณ ตอนนี้
+แล้วปล่อย event เฉพาะ key ที่ "เคยขาด และตอนนี้ไม่ขาดแล้ว" เท่านั้น
+
+## ผู้เรียกจริงใน production
+
+| ด้าน | จุดจริง |
+|---|---|
+| งานติด → `appendWaiting` | `control/agent-gateway/gateway.ts#persistStatus` (UI render ปฏิเสธ) · `control/work-coordination/coordination.ts#transition` (ทั้งสองสาขาที่ปฏิเสธ) |
+| verdict เป็นทางการ → join | `control/agent-gateway/gateway.ts#persistStatus` เฉพาะ `COMPLETED`/`FAILED` |
+
+`runContinuationJoin` **ไม่ dispatch** decision ที่ได้ถูกบันทึกเป็นหลักฐาน แล้ว
+`control/scheduler/` ตัวเดิมเป็นผู้หยิบไปทำ
+
+`blockerKeysFor` รับเฉพาะ blocker ที่มีความหมายตายตัว ข้อความอื่น **คืนอาร์เรย์ว่าง
+โดยตั้งใจ** — การเดา key จากประโยคอิสระจะได้ key ที่ไม่มีผู้ผลิตใดปล่อยออกมา
+งานจะรอชั่วนิรันดร์โดยไม่มี error ซึ่งแย่กว่าการไม่บันทึก
+
 ## NOT_YET_BUILT
 
-- **ยังไม่มี event translator** — `control/work-continuation` มี evaluator ที่พิสูจน์แล้ว
-  และโฟลเดอร์นี้บันทึกแถวรอได้ แต่ยังไม่มีตัวที่แปลง event จริงของระบบ (registry /
-  census / verification / runtime) ให้เป็น `DependencyEvent` ครึ่งนี้ยังไม่มีเจ้าของ
-- GATE 2 ยังไม่ถูกเรียกจาก production path — วันนี้ถูกเรียกจาก proof และโดยมือ
-  ยังไม่ได้ผูกเข้ากับ `control/agent-gateway/capability-promotion.ts` ให้ทุก
-  candidate ต้องผ่าน
+- **`runContinuationJoin` ยังไม่มีหลักฐานว่าเคยรันใน production จริง** — สายไฟต่อแล้ว
+  แต่ยังไม่มีใครสังเกตเห็นมันทำงานตอน task จริงถึง COMPLETED/FAILED ตามกฎของ
+  โฟลเดอร์นี้เอง สถานะจึงเป็น `IMPLEMENTED_NOT_RUNTIME_PROVEN` **ไม่ยกเว้นให้ตัวเอง**
+- GATE 2 ยังไม่ถูกเรียกจาก `capability-promotion.ts` ให้ทุก candidate ต้องผ่าน
+- `blockerKeysFor` รู้จัก blocker เพียง 2 แบบ (`UI_RENDER_NOT_VERIFIED:*`,
+  `COMPLETION_PROVENANCE_UNRESOLVED`) blocker อื่นจะไม่ถูกบันทึกเป็นแถวรอ ซึ่ง
+  ถูกต้องกว่าการเดา แต่แปลว่าความครอบคลุมยังไม่เต็ม
