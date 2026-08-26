@@ -28,6 +28,7 @@
  * Input: `WorkResultInput`, a `RegistryStore` the caller already holds.
  * Output: `ingestWorkResult` -> `WorkResultIngressResult`.
  * Dependency ที่อนุญาต: ./types.ts, ./classifier.ts,
+ * ../ui-render-verification/contract.ts (the mandatory render gate),
  * ../agent-gateway/contract.ts, ../registration-pipeline/contract.ts,
  * ../../software/registry-database/contract.ts (RegistryStore type only).
  * สิ่งที่ห้ามแตะ: never call runRegistrationPipeline for an artifact before
@@ -43,6 +44,7 @@ import { getTask, loadHandoffsForTask, validateHandoff, recordHandoff, loadEvide
 import { runRegistrationPipeline } from "../registration-pipeline/contract";
 import type { RegistryStore } from "../../software/registry-database/contract";
 import { splitWorkResultIntoCandidates } from "./classifier";
+import { decideCompletion } from "../ui-render-verification/contract";
 import type { RegisteredArtifact, WorkResultInput, WorkResultIngressResult } from "./types";
 
 const SUCCESSFUL_DECISIONS = new Set(["REGISTERED", "DUPLICATE"]);
@@ -56,6 +58,30 @@ export function ingestWorkResult(input: WorkResultInput, deps: { store: Registry
   const task = getTask(input.task_id);
   if (!task || !task.work_order) return rejected(input.task_id, "WORK_ORDER_NOT_ADMITTED");
   if (task.status !== "EXECUTING" && task.status !== "VERIFYING") return rejected(input.task_id, `WORK_ORDER_NOT_ACTIVE:${task.status}`);
+
+  // 1a. UI RENDER GATE (Owner, 2026-08-26). This function is where BOTH
+  // completion-producing paths converge — `POST /handoff` from a real external
+  // agent, and gateway.ts's own internal dispatch-and-verify step, whose
+  // COMPLETED/FAILED is decided by this result. Gating here rather than at one
+  // caller is what makes it non-bypassable, and there is deliberately no
+  // parameter that turns it off.
+  //
+  // It is deterministic end to end: UI impact comes from path rules over
+  // `files_changed` plus the servers' real route table, and the verdict comes
+  // from a real browser DOM. A change that no route owns returns UI_IMPACT=NO
+  // and this costs nothing.
+  const completion = decideCompletion({
+    execution_id: input.task_id,
+    changed_paths: input.files_changed,
+    // The work order names a target path, not a capability id; the task id is
+    // the identity this completion is actually about.
+    capability_id: input.task_id,
+    applied_at: task.updated_at,
+    correlation_id: input.input_reference,
+  });
+  if (completion.status === "COMPLETE_DENIED") {
+    return rejected(input.task_id, `UI_RENDER_NOT_VERIFIED:${completion.ui_impact}:${completion.render_verdict ?? "NO_EVIDENCE"}:${completion.reason}`);
+  }
 
   const existingActive = loadHandoffsForTask(task.task_id).find(
     (handoff) => handoff.agent_id !== "owner-console" && (handoff.dna_os_decision === "AGENT_SUBMITTED" || handoff.dna_os_decision === "DNA_VALIDATING"),
