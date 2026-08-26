@@ -18,9 +18,10 @@
  * sqlite3 only" convention).
  * สิ่งที่ห้ามแตะ: never add a retry/poll loop with no bound here — every
  * caller in `resolver.ts` controls its own bounded wait. Never widen
- * `SERVICES` to a 5th target without the Owner adding it explicitly — this
- * capability's scope is exactly the four services Discovery confirmed
- * (deadboard, lab-ui, research-api, compute-api), nothing else.
+ * `SERVICES` without the Owner adding it explicitly. The Owner added
+ * `machine-observer` on 2026-08-26; the four Discovery confirmed
+ * (deadboard, lab-ui, research-api, compute-api) plus that one are the whole
+ * scope, and a sixth still needs the same explicit instruction.
  */
 
 import { execFileSync } from "node:child_process";
@@ -34,6 +35,17 @@ import type { ServiceDefinition, ServiceId, LaunchdState, HealthCheckResult, Ope
 const HOME = userInfo().homedir;
 
 export const SERVICES: Record<ServiceId, ServiceDefinition> = {
+  // The observation runtime (Owner, 2026-08-26). It gets an HTTP health
+  // surface for one reason: that is the shape this supervisor already knows
+  // how to probe. See control/machine-observation/start.ts.
+  "machine-observer": {
+    service_id: "machine-observer",
+    launchd_label: "com.dnaos.machine-observer",
+    plist_path: join(HOME, "Library/LaunchAgents/com.dnaos.machine-observer.plist"),
+    port: 5179,
+    health_path: "/health",
+    health_expect_status: 200,
+  },
   deadboard: {
     service_id: "deadboard",
     launchd_label: "com.dnaos.deadboard-dev",

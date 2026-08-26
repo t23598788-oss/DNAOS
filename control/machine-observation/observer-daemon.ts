@@ -37,7 +37,7 @@ declare const require: any;
 declare const setInterval: any;
 declare const clearInterval: any;
 
-import { startObserving, stopObserving, observationStatus, resolvePath, toRepoRelative, type ChangeEvent, type WatchScope } from "../realtime-change/contract";
+import { startObserving, stopObserving, observationStatus, currentWatchScopes, resolvePath, toRepoRelative, type ChangeEvent, type WatchScope } from "../realtime-change/contract";
 import { observeProcesses, relationshipsFor } from "./process-observer";
 import { correlate, strongestVerdict } from "./correlation";
 import { deriveMeaning } from "./meaning";
@@ -56,12 +56,22 @@ export interface ObservationRuntimeOptions {
   onRecord?: (record: ObservationRecord) => void;
 }
 
+export interface ScopeChange {
+  at: string;
+  added: readonly string[];
+  removed: readonly string[];
+  now_watching: readonly string[];
+}
+
 export interface ObservationRuntimeHandle {
   stop(): void;
+  /** Re-derives the watch scopes from runtime and re-attaches the watcher if they changed. Called on every tick; exposed so a proof can force it without waiting. */
+  refreshScopes(): ScopeChange | null;
   status(): {
     observing: ReturnType<typeof observationStatus>;
     store: ReturnType<typeof observationStoreStatus>;
     last_refresh: string | null;
+    scope_changes: readonly ScopeChange[];
     runtime_consumers: readonly { path: string; state: string; consumers: number }[];
   };
 }
@@ -92,9 +102,38 @@ export function startObservationRuntime(options: ObservationRuntimeOptions = {})
     options.onRecord?.(record);
   };
 
-  startObserving(onChange, options.scopes ?? []);
+  const extraScopes = options.scopes ?? [];
+  let watching = new Set<string>();
+  const scopeChanges: ScopeChange[] = [];
+
+  /**
+   * Scopes are re-derived from runtime, not captured once at start (Owner,
+   * 2026-08-26). A write lock taken after the daemon started used to be
+   * invisible until a restart — the watcher held whatever `fs.watch` handles it
+   * opened at boot. Now the declared scopes are recomputed each tick, and the
+   * watcher is re-attached ONLY when the set actually changed, so an unchanged
+   * system does not churn kernel handles every interval.
+   */
+  const refreshScopes = (): ScopeChange | null => {
+    const derived = currentWatchScopes(extraScopes);
+    const next = new Set(derived.map((scope) => scope.path));
+    const added = [...next].filter((path) => !watching.has(path));
+    const removed = [...watching].filter((path) => !next.has(path));
+    if (added.length === 0 && removed.length === 0) return null;
+
+    stopObserving();
+    startObserving(onChange, extraScopes);
+    watching = next;
+    const change: ScopeChange = { at: new Date().toISOString(), added, removed, now_watching: [...next] };
+    scopeChanges.push(change);
+    return change;
+  };
+
+  startObserving(onChange, extraScopes);
+  watching = new Set(currentWatchScopes(extraScopes).map((scope) => scope.path));
 
   const timer = setInterval(() => {
+    refreshScopes();
     // A bounded lsof pass over candidate pids — the refresh that keeps
     // live-census's runtime input current without touching the source tree.
     consumers = [...runtimeConsumerSnapshot(refreshPaths).values()];
@@ -106,11 +145,13 @@ export function startObservationRuntime(options: ObservationRuntimeOptions = {})
       clearInterval(timer);
       stopObserving();
     },
+    refreshScopes,
     status() {
       return {
         observing: observationStatus(),
         store: observationStoreStatus(),
         last_refresh: lastRefresh,
+        scope_changes: scopeChanges,
         runtime_consumers: consumers.map((evidence) => ({ path: evidence.path, state: evidence.state, consumers: evidence.consumers.length })),
       };
     },

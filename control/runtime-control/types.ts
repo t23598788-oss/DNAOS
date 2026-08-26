@@ -22,7 +22,13 @@
  * what was actually observed.
  */
 
-export type ServiceId = "deadboard" | "lab-ui" | "research-api" | "compute-api";
+/**
+ * `machine-observer` added 2026-08-26 on the Owner's explicit instruction
+ * ("Wire observer-daemon.ts into the existing runtime/service mechanism") —
+ * ../../control/machine-observation/host-runtime.ts's own rule requires that
+ * the Owner add a fifth target deliberately, and this is that addition.
+ */
+export type ServiceId = "deadboard" | "lab-ui" | "research-api" | "compute-api" | "machine-observer";
 
 export type Action = "start" | "stop" | "restart" | "health" | "status";
 
