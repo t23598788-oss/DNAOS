@@ -37,6 +37,7 @@ import { observationStoreStatus, readObservations } from "../../control/machine-
 import { observationStatus } from "../../control/realtime-change/contract";
 import { SERVICES } from "../../control/runtime-control/contract";
 import { readRenderEvidence, routeOwnership } from "../../control/ui-render-verification/contract";
+import { allCurrentCheckpoints, buildResumeContext } from "../../control/work-session-state/contract";
 
 const fs = require("node:fs");
 const path = require("node:path");
@@ -48,7 +49,9 @@ export type GraphDomain =
   | "MACHINE_OBSERVATION" | "PROCESS" | "FILESYSTEM_EVENT" | "OBSERVATION_STORE"
   | "RESOURCE_RESOLUTION" | "RESOURCE_GRAPH" | "LIVE_CENSUS" | "STATE" | "EVIDENCE"
   | "BLUEPRINT_DOCUMENT" | "LIFECYCLE_VERDICT" | "RUNTIME_SERVICE" | "READ_PATH" | "CAPABILITY"
-  | "UI_ROUTE" | "UI_IMPACT" | "RENDER_VERIFICATION" | "RENDER_EVIDENCE" | "COMPLETION_GATE" | "UNRESOLVED";
+  | "UI_ROUTE" | "UI_IMPACT" | "RENDER_VERIFICATION" | "RENDER_EVIDENCE" | "COMPLETION_GATE"
+  | "OWNER_INTENT" | "WORK" | "TASK" | "SESSION" | "EXECUTION" | "WORK_PHASE" | "BLOCKER"
+  | "DECISION_REQUIRED" | "NEXT_ACTION" | "UNRESOLVED";
 
 export interface GraphNode {
   id: string;
@@ -235,6 +238,69 @@ export function buildSystemGraph(): SystemGraph {
     for (const resourceId of evidence.resource_id) {
       addEdge({ id: `e_ev_res_${node}_${resourceId}`, from: node, to: `resource:${resourceId}`, kind: "EVIDENCE_FOR", evidence: [`resource_id=${resourceId}`, `source_digest=${evidence.source_digest}`] });
       addNode({ id: `resource:${resourceId}`, label: resourceId, domain: "RESOURCE_GRAPH", source: "render evidence lineage", evidence: [`named by render evidence ${evidence.execution_id}`] });
+    }
+  }
+
+  // ---- SOURCE 7: persistent work state --------------------------------
+  // Every node below comes out of the checkpoint journal that
+  // `control/work-session-state/` owns. Nothing here names a work item, a
+  // phase or a session: they appear because a checkpoint records them, and
+  // they keep appearing after the worker that wrote them is gone — the work
+  // node is derived from persisted state, never from a live process.
+  const checkpoints = allCurrentCheckpoints();
+  counts["work-session-state"] = checkpoints.length;
+  for (const checkpoint of checkpoints) {
+    const workNode = `work:${checkpoint.work_id}`;
+    const resume = buildResumeContext(checkpoint.work_id);
+    addNode({ id: workNode, label: checkpoint.objective.slice(0, 70) || checkpoint.work_id, domain: "WORK", source: "control/work-session-state#allCurrentCheckpoints", evidence: [`work_id=${checkpoint.work_id}`, `status=${checkpoint.status}`, `resume_status=${resume.resume_status}`, `checkpoint_id=${checkpoint.checkpoint_id}`] });
+
+    if (checkpoint.owner_intent_id) {
+      const intentNode = `owner_intent:${checkpoint.owner_intent_id}`;
+      addNode({ id: intentNode, label: checkpoint.owner_intent_id, domain: "OWNER_INTENT", source: "control/work-session-state#checkpoint.owner_intent_id", evidence: [`declared by checkpoint ${checkpoint.checkpoint_id}`] });
+      addEdge({ id: `e_intent_work_${checkpoint.work_id}`, from: intentNode, to: workNode, kind: "ORIGINATES", evidence: [`owner_intent_id=${checkpoint.owner_intent_id}`] });
+    }
+    if (checkpoint.task_id) {
+      const taskNode = `task:${checkpoint.task_id}`;
+      addNode({ id: taskNode, label: checkpoint.task_id, domain: "TASK", source: "control/work-session-state#checkpoint.task_id", evidence: ["status is owned by control/work-coordination, not restated here"] });
+      addEdge({ id: `e_work_task_${checkpoint.work_id}`, from: workNode, to: taskNode, kind: "EXECUTES_TASK", evidence: [`task_id=${checkpoint.task_id}`] });
+    }
+
+    const sessionNode = `session:${checkpoint.session_id}`;
+    addNode({ id: sessionNode, label: `${checkpoint.worker_identity} ${checkpoint.session_id.slice(-8)}`, domain: "SESSION", source: "control/work-session-state#checkpoint.session_id", evidence: [`worker_identity=${checkpoint.worker_identity}`, `updated_at=${checkpoint.updated_at}`] });
+    addEdge({ id: `e_session_work_${checkpoint.session_id}`, from: sessionNode, to: workNode, kind: "WORKS_ON", evidence: [`session_id=${checkpoint.session_id}`, `work_id=${checkpoint.work_id}`] });
+    if (checkpoint.execution_id) {
+      const execNode = `execution:${checkpoint.execution_id}`;
+      addNode({ id: execNode, label: checkpoint.execution_id.slice(-12), domain: "EXECUTION", source: "control/work-session-state#checkpoint.execution_id", evidence: [`session_id=${checkpoint.session_id}`] });
+      addEdge({ id: `e_session_exec_${checkpoint.execution_id}`, from: sessionNode, to: execNode, kind: "RAN", evidence: [`execution_id=${checkpoint.execution_id}`] });
+    }
+
+    const phaseNode = `work_phase:${checkpoint.work_id}:${checkpoint.current_phase}`;
+    addNode({ id: phaseNode, label: checkpoint.current_phase, domain: "WORK_PHASE", source: "control/work-session-state#checkpoint.current_phase", evidence: [`${resume.completed_steps.length} step(s) still-valid`, `${resume.pending_steps.length} pending`, `${resume.stale_steps.length} not re-provable`] });
+    addEdge({ id: `e_work_phase_${checkpoint.work_id}`, from: workNode, to: phaseNode, kind: "AT_PHASE", evidence: [`current_phase=${checkpoint.current_phase}`] });
+
+    for (const blocker of resume.open_blockers) {
+      const blockerNode = `blocker:${checkpoint.work_id}:${blocker.blocker_id}`;
+      addNode({ id: blockerNode, label: `${blocker.blocker_id} @ ${blocker.layer}`, domain: "BLOCKER", source: "control/work-session-state#checkpoint.blockers", evidence: [blocker.detail.slice(0, 120), `next_action=${blocker.next_action.slice(0, 90)}`, blocker.evidence_ref ?? "evidence_ref=none"] });
+      addEdge({ id: `e_work_blocker_${checkpoint.work_id}_${blocker.blocker_id}`, from: workNode, to: blockerNode, kind: "BLOCKED_BY", evidence: [`layer=${blocker.layer}`] });
+    }
+    for (const decision of resume.open_decisions) {
+      const decisionNode = `decision:${checkpoint.work_id}:${decision.decision_id}`;
+      addNode({ id: decisionNode, label: decision.decision_id, domain: "DECISION_REQUIRED", source: "control/work-session-state#checkpoint.decisions_required", evidence: [decision.question.slice(0, 140), `decider=${decision.decider}`, `options=${decision.options.join(" | ").slice(0, 120)}`] });
+      addEdge({ id: `e_work_decision_${checkpoint.work_id}_${decision.decision_id}`, from: workNode, to: decisionNode, kind: "AWAITS_DECISION", evidence: [`state=${decision.state}`] });
+    }
+
+    const nextNode = `next_action:${checkpoint.work_id}`;
+    addNode({ id: nextNode, label: resume.next_action.slice(0, 90), domain: "NEXT_ACTION", source: "control/work-session-state#buildResumeContext", evidence: [`resume_status=${resume.resume_status}`, `checkpoint_revision=${resume.checkpoint_revision.slice(0, 12)}`, `current_revision=${resume.current_revision.slice(0, 12)}`, `revision_drifted=${resume.revision_drifted}`] });
+    addEdge({ id: `e_work_next_${checkpoint.work_id}`, from: workNode, to: nextNode, kind: "NEXT_ACTION", evidence: ["derived by the resume engine from the step graph, blockers and decisions"] });
+
+    for (const evidenceRef of checkpoint.evidence_refs.slice(0, 12)) {
+      const evidenceNode = `work_evidence:${checkpoint.work_id}:${evidenceRef}`;
+      addNode({ id: evidenceNode, label: evidenceRef.slice(0, 70), domain: "EVIDENCE", source: "control/work-session-state#checkpoint.evidence_refs", evidence: [`declared by work ${checkpoint.work_id}`] });
+      addEdge({ id: `e_work_ev_${checkpoint.work_id}_${evidenceRef}`, from: workNode, to: evidenceNode, kind: "PROVEN_BY", evidence: [`evidence_ref=${evidenceRef}`] });
+    }
+    for (const resourceId of checkpoint.affected_resource_ids) {
+      addNode({ id: `resource:${resourceId}`, label: resourceId, domain: "RESOURCE_GRAPH", source: "control/work-session-state#checkpoint.affected_resource_ids", evidence: [`named by work ${checkpoint.work_id}`] });
+      addEdge({ id: `e_work_res_${checkpoint.work_id}_${resourceId}`, from: workNode, to: `resource:${resourceId}`, kind: "AFFECTS", evidence: [`affected_resource_ids of checkpoint ${checkpoint.checkpoint_id}`] });
     }
   }
 

@@ -34,3 +34,21 @@ connections/os-ui/data/*.cursor.json
 # committed once by mistake).
 connections/voice-command/data/observation-audio/
 connections/human-verified-text/data/sessions/
+
+# Recorded SCREEN observation — same class as the captured audio above, and
+# excluded for the same reason: these are recordings of the Owner's machine,
+# not source. 108 files, each holding the foreground app, the window title,
+# the on-screen text (`visible_text_redacted`) and the accessibility controls
+# — and the control entries carry `"redacted": false`, so real on-screen text
+# is present despite the field name. Any capture that happened while mail,
+# chat, a token or a password manager was on screen would carry that text into
+# a permanent commit (Owner decision, 2026-08-24).
+connections/os-ui/data/screen-reads/
+
+# สถานะงานที่กำลังทำอยู่จริงบนเครื่องนี้ — runtime data ของ
+# control/work-session-state/ ไม่ใช่ source. เป็นชนิดเดียวกับ
+# local-runtime/coordination/ ข้างบน และถูกกันไว้ด้วยเหตุผลเดียวกัน:
+# journal นี้ถือ objective/blocker/next action ของ session ที่กำลังรัน ซึ่ง
+# เปลี่ยนทุกครั้งที่มี worker ทำงาน การ commit มันจะทำให้ทุก branch ชนกัน
+# ที่ไฟล์เดียว และทำให้สถานะเครื่องหนึ่งกลายเป็นสถานะของทุกเครื่อง
+local-runtime/work-session-state/

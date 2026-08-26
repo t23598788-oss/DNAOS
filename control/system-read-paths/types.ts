@@ -25,7 +25,7 @@
  * - ห้ามให้ response ไม่มี provenance.
  */
 
-export type ReadDomain = "RESOURCE" | "CAPABILITY" | "TASK" | "EVIDENCE" | "EVENT" | "STATE" | "DOCUMENT";
+export type ReadDomain = "RESOURCE" | "CAPABILITY" | "TASK" | "EVIDENCE" | "EVENT" | "STATE" | "DOCUMENT" | "CONTINUATION";
 
 /** A --REQUEST--> B. What is sent, and what identifies the thing being asked about. */
 export interface ReadRequestSpec {

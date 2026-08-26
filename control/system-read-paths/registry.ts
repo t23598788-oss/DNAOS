@@ -28,6 +28,7 @@ import * as gateway from "../agent-gateway/contract";
 import * as registryDatabase from "../../software/registry-database/contract";
 import * as commandRouter from "../command-router/contract";
 import * as executionRun from "../../execution/run/contract";
+import * as workSessionState from "../work-session-state/contract";
 import { blueprintReadPathStatus } from "./blueprint-index";
 
 export const READ_PATHS: readonly ReadPathDeclaration[] = [
@@ -139,12 +140,31 @@ export const READ_PATHS: readonly ReadPathDeclaration[] = [
     provider: { capability: "control/system-read-paths", contract_path: "control/system-read-paths/contract.ts", symbol: "readBlueprintReferences" },
     evidence: ["DNA-OS-BLUEPRINT blueprint/_SOURCE_SYMBOL_INDEX.md", "DNA-OS-BLUEPRINT blueprint/*.md [SOURCE: ...] claims"],
   },
+  {
+    id: "RP-WORK-RESUME-STATE",
+    domain: "CONTINUATION",
+    answers: "where an in-progress work item stands, and the one action a replacement worker should take next — read from DNA OS's own persistent checkpoint journal, never from any agent's memory",
+    request: { sends: ["work_id"], lookup_key: "work_id", never_sends: ["Owner language", "conversation history", "AI-produced summaries"] },
+    response: { returns: ["work_id", "objective", "current_phase", "completed_steps", "stale_steps", "pending_steps", "affected_resource_ids", "affected_paths", "source_refs", "evidence_refs", "open_blockers", "open_decisions", "do_not_repeat", "checkpoint_revision", "current_revision", "revision_drifted", "next_action", "resume_status"], provenance: "HISTORY", failure_state: "resume_status=NO_SUCH_WORK when no checkpoint carries that work_id", carries_evidence: true },
+    provider: { capability: "control/work-session-state", contract_path: "control/work-session-state/contract.ts", symbol: "buildResumeContext" },
+    evidence: ["local-runtime/work-session-state/checkpoints.jsonl", "control/work-session-state/resume.ts#revalidateStep re-derives every completed step against the repository as it is now"],
+  },
+  {
+    id: "RP-CHANGE-OWNER",
+    domain: "CONTINUATION",
+    answers: "which work session owns a change to a real repo path — answered UNKNOWN rather than guessed when no held write lock and no active checkpoint declares it",
+    request: { sends: ["repo-relative path"], lookup_key: "path", never_sends: ["Owner language", "git author identity"] },
+    response: { returns: ["path", "work_id", "task_id", "session_id", "execution_id", "provenance", "detail"], provenance: "RUNTIME", failure_state: "work_id=UNKNOWN with provenance UNOWNED or AMBIGUOUS", carries_evidence: true },
+    provider: { capability: "control/work-session-state", contract_path: "control/work-session-state/contract.ts", symbol: "resolveChangeOwner" },
+    evidence: ["control/work-coordination/write-scope.ts#listWriteLocks (the live lock directory)", "local-runtime/work-session-state/checkpoints.jsonl"],
+  },
 ];
 
 /** Resolves a declared symbol on its real provider module. Returns undefined when the symbol is not on that public contract. */
 function resolveSymbol(contractPath: string, symbol: string): unknown {
   const modules: Record<string, Record<string, unknown>> = {
     "control/agent-gateway/contract.ts": gateway as unknown as Record<string, unknown>,
+    "control/work-session-state/contract.ts": workSessionState as unknown as Record<string, unknown>,
     "software/registry-database/contract.ts": registryDatabase as unknown as Record<string, unknown>,
     "control/command-router/contract.ts": commandRouter as unknown as Record<string, unknown>,
     "execution/run/contract.ts": executionRun as unknown as Record<string, unknown>,
