@@ -14,5 +14,7 @@
  */
 
 export { resolveOwnerCommandSemantics, resolveFromInterpretation, resolveCapabilityMention, resolveResourceMention, resolveContinuation, resolvePolicyCommandId, type SemanticDeps, type SemanticOutcome } from "./resolver";
+export { recordCommandTaskId } from "./resolver";
+export { readEvidenceForCapability, readTaskState, readHistoryForIdentity, readDocumentReferences, type ReadResult, type HistoryRecord, type TaskStateResult } from "./read-paths";
 export { validateAiInterpretation, type AiValidation } from "./ai-contract";
 export type { AiSemanticInterpretation, ResolvedReference, StructuredOwnerContext, Provenance, ResolutionStatus, SourceTraceEntry } from "./types";

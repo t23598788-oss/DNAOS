@@ -106,6 +106,10 @@ export interface StructuredOwnerContext {
   semantic_interpretation: AiSemanticInterpretation;
   resolved_resources: readonly ResolvedReference[];
   resolved_capabilities: readonly ResolvedReference[];
+  /** Evidence rows the registry really holds for a resolved capability. Empty means the read ran and found none — `source_trace` says which. */
+  resolved_evidence: readonly ResolvedReference[];
+  /** Document/blueprint references. Always empty today: there is NO runtime contract to DNA-OS-BLUEPRINT (see ./read-paths.ts#readDocumentReferences). Empty here means "could not be looked up", and `source_trace` says so rather than letting it read as "nothing matched". */
+  resolved_documents: readonly ResolvedReference[];
   parameters: Readonly<Record<string, string>>;
   constraints: readonly string[];
   resolved_history: ResolvedReference | null;

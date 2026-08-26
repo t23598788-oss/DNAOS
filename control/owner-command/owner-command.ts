@@ -40,7 +40,7 @@ import type { EnvelopeIdentity } from "../../contracts/identity/envelope-identit
 import type { CapabilityResult } from "../../contracts/command/capability-result";
 import type { DnaOsOutput } from "../../contracts/command/output-contract";
 import { classifyCommand, classifyOutput, listCapabilities, routeOwnerCommand } from "../command-router/contract";
-import { resolveOwnerCommandSemantics, type SemanticDeps } from "../owner-command-semantics/contract";
+import { recordCommandTaskId, resolveOwnerCommandSemantics, type SemanticDeps } from "../owner-command-semantics/contract";
 import { resolveEntryContext } from "../entry-context/contract";
 import { resolveOutputConsumers } from "../output-routing/contract";
 import type { OutputRoutingResult } from "../output-routing/contract";
@@ -193,6 +193,16 @@ export async function submitOwnerCommand(commandText: string, ownerIdentity: Env
 
   const result = await routeOwnerCommand(envelope, commandText, routeOptions);
   const lifecycle = deriveLifecycle(envelope.command_id, result);
+
+  // Closes the STATE read loop: the next command by this identity can ask
+  // ../agent-gateway/ what actually became of this one. Recorded only when
+  // routing produced a real task_id — never a placeholder, and never before
+  // the task exists.
+  // `result.task_id` is the Owner-visible task the router admitted — see
+  // contracts/command/capability-result.ts:56.
+  if (semantics && semantics.ok && result.task_id) {
+    recordCommandTaskId(envelope.command_id, ownerIdentity.identity_id, result.task_id);
+  }
 
   const surface: OwnerSurfaceState = {
     current_command: commandText,
