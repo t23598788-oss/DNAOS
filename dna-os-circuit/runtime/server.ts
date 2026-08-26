@@ -47,6 +47,7 @@ import { createHttpServer, extname, fileExists, joinPath, readFileUtf8, readRequ
 import { recordFinding, listPersistedFindings } from "./finding-receiver";
 import { readPathCircuitGraph, verifyReadPaths } from "../../control/system-read-paths/contract";
 import { changeFlowCircuitGraph, observationStatus } from "../../control/realtime-change/contract";
+import { observationCircuitGraph, listProcesses, observeProcesses, relationshipsFor, runtimeConsumerEvidenceFor } from "../../control/machine-observation/contract";
 import { evaluateAllDetected, listEvaluationEvidence } from "./finding-evaluator";
 import { decideAllEvaluated, listDecisionEvidence } from "./finding-decider";
 import { buildSemanticComponents, buildSemanticConnections, lodTierOf } from "../definition/semantic-model";
@@ -478,6 +479,33 @@ export function startCircuitServer(state: CircuitState, port: number): ReturnTyp
       // rather than an empty graph that looks like "nothing changed".
       if (url === "/change-flow.json" && (req.method === "GET" || req.method === undefined)) {
         sendJson(res, 200, { ok: true, ...changeFlowCircuitGraph(), observation: observationStatus() });
+        return;
+      }
+      // Machine observation, rendered from real OS evidence only. `pids` is
+      // required: this endpoint observes what a caller names, never the whole
+      // machine, and every edge it returns carries the lsof/ps field it came
+      // from. Nodes that could not be proven come back as `unresolved:` rather
+      // than being drawn as facts.
+      if (url?.startsWith("/observation.json") && (req.method === "GET" || req.method === undefined)) {
+        const requested = new URL(url, "http://localhost").searchParams.get("pids");
+        const pids = (requested ?? "").split(",").map((value) => Number(value.trim())).filter((value) => Number.isFinite(value) && value > 0);
+        if (pids.length === 0) {
+          sendJson(res, 400, { ok: false, reason: "pids query parameter is required — this endpoint never sweeps the whole machine", observable_process_count: listProcesses().length });
+          return;
+        }
+        const observed = observeProcesses(pids);
+        const graph = observationCircuitGraph({ relationships: observed.flatMap(relationshipsFor), correlations: [], meanings: [] });
+        sendJson(res, 200, { ok: true, ...graph, processes: observed.map((observation) => ({ pid: observation.pid, executable: observation.executable, cwd: observation.cwd, unknown: observation.unknown })) });
+        return;
+      }
+      if (url === "/observation/runtime-consumer" && (req.method === "GET" || req.method === undefined)) {
+        sendJson(res, 400, { ok: false, reason: "use /observation/runtime-consumer?path=<repo-relative path>" });
+        return;
+      }
+      if (url?.startsWith("/observation/runtime-consumer?") && (req.method === "GET" || req.method === undefined)) {
+        const wanted = new URL(url, "http://localhost").searchParams.get("path");
+        if (!wanted) { sendJson(res, 400, { ok: false, reason: "path query parameter is required" }); return; }
+        sendJson(res, 200, { ok: true, ...runtimeConsumerEvidenceFor(wanted) });
         return;
       }
       if (url === "/circuit.json") {

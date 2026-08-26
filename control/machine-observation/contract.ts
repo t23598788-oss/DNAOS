@@ -19,4 +19,5 @@ export { topologyFor, candidatePidsForBundle, bundleOf } from "./software-topolo
 export { correlate, strongestVerdict } from "./correlation";
 export { deriveMeaning } from "./meaning";
 export { observationCircuitGraph } from "./circuit-view";
+export { runtimeConsumerEvidenceFor, buildIngestionRecord, type RuntimeConsumerEvidence, type RuntimeConsumerState, type IngestionRecord } from "./lifecycle-bridge";
 export type { ProcessObservation, ObservedRelationship, RelationshipKind, CorrelationCandidate, CorrelationVerdict, MeaningRecord, SoftwareTopology } from "./types";
