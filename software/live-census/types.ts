@@ -37,7 +37,23 @@ export type CapabilityStatus =
   | "UNKNOWN";
 
 /** Whether anything is actually running this capability right now. */
-export type RuntimeState = "RUNNING" | "REGISTERED_NOT_RUNNING" | "NOT_APPLICABLE" | "UNKNOWN";
+/**
+ * The last three are EVIDENCE-BACKED (Owner, 2026-08-26): they come from
+ * `control/machine-observation`'s real lsof/ps observation — an open descriptor
+ * or a real working directory — not from a `ps` command line that happens to
+ * contain the capability's path. The first four remain, and are still what a
+ * capability derives to when no deterministic runtime evidence is available;
+ * `RUNNING` therefore now means "a command line mentioned this path", which is
+ * weaker than `IN_USE_NOW` and is kept distinct rather than silently merged.
+ */
+export type RuntimeState =
+  | "RUNNING"
+  | "REGISTERED_NOT_RUNNING"
+  | "NOT_APPLICABLE"
+  | "UNKNOWN"
+  | "IN_USE_NOW"
+  | "NO_CONSUMER_OBSERVED"
+  | "SNAPSHOT_UNAVAILABLE";
 
 /** What test material exists — NOT whether it passed. Pass/fail lives in the evidence ledger. */
 export type TestState = "HAS_TESTS" | "NO_TESTS" | "UNKNOWN";

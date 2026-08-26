@@ -43,6 +43,8 @@ function obs(over: Partial<Observation> = {}): Observation {
     dependencies: ["permissions/execution-policy"],
     registry_matches: [],
     runtime_refs: [],
+    resource_id: null,
+    runtime_evidence: null,
     observed_at: "2026-08-24T06:00:00.000Z",
     ...over,
   };

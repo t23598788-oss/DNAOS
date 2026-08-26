@@ -48,6 +48,10 @@ export interface Observation {
   dependencies: readonly string[];
   registry_matches: readonly string[];
   runtime_refs: readonly string[];
+  /** Resolved through the EXISTING registry path lookup — never minted here. `null` when no registered resource covers this path. */
+  resource_id: string | null;
+  /** OS-evidence answer for "is anything using this right now", when a snapshot was taken. */
+  runtime_evidence: { state: RuntimeState; consumers: number; evidence: readonly string[] } | null;
   observed_at: string;
 }
 
@@ -87,8 +91,14 @@ export function deriveDomain(path: string): string {
 }
 
 function deriveRuntimeState(obs: Observation): RuntimeState {
+  // Deterministic OS evidence wins when it exists. The command-string match
+  // below is kept as the fallback it always was — not deleted, because a
+  // capability observed with no snapshot available must still derive to
+  // something honest.
+  if (obs.runtime_evidence && obs.runtime_evidence.state !== "SNAPSHOT_UNAVAILABLE") return obs.runtime_evidence.state;
   if (obs.runtime_refs.length > 0) return "RUNNING";
   if (obs.code_files.length === 0) return "NOT_APPLICABLE";
+  if (obs.runtime_evidence) return obs.runtime_evidence.state;
   return "UNKNOWN";
 }
 
@@ -190,7 +200,9 @@ export function deriveCapability(
   return {
     capability_key: key,
     capability_id: obs.registry_matches[0]?.split("@")[0] ?? null,
-    resource_id: null,
+    // The identity the registry already holds for this path. Populated only
+    // when the resolver proved it; never invented here.
+    resource_id: obs.resource_id,
     canonical_name: name,
     domain: deriveDomain(obs.path),
     repository: obs.repository,

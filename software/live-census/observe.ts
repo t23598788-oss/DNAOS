@@ -7,7 +7,10 @@
  *
  * Input: none — it observes the real repository.
  * Output: `observeCensus`, `observeObservations`.
- * Dependency ที่อนุญาต: ./derive.ts, ./host-runtime.ts, ./types.ts.
+ * Dependency ที่อนุญาต: ./derive.ts, ./host-runtime.ts, ./types.ts,
+ * ../../control/machine-observation/contract.ts (runtime-consumer evidence),
+ * ../../control/realtime-change/contract.ts (path -> existing resource identity),
+ * ../registry-database/adapters/persistent-file-store.ts (the live registry backend).
  * สิ่งที่ห้ามแตะ: never accept a caller-supplied status. Callers get what the
  * repository actually says.
  */
@@ -19,6 +22,9 @@ import {
   headCommit, lastCommitFor, isDirty, newestMtime, importersOf, declaredDependencies,
   registryByName, readVerificationLedger, liveRepoProcesses,
 } from "./host-runtime";
+import { runtimeConsumerSnapshot } from "../../control/machine-observation/contract";
+import { resolvePath } from "../../control/realtime-change/contract";
+import { createPersistentFileStore } from "../registry-database/adapters/persistent-file-store";
 import { deriveCensus, type Observation } from "./derive";
 import { applyImpact } from "./impact";
 import type { CapabilityRecord, LiveCensus } from "./types";
@@ -31,6 +37,23 @@ export function observeObservations(): Observation[] {
   const registry = registryByName();
   const runtime = liveRepoProcesses();
   const folders = discoverCapabilityFolders();
+
+  // Evidence-backed runtime consumers, taken as ONE snapshot for the whole
+  // census (Owner, 2026-08-26) so every capability's answer describes the same
+  // instant instead of drifting across a long scan. If the observation layer
+  // cannot run at all, `runtime_evidence` stays null and the pre-existing
+  // command-string derivation is used unchanged — this enriches, it does not
+  // replace.
+  let consumerSnapshot: Map<string, { state: string; consumers: readonly { pid: number; how: string; evidence: string }[]; unknown: readonly string[] }> = new Map();
+  try {
+    consumerSnapshot = runtimeConsumerSnapshot(folders) as unknown as typeof consumerSnapshot;
+  } catch {
+    consumerSnapshot = new Map();
+  }
+
+  // The registry identity for each capability path — resolved through the
+  // existing lookup, never created. `store` is built once for the whole run.
+  const store = createPersistentFileStore();
   // Nested capabilities are excluded from a parent's digest so their files are
   // attributed to exactly one capability, never counted twice.
   const capabilityPaths = new Set(folders);
@@ -53,6 +76,14 @@ export function observeObservations(): Observation[] {
       dependencies: declaredDependencies(path),
       registry_matches: registry.get(path.split("/").slice(1).join("/")) ?? registry.get(path.split("/").pop()!) ?? [],
       runtime_refs: runtime.filter((cmd) => cmd.includes(path)),
+      resource_id: resolvePath(`${path}/contract.ts`, store).resource?.resource_id ?? resolvePath(path, store).resource?.resource_id ?? null,
+      runtime_evidence: consumerSnapshot.has(path)
+        ? {
+            state: consumerSnapshot.get(path)!.state as never,
+            consumers: consumerSnapshot.get(path)!.consumers.length,
+            evidence: consumerSnapshot.get(path)!.consumers.slice(0, 3).map((consumer) => `${consumer.how} pid=${consumer.pid}: ${consumer.evidence}`),
+          }
+        : null,
       observed_at: at,
     };
   });

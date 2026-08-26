@@ -80,12 +80,16 @@ export function runtimeConsumerEvidenceFor(repoRelativePath: string, candidatePi
       unknown.push(`pid ${observation.pid}: not observable (${observation.unknown[0]})`);
       continue;
     }
-    if (observation.open_files.some((file) => realPath(file) === absolute)) {
-      consumers.push({ pid: observation.pid, how: "HOLDS_OPEN", evidence: `lsof -p ${observation.pid} -Fpftn lists ${absolute}` });
+    const held = observation.open_files.find((file) => {
+      const real = realPath(file);
+      return real === absolute || real.startsWith(`${absolute}/`);
+    });
+    if (held) {
+      consumers.push({ pid: observation.pid, how: "HOLDS_OPEN", evidence: `lsof -p ${observation.pid} -Fpftn lists ${realPath(held)}` });
       continue;
     }
     const cwd = observation.cwd === null ? null : realPath(observation.cwd);
-    if (cwd !== null && (cwd === absolute || absolute.startsWith(`${cwd}/`)) && cwd !== "/") {
+    if (cwd !== null && cwd !== "/" && (cwd === absolute || cwd.startsWith(`${absolute}/`))) {
       consumers.push({ pid: observation.pid, how: "WORKING_DIRECTORY", evidence: `lsof -p ${observation.pid} -Fpftn (fcwd)=${cwd}` });
     }
   }
@@ -93,6 +97,63 @@ export function runtimeConsumerEvidenceFor(repoRelativePath: string, candidatePi
   const observable = observations.length - unknown.length;
   const state: RuntimeConsumerState = consumers.length > 0 ? "IN_USE_NOW" : observable === 0 ? "SNAPSHOT_UNAVAILABLE" : "NO_CONSUMER_OBSERVED";
   return { path: repoRelativePath, state, consumers, unknown, observed_at: new Date().toISOString() };
+}
+
+/**
+ * Candidate pids for this repository, from `ps` argv only. A CANDIDATE step:
+ * membership in a runtime-consumer answer is still decided below by the real
+ * cwd/descriptor evidence, never by the command line. It exists so a census
+ * over 100+ capabilities runs one bounded set of lsof calls instead of one per
+ * capability over every pid on the machine.
+ */
+export function candidatePidsForRepo(repoRoot: string = REPO_ROOT): readonly number[] {
+  return listProcesses().filter((row) => row.argv.includes(repoRoot)).map((row) => row.pid);
+}
+
+/**
+ * One lsof pass, many paths. Answers the runtime-consumer question for a whole
+ * census in a single observation, so the answers all describe the same instant
+ * rather than drifting across a long scan.
+ */
+export function runtimeConsumerSnapshot(repoRelativePaths: readonly string[], candidatePids?: readonly number[]): Map<string, RuntimeConsumerEvidence> {
+  const pids = candidatePids ?? candidatePidsForRepo();
+  const observations = observeProcesses(pids);
+  const observedAt = new Date().toISOString();
+  const unobservable = observations.filter((observation) => observation.executable === null && observation.cwd === null).length;
+  const result = new Map<string, RuntimeConsumerEvidence>();
+
+  for (const repoRelativePath of repoRelativePaths) {
+    const absolute = realPath(`${REPO_ROOT}/${repoRelativePath}`);
+    const consumers: { pid: number; how: "HOLDS_OPEN" | "WORKING_DIRECTORY"; evidence: string }[] = [];
+    for (const observation of observations) {
+      // Evidence must point DOWN INTO the capability, not merely contain it.
+      // Measured 2026-08-26: comparing the other way made every process sitting
+      // at the repository root count as a consumer of all 123 capabilities, so
+      // the whole census derived to IN_USE_NOW. A process at the repo root is
+      // evidence for the repository, not for any capability inside it.
+      const held = observation.open_files.find((file) => {
+        const real = realPath(file);
+        return real === absolute || real.startsWith(`${absolute}/`);
+      });
+      if (held) {
+        consumers.push({ pid: observation.pid, how: "HOLDS_OPEN", evidence: `lsof -p ${observation.pid} -Fpftn lists ${realPath(held)}` });
+        continue;
+      }
+      const cwd = observation.cwd === null ? null : realPath(observation.cwd);
+      if (cwd !== null && cwd !== "/" && (cwd === absolute || cwd.startsWith(`${absolute}/`))) {
+        consumers.push({ pid: observation.pid, how: "WORKING_DIRECTORY", evidence: `lsof -p ${observation.pid} -Fpftn (fcwd)=${cwd}` });
+      }
+    }
+    const observable = observations.length - unobservable;
+    result.set(repoRelativePath, {
+      path: repoRelativePath,
+      state: consumers.length > 0 ? "IN_USE_NOW" : observable === 0 ? "SNAPSHOT_UNAVAILABLE" : "NO_CONSUMER_OBSERVED",
+      consumers,
+      unknown: unobservable > 0 ? [`${unobservable} candidate process(es) could not be observed`] : [],
+      observed_at: observedAt,
+    });
+  }
+  return result;
 }
 
 /**

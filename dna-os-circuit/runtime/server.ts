@@ -47,7 +47,7 @@ import { createHttpServer, extname, fileExists, joinPath, readFileUtf8, readRequ
 import { recordFinding, listPersistedFindings } from "./finding-receiver";
 import { readPathCircuitGraph, verifyReadPaths } from "../../control/system-read-paths/contract";
 import { changeFlowCircuitGraph, observationStatus } from "../../control/realtime-change/contract";
-import { observationCircuitGraph, listProcesses, observeProcesses, relationshipsFor, runtimeConsumerEvidenceFor } from "../../control/machine-observation/contract";
+import { observationCircuitGraph, listProcesses, observeProcesses, relationshipsFor, runtimeConsumerEvidenceFor, observationStoreStatus, readObservations, observationsForResource } from "../../control/machine-observation/contract";
 import { evaluateAllDetected, listEvaluationEvidence } from "./finding-evaluator";
 import { decideAllEvaluated, listDecisionEvidence } from "./finding-decider";
 import { buildSemanticComponents, buildSemanticConnections, lodTierOf } from "../definition/semantic-model";
@@ -506,6 +506,29 @@ export function startCircuitServer(state: CircuitState, port: number): ReturnTyp
         const wanted = new URL(url, "http://localhost").searchParams.get("path");
         if (!wanted) { sendJson(res, 400, { ok: false, reason: "path query parameter is required" }); return; }
         sendJson(res, 200, { ok: true, ...runtimeConsumerEvidenceFor(wanted) });
+        return;
+      }
+      // The observation store's own state, and the resource identities it has
+      // bound. Counts and real records only — no inferred edge, no node that
+      // is not backed by an appended observation.
+      if (url?.startsWith("/observation-store.json") && (req.method === "GET" || req.method === undefined)) {
+        const wanted = new URL(url, "http://localhost").searchParams.get("resource_id");
+        const records = wanted ? observationsForResource(wanted) : readObservations().slice(-25);
+        sendJson(res, 200, {
+          ok: true,
+          store: observationStoreStatus(),
+          filter: wanted ? { resource_id: wanted } : { newest: 25 },
+          records: records.map((record) => ({
+            event_id: record.event_id,
+            record_type: record.record_type,
+            resource_id: record.resource_id,
+            path: record.path,
+            observed_at: record.observed_at,
+            meaning_types: record.meaning_records.map((meaning) => meaning.meaning_type),
+            process_evidence: record.process_evidence.slice(0, 3),
+            derived_by: record.derived_by,
+          })),
+        });
         return;
       }
       if (url === "/circuit.json") {
