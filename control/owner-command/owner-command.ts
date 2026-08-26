@@ -40,6 +40,8 @@ import type { EnvelopeIdentity } from "../../contracts/identity/envelope-identit
 import type { CapabilityResult } from "../../contracts/command/capability-result";
 import type { DnaOsOutput } from "../../contracts/command/output-contract";
 import { classifyCommand, classifyOutput, listCapabilities, routeOwnerCommand } from "../command-router/contract";
+import { resolveOwnerCommandSemantics, type SemanticDeps } from "../owner-command-semantics/contract";
+import { resolveEntryContext } from "../entry-context/contract";
 import { resolveOutputConsumers } from "../output-routing/contract";
 import type { OutputRoutingResult } from "../output-routing/contract";
 import type { RouteOptions } from "../command-router/contract";
@@ -99,6 +101,12 @@ function availableCapabilities(): readonly OwnerCapabilityStatus[] {
   return listCapabilities().map((cap) => ({ capability_id: cap.capability_id, connected: cap.health_status === "CONNECTED" }));
 }
 
+/** How the semantic layer is run for this submission. `enabled: false` is for suites that must not spawn a model — the pre-2026-08-26 behavior, unchanged. */
+export interface SemanticOptions {
+  enabled?: boolean;
+  deps?: SemanticDeps;
+}
+
 export interface SubmitOwnerCommandOutcome {
   envelope: CommandEnvelope;
   lifecycle: CommandLifecycleState;
@@ -116,7 +124,7 @@ export interface SubmitOwnerCommandOutcome {
  * surface — one call, one Owner-visible task, regardless of how many
  * capabilities it took to answer.
  */
-export async function submitOwnerCommand(commandText: string, ownerIdentity: EnvelopeIdentity, options: RouteOptions = {}): Promise<SubmitOwnerCommandOutcome> {
+export async function submitOwnerCommand(commandText: string, ownerIdentity: EnvelopeIdentity, options: RouteOptions = {}, semanticOptions: SemanticOptions = {}): Promise<SubmitOwnerCommandOutcome> {
   if (ownerIdentity.kind !== "human") {
     throw new Error(`control/owner-command/ only accepts issued_by.kind "human", got "${ownerIdentity.kind}"`);
   }
@@ -129,7 +137,61 @@ export async function submitOwnerCommand(commandText: string, ownerIdentity: Env
     issued_at: hostNowIso(),
   };
 
-  const result = await routeOwnerCommand(envelope, commandText, options);
+  // SEMANTIC RESOLUTION (Owner, 2026-08-26) — sits here, between this
+  // envelope and ../entry-context/, because this is the first point where a
+  // real command_id exists and the last point before the router is asked to
+  // do anything. The model only labels the Owner's words; every id below was
+  // proven by ../owner-command-semantics/resolver.ts against a real registry.
+  //
+  // Fail-open by design: if the model process cannot run (not installed, no
+  // weights, sandbox refused), the command still goes through on exactly the
+  // path it took before this layer existed. A translation aid must never be
+  // the reason an Owner command cannot be issued.
+  let routeOptions = options;
+  const semantics = semanticOptions.enabled === false
+    ? undefined
+    : resolveOwnerCommandSemantics(envelope.command_id, commandText, { identity_id: ownerIdentity.identity_id, kind: ownerIdentity.kind }, semanticOptions.deps ?? {});
+
+  if (semantics && semantics.ok) {
+    let context = semantics.context;
+
+    // Requirement 6/7: ../entry-context/ is called for real, with the real
+    // registered command_id this command resolved to — never the literal
+    // "unknown" a caller used to hand in. Only when a descriptor actually
+    // matched; an unproven command_id would defeat the point.
+    //
+    // The call is recorded in `source_trace` rather than left to be inferred:
+    // "the entry context ran" is a claim about runtime, and a reader of the
+    // resulting payload should be able to see it happened without reading
+    // this file.
+    if (context.policy_command_id && options.executionRequestBase) {
+      const resolution = resolveEntryContext({
+        identity_id: options.executionRequestBase.identity_id,
+        account_id: options.executionRequestBase.account_id,
+        workspace_id: options.executionRequestBase.workspace_id,
+        command_id: context.policy_command_id,
+      });
+      routeOptions = { ...options, executionPolicyContext: resolution.context };
+      context = {
+        ...context,
+        source_trace: [
+          ...context.source_trace,
+          {
+            field: "execution_policy_context",
+            provenance: "RUNTIME",
+            detail: `control/entry-context/contract.ts#resolveEntryContext command_id=${context.policy_command_id} identity_resolved=${resolution.context.identity !== undefined} account_resolved=${resolution.account !== undefined} workspace_resolved=${resolution.workspace !== undefined} memberships=${resolution.context.memberships.length}`,
+          },
+        ],
+      };
+    }
+
+    // Requirement 8/9: the router no longer receives a bare string. The
+    // structured context rides on the envelope's own payload, which
+    // ../command-router/ already forwards verbatim into every RouterStep.
+    envelope.payload = { structured_owner_context: context };
+  }
+
+  const result = await routeOwnerCommand(envelope, commandText, routeOptions);
   const lifecycle = deriveLifecycle(envelope.command_id, result);
 
   const surface: OwnerSurfaceState = {

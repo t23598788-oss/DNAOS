@@ -1,0 +1,18 @@
+;; หน้าที่: kernel-enforced boundary for the semantic model process
+;; (Owner, 2026-08-26). Applied by ./run-semantic.sh to every run.
+;;
+;; `env -i` in the launcher removes the credentials; this removes the
+;; capability. The model translates a sentence — it has no reason to open a
+;; socket or read this repository, and now it cannot do either.
+;;
+;; The two allowed literals are the launcher and the runner themselves, which
+;; live inside the repo and must stay readable for the process to exist.
+
+(version 1)
+(allow default)
+(deny network*)
+(deny file-read* (subpath "/Users/tam/Desktop/DNA-OS-INFRASTRUCTURE"))
+(deny file-write* (subpath "/Users/tam/Desktop/DNA-OS-INFRASTRUCTURE"))
+(allow file-read*
+  (literal "/Users/tam/Desktop/DNA-OS-INFRASTRUCTURE/control/owner-command-semantics/run-semantic.sh")
+  (literal "/Users/tam/Desktop/DNA-OS-INFRASTRUCTURE/control/owner-command-semantics/semantic-runner.py"))
