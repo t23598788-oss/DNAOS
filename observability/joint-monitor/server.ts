@@ -22,10 +22,10 @@
  * `../../dna-os-circuit/runtime/server.ts`'s `handleSse`/`safeSend`.
  */
 
-import { appendJsonlLine, createHttpServer, hostRandomId, joinPath, nowIso, readRequestBody, repoRootDirname, type HostHttpRequest, type HostHttpResponse } from "./host-runtime";
+import { appendJsonlLine, createHttpServer, hostRandomId, joinPath, nowIso, readEnvVar, readJsonlLines, readRequestBody, repoRootDirname, type HostHttpRequest, type HostHttpResponse } from "./host-runtime";
 import { JointStore } from "./joint-store";
 import { jointToSensorRow, sinkSensorEvents, violationToSensorRow } from "./supabase-sink";
-import type { OccurrenceStamp, ReportJointInput, ReportViolationInput } from "./types";
+import type { JointEvent, OccurrenceStamp, ReportJointInput, ReportViolationInput, ViolationEvent } from "./types";
 import { verifySharedSecret, evaluateBindPolicy } from "../../permissions/network-auth-gate/contract";
 
 declare const process: { env: Record<string, string | undefined> };
@@ -63,6 +63,20 @@ function sendJson(res: HostHttpResponse, status: number, body: unknown): void {
   safeSend(res, status, "application/json; charset=utf-8", JSON.stringify(body));
 }
 
+/**
+ * Reads the client's resume point. The browser sends it as the standard
+ * `Last-Event-ID` header on an automatic EventSource reconnect; a non-browser
+ * client can also pass `?since=<event_id>`. Both name the LAST event the
+ * client actually processed, never the next one it wants.
+ */
+function resumePointOf(req: HostHttpRequest): string | null {
+  const header = (req.headers as Record<string, string | string[] | undefined> | undefined)?.["last-event-id"];
+  const fromHeader = Array.isArray(header) ? header[0] : header;
+  if (typeof fromHeader === "string" && fromHeader.trim() !== "") return fromHeader.trim();
+  const query = /[?&]since=([^&]+)/.exec(req.url ?? "");
+  return query ? decodeURIComponent(query[1]) : null;
+}
+
 function handleSse(store: JointStore, req: HostHttpRequest, res: HostHttpResponse): void {
   try {
     res.writeHead(200, {
@@ -75,19 +89,57 @@ function handleSse(store: JointStore, req: HostHttpRequest, res: HostHttpRespons
     return;
   }
 
-  const send = (payload: unknown): void => {
+  /**
+   * Every frame carries `id:` so the browser remembers where it got to and
+   * sends it back as `Last-Event-ID` on reconnect, and `retry:` so a dropped
+   * connection comes back on a declared interval instead of the user agent's
+   * unstated default. A connection is disposable; what the client already saw
+   * is not.
+   */
+  const send = (payload: unknown, id?: string): void => {
     try {
-      res.write(`data: ${JSON.stringify(payload)}\n\n`);
+      res.write(`${id ? `id: ${id}\n` : ""}data: ${JSON.stringify(payload)}\n\n`);
     } catch {
       // dropped client — the listener is removed on "close" below.
     }
   };
 
-  send({ type: "snapshot", snapshot: store.snapshot() });
+  try { res.write(`retry: ${SSE_RETRY_MS}\n\n`); } catch { /* client already gone */ }
 
+  // RECONNECT PATH. A client that names where it got to is sent only what it
+  // missed. A client naming an event this store cannot find is sent a full
+  // snapshot instead — "I cannot tell you what you missed" must never be
+  // answered as "you missed nothing".
+  const since = resumePointOf(req);
+  const replay = since === null ? null : store.eventsSince(since);
+  if (since !== null && replay !== null) {
+    const missed = [
+      ...replay.joints.map((row) => ({ kind: "joint" as const, row })),
+      ...replay.violations.map((row) => ({ kind: "violation" as const, row })),
+    ];
+    send({ type: "resumed", since, missed_count: missed.length });
+    for (const event of missed) send({ type: "change", event, updated_at: nowIso() }, event.row.event_id);
+  } else {
+    if (since !== null) send({ type: "resume_failed", since, reason: "RESUME_POINT_UNKNOWN — sending a full snapshot instead" });
+    send({ type: "snapshot", snapshot: store.snapshot() });
+  }
+
+  /**
+   * A change frame carries THE CHANGED ROW, not the whole store.
+   *
+   * It used to carry `snapshot: store.snapshot()` on every event. That was
+   * unnoticeable while the store started empty on every boot; once the store
+   * rehydrates from the durable log (2026-08-26) the same frame became ~190KB
+   * of already-delivered rows re-sent on every single event. No consumer in
+   * this repo reads it: the inline viewer's change branch uses `ev.kind` and
+   * `ev.row` and keeps its own keyed state, and a client that really does need
+   * the whole store asks for `GET /joints` or reconnects for a snapshot frame.
+   * `updated_at` stays so a consumer can still show freshness.
+   */
   const onChange = (event: { kind: "joint" | "violation"; row: unknown }): void => {
     try {
-      send({ type: "change", event, snapshot: store.snapshot() });
+      const id = (event.row as { event_id?: string } | null)?.event_id;
+      send({ type: "change", event, updated_at: nowIso() }, id);
     } catch {
       // never let a listener throw escape into the emitter loop.
     }
@@ -286,8 +338,34 @@ es.onmessage = (msg) => {
 </script></body></html>`;
 }
 
+/** Declared reconnect interval handed to every SSE client, in ms. Named here rather than left to the user agent's default so the recovery window is a stated number. */
+const SSE_RETRY_MS = 2000;
+
 export function startJointMonitorServer(store: JointStore, port: number): ReturnType<typeof createHttpServer> {
-  const dataDir = joinPath(repoRootDirname(), "observability/joint-monitor/data");
+  /**
+   * Where the durable log lives.
+   *
+   * `JOINT_MONITOR_DATA_DIR` added 2026-08-26 (Owner — DURABLE RUNTIME phase).
+   * Every live proof in `./tests/` starts a real server, and a real server
+   * appended to the REAL `observability/joint-monitor/data/joints.jsonl` —
+   * 392 test rows had accumulated in the production durable log by the time
+   * anyone looked. That was harmless only while nothing read the file back;
+   * now that the store rehydrates from it at boot, test rows would be served
+   * to real dashboards. Tests point this at their own directory.
+   */
+  const dataDir = readEnvVar("JOINT_MONITOR_DATA_DIR") ?? joinPath(repoRootDirname(), "observability/joint-monitor/data");
+
+  // REHYDRATE BEFORE SERVING. The durable log is the source of truth; this
+  // process's memory is a projection of it. Without this a restarted collector
+  // answers `GET /events` with an empty snapshot while every row sits on disk
+  // one directory away.
+  const restored = store.rehydrate(
+    readJsonlLines<JointEvent>(joinPath(dataDir, "joints.jsonl")),
+    readJsonlLines<ViolationEvent>(joinPath(dataDir, "violations.jsonl")),
+  );
+  if (restored.joints > 0 || restored.violations > 0) {
+    console.log(`joint-monitor: rehydrated ${restored.joints} joint(s) and ${restored.violations} violation(s) from the durable log`);
+  }
 
   const server = createHttpServer((req, res) => {
     try {

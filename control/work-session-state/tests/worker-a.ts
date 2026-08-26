@@ -67,6 +67,14 @@ const checkpoint = appendCheckpoint({
     "s1-types..s4-ownership เขียนและตรวจแล้ว — worker ตัวถัดไปห้ามเขียนไฟล์ทั้งสี่ใหม่ ให้ตรวจ digest ที่บันทึกไว้แทน",
     "ห้ามสร้าง task system ตัวที่สอง — control/work-coordination ยังเป็นเจ้าของสถานะ task",
   ],
+  ui_context: {
+    service_id: "dna-os-circuit",
+    url: "http://127.0.0.1:5180/system-graph?live=0",
+    route: "/system-graph",
+    scope: workId,
+  },
+  last_durable_event: [],
+  sync_state: "SYNCED",
   status: "ACTIVE",
   started_at: new Date().toISOString(),
 });

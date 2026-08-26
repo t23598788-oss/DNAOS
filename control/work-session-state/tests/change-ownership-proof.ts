@@ -23,7 +23,8 @@ function base(workId: string, paths: string[], status: "ACTIVE" | "COMPLETE") {
     branch: currentBranch(), affected_resource_ids: [], affected_paths: paths,
     objective: "ownership proof", current_phase: "PROOF", steps: [], blockers: [], decisions_required: [],
     evidence_refs: [], source_revision: currentRevision(), last_verified_revision: null,
-    next_action: "none", do_not_repeat: [], status, started_at: new Date().toISOString(),
+    next_action: "none", do_not_repeat: [], ui_context: null, last_durable_event: [], sync_state: "SYNCED" as const,
+    status, started_at: new Date().toISOString(),
   };
 }
 

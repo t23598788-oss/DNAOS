@@ -21,6 +21,37 @@ export {
 } from "./store";
 export { buildResumeContext, renderResumeBriefing, revalidateStep } from "./resume";
 export { resolveChangeOwner, resolveChangeOwners } from "./ownership";
+export {
+  openEntry,
+  advanceEntry,
+  failEntry,
+  readEntries,
+  currentEntries,
+  recoverableEntries,
+  entryJournalPath,
+  JOURNAL_STAGES,
+} from "./journal";
+export type { JournalEntry, JournalStage, RecoverableEntry, AdvanceResult } from "./journal";
+export {
+  nextBackoffMs,
+  recordConnectionState,
+  recordConnected,
+  recordDisconnect,
+  readConnectionState,
+  reconcile,
+  queueNetworkOperation,
+  readQueue,
+  drainQueue,
+  streamPositions,
+  connectionStatePath,
+  networkQueuePath,
+  BACKOFF_BASE_MS,
+  BACKOFF_MAX_MS,
+  BACKOFF_MAX_ATTEMPTS,
+} from "./connection";
+export type { ConnectionState, ConnectionStatus, ReconcileResult, QueuedOperation, DrainResult } from "./connection";
+export { buildRehydrationPlan, allRehydrationPlans, recoverRuntime, renderRehydrationBriefing, RECOVERY_MAX_ATTEMPTS } from "./rehydrate";
+export type { RehydrationPlan, RuntimeRecovery } from "./rehydrate";
 export type {
   WorkSessionCheckpoint,
   WorkStep,
@@ -31,4 +62,7 @@ export type {
   DecisionRequired,
   ResumeContext,
   ChangeOwnership,
+  UiContext,
+  StreamPosition,
+  SyncState,
 } from "./types";

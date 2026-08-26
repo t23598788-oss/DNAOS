@@ -20,6 +20,11 @@ declare const setTimeout: (fn: () => void, ms: number) => unknown;
 
 const TEST_PORT = 51770;
 process.env.JOINT_MONITOR_URL = `http://127.0.0.1:${TEST_PORT}`;
+// This starts a REAL server, which appends to a REAL durable log. Point it at
+// a throwaway directory: test rows in the production log used to be harmless
+// noise, but the store now rehydrates from that file at boot, so they would be
+// served to real dashboards as real joints.
+process.env.JOINT_MONITOR_DATA_DIR = `${require("os").tmpdir()}/joint-monitor-test-${process.pid}-${Date.now()}`;
 
 import { JointStore } from "../joint-store";
 import { startJointMonitorServer } from "../server";
@@ -65,13 +70,17 @@ async function run(): Promise<void> {
   // control/agent-gateway/gateway.ts will call.
   await reportJoint({ from_capability: "command-router", to_capability: "github", task_id: "task-proof-1", status: "COMPLETED", summary: "proof joint", source: "observability/joint-monitor/tests/joint-broadcast-proof.test.ts" });
   await sleep(200);
-  assert(received.some((frame) => frame.includes('"kind":"joint"') && frame.includes("task-proof-1")), "a real reportJoint() call produced a live SSE frame containing the real task_id");
+  // A TCP chunk is not an SSE frame boundary: `res.on("data")` hands over
+  // arbitrary slices, so a frame can arrive split across two chunks. Assert
+  // against the whole received stream, never against one chunk.
+  const stream = () => received.join("");
+  assert(stream().includes('"kind":"joint"') && stream().includes("task-proof-1"), "a real reportJoint() call produced a live SSE frame containing the real task_id");
   console.log("PASS: reportJoint() -> POST /joints -> live SSE frame received by a real connected client");
 
   // 2. reportViolation — the exact function control/circuit-breaker/ will call.
   await reportViolation({ launch_id: "agent-launch-proof-1", reason: "IMPORT_BOUNDARY_VIOLATION", detail: "imported an internal file directly", source: "observability/joint-monitor/tests/joint-broadcast-proof.test.ts", enforced: false });
   await sleep(200);
-  assert(received.some((frame) => frame.includes('"kind":"violation"') && frame.includes("agent-launch-proof-1")), "a real reportViolation() call produced a live SSE frame containing the real launch_id");
+  assert(stream().includes('"kind":"violation"') && stream().includes("agent-launch-proof-1"), "a real reportViolation() call produced a live SSE frame containing the real launch_id");
   console.log("PASS: reportViolation() -> POST /violations -> live SSE frame received");
 
   // 3. Rejects a malformed report rather than silently accepting it.

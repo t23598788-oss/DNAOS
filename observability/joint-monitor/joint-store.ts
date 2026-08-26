@@ -89,6 +89,54 @@ export class JointStore extends ChangeEmitter {
   }
 
   /**
+   * REHYDRATE from the durable log this folder already writes. Added
+   * 2026-08-26 (Owner — DURABLE RUNTIME phase).
+   *
+   * `data/joints.jsonl` / `data/violations.jsonl` were appended to on every
+   * report since 2026-08-22 and never read back, so a restarted collector
+   * served an empty snapshot beside a durable file holding every row. This
+   * makes the in-memory ring a PROJECTION of the durable log rather than the
+   * only copy of it.
+   *
+   * Called at boot only, on an empty store. It refuses to run on a store that
+   * already holds rows, so a live process can never be silently doubled by a
+   * second rehydrate call.
+   */
+  rehydrate(joints: readonly JointEvent[], violations: readonly ViolationEvent[]): { joints: number; violations: number } {
+    if (this.joints.length > 0 || this.violations.length > 0) return { joints: 0, violations: 0 };
+    const keepJoints = joints.slice(-MAX_JOINTS_IN_MEMORY);
+    const keepViolations = violations.slice(-MAX_VIOLATIONS_IN_MEMORY);
+    for (const row of keepJoints) this.joints.push(row);
+    for (const row of keepViolations) this.violations.push(row);
+    return { joints: keepJoints.length, violations: keepViolations.length };
+  }
+
+  /**
+   * Every row that came AFTER `eventId`, in EVENT_OCCURRED_ORDER — the replay
+   * an SSE client asks for with `Last-Event-ID` when its connection dropped
+   * and came back.
+   *
+   * An `eventId` this store has never seen returns `null`, NOT an empty list:
+   * "nothing new for you" and "I cannot tell you what you missed" are
+   * different answers, and a client told the first when the second is true
+   * would silently lose events. A `null` sends the client back to a full
+   * snapshot, which is always correct.
+   */
+  eventsSince(eventId: string): { joints: JointEvent[]; violations: ViolationEvent[] } | null {
+    const ordered = [
+      ...this.joints.map((row) => ({ kind: "joint" as const, row })),
+      ...this.violations.map((row) => ({ kind: "violation" as const, row })),
+    ].sort((a, b) => compareByOccurrence(a.row, b.row));
+    const index = ordered.findIndex((entry) => entry.row.event_id === eventId);
+    if (index < 0) return null;
+    const after = ordered.slice(index + 1);
+    return {
+      joints: after.filter((e) => e.kind === "joint").map((e) => e.row as JointEvent),
+      violations: after.filter((e) => e.kind === "violation").map((e) => e.row as ViolationEvent),
+    };
+  }
+
+  /**
    * Rows in EVENT_OCCURRED_ORDER, never in arrival order (2026-08-26).
    * The arrays themselves stay in arrival order on purpose — the ring
    * buffer must evict what was received longest ago, and `received_at`

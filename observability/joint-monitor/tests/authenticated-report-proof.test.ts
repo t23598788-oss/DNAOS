@@ -33,6 +33,11 @@ const TEST_ONLY_SECRET = "joint-monitor-auth-proof-secret-2026-08-26";
 // ../server.ts, but set them before importing anyway — same discipline as
 // ./joint-broadcast-proof.test.ts, whose ../client.ts URL read this mirrors.
 process.env.JOINT_MONITOR_URL = `http://127.0.0.1:${TEST_PORT}`;
+// This starts a REAL server, which appends to a REAL durable log. Point it at
+// a throwaway directory: test rows in the production log used to be harmless
+// noise, but the store now rehydrates from that file at boot, so they would be
+// served to real dashboards as real joints.
+process.env.JOINT_MONITOR_DATA_DIR = `${require("os").tmpdir()}/joint-monitor-test-${process.pid}-${Date.now()}`;
 process.env.JOINT_MONITOR_SHARED_SECRET = TEST_ONLY_SECRET;
 
 import { JointStore } from "../joint-store";

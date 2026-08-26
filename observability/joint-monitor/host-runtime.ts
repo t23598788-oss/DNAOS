@@ -55,6 +55,8 @@ interface NodeHttpModule {
 interface NodeFsModule {
   appendFileSync(path: string, data: string, options: { encoding: string; mode: number }): void;
   mkdirSync(path: string, options: { recursive: boolean }): void;
+  existsSync(path: string): boolean;
+  readFileSync(path: string, encoding: string): string;
 }
 interface NodePathModule {
   join(...segments: string[]): string;
@@ -88,6 +90,33 @@ export function appendJsonlLine(filePath: string, row: unknown): void {
     fs.appendFileSync(filePath, `${JSON.stringify(row)}\n`, { encoding: "utf-8", mode: 0o600 });
   } catch {
     // Durability failure must never crash an already-recorded in-memory event.
+  }
+}
+
+/**
+ * Reads back a durable jsonl log this folder wrote. Added 2026-08-26 (Owner —
+ * DURABLE RUNTIME phase): rows were appended to `data/joints.jsonl` from the
+ * first day and never read again, so a restarted collector served an EMPTY
+ * snapshot while the durable rows sat on disk beside it — the dashboard's
+ * "no joints recorded yet" was a statement about this process's memory, not
+ * about the system.
+ *
+ * A malformed line is SKIPPED, never repaired and never guessed at: a
+ * half-written final line is the normal shape of a file whose writer was
+ * killed, and inventing a value for it would be exactly the fabrication this
+ * capability exists to make impossible.
+ */
+export function readJsonlLines<T>(filePath: string): T[] {
+  try {
+    if (!fs.existsSync(filePath)) return [];
+    const out: T[] = [];
+    for (const line of String(fs.readFileSync(filePath, "utf8")).split("\n")) {
+      if (line.trim() === "") continue;
+      try { out.push(JSON.parse(line) as T); } catch { /* skipped, never repaired */ }
+    }
+    return out;
+  } catch {
+    return [];
   }
 }
 

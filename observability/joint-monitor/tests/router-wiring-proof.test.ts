@@ -25,6 +25,11 @@ declare const setTimeout: (fn: () => void, ms: number) => unknown;
 
 const TEST_PORT = 51771;
 process.env.JOINT_MONITOR_URL = `http://127.0.0.1:${TEST_PORT}`;
+// This starts a REAL server, which appends to a REAL durable log. Point it at
+// a throwaway directory: test rows in the production log used to be harmless
+// noise, but the store now rehydrates from that file at boot, so they would be
+// served to real dashboards as real joints.
+process.env.JOINT_MONITOR_DATA_DIR = `${require("os").tmpdir()}/joint-monitor-test-${process.pid}-${Date.now()}`;
 
 import { JointStore } from "../joint-store";
 import { startJointMonitorServer } from "../server";
@@ -90,7 +95,9 @@ async function run(): Promise<void> {
     assert(result.capability_id === "github", `sanity: router really reached github, got ${result.capability_id}`);
 
     await sleep(200);
-    const sawIt = received.some((frame) => frame.includes('"kind":"joint"') && frame.includes('"from_capability":"command-router"') && frame.includes('"to_capability":"github"') && frame.includes(result.task_id));
+    // A TCP chunk is not an SSE frame boundary — assert against the whole stream.
+    const stream = received.join("");
+    const sawIt = stream.includes('"kind":"joint"') && stream.includes('"from_capability":"command-router"') && stream.includes('"to_capability":"github"') && stream.includes(result.task_id);
     assert(sawIt, "a real routeOwnerCommand() call produced a live SSE frame with the real task_id, from_capability=command-router, to_capability=github");
     console.log("PASS: real routeOwnerCommand() -> router.ts#admitAndBuildResult -> live joint-monitor event, unmodified production code path");
   }
@@ -107,7 +114,8 @@ async function run(): Promise<void> {
       DEFAULT_AGENT_WORKERS,
     );
     await sleep(200);
-    const sawBypass = received.some((frame) => frame.includes('"kind":"joint"') && frame.includes('"from_capability":"dna-os-circuit"') && frame.includes('"to_capability":"agent-gateway"') && frame.includes(task.task_id));
+    const bypassStream = received.join("");
+    const sawBypass = bypassStream.includes('"kind":"joint"') && bypassStream.includes('"from_capability":"dna-os-circuit"') && bypassStream.includes('"to_capability":"agent-gateway"') && bypassStream.includes(task.task_id);
     assert(sawBypass, "a submitTask() call with client_id=dna-os-circuit (the real bypass path) STILL produced a live joint-monitor event, via persistStatus, without router.ts ever being called");
     console.log("PASS: dna-os-circuit's confirmed router.ts bypass -> gateway.ts#persistStatus -> live joint-monitor event — bypass closed");
   }

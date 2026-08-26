@@ -122,10 +122,57 @@ export interface WorkSessionCheckpoint {
   next_action: string;
   /** Things a replacement worker must NOT redo — stated as facts, with why. */
   do_not_repeat: readonly string[];
+  /**
+   * The UI route/view this work was being done through, when the UI is
+   * operationally part of the work (a render verification, an Owner board a
+   * decision is taken on). `null` when no UI is involved — recorded rather
+   * than guessed, so rehydration restores a real route or admits it has none.
+   */
+  ui_context: UiContext | null;
+  /**
+   * The last event this work durably observed, per stream. This is what a
+   * reconnecting client resumes from, and what tells a restarted process
+   * which events it may have missed.
+   */
+  last_durable_event: readonly StreamPosition[];
+  /** Whether everything this work produced has reached its durable home. */
+  sync_state: SyncState;
   status: "ACTIVE" | "BLOCKED" | "COMPLETE" | "ABANDONED";
   started_at: string;
   updated_at: string;
 }
+
+/**
+ * Where a work session was being driven from in a browser. The browser is
+ * never the source of truth: this is written by the durable side so a
+ * rehydrating browser can be TOLD its route, not asked for it.
+ */
+export interface UiContext {
+  /** Which runtime serves it, as a `control/runtime-control/` service_id when one owns it. */
+  service_id: string | null;
+  /** Absolute URL the operator was on. */
+  url: string;
+  /** The route path, kept separately so a port change does not invalidate it. */
+  route: string;
+  /** What the view was scoped to, e.g. a task_id or resource_id. Never free text the UI made up. */
+  scope: string | null;
+}
+
+/** One stream and the last event from it this work durably processed. */
+export interface StreamPosition {
+  /** e.g. `joint-monitor:/events`. */
+  stream_id: string;
+  /** The event id, as the producer issued it. `null` = nothing processed yet. */
+  last_event_id: string | null;
+  observed_at: string;
+}
+
+/**
+ * `SYNCED` — everything produced has reached durable storage.
+ * `PENDING_LOCAL` — written locally, not yet pushed to a remote that wants it.
+ * `WAITING_FOR_NETWORK` — at least one queued operation needs a network that is not there.
+ */
+export type SyncState = "SYNCED" | "PENDING_LOCAL" | "WAITING_FOR_NETWORK";
 
 /** Result of re-checking one COMPLETED step against the repository as it is NOW. */
 export interface StepRevalidation {
