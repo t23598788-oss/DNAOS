@@ -58,6 +58,14 @@ export interface RegistryStore {
   findCapabilityByCanonicalName(canonical_name: string): CapabilityLookupResult | null;
   findResourceByContentHash(content_hash: string): ResourceRow | null;
   findResourceById(resource_id: string): ResourceRow | null;
+  /**
+   * The missing path lookup (Owner, 2026-08-26): a real filesystem path back to
+   * the resource identity that already exists for it. OPTIONAL on the port so
+   * adapters that cannot index by source_location keep working unchanged — a
+   * caller that gets `undefined` here must report the lookup as unavailable,
+   * never mint a second identity for a resource that already has one.
+   */
+  findResourceBySourceLocation?(source_location: string): ResourceRow | null;
 
   /**
    * Targeted, in-place mutations of an ALREADY-registered capability —

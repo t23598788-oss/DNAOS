@@ -278,6 +278,16 @@ export function createPersistentFileStore(options: PersistentFileStoreOptions = 
       return id ? (resources.get(id) ?? null) : null;
     },
     findResourceById(resource_id: string) { return resources.get(resource_id) ?? null; },
+    // Path -> existing resource identity (Owner, 2026-08-26). Reads the same
+    // `resources` map every other lookup here reads, so it can never return a
+    // different identity than findResourceById would for the same row. Exact
+    // source_location match only: a near-miss is not a resource.
+    findResourceBySourceLocation(source_location: string) {
+      for (const row of resources.values()) {
+        if (row.source_location === source_location) return row;
+      }
+      return null;
+    },
     debugCounts() {
       return {
         resources: resources.size,

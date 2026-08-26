@@ -46,6 +46,7 @@ import type { CircuitState, ChangeEvent } from "./circuit-state";
 import { createHttpServer, extname, fileExists, joinPath, readFileUtf8, readRequestBody, repoRootDirname, type HostHttpRequest, type HostHttpResponse } from "./host-runtime";
 import { recordFinding, listPersistedFindings } from "./finding-receiver";
 import { readPathCircuitGraph, verifyReadPaths } from "../../control/system-read-paths/contract";
+import { changeFlowCircuitGraph, observationStatus } from "../../control/realtime-change/contract";
 import { evaluateAllDetected, listEvaluationEvidence } from "./finding-evaluator";
 import { decideAllEvaluated, listDecisionEvidence } from "./finding-decider";
 import { buildSemanticComponents, buildSemanticConnections, lodTierOf } from "../definition/semantic-model";
@@ -469,6 +470,14 @@ export function startCircuitServer(state: CircuitState, port: number): ReturnTyp
       // guessed, and each carries its provider contract as evidence.
       if (url === "/read-paths.json" && (req.method === "GET" || req.method === undefined)) {
         sendJson(res, 200, { ok: true, ...readPathCircuitGraph(), verification: verifyReadPaths() });
+        return;
+      }
+      // The realtime change path, as five DIRECTED edges — observation,
+      // request, response, interrupt+context, ack. `observation` reports the
+      // observer's real status, so the UI can show OBSERVATION_UNAVAILABLE
+      // rather than an empty graph that looks like "nothing changed".
+      if (url === "/change-flow.json" && (req.method === "GET" || req.method === undefined)) {
+        sendJson(res, 200, { ok: true, ...changeFlowCircuitGraph(), observation: observationStatus() });
         return;
       }
       if (url === "/circuit.json") {
