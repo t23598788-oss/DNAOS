@@ -57,6 +57,8 @@ try {
     next_action: "b2", do_not_repeat: [],
     ui_context: { service_id: "dna-os-circuit", url: `${BASE}/system-graph?live=0`, route: "/system-graph", scope: WORK_ID },
     last_durable_event: [], sync_state: "SYNCED",
+    resolution_ref: null,
+    cross_repo_evidence: [],
     status: "BLOCKED", started_at: new Date().toISOString(),
   });
   check("durable state was written with no runtime and no browser running", existsSync(join(root, "checkpoints.jsonl")), join(root, "checkpoints.jsonl"));

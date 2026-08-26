@@ -22,7 +22,7 @@
  * npx tsx observability/joint-monitor/tests/authenticated-report-proof.test.ts
  */
 
-declare const process: { env: Record<string, string | undefined>; exit(code?: number): never };
+declare const process: { pid: number; env: Record<string, string | undefined>; exit(code?: number): never };
 declare const console: { log(...args: unknown[]): void; error(...args: unknown[]): void };
 declare const setTimeout: (fn: () => void, ms: number) => unknown;
 
@@ -37,7 +37,7 @@ process.env.JOINT_MONITOR_URL = `http://127.0.0.1:${TEST_PORT}`;
 // a throwaway directory: test rows in the production log used to be harmless
 // noise, but the store now rehydrates from that file at boot, so they would be
 // served to real dashboards as real joints.
-process.env.JOINT_MONITOR_DATA_DIR = `${require("os").tmpdir()}/joint-monitor-test-${process.pid}-${Date.now()}`;
+process.env.JOINT_MONITOR_DATA_DIR = `${(require("os") as { tmpdir(): string }).tmpdir()}/joint-monitor-test-${process.pid}-${Date.now()}`;
 process.env.JOINT_MONITOR_SHARED_SECRET = TEST_ONLY_SECRET;
 
 import { JointStore } from "../joint-store";

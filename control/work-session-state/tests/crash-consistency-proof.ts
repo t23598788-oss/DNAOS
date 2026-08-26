@@ -65,6 +65,8 @@ function seedCheckpoint(phase: string, next: string, status: "ACTIVE" | "BLOCKED
     next_action: "c2", do_not_repeat: ["c1 พิสูจน์แล้ว ห้ามทำซ้ำ"],
     ui_context: { service_id: "lab-ui", url: "http://127.0.0.1:5177/", route: "/", scope: WORK_ID },
     last_durable_event: [], sync_state: "SYNCED",
+    resolution_ref: null,
+    cross_repo_evidence: [],
     status, started_at: new Date().toISOString(),
   });
 }

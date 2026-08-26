@@ -75,6 +75,8 @@ const checkpoint = appendCheckpoint({
   },
   last_durable_event: [],
   sync_state: "SYNCED",
+  resolution_ref: null,
+  cross_repo_evidence: [],
   status: "ACTIVE",
   started_at: new Date().toISOString(),
 });
