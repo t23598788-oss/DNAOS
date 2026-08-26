@@ -146,9 +146,18 @@ try {
   check("§6", "PRODUCTION_APPEND_WAITING_CONNECTED — the real BLOCKED points call it, not a proof",
     gatewaySrc.includes("recordBlocked(blocked,") && coordSrc.includes("recordBlockedItem(item,"),
     "control/agent-gateway/gateway.ts#persistStatus (UI render denial) and control/work-coordination/coordination.ts#transition (both refusal branches)");
+  // Asserted as a PROPERTY, not as an exact source line. The first version of
+  // this check matched the statement character-for-character and went red the
+  // moment BLOCKED was correctly added to the trigger — it was testing the
+  // spelling of the code rather than what the code guarantees. What actually
+  // matters is: the join is called from persistStatus, it is gated on
+  // authoritative verdicts only, and no in-flight status can reach it.
+  const emitCall = /if \(status === [^)]*\) emitDependencyEvents\(updated\);/.exec(gatewaySrc)?.[0] ?? "";
+  const gatedStates = ["COMPLETED", "FAILED", "BLOCKED"].filter((st) => emitCall.includes(st));
+  const inFlightStates = ["RECEIVED", "ROUTING", "POLICY_CHECK", "EXECUTING", "VERIFYING"].filter((st) => emitCall.includes(st));
   check("§5", "REAL_DEPENDENCY_EVENT_PRODUCER — an authoritative verdict runs the join in production code",
-    gatewaySrc.includes('if (status === "COMPLETED" || status === "FAILED") emitDependencyEvents(updated);'),
-    "control/agent-gateway/gateway.ts#persistStatus emits on COMPLETED/FAILED only");
+    emitCall.length > 0 && gatedStates.length > 0 && inFlightStates.length === 0,
+    `control/agent-gateway/gateway.ts#persistStatus emits on ${gatedStates.join("/")} only; no in-flight status triggers it`);
 
   // ── CASE F · killed process; a later event wakes the persisted work ────────
   const recovered = execFileSync("npx", ["tsx", "-e", `

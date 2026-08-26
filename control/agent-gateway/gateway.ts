@@ -148,7 +148,15 @@ function emitDependencyEvents(task: Task): void {
     const snapshotPath = `${process.cwd()}/software/live-census/data/last-census.json`;
     if (!nodeFs.existsSync(snapshotPath)) return;
     const census = JSON.parse(nodeFs.readFileSync(snapshotPath, "utf8")) as unknown;
-    const result = cc.runContinuationJoin({ census, source_revision: task.task_id });
+    const result = cc.runContinuationJoin({
+      census,
+      source_revision: task.task_id,
+      // Production uses control/work-continuation's own default path. The
+      // override exists only so a proof can exercise this REAL code path
+      // without writing rows into the live waiting journal — production never
+      // sets it, so its behaviour is unchanged by construction.
+      waiting_path: process.env.WORK_CONTINUATION_WAITING_PATH,
+    });
     for (const decision of result.decisions) {
       record(task.task_id, "verification", "control/capability-creation/production.ts#runContinuationJoin", {
         resumed_work_id: decision.work_id,
@@ -319,12 +327,14 @@ function persistStatus(task: Task, status: Status): Task {
   // therefore detectable: the task store has moved and the checkpoint has not,
   // which the resume engine reports rather than resolving in anyone's favour.
   checkpointTransition(updated, nextAction);
-  // PRODUCTION DEPENDENCY-EVENT PRODUCER. A task reaching COMPLETED or FAILED
-  // is the moment a verification verdict becomes authoritative — the smallest
-  // existing boundary where deterministic state really changes. Only these two
-  // states run the join, so an ordinary ROUTING/EXECUTING transition does not
-  // pay for a census read it cannot possibly satisfy anything with.
-  if (status === "COMPLETED" || status === "FAILED") emitDependencyEvents(updated);
+  // PRODUCTION DEPENDENCY-EVENT PRODUCER. COMPLETED, FAILED and BLOCKED are the
+  // three moments a verdict becomes authoritative — the smallest existing
+  // boundary where deterministic state really changes. BLOCKED belongs here for
+  // a specific reason, found by proving it: it is the transition that has just
+  // RECORDED work as waiting, so it is the most likely moment for something to
+  // already be satisfiable. Ordinary ROUTING/EXECUTING transitions still do not
+  // run it, so they do not pay for a census read that cannot satisfy anything.
+  if (status === "COMPLETED" || status === "FAILED" || status === "BLOCKED") emitDependencyEvents(updated);
   // Pillar 1 (Owner, 2026-08-22 — see /Users/tam/.claude/plans/zesty-spinning-ripple.md):
   // the one true funnel for every status transition in this file (submitTask,
   // ownerDecision, recoverInterruptedTasks all route through here) — mirroring

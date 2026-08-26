@@ -477,6 +477,72 @@ export interface PromotionDecision {
  * to PROMOTE or REJECT on its own merits (DNA OS genuinely cannot tell)
  * — it resolves to OWNER_REVIEW_REQUIRED, never silently ignored.
  */
+/**
+ * Asks `control/capability-creation`'s GATE 2 whether anything in the running
+ * system can actually reach this candidate.
+ *
+ * Returns `null` when the question cannot be asked — the candidate declares no
+ * integration point, or the gate is unavailable. `null` does NOT block: a
+ * question that could not be asked is not a failed answer, and treating it as
+ * one would reject candidates for a reason that is about this file, not about
+ * them. The unanswerable case is recorded in the decision evidence instead.
+ *
+ * Lazy `require` for the same reason as the other two in this capability:
+ * `control/capability-creation` reaches `control/work-continuation`, which
+ * persists through this folder's own evidence store.
+ */
+function connectionState(candidate: CapabilityCandidateV1): { state: string; missing: readonly { kind: string; detail: string; blocked_on: string | null }[] } | null {
+  const root = candidate.requested_integration_point;
+  if (typeof root !== "string" || root.trim() === "" || !root.includes("/")) return null;
+  // The gate can only answer about a REAL capability folder. A candidate whose
+  // declared integration point is not one — a workspace path, a free-text note
+  // like "control/x/tests (phase3 proof)" — is not "not connected", it is a
+  // candidate this question cannot be asked about. Blocking it here would be
+  // reporting a limitation of this file as a defect of the candidate, which is
+  // the same mistake as treating UNVERIFIABLE as failure.
+  //
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const nodeFsProbe = require("node:fs") as typeof import("node:fs");
+  const candidateRoot = root.split(/[\s(]/)[0];
+  if (!nodeFsProbe.existsSync(`${process.cwd()}/${candidateRoot}/contract.ts`)) return null;
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const cc = require("../capability-creation/contract") as typeof import("../capability-creation/contract");
+    const entry = candidate.declared_outputs[0] ?? candidate.capability_name;
+    const result = cc.evaluateCompletionGate({
+      contract: {
+        capability_name: candidate.capability_name, owner_domain: "SOFTWARE_CONTROL_PLANE",
+        repository: "DNA-OS-INFRASTRUCTURE", capability_root: candidateRoot,
+        resource_id: cc.UNKNOWN, capability_id: cc.UNKNOWN,
+        purpose: candidate.requested_integration_point, execution_owner: "control/agent-gateway",
+        input_type: candidate.declared_inputs.join(","), input_contract: candidate.declared_inputs,
+        input_source: candidate.declared_inputs.length > 0 ? candidate.declared_inputs[0] : cc.UNKNOWN,
+        trigger_type: (candidate.declared_inputs.length > 0 ? "SYSTEM_EVENT" : cc.UNKNOWN) as never,
+        trigger_owner: candidate.declared_inputs[0] ?? cc.UNKNOWN,
+        output_type: candidate.declared_outputs.join(","), output_contract: candidate.declared_outputs,
+        output_consumer: candidate.declared_outputs[0] ?? cc.UNKNOWN,
+        output_destination: candidate.declared_outputs[0] ?? cc.UNKNOWN,
+        runtime_type: "IN_PROCESS", service_id: cc.UNKNOWN,
+        invocation_method: "direct call through contract.ts",
+        required_dependencies: candidate.dependencies, credential_boundary: "NONE",
+        work_id: candidate.work_order_id, persistent_state_owner: "control/work-session-state",
+        evidence_owner: "control/agent-gateway",
+        verification_commands: ["build", "test"], runtime_proof: "a real production caller reaching it",
+        completion_conditions: ["a real consumer receives the result"],
+        source_of_truth: "software/registry-database", temporary_or_persistent: "PERSISTENT" as never,
+        cleanup_owner: "control/work-session-state", retention_status: "NOT_DECLARED",
+      },
+      entry_symbol: entry,
+      runtime_invocation_evidence: null,
+      registered: null,
+      verification: { ran: true, passed: true, detail: "build/test judged separately above" },
+    });
+    return { state: result.state, missing: result.missing.map((m) => ({ kind: m.kind, detail: m.detail, blocked_on: m.blocked_on })) };
+  } catch {
+    return null;
+  }
+}
+
 export function decidePromotion(candidate: CapabilityCandidateV1, inspection: ArtifactInspectionResult, build: BuildOrTestVerificationResult, test: BuildOrTestVerificationResult, security: SecurityVerificationResult, contract: ContractVerificationResult): PromotionDecision {
   const reasons: string[] = [];
   if (!inspection.ok) reasons.push(...inspection.reason_codes);
@@ -500,6 +566,19 @@ export function decidePromotion(candidate: CapabilityCandidateV1, inspection: Ar
   const testVerdict = classify(test, "TEST");
   const hardFail = !inspection.ok || !security.ok || !contract.ok || buildVerdict === "REJECT" || testVerdict === "REJECT";
 
+  // CONNECTION GATE (Owner, 2026-08-26). Everything above judges the
+  // CANDIDATE'S OWN WORK — does it inspect clean, build, test, respect its
+  // boundary. None of it asks the question that made "write code now, connect
+  // it later" possible: can anything in the running system actually reach this?
+  //
+  // This does NOT introduce a second promotion gate. `control/capability-creation`'s
+  // GATE 2 already answers exactly that, is already proven, and is called here
+  // rather than reimplemented. Its answer only ever SUBTRACTS from a decision:
+  // a PROMOTE can be held back, and nothing here can turn a REJECT into a
+  // PROMOTE.
+  const connection = connectionState(candidate);
+  const connectionBlocks = connection !== null && connection.state !== "OPERATIONAL";
+
   let decision: PromotionDecisionType;
   if (hardFail) {
     decision = "REJECT";
@@ -507,11 +586,18 @@ export function decidePromotion(candidate: CapabilityCandidateV1, inspection: Ar
     decision = "CORRECTION_REQUIRED";
   } else if (buildVerdict === "OWNER_REVIEW_REQUIRED" || testVerdict === "OWNER_REVIEW_REQUIRED") {
     decision = "OWNER_REVIEW_REQUIRED";
+  } else if (connectionBlocks) {
+    // The candidate's own work is fine; what is missing is a connection to the
+    // rest of the system. That is correctable work, not a rejection of the
+    // candidate — and the exact missing connection is named, never "incomplete".
+    reasons.push(`NOT_CONNECTED:${connection?.state}`);
+    for (const missing of connection?.missing ?? []) reasons.push(`${missing.kind}:${missing.blocked_on ?? missing.detail.slice(0, 60)}`);
+    decision = "CORRECTION_REQUIRED";
   } else {
     decision = "PROMOTE";
   }
 
-  const evidence_id = recordEvidence(candidate.work_order_id, "promotion_decision", "control/agent-gateway/capability-promotion.ts#decidePromotion", { candidate_id: candidate.candidate_id, revision_id: candidate.revision_id, decision, reasons });
+  const evidence_id = recordEvidence(candidate.work_order_id, "promotion_decision", "control/agent-gateway/capability-promotion.ts#decidePromotion", { candidate_id: candidate.candidate_id, revision_id: candidate.revision_id, decision, reasons, connection_state: connection?.state ?? "NOT_ASSESSED" });
   return { decision, reasons, evidence_id };
 }
 

@@ -43,6 +43,18 @@ export {
   normalizeScopePath,
   scopesOverlap,
 } from "./write-scope";
+// SELECTIVE MANDATORY ENFORCEMENT (Owner, 2026-08-26). Not a second locking
+// system: every function below calls ./write-scope.ts. What it adds is WHICH
+// paths a claim is mandatory for, and the refusal when one cannot be taken.
+export {
+  CRITICAL_SHARED_PATHS,
+  classifyPath,
+  requireWriteClaim,
+  releaseWriteClaim,
+  criticalPathReport,
+} from "./critical-paths";
+export type { CriticalSharedPath, CriticalReason, PathClass, WriteClaimResult } from "./critical-paths";
+
 export type {
   WriteScopeClaim,
   ClaimWriteScopeInput,
