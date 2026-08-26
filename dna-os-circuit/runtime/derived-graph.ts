@@ -36,6 +36,7 @@ import { READ_PATHS, verifyReadPaths } from "../../control/system-read-paths/con
 import { observationStoreStatus, readObservations } from "../../control/machine-observation/contract";
 import { observationStatus } from "../../control/realtime-change/contract";
 import { SERVICES } from "../../control/runtime-control/contract";
+import { readRenderEvidence, routeOwnership } from "../../control/ui-render-verification/contract";
 
 const fs = require("node:fs");
 const path = require("node:path");
@@ -46,7 +47,8 @@ const CENSUS_SNAPSHOT = path.join(REPO_ROOT, "software/live-census/data/last-cen
 export type GraphDomain =
   | "MACHINE_OBSERVATION" | "PROCESS" | "FILESYSTEM_EVENT" | "OBSERVATION_STORE"
   | "RESOURCE_RESOLUTION" | "RESOURCE_GRAPH" | "LIVE_CENSUS" | "STATE" | "EVIDENCE"
-  | "BLUEPRINT_DOCUMENT" | "LIFECYCLE_VERDICT" | "RUNTIME_SERVICE" | "READ_PATH" | "CAPABILITY" | "UNRESOLVED";
+  | "BLUEPRINT_DOCUMENT" | "LIFECYCLE_VERDICT" | "RUNTIME_SERVICE" | "READ_PATH" | "CAPABILITY"
+  | "UI_ROUTE" | "UI_IMPACT" | "RENDER_VERIFICATION" | "RENDER_EVIDENCE" | "COMPLETION_GATE" | "UNRESOLVED";
 
 export interface GraphNode {
   id: string;
@@ -201,6 +203,39 @@ export function buildSystemGraph(): SystemGraph {
   const observerService = services.find((service) => service.launchd_label.includes("machine-observer"));
   if (observerService) {
     addEdge({ id: "e_service_observer", from: `service:${observerService.service_id}`, to: "machine_observer", kind: "RUNS", evidence: [`control/runtime-control#SERVICES.${observerService.service_id}`, `launchd_label=${observerService.launchd_label}`] });
+  }
+
+  // ---- SOURCE 6: UI routes + render evidence --------------------------
+  // Routes come from the servers' own serveStaticFile calls; evidence comes
+  // from the render stage's append-only log. Neither is a list written here.
+  const ownership = routeOwnership();
+  counts["ui-routes"] = ownership.size;
+  for (const [owner, route] of ownership) {
+    addNode({ id: `ui_route:${route}`, label: route, domain: "UI_ROUTE", source: "server serveStaticFile route table", evidence: [`served from ${owner}`] });
+    addNode({ id: `ui_source:${owner}`, label: owner, domain: "UI_ROUTE", source: "server serveStaticFile route table", evidence: [`serves ${route}`] });
+    addEdge({ id: `e_route_${route}`, from: `ui_source:${owner}`, to: `ui_route:${route}`, kind: "SERVED_AT", evidence: [`serveStaticFile(root, "${owner}/index.html") for url "${route}"`] });
+  }
+
+  const renderEvidence = readRenderEvidence();
+  counts["render-evidence"] = renderEvidence.length;
+  if (renderEvidence.length > 0) {
+    addNode({ id: "ui_impact_detection", label: "UI IMPACT DETECTION", domain: "UI_IMPACT", source: "control/ui-render-verification/impact.ts", evidence: ["path rules over the changed set plus the real route table"] });
+    addNode({ id: "ui_render_verification", label: "UI RENDER VERIFICATION", domain: "RENDER_VERIFICATION", source: "control/ui-render-verification/render-verify.ts", evidence: ["real runtime, real route, real browser DOM"] });
+    addNode({ id: "completion_gate", label: "COMPLETION GATE", domain: "COMPLETION_GATE", source: "control/ui-render-verification/gate.ts", evidence: ["reuses control/runtime-verification for evidence freshness"] });
+    addEdge({ id: "e_impact_to_render", from: "ui_impact_detection", to: "ui_render_verification", kind: "REQUESTS_VERIFICATION", evidence: ["UI_IMPACT=YES routes the change into the render stage"] });
+    addEdge({ id: "e_render_to_gate", from: "ui_render_verification", to: "completion_gate", kind: "RETURNS_VERDICT", evidence: ["control/ui-render-verification/gate.ts reads the render verdict"] });
+  }
+  for (const evidence of renderEvidence.slice(-25)) {
+    const node = `render_evidence:${evidence.execution_id}:${evidence.observed_at}`;
+    addNode({ id: node, label: `${evidence.verdict} ${evidence.route}`, domain: "RENDER_EVIDENCE", source: "control/ui-render-verification/data/render-evidence.jsonl", evidence: [`execution_id=${evidence.execution_id}`, `source_digest=${evidence.source_digest}`, `screenshot=${evidence.screenshot_path || "none"}`] });
+    addEdge({ id: `e_render_ev_${node}`, from: "ui_render_verification", to: node, kind: "PRODUCES_EVIDENCE", evidence: [`observed_at=${evidence.observed_at}`, `data_source=${evidence.data_source}`] });
+    addEdge({ id: `e_ev_gate_${node}`, from: node, to: "completion_gate", kind: "DECIDES", evidence: [`verdict=${evidence.verdict}`, evidence.reason.slice(0, 90)] });
+    const routeNode = `ui_route:${evidence.route}`;
+    if (nodes.has(routeNode)) addEdge({ id: `e_ev_route_${node}`, from: node, to: routeNode, kind: "PROVES_ROUTE", evidence: [`runtime_url=${evidence.runtime_url}`] });
+    for (const resourceId of evidence.resource_id) {
+      addEdge({ id: `e_ev_res_${node}_${resourceId}`, from: node, to: `resource:${resourceId}`, kind: "EVIDENCE_FOR", evidence: [`resource_id=${resourceId}`, `source_digest=${evidence.source_digest}`] });
+      addNode({ id: `resource:${resourceId}`, label: resourceId, domain: "RESOURCE_GRAPH", source: "render evidence lineage", evidence: [`named by render evidence ${evidence.execution_id}`] });
+    }
   }
 
   counts["nodes"] = nodes.size;
