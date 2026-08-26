@@ -20,9 +20,12 @@
  * a candidate, not a deletion.
  *
  * Input: none (reads the render evidence log and the gateway task store).
- * Output: `classifyRenderEvidence()`, `screenshotLineage()`.
+ * Output: `classifyRenderEvidence()`, `screenshotLineage()`,
+ * `offerHistoricalScreenshotsToLifecycle()`.
  * Dependency ที่อนุญาต: ./render-verify.ts, ../agent-gateway/contract.ts,
  * ../realtime-change/contract.ts, ../../software/registry-database/.
+ * NOT ../machine-observation/: it exported a delete, that delete is gone, and
+ * this file must not reach for another one.
  * สิ่งที่ห้ามแตะ:
  * - ห้ามลบ/prune ไฟล์จากไฟล์นี้.
  * - ห้ามสร้าง resource_id ให้ screenshot เอง.
@@ -32,7 +35,6 @@
 import { readRenderEvidence } from "./render-verify";
 import type { RenderEvidence } from "./types";
 import { getTask } from "../agent-gateway/contract";
-import { pruneClassifiedFiles } from "../machine-observation/contract";
 import { resolvePath } from "../realtime-change/contract";
 import { createPersistentFileStore } from "../../software/registry-database/adapters/persistent-file-store";
 
@@ -101,27 +103,72 @@ export function classifyRenderEvidence(): readonly ScreenshotLineage[] {
   return readRenderEvidence().map(screenshotLineage);
 }
 
-/**
- * Hands the HISTORICAL screenshots to the prune mechanism that already exists
- * in `../machine-observation/` — the same one that bounds the observation
- * archive. This capability classifies; it does not delete, and it has no
- * unlink of its own.
- *
- * Protected evidence never reaches the call: anything whose execution is still
- * open is filtered out here, before the mechanism is asked to do anything.
- */
-export function submitHistoricalScreenshotsToLifecycle(keepNewest: number): {
+export interface ScreenshotLifecycleOffer {
   classified_current: number;
   classified_historical: number;
-  result: ReturnType<typeof pruneClassifiedFiles>;
-} {
+  /** Still-open executions. Filtered out before anything is offered, and named so the exclusion is visible. */
+  protected_paths: readonly string[];
+  /** Historical, beyond `keep_newest`. NAMED, NOT DELETED — nothing here has been touched. */
+  lifecycle_candidates: readonly string[];
+  /** Historical but within `keep_newest`, so not even offered. */
+  retained_newest: readonly string[];
+  candidate_reason: string;
+  /** Where the decision to reclaim any of these actually lives. */
+  decided_by: string;
+  offered_at: string;
+}
+
+/**
+ * Names the historical screenshots the storage lifecycle may consider. It does
+ * not delete them, and after this change nothing in this repository can.
+ *
+ * WHAT CHANGED AND WHY (Owner, 2026-08-26). This function used to call
+ * `pruneClassifiedFiles()` in ../machine-observation/, which unlinked the
+ * files. That made the observation layer a second mutation boundary — the same
+ * defect that had just been removed from the observation archive rotation, in
+ * the same file, arriving by a different door. The classification below is
+ * unchanged and was never the problem; only the deletion is gone.
+ *
+ * WHERE THE CANDIDATES GO, STATED HONESTLY. There is no push. The storage
+ * lifecycle in ~/Desktop/dna-os-deadboard discovers these paths by scanning
+ * the machine, and `engines/storage/scope.ts#resolveScope` resolves this
+ * directory to MUTABLE — verified 2026-08-26, rule HOME_DEFAULT. MUTABLE is
+ * not AUTO_TRASH: `runLifecycleCircuit` turns clean evidence at MUTABLE scope
+ * into REVIEW, not TRASH_ELIGIBLE. So a candidate named here reaches an owner
+ * decision, never an automatic deletion.
+ *
+ * The practical consequence, which should not be glossed: screenshots that
+ * this function once removed on its own will now accumulate until an owner
+ * acts. That is the intended trade — seeing a resource never granted the right
+ * to delete it — and it puts render evidence in exactly the same regime as the
+ * observation archives already occupy.
+ */
+export function offerHistoricalScreenshotsToLifecycle(keepNewest: number): ScreenshotLifecycleOffer {
   const all = classifyRenderEvidence();
   const current = all.filter((lineage) => lineage.lifecycle_state === "CURRENT_RENDER_EVIDENCE");
   const historical = all.filter((lineage) => lineage.lifecycle_state === "HISTORICAL_RENDER_EVIDENCE" && lineage.exists_on_disk);
-  const result = pruneClassifiedFiles({
-    candidates: historical.map((lineage) => lineage.screenshot_path),
-    keep_newest: keepNewest,
-    classified_by: "control/ui-render-verification/screenshot-lifecycle.ts#classifyRenderEvidence (execution state from control/agent-gateway)",
-  });
-  return { classified_current: current.length, classified_historical: historical.length, result };
+
+  // Newest first, so `keep_newest` keeps the most recent evidence — the same
+  // ordering the removed prune used, now deciding what is OFFERED rather than
+  // what is destroyed.
+  const byNewest = [...historical].sort((a, b) => mtimeOf(b.screenshot_path) - mtimeOf(a.screenshot_path));
+  const retained = byNewest.slice(0, Math.max(0, keepNewest)).map((l) => l.screenshot_path);
+  const candidates = byNewest.slice(Math.max(0, keepNewest)).map((l) => l.screenshot_path);
+
+  return {
+    classified_current: current.length,
+    classified_historical: historical.length,
+    protected_paths: current.map((l) => l.screenshot_path),
+    lifecycle_candidates: candidates,
+    retained_newest: retained,
+    candidate_reason: candidates.length > 0
+      ? `${historical.length} screenshot(s) belong to closed executions; the newest ${retained.length} are retained and the remaining ${candidates.length} are offered to the storage lifecycle as candidates. None was deleted.`
+      : `${historical.length} historical screenshot(s), all within keep_newest=${keepNewest} — nothing is offered`,
+    decided_by: "~/Desktop/dna-os-deadboard engines/storage/lifecycleCircuit.ts (verdict) -> adapters/trashAdapter.ts (the only mutation boundary). This capability classifies and names; it does not decide and does not act.",
+    offered_at: new Date().toISOString(),
+  };
+}
+
+function mtimeOf(path: string): number {
+  try { return fs.statSync(path).mtimeMs; } catch { return 0; }
 }

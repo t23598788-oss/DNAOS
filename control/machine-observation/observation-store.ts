@@ -80,53 +80,33 @@ export interface ObservationRecord {
   derived_by: string;
 }
 
-/**
- * THE ONE PRUNE MECHANISM IN THIS REPOSITORY (Owner, 2026-08-26).
+/*
+ * DELETE PATH REMOVED — THE SECOND ONE (Owner, 2026-08-26).
  *
- * `control/ui-render-verification/` produces screenshot evidence and — by its
- * own rule — never deletes any of it. Rather than give screenshots a second
- * retention system, the bounded prune that already lives here is opened to
- * them: a caller passes the files it has ALREADY classified as removable, and
- * this decides nothing about which those are.
+ * `pruneClassifiedFiles(request)` stood here: it took a list of candidate
+ * paths, kept the newest N, and `fs.unlinkSync()`d the rest. It was exported
+ * from ./contract.ts and called by
+ * ../ui-render-verification/screenshot-lifecycle.ts to delete render
+ * screenshots.
  *
- * Two properties are deliberate. It never reads a file's meaning, so it cannot
- * mistake protected evidence for a candidate — the caller's classification is
- * the only input. And it keeps `keep_newest` of them regardless, so a caller
- * that hands over everything still cannot empty the store in one call.
+ * It is gone for the same reason the rotation prune below it is gone, and the
+ * reason is not that deleting screenshots is wrong. It is that this made the
+ * observation layer a deletion authority for a SECOND time, and by a route
+ * that looked harmless: the caller classified, this function only "carried
+ * out" the classification. But carrying out is exactly the authority in
+ * question. Nothing in the call cleared a retention window, checked a live
+ * consumer, checked recoverability, or produced a verdict — the gates every
+ * other resource on this machine must clear before a single byte moves. A
+ * caller passing a well-reasoned list does not supply those gates; it supplies
+ * a list.
+ *
+ * The classification was good and is kept. What is removed is this module's
+ * ability to act on it. Callers now receive named candidates and hand them to
+ * the storage lifecycle, whose trash adapter is the one mutation boundary.
+ *
+ * Do not reintroduce a delete here under any name — `prune`, `evict`,
+ * `reclaim`, `cleanup`, `gc`. The absence is the design.
  */
-export interface PruneRequest {
-  /** Absolute paths the CALLER has already proven are lifecycle candidates. */
-  candidates: readonly string[];
-  /** Never delete more than this in one call, newest kept first. */
-  keep_newest: number;
-  /** Who classified them, recorded on the result so a deletion is always traceable to a decision. */
-  classified_by: string;
-}
-
-export interface PruneResult {
-  deleted: readonly string[];
-  kept: readonly string[];
-  skipped_missing: readonly string[];
-  classified_by: string;
-  ran_at: string;
-}
-
-export function pruneClassifiedFiles(request: PruneRequest): PruneResult {
-  const ranAt = new Date().toISOString();
-  const existing = request.candidates.filter((file) => { try { fs.statSync(file); return true; } catch { return false; } });
-  const missing = request.candidates.filter((file) => !existing.includes(file));
-
-  // Newest first, so "keep_newest" keeps the most recent evidence.
-  const byNewest = [...existing].sort((a, b) => fs.statSync(b).mtimeMs - fs.statSync(a).mtimeMs);
-  const kept = byNewest.slice(0, Math.max(0, request.keep_newest));
-  const removable = byNewest.slice(Math.max(0, request.keep_newest));
-
-  const deleted: string[] = [];
-  for (const file of removable) {
-    try { fs.unlinkSync(file); deleted.push(file); } catch { /* already gone */ }
-  }
-  return { deleted, kept, skipped_missing: missing, classified_by: request.classified_by, ran_at: ranAt };
-}
 
 /** Archives, newest last. Named by the instant they were sealed, so ordering never depends on the filesystem's own listing order. */
 export function rotatedFiles(): readonly string[] {

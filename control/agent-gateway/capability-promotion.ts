@@ -52,6 +52,7 @@ import type { TaskWorkspace } from "./workspace-manager";
 import { runRegistrationPipeline } from "../registration-pipeline/contract";
 import type { RegistrationCandidate } from "../event-pipeline/contract";
 import { createPersistentFileStore } from "../../software/registry-database/adapters/persistent-file-store";
+import type { RegistryStore } from "../../software/registry-database/contract";
 
 // ============================= 1. CANDIDATE CONTRACT =============================
 
@@ -392,7 +393,17 @@ export interface RegistrationOutcome {
  * requested reporting vocabulary — it never invents a second, parallel
  * duplicate-detection mechanism.
  */
-export function registerCandidate(candidate: CapabilityCandidateV1, correlationId: string, evidenceRefs: readonly string[]): RegistrationOutcome {
+/**
+ * `store` has a DEFAULT rather than being optional, deliberately:
+ * `Function.length` ignores parameters with defaults, so
+ * `registerCandidate.length` stays 3 and the adversarial invariant in
+ * ./tests/capability-promotion.test.ts — "registerCandidate takes no
+ * PromotionDecision argument, a candidate cannot self-authorize its own
+ * registration" — keeps passing unmodified. The guard was not weakened to
+ * accommodate this parameter; the parameter was shaped to leave the guard
+ * exactly as it was.
+ */
+export function registerCandidate(candidate: CapabilityCandidateV1, correlationId: string, evidenceRefs: readonly string[], store: RegistryStore = createPersistentFileStore()): RegistrationOutcome {
   const registrationCandidate: RegistrationCandidate = {
     candidate_id: candidate.candidate_id,
     name: candidate.capability_name,
@@ -412,7 +423,15 @@ export function registerCandidate(candidate: CapabilityCandidateV1, correlationI
     source_system: "dna-os-infrastructure",
     scope: candidate.requested_integration_point,
   };
-  const result = runRegistrationPipeline(registrationCandidate, createPersistentFileStore(), correlationId);
+  // The store is injectable, and defaults to the live one every other
+  // registration caller uses (Owner, 2026-08-26). It was hard-coded here, so
+  // control/agent-gateway/tests/capability-promotion.test.ts had no way to run
+  // against an isolated registry: its proof rows landed in the canonical data,
+  // and the SECOND run of the same test hit the Duplicate Gate's
+  // DUPLICATE_SEMANTIC and failed. The gate was right both times — the test
+  // had no isolation. Production behaviour is unchanged by construction: omit
+  // the store and this is exactly the call it was before.
+  const result = runRegistrationPipeline(registrationCandidate, store, correlationId);
   let duplicate_gate_status: DuplicateGateStatus;
   let registration_status: RegistrationOutcome["registration_status"];
   let resource_id: string | null = null;
@@ -518,7 +537,7 @@ export interface CapabilityPromotionPipelineResult {
  * `decidePromotion` says PROMOTE — a REJECT/CORRECTION_REQUIRED/
  * OWNER_REVIEW_REQUIRED candidate is never written to the registry.
  */
-export function runCapabilityPromotionPipeline(result: DnaOsAgentResult, workspace: TaskWorkspace, declared: DeclaredCapability, correlationId: string): CapabilityPromotionPipelineResult {
+export function runCapabilityPromotionPipeline(result: DnaOsAgentResult, workspace: TaskWorkspace, declared: DeclaredCapability, correlationId: string, store: RegistryStore = createPersistentFileStore()): CapabilityPromotionPipelineResult {
   const candidate = freezeWorkspaceResult(result, workspace, declared);
   const inspection = inspectArtifacts(candidate);
   const build = verifyBuild(candidate);
@@ -527,7 +546,7 @@ export function runCapabilityPromotionPipeline(result: DnaOsAgentResult, workspa
   const contract = verifyContract(candidate, result);
   const decision = decidePromotion(candidate, inspection, build, test, security, contract);
   const evidenceRefs = [inspection.evidence_id, build.evidence_id, test.evidence_id, security.evidence_id, contract.evidence_id];
-  const registration = decision.decision === "PROMOTE" ? registerCandidate(candidate, correlationId, evidenceRefs) : null;
+  const registration = decision.decision === "PROMOTE" ? registerCandidate(candidate, correlationId, evidenceRefs, store) : null;
   return { candidate, inspection, build, test, security, contract, decision, registration, installation_status: "MISSING_COMPONENT", activation_status: "MISSING_COMPONENT" };
 }
 

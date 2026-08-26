@@ -43,10 +43,18 @@ import { correlate, strongestVerdict } from "./correlation";
 import { deriveMeaning } from "./meaning";
 import { appendObservation, observationStoreStatus, type ObservationRecord } from "./observation-store";
 import { candidatePidsForRepo, runtimeConsumerSnapshot, buildIngestionRecord } from "./lifecycle-bridge";
+import { offerHistoricalScreenshotsToLifecycle } from "../ui-render-verification/contract";
 import { createPersistentFileStore } from "../../software/registry-database/adapters/persistent-file-store";
 import type { RuntimeConsumerEvidence } from "./lifecycle-bridge";
 
 export interface ObservationRuntimeOptions {
+  /**
+   * How many historical screenshots are retained rather than named as
+   * lifecycle candidates. `undefined` disables the offer entirely — a host that
+   * is not asked to do it must not start doing it silently. Note this bounds
+   * what is OFFERED, not what is deleted; nothing on this path deletes.
+   */
+  screenshotKeepNewest?: number;
   /** Paths to watch in addition to whatever runtime already declares. */
   scopes?: readonly WatchScope[];
   /** How often the runtime-consumer snapshot is refreshed. This is NOT a repository scan. */
@@ -71,6 +79,7 @@ export interface ObservationRuntimeHandle {
     observing: ReturnType<typeof observationStatus>;
     store: ReturnType<typeof observationStoreStatus>;
     last_refresh: string | null;
+    last_screenshot_offer: unknown;
     scope_changes: readonly ScopeChange[];
     runtime_consumers: readonly { path: string; state: string; consumers: number }[];
   };
@@ -80,6 +89,7 @@ export function startObservationRuntime(options: ObservationRuntimeOptions = {})
   const store = createPersistentFileStore();
   const refreshPaths = options.refreshPaths ?? [];
   let lastRefresh: string | null = null;
+  let lastScreenshotOffer: unknown = null;
   let consumers: RuntimeConsumerEvidence[] = [];
 
   const onChange = (event: ChangeEvent): void => {
@@ -134,6 +144,30 @@ export function startObservationRuntime(options: ObservationRuntimeOptions = {})
 
   const timer = setInterval(() => {
     refreshScopes();
+
+    // AUTOMATIC SUBMISSION TO THE EXISTING STORAGE LIFECYCLE (Owner,
+    // 2026-08-26). This host already runs on a tick, already reads
+    // classifications, and already has no deletion authority of its own —
+    // which is exactly what this call needs and why no second daemon was
+    // created for it.
+    //
+    // It NAMES CANDIDATES. It does not delete.
+    //
+    // That sentence was aspirational when this call was written and is now
+    // literally true: the function it called used to end in fs.unlinkSync via
+    // ../machine-observation/'s pruneClassifiedFiles, so a daemon tick was a
+    // deletion on a timer. That prune is gone (see the DELETE PATH REMOVED note
+    // in ./observation-store.ts) and the call is now an offer — classification
+    // protects anything still in use, the rest are named, and whether any of
+    // them is reclaimed is the storage lifecycle's decision and its trash
+    // adapter's action. A failure here must never take the observer down.
+    if (typeof options.screenshotKeepNewest === "number") {
+      try {
+        lastScreenshotOffer = offerHistoricalScreenshotsToLifecycle(options.screenshotKeepNewest);
+      } catch (error) {
+        lastScreenshotOffer = { error: error instanceof Error ? error.message : String(error) };
+      }
+    }
     // A bounded lsof pass over candidate pids — the refresh that keeps
     // live-census's runtime input current without touching the source tree.
     consumers = [...runtimeConsumerSnapshot(refreshPaths).values()];
@@ -151,6 +185,7 @@ export function startObservationRuntime(options: ObservationRuntimeOptions = {})
         observing: observationStatus(),
         store: observationStoreStatus(),
         last_refresh: lastRefresh,
+        last_screenshot_offer: lastScreenshotOffer,
         scope_changes: scopeChanges,
         runtime_consumers: consumers.map((evidence) => ({ path: evidence.path, state: evidence.state, consumers: evidence.consumers.length })),
       };

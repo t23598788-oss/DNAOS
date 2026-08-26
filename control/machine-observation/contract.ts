@@ -22,7 +22,6 @@ export { deriveMeaning } from "./meaning";
 export { observationCircuitGraph } from "./circuit-view";
 export { runtimeConsumerEvidenceFor, runtimeConsumerSnapshot, candidatePidsForRepo, buildIngestionRecord, type RuntimeConsumerEvidence, type RuntimeConsumerState, type IngestionRecord } from "./lifecycle-bridge";
 export { startObservationRuntime, type ObservationRuntimeOptions, type ObservationRuntimeHandle } from "./observer-daemon";
-export { pruneClassifiedFiles, type PruneRequest, type PruneResult } from "./observation-store";
 export { appendObservation, readObservations, observationsForResource, observationStoreStatus, rotateIfNeeded, rotatedFiles, OBSERVATION_STORE_FILE, OBSERVATION_RETENTION_POLICY, type ObservationRecord, type ObservationRetentionPolicy, type RotationResult } from "./observation-store";
 /**
  * Re-exported so this layer can SAY that a service is running code that has

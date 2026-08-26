@@ -1,6 +1,7 @@
 import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { randomUUID } from "node:crypto";
+import { decideCompletion } from "../ui-render-verification/contract";
 import { acquireLock, releaseLock, renewLock } from "../../execution/process-lock/contract";
 
 export type WorkStatus = "QUEUED" | "LOCKED" | "RUNNING" | "WAITING" | "COMPLETED" | "FAILED" | "CANCELLED";
@@ -117,6 +118,18 @@ export interface WorkItem {
 export interface CoordinationEvent { event_id: string; event_type: CoordinationEventType; occurred_at: string; command_id: string; task_id: string; data?: Record<string, unknown>; }
 export interface CoordinationStore { enqueue(item: Omit<WorkItem, "status" | "retry_count" | "created_at"> & Partial<Pick<WorkItem, "status" | "retry_count" | "created_at">>): { item: WorkItem; duplicate: boolean }; acquire(taskId: string): { ok: true; item: WorkItem } | { ok: false; reason: string }; ready(taskId: string, data?: Record<string, unknown>): WorkItem; markDispatched(taskId: string, data?: Record<string, unknown>): WorkItem; transition(taskId: string, status: WorkStatus, data?: Record<string, unknown>): WorkItem; release(taskId: string, data?: Record<string, unknown>): WorkItem; events(): CoordinationEvent[]; items(): WorkItem[]; }
 
+/**
+ * The change set this work item declares. `target_files` is part of WorkItem
+ * already — an explicitly empty array is a real claim ("this work changes no
+ * file"), while a missing field is not a claim at all and is reported as
+ * UNRESOLVED rather than read as empty.
+ */
+function completionProvenanceOf(item: WorkItem): readonly string[] | "UNRESOLVED" {
+  const declared = (item as { target_files?: unknown }).target_files;
+  if (!Array.isArray(declared)) return "UNRESOLVED";
+  return declared.filter((entry): entry is string => typeof entry === "string");
+}
+
 function id(prefix: string): string { return `${prefix}-${randomUUID()}`; }
 function readJsonl<T>(path: string): T[] { if (!existsSync(path)) return []; try { return readFileSync(path, "utf8").split("\n").filter(Boolean).flatMap((line) => { try { return [JSON.parse(line) as T]; } catch { return []; } }); } catch { return []; } }
 
@@ -143,7 +156,38 @@ export function createCoordinationStore(root = resolve(process.cwd(), "local-run
     },
     ready(taskId, data) { const items = load(); const item = items.find((x) => x.task_id === taskId); if (!item) throw new Error("TASK_NOT_FOUND"); if (!["LOCKED", "RUNNING"].includes(item.status)) throw new Error(`INVALID_STATUS:${item.status}`); item.status = "RUNNING"; save(items); emit("READY_FOR_DISPATCH", item, data); return item; },
     markDispatched(taskId, data) { const items = load(); const item = items.find((x) => x.task_id === taskId); if (!item) throw new Error("TASK_NOT_FOUND"); save(items); emit("DISPATCHED", item, data); return item; },
-    transition(taskId, status, data) { const items = load(); const item = items.find((x) => x.task_id === taskId); if (!item) throw new Error("TASK_NOT_FOUND"); item.status = status; save(items); emit(status === "COMPLETED" ? "COMPLETED" : status === "FAILED" ? "FAILED" : status === "RUNNING" ? "EXECUTING" : "DISPATCHED", item, data); return item; },
+    transition(taskId, status, data) {
+      const items = load(); const item = items.find((x) => x.task_id === taskId); if (!item) throw new Error("TASK_NOT_FOUND");
+      // THE SAME COMPLETION GATE, REACHED FROM THIS STORE (Owner, 2026-08-26).
+      // This is the second store that can end a piece of work, and it already
+      // carries its own change provenance in `target_files`. Rather than a
+      // second gate, the existing one is called with that change set.
+      //
+      // The three outcomes are kept apart on purpose: a work item that
+      // declares no target files changed nothing and completes as before; one
+      // whose files are owned by a UI route must have a render verdict; and
+      // one whose provenance cannot be read at all fails closed, because
+      // "we could not tell" must never complete quietly.
+      if (status === "COMPLETED") {
+        const provenance = completionProvenanceOf(item);
+        if (provenance === "UNRESOLVED") {
+          item.status = "FAILED";
+          save(items);
+          emit("FAILED", item, { ...data, blocked_by: "COMPLETION_PROVENANCE_UNRESOLVED", detail: "target_files is absent on this work item — the change set could not be read, so completion fails closed" });
+          return item;
+        }
+        if (provenance.length > 0) {
+          const decision = decideCompletion({ execution_id: item.task_id, changed_paths: provenance, capability_id: item.task_id, applied_at: item.created_at, correlation_id: `work-item://${item.command_id}` });
+          if (decision.status === "COMPLETE_DENIED") {
+            item.status = "FAILED";
+            save(items);
+            emit("FAILED", item, { ...data, blocked_by: `UI_RENDER_NOT_VERIFIED:${decision.ui_impact}:${decision.render_verdict ?? "NO_EVIDENCE"}`, reason: decision.reason });
+            return item;
+          }
+        }
+      }
+      item.status = status; save(items); emit(status === "COMPLETED" ? "COMPLETED" : status === "FAILED" ? "FAILED" : status === "RUNNING" ? "EXECUTING" : "DISPATCHED", item, data); return item;
+    },
     release(taskId, data) { const items = load(); const item = items.find((x) => x.task_id === taskId); if (!item) throw new Error("TASK_NOT_FOUND"); save(items); emit("LOCK_RELEASED", item, data); return item; },
     events: () => readJsonl<CoordinationEvent>(eventPath), items: load,
   };

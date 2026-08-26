@@ -10,6 +10,7 @@
  * How to run: npx tsx control/agent-gateway/tests/capability-promotion.test.ts
  */
 import { writeFileSync, mkdirSync, symlinkSync, chmodSync, unlinkSync } from "node:fs";
+import { createLocalFileStore } from "../../../software/registry-database/adapters/local-file-store";
 import { join } from "node:path";
 import { createTaskWorkspace, transitionWorkspace, assignAgent, getWorkspace } from "../workspace-manager";
 import { runAgentWorkOrder } from "../agent-host-dispatch";
@@ -27,6 +28,20 @@ declare const console: { log(...a: unknown[]): void };
 
 let passed = 0;
 let failed = 0;
+/**
+ * A registry of this test's own (Owner, 2026-08-26). The proof rows used to go
+ * into the canonical registry data, so the SECOND run of this file hit the
+ * Duplicate Gate's DUPLICATE_SEMANTIC and failed — the gate was correct, the
+ * test had no isolation. `createLocalFileStore()` already exists for exactly
+ * this and writes into its own fresh run directory, so nothing here can reach
+ * the live registry and the file is repeatable by construction.
+ */
+let isolatedStore: ReturnType<typeof createLocalFileStore> | null = null;
+function isolatedRegistry(): ReturnType<typeof createLocalFileStore> {
+  if (isolatedStore === null) isolatedStore = createLocalFileStore();
+  return isolatedStore;
+}
+
 function check(name: string, cond: boolean, detail?: unknown): void {
   if (cond) { passed++; console.log(`PASS  ${name}`); }
   else { failed++; console.log(`FAIL  ${name}\n      ${JSON.stringify(detail)}`); }
@@ -65,7 +80,7 @@ async function main(): Promise<void> {
   // ================= 1. CLEAN CANDIDATE — full pipeline reaches PROMOTE + REGISTERED =================
   const clean = await makeCleanCandidateResult();
   check("SETUP: clean workspace produced a real PASS result", clean.result.status === "PASS", clean.result);
-  const cleanPipeline = runCapabilityPromotionPipeline(clean.result, clean.workspace!, DECLARED, "corr-phase3-clean");
+  const cleanPipeline = runCapabilityPromotionPipeline(clean.result, clean.workspace!, DECLARED, "corr-phase3-clean", isolatedRegistry());
   check("CANDIDATE_CONTRACT: real candidate_id/revision_id allocated", cleanPipeline.candidate.candidate_id.startsWith("cand-") && cleanPipeline.candidate.revision_id.startsWith("rev-"), cleanPipeline.candidate);
   check("ARTIFACT_INSPECTION: clean candidate passes", cleanPipeline.inspection.ok, cleanPipeline.inspection);
   check("BUILD_VERIFICATION: no package.json -> NOT_REQUIRED (honest, not fabricated PASS)", cleanPipeline.build.status === "NOT_REQUIRED", cleanPipeline.build);

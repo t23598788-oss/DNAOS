@@ -14,7 +14,9 @@
  * nothing, authorizes nothing and deletes nothing.
  *
  * Input: env `MACHINE_OBSERVER_PORT` (default 5179),
- * `MACHINE_OBSERVER_REFRESH_MS` (default 15000).
+ * `MACHINE_OBSERVER_REFRESH_MS` (default 15000),
+ * `MACHINE_OBSERVER_SCREENSHOT_KEEP` (default 20 — how many historical render
+ * screenshots the storage lifecycle keeps when this runtime submits them).
  * Output: `GET /health` (what runtime-control probes), `GET /status` (scopes,
  * store counts, scope-change history).
  * Dependency ที่อนุญาต: ./observer-daemon.ts, ./observation-store.ts, node built-ins.
@@ -33,7 +35,12 @@ const http = require("node:http");
 const port = Number(process.env.MACHINE_OBSERVER_PORT ?? "5179");
 const refreshMs = Number(process.env.MACHINE_OBSERVER_REFRESH_MS ?? "15000");
 
-const handle = startObservationRuntime({ refreshMs, refreshPaths: [] });
+// The storage lifecycle keeps this many historical screenshots. Declared here,
+// on the service entrypoint, so the number a running system uses is visible in
+// one place rather than buried in a call site.
+const screenshotKeepNewest = Number(process.env.MACHINE_OBSERVER_SCREENSHOT_KEEP ?? "20");
+
+const handle = startObservationRuntime({ refreshMs, refreshPaths: [], screenshotKeepNewest });
 
 const server = http.createServer((req: { url?: string; method?: string }, res: { writeHead(status: number, headers: Record<string, string>): void; end(body: string): void }) => {
   const url = req.url ?? "/";

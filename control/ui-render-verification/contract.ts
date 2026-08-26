@@ -10,5 +10,5 @@
 export { assessUiImpact, routeOwnership } from "./impact";
 export { verifyRender, readRenderEvidence, renderEvidenceFor, RENDER_EVIDENCE_FILE, type RenderVerificationRequest } from "./render-verify";
 export { decideCompletion } from "./gate";
-export { classifyRenderEvidence, screenshotLineage, submitHistoricalScreenshotsToLifecycle, type ScreenshotLineage, type EvidenceLifecycleState } from "./screenshot-lifecycle";
+export { classifyRenderEvidence, screenshotLineage, offerHistoricalScreenshotsToLifecycle, type ScreenshotLineage, type EvidenceLifecycleState, type ScreenshotLifecycleOffer } from "./screenshot-lifecycle";
 export type { UiImpact, UiImpactAssessment, RenderVerdict, RenderEvidence, CompletionStatus, CompletionDecision } from "./types";
