@@ -22,6 +22,7 @@ import type { AgentAdapter, Evidence, ExecutionResult, MemoryReference, Status, 
 import { validateWorkOrder } from "./work-order-validator";
 import { createHash } from "node:crypto";
 import { reportJoint } from "../../observability/joint-monitor/contract";
+import { decideCompletion } from "../ui-render-verification/contract";
 import type { WorkResultInput } from "../work-result-ingress/contract";
 
 const REPO = process.cwd();
@@ -89,6 +90,22 @@ function record(taskId: string, kind: Evidence["kind"], source: string, payload:
   return evidenceId;
 }
 
+/**
+ * The change set this task really carries. A declared `affected_paths` wins;
+ * otherwise the work order's own target path is the change set, because that
+ * IS the file the task exists to write. No work order means no file was
+ * changed through DNA OS, and the empty list says exactly that.
+ */
+function affectedPathsOf(task: Task): readonly string[] {
+  if (task.affected_paths && task.affected_paths.length > 0) return task.affected_paths;
+  return task.work_order ? [task.work_order.target_path] : [];
+}
+
+/** The real status funnel, exported ONLY so a proof can drive the exact production path rather than a copy of it. Callers inside this file use `persistStatus` directly. */
+export function persistStatusForProof(task: Task, status: Status): Task {
+  return persistStatus(task, status);
+}
+
 function persistStatus(task: Task, status: Status): Task {
   const nextAction = status === "WAITING_OWNER_DECISION"
     ? "Owner must approve or reject this WorkOrder"
@@ -97,6 +114,40 @@ function persistStatus(task: Task, status: Status): Task {
       : status === "FAILED"
         ? "Inspect execution evidence and correct the reported failure"
         : status === "COMPLETED" ? null : task.next_action;
+  // THE UI RENDER GATE ON THE STATUS FUNNEL (Owner, 2026-08-26).
+  // persistStatus is the one place every status transition in this file goes
+  // through, so it is where a COMPLETED that carries a change set can be
+  // stopped. It uses the task's own `affected_paths` — the change set now
+  // travels with the task — instead of a gate being bolted on somewhere new.
+  //
+  // A task with no work order changed no file through DNA OS, so there is
+  // nothing for a render to prove and the transition is untouched. That is a
+  // fact about the task, not an exemption.
+  if (status === "COMPLETED") {
+    const affected = affectedPathsOf(task);
+    if (affected.length > 0) {
+      const decision = decideCompletion({
+        execution_id: task.task_id,
+        changed_paths: affected,
+        capability_id: task.task_id,
+        // `created_at`, not `updated_at`: updated_at moves every time anything
+        // touches the task, so render evidence made DURING the execution kept
+        // being judged older than the work it proved and denied a completion
+        // that should have passed (measured 2026-08-26). The execution's start
+        // is the fixed point evidence has to be newer than.
+        applied_at: task.created_at,
+        correlation_id: `task://${task.task_id}`,
+      });
+      if (decision.status === "COMPLETE_DENIED") {
+        const blocked: Task = { ...task, status: "BLOCKED", next_action: `UI_RENDER_NOT_VERIFIED:${decision.ui_impact}:${decision.render_verdict ?? "NO_EVIDENCE"}`, updated_at: nowIso() };
+        saveTask(blocked);
+        record(task.task_id, "verification", "control/ui-render-verification/gate.ts", { ui_impact: decision.ui_impact, render_verdict: decision.render_verdict, reason: decision.reason, affected_paths: affected });
+        void reportJoint({ from_capability: task.submitted_by_client, to_capability: "agent-gateway", task_id: task.task_id, status: "BLOCKED", summary: `task ${task.task_id} -> BLOCKED (UI render not verified)`, source: "control/agent-gateway/gateway.ts#persistStatus" });
+        return blocked;
+      }
+    }
+  }
+
   const updated: Task = { ...task, status, next_action: nextAction, updated_at: nowIso() };
   saveTask(updated);
   // Pillar 1 (Owner, 2026-08-22 — see /Users/tam/.claude/plans/zesty-spinning-ripple.md):

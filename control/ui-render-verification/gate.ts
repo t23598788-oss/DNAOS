@@ -35,7 +35,12 @@ export function decideCompletion(input: {
   execution_id: string;
   changed_paths: readonly string[];
   capability_id: string;
-  /** When the change finished being applied — render evidence older than this proves an earlier state. */
+  /**
+   * The fixed point render evidence must be NEWER than — normally the moment
+   * the execution started. It must not be a timestamp that moves while the
+   * execution runs, or evidence produced during the work is judged older than
+   * the work itself.
+   */
   applied_at: string;
   correlation_id: string;
 }): CompletionDecision {

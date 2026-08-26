@@ -32,6 +32,7 @@
 import { readRenderEvidence } from "./render-verify";
 import type { RenderEvidence } from "./types";
 import { getTask } from "../agent-gateway/contract";
+import { pruneClassifiedFiles } from "../machine-observation/contract";
 import { resolvePath } from "../realtime-change/contract";
 import { createPersistentFileStore } from "../../software/registry-database/adapters/persistent-file-store";
 
@@ -98,4 +99,29 @@ function fileExists(path: string): boolean {
 
 export function classifyRenderEvidence(): readonly ScreenshotLineage[] {
   return readRenderEvidence().map(screenshotLineage);
+}
+
+/**
+ * Hands the HISTORICAL screenshots to the prune mechanism that already exists
+ * in `../machine-observation/` — the same one that bounds the observation
+ * archive. This capability classifies; it does not delete, and it has no
+ * unlink of its own.
+ *
+ * Protected evidence never reaches the call: anything whose execution is still
+ * open is filtered out here, before the mechanism is asked to do anything.
+ */
+export function submitHistoricalScreenshotsToLifecycle(keepNewest: number): {
+  classified_current: number;
+  classified_historical: number;
+  result: ReturnType<typeof pruneClassifiedFiles>;
+} {
+  const all = classifyRenderEvidence();
+  const current = all.filter((lineage) => lineage.lifecycle_state === "CURRENT_RENDER_EVIDENCE");
+  const historical = all.filter((lineage) => lineage.lifecycle_state === "HISTORICAL_RENDER_EVIDENCE" && lineage.exists_on_disk);
+  const result = pruneClassifiedFiles({
+    candidates: historical.map((lineage) => lineage.screenshot_path),
+    keep_newest: keepNewest,
+    classified_by: "control/ui-render-verification/screenshot-lifecycle.ts#classifyRenderEvidence (execution state from control/agent-gateway)",
+  });
+  return { classified_current: current.length, classified_historical: historical.length, result };
 }

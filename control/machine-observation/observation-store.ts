@@ -52,7 +52,7 @@ export interface ObservationRetentionPolicy {
   max_file_bytes: number;
   /** Rotate a file older than this even if it is small, so a quiet week still produces a boundary to age out. 7 days. */
   max_age_ms: number;
-  /** How many rotated files are kept. Beyond this the OLDEST archive is deleted — that is the actual bound on total disk use, and it is a real deletion of observation records, not of lifecycle evidence. */
+  /** CANDIDATE PRESSURE ONLY (Owner, 2026-08-26). Archives beyond this count are named as lifecycle candidates and handed to the existing storage lifecycle. Nothing in this module deletes them; this number no longer bounds disk use by itself, and saying it did would be false. */
   max_rotated_files: number;
   declared_by: string;
   reason: string;
@@ -78,6 +78,54 @@ export interface ObservationRecord {
   meaning_records: readonly MeaningRecord[];
   source: string;
   derived_by: string;
+}
+
+/**
+ * THE ONE PRUNE MECHANISM IN THIS REPOSITORY (Owner, 2026-08-26).
+ *
+ * `control/ui-render-verification/` produces screenshot evidence and — by its
+ * own rule — never deletes any of it. Rather than give screenshots a second
+ * retention system, the bounded prune that already lives here is opened to
+ * them: a caller passes the files it has ALREADY classified as removable, and
+ * this decides nothing about which those are.
+ *
+ * Two properties are deliberate. It never reads a file's meaning, so it cannot
+ * mistake protected evidence for a candidate — the caller's classification is
+ * the only input. And it keeps `keep_newest` of them regardless, so a caller
+ * that hands over everything still cannot empty the store in one call.
+ */
+export interface PruneRequest {
+  /** Absolute paths the CALLER has already proven are lifecycle candidates. */
+  candidates: readonly string[];
+  /** Never delete more than this in one call, newest kept first. */
+  keep_newest: number;
+  /** Who classified them, recorded on the result so a deletion is always traceable to a decision. */
+  classified_by: string;
+}
+
+export interface PruneResult {
+  deleted: readonly string[];
+  kept: readonly string[];
+  skipped_missing: readonly string[];
+  classified_by: string;
+  ran_at: string;
+}
+
+export function pruneClassifiedFiles(request: PruneRequest): PruneResult {
+  const ranAt = new Date().toISOString();
+  const existing = request.candidates.filter((file) => { try { fs.statSync(file); return true; } catch { return false; } });
+  const missing = request.candidates.filter((file) => !existing.includes(file));
+
+  // Newest first, so "keep_newest" keeps the most recent evidence.
+  const byNewest = [...existing].sort((a, b) => fs.statSync(b).mtimeMs - fs.statSync(a).mtimeMs);
+  const kept = byNewest.slice(0, Math.max(0, request.keep_newest));
+  const removable = byNewest.slice(Math.max(0, request.keep_newest));
+
+  const deleted: string[] = [];
+  for (const file of removable) {
+    try { fs.unlinkSync(file); deleted.push(file); } catch { /* already gone */ }
+  }
+  return { deleted, kept, skipped_missing: missing, classified_by: request.classified_by, ran_at: ranAt };
 }
 
 /** Archives, newest last. Named by the instant they were sealed, so ordering never depends on the filesystem's own listing order. */
@@ -140,7 +188,15 @@ export interface RotationResult {
   rotated: boolean;
   reason: string;
   archive: string | null;
+  /**
+   * Always empty since 2026-08-26. Kept so existing readers of this shape do
+   * not break, and kept EMPTY so no caller can mistake rotation for something
+   * that still deletes. Deletion is not this module's authority any more.
+   */
   pruned: readonly string[];
+  /** Archives beyond the declared bound. Named, never removed. */
+  lifecycle_candidates: readonly string[];
+  candidate_reason: string;
 }
 
 /**
@@ -152,30 +208,52 @@ export interface RotationResult {
  */
 export function rotateIfNeeded(): RotationResult {
   const decision = shouldRotate();
-  if (!decision.rotate) return { rotated: false, reason: decision.reason, archive: null, pruned: [] };
+  if (!decision.rotate) return { rotated: false, reason: decision.reason, archive: null, pruned: [], lifecycle_candidates: [], candidate_reason: "no rotation, so no candidate pressure was evaluated" };
 
   const result = withRotationLock<RotationResult>(() => {
     // Re-check inside the lock: another process may have rotated while we waited.
     const recheck = shouldRotate();
-    if (!recheck.rotate) return { rotated: false, reason: `another process rotated first (${recheck.reason})`, archive: null, pruned: [] };
+    if (!recheck.rotate) return { rotated: false, reason: `another process rotated first (${recheck.reason})`, archive: null, pruned: [], lifecycle_candidates: [], candidate_reason: "another process rotated first" };
 
     const stamp = new Date().toISOString().replace(/[:.]/g, "-");
     const archive = path.join(DATA_DIR, `${ARCHIVE_PREFIX}${stamp}.jsonl`);
     fs.renameSync(OBSERVATION_STORE_FILE, archive);
 
-    // Prune oldest beyond the declared bound. This is the only deletion in this
-    // file, it removes whole archived files only, and it never touches the
-    // active one.
+    // DIRECT PRUNE AUTHORITY REMOVED (Owner, 2026-08-26).
+    //
+    // This block used to call fs.unlinkSync() on the oldest archives. That made
+    // rotation a second deletion authority: it decided on its own that an
+    // observation archive had no further value and removed it, with no
+    // retention check, no consumer check, no recoverability check and no
+    // verdict — none of the gates every other resource on this machine has to
+    // clear before anything is moved.
+    //
+    // max_rotated_files now expresses CANDIDATE PRESSURE only. Archives beyond
+    // the bound are named as lifecycle candidates and left exactly where they
+    // are. Whether any of them may be reclaimed is decided by the existing
+    // storage lifecycle (resource graph -> retention -> protection -> verdict),
+    // and only its cleanup boundary may act on that decision.
+    //
+    // NOTE ON THE OTHER TWO unlinkSync CALLS IN THIS FILE: both operate on
+    // ROTATE_LOCK_FILE (stale-lock recovery and normal release) and are
+    // untouched. They are lock hygiene, not data deletion, and removing either
+    // would wedge rotation after a crash.
     const archives = rotatedFiles();
     const excess = Math.max(0, archives.length - OBSERVATION_RETENTION_POLICY.max_rotated_files);
-    const pruned: string[] = [];
-    for (const victim of archives.slice(0, excess)) {
-      try { fs.unlinkSync(victim); pruned.push(path.basename(victim)); } catch { /* already gone */ }
-    }
-    return { rotated: true, reason: decision.reason, archive: path.basename(archive), pruned };
+    const lifecycle_candidates = archives.slice(0, excess).map((file: string) => path.basename(file));
+    return {
+      rotated: true,
+      reason: decision.reason,
+      archive: path.basename(archive),
+      pruned: [],
+      lifecycle_candidates,
+      candidate_reason: lifecycle_candidates.length > 0
+        ? `${archives.length} archives exceed the declared bound of ${OBSERVATION_RETENTION_POLICY.max_rotated_files}; the oldest ${lifecycle_candidates.length} are offered to the storage lifecycle as candidates and were NOT deleted`
+        : `${archives.length} archives is within the declared bound of ${OBSERVATION_RETENTION_POLICY.max_rotated_files}`,
+    };
   });
 
-  return result ?? { rotated: false, reason: "another process holds the rotation lock", archive: null, pruned: [] };
+  return result ?? { rotated: false, reason: "another process holds the rotation lock", archive: null, pruned: [], lifecycle_candidates: [], candidate_reason: "rotation lock held elsewhere" };
 }
 
 export function appendObservation(record: Omit<ObservationRecord, "record_type">): ObservationRecord {

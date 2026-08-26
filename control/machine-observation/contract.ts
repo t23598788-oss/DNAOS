@@ -10,7 +10,8 @@
  * Input: re-exports only.
  * Output: process observation, software topology, correlation, meaning, circuit view.
  * Dependency ที่อนุญาต: ./process-observer.ts, ./software-topology.ts,
- * ./correlation.ts, ./meaning.ts, ./circuit-view.ts, ./types.ts.
+ * ./correlation.ts, ./meaning.ts, ./circuit-view.ts, ./types.ts,
+ * ../service-reload/contract.ts (READ-ONLY re-export only).
  * สิ่งที่ห้ามแตะ: ห้าม export ฟังก์ชันที่สั่งงาน/หยุด process หรือ agent.
  */
 
@@ -21,5 +22,16 @@ export { deriveMeaning } from "./meaning";
 export { observationCircuitGraph } from "./circuit-view";
 export { runtimeConsumerEvidenceFor, runtimeConsumerSnapshot, candidatePidsForRepo, buildIngestionRecord, type RuntimeConsumerEvidence, type RuntimeConsumerState, type IngestionRecord } from "./lifecycle-bridge";
 export { startObservationRuntime, type ObservationRuntimeOptions, type ObservationRuntimeHandle } from "./observer-daemon";
+export { pruneClassifiedFiles, type PruneRequest, type PruneResult } from "./observation-store";
 export { appendObservation, readObservations, observationsForResource, observationStoreStatus, rotateIfNeeded, rotatedFiles, OBSERVATION_STORE_FILE, OBSERVATION_RETENTION_POLICY, type ObservationRecord, type ObservationRetentionPolicy, type RotationResult } from "./observation-store";
+/**
+ * Re-exported so this layer can SAY that a service is running code that has
+ * since been replaced on disk — the condition that let a daemon keep deleting
+ * observation archives for 15 minutes after the deletion was removed from the
+ * source. It reports; it does not act. The executing counterpart
+ * (`requestReload`) is deliberately NOT re-exported here, so no import of this
+ * contract can reach an execution path.
+ */
+export { reloadRequiredFor } from "../service-reload/contract";
+
 export type { ProcessObservation, ObservedRelationship, RelationshipKind, CorrelationCandidate, CorrelationVerdict, MeaningRecord, SoftwareTopology } from "./types";

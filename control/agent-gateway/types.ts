@@ -106,6 +106,19 @@ export interface Context {
 export type TaskOutputLane = "SYSTEM_STATE" | "WORK_ITEM";
 
 export interface Task {
+  /**
+   * The repo-relative paths this task will change, carried from admission all
+   * the way to completion (Owner, 2026-08-26). Before this, only
+   * `work_order.target_path` knew what a task touched and it never reached the
+   * completion decision, so paths that complete through `persistStatus`
+   * bypassed the UI render gate for lack of a change set — not because they
+   * were exempt.
+   *
+   * `undefined` and `[]` mean different things and must stay different: a task
+   * with NO work order changed no file through DNA OS at all, while an empty
+   * declared list is a claim that can be checked.
+   */
+  affected_paths?: readonly string[];
   task_id: string;
   memory: MemoryReference;
   intent_text: string;
