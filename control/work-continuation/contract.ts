@@ -11,7 +11,8 @@
 
 export { dependencyKey, capabilityKeyOf, KEY_NAMESPACES } from "./key";
 export { buildIndex, affectedWorkIds, evaluate, digestOf, MAX_RESUME_ATTEMPTS } from "./evaluate";
-export { deriveEvents, eventsFromCapability } from "./adapter";
+export { deriveEvents, deriveEventsWithFailures, eventsFromCapability } from "./adapter";
+export type { ProducerFailure } from "./adapter";
 export { decideResumes, satisfiedKeysFrom } from "./resume";
 export type { ResumeDecision } from "./resume";
 export { appendWaiting, loadWaiting, currentWaiting, WAITING_PATH } from "./store";

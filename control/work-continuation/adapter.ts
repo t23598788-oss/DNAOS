@@ -48,7 +48,7 @@ export function eventsFromCapability(record: CapabilityRecord, observedAt: strin
   // current is a different question, and the census already reports it
   // separately — conflating them here would make a real id look absent.
   if (record.registration_state === "REGISTERED" || record.registration_state === "REGISTERED_STALE") {
-    const id = record.capability_id ?? record.registry_matches[0] ?? "registered";
+    const id = record.capability_id ?? record.registry_matches?.[0] ?? "registered";
     out.push({ key: dependencyKey("registry", path), value: record.registration_state, source: "registry",
       evidence_ref: `registry:${id}`, occurred_at: observedAt });
     if (record.resource_id) {
@@ -73,7 +73,7 @@ export function eventsFromCapability(record: CapabilityRecord, observedAt: strin
   // exactly the false wake this whole design exists to prevent.
   if (VERIFIED_STATES.has(record.current_status)) {
     out.push({ key: dependencyKey("verification", path), value: "VERIFIED", source: "verification",
-      evidence_ref: record.evidence_references[record.evidence_references.length - 1] ?? `census:${record.source_digest}`,
+      evidence_ref: record.evidence_references?.[record.evidence_references.length - 1] ?? `census:${record.source_digest}`,
       occurred_at: observedAt });
   }
 
@@ -89,13 +89,48 @@ export function eventsFromCapability(record: CapabilityRecord, observedAt: strin
   return out;
 }
 
+/** One record that could not be projected, kept so a producer crash can never look like an empty batch. */
+export interface ProducerFailure {
+  capability_path: string;
+  error: string;
+}
+
 /**
- * Every dependency event the current system state justifies. This is a
- * PROJECTION of facts that already exist — calling it twice with the same census
- * yields the same events, which is what makes duplicate delivery harmless
- * (the evaluator's replay defence does the rest).
+ * Every dependency event the current system state justifies, PLUS every record
+ * that could not be projected.
+ *
+ * PER-RECORD ISOLATION, and the reason it matters (found by peer review,
+ * 2026-08-26): before this, one malformed record threw and killed the ENTIRE
+ * batch — all 280 events, not just its own. Callers reasonably wrap a producer
+ * in try/catch, so the observable result was "0 events derived", which is
+ * indistinguishable from "nothing became available". Nothing wakes, nothing
+ * logs, and it looks exactly like patience. That is the same silent-stall shape
+ * the canonical key exists to prevent, arriving through a different door.
+ *
+ * So a bad record now costs its own events and nothing else, and the failure is
+ * RETURNED rather than swallowed — a caller that reports `failures` can tell a
+ * crashed producer apart from a quiet system.
+ */
+export function deriveEventsWithFailures(census: LiveCensus): { events: DependencyEvent[]; failures: ProducerFailure[] } {
+  const at = census.generated_at;
+  const events: DependencyEvent[] = [];
+  const failures: ProducerFailure[] = [];
+  for (const record of census.capabilities) {
+    try {
+      events.push(...eventsFromCapability(record, at));
+    } catch (error) {
+      failures.push({ capability_path: record?.path ?? "<unknown record>", error: error instanceof Error ? error.message : String(error) });
+    }
+  }
+  return { events, failures };
+}
+
+/**
+ * The events only. Kept for callers that already use it; it is a pure projection
+ * (same census, same events), which is what makes duplicate delivery harmless —
+ * the evaluator's replay defence does the rest. Prefer
+ * `deriveEventsWithFailures` when you can report the failures.
  */
 export function deriveEvents(census: LiveCensus): DependencyEvent[] {
-  const at = census.generated_at;
-  return census.capabilities.flatMap((record) => eventsFromCapability(record, at));
+  return deriveEventsWithFailures(census).events;
 }

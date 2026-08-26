@@ -14,7 +14,7 @@
  * Run: npx tsx control/work-continuation/tests/event-path.test.ts
  */
 
-import { dependencyKey, capabilityKeyOf, deriveEvents, eventsFromCapability,
+import { dependencyKey, capabilityKeyOf, deriveEvents, deriveEventsWithFailures, eventsFromCapability,
          decideResumes, appendWaiting, currentWaiting } from "../contract";
 import type { CapabilityRecord } from "../../../software/live-census/contract";
 import type { WaitingWork } from "../contract";
@@ -159,6 +159,44 @@ function main(): void {
   const a = deriveEvents(census), b = deriveEvents(census);
   check("K1. deriveEvents is a pure projection — same census, same events",
     JSON.stringify(a) === JSON.stringify(b) && a.length > 0);
+
+  // ---- REGRESSION: one malformed record must not kill the batch ----
+  // Found by peer review 2026-08-26. Previously `record.evidence_references[...]`
+  // threw on a record missing the field, and because callers wrap producers in
+  // try/catch the observable result was "0 events" — indistinguishable from
+  // "nothing became available". A silent stall wearing the costume of patience.
+  const healthy = cap({ current_status: "VERIFIED", path: "control/ok", entrypoint: "control/ok/contract.ts" });
+  const malformed = { ...cap({ current_status: "VERIFIED", path: "control/bad" }), evidence_references: undefined } as unknown as CapabilityRecord;
+  const mixed = { generated_at: "T", repository: "r", head_commit: "h",
+    capabilities: [healthy, malformed, cap({ path: "control/three", entrypoint: "control/three/contract.ts" })],
+    drift: [], totals: {} } as never;
+  let threw = false;
+  let got: ReturnType<typeof deriveEventsWithFailures> = { events: [], failures: [] };
+  try { got = deriveEventsWithFailures(mixed); } catch { threw = true; }
+  check("L1. a malformed record no longer throws the whole batch", !threw);
+  check("L2. the healthy records still produce their events",
+    got.events.some((e) => e.key === "verification:control/ok") &&
+    got.events.some((e) => e.key === "capability:control/three"), got.events.map((e) => e.key));
+  check("L3. a record merely MISSING evidence_references now succeeds via the fallback, not fails",
+    got.failures.length === 0 &&
+    got.events.find((e) => e.key === "verification:control/bad")?.evidence_ref === "census:d1",
+    { failures: got.failures, ref: got.events.find((e) => e.key === "verification:control/bad")?.evidence_ref });
+
+  // Isolation still has to work for a malformation the fallback CANNOT absorb.
+  // A throwing getter stands in for "some future record shape we did not foresee".
+  const hostile = { ...cap({ path: "control/hostile", current_status: "VERIFIED" }) } as Record<string, unknown>;
+  Object.defineProperty(hostile, "entrypoint", { get() { throw new Error("hostile record"); } });
+  const isolated = deriveEventsWithFailures({ generated_at: "T", repository: "r", head_commit: "h",
+    capabilities: [healthy, hostile as unknown as CapabilityRecord], drift: [], totals: {} } as never);
+  check("L3b. a record that genuinely throws costs ONLY its own events",
+    isolated.events.some((e) => e.key === "verification:control/ok"), isolated.events.map((e) => e.key));
+  check("L3c. and it is REPORTED by path, so a crashed producer cannot look like an empty batch",
+    isolated.failures.length === 1 && isolated.failures[0].capability_path === "control/hostile" &&
+    isolated.failures[0].error.includes("hostile record"), isolated.failures);
+  check("L4. deriveEvents stays compatible and returns only the good events",
+    deriveEvents(mixed).length === got.events.length);
+  check("L5. a healthy census reports zero failures",
+    deriveEventsWithFailures(census).failures.length === 0);
 
   // ---- persistence round-trip on a real file ----
   const dir = mkdtempSync(join(tmpdir(), "wc-ev-"));
