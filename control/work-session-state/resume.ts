@@ -85,13 +85,28 @@ function decideNext(
   stale: readonly StepRevalidation[],
 ): { next_action: string; resume_status: ResumeContext["resume_status"]; pending: WorkStep[] } {
   const validIds = new Set(stillValid.map((s) => s.step_id));
-  const staleIds = new Set(stale.map((s) => s.step_id));
+  // STALE and UNVERIFIABLE are both "a replacement worker may not assume this
+  // is done", but they call for different things and are routed differently:
+  //
+  //   STALE        — the proof was re-derived and it no longer holds. The step
+  //                  is genuinely pending again and goes back on the work list.
+  //   UNVERIFIABLE — the proof cannot be re-derived from HERE at all (its
+  //                  artefacts live in another repository, or the step recorded
+  //                  no verification). "Do it again" is not an action this
+  //                  runtime can take, so scheduling it as next_action would
+  //                  send a worker to redo work it cannot even check.
+  //
+  // UNVERIFIABLE is therefore kept OUT of the runnable set and raised as an
+  // OPEN blocker instead — surfaced to a human, never silently counted as
+  // done and never silently counted as pending work either.
+  const staleIds = new Set(stale.filter((s) => s.verdict === "STALE").map((s) => s.step_id));
   const pending = checkpoint.steps.filter((s) => s.state === "PENDING" || staleIds.has(s.step_id));
 
   const openDecision = checkpoint.decisions_required.find((d) => d.state === "OPEN");
   if (openDecision) {
     return { next_action: `DECISION_REQUIRED ${openDecision.decision_id}: ${openDecision.question} — options: ${openDecision.options.join(" | ")}`, resume_status: "DECISION_REQUIRED", pending };
   }
+  const unverifiable = stale.filter((s) => s.verdict === "UNVERIFIABLE");
   const openBlocker = checkpoint.blockers.find((b) => b.state === "OPEN");
   if (openBlocker) {
     return { next_action: `BLOCKED ${openBlocker.blocker_id} at ${openBlocker.layer}: ${openBlocker.detail} — next action: ${openBlocker.next_action}`, resume_status: "BLOCKED", pending };
@@ -149,7 +164,22 @@ export function buildResumeContext(
     affected_paths: checkpoint.affected_paths,
     source_refs: checkpoint.affected_paths,
     evidence_refs: checkpoint.evidence_refs,
-    open_blockers: checkpoint.blockers.filter((b) => b.state === "OPEN"),
+    open_blockers: [
+      ...checkpoint.blockers.filter((b) => b.state === "OPEN"),
+      // A step whose completion cannot be re-derived here is a real open
+      // question, not a quiet assumption. It is raised as a blocker so a human
+      // sees it, rather than being counted as done or handed to a worker.
+      ...(notProven.some((s) => s.verdict === "UNVERIFIABLE")
+        ? [{
+            blocker_id: "UNVERIFIABLE_COMPLETION",
+            layer: checkpoint.work_id,
+            detail: `${notProven.filter((s) => s.verdict === "UNVERIFIABLE").length} completed step(s) cannot be re-derived from this repository: ${notProven.filter((s) => s.verdict === "UNVERIFIABLE").map((s) => `${s.step_id} (${s.detail})`).join(" · ")}`,
+            evidence_ref: null,
+            next_action: "ตรวจในเรโปที่เป็นเจ้าของหลักฐานนั้นเอง แล้วบันทึกผลกลับเป็น evidence_ref — หรือย้าย verification มาเป็นสิ่งที่ตรวจได้จากที่นี่",
+            state: "OPEN" as const,
+          }]
+        : []),
+    ],
     open_decisions: checkpoint.decisions_required.filter((d) => d.state === "OPEN"),
     constraints: options.constraints ?? [],
     do_not_repeat: checkpoint.do_not_repeat,
