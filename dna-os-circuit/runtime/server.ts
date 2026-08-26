@@ -45,6 +45,7 @@
 import type { CircuitState, ChangeEvent } from "./circuit-state";
 import { createHttpServer, extname, fileExists, joinPath, readFileUtf8, readRequestBody, repoRootDirname, type HostHttpRequest, type HostHttpResponse } from "./host-runtime";
 import { recordFinding, listPersistedFindings } from "./finding-receiver";
+import { readPathCircuitGraph, verifyReadPaths } from "../../control/system-read-paths/contract";
 import { evaluateAllDetected, listEvaluationEvidence } from "./finding-evaluator";
 import { decideAllEvaluated, listDecisionEvidence } from "./finding-decider";
 import { buildSemanticComponents, buildSemanticConnections, lodTierOf } from "../definition/semantic-model";
@@ -459,6 +460,15 @@ export function startCircuitServer(state: CircuitState, port: number): ReturnTyp
       }
       if (url === "/findings/decision-evidence" && (req.method === "GET" || req.method === undefined)) {
         handleListDecisionEvidence(res);
+        return;
+      }
+      // The declared read paths, as TWO directed edges each — REQUEST and
+      // RESPONSE are separate relationships with separate schemas, never one
+      // bidirectional arrow (Owner, 2026-08-26). Generated from
+      // control/system-read-paths/'s declarations only: no node or edge here is
+      // guessed, and each carries its provider contract as evidence.
+      if (url === "/read-paths.json" && (req.method === "GET" || req.method === undefined)) {
+        sendJson(res, 200, { ok: true, ...readPathCircuitGraph(), verification: verifyReadPaths() });
         return;
       }
       if (url === "/circuit.json") {
