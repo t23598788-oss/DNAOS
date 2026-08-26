@@ -137,6 +137,24 @@ export interface WorkSessionCheckpoint {
   last_durable_event: readonly StreamPosition[];
   /** Whether everything this work produced has reached its durable home. */
   sync_state: SyncState;
+  /**
+   * A REFERENCE to the architecture answer that `control/work-resolution/`
+   * owns — never a copy of it.
+   *
+   * The resolution's own fields (allowed_write_scope, exact_source_paths,
+   * existing_capability_id, contracts, verification commands) are NOT
+   * duplicated here. Two stores holding the same fact is two authorities for
+   * it, and the moment they disagree there is no non-arbitrary way to decide.
+   * A reader that wants any of those asks `./authority.ts`, which goes to the
+   * canonical record every time.
+   */
+  resolution_ref: ResolutionRef | null;
+  /**
+   * Completed steps whose proof lives in ANOTHER repository, so it cannot be
+   * re-derived from here. Recorded as a standing contract rather than being
+   * quietly counted as done — see `./types.ts#CrossRepoEvidence`.
+   */
+  cross_repo_evidence: readonly CrossRepoEvidence[];
   status: "ACTIVE" | "BLOCKED" | "COMPLETE" | "ABANDONED";
   started_at: string;
   updated_at: string;
@@ -174,6 +192,44 @@ export interface StreamPosition {
  */
 export type SyncState = "SYNCED" | "PENDING_LOCAL" | "WAITING_FOR_NETWORK";
 
+/**
+ * Points at a `control/work-resolution/` `PersistedResolution`. The digest is
+ * carried so a resume can tell whether the stored answer still describes the
+ * files it was computed from, WITHOUT re-resolving anything.
+ */
+export interface ResolutionRef {
+  resolution_id: string;
+  /** The digest AT THE TIME this checkpoint was written. */
+  resolution_digest: string;
+  /** The revision the resolution was computed at. */
+  source_revision: string;
+  referenced_at: string;
+}
+
+/**
+ * A completed step whose evidence lives outside this repository.
+ *
+ * This exists because "I cannot check it from here" was being reported the
+ * same way as "the proof failed", and neither is "it is done". Recording the
+ * external repository, what evidence would settle it, and who owns that
+ * verification turns an unprovable claim into a standing, addressable contract
+ * — and it is deliberately NOT a licence to mark the step completed.
+ */
+export interface CrossRepoEvidence {
+  step_id: string;
+  /** e.g. `DNA-OS-BLUEPRINT`. A name, not a filesystem path — this repo does not reach into it. */
+  external_repository: string;
+  /** Exactly what would prove it, e.g. a command to run there. */
+  required_evidence: string;
+  /** Who or what is responsible for producing that evidence. */
+  verification_owner: string;
+  /** A pointer if one already exists (a commit, a generated report), else null. */
+  evidence_ref: string | null;
+  next_action: string;
+  /** Always `UNVERIFIABLE` while the evidence cannot be fetched from here. */
+  state: "UNVERIFIABLE" | "VERIFIED_EXTERNALLY";
+}
+
 /** Result of re-checking one COMPLETED step against the repository as it is NOW. */
 export interface StepRevalidation {
   step_id: string;
@@ -208,6 +264,19 @@ export interface ResumeContext {
   /** The revision the repository is at right now. */
   current_revision: string;
   revision_drifted: boolean;
+  /**
+   * The architecture answer, loaded from its canonical owner rather than
+   * rediscovered. `VALID` means a replacement worker must NOT re-resolve
+   * anything; `STALE` means DNA OS must re-resolve deterministically — never
+   * the Agent.
+   */
+  resolution:
+    | { status: "VALID"; detail: string; ref: ResolutionRef }
+    | { status: "STALE"; detail: string; ref: ResolutionRef }
+    | { status: "MISSING"; detail: string; ref: ResolutionRef }
+    | { status: "NONE"; detail: string };
+  /** Completed steps whose evidence lives in another repository — reported, never counted as done. */
+  cross_repo_evidence: readonly CrossRepoEvidence[];
   /** The one thing to do next, or the blocker/decision that stops everything. */
   next_action: string;
   resume_status: "RESUMABLE" | "BLOCKED" | "DECISION_REQUIRED" | "COMPLETE" | "NO_SUCH_WORK";

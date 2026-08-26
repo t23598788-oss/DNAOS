@@ -50,6 +50,15 @@ export {
   BACKOFF_MAX_ATTEMPTS,
 } from "./connection";
 export type { ConnectionState, ConnectionStatus, ReconcileResult, QueuedOperation, DrainResult } from "./connection";
+export {
+  STATE_AUTHORITY,
+  authorityOf,
+  authorityReport,
+  resolveResolution,
+  resolveAllowedWriteScope,
+  resolutionRefOf,
+} from "./authority";
+export type { StateAuthority, FactKind, CanonicalResolution, ScopeAnswer } from "./authority";
 export { buildRehydrationPlan, allRehydrationPlans, recoverRuntime, renderRehydrationBriefing, RECOVERY_MAX_ATTEMPTS } from "./rehydrate";
 export type { RehydrationPlan, RuntimeRecovery } from "./rehydrate";
 export type {
@@ -65,4 +74,6 @@ export type {
   UiContext,
   StreamPosition,
   SyncState,
+  ResolutionRef,
+  CrossRepoEvidence,
 } from "./types";

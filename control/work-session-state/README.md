@@ -62,6 +62,8 @@ worker A ──appendCheckpoint──▶ checkpoints.jsonl ◀──buildResumeC
 | `tests/crash-consistency-proof.ts` | test | เคส A–F 28/28 — ฆ่า process จริง, ไฟล์จริง, อ่านกลับจากดิสก์จริง |
 | `tests/live-service-recovery-proof.ts` | test | ยิง joint-monitor จริง → SIGKILL → ยิงใหม่ → SSE resume ด้วย `Last-Event-ID` จริง |
 | `tests/browser-rehydration-proof.ts` | test | เบราว์เซอร์ profile ใหม่เอี่ยม render งานที่มันไม่มีทางรู้มาก่อน |
+| `authority.ts` | source | **ตารางเจ้าของข้อเท็จจริง** + ตัวอ่านที่เดินไปหาเจ้าของจริงทุกครั้ง |
+| `tests/production-checkpoint-proof.ts` | test | submitTask จริง → persistStatus → appendCheckpoint · adversarial ownership · hard reset |
 
 ## วิธีรัน
 
@@ -109,11 +111,44 @@ npx tsx -e 'const {allCurrentCheckpoints,buildResumeContext,renderResumeBriefing
   ไฟล์นี้ไม่ probe health ซ้ำ เพราะความเห็นที่สองเรื่อง "service ขึ้นหรือยัง"
   คือสิ่งที่ header ของ capability นั้นห้ามไว้
 
+## เจ้าของข้อเท็จจริง (เพิ่ม 2026-08-26)
+
+`./authority.ts#STATE_AUTHORITY` ประกาศว่าข้อเท็จจริงแต่ละชนิดเป็นของใคร
+กฎเดียว: **ห้ามคัดลอกข้อเท็จจริงที่มีเจ้าของแล้วไปเก็บอีกที่**
+
+| ข้อเท็จจริง | เจ้าของ |
+|---|---|
+| สถาปัตยกรรมที่ resolve แล้ว (scope ที่เขียนได้/ห้ามเขียน, source paths, contract, capability ที่มีอยู่) | `control/work-resolution` |
+| ความคืบหน้าของงาน (phase, step, blocker, next action, UI context) | `control/work-session-state` |
+| เจตนาแก้ไขก่อน mutation + วงจรชีวิตของการแก้ | `control/work-session-state` (journal) |
+| สถานะ task | `control/agent-gateway` |
+| สถานะคิวงาน + write lock | `control/work-coordination` |
+
+`WorkSessionCheckpoint` จึงถือแค่ `resolution_ref` (**ตัวชี้**) ไม่ใช่สำเนา —
+ถามเรื่อง write scope ต้องผ่าน `resolveAllowedWriteScope()` ซึ่งเดินไปอ่าน
+work-resolution ทุกครั้ง **ไม่มีการตัดสินด้วย "อันไหนใหม่กว่า" และไม่มีขั้นตอน
+ให้ AI ไกล่เกลี่ย** — พิสูจน์แบบ adversarial แล้วใน
+`tests/production-checkpoint-proof.ts` §7
+
+## production caller ของ appendCheckpoint
+
+`control/agent-gateway/gateway.ts#persistStatus` — funnel เดียวที่เห็นทุก
+status transition ในไฟล์นั้น (`submitTask` / `ownerDecision` /
+`recoverInterruptedTasks` และเส้น `/gateway/*` ของ dna-os-circuit เอง)
+เขียน checkpoint **ก่อน return** คือก่อนที่ transition จะถูกยอมรับ
+บวกอีกจุดเดียวที่จุดกำเนิดของ task (`submitTask` หลัง `saveTask` ครั้งแรก)
+ซึ่ง `persistStatus` มองไม่เห็นโดยโครงสร้าง เพราะตอนนั้นยังไม่มี transition
+
+`current_phase` = ค่า `Status` เดิมตรง ๆ **ไม่มีการสร้างคำศัพท์ lifecycle ชุดที่สอง**
+
 ## NOT_YET_BUILT
 
-- ยังไม่มีใครเรียก `appendCheckpoint` จาก production path — วันนี้ checkpoint
-  ถูกเขียนโดย worker/proof และโดยมือ ยังไม่ได้ผูกเข้ากับ
-  `control/agent-gateway/` ให้เขียนอัตโนมัติทุก execution
+- ~~ยังไม่มีใครเรียก `appendCheckpoint` จาก production path~~ — **ปิดแล้ว
+  2026-08-26**: `control/agent-gateway/gateway.ts#persistStatus` เป็นผู้เรียก
+  พิสูจน์ด้วย `tests/production-checkpoint-proof.ts` 20/20
+- `control/work-coordination/coordination.ts#transition` ยังไม่เขียน checkpoint —
+  work item ที่ไม่ผ่าน agent-gateway จึงยังไม่มี durable progression ของตัวเอง
+  ระบุไว้ตรง ๆ ไม่ได้เติมเงียบ ๆ เพราะ Owner สั่งให้ผูกที่ boundary เดียว
 - ยังไม่มี network prober จริง — `drainQueue` รับ `isOnline(provider)` เข้ามา
   ผู้เรียกต้องหามาเอง ประกาศเป็น `UNRESOLVED` ไม่ได้ตั้งค่าเงียบ ๆ
 - `nextBackoffMs` ไม่มี jitter (deterministic เพื่อให้ proof ยืนยันลำดับได้)

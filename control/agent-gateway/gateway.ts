@@ -16,7 +16,7 @@
  * return result. Two clients calling getTask()/getResult() on the same
  * task_id read the SAME persisted state — no chat transcript involved.
  */
-import { loadTask, loadTaskHistory, loadEvidenceForTask, loadAllTasks, saveEvidence, saveTask } from "./memory-store";
+import { loadTask, loadTaskHistory, loadEvidenceForTask, loadAllTasks, saveEvidence, saveTask, tasksFilePath } from "./memory-store";
 import { newId, nowIso } from "./host-runtime";
 import type { AgentAdapter, Evidence, ExecutionResult, MemoryReference, Status, Task, TaskOutputLane, WorkOrder } from "./types";
 import { validateWorkOrder } from "./work-order-validator";
@@ -102,6 +102,92 @@ function affectedPathsOf(task: Task): readonly string[] {
 }
 
 /** The real status funnel, exported ONLY so a proof can drive the exact production path rather than a copy of it. Callers inside this file use `persistStatus` directly. */
+/**
+ * Writes the durable work-session checkpoint for one real status transition.
+ *
+ * `control/work-session-state/` owns work progression; this file owns task
+ * lifecycle status. The checkpoint therefore RESTATES NOTHING it does not own:
+ * `current_phase` is the existing `Status` value verbatim (no second lifecycle
+ * vocabulary is introduced), the architecture answer is referenced by
+ * `resolution_ref` rather than copied, and the task is pointed at by `task_id`
+ * so its status is only ever read back from here.
+ *
+ * Never throws at the caller. A dashboard or a journal that is unavailable must
+ * not fail a real Owner command — the same rule `reportJoint` already follows
+ * two lines below. What it must not do instead is pretend: a failed checkpoint
+ * write leaves the previous checkpoint in place, so the resume engine sees the
+ * work at its last durably-recorded phase, which is the truth.
+ */
+function checkpointTransition(task: Task, nextAction: string | null | undefined): void {
+  try {
+    // Required lazily: `control/work-session-state/authority.ts` reads
+    // `control/work-resolution`, which persists into THIS file's evidence
+    // store. A top-level import would close that ring at module-load time.
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const wss = require("../work-session-state/contract") as typeof import("../work-session-state/contract");
+    const previous = wss.currentCheckpoint(task.task_id);
+    const resolution = wss.resolveResolution(task.task_id);
+    const now = nowIso();
+    const affected = affectedPathsOf(task);
+
+    // The step for THIS transition. Its verification is a real, re-derivable
+    // fact — the task row itself, which `saveTask` has already written — not a
+    // claim that the transition happened.
+    const step = {
+      step_id: `status:${task.status}:${now}`,
+      title: `task ${task.task_id} -> ${task.status}`,
+      state: "COMPLETED" as const,
+      phase: task.status,
+      depends_on: [] as string[],
+      affected_paths: affected,
+      // The REAL path of the task log in use, not the production path written
+      // out as a literal: under AGENT_GATEWAY_DATA_DIR they differ, and a
+      // verification pointing at the wrong file turns a completed step into an
+      // unprovable one.
+      evidence_refs: [`${tasksFilePath()}#${task.task_id}`],
+      verification: { kind: "FILE_CONTAINS" as const, path: tasksFilePath(), literal: task.task_id },
+      completed_at_revision: wss.currentRevision(),
+      completed_at: now,
+    };
+
+    wss.appendCheckpoint({
+      ...(previous ?? {}),
+      work_id: task.task_id,
+      owner_intent_id: previous?.owner_intent_id ?? task.intent_text.slice(0, 120),
+      task_id: task.task_id,
+      session_id: previous?.session_id ?? wss.newSessionId(),
+      execution_id: `exec-${process.pid}`,
+      worker_identity: task.submitted_by_client,
+      repository: "DNA-OS-INFRASTRUCTURE",
+      branch: wss.currentBranch(),
+      affected_resource_ids: previous?.affected_resource_ids ?? [],
+      affected_paths: affected,
+      objective: previous?.objective ?? task.intent_text,
+      current_phase: task.status,
+      steps: [...(previous?.steps ?? []), step],
+      blockers: previous?.blockers ?? [],
+      decisions_required: previous?.decisions_required ?? [],
+      evidence_refs: previous?.evidence_refs ?? [],
+      source_revision: wss.currentRevision(),
+      last_verified_revision: wss.currentRevision(),
+      next_action: nextAction ?? "none",
+      do_not_repeat: previous?.do_not_repeat ?? [],
+      ui_context: previous?.ui_context ?? null,
+      last_durable_event: previous?.last_durable_event ?? [],
+      sync_state: previous?.sync_state ?? "SYNCED",
+      // A REFERENCE to the architecture answer, never a copy of it.
+      resolution_ref: resolution ? wss.resolutionRefOf(resolution) : (previous?.resolution_ref ?? null),
+      cross_repo_evidence: previous?.cross_repo_evidence ?? [],
+      status: task.status === "COMPLETED" ? "COMPLETE" : task.status === "BLOCKED" || task.status === "WAITING_OWNER_DECISION" ? "BLOCKED" : "ACTIVE",
+      started_at: previous?.started_at ?? task.created_at,
+    });
+  } catch {
+    // Never fail a real transition because the work-state journal could not be
+    // written. The previous checkpoint stands, and the resume engine reports
+    // the work at its last durably-recorded phase.
+  }
+}
+
 export function persistStatusForProof(task: Task, status: Status): Task {
   return persistStatus(task, status);
 }
@@ -141,6 +227,10 @@ function persistStatus(task: Task, status: Status): Task {
       if (decision.status === "COMPLETE_DENIED") {
         const blocked: Task = { ...task, status: "BLOCKED", next_action: `UI_RENDER_NOT_VERIFIED:${decision.ui_impact}:${decision.render_verdict ?? "NO_EVIDENCE"}`, updated_at: nowIso() };
         saveTask(blocked);
+        // The denied completion is a real transition and is checkpointed like
+        // any other — a crash here must not leave the work looking as though
+        // it was still on its way to COMPLETED.
+        checkpointTransition(blocked, `UI_RENDER_NOT_VERIFIED:${decision.ui_impact}:${decision.render_verdict ?? "NO_EVIDENCE"}`);
         record(task.task_id, "verification", "control/ui-render-verification/gate.ts", { ui_impact: decision.ui_impact, render_verdict: decision.render_verdict, reason: decision.reason, affected_paths: affected });
         void reportJoint({ from_capability: task.submitted_by_client, to_capability: "agent-gateway", task_id: task.task_id, status: "BLOCKED", summary: `task ${task.task_id} -> BLOCKED (UI render not verified)`, source: "control/agent-gateway/gateway.ts#persistStatus" });
         return blocked;
@@ -150,6 +240,19 @@ function persistStatus(task: Task, status: Status): Task {
 
   const updated: Task = { ...task, status, next_action: nextAction, updated_at: nowIso() };
   saveTask(updated);
+  // MANDATORY DURABLE CHECKPOINT (Owner, 2026-08-26).
+  //
+  // This is the smallest boundary that sees every real status transition in
+  // this file — submitTask, ownerDecision and recoverInterruptedTasks all pass
+  // through here, as does dna-os-circuit's own direct /gateway/* path. Putting
+  // the checkpoint anywhere else would mean either missing transitions or
+  // sprinkling calls through modules that do not own progression.
+  //
+  // It runs BEFORE this function returns, i.e. before the transition is
+  // acknowledged to its caller. A crash between `saveTask` and the return is
+  // therefore detectable: the task store has moved and the checkpoint has not,
+  // which the resume engine reports rather than resolving in anyone's favour.
+  checkpointTransition(updated, nextAction);
   // Pillar 1 (Owner, 2026-08-22 — see /Users/tam/.claude/plans/zesty-spinning-ripple.md):
   // the one true funnel for every status transition in this file (submitTask,
   // ownerDecision, recoverInterruptedTasks all route through here) — mirroring
@@ -330,6 +433,12 @@ export async function submitTask(intentText: string, memory: Omit<MemoryReferenc
   const fullMemory: MemoryReference = { ...memory, task_id: taskId, created_at: nowIso() };
   let task: Task = { task_id: taskId, memory: fullMemory, intent_text: intentText, submitted_by_client: clientId, status: "RECEIVED", created_at: nowIso(), updated_at: nowIso(), work_order: workOrder, idempotency_key: idempotencyKey, output_lane: "WORK_ITEM" };
   saveTask(task);
+  // WORK_CREATED. `persistStatus` structurally cannot see this one: it takes an
+  // existing task and moves it, and here the task is being born — there is no
+  // transition yet. This is the creation boundary, not a second checkpoint site
+  // sprinkled into an unrelated module, and without it a crash between creation
+  // and the first real transition would leave work with no durable record at all.
+  checkpointTransition(task, task.next_action);
 
   task = persistStatus(task, "ROUTING");
   const capability = matchCapability(intentText);

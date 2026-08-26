@@ -23,7 +23,19 @@ import type { Evidence, HandoffRecord, Task } from "./types";
 
 const DATA_DIR_RELATIVE = "control/agent-gateway/data";
 
+/**
+ * Where this capability's durable rows live.
+ *
+ * `AGENT_GATEWAY_DATA_DIR` added 2026-08-26 (Owner — durable work-state
+ * authority phase). A proof that exercises the REAL production funnel
+ * (`submitTask` -> `persistStatus`) necessarily writes real task, evidence and
+ * handoff rows; without this they land in the production store, exactly the
+ * live-registry residue that has already had to be cleaned up twice in this
+ * repo. Production reads nothing from the env and is unchanged.
+ */
 function dataDir(): string {
+  const override = process.env.AGENT_GATEWAY_DATA_DIR;
+  if (override && override.length > 0) return override;
   return joinPath(repoRootDirname(), DATA_DIR_RELATIVE);
 }
 function tasksFile(): string {
@@ -52,6 +64,19 @@ function readJsonl<T>(path: string): T[] {
     .map((l) => JSON.parse(l) as T);
 }
 
+/**
+ * The REAL absolute path of the task log in use right now.
+ *
+ * Exported so a durable checkpoint can record a verification that points at the
+ * file that actually holds the row, rather than at the production path spelled
+ * out as a literal. Those are the same thing in production and different under
+ * `AGENT_GATEWAY_DATA_DIR`, and a verification that resolves to the wrong file
+ * reports a real, completed step as unprovable.
+ */
+export function tasksFilePath(): string {
+  return tasksFile();
+}
+
 export function saveTask(task: Task): void {
   ensureFiles();
   appendFileUtf8(tasksFile(), JSON.stringify(task) + "\n");
@@ -78,6 +103,18 @@ export function saveEvidence(evidence: Evidence): void {
 export function loadEvidenceForTask(taskId: string): Evidence[] {
   ensureFiles();
   return readJsonl<Evidence>(evidenceFile()).filter((e) => e.task_id === taskId);
+}
+
+/**
+ * Every evidence record, unfiltered. `loadEvidenceForTask` answers "what
+ * happened for this task"; this answers "does a record with these properties
+ * exist anywhere" — which is what a lookup by commit_sha needs, since the task
+ * that produced a verification is not known to a later reader.
+ * Same append-only file, same read path, no second store.
+ */
+export function loadAllEvidence(): Evidence[] {
+  ensureFiles();
+  return readJsonl<Evidence>(evidenceFile());
 }
 
 export function loadAllTasks(): Task[] {

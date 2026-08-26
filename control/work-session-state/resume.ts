@@ -19,8 +19,9 @@
 import { createHash } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import type { ResumeContext, StepRevalidation, WorkStep, WorkSessionCheckpoint } from "./types";
+import type { CrossRepoEvidence, ResolutionRef, ResumeContext, StepRevalidation, WorkStep, WorkSessionCheckpoint } from "./types";
 import { currentCheckpoint, currentRevision, journalPath } from "./store";
+import { resolveResolution, type CanonicalResolution } from "./authority";
 
 function sha256OfFile(full: string): string | null {
   try {
@@ -139,10 +140,32 @@ export function buildResumeContext(
       affected_resource_ids: [], affected_paths: [], source_refs: [], evidence_refs: [], open_blockers: [],
       open_decisions: [], constraints: options.constraints ?? [], do_not_repeat: [],
       checkpoint_revision: "", current_revision: nowRevision, revision_drifted: false,
+      resolution: { status: "NONE", detail: "there is no work to resolve" },
+      cross_repo_evidence: [],
       next_action: `NO_SUCH_WORK — no checkpoint carries work_id ${workId} in ${path}`,
       resume_status: "NO_SUCH_WORK",
     };
   }
+
+  // ARCHITECTURE IS LOADED, NOT REDISCOVERED (Owner, 2026-08-26 §3).
+  // A resumed work_id must never be handed to a worker that then has to work
+  // out what already exists. The resolution `control/work-resolution/` already
+  // persisted is loaded here and its digest re-checked against the real files.
+  // Nothing is recomputed while it still holds; when it does not, the answer is
+  // RESOLUTION_STALE with the reason — never a silent re-resolution and never
+  // an instruction to an Agent to go and look.
+  const resolution = resolveResolution(workId);
+  const resolutionState: ResumeContext["resolution"] = resolution === null
+    // `== null` on purpose, covering undefined as well as null: this journal is
+    // append-only, so rows written before `resolution_ref` existed are still in
+    // it and must keep reading correctly. Surviving its own older records is a
+    // requirement of an append-only store, not an edge case.
+    ? (checkpoint.resolution_ref == null
+        ? { status: "NONE", detail: "no resolution has been persisted for this work_id" }
+        : { status: "MISSING", detail: `checkpoint references ${checkpoint.resolution_ref.resolution_id} but control/work-resolution holds no such record`, ref: checkpoint.resolution_ref })
+    : resolution.stale
+      ? { status: "STALE", detail: resolution.staleness_reason, ref: refOf(resolution) }
+      : { status: "VALID", detail: `resolution ${resolution.resolution_id} still matches the real bytes behind its source paths`, ref: refOf(resolution) };
 
   const claimedDone = checkpoint.steps.filter((s) => s.state === "COMPLETED");
   const revalidated = claimedDone.map((s) => ({ step: s, result: revalidateStep(s, repoRoot) }));
@@ -186,8 +209,19 @@ export function buildResumeContext(
     checkpoint_revision: checkpoint.source_revision,
     current_revision: nowRevision,
     revision_drifted: checkpoint.source_revision !== nowRevision,
+    resolution: resolutionState,
+    cross_repo_evidence: checkpoint.cross_repo_evidence ?? [],
     next_action,
     resume_status,
+  };
+}
+
+function refOf(resolution: CanonicalResolution): ResolutionRef {
+  return {
+    resolution_id: resolution.resolution_id,
+    resolution_digest: resolution.resolution_digest,
+    source_revision: resolution.source_revision,
+    referenced_at: new Date().toISOString(),
   };
 }
 
@@ -200,6 +234,8 @@ export function renderResumeBriefing(ctx: ResumeContext): string {
   lines.push(`RESUME_STATUS     ${ctx.resume_status}`);
   lines.push(`CHECKPOINT_REV    ${ctx.checkpoint_revision}`);
   lines.push(`CURRENT_REV       ${ctx.current_revision}${ctx.revision_drifted ? "  (DRIFTED)" : ""}`);
+  lines.push(`RESOLUTION        ${ctx.resolution.status}${"ref" in ctx.resolution ? ` ${ctx.resolution.ref.resolution_id}` : ""} — ${ctx.resolution.detail}`);
+  lines.push(`CROSS_REPO        ${ctx.cross_repo_evidence.length === 0 ? "(none)" : ctx.cross_repo_evidence.map((e) => `${e.step_id}@${e.external_repository}:${e.state}`).join(", ")}`);
   lines.push(`COMPLETED_STEPS   ${ctx.completed_steps.map((s) => s.step_id).join(", ") || "(none)"}`);
   lines.push(`STALE_STEPS       ${ctx.stale_steps.map((s) => `${s.step_id}:${s.verdict}`).join(", ") || "(none)"}`);
   lines.push(`PENDING_STEPS     ${ctx.pending_steps.map((s) => s.step_id).join(", ") || "(none)"}`);
