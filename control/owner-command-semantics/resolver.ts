@@ -224,7 +224,7 @@ function appendHistory(context: StructuredOwnerContext): void {
     command_id: context.command_id,
     identity_id: context.owner_identity.identity_id,
     raw_text: context.raw_text,
-    resolved_target_ids: context.resolved_targets.filter((r) => r.resolved_id !== null).map((r) => r.resolved_id as string),
+    resolved_target_ids: context.resolved_resources.filter((r) => r.resolved_id !== null).map((r) => r.resolved_id as string),
     resolved_capability_ids: context.resolved_capabilities.filter((r) => r.resolved_id !== null).map((r) => r.resolved_id as string),
   };
   fs.mkdirSync(path.dirname(HISTORY_FILE), { recursive: true });
@@ -258,7 +258,7 @@ export function resolveFromInterpretation(
     isOwnerQuoted(mention, ai.raw_text)
       ? resolveResourceMention(mention, deps.registryStore)
       : unresolved(mention, "resource", "the model paraphrased — this phrase is not in the Owner's text"));
-  if (resolvedTargets.length > 0) trace.push({ field: "resolved_targets", provenance: "RESOURCE_GRAPH", detail: "software/registry-database lookup (exact resource_id / canonical_name only)" });
+  if (resolvedTargets.length > 0) trace.push({ field: "resolved_resources", provenance: "RESOURCE_GRAPH", detail: "software/registry-database lookup (exact resource_id / canonical_name only)" });
 
   // Any backward reference the model reports is looked up — not only the
   // literal "PREVIOUS_CONTEXT" sentinel the prompt asks for. Measured
@@ -268,7 +268,7 @@ export function resolveFromInterpretation(
   // dropped a real continuation.
   const backwardMention = ai.continuation_reference ?? ai.previous_context_reference;
   const continuation = backwardMention ? resolveContinuation(ownerIdentity.identity_id, backwardMention) : null;
-  if (continuation) trace.push({ field: "continuation_of", provenance: "HISTORY", detail: "control/owner-command-semantics/data/semantic-history.jsonl" });
+  if (continuation) trace.push({ field: "resolved_history", provenance: "HISTORY", detail: "control/owner-command-semantics/data/semantic-history.jsonl" });
 
   const policy = resolvePolicyCommandId(ai.target_text ?? ai.intent);
   if (policy) trace.push({ field: "policy_command_id", provenance: "REGISTRY", detail: "execution/run/registry.ts command descriptors" });
@@ -282,13 +282,13 @@ export function resolveFromInterpretation(
     raw_text: ai.raw_text,
     intent: ai.intent,
     action: ai.action,
-    ai,
-    resolved_targets: resolvedTargets.filter((r) => r.status === "RESOLVER_MATCHED" || r.status === "VERIFIED_REFERENCE"),
+    semantic_interpretation: ai,
+    resolved_resources: resolvedTargets.filter((r) => r.status === "RESOLVER_MATCHED" || r.status === "VERIFIED_REFERENCE"),
     resolved_capabilities: resolvedCapabilities.filter((r) => r.status === "RESOLVER_MATCHED" || r.status === "VERIFIED_REFERENCE"),
     parameters: ai.parameters,
     constraints: ai.constraints,
-    continuation_of: continuation,
-    current_state: matched.length > 0 ? "RESOLVED" : all.length > 0 ? "UNRESOLVED" : "NO_REFERENCES",
+    resolved_history: continuation,
+    resolved_state: matched.length > 0 ? "RESOLVED" : all.length > 0 ? "UNRESOLVED" : "NO_REFERENCES",
     evidence_refs: matched.flatMap((r) => r.evidence_refs),
     unresolved_refs: all.filter((r) => r.status === "RESOLVER_UNRESOLVED"),
     ambiguities: all.filter((r) => r.status === "RESOLVER_AMBIGUOUS"),

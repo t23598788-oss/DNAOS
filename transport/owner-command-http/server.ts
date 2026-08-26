@@ -268,6 +268,11 @@ export async function handleCommand(req: IncomingMessage, res: ServerResponse): 
       return;
     }
 
+    // The resource graph this process already holds open, handed to the
+    // semantic layer's SYSTEM RESOLUTION half (2026-08-26). Without it that
+    // half had nothing to look resources up in and every resource mention
+    // came back "no resource graph store was provided" — a real disconnection,
+    // not a limitation of the lookup.
     const outcome = await submitOwnerCommand(commandText, ownerIdentity, {
       ...(uiWorkOrder
         ? { steps: [{ capability_id: "os-ui", intent: commandText, payload: uiWorkOrder }] }
@@ -279,7 +284,7 @@ export async function handleCommand(req: IncomingMessage, res: ServerResponse): 
         workspace_id: WORKSPACE_ID,
         cwd_scope: "repo/owner-command",
       },
-    });
+    }, { deps: { registryStore: registrationStore } });
     sendJson(res, 200, { ...outcome, rendered: renderOwnerSurface(outcome.surface) });
   } catch (error) {
     sendJson(res, 500, { error: error instanceof Error ? error.message : String(error) });

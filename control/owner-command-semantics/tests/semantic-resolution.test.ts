@@ -58,19 +58,19 @@ function main(): void {
 
   // B. Continuation with a history to inherit from.
   const b = run("เอาตัวเดิมต่อ", "cmd_test_b");
-  assert(b.continuation_of !== null, "a backward reference is recognised and looked up in real history");
-  assert(b.continuation_of!.provenance === "HISTORY", "continuation is resolved from history, not from the model");
-  assert(b.continuation_of!.evidence_refs.some((e: string) => e.includes("semantic-history.jsonl")), "continuation cites the real history record");
-  console.log(`PASS B: continuation=${b.continuation_of!.status} -> ${b.continuation_of!.resolved_id ?? "none"}`);
+  assert(b.resolved_history !== null, "a backward reference is recognised and looked up in real history");
+  assert(b.resolved_history!.provenance === "HISTORY", "continuation is resolved from history, not from the model");
+  assert(b.resolved_history!.evidence_refs.some((e: string) => e.includes("semantic-history.jsonl")), "continuation cites the real history record");
+  console.log(`PASS B: continuation=${b.resolved_history!.status} -> ${b.resolved_history!.resolved_id ?? "none"}`);
 
   // C. Continuation with no history at all — must not invent one.
   clearTestHistory();
   const c = run("เชื่อมอันเมื่อกี้กับระบบเรา", "cmd_test_c");
-  if (c.continuation_of) {
-    assert(c.continuation_of.resolved_id === null, "with an empty history, a backward reference cannot resolve to anything");
-    assert(c.continuation_of.status === "RESOLVER_UNRESOLVED", `empty history yields UNRESOLVED, got ${c.continuation_of.status}`);
+  if (c.resolved_history) {
+    assert(c.resolved_history.resolved_id === null, "with an empty history, a backward reference cannot resolve to anything");
+    assert(c.resolved_history.status === "RESOLVER_UNRESOLVED", `empty history yields UNRESOLVED, got ${c.resolved_history.status}`);
   }
-  console.log(`PASS C: no history -> ${c.continuation_of ? c.continuation_of.status : "no continuation claimed"}`);
+  console.log(`PASS C: no history -> ${c.resolved_history ? c.resolved_history.status : "no continuation claimed"}`);
 
   // D. Ambiguity is reported, never resolved by preference. Driven through the
   // resolver directly so the case is deterministic: the phrase below matches
@@ -101,9 +101,9 @@ function main(): void {
     requested_result: null, ambiguities: [],
   };
   const f = resolveFromInterpretation("cmd_test_f", OWNER, forged);
-  assert(f.resolved_targets.length === 0 && f.resolved_capabilities.length === 0, "an unprovable interpretation produces no targets");
+  assert(f.resolved_resources.length === 0 && f.resolved_capabilities.length === 0, "an unprovable interpretation produces no targets");
   assert(f.unresolved_refs.length > 0, "the rejected interpretation is recorded as unresolved, not dropped silently");
-  assert(f.ai.target_text === "ตัวจัดการฐานข้อมูลของบริษัท", "the model's own reading is preserved for inspection");
+  assert(f.semantic_interpretation.target_text === "ตัวจัดการฐานข้อมูลของบริษัท", "the model's own reading is preserved for inspection");
   assert(f.policy_command_id !== "unknown", "policy_command_id is never the literal \"unknown\"");
   console.log(`PASS F: AI pointed at something unprovable -> ${f.unresolved_refs.length} unresolved, 0 targets`);
 

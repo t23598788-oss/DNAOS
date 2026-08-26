@@ -102,14 +102,14 @@ export interface StructuredOwnerContext {
   raw_text: string;
   intent: string;
   action: string;
-  /** Kept whole and unedited, exactly as the model returned it. */
-  ai: AiSemanticInterpretation;
-  resolved_targets: readonly ResolvedReference[];
+  /** Kept whole and unedited, exactly as the model returned it. Separate from every `resolved_*` field on purpose: a reader must always be able to tell a reading from a proof. */
+  semantic_interpretation: AiSemanticInterpretation;
+  resolved_resources: readonly ResolvedReference[];
   resolved_capabilities: readonly ResolvedReference[];
   parameters: Readonly<Record<string, string>>;
   constraints: readonly string[];
-  continuation_of: ResolvedReference | null;
-  current_state: string;
+  resolved_history: ResolvedReference | null;
+  resolved_state: string;
   evidence_refs: readonly string[];
   unresolved_refs: readonly ResolvedReference[];
   ambiguities: readonly ResolvedReference[];
