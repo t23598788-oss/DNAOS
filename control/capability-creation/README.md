@@ -127,9 +127,15 @@ translator ไม่ใช่ component เดียว มันคือสอ
 
 ## NOT_YET_BUILT
 
-- **`runContinuationJoin` ยังไม่มีหลักฐานว่าเคยรันใน production จริง** — สายไฟต่อแล้ว
-  แต่ยังไม่มีใครสังเกตเห็นมันทำงานตอน task จริงถึง COMPLETED/FAILED ตามกฎของ
-  โฟลเดอร์นี้เอง สถานะจึงเป็น `IMPLEMENTED_NOT_RUNTIME_PROVEN` **ไม่ยกเว้นให้ตัวเอง**
+- **`runContinuationJoin` ยังเป็น `IMPLEMENTED_NOT_RUNTIME_PROVEN`** — สายไฟต่อครบ
+  และพิสูจน์แล้วว่าทำงานได้ (`tests/continuation-runtime-proof.ts` 5/5: task จริง
+  ผ่าน funnel จริง แล้ว production code เรียก join เอง) **แต่นั่นยังไม่ใช่
+  runtime-proven** เพราะ proof ตั้ง `AGENT_GATEWAY_DATA_DIR` ไปที่ scratch dir
+  หลักฐานที่มันอ่านจึงเป็นแถวที่ตัวมันเองเพิ่งทำให้เกิดและถูกลบทิ้งเมื่อจบ ·
+  `control/agent-gateway/data/evidence.jsonl` ของจริงมีแถวจาก `runContinuationJoin`
+  = **0** · กฎ "tests alone = IMPLEMENTED_NOT_RUNTIME_PROVEN" ใช้กับตัวเองเหมือนที่
+  ใช้ปฏิเสธ email-alert-source · **ผมเคยอ้างว่ามัน runtime-proven แล้ว นั่นผิด
+  แก้แล้ว 2026-08-26** — session ที่เป็นเจ้าของ work-continuation เป็นคนตรวจเจอ
 - GATE 2 ยังไม่ถูกเรียกจาก `capability-promotion.ts` ให้ทุก candidate ต้องผ่าน
 - `blockerKeysFor` รู้จัก blocker เพียง 2 แบบ (`UI_RENDER_NOT_VERIFIED:*`,
   `COMPLETION_PROVENANCE_UNRESOLVED`) blocker อื่นจะไม่ถูกบันทึกเป็นแถวรอ ซึ่ง

@@ -1,13 +1,23 @@
 /**
- * หน้าที่: §7 พิสูจน์ว่า `runContinuationJoin` ถูกเรียกจาก **production จริง**
- * ไม่ใช่จาก proof
+ * หน้าที่: พิสูจน์ว่า **สายไฟจาก funnel จริงถึง `runContinuationJoin` ต่อครบและ
+ * ทำงานได้จริง** — task จริงผ่าน `submitTask` -> `persistStatus` แล้ว production
+ * code เรียก join เอง โดย proof นี้ไม่เรียกมันเลย
  *
- * proof นี้ **ไม่เรียก `runContinuationJoin` เลย** มันทำสิ่งเดียว: ผลัก task
- * จริงผ่าน funnel จริงจนถึงสถานะที่ authoritative แล้วพิสูจน์จาก **หลักฐานที่
- * production เขียนไว้เอง** ว่า join ได้ทำงาน
+ * **สิ่งที่ไฟล์นี้ไม่ได้พิสูจน์ และเคยถูกผมอ้างผิดไปแล้ว (แก้ 2026-08-26):**
+ * มันไม่ได้พิสูจน์ว่า join เคยทำงานใน production **จริง ๆ** — proof นี้ตั้ง
+ * `AGENT_GATEWAY_DATA_DIR` ไปที่ scratch dir (ถูกต้องแล้ว ไม่งั้นแถวเทสต์จะลงไป
+ * ใน evidence store จริง) หลักฐานที่มันอ่านจึงเป็นแถวที่ตัวมันเองเพิ่งทำให้เกิด
+ * ในที่เก็บชั่วคราว และถูกลบทิ้งเมื่อจบ · `control/agent-gateway/data/evidence.jsonl`
+ * ของจริงมีแถวจาก `runContinuationJoin` = **0**
  *
- * นี่คือความต่างระหว่าง IMPLEMENTED_NOT_RUNTIME_PROVEN กับ runtime-proven:
- * ไม่ใช่ว่าโค้ดมีอยู่ ไม่ใช่ว่าเทสต์ผ่าน แต่คือ **มีร่องรอยที่ production ทิ้งไว้**
+ * ตามกฎของ `control/capability-creation` เอง — "tests alone =
+ * IMPLEMENTED_NOT_RUNTIME_PROVEN" — การเรียกที่ proof เป็นคนจุดชนวนก็ยังเป็น
+ * proof อยู่ดี กฎเดียวกับที่ใช้ปฏิเสธข้ออ้าง OPERATIONAL ของ email-alert-source
+ * (Gmail call จริงที่อยู่ใน test ของตัวเอง) ต้องใช้กับตัวเองด้วย
+ *
+ * สถานะที่ถูกต้องของ `runContinuationJoin` จึงยังเป็น
+ * **IMPLEMENTED_NOT_RUNTIME_PROVEN** — สายไฟจริง ทำงานได้จริง แต่ยังไม่มี
+ * transition ที่ Owner หรือระบบเป็นคนจุด แล้วทิ้งร่องรอยไว้ใน store จริง
  *
  * Input: none — data dir และ journal ของตัวเองใน scratchpad
  * Output: exit 0 เมื่อครบ, exit 1 เมื่อไม่ครบ
@@ -81,11 +91,11 @@ try {
   const evidencePath = join(gatewayData, "evidence.jsonl");
   const rows = readFileSync(evidencePath, "utf8").split("\n").filter(Boolean).map((l) => JSON.parse(l) as { source?: string; kind?: string; payload?: Record<string, unknown> });
   const joinRows = rows.filter((r) => r.source === "control/capability-creation/production.ts#runContinuationJoin");
-  check("production really invoked the join and recorded it — not a call from this file",
+  check("the production code path — not this file — invoked the join and recorded it",
     joinRows.length > 0,
-    `${joinRows.length} evidence row(s) with source control/capability-creation/production.ts#runContinuationJoin`);
+    `${joinRows.length} evidence row(s) in THIS PROOF'S ISOLATED store (${evidencePath}); the live store has 0 — see this file's header`);
   const resumed = joinRows.find((r) => r.payload?.resumed_work_id === workId);
-  check("the join, running in production, woke the work that was really waiting",
+  check("the join, running inside the real funnel, woke the work that was really waiting",
     resumed !== undefined,
     resumed ? `resumed_work_id=${String(resumed.payload?.resumed_work_id)} verdict=${String(resumed.payload?.verdict)} triggered_by=${String(resumed.payload?.triggered_by)}` : "the waiting row was not woken");
   check("the decision carried the persisted next_action forward rather than re-deriving it",

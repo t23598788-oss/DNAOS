@@ -53,6 +53,10 @@ export interface CriticalSharedPath {
 /**
  * รายการที่ประกาศไว้ ทุกแถวมี evidence
  *
+ * เพิ่ม `control/work-continuation` เมื่อ 2026-08-26 หลังจาก session ที่เป็นเจ้าของ
+ * มันชี้ว่ามันขาดไป: เหตุผลที่เขียนไว้ให้ `work-session-state` ใช้กับมันได้ตรงตัว
+ * ทุกคำ และการที่สามชื่อขึ้นต้นด้วย `work-` เหมือนกันคือสาเหตุที่มันหลุดไป
+ *
  * ที่ **ไม่ได้** อยู่ในนี้และเหตุผล:
  *   `control/agent-gateway` (32 ผู้ใช้)      — เขียนไฟล์ใน repo ทั้งหมด revert ได้
  *   `control/event-pipeline` (18 ผู้ใช้)     — pure classification ไม่มี durable write
@@ -115,6 +119,14 @@ export const CRITICAL_SHARED_PATHS: readonly CriticalSharedPath[] = [
     consumers: 12,
     recovery_cost: "two writers appending for one work_id make 'which row is current' ambiguous, and the fix may not be to edit history",
     authority_owner: "control/work-session-state",
+  },
+  {
+    path: "control/work-continuation",
+    reason: "APPEND_ONLY_AUTHORITY",
+    evidence: "control/work-continuation/store.ts#appendWaiting — appendFileSync, last-row-wins per work_id, and its own header states it follows control/work-session-state's convention deliberately",
+    consumers: 3,
+    recovery_cost: "identical to work-session-state: two writers appending for one work_id make 'which row is current' ambiguous, and the journal may not be rewritten to fix it",
+    authority_owner: "control/work-continuation",
   },
   {
     path: "control/work-coordination",
