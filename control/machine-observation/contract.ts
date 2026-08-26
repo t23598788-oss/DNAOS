@@ -21,5 +21,5 @@ export { deriveMeaning } from "./meaning";
 export { observationCircuitGraph } from "./circuit-view";
 export { runtimeConsumerEvidenceFor, runtimeConsumerSnapshot, candidatePidsForRepo, buildIngestionRecord, type RuntimeConsumerEvidence, type RuntimeConsumerState, type IngestionRecord } from "./lifecycle-bridge";
 export { startObservationRuntime, type ObservationRuntimeOptions, type ObservationRuntimeHandle } from "./observer-daemon";
-export { appendObservation, readObservations, observationsForResource, observationStoreStatus, OBSERVATION_STORE_FILE, type ObservationRecord } from "./observation-store";
+export { appendObservation, readObservations, observationsForResource, observationStoreStatus, rotateIfNeeded, rotatedFiles, OBSERVATION_STORE_FILE, OBSERVATION_RETENTION_POLICY, type ObservationRecord, type ObservationRetentionPolicy, type RotationResult } from "./observation-store";
 export type { ProcessObservation, ObservedRelationship, RelationshipKind, CorrelationCandidate, CorrelationVerdict, MeaningRecord, SoftwareTopology } from "./types";
