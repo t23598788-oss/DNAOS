@@ -83,3 +83,6 @@ __pycache__/
 supabase/.temp/
 # ที่พักไฟล์ชั่วคราว
 tmp/
+
+# .app bundle ที่ build.sh สร้างจาก launcher.template.sh + Info.plist
+local-runtime/dna-dev-app-host/build/DNA DEV.app/
