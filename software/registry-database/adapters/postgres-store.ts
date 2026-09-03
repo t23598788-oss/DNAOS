@@ -44,6 +44,7 @@ import type { CapabilityLookupResult, CapabilityRow, EvidenceRow, IngressMetadat
 
 interface CapabilityLookupRow {
   capability_id: string;
+  canonical_name: string;
   status: CapabilityRow["status"];
   input_contract: readonly string[];
   output_contract: readonly string[];
@@ -60,6 +61,7 @@ interface CapabilityLookupRow {
 function toLookupResult(row: CapabilityLookupRow): CapabilityLookupResult {
   return {
     capability_id: row.capability_id,
+    canonical_name: row.canonical_name,
     status: row.status,
     input_contract: row.input_contract,
     output_contract: row.output_contract,
@@ -78,6 +80,7 @@ function toLookupResult(row: CapabilityLookupRow): CapabilityLookupResult {
 const CAPABILITY_LOOKUP_QUERY_TEMPLATE = `
   select
     c.capability_id,
+    c.canonical_name,
     c.status,
     c.input_contract,
     c.output_contract,
@@ -96,7 +99,7 @@ const CAPABILITY_LOOKUP_QUERY_TEMPLATE = `
   left join software_registry.relationships rel on rel.from_id = c.capability_id
     left join software_registry.evidence e on e.capability_id = c.capability_id
   where %WHERE%
-  group by c.capability_id, c.status, c.input_contract, c.output_contract, c.ingress_metadata
+  group by c.capability_id, c.canonical_name, c.status, c.input_contract, c.output_contract, c.ingress_metadata
 `;
 
 async function runLookup(pool: Pool, whereColumn: "c.capability_id" | "c.semantic_fingerprint" | "c.canonical_name", value: string): Promise<CapabilityLookupResult | null> {
@@ -115,6 +118,18 @@ export function findCapabilityBySemanticFingerprintAsync(pool: Pool, semantic_fi
 
 export function findCapabilityByCanonicalNameAsync(pool: Pool, canonical_name: string): Promise<CapabilityLookupResult | null> {
   return runLookup(pool, "c.canonical_name", canonical_name);
+}
+
+/**
+ * Read-only enumeration of every registered capability. Reuses the same
+ * aggregated lookup query with a constant TRUE predicate, so a listed row has
+ * exactly the shape a point lookup returns — no second projection to drift.
+ * `%WHERE%` is substituted with a literal, never a caller-supplied string.
+ */
+export async function listCapabilitiesAsync(pool: Pool): Promise<readonly CapabilityLookupResult[]> {
+  const sql = CAPABILITY_LOOKUP_QUERY_TEMPLATE.replace("%WHERE%", "true");
+  const { rows } = await pool.query<CapabilityLookupRow>(sql);
+  return rows.map((row) => toLookupResult(row));
 }
 
 /**
@@ -305,6 +320,9 @@ export class PostgresAsyncRegistryStore implements AsyncRegistryStore {
   }
   findCapabilityByCanonicalName(canonical_name: string): Promise<CapabilityLookupResult | null> {
     return findCapabilityByCanonicalNameAsync(this.pool, canonical_name);
+  }
+  listCapabilities(): Promise<readonly CapabilityLookupResult[]> {
+    return listCapabilitiesAsync(this.pool);
   }
   /** Routed to the real, unique-constrained `exact_fingerprint` column — see `RESOURCE_ROW_QUERY`'s own doc comment on why the separate `content_hash` column would silently break duplicate detection. */
   findResourceByContentHash(content_hash: string): Promise<ResourceRow | null> {

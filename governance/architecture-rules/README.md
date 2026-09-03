@@ -82,3 +82,39 @@ INFRA / SECURITY / EXTERNAL / AUTOMATION** แต่ละกลุ่มมี 
 ระดับ role check ไม่ใช่ boundary ระดับสถาปัตยกรรม สอง capability ประเภท
 ต่างกันต้องแยกทางสถาปัตยกรรมจริง ไม่ใช่อาศัยแค่ auth check เดียว
 ดู `reports/` ของ dna-os-deadboard สำหรับ Extraction Plan เต็ม
+
+---
+
+## สารบัญตามลำดับขั้นปฏิบัติการ
+
+ลำดับนี้ไม่ใช่ลำดับตัวอักษร — มันคือลำดับที่งานต้องเกิดจริง กฎมาก่อนการสำรวจ
+การสำรวจมาก่อนการให้ตัวตน ตัวตนมาก่อนทะเบียน ทะเบียนมาก่อนสัญญาการเชื่อมต่อ
+และการนำขึ้นระบบจริงมาหลังสุดเสมอ
+
+ลำดับ ความสัมพันธ์ และเงื่อนไขจบของแต่ละขั้น ถูกประกาศไว้ที่
+`control/operational-lifecycle/stages.ts` และสถานะถูก **อนุมานจากหลักฐานจริง**
+ทุกครั้งที่อ่าน ไม่มีที่ใดเก็บคำว่า "เสร็จแล้ว" ไว้ให้แก้ด้วยมือ
+อ่านสถานะปัจจุบันได้ที่ `GET /owner/lifecycle`
+
+| # | เอกสาร | ขึ้นกับขั้น |
+|---|--------|-------------|
+| 01 | [`README.md`](./README.md) — ดัชนีนี้เอง | — |
+| 02 | [`CAPABILITY_FOLDER_LAW.md`](./CAPABILITY_FOLDER_LAW.md) | — |
+| 03 | [`SYSTEM_CONNECTION_CENSUS_PHASE1.md`](./SYSTEM_CONNECTION_CENSUS_PHASE1.md) | 02 |
+| 04 | [`CANONICAL_TARGET_IDENTITY_DISCOVERY.md`](./CANONICAL_TARGET_IDENTITY_DISCOVERY.md) | 03 |
+| 05 | [`CAPABILITY_REPOSITORY_LINEAGE_TRACE.md`](./CAPABILITY_REPOSITORY_LINEAGE_TRACE.md) | 02 |
+| 06 | [`CROSS_SYSTEM_INSTANCE_REGISTRY_DESIGN.md`](./CROSS_SYSTEM_INSTANCE_REGISTRY_DESIGN.md) | 04, 05 |
+| 07 | [`PROVIDER_PROJECT_IDENTITY_REGISTRATION.md`](./PROVIDER_PROJECT_IDENTITY_REGISTRATION.md) | 06 |
+| 08 | [`CONNECTION_CONTRACT_PHASE_A.md`](./CONNECTION_CONTRACT_PHASE_A.md) | 07 |
+| 09 | [`SEMANTIC_CANDIDATE_AND_CONTRACT_DISCOVERY.md`](./SEMANTIC_CANDIDATE_AND_CONTRACT_DISCOVERY.md) | 05 |
+| 10 | [`CANONICAL_CAPABILITY_CATALOG_DRY_RUN.md`](./CANONICAL_CAPABILITY_CATALOG_DRY_RUN.md) | 09 |
+| 11 | [`CAPABILITY_CATALOG_PROJECTION_DESIGN.md`](./CAPABILITY_CATALOG_PROJECTION_DESIGN.md) | 10 |
+| 12 | [`OPERATIONAL_LIFECYCLE_MODEL.md`](./OPERATIONAL_LIFECYCLE_MODEL.md) | 06, 05 |
+| 13 | [`ACCOUNTING_CANONICAL_TRUTH.md`](./ACCOUNTING_CANONICAL_TRUTH.md) | 02 |
+| 14 | [`VERCEL_BOUNDARY_PLAN.md`](./VERCEL_BOUNDARY_PLAN.md) | 08, 12 |
+
+เอกสารกำกับที่ไม่ใช่ขั้นของงาน — อ่านคู่กับตารางข้างบน:
+[`STRUCTURE_LOCK_MAP.md`](./STRUCTURE_LOCK_MAP.md) — ขอบเขตที่ถูกล็อกแล้วและจุดต่อขยาย
+
+ขั้น 05 กับ 09/10 และ 13 ประกาศไว้ว่าขนานกันได้ (`parallel_group`) — การขนานที่
+ไม่ได้ประกาศไว้ถือว่าไม่อนุญาต

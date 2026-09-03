@@ -11,4 +11,6 @@
  */
 
 export { checkImportBoundaries } from "./boundary-checker";
+export { runCapabilityFolderLawGate } from "./folder-law-gate";
 export type { BoundaryViolation } from "./types";
+export type { FolderLawGateResult, FolderLawViolation, FolderLawRuleRow, FolderLawVerdict } from "./types";

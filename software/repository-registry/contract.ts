@@ -13,3 +13,9 @@
 export { registerRepository, getRepository, listRepositories, suspendRepository, buildRepositoryId, createRepositoryRegistryStore } from "./registry";
 export type { RepositoryRegistryStore } from "./registry";
 export type { RepositoryStatus, RepositoryRegistration, RegisterRepositoryInput } from "./types";
+
+/* ADDITIVE (2026-09-01) — census classification: ทะเบียนนี้ปนกับ fixture ของเทสต์
+   ตัวจำแนกอยู่ที่ ./registry.ts และไม่ลบข้อมูลใด */
+export { classifyRepository, listOperationalRepositories, countRepositoriesByClassification,
+  FIXTURE_OWNER_EXACT, FIXTURE_OWNER_PREFIXES } from "./registry";
+export type { RepositoryClassification } from "./registry";

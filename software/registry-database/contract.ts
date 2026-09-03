@@ -29,8 +29,25 @@
 
 export { commitRegisteredCandidate, validateCandidateRelationships } from "./registry-writer";
 export type { CommitResult, RegistrationIngressStatus, DuplicateOf, CandidateRelationshipInput, ValidatedRelationships } from "./registry-writer";
-export { findCapability, findResourceById } from "./lookup";
+export { findCapability, findResourceById, searchCapabilities } from "./lookup";
+export { resolveCanonicalResource } from "./canonical-resource-resolution";
+export type { CanonicalResourceQuery, CanonicalResourceResolution, ResourceIdentity } from "./canonical-resource-resolution";
 export type { RegistryStore, ApprovedCandidateWrite, WriteOutcome } from "./store-port";
+
+/**
+ * การนำ `RegistryStore` ไปใช้จริงบนไฟล์ — เปิดผ่าน contract เพราะเดิมไม่เคยเปิด
+ *
+ * ผลของการไม่เปิด วัดได้จริง: มีผู้เรียก 57 จุด import
+ * `./adapters/persistent-file-store` ตรง ๆ ข้ามขอบเขตของ capability นี้ ซึ่งผิด
+ * CAPABILITY_FOLDER_LAW ข้อ 9 — แต่ความผิดไม่ได้อยู่ที่ผู้เรียก มันไม่มีทางที่ถูก
+ * ให้เดินเลย capability ที่คนอื่นต้องใช้ store ของมันแต่ไม่ประกาศ store ไว้ที่
+ * contract คือการบังคับให้ทุกคนละเมิดกฎ
+ *
+ * เปิดเฉพาะตัวสร้าง ไม่เปิดโครงสร้างภายในของ adapter — ผู้เรียกยังเห็นแค่
+ * `RegistryStore` เหมือนเดิม การเปลี่ยนวิธีเก็บในอนาคตจึงยังไม่ลากผู้เรียกไปด้วย
+ */
+export { createPersistentFileStore } from "./adapters/persistent-file-store";
+export type { PersistentFileStoreOptions } from "./adapters/persistent-file-store";
 export type {
   ResourceRow,
   CapabilityRow,
@@ -46,3 +63,4 @@ export type {
   RelationshipKind,
   RelationshipEntityType,
 } from "./types";
+export type { CapabilitySearchHit } from "./lookup";

@@ -18,7 +18,7 @@
  * for every decision, approved or not (the append-only audit trail).
  */
 
-import type { CapabilityLookupResult, EvidenceRow, IngressMetadataRow, RelationshipRow, ResourceRow, VersionRow } from "./types";
+import type { CapabilityLookupResult, CapabilityRow, EvidenceRow, IngressMetadataRow, RelationshipRow, ResourceRow, VersionRow } from "./types";
 
 /** Everything `registerCandidate()` derives from one APPROVED_FOR_REGISTRATION candidate, ready to persist atomically. */
 export interface ApprovedCandidateWrite {
@@ -56,6 +56,16 @@ export interface RegistryStore {
   findCapabilityById(capability_id: string): CapabilityLookupResult | null;
   findCapabilityBySemanticFingerprint(semantic_fingerprint: string): CapabilityLookupResult | null;
   findCapabilityByCanonicalName(canonical_name: string): CapabilityLookupResult | null;
+  /**
+   * Read-only enumeration of every registered capability (Owner, 2026-08-31).
+   * Added because the Owner Command path had no way to ASK the canonical store
+   * "what capabilities exist" — the port only supported point lookups — so it
+   * answered from a hardcoded 12-entry routing table in
+   * control/command-router/capability-registry.ts while 113 canonical rows went
+   * unread. This is a read path only: it grants no ability to write, and adds
+   * no second identity namespace — capability_id remains the identity.
+   */
+  listCapabilities(): readonly CapabilityLookupResult[];
   findResourceByContentHash(content_hash: string): ResourceRow | null;
   findResourceById(resource_id: string): ResourceRow | null;
   /**
@@ -82,6 +92,29 @@ export interface RegistryStore {
   removeRelationship(from_id: string, to_id: string, relationship_kind: string): { removed: boolean };
   addEvidence(row: Omit<EvidenceRow, "evidence_id" | "created_at">): { added: boolean };
   addVersion(row: Omit<VersionRow, "version_id" | "created_at">): { added: boolean };
+
+  /**
+   * ENUMERATION (Owner, 2026-08-26). Optional on the port for exactly the
+   * same reason `findResourceBySourceLocation?` is: an adapter that cannot
+   * enumerate keeps working unchanged, and a caller that gets `undefined`
+   * must report enumeration as UNAVAILABLE rather than pretend the registry
+   * is empty.
+   *
+   * WHY THIS EXISTS: without it the read surface is lookup-by-exact-key
+   * only, so a registry miss can never mean "not present" — only "that
+   * exact name is not present". Deterministic resolution
+   * (`control/work-resolution/`) had to fall back to scanning every repo on
+   * disk to find things the registry already knew about. These make
+   * REGISTRY_MISS mean "not found after enumeration".
+   *
+   * Read-only, returns the canonical rows as-is. Never a query language —
+   * ranking/filtering belongs to the caller, not to the store.
+   */
+  listCapabilityRows?(): readonly CapabilityRow[];
+  listResourceRows?(): readonly ResourceRow[];
+  listResourceCapabilityLinks?(): readonly { resource_id: string; capability_id: string }[];
+  listRelationshipRows?(): readonly RelationshipRow[];
+  listEvidenceRows?(): readonly EvidenceRow[];
 
   /** Row counts, for tests only — never part of the production Lookup API surface (not re-exported from contract.ts). */
   debugCounts(): { resources: number; capabilities: number; resource_capabilities: number; relationships: number; versions: number; evidence: number; registration_events: number };
@@ -115,6 +148,7 @@ export interface AsyncRegistryStore {
   findCapabilityById(capability_id: string): Promise<CapabilityLookupResult | null>;
   findCapabilityBySemanticFingerprint(semantic_fingerprint: string): Promise<CapabilityLookupResult | null>;
   findCapabilityByCanonicalName(canonical_name: string): Promise<CapabilityLookupResult | null>;
+  listCapabilities(): Promise<readonly CapabilityLookupResult[]>;
   findResourceByContentHash(content_hash: string): Promise<ResourceRow | null>;
   findResourceById(resource_id: string): Promise<ResourceRow | null>;
   addRelationship(row: Omit<RelationshipRow, "relationship_id" | "created_at">): Promise<{ added: boolean }>;
@@ -131,6 +165,7 @@ export function wrapAsAsyncStore(store: RegistryStore): AsyncRegistryStore {
     findCapabilityById: async (capability_id) => store.findCapabilityById(capability_id),
     findCapabilityBySemanticFingerprint: async (semantic_fingerprint) => store.findCapabilityBySemanticFingerprint(semantic_fingerprint),
     findCapabilityByCanonicalName: async (canonical_name) => store.findCapabilityByCanonicalName(canonical_name),
+    listCapabilities: async () => store.listCapabilities(),
     findResourceByContentHash: async (content_hash) => store.findResourceByContentHash(content_hash),
     findResourceById: async (resource_id) => store.findResourceById(resource_id),
     addRelationship: async (row) => store.addRelationship(row),

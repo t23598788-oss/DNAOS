@@ -122,3 +122,59 @@ export function listApiCredentials(): readonly ApiCredentialEntry[] {
 export function setApiCredentialStatus(credential_ref: string, status: ApiCredentialStatus): ApiCredentialEntry {
   return defaultStore.setApiCredentialStatus(credential_ref, status);
 }
+
+/* ─────────────────────────────────────────────────────────────────────────
+ * FIXTURE SEPARATION (Phase 2, 2026-09-01)
+ *
+ * `data/api-credential-references.jsonl` เป็น append-only และ **ไฟล์เทสต์
+ * เขียนลงไฟล์เดียวกับ production** — `connections/github/
+ * keychain-credential-resolution.test.ts` ลงทะเบียน fixture ทุกครั้งที่รัน
+ * ผลคือทะเบียนมี 134 แถว แต่เป็นของจริงเพียง 4
+ *
+ * การนับ "จำนวน credential" ตรง ๆ จากไฟล์นี้จึงให้ตัวเลขที่ผิด 33 เท่า
+ * ตัวจำแนกข้างล่างมีไว้ให้ census/รายงานนับได้ถูก โดย **ไม่ลบ fixture**
+ *
+ * กฎการจำแนกเป็น deterministic และต้องให้ marker ทั้งสามตรงกัน:
+ *   1. account            === TEST_FIXTURE_ACCOUNT
+ *   2. resolver_service   ขึ้นต้นด้วย TEST_FIXTURE_RESOLVER_PREFIX
+ *   3. credential_ref     มี TEST_FIXTURE_REF_MARKER
+ *
+ * ทั้งสามค่าเป็นค่าคงที่ที่ไฟล์เทสต์ในรีโปนี้เขียนเอง ไม่ใช่การเดาจากชื่อ
+ * ตรวจกับข้อมูลจริง 2026-09-01: marker ตรงกันครบ 134/134 แถว ขัดแย้ง 0
+ *
+ * ถ้าวันใด marker ไม่ตรงกัน แถวนั้นได้ UNCLASSIFIED — ไม่ถูกเดาไปข้างใดข้างหนึ่ง
+ * เพราะการเดาผิดด้านหนึ่งคือนับ fixture เป็นของ production
+ * และผิดอีกด้านคือซ่อน credential จริงออกจากรายงาน
+ * ─────────────────────────────────────────────────────────────────────── */
+
+export type CredentialClassification = "PRODUCTION" | "TEST_FIXTURE" | "UNCLASSIFIED";
+
+/** เขียนโดย connections/github/keychain-credential-resolution.test.ts */
+export const TEST_FIXTURE_ACCOUNT = "test-fixture-owner";
+export const TEST_FIXTURE_RESOLVER_PREFIX = "dna-os-github-test-";
+export const TEST_FIXTURE_REF_MARKER = "/test-fixture-repo";
+
+export function classifyApiCredential(entry: ApiCredentialEntry): CredentialClassification {
+  const markers = [
+    entry.account === TEST_FIXTURE_ACCOUNT,
+    String(entry.resolver_service ?? "").startsWith(TEST_FIXTURE_RESOLVER_PREFIX),
+    String(entry.credential_ref ?? "").includes(TEST_FIXTURE_REF_MARKER),
+  ];
+  if (markers.every((m) => m)) return "TEST_FIXTURE";
+  if (markers.every((m) => !m)) return "PRODUCTION";
+  return "UNCLASSIFIED";
+}
+
+/** credential ที่ระบบใช้งานจริง — ตัวเดียวที่ census/รายงานควรนับ */
+export function listProductionApiCredentials(): readonly ApiCredentialEntry[] {
+  return defaultStore.listApiCredentials().filter((e) => classifyApiCredential(e) === "PRODUCTION");
+}
+
+export function countApiCredentialsByClassification(): {
+  readonly PRODUCTION: number; readonly TEST_FIXTURE: number;
+  readonly UNCLASSIFIED: number; readonly total: number;
+} {
+  const all = defaultStore.listApiCredentials();
+  const n = (k: CredentialClassification) => all.filter((e) => classifyApiCredential(e) === k).length;
+  return { PRODUCTION: n("PRODUCTION"), TEST_FIXTURE: n("TEST_FIXTURE"), UNCLASSIFIED: n("UNCLASSIFIED"), total: all.length };
+}

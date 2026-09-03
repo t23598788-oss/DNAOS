@@ -27,6 +27,20 @@ import { registerApiCredential } from "../registry/api-credential-registry";
 const ALLOWED_REQUESTERS = [
   "connections/provider-authorization/lifecycle.ts",
   "connections/github/credential-resolution.ts",
+  // Owner-approved 2026-08-26: the Supabase Edge secret installer. Added
+  // explicitly rather than by widening the check, so this list stays the
+  // complete, readable answer to "who may write a credential".
+  "credentials/supabase-edge-secret/installer.ts",
+  // Owner-approved 2026-09-01: the TikTok Login Kit OAuth lifecycle. Same
+  // discipline as GitHub's — turns an Owner's real browser approval into a
+  // Keychain-backed credential_ref; never accepts an Agent-forwarded secret.
+  "connections/tiktok-authorization/lifecycle.ts",
+  // Owner-approved 2026-09-02: ช่องตั้งค่า credential ใน Owner Settings ของ :5181
+  // เส้นทางคือ Owner Settings UI -> owner-authentication (ต้องมี session ที่ยัง
+  // ACTIVE) -> route นี้ -> registerOwnerApiCredential -> Keychain
+  // เพิ่มชื่อผู้เรียกเท่านั้น ไม่ได้ผ่อนการตรวจ และไม่ได้เปิดให้ Agent เรียกได้
+  // Agent ไม่มีทางถึง transport นี้: มันไม่มี network และไม่รู้ owner session
+  "transport/owner-command-http/owner-credential-routes.ts",
 ] as const;
 
 export interface OwnerApiCredentialInput {

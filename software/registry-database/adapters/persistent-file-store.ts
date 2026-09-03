@@ -29,7 +29,8 @@
  * directory only, no network, no Supabase.
  */
 
-import { appendFileSync, existsSync, mkdirSync, readFileSync } from "node:fs";
+import { appendFileSync, existsSync, mkdirSync } from "node:fs";
+import { verifiedReadJsonl } from "../../../control/observation-integrity/verified-read";
 import { join } from "node:path";
 import type { ApprovedCandidateWrite, RegistryStore, WriteOutcome } from "../store-port";
 import type { CapabilityLookupResult, CapabilityRow, EvidenceRow, RegistrationEventRow, RelationshipRow, ResourceRow, VersionRow } from "../types";
@@ -41,16 +42,60 @@ export interface PersistentFileStoreOptions {
 
 const DEFAULT_CANONICAL_DIR = join(process.cwd(), "software/registry-database/data/canonical");
 
+/**
+ * Rehydrates one canonical store through the observation-integrity boundary
+ * rather than a single read.
+ *
+ * WHY THIS ONE LINE MATTERED. This function is how every capability, resource
+ * and relationship in DNA OS is loaded. A bare `readFileSync` here can return
+ * zero bytes without raising — and on 2026-09-02 it did: `findCapability("os-ui")`
+ * reported `source_location: []`, which read as "this capability has no
+ * implementation" when the join row was present the whole time. One unguarded
+ * read at the bottom of the registry silently became a missing relationship at
+ * the top of it.
+ *
+ * A conflicted read now THROWS rather than returning an empty array. An empty
+ * array is indistinguishable from a real empty store, and it is precisely that
+ * ambiguity that let a measurement failure masquerade as a fact. A caller may
+ * handle an exception; it cannot handle a lie.
+ */
+/**
+ * Re-observation, bounded, and only for the failures that are re-observable.
+ *
+ * WHY THIS EXISTS. Refusing an uncorroborated read is right; making a
+ * re-observable failure permanent is not. On 2026-09-02 the live Owner command
+ * path died at store construction with
+ * `REGISTRY_READ_READ_FAILED: versions.jsonl (INSUFFICIENT/ALL_METHODS_ERRORED)`
+ * carrying `errno -11` (EAGAIN) from the `read` syscall — on a 243,667-byte
+ * file that then read CONSISTENT eight times in a row. The read was momentarily
+ * impossible, not wrong, and a single-shot throw turned that instant into an
+ * outage of every Owner command.
+ *
+ * WHAT IS NOT RETRIED. `CONFLICTING` is never retried. A conflict means two
+ * independent methods disagreed about the same bytes — the incident shape this
+ * whole boundary exists to surface — and re-reading until the disagreement
+ * disappears is exactly the "retry until you like the answer" the contract
+ * forbids. Only INSUFFICIENT is re-observed: there the methods agreed that
+ * nothing could be read at that instant, which is the transient class.
+ *
+ * The retry adds observations; it deletes none, and it cannot manufacture a
+ * success. If every attempt fails the original refusal still throws.
+ */
+const READ_ATTEMPTS = 3;
+
 function readJsonl<T>(path: string): T[] {
   if (!existsSync(path)) return [];
-  const text = readFileSync(path, "utf8");
-  const rows: T[] = [];
-  for (const line of text.split("\n")) {
-    const trimmed = line.trim();
-    if (!trimmed) continue;
-    rows.push(JSON.parse(trimmed) as T);
+  let verified = verifiedReadJsonl<T>(path);
+  for (let attempt = 2; attempt <= READ_ATTEMPTS
+    && verified.outcome !== "READ_SUCCEEDED"
+    && verified.integrity.consistency_state === "INSUFFICIENT"; attempt += 1) {
+    verified = verifiedReadJsonl<T>(path);
   }
-  return rows;
+  if (verified.outcome !== "READ_SUCCEEDED") {
+    throw new Error(`REGISTRY_READ_${verified.outcome}: ${path} (${verified.integrity.consistency_state}/${verified.integrity.reason}) — refusing to rehydrate the canonical store from an uncorroborated read`);
+  }
+  if (verified.parse_error !== null) throw new Error(`REGISTRY_ROW_UNPARSEABLE: ${path} — ${verified.parse_error}`);
+  return [...(verified.rows ?? [])];
 }
 
 export function createPersistentFileStore(options: PersistentFileStoreOptions = {}): RegistryStore {
@@ -104,6 +149,7 @@ export function createPersistentFileStore(options: PersistentFileStoreOptions = 
     const ownRelationships = relationships.filter((r) => r.from_id === capability.capability_id).map((r) => ({ to_type: r.to_type, to_id: r.to_id, relationship_kind: r.relationship_kind }));
     return {
       capability_id: capability.capability_id,
+      canonical_name: capability.canonical_name,
       resource_ids: resourceIds,
       source_location: relatedResources.map((r) => r.source_location),
       version: relatedResources.map((r) => r.version),
@@ -273,6 +319,9 @@ export function createPersistentFileStore(options: PersistentFileStoreOptions = 
       const id = capabilityIdByCanonicalName.get(canonical_name);
       return id ? toLookupResult(capabilities.get(id)!) : null;
     },
+    listCapabilities() {
+      return [...capabilities.values()].map((c) => toLookupResult(c));
+    },
     findResourceByContentHash(content_hash: string) {
       const id = resourceIdByContentHash.get(content_hash);
       return id ? (resources.get(id) ?? null) : null;
@@ -288,6 +337,14 @@ export function createPersistentFileStore(options: PersistentFileStoreOptions = 
       }
       return null;
     },
+    // ENUMERATION — see store-port.ts. Returns copies so a caller can
+    // never mutate the store's in-memory canonical rows.
+    listCapabilityRows: () => [...capabilities.values()],
+    listResourceRows: () => [...resources.values()],
+    listResourceCapabilityLinks: () => [...resourceCapabilities],
+    listRelationshipRows: () => [...relationships],
+    listEvidenceRows: () => [...evidence],
+
     debugCounts() {
       return {
         resources: resources.size,

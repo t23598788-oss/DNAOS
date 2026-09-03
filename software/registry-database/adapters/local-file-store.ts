@@ -70,6 +70,7 @@ export function createLocalFileStore(options: LocalFileStoreOptions = {}): Regis
     const ownRelationships = relationships.filter((r) => r.from_id === capability.capability_id).map((r) => ({ to_type: r.to_type, to_id: r.to_id, relationship_kind: r.relationship_kind }));
     return {
       capability_id: capability.capability_id,
+      canonical_name: capability.canonical_name,
       resource_ids: resourceIds,
       source_location: relatedResources.map((r) => r.source_location),
       version: relatedResources.map((r) => r.version),
@@ -226,11 +227,16 @@ export function createLocalFileStore(options: LocalFileStoreOptions = {}): Regis
       const id = capabilityIdByCanonicalName.get(canonical_name);
       return id ? toLookupResult(capabilities.get(id)!) : null;
     },
+    listCapabilities() {
+      return [...capabilities.values()].map((c) => toLookupResult(c));
+    },
     findResourceByContentHash(content_hash: string) {
       const id = resourceIdByContentHash.get(content_hash);
       return id ? (resources.get(id) ?? null) : null;
     },
     findResourceById(resource_id: string) { return resources.get(resource_id) ?? null; },
+    /** Test-only read-back projection; production callers use the persistent store's same port. */
+    listResourceRows() { return [...resources.values()]; },
     debugCounts() {
       return {
         resources: resources.size,

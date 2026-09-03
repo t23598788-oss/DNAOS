@@ -123,7 +123,21 @@ export type RelationshipKind =
    * next. See control/deployable-artifact-readiness/. Same
    * CAPABILITY -> CAPABILITY, existing-target-only discipline as every
    * kind above. */
-  | "POST_COMMIT_VERIFICATION_TO_DEPLOYABLE_ARTIFACT_READINESS";
+  | "POST_COMMIT_VERIFICATION_TO_DEPLOYABLE_ARTIFACT_READINESS"
+  /**
+   * ADDITIVE (Owner, LOCK_AND_REGISTER_REMAINING_RUNTIME_CONNECTIONS)
+   *
+   * ขอบของ "ผู้ผลิตเหตุการณ์ -> ทางเข้า event เดียวของระบบ" และ
+   * "ผลการจัดเส้นทาง -> ขอบเขตการส่งต่อไปยัง executor ที่ลงทะเบียนไว้"
+   *
+   * เพิ่มตามแบบแผนที่ไฟล์นี้ใช้อยู่แล้ว — คำศัพท์ชุดนี้เป็นชนิดเฉพาะต่อขอบจริง
+   * หนึ่งขอบ (เทียบ MCP_TO_WORK_RESULT_INGRESS, WORK_RESULT_TO_DOMAIN_CLASSIFIER)
+   * ไม่ใช่คำกว้าง ๆ และไม่ใช่ทะเบียนใหม่
+   */
+  | "OBSERVATION_TO_EVENT_INGRESS"
+  | "JOINT_TO_EVENT_INGRESS"
+  | "VIOLATION_TO_EVENT_INGRESS"
+  | "ROUTE_RESULT_TO_EXECUTOR_DISPATCH";
 
 /** SYSTEM_COMPONENT = a real DNA OS pipeline stage referenced by one of the six ingress relationship kinds above — never a resource/capability row of its own. */
 export type RelationshipEntityType = "FILE" | "MODULE" | "CAPABILITY" | "WORKER" | "API" | "TEST" | "DEPENDENCY" | "OWNER" | "SYSTEM_COMPONENT";
@@ -141,6 +155,9 @@ export interface ResourceRow {
   status: ResourceStatus;
   created_at: string;
   updated_at: string;
+  /** Optional projection link; legacy rows intentionally remain unannotated. */
+  canonical_ref?: { identity_type: string; identity_id: string };
+  projection_kind?: string;
 }
 
 /**
@@ -248,6 +265,12 @@ export interface RelationshipEdge {
 
 export interface CapabilityLookupResult {
   capability_id: string;
+  /**
+   * The capability's canonical name. Present so a caller can join a canonical
+   * capability to external routing/connectivity records WITHOUT those records
+   * becoming a second identity namespace - capability_id stays the identity.
+   */
+  canonical_name: string;
   resource_ids: readonly string[];
   source_location: readonly string[];
   version: readonly string[];

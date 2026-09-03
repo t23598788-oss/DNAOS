@@ -1,0 +1,11 @@
+{
+  "locked_at": "2026-08-28T17:04:05.437Z",
+  "entries": {
+    "registry-relationship-kind-union": "948f005907b93b96e5109eb0105cb16db4e67a7f64931580c6f839da805bd3a5",
+    "registry-valid-relationship-kinds": "ced7f35ef3b3246fc83e1b8ccee8815c7ef4ad22638b6f80ecfaeaa2221f25d1",
+    "registry-chain-relationship-kinds": "413ffc22a0c309a98da7d61f59d61a38295e0f2376244e69c1e1770362d5757b",
+    "observation-authority-type": "5995786ce1acce1ef01aa850eb4f8ef480d2d6b6c3e373061971441f38d45e2a",
+    "route-executor-bindings": "b79db6b132c95c17de6dde25723ab45e24a3f6457edd91e3d035d1087379b321",
+    "connection-locks": "97a3732d2aba49916cdc8690a808ba63484d011a49b3063c5ec4591b11bd8431"
+  }
+}

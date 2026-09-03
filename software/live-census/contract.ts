@@ -11,6 +11,14 @@
  */
 
 export { allCodeFilesIn } from "./host-runtime";
+/**
+ * The real repository observation (Owner, 2026-08-26). Exported for
+ * `control/resource-reconciliation/`, which needs the SAME capability records
+ * this census already derives — importers, dependencies, registry matches,
+ * runtime refs, resource_id, runtime evidence. Re-deriving them there would be
+ * a second census that could disagree with this one.
+ */
+export { observeCensus, observeObservations, loadPreviousSnapshot, REPOSITORY } from "./observe";
 export { deriveImpact, applyImpact, impactOf } from "./impact";
 export type { ImpactFinding } from "./impact";
 export { deriveCensus, deriveCapability, deriveStatus, deriveDrift, deriveEdges, deriveDomain, capabilityKey } from "./derive";

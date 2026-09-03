@@ -1,0 +1,1638 @@
+{
+ "$schema": "dna-os/accounting-system-knowledge/v1",
+ "note": "MACHINE-READABLE knowledge PROJECTION. Points to registered capabilities by capability_id; does NOT re-implement or re-own truth. No second registry/database.",
+ "generated_for": "TASK:BUILD_ACCOUNTING_SYSTEM_KNOWLEDGE_AND_USAGE_MAP",
+ "SYSTEM": {
+  "SYSTEM_ID": "dna-os-accounting-system",
+  "SYSTEM_TYPE": "ACCOUNTING_SYSTEM (knowledge/relationship record — NOT a truth store)",
+  "SYSTEM_NAME": "DNA OS Accounting System",
+  "PURPOSE": "event-sourced double-entry accounting the DNA OS owns: derive accounting effect from Financial Events + evidence, never trust a module status word",
+  "BUSINESS_PROBLEM": "legacy finance recorded paid/owed/VAT as flat status with no ledger (STATUS_ONLY_WITHOUT_LEDGER) and parallel balances that diverge; no GL/AR/AP/VAT/WHT truth",
+  "CANONICAL_TRUTH": "GL + AR/AP subledger (governance/architecture-rules/ACCOUNTING_CANONICAL_TRUTH.md, resource-e82af838-bfc8-4801-94d8-926f5ece1d19)",
+  "SYSTEM_BOUNDARY": "owns accounting effect; reads legacy as source/evidence only; ONE Accounting API boundary (NOT_BUILT); does not modify legacy tables",
+  "CURRENT_STATUS": "VERIFIED_ISOLATED (23/23), REGISTERED",
+  "PRODUCTION_STATUS": "NOT_LIVE / BLOCKED_PRELIVE",
+  "relationships": {
+   "CONTAINS": [
+    "capability-6aa8d952-f90b-4f75-aba5-d4d803bddf7a",
+    "capability-cd4712dd-3705-4177-9a87-cb27652d7ee5",
+    "capability-478f4c31-2ade-4406-b21a-998e1f78227b",
+    "capability-89eb7066-ac4d-4f0f-8d2d-a93a7ceb89ff",
+    "capability-d6f946dd-6182-4af4-8416-d5b26f1d97e0",
+    "capability-8ee2d28b-7595-40f7-a197-f9d899ad7209",
+    "capability-4cb78bc1-93ac-4b8f-a2f9-294da1f3b132",
+    "capability-677ecdff-0c82-4b9a-84d6-05e88c360078",
+    "capability-84b25435-f4f5-47cd-a5e9-c142d2f21e24",
+    "capability-5a642b4c-7003-4bec-91d8-21d6e34c0341",
+    "capability-f364f062-188c-4546-a182-a89ac16e2b40",
+    "capability-fb9ffbc6-0985-40aa-9927-d030a070c52f",
+    "capability-324b770d-edfb-4273-85c9-bae3166455e2",
+    "capability-c7443c29-7e43-4f8d-a786-49a550b3bdd6",
+    "capability-37f8d478-787f-42ee-89c2-7cc5e61b4110",
+    "capability-d39a2c3f-404b-4f36-bef6-2d7100deb7b2",
+    "capability-36a0cf57-e5ef-45df-b295-5e9078fd36f4",
+    "capability-151c2560-f982-4e3d-8aa6-b32d273b0a0e",
+    "capability-ea1f5a5a-aec5-43ba-88b1-4c2c7fe6f88b",
+    "capability-cd679a7a-5ff4-4fec-ae44-c98774e61086",
+    "capability-e8f026a9-4cb1-483d-8eb4-38935973245d",
+    "capability-0394181e-eb59-43a8-88cb-852561a49199",
+    "capability-7e77cc8d-55a9-4f37-a840-35f71eb4a29a"
+   ],
+   "RECEIVES_FROM": [
+    "debt_events",
+    "invoices",
+    "standalone_documents",
+    "company_expenses",
+    "partner_payable_requests",
+    "bank_statement_transactions"
+   ],
+   "USES_EVIDENCE": [
+    "receipt_documents",
+    "bank_notifications",
+    "bank_statement_transactions"
+   ],
+   "PRODUCES": [
+    "journal_entries",
+    "journal_lines",
+    "general_ledger",
+    "ar_subledger",
+    "ap_subledger"
+   ],
+   "DERIVES": [
+    "vat_report",
+    "wht_report",
+    "trial_balance",
+    "pnl",
+    "balance_sheet",
+    "tax_submission_packages"
+   ],
+   "DEPENDS_ON": [
+    "BUSINESS_DATA_READ_CAPABILITY(read-only)",
+    "ACCOUNTING_API(NOT_BUILT)"
+   ],
+   "VERIFIED_BY": [
+    "tests/__sandbox__/accounting-kernel/EVIDENCE-acceptance-reverify.txt#sha256:372912703192b15b"
+   ],
+   "BLOCKED_BY": [
+    "LIVE_SCHEMA_RECONCILIATION",
+    "BUSINESS_DATA_READ_CAPABILITY_MISSING"
+   ],
+   "GOVERNED_BY": [
+    "resource-e82af838-bfc8-4801-94d8-926f5ece1d19 (ACCOUNTING_CANONICAL_TRUTH.md)"
+   ]
+  }
+ },
+ "MODULES": [
+  {
+   "MODULE_ID": "ACCOUNTING_KERNEL",
+   "CAPABILITY_ID": "capability-6aa8d952-f90b-4f75-aba5-d4d803bddf7a",
+   "canonical_name": "accounting-accounting-kernel",
+   "PURPOSE": "Event-sourced double-entry accounting core (event→posting→journal→GL→AR/AP→VAT/WHT→reports→tax package)",
+   "RESPONSIBILITY": "Owns accounting effect; reads legacy only as source/evidence; never trusts module status words",
+   "INPUTS": "Financial Event + evidence",
+   "INPUT_SOURCE": [
+    "all sources"
+   ],
+   "ENTRYPOINT": "composite (all above)",
+   "OUTPUTS": "accounting effect + reports + package",
+   "RESULT_RETURN_PATH": "views/functions",
+   "DEPENDS_ON": [],
+   "USED_BY": [
+    "Accounting API (NOT_BUILT)"
+   ],
+   "EXECUTION_METHOD": "isolated Postgres SQL function/view (no callable API yet)",
+   "REQUIRED_CAPABILITIES": [],
+   "REQUIRED_RESOURCES": [
+    "tests/__sandbox__/accounting-kernel/*.sql (isolated proof)"
+   ],
+   "SIDE_EFFECTS": "writes only to isolated proof DB acct_reverify; NEVER Supabase LIVE",
+   "AUTHORITY_REQUIRED": "none in isolation; LIVE promotion requires Owner approval",
+   "VERIFICATION_METHOD": "acct-accept2.sql assertion",
+   "SUCCESS_CONDITION": "assertion PASS in 23/23 run",
+   "FAILURE_CONDITION": "assertion FAIL / trigger raise",
+   "EVIDENCE_IDS": [
+    "tests/__sandbox__/accounting-kernel/EVIDENCE-acceptance-reverify.txt#sha256:372912703192b15b"
+   ],
+   "IMPLEMENTATION_STATUS": "BUILT",
+   "VERIFICATION_STATUS": "VERIFIED_ISOLATED",
+   "LIVE_STATUS": "NOT_LIVE",
+   "BLOCKED_BY": [
+    "LIVE_SCHEMA_RECONCILIATION",
+    "ACCOUNTING_API_NOT_BUILT"
+   ],
+   "NEXT_REQUIRED_STEP": "LIVE read-only census + replay, then Accounting API boundary"
+  },
+  {
+   "MODULE_ID": "FINANCIAL_EVENT_MODEL",
+   "CAPABILITY_ID": "capability-cd4712dd-3705-4177-9a87-cb27652d7ee5",
+   "canonical_name": "accounting-financial-event-model",
+   "PURPOSE": "Canonical financial_events store; accounting derives effect from event+evidence",
+   "RESPONSIBILITY": "Single event superset (sale/issue_invoice/receive_payment/pay/expense/wht/vat/refund/adjustment)",
+   "INPUTS": "event_type,amount,party_id,period_code,idempotency_key",
+   "INPUT_SOURCE": [
+    "debt_events(FEEDER)",
+    "invoices",
+    "bank_statement_transactions",
+    "company_expenses",
+    "partner_payable_requests"
+   ],
+   "ENTRYPOINT": "INSERT financial_events + post_event(event_id)",
+   "OUTPUTS": "journal_entry id",
+   "RESULT_RETURN_PATH": "post_event() returns entry uuid",
+   "DEPENDS_ON": [
+    "ACCOUNTING_PERIODS"
+   ],
+   "USED_BY": [
+    "ALL posting operations"
+   ],
+   "EXECUTION_METHOD": "isolated Postgres SQL function/view (no callable API yet)",
+   "REQUIRED_CAPABILITIES": [
+    "accounting-accounting-periods"
+   ],
+   "REQUIRED_RESOURCES": [
+    "tests/__sandbox__/accounting-kernel/*.sql (isolated proof)"
+   ],
+   "SIDE_EFFECTS": "writes only to isolated proof DB acct_reverify; NEVER Supabase LIVE",
+   "AUTHORITY_REQUIRED": "none in isolation; LIVE promotion requires Owner approval",
+   "VERIFICATION_METHOD": "acct-accept2.sql assertion",
+   "SUCCESS_CONDITION": "assertion PASS in 23/23 run",
+   "FAILURE_CONDITION": "assertion FAIL / trigger raise",
+   "EVIDENCE_IDS": [
+    "tests/__sandbox__/accounting-kernel/EVIDENCE-acceptance-reverify.txt#sha256:372912703192b15b"
+   ],
+   "IMPLEMENTATION_STATUS": "BUILT",
+   "VERIFICATION_STATUS": "VERIFIED_ISOLATED",
+   "LIVE_STATUS": "NOT_LIVE",
+   "BLOCKED_BY": [
+    "LIVE_SCHEMA_RECONCILIATION",
+    "ACCOUNTING_API_NOT_BUILT"
+   ],
+   "NEXT_REQUIRED_STEP": "LIVE read-only census + replay, then Accounting API boundary"
+  },
+  {
+   "MODULE_ID": "FINANCIAL_EVENT_EVIDENCE",
+   "CAPABILITY_ID": "capability-478f4c31-2ade-4406-b21a-998e1f78227b",
+   "canonical_name": "accounting-financial-event-evidence",
+   "PURPOSE": "Lineage link event→source without polymorphic FK (real per-source nullable FK + CHECK num_nonnulls=1)",
+   "RESPONSIBILITY": "Evidence/source only; extend by ADD COLUMN+FK",
+   "INPUTS": "event_id,role,<one source FK>",
+   "INPUT_SOURCE": [
+    "invoices",
+    "receipt_documents",
+    "bank_statement_transactions",
+    "customer_orders",
+    "business_events",
+    "supplier_documents",
+    "credit_notes"
+   ],
+   "ENTRYPOINT": "INSERT financial_event_evidence (one real FK, CHECK num_nonnulls=1)",
+   "OUTPUTS": "evidence row",
+   "RESULT_RETURN_PATH": "lineage query",
+   "DEPENDS_ON": [
+    "FINANCIAL_EVENT_MODEL"
+   ],
+   "USED_BY": [
+    "post_event",
+    "reconciliation"
+   ],
+   "EXECUTION_METHOD": "isolated Postgres SQL function/view (no callable API yet)",
+   "REQUIRED_CAPABILITIES": [
+    "accounting-financial-event-model"
+   ],
+   "REQUIRED_RESOURCES": [
+    "tests/__sandbox__/accounting-kernel/*.sql (isolated proof)"
+   ],
+   "SIDE_EFFECTS": "writes only to isolated proof DB acct_reverify; NEVER Supabase LIVE",
+   "AUTHORITY_REQUIRED": "none in isolation; LIVE promotion requires Owner approval",
+   "VERIFICATION_METHOD": "acct-accept2.sql assertion",
+   "SUCCESS_CONDITION": "assertion PASS in 23/23 run",
+   "FAILURE_CONDITION": "assertion FAIL / trigger raise",
+   "EVIDENCE_IDS": [
+    "tests/__sandbox__/accounting-kernel/EVIDENCE-acceptance-reverify.txt#sha256:372912703192b15b"
+   ],
+   "IMPLEMENTATION_STATUS": "BUILT",
+   "VERIFICATION_STATUS": "VERIFIED_ISOLATED",
+   "LIVE_STATUS": "NOT_LIVE",
+   "BLOCKED_BY": [
+    "LIVE_SCHEMA_RECONCILIATION",
+    "ACCOUNTING_API_NOT_BUILT"
+   ],
+   "NEXT_REQUIRED_STEP": "LIVE read-only census + replay, then Accounting API boundary"
+  },
+  {
+   "MODULE_ID": "CHART_OF_ACCOUNTS",
+   "CAPABILITY_ID": "capability-89eb7066-ac4d-4f0f-8d2d-a93a7ceb89ff",
+   "canonical_name": "accounting-chart-of-accounts",
+   "PURPOSE": "Account master (ASSET/LIABILITY/EQUITY/REVENUE/EXPENSE, normal side)",
+   "RESPONSIBILITY": "Canonical account dimension",
+   "INPUTS": "account_code,name,acct_type,normal_side",
+   "INPUT_SOURCE": [
+    "seed"
+   ],
+   "ENTRYPOINT": "seed rows / SELECT",
+   "OUTPUTS": "account master",
+   "RESULT_RETURN_PATH": "join in views",
+   "DEPENDS_ON": [],
+   "USED_BY": [
+    "journal_lines",
+    "reports"
+   ],
+   "EXECUTION_METHOD": "isolated Postgres SQL function/view (no callable API yet)",
+   "REQUIRED_CAPABILITIES": [],
+   "REQUIRED_RESOURCES": [
+    "tests/__sandbox__/accounting-kernel/*.sql (isolated proof)"
+   ],
+   "SIDE_EFFECTS": "writes only to isolated proof DB acct_reverify; NEVER Supabase LIVE",
+   "AUTHORITY_REQUIRED": "none in isolation; LIVE promotion requires Owner approval",
+   "VERIFICATION_METHOD": "acct-accept2.sql assertion",
+   "SUCCESS_CONDITION": "assertion PASS in 23/23 run",
+   "FAILURE_CONDITION": "assertion FAIL / trigger raise",
+   "EVIDENCE_IDS": [
+    "tests/__sandbox__/accounting-kernel/EVIDENCE-acceptance-reverify.txt#sha256:372912703192b15b"
+   ],
+   "IMPLEMENTATION_STATUS": "BUILT",
+   "VERIFICATION_STATUS": "VERIFIED_ISOLATED",
+   "LIVE_STATUS": "NOT_LIVE",
+   "BLOCKED_BY": [
+    "LIVE_SCHEMA_RECONCILIATION",
+    "ACCOUNTING_API_NOT_BUILT"
+   ],
+   "NEXT_REQUIRED_STEP": "LIVE read-only census + replay, then Accounting API boundary"
+  },
+  {
+   "MODULE_ID": "ACCOUNTING_PERIODS",
+   "CAPABILITY_ID": "capability-d6f946dd-6182-4af4-8416-d5b26f1d97e0",
+   "canonical_name": "accounting-accounting-periods",
+   "PURPOSE": "Period open/close control",
+   "RESPONSIBILITY": "Rejects posting into CLOSED period",
+   "INPUTS": "code,starts_on,ends_on,status",
+   "INPUT_SOURCE": [
+    "operator"
+   ],
+   "ENTRYPOINT": "INSERT/UPDATE accounting_periods; assert_period_open trigger",
+   "OUTPUTS": "period row",
+   "RESULT_RETURN_PATH": "trigger enforces on post",
+   "DEPENDS_ON": [],
+   "USED_BY": [
+    "journal_entries",
+    "reports"
+   ],
+   "EXECUTION_METHOD": "isolated Postgres SQL function/view (no callable API yet)",
+   "REQUIRED_CAPABILITIES": [],
+   "REQUIRED_RESOURCES": [
+    "tests/__sandbox__/accounting-kernel/*.sql (isolated proof)"
+   ],
+   "SIDE_EFFECTS": "writes only to isolated proof DB acct_reverify; NEVER Supabase LIVE",
+   "AUTHORITY_REQUIRED": "none in isolation; LIVE promotion requires Owner approval",
+   "VERIFICATION_METHOD": "acct-accept2.sql assertion",
+   "SUCCESS_CONDITION": "assertion PASS in 23/23 run",
+   "FAILURE_CONDITION": "assertion FAIL / trigger raise",
+   "EVIDENCE_IDS": [
+    "tests/__sandbox__/accounting-kernel/EVIDENCE-acceptance-reverify.txt#sha256:372912703192b15b"
+   ],
+   "IMPLEMENTATION_STATUS": "BUILT",
+   "VERIFICATION_STATUS": "VERIFIED_ISOLATED",
+   "LIVE_STATUS": "NOT_LIVE",
+   "BLOCKED_BY": [
+    "LIVE_SCHEMA_RECONCILIATION",
+    "ACCOUNTING_API_NOT_BUILT"
+   ],
+   "NEXT_REQUIRED_STEP": "LIVE read-only census + replay, then Accounting API boundary"
+  },
+  {
+   "MODULE_ID": "JOURNAL_ENTRIES",
+   "CAPABILITY_ID": "capability-8ee2d28b-7595-40f7-a197-f9d899ad7209",
+   "canonical_name": "accounting-journal-entries",
+   "PURPOSE": "Balanced journal entry header",
+   "RESPONSIBILITY": "Canonical GL entry; reversal-linked",
+   "INPUTS": "event_id,period_code,memo",
+   "INPUT_SOURCE": [
+    "FINANCIAL_EVENT_MODEL"
+   ],
+   "ENTRYPOINT": "post_event() → INSERT journal_entries",
+   "OUTPUTS": "balanced entry",
+   "RESULT_RETURN_PATH": "entry uuid",
+   "DEPENDS_ON": [
+    "ACCOUNTING_PERIODS",
+    "FINANCIAL_EVENT_MODEL"
+   ],
+   "USED_BY": [
+    "GL",
+    "reports"
+   ],
+   "EXECUTION_METHOD": "isolated Postgres SQL function/view (no callable API yet)",
+   "REQUIRED_CAPABILITIES": [
+    "accounting-accounting-periods",
+    "accounting-financial-event-model"
+   ],
+   "REQUIRED_RESOURCES": [
+    "tests/__sandbox__/accounting-kernel/*.sql (isolated proof)"
+   ],
+   "SIDE_EFFECTS": "writes only to isolated proof DB acct_reverify; NEVER Supabase LIVE",
+   "AUTHORITY_REQUIRED": "none in isolation; LIVE promotion requires Owner approval",
+   "VERIFICATION_METHOD": "acct-accept2.sql assertion",
+   "SUCCESS_CONDITION": "assertion PASS in 23/23 run",
+   "FAILURE_CONDITION": "assertion FAIL / trigger raise",
+   "EVIDENCE_IDS": [
+    "tests/__sandbox__/accounting-kernel/EVIDENCE-acceptance-reverify.txt#sha256:372912703192b15b"
+   ],
+   "IMPLEMENTATION_STATUS": "BUILT",
+   "VERIFICATION_STATUS": "VERIFIED_ISOLATED",
+   "LIVE_STATUS": "NOT_LIVE",
+   "BLOCKED_BY": [
+    "LIVE_SCHEMA_RECONCILIATION",
+    "ACCOUNTING_API_NOT_BUILT"
+   ],
+   "NEXT_REQUIRED_STEP": "LIVE read-only census + replay, then Accounting API boundary"
+  },
+  {
+   "MODULE_ID": "JOURNAL_LINES",
+   "CAPABILITY_ID": "capability-4cb78bc1-93ac-4b8f-a2f9-294da1f3b132",
+   "canonical_name": "accounting-journal-lines",
+   "PURPOSE": "Debit/credit posting lines, per-document, per-party",
+   "RESPONSIBILITY": "Canonical GL line; one_side_only CHECK",
+   "INPUTS": "entry_id,account_code,debit|credit,party_id,doc_kind,document_id",
+   "INPUT_SOURCE": [
+    "JOURNAL_ENTRIES"
+   ],
+   "ENTRYPOINT": "post_event()/add_line() → INSERT journal_lines",
+   "OUTPUTS": "dr/cr lines",
+   "RESULT_RETURN_PATH": "GL views",
+   "DEPENDS_ON": [
+    "JOURNAL_ENTRIES",
+    "CHART_OF_ACCOUNTS"
+   ],
+   "USED_BY": [
+    "GL",
+    "AR",
+    "AP",
+    "VAT",
+    "WHT",
+    "reports"
+   ],
+   "EXECUTION_METHOD": "isolated Postgres SQL function/view (no callable API yet)",
+   "REQUIRED_CAPABILITIES": [
+    "accounting-journal-entries",
+    "accounting-chart-of-accounts"
+   ],
+   "REQUIRED_RESOURCES": [
+    "tests/__sandbox__/accounting-kernel/*.sql (isolated proof)"
+   ],
+   "SIDE_EFFECTS": "writes only to isolated proof DB acct_reverify; NEVER Supabase LIVE",
+   "AUTHORITY_REQUIRED": "none in isolation; LIVE promotion requires Owner approval",
+   "VERIFICATION_METHOD": "acct-accept2.sql assertion",
+   "SUCCESS_CONDITION": "assertion PASS in 23/23 run",
+   "FAILURE_CONDITION": "assertion FAIL / trigger raise",
+   "EVIDENCE_IDS": [
+    "tests/__sandbox__/accounting-kernel/EVIDENCE-acceptance-reverify.txt#sha256:372912703192b15b"
+   ],
+   "IMPLEMENTATION_STATUS": "BUILT",
+   "VERIFICATION_STATUS": "VERIFIED_ISOLATED",
+   "LIVE_STATUS": "NOT_LIVE",
+   "BLOCKED_BY": [
+    "LIVE_SCHEMA_RECONCILIATION",
+    "ACCOUNTING_API_NOT_BUILT"
+   ],
+   "NEXT_REQUIRED_STEP": "LIVE read-only census + replay, then Accounting API boundary"
+  },
+  {
+   "MODULE_ID": "DOUBLE_ENTRY_ENFORCEMENT",
+   "CAPABILITY_ID": "capability-677ecdff-0c82-4b9a-84d6-05e88c360078",
+   "canonical_name": "accounting-double-entry-enforcement",
+   "PURPOSE": "DB deferred constraint trigger Σdebit=Σcredit per entry",
+   "RESPONSIBILITY": "Structural guarantee at commit",
+   "INPUTS": "all lines of an entry",
+   "INPUT_SOURCE": [
+    "JOURNAL_LINES"
+   ],
+   "ENTRYPOINT": "deferred constraint trigger assert_entry_balanced (at commit)",
+   "OUTPUTS": "commit or UNBALANCED_ENTRY",
+   "RESULT_RETURN_PATH": "raises on imbalance",
+   "DEPENDS_ON": [
+    "JOURNAL_LINES"
+   ],
+   "USED_BY": [
+    "every posting"
+   ],
+   "EXECUTION_METHOD": "isolated Postgres SQL function/view (no callable API yet)",
+   "REQUIRED_CAPABILITIES": [
+    "accounting-journal-lines"
+   ],
+   "REQUIRED_RESOURCES": [
+    "tests/__sandbox__/accounting-kernel/*.sql (isolated proof)"
+   ],
+   "SIDE_EFFECTS": "writes only to isolated proof DB acct_reverify; NEVER Supabase LIVE",
+   "AUTHORITY_REQUIRED": "none in isolation; LIVE promotion requires Owner approval",
+   "VERIFICATION_METHOD": "acct-accept2.sql assertion",
+   "SUCCESS_CONDITION": "assertion PASS in 23/23 run",
+   "FAILURE_CONDITION": "assertion FAIL / trigger raise",
+   "EVIDENCE_IDS": [
+    "tests/__sandbox__/accounting-kernel/EVIDENCE-acceptance-reverify.txt#sha256:372912703192b15b"
+   ],
+   "IMPLEMENTATION_STATUS": "BUILT",
+   "VERIFICATION_STATUS": "VERIFIED_ISOLATED",
+   "LIVE_STATUS": "NOT_LIVE",
+   "BLOCKED_BY": [
+    "LIVE_SCHEMA_RECONCILIATION",
+    "ACCOUNTING_API_NOT_BUILT"
+   ],
+   "NEXT_REQUIRED_STEP": "LIVE read-only census + replay, then Accounting API boundary"
+  },
+  {
+   "MODULE_ID": "IMMUTABLE_POSTING",
+   "CAPABILITY_ID": "capability-84b25435-f4f5-47cd-a5e9-c142d2f21e24",
+   "canonical_name": "accounting-immutable-posting",
+   "PURPOSE": "Reject UPDATE/DELETE on entries/lines",
+   "RESPONSIBILITY": "Corrections only via reversal",
+   "INPUTS": "any mutation attempt",
+   "INPUT_SOURCE": [
+    "JOURNAL_ENTRIES/LINES"
+   ],
+   "ENTRYPOINT": "reject_mutation trigger on UPDATE/DELETE",
+   "OUTPUTS": "IMMUTABLE_LEDGER error",
+   "RESULT_RETURN_PATH": "raises",
+   "DEPENDS_ON": [
+    "JOURNAL_ENTRIES",
+    "JOURNAL_LINES"
+   ],
+   "USED_BY": [
+    "REVERSAL is the only correction"
+   ],
+   "EXECUTION_METHOD": "isolated Postgres SQL function/view (no callable API yet)",
+   "REQUIRED_CAPABILITIES": [
+    "accounting-journal-entries",
+    "accounting-journal-lines"
+   ],
+   "REQUIRED_RESOURCES": [
+    "tests/__sandbox__/accounting-kernel/*.sql (isolated proof)"
+   ],
+   "SIDE_EFFECTS": "writes only to isolated proof DB acct_reverify; NEVER Supabase LIVE",
+   "AUTHORITY_REQUIRED": "none in isolation; LIVE promotion requires Owner approval",
+   "VERIFICATION_METHOD": "acct-accept2.sql assertion",
+   "SUCCESS_CONDITION": "assertion PASS in 23/23 run",
+   "FAILURE_CONDITION": "assertion FAIL / trigger raise",
+   "EVIDENCE_IDS": [
+    "tests/__sandbox__/accounting-kernel/EVIDENCE-acceptance-reverify.txt#sha256:372912703192b15b"
+   ],
+   "IMPLEMENTATION_STATUS": "BUILT",
+   "VERIFICATION_STATUS": "VERIFIED_ISOLATED",
+   "LIVE_STATUS": "NOT_LIVE",
+   "BLOCKED_BY": [
+    "LIVE_SCHEMA_RECONCILIATION",
+    "ACCOUNTING_API_NOT_BUILT"
+   ],
+   "NEXT_REQUIRED_STEP": "LIVE read-only census + replay, then Accounting API boundary"
+  },
+  {
+   "MODULE_ID": "REVERSAL",
+   "CAPABILITY_ID": "capability-5a642b4c-7003-4bec-91d8-21d6e34c0341",
+   "canonical_name": "accounting-reversal",
+   "PURPOSE": "Mirror-entry reversal preserving doc_kind/party",
+   "RESPONSIBILITY": "Immutable-safe correction",
+   "INPUTS": "entry_id,period",
+   "INPUT_SOURCE": [
+    "JOURNAL_ENTRIES"
+   ],
+   "ENTRYPOINT": "reverse_entry(entry_id,period)",
+   "OUTPUTS": "mirror entry (swap dr/cr, copy doc_kind)",
+   "RESULT_RETURN_PATH": "reversal entry uuid",
+   "DEPENDS_ON": [
+    "IMMUTABLE_POSTING"
+   ],
+   "USED_BY": [
+    "corrections",
+    "refund"
+   ],
+   "EXECUTION_METHOD": "isolated Postgres SQL function/view (no callable API yet)",
+   "REQUIRED_CAPABILITIES": [
+    "accounting-immutable-posting"
+   ],
+   "REQUIRED_RESOURCES": [
+    "tests/__sandbox__/accounting-kernel/*.sql (isolated proof)"
+   ],
+   "SIDE_EFFECTS": "writes only to isolated proof DB acct_reverify; NEVER Supabase LIVE",
+   "AUTHORITY_REQUIRED": "none in isolation; LIVE promotion requires Owner approval",
+   "VERIFICATION_METHOD": "acct-accept2.sql assertion",
+   "SUCCESS_CONDITION": "assertion PASS in 23/23 run",
+   "FAILURE_CONDITION": "assertion FAIL / trigger raise",
+   "EVIDENCE_IDS": [
+    "tests/__sandbox__/accounting-kernel/EVIDENCE-acceptance-reverify.txt#sha256:372912703192b15b"
+   ],
+   "IMPLEMENTATION_STATUS": "BUILT",
+   "VERIFICATION_STATUS": "VERIFIED_ISOLATED",
+   "LIVE_STATUS": "NOT_LIVE",
+   "BLOCKED_BY": [
+    "LIVE_SCHEMA_RECONCILIATION",
+    "ACCOUNTING_API_NOT_BUILT"
+   ],
+   "NEXT_REQUIRED_STEP": "LIVE read-only census + replay, then Accounting API boundary"
+  },
+  {
+   "MODULE_ID": "IDEMPOTENT_POSTING",
+   "CAPABILITY_ID": "capability-f364f062-188c-4546-a182-a89ac16e2b40",
+   "canonical_name": "accounting-idempotent-posting",
+   "PURPOSE": "Unique idempotency_key; re-post returns same entry, no new lines",
+   "RESPONSIBILITY": "Prevents double-posting",
+   "INPUTS": "idempotency_key",
+   "INPUT_SOURCE": [
+    "FINANCIAL_EVENT_MODEL"
+   ],
+   "ENTRYPOINT": "unique idempotency_key + post_event returns existing",
+   "OUTPUTS": "same entry, no new lines",
+   "RESULT_RETURN_PATH": "existing entry uuid",
+   "DEPENDS_ON": [
+    "FINANCIAL_EVENT_MODEL"
+   ],
+   "USED_BY": [
+    "all events"
+   ],
+   "EXECUTION_METHOD": "isolated Postgres SQL function/view (no callable API yet)",
+   "REQUIRED_CAPABILITIES": [
+    "accounting-financial-event-model"
+   ],
+   "REQUIRED_RESOURCES": [
+    "tests/__sandbox__/accounting-kernel/*.sql (isolated proof)"
+   ],
+   "SIDE_EFFECTS": "writes only to isolated proof DB acct_reverify; NEVER Supabase LIVE",
+   "AUTHORITY_REQUIRED": "none in isolation; LIVE promotion requires Owner approval",
+   "VERIFICATION_METHOD": "acct-accept2.sql assertion",
+   "SUCCESS_CONDITION": "assertion PASS in 23/23 run",
+   "FAILURE_CONDITION": "assertion FAIL / trigger raise",
+   "EVIDENCE_IDS": [
+    "tests/__sandbox__/accounting-kernel/EVIDENCE-acceptance-reverify.txt#sha256:372912703192b15b"
+   ],
+   "IMPLEMENTATION_STATUS": "BUILT",
+   "VERIFICATION_STATUS": "VERIFIED_ISOLATED",
+   "LIVE_STATUS": "NOT_LIVE",
+   "BLOCKED_BY": [
+    "LIVE_SCHEMA_RECONCILIATION",
+    "ACCOUNTING_API_NOT_BUILT"
+   ],
+   "NEXT_REQUIRED_STEP": "LIVE read-only census + replay, then Accounting API boundary"
+  },
+  {
+   "MODULE_ID": "AR_PER_DOCUMENT",
+   "CAPABILITY_ID": "capability-fb9ffbc6-0985-40aa-9927-d030a070c52f",
+   "canonical_name": "accounting-ar-per-document",
+   "PURPOSE": "Accounts-receivable balance per invoice (not company-level)",
+   "RESPONSIBILITY": "Derived from ledger view",
+   "INPUTS": "ledger",
+   "INPUT_SOURCE": [
+    "JOURNAL_LINES"
+   ],
+   "ENTRYPOINT": "view ar_by_document_v2 (account 1130 by document)",
+   "OUTPUTS": "AR balance per invoice",
+   "RESULT_RETURN_PATH": "SELECT",
+   "DEPENDS_ON": [
+    "JOURNAL_LINES"
+   ],
+   "USED_BY": [
+    "payment status",
+    "reports"
+   ],
+   "EXECUTION_METHOD": "isolated Postgres SQL function/view (no callable API yet)",
+   "REQUIRED_CAPABILITIES": [
+    "accounting-journal-lines"
+   ],
+   "REQUIRED_RESOURCES": [
+    "tests/__sandbox__/accounting-kernel/*.sql (isolated proof)"
+   ],
+   "SIDE_EFFECTS": "writes only to isolated proof DB acct_reverify; NEVER Supabase LIVE",
+   "AUTHORITY_REQUIRED": "none in isolation; LIVE promotion requires Owner approval",
+   "VERIFICATION_METHOD": "acct-accept2.sql assertion",
+   "SUCCESS_CONDITION": "assertion PASS in 23/23 run",
+   "FAILURE_CONDITION": "assertion FAIL / trigger raise",
+   "EVIDENCE_IDS": [
+    "tests/__sandbox__/accounting-kernel/EVIDENCE-acceptance-reverify.txt#sha256:372912703192b15b"
+   ],
+   "IMPLEMENTATION_STATUS": "BUILT",
+   "VERIFICATION_STATUS": "VERIFIED_ISOLATED",
+   "LIVE_STATUS": "NOT_LIVE",
+   "BLOCKED_BY": [
+    "LIVE_SCHEMA_RECONCILIATION",
+    "ACCOUNTING_API_NOT_BUILT"
+   ],
+   "NEXT_REQUIRED_STEP": "LIVE read-only census + replay, then Accounting API boundary"
+  },
+  {
+   "MODULE_ID": "AP_PER_DOCUMENT",
+   "CAPABILITY_ID": "capability-324b770d-edfb-4273-85c9-bae3166455e2",
+   "canonical_name": "accounting-ap-per-document",
+   "PURPOSE": "Accounts-payable balance per supplier document",
+   "RESPONSIBILITY": "Derived from ledger view",
+   "INPUTS": "ledger",
+   "INPUT_SOURCE": [
+    "JOURNAL_LINES"
+   ],
+   "ENTRYPOINT": "view ap_by_document (account 2110 by document)",
+   "OUTPUTS": "AP balance per supplier doc",
+   "RESULT_RETURN_PATH": "SELECT",
+   "DEPENDS_ON": [
+    "JOURNAL_LINES"
+   ],
+   "USED_BY": [
+    "supplier payment",
+    "reports"
+   ],
+   "EXECUTION_METHOD": "isolated Postgres SQL function/view (no callable API yet)",
+   "REQUIRED_CAPABILITIES": [
+    "accounting-journal-lines"
+   ],
+   "REQUIRED_RESOURCES": [
+    "tests/__sandbox__/accounting-kernel/*.sql (isolated proof)"
+   ],
+   "SIDE_EFFECTS": "writes only to isolated proof DB acct_reverify; NEVER Supabase LIVE",
+   "AUTHORITY_REQUIRED": "none in isolation; LIVE promotion requires Owner approval",
+   "VERIFICATION_METHOD": "acct-accept2.sql assertion",
+   "SUCCESS_CONDITION": "assertion PASS in 23/23 run",
+   "FAILURE_CONDITION": "assertion FAIL / trigger raise",
+   "EVIDENCE_IDS": [
+    "tests/__sandbox__/accounting-kernel/EVIDENCE-acceptance-reverify.txt#sha256:372912703192b15b"
+   ],
+   "IMPLEMENTATION_STATUS": "BUILT",
+   "VERIFICATION_STATUS": "VERIFIED_ISOLATED",
+   "LIVE_STATUS": "NOT_LIVE",
+   "BLOCKED_BY": [
+    "LIVE_SCHEMA_RECONCILIATION",
+    "ACCOUNTING_API_NOT_BUILT"
+   ],
+   "NEXT_REQUIRED_STEP": "LIVE read-only census + replay, then Accounting API boundary"
+  },
+  {
+   "MODULE_ID": "PAYMENT_ALLOCATIONS",
+   "CAPABILITY_ID": "capability-c7443c29-7e43-4f8d-a786-49a550b3bdd6",
+   "canonical_name": "accounting-payment-allocations",
+   "PURPOSE": "Allocate a payment across invoices (partial/multi)",
+   "RESPONSIBILITY": "Row-level 'receipt X applied Y to invoice Z'",
+   "INPUTS": "payment→{invoice,amount}[]",
+   "INPUT_SOURCE": [
+    "receive_payment event"
+   ],
+   "ENTRYPOINT": "payment_allocations rows within receive_payment",
+   "OUTPUTS": "allocation rows; AR reduced per doc",
+   "RESULT_RETURN_PATH": "AR views",
+   "DEPENDS_ON": [
+    "AR_PER_DOCUMENT"
+   ],
+   "USED_BY": [
+    "AR_PER_DOCUMENT",
+    "reconciliation"
+   ],
+   "EXECUTION_METHOD": "isolated Postgres SQL function/view (no callable API yet)",
+   "REQUIRED_CAPABILITIES": [
+    "accounting-ar-per-document"
+   ],
+   "REQUIRED_RESOURCES": [
+    "tests/__sandbox__/accounting-kernel/*.sql (isolated proof)"
+   ],
+   "SIDE_EFFECTS": "writes only to isolated proof DB acct_reverify; NEVER Supabase LIVE",
+   "AUTHORITY_REQUIRED": "none in isolation; LIVE promotion requires Owner approval",
+   "VERIFICATION_METHOD": "acct-accept2.sql assertion",
+   "SUCCESS_CONDITION": "assertion PASS in 23/23 run",
+   "FAILURE_CONDITION": "assertion FAIL / trigger raise",
+   "EVIDENCE_IDS": [
+    "tests/__sandbox__/accounting-kernel/EVIDENCE-acceptance-reverify.txt#sha256:372912703192b15b"
+   ],
+   "IMPLEMENTATION_STATUS": "BUILT",
+   "VERIFICATION_STATUS": "VERIFIED_ISOLATED",
+   "LIVE_STATUS": "NOT_LIVE",
+   "BLOCKED_BY": [
+    "LIVE_SCHEMA_RECONCILIATION",
+    "ACCOUNTING_API_NOT_BUILT"
+   ],
+   "NEXT_REQUIRED_STEP": "LIVE read-only census + replay, then Accounting API boundary"
+  },
+  {
+   "MODULE_ID": "RECONCILIATION_MATCHES",
+   "CAPABILITY_ID": "capability-37f8d478-787f-42ee-89c2-7cc5e61b4110",
+   "canonical_name": "accounting-reconciliation-matches",
+   "PURPOSE": "Persist bank-row ↔ document ↔ event match",
+   "RESPONSIBILITY": "First-class match ledger (vs legacy scalar matched_* FK)",
+   "INPUTS": "bank_statement_transaction,document,event",
+   "INPUT_SOURCE": [
+    "bank_statement_transactions",
+    "FINANCIAL_EVENT_EVIDENCE"
+   ],
+   "ENTRYPOINT": "reconciliation_matches rows (bank_row↔doc↔event)",
+   "OUTPUTS": "match rows",
+   "RESULT_RETURN_PATH": "SELECT",
+   "DEPENDS_ON": [
+    "FINANCIAL_EVENT_EVIDENCE"
+   ],
+   "USED_BY": [
+    "receive_payment lineage"
+   ],
+   "EXECUTION_METHOD": "isolated Postgres SQL function/view (no callable API yet)",
+   "REQUIRED_CAPABILITIES": [
+    "accounting-financial-event-evidence"
+   ],
+   "REQUIRED_RESOURCES": [
+    "tests/__sandbox__/accounting-kernel/*.sql (isolated proof)"
+   ],
+   "SIDE_EFFECTS": "writes only to isolated proof DB acct_reverify; NEVER Supabase LIVE",
+   "AUTHORITY_REQUIRED": "none in isolation; LIVE promotion requires Owner approval",
+   "VERIFICATION_METHOD": "acct-accept2.sql assertion",
+   "SUCCESS_CONDITION": "assertion PASS in 23/23 run",
+   "FAILURE_CONDITION": "assertion FAIL / trigger raise",
+   "EVIDENCE_IDS": [
+    "tests/__sandbox__/accounting-kernel/EVIDENCE-acceptance-reverify.txt#sha256:372912703192b15b"
+   ],
+   "IMPLEMENTATION_STATUS": "BUILT",
+   "VERIFICATION_STATUS": "VERIFIED_ISOLATED",
+   "LIVE_STATUS": "NOT_LIVE",
+   "BLOCKED_BY": [
+    "LIVE_SCHEMA_RECONCILIATION",
+    "ACCOUNTING_API_NOT_BUILT"
+   ],
+   "NEXT_REQUIRED_STEP": "LIVE read-only census + replay, then Accounting API boundary"
+  },
+  {
+   "MODULE_ID": "VAT_LEDGER",
+   "CAPABILITY_ID": "capability-d39a2c3f-404b-4f36-bef6-2d7100deb7b2",
+   "canonical_name": "accounting-vat-ledger",
+   "PURPOSE": "Output/Input VAT posting accounts",
+   "RESPONSIBILITY": "Canonical VAT position from ledger",
+   "INPUTS": "invoice/expense vat",
+   "INPUT_SOURCE": [
+    "invoices",
+    "company_expenses"
+   ],
+   "ENTRYPOINT": "post_event posts 2130 Output / 1140 Input VAT",
+   "OUTPUTS": "VAT positions",
+   "RESULT_RETURN_PATH": "account_balances",
+   "DEPENDS_ON": [
+    "JOURNAL_LINES"
+   ],
+   "USED_BY": [
+    "VAT_REPORT",
+    "tax package"
+   ],
+   "EXECUTION_METHOD": "isolated Postgres SQL function/view (no callable API yet)",
+   "REQUIRED_CAPABILITIES": [
+    "accounting-journal-lines"
+   ],
+   "REQUIRED_RESOURCES": [
+    "tests/__sandbox__/accounting-kernel/*.sql (isolated proof)"
+   ],
+   "SIDE_EFFECTS": "writes only to isolated proof DB acct_reverify; NEVER Supabase LIVE",
+   "AUTHORITY_REQUIRED": "none in isolation; LIVE promotion requires Owner approval",
+   "VERIFICATION_METHOD": "acct-accept2.sql assertion",
+   "SUCCESS_CONDITION": "assertion PASS in 23/23 run",
+   "FAILURE_CONDITION": "assertion FAIL / trigger raise",
+   "EVIDENCE_IDS": [
+    "tests/__sandbox__/accounting-kernel/EVIDENCE-acceptance-reverify.txt#sha256:372912703192b15b"
+   ],
+   "IMPLEMENTATION_STATUS": "BUILT",
+   "VERIFICATION_STATUS": "VERIFIED_ISOLATED",
+   "LIVE_STATUS": "NOT_LIVE",
+   "BLOCKED_BY": [
+    "LIVE_SCHEMA_RECONCILIATION",
+    "ACCOUNTING_API_NOT_BUILT"
+   ],
+   "NEXT_REQUIRED_STEP": "LIVE read-only census + replay, then Accounting API boundary"
+  },
+  {
+   "MODULE_ID": "WHT_LEDGER",
+   "CAPABILITY_ID": "capability-36a0cf57-e5ef-45df-b295-5e9078fd36f4",
+   "canonical_name": "accounting-wht-ledger",
+   "PURPOSE": "WHT receivable (customer withheld) + WHT payable (we withheld supplier)",
+   "RESPONSIBILITY": "Canonical WHT position",
+   "INPUTS": "receive_payment/pay wht",
+   "INPUT_SOURCE": [
+    "invoices",
+    "supplier_documents"
+   ],
+   "ENTRYPOINT": "post_event posts 1150 WHT recv / 2140 WHT payable",
+   "OUTPUTS": "WHT positions",
+   "RESULT_RETURN_PATH": "account_balances",
+   "DEPENDS_ON": [
+    "JOURNAL_LINES"
+   ],
+   "USED_BY": [
+    "WHT_REPORT",
+    "tax package"
+   ],
+   "EXECUTION_METHOD": "isolated Postgres SQL function/view (no callable API yet)",
+   "REQUIRED_CAPABILITIES": [
+    "accounting-journal-lines"
+   ],
+   "REQUIRED_RESOURCES": [
+    "tests/__sandbox__/accounting-kernel/*.sql (isolated proof)"
+   ],
+   "SIDE_EFFECTS": "writes only to isolated proof DB acct_reverify; NEVER Supabase LIVE",
+   "AUTHORITY_REQUIRED": "none in isolation; LIVE promotion requires Owner approval",
+   "VERIFICATION_METHOD": "acct-accept2.sql assertion",
+   "SUCCESS_CONDITION": "assertion PASS in 23/23 run",
+   "FAILURE_CONDITION": "assertion FAIL / trigger raise",
+   "EVIDENCE_IDS": [
+    "tests/__sandbox__/accounting-kernel/EVIDENCE-acceptance-reverify.txt#sha256:372912703192b15b"
+   ],
+   "IMPLEMENTATION_STATUS": "BUILT",
+   "VERIFICATION_STATUS": "VERIFIED_ISOLATED",
+   "LIVE_STATUS": "NOT_LIVE",
+   "BLOCKED_BY": [
+    "LIVE_SCHEMA_RECONCILIATION",
+    "ACCOUNTING_API_NOT_BUILT"
+   ],
+   "NEXT_REQUIRED_STEP": "LIVE read-only census + replay, then Accounting API boundary"
+  },
+  {
+   "MODULE_ID": "TRIAL_BALANCE",
+   "CAPABILITY_ID": "capability-151c2560-f982-4e3d-8aa6-b32d273b0a0e",
+   "canonical_name": "accounting-trial-balance",
+   "PURPOSE": "Σdebit=Σcredit report + signed-balance-sums-to-0",
+   "RESPONSIBILITY": "Derived report",
+   "INPUTS": "ledger",
+   "INPUT_SOURCE": [
+    "JOURNAL_LINES"
+   ],
+   "ENTRYPOINT": "view trial_balance",
+   "OUTPUTS": "Σdr=Σcr, signed sum=0",
+   "RESULT_RETURN_PATH": "SELECT",
+   "DEPENDS_ON": [
+    "JOURNAL_LINES"
+   ],
+   "USED_BY": [
+    "close",
+    "audit"
+   ],
+   "EXECUTION_METHOD": "isolated Postgres SQL function/view (no callable API yet)",
+   "REQUIRED_CAPABILITIES": [
+    "accounting-journal-lines"
+   ],
+   "REQUIRED_RESOURCES": [
+    "tests/__sandbox__/accounting-kernel/*.sql (isolated proof)"
+   ],
+   "SIDE_EFFECTS": "writes only to isolated proof DB acct_reverify; NEVER Supabase LIVE",
+   "AUTHORITY_REQUIRED": "none in isolation; LIVE promotion requires Owner approval",
+   "VERIFICATION_METHOD": "acct-accept2.sql assertion",
+   "SUCCESS_CONDITION": "assertion PASS in 23/23 run",
+   "FAILURE_CONDITION": "assertion FAIL / trigger raise",
+   "EVIDENCE_IDS": [
+    "tests/__sandbox__/accounting-kernel/EVIDENCE-acceptance-reverify.txt#sha256:372912703192b15b"
+   ],
+   "IMPLEMENTATION_STATUS": "BUILT",
+   "VERIFICATION_STATUS": "VERIFIED_ISOLATED",
+   "LIVE_STATUS": "NOT_LIVE",
+   "BLOCKED_BY": [
+    "LIVE_SCHEMA_RECONCILIATION",
+    "ACCOUNTING_API_NOT_BUILT"
+   ],
+   "NEXT_REQUIRED_STEP": "LIVE read-only census + replay, then Accounting API boundary"
+  },
+  {
+   "MODULE_ID": "PROFIT_AND_LOSS",
+   "CAPABILITY_ID": "capability-ea1f5a5a-aec5-43ba-88b1-4c2c7fe6f88b",
+   "canonical_name": "accounting-profit-and-loss",
+   "PURPOSE": "P&L from revenue/expense accounts",
+   "RESPONSIBILITY": "Derived report",
+   "INPUTS": "ledger REVENUE/EXPENSE",
+   "INPUT_SOURCE": [
+    "JOURNAL_LINES",
+    "CHART_OF_ACCOUNTS"
+   ],
+   "ENTRYPOINT": "view pnl",
+   "OUTPUTS": "P&L",
+   "RESULT_RETURN_PATH": "SELECT",
+   "DEPENDS_ON": [
+    "JOURNAL_LINES",
+    "CHART_OF_ACCOUNTS"
+   ],
+   "USED_BY": [
+    "reporting"
+   ],
+   "EXECUTION_METHOD": "isolated Postgres SQL function/view (no callable API yet)",
+   "REQUIRED_CAPABILITIES": [
+    "accounting-journal-lines",
+    "accounting-chart-of-accounts"
+   ],
+   "REQUIRED_RESOURCES": [
+    "tests/__sandbox__/accounting-kernel/*.sql (isolated proof)"
+   ],
+   "SIDE_EFFECTS": "writes only to isolated proof DB acct_reverify; NEVER Supabase LIVE",
+   "AUTHORITY_REQUIRED": "none in isolation; LIVE promotion requires Owner approval",
+   "VERIFICATION_METHOD": "acct-accept2.sql assertion",
+   "SUCCESS_CONDITION": "assertion PASS in 23/23 run",
+   "FAILURE_CONDITION": "assertion FAIL / trigger raise",
+   "EVIDENCE_IDS": [
+    "tests/__sandbox__/accounting-kernel/EVIDENCE-acceptance-reverify.txt#sha256:372912703192b15b"
+   ],
+   "IMPLEMENTATION_STATUS": "BUILT",
+   "VERIFICATION_STATUS": "VERIFIED_ISOLATED",
+   "LIVE_STATUS": "NOT_LIVE",
+   "BLOCKED_BY": [
+    "LIVE_SCHEMA_RECONCILIATION",
+    "ACCOUNTING_API_NOT_BUILT"
+   ],
+   "NEXT_REQUIRED_STEP": "LIVE read-only census + replay, then Accounting API boundary"
+  },
+  {
+   "MODULE_ID": "BALANCE_SHEET",
+   "CAPABILITY_ID": "capability-cd679a7a-5ff4-4fec-ae44-c98774e61086",
+   "canonical_name": "accounting-balance-sheet",
+   "PURPOSE": "Assets=Liabilities+Equity from ledger",
+   "RESPONSIBILITY": "Derived report",
+   "INPUTS": "ledger ASSET/LIAB/EQUITY",
+   "INPUT_SOURCE": [
+    "JOURNAL_LINES",
+    "CHART_OF_ACCOUNTS"
+   ],
+   "ENTRYPOINT": "view balance_sheet",
+   "OUTPUTS": "A=L+E",
+   "RESULT_RETURN_PATH": "SELECT",
+   "DEPENDS_ON": [
+    "JOURNAL_LINES",
+    "CHART_OF_ACCOUNTS"
+   ],
+   "USED_BY": [
+    "reporting"
+   ],
+   "EXECUTION_METHOD": "isolated Postgres SQL function/view (no callable API yet)",
+   "REQUIRED_CAPABILITIES": [
+    "accounting-journal-lines",
+    "accounting-chart-of-accounts"
+   ],
+   "REQUIRED_RESOURCES": [
+    "tests/__sandbox__/accounting-kernel/*.sql (isolated proof)"
+   ],
+   "SIDE_EFFECTS": "writes only to isolated proof DB acct_reverify; NEVER Supabase LIVE",
+   "AUTHORITY_REQUIRED": "none in isolation; LIVE promotion requires Owner approval",
+   "VERIFICATION_METHOD": "acct-accept2.sql assertion",
+   "SUCCESS_CONDITION": "assertion PASS in 23/23 run",
+   "FAILURE_CONDITION": "assertion FAIL / trigger raise",
+   "EVIDENCE_IDS": [
+    "tests/__sandbox__/accounting-kernel/EVIDENCE-acceptance-reverify.txt#sha256:372912703192b15b"
+   ],
+   "IMPLEMENTATION_STATUS": "BUILT",
+   "VERIFICATION_STATUS": "VERIFIED_ISOLATED",
+   "LIVE_STATUS": "NOT_LIVE",
+   "BLOCKED_BY": [
+    "LIVE_SCHEMA_RECONCILIATION",
+    "ACCOUNTING_API_NOT_BUILT"
+   ],
+   "NEXT_REQUIRED_STEP": "LIVE read-only census + replay, then Accounting API boundary"
+  },
+  {
+   "MODULE_ID": "VAT_REPORT",
+   "CAPABILITY_ID": "capability-e8f026a9-4cb1-483d-8eb4-38935973245d",
+   "canonical_name": "accounting-vat-report",
+   "PURPOSE": "PP30-shaped output/input/net VAT for period",
+   "RESPONSIBILITY": "Derived from VAT_LEDGER",
+   "INPUTS": "VAT_LEDGER,period",
+   "INPUT_SOURCE": [
+    "VAT_LEDGER"
+   ],
+   "ENTRYPOINT": "view vat_report(period)",
+   "OUTPUTS": "output/input/net VAT (PP30-shaped)",
+   "RESULT_RETURN_PATH": "SELECT",
+   "DEPENDS_ON": [
+    "VAT_LEDGER",
+    "ACCOUNTING_PERIODS"
+   ],
+   "USED_BY": [
+    "tax package"
+   ],
+   "EXECUTION_METHOD": "isolated Postgres SQL function/view (no callable API yet)",
+   "REQUIRED_CAPABILITIES": [
+    "accounting-vat-ledger",
+    "accounting-accounting-periods"
+   ],
+   "REQUIRED_RESOURCES": [
+    "tests/__sandbox__/accounting-kernel/*.sql (isolated proof)"
+   ],
+   "SIDE_EFFECTS": "writes only to isolated proof DB acct_reverify; NEVER Supabase LIVE",
+   "AUTHORITY_REQUIRED": "none in isolation; LIVE promotion requires Owner approval",
+   "VERIFICATION_METHOD": "acct-accept2.sql assertion",
+   "SUCCESS_CONDITION": "assertion PASS in 23/23 run",
+   "FAILURE_CONDITION": "assertion FAIL / trigger raise",
+   "EVIDENCE_IDS": [
+    "tests/__sandbox__/accounting-kernel/EVIDENCE-acceptance-reverify.txt#sha256:372912703192b15b"
+   ],
+   "IMPLEMENTATION_STATUS": "BUILT",
+   "VERIFICATION_STATUS": "VERIFIED_ISOLATED",
+   "LIVE_STATUS": "NOT_LIVE",
+   "BLOCKED_BY": [
+    "LIVE_SCHEMA_RECONCILIATION",
+    "ACCOUNTING_API_NOT_BUILT"
+   ],
+   "NEXT_REQUIRED_STEP": "LIVE read-only census + replay, then Accounting API boundary"
+  },
+  {
+   "MODULE_ID": "WHT_REPORT",
+   "CAPABILITY_ID": "capability-0394181e-eb59-43a8-88cb-852561a49199",
+   "canonical_name": "accounting-wht-report",
+   "PURPOSE": "PND-shaped WHT recv/payable for period",
+   "RESPONSIBILITY": "Derived from WHT_LEDGER",
+   "INPUTS": "WHT_LEDGER,period",
+   "INPUT_SOURCE": [
+    "WHT_LEDGER"
+   ],
+   "ENTRYPOINT": "view wht_report(period)",
+   "OUTPUTS": "WHT recv/payable (PND-shaped)",
+   "RESULT_RETURN_PATH": "SELECT",
+   "DEPENDS_ON": [
+    "WHT_LEDGER",
+    "ACCOUNTING_PERIODS"
+   ],
+   "USED_BY": [
+    "tax package"
+   ],
+   "EXECUTION_METHOD": "isolated Postgres SQL function/view (no callable API yet)",
+   "REQUIRED_CAPABILITIES": [
+    "accounting-wht-ledger",
+    "accounting-accounting-periods"
+   ],
+   "REQUIRED_RESOURCES": [
+    "tests/__sandbox__/accounting-kernel/*.sql (isolated proof)"
+   ],
+   "SIDE_EFFECTS": "writes only to isolated proof DB acct_reverify; NEVER Supabase LIVE",
+   "AUTHORITY_REQUIRED": "none in isolation; LIVE promotion requires Owner approval",
+   "VERIFICATION_METHOD": "acct-accept2.sql assertion",
+   "SUCCESS_CONDITION": "assertion PASS in 23/23 run",
+   "FAILURE_CONDITION": "assertion FAIL / trigger raise",
+   "EVIDENCE_IDS": [
+    "tests/__sandbox__/accounting-kernel/EVIDENCE-acceptance-reverify.txt#sha256:372912703192b15b"
+   ],
+   "IMPLEMENTATION_STATUS": "BUILT",
+   "VERIFICATION_STATUS": "VERIFIED_ISOLATED",
+   "LIVE_STATUS": "NOT_LIVE",
+   "BLOCKED_BY": [
+    "LIVE_SCHEMA_RECONCILIATION",
+    "ACCOUNTING_API_NOT_BUILT"
+   ],
+   "NEXT_REQUIRED_STEP": "LIVE read-only census + replay, then Accounting API boundary"
+  },
+  {
+   "MODULE_ID": "TAX_SUBMISSION_PACKAGE_BUILDER",
+   "CAPABILITY_ID": "capability-7e77cc8d-55a9-4f37-a840-35f71eb4a29a",
+   "canonical_name": "accounting-tax-submission-package-builder",
+   "PURPOSE": "Build PP30/PND package from ledger (status DRAFT/BUILT/...)",
+   "RESPONSIBILITY": "Builds package; does NOT submit",
+   "INPUTS": "period,kind(PP30/PND..)",
+   "INPUT_SOURCE": [
+    "VAT_REPORT",
+    "WHT_REPORT"
+   ],
+   "ENTRYPOINT": "build from VAT_REPORT/WHT_REPORT → tax_submission_packages(status BUILT)",
+   "OUTPUTS": "package status BUILT (NOT submitted)",
+   "RESULT_RETURN_PATH": "package row",
+   "DEPENDS_ON": [
+    "VAT_REPORT",
+    "WHT_REPORT"
+   ],
+   "USED_BY": [
+    "(external submission NOT_PROVEN)"
+   ],
+   "EXECUTION_METHOD": "isolated Postgres SQL function/view (no callable API yet)",
+   "REQUIRED_CAPABILITIES": [
+    "accounting-vat-report",
+    "accounting-wht-report"
+   ],
+   "REQUIRED_RESOURCES": [
+    "tests/__sandbox__/accounting-kernel/*.sql (isolated proof)"
+   ],
+   "SIDE_EFFECTS": "writes only to isolated proof DB acct_reverify; NEVER Supabase LIVE",
+   "AUTHORITY_REQUIRED": "none in isolation; LIVE promotion requires Owner approval",
+   "VERIFICATION_METHOD": "acct-accept2.sql assertion",
+   "SUCCESS_CONDITION": "assertion PASS in 23/23 run",
+   "FAILURE_CONDITION": "assertion FAIL / trigger raise",
+   "EVIDENCE_IDS": [
+    "tests/__sandbox__/accounting-kernel/EVIDENCE-acceptance-reverify.txt#sha256:372912703192b15b"
+   ],
+   "IMPLEMENTATION_STATUS": "BUILT",
+   "VERIFICATION_STATUS": "VERIFIED_ISOLATED",
+   "LIVE_STATUS": "NOT_LIVE",
+   "BLOCKED_BY": [
+    "EXTERNAL_RD_INTERFACE_NOT_PROVEN",
+    "ACCOUNTING_API_NOT_BUILT"
+   ],
+   "NEXT_REQUIRED_STEP": "LIVE read-only census + replay, then Accounting API boundary"
+  }
+ ],
+ "OPERATIONS": [
+  {
+   "OPERATION_ID": "ISSUE_INVOICE",
+   "PURPOSE": "AR + revenue + output VAT from an issued invoice",
+   "REQUIRED_INPUT": "invoice(evidence)+period",
+   "ENTRY_CAPABILITY": "Accounting API (NOT_BUILT) — proven isolated entrypoint: post_event(issue_invoice)",
+   "ENTRYPOINT_ISOLATED": "post_event(issue_invoice)",
+   "REQUIRED_RESOURCE": "isolated kernel DB (tests/__sandbox__/accounting-kernel) — LIVE requires promotion",
+   "ACCOUNTING_MODULES_USED": [
+    "accounting-financial-event-model",
+    "accounting-journal-entries",
+    "accounting-journal-lines",
+    "accounting-ar-per-document",
+    "accounting-vat-ledger"
+   ],
+   "EXPECTED_OUTPUT": "Dr AR / Cr Revenue / Cr Output VAT",
+   "SIDE_EFFECT_CLASS": "LEDGER_WRITE",
+   "VERIFICATION": "acct-accept2.sql",
+   "EVIDENCE_EXPECTED": "23/23 evidence",
+   "CURRENT_AVAILABILITY": "NOT_CALLABLE",
+   "BLOCKED_BY": "ACCOUNTING_API_NOT_BUILT"
+  },
+  {
+   "OPERATION_ID": "RECEIVE_PAYMENT",
+   "PURPOSE": "settle AR from bank+receipt; allocate; WHT recv",
+   "REQUIRED_INPUT": "bank_row+receipt+invoice",
+   "ENTRY_CAPABILITY": "Accounting API (NOT_BUILT) — proven isolated entrypoint: post_event(receive_payment)",
+   "ENTRYPOINT_ISOLATED": "post_event(receive_payment)",
+   "REQUIRED_RESOURCE": "isolated kernel DB (tests/__sandbox__/accounting-kernel) — LIVE requires promotion",
+   "ACCOUNTING_MODULES_USED": [
+    "accounting-financial-event-model",
+    "accounting-payment-allocations",
+    "accounting-ar-per-document",
+    "accounting-wht-ledger",
+    "accounting-reconciliation-matches"
+   ],
+   "EXPECTED_OUTPUT": "Dr Bank(+WHT recv) / Cr AR",
+   "SIDE_EFFECT_CLASS": "LEDGER_WRITE",
+   "VERIFICATION": "acct-accept2.sql",
+   "EVIDENCE_EXPECTED": "23/23 evidence",
+   "CURRENT_AVAILABILITY": "NOT_CALLABLE",
+   "BLOCKED_BY": "ACCOUNTING_API_NOT_BUILT"
+  },
+  {
+   "OPERATION_ID": "PAY_SUPPLIER",
+   "PURPOSE": "settle AP; WHT payable",
+   "REQUIRED_INPUT": "supplier_document+bank",
+   "ENTRY_CAPABILITY": "Accounting API (NOT_BUILT) — proven isolated entrypoint: post_event(pay)",
+   "ENTRYPOINT_ISOLATED": "post_event(pay)",
+   "REQUIRED_RESOURCE": "isolated kernel DB (tests/__sandbox__/accounting-kernel) — LIVE requires promotion",
+   "ACCOUNTING_MODULES_USED": [
+    "accounting-financial-event-model",
+    "accounting-ap-per-document",
+    "accounting-wht-ledger"
+   ],
+   "EXPECTED_OUTPUT": "Dr AP / Cr Bank / Cr WHT payable",
+   "SIDE_EFFECT_CLASS": "LEDGER_WRITE",
+   "VERIFICATION": "acct-accept2.sql",
+   "EVIDENCE_EXPECTED": "23/23 evidence",
+   "CURRENT_AVAILABILITY": "NOT_CALLABLE",
+   "BLOCKED_BY": "ACCOUNTING_API_NOT_BUILT"
+  },
+  {
+   "OPERATION_ID": "RECORD_EXPENSE",
+   "PURPOSE": "expense + input VAT + payable",
+   "REQUIRED_INPUT": "company_expense(evidence)",
+   "ENTRY_CAPABILITY": "Accounting API (NOT_BUILT) — proven isolated entrypoint: post_event(expense)",
+   "ENTRYPOINT_ISOLATED": "post_event(expense)",
+   "REQUIRED_RESOURCE": "isolated kernel DB (tests/__sandbox__/accounting-kernel) — LIVE requires promotion",
+   "ACCOUNTING_MODULES_USED": [
+    "accounting-financial-event-model",
+    "accounting-vat-ledger",
+    "accounting-ap-per-document"
+   ],
+   "EXPECTED_OUTPUT": "Dr Expense / Dr Input VAT / Cr AP",
+   "SIDE_EFFECT_CLASS": "LEDGER_WRITE",
+   "VERIFICATION": "acct-accept2.sql",
+   "EVIDENCE_EXPECTED": "23/23 evidence",
+   "CURRENT_AVAILABILITY": "NOT_CALLABLE",
+   "BLOCKED_BY": "ACCOUNTING_API_NOT_BUILT"
+  },
+  {
+   "OPERATION_ID": "RECORD_VAT",
+   "PURPOSE": "post output/input VAT positions",
+   "REQUIRED_INPUT": "invoice/expense vat",
+   "ENTRY_CAPABILITY": "Accounting API (NOT_BUILT) — proven isolated entrypoint: (within issue/expense)",
+   "ENTRYPOINT_ISOLATED": "(within issue/expense)",
+   "REQUIRED_RESOURCE": "isolated kernel DB (tests/__sandbox__/accounting-kernel) — LIVE requires promotion",
+   "ACCOUNTING_MODULES_USED": [
+    "accounting-vat-ledger"
+   ],
+   "EXPECTED_OUTPUT": "VAT ledger positions",
+   "SIDE_EFFECT_CLASS": "LEDGER_WRITE",
+   "VERIFICATION": "acct-accept2.sql",
+   "EVIDENCE_EXPECTED": "23/23 evidence",
+   "CURRENT_AVAILABILITY": "NOT_CALLABLE",
+   "BLOCKED_BY": "ACCOUNTING_API_NOT_BUILT"
+  },
+  {
+   "OPERATION_ID": "RECORD_WHT",
+   "PURPOSE": "post WHT recv/payable",
+   "REQUIRED_INPUT": "withheld amount",
+   "ENTRY_CAPABILITY": "Accounting API (NOT_BUILT) — proven isolated entrypoint: (within receive/pay)",
+   "ENTRYPOINT_ISOLATED": "(within receive/pay)",
+   "REQUIRED_RESOURCE": "isolated kernel DB (tests/__sandbox__/accounting-kernel) — LIVE requires promotion",
+   "ACCOUNTING_MODULES_USED": [
+    "accounting-wht-ledger"
+   ],
+   "EXPECTED_OUTPUT": "WHT ledger positions",
+   "SIDE_EFFECT_CLASS": "LEDGER_WRITE",
+   "VERIFICATION": "acct-accept2.sql",
+   "EVIDENCE_EXPECTED": "23/23 evidence",
+   "CURRENT_AVAILABILITY": "NOT_CALLABLE",
+   "BLOCKED_BY": "ACCOUNTING_API_NOT_BUILT"
+  },
+  {
+   "OPERATION_ID": "REFUND",
+   "PURPOSE": "refund customer deposit/overpay",
+   "REQUIRED_INPUT": "refund event",
+   "ENTRY_CAPABILITY": "Accounting API (NOT_BUILT) — proven isolated entrypoint: post_event(refund)",
+   "ENTRYPOINT_ISOLATED": "post_event(refund)",
+   "REQUIRED_RESOURCE": "isolated kernel DB (tests/__sandbox__/accounting-kernel) — LIVE requires promotion",
+   "ACCOUNTING_MODULES_USED": [
+    "accounting-financial-event-model",
+    "accounting-journal-lines"
+   ],
+   "EXPECTED_OUTPUT": "Dr Deposit / Cr Bank",
+   "SIDE_EFFECT_CLASS": "LEDGER_WRITE",
+   "VERIFICATION": "acct-accept2.sql",
+   "EVIDENCE_EXPECTED": "23/23 evidence",
+   "CURRENT_AVAILABILITY": "NOT_CALLABLE",
+   "BLOCKED_BY": "ACCOUNTING_API_NOT_BUILT"
+  },
+  {
+   "OPERATION_ID": "ADJUSTMENT",
+   "PURPOSE": "credit note / adjustment",
+   "REQUIRED_INPUT": "credit_note(evidence)",
+   "ENTRY_CAPABILITY": "Accounting API (NOT_BUILT) — proven isolated entrypoint: post_event(adjustment)",
+   "ENTRYPOINT_ISOLATED": "post_event(adjustment)",
+   "REQUIRED_RESOURCE": "isolated kernel DB (tests/__sandbox__/accounting-kernel) — LIVE requires promotion",
+   "ACCOUNTING_MODULES_USED": [
+    "accounting-financial-event-model",
+    "accounting-ar-per-document"
+   ],
+   "EXPECTED_OUTPUT": "credit-note posting",
+   "SIDE_EFFECT_CLASS": "LEDGER_WRITE",
+   "VERIFICATION": "acct-accept2.sql",
+   "EVIDENCE_EXPECTED": "23/23 evidence",
+   "CURRENT_AVAILABILITY": "NOT_CALLABLE",
+   "BLOCKED_BY": "ACCOUNTING_API_NOT_BUILT"
+  },
+  {
+   "OPERATION_ID": "REVERSAL",
+   "PURPOSE": "reverse a posted entry",
+   "REQUIRED_INPUT": "entry_id+period",
+   "ENTRY_CAPABILITY": "Accounting API (NOT_BUILT) — proven isolated entrypoint: reverse_entry()",
+   "ENTRYPOINT_ISOLATED": "reverse_entry()",
+   "REQUIRED_RESOURCE": "isolated kernel DB (tests/__sandbox__/accounting-kernel) — LIVE requires promotion",
+   "ACCOUNTING_MODULES_USED": [
+    "accounting-reversal",
+    "accounting-immutable-posting"
+   ],
+   "EXPECTED_OUTPUT": "mirror entry (swap dr/cr)",
+   "SIDE_EFFECT_CLASS": "LEDGER_WRITE",
+   "VERIFICATION": "acct-accept2.sql",
+   "EVIDENCE_EXPECTED": "23/23 evidence",
+   "CURRENT_AVAILABILITY": "NOT_CALLABLE",
+   "BLOCKED_BY": "ACCOUNTING_API_NOT_BUILT"
+  },
+  {
+   "OPERATION_ID": "RECONCILE_PAYMENT",
+   "PURPOSE": "match bank row to document/event",
+   "REQUIRED_INPUT": "bank_row+doc+event",
+   "ENTRY_CAPABILITY": "Accounting API (NOT_BUILT) — proven isolated entrypoint: reconciliation_matches",
+   "ENTRYPOINT_ISOLATED": "reconciliation_matches",
+   "REQUIRED_RESOURCE": "isolated kernel DB (tests/__sandbox__/accounting-kernel) — LIVE requires promotion",
+   "ACCOUNTING_MODULES_USED": [
+    "accounting-reconciliation-matches",
+    "accounting-financial-event-evidence"
+   ],
+   "EXPECTED_OUTPUT": "match rows",
+   "SIDE_EFFECT_CLASS": "LEDGER_WRITE",
+   "VERIFICATION": "acct-accept2.sql",
+   "EVIDENCE_EXPECTED": "23/23 evidence",
+   "CURRENT_AVAILABILITY": "NOT_CALLABLE",
+   "BLOCKED_BY": "ACCOUNTING_API_NOT_BUILT"
+  },
+  {
+   "OPERATION_ID": "ALLOCATE_PAYMENT",
+   "PURPOSE": "split a payment across invoices",
+   "REQUIRED_INPUT": "payment→{invoice,amount}[]",
+   "ENTRY_CAPABILITY": "Accounting API (NOT_BUILT) — proven isolated entrypoint: payment_allocations",
+   "ENTRYPOINT_ISOLATED": "payment_allocations",
+   "REQUIRED_RESOURCE": "isolated kernel DB (tests/__sandbox__/accounting-kernel) — LIVE requires promotion",
+   "ACCOUNTING_MODULES_USED": [
+    "accounting-payment-allocations",
+    "accounting-ar-per-document"
+   ],
+   "EXPECTED_OUTPUT": "allocation rows; AR per doc reduced",
+   "SIDE_EFFECT_CLASS": "LEDGER_WRITE",
+   "VERIFICATION": "acct-accept2.sql",
+   "EVIDENCE_EXPECTED": "23/23 evidence",
+   "CURRENT_AVAILABILITY": "NOT_CALLABLE",
+   "BLOCKED_BY": "ACCOUNTING_API_NOT_BUILT"
+  },
+  {
+   "OPERATION_ID": "CLOSE_PERIOD",
+   "PURPOSE": "close an accounting period",
+   "REQUIRED_INPUT": "period_code",
+   "ENTRY_CAPABILITY": "Accounting API (NOT_BUILT) — proven isolated entrypoint: UPDATE accounting_periods status=CLOSED",
+   "ENTRYPOINT_ISOLATED": "UPDATE accounting_periods status=CLOSED",
+   "REQUIRED_RESOURCE": "isolated kernel DB (tests/__sandbox__/accounting-kernel) — LIVE requires promotion",
+   "ACCOUNTING_MODULES_USED": [
+    "accounting-accounting-periods"
+   ],
+   "EXPECTED_OUTPUT": "period CLOSED; further posts rejected",
+   "SIDE_EFFECT_CLASS": "STATE_CHANGE",
+   "VERIFICATION": "acct-accept2.sql",
+   "EVIDENCE_EXPECTED": "23/23 evidence",
+   "CURRENT_AVAILABILITY": "NOT_CALLABLE",
+   "BLOCKED_BY": "ACCOUNTING_API_NOT_BUILT"
+  },
+  {
+   "OPERATION_ID": "GET_AR",
+   "PURPOSE": "read AR per document",
+   "REQUIRED_INPUT": "invoice_id|all",
+   "ENTRY_CAPABILITY": "Accounting API (NOT_BUILT) — proven isolated entrypoint: view ar_by_document_v2",
+   "ENTRYPOINT_ISOLATED": "view ar_by_document_v2",
+   "REQUIRED_RESOURCE": "isolated kernel DB (tests/__sandbox__/accounting-kernel) — LIVE requires promotion",
+   "ACCOUNTING_MODULES_USED": [
+    "accounting-ar-per-document"
+   ],
+   "EXPECTED_OUTPUT": "AR balances",
+   "SIDE_EFFECT_CLASS": "READ_ONLY",
+   "VERIFICATION": "acct-accept2.sql",
+   "EVIDENCE_EXPECTED": "23/23 evidence",
+   "CURRENT_AVAILABILITY": "NOT_CALLABLE",
+   "BLOCKED_BY": "ACCOUNTING_API_NOT_BUILT"
+  },
+  {
+   "OPERATION_ID": "GET_AP",
+   "PURPOSE": "read AP per document",
+   "REQUIRED_INPUT": "supplier_doc|all",
+   "ENTRY_CAPABILITY": "Accounting API (NOT_BUILT) — proven isolated entrypoint: view ap_by_document",
+   "ENTRYPOINT_ISOLATED": "view ap_by_document",
+   "REQUIRED_RESOURCE": "isolated kernel DB (tests/__sandbox__/accounting-kernel) — LIVE requires promotion",
+   "ACCOUNTING_MODULES_USED": [
+    "accounting-ap-per-document"
+   ],
+   "EXPECTED_OUTPUT": "AP balances",
+   "SIDE_EFFECT_CLASS": "READ_ONLY",
+   "VERIFICATION": "acct-accept2.sql",
+   "EVIDENCE_EXPECTED": "23/23 evidence",
+   "CURRENT_AVAILABILITY": "NOT_CALLABLE",
+   "BLOCKED_BY": "ACCOUNTING_API_NOT_BUILT"
+  },
+  {
+   "OPERATION_ID": "GET_TRIAL_BALANCE",
+   "PURPOSE": "read trial balance",
+   "REQUIRED_INPUT": "period",
+   "ENTRY_CAPABILITY": "Accounting API (NOT_BUILT) — proven isolated entrypoint: view trial_balance",
+   "ENTRYPOINT_ISOLATED": "view trial_balance",
+   "REQUIRED_RESOURCE": "isolated kernel DB (tests/__sandbox__/accounting-kernel) — LIVE requires promotion",
+   "ACCOUNTING_MODULES_USED": [
+    "accounting-trial-balance"
+   ],
+   "EXPECTED_OUTPUT": "Σdr=Σcr",
+   "SIDE_EFFECT_CLASS": "READ_ONLY",
+   "VERIFICATION": "acct-accept2.sql",
+   "EVIDENCE_EXPECTED": "23/23 evidence",
+   "CURRENT_AVAILABILITY": "NOT_CALLABLE",
+   "BLOCKED_BY": "ACCOUNTING_API_NOT_BUILT"
+  },
+  {
+   "OPERATION_ID": "GET_PROFIT_AND_LOSS",
+   "PURPOSE": "read P&L",
+   "REQUIRED_INPUT": "period",
+   "ENTRY_CAPABILITY": "Accounting API (NOT_BUILT) — proven isolated entrypoint: view pnl",
+   "ENTRYPOINT_ISOLATED": "view pnl",
+   "REQUIRED_RESOURCE": "isolated kernel DB (tests/__sandbox__/accounting-kernel) — LIVE requires promotion",
+   "ACCOUNTING_MODULES_USED": [
+    "accounting-profit-and-loss"
+   ],
+   "EXPECTED_OUTPUT": "P&L",
+   "SIDE_EFFECT_CLASS": "READ_ONLY",
+   "VERIFICATION": "acct-accept2.sql",
+   "EVIDENCE_EXPECTED": "23/23 evidence",
+   "CURRENT_AVAILABILITY": "NOT_CALLABLE",
+   "BLOCKED_BY": "ACCOUNTING_API_NOT_BUILT"
+  },
+  {
+   "OPERATION_ID": "GET_BALANCE_SHEET",
+   "PURPOSE": "read balance sheet",
+   "REQUIRED_INPUT": "as_of",
+   "ENTRY_CAPABILITY": "Accounting API (NOT_BUILT) — proven isolated entrypoint: view balance_sheet",
+   "ENTRYPOINT_ISOLATED": "view balance_sheet",
+   "REQUIRED_RESOURCE": "isolated kernel DB (tests/__sandbox__/accounting-kernel) — LIVE requires promotion",
+   "ACCOUNTING_MODULES_USED": [
+    "accounting-balance-sheet"
+   ],
+   "EXPECTED_OUTPUT": "A=L+E",
+   "SIDE_EFFECT_CLASS": "READ_ONLY",
+   "VERIFICATION": "acct-accept2.sql",
+   "EVIDENCE_EXPECTED": "23/23 evidence",
+   "CURRENT_AVAILABILITY": "NOT_CALLABLE",
+   "BLOCKED_BY": "ACCOUNTING_API_NOT_BUILT"
+  },
+  {
+   "OPERATION_ID": "GET_VAT_REPORT",
+   "PURPOSE": "read VAT report",
+   "REQUIRED_INPUT": "period",
+   "ENTRY_CAPABILITY": "Accounting API (NOT_BUILT) — proven isolated entrypoint: view vat_report",
+   "ENTRYPOINT_ISOLATED": "view vat_report",
+   "REQUIRED_RESOURCE": "isolated kernel DB (tests/__sandbox__/accounting-kernel) — LIVE requires promotion",
+   "ACCOUNTING_MODULES_USED": [
+    "accounting-vat-report"
+   ],
+   "EXPECTED_OUTPUT": "output/input/net VAT",
+   "SIDE_EFFECT_CLASS": "READ_ONLY",
+   "VERIFICATION": "acct-accept2.sql",
+   "EVIDENCE_EXPECTED": "23/23 evidence",
+   "CURRENT_AVAILABILITY": "NOT_CALLABLE",
+   "BLOCKED_BY": "ACCOUNTING_API_NOT_BUILT"
+  },
+  {
+   "OPERATION_ID": "GET_WHT_REPORT",
+   "PURPOSE": "read WHT report",
+   "REQUIRED_INPUT": "period",
+   "ENTRY_CAPABILITY": "Accounting API (NOT_BUILT) — proven isolated entrypoint: view wht_report",
+   "ENTRYPOINT_ISOLATED": "view wht_report",
+   "REQUIRED_RESOURCE": "isolated kernel DB (tests/__sandbox__/accounting-kernel) — LIVE requires promotion",
+   "ACCOUNTING_MODULES_USED": [
+    "accounting-wht-report"
+   ],
+   "EXPECTED_OUTPUT": "WHT recv/payable",
+   "SIDE_EFFECT_CLASS": "READ_ONLY",
+   "VERIFICATION": "acct-accept2.sql",
+   "EVIDENCE_EXPECTED": "23/23 evidence",
+   "CURRENT_AVAILABILITY": "NOT_CALLABLE",
+   "BLOCKED_BY": "ACCOUNTING_API_NOT_BUILT"
+  },
+  {
+   "OPERATION_ID": "BUILD_TAX_PACKAGE",
+   "PURPOSE": "build PP30/PND package from ledger",
+   "REQUIRED_INPUT": "period,kind",
+   "ENTRY_CAPABILITY": "Accounting API (NOT_BUILT) — proven isolated entrypoint: INSERT tax_submission_packages(status BUILT)",
+   "ENTRYPOINT_ISOLATED": "INSERT tax_submission_packages(status BUILT)",
+   "REQUIRED_RESOURCE": "isolated kernel DB (tests/__sandbox__/accounting-kernel) — LIVE requires promotion",
+   "ACCOUNTING_MODULES_USED": [
+    "accounting-tax-submission-package-builder",
+    "accounting-vat-report",
+    "accounting-wht-report"
+   ],
+   "EXPECTED_OUTPUT": "package status BUILT (NOT submitted)",
+   "SIDE_EFFECT_CLASS": "STATE_CHANGE",
+   "VERIFICATION": "acct-accept2.sql",
+   "EVIDENCE_EXPECTED": "23/23 evidence",
+   "CURRENT_AVAILABILITY": "NOT_CALLABLE",
+   "BLOCKED_BY": "ACCOUNTING_API_NOT_BUILT; submission=NOT_PROVEN_EXTERNAL"
+  }
+ ],
+ "FLOW": [
+  {
+   "step": 1,
+   "stage": "SOURCE / LEGACY OPERATION",
+   "points_to": [
+    "debt_events(FEEDER)",
+    "invoices",
+    "standalone_documents",
+    "company_expenses",
+    "partner_payable_requests",
+    "bank_statement_transactions"
+   ]
+  },
+  {
+   "step": 2,
+   "stage": "FINANCIAL EVENT",
+   "capability": "capability-cd4712dd-3705-4177-9a87-cb27652d7ee5"
+  },
+  {
+   "step": 3,
+   "stage": "FINANCIAL EVENT EVIDENCE",
+   "capability": "capability-478f4c31-2ade-4406-b21a-998e1f78227b"
+  },
+  {
+   "step": 4,
+   "stage": "POSTING RULE",
+   "note": "post_event() in kernel"
+  },
+  {
+   "step": 5,
+   "stage": "JOURNAL ENTRY + LINES",
+   "capability": [
+    "capability-8ee2d28b-7595-40f7-a197-f9d899ad7209",
+    "capability-4cb78bc1-93ac-4b8f-a2f9-294da1f3b132"
+   ],
+   "guard": [
+    "capability-677ecdff-0c82-4b9a-84d6-05e88c360078",
+    "capability-84b25435-f4f5-47cd-a5e9-c142d2f21e24",
+    "capability-f364f062-188c-4546-a182-a89ac16e2b40",
+    "capability-d6f946dd-6182-4af4-8416-d5b26f1d97e0"
+   ]
+  },
+  {
+   "step": 6,
+   "stage": "GENERAL LEDGER",
+   "note": "account_balances / general_ledger views"
+  },
+  {
+   "step": 7,
+   "stage": "AR / AP SUBLEDGER",
+   "capability": [
+    "capability-fb9ffbc6-0985-40aa-9927-d030a070c52f",
+    "capability-324b770d-edfb-4273-85c9-bae3166455e2"
+   ]
+  },
+  {
+   "step": 8,
+   "stage": "PAYMENT ALLOCATION / RECONCILIATION",
+   "capability": [
+    "capability-c7443c29-7e43-4f8d-a786-49a550b3bdd6",
+    "capability-37f8d478-787f-42ee-89c2-7cc5e61b4110"
+   ]
+  },
+  {
+   "step": 9,
+   "stage": "VAT / WHT",
+   "capability": [
+    "capability-d39a2c3f-404b-4f36-bef6-2d7100deb7b2",
+    "capability-36a0cf57-e5ef-45df-b295-5e9078fd36f4"
+   ]
+  },
+  {
+   "step": 10,
+   "stage": "TRIAL BALANCE",
+   "capability": "capability-151c2560-f982-4e3d-8aa6-b32d273b0a0e"
+  },
+  {
+   "step": 11,
+   "stage": "P&L / BALANCE SHEET",
+   "capability": [
+    "capability-ea1f5a5a-aec5-43ba-88b1-4c2c7fe6f88b",
+    "capability-cd679a7a-5ff4-4fec-ae44-c98774e61086"
+   ]
+  },
+  {
+   "step": 12,
+   "stage": "TAX SUBMISSION PACKAGE",
+   "capability": "capability-7e77cc8d-55a9-4f37-a840-35f71eb4a29a",
+   "note": "BUILT from ledger; external submission NOT_PROVEN"
+  }
+ ],
+ "LEGACY_ROLES": [
+  {
+   "object": "debt_events",
+   "ROLE": "FEEDER",
+   "note": "historical financial-event source"
+  },
+  {
+   "object": "debt_snapshots",
+   "ROLE": "PROJECTION",
+   "note": "cache; recomputed from ledger"
+  },
+  {
+   "object": "invoices.paid_amount",
+   "ROLE": "LEGACY_OPERATIONAL"
+  },
+  {
+   "object": "invoices.invoice_status",
+   "ROLE": "LEGACY_OPERATIONAL"
+  },
+  {
+   "object": "receipt_documents",
+   "ROLE": "EVIDENCE_SOURCE"
+  },
+  {
+   "object": "bank_notifications",
+   "ROLE": "EVIDENCE_SOURCE"
+  },
+  {
+   "object": "bank_statement_transactions",
+   "ROLE": "FINANCIAL_SOURCE+EVIDENCE_SOURCE"
+  },
+  {
+   "object": "company_expenses",
+   "ROLE": "FINANCIAL_SOURCE"
+  },
+  {
+   "object": "partner_payable_requests",
+   "ROLE": "FINANCIAL_SOURCE"
+  }
+ ],
+ "READINESS": {
+  "KERNEL_REGISTERED": true,
+  "KERNEL_VERIFIED_ISOLATED": true,
+  "CANONICAL_TRUTH_REGISTERED": true,
+  "LIVE_SCHEMA_RECONCILED": false,
+  "REAL_DATA_REPLAYED": false,
+  "BACKFILL_DRY_RUN_PASSED": false,
+  "LIVE_PROMOTED": false,
+  "ACCOUNTING_API_AVAILABLE": false,
+  "LEGACY_WRITERS_CUT_OVER": false,
+  "TAX_PACKAGE_BUILDER": "VERIFIED_ISOLATED",
+  "TAX_SUBMISSION": "NOT_PROVEN_EXTERNAL",
+  "READ_ONLY_BUSINESS_DB_RESOURCE": "MISSING_BLOCKED",
+  "ACCOUNTING_OPERATIONAL_STATUS": "BLOCKED_PRELIVE",
+  "BLOCKING_REASON": "kernel is VERIFIED_ISOLATED but not promoted; no callable Accounting API; LIVE census blocked by missing read-only business-DB access",
+  "BLOCKING_RESOURCE": "BUSINESS_DATA_READ_CAPABILITY (read-only access to deadboard business DB xeytcavxejhyzxwevgto)",
+  "NEXT_REQUIRED_CAPABILITY": "DATABASE_READ_TOOL (read-only) — schema_inspection, bounded_select, row_count, metadata_read",
+  "NEXT_REQUIRED_ACTION": "Owner grants read-only business-DB access → run LIVE schema/data reconciliation + real-data replay + backfill dry-run → then build Accounting API boundary → then Owner-approved LIVE promotion"
+ },
+ "READBACK_INDEX": {
+  "what_is_it": "SYSTEM.PURPOSE",
+  "why_built": "SYSTEM.BUSINESS_PROBLEM",
+  "truth_location": "SYSTEM.CANONICAL_TRUTH",
+  "modules": "MODULES[].CAPABILITY_ID",
+  "receive_payment_behavior": "OPERATIONS[RECEIVE_PAYMENT]",
+  "get_ar": "OPERATIONS[GET_AR]",
+  "pnl_path": "OPERATIONS[GET_PROFIT_AND_LOSS] via FLOW step 11",
+  "vat_source": "LEGACY_ROLES + FLOW step 9 (vat-ledger)",
+  "is_it_live": "SYSTEM.PRODUCTION_STATUS + READINESS",
+  "why_not_working": "READINESS.BLOCKING_REASON",
+  "blocked_by": "READINESS.BLOCKING_RESOURCE",
+  "next_tool": "READINESS.NEXT_REQUIRED_CAPABILITY",
+  "next_step": "READINESS.NEXT_REQUIRED_ACTION"
+ }
+}
