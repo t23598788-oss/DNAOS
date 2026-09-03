@@ -1,0 +1,20 @@
+{
+  "DNA_OS_EVENT_ID": "dna-os-event-8aee84b6-6711-49dd-a844-82a48ec8b515",
+  "WORK_ID": "work-6134a19f-89b1-40f6-a9ad-b36b530fda17",
+  "N8N_WORKFLOW_ID": "jiNltcrOhck2wYtM",
+  "N8N_EXECUTION_ID": "1",
+  "REQUEST_TIMESTAMP": "2026-08-26T20:51:19.804Z",
+  "RESPONSE_TIMESTAMP": "2026-08-26T20:51:20.281Z",
+  "ROUND_TRIP_MS": 477,
+  "HTTP_STATUS": 200,
+  "OUTPUT": {
+    "accepted": true,
+    "workflow_id": "jiNltcrOhck2wYtM",
+    "received_event_id": "dna-os-event-8aee84b6-6711-49dd-a844-82a48ec8b515",
+    "processed_at": "2026-08-26T20:51:20.249Z",
+    "result": "RECEIVED_capability.status.reported",
+    "evidence_ref": "connections/n8n/evidence/outbound-proof-1787777479804.json"
+  },
+  "n8n_base_url": "https://n8n.srv1740014.hstgr.cloud",
+  "webhook_path": "dna-os-outbound-proof"
+}

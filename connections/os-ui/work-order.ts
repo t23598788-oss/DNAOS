@@ -84,7 +84,7 @@
  * requires the Owner to designate a specific, confirmed-idle target
  * window first.
  */
-export type UiActionKind = "open_url" | "open_path" | "open_app" | "screenshot" | "read_screen" | "speak" | "click" | "type" | "key" | "focus" | "wait" | "discover_agent_sessions" | "create_agent_session" | "select_agent_session" | "submit_work_order" | "read_agent_result";
+export type UiActionKind = "open_url" | "open_path" | "open_app" | "screenshot" | "read_screen" | "speak" | "click" | "type" | "key" | "focus" | "wait" | "discover_agent_sessions" | "create_agent_session" | "select_agent_session" | "submit_work_order" | "read_agent_result" | "browser_eval" | "pointer_move" | "double_click" | "scroll" | "drag";
 
 export interface UiWorkOrder {
   ui_action: UiActionKind;
@@ -109,10 +109,25 @@ export interface UiWorkOrder {
   control_label?: string;
   /** Bounded screen coordinate for click fallback, only when explicitly supplied. */
   coordinate?: { x: number; y: number };
+  /** ปลายทางของ drag (drag เท่านั้น) */
+  coordinate2?: { x: number; y: number };
+  /** ระยะ scroll เป็น pixel (scroll เท่านั้น) — dy ลบ = เลื่อนลง ตาม CGEvent */
+  delta?: { dx: number; dy: number };
   /** Text for `type`; never accepted on credential surfaces and limited by admission. */
   text?: string;
   /** Allowlisted key chord for `key` (for example `COMMAND+S`). */
   key?: string;
+  /**
+   * JavaScript to run in Chrome's active tab (browser_eval only). This is a
+   * DOM-level executor — canonical browser control (read/fill form, select,
+   * scroll, set file input via DataTransfer) that does not depend on fragile
+   * screen coordinates. HIGH risk, Owner-lane only (never in
+   * AGENT_REQUESTABLE_UI_ACTIONS), and never runnable on a credential surface
+   * (the `target` host is checked by isCredentialSurface). The script must
+   * never read back a secret value into its return — the caller is
+   * responsible, same discipline as `type` on credential fields.
+   */
+  script?: string;
 }
 
 export type RiskLevel = "LOW" | "HIGH";
@@ -184,6 +199,7 @@ function classifyRisk(order: UiWorkOrder): RiskLevel {
   if (["click", "type", "key"].includes(order.ui_action)) return "HIGH"; // direct UI mutation requires explicit Owner review
   if (order.ui_action === "discover_agent_sessions") return "LOW"; // read-only Accessibility scan, no mutation — see ../agent-session-discovery.ts
   if (["create_agent_session", "select_agent_session", "submit_work_order", "read_agent_result"].includes(order.ui_action)) return "HIGH"; // mutates/reads a live agent chat session — same review bar as click/type/key
+  if (order.ui_action === "browser_eval") return "HIGH"; // runs arbitrary JS in the browser DOM — mutates page state
   return "LOW"; // open_path (allowlisted roots only), open_app (allowlisted keys only)
 }
 
@@ -235,6 +251,23 @@ export function validateUiWorkOrder(order: UiWorkOrder): ValidationResult {
       if (isCredentialSurface(order.text ?? "", order.scope)) reasons.push("CREDENTIAL_SURFACE_DENIED");
     }
     if (order.ui_action === "key" && (!order.key || !ALLOWED_KEYS.has(order.key.toUpperCase()))) reasons.push("KEY_NOT_ALLOWLISTED");
+  } else if (["pointer_move", "double_click", "scroll", "drag"].includes(order.ui_action)) {
+    // pointer primitives (CGEvent ผ่าน mouse-helper) — screen-coordinate ล้วน
+    const boundedPoint = (c?: { x: number; y: number }) => c && Number.isSafeInteger(c.x) && Number.isSafeInteger(c.y) && c.x >= 0 && c.y >= 0 && c.x <= 20000 && c.y <= 20000;
+    if (order.ui_action === "scroll") {
+      if (!order.delta || !Number.isSafeInteger(order.delta.dx) || !Number.isSafeInteger(order.delta.dy) || Math.abs(order.delta.dx) > 20000 || Math.abs(order.delta.dy) > 20000) reasons.push("SCROLL_DELTA_REQUIRED");
+    } else if (order.ui_action === "drag") {
+      if (!boundedPoint(order.coordinate) || !boundedPoint(order.coordinate2)) reasons.push("DRAG_REQUIRES_TWO_COORDINATES");
+    } else {
+      if (!boundedPoint(order.coordinate)) reasons.push("COORDINATE_OUT_OF_BOUNDS");
+    }
+  } else if (order.ui_action === "browser_eval") {
+    // DOM executor — Chrome only, script required + bounded. The
+    // credential-surface denial at the top already runs on target/scope,
+    // so a browser_eval aimed at a login/credential host is refused.
+    if (order.app !== "chrome") reasons.push("APP_NOT_ALLOWLISTED");
+    if (typeof order.script !== "string" || order.script.length === 0) reasons.push("SCRIPT_REQUIRED");
+    else if (order.script.length > 200_000) reasons.push("SCRIPT_TOO_LONG");
   } else if (order.ui_action === "wait") {
     if (order.target && !ALLOWED_APP_KEYS.includes(order.target)) reasons.push("APP_NOT_ALLOWLISTED");
   } else if (order.ui_action === "discover_agent_sessions") {

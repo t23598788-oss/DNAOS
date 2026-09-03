@@ -1,0 +1,16 @@
+{
+  "work_order": "tiktok-developer-app-configuration",
+  "recorded_at": "2026-09-01",
+  "owner_authority": "OWNER (root of DNA OS)",
+  "target": "TikTok Developer Portal (developers.tiktok.com, app 7680187321018533896)",
+  "allow": ["inspect DOM", "fill form", "upload approved app icon", "configure Login Kit", "configure required read scopes (user.info.basic, video.list)", "configure redirect URI", "save configuration", "submit application for review"],
+  "deny": ["unrelated sites", "unrelated accounts", "unrelated credentials", "operations outside this Work Order"],
+  "authorization_model_gap": "TRUE — no permission-lease infrastructure exists yet. This record is a plain evidence note, NOT a real enforced lease. Phases 3-4 of BUILD_DNA_OS_COMPUTER_USE_SYSTEM (voice->structured authorization, permission lease with expiry, deterministic validation) are not implemented. Not faked.",
+  "blocker_classification": {
+    "CLAUDE_HOST_POLICY_BLOCKED": "TRUE — the Claude Code auto-mode safety classifier denies commands that run browser-automation JavaScript (raw osascript execute-javascript AND browser_eval routed via runUiWorkOrder from Claude's own shell). This is a host safety layer, independent of Owner authorization. Not bypassed, not evaded.",
+    "DNA_OS_PERMISSION_DENIED": "FALSE — Owner authorization stands; os-ui admission (validateUiWorkOrder) passes browser_eval when risk_confirmed and Chrome-scoped.",
+    "TIKTOK_PROVIDER_BLOCKED": "PARTIAL/UNCONFIRMED — App details still has errors (Description over 120-char max; Category empty; ToS/Privacy 'URL not verified'). The URL-verification requirement may be a real provider blocker: the ToS/Privacy are hosted on supabase.co, a domain the Owner does not control for TikTok's URL-properties verification. To be confirmed."
+  },
+  "execution_boundary_gap": "TRUE — browser_eval is registered as an os-ui primitive, but the deterministic execution owner does not route it: control/command-router/router.ts (the owner execution path) allowlists only [open_url, open_path, open_app, screenshot, read_screen, speak, click, type, key, focus, wait] (router.ts:392) and is NOT_YET_BUILT as a running caller. There is no running local DNA OS executor service that can run a browser_eval Work Order. Therefore browser_eval can currently only be executed by Claude directly (which the host classifier blocks). No shortcut was created.",
+  "browser_eval_execution_owner_should_be": "Owner -> Work Order -> Permission Gate -> registered os-ui/browser_eval -> deterministic local executor (a running DNA OS service) -> Chrome JS bridge -> DOM -> evidence. The local-executor service does not exist yet."
+}

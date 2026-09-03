@@ -269,6 +269,65 @@ async function runAccessibilityAction(order: UiWorkOrder): Promise<{ ok: boolean
   return result.ok ? { ok: true, evidence: ["accessibility=OK", `action=${order.ui_action}`] } : { ok: false, evidence: ["accessibility=FAILED", `action=${order.ui_action}`], error: "macOS Accessibility action failed or permission was denied" };
 }
 
+/**
+ * browser_eval executor — runs JavaScript in Chrome's active tab through the
+ * official AppleScript JS bridge ("Allow JavaScript from Apple Events").
+ *
+ * This is the canonical, coordinate-free browser control primitive: it reads
+ * and fills form fields by DOM (React-safe native setters + input/change
+ * events), selects options, scrolls, and sets file inputs via DataTransfer —
+ * none of which depends on fragile screen coordinates. The JS is escaped for
+ * the AppleScript string literal via JSON.stringify (same escaping the string
+ * literal accepts for \n / \" / \\), then passed as a single execFile arg (no
+ * shell), so arbitrary quotes/newlines in the script are safe.
+ *
+ * It never receives or returns a secret by design — the caller writes the
+ * script and is bound by the same credential-surface discipline as `type`.
+ */
+async function runBrowserEval(script: string, timeoutMs: number): Promise<{ ok: boolean; result: string; error?: string }> {
+  const { execFile } = await import("node:child_process");
+  const { promisify } = await import("node:util");
+  const jsLiteral = JSON.stringify(script).slice(1, -1); // escape for the AppleScript "..." literal
+  const appleScript = `tell application "Google Chrome" to execute active tab of front window javascript "${jsLiteral}"`;
+  try {
+    const { stdout } = await promisify(execFile)("/usr/bin/osascript", ["-e", appleScript], { timeout: Math.min(timeoutMs, 30_000), maxBuffer: 8 * 1024 * 1024 });
+    return { ok: true, result: stdout.trim() };
+  } catch (error) {
+    return { ok: false, result: "", error: error instanceof Error ? error.message : String(error) };
+  }
+}
+
+/**
+ * pointer primitives (pointer_move/double_click/scroll/drag) — CGEvent จริงผ่าน
+ * connections/os-ui/bin/mouse-helper (Swift) เพราะ System Events (AppleScript) ทำ
+ * scroll/drag/move ไม่ได้ helper ต้องมี Accessibility permission เช่นเดียวกับ click
+ */
+async function runMouseHelper(order: UiWorkOrder): Promise<{ ok: boolean; evidence: string[]; error?: string }> {
+  const { execFile } = await import("node:child_process");
+  const { promisify } = await import("node:util");
+  const { join } = await import("node:path");
+  const bin = join(process.cwd(), "connections/os-ui/bin/mouse-helper");
+  const c = order.coordinate, c2 = order.coordinate2, d = order.delta;
+  const run = promisify(execFile);
+
+  // click/double_click ใช้ native op ของ mouse-helper (clickState ถูกต้องในไบนารีที่ recompile แล้ว):
+  //   click  => leftMouseDown/Up clickState=1  => DOM click
+  //   double => pair1 clickState=1, pair2 clickState=2 => DOM dblclick (native semantics ไม่ใช่ 2 คลิกแยก)
+  let args: string[];
+  if (order.ui_action === "pointer_move") args = ["move", String(c?.x ?? 0), String(c?.y ?? 0)];
+  else if (order.ui_action === "click") args = ["click", String(c?.x ?? 0), String(c?.y ?? 0)];
+  else if (order.ui_action === "double_click") args = ["double", String(c?.x ?? 0), String(c?.y ?? 0)];
+  else if (order.ui_action === "scroll") args = ["scroll", String(d?.dx ?? 0), String(d?.dy ?? 0)];
+  else args = ["drag", String(c?.x ?? 0), String(c?.y ?? 0), String(c2?.x ?? 0), String(c2?.y ?? 0)];
+  try {
+    const { stdout } = await run(bin, args, { timeout: 10_000, maxBuffer: 8 * 1024 });
+    const out = stdout.trim();
+    return out.startsWith("OK") ? { ok: true, evidence: ["mouse_helper=OK", out] } : { ok: false, evidence: ["mouse_helper=UNEXPECTED", out], error: out };
+  } catch (error) {
+    return { ok: false, evidence: ["mouse_helper=FAILED"], error: error instanceof Error ? error.message : String(error) };
+  }
+}
+
 // open_app's `open -a <value>` name vs. the REAL process name macOS
 // registers with System Events are NOT always the same string (real,
 // observed: "Visual Studio Code" launches a process actually named
@@ -375,6 +434,20 @@ export async function runUiWorkOrder(order: UiWorkOrder): Promise<UiWorkOrderOut
     outcome = speak.ok
       ? { ok: true, status: "COMPLETED", summary: "Spoke text via macOS say", evidence: [...admission.evidence, "say=OK"], artifacts: [], next_action: null, idempotent_replay: false, presentation: null, focus_restored: null }
       : { ok: false, status: "FAILED", summary: timedOut ? `speak timed out after ${order.timeout_ms}ms` : `speak failed: ${speak.error ?? "unknown"}`, evidence: [...admission.evidence, timedOut ? "timeout=true" : "say=FAILED"], artifacts: [], next_action: "Retry speak", idempotent_replay: false, presentation: null, focus_restored: null };
+  } else if (["pointer_move", "double_click", "scroll", "drag"].includes(order.ui_action) || (order.ui_action === "click" && !!order.coordinate)) {
+    // coordinate "click" ใช้ CGEvent จริง (mouse-helper) เหมือน double_click/drag —
+    // AppleScript `click at {x,y}` ของ System Events ไม่เสถียร (มักเป็น no-op บน macOS
+    // ยุคใหม่) จึง route coordinate-click มาทาง CGEvent ส่วน control_label-click (ไม่มี
+    // coordinate) ยังไปทาง Accessibility ด้านล่างเพื่อไม่กระทบ caller เดิม (เช่น voice-bridge)
+    const { result, timedOut } = await runWithTimeout(() => runMouseHelper(order), order.timeout_ms, { ok: false, evidence: ["timeout=true"], error: "TIMEOUT" });
+    outcome = result.ok
+      ? { ok: true, status: "COMPLETED", summary: `${order.ui_action} via CGEvent`, evidence: [...admission.evidence, ...result.evidence], artifacts: [], next_action: null, idempotent_replay: false, presentation: null, focus_restored: null }
+      : { ok: false, status: "FAILED", summary: timedOut ? `${order.ui_action} timed out after ${order.timeout_ms}ms` : `${order.ui_action} failed: ${result.error ?? "unknown error"}`, evidence: [...admission.evidence, ...result.evidence], artifacts: [], next_action: "Verify Accessibility permission for connections/os-ui/bin/mouse-helper", idempotent_replay: false, presentation: null, focus_restored: null };
+  } else if (order.ui_action === "browser_eval") {
+    const { result, timedOut } = await runWithTimeout(() => runBrowserEval(order.script ?? "", order.timeout_ms), order.timeout_ms, { ok: false, result: "", error: "TIMEOUT" });
+    outcome = result.ok
+      ? { ok: true, status: "COMPLETED", summary: "browser_eval completed in Chrome active tab", evidence: [...admission.evidence, "browser_eval=OK"], artifacts: [{ kind: "eval_result", ref: result.result.slice(0, 8000) }], next_action: null, idempotent_replay: false, presentation: null, focus_restored: null }
+      : { ok: false, status: "FAILED", summary: timedOut ? `browser_eval timed out after ${order.timeout_ms}ms` : `browser_eval failed: ${result.error ?? "unknown error"}`, evidence: [...admission.evidence, "browser_eval=FAILED"], artifacts: [], next_action: "Verify Chrome 'Allow JavaScript from Apple Events' is enabled", idempotent_replay: false, presentation: null, focus_restored: null };
   } else if (["click", "type", "key", "focus", "wait"].includes(order.ui_action)) {
     const { result, timedOut } = await runWithTimeout(() => runAccessibilityAction(order), order.timeout_ms, { ok: false, evidence: ["timeout=true"], error: "TIMEOUT" });
     outcome = result.ok

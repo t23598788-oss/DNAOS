@@ -1,0 +1,222 @@
+{
+ "updatedAt": "2026-08-26T20:55:52.383Z",
+ "createdAt": "2026-08-26T20:50:51.342Z",
+ "id": "jiNltcrOhck2wYtM",
+ "name": "DNA-OS-OUTBOUND-ORCHESTRATION-PROOF",
+ "description": null,
+ "active": true,
+ "isArchived": false,
+ "nodes": [
+  {
+   "parameters": {
+    "httpMethod": "POST",
+    "path": "dna-os-outbound-proof",
+    "responseMode": "responseNode",
+    "options": {}
+   },
+   "id": "webhook-1",
+   "name": "Webhook",
+   "type": "n8n-nodes-base.webhook",
+   "typeVersion": 2,
+   "position": [
+    208,
+    304
+   ],
+   "webhookId": "dna-os-outbound-proof-webhook"
+  },
+  {
+   "parameters": {
+    "jsCode": "const body = $input.first().json.body ?? $input.first().json;\nconst requiredFields = ['event_id','work_id','event_type','source_capability','timestamp','payload','evidence_ref'];\nconst missing = requiredFields.filter((f) => body[f] === undefined);\nif (missing.length > 0) {\n  return [{ json: { accepted: false, workflow_id: $workflow.id, received_event_id: body.event_id ?? null, processed_at: new Date().toISOString(), result: 'REJECTED_MISSING_FIELDS: ' + missing.join(','), evidence_ref: body.evidence_ref ?? null } }];\n}\nreturn [{ json: { accepted: true, workflow_id: $workflow.id, received_event_id: body.event_id, processed_at: new Date().toISOString(), result: 'RECEIVED_' + body.event_type, evidence_ref: body.evidence_ref } }];\n"
+   },
+   "id": "code-1",
+   "name": "Validate and Build Response",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    464,
+    304
+   ]
+  },
+  {
+   "parameters": {
+    "respondWith": "json",
+    "responseBody": "={{ $json }}",
+    "options": {}
+   },
+   "id": "respond-1",
+   "name": "Respond to Webhook",
+   "type": "n8n-nodes-base.respondToWebhook",
+   "typeVersion": 1,
+   "position": [
+    752,
+    304
+   ]
+  }
+ ],
+ "connections": {
+  "Webhook": {
+   "main": [
+    [
+     {
+      "node": "Validate and Build Response",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Validate and Build Response": {
+   "main": [
+    [
+     {
+      "node": "Respond to Webhook",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  }
+ },
+ "settings": {
+  "executionOrder": "v1",
+  "binaryMode": "separate"
+ },
+ "staticData": null,
+ "meta": null,
+ "nodeGroups": [],
+ "pinData": {},
+ "versionId": "e54fcfe1-db8d-4609-8a88-b68e7b1bfa64",
+ "activeVersionId": "c60e9104-0354-4582-977b-b0b9fc202c25",
+ "versionCounter": 4,
+ "triggerCount": 1,
+ "sourceWorkflowId": null,
+ "shared": [
+  {
+   "updatedAt": "2026-08-26T20:50:51.344Z",
+   "createdAt": "2026-08-26T20:50:51.344Z",
+   "role": "workflow:owner",
+   "workflowId": "jiNltcrOhck2wYtM",
+   "projectId": "Hk4S7h9ZL26xrudV",
+   "project": {
+    "updatedAt": "2026-08-26T20:16:07.512Z",
+    "createdAt": "2026-06-08T00:20:25.738Z",
+    "id": "Hk4S7h9ZL26xrudV",
+    "name": "\u0e19\u0e32\u0e22 \u0e18\u0e27\u0e31\u0e0a\u0e0a\u0e31\u0e22 \u0e21\u0e39\u0e25\u0e23\u0e32\u0e0a <t23598788@gmail.com>",
+    "type": "personal",
+    "icon": null,
+    "description": null,
+    "customTelemetryTags": [],
+    "creatorId": "6197c67a-42c4-4829-9b94-3b0dfb5968a1"
+   }
+  }
+ ],
+ "tags": [],
+ "activeVersion": {
+  "updatedAt": "2026-08-26T20:50:51.345Z",
+  "createdAt": "2026-08-26T20:50:51.345Z",
+  "versionId": "c60e9104-0354-4582-977b-b0b9fc202c25",
+  "workflowId": "jiNltcrOhck2wYtM",
+  "nodes": [
+   {
+    "id": "webhook-1",
+    "name": "Webhook",
+    "type": "n8n-nodes-base.webhook",
+    "typeVersion": 2,
+    "position": [
+     250,
+     300
+    ],
+    "parameters": {
+     "httpMethod": "POST",
+     "path": "dna-os-outbound-proof",
+     "responseMode": "responseNode",
+     "options": {}
+    },
+    "webhookId": "dna-os-outbound-proof-webhook"
+   },
+   {
+    "id": "code-1",
+    "name": "Validate and Build Response",
+    "type": "n8n-nodes-base.code",
+    "typeVersion": 2,
+    "position": [
+     500,
+     300
+    ],
+    "parameters": {
+     "jsCode": "const body = $input.first().json.body ?? $input.first().json;\nconst requiredFields = ['event_id','work_id','event_type','source_capability','timestamp','payload','evidence_ref'];\nconst missing = requiredFields.filter((f) => body[f] === undefined);\nif (missing.length > 0) {\n  return [{ json: { accepted: false, workflow_id: $workflow.id, received_event_id: body.event_id ?? null, processed_at: new Date().toISOString(), result: 'REJECTED_MISSING_FIELDS: ' + missing.join(','), evidence_ref: body.evidence_ref ?? null } }];\n}\nreturn [{ json: { accepted: true, workflow_id: $workflow.id, received_event_id: body.event_id, processed_at: new Date().toISOString(), result: 'RECEIVED_' + body.event_type, evidence_ref: body.evidence_ref } }];\n"
+    }
+   },
+   {
+    "id": "respond-1",
+    "name": "Respond to Webhook",
+    "type": "n8n-nodes-base.respondToWebhook",
+    "typeVersion": 1,
+    "position": [
+     750,
+     300
+    ],
+    "parameters": {
+     "respondWith": "json",
+     "responseBody": "={{ $json }}",
+     "options": {}
+    }
+   }
+  ],
+  "connections": {
+   "Webhook": {
+    "main": [
+     [
+      {
+       "node": "Validate and Build Response",
+       "type": "main",
+       "index": 0
+      }
+     ]
+    ]
+   },
+   "Validate and Build Response": {
+    "main": [
+     [
+      {
+       "node": "Respond to Webhook",
+       "type": "main",
+       "index": 0
+      }
+     ]
+    ]
+   }
+  },
+  "nodeGroups": [],
+  "authors": "\u0e19\u0e32\u0e22 \u0e18\u0e27\u0e31\u0e0a\u0e0a\u0e31\u0e22 \u0e21\u0e39\u0e25\u0e23\u0e32\u0e0a",
+  "name": null,
+  "description": null,
+  "autosaved": false,
+  "workflowPublishHistory": [
+   {
+    "createdAt": "2026-08-26T20:51:18.261Z",
+    "id": 7,
+    "workflowId": "jiNltcrOhck2wYtM",
+    "versionId": "c60e9104-0354-4582-977b-b0b9fc202c25",
+    "event": "activated",
+    "userId": "6197c67a-42c4-4829-9b94-3b0dfb5968a1"
+   },
+   {
+    "createdAt": "2026-08-26T20:55:48.622Z",
+    "id": 9,
+    "workflowId": "jiNltcrOhck2wYtM",
+    "versionId": "c60e9104-0354-4582-977b-b0b9fc202c25",
+    "event": "activated",
+    "userId": "6197c67a-42c4-4829-9b94-3b0dfb5968a1"
+   },
+   {
+    "createdAt": "2026-08-26T20:55:48.612Z",
+    "id": 8,
+    "workflowId": "jiNltcrOhck2wYtM",
+    "versionId": "c60e9104-0354-4582-977b-b0b9fc202c25",
+    "event": "deactivated",
+    "userId": "6197c67a-42c4-4829-9b94-3b0dfb5968a1"
+   }
+  ]
+ }
+}

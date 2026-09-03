@@ -31,12 +31,30 @@
  */
 
 import { hostFetchPost, readEnvVar } from "./host-runtime";
+import { listProviderProjects } from "../../software/provider-project-registry/registry";
 
 const DEVICE_CODE_URL = "https://github.com/login/device/code";
 const ACCESS_TOKEN_URL = "https://github.com/login/oauth/access_token";
 export const GITHUB_VERIFICATION_URI = "https://github.com/login/device";
 
+/**
+ * The OAuth App's `client_id` is a PUBLIC application identifier, not a
+ * secret — so its home is `software/provider-project-registry/`, which is
+ * the registry for exactly that (provider + application identity + the
+ * evidence it was read from) and which refuses anything secret-shaped.
+ *
+ * The registry is the canonical source. `GITHUB_OAUTH_CLIENT_ID` stays only
+ * as a fallback for a host that has no registry entry yet: an environment
+ * variable is ephemeral, and relying on it is precisely how this value was
+ * lost once already — the App itself was never gone, only DNA OS's record
+ * of which App it was.
+ */
 export function readGithubOauthClientId(): string | undefined {
+  for (const project of listProviderProjects()) {
+    if (project.provider_id !== "github") continue;
+    const clientId = project.identifiers["oauth_app_client_id"]?.trim();
+    if (clientId) return clientId;
+  }
   const value = readEnvVar("GITHUB_OAUTH_CLIENT_ID");
   return value && value.trim().length > 0 ? value.trim() : undefined;
 }
