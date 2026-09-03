@@ -20,3 +20,20 @@
 
 export { getCapabilityIndex, findByCapabilityId, findByOwnerFolder, searchOverlap } from "./index";
 export type { CapabilityMetadata, CapabilityStatus } from "./types";
+
+/**
+ * THE write-ownership index every Write Gate caller must use — composed once
+ * in `./write-ownership-index.ts` from the registries that already exist.
+ *
+ * Exported here, and only here, so no caller merges registries itself. Two
+ * callers composing their own index is how the gate ends up judging the same
+ * path against different ownership, which is worse than the incomplete index
+ * this replaces.
+ *
+ * `getCapabilityIndex` above stays exactly as it is: it is the ROUTING
+ * projection and has other consumers. Write ownership is a different
+ * question with stricter admission rules, and conflating them would let a
+ * routable capability silently gain write permission.
+ */
+export { getWriteOwnershipIndex, inspectWriteOwnershipIndex } from "./write-ownership-index";
+export type { WriteOwnershipEntry, ComposedIndex } from "./write-ownership-index";
