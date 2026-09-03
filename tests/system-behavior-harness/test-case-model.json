@@ -1,0 +1,222 @@
+{
+ "schema": {
+  "required": [
+   "test_case_id",
+   "subject_type",
+   "subject_id",
+   "capability_id",
+   "resource_id",
+   "test_level",
+   "preconditions",
+   "input",
+   "expected_behavior",
+   "expected_output",
+   "expected_state_transition",
+   "expected_side_effect",
+   "expected_evidence",
+   "expected_terminal_state",
+   "timeout",
+   "cleanup",
+   "isolation"
+  ]
+ },
+ "cases": [
+  {
+   "test_case_id": "OWNER_CMD_PLAN_HAPPY",
+   "area": "1 Owner Command",
+   "boundary": "POST/GET /owner/plan",
+   "test_level": "BEHAVIOR",
+   "isolation": "ISOLATED_TEMP_STATE",
+   "expected_terminal_state": "deterministic response",
+   "asserts": [
+    "http 200",
+    "plan has steps",
+    "did FILE_READ",
+    "did RESOURCE_RESOLUTION",
+    "terminal running=false"
+   ],
+   "verdict": "PASS"
+  },
+  {
+   "test_case_id": "OWNER_CMD_PLAN_BLOCKED_NEG",
+   "area": "1 Owner Command (negative)",
+   "boundary": "GET /owner/plan",
+   "test_level": "FAILURE",
+   "isolation": "ISOLATED_TEMP_STATE",
+   "expected_terminal_state": "deterministic response",
+   "asserts": [
+    "has blocked step",
+    "blocked_at set",
+    "NO_PROVIDER capability surfaced"
+   ],
+   "verdict": "PASS"
+  },
+  {
+   "test_case_id": "REGISTRY_LOOKUP_READ",
+   "area": "6 Registry read",
+   "boundary": "POST /registry/lookup",
+   "test_level": "BOUNDARY",
+   "isolation": "PURE_READ",
+   "expected_terminal_state": "deterministic response",
+   "asserts": [
+    "http 200",
+    "match found",
+    "capability_id present",
+    "resource_ids present"
+   ],
+   "verdict": "PASS"
+  },
+  {
+   "test_case_id": "REGISTRY_CAP_404_NEG",
+   "area": "6 Registry read (negative)",
+   "boundary": "GET /registry/capabilities/:id",
+   "test_level": "FAILURE",
+   "isolation": "PURE_READ",
+   "expected_terminal_state": "deterministic response",
+   "asserts": [
+    "404 for unknown"
+   ],
+   "verdict": "PASS"
+  },
+  {
+   "test_case_id": "REGISTRY_BIZDATA_REJECT_NEG",
+   "area": "7 Domain gate (negative)",
+   "boundary": "POST /registry/candidates",
+   "test_level": "FAILURE",
+   "isolation": "PURE_READ",
+   "expected_terminal_state": "deterministic response",
+   "asserts": [
+    "not registered (rejected)",
+    "domain/business reject reason"
+   ],
+   "verdict": "PASS"
+  },
+  {
+   "test_case_id": "IDEMPOTENCY_REGISTRY_DUP",
+   "area": "13 Idempotency / no-dup side effect",
+   "boundary": "POST /registry/candidates x2",
+   "test_level": "BEHAVIOR",
+   "isolation": "REVERSIBLE_WRITE",
+   "expected_terminal_state": "deterministic response",
+   "asserts": [
+    "first accepted-or-duplicate",
+    "second is DUPLICATE (no new side effect)"
+   ],
+   "verdict": "PASS"
+  },
+  {
+   "test_case_id": "MALFORMED_HANDOFF_NEG",
+   "area": "14 Malformed worker result",
+   "boundary": "POST /handoff",
+   "test_level": "FAILURE",
+   "isolation": "PURE_READ",
+   "expected_terminal_state": "deterministic response",
+   "asserts": [
+    "rejected (>=400)",
+    "not accepted 201"
+   ],
+   "verdict": "PASS"
+  },
+  {
+   "test_case_id": "LIFECYCLE_ORDER_READ",
+   "area": "12 Lifecycle ordering",
+   "boundary": "GET /owner/lifecycle",
+   "test_level": "BOUNDARY",
+   "isolation": "PURE_READ",
+   "expected_terminal_state": "deterministic response",
+   "asserts": [
+    "http 200",
+    "returns lifecycle"
+   ],
+   "verdict": "PASS"
+  },
+  {
+   "test_case_id": "EVIDENCE_TASK_READ",
+   "area": "8 Evidence creation (observe)",
+   "boundary": "GET /task/:id",
+   "test_level": "BOUNDARY",
+   "isolation": "PURE_READ",
+   "expected_terminal_state": "deterministic response",
+   "asserts": [
+    "http 200 or 404 (deterministic)"
+   ],
+   "verdict": "PASS"
+  },
+  {
+   "test_case_id": "INCIDENT_READ_BOUNDARY",
+   "area": "9 Incident handoff",
+   "boundary": "GET /owner/incident/:id",
+   "test_level": "BOUNDARY",
+   "isolation": "PURE_READ",
+   "expected_terminal_state": "deterministic response",
+   "asserts": [
+    "incident read boundary responds"
+   ],
+   "verdict": "PASS"
+  },
+  {
+   "test_case_id": "OWNER_ESCALATION_READ",
+   "area": "11 Owner escalation/read",
+   "boundary": "GET /owner/console,/owner/action-queue",
+   "test_level": "BOUNDARY",
+   "isolation": "PURE_READ",
+   "expected_terminal_state": "deterministic response",
+   "asserts": [
+    "console 200",
+    "action-queue 200"
+   ],
+   "verdict": "PASS"
+  },
+  {
+   "test_case_id": "CAPABILITY_ROUTE_READ",
+   "area": "10 Target/route resolution",
+   "boundary": "GET /capability/route/:ref",
+   "test_level": "BOUNDARY",
+   "isolation": "PURE_READ",
+   "expected_terminal_state": "deterministic response",
+   "asserts": [
+    "route boundary responds"
+   ],
+   "verdict": "PASS"
+  },
+  {
+   "test_case_id": "SYSTEM_GRAPH_READ",
+   "area": "cross-module",
+   "boundary": "GET /graph/system",
+   "test_level": "BOUNDARY",
+   "isolation": "PURE_READ",
+   "expected_terminal_state": "deterministic response",
+   "asserts": [
+    "http 200",
+    "has graph"
+   ],
+   "verdict": "PASS"
+  },
+  {
+   "test_case_id": "RUNTIME_INVENTORY_READ",
+   "area": "6 Registry/runtime read",
+   "boundary": "GET /runtime/inventory",
+   "test_level": "BOUNDARY",
+   "isolation": "PURE_READ",
+   "expected_terminal_state": "deterministic response",
+   "asserts": [
+    "http 200",
+    "VERIFIED",
+    "capabilities listed"
+   ],
+   "verdict": "PASS"
+  },
+  {
+   "test_case_id": "HEALTH_READ",
+   "area": "transport",
+   "boundary": "GET /health",
+   "test_level": "BOUNDARY",
+   "isolation": "PURE_READ",
+   "expected_terminal_state": "deterministic response",
+   "asserts": [
+    "ok true"
+   ],
+   "verdict": "PASS"
+  }
+ ]
+}

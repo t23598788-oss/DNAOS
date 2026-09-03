@@ -18,3 +18,5 @@ export { buildWorkPacket, renderPacketInstruction } from "./work-packet";
 export type { WorkPacket } from "./work-packet";
 export { compileIntent } from "./intent-compiler";
 export type { Objective, CompiledIntent } from "./intent-compiler";
+export { identifyRouteDecision, routingInputDigest, listRouteDecisions, loadRouteDecision, routeDecisionsForTask } from "./route-decision-record";
+export type { RouteDecisionRecord, IdentifyRouteDecisionInput, IdentifyOutcome } from "./route-decision-record";

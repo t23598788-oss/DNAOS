@@ -16,3 +16,6 @@ export { reportJoint, reportViolation } from "./client";
 export { startJointMonitorServer } from "./server";
 export { JointStore } from "./joint-store";
 export type { JointEvent, ViolationEvent, ReportJointInput, ReportViolationInput, JointMonitorSnapshot } from "./types";
+export { onJoint, onViolation } from "./client";
+export { jointToEvent, violationToEvent, startJointEventBridge, isLoopingJoint, FAILURE_JOINT_STATUSES, JOINT_EVENT_SOURCE, VIOLATION_EVENT_SOURCE } from "./event-ingress-bridge";
+export type { JointBridgeHandle } from "./event-ingress-bridge";

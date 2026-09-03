@@ -24,5 +24,8 @@ export function validateCandidateShape(candidate: RegistrationCandidate): ShapeV
   if (!candidate.version) return { ok: false, reason_code: "VERSION_REQUIRED" };
   if (!candidate.evidence_refs || candidate.evidence_refs.length === 0) return { ok: false, reason_code: "EVIDENCE_REQUIRED" };
   if (candidate.kind !== "resource" && candidate.kind !== "capability") return { ok: false, reason_code: "KIND_INVALID" };
+  if (candidate.canonical_ref !== undefined && (typeof candidate.canonical_ref !== "object" || !candidate.canonical_ref || typeof candidate.canonical_ref.identity_type !== "string" || !candidate.canonical_ref.identity_type || typeof candidate.canonical_ref.identity_id !== "string" || !candidate.canonical_ref.identity_id)) return { ok: false, reason_code: "CANONICAL_REF_INVALID" };
+  if (candidate.projection_kind !== undefined && (typeof candidate.projection_kind !== "string" || !candidate.projection_kind)) return { ok: false, reason_code: "PROJECTION_KIND_INVALID" };
+  if ((candidate.canonical_ref === undefined) !== (candidate.projection_kind === undefined)) return { ok: false, reason_code: "PROJECTION_METADATA_INCOMPLETE" };
   return { ok: true };
 }

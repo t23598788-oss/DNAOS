@@ -58,7 +58,10 @@ import { resolveDuplicate } from "./duplicate-resolution";
 import { decideRegistration } from "./decision";
 import { resolveRepositoryOwnership } from "./repository-resolution";
 import { createExplainResourceWorkItem } from "./explain-resource";
+import { checkExecutableAdmission } from "./executable-admission";
 import type { PipelineResult, PipelineStage } from "./types";
+import { admitResource } from "../durable-meaning/contract";
+import { appendAdmission, appendOrigin } from "../durable-meaning/store";
 
 export function runRegistrationPipeline(candidate: RegistrationCandidate, store: RegistryStore, correlationId: string): PipelineResult {
   // 1. VALIDATION — shape only.
@@ -69,6 +72,17 @@ export function runRegistrationPipeline(candidate: RegistrationCandidate, store:
 
   // 2. CLASSIFICATION — exactly once.
   const classification = classifyCandidate(candidate);
+
+  // 2b. EXECUTABLE ADMISSION — ต้องอยู่ก่อน fingerprintCandidate() เสมอ
+  // candidate ที่ประกาศเจตนา executable ต้องประกาศ contract ครบตั้งแต่แรก
+  // เพื่อให้ input/output เข้าไปอยู่ใน semantic_fingerprint ตามกฎเดิม
+  // candidate ที่ไม่ประกาศเจตนา จะได้ applicable=false และผ่านไปเหมือนเดิมทุกประการ
+  const admission = checkExecutableAdmission(candidate);
+  if (!admission.ok) {
+    return { status: "REJECTED", failed_stage: "VALIDATION",
+      reason_code: `EXECUTABLE_CONTRACT_REQUIRED:${admission.reasons.join(",")}`,
+      candidate_id: candidate.candidate_id };
+  }
 
   // 3. DUPLICATE RESOLUTION — exactly once, real store reads only.
   const fingerprint = fingerprintCandidate(candidate);
@@ -124,5 +138,33 @@ export function runRegistrationPipeline(candidate: RegistrationCandidate, store:
   if (!commit.written) {
     return { status: "REJECTED", failed_stage: "REGISTRY_WRITER", reason_code: commit.reason_code ?? "WRITE_FAILED", candidate_id: candidate.candidate_id };
   }
+  // 7. DURABLE MEANING — mandatory, not optional. Identity has just been made
+  // permanent; this is the only moment the producer's context still exists, and
+  // before 2026-09-02 nothing captured it, which is why 494 of 620 resources
+  // have no relationship and none can say why it exists. Admission never blocks
+  // registration: a candidate that carried no origin is recorded as
+  // UNBOUND_UNKNOWN, so orphan birth becomes visible instead of silent.
+  const meaningAdmission = admitResource({
+    resource_id: commit.resource_id!,
+    resource_kind: candidate.kind,
+    origin: candidate.origin ? { origin_kind: candidate.origin.origin_kind as never, origin_reference: candidate.origin.origin_reference, introduced_by: candidate.origin.introduced_by } : undefined,
+    supported_relationships: (candidate.relationships ?? []).map((r) => ({
+      relationship_kind: String((r as { relationship_kind?: string }).relationship_kind ?? ""),
+      to_id: String((r as { to_id?: string }).to_id ?? ""),
+      evidence_ref: candidate.evidence_refs[0] ?? "",
+    })),
+    evidence_refs: candidate.evidence_refs,
+    provenance: {
+      produced_by: "REGISTRATION_PIPELINE",
+      source: "control/registration-pipeline/pipeline.ts",
+      under_contract: "control/durable-meaning/contract.ts#admitResource",
+      verified_by: "control/registration-pipeline/pipeline.ts#runRegistrationPipeline",
+      observed_at: new Date().toISOString(),
+      canonical_identity: commit.resource_id!,
+    },
+  });
+  appendAdmission(meaningAdmission);
+  if (meaningAdmission.origin) appendOrigin(meaningAdmission.origin);
+
   return { status: "REGISTERED", resource_id: commit.resource_id!, capability_id: commit.capability_id, candidate_id: candidate.candidate_id, evidence_refs: candidate.evidence_refs, repository_id: repository.repository_id };
 }

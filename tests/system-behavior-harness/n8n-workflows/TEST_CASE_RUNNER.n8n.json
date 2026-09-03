@@ -1,0 +1,26 @@
+{
+  "name": "DNA_OS__TEST_CASE_RUNNER",
+  "nodes": [
+    { "parameters": { "httpMethod": "POST", "path": "dna-os-test-case-runner", "responseMode": "responseNode", "options": {} },
+      "id": "wh-1", "name": "TEST_CASE (Webhook)", "type": "n8n-nodes-base.webhook", "typeVersion": 2, "position": [240, 300] },
+    { "parameters": { "method": "={{$json.body.method || 'GET'}}",
+        "url": "=http://127.0.0.1:8791{{$json.body.path}}",
+        "sendBody": "={{ $json.body.payload ? true : false }}",
+        "jsonBody": "={{ JSON.stringify($json.body.payload || {}) }}",
+        "specifyBody": "json",
+        "options": { "response": { "response": { "fullResponse": true, "neverError": true } }, "timeout": 20000 } },
+      "id": "inv-1", "name": "DNA_OS_INVOKER (real boundary :8791)", "type": "n8n-nodes-base.httpRequest", "typeVersion": 4.2, "position": [520, 300] },
+    { "parameters": { "jsControl": "", "language": "javaScript",
+        "jsCode": "// ASSERTION_ENGINE + EVIDENCE_COLLECTOR + REPORT_BUILDER\n// input: HTTP fullResponse ($json.statusCode,$json.body) + original test_case ($('TEST_CASE (Webhook)').item.json.body)\nconst tc = $('TEST_CASE (Webhook)').item.json.body;\nconst resp = $json;\nconst status = resp.statusCode || resp.status;\nconst body = resp.body;\nconst asserts = [];\nfor (const rule of (tc.asserts||[])) {\n  // rule = {name, path (dot into body), op, value}\n  let actual = body;\n  for (const k of (rule.path||'').split('.').filter(Boolean)) actual = actual==null?undefined:actual[k];\n  let ok=false;\n  switch(rule.op){\n    case 'status': ok = status === rule.value; actual = status; break;\n    case 'eq': ok = actual === rule.value; break;\n    case 'exists': ok = actual !== undefined && actual !== null; break;\n    case 'gte': ok = Number(actual) >= rule.value; break;\n    case 'contains': ok = JSON.stringify(body).includes(rule.value); actual='<body>'; break;\n    case 'in': ok = Array.isArray(rule.value) && rule.value.includes(status); actual=status; break;\n    default: ok=false;\n  }\n  asserts.push({name:rule.name, ok, actual});\n}\nconst verdict = asserts.length && asserts.every(a=>a.ok) ? 'PASS' : (asserts.length?'FAIL':'BLOCKED');\nreturn [{ json: { test_case_id: tc.test_case_id, boundary: tc.boundary, verdict, http_status: status, asserts, evidence: { request:{method:tc.method,path:tc.path}, http_status:status, body_excerpt: JSON.stringify(body).slice(0,400) }, observed_at: new Date().toISOString() } }];" },
+      "id": "assert-1", "name": "ASSERTION_ENGINE + EVIDENCE", "type": "n8n-nodes-base.code", "typeVersion": 2, "position": [800, 300] },
+    { "parameters": { "respondWith": "json", "responseBody": "={{ JSON.stringify($json) }}" },
+      "id": "rep-1", "name": "REPORT_BUILDER (Respond)", "type": "n8n-nodes-base.respondToWebhook", "typeVersion": 1, "position": [1080, 300] }
+  ],
+  "connections": {
+    "TEST_CASE (Webhook)": { "main": [[{ "node": "DNA_OS_INVOKER (real boundary :8791)", "type": "main", "index": 0 }]] },
+    "DNA_OS_INVOKER (real boundary :8791)": { "main": [[{ "node": "ASSERTION_ENGINE + EVIDENCE", "type": "main", "index": 0 }]] },
+    "ASSERTION_ENGINE + EVIDENCE": { "main": [[{ "node": "REPORT_BUILDER (Respond)", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" },
+  "active": false
+}

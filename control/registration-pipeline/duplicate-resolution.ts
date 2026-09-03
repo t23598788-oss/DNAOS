@@ -32,9 +32,14 @@
 import type { RegistryStore } from "../../software/registry-database/contract";
 import type { RegistrationCandidate, RegistrationFingerprint } from "../event-pipeline/contract";
 import type { DuplicateResolutionResult } from "./types";
+import { resolveResourceProjection } from "../../software/registry-database/canonical-resource-projection";
 
 export function resolveDuplicate(_candidate: RegistrationCandidate, fingerprint: RegistrationFingerprint, store: RegistryStore): DuplicateResolutionResult {
   try {
+    if (_candidate.canonical_ref && _candidate.projection_kind) {
+      const projection = resolveResourceProjection(_candidate.canonical_ref, _candidate.projection_kind, store);
+      if (projection.status === "EXISTING") return { status: "DUPLICATE_EXACT", matched: { resource_id: projection.resource.resource_id, capability_id: null }, reason_code: "CANONICAL_PROJECTION_MATCH" };
+    }
     const exactMatch = store.findResourceByContentHash(fingerprint.exact);
     if (exactMatch) {
       return { status: "DUPLICATE_EXACT", matched: { resource_id: exactMatch.resource_id, capability_id: null }, reason_code: "EXACT_CONTENT_HASH_MATCH" };

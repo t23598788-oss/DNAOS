@@ -24,7 +24,7 @@
  */
 
 import { hostPostJson, hostRandomId, nowIso, readEnvVar } from "./host-runtime";
-import type { OccurrenceStamp, ReportJointInput, ReportViolationInput } from "./types";
+import type { OccurrenceStamp, ReportJointInput, ReportViolationInput, JointReport, ViolationReport } from "./types";
 
 // Moved off 5177 2026-08-22 — that port is DNA-LAB-PERMISSION-REASONER's
 // real Research Monitor UI, not this repo's to claim (see start.ts's own
@@ -88,14 +88,64 @@ function nextOccurrenceStamp(): OccurrenceStamp {
   return { occurred_at: nowIso(), occurred_seq: occurredSeq, reporter_run_id: RUN_ID };
 }
 
-export async function reportJoint(input: ReportJointInput): Promise<void> {
-  const stamp = nextOccurrenceStamp();
-  const url = baseUrl();
-  await hostPostJson(`${url}/joints`, { ...input, ...stamp }, timeoutFor(url), authorizationHeader());
+/**
+ * DELIVERY RESULT (2026-08-26). Returned `void` while
+ * `./host-runtime.ts#hostPostJson` catches every error and returns
+ * `{ ok: false }` — so a caller could not tell a real report from a dead
+ * channel. Same fix already applied to `reportViolation`. Returning a value
+ * instead of `void` is backward compatible: callers ignoring it are
+ * unaffected.
+ */
+export type JointListener = (report: JointReport) => void;
+export type ViolationListener = (report: ViolationReport) => void;
+const jointListeners = new Set<JointListener>();
+const violationListeners = new Set<ViolationListener>();
+
+/**
+ * PRODUCER-TIME subscription (Owner, CONNECTION 2)
+ *
+ * SSE ยังคงเป็น "ทางออกเชิงสังเกต" ของ joint-monitor เหมือนเดิมและไม่ถูกใช้เป็น
+ * ทางควบคุม — hook นี้เป็นคนละทาง ยิงที่จุดผลิตก่อนออกเน็ตเวิร์ก จึงไม่ขึ้นกับ
+ * ว่า collector จะรับได้หรือไม่ และไม่ใช่การอ่าน store กลับ
+ *
+ * อ่านอย่างเดียว: ค่าที่คืนถูกทิ้ง ผู้ฟังที่ throw ถูกกลืน — การรายงาน joint ต้อง
+ * ไม่พังเพราะผู้บริโภคปลายทาง
+ */
+export function onJoint(listener: JointListener): () => void {
+  jointListeners.add(listener);
+  return () => { jointListeners.delete(listener); };
 }
 
-export async function reportViolation(input: ReportViolationInput): Promise<void> {
+export function onViolation(listener: ViolationListener): () => void {
+  violationListeners.add(listener);
+  return () => { violationListeners.delete(listener); };
+}
+
+export async function reportJoint(input: ReportJointInput): Promise<{ ok: boolean }> {
   const stamp = nextOccurrenceStamp();
   const url = baseUrl();
-  await hostPostJson(`${url}/violations`, { ...input, ...stamp }, timeoutFor(url), authorizationHeader());
+  const report: JointReport = { ...input, ...stamp };
+  for (const listener of jointListeners) {
+    try { listener(report); } catch { /* ผู้ฟังพังต้องไม่ทำให้การรายงานพัง */ }
+  }
+  return hostPostJson(`${url}/joints`, report, timeoutFor(url), authorizationHeader());
+}
+
+/**
+ * DELIVERY RESULT (2026-08-26). This returned `void` while
+ * `./host-runtime.ts#hostPostJson` catches every error and returns
+ * `{ ok: false }` — so a caller could not tell a real report from a dead
+ * channel, and a wrapper awaiting it would report success against an
+ * unreachable monitor. It now propagates the real result. Returning a
+ * value instead of `void` is backward compatible: existing callers that
+ * ignore it are unaffected.
+ */
+export async function reportViolation(input: ReportViolationInput): Promise<{ ok: boolean }> {
+  const stamp = nextOccurrenceStamp();
+  const url = baseUrl();
+  const report: ViolationReport = { ...input, ...stamp };
+  for (const listener of violationListeners) {
+    try { listener(report); } catch { /* ผู้ฟังพังต้องไม่ทำให้การรายงานพัง */ }
+  }
+  return hostPostJson(`${url}/violations`, report, timeoutFor(url), authorizationHeader());
 }

@@ -23,6 +23,7 @@
  */
 
 import { appendJsonlLine, createHttpServer, hostRandomId, joinPath, nowIso, readEnvVar, readJsonlLines, readRequestBody, repoRootDirname, type HostHttpRequest, type HostHttpResponse } from "./host-runtime";
+import { readRuntimeRevision } from "../../control/runtime-revision/contract";
 import { JointStore } from "./joint-store";
 import { jointToSensorRow, sinkSensorEvents, violationToSensorRow } from "./supabase-sink";
 import type { JointEvent, OccurrenceStamp, ReportJointInput, ReportViolationInput, ViolationEvent } from "./types";
@@ -372,6 +373,14 @@ export function startJointMonitorServer(store: JointStore, port: number): Return
       const url = req.url ?? "/";
       if (req.method !== "GET" && req.method !== "HEAD" && req.method !== undefined && !requireSharedSecret(req, res)) {
         return;
+      }
+      // Additive: lets this running process state which source revision it is
+      // actually executing. Nothing else in the delivery circuit could answer
+      // that — Railway knew the deployed commit, the process did not. A null
+      // revision here is an honest "cannot prove it", never a guess.
+      if (url === "/health") {
+        const revision = readRuntimeRevision();
+        return sendJson(res, 200, { ok: true, revision: revision.revision, revision_source: revision.source, revision_dirty: revision.dirty, revision_reason: revision.reason });
       }
       if (url === "/events") return handleSse(store, req, res);
       if (url === "/joints" && req.method === "POST") {

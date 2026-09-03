@@ -66,6 +66,22 @@ export interface JointEvent extends OccurrenceStamp {
   summary: string;
   /** `<file path>#<function name>` of the real call site that reported this — matches the evidence-citation convention every other capability in this repo already uses. */
   source: string;
+  /**
+   * The `event_id` of the joint whose execution mechanically caused this one.
+   *
+   * REPORTER-SUPPLIED AND OPTIONAL, deliberately. A caller may set it only when
+   * it is holding the parent's real event_id in scope — i.e. causality it
+   * actually observed, not inferred. Absent means "this reporter could not
+   * establish causality", which downstream must read as UNKNOWN, never as
+   * "no parent". Root inputs set `null` explicitly to say "this is the root".
+   *
+   * Why it cannot be derived later: nothing else in a joint row carries
+   * causality. Reconstructing it from timestamps, ordering, names or summary
+   * text would be inference, and this capability exists precisely to keep
+   * inferred evidence out of the record. The 1927 rows already on disk have no
+   * parent and stay UNKNOWN — this field never rewrites history.
+   */
+  parent_event_id?: string | null;
   /** COLLECTOR_RECEIVED_AT — stamped here, never trusted from a reporter. */
   received_at: string;
   /** Unchanged legacy alias of `received_at`: every row written since 2026-08-22 carries `at`, and existing readers (data/joints.jsonl, the 17 rows already on disk) still read it. Same value, kept so this change reads nothing that was written before it as malformed. */

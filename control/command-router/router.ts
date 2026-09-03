@@ -61,10 +61,15 @@ import type { ExecutionRequest } from "../../execution/run/contract";
 import { ExecutionError } from "../../execution/run/contract";
 import { handleGithubCommand } from "../../connections/github/github-adapter";
 import { fetchResearchEngineLatestResult } from "../../connections/research-engine/research-engine-adapter";
-import { dispatchTask, DEFAULT_AGENT_WORKERS, setVoiceBridgeEnabled, isVoiceBridgeEnabled, admitCompletedTask, runAgentWorkOrder, runCorrectiveLoop, createTaskWorkspace, transitionWorkspace } from "../agent-gateway/contract";
+import { dispatchTask, DEFAULT_AGENT_WORKERS, setVoiceBridgeEnabled, isVoiceBridgeEnabled, admitCompletedTask, runAgentWorkOrder, runCorrectiveLoop, createTaskWorkspace, transitionWorkspace, linkSourceReservation, loadEvidenceForTask } from "../agent-gateway/contract";
 import type { Status as DispatcherTaskStatus, WorkerKind, WorkOrder, TaskWorkspace } from "../agent-gateway/contract";
 import { resolveWorker } from "../agent-host/contract";
 import { join } from "node:path";
+import { readFileSync } from "node:fs";
+import { submitAgentWork } from "../agent-production-ingress/contract";
+import { listRepositories } from "../../software/repository-registry/contract";
+import type { RepositoryRegistration } from "../../software/repository-registry/contract";
+import { createPersistentFileStore } from "../../software/registry-database/adapters/persistent-file-store";
 import { parseOsLoginTarget, requestOsLogin } from "../../connections/os-login/adapter-contract";
 import { openOsUi, parseOsUiTarget, runUiWorkOrder } from "../../connections/os-ui/adapter-contract";
 import type { UiWorkOrder } from "../../connections/os-ui/work-order";
@@ -73,6 +78,7 @@ import { hostNowIso } from "./host-runtime";
 import { reportJoint } from "../../observability/joint-monitor/contract";
 import { executeConnectorCommand } from "../connector-execution-boundary/contract";
 import type { CapabilityRegistration, ClassificationOutcome, RouterStep } from "./types";
+import type { StructuredOwnerContext } from "../owner-command-semantics/types";
 
 export interface RouteOptions {
   /** Explicit multi-worker plan, executed in order. Omit to let the router classify `commandText` into exactly one step from `envelope.intent`/`envelope.payload`. */
@@ -81,11 +87,78 @@ export interface RouteOptions {
   executionPolicyContext?: ExecutionPolicyContext;
   /** Base fields (identity/account/workspace/cwd_scope) an execution-requiring step's permission request is built from. Required together with executionPolicyContext. */
   executionRequestBase?: Pick<ExecutionPermissionRequest, "identity_id" | "account_id" | "workspace_id" | "cwd_scope">;
+  /**
+   * งานเดิมที่คำสั่งนี้เป็นการทำต่อจาก (Owner, USE_EXISTING_CONTINUATION_MODEL ข้อ 5)
+   *
+   * ใช้กลไก `parent_task_id` ที่ `MemoryReference` มีอยู่แล้วและ corrective loop
+   * ใช้อยู่แล้ว ไม่ใช่สายเลือดชนิดที่สอง ละไว้ = งานตั้งต้น (null) เหมือนเดิมทุกประการ
+   *
+   * นี่คือสิ่งที่ทำให้ "โปรเซส Agent เปลี่ยนตัวได้ แต่บทสนทนาไม่เปลี่ยน" เป็นจริง:
+   * ตัวตนที่คงอยู่คือสายงานของ DNA OS ไม่ใช่ PID ของโปรเซสไหน
+   */
+  parentTaskId?: string | null;
 }
 
 function matchesText(cap: CapabilityRegistration, text: string): boolean {
   const normalized = text.toLocaleLowerCase();
   return cap.match_keyword_sets.some((set) => set.every((keyword) => normalized.includes(keyword.toLocaleLowerCase())));
+}
+
+/**
+ * ที่มาของการตัดสินใจ routing — ต้องอ่านออกจากหลักฐาน ไม่ใช่เดาจากผลลัพธ์
+ *
+ * ก่อนหน้านี้ router ตัดสินจากข้อความดิบเสมอ ทั้งที่ ../owner-command/ แนบผลของ
+ * ../owner-command-semantics/ มากับ envelope.payload ตั้งแต่ 2026-08-26 แล้ว
+ * (owner-command.ts#191) ผลนั้นไม่เคยมีผู้อ่านเลยสักที่ — ชั้นที่รันโมเดลจริงและ
+ * เทียบ registry จริงจึงถูกทิ้งทั้งก้อน แล้วปลายทางกลับไปใช้ includes() บนข้อความ
+ */
+export type RoutingSource = "STRUCTURED_OWNER_CONTEXT" | "FALLBACK_RAW_TEXT";
+
+/**
+ * รูปร่างที่ไฟล์นี้ "อ่าน" จาก payload ของต่างถิ่น ไม่ใช่สัญญาชุดที่สอง
+ *
+ * ทำไมไม่ import จาก ../owner-command-semantics/contract: ไฟล์นั้น import
+ * listCapabilities จากไฟล์นี้อยู่แล้ว (resolver.ts:43) การ import กลับไปคือวงกลม
+ * ตัวอ่านนี้จึงประกาศเฉพาะสามฟิลด์ที่ต้องใช้จริง และไม่มีสิทธิ์ตัดสินอะไรเลย
+ * ถ้าฝั่งโน้นเปลี่ยนสัญญา ตัวอ่านจะไม่เจอค่า แล้วตกไป FALLBACK_RAW_TEXT ซึ่งเป็น
+ * พฤติกรรมเดิมเป๊ะ ๆ — เปลี่ยนสัญญาที่โน่นจึงทำให้ที่นี่เงียบลง ไม่ใช่พังหรือเดา
+ */
+interface ResolvedCapabilityReadShape {
+  readonly status?: unknown;
+  readonly resolved_id?: unknown;
+  readonly evidence_refs?: unknown;
+}
+
+/**
+ * capability id ที่ ../owner-command-semantics/ พิสูจน์แล้วจริง ๆ เท่านั้น
+ *
+ * เกณฑ์ทั้งสามข้อมาจากสัญญาของฝั่งโน้นตรง ๆ ไม่ได้ผ่อนลง:
+ *   status = RESOLVER_MATCHED   (ไม่ใช่ AI_INTERPRETED ที่โมเดลแค่พูด)
+ *   resolved_id เป็นสตริงจริง   (สัญญาบอกว่า null เมื่อไม่ได้พิสูจน์)
+ *   evidence_refs ไม่ว่าง       (สัญญาบอกว่าว่างได้เฉพาะ UNRESOLVED/AMBIGUOUS)
+ *
+ * แล้วยังกรองอีกชั้นด้วย getCapability ของ registry ตัวเดียวกับที่ router ใช้ —
+ * นี่คือการตรวจว่า id นั้นมีจริง ไม่ใช่การ map ชื่อจาก namespace อื่นเข้ามา
+ * (resolver.ts#134 ใช้ capability_id จาก ./capability-registry.ts ตัวเดียวกันนี้)
+ */
+function provenCapabilityIdsFromContext(payload: unknown): readonly string[] {
+  if (typeof payload !== "object" || payload === null) return [];
+  const context = (payload as { structured_owner_context?: unknown }).structured_owner_context;
+  if (typeof context !== "object" || context === null) return [];
+  const resolved = (context as { resolved_capabilities?: unknown }).resolved_capabilities;
+  if (!Array.isArray(resolved)) return [];
+
+  const ids: string[] = [];
+  for (const raw of resolved as readonly ResolvedCapabilityReadShape[]) {
+    if (typeof raw !== "object" || raw === null) continue;
+    if (raw.status !== "RESOLVER_MATCHED") continue;
+    const id = raw.resolved_id;
+    if (typeof id !== "string" || id.trim() === "") continue;
+    if (!Array.isArray(raw.evidence_refs) || raw.evidence_refs.length === 0) continue;
+    if (!getCapability(id)) continue;
+    if (!ids.includes(id)) ids.push(id);
+  }
+  return ids;
 }
 
 /** Pure classification — never invokes anything, never mutates registry state. */
@@ -136,6 +209,7 @@ function admitAndBuildResult(
   artifacts: CapabilityResultArtifact[],
   warnings: string[],
   nextAction: string | null,
+  parentTaskId: string | null = null,
 ): CapabilityResult {
   // Same rule as ./output-classifier.ts's classifyOutput: "dispatcher" is
   // the one capability_id that actually hands work to a real AgentAdapter
@@ -144,7 +218,7 @@ function admitAndBuildResult(
   // command never disagrees with itself about which lane it's in.
   const task = admitCompletedTask({
     intent_text: envelope.intent,
-    memory: { user_id: envelope.issued_by.identity_id, workspace_id: envelope.issued_by.acting_as_account_id, conversation_id: envelope.command_id, parent_task_id: null },
+    memory: { user_id: envelope.issued_by.identity_id, workspace_id: envelope.issued_by.acting_as_account_id, conversation_id: envelope.command_id, parent_task_id: parentTaskId },
     submitted_by_client: "command-router",
     status: toGatewayStatus(status),
     next_action: nextAction,
@@ -164,12 +238,28 @@ function terminal(envelope: CommandEnvelope, capabilityId: string, status: Capab
   return admitAndBuildResult(envelope, capabilityId, status, summary, ev, [], warnings, nextAction);
 }
 
+function relationshipQueryFromPayload(payload: unknown): StructuredOwnerContext["relationship_query"] {
+  if (!payload || typeof payload !== "object") return null;
+  const context = (payload as { structured_owner_context?: Partial<StructuredOwnerContext> }).structured_owner_context;
+  const query = context?.relationship_query;
+  return query && typeof query === "object" ? query as StructuredOwnerContext["relationship_query"] : null;
+}
+
 interface StepOutcome {
   status: CapabilityResultStatus;
   evidenceEntries: CapabilityResultEvidence[];
   artifacts: CapabilityResultArtifact[];
   warnings: string[];
   summary: string;
+  /**
+   * สิ่งที่ต้องเกิดต่อไป ในภาษาที่ Owner อ่านได้ — รวมถึง "คำถามของ Agent"
+   * (Owner, USE_EXISTING_CONTINUATION_MODEL ข้อ 4)
+   *
+   * ไหลต่อไปที่ `admitAndBuildResult` ซึ่งเขียนมันลงทั้ง Task.next_action และ
+   * CapabilityResult.next_action อยู่แล้ว ไม่ต้องมีทางส่งใหม่
+   * ละไว้ = ใช้ค่าเดิมที่ router สรุปจากสถานะ ไม่ใช่ทับด้วยค่าว่าง
+   */
+  nextAction?: string | null;
 }
 
 async function runExecutionStep(step: RouterStep, envelope: CommandEnvelope, options: RouteOptions): Promise<StepOutcome> {
@@ -554,6 +644,33 @@ function buildAgentHostWorkOrder(step: RouterStep, workerKind: WorkerKind, works
   };
 }
 
+/**
+ * ตัวตนของ repository มาจาก software/repository-registry/ เท่านั้น — `root` เป็น
+ * แค่กุญแจค้นหา ไม่ใช่ตัวตน (Owner, CONNECT_OWNER_SOFTWARE_WORK_TO_EXISTING_GIT_WORKTREE
+ * PHASE A: "Do not substitute process.cwd() as repository identity").
+ *
+ * ต้องมีพยานสองทางที่เป็นอิสระต่อกันจึงจะถือว่าพิสูจน์แล้ว: แถว ACTIVE ในทะเบียน
+ * ต้องชี้ `repository_root` มาที่ checkout นี้ และ `source_authority` ของแถวนั้น
+ * ต้องปรากฏจริงใน `.git/config` ของ checkout เดียวกัน — ทะเบียนตอบว่า "ใคร"
+ * ส่วน .git/config ตอบว่า "ที่นี่คือ repo นั้นจริงไหม" ทะเบียนอย่างเดียวยืนยัน
+ * ตัวเองไม่ได้
+ *
+ * ตรงกันหลายแถว = คลุมเครือ คืน null ไม่เลือกให้เอง — และ null แปลว่าไม่แยก
+ * worktree (คงพฤติกรรมเดิมไว้) ไม่ใช่เดาตัวตนขึ้นมา
+ */
+function resolveSelfRepository(root: string): RepositoryRegistration | null {
+  let gitConfig: string;
+  try {
+    gitConfig = readFileSync(join(root, ".git", "config"), "utf8");
+  } catch {
+    return null;
+  }
+  const corroborated = listRepositories().filter(
+    (r) => r.status === "ACTIVE" && r.repository_root === root && r.source_authority.length > 0 && gitConfig.includes(r.source_authority),
+  );
+  return corroborated.length === 1 ? corroborated[0]! : null;
+}
+
 async function runAgentHostStep(step: RouterStep, envelope: CommandEnvelope): Promise<StepOutcome> {
   const backendContext = await readBackendContextBeforeDispatch();
   const workerKind = selectWorkerKind(step.intent);
@@ -574,26 +691,126 @@ async function runAgentHostStep(step: RouterStep, envelope: CommandEnvelope): Pr
   });
   transitionWorkspace(workspace.workspace_id, "PREPARE_CONTEXT", "command-router: real WorkOrder built, about to dispatch");
 
+  /**
+   * P6 ISOLATED CODING (Owner, CONNECT_OWNER_SOFTWARE_WORK_TO_EXISTING_GIT_WORKTREE).
+   *
+   * ก่อนหน้านี้ของที่ Agent เขียนได้จริงคือไดเรกทอรีเปล่าใน /tmp ซึ่งไม่ใช่ git
+   * worktree ไม่มี branch และไม่ผูกกับ repository ตัวใด — เส้น production ที่ทำ
+   * การแยกจริง (control/agent-production-ingress/) มีอยู่ครบแต่ไม่เคยถูกเรียก
+   * ตรงนี้คือจุดที่มันถูกเรียก ไม่ใช่ระบบใหม่
+   *
+   * `createTaskWorkspace` ข้างบนยังอยู่ในฐานะตัวตนของ task/lifecycle ตามที่ Owner
+   * สั่งให้คงไว้ การผูกสองระบบเข้าด้วยกันใช้สะพานที่มีอยู่แล้ว
+   * `linkSourceReservation` — ไม่สร้างสะพานใหม่ และไม่สร้าง workspace ระบบที่สอง
+   *
+   * FAIL CLOSED: ถ้าพิสูจน์ตัวตน repository ไม่ได้ หรือ ingress ไม่ผ่านสักด่าน
+   * เราไม่แยก worktree และไม่แต่งตัวตนขึ้นมา — พฤติกรรมเดิมคงอยู่ทั้งดุ้น และ
+   * เหตุผลจริงถูกบันทึกเป็น evidence ให้ Owner เห็น ไม่ใช่กลืนเงียบ
+   */
+  const repository = resolveSelfRepository(process.cwd());
+  let isolationEvidence: string;
+  if (!repository) {
+    isolationEvidence = "source_isolation=NOT_APPLIED reason=NO_CORROBORATED_REPOSITORY_IDENTITY";
+  } else {
+    const ingress = await submitAgentWork({
+      work_id: workOrderId,
+      holder_agent_id: "control/command-router/router.ts#runAgentHostStep",
+      // CLAIM เท่านั้น — ingress ไปพิสูจน์กับทะเบียนเองอีกรอบ ไม่ได้เชื่อเรา
+      requested_owner: repository.owner,
+      requested_repository: repository.repository,
+      candidate: {
+        candidate_id: `owner-software-work-${envelope.command_id}`,
+        name: `owner-software-work-${envelope.command_id}`,
+        kind: "resource",
+        source_location: `control/command-router/router.ts#runAgentHostStep/${envelope.command_id}`,
+        owner: "control/command-router/router.ts",
+        input: [], output: [], side_effects: [], dependencies: [],
+        behavior: step.intent,
+        version: "1.0.0",
+        evidence_refs: [`command:${envelope.command_id}`, `work_order:${workOrderId}`],
+        // งานหนึ่งครั้งของ Agent คือหลักฐานทางวิศวกรรม ไม่ใช่ capability ใหม่ —
+        // EXECUTION_EVIDENCE จึงเป็นชนิดที่ตรง และ domain ถูกอนุมานจากชนิดนี้
+        // โดย control/event-pipeline/domain-classification.ts ไม่ใช่เราเลือกเอง
+        domain: "ENGINEERING_EVIDENCE",
+        resource_type: "EXECUTION_EVIDENCE",
+        data_classification: "INTERNAL",
+        source_system: "dna-os-infrastructure",
+        scope: "owner-software-change",
+        requested_owner: repository.owner,
+        requested_repository: repository.repository,
+      },
+      // ขอบเขตจริงที่งานนี้แตะ — ไม่ว่างจึงทำให้ ingress สร้าง git worktree จริง
+      resource_scope: [repository.repository_root],
+      lease_ms: 120_000,
+      correlation_id: envelope.command_id,
+    }, () => createPersistentFileStore());
+
+    if (ingress.workspace) {
+      const link = linkSourceReservation(workspace.workspace_id, ingress.workspace.reservation_id, workOrderId);
+      isolationEvidence = `source_isolation=APPLIED repository_id=${ingress.resolved_repository_id} reservation_id=${ingress.workspace.reservation_id} branch_ref=${ingress.workspace.branch_ref} worktree_path=${ingress.workspace.worktree_path} base_commit_sha=${ingress.workspace.base_commit_sha} link_ok=${link.ok} ingress_stage=${ingress.final_stage} ingress_status=${ingress.final_status}`;
+    } else {
+      isolationEvidence = `source_isolation=NOT_APPLIED repository_id=${ingress.resolved_repository_id ?? "none"} ingress_stage=${ingress.final_stage} ingress_status=${ingress.final_status} reason=${ingress.reason}`;
+    }
+  }
+
   const workOrder = buildAgentHostWorkOrder(step, workerKind, workspace);
   const result = await runAgentWorkOrder(workOrder, envelope.command_id, process.env);
 
   const loopOutcome = await runCorrectiveLoop(result, "command-router");
 
-  const status: CapabilityResultStatus = result.status === "PASS" ? "COMPLETED" : result.status === "BLOCKED" || result.status === "FAIL_CLOSED" ? "BLOCKED" : "FAILED";
+  /**
+   * AGENT_MESSAGE -> AGENT_QUESTION (Owner, USE_EXISTING_CONTINUATION_MODEL ข้อ 4)
+   *
+   * Agent Host บันทึกทุกข้อความที่ Agent พูดระหว่างทางไว้เป็น evidence แล้ว
+   * อ่านกลับด้วย `loadEvidenceForTask` ตัวเดิม ไม่ใช่ช่องทางใหม่
+   *
+   * กฎแยก "คำถาม" ออกจาก "รายงาน" เป็นกฎเดียว ตรวจได้ ไม่มีโมเดลมาตัดสิน:
+   * ข้อความสุดท้ายที่มีเครื่องหมายคำถามคือคำถาม เมื่อมีคำถาม งานนี้ไม่ใช่งานที่
+   * จบแล้ว มันคืองานที่รอเจ้าของ — ซึ่งระบบมีสถานะของมันอยู่แล้วคือ
+   * OWNER_REVIEW ที่ toGatewayStatus แปลเป็น WAITING_OWNER_DECISION
+   * และเป็นสถานะเดียวที่ `ownerDecision()` ยอมรับคำตอบ
+   */
+  const spokenLines = loadEvidenceForTask(result.task_id)
+    .filter((e) => e.source.endsWith("#agent-message"))
+    .map((e) => String((e.payload as { agent_message?: unknown } | null)?.agent_message ?? ""))
+    .filter((t) => t.trim() !== "");
+  const agentQuestion = [...spokenLines].reverse().find((t) => /[?？]/.test(t)) ?? null;
+
+  /**
+   * งานนี้ "รอเจ้าของ" เมื่อ Agent ถามเอง หรือเมื่อ Decision Engine ตัดสินจาก
+   * evidence จริงว่า requires_owner_approval — สองอย่างนี้คือช่องถามเดียวกัน
+   * ที่ระบบมีอยู่แล้ว ไม่ใช่สองระบบ (Owner, USE_EXISTING_CONTINUATION_MODEL ข้อ 2)
+   *
+   * เดิม OWNER_REVIEW_REQUIRED ถูกลดเหลือสตริงใน evidence แล้วงานถูกปิดเป็น
+   * FAILED ทั้งที่มันไม่ได้ล้มเหลว มันกำลังรอคำตอบ — และเมื่อปิดเป็น FAILED
+   * `ownerDecision()` ก็รับคำตอบไม่ได้อีกเลย เพราะประตูรับคำตอบเปิดเฉพาะกับ
+   * WAITING_OWNER_DECISION เท่านั้น
+   */
+  const needsOwner = agentQuestion !== null || loopOutcome.state === "OWNER_REVIEW_REQUIRED";
+  const status: CapabilityResultStatus = needsOwner
+    ? "OWNER_REVIEW"
+    : result.status === "PASS" ? "COMPLETED" : result.status === "BLOCKED" || result.status === "FAIL_CLOSED" ? "BLOCKED" : "FAILED";
   return {
     status,
     evidenceEntries: [
       evidence("agent-host", `backend_reader capability_count=${backendContext.capability_count} source=${backendContext.capability_index_source}`),
+      evidence("agent-host", isolationEvidence),
       evidence("agent-host", `work_order_id=${result.work_order_id} workspace_id=${result.workspace_id} launch_id=${result.launch_id ?? "none"} task_id=${result.task_id} worker_id=${result.worker_id} status=${result.status} error_code=${result.error_code ?? "none"} exit_code=${result.exit_code} agent_pid=${result.runtime.agent_pid} sandbox_profile_hash=${result.runtime.sandbox_profile_hash ?? "none"}`),
       evidence("agent-host", `result_id=${result.result_id} verification_id=${result.verification_id ?? "none"} evidence_refs=${result.evidence_refs.join(",")} corrective_loop_state=${loopOutcome.state} decision_id=${loopOutcome.decision_id ?? "none"}`),
+      // สิ่งที่ Decision Engine บอกให้ทำต่อ — เดิมเหลือแค่ id ตรงนี้
+      ...(loopOutcome.next_action ? [evidence("decision-engine", `next_action=${loopOutcome.next_action}`)] : []),
+      ...(loopOutcome.decision_reason ? [evidence("decision-engine", `decision_reason=${loopOutcome.decision_reason}`)] : []),
+      // ทุกคำที่ Agent พูด เรียงตามที่มันพูดจริง
+      ...spokenLines.map((text) => evidence("agent", text)),
     ],
+    nextAction: agentQuestion ?? loopOutcome.next_action ?? null,
     artifacts: [
       { kind: "agent_host_work_order_id", ref: result.work_order_id },
       { kind: "agent_host_task_id", ref: result.task_id },
       ...result.artifacts.map((a) => ({ kind: "agent_host_artifact", ref: a })),
     ],
     warnings: status === "BLOCKED" ? [`agent-host task ${result.task_id} ended ${result.status} (error_code=${result.error_code})`] : [],
-    summary: `agent-host task "${result.task_id}" worker=${workerKind} status=${result.status} corrective_loop=${loopOutcome.state}`,
+    summary: agentQuestion ?? `agent-host task "${result.task_id}" worker=${workerKind} status=${result.status} corrective_loop=${loopOutcome.state}`,
   };
 }
 
@@ -675,25 +892,68 @@ async function runStep(step: RouterStep, envelope: CommandEnvelope, options: Rou
  */
 export async function routeOwnerCommand(envelope: CommandEnvelope, commandText: string, options: RouteOptions = {}): Promise<CapabilityResult> {
   let steps: readonly RouterStep[];
+  /** บันทึกไว้เป็นหลักฐาน ไม่ใช่ให้คนอ่านผลลัพธ์เดาเอาเองว่ามาจากทางไหน */
+  let routingSource: RoutingSource = "FALLBACK_RAW_TEXT";
+  let routingNote = "";
+
   if (options.steps && options.steps.length > 0) {
     steps = options.steps;
+    routingNote = "caller supplied explicit steps — neither structured context nor raw text was consulted";
   } else {
-    const classification: ClassificationOutcome = classifyCommand(commandText);
-    if (classification.status === "OWNER_REVIEW") {
-      return terminal(envelope, "router", "OWNER_REVIEW", classification.reason, [evidence("router", `candidates=${classification.candidates.join(",")}`)], [], "Owner must pick one candidate capability explicitly");
+    // ผลที่ ../owner-command-semantics/ พิสูจน์แล้วมาก่อนข้อความดิบเสมอ
+    // ข้อความดิบไม่มีสิทธิ์ทับค่าที่ resolver พิสูจน์ไปแล้ว — เมื่อเข้ากิ่งนี้
+    // classifyCommand จะไม่ถูกเรียกเลย
+    const relationshipQuery = relationshipQueryFromPayload(envelope.payload);
+    if (relationshipQuery) {
+      const q = relationshipQuery;
+      const evidenceRows = q.evidence_refs.map((ref) => evidence("relationship-query", ref));
+      const summary = q.status === "RELATIONSHIP_RESOLVED"
+        ? `relationship_status=RESOLVED source_capability_id=${q.source_capability_id} target_capability_id=${q.target_capability_id} relationship_id=${q.relationship_id} relationship_kind=${q.relationship_kind} lock_status=${q.lock_status} runtime_status=${q.runtime_status}`
+        : `relationship_status=${q.status} source_mention=${q.source_mention} target_mention=${q.target_mention}`;
+      return terminal(envelope, "owner-backbone", q.status === "RELATIONSHIP_RESOLVED" ? "COMPLETED" : "BLOCKED", summary, evidenceRows, [], q.status === "RELATIONSHIP_RESOLVED" ? null : "BOUNDED_RELATIONSHIP_VERIFIER_REQUIRED");
     }
-    if (classification.status === "UNSUPPORTED_COMMAND") {
-      return terminal(envelope, "router", "FAILED", classification.reason, [evidence("router", "UNSUPPORTED_COMMAND")], [], "UNSUPPORTED_COMMAND");
+
+    const proven = provenCapabilityIdsFromContext(envelope.payload);
+
+    if (proven.length > 1) {
+      // resolver พิสูจน์ได้มากกว่าหนึ่ง = กำกวมจริง ไม่ใช่เรื่องที่ router จะเดา
+      // ใช้สถานะ OWNER_REVIEW ที่มีอยู่แล้ว ไม่ได้สร้างสถานะใหม่
+      return terminal(envelope, "router", "OWNER_REVIEW",
+        `structured_owner_context proved ${proven.length} capabilities for this command — router refuses to guess`,
+        [evidence("router", `routing_source=STRUCTURED_OWNER_CONTEXT candidates=${proven.join(",")}`)], [],
+        "Owner must pick one candidate capability explicitly");
     }
-    steps = [{ capability_id: classification.capability.capability_id, intent: envelope.intent, payload: envelope.payload }];
+
+    if (proven.length === 1) {
+      routingSource = "STRUCTURED_OWNER_CONTEXT";
+      routingNote = `selected_capability_id=${proven[0]} proven by control/owner-command-semantics (status=RESOLVER_MATCHED, evidence present, id exists in ./capability-registry.ts)`;
+      steps = [{ capability_id: proven[0], intent: envelope.intent, payload: envelope.payload }];
+    } else {
+      // ยังไม่มี target ที่ resolve ได้ — คงพฤติกรรมเดิมไว้ แต่ต้องติดป้ายว่า
+      // เส้นทางนี้ตัดสินจากข้อความดิบ ไม่ใช่จากสิ่งที่พิสูจน์แล้ว
+      routingSource = "FALLBACK_RAW_TEXT";
+      const classification: ClassificationOutcome = classifyCommand(commandText);
+      if (classification.status === "OWNER_REVIEW") {
+        return terminal(envelope, "router", "OWNER_REVIEW", classification.reason, [evidence("router", `routing_source=FALLBACK_RAW_TEXT candidates=${classification.candidates.join(",")}`)], [], "Owner must pick one candidate capability explicitly");
+      }
+      if (classification.status === "UNSUPPORTED_COMMAND") {
+        return terminal(envelope, "router", "FAILED", classification.reason, [evidence("router", "routing_source=FALLBACK_RAW_TEXT UNSUPPORTED_COMMAND")], [], "UNSUPPORTED_COMMAND");
+      }
+      routingNote = `selected_capability_id=${classification.capability.capability_id} matched by match_keyword_sets on raw commandText — no proven capability was present in structured_owner_context`;
+      steps = [{ capability_id: classification.capability.capability_id, intent: envelope.intent, payload: envelope.payload }];
+    }
   }
 
-  const allEvidence: CapabilityResultEvidence[] = [];
+  const allEvidence: CapabilityResultEvidence[] = [
+    evidence("control/command-router/router.ts#routeOwnerCommand", `routing_source=${routingSource} ${routingNote}`),
+  ];
   const allArtifacts: CapabilityResultArtifact[] = [];
   const allWarnings: string[] = [];
   let lastCapabilityId = "router";
   let lastStatus: CapabilityResultStatus = "PENDING";
   let lastSummary = "no step executed";
+  // คำถาม/สิ่งที่ต้องทำต่อที่ step เป็นคนบอก — ถ้า step ไม่ได้บอก ค่อยใช้ค่าที่สรุปจากสถานะ
+  let lastNextAction: string | null | undefined;
 
   for (const step of steps) {
     const outcome = await runStep(step, envelope, options);
@@ -703,6 +963,7 @@ export async function routeOwnerCommand(envelope: CommandEnvelope, commandText: 
     lastCapabilityId = step.capability_id;
     lastStatus = outcome.status;
     lastSummary = outcome.summary;
+    if (outcome.nextAction !== undefined) lastNextAction = outcome.nextAction;
 
     if (outcome.status !== "COMPLETED") {
       // Multi-worker sequence stops here — Owner sees this one outcome, never a partial list of sub-steps.
@@ -718,6 +979,7 @@ export async function routeOwnerCommand(envelope: CommandEnvelope, commandText: 
     allEvidence,
     allArtifacts,
     allWarnings,
-    lastStatus === "COMPLETED" ? null : lastStatus === "OWNER_REVIEW" ? "OWNER_REVIEW" : lastStatus === "BLOCKED" ? "BLOCKED" : "RETRY_OR_ESCALATE",
+    lastNextAction ?? (lastStatus === "COMPLETED" ? null : lastStatus === "OWNER_REVIEW" ? "OWNER_REVIEW" : lastStatus === "BLOCKED" ? "BLOCKED" : "RETRY_OR_ESCALATE"),
+    options.parentTaskId ?? null,
   );
 }

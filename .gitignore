@@ -86,3 +86,7 @@ tmp/
 
 # .app bundle ที่ build.sh สร้างจาก launcher.template.sh + Info.plist
 local-runtime/dna-dev-app-host/build/DNA DEV.app/
+
+# log การ poll สถานะ launchd — 114MB / 157,820 บรรทัด และโตทุกวินาที
+# ไม่มีใครอ่านย้อนหลัง ไม่ใช่คำนิยาม
+control/runtime-control/data/operations.jsonl

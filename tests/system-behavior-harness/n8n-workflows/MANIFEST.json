@@ -1,0 +1,28 @@
+{
+ "harness": "DNA OS System Behavior Test Harness (n8n external orchestrator)",
+ "direction": "n8n (127.0.0.1:5678) -> DNA OS real boundary (127.0.0.1:8791). Loopback client of the SAME public boundary the Owner Surface uses. n8n is TEST DRIVER/OBSERVER only — NOT Core/Registry/decision/permission/repair authority.",
+ "eight_reusable_subworkflow_roles": {
+  "TEST_CASE_RUNNER": "TEST_CASE_RUNNER.n8n.json (Webhook -> Invoker -> Assertion -> Report). Parameterized by a test_case object.",
+  "DNA_OS_INVOKER": "HTTP Request node -> http://127.0.0.1:8791{{path}} (real boundary). Never calls internal impl fns.",
+  "STATE_OBSERVER": "follow-up HTTP Request GET (e.g. /owner/plan?command_id, /task/:id) to read terminal state.",
+  "EVENT_OBSERVER": "HTTP Request to GET /owner/events?work_id (SSE) — read emitted SystemEvents.",
+  "ASSERTION_ENGINE": "Code node evaluating declarative asserts (status/eq/exists/gte/contains/in) against the real response.",
+  "EVIDENCE_COLLECTOR": "Code node captures {request, http_status, body_excerpt, observed_at} per case.",
+  "CLEANUP_RUNNER": "only reversible/isolated writes are used; registry TEST_FIXTUREs are idempotent (duplicate gate) — no destructive cleanup needed. Extend here for future write tests.",
+  "REPORT_BUILDER": "Respond-to-Webhook (per case) + Code aggregate (suite matrix)."
+ },
+ "workflows": [
+  "TEST_CASE_RUNNER.n8n.json",
+  "BEHAVIOR_SUITE_REAL_FIRST.n8n.json"
+ ],
+ "import_note": "Owner imports these via n8n UI (Workflows -> Import from File). Live programmatic deploy on :5678 is BLOCKED: registered credential credential://macos-keychain/dna-os/n8n-api-key returns 401 on this instance (key is for the retired remote host; instance setup incomplete). No auth bypass attempted.",
+ "proof": "The same HTTP calls these workflows encode were executed against the real :8791 boundary by tests/system-behavior-harness/dna-os-test-runner.mjs -> 15/15 PASS, evidence in test-run-evidence.json.",
+ "no_backdoors": [
+  "no ?test=true",
+  "no skipPermission",
+  "no fakeResource",
+  "no forcePass",
+  "no directDatabaseMutation"
+ ],
+ "isolation": "PURE_READ for reads; REVERSIBLE_WRITE for registry duplicate-gate fixture (TEST_FIXTURE under tests/__sandbox__); no live business data touched."
+}

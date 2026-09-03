@@ -39,6 +39,32 @@ export interface RegistrationCandidate {
   /** Optional caller-supplied relationship edges — see software/registry-database/registry-writer.ts for validation and persistence. */
   relationships?: readonly CandidateRelationship[];
   /**
+   * Why this resource is entering the network, supplied by the producer that
+   * knows — which is the only moment anyone does. Added 2026-09-02 because its
+   * absence was the measured cause of orphan birth: 494 of 620 resources carry
+   * no relationship and 0 of 200 sampled can say why they exist, because a
+   * producer that knew had nowhere to put it. Optional, so every existing caller
+   * is unaffected; an omission is recorded as UNBOUND_UNKNOWN, never guessed.
+   */
+  origin?: {
+    readonly origin_kind: string;
+    /** A machine identity or pointer — never prose. */
+    readonly origin_reference: string | null;
+    readonly introduced_by: string | null;
+  };
+  /**
+   * CLASSIFICATION, not lifecycle state (Owner, FIX_TEST_FIXTURE_OWNERSHIP).
+   * Defaults to `kind` — every existing caller is unaffected. The one value
+   * with machine meaning today is `"TEST_FIXTURE"`: a real registry record
+   * whose only job is to own an isolated proof resource, and which
+   * `software/capability-registrar/write-ownership-index.ts` refuses to let
+   * own anything outside `tests/__sandbox__/`. It is deliberately a TYPE and
+   * not a STATUS — `status` stays REGISTERED/VERIFIED/SUPERSEDED/RETIRED, so
+   * a fixture is a normal, fully-registered record that simply cannot reach
+   * production paths.
+   */
+  capability_type?: string;
+  /**
    * A repository ownership CLAIM — never trusted directly as a
    * repository_id. Same field names/pattern as
    * control/agent-production-ingress/'s own requested_owner/
@@ -52,6 +78,8 @@ export interface RegistrationCandidate {
    */
   requested_owner?: string | null;
   requested_repository?: string | null;
+  canonical_ref?: { identity_type: string; identity_id: string };
+  projection_kind?: string;
 }
 
 export interface RegistrationFingerprint {

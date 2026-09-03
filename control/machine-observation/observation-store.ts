@@ -28,13 +28,53 @@ declare const __dirname: string;
 declare const process: { env: Record<string, string | undefined>; pid: number };
 
 import type { MeaningRecord } from "./types";
+/**
+ * type-only: `RuntimeObservationResult` เป็นรูปร่างของ "สิ่งที่วัดได้" ซึ่งนิยาม
+ * อยู่ที่ ./target-observer.ts แล้ว การประกาศสคีมาการวัดซ้ำที่นี่จะทำให้มีสอง
+ * แหล่งความจริงของหน่วยเดียวกัน — อ้างถึงของเดิมแทน (import เป็น type จึงถูกลบ
+ * ตอนคอมไพล์ ไม่เกิดวงอ้างอิงตอนรัน)
+ */
+import type { RuntimeObservationResult } from "./target-observer";
 
 const fs = require("node:fs");
 const path = require("node:path");
 
+/**
+ * ที่เก็บของผู้สังเกต — resolve ตอน "เรียกใช้" ไม่ใช่ตอน "โหลดโมดูล"
+ *
+ * เหตุการณ์ 2026-08-29 พิสูจน์แล้วว่า path ที่ผูกตอนโหลดโมดูลเป็นกับดักจริง:
+ * ESM ยก `import` ขึ้นก่อนเสมอ การตั้ง env ในบรรทัดบน ๆ ของไฟล์ทดสอบจึงเกิด
+ * *หลัง* โมดูลถูกประเมินไปแล้ว ค่าที่ได้จึงเป็น path จริง แล้วเทสต์ก็เขียนทับ
+ * หลักฐานจริง (187 แถวหายถาวร)
+ *
+ * รูปแบบนี้ลอกจาก `control/agent-gateway/memory-store.ts#dataDir()` ซึ่งอ่าน env
+ * ทุกครั้งที่ถูกเรียก จึงไม่ขึ้นกับลำดับ import เลย
+ *
+ * ไม่ตั้ง `MACHINE_OBSERVATION_DATA_DIR` = path เดิมทุกประการ
+ */
+function dataDir(): string {
+  const override = process.env.MACHINE_OBSERVATION_DATA_DIR;
+  if (override && override.length > 0) return override;
+  return path.join(__dirname, "data");
+}
+
+/** path ที่ใช้จริง ณ เวลาที่เรียก — ทุกจุดในไฟล์นี้ต้องผ่านฟังก์ชันนี้ */
+export function observationStoreFile(): string {
+  return path.join(dataDir(), "observations.jsonl");
+}
+
+/**
+ * path เริ่มต้นของ production เก็บชื่อเดิมไว้เพื่อความเข้ากันได้ย้อนหลัง
+ *
+ * ระวัง: นี่คือ "ค่าเริ่มต้น" ไม่ใช่ "ค่าที่กำลังใช้อยู่" — เมื่อมี override
+ * ค่านี้จะไม่ตรงกับที่เขียนจริง ผู้เรียกที่ต้องการ path ที่ใช้จริงต้องเรียก
+ * `observationStoreFile()`
+ */
 export const OBSERVATION_STORE_FILE: string = path.join(__dirname, "data", "observations.jsonl");
-const DATA_DIR: string = path.join(__dirname, "data");
-const ROTATE_LOCK_FILE: string = path.join(DATA_DIR, "observations.rotate.lock");
+
+function rotateLockFile(): string {
+  return path.join(dataDir(), "observations.rotate.lock");
+}
 const ARCHIVE_PREFIX = "observations-";
 
 /**
@@ -78,6 +118,39 @@ export interface ObservationRecord {
   meaning_records: readonly MeaningRecord[];
   source: string;
   derived_by: string;
+  /**
+   * ADDITIVE (Owner, DECISION 5). ตัวตนของงานที่ทำให้เกิดการสังเกตนี้ เมื่อผู้ผลิต
+   * พิสูจน์ได้จริงเท่านั้น
+   *
+   * เดิมความสัมพันธ์นี้มีอยู่แล้วแต่ถูกฝังไว้ใน `source` เป็นข้อความ
+   * (`dna-os:work=<id>;execution=<id>`) ซึ่งอ่านย้อนได้ก็จริงแต่ต้อง parse prose
+   * — ฟิลด์เหล่านี้คือค่าเดียวกันที่ถูกยกขึ้นมาเป็นชนิด `source` ยังคงถูกเขียน
+   * เหมือนเดิมเพื่อความเข้ากันได้ย้อนหลังกับ 20 แถวที่อยู่บนดิสก์แล้ว แต่ **ไม่ใช่
+   * แหล่งตัวตนที่เชื่อถือได้อีกต่อไป**
+   *
+   * ไม่มีค่า = UNKNOWN ห้ามเติม "UNTRACKED" หรือเดาจาก path
+   */
+  work_id?: string | null;
+  execution_id?: string | null;
+  workspace_id?: string | null;
+  agent_run_id?: string | null;
+  task_id?: string | null;
+  capability_id?: string | null;
+  /**
+   * ADDITIVE (Owner, IMPLEMENT_TYPED_RUNTIME_OBSERVATION_PERSISTENCE).
+   *
+   * ตัวตนของเป้าหมายที่ถูกวัด และ **ค่าที่วัดได้แบบมีชนิด**
+   *
+   * ก่อนหน้านี้ค่า pid/uptime/http ของเส้นทาง QUERY อยู่แค่ในสตริง
+   * `SystemEvent.state` ("pid 21988 uptime_s 177 http 200") ซึ่งอ่านย้อนได้ด้วยตา
+   * แต่เครื่องต้อง parse ข้อความ ฟิลด์สองช่องนี้ทำให้ตัวเลขเป็นตัวเลข
+   *
+   * ความหมายของแถวไม่เปลี่ยน: ยังคงเป็น "ที่เวลา observed_at ผู้สังเกตวัดได้
+   * เท่านี้" เท่านั้น ไม่ได้แปลว่า capability ผ่านการยืนยัน ไม่ได้แปลว่าบริการ
+   * แข็งแรงตลอดไป และไม่ได้มอบสิทธิ์ควบคุมใด ๆ (ดู `record_type` ด้านบน)
+   */
+  runtime_target_id?: string | null;
+  runtime_measurement?: RuntimeObservationResult | null;
 }
 
 /*
@@ -111,10 +184,10 @@ export interface ObservationRecord {
 /** Archives, newest last. Named by the instant they were sealed, so ordering never depends on the filesystem's own listing order. */
 export function rotatedFiles(): readonly string[] {
   try {
-    return fs.readdirSync(DATA_DIR)
+    return fs.readdirSync(dataDir())
       .filter((name: string) => name.startsWith(ARCHIVE_PREFIX) && name.endsWith(".jsonl"))
       .sort()
-      .map((name: string) => path.join(DATA_DIR, name));
+      .map((name: string) => path.join(dataDir(), name));
   } catch {
     return [];
   }
@@ -128,14 +201,14 @@ export function rotatedFiles(): readonly string[] {
  */
 function withRotationLock<T>(body: () => T): T | null {
   try {
-    fs.mkdirSync(DATA_DIR, { recursive: true });
-    fs.writeFileSync(ROTATE_LOCK_FILE, JSON.stringify({ pid: process.pid, at: new Date().toISOString() }), { flag: "wx" });
+    fs.mkdirSync(dataDir(), { recursive: true });
+    fs.writeFileSync(rotateLockFile(), JSON.stringify({ pid: process.pid, at: new Date().toISOString() }), { flag: "wx" });
   } catch {
     try {
-      const age = Date.now() - fs.statSync(ROTATE_LOCK_FILE).mtimeMs;
+      const age = Date.now() - fs.statSync(rotateLockFile()).mtimeMs;
       if (age < 60_000) return null;                       // someone else is rotating right now
-      fs.unlinkSync(ROTATE_LOCK_FILE);                     // stale: the holder died mid-rotation
-      fs.writeFileSync(ROTATE_LOCK_FILE, JSON.stringify({ pid: process.pid, at: new Date().toISOString(), took_over_stale_lock: true }), { flag: "wx" });
+      fs.unlinkSync(rotateLockFile());                     // stale: the holder died mid-rotation
+      fs.writeFileSync(rotateLockFile(), JSON.stringify({ pid: process.pid, at: new Date().toISOString(), took_over_stale_lock: true }), { flag: "wx" });
     } catch {
       return null;
     }
@@ -143,14 +216,14 @@ function withRotationLock<T>(body: () => T): T | null {
   try {
     return body();
   } finally {
-    try { fs.unlinkSync(ROTATE_LOCK_FILE); } catch { /* already gone */ }
+    try { fs.unlinkSync(rotateLockFile()); } catch { /* already gone */ }
   }
 }
 
 function shouldRotate(): { rotate: boolean; reason: string } {
   let stat: { size: number; birthtimeMs: number; mtimeMs: number };
   try {
-    stat = fs.statSync(OBSERVATION_STORE_FILE);
+    stat = fs.statSync(observationStoreFile());
   } catch {
     return { rotate: false, reason: "no active file yet" };
   }
@@ -196,8 +269,8 @@ export function rotateIfNeeded(): RotationResult {
     if (!recheck.rotate) return { rotated: false, reason: `another process rotated first (${recheck.reason})`, archive: null, pruned: [], lifecycle_candidates: [], candidate_reason: "another process rotated first" };
 
     const stamp = new Date().toISOString().replace(/[:.]/g, "-");
-    const archive = path.join(DATA_DIR, `${ARCHIVE_PREFIX}${stamp}.jsonl`);
-    fs.renameSync(OBSERVATION_STORE_FILE, archive);
+    const archive = path.join(dataDir(), `${ARCHIVE_PREFIX}${stamp}.jsonl`);
+    fs.renameSync(observationStoreFile(), archive);
 
     // DIRECT PRUNE AUTHORITY REMOVED (Owner, 2026-08-26).
     //
@@ -215,7 +288,7 @@ export function rotateIfNeeded(): RotationResult {
     // and only its cleanup boundary may act on that decision.
     //
     // NOTE ON THE OTHER TWO unlinkSync CALLS IN THIS FILE: both operate on
-    // ROTATE_LOCK_FILE (stale-lock recovery and normal release) and are
+    // rotateLockFile() (stale-lock recovery and normal release) and are
     // untouched. They are lock hygiene, not data deletion, and removing either
     // would wedge rotation after a crash.
     const archives = rotatedFiles();
@@ -236,13 +309,32 @@ export function rotateIfNeeded(): RotationResult {
   return result ?? { rotated: false, reason: "another process holds the rotation lock", archive: null, pruned: [], lifecycle_candidates: [], candidate_reason: "rotation lock held elsewhere" };
 }
 
+export type ObservationListener = (record: ObservationRecord) => void;
+const observationListeners = new Set<ObservationListener>();
+
+/**
+ * PRODUCER-TIME subscription — ผู้ฟังได้รับเฉพาะแถวที่โปรเซสนี้เพิ่งผลิต ไม่เคย
+ * ได้รับแถวเก่า เพราะไม่มีจุดใดอ่านไฟล์กลับมาป้อนผู้ฟัง (ไม่มี poll ไม่มี replay)
+ *
+ * อ่านอย่างเดียวโดยโครงสร้าง: ค่าที่คืนถูกทิ้ง และผู้ฟังที่ throw ถูกกลืน — การ
+ * สังเกตต้องไม่พังเพราะผู้บริโภคปลายทาง
+ */
+export function onObservation(listener: ObservationListener): () => void {
+  observationListeners.add(listener);
+  return () => { observationListeners.delete(listener); };
+}
+
 export function appendObservation(record: Omit<ObservationRecord, "record_type">): ObservationRecord {
   const complete: ObservationRecord = { ...record, record_type: "MACHINE_OBSERVATION" };
-  fs.mkdirSync(path.dirname(OBSERVATION_STORE_FILE), { recursive: true });
+  fs.mkdirSync(path.dirname(observationStoreFile()), { recursive: true });
   // Bound checked BEFORE the append, so the active file is rotated at the
   // boundary rather than after it has already grown past it.
   rotateIfNeeded();
-  fs.appendFileSync(OBSERVATION_STORE_FILE, `${JSON.stringify(complete)}\n`);
+  fs.appendFileSync(observationStoreFile(), `${JSON.stringify(complete)}\n`);
+  // แจ้งผู้ฟังหลังบันทึกลงดิสก์แล้วเท่านั้น — ผู้ฟังจะไม่เห็นสิ่งที่ยังไม่เป็นหลักฐาน
+  for (const listener of observationListeners) {
+    try { listener(complete); } catch { /* ผู้ฟังพังต้องไม่ทำให้การสังเกตพัง */ }
+  }
   return complete;
 }
 
@@ -262,7 +354,7 @@ function readFileRecords(file: string): ObservationRecord[] {
 
 /** History spans the archives AND the active file, oldest first — a rotation must not make the past unreadable. */
 export function readObservations(): readonly ObservationRecord[] {
-  return [...rotatedFiles().flatMap(readFileRecords), ...readFileRecords(OBSERVATION_STORE_FILE)];
+  return [...rotatedFiles().flatMap(readFileRecords), ...readFileRecords(observationStoreFile())];
 }
 
 export function observationsForResource(resourceId: string): readonly ObservationRecord[] {
@@ -288,7 +380,7 @@ export function observationStoreStatus(): {
     records: records.length,
     distinct_resources: new Set(records.map((record) => record.resource_id).filter((id) => id !== null)).size,
     newest_observed_at: records.length > 0 ? records[records.length - 1].observed_at : null,
-    active_bytes: sizeOf(OBSERVATION_STORE_FILE),
+    active_bytes: sizeOf(observationStoreFile()),
     rotated_files: archives.map((file) => path.basename(file)),
     rotated_bytes: archives.reduce((total, file) => total + sizeOf(file), 0),
     policy: OBSERVATION_RETENTION_POLICY,

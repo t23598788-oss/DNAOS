@@ -20,6 +20,16 @@
  */
 
 export interface WorkspaceReservation {
+  /**
+   * ADDITIVE (Owner, DECISION 3). ตัวตนที่คงที่ของการจองหนึ่งครั้ง
+   *
+   * ก่อนหน้านี้การจองถูกอ้างด้วย (work_id + repository_id) ซึ่งเป็นคีย์ประกอบและ
+   * ไม่มีตัวตนเดี่ยว ทำให้ระบบอื่นผูกกลับมาไม่ได้โดยไม่ต้องรู้ทั้งสองค่า
+   * `reservation_id` ทำให้ผูกได้ด้วยฟิลด์เดียวและอ้างข้ามความสามารถได้
+   *
+   * แถวที่ถูกสร้างก่อนฟิลด์นี้เกิดจะไม่มีค่า — ผู้อ่านต้องเผื่อไว้ ไม่ใช่เติมให้เอง
+   */
+  reservation_id: string;
   work_id: string;
   repository_id: string;
   /** Real, derived, never agent-chosen — see ./resolver.ts's deriveBranchRef. */

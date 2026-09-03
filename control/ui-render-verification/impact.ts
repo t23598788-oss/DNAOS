@@ -30,9 +30,12 @@ const REPO_ROOT = "/Users/tam/Desktop/DNA-OS-INFRASTRUCTURE";
 const UI_ASSET_EXTENSIONS = new Set([".html", ".css", ".js", ".jsx", ".tsx", ".svg"]);
 
 /**
- * The real route table, derived from the server sources that actually serve
- * static UI directories — not a maintained list. A `serveStaticFile(root,
- * "ui/<dir>/index.html")` call IS the ownership fact.
+ * The real route table, derived from the server sources that actually render
+ * a screen — not a maintained list. Two constructs in the real sources ARE the
+ * ownership facts: a `serveStaticFile(root, "ui/<dir>/index.html")` call (the
+ * owner is that directory), and a route that answers with `text/html` rendered
+ * inside the server itself (the owner is that server file). Both are read from
+ * source; neither is a list anyone edits by hand.
  */
 export function routeOwnership(): ReadonlyMap<string, string> {
   const ownership = new Map<string, string>();
@@ -44,13 +47,31 @@ export function routeOwnership(): ReadonlyMap<string, string> {
   for (const relative of serverFiles) {
     let source: string;
     try { source = String(fs.readFileSync(path.join(REPO_ROOT, relative), "utf8")); } catch { continue; }
+    // Ownership fact 1 — a served static UI directory:
     // url === "/x" ... serveStaticFile(root, "ui/y/index.html")
-    const pattern = /url\s*===\s*"([^"]+)"[\s\S]{0,400}?serveStaticFile\(\s*root\s*,\s*"([^"]+)"/g;
+    const staticPattern = /url\s*===\s*"([^"]+)"[\s\S]{0,400}?serveStaticFile\(\s*root\s*,\s*"([^"]+)"/g;
     let match: RegExpExecArray | null;
-    while ((match = pattern.exec(source)) !== null) {
+    while ((match = staticPattern.exec(source)) !== null) {
       const uiDir = path.dirname(match[2]);
       const owner = path.join(path.dirname(path.dirname(relative)), uiDir);
       ownership.set(owner, match[1]);
+    }
+
+    // Ownership fact 2 — a route this server renders as HTML from inside
+    // itself, with no static directory to point at:
+    //   url === "/x" ... "text/html..." , renderSomethingHtml()
+    // This is the SAME KIND of fact as the first: it is read out of the real
+    // source, never maintained by hand. It exists because a server can own a
+    // screen without owning a directory — observability/joint-monitor/server.ts
+    // renders its viewer inline — and before this the model could see no owner
+    // for that screen at all, so every change to that file came back
+    // UNRESOLVED and could never complete. Naming the owner makes the answer
+    // STRICTER, not looser: the file now classifies YES and must produce real
+    // render evidence for the route. A server file whose screen still cannot be
+    // derived from its source stays UNRESOLVED, exactly as before.
+    const inlineHtmlPattern = /url\s*===\s*"([^"]+)"[\s\S]{0,200}?"text\/html/g;
+    while ((match = inlineHtmlPattern.exec(source)) !== null) {
+      ownership.set(relative, match[1]);
     }
   }
   return ownership;

@@ -34,3 +34,14 @@ export { appendObservation, readObservations, observationsForResource, observati
 export { reloadRequiredFor } from "../service-reload/contract";
 
 export type { ProcessObservation, ObservedRelationship, RelationshipKind, CorrelationCandidate, CorrelationVerdict, MeaningRecord, SoftwareTopology } from "./types";
+export { onObservation } from "./observation-store";
+export type { ObservationListener } from "./observation-store";
+export { observationToEvent, startObservationEventBridge, OBSERVATION_EVENT_SOURCE } from "./event-ingress-bridge";
+export type { ObservationBridgeHandle } from "./event-ingress-bridge";
+export { declareRuntimeTarget, listRuntimeTargets, loadRuntimeTarget, targetsForCapability } from "./runtime-target";
+export type { RuntimeObservationTarget, DeclareRuntimeTargetInput, DeclareOutcome, ObservationAuthority, RuntimeTargetProcess, RuntimeTargetNetwork, RuntimeTargetHealth } from "./runtime-target";
+export { observeRuntimeTarget, listeningPidsOnPort, probeHttpHealth } from "./target-observer";
+export type { RuntimeObservationResult, HttpHealthObservation } from "./target-observer";
+export { persistRuntimeObservation } from "./target-observer";
+export type { ObservationCorrelation, PersistObservationOutcome, PersistDeps } from "./target-observer";
+export { observationStoreFile } from "./observation-store";

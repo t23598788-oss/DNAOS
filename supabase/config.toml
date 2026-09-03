@@ -1,0 +1,4 @@
+project_id = "xeytcavxejhyzxwevgto"
+
+[functions.tiktok-oauth-support]
+verify_jwt = false

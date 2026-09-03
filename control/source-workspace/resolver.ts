@@ -17,6 +17,8 @@
  * `connections/connection-registry/git-discovery.ts` already established.
  */
 
+import { randomUUID } from "node:crypto";
+import { appendFileSync, existsSync, mkdirSync, readFileSync } from "node:fs";
 import { dirnameOf, joinPath, nowIso, resolvePath, runGit } from "./host-runtime";
 import type { CreateWorkspaceInput, CreateWorkspaceResult, RemoveWorkspaceResult, WorkspaceReservation } from "./types";
 
@@ -55,6 +57,7 @@ export async function createWorkspace(input: CreateWorkspaceInput): Promise<Crea
   }
 
   const reservation: WorkspaceReservation = {
+    reservation_id: `wsr-${randomUUID()}`,
     work_id: input.work_id,
     repository_id: input.repository_id,
     branch_ref: branchRef,
@@ -62,7 +65,45 @@ export async function createWorkspace(input: CreateWorkspaceInput): Promise<Crea
     base_commit_sha: baseCommitSha,
     created_at: nowIso(),
   };
+  persistReservation(reservation);
   return { status: "CREATED", reason: "real git worktree created via git worktree add", reservation };
+}
+
+/**
+ * DECISION 3 — การจองต้องมีตัวตนที่ค้นกลับได้หลัง restart
+ *
+ * เดิม `WorkspaceReservation` ถูกคืนกลับให้ผู้เรียกแล้วจบ ไม่มีใครเก็บ ทำให้
+ * `reservation_id` อ้างกลับไม่ได้เมื่อโปรเซสอื่น (หรือโปรเซสเดียวกันหลัง restart)
+ * ต้องตัดสินใจเรื่อง cleanup — และการเดา worktree จาก path คือสิ่งที่ห้ามทำ
+ *
+ * append-only ตามแบบแผนเดียวกับสโตร์อื่นในระบบ ไม่ใช่ capability ใหม่ แค่ทำให้
+ * ของที่ capability นี้สร้างอยู่แล้วค้นกลับได้
+ */
+function reservationFile(): string {
+  return process.env.SOURCE_WORKSPACE_RESERVATION_LOG
+    ?? joinPath(dirnameOf(dirnameOf(resolvePath(__dirname))), "control/source-workspace/data/reservations.jsonl");
+}
+
+function persistReservation(reservation: WorkspaceReservation): void {
+  const p = reservationFile();
+  mkdirSync(dirnameOf(p), { recursive: true });
+  appendFileSync(p, `${JSON.stringify(reservation)}\n`, "utf-8");
+}
+
+export function listReservations(): readonly WorkspaceReservation[] {
+  const p = reservationFile();
+  if (!existsSync(p)) return [];
+  const rows: WorkspaceReservation[] = [];
+  for (const line of readFileSync(p, "utf-8").split("\n")) {
+    if (!line.trim()) continue;
+    try { rows.push(JSON.parse(line) as WorkspaceReservation); } catch { /* แถวเสียข้ามไป ไม่ลบ */ }
+  }
+  return rows;
+}
+
+/** ค้นด้วย reservation_id เท่านั้น — ไม่ค้นด้วย path และไม่เดา */
+export function loadReservation(reservationId: string): WorkspaceReservation | null {
+  return listReservations().filter((r) => r.reservation_id === reservationId).at(-1) ?? null;
 }
 
 export async function removeWorkspace(reservation: Pick<WorkspaceReservation, "repository_id" | "worktree_path" | "branch_ref">, repositoryRoot: string): Promise<RemoveWorkspaceResult> {

@@ -51,7 +51,7 @@ import { verifyIntegration } from "../integration-verification/contract";
 import { resolveTarget } from "../target-resolution/contract";
 import { resolvePolicy } from "../permission-policy-resolution/contract";
 import { evaluateAdmission } from "../admission/contract";
-import { submitTask, recordHandoff, saveTask } from "../agent-gateway/contract";
+import { submitTask, recordHandoff, saveTask, saveEvidence } from "../agent-gateway/contract";
 import { verifyRuntime } from "../runtime-verification/contract";
 import { resolveDeployPlan } from "../../execution/deploy/contract";
 import { findCapability } from "../../software/registry-database/contract";
@@ -176,6 +176,32 @@ export async function runExternalSystemLifecycle(input: ExternalSystemLifecycleI
   const routingEvidence = task.status === "BLOCKED" ? "capability routed, agent-gateway's own adapter loop is unrelated to this orchestrator" : `unexpected task.status=${task.status}`;
   const activeTask = { ...task, status: "EXECUTING" as const, updated_at: new Date().toISOString() };
   saveTask(activeTask);
+  // BY-DESIGN CLASSIFICATION (repair-loop, root cause MISLEADING_EVIDENCE).
+  // The submitTask() call above deliberately passes an empty adapter array —
+  // this orchestrator is its own executor, as the comment block above states.
+  // The gateway therefore records a truthful "AI_WRITE_ADAPTER_NOT_REGISTERED"
+  // verification row, and for 280 tasks that row was the ONLY record of what
+  // happened. Read by anything that looks for failures — the gap queue, the
+  // Workspace graph — a deliberate stop was indistinguishable from a real
+  // one, and it sat at the top of the repair queue as the system's single
+  // largest apparent defect.
+  //
+  // This adds the missing half: the caller that caused the state records that
+  // it was intended, on the same task_id. Nothing about the block changes,
+  // because nothing about the block is wrong.
+  saveEvidence({
+    evidence_id: `by-design-${task.task_id}`,
+    task_id: task.task_id,
+    kind: "verification",
+    source: "control/external-system-lifecycle/pipeline.ts",
+    recorded_at: new Date().toISOString(),
+    payload: {
+      reason: "AI_WRITE_ADAPTER_NOT_REGISTERED",
+      classification: "EXPECTED_BY_DESIGN",
+      explanation: "submitTask was called with an empty adapter array on purpose; this orchestrator executes the lifecycle itself and only needs the task identity for Policy and Admission",
+      caller: "control/external-system-lifecycle/pipeline.ts",
+    },
+  });
   recordHandoff({ task_id: task.task_id, agent_id: LIFECYCLE_WORKER_AGENT_ID, role: "lifecycle-orchestrator", input_reference: candidate.source_location, files_read: [], files_changed: [], tests_run: [...candidate.evidence_refs], status: "IN_PROGRESS", evidence_refs: [...candidate.evidence_refs], blockers: [], next_action: null });
   const policy = resolvePolicy(
     { artifact_resource_id: resourceId, artifact_resource_type: candidate.resource_type, source_capability_id: null, target_capability_id: resolvedTarget.destination_capability_id, target_class: resolvedTarget.destination_class, task_id: task.task_id, worker_id: LIFECYCLE_WORKER_AGENT_ID, requested_action: "REGISTER_CAPABILITY", evidence_refs: [...candidate.evidence_refs], correlation_id: input.correlation_id },

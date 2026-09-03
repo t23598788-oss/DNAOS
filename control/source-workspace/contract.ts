@@ -10,3 +10,4 @@
 
 export { createWorkspace, removeWorkspace } from "./resolver";
 export type { WorkspaceReservation, CreateWorkspaceInput, CreateWorkspaceResult, CreateWorkspaceStatus, RemoveWorkspaceResult, RemoveWorkspaceStatus } from "./types";
+export { listReservations, loadReservation } from "./resolver";

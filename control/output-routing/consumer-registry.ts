@@ -44,6 +44,15 @@ const SYSTEM_STATE_CONSUMERS: readonly OutputConsumerRegistration[] = [
     description: "The Dead Board Next.js app — DNA OS's own documented UI consumer of every SYSTEM_STATE output via POST /command's real HTTP response.",
   },
   {
+      consumer_id: "observability/joint-monitor",
+      consumer_type: "UI_SURFACE",
+      output_lane: "SYSTEM_STATE",
+      capability_id: "*",
+      status: "REGISTERED",
+      evidence_ref: "observability/joint-monitor/client.ts#reportViolation -> POST /violations -> JointStore -> SSE GET /events -> the Owner's browser on :5178. Registered 2026-08-26, when control/incident-remediation/owner-escalation.ts began delivering OWNER_DECISION_REQUIRED escalations through it and a real DELIVERED result was observed.",
+      description: "The live joint-monitor dashboard — the Owner-facing surface that receives OWNER_DECISION_REQUIRED escalations.",
+    },
+    {
     consumer_id: "connections/dna-os-mcp",
     consumer_type: "SUBSYSTEM",
     output_lane: "SYSTEM_STATE",

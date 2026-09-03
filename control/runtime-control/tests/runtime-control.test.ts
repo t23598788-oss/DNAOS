@@ -42,7 +42,7 @@ async function main() {
       assert(typeof ev.timestamp_started === "string" && ev.timestamp_started.length > 0, "timestamp_started present");
       assert(typeof ev.timestamp_completed === "string" && ev.timestamp_completed.length > 0, "timestamp_completed present");
       assert(ev.health_before !== undefined && ev.health_after !== undefined, "health facts present (even if unhealthy)");
-      assert(Array.isArray(ev.duplicate_check.listening_pids), "duplicate_check.listening_pids is a real array");
+      assert(Array.isArray(ev.duplicate_check?.listening_pids), "duplicate_check.listening_pids is a real array");
       // launchd's own pid claim and the real listening-socket owner are
       // deliberately allowed to differ in this assertion — they are two
       // separate facts by design (Owner rule 8), not required to match.
