@@ -1,0 +1,23 @@
+{
+  "contract_version": "1",
+  "owner": "control/owner-command/intent-contract.ts",
+  "note": "The one place the executable Owner-intent vocabulary is written down. Both the deterministic validator and the interpreter prompt read THIS file; neither owns the list. A value absent here is not executable, whatever a model returns.",
+  "executable": [
+    { "intent_type": "READ_REPOSITORY_STATE", "operation": "READ_GIT", "consumer": "control/owner-command/structured-intent.ts#operationForIntent" },
+    { "intent_type": "INSPECT_RUNNING_PROCESS", "operation": "INSPECT_PROCESS", "consumer": "control/owner-command/structured-intent.ts#operationForIntent" },
+    { "intent_type": "INSPECT_LOCAL_RUNTIME", "operation": "CHECK_RUNTIME", "consumer": "control/owner-command/structured-intent.ts#operationForIntent" },
+    { "intent_type": "VERIFY_LOCAL_TESTS", "operation": "RUN_TEST", "consumer": "control/owner-command/structured-intent.ts#operationForIntent" },
+    { "intent_type": "CAPABILITY_STATUS", "operation": null, "consumer": "control/owner-command/structured-intent.ts#executeOwnerIntentInner canonical-registry read branch" },
+    { "intent_type": "LIST_AVAILABLE_CAPABILITIES", "operation": null, "consumer": "control/owner-command/structured-intent.ts#executeOwnerIntentInner canonical-registry read branch" },
+    { "intent_type": "AGENT_WORK_REQUEST", "operation": null, "consumer": "control/owner-command/structured-intent.ts#resolveOwnerRequest agent-work branch" }
+  ],
+  "non_executable": [
+    { "intent_type": "UNKNOWN", "meaning": "the interpreter could not classify the request; a real semantic outcome, never an execution" }
+  ],
+  "removed": [
+    { "intent_type": "LIST_CAPABILITIES", "reason": "prompt-declared with no executable consumer anywhere (Owner decision 2026-09-02). Not aliased to LIST_AVAILABLE_CAPABILITIES: creating runtime behaviour to preserve an orphaned prompt word would invent a capability nobody built." }
+  ],
+  "observed_outside_contract": [
+    { "intent_type": "LIST_AVAILABLE_AGENTS", "where": "control/owner-command/structured-intent.ts#resolveOwnerRequest keyword ladder", "note": "produced by the deterministic ladder on the /owner/message path, never by a model and never passed to validateOwnerIntent. Recorded here so it is visible, deliberately NOT added to `executable` — the Owner's decision named seven values and this is not one of them." }
+  ]
+}

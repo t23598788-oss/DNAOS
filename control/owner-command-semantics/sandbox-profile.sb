@@ -5,8 +5,15 @@
 ;; capability. The model translates a sentence — it has no reason to open a
 ;; socket or read this repository, and now it cannot do either.
 ;;
-;; The two allowed literals are the launcher and the runner themselves, which
-;; live inside the repo and must stay readable for the process to exist.
+;; The allowed literals are the launcher and the runner themselves, which live
+;; inside the repo and must stay readable for the process to exist, plus the one
+;; executable-intent contract the runner reads to build its prompt.
+;;
+;; That third literal is deliberately a single file, not a subpath. The prompt
+;; must never be the authority for which intents can execute — the contract is —
+;; so the runner has to read it; but nothing about translating a sentence
+;; requires seeing anything else in this repository, and the deny above still
+;; covers everything that is not named here.
 
 (version 1)
 (allow default)
@@ -15,4 +22,5 @@
 (deny file-write* (subpath "/Users/tam/Desktop/DNA-OS-INFRASTRUCTURE"))
 (allow file-read*
   (literal "/Users/tam/Desktop/DNA-OS-INFRASTRUCTURE/control/owner-command-semantics/run-semantic.sh")
-  (literal "/Users/tam/Desktop/DNA-OS-INFRASTRUCTURE/control/owner-command-semantics/semantic-runner.py"))
+  (literal "/Users/tam/Desktop/DNA-OS-INFRASTRUCTURE/control/owner-command-semantics/semantic-runner.py")
+  (literal "/Users/tam/Desktop/DNA-OS-INFRASTRUCTURE/control/owner-command/data/executable-intent-contract.json"))

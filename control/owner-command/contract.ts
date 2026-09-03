@@ -17,6 +17,7 @@
  * itself; the router and policy gate still decide every command.
  */
 
-export { previewOwnerCommand, renderOwnerSurface, submitOwnerCommand } from "./owner-command";
+export { previewOwnerCommand, renderOwnerSurface, submitOwnerCommand, findOpenOwnerQuestion } from "./owner-command";
 export type { SubmitOwnerCommandOutcome } from "./owner-command";
+export { recordCommandLineage, lineageForCommand, listCommandLineage } from "./input-gateway";
 export type { OwnerCapabilityStatus, OwnerSurfaceState } from "./types";

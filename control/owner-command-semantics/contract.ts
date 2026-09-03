@@ -13,8 +13,8 @@
  * สิ่งที่ห้ามแตะ: ห้าม re-export ทางที่เรียกโมเดลได้โดยข้าม validator.
  */
 
-export { resolveOwnerCommandSemantics, resolveFromInterpretation, resolveCapabilityMention, resolveResourceMention, resolveContinuation, resolvePolicyCommandId, type SemanticDeps, type SemanticOutcome } from "./resolver";
-export { recordCommandTaskId } from "./resolver";
-export { readEvidenceForCapability, readTaskState, readHistoryForIdentity, readDocumentReferences, type ReadResult, type HistoryRecord, type TaskStateResult } from "./read-paths";
+export { resolveOwnerCommandSemantics, translateOwnerMessage, resolveFromInterpretation, resolveCapabilityMention, resolveResourceMention, resolveContinuation, resolvePolicyCommandId, type SemanticDeps, type SemanticOutcome, type TranslationOutcome } from "./resolver";
+export { recordCommandTaskId, recordRawOwnerMessage, recordOwnerVisibleResult } from "./resolver";
+export { readEvidenceForCapability, readTaskState, readHistoryForIdentity, readHistoryForCommand, readDocumentReferences, type ReadResult, type HistoryRecord, type TaskStateResult } from "./read-paths";
 export { validateAiInterpretation, type AiValidation } from "./ai-contract";
-export type { AiSemanticInterpretation, ResolvedReference, StructuredOwnerContext, Provenance, ResolutionStatus, SourceTraceEntry } from "./types";
+export type { AiSemanticInterpretation, ResolvedReference, ResolvedRelationshipQuery, StructuredOwnerContext, Provenance, ResolutionStatus, SourceTraceEntry, RelationshipQueryStatus } from "./types";

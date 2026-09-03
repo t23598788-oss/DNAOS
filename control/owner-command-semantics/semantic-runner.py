@@ -51,6 +51,24 @@ HARD RULES:
 """
 
 
+# The executable intent vocabulary is NOT owned here. It is read from the one
+# deterministic contract that also drives validation, so the prompt can never
+# offer the model a word the runtime cannot execute — which is exactly how
+# LIST_CAPABILITIES came to be offered with no consumer behind it.
+INTENT_CONTRACT_PATH = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+    "owner-command", "data", "executable-intent-contract.json",
+)
+
+
+def allowed_intent_values():
+    with open(INTENT_CONTRACT_PATH, "r", encoding="utf-8") as handle:
+        contract = json.load(handle)
+    values = [entry["intent_type"] for entry in contract["executable"]]
+    values += [entry["intent_type"] for entry in contract["non_executable"]]
+    return values
+
+
 def main() -> int:
     if len(sys.argv) >= 2 and sys.argv[1] == "--print-environment":
         print(json.dumps({"cwd": os.getcwd(), "env_keys": sorted(os.environ.keys()), "hf_hub_offline": os.environ.get("HF_HUB_OFFLINE")}))
@@ -61,15 +79,29 @@ def main() -> int:
         return 2
 
     with open(sys.argv[1], "r", encoding="utf-8") as handle:
-        owner_text = json.load(handle)["raw_text"]
+        request = json.load(handle)
+    owner_text = request["raw_text"]
+    catalog = request.get("catalog", [])
+    context = request.get("context", {})
 
     from mlx_lm import load, generate
     from mlx_lm.sample_utils import make_sampler
 
     model, tokenizer = load("mlx-community/Qwen3-4B-Instruct-2507-4bit")
+    prompt_text = SYSTEM_PROMPT
+    if request.get("mode") == "OWNER_TOOL_REQUEST_V1":
+        prompt_text = """Translate the Owner request into exactly one JSON object. Do not execute anything. Choose only a capability_id and supported command present in legacy_routing_candidates. legacy_routing_candidates are candidate command/routing surfaces currently exposed by a compatibility layer; membership does NOT prove runtime availability. Candidate presence does not mean the capability is executable, does not mean it is runtime healthy, and does not mean a worker is available. Classify and match the Owner intent only: a deterministic runtime decides whether execution is allowed. Never claim that anything executed successfully, and never infer health or availability from candidate membership. intent_type must be exactly one of these values and nothing else: """ + ", ".join(allowed_intent_values()) + """. For LIST_AVAILABLE_CAPABILITIES and CAPABILITY_STATUS, selected_capability and selected_tool must be null unless an exact catalog item was named by the Owner. Return exactly this shape, replacing each <...> with a real value: {\"intent_type\":\"<one value from the list above>\",\"selected_capability\":\"catalog capability_id or null\",\"selected_tool\":\"catalog supported command or null\",\"arguments\":{},\"intended_outcome\":\"string\",\"ambiguity\":[],\"confidence\":0}. Never invent identifiers or tools. If no catalog item fits, use UNKNOWN and null selections."""
+    elif request.get("mode") == "OWNER_MULTI_MEANING_V1":
+        prompt_text = """Interpret the Owner's natural language without executing anything. First enumerate every independent question, action, or desired outcome internally, then serialize that complete enumeration. Preserve one separate requests item for each independent outcome; never merge two outcomes merely because they concern the same system, and never omit an outcome because it is broad, ambiguous, implicit, lacks punctuation, or is adjacent to another outcome. Split by meaning, not by newline, punctuation, keywords, or fixed phrases. If two outcomes are dependent, keep separate items and record the dependency only in ambiguity or arguments. Return exactly {\"requests\":[{\"request_id\":\"req-1\",\"intent_type\":\"<one value from: """ + ", ".join(allowed_intent_values()) + """>\",\"intended_outcome\":\"string\",\"arguments\":{},\"ambiguity\":[],\"confidence\":0}]}. request_id is a local sequence identity only. Do not choose capabilities/resources/tools, do not execute, and do not drop ambiguous requests. For one independent outcome return one item; for multiple independent outcomes return one item per outcome. The request_id values must be unique within this response."""
+    elif request.get("mode") == "OWNER_DISPLAY_RESPONSE_V1":
+        prompt_text = """Turn the provided DISPLAY_PAYLOAD into one concise Thai sentence for the Owner. The input is already a deterministic projection. Do not add facts, IDs, evidence, logs, source, or JSON. Do not execute anything and do not change state. Return plain text only."""
+    user_content = (json.dumps({"raw_owner_text": owner_text, "conversation_context": context, "legacy_routing_candidates": catalog}, ensure_ascii=False)
+                    if request.get("mode") == "OWNER_TOOL_REQUEST_V1"
+                    else json.dumps({"DISPLAY_PAYLOAD": request.get("display_payload")}, ensure_ascii=False)
+                    if request.get("mode") == "OWNER_DISPLAY_RESPONSE_V1" else owner_text)
     messages = [
-        {"role": "system", "content": SYSTEM_PROMPT},
-        {"role": "user", "content": owner_text},
+        {"role": "system", "content": prompt_text},
+        {"role": "user", "content": user_content},
     ]
     prompt = tokenizer.apply_chat_template(messages, add_generation_prompt=True)
     # Greedy: the same Owner sentence must label the same way every time.

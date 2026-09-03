@@ -124,7 +124,7 @@ export interface HistoryRecord {
    * became, written after routing. Records from before this field existed are
    * read as RESOLUTION, which is what they were.
    */
-  kind?: "RESOLUTION" | "TASK_LINK";
+  kind?: "RAW_MESSAGE" | "RESOLUTION" | "OWNER_RESULT" | "TASK_LINK";
   recorded_at: string;
   command_id: string;
   identity_id: string;
@@ -135,6 +135,7 @@ export interface HistoryRecord {
   policy_command_id?: string | null;
   /** Filled by a second record once routing produced a real task — see ../owner-command/owner-command.ts. */
   task_id?: string | null;
+  owner_visible_result?: Record<string, unknown> | null;
 }
 
 export const HISTORY_FILE: string = path.join(__dirname, "data", "semantic-history.jsonl");
@@ -151,6 +152,17 @@ export function readHistoryForIdentity(identityId: string): ReadResult<readonly 
   const records = lines.map((line) => JSON.parse(line) as HistoryRecord).filter((record) => record.identity_id === identityId);
   if (records.length === 0) return { found: false, reason: `no previous command by identity "${identityId}"`, source };
   return { found: true, value: records, provenance: "HISTORY", source };
+}
+
+/** Read the durable owner-command projection by its canonical command id. */
+export function readHistoryForCommand(commandId: string): ReadResult<HistoryRecord> {
+  const source = "control/owner-command-semantics/data/semantic-history.jsonl";
+  let lines: string[];
+  try { lines = String(fs.readFileSync(HISTORY_FILE, "utf8")).split("\n").filter((line: string) => line.trim().length > 0); }
+  catch { return { found: false, reason: "no history file exists yet", source }; }
+  const matches = lines.map((line: string) => JSON.parse(line) as HistoryRecord).filter((record) => record.command_id === commandId);
+  if (matches.length === 0) return { found: false, reason: `command_id "${commandId}" is not in semantic history`, source };
+  return { found: true, value: matches[matches.length - 1], provenance: "HISTORY", source };
 }
 
 // ---------------------------------------------------------------------------

@@ -91,6 +91,23 @@ export interface SourceTraceEntry {
   detail: string;
 }
 
+export type RelationshipQueryStatus = "RELATIONSHIP_RESOLVED" | "RELATIONSHIP_UNRESOLVED" | "RELATIONSHIP_AMBIGUOUS";
+
+/** Deterministic relationship truth; every id here comes from the registry, never the model. */
+export interface ResolvedRelationshipQuery {
+  source_mention: string;
+  target_mention: string;
+  status: RelationshipQueryStatus;
+  source_capability_id: string | null;
+  target_capability_id: string | null;
+  relationship_id: string | null;
+  relationship_kind: string | null;
+  lock_status: "LOCKED" | "NOT_LOCKED" | "NOT_FOUND";
+  runtime_status: "PROVEN_BY_CONNECTION_LOCK_EVIDENCE" | "NOT_MEASURED";
+  evidence_refs: readonly string[];
+  candidates: readonly string[];
+}
+
 /**
  * What the rest of the system receives. `ai` and `resolved_*` are separate on
  * purpose: the model's reading is preserved for inspection, but nothing
@@ -120,4 +137,5 @@ export interface StructuredOwnerContext {
   source_trace: readonly SourceTraceEntry[];
   /** The real, registered `command_id` for ../entry-context/, or null when none matched. Never the string "unknown". */
   policy_command_id: string | null;
+  relationship_query: ResolvedRelationshipQuery | null;
 }

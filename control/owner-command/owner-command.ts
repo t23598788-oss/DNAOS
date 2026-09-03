@@ -40,9 +40,13 @@ import type { EnvelopeIdentity } from "../../contracts/identity/envelope-identit
 import type { CapabilityResult } from "../../contracts/command/capability-result";
 import type { DnaOsOutput } from "../../contracts/command/output-contract";
 import { classifyCommand, classifyOutput, listCapabilities, routeOwnerCommand } from "../command-router/contract";
-import { recordCommandTaskId, resolveOwnerCommandSemantics, type SemanticDeps } from "../owner-command-semantics/contract";
+import { recordCommandTaskId, recordOwnerVisibleResult, resolveOwnerCommandSemantics, type SemanticDeps } from "../owner-command-semantics/contract";
 import { resolveEntryContext } from "../entry-context/contract";
 import { resolveOutputConsumers } from "../output-routing/contract";
+import { recordCommandLineage } from "./input-gateway";
+import { loadAllTasks, loadEvidenceForTask, ownerDecision, DEFAULT_AGENT_WORKERS } from "../agent-gateway/contract";
+import type { Task } from "../agent-gateway/contract";
+import { randomUUID } from "node:crypto";
 import type { OutputRoutingResult } from "../output-routing/contract";
 import type { RouteOptions } from "../command-router/contract";
 import type { CommandLifecycleStage, CommandLifecycleState } from "../command-status/lifecycle";
@@ -116,6 +120,15 @@ export interface SubmitOwnerCommandOutcome {
   output_contract: DnaOsOutput;
   /** Which REGISTERED consumer(s) — if any — claimed this output's lane+capability_id. Never a guessed destination — see ../output-routing/. */
   output_routing: OutputRoutingResult;
+  /**
+   * ตัวตนของงานที่คำสั่งนี้เปิดขึ้น — namespace เดียวกับ control/owner-backbone
+   * (`work-<uuid>`) ที่ /owner/events?work_id= และ eventsForWork ใช้อยู่แล้ว
+   *
+   * มีเสมอสำหรับคำสั่งที่ถูกรับ ไม่ว่าผลจะเป็น BLOCKED หรือไม่ — การมี work_id
+   * ไม่ได้แปลว่างานได้รับอนุญาต มีขอบเขต หรือมี baseline แล้ว ทั้งสามยังไม่ถูก
+   * ผูกในสไลซ์นี้ และงานอาจถูกบล็อกทันที
+   */
+  work_id: string;
 }
 
 /**
@@ -124,9 +137,103 @@ export interface SubmitOwnerCommandOutcome {
  * surface — one call, one Owner-visible task, regardless of how many
  * capabilities it took to answer.
  */
+/**
+ * งานของเจ้าของคนนี้ที่ค้างรอคำตอบอยู่ ถ้ามี (Owner, USE_EXISTING_CONTINUATION_MODEL ข้อ 5)
+ *
+ * ตัวเชื่อมระหว่าง "คำตอบ" กับ "คำถาม" ไม่ใช่สโตร์ใหม่ แต่เป็นสถานะที่ระบบมีอยู่แล้ว:
+ * งานที่ status เป็น WAITING_OWNER_DECISION คืองานที่ถามแล้วยังไม่ได้คำตอบ
+ * และเป็นสถานะเดียวที่ `ownerDecision()` ยอมรับ
+ *
+ * tasks.jsonl เป็น append-only ดังนั้นแถวหลังสุดของ task_id หนึ่งคือสถานะปัจจุบัน
+ * — ต้องยุบก่อนกรอง ไม่งั้นงานที่ถูกตอบไปแล้วจะยังโผล่มาเป็นค้างอยู่
+ */
+export function findOpenOwnerQuestion(identityId: string): Task | null {
+  const latest = new Map<string, Task>();
+  for (const task of loadAllTasks()) latest.set(task.task_id, task);
+  const open = [...latest.values()].filter(
+    (t) => t.status === "WAITING_OWNER_DECISION" && t.memory.user_id === identityId && agentActuallyAsked(t),
+  );
+  return open.sort((a, b) => a.updated_at.localeCompare(b.updated_at)).at(-1) ?? null;
+}
+
+/**
+ * "งานรอเจ้าของ" กับ "Agent ถามคำถาม" ไม่ใช่สิ่งเดียวกัน และการรวมสองอย่างนี้
+ * เข้าด้วยกันคือบั๊กจริงที่เจอตอนรัน: งานค้างจาก 2026-08-24 ที่ `next_action`
+ * เป็นสตริงสถานะ ("OWNER_REVIEW") ถูกนับเป็นคำถามค้าง แล้วข้อความแรกของ Owner
+ * ก็ถูกกลืนไปเป็น "คำตอบ" ของงานที่เขาไม่เคยเห็น
+ *
+ * เกณฑ์ที่ตรวจได้จริง: ต้องมี Agent พูดออกมาจริงในงานนั้น — evidence ที่ Agent
+ * Host บันทึกไว้ด้วย source `#agent-message` ไม่ใช่แค่ router สรุปสถานะ
+ * ไม่ใช้กรอบเวลาเพราะเวลาเป็นการเดา ส่วนคำพูดของ Agent เป็นหลักฐาน
+ */
+function agentActuallyAsked(task: Task): boolean {
+  if (typeof task.next_action !== "string" || task.next_action.trim() === "") return false;
+  // "agent" = คำที่ Agent พูดเอง, "decision-engine" = คำถามที่คำนวณจาก evidence จริง
+  // งานค้างเก่าที่ `next_action` เป็นแค่สตริงสถานะไม่มีสองแหล่งนี้ จึงไม่ถูกนับ
+  return loadEvidenceForTask(task.task_id).some((e) => e.source === "agent" || e.source === "decision-engine" || e.source.endsWith("#agent-message"));
+}
+
+/**
+ * ข้อความตั้งต้นจริงของสายงานนี้ — ตัดรอบถาม/ตอบก่อนหน้าออก
+ *
+ * ถ้าไม่ตัด ข้อความจะซ้อนตัวเองทุกครั้งที่ตอบ (เจอจากการรันจริง) จนคำสั่งเดิม
+ * จมอยู่ใต้ประวัติของตัวเอง สายเลือดที่ตามกลับได้อยู่ที่ `parent_task_id` แล้ว
+ * ไม่จำเป็นต้องแบกไว้ในข้อความด้วย
+ */
+function rootIntentOf(intentText: string): string {
+  const marker = intentText.indexOf("\n\n[คำถามก่อนหน้า:");
+  return marker === -1 ? intentText : intentText.slice(0, marker);
+}
+
+/** ปฏิเสธเท่านั้นที่ทำให้งานหยุด — ทุกคำตอบอื่นคือ "ทำต่อ" พร้อมคำตอบนั้นติดไปด้วย */
+function isRefusal(text: string): boolean {
+  return /^(ไม่|ยกเลิก|หยุด|no\b|cancel|stop|abort)/i.test(text.trim());
+}
+
 export async function submitOwnerCommand(commandText: string, ownerIdentity: EnvelopeIdentity, options: RouteOptions = {}, semanticOptions: SemanticOptions = {}): Promise<SubmitOwnerCommandOutcome> {
   if (ownerIdentity.kind !== "human") {
     throw new Error(`control/owner-command/ only accepts issued_by.kind "human", got "${ownerIdentity.kind}"`);
+  }
+
+  /**
+   * OWNER REPLY (Owner, USE_EXISTING_CONTINUATION_MODEL ข้อ 5)
+   *
+   * ถ้ามีงานของเจ้าของคนนี้ค้างรอคำตอบอยู่ ข้อความนี้คือ "คำตอบ" ไม่ใช่คำสั่งใหม่
+   * ประตูที่รับคำตอบมีอยู่แล้วคือ `ownerDecision()` ซึ่งบันทึกการอนุมัติเป็น evidence
+   * ก่อนทำอะไรต่อ และเป็นทางเดียวที่ WAITING_OWNER_DECISION ออกจากสถานะรอได้
+   *
+   * จากนั้นงานต่อถูกสร้างด้วย `parent_task_id` ของงานเดิม — สายเลือดเดียวกับที่
+   * corrective loop ใช้อยู่แล้ว ไม่ใช่ระบบ continuation ตัวที่สอง โปรเซส Agent
+   * เป็นคนละตัวแน่นอน (one-shot เหมือนเดิมทุกประการ) แต่บริบทไม่หาย เพราะคำสั่ง
+   * เดิมและคำตอบของเจ้าของถูกส่งเข้าไปด้วยกัน
+   *
+   * `parentTaskId` ที่ส่งต่อทำให้ recursion นี้จบแน่นอน: `ownerDecision` ย้ายงานเดิม
+   * ออกจากสถานะรอไปแล้ว รอบถัดไปจึงหา pending ตัวเดิมไม่เจออีก
+   */
+  const pending = findOpenOwnerQuestion(ownerIdentity.identity_id);
+  if (pending) {
+    const refused = isRefusal(commandText);
+    await ownerDecision(pending.task_id, refused ? "ไม่ทำ" : "ทำ", DEFAULT_AGENT_WORKERS);
+    if (!refused) {
+      const rootIntent = rootIntentOf(pending.intent_text);
+      const continuationText = `${rootIntent}\n\n[คำถามก่อนหน้า: ${pending.next_action}]\n[คำตอบของ Owner: ${commandText}]`;
+      /**
+       * งานต่อต้องไปที่ capability เดิม ไม่ใช่ให้จำแนกข้อความที่ยาวขึ้นใหม่
+       *
+       * เจอจากการรันจริง: พอเอาคำถามกับคำตอบต่อท้ายเข้าไป ข้อความรวมไปชนคำของ
+       * capability อื่น (คำว่า "dispatch" ในคำถาม) การจำแนกจึงกำกวมและงานต่อ
+       * ไปไม่ถึง Agent เลย — ทั้งที่คำสั่งตั้งต้นชัดเจนอยู่แล้ว
+       *
+       * จึงจำแนกจาก "คำสั่งตั้งต้น" ซึ่งเป็นสิ่งที่ Owner พูดจริง แล้วส่งข้อความ
+       * เต็ม (พร้อมคำถามและคำตอบ) เป็น intent ของ step นั้น ผ่าน `steps` ที่
+       * RouteOptions มีอยู่แล้ว ไม่ได้แก้ keyword และไม่ได้เพิ่มตัวจำแนกใหม่
+       */
+      const rooted = classifyCommand(rootIntent);
+      const continuationOptions: RouteOptions = rooted.status === "MATCHED"
+        ? { ...options, parentTaskId: pending.task_id, steps: [{ capability_id: rooted.capability.capability_id, intent: continuationText, payload: {} }] }
+        : { ...options, parentTaskId: pending.task_id };
+      return submitOwnerCommand(continuationText, ownerIdentity, continuationOptions, semanticOptions);
+    }
   }
 
   const envelope: CommandEnvelope = {
@@ -191,8 +298,27 @@ export async function submitOwnerCommand(commandText: string, ownerIdentity: Env
     envelope.payload = { structured_owner_context: context };
   }
 
+  // ── ตัวตนของงานต้องมีก่อนการจัดเส้นทาง ไม่ใช่หลังจากนั้น ──
+  // ก่อนหน้านี้เส้นทางนี้สร้าง task แล้วจบ ไม่มี work_id เกิดขึ้นเลย ทำให้
+  // claimWork, base_commit_sha, requireWriteClaim และสตรีม /owner/events
+  // ซึ่งทั้งหมดใช้ work_id เป็นคีย์ ไม่มีอะไรให้ผูกพร้อมกันทั้งหมด
+  const workId = `work-${randomUUID()}`;
+  recordCommandLineage({
+    command_id: envelope.command_id, work_id: workId, task_id: null,
+    stage: "command_received",
+    detail: `control/owner-command/owner-command.ts#submitOwnerCommand identity=${ownerIdentity.identity_id}`,
+  });
+
   const result = await routeOwnerCommand(envelope, commandText, routeOptions);
   const lifecycle = deriveLifecycle(envelope.command_id, result);
+
+  // ผูก task เข้ากับ work ทันทีที่ task มีตัวตนจริง — ไม่เขียนค่าแทนก่อนหน้านั้น
+  recordCommandLineage({
+    command_id: envelope.command_id, work_id: workId, task_id: result.task_id ?? null,
+    // ขั้นมาจากผลของ capability จริง ไม่ใช่จาก lifecycle stage (คนละคำศัพท์)
+    stage: result.status === "BLOCKED" ? "blocked" : result.status === "FAILED" ? "failed" : "admitted",
+    detail: `routed capability=${result.capability_id} status=${result.status}`,
+  });
 
   // Closes the STATE read loop: the next command by this identity can ask
   // ../agent-gateway/ what actually became of this one. Recorded only when
@@ -216,7 +342,44 @@ export async function submitOwnerCommand(commandText: string, ownerIdentity: Env
   };
 
   const output_contract = classifyOutput(result);
-  return { envelope, lifecycle, result, surface, output_contract, output_routing: resolveOutputConsumers(output_contract) };
+
+  /**
+   * ผลกลับถึงบทสนทนาของ Owner (Owner, CLOSE_EXISTING_OWNER_RESULT_RETURN_PATH).
+   *
+   * `control/owner-command-semantics/resolver.ts` มี writer สามพี่น้องที่เขียนลง
+   * semantic-history ไฟล์เดียวกัน และหน้า :5181 อ่านผ่าน /owner/history:
+   *   kind RESOLUTION  <- resolveOwnerCommandSemantics (เส้นนี้เรียกแล้วข้างบน)
+   *   kind TASK_LINK   <- recordCommandTaskId          (เส้นนี้เรียกแล้วข้างบน)
+   *   kind OWNER_RESULT <- recordOwnerVisibleResult    <- ไม่เคยถูกเรียกบนเส้นนี้
+   *
+   * ผลคือคำสั่งที่สำเร็จจริงขึ้นในบทสนทนาว่า "ไม่มีผลลัพธ์ที่บันทึกไว้" เพราะ
+   * `chat.mjs` เรนเดอร์ผลจาก kind === "OWNER_RESULT" เท่านั้น วัดแล้วกับ
+   * cmd_0277e184…: มี RESOLUTION + TASK_LINK แต่ไม่มี OWNER_RESULT
+   *
+   * ใช้ writer ตัวที่สามซึ่งอยู่ไฟล์เดียวกันและ import อยู่แล้ว — ไม่ใช้
+   * `agent-result-return#returnAgentResult` เพราะสัญญาของมันบังคับ
+   * `assignment_id` ซึ่งเส้นทางนี้ไม่มี (worker=LOCAL ไม่มี assignment) การเรียก
+   * มันจะต้องปลอม assignment_id ขึ้นมา
+   *
+   * บันทึกทุกสถานะ ไม่ใช่เฉพาะที่สำเร็จ — งานที่ล้มต้องเห็นในบทสนทนาเช่นกัน
+   */
+  recordOwnerVisibleResult(envelope.command_id, ownerIdentity.identity_id, commandText, {
+    command_id: envelope.command_id,
+    work_id: workId,
+    task_id: result.task_id,
+    capability_id: result.capability_id,
+    status: result.status,
+    summary: result.summary,
+    next_action: result.next_action,
+    warnings: result.warnings,
+    // `CapabilityResultEvidence` คือ {source, note} ส่วน {kind, ref} คือรูปของ
+    // `artifacts` — ก่อนหน้านี้แมปด้วยรูปของ artifacts ทำให้ทุกแถวกลายเป็น
+    // "undefined:undefined" และของจริงที่ Owner ต้องเห็น (repository_id,
+    // branch_ref, worktree_path) หายไปทั้งหมดโดยไม่มีใครรู้
+    evidence_refs: result.evidence.map((item) => `${item.source}:${item.note}`),
+  });
+
+  return { envelope, lifecycle, result, surface, output_contract, output_routing: resolveOutputConsumers(output_contract), work_id: workId };
 }
 
 /** Read-only preview — classifies without routing, so a caller (or a confirmation prompt) can show the Owner which capability a command WOULD go to before it actually runs. */

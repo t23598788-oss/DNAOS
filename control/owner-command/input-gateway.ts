@@ -139,6 +139,20 @@ interface EnvelopeRecord {
   stage: IngestStage;
   task_id: string | null;
   detail: string;
+  /**
+   * ADDITIVE (2026-08-29, CLOSE_COMMAND_TASK_TO_WORK_IDENTITY_GAP)
+   *
+   * เส้นทางคำสั่งแบบข้อความอิสระของ #command เคยไม่เขียนแถวใดลงไฟล์นี้เลย และ
+   * ไม่เคยสร้าง work_id — พิสูจน์สดแล้วด้วยคำสั่ง cmd_dc6d3470 ซึ่ง task ถูกเก็บ
+   * แต่ค้นทั้งระบบไม่พบ work_id ผลคือ authorization, declared scope, baseline และ
+   * สตรีม /owner/events ไม่มีคีย์ให้ผูกพร้อมกันทั้งสี่
+   *
+   * สองช่องนี้ไม่บังคับ แถวเดิมทุกแถวจึงอ่านได้เหมือนเดิม และไม่มีสโตร์ใหม่เกิดขึ้น
+   * `work_id` อยู่ใน namespace เดียวกับ control/owner-backbone (`work-<uuid>`)
+   * ที่ /owner/events และ eventsForWork ใช้อยู่แล้ว ไม่ใช่แบบจำลองงานตัวที่สอง
+   */
+  command_id?: string;
+  work_id?: string;
 }
 
 function appendRecord(record: EnvelopeRecord): void {
@@ -425,6 +439,48 @@ export async function ingestCommandEnvelope(envelope: CommandEnvelope, clientId:
 }
 
 /** Read-only replay helper for tests/Owner Console — every stage transition for one envelope_id, read fresh from disk. */
+/**
+ * บันทึกสายเลือดของคำสั่งหนึ่งขั้น — command_id + work_id (+ task_id เมื่อมีแล้ว)
+ *
+ * แยกจาก `ingestCommandEnvelope` โดยตั้งใจ: เส้นทางข้อความอิสระไม่ได้เดินผ่าน
+ * Input Gateway (ไม่มี WorkOrder ให้รับเข้า) แต่มันก็ต้องทิ้งหลักฐานถาวรว่าคำสั่ง
+ * นี้เคยมีอยู่จริง ฟังก์ชันนี้จึงเขียนลง **ไฟล์เดิม** ด้วยรูปแบบเดิม ไม่ใช่สโตร์ใหม่
+ *
+ * `envelope_id` ถูกตั้งเป็น command_id เพราะบนเส้นทางนี้ซองคำสั่งกับคำสั่งคือสิ่ง
+ * เดียวกัน — และ `command_id` ยังถูกเก็บไว้ในช่องของตัวเองด้วย เพื่อไม่ให้ใคร
+ * ต้องเดาว่าสองค่านี้สัมพันธ์กันอย่างไร
+ */
+export function recordCommandLineage(input: {
+  command_id: string; work_id: string; task_id: string | null; stage: IngestStage; detail: string;
+}): void {
+  appendRecord({
+    recorded_at: new Date().toISOString(),
+    envelope_id: input.command_id,
+    idempotency_key: input.command_id,
+    stage: input.stage,
+    task_id: input.task_id,
+    detail: input.detail,
+    command_id: input.command_id,
+    work_id: input.work_id,
+  });
+}
+
+/**
+ * อ่านแถวสายเลือดล่าสุดทั้งหมด — สำหรับฟีดที่ต้องแสดงหลายคำสั่งพร้อมกัน
+ *
+ * แยกจาก `lineageForCommand` โดยตั้งใจ: การส่งสตริงว่างเข้าไปเพื่อขอ "ทุกแถว"
+ * เป็นการใช้ตัวกรองผิดหน้าที่ และคืนศูนย์แถวอย่างเงียบ ๆ
+ */
+export function listCommandLineage(limit = 200): readonly EnvelopeRecord[] {
+  const rows = readAllRecords();
+  return rows.slice(Math.max(0, rows.length - limit));
+}
+
+/** อ่านสายเลือดทุกขั้นของคำสั่งหนึ่ง — ผู้อ่านเดียวกับ loadEnvelopeHistory */
+export function lineageForCommand(commandId: string): readonly EnvelopeRecord[] {
+  return readAllRecords().filter((r) => r.command_id === commandId || r.envelope_id === commandId);
+}
+
 export function loadEnvelopeHistory(envelopeId: string): EnvelopeRecord[] {
   return readAllRecords().filter((r) => r.envelope_id === envelopeId);
 }

@@ -39,12 +39,13 @@ declare const process: { env: Record<string, string | undefined> };
 declare const __dirname: string;
 
 import { validateAiInterpretation } from "./ai-contract";
-import type { AiSemanticInterpretation, ResolvedReference, SourceTraceEntry, StructuredOwnerContext } from "./types";
+import type { AiSemanticInterpretation, ResolvedReference, ResolvedRelationshipQuery, SourceTraceEntry, StructuredOwnerContext } from "./types";
 import { listCapabilities } from "../command-router/contract";
 import { readEvidenceForCapability, readEvidenceForTask, readHistoryForIdentity, readTaskState, readDocumentReferences, HISTORY_FILE, type HistoryRecord } from "./read-paths";
 import { listCommandDescriptors } from "../../execution/run/contract";
 import type { RegistryStore } from "../../software/registry-database/contract";
 import { findResourceById, findCapability } from "../../software/registry-database/contract";
+import type { RelationshipRow } from "../../software/registry-database/contract";
 
 const fs = require("node:fs");
 const path = require("node:path");
@@ -62,6 +63,14 @@ export interface SemanticDeps {
 export type SemanticOutcome =
   | { ok: true; context: StructuredOwnerContext }
   | { ok: false; stage: "MODEL" | "CONTRACT"; reasons: string[] };
+
+export interface TranslationOutcome {
+  message_id: string;
+  raw_text: string;
+  semantic: SemanticOutcome;
+  /** Translation never creates a WorkOrder, task, or Agent run. */
+  execution_started: false;
+}
 
 // ---------------------------------------------------------------------------
 // The model call — isolated, and never trusted afterwards
@@ -99,6 +108,55 @@ function isOwnerQuoted(mention: string, rawText: string): boolean {
 
 function unresolved(mention: string, kind: ResolvedReference["kind"], detail: string): ResolvedReference {
   return { mention, status: "RESOLVER_UNRESOLVED", resolved_id: null, kind, provenance: "AI_INTERPRETATION", evidence_refs: [detail], candidates: [] };
+}
+
+function relationshipTokens(value: string): string[] {
+  return value.toLocaleLowerCase().replace(/[_/:#.>-]+/g, " ").split(/[^\p{L}\p{N}]+/u).filter((token) => token.length > 1);
+}
+
+function phraseMatches(phrase: string, aliases: readonly string[]): boolean {
+  const tokens = relationshipTokens(phrase);
+  return tokens.length > 0 && tokens.every((token) => aliases.some((alias) => relationshipTokens(alias).includes(token)));
+}
+
+function readConnectionLocks(): readonly Record<string, unknown>[] {
+  const file = path.join(__dirname, "../..", "control/owner-backbone/data/connection-locks.jsonl");
+  if (!fs.existsSync(file)) return [];
+  return String(fs.readFileSync(file, "utf8")).split("\n").filter((line: string) => line.trim()).map((line: string) => JSON.parse(line) as Record<string, unknown>);
+}
+
+function resolveRelationshipQuery(ai: AiSemanticInterpretation, store: RegistryStore | undefined): ResolvedRelationshipQuery | null {
+  if (ai.action.toLocaleUpperCase() !== "CHECK" || !store?.listRelationshipRows) return null;
+  const mentionedEntities = ai.entity_mentions.filter((m): m is string => typeof m === "string" && m.length > 0 && isOwnerQuoted(m, ai.raw_text));
+  const atomicMentions = mentionedEntities
+    .map((mention, index) => ({ mention, index, size: relationshipTokens(mention).length }))
+    .sort((left, right) => left.size - right.size || left.index - right.index)
+    .slice(0, 2)
+    .sort((left, right) => left.index - right.index)
+    .map(({ mention }) => mention);
+  const mentions = atomicMentions.length >= 2
+    ? atomicMentions
+    : [...mentionedEntities, ai.target_text].filter((m): m is string => typeof m === "string" && m.length > 0 && isOwnerQuoted(m, ai.raw_text));
+  if (mentions.length < 2) return null;
+  const sourceMention = mentions[0];
+  const targetMention = mentions[mentions.length - 1];
+  const relationships = store.listRelationshipRows().filter((row) => row.from_type === "CAPABILITY" && row.to_type === "CAPABILITY");
+  const locks = readConnectionLocks();
+  const caps = listCapabilities();
+  const aliasesFor = (id: string, side: "source" | "target", row: RelationshipRow): string[] => {
+    const names = caps.filter((cap) => cap.capability_id === id).flatMap((cap) => [cap.capability_id, cap.repo_id, ...cap.match_keyword_sets.flat()]);
+    const lock = locks.find((candidate) => candidate.source_capability_id === row.from_id && candidate.target_capability_id === row.to_id);
+    const symbol = side === "source" ? lock?.source_symbol : lock?.target_symbol;
+    return [...names, row.relationship_kind, typeof symbol === "string" ? symbol : ""];
+  };
+  const candidates = relationships.filter((row) => phraseMatches(sourceMention, aliasesFor(row.from_id, "source", row)) && phraseMatches(targetMention, aliasesFor(row.to_id, "target", row)));
+  if (candidates.length !== 1) {
+    return { source_mention: sourceMention, target_mention: targetMention, status: candidates.length > 1 ? "RELATIONSHIP_AMBIGUOUS" : "RELATIONSHIP_UNRESOLVED", source_capability_id: null, target_capability_id: null, relationship_id: null, relationship_kind: null, lock_status: "NOT_FOUND", runtime_status: "NOT_MEASURED", evidence_refs: ["software/registry-database#relationships", "control/owner-backbone/data/connection-locks.jsonl"], candidates: candidates.map((row) => row.relationship_id) };
+  }
+  const row = candidates[0];
+  const lock = locks.find((candidate) => candidate.source_capability_id === row.from_id && candidate.target_capability_id === row.to_id && candidate.registry_relationship_id);
+  const evidence = ["software/registry-database/data/canonical/relationships.jsonl", "control/owner-backbone/data/connection-locks.jsonl", ...(Array.isArray(lock?.evidence_refs) ? lock.evidence_refs.filter((value): value is string => typeof value === "string") : [])];
+  return { source_mention: sourceMention, target_mention: targetMention, status: "RELATIONSHIP_RESOLVED", source_capability_id: row.from_id, target_capability_id: row.to_id, relationship_id: row.relationship_id, relationship_kind: row.relationship_kind, lock_status: lock ? "LOCKED" : "NOT_LOCKED", runtime_status: lock?.evidence_refs ? "PROVEN_BY_CONNECTION_LOCK_EVIDENCE" : "NOT_MEASURED", evidence_refs: evidence, candidates: [] };
 }
 
 /**
@@ -245,6 +303,19 @@ function appendHistory(context: StructuredOwnerContext): void {
   fs.appendFileSync(HISTORY_FILE, `${JSON.stringify(record)}\n`);
 }
 
+/** Persist the exact structured result already returned by Core so refresh can
+ * project the same answer without executing the operation again. */
+export function recordOwnerVisibleResult(commandId: string, identityId: string, rawText: string, result: Record<string, unknown>): void {
+  const record: HistoryRecord = {
+    recorded_at: new Date().toISOString(), command_id: commandId, identity_id: identityId,
+    raw_text: rawText, resolved_target_ids: [], resolved_capability_ids: [],
+    policy_command_id: null, task_id: typeof result.task_id === "string" ? result.task_id : null,
+    kind: "OWNER_RESULT", owner_visible_result: result,
+  };
+  fs.mkdirSync(path.dirname(HISTORY_FILE), { recursive: true });
+  fs.appendFileSync(HISTORY_FILE, `${JSON.stringify(record)}\n`);
+}
+
 /** Builds the structured context from an interpretation that has already passed ./ai-contract.ts. Pure apart from the registry reads it performs. */
 export function resolveFromInterpretation(
   commandId: string,
@@ -260,7 +331,29 @@ export function resolveFromInterpretation(
     { field: "owner_identity", provenance: "RUNTIME", detail: "issued_by on the CommandEnvelope" },
   ];
 
-  const capabilityMentions = [ai.capability_reference, ai.target_text].filter((m): m is string => typeof m === "string" && m.length > 0);
+  // Every Owner-quoted phrase the interpreter extracted is offered to the
+  // capability registry — not only the two fields that happen to be named for
+  // it.
+  //
+  // MEASURED 2026-09-02. For "เช็ก revision ของ GitHub" the interpreter returns
+  // capability_reference "เช็ก" (the verb) and target_text "revision", while the
+  // word that actually identifies the capability, "GitHub", lands in
+  // resource_reference/entity_mentions. `control/command-router/capability-registry.ts`
+  // already declares `match_keyword_sets: [["github"]]` for it, so the registry
+  // could have answered — it was simply never asked. The same sentence phrased
+  // as "เช็ก GitHub repo นี้" DID resolve to `github`, because that time the model
+  // happened to put the word in a field this list included. Which field a token
+  // lands in is the model's choice; whether a token names a capability is the
+  // registry's. This restores that division.
+  //
+  // Nothing about matching is loosened: `isOwnerQuoted` still rejects any phrase
+  // the Owner did not type, `match_keyword_sets` remains the only matcher, and
+  // several matches still return RESOLVER_AMBIGUOUS rather than a guess. No
+  // alias, keyword table or sentence-specific rule is added anywhere.
+  const capabilityMentions = [...new Set(
+    [ai.capability_reference, ai.target_text, ai.resource_reference, ...(ai.entity_mentions ?? [])]
+      .filter((m): m is string => typeof m === "string" && m.length > 0),
+  )];
   const resolvedCapabilities = capabilityMentions.map((mention) =>
     isOwnerQuoted(mention, ai.raw_text)
       ? resolveCapabilityMention(mention)
@@ -286,6 +379,9 @@ export function resolveFromInterpretation(
 
   const policy = resolvePolicyCommandId(ai.target_text ?? ai.intent);
   if (policy) trace.push({ field: "policy_command_id", provenance: "REGISTRY", detail: "execution/run/registry.ts command descriptors" });
+
+  const relationshipQuery = resolveRelationshipQuery(ai, deps.registryStore);
+  if (relationshipQuery) trace.push({ field: "relationship_query", provenance: "REGISTRY", detail: "software/registry-database relationships + control/owner-backbone/data/connection-locks.jsonl" });
 
   // QUERY -> EVIDENCE STORE, once per capability this run actually proved.
   // Only proven ids are used as the lookup key: asking the evidence store about
@@ -350,6 +446,7 @@ export function resolveFromInterpretation(
     ambiguities: all.filter((r) => r.status === "RESOLVER_AMBIGUOUS"),
     source_trace: trace,
     policy_command_id: policy && policy.status === "RESOLVER_MATCHED" ? policy.resolved_id : null,
+    relationship_query: relationshipQuery,
   };
 
   appendHistory(context);
@@ -375,6 +472,47 @@ export function recordCommandTaskId(commandId: string, identityId: string, taskI
   };
   fs.mkdirSync(path.dirname(HISTORY_FILE), { recursive: true });
   fs.appendFileSync(HISTORY_FILE, `${JSON.stringify(record)}\n`);
+}
+
+/**
+ * Durable first hop for free-form Owner language. This record is deliberately
+ * written before the model is started, so a model failure cannot erase the
+ * original words or make the request look as if it was never received.
+ */
+export function recordRawOwnerMessage(messageId: string, identityId: string, rawText: string): void {
+  const record: HistoryRecord = {
+    recorded_at: new Date().toISOString(),
+    command_id: messageId,
+    identity_id: identityId,
+    raw_text: rawText,
+    resolved_target_ids: [],
+    resolved_capability_ids: [],
+    policy_command_id: null,
+    task_id: null,
+    kind: "RAW_MESSAGE",
+  };
+  fs.mkdirSync(path.dirname(HISTORY_FILE), { recursive: true });
+  fs.appendFileSync(HISTORY_FILE, `${JSON.stringify(record)}\n`);
+}
+
+/**
+ * Owner text -> durable raw intake -> isolated translation/resolution.
+ * Nothing in this function routes, admits, creates a task, or starts an
+ * Agent. A later, explicit system stage may consume the returned context.
+ */
+export function translateOwnerMessage(
+  messageId: string,
+  rawText: string,
+  ownerIdentity: { identity_id: string; kind: string },
+  deps: SemanticDeps = {},
+): TranslationOutcome {
+  recordRawOwnerMessage(messageId, ownerIdentity.identity_id, rawText);
+  return {
+    message_id: messageId,
+    raw_text: rawText,
+    semantic: resolveOwnerCommandSemantics(messageId, rawText, ownerIdentity, deps),
+    execution_started: false,
+  };
 }
 
 /** The full layer: Owner text -> isolated model -> contract check -> deterministic resolution. */
