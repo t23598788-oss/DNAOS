@@ -34,6 +34,14 @@ export const MACHINE_INPUT_CONTRACT_VERSION = "DNA_OS_AGENT_INPUT_V1" as const;
  * needs to work AND everything DNA OS needs to later verify the result
  * against.
  */
+/**
+ * Machine work category, derived from the admitted WorkOrder itself
+ * (`operation` + `target_type`) — never named by the Agent, never inferred
+ * from prose. Extended (Owner, COMPLETE_STRUCTURED_AGENT_INPUT) alongside the
+ * four fields below; the eight original fields are untouched.
+ */
+export type AgentTaskType = "CREATE_FILE" | "MODIFY_FILE";
+
 export interface DnaOsAgentInput {
   protocol: typeof MACHINE_INPUT_CONTRACT_VERSION;
   work_order_id: string;
@@ -46,6 +54,34 @@ export interface DnaOsAgentInput {
   allowed_operations: readonly RequestedActionOperation[];
   expected_outputs: readonly string[];
   acceptance_criteria: readonly string[];
+
+  /** Derived from `WorkOrder.operation` + `WorkOrder.target_type`. */
+  task_type: AgentTaskType;
+  /**
+   * The `evidence_id` of the `policy_decision` Evidence this task already
+   * produced through `permissions/write-gate` — a REFERENCE to a decision DNA
+   * OS already made, never a credential, token or policy the Agent may
+   * evaluate. `null` when the task carries no policy decision yet, which is
+   * reported as MISSING_SOURCE rather than filled with a placeholder.
+   */
+  authorization_reference: string | null;
+  /**
+   * The exact scope the kernel sandbox will enforce as writable for this
+   * launch. Same value, same launch — if these two ever diverge the launch is
+   * refused rather than run under a scope the Agent was not told about.
+   */
+  allowed_write_paths: readonly string[];
+  /** Real absolute paths the Agent must never write — from `WorkOrder.forbidden_files`. */
+  forbidden_files: readonly string[];
+  /** What DNA OS will check after the result returns — from `WorkOrder.required_tests`. */
+  verification_requirements: readonly string[];
+  /**
+   * Deterministic acceptance checks. Empty when no admitted stage declared any
+   * — an empty list means "none were declared", never "none are needed".
+   */
+  required_checks: readonly string[];
+  /** Echoed so the Agent can never be asked for a result shape the system will not accept. */
+  expected_result_contract: typeof MACHINE_CONTRACT_VERSION;
 }
 
 /** Canonical severity — exactly these four, nothing else. */
@@ -155,6 +191,8 @@ export const ERROR_CODES = {
   WORK_ORDER_MISMATCH: "WORK_ORDER_MISMATCH",
   UNKNOWN_REQUESTED_ACTION: "UNKNOWN_REQUESTED_ACTION",
   EXECUTOR_NOT_AVAILABLE: "EXECUTOR_NOT_AVAILABLE",
+  /** งานที่ประกาศว่ามาจาก lifecycle ที่ admit แล้ว แต่ไม่ได้ส่ง task_id มา — ปิดตาย ไม่สร้าง id ใหม่แทน */
+  MISSING_ADMITTED_TASK_ID: "MISSING_ADMITTED_TASK_ID",
 } as const;
 
 /** The closed set `RequestedActionOperation` actually contains — used by the boundary parser and the Authority Router to reject anything else, never inferred ad hoc. */

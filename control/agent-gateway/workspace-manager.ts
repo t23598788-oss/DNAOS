@@ -27,8 +27,8 @@
  * only this file computes them.
  */
 
-import { mkdirSync } from "node:fs";
-import { join } from "node:path";
+import { appendFileSync, existsSync, mkdirSync, readFileSync } from "node:fs";
+import { dirname as dirnameOf, join, join as joinPath } from "node:path";
 import { randomUUID } from "node:crypto";
 import { saveEvidence } from "./memory-store";
 import type { WorkerKind } from "../agent-host/contract";
@@ -69,6 +69,20 @@ export interface TaskWorkspace {
   workspace_id: string;
   work_order_id: string;
   command_id: string;
+  /**
+   * ADDITIVE (Owner, DECISION 3). งานที่เป็นเจ้าของ workspace นี้ เมื่อรู้
+   * `null` = ยังไม่ผูก ไม่ใช่ "ไม่มี" — ห้ามเดาจาก work_order_id
+   */
+  task_id?: string | null;
+  /**
+   * ADDITIVE (Owner, DECISION 3). `WorkspaceReservation.reservation_id` ของ
+   * source worktree ที่งานนี้จอง — คนละวัตถุกับ workspace นี้โดยสิ้นเชิง
+   *
+   * TaskWorkspace = พื้นที่ทำงานเชิงตรรกะของ task/agent
+   * WorkspaceReservation = การจอง worktree ของ repository ที่ source-workspace เป็นเจ้าของ
+   * ทั้งสองไม่ใช่สิ่งเดียวกัน และ `workspace_id` ต้องไม่ถูกใช้แทนกัน
+   */
+  source_reservation_id?: string | null;
   assigned_agent: WorkerKind | null;
   /** Real, absolute MASTER_SOURCE paths the Agent may READ — never a path this Agent may write to. */
   assigned_source: readonly string[];
@@ -90,7 +104,46 @@ export interface CreateTaskWorkspaceInput {
   workspace_root: string;
 }
 
+/**
+ * DECISION 3 — ตัวตนของ workspace ต้องอยู่รอดหลัง restart
+ *
+ * เดิมทะเบียนนี้เป็น Map ในหน่วยความจำล้วน แปลว่าหลังโปรเซสตาย ไม่มีทางรู้ว่า
+ * workspace ไหนเป็นของงานไหน หรือผูกกับการจอง worktree ใด — ทำให้ตัดสินใจเรื่อง
+ * cleanup อย่างปลอดภัยไม่ได้เลย
+ *
+ * Map ยังอยู่ในฐานะแคชของโปรเซส แต่ **ดิสก์คือความจริง** — เขียนลงดิสก์ก่อนเสมอ
+ * และการอ่านที่ไม่เจอในแคชจะไปอ่านดิสก์ (แถวหลังสุดของ workspace_id ชนะ ตาม
+ * แบบแผน latest-per-key เดียวกับ tasks.jsonl)
+ */
 const registry = new Map<string, TaskWorkspace>();
+
+function workspaceFile(): string {
+  const override = process.env.AGENT_GATEWAY_DATA_DIR;
+  const dir = override && override.length > 0 ? override : joinPath(__dirname, "..", "..", "control/agent-gateway/data");
+  return joinPath(dir, "task-workspaces.jsonl");
+}
+
+function persist(workspace: TaskWorkspace): void {
+  const p = workspaceFile();
+  mkdirSync(dirnameOf(p), { recursive: true });
+  appendFileSync(p, `${JSON.stringify(workspace)}\n`, "utf-8");
+  registry.set(workspace.workspace_id, workspace);
+}
+
+/** อ่านแถวหลังสุดของ workspace_id นั้นจากดิสก์ — ไม่พึ่งแคช ใช้ได้หลัง restart */
+export function loadWorkspaceFromDisk(workspace_id: string): TaskWorkspace | undefined {
+  const p = workspaceFile();
+  if (!existsSync(p)) return undefined;
+  let found: TaskWorkspace | undefined;
+  for (const line of readFileSync(p, "utf-8").split("\n")) {
+    if (!line.trim()) continue;
+    try {
+      const row = JSON.parse(line) as TaskWorkspace;
+      if (row.workspace_id === workspace_id) found = row;
+    } catch { /* แถวเสียข้ามไป ไม่ลบ */ }
+  }
+  return found;
+}
 
 function recordLifecycleEvidence(workspace: TaskWorkspace, note: string): void {
   saveEvidence({
@@ -134,13 +187,27 @@ export function createTaskWorkspace(input: CreateTaskWorkspaceInput): TaskWorksp
     created_at: new Date().toISOString(),
     state: "CREATE",
   };
-  registry.set(workspace_id, workspace);
+  persist(workspace);
   recordLifecycleEvidence(workspace, "workspace created — fresh TASK_WORKSPACE directory, disjoint from assigned_source");
   return workspace;
 }
 
 export function getWorkspace(workspace_id: string): TaskWorkspace | undefined {
-  return registry.get(workspace_id);
+  // แคชก่อน แล้วค่อยดิสก์ — หลัง restart แคชว่าง แต่ความจริงยังอยู่บนดิสก์
+  return registry.get(workspace_id) ?? loadWorkspaceFromDisk(workspace_id);
+}
+
+/**
+ * ผูก workspace เข้ากับการจอง worktree (และงาน เมื่อรู้) — ความสัมพันธ์ที่มีชนิด
+ * และถูกบันทึก ไม่ใช่การอนุมานจากสตริง path
+ */
+export function linkSourceReservation(workspace_id: string, source_reservation_id: string, task_id?: string): TransitionOutcome {
+  const current = getWorkspace(workspace_id);
+  if (!current) return { ok: false, reason: `UNKNOWN_WORKSPACE: ${workspace_id}` };
+  const next: TaskWorkspace = { ...current, source_reservation_id, task_id: task_id ?? current.task_id ?? null };
+  persist(next);
+  recordLifecycleEvidence(next, `linked to source reservation ${source_reservation_id}${task_id ? ` for task ${task_id}` : ""}`);
+  return { ok: true, workspace: next };
 }
 
 export type TransitionOutcome = { ok: true; workspace: TaskWorkspace } | { ok: false; reason: string };
@@ -150,25 +217,25 @@ export type TransitionOutcome = { ok: true; workspace: TaskWorkspace } | { ok: f
  * (never silently clamps) any transition not in `VALID_TRANSITIONS`.
  */
 export function transitionWorkspace(workspace_id: string, next_state: WorkspaceState, note: string): TransitionOutcome {
-  const workspace = registry.get(workspace_id);
+  const workspace = getWorkspace(workspace_id);
   if (!workspace) return { ok: false, reason: `UNKNOWN_WORKSPACE_ID: "${workspace_id}"` };
   const allowed = VALID_TRANSITIONS[workspace.state];
   if (!allowed.includes(next_state)) {
     return { ok: false, reason: `INVALID_TRANSITION: "${workspace.state}" -> "${next_state}" is not permitted (allowed: ${allowed.join(",") || "none — already terminal"})` };
   }
   const updated: TaskWorkspace = { ...workspace, state: next_state };
-  registry.set(workspace_id, updated);
+  persist(updated);
   recordLifecycleEvidence(updated, note);
   return { ok: true, workspace: updated };
 }
 
 /** ASSIGN_AGENT is the one transition that also records which real WorkerKind this workspace is bound to. */
 export function assignAgent(workspace_id: string, worker_kind: WorkerKind): TransitionOutcome {
-  const workspace = registry.get(workspace_id);
+  const workspace = getWorkspace(workspace_id);
   if (!workspace) return { ok: false, reason: `UNKNOWN_WORKSPACE_ID: "${workspace_id}"` };
   const result = transitionWorkspace(workspace_id, "ASSIGN_AGENT", `assigned_agent=${worker_kind}`);
   if (!result.ok) return result;
   const updated: TaskWorkspace = { ...result.workspace, assigned_agent: worker_kind };
-  registry.set(workspace_id, updated);
+  persist(updated);
   return { ok: true, workspace: updated };
 }

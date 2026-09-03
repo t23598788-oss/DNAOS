@@ -8,7 +8,7 @@
 export { submitTask, getTask, getResult, explain, ownerDecision, listCapabilities, admitCompletedTask } from "./gateway";
 export { dispatchTask, startTaskController } from "./controller";
 export { recordHandoff, validateHandoff, confirmDnaOsDecision, computeNextDecisionFromEvidence } from "./handoff";
-export { loadAllHandoffs, loadHandoffsForTask, loadEvidenceForTask, saveEvidence, saveTask } from "./memory-store";
+export { loadAllHandoffs, loadHandoffsForTask, loadEvidenceForTask, loadAllEvidence, loadAllTasks, saveEvidence, saveTask } from "./memory-store";
 export type { HandoffAdmission, HandoffInput, NextDecision } from "./handoff";
 export type { AgentAdapter, AgentRunSpec, Artifact, Capability, Context, DnaOsDecision, Evidence, ExecutionRequest, ExecutionResult, HandoffRecord, HandoffStatus, MemoryReference, Status, Task, TaskOutputLane, WorkOrder } from "./types";
 export { fileIntelligenceAdapter } from "./adapters/file-intelligence-adapter";
@@ -23,7 +23,7 @@ export { dispatchToAgentHost, runAgentWorkOrder } from "./agent-host-dispatch";
 export type { AgentHostDispatchRequest, AgentHostDispatchResult } from "./agent-host-dispatch";
 export type { WorkerKind } from "../agent-host/contract";
 export { MACHINE_CONTRACT_VERSION, MACHINE_INPUT_CONTRACT_VERSION, ERROR_CODES, REQUESTED_ACTION_OPERATIONS } from "./agent-execution-contract";
-export type { DnaOsAgentResult, DnaOsAgentInput, RuntimeEvidence, RequestedAction, RequestedActionOperation, MachineError, VerificationResult, Severity, AgentResultStatus } from "./agent-execution-contract";
+export type { DnaOsAgentResult, DnaOsAgentInput, AgentTaskType, RuntimeEvidence, RequestedAction, RequestedActionOperation, MachineError, VerificationResult, Severity, AgentResultStatus } from "./agent-execution-contract";
 export { runCorrectiveLoop } from "./agent-execution-loop";
 export type { CorrectiveLoopOutcome, CorrectiveLoopState } from "./agent-execution-loop";
 export { routeRequestedAction, EXECUTOR_REGISTRY } from "./agent-authority-router";
@@ -53,3 +53,10 @@ export type {
   VerificationType, CandidateVerificationRequest, CandidateVerificationStatus,
   CandidateVerificationResult, VerificationOptions,
 } from "./candidate-verification-runtime";
+export { planAgentRun, loadAgentRun, listAgentRuns, agentRunsForTask, agentRunsForRouteDecision, agentRunsForPrincipal } from "./agent-run-registry";
+export type { AgentRunRecord, AgentRunState, PlanAgentRunInput, PlanAgentRunOutcome } from "./agent-run-registry";
+export { resolveHandoffPrincipal } from "./handoff-principal";
+export type { PrincipalResolution } from "./handoff-principal";
+export { linkSourceReservation, loadWorkspaceFromDisk } from "./workspace-manager";
+export { evaluateCleanupEligibility, cleanupWorkspace } from "./workspace-cleanup";
+export type { CleanupEligibility, CleanupOutcome, CleanupAuthorization, CleanupReasonCode } from "./workspace-cleanup";

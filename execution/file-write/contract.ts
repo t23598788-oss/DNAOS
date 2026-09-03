@@ -8,7 +8,9 @@
  * Output: `executeFileWrite`, `executeFileWriteSandboxed` (added
  * 2026-08-22 — the real-jail variant, see ./sandboxed-executor.ts's own
  * header for the gate/scope discipline it shares with `executeFileWrite`),
- * `listWriteAudit` (read-only trace-back), plus every type a caller needs.
+ * `listWriteAudit` (read-only trace-back), `onWriteAudit` (producer-time
+ * subscription — hands out records, never write capability), plus every type
+ * a caller needs.
  * Dependency ที่อนุญาต: ./executor.ts, ./sandboxed-executor.ts,
  * ./audit.ts (listWriteAudit only), ./types.ts.
  * สิ่งที่ห้ามแตะ: never export `recordWriteAudit`, `writeFileReal`, or any
@@ -17,6 +19,6 @@
 
 export { executeFileWrite } from "./executor";
 export { executeFileWriteSandboxed } from "./sandboxed-executor";
-export { listWriteAudit } from "./audit";
-export type { WriteAuditEvent } from "./audit";
+export { listWriteAudit, onWriteAudit } from "./audit";
+export type { WriteAuditEvent, WriteAuditListener } from "./audit";
 export type { FileWriteRefusalCode, FileWriteRequest, FileWriteResult, FileWriteStatus } from "./types";

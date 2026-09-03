@@ -70,6 +70,28 @@ async function run() {
       }
       break;
     }
+    case "propose_authorized_write": {
+      // PROPOSAL ONLY (Owner, CONNECT_AGENT_REQUESTED_ACTION_TO_EXISTING_WRITE_AUTHORITY_PIPE).
+      // The Agent writes the proposed content into its OWN workspace (process.cwd() is the
+      // one directory the sandbox profile grants file-write* on) and never touches
+      // instruction.target_path. What it returns is DATA — a RequestedAction — never authority.
+      // DNA OS re-resolves artifact_ref against the workspace boundary before reading it.
+      try {
+        const artifactPath = path.join(process.cwd(), instruction.artifact_rel_path);
+        fs.writeFileSync(artifactPath, instruction.content ?? "");
+        result.outcome = "WRITE_PROPOSAL_EMITTED";
+        result.artifact_path = artifactPath;
+        result.requested_actions = [{
+          operation: instruction.operation ?? "FILE_MODIFY",
+          artifact_ref: `artifact://${artifactPath}`,
+          target: instruction.target_path,
+        }];
+      } catch (err) {
+        result.outcome = "BLOCKED";
+        result.error = { code: err.code, message: err.message };
+      }
+      break;
+    }
     case "request_authorized_write": {
       // The Agent does NOT write itself — it emits a structured WRITE_REQUEST for DNA OS
       // (the parent, ./tests/proof.test.ts) to evaluate through the real Write Gate + File Executor.

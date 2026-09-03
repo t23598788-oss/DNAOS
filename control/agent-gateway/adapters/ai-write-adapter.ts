@@ -41,8 +41,8 @@ export const aiWriteAdapter: AgentAdapter = {
     // Resolve the existing registrar at execution time. Keeping this import
     // lazy avoids a module cycle: command-router already owns the public
     // registrar projection and also owns this worker list.
-    const { getCapabilityIndex } = await import("../../../software/capability-registrar/contract");
-    const decision = evaluateWriteIntent(intentResult.intent, { registryIndex: getCapabilityIndex() });
+    const { getWriteOwnershipIndex } = await import("../../../software/capability-registrar/contract");
+    const decision = evaluateWriteIntent(intentResult.intent, { registryIndex: getWriteOwnershipIndex() });
     if (decision.decision !== "ALLOW_CREATE" && decision.decision !== "ALLOW_MODIFY") {
       return { ok: false, output: { validation, decision }, error: `WRITE_GATE_${decision.decision}` };
     }

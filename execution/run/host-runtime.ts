@@ -26,17 +26,19 @@
  * There is no `@types/node` in this repo, and — unlike `../../connections/
  * github/host-runtime.ts`'s `fetch`/`crypto.randomUUID` — Node's
  * `child_process` module has no equivalent global; it only exists as a
- * module export. `declare module "child_process" { ... }` (with or
- * without a `node:` prefix) does not work here either: TypeScript
- * special-cases Node's core module names and reports "module cannot be
- * found" / "did you mean to install @types/node" instead of treating the
- * declaration as a fresh ambient module. The one construct that reliably
- * works without `@types/node` is a plain ambient `require()`, which `tsx`
- * (this repo's real runtime — see ./tests/executor.test.ts's header)
- * supports inside an ESM file. This is a narrow, deliberate exception to
- * this repo's own import-syntax convention, confined to this one file.
+ * module export. This file used to reach it through an ambient
+ * `require()` because `@types/node` was not installed. That premise is
+ * gone — tsconfig.json now sets `"types": ["node"]` — and the ambient
+ * `require()` was an outright runtime defect: when a caller reached this
+ * module through a true ESM evaluation (an extensionless dynamic
+ * `import()`, as credentials/macos-keychain/provider.ts does), `require`
+ * did not exist and every credential resolution threw
+ * `ReferenceError: require is not defined in ES module scope`. Real
+ * `node:` imports work under both loaders, so they are what this file
+ * uses. The hand-written module interfaces below stay: they are the
+ * deliberate narrowing of Node's API surface that the header describes,
+ * and imports are asserted through them rather than replacing them.
  */
-declare const require: (id: string) => unknown;
 
 interface HostReadable {
   on(event: "data", listener: (chunk: { toString(encoding: string): string }) => void): void;
@@ -67,8 +69,13 @@ interface NodeCryptoModule {
   createHash(algorithm: "sha256"): NodeHash;
 }
 
-const childProcess = require("node:child_process") as NodeChildProcessModule;
-const nodeCrypto = require("node:crypto") as NodeCryptoModule;
+import * as nodeChildProcessModule from "node:child_process";
+import * as nodeCryptoModule from "node:crypto";
+
+// Asserted through this file's own narrow interfaces so the deliberate
+// API-surface limits above still apply — never widen these two casts.
+const childProcess = nodeChildProcessModule as unknown as NodeChildProcessModule;
+const nodeCrypto = nodeCryptoModule as unknown as NodeCryptoModule;
 const { spawn, execFileSync } = childProcess;
 const { randomUUID, createHash } = nodeCrypto;
 

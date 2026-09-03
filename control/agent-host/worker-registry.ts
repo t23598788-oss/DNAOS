@@ -19,7 +19,13 @@
  */
 
 import { existsSync, realpathSync } from "node:fs";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
+
+// `__dirname` is a CommonJS-only global: under a true ESM evaluation it is
+// undefined and this module threw at load. `import.meta.url` is the form
+// that resolves under both loaders — same construct the tests here use.
+const MODULE_DIR = dirname(fileURLToPath(import.meta.url));
 
 export type WorkerKind = "CLAUDE" | "CODEX" | "GEMINI" | "LOCAL";
 
@@ -45,7 +51,7 @@ const CANDIDATES: Record<WorkerKind, { executable: string; defaultArgv: readonly
   CLAUDE: { executable: "/usr/local/bin/claude", defaultArgv: ["--version"] },
   CODEX: { executable: "/Users/tam/.codex/plugins/.plugin-appserver/codex", defaultArgv: ["--version"] },
   GEMINI: null, // no gemini CLI binary found on this machine — reported honestly, never guessed
-  LOCAL: { executable: process.execPath, defaultArgv: [join(__dirname, "agent-script.mjs")] },
+  LOCAL: { executable: process.execPath, defaultArgv: [join(MODULE_DIR, "agent-script.mjs")] },
 };
 
 declare const process: { execPath: string };

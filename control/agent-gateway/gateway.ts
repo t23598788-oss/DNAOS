@@ -23,6 +23,8 @@ import { validateWorkOrder } from "./work-order-validator";
 import { createHash } from "node:crypto";
 import { reportJoint } from "../../observability/joint-monitor/contract";
 import { decideCompletion } from "../ui-render-verification/contract";
+import { resolveCapability } from "./capability-resolver";
+import type { CapabilityMatchResult } from "./capability-resolver";
 import type { WorkResultInput } from "../work-result-ingress/contract";
 
 const REPO = process.cwd();
@@ -41,32 +43,53 @@ function loadCapabilityIndex(): CapabilityIndexEntry[] {
   return JSON.parse(fs.readFileSync(path.join(REPO, "reports/phase16-world-evidence/capability_index.json"), "utf-8"));
 }
 
-function matchCapability(intentText: string): CapabilityIndexEntry | null {
-  const idx = loadCapabilityIndex();
-  // real substring match against the SAME real registry data used all session — no duplicate logic, no new matching engine.
-  if (intentText.includes("ตรวจ") || intentText.toLowerCase().includes("status") || intentText.toLowerCase().includes("duplicate")) {
-    return idx.find((c) => c.problem_type === "file_duplicate_or_orphan_detection") ?? null;
-  }
-  if (intentText.includes("แก้ไข") || intentText.toLowerCase().includes("modify")) {
-    return idx.find((c) => c.problem_type === "server_hang_or_timeout") ?? null;
-  }
-  // Canonical route for control/external-system-lifecycle/'s own submitTask() call
-  // (registering ANY Model/Model Family/Provider/External System/capability, never
-  // one specific one — see reports/phase16-world-evidence/capability_index.json's
-  // "external_system_lifecycle_registration" entry). Matching this alone never
-  // grants permission — Permission/Policy Resolution and Admission still run for
-  // real downstream, unchanged.
-  if (intentText.toLowerCase().includes("external system lifecycle")) {
-    return idx.find((c) => c.problem_type === "external_system_lifecycle_registration") ?? null;
-  }
-  return null;
+/**
+ * CAPABILITY MATCHING, Owner-authorised change 2026-08-27.
+ *
+ * The whole decision now lives in `./capability-resolver.ts`, which asks the
+ * REGISTRIES in order — exact capability id, exact canonical name, then the
+ * route group through the shared search order in
+ * `contracts/command/route-group-capabilities.ts` — and only falls back to
+ * the original three-substring matcher for the callers that still rely on it.
+ *
+ * The substring rules themselves are unchanged and live on in
+ * `legacySubstringMatch`, so `control/external-system-lifecycle/` and every
+ * existing intent behave exactly as before. What changed is that prose is no
+ * longer the FIRST thing consulted: 213 recorded NO_EXISTING_CAPABILITY
+ * blocks were canonical route groups that no substring could ever match.
+ *
+ * Matching still grants nothing. Policy, Admission, the write gate and the
+ * execution gate all run afterwards, untouched.
+ */
+function matchCapabilityWithEvidence(
+  intentText: string,
+  routeContext?: Task["route_context"],
+): CapabilityMatchResult {
+  return resolveCapability(
+    {
+      intent_text: intentText,
+      route_group: (routeContext?.route_group ?? null) as never,
+      target_capability_id: routeContext?.target_capability_id ?? null,
+      target_capability_name: routeContext?.target_capability_name ?? null,
+      event_type: routeContext?.event_type ?? null,
+      error_code: routeContext?.error_code ?? null,
+      work_id: routeContext?.work_id ?? null,
+      trace_id: routeContext?.trace_id ?? null,
+      evidence_ref: routeContext?.evidence_ref ?? null,
+    },
+    loadCapabilityIndex(),
+  );
+}
+
+function matchCapability(intentText: string, routeContext?: Task["route_context"]): CapabilityIndexEntry | null {
+  return matchCapabilityWithEvidence(intentText, routeContext).entry;
 }
 
 async function evaluatePolicy(intentText: string, targetPath: string | null): Promise<{ requiresOwnerDecision: boolean; decision: unknown }> {
   if (!targetPath) return { requiresOwnerDecision: false, decision: { decision: "NOT_A_WRITE_INTENT" } };
   const path = require("node:path") as { join(...p: string[]): string };
   const { evaluateWriteIntent } = await import(path.join(REPO, "permissions/write-gate/contract.ts"));
-  const { getCapabilityIndex } = await import(path.join(REPO, "software/capability-registrar/contract.ts"));
+  const { getWriteOwnershipIndex } = await import(path.join(REPO, "software/capability-registrar/contract.ts"));
   const intent = {
     intent_id: newId("intent"),
     operation: "MODIFY" as const,
@@ -79,7 +102,7 @@ async function evaluatePolicy(intentText: string, targetPath: string | null): Pr
     correlation_id: newId("corr"),
     submitted_at: nowIso(),
   };
-  const decision = evaluateWriteIntent(intent, { registryIndex: getCapabilityIndex() });
+  const decision = evaluateWriteIntent(intent, { registryIndex: getWriteOwnershipIndex() });
   const requiresOwnerDecision = (decision as { decision: string }).decision !== "ALLOW_CREATE" && (decision as { decision: string }).decision !== "ALLOW_MODIFY";
   return { requiresOwnerDecision, decision };
 }
@@ -389,7 +412,19 @@ function persistStatus(task: Task, status: Status): Task {
  * `../agent-gateway/contract`, which re-exports from THIS file — a
  * direct two-hop cycle a static top-level import here would create).
  */
-async function completeExecution(task: Task, execResult: { output: unknown; ok: boolean; error?: string }, adapterId: string): Promise<Task> {
+/**
+ * @param measuredResult ผลที่ "วัดมาแล้ว" จากเส้นทาง Agent (Owner,
+ *   CANONICALIZE_AGENT_RESULT). เมื่อส่งมา ฟังก์ชันนี้ใช้มันตรง ๆ และ **ไม่**
+ *   สังเคราะห์ WorkResultInput ขึ้นเอง
+ *
+ *   ทำไมต้องแยกสองแบบ: WorkResultInput ที่ฟังก์ชันนี้สร้างเองข้างล่างเติมค่าจาก
+ *   สิ่งที่ WorkOrder *ประกาศ* ไว้ — `files_changed` มาจาก target_path,
+ *   `tests_run` มาจาก required_tests, `status` ตั้งเป็น "VERIFIED" ตายตัว
+ *   นั่นพอใช้ได้กับ adapter ที่ตัวมันเองเป็นผู้เขียนไฟล์ (สิ่งที่ประกาศ = สิ่งที่ทำ)
+ *   แต่ใช้กับผลของ Agent ไม่ได้ เพราะ Agent อาจไม่ได้แตะไฟล์ที่บอกไว้เลย —
+ *   เส้นทาง Agent จึงต้องส่งผลที่วัดจากดิสก์จริงเข้ามาแทน
+ */
+async function completeExecution(task: Task, execResult: { output: unknown; ok: boolean; error?: string }, adapterId: string, measuredResult?: WorkResultInput): Promise<Task> {
   const execEvidenceId = record(task.task_id, "execution_output", adapterId, execResult);
   task = persistStatus(task, "VERIFYING");
 
@@ -405,7 +440,8 @@ async function completeExecution(task: Task, execResult: { output: unknown; ok: 
 
   const { ingestWorkResult } = await import("../work-result-ingress/contract");
   const { createPersistentFileStore } = await import("../../software/registry-database/adapters/persistent-file-store");
-  const workResult: WorkResultInput = {
+  // สังเคราะห์เฉพาะเมื่อไม่มีผลที่วัดมา — เส้นทาง adapter เดิมไม่เปลี่ยนพฤติกรรม
+  const workResult: WorkResultInput = measuredResult ?? {
     task_id: task.task_id,
     // "owner-console" — control/agent-gateway/handoff.ts's real
     // AGENT_ID_NOT_ALLOWLISTED check only accepts codex/claude-code/
@@ -439,6 +475,24 @@ async function completeExecution(task: Task, execResult: { output: unknown; ok: 
   });
 
   return persistStatus(task, registrationVerified ? "COMPLETED" : "FAILED");
+}
+
+/**
+ * กุญแจจากตัวตนของเหตุการณ์ต้นทาง (Owner, PHASE 3) — ใช้เมื่องานถูกสร้าง
+ * อัตโนมัติจาก event หนึ่งใบ กฎคือ "หนึ่ง event สร้างงานได้อย่างมากหนึ่งงาน"
+ *
+ * ทำไมไม่ใช้ hash ของ WorkOrder ในกรณีนี้: เนื้อ WorkOrder ที่สะพานสร้างขึ้น
+ * อาจต่างกันเล็กน้อยระหว่างสองครั้งที่ event เดียวกันถูกส่งมา (เวลา, ข้อความ)
+ * แล้วจะกลายเป็นสองงานทั้งที่ต้นเหตุใบเดียว — กุญแจจึงต้องผูกกับตัวตนของ
+ * เหตุการณ์ ไม่ใช่กับผลลัพธ์ที่แปลมาจากมัน
+ *
+ * hash เฉพาะตัวระบุที่มีโครงสร้างสองตัว ไม่ hash ข้อความบรรยายใด ๆ
+ */
+function sourceEventIdempotencyKey(sourceEventType: string, sourceEventId: string): string {
+  return createHash("sha256").update(JSON.stringify({
+    source_event_type: sourceEventType,
+    source_event_id: sourceEventId,
+  })).digest("hex");
 }
 
 function workOrderIdempotencyKey(workOrder: WorkOrder): string {
@@ -502,18 +556,40 @@ export function admitCompletedTask(input: {
   return task;
 }
 
-export async function submitTask(intentText: string, memory: Omit<MemoryReference, "task_id" | "created_at">, clientId: string, adapters: readonly AgentAdapter[], workOrder?: WorkOrder): Promise<Task> {
-  const idempotencyKey = workOrder ? workOrderIdempotencyKey(workOrder) : undefined;
+export async function submitTask(
+  intentText: string,
+  memory: Omit<MemoryReference, "task_id" | "created_at">,
+  clientId: string,
+  adapters: readonly AgentAdapter[],
+  workOrder?: WorkOrder,
+  /**
+   * What the caller already knows about where this belongs — a route group, a
+   * capability id, a canonical name. Optional, and every existing caller omits
+   * it, in which case matching falls through to exactly the behaviour it had
+   * before. Supplying it is what lets the ten canonical route groups reach a
+   * capability at all.
+   */
+  routeContext?: Task["route_context"],
+): Promise<Task> {
+  /**
+   * ตัวตนของเหตุการณ์ต้นทางมาก่อนเสมอเมื่อมี — งานที่เกิดจาก event ใบเดียว
+   * ต้องถูกกันซ้ำด้วย event นั้น ไม่ใช่ด้วยเนื้องานที่แปลออกมา
+   */
+  const sourceEventType = routeContext?.source_event_type ?? null;
+  const sourceEventId = routeContext?.source_event_id ?? null;
+  const idempotencyKey = sourceEventType && sourceEventId
+    ? sourceEventIdempotencyKey(sourceEventType, sourceEventId)
+    : workOrder ? workOrderIdempotencyKey(workOrder) : undefined;
   if (idempotencyKey) {
     const existing = loadAllTasks().filter((candidate) => candidate.idempotency_key === idempotencyKey).at(-1);
     if (existing && ["COMPLETED", "EXECUTING", "VERIFYING", "ROUTING", "POLICY_CHECK"].includes(existing.status)) {
-      record(existing.task_id, "idempotency", "control/agent-gateway/gateway.ts", { reason: "DUPLICATE_WORK_ORDER_SUPPRESSED", idempotency_key: idempotencyKey, existing_status: existing.status });
+      record(existing.task_id, "idempotency", "control/agent-gateway/gateway.ts", { reason: sourceEventId ? "DUPLICATE_SOURCE_EVENT_SUPPRESSED" : "DUPLICATE_WORK_ORDER_SUPPRESSED", idempotency_key: idempotencyKey, source_event_type: sourceEventType, source_event_id: sourceEventId, existing_status: existing.status });
       return existing;
     }
   }
   const taskId = newId("task");
   const fullMemory: MemoryReference = { ...memory, task_id: taskId, created_at: nowIso() };
-  let task: Task = { task_id: taskId, memory: fullMemory, intent_text: intentText, submitted_by_client: clientId, status: "RECEIVED", created_at: nowIso(), updated_at: nowIso(), work_order: workOrder, idempotency_key: idempotencyKey, output_lane: "WORK_ITEM" };
+  let task: Task = { task_id: taskId, memory: fullMemory, intent_text: intentText, submitted_by_client: clientId, status: "RECEIVED", created_at: nowIso(), updated_at: nowIso(), work_order: workOrder, route_context: routeContext, idempotency_key: idempotencyKey, output_lane: "WORK_ITEM" };
   saveTask(task);
   // WORK_CREATED. `persistStatus` structurally cannot see this one: it takes an
   // existing task and moves it, and here the task is being born — there is no
@@ -523,11 +599,47 @@ export async function submitTask(intentText: string, memory: Omit<MemoryReferenc
   checkpointTransition(task, task.next_action);
 
   task = persistStatus(task, "ROUTING");
-  const capability = matchCapability(intentText);
-  record(taskId, "capability_lookup", "control/agent-gateway/gateway.ts", { intent_text: intentText, matched: !!capability, capability });
+  // Every match now carries its method, the registry row that answered, the
+  // reason, and every candidate that did not — so a routing decision can be
+  // audited without re-running it.
+  const match = matchCapabilityWithEvidence(intentText, routeContext);
+  const capability = match.entry;
+  record(taskId, "capability_lookup", "control/agent-gateway/gateway.ts", {
+    intent_text: intentText,
+    matched: match.MATCH_METHOD !== "NO_EXISTING_CAPABILITY",
+    MATCH_METHOD: match.MATCH_METHOD,
+    MATCHED_CAPABILITY_ID: match.MATCHED_CAPABILITY_ID,
+    REGISTRY_REF: match.REGISTRY_REF,
+    REASON: match.REASON,
+    EVIDENCE_REF: match.EVIDENCE_REF,
+    considered: match.considered,
+    capability,
+  });
+  // A capability can resolve from a registry that carries no execution_method
+  // (command-router's routable registry, the persistent software registry).
+  // That is a real match — the gateway now knows who it is for — but it is
+  // NOT something this gateway can execute itself, and saying otherwise would
+  // be the gateway claiming another capability's authority. Such a task stops
+  // here with the owner named, for that capability's own boundary to pick up.
   if (!capability) {
     task = persistStatus(task, "BLOCKED");
-    record(taskId, "verification", "control/agent-gateway/gateway.ts", { reason: "NO_EXISTING_CAPABILITY matched" });
+    record(taskId, "verification", "control/agent-gateway/gateway.ts",
+      match.MATCH_METHOD === "NO_EXISTING_CAPABILITY"
+        ? { reason: "NO_EXISTING_CAPABILITY matched", MATCH_METHOD: match.MATCH_METHOD, REASON: match.REASON }
+        : {
+            reason: "CAPABILITY_RESOLVED_NOT_GATEWAY_EXECUTABLE",
+            // This stop is intentional and the gateway knows it: the owner was
+            // resolved and the gateway is declining to act on that
+            // capability's behalf. Saying so here is what keeps it out of the
+            // repair queue as an apparent defect — the same mislabelling that
+            // put 289 by-design records at the top of that queue.
+            classification: "NOT_DISPATCH_REQUIRED",
+            MATCH_METHOD: match.MATCH_METHOD,
+            MATCHED_CAPABILITY_ID: match.MATCHED_CAPABILITY_ID,
+            REGISTRY_REF: match.REGISTRY_REF,
+            NEXT_BOUNDARY: match.MATCHED_CAPABILITY_ID,
+            REASON: `${match.REASON}; the resolving registry carries no execution_method, so dispatch belongs to that capability's own boundary, not to this gateway`,
+          });
     return task;
   }
 
@@ -556,6 +668,106 @@ export async function submitTask(intentText: string, memory: Omit<MemoryReferenc
   }
 
   task = persistStatus(task, "EXECUTING");
+
+  /**
+   * ADMITTED AGENT EXECUTION (Owner, CANONICALIZE_AGENT_RESULT_AND_COMPLETION_PATH).
+   *
+   * WorkOrder ที่มี `agent_run` แปลว่างานนี้ให้ Agent จริงทำ ไม่ใช่ให้ adapter เขียนเอง
+   * ก่อนหน้านี้ผลของ Agent จบอยู่นอก lifecycle — `runAgentWorkOrder` คืน
+   * `DnaOsAgentResult` แล้ว `runCorrectiveLoop` ก็จบที่ TERMINAL โดยไม่มีใครพามันเข้า
+   * ประตูรับผล ทำให้มีสองเส้นทางผลลัพธ์ที่ไม่รู้จักกัน (MODEL_C)
+   *
+   * ตรงนี้ปิดช่องนั้น: ผลของ Agent ต้องผ่าน agent-result-adapter -> WorkResultInput
+   * -> ingestWorkResult เหมือนผลอื่นทุกประการ และ COMPLETED จะเกิดได้ก็ต่อเมื่อ
+   * ingress รับผลนั้นจริง
+   *
+   * ไฟล์ที่เปลี่ยนถูกวัดที่นี่ (sha256 ก่อน/หลัง) ไม่ใช่รับคำบอกจาก Agent —
+   * DNA OS เป็นผู้วัด ไม่ใช่ผู้ทำงานเป็นผู้รายงาน
+   */
+  if (workOrder?.agent_run) {
+    const [{ runAgentWorkOrder }, { adaptAgentResult }, nodeFs, nodeCrypto] = await Promise.all([
+      import("./agent-host-dispatch"),
+      import("../agent-result-adapter/contract"),
+      import("node:fs"), import("node:crypto"),
+    ]);
+    const nodePath = require("node:path") as { join(...p: string[]): string };
+    const abs = nodePath.join(REPO, workOrder.target_path);
+    const shaOf = (): string | null => {
+      try { return nodeCrypto.createHash("sha256").update(nodeFs.readFileSync(abs)).digest("hex"); }
+      catch { return null; }
+    };
+    const before = shaOf();
+    const origin = { kind: "ADMITTED_TASK" as const, task_id: taskId, command_id: taskId.replace(/^task-/, "") };
+    const agentResult = await runAgentWorkOrder(
+      workOrder,
+      origin,
+      process.env as Record<string, string | undefined>,
+    );
+    /**
+     * วัดเป้าหมาย canonical ทันทีหลัง Agent จบ ก่อนที่ router จะทำงาน
+     * ถ้าค่านี้ต่างจาก `before` แปลว่า Agent เขียนเป้าหมายเองได้ ซึ่งเป็นสิ่งที่
+     * สถาปัตยกรรมนี้ห้าม — วัด ไม่ใช่สมมติว่า sandbox กันไว้แล้ว
+     */
+    const afterAgent = shaOf();
+    const agentDirectTargetMutation = before !== afterAgent;
+
+    /**
+     * REQUESTED ACTION -> ประตูเดียว (Owner, CONNECT_AGENT_REQUESTED_ACTION_TO_EXISTING_WRITE_AUTHORITY_PIPE).
+     *
+     * `requested_actions[]` ของ Agent เป็น DATA ไม่ใช่อำนาจ ที่นี่จึงไม่เรียก
+     * `executeFileWrite` หรือ `evaluateWriteIntent` ตรง ๆ เลย — ส่งเข้า
+     * `routeRequestedAction` ซึ่งเป็นที่เดียวที่ประกอบสาย
+     * submitWriteRequest -> evaluateWriteIntent -> executeFileWrite
+     *
+     * ไม่มี workspace ที่ resolve ได้ = ตัดสินขอบเขต artifact ไม่ได้ = ปฏิเสธ
+     * ไม่ใช่ปล่อยผ่านโดยข้ามการตรวจ
+     */
+    const [{ routeRequestedAction }, { getWorkspace }] = await Promise.all([
+      import("./agent-authority-router"), import("./workspace-manager"),
+    ]);
+    const agentWorkspace = workOrder.agent_run.workspace_id ? getWorkspace(workOrder.agent_run.workspace_id) : undefined;
+    const authorizationReference = loadEvidenceForTask(taskId).find((e) => e.kind === "policy_decision")?.evidence_id ?? null;
+    const routed: { action: (typeof agentResult.requested_actions)[number]; outcome: unknown }[] = [];
+    for (const action of agentResult.requested_actions) {
+      if (!agentWorkspace) {
+        routed.push({ action, outcome: { status: "DENIED", operation: action.operation, reason: "NO_WORKSPACE_BOUNDARY: agent_run has no resolvable workspace_id — artifact confinement cannot be decided, refusing rather than reading an unbounded path" } });
+        continue;
+      }
+      routed.push({ action, outcome: await routeRequestedAction(action, { workspace: agentWorkspace, origin, authorization_reference: authorizationReference }) });
+    }
+
+    const after = shaOf();
+    const measuredChanges = before !== null && after !== null && before !== after
+      ? [{ repo_relative_path: workOrder.target_path, sha256_before: before, sha256_after: after,
+           measured_by: "control/agent-gateway/gateway.ts#dispatchTask" }]
+      : [];
+    /**
+     * ตัวตนที่เชื่อถือได้ของผู้ส่งผล ต้องมาจาก DNA OS ไม่ใช่จากผลลัพธ์ของ Agent
+     * (Owner, RESOLVE_AGENT_HANDOFF_PRINCIPAL) วันนี้ resolve ไม่ได้ จึงส่ง
+     * undefined และ adapter คงพฤติกรรมเดิมไว้ทุกประการ — ไม่ได้เติมค่าปลอมแทน
+     */
+    const { resolveHandoffPrincipal } = await import("./handoff-principal");
+    const principal = resolveHandoffPrincipal({ worker_kind: workOrder.agent_run.worker_kind, required_role: null, required_scope: REPO });
+    const adapted = adaptAgentResult(agentResult, {
+      role: workOrder.agent_run.worker_kind, repo_root: REPO,
+      allowed_write_paths: [workOrder.workspace_scope],
+      verified_file_changes: measuredChanges,
+      handoff_principal_id: principal.ok ? principal.handoff_principal_id : undefined,
+    });
+    record(taskId, "execution_output", "control/agent-gateway/gateway.ts#admitted-agent-execution", {
+      agent_status: agentResult.status, result_id: agentResult.result_id,
+      measured_changes: measuredChanges.length, adapter_status: adapted.work_result.status,
+      unresolved: adapted.unresolved.length, guessed_field_count: adapted.guessed_field_count,
+      sha256_target_before: before, sha256_target_after_agent: afterAgent, sha256_target_after_router: after,
+      agent_direct_target_mutation: agentDirectTargetMutation,
+      requested_action_count: agentResult.requested_actions.length,
+      routed_outcomes: routed.map((r) => ({ operation: r.action.operation, target: r.action.target, outcome: r.outcome })),
+    });
+    return await completeExecution(task,
+      { output: { agent_result_id: agentResult.result_id }, ok: agentResult.status === "PASS" },
+      "agent-host", adapted.work_result);
+  }
+
   const adapter = workOrder
     ? adapters.find((a) => a.adapter_id === "ai-write-control-adapter")
     : adapters.find((a) => a.describe().capabilities.includes(capability.problem_type)) ?? adapters[0];
@@ -618,7 +830,7 @@ export async function ownerDecision(taskId: string, decision: "ทำ" | "ไม
   }
   // "ทำ" — the Owner's decision IS the authorization event; recorded as evidence BEFORE execution, per Phase 23's own rule.
   task = persistStatus(task, "EXECUTING");
-  const capability = matchCapability(task.intent_text);
+  const capability = matchCapability(task.intent_text, task.route_context);
   const adapter = task.work_order
     ? adapters.find((a) => a.adapter_id === "ai-write-control-adapter")
     : adapters.find((a) => capability && a.describe().capabilities.includes(capability.problem_type)) ?? adapters[0];

@@ -36,11 +36,13 @@ import { createHash, randomUUID } from "node:crypto";
 import { join, dirname } from "node:path";
 import { launchAgent, resolveWorker } from "../agent-host/contract";
 import type { AgentLaunchResult, WorkerKind } from "../agent-host/contract";
-import { saveEvidence } from "./memory-store";
+import { loadEvidenceForTask, saveEvidence } from "./memory-store";
 import type { WorkOrder } from "./types";
 import {
   MACHINE_CONTRACT_VERSION,
+  MACHINE_INPUT_CONTRACT_VERSION,
   ERROR_CODES,
+  type DnaOsAgentInput,
   REQUESTED_ACTION_OPERATIONS,
 } from "./agent-execution-contract";
 import type { DnaOsAgentResult, MachineError, RequestedAction, RequestedActionOperation, RuntimeEvidence, Severity, VerificationResult } from "./agent-execution-contract";
@@ -54,8 +56,16 @@ export interface AgentHostDispatchRequest {
   timeoutMs?: number;
   /** Extra directories to prove unreadable in this specific dispatch (see AgentLaunchRequest's own outsideProbeDirs) — additive to the confinement, never a widening. */
   outsideProbeDirs?: readonly string[];
+  /** ผู้ฟัง stdout ทีละบรรทัดของ Agent Host — ส่งต่อตรง ๆ ไม่ตีความที่ชั้นนี้ */
+  onEvent?: (line: string) => void;
   /** The exact env the child may draw its allowlisted values from — launchAgent's own AGENT_ENV_ALLOWLIST still filters this down to PATH/TMPDIR/LANG/LC_ALL only. */
   hostEnv: Readonly<Record<string, string | undefined>>;
+  /**
+   * SANDBOX PROFILE V1: the real absolute repository paths this launch may
+   * READ — assigned source plus declared dependency reads. Omitted means
+   * "workspace only", never "the whole repository".
+   */
+  repositoryReadPaths?: readonly string[];
 }
 
 export type AgentHostDispatchResult =
@@ -79,6 +89,8 @@ export async function dispatchToAgentHost(request: AgentHostDispatchRequest): Pr
       agentExecutable: resolution.worker.executable,
       agentArgv: request.instructionArgv,
       timeoutMs: request.timeoutMs ?? 15_000,
+      repositoryReadPaths: request.repositoryReadPaths ?? [],
+      onEvent: request.onEvent,
     },
     request.hostEnv,
     request.outsideProbeDirs ?? [],
@@ -97,16 +109,20 @@ declare const process: { pid: number; getuid?: () => number };
  */
 function buildInstructionArgv(workerKind: WorkerKind, instruction: string, defaultArgv: readonly string[]): readonly string[] {
   if (workerKind === "CLAUDE") {
-    // --bare (real, documented Claude Code flag): "skip hooks, LSP, plugin
-    // background prefetches, keychain reads... OAuth and keychain are
-    // never read." Required under this sandbox: without it, Claude's own
-    // startup tries to exec `security` to probe the Keychain, which this
-    // sandbox correctly denies (EPERM) — but Claude does not handle that
-    // denial gracefully, it crashes with an uncaught exception. `--bare`
-    // means Claude never attempts that exec at all, which is the correct
-    // fix (matching this repo's credential-boundary intent exactly) --
-    // not a sandbox widening.
-    return ["-p", "--bare", "--output-format", "stream-json", "--verbose", "--permission-mode", "plan", "--no-session-persistence", "--", instruction];
+    /**
+     * CLAUDE ไม่เดินทางนี้แล้ว (Owner, IMPLEMENT_LOCAL_CLAUDE_CODE_TRUSTED_
+     * EXECUTION_BOUNDARY) — `runAgentWorkOrder` แยกไปที่
+     * `control/claude-execution-boundary/` ซึ่งประกอบ argv ของตัวเองทั้งชุด
+     *
+     * `--bare` ถูกถอดออกจากที่นี่ด้วย เพื่อไม่ให้มีจุดใดในระบบที่ยังบอกว่า Claude
+     * ถูกเรียกด้วยธงนั้น: คอมเมนต์เดิมของมันเองระบุว่า "OAuth and keychain are
+     * never read" ซึ่งคือสาเหตุตรง ๆ ของ "Not logged in" ที่วัดได้ ส่วนเหตุผลเดิม
+     * ที่ต้องใส่มัน (Claude crash เพราะ exec `security` ไม่ได้ใต้กรง) ถูกแก้ที่
+     * ต้นเหตุแล้วในโปรไฟล์เฉพาะของขอบเขตนั้น
+     *
+     * ค่าที่คืนตรงนี้เหลือไว้เพื่อความครบถ้วนของฟังก์ชัน ไม่ใช่เส้นทางที่ใช้จริง
+     */
+    return ["-p", "--output-format", "stream-json", "--verbose", "--permission-mode", "plan", "--no-session-persistence", "--", instruction];
   }
   if (workerKind === "CODEX") {
     return ["exec", "--json", "-s", "read-only", "--skip-git-repo-check", "--ephemeral", instruction];
@@ -290,7 +306,129 @@ function interpretLaunchResult(dispatch: AgentHostDispatchResult, workOrderId: s
  * work_order_id, malformed provider output, or a requested_action whose
  * own work_order_id names a different WorkOrder.
  */
-export async function runAgentWorkOrder(workOrder: WorkOrder, command_id: string, hostEnv: Readonly<Record<string, string | undefined>>): Promise<DnaOsAgentResult> {
+/**
+ * ที่มาของการรัน — สองเส้นทางที่ต่างกันจริง ไม่ใช่เส้นเดียวที่บางครั้งขาดข้อมูล
+ *
+ * ADMITTED_TASK: งานที่ผ่าน submitTask/admission มาแล้ว จึงมี task identity ของตัวเอง
+ *   อยู่แล้ว การสร้าง id ใหม่ตรงนี้คือการแยกร่าง lifecycle ซึ่งทำให้ policy decision
+ *   ของงานนั้นตามหาไม่เจอ (นี่คือบั๊กที่ FIX_TASK_IDENTITY_PROPAGATION ปิด)
+ *
+ * DIRECT: การรัน worker ระดับล่างที่ไม่มี admitted task จริง ๆ — launcher ของ
+ *   connections/agent-registry, งาน scheduler และเทสต์ระดับ host ทั้งหมดอยู่กลุ่มนี้
+ *   มันไม่ควรถูกบังคับให้แกล้งทำเป็นมี task ที่ผ่าน admission
+ *
+ * ส่งเป็น string = DIRECT (รูปเดิม ผู้เรียกเดิมทุกตัวจึงไม่ต้องแก้)
+ */
+export type AgentExecutionOrigin =
+  | { kind: "ADMITTED_TASK"; task_id: string; command_id: string }
+  | { kind: "DIRECT"; correlation_id: string };
+
+/**
+ * ดึง "สิ่งที่ Agent พูด" ออกจากหนึ่งบรรทัดของ stream ที่มันปล่อยอยู่แล้ว
+ *
+ * ไม่ได้นิยาม protocol ใหม่ — อ่านรูปที่ `--output-format stream-json` (Claude)
+ * และ `--json` (Codex) ปล่อยจริงเท่านั้น: ข้อความผู้ช่วยอยู่ใน
+ * `message.content[].text` และผลสรุปอยู่ใน `result`
+ *
+ * บรรทัดที่ไม่เข้าสองรูปนี้ถูกข้าม ไม่เดา ไม่แต่งข้อความขึ้นมาแทน
+ */
+function agentSpokenText(line: string): string | null {
+  let parsed: unknown;
+  try { parsed = JSON.parse(line); } catch { return null; }
+  if (!parsed || typeof parsed !== "object") return null;
+  const node = parsed as { type?: unknown; result?: unknown; message?: { content?: unknown } };
+  const content = node.message?.content;
+  if (Array.isArray(content)) {
+    const texts = content
+      .filter((c): c is { type?: string; text: string } => Boolean(c) && typeof c === "object" && typeof (c as { text?: unknown }).text === "string")
+      .map((c) => c.text.trim())
+      .filter((t) => t !== "");
+    if (texts.length > 0) return texts.join("\n");
+  }
+  if (node.type === "result" && typeof node.result === "string" && node.result.trim() !== "") return node.result.trim();
+  return null;
+}
+
+/**
+ * เรียก Claude ผ่านขอบเขตที่เชื่อถือได้ แล้วแปลงผลให้เป็นรูปเดียวกับ dispatch ปกติ
+ *
+ * ที่นี่ไม่มีการตัดสินใจเรื่องสิทธิ์เลย — executable, argv, environment และ
+ * โปรไฟล์ sandbox ทั้งหมดถูกกำหนดโดย `control/claude-execution-boundary/`
+ * ฟังก์ชันนี้ส่งได้แค่ "งาน" กับ "โฟลเดอร์ที่อนุมัติแล้ว" เท่านั้น
+ *
+ * หลักฐานที่บันทึกมีเฉพาะชื่อ env ไม่ใช่ค่า และไม่มีอะไรที่มาจาก Keychain
+ * เพราะทั้งไฟล์นี้และขอบเขตนั้นไม่เคยอ่าน Keychain — ตัวที่อ่านคือ Claude เอง
+ * ในโปรเซสของมัน
+ */
+async function dispatchViaClaudeBoundary(input: {
+  taskId: string; workOrderId: string; workerKind: WorkerKind; workspaceDir: string;
+  objective: string; timeoutMs: number; launcherPid: number; onEvent: (line: string) => void;
+}): Promise<AgentHostDispatchResult> {
+  const { runClaudeCodeLocally } = await import("../claude-execution-boundary/contract");
+  const boundary = await runClaudeCodeLocally({
+    provider: "CLAUDE_CODE",
+    execution_mode: "LOCAL_MACHINE_AUTH",
+    caller: "control/agent-gateway/agent-host-dispatch.ts",
+    objective: input.objective,
+    workspace: input.workspaceDir,
+    task_id: input.taskId,
+    work_order_id: input.workOrderId,
+    timeout_ms: input.timeoutMs,
+  });
+
+  // ข้อความระหว่างทางของ Claude เข้าสายหลักฐานเส้นเดียวกับ worker อื่นทุกประการ
+  for (const line of boundary.stdout.split("\n")) input.onEvent(line);
+
+  saveEvidence({
+    evidence_id: newEvidenceId(), task_id: input.taskId, kind: "execution_output",
+    source: "control/claude-execution-boundary/boundary.ts#trusted-boundary",
+    recorded_at: new Date().toISOString(),
+    payload: {
+      execution_mode: "LOCAL_MACHINE_AUTH",
+      boundary_status: boundary.status,
+      authenticated: boundary.authenticated,
+      api_key_source: boundary.api_key_source,
+      executable: boundary.executable,
+      sanitized_argv: boundary.sanitized_argv,
+      env_names: boundary.env_names,
+      sandbox_profile_hash: boundary.sandbox_profile_hash,
+      exit_code: boundary.exit_code,
+      reason: boundary.reason,
+    },
+  });
+
+  // คำขอที่ไม่ผ่านประตูของขอบเขต = worker ใช้ไม่ได้ ไม่ใช่ "รันแล้วล้มเหลว"
+  if (boundary.status === "EXECUTABLE_UNAVAILABLE" || boundary.status === "CALLER_NOT_ALLOWED" || boundary.status === "INVALID_REQUEST") {
+    return { task_id: input.taskId, worker_kind: input.workerKind, status: "WORKER_NOT_AVAILABLE",
+      reason: `${boundary.status}: ${boundary.reason ?? ""}` };
+  }
+
+  return {
+    task_id: input.taskId, worker_kind: input.workerKind, status: "LAUNCHED",
+    launch: {
+      launchId: boundary.launch_id,
+      pid: boundary.pid,
+      parentPid: input.launcherPid,
+      cwd: input.workspaceDir,
+      // ชื่อเท่านั้น — ค่าไม่ถูกบันทึกลงหลักฐานไม่ว่ากรณีใด
+      envPassed: Object.fromEntries(boundary.env_names.map((name) => [name, "(passed — value never recorded)"])),
+      stdout: boundary.stdout,
+      stderr: boundary.stderr,
+      exitCode: boundary.exit_code,
+      signal: null,
+      timedOut: boundary.status === "TIMED_OUT",
+      startedAt: boundary.started_at,
+      completedAt: boundary.ended_at,
+      durationMs: new Date(boundary.ended_at).getTime() - new Date(boundary.started_at).getTime(),
+    },
+  };
+}
+
+export async function runAgentWorkOrder(workOrder: WorkOrder, origin: string | AgentExecutionOrigin, hostEnv: Readonly<Record<string, string | undefined>>): Promise<DnaOsAgentResult> {
+  const executionOrigin: AgentExecutionOrigin =
+    typeof origin === "string" ? { kind: "DIRECT", correlation_id: origin } : origin;
+  const command_id = executionOrigin.kind === "ADMITTED_TASK"
+    ? executionOrigin.command_id : executionOrigin.correlation_id;
   const resultId = `result-${randomUUID()}`;
   const launcherPid = process.pid;
 
@@ -305,9 +443,34 @@ export async function runAgentWorkOrder(workOrder: WorkOrder, command_id: string
     };
   }
 
+  if (executionOrigin.kind === "ADMITTED_TASK" && !executionOrigin.task_id) {
+    // ปิดตาย ไม่สร้าง task id แทนให้ — งานที่บอกว่าผ่าน admission แล้วต้องมี identity ของมันจริง
+    return {
+      protocol: MACHINE_CONTRACT_VERSION, work_order_id: `wo-${command_id}`, workspace_id: "(none)",
+      launch_id: null, result_id: newEvidenceId(), verification_id: null,
+      task_id: "(none)", worker_id: workOrder.agent_run?.worker_kind ?? "(none)",
+      status: "FAIL_CLOSED", summary: "execution declared ADMITTED_TASK origin without a task_id",
+      error_code: ERROR_CODES.MISSING_ADMITTED_TASK_ID, severity: "CRITICAL",
+      artifacts: [], evidence_refs: [], requested_actions: [],
+      errors: [{ error_code: ERROR_CODES.MISSING_ADMITTED_TASK_ID, severity: "CRITICAL", retryable: false, required_capability: null }],
+      verification: { verified: false, method: "execution_origin_shape", checked_against: ["admitted_task_id_present"] },
+      runtime: { launcher_pid: launcherPid, sandbox_pid: null, agent_pid: null, ppid_chain: [launcherPid],
+        uid: typeof process.getuid === "function" ? process.getuid() : -1, executable: "(none)", workspace: "(none)",
+        sandbox_profile_hash: null, started_at: new Date().toISOString(), ended_at: new Date().toISOString(), exit_code: null },
+      exit_code: null,
+    };
+  }
+
   const run = workOrder.agent_run;
   const workOrderId = `wo-${command_id}`;
-  const taskId = `task-${command_id}-agent-host`;
+  /**
+   * งานที่ admit แล้วใช้ task identity เดิมของมัน ไม่สร้างใหม่
+   * งาน DIRECT ไม่มี admitted task จึงได้ id ที่ผูกกับ correlation ของตัวเอง —
+   * ไม่ใช่ fallback ของกรณีแรก แต่เป็นคนละเส้นทางที่ประกาศไว้ชัด
+   */
+  const taskId = executionOrigin.kind === "ADMITTED_TASK"
+    ? executionOrigin.task_id
+    : `task-${command_id}-agent-host`;
 
   // WORKSPACE_MANAGER integration (Owner, Phase 2): when a real workspace_id
   // is present, it is the ONLY source of truth for read/write scope — the
@@ -317,7 +480,22 @@ export async function runAgentWorkOrder(workOrder: WorkOrder, command_id: string
   const workspace = run.workspace_id ? getWorkspace(run.workspace_id) : undefined;
   const workspaceId = workspace?.workspace_id ?? run.workspace_id ?? "(no-workspace-manager)";
   const readPaths = workspace?.allowed_read_paths ?? run.assigned_source_paths;
-  const writeWorkspace = workspace?.allowed_write_workspace ?? run.workspace_path;
+  /**
+   * P6 ISOLATED CODING (Owner, CONNECT_OWNER_SOFTWARE_WORK_TO_EXISTING_GIT_WORKTREE).
+   *
+   * ถ้า TaskWorkspace ถูกผูกกับการจอง source ไว้แล้วผ่านสะพานเดิม
+   * `linkSourceReservation` ของที่ Agent เขียนได้จริงต้องเป็น git worktree ของ
+   * การจองนั้น ไม่ใช่ไดเรกทอรี lifecycle เปล่า ๆ — นี่คือความหมายของการผูก ถ้า
+   * ผูกแล้วแต่ยังส่ง path เดิมไปให้ Agent การผูกก็ไม่มีผลอะไรเลย
+   *
+   * TaskWorkspace ยังเป็นตัวตนของ task/lifecycle เหมือนเดิมทุกอย่าง อ่าน
+   * `allowed_read_paths` จากที่เดิม และเมื่อไม่มีการผูก (งานที่ไม่แตะ source จริง)
+   * พฤติกรรมเดิมคงอยู่ครบ — ไม่มีการเดา path ของ worktree เอง ต้องค้นจาก
+   * `reservation_id` ที่ถูกบันทึกไว้เท่านั้น
+   */
+  const { loadReservation } = await import("../source-workspace/contract");
+  const sourceReservation = workspace?.source_reservation_id ? loadReservation(workspace.source_reservation_id) : null;
+  const writeWorkspace = sourceReservation?.worktree_path ?? workspace?.allowed_write_workspace ?? run.workspace_path;
 
   if (workspace) {
     transitionWorkspace(workspaceId, "PREPARE_CONTEXT", "context resolved from WorkspaceManager");
@@ -325,18 +503,117 @@ export async function runAgentWorkOrder(workOrder: WorkOrder, command_id: string
     transitionWorkspace(workspaceId, "RUNNING", `dispatching to Agent Host, task_id=${taskId}`);
   }
 
-  const resolution = resolveWorker(run.worker_kind);
-  const argv = resolution.ok ? buildInstructionArgv(run.worker_kind, run.instruction, resolution.worker.defaultArgv) : [];
+  /**
+   * STRUCTURED AGENT INPUT (Owner, COMPLETE_STRUCTURED_AGENT_INPUT).
+   *
+   * ก่อนหน้านี้ `DnaOsAgentInput` ถูกประกาศไว้แต่ไม่มีใครสร้างเลย — สิ่งที่ถึงตัว
+   * Agent จริงคือ `run.instruction` ดิบ ๆ ซึ่งแปลว่ามีแหล่งความจริงสองทางวิ่งขนานกัน
+   * ตรงนี้คือจุดที่สายขาด และนี่คือจุดที่ต่อ
+   *
+   * ทุกฟิลด์มาจากสิ่งที่ระบบ resolve มาแล้วก่อนถึงบรรทัดนี้ ไม่มีฟิลด์ไหนที่ Agent
+   * เป็นคนบอก และไม่มีฟิลด์ไหนที่เดาขึ้นมา — `authorization_reference` เป็น null ได้
+   * ถ้างานนั้นยังไม่มี policy decision ซึ่งเป็นการรายงานว่า "ไม่มีแหล่งที่มา"
+   * ไม่ใช่การเติมค่าหลอก
+   */
+  const policyEvidenceId = ((): string | null => {
+    try {
+      const ev = loadEvidenceForTask(taskId).find((e) => e.kind === "policy_decision");
+      return ev?.evidence_id ?? null;
+    } catch { return null; }
+  })();
+  const agentInput: DnaOsAgentInput = {
+    protocol: MACHINE_INPUT_CONTRACT_VERSION,
+    work_order_id: workOrderId,
+    workspace_id: workspaceId,
+    objective: run.instruction,
+    context_refs: run.dependency_read_paths,
+    source_refs: readPaths,
+    allowed_operations: [workOrder.operation === "CREATE" ? "FILE_CREATE" : "FILE_MODIFY"],
+    expected_outputs: [],
+    acceptance_criteria: [],
+    task_type: workOrder.operation === "CREATE" ? "CREATE_FILE" : "MODIFY_FILE",
+    authorization_reference: policyEvidenceId,
+    allowed_write_paths: [writeWorkspace],
+    forbidden_files: workOrder.forbidden_files,
+    verification_requirements: workOrder.required_tests,
+    required_checks: [],
+    expected_result_contract: MACHINE_CONTRACT_VERSION,
+  };
 
-  const dispatch = await dispatchToAgentHost({
-    task_id: taskId,
-    worker_kind: run.worker_kind,
-    workspace_dir: writeWorkspace,
-    instructionArgv: argv,
-    timeoutMs: run.timeout_ms,
-    outsideProbeDirs: unassignedSiblingRepos(readPaths),
-    hostEnv,
-  });
+  const resolution = resolveWorker(run.worker_kind);
+  /**
+   * คำสั่งที่ worker ได้รับต้อง "มาจาก" สัญญานี้ ไม่ใช่ช่องทางอิสระอีกช่องหนึ่ง
+   * จึงเรนเดอร์จาก `agentInput.objective` ไม่ใช่จาก `run.instruction` โดยตรง
+   * — ค่าเดียวกันในวันนี้ แต่แหล่งความจริงเหลือทางเดียว ถ้าวันหน้ามีใครแก้
+   * objective ระหว่างทาง คำสั่งที่ Agent ได้รับจะเปลี่ยนตาม ไม่ใช่แยกกันเดิน
+   */
+  const argv = resolution.ok ? buildInstructionArgv(run.worker_kind, agentInput.objective, resolution.worker.defaultArgv) : [];
+
+  /**
+   * ขอบเขตที่ kernel จะบังคับ ต้องเท่ากับที่บอก Agent ไว้เป๊ะ
+   * ถ้าไม่ตรง แปลว่า Agent กำลังจะทำงานใต้ขอบเขตที่มันไม่ได้ถูกบอก — หยุดดีกว่ารัน
+   */
+  const kernelWriteScope = writeWorkspace;
+  if (agentInput.allowed_write_paths[0] !== kernelWriteScope) {
+    throw new Error(`AGENT_INPUT_SCOPE_MISMATCH: declared=${agentInput.allowed_write_paths[0]} kernel=${kernelWriteScope}`);
+  }
+
+  // หลักฐานของ "สิ่งที่ถูกอนุญาตจริง" — เก็บก่อนปล่อยโปรเซส ไม่ใช่หลังจากรู้ผล
+  const inputEvidenceId = newEvidenceId();
+  saveEvidence({ evidence_id: inputEvidenceId, task_id: taskId, kind: "execution_output",
+    source: "control/agent-gateway/agent-host-dispatch.ts#DNA_OS_AGENT_INPUT_V1",
+    recorded_at: new Date().toISOString(), payload: { agent_input: agentInput } });
+
+  /**
+   * AGENT_MESSAGE (Owner, USE_EXISTING_CONTINUATION_MODEL ข้อ 1)
+   *
+   * ทุกอย่างที่ Agent พูดระหว่างทางถูกบันทึกเป็น evidence แถวหนึ่งต่อหนึ่งข้อความ
+   * ด้วย `saveEvidence` ตัวเดิมและ kind เดิม ("execution_output") — ไม่มีสโตร์ใหม่
+   * ไม่มีชนิดใหม่ ผูกกับ task_id เดียวกับผลสุดท้าย จึงตามกลับได้ด้วยของที่มีอยู่
+   *
+   * นี่คือสิ่งที่หายไปทั้งหมดก่อนหน้านี้: โปรเซสพูดออกมาจริง แต่ไม่มีใครฟัง
+   */
+  const spoken: string[] = [];
+  const onEvent = (line: string): void => {
+    const text = agentSpokenText(line);
+    if (text === null) return;
+    spoken.push(text);
+    saveEvidence({
+      evidence_id: newEvidenceId(), task_id: taskId, kind: "execution_output",
+      source: "control/agent-gateway/agent-host-dispatch.ts#agent-message",
+      recorded_at: new Date().toISOString(),
+      payload: { agent_message: text, sequence: spoken.length },
+    });
+  };
+
+  /**
+   * CLAUDE เดินคนละขอบเขตกับ worker อื่น (Owner, IMPLEMENT_LOCAL_CLAUDE_CODE_
+   * TRUSTED_EXECUTION_BOUNDARY) เพราะมันต้องใช้การยืนยันตัวตนของเครื่องที่ Owner
+   * ล็อกอินไว้แล้ว ซึ่งต้องการสิทธิ์ที่ Agent ทั่วไปต้องไม่มีเด็ดขาด
+   *
+   * ผลลัพธ์ถูกประกอบให้มีรูปเดียวกับที่ `dispatchToAgentHost` คืน ทุกบรรทัดที่อยู่
+   * ใต้จุดนี้ (interpretLaunchResult, evidence, runtime, workspace transition)
+   * จึงทำงานเหมือนเดิมทั้งหมด — ไม่มีเส้นทางแปลผลชุดที่สองในระบบ
+   *
+   * CODEX / LOCAL / GEMINI ไม่ถูกแตะเลย ยังเดิน launchAgent ตัวเดิมและกรงเดิม
+   */
+  const dispatch = run.worker_kind === "CLAUDE"
+    ? await dispatchViaClaudeBoundary({
+      taskId, workOrderId, workerKind: run.worker_kind, workspaceDir: writeWorkspace,
+      objective: agentInput.objective, timeoutMs: run.timeout_ms, launcherPid, onEvent,
+    })
+    : await dispatchToAgentHost({
+      task_id: taskId,
+      onEvent,
+      worker_kind: run.worker_kind,
+      workspace_dir: writeWorkspace,
+      instructionArgv: argv,
+      timeoutMs: run.timeout_ms,
+      outsideProbeDirs: unassignedSiblingRepos(readPaths),
+      // อ่านได้เฉพาะที่ระบบ resolve มาให้แล้ว: source ที่มอบหมาย + dependency ที่ประกาศ
+      repositoryReadPaths: [...readPaths, ...run.dependency_read_paths],
+      hostEnv,
+    });
 
   if (workspace) transitionWorkspace(workspaceId, "RESULT_RECEIVED", `dispatch status=${dispatch.status}`);
 

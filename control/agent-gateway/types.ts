@@ -127,6 +127,35 @@ export interface Task {
   created_at: string;
   updated_at: string;
   work_order?: WorkOrder;
+  /**
+   * What the caller knew about WHERE this task should go, carried from
+   * submission so a later decision resolves the same capability the first
+   * one did. Without it, `ownerDecision` re-matched from the intent SENTENCE
+   * alone and could land somewhere else than the original routing — the
+   * capability would silently change between "received" and "approved".
+   * Absent for every legacy caller, which then behaves exactly as before.
+   */
+  route_context?: {
+    route_group?: string | null;
+    target_capability_id?: string | null;
+    target_capability_name?: string | null;
+    event_type?: string | null;
+    error_code?: string | null;
+    work_id?: string | null;
+    trace_id?: string | null;
+    evidence_ref?: string | null;
+    /**
+     * ADDITIVE (Owner, CONNECT_NEW_AUTHORIZED_WRITE_FAILURE_TO_CANONICAL_AGENT_WORK
+     * PHASE 3). ตัวตนของ "เหตุการณ์ต้นทาง" ที่ทำให้งานนี้ถูกสร้างขึ้นโดยอัตโนมัติ
+     * เมื่อมีสองฟิลด์นี้ `submitTask` จะใช้มันเป็นแหล่งของ `idempotency_key`
+     * แทนการ hash เนื้อ WorkOrder — เพราะกฎคือ "หนึ่งเหตุการณ์ต้นทาง สร้างงาน
+     * ได้อย่างมากหนึ่งงาน" ซึ่งเนื้อ WorkOrder ตอบแทนไม่ได้
+     *
+     * ทุก caller เดิมไม่ส่งสองฟิลด์นี้ พฤติกรรมของพวกเขาจึงไม่เปลี่ยนเลย
+     */
+    source_event_type?: string | null;
+    source_event_id?: string | null;
+  };
   idempotency_key?: string;
   next_action?: string | null;
   output_lane?: TaskOutputLane;

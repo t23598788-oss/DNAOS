@@ -35,6 +35,19 @@ export interface CorrectiveLoopOutcome {
   decision_id: string | null;
   decision_type: string | null;
   corrective_task_id: string | null;
+  /**
+   * สิ่งที่ Decision Engine บอกว่าต้องทำต่อ และเหตุผลที่มันตัดสินอย่างนั้น
+   * (Owner, USE_EXISTING_CONTINUATION_MODEL ข้อ 2)
+   *
+   * `computeNextDecisionFromEvidence` คำนวณสองค่านี้จาก evidence จริงอยู่แล้ว
+   * แต่เดิมมันถูกทิ้งตรงนี้ เหลือส่งกลับแค่ id ผลคือ OWNER_REVIEW_REQUIRED ไปถึง
+   * Owner ในสภาพ "ต้องให้เจ้าของดู" โดยไม่มีคำว่าต้องดูอะไร — id ที่ไม่มีใคร
+   * เปิดอ่านได้จากหน้าจอเท่ากับไม่ได้บอกอะไรเลย
+   *
+   * null เมื่อไม่มี decision (เช่น PASS ที่จบในตัวเอง) ไม่ใช่สตริงว่าง
+   */
+  next_action: string | null;
+  decision_reason: string | null;
 }
 
 /**
@@ -48,17 +61,17 @@ export interface CorrectiveLoopOutcome {
  */
 export async function runCorrectiveLoop(result: DnaOsAgentResult, clientId: string): Promise<CorrectiveLoopOutcome> {
   if (result.status === "PASS") {
-    return { state: "TERMINAL", decision_id: null, decision_type: null, corrective_task_id: null };
+    return { state: "TERMINAL", decision_id: null, decision_type: null, corrective_task_id: null, next_action: null, decision_reason: null };
   }
 
   const evidence = loadEvidenceForTask(result.task_id);
   const decision = computeNextDecisionFromEvidence(result.task_id, evidence);
 
   if (decision.terminal) {
-    return { state: "TERMINAL", decision_id: decision.decision_id, decision_type: decision.decision_type, corrective_task_id: null };
+    return { state: "TERMINAL", decision_id: decision.decision_id, decision_type: decision.decision_type, corrective_task_id: null, next_action: decision.next_action, decision_reason: decision.decision_reason };
   }
   if (decision.requires_owner_approval) {
-    return { state: "OWNER_REVIEW_REQUIRED", decision_id: decision.decision_id, decision_type: decision.decision_type, corrective_task_id: null };
+    return { state: "OWNER_REVIEW_REQUIRED", decision_id: decision.decision_id, decision_type: decision.decision_type, corrective_task_id: null, next_action: decision.next_action, decision_reason: decision.decision_reason };
   }
 
   // decision_type === "CONTINUE" -- the ONLY machine-correctable case the
@@ -74,7 +87,7 @@ export async function runCorrectiveLoop(result: DnaOsAgentResult, clientId: stri
       DEFAULT_AGENT_WORKERS,
     );
   } catch {
-    return { state: "OWNER_REVIEW_REQUIRED", decision_id: decision.decision_id, decision_type: decision.decision_type, corrective_task_id: null };
+    return { state: "OWNER_REVIEW_REQUIRED", decision_id: decision.decision_id, decision_type: decision.decision_type, corrective_task_id: null, next_action: decision.next_action, decision_reason: decision.decision_reason };
   }
   return { state: "CORRECTED", decision_id: decision.decision_id, decision_type: decision.decision_type, corrective_task_id: correctiveTask.task_id };
 }

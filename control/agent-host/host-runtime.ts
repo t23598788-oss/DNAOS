@@ -51,7 +51,12 @@
  * sandboxed-executor proof assert against.
  */
 
-declare const require: (id: string) => unknown;
+import * as __ns_childProcess from "node:child_process";
+import * as __ns_fs from "node:fs";
+import * as __ns_nodePath from "node:path";
+import * as __ns_nodeCrypto from "node:crypto";
+import * as __ns_nodeOs from "node:os";
+
 declare const process: { kill(pid: number, signal: string): void };
 
 interface HostReadable {
@@ -88,11 +93,11 @@ interface NodeOsModule {
   homedir(): string;
 }
 
-const childProcess = require("node:child_process") as NodeChildProcessModule;
-const fs = require("node:fs") as NodeFsModule;
-const nodePath = require("node:path") as NodePathModule;
-const nodeCrypto = require("node:crypto") as NodeCryptoModule;
-const nodeOs = require("node:os") as NodeOsModule;
+const childProcess = __ns_childProcess as unknown as NodeChildProcessModule;
+const fs = __ns_fs as unknown as NodeFsModule;
+const nodePath = __ns_nodePath as unknown as NodePathModule;
+const nodeCrypto = __ns_nodeCrypto as unknown as NodeCryptoModule;
+const nodeOs = __ns_nodeOs as unknown as NodeOsModule;
 
 export function joinPath(...parts: string[]): string {
   return nodePath.join(...parts);
@@ -231,7 +236,53 @@ const ALWAYS_DENIED_READ_SUBPATHS = [
   ".config/gh",
 ] as const;
 
-function buildSandboxProfile(allowedWorkspaceDir: string, agentExecutable: string, outsideProbeDirs: readonly string[]): string {
+/**
+ * ต้นไม้ติดตั้งของ worker เอง — ใช้เมื่อผู้เรียกไม่ได้ประกาศมาเอง
+ *
+ * ขึ้นไปสามชั้นจากตัว executable ก็พอครอบ prefix ของ runtime ที่ใช้จริงบนเครื่องนี้
+ * (`.../v16.20.2/bin/node` -> `.../versions/node`, `~/.codex/plugins/.plugin-appserver/codex`
+ * -> `~/.codex`) และหยุดทันทีถ้าจะไปแตะ `/Users` หรือโฟลเดอร์บ้านเปล่า ๆ ซึ่งจะทำให้
+ * การปิด user data ทั้งก้อนไร้ความหมาย
+ */
+function deriveWorkerRuntimeReadPaths(agentExecutable: string): string[] {
+  const home = nodeOs.homedir();
+  const out: string[] = [];
+  let cur = nodePath.dirname(resolveRealPath(agentExecutable));
+  for (let i = 0; i < 3; i++) {
+    if (cur === "/" || cur === "/Users" || cur === home) break;
+    out.push(cur);
+    cur = nodePath.dirname(cur);
+  }
+  return out;
+}
+
+/**
+ * SANDBOX PROFILE V1 (Owner, APPROVE_SANDBOX_PROFILE_V1 — โปรไฟล์เดียวกับที่ผ่าน
+ * R1–R7 / W1–W2 / L1–L3 ในพื้นที่ทดลองแยก ไม่ได้ขยายเพิ่มตอน promote)
+ *
+ * สิ่งที่เปลี่ยนจากรุ่นก่อน และเหตุผล: รุ่นก่อนมี `(allow file-read*)` ตัวเดียวโดด ๆ
+ * ซึ่งแปลว่า Agent อ่านทั้ง repository และทั้งโฟลเดอร์บ้านได้ — พิสูจน์แล้วด้วยการรัน
+ * จริง (Agent อ่าน `control/agent-gateway/gateway.ts` สำเร็จทั้งที่ไม่ได้รับมอบหมาย)
+ *
+ * โครงใหม่อ่านจากบนลงล่าง กฎที่อยู่หลังและตรงกว่าเป็นฝ่ายชนะ:
+ *   1. (allow file-read*)            SYSTEM_RUNTIME_READ — /usr /System /Library /private
+ *   2. (deny  file-read* /Users)     ปิดข้อมูลผู้ใช้ทั้งหมด ทุก repo ทุกโฟลเดอร์บ้าน
+ *   3. เปิดคืนเฉพาะ: runtime ของ worker, workspace, assigned/dependency paths
+ *
+ * ทำไมไม่ใช้ allowlist แท้ (ไม่มีข้อ 1 เลย): ลองแล้วทุกชุด — /usr, /System, /Library,
+ * /private/var, /private/etc, /dev, node prefix — node ยัง abort ด้วย SIGABRT โดยไม่มี
+ * stderr และ macOS 25.6 บนเครื่องนี้ไม่รองรับ `(trace ...)` และไม่ log denial ของ
+ * sandbox จึงหา requirement ที่ขาดด้วยวิธีเชิงประจักษ์ไม่ได้ การเดาเพิ่มสิทธิ์จนกว่ามัน
+ * จะรันคือสิ่งที่ห้ามทำ ข้อ 2 จึงเป็นตัวรับประกันแทน: ข้อมูลผู้ใช้ถูกปิดหมดตั้งแต่ต้น
+ */
+function buildSandboxProfile(
+  allowedWorkspaceDir: string,
+  agentExecutable: string,
+  outsideProbeDirs: readonly string[],
+  repositoryReadPaths: readonly string[] = [],
+  workerRuntimeReadPaths?: readonly string[],
+  argvPaths: readonly string[] = [],
+): string {
   const home = nodeOs.homedir();
   // SECURITY PATCH: every interpolated path goes through resolveRealPath
   // (kernel-resolved, so the rule actually matches) then escapeSbplPath
@@ -248,11 +299,35 @@ function buildSandboxProfile(allowedWorkspaceDir: string, agentExecutable: strin
     "(allow signal)",
     "(allow ipc-posix-shm)",
     "(allow file-read-metadata)",
+    // SYSTEM_RUNTIME_READ — ระบบปฏิบัติการเท่านั้น ข้อมูลผู้ใช้ถูกปิดในบรรทัดถัดไป
     "(allow file-read*)",
+    `(deny file-read* (subpath "${escapeSbplPath(resolveRealPath("/Users"))}"))`,
     `(allow file-write* (subpath "${safeWorkspaceDir}"))`,
     `(allow process-exec (literal "${safeExecutable}"))`,
     "(allow process-fork)",
   ];
+  // เปิดคืน: runtime ของ worker เอง (SYSTEM_RUNTIME_READ ไม่ใช่ repository data)
+  const runtimePaths = workerRuntimeReadPaths ?? deriveWorkerRuntimeReadPaths(agentExecutable);
+  for (const p of runtimePaths) {
+    lines.push(`(allow file-read* (subpath "${escapeSbplPath(resolveRealPath(p))}"))`);
+  }
+  // เปิดคืน: พื้นที่ทำงานของงานนี้ (อ่านได้ เพราะเขียนได้อยู่แล้ว)
+  lines.push(`(allow file-read* (subpath "${safeWorkspaceDir}"))`);
+  // เปิดคืน: โปรแกรมของ worker เองที่ถูกส่งมาทาง argv
+  //
+  // ค้นพบตอน promote: worker LOCAL รับสคริปต์ของตัวเองผ่าน argv
+  // (`control/agent-host/agent-script.mjs`) ซึ่งอยู่ใต้ /Users พอปิด /Users ทั้งก้อน
+  // โปรเซสจึงอ่านโปรแกรมตัวเองไม่ได้และสตาร์ทไม่ขึ้นเลย
+  // จำแนกเป็น SYSTEM_RUNTIME_READ ไม่ใช่ REPOSITORY_READ: มันคือตัวโปรแกรมที่ถูกสั่งให้รัน
+  // ไม่ใช่ข้อมูลของ repository ที่ Agent จะไปค้นหาความรู้ — และเปิดเฉพาะไฟล์ที่มีอยู่จริง
+  // ทีละไฟล์ (literal) ไม่ใช่ทั้งโฟลเดอร์
+  for (const arg of argvPaths) {
+    lines.push(`(allow file-read* (literal "${escapeSbplPath(resolveRealPath(arg))}"))`);
+  }
+  // เปิดคืน: REPOSITORY_READ ที่ได้รับมอบหมายเท่านั้น
+  for (const p of repositoryReadPaths) {
+    lines.push(`(allow file-read* (subpath "${escapeSbplPath(resolveRealPath(p))}"))`);
+  }
   // `outsideProbeDirs` is deliberately reused for BOTH its original
   // purpose (a caller-supplied "this specific dir must be unreadable"
   // probe) AND unassigned-sibling-repository denial (Phase 1C) — both
@@ -262,6 +337,25 @@ function buildSandboxProfile(allowedWorkspaceDir: string, agentExecutable: strin
   for (const dir of outsideProbeDirs) {
     lines.push(`(deny file-read* (subpath "${escapeSbplPath(resolveRealPath(dir))}"))`);
   }
+  /**
+   * SBPL ตัดสินด้วยกฎที่ตรงกันเป็น "อันสุดท้าย" ไม่ใช่อันแรก ดังนั้น deny ข้างบน
+   * จึงทับ allow ของ workspace ได้ถ้าบังเอิญมี dir ตัวใดครอบ workspace อยู่
+   *
+   * เกิดขึ้นจริงเมื่อ 2026-09-02: worktree ของ Agent อยู่ใต้
+   * `~/Desktop/.dna-os-agent-worktrees/` ซึ่งเป็น sibling ของ repo ที่ถูกมอบหมาย
+   * `unassignedSiblingRepos` จึงใส่มันลง deny list ทั้งก้อน ผลคือ Agent อ่าน cwd
+   * ของตัวเองไม่ได้ และ node ตายตั้งแต่ `process.cwd()` ด้วย EPERM uv_cwd
+   * (หลักฐาน: ev-agent-exec-o90jpd8uw2amtk39hoc)
+   *
+   * การคืนสิทธิ์ตรงนี้ไม่ได้ขยายขอบเขต — `allowedWorkspaceDir` ถูก allow ไปแล้ว
+   * ข้างบนโดยตั้งใจ นี่แค่ทำให้มันไม่ถูกกฎกว้างกว่าลบทิ้งไปเอง ที่เหลือใน
+   * `.dna-os-agent-worktrees/` (คือ worktree ของงานอื่น) ยังถูก deny อยู่เหมือนเดิม
+   *
+   * ต้องอยู่ "ก่อน" ALWAYS_DENIED_READ_SUBPATHS และก่อน regex `.env` เสมอ —
+   * ไม่งั้นการคืนสิทธิ์นี้จะไปเปิด .env ที่อยู่ใน worktree ให้อ่านได้ ซึ่งเป็นสิ่ง
+   * ที่กฎท้ายไฟล์มีไว้ปิดโดยเฉพาะ
+   */
+  lines.push(`(allow file-read* (subpath "${escapeSbplPath(resolveRealPath(allowedWorkspaceDir))}"))`);
   for (const subpath of ALWAYS_DENIED_READ_SUBPATHS) {
     lines.push(`(deny file-read* (subpath "${escapeSbplPath(resolveRealPath(nodePath.join(home, subpath)))}"))`);
   }
@@ -273,8 +367,16 @@ function buildSandboxProfile(allowedWorkspaceDir: string, agentExecutable: strin
   return lines.join("\n") + "\n";
 }
 
-export function writeSandboxProfile(profilePath: string, allowedWorkspaceDir: string, agentExecutable: string, outsideProbeDirs: readonly string[]): void {
-  fs.writeFileSync(profilePath, buildSandboxProfile(allowedWorkspaceDir, agentExecutable, outsideProbeDirs), "utf-8");
+/**
+ * path นี้มีอยู่จริงบนดิสก์ไหม — ใช้กรอง argv ให้เหลือเฉพาะที่เป็นไฟล์จริง
+ * ใช้ `existsSync` ที่ NodeFsModule ประกาศไว้แล้ว ไม่เพิ่ม ambient ใหม่ให้โฟลเดอร์นี้
+ */
+export function fileExistsReal(p: string): boolean {
+  try { return fs.existsSync(p); } catch { return false; }
+}
+
+export function writeSandboxProfile(profilePath: string, allowedWorkspaceDir: string, agentExecutable: string, outsideProbeDirs: readonly string[], repositoryReadPaths: readonly string[] = [], workerRuntimeReadPaths?: readonly string[], argvPaths: readonly string[] = []): void {
+  fs.writeFileSync(profilePath, buildSandboxProfile(allowedWorkspaceDir, agentExecutable, outsideProbeDirs, repositoryReadPaths, workerRuntimeReadPaths, argvPaths), "utf-8");
 }
 
 /**

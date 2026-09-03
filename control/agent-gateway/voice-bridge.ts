@@ -50,7 +50,8 @@
  * never has a bypass path. Never default `enabled` to true. Never add a
  * microphone/audio-input code path here.
  */
-import { loadAllTasks, loadEvidenceForTask } from "./memory-store";
+import { statSync } from "node:fs";
+import { loadAllTasks, loadEvidenceForTask, tasksFilePath } from "./memory-store";
 import { readFileUtf8, writeFileUtf8, fileExists, ensureDir, joinPath, repoRootDirname, nowIso } from "./host-runtime";
 import type { Task, Status } from "./types";
 import { isCredentialSurface } from "../../connections/os-ui/work-order";
@@ -111,8 +112,27 @@ function writeJson(path: string, value: unknown): void {
   writeFileUtf8(path, JSON.stringify(value, null, 2));
 }
 
+/**
+ * ปิดถาวรตามคำตัดสินของ Owner (2026-08-31) — ไฟล์สถานะเดิมปลุกมันคืนไม่ได้
+ *
+ * ── ทำไมไม่ใช่แค่เขียน false ลงไฟล์ ──
+ * ไฟล์ `voice-bridge-enabled.json` ที่ค้างเป็น `enabled=true` (เขียนโดยเทสต์
+ * ที่ถูกขัดจังหวะ) คือสิ่งที่ทำให้ Core ค้าง 100% CPU นาน 3 ชั่วโมง 47 นาที
+ * ถ้าปิดด้วยการเขียนไฟล์อย่างเดียว ไฟล์ที่ค้างจากการรันครั้งอื่นก็ปลุกมันคืนได้อีก
+ * ประตูนี้จึงตอบ `false` เสมอโดยไม่อ่านไฟล์ — สถานะที่บันทึกไว้กลายเป็นประวัติ
+ * ที่อ่านได้ ไม่ใช่สวิตช์ที่สั่งงานได้
+ *
+ * `setVoiceBridgeEnabled` ยังเขียนบันทึกเหมือนเดิม เพื่อให้เส้นทางคำสั่งของ
+ * `control/command-router/` ไม่พัง และหลักฐานของเหตุการณ์ไม่ถูกลบ — แต่สิ่งที่
+ * มันเขียนไม่มีผลต่อการทำงานอีกต่อไป
+ */
 export function isVoiceBridgeEnabled(): boolean {
-  return readJson<EnabledState>(enabledFile(), { enabled: false, approved_by: null, approved_at: null }).enabled;
+  return false;
+}
+
+/** สถานะที่บันทึกไว้ — เป็นประวัติเท่านั้น ไม่ใช่สวิตช์ควบคุมการทำงาน */
+export function readPersistedVoiceBridgeState(): EnabledState {
+  return readJson<EnabledState>(enabledFile(), { enabled: false, approved_by: null, approved_at: null });
 }
 
 /**
@@ -126,10 +146,40 @@ export function setVoiceBridgeEnabled(enabled: boolean, approvedBy: string): Ena
   return state;
 }
 
+/**
+ * ผลของการอ่านคลังงานครั้งล่าสุด ผูกกับตัวตนของไฟล์ ณ ตอนที่อ่าน
+ *
+ * ── ทำไมต้องมีแคช ──
+ * `loadAllTasks()` อ่าน `tasks.jsonl` ทั้งไฟล์แล้ว `JSON.parse` ทีละแถว
+ * (2026-08-31: 14.5 MB / 16,611 แถว) การเรียกมันทุก 30 วินาทีจากตัวจับเวลา
+ * ทำให้เธรดหลักถูกยึดจน HTTP ไม่ได้ทำงานเลย — เหตุการณ์จริงที่ทำให้ Core
+ * ไม่ตอบนาน 3 ชั่วโมง 47 นาที
+ *
+ * ── ตัวตนของแคชคือตัวไฟล์เอง ──
+ * คีย์คือ `size + mtimeMs` ของไฟล์จริง ไม่ใช่เวลาหมดอายุที่ตั้งเอง คลังนี้เขียน
+ * แบบต่อท้ายอย่างเดียว ถ้าขนาดและเวลาแก้ไขไม่เปลี่ยน แปลว่าไม่มีงานใหม่ให้
+ * ประกาศจริง ๆ — ไม่ใช่การเดาว่า "น่าจะยังไม่เปลี่ยน" และไฟล์ประวัติไม่ถูกแตะ
+ */
+let tasksCache: { readonly size: number; readonly mtimeMs: number; readonly tasks: Task[] } | null = null;
+
 function latestTasks(): Task[] {
+  const path = tasksFilePath();
+  let stamp: { size: number; mtimeMs: number } | null = null;
+  try {
+    const s = statSync(path);
+    stamp = { size: s.size, mtimeMs: s.mtimeMs };
+  } catch {
+    stamp = null;   // อ่านตัวตนของไฟล์ไม่ได้ = ไม่แคช อ่านจริงทุกครั้ง
+  }
+  if (stamp !== null && tasksCache !== null
+      && tasksCache.size === stamp.size && tasksCache.mtimeMs === stamp.mtimeMs) {
+    return tasksCache.tasks;
+  }
   const latest = new Map<string, Task>();
   for (const task of loadAllTasks()) latest.set(task.task_id, task);
-  return [...latest.values()];
+  const tasks = [...latest.values()];
+  if (stamp !== null) tasksCache = { size: stamp.size, mtimeMs: stamp.mtimeMs, tasks };
+  return tasks;
 }
 
 function summaryFor(task: Task): string {
@@ -157,7 +207,38 @@ export interface VoiceSweepResult {
  * (not batched at the end) — so a crash mid-sweep never re-announces
  * one that already spoke, and never permanently loses one that didn't.
  */
+/**
+ * รอบที่กำลังทำงานอยู่ — มีได้ครั้งละหนึ่งเท่านั้น
+ *
+ * ── ทำไมต้องมีตัวกั้น ──
+ * ตัวจับเวลาใน `./supervisor.ts` ยิงทุก 30 วินาทีแบบ `void` (ไม่รอผล) ถ้ารอบหนึ่ง
+ * ใช้เวลานานกว่า 30 วินาที รอบใหม่จะเริ่มทับ และแต่ละรอบอ่านคลังงานทั้งก้อนใหม่
+ * จำนวนรอบที่ทับกันโตขึ้นเรื่อย ๆ จนเธรดหลักไม่เหลือเวลาให้ HTTP — นี่คือกลไก
+ * ที่ทำให้ Core ค้างจริงเมื่อ 2026-08-31
+ *
+ * ผู้เรียกที่มาระหว่างรอบเดิมยังทำงานอยู่ จะได้ผลของรอบเดิม ไม่ใช่การเริ่มรอบใหม่
+ * และตัวกั้นถูกปล่อยใน `finally` เสมอ — รอบที่โยน error จึงไม่ล็อกระบบค้างถาวร
+ */
+let sweepInFlight: Promise<VoiceSweepResult> | null = null;
+
 export async function runVoiceAnnouncementSweep(): Promise<VoiceSweepResult> {
+  if (sweepInFlight !== null) return sweepInFlight;
+  const run = executeVoiceAnnouncementSweep();
+  sweepInFlight = run;
+  try {
+    return await run;
+  } finally {
+    sweepInFlight = null;
+  }
+}
+
+/** จำนวนรอบที่กำลังทำงานอยู่จริง — 0 หรือ 1 เท่านั้น ใช้ตรวจค่าคงตัวข้อนี้ได้ */
+export function activeVoiceSweepCount(): 0 | 1 {
+  return sweepInFlight === null ? 0 : 1;
+}
+
+async function executeVoiceAnnouncementSweep(): Promise<VoiceSweepResult> {
+  // ตรวจสวิตช์ก่อนแตะคลังใด ๆ — ปิดอยู่ต้องไม่มีการอ่าน tasks.jsonl แม้แต่ครั้งเดียว
   if (!isVoiceBridgeEnabled()) {
     return { enabled: false, announced: [], skipped_already_announced: 0, skipped_high_risk: [], errors: [] };
   }
@@ -196,7 +277,10 @@ export async function runVoiceAnnouncementSweep(): Promise<VoiceSweepResult> {
     const outcome = { ok: true, summary: "voice announcement permanently disabled — task tracked, not spoken" };
     if (outcome.ok) {
       announcedSet.add(task.task_id);
-      state.announced_task_ids = [...announcedSet];
+      // ต่อท้ายรายการเดิม แทนการสร้างอาร์เรย์ใหม่จาก Set ทุกครั้ง — ผลเหมือนเดิม
+      // ทุกประการ (ไม่มีรายการซ้ำ เพราะผ่าน `announcedSet.has` มาแล้ว) แต่ไม่เป็น
+      // O(n) ต่อหนึ่งงาน การรับประกันเดิม "เขียนทันทีต่อหนึ่งงาน" ยังอยู่ครบ
+      state.announced_task_ids.push(task.task_id);
       writeJson(stateFile(), state); // persisted immediately, per-task — real idempotent-restart guarantee
       announced.push(task.task_id);
     } else {

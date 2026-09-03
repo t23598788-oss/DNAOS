@@ -16,3 +16,12 @@ export function completeAssignment(record: AssignmentRecord, evidenceId: string)
   const releasedAssignment = { ...completed, status: "WORKER_RELEASED" as const, updated_at: new Date().toISOString() }; persist(releasedAssignment);
   return { assignment: releasedAssignment, worker: released };
 }
+
+/** Creates an assignment only after every identity is real and non-placeholder. */
+export function createAssignment(record: Omit<AssignmentRecord, "updated_at" | "status">): AssignmentRecord {
+  const values = [record.assignment_id, record.task_id, record.worker_id, record.provider, record.runtime_id, record.session_id, record.capability, record.correlation_token];
+  if (values.some((value) => !value || value === "UNKNOWN" || value === "NONE")) throw new Error("REAL_ASSIGNMENT_IDENTITIES_REQUIRED");
+  const assigned: AssignmentRecord = { ...record, status: "ASSIGNED", updated_at: new Date().toISOString() };
+  persist(assigned);
+  return assigned;
+}

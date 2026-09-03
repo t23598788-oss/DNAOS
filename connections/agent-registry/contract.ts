@@ -17,6 +17,17 @@
 
 export type AgentProvider = "codex" | "claude-code" | "gemini" | "kimi" | "copilot";
 
+/**
+ * runtime ที่ registration นี้ได้รับความไว้วางใจให้ "เป็นเจ้าของผล" เมื่อระบบ
+ * ปล่อยงานผ่าน `control/agent-host/` — ค่าตรงกับ
+ * `control/agent-host/worker-registry.ts#WorkerKind` ตัวต่อตัว
+ *
+ * ทำไมไม่ใช่ `provider`: provider คือ "นี่คือ agent เจ้าไหน" ส่วนค่านี้คือ
+ * "registration นี้รับผิดชอบผลจากการรัน runtime ตัวไหน" — registration หนึ่ง
+ * อาจไม่ใช่ execution principal เลยก็ได้ ซึ่งเป็นกรณีปกติ
+ */
+export type ExecutionWorkerKind = "CLAUDE" | "CODEX" | "GEMINI" | "LOCAL";
+
 export type Availability = "LIVE" | "IDLE" | "WAITING_LOGIN" | "BLOCKED" | "UNKNOWN";
 
 export type AgentRole = "inspect_test" | "code_review_build" | "research_review";
@@ -35,6 +46,22 @@ export interface AgentRegistration {
   availability: Availability;
   /** Free-text description of exactly what real check produced this availability — same "mechanism" discipline as connections/telemetry/collector.ts. Never "assumed"/"trusted". */
   detection_mechanism: string;
+  /**
+   * ADDITIVE (Owner, BIND_EXECUTION_WORKER_TO_TRUSTED_AGENT_PRINCIPAL).
+   *
+   * `null`/absent = registration นี้ **ไม่ใช่** execution principal — เป็นค่า
+   * เริ่มต้นและเป็นความหมายของทุกแถวที่ถูกบันทึกก่อนวันที่เพิ่มฟิลด์นี้ แถวเดิม
+   * ทั้งหมดจึงคงความหมายเดิมไว้ทุกประการ ไม่มีการตีความย้อนหลัง โดยเฉพาะ
+   * registration ของ `claude-code` ซึ่ง `./detect.ts` นิยามไว้ว่าเป็น "โปรเซส
+   * Claude Code ที่กำลังคุมเครื่องอยู่" — มันจะไม่กลายเป็นการอนุญาตให้
+   * subprocess CLAUDE ตัวใดก็ได้ เพราะฟิลด์นี้ไม่ถูกเซ็ต
+   *
+   * เมื่อมีค่า `registerAgent` จะตรวจว่า executable ของ runtime นั้น resolve
+   * ได้จริงบนเครื่องนี้ก่อนบันทึก (ไม่ใช่คำประกาศของผู้เรียก)
+   */
+  execution_worker_kind?: ExecutionWorkerKind | null;
+  /** หลักฐานเชิงเครื่องว่าการผูก runtime ด้านบนถูกตรวจด้วยอะไร — null เมื่อไม่ใช่ execution principal */
+  execution_binding_evidence?: string | null;
 }
 
 export interface SandboxScopeCheck {

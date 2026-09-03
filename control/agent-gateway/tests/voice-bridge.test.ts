@@ -8,12 +8,43 @@
  * How to run:
  *   npx tsx control/agent-gateway/tests/voice-bridge.test.ts
  */
-import { isVoiceBridgeEnabled, setVoiceBridgeEnabled, runVoiceAnnouncementSweep } from "../voice-bridge";
-import { saveTask } from "../memory-store";
-import type { Task } from "../types";
+import { readFileSync, statSync } from "node:fs";
+import { isVoiceBridgeEnabled, setVoiceBridgeEnabled, runVoiceAnnouncementSweep, readPersistedVoiceBridgeState } from "../voice-bridge";
+import { tasksFilePath } from "../memory-store";
 
-declare const process: { exitCode?: number };
+declare const process: {
+  exitCode?: number;
+  on(event: string, listener: () => void): void;
+};
 declare const console: { log(...args: unknown[]): void; error(...args: unknown[]): void };
+
+/**
+ * คืนสวิตช์ voice bridge กลับสถานะเดิมเสมอ แม้เทสต์จะล้มหรือถูกขัดจังหวะ
+ *
+ * ── ทำไมข้อนี้ถึงสำคัญกว่าที่เห็น ──
+ * เทสต์ชุดนี้เขียนลงคลังจริงของเครื่อง ไม่ใช่แซนด์บ็อกซ์ เดิมมันปิดสวิตช์คืนที่
+ * ท้ายของแต่ละ check ซึ่งใช้ได้เฉพาะตอนที่ทุกอย่างผ่าน วันที่ 2026-08-31 การรัน
+ * ชุดนี้ถูกขัดจังหวะกลางคัน สวิตช์จึงค้างเป็น `enabled=true, approved_by=test-owner`
+ * แล้ว Core ตัวจริงหยิบไปทำงานทุก 30 วินาที จนเธรดหลักตันและไม่ตอบ HTTP นาน
+ * 3 ชั่วโมง 47 นาที — เทสต์ต้องไม่ทิ้งสถานะของ runtime จริงไว้เปิด
+ */
+function restoreVoiceBridgeStateOnExit(): () => void {
+  // เทียบกับ "สถานะที่บันทึกไว้" ไม่ใช่ประตูรันไทม์ — ประตูตอบ false เสมอตาม
+  // คำตัดสินของ Owner การเทียบกับประตูจะทำให้ตัวคืนค่าไม่เห็นว่าไฟล์ถูกเปลี่ยน
+  const original = readPersistedVoiceBridgeState().enabled;
+  let restored = false;
+  const restore = (): void => {
+    if (restored) return;
+    restored = true;
+    if (readPersistedVoiceBridgeState().enabled !== original) {
+      setVoiceBridgeEnabled(original, "test-teardown:voice-bridge.test.ts");
+    }
+  };
+  for (const signal of ["exit", "SIGINT", "SIGTERM", "uncaughtException"]) {
+    process.on(signal, restore);
+  }
+  return restore;
+}
 
 let passed = 0;
 let failed = 0;
@@ -33,74 +64,71 @@ async function check(name: string, body: () => Promise<void> | void): Promise<vo
   }
 }
 
-function fakeTask(overrides: Partial<Task>): Task {
-  const id = overrides.task_id ?? `task-voicetest-${Math.random().toString(36).slice(2, 10)}`;
-  return {
-    task_id: id,
-    memory: { user_id: "test", workspace_id: "test-ws", conversation_id: "test-conv", task_id: id, parent_task_id: null, created_at: new Date().toISOString() },
-    intent_text: "routine status check",
-    submitted_by_client: "voice-bridge-test",
-    status: "COMPLETED",
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-    ...overrides,
-  };
-}
-
 async function main(): Promise<void> {
-  await check("approval gate defaults OFF when never explicitly enabled by this process — sweep is a real no-op", async () => {
-    setVoiceBridgeEnabled(false, "test-owner");
-    const result = await runVoiceAnnouncementSweep();
-    assert(result.enabled === false, "expected disabled sweep to report enabled=false");
-    assert(result.announced.length === 0, "expected no announcements while disabled");
-  });
-
-  await check("setVoiceBridgeEnabled(true, ...) is the real, evidenced approval event", () => {
-    const before = isVoiceBridgeEnabled();
-    assert(before === false, "expected gate to start disabled for this test");
-    setVoiceBridgeEnabled(true, "identity-voice-test-owner");
-    assert(isVoiceBridgeEnabled() === true, "expected gate to be enabled after setVoiceBridgeEnabled(true, ...)");
-    setVoiceBridgeEnabled(false, "identity-voice-test-owner"); // reset for isolation from later checks
-  });
-
-  await check("runVoiceAnnouncementSweep: HIGH-risk task (production code write via ai-write-control-adapter) is NEVER spoken", async () => {
-    setVoiceBridgeEnabled(true, "test-owner");
-    const task = fakeTask({
-      intent_text: "write a sandbox file",
-      status: "COMPLETED",
-      work_order: { operation: "CREATE", target_type: "FILE", target_path: "tests/__sandbox__/x.txt", requested_change: "test", content: "x", workspace_scope: "tests/__sandbox__/", mode: "sandbox", required_tests: ["sandbox.write"], forbidden_files: [], evidence: [] },
-    });
-    saveTask(task);
-    const result = await runVoiceAnnouncementSweep();
-    assert(!result.announced.includes(task.task_id), "expected a Work Order (production code write) task to NEVER be auto-announced");
-    assert(result.skipped_high_risk.includes(task.task_id), "expected the task to be reported as skipped_high_risk, not silently dropped");
-    setVoiceBridgeEnabled(false, "test-owner");
-  });
-
-  await check("runVoiceAnnouncementSweep: credential-surface intent text is NEVER spoken, even if plain COMPLETED", async () => {
-    setVoiceBridgeEnabled(true, "test-owner");
-    const task = fakeTask({ intent_text: "check keychain password status", status: "COMPLETED" });
-    saveTask(task);
-    const result = await runVoiceAnnouncementSweep();
-    assert(!result.announced.includes(task.task_id), "expected a credential-surface-named task to never be auto-announced");
-    assert(result.skipped_high_risk.includes(task.task_id), "expected it reported as skipped_high_risk");
-    setVoiceBridgeEnabled(false, "test-owner");
-  });
-
-  await check("runVoiceAnnouncementSweep: idempotent restart — a task already in the announced set is never re-spoken", async () => {
-    setVoiceBridgeEnabled(true, "test-owner");
-    const task = fakeTask({ intent_text: "routine low risk status", status: "BLOCKED" });
-    saveTask(task);
-    const first = await runVoiceAnnouncementSweep();
-    const wasAnnouncedOrErrored = first.announced.includes(task.task_id) || first.errors.some((e) => e.task_id === task.task_id);
-    assert(wasAnnouncedOrErrored, "expected the first sweep to attempt this LOW/MEDIUM-risk task");
-    const second = await runVoiceAnnouncementSweep();
-    assert(!second.announced.includes(task.task_id), "expected the second sweep (simulating a restart) to skip an already-announced task, not re-speak it");
-    setVoiceBridgeEnabled(false, "test-owner");
-  });
-
+  const restoreVoiceBridge = restoreVoiceBridgeStateOnExit();
+  try {
+    await runChecks();
+  } finally {
+    restoreVoiceBridge();
+  }
   console.log(`\n${passed} passed, ${failed} failed`);
   if (failed > 0) process.exitCode = 1;
+}
+
+async function runChecks(): Promise<void> {
+  // ── ข้อตกลงใหม่หลัง Owner ปฏิเสธระบบประกาศด้วยเสียง (2026-08-31) ──
+  // เดิมชุดนี้ยืนยันว่า "เปิดแล้วต้องประกาศได้" ซึ่งเป็นพฤติกรรมที่ถูกถอดออกจาก
+  // เส้นทางรันของ Core แล้ว การคงข้อยืนยันเดิมไว้จะเท่ากับบังคับให้ระบบที่ถูกสั่ง
+  // ปิดกลับมาทำงาน ชุดนี้จึงยืนยันสิ่งที่ต้องเป็นจริงจากนี้ไป: มันเปิดไม่ได้อีก
+  // และไม่แตะคลังงานเลย
+  //
+  // ไม่มี saveTask() ในชุดนี้อีกต่อไป — เทสต์ต้องไม่ต่อท้ายงานปลอมลง
+  // tasks.jsonl ของจริงเพียงเพื่อพิสูจน์ว่าระบบที่ปิดอยู่ไม่ทำงาน
+
+  await check("ประตูรันไทม์ปิดถาวร ไม่ว่าไฟล์สถานะจะเขียนอะไรไว้", () => {
+    setVoiceBridgeEnabled(true, "test-owner");
+    assert(readPersistedVoiceBridgeState().enabled === true, "expected the persisted record to still be written (history preserved)");
+    assert(isVoiceBridgeEnabled() === false, "expected the runtime gate to stay OFF even when the persisted file says enabled=true");
+    setVoiceBridgeEnabled(false, "test-owner");
+  });
+
+  await check("sweep เป็น no-op และไม่แตะคลังงานเลย แม้ไฟล์สถานะจะเปิดค้าง", async () => {
+    setVoiceBridgeEnabled(true, "test-owner");
+    const before = statSync(tasksFilePath()).mtimeMs;
+    const started = Date.now();
+    const result = await runVoiceAnnouncementSweep();
+    const elapsed = Date.now() - started;
+    assert(result.enabled === false, "expected the sweep to report enabled=false");
+    assert(result.announced.length === 0, "expected zero announcements");
+    assert(result.skipped_high_risk.length === 0 && result.errors.length === 0, "expected an empty result, not a partial scan");
+    assert(statSync(tasksFilePath()).mtimeMs === before, "expected tasks.jsonl to be untouched by a disabled sweep");
+    assert(elapsed < 250, `expected a disabled sweep to return without reading the task store (took ${elapsed}ms)`);
+    setVoiceBridgeEnabled(false, "test-owner");
+  });
+
+  await check("ไฟล์ enabled=true ที่ค้างจากการรันที่ถูกขัดจังหวะ ปลุกการทำงานคืนไม่ได้", async () => {
+    // จำลองสิ่งที่เกิดขึ้นจริงในเหตุการณ์ 2026-08-31 แบบตรงตัว
+    setVoiceBridgeEnabled(true, "test-owner");
+    assert(isVoiceBridgeEnabled() === false, "expected a stale enabled=true file to have no runtime effect");
+    const result = await runVoiceAnnouncementSweep();
+    assert(result.enabled === false && result.announced.length === 0, "expected no sweep work from a stale enabled file");
+    setVoiceBridgeEnabled(false, "test-owner");
+  });
+
+  await check("supervisor ไม่มีทางเริ่มการประกาศด้วยเสียงได้อีก", () => {
+    const src = readFileSync(new URL("../supervisor.ts", import.meta.url), "utf8")
+      .split("\n")
+      .filter((l) => !l.trimStart().startsWith("*") && !l.trimStart().startsWith("//"))
+      .join("\n");
+    assert(!src.includes("runVoiceAnnouncementSweep"), "expected no voice sweep call in the supervisor");
+    assert(!src.includes("voice-bridge"), "expected no voice-bridge import in the supervisor");
+  });
+
+  await check("ประวัติการอนุมัติยังถูกบันทึกไว้ ไม่ถูกลบทิ้ง", () => {
+    const state = readPersistedVoiceBridgeState();
+    assert(typeof state.enabled === "boolean", "expected the persisted record to remain readable");
+    assert("approved_by" in state && "approved_at" in state, "expected the approval fields to remain in the record");
+  });
 }
 
 main();

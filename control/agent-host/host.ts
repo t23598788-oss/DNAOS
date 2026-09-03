@@ -44,7 +44,7 @@
  * no caller-supplied PID may ever be signaled directly.
  */
 
-import { ensureDirReal, joinPath, killPid, newLaunchId, nowIso, spawnConfinedAgent, writeSandboxProfile, type HostChildProcess } from "./host-runtime";
+import { ensureDirReal, fileExistsReal, joinPath, killPid, newLaunchId, nowIso, spawnConfinedAgent, writeSandboxProfile, type HostChildProcess } from "./host-runtime";
 import type { ActiveLaunch, AgentLaunchRequest, AgentLaunchResult } from "./types";
 
 /** Grace period between SIGTERM and SIGKILL — same value as `../../execution/run/executor.ts`'s `GRACE_PERIOD_MS`, same reasoning (give a real process a chance to exit cleanly before a hard kill). */
@@ -112,7 +112,10 @@ export function launchAgent(request: AgentLaunchRequest, hostEnv: Readonly<Recor
   const profileDir = joinPath(request.allowedWorkspaceDir, "..", ".agent-host-profiles");
   ensureDirReal(profileDir);
   const profilePath = joinPath(profileDir, `${launchId}.sb`);
-  writeSandboxProfile(profilePath, request.allowedWorkspaceDir, request.agentExecutable, outsideProbeDirs);
+  // อาร์กิวเมนต์ที่เป็น path ของไฟล์จริง = โปรแกรมที่ worker ถูกสั่งให้รัน ต้องอ่านได้
+  const argvPaths = request.agentArgv.filter((a) => a.startsWith("/") && fileExistsReal(a));
+  writeSandboxProfile(profilePath, request.allowedWorkspaceDir, request.agentExecutable, outsideProbeDirs,
+                      request.repositoryReadPaths ?? [], request.workerRuntimeReadPaths, argvPaths);
 
   const env = buildAgentEnv(hostEnv);
   const startedAt = nowIso();
@@ -134,6 +137,7 @@ export function launchAgent(request: AgentLaunchRequest, hostEnv: Readonly<Recor
     const finish = (exitCode: number | null, signal: string | null) => {
       if (settled) return;
       settled = true;
+      if (lineBuffer.trim() !== "") { emit(lineBuffer); lineBuffer = ""; }
       activeLaunches.delete(launchId);
       clearTimeout(timeoutTimer);
       const completedAt = nowIso();
@@ -154,8 +158,28 @@ export function launchAgent(request: AgentLaunchRequest, hostEnv: Readonly<Recor
       });
     };
 
+    /**
+     * อ่าน stream ทีละบรรทัดระหว่างที่โปรเซสยังมีชีวิต แล้วค่อยสะสมไว้เหมือนเดิม
+     *
+     * ลำดับสำคัญ: `stdout` ถูกต่อก่อนเสมอ ผู้ฟังจึงไม่มีทางทำให้ผลสุดท้ายเปลี่ยน
+     * แม้มันจะโยน error — จับไว้ทั้งหมด เพราะการ "ได้ยิน" ต้องไม่ทำให้การรัน
+     * ที่สำเร็จอยู่แล้วกลายเป็นล้มเหลว
+     *
+     * บรรทัดสุดท้ายที่ยังไม่ปิดด้วย \n ถูกกันไว้ใน buffer และปล่อยตอน finish()
+     * ไม่ปล่อยครึ่งบรรทัดออกไปให้ใครแปล
+     */
+    let lineBuffer = "";
+    const emit = (line: string): void => {
+      if (!request.onEvent || line.trim() === "") return;
+      try { request.onEvent(line); } catch { /* ผู้ฟังพังไม่ทำให้ Agent พัง */ }
+    };
     child.stdout?.on("data", (chunk) => {
-      stdout += chunk.toString("utf-8");
+      const text = chunk.toString("utf-8");
+      stdout += text;
+      lineBuffer += text;
+      const lines = lineBuffer.split("\n");
+      lineBuffer = lines.pop() ?? "";
+      for (const line of lines) emit(line);
     });
     child.stderr?.on("data", (chunk) => {
       stderr += chunk.toString("utf-8");

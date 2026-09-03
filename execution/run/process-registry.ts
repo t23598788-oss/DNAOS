@@ -107,6 +107,62 @@ function npmScriptArgv(script: "build" | "test", cwdScopePrefix: string): (argv:
     !argv[4].includes("..");
 }
 
+/**
+ * SUPABASE SECRET INSTALLATION (Owner-approved, 2026-08-26).
+ *
+ * The production project ref, PINNED. Resolved deterministically from real
+ * Supabase state before this entry was written: `supabase projects list`
+ * reports exactly one linked, ACTIVE_HEALTHY project — ref
+ * `xeytcavxejhyzxwevgto`, name "D  N  A  O  S system" — and all four
+ * sibling Gmail functions (bank-email-sync, subscription-email-sync,
+ * supabase-billing-sync, system-health-check) are deployed there. The
+ * `project_id = "vibrant-hawking"` in supabase/config.toml is the LOCAL dev
+ * name and matches no remote ref, so deploying by that name would target
+ * nothing. Pinned here so no caller can redirect a secret to another project.
+ */
+export const SUPABASE_PRODUCTION_PROJECT_REF = "xeytcavxejhyzxwevgto";
+
+/**
+ * CLOSED allowlist of secret names DNA OS may install. A name not on this
+ * list cannot be written by any caller — this is what makes the grant
+ * "DNA OS may install THESE secrets", not "an Agent may run the CLI".
+ */
+export const SUPABASE_INSTALLABLE_SECRET_NAMES = ["PROVIDER_ALERT_EMAIL_READ_SECRET"] as const;
+
+/** The env-file must live here — the gate's own temp cwd scope. */
+export const SUPABASE_SECRET_ENVFILE_DIR = "/tmp/dna-os-process-gate";
+
+/**
+ * Exactly `secrets set --project-ref <PINNED> --env-file <file in the gate's
+ * temp dir>`. No `db`, no `functions deploy`, no caller-chosen project ref,
+ * no extra flags, and no inline NAME=VALUE argument — the secret VALUE never
+ * enters argv at all (it lives in a 0600 env-file), so it cannot leak via `ps`.
+ */
+function supabaseSecretsSetArgv(): (argv: readonly string[]) => boolean {
+  return (argv) =>
+    argv.length === 6 &&
+    argv[0] === "secrets" &&
+    argv[1] === "set" &&
+    argv[2] === "--project-ref" &&
+    argv[3] === SUPABASE_PRODUCTION_PROJECT_REF &&
+    argv[4] === "--env-file" &&
+    typeof argv[5] === "string" &&
+    argv[5].startsWith(`${SUPABASE_SECRET_ENVFILE_DIR}/`) &&
+    argv[5].endsWith(".env") &&
+    !argv[5].includes("..");
+}
+
+/** Read-only counterpart. The CLI returns name+digest, never plaintext. */
+function supabaseSecretsListArgv(): (argv: readonly string[]) => boolean {
+  return (argv) =>
+    argv.length === 5 &&
+    argv[0] === "secrets" &&
+    argv[1] === "list" &&
+    argv[2] === "--project-ref" &&
+    argv[3] === SUPABASE_PRODUCTION_PROJECT_REF &&
+    argv[4] === "--output=json";
+}
+
 const DEFAULT_ENV_PROFILE = ["PATH", "TMPDIR", "LANG", "LC_ALL"] as const;
 
 /**
@@ -210,6 +266,45 @@ export const PROCESS_REGISTRY: Readonly<Record<string, ProcessDescriptor>> = {
     timeout_ms: 10_000,
     confinement: "direct",
   },
+  /**
+   * NOT "an Agent may run the Supabase CLI" — ONE registered operation with
+   * a pinned project ref and a closed argv shape.
+   *
+   * confinement "direct" for the same reason the Keychain entries use it:
+   * the CLI needs real network egress and reads its own auth token from the
+   * user's keychain/config, both of which a default-deny sandbox profile
+   * blocks. Authorization here is allowed_callers + the argv contract, which
+   * is the real control; filesystem confinement would add nothing and would
+   * only break the operation.
+   */
+  "supabase.secrets-set": {
+    executable_id: "supabase.secrets-set",
+    canonical_path: "/opt/homebrew/bin/supabase",
+    allowed_callers: ["credentials/supabase-edge-secret/installer.ts"],
+    allowed_operations: ["write"],
+    allowed_argv_shape: supabaseSecretsSetArgv(),
+    allowed_cwd_scope: SUPABASE_SECRET_ENVFILE_DIR,
+    environment_profile: DEFAULT_ENV_PROFILE,
+    network_profile: "loopback_only",
+    credential_profile: "keychain_read",
+    timeout_ms: 60_000,
+    confinement: "direct",
+  },
+
+  "supabase.secrets-list": {
+    executable_id: "supabase.secrets-list",
+    canonical_path: "/opt/homebrew/bin/supabase",
+    allowed_callers: ["credentials/supabase-edge-secret/installer.ts"],
+    allowed_operations: ["read"],
+    allowed_argv_shape: supabaseSecretsListArgv(),
+    allowed_cwd_scope: SUPABASE_SECRET_ENVFILE_DIR,
+    environment_profile: DEFAULT_ENV_PROFILE,
+    network_profile: "loopback_only",
+    credential_profile: "keychain_read",
+    timeout_ms: 30_000,
+    confinement: "direct",
+  },
+
   "keychain.add-generic-password": {
     executable_id: "keychain.add-generic-password",
     canonical_path: "/usr/bin/security",

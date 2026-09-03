@@ -15,7 +15,8 @@
  */
 import { randomUUID } from "node:crypto";
 import { ALLOWED_ROLES_BY_PROVIDER } from "./contract";
-import type { AgentProvider, AgentRegistration, AgentRole, Availability, SandboxScopeCheck } from "./contract";
+import type { AgentProvider, AgentRegistration, AgentRole, Availability, ExecutionWorkerKind, SandboxScopeCheck } from "./contract";
+import { resolveWorker } from "../../control/agent-host/contract";
 import { detectAvailability } from "./detect";
 import { getAgent, listAgents, upsertAgent } from "./store";
 
@@ -37,9 +38,14 @@ export interface RegisterAgentInput {
   capability: string[];
   transport: AgentRegistration["transport"];
   workspace_scope: string;
+  /**
+   * ระบุเมื่อ registration นี้จะเป็น execution principal เท่านั้น — ละไว้
+   * (ค่าปริยาย null) สำหรับ registration ทั่วไป ซึ่งเป็นพฤติกรรมเดิมทั้งหมด
+   */
+  execution_worker_kind?: ExecutionWorkerKind | null;
 }
 
-export type RegisterAgentOutcome = { ok: true; registration: AgentRegistration } | { ok: false; reason: string; denied_at_stage: "role" | "scope" };
+export type RegisterAgentOutcome = { ok: true; registration: AgentRegistration } | { ok: false; reason: string; denied_at_stage: "role" | "scope" | "execution_binding" };
 
 /** Registry discovery + admission in one call. A denied admission is never persisted as a usable registration — the caller gets a structured rejection instead. */
 export async function registerAgent(input: RegisterAgentInput): Promise<RegisterAgentOutcome> {
@@ -49,6 +55,20 @@ export async function registerAgent(input: RegisterAgentInput): Promise<Register
   const scopeCheck = checkSandboxScope(input.workspace_scope);
   if (!scopeCheck.ok) {
     return { ok: false, reason: scopeCheck.reason, denied_at_stage: "scope" };
+  }
+
+  /**
+   * การผูก runtime ต้องพิสูจน์ได้บนเครื่องนี้จริง ไม่ใช่คำประกาศของผู้เรียก:
+   * `resolveWorker` ทำ existsSync กับ executable ตัวจริงที่ sandbox จะ exec
+   * ถ้าหาไม่เจอ การลงทะเบียนถูกปฏิเสธ ไม่ใช่บันทึกไว้แล้วค่อยหวังว่ามีจริง
+   */
+  let executionBindingEvidence: string | null = null;
+  if (input.execution_worker_kind) {
+    const worker = resolveWorker(input.execution_worker_kind);
+    if (!worker.ok) {
+      return { ok: false, reason: `execution_worker_kind "${input.execution_worker_kind}" ไม่ผ่านการตรวจ: ${worker.reason} — ${worker.detail}`, denied_at_stage: "execution_binding" };
+    }
+    executionBindingEvidence = `control/agent-host/worker-registry.ts#resolveWorker(${input.execution_worker_kind}) -> executable=${worker.worker.executable} (existsSync จริง)`;
   }
 
   const detection = await detectAvailability(input.provider);
@@ -64,6 +84,8 @@ export async function registerAgent(input: RegisterAgentInput): Promise<Register
     last_seen: new Date().toISOString(),
     availability: detection.availability,
     detection_mechanism: detection.mechanism,
+    execution_worker_kind: input.execution_worker_kind ?? null,
+    execution_binding_evidence: executionBindingEvidence,
   };
   upsertAgent(registration);
   return { ok: true, registration };
