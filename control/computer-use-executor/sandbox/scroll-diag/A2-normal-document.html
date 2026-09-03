@@ -1,0 +1,10 @@
+<!doctype html><html><head><meta charset="utf-8"><title>DIAG A2</title>
+<style>body{margin:0;background:#111;color:#fff;font:20px sans-serif}#tall{height:3200px;background:linear-gradient(#123,#321)}#probe{position:absolute;top:2600px;color:#fa0}</style></head>
+<body><div id="tall">A2 normal document — เลื่อนลงเพื่อเห็น probe<div id="probe">A2 PROBE</div></div><script>
+  let wc=0,wdy=0,wt="";
+  function de(){return document.scrollingElement||document.documentElement;}
+  function sync(){const d=de();document.title="DIAG|sy="+Math.round(window.scrollY)+"|dsy="+Math.round(d.scrollTop)+"|mx="+Math.max(0,Math.round(d.scrollHeight-d.clientHeight))+"|wc="+wc+"|wdy="+wdy+"|wt="+wt+"|cst="+(document.getElementById("cont")?Math.round(document.getElementById("cont").scrollTop):-1);}
+  window.addEventListener("wheel",function(e){wc++;wdy=Math.round(e.deltaY);wt=(e.target&&e.target.id)?e.target.id:(e.target&&e.target.tagName?e.target.tagName.toLowerCase():"none");sync();},{passive:true});
+  window.addEventListener("scroll",sync,true);
+  sync();
+</script></body></html>

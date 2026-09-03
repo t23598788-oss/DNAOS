@@ -1,0 +1,169 @@
+{
+ "owner": "tam",
+ "authority_id": "authority-ypnk0htxtlb",
+ "preauthorized": true,
+ "daemon": "launchd com.dnaos.computer-use-executor",
+ "steps": [
+  {
+   "step": 1,
+   "work_order_id": "acc-1-screenshot-1788238947509",
+   "operation": "screenshot",
+   "originator": "OWNER→acceptance-runner",
+   "result": "COMPLETED",
+   "executed": true,
+   "execution_owner": "control/computer-use-executor",
+   "evidence_id": "cue-cb551b78-7753-45a2-a827-9849199bc6b8",
+   "before_screenshot": null,
+   "after_screenshot": null
+  },
+  {
+   "step": 2,
+   "work_order_id": "acc-2-pointer_move-1788238952848",
+   "operation": "pointer_move",
+   "originator": "OWNER→acceptance-runner",
+   "result": "COMPLETED",
+   "executed": true,
+   "execution_owner": "control/computer-use-executor",
+   "evidence_id": "cue-b5af45b2-bcf1-4236-9545-b4d6a4af481a",
+   "before_screenshot": "/Users/tam/Desktop/DNA-OS-INFRASTRUCTURE/connections/os-ui/data/screenshots/screenshot-1788238951629-mviqou.png",
+   "after_screenshot": "/Users/tam/Desktop/DNA-OS-INFRASTRUCTURE/connections/os-ui/data/screenshots/screenshot-1788238955810-xk85h6.png"
+  },
+  {
+   "step": 3,
+   "work_order_id": "acc-3-focus-1788238958986",
+   "operation": "focus",
+   "originator": "OWNER→acceptance-runner",
+   "result": "COMPLETED",
+   "executed": true,
+   "execution_owner": "control/computer-use-executor",
+   "evidence_id": "cue-d9f587c3-5ab7-4e30-a77d-e0bdc35d8a8f",
+   "before_screenshot": "/Users/tam/Desktop/DNA-OS-INFRASTRUCTURE/connections/os-ui/data/screenshots/screenshot-1788238957985-xtpkib.png",
+   "after_screenshot": "/Users/tam/Desktop/DNA-OS-INFRASTRUCTURE/connections/os-ui/data/screenshots/screenshot-1788238962239-vdd96h.png"
+  },
+  {
+   "step": 4,
+   "work_order_id": "acc-4-click-1788238965707",
+   "operation": "click",
+   "originator": "OWNER→acceptance-runner",
+   "result": "COMPLETED",
+   "executed": true,
+   "execution_owner": "control/computer-use-executor",
+   "evidence_id": "cue-0b317a14-ef86-4428-903b-7743dd7fbf1a",
+   "before_screenshot": "/Users/tam/Desktop/DNA-OS-INFRASTRUCTURE/connections/os-ui/data/screenshots/screenshot-1788238964376-ekp17v.png",
+   "after_screenshot": "/Users/tam/Desktop/DNA-OS-INFRASTRUCTURE/connections/os-ui/data/screenshots/screenshot-1788238968559-bzi4iy.png"
+  },
+  {
+   "step": 5,
+   "work_order_id": "acc-5-double_click-1788238971870",
+   "operation": "double_click",
+   "originator": "OWNER→acceptance-runner",
+   "result": "COMPLETED",
+   "executed": true,
+   "execution_owner": "control/computer-use-executor",
+   "evidence_id": "cue-60728350-ca3f-49b1-81b4-8bfce9444ed8",
+   "before_screenshot": "/Users/tam/Desktop/DNA-OS-INFRASTRUCTURE/connections/os-ui/data/screenshots/screenshot-1788238970666-ed9zl2.png",
+   "after_screenshot": "/Users/tam/Desktop/DNA-OS-INFRASTRUCTURE/connections/os-ui/data/screenshots/screenshot-1788238974890-381tgp.png"
+  },
+  {
+   "step": 6,
+   "work_order_id": "acc-6-scroll-1788238978039",
+   "operation": "scroll",
+   "originator": "OWNER→acceptance-runner",
+   "result": "COMPLETED",
+   "executed": true,
+   "execution_owner": "control/computer-use-executor",
+   "evidence_id": "cue-fbbff466-716c-475a-95a6-20adb4069179",
+   "before_screenshot": "/Users/tam/Desktop/DNA-OS-INFRASTRUCTURE/connections/os-ui/data/screenshots/screenshot-1788238977321-wgdnzv.png",
+   "after_screenshot": "/Users/tam/Desktop/DNA-OS-INFRASTRUCTURE/connections/os-ui/data/screenshots/screenshot-1788238981214-0vr4gf.png"
+  },
+  {
+   "step": 7,
+   "work_order_id": "acc-7-scroll-1788238984693",
+   "operation": "scroll",
+   "originator": "OWNER→acceptance-runner",
+   "result": "COMPLETED",
+   "executed": true,
+   "execution_owner": "control/computer-use-executor",
+   "evidence_id": "cue-ba28148b-ac58-4103-9026-39326e0d64fa",
+   "before_screenshot": "/Users/tam/Desktop/DNA-OS-INFRASTRUCTURE/connections/os-ui/data/screenshots/screenshot-1788238983385-kn1cnn.png",
+   "after_screenshot": "/Users/tam/Desktop/DNA-OS-INFRASTRUCTURE/connections/os-ui/data/screenshots/screenshot-1788238987550-kiy8y7.png"
+  },
+  {
+   "step": 8,
+   "work_order_id": "acc-8-drag-1788238990841",
+   "operation": "drag",
+   "originator": "OWNER→acceptance-runner",
+   "result": "COMPLETED",
+   "executed": true,
+   "execution_owner": "control/computer-use-executor",
+   "evidence_id": "cue-a1d2eb23-3e12-4917-8507-ae2de65369e1",
+   "before_screenshot": "/Users/tam/Desktop/DNA-OS-INFRASTRUCTURE/connections/os-ui/data/screenshots/screenshot-1788238989676-rybliv.png",
+   "after_screenshot": "/Users/tam/Desktop/DNA-OS-INFRASTRUCTURE/connections/os-ui/data/screenshots/screenshot-1788238994503-udvrgx.png"
+  },
+  {
+   "step": 9,
+   "work_order_id": "acc-9-click-1788238998010",
+   "operation": "click",
+   "originator": "OWNER→acceptance-runner",
+   "result": "COMPLETED",
+   "executed": true,
+   "execution_owner": "control/computer-use-executor",
+   "evidence_id": "cue-be0a1b43-880c-4a46-bba1-b3dd68c2c329",
+   "before_screenshot": "/Users/tam/Desktop/DNA-OS-INFRASTRUCTURE/connections/os-ui/data/screenshots/screenshot-1788238996628-njlvim.png",
+   "after_screenshot": "/Users/tam/Desktop/DNA-OS-INFRASTRUCTURE/connections/os-ui/data/screenshots/screenshot-1788239000836-vyafqe.png"
+  },
+  {
+   "step": 10,
+   "work_order_id": "acc-10-type-1788239004227",
+   "operation": "type",
+   "originator": "OWNER→acceptance-runner",
+   "result": "COMPLETED",
+   "executed": true,
+   "execution_owner": "control/computer-use-executor",
+   "evidence_id": "cue-a1d57892-7395-491d-b9da-4343f7433696",
+   "before_screenshot": "/Users/tam/Desktop/DNA-OS-INFRASTRUCTURE/connections/os-ui/data/screenshots/screenshot-1788239002974-e0hcg2.png",
+   "after_screenshot": "/Users/tam/Desktop/DNA-OS-INFRASTRUCTURE/connections/os-ui/data/screenshots/screenshot-1788239007262-q9hnei.png"
+  },
+  {
+   "step": 11,
+   "work_order_id": "acc-11-key-1788239010398",
+   "operation": "key",
+   "originator": "OWNER→acceptance-runner",
+   "result": "COMPLETED",
+   "executed": true,
+   "execution_owner": "control/computer-use-executor",
+   "evidence_id": "cue-20fdab07-74c6-414b-9f72-fabca80e8a77",
+   "before_screenshot": "/Users/tam/Desktop/DNA-OS-INFRASTRUCTURE/connections/os-ui/data/screenshots/screenshot-1788239009396-gdvo7s.png",
+   "after_screenshot": "/Users/tam/Desktop/DNA-OS-INFRASTRUCTURE/connections/os-ui/data/screenshots/screenshot-1788239013653-awt0h8.png"
+  },
+  {
+   "step": 12,
+   "work_order_id": "acc-12-read_screen-1788239014729",
+   "operation": "read_screen",
+   "originator": "OWNER→acceptance-runner",
+   "result": "COMPLETED",
+   "executed": true,
+   "execution_owner": "control/computer-use-executor",
+   "evidence_id": "cue-32a1ab14-4f5c-4e30-beb5-403a06758852",
+   "before_screenshot": null,
+   "after_screenshot": null
+  },
+  {
+   "step": 13,
+   "work_order_id": "acc-13-screenshot-1788239017278",
+   "operation": "screenshot",
+   "originator": "OWNER→acceptance-runner",
+   "result": "COMPLETED",
+   "executed": true,
+   "execution_owner": "control/computer-use-executor",
+   "evidence_id": "cue-d69eae0f-077b-4cae-9bf0-7192fef4ce8e",
+   "before_screenshot": null,
+   "after_screenshot": null
+  }
+ ],
+ "post_revoke": {
+  "work_order_id": "acc-postrevoke-1788239018797",
+  "executed": false,
+  "reason": "DENY:AUTHORITY_REVOKED"
+ }
+}

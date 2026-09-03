@@ -1,0 +1,66 @@
+<!doctype html><html lang="th"><head><meta charset="utf-8">
+<title>DNA OS Computer-Use Physical Acceptance Sandbox</title>
+<style>
+  :root{color-scheme:dark}
+  /* normal document/viewport scroll (เหมือน control A2 ที่พิสูจน์แล้ว) — เอา height:100% + overflow-y:scroll ออก
+     ที่เดิมทำ default browser scroll เปราะ (wheel ถึง DOM แต่ document ไม่เลื่อน). spacer 320vh ทำให้ document
+     สูงกว่า viewport → เลื่อนเองตามธรรมชาติ → window.scrollY ติดตาม default scroll ได้ตรง */
+  html,body{margin:0;background:#050608;color:#fff;font:20px/1.4 -apple-system,system-ui,sans-serif}
+  /* CLICK target = px คงที่ (top:170px,h130 => center~235) กลางจอ ปลอดขอบบน (y=99 เคยพลาด, y=193 เคยผ่าน) เลี่ยง drag/input/overlay
+     แถบสีสด อิ่มตัว เต็มกว้าง → calibrator สแกนสีหา screen-y จริง (เลิกพึ่ง vh mapping)
+     กล่อง drag เป็น position:fixed วางในโซน dragband ชัดเจน (เลี่ยงบั๊ก absolute หลุด containing block) */
+  .band{position:fixed;left:0;right:0;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:800;user-select:none}
+  #clickband{position:fixed;z-index:6;top:170px;height:130px;left:0;right:auto;width:660px;background:rgb(30,110,205)}
+  #dragband{top:42vh;height:22vh;background:rgb(28,170,92)}
+  #dragbox{position:fixed;left:6vw;top:47vh;width:16vw;height:12vh;background:rgb(240,92,40);border-radius:12px;display:flex;align-items:center;justify-content:center;color:#2a0a00;z-index:5}
+  #inputwrap{position:fixed;top:70vh;height:16vh;left:0;right:0;display:flex;align-items:center;justify-content:center;gap:12px;background:rgb(150,60,200)}
+  #testinput{width:66vw;font-size:24px;padding:12px;background:#fff;color:#111;border:3px solid #2a0033;border-radius:8px;text-align:center}
+  #state{position:fixed;top:2px;left:0;right:0;text-align:center;font-size:20px;color:#ffe08a;font-weight:800;z-index:10}
+  #scrollprobe{position:absolute;top:250vh;left:0;right:0;text-align:center;color:#ffd27a;font-size:24px;font-weight:800}
+  .spacer{height:320vh}
+</style></head>
+<body>
+  <div id="state">READY</div>
+  <div id="clickband">CLICK BAND — clicks: <span id="clicks">0</span> · dbl: <span id="dbls">0</span></div>
+  <div id="dragband">DRAG BAND</div>
+  <div id="dragbox">DRAG</div>
+  <div id="inputwrap">TEXT: <input id="testinput" placeholder="type here"></div>
+  <div id="scrollprobe">SCROLL PROBE — scroll ลงมาถึงแล้ว</div>
+  <div class="spacer"></div>
+<script>
+  const S=(id)=>document.getElementById(id);
+  let clicks=0,dbls=0;
+  // WHEEL DELIVERY INSTRUMENTATION (passive observe เท่านั้น — ไม่ preventDefault/stopPropagation/scrollTo/scrollBy)
+  // แยก NO_WHEEL_RECEIVED / WHEEL_RECEIVED_BUT_NO_SCROLL / WHEEL_RECEIVED_AND_SCROLLED
+  let wheelCount=0,wdx=0,wdy=0,wdm=0,wt='';
+  // encode actual effect-state ลง document.title → runner อ่านผ่าน System Events (PID-specific)
+  // เป็น before/after หลักฐานเชิงพฤติกรรมให้ acceptance verifier (ไม่ใช่แค่ dispatch COMPLETED)
+  const boxEl=()=>document.getElementById('dragbox');
+  // identity ของ element ที่โฟกัสอยู่ (direct focus evidence) — id ถ้ามี ไม่งั้น tagName
+  const activeId=()=>{const a=document.activeElement;return a&&a.id?a.id:(a?a.tagName.toLowerCase():'none');};
+  function syncTitle(){
+    const dl=Math.round(boxEl().getBoundingClientRect().left);
+    const de=document.scrollingElement||document.documentElement;
+    const mx=Math.max(0,Math.round(de.scrollHeight-de.clientHeight)); // maxScrollY → verify DOCUMENT_SCROLLABLE
+    document.title='DNAOS|clicks='+clicks+'|dbls='+dbls+'|st='+S('state').textContent+'|in='+S('testinput').value+'|sy='+Math.round(window.scrollY)+'|dl='+dl+'|af='+activeId()+'|mx='+mx+'|wc='+wheelCount+'|wdy='+wdy+'|wdm='+wdm+'|wt='+wt;
+  }
+  const setState=(t)=>{S('state').textContent=t;syncTitle();};
+  // focus เปลี่ยน (โฟกัส input ฯลฯ) อัปเดต title ทันที → verifier เห็น activeElement ตรง ๆ
+  document.addEventListener('focusin',syncTitle);
+  document.addEventListener('focusout',syncTitle);
+  S('clickband').addEventListener('click',()=>{clicks++;S('clicks').textContent=clicks;setState('CLICK #'+clicks);});
+  S('clickband').addEventListener('dblclick',()=>{dbls++;S('dbls').textContent=dbls;setState('DOUBLECLICK #'+dbls);});
+  // drag box (fixed) — ลากแนวนอน: ติดตามเมาส์ที่แกน x, observable = box.left เปลี่ยน
+  let dragging=false,ox=0; const box=S('dragbox');
+  const startLeft=()=>box.getBoundingClientRect().left;
+  box.addEventListener('mousedown',(e)=>{dragging=true;ox=e.clientX-startLeft();setState('DRAG START @'+Math.round(startLeft()));});
+  window.addEventListener('mousemove',(e)=>{if(!dragging)return;box.style.left=(e.clientX-ox)+'px';});
+  window.addEventListener('mouseup',()=>{if(dragging){dragging=false;setState('DRAG DROP @'+Math.round(startLeft()));}});
+  S('testinput').addEventListener('input',(e)=>setState('TYPED: '+e.target.value.slice(0,30)));
+  window.addEventListener('keydown',(e)=>setState('KEY: '+e.key));
+  window.addEventListener('scroll',()=>setState('SCROLL y='+Math.round(window.scrollY)));
+  // passive:true → เบราว์เซอร์บังคับว่า handler นี้ preventDefault ไม่ได้ → ไม่ขวางการเลื่อนปกติ
+  window.addEventListener('wheel',(e)=>{wheelCount++;wdx=Math.round(e.deltaX);wdy=Math.round(e.deltaY);wdm=e.deltaMode;wt=(e.target&&e.target.id)?e.target.id:(e.target&&e.target.tagName?e.target.tagName.toLowerCase():'none');syncTitle();},{passive:true});
+  setState('SANDBOX READY');
+</script>
+</body></html>
