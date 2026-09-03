@@ -78,3 +78,8 @@ software/system-graph/data/
 # Python bytecode
 __pycache__/
 *.pyc
+
+# supabase CLI state ต่อเครื่อง ไม่ใช่ source
+supabase/.temp/
+# ที่พักไฟล์ชั่วคราว
+tmp/
