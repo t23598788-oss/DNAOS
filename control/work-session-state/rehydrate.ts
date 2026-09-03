@@ -28,6 +28,7 @@ import { buildResumeContext } from "./resume";
 import { recoverableEntries, type RecoverableEntry } from "./journal";
 import { readConnectionState, readQueue, type ConnectionState, type QueuedOperation } from "./connection";
 import { SERVICES, runOperation } from "../runtime-control/contract";
+import type { RuntimeOperationRequest } from "../runtime-control/contract";
 
 export interface RehydrationPlan {
   work_id: string;
@@ -105,7 +106,14 @@ export interface RuntimeRecovery {
 /** How many restart attempts a recovery makes before it stops and reports FAILED. Declared, not implicit. */
 export const RECOVERY_MAX_ATTEMPTS = 2;
 
-export async function recoverRuntime(serviceId: string): Promise<RuntimeRecovery> {
+/**
+ * `request` ถูกส่งผ่านลงไปตรง ๆ ไม่ถูกแก้ ไม่ถูกเติม และไม่ถูกแต่งขึ้นที่นี่
+ *
+ * ก่อนหน้านี้ฟังก์ชันนี้รับแค่ `serviceId` ตัวตนของผู้กู้คืนจึงตกหล่นที่ขอบเขตนี้
+ * ก่อนถึง runtime-control ด้วยซ้ำ ไฟล์นี้ไม่ประกาศตัวตนของตัวเองเป็นผู้ขอ เพราะ
+ * มันไม่ใช่ผู้ตัดสินใจกู้คืน — มันเป็นทางผ่าน ผู้ตัดสินใจคือผู้เรียกที่ส่งบริบทมา
+ */
+export async function recoverRuntime(serviceId: string, request?: RuntimeOperationRequest): Promise<RuntimeRecovery> {
   if (!Object.prototype.hasOwnProperty.call(SERVICES, serviceId)) {
     return { service_id: serviceId, attempted: false, outcome: "NOT_DECLARED", detail: `${serviceId} is not in control/runtime-control#SERVICES — an undeclared process is not restarted from here`, evidence_ref: null };
   }
@@ -113,7 +121,7 @@ export async function recoverRuntime(serviceId: string): Promise<RuntimeRecovery
   let lastEvidence: string | null = null;
   for (let attempt = 0; attempt < RECOVERY_MAX_ATTEMPTS; attempt += 1) {
     try {
-      const evidence = await runOperation(serviceId as never, "restart" as never);
+      const evidence = await runOperation(serviceId as never, "restart" as never, request);
       const record = evidence as { result?: string; status?: string; operation_id?: string; failure_reason?: string | null };
       lastEvidence = record.operation_id ?? lastEvidence;
       // `runOperation` is the ONLY judge of whether the service came up: it

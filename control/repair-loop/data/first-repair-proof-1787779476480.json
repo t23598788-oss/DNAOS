@@ -1,0 +1,157 @@
+{
+  "gap": {
+    "gap_id": "gap-evidence-AI_WRITE_ADAPTER_NOT_REGISTERED",
+    "capability_id": "control/agent-gateway/gateway.ts",
+    "source_path": "control/agent-gateway/gateway.ts",
+    "state": "BLOCKED",
+    "reason": "280 BLOCKED task(s) recorded reason \"AI_WRITE_ADAPTER_NOT_REGISTERED\"; sample intent: register external system lifecycle capability: probe-routing-test",
+    "evidence_refs": [
+      "ev-ead2117f-0ea6-4ae5-80f9-dbeaa470e45a",
+      "ev-183bd71e-c8d4-4b8e-8d5b-76d185db2a72",
+      "ev-4c91179c-59c9-483c-bd0d-05a4fa8b2e12",
+      "ev-25ec98ca-17d4-4b8f-9ac7-75c316484778",
+      "ev-64266dab-bab3-4a05-a388-ffdcf7078876"
+    ],
+    "registry_refs": [],
+    "upstream": [],
+    "downstream": [],
+    "depth": 0,
+    "occurrences": 280,
+    "first_seen": "2026-08-21T11:35:48.804Z",
+    "last_seen": "2026-08-26T08:13:05.992Z",
+    "repair_type": "REGISTRY_MISMATCH",
+    "actionable": true,
+    "not_actionable_reason": null
+  },
+  "root_cause_class": "MISLEADING_EVIDENCE",
+  "repair": {
+    "repair_id": "repair-bdf202a7-762",
+    "event_id": "evt-cd0cd805-76d",
+    "trace_id": "trace-repair-2a37ab2f",
+    "work_id": "work-167c5f92-6ca",
+    "failed_capability_id": "control/agent-gateway/gateway.ts",
+    "failed_boundary": "control/agent-gateway/gateway.ts:564",
+    "source_path": "control/external-system-lifecycle/pipeline.ts",
+    "upstream_capability": null,
+    "downstream_capability": null,
+    "error_code": "AI_WRITE_ADAPTER_NOT_REGISTERED",
+    "error_message": "280 BLOCKED task(s) recorded reason \"AI_WRITE_ADAPTER_NOT_REGISTERED\"; sample intent: register external system lifecycle capability: probe-routing-test",
+    "observed_state": "280 verification-failure records for a path the caller terminates deliberately",
+    "expected_contract": "a deliberately-terminated path must be recorded as such, so the gap queue and the Workspace can tell an intended stop from a real failure",
+    "evidence_refs": [
+      "ev-ead2117f-0ea6-4ae5-80f9-dbeaa470e45a",
+      "ev-183bd71e-c8d4-4b8e-8d5b-76d185db2a72",
+      "ev-4c91179c-59c9-483c-bd0d-05a4fa8b2e12",
+      "ev-25ec98ca-17d4-4b8f-9ac7-75c316484778",
+      "ev-64266dab-bab3-4a05-a388-ffdcf7078876"
+    ],
+    "registry_refs": [],
+    "existing_tests": [
+      "npx tsc --noEmit -p tsconfig.json",
+      "npx tsx control/registration-pipeline/tests/registration-pipeline.test.ts"
+    ],
+    "dependencies": [
+      "control/agent-gateway/gateway.ts:564",
+      "control/agent-gateway/gateway.ts:627",
+      "control/external-system-lifecycle/pipeline.ts:166",
+      "control/external-system-lifecycle/pipeline.ts:175"
+    ],
+    "allowed_paths": [
+      "control/external-system-lifecycle/pipeline.ts",
+      "control/agent-gateway/gateway.ts"
+    ],
+    "forbidden_paths": [
+      "permissions/",
+      "credentials/",
+      "governance/",
+      "software/registry-database/data/",
+      "control/agent-gateway/data/",
+      ".git/",
+      "node_modules/"
+    ],
+    "verification_required": [
+      "SOURCE_VALIDATION",
+      "CONTRACT_VALIDATION",
+      "DEPENDENCY_VALIDATION",
+      "SECURITY_PERMISSION_VALIDATION",
+      "ISOLATED_TEST",
+      "REGRESSION_TEST",
+      "DETERMINISTIC_VERIFIER",
+      "WRITE_GATE",
+      "CONTROLLED_PROMOTION",
+      "RUNTIME_VERIFICATION"
+    ],
+    "success_condition": "a deliberately-terminated path must be recorded as such, so the gap queue and the Workspace can tell an intended stop from a real failure; proven by a real re-run, not by the agent's own claim",
+    "repair_type": "EVIDENCE_MISSING",
+    "root_cause_class": "MISLEADING_EVIDENCE",
+    "attempt": 1,
+    "error_signature": "26add607adbeed07"
+  },
+  "route_group": null,
+  "proposal": {
+    "repair_id": "repair-bdf202a7-762",
+    "PROPOSED_CHANGE": "record an EXPECTED_BY_DESIGN classification alongside the deliberate AI_WRITE_ADAPTER_NOT_REGISTERED termination, so a by-design stop is distinguishable from a real failure",
+    "FILES_CHANGED": [
+      {
+        "path": "control/external-system-lifecycle/pipeline.ts",
+        "operation": "MODIFY",
+        "bytes": 19121
+      }
+    ],
+    "CONTRACT_SATISFIED": "no export removed, no control flow changed, no new module imported (saveEvidence comes from ../agent-gateway/contract, already imported by this file)",
+    "TESTS_ADDED_OR_USED": [
+      "npx tsc --noEmit -p tsconfig.json",
+      "npx tsx control/registration-pipeline/tests/registration-pipeline.test.ts",
+      "control/repair-loop gap re-scan (the deterministic check that the queue changes)"
+    ],
+    "EXPECTED_RESULT": "future lifecycle runs emit a paired classification row; the gap scanner stops counting those tasks as failures",
+    "EVIDENCE_REQUIRED": [
+      "gap re-scan before/after",
+      "repo-wide typecheck after promotion"
+    ]
+  },
+  "verdict": {
+    "repair_id": "repair-bdf202a7-762",
+    "verdict": "REJECT_CHANGE",
+    "failed_stage": "ISOLATED_TEST",
+    "stages": [
+      {
+        "stage": "SOURCE_VALIDATION",
+        "passed": true,
+        "detail": "1 file(s), all inside allowed_paths",
+        "evidence_ref": null
+      },
+      {
+        "stage": "CONTRACT_VALIDATION",
+        "passed": true,
+        "detail": "no exported symbol dropped, header contract preserved",
+        "evidence_ref": null
+      },
+      {
+        "stage": "DEPENDENCY_VALIDATION",
+        "passed": true,
+        "detail": "no dependency added outside each file's declared allowances",
+        "evidence_ref": null
+      },
+      {
+        "stage": "SECURITY_PERMISSION_VALIDATION",
+        "passed": true,
+        "detail": "introduces no listener, no non-loopback bind, no raw spawn, no secret access, no destructive call",
+        "evidence_ref": null
+      },
+      {
+        "stage": "ISOLATED_TEST",
+        "passed": false,
+        "detail": "56,35): error TS2307: Cannot find module '../../execution/deploy/contract' or its corresponding type declarations.\n../../../../var/folders/w1/v6lpdbw13s93ff70zq5jzt800000gn/T/dna-os-repair-sBrIxe/pipeline.ts(57,32): error TS2307: Cannot find module '../../software/registry-database/contract' or its corresponding type declarations.\n../../../../var/folders/w1/v6lpdbw13s93ff70zq5jzt800000gn/T/dna-os-repair-sBrIxe/pipeline.ts(58,36): error TS2307: Cannot find module '../../software/registry-database/contract' or its corresponding type declarations.\n../../../../var/folders/w1/v6lpdbw13s93ff70zq5jzt800000gn/T/dna-os-repair-sBrIxe/pipeline.ts(59,32): error TS2307: Cannot find module './boundary' or its corresponding type declarations.\n../../../../var/folders/w1/v6lpdbw13s93ff70zq5jzt800000gn/T/dna-os-repair-sBrIxe/pipeline.ts(60,40): error TS2307: Cannot find module './delivery-classification' or its corresponding type declarations.\n../../../../var/folders/w1/v6lpdbw13s93ff70zq5jzt800000gn/T/dna-os-repair-sBrIxe/pipeline.ts(61,34): error TS2307: Cannot find module './host-runtime' or its corresponding type declarations.\n../../../../var/folders/w1/v6lpdbw13s93ff70zq5jzt800000gn/T/dna-os-repair-sBrIxe/pipeline.ts(62,42): error TS2307: Cannot find module './store' or its corresponding type declarations.\n../../../../var/folders/w1/v6lpdbw13s93ff70zq5jzt800000gn/T/dna-os-repair-sBrIxe/pipeline.ts(63,120): error TS2307: Cannot find module './types' or its corresponding type declarations.\n",
+        "evidence_ref": null
+      }
+    ],
+    "evidence_ref": "repair-verify:repair-bdf202a7-762",
+    "code_hash": "9d5f0693f583b273"
+  },
+  "graph_before": "BLOCKED",
+  "graph_after": "BLOCKED",
+  "stopped": null,
+  "evidence_ref": "repair-cycle-gap-evidence-AI_WRITE_ADAPTER_NOT_REGISTERED-4eda9083",
+  "next_gap_id": "gap-evidence-NO_EXISTING_CAPABILITY matched"
+}

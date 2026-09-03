@@ -1,0 +1,5 @@
+{"repair_id":"repair-bdf202a7-762","trace_id":"trace-repair-2a37ab2f","attempt":1,"code_hash":"9d5f0693f583b273","error_signature":"26add607adbeed07","verdict":"REJECT_CHANGE","recorded_at":"2026-08-26T21:24:36.342Z"}
+{"repair_id":"repair-b22e4ef7-003","trace_id":"trace-repair-1d1e7f76","attempt":2,"code_hash":"9d5f0693f583b273","error_signature":"26add607adbeed07","verdict":"NO_PROGRESS","recorded_at":"2026-08-26T21:26:06.162Z"}
+{"repair_id":"repair-24f4aa1b-919","trace_id":"trace-repair-7d15252d","attempt":1,"code_hash":"9d5f0693f583b273","error_signature":"26add607adbeed07","verdict":"REJECT_CHANGE","recorded_at":"2026-08-26T21:27:05.704Z","verifier_version":"v2"}
+{"repair_id":"repair-33172553-23c","trace_id":"trace-repair-25c5210c","attempt":2,"code_hash":"9d5f0693f583b273","error_signature":"26add607adbeed07","verdict":"NO_PROGRESS","recorded_at":"2026-08-26T21:28:47.555Z","verifier_version":"v2"}
+{"repair_id":"repair-7f4796a8-25e","trace_id":"trace-repair-815cba2a","attempt":1,"code_hash":"9d5f0693f583b273","error_signature":"6f91a3409d948eec","verdict":"VERIFIED","recorded_at":"2026-08-26T21:56:16.436Z","verifier_version":"v3"}

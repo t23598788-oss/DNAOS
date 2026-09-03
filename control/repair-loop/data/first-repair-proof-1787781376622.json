@@ -1,0 +1,187 @@
+{
+  "gap": {
+    "gap_id": "gap-evidence-AI_WRITE_ADAPTER_NOT_REGISTERED",
+    "capability_id": "control/agent-gateway/gateway.ts",
+    "source_path": "control/agent-gateway/gateway.ts",
+    "state": "BLOCKED",
+    "reason": "289 BLOCKED task(s) recorded reason \"AI_WRITE_ADAPTER_NOT_REGISTERED\"; sample intent: register external system lifecycle capability: probe-routing-test",
+    "evidence_refs": [
+      "ev-ead2117f-0ea6-4ae5-80f9-dbeaa470e45a",
+      "ev-183bd71e-c8d4-4b8e-8d5b-76d185db2a72",
+      "ev-4c91179c-59c9-483c-bd0d-05a4fa8b2e12",
+      "ev-25ec98ca-17d4-4b8f-9ac7-75c316484778",
+      "ev-64266dab-bab3-4a05-a388-ffdcf7078876"
+    ],
+    "registry_refs": [],
+    "upstream": [],
+    "downstream": [],
+    "depth": 0,
+    "occurrences": 289,
+    "first_seen": "2026-08-21T11:35:48.804Z",
+    "last_seen": "2026-08-26T21:55:38.926Z",
+    "repair_type": "REGISTRY_MISMATCH",
+    "actionable": true,
+    "not_actionable_reason": null
+  },
+  "root_cause_class": "MISLEADING_EVIDENCE",
+  "repair": {
+    "repair_id": "repair-7f4796a8-25e",
+    "event_id": "evt-a1d0ff36-d56",
+    "trace_id": "trace-repair-815cba2a",
+    "work_id": "work-fa7b7e01-9e6",
+    "failed_capability_id": "control/agent-gateway/gateway.ts",
+    "failed_boundary": "control/agent-gateway/gateway.ts:631",
+    "source_path": "control/external-system-lifecycle/pipeline.ts",
+    "upstream_capability": null,
+    "downstream_capability": null,
+    "error_code": "AI_WRITE_ADAPTER_NOT_REGISTERED",
+    "error_message": "289 BLOCKED task(s) recorded reason \"AI_WRITE_ADAPTER_NOT_REGISTERED\"; sample intent: register external system lifecycle capability: probe-routing-test",
+    "observed_state": "289 verification-failure records for a path the caller terminates deliberately",
+    "expected_contract": "a deliberately-terminated path must be recorded as such, so the gap queue and the Workspace can tell an intended stop from a real failure",
+    "evidence_refs": [
+      "ev-ead2117f-0ea6-4ae5-80f9-dbeaa470e45a",
+      "ev-183bd71e-c8d4-4b8e-8d5b-76d185db2a72",
+      "ev-4c91179c-59c9-483c-bd0d-05a4fa8b2e12",
+      "ev-25ec98ca-17d4-4b8f-9ac7-75c316484778",
+      "ev-64266dab-bab3-4a05-a388-ffdcf7078876"
+    ],
+    "registry_refs": [],
+    "existing_tests": [
+      "npx tsc --noEmit -p tsconfig.json",
+      "npx tsx control/registration-pipeline/tests/registration-pipeline.test.ts"
+    ],
+    "dependencies": [
+      "control/agent-gateway/gateway.ts:631",
+      "control/agent-gateway/gateway.ts:694",
+      "control/external-system-lifecycle/pipeline.ts:166",
+      "control/external-system-lifecycle/pipeline.ts:175"
+    ],
+    "allowed_paths": [
+      "control/external-system-lifecycle/pipeline.ts",
+      "control/agent-gateway/gateway.ts"
+    ],
+    "forbidden_paths": [
+      "permissions/",
+      "credentials/",
+      "governance/",
+      "software/registry-database/data/",
+      "control/agent-gateway/data/",
+      ".git/",
+      "node_modules/"
+    ],
+    "verification_required": [
+      "SOURCE_VALIDATION",
+      "CONTRACT_VALIDATION",
+      "DEPENDENCY_VALIDATION",
+      "SECURITY_PERMISSION_VALIDATION",
+      "ISOLATED_TEST",
+      "REGRESSION_TEST",
+      "DETERMINISTIC_VERIFIER",
+      "WRITE_GATE",
+      "CONTROLLED_PROMOTION",
+      "RUNTIME_VERIFICATION"
+    ],
+    "success_condition": "a deliberately-terminated path must be recorded as such, so the gap queue and the Workspace can tell an intended stop from a real failure; proven by a real re-run, not by the agent's own claim",
+    "repair_type": "EVIDENCE_MISSING",
+    "root_cause_class": "MISLEADING_EVIDENCE",
+    "attempt": 1,
+    "error_signature": "6f91a3409d948eec"
+  },
+  "route_group": "EVIDENCE_VERIFICATION",
+  "proposal": {
+    "repair_id": "repair-7f4796a8-25e",
+    "PROPOSED_CHANGE": "record an EXPECTED_BY_DESIGN classification alongside the deliberate AI_WRITE_ADAPTER_NOT_REGISTERED termination, so a by-design stop is distinguishable from a real failure",
+    "FILES_CHANGED": [
+      {
+        "path": "control/external-system-lifecycle/pipeline.ts",
+        "operation": "MODIFY",
+        "bytes": 19121
+      }
+    ],
+    "CONTRACT_SATISFIED": "no export removed, no control flow changed, no new module imported (saveEvidence comes from ../agent-gateway/contract, already imported by this file)",
+    "TESTS_ADDED_OR_USED": [
+      "npx tsc --noEmit -p tsconfig.json",
+      "npx tsx control/registration-pipeline/tests/registration-pipeline.test.ts",
+      "control/repair-loop gap re-scan (the deterministic check that the queue changes)"
+    ],
+    "EXPECTED_RESULT": "future lifecycle runs emit a paired classification row; the gap scanner stops counting those tasks as failures",
+    "EVIDENCE_REQUIRED": [
+      "gap re-scan before/after",
+      "repo-wide typecheck after promotion"
+    ]
+  },
+  "verdict": {
+    "repair_id": "repair-7f4796a8-25e",
+    "verdict": "VERIFIED",
+    "failed_stage": null,
+    "stages": [
+      {
+        "stage": "SOURCE_VALIDATION",
+        "passed": true,
+        "detail": "1 file(s), all inside allowed_paths",
+        "evidence_ref": null
+      },
+      {
+        "stage": "CONTRACT_VALIDATION",
+        "passed": true,
+        "detail": "no exported symbol dropped, header contract preserved",
+        "evidence_ref": null
+      },
+      {
+        "stage": "DEPENDENCY_VALIDATION",
+        "passed": true,
+        "detail": "no dependency added outside each file's declared allowances",
+        "evidence_ref": null
+      },
+      {
+        "stage": "SECURITY_PERMISSION_VALIDATION",
+        "passed": true,
+        "detail": "introduces no listener, no non-loopback bind, no raw spawn, no secret access, no destructive call",
+        "evidence_ref": null
+      },
+      {
+        "stage": "ISOLATED_TEST",
+        "passed": true,
+        "detail": "the proposed file type-checks in place, against the project config, without being promoted",
+        "evidence_ref": null
+      },
+      {
+        "stage": "REGRESSION_TEST",
+        "passed": true,
+        "detail": "repo-wide typecheck is green BEFORE promotion, so any later failure is attributable to this change",
+        "evidence_ref": null
+      },
+      {
+        "stage": "DETERMINISTIC_VERIFIER",
+        "passed": true,
+        "detail": "the change references the target condition (AI_WRITE_ADAPTER_NOT_REGISTERED)",
+        "evidence_ref": null
+      },
+      {
+        "stage": "WRITE_GATE",
+        "passed": true,
+        "detail": "control/external-system-lifecycle/pipeline.ts -> ALLOW_MODIFY (MATCHED_EXISTING_CAPABILITY); ",
+        "evidence_ref": "write-gate:repair-7f4796a8-25e"
+      },
+      {
+        "stage": "CONTROLLED_PROMOTION",
+        "passed": true,
+        "detail": "1 file(s) promoted; originals backed up under /var/folders/w1/v6lpdbw13s93ff70zq5jzt800000gn/T/dna-os-repair-unAR2i",
+        "evidence_ref": "/var/folders/w1/v6lpdbw13s93ff70zq5jzt800000gn/T/dna-os-repair-unAR2i"
+      },
+      {
+        "stage": "RUNTIME_VERIFICATION",
+        "passed": true,
+        "detail": "repo-wide typecheck green after promotion",
+        "evidence_ref": null
+      }
+    ],
+    "evidence_ref": "repair-verify:repair-7f4796a8-25e",
+    "code_hash": "9d5f0693f583b273"
+  },
+  "graph_before": "BLOCKED",
+  "graph_after": "BLOCKED",
+  "stopped": null,
+  "evidence_ref": "repair-cycle-gap-evidence-AI_WRITE_ADAPTER_NOT_REGISTERED-529ce0cf",
+  "next_gap_id": "gap-evidence-NO_EXISTING_CAPABILITY matched"
+}
