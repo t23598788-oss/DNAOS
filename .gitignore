@@ -52,3 +52,29 @@ connections/os-ui/data/screen-reads/
 # เปลี่ยนทุกครั้งที่มี worker ทำงาน การ commit มันจะทำให้ทุก branch ชนกัน
 # ที่ไฟล์เดียว และทำให้สถานะเครื่องหนึ่งกลายเป็นสถานะของทุกเครื่อง
 local-runtime/work-session-state/
+
+# ── canonical baseline hygiene (2026-09-03) ────────────────────────────────
+# เหตุผลเดียวกันทั้งบล็อก: ระบบสร้างไฟล์พวกนี้เองตอนรัน ไม่มีใครแก้ด้วยมือ
+# จึงไม่ใช่ "คำนิยาม" ที่ baseline ต้องตรึง — เป็น "ผลลัพธ์"
+
+# sandbox profile ที่ agent-host สร้างใหม่ทุกครั้งที่ปล่อย agent (1 ไฟล์/1 launch)
+.agent-host-profiles/
+control/agent-host/test-workspace/
+
+# ภาพหน้าจอที่ computer-use/os-ui ถ่ายไว้เป็นหลักฐาน — 345MB และโตเรื่อย ๆ
+connections/os-ui/data/screenshots/
+
+# บันทึกราย action ของ computer-use (1 ไฟล์/1 action)
+control/computer-use-executor/data/processed/
+control/computer-use-executor/data/results/
+
+# projection ที่ system-graph สร้างจาก source — regenerate ได้เสมอ
+software/system-graph/data/
+
+# สำเนาสำรองก่อนแก้ไฟล์ ไม่ใช่ source
+*.bak
+*.pre-ownership
+
+# Python bytecode
+__pycache__/
+*.pyc
