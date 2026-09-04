@@ -45,6 +45,11 @@ import { join } from "node:path";
 import { getCapabilityIndex } from "./index";
 import type { CapabilityMetadata } from "./types";
 import { createPersistentFileStore } from "../registry-database/adapters/persistent-file-store";
+// ต่อสายรายการ capability ของ DNA OS เข้ามาก่อนใช้งาน
+// หมายเหตุ 2026-09-04: บรรทัดนี้คือการพึ่งพาข้ามระบบเส้นสุดท้ายที่เหลืออยู่
+// ถอดออกไม่ได้ตอนนี้ เพราะ permissions/write-gate/tests/policy.test.ts ต้องการ
+// ดัชนีที่มีข้อมูลจริง และไฟล์นั้นถูกล็อกกายภาพ (root:wheel 444 schg) แก้ไม่ได้
+// ปลดได้ก็ต่อเมื่อได้ OWNER UNLOCK ให้แก้เทสต์นั้น
 import "../../control/command-router/registrar-bootstrap";
 
 const REPO_ROOT = join(__dirname, "..", "..");
