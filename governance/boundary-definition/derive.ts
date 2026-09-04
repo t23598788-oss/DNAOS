@@ -7,7 +7,9 @@
 import { readFileSync } from "node:fs";
 import { UNRESOLVED } from "./schema";
 import { resolveSources, runtimeEnv, fsAccess, netAccess, osAccess, authSignals,
-         requiredFieldsOf, errorContract, verificationPath } from "./source-evidence";
+         requiredFieldsOf, errorContract, verificationPath, cite } from "./source-evidence";
+import { allowedScope, forbiddenScope, prohibitedData, lockedConstraint } from "./policy-source";
+import { verificationOutcome, passFailCondition } from "./verification-outcome";
 import type { BoundaryRecord, BoundaryVerdict, Resolved } from "./schema";
 
 const DIR = "software/registry-database/data/canonical";
@@ -95,6 +97,16 @@ export function deriveBoundary(
   const reqIn = inputs !== null ? requiredFieldsOf(inputs, F) : null;
   const errC = errorContract(F);
   const ver = location !== null ? verificationPath(location) : null;
+  const entry = location ?? "";
+  const allow = allowedScope(entry);
+  const lock = lockedConstraint(entry);
+  const forbidBase = forbiddenScope(entry);
+  const forbid = forbidBase !== null && lock !== null
+    ? cite([...forbidBase.value, ...lock.value], `${forbidBase.evidence} · ${lock.evidence}`)
+    : forbidBase;
+  const prohibited = prohibitedData(entry);
+  const outcome = ver !== null ? verificationOutcome(ver.value.evidence) : null;
+  const passFail = ver !== null ? passFailCondition(ver.value.method) : null;
   const C = <T>(field: string, c: { value: T; evidence: string } | null): Resolved<T> => {
     if (c === null) { missing.push(field); return UNRESOLVED; }
     from.push(`${field} <- ${c.evidence}`);
@@ -112,8 +124,8 @@ export function deriveBoundary(
       execution_owner: R("execution.execution_owner", owner, "resources.owner_id"),
       execution_environment: C("execution.execution_environment", env),
       entrypoint: R("execution.entrypoint", location, "resources.source_location"),
-      allowed_scope: R("execution.allowed_scope", null, ""),
-      forbidden_scope: R("execution.forbidden_scope", null, ""),
+      allowed_scope: C("execution.allowed_scope", allow),
+      forbidden_scope: C("execution.forbidden_scope", forbid),
       side_effect_boundary: R("execution.side_effect_boundary", sideEffects, "capabilities.side_effects"),
     },
     input: {
@@ -131,7 +143,7 @@ export function deriveBoundary(
     data: {
       readable: R("data.readable", null, ""),
       writable: R("data.writable", fsWritesFrom(sideEffects), "capabilities.side_effects (รายการที่ระบุการเขียนไฟล์)"),
-      prohibited: R("data.prohibited", null, ""),
+      prohibited: C("data.prohibited", prohibited),
       persistence: R("data.persistence", null, ""),
     },
     authority: {
@@ -154,13 +166,13 @@ export function deriveBoundary(
       filesystem: C("external_access.filesystem", fsA),
       os_or_browser: C("external_access.os_or_browser", osA),
       external_service: R("external_access.external_service", null, ""),
-      explicitly_prohibited: R("external_access.explicitly_prohibited", null, ""),
+      explicitly_prohibited: C("external_access.explicitly_prohibited", prohibited),
     },
     verification: {
       method: C("verification.method", ver !== null ? { value: ver.value.method, evidence: ver.evidence } : null),
       required_evidence: C("verification.required_evidence", ver !== null ? { value: ver.value.evidence, evidence: ver.evidence } : null),
-      last_verified_reference: R("verification.last_verified_reference", nonEmpty(cap.verified_at ?? null), "capabilities.verified_at"),
-      pass_fail_condition: R("verification.pass_fail_condition", null, ""),
+      last_verified_reference: C("verification.last_verified_reference", outcome),
+      pass_fail_condition: C("verification.pass_fail_condition", passFail),
     },
     derived_from: from,
     unresolved_fields: missing,

@@ -2,7 +2,7 @@
   "run": "R2-BOUNDARY-DEFINITION",
   "registry_snapshot": {
     "capabilities": 163,
-    "resources": 706,
+    "resources": 731,
     "links": 170
   },
   "in_scope": 163,
@@ -10,14 +10,14 @@
   "boundaries_partial": 163,
   "boundaries_unresolved": 0,
   "dimension_complete": {
-    "execution": 0,
+    "execution": 54,
     "input": 0,
     "output": 0,
     "data": 0,
     "authority": 0,
     "resources": 0,
     "external_access": 0,
-    "verification": 0
+    "verification": 98
   },
   "gates": [
     {
@@ -66,7 +66,7 @@
       "id": "H",
       "name": "เส้นทางหลักฐาน/การพิสูจน์ระบุชัด",
       "pass": false,
-      "detail": "0/163"
+      "detail": "98/163"
     },
     {
       "id": "I",

@@ -1,0 +1,1167 @@
+{
+ "run_at": "2026-09-04",
+ "runner": "npx tsx",
+ "timeout_s": [
+  90,
+  45
+ ],
+ "ran": [
+  {
+   "file": "connections/agent-registry/tests/bootstrap-endpoint.test.ts",
+   "status": "FAIL",
+   "duration_s": 0.5,
+   "exit_code": null,
+   "last_stdout": "",
+   "last_stderr": ""
+  },
+  {
+   "file": "connections/agent-registry/tests/codex-session-bridge.test.ts",
+   "status": "PASS",
+   "duration_s": 0.5,
+   "exit_code": 0,
+   "last_stdout": "",
+   "last_stderr": ""
+  },
+  {
+   "file": "connections/agent-registry/tests/registry.test.ts",
+   "status": "PASS",
+   "duration_s": 0.4,
+   "exit_code": 0,
+   "last_stdout": "",
+   "last_stderr": ""
+  },
+  {
+   "file": "connections/agent-registry/tests/session-bridge.test.ts",
+   "status": "FAIL",
+   "duration_s": 0.5,
+   "exit_code": null,
+   "last_stdout": "",
+   "last_stderr": ""
+  },
+  {
+   "file": "connections/agent-registry/tests/session-registry.test.ts",
+   "status": "PASS",
+   "duration_s": 0.6,
+   "exit_code": 0,
+   "last_stdout": "",
+   "last_stderr": ""
+  },
+  {
+   "file": "connections/agent-registry/tests/worker-capacity-resolver.test.ts",
+   "status": "PASS",
+   "duration_s": 0.4,
+   "exit_code": 0,
+   "last_stdout": "",
+   "last_stderr": ""
+  },
+  {
+   "file": "connections/agent-registry/tests/worker-registration.test.ts",
+   "status": "PASS",
+   "duration_s": 0.4,
+   "exit_code": 0,
+   "last_stdout": "",
+   "last_stderr": ""
+  },
+  {
+   "file": "connections/connection-registry/tests/connection-declaration.test.ts",
+   "status": "PASS",
+   "duration_s": 0.4,
+   "exit_code": 0,
+   "last_stdout": "",
+   "last_stderr": ""
+  },
+  {
+   "file": "connections/connection-registry/tests/connection-registry.test.ts",
+   "status": "FAIL",
+   "duration_s": 0.4,
+   "exit_code": null,
+   "last_stdout": "",
+   "last_stderr": ""
+  },
+  {
+   "file": "connections/connection-registry/tests/executor-resolution.test.ts",
+   "status": "PASS",
+   "duration_s": 0.4,
+   "exit_code": 0,
+   "last_stdout": "",
+   "last_stderr": ""
+  },
+  {
+   "file": "connections/digitalocean/tests/adapter.test.ts",
+   "status": "FAIL",
+   "duration_s": 0.4,
+   "exit_code": null,
+   "last_stdout": "",
+   "last_stderr": ""
+  },
+  {
+   "file": "connections/dna-os-mcp/tests/mcp-server.test.ts",
+   "status": "TIMEOUT",
+   "duration_s": 90.0,
+   "exit_code": null,
+   "last_stdout": "",
+   "last_stderr": ""
+  },
+  {
+   "file": "connections/email-alert-source/tests/adapter.test.ts",
+   "status": "PASS",
+   "duration_s": 0.9,
+   "exit_code": 0,
+   "last_stdout": "",
+   "last_stderr": ""
+  },
+  {
+   "file": "connections/os-ui/tests/agent-session-discovery.test.ts",
+   "status": "PASS",
+   "duration_s": 8.9,
+   "exit_code": 0,
+   "last_stdout": "",
+   "last_stderr": ""
+  },
+  {
+   "file": "connections/os-ui/tests/screen-summary.test.ts",
+   "status": "PASS",
+   "duration_s": 0.3,
+   "exit_code": 0,
+   "last_stdout": "",
+   "last_stderr": ""
+  },
+  {
+   "file": "connections/provider-authorization/tests/provider-authorization.test.ts",
+   "status": "PASS",
+   "duration_s": 0.4,
+   "exit_code": 0,
+   "last_stdout": "",
+   "last_stderr": ""
+  },
+  {
+   "file": "connections/telemetry/tests/telemetry.test.ts",
+   "status": "PASS",
+   "duration_s": 0.5,
+   "exit_code": 0,
+   "last_stdout": "",
+   "last_stderr": ""
+  },
+  {
+   "file": "control/agent-gateway/tests/automation-loop.e2e.test.ts",
+   "status": "PASS",
+   "duration_s": 5.1,
+   "exit_code": 0,
+   "last_stdout": "",
+   "last_stderr": ""
+  },
+  {
+   "file": "control/agent-gateway/tests/capability-promotion.test.ts",
+   "status": "PASS",
+   "duration_s": 2.0,
+   "exit_code": 0,
+   "last_stdout": "",
+   "last_stderr": ""
+  },
+  {
+   "file": "control/agent-gateway/tests/capability-routing.test.ts",
+   "status": "PASS",
+   "duration_s": 3.8,
+   "exit_code": 0,
+   "last_stdout": "",
+   "last_stderr": ""
+  },
+  {
+   "file": "control/agent-gateway/tests/completion-lifecycle.test.ts",
+   "status": "PASS",
+   "duration_s": 10.6,
+   "exit_code": 0,
+   "last_stdout": "",
+   "last_stderr": ""
+  },
+  {
+   "file": "control/agent-gateway/tests/dna-os-decision.test.ts",
+   "status": "PASS",
+   "duration_s": 0.6,
+   "exit_code": 0,
+   "last_stdout": "",
+   "last_stderr": ""
+  },
+  {
+   "file": "control/agent-gateway/tests/handoff.test.ts",
+   "status": "PASS",
+   "duration_s": 0.3,
+   "exit_code": 0,
+   "last_stdout": "",
+   "last_stderr": ""
+  },
+  {
+   "file": "control/agent-gateway/tests/parallel-controller.test.ts",
+   "status": "FAIL",
+   "duration_s": 2.6,
+   "exit_code": null,
+   "last_stdout": "",
+   "last_stderr": ""
+  },
+  {
+   "file": "control/agent-gateway/tests/route-group-matching.test.ts",
+   "status": "PASS",
+   "duration_s": 0.8,
+   "exit_code": 0,
+   "last_stdout": "",
+   "last_stderr": ""
+  },
+  {
+   "file": "control/agent-gateway/tests/voice-bridge.test.ts",
+   "status": "PASS",
+   "duration_s": 0.4,
+   "exit_code": 0,
+   "last_stdout": "",
+   "last_stderr": ""
+  },
+  {
+   "file": "control/agent-gateway/tests/workspace-manager.test.ts",
+   "status": "PASS",
+   "duration_s": 5.0,
+   "exit_code": 0,
+   "last_stdout": "",
+   "last_stderr": ""
+  },
+  {
+   "file": "control/ai-write-control/tests/ai-write-control.test.ts",
+   "status": "PASS",
+   "duration_s": 0.3,
+   "exit_code": 0,
+   "last_stdout": "",
+   "last_stderr": ""
+  },
+  {
+   "file": "control/ai-write-control/tests/write-result-registration.test.ts",
+   "status": "PASS",
+   "duration_s": 0.7,
+   "exit_code": 0,
+   "last_stdout": "",
+   "last_stderr": ""
+  },
+  {
+   "file": "control/alert-correlation/tests/runtime-proof.test.ts",
+   "status": "PASS",
+   "duration_s": 1.2,
+   "exit_code": 0,
+   "last_stdout": "",
+   "last_stderr": ""
+  },
+  {
+   "file": "control/artifact-destination/tests/artifact-destination.test.ts",
+   "status": "PASS",
+   "duration_s": 1.0,
+   "exit_code": 0,
+   "last_stdout": "",
+   "last_stderr": ""
+  },
+  {
+   "file": "control/circuit-breaker/tests/kill-on-violation-proof.test.ts",
+   "status": "PASS",
+   "duration_s": 4.4,
+   "exit_code": 0,
+   "last_stdout": "",
+   "last_stderr": ""
+  },
+  {
+   "file": "control/command-router/tests/digitalocean-connector-routing.test.ts",
+   "status": "PASS",
+   "duration_s": 0.5,
+   "exit_code": 0,
+   "last_stdout": "",
+   "last_stderr": ""
+  },
+  {
+   "file": "control/command-router/tests/output-classifier.test.ts",
+   "status": "PASS",
+   "duration_s": 2.5,
+   "exit_code": 0,
+   "last_stdout": "",
+   "last_stderr": ""
+  },
+  {
+   "file": "control/deployable-artifact-readiness/tests/deployable-artifact-readiness.test.ts",
+   "status": "PASS",
+   "duration_s": 3.7,
+   "exit_code": 0,
+   "last_stdout": "",
+   "last_stderr": ""
+  },
+  {
+   "file": "control/entry-context/tests/account-workspace-resolution.test.ts",
+   "status": "PASS",
+   "duration_s": 14.7,
+   "exit_code": 0,
+   "last_stdout": "",
+   "last_stderr": ""
+  },
+  {
+   "file": "control/entry-context/tests/entry-context.test.ts",
+   "status": "PASS",
+   "duration_s": 13.5,
+   "exit_code": 0,
+   "last_stdout": "",
+   "last_stderr": ""
+  },
+  {
+   "file": "control/event-pipeline/tests/domain-classification.test.ts",
+   "status": "PASS",
+   "duration_s": 0.7,
+   "exit_code": 0,
+   "last_stdout": "",
+   "last_stderr": ""
+  },
+  {
+   "file": "control/event-pipeline/tests/registration-contract.test.ts",
+   "status": "PASS",
+   "duration_s": 0.3,
+   "exit_code": 0,
+   "last_stdout": "",
+   "last_stderr": ""
+  },
+  {
+   "file": "control/external-system-lifecycle/tests/external-system-lifecycle.test.ts",
+   "status": "PASS",
+   "duration_s": 5.6,
+   "exit_code": 0,
+   "last_stdout": "",
+   "last_stderr": ""
+  },
+  {
+   "file": "control/incident-remediation/tests/capability-invocation-matrix.test.ts",
+   "status": "PASS",
+   "duration_s": 4.5,
+   "exit_code": 0,
+   "last_stdout": "",
+   "last_stderr": ""
+  },
+  {
+   "file": "control/incident-remediation/tests/cases-proof.test.ts",
+   "status": "PASS",
+   "duration_s": 21.6,
+   "exit_code": 0,
+   "last_stdout": "",
+   "last_stderr": ""
+  },
+  {
+   "file": "control/integration-verification/tests/integration-verification.test.ts",
+   "status": "PASS",
+   "duration_s": 0.6,
+   "exit_code": 0,
+   "last_stdout": "",
+   "last_stderr": ""
+  },
+  {
+   "file": "control/machine-observation/tests/typed-runtime-observation.test.ts",
+   "status": "PASS",
+   "duration_s": 0.3,
+   "exit_code": 0,
+   "last_stdout": "",
+   "last_stderr": ""
+  },
+  {
+   "file": "control/output-routing/tests/output-router.test.ts",
+   "status": "PASS",
+   "duration_s": 0.4,
+   "exit_code": 0,
+   "last_stdout": "",
+   "last_stderr": ""
+  },
+  {
+   "file": "control/owner-backbone/tests/backbone-proof.test.ts",
+   "status": "TIMEOUT",
+   "duration_s": 90.0,
+   "exit_code": null,
+   "last_stdout": "",
+   "last_stderr": ""
+  },
+  {
+   "file": "control/owner-backbone/tests/live-recovery-proof.test.ts",
+   "status": "FAIL",
+   "duration_s": 1.4,
+   "exit_code": null,
+   "last_stdout": "",
+   "last_stderr": ""
+  },
+  {
+   "file": "control/owner-backbone/tests/loop-safety-proof.test.ts",
+   "status": "PASS",
+   "duration_s": 2.8,
+   "exit_code": 0,
+   "last_stdout": "",
+   "last_stderr": ""
+  },
+  {
+   "file": "control/owner-backbone/tests/resource-failover-proof.test.ts",
+   "status": "FAIL",
+   "duration_s": 25.2,
+   "exit_code": null,
+   "last_stdout": "",
+   "last_stderr": ""
+  },
+  {
+   "file": "control/owner-backbone/tests/universal-loop-proof.test.ts",
+   "status": "PASS",
+   "duration_s": 28.7,
+   "exit_code": 0,
+   "last_stdout": "",
+   "last_stderr": ""
+  },
+  {
+   "file": "control/owner-command/tests/command-ingress.test.ts",
+   "status": "PASS",
+   "duration_s": 39.0,
+   "exit_code": 0,
+   "last_stdout": "",
+   "last_stderr": ""
+  },
+  {
+   "file": "control/owner-command/tests/coordination-gate.test.ts",
+   "status": "PASS",
+   "duration_s": 1.2,
+   "exit_code": 0,
+   "last_stdout": "",
+   "last_stderr": ""
+  },
+  {
+   "file": "control/owner-command/tests/core-pipe-template-invariants.test.ts",
+   "status": "PASS",
+   "duration_s": 0.4,
+   "exit_code": 0,
+   "last_stdout": "",
+   "last_stderr": ""
+  },
+  {
+   "file": "control/owner-command/tests/input-gateway.test.ts",
+   "status": "PASS",
+   "duration_s": 5.4,
+   "exit_code": 0,
+   "last_stdout": "",
+   "last_stderr": ""
+  },
+  {
+   "file": "control/owner-command/tests/intent-contract.test.ts",
+   "status": "PASS",
+   "duration_s": 0.4,
+   "exit_code": 0,
+   "last_stdout": "",
+   "last_stderr": ""
+  },
+  {
+   "file": "control/owner-command/tests/owner-command.test.ts",
+   "status": "TIMEOUT",
+   "duration_s": 90.0,
+   "exit_code": null,
+   "last_stdout": "",
+   "last_stderr": ""
+  },
+  {
+   "file": "control/owner-command/tests/phase10-enforced-route.test.ts",
+   "status": "PASS",
+   "duration_s": 13.9,
+   "exit_code": 0,
+   "last_stdout": "",
+   "last_stderr": ""
+  },
+  {
+   "file": "control/permission-policy-resolution/tests/permission-policy-resolution.test.ts",
+   "status": "PASS",
+   "duration_s": 3.4,
+   "exit_code": 0,
+   "last_stdout": "",
+   "last_stderr": ""
+  },
+  {
+   "file": "control/post-commit-verification/tests/post-commit-verification.test.ts",
+   "status": "FAIL",
+   "duration_s": 17.4,
+   "exit_code": null,
+   "last_stdout": "",
+   "last_stderr": ""
+  },
+  {
+   "file": "control/registration-pipeline/tests/executable-admission.test.ts",
+   "status": "PASS",
+   "duration_s": 4.0,
+   "exit_code": 0,
+   "last_stdout": "",
+   "last_stderr": ""
+  },
+  {
+   "file": "control/registration-pipeline/tests/registration-pipeline.test.ts",
+   "status": "PASS",
+   "duration_s": 3.0,
+   "exit_code": 0,
+   "last_stdout": "",
+   "last_stderr": ""
+  },
+  {
+   "file": "control/registration-pipeline/tests/repository-resolution.test.ts",
+   "status": "PASS",
+   "duration_s": 0.7,
+   "exit_code": 0,
+   "last_stdout": "",
+   "last_stderr": ""
+  },
+  {
+   "file": "control/registration-update/tests/registration-update.test.ts",
+   "status": "PASS",
+   "duration_s": 0.5,
+   "exit_code": 0,
+   "last_stdout": "",
+   "last_stderr": ""
+  },
+  {
+   "file": "control/registration-update/tests/route-capability-binding.test.ts",
+   "status": "FAIL",
+   "duration_s": 0.4,
+   "exit_code": null,
+   "last_stdout": "",
+   "last_stderr": ""
+  },
+  {
+   "file": "control/repair-loop/tests/evidence-admissibility.test.ts",
+   "status": "PASS",
+   "duration_s": 1.8,
+   "exit_code": 0,
+   "last_stdout": "",
+   "last_stderr": ""
+  },
+  {
+   "file": "control/runtime-adapter/tests/pty-stream.test.ts",
+   "status": "PASS",
+   "duration_s": 6.4,
+   "exit_code": 0,
+   "last_stdout": "",
+   "last_stderr": ""
+  },
+  {
+   "file": "control/runtime-control/tests/call-site-propagation.test.ts",
+   "status": "PASS",
+   "duration_s": 0.3,
+   "exit_code": 0,
+   "last_stdout": "",
+   "last_stderr": ""
+  },
+  {
+   "file": "control/runtime-verification/tests/runtime-verification.test.ts",
+   "status": "PASS",
+   "duration_s": 0.3,
+   "exit_code": 0,
+   "last_stdout": "",
+   "last_stderr": ""
+  },
+  {
+   "file": "control/self-understanding-ingress/tests/ingress.test.ts",
+   "status": "PASS",
+   "duration_s": 0.3,
+   "exit_code": 0,
+   "last_stdout": "",
+   "last_stderr": ""
+  },
+  {
+   "file": "control/source-execution/tests/source-execution.test.ts",
+   "status": "PASS",
+   "duration_s": 8.7,
+   "exit_code": 0,
+   "last_stdout": "",
+   "last_stderr": ""
+  },
+  {
+   "file": "control/system-reference-resolution/tests/phase7-registration.test.ts",
+   "status": "PASS",
+   "duration_s": 0.5,
+   "exit_code": 0,
+   "last_stdout": "",
+   "last_stderr": ""
+  },
+  {
+   "file": "control/system-reference-resolution/tests/resolve-system-reference.test.ts",
+   "status": "PASS",
+   "duration_s": 0.7,
+   "exit_code": 0,
+   "last_stdout": "",
+   "last_stderr": ""
+  },
+  {
+   "file": "control/system-reference-resolution/tests/stale-reference-protection.test.ts",
+   "status": "PASS",
+   "duration_s": 0.4,
+   "exit_code": 0,
+   "last_stdout": "",
+   "last_stderr": ""
+  },
+  {
+   "file": "control/target-resolution/tests/target-resolution.test.ts",
+   "status": "PASS",
+   "duration_s": 0.8,
+   "exit_code": 0,
+   "last_stdout": "",
+   "last_stderr": ""
+  },
+  {
+   "file": "control/work-resolution/tests/runtime-proof.test.ts",
+   "status": "FAIL",
+   "exit_code": 1,
+   "duration_s": 9.1,
+   "last_stdout": "36 passed, 3 failed",
+   "last_stderr": "      {\"in\":0,\"out\":0}"
+  },
+  {
+   "file": "control/work-result-ingress/tests/continuation.test.ts",
+   "status": "PASS",
+   "exit_code": 0,
+   "duration_s": 2.1,
+   "last_stdout": "6 passed, 0 failed",
+   "last_stderr": ""
+  },
+  {
+   "file": "control/work-result-ingress/tests/work-result-ingress.test.ts",
+   "status": "PASS",
+   "exit_code": 0,
+   "duration_s": 2.2,
+   "last_stdout": "7 passed, 0 failed",
+   "last_stderr": ""
+  },
+  {
+   "file": "credentials/macos-keychain/tests/provider.test.ts",
+   "status": "PASS",
+   "exit_code": 0,
+   "duration_s": 0.5,
+   "last_stdout": "4 passed, 0 failed",
+   "last_stderr": ""
+  },
+  {
+   "file": "credentials/registry/tests/database-credential-ref-identity.test.ts",
+   "status": "PASS",
+   "exit_code": 0,
+   "duration_s": 0.4,
+   "last_stdout": "11 passed, 0 failed",
+   "last_stderr": ""
+  },
+  {
+   "file": "credentials/registry/tests/database-credential-registry.test.ts",
+   "status": "PASS",
+   "exit_code": 0,
+   "duration_s": 0.3,
+   "last_stdout": "8 passed, 0 failed",
+   "last_stderr": ""
+  },
+  {
+   "file": "credentials/registry/tests/fixture-separation.test.ts",
+   "status": "PASS",
+   "exit_code": 0,
+   "duration_s": 0.3,
+   "last_stdout": "11 passed, 0 failed",
+   "last_stderr": ""
+  },
+  {
+   "file": "dna-os-circuit/runtime/tests/circuit-state.test.ts",
+   "status": "PASS",
+   "exit_code": 0,
+   "duration_s": 0.4,
+   "last_stdout": "=== ALL circuit-state.test.ts CASES PASSED ===",
+   "last_stderr": ""
+  },
+  {
+   "file": "dna-os-circuit/runtime/tests/finding-decider.test.ts",
+   "status": "PASS",
+   "exit_code": 0,
+   "duration_s": 0.8,
+   "last_stdout": "=== ALL finding-decider.test.ts CASES PASSED ===",
+   "last_stderr": ""
+  },
+  {
+   "file": "dna-os-circuit/runtime/tests/finding-evaluator.test.ts",
+   "status": "FAIL",
+   "exit_code": 1,
+   "duration_s": 0.6,
+   "last_stdout": "PASS: evaluateFinding refuses to re-run on a non-DETECTED finding",
+   "last_stderr": "    at ModuleJob.run (node:internal/modules/esm/module_job:193:25)"
+  },
+  {
+   "file": "dna-os-circuit/runtime/tests/finding-receiver.test.ts",
+   "status": "PASS",
+   "exit_code": 0,
+   "duration_s": 0.3,
+   "last_stdout": "=== ALL finding-receiver.test.ts CASES PASSED ===",
+   "last_stderr": ""
+  },
+  {
+   "file": "dna-os-circuit/runtime/tests/server.test.ts",
+   "status": "PASS",
+   "exit_code": 0,
+   "duration_s": 1.3,
+   "last_stdout": "=== ALL server.test.ts CASES PASSED ===",
+   "last_stderr": ""
+  },
+  {
+   "file": "execution/deploy/tests/deploy.test.ts",
+   "status": "PASS",
+   "exit_code": 0,
+   "duration_s": 0.4,
+   "last_stdout": "5 passed, 0 failed",
+   "last_stderr": ""
+  },
+  {
+   "file": "execution/file-write/tests/bypass-detection.test.ts",
+   "status": "PASS",
+   "exit_code": 0,
+   "duration_s": 0.3,
+   "last_stdout": "=== bypass-detection.test.ts CASE PASSED (finding confirmed real) ===",
+   "last_stderr": ""
+  },
+  {
+   "file": "execution/file-write/tests/end-to-end.test.ts",
+   "status": "PASS",
+   "exit_code": 0,
+   "duration_s": 0.4,
+   "last_stdout": "=== ALL end-to-end.test.ts CASES PASSED — full chain is real, gated, and traceable ===",
+   "last_stderr": ""
+  },
+  {
+   "file": "execution/file-write/tests/executor.test.ts",
+   "status": "PASS",
+   "exit_code": 0,
+   "duration_s": 0.4,
+   "last_stdout": "=== ALL execution/file-write executor.test.ts CASES PASSED ===",
+   "last_stderr": ""
+  },
+  {
+   "file": "execution/file-write/tests/sandboxed-executor.test.ts",
+   "status": "PASS",
+   "exit_code": 0,
+   "duration_s": 0.5,
+   "last_stdout": "=== ALL execution/file-write sandboxed-executor.test.ts CASES PASSED ===",
+   "last_stderr": ""
+  },
+  {
+   "file": "execution/run/tests/policy-descriptor.test.ts",
+   "status": "PASS",
+   "exit_code": 0,
+   "duration_s": 0.3,
+   "last_stdout": "5 passed, 0 failed",
+   "last_stderr": ""
+  },
+  {
+   "file": "governance/connection-lock-guard/tests/guard.test.ts",
+   "status": "PASS",
+   "exit_code": 0,
+   "duration_s": 0.3,
+   "last_stdout": "3 passed, 0 failed",
+   "last_stderr": ""
+  },
+  {
+   "file": "governance/release-gate/tests/release-gate.test.ts",
+   "status": "PASS",
+   "exit_code": 0,
+   "duration_s": 1.2,
+   "last_stdout": "6 passed, 0 failed",
+   "last_stderr": ""
+  },
+  {
+   "file": "governance/source-validation/tests/boundary-checker-proof.test.ts",
+   "status": "PASS",
+   "exit_code": 0,
+   "duration_s": 0.6,
+   "last_stdout": "=== ALL boundary-checker-proof.test.ts CASES PASSED ===",
+   "last_stderr": ""
+  },
+  {
+   "file": "governance/source-validation/tests/folder-law-gate-proof.test.ts",
+   "status": "PASS",
+   "exit_code": 0,
+   "duration_s": 1.0,
+   "last_stdout": "GATE_RESULT=FAIL SUBJECTS=320 VIOLATIONS=249",
+   "last_stderr": ""
+  },
+  {
+   "file": "local-runtime/dna-dev-app-host/tests/dna-dev-app-host.test.ts",
+   "status": "FAIL",
+   "exit_code": 1,
+   "duration_s": 0.4,
+   "last_stdout": "10 passed, 4 failed",
+   "last_stderr": ""
+  },
+  {
+   "file": "observability/joint-monitor/tests/router-wiring-proof.test.ts",
+   "status": "PASS",
+   "exit_code": 0,
+   "duration_s": 2.5,
+   "last_stdout": "=== ALL router-wiring-proof.test.ts CASES PASSED ===",
+   "last_stderr": "\tgit config --global --add safe.directory /Users/tam/Desktop/DNA-OS-INFRASTRUCTURE"
+  },
+  {
+   "file": "permissions/execution-policy/tests/grants.test.ts",
+   "status": "PASS",
+   "exit_code": 0,
+   "duration_s": 0.4,
+   "last_stdout": "10 passed, 0 failed",
+   "last_stderr": ""
+  },
+  {
+   "file": "permissions/execution-policy/tests/policy.test.ts",
+   "status": "PASS",
+   "exit_code": 0,
+   "duration_s": 0.4,
+   "last_stdout": "22 passed, 0 failed",
+   "last_stderr": ""
+  },
+  {
+   "file": "permissions/network-auth-gate/tests/policy.test.ts",
+   "status": "PASS",
+   "exit_code": 0,
+   "duration_s": 0.4,
+   "last_stdout": "11 passed, 0 failed",
+   "last_stderr": ""
+  },
+  {
+   "file": "permissions/software-scope/tests/account-registry.test.ts",
+   "status": "PASS",
+   "exit_code": 0,
+   "duration_s": 0.4,
+   "last_stdout": "8 passed, 0 failed",
+   "last_stderr": ""
+  },
+  {
+   "file": "permissions/software-scope/tests/workspace-registry.test.ts",
+   "status": "PASS",
+   "exit_code": 0,
+   "duration_s": 0.4,
+   "last_stdout": "11 passed, 0 failed",
+   "last_stderr": ""
+  },
+  {
+   "file": "permissions/write-gate/tests/overlap-dedup-equivalence.test.ts",
+   "status": "PASS",
+   "exit_code": 0,
+   "duration_s": 0.6,
+   "last_stdout": "10 passed, 0 failed",
+   "last_stderr": ""
+  },
+  {
+   "file": "permissions/write-gate/tests/policy.test.ts",
+   "status": "PASS",
+   "exit_code": 0,
+   "duration_s": 0.4,
+   "last_stdout": "=== ALL write-gate policy.test.ts CASES PASSED ===",
+   "last_stderr": ""
+  },
+  {
+   "file": "providers/_shared/source-registry/tests/current-state.test.ts",
+   "status": "PASS",
+   "exit_code": 0,
+   "duration_s": 0.4,
+   "last_stdout": "ALL CHECKS PASSED",
+   "last_stderr": ""
+  },
+  {
+   "file": "software/capability-registrar/tests/index.test.ts",
+   "status": "PASS",
+   "exit_code": 0,
+   "duration_s": 0.4,
+   "last_stdout": "=== ALL index.test.ts CASES PASSED ===",
+   "last_stderr": ""
+  },
+  {
+   "file": "software/execution-profile/tests/phase1.test.ts",
+   "status": "PASS",
+   "exit_code": 0,
+   "duration_s": 0.8,
+   "last_stdout": "ALL PASSED",
+   "last_stderr": ""
+  },
+  {
+   "file": "software/execution-profile/tests/phase2.test.ts",
+   "status": "PASS",
+   "exit_code": 0,
+   "duration_s": 0.4,
+   "last_stdout": "ALL PASSED",
+   "last_stderr": ""
+  },
+  {
+   "file": "software/registry-database/tests/ai-ingress-registration.test.ts",
+   "status": "PASS",
+   "exit_code": 0,
+   "duration_s": 0.5,
+   "last_stdout": "8 passed, 0 failed",
+   "last_stderr": ""
+  },
+  {
+   "file": "software/registry-database/tests/canonical-resource-projection-persistence.test.ts",
+   "status": "PASS",
+   "exit_code": 0,
+   "duration_s": 0.5,
+   "last_stdout": "PASS canonical projection preservation, duplicate idempotency, and different projection kind",
+   "last_stderr": ""
+  },
+  {
+   "file": "software/registry-database/tests/canonical-resource-resolution.test.ts",
+   "status": "PASS",
+   "exit_code": 0,
+   "duration_s": 1.2,
+   "last_stdout": "14 passed, 0 failed",
+   "last_stderr": ""
+  },
+  {
+   "file": "software/registry-database/tests/cross-system-relationship-contract.test.ts",
+   "status": "PASS",
+   "exit_code": 0,
+   "duration_s": 0.4,
+   "last_stdout": "==== 26 passed, 0 failed ====",
+   "last_stderr": ""
+  },
+  {
+   "file": "software/registry-database/tests/cross-system-store.test.ts",
+   "status": "PASS",
+   "exit_code": 0,
+   "duration_s": 0.4,
+   "last_stdout": "ALL PASSED",
+   "last_stderr": ""
+  },
+  {
+   "file": "software/registry-database/tests/postgres-schema-contract.test.ts",
+   "status": "PASS",
+   "exit_code": 0,
+   "duration_s": 0.4,
+   "last_stdout": "PASS: Postgres adapter SQL references canonical software_registry contract",
+   "last_stderr": ""
+  },
+  {
+   "file": "software/registry-database/tests/registry-writer.test.ts",
+   "status": "PASS",
+   "exit_code": 0,
+   "duration_s": 0.5,
+   "last_stdout": "=== ALL registry-writer.test.ts CASES PASSED (TEST_CAPABILITY_ID=capability-fa514793-5f54-46eb-8d74-f2688e3948ab, TEST_RESOURCE_ID=resource-8068ff89-2",
+   "last_stderr": ""
+  },
+  {
+   "file": "software/repository-registry/tests/repository-census-and-bridge.test.ts",
+   "status": "FAIL",
+   "exit_code": 1,
+   "duration_s": 0.4,
+   "last_stdout": "14 passed, 2 failed",
+   "last_stderr": ""
+  },
+  {
+   "file": "software/repository-registry/tests/repository-registry.test.ts",
+   "status": "FAIL",
+   "exit_code": 1,
+   "duration_s": 0.4,
+   "last_stdout": "2 passed, 3 failed",
+   "last_stderr": "FAIL E. suspend transitions status, restart-safe (read back fresh from a new store instance): setup discovery failed"
+  }
+ ],
+ "not_run": [
+  {
+   "file": "connections/email-alert-source/tests/end-to-end.test.ts",
+   "status": "NOT_RUN_UNSAFE",
+   "reason": "เครือข่าย"
+  },
+  {
+   "file": "connections/research-engine/tests/adapter.test.ts",
+   "status": "NOT_RUN_UNSAFE",
+   "reason": "เครือข่าย"
+  },
+  {
+   "file": "control/system-reference-resolution/tests/direct-action-proof.test.ts",
+   "status": "NOT_RUN_UNSAFE",
+   "reason": "เครือข่าย"
+  },
+  {
+   "file": "observability/joint-monitor/tests/authenticated-report-proof.test.ts",
+   "status": "NOT_RUN_UNSAFE",
+   "reason": "เครือข่าย"
+  },
+  {
+   "file": "observability/joint-monitor/tests/event-order-proof.test.ts",
+   "status": "NOT_RUN_UNSAFE",
+   "reason": "เครือข่าย"
+  },
+  {
+   "file": "observability/joint-monitor/tests/joint-broadcast-proof.test.ts",
+   "status": "NOT_RUN_UNSAFE",
+   "reason": "เครือข่าย"
+  },
+  {
+   "file": "providers/_shared/source-registry/tests/contract-diff.test.ts",
+   "status": "NOT_RUN_UNSAFE",
+   "reason": "เครือข่าย"
+  },
+  {
+   "file": "transport/owner-command-http/tests/auth-gate.test.ts",
+   "status": "NOT_RUN_UNSAFE",
+   "reason": "เครือข่าย"
+  },
+  {
+   "file": "transport/owner-command-http/tests/wiring.test.ts",
+   "status": "NOT_RUN_UNSAFE",
+   "reason": "เครือข่าย"
+  },
+  {
+   "file": "connections/os-ui/tests/voice-alert-worker.test.ts",
+   "status": "NOT_RUN_UNSAFE",
+   "reason": "รันโปรเซส"
+  },
+  {
+   "file": "control/agent-gateway/tests/candidate-verification-runtime.test.ts",
+   "status": "NOT_RUN_UNSAFE",
+   "reason": "รันโปรเซส"
+  },
+  {
+   "file": "control/agent-host/tests/proof.test.ts",
+   "status": "NOT_RUN_UNSAFE",
+   "reason": "รันโปรเซส"
+  },
+  {
+   "file": "control/agent-host/tests/real-agent-launch.test.ts",
+   "status": "NOT_RUN_UNSAFE",
+   "reason": "รันโปรเซส"
+  },
+  {
+   "file": "control/agent-host/tests/sbpl-injection-regression.test.ts",
+   "status": "NOT_RUN_UNSAFE",
+   "reason": "รันโปรเซส"
+  },
+  {
+   "file": "control/agent-production-ingress/tests/agent-production-ingress.test.ts",
+   "status": "NOT_RUN_UNSAFE",
+   "reason": "รันโปรเซส"
+  },
+  {
+   "file": "control/claude-execution-boundary/tests/boundary.test.ts",
+   "status": "NOT_RUN_UNSAFE",
+   "reason": "รันโปรเซส"
+  },
+  {
+   "file": "control/claude-execution-boundary/tests/isolation.test.ts",
+   "status": "NOT_RUN_UNSAFE",
+   "reason": "รันโปรเซส"
+  },
+  {
+   "file": "control/command-router/tests/router.test.ts",
+   "status": "NOT_RUN_UNSAFE",
+   "reason": "รันโปรเซส"
+  },
+  {
+   "file": "control/duplicate-reservation/tests/duplicate-reservation.test.ts",
+   "status": "NOT_RUN_UNSAFE",
+   "reason": "รันโปรเซส"
+  },
+  {
+   "file": "control/machine-observation/tests/machine-observation-proof.test.ts",
+   "status": "NOT_RUN_UNSAFE",
+   "reason": "รันโปรเซส"
+  },
+  {
+   "file": "control/runtime-adapter/tests/full-chain-adversarial.test.ts",
+   "status": "NOT_RUN_UNSAFE",
+   "reason": "รันโปรเซส"
+  },
+  {
+   "file": "control/source-workspace/tests/source-workspace.test.ts",
+   "status": "NOT_RUN_UNSAFE",
+   "reason": "รันโปรเซส"
+  },
+  {
+   "file": "control/work-resolution/tests/os-enforcement-proof.test.ts",
+   "status": "NOT_RUN_UNSAFE",
+   "reason": "รันโปรเซส"
+  },
+  {
+   "file": "control/work-resolution/tests/restart-resume-proof.test.ts",
+   "status": "NOT_RUN_UNSAFE",
+   "reason": "รันโปรเซส"
+  },
+  {
+   "file": "control/work-result-ingress/tests/canonical-flow-trace.test.ts",
+   "status": "NOT_RUN_UNSAFE",
+   "reason": "รันโปรเซส"
+  },
+  {
+   "file": "execution/process-lock/tests/process-lock.test.ts",
+   "status": "NOT_RUN_UNSAFE",
+   "reason": "รันโปรเซส"
+  },
+  {
+   "file": "execution/run/tests/executor.test.ts",
+   "status": "NOT_RUN_UNSAFE",
+   "reason": "รันโปรเซส"
+  },
+  {
+   "file": "execution/run/tests/policy-integration.test.ts",
+   "status": "NOT_RUN_UNSAFE",
+   "reason": "รันโปรเซส"
+  },
+  {
+   "file": "execution/run/tests/result.test.ts",
+   "status": "NOT_RUN_UNSAFE",
+   "reason": "รันโปรเซส"
+  },
+  {
+   "file": "connections/os-ui/tests/work-order.test.ts",
+   "status": "NOT_RUN_UNSAFE",
+   "reason": "รันโปรเซส, ควบคุมเครื่อง"
+  },
+  {
+   "file": "control/agent-host/tests/live-agent-execution-path.test.ts",
+   "status": "NOT_RUN_UNSAFE",
+   "reason": "รันโปรเซส, ควบคุมเครื่อง"
+  },
+  {
+   "file": "execution/run/tests/process-boundary-scan.test.ts",
+   "status": "NOT_RUN_UNSAFE",
+   "reason": "รันโปรเซส, ควบคุมเครื่อง"
+  },
+  {
+   "file": "connections/voice-command/tests/voice-command.test.ts",
+   "status": "NOT_RUN_UNSAFE",
+   "reason": "ควบคุมเครื่อง"
+  },
+  {
+   "file": "control/runtime-control/tests/boot-evidence-parity.test.ts",
+   "status": "NOT_RUN_UNSAFE",
+   "reason": "ควบคุมเครื่อง"
+  },
+  {
+   "file": "control/runtime-control/tests/requester-provenance.test.ts",
+   "status": "NOT_RUN_UNSAFE",
+   "reason": "ควบคุมเครื่อง"
+  },
+  {
+   "file": "control/runtime-control/tests/runtime-control.test.ts",
+   "status": "NOT_RUN_UNSAFE",
+   "reason": "ควบคุมเครื่อง"
+  },
+  {
+   "file": "control/admission/tests/admission.test.ts",
+   "status": "NOT_RUN_UNSAFE",
+   "reason": "เครือข่าย, รันโปรเซส"
+  },
+  {
+   "file": "control/owner-backbone/tests/production-loop-proof.test.ts",
+   "status": "NOT_RUN_UNSAFE",
+   "reason": "เครือข่าย, รันโปรเซส"
+  },
+  {
+   "file": "control/runtime-adapter/tests/adversarial-seatbelt.test.ts",
+   "status": "NOT_RUN_UNSAFE",
+   "reason": "เครือข่าย, รันโปรเซส"
+  },
+  {
+   "file": "control/ui-render-verification/tests/browser-deadline.test.ts",
+   "status": "NOT_RUN_UNSAFE",
+   "reason": "เครือข่าย, รันโปรเซส"
+  },
+  {
+   "file": "control/machine-model/tests/machine-model.test.ts",
+   "status": "NOT_RUN_UNSAFE",
+   "reason": "เครือข่าย, รันโปรเซส, ควบคุมเครื่อง"
+  },
+  {
+   "file": "control/owner-backbone/tests/zero-touch-proof.test.ts",
+   "status": "NOT_RUN_UNSAFE",
+   "reason": "เครือข่าย, รันโปรเซส, ควบคุมเครื่อง"
+  }
+ ],
+ "note": "ไฟล์ที่มีสัญญาณเครือข่าย/รันโปรเซส/ควบคุมเครื่อง ถูกกันไว้ไม่รัน เพราะอาจมีผลข้างเคียงนอกขอบเขตการตรวจ"
+}
