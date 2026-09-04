@@ -26,6 +26,7 @@ import { readFileSync, readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { latestProfiles, resolveAccountingRequirement } from "../../software/execution-profile/contract";
 import { resolveResources } from "../../software/execution-profile/shadow-resolver";
+import { listCapabilities as listRoutableCapabilities } from "../command-router/capability-registry";
 import { iconForAction, presentationFor } from "./presentation";
 import { savePlan } from "./store";
 import type { CapabilityPlanEntry, PlanStep, PreExecutionPlan, ActionKind } from "./types";
@@ -94,14 +95,48 @@ class PlanWriter {
  * ไม่ใช่การเดาจากคำ: ผู้เข้าชิงทุกตัวคือ canonical_name ที่ลงทะเบียนไว้แล้ว
  * ถ้าไม่มีตัวไหนถูกเอ่ยถึงเลย ก็ตอบว่าไม่ทราบ ไม่ใช่เลือกตัวที่ใกล้ที่สุด
  */
+/**
+ * ระบุระบบที่คำสั่งพูดถึง
+ *
+ * เดิมเทียบเฉพาะ canonical_name ซึ่งเป็นภาษาอังกฤษล้วนทั้ง 124 ตัว คำสั่งที่
+ * เจ้าของพิมพ์เป็นภาษาไทยจึงไม่มีทางตรงเลยแม้แต่คำเดียว — SUBJECT_RESOLUTION
+ * จึง BLOCKED ทุกครั้งที่เจ้าของสั่งงานด้วยภาษาของตัวเอง
+ *
+ * ตอนนี้ใช้ match_keyword_sets ที่ command-router ประกาศไว้อยู่แล้วเป็นทางหลัก
+ * — เป็นกลไกเดิมที่ออกแบบมาเพื่อการนี้ ไม่ได้สร้างการจับคู่ชุดใหม่ และไม่มี
+ * การเดาความหมาย: capability ที่ไม่ประกาศคำไว้ ก็ยังจับคู่ไม่ได้ตามเดิม
+ *
+ * ทะเบียนถูกอ่านแบบแถวล่าสุดชนะ และนับเฉพาะที่ยัง REGISTERED — รายการที่ถูก
+ * ถอนทะเบียน (RETIRED) ต้องไม่ถูกเสนอเป็นประธานของงาน
+ */
 function resolveSubject(text: string): { subject: string | null; matched: string[] } {
   const lower = text.toLocaleLowerCase();
-  const names = new Set<string>();
-  for (const row of readJsonl<{ canonical_name?: string; status?: string }>(`${CANON}/capabilities.jsonl`)) {
-    if (typeof row.canonical_name === "string" && row.canonical_name.length > 3) names.add(row.canonical_name);
+  const matched: string[] = [];
+
+  // 1. คำที่ capability ประกาศไว้เองว่ารับเรื่องอะไร — ชุดหนึ่งตรงต่อเมื่อ "ทุกคำ" ในชุดปรากฏ
+  for (const cap of listRoutableCapabilities()) {
+    for (const set of cap.match_keyword_sets) {
+      if (set.length > 0 && set.every((k) => lower.includes(k.toLocaleLowerCase()))) {
+        if (!matched.includes(cap.capability_id)) matched.push(cap.capability_id);
+        break;
+      }
+    }
   }
-  const matched = [...names].filter((n) => lower.includes(n.toLocaleLowerCase()));
-  matched.sort((a, b) => b.length - a.length);
+
+  // 2. ชื่อ canonical ที่ถูกเอ่ยตรง ๆ — ยังใช้ได้สำหรับคำสั่งภาษาอังกฤษ
+  const latest = new Map<string, { canonical_name?: string; status?: string }>();
+  for (const row of readJsonl<{ capability_id?: string; canonical_name?: string; status?: string }>(`${CANON}/capabilities.jsonl`)) {
+    if (typeof row.capability_id === "string") latest.set(row.capability_id, row);
+  }
+  const names: string[] = [];
+  for (const row of latest.values()) {
+    if (row.status !== "REGISTERED") continue;
+    if (typeof row.canonical_name === "string" && row.canonical_name.length > 3) names.push(row.canonical_name);
+  }
+  for (const n of names.filter((n) => lower.includes(n.toLocaleLowerCase())).sort((a, b) => b.length - a.length)) {
+    if (!matched.includes(n)) matched.push(n);
+  }
+
   return { subject: matched[0] ?? null, matched };
 }
 
