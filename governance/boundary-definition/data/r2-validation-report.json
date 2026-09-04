@@ -1,0 +1,126 @@
+{
+  "run": "R2-BOUNDARY-DEFINITION",
+  "registry_snapshot": {
+    "capabilities": 163,
+    "resources": 706,
+    "links": 170
+  },
+  "in_scope": 163,
+  "boundaries_complete": 0,
+  "boundaries_partial": 163,
+  "boundaries_unresolved": 0,
+  "dimension_complete": {
+    "execution": 0,
+    "input": 0,
+    "output": 0,
+    "data": 0,
+    "authority": 0,
+    "resources": 0,
+    "external_access": 0,
+    "verification": 0
+  },
+  "gates": [
+    {
+      "id": "A",
+      "name": "ทุกรายการมีขอบเขตชัดเจน",
+      "pass": false,
+      "detail": "COMPLETE 0/163"
+    },
+    {
+      "id": "B",
+      "name": "ทุกปฏิบัติการมีสัญญาขาเข้า",
+      "pass": false,
+      "detail": "0/163"
+    },
+    {
+      "id": "C",
+      "name": "ทุกปฏิบัติการมีสัญญาขาออกและข้อผิดพลาด",
+      "pass": false,
+      "detail": "0/163"
+    },
+    {
+      "id": "D",
+      "name": "สิทธิ์อ่าน/เขียน/รัน ระบุชัด",
+      "pass": false,
+      "detail": "0/163"
+    },
+    {
+      "id": "E",
+      "name": "ขอบเขตผลข้างเคียงระบุชัด",
+      "pass": false,
+      "detail": "90/163"
+    },
+    {
+      "id": "F",
+      "name": "ขอบเขตการเข้าถึงภายนอกระบุชัด",
+      "pass": false,
+      "detail": "0/163"
+    },
+    {
+      "id": "G",
+      "name": "ผู้เป็นเจ้าของการรันระบุชัด",
+      "pass": true,
+      "detail": "163/163"
+    },
+    {
+      "id": "H",
+      "name": "เส้นทางหลักฐาน/การพิสูจน์ระบุชัด",
+      "pass": false,
+      "detail": "0/163"
+    },
+    {
+      "id": "I",
+      "name": "ไม่มี canonical id ซ้ำ",
+      "pass": true,
+      "detail": "ซ้ำ 0"
+    },
+    {
+      "id": "J",
+      "name": "ไม่มีการฝังชื่อผู้ให้บริการ/โมเดล",
+      "pass": false,
+      "detail": "พบ 7"
+    },
+    {
+      "id": "K",
+      "name": "UNKNOWN ไม่ถูกแปลงเป็นข้อเท็จจริง",
+      "pass": true,
+      "detail": "รั่ว 0"
+    },
+    {
+      "id": "L",
+      "name": "อ่านได้ด้วยเครื่อง",
+      "pass": true,
+      "detail": "JSONL หนึ่งระเบียนต่อบรรทัด"
+    },
+    {
+      "id": "M",
+      "name": "บังคับใช้ได้ด้วยเครื่อง",
+      "pass": false,
+      "detail": "บังคับใช้ได้เฉพาะระเบียนที่ไม่มีฟิลด์ UNRESOLVED"
+    },
+    {
+      "id": "N",
+      "name": "ตรวจซ้ำได้ผลเดิม",
+      "pass": true,
+      "detail": "อ่านจาก registry อย่างเดียว ไม่มีเวลา/สุ่ม"
+    },
+    {
+      "id": "O",
+      "name": "หลักฐานอ่านกลับได้",
+      "pass": true,
+      "detail": "เขียนแล้วอ่านกลับตรวจในขั้นถัดไป"
+    }
+  ],
+  "gate_result": "BLOCKED",
+  "blocked_gates": [
+    "A",
+    "B",
+    "C",
+    "D",
+    "E",
+    "F",
+    "H",
+    "J",
+    "M"
+  ]
+}
