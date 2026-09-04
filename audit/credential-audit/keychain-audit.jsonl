@@ -1817,3 +1817,11 @@
 {"recorded_at":"2026-09-04T15:03:08.427Z","operation":"resolve","service":"dna-os-supabase-edge","account":"PROVIDER_ALERT_EMAIL_READ_SECRET","kind":"api_key","outcome":"RESOLVED","prompt":"OS_NATIVE_ONLY"}
 {"recorded_at":"2026-09-04T15:13:38.315Z","operation":"resolve","service":"dna-os-supabase-edge","account":"PROVIDER_ALERT_EMAIL_READ_SECRET","kind":"api_key","outcome":"RESOLVED","prompt":"OS_NATIVE_ONLY"}
 {"recorded_at":"2026-09-04T15:13:39.840Z","operation":"resolve","service":"dna-os-supabase-edge","account":"PROVIDER_ALERT_EMAIL_READ_SECRET","kind":"api_key","outcome":"RESOLVED","prompt":"OS_NATIVE_ONLY"}
+{"recorded_at":"2026-09-04T15:24:07.324Z","operation":"resolve","service":"dna-os-supabase-edge","account":"PROVIDER_ALERT_EMAIL_READ_SECRET","kind":"api_key","outcome":"RESOLVED","prompt":"OS_NATIVE_ONLY"}
+{"recorded_at":"2026-09-04T15:24:09.084Z","operation":"resolve","service":"dna-os-supabase-edge","account":"PROVIDER_ALERT_EMAIL_READ_SECRET","kind":"api_key","outcome":"RESOLVED","prompt":"OS_NATIVE_ONLY"}
+{"recorded_at":"2026-09-04T15:34:36.789Z","operation":"resolve","service":"dna-os-supabase-edge","account":"PROVIDER_ALERT_EMAIL_READ_SECRET","kind":"api_key","outcome":"RESOLVED","prompt":"OS_NATIVE_ONLY"}
+{"recorded_at":"2026-09-04T15:34:38.254Z","operation":"resolve","service":"dna-os-supabase-edge","account":"PROVIDER_ALERT_EMAIL_READ_SECRET","kind":"api_key","outcome":"RESOLVED","prompt":"OS_NATIVE_ONLY"}
+{"recorded_at":"2026-09-04T15:45:07.477Z","operation":"resolve","service":"dna-os-supabase-edge","account":"PROVIDER_ALERT_EMAIL_READ_SECRET","kind":"api_key","outcome":"RESOLVED","prompt":"OS_NATIVE_ONLY"}
+{"recorded_at":"2026-09-04T15:45:08.969Z","operation":"resolve","service":"dna-os-supabase-edge","account":"PROVIDER_ALERT_EMAIL_READ_SECRET","kind":"api_key","outcome":"RESOLVED","prompt":"OS_NATIVE_ONLY"}
+{"recorded_at":"2026-09-04T15:55:37.285Z","operation":"resolve","service":"dna-os-supabase-edge","account":"PROVIDER_ALERT_EMAIL_READ_SECRET","kind":"api_key","outcome":"RESOLVED","prompt":"OS_NATIVE_ONLY"}
+{"recorded_at":"2026-09-04T15:55:38.782Z","operation":"resolve","service":"dna-os-supabase-edge","account":"PROVIDER_ALERT_EMAIL_READ_SECRET","kind":"api_key","outcome":"RESOLVED","prompt":"OS_NATIVE_ONLY"}

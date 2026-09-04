@@ -41,6 +41,8 @@ import { recordWriteAudit } from "./audit";
 import type { FileWriteRefusalCode, FileWriteRequest, FileWriteResult } from "./types";
 import type { WriteGateDecision } from "../../contracts/write-intent/write-intent";
 import { checkFolderLawForPath } from "../../governance/source-validation/contract";
+import { classifyChange } from "../../governance/source-promotion/classify";
+import { findUsableReceipt, consumeReceipt } from "../../governance/source-promotion/receipt";
 
 function refuse(request: FileWriteRequest, writeId: string, code: FileWriteRefusalCode, gateDecisionValue: string): FileWriteResult {
   const result: FileWriteResult = {
@@ -114,6 +116,32 @@ export function executeFileWrite(request: FileWriteRequest, decision: WriteGateD
   }
   if (request.content === null || request.content === undefined) {
     return refuse(request, writeId, "MISSING_CONTENT", decision.decision);
+  }
+
+  /**
+   * ── ด่านที่สาม: การเลื่อนขั้น + ด่านทดสอบ
+   *
+   * บังคับเฉพาะเป้าหมายที่อยู่ในขอบเขตที่ถูกป้องกัน งานพัฒนาทั่วไปไม่ถูกกระทบ
+   * เพราะกฎหมายไม่ได้ห้ามพัฒนา มันห้ามแก้แกนหลักโดยไม่ผ่านการอนุมัติ
+   *
+   * ใบรับรองผูกกับแฮชของเนื้อหาที่จะเขียนจริง เปลี่ยนเนื้อหาแม้ไบต์เดียว
+   * ใบเดิมใช้ไม่ได้ และใบหนึ่งใช้ได้ครั้งเดียว
+   */
+  const classified = classifyChange({
+    change_id: "runtime-write-check", created_at: new Date().toISOString(),
+    producer_identity: request.requesting_identity_id, baseline_commit: "0".repeat(40),
+    target_files: [{ repo_relative_path: request.target_path,
+      operation: request.operation === "CREATE" ? "ADD_FILE" : "REPLACE_FILE",
+      expected_old_sha256: request.operation === "CREATE" ? null : "0".repeat(64),
+      proposed_new_sha256: "0".repeat(64), payload_path: "" }],
+    test_evidence: [], verification_plan: [],
+  });
+  if (classified.classification === "PROTECTED_MACHINE_CHANGE") {
+    const receipt = findUsableReceipt(request.target_path, request.content);
+    if (receipt.ok === false) {
+      return refuse(request, writeId, "PROMOTION_RECEIPT_REQUIRED", decision.decision);
+    }
+    consumeReceipt(receipt.receipt.receipt_id);
   }
 
   const resolvedPath = joinPath(repoRootDirname(), request.target_path);
