@@ -42,6 +42,7 @@ export type FileWriteRefusalCode =
   | "UNSUPPORTED_TARGET_TYPE"
   | "UNSUPPORTED_OPERATION"
   | "MISSING_CONTENT"
+  | "CAPABILITY_FOLDER_LAW_REJECTED"
   | "FS_ERROR";
 
 export interface FileWriteResult {

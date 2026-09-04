@@ -40,6 +40,7 @@ import { dirnamePath, ensureDirReal, fileExistsReal, joinPath, newWriteId, nowIs
 import { recordWriteAudit } from "./audit";
 import type { FileWriteRefusalCode, FileWriteRequest, FileWriteResult } from "./types";
 import type { WriteGateDecision } from "../../contracts/write-intent/write-intent";
+import { checkFolderLawForPath } from "../../governance/source-validation/contract";
 
 function refuse(request: FileWriteRequest, writeId: string, code: FileWriteRefusalCode, gateDecisionValue: string): FileWriteResult {
   const result: FileWriteResult = {
@@ -97,6 +98,16 @@ export function executeFileWrite(request: FileWriteRequest, decision: WriteGateD
 
   if (request.target_type !== "FILE") {
     return refuse(request, writeId, "UNSUPPORTED_TARGET_TYPE", decision.decision);
+  }
+
+  // ── CAPABILITY_FOLDER_LAW — ด่านที่สอง หลังจาก Write Gate อนุญาตแล้ว
+  // Write Gate ตอบว่า "ใครเป็นเจ้าของ path นี้" ส่วนกฎหมายโฟลเดอร์ตอบว่า
+  // "ไฟล์นี้ถูกวางในที่ที่ถูกต้องหรือไม่" — คนละคำถาม จึงต้องผ่านทั้งสองด่าน
+  // ประเมินเฉพาะไฟล์ที่กำลังจะเขียน ไม่ใช่สภาพรวมของ repo (เหตุผลอยู่ใน
+  // governance/source-validation/folder-law-path-check.ts)
+  const folderLaw = checkFolderLawForPath(request.target_path);
+  if (folderLaw.verdict === "REJECT") {
+    return refuse(request, writeId, "CAPABILITY_FOLDER_LAW_REJECTED", decision.decision);
   }
   if (request.operation !== "CREATE" && request.operation !== "MODIFY") {
     return refuse(request, writeId, "UNSUPPORTED_OPERATION", decision.decision);
