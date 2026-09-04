@@ -5,9 +5,11 @@
     "resources": 731,
     "links": 170
   },
-  "in_scope": 163,
+  "registered_before": 163,
+  "deregistered_by_owner_order": 39,
+  "in_scope": 124,
   "boundaries_complete": 0,
-  "boundaries_partial": 163,
+  "boundaries_partial": 124,
   "boundaries_unresolved": 0,
   "dimension_complete": {
     "execution": 54,
@@ -15,7 +17,7 @@
     "output": 3,
     "data": 3,
     "authority": 1,
-    "resources": 163,
+    "resources": 124,
     "external_access": 5,
     "verification": 98
   },
@@ -24,49 +26,49 @@
       "id": "A",
       "name": "ทุกรายการมีขอบเขตชัดเจน",
       "pass": false,
-      "detail": "COMPLETE 0/163"
+      "detail": "COMPLETE 0/124"
     },
     {
       "id": "B",
       "name": "ทุกปฏิบัติการมีสัญญาขาเข้า",
       "pass": false,
-      "detail": "5/163"
+      "detail": "5/124"
     },
     {
       "id": "C",
       "name": "ทุกปฏิบัติการมีสัญญาขาออกและข้อผิดพลาด",
       "pass": false,
-      "detail": "3/163"
+      "detail": "3/124"
     },
     {
       "id": "D",
       "name": "สิทธิ์อ่าน/เขียน/รัน ระบุชัด",
       "pass": false,
-      "detail": "1/163"
+      "detail": "1/124"
     },
     {
       "id": "E",
       "name": "ขอบเขตผลข้างเคียงระบุชัด",
       "pass": false,
-      "detail": "90/163"
+      "detail": "54/124"
     },
     {
       "id": "F",
       "name": "ขอบเขตการเข้าถึงภายนอกระบุชัด",
       "pass": false,
-      "detail": "5/163"
+      "detail": "5/124"
     },
     {
       "id": "G",
       "name": "ผู้เป็นเจ้าของการรันระบุชัด",
       "pass": true,
-      "detail": "163/163"
+      "detail": "124/124"
     },
     {
       "id": "H",
       "name": "เส้นทางหลักฐาน/การพิสูจน์ระบุชัด",
       "pass": false,
-      "detail": "98/163"
+      "detail": "98/124"
     },
     {
       "id": "I",
@@ -78,7 +80,7 @@
       "id": "J",
       "name": "ไม่มีการฝังชื่อผู้ให้บริการ/โมเดล",
       "pass": false,
-      "detail": "พบ 7"
+      "detail": "พบ 6"
     },
     {
       "id": "K",

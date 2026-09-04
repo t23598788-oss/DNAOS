@@ -20,6 +20,32 @@ const CITE = `${POLICY} — อนุมัติโดย Owner 2026-09-04`;
 
 export type Tier = "CRITICAL" | "HIGH" | "MEDIUM" | "LOW" | "UNVERIFIABLE";
 
+const DEREG = "governance/boundary-definition/data/deregistration-order.jsonl";
+const READONLY = "governance/boundary-definition/data/unverified-readonly.jsonl";
+
+function idsIn(path: string): Set<string> {
+  const s = new Set<string>();
+  if (!existsSync(path)) return s;
+  for (const line of readFileSync(path, "utf8").split("\n")) {
+    const t = line.trim();
+    if (!t) continue;
+    try { s.add((JSON.parse(t) as { canonical_id: string }).canonical_id); } catch { /* ข้ามบรรทัดเสีย */ }
+  }
+  return s;
+}
+let deregSet: Set<string> | null = null;
+let roSet: Set<string> | null = null;
+/** สั่งถอนทะเบียนแล้ว — ห้ามรัน ห้ามโหลด ห้ามนับเป็นของที่ใช้งานได้ */
+export function isDeregistered(id: string): boolean {
+  deregSet ??= idsIn(DEREG);
+  return deregSet.has(id);
+}
+/** มีซอร์สจริงแต่ไม่มีชุดทดสอบ — อ่านได้ เขียนไม่ได้ จนกว่าจะมีเทสต์ */
+export function isUnverifiedReadonly(id: string): boolean {
+  roSet ??= idsIn(READONLY);
+  return roSet.has(id);
+}
+
 let tiers: Map<string, Tier> | null = null;
 function loadTiers(): Map<string, Tier> {
   if (tiers !== null) return tiers;
@@ -69,11 +95,16 @@ export function policyFor(capabilityId: string): PolicyFields | null {
   if (t === null) return null;
   const why = `${CITE} · tier=${t} (วัดจากพฤติกรรมในซอร์ส)`;
 
+  const dereg = isDeregistered(capabilityId);
+  const ro = isUnverifiedReadonly(capabilityId);
+
   const may_request =
-    t === "UNVERIFIABLE" ? [] :
+    dereg || t === "UNVERIFIABLE" ? [] :
     t === "CRITICAL" ? ["owner-only"] : ["dna-os-control-plane"];
 
   const approval =
+    dereg ? "DEREGISTERED_MUST_NOT_LOAD_OR_EXECUTE" :
+    ro ? "UNVERIFIED_READONLY_NO_WRITE_AUTHORITY" :
     t === "UNVERIFIABLE" ? "BLOCKED_UNTIL_SOURCE_RESOLVABLE" :
     t === "CRITICAL" ? "REQUIRED_OWNER_APPROVAL_PER_INVOCATION" :
     t === "HIGH" ? "REQUIRED_OWNER_APPROVAL" :
@@ -82,6 +113,7 @@ export function policyFor(capabilityId: string): PolicyFields | null {
 
   const concurrency = t === "CRITICAL" ? "SINGLE_FLIGHT_GLOBAL_LOCK" : "SINGLE_FLIGHT";
   const persistence =
+    dereg || ro ? "NO_WRITE_AUTHORITY" :
     t === "CRITICAL" ? "APPEND_ONLY_EVIDENCE_ONLY" : "NO_PERSISTENCE_BEYOND_OWN_CAPABILITY_FOLDER";
 
   return {

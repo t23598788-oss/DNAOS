@@ -8,6 +8,7 @@ import { writeFileSync, readFileSync } from "node:fs";
 import { createHash } from "node:crypto";
 import { loadRegistry, deriveBoundary } from "./derive";
 import { UNRESOLVED } from "./schema";
+import { isDeregistered } from "./approved-policy";
 import type { BoundaryRecord, BoundaryVerdict } from "./schema";
 
 const OUT = "governance/boundary-definition/data";
@@ -16,7 +17,10 @@ interface GateCheck { readonly id: string; readonly name: string; readonly pass:
 
 function main(): void {
   const snap = loadRegistry();
-  const inScope = snap.capabilities.filter((c) => c.status === "REGISTERED");
+  // ตัวที่ Owner สั่งถอนทะเบียน ไม่นับอยู่ในขอบเขตอีกต่อไป
+  const registered = snap.capabilities.filter((c) => c.status === "REGISTERED");
+  const deregistered = registered.filter((c) => isDeregistered(c.capability_id));
+  const inScope = registered.filter((c) => !isDeregistered(c.capability_id));
 
   const records: BoundaryRecord[] = [];
   const verdicts: BoundaryVerdict[] = [];
@@ -86,6 +90,8 @@ function main(): void {
     registry_snapshot: {
       capabilities: snap.capabilities.length, resources: snap.resources.length, links: snap.links.length,
     },
+    registered_before: registered.length,
+    deregistered_by_owner_order: deregistered.length,
     in_scope: records.length,
     boundaries_complete: count("COMPLETE"), boundaries_partial: count("PARTIAL"), boundaries_unresolved: count("UNRESOLVED"),
     dimension_complete: {
@@ -99,7 +105,8 @@ function main(): void {
   writeFileSync(`${OUT}/r2-validation-report.json`, JSON.stringify(report, null, 2));
 
   for (const g of gates) console.log(`  ${g.pass ? "PASS" : "FAIL"}  ${g.id}  ${g.name}  (${g.detail})`);
-  console.log(`\n  ระเบียน ${records.length} · COMPLETE ${count("COMPLETE")} · PARTIAL ${count("PARTIAL")} · UNRESOLVED ${count("UNRESOLVED")}`);
+  console.log(`\n  ลงทะเบียนเดิม ${registered.length} · ถอนตามคำสั่ง ${deregistered.length} · เหลือในขอบเขต ${records.length}`);
+  console.log(`  ระเบียน ${records.length} · COMPLETE ${count("COMPLETE")} · PARTIAL ${count("PARTIAL")} · UNRESOLVED ${count("UNRESOLVED")}`);
   console.log(`  GATE = ${report.gate_result}`);
   const h = createHash("sha256").update(readFileSync(`${OUT}/boundaries.jsonl`)).digest("hex");
   console.log(`  boundaries.jsonl sha256 = ${h}`);
