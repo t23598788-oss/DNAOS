@@ -126,8 +126,35 @@ export function composeWriteOwnershipIndex(): ComposedIndex {
   // Included unchanged so today's twelve decisions are preserved exactly.
   // Its own unresolved-folder rows are excluded by the same rule
   // `searchOverlap` already applies to them.
+  /**
+   * SHARED_PUBLIC_CONTRACT — กฎข้อ 9 บังคับให้ capability เรียกกันผ่าน public
+   * contract เท่านั้น เมื่อหลาย routable entry ชี้ไป contract เดียวกัน นั่นคือ
+   * การ *ทำตาม* กฎ ไม่ใช่หลักฐานว่าทุกตัวเป็นเจ้าของโฟลเดอร์นั้น
+   *
+   * OWNER_FOLDER ของ projection นี้มาจาก dirnameOf(cap.contract) ซึ่งตอบได้แค่
+   * "ฉันเรียกผ่าน contract ที่อยู่ในโฟลเดอร์ไหน" ไม่ได้ตอบว่า "ฉันเป็นเจ้าของ
+   * โฟลเดอร์ไหน" — สองอย่างนี้ต่างกัน และการเหมารวมทำให้เกิดความกำกวมปลอม
+   *
+   * จึงนับเป็นหลักฐานความเป็นเจ้าของเฉพาะเมื่อมี routable entry ตัวเดียวที่ชี้ไป
+   * contract นั้น ที่เหลือคือผู้เรียกใช้ ไม่ใช่เจ้าของ — บันทึกไว้ใน excluded
+   * ด้วยกลไกเดิม ไม่ได้เพิ่มกฎใหม่
+   */
+  const contractClaimCount = new Map<string, number>();
+  for (const record of getCapabilityIndex()) {
+    const folder = (record as unknown as { OWNER_FOLDER?: string }).OWNER_FOLDER;
+    if (!folder || folder.startsWith("UNKNOWN")) continue;
+    const key = normalizeFolder(folder);
+    contractClaimCount.set(key, (contractClaimCount.get(key) ?? 0) + 1);
+  }
+
   for (const record of getCapabilityIndex()) {
     const metadata = record as unknown as CapabilityMetadata & { OWNER_FOLDER: string; CAPABILITY_ID: string; STATUS: string; EVIDENCE_SOURCE?: string };
+    if (metadata.OWNER_FOLDER && !metadata.OWNER_FOLDER.startsWith("UNKNOWN")
+        && (contractClaimCount.get(normalizeFolder(metadata.OWNER_FOLDER)) ?? 0) > 1) {
+      excluded.push({ candidate: metadata.CAPABILITY_ID, path: normalizeFolder(metadata.OWNER_FOLDER),
+        reason: "หลาย routable entry เรียกผ่าน public contract เดียวกันในโฟลเดอร์นี้ (Capability Folder Law ข้อ 9) — การใช้ contract ร่วมกันไม่ใช่หลักฐานความเป็นเจ้าของ" });
+      continue;
+    }
     if (!metadata.OWNER_FOLDER || metadata.OWNER_FOLDER.startsWith("UNKNOWN")) {
       excluded.push({ candidate: metadata.CAPABILITY_ID, path: metadata.OWNER_FOLDER ?? null,
         reason: "capability-registrar row has no resolvable OWNER_FOLDER (endpoint is not_yet_built) — DECLARED_ONLY, write ownership not proven" });
