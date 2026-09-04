@@ -65,6 +65,7 @@ import { searchOverlap } from "../../software/capability-registrar/contract";
 import { reserveAndRegister } from "../duplicate-reservation/contract";
 import type { RegistryStore } from "../../software/registry-database/contract";
 import type { AgentProductionRequest, AgentProductionResult, AgentProductionStage, AgentProductionStatus } from "./types";
+import "../../control/command-router/registrar-bootstrap";
 
 function stop(input: AgentProductionRequest, stage: AgentProductionStage, status: AgentProductionStatus, reason: string, extra: Partial<Pick<AgentProductionResult, "resolved_repository_id" | "workspace" | "overlapping_capabilities" | "resource_id" | "capability_id">> = {}): AgentProductionResult {
   return {

@@ -43,6 +43,7 @@ import circuitJson from "./circuit.json";
 import { CONTAINER_ASSIGNMENTS, EDGE_CLASS_MAP, VALIDATOR_PORTS } from "./sbgn-view-builder";
 import { getCapabilityIndex } from "../../software/capability-registrar/contract";
 import type { CapabilityMetadata } from "../../software/capability-registrar/contract";
+import "../../control/command-router/registrar-bootstrap";
 
 /** Owner's 18 required entity kinds, split from CONNECTION (its own type, see SemanticConnection) and EVIDENCE/STATE (represented as a field + one real STATE component respectively — see buildSemanticComponents' own comments). */
 export type SemanticComponentType =

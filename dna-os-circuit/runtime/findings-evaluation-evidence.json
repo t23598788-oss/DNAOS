@@ -31111,5 +31111,95 @@
     "matched_evidence": "security-lab/targets/x",
     "evaluated_at": "2026-08-24T11:52:51.682Z",
     "evaluation_evidence_id": "eval-f709f06b-7e79-4d13-a203-1f3d2d4cb1ab"
+  },
+  {
+    "finding_id": "finding-decide-test-jpcjcfsqpb",
+    "scan_id": "scan-decide-test",
+    "classification": "REAL_ISSUE",
+    "rule_fired": "default_real_issue",
+    "matched_evidence": "warning_type=ORPHAN with no test-fixture path match",
+    "evaluated_at": "2026-09-04T07:32:37.257Z",
+    "evaluation_evidence_id": "eval-63e9fb00-0bb4-4cad-b413-6628ef7e9230"
+  },
+  {
+    "finding_id": "finding-decide-test-bduwj6inl8v",
+    "scan_id": "scan-decide-test",
+    "classification": "TEST_FIXTURE",
+    "rule_fired": "owner_folder_matches_test_fixture_pattern",
+    "matched_evidence": "sandbox/violations/x",
+    "evaluated_at": "2026-09-04T07:32:37.327Z",
+    "evaluation_evidence_id": "eval-5ea60a21-5f95-445e-8c4e-b26c9c5d513f"
+  },
+  {
+    "finding_id": "finding-decide-test-t101blgp68l",
+    "scan_id": "scan-decide-test",
+    "classification": "REAL_ISSUE",
+    "rule_fired": "default_real_issue",
+    "matched_evidence": "warning_type=HARDCODED_CREDENTIAL with no test-fixture path match",
+    "evaluated_at": "2026-09-04T07:32:37.397Z",
+    "evaluation_evidence_id": "eval-95722210-61cc-4741-9093-a0308bd47400"
+  },
+  {
+    "finding_id": "finding-decide-test-bhnpxc65f39",
+    "scan_id": "scan-decide-test",
+    "classification": "REAL_ISSUE",
+    "rule_fired": "default_real_issue",
+    "matched_evidence": "warning_type=ORPHAN with no test-fixture path match",
+    "evaluated_at": "2026-09-04T07:32:37.502Z",
+    "evaluation_evidence_id": "eval-d98fd56c-4090-40f6-b17a-a934aac28f43"
+  },
+  {
+    "finding_id": "finding-eval-test-fyubbva4h5f",
+    "scan_id": "scan-eval-test",
+    "classification": "REAL_ISSUE",
+    "rule_fired": "default_real_issue",
+    "matched_evidence": "warning_type=ORPHAN with no test-fixture path match",
+    "evaluated_at": "2026-09-04T07:32:38.000Z",
+    "evaluation_evidence_id": "eval-65c7a51c-1f4a-4b7d-aa3e-831bdabeb698"
+  },
+  {
+    "finding_id": "finding-eval-test-fixture-9t8cz92js5",
+    "scan_id": "scan-eval-test",
+    "classification": "TEST_FIXTURE",
+    "rule_fired": "owner_folder_matches_test_fixture_pattern",
+    "matched_evidence": "sandbox/violations/15_semantic_duplicate",
+    "evaluated_at": "2026-09-04T07:32:38.037Z",
+    "evaluation_evidence_id": "eval-6720ae2a-2ac1-40d6-a1ec-c18f71c4fbb2"
+  },
+  {
+    "finding_id": "finding-eval-test-status-bzqvydobcmq",
+    "scan_id": "scan-eval-test",
+    "classification": "REAL_ISSUE",
+    "rule_fired": "default_real_issue",
+    "matched_evidence": "warning_type=ORPHAN with no test-fixture path match",
+    "evaluated_at": "2026-09-04T07:32:38.071Z",
+    "evaluation_evidence_id": "eval-9c373090-820c-439c-a670-1ddb305f436c"
+  },
+  {
+    "finding_id": "finding-decide-test-s2tptlb8gg",
+    "scan_id": "scan-decide-test",
+    "classification": "REAL_ISSUE",
+    "rule_fired": "default_real_issue",
+    "matched_evidence": "warning_type=ORPHAN with no test-fixture path match",
+    "evaluated_at": "2026-09-04T07:32:38.144Z",
+    "evaluation_evidence_id": "eval-9cbce895-c969-45d2-add5-d107c3d8f3c0"
+  },
+  {
+    "finding_id": "finding-eval-test-batch-a-sue9z7jhgir",
+    "scan_id": "scan-eval-test",
+    "classification": "REAL_ISSUE",
+    "rule_fired": "default_real_issue",
+    "matched_evidence": "warning_type=ORPHAN with no test-fixture path match",
+    "evaluated_at": "2026-09-04T07:32:38.167Z",
+    "evaluation_evidence_id": "eval-59f50094-6cd2-4270-a367-a55e71aea235"
+  },
+  {
+    "finding_id": "finding-eval-test-batch-b-bio0oeifn4p",
+    "scan_id": "scan-eval-test",
+    "classification": "TEST_FIXTURE",
+    "rule_fired": "owner_folder_matches_test_fixture_pattern",
+    "matched_evidence": "security-lab/targets/x",
+    "evaluated_at": "2026-09-04T07:32:38.187Z",
+    "evaluation_evidence_id": "eval-9ac2e019-7558-4f78-9df6-f855cdc36866"
   }
 ]

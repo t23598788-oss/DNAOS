@@ -45,6 +45,7 @@ import { join } from "node:path";
 import { getCapabilityIndex } from "./index";
 import type { CapabilityMetadata } from "./types";
 import { createPersistentFileStore } from "../registry-database/adapters/persistent-file-store";
+import "../../control/command-router/registrar-bootstrap";
 
 const REPO_ROOT = join(__dirname, "..", "..");
 

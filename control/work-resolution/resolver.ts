@@ -35,6 +35,7 @@ import type { RegistryStore } from "../../software/registry-database/contract";
 import { getCapabilityIndex, searchOverlap } from "../../software/capability-registrar/contract";
 import { execFileSync } from "node:child_process";
 import { existsSync } from "node:fs";
+import "../../control/command-router/registrar-bootstrap";
 
 /**
  * Repositories this machine really has. Checked with existsSync at call

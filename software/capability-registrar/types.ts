@@ -117,3 +117,22 @@ export interface CapabilityMetadata {
 
   STATUS: CapabilityStatus;
 }
+
+/**
+ * รูปทรงของ "capability ที่เส้นทางคำสั่งลงทะเบียนไว้" ที่ผู้เรียกส่งเข้ามา
+ *
+ * ประกาศไว้ที่นี่โดยตั้งใจ ไม่ import จาก control/command-router — ตัวตัดสินสิทธิ์
+ * ต้องไม่พึ่งพา implementation ของสิ่งที่มันตัดสิน มิฉะนั้นแยกออกจากกันไม่ได้
+ * และเคยเกิด module-load cycle จริงมาแล้วจากการพึ่งพาทิศนั้น
+ *
+ * เป็นสัญญาเชิงโครงสร้าง: ผู้เรียกส่งอะไรก็ได้ที่มีรูปนี้
+ */
+export interface RoutableCapabilityRegistration {
+  readonly capability_id: string;
+  readonly repo_id: string;
+  readonly contract: string;
+  readonly endpoint: { readonly kind: string; readonly module?: string; readonly entry?: string; readonly url?: string };
+  readonly supported_commands: readonly string[];
+  readonly permission_requirement: string;
+  readonly health_status: string;
+}

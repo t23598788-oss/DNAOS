@@ -18,7 +18,8 @@
  * added to this folder — this stays read-only query surface only.
  */
 
-export { getCapabilityIndex, findByCapabilityId, findByOwnerFolder, searchOverlap } from "./index";
+export { getCapabilityIndex, setCapabilityRegistrations, setCapabilityRegistrationsProvider, findByCapabilityId, findByOwnerFolder, searchOverlap } from "./index";
+export type { RoutableCapabilityRegistration } from "./types";
 export type { CapabilityMetadata, CapabilityStatus } from "./types";
 
 /**

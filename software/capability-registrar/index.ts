@@ -68,9 +68,7 @@
  * can treat its output as fact, not a guess.
  */
 
-import { listCapabilities } from "../../control/command-router/contract";
-import type { CapabilityRegistration } from "../../control/command-router/contract";
-import type { CapabilityMetadata, CapabilityStatus } from "./types";
+import type { CapabilityMetadata, CapabilityStatus, RoutableCapabilityRegistration } from "./types";
 
 const UNRESOLVED_FOLDER_PREFIX = "UNKNOWN — ";
 
@@ -84,11 +82,11 @@ function dirnameOf(pathOrLiteral: string): string {
 }
 
 /** `capability-registry.ts`'s health_status has 2 real values; `CapabilityMetadata.STATUS` has 9. This is the one honest projection: CONNECTED means the router can actually invoke it (matches CapabilityStatus's own "CONNECTED" definition verbatim); NOT_CONNECTED means only a real registry entry exists, matching CapabilityStatus's own "REGISTERED" definition verbatim — never invented in between. */
-function mapHealthToStatus(healthStatus: CapabilityRegistration["health_status"]): CapabilityStatus {
+function mapHealthToStatus(healthStatus: RoutableCapabilityRegistration["health_status"]): CapabilityStatus {
   return healthStatus === "CONNECTED" ? "CONNECTED" : "REGISTERED";
 }
 
-function buildRecord(cap: CapabilityRegistration): CapabilityMetadata {
+function buildRecord(cap: RoutableCapabilityRegistration): CapabilityMetadata {
   return {
     SOFTWARE_ID: cap.capability_id,
     OWNER_FOLDER: dirnameOf(cap.contract),
@@ -100,7 +98,7 @@ function buildRecord(cap: CapabilityRegistration): CapabilityMetadata {
     // capability-registry.ts's CapabilityRegistration has no egress field — honestly empty, never invented.
     EGRESS: [],
     CONTRACT: cap.contract,
-    RUNTIME_ENTRY: cap.endpoint.kind === "not_yet_built" ? null : cap.endpoint.entry,
+    RUNTIME_ENTRY: cap.endpoint.kind === "not_yet_built" ? null : (cap.endpoint.entry ?? null),
     DATA_CLASS: "not captured by control/command-router/capability-registry.ts's schema — CapabilityRegistration has no data-class field",
     REQUIRED_PERMISSION: cap.permission_requirement,
     // capability-registry.ts has no credential-reference field for any entry today.
@@ -114,9 +112,39 @@ function buildRecord(cap: CapabilityRegistration): CapabilityMetadata {
 let memoizedCapabilityIndex: readonly CapabilityMetadata[] | null = null;
 
 /** Computed on first real call, memoized after — see this file's header. */
+/**
+ * รายการที่ผู้เรียกส่งเข้ามา — ทิศการพึ่งพาถูกกลับเมื่อ 2026-09-04
+ *
+ * เดิมไฟล์นี้ import listCapabilities() จาก control/command-router เอง ทำให้
+ * ตัวตัดสินสิทธิ์พึ่งพา implementation ของสิ่งที่มันตัดสิน แยกออกจากกันไม่ได้
+ * และเคยทำให้เกิด module-load cycle จริง
+ *
+ * ตอนนี้ DNA OS เป็นฝ่ายส่งรายการเข้ามาผ่าน setCapabilityRegistrations()
+ * ถ้าไม่มีใครส่ง ดัชนีเป็นรายการว่าง — ไม่ใช่การเดา ไม่ใช่การไปดึงเอง
+ */
+let registrationsProvider: (() => readonly RoutableCapabilityRegistration[]) | null = null;
+
+/**
+ * ผู้เรียกส่ง "ตัวดึงข้อมูล" ไม่ใช่ข้อมูลสำเร็จรูป — ตั้งใจให้เป็น thunk
+ * เพราะการเรียกทันทีตอนโหลดโมดูลทำให้เกิด module-load cycle จริง
+ * (command-router -> registrar-bootstrap -> command-router ที่ยังโหลดไม่จบ)
+ * ดัชนีจึงถูกคำนวณตอนใช้จริงครั้งแรกเท่านั้น เหมือนพฤติกรรมเดิมทุกประการ
+ */
+export function setCapabilityRegistrationsProvider(
+  provider: () => readonly RoutableCapabilityRegistration[],
+): void {
+  registrationsProvider = provider;
+  memoizedCapabilityIndex = null;
+}
+
+/** ส่งข้อมูลสำเร็จรูปเข้ามาโดยตรง — สำหรับผู้เรียกที่มีข้อมูลอยู่แล้ว */
+export function setCapabilityRegistrations(registrations: readonly RoutableCapabilityRegistration[]): void {
+  setCapabilityRegistrationsProvider(() => registrations);
+}
+
 export function getCapabilityIndex(): readonly CapabilityMetadata[] {
   if (memoizedCapabilityIndex === null) {
-    memoizedCapabilityIndex = listCapabilities().map(buildRecord);
+    memoizedCapabilityIndex = (registrationsProvider === null ? [] : registrationsProvider()).map(buildRecord);
   }
   return memoizedCapabilityIndex;
 }

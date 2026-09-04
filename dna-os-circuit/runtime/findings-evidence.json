@@ -78753,5 +78753,269 @@
     },
     "received_at": "2026-08-24T11:52:51.958Z",
     "receiver_evidence_id": "recv-2fa17004-41a8-469e-bed3-b67561ebc85c"
+  },
+  {
+    "finding": {
+      "finding_id": "finding-decide-test-jpcjcfsqpb",
+      "source_system": "DNA-LAB-FILE-INTELLIGENCE",
+      "scan_id": "scan-decide-test",
+      "warning_type": "ORPHAN",
+      "evidence": [
+        "no importer found"
+      ],
+      "owner_folder": "some/real/source/folder",
+      "capability_id": null,
+      "files_involved": [
+        "some/real/source/folder/file.ts"
+      ],
+      "detected_at": "2026-08-18T00:00:00.000Z",
+      "severity": null,
+      "classification": "REAL_ISSUE",
+      "status": "ROUTABLE"
+    },
+    "received_at": "2026-09-04T07:32:37.229Z",
+    "receiver_evidence_id": "recv-07695be3-4e21-4985-887d-16a9f55ed0a5"
+  },
+  {
+    "finding": {
+      "finding_id": "finding-decide-test-bduwj6inl8v",
+      "source_system": "DNA-LAB-FILE-INTELLIGENCE",
+      "scan_id": "scan-decide-test",
+      "warning_type": "ORPHAN",
+      "evidence": [
+        "no importer found"
+      ],
+      "owner_folder": "sandbox/violations/x",
+      "capability_id": null,
+      "files_involved": [
+        "some/real/source/folder/file.ts"
+      ],
+      "detected_at": "2026-08-18T00:00:00.000Z",
+      "severity": null,
+      "classification": "TEST_FIXTURE",
+      "status": "RESOLVED"
+    },
+    "received_at": "2026-09-04T07:32:37.307Z",
+    "receiver_evidence_id": "recv-a27699ff-d580-4da0-8131-c685d8615493"
+  },
+  {
+    "finding": {
+      "finding_id": "finding-decide-test-t101blgp68l",
+      "source_system": "DNA-LAB-FILE-INTELLIGENCE",
+      "scan_id": "scan-decide-test",
+      "warning_type": "HARDCODED_CREDENTIAL",
+      "evidence": [
+        "found a literal-looking secret assignment"
+      ],
+      "owner_folder": "some/real/source/folder",
+      "capability_id": null,
+      "files_involved": [
+        "some/real/source/folder/file.ts"
+      ],
+      "detected_at": "2026-08-18T00:00:00.000Z",
+      "severity": null,
+      "classification": "REAL_ISSUE",
+      "status": "BLOCKED"
+    },
+    "received_at": "2026-09-04T07:32:37.370Z",
+    "receiver_evidence_id": "recv-c288e7cc-00ba-4668-8fa9-f6ad6cd30da9"
+  },
+  {
+    "finding": {
+      "finding_id": "finding-decide-test-s2tptlb8gg",
+      "source_system": "DNA-LAB-FILE-INTELLIGENCE",
+      "scan_id": "scan-decide-test",
+      "warning_type": "ORPHAN",
+      "evidence": [
+        "no importer found"
+      ],
+      "owner_folder": "some/real/source/folder",
+      "capability_id": null,
+      "files_involved": [
+        "some/real/source/folder/file.ts"
+      ],
+      "detected_at": "2026-08-18T00:00:00.000Z",
+      "severity": null,
+      "classification": "REAL_ISSUE",
+      "status": "EVALUATED"
+    },
+    "received_at": "2026-09-04T07:32:37.453Z",
+    "receiver_evidence_id": "recv-dc0cb1e3-340d-49e3-9cc5-8b0ae7e0b0e7"
+  },
+  {
+    "finding": {
+      "finding_id": "finding-decide-test-bhnpxc65f39",
+      "source_system": "DNA-LAB-FILE-INTELLIGENCE",
+      "scan_id": "scan-decide-test",
+      "warning_type": "ORPHAN",
+      "evidence": [
+        "no importer found"
+      ],
+      "owner_folder": "some/real/source/folder",
+      "capability_id": null,
+      "files_involved": [
+        "some/real/source/folder/file.ts"
+      ],
+      "detected_at": "2026-08-18T00:00:00.000Z",
+      "severity": null,
+      "classification": "REAL_ISSUE",
+      "status": "ROUTABLE"
+    },
+    "received_at": "2026-09-04T07:32:37.474Z",
+    "receiver_evidence_id": "recv-59bf7dc3-569a-4c25-8567-1c3b1dd39f5d"
+  },
+  {
+    "finding": {
+      "finding_id": "finding-eval-test-fyubbva4h5f",
+      "source_system": "DNA-LAB-FILE-INTELLIGENCE",
+      "scan_id": "scan-eval-test",
+      "warning_type": "ORPHAN",
+      "evidence": [
+        "no importer found"
+      ],
+      "owner_folder": "some/real/source/folder",
+      "capability_id": null,
+      "files_involved": [
+        "some/real/source/folder/file.ts"
+      ],
+      "detected_at": "2026-08-18T00:00:00.000Z",
+      "severity": null,
+      "classification": "REAL_ISSUE",
+      "status": "EVALUATED"
+    },
+    "received_at": "2026-09-04T07:32:37.975Z",
+    "receiver_evidence_id": "recv-dd59bd34-7db6-471b-b209-99f2c2ba04d1"
+  },
+  {
+    "finding": {
+      "finding_id": "finding-eval-test-fixture-9t8cz92js5",
+      "source_system": "DNA-LAB-FILE-INTELLIGENCE",
+      "scan_id": "scan-eval-test",
+      "warning_type": "ORPHAN",
+      "evidence": [
+        "no importer found"
+      ],
+      "owner_folder": "sandbox/violations/15_semantic_duplicate",
+      "capability_id": null,
+      "files_involved": [
+        "some/real/source/folder/file.ts"
+      ],
+      "detected_at": "2026-08-18T00:00:00.000Z",
+      "severity": null,
+      "classification": "TEST_FIXTURE",
+      "status": "EVALUATED"
+    },
+    "received_at": "2026-09-04T07:32:38.019Z",
+    "receiver_evidence_id": "recv-8ff2b16c-0d3a-43cf-9400-a0d83b97fa05"
+  },
+  {
+    "finding": {
+      "finding_id": "finding-eval-test-status-bzqvydobcmq",
+      "source_system": "DNA-LAB-FILE-INTELLIGENCE",
+      "scan_id": "scan-eval-test",
+      "warning_type": "ORPHAN",
+      "evidence": [
+        "no importer found"
+      ],
+      "owner_folder": "some/real/source/folder",
+      "capability_id": null,
+      "files_involved": [
+        "some/real/source/folder/file.ts"
+      ],
+      "detected_at": "2026-08-18T00:00:00.000Z",
+      "severity": null,
+      "classification": "REAL_ISSUE",
+      "status": "EVALUATED"
+    },
+    "received_at": "2026-09-04T07:32:38.053Z",
+    "receiver_evidence_id": "recv-0f01b83b-8947-479c-bfc3-cf536d896742"
+  },
+  {
+    "finding": {
+      "finding_id": "finding-eval-test-batch-a-sue9z7jhgir",
+      "source_system": "DNA-LAB-FILE-INTELLIGENCE",
+      "scan_id": "scan-eval-test",
+      "warning_type": "ORPHAN",
+      "evidence": [
+        "no importer found"
+      ],
+      "owner_folder": "some/real/source/folder",
+      "capability_id": null,
+      "files_involved": [
+        "some/real/source/folder/file.ts"
+      ],
+      "detected_at": "2026-08-18T00:00:00.000Z",
+      "severity": null,
+      "classification": "REAL_ISSUE",
+      "status": "EVALUATED"
+    },
+    "received_at": "2026-09-04T07:32:38.097Z",
+    "receiver_evidence_id": "recv-a274acce-58ac-47dd-8ec6-94dd11c09352"
+  },
+  {
+    "finding": {
+      "finding_id": "finding-eval-test-batch-b-bio0oeifn4p",
+      "source_system": "DNA-LAB-FILE-INTELLIGENCE",
+      "scan_id": "scan-eval-test",
+      "warning_type": "ORPHAN",
+      "evidence": [
+        "no importer found"
+      ],
+      "owner_folder": "security-lab/targets/x",
+      "capability_id": null,
+      "files_involved": [
+        "some/real/source/folder/file.ts"
+      ],
+      "detected_at": "2026-08-18T00:00:00.000Z",
+      "severity": null,
+      "classification": "TEST_FIXTURE",
+      "status": "EVALUATED"
+    },
+    "received_at": "2026-09-04T07:32:38.112Z",
+    "receiver_evidence_id": "recv-f7a4d6d4-e1c5-4242-b2ac-a13bd543198a"
+  },
+  {
+    "finding": {
+      "finding_id": "finding-test-scan-1-abc",
+      "source_system": "DNA-LAB-FILE-INTELLIGENCE",
+      "scan_id": "scan-test-1",
+      "warning_type": "ORPHAN",
+      "evidence": [
+        "no importer found for this file"
+      ],
+      "owner_folder": "some/folder",
+      "capability_id": null,
+      "files_involved": [
+        "some/folder/file.ts"
+      ],
+      "detected_at": "2026-08-18T00:00:00.000Z",
+      "severity": null,
+      "classification": "UNKNOWN",
+      "status": "DETECTED"
+    },
+    "received_at": "2026-09-04T07:32:38.525Z",
+    "receiver_evidence_id": "recv-fabc25f4-5b64-4061-ad2f-b2e3ccb2d0e8"
+  },
+  {
+    "finding": {
+      "finding_id": "finding-test-scan-1-def",
+      "source_system": "DNA-LAB-FILE-INTELLIGENCE",
+      "scan_id": "scan-test-1",
+      "warning_type": "ORPHAN",
+      "evidence": [
+        "no importer found for this file"
+      ],
+      "owner_folder": "some/folder",
+      "capability_id": null,
+      "files_involved": [
+        "some/folder/file.ts"
+      ],
+      "detected_at": "2026-08-18T00:00:00.000Z",
+      "severity": null,
+      "classification": "UNKNOWN",
+      "status": "DETECTED"
+    },
+    "received_at": "2026-09-04T07:32:38.540Z",
+    "receiver_evidence_id": "recv-8a134b59-1341-4eea-91f1-64dbee5e94aa"
   }
 ]

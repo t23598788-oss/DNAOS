@@ -4013,5 +4013,49 @@
     "new_status": "ROUTABLE",
     "decided_at": "2026-08-24T11:52:51.145Z",
     "decision_evidence_id": "dec-371badcc-1744-4711-8344-10710e7bad8e"
+  },
+  {
+    "finding_id": "finding-decide-test-jpcjcfsqpb",
+    "scan_id": "scan-decide-test",
+    "decision": "NEEDS_FIX",
+    "rule_fired": "real_issue_needs_fix",
+    "matched_evidence": "classification=REAL_ISSUE, warning_type=ORPHAN",
+    "based_on_evaluation_evidence_id": "eval-63e9fb00-0bb4-4cad-b413-6628ef7e9230",
+    "new_status": "ROUTABLE",
+    "decided_at": "2026-09-04T07:32:37.290Z",
+    "decision_evidence_id": "dec-2ed6f044-af36-43d1-94c5-aee9975d3261"
+  },
+  {
+    "finding_id": "finding-decide-test-bduwj6inl8v",
+    "scan_id": "scan-decide-test",
+    "decision": "REJECT",
+    "rule_fired": "test_fixture_rejected",
+    "matched_evidence": "classification=TEST_FIXTURE",
+    "based_on_evaluation_evidence_id": "eval-5ea60a21-5f95-445e-8c4e-b26c9c5d513f",
+    "new_status": "RESOLVED",
+    "decided_at": "2026-09-04T07:32:37.355Z",
+    "decision_evidence_id": "dec-e64c41c3-b289-4d69-ae58-2dc13ce2be8d"
+  },
+  {
+    "finding_id": "finding-decide-test-t101blgp68l",
+    "scan_id": "scan-decide-test",
+    "decision": "FORBIDDEN",
+    "rule_fired": "security_sensitive_warning_type_forbidden",
+    "matched_evidence": "warning_type=HARDCODED_CREDENTIAL",
+    "based_on_evaluation_evidence_id": "eval-95722210-61cc-4741-9093-a0308bd47400",
+    "new_status": "BLOCKED",
+    "decided_at": "2026-09-04T07:32:37.438Z",
+    "decision_evidence_id": "dec-a0707a89-a3ca-4533-8bb9-647f3d8a2779"
+  },
+  {
+    "finding_id": "finding-decide-test-bhnpxc65f39",
+    "scan_id": "scan-decide-test",
+    "decision": "NEEDS_FIX",
+    "rule_fired": "real_issue_needs_fix",
+    "matched_evidence": "classification=REAL_ISSUE, warning_type=ORPHAN",
+    "based_on_evaluation_evidence_id": "eval-d98fd56c-4090-40f6-b17a-a934aac28f43",
+    "new_status": "ROUTABLE",
+    "decided_at": "2026-09-04T07:32:37.540Z",
+    "decision_evidence_id": "dec-3b4f2260-dfdf-4d9b-8615-0cc1b1fc9018"
   }
 ]
