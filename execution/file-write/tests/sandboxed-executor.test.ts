@@ -12,7 +12,7 @@
  * ../../control/agent-host/tests/proof.test.ts)
  */
 
-import { executeFileWriteSandboxed } from "../contract";
+import { executeFileWriteSandboxed } from "../sandboxed-contract";
 import type { FileWriteRequest } from "../contract";
 import { listWriteAudit } from "../contract";
 import { evaluateWriteIntent } from "../../../permissions/write-gate/contract";

@@ -5,7 +5,8 @@
  * write-capable surface a caller may reach from outside this folder.
  *
  * Input: re-exports only.
- * Output: `executeFileWrite`, `executeFileWriteSandboxed` (added
+ * Output: `executeFileWrite` (สัญญาของด่านซอร์ส — executeFileWriteSandboxed
+ * ย้ายไป ./sandboxed-contract.ts ฝั่ง DNA OS เมื่อ 2026-09-04) (added
  * 2026-08-22 — the real-jail variant, see ./sandboxed-executor.ts's own
  * header for the gate/scope discipline it shares with `executeFileWrite`),
  * `listWriteAudit` (read-only trace-back), `onWriteAudit` (producer-time
@@ -18,7 +19,6 @@
  */
 
 export { executeFileWrite } from "./executor";
-export { executeFileWriteSandboxed } from "./sandboxed-executor";
 export { listWriteAudit, onWriteAudit } from "./audit";
 export type { WriteAuditEvent, WriteAuditListener } from "./audit";
 export type { FileWriteRefusalCode, FileWriteRequest, FileWriteResult, FileWriteStatus } from "./types";
