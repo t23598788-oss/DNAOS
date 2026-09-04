@@ -6,6 +6,8 @@
  */
 import { readFileSync } from "node:fs";
 import { UNRESOLVED } from "./schema";
+import { resolveSources, runtimeEnv, fsAccess, netAccess, osAccess, authSignals,
+         requiredFieldsOf, errorContract, verificationPath } from "./source-evidence";
 import type { BoundaryRecord, BoundaryVerdict, Resolved } from "./schema";
 
 const DIR = "software/registry-database/data/canonical";
@@ -82,6 +84,23 @@ export function deriveBoundary(
   const inputs = strs(cap.input_contract);
   const outputs = strs(cap.output_contract);
 
+  // ── หลักฐานจากซอร์สจริง ใช้เมื่อ Registry ไม่พอ (พิสูจน์แล้วว่าไม่พอ)
+  const src = location !== null ? resolveSources(location) : { files: [], note: "ไม่มี source_location" };
+  const F = src.files;
+  const env = runtimeEnv(F);
+  const fsA = fsAccess(F);
+  const netA = netAccess(F);
+  const osA = osAccess(F);
+  const authA = authSignals(F);
+  const reqIn = inputs !== null ? requiredFieldsOf(inputs, F) : null;
+  const errC = errorContract(F);
+  const ver = location !== null ? verificationPath(location) : null;
+  const C = <T>(field: string, c: { value: T; evidence: string } | null): Resolved<T> => {
+    if (c === null) { missing.push(field); return UNRESOLVED; }
+    from.push(`${field} <- ${c.evidence}`);
+    return c.value;
+  };
+
   const record: BoundaryRecord = {
     identity: {
       canonical_id: cap.capability_id,
@@ -91,7 +110,7 @@ export function deriveBoundary(
     },
     execution: {
       execution_owner: R("execution.execution_owner", owner, "resources.owner_id"),
-      execution_environment: R("execution.execution_environment", null, ""),
+      execution_environment: C("execution.execution_environment", env),
       entrypoint: R("execution.entrypoint", location, "resources.source_location"),
       allowed_scope: R("execution.allowed_scope", null, ""),
       forbidden_scope: R("execution.forbidden_scope", null, ""),
@@ -99,15 +118,15 @@ export function deriveBoundary(
     },
     input: {
       accepted_input: R("input.accepted_input", inputs, "capabilities.input_contract"),
-      required_fields: R("input.required_fields", null, ""),
+      required_fields: C("input.required_fields", reqIn),
       validation_requirements: R("input.validation_requirements", null, ""),
-      caller_requirements: R("input.caller_requirements", null, ""),
+      caller_requirements: C("input.caller_requirements", authA),
     },
     output: {
       output_schema: R("output.output_schema", outputs, "capabilities.output_contract"),
       result_return_path: R("output.result_return_path", null, ""),
       evidence_return_path: R("output.evidence_return_path", null, ""),
-      error_contract: R("output.error_contract", null, ""),
+      error_contract: C("output.error_contract", errC),
     },
     data: {
       readable: R("data.readable", null, ""),
@@ -117,8 +136,8 @@ export function deriveBoundary(
     },
     authority: {
       may_request: R("authority.may_request", null, ""),
-      may_execute: R("authority.may_execute", null, ""),
-      required_permission: R("authority.required_permission", null, ""),
+      may_execute: C("authority.may_execute", authA),
+      required_permission: C("authority.required_permission", authA),
       credential_reference: R("authority.credential_reference", null, ""),
       approval_requirement: R("authority.approval_requirement", null, ""),
       external_commit_authority: R("authority.external_commit_authority", null, ""),
@@ -131,15 +150,15 @@ export function deriveBoundary(
       cost_policy: R("resources.cost_policy", null, ""),
     },
     external_access: {
-      network: R("external_access.network", null, ""),
-      filesystem: R("external_access.filesystem", fsWritesFrom(sideEffects), "capabilities.side_effects"),
-      os_or_browser: R("external_access.os_or_browser", null, ""),
+      network: C("external_access.network", netA),
+      filesystem: C("external_access.filesystem", fsA),
+      os_or_browser: C("external_access.os_or_browser", osA),
       external_service: R("external_access.external_service", null, ""),
       explicitly_prohibited: R("external_access.explicitly_prohibited", null, ""),
     },
     verification: {
-      method: R("verification.method", null, ""),
-      required_evidence: R("verification.required_evidence", null, ""),
+      method: C("verification.method", ver !== null ? { value: ver.value.method, evidence: ver.evidence } : null),
+      required_evidence: C("verification.required_evidence", ver !== null ? { value: ver.value.evidence, evidence: ver.evidence } : null),
       last_verified_reference: R("verification.last_verified_reference", nonEmpty(cap.verified_at ?? null), "capabilities.verified_at"),
       pass_fail_condition: R("verification.pass_fail_condition", null, ""),
     },
