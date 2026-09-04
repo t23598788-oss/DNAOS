@@ -171,6 +171,18 @@ export function composeWriteOwnershipIndex(): ComposedIndex {
     });
   }
 
+  /**
+   * ผู้ใช้บริการของห้อง ไม่ใช่เจ้าของห้อง
+   *
+   * คำวินิจฉัยของเจ้าของ 2026-09-04: โฟลเดอร์หนึ่งมีเจ้าของหนึ่งราย ส่วน
+   * capability อื่นที่เข้ามาใช้เส้นทางนั้นคือผู้ใช้บริการ ทะเบียนบันทึกเรื่องนี้
+   * ด้วยความสัมพันธ์ ORCHESTRATES_CAPABILITY ที่มีอยู่แล้ว — เจ้าของห้องเป็นฝั่ง
+   * from ผู้ใช้บริการเป็นฝั่ง to
+   *
+   * อ่านจากความสัมพันธ์ที่ประกาศไว้จริงในทะเบียน ไม่ได้เดาจากชื่อหรือเส้นทาง
+   */
+  const orchestratedBy = new Map<string, string>();
+
   // --- source 2: persistent software registry ownership links ------------
   let store: ReturnType<typeof createPersistentFileStore> | null = null;
   try { store = createPersistentFileStore(); } catch (error) {
@@ -178,11 +190,26 @@ export function composeWriteOwnershipIndex(): ComposedIndex {
       reason: `unreadable: ${error instanceof Error ? error.message : String(error)}` });
   }
 
+  if (store !== null) {
+    try {
+      const rels = (store as unknown as { listRelationshipRows?: () => readonly { from_id: string; to_id: string; relationship_kind: string }[] }).listRelationshipRows?.() ?? [];
+      for (const r of rels) {
+        if (r.relationship_kind === "ORCHESTRATES_CAPABILITY") orchestratedBy.set(r.to_id, r.from_id);
+      }
+    } catch { /* อ่านความสัมพันธ์ไม่ได้ = ไม่มีข้อมูล ไม่ใช่ว่าไม่มีความสัมพันธ์ */ }
+  }
   if (store) {
     const capabilityRows = store.listCapabilityRows ? store.listCapabilityRows() : [];
     const resourceRows = store.listResourceRows ? store.listResourceRows() : [];
     const links = store.listResourceCapabilityLinks ? store.listResourceCapabilityLinks() : [];
     const capabilityById = new Map(capabilityRows.map((c) => [c.capability_id, c]));
+    // เส้นทางที่แต่ละ capability ถูกบันทึกไว้ — ใช้เทียบว่าอยู่ห้องเดียวกันไหม
+    const resourceLoc = new Map(resourceRows.map((r) => [r.resource_id, (r as unknown as { source_location?: string }).source_location ?? ""]));
+    const ownerPathOf = new Map<string, string>();
+    for (const l of links) {
+      const loc = resourceLoc.get(l.resource_id);
+      if (loc) ownerPathOf.set(l.capability_id, normalizeFolder(loc));
+    }
 
     for (const resource of resourceRows) {
       const sourceLocation = (resource as unknown as { source_location?: string }).source_location;
@@ -237,6 +264,20 @@ export function composeWriteOwnershipIndex(): ComposedIndex {
         // something nobody can point at.
         excluded.push({ candidate: capability.canonical_name, path: sourceLocation,
           reason: "declared source_location does not exist in this checkout — ownership not verified" });
+        continue;
+      }
+      /**
+       * ผู้ใช้บริการของห้อง จะถูกแยกออกก็ต่อเมื่ออยู่เส้นทางเดียวกับผู้ที่ orchestrate
+       * มันเท่านั้น — ORCHESTRATES_CAPABILITY ถูกใช้กับความสัมพันธ์การเรียกทั่วไปด้วย
+       * (เช่น command-router -> agent-gateway) ซึ่งทั้งคู่ต่างมีห้องของตัวเอง
+       * กรณีแบบนั้นความเป็นเจ้าของไม่เปลี่ยน
+       */
+      const roomOwnerId = orchestratedBy.get(capability.capability_id);
+      const roomOwnerPath = roomOwnerId !== undefined ? ownerPathOf.get(roomOwnerId) : undefined;
+      if (roomOwnerId !== undefined && roomOwnerId !== capability.capability_id
+          && roomOwnerPath !== undefined && roomOwnerPath === normalizeFolder(sourceLocation)) {
+        excluded.push({ candidate: capability.canonical_name, path: normalizeFolder(sourceLocation),
+          reason: `ผู้ใช้บริการของห้องนี้ — ทะเบียนประกาศว่าถูก orchestrate โดยเจ้าของเส้นทางเดียวกัน (${roomOwnerId})` });
         continue;
       }
       entries.push({
