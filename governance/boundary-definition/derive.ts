@@ -10,6 +10,8 @@ import { resolveSources, runtimeEnv, fsAccess, netAccess, osAccess, authSignals,
          requiredFieldsOf, errorContract, verificationPath, cite } from "./source-evidence";
 import { allowedScope, forbiddenScope, prohibitedData, lockedConstraint } from "./policy-source";
 import { verificationOutcome, passFailCondition } from "./verification-outcome";
+import { policyFor } from "./approved-policy";
+import { runtimeStaticFor } from "./runtime-static";
 import type { BoundaryRecord, BoundaryVerdict, Resolved } from "./schema";
 
 const DIR = "software/registry-database/data/canonical";
@@ -107,6 +109,8 @@ export function deriveBoundary(
   const prohibited = prohibitedData(entry);
   const outcome = ver !== null ? verificationOutcome(ver.value.evidence) : null;
   const passFail = ver !== null ? passFailCondition(ver.value.method) : null;
+  const pol = policyFor(cap.capability_id);
+  const rt = runtimeStaticFor(cap.capability_id);
   const C = <T>(field: string, c: { value: T; evidence: string } | null): Resolved<T> => {
     if (c === null) { missing.push(field); return UNRESOLVED; }
     from.push(`${field} <- ${c.evidence}`);
@@ -131,41 +135,41 @@ export function deriveBoundary(
     input: {
       accepted_input: R("input.accepted_input", inputs, "capabilities.input_contract"),
       required_fields: C("input.required_fields", reqIn),
-      validation_requirements: R("input.validation_requirements", null, ""),
+      validation_requirements: C("input.validation_requirements", pol?.validation_requirements ?? null),
       caller_requirements: C("input.caller_requirements", authA),
     },
     output: {
       output_schema: R("output.output_schema", outputs, "capabilities.output_contract"),
-      result_return_path: R("output.result_return_path", null, ""),
-      evidence_return_path: R("output.evidence_return_path", null, ""),
+      result_return_path: C("output.result_return_path", rt.result_return_path),
+      evidence_return_path: C("output.evidence_return_path", rt.evidence_return_path),
       error_contract: C("output.error_contract", errC),
     },
     data: {
-      readable: R("data.readable", null, ""),
+      readable: C("data.readable", rt.readable),
       writable: R("data.writable", fsWritesFrom(sideEffects), "capabilities.side_effects (รายการที่ระบุการเขียนไฟล์)"),
       prohibited: C("data.prohibited", prohibited),
-      persistence: R("data.persistence", null, ""),
+      persistence: C("data.persistence", pol?.persistence ?? null),
     },
     authority: {
-      may_request: R("authority.may_request", null, ""),
+      may_request: C("authority.may_request", pol?.may_request ?? null),
       may_execute: C("authority.may_execute", authA),
       required_permission: C("authority.required_permission", authA),
-      credential_reference: R("authority.credential_reference", null, ""),
-      approval_requirement: R("authority.approval_requirement", null, ""),
-      external_commit_authority: R("authority.external_commit_authority", null, ""),
+      credential_reference: C("authority.credential_reference", rt.credential_reference),
+      approval_requirement: C("authority.approval_requirement", pol?.approval_requirement ?? null),
+      external_commit_authority: C("authority.external_commit_authority", pol?.external_commit_authority ?? null),
     },
     resources: {
       dependencies: R("resources.dependencies", resources.length > 0 ? resources.map((r) => r.resource_id) : null, "resource_capabilities"),
-      availability_requirement: R("resources.availability_requirement", null, ""),
-      service_requirement: R("resources.service_requirement", null, ""),
-      concurrency_policy: R("resources.concurrency_policy", null, ""),
-      cost_policy: R("resources.cost_policy", null, ""),
+      availability_requirement: C("resources.availability_requirement", pol?.availability_requirement ?? null),
+      service_requirement: C("resources.service_requirement", pol?.service_requirement ?? null),
+      concurrency_policy: C("resources.concurrency_policy", pol?.concurrency_policy ?? null),
+      cost_policy: C("resources.cost_policy", pol?.cost_policy ?? null),
     },
     external_access: {
       network: C("external_access.network", netA),
       filesystem: C("external_access.filesystem", fsA),
       os_or_browser: C("external_access.os_or_browser", osA),
-      external_service: R("external_access.external_service", null, ""),
+      external_service: C("external_access.external_service", rt.external_service),
       explicitly_prohibited: C("external_access.explicitly_prohibited", prohibited),
     },
     verification: {

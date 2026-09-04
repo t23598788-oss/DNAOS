@@ -42,8 +42,8 @@ export interface InputContract {
 
 export interface OutputContract {
   readonly output_schema: Resolved<readonly string[]>;
-  readonly result_return_path: Resolved<string>;
-  readonly evidence_return_path: Resolved<string>;
+  readonly result_return_path: Resolved<readonly string[]>;
+  readonly evidence_return_path: Resolved<readonly string[]>;
   readonly error_contract: Resolved<readonly string[]>;
 }
 

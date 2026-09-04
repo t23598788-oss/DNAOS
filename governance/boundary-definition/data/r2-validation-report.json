@@ -11,12 +11,12 @@
   "boundaries_unresolved": 0,
   "dimension_complete": {
     "execution": 54,
-    "input": 0,
-    "output": 0,
-    "data": 0,
-    "authority": 0,
-    "resources": 0,
-    "external_access": 0,
+    "input": 5,
+    "output": 3,
+    "data": 3,
+    "authority": 1,
+    "resources": 163,
+    "external_access": 5,
     "verification": 98
   },
   "gates": [
@@ -30,19 +30,19 @@
       "id": "B",
       "name": "ทุกปฏิบัติการมีสัญญาขาเข้า",
       "pass": false,
-      "detail": "0/163"
+      "detail": "5/163"
     },
     {
       "id": "C",
       "name": "ทุกปฏิบัติการมีสัญญาขาออกและข้อผิดพลาด",
       "pass": false,
-      "detail": "0/163"
+      "detail": "3/163"
     },
     {
       "id": "D",
       "name": "สิทธิ์อ่าน/เขียน/รัน ระบุชัด",
       "pass": false,
-      "detail": "0/163"
+      "detail": "1/163"
     },
     {
       "id": "E",
@@ -54,7 +54,7 @@
       "id": "F",
       "name": "ขอบเขตการเข้าถึงภายนอกระบุชัด",
       "pass": false,
-      "detail": "0/163"
+      "detail": "5/163"
     },
     {
       "id": "G",
