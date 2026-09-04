@@ -2,11 +2,11 @@
   "run": "R2-BOUNDARY-DEFINITION",
   "registry_snapshot": {
     "capabilities": 163,
-    "resources": 731,
+    "resources": 730,
     "links": 170
   },
-  "registered_before": 163,
-  "deregistered_by_owner_order": 39,
+  "registered_before": 124,
+  "deregistered_by_owner_order": 0,
   "in_scope": 124,
   "boundaries_complete": 0,
   "boundaries_partial": 124,

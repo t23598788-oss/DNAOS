@@ -27,14 +27,22 @@ export interface RegistryResource {
   version?: string; content_hash?: string; status?: string;
 }
 
-function readJsonl<T>(name: string): T[] {
-  const out: T[] = [];
+/**
+ * ไฟล์ทะเบียนเป็นบันทึกแบบต่อท้าย — แถวเดิมไม่ถูกลบเมื่อมีการแก้
+ * ต้องอ่านแบบ "แถวล่าสุดชนะ" ตามคีย์ เหมือนที่ persistent-file-store ทำ
+ * ไม่งั้นจะเห็นสถานะเก่าที่ถูกแทนที่ไปแล้ว
+ */
+function readJsonl<T>(name: string, key?: keyof T): T[] {
+  const rows: T[] = [];
   for (const line of readFileSync(`${DIR}/${name}`, "utf8").split("\n")) {
     const s = line.trim();
     if (!s) continue;
-    try { out.push(JSON.parse(s) as T); } catch { /* บรรทัดเสียหนึ่งบรรทัดไม่ล้มทั้งไฟล์ */ }
+    try { rows.push(JSON.parse(s) as T); } catch { /* บรรทัดเสียหนึ่งบรรทัดไม่ล้มทั้งไฟล์ */ }
   }
-  return out;
+  if (key === undefined) return rows;
+  const latest = new Map<unknown, T>();
+  for (const r of rows) latest.set(r[key], r);
+  return [...latest.values()];
 }
 
 export interface RegistrySnapshot {
@@ -45,8 +53,8 @@ export interface RegistrySnapshot {
 
 export function loadRegistry(): RegistrySnapshot {
   return {
-    capabilities: readJsonl<RegistryCapability>("capabilities.jsonl"),
-    resources: readJsonl<RegistryResource>("resources.jsonl"),
+    capabilities: readJsonl<RegistryCapability>("capabilities.jsonl", "capability_id"),
+    resources: readJsonl<RegistryResource>("resources.jsonl", "resource_id"),
     links: readJsonl<{ resource_id: string; capability_id: string }>("resource_capabilities.jsonl"),
   };
 }

@@ -210,6 +210,8 @@ export function createLocalFileStore(options: LocalFileStoreOptions = {}): Regis
 
   return {
     writeApprovedCandidate,
+    // OWNER UNLOCK 2026-09-04 — store นี้เป็นชั้นทดสอบ ไม่ persist สถานะ
+    setCapabilityStatus: (): { changed: boolean } => ({ changed: false }),
     appendRegistrationEvent,
     addRelationship,
     removeRelationship,

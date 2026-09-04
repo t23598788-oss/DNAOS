@@ -92,6 +92,12 @@ export interface RegistryStore {
   removeRelationship(from_id: string, to_id: string, relationship_kind: string): { removed: boolean };
   addEvidence(row: Omit<EvidenceRow, "evidence_id" | "created_at">): { added: boolean };
   addVersion(row: Omit<VersionRow, "version_id" | "created_at">): { added: boolean };
+  /**
+   * เปลี่ยนสถานะของ capability ที่ลงทะเบียนแล้ว — เพิ่มภายใต้ OWNER UNLOCK 2026-09-04
+   * ใช้เมื่อรายการในทะเบียนไม่ตรงกับความจริง (เช่น source_location ชี้ไปที่ที่ไม่มีอยู่)
+   * ไม่ลบแถว ไม่แก้ตัวตน — เปลี่ยนเฉพาะ status เท่านั้น เพื่อให้ประวัติยังตรวจสอบได้
+   */
+  setCapabilityStatus(capability_id: string, status: "RETIRED" | "SUPERSEDED", reason: string): { changed: boolean };
 
   /**
    * ENUMERATION (Owner, 2026-08-26). Optional on the port for exactly the

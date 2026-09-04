@@ -81,6 +81,11 @@ export function applyMutation(request: UpdateRequest, store: RegistryStore): Upd
   } else if (request.mutation_type === "ADD_EVIDENCE") {
     const payload = request.mutation_payload as AddEvidencePayload;
     store.addEvidence({ evidence_ref: payload.evidence_ref, evidence_type: "update", related_resource_id: request.resource_id, related_capability_id: resourceOnly ? null : request.capability_id });
+  } else if (request.mutation_type === "RETIRE") {
+    const payload = request.mutation_payload as { reason?: string };
+    const reason = typeof payload.reason === "string" && payload.reason.length > 0 ? payload.reason : "";
+    if (reason === "") return rejected(request, "INVALID_RELATIONSHIP", existing);
+    store.setCapabilityStatus(request.capability_id, "RETIRED", reason);
   } else if (request.mutation_type === "ADD_VERSION") {
     const payload = request.mutation_payload as AddVersionPayload;
     const resource = existingResource ?? findResourceById(request.resource_id, store);

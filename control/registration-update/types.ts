@@ -18,7 +18,15 @@
 
 import type { CapabilityLookupResult } from "../../software/registry-database/contract";
 
-export type MutationType = "ADD_RELATIONSHIP" | "REMOVE_RELATIONSHIP" | "ADD_EVIDENCE" | "ADD_VERSION";
+export type MutationType = "ADD_RELATIONSHIP" | "REMOVE_RELATIONSHIP" | "ADD_EVIDENCE" | "ADD_VERSION" | "RETIRE";
+
+/**
+ * ถอนรายการที่ทะเบียนบอกว่ามีอยู่ แต่ความจริงไม่มี — เพิ่มภายใต้ OWNER UNLOCK 2026-09-04
+ * ไม่ลบแถว เปลี่ยนเฉพาะ status เป็น RETIRED เพื่อให้ประวัติยังตรวจสอบได้
+ */
+export interface RetirePayload {
+  reason: string;
+}
 
 export interface AddRelationshipPayload {
   to_type: string;

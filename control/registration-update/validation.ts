@@ -18,7 +18,7 @@ import type { AddEvidencePayload, AddRelationshipPayload, AddVersionPayload, Rem
 
 export type ShapeValidationResult = { ok: true } | { ok: false; reason_code: UpdateFailureReason };
 
-const KNOWN_MUTATION_TYPES = new Set(["ADD_RELATIONSHIP", "REMOVE_RELATIONSHIP", "ADD_EVIDENCE", "ADD_VERSION"]);
+const KNOWN_MUTATION_TYPES = new Set(["ADD_RELATIONSHIP", "REMOVE_RELATIONSHIP", "ADD_EVIDENCE", "ADD_VERSION", "RETIRE"]);
 
 /** Never legal inside mutation_payload, for any mutation_type — these name identity/semantic-identity fields this path may never touch. */
 const FORBIDDEN_PAYLOAD_KEYS = new Set(["canonical_name", "name", "resource_type", "domain", "source_location", "source_system", "semantic_fingerprint", "content_hash", "owner", "kind", "data_classification", "scope"]);

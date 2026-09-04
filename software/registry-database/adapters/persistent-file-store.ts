@@ -300,8 +300,23 @@ export function createPersistentFileStore(options: PersistentFileStoreOptions = 
     return { added: true };
   }
 
+    // เปลี่ยนสถานะของ capability — เพิ่มภายใต้ OWNER UNLOCK 2026-09-04
+    // ไม่ลบแถวออกจากทะเบียน เพราะประวัติต้องตรวจสอบย้อนหลังได้เสมอ
+    function setCapabilityStatus(capability_id: string, status: "RETIRED" | "SUPERSEDED", reason: string): { changed: boolean } {
+      const cap = capabilities.get(capability_id);
+      if (cap === undefined) return { changed: false };
+      if (cap.status === status) return { changed: false };
+      const updated = { ...cap, status };
+      capabilities.set(capability_id, updated);
+      persist("capabilities", updated);
+      addEvidence({ evidence_ref: `status:${status} reason:${reason}`, evidence_type: "update",
+                    related_resource_id: null, related_capability_id: capability_id });
+      return { changed: true };
+    }
+
   return {
     writeApprovedCandidate,
+      setCapabilityStatus,
     appendRegistrationEvent,
     addRelationship,
     removeRelationship,
