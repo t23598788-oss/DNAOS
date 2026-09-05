@@ -1,0 +1,128 @@
+{
+ "total": 12,
+ "passed": 10,
+ "blocked": 2,
+ "llm_call_count": 0,
+ "cases": [
+  {
+   "phrase": "คำนวณราคา",
+   "command_id": "CALCULATE_PRICE",
+   "plan_nodes": 3,
+   "link_verdict": "LINKABLE",
+   "manifest_operations": 3,
+   "llm_calls": 0,
+   "passed": true,
+   "blocker": null
+  },
+  {
+   "phrase": "ขอราคาหิน",
+   "command_id": "CALCULATE_PRICE",
+   "plan_nodes": 3,
+   "link_verdict": "LINKABLE",
+   "manifest_operations": 3,
+   "llm_calls": 0,
+   "passed": true,
+   "blocker": null
+  },
+  {
+   "phrase": "ออกใบแจ้งหนี้",
+   "command_id": "ISSUE_INVOICE",
+   "plan_nodes": 2,
+   "link_verdict": "ADAPTER_REQUIRED",
+   "manifest_operations": null,
+   "llm_calls": 0,
+   "passed": false,
+   "blocker": "ต่อไม่ได้"
+  },
+  {
+   "phrase": "จับคู่การชำระเงิน",
+   "command_id": "MATCH_PAYMENT",
+   "plan_nodes": 2,
+   "link_verdict": "LINKABLE",
+   "manifest_operations": 2,
+   "llm_calls": 0,
+   "passed": true,
+   "blocker": null
+  },
+  {
+   "phrase": "ลูกค้าโอนเงินมาแล้ว",
+   "command_id": "MATCH_PAYMENT",
+   "plan_nodes": 2,
+   "link_verdict": "LINKABLE",
+   "manifest_operations": 2,
+   "llm_calls": 0,
+   "passed": true,
+   "blocker": null
+  },
+  {
+   "phrase": "ดูว่าเบอร์นี้เป็นบริษัทไหน",
+   "command_id": "LINK_COMPANY",
+   "plan_nodes": 1,
+   "link_verdict": "LINKABLE",
+   "manifest_operations": 1,
+   "llm_calls": 0,
+   "passed": true,
+   "blocker": null
+  },
+  {
+   "phrase": "บันทึกหน้างาน",
+   "command_id": "REGISTER_SITE_LOCATION",
+   "plan_nodes": 2,
+   "link_verdict": "BLOCKED",
+   "manifest_operations": null,
+   "llm_calls": 0,
+   "passed": false,
+   "blocker": "unit ใช้งานไม่ได้: u.site-location (DEGRADED)"
+  },
+  {
+   "phrase": "อ่านสลิป",
+   "command_id": "CLASSIFY_RECEIPT_IMAGE",
+   "plan_nodes": 1,
+   "link_verdict": "LINKABLE",
+   "manifest_operations": 1,
+   "llm_calls": 0,
+   "passed": true,
+   "blocker": null
+  },
+  {
+   "phrase": "รับสัญญาณเครื่องจักร",
+   "command_id": "RECORD_EQUIPMENT_TELEMETRY",
+   "plan_nodes": 1,
+   "link_verdict": "LINKABLE",
+   "manifest_operations": 1,
+   "llm_calls": 0,
+   "passed": true,
+   "blocker": null
+  },
+  {
+   "phrase": "ล็อกรถ",
+   "command_id": "LOCK_EQUIPMENT",
+   "plan_nodes": 1,
+   "link_verdict": "LINKABLE",
+   "manifest_operations": 1,
+   "llm_calls": 0,
+   "passed": true,
+   "blocker": null
+  },
+  {
+   "phrase": "ขอสิทธิ์หน้างาน",
+   "command_id": "REQUEST_SITE_AUTHORIZATION",
+   "plan_nodes": 2,
+   "link_verdict": "LINKABLE",
+   "manifest_operations": 2,
+   "llm_calls": 0,
+   "passed": true,
+   "blocker": null
+  },
+  {
+   "phrase": "ตอบลูกค้าในแชท",
+   "command_id": "RESPOND_TO_MESSAGE",
+   "plan_nodes": 2,
+   "link_verdict": "LINKABLE",
+   "manifest_operations": 2,
+   "llm_calls": 0,
+   "passed": true,
+   "blocker": null
+  }
+ ]
+}

@@ -1,0 +1,49 @@
+{
+ "schema": "FLOW_GRAPH_V1",
+ "flow_id": "VF_PROCURE_TO_PAY",
+ "trigger": "การกดปุ่มในแชท",
+ "ordered_nodes": [
+  {
+   "node_id": "VF5.1",
+   "unit_id": "u.line-ingest",
+   "port_id": "p.line.webhook.in",
+   "layer": "L1_INGESTION",
+   "nature": "OBSERVATION",
+   "operation": "INGEST",
+   "resolved": true
+  },
+  {
+   "node_id": "VF5.2",
+   "unit_id": null,
+   "port_id": null,
+   "layer": "L5_TRANSACTION_STATE",
+   "nature": "DECISION",
+   "operation": "TRANSACTION",
+   "resolved": false
+  }
+ ],
+ "edges": [
+  {
+   "from": "VF5.1",
+   "to": "VF5.2"
+  }
+ ],
+ "input_contract": null,
+ "output_contract": null,
+ "terminal_condition": "ไม่มี terminal state ที่พิสูจน์ได้",
+ "money_effects": [
+  "PAYABLE_CREATED"
+ ],
+ "external_actions": [],
+ "failure_routes": [
+  "ไม่มีเส้นทางอนุมัติหรือจ่ายจริงที่พิสูจน์ได้"
+ ],
+ "required_resources": [
+  "line",
+  "supabase"
+ ],
+ "required_authority": [],
+ "health": "PARTIAL",
+ "resolved_nodes": 1,
+ "total_nodes": 2
+}

@@ -1,0 +1,126 @@
+{
+ "schema": "FLOW_GRAPH_V1",
+ "flow_id": "VF_INQUIRY_TO_CASH",
+ "trigger": "คำถามราคา",
+ "ordered_nodes": [
+  {
+   "node_id": "VF2.1",
+   "unit_id": "u.line-ingest",
+   "port_id": "p.line.webhook.in",
+   "layer": "L1_INGESTION",
+   "nature": "OBSERVATION",
+   "operation": "INGEST",
+   "resolved": true
+  },
+  {
+   "node_id": "VF2.2",
+   "unit_id": "u.identity-context",
+   "port_id": "p.identity.resolve.in",
+   "layer": "L2_IDENTITY_CONTEXT",
+   "nature": "DECISION",
+   "operation": "RESOLVE_IDENTITY",
+   "resolved": true
+  },
+  {
+   "node_id": "VF2.3",
+   "unit_id": "u.quote-price",
+   "port_id": "p.price.calculate.in",
+   "layer": "L4_CALCULATION",
+   "nature": "DECISION",
+   "operation": "CALCULATION",
+   "resolved": true
+  },
+  {
+   "node_id": "VF2.4",
+   "unit_id": "u.quote-price",
+   "port_id": "p.price.calculate.in",
+   "layer": "L3_BUSINESS_STATE",
+   "nature": "DECISION",
+   "operation": "BUSINESS_STATE",
+   "resolved": true
+  },
+  {
+   "node_id": "VF2.5",
+   "unit_id": null,
+   "port_id": null,
+   "layer": "L5_TRANSACTION_STATE",
+   "nature": "DECISION",
+   "operation": "TRANSACTION",
+   "resolved": false
+  },
+  {
+   "node_id": "VF2.6",
+   "unit_id": "u.document-issuance",
+   "port_id": "p.document.issue.in",
+   "layer": "L6_ARTIFACT",
+   "nature": "DECISION",
+   "operation": "ARTIFACT",
+   "resolved": true
+  },
+  {
+   "node_id": "VF2.7",
+   "unit_id": "u.payment-matching",
+   "port_id": "p.payment.claim.in",
+   "layer": "L5_TRANSACTION_STATE",
+   "nature": "DECISION",
+   "operation": "TRANSACTION",
+   "resolved": true
+  }
+ ],
+ "edges": [
+  {
+   "from": "VF2.1",
+   "to": "VF2.2"
+  },
+  {
+   "from": "VF2.2",
+   "to": "VF2.3"
+  },
+  {
+   "from": "VF2.3",
+   "to": "VF2.4"
+  },
+  {
+   "from": "VF2.4",
+   "to": "VF2.5"
+  },
+  {
+   "from": "VF2.5",
+   "to": "VF2.6"
+  },
+  {
+   "from": "VF2.6",
+   "to": "VF2.7"
+  }
+ ],
+ "input_contract": null,
+ "output_contract": null,
+ "terminal_condition": "หนี้ถูกปิดและมีหลักฐานการรับเงิน",
+ "money_effects": [
+  "REVENUE_CREATED",
+  "TAX_CREATED",
+  "RECEIVABLE_CREATED",
+  "PAYMENT_RECEIVED",
+  "SETTLED"
+ ],
+ "external_actions": [
+  "LINE push แจ้งผลการชำระ"
+ ],
+ "failure_routes": [
+  "ไม่ผูกบริษัท = คิดราคาไม่ได้",
+  "ไม่มีพิกัดหน้างาน = คำนวณค่าขนส่งไม่ได้",
+  "ไม่มีเส้นทางอัตโนมัติจากใบเสนอราคาไปเป็นคำสั่งซื้อ",
+  "ไม่พบหนี้ที่ตรง = ไม่ปิดยอด"
+ ],
+ "required_resources": [
+  "company-settings",
+  "line",
+  "supabase"
+ ],
+ "required_authority": [
+  "ADMIN_TIER"
+ ],
+ "health": "PARTIAL",
+ "resolved_nodes": 6,
+ "total_nodes": 7
+}

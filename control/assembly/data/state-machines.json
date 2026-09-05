@@ -1,0 +1,348 @@
+[
+ {
+  "schema": "STATE_MACHINE_V1",
+  "machine_id": "sm.authorization.lifecycle",
+  "entity": "pending_authorizations",
+  "states": [
+   "pending",
+   "approved",
+   "denied",
+   "expired"
+  ],
+  "initial_state": "pending",
+  "terminal_states": [
+   "approved",
+   "denied",
+   "expired"
+  ],
+  "transitions": [
+   {
+    "from": "(none)",
+    "to": "pending",
+    "trigger": "ผู้ใช้ขอสิทธิ์หน้างานที่ไม่ใช่ของบริษัทตน",
+    "guard": null,
+    "actor": "ผู้ใช้ LINE",
+    "authority": "NONE",
+    "action": "insert pending_authorizations",
+    "data_effect": [
+     "pending_authorizations"
+    ],
+    "financial_effect": null,
+    "event_emitted": "AUTHORIZATION_REQUESTED",
+    "failure_state": null,
+    "implementation_owner": "supabase/functions/line-webhook-v2/engines/authorization-check.ts:60"
+   },
+   {
+    "from": "pending",
+    "to": "approved",
+    "trigger": "เจ้าของบริษัทอนุมัติ",
+    "guard": null,
+    "actor": "ผู้ใช้ LINE ของบริษัทเจ้าของ",
+    "authority": "NONE",
+    "action": null,
+    "data_effect": [
+     "pending_authorizations"
+    ],
+    "financial_effect": null,
+    "event_emitted": null,
+    "failure_state": null,
+    "implementation_owner": null
+   },
+   {
+    "from": "pending",
+    "to": "denied",
+    "trigger": "เจ้าของบริษัทปฏิเสธ",
+    "guard": null,
+    "actor": "ผู้ใช้ LINE ของบริษัทเจ้าของ",
+    "authority": "NONE",
+    "action": null,
+    "data_effect": [
+     "pending_authorizations"
+    ],
+    "financial_effect": null,
+    "event_emitted": null,
+    "failure_state": null,
+    "implementation_owner": null
+   },
+   {
+    "from": "pending",
+    "to": "expired",
+    "trigger": "หมดอายุตามเวลา",
+    "guard": null,
+    "actor": "ระบบ",
+    "authority": "NONE",
+    "action": null,
+    "data_effect": [
+     "pending_authorizations"
+    ],
+    "financial_effect": null,
+    "event_emitted": null,
+    "failure_state": null,
+    "implementation_owner": null
+   }
+  ],
+  "source_pointer": "supabase/migrations/20260726000003_pending_authorizations.sql:10 (status check constraint)"
+ },
+ {
+  "schema": "STATE_MACHINE_V1",
+  "machine_id": "sm.equipment.lifecycle",
+  "entity": "equipment_assets.current_status",
+  "states": [
+   "LOCKED",
+   "UNLOCKED",
+   "RUNNING"
+  ],
+  "initial_state": "LOCKED",
+  "terminal_states": [],
+  "transitions": [
+   {
+    "from": "LOCKED",
+    "to": "UNLOCKED",
+    "trigger": "แอดมินสั่งสตาร์ต",
+    "guard": "คนขับต้องมีสิทธิ์คู่กับเครื่องคันนั้น",
+    "actor": "แอดมิน",
+    "authority": "ADMIN_TIER",
+    "action": "update current_status = UNLOCKED",
+    "data_effect": [
+     "equipment_assets"
+    ],
+    "financial_effect": null,
+    "event_emitted": null,
+    "failure_state": null,
+    "implementation_owner": "app/api/admin/equipment/trigger-start/route.ts:54"
+   },
+   {
+    "from": "UNLOCKED",
+    "to": "RUNNING",
+    "trigger": "กล่องรายงานว่าเครื่องยนต์ทำงาน",
+    "guard": "vccVoltage >= ENGINE_RUNNING_THRESHOLD_VCC",
+    "actor": "กล่องฮาร์ดแวร์",
+    "authority": "MACHINE_SECRET",
+    "action": "update current_status = RUNNING",
+    "data_effect": [
+     "equipment_assets",
+     "equipment_telemetry_pings"
+    ],
+    "financial_effect": null,
+    "event_emitted": "TELEMETRY_RECORDED",
+    "failure_state": null,
+    "implementation_owner": "app/api/internal/equipment/telemetry/route.ts:80"
+   },
+   {
+    "from": "RUNNING",
+    "to": "LOCKED",
+    "trigger": "งานเบื้องหลังสั่งล็อก",
+    "guard": null,
+    "actor": "งานเบื้องหลัง",
+    "authority": "MACHINE_SECRET",
+    "action": "update current_status = LOCKED",
+    "data_effect": [
+     "equipment_assets"
+    ],
+    "financial_effect": null,
+    "event_emitted": "EQUIPMENT_LOCKED",
+    "failure_state": null,
+    "implementation_owner": "app/api/internal/equipment/lock-command/route.ts:64"
+   },
+   {
+    "from": "UNLOCKED",
+    "to": "LOCKED",
+    "trigger": "ถอนสิทธิ์คนขับ",
+    "guard": null,
+    "actor": "แอดมิน",
+    "authority": "ADMIN_TIER",
+    "action": "update current_status = LOCKED",
+    "data_effect": [
+     "equipment_assets",
+     "driver_equipment_permissions"
+    ],
+    "financial_effect": null,
+    "event_emitted": null,
+    "failure_state": null,
+    "implementation_owner": "app/api/admin/equipment/toggle-permission/route.ts:47"
+   }
+  ],
+  "source_pointer": "equipment routes"
+ },
+ {
+  "schema": "STATE_MACHINE_V1",
+  "machine_id": "sm.conversation.mode",
+  "entity": "line_conversation_controls.mode",
+  "states": [
+   "ai",
+   "human_takeover"
+  ],
+  "initial_state": "ai",
+  "terminal_states": [],
+  "transitions": [
+   {
+    "from": "ai",
+    "to": "human_takeover",
+    "trigger": "ข้อความเข้าเกณฑ์การขอคุยกับคน",
+    "guard": null,
+    "actor": "ผู้ใช้ LINE หรือทีมงาน",
+    "authority": "NONE",
+    "action": "upsert line_conversation_controls",
+    "data_effect": [
+     "line_conversation_controls"
+    ],
+    "financial_effect": null,
+    "event_emitted": null,
+    "failure_state": null,
+    "implementation_owner": "supabase/functions/line-webhook-v2/engines/human-takeover.ts:20"
+   },
+   {
+    "from": "human_takeover",
+    "to": "ai",
+    "trigger": "คืนโหมดอัตโนมัติ",
+    "guard": null,
+    "actor": "UNKNOWN",
+    "authority": "NONE",
+    "action": null,
+    "data_effect": [
+     "line_conversation_controls"
+    ],
+    "financial_effect": null,
+    "event_emitted": null,
+    "failure_state": null,
+    "implementation_owner": null
+   }
+  ],
+  "source_pointer": "supabase/functions/line-webhook-v2/engines/human-takeover.ts:5,9,14"
+ },
+ {
+  "schema": "STATE_MACHINE_V1",
+  "machine_id": "sm.debt.lifecycle",
+  "entity": "debt_snapshots",
+  "states": [
+   "OPEN",
+   "PARTIALLY_SETTLED",
+   "SETTLED"
+  ],
+  "initial_state": "OPEN",
+  "terminal_states": [
+   "SETTLED"
+  ],
+  "transitions": [
+   {
+    "from": "OPEN",
+    "to": "PARTIALLY_SETTLED",
+    "trigger": "รับชำระบางส่วน",
+    "guard": "ยอดที่ชำระ < ยอดคงเหลือ",
+    "actor": "ระบบ",
+    "authority": "NONE",
+    "action": "update debt_snapshots + insert debt_events",
+    "data_effect": [
+     "debt_snapshots",
+     "debt_events"
+    ],
+    "financial_effect": "PAYMENT_IN",
+    "event_emitted": "PAYMENT_MATCHED",
+    "failure_state": null,
+    "implementation_owner": "supabase/functions/line-webhook-v2/engines/auto-confirm-payment.ts:120,130"
+   },
+   {
+    "from": "PARTIALLY_SETTLED",
+    "to": "SETTLED",
+    "trigger": "รับชำระส่วนที่เหลือ",
+    "guard": "ยอดคงเหลือถึงศูนย์",
+    "actor": "ระบบ",
+    "authority": "NONE",
+    "action": "update debt_snapshots",
+    "data_effect": [
+     "debt_snapshots",
+     "debt_events"
+    ],
+    "financial_effect": "SETTLEMENT",
+    "event_emitted": "PAYMENT_MATCHED",
+    "failure_state": null,
+    "implementation_owner": "supabase/functions/line-webhook-v2/engines/auto-confirm-payment.ts:120"
+   },
+   {
+    "from": "OPEN",
+    "to": "SETTLED",
+    "trigger": "รับชำระเต็มจำนวน",
+    "guard": "ยอดที่ชำระ >= ยอดคงเหลือ",
+    "actor": "ระบบ",
+    "authority": "NONE",
+    "action": "update debt_snapshots",
+    "data_effect": [
+     "debt_snapshots",
+     "debt_events"
+    ],
+    "financial_effect": "SETTLEMENT",
+    "event_emitted": "PAYMENT_MATCHED",
+    "failure_state": null,
+    "implementation_owner": "supabase/functions/line-webhook-v2/engines/auto-confirm-payment.ts:120"
+   }
+  ],
+  "source_pointer": "supabase/functions/line-webhook-v2/engines/auto-confirm-payment.ts"
+ },
+ {
+  "schema": "STATE_MACHINE_V1",
+  "machine_id": "sm.document.lifecycle",
+  "entity": "invoices · standalone_documents",
+  "states": [
+   "DRAFT",
+   "ISSUED",
+   "DELIVERED",
+   "CONFIRMED"
+  ],
+  "initial_state": "DRAFT",
+  "terminal_states": [
+   "CONFIRMED"
+  ],
+  "transitions": [
+   {
+    "from": "DRAFT",
+    "to": "ISSUED",
+    "trigger": "แอดมินยืนยันออกเอกสาร",
+    "guard": null,
+    "actor": "แอดมิน",
+    "authority": "ADMIN_TIER",
+    "action": "insert invoices/standalone_documents",
+    "data_effect": [
+     "invoices",
+     "standalone_documents"
+    ],
+    "financial_effect": "REVENUE",
+    "event_emitted": "INVOICE_ISSUED",
+    "failure_state": null,
+    "implementation_owner": "app/api/admin/documents/route.ts:181,202"
+   },
+   {
+    "from": "ISSUED",
+    "to": "DELIVERED",
+    "trigger": "ส่งเอกสารเข้าแชทลูกค้า",
+    "guard": "lineUserId ผูกกับบริษัทลูกค้า",
+    "actor": "แอดมิน",
+    "authority": "ADMIN_TIER",
+    "action": "insert line_events",
+    "data_effect": [
+     "line_events"
+    ],
+    "financial_effect": null,
+    "event_emitted": null,
+    "failure_state": null,
+    "implementation_owner": "app/api/admin/line-customers/[lineUserId]/send-document/route.ts:97"
+   },
+   {
+    "from": "DELIVERED",
+    "to": "CONFIRMED",
+    "trigger": "ยืนยันเอกสาร",
+    "guard": null,
+    "actor": "แอดมิน",
+    "authority": "ADMIN_TIER",
+    "action": null,
+    "data_effect": [
+     "invoices"
+    ],
+    "financial_effect": null,
+    "event_emitted": null,
+    "failure_state": null,
+    "implementation_owner": "app/api/admin/documents/[id]/confirm/route.ts"
+   }
+  ],
+  "source_pointer": "document routes"
+ }
+]

@@ -1,0 +1,307 @@
+[
+ {
+  "schema": "COMMAND_SPEC_V1",
+  "command_id": "CALCULATE_PRICE",
+  "intent": "คำนวณราคาวัสดุพร้อมค่าขนส่ง",
+  "required_inputs": [
+   "company_id",
+   "material_code",
+   "quantity",
+   "unit"
+  ],
+  "optional_inputs": [
+   "destination_site_id"
+  ],
+  "required_capabilities": [
+   "pricing.quote.calculate",
+   "geo.distance.calculate",
+   "identity.company.resolve"
+  ],
+  "expected_result": "dc.pricing.quote_result.v1",
+  "expected_event": "PRICE_CALCULATED",
+  "allowed_roles": [
+   "CUSTOMER",
+   "STAFF",
+   "OWNER"
+  ],
+  "side_effect_class": "READ_ONLY",
+  "verification": "FLOW_E_PRICE_CALCULATION",
+  "input_schema_ref": "dc.pricing.quote_request.v1"
+ },
+ {
+  "schema": "COMMAND_SPEC_V1",
+  "command_id": "ISSUE_INVOICE",
+  "intent": "ออกใบแจ้งหนี้และส่งให้ลูกค้า",
+  "required_inputs": [
+   "document_type",
+   "company_id",
+   "items"
+  ],
+  "optional_inputs": [
+   "customer_order_id",
+   "notes"
+  ],
+  "required_capabilities": [
+   "document.issue",
+   "document.deliver",
+   "identity.company.resolve"
+  ],
+  "expected_result": "dc.document.issued.v1",
+  "expected_event": "INVOICE_ISSUED",
+  "allowed_roles": [
+   "STAFF",
+   "OWNER"
+  ],
+  "side_effect_class": "FINANCIAL",
+  "verification": "FLOW_G_DOCUMENT_ISSUANCE",
+  "input_schema_ref": "dc.document.issue_request.v1"
+ },
+ {
+  "schema": "COMMAND_SPEC_V1",
+  "command_id": "MATCH_PAYMENT",
+  "intent": "จับคู่การชำระเงินกับหนี้คงค้าง",
+  "required_inputs": [
+   "company_id",
+   "amount",
+   "claimed_at",
+   "currency"
+  ],
+  "optional_inputs": [
+   "receipt_document_id"
+  ],
+  "required_capabilities": [
+   "payment.claim.record",
+   "payment.match",
+   "identity.company.resolve"
+  ],
+  "expected_result": "dc.payment.match_result.v1",
+  "expected_event": "PAYMENT_MATCHED",
+  "allowed_roles": [
+   "CUSTOMER",
+   "STAFF",
+   "OWNER"
+  ],
+  "side_effect_class": "FINANCIAL",
+  "verification": "FLOW_H_PAYMENT_MATCHING",
+  "input_schema_ref": "dc.payment.claim.v1"
+ },
+ {
+  "schema": "COMMAND_SPEC_V1",
+  "command_id": "LINK_COMPANY",
+  "intent": "ตรวจว่าผู้ใช้ LINE ผูกกับบริษัทไหน",
+  "required_inputs": [
+   "line_user_id"
+  ],
+  "optional_inputs": [],
+  "required_capabilities": [
+   "identity.company.resolve"
+  ],
+  "expected_result": "dc.identity.company_context.v1",
+  "expected_event": null,
+  "allowed_roles": [
+   "STAFF",
+   "OWNER"
+  ],
+  "side_effect_class": "READ_ONLY",
+  "verification": "FLOW_C_COMPANY_LINKING",
+  "input_schema_ref": "dc.line.inbound_message.v1"
+ },
+ {
+  "schema": "COMMAND_SPEC_V1",
+  "command_id": "REGISTER_SITE_LOCATION",
+  "intent": "บันทึกพิกัดหน้างานของลูกค้า",
+  "required_inputs": [
+   "company_id",
+   "address",
+   "capture_method"
+  ],
+  "optional_inputs": [
+   "gps_lat",
+   "gps_lng"
+  ],
+  "required_capabilities": [
+   "site.location.capture",
+   "identity.company.resolve"
+  ],
+  "expected_result": "dc.site.location_capture.v1",
+  "expected_event": "SITE_REGISTERED",
+  "allowed_roles": [
+   "CUSTOMER",
+   "STAFF",
+   "OWNER"
+  ],
+  "side_effect_class": "LOCAL_WRITE",
+  "verification": "FLOW_I_SITE_LOCATION_CAPTURE",
+  "input_schema_ref": "dc.site.location_capture.v1"
+ },
+ {
+  "schema": "COMMAND_SPEC_V1",
+  "command_id": "CLASSIFY_RECEIPT_IMAGE",
+  "intent": "อ่านรูปเอกสารและจำแนกชนิด",
+  "required_inputs": [
+   "image_ref"
+  ],
+  "optional_inputs": [
+   "sender_role"
+  ],
+  "required_capabilities": [
+   "image.receipt.classify"
+  ],
+  "expected_result": "dc.image.classified_receipt.v1",
+  "expected_event": "RECEIPT_CLASSIFIED",
+  "allowed_roles": [
+   "CUSTOMER",
+   "STAFF",
+   "OWNER"
+  ],
+  "side_effect_class": "LOCAL_WRITE",
+  "verification": "FLOW_L_IMAGE_QR_PROCESSING",
+  "input_schema_ref": "dc.image.classified_receipt.v1"
+ },
+ {
+  "schema": "COMMAND_SPEC_V1",
+  "command_id": "RECORD_EQUIPMENT_TELEMETRY",
+  "intent": "รับสัญญาณจากกล่องเครื่องจักร",
+  "required_inputs": [
+   "imei",
+   "vcc_voltage"
+  ],
+  "optional_inputs": [
+   "recorded_at"
+  ],
+  "required_capabilities": [
+   "equipment.telemetry.record",
+   "equipment.hours.accumulate"
+  ],
+  "expected_result": "dc.equipment.engine_hours.v1",
+  "expected_event": "TELEMETRY_RECORDED",
+  "allowed_roles": [
+   "MACHINE"
+  ],
+  "side_effect_class": "LOCAL_WRITE",
+  "verification": "FLOW_J_EQUIPMENT_TELEMETRY_AND_ENGINE_HOURS",
+  "input_schema_ref": "dc.equipment.telemetry_ping.v1"
+ },
+ {
+  "schema": "COMMAND_SPEC_V1",
+  "command_id": "LOCK_EQUIPMENT",
+  "intent": "สั่งล็อกเครื่องจักร",
+  "required_inputs": [
+   "equipment_id",
+   "action"
+  ],
+  "optional_inputs": [
+   "requested_by"
+  ],
+  "required_capabilities": [
+   "equipment.control"
+  ],
+  "expected_result": "dc.equipment.control_command.v1",
+  "expected_event": "EQUIPMENT_LOCKED",
+  "allowed_roles": [
+   "OWNER",
+   "MACHINE"
+  ],
+  "side_effect_class": "DEVICE_CONTROL",
+  "verification": "FLOW_K_EQUIPMENT_ACCESS_CONTROL",
+  "input_schema_ref": "dc.equipment.control_command.v1"
+ },
+ {
+  "schema": "COMMAND_SPEC_V1",
+  "command_id": "REFRESH_PROFILE",
+  "intent": "ขอรีเฟรชโปรไฟล์ LINE",
+  "required_inputs": [
+   "line_user_id",
+   "reason"
+  ],
+  "optional_inputs": [],
+  "required_capabilities": [
+   "profile.refresh.request"
+  ],
+  "expected_result": "dc.profile.snapshot.v1",
+  "expected_event": "PROFILE_REFRESH_REQUESTED",
+  "allowed_roles": [
+   "STAFF",
+   "OWNER"
+  ],
+  "side_effect_class": "LOCAL_WRITE",
+  "verification": "FLOW_B_LINE_PROFILE_UPDATE",
+  "input_schema_ref": "dc.profile.refresh_request.v1"
+ },
+ {
+  "schema": "COMMAND_SPEC_V1",
+  "command_id": "REQUEST_SITE_AUTHORIZATION",
+  "intent": "ขออนุมัติสิทธิ์หน้างาน",
+  "required_inputs": [
+   "requester_line_user_id",
+   "destination_site_id",
+   "status"
+  ],
+  "optional_inputs": [],
+  "required_capabilities": [
+   "authorization.site.request",
+   "identity.site.ownership"
+  ],
+  "expected_result": "dc.authorization.site_request.v1",
+  "expected_event": "AUTHORIZATION_REQUESTED",
+  "allowed_roles": [
+   "CUSTOMER",
+   "STAFF"
+  ],
+  "side_effect_class": "LOCAL_WRITE",
+  "verification": "FLOW_C_COMPANY_LINKING",
+  "input_schema_ref": "dc.authorization.site_request.v1"
+ },
+ {
+  "schema": "COMMAND_SPEC_V1",
+  "command_id": "AUTOFILL_DOCUMENT",
+  "intent": "เติมข้อมูลเอกสารจากข้อมูลเดิม",
+  "required_inputs": [
+   "document_type",
+   "company_id",
+   "items"
+  ],
+  "optional_inputs": [],
+  "required_capabilities": [
+   "document.autofill"
+  ],
+  "expected_result": "dc.document.issue_request.v1",
+  "expected_event": null,
+  "allowed_roles": [
+   "STAFF",
+   "OWNER"
+  ],
+  "side_effect_class": "READ_ONLY",
+  "verification": "FLOW_D_DOCUMENT_AUTOFILL",
+  "input_schema_ref": "dc.document.issue_request.v1"
+ },
+ {
+  "schema": "COMMAND_SPEC_V1",
+  "command_id": "RESPOND_TO_MESSAGE",
+  "intent": "ตัดสินและส่งคำตอบในแชท",
+  "required_inputs": [
+   "line_user_id",
+   "message_type",
+   "received_at"
+  ],
+  "optional_inputs": [
+   "text",
+   "reply_token"
+  ],
+  "required_capabilities": [
+   "chat.response.decide",
+   "chat.reply.send",
+   "identity.company.resolve"
+  ],
+  "expected_result": "dc.chat.outbound_message.v1",
+  "expected_event": "MESSAGE_ANSWERED",
+  "allowed_roles": [
+   "CUSTOMER",
+   "STAFF",
+   "OWNER"
+  ],
+  "side_effect_class": "EXTERNAL_WRITE",
+  "verification": "FLOW_M_AUTOMATIC_CHAT_RESPONSE",
+  "input_schema_ref": "dc.line.inbound_message.v1"
+ }
+]

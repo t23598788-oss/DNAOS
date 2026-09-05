@@ -1,0 +1,83 @@
+{
+ "schema": "FLOW_GRAPH_V1",
+ "flow_id": "VF_EQUIPMENT_TO_AUTHORITY_ACTION",
+ "trigger": "imei และ vccVoltage",
+ "ordered_nodes": [
+  {
+   "node_id": "VF7.1",
+   "unit_id": "u.equipment-telemetry",
+   "port_id": "p.equipment.telemetry.in",
+   "layer": "L0_EXTERNAL_INPUT",
+   "nature": "OBSERVATION",
+   "operation": "INGEST",
+   "resolved": true
+  },
+  {
+   "node_id": "VF7.2",
+   "unit_id": "u.equipment-telemetry",
+   "port_id": "p.equipment.telemetry.in",
+   "layer": "L4_CALCULATION",
+   "nature": "DECISION",
+   "operation": "CALCULATION",
+   "resolved": true
+  },
+  {
+   "node_id": "VF7.3",
+   "unit_id": "u.equipment-access",
+   "port_id": "p.equipment.control.in",
+   "layer": "L3_BUSINESS_STATE",
+   "nature": "DECISION",
+   "operation": "BUSINESS_STATE",
+   "resolved": true
+  },
+  {
+   "node_id": "VF7.4",
+   "unit_id": "u.equipment-access",
+   "port_id": "p.equipment.control.in",
+   "layer": "L8_EXTERNAL_ACTION",
+   "nature": "EXTERNAL_ACTION",
+   "operation": "ACTION",
+   "resolved": true
+  }
+ ],
+ "edges": [
+  {
+   "from": "VF7.1",
+   "to": "VF7.2"
+  },
+  {
+   "from": "VF7.2",
+   "to": "VF7.3"
+  },
+  {
+   "from": "VF7.3",
+   "to": "VF7.4"
+  }
+ ],
+ "input_contract": null,
+ "output_contract": null,
+ "terminal_condition": "เครื่องจักรอยู่ในสถานะ RUNNING / LOCKED / UNLOCKED",
+ "money_effects": [
+  "COST_CREATED"
+ ],
+ "external_actions": [
+  "สั่งล็อก/ปลดล็อกเครื่องจักร",
+  "อัปเดต LINE rich menu ของคนขับ"
+ ],
+ "failure_routes": [
+  "secret ไม่ตรง = ปฏิเสธ",
+  "สะสมไม่สำเร็จ = 500",
+  "อัปเดตไม่สำเร็จ = เครื่องยังไม่ถูกล็อก"
+ ],
+ "required_resources": [
+  "line",
+  "supabase"
+ ],
+ "required_authority": [
+  "ADMIN_TIER",
+  "MACHINE_SECRET"
+ ],
+ "health": "PARTIAL",
+ "resolved_nodes": 4,
+ "total_nodes": 4
+}

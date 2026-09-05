@@ -1,0 +1,918 @@
+[
+ {
+  "schema": "DATA_CONTRACT_V1",
+  "schema_id": "dc.line.inbound_message.v1",
+  "entity_type": "LineInboundMessage",
+  "schema_version": "1.0",
+  "json_schema": {
+   "type": "object",
+   "properties": {
+    "line_user_id": {
+     "type": "string",
+     "description": "ผู้ส่งใน LINE"
+    },
+    "line_event_id": {
+     "type": "string",
+     "description": "แถวใน line_events"
+    },
+    "message_type": {
+     "type": "string",
+     "enum": [
+      "text",
+      "image",
+      "file",
+      "location",
+      "audio",
+      "postback",
+      "follow",
+      "unfollow",
+      "join"
+     ]
+    },
+    "text": {
+     "type": "string"
+    },
+    "reply_token": {
+     "type": "string"
+    },
+    "received_at": {
+     "type": "string",
+     "format": "date-time"
+    }
+   },
+   "required": [
+    "line_user_id",
+    "message_type",
+    "received_at"
+   ]
+  },
+  "identity_fields": [
+   "line_user_id",
+   "line_event_id"
+  ],
+  "correlation_fields": [
+   "line_event_id"
+  ],
+  "source_of_truth": "line_events",
+  "compatibility": "BACKWARD_COMPATIBLE",
+  "supersedes": null,
+  "deprecated_by": null,
+  "introduced_at": "2026-09-05",
+  "identity_semantics": "ENTITY"
+ },
+ {
+  "schema": "DATA_CONTRACT_V1",
+  "schema_id": "dc.identity.company_context.v1",
+  "entity_type": "CompanyContext",
+  "schema_version": "1.0",
+  "json_schema": {
+   "type": "object",
+   "properties": {
+    "line_user_id": {
+     "type": "string"
+    },
+    "company_id": {
+     "type": "string",
+     "description": "บริษัทที่ผู้ใช้ผูกอยู่"
+    },
+    "role": {
+     "type": "string"
+    },
+    "trust_level": {
+     "type": "string"
+    }
+   },
+   "required": [
+    "line_user_id",
+    "company_id"
+   ]
+  },
+  "identity_fields": [
+   "company_id"
+  ],
+  "correlation_fields": [
+   "line_user_id"
+  ],
+  "source_of_truth": "company_line_links",
+  "compatibility": "BACKWARD_COMPATIBLE",
+  "supersedes": null,
+  "deprecated_by": null,
+  "introduced_at": "2026-09-05",
+  "identity_semantics": "ENTITY"
+ },
+ {
+  "schema": "DATA_CONTRACT_V1",
+  "schema_id": "dc.pricing.quote_request.v1",
+  "entity_type": "QuoteRequest",
+  "schema_version": "1.0",
+  "json_schema": {
+   "type": "object",
+   "properties": {
+    "company_id": {
+     "type": "string"
+    },
+    "material_code": {
+     "type": "string",
+     "description": "รหัสวัสดุใน material_types"
+    },
+    "quantity": {
+     "type": "number",
+     "description": "ปริมาณที่ขอ"
+    },
+    "unit": {
+     "type": "string",
+     "enum": [
+      "ton",
+      "cubic_meter",
+      "trip"
+     ]
+    },
+    "destination_site_id": {
+     "type": "string"
+    }
+   },
+   "required": [
+    "company_id",
+    "material_code",
+    "quantity",
+    "unit"
+   ]
+  },
+  "identity_fields": [
+   "company_id",
+   "destination_site_id"
+  ],
+  "correlation_fields": [
+   "company_id"
+  ],
+  "source_of_truth": "business_events",
+  "compatibility": "BACKWARD_COMPATIBLE",
+  "supersedes": null,
+  "deprecated_by": null,
+  "introduced_at": "2026-09-05",
+  "identity_semantics": "ENTITY"
+ },
+ {
+  "schema": "DATA_CONTRACT_V1",
+  "schema_id": "dc.pricing.quote_result.v1",
+  "entity_type": "QuoteResult",
+  "schema_version": "1.0",
+  "json_schema": {
+   "type": "object",
+   "properties": {
+    "company_id": {
+     "type": "string"
+    },
+    "material_code": {
+     "type": "string"
+    },
+    "unit_price": {
+     "type": "number"
+    },
+    "quantity": {
+     "type": "number"
+    },
+    "material_total": {
+     "type": "number"
+    },
+    "transport_cost_per_trip": {
+     "type": "number"
+    },
+    "trips": {
+     "type": "integer"
+    },
+    "transport_total": {
+     "type": "number"
+    },
+    "grand_total": {
+     "type": "number"
+    },
+    "distance_km": {
+     "type": "number"
+    },
+    "currency": {
+     "type": "string",
+     "enum": [
+      "THB"
+     ]
+    }
+   },
+   "required": [
+    "company_id",
+    "material_code",
+    "material_total",
+    "transport_total",
+    "grand_total",
+    "currency"
+   ]
+  },
+  "identity_fields": [
+   "company_id"
+  ],
+  "correlation_fields": [
+   "company_id"
+  ],
+  "source_of_truth": "engines/quote-price.ts:290",
+  "compatibility": "BACKWARD_COMPATIBLE",
+  "supersedes": null,
+  "deprecated_by": null,
+  "introduced_at": "2026-09-05",
+  "identity_semantics": "ENTITY"
+ },
+ {
+  "schema": "DATA_CONTRACT_V1",
+  "schema_id": "dc.geo.coordinate_pair.v1",
+  "entity_type": "CoordinatePair",
+  "schema_version": "1.0",
+  "json_schema": {
+   "type": "object",
+   "properties": {
+    "origin_lat": {
+     "type": "number"
+    },
+    "origin_lng": {
+     "type": "number"
+    },
+    "destination_lat": {
+     "type": "number"
+    },
+    "destination_lng": {
+     "type": "number"
+    }
+   },
+   "required": [
+    "origin_lat",
+    "origin_lng",
+    "destination_lat",
+    "destination_lng"
+   ]
+  },
+  "identity_fields": [],
+  "correlation_fields": [],
+  "source_of_truth": "customer_sites · pit_profiles",
+  "compatibility": "BACKWARD_COMPATIBLE",
+  "supersedes": null,
+  "deprecated_by": null,
+  "introduced_at": "2026-09-05",
+  "identity_semantics": "VALUE_OBJECT"
+ },
+ {
+  "schema": "DATA_CONTRACT_V1",
+  "schema_id": "dc.geo.distance_result.v1",
+  "entity_type": "DistanceResult",
+  "schema_version": "1.0",
+  "json_schema": {
+   "type": "object",
+   "properties": {
+    "distance_km": {
+     "type": "number",
+     "description": "คำนวณด้วย haversine ในเครื่อง"
+    }
+   },
+   "required": [
+    "distance_km"
+   ]
+  },
+  "identity_fields": [],
+  "correlation_fields": [],
+  "source_of_truth": "engines/quote-price.ts:12-30",
+  "compatibility": "BACKWARD_COMPATIBLE",
+  "supersedes": null,
+  "deprecated_by": null,
+  "introduced_at": "2026-09-05",
+  "identity_semantics": "VALUE_OBJECT"
+ },
+ {
+  "schema": "DATA_CONTRACT_V1",
+  "schema_id": "dc.document.issue_request.v1",
+  "entity_type": "DocumentIssueRequest",
+  "schema_version": "1.0",
+  "json_schema": {
+   "type": "object",
+   "properties": {
+    "document_type": {
+     "type": "string",
+     "enum": [
+      "invoice",
+      "receipt",
+      "delivery_order",
+      "quotation",
+      "standalone"
+     ]
+    },
+    "company_id": {
+     "type": "string"
+    },
+    "customer_order_id": {
+     "type": "string"
+    },
+    "items": {
+     "type": "array",
+     "items": {
+      "type": "object",
+      "properties": {
+       "description": {
+        "type": "string"
+       },
+       "qty": {
+        "type": "number"
+       },
+       "unit": {
+        "type": "string"
+       },
+       "unit_price": {
+        "type": "number"
+       }
+      },
+      "required": [
+       "description",
+       "qty",
+       "unit_price"
+      ]
+     }
+    },
+    "notes": {
+     "type": "string"
+    }
+   },
+   "required": [
+    "document_type",
+    "company_id",
+    "items"
+   ]
+  },
+  "identity_fields": [
+   "company_id",
+   "customer_order_id"
+  ],
+  "correlation_fields": [
+   "customer_order_id"
+  ],
+  "source_of_truth": "invoices · standalone_documents",
+  "compatibility": "BACKWARD_COMPATIBLE",
+  "supersedes": null,
+  "deprecated_by": null,
+  "introduced_at": "2026-09-05",
+  "identity_semantics": "ENTITY"
+ },
+ {
+  "schema": "DATA_CONTRACT_V1",
+  "schema_id": "dc.document.issued.v1",
+  "entity_type": "IssuedDocument",
+  "schema_version": "1.0",
+  "json_schema": {
+   "type": "object",
+   "properties": {
+    "document_id": {
+     "type": "string"
+    },
+    "document_number": {
+     "type": "string"
+    },
+    "document_type": {
+     "type": "string"
+    },
+    "company_id": {
+     "type": "string"
+    },
+    "subtotal": {
+     "type": "number"
+    },
+    "vat": {
+     "type": "number"
+    },
+    "total": {
+     "type": "number"
+    },
+    "currency": {
+     "type": "string",
+     "enum": [
+      "THB"
+     ]
+    },
+    "pdf_ref": {
+     "type": "string",
+     "description": "ตัวชี้ไปยังไฟล์ ไม่ใช่เนื้อไฟล์"
+    },
+    "image_ref": {
+     "type": "string"
+    }
+   },
+   "required": [
+    "document_id",
+    "document_number",
+    "document_type",
+    "subtotal",
+    "vat",
+    "total",
+    "currency"
+   ]
+  },
+  "identity_fields": [
+   "document_id"
+  ],
+  "correlation_fields": [
+   "company_id"
+  ],
+  "source_of_truth": "engines/documents/artifact.ts:140",
+  "compatibility": "BACKWARD_COMPATIBLE",
+  "supersedes": null,
+  "deprecated_by": null,
+  "introduced_at": "2026-09-05",
+  "identity_semantics": "ENTITY"
+ },
+ {
+  "schema": "DATA_CONTRACT_V1",
+  "schema_id": "dc.payment.claim.v1",
+  "entity_type": "PaymentClaim",
+  "schema_version": "1.0",
+  "json_schema": {
+   "type": "object",
+   "properties": {
+    "company_id": {
+     "type": "string"
+    },
+    "line_user_id": {
+     "type": "string"
+    },
+    "amount": {
+     "type": "number"
+    },
+    "claimed_at": {
+     "type": "string",
+     "format": "date-time"
+    },
+    "receipt_document_id": {
+     "type": "string"
+    },
+    "currency": {
+     "type": "string",
+     "enum": [
+      "THB"
+     ]
+    }
+   },
+   "required": [
+    "company_id",
+    "amount",
+    "claimed_at",
+    "currency"
+   ]
+  },
+  "identity_fields": [
+   "company_id",
+   "receipt_document_id"
+  ],
+  "correlation_fields": [
+   "company_id"
+  ],
+  "source_of_truth": "receipt_documents",
+  "compatibility": "BACKWARD_COMPATIBLE",
+  "supersedes": null,
+  "deprecated_by": null,
+  "introduced_at": "2026-09-05",
+  "identity_semantics": "ENTITY"
+ },
+ {
+  "schema": "DATA_CONTRACT_V1",
+  "schema_id": "dc.payment.match_result.v1",
+  "entity_type": "PaymentMatchResult",
+  "schema_version": "1.0",
+  "json_schema": {
+   "type": "object",
+   "properties": {
+    "company_id": {
+     "type": "string"
+    },
+    "matched": {
+     "type": "boolean"
+    },
+    "amount_applied": {
+     "type": "number"
+    },
+    "debt_remaining": {
+     "type": "number"
+    },
+    "debt_event_id": {
+     "type": "string"
+    },
+    "currency": {
+     "type": "string",
+     "enum": [
+      "THB"
+     ]
+    }
+   },
+   "required": [
+    "company_id",
+    "matched",
+    "currency"
+   ]
+  },
+  "identity_fields": [
+   "company_id",
+   "debt_event_id"
+  ],
+  "correlation_fields": [
+   "company_id"
+  ],
+  "source_of_truth": "debt_events · debt_snapshots",
+  "compatibility": "BACKWARD_COMPATIBLE",
+  "supersedes": null,
+  "deprecated_by": null,
+  "introduced_at": "2026-09-05",
+  "identity_semantics": "ENTITY"
+ },
+ {
+  "schema": "DATA_CONTRACT_V1",
+  "schema_id": "dc.profile.refresh_request.v1",
+  "entity_type": "ProfileRefreshRequest",
+  "schema_version": "1.0",
+  "json_schema": {
+   "type": "object",
+   "properties": {
+    "line_user_id": {
+     "type": "string"
+    },
+    "reason": {
+     "type": "string",
+     "enum": [
+      "STALE",
+      "MISSING",
+      "FORCED"
+     ]
+    }
+   },
+   "required": [
+    "line_user_id",
+    "reason"
+   ]
+  },
+  "identity_fields": [
+   "line_user_id"
+  ],
+  "correlation_fields": [
+   "line_user_id"
+  ],
+  "source_of_truth": "line_profile_refresh_queue",
+  "compatibility": "BACKWARD_COMPATIBLE",
+  "supersedes": null,
+  "deprecated_by": null,
+  "introduced_at": "2026-09-05",
+  "identity_semantics": "ENTITY"
+ },
+ {
+  "schema": "DATA_CONTRACT_V1",
+  "schema_id": "dc.profile.snapshot.v1",
+  "entity_type": "LineProfileSnapshot",
+  "schema_version": "1.0",
+  "json_schema": {
+   "type": "object",
+   "properties": {
+    "line_user_id": {
+     "type": "string"
+    },
+    "display_name": {
+     "type": "string"
+    },
+    "picture_url": {
+     "type": "string"
+    },
+    "source": {
+     "type": "string",
+     "enum": [
+      "LINE_API",
+      "CACHED",
+      "UNAVAILABLE"
+     ]
+    },
+    "fetched_at": {
+     "type": "string",
+     "format": "date-time"
+    }
+   },
+   "required": [
+    "line_user_id",
+    "source"
+   ]
+  },
+  "identity_fields": [
+   "line_user_id"
+  ],
+  "correlation_fields": [
+   "line_user_id"
+  ],
+  "source_of_truth": "supabase/functions/line-webhook-v2/engines/profile-refresh.ts:37",
+  "compatibility": "BACKWARD_COMPATIBLE",
+  "supersedes": null,
+  "deprecated_by": null,
+  "introduced_at": "2026-09-05",
+  "identity_semantics": "ENTITY"
+ },
+ {
+  "schema": "DATA_CONTRACT_V1",
+  "schema_id": "dc.site.location_capture.v1",
+  "entity_type": "SiteLocationCapture",
+  "schema_version": "1.0",
+  "json_schema": {
+   "type": "object",
+   "properties": {
+    "company_id": {
+     "type": "string"
+    },
+    "address": {
+     "type": "string"
+    },
+    "province": {
+     "type": "string"
+    },
+    "district": {
+     "type": "string"
+    },
+    "subdistrict": {
+     "type": "string"
+    },
+    "postal_code": {
+     "type": "string"
+    },
+    "gps_lat": {
+     "type": "number"
+    },
+    "gps_lng": {
+     "type": "number"
+    },
+    "capture_method": {
+     "type": "string",
+     "enum": [
+      "LINE_PIN",
+      "TYPED_ADDRESS"
+     ]
+    }
+   },
+   "required": [
+    "company_id",
+    "address",
+    "capture_method"
+   ]
+  },
+  "identity_fields": [
+   "company_id"
+  ],
+  "correlation_fields": [
+   "company_id"
+  ],
+  "source_of_truth": "customer_sites",
+  "compatibility": "BACKWARD_COMPATIBLE",
+  "supersedes": null,
+  "deprecated_by": null,
+  "introduced_at": "2026-09-05",
+  "identity_semantics": "ENTITY"
+ },
+ {
+  "schema": "DATA_CONTRACT_V1",
+  "schema_id": "dc.equipment.telemetry_ping.v1",
+  "entity_type": "EquipmentTelemetryPing",
+  "schema_version": "1.0",
+  "json_schema": {
+   "type": "object",
+   "properties": {
+    "imei": {
+     "type": "string",
+     "description": "ตัวผูกกล่องกับเครื่องจักร"
+    },
+    "vcc_voltage": {
+     "type": "number"
+    },
+    "recorded_at": {
+     "type": "string",
+     "format": "date-time"
+    }
+   },
+   "required": [
+    "imei",
+    "vcc_voltage"
+   ]
+  },
+  "identity_fields": [
+   "imei"
+  ],
+  "correlation_fields": [
+   "imei"
+  ],
+  "source_of_truth": "equipment_telemetry_pings",
+  "compatibility": "BACKWARD_COMPATIBLE",
+  "supersedes": null,
+  "deprecated_by": null,
+  "introduced_at": "2026-09-05",
+  "identity_semantics": "ENTITY"
+ },
+ {
+  "schema": "DATA_CONTRACT_V1",
+  "schema_id": "dc.equipment.engine_hours.v1",
+  "entity_type": "EngineHoursResult",
+  "schema_version": "1.0",
+  "json_schema": {
+   "type": "object",
+   "properties": {
+    "equipment_id": {
+     "type": "string"
+    },
+    "engine_running": {
+     "type": "boolean"
+    },
+    "delta_hours": {
+     "type": "number"
+    },
+    "capped_from_hours": {
+     "type": "number"
+    },
+    "new_total_hours": {
+     "type": "number"
+    }
+   },
+   "required": [
+    "equipment_id",
+    "engine_running",
+    "new_total_hours"
+   ]
+  },
+  "identity_fields": [
+   "equipment_id"
+  ],
+  "correlation_fields": [
+   "equipment_id"
+  ],
+  "source_of_truth": "equipment_assets",
+  "compatibility": "BACKWARD_COMPATIBLE",
+  "supersedes": null,
+  "deprecated_by": null,
+  "introduced_at": "2026-09-05",
+  "identity_semantics": "ENTITY"
+ },
+ {
+  "schema": "DATA_CONTRACT_V1",
+  "schema_id": "dc.equipment.control_command.v1",
+  "entity_type": "EquipmentControlCommand",
+  "schema_version": "1.0",
+  "json_schema": {
+   "type": "object",
+   "properties": {
+    "equipment_id": {
+     "type": "string"
+    },
+    "action": {
+     "type": "string",
+     "enum": [
+      "LOCK",
+      "UNLOCK"
+     ]
+    },
+    "requested_by": {
+     "type": "string"
+    }
+   },
+   "required": [
+    "equipment_id",
+    "action"
+   ]
+  },
+  "identity_fields": [
+   "equipment_id"
+  ],
+  "correlation_fields": [
+   "equipment_id"
+  ],
+  "source_of_truth": "equipment_assets",
+  "compatibility": "BACKWARD_COMPATIBLE",
+  "supersedes": null,
+  "deprecated_by": null,
+  "introduced_at": "2026-09-05",
+  "identity_semantics": "ENTITY"
+ },
+ {
+  "schema": "DATA_CONTRACT_V1",
+  "schema_id": "dc.image.classified_receipt.v1",
+  "entity_type": "ClassifiedReceipt",
+  "schema_version": "1.0",
+  "json_schema": {
+   "type": "object",
+   "properties": {
+    "document_type": {
+     "type": "string"
+    },
+    "amount": {
+     "type": "number"
+    },
+    "reference": {
+     "type": "string"
+    },
+    "confidence": {
+     "type": "number"
+    },
+    "sender_role": {
+     "type": "string"
+    }
+   },
+   "required": [
+    "document_type"
+   ]
+  },
+  "identity_fields": [],
+  "correlation_fields": [],
+  "source_of_truth": "supabase/functions/line-webhook-v2/engines/ocr-classify.ts:115",
+  "compatibility": "BACKWARD_COMPATIBLE",
+  "supersedes": null,
+  "deprecated_by": null,
+  "introduced_at": "2026-09-05",
+  "identity_semantics": "VALUE_OBJECT"
+ },
+ {
+  "schema": "DATA_CONTRACT_V1",
+  "schema_id": "dc.authorization.site_request.v1",
+  "entity_type": "SiteAuthorizationRequest",
+  "schema_version": "1.0",
+  "json_schema": {
+   "type": "object",
+   "properties": {
+    "requester_line_user_id": {
+     "type": "string"
+    },
+    "destination_site_id": {
+     "type": "string"
+    },
+    "owner_company_id": {
+     "type": "string"
+    },
+    "status": {
+     "type": "string",
+     "enum": [
+      "pending",
+      "approved",
+      "denied",
+      "expired"
+     ]
+    }
+   },
+   "required": [
+    "requester_line_user_id",
+    "destination_site_id",
+    "status"
+   ]
+  },
+  "identity_fields": [
+   "destination_site_id"
+  ],
+  "correlation_fields": [
+   "owner_company_id"
+  ],
+  "source_of_truth": "pending_authorizations",
+  "compatibility": "BACKWARD_COMPATIBLE",
+  "supersedes": null,
+  "deprecated_by": null,
+  "introduced_at": "2026-09-05",
+  "identity_semantics": "ENTITY"
+ },
+ {
+  "schema": "DATA_CONTRACT_V1",
+  "schema_id": "dc.chat.outbound_message.v1",
+  "entity_type": "ChatOutboundMessage",
+  "schema_version": "1.0",
+  "json_schema": {
+   "type": "object",
+   "properties": {
+    "line_user_id": {
+     "type": "string"
+    },
+    "reply_token": {
+     "type": "string"
+    },
+    "message_kind": {
+     "type": "string",
+     "enum": [
+      "text",
+      "flex",
+      "loading"
+     ]
+    },
+    "body_ref": {
+     "type": "string"
+    }
+   },
+   "required": [
+    "message_kind"
+   ]
+  },
+  "identity_fields": [
+   "line_user_id"
+  ],
+  "correlation_fields": [
+   "line_user_id"
+  ],
+  "source_of_truth": "supabase/functions/line-webhook-v2/engines/response.ts:95",
+  "compatibility": "BACKWARD_COMPATIBLE",
+  "supersedes": null,
+  "deprecated_by": null,
+  "introduced_at": "2026-09-05",
+  "identity_semantics": "ENTITY"
+ }
+]

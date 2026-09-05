@@ -1,0 +1,77 @@
+{
+ "schema": "FLOW_GRAPH_V1",
+ "flow_id": "VF_RESOURCE_TO_SALE",
+ "trigger": "บ่อและวัสดุ",
+ "ordered_nodes": [
+  {
+   "node_id": "VF6.1",
+   "unit_id": "u.quote-price",
+   "port_id": "p.price.calculate.in",
+   "layer": "L3_BUSINESS_STATE",
+   "nature": "OBSERVATION",
+   "operation": "BUSINESS_STATE",
+   "resolved": true
+  },
+  {
+   "node_id": "VF6.2",
+   "unit_id": "u.distance",
+   "port_id": "p.distance.calculate.in",
+   "layer": "L4_CALCULATION",
+   "nature": "DECISION",
+   "operation": "CALCULATION",
+   "resolved": true
+  },
+  {
+   "node_id": "VF6.3",
+   "unit_id": "u.quote-price",
+   "port_id": "p.price.calculate.in",
+   "layer": "L4_CALCULATION",
+   "nature": "DECISION",
+   "operation": "CALCULATION",
+   "resolved": true
+  },
+  {
+   "node_id": "VF6.4",
+   "unit_id": "u.quote-price",
+   "port_id": "p.price.calculate.in",
+   "layer": "L3_BUSINESS_STATE",
+   "nature": "DECISION",
+   "operation": "BUSINESS_STATE",
+   "resolved": true
+  }
+ ],
+ "edges": [
+  {
+   "from": "VF6.1",
+   "to": "VF6.2"
+  },
+  {
+   "from": "VF6.2",
+   "to": "VF6.3"
+  },
+  {
+   "from": "VF6.3",
+   "to": "VF6.4"
+  }
+ ],
+ "input_contract": null,
+ "output_contract": null,
+ "terminal_condition": "ราคาที่เสนอ บันทึกเป็น business_events",
+ "money_effects": [
+  "REVENUE_CREATED"
+ ],
+ "external_actions": [
+  "LINE reply ใบเสนอราคา"
+ ],
+ "failure_routes": [
+  "ไม่มีข้อมูลบ่อ = คิดราคาไม่ได้",
+  "ไม่มีพิกัด = ไม่มีระยะทาง"
+ ],
+ "required_resources": [
+  "supabase"
+ ],
+ "required_authority": [],
+ "health": "COMPLETE",
+ "resolved_nodes": 4,
+ "total_nodes": 4
+}

@@ -1,0 +1,124 @@
+[
+ {
+  "schema": "FINANCIAL_EFFECT_V1",
+  "effect_id": "fe.invoice.revenue",
+  "effect_type": "REVENUE",
+  "source_transaction": "ISSUE_INVOICE",
+  "amount_source": "dc.document.issued.v1#total",
+  "currency": "THB",
+  "formula_ref": "engines/documents/artifact.ts:133-136",
+  "ledger_object": [
+   "invoices",
+   "standalone_documents"
+  ],
+  "reversible": false,
+  "idempotency_key": "document_id",
+  "verification": "FLOW_G_DOCUMENT_ISSUANCE"
+ },
+ {
+  "schema": "FINANCIAL_EFFECT_V1",
+  "effect_id": "fe.invoice.tax",
+  "effect_type": "TAX",
+  "source_transaction": "ISSUE_INVOICE",
+  "amount_source": "dc.document.issued.v1#vat",
+  "currency": "THB",
+  "formula_ref": "engines/documents/artifact.ts:134",
+  "ledger_object": [
+   "invoices"
+  ],
+  "reversible": false,
+  "idempotency_key": "document_id",
+  "verification": "FLOW_G_DOCUMENT_ISSUANCE"
+ },
+ {
+  "schema": "FINANCIAL_EFFECT_V1",
+  "effect_id": "fe.debt.created",
+  "effect_type": "DEBT",
+  "source_transaction": "ISSUE_INVOICE",
+  "amount_source": "dc.document.issued.v1#total",
+  "currency": "THB",
+  "formula_ref": "supabase/functions/line-webhook-v2/engines/auto-confirm-payment.ts:130",
+  "ledger_object": [
+   "debt_events"
+  ],
+  "reversible": true,
+  "idempotency_key": "debt_event_id",
+  "verification": "FLOW_H_PAYMENT_MATCHING"
+ },
+ {
+  "schema": "FINANCIAL_EFFECT_V1",
+  "effect_id": "fe.payment.in",
+  "effect_type": "PAYMENT_IN",
+  "source_transaction": "MATCH_PAYMENT",
+  "amount_source": "dc.payment.claim.v1#amount",
+  "currency": "THB",
+  "formula_ref": "supabase/functions/line-webhook-v2/engines/payment-claim.ts:35",
+  "ledger_object": [
+   "receipt_documents"
+  ],
+  "reversible": true,
+  "idempotency_key": "receipt_document_id",
+  "verification": "FLOW_H_PAYMENT_MATCHING"
+ },
+ {
+  "schema": "FINANCIAL_EFFECT_V1",
+  "effect_id": "fe.debt.settled",
+  "effect_type": "SETTLEMENT",
+  "source_transaction": "MATCH_PAYMENT",
+  "amount_source": "dc.payment.match_result.v1#amount_applied",
+  "currency": "THB",
+  "formula_ref": "supabase/functions/line-webhook-v2/engines/auto-confirm-payment.ts:120",
+  "ledger_object": [
+   "debt_snapshots",
+   "debt_events"
+  ],
+  "reversible": true,
+  "idempotency_key": "debt_event_id",
+  "verification": "FLOW_H_PAYMENT_MATCHING"
+ },
+ {
+  "schema": "FINANCIAL_EFFECT_V1",
+  "effect_id": "fe.quote.revenue_projected",
+  "effect_type": "REVENUE",
+  "source_transaction": "CALCULATE_PRICE",
+  "amount_source": "dc.pricing.quote_result.v1#grand_total",
+  "currency": "THB",
+  "formula_ref": "engines/quote-price.ts:290",
+  "ledger_object": [
+   "business_events"
+  ],
+  "reversible": true,
+  "idempotency_key": null,
+  "verification": "FLOW_E_PRICE_CALCULATION"
+ },
+ {
+  "schema": "FINANCIAL_EFFECT_V1",
+  "effect_id": "fe.payable.created",
+  "effect_type": "PAYABLE",
+  "source_transaction": "(postback ในแชท)",
+  "amount_source": "UNKNOWN — ไม่มี schema ที่ประกาศไว้",
+  "currency": "THB",
+  "formula_ref": "supabase/functions/line-webhook-v2/handlers/postback.ts",
+  "ledger_object": [
+   "partner_payable_requests"
+  ],
+  "reversible": true,
+  "idempotency_key": null,
+  "verification": null
+ },
+ {
+  "schema": "FINANCIAL_EFFECT_V1",
+  "effect_id": "fe.maintenance.cost",
+  "effect_type": "COST",
+  "source_transaction": "RECORD_EQUIPMENT_TELEMETRY",
+  "amount_source": "UNKNOWN — ใบแจ้งซ่อมยังไม่ผูกจำนวนเงิน",
+  "currency": "THB",
+  "formula_ref": "engines/equipment/engine-hours.ts:42",
+  "ledger_object": [
+   "maintenance_tickets"
+  ],
+  "reversible": true,
+  "idempotency_key": null,
+  "verification": "FLOW_J_EQUIPMENT_TELEMETRY_AND_ENGINE_HOURS"
+ }
+]

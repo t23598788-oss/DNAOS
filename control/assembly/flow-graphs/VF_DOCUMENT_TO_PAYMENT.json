@@ -1,0 +1,99 @@
+{
+ "schema": "FLOW_GRAPH_V1",
+ "flow_id": "VF_DOCUMENT_TO_PAYMENT",
+ "trigger": "session ผู้เรียก",
+ "ordered_nodes": [
+  {
+   "node_id": "VF4.1",
+   "unit_id": "u.document-issuance",
+   "port_id": "p.document.issue.in",
+   "layer": "L2_IDENTITY_CONTEXT",
+   "nature": "DECISION",
+   "operation": "RESOLVE_IDENTITY",
+   "resolved": true
+  },
+  {
+   "node_id": "VF4.2",
+   "unit_id": "u.document-issuance",
+   "port_id": "p.document.issue.in",
+   "layer": "L4_CALCULATION",
+   "nature": "DECISION",
+   "operation": "CALCULATION",
+   "resolved": true
+  },
+  {
+   "node_id": "VF4.3",
+   "unit_id": "u.document-issuance",
+   "port_id": "p.document.issue.in",
+   "layer": "L6_ARTIFACT",
+   "nature": "DECISION",
+   "operation": "ARTIFACT",
+   "resolved": true
+  },
+  {
+   "node_id": "VF4.4",
+   "unit_id": "u.document-issuance",
+   "port_id": "p.document.issue.in",
+   "layer": "L8_EXTERNAL_ACTION",
+   "nature": "EXTERNAL_ACTION",
+   "operation": "ACTION",
+   "resolved": true
+  },
+  {
+   "node_id": "VF4.5",
+   "unit_id": "u.payment-matching",
+   "port_id": "p.payment.claim.in",
+   "layer": "L5_TRANSACTION_STATE",
+   "nature": "DECISION",
+   "operation": "TRANSACTION",
+   "resolved": true
+  }
+ ],
+ "edges": [
+  {
+   "from": "VF4.1",
+   "to": "VF4.2"
+  },
+  {
+   "from": "VF4.2",
+   "to": "VF4.3"
+  },
+  {
+   "from": "VF4.3",
+   "to": "VF4.4"
+  },
+  {
+   "from": "VF4.4",
+   "to": "VF4.5"
+  }
+ ],
+ "input_contract": null,
+ "output_contract": null,
+ "terminal_condition": "หนี้ปิด และมีร่องรอยการส่งใน line_events",
+ "money_effects": [
+  "REVENUE_CREATED",
+  "TAX_CREATED",
+  "SETTLED"
+ ],
+ "external_actions": [
+  "LINE ส่งเอกสารถึงลูกค้า"
+ ],
+ "failure_routes": [
+  "ไม่ผ่าน = ปฏิเสธ",
+  "รายการว่าง = ยอดเป็นศูนย์",
+  "สร้างไฟล์ไม่สำเร็จ = ส่งไม่ได้",
+  "ส่งไม่สำเร็จ = ไม่บันทึกว่าส่งแล้ว",
+  "ไม่พบหนี้ที่ตรง"
+ ],
+ "required_resources": [
+  "company-settings",
+  "line",
+  "supabase"
+ ],
+ "required_authority": [
+  "ADMIN_TIER"
+ ],
+ "health": "PARTIAL",
+ "resolved_nodes": 5,
+ "total_nodes": 5
+}

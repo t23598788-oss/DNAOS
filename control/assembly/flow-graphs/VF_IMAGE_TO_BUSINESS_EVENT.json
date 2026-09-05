@@ -1,0 +1,79 @@
+{
+ "schema": "FLOW_GRAPH_V1",
+ "flow_id": "VF_IMAGE_TO_BUSINESS_EVENT",
+ "trigger": "รูปจากผู้ใช้",
+ "ordered_nodes": [
+  {
+   "node_id": "VF3.1",
+   "unit_id": "u.line-ingest",
+   "port_id": "p.line.webhook.in",
+   "layer": "L0_EXTERNAL_INPUT",
+   "nature": "OBSERVATION",
+   "operation": "INGEST",
+   "resolved": true
+  },
+  {
+   "node_id": "VF3.2",
+   "unit_id": "u.image-classify",
+   "port_id": "p.image.classify.in",
+   "layer": "L1_INGESTION",
+   "nature": "OBSERVATION",
+   "operation": "NORMALIZE",
+   "resolved": true
+  },
+  {
+   "node_id": "VF3.3",
+   "unit_id": "u.identity-context",
+   "port_id": "p.identity.resolve.in",
+   "layer": "L2_IDENTITY_CONTEXT",
+   "nature": "DECISION",
+   "operation": "RESOLVE_IDENTITY",
+   "resolved": true
+  },
+  {
+   "node_id": "VF3.4",
+   "unit_id": "u.image-classify",
+   "port_id": "p.image.classify.in",
+   "layer": "L5_TRANSACTION_STATE",
+   "nature": "DECISION",
+   "operation": "TRANSACTION",
+   "resolved": true
+  }
+ ],
+ "edges": [
+  {
+   "from": "VF3.1",
+   "to": "VF3.2"
+  },
+  {
+   "from": "VF3.2",
+   "to": "VF3.3"
+  },
+  {
+   "from": "VF3.3",
+   "to": "VF3.4"
+  }
+ ],
+ "input_contract": null,
+ "output_contract": null,
+ "terminal_condition": "เอกสารการรับเงินที่รอการยืนยันจากหลังบ้าน",
+ "money_effects": [
+  "PAYMENT_RECEIVED"
+ ],
+ "external_actions": [],
+ "failure_routes": [
+  "ดาวน์โหลดไม่ได้ = ไม่มีรูปให้อ่าน",
+  "อ่านไม่ได้ = null",
+  "ไม่พบบริษัท = จำกัดสิ่งที่ทำได้",
+  "ไม่พบการแจ้งเตือนธนาคารที่ตรง = บันทึกเดี่ยว"
+ ],
+ "required_resources": [
+  "ai-provider",
+  "line",
+  "supabase"
+ ],
+ "required_authority": [],
+ "health": "COMPLETE",
+ "resolved_nodes": 4,
+ "total_nodes": 4
+}

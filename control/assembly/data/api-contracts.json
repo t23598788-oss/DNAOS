@@ -1,0 +1,5842 @@
+[
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/agent-operations",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth+ADMIN_TIER",
+  "authority": "ADMIN_TIER",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/agent-operations/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/api-tokens/[id]",
+  "methods": [
+   "DELETE"
+  ],
+  "authentication": "requireAuth+ADMIN_TIER",
+  "authority": "ADMIN_TIER",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/api-tokens/[id]/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/api-tokens",
+  "methods": [
+   "GET",
+   "POST"
+  ],
+  "authentication": "requireAuth+ADMIN_TIER",
+  "authority": "ADMIN_TIER",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/api-tokens/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/architecture/control-graph",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth+ADMIN_TIER",
+  "authority": "ADMIN_TIER",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/architecture/control-graph/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/backup",
+  "methods": [
+   "GET",
+   "POST"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/backup/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/capability-map",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth+ADMIN_TIER",
+  "authority": "ADMIN_TIER",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/capability-map/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/connectors/[id]/enable",
+  "methods": [
+   "POST"
+  ],
+  "authentication": "requireAuth+ADMIN_TIER",
+  "authority": "ADMIN_TIER",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/connectors/[id]/enable/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/connectors/[id]",
+  "methods": [
+   "GET",
+   "PATCH",
+   "DELETE"
+  ],
+  "authentication": "requireAuth+ADMIN_TIER",
+  "authority": "ADMIN_TIER",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/connectors/[id]/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/connectors/[id]/test",
+  "methods": [
+   "POST"
+  ],
+  "authentication": "requireAuth+ADMIN_TIER",
+  "authority": "ADMIN_TIER",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/connectors/[id]/test/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/connectors/ai-console/test",
+  "methods": [
+   "POST"
+  ],
+  "authentication": "requireAuth+ADMIN_TIER",
+  "authority": "ADMIN_TIER",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/connectors/ai-console/test/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/connectors/catalog",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth+ADMIN_TIER",
+  "authority": "ADMIN_TIER",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/connectors/catalog/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/connectors",
+  "methods": [
+   "GET",
+   "POST"
+  ],
+  "authentication": "requireAuth+ADMIN_TIER",
+  "authority": "ADMIN_TIER",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/connectors/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/debt-events/[id]/issue-receipt",
+  "methods": [
+   "POST"
+  ],
+  "authentication": "requireAuth+ADMIN_TIER",
+  "authority": "ADMIN_TIER",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/debt-events/[id]/issue-receipt/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/debt-trackings/[id]/draft",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth+ADMIN_TIER",
+  "authority": "ADMIN_TIER",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/debt-trackings/[id]/draft/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/debt-trackings/[id]/events",
+  "methods": [
+   "POST"
+  ],
+  "authentication": "requireAuth+ADMIN_TIER",
+  "authority": "ADMIN_TIER",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "LOCAL_WRITE",
+  "idempotency": "UNKNOWN",
+  "data_read": [
+   "debt_snapshots"
+  ],
+  "data_written": [
+   "debt_events"
+  ],
+  "source_pointer": "app/api/admin/debt-trackings/[id]/events/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/debt-trackings/[id]",
+  "methods": [
+   "GET",
+   "PATCH",
+   "DELETE"
+  ],
+  "authentication": "requireAuth+ADMIN_TIER",
+  "authority": "ADMIN_TIER",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "READ_ONLY",
+  "idempotency": "UNKNOWN",
+  "data_read": [
+   "debt_events"
+  ],
+  "data_written": [],
+  "source_pointer": "app/api/admin/debt-trackings/[id]/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/debt-trackings",
+  "methods": [
+   "GET",
+   "POST"
+  ],
+  "authentication": "requireAuth+ADMIN_TIER",
+  "authority": "ADMIN_TIER",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "READ_ONLY",
+  "idempotency": "UNKNOWN",
+  "data_read": [
+   "debt_events"
+  ],
+  "data_written": [],
+  "source_pointer": "app/api/admin/debt-trackings/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/dev-loop/approve",
+  "methods": [
+   "POST"
+  ],
+  "authentication": "requireAuth+ADMIN_TIER",
+  "authority": "ADMIN_TIER",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "LOCAL_WRITE",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [
+   "dev_loop_registry_proposals"
+  ],
+  "source_pointer": "app/api/admin/dev-loop/approve/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/dev-loop/problem-report",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth+ADMIN_TIER",
+  "authority": "ADMIN_TIER",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "READ_ONLY",
+  "idempotency": "UNKNOWN",
+  "data_read": [
+   "system_health_status"
+  ],
+  "data_written": [],
+  "source_pointer": "app/api/admin/dev-loop/problem-report/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/documents/[id]/confirm",
+  "methods": [
+   "POST"
+  ],
+  "authentication": "requireAuth+ADMIN_TIER",
+  "authority": "ADMIN_TIER",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "LOCAL_WRITE",
+  "idempotency": "UNKNOWN",
+  "data_read": [
+   "invoices",
+   "standalone_documents"
+  ],
+  "data_written": [
+   "invoices"
+  ],
+  "source_pointer": "app/api/admin/documents/[id]/confirm/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/documents/[id]",
+  "methods": [
+   "GET",
+   "PATCH",
+   "DELETE"
+  ],
+  "authentication": "requireAuth+ADMIN_TIER",
+  "authority": "ADMIN_TIER",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "LOCAL_WRITE",
+  "idempotency": "UNKNOWN",
+  "data_read": [
+   "invoices",
+   "invoice_items",
+   "standalone_documents"
+  ],
+  "data_written": [
+   "invoices",
+   "standalone_documents"
+  ],
+  "source_pointer": "app/api/admin/documents/[id]/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/documents",
+  "methods": [
+   "GET",
+   "POST"
+  ],
+  "authentication": "requireAuth+ADMIN_TIER",
+  "authority": "ADMIN_TIER",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "LOCAL_WRITE",
+  "idempotency": "UNKNOWN",
+  "data_read": [
+   "customer_orders",
+   "invoices",
+   "standalone_documents"
+  ],
+  "data_written": [
+   "customer_orders",
+   "invoices",
+   "standalone_documents"
+  ],
+  "source_pointer": "app/api/admin/documents/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/domains/availability",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth+ADMIN_TIER",
+  "authority": "ADMIN_TIER",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/domains/availability/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/domains/register",
+  "methods": [
+   "POST"
+  ],
+  "authentication": "requireAuth+ADMIN_TIER",
+  "authority": "ADMIN_TIER",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/domains/register/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/domains/suggestions",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth+ADMIN_TIER",
+  "authority": "ADMIN_TIER",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/domains/suggestions/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/domains/whois",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth+ADMIN_TIER",
+  "authority": "ADMIN_TIER",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/domains/whois/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/equipment/maintenance-tickets/[id]/close",
+  "methods": [
+   "POST"
+  ],
+  "authentication": "requireAuth+ADMIN_TIER",
+  "authority": "ADMIN_TIER",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "LOCAL_WRITE",
+  "idempotency": "UNKNOWN",
+  "data_read": [
+   "maintenance_tickets",
+   "equipment_assets"
+  ],
+  "data_written": [
+   "equipment_assets",
+   "maintenance_tickets"
+  ],
+  "source_pointer": "app/api/admin/equipment/maintenance-tickets/[id]/close/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/equipment/maintenance-tickets",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth+ADMIN_TIER",
+  "authority": "ADMIN_TIER",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "READ_ONLY",
+  "idempotency": "UNKNOWN",
+  "data_read": [
+   "maintenance_tickets"
+  ],
+  "data_written": [],
+  "source_pointer": "app/api/admin/equipment/maintenance-tickets/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/equipment",
+  "methods": [
+   "GET",
+   "POST"
+  ],
+  "authentication": "requireAuth+ADMIN_TIER",
+  "authority": "ADMIN_TIER",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "LOCAL_WRITE",
+  "idempotency": "UNKNOWN",
+  "data_read": [
+   "equipment_assets",
+   "driver_equipment_permissions",
+   "line_profiles"
+  ],
+  "data_written": [
+   "equipment_assets"
+  ],
+  "source_pointer": "app/api/admin/equipment/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/equipment/toggle-permission",
+  "methods": [
+   "POST"
+  ],
+  "authentication": "requireAuth+ADMIN_TIER",
+  "authority": "ADMIN_TIER",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "LOCAL_WRITE",
+  "idempotency": "UNKNOWN",
+  "data_read": [
+   "driver_equipment_permissions",
+   "equipment_assets",
+   "line_profiles"
+  ],
+  "data_written": [
+   "equipment_assets",
+   "driver_equipment_permissions"
+  ],
+  "source_pointer": "app/api/admin/equipment/toggle-permission/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/equipment/trigger-start",
+  "methods": [
+   "POST"
+  ],
+  "authentication": "requireAuth+ADMIN_TIER",
+  "authority": "ADMIN_TIER",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "LOCAL_WRITE",
+  "idempotency": "UNKNOWN",
+  "data_read": [
+   "driver_equipment_permissions"
+  ],
+  "data_written": [
+   "equipment_assets"
+  ],
+  "source_pointer": "app/api/admin/equipment/trigger-start/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/event-inbox",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth+ADMIN_TIER",
+  "authority": "ADMIN_TIER",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "READ_ONLY",
+  "idempotency": "UNKNOWN",
+  "data_read": [
+   "business_events"
+  ],
+  "data_written": [],
+  "source_pointer": "app/api/admin/event-inbox/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/finance-alerts",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth+ADMIN_TIER",
+  "authority": "ADMIN_TIER",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "READ_ONLY",
+  "idempotency": "UNKNOWN",
+  "data_read": [
+   "partner_payable_requests"
+  ],
+  "data_written": [],
+  "source_pointer": "app/api/admin/finance-alerts/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/finance-summary",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth+ADMIN_TIER",
+  "authority": "ADMIN_TIER",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "READ_ONLY",
+  "idempotency": "UNKNOWN",
+  "data_read": [
+   "invoices",
+   "standalone_documents",
+   "receipt_documents",
+   "debt_snapshots",
+   "fuel_price_log",
+   "company_expenses"
+  ],
+  "data_written": [],
+  "source_pointer": "app/api/admin/finance-summary/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/artifact/[artifactId]/children",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/artifact/[artifactId]/children/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/artifact/[artifactId]/evidence",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/artifact/[artifactId]/evidence/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/artifact/[artifactId]/lineage",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/artifact/[artifactId]/lineage/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/artifact/[artifactId]/parents",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/artifact/[artifactId]/parents/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/artifact/[artifactId]/regenerate",
+  "methods": [
+   "POST"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/artifact/[artifactId]/regenerate/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/artifact/[artifactId]",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/artifact/[artifactId]/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/artifact/events",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/artifact/events/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/artifact/integrity",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/artifact/integrity/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/artifact/list",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/artifact/list/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/build/environment-profiles",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/build/environment-profiles/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/build/registry",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/build/registry/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/build/runs/[buildRunId]/artifacts",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/build/runs/[buildRunId]/artifacts/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/build/runs/[buildRunId]/cancel",
+  "methods": [
+   "POST"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/build/runs/[buildRunId]/cancel/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/build/runs/[buildRunId]/compare",
+  "methods": [
+   "POST"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/build/runs/[buildRunId]/compare/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/build/runs/[buildRunId]/evidence",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/build/runs/[buildRunId]/evidence/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/build/runs/[buildRunId]/findings",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/build/runs/[buildRunId]/findings/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/build/runs/[buildRunId]/manifest",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/build/runs/[buildRunId]/manifest/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/build/runs/[buildRunId]/outputs",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/build/runs/[buildRunId]/outputs/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/build/runs/[buildRunId]/rerun",
+  "methods": [
+   "POST"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/build/runs/[buildRunId]/rerun/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/build/runs/[buildRunId]",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/build/runs/[buildRunId]/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/build/runs",
+  "methods": [
+   "POST",
+   "GET"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/build/runs/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/classification",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/classification/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/command",
+  "methods": [
+   "POST"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/command/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/decisions",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/decisions/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/deployment/plans/[deploymentPlanId]",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/deployment/plans/[deploymentPlanId]/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/deployment/plans",
+  "methods": [
+   "POST",
+   "GET"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/deployment/plans/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/execution/cancel/[id]",
+  "methods": [
+   "POST"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/execution/cancel/[id]/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/execution/commands",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/execution/commands/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/execution/run/[id]",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/execution/run/[id]/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/execution/run",
+  "methods": [
+   "POST"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/execution/run/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/execution/runs",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/execution/runs/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/execution/stream/[id]",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/execution/stream/[id]/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/execution-context/approve",
+  "methods": [
+   "POST"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/execution-context/approve/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/execution-context/gate",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/execution-context/gate/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/execution-context",
+  "methods": [
+   "GET",
+   "POST"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/execution-context/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/factory-completion",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/factory-completion/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/factory-readiness",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/factory-readiness/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/factory-workspace/capabilities/search",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/factory-workspace/capabilities/search/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/factory-workspace/sessions/[id]/approve-context",
+  "methods": [
+   "POST"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/factory-workspace/sessions/[id]/approve-context/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/factory-workspace/sessions/[id]/approve-plan",
+  "methods": [
+   "POST"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/factory-workspace/sessions/[id]/approve-plan/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/factory-workspace/sessions/[id]/approve-proposal",
+  "methods": [
+   "POST"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/factory-workspace/sessions/[id]/approve-proposal/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/factory-workspace/sessions/[id]/approve-review",
+  "methods": [
+   "POST"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/factory-workspace/sessions/[id]/approve-review/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/factory-workspace/sessions/[id]/build",
+  "methods": [
+   "POST"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/factory-workspace/sessions/[id]/build/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/factory-workspace/sessions/[id]/create-plan",
+  "methods": [
+   "POST"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/factory-workspace/sessions/[id]/create-plan/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/factory-workspace/sessions/[id]/decide",
+  "methods": [
+   "POST"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/factory-workspace/sessions/[id]/decide/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/factory-workspace/sessions/[id]/execute",
+  "methods": [
+   "POST"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/factory-workspace/sessions/[id]/execute/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/factory-workspace/sessions/[id]/generate-proposal",
+  "methods": [
+   "POST"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/factory-workspace/sessions/[id]/generate-proposal/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/factory-workspace/sessions/[id]/intent",
+  "methods": [
+   "POST"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/factory-workspace/sessions/[id]/intent/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/factory-workspace/sessions/[id]/prepare-context",
+  "methods": [
+   "POST"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/factory-workspace/sessions/[id]/prepare-context/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/factory-workspace/sessions/[id]/release",
+  "methods": [
+   "POST"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/factory-workspace/sessions/[id]/release/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/factory-workspace/sessions/[id]/resolve-capabilities",
+  "methods": [
+   "POST"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/factory-workspace/sessions/[id]/resolve-capabilities/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/factory-workspace/sessions/[id]/result",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/factory-workspace/sessions/[id]/result/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/factory-workspace/sessions/[id]",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/factory-workspace/sessions/[id]/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/factory-workspace/sessions/[id]/vscode-dependency",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/factory-workspace/sessions/[id]/vscode-dependency/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/factory-workspace/sessions",
+  "methods": [
+   "POST",
+   "GET"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/factory-workspace/sessions/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/factory-workspace/workers",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/factory-workspace/workers/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/file",
+  "methods": [
+   "GET",
+   "PUT"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/file/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/fs/create",
+  "methods": [
+   "POST"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/fs/create/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/fs/move",
+  "methods": [
+   "POST"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/fs/move/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/fs/rename",
+  "methods": [
+   "POST"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/fs/rename/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/fs/restore",
+  "methods": [
+   "POST"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/fs/restore/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/fs/trash",
+  "methods": [
+   "POST",
+   "GET"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/fs/trash/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/git/blame",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/git/blame/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/git/branches",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/git/branches/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/git/conflicts",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/git/conflicts/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/git/diff",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/git/diff/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/git/history",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/git/history/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/git/merge-status",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/git/merge-status/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/git/status",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/git/status/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/git/tags",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/git/tags/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/global-factory",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/global-factory/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/governance/events",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/governance/events/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/governance/factories",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/governance/factories/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/governance/rules/[ruleId]",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/governance/rules/[ruleId]/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/governance/rules",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/governance/rules/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/governance/summary",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/governance/summary/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/governance/verify",
+  "methods": [
+   "POST"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/governance/verify/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/inspection/[inspectionId]/cancel",
+  "methods": [
+   "POST"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/inspection/[inspectionId]/cancel/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/inspection/[inspectionId]",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/inspection/[inspectionId]/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/inspection/job/[jobId]",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/inspection/job/[jobId]/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/inspection/list",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/inspection/list/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/inspection/run",
+  "methods": [
+   "POST"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/inspection/run/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/operations/alerts/[id]/acknowledge",
+  "methods": [
+   "POST"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/operations/alerts/[id]/acknowledge/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/operations/alerts/[id]",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/operations/alerts/[id]/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/operations/alerts",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/operations/alerts/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/operations/backups/[id]",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/operations/backups/[id]/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/operations/backups/[id]/verify",
+  "methods": [
+   "POST"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/operations/backups/[id]/verify/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/operations/backups",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/operations/backups/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/operations/events",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/operations/events/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/operations/incidents/[incidentId]",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/operations/incidents/[incidentId]/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/operations/incidents/[incidentId]/status",
+  "methods": [
+   "POST"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/operations/incidents/[incidentId]/status/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/operations/incidents",
+  "methods": [
+   "GET",
+   "POST"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/operations/incidents/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/operations/loop/run",
+  "methods": [
+   "POST"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/operations/loop/run/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/operations/loop/runs/[id]",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/operations/loop/runs/[id]/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/operations/loop/runs",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/operations/loop/runs/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/operations/monitoring/collect",
+  "methods": [
+   "POST"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/operations/monitoring/collect/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/operations/monitoring/signals/[signalId]",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/operations/monitoring/signals/[signalId]/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/operations/monitoring/signals",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/operations/monitoring/signals/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/operations/monitoring/summary",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/operations/monitoring/summary/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/operations/readiness",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/operations/readiness/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/operations/recovery/plans/[planId]/approve",
+  "methods": [
+   "POST"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/operations/recovery/plans/[planId]/approve/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/operations/recovery/plans/[planId]",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/operations/recovery/plans/[planId]/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/operations/recovery/plans/[planId]/verify",
+  "methods": [
+   "POST"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/operations/recovery/plans/[planId]/verify/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/operations/recovery/plans",
+  "methods": [
+   "GET",
+   "POST"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/operations/recovery/plans/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/operations/restore-tests/[id]",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/operations/restore-tests/[id]/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/operations/restore-tests/[id]/verify",
+  "methods": [
+   "POST"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/operations/restore-tests/[id]/verify/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/operations/restore-tests",
+  "methods": [
+   "GET",
+   "POST"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/operations/restore-tests/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/operations/status",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/operations/status/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/owner-command/approve",
+  "methods": [
+   "POST"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/owner-command/approve/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/owner-command/confirm",
+  "methods": [
+   "POST"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/owner-command/confirm/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/owner-command",
+  "methods": [
+   "POST"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/owner-command/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/problems",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/problems/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/queue/cancel/[id]",
+  "methods": [
+   "POST"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/queue/cancel/[id]/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/queue/clear",
+  "methods": [
+   "POST"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/queue/clear/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/queue/job/[id]",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/queue/job/[id]/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/queue/jobs",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/queue/jobs/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/queue/retry/[id]",
+  "methods": [
+   "POST"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/queue/retry/[id]/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/queue/types",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/queue/types/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/release/packages",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/release/packages/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/release/registry",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/release/registry/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/release/runs/[releaseRunId]/rerun",
+  "methods": [
+   "POST"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/release/runs/[releaseRunId]/rerun/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/release/runs/[releaseRunId]",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/release/runs/[releaseRunId]/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/release/runs",
+  "methods": [
+   "POST",
+   "GET"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/release/runs/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/review/change-sets/[changeSetId]/artifacts",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/review/change-sets/[changeSetId]/artifacts/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/review/change-sets/[changeSetId]/decision",
+  "methods": [
+   "POST"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/review/change-sets/[changeSetId]/decision/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/review/change-sets/[changeSetId]/diff",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/review/change-sets/[changeSetId]/diff/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/review/change-sets/[changeSetId]/evidence",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/review/change-sets/[changeSetId]/evidence/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/review/change-sets/[changeSetId]/findings",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/review/change-sets/[changeSetId]/findings/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/review/change-sets/[changeSetId]/impact",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/review/change-sets/[changeSetId]/impact/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/review/change-sets/[changeSetId]/refresh",
+  "methods": [
+   "POST"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/review/change-sets/[changeSetId]/refresh/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/review/change-sets/[changeSetId]/review",
+  "methods": [
+   "POST"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/review/change-sets/[changeSetId]/review/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/review/change-sets/[changeSetId]",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/review/change-sets/[changeSetId]/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/review/change-sets",
+  "methods": [
+   "POST",
+   "GET"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/review/change-sets/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/search",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/search/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/security/capabilities",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/security/capabilities/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/security/defense",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/security/defense/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/security/execution-gate",
+  "methods": [
+   "POST",
+   "GET"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/security/execution-gate/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/security/external-surface/discover",
+  "methods": [
+   "POST"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/security/external-surface/discover/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/security/external-surface/domains/[id]/verify",
+  "methods": [
+   "POST"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/security/external-surface/domains/[id]/verify/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/security/external-surface/domains",
+  "methods": [
+   "POST",
+   "GET"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/security/external-surface/domains/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/security/forensics/[artifactId]/timeline",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/security/forensics/[artifactId]/timeline/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/security/knowledge",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/security/knowledge/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/settings",
+  "methods": [
+   "GET",
+   "PUT"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/settings/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/standards",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/standards/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/test/runs/[testRunId]/rerun",
+  "methods": [
+   "POST"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/test/runs/[testRunId]/rerun/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/test/runs/[testRunId]",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/test/runs/[testRunId]/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/test/runs",
+  "methods": [
+   "POST",
+   "GET"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/test/runs/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/tree",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/tree/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/ui-inspection/[inspectionId]/artifacts",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/ui-inspection/[inspectionId]/artifacts/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/ui-inspection/[inspectionId]/cancel",
+  "methods": [
+   "POST"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/ui-inspection/[inspectionId]/cancel/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/ui-inspection/[inspectionId]/findings",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/ui-inspection/[inspectionId]/findings/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/ui-inspection/[inspectionId]/rerun",
+  "methods": [
+   "POST"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/ui-inspection/[inspectionId]/rerun/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/ui-inspection/[inspectionId]",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/ui-inspection/[inspectionId]/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/ui-inspection/[inspectionId]/snapshot/[artifactId]",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/ui-inspection/[inspectionId]/snapshot/[artifactId]/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/ui-inspection/[inspectionId]/viewports",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/ui-inspection/[inspectionId]/viewports/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/ui-inspection/capability",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/ui-inspection/capability/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/ui-inspection/list",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/ui-inspection/list/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/ui-inspection/run",
+  "methods": [
+   "POST"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/ui-inspection/run/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/workers/[id]/health",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/workers/[id]/health/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/workers/[id]",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/workers/[id]/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/workers/budget",
+  "methods": [
+   "GET",
+   "POST"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/workers/budget/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/workers/execute",
+  "methods": [
+   "POST"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/workers/execute/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/workers/executions/[id]",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/workers/executions/[id]/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/workers/executions",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/workers/executions/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/workers",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/workers/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/workers/select",
+  "methods": [
+   "POST"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/workers/select/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/ide/workers/settings",
+  "methods": [
+   "GET",
+   "POST"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/ide/workers/settings/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/infrastructure/github/paths/[id]",
+  "methods": [
+   "PATCH",
+   "DELETE"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "LOCAL_WRITE",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [
+   "github_sync_paths"
+  ],
+  "source_pointer": "app/api/admin/infrastructure/github/paths/[id]/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/infrastructure/github/paths/[id]/sync",
+  "methods": [
+   "POST"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "READ_ONLY",
+  "idempotency": "UNKNOWN",
+  "data_read": [
+   "github_sync_paths",
+   "connectors"
+  ],
+  "data_written": [],
+  "source_pointer": "app/api/admin/infrastructure/github/paths/[id]/sync/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/infrastructure/github/paths",
+  "methods": [
+   "GET",
+   "POST"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "LOCAL_WRITE",
+  "idempotency": "UNKNOWN",
+  "data_read": [
+   "github_sync_paths"
+  ],
+  "data_written": [
+   "github_sync_paths"
+  ],
+  "source_pointer": "app/api/admin/infrastructure/github/paths/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/infrastructure/github",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "READ_ONLY",
+  "idempotency": "UNKNOWN",
+  "data_read": [
+   "github_sync_paths"
+  ],
+  "data_written": [],
+  "source_pointer": "app/api/admin/infrastructure/github/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/infrastructure/github/token",
+  "methods": [
+   "POST"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/infrastructure/github/token/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/infrastructure",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "READ_ONLY",
+  "idempotency": "UNKNOWN",
+  "data_read": [
+   "system_health_status"
+  ],
+  "data_written": [],
+  "source_pointer": "app/api/admin/infrastructure/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/invoices/[invoiceId]/send",
+  "methods": [
+   "POST"
+  ],
+  "authentication": "requireAuth+ADMIN_TIER",
+  "authority": "ADMIN_TIER",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/invoices/[invoiceId]/send/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/line-customers/[lineUserId]/ask",
+  "methods": [
+   "POST"
+  ],
+  "authentication": "requireAuth+ADMIN_TIER",
+  "authority": "ADMIN_TIER",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "READ_ONLY",
+  "idempotency": "UNKNOWN",
+  "data_read": [
+   "material_types",
+   "line_events",
+   "line_profiles",
+   "company_line_links",
+   "driver_equipment_permissions"
+  ],
+  "data_written": [],
+  "source_pointer": "app/api/admin/line-customers/[lineUserId]/ask/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/line-customers/[lineUserId]/build-event",
+  "methods": [
+   "POST"
+  ],
+  "authentication": "requireAuth+ADMIN_TIER",
+  "authority": "ADMIN_TIER",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "LOCAL_WRITE",
+  "idempotency": "UNKNOWN",
+  "data_read": [
+   "business_events",
+   "line_events",
+   "company_line_links",
+   "companies",
+   "material_types"
+  ],
+  "data_written": [
+   "business_events"
+  ],
+  "source_pointer": "app/api/admin/line-customers/[lineUserId]/build-event/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/line-customers/[lineUserId]/reply",
+  "methods": [
+   "POST"
+  ],
+  "authentication": "requireAuth+ADMIN_TIER",
+  "authority": "ADMIN_TIER",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "LOCAL_WRITE",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [
+   "line_events"
+  ],
+  "source_pointer": "app/api/admin/line-customers/[lineUserId]/reply/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/line-customers/[lineUserId]/send-debt",
+  "methods": [
+   "POST"
+  ],
+  "authentication": "requireAuth+ADMIN_TIER",
+  "authority": "ADMIN_TIER",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "LOCAL_WRITE",
+  "idempotency": "UNKNOWN",
+  "data_read": [
+   "company_line_links",
+   "business_events"
+  ],
+  "data_written": [
+   "line_events",
+   "business_events"
+  ],
+  "source_pointer": "app/api/admin/line-customers/[lineUserId]/send-debt/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/line-customers/[lineUserId]/send-document",
+  "methods": [
+   "POST"
+  ],
+  "authentication": "requireAuth+ADMIN_TIER",
+  "authority": "ADMIN_TIER",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "LOCAL_WRITE",
+  "idempotency": "UNKNOWN",
+  "data_read": [
+   "company_line_links",
+   "invoices",
+   "standalone_documents",
+   "standalone_document_items"
+  ],
+  "data_written": [
+   "line_events"
+  ],
+  "source_pointer": "app/api/admin/line-customers/[lineUserId]/send-document/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/line-profiles/[lineUserId]",
+  "methods": [
+   "GET",
+   "PATCH"
+  ],
+  "authentication": "requireAuth+ADMIN_TIER",
+  "authority": "ADMIN_TIER",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "LOCAL_WRITE",
+  "idempotency": "UNKNOWN",
+  "data_read": [
+   "line_profiles",
+   "line_profile_history"
+  ],
+  "data_written": [
+   "line_profiles"
+  ],
+  "source_pointer": "app/api/admin/line-profiles/[lineUserId]/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/line-profiles",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth+ADMIN_TIER",
+  "authority": "ADMIN_TIER",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "READ_ONLY",
+  "idempotency": "UNKNOWN",
+  "data_read": [
+   "line_events",
+   "line_profiles",
+   "company_line_links"
+  ],
+  "data_written": [],
+  "source_pointer": "app/api/admin/line-profiles/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/notifications/send",
+  "methods": [
+   "POST"
+  ],
+  "authentication": "requireAuth+ADMIN_TIER",
+  "authority": "ADMIN_TIER",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "LOCAL_WRITE",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [
+   "audit_logs"
+  ],
+  "source_pointer": "app/api/admin/notifications/send/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/outbound-drafts/[id]/reject",
+  "methods": [
+   "POST"
+  ],
+  "authentication": "requireAuth+ADMIN_TIER",
+  "authority": "ADMIN_TIER",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "LOCAL_WRITE",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [
+   "line_outbound_drafts"
+  ],
+  "source_pointer": "app/api/admin/outbound-drafts/[id]/reject/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/outbound-drafts/[id]/send",
+  "methods": [
+   "POST"
+  ],
+  "authentication": "requireAuth+ADMIN_TIER",
+  "authority": "ADMIN_TIER",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "LOCAL_WRITE",
+  "idempotency": "UNKNOWN",
+  "data_read": [
+   "line_outbound_drafts"
+  ],
+  "data_written": [
+   "line_outbound_drafts"
+  ],
+  "source_pointer": "app/api/admin/outbound-drafts/[id]/send/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/outbound-drafts",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth+ADMIN_TIER",
+  "authority": "ADMIN_TIER",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "READ_ONLY",
+  "idempotency": "UNKNOWN",
+  "data_read": [
+   "line_outbound_drafts"
+  ],
+  "data_written": [],
+  "source_pointer": "app/api/admin/outbound-drafts/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/partners/[id]/chain",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth+ADMIN_TIER",
+  "authority": "ADMIN_TIER",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "READ_ONLY",
+  "idempotency": "UNKNOWN",
+  "data_read": [
+   "companies",
+   "customer_orders",
+   "invoices",
+   "standalone_documents"
+  ],
+  "data_written": [],
+  "source_pointer": "app/api/admin/partners/[id]/chain/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/partners/[id]/credit",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth+ADMIN_TIER",
+  "authority": "ADMIN_TIER",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "READ_ONLY",
+  "idempotency": "UNKNOWN",
+  "data_read": [
+   "invoices",
+   "debt_snapshots",
+   "customer_orders",
+   "debt_events"
+  ],
+  "data_written": [],
+  "source_pointer": "app/api/admin/partners/[id]/credit/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/partners/[id]/line-messages",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth+ADMIN_TIER",
+  "authority": "ADMIN_TIER",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "READ_ONLY",
+  "idempotency": "UNKNOWN",
+  "data_read": [
+   "company_line_links",
+   "line_events"
+  ],
+  "data_written": [],
+  "source_pointer": "app/api/admin/partners/[id]/line-messages/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/partners/[id]/timeline",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth+ADMIN_TIER",
+  "authority": "ADMIN_TIER",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/partners/[id]/timeline/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/partners",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth+ADMIN_TIER",
+  "authority": "ADMIN_TIER",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "READ_ONLY",
+  "idempotency": "UNKNOWN",
+  "data_read": [
+   "companies"
+  ],
+  "data_written": [],
+  "source_pointer": "app/api/admin/partners/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/pits/[pitId]/materials",
+  "methods": [
+   "POST"
+  ],
+  "authentication": "requireAuth+ADMIN_TIER",
+  "authority": "ADMIN_TIER",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "LOCAL_WRITE",
+  "idempotency": "UNKNOWN",
+  "data_read": [
+   "pit_materials"
+  ],
+  "data_written": [
+   "pit_materials"
+  ],
+  "source_pointer": "app/api/admin/pits/[pitId]/materials/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/pits/[pitId]/request-quote",
+  "methods": [
+   "POST"
+  ],
+  "authentication": "requireAuth+ADMIN_TIER",
+  "authority": "ADMIN_TIER",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "LOCAL_WRITE",
+  "idempotency": "UNKNOWN",
+  "data_read": [
+   "pit_profiles",
+   "material_types"
+  ],
+  "data_written": [
+   "pit_price_requests"
+  ],
+  "source_pointer": "app/api/admin/pits/[pitId]/request-quote/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/pits/[pitId]",
+  "methods": [
+   "PATCH"
+  ],
+  "authentication": "requireAuth+ADMIN_TIER",
+  "authority": "ADMIN_TIER",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "LOCAL_WRITE",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [
+   "pit_profiles"
+  ],
+  "source_pointer": "app/api/admin/pits/[pitId]/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/pits",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth+ADMIN_TIER",
+  "authority": "ADMIN_TIER",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "READ_ONLY",
+  "idempotency": "UNKNOWN",
+  "data_read": [
+   "pit_profiles",
+   "pit_materials",
+   "material_types"
+  ],
+  "data_written": [],
+  "source_pointer": "app/api/admin/pits/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/program-graph",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth+ADMIN_TIER",
+  "authority": "ADMIN_TIER",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/program-graph/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/pulse",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth+ADMIN_TIER",
+  "authority": "ADMIN_TIER",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "READ_ONLY",
+  "idempotency": "UNKNOWN",
+  "data_read": [
+   "invoices",
+   "customer_orders",
+   "standalone_documents"
+  ],
+  "data_written": [],
+  "source_pointer": "app/api/admin/pulse/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/quotation-queue",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth+ADMIN_TIER",
+  "authority": "ADMIN_TIER",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "READ_ONLY",
+  "idempotency": "UNKNOWN",
+  "data_read": [
+   "business_events",
+   "material_types",
+   "company_line_links",
+   "customer_sites"
+  ],
+  "data_written": [],
+  "source_pointer": "app/api/admin/quotation-queue/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/receipt-documents/[id]/confirm",
+  "methods": [
+   "POST"
+  ],
+  "authentication": "requireAuth+ADMIN_TIER",
+  "authority": "ADMIN_TIER",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "LOCAL_WRITE",
+  "idempotency": "UNKNOWN",
+  "data_read": [
+   "receipt_documents",
+   "debt_snapshots",
+   "companies"
+  ],
+  "data_written": [
+   "debt_events",
+   "debt_snapshots",
+   "receipt_documents"
+  ],
+  "source_pointer": "app/api/admin/receipt-documents/[id]/confirm/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/receipt-documents/[id]/reject",
+  "methods": [
+   "POST"
+  ],
+  "authentication": "requireAuth+ADMIN_TIER",
+  "authority": "ADMIN_TIER",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "LOCAL_WRITE",
+  "idempotency": "UNKNOWN",
+  "data_read": [
+   "receipt_documents"
+  ],
+  "data_written": [
+   "receipt_documents"
+  ],
+  "source_pointer": "app/api/admin/receipt-documents/[id]/reject/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/receipt-documents",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth+ADMIN_TIER",
+  "authority": "ADMIN_TIER",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "READ_ONLY",
+  "idempotency": "UNKNOWN",
+  "data_read": [
+   "receipt_documents",
+   "companies",
+   "debt_snapshots"
+  ],
+  "data_written": [],
+  "source_pointer": "app/api/admin/receipt-documents/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/relationships/[relationshipId]/match",
+  "methods": [
+   "POST"
+  ],
+  "authentication": "requireAuth+ADMIN_TIER",
+  "authority": "ADMIN_TIER",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "LOCAL_WRITE",
+  "idempotency": "UNKNOWN",
+  "data_read": [
+   "company_line_links"
+  ],
+  "data_written": [
+   "companies",
+   "company_line_links"
+  ],
+  "source_pointer": "app/api/admin/relationships/[relationshipId]/match/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/relationships/[relationshipId]",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth+ADMIN_TIER",
+  "authority": "ADMIN_TIER",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "READ_ONLY",
+  "idempotency": "UNKNOWN",
+  "data_read": [
+   "companies",
+   "line_events",
+   "attachments",
+   "line_conversation_controls",
+   "line_profiles",
+   "company_line_links",
+   "invoices",
+   "standalone_documents",
+   "debt_snapshots",
+   "business_events",
+   "line_outbound_drafts",
+   "receipt_documents"
+  ],
+  "data_written": [],
+  "source_pointer": "app/api/admin/relationships/[relationshipId]/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/relationships",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth+ADMIN_TIER",
+  "authority": "ADMIN_TIER",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "READ_ONLY",
+  "idempotency": "UNKNOWN",
+  "data_read": [
+   "company_line_links",
+   "line_events",
+   "line_profiles",
+   "debt_snapshots",
+   "debt_events",
+   "line_outbound_drafts"
+  ],
+  "data_written": [],
+  "source_pointer": "app/api/admin/relationships/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/runtime/document-engine",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth+ADMIN_TIER",
+  "authority": "ADMIN_TIER",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/runtime/document-engine/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/schema-audit",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth+ADMIN_TIER",
+  "authority": "ADMIN_TIER",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "READ_ONLY",
+  "idempotency": "UNKNOWN",
+  "data_read": [
+   "schema_change_log"
+  ],
+  "data_written": [],
+  "source_pointer": "app/api/admin/schema-audit/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/screen-vision",
+  "methods": [
+   "POST"
+  ],
+  "authentication": "requireAuth+ADMIN_TIER",
+  "authority": "ADMIN_TIER",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/screen-vision/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/settings",
+  "methods": [
+   "GET",
+   "PUT"
+  ],
+  "authentication": "requireAuth+ADMIN_TIER",
+  "authority": "ADMIN_TIER",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/settings/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/sites",
+  "methods": [
+   "GET",
+   "POST"
+  ],
+  "authentication": "requireAuth+ADMIN_TIER",
+  "authority": "ADMIN_TIER",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "LOCAL_WRITE",
+  "idempotency": "UNKNOWN",
+  "data_read": [
+   "customer_sites"
+  ],
+  "data_written": [
+   "customer_sites"
+  ],
+  "source_pointer": "app/api/admin/sites/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/storage-intelligence",
+  "methods": [
+   "POST"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/storage-intelligence/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/subscriptions",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth+ADMIN_TIER",
+  "authority": "ADMIN_TIER",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "READ_ONLY",
+  "idempotency": "UNKNOWN",
+  "data_read": [
+   "subscription_services"
+  ],
+  "data_written": [],
+  "source_pointer": "app/api/admin/subscriptions/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/system-config",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth+ADMIN_TIER",
+  "authority": "ADMIN_TIER",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "READ_ONLY",
+  "idempotency": "UNKNOWN",
+  "data_read": [
+   "integration_gateway_events"
+  ],
+  "data_written": [],
+  "source_pointer": "app/api/admin/system-config/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/system-reality",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth+ADMIN_TIER",
+  "authority": "ADMIN_TIER",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/system-reality/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/transactions/[id]/advance",
+  "methods": [
+   "POST"
+  ],
+  "authentication": "requireAuth+ADMIN_TIER",
+  "authority": "ADMIN_TIER",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "LOCAL_WRITE",
+  "idempotency": "UNKNOWN",
+  "data_read": [
+   "customer_orders"
+  ],
+  "data_written": [
+   "customer_orders",
+   "audit_logs"
+  ],
+  "source_pointer": "app/api/admin/transactions/[id]/advance/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/transactions/[id]",
+  "methods": [
+   "GET",
+   "PATCH",
+   "DELETE"
+  ],
+  "authentication": "requireAuth+ADMIN_TIER",
+  "authority": "ADMIN_TIER",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "LOCAL_WRITE",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [
+   "customer_orders"
+  ],
+  "source_pointer": "app/api/admin/transactions/[id]/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/transactions",
+  "methods": [
+   "GET",
+   "POST"
+  ],
+  "authentication": "requireAuth+ADMIN_TIER",
+  "authority": "ADMIN_TIER",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "LOCAL_WRITE",
+  "idempotency": "UNKNOWN",
+  "data_read": [
+   "customer_orders",
+   "customer_sites"
+  ],
+  "data_written": [
+   "projects",
+   "document_groups",
+   "customer_orders"
+  ],
+  "source_pointer": "app/api/admin/transactions/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/upload",
+  "methods": [
+   "POST",
+   "GET",
+   "DELETE"
+  ],
+  "authentication": "requireAuth+ADMIN_TIER",
+  "authority": "ADMIN_TIER",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/upload/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/users/[id]/role",
+  "methods": [
+   "PATCH"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "LOCAL_WRITE",
+  "idempotency": "UNKNOWN",
+  "data_read": [
+   "profiles"
+  ],
+  "data_written": [
+   "profiles"
+  ],
+  "source_pointer": "app/api/admin/users/[id]/role/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/users",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "READ_ONLY",
+  "idempotency": "UNKNOWN",
+  "data_read": [
+   "profiles"
+  ],
+  "data_written": [],
+  "source_pointer": "app/api/admin/users/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/workspace/ai-agents",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth+ADMIN_TIER",
+  "authority": "ADMIN_TIER",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "READ_ONLY",
+  "idempotency": "UNKNOWN",
+  "data_read": [
+   "dev_loop_sessions"
+  ],
+  "data_written": [],
+  "source_pointer": "app/api/admin/workspace/ai-agents/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/workspace/automation",
+  "methods": [
+   "GET",
+   "POST"
+  ],
+  "authentication": "requireAuth+ADMIN_TIER",
+  "authority": "ADMIN_TIER",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/workspace/automation/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/workspace/database",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth+ADMIN_TIER",
+  "authority": "ADMIN_TIER",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "READ_ONLY",
+  "idempotency": "UNKNOWN",
+  "data_read": [
+   "integration_gateway_events"
+  ],
+  "data_written": [],
+  "source_pointer": "app/api/admin/workspace/database/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/workspace/file",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth+ADMIN_TIER",
+  "authority": "ADMIN_TIER",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/workspace/file/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/workspace",
+  "methods": [
+   "POST"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "READ_ONLY",
+  "idempotency": "UNKNOWN",
+  "data_read": [
+   "workspace_locks",
+   "workspace_lock_conflicts"
+  ],
+  "data_written": [],
+  "source_pointer": "app/api/admin/workspace/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/workspace/status",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth+ADMIN_TIER",
+  "authority": "ADMIN_TIER",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "READ_ONLY",
+  "idempotency": "UNKNOWN",
+  "data_read": [
+   "integration_gateway_events",
+   "dev_loop_check_results"
+  ],
+  "data_written": [],
+  "source_pointer": "app/api/admin/workspace/status/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/admin/workspace/tree",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth+ADMIN_TIER",
+  "authority": "ADMIN_TIER",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/admin/workspace/tree/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/auth/auto-login",
+  "methods": [
+   "POST"
+  ],
+  "authentication": "UNKNOWN",
+  "authority": "UNKNOWN",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "READ_ONLY",
+  "idempotency": "UNKNOWN",
+  "data_read": [
+   "profiles"
+  ],
+  "data_written": [],
+  "source_pointer": "app/api/auth/auto-login/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/auth/logout",
+  "methods": [
+   "POST"
+  ],
+  "authentication": "UNKNOWN",
+  "authority": "UNKNOWN",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/auth/logout/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/auth/qr-login/approve",
+  "methods": [
+   "POST"
+  ],
+  "authentication": "UNKNOWN",
+  "authority": "UNKNOWN",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "LOCAL_WRITE",
+  "idempotency": "UNKNOWN",
+  "data_read": [
+   "owner_qr_login_sessions"
+  ],
+  "data_written": [
+   "owner_qr_login_sessions"
+  ],
+  "source_pointer": "app/api/auth/qr-login/approve/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/auth/qr-login/deny",
+  "methods": [
+   "POST"
+  ],
+  "authentication": "UNKNOWN",
+  "authority": "UNKNOWN",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "LOCAL_WRITE",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [
+   "owner_qr_login_sessions"
+  ],
+  "source_pointer": "app/api/auth/qr-login/deny/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/auth/qr-login/start",
+  "methods": [
+   "POST"
+  ],
+  "authentication": "UNKNOWN",
+  "authority": "UNKNOWN",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "LOCAL_WRITE",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [
+   "owner_qr_login_sessions"
+  ],
+  "source_pointer": "app/api/auth/qr-login/start/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/auth/qr-login/status",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "UNKNOWN",
+  "authority": "UNKNOWN",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "LOCAL_WRITE",
+  "idempotency": "UNKNOWN",
+  "data_read": [
+   "owner_qr_login_sessions",
+   "profiles"
+  ],
+  "data_written": [
+   "owner_qr_login_sessions"
+  ],
+  "source_pointer": "app/api/auth/qr-login/status/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/auth/recovery/audit",
+  "methods": [
+   "POST"
+  ],
+  "authentication": "UNKNOWN",
+  "authority": "UNKNOWN",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "LOCAL_WRITE",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [
+   "owner_auth_audit_log"
+  ],
+  "source_pointer": "app/api/auth/recovery/audit/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/auth/webauthn/bootstrap/options",
+  "methods": [
+   "POST"
+  ],
+  "authentication": "UNKNOWN",
+  "authority": "UNKNOWN",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "READ_ONLY",
+  "idempotency": "UNKNOWN",
+  "data_read": [
+   "identities",
+   "profiles",
+   "owner_passkey_credentials"
+  ],
+  "data_written": [],
+  "source_pointer": "app/api/auth/webauthn/bootstrap/options/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/auth/webauthn/bootstrap/verify",
+  "methods": [
+   "POST"
+  ],
+  "authentication": "UNKNOWN",
+  "authority": "UNKNOWN",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "LOCAL_WRITE",
+  "idempotency": "UNKNOWN",
+  "data_read": [
+   "profiles"
+  ],
+  "data_written": [
+   "owner_devices",
+   "owner_passkey_credentials",
+   "owner_auth_audit_log"
+  ],
+  "source_pointer": "app/api/auth/webauthn/bootstrap/verify/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/auth/webauthn/login/options",
+  "methods": [
+   "POST"
+  ],
+  "authentication": "UNKNOWN",
+  "authority": "UNKNOWN",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/auth/webauthn/login/options/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/auth/webauthn/login/verify",
+  "methods": [
+   "POST"
+  ],
+  "authentication": "UNKNOWN",
+  "authority": "UNKNOWN",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "LOCAL_WRITE",
+  "idempotency": "UNKNOWN",
+  "data_read": [
+   "owner_passkey_credentials",
+   "profiles"
+  ],
+  "data_written": [
+   "owner_passkey_credentials"
+  ],
+  "source_pointer": "app/api/auth/webauthn/login/verify/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/auth/webauthn/register/options",
+  "methods": [
+   "POST"
+  ],
+  "authentication": "UNKNOWN",
+  "authority": "UNKNOWN",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "READ_ONLY",
+  "idempotency": "UNKNOWN",
+  "data_read": [
+   "owner_passkey_credentials"
+  ],
+  "data_written": [],
+  "source_pointer": "app/api/auth/webauthn/register/options/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/auth/webauthn/register/verify",
+  "methods": [
+   "POST"
+  ],
+  "authentication": "UNKNOWN",
+  "authority": "UNKNOWN",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "LOCAL_WRITE",
+  "idempotency": "UNKNOWN",
+  "data_read": [
+   "owner_devices"
+  ],
+  "data_written": [
+   "owner_passkey_credentials",
+   "owner_devices",
+   "owner_auth_audit_log"
+  ],
+  "source_pointer": "app/api/auth/webauthn/register/verify/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/build",
+  "methods": [
+   "GET",
+   "POST"
+  ],
+  "authentication": "requireAuth+ADMIN_TIER",
+  "authority": "ADMIN_TIER",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/build/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/chat/confirm",
+  "methods": [
+   "POST"
+  ],
+  "authentication": "requireAuth+ADMIN_TIER",
+  "authority": "ADMIN_TIER",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "LOCAL_WRITE",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [
+   "line_events"
+  ],
+  "source_pointer": "app/api/chat/confirm/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/chat",
+  "methods": [
+   "POST"
+  ],
+  "authentication": "requireAuth+ADMIN_TIER",
+  "authority": "ADMIN_TIER",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/chat/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/command",
+  "methods": [
+   "POST",
+   "GET"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/command/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/connectors/oauth/authorize/[slug]",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "UNKNOWN",
+  "authority": "UNKNOWN",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/connectors/oauth/authorize/[slug]/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/connectors/oauth/callback/[slug]",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "UNKNOWN",
+  "authority": "UNKNOWN",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/connectors/oauth/callback/[slug]/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/connectors/oauth/refresh/[slug]",
+  "methods": [
+   "POST"
+  ],
+  "authentication": "UNKNOWN",
+  "authority": "UNKNOWN",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/connectors/oauth/refresh/[slug]/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/connectors/webhook/[slug]",
+  "methods": [
+   "POST"
+  ],
+  "authentication": "UNKNOWN",
+  "authority": "UNKNOWN",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/connectors/webhook/[slug]/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/cron/operations-loop",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "UNKNOWN",
+  "authority": "UNKNOWN",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/cron/operations-loop/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/cron/supabase-project-status",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "UNKNOWN",
+  "authority": "UNKNOWN",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "READ_ONLY",
+  "idempotency": "UNKNOWN",
+  "data_read": [
+   "line_profiles"
+  ],
+  "data_written": [],
+  "source_pointer": "app/api/cron/supabase-project-status/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/dbd",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth+ADMIN_TIER",
+  "authority": "ADMIN_TIER",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/dbd/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/deploy",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/deploy/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/document",
+  "methods": [
+   "POST"
+  ],
+  "authentication": "requireAuth+ADMIN_TIER",
+  "authority": "ADMIN_TIER",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/document/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/explain",
+  "methods": [
+   "POST"
+  ],
+  "authentication": "requireAuth",
+  "authority": "AUTHENTICATED",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/explain/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/gateway/observe/github",
+  "methods": [
+   "POST"
+  ],
+  "authentication": "bearer secret header (x-github-event)",
+  "authority": "UNKNOWN",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/gateway/observe/github/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/gateway/observe/vercel",
+  "methods": [
+   "POST"
+  ],
+  "authentication": "bearer secret header (x-vercel-signature)",
+  "authority": "UNKNOWN",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/gateway/observe/vercel/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/gateway/proposals/[id]/decide",
+  "methods": [
+   "POST"
+  ],
+  "authentication": "requireAuth+ADMIN_TIER",
+  "authority": "ADMIN_TIER",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/gateway/proposals/[id]/decide/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/gateway/proposals",
+  "methods": [
+   "GET",
+   "POST"
+  ],
+  "authentication": "requireAuth+ADMIN_TIER",
+  "authority": "ADMIN_TIER",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/gateway/proposals/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/governance",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth+ADMIN_TIER",
+  "authority": "ADMIN_TIER",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/governance/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/infra-command",
+  "methods": [
+   "POST"
+  ],
+  "authentication": "requireAuth+ADMIN_TIER",
+  "authority": "ADMIN_TIER",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/infra-command/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/infra-console",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth+ADMIN_TIER",
+  "authority": "ADMIN_TIER",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/infra-console/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/infra-task/[taskId]",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth+ADMIN_TIER",
+  "authority": "ADMIN_TIER",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/infra-task/[taskId]/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/internal/ai/gateway",
+  "methods": [
+   "POST"
+  ],
+  "authentication": "bearer secret header",
+  "authority": "MACHINE_SECRET",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/internal/ai/gateway/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/internal/equipment/lock-command",
+  "methods": [
+   "POST"
+  ],
+  "authentication": "bearer secret header",
+  "authority": "MACHINE_SECRET",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "LOCAL_WRITE",
+  "idempotency": "UNKNOWN",
+  "data_read": [
+   "equipment_assets"
+  ],
+  "data_written": [
+   "equipment_assets"
+  ],
+  "source_pointer": "app/api/internal/equipment/lock-command/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/internal/equipment/telemetry",
+  "methods": [
+   "POST"
+  ],
+  "authentication": "bearer secret header",
+  "authority": "MACHINE_SECRET",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "LOCAL_WRITE",
+  "idempotency": "UNKNOWN",
+  "data_read": [
+   "equipment_assets"
+  ],
+  "data_written": [
+   "equipment_telemetry_pings",
+   "equipment_assets"
+  ],
+  "source_pointer": "app/api/internal/equipment/telemetry/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/internal/line/command",
+  "methods": [
+   "POST"
+  ],
+  "authentication": "bearer secret header",
+  "authority": "MACHINE_SECRET",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "LOCAL_WRITE",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [
+   "live_commands"
+  ],
+  "source_pointer": "app/api/internal/line/command/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/internal/line/document-artifact",
+  "methods": [
+   "POST"
+  ],
+  "authentication": "bearer secret header",
+  "authority": "MACHINE_SECRET",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/internal/line/document-artifact/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/internal/openclaw/command",
+  "methods": [
+   "POST"
+  ],
+  "authentication": "bearer secret header",
+  "authority": "MACHINE_SECRET",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/internal/openclaw/command/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/manual-doc",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "UNKNOWN",
+  "authority": "UNKNOWN",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/manual-doc/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/oauth/authorize",
+  "methods": [
+   "POST"
+  ],
+  "authentication": "requireAuth+ADMIN_TIER",
+  "authority": "ADMIN_TIER",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/oauth/authorize/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/reader",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth+ADMIN_TIER",
+  "authority": "ADMIN_TIER",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/reader/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/routes",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth+ADMIN_TIER",
+  "authority": "ADMIN_TIER",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/routes/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/self-description",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth+ADMIN_TIER",
+  "authority": "ADMIN_TIER",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/self-description/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/traces",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "requireAuth+ADMIN_TIER",
+  "authority": "ADMIN_TIER",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/traces/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/v1/capabilities",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "UNKNOWN",
+  "authority": "UNKNOWN",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/v1/capabilities/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/v1/constitution",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "UNKNOWN",
+  "authority": "UNKNOWN",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/v1/constitution/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/v1/drivers",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "UNKNOWN",
+  "authority": "UNKNOWN",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/v1/drivers/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/v1/mcp/architecture/dependency-graph",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "UNKNOWN",
+  "authority": "UNKNOWN",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/v1/mcp/architecture/dependency-graph/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/v1/mcp/architecture/summary",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "UNKNOWN",
+  "authority": "UNKNOWN",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/v1/mcp/architecture/summary/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/v1/mcp/governance/deploy-approval-status",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "UNKNOWN",
+  "authority": "UNKNOWN",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "READ_ONLY",
+  "idempotency": "UNKNOWN",
+  "data_read": [
+   "dev_loop_registry_proposals",
+   "dev_loop_check_results"
+  ],
+  "data_written": [],
+  "source_pointer": "app/api/v1/mcp/governance/deploy-approval-status/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/v1/mcp/governance/impact/[evidenceEventId]",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "UNKNOWN",
+  "authority": "UNKNOWN",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "READ_ONLY",
+  "idempotency": "UNKNOWN",
+  "data_read": [
+   "dev_loop_evidence_events",
+   "dev_loop_check_results"
+  ],
+  "data_written": [],
+  "source_pointer": "app/api/v1/mcp/governance/impact/[evidenceEventId]/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/v1/mcp/governance/registry-proposals",
+  "methods": [
+   "POST"
+  ],
+  "authentication": "UNKNOWN",
+  "authority": "UNKNOWN",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "LOCAL_WRITE",
+  "idempotency": "UNKNOWN",
+  "data_read": [
+   "dev_loop_sessions",
+   "dev_loop_evidence_events",
+   "dev_loop_check_results"
+  ],
+  "data_written": [
+   "dev_loop_registry_proposals"
+  ],
+  "source_pointer": "app/api/v1/mcp/governance/registry-proposals/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/v1/mcp/governance/session-proposals",
+  "methods": [
+   "POST"
+  ],
+  "authentication": "UNKNOWN",
+  "authority": "UNKNOWN",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "LOCAL_WRITE",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [
+   "dev_loop_sessions"
+  ],
+  "source_pointer": "app/api/v1/mcp/governance/session-proposals/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/v1/mcp/governance/status",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "UNKNOWN",
+  "authority": "UNKNOWN",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "READ_ONLY",
+  "idempotency": "UNKNOWN",
+  "data_read": [
+   "dev_loop_sessions",
+   "dev_loop_evidence_events",
+   "dev_loop_check_results",
+   "dev_loop_registry_proposals"
+  ],
+  "data_written": [],
+  "source_pointer": "app/api/v1/mcp/governance/status/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/v1/mcp/manifest",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "UNKNOWN",
+  "authority": "UNKNOWN",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/v1/mcp/manifest/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/v1/mcp/registry/commands",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "UNKNOWN",
+  "authority": "UNKNOWN",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/v1/mcp/registry/commands/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/v1/modules",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "UNKNOWN",
+  "authority": "UNKNOWN",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/v1/modules/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/v1/query",
+  "methods": [
+   "POST"
+  ],
+  "authentication": "bearer secret header (x-dna-token)",
+  "authority": "UNKNOWN",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/v1/query/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/v1/spec",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "UNKNOWN",
+  "authority": "UNKNOWN",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/v1/spec/route.ts"
+ },
+ {
+  "schema": "API_CONTRACT_V1",
+  "path": "/api/v1/workflows",
+  "methods": [
+   "GET"
+  ],
+  "authentication": "UNKNOWN",
+  "authority": "UNKNOWN",
+  "request_schema": "UNKNOWN",
+  "response_schema": "UNKNOWN",
+  "status_codes": "UNKNOWN",
+  "side_effect": "UNKNOWN",
+  "idempotency": "UNKNOWN",
+  "data_read": [],
+  "data_written": [],
+  "source_pointer": "app/api/v1/workflows/route.ts"
+ }
+]

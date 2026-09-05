@@ -1,0 +1,47 @@
+{
+ "schema": "FLOW_GRAPH_V1",
+ "flow_id": "VF_AUTHORIZATION_REQUEST_TO_GRANT",
+ "trigger": "ผู้ใช้และหน้างาน",
+ "ordered_nodes": [
+  {
+   "node_id": "VF8.1",
+   "unit_id": "u.identity-context",
+   "port_id": "p.identity.resolve.in",
+   "layer": "L2_IDENTITY_CONTEXT",
+   "nature": "DECISION",
+   "operation": "RESOLVE_IDENTITY",
+   "resolved": true
+  },
+  {
+   "node_id": "VF8.2",
+   "unit_id": "u.authorization",
+   "port_id": "p.authorization.request.in",
+   "layer": "L2_IDENTITY_CONTEXT",
+   "nature": "DECISION",
+   "operation": "BUSINESS_STATE",
+   "resolved": true
+  }
+ ],
+ "edges": [
+  {
+   "from": "VF8.1",
+   "to": "VF8.2"
+  }
+ ],
+ "input_contract": null,
+ "output_contract": null,
+ "terminal_condition": "ไม่มี — คำขอค้างที่สถานะ pending ตลอดไป",
+ "money_effects": [],
+ "external_actions": [],
+ "failure_routes": [
+  "ไม่พบหน้างาน = ตรวจไม่ได้",
+  "ไม่มีผู้อนุมัติในบริษัท = ขอไม่ได้"
+ ],
+ "required_resources": [
+  "supabase"
+ ],
+ "required_authority": [],
+ "health": "DEAD_END",
+ "resolved_nodes": 2,
+ "total_nodes": 2
+}
