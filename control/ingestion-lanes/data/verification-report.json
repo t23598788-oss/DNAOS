@@ -1,0 +1,12 @@
+{
+ "findings": [
+  {
+   "check": "financial_lane_without_state_machine",
+   "severity": "WARNING",
+   "subject": "lane.sales",
+   "detail": "มีผลทางการเงินแต่ไม่มีวงจรชีวิตประกาศไว้"
+  }
+ ],
+ "result": "PASS",
+ "checks": 8
+}

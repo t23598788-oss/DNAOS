@@ -1,0 +1,37 @@
+[
+ {
+  "detector": "classifier_direct_state_write",
+  "verdict": "PASS",
+  "detail": "ไม่พบการเขียน business_events ในไฟล์ตัวจำแนก"
+ },
+ {
+  "detector": "claim_as_fact",
+  "verdict": "INSUFFICIENT_EVIDENCE",
+  "detail": "ยังไม่มีแถวให้ตรวจ"
+ },
+ {
+  "detector": "non_sales_into_sales",
+  "verdict": "INSUFFICIENT_EVIDENCE",
+  "detail": "ยังไม่มีแถวให้ตรวจ"
+ },
+ {
+  "detector": "event_without_command_or_external_source",
+  "verdict": "PASS",
+  "detail": "ทุกเหตุการณ์มีตัวจัดการหรือแหล่งภายนอกรองรับ"
+ },
+ {
+  "detector": "state_transition_without_owner",
+  "verdict": "FAIL",
+  "detail": "ไม่มีเจ้าของ 4: sm.sales.business_event#awaiting_info->UNKNOWN, sm.authorization.lifecycle#pending->approved, sm.authorization.lifecycle#pending->denied, sm.authorization.lifecycle#pending->expired"
+ },
+ {
+  "detector": "domain_event_without_verified_handler",
+  "verdict": "PASS",
+  "detail": "ทุก lane ที่ปล่อยเหตุการณ์มีตัวจัดการ"
+ },
+ {
+  "detector": "financial_state_without_amount_source",
+  "verdict": "FAIL",
+  "detail": "ไม่มีที่มา: fe.payable.created, fe.maintenance.cost"
+ }
+]

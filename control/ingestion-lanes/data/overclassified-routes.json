@@ -1,0 +1,53 @@
+{
+ "count": 5,
+ "items": [
+  {
+   "overclassified_route": "ข้อความทั่วไป -> ai_tasks -> Ollama extraction -> business_events",
+   "expected_lane": "lane.general",
+   "current_lane": "lane.sales",
+   "root_cause": "ExtractedEvent มีแต่ฟิลด์ฝั่งการขาย (material_text, quantity, quantity_unit, destination, schedule_text) ไม่มีช่องให้แทนเจตนาเอกสาร การเงิน หรือสิทธิ์เลย ผลจากโมเดลจึงถูกบีบให้เป็นรูปงานขายเสมอ",
+   "evidence": [
+    "supabase/functions/line-webhook-v2/engines/build-event-from-extraction.ts:10-21",
+    "supabase/functions/ai-callback/index.ts:93"
+   ]
+  },
+  {
+   "overclassified_route": "event_type = \"อื่นๆ\" ที่มี material_text -> business_events",
+   "expected_lane": "lane.general",
+   "current_lane": "lane.sales",
+   "root_cause": "เงื่อนไขปฏิเสธมีแค่ 'อื่นๆ และไม่มี material_text' ถ้ามีข้อความวัสดุติดมาก็ผ่านเข้าไปเป็นเหตุการณ์ธุรกิจทันที",
+   "evidence": [
+    "supabase/functions/line-webhook-v2/engines/build-event-from-extraction.ts:29"
+   ]
+  },
+  {
+   "overclassified_route": "ผลจากโมเดลที่ความมั่นใจต่ำ -> business_events",
+   "expected_lane": "NEEDS_RESOLUTION",
+   "current_lane": "lane.sales",
+   "root_cause": "ExtractedEvent มีฟิลด์ confidence อยู่แล้ว แต่ไม่มีโค้ดใดอ่านค่านี้มาตัดสินก่อน insert",
+   "evidence": [
+    "supabase/functions/line-webhook-v2/engines/build-event-from-extraction.ts:20,28-29,46"
+   ]
+  },
+  {
+   "overclassified_route": "เจตนาขอเอกสาร -> business_events แทน lane.document",
+   "expected_lane": "lane.document",
+   "current_lane": "lane.sales",
+   "root_cause": "ไม่มีเส้นทางจากข้อความเข้าไปยังการออกเอกสาร — lane.document เริ่มที่หลังบ้านเท่านั้น (requireAuth + ADMIN_TIER) ข้อความที่ขอเอกสารจึงไม่มีที่ไปนอกจากตัวสกัดฝั่งขาย",
+   "evidence": [
+    "app/api/admin/documents/route.ts:147",
+    "supabase/functions/line-webhook-v2/handlers/text.ts"
+   ]
+  },
+  {
+   "overclassified_route": "คำกล่าวอ้างว่าจ่ายแล้ว -> ปรับยอดหนี้ในคำขอเดียวกัน",
+   "expected_lane": "lane.finance (claim -> evidence -> match -> settlement)",
+   "current_lane": "lane.finance แต่ข้ามขั้นตอน",
+   "root_cause": "tryRecordPaymentClaim บันทึกคำกล่าวอ้าง แล้ว tryAutoConfirmPayment ปรับ debt_snapshots ต่อทันที ไม่มีขั้นแยกระหว่าง 'อ้าง' กับ 'จับคู่แล้ว'",
+   "evidence": [
+    "supabase/functions/line-webhook-v2/engines/payment-claim.ts:18,35",
+    "supabase/functions/line-webhook-v2/engines/auto-confirm-payment.ts:120,130"
+   ]
+  }
+ ]
+}

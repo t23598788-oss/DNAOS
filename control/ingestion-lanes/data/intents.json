@@ -1,0 +1,234 @@
+[
+ {
+  "intent_id": "REQUEST_DOCUMENT",
+  "kind": "COMMAND",
+  "domain": "DOCUMENT",
+  "description": "ขอให้ออกเอกสาร เช่น ขอใบกำกับของเมื่อวาน",
+  "canonical_command": "ISSUE_INVOICE",
+  "emits_domain_event": "INVOICE_ISSUED",
+  "required_context": [
+   "company_id"
+  ],
+  "min_confidence": 0.7
+ },
+ {
+  "intent_id": "GET_DOCUMENT",
+  "kind": "QUERY",
+  "domain": "DOCUMENT",
+  "description": "ถามหาเอกสารที่ออกไปแล้ว",
+  "canonical_command": null,
+  "emits_domain_event": null,
+  "required_context": [
+   "company_id"
+  ],
+  "min_confidence": 0.6
+ },
+ {
+  "intent_id": "AUTOFILL_DOCUMENT_DRAFT",
+  "kind": "COMMAND",
+  "domain": "DOCUMENT",
+  "description": "ขอร่างเอกสารจากข้อมูลเดิม",
+  "canonical_command": "AUTOFILL_DOCUMENT",
+  "emits_domain_event": null,
+  "required_context": [
+   "company_id"
+  ],
+  "min_confidence": 0.7
+ },
+ {
+  "intent_id": "CLAIM_PAYMENT",
+  "kind": "CLAIM",
+  "domain": "FINANCE",
+  "description": "ลูกค้าบอกว่าโอนแล้ว — เป็นคำกล่าวอ้าง ยังไม่ใช่การจับคู่",
+  "canonical_command": "MATCH_PAYMENT",
+  "emits_domain_event": "PAYMENT_MATCHED",
+  "required_context": [
+   "company_id"
+  ],
+  "min_confidence": 0.6
+ },
+ {
+  "intent_id": "SUBMIT_PAYMENT_EVIDENCE",
+  "kind": "CLAIM",
+  "domain": "FINANCE",
+  "description": "ส่งสลิปหรือหลักฐานการโอน",
+  "canonical_command": "CLASSIFY_RECEIPT_IMAGE",
+  "emits_domain_event": "RECEIPT_CLASSIFIED",
+  "required_context": [
+   "company_id"
+  ],
+  "min_confidence": 0.5
+ },
+ {
+  "intent_id": "GET_PAYMENT_STATUS",
+  "kind": "QUERY",
+  "domain": "FINANCE",
+  "description": "ถามสถานะการชำระหรือยอดค้าง",
+  "canonical_command": null,
+  "emits_domain_event": null,
+  "required_context": [
+   "company_id"
+  ],
+  "min_confidence": 0.6
+ },
+ {
+  "intent_id": "REQUEST_QUOTE",
+  "kind": "COMMAND",
+  "domain": "SALES",
+  "description": "ขอราคาวัสดุ",
+  "canonical_command": "CALCULATE_PRICE",
+  "emits_domain_event": "PRICE_CALCULATED",
+  "required_context": [
+   "company_id"
+  ],
+  "min_confidence": 0.7
+ },
+ {
+  "intent_id": "PLACE_ORDER",
+  "kind": "COMMAND",
+  "domain": "SALES",
+  "description": "สั่งซื้อจริง",
+  "canonical_command": null,
+  "emits_domain_event": null,
+  "required_context": [
+   "company_id",
+   "destination_site_id"
+  ],
+  "min_confidence": 0.85
+ },
+ {
+  "intent_id": "GET_ORDER_STATUS",
+  "kind": "QUERY",
+  "domain": "SALES",
+  "description": "ถามสถานะงานหรือออเดอร์",
+  "canonical_command": null,
+  "emits_domain_event": null,
+  "required_context": [
+   "company_id"
+  ],
+  "min_confidence": 0.6
+ },
+ {
+  "intent_id": "GET_PURCHASE_HISTORY",
+  "kind": "QUERY",
+  "domain": "SALES",
+  "description": "ถามประวัติการซื้อ",
+  "canonical_command": null,
+  "emits_domain_event": null,
+  "required_context": [
+   "company_id"
+  ],
+  "min_confidence": 0.6
+ },
+ {
+  "intent_id": "REQUEST_AUTHORIZATION",
+  "kind": "COMMAND",
+  "domain": "AUTHORIZATION",
+  "description": "ขอสิทธิ์กับหน้างานที่ไม่ใช่ของบริษัทตน",
+  "canonical_command": "REQUEST_SITE_AUTHORIZATION",
+  "emits_domain_event": "AUTHORIZATION_REQUESTED",
+  "required_context": [
+   "company_id",
+   "destination_site_id"
+  ],
+  "min_confidence": 0.7
+ },
+ {
+  "intent_id": "APPROVE_AUTHORIZATION",
+  "kind": "COMMAND",
+  "domain": "AUTHORIZATION",
+  "description": "อนุมัติคำขอสิทธิ์",
+  "canonical_command": null,
+  "emits_domain_event": "AUTHORIZATION_APPROVED",
+  "required_context": [
+   "company_id"
+  ],
+  "min_confidence": 0.9
+ },
+ {
+  "intent_id": "DENY_AUTHORIZATION",
+  "kind": "COMMAND",
+  "domain": "AUTHORIZATION",
+  "description": "ปฏิเสธคำขอสิทธิ์",
+  "canonical_command": null,
+  "emits_domain_event": "AUTHORIZATION_DENIED",
+  "required_context": [
+   "company_id"
+  ],
+  "min_confidence": 0.9
+ },
+ {
+  "intent_id": "EXPIRE_AUTHORIZATION",
+  "kind": "COMMAND",
+  "domain": "AUTHORIZATION",
+  "description": "ปล่อยให้คำขอหมดอายุ",
+  "canonical_command": null,
+  "emits_domain_event": "AUTHORIZATION_EXPIRED",
+  "required_context": [],
+  "min_confidence": 0.9
+ },
+ {
+  "intent_id": "SHARE_LOCATION",
+  "kind": "COMMAND",
+  "domain": "LOCATION",
+  "description": "แชร์หมุดหรือที่อยู่หน้างาน",
+  "canonical_command": "REGISTER_SITE_LOCATION",
+  "emits_domain_event": "SITE_REGISTERED",
+  "required_context": [
+   "company_id"
+  ],
+  "min_confidence": 0.8
+ },
+ {
+  "intent_id": "REPORT_DELIVERY",
+  "kind": "CLAIM",
+  "domain": "LOGISTICS",
+  "description": "แจ้งว่าส่งของแล้ว",
+  "canonical_command": null,
+  "emits_domain_event": null,
+  "required_context": [
+   "company_id"
+  ],
+  "min_confidence": 0.7
+ },
+ {
+  "intent_id": "REPORT_EQUIPMENT_SIGNAL",
+  "kind": "CLAIM",
+  "domain": "RESOURCE",
+  "description": "สัญญาณจากเครื่องจักร",
+  "canonical_command": "RECORD_EQUIPMENT_TELEMETRY",
+  "emits_domain_event": "TELEMETRY_RECORDED",
+  "required_context": [],
+  "min_confidence": 0.9
+ },
+ {
+  "intent_id": "CONTROL_EQUIPMENT",
+  "kind": "COMMAND",
+  "domain": "RESOURCE",
+  "description": "สั่งล็อกหรือปลดล็อกเครื่องจักร",
+  "canonical_command": "LOCK_EQUIPMENT",
+  "emits_domain_event": "EQUIPMENT_LOCKED",
+  "required_context": [],
+  "min_confidence": 0.9
+ },
+ {
+  "intent_id": "ASK_FOR_HUMAN",
+  "kind": "COMMAND",
+  "domain": "GENERAL_CONVERSATION",
+  "description": "ขอคุยกับคน",
+  "canonical_command": null,
+  "emits_domain_event": null,
+  "required_context": [],
+  "min_confidence": 0.6
+ },
+ {
+  "intent_id": "GENERAL_CHAT",
+  "kind": "CONVERSATION",
+  "domain": "GENERAL_CONVERSATION",
+  "description": "ทักทาย ถามทั่วไป หรือข้อความที่ไม่ใช่คำสั่งทางธุรกิจ",
+  "canonical_command": "RESPOND_TO_MESSAGE",
+  "emits_domain_event": null,
+  "required_context": [],
+  "min_confidence": 0.0
+ }
+]
