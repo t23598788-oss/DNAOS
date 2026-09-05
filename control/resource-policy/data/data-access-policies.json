@@ -1,0 +1,51 @@
+[
+ {
+  "schema": "DATA_ACCESS_POLICY_V1",
+  "policy_id": "policy.runpod-ollama.document-extract",
+  "resource_id": "resource.runpod-ollama",
+  "resource_class": null,
+  "allowed_data_classes": [
+   "BUSINESS_DOCUMENT",
+   "FINANCIAL_DOCUMENT",
+   "PAYMENT_EVIDENCE",
+   "CUSTOMER_MESSAGE"
+  ],
+  "denied_data_classes": [
+   "FINANCIAL_DERIVED_DATA",
+   "PERSONAL_DATA",
+   "CREDENTIAL",
+   "SECRET",
+   "CANONICAL_BUSINESS_STATE",
+   "LOCATION_DATA"
+  ],
+  "allowed_fields": [
+   "image_bytes",
+   "mime_type",
+   "document_context",
+   "message_text"
+  ],
+  "denied_fields": [
+   "customer_company_id",
+   "debt_snapshots",
+   "total_outstanding",
+   "bank_account",
+   "reference_number_of_other_company"
+  ],
+  "allowed_source_types": [
+   "line_media",
+   "supabase_storage_attachments"
+  ],
+  "purpose_constraints": [
+   "document.image.extract",
+   "language.extract"
+  ],
+  "read_allowed": true,
+  "write_allowed": false,
+  "canonical_state_write_allowed": false,
+  "external_transmission_allowed": true,
+  "retention_policy": "ไม่เก็บถาวร — โมเดลอ่านแล้วทิ้ง ผลลัพธ์กลับมาที่ DNA OS เท่านั้น",
+  "redaction_policy": "ส่งเฉพาะรูปเอกสารกับบริบทที่จำเป็น ไม่ส่งตารางหนี้หรือประวัติลูกค้า",
+  "authority_required": [],
+  "evidence_required": true
+ }
+]

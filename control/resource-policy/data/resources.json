@@ -1,0 +1,107 @@
+[
+ {
+  "schema": "RESOURCE_V1",
+  "resource_id": "resource.runpod-ollama",
+  "resource_type": "COMPUTE_MODEL_RUNTIME",
+  "name": "RunPod Ollama",
+  "purpose": "รันโมเดลอ่านเอกสารและภาษาบน GPU ที่เช่าตามการใช้งาน",
+  "capabilities": [
+   {
+    "capability": "document.image.extract",
+    "provider_supports": true,
+    "dna_os_allows": true,
+    "reason": "พิสูจน์จากซอร์ส: qwen2.5vl:72b ถูกเรียกผ่าน ollamaGenerate ใน ai-task-watcher"
+   },
+   {
+    "capability": "language.extract",
+    "provider_supports": true,
+    "dna_os_allows": true,
+    "reason": "พิสูจน์จากซอร์ส: qwen3:32b และ thawatchai"
+   },
+   {
+    "capability": "finance.settle",
+    "provider_supports": true,
+    "dna_os_allows": false,
+    "reason": "โมเดลรันคำสั่งอะไรก็ได้ทางเทคนิค แต่ DNA OS ไม่ให้สิทธิ์ตัดยอดแก่ผู้ให้บริการใดทั้งสิ้น"
+   },
+   {
+    "capability": "database.write",
+    "provider_supports": true,
+    "dna_os_allows": false,
+    "reason": "ไม่มีเหตุผลทางธุรกิจให้ผู้ให้บริการเขียนฐานข้อมูลได้"
+   }
+  ],
+  "input_contracts": [],
+  "output_contracts": [
+   "dc.image.classified_receipt.v1"
+  ],
+  "connection_method": "RUNPOD_API + POD + NETWORK_VOLUME",
+  "entrypoint": "local-runtime/runpod-controller.mjs#ensurePodRunning",
+  "credential_ref": "credential://runpod/dna-os/api-key",
+  "authority_owner": "OWNER",
+  "permissions": [
+   "READ_INPUT",
+   "RETURN_CANDIDATE"
+  ],
+  "data_access_policy_ref": "policy.runpod-ollama.document-extract",
+  "availability": "UNAVAILABLE",
+  "availability_state": "UNAVAILABLE",
+  "availability_source": "HEALTH_CHECK",
+  "availability_reason": "RESOURCE_MISSING — network volume ที่โมเดลอยู่ถูกลบไปแล้ว",
+  "owner_asserted_cause": "OWNER_REMOVED",
+  "technical_evidence": [
+   "RunPod API 400 'Network volume gomvik56ok not found' ทั้ง 6 GPU ในสายสำรอง (2026-09-05)",
+   "mcp list-network-volumes คืน 0 รายการ",
+   "mcp list-pods คืน 0 รายการ",
+   "ไม่มีบันทึกการลบใน DNA OS — วันเวลาที่ลบจึงไม่ทราบ"
+  ],
+  "health": {
+   "checked_at": "2026-09-05T05:39:58Z",
+   "source": "HEALTH_CHECK",
+   "state": "UNAVAILABLE",
+   "detail": "สร้าง pod ไม่ได้ทุก GPU เพราะ network volume หาย",
+   "evidence_ref": "local-runtime/ai-task-watcher.launchd.log"
+  },
+  "last_health_check": "2026-09-05T05:39:58Z",
+  "last_verified": "2026-09-05T05:39:58Z",
+  "evidence_refs": [
+   "registry/infra-dependency-graph.json",
+   "FRONT_OFFICE_AI_INSTALLATION_REPORT.md",
+   "front-office/evidence/2026-08-09-ai-runtime-install-attempt 2.json"
+  ],
+  "billing_model": "GPU ต่อชั่วโมง + network volume รายเดือน",
+  "cost_policy": {
+   "cost_class": "PER_HOUR",
+   "estimated_unit_cost": 1.39,
+   "currency": "USD",
+   "billing_state": "ACTIVE",
+   "budget_policy": "เปิด pod เมื่อมีงาน ปิดเมื่อว่างเกิน 15 นาที"
+  },
+  "fallback_group": "document-extraction",
+  "fallback_priority": 10,
+  "dependencies": [
+   "runpod.network_volume",
+   "runpod.gpu_80gb",
+   "ollama/ollama:latest"
+  ],
+  "limitations": [
+   "ต้องมี network volume ถาวร ไม่งั้นต้องโหลดโมเดล 65GB ใหม่ทุกครั้งที่ตื่น",
+   "ต้องการ GPU 80GB ขึ้นไป"
+  ],
+  "supported_tasks": [
+   "อ่านสลิปโอนเงิน",
+   "อ่านใบกำกับภาษี",
+   "จำแนกชนิดเอกสาร",
+   "สกัดข้อความจากภาษาไทย"
+  ],
+  "unsupported_tasks": [
+   "ตัดยอดหนี้",
+   "ออกเอกสาร",
+   "เขียนฐานข้อมูล",
+   "อนุมัติสิทธิ์"
+  ],
+  "service_plan": "pay-as-you-go",
+  "subscription_state": "ACTIVE",
+  "source_pointer": "local-runtime/runpod-controller.mjs:87 (NETWORK_VOLUME_ID)"
+ }
+]
