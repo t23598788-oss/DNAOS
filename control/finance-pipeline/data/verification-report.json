@@ -1,0 +1,77 @@
+{
+ "verified_at": "2026-09-05T04:22:14.801Z",
+ "authorization": "chal-ddb1be7a (BIOMETRIC)",
+ "production_changed": false,
+ "rows_written": 0,
+ "checks": [
+  {
+   "id": "claim_separated_from_fact",
+   "verdict": "PASS",
+   "detail": "493 จาก 495 ยังเป็นคำกล่าวอ้างที่ยังไม่ยืนยัน"
+  },
+  {
+   "id": "verified_evidence_required",
+   "verdict": "PASS",
+   "detail": "ตัดยอดแล้ว 2 รายการ มีคู่จับครบ 2"
+  },
+  {
+   "id": "amount_source_deterministic",
+   "verdict": "PASS",
+   "detail": "RPC ใช้ receipt_documents.amount และบังคับ > 0 · การตัดยอดอัตโนมัติต้องผ่าน bankEmailVerified (เทียบ bank_notifications ด้วย reference_number และผลต่างไม่เกิน 5)"
+  },
+  {
+   "id": "matcher_deterministic",
+   "verdict": "PASS",
+   "detail": "reconcile_receipt_payment เป็น plpgsql SECURITY DEFINER มีด่านชัดเจน ไม่มีโมเดลภาษาอยู่ในเส้นทาง"
+  },
+  {
+   "id": "idempotency_proven",
+   "verdict": "PASS",
+   "detail": "จำลองซ้ำ 2 เคส ได้ already_reconciled และไม่เขียนอะไร"
+  },
+  {
+   "id": "settlement_transition_owned",
+   "verdict": "PASS",
+   "detail": "RPC เขียน debt_events และตั้ง receipt_documents.status = confirmed · auto-confirm-payment.ts เรียก replayDebtEvents แล้วเขียน debt_snapshots"
+  },
+  {
+   "id": "balance_recalculation_traceable",
+   "verdict": "PASS",
+   "detail": "ทุกบริษัทที่มีเหตุการณ์หนี้ (11) มี debt_started ครบ replayDebtEvents คำนวณได้"
+  },
+  {
+   "id": "document_effect_traceable",
+   "verdict": "PASS",
+   "detail": "การตัดยอดอัปเดต receipt_documents (status, matched_debt_event_id, payment_verified, confirmed_by) ทุกฟิลด์ตามรอยได้"
+  },
+  {
+   "id": "accounting_effect_known",
+   "verdict": "UNKNOWN",
+   "detail": "ไม่พบการลงบัญชีแยกประเภทหรือ journal จากสายนี้ — สายจบที่ debt_events/debt_snapshots ไม่ใช่ ledger"
+  },
+  {
+   "id": "projection_source_canonical",
+   "verdict": "PASS",
+   "detail": "หน้าหลังบ้านอ่าน receipt_documents และ debt_snapshots ซึ่งเป็นผลหลังการตัดสิน ไม่ใช่ข้อความดิบจากแชท"
+  },
+  {
+   "id": "reply_based_on_verified_state",
+   "verdict": "PASS",
+   "detail": "tryAutoConfirmPayment ส่ง LINE push หลัง RPC คืนผลเท่านั้น ไม่ได้ให้โมเดลประกาศผลการเงินเอง"
+  },
+  {
+   "id": "bank_crosscheck_key_present",
+   "verdict": "FAIL",
+   "detail": "ใบรับเงินที่มี reference_number 15/495 · bank_notifications มี 1039 รายการรอจับคู่"
+  }
+ ],
+ "broken_segments": {
+  "CLAIM_WITHOUT_EVIDENCE": 36,
+  "EVIDENCE_WITHOUT_MATCH": 448,
+  "MATCH_WITHOUT_SETTLEMENT": 0,
+  "SETTLEMENT_WITHOUT_BALANCE_UPDATE": 0,
+  "SETTLEMENT_WITHOUT_DOCUMENT": 0,
+  "BALANCE_CHANGED_WITHOUT_MATCH": 0
+ },
+ "result": "BROKEN"
+}
