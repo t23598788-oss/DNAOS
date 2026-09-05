@@ -1,0 +1,198 @@
+{
+ "flow_id": "FLOW_I_SITE_LOCATION_CAPTURE",
+ "title": "รับพิกัดหน้างานจากหมุด LINE หรือจากที่อยู่ที่พิมพ์",
+ "actor": "ผู้ใช้ LINE และงานสร้างงานอัตโนมัติ",
+ "trigger": "ผู้ใช้แชร์หมุดตำแหน่ง หรือมีที่อยู่ปลายทางเป็นข้อความ",
+ "entrypoint": "supabase/functions/line-webhook-v2/handlers/location.ts | engines/jobs/auto-create.ts#tryCreateSiteFromText",
+ "steps": [
+  {
+   "unit_id": "I.1",
+   "order": 1,
+   "description": "เส้นทางหมุด LINE — แยกที่อยู่ไทยจากข้อความที่ LINE ให้มา (ตำบล/อำเภอ/จังหวัด/รหัสไปรษณีย์) โดยไม่เรียก Google Maps",
+   "source_pointer": "supabase/functions/line-webhook-v2/handlers/location.ts:7-12,13 (parseThaiAddress)",
+   "input": "ข้อความที่อยู่จาก LINE",
+   "output": "ตำบล อำเภอ จังหวัด รหัสไปรษณีย์ หรือไม่มี",
+   "data_read": [],
+   "data_write": [],
+   "external_call": [],
+   "authority": "LINE geocode ให้แล้วในตัว จึงไม่ต้องพึ่งบริการแผนที่ภายนอกในเส้นทางนี้",
+   "failure_path": "แยกไม่ได้ = ไม่สร้างหน้างาน"
+  },
+  {
+   "unit_id": "I.2",
+   "order": 2,
+   "description": "หาบริษัทของผู้แชร์หมุด",
+   "source_pointer": "supabase/functions/line-webhook-v2/handlers/location.ts:55",
+   "input": "line userId",
+   "output": "company_id",
+   "data_read": [
+    "company_line_links"
+   ],
+   "data_write": [],
+   "external_call": [],
+   "authority": "company_line_links",
+   "failure_path": "ไม่พบ = ไม่สร้างหน้างาน"
+  },
+  {
+   "unit_id": "I.3",
+   "order": 3,
+   "description": "สร้างหน้างานจากหมุดเฉพาะเมื่อบริษัทนั้นยังไม่มีหน้างานที่ใช้งานอยู่ — กันการสร้างซ้ำ",
+   "source_pointer": "supabase/functions/line-webhook-v2/handlers/location.ts:58-73",
+   "input": "พิกัด + ที่อยู่ที่แยกแล้ว",
+   "output": "แถว customer_sites",
+   "data_read": [
+    "customer_sites"
+   ],
+   "data_write": [
+    "customer_sites"
+   ],
+   "external_call": [],
+   "authority": "ตรวจ existing ก่อน insert",
+   "failure_path": "มีอยู่แล้ว = ไม่สร้างซ้ำ"
+  },
+  {
+   "unit_id": "I.4",
+   "order": 4,
+   "description": "ตอบกลับด้วยการ์ดยืนยันพิกัดที่ได้รับ",
+   "source_pointer": "supabase/functions/line-webhook-v2/handlers/location.ts:78-81",
+   "input": "พิกัด",
+   "output": "ข้อความ flex",
+   "data_read": [],
+   "data_write": [],
+   "external_call": [
+    "line"
+   ],
+   "authority": "ออกทาง ResponseGateway ตาม FLOW_M",
+   "failure_path": "ตอบไม่สำเร็จ = ผู้ใช้ไม่เห็นการยืนยัน"
+  },
+  {
+   "unit_id": "I.5",
+   "order": 5,
+   "description": "หมุดที่ส่งมาต้องปิดเหตุการณ์ที่รอข้อมูลอยู่ได้เอง — แก้บั๊กจริงที่เคยต้องส่งข้อความซ้ำอีกครั้ง",
+   "source_pointer": "supabase/functions/line-webhook-v2/handlers/location.ts:83-86 + engines/event-followup.ts:476",
+   "input": "พิกัด + เหตุการณ์ที่ค้าง",
+   "output": "เหตุการณ์ที่เติมพิกัดแล้ว",
+   "data_read": [
+    "business_events"
+   ],
+   "data_write": [
+    "business_events",
+    "customer_sites"
+   ],
+   "external_call": [],
+   "authority": "ไม่มี",
+   "failure_path": "ไม่มีเหตุการณ์ค้าง = จบที่การสร้างหน้างาน"
+  },
+  {
+   "unit_id": "I.6",
+   "order": 6,
+   "description": "เส้นทางที่อยู่พิมพ์ — แยกที่อยู่ไทยก่อน ถ้าแยกไม่ได้จะไม่สร้างหน้างาน",
+   "source_pointer": "engines/jobs/auto-create.ts:193-195",
+   "input": "ข้อความปลายทาง",
+   "output": "ที่อยู่ที่แยกแล้ว",
+   "data_read": [],
+   "data_write": [],
+   "external_call": [],
+   "authority": "ไม่มี",
+   "failure_path": "แยกไม่ได้ = คืน null"
+  },
+  {
+   "unit_id": "I.7",
+   "order": 7,
+   "description": "เรียกบริการแปลงที่อยู่เป็นพิกัด — ใช้ Longdo Map ไม่ใช่ Google Maps และคีย์ยังไม่ได้ตั้งค่า จึงคืนสถานะ 'ยังไม่ได้ตั้งค่า' อย่างชัดเจนแทนการแกล้งสำเร็จ",
+   "source_pointer": "engines/geocoding.ts:12,14,21,34-39 (LONGDO_MAP_API_KEY)",
+   "input": "ข้อความที่อยู่",
+   "output": "พิกัดหรือเหตุผลที่ไม่ได้",
+   "data_read": [],
+   "data_write": [],
+   "external_call": [
+    "longdo map"
+   ],
+   "authority": "LONGDO_MAP_API_KEY — ไม่มีคีย์ = ตอบว่าไม่ได้ตั้งค่า ไม่ใช่ล้มเหลวเงียบ",
+   "failure_path": "ไม่มีคีย์ / API ล้มเหลว / ไม่พบพิกัด = สร้างหน้างานต่อโดยไม่มีพิกัด"
+  },
+  {
+   "unit_id": "I.8",
+   "order": 8,
+   "description": "สร้างหน้างานจากที่อยู่พิมพ์ โดยยอมให้ไม่มีพิกัดได้ — ไม่บล็อกการสร้างหน้างานเพราะ geocode ไม่พร้อม",
+   "source_pointer": "engines/jobs/auto-create.ts:205-220",
+   "input": "ที่อยู่ + พิกัด (อาจเป็น null)",
+   "output": "แถว customer_sites",
+   "data_read": [],
+   "data_write": [
+    "customer_sites"
+   ],
+   "external_call": [],
+   "authority": "คอมเมนต์บรรทัด 197-202 ระบุผลกระทบ: ไม่มีพิกัด = findNearestPit และสายคำนวณราคาทำงานไม่ได้",
+   "failure_path": "insert ไม่สำเร็จ = ไม่มีหน้างาน"
+  }
+ ],
+ "components": [
+  "supabase/functions/line-webhook-v2/handlers/location.ts",
+  "supabase/functions/line-webhook-v2/engines/event-followup.ts",
+  "engines/jobs/auto-create.ts",
+  "engines/geocoding.ts",
+  "supabase/functions/line-webhook-v2/templates/flex/location-received.ts"
+ ],
+ "data_reads": [
+  "company_line_links",
+  "customer_sites",
+  "business_events"
+ ],
+ "data_writes": [
+  "customer_sites",
+  "business_events"
+ ],
+ "external_calls": [
+  "line (flex reply)",
+  "longdo map (geocoding — ยังไม่ได้ตั้งคีย์)",
+  "supabase (postgres)"
+ ],
+ "authority": [
+  "company_line_links กำหนดว่าหน้างานเป็นของบริษัทไหน",
+  "LONGDO_MAP_API_KEY ควบคุมการแปลงที่อยู่เป็นพิกัด",
+  "การสร้างหน้างานไม่ผูกกับสิทธิ์แอดมิน — มาจากผู้ใช้ LINE ที่ผูกบริษัทแล้ว"
+ ],
+ "output": "หน้างานที่มีพิกัดจากหมุด LINE หรือหน้างานจากที่อยู่พิมพ์ที่อาจยังไม่มีพิกัดจนกว่าจะตั้งคีย์แผนที่",
+ "failure_paths": [
+  "แยกที่อยู่ไทยไม่ได้",
+  "ผู้ใช้ยังไม่ผูกบริษัท",
+  "มีหน้างานที่ใช้งานอยู่แล้ว = ไม่สร้างซ้ำ",
+  "LONGDO_MAP_API_KEY ไม่ได้ตั้งค่า = หน้างานไม่มีพิกัด และคำนวณราคาไม่ได้"
+ ],
+ "ports": [
+  {
+   "port_id": "I.in.pin",
+   "direction": "IN",
+   "protocol": "SDK",
+   "schema_hint": "LINE location message จาก FLOW_A",
+   "auth": "สืบทอดจากการตรวจลายเซ็น webhook"
+  },
+  {
+   "port_id": "I.out.geocode",
+   "direction": "OUT",
+   "protocol": "HTTPS_API",
+   "schema_hint": "Longdo Map geocoding",
+   "auth": "LONGDO_MAP_API_KEY (ยังไม่ได้ตั้งค่า)"
+  },
+  {
+   "port_id": "I.io.db",
+   "direction": "IN",
+   "protocol": "POSTGRES",
+   "schema_hint": "customer_sites (gps_lat/gps_lng numeric(10,7))",
+   "auth": "Supabase service role"
+  }
+ ],
+ "evidence": [
+  "supabase/functions/line-webhook-v2/handlers/location.ts:1-12,13,55,58,69,78,83",
+  "engines/jobs/auto-create.ts:2,192,193,197-203,205,215",
+  "engines/geocoding.ts:12,14,21,34,35,37,39,45,52,54,58,64,67",
+  "supabase/functions/line-webhook-v2/engines/event-followup.ts:476",
+  "supabase/local-migration/full_schema.sql:959 — customer_sites.gps_lat เป็น numeric(10,7)",
+  "ยืนยันจากซอร์สว่าไม่มีการติดตามตำแหน่งยานพาหนะแบบต่อเนื่อง — telemetry ของเครื่องจักร (FLOW_J) รับเพียง imei และ vccVoltage ไม่มีพิกัด",
+  "live schema อ่านจาก production ref xeytcavxejhyzxwevgto เมื่อ 2026-09-05T02:24:57.238Z ผ่าน capability supabase.schema.read (read-only, พิสูจน์ WRITE=DENIED ด้วย Postgres 25006)"
+ ],
+ "status": "PARTIAL",
+ "schema_verification": "VERIFIED",
+ "runtime_verification": "PENDING"
+}

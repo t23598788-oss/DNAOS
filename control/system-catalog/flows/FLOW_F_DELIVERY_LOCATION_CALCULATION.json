@@ -1,0 +1,100 @@
+{
+ "flow_id": "FLOW_F_DELIVERY_LOCATION_CALCULATION",
+ "title": "หาพิกัดและระยะทางเพื่อคิดค่าขนส่ง",
+ "actor": "ระบบ (ภายใน Flow E)",
+ "trigger": "ต้องการระยะทางจากบ่อไปหน้างาน",
+ "entrypoint": "supabase/functions/line-webhook-v2/engines/quote-price.ts#resolveGps + haversine",
+ "steps": [
+  {
+   "unit_id": "F.1",
+   "order": 1,
+   "description": "ดึงพิกัดที่ผู้ใช้เคยส่งเป็น location message ใน LINE",
+   "source_pointer": "supabase/functions/line-webhook-v2/engines/quote-price.ts:47-68",
+   "input": "line userId",
+   "output": "{lat,lng} หรือ null",
+   "data_read": [
+    "line_events"
+   ],
+   "data_write": [],
+   "external_call": [],
+   "authority": "ผูกกับ line userId",
+   "failure_path": "ไม่เคยส่งพิกัด = null"
+  },
+  {
+   "unit_id": "F.2",
+   "order": 2,
+   "description": "ถ้าไม่มีพิกัด ใช้ที่อยู่หน้างานของบริษัทแทน",
+   "source_pointer": "supabase/functions/line-webhook-v2/engines/quote-price.ts:183-186",
+   "input": "company_id",
+   "output": "site_name + address",
+   "data_read": [
+    "company_line_links",
+    "customer_sites"
+   ],
+   "data_write": [],
+   "external_call": [],
+   "authority": "company_line_links",
+   "failure_path": "ไม่มีหน้างาน = ไม่มีปลายทาง"
+  },
+  {
+   "unit_id": "F.3",
+   "order": 3,
+   "description": "คำนวณระยะทางแบบ haversine ในเครื่อง — ขอบเขตนี้ไม่เรียก Google Maps",
+   "source_pointer": "supabase/functions/line-webhook-v2/engines/quote-price.ts:12-30",
+   "input": "สองพิกัด",
+   "output": "ระยะทาง กม.",
+   "data_read": [],
+   "data_write": [],
+   "external_call": [],
+   "authority": "ไม่มี",
+   "failure_path": "-"
+  }
+ ],
+ "components": [
+  "engines/quote-price.ts#resolveGps",
+  "engines/quote-price.ts#haversine"
+ ],
+ "data_reads": [
+  "line_events",
+  "company_line_links",
+  "customer_sites"
+ ],
+ "data_writes": [
+  "ไม่มีการเขียนข้อมูลในเส้นนี้"
+ ],
+ "external_calls": [
+  "supabase (postgres)"
+ ],
+ "authority": [
+  "ขอบเขตข้อมูลผูกกับ line userId และ company_line_links"
+ ],
+ "output": "ระยะทางเป็นกิโลเมตรสำหรับคิดค่าขนส่ง",
+ "failure_paths": [
+  "ไม่มีพิกัดและไม่มีที่อยู่หน้างาน = คิดค่าขนส่งไม่ได้"
+ ],
+ "ports": [
+  {
+   "port_id": "F.in.quote",
+   "direction": "IN",
+   "protocol": "SDK",
+   "schema_hint": "userId + ข้อความปลายทาง",
+   "auth": "สืบทอดจาก Flow E"
+  },
+  {
+   "port_id": "F.io.db",
+   "direction": "IN",
+   "protocol": "POSTGRES",
+   "schema_hint": "line_events · customer_sites",
+   "auth": "Supabase service role"
+  }
+ ],
+ "evidence": [
+  "supabase/functions/line-webhook-v2/engines/quote-price.ts:12-30,47-68,183-186",
+  "คอมเมนต์ที่บรรทัด 12 ระบุชัดว่าคัดลอก haversine มาโดยตั้งใจ ไม่ได้ import จาก engines/distance.ts",
+  "ขอบเขต Google Maps อยู่คนละที่ (engines/capabilities/maps.ts ในแอปหลัก) ไม่ได้ถูกเรียกในเส้นนี้",
+  "live schema อ่านจาก production ref xeytcavxejhyzxwevgto เมื่อ 2026-09-05T02:24:57.238Z ผ่าน capability supabase.schema.read (read-only, พิสูจน์ WRITE=DENIED ด้วย Postgres 25006)"
+ ],
+ "status": "PARTIAL",
+ "schema_verification": "VERIFIED",
+ "runtime_verification": "PENDING"
+}

@@ -1,0 +1,73 @@
+{
+ "flow_id": "VF_PROCURE_TO_PAY",
+ "business_flow": "ขอจ่ายเงินคู่ค้าจนถึงจ่ายจริง",
+ "source": "ปุ่ม postback ในแชท",
+ "sink": "ยังไม่มีปลายทางที่พิสูจน์ได้",
+ "stages": [
+  {
+   "stage_id": "VF5.1",
+   "layer": "L1_INGESTION",
+   "nature": "OBSERVATION",
+   "operation": "INGEST",
+   "component": "handlers/postback.ts",
+   "input": "การกดปุ่มในแชท",
+   "output": "คำขอจ่ายเงิน",
+   "data_object": [
+    "partner_payable_requests"
+   ],
+   "authority": "สืบทอดจาก webhook",
+   "side_effect": "เขียน partner_payable_requests",
+   "next_stage": "VF5.2",
+   "failure_path": "-",
+   "source_pointer": "supabase/functions/line-webhook-v2/handlers/postback.ts"
+  },
+  {
+   "stage_id": "VF5.2",
+   "layer": "L5_TRANSACTION_STATE",
+   "nature": "DECISION",
+   "operation": "TRANSACTION",
+   "component": "ยังไม่พบผู้อนุมัติในซอร์ส",
+   "input": "คำขอ",
+   "output": "การอนุมัติ",
+   "data_object": [
+    "partner_payable_requests"
+   ],
+   "authority": "UNKNOWN",
+   "side_effect": null,
+   "next_stage": null,
+   "failure_path": "ไม่มีเส้นทางอนุมัติหรือจ่ายจริงที่พิสูจน์ได้",
+   "source_pointer": "-"
+  }
+ ],
+ "terminal_state": "ไม่มี terminal state ที่พิสูจน์ได้",
+ "financial_effect": [
+  {
+   "effect": "PAYABLE_CREATED",
+   "data_object": [
+    "partner_payable_requests"
+   ],
+   "deterministic_calculation": "supabase/functions/line-webhook-v2/handlers/postback.ts"
+  }
+ ],
+ "projection": [
+  {
+   "surface": "deadboard admin (1 จุด)",
+   "canonical_source": [
+    "partner_payable_requests"
+   ],
+   "projection_object": [
+    "partner_payable_requests"
+   ],
+   "refresh": "REQUEST",
+   "reads_raw_ingestion": false,
+   "reason": "มีหน้าอ่าน 1 จุด แต่ไม่พบเส้นทางเปลี่ยนสถานะ"
+  }
+ ],
+ "external_action": [],
+ "health": "PARTIAL",
+ "last_confirmed_stage": "VF5.1",
+ "expected_next_stage": "VF5.2",
+ "blocker": "สร้างหนี้ที่ต้องจ่ายได้ แต่ไม่พบขั้นอนุมัติหรือการจ่ายเงินจริงในซอร์ส — เงินออกไม่ครบวงจร",
+ "runtime_trace": [],
+ "schema": "DATA_FLOW_V1"
+}

@@ -1,0 +1,110 @@
+{
+ "flow_id": "VF_RESOURCE_TO_SALE",
+ "business_flow": "ทรัพยากรในบ่อกลายเป็นราคาขาย",
+ "source": "pit_profiles และ pit_materials",
+ "sink": "ราคาที่เสนอลูกค้า",
+ "stages": [
+  {
+   "stage_id": "VF6.1",
+   "layer": "L3_BUSINESS_STATE",
+   "nature": "OBSERVATION",
+   "operation": "BUSINESS_STATE",
+   "component": "pit_profiles/pit_materials",
+   "input": "บ่อและวัสดุ",
+   "output": "ราคาต่อหน่วยและตำแหน่งบ่อ",
+   "data_object": [
+    "pit_profiles",
+    "pit_materials"
+   ],
+   "authority": "อ่านอย่างเดียว",
+   "side_effect": null,
+   "next_stage": "VF6.2",
+   "failure_path": "ไม่มีข้อมูลบ่อ = คิดราคาไม่ได้",
+   "source_pointer": "engines/quote-price.ts"
+  },
+  {
+   "stage_id": "VF6.2",
+   "layer": "L4_CALCULATION",
+   "nature": "DECISION",
+   "operation": "CALCULATION",
+   "component": "haversine ในไฟล์",
+   "input": "พิกัดบ่อและหน้างาน",
+   "output": "ระยะทาง",
+   "data_object": [],
+   "authority": "คำนวณในเครื่อง ไม่เรียก Google Maps",
+   "side_effect": null,
+   "next_stage": "VF6.3",
+   "failure_path": "ไม่มีพิกัด = ไม่มีระยะทาง",
+   "source_pointer": "engines/quote-price.ts:12-30"
+  },
+  {
+   "stage_id": "VF6.3",
+   "layer": "L4_CALCULATION",
+   "nature": "DECISION",
+   "operation": "CALCULATION",
+   "component": "engines/quote-price.ts",
+   "input": "ระยะทาง ความหนาแน่น ราคาน้ำมัน",
+   "output": "ยอดรวม",
+   "data_object": [
+    "material_types",
+    "vehicle_types",
+    "fuel_price_log"
+   ],
+   "authority": "สูตรอยู่ในซอร์ส",
+   "side_effect": null,
+   "next_stage": "VF6.4",
+   "failure_path": "-",
+   "source_pointer": "engines/quote-price.ts:243,289,290"
+  },
+  {
+   "stage_id": "VF6.4",
+   "layer": "L3_BUSINESS_STATE",
+   "nature": "DECISION",
+   "operation": "BUSINESS_STATE",
+   "component": "business_events",
+   "input": "ยอดรวม",
+   "output": "เหตุการณ์เสนอราคา",
+   "data_object": [
+    "business_events"
+   ],
+   "authority": "ไม่มี",
+   "side_effect": "เขียน business_events",
+   "next_stage": null,
+   "failure_path": "-",
+   "source_pointer": "supabase/functions/line-webhook-v2/engines/quote-price.ts"
+  }
+ ],
+ "terminal_state": "ราคาที่เสนอ บันทึกเป็น business_events",
+ "financial_effect": [
+  {
+   "effect": "REVENUE_CREATED",
+   "data_object": [
+    "business_events"
+   ],
+   "deterministic_calculation": "engines/quote-price.ts:290 grandTotal = materialTotal + transportTotal"
+  }
+ ],
+ "projection": [
+  {
+   "surface": "LINE chat",
+   "canonical_source": [
+    "business_events"
+   ],
+   "projection_object": [
+    "line_events"
+   ],
+   "refresh": "EVENT",
+   "reads_raw_ingestion": false,
+   "reason": "ราคาส่งกลับผ่าน ResponseGateway"
+  }
+ ],
+ "external_action": [
+  "LINE reply ใบเสนอราคา"
+ ],
+ "health": "COMPLETE",
+ "last_confirmed_stage": "VF6.4",
+ "expected_next_stage": null,
+ "blocker": null,
+ "runtime_trace": [],
+ "schema": "DATA_FLOW_V1"
+}

@@ -1,0 +1,219 @@
+{
+ "flow_id": "FLOW_K_EQUIPMENT_ACCESS_CONTROL",
+ "title": "ควบคุมสิทธิ์คนขับและสั่งล็อก/ปลดล็อกเครื่องจักร",
+ "actor": "ผู้ใช้หลังบ้าน (แอดมิน) และงานเบื้องหลังที่สั่งล็อก",
+ "trigger": "ให้/ถอนสิทธิ์คนขับ สั่งสตาร์ต หรือถึงเงื่อนไขที่ต้องล็อก",
+ "entrypoint": "app/api/admin/equipment/toggle-permission/route.ts | trigger-start/route.ts | app/api/internal/equipment/lock-command/route.ts",
+ "steps": [
+  {
+   "unit_id": "K.1",
+   "order": 1,
+   "description": "เส้นทางแอดมิน — ตรวจสิทธิ์ก่อนแตะสิทธิ์คนขับ",
+   "source_pointer": "app/api/admin/equipment/toggle-permission/route.ts:2,3,57",
+   "input": "session",
+   "output": "ผ่าน/ปฏิเสธ",
+   "data_read": [],
+   "data_write": [],
+   "external_call": [],
+   "authority": "ADMIN_TIER",
+   "failure_path": "ไม่ผ่าน = ปฏิเสธ"
+  },
+  {
+   "unit_id": "K.2",
+   "order": 2,
+   "description": "ยืนยันว่าคนขับที่จะให้สิทธิ์มีตัวตนใน LINE จริง",
+   "source_pointer": "app/api/admin/equipment/toggle-permission/route.ts:72",
+   "input": "lineUserId",
+   "output": "line_profile",
+   "data_read": [
+    "line_profiles"
+   ],
+   "data_write": [],
+   "external_call": [],
+   "authority": "ผูกสิทธิ์กับตัวตน LINE ที่ระบบรู้จักเท่านั้น",
+   "failure_path": "ไม่พบโปรไฟล์ = ให้สิทธิ์ไม่ได้"
+  },
+  {
+   "unit_id": "K.3",
+   "order": 3,
+   "description": "เขียนหรือปรับสิทธิ์คนขับต่อเครื่องจักรหนึ่งคัน",
+   "source_pointer": "app/api/admin/equipment/toggle-permission/route.ts:82,89,91",
+   "input": "lineUserId + equipmentId + isActive",
+   "output": "แถวสิทธิ์",
+   "data_read": [
+    "driver_equipment_permissions"
+   ],
+   "data_write": [
+    "driver_equipment_permissions"
+   ],
+   "external_call": [],
+   "authority": "สิทธิ์เป็นรายคู่ คน–เครื่องจักร ไม่ใช่สิทธิ์รวม",
+   "failure_path": "เขียนไม่สำเร็จ = สิทธิ์ไม่เปลี่ยน"
+  },
+  {
+   "unit_id": "K.4",
+   "order": 4,
+   "description": "อัปเดตเมนูลัดใน LINE ของคนขับให้ตรงกับสิทธิ์ใหม่ — ถ้าล้มเหลว สิทธิ์ที่บันทึกแล้วไม่ถูกย้อน",
+   "source_pointer": "app/api/admin/equipment/toggle-permission/route.ts:53-55,103",
+   "input": "สิทธิ์ใหม่",
+   "output": "สถานะ rich menu",
+   "data_read": [],
+   "data_write": [],
+   "external_call": [
+    "line"
+   ],
+   "authority": "channel_access_token",
+   "failure_path": "อัปเดตเมนูไม่สำเร็จ = รายงานว่าไม่สำเร็จแต่ไม่กระทบสิทธิ์"
+  },
+  {
+   "unit_id": "K.5",
+   "order": 5,
+   "description": "เส้นทางสั่งสตาร์ต — ตรวจสิทธิ์แอดมิน แล้วตรวจว่าคนขับมีสิทธิ์กับเครื่องคันนั้นจริง",
+   "source_pointer": "app/api/admin/equipment/trigger-start/route.ts:2,3,16-18,21,34",
+   "input": "equipmentId + คนขับ",
+   "output": "อนุญาต/ปฏิเสธ",
+   "data_read": [
+    "driver_equipment_permissions"
+   ],
+   "data_write": [],
+   "external_call": [],
+   "authority": "ต้องผ่านทั้งสิทธิ์แอดมินและสิทธิ์คู่คน–เครื่องจักร",
+   "failure_path": "ไม่มีสิทธิ์คู่ = ไม่ปลดล็อก"
+  },
+  {
+   "unit_id": "K.6",
+   "order": 6,
+   "description": "ปลดล็อกเครื่องจักร",
+   "source_pointer": "app/api/admin/equipment/trigger-start/route.ts:54",
+   "input": "equipmentId",
+   "output": "current_status = UNLOCKED",
+   "data_read": [],
+   "data_write": [
+    "equipment_assets"
+   ],
+   "external_call": [],
+   "authority": "คอมเมนต์บรรทัด 16-18 ระบุว่าเส้นทางนี้ต้องมีแอดมินยืนยัน และการสั่งผ่าน SMS ของกล่องจริงเป็นการตัดสินใจแยกที่ยังไม่เปิด",
+   "failure_path": "อัปเดตไม่สำเร็จ = สถานะไม่ตรง"
+  },
+  {
+   "unit_id": "K.7",
+   "order": 7,
+   "description": "เส้นทางล็อก — งานเบื้องหลังเรียกสะพานที่ขอบเขตแคบด้วย secret",
+   "source_pointer": "app/api/internal/equipment/lock-command/route.ts:10,26-32",
+   "input": "x-equipment-lock-secret",
+   "output": "ผ่าน/ปฏิเสธ",
+   "data_read": [],
+   "data_write": [],
+   "external_call": [],
+   "authority": "EQUIPMENT_LOCK_INTERNAL_SECRET — ไม่ได้ตั้งค่า = ปฏิเสธ",
+   "failure_path": "secret ไม่ตรง = ปฏิเสธ"
+  },
+  {
+   "unit_id": "K.8",
+   "order": 8,
+   "description": "ล็อกเครื่องจักร",
+   "source_pointer": "app/api/internal/equipment/lock-command/route.ts:44,64",
+   "input": "equipmentId",
+   "output": "current_status = LOCKED",
+   "data_read": [
+    "equipment_assets"
+   ],
+   "data_write": [
+    "equipment_assets"
+   ],
+   "external_call": [],
+   "authority": "ไม่มี",
+   "failure_path": "อัปเดตไม่สำเร็จ = เครื่องยังไม่ถูกล็อก"
+  },
+  {
+   "unit_id": "K.9",
+   "order": 9,
+   "description": "ใบแจ้งซ่อมบำรุงอ่านได้เฉพาะแอดมิน",
+   "source_pointer": "app/api/admin/equipment/maintenance-tickets/route.ts:2,3,12,18",
+   "input": "ไม่มี",
+   "output": "รายการใบแจ้งซ่อม",
+   "data_read": [
+    "maintenance_tickets"
+   ],
+   "data_write": [],
+   "external_call": [],
+   "authority": "ADMIN_TIER",
+   "failure_path": "ไม่ผ่าน = ปฏิเสธ"
+  }
+ ],
+ "components": [
+  "app/api/admin/equipment/toggle-permission/route.ts",
+  "app/api/admin/equipment/trigger-start/route.ts",
+  "app/api/internal/equipment/lock-command/route.ts",
+  "app/api/admin/equipment/maintenance-tickets/route.ts",
+  "app/api/admin/equipment/route.ts"
+ ],
+ "data_reads": [
+  "line_profiles",
+  "driver_equipment_permissions",
+  "equipment_assets",
+  "maintenance_tickets"
+ ],
+ "data_writes": [
+  "driver_equipment_permissions",
+  "equipment_assets"
+ ],
+ "external_calls": [
+  "line (rich menu)",
+  "supabase (postgres)"
+ ],
+ "authority": [
+  "ADMIN_TIER สำหรับเส้นทางคน",
+  "EQUIPMENT_LOCK_INTERNAL_SECRET สำหรับเส้นทางงานเบื้องหลัง",
+  "สิทธิ์เป็นรายคู่คนขับ–เครื่องจักรใน driver_equipment_permissions",
+  "การสั่งกล่องจริงผ่าน SMS ยังไม่เปิด เป็นการตัดสินใจแยกตามคอมเมนต์ในซอร์ส"
+ ],
+ "output": "สถานะสิทธิ์คนขับที่บันทึกแล้ว เมนู LINE ที่ตรงกับสิทธิ์ และสถานะล็อก/ปลดล็อกของเครื่องจักร",
+ "failure_paths": [
+  "ไม่ผ่านสิทธิ์แอดมิน",
+  "ไม่พบโปรไฟล์คนขับ",
+  "ไม่มีสิทธิ์คู่คน–เครื่องจักร",
+  "secret ล็อกไม่ตรงหรือไม่ได้ตั้งค่า",
+  "อัปเดต rich menu ไม่สำเร็จ (ไม่กระทบสิทธิ์)"
+ ],
+ "ports": [
+  {
+   "port_id": "K.in.admin",
+   "direction": "IN",
+   "protocol": "HTTPS_API",
+   "schema_hint": "POST /api/admin/equipment/{toggle-permission,trigger-start}",
+   "auth": "requireAuth + ADMIN_TIER"
+  },
+  {
+   "port_id": "K.in.lock",
+   "direction": "IN",
+   "protocol": "HTTPS_API",
+   "schema_hint": "POST /api/internal/equipment/lock-command",
+   "auth": "x-equipment-lock-secret"
+  },
+  {
+   "port_id": "K.out.richmenu",
+   "direction": "OUT",
+   "protocol": "HTTPS_API",
+   "schema_hint": "LINE rich menu update",
+   "auth": "channel_access_token"
+  },
+  {
+   "port_id": "K.io.db",
+   "direction": "IN",
+   "protocol": "POSTGRES",
+   "schema_hint": "driver_equipment_permissions · equipment_assets · maintenance_tickets",
+   "auth": "supabaseAdmin"
+  }
+ ],
+ "evidence": [
+  "app/api/admin/equipment/toggle-permission/route.ts:2,3,27,34,47,53,56,57,72,78,82,89,91,103",
+  "app/api/admin/equipment/trigger-start/route.ts:2,3,16,18,20,21,34,54",
+  "app/api/internal/equipment/lock-command/route.ts:10,26,27,28,32,44,64",
+  "app/api/admin/equipment/maintenance-tickets/route.ts:2,3,12,18",
+  "live schema อ่านจาก production ref xeytcavxejhyzxwevgto เมื่อ 2026-09-05T02:24:57.238Z ผ่าน capability supabase.schema.read (read-only, พิสูจน์ WRITE=DENIED ด้วย Postgres 25006)"
+ ],
+ "status": "PARTIAL",
+ "schema_verification": "VERIFIED",
+ "runtime_verification": "PENDING"
+}

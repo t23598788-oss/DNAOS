@@ -1,0 +1,487 @@
+{
+ "generated_at": "2026-09-05T02:24:57.238Z",
+ "source_only_count": 18,
+ "live_only_count": 4,
+ "match_count": 83,
+ "source_only": [
+  {
+   "object_name": "conversation_states",
+   "object_type": "TABLE",
+   "migration_source": [
+    "20260622000003_conversation_state_and_entity_registry.sql",
+    "20260706000002_conversation_states_new_project.sql"
+   ],
+   "code_references": [
+    "supabase/functions/line-webhook-v2/helpers.ts:29",
+    "supabase/functions/line-webhook-v2/helpers.ts:63",
+    "supabase/functions/line-webhook-v2/helpers.ts:90"
+   ],
+   "affected_components": [
+    "supabase/functions/line-webhook-v2/helpers.ts"
+   ],
+   "affected_flows": [],
+   "business_effect": "โค้ด 1 จุดเรียกใช้ตารางนี้ การเรียกจะได้ error ทุกครั้ง",
+   "repair_required": true,
+   "repair_type": "OBJECT_ABSENT_IN_PRODUCTION_WHILE_CODE_EXPECTS_IT"
+  },
+  {
+   "object_name": "entity_registry",
+   "object_type": "TABLE",
+   "migration_source": [
+    "20260622000003_conversation_state_and_entity_registry.sql",
+    "20260706000003_entity_registry_new_project.sql"
+   ],
+   "code_references": [
+    "supabase/functions/line-webhook-v2/helpers.ts:313"
+   ],
+   "affected_components": [
+    "supabase/functions/line-webhook-v2/helpers.ts"
+   ],
+   "affected_flows": [],
+   "business_effect": "โค้ด 1 จุดเรียกใช้ตารางนี้ การเรียกจะได้ error ทุกครั้ง",
+   "repair_required": true,
+   "repair_type": "OBJECT_ABSENT_IN_PRODUCTION_WHILE_CODE_EXPECTS_IT"
+  },
+  {
+   "object_name": "factory_app_configs",
+   "object_type": "TABLE",
+   "migration_source": [
+    "20260813000010_factory_app_configs_split 2.sql",
+    "20260813000010_factory_app_configs_split.sql"
+   ],
+   "code_references": [
+    "core/config/ide-settings.ts:72"
+   ],
+   "affected_components": [
+    "core/config/ide-settings.ts"
+   ],
+   "affected_flows": [],
+   "business_effect": "โค้ด 1 จุดเรียกใช้ตารางนี้ การเรียกจะได้ error ทุกครั้ง",
+   "repair_required": true,
+   "repair_type": "OBJECT_ABSENT_IN_PRODUCTION_WHILE_CODE_EXPECTS_IT"
+  },
+  {
+   "object_name": "job_vehicle_pricings",
+   "object_type": "TABLE",
+   "migration_source": [
+    "20260709000003_migrate_live_line_tables.sql"
+   ],
+   "code_references": [],
+   "affected_components": [],
+   "affected_flows": [],
+   "business_effect": "ไม่มีโค้ดที่ยังเรียกใช้ตารางนี้ — ผลกระทบทางธุรกิจพิสูจน์ไม่ได้จากซอร์ส",
+   "repair_required": false,
+   "repair_type": "DECLARED_BUT_UNUSED"
+  },
+  {
+   "object_name": "kv_cache",
+   "object_type": "TABLE",
+   "migration_source": [
+    "20260705000007_kv_cache.sql"
+   ],
+   "code_references": [
+    "services/supabase/state-cache.ts:13",
+    "services/supabase/state-cache.ts:25"
+   ],
+   "affected_components": [
+    "services/supabase/state-cache.ts"
+   ],
+   "affected_flows": [],
+   "business_effect": "โค้ด 1 จุดเรียกใช้ตารางนี้ การเรียกจะได้ error ทุกครั้ง",
+   "repair_required": true,
+   "repair_type": "OBJECT_ABSENT_IN_PRODUCTION_WHILE_CODE_EXPECTS_IT"
+  },
+  {
+   "object_name": "line_draft_documents",
+   "object_type": "TABLE",
+   "migration_source": [
+    "20260709000003_migrate_live_line_tables.sql"
+   ],
+   "code_references": [],
+   "affected_components": [],
+   "affected_flows": [],
+   "business_effect": "ไม่มีโค้ดที่ยังเรียกใช้ตารางนี้ — ผลกระทบทางธุรกิจพิสูจน์ไม่ได้จากซอร์ส",
+   "repair_required": false,
+   "repair_type": "DECLARED_BUT_UNUSED"
+  },
+  {
+   "object_name": "line_profile_events",
+   "object_type": "TABLE",
+   "migration_source": [
+    "20260809000003_line_profile_versioning_and_history.sql"
+   ],
+   "code_references": [],
+   "affected_components": [],
+   "affected_flows": [],
+   "business_effect": "ไม่มีโค้ดที่ยังเรียกใช้ตารางนี้ — ผลกระทบทางธุรกิจพิสูจน์ไม่ได้จากซอร์ส",
+   "repair_required": false,
+   "repair_type": "DECLARED_BUT_UNUSED"
+  },
+  {
+   "object_name": "line_profile_history",
+   "object_type": "TABLE",
+   "migration_source": [
+    "20260809000003_line_profile_versioning_and_history.sql"
+   ],
+   "code_references": [
+    "app/api/admin/line-profiles/[lineUserId]/route.ts:56"
+   ],
+   "affected_components": [
+    "app/api/admin/line-profiles/[lineUserId]/route.ts"
+   ],
+   "affected_flows": [],
+   "business_effect": "โค้ด 1 จุดเรียกใช้ตารางนี้ การเรียกจะได้ error ทุกครั้ง",
+   "repair_required": true,
+   "repair_type": "OBJECT_ABSENT_IN_PRODUCTION_WHILE_CODE_EXPECTS_IT"
+  },
+  {
+   "object_name": "line_profile_refresh_queue",
+   "object_type": "TABLE",
+   "migration_source": [
+    "20260809000004_line_profile_refresh_queue.sql"
+   ],
+   "code_references": [
+    "supabase/functions/line-profile-refresh-worker/index.ts:125",
+    "supabase/functions/line-profile-refresh-worker/index.ts:133",
+    "supabase/functions/line-profile-refresh-worker/index.ts:58",
+    "supabase/functions/line-profile-refresh-worker/index.ts:67",
+    "supabase/functions/line-profile-refresh-worker/index.ts:90",
+    "supabase/functions/line-webhook-v2/engines/profile-refresh.ts:114"
+   ],
+   "affected_components": [
+    "supabase/functions/line-profile-refresh-worker/index.ts",
+    "supabase/functions/line-webhook-v2/engines/profile-refresh.ts"
+   ],
+   "affected_flows": [
+    "FLOW_B_LINE_PROFILE_UPDATE"
+   ],
+   "business_effect": "โค้ด 2 จุดเรียกใช้ตารางนี้ การเรียกจะได้ error ทุกครั้ง",
+   "repair_required": true,
+   "repair_type": "OBJECT_ABSENT_IN_PRODUCTION_WHILE_CODE_EXPECTS_IT"
+  },
+  {
+   "object_name": "line_sessions",
+   "object_type": "TABLE",
+   "migration_source": [
+    "20260709000003_migrate_live_line_tables.sql"
+   ],
+   "code_references": [],
+   "affected_components": [],
+   "affected_flows": [],
+   "business_effect": "ไม่มีโค้ดที่ยังเรียกใช้ตารางนี้ — ผลกระทบทางธุรกิจพิสูจน์ไม่ได้จากซอร์ส",
+   "repair_required": false,
+   "repair_type": "DECLARED_BUT_UNUSED"
+  },
+  {
+   "object_name": "match_queue",
+   "object_type": "TABLE",
+   "migration_source": [
+    "20260709000003_migrate_live_line_tables.sql"
+   ],
+   "code_references": [],
+   "affected_components": [],
+   "affected_flows": [],
+   "business_effect": "ไม่มีโค้ดที่ยังเรียกใช้ตารางนี้ — ผลกระทบทางธุรกิจพิสูจน์ไม่ได้จากซอร์ส",
+   "repair_required": false,
+   "repair_type": "DECLARED_BUT_UNUSED"
+  },
+  {
+   "object_name": "oauth_authorization_codes",
+   "object_type": "TABLE",
+   "migration_source": [
+    "20260804000010_ai_connection_oauth_stage2.sql"
+   ],
+   "code_references": [
+    "services/ai-connection/oauth.ts:132",
+    "services/ai-connection/oauth.ts:153",
+    "services/ai-connection/oauth.ts:94"
+   ],
+   "affected_components": [
+    "services/ai-connection/oauth.ts"
+   ],
+   "affected_flows": [],
+   "business_effect": "โค้ด 1 จุดเรียกใช้ตารางนี้ การเรียกจะได้ error ทุกครั้ง",
+   "repair_required": true,
+   "repair_type": "OBJECT_ABSENT_IN_PRODUCTION_WHILE_CODE_EXPECTS_IT"
+  },
+  {
+   "object_name": "oauth_clients",
+   "object_type": "TABLE",
+   "migration_source": [
+    "20260804000010_ai_connection_oauth_stage2.sql"
+   ],
+   "code_references": [
+    "app/oauth/authorize/page.tsx:43",
+    "services/ai-connection/oauth.ts:44",
+    "services/ai-connection/oauth.ts:55"
+   ],
+   "affected_components": [
+    "app/oauth/authorize/page.tsx",
+    "services/ai-connection/oauth.ts"
+   ],
+   "affected_flows": [],
+   "business_effect": "โค้ด 2 จุดเรียกใช้ตารางนี้ การเรียกจะได้ error ทุกครั้ง",
+   "repair_required": true,
+   "repair_type": "OBJECT_ABSENT_IN_PRODUCTION_WHILE_CODE_EXPECTS_IT"
+  },
+  {
+   "object_name": "oauth_refresh_tokens",
+   "object_type": "TABLE",
+   "migration_source": [
+    "20260804000010_ai_connection_oauth_stage2.sql"
+   ],
+   "code_references": [
+    "services/ai-connection/oauth.ts:183",
+    "services/ai-connection/oauth.ts:207",
+    "services/ai-connection/oauth.ts:222",
+    "services/ai-connection/oauth.ts:235",
+    "services/ai-connection/oauth.ts:243"
+   ],
+   "affected_components": [
+    "services/ai-connection/oauth.ts"
+   ],
+   "affected_flows": [],
+   "business_effect": "โค้ด 1 จุดเรียกใช้ตารางนี้ การเรียกจะได้ error ทุกครั้ง",
+   "repair_required": true,
+   "repair_type": "OBJECT_ABSENT_IN_PRODUCTION_WHILE_CODE_EXPECTS_IT"
+  },
+  {
+   "object_name": "partners",
+   "object_type": "TABLE",
+   "migration_source": [
+    "20260709000003_migrate_live_line_tables.sql"
+   ],
+   "code_references": [
+    "engines/documents/draft-builders.ts:40",
+    "supabase/functions/back-to-back/index.ts:248"
+   ],
+   "affected_components": [
+    "engines/documents/draft-builders.ts",
+    "supabase/functions/back-to-back/index.ts"
+   ],
+   "affected_flows": [
+    "FLOW_D_DOCUMENT_AUTOFILL"
+   ],
+   "business_effect": "โค้ด 2 จุดเรียกใช้ตารางนี้ การเรียกจะได้ error ทุกครั้ง",
+   "repair_required": true,
+   "repair_type": "OBJECT_ABSENT_IN_PRODUCTION_WHILE_CODE_EXPECTS_IT"
+  },
+  {
+   "object_name": "resource_transactions",
+   "object_type": "TABLE",
+   "migration_source": [
+    "20260620000000_clearinghouse_upgrade.sql"
+   ],
+   "code_references": [
+    "supabase/functions/kis-webhook/index.ts:122"
+   ],
+   "affected_components": [
+    "supabase/functions/kis-webhook/index.ts"
+   ],
+   "affected_flows": [],
+   "business_effect": "โค้ด 1 จุดเรียกใช้ตารางนี้ การเรียกจะได้ error ทุกครั้ง",
+   "repair_required": true,
+   "repair_type": "OBJECT_ABSENT_IN_PRODUCTION_WHILE_CODE_EXPECTS_IT"
+  },
+  {
+   "object_name": "transactions",
+   "object_type": "TABLE",
+   "migration_source": [
+    "20260705000002_transaction_state_machine.sql"
+   ],
+   "code_references": [],
+   "affected_components": [],
+   "affected_flows": [],
+   "business_effect": "ไม่มีโค้ดที่ยังเรียกใช้ตารางนี้ — ผลกระทบทางธุรกิจพิสูจน์ไม่ได้จากซอร์ส",
+   "repair_required": false,
+   "repair_type": "DECLARED_BUT_UNUSED"
+  },
+  {
+   "object_name": "user_line_auth",
+   "object_type": "TABLE",
+   "migration_source": [
+    "20260709000003_migrate_live_line_tables.sql"
+   ],
+   "code_references": [],
+   "affected_components": [],
+   "affected_flows": [],
+   "business_effect": "ไม่มีโค้ดที่ยังเรียกใช้ตารางนี้ — ผลกระทบทางธุรกิจพิสูจน์ไม่ได้จากซอร์ส",
+   "repair_required": false,
+   "repair_type": "DECLARED_BUT_UNUSED"
+  }
+ ],
+ "live_only": [
+  {
+   "object": "geography_columns",
+   "type": "POSTGIS_SYSTEM_OBJECT",
+   "counts_as_business_table": false,
+   "business_meaning": "ส่วนประกอบของส่วนขยาย PostGIS ไม่ใช่ตารางธุรกิจ",
+   "code_references": [],
+   "owner": "postgis extension"
+  },
+  {
+   "object": "geometry_columns",
+   "type": "POSTGIS_SYSTEM_OBJECT",
+   "counts_as_business_table": false,
+   "business_meaning": "ส่วนประกอบของส่วนขยาย PostGIS ไม่ใช่ตารางธุรกิจ",
+   "code_references": [],
+   "owner": "postgis extension"
+  },
+  {
+   "object": "live_commands",
+   "type": "TABLE_OR_VIEW",
+   "counts_as_business_table": true,
+   "business_meaning": "อ้างถึงในโค้ด ดู code_references",
+   "code_references": [
+    "app/api/internal/line/command/route.ts:47"
+   ],
+   "owner": "UNKNOWN"
+  },
+  {
+   "object": "spatial_ref_sys",
+   "type": "POSTGIS_SYSTEM_OBJECT",
+   "counts_as_business_table": false,
+   "business_meaning": "ส่วนประกอบของส่วนขยาย PostGIS ไม่ใช่ตารางธุรกิจ",
+   "code_references": [],
+   "owner": "postgis extension"
+  }
+ ],
+ "note": "ไฟล์นี้บันทึกความต่างที่วัดได้ ไม่ได้สรุปว่า migration ใดควรถูก apply",
+ "code_only_count": 7,
+ "code_only": [
+  {
+   "object_name": "debt_trackings",
+   "object_type": "TABLE_EXPECTED_BY_CODE",
+   "migration_source": [
+    "ไม่มี — ไม่เคยถูกประกาศใน migration ใดในเครื่อง"
+   ],
+   "code_references": [
+    "gateway/actions.ts:834"
+   ],
+   "affected_components": [
+    "gateway/actions.ts"
+   ],
+   "affected_flows": [],
+   "business_effect": "โค้ด 1 จุดคาดหวังตารางนี้ แต่ไม่มีทั้งใน migration และใน production การเรียกจะได้ error ทุกครั้ง",
+   "repair_required": true,
+   "repair_type": "NO_DECLARATION_ANYWHERE_CODE_EXPECTS_OBJECT"
+  },
+  {
+   "object_name": "document_items",
+   "object_type": "TABLE_EXPECTED_BY_CODE",
+   "migration_source": [
+    "ไม่มี — ไม่เคยถูกประกาศใน migration ใดในเครื่อง"
+   ],
+   "code_references": [
+    "supabase/functions/back-to-back/index.ts:230",
+    "supabase/functions/back-to-back/index.ts:358"
+   ],
+   "affected_components": [
+    "supabase/functions/back-to-back/index.ts"
+   ],
+   "affected_flows": [],
+   "business_effect": "โค้ด 1 จุดคาดหวังตารางนี้ แต่ไม่มีทั้งใน migration และใน production การเรียกจะได้ error ทุกครั้ง",
+   "repair_required": true,
+   "repair_type": "NO_DECLARATION_ANYWHERE_CODE_EXPECTS_OBJECT"
+  },
+  {
+   "object_name": "documents",
+   "object_type": "TABLE_EXPECTED_BY_CODE",
+   "migration_source": [
+    "ไม่มี — ไม่เคยถูกประกาศใน migration ใดในเครื่อง"
+   ],
+   "code_references": [
+    "engines/documents/draft-builders.ts:70",
+    "gateway/actions.ts:76",
+    "supabase/functions/back-to-back/index.ts:174",
+    "supabase/functions/back-to-back/index.ts:200",
+    "supabase/functions/back-to-back/index.ts:215",
+    "supabase/functions/back-to-back/index.ts:315",
+    "supabase/functions/back-to-back/index.ts:364"
+   ],
+   "affected_components": [
+    "engines/documents/draft-builders.ts",
+    "gateway/actions.ts",
+    "supabase/functions/back-to-back/index.ts"
+   ],
+   "affected_flows": [
+    "FLOW_D_DOCUMENT_AUTOFILL"
+   ],
+   "business_effect": "โค้ด 3 จุดคาดหวังตารางนี้ แต่ไม่มีทั้งใน migration และใน production การเรียกจะได้ error ทุกครั้ง",
+   "repair_required": true,
+   "repair_type": "NO_DECLARATION_ANYWHERE_CODE_EXPECTS_OBJECT"
+  },
+  {
+   "object_name": "entries",
+   "object_type": "TABLE_EXPECTED_BY_CODE",
+   "migration_source": [
+    "ไม่มี — ไม่เคยถูกประกาศใน migration ใดในเครื่อง"
+   ],
+   "code_references": [
+    "services/knowledge/client.ts:54"
+   ],
+   "affected_components": [
+    "services/knowledge/client.ts"
+   ],
+   "affected_flows": [],
+   "business_effect": "โค้ด 1 จุดคาดหวังตารางนี้ แต่ไม่มีทั้งใน migration และใน production การเรียกจะได้ error ทุกครั้ง",
+   "repair_required": true,
+   "repair_type": "NO_DECLARATION_ANYWHERE_CODE_EXPECTS_OBJECT"
+  },
+  {
+   "object_name": "invoice_debts",
+   "object_type": "TABLE_EXPECTED_BY_CODE",
+   "migration_source": [
+    "ไม่มี — ไม่เคยถูกประกาศใน migration ใดในเครื่อง"
+   ],
+   "code_references": [
+    "gateway/actions.ts:119",
+    "gateway/actions.ts:154",
+    "gateway/actions.ts:66",
+    "supabase/functions/back-to-back/index.ts:101"
+   ],
+   "affected_components": [
+    "gateway/actions.ts",
+    "supabase/functions/back-to-back/index.ts"
+   ],
+   "affected_flows": [],
+   "business_effect": "โค้ด 2 จุดคาดหวังตารางนี้ แต่ไม่มีทั้งใน migration และใน production การเรียกจะได้ error ทุกครั้ง",
+   "repair_required": true,
+   "repair_type": "NO_DECLARATION_ANYWHERE_CODE_EXPECTS_OBJECT"
+  },
+  {
+   "object_name": "invoice_payments",
+   "object_type": "TABLE_EXPECTED_BY_CODE",
+   "migration_source": [
+    "ไม่มี — ไม่เคยถูกประกาศใน migration ใดในเครื่อง"
+   ],
+   "code_references": [
+    "gateway/actions.ts:133"
+   ],
+   "affected_components": [
+    "gateway/actions.ts"
+   ],
+   "affected_flows": [],
+   "business_effect": "โค้ด 1 จุดคาดหวังตารางนี้ แต่ไม่มีทั้งใน migration และใน production การเรียกจะได้ error ทุกครั้ง",
+   "repair_required": true,
+   "repair_type": "NO_DECLARATION_ANYWHERE_CODE_EXPECTS_OBJECT"
+  },
+  {
+   "object_name": "links",
+   "object_type": "TABLE_EXPECTED_BY_CODE",
+   "migration_source": [
+    "ไม่มี — ไม่เคยถูกประกาศใน migration ใดในเครื่อง"
+   ],
+   "code_references": [
+    "services/knowledge/client.ts:90"
+   ],
+   "affected_components": [
+    "services/knowledge/client.ts"
+   ],
+   "affected_flows": [],
+   "business_effect": "โค้ด 1 จุดคาดหวังตารางนี้ แต่ไม่มีทั้งใน migration และใน production การเรียกจะได้ error ทุกครั้ง",
+   "repair_required": true,
+   "repair_type": "NO_DECLARATION_ANYWHERE_CODE_EXPECTS_OBJECT"
+  }
+ ]
+}

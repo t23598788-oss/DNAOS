@@ -1,0 +1,226 @@
+{
+ "flow_id": "FLOW_E_PRICE_CALCULATION",
+ "title": "คำนวณราคาวัสดุ + ค่าขนส่ง จากข้อความในแชท",
+ "actor": "ลูกค้าผ่าน LINE",
+ "trigger": "ข้อความถามราคาที่ tool-router ส่งเข้ามา",
+ "entrypoint": "supabase/functions/line-webhook-v2/engines/quote-price.ts#tryQuoteMaterialPrice",
+ "steps": [
+  {
+   "unit_id": "E.1",
+   "order": 1,
+   "description": "จับคู่ชื่อวัสดุกับ material_types (รองรับชื่อพ้อง)",
+   "source_pointer": "supabase/functions/line-webhook-v2/engines/quote-price.ts:31-45,148",
+   "input": "ข้อความ",
+   "output": "material id + density_ton_per_cbm",
+   "data_read": [
+    "material_types"
+   ],
+   "data_write": [],
+   "external_call": [],
+   "authority": "ไม่มี",
+   "failure_path": "จับคู่ไม่ได้ = ไม่ออกราคา"
+  },
+  {
+   "unit_id": "E.2",
+   "order": 2,
+   "description": "แปลงหน่วย คิว↔ตัน ด้วยความหนาแน่นจริงของวัสดุนั้น ไม่ใช่ค่าคงที่ตัวเดียว",
+   "source_pointer": "supabase/functions/line-webhook-v2/engines/material-density.ts:22-37 (cbmToTon/tonToCbm/validateDensity)",
+   "input": "ปริมาณ + density",
+   "output": "ปริมาณเป็นตัน",
+   "data_read": [
+    "material_types.density_ton_per_cbm"
+   ],
+   "data_write": [],
+   "external_call": [],
+   "authority": "ไม่มี",
+   "failure_path": "density ไม่ผ่าน validateDensity = ปฏิเสธ"
+  },
+  {
+   "unit_id": "E.3",
+   "order": 3,
+   "description": "หาพิกัดปลายทางจากประวัติ location ที่ผู้ใช้เคยส่งใน LINE",
+   "source_pointer": "supabase/functions/line-webhook-v2/engines/quote-price.ts:47-68",
+   "input": "line userId + ข้อความปลายทาง",
+   "output": "{lat,lng}",
+   "data_read": [
+    "line_events"
+   ],
+   "data_write": [],
+   "external_call": [],
+   "authority": "ผูกกับ line userId",
+   "failure_path": "ไม่มีพิกัด = คิดค่าขนส่งไม่ได้"
+  },
+  {
+   "unit_id": "E.4",
+   "order": 4,
+   "description": "หาข้อจำกัดการเข้าถึงหน้างานของบริษัทลูกค้า",
+   "source_pointer": "supabase/functions/line-webhook-v2/engines/quote-price.ts:80-88",
+   "input": "line userId",
+   "output": "access_restriction",
+   "data_read": [
+    "company_line_links",
+    "customer_sites"
+   ],
+   "data_write": [],
+   "external_call": [],
+   "authority": "company_line_links เป็นฐานของขอบเขตข้อมูล",
+   "failure_path": "ไม่พบบริษัท = ไม่มีข้อจำกัด"
+  },
+  {
+   "unit_id": "E.5",
+   "order": 5,
+   "description": "หาบ่อ/แหล่งวัสดุและราคาต่อหน่วย",
+   "source_pointer": "supabase/functions/line-webhook-v2/engines/quote-price.ts:197-205",
+   "input": "material id",
+   "output": "pit + unitPrice",
+   "data_read": [
+    "pit_profiles",
+    "pit_materials"
+   ],
+   "data_write": [],
+   "external_call": [],
+   "authority": "ไม่มี",
+   "failure_path": "ไม่มีบ่อที่มีวัสดุนี้ = ไม่ออกราคา"
+  },
+  {
+   "unit_id": "E.6",
+   "order": 6,
+   "description": "เลือกรถที่บรรทุกได้และผ่านข้อจำกัดหน้างาน แล้วคำนวณจำนวนเที่ยว",
+   "source_pointer": "supabase/functions/line-webhook-v2/engines/quote-price.ts:69-111,250",
+   "input": "ปริมาณ + access_restriction",
+   "output": "vehicle + trips",
+   "data_read": [
+    "vehicle_types"
+   ],
+   "data_write": [],
+   "external_call": [],
+   "authority": "ไม่มี",
+   "failure_path": "ไม่มีรถที่ผ่านข้อจำกัด = ไม่ออกราคา"
+  },
+  {
+   "unit_id": "E.7",
+   "order": 7,
+   "description": "อ่านราคาน้ำมันล่าสุดสำหรับคิดค่าขนส่ง",
+   "source_pointer": "supabase/functions/line-webhook-v2/engines/quote-price.ts:257",
+   "input": "-",
+   "output": "ราคาน้ำมันล่าสุด",
+   "data_read": [
+    "fuel_price_log"
+   ],
+   "data_write": [],
+   "external_call": [],
+   "authority": "ไม่มี",
+   "failure_path": "ไม่มีราคาน้ำมัน = คิดค่าขนส่งไม่ได้"
+  },
+  {
+   "unit_id": "E.8",
+   "order": 8,
+   "description": "คำนวณระยะทางด้วย haversine ในเครื่อง — ไม่เรียก Google Maps ในเส้นนี้",
+   "source_pointer": "supabase/functions/line-webhook-v2/engines/quote-price.ts:12-30 (คอมเมนต์ระบุว่าคัดลอกจาก engines/distance.ts โดยตั้งใจ)",
+   "input": "พิกัดต้นทาง+ปลายทาง",
+   "output": "ระยะทาง กม.",
+   "data_read": [],
+   "data_write": [],
+   "external_call": [],
+   "authority": "ไม่มี",
+   "failure_path": "ไม่มีพิกัด = ข้าม"
+  },
+  {
+   "unit_id": "E.9",
+   "order": 9,
+   "description": "รวมราคา: materialTotal = unitPrice × qty ; transportTotal = costPerTrip × trips ; grandTotal = ผลรวม",
+   "source_pointer": "supabase/functions/line-webhook-v2/engines/quote-price.ts:243,289-290",
+   "input": "ราคาต่อหน่วย ปริมาณ เที่ยว",
+   "output": "grandTotal",
+   "data_read": [],
+   "data_write": [],
+   "external_call": [],
+   "authority": "การคำนวณเป็น deterministic ทั้งหมด ไม่มี AI ตัดสินตัวเลข",
+   "failure_path": "-"
+  },
+  {
+   "unit_id": "E.10",
+   "order": 10,
+   "description": "บันทึกยอดที่เสนอไว้กับ business_events.quoted_amount และส่ง Flex card กลับ",
+   "source_pointer": "supabase/functions/line-webhook-v2/engines/quote-price.ts:128,310-312 + templates/flex/boq-card.ts",
+   "input": "QuoteResult",
+   "output": "ข้อความ + Flex card",
+   "data_read": [],
+   "data_write": [
+    "business_events"
+   ],
+   "external_call": [
+    "line"
+   ],
+   "authority": "ต้องมี replyToken",
+   "failure_path": "ส่งไม่สำเร็จ = ลูกค้าไม่ได้รับใบเสนอ"
+  }
+ ],
+ "components": [
+  "engines/quote-price.ts",
+  "engines/material-density.ts",
+  "templates/flex/boq-card.ts"
+ ],
+ "data_reads": [
+  "material_types",
+  "line_events",
+  "company_line_links",
+  "customer_sites",
+  "pit_profiles",
+  "pit_materials",
+  "vehicle_types",
+  "fuel_price_log"
+ ],
+ "data_writes": [
+  "business_events"
+ ],
+ "external_calls": [
+  "line (ส่ง Flex card)",
+  "supabase (postgres)"
+ ],
+ "authority": [
+  "company_line_links เป็นฐานของขอบเขตข้อมูลลูกค้า",
+  "การคำนวณราคาเป็น deterministic ไม่ผ่าน AI"
+ ],
+ "output": "ใบเสนอราคาย่อ (BOQ card) พร้อมยอดรวม และบันทึก quoted_amount",
+ "failure_paths": [
+  "จับคู่วัสดุไม่ได้",
+  "ไม่มีพิกัดปลายทาง",
+  "ไม่มีบ่อที่มีวัสดุ",
+  "ไม่มีรถที่ผ่านข้อจำกัด",
+  "ไม่มีราคาน้ำมัน",
+  "ส่ง LINE ไม่สำเร็จ"
+ ],
+ "ports": [
+  {
+   "port_id": "E.in.tool",
+   "direction": "IN",
+   "protocol": "SDK",
+   "schema_hint": "เรียกจาก tool-router พร้อมข้อความและ userId",
+   "auth": "สืบทอดจาก Flow A"
+  },
+  {
+   "port_id": "E.io.db",
+   "direction": "IN",
+   "protocol": "POSTGRES",
+   "schema_hint": "8 ตารางอ้างอิง",
+   "auth": "Supabase service role"
+  },
+  {
+   "port_id": "E.out.reply",
+   "direction": "OUT",
+   "protocol": "HTTPS_API",
+   "schema_hint": "LINE Flex message (BOQ card)",
+   "auth": "channel_access_token"
+  }
+ ],
+ "evidence": [
+  "supabase/functions/line-webhook-v2/engines/quote-price.ts:12,31,47,69,80,101,128,148,183,197,205,243,250,257,289,290,310",
+  "supabase/functions/line-webhook-v2/engines/material-density.ts:22,26,37",
+  "อ่านจาก source จริง 2026-09-05",
+  "live schema อ่านจาก production ref xeytcavxejhyzxwevgto เมื่อ 2026-09-05T02:24:57.238Z ผ่าน capability supabase.schema.read (read-only, พิสูจน์ WRITE=DENIED ด้วย Postgres 25006)"
+ ],
+ "status": "PARTIAL",
+ "schema_verification": "VERIFIED",
+ "runtime_verification": "PENDING"
+}

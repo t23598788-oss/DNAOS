@@ -1,0 +1,213 @@
+{
+ "flow_id": "FLOW_G_DOCUMENT_ISSUANCE",
+ "title": "ออกเอกสารจริง สร้างไฟล์ และส่งให้ลูกค้าทาง LINE",
+ "actor": "ผู้ใช้หลังบ้าน (ระดับแอดมิน)",
+ "trigger": "ยืนยันออกเอกสารจากร่าง",
+ "entrypoint": "app/api/admin/documents/route.ts#POST → engines/documents/engine.ts#generateDoc → engines/documents/artifact.ts#createDocumentArtifacts",
+ "steps": [
+  {
+   "unit_id": "G.1",
+   "order": 1,
+   "description": "ตรวจสิทธิ์แอดมิน",
+   "source_pointer": "app/api/admin/documents/route.ts:2-3,147",
+   "input": "session",
+   "output": "ผ่าน/ไม่ผ่าน",
+   "data_read": [],
+   "data_write": [],
+   "external_call": [],
+   "authority": "ADMIN_TIER",
+   "failure_path": "ไม่ผ่าน = ปฏิเสธ"
+  },
+  {
+   "unit_id": "G.2",
+   "order": 2,
+   "description": "อ่านการตั้งค่าบริษัทผู้ออกเอกสาร",
+   "source_pointer": "app/api/admin/documents/route.ts:12 (loadCompanySettings)",
+   "input": "ไม่มี",
+   "output": "ข้อมูลผู้ออก",
+   "data_read": [
+    "ตารางตั้งค่าบริษัท"
+   ],
+   "data_write": [],
+   "external_call": [],
+   "authority": "ค่าบริษัทมาจากการตั้งค่า ไม่ให้ผู้เรียกส่งมาเอง",
+   "failure_path": "ตั้งค่าไม่ครบ = ออกเอกสารไม่ได้"
+  },
+  {
+   "unit_id": "G.3",
+   "order": 3,
+   "description": "คำนวณยอดและประกอบเอกสาร — ยอดก่อนภาษี ภาษีมูลค่าเพิ่ม ยอดสุทธิ",
+   "source_pointer": "engines/documents/engine.ts:31 (generateDoc); artifact.ts:133-136",
+   "input": "ร่างเอกสาร",
+   "output": "DocResult",
+   "data_read": [],
+   "data_write": [],
+   "external_call": [],
+   "authority": "การคำนวณอยู่ในซอร์ส ไม่ใช่ AI",
+   "failure_path": "รายการว่าง = ยอดเป็นศูนย์"
+  },
+  {
+   "unit_id": "G.4",
+   "order": 4,
+   "description": "บันทึกเอกสารลงฐานข้อมูลตามชนิด — invoices หรือ standalone_documents",
+   "source_pointer": "app/api/admin/documents/route.ts:181,202",
+   "input": "DocResult",
+   "output": "แถวเอกสาร",
+   "data_read": [
+    "customer_orders",
+    "invoices"
+   ],
+   "data_write": [
+    "invoices",
+    "standalone_documents"
+   ],
+   "external_call": [],
+   "authority": "ชนิดเอกสารกำหนดตารางปลายทาง ผ่าน canonicalDocumentType",
+   "failure_path": "บันทึกไม่สำเร็จ = ไม่มีเอกสาร"
+  },
+  {
+   "unit_id": "G.5",
+   "order": 5,
+   "description": "สร้างไฟล์จริงสองรูปแบบ — PNG จาก SVG และ PDF",
+   "source_pointer": "engines/documents/artifact.ts:140-147",
+   "input": "DocData",
+   "output": "{ image, pdf, fileName }",
+   "data_read": [],
+   "data_write": [],
+   "external_call": [],
+   "authority": "ไม่มี",
+   "failure_path": "สร้างไฟล์ไม่สำเร็จ = ส่งให้ลูกค้าไม่ได้"
+  },
+  {
+   "unit_id": "G.6",
+   "order": 6,
+   "description": "เก็บไฟล์ไว้ที่ที่อ้างถึงได้ แล้วประกอบข้อความ LINE",
+   "source_pointer": "gateway/document-artifact-storage#storeDocumentArtifacts + lineDocumentMessages",
+   "input": "ไฟล์",
+   "output": "ลิงก์ไฟล์ + ข้อความ LINE",
+   "data_read": [],
+   "data_write": [
+    "ที่เก็บไฟล์เอกสาร"
+   ],
+   "external_call": [],
+   "authority": "ไม่มี",
+   "failure_path": "เก็บไม่สำเร็จ = ไม่ส่ง"
+  },
+  {
+   "unit_id": "G.7",
+   "order": 7,
+   "description": "ส่งเอกสารเข้าแชท LINE ของลูกค้า",
+   "source_pointer": "app/api/admin/line-customers/[lineUserId]/send-document/route.ts:8,28 (sendLineMessage)",
+   "input": "lineUserId + ข้อความเอกสาร",
+   "output": "ข้อความที่ส่งแล้ว",
+   "data_read": [
+    "company_line_links",
+    "invoices",
+    "standalone_documents",
+    "standalone_document_items"
+   ],
+   "data_write": [],
+   "external_call": [
+    "line"
+   ],
+   "authority": "company_line_links ยืนยันว่า lineUserId นี้ผูกกับบริษัทลูกค้าจริง",
+   "failure_path": "ส่งไม่สำเร็จ = ไม่บันทึกว่าส่งแล้ว"
+  },
+  {
+   "unit_id": "G.8",
+   "order": 8,
+   "description": "บันทึกเหตุการณ์การส่งไว้ในสายเหตุการณ์ LINE",
+   "source_pointer": "app/api/admin/line-customers/[lineUserId]/send-document/route.ts:97",
+   "input": "ผลการส่ง",
+   "output": "แถว line_events",
+   "data_read": [],
+   "data_write": [
+    "line_events"
+   ],
+   "external_call": [],
+   "authority": "ไม่มี",
+   "failure_path": "บันทึกไม่ได้ = ประวัติไม่ครบ"
+  }
+ ],
+ "components": [
+  "app/api/admin/documents/route.ts",
+  "engines/documents/engine.ts",
+  "engines/documents/artifact.ts",
+  "engines/documents/template.ts",
+  "gateway/document-artifact-storage",
+  "registry/communication#sendLineMessage",
+  "app/api/admin/line-customers/[lineUserId]/send-document/route.ts"
+ ],
+ "data_reads": [
+  "customer_orders",
+  "invoices",
+  "standalone_documents",
+  "standalone_document_items",
+  "company_line_links",
+  "ตารางตั้งค่าบริษัท"
+ ],
+ "data_writes": [
+  "invoices",
+  "standalone_documents",
+  "line_events",
+  "ที่เก็บไฟล์เอกสาร"
+ ],
+ "external_calls": [
+  "line (push/reply ผ่าน registry/communication)",
+  "supabase (postgres + storage)"
+ ],
+ "authority": [
+  "ADMIN_TIER ผ่าน requireAuth",
+  "ข้อมูลผู้ออกเอกสารมาจาก company settings ไม่ใช่จากผู้เรียก",
+  "company_line_links กำหนดว่าส่งเอกสารเข้าแชทไหนได้"
+ ],
+ "output": "เอกสารที่บันทึกแล้ว พร้อมไฟล์ PDF/PNG และการส่งถึงลูกค้าทาง LINE ที่มีร่องรอยใน line_events",
+ "failure_paths": [
+  "ไม่ผ่านสิทธิ์แอดมิน",
+  "ตั้งค่าบริษัทไม่ครบ",
+  "บันทึกเอกสารไม่สำเร็จ",
+  "สร้างไฟล์ไม่สำเร็จ",
+  "lineUserId ไม่ผูกบริษัท",
+  "ส่ง LINE ไม่สำเร็จ"
+ ],
+ "ports": [
+  {
+   "port_id": "G.in.http",
+   "direction": "IN",
+   "protocol": "HTTPS_API",
+   "schema_hint": "POST /api/admin/documents",
+   "auth": "requireAuth + ADMIN_TIER"
+  },
+  {
+   "port_id": "G.out.line",
+   "direction": "OUT",
+   "protocol": "HTTPS_API",
+   "schema_hint": "LINE message ผ่าน registry/communication",
+   "auth": "channel_access_token"
+  },
+  {
+   "port_id": "G.out.storage",
+   "direction": "OUT",
+   "protocol": "OBJECT_STORAGE",
+   "schema_hint": "เก็บ PDF/PNG ผ่าน document-artifact-storage",
+   "auth": "supabaseAdmin"
+  },
+  {
+   "port_id": "G.io.db",
+   "direction": "IN",
+   "protocol": "POSTGRES",
+   "schema_hint": "invoices · standalone_documents · line_events",
+   "auth": "supabaseAdmin"
+  }
+ ],
+ "evidence": [
+  "app/api/admin/documents/route.ts:2,3,4,10,11,12,32,58,63,147,181,202",
+  "engines/documents/engine.ts:31",
+  "engines/documents/artifact.ts:140-147 (sharp png + createPdf)",
+  "app/api/admin/line-customers/[lineUserId]/send-document/route.ts:6,8,44,55,63,71,97",
+  "live schema อ่านจาก production ref xeytcavxejhyzxwevgto เมื่อ 2026-09-05T02:24:57.238Z ผ่าน capability supabase.schema.read (read-only, พิสูจน์ WRITE=DENIED ด้วย Postgres 25006)"
+ ],
+ "status": "PARTIAL",
+ "schema_verification": "VERIFIED",
+ "runtime_verification": "PENDING"
+}

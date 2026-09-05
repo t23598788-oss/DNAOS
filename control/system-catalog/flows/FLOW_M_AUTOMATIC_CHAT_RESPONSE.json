@@ -1,0 +1,292 @@
+{
+ "flow_id": "FLOW_M_AUTOMATIC_CHAT_RESPONSE",
+ "title": "ลำดับการตอบข้อความอัตโนมัติในแชท",
+ "actor": "ผู้ใช้ LINE (ลูกค้า ซัพพลายเออร์ หรือเจ้าของ)",
+ "trigger": "ข้อความตัวอักษรเข้ามาในแชท",
+ "entrypoint": "supabase/functions/line-webhook-v2/handlers/text.ts",
+ "steps": [
+  {
+   "unit_id": "M.1",
+   "order": 1,
+   "description": "บันทึกข้อความเข้าเป็นเหตุการณ์ก่อนตัดสินใจใด ๆ",
+   "source_pointer": "supabase/functions/line-webhook-v2/handlers/text.ts:2,18 (saveEvent)",
+   "input": "ข้อความ LINE",
+   "output": "line_event id",
+   "data_read": [],
+   "data_write": [
+    "line_events"
+   ],
+   "external_call": [],
+   "authority": "ไม่มี",
+   "failure_path": "บันทึกไม่ได้ = ทำงานต่อโดยไม่มี event id"
+  },
+  {
+   "unit_id": "M.2",
+   "order": 2,
+   "description": "ตรวจโหมดการสนทนา — ถ้าคนเข้ามาคุยเอง ระบบหยุดตอบ",
+   "source_pointer": "supabase/functions/line-webhook-v2/handlers/text.ts:34-37; engines/human-takeover.ts:5,9,14,20",
+   "input": "line_user_id + ข้อความ",
+   "output": "โหมด ai หรือ human_takeover",
+   "data_read": [
+    "line_conversation_controls"
+   ],
+   "data_write": [
+    "line_conversation_controls"
+   ],
+   "external_call": [],
+   "authority": "โหมดของมนุษย์เหนือกว่าการตอบอัตโนมัติเสมอ",
+   "failure_path": "อ่านโหมดไม่ได้ = ถือเป็นโหมด ai"
+  },
+  {
+   "unit_id": "M.3",
+   "order": 3,
+   "description": "ถ้าผู้ส่งคือเจ้าของ ส่งต่อไปยังสายคำสั่งของเจ้าของผ่านสะพานภายใน — ไม่ผ่านตรรกะลูกค้าด้านล่างเลย",
+   "source_pointer": "supabase/functions/line-webhook-v2/handlers/text.ts:58-70",
+   "input": "OWNER_LINE_USER_ID ตรงกับผู้ส่ง",
+   "output": "ผลจาก /api/internal/line/command",
+   "data_read": [],
+   "data_write": [],
+   "external_call": [
+    "deadboard internal api"
+   ],
+   "authority": "ยืนยันด้วย x-line-command-internal-secret และกฎข้อ 72 — สายนี้เสนอ/วางแผนเท่านั้น การเปลี่ยนแปลงจริงต้องมี 'ส่งเลย' จากเจ้าของอีกครั้ง",
+   "failure_path": "สะพานล้มเหลว = ตกไปที่คิว AI ท้องถิ่น"
+  },
+  {
+   "unit_id": "M.4",
+   "order": 4,
+   "description": "ลองตอบใบเสนอราคาซัพพลายเออร์",
+   "source_pointer": "supabase/functions/line-webhook-v2/handlers/text.ts:86",
+   "input": "ข้อความ",
+   "output": "คำตอบหรือไม่มี",
+   "data_read": [
+    "ตารางฝั่งซัพพลายเออร์"
+   ],
+   "data_write": [],
+   "external_call": [],
+   "authority": "ไม่มี",
+   "failure_path": "ไม่เข้าเกณฑ์ = ลองขั้นถัดไป"
+  },
+  {
+   "unit_id": "M.5",
+   "order": 5,
+   "description": "ลองตอบคำถามข้อเท็จจริงภายนอก",
+   "source_pointer": "supabase/functions/line-webhook-v2/handlers/text.ts:103; engines/external-facts.ts:39,43",
+   "input": "ข้อความ",
+   "output": "คำตอบหรือไม่มี",
+   "data_read": [],
+   "data_write": [],
+   "external_call": [
+    "แหล่งข้อเท็จจริงภายนอก"
+   ],
+   "authority": "ไม่มี",
+   "failure_path": "ไม่เข้าเกณฑ์ = ลองขั้นถัดไป"
+  },
+  {
+   "unit_id": "M.6",
+   "order": 6,
+   "description": "ลองส่งเข้าตัวจัดเส้นทางเครื่องมือ (ราคา สถานะออเดอร์ ประวัติซื้อ ฯลฯ)",
+   "source_pointer": "supabase/functions/line-webhook-v2/handlers/text.ts:116; engines/tool-router.ts",
+   "input": "ข้อความ",
+   "output": "คำตอบจากเครื่องมือหรือไม่มี",
+   "data_read": [
+    "ตามเครื่องมือที่ถูกเลือก"
+   ],
+   "data_write": [
+    "ตามเครื่องมือที่ถูกเลือก"
+   ],
+   "external_call": [],
+   "authority": "เครื่องมือเป็นผู้คำนวณ ไม่ใช่โมเดล",
+   "failure_path": "ไม่ตรงเครื่องมือใด = ลองขั้นถัดไป"
+  },
+  {
+   "unit_id": "M.7",
+   "order": 7,
+   "description": "ลองตอบวิธีการชำระเงิน",
+   "source_pointer": "supabase/functions/line-webhook-v2/handlers/text.ts:137; engines/payment-instructions.ts",
+   "input": "line_user_id",
+   "output": "คำตอบหรือไม่มี",
+   "data_read": [
+    "ข้อมูลบัญชีรับชำระ"
+   ],
+   "data_write": [],
+   "external_call": [],
+   "authority": "ไม่มี",
+   "failure_path": "ไม่ใช่คำถามเรื่องชำระ = ลองขั้นถัดไป"
+  },
+  {
+   "unit_id": "M.8",
+   "order": 8,
+   "description": "ลองปิดเหตุการณ์ที่ค้างรอข้อมูลอยู่",
+   "source_pointer": "supabase/functions/line-webhook-v2/handlers/text.ts:149; engines/event-followup.ts",
+   "input": "ข้อความ + event id",
+   "output": "คำตอบหรือไม่มี",
+   "data_read": [
+    "business_events"
+   ],
+   "data_write": [
+    "business_events"
+   ],
+   "external_call": [],
+   "authority": "ไม่มี",
+   "failure_path": "ไม่มีเหตุการณ์ค้าง = ลองขั้นถัดไป"
+  },
+  {
+   "unit_id": "M.9",
+   "order": 9,
+   "description": "ลองรับทราบเรื่องหนี้ค้าง",
+   "source_pointer": "supabase/functions/line-webhook-v2/handlers/text.ts:186; engines/debt-followup.ts",
+   "input": "ข้อความ",
+   "output": "คำตอบหรือไม่มี",
+   "data_read": [
+    "debt_snapshots"
+   ],
+   "data_write": [],
+   "external_call": [],
+   "authority": "ไม่มี",
+   "failure_path": "ไม่เข้าเกณฑ์ = ลองขั้นถัดไป"
+  },
+  {
+   "unit_id": "M.10",
+   "order": 10,
+   "description": "ลองบันทึกการแจ้งชำระเงิน (ต่อไปยัง FLOW_H)",
+   "source_pointer": "supabase/functions/line-webhook-v2/handlers/text.ts:199; engines/payment-claim.ts:18",
+   "input": "ข้อความ + event id",
+   "output": "คำตอบหรือไม่มี",
+   "data_read": [
+    "company_line_links"
+   ],
+   "data_write": [
+    "receipt_documents"
+   ],
+   "external_call": [],
+   "authority": "ไม่มี",
+   "failure_path": "ไม่เข้าเกณฑ์ = ตกไปขั้นสุดท้าย"
+  },
+  {
+   "unit_id": "M.11",
+   "order": 11,
+   "description": "ตกถึงขั้นสุดท้าย เข้าคิวให้ AI ท้องถิ่นคิด แล้วแสดงสัญญาณกำลังพิมพ์ทันที",
+   "source_pointer": "supabase/functions/line-webhook-v2/handlers/text.ts:220-233 (ai_tasks insert + ResponseGateway.showLoading)",
+   "input": "ข้อความ",
+   "output": "แถว ai_tasks สถานะ pending + typing indicator",
+   "data_read": [],
+   "data_write": [
+    "ai_tasks"
+   ],
+   "external_call": [
+    "line"
+   ],
+   "authority": "AI ท้องถิ่นตอบแบบไม่ประสานเวลา ไม่ได้ตอบในคำขอนี้",
+   "failure_path": "เข้าคิวไม่ได้ = ผู้ใช้ไม่ได้รับคำตอบ"
+  },
+  {
+   "unit_id": "M.12",
+   "order": 12,
+   "description": "ทุกการตอบออกทางช่องทางเดียว — ResponseGateway เป็นคอขวดขาออกจุดเดียว และมีสวิตช์ปิดการตอบอัตโนมัติ",
+   "source_pointer": "supabase/functions/line-webhook-v2/engines/response.ts:38,69,95,103,106,115",
+   "input": "ข้อความที่จะตอบ",
+   "output": "การเรียก LINE reply/push",
+   "data_read": [
+    "line_events (หา user จาก reply_token)"
+   ],
+   "data_write": [],
+   "external_call": [
+    "line"
+   ],
+   "authority": "สวิตช์ปิดการตอบลูกค้าอยู่ที่นี่ — เมื่อปิด ระบบบันทึกว่า 'จะส่งอะไร' แทนการส่งจริง",
+   "failure_path": "LINE ตอบไม่สำเร็จ = บันทึก error ไม่ retry เงียบ ๆ"
+  }
+ ],
+ "components": [
+  "supabase/functions/line-webhook-v2/handlers/text.ts",
+  "supabase/functions/line-webhook-v2/engines/response.ts",
+  "supabase/functions/line-webhook-v2/engines/human-takeover.ts",
+  "supabase/functions/line-webhook-v2/engines/tool-router.ts",
+  "supabase/functions/line-webhook-v2/engines/external-facts.ts",
+  "supabase/functions/line-webhook-v2/engines/supplier-quote-reply.ts",
+  "supabase/functions/line-webhook-v2/engines/payment-instructions.ts",
+  "supabase/functions/line-webhook-v2/engines/event-followup.ts",
+  "supabase/functions/line-webhook-v2/engines/debt-followup.ts",
+  "supabase/functions/line-webhook-v2/engines/payment-claim.ts",
+  "deadboard /api/internal/line/command",
+  "ai-task-watcher.mjs (ผู้ทำงานท้องถิ่น)"
+ ],
+ "data_reads": [
+  "line_conversation_controls",
+  "line_events",
+  "company_line_links",
+  "business_events",
+  "debt_snapshots"
+ ],
+ "data_writes": [
+  "line_events",
+  "line_conversation_controls",
+  "ai_tasks",
+  "business_events",
+  "receipt_documents"
+ ],
+ "external_calls": [
+  "line (reply/push/loading)",
+  "deadboard internal api",
+  "แหล่งข้อเท็จจริงภายนอก",
+  "ai ท้องถิ่นผ่านคิว ai_tasks"
+ ],
+ "authority": [
+  "โหมด human_takeover เหนือกว่าการตอบอัตโนมัติ",
+  "OWNER_LINE_USER_ID แยกสายเจ้าของออกจากสายลูกค้าโดยสิ้นเชิง",
+  "x-line-command-internal-secret ป้องกันสะพานภายใน",
+  "กฎข้อ 72 — สายเจ้าของเสนอ/วางแผนเท่านั้น ต้องมีการยืนยัน 'ส่งเลย' ก่อนเปลี่ยนแปลงจริง",
+  "ResponseGateway เป็นคอขวดขาออกจุดเดียว มีสวิตช์ปิดการตอบลูกค้า"
+ ],
+ "output": "คำตอบหนึ่งข้อความที่ออกจากคอขวดเดียว หรือคิวงานให้ AI ท้องถิ่นตอบทีหลัง",
+ "failure_paths": [
+  "โหมด human_takeover = ไม่ตอบ",
+  "สะพานคำสั่งเจ้าของล้มเหลว = ตกไปคิว AI",
+  "ไม่เข้าเกณฑ์ใดเลย = คิว ai_tasks",
+  "สวิตช์ตอบลูกค้าปิด = บันทึกแทนการส่ง",
+  "LINE reply ล้มเหลว"
+ ],
+ "ports": [
+  {
+   "port_id": "M.in.text",
+   "direction": "IN",
+   "protocol": "SDK",
+   "schema_hint": "LINE text message จาก FLOW_A",
+   "auth": "สืบทอดจากการตรวจลายเซ็น webhook"
+  },
+  {
+   "port_id": "M.out.owner",
+   "direction": "OUT",
+   "protocol": "HTTPS_API",
+   "schema_hint": "POST {DNA_OS_APP_URL}/api/internal/line/command",
+   "auth": "x-line-command-internal-secret"
+  },
+  {
+   "port_id": "M.out.line",
+   "direction": "OUT",
+   "protocol": "HTTPS_API",
+   "schema_hint": "https://api.line.me/v2/bot/message/reply",
+   "auth": "channel_access_token"
+  },
+  {
+   "port_id": "M.out.queue",
+   "direction": "OUT",
+   "protocol": "POSTGRES",
+   "schema_hint": "ai_tasks kind=handle_text status=pending",
+   "auth": "Supabase service role"
+  }
+ ],
+ "evidence": [
+  "supabase/functions/line-webhook-v2/handlers/text.ts:1-11,18,34,37,58,63,86,103,116,137,149,186,199,220,233",
+  "supabase/functions/line-webhook-v2/engines/response.ts:38,43,69,95,103,106,115,122",
+  "supabase/functions/line-webhook-v2/engines/human-takeover.ts:5,9,10,14,20",
+  "คอมเมนต์ text.ts:50-57 ระบุว่าสายเจ้าของใช้ cognitive/pipeline.ts เดียวกับ SecretaryChat ของแดชบอร์ด ผ่านสะพาน Node เพราะ Deno import ตรงไม่ได้",
+  "คอมเมนต์ text.ts:215-218 ระบุว่าคิวท้องถิ่นใช้ Ollama และตอบแบบไม่ประสานเวลา",
+  "คอมเมนต์ response.ts:95 ระบุว่าเป็นคอขวดขาออกจุดเดียวโดยเจตนา",
+  "live schema อ่านจาก production ref xeytcavxejhyzxwevgto เมื่อ 2026-09-05T02:24:57.238Z ผ่าน capability supabase.schema.read (read-only, พิสูจน์ WRITE=DENIED ด้วย Postgres 25006)"
+ ],
+ "status": "PARTIAL",
+ "schema_verification": "VERIFIED",
+ "runtime_verification": "PENDING"
+}

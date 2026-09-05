@@ -1,0 +1,166 @@
+{
+ "flow_id": "FLOW_J_EQUIPMENT_TELEMETRY_AND_ENGINE_HOURS",
+ "title": "รับสัญญาณจากกล่องเครื่องจักรและสะสมชั่วโมงเครื่องยนต์",
+ "actor": "กล่องฮาร์ดแวร์ที่ติดกับเครื่องจักร (ไม่ใช่คน)",
+ "trigger": "กล่องส่ง ping เข้ามา",
+ "entrypoint": "app/api/internal/equipment/telemetry/route.ts#POST",
+ "steps": [
+  {
+   "unit_id": "J.1",
+   "order": 1,
+   "description": "ยืนยันตัวตนด้วย bearer secret เฉพาะทาง ไม่ใช่ requireAuth เพราะผู้เรียกคือฮาร์ดแวร์ ไม่ใช่คน",
+   "source_pointer": "app/api/internal/equipment/telemetry/route.ts:7-8,28-33",
+   "input": "x-equipment-telemetry-secret",
+   "output": "ผ่าน/ปฏิเสธ",
+   "data_read": [],
+   "data_write": [],
+   "external_call": [],
+   "authority": "EQUIPMENT_TELEMETRY_SECRET — ถ้าไม่ได้ตั้งค่าไว้ route ปฏิเสธ ไม่ใช่ปล่อยผ่าน",
+   "failure_path": "secret ไม่ตรง = ปฏิเสธ"
+  },
+  {
+   "unit_id": "J.2",
+   "order": 2,
+   "description": "ตรวจรูปแบบข้อมูล — ต้องมี imei และ vccVoltage",
+   "source_pointer": "app/api/internal/equipment/telemetry/route.ts:36-41",
+   "input": "payload",
+   "output": "ค่าที่ตรวจแล้ว",
+   "data_read": [],
+   "data_write": [],
+   "external_call": [],
+   "authority": "ไม่มี",
+   "failure_path": "ขาดฟิลด์ = 400 ไม่บันทึก"
+  },
+  {
+   "unit_id": "J.3",
+   "order": 3,
+   "description": "หาเครื่องจักรจาก imei",
+   "source_pointer": "app/api/internal/equipment/telemetry/route.ts:50",
+   "input": "imei",
+   "output": "equipment asset",
+   "data_read": [
+    "equipment_assets"
+   ],
+   "data_write": [],
+   "external_call": [],
+   "authority": "imei คือตัวผูกกล่องกับเครื่องจักร",
+   "failure_path": "ไม่พบ = ไม่บันทึก"
+  },
+  {
+   "unit_id": "J.4",
+   "order": 4,
+   "description": "ตัดสินว่าเครื่องยนต์ทำงานอยู่หรือไม่จากแรงดันไฟ เทียบกับเกณฑ์ในซอร์ส",
+   "source_pointer": "app/api/internal/equipment/telemetry/route.ts:60 (ENGINE_RUNNING_THRESHOLD_VCC)",
+   "input": "vccVoltage",
+   "output": "engineRunning เป็นจริง/เท็จ",
+   "data_read": [],
+   "data_write": [],
+   "external_call": [],
+   "authority": "เกณฑ์อยู่ในซอร์ส ไม่ใช่การตัดสินของโมเดล",
+   "failure_path": "ไม่มี"
+  },
+  {
+   "unit_id": "J.5",
+   "order": 5,
+   "description": "บันทึก ping ดิบไว้ทั้งก้อน",
+   "source_pointer": "app/api/internal/equipment/telemetry/route.ts:63-70",
+   "input": "ping",
+   "output": "แถว equipment_telemetry_pings",
+   "data_read": [],
+   "data_write": [
+    "equipment_telemetry_pings"
+   ],
+   "external_call": [],
+   "authority": "เก็บ raw_payload ไว้ด้วย ทำให้ตรวจย้อนได้",
+   "failure_path": "บันทึกไม่สำเร็จ = 500 ไม่สะสมชั่วโมง"
+  },
+  {
+   "unit_id": "J.6",
+   "order": 6,
+   "description": "สะสมชั่วโมงเครื่องยนต์จากช่วงเวลาระหว่าง ping โดยจำกัดช่องว่างสูงสุดกันค่าพุ่ง",
+   "source_pointer": "engines/equipment/engine-hours.ts:25 (MAX_GAP_HOURS = 0.5), :42 computeEngineHoursDelta, :77 accumulateEngineHours",
+   "input": "ping ก่อนหน้า + ping ปัจจุบัน",
+   "output": "deltaHours และยอดสะสมใหม่",
+   "data_read": [
+    "equipment_telemetry_pings"
+   ],
+   "data_write": [
+    "equipment_assets"
+   ],
+   "external_call": [],
+   "authority": "การจำกัดช่องว่างเป็นกฎในซอร์ส ไม่ใช่การประมาณของ AI",
+   "failure_path": "สะสมไม่สำเร็จ = 500 แต่ telemetry ถูกบันทึกไว้แล้ว"
+  },
+  {
+   "unit_id": "J.7",
+   "order": 7,
+   "description": "อัปเดตสถานะเครื่องจักรเป็น RUNNING เมื่อเครื่องยนต์ทำงาน",
+   "source_pointer": "app/api/internal/equipment/telemetry/route.ts:80",
+   "input": "engineRunning",
+   "output": "current_status",
+   "data_read": [],
+   "data_write": [
+    "equipment_assets"
+   ],
+   "external_call": [],
+   "authority": "ไม่มี",
+   "failure_path": "อัปเดตไม่สำเร็จ = สถานะไม่ตรง"
+  }
+ ],
+ "components": [
+  "app/api/internal/equipment/telemetry/route.ts",
+  "engines/equipment/engine-hours.ts"
+ ],
+ "data_reads": [
+  "equipment_assets",
+  "equipment_telemetry_pings"
+ ],
+ "data_writes": [
+  "equipment_telemetry_pings",
+  "equipment_assets"
+ ],
+ "external_calls": [
+  "supabase (postgres)",
+  "กล่องฮาร์ดแวร์เป็นผู้เรียกเข้า ไม่ใช่ปลายทางที่ระบบเรียกออก"
+ ],
+ "authority": [
+  "EQUIPMENT_TELEMETRY_SECRET ผ่าน header เฉพาะ",
+  "ไม่ใช้ requireAuth เพราะผู้เรียกไม่ใช่คน",
+  "MAX_GAP_HOURS จำกัดการสะสมชั่วโมงจากช่องว่างสัญญาณ"
+ ],
+ "output": "ประวัติ ping ที่ตรวจย้อนได้ และชั่วโมงเครื่องยนต์สะสมที่ใช้ตัดสินรอบบำรุงรักษา",
+ "failure_paths": [
+  "secret ไม่ได้ตั้งค่า = ปฏิเสธ",
+  "secret ไม่ตรง",
+  "ขาด imei หรือ vccVoltage",
+  "ไม่พบเครื่องจักรจาก imei",
+  "บันทึก ping ไม่สำเร็จ",
+  "สะสมชั่วโมงไม่สำเร็จ"
+ ],
+ "ports": [
+  {
+   "port_id": "J.in.telemetry",
+   "direction": "IN",
+   "protocol": "HTTPS_API",
+   "schema_hint": "POST /api/internal/equipment/telemetry { imei, vccVoltage, recordedAt }",
+   "auth": "x-equipment-telemetry-secret"
+  },
+  {
+   "port_id": "J.io.db",
+   "direction": "IN",
+   "protocol": "POSTGRES",
+   "schema_hint": "equipment_assets · equipment_telemetry_pings",
+   "auth": "supabaseAdmin"
+  }
+ ],
+ "evidence": [
+  "app/api/internal/equipment/telemetry/route.ts:3,7,8,27,28,29,33,36,50,60,63,74,80",
+  "engines/equipment/engine-hours.ts:3,25,27,42,62,77,83,106,118",
+  "คอมเมนต์บรรทัด 7-8 ระบุเจตนาชัดว่าใช้ bearer secret เพราะผู้เรียกคือ hardware/gateway ไม่ใช่คน",
+  "payload ที่รับมีเพียง imei/vccVoltage/recordedAt — ไม่มีพิกัด GPS ในเส้นทางนี้",
+  "live schema อ่านจาก production ref xeytcavxejhyzxwevgto เมื่อ 2026-09-05T02:24:57.238Z ผ่าน capability supabase.schema.read (read-only, พิสูจน์ WRITE=DENIED ด้วย Postgres 25006)"
+ ],
+ "status": "PARTIAL",
+ "schema_verification": "VERIFIED",
+ "runtime_verification": "PENDING"
+}

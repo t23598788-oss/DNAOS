@@ -1,0 +1,110 @@
+{
+ "flow_id": "VF_EQUIPMENT_TO_AUTHORITY_ACTION",
+ "business_flow": "สัญญาณเครื่องจักรกลายเป็นคำสั่งควบคุม",
+ "source": "กล่องฮาร์ดแวร์",
+ "sink": "สถานะล็อก/ปลดล็อกของเครื่องจักร",
+ "stages": [
+  {
+   "stage_id": "VF7.1",
+   "layer": "L0_EXTERNAL_INPUT",
+   "nature": "OBSERVATION",
+   "operation": "INGEST",
+   "component": "telemetry/route.ts",
+   "input": "imei และ vccVoltage",
+   "output": "ping ที่ตรวจแล้ว",
+   "data_object": [
+    "equipment_telemetry_pings"
+   ],
+   "authority": "EQUIPMENT_TELEMETRY_SECRET",
+   "side_effect": "เขียน ping ดิบ",
+   "next_stage": "VF7.2",
+   "failure_path": "secret ไม่ตรง = ปฏิเสธ",
+   "source_pointer": "app/api/internal/equipment/telemetry/route.ts:28,63"
+  },
+  {
+   "stage_id": "VF7.2",
+   "layer": "L4_CALCULATION",
+   "nature": "DECISION",
+   "operation": "CALCULATION",
+   "component": "engines/equipment/engine-hours.ts",
+   "input": "ping ก่อนหน้าและปัจจุบัน",
+   "output": "ชั่วโมงเครื่องยนต์สะสม",
+   "data_object": [
+    "equipment_assets"
+   ],
+   "authority": "MAX_GAP_HOURS จำกัดช่องว่าง",
+   "side_effect": null,
+   "next_stage": "VF7.3",
+   "failure_path": "สะสมไม่สำเร็จ = 500",
+   "source_pointer": "engines/equipment/engine-hours.ts:25,42"
+  },
+  {
+   "stage_id": "VF7.3",
+   "layer": "L3_BUSINESS_STATE",
+   "nature": "DECISION",
+   "operation": "BUSINESS_STATE",
+   "component": "maintenance_tickets",
+   "input": "ชั่วโมงสะสม",
+   "output": "ใบแจ้งซ่อม",
+   "data_object": [
+    "maintenance_tickets"
+   ],
+   "authority": "ADMIN_TIER สำหรับการอ่าน",
+   "side_effect": null,
+   "next_stage": "VF7.4",
+   "failure_path": "-",
+   "source_pointer": "app/api/admin/equipment/maintenance-tickets/route.ts:18"
+  },
+  {
+   "stage_id": "VF7.4",
+   "layer": "L8_EXTERNAL_ACTION",
+   "nature": "EXTERNAL_ACTION",
+   "operation": "ACTION",
+   "component": "lock-command/route.ts",
+   "input": "เงื่อนไขที่ต้องล็อก",
+   "output": "สถานะ LOCKED",
+   "data_object": [
+    "equipment_assets"
+   ],
+   "authority": "EQUIPMENT_LOCK_INTERNAL_SECRET",
+   "side_effect": "เปลี่ยนสถานะเครื่องจักรจริง",
+   "next_stage": null,
+   "failure_path": "อัปเดตไม่สำเร็จ = เครื่องยังไม่ถูกล็อก",
+   "source_pointer": "app/api/internal/equipment/lock-command/route.ts:64"
+  }
+ ],
+ "terminal_state": "เครื่องจักรอยู่ในสถานะ RUNNING / LOCKED / UNLOCKED",
+ "financial_effect": [
+  {
+   "effect": "COST_CREATED",
+   "data_object": [
+    "maintenance_tickets"
+   ],
+   "deterministic_calculation": "engines/equipment/engine-hours.ts:42 ชั่วโมงสะสมเป็นตัวกำหนดรอบบำรุงรักษา"
+  }
+ ],
+ "projection": [
+  {
+   "surface": "deadboard /admin/equipment",
+   "canonical_source": [
+    "equipment_assets"
+   ],
+   "projection_object": [
+    "maintenance_tickets"
+   ],
+   "refresh": "REQUEST",
+   "reads_raw_ingestion": false,
+   "reason": "หน้าอ่านสถานะและใบแจ้งซ่อม ไม่ได้อ่าน ping ดิบ"
+  }
+ ],
+ "external_action": [
+  "สั่งล็อก/ปลดล็อกเครื่องจักร",
+  "อัปเดต LINE rich menu ของคนขับ"
+ ],
+ "health": "PARTIAL",
+ "last_confirmed_stage": "VF7.4",
+ "expected_next_stage": null,
+ "blocker": "equipment_telemetry_pings ไม่มีหน้าจอไหนแสดง (UI readers = 0) สัญญาณดิบจึงตรวจย้อนด้วยตาไม่ได้ และคอมเมนต์ที่ trigger-start/route.ts:16-18 ระบุว่าการสั่งกล่องจริงผ่าน SMS ยังไม่เปิด",
+ "runtime_trace": [],
+ "schema": "DATA_FLOW_V1"
+}

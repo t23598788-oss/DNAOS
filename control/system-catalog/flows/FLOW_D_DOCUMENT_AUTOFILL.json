@@ -1,0 +1,181 @@
+{
+ "flow_id": "FLOW_D_DOCUMENT_AUTOFILL",
+ "title": "เติมข้อมูลเอกสารอัตโนมัติจากข้อมูลที่มีอยู่แล้ว",
+ "actor": "ผู้ใช้หลังบ้าน (ระดับแอดมิน)",
+ "trigger": "เปิดฟอร์มสร้างเอกสารจากพาร์ทเนอร์เดิม หรือจากเอกสารเดิม",
+ "entrypoint": "engines/documents/draft-builders.ts#buildDraftFromPartner | #buildDraftFromDocument",
+ "steps": [
+  {
+   "unit_id": "D.1",
+   "order": 1,
+   "description": "ตรวจสิทธิ์ระดับแอดมินก่อนแตะข้อมูลเอกสาร",
+   "source_pointer": "app/api/admin/documents/route.ts:2-3 (requireAuth + ADMIN_TIER)",
+   "input": "session ของผู้เรียก",
+   "output": "ผ่าน/ไม่ผ่าน",
+   "data_read": [],
+   "data_write": [],
+   "external_call": [],
+   "authority": "ADMIN_TIER — ไม่ใช่สิทธิ์ผู้ใช้ทั่วไป",
+   "failure_path": "ไม่ผ่าน = ปฏิเสธก่อนอ่านข้อมูลใด ๆ"
+  },
+  {
+   "unit_id": "D.2",
+   "order": 2,
+   "description": "เส้นทางที่ 1 เติมจากพาร์ทเนอร์ — อ่านชื่อ เลขภาษี ที่อยู่ เบอร์โทร ผู้ติดต่อ",
+   "source_pointer": "engines/documents/draft-builders.ts:33-45",
+   "input": "partnerId + ชนิดเอกสาร",
+   "output": "DocumentDraftInput ที่กรอกฝั่งลูกค้าไว้แล้ว",
+   "data_read": [
+    "partners"
+   ],
+   "data_write": [],
+   "external_call": [],
+   "authority": "กรองด้วย deleted_at is null — เอกสารที่ลบแล้วเติมไม่ได้",
+   "failure_path": "ไม่พบพาร์ทเนอร์ = คืน undefined ไม่เดาข้อมูล"
+  },
+  {
+   "unit_id": "D.3",
+   "order": 3,
+   "description": "เส้นทางที่ 2 เติมจากเอกสารเดิม — อ่านเลขที่ ชนิด คู่สัญญา ยอดสุทธิ และ transaction อ้างอิง",
+   "source_pointer": "engines/documents/draft-builders.ts:64-78",
+   "input": "docId + ชนิดเอกสารใหม่",
+   "output": "DocumentDraftInput พร้อมเลขอ้างอิง",
+   "data_read": [
+    "documents",
+    "partners (join)"
+   ],
+   "data_write": [],
+   "external_call": [],
+   "authority": "กรองด้วย deleted_at is null",
+   "failure_path": "ไม่พบเอกสารต้นทาง = คืน undefined"
+  },
+  {
+   "unit_id": "D.4",
+   "order": 4,
+   "description": "สร้างร่างเปล่าตามชนิดเอกสารแล้วทับด้วยค่าที่อ่านมา — ค่าที่เติมมาจากฐานข้อมูลเท่านั้น ไม่ได้มาจากโมเดล",
+   "source_pointer": "engines/documents/draft-builders.ts:50,84 (createEmptyDocumentDraft + mapPartnerToCustomer)",
+   "input": "แถวที่อ่านได้",
+   "output": "ร่างเอกสาร",
+   "data_read": [],
+   "data_write": [],
+   "external_call": [],
+   "authority": "ไม่มี AI อยู่ในเส้นทางนี้ — การเติมเป็น deterministic",
+   "failure_path": "ไม่มีพาร์ทเนอร์ผูกอยู่ = ใช้ค่าคู่สัญญาที่บันทึกบนเอกสารเดิมแทน"
+  },
+  {
+   "unit_id": "D.5",
+   "order": 5,
+   "description": "เสนอเอกสารถัดไปที่สมเหตุสมผลตามชนิดปัจจุบัน",
+   "source_pointer": "engines/documents/draft-builders.ts:18 (NEXT_DOC_SUGGESTIONS)",
+   "input": "ชนิดเอกสารปัจจุบัน",
+   "output": "รายการเอกสารที่ควรออกต่อ",
+   "data_read": [],
+   "data_write": [],
+   "external_call": [],
+   "authority": "ตารางคงที่ในซอร์ส ไม่ใช่การคาดเดา",
+   "failure_path": "ชนิดที่ไม่อยู่ในตาราง = ไม่เสนออะไร"
+  }
+ ],
+ "components": [
+  "engines/documents/draft-builders.ts",
+  "engines/documents/document-editor.ts",
+  "app/api/admin/documents/route.ts"
+ ],
+ "data_reads": [
+  "partners",
+  "documents"
+ ],
+ "data_writes": [
+  "ยังไม่เขียนในขั้นเติมข้อมูล — การบันทึกเกิดที่ FLOW_G"
+ ],
+ "external_calls": [
+  "supabase (postgres)"
+ ],
+ "authority": [
+  "ADMIN_TIER ผ่าน requireAuth",
+  "deleted_at is null กันการเติมจากข้อมูลที่ถูกลบ"
+ ],
+ "output": "ร่างเอกสารที่ฝั่งคู่สัญญาถูกกรอกครบจากข้อมูลจริง พร้อมข้อเสนอเอกสารถัดไป",
+ "failure_paths": [
+  "ไม่พบพาร์ทเนอร์",
+  "ไม่พบเอกสารต้นทาง",
+  "ข้อมูลถูกลบไปแล้ว",
+  "ไม่ผ่านสิทธิ์แอดมิน"
+ ],
+ "ports": [
+  {
+   "port_id": "D.in.http",
+   "direction": "IN",
+   "protocol": "HTTPS_API",
+   "schema_hint": "/api/admin/documents",
+   "auth": "requireAuth + ADMIN_TIER"
+  },
+  {
+   "port_id": "D.io.db",
+   "direction": "IN",
+   "protocol": "POSTGRES",
+   "schema_hint": "partners · documents",
+   "auth": "supabaseAdmin"
+  }
+ ],
+ "evidence": [
+  "engines/documents/draft-builders.ts:18,33,40,64,70",
+  "คอมเมนต์บรรทัด 30-31 ระบุเจตนา: pre-fill เพื่อไม่ต้องกรอกชื่อ/เลขภาษี/ที่อยู่/เบอร์โทรใหม่",
+  "app/api/admin/documents/route.ts:2,3,10,11",
+  "live schema อ่านจาก production ref xeytcavxejhyzxwevgto เมื่อ 2026-09-05T02:24:57.238Z ผ่าน capability supabase.schema.read (read-only, พิสูจน์ WRITE=DENIED ด้วย Postgres 25006)",
+  "ตารางที่โค้ดอ้างแต่ไม่มีใน live schema: partners, documents",
+  "แยกสถานะรายเส้นทางแล้ว — ไม่ใช่ทั้งระบบเอกสารเสีย: การออกเอกสารจริง (FLOW_G) ยังใช้ receipt_documents 28 คอลัมน์ standalone_documents 22 คอลัมน์ และ invoices ซึ่งมีอยู่จริงใน live"
+ ],
+ "status": "PARTIAL",
+ "schema_verification": "MISMATCH",
+ "runtime_verification": "PENDING",
+ "schema_missing_tables": [
+  "partners",
+  "documents"
+ ],
+ "schema_status": "FAILED",
+ "runtime_eligibility": "NOT_ELIGIBLE",
+ "optional_data_objects": [],
+ "sub_paths": [
+  {
+   "sub_path_id": "D.partner-autofill",
+   "description": "เติมข้อมูลจากพาร์ทเนอร์ที่บันทึกไว้",
+   "entrypoint": "engines/documents/draft-builders.ts:33 buildDraftFromPartner",
+   "required_objects": [
+    "partners"
+   ],
+   "missing_objects": [
+    "partners"
+   ],
+   "schema_status": "FAILED",
+   "runtime_eligibility": "NOT_ELIGIBLE",
+   "business_effect": "คืน undefined เสมอ — ฟอร์มไม่เคยถูกเติมจากพาร์ทเนอร์ ผู้ใช้ต้องกรอกชื่อ เลขภาษี ที่อยู่ เบอร์โทร เองทุกครั้ง"
+  },
+  {
+   "sub_path_id": "D.existing-document-autofill",
+   "description": "เติมข้อมูลจากเอกสารที่ออกไปแล้ว",
+   "entrypoint": "engines/documents/draft-builders.ts:64 buildDraftFromDocument",
+   "required_objects": [
+    "documents",
+    "partners"
+   ],
+   "missing_objects": [
+    "documents",
+    "partners"
+   ],
+   "schema_status": "FAILED",
+   "runtime_eligibility": "NOT_ELIGIBLE",
+   "business_effect": "คืน undefined เสมอ — ปุ่มสร้างเอกสารต่อจากเอกสารเดิมไม่เคยพาข้อมูลหรือเลขอ้างอิงมาให้"
+  },
+  {
+   "sub_path_id": "D.next-doc-suggestion",
+   "description": "เสนอเอกสารถัดไปจากตารางคงที่ในซอร์ส",
+   "entrypoint": "engines/documents/draft-builders.ts:18 NEXT_DOC_SUGGESTIONS",
+   "required_objects": [],
+   "missing_objects": [],
+   "schema_status": "VERIFIED",
+   "runtime_eligibility": "ELIGIBLE",
+   "business_effect": "ทำงานได้ปกติ ไม่แตะฐานข้อมูล"
+  }
+ ]
+}
