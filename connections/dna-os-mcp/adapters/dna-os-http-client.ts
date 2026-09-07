@@ -20,8 +20,10 @@
  * adapter deciding on the caller's behalf.
  * Dependency ที่อนุญาต: none — plain fetch only.
  * สิ่งที่ห้ามแตะ: never add a method that queries a database, a provider
- * API, or a file directly — only these seven endpoints, all already real
- * and already canonical.
+ * API, or a file directly — only these already-real Core endpoints.
+ * Command submission must stay on POST /owner/submit-command (the
+ * submitOwnerCommand path). Never send typed Owner commands to POST
+ * /command — that door is chat-intake only.
  */
 
 export interface DnaOsHttpResponse<T = unknown> {
@@ -59,14 +61,16 @@ export class DnaOsHttpClient {
     return { status: response.status, body: parsed };
   }
 
-  /** POST /command — the real owner-command Input Ingress. */
-  submitCommand(input: { commandText: string; idempotencyKey?: string; ownerIdentity?: { id: string; email: string } }): Promise<DnaOsHttpResponse> {
-    return this.postJson("/command", input);
-  }
-
-  /** POST /registry/candidates — the real Registration Ingress (evaluateRegistration -> registerCandidate). */
-  submitRegistrationCandidate(input: Record<string, unknown>): Promise<DnaOsHttpResponse> {
-    return this.postJson("/registry/candidates", input);
+  /**
+   * POST /owner/submit-command — the real submitOwnerCommand ingress
+   * (classify → routeOwnerCommand → execution-policy → executor/task).
+   * Does not use POST /command (chat intake / WorkOrder door).
+   */
+  submitCommand(input: { commandText: string; ownerIdentity?: { id: string; email: string } }): Promise<DnaOsHttpResponse> {
+    return this.postJson("/owner/submit-command", {
+      commandText: input.commandText,
+      ...(input.ownerIdentity ? { ownerIdentity: input.ownerIdentity } : {}),
+    });
   }
 
   /** GET /registry/capabilities/:id — the real software_registry Lookup API. */

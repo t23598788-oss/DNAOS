@@ -1,32 +1,30 @@
 /**
- * หน้าที่: the seven MCP tools exposed by this capability folder. Every
+ * หน้าที่: the MCP tools exposed by this capability folder. Every
  * handler does the same three things, in order: (1) run the MCP Tool
  * Resolver (./capability-gate.ts) — refuse with CAPABILITY_NOT_AVAILABLE
  * before touching anything else if it fails; (2) call exactly one method
  * on ./adapters/dna-os-http-client.ts, which itself only reaches DNA OS's
- * own already-canonical HTTP transport; (3) thread a correlation_id
- * through and return the real response, never a fabricated one.
+ * own already-canonical HTTP transport — except list/lookup of routed
+ * capabilities, which read the existing command-router registry through
+ * ./capability-projection.ts (same source as ./capability-gate.ts, never
+ * a second catalog); (3) thread a correlation_id through and return the
+ * real response, never a fabricated one.
  *
- * No tool here queries Postgres/Supabase, calls GitHub/Vercel/any
- * provider, holds a database credential, issues raw SQL, or bypasses the
- * Registration Gate / execution-policy / work-coordination — every one of
- * those already lives inside the DNA OS pipeline this file calls into,
- * never re-implemented here.
- *
- * `submit_work_result` is the one tool whose canonical ingress (`POST
- * /handoff`) already existed before this MCP layer — it was NOT built for
- * this round. Every other tool reuses an endpoint transport/owner-command-http/server.ts
- * already exposed. No shortcut was created for any tool that lacked one.
+ * Typed Owner commands go to POST /owner/submit-command
+ * (`submitOwnerCommand`). POST /command remains chat-intake / WorkOrder
+ * and is not a model command door. Registration, consent approval, secret
+ * retrieval, and arbitrary shell are not registered as MCP tools.
  *
  * Input: none (module-level tool list).
  * Output: `DNA_OS_MCP_TOOLS` — one entry per tool: metadata + a
  * `handler(args)` returning an MCP `CallToolResult`-shaped object.
  * Dependency ที่อนุญาต: ./types.ts, ./capability-gate.ts,
- * ./adapters/dna-os-http-client.ts, ./identity.ts, zod.
- * สิ่งที่ห้ามแตะ: never add an eighth tool for a capability that isn't
- * REGISTERED + VERIFIED + AVAILABLE (or a proven core primitive) — see
- * ./capability-gate.ts. Never let a handler call `fetch` against anything
- * other than the one DnaOsHttpClient instance it's given.
+ * ./adapters/dna-os-http-client.ts, ./identity.ts,
+ * ./capability-projection.ts, zod.
+ * สิ่งที่ห้ามแตะ: never add a tool for registration, consent-approve,
+ * get_secret, or a generic shell. Never let a mutating handler call
+ * `fetch` against anything other than the one DnaOsHttpClient instance
+ * it's given.
  */
 
 import { randomUUID } from "node:crypto";
@@ -35,6 +33,7 @@ import type { McpToolMetadata } from "./types";
 import { resolveCapabilityForTool } from "./capability-gate";
 import { DnaOsHttpClient } from "./adapters/dna-os-http-client";
 import { resolveAgentIdentity } from "./identity";
+import { projectCapability, projectCapabilityList } from "./capability-projection";
 
 const AgentIdentityShape = z.object({ id: z.string(), email: z.string().optional() }).optional();
 
@@ -64,7 +63,7 @@ export const DNA_OS_MCP_TOOLS: readonly DnaOsMcpTool[] = [
     metadata: {
       name: "submit_command",
       title: "Submit DNA OS Command",
-      description: "Submit free-form or structured Owner command text into DNA OS's real owner-command Input Ingress. DNA OS classifies, routes, and executes it through the existing command-router/execution-policy pipeline — this tool never decides the outcome itself.",
+      description: "Submit Owner command text into DNA OS submitOwnerCommand (POST /owner/submit-command). DNA OS classifies, routes through the existing command-router and execution-policy, and returns the real task/evidence. This tool never decides the outcome itself.",
       read_write: "write",
       permission_scope: "owner-command",
       evidence_behavior: "returns command_id/task_id/decision/evidence from the real DNA OS response",
@@ -72,8 +71,7 @@ export const DNA_OS_MCP_TOOLS: readonly DnaOsMcpTool[] = [
     },
     inputShape: {
       commandText: z.string().min(1).describe("The command text, exactly as DNA OS's owner-command ingress expects it"),
-      idempotencyKey: z.string().optional(),
-      agentIdentity: AgentIdentityShape.describe("External agent identity, forwarded to DNA OS's real identity boundary — never used to choose account/workspace/permission scope directly"),
+      agentIdentity: AgentIdentityShape.describe("Correlation-only identity for the MCP response — DNA OS authenticates the Owner via its own session, never via this field as authority"),
     },
     handler: async (args, client) => {
       const correlation_id = randomUUID();
@@ -81,11 +79,8 @@ export const DNA_OS_MCP_TOOLS: readonly DnaOsMcpTool[] = [
       const identity = resolveAgentIdentity(args.agentIdentity as { id?: unknown; email?: unknown } | undefined);
       const response = await client.submitCommand({
         commandText: String(args.commandText),
-        idempotencyKey: typeof args.idempotencyKey === "string" ? args.idempotencyKey : undefined,
-        ownerIdentity: identity,
       });
       const body = response.body as Record<string, unknown>;
-      const envelope = body.envelope as Record<string, unknown> | undefined;
       const result = body.result as Record<string, unknown> | undefined;
       const outputContract = body.output_contract as Record<string, unknown> | undefined;
       const decisionArtifact = Array.isArray(result?.artifacts) ? (result!.artifacts as Array<Record<string, unknown>>).find((a) => a.kind === "decision_id") : undefined;
@@ -93,91 +88,42 @@ export const DNA_OS_MCP_TOOLS: readonly DnaOsMcpTool[] = [
         status: response.status,
         correlation_id,
         gate,
-        dna_os_command_id: envelope?.command_id ?? null,
+        mcp_agent_correlation: identity,
+        dna_os_command_id: body.command_id ?? null,
+        dna_os_work_id: body.work_id ?? null,
         dna_os_task_id: result?.task_id ?? null,
         dna_os_decision_id: decisionArtifact?.ref ?? null,
         dna_os_result_status: result?.status ?? null,
-        // Output Contract lane (contracts/command/output-contract.ts): SYSTEM_STATE
-        // (a status fact — read directly, no AI mediation) or WORK_ITEM (real work
-        // dispatched to a Worker/Agent — comes back only through DNA OS's own
-        // Verify/Register/Next Decision path). For WORK_ITEM, dispatcher_task_id
-        // names the real, separately-findable inner task.
         output_lane: outputContract?.lane ?? null,
         dispatcher_task_id: outputContract?.dispatcher_task_id ?? null,
         evidence: result?.evidence ?? [],
+        error: body.error ?? null,
+        reason_code: body.reason_code ?? null,
         raw: body,
       });
     },
   },
   {
     metadata: {
-      name: "submit_registration_candidate",
-      title: "Submit Registration Candidate",
-      description: "Submit a software_registry Registration Candidate through DNA OS's real Registration Ingress (Domain Classification -> Registration Gate -> Registry Writer). A candidate whose real resource_type is business data is rejected by DNA OS itself, never by this tool guessing. The authoritative result is ingress_status (REGISTERED/DUPLICATE/REJECTED/UNRESOLVED) with reason_code/duplicate_of — registration_status is the pre-write Registration Gate decision only, kept for evidence/debugging, never the field to branch on.",
-      read_write: "write",
-      permission_scope: "registration-pipeline",
-      evidence_behavior: "returns ingress_status (authoritative: REGISTERED/DUPLICATE/REJECTED/UNRESOLVED) with reason_code/duplicate_of, plus registration_status/resource_id/capability_id/evidence_id from the real Registration Pipeline — registration_status is informational (the Gate's pre-write decision), never the field to make a caller-side decision on",
+      name: "list_capabilities",
+      title: "List DNA OS Capabilities",
+      description: "List sanitized, model-visible rows from the existing command-router capability registry. Not a second registry. Omits endpoints, contract paths, secrets, and credentials.",
+      read_write: "read",
+      permission_scope: "registry-lookup",
+      evidence_behavior: "returns a sanitized projection of control/command-router/capability-registry.ts",
       dna_os_capability_id: null,
     },
-    inputShape: {
-      request_id: z.string(),
-      source_type: z.string(),
-      source_id: z.string(),
-      correlation_id: z.string().optional(),
-      submitted_at: z.string().optional(),
-      evidence_refs: z.array(z.string()),
-      candidate: z.object({
-        candidate_id: z.string(),
-        name: z.string().optional(),
-        canonical_name: z.string().optional(),
-        kind: z.enum(["resource", "capability"]),
-        source_location: z.string(),
-        input_contract: z.record(z.string(), z.unknown()).optional(),
-        output_contract: z.record(z.string(), z.unknown()).optional(),
-        side_effects: z.array(z.string()).optional(),
-        dependencies: z.array(z.string()).optional(),
-        purpose: z.string().optional(),
-        version: z.string().optional(),
-        domain: z.string(),
-        resource_type: z.string(),
-        data_classification: z.string(),
-        source_system: z.string(),
-        scope: z.string(),
-      }),
-      agentIdentity: AgentIdentityShape,
-    },
-    handler: async (args, client) => {
-      const correlation_id = (args.correlation_id as string | undefined) ?? randomUUID();
+    inputShape: {},
+    handler: async () => {
+      const correlation_id = randomUUID();
       const gate = resolveCapabilityForTool(null);
-      const identity = resolveAgentIdentity(args.agentIdentity as { id?: unknown; email?: unknown } | undefined);
-      const response = await client.submitRegistrationCandidate({
-        ...args,
-        correlation_id,
-        submitted_at: (args.submitted_at as string | undefined) ?? new Date().toISOString(),
-        ownerIdentity: identity,
-      });
-      const body = response.body as Record<string, unknown>;
+      const capabilities = projectCapabilityList();
       return textResult({
-        status: response.status,
+        status: 200,
         correlation_id,
         gate,
-        // ingress_status is the authoritative, final result — the only
-        // field a caller should branch on. registration_status is the
-        // Registration Gate's pre-write decision (e.g. still says
-        // APPROVED_FOR_REGISTRATION even when the Writer's own
-        // content_hash/semantic_fingerprint check later collapsed this
-        // into an existing row) — informational only, see
-        // software/registry-database/README.md's "Registration Ingress
-        // Contract — result semantics".
-        ingress_status: body.ingress_status ?? null,
-        reason_code: body.reason_code ?? null,
-        duplicate_of: body.duplicate_of ?? null,
-        registration_status: body.registration_status ?? null,
-        resource_id: body.resource_id ?? null,
-        capability_id: body.capability_id ?? null,
-        decision_id: body.decision_id ?? null,
-        evidence_id: body.evidence_id ?? null,
-        raw: body,
+        source: "control/command-router/capability-registry.ts",
+        capabilities,
       });
     },
   },
@@ -185,24 +131,21 @@ export const DNA_OS_MCP_TOOLS: readonly DnaOsMcpTool[] = [
     metadata: {
       name: "lookup_capability",
       title: "Lookup Registered Capability",
-      description: "Look up one capability by capability_id in DNA OS's real software_registry Lookup API. Returns the real row, or a clean not-found result for an unknown capability_id — never fabricated.",
-      read_write: "read",
-      permission_scope: "registry-lookup",
-      evidence_behavior: "returns the real registry row or null, no evidence trail generated by a lookup",
+      evidence_behavior: "returns a sanitized projection of control/command-router/capability-registry.ts",
       dna_os_capability_id: null,
     },
     inputShape: { capability_id: z.string().min(1) },
-    handler: async (args, client) => {
+    handler: async (args) => {
       const correlation_id = randomUUID();
       const gate = resolveCapabilityForTool(null);
-      const response = await client.lookupCapability(String(args.capability_id));
-      const found = response.status === 200;
+      const capability = projectCapability(String(args.capability_id));
+      const found = capability !== null;
       return textResult({
-        status: response.status,
+        status: found ? 200 : 404,
         correlation_id,
         gate,
         found,
-        capability: found ? response.body : null,
+        capability,
         reason: found ? null : "CAPABILITY_NOT_FOUND",
       });
     },
