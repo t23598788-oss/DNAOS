@@ -28,7 +28,7 @@ export { runCorrectiveLoop } from "./agent-execution-loop";
 export type { CorrectiveLoopOutcome, CorrectiveLoopState } from "./agent-execution-loop";
 export { routeRequestedAction, EXECUTOR_REGISTRY } from "./agent-authority-router";
 export type { AuthorityRouterOutcome } from "./agent-authority-router";
-export { createTaskWorkspace, transitionWorkspace, assignAgent, getWorkspace } from "./workspace-manager";
+export { createTaskWorkspace, transitionWorkspace, assignAgent, getWorkspace, listWorkspacesFromDisk } from "./workspace-manager";
 export type { TaskWorkspace, WorkspaceState, CreateTaskWorkspaceInput, TransitionOutcome } from "./workspace-manager";
 export {
   CAPABILITY_CANDIDATE_CONTRACT_VERSION,

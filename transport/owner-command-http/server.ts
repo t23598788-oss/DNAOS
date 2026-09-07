@@ -64,7 +64,8 @@ import { fileURLToPath } from "node:url";
 import { resolve } from "node:path";
 import { verifySharedSecret, evaluateBindPolicy } from "../../permissions/network-auth-gate/contract";
 import type { EnvelopeIdentity } from "../../contracts/identity/envelope-identity";
-import { translateOwnerMessage } from "../../control/owner-command-semantics/contract";
+import { languageEventsSince, onLanguageStage, publishLanguageStage } from "../../control/owner-command-semantics/contract";
+import { spawnConversationRuntime, type ConversationRuntimeHandle, type ConversationResult } from "../../control/conversation-runtime/contract";
 import { ingestCommandEnvelope, newEnvelopeId } from "../../control/owner-command/input-gateway";
 import { registerIdentity } from "../../permissions/access-control/identity-registry";
 import { grantMembership, listMembershipsForIdentity } from "../../permissions/access-control/membership-registry";
@@ -78,11 +79,13 @@ import type { WorkOrder } from "../../control/agent-gateway/types";
 import type { UiWorkOrder } from "../../connections/os-ui/work-order";
 import { listCapabilities } from "../../control/command-router/capability-registry";
 import { startJointEventBridge } from "../../observability/joint-monitor/contract";
+import { startWriteFailureBridge, AUTOMATIC_AGENT_DISPATCH_ENABLED } from "../../control/write-failure-bridge/contract";
 import { intakeEvent } from "../../control/owner-backbone/contract";
 import { issueBootstrapChallenge, completeBootstrapProbe } from "../../connections/agent-registry/worker-registration";
 import type { RegistrationCandidate } from "../../control/event-pipeline/contract";
 import { runRegistrationPipeline } from "../../control/registration-pipeline/contract";
 import { handleComputerUseApi } from "./computer-use-api";
+import { listOwnerSessions, validateOwnerSession } from "../../control/owner-authentication/contract";
 import { applyMutation } from "../../control/registration-update/contract";
 import { ingestWorkResult } from "../../control/work-result-ingress/contract";
 import type { WorkResultInput } from "../../control/work-result-ingress/contract";
@@ -93,17 +96,44 @@ import { handleOwnerCredentialRoute } from "./owner-credential-routes";
 import { runPreExecutionPlan, latestPlanFor, latestPlan } from "../../control/pre-execution-planner/contract";
 import { executeLocalRead } from "../../control/owner-command/local-read-operations";
 import { resolveAndExecuteOwnerIntent, resolveAndExecuteOwnerRequest } from "../../control/owner-command/structured-intent";
-import { findOpenOwnerQuestion, previewOwnerCommand, submitOwnerCommand } from "../../control/owner-command/contract";
+import { findOpenOwnerQuestion, previewOwnerCommand, submitOwnerCommand, lineageForCommand } from "../../control/owner-command/contract";
 import { readHistoryForIdentity } from "../../control/owner-command-semantics/contract";
+import { resolutionFor } from "../../control/resource-selection/contract";
 import { listReservations } from "../../control/source-workspace/contract";
-import { ownerDecision, DEFAULT_AGENT_WORKERS, loadEvidenceForTask } from "../../control/agent-gateway/contract";
+import { ownerDecision, loadEvidenceForTask } from "../../control/agent-gateway/contract";
 import { projectOwnerDisplayPayload } from "../../control/owner-projection/display-payload";
-import { readHistoryForIdentity, readHistoryForCommand } from "../../control/owner-command-semantics/contract";
+import { readHistoryForCommand, readTaskState } from "../../control/owner-command-semantics/contract";
+import type { HistoryRecord } from "../../control/owner-command-semantics/contract";
+import { currentStateProjection } from "../../control/work-session-state/contract";
+import { listConnectionDeclarations } from "../../connections/connection-registry/declaration-registry";
+import { providerMetadataFor } from "../../connections/connection-registry/provider-metadata";
+import type { ConnectionDeclaration } from "../../contracts/connector/connection-declaration";
+import type { CapabilityLookupResult, CapabilityRow, EvidenceRow, RelationshipRow, ResourceRow } from "../../software/registry-database/types";
 
 const IDENTITY_ID = "identity-deadboard-owner";
 const ACCOUNT_ID = "account-deadboard-owner";
 const WORKSPACE_ID = "workspace-deadboard-owner";
 const registrationStore = createPersistentFileStore();
+
+/**
+ * FLIP_PRODUCTION_OWNER_CONVERSATION_TO_ISOLATED_RUNTIME (Owner UNLOCK,
+ * 2026-09-06). This process no longer calls `translateOwnerMessage`/
+ * `resolveOwnerCommandSemantics` in-process — both real call sites
+ * (`respondWithChatIntake`, `GET /owner/language`) below go through this
+ * handle instead. `registrationStore` (above) is never handed across that
+ * boundary; only plain JSON (`ConversationRequest`) crosses.
+ *
+ * Lazily (re)spawned: a request that finds the child dead (crashed, never
+ * started) triggers exactly one respawn attempt before failing closed —
+ * this file never falls back to calling the semantics layer directly.
+ */
+let conversationRuntimeHandle: ConversationRuntimeHandle | null = null;
+function conversationRuntime(): ConversationRuntimeHandle {
+  if (!conversationRuntimeHandle || !conversationRuntimeHandle.isAlive()) {
+    conversationRuntimeHandle = spawnConversationRuntime();
+  }
+  return conversationRuntimeHandle;
+}
 
 registerIdentity({ identity_id: IDENTITY_ID, kind: "human", display_name: "Dead Board Owner" });
 registerAccount({ account_id: ACCOUNT_ID });
@@ -111,46 +141,20 @@ registerWorkspace({ workspace_id: WORKSPACE_ID, account_id: ACCOUNT_ID });
 grantMembership({ identity_id: IDENTITY_ID, scope_type: "account", scope_id: ACCOUNT_ID, role: "member" });
 grantMembership({ identity_id: IDENTITY_ID, scope_type: "workspace", scope_id: WORKSPACE_ID, role: "member" });
 
-// Diagnostic-only bootstrap grant: it permits the owner command's
-// read-only permission check to return a real decision. It does not grant
-// shell execution, file writes, deployment, or external credentials. Any
-// mutating capability must provide its own persisted grant and policy gate.
-issueExecutionGrant({
-  identity_id: IDENTITY_ID,
-  account_id: ACCOUNT_ID,
-  workspace_id: WORKSPACE_ID,
-  capability: "execution.run",
-  command_id: "unknown",
-  action: "run",
-  cwd_scope_prefix: "repo/",
-  effect: "allow",
-});
-
-const DEFAULT_OWNER_IDENTITY: EnvelopeIdentity = {
-  identity_id: IDENTITY_ID,
-  acting_as_account_id: ACCOUNT_ID,
-  acting_as_tenant_id: "tenant-deadboard-owner",
-  software_id: "dna-os-deadboard",
-  kind: "human",
-};
-
 // Identities provisioned via a real forwarded ownerIdentity (see header) —
 // registered/granted once per real Supabase user id, not on every request,
 // so repeated commands from the same signed-in person don't accumulate
 // duplicate membership/grant rows in these in-memory registries.
-const provisionedRealIdentities = new Set<string>([IDENTITY_ID]);
+const provisionedRealIdentities = new Set<string>();
 
-function resolveOwnerIdentity(ownerIdentity: { id?: unknown; email?: unknown } | undefined): EnvelopeIdentity {
-  if (!ownerIdentity || typeof ownerIdentity.id !== "string" || ownerIdentity.id.length === 0) {
-    return DEFAULT_OWNER_IDENTITY;
-  }
+function resolveOwnerIdentity(ownerIdentity: { id?: unknown; email?: unknown } | undefined): EnvelopeIdentity | null {
+  if (!ownerIdentity || typeof ownerIdentity.id !== "string" || ownerIdentity.id.length === 0) return null;
   const realIdentityId = `supabase-${ownerIdentity.id}`;
   const displayName = typeof ownerIdentity.email === "string" && ownerIdentity.email.length > 0 ? ownerIdentity.email : realIdentityId;
 
   if (!provisionedRealIdentities.has(realIdentityId)) {
-    // Attribution only — same fixed ACCOUNT_ID/WORKSPACE_ID as
-    // DEFAULT_OWNER_IDENTITY, so this never grants MORE access than the
-    // single-owner phase's one already-provisioned scope already allows.
+    // Scope is fixed by this server; the forwarded identity only selects the
+    // authenticated human principal and never expands account/workspace scope.
     registerIdentity({ identity_id: realIdentityId, kind: "human", display_name: displayName });
     grantMembership({ identity_id: realIdentityId, scope_type: "account", scope_id: ACCOUNT_ID, role: "member" });
     grantMembership({ identity_id: realIdentityId, scope_type: "workspace", scope_id: WORKSPACE_ID, role: "member" });
@@ -176,6 +180,53 @@ function resolveOwnerIdentity(ownerIdentity: { id?: unknown; email?: unknown } |
   };
 }
 
+/**
+ * Bind the Owner Command caller to the existing Owner Authentication store.
+ *
+ * The browser must not manufacture or forward an identity for an execution
+ * request. Only an active session that passed human verification can supply
+ * the principal. Multiple active sessions are accepted only when they all
+ * resolve to the same Owner identity; different identities are ambiguous and
+ * therefore fail closed.
+ */
+/**
+ * Bind this request to an Owner principal that `validateOwnerSession`
+ * already accepts. The session pointer is `x-dna-os-owner-session` —
+ * the same header `connections/dna-os-mcp/caller-context.ts` already
+ * uses. It is a pointer into the Owner Authentication store, not proof
+ * by itself and not a caller-selected identity in the JSON body.
+ *
+ * A presented pointer that fails validation fails closed (no fallback),
+ * so a stale header cannot inherit some other session on disk. When no
+ * pointer is presented, an unambiguous human-verified session already in
+ * the store may still bind — same scan this transport already used.
+ */
+function ownerSessionPointerFromRequest(req: IncomingMessage): string | null {
+  const raw = req.headers["x-dna-os-owner-session"];
+  const value = Array.isArray(raw) ? raw[0] : raw;
+  if (typeof value !== "string") return null;
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : null;
+}
+
+function resolveAuthenticatedOwnerIdentity(req?: IncomingMessage): { id: string } | null {
+  const presented = req ? ownerSessionPointerFromRequest(req) : null;
+  if (presented !== null) {
+    const verified = validateOwnerSession(presented);
+    if (!verified.ok) return null;
+    const id = verified.session.owner_identity.trim();
+    return id.length > 0 ? { id } : null;
+  }
+  const active = listOwnerSessions()
+    .filter((session) => session.state === "ACTIVE")
+    .filter((session) => String(session.authenticated_via).startsWith("human-verification"))
+    .filter((session) => validateOwnerSession(session.session_id).ok)
+    .map((session) => session.owner_identity.trim())
+    .filter(Boolean);
+  const identities = [...new Set(active)];
+  return identities.length === 1 ? { id: identities[0]! } : null;
+}
+
 function buildExecutionPolicyContext(identityId: string): ExecutionPolicyContext {
   return {
     identity: getIdentityRegistration(identityId)?.identity,
@@ -192,6 +243,7 @@ function buildExecutionPolicyContext(identityId: string): ExecutionPolicyContext
 
 let supervisor: ReturnType<typeof startAgentGatewaySupervisor> | undefined;
 let jointBridge: ReturnType<typeof startJointEventBridge> | undefined;
+let writeFailureBridge: ReturnType<typeof startWriteFailureBridge> | undefined;
 
 async function runtimeInventory(): Promise<unknown> {
   let researchHealth: { status?: string } = {};
@@ -199,31 +251,155 @@ async function runtimeInventory(): Promise<unknown> {
     const response = await fetch("http://127.0.0.1:8787/api/research/health");
     researchHealth = response.ok ? await response.json() as { status?: string } : {};
   } catch { researchHealth = {}; }
-  const capabilities = listCapabilities().map((capability) => ({
+  const revision = readRuntimeRevision();
+  const routerCapabilities = listCapabilities();
+  const canonicalRows = registrationStore.listCapabilities();
+  const canonicalMetadataRows = registrationStore.listCapabilityRows?.() ?? [];
+  const canonicalMetadataById = new Map(canonicalMetadataRows.map((row) => [row.capability_id, row]));
+  const resourceRows = registrationStore.listResourceRows?.() ?? [];
+  const resourceLinks = registrationStore.listResourceCapabilityLinks?.() ?? [];
+  const relationshipRows = registrationStore.listRelationshipRows?.() ?? [];
+  const evidenceRows = registrationStore.listEvidenceRows?.() ?? [];
+  const connections = listConnectionDeclarations();
+
+  const canonicalByRoute = new Map<string, CapabilityLookupResult>();
+  for (const row of canonicalRows) {
+    for (const edge of (row.relationships ?? [])) {
+      if (edge.relationship_kind === "CAPABILITY_TO_API" && edge.to_id.startsWith("route:")) {
+        canonicalByRoute.set(edge.to_id.slice("route:".length), row);
+      }
+    }
+  }
+
+  const resourceById = new Map(resourceRows.map((row) => [row.resource_id, row]));
+  const relationshipsByCanonicalCapability = new Map<string, RelationshipRow[]>();
+  for (const edge of relationshipRows) {
+    if (edge.from_type === "FILE" && edge.to_type === "CAPABILITY") {
+      const list = relationshipsByCanonicalCapability.get(edge.to_id) ?? [];
+      list.push(edge);
+      relationshipsByCanonicalCapability.set(edge.to_id, list);
+    }
+  }
+
+  function resourcesForCanonical(row: CapabilityLookupResult | null): ResourceRow[] {
+    if (!row) return [];
+    const linked = resourceLinks.filter((link) => link.capability_id === row.capability_id).map((link) => link.resource_id);
+    const legacy = (relationshipsByCanonicalCapability.get(row.capability_id) ?? []).map((edge) => edge.from_id);
+    return [...new Set([...linked, ...legacy])].map((id) => resourceById.get(id)).filter((x): x is ResourceRow => Boolean(x));
+  }
+
+  function latestEvidence(row: CapabilityLookupResult | null, resources: readonly ResourceRow[]): EvidenceRow | null {
+    const resourceIds = new Set(resources.map((resource) => resource.resource_id));
+    return [...evidenceRows]
+      .filter((evidence) => (row && evidence.related_capability_id === row.capability_id) || (evidence.related_resource_id !== null && resourceIds.has(evidence.related_resource_id)))
+      .sort((a, b) => a.created_at.localeCompare(b.created_at))
+      .at(-1) ?? null;
+  }
+
+  function resolveConnection(capability: ReturnType<typeof listCapabilities>[number], canonical: CapabilityLookupResult | null): ConnectionDeclaration | null {
+    const endpointModule = capability.endpoint.kind === "not_yet_built" ? null : capability.endpoint.module;
+    const canonicalIds = new Set([capability.capability_id, canonical?.capability_id].filter((x): x is string => Boolean(x)));
+    return connections.find((connection) =>
+      (endpointModule !== null && connection.execution_boundary === endpointModule) ||
+      canonicalIds.has(connection.executor_capability_id ?? "") ||
+      connection.provider_id === capability.capability_id,
+    ) ?? null;
+  }
+
+  const capabilities = routerCapabilities.map((capability) => {
+    const registered = true;
+    const wired = capability.endpoint.kind !== "not_yet_built";
+    const live = capability.capability_id === "research-engine" && researchHealth.status === "ok";
+    const status = !wired ? "BLOCKED" : live ? revision.dirty ? "LIVE" : "VERIFIED" : "EXECUTABLE";
+    const canonical = canonicalByRoute.get(capability.capability_id) ?? null;
+    const canonicalMetadata = canonical ? canonicalMetadataById.get(canonical.capability_id) ?? null : null;
+    const relatedResources = resourcesForCanonical(canonical);
+    const sourceResource = relatedResources[0] ?? resourceRows.find((resource) => capability.endpoint.kind !== "not_yet_built" && resource.source_location === capability.endpoint.module) ?? null;
+    const connection = resolveConnection(capability, canonical);
+    const evidence = latestEvidence(canonical, sourceResource ? [sourceResource] : relatedResources);
+    const apiRoute = canonical?.relationships?.find((edge) => edge.relationship_kind === "CAPABILITY_TO_API" && edge.to_id.startsWith("route:"))?.to_id.slice("route:".length) ?? null;
+    const provider = connection?.provider_id ?? null;
+    const providerMetadata = provider ? providerMetadataFor(provider) : null;
+    const mcpTools = capability.capability_id === "dispatcher" ? ["submit_work_result"] : [];
+    return {
     capability_id: capability.capability_id,
+    repo_id: capability.repo_id,
+    contract: capability.contract,
     registry_status: capability.health_status,
+    permission_requirement: capability.permission_requirement,
+    health_status: capability.health_status,
     endpoint: capability.endpoint,
     supported_commands: capability.supported_commands,
-    live_status: capability.capability_id === "research-engine"
-      ? researchHealth.status === "ok" ? "VERIFIED" : "BLOCKED"
-      : capability.health_status === "CONNECTED" ? "VERIFIED" : "BLOCKED",
+    registered,
+    wired,
+    live,
+    executable: wired,
+    status,
+    canonical_capability: canonical ? {
+      capability_id: canonical.capability_id,
+      canonical_name: canonical.canonical_name,
+      purpose: canonicalMetadata?.purpose ?? null,
+      input_contract: canonicalMetadata?.input_contract ?? canonical.input_contract,
+      output_contract: canonicalMetadata?.output_contract ?? canonical.output_contract,
+      verified_at: canonicalMetadata?.verified_at ?? null,
+    } : null,
+    resource: sourceResource ? {
+      resource_id: sourceResource.resource_id,
+      source_location: sourceResource.source_location,
+      version: sourceResource.version,
+      status: sourceResource.status,
+      resolution: canonical ? "CAPABILITY_RELATIONSHIP" : "EXACT_SOURCE_LOCATION_MATCH",
+    } : null,
+    connection: connection ? {
+      provider: connection.provider_id,
+      connection_type: connection.connection_type,
+      protocol: connection.protocol,
+      endpoint: connection.endpoint,
+      availability: connection.state,
+      relationship_state: connection.executor_capability_id === null ? "UNBOUND" : canonical && connection.executor_capability_id === canonical.capability_id ? "BOUND" : "DECLARED_NOT_JOINED",
+      executor_capability_id: connection.executor_capability_id,
+      auth_type: connection.credential_ref?.kind ?? null,
+      evidence_ref: connection.verification_evidence_id ?? null,
+    } : null,
+    api: { api_route: apiRoute, api_relationship_status: apiRoute ? "BOUND" : "NOT_FOUND" },
+    mcp: { available: true, bound_to_capability: mcpTools.length > 0, tools: mcpTools },
+    provider_metadata: providerMetadata ? {
+      provider_id: providerMetadata.provider_id,
+      brand_slug: providerMetadata.brand_slug,
+      brand_icon_url: providerMetadata.brand_icon_url,
+      brand_icon_source: providerMetadata.brand_icon_source,
+      source: providerMetadata.source,
+    } : null,
+    last_verified: evidence?.created_at ?? canonicalMetadata?.verified_at ?? null,
+    verification_evidence_id: evidence?.evidence_id ?? null,
+    resource_version: sourceResource?.version ?? null,
     evidence: [
       `registry:control/command-router/capability-registry.ts#${capability.capability_id}`,
       capability.capability_id === "research-engine" ? "health:http://127.0.0.1:8787/api/research/health" : `endpoint:${capability.endpoint.kind}`,
     ],
-  }));
+    };
+  });
   return {
-    status: "VERIFIED",
+    status: revision.dirty ? "BLOCKED" : "LIVE",
     generated_at: new Date().toISOString(),
-    transport: { status: "VERIFIED", endpoint: "http://127.0.0.1:8791", health: "/health" },
-    supervisor: { status: "VERIFIED", worker_count: DEFAULT_AGENT_WORKERS.length },
+    revision,
+    transport: { status: revision.dirty ? "LIVE" : "VERIFIED", endpoint: "http://127.0.0.1:8791", health: "/health" },
+    supervisor: { status: revision.dirty ? "LIVE" : "VERIFIED", worker_count: DEFAULT_AGENT_WORKERS.length },
     evidence_store: {
-      status: "VERIFIED",
+      status: revision.dirty ? "LIVE" : "VERIFIED",
       task_path: "control/agent-gateway/data/tasks.jsonl",
       evidence_path: "control/agent-gateway/data/evidence.jsonl",
       handoff_path: "control/agent-gateway/data/handoffs.jsonl",
     },
     capabilities,
+    mcp_servers: [{
+      server: "dna-os-mcp",
+      version: "1.0.0",
+      transport: ["streamable-http", "stdio"],
+      endpoint: "http://127.0.0.1:8793/mcp",
+      tools: ["submit_command", "submit_registration_candidate", "lookup_capability", "get_resource", "get_task", "submit_work_result", "get_system_status"],
+      source: "connections/dna-os-mcp/server.ts + tool-registry.ts",
+    }],
   };
 }
 
@@ -237,6 +413,10 @@ function sendJson(res: ServerResponse, status: number, body: unknown): void {
   const payload = JSON.stringify(body);
   res.writeHead(status, { "Content-Type": "application/json; charset=utf-8", "Content-Length": Buffer.byteLength(payload) });
   res.end(payload);
+}
+
+function languageStageFrame(event: { event_id: string; stage: string }): string {
+  return `id: ${event.event_id}\nevent: language_progress\ndata: ${JSON.stringify(event)}\n\n`;
 }
 
 /**
@@ -258,23 +438,38 @@ function sendJson(res: ServerResponse, status: number, body: unknown): void {
  * เป็น false เสมอ การข้ามไปสั่งงานต้องเป็นการยื่น WorkOrder ที่ผ่านการรับเข้า
  * อย่างชัดแจ้งในอีกคำขอหนึ่ง
  */
-function respondWithChatIntake(
+async function respondWithChatIntake(
   res: ServerResponse,
   rawText: string,
   ownerIdentity: EnvelopeIdentity,
   uiHintReceived: boolean,
-): void {
+): Promise<void> {
   const messageId = newEnvelopeId();
-  const translation = translateOwnerMessage(messageId, rawText, ownerIdentity, { registryStore: registrationStore });
+  let result: ConversationResult;
+  try {
+    result = await conversationRuntime().request({
+      request_id: messageId,
+      trace_id: messageId,
+      owner_identity: { identity_id: ownerIdentity.identity_id, kind: ownerIdentity.kind },
+      text: rawText,
+    });
+  } catch (error) {
+    // FAIL CLOSED — never translateOwnerMessage() in-process, never any
+    // execution-plane path. A dead/unreachable conversation runtime is
+    // reported as unavailable, deterministically, and nothing else runs.
+    sendJson(res, 503, { error: "CONVERSATION_RUNTIME_UNAVAILABLE", detail: error instanceof Error ? error.message : String(error), message_id: messageId });
+    return;
+  }
+  const semanticOk = (result.semantic_outcome as { ok?: boolean } | null)?.ok === true;
   sendJson(res, 200, {
-    status: translation.semantic.ok ? "TRANSLATED" : "TRANSLATION_BLOCKED",
+    status: semanticOk ? "TRANSLATED" : "TRANSLATION_BLOCKED",
     layer: "RAW_CHAT_INTAKE",
-    next_layer: translation.semantic.ok ? "STRUCTURED_INTERPRETATION" : "RAW_MESSAGE_RETAINED",
-    message_id: translation.message_id,
-    raw_text: translation.raw_text,
-    semantic: translation.semantic,
+    next_layer: semanticOk ? "STRUCTURED_INTERPRETATION" : "RAW_MESSAGE_RETAINED",
+    message_id: result.request_id,
+    raw_text: rawText,
+    semantic: result.semantic_outcome,
     ui_work_order_received: uiHintReceived,
-    execution_started: translation.execution_started,
+    execution_started: false,
     next: "explicit admitted WorkOrder required for routing/execution",
   });
 }
@@ -300,8 +495,14 @@ export async function handleChat(req: IncomingMessage, res: ServerResponse): Pro
     sendJson(res, 400, { error: "message must be a non-empty string" });
     return;
   }
+  if (!ownerIdentityInput || typeof ownerIdentityInput.id !== "string" || ownerIdentityInput.id.length === 0) {
+    sendJson(res, 401, { error: "authenticated owner identity required" });
+    return;
+  }
   try {
-    respondWithChatIntake(res, message, resolveOwnerIdentity(ownerIdentityInput), false);
+    const ownerIdentity = resolveOwnerIdentity(ownerIdentityInput);
+    if (!ownerIdentity) { sendJson(res, 401, { error: "authenticated owner identity required" }); return; }
+    await respondWithChatIntake(res, message, ownerIdentity, false);
   } catch (error) {
     sendJson(res, 500, { error: error instanceof Error ? error.message : String(error) });
   }
@@ -329,8 +530,13 @@ export async function handleCommand(req: IncomingMessage, res: ServerResponse): 
     sendJson(res, 400, { error: "commandText must be a non-empty string" });
     return;
   }
+  if (!ownerIdentityInput || typeof ownerIdentityInput.id !== "string" || ownerIdentityInput.id.length === 0) {
+    sendJson(res, 401, { error: "authenticated owner identity required" });
+    return;
+  }
 
   const ownerIdentity = resolveOwnerIdentity(ownerIdentityInput);
+  if (!ownerIdentity) { sendJson(res, 401, { error: "authenticated owner identity required" }); return; }
 
   try {
     // A structured WorkOrder is the existing DNA OS admission path. Keep
@@ -357,7 +563,7 @@ export async function handleCommand(req: IncomingMessage, res: ServerResponse): 
     // ตัวที่สองและไม่มีการบันทึกซ้ำ ประตูนี้คงไว้เพื่อผู้เรียกเดิมเท่านั้น
     // `uiWorkOrder` ไม่ใช่ทางลัด: มันเป็นคำใบ้ของหน้าจอที่ติดมากับข้อความดิบ
     // ไม่ใช่สัญญางานที่ผ่านการรับเข้า
-    respondWithChatIntake(res, commandText, ownerIdentity, uiWorkOrder !== undefined);
+    await respondWithChatIntake(res, commandText, ownerIdentity, uiWorkOrder !== undefined);
   } catch (error) {
     sendJson(res, 500, { error: error instanceof Error ? error.message : String(error) });
   }
@@ -559,7 +765,10 @@ async function handleRegistryLookup(req: IncomingMessage, res: ServerResponse): 
  */
 function requireSharedSecret(req: IncomingMessage, res: ServerResponse): boolean {
   const expected = process.env.OWNER_COMMAND_HTTP_SHARED_SECRET;
-  if (!expected) return true;
+  if (!expected || expected.length === 0) {
+    sendJson(res, 503, { error: "write authentication is not configured" });
+    return false;
+  }
   if (verifySharedSecret(req.headers.authorization, expected)) return true;
   sendJson(res, 401, { error: "unauthorized" });
   return false;
@@ -607,6 +816,101 @@ export const server = createServer((req, res) => {
   }
   if (req.method === "GET" && req.url === "/runtime/inventory") {
     void runtimeInventory().then((inventory) => sendJson(res, 200, inventory)).catch((error) => sendJson(res, 500, { status: "FAILED", error: error instanceof Error ? error.message : String(error) }));
+    return;
+  }
+  if (req.method === "GET" && req.url === "/state/current") {
+    sendJson(res, 200, currentStateProjection());
+    return;
+  }
+  /**
+   * Frontend language boundary — read-only by construction.
+   *
+   * This uses the existing semantic contract and registry/read paths, but does
+   * not call /owner/intent, submitOwnerCommand, preview, planner, router or
+   * agent gateway. `persist:false` also keeps a language question from adding
+   * semantic-history rows. Execution remains behind the existing POST routes.
+   */
+  if (req.method === "GET" && req.url?.startsWith("/owner/language-events")) {
+    const params = new URL(req.url, "http://127.0.0.1").searchParams;
+    const requestId = params.get("request_id") ?? "";
+    if (requestId.trim() === "") { sendJson(res, 400, { error: "request_id required" }); return; }
+    const headerId = req.headers["last-event-id"];
+    const lastEventId = (Array.isArray(headerId) ? headerId[0] : headerId) ?? params.get("since") ?? null;
+    res.writeHead(200, { "Content-Type": "text/event-stream", "Cache-Control": "no-cache", Connection: "keep-alive" });
+    const delivered = new Set<string>();
+    const replayed = languageEventsSince(requestId, lastEventId);
+    for (const event of replayed) { delivered.add(event.event_id); res.write(languageStageFrame(event)); }
+    res.write(`: replayed ${replayed.length} language event(s) after ${lastEventId ?? "the beginning"}\n\n`);
+    let unsubscribe = () => {};
+    const finishIfTerminal = (event: { event_id: string; terminal: boolean }) => {
+      if (!event.terminal) return;
+      unsubscribe();
+      try { res.end(); } catch { /* browser disconnected */ }
+    };
+    if (replayed.some((event) => event.terminal)) { try { res.end(); } catch { /* browser disconnected */ } return; }
+    unsubscribe = onLanguageStage(requestId, (event) => {
+      if (delivered.has(event.event_id)) return;
+      delivered.add(event.event_id);
+      try { res.write(languageStageFrame(event)); } catch { unsubscribe(); }
+      finishIfTerminal(event);
+    });
+    req.on("close", unsubscribe);
+    res.on("close", unsubscribe);
+    return;
+  }
+
+  if (req.method === "GET" && req.url?.startsWith("/owner/language?")) {
+    const params = new URL(req.url, "http://127.0.0.1").searchParams;
+    const text = params.get("text") ?? "";
+    if (text.trim() === "") { sendJson(res, 400, { error: "text required" }); return; }
+    const requestId = params.get("request_id") ?? newEnvelopeId();
+    const traceId = params.get("trace_id") ?? requestId;
+    publishLanguageStage(requestId, { stage: "OWNER_TEXT_RECEIVED", status: "COMPLETED", detail: "Core รับข้อความ Owner แล้ว", program_id: "owner-command-http", source_file: "transport/owner-command-http/server.ts", source_function: "createServer callback (/owner/language)", source_line: 702, evidence_ref: null, input_summary: text, operation_summary: "รับข้อความ Owner ผ่าน HTTP", reason: "เริ่มต้น read-only language request", decision: "ACCEPTED", next_program: "owner-command-semantics", next_action: "ตีความความหมาย" }, "transport/owner-command-http/server.ts#owner/language", traceId);
+    // FLIP_PRODUCTION_OWNER_CONVERSATION_TO_ISOLATED_RUNTIME (Owner UNLOCK,
+    // 2026-09-06): resolution now happens in a separate OS process, so the
+    // fine-grained SEMANTIC_INTERPRETATION_COMPLETED/RELATIONSHIP_LOOKUP_*
+    // stage events that `onStage` used to relay in real time can no longer
+    // be observed mid-resolution without inventing a second IPC channel
+    // (forbidden by this UNLOCK's scope). What this file still emits, from
+    // its own process, using the SAME publishLanguageStage/LanguageStageType
+    // this endpoint already had: a start bracket now, and a terminal
+    // COMPLETED/FAILED bracket when the runtime replies — enough for
+    // `GET /owner/language-events`'s SSE stream to always terminate, at
+    // coarser granularity than before. The endpoint's own JSON response
+    // shape below is unchanged.
+    void (async () => {
+      let result: ConversationResult;
+      try {
+        result = await conversationRuntime().request({
+          request_id: requestId,
+          trace_id: traceId,
+          owner_identity: { identity_id: "identity-owner-language-read-only", kind: "human" },
+          text,
+          persist: false,
+        }, 30_000, (event) => {
+          const stage = event as { stage?: string; status?: "STARTED" | "COMPLETED" | "FAILED"; detail?: string; event_id?: string; program_id?: string | null; source_file?: string | null; source_function?: string | null; source_line?: number | null; evidence_ref?: string | null; input_summary?: string | null; operation_summary?: string | null; output_summary?: string | null; reason?: string | null; decision?: string | null; next_program?: string | null; next_action?: string | null; target_type?: string | null; target_id?: string | null; target_display_name?: string | null; blocker_kind?: string | null; blocker_detail?: string | null };
+          if (!stage.stage || !stage.status || typeof stage.detail !== "string") return;
+          publishLanguageStage(requestId, { stage: stage.stage as never, status: stage.status, detail: stage.detail, event_id: stage.event_id, program_id: stage.program_id, source_file: stage.source_file, source_function: stage.source_function, source_line: stage.source_line, evidence_ref: stage.evidence_ref, input_summary: stage.input_summary, operation_summary: stage.operation_summary, output_summary: stage.output_summary, reason: stage.reason, decision: stage.decision, next_program: stage.next_program, next_action: stage.next_action, target_type: stage.target_type, target_id: stage.target_id, target_display_name: stage.target_display_name, blocker_kind: stage.blocker_kind, blocker_detail: stage.blocker_detail }, "core:control/owner-command-semantics/resolver.ts", traceId);
+        });
+      } catch (error) {
+        // FAIL CLOSED — never resolveOwnerCommandSemantics() in-process.
+        publishLanguageStage(requestId, { stage: "LANGUAGE_PROCESSOR_FAILED", status: "FAILED", detail: error instanceof Error ? error.message : String(error), program_id: "owner-command-http", source_file: "transport/owner-command-http/server.ts", source_function: "createServer callback (/owner/language)", source_line: 731, evidence_ref: null }, "transport/owner-command-http/server.ts#owner/language", traceId);
+        sendJson(res, 503, { error: "CONVERSATION_RUNTIME_UNAVAILABLE", detail: error instanceof Error ? error.message : String(error) });
+        return;
+      }
+      const semanticOk = (result.semantic_outcome as { ok?: boolean } | null)?.ok === true;
+      sendJson(res, 200, {
+        request_id: requestId,
+        trace_id: traceId,
+        status: semanticOk ? "TRANSLATED" : "TRANSLATION_BLOCKED",
+        layer: "READ_ONLY_LANGUAGE",
+        semantic: result.semantic_outcome,
+        execution_started: false,
+        work_order_created: false,
+        task_created: false,
+        agent_dispatched: false,
+      });
+    })();
     return;
   }
   if (req.method === "POST" && req.url === "/owner/display-payload") {
@@ -702,9 +1006,58 @@ interface ActivityStage {
   proof: string | null;
 }
 
+/**
+ * GATE 0 — identity ที่ "เขียน" กับที่ "อ่าน" ต้องเป็นตัวเดียวกัน
+ *
+ * `resolveOwnerIdentity` เติม "supabase-" ให้ทุก ownerIdentity ที่ส่งเข้ามาจริง
+ * แถวประวัติจึงถูกเขียนใต้ `supabase-<id>` ขณะที่ /owner/activity รับ `identity`
+ * ดิบจาก query string มาใช้ตรง ๆ — พิสูจน์สดแล้วว่าคำสั่งที่เพิ่งส่งไม่ปรากฏบน
+ * หน้าจอเลยแม้แต่ครั้งเดียวใน 86 poll เพราะคนละ bucket
+ *
+ * ไม่บังคับให้เหลือรูปเดียวย้อนหลัง เพราะแถวเก่าหลายร้อยแถวถูกเขียนด้วยรูปดิบ
+ * ไปแล้ว การอ่านทั้งสองรูปแล้วรวมกันทำให้ทั้งของเก่าและของใหม่มองเห็นได้
+ */
+function identityCandidates(raw: string): readonly string[] {
+  const bare = raw.startsWith("supabase-") ? raw.slice("supabase-".length) : raw;
+  return [...new Set([raw, `supabase-${bare}`, bare])];
+}
+
+/** สถานะที่ task ยังเดินต่อได้ — ตราบใดที่อยู่ในชุดนี้ OWNER_RESULT ไม่ใช่จุดจบ */
+const LIVE_TASK_STATES = new Set(["RECEIVED", "ROUTING", "POLICY_CHECK", "EXECUTING", "VERIFYING"]);
+
+/**
+ * GATE 0 — ช่วงที่งานเดินอยู่แต่ยังไม่ผูก task
+ *
+ * พิสูจน์สดแล้วว่ามีหน้าต่างจริงราว 1.25 วินาทีระหว่าง envelope `command_received`
+ * กับ `admitted` ที่ยังไม่มี task_id ให้ readTaskState อ่าน ถ้าตอบ NO_TASK ช่วงนั้น
+ * หน้าจอจะบอกว่า "ไม่มีงาน" ทั้งที่งานกำลังเดิน — ผิดจากความจริง
+ *
+ * `stage` ของ envelope เป็นสถานะจริงของ work ที่ input-gateway เขียนเอง จึงใช้เป็น
+ * แหล่งความจริงลำดับสองได้ ไม่ใช่การเดา และไม่ได้มาจากข้อความของ Agent
+ */
+const ENVELOPE_STAGE_STATE: Readonly<Record<string, string>> = {
+  command_received: "RUNNING",
+  admitted: "RUNNING",
+  dispatched: "RUNNING",
+  completed: "COMPLETED",
+  blocked: "BLOCKED",
+  failed: "FAILED",
+};
+const LIVE_ENVELOPE_STAGES = new Set(["command_received", "admitted", "dispatched"]);
+
 function buildOwnerActivity(identity: string, commandIdInput: string | null): Record<string, unknown> {
-  const history = readHistoryForIdentity(identity);
-  const rows = history.found ? [...history.value] : [];
+  const rows: HistoryRecord[] = [];
+  const seenRows = new Set<string>();
+  for (const candidate of identityCandidates(identity)) {
+    const h = readHistoryForIdentity(candidate);
+    if (!h.found) continue;
+    for (const r of h.value) {
+      const key = `${r.command_id}|${r.recorded_at}|${r.kind ?? "RESOLUTION"}`;
+      if (seenRows.has(key)) continue;
+      seenRows.add(key);
+      rows.push(r);
+    }
+  }
   /**
    * คำสั่งล่าสุด = แถวที่ใหม่ที่สุด ไม่ว่ามันจะเป็นชนิดไหน
    *
@@ -725,7 +1078,27 @@ function buildOwnerActivity(identity: string, commandIdInput: string | null): Re
   const taskLink = rowOf("TASK_LINK");
   const ownerResult = rowOf("OWNER_RESULT");
 
+  /**
+   * GATE 0 — command_id -> work_id -> task_id ต้องมาจากทะเบียนจริง
+   *
+   * `envelopes.jsonl` คือที่เดียวที่ถือ work_id และเป็นสายที่ /owner/submit-command
+   * เขียนจริง ตัวฉายนี้เคยไม่อ่านมันเลย work_id จึงเกิดตอน submit แล้วหายไป
+   * ไม่ประกอบ task id ขึ้นเอง: ลำดับการหาคือ envelope -> TASK_LINK -> ไม่พบ = null
+   */
+  const lineage = lineageForCommand(commandId);
+  const lineageNewestFirst = [...lineage].sort((a, b) => b.recorded_at.localeCompare(a.recorded_at));
+  const workId = lineageNewestFirst.find((r) => typeof r.work_id === "string" && r.work_id !== "")?.work_id ?? null;
+  const envelopeTaskId = lineageNewestFirst.find((r) => typeof r.task_id === "string" && r.task_id !== "")?.task_id ?? null;
+  const realTaskId = envelopeTaskId ?? taskLink?.task_id ?? null;
+  const latestEnvelope = lineageNewestFirst[0] ?? null;
+
+  /** สถานะสดจาก gateway — ไม่ใช่ข้อความของ Agent และไม่ใช่การอนุมานจาก evidence */
+  const liveTask = realTaskId !== null ? readTaskState(realTaskId) : null;
+  const liveTaskState = liveTask !== null && liveTask.found ? liveTask.value : null;
+  const liveTaskSource = liveTask !== null && liveTask.found ? liveTask.source : null;
+
   // งานฝั่ง Agent Host ใช้ id ที่คำนวณจาก command_id ตรง ๆ (agent-host-dispatch.ts)
+  // ใช้เป็นแหล่งหลักฐานของขั้น dispatched..verified เท่านั้น ไม่ใช่ task_id ที่รายงาน
   const agentTaskId = `task-${commandId}-agent-host`;
   const agentEvidence = loadEvidenceForTask(agentTaskId);
   const evOf = (needle: string) => agentEvidence.find((e) => e.source.endsWith(needle)) ?? null;
@@ -739,7 +1112,18 @@ function buildOwnerActivity(identity: string, commandIdInput: string | null): Re
   const reservation = listReservations().filter((r) => r.work_id === `wo-${commandId}`).at(-1) ?? null;
 
   const launchPayload = (launch?.payload as { launch?: Record<string, unknown> } | null)?.launch ?? null;
-  const running = ownerResult === null;
+  /**
+   * GATE 0 ข้อ 4 — OWNER_RESULT ไม่ใช่จุดจบถ้า task ยังเปลี่ยนสถานะต่อได้
+   *
+   * เดิม `running = ownerResult === null` ซึ่งผิด: /owner/submit-command เขียน
+   * OWNER_RESULT ภายใน 41 ms แล้วหน้าจอหลุดจาก running ทันที ทั้งที่ task จริง
+   * เพิ่งเริ่มเดิน และเคยพบเคสที่ task กลายเป็น BLOCKED หลังจากนั้นชั่วโมงครึ่ง
+   * ถ้ามี task จริงให้ยึดสถานะของ task เป็นหลัก ไม่มีจึงถอยไปใช้เกณฑ์เดิม
+   */
+  const envelopeState = latestEnvelope !== null ? (ENVELOPE_STAGE_STATE[latestEnvelope.stage] ?? null) : null;
+  const running = liveTaskState !== null
+    ? LIVE_TASK_STATES.has(liveTaskState.status)
+    : latestEnvelope !== null ? LIVE_ENVELOPE_STAGES.has(latestEnvelope.stage) : ownerResult === null;
 
   const stage = (id: string, label: string, proof: string | null, active = false): ActivityStage =>
     ({ id, label, state: proof !== null ? "DONE" : active ? "ACTIVE" : "PENDING", proof });
@@ -765,13 +1149,47 @@ function buildOwnerActivity(identity: string, commandIdInput: string | null): Re
     command_id: commandId,
     owner_text: raw?.raw_text ?? resolution?.raw_text ?? null,
     running,
-    status: (resultPayload?.status as string | undefined) ?? (agentStillRunning ? "RUNNING" : "PENDING"),
+    /**
+     * GATE 0 ข้อ 5 — แปดฟิลด์ที่ Owner ต้องเห็น อยู่ระดับบนสุดของคำตอบ
+     * current_state มาจาก gateway task store ตรง ๆ ไม่ใช่จากข้อความของ Agent
+     * ไม่มี task จริง = บอก NO_TASK ไม่ใช่เดาว่า PENDING
+     */
+    status: liveTaskState?.status ?? envelopeState ?? (resultPayload?.status as string | undefined) ?? (agentStillRunning ? "RUNNING" : "PENDING"),
+    work_id: workId,
+    task_id: realTaskId,
+    current_state: liveTaskState?.status ?? envelopeState ?? (realTaskId === null ? "NO_TASK" : "TASK_NOT_IN_STORE"),
+    current_step: (stages.find((st) => st.state !== "DONE") ?? stages[stages.length - 1] ?? null)?.id ?? null,
+    source_tool: liveTaskSource ?? (latestEnvelope !== null ? `control/owner-command/input-gateway.ts#${latestEnvelope.stage}` : null),
+    evidence_id: verification?.evidence_id ?? agentEvidence.at(-1)?.evidence_id ?? null,
+    updated_at: liveTaskState?.updated_at ?? latestEnvelope?.recorded_at ?? ownerResult?.recorded_at ?? null,
+    /**
+     * ADDITIVE (Owner, 2026-09-05 ข้อ 8) — สถานะทรัพยากรที่คำสั่งนี้ใช้จริง
+     *
+     * แปดฟิลด์เดิมด้านบนไม่ถูกแตะเลย ส่วนนี้อ่านจากที่เก็บของตัวเองที่
+     * control/owner-command/ เขียนไว้ตอน resolve เจตนา ไม่ได้ประกอบขึ้นจาก
+     * ข้อความของ Agent และไม่ได้แสดงสารบัญทรัพยากรทั้งหมด — มีเฉพาะตัวที่
+     * คำสั่งนี้ต้องใช้ ไม่มีแถว = คำสั่งนี้ไม่ต้องใช้ทรัพยากรภายนอก
+     */
+    resource_resolution: (() => {
+      const r = resolutionFor(commandId);
+      if (r === null) return null;
+      return { required_capabilities: r.required_capabilities, selected_resources: r.selected_resources,
+        unresolved_capabilities: r.unresolved_capabilities };
+    })(),
+    resource_execution: (() => {
+      const r = resolutionFor(commandId);
+      if (r === null) return null;
+      const running = r.executions.find((e) => e.status === "STARTED") ?? null;
+      return { active_resource: running?.resource_id ?? null, active_capability: running?.capability_id ?? null,
+        executions: r.executions, agent_invoked: r.agent_invoked };
+    })(),
     stages,
     agent_messages: messages.map((m) => String((m.payload as { agent_message?: unknown } | null)?.agent_message ?? "")),
     next_action: (resultPayload?.next_action as string | null | undefined) ?? null,
     details: {
       command_id: commandId,
-      task_id: taskLink?.task_id ?? (resultPayload?.task_id as string | undefined) ?? null,
+      task_id: realTaskId ?? (resultPayload?.task_id as string | undefined) ?? null,
+      work_id: workId,
       agent_task_id: agentEvidence.length > 0 ? agentTaskId : null,
       work_order_id: reservation ? `wo-${commandId}` : null,
       reservation_id: reservation?.reservation_id ?? null,
@@ -912,7 +1330,18 @@ function buildOwnerActivity(identity: string, commandIdInput: string | null): Re
         const body = JSON.parse(raw) as { commandText?: unknown; message?: unknown; ownerIdentity?: { id?: unknown; email?: unknown } };
         const text = typeof body.commandText === "string" ? body.commandText : typeof body.message === "string" ? body.message : "";
         if (text.trim() === "") { sendJson(res, 400, { error: "commandText required" }); return; }
-        const outcome = await submitOwnerCommand(text, resolveOwnerIdentity(body.ownerIdentity));
+        const authenticatedOwner = resolveAuthenticatedOwnerIdentity(req);
+        if (!authenticatedOwner) {
+          sendJson(res, 401, { error: "OWNER_AUTHENTICATION_REQUIRED", reason_code: "NO_UNAMBIGUOUS_HUMAN_VERIFIED_OWNER_SESSION" });
+          return;
+        }
+        if (body.ownerIdentity?.id !== undefined && body.ownerIdentity.id !== authenticatedOwner.id) {
+          sendJson(res, 403, { error: "OWNER_IDENTITY_MISMATCH", reason_code: "CALLER_IDENTITY_DOES_NOT_MATCH_AUTHENTICATED_OWNER" });
+          return;
+        }
+        const ownerIdentity = resolveOwnerIdentity(authenticatedOwner);
+        if (!ownerIdentity) { sendJson(res, 401, { error: "authenticated owner identity required" }); return; }
+        const outcome = await submitOwnerCommand(text, ownerIdentity);
         sendJson(res, 200, {
           command_id: outcome.envelope.command_id, work_id: outcome.work_id,
           lifecycle: outcome.lifecycle, result: outcome.result,
@@ -1068,10 +1497,41 @@ if (isMainModule) {
    */
   jointBridge = startJointEventBridge(intakeEvent);
 
+  /**
+   * WRITE AUDIT -> CORRECTIVE WORK (Owner, CONNECTION 3 — เปิดในโปรเซสผู้ผลิต)
+   *
+   * `execution/file-write/audit.ts#onWriteAudit` เป็น in-process เช่นเดียวกับ
+   * hook ของ joint-monitor ด้านบน โปรเซสนี้คือที่ที่ `control/agent-gateway/
+   * adapters/ai-write-adapter.ts` เรียก `executeFileWrite` /
+   * `executeFileWriteSandboxed` จริง (ทั้งสองทางบันทึก audit ในโปรเซสเดียวกัน
+   * ไม่มีการ fork) จึงเป็นผู้ผลิตเหตุการณ์ตัวจริง
+   *
+   * ก่อนหน้านี้ `startWriteFailureBridge` ถูกเรียกจาก tests/__pipeline__/
+   * เท่านั้น การปฏิเสธจึงหยุดอยู่ที่ write-audit-log.json และไม่มีผู้บริโภค
+   * ใน production — Owner ต้องเปิดไฟล์อ่านเองถึงจะรู้ว่าอะไรพัง
+   *
+   * ขอบเขตของสายนี้: เฉพาะเหตุการณ์ที่ผลิต ณ เวลาผลิตเท่านั้น 569 แถวเดิม
+   * บนดิสก์จะไม่ถูก replay ย้อนหลัง และ `classifyWriteAudit` ปล่อยผ่านเฉพาะ
+   * AUTHORIZED_OPERATION_FAILED (gate ALLOW แต่ status refused) — การปฏิเสธ
+   * ที่เป็นผลของการป้องกันที่ทำงานถูกต้องจะไม่ถูกสั่งซ่อม
+   *
+   * ไม่เปิด Agent อัตโนมัติ: `AUTOMATIC_AGENT_DISPATCH_ENABLED` ยังเป็น false
+   * `buildCorrectiveWorkOrder` จึงไม่สร้าง `agent_run` และ `submitTask` ที่
+   * `defaultCreateTask` เรียกเป็นการให้ตัวตนของงานกับ Policy/Admission เท่านั้น
+   * ไม่ใช่การลงมือทำ การเปิดสวิตช์เป็นการตัดสินใจของ Owner ไม่ใช่ผลข้างเคียง
+   * ของการต่อสายนี้ — ยืนยันสถานะตอนเริ่มโปรเซสไว้ให้เห็นด้านล่าง
+   */
+  if (AUTOMATIC_AGENT_DISPATCH_ENABLED) {
+    console.error("owner-command-http refusing to start: write-failure bridge requires AUTOMATIC_AGENT_DISPATCH_ENABLED=false at this stage");
+    process.exit(1);
+  }
+  writeFailureBridge = startWriteFailureBridge();
+  console.log("write-failure-bridge observing (automatic agent dispatch: disabled)");
+
   server.listen(port, host, () => {
     console.log(`owner-command-http listening on http://${host}:${port}`);
   });
 }
 
-process.on("SIGTERM", () => { supervisor?.stop(); jointBridge?.stop(); server.close(() => process.exit(0)); });
-process.on("SIGINT", () => { supervisor?.stop(); jointBridge?.stop(); server.close(() => process.exit(0)); });
+process.on("SIGTERM", () => { supervisor?.stop(); jointBridge?.stop(); writeFailureBridge?.stop(); server.close(() => process.exit(0)); });
+process.on("SIGINT", () => { supervisor?.stop(); jointBridge?.stop(); writeFailureBridge?.stop(); server.close(() => process.exit(0)); });

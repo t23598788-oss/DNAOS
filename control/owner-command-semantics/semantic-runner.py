@@ -83,6 +83,7 @@ def main() -> int:
     owner_text = request["raw_text"]
     catalog = request.get("catalog", [])
     context = request.get("context", {})
+    allowed_candidates = request.get("allowed_candidates", [])
 
     from mlx_lm import load, generate
     from mlx_lm.sample_utils import make_sampler
@@ -95,6 +96,41 @@ def main() -> int:
         prompt_text = """Interpret the Owner's natural language without executing anything. First enumerate every independent question, action, or desired outcome internally, then serialize that complete enumeration. Preserve one separate requests item for each independent outcome; never merge two outcomes merely because they concern the same system, and never omit an outcome because it is broad, ambiguous, implicit, lacks punctuation, or is adjacent to another outcome. Split by meaning, not by newline, punctuation, keywords, or fixed phrases. If two outcomes are dependent, keep separate items and record the dependency only in ambiguity or arguments. Return exactly {\"requests\":[{\"request_id\":\"req-1\",\"intent_type\":\"<one value from: """ + ", ".join(allowed_intent_values()) + """>\",\"intended_outcome\":\"string\",\"arguments\":{},\"ambiguity\":[],\"confidence\":0}]}. request_id is a local sequence identity only. Do not choose capabilities/resources/tools, do not execute, and do not drop ambiguous requests. For one independent outcome return one item; for multiple independent outcomes return one item per outcome. The request_id values must be unique within this response."""
     elif request.get("mode") == "OWNER_DISPLAY_RESPONSE_V1":
         prompt_text = """Turn the provided DISPLAY_PAYLOAD into one concise Thai sentence for the Owner. The input is already a deterministic projection. Do not add facts, IDs, evidence, logs, source, or JSON. Do not execute anything and do not change state. Return plain text only."""
+    elif request.get("mode") == "OWNER_SELF_QUESTION_CLASSIFY_V1":
+        # REMOVE_HUMAN_PHRASE_HARDCODING_FROM_SELF_KNOWLEDGE_ROUTING (Owner
+        # UNLOCK 2026-09-07): classify what the Owner is asking about,
+        # without any TypeScript-side list of pronouns/phrasings. The model
+        # sees only the Owner's own words and picks question_type_candidate
+        # from the closed list the caller supplied (never invents one) — the
+        # same discipline OWNER_TOOL_REQUEST_V1 already applies to
+        # intent_type above.
+        prompt_text = """You classify one Owner question about the running DNA OS program or system itself. Return ONE JSON object, no prose, no markdown fence, exactly these fields:
+{
+  "subject_candidate": "SELF" if the Owner is asking about the program/system that is currently talking to them (however they refer to it — "you", "มึง", "คุณ", "this program", "this file", or no pronoun at all), or the exact words naming a DIFFERENT specific thing if the question is clearly about something else, or null if you cannot tell what the question is about,
+  "question_type_candidate": "<exactly one value from the allowed list below, or null if none fit>",
+  "confidence": <a number from 0 to 1, your own confidence in this classification>
+}
+
+Allowed values for question_type_candidate — choose the single best match, or null:
+""" + ", ".join(allowed_candidates) + """
+
+HARD RULES:
+1. Never output an identifier (no capability-<uuid>, no resource-<uuid>, no task-<uuid>). subject_candidate is either the literal string SELF, the Owner's own words for something else, or null.
+2. question_type_candidate must be copied EXACTLY from the allowed list, or null. Never invent a new value, never abbreviate, never translate it.
+3. subject_candidate and question_type_candidate answer two DIFFERENT questions: subject_candidate is WHO/WHAT the question is about; question_type_candidate is WHAT KIND of question it is. Never copy one field's value into the other.
+4. A question asking which repository/repo the program lives in, with no other specific thing named, is about SELF with question_type_candidate REPOSITORY — not about "REPOSITORY" as the subject.
+5. A question naming a specific other thing (a capability, a file, a component — anything that is not the program answering) is NOT about SELF, even if it also asks "where does it come from" — subject_candidate must be that thing's own name, never SELF.
+6. WORK_STATUS means asking about progress on a task/objective the Owner gave (what got done, what is blocked, what is left) — it has NOTHING to do with "working copy" as in a git/source-code sense. A question about whether a file/artifact IS a working copy versus the original/canonical source is ROLE, never WORK_STATUS.
+7. If the question mixes several things or you are not confident, prefer null over a guess.
+
+EXAMPLES (format only — do not reuse these exact answers for different text):
+Owner text: "มึงมาจากไหน" -> {"subject_candidate": "SELF", "question_type_candidate": "SOURCE", "confidence": 0.95}
+Owner text: "โปรแกรมตัวนี้อยู่ repo ไหน" -> {"subject_candidate": "SELF", "question_type_candidate": "REPOSITORY", "confidence": 0.95}
+Owner text: "repo ต้นทางคืออะไร" -> {"subject_candidate": "SELF", "question_type_candidate": "REPOSITORY", "confidence": 0.9}
+Owner text: "target-resolution มาจากไหน" -> {"subject_candidate": "target-resolution", "question_type_candidate": null, "confidence": 0.9}
+Owner text: "ไฟล์นี้เป็น working copy หรือต้นฉบับ" -> {"subject_candidate": "SELF", "question_type_candidate": "ROLE", "confidence": 0.9}
+Owner text: "งานล่าสุดถึงไหนแล้ว ติดอะไรอยู่" -> {"subject_candidate": "SELF", "question_type_candidate": "WORK_STATUS", "confidence": 0.95}
+"""
     user_content = (json.dumps({"raw_owner_text": owner_text, "conversation_context": context, "legacy_routing_candidates": catalog}, ensure_ascii=False)
                     if request.get("mode") == "OWNER_TOOL_REQUEST_V1"
                     else json.dumps({"DISPLAY_PAYLOAD": request.get("display_payload")}, ensure_ascii=False)

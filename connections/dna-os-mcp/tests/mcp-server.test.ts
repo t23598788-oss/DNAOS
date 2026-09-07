@@ -23,7 +23,7 @@ import {
   projectCapabilityList,
   resolveCapabilityForTool,
 } from "../contract";
-import type { CallerContext } from "../export-policy";
+import { listOwnerSessions, validateOwnerSession } from "../../../control/owner-authentication/contract";
 
 declare const process: { exitCode?: number; env: Record<string, string | undefined> };
 declare const console: { log(...args: unknown[]): void; error(...args: unknown[]): void };
@@ -59,24 +59,95 @@ const INTERNAL_CALLER: CallerContext = {
 
 async function main(): Promise<void> {
   await check("submitCommand HTTP client posts to /owner/submit-command, never /command", async () => {
-    const seen: { url: string; body: Record<string, unknown> }[] = [];
-    const client = new DnaOsHttpClient({
-      baseUrl: "http://127.0.0.1:8791",
-      fetchImpl: (async (input, init) => {
-        const url = String(input);
-        seen.push({ url, body: JSON.parse(String(init?.body ?? "{}")) as Record<string, unknown> });
-        return new Response(JSON.stringify({ error: "OWNER_AUTHENTICATION_REQUIRED", reason_code: "NO_UNAMBIGUOUS_HUMAN_VERIFIED_OWNER_SESSION" }), {
-          status: 401,
-          headers: { "Content-Type": "application/json" },
-        });
-      }) as typeof fetch,
-    });
-    const response = await client.submitCommand({ commandText: "ตรวจสถานะ firewall" });
-    assert(seen.length === 1, "expected one HTTP call");
-    assert(seen[0]!.url.endsWith("/owner/submit-command"), `expected /owner/submit-command, got ${seen[0]!.url}`);
-    assert(!seen[0]!.url.endsWith("/command") || seen[0]!.url.endsWith("/owner/submit-command"), "must not post to chat-intake /command");
-    assert(seen[0]!.body.commandText === "ตรวจสถานะ firewall", "commandText must be forwarded");
-    assert(response.status === 401, `expected mocked 401, got ${response.status}`);
+    const seen: { url: string; body: Record<string, unknown>; authorization: string | undefined }[] = [];
+    const previousSecret = process.env.OWNER_COMMAND_HTTP_SHARED_SECRET;
+    const previousSession = process.env.DNA_OS_OWNER_SESSION_ID;
+    delete process.env.OWNER_COMMAND_HTTP_SHARED_SECRET;
+    delete process.env.DNA_OS_OWNER_SESSION_ID;
+    try {
+      const client = new DnaOsHttpClient({
+        baseUrl: "http://127.0.0.1:8791",
+        fetchImpl: (async (input, init) => {
+          const url = String(input);
+          const headers = init?.headers as Record<string, string> | undefined;
+          seen.push({
+            url,
+            body: JSON.parse(String(init?.body ?? "{}")) as Record<string, unknown>,
+            authorization: headers?.Authorization ?? headers?.authorization,
+          });
+          return new Response(JSON.stringify({ error: "OWNER_AUTHENTICATION_REQUIRED", reason_code: "NO_UNAMBIGUOUS_HUMAN_VERIFIED_OWNER_SESSION" }), {
+            status: 401,
+            headers: { "Content-Type": "application/json" },
+          });
+        }) as typeof fetch,
+      });
+      const response = await client.submitCommand({ commandText: "ตรวจสถานะ firewall" });
+      assert(seen.length === 1, "expected one HTTP call");
+      assert(seen[0]!.url.endsWith("/owner/submit-command"), `expected /owner/submit-command, got ${seen[0]!.url}`);
+      assert(!seen[0]!.url.endsWith("/command") || seen[0]!.url.endsWith("/owner/submit-command"), "must not post to chat-intake /command");
+      assert(seen[0]!.body.commandText === "ตรวจสถานะ firewall", "commandText must be forwarded");
+      assert(seen[0]!.body.ownerIdentity === undefined, "must not send caller-selected ownerIdentity");
+      assert(seen[0]!.authorization === undefined, "must not invent an Authorization header when OWNER_COMMAND_HTTP_SHARED_SECRET is unset");
+      assert(response.status === 401, `expected mocked 401, got ${response.status}`);
+    } finally {
+      if (previousSecret === undefined) delete process.env.OWNER_COMMAND_HTTP_SHARED_SECRET;
+      else process.env.OWNER_COMMAND_HTTP_SHARED_SECRET = previousSecret;
+      if (previousSession === undefined) delete process.env.DNA_OS_OWNER_SESSION_ID;
+      else process.env.DNA_OS_OWNER_SESSION_ID = previousSession;
+    }
+  });
+
+  await check("submitCommand sends existing Core Authorization from OWNER_COMMAND_HTTP_SHARED_SECRET", async () => {
+    const seen: { authorization: string | undefined }[] = [];
+    const previous = process.env.OWNER_COMMAND_HTTP_SHARED_SECRET;
+    process.env.OWNER_COMMAND_HTTP_SHARED_SECRET = "test-only-core-shared-secret";
+    try {
+      const client = new DnaOsHttpClient({
+        baseUrl: "http://127.0.0.1:8791",
+        fetchImpl: (async (_input, init) => {
+          const headers = init?.headers as Record<string, string> | undefined;
+          seen.push({ authorization: headers?.Authorization ?? headers?.authorization });
+          return new Response(JSON.stringify({ error: "OWNER_AUTHENTICATION_REQUIRED" }), {
+            status: 401,
+            headers: { "Content-Type": "application/json" },
+          });
+        }) as typeof fetch,
+      });
+      await client.submitCommand({ commandText: "ตรวจสถานะ firewall" });
+      assert(seen[0]!.authorization === "Bearer test-only-core-shared-secret", `expected Bearer from env, got ${String(seen[0]!.authorization)}`);
+    } finally {
+      if (previous === undefined) delete process.env.OWNER_COMMAND_HTTP_SHARED_SECRET;
+      else process.env.OWNER_COMMAND_HTTP_SHARED_SECRET = previous;
+    }
+  });
+
+  await check("submitCommand forwards existing Owner session pointer, never body identity", async () => {
+    const seen: { sessionHeader: string | undefined; body: Record<string, unknown> }[] = [];
+    const previousSession = process.env.DNA_OS_OWNER_SESSION_ID;
+    delete process.env.DNA_OS_OWNER_SESSION_ID;
+    try {
+      const client = new DnaOsHttpClient({
+        baseUrl: "http://127.0.0.1:8791",
+        ownerSessionId: "owner-session-test-pointer-only",
+        fetchImpl: (async (_input, init) => {
+          const headers = init?.headers as Record<string, string> | undefined;
+          seen.push({
+            sessionHeader: headers?.["x-dna-os-owner-session"],
+            body: JSON.parse(String(init?.body ?? "{}")) as Record<string, unknown>,
+          });
+          return new Response(JSON.stringify({ error: "OWNER_AUTHENTICATION_REQUIRED" }), {
+            status: 401,
+            headers: { "Content-Type": "application/json" },
+          });
+        }) as typeof fetch,
+      });
+      await client.submitCommand({ commandText: "ตรวจสถานะ firewall" });
+      assert(seen[0]!.sessionHeader === "owner-session-test-pointer-only", "must send x-dna-os-owner-session from bound session pointer");
+      assert(seen[0]!.body.ownerIdentity === undefined, "must not put identity in the JSON body");
+    } finally {
+      if (previousSession === undefined) delete process.env.DNA_OS_OWNER_SESSION_ID;
+      else process.env.DNA_OS_OWNER_SESSION_ID = previousSession;
+    }
   });
 
   await check("MCP tool table includes submit_command and list_capabilities, not registration/shell/secret tools", () => {
@@ -156,22 +227,35 @@ async function main(): Promise<void> {
   assert(submitTool !== undefined, "submit_command tool must exist");
 
   await check("submit_command tool handler hits live Core /owner/submit-command (not chat intake)", async () => {
-    const response = await submitTool!.handler({ commandText: "ตรวจสถานะ firewall" }, new DnaOsHttpClient());
+    const humanRows = listOwnerSessions().filter((session) => String(session.authenticated_via).startsWith("human-verification"));
+    const latestHuman = humanRows[humanRows.length - 1];
+    const sessionCheck = latestHuman ? validateOwnerSession(latestHuman.session_id) : null;
+    const client = new DnaOsHttpClient({
+      ownerSessionId: latestHuman?.session_id ?? null,
+    });
+    const response = await submitTool!.handler({ commandText: "ตรวจสถานะ firewall" }, client);
     const body = response.structuredContent;
     const raw = (body.raw ?? {}) as Record<string, unknown>;
     const status = body.status as number;
     const chatIntake = raw.layer === "RAW_CHAT_INTAKE" || raw.next_layer !== undefined;
     assert(!chatIntake, `submit_command must not land on chat intake, got ${JSON.stringify(raw).slice(0, 400)}`);
+    const error = String(body.error ?? raw.error ?? "");
+    const passedNetworkAuth = error !== "unauthorized" && error !== "write authentication is not configured";
+    const stoppedAtOwnerAuthGate =
+      error === "OWNER_AUTHENTICATION_REQUIRED" || error === "authenticated owner identity required";
     const reachedSubmitCommand =
-      (status === 401 && (body.error === "OWNER_AUTHENTICATION_REQUIRED" || body.error === "unauthorized" || raw.error === "OWNER_AUTHENTICATION_REQUIRED" || raw.error === "unauthorized"))
+      (status === 401 && stoppedAtOwnerAuthGate)
       || status === 403
       || (status === 200 && typeof body.dna_os_command_id === "string" && String(body.dna_os_command_id).startsWith("cmd_"));
-    assert(reachedSubmitCommand, `expected Core /owner/submit-command outcome (401 unauthorized/OWNER_AUTHENTICATION_REQUIRED, 403, or 200 cmd_), got status=${status} body=${JSON.stringify(body).slice(0, 500)}`);
+    assert(passedNetworkAuth, `network auth gate still blocked submit_command (status=${status} error=${error}) — Authorization must come from OWNER_COMMAND_HTTP_SHARED_SECRET`);
+    assert(reachedSubmitCommand, `expected Core /owner/submit-command after network auth (401 owner-auth gate, 403, or 200 cmd_), got status=${status} body=${JSON.stringify(body).slice(0, 500)}`);
+    const via = latestHuman ? String(latestHuman.authenticated_via) : "none";
+    const validateCode = sessionCheck === null ? "NO_STORE_SESSION" : sessionCheck.ok ? "VALIDATE_OK" : sessionCheck.reason_code;
     if (status === 200) {
       assert(Array.isArray(body.evidence), "successful submitOwnerCommand returns evidence");
-      console.log(`  command_id=${body.dna_os_command_id} task_id=${body.dna_os_task_id}`);
+      console.log(`  command_id=${body.dna_os_command_id} task_id=${body.dna_os_task_id} session_via=${via} validate=${validateCode}`);
     } else {
-      console.log(`  Core reached submitOwnerCommand door with status=${status} error=${String(body.error ?? raw.error)}`);
+      console.log(`  Core passed network auth; next gate status=${status} error=${error} reason_code=${String(body.reason_code ?? raw.reason_code ?? "")} session_via=${via} validate=${validateCode}`);
     }
   });
 

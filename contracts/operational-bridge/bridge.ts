@@ -28,6 +28,9 @@
 import type { CommandEnvelope } from "../command/command-envelope";
 import type { EventEnvelope } from "../event/event-envelope";
 
+/** This generic bridge is retained as a type contract, not the canonical live path. */
+export const OPERATIONAL_BRIDGE_STATUS = "NOT_CANONICAL" as const;
+
 export interface OperationalToInfrastructureContract {
   /** Register or update an external Account's connection to a piece of Software (e.g. a GitHub connector). */
   submitCommand(envelope: CommandEnvelope): Promise<{ accepted: boolean; command_id: string }>;

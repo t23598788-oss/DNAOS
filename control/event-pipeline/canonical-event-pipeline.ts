@@ -4,7 +4,7 @@ import { join } from "node:path";
 import { statSync, readFileSync as readBytes } from "node:fs";
 import { createCoordinationStore } from "../work-coordination/coordination";
 
-export type SourceKind = "worker_result"|"runtime_event"|"task_status"|"file_created"|"file_modified"|"test_result"|"execution_error"|"capability_created"|"capability_updated";
+export type SourceKind = "worker_result"|"runtime_event"|"task_status"|"file_created"|"file_modified"|"test_result"|"execution_error"|"capability_created"|"capability_updated"|"github_push";
 export interface SourceEvent { source: SourceKind; payload: Record<string, unknown>; command_id?: string; task_id?: string; worker_id?: string; session_id?: string; resource_id?: string; capability_id?: string; }
 export interface CanonicalEvent { event_id:string; idempotency_key:string; source:SourceKind; recorded_at:string; relation:{command_id:string;task_id:string;worker_id:string;session_id:string;resource_id:string;capability_id:string}; payload:Record<string,unknown>; }
 export interface PipelineResult { event:CanonicalEvent; duplicate:boolean; resource_id:string; capability_id:string; decision_id:string; next_action_id:string; evidence_id:string; coordination_task_id:string; }

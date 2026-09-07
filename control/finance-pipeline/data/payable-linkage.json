@@ -1,0 +1,61 @@
+{
+ "generated_at": "2026-09-05T07:29:44.106Z",
+ "bank": {
+  "MONEY_IN": 14,
+  "MONEY_OUT": 100,
+  "FEE": 1
+ },
+ "matches": {
+  "NO_OBLIGATION": 100
+ },
+ "unmatched_amount": 143056.78,
+ "expenses": {
+  "DOCUMENT_ONLY": 3,
+  "OBLIGATION_ONLY": 128,
+  "INVALID": 2
+ },
+ "coverage": {
+  "bank_months": [
+   "2026-05",
+   "2026-06",
+   "2026-07"
+  ],
+  "expense_months": [
+   "2022-07",
+   "2023-10",
+   "2026-01",
+   "2026-05",
+   "2026-08",
+   "2026-09"
+  ],
+  "overlapping_months": [
+   "2026-05"
+  ],
+  "gap": false,
+  "note": "ทับกัน 1 เดือน: 2026-05"
+ },
+ "owner_view": [
+  {
+   "month": "2026-05",
+   "bank_money_out": 104851,
+   "payable_created": 0,
+   "payable_paid": 0,
+   "unmatched_money_out": 104851
+  },
+  {
+   "month": "2026-06",
+   "bank_money_out": 31679.78,
+   "payable_created": 0,
+   "payable_paid": 0,
+   "unmatched_money_out": 31679.78
+  },
+  {
+   "month": "2026-07",
+   "bank_money_out": 6526,
+   "payable_created": 1325.83,
+   "payable_paid": 0,
+   "unmatched_money_out": 6526
+  }
+ ],
+ "production_write": 0
+}

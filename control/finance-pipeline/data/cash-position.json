@@ -1,0 +1,166 @@
+{
+ "generated_at": "2026-09-05T07:37:17.685Z",
+ "cash": {
+  "opening_balance": null,
+  "money_in": 143057.62,
+  "money_out": 143056.78,
+  "bank_fees": 0.04,
+  "internal_transfers": 0,
+  "closing_calculated": null,
+  "closing_actual": null,
+  "reconciliation_gap": null,
+  "reconciles": false,
+  "note": "statement ไม่มียอดคงเหลือให้เทียบ จึงยืนยันยอดปิดไม่ได้"
+ },
+ "monthly": [
+  {
+   "month": "2022-07",
+   "opening_cash": null,
+   "money_in": 0,
+   "money_out": 0,
+   "bank_fees": 0,
+   "closing_cash": null,
+   "expense_total": 3500,
+   "by_category": {
+    "TAX": 3500
+   },
+   "matched_money_out": 0,
+   "unmatched_money_out": 0,
+   "documented_expense": 3500,
+   "undocumented_expense": 0,
+   "payable_created": 0,
+   "payable_paid": 0
+  },
+  {
+   "month": "2023-10",
+   "opening_cash": null,
+   "money_in": 0,
+   "money_out": 0,
+   "bank_fees": 0,
+   "closing_cash": null,
+   "expense_total": 700,
+   "by_category": {
+    "TAX": 700
+   },
+   "matched_money_out": 0,
+   "unmatched_money_out": 0,
+   "documented_expense": 700,
+   "undocumented_expense": 0,
+   "payable_created": 0,
+   "payable_paid": 0
+  },
+  {
+   "month": "2026-01",
+   "opening_cash": null,
+   "money_in": 0,
+   "money_out": 0,
+   "bank_fees": 0,
+   "closing_cash": null,
+   "expense_total": 2000,
+   "by_category": {
+    "TAX": 2000
+   },
+   "matched_money_out": 0,
+   "unmatched_money_out": 0,
+   "documented_expense": 2000,
+   "undocumented_expense": 0,
+   "payable_created": 0,
+   "payable_paid": 0
+  },
+  {
+   "month": "2026-05",
+   "opening_cash": null,
+   "money_in": 136553.25,
+   "money_out": 104851,
+   "bank_fees": 0,
+   "closing_cash": null,
+   "expense_total": 9000,
+   "by_category": {
+    "FUEL": 9000
+   },
+   "matched_money_out": 0,
+   "unmatched_money_out": 104851,
+   "documented_expense": 0,
+   "undocumented_expense": 9000,
+   "payable_created": 0,
+   "payable_paid": 0
+  },
+  {
+   "month": "2026-06",
+   "opening_cash": null,
+   "money_in": 4.37,
+   "money_out": 31679.78,
+   "bank_fees": 0.04,
+   "closing_cash": null,
+   "expense_total": 0,
+   "by_category": {},
+   "matched_money_out": 0,
+   "unmatched_money_out": 31679.78,
+   "documented_expense": 0,
+   "undocumented_expense": 0,
+   "payable_created": 0,
+   "payable_paid": 0
+  },
+  {
+   "month": "2026-07",
+   "opening_cash": null,
+   "money_in": 6500,
+   "money_out": 6526,
+   "bank_fees": 0,
+   "closing_cash": null,
+   "expense_total": 0,
+   "by_category": {},
+   "matched_money_out": 0,
+   "unmatched_money_out": 6526,
+   "documented_expense": 0,
+   "undocumented_expense": 0,
+   "payable_created": 1325.83,
+   "payable_paid": 0
+  },
+  {
+   "month": "2026-08",
+   "opening_cash": null,
+   "money_in": 0,
+   "money_out": 0,
+   "bank_fees": 0,
+   "closing_cash": null,
+   "expense_total": 27622.17,
+   "by_category": {
+    "SERVICE": 27622.19
+   },
+   "matched_money_out": 0,
+   "unmatched_money_out": 0,
+   "documented_expense": 0,
+   "undocumented_expense": 27622.17,
+   "payable_created": 0,
+   "payable_paid": 0
+  },
+  {
+   "month": "2026-09",
+   "opening_cash": null,
+   "money_in": 0,
+   "money_out": 0,
+   "bank_fees": 0,
+   "closing_cash": null,
+   "expense_total": 2329.59,
+   "by_category": {
+    "SERVICE": 2329.59
+   },
+   "matched_money_out": 0,
+   "unmatched_money_out": 0,
+   "documented_expense": 0,
+   "undocumented_expense": 2329.59,
+   "payable_created": 0,
+   "payable_paid": 0
+  }
+ ],
+ "document_coverage": {
+  "with_document": 3,
+  "without_document": 130,
+  "with_tax_invoice": 1,
+  "without_tax_invoice": 132,
+  "with_bank_match": 0,
+  "without_bank_match": 133
+ },
+ "production_write": 0
+}

@@ -177,7 +177,7 @@ export function openRemediation(input: OwnerIncidentReport | IncidentSource, sto
         forbidden_write_scope: [],
         required_remediation: incident.recommended_next_software_action,
         terminal_state: "OWNER_DECISION_REQUIRED",
-        block_reason: "NO_ELIGIBLE_RESOURCE",
+        block_reason: "NO_AUTHORIZED_EXECUTION_RESOURCE",
         next_action: `เป้าหมายระบุได้จากตัวตนของการรัน (${target.identity_fields_used.join(" -> ")}) ที่ ${target.source_location ?? UNKNOWN} — ${target.reason}. การซ่อมต้องใช้ความสามารถที่ยังไม่มีผู้ให้บริการ จึงส่งให้เจ้าของตัดสิน`,
       });
     }

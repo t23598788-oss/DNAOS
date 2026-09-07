@@ -41,6 +41,7 @@ import { recordWriteAudit } from "./audit";
 import type { FileWriteRefusalCode, FileWriteRequest, FileWriteResult } from "./types";
 import type { WriteGateDecision } from "../../contracts/write-intent/write-intent";
 import { checkFolderLawForPath } from "../../governance/source-validation/contract";
+import { activeScopeFor, pathInScope } from "../../control/system-map/contract";
 import { classifyChange } from "../../governance/source-promotion/classify";
 import { findUsableReceipt, consumeReceipt } from "../../governance/source-promotion/receipt";
 
@@ -107,6 +108,22 @@ export function executeFileWrite(request: FileWriteRequest, decision: WriteGateD
   // "ไฟล์นี้ถูกวางในที่ที่ถูกต้องหรือไม่" — คนละคำถาม จึงต้องผ่านทั้งสองด่าน
   // ประเมินเฉพาะไฟล์ที่กำลังจะเขียน ไม่ใช่สภาพรวมของ repo (เหตุผลอยู่ใน
   // governance/source-validation/folder-law-path-check.ts)
+  /**
+   * ด่านขอบเขต — บังคับที่จุดเขียนจริง ไม่ใช่ที่คำสั่งที่ส่งให้ Agent
+   *
+   * Owner, 2026-09-05 ข้อ 3: "แม้ Agent เขียนคำสั่งเองให้แก้ไฟล์อื่น physical
+   * write ต้องไม่เกิด" การเตือนใน prompt บังคับอะไรไม่ได้ ที่นี่คือที่เดียวที่
+   * บังคับได้จริง เพราะทุกการเขียนผ่านฟังก์ชันนี้
+   *
+   * ผูกกับ correlation_id ซึ่ง FileWriteRequest ถืออยู่แล้ว จึงไม่ต้องเปลี่ยน
+   * สัญญาของผู้เรียกเดิม ถ้างานนี้ไม่มีใบอนุญาตขอบเขต พฤติกรรมเดิมทุกประการ —
+   * ด่านนี้เพิ่มข้อจำกัด ไม่เคยเพิ่มสิทธิ์
+   */
+  const scope = activeScopeFor(request.correlation_id);
+  if (scope !== null && !pathInScope(scope, request.target_path)) {
+    return refuse(request, writeId, "OUT_OF_SCOPE_WRITE", decision.decision);
+  }
+
   const folderLaw = checkFolderLawForPath(request.target_path);
   if (folderLaw.verdict === "REJECT") {
     return refuse(request, writeId, "CAPABILITY_FOLDER_LAW_REJECTED", decision.decision);

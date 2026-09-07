@@ -108,6 +108,17 @@ export interface ResolvedRelationshipQuery {
   candidates: readonly string[];
 }
 
+/** A deterministic answer read from a registered knowledge record. */
+export interface ReadOnlyKnowledgeMatch {
+  knowledge_id: string;
+  matched_query: string;
+  owner_reply_th: string;
+  registry_capability_id: string;
+  registry_resource_id: string | null;
+  source: string;
+  evidence_refs: readonly string[];
+}
+
 /**
  * What the rest of the system receives. `ai` and `resolved_*` are separate on
  * purpose: the model's reading is preserved for inspection, but nothing
@@ -138,4 +149,6 @@ export interface StructuredOwnerContext {
   /** The real, registered `command_id` for ../entry-context/, or null when none matched. Never the string "unknown". */
   policy_command_id: string | null;
   relationship_query: ResolvedRelationshipQuery | null;
+  /** Optional registered read-only knowledge answer; never an execution target. */
+  read_only_knowledge: ReadOnlyKnowledgeMatch | null;
 }

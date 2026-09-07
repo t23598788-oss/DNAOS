@@ -1,6 +1,8 @@
 /**
  * หน้าที่: สารบัญเดียวของขั้นปฏิบัติการ — ลำดับ ความสัมพันธ์ และเงื่อนไขจบของ
- * เอกสาร lifecycle 14 ฉบับที่มีอยู่แล้ว (Owner, REAL DATA MIGRATION / BACKFILL).
+ * 14 operational entries. The architecture folder has one additional
+ * governance companion, STRUCTURE_LOCK_MAP.md, which is indexed but is not a
+ * fifteenth lifecycle step.
  *
  * นี่คือ metadata ที่ *เพิ่มเข้าไป* กับเอกสารเดิม ไม่ใช่เอกสารชุดที่สอง —
  * `document_id` ชี้กลับไปที่ไฟล์ .md ตัวจริงเสมอ และเนื้อหายังอ่านจากที่เดิม
@@ -25,7 +27,7 @@ import type { LifecycleStageDeclaration } from "./types";
 const DIR = "governance/architecture-rules";
 
 /**
- * 14 ขั้น เท่ากับ 14 เอกสารเดิมพอดี ไม่มากไม่น้อย
+ * 14 ขั้น operational; the companion document is deliberately not a step.
  *
  * ขั้น 01 เป็นดัชนีของโฟลเดอร์ ไม่ใช่ขั้นของงาน จึงไม่มีใครขึ้นกับมันและมันไม่กันใคร
  * แต่ยังนับเป็นหนึ่งรายการ เพราะเจ้าของเห็นมันอยู่บนหน้าจอจริง

@@ -100,10 +100,11 @@ capability folder เด็ดขาด** (เทียบเท่ากับ 
 | ลบ capability ที่ยังมี dependency ค้างไม่ได้ตรวจ | **BLOCK** |
 | ลบ capability หลัง dependency validation ผ่านแล้ว | **อนุญาตให้ลบทั้งโฟลเดอร์** |
 
-**สถานะการบังคับใช้จริงวันนี้:** เป็นกฎที่ประกาศแล้ว (LOCKED) แต่ยังไม่มี
-mechanical checker ที่รัน gate นี้อัตโนมัติ — เหมือนกับหลายกฎใน
-dna-os-deadboard ที่ระบุ `detection: "manual"` ตรงไปตรงมา จนกว่าจะมี
-governance script จริง ผู้สร้าง (คนหรือ AI) ต้องตรวจตามกฎนี้เองก่อนทุกครั้ง
+**สถานะการบังคับใช้จริงวันนี้:** มีกลไก mechanical checker แล้วที่
+`governance/source-validation/folder-law-gate.ts#runCapabilityFolderLawGate`.
+ผลปัจจุบันต้องอ่านจาก checker เท่านั้น: gate ยัง `FAIL` และทุก finding ถูกจัดเป็น
+`REAL_VIOLATION` จนกว่าจะมีหลักฐาน Owner-approved สำหรับ `STALE_RULE` หรือ
+`LEGACY_EXEMPTION` — ห้ามแก้เอกสารเพื่อทำให้ผลดูเหมือนผ่าน
 
 ## 11. ขอบเขตการบังคับใช้
 

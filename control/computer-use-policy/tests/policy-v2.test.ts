@@ -12,7 +12,7 @@ const ok = (n: string, c: boolean, d = "") => { if (c) { passed++; console.log(`
 const preauth = (on: boolean) => () => ({ preauthorized: on, preauth_max_level: 2 as const, set_by_owner_session: "sess", owner_identity: "tam", updated_at: "" });
 const grantOk = ((i: never) => ({ ok: true, lease: { authority_id: "auth-new" } })) as never;
 const validate = (result: { ok: boolean; reason_code?: string }) => (() => result.ok ? { ok: true, lease: {} } : { ok: false, reason_code: result.reason_code ?? "DENY", detail: "" }) as never;
-const deps = (on: boolean, validateResult = { ok: true }): ResolveDeps => ({ readPreauthorization: preauth(on) as never, grantAuthority: grantOk, validateAuthority: validate(validateResult) });
+const deps = (on: boolean, validateResult: { ok: boolean; reason_code?: string } = { ok: true }): ResolveDeps => ({ readPreauthorization: preauth(on) as never, grantAuthority: grantOk, validateAuthority: validate(validateResult) });
 
 const normal = { work_order_id: "w", requester: "agent:claude", operation: "screenshot" as const, target: "screen", scope: [], ttl_seconds: 120 };
 
@@ -32,7 +32,7 @@ const normal = { work_order_id: "w", requester: "agent:claude", operation: "scre
   ok("TEST_C: OFF + task auth → TASK_SCOPED", r.ok === true && r.mode === "TASK_SCOPED");
   let revoked = false;
   const c = completeJob("task-1", (() => { revoked = true; return { ok: true, lease: {} }; }) as never);
-  ok("TEST_C: JOB_COMPLETED → revoke ทันที (แม้ ttl เหลือ)", c.revoked === true && revoked === true);
+  ok("TEST_C: JOB_COMPLETED → revoke ทันที (แม้ ttl เหลือ)", Boolean(c.revoked) && Boolean(revoked));
 }
 // TEST_D: TTL expired → DENY
 {

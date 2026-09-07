@@ -229,7 +229,7 @@ async function main(): Promise<void> {
   check("CASE M  แถว boot เดิม 64 แถวยังอยู่ครบและไม่ถูกเขียนใหม่",
     (opsText.match(/pre-boot probe/g) ?? []).length === 64);
   check("CASE N  ไม่มีแถวของเทสต์นี้เข้าสโตร์ production และสโตร์ไม่หด",
-    opsAfter >= opsBefore && !opsText.includes("identity-recovery-supervisor"), { opsBefore, opsAfter });
+    opsAfter === opsBefore && (opsBefore < 0 || opsText.length === opsBefore), { opsBefore, opsAfter });
   check("CASE N  สโตร์ observation ไม่ถูกแตะเลย",
     (existsSync(PROD_OBS) ? readFileSync(PROD_OBS, "utf-8") : "") === obsBefore);
   // ตรวจจากซอร์สของไฟล์นี้เอง ไม่ใช่การยืนยันลอย ๆ: ทุกการเรียก bootAll ต้องส่ง

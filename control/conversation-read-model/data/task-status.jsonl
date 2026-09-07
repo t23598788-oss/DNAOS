@@ -1,0 +1,192 @@
+{"task_id":"task-02db662c-914d-4656-8a72-e72b5758f6ad","status":"WAITING_OWNER_DECISION","updated_at":"2026-09-06T12:13:48.699Z","next_action":"Owner must pick one candidate capability explicitly"}
+{"task_id":"task-43eefeb0-93db-40b8-8fa0-f0257212e913","status":"BLOCKED","updated_at":"2026-09-06T12:13:48.699Z","next_action":"BLOCKED"}
+{"task_id":"task-e4d48b31-ebd5-41b7-a9b7-437863d2a594","status":"WAITING_OWNER_DECISION","updated_at":"2026-09-06T12:13:48.725Z","next_action":"OWNER_REVIEW"}
+{"task_id":"task-cc0b1492-b3f6-429f-b372-06f78d9efa3d","status":"FAILED","updated_at":"2026-09-06T12:13:48.923Z","next_action":"UNSUPPORTED_COMMAND"}
+{"task_id":"task-98eaad0a-3625-4a8f-b2b6-4a5159e30d26","status":"BLOCKED","updated_at":"2026-09-06T12:13:49.136Z","next_action":"BLOCKED"}
+{"task_id":"task-6d14e31e-1930-490a-a71a-d2bec859d252","status":"FAILED","updated_at":"2026-09-06T12:13:49.494Z","next_action":"RETRY_OR_ESCALATE"}
+{"task_id":"task-d8a9a107-ff56-4045-aa7c-36c2e393ff30","status":"BLOCKED","updated_at":"2026-09-06T12:13:49.809Z","next_action":"BLOCKED"}
+{"task_id":"task-cf8cb3ea-fa6f-4e99-b323-01f0d47a348c","status":"EXECUTING","updated_at":"2026-09-06T12:13:50.117Z","next_action":"RETRY_OR_ESCALATE"}
+{"task_id":"task-82aba1a0-8a04-4dfc-9ace-545a4f031490","status":"RECEIVED","updated_at":"2026-09-06T12:13:50.444Z","next_action":null}
+{"task_id":"task-82aba1a0-8a04-4dfc-9ace-545a4f031490","status":"ROUTING","updated_at":"2026-09-06T12:13:51.459Z","next_action":null}
+{"task_id":"task-82aba1a0-8a04-4dfc-9ace-545a4f031490","status":"BLOCKED","updated_at":"2026-09-06T12:13:51.850Z","next_action":"Review persisted evidence and resolve the named blocker before resubmitting"}
+{"task_id":"task-25a1b530-9bcd-446c-8bba-4d8ddbc9ad24","status":"BLOCKED","updated_at":"2026-09-06T12:13:52.555Z","next_action":"BLOCKED"}
+{"task_id":"task-06adefba-c061-405c-9f68-71acef08c8d8","status":"RECEIVED","updated_at":"2026-09-06T12:14:27.158Z","next_action":null}
+{"task_id":"task-76c7d629-972c-4bce-b513-f9b75167eacc","status":"RECEIVED","updated_at":"2026-09-06T12:14:27.284Z","next_action":null}
+{"task_id":"task-06adefba-c061-405c-9f68-71acef08c8d8","status":"ROUTING","updated_at":"2026-09-06T12:14:27.487Z","next_action":null}
+{"task_id":"task-76c7d629-972c-4bce-b513-f9b75167eacc","status":"ROUTING","updated_at":"2026-09-06T12:14:27.565Z","next_action":null}
+{"task_id":"task-06adefba-c061-405c-9f68-71acef08c8d8","status":"POLICY_CHECK","updated_at":"2026-09-06T12:14:27.906Z","next_action":null}
+{"task_id":"task-76c7d629-972c-4bce-b513-f9b75167eacc","status":"POLICY_CHECK","updated_at":"2026-09-06T12:14:27.972Z","next_action":null}
+{"task_id":"task-06adefba-c061-405c-9f68-71acef08c8d8","status":"EXECUTING","updated_at":"2026-09-06T12:14:28.339Z","next_action":null}
+{"task_id":"task-76c7d629-972c-4bce-b513-f9b75167eacc","status":"EXECUTING","updated_at":"2026-09-06T12:14:28.557Z","next_action":null}
+{"task_id":"task-06adefba-c061-405c-9f68-71acef08c8d8","status":"BLOCKED","updated_at":"2026-09-06T12:14:28.618Z","next_action":"Review persisted evidence and resolve the named blocker before resubmitting"}
+{"task_id":"task-76c7d629-972c-4bce-b513-f9b75167eacc","status":"VERIFYING","updated_at":"2026-09-06T12:14:28.995Z","next_action":null}
+{"task_id":"task-03588875-ca0d-41f6-b8e6-320281e1c460","status":"RECEIVED","updated_at":"2026-09-06T12:14:29.209Z","next_action":null}
+{"task_id":"task-03588875-ca0d-41f6-b8e6-320281e1c460","status":"ROUTING","updated_at":"2026-09-06T12:14:29.535Z","next_action":null}
+{"task_id":"task-76c7d629-972c-4bce-b513-f9b75167eacc","status":"COMPLETED","updated_at":"2026-09-06T12:14:29.847Z","next_action":null}
+{"task_id":"task-03588875-ca0d-41f6-b8e6-320281e1c460","status":"BLOCKED","updated_at":"2026-09-06T12:14:29.972Z","next_action":"Review persisted evidence and resolve the named blocker before resubmitting"}
+{"task_id":"task-completion-lifecycle-partial-proof-1788696867188-yw6v8zl0wk","status":"EXECUTING","updated_at":"2026-09-06T12:14:30.373Z","next_action":null}
+{"task_id":"task-0995ca7e-9b32-4c5c-aebf-3d1684e5d178","status":"RECEIVED","updated_at":"2026-09-06T12:14:30.566Z","next_action":null}
+{"task_id":"task-6f7615b5-d5bd-4d22-a35a-2c1e4c659b70","status":"RECEIVED","updated_at":"2026-09-06T12:14:30.777Z","next_action":null}
+{"task_id":"task-0995ca7e-9b32-4c5c-aebf-3d1684e5d178","status":"ROUTING","updated_at":"2026-09-06T12:14:30.848Z","next_action":null}
+{"task_id":"task-6f7615b5-d5bd-4d22-a35a-2c1e4c659b70","status":"ROUTING","updated_at":"2026-09-06T12:14:31.042Z","next_action":null}
+{"task_id":"task-0995ca7e-9b32-4c5c-aebf-3d1684e5d178","status":"POLICY_CHECK","updated_at":"2026-09-06T12:14:31.319Z","next_action":null}
+{"task_id":"task-6f7615b5-d5bd-4d22-a35a-2c1e4c659b70","status":"POLICY_CHECK","updated_at":"2026-09-06T12:14:31.529Z","next_action":null}
+{"task_id":"task-0995ca7e-9b32-4c5c-aebf-3d1684e5d178","status":"EXECUTING","updated_at":"2026-09-06T12:14:31.774Z","next_action":null}
+{"task_id":"task-0995ca7e-9b32-4c5c-aebf-3d1684e5d178","status":"BLOCKED","updated_at":"2026-09-06T12:14:32.061Z","next_action":"Review persisted evidence and resolve the named blocker before resubmitting"}
+{"task_id":"task-6f7615b5-d5bd-4d22-a35a-2c1e4c659b70","status":"EXECUTING","updated_at":"2026-09-06T12:14:32.139Z","next_action":null}
+{"task_id":"task-6f7615b5-d5bd-4d22-a35a-2c1e4c659b70","status":"VERIFYING","updated_at":"2026-09-06T12:14:32.538Z","next_action":null}
+{"task_id":"task-6f7615b5-d5bd-4d22-a35a-2c1e4c659b70","status":"FAILED","updated_at":"2026-09-06T12:14:33.074Z","next_action":"Inspect execution evidence and correct the reported failure"}
+{"task_id":"task-00cf32af-18f7-42ef-a115-a09a0174a96c","status":"RECEIVED","updated_at":"2026-09-06T12:14:33.485Z","next_action":null}
+{"task_id":"task-00cf32af-18f7-42ef-a115-a09a0174a96c","status":"ROUTING","updated_at":"2026-09-06T12:14:33.741Z","next_action":null}
+{"task_id":"task-00cf32af-18f7-42ef-a115-a09a0174a96c","status":"POLICY_CHECK","updated_at":"2026-09-06T12:14:34.166Z","next_action":null}
+{"task_id":"task-00cf32af-18f7-42ef-a115-a09a0174a96c","status":"EXECUTING","updated_at":"2026-09-06T12:14:34.653Z","next_action":null}
+{"task_id":"task-00cf32af-18f7-42ef-a115-a09a0174a96c","status":"VERIFYING","updated_at":"2026-09-06T12:14:35.021Z","next_action":null}
+{"task_id":"task-00cf32af-18f7-42ef-a115-a09a0174a96c","status":"FAILED","updated_at":"2026-09-06T12:14:35.417Z","next_action":"Inspect execution evidence and correct the reported failure"}
+{"task_id":"task-3a374779-b9a5-4559-ae1c-ca7305b736e3","status":"RECEIVED","updated_at":"2026-09-06T12:14:35.911Z","next_action":null}
+{"task_id":"task-3a374779-b9a5-4559-ae1c-ca7305b736e3","status":"ROUTING","updated_at":"2026-09-06T12:14:36.147Z","next_action":null}
+{"task_id":"task-3a374779-b9a5-4559-ae1c-ca7305b736e3","status":"POLICY_CHECK","updated_at":"2026-09-06T12:14:36.525Z","next_action":null}
+{"task_id":"task-3a374779-b9a5-4559-ae1c-ca7305b736e3","status":"WAITING_OWNER_DECISION","updated_at":"2026-09-06T12:14:37.057Z","next_action":"Owner must approve or reject this WorkOrder"}
+{"task_id":"task-3a374779-b9a5-4559-ae1c-ca7305b736e3","status":"EXECUTING","updated_at":"2026-09-06T12:14:37.528Z","next_action":"Owner must approve or reject this WorkOrder"}
+{"task_id":"task-3a374779-b9a5-4559-ae1c-ca7305b736e3","status":"VERIFYING","updated_at":"2026-09-06T12:14:37.870Z","next_action":"Owner must approve or reject this WorkOrder"}
+{"task_id":"task-3a374779-b9a5-4559-ae1c-ca7305b736e3","status":"FAILED","updated_at":"2026-09-06T12:14:38.311Z","next_action":"Inspect execution evidence and correct the reported failure"}
+{"task_id":"task-64196655-c770-4ee3-878e-40ef597ec6a0","status":"RECEIVED","updated_at":"2026-09-06T12:14:38.787Z","next_action":null}
+{"task_id":"task-64196655-c770-4ee3-878e-40ef597ec6a0","status":"ROUTING","updated_at":"2026-09-06T12:14:39.034Z","next_action":null}
+{"task_id":"task-64196655-c770-4ee3-878e-40ef597ec6a0","status":"POLICY_CHECK","updated_at":"2026-09-06T12:14:39.394Z","next_action":null}
+{"task_id":"task-64196655-c770-4ee3-878e-40ef597ec6a0","status":"EXECUTING","updated_at":"2026-09-06T12:14:39.876Z","next_action":null}
+{"task_id":"task-64196655-c770-4ee3-878e-40ef597ec6a0","status":"VERIFYING","updated_at":"2026-09-06T12:14:40.242Z","next_action":null}
+{"task_id":"task-64196655-c770-4ee3-878e-40ef597ec6a0","status":"COMPLETED","updated_at":"2026-09-06T12:14:40.981Z","next_action":null}
+{"task_id":"task-9dbbcfa3-40e5-4b55-8c1b-2dcaa825ab95","status":"WAITING_OWNER_DECISION","updated_at":"2026-09-06T12:40:41.403Z","next_action":"Owner must pick one candidate capability explicitly"}
+{"task_id":"task-0a5e6edd-471f-4e85-966d-aeacc6579a69","status":"FAILED","updated_at":"2026-09-06T12:40:41.547Z","next_action":"UNSUPPORTED_COMMAND"}
+{"task_id":"task-db342ce2-12ae-47cf-b55f-d319f5ad5344","status":"BLOCKED","updated_at":"2026-09-06T12:40:41.676Z","next_action":"BLOCKED"}
+{"task_id":"task-d5df568b-ac57-4744-ac82-02eed4130ed5","status":"FAILED","updated_at":"2026-09-06T12:40:41.951Z","next_action":"RETRY_OR_ESCALATE"}
+{"task_id":"task-273659a8-b040-49d6-95c3-663c59024654","status":"BLOCKED","updated_at":"2026-09-06T12:40:42.234Z","next_action":"BLOCKED"}
+{"task_id":"task-b5759085-e7b8-456d-8843-3df9a08032ac","status":"EXECUTING","updated_at":"2026-09-06T12:40:42.569Z","next_action":"RETRY_OR_ESCALATE"}
+{"task_id":"task-7c2dd5ad-5484-40cb-9617-5c749f5fdfce","status":"RECEIVED","updated_at":"2026-09-06T12:50:18.737Z","next_action":null}
+{"task_id":"task-7c2dd5ad-5484-40cb-9617-5c749f5fdfce","status":"ROUTING","updated_at":"2026-09-06T12:50:19.221Z","next_action":null}
+{"task_id":"task-7c2dd5ad-5484-40cb-9617-5c749f5fdfce","status":"POLICY_CHECK","updated_at":"2026-09-06T12:50:19.681Z","next_action":null}
+{"task_id":"task-7c2dd5ad-5484-40cb-9617-5c749f5fdfce","status":"EXECUTING","updated_at":"2026-09-06T12:50:20.317Z","next_action":null}
+{"task_id":"task-7c2dd5ad-5484-40cb-9617-5c749f5fdfce","status":"VERIFYING","updated_at":"2026-09-06T12:50:20.753Z","next_action":null}
+{"task_id":"task-e67501c1-7484-4d09-95f7-29b748543da2","status":"RECEIVED","updated_at":"2026-09-06T12:50:20.865Z","next_action":null}
+{"task_id":"task-e67501c1-7484-4d09-95f7-29b748543da2","status":"ROUTING","updated_at":"2026-09-06T12:50:21.128Z","next_action":null}
+{"task_id":"task-7c2dd5ad-5484-40cb-9617-5c749f5fdfce","status":"COMPLETED","updated_at":"2026-09-06T12:50:21.503Z","next_action":null}
+{"task_id":"task-e67501c1-7484-4d09-95f7-29b748543da2","status":"POLICY_CHECK","updated_at":"2026-09-06T12:50:21.537Z","next_action":null}
+{"task_id":"task-e67501c1-7484-4d09-95f7-29b748543da2","status":"EXECUTING","updated_at":"2026-09-06T12:50:21.970Z","next_action":null}
+{"task_id":"task-e67501c1-7484-4d09-95f7-29b748543da2","status":"VERIFYING","updated_at":"2026-09-06T12:50:22.345Z","next_action":null}
+{"task_id":"task-e67501c1-7484-4d09-95f7-29b748543da2","status":"FAILED","updated_at":"2026-09-06T12:50:22.735Z","next_action":"Inspect execution evidence and correct the reported failure"}
+{"task_id":"task-dc4b462a-2661-470f-85e3-a955027ae9f0","status":"RECEIVED","updated_at":"2026-09-06T12:50:23.377Z","next_action":null}
+{"task_id":"task-dc4b462a-2661-470f-85e3-a955027ae9f0","status":"ROUTING","updated_at":"2026-09-06T12:50:23.637Z","next_action":null}
+{"task_id":"task-dc4b462a-2661-470f-85e3-a955027ae9f0","status":"POLICY_CHECK","updated_at":"2026-09-06T12:50:24.033Z","next_action":null}
+{"task_id":"task-dc4b462a-2661-470f-85e3-a955027ae9f0","status":"EXECUTING","updated_at":"2026-09-06T12:50:24.417Z","next_action":null}
+{"task_id":"task-dc4b462a-2661-470f-85e3-a955027ae9f0","status":"VERIFYING","updated_at":"2026-09-06T12:50:24.780Z","next_action":null}
+{"task_id":"task-dc4b462a-2661-470f-85e3-a955027ae9f0","status":"FAILED","updated_at":"2026-09-06T12:50:25.133Z","next_action":"Inspect execution evidence and correct the reported failure"}
+{"task_id":"task-057dd493-5dad-49ea-a97c-9b2e2d84eb6b","status":"WAITING_OWNER_DECISION","updated_at":"2026-09-06T13:20:36.350Z","next_action":"Owner must pick one candidate capability explicitly"}
+{"task_id":"task-6ed59648-4970-4214-811c-5e0197942723","status":"FAILED","updated_at":"2026-09-06T13:20:36.535Z","next_action":"UNSUPPORTED_COMMAND"}
+{"task_id":"task-84b256a0-84cd-4db0-a9dd-387fa8156a8f","status":"BLOCKED","updated_at":"2026-09-06T13:20:36.684Z","next_action":"BLOCKED"}
+{"task_id":"task-76fe1f24-f210-4f63-8e31-37808207aca6","status":"FAILED","updated_at":"2026-09-06T13:20:37.062Z","next_action":"RETRY_OR_ESCALATE"}
+{"task_id":"task-d762d522-2c11-4ef1-ba3b-b67f7b188eeb","status":"BLOCKED","updated_at":"2026-09-06T13:20:37.404Z","next_action":"BLOCKED"}
+{"task_id":"task-455ed7c1-ac72-4b54-ab17-bf4eec643137","status":"EXECUTING","updated_at":"2026-09-06T13:20:37.761Z","next_action":"RETRY_OR_ESCALATE"}
+{"task_id":"task-65a75f79-8de1-4faa-851a-59a09382cf9f","status":"RECEIVED","updated_at":"2026-09-06T13:20:38.699Z","next_action":null}
+{"task_id":"task-65a75f79-8de1-4faa-851a-59a09382cf9f","status":"ROUTING","updated_at":"2026-09-06T13:20:39.260Z","next_action":null}
+{"task_id":"task-65a75f79-8de1-4faa-851a-59a09382cf9f","status":"POLICY_CHECK","updated_at":"2026-09-06T13:20:39.734Z","next_action":null}
+{"task_id":"task-65a75f79-8de1-4faa-851a-59a09382cf9f","status":"EXECUTING","updated_at":"2026-09-06T13:20:40.483Z","next_action":null}
+{"task_id":"task-65a75f79-8de1-4faa-851a-59a09382cf9f","status":"VERIFYING","updated_at":"2026-09-06T13:20:41.049Z","next_action":null}
+{"task_id":"task-e5c627d6-e141-46ea-82f2-1661aea66c15","status":"RECEIVED","updated_at":"2026-09-06T13:20:41.340Z","next_action":null}
+{"task_id":"task-e5c627d6-e141-46ea-82f2-1661aea66c15","status":"ROUTING","updated_at":"2026-09-06T13:20:41.737Z","next_action":null}
+{"task_id":"task-65a75f79-8de1-4faa-851a-59a09382cf9f","status":"COMPLETED","updated_at":"2026-09-06T13:20:42.076Z","next_action":null}
+{"task_id":"task-e5c627d6-e141-46ea-82f2-1661aea66c15","status":"POLICY_CHECK","updated_at":"2026-09-06T13:20:42.291Z","next_action":null}
+{"task_id":"task-e5c627d6-e141-46ea-82f2-1661aea66c15","status":"EXECUTING","updated_at":"2026-09-06T13:20:42.865Z","next_action":null}
+{"task_id":"task-e5c627d6-e141-46ea-82f2-1661aea66c15","status":"VERIFYING","updated_at":"2026-09-06T13:20:43.448Z","next_action":null}
+{"task_id":"task-e5c627d6-e141-46ea-82f2-1661aea66c15","status":"FAILED","updated_at":"2026-09-06T13:20:43.981Z","next_action":"Inspect execution evidence and correct the reported failure"}
+{"task_id":"task-b62dd9c8-244d-4c3e-9b5e-ee7f4f67c75a","status":"RECEIVED","updated_at":"2026-09-06T13:20:44.741Z","next_action":null}
+{"task_id":"task-b62dd9c8-244d-4c3e-9b5e-ee7f4f67c75a","status":"ROUTING","updated_at":"2026-09-06T13:20:45.105Z","next_action":null}
+{"task_id":"task-b62dd9c8-244d-4c3e-9b5e-ee7f4f67c75a","status":"POLICY_CHECK","updated_at":"2026-09-06T13:20:45.667Z","next_action":null}
+{"task_id":"task-b62dd9c8-244d-4c3e-9b5e-ee7f4f67c75a","status":"EXECUTING","updated_at":"2026-09-06T13:20:46.163Z","next_action":null}
+{"task_id":"task-b62dd9c8-244d-4c3e-9b5e-ee7f4f67c75a","status":"VERIFYING","updated_at":"2026-09-06T13:20:46.599Z","next_action":null}
+{"task_id":"task-b62dd9c8-244d-4c3e-9b5e-ee7f4f67c75a","status":"FAILED","updated_at":"2026-09-06T13:20:47.031Z","next_action":"Inspect execution evidence and correct the reported failure"}
+{"task_id":"task-89e07c29-faae-4a18-832f-27d82cd1764a","status":"RECEIVED","updated_at":"2026-09-06T14:06:14.784Z","next_action":null}
+{"task_id":"task-89e07c29-faae-4a18-832f-27d82cd1764a","status":"ROUTING","updated_at":"2026-09-06T14:06:15.258Z","next_action":null}
+{"task_id":"task-89e07c29-faae-4a18-832f-27d82cd1764a","status":"POLICY_CHECK","updated_at":"2026-09-06T14:06:16.041Z","next_action":null}
+{"task_id":"task-89e07c29-faae-4a18-832f-27d82cd1764a","status":"EXECUTING","updated_at":"2026-09-06T14:06:16.682Z","next_action":null}
+{"task_id":"task-89e07c29-faae-4a18-832f-27d82cd1764a","status":"VERIFYING","updated_at":"2026-09-06T14:06:17.268Z","next_action":null}
+{"task_id":"task-89e07c29-faae-4a18-832f-27d82cd1764a","status":"FAILED","updated_at":"2026-09-06T14:06:17.840Z","next_action":"Inspect execution evidence and correct the reported failure"}
+{"task_id":"task-1c61c994-a3fe-41e7-aad1-8cfbb296e87f","status":"WAITING_OWNER_DECISION","updated_at":"2026-09-06T14:16:21.384Z","next_action":"Owner must pick one candidate capability explicitly"}
+{"task_id":"task-5215ef71-9d79-4e31-83dd-bfda8d561f20","status":"FAILED","updated_at":"2026-09-06T14:16:21.582Z","next_action":"UNSUPPORTED_COMMAND"}
+{"task_id":"task-666da7c4-7a5e-464b-a2e1-3e0ddfb48b2e","status":"BLOCKED","updated_at":"2026-09-06T14:16:21.768Z","next_action":"BLOCKED"}
+{"task_id":"task-7bae0245-1ea5-41c4-8475-8acde3ff1b8d","status":"FAILED","updated_at":"2026-09-06T14:16:22.156Z","next_action":"RETRY_OR_ESCALATE"}
+{"task_id":"task-caabc039-274f-44b2-9312-3ee1dab42e2d","status":"BLOCKED","updated_at":"2026-09-06T14:16:23.417Z","next_action":"BLOCKED"}
+{"task_id":"task-28801e63-8798-4911-aecb-c7f822be33bf","status":"EXECUTING","updated_at":"2026-09-06T14:16:24.869Z","next_action":"RETRY_OR_ESCALATE"}
+{"task_id":"task-5f6a3222-aa4f-4d92-bb9a-2d6f32b1e46e","status":"RECEIVED","updated_at":"2026-09-06T14:16:29.151Z","next_action":null}
+{"task_id":"task-5f6a3222-aa4f-4d92-bb9a-2d6f32b1e46e","status":"ROUTING","updated_at":"2026-09-06T14:16:29.682Z","next_action":null}
+{"task_id":"task-5f6a3222-aa4f-4d92-bb9a-2d6f32b1e46e","status":"POLICY_CHECK","updated_at":"2026-09-06T14:16:30.387Z","next_action":null}
+{"task_id":"task-5f6a3222-aa4f-4d92-bb9a-2d6f32b1e46e","status":"EXECUTING","updated_at":"2026-09-06T14:16:31.026Z","next_action":null}
+{"task_id":"task-5f6a3222-aa4f-4d92-bb9a-2d6f32b1e46e","status":"VERIFYING","updated_at":"2026-09-06T14:16:31.646Z","next_action":null}
+{"task_id":"task-5f6a3222-aa4f-4d92-bb9a-2d6f32b1e46e","status":"FAILED","updated_at":"2026-09-06T14:16:32.252Z","next_action":"Inspect execution evidence and correct the reported failure"}
+{"task_id":"task-ab5adfbc-17f8-4673-bd75-a954b3ea3980","status":"RECEIVED","updated_at":"2026-09-06T18:43:10.916Z","next_action":null}
+{"task_id":"task-ab5adfbc-17f8-4673-bd75-a954b3ea3980","status":"ROUTING","updated_at":"2026-09-06T18:43:11.080Z","next_action":null}
+{"task_id":"task-ab5adfbc-17f8-4673-bd75-a954b3ea3980","status":"POLICY_CHECK","updated_at":"2026-09-06T18:43:11.360Z","next_action":null}
+{"task_id":"task-ab5adfbc-17f8-4673-bd75-a954b3ea3980","status":"EXECUTING","updated_at":"2026-09-06T18:43:11.631Z","next_action":null}
+{"task_id":"task-ab5adfbc-17f8-4673-bd75-a954b3ea3980","status":"VERIFYING","updated_at":"2026-09-06T18:43:11.914Z","next_action":null}
+{"task_id":"task-ab5adfbc-17f8-4673-bd75-a954b3ea3980","status":"FAILED","updated_at":"2026-09-06T18:43:12.193Z","next_action":"Inspect execution evidence and correct the reported failure"}
+{"task_id":"task-1654cee5-d229-4523-af4d-a5f2c944dffd","status":"WAITING_OWNER_DECISION","updated_at":"2026-09-07T08:40:11.095Z","next_action":"Owner must pick one candidate capability explicitly"}
+{"task_id":"task-d9552fee-e0ac-4e0a-b5f8-d5b0e024cdae","status":"FAILED","updated_at":"2026-09-07T08:40:32.052Z","next_action":"UNSUPPORTED_COMMAND"}
+{"task_id":"task-5ed72c51-dca8-49e0-9c4d-13a5f4b71b7c","status":"COMPLETED","updated_at":"2026-09-07T08:40:53.254Z","next_action":null}
+{"task_id":"task-979d30b4-9e2b-4e04-b788-0a13160d4aef","status":"EXECUTING","updated_at":"2026-09-07T08:41:16.038Z","next_action":"RETRY_OR_ESCALATE"}
+{"task_id":"task-bf2fce09-6b20-4314-9cb2-c508a30be8f6","status":"WAITING_OWNER_DECISION","updated_at":"2026-09-07T08:41:20.229Z","next_action":"Owner must pick one candidate capability explicitly"}
+{"task_id":"task-70a380d4-8446-47e2-8a93-05c647737285","status":"FAILED","updated_at":"2026-09-07T08:41:20.343Z","next_action":"UNSUPPORTED_COMMAND"}
+{"task_id":"task-78a44bd1-5aac-49ce-8284-880dc7fd79b2","status":"BLOCKED","updated_at":"2026-09-07T08:41:20.439Z","next_action":"BLOCKED"}
+{"task_id":"task-6a3d2e69-16b7-4775-885f-6b226ab1ffdc","status":"FAILED","updated_at":"2026-09-07T08:41:20.627Z","next_action":"RETRY_OR_ESCALATE"}
+{"task_id":"task-d460f552-0c82-4299-aae9-a798cebbfa2e","status":"BLOCKED","updated_at":"2026-09-07T08:41:20.833Z","next_action":"BLOCKED"}
+{"task_id":"task-39e490b7-ddb7-48f2-bec7-f93f5e9c2100","status":"EXECUTING","updated_at":"2026-09-07T08:41:21.074Z","next_action":"RETRY_OR_ESCALATE"}
+{"task_id":"task-979d30b4-9e2b-4e04-b788-0a13160d4aef","status":"BLOCKED","updated_at":"2026-09-07T08:41:31.404Z","next_action":"Review persisted evidence and resolve the named blocker before resubmitting"}
+{"task_id":"task-39e490b7-ddb7-48f2-bec7-f93f5e9c2100","status":"BLOCKED","updated_at":"2026-09-07T08:41:32.063Z","next_action":"Review persisted evidence and resolve the named blocker before resubmitting"}
+{"task_id":"task-e8839a77-1903-450d-bac5-fc03f3621628","status":"WAITING_OWNER_DECISION","updated_at":"2026-09-07T08:57:15.809Z","next_action":"Owner must pick one candidate capability explicitly"}
+{"task_id":"task-554ae2ab-f54f-4019-888c-9693c0cc5c24","status":"FAILED","updated_at":"2026-09-07T08:57:39.640Z","next_action":"UNSUPPORTED_COMMAND"}
+{"task_id":"task-1c555e91-502c-4aa5-a051-3a23395e3c9c","status":"COMPLETED","updated_at":"2026-09-07T08:58:02.916Z","next_action":null}
+{"task_id":"task-fcb0559a-4f71-48ca-b0f5-ddfdb6d21d6f","status":"EXECUTING","updated_at":"2026-09-07T08:58:29.327Z","next_action":"RETRY_OR_ESCALATE"}
+{"task_id":"task-2821c981-163e-43d3-8399-f0ec1e53530a","status":"WAITING_OWNER_DECISION","updated_at":"2026-09-07T08:58:30.756Z","next_action":"Owner must pick one candidate capability explicitly"}
+{"task_id":"task-2854a8de-8eb0-43f1-8368-5fb3d85ceea7","status":"FAILED","updated_at":"2026-09-07T08:58:30.898Z","next_action":"UNSUPPORTED_COMMAND"}
+{"task_id":"task-2d7cbbe5-3fab-49a0-a912-f5dbebbbe60f","status":"BLOCKED","updated_at":"2026-09-07T08:58:31.017Z","next_action":"BLOCKED"}
+{"task_id":"task-381adec6-0e46-4f86-813b-0f6b79c13d91","status":"FAILED","updated_at":"2026-09-07T08:58:31.240Z","next_action":"RETRY_OR_ESCALATE"}
+{"task_id":"task-fcb0559a-4f71-48ca-b0f5-ddfdb6d21d6f","status":"BLOCKED","updated_at":"2026-09-07T08:58:31.435Z","next_action":"Review persisted evidence and resolve the named blocker before resubmitting"}
+{"task_id":"task-09fa9c16-adba-41d7-ac86-f28c9a2c85e4","status":"BLOCKED","updated_at":"2026-09-07T08:58:31.520Z","next_action":"BLOCKED"}
+{"task_id":"task-0756afdc-1acd-4f01-a2fa-dfe419d76f33","status":"EXECUTING","updated_at":"2026-09-07T08:58:31.798Z","next_action":"RETRY_OR_ESCALATE"}
+{"task_id":"task-0756afdc-1acd-4f01-a2fa-dfe419d76f33","status":"BLOCKED","updated_at":"2026-09-07T08:59:01.412Z","next_action":"Review persisted evidence and resolve the named blocker before resubmitting"}
+{"task_id":"task-d60dd5f4-0eb9-427d-bdd3-bf31e3602fa0","status":"WAITING_OWNER_DECISION","updated_at":"2026-09-07T09:23:18.067Z","next_action":"Owner must pick one candidate capability explicitly"}
+{"task_id":"task-ee50f17b-e93c-4bf9-8a30-38951a54daf2","status":"FAILED","updated_at":"2026-09-07T09:23:43.625Z","next_action":"UNSUPPORTED_COMMAND"}
+{"task_id":"task-1e509736-6aa3-40ee-b6a5-b69fbcc9735a","status":"COMPLETED","updated_at":"2026-09-07T09:24:08.134Z","next_action":null}
+{"task_id":"task-4b96bb92-0c1b-482f-9c7e-e2edef74a4c1","status":"EXECUTING","updated_at":"2026-09-07T09:24:35.197Z","next_action":"RETRY_OR_ESCALATE"}
+{"task_id":"task-dae99be5-c896-4416-a755-3ec1eecba616","status":"WAITING_OWNER_DECISION","updated_at":"2026-09-07T09:24:36.820Z","next_action":"Owner must pick one candidate capability explicitly"}
+{"task_id":"task-ff380998-dd13-4be2-a45e-ccbc960b8950","status":"FAILED","updated_at":"2026-09-07T09:24:37.084Z","next_action":"UNSUPPORTED_COMMAND"}
+{"task_id":"task-e7afdf17-751a-4dff-8db8-19e2f685e470","status":"BLOCKED","updated_at":"2026-09-07T09:24:37.212Z","next_action":"BLOCKED"}
+{"task_id":"task-50fb7b47-d2a5-4cd0-a1cf-f8ccafcd2e3c","status":"FAILED","updated_at":"2026-09-07T09:24:37.439Z","next_action":"RETRY_OR_ESCALATE"}
+{"task_id":"task-65c64e95-263a-49a9-9aa1-5b55df14433f","status":"BLOCKED","updated_at":"2026-09-07T09:24:37.652Z","next_action":"BLOCKED"}
+{"task_id":"task-5262a4ca-95f1-4e8b-a3cf-24add0ed913c","status":"EXECUTING","updated_at":"2026-09-07T09:24:37.886Z","next_action":"RETRY_OR_ESCALATE"}
+{"task_id":"task-4b96bb92-0c1b-482f-9c7e-e2edef74a4c1","status":"BLOCKED","updated_at":"2026-09-07T09:25:01.518Z","next_action":"Review persisted evidence and resolve the named blocker before resubmitting"}
+{"task_id":"task-5262a4ca-95f1-4e8b-a3cf-24add0ed913c","status":"BLOCKED","updated_at":"2026-09-07T09:25:01.990Z","next_action":"Review persisted evidence and resolve the named blocker before resubmitting"}
+{"task_id":"task-2a70970c-0d2b-4527-accd-094b7e84d73b","status":"WAITING_OWNER_DECISION","updated_at":"2026-09-07T09:39:47.293Z","next_action":"Owner must pick one candidate capability explicitly"}
+{"task_id":"task-a91c592e-10c5-459a-a7bc-0fb319719d27","status":"FAILED","updated_at":"2026-09-07T09:40:12.115Z","next_action":"UNSUPPORTED_COMMAND"}
+{"task_id":"task-6379ee23-70fd-4f40-99b6-7dc2ab15f5a4","status":"COMPLETED","updated_at":"2026-09-07T09:40:38.211Z","next_action":null}
+{"task_id":"task-8a4d4024-f787-48c6-bdc8-88cc5bb7640a","status":"EXECUTING","updated_at":"2026-09-07T09:41:04.270Z","next_action":"RETRY_OR_ESCALATE"}
+{"task_id":"task-4574828f-fbc9-458e-9939-6ae998e32af4","status":"WAITING_OWNER_DECISION","updated_at":"2026-09-07T09:41:05.531Z","next_action":"Owner must pick one candidate capability explicitly"}
+{"task_id":"task-0cd04d2f-5269-4a02-86ef-8932077b7662","status":"FAILED","updated_at":"2026-09-07T09:41:05.667Z","next_action":"UNSUPPORTED_COMMAND"}
+{"task_id":"task-bb9611e3-e14d-417a-829e-4b45d1fd1ac6","status":"BLOCKED","updated_at":"2026-09-07T09:41:05.796Z","next_action":"BLOCKED"}
+{"task_id":"task-e11bb506-8792-4a55-a02f-0669ed67b2fa","status":"FAILED","updated_at":"2026-09-07T09:41:06.004Z","next_action":"RETRY_OR_ESCALATE"}
+{"task_id":"task-a7acfbd9-d6b4-4956-a8b1-0c15edd56eb2","status":"BLOCKED","updated_at":"2026-09-07T09:41:06.240Z","next_action":"BLOCKED"}
+{"task_id":"task-bba3bd5a-523a-412d-b8dd-8afab570a959","status":"EXECUTING","updated_at":"2026-09-07T09:41:06.510Z","next_action":"RETRY_OR_ESCALATE"}
+{"task_id":"task-07eabce5-6b27-473a-b388-dd27e2fc314a","status":"RECEIVED","updated_at":"2026-09-07T09:41:09.035Z","next_action":null}
+{"task_id":"task-07eabce5-6b27-473a-b388-dd27e2fc314a","status":"ROUTING","updated_at":"2026-09-07T09:41:09.294Z","next_action":null}
+{"task_id":"task-07eabce5-6b27-473a-b388-dd27e2fc314a","status":"POLICY_CHECK","updated_at":"2026-09-07T09:41:09.627Z","next_action":null}
+{"task_id":"task-07eabce5-6b27-473a-b388-dd27e2fc314a","status":"EXECUTING","updated_at":"2026-09-07T09:41:10.070Z","next_action":null}
+{"task_id":"task-07eabce5-6b27-473a-b388-dd27e2fc314a","status":"VERIFYING","updated_at":"2026-09-07T09:41:10.436Z","next_action":null}
+{"task_id":"task-07eabce5-6b27-473a-b388-dd27e2fc314a","status":"COMPLETED","updated_at":"2026-09-07T09:41:11.018Z","next_action":null}
+{"task_id":"task-4567bdfb-8d93-4c07-bbca-abbb03c589f0","status":"RECEIVED","updated_at":"2026-09-07T09:41:12.564Z","next_action":null}
+{"task_id":"task-4567bdfb-8d93-4c07-bbca-abbb03c589f0","status":"ROUTING","updated_at":"2026-09-07T09:41:12.781Z","next_action":null}
+{"task_id":"task-4567bdfb-8d93-4c07-bbca-abbb03c589f0","status":"POLICY_CHECK","updated_at":"2026-09-07T09:41:13.171Z","next_action":null}
+{"task_id":"task-4567bdfb-8d93-4c07-bbca-abbb03c589f0","status":"EXECUTING","updated_at":"2026-09-07T09:41:13.567Z","next_action":null}
+{"task_id":"task-4567bdfb-8d93-4c07-bbca-abbb03c589f0","status":"VERIFYING","updated_at":"2026-09-07T09:41:13.991Z","next_action":null}
+{"task_id":"task-4567bdfb-8d93-4c07-bbca-abbb03c589f0","status":"FAILED","updated_at":"2026-09-07T09:41:14.351Z","next_action":"Inspect execution evidence and correct the reported failure"}
+{"task_id":"task-8a4d4024-f787-48c6-bdc8-88cc5bb7640a","status":"BLOCKED","updated_at":"2026-09-07T09:41:14.460Z","next_action":"Review persisted evidence and resolve the named blocker before resubmitting"}
+{"task_id":"task-bba3bd5a-523a-412d-b8dd-8afab570a959","status":"BLOCKED","updated_at":"2026-09-07T09:41:15.066Z","next_action":"Review persisted evidence and resolve the named blocker before resubmitting"}
+{"task_id":"task-5c570703-0880-42d8-b079-58c325edebe7","status":"WAITING_OWNER_DECISION","updated_at":"2026-09-07T10:02:02.776Z","next_action":"OWNER_REVIEW"}
+{"task_id":"task-d31bf982-b9d2-4453-b7b1-5f0a5dadc99e","status":"COMPLETED","updated_at":"2026-09-07T10:03:58.641Z","next_action":null}
+{"task_id":"task-6c5c2bf5-9b8c-420d-be10-b1a3cd77eb17","status":"COMPLETED","updated_at":"2026-09-07T10:08:39.872Z","next_action":null}

@@ -115,7 +115,7 @@ function startHttp(port: number, client: DnaOsHttpClient): void {
         // stateless: สร้าง server ใหม่ต่อ request จึงได้แคตตาล็อกตรงตามสิทธิ์ของ
         // ผู้เรียกคนนั้นเสมอ และไม่มี cache ข้ามผู้เรียก (Owner ข้อ 9)
         const caller = callerContextFromHttp(req.headers as Record<string, string | string[] | undefined>);
-        const mcpServer = createDnaOsMcpServer(client, caller);
+        const mcpServer = createDnaOsMcpServer(client.bindOwnerSession(caller.owner_session_id ?? null), caller);
         const transport = new StreamableHTTPServerTransport({ sessionIdGenerator: undefined });
         res.on("close", () => { void transport.close(); void mcpServer.close(); });
         try {
@@ -145,7 +145,8 @@ async function startStdio(client: DnaOsHttpClient): Promise<void> {
    * โปรเซสไม่ได้ด้วยกลไกที่มีตอนนี้ สิ่งใดที่รันด้วยสิทธิ์ของเจ้าของก็ตั้ง env
    * เดียวกันได้ จึงต้องส่ง session ที่ยืนยันแล้วมาเหมือนช่องทางอื่น
    */
-  const mcpServer = createDnaOsMcpServer(client, callerContextFromStdio(process.env.DNA_OS_OWNER_SESSION_ID ?? null));
+  const caller = callerContextFromStdio(process.env.DNA_OS_OWNER_SESSION_ID ?? null);
+  const mcpServer = createDnaOsMcpServer(client.bindOwnerSession(caller.owner_session_id ?? null), caller);
   const transport = new StdioServerTransport();
   await mcpServer.connect(transport);
   console.error("dna-os-mcp stdio transport connected");

@@ -23,3 +23,4 @@ export type {
   ExternalSystemLifecycleInput,
   ExternalSystemLifecycleResult,
 } from "./types";
+export { EXTERNAL_OPERATIONAL_STAGES, CANONICAL_LIFECYCLE_MAPPING } from "./types";

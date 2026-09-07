@@ -1,0 +1,3463 @@
+{
+ "scanned_at": "2026-09-05T04:05:54.353Z",
+ "authorization": "chal-8fac2350 (BIOMETRIC)",
+ "total": 172,
+ "by_classification": {
+  "CLAIM_WRITTEN_AS_FACT": 123,
+  "RAW_OBSERVATION_WRITTEN_AS_EVENT": 16,
+  "TRUE_SALES_EVENT": 26,
+  "MISROUTED_EVENT": 5,
+  "TRUE_DOMAIN_EVENT": 2
+ },
+ "expected_domains": {
+  "FINANCE": 123,
+  "GENERAL_CONVERSATION": 19,
+  "SALES": 26,
+  "LOCATION": 2,
+  "DOCUMENT": 2
+ },
+ "excluded_from_business_state": 144,
+ "automatic_replay": false,
+ "items": [
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260824-0004",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "1",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=awaiting_payment_date"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260824-0003",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "1",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=awaiting_payment_date"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260824-0002",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "1",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=awaiting_payment_date"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260824-0001",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "1",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=awaiting_payment_date"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260823-0004",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "1",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=awaiting_payment_date"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260823-0003",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "1",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=awaiting_payment_date"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260823-0002",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "1",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=awaiting_payment_date"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260823-0001",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "1",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=awaiting_payment_date"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260822-0004",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "1",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=awaiting_payment_date"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260822-0003",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "1",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=awaiting_payment_date"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260822-0002",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "1",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=awaiting_payment_date"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260822-0001",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "1",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=awaiting_payment_date"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260821-0004",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "1",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=awaiting_payment_date"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260821-0003",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "1",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=awaiting_payment_date"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260821-0002",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "1",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=awaiting_payment_date"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260821-0001",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "1",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=awaiting_payment_date"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260820-0004",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "1",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=awaiting_payment_date"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260820-0003",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "1",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=awaiting_payment_date"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260820-0002",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "1",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=awaiting_payment_date"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260820-0001",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "1",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=awaiting_payment_date"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260819-0004",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "1",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=awaiting_payment_date"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260819-0003",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "1",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=confirmed"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260819-0002",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "1",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=awaiting_payment_date"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260819-0001",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "1",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=awaiting_payment_date"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260818-0004",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "1",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=awaiting_payment_date"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260818-0003",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "1",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=awaiting_payment_date"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260818-0002",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "1",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=awaiting_payment_date"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260818-0001",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "1",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=awaiting_payment_date"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260817-0004",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "1",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=awaiting_payment_date"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260817-0003",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "1",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=awaiting_payment_date"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260817-0002",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "1",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=awaiting_payment_date"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260817-0001",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "1",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=awaiting_payment_date"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260816-0004",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "1",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=awaiting_payment_date"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260816-0003",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "1",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=awaiting_payment_date"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260816-0002",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "1",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=awaiting_payment_date"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260816-0001",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "1",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=awaiting_payment_date"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260815-0004",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "1",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=awaiting_payment_date"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260815-0003",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "1",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=awaiting_payment_date"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260815-0002",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "1",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=awaiting_payment_date"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260815-0001",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "1",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=awaiting_payment_date"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260814-0004",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "1",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=awaiting_payment_date"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260814-0003",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "1",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=awaiting_payment_date"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260814-0002",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "1",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=awaiting_payment_date"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260814-0001",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "1",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=awaiting_payment_date"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260813-0004",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "1",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=awaiting_payment_date"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260813-0003",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "1",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=awaiting_payment_date"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260813-0002",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "1",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=awaiting_payment_date"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260813-0001",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "1",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=awaiting_payment_date"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260812-0004",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "1",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=awaiting_payment_date"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260812-0003",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "1",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=awaiting_payment_date"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260812-0002",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "1",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=awaiting_payment_date"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260812-0001",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "1",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=awaiting_payment_date"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260811-0004",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "1",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=awaiting_payment_date"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260811-0003",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "1",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=awaiting_payment_date"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260811-0002",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "1",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=awaiting_payment_date"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260811-0001",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "1",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=awaiting_payment_date"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260810-0004",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "1",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=awaiting_payment_date"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260810-0003",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "1",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=awaiting_payment_date"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260810-0002",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "1",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=awaiting_payment_date"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260810-0001",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "1",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=awaiting_payment_date"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260809-0004",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "1",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=awaiting_payment_date"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260809-0003",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "1",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=awaiting_payment_date"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260809-0002",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "1",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=awaiting_payment_date"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260809-0001",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "1",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=awaiting_payment_date"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260808-0004",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "1",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=awaiting_payment_date"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260808-0003",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "1",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=awaiting_payment_date"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260808-0002",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "1",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=awaiting_payment_date"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260808-0001",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "1",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=awaiting_payment_date"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260807-0004",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "1",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=awaiting_payment_date"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260807-0003",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "1",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=awaiting_payment_date"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260807-0002",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "1",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=awaiting_payment_date"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260807-0001",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "1",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=awaiting_payment_date"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260806-0004",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "1",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=awaiting_payment_date"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260806-0003",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "1",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=awaiting_payment_date"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260806-0002",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "1",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=awaiting_payment_date"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260806-0001",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "1",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=awaiting_payment_date"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260805-0004",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "1",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=awaiting_payment_date"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260805-0003",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "1",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=awaiting_payment_date"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260805-0002",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "1",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=confirmed"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260805-0001",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "1",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=awaiting_payment_date"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260804-0004",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "1",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=awaiting_payment_date"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260804-0003",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "1",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=awaiting_payment_date"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260804-0002",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "1",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=awaiting_payment_date"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260804-0001",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "1",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=awaiting_payment_date"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260803-0001",
+   "original_event_type": "สอบถามทั่วไป",
+   "original_domain": "SALES",
+   "classification": "RAW_OBSERVATION_WRITTEN_AS_EVENT",
+   "detected_problem": "ข้อสังเกตดิบถูกเขียนเป็นเหตุการณ์",
+   "expected_domain": [
+    "GENERAL_CONVERSATION"
+   ],
+   "confidence": "0.5",
+   "evidence": [
+    "event_type=สอบถามทั่วไป",
+    "status=awaiting_info"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": null,
+   "repair_action": "RECLASSIFY",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260802-0003",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "1",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=confirmed"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260802-0002",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "1",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=awaiting_payment_date"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260802-0001",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "1",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=confirmed"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260731-0001",
+   "original_event_type": "แจ้งข้อมูลการชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "1",
+   "evidence": [
+    "event_type=แจ้งข้อมูลการชำระเงิน",
+    "status=sent"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260730-0002",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "1",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=awaiting_payment_date"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260730-0001",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "1",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=awaiting_payment_date"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260727-0004",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "1",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=awaiting_payment_date"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260727-0003",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "1",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=awaiting_payment_date"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260727-0002",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "0.95",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=awaiting_info"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260727-0001",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "0.8",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=new"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260726-0006",
+   "original_event_type": "ขอราคา",
+   "original_domain": "SALES",
+   "classification": "TRUE_SALES_EVENT",
+   "detected_problem": null,
+   "expected_domain": [
+    "SALES"
+   ],
+   "confidence": "0.95",
+   "evidence": [
+    "event_type=ขอราคา",
+    "status=awaiting_payment"
+   ],
+   "current_state_effect": "นับรวมได้ตามปกติ",
+   "financial_effect_if_any": null,
+   "repair_action": "KEEP_AS_HISTORY",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260726-0005",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "0.8",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=awaiting_info"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260726-0004",
+   "original_event_type": "ขอราคา",
+   "original_domain": "SALES",
+   "classification": "TRUE_SALES_EVENT",
+   "detected_problem": null,
+   "expected_domain": [
+    "SALES"
+   ],
+   "confidence": "0.8",
+   "evidence": [
+    "event_type=ขอราคา",
+    "status=quoted"
+   ],
+   "current_state_effect": "นับรวมได้ตามปกติ",
+   "financial_effect_if_any": null,
+   "repair_action": "KEEP_AS_HISTORY",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260726-0003",
+   "original_event_type": "ขอราคา",
+   "original_domain": "SALES",
+   "classification": "TRUE_SALES_EVENT",
+   "detected_problem": null,
+   "expected_domain": [
+    "SALES"
+   ],
+   "confidence": "0.8",
+   "evidence": [
+    "event_type=ขอราคา",
+    "status=quoted"
+   ],
+   "current_state_effect": "นับรวมได้ตามปกติ",
+   "financial_effect_if_any": null,
+   "repair_action": "KEEP_AS_HISTORY",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260726-0002",
+   "original_event_type": "ขอราคา",
+   "original_domain": "SALES",
+   "classification": "TRUE_SALES_EVENT",
+   "detected_problem": null,
+   "expected_domain": [
+    "SALES"
+   ],
+   "confidence": "0.8",
+   "evidence": [
+    "event_type=ขอราคา",
+    "status=quoted"
+   ],
+   "current_state_effect": "นับรวมได้ตามปกติ",
+   "financial_effect_if_any": null,
+   "repair_action": "KEEP_AS_HISTORY",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260726-0001",
+   "original_event_type": "ขอราคา",
+   "original_domain": "SALES",
+   "classification": "TRUE_SALES_EVENT",
+   "detected_problem": null,
+   "expected_domain": [
+    "SALES"
+   ],
+   "confidence": "0.8",
+   "evidence": [
+    "event_type=ขอราคา",
+    "status=quoted"
+   ],
+   "current_state_effect": "นับรวมได้ตามปกติ",
+   "financial_effect_if_any": null,
+   "repair_action": "KEEP_AS_HISTORY",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260725-0005",
+   "original_event_type": "ขอราคา",
+   "original_domain": "SALES",
+   "classification": "TRUE_SALES_EVENT",
+   "detected_problem": null,
+   "expected_domain": [
+    "SALES"
+   ],
+   "confidence": "0.9",
+   "evidence": [
+    "event_type=ขอราคา",
+    "status=quoted"
+   ],
+   "current_state_effect": "นับรวมได้ตามปกติ",
+   "financial_effect_if_any": null,
+   "repair_action": "KEEP_AS_HISTORY",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260725-0004",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "1",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=awaiting_payment_date"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260725-0003",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "1",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=awaiting_payment_date"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260725-0002",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "1",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=awaiting_payment_date"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260725-0001",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "0.8",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=new"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260724-0009",
+   "original_event_type": "แจ้งข้อมูลการชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "1",
+   "evidence": [
+    "event_type=แจ้งข้อมูลการชำระเงิน",
+    "status=sent"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260724-0008",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "0.9",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=new"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260724-0007",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "1",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=confirmed"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260724-0006",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "1",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=awaiting_payment_date"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260724-0005",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "1",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=awaiting_payment_date"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260724-0004",
+   "original_event_type": "แจ้งข้อมูลการชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "1",
+   "evidence": [
+    "event_type=แจ้งข้อมูลการชำระเงิน",
+    "status=sent"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260724-0003",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "0.9",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=new"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260724-0002",
+   "original_event_type": "สั่งซื้อ",
+   "original_domain": "SALES",
+   "classification": "TRUE_SALES_EVENT",
+   "detected_problem": null,
+   "expected_domain": [
+    "SALES"
+   ],
+   "confidence": "0.8",
+   "evidence": [
+    "event_type=สั่งซื้อ",
+    "status=new"
+   ],
+   "current_state_effect": "นับรวมได้ตามปกติ",
+   "financial_effect_if_any": null,
+   "repair_action": "KEEP_AS_HISTORY",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260724-0001",
+   "original_event_type": "สั่งซื้อ",
+   "original_domain": "SALES",
+   "classification": "TRUE_SALES_EVENT",
+   "detected_problem": null,
+   "expected_domain": [
+    "SALES"
+   ],
+   "confidence": "0.9",
+   "evidence": [
+    "event_type=สั่งซื้อ",
+    "status=new"
+   ],
+   "current_state_effect": "นับรวมได้ตามปกติ",
+   "financial_effect_if_any": null,
+   "repair_action": "KEEP_AS_HISTORY",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260722-0001",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "0.9",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=awaiting_info"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260720-0006",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "1",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=awaiting_payment_date"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260720-0005",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "1",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=awaiting_payment_date"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260720-0004",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "1",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=awaiting_payment_date"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260720-0003",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "1",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=awaiting_payment_date"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260720-0002",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "1",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=awaiting_payment_date"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260720-0001",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "1",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=awaiting_payment_date"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260719-0014",
+   "original_event_type": "ขอราคา",
+   "original_domain": "SALES",
+   "classification": "TRUE_SALES_EVENT",
+   "detected_problem": null,
+   "expected_domain": [
+    "SALES"
+   ],
+   "confidence": "0.9",
+   "evidence": [
+    "event_type=ขอราคา",
+    "status=quoted"
+   ],
+   "current_state_effect": "นับรวมได้ตามปกติ",
+   "financial_effect_if_any": null,
+   "repair_action": "KEEP_AS_HISTORY",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260719-0013",
+   "original_event_type": "สอบถามทั่วไป",
+   "original_domain": "SALES",
+   "classification": "MISROUTED_EVENT",
+   "detected_problem": "event_type=\"สอบถามทั่วไป\" ที่มีข้อความวัสดุ ถูกปล่อยผ่านเป็นเหตุการณ์ธุรกิจ (build-event-from-extraction.ts:29 เดิม)",
+   "expected_domain": [
+    "GENERAL_CONVERSATION"
+   ],
+   "confidence": "0.9",
+   "evidence": [
+    "event_type=สอบถามทั่วไป",
+    "status=new"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": null,
+   "repair_action": "RECLASSIFY",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260719-0012",
+   "original_event_type": "สอบถามทั่วไป",
+   "original_domain": "SALES",
+   "classification": "MISROUTED_EVENT",
+   "detected_problem": "event_type=\"สอบถามทั่วไป\" ที่มีข้อความวัสดุ ถูกปล่อยผ่านเป็นเหตุการณ์ธุรกิจ (build-event-from-extraction.ts:29 เดิม)",
+   "expected_domain": [
+    "GENERAL_CONVERSATION"
+   ],
+   "confidence": "0.8",
+   "evidence": [
+    "event_type=สอบถามทั่วไป",
+    "status=new"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": null,
+   "repair_action": "RECLASSIFY",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260719-0011",
+   "original_event_type": "ขอราคา",
+   "original_domain": "SALES",
+   "classification": "TRUE_SALES_EVENT",
+   "detected_problem": null,
+   "expected_domain": [
+    "SALES"
+   ],
+   "confidence": "0.9",
+   "evidence": [
+    "event_type=ขอราคา",
+    "status=quoted"
+   ],
+   "current_state_effect": "นับรวมได้ตามปกติ",
+   "financial_effect_if_any": null,
+   "repair_action": "KEEP_AS_HISTORY",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260719-0010",
+   "original_event_type": "ขอราคา",
+   "original_domain": "SALES",
+   "classification": "TRUE_SALES_EVENT",
+   "detected_problem": null,
+   "expected_domain": [
+    "SALES"
+   ],
+   "confidence": "0.9",
+   "evidence": [
+    "event_type=ขอราคา",
+    "status=quoted"
+   ],
+   "current_state_effect": "นับรวมได้ตามปกติ",
+   "financial_effect_if_any": null,
+   "repair_action": "KEEP_AS_HISTORY",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260719-0009",
+   "original_event_type": "ขอราคา",
+   "original_domain": "SALES",
+   "classification": "TRUE_SALES_EVENT",
+   "detected_problem": null,
+   "expected_domain": [
+    "SALES"
+   ],
+   "confidence": "0.9",
+   "evidence": [
+    "event_type=ขอราคา",
+    "status=quoted"
+   ],
+   "current_state_effect": "นับรวมได้ตามปกติ",
+   "financial_effect_if_any": null,
+   "repair_action": "KEEP_AS_HISTORY",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260719-0008",
+   "original_event_type": "สอบถามทั่วไป",
+   "original_domain": "SALES",
+   "classification": "RAW_OBSERVATION_WRITTEN_AS_EVENT",
+   "detected_problem": "ข้อสังเกตดิบถูกเขียนเป็นเหตุการณ์",
+   "expected_domain": [
+    "GENERAL_CONVERSATION"
+   ],
+   "confidence": "0.8",
+   "evidence": [
+    "event_type=สอบถามทั่วไป",
+    "status=new"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": null,
+   "repair_action": "RECLASSIFY",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260719-0007",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "0.8",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=awaiting_info"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260719-0006",
+   "original_event_type": "สอบถามทั่วไป",
+   "original_domain": "SALES",
+   "classification": "RAW_OBSERVATION_WRITTEN_AS_EVENT",
+   "detected_problem": "ข้อสังเกตดิบถูกเขียนเป็นเหตุการณ์",
+   "expected_domain": [
+    "GENERAL_CONVERSATION"
+   ],
+   "confidence": "0.7",
+   "evidence": [
+    "event_type=สอบถามทั่วไป",
+    "status=new"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": null,
+   "repair_action": "RECLASSIFY",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260719-0005",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "0.9",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=new"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260719-0004",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "1",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=confirmed"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260719-0003",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "1",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=confirmed"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260719-0002",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "1",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=awaiting_payment_date"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260719-0001",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "1",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=awaiting_payment_date"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260718-0002",
+   "original_event_type": "สอบถามทั่วไป",
+   "original_domain": "SALES",
+   "classification": "RAW_OBSERVATION_WRITTEN_AS_EVENT",
+   "detected_problem": "ข้อสังเกตดิบถูกเขียนเป็นเหตุการณ์",
+   "expected_domain": [
+    "GENERAL_CONVERSATION"
+   ],
+   "confidence": "0.8",
+   "evidence": [
+    "event_type=สอบถามทั่วไป",
+    "status=new"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": null,
+   "repair_action": "RECLASSIFY",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260718-0001",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "1",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=confirmed"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260717-0003",
+   "original_event_type": "ขอราคา",
+   "original_domain": "SALES",
+   "classification": "TRUE_SALES_EVENT",
+   "detected_problem": null,
+   "expected_domain": [
+    "SALES"
+   ],
+   "confidence": "0.9",
+   "evidence": [
+    "event_type=ขอราคา",
+    "status=quoted"
+   ],
+   "current_state_effect": "นับรวมได้ตามปกติ",
+   "financial_effect_if_any": null,
+   "repair_action": "KEEP_AS_HISTORY",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260717-0001",
+   "original_event_type": "ส่งพิกัด",
+   "original_domain": "SALES",
+   "classification": "MISROUTED_EVENT",
+   "detected_problem": "การแชร์พิกัดถูกเขียนเป็นเหตุการณ์ธุรกิจในตารางฝั่งขาย",
+   "expected_domain": [
+    "LOCATION"
+   ],
+   "confidence": "0.9",
+   "evidence": [
+    "event_type=ส่งพิกัด",
+    "status=new"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": null,
+   "repair_action": "RECLASSIFY",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260716-0002",
+   "original_event_type": "อื่นๆ",
+   "original_domain": "SALES",
+   "classification": "RAW_OBSERVATION_WRITTEN_AS_EVENT",
+   "detected_problem": "ข้อสังเกตดิบถูกเขียนเป็นเหตุการณ์",
+   "expected_domain": [
+    "GENERAL_CONVERSATION"
+   ],
+   "confidence": "0.7",
+   "evidence": [
+    "event_type=อื่นๆ",
+    "status=new"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": null,
+   "repair_action": "RECLASSIFY",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260716-0001",
+   "original_event_type": "line_chat",
+   "original_domain": "SALES",
+   "classification": "RAW_OBSERVATION_WRITTEN_AS_EVENT",
+   "detected_problem": "ข้อสังเกตดิบถูกเขียนเป็นเหตุการณ์",
+   "expected_domain": [
+    "GENERAL_CONVERSATION"
+   ],
+   "confidence": "0",
+   "evidence": [
+    "event_type=line_chat",
+    "status=new"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": null,
+   "repair_action": "RECLASSIFY",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260714-0002",
+   "original_event_type": "ขอราคา",
+   "original_domain": "SALES",
+   "classification": "TRUE_SALES_EVENT",
+   "detected_problem": null,
+   "expected_domain": [
+    "SALES"
+   ],
+   "confidence": "0.9",
+   "evidence": [
+    "event_type=ขอราคา",
+    "status=quoted"
+   ],
+   "current_state_effect": "นับรวมได้ตามปกติ",
+   "financial_effect_if_any": null,
+   "repair_action": "KEEP_AS_HISTORY",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260714-0001",
+   "original_event_type": "ส่งเอกสาร",
+   "original_domain": "SALES",
+   "classification": "TRUE_DOMAIN_EVENT",
+   "detected_problem": "เป็นเหตุการณ์ฝั่งเอกสารแต่ถูกเก็บรวมในตารางที่ถูกอ่านเป็นงานขาย",
+   "expected_domain": [
+    "DOCUMENT"
+   ],
+   "confidence": "0.8",
+   "evidence": [
+    "event_type=ส่งเอกสาร",
+    "status=new"
+   ],
+   "current_state_effect": "นับรวมได้ตามปกติ",
+   "financial_effect_if_any": null,
+   "repair_action": "RECLASSIFY",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260711-0003",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "1",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=awaiting_payment_date"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260711-0002",
+   "original_event_type": "สอบถามทั่วไป",
+   "original_domain": "SALES",
+   "classification": "RAW_OBSERVATION_WRITTEN_AS_EVENT",
+   "detected_problem": "ข้อสังเกตดิบถูกเขียนเป็นเหตุการณ์",
+   "expected_domain": [
+    "GENERAL_CONVERSATION"
+   ],
+   "confidence": "0.7",
+   "evidence": [
+    "event_type=สอบถามทั่วไป",
+    "status=new"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": null,
+   "repair_action": "RECLASSIFY",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260711-0001",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "0.8",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=new"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260710-0024",
+   "original_event_type": "line_chat",
+   "original_domain": "SALES",
+   "classification": "RAW_OBSERVATION_WRITTEN_AS_EVENT",
+   "detected_problem": "ข้อสังเกตดิบถูกเขียนเป็นเหตุการณ์",
+   "expected_domain": [
+    "GENERAL_CONVERSATION"
+   ],
+   "confidence": "0",
+   "evidence": [
+    "event_type=line_chat",
+    "status=new"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": null,
+   "repair_action": "RECLASSIFY",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260710-0023",
+   "original_event_type": "ส่งเอกสาร",
+   "original_domain": "SALES",
+   "classification": "TRUE_DOMAIN_EVENT",
+   "detected_problem": "เป็นเหตุการณ์ฝั่งเอกสารแต่ถูกเก็บรวมในตารางที่ถูกอ่านเป็นงานขาย",
+   "expected_domain": [
+    "DOCUMENT"
+   ],
+   "confidence": "0.9",
+   "evidence": [
+    "event_type=ส่งเอกสาร",
+    "status=new"
+   ],
+   "current_state_effect": "นับรวมได้ตามปกติ",
+   "financial_effect_if_any": null,
+   "repair_action": "RECLASSIFY",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260710-0022",
+   "original_event_type": "ขอราคา",
+   "original_domain": "SALES",
+   "classification": "TRUE_SALES_EVENT",
+   "detected_problem": null,
+   "expected_domain": [
+    "SALES"
+   ],
+   "confidence": "0.9",
+   "evidence": [
+    "event_type=ขอราคา",
+    "status=quoted"
+   ],
+   "current_state_effect": "นับรวมได้ตามปกติ",
+   "financial_effect_if_any": null,
+   "repair_action": "KEEP_AS_HISTORY",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260710-0021",
+   "original_event_type": "ขอราคา",
+   "original_domain": "SALES",
+   "classification": "TRUE_SALES_EVENT",
+   "detected_problem": null,
+   "expected_domain": [
+    "SALES"
+   ],
+   "confidence": "0.9",
+   "evidence": [
+    "event_type=ขอราคา",
+    "status=quoted"
+   ],
+   "current_state_effect": "นับรวมได้ตามปกติ",
+   "financial_effect_if_any": null,
+   "repair_action": "KEEP_AS_HISTORY",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260710-0020",
+   "original_event_type": "ขอราคา",
+   "original_domain": "SALES",
+   "classification": "TRUE_SALES_EVENT",
+   "detected_problem": null,
+   "expected_domain": [
+    "SALES"
+   ],
+   "confidence": "0.9",
+   "evidence": [
+    "event_type=ขอราคา",
+    "status=quoted"
+   ],
+   "current_state_effect": "นับรวมได้ตามปกติ",
+   "financial_effect_if_any": null,
+   "repair_action": "KEEP_AS_HISTORY",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260710-0019",
+   "original_event_type": "ขอราคา",
+   "original_domain": "SALES",
+   "classification": "TRUE_SALES_EVENT",
+   "detected_problem": null,
+   "expected_domain": [
+    "SALES"
+   ],
+   "confidence": "0.9",
+   "evidence": [
+    "event_type=ขอราคา",
+    "status=quoted"
+   ],
+   "current_state_effect": "นับรวมได้ตามปกติ",
+   "financial_effect_if_any": null,
+   "repair_action": "KEEP_AS_HISTORY",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260710-0018",
+   "original_event_type": "ขอราคา",
+   "original_domain": "SALES",
+   "classification": "TRUE_SALES_EVENT",
+   "detected_problem": null,
+   "expected_domain": [
+    "SALES"
+   ],
+   "confidence": "0.9",
+   "evidence": [
+    "event_type=ขอราคา",
+    "status=superseded"
+   ],
+   "current_state_effect": "นับรวมได้ตามปกติ",
+   "financial_effect_if_any": null,
+   "repair_action": "KEEP_AS_HISTORY",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260710-0017",
+   "original_event_type": "ส่งพิกัด",
+   "original_domain": "SALES",
+   "classification": "MISROUTED_EVENT",
+   "detected_problem": "การแชร์พิกัดถูกเขียนเป็นเหตุการณ์ธุรกิจในตารางฝั่งขาย",
+   "expected_domain": [
+    "LOCATION"
+   ],
+   "confidence": "0.8",
+   "evidence": [
+    "event_type=ส่งพิกัด",
+    "status=new"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": null,
+   "repair_action": "RECLASSIFY",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260710-0016",
+   "original_event_type": "อื่นๆ",
+   "original_domain": "SALES",
+   "classification": "MISROUTED_EVENT",
+   "detected_problem": "event_type=\"อื่นๆ\" ที่มีข้อความวัสดุ ถูกปล่อยผ่านเป็นเหตุการณ์ธุรกิจ (build-event-from-extraction.ts:29 เดิม)",
+   "expected_domain": [
+    "GENERAL_CONVERSATION"
+   ],
+   "confidence": "0.7",
+   "evidence": [
+    "event_type=อื่นๆ",
+    "status=new"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": null,
+   "repair_action": "RECLASSIFY",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260710-0015",
+   "original_event_type": "ขอราคา",
+   "original_domain": "SALES",
+   "classification": "TRUE_SALES_EVENT",
+   "detected_problem": null,
+   "expected_domain": [
+    "SALES"
+   ],
+   "confidence": "0.9",
+   "evidence": [
+    "event_type=ขอราคา",
+    "status=ready_to_quote"
+   ],
+   "current_state_effect": "นับรวมได้ตามปกติ",
+   "financial_effect_if_any": null,
+   "repair_action": "KEEP_AS_HISTORY",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260710-0014",
+   "original_event_type": "ขอราคา",
+   "original_domain": "SALES",
+   "classification": "TRUE_SALES_EVENT",
+   "detected_problem": null,
+   "expected_domain": [
+    "SALES"
+   ],
+   "confidence": "0.9",
+   "evidence": [
+    "event_type=ขอราคา",
+    "status=quoted"
+   ],
+   "current_state_effect": "นับรวมได้ตามปกติ",
+   "financial_effect_if_any": null,
+   "repair_action": "KEEP_AS_HISTORY",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260710-0013",
+   "original_event_type": "อื่นๆ",
+   "original_domain": "SALES",
+   "classification": "RAW_OBSERVATION_WRITTEN_AS_EVENT",
+   "detected_problem": "ข้อสังเกตดิบถูกเขียนเป็นเหตุการณ์",
+   "expected_domain": [
+    "GENERAL_CONVERSATION"
+   ],
+   "confidence": "0.5",
+   "evidence": [
+    "event_type=อื่นๆ",
+    "status=new"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": null,
+   "repair_action": "RECLASSIFY",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260710-0012",
+   "original_event_type": "แจ้งชำระเงิน",
+   "original_domain": "SALES",
+   "classification": "CLAIM_WRITTEN_AS_FACT",
+   "detected_problem": "คำกล่าวอ้างว่าจะจ่าย ถูกบันทึกเป็นข้อเท็จจริงที่เกิดแล้ว",
+   "expected_domain": [
+    "FINANCE"
+   ],
+   "confidence": "0.8",
+   "evidence": [
+    "event_type=แจ้งชำระเงิน",
+    "status=new"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": "ห้ามนับเป็นการชำระจนกว่าตัวจับคู่ยืนยัน",
+   "repair_action": "MANUAL_REVIEW",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260710-0011",
+   "original_event_type": "สอบถามทั่วไป",
+   "original_domain": "SALES",
+   "classification": "RAW_OBSERVATION_WRITTEN_AS_EVENT",
+   "detected_problem": "ข้อสังเกตดิบถูกเขียนเป็นเหตุการณ์",
+   "expected_domain": [
+    "GENERAL_CONVERSATION"
+   ],
+   "confidence": "0.8",
+   "evidence": [
+    "event_type=สอบถามทั่วไป",
+    "status=new"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": null,
+   "repair_action": "RECLASSIFY",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260710-0010",
+   "original_event_type": "line_chat",
+   "original_domain": "SALES",
+   "classification": "RAW_OBSERVATION_WRITTEN_AS_EVENT",
+   "detected_problem": "ข้อสังเกตดิบถูกเขียนเป็นเหตุการณ์",
+   "expected_domain": [
+    "GENERAL_CONVERSATION"
+   ],
+   "confidence": "0",
+   "evidence": [
+    "event_type=line_chat",
+    "status=new"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": null,
+   "repair_action": "RECLASSIFY",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260710-0009",
+   "original_event_type": "สอบถามทั่วไป",
+   "original_domain": "SALES",
+   "classification": "RAW_OBSERVATION_WRITTEN_AS_EVENT",
+   "detected_problem": "ข้อสังเกตดิบถูกเขียนเป็นเหตุการณ์",
+   "expected_domain": [
+    "GENERAL_CONVERSATION"
+   ],
+   "confidence": "0.8",
+   "evidence": [
+    "event_type=สอบถามทั่วไป",
+    "status=new"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": null,
+   "repair_action": "RECLASSIFY",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260710-0008",
+   "original_event_type": "สั่งซื้อ",
+   "original_domain": "SALES",
+   "classification": "TRUE_SALES_EVENT",
+   "detected_problem": null,
+   "expected_domain": [
+    "SALES"
+   ],
+   "confidence": "0.9",
+   "evidence": [
+    "event_type=สั่งซื้อ",
+    "status=new"
+   ],
+   "current_state_effect": "นับรวมได้ตามปกติ",
+   "financial_effect_if_any": null,
+   "repair_action": "KEEP_AS_HISTORY",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260710-0007",
+   "original_event_type": "สอบถามทั่วไป",
+   "original_domain": "SALES",
+   "classification": "RAW_OBSERVATION_WRITTEN_AS_EVENT",
+   "detected_problem": "ข้อสังเกตดิบถูกเขียนเป็นเหตุการณ์",
+   "expected_domain": [
+    "GENERAL_CONVERSATION"
+   ],
+   "confidence": "0.8",
+   "evidence": [
+    "event_type=สอบถามทั่วไป",
+    "status=new"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": null,
+   "repair_action": "RECLASSIFY",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260710-0006",
+   "original_event_type": "line_chat",
+   "original_domain": "SALES",
+   "classification": "RAW_OBSERVATION_WRITTEN_AS_EVENT",
+   "detected_problem": "ข้อสังเกตดิบถูกเขียนเป็นเหตุการณ์",
+   "expected_domain": [
+    "GENERAL_CONVERSATION"
+   ],
+   "confidence": "0",
+   "evidence": [
+    "event_type=line_chat",
+    "status=new"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": null,
+   "repair_action": "RECLASSIFY",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260710-0005",
+   "original_event_type": "line_chat",
+   "original_domain": "SALES",
+   "classification": "RAW_OBSERVATION_WRITTEN_AS_EVENT",
+   "detected_problem": "ข้อสังเกตดิบถูกเขียนเป็นเหตุการณ์",
+   "expected_domain": [
+    "GENERAL_CONVERSATION"
+   ],
+   "confidence": "0",
+   "evidence": [
+    "event_type=line_chat",
+    "status=new"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": null,
+   "repair_action": "RECLASSIFY",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260710-0004",
+   "original_event_type": "line_chat",
+   "original_domain": "SALES",
+   "classification": "RAW_OBSERVATION_WRITTEN_AS_EVENT",
+   "detected_problem": "ข้อสังเกตดิบถูกเขียนเป็นเหตุการณ์",
+   "expected_domain": [
+    "GENERAL_CONVERSATION"
+   ],
+   "confidence": "0",
+   "evidence": [
+    "event_type=line_chat",
+    "status=new"
+   ],
+   "current_state_effect": "ต้องกันออกจากการคำนวณสถานะธุรกิจ",
+   "financial_effect_if_any": null,
+   "repair_action": "RECLASSIFY",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260710-0003",
+   "original_event_type": "ขอราคา",
+   "original_domain": "SALES",
+   "classification": "TRUE_SALES_EVENT",
+   "detected_problem": null,
+   "expected_domain": [
+    "SALES"
+   ],
+   "confidence": "0.9",
+   "evidence": [
+    "event_type=ขอราคา",
+    "status=superseded"
+   ],
+   "current_state_effect": "นับรวมได้ตามปกติ",
+   "financial_effect_if_any": null,
+   "repair_action": "KEEP_AS_HISTORY",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260710-0002",
+   "original_event_type": "ขอราคา",
+   "original_domain": "SALES",
+   "classification": "TRUE_SALES_EVENT",
+   "detected_problem": null,
+   "expected_domain": [
+    "SALES"
+   ],
+   "confidence": "0.9",
+   "evidence": [
+    "event_type=ขอราคา",
+    "status=job_created"
+   ],
+   "current_state_effect": "นับรวมได้ตามปกติ",
+   "financial_effect_if_any": null,
+   "repair_action": "KEEP_AS_HISTORY",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV260710-0001",
+   "original_event_type": "inquiry",
+   "original_domain": "SALES",
+   "classification": "TRUE_SALES_EVENT",
+   "detected_problem": null,
+   "expected_domain": [
+    "SALES"
+   ],
+   "confidence": "0.9",
+   "evidence": [
+    "event_type=inquiry",
+    "status=ready_to_quote"
+   ],
+   "current_state_effect": "นับรวมได้ตามปกติ",
+   "financial_effect_if_any": null,
+   "repair_action": "KEEP_AS_HISTORY",
+   "automatic_replay": false
+  },
+  {
+   "schema": "MISROUTED_LEGACY_EVENT_V1",
+   "record_ref": "EV20260724-DEMO1",
+   "original_event_type": "สั่งซื้อ",
+   "original_domain": "SALES",
+   "classification": "TRUE_SALES_EVENT",
+   "detected_problem": null,
+   "expected_domain": [
+    "SALES"
+   ],
+   "confidence": "1",
+   "evidence": [
+    "event_type=สั่งซื้อ",
+    "status=job_created"
+   ],
+   "current_state_effect": "นับรวมได้ตามปกติ",
+   "financial_effect_if_any": null,
+   "repair_action": "KEEP_AS_HISTORY",
+   "automatic_replay": false
+  }
+ ]
+}

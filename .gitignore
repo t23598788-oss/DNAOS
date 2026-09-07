@@ -18,6 +18,12 @@ local-runtime/coordination/
 # it is the real evidence lineage the Live Census derives from.
 software/registry-database/data/
 tests/__sandbox__/
+
+# Compiled output of control/conversation-runtime/tsconfig.build.json —
+# regenerate with `npm run conversation-runtime:build` before starting the
+# production conversation runtime; never hand-edited, never the source of
+# truth (Owner UNLOCK 2026-09-06, REMOVE_TSX_FROM_PRODUCTION_CONVERSATION_RUNTIME).
+control/conversation-runtime/dist/
 control/scheduler/data/*.jsonl
 software/live-census/data/last-census.json
 

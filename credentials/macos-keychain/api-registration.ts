@@ -31,6 +31,12 @@ const ALLOWED_REQUESTERS = [
   // explicitly rather than by widening the check, so this list stays the
   // complete, readable answer to "who may write a credential".
   "credentials/supabase-edge-secret/installer.ts",
+  // Owner-approved 2026-09-05: the MCP internal-transport machine identity.
+  // Added by name for the same reason as the line above — this list stays the
+  // complete, readable answer to "who may write a credential". The secret it
+  // writes proves possession of a transport key only; it can never satisfy
+  // VERIFIED_OWNER_SESSION or mint Owner authority.
+  "connections/dna-os-mcp/internal-identity.ts",
   // Owner-approved 2026-09-01: the TikTok Login Kit OAuth lifecycle. Same
   // discipline as GitHub's — turns an Owner's real browser approval into a
   // Keychain-backed credential_ref; never accepts an Agent-forwarded secret.

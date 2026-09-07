@@ -20,9 +20,11 @@
 
 import type { CapabilityResult } from "../../contracts/command/capability-result";
 import type { CommandLifecycleStage } from "../command-status/lifecycle";
+import type { CapabilityRuntimeStatus } from "../command-router/types";
 
 export interface OwnerCapabilityStatus {
   capability_id: string;
+  status: CapabilityRuntimeStatus;
   connected: boolean;
 }
 

@@ -4,7 +4,8 @@
  * methods; no query logic of its own beyond picking which store method a
  * given `CapabilityLookupQuery` maps to.
  *
- * Input: `CapabilityLookupQuery`, `RegistryStore`.
+ * Input: `CapabilityLookupQuery`, `ReadOnlyRegistryStore` (any `RegistryStore`
+ * satisfies it — write methods are simply not read here).
  * Output: `CapabilityLookupResult | null`.
  * Dependency ที่อนุญาต: ./types.ts, ./store-port.ts.
  * สิ่งที่ห้ามแตะ: never let this file mutate anything — read-only, always.
@@ -14,16 +15,16 @@
  */
 
 import type { CapabilityLookupQuery, CapabilityLookupResult } from "./types";
-import type { RegistryStore } from "./store-port";
+import type { ReadOnlyRegistryStore } from "./store-port";
 
-export function findCapability(query: CapabilityLookupQuery, store: RegistryStore): CapabilityLookupResult | null {
+export function findCapability(query: CapabilityLookupQuery, store: ReadOnlyRegistryStore): CapabilityLookupResult | null {
   if (query.capability_id !== undefined) return store.findCapabilityById(query.capability_id);
   if (query.semantic_fingerprint !== undefined) return store.findCapabilityBySemanticFingerprint(query.semantic_fingerprint);
   if (query.canonical_name !== undefined) return store.findCapabilityByCanonicalName(query.canonical_name);
   return null;
 }
 
-export function findResourceById(resource_id: string, store: RegistryStore) {
+export function findResourceById(resource_id: string, store: ReadOnlyRegistryStore) {
   return store.findResourceById(resource_id);
 }
 
@@ -59,7 +60,7 @@ export interface CapabilitySearchHit {
   matched_on: readonly string[];
 }
 
-export function searchCapabilities(tokens: readonly string[], store: RegistryStore, limit = 10): readonly CapabilitySearchHit[] | null {
+export function searchCapabilities(tokens: readonly string[], store: ReadOnlyRegistryStore, limit = 10): readonly CapabilitySearchHit[] | null {
   if (!store.listCapabilityRows || !store.listResourceRows || !store.listResourceCapabilityLinks) return null;
   const lower = tokens.map((t) => t.toLowerCase()).filter(Boolean);
   if (lower.length === 0) return [];

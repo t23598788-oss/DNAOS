@@ -83,6 +83,27 @@ const isReply = (v: unknown): v is ApiReply => typeof v === "object" && v !== nu
 /**
  * คืน null เมื่อ path ไม่ใช่ของ Computer Use — ให้ router เดิมเดินต่อ
  */
+import { createChallenge, runVerification } from "../../control/owner-authentication/human-verification";
+import { setControlMode } from "../../control/computer-use-authority/work-lease";
+
+/** session ที่ผ่านการยืนยันตัวตนจริงและยังไม่หมดอายุ — ตัวชี้ภายใน ไม่ส่งออกนอก */
+function activeVerifiedSessionId(): string | null {
+  const fs = require("node:fs") as typeof import("node:fs");
+  const pathMod = require("node:path") as typeof import("node:path");
+  const file = pathMod.join(process.cwd(), "control/owner-authentication/data/owner-sessions.jsonl");
+  const latest = new Map<string, { session_id: string; state: string; expires_at: string; authenticated_via?: string }>();
+  try {
+    for (const line of fs.readFileSync(file, "utf-8").split("\n")) {
+      if (line.trim() === "") continue;
+      try { const r = JSON.parse(line); if (r.session_id) latest.set(r.session_id, r); } catch { /* ข้ามแถวเสีย */ }
+    }
+  } catch { return null; }
+  const now = Date.now();
+  const live = [...latest.values()].filter((x) => x.state === "ACTIVE" && new Date(x.expires_at).getTime() > now
+    && String(x.authenticated_via ?? "").startsWith("human-verification"));
+  return live.length > 0 ? live[live.length - 1]!.session_id : null;
+}
+
 export function handleComputerUseApi(method: string, path: string, body: unknown): ApiReply | null {
   const b = (body ?? {}) as Record<string, unknown>;
 
@@ -125,6 +146,91 @@ export function handleComputerUseApi(method: string, path: string, body: unknown
     const evidence_id = recordEvidence({ endpoint: "owner/authenticate", outcome: result.ok ? "AUTHENTICATED" : "DENIED",
       expected_owner, method: methodName, reason_code: result.ok ? null : result.reason_code });
     return { status: 200, body: stripSecrets({ ...result, evidence_id }) };
+  }
+
+  /**
+   * OWNER SURFACE — ยืนยันเจ้าของจบในการกดครั้งเดียว
+   *
+   * Owner, 2026-09-05: เจ้าของต้องไม่เปิด Terminal และต้องไม่ copy session_id
+   * เส้นนี้รวมสามขั้นที่พิสูจน์แล้วไว้ในคำขอเดียว: สร้าง challenge -> เรียก
+   * native LocalAuthentication helper (macOS เด้งหน้าต่างเอง) -> ใช้ challenge
+   * ที่ยืนยันแล้วออก session ผ่าน authenticateOwner ตัวเดิม
+   *
+   * ไม่มี session model ใหม่และไม่มีสำเนา helper — เรียกของเดิมทั้งสามขั้น
+   * และ session_id ไม่ถูกส่งกลับไปให้หน้าจอ
+   */
+  if (method === "POST" && path === "/computer-use/owner/verify") {
+    const expected = str(b.expected_owner) ?? "tam";
+    const purpose = str(b.purpose) ?? "ยืนยันตัวตนเพื่ออนุญาตให้ DNA OS ควบคุมคอมพิวเตอร์ตามสิทธิ์ที่กำหนด";
+    const ceiling = (str(b.authority_class) ?? "CLASS_1_NAVIGATION") as never;
+    const created = createChallenge({ expected_owner: expected, purpose, requested_authority_class: ceiling });
+    if (!created.ok) {
+      const evidence_id = recordEvidence({ endpoint: "owner/verify", outcome: "DENIED", expected_owner: expected, reason_code: created.reason_code });
+      return { status: 200, body: { ok: false, reason_code: created.reason_code, detail: created.detail, evidence_id } };
+    }
+    const verified = runVerification(created.challenge.challenge_id);
+    if (verified.outcome !== "VERIFIED") {
+      const evidence_id = recordEvidence({ endpoint: "owner/verify", outcome: "DENIED", expected_owner: expected, reason_code: verified.outcome });
+      return { status: 200, body: { ok: false, reason_code: verified.outcome, detail: verified.error_code ?? null, evidence_id } };
+    }
+    const ttl = Number.isFinite(Number(b.ttl_seconds)) ? Number(b.ttl_seconds) : 3600;
+    const minted = authenticateOwner({ method: "human-verification", expected_owner: expected, ttl_seconds: ttl,
+      verified_challenge_id: created.challenge.challenge_id } as never) as { ok: boolean; reason_code?: string; detail?: string; session?: { expires_at: string } };
+    const evidence_id = recordEvidence({ endpoint: "owner/verify", outcome: minted.ok ? "AUTHENTICATED" : "DENIED",
+      expected_owner: expected, method: "human-verification", reason_code: minted.ok ? null : minted.reason_code });
+    // ไม่คืน session_id ให้หน้าจอโดยเจตนา — หน้าจอไม่ต้องถือและไม่ต้อง copy
+    return { status: 200, body: minted.ok
+      ? { ok: true, verified: true, verification_method: verified.verification_method_class,
+          expires_at: minted.session?.expires_at ?? null, authority_ceiling: String(ceiling), evidence_id }
+      : { ok: false, reason_code: minted.reason_code, detail: minted.detail, evidence_id } };
+  }
+
+  /**
+   * เพิกถอนจากหน้าจอ — เจ้าของไม่ต้องถือ session_id
+   *
+   * เส้นเดิม /computer-use/lock ต้องการ owner_session_id ซึ่งหน้าจอไม่มีโดยเจตนา
+   * (เราไม่เคยส่ง session_id ออกไปให้ UI) Core จึงต้องหา session ที่ยังใช้ได้เอง
+   * แล้วเพิกถอน — ใช้ revokeOwnerSession ตัวเดิม ไม่มี session model ใหม่
+   */
+  if (method === "POST" && path === "/computer-use/owner/revoke") {
+    const fs = require("node:fs") as typeof import("node:fs");
+    const pathMod = require("node:path") as typeof import("node:path");
+    const file = pathMod.join(process.cwd(), "control/owner-authentication/data/owner-sessions.jsonl");
+    const latest = new Map<string, { session_id: string; state: string; expires_at: string; authenticated_via?: string }>();
+    try {
+      for (const line of fs.readFileSync(file, "utf-8").split("\n")) {
+        if (line.trim() === "") continue;
+        try { const r = JSON.parse(line); if (r.session_id) latest.set(r.session_id, r); } catch { /* ข้ามแถวเสีย */ }
+      }
+    } catch { /* ไม่มีไฟล์ = ไม่มี session */ }
+    const now = Date.now();
+    const live = [...latest.values()].filter((x) => x.state === "ACTIVE" && new Date(x.expires_at).getTime() > now);
+    let revoked = 0;
+    for (const s0 of live) { if ((revokeOwnerSession(s0.session_id) as { ok: boolean }).ok) revoked += 1; }
+    const evidence_id = recordEvidence({ endpoint: "owner/revoke", outcome: "REVOKED", revoked_count: revoked });
+    return { status: 200, body: { ok: true, revoked_sessions: revoked, evidence_id } };
+  }
+
+  /**
+   * ตั้งโหมดควบคุมคอมพิวเตอร์จากหน้าจอ — เจ้าของไม่ต้องถือ session_id
+   *
+   * เหตุผลเดียวกับ /computer-use/owner/revoke: หน้าจอไม่เคยได้ session_id
+   * Core จึงหา session ที่ยังใช้ได้เอง แล้วส่งให้ setControlMode ตัวเดิม
+   * ไม่มี state ใหม่และไม่มีการลดด่าน — setControlMode ยังตรวจ session เหมือนเดิม
+   */
+  if (method === "POST" && path === "/computer-use/owner/mode") {
+    const wanted = str(b.mode);
+    if (wanted !== "OFF" && wanted !== "PER_TASK" && wanted !== "CONTINUOUS") {
+      return deny("INVALID_REQUEST", "mode ต้องเป็น OFF | PER_TASK | CONTINUOUS");
+    }
+    const sid = activeVerifiedSessionId();
+    if (sid === null) {
+      const evidence_id = recordEvidence({ endpoint: "owner/mode", outcome: "DENIED", reason_code: "HUMAN_VERIFICATION_REQUIRED", mode: wanted });
+      return { status: 200, body: { ok: false, reason_code: "HUMAN_VERIFICATION_REQUIRED", detail: "ไม่มี session ที่เจ้าของยืนยันตัวตนไว้", evidence_id } };
+    }
+    const r = setControlMode(wanted, sid) as { ok: boolean; mode?: string; reason_code?: string; detail?: string };
+    const evidence_id = recordEvidence({ endpoint: "owner/mode", outcome: r.ok ? "MODE_SET" : "DENIED", mode: wanted, reason_code: r.ok ? null : r.reason_code });
+    return { status: 200, body: r.ok ? { ok: true, mode: r.mode, evidence_id } : { ok: false, reason_code: r.reason_code, detail: r.detail, evidence_id } };
   }
 
   if (method === "POST" && path === "/computer-use/authority/grant") {

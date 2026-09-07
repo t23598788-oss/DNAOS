@@ -18,6 +18,12 @@ The infrastructure repository stores control metadata only: task IDs,
 statuses, evidence references, audit facts, and bounded artifacts. It must not
 store business data, passwords, API keys, Keychain secrets, or MFA material.
 
+The canonical cross-repository path is the authenticated Deadboard
+`/api/infra-command` request to the loopback Owner Command HTTP server. The
+generic `contracts/operational-bridge/` type contract is retained for future
+compatibility but is explicitly `NOT_CANONICAL` and must not be cited as live
+runtime evidence.
+
 ## Phase contract and evidence
 
 | Phase | Contract | Current evidence |
@@ -53,6 +59,19 @@ npm run owner-command:serve
 The server binds to `127.0.0.1:8791` by default. Use `PORT=8792` for an
 isolated local verification run. The Deadboard route defaults to the same
 loopback URL and may override it with `INFRA_OWNER_COMMAND_URL`.
+
+Write/control requests require `OWNER_COMMAND_HTTP_SHARED_SECRET` on the
+Infrastructure LaunchAgent and the matching
+`INFRA_OWNER_COMMAND_SHARED_SECRET` on Deadboard. Missing configuration is
+`BLOCKED`; it is never treated as local authentication.
+
+Authority source-of-truth is split by boundary, not duplicated: Supabase
+`requireAuth` in Deadboard authenticates the human Owner for command ingress;
+the Infrastructure `ownerIdentity` is attribution only and cannot mint an
+Owner command without the authenticated Deadboard transport. Computer-use
+does not become a second command authority: it independently requires the
+existing local human-verification session and task-scoped lease before OS
+execution, which remains an execution safety boundary.
 
 Health and evidence reads:
 

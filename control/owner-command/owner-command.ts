@@ -41,6 +41,7 @@ import type { CapabilityResult } from "../../contracts/command/capability-result
 import type { DnaOsOutput } from "../../contracts/command/output-contract";
 import { classifyCommand, classifyOutput, listCapabilities, routeOwnerCommand } from "../command-router/contract";
 import { recordCommandTaskId, recordOwnerVisibleResult, resolveOwnerCommandSemantics, type SemanticDeps } from "../owner-command-semantics/contract";
+import { requiredCapabilitiesFor, selectResourcesFor, recordResolution } from "../resource-selection/contract";
 import { resolveEntryContext } from "../entry-context/contract";
 import { resolveOutputConsumers } from "../output-routing/contract";
 import { recordCommandLineage } from "./input-gateway";
@@ -102,7 +103,11 @@ function toProgress(stage: CommandLifecycleStage): OwnerSurfaceState["progress"]
 }
 
 function availableCapabilities(): readonly OwnerCapabilityStatus[] {
-  return listCapabilities().map((cap) => ({ capability_id: cap.capability_id, connected: cap.health_status === "CONNECTED" }));
+  return listCapabilities().map((cap) => ({
+    capability_id: cap.capability_id,
+    status: cap.endpoint.kind === "not_yet_built" ? "BLOCKED" : cap.health_status === "CONNECTED" ? "EXECUTABLE" : "REGISTERED",
+    connected: cap.health_status === "CONNECTED",
+  }));
 }
 
 /** How the semantic layer is run for this submission. `enabled: false` is for suites that must not spawn a model — the pre-2026-08-26 behavior, unchanged. */
@@ -150,8 +155,12 @@ export interface SubmitOwnerCommandOutcome {
 export function findOpenOwnerQuestion(identityId: string): Task | null {
   const latest = new Map<string, Task>();
   for (const task of loadAllTasks()) latest.set(task.task_id, task);
+  const hasDescendant = (taskId: string): boolean => [...latest.values()].some((candidate) => candidate.memory.parent_task_id === taskId);
   const open = [...latest.values()].filter(
-    (t) => t.status === "WAITING_OWNER_DECISION" && t.memory.user_id === identityId && agentActuallyAsked(t),
+    (t) => t.status === "WAITING_OWNER_DECISION"
+      && t.memory.user_id === identityId
+      && !hasDescendant(t.task_id)
+      && agentActuallyAsked(t),
   );
   return open.sort((a, b) => a.updated_at.localeCompare(b.updated_at)).at(-1) ?? null;
 }
@@ -259,7 +268,54 @@ export async function submitOwnerCommand(commandText: string, ownerIdentity: Env
     ? undefined
     : resolveOwnerCommandSemantics(envelope.command_id, commandText, { identity_id: ownerIdentity.identity_id, kind: ownerIdentity.kind }, semanticOptions.deps ?? {});
 
+  /**
+   * RESOURCE RESOLUTION (Owner, 2026-09-05) — อยู่ตรงนี้เพราะที่นี่คือจุดแรกที่
+   * เจตนาถูก resolve แล้ว และเป็นจุดสุดท้ายก่อนขอให้ router ลงมือ
+   *
+   * ลำดับเป็นข้อบังคับ ไม่ใช่ธรรมเนียม: ถ้า `semantics.ok` ไม่จริง บล็อกนี้ไม่ทำงาน
+   * เลย จึงไม่มีการค้นทะเบียน ไม่มีการเลือกทรัพยากร และไม่มีการเตรียม tool
+   * ล่วงหน้า — ตรงตามข้อ 2 ที่ห้ามเตรียมเครื่องมือก่อนเข้าใจคำสั่ง
+   *
+   * ตัวเลือกทรัพยากรเป็นของ DNA OS: ความสามารถที่ต้องใช้มาจากตารางใน
+   * ../resource-selection/intent-capabilities.ts และตัวทรัพยากรมาจากทะเบียนกลาง
+   * ไม่มีจุดใดที่ Agent หรือโมเดลเป็นผู้เลือก
+   *
+   * บล็อกนี้ไม่เรียกทรัพยากรใด ๆ มันบันทึกว่า "ต้องใช้อะไร และมีอะไร" เท่านั้น
+   * การเรียก connector จริงยังทำจากฝั่ง DNA OS ไม่ได้ เพราะ connector เหล่านี้
+   * เข้าถึงผ่าน MCP client ที่ถือ OAuth ของ Owner ซึ่ง DNA OS ไม่มีเส้นทางถึง
+   * (ตรวจแล้ว 2026-09-05: connections/dna-os-mcp/ เป็น MCP server ไม่ใช่ client)
+   * จึงบันทึกเป็น BLOCKED:NO_CREDENTIAL_PATH ไม่ใช่แกล้งว่าเรียกสำเร็จ
+   */
   if (semantics && semantics.ok) {
+    try {
+      const need = requiredCapabilitiesFor(commandText);
+      if (need.status === "RESOLVED") {
+        const selection = selectResourcesFor(need.required_capabilities);
+        recordResolution({
+          selection_id: `sel_${hostRandomId()}`,
+          command_id: envelope.command_id,
+          work_id: null,
+          intent_status: "RESOLVED",
+          required_capabilities: need.required_capabilities,
+          selected_resources: selection.selected.map((r) => ({
+            resource_id: r.resource_id, capability_id: r.capability, canonical_name: r.resource_name,
+            access_method: "CONNECTOR",
+            reason_selected: `ทะเบียนกลางประกาศความสามารถ "${r.capability}" ไว้ที่ทรัพยากรนี้ และสถานะยัง REGISTERED`,
+          })),
+          unresolved_capabilities: selection.missing,
+          executions: selection.selected.map((r) => ({
+            resource_execution_id: `rex_${hostRandomId()}`,
+            resource_id: r.resource_id, capability_id: r.capability, tool_name: r.capability,
+            started_at: hostNowIso(), finished_at: hostNowIso(), duration_ms: 0,
+            status: "BLOCKED" as const, read_write_class: "READ_ONLY",
+            result_summary: null, error_code: "NO_CREDENTIAL_PATH",
+          })),
+          agent_invoked: false,
+          recorded_at: hostNowIso(),
+        });
+      }
+    } catch { /* การหาทรัพยากรล้มต้องไม่ทำให้คำสั่งของ Owner ออกไม่ได้ */ }
+
     let context = semantics.context;
 
     // Requirement 6/7: ../entry-context/ is called for real, with the real

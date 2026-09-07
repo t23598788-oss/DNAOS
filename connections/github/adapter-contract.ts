@@ -45,6 +45,8 @@ export type GithubIntent = (typeof GITHUB_INTENTS)[keyof typeof GITHUB_INTENTS];
 export const GITHUB_EVENT_TYPES = {
   accessChecked: "connector.github.access_checked",
   statusRead: "connector.github.status_read",
+  /** Emitted by ./webhook-receiver.ts, never by github-adapter.ts's own outbound `handleGithubCommand` path — this one event describes something GitHub told THIS repo happened, not a result of a command this adapter sent. */
+  pushReceived: "connector.github.push_received",
 } as const;
 
 /** Which repository a command is about. Always payload data — never a constant in this capability. */
@@ -131,8 +133,30 @@ export interface GithubRepoStatusResult {
 /** The `ok: false` half of the shared `RoutingResult` — reused as-is, so a rejection from this adapter is the same shape the router already speaks. */
 export type GithubRejection = Extract<RoutingResult, { ok: false }>;
 
+/**
+ * Result carried by `GITHUB_EVENT_TYPES.pushReceived` — the normalized
+ * shape of a real GitHub `push` webhook payload, produced by
+ * ./webhook-receiver.ts ONLY after its HMAC signature has verified. No
+ * field here is file content — commit metadata only (sha, message,
+ * author identity strings, counts), matching this adapter's existing
+ * "source-control metadata only" discipline.
+ */
+export interface GithubPushEventData {
+  owner: string;
+  repo: string;
+  ref: string;
+  branch: string;
+  before_sha: string;
+  after_sha: string;
+  commit_count: number;
+  head_commit_sha: string | null;
+  head_commit_message: string | null;
+  pusher: string | null;
+  delivery_id: string | null;
+}
+
 /** Every `EventEnvelope.data` this adapter can produce today. */
-export type GithubEventData = GithubAccessCheckResult | GithubRepoStatusResult;
+export type GithubEventData = GithubAccessCheckResult | GithubRepoStatusResult | GithubPushEventData;
 
 /**
  * What `handleGithubCommand` returns: either a real Event describing what
@@ -153,5 +177,17 @@ export type GithubAdapterOutcome =
  *   metadata (type, blob sha, size) only, never its bytes.
  * - recursive directory status — a directory path reports its immediate
  *   entries only, and does not walk subdirectories.
- * - webhooks / event subscription from GitHub inbound.
+ *
+ * BUILT SINCE (see ./write-api.ts and ./webhook-receiver.ts — this
+ * comment intentionally left in place as the historical scope record;
+ * the two files below are the real, separately-authorized additions):
+ * - push / write (`PUT /repos/{owner}/{repo}/contents/{path}`) — one
+ *   file, one commit, one already-registered branch — is real in
+ *   ./write-api.ts. Not yet wired to a CommandEnvelope intent in this
+ *   file (GITHUB_INTENTS has no write intent yet) — ./write-api.ts is
+ *   called directly by its own authorized caller today.
+ * - inbound webhook receipt (signature-validated `push` events only) is
+ *   real in ./webhook-receiver.ts, emitting `GITHUB_EVENT_TYPES.pushReceived`.
+ * - reading file CONTENT back ("pull"), recursive directory status, and
+ *   any webhook event type other than `push` remain NOT_YET_BUILT.
  */

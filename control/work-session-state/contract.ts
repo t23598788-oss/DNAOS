@@ -61,6 +61,8 @@ export {
 export type { StateAuthority, FactKind, CanonicalResolution, ScopeAnswer } from "./authority";
 export { buildRehydrationPlan, allRehydrationPlans, recoverRuntime, renderRehydrationBriefing, RECOVERY_MAX_ATTEMPTS } from "./rehydrate";
 export type { RehydrationPlan, RuntimeRecovery } from "./rehydrate";
+export { currentStateProjection } from "./current-state";
+export type { CurrentStateProjection } from "./current-state";
 export type {
   WorkSessionCheckpoint,
   WorkStep,

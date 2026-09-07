@@ -15,4 +15,4 @@ export { runCapabilityFolderLawGate } from "./folder-law-gate";
 export { checkFolderLawForPath } from "./folder-law-path-check";
 export type { FolderLawPathResult, FolderLawPathVerdict } from "./folder-law-path-check";
 export type { BoundaryViolation } from "./types";
-export type { FolderLawGateResult, FolderLawViolation, FolderLawRuleRow, FolderLawVerdict } from "./types";
+export type { FolderLawGateResult, FolderLawViolation, FolderLawRuleRow, FolderLawVerdict, FolderLawClassification, FolderLawRootCause } from "./types";

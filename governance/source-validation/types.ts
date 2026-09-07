@@ -48,6 +48,8 @@ export type FolderLawRuleRow =
 
 /** ผลตามกฎ ใช้คำเดียวกับตารางในเอกสาร ไม่แปลใหม่ */
 export type FolderLawVerdict = "REJECT" | "BLOCK_AND_REVIEW";
+export type FolderLawClassification = "REAL_VIOLATION" | "STALE_RULE" | "LEGACY_EXEMPTION";
+export type FolderLawRootCause = "DUPLICATE_OWNERSHIP_REGISTRATION" | "ADAPTER_BYPASS" | "INTERNAL_TYPE_BYPASS" | "PUBLIC_CONTRACT_BYPASS";
 
 export interface FolderLawViolation {
   readonly rule_row: FolderLawRuleRow;
@@ -60,6 +62,9 @@ export interface FolderLawViolation {
   /** ข้อเท็จจริงที่วัดได้ ไม่ใช่ความเห็น */
   readonly measured: string;
   readonly evidence_ref: string;
+  readonly classification: FolderLawClassification;
+  readonly classification_reason: string;
+  readonly root_cause: FolderLawRootCause;
 }
 
 /**
@@ -87,4 +92,6 @@ export interface FolderLawGateResult {
   readonly checked_per_rule: Readonly<Record<FolderLawRuleRow, number>>;
   /** กฎที่ตรวจจาก snapshot ไม่ได้ — ประกาศไว้ ไม่ใช่แกล้งว่าตรวจแล้ว */
   readonly not_snapshot_checkable: readonly string[];
+  readonly classification_counts: Readonly<Record<FolderLawClassification, number>>;
+  readonly root_cause_counts: Readonly<Record<FolderLawRootCause, number>>;
 }

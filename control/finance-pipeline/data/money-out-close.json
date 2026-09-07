@@ -1,0 +1,130 @@
+{
+ "generated_at": "2026-09-05T06:59:14.850Z",
+ "expense_classification": {
+  "PAYMENT_UNVERIFIED": 3,
+  "DOCUMENT_ONLY": 1,
+  "UNKNOWN": 60,
+  "OBLIGATION_ONLY": 67,
+  "INVALID": 2
+ },
+ "bank_classification": {
+  "MONEY_IN": 14,
+  "MONEY_OUT": 100,
+  "FEE": 1
+ },
+ "bank_money_out_total": 143056.78,
+ "payable_close": 1325.83,
+ "months": [
+  {
+   "month": "2022-07",
+   "payable_open": 0,
+   "payable_created": 0,
+   "payable_paid": 0,
+   "payable_adjustment": 0,
+   "payable_close": 0,
+   "equation_holds": true,
+   "money_out_total": 0
+  },
+  {
+   "month": "2023-10",
+   "payable_open": 0,
+   "payable_created": 0,
+   "payable_paid": 0,
+   "payable_adjustment": 0,
+   "payable_close": 0,
+   "equation_holds": true,
+   "money_out_total": 0
+  },
+  {
+   "month": "2026-01",
+   "payable_open": 0,
+   "payable_created": 0,
+   "payable_paid": 0,
+   "payable_adjustment": 0,
+   "payable_close": 0,
+   "equation_holds": true,
+   "money_out_total": 0
+  },
+  {
+   "month": "2026-05",
+   "payable_open": 0,
+   "payable_created": 0,
+   "payable_paid": 0,
+   "payable_adjustment": 0,
+   "payable_close": 0,
+   "equation_holds": true,
+   "money_out_total": 0
+  },
+  {
+   "month": "2026-07",
+   "payable_open": 0,
+   "payable_created": 1325.83,
+   "payable_paid": 0,
+   "payable_adjustment": 0,
+   "payable_close": 1325.83,
+   "equation_holds": true,
+   "money_out_total": 0
+  },
+  {
+   "month": "2026-08",
+   "payable_open": 1325.83,
+   "payable_created": 0,
+   "payable_paid": 0,
+   "payable_adjustment": 0,
+   "payable_close": 1325.83,
+   "equation_holds": true,
+   "money_out_total": 0
+  },
+  {
+   "month": "2026-09",
+   "payable_open": 1325.83,
+   "payable_created": 0,
+   "payable_paid": 0,
+   "payable_adjustment": 0,
+   "payable_close": 1325.83,
+   "equation_holds": true,
+   "money_out_total": 0
+  }
+ ],
+ "verifier": {
+  "checks": [
+   {
+    "id": "NO_SETTLEMENT_WITHOUT_VERIFIED_PAYMENT",
+    "verdict": "PASS",
+    "detail": "ไม่มีรายการที่ถูกตัดจ่ายโดยไม่มีหลักฐาน"
+   },
+   {
+    "id": "NO_DUPLICATE_PAYMENT",
+    "verdict": "PASS",
+    "detail": "รายการที่ตัดจ่ายแล้ว 0 รายการ ไม่มีตัวซ้ำ"
+   },
+   {
+    "id": "NO_PAYABLE_BALANCE_CHANGE_WITHOUT_EVENT",
+    "verdict": "PASS",
+    "detail": "สมการเปิด + สร้าง − จ่าย = ปิด ลงตัวทั้ง 7 เดือน"
+   },
+   {
+    "id": "NO_AI_AMOUNT_AUTHORITY",
+    "verdict": "PASS",
+    "detail": "ยอดมาจาก partner_payable_requests.amount และ bank_statement_transactions.amount ไม่มีโมเดลภาษาอยู่ในเส้นทาง"
+   },
+   {
+    "id": "NO_AI_SETTLEMENT_AUTHORITY",
+    "verdict": "PASS",
+    "detail": "การเปลี่ยนสถานะทำโดย matchOwnerSlipToPartnerPayable ซึ่งเป็นการเทียบยอด ±5 บาทและอีเมลธนาคาร"
+   },
+   {
+    "id": "NO_PAYMENT_WITHOUT_SOURCE",
+    "verdict": "FAIL",
+    "detail": "ธุรกรรมเงินออก 100 จาก 100 รายการ ไม่มีภาระผูกพันรองรับ"
+   },
+   {
+    "id": "NO_INVISIBLE_REMAINDER",
+    "verdict": "PASS",
+    "detail": "ค่าใช้จ่ายจำแนกครบ 133/133 · ธุรกรรมที่ระบุทิศทางไม่ได้ 0"
+   }
+  ],
+  "result": "BROKEN"
+ },
+ "production_write": 0
+}
