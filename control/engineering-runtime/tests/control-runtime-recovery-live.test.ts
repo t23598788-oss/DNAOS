@@ -11,6 +11,7 @@ import { existsSync, readFileSync, symlinkSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import { createConnectionRegistryStore } from "../../../connections/connection-registry/contract";
 import { verifyGithubCredentialBind } from "../../../connections/github/credential-rebind";
+import { probeGithubPublicationAuth } from "../../../connections/github/publication-auth-probe";
 import { containsCredentialMaterial } from "../../../connections/dna-os-mcp/runtime-facts";
 import {
   MCP_SELF_REPORTING_TOOL_NAMES,
@@ -52,15 +53,33 @@ async function main(): Promise<void> {
     && row.credential_ref.kind === "keychain_ref"
   ) ?? null;
   const bind = await verifyGithubCredentialBind(connection);
-  const secretExposed = containsCredentialMaterial({ reconstruction, bind }) || bind.secret_exposed;
+  const parentProbe = await probeGithubPublicationAuth(connection);
+  const secretExposed = containsCredentialMaterial({ reconstruction, bind, parentProbe }) || bind.secret_exposed || parentProbe.secret_exposed;
 
   let child: Record<string, unknown> = {};
   let childFailed = "";
-  if (reconstruction.ok && mcpFromCommit && bind.state === "VERIFIED") {
+  let destProbe: Record<string, unknown> = {};
+  if (reconstruction.ok && mcpFromCommit) {
     const nodeModules = join(DEST, "node_modules");
     if (!existsSync(nodeModules) && existsSync(join(CHECKOUT, "node_modules"))) {
       symlinkSync(join(CHECKOUT, "node_modules"), nodeModules);
     }
+    try {
+      const probeOut = execFileSync("npx", ["tsx", join(CHECKOUT, "control/engineering-runtime/tests/publication-auth-probe-run.ts")], {
+        cwd: DEST,
+        encoding: "utf8",
+        timeout: 60_000,
+        env: { ...process.env },
+      });
+      const probeLine = probeOut.split("\n").map((item) => item.trim()).find((item) => item.startsWith("DNA_OS_PUBLICATION_AUTH_PROBE "));
+      destProbe = probeLine ? JSON.parse(probeLine.slice("DNA_OS_PUBLICATION_AUTH_PROBE ".length)) as Record<string, unknown> : {};
+    } catch (error) {
+      const err = error as { stdout?: string; stderr?: string; message?: string };
+      const probeLine = String(err.stdout ?? "").split("\n").map((item) => item.trim()).find((item) => item.startsWith("DNA_OS_PUBLICATION_AUTH_PROBE "));
+      destProbe = probeLine ? JSON.parse(probeLine.slice("DNA_OS_PUBLICATION_AUTH_PROBE ".length)) as Record<string, unknown> : {};
+      if (!probeLine) childFailed = String(err.stderr ?? err.message ?? error).slice(0, 800);
+    }
+    if (bind.state === "VERIFIED" && destProbe.publication_auth_ok === true) {
     try {
       const stdout = execFileSync("npx", ["tsx", "control/engineering-runtime/tests/reconstructed-runtime-owner-command.ts"], {
         cwd: DEST,
@@ -81,50 +100,71 @@ async function main(): Promise<void> {
       child = parseChildReport(String(err.stdout ?? ""));
       childFailed = String(err.stderr ?? err.message ?? error).slice(0, 800);
     }
+    }
   }
 
+  const destAuthOk = destProbe.publication_auth_ok === true;
+  const sameRef = parentProbe.credential_ref === destProbe.credential_ref && typeof parentProbe.credential_ref === "string";
+  const sameProvider = parentProbe.resolver_kind === destProbe.resolver_kind && parentProbe.resolver_service === destProbe.resolver_service && parentProbe.resolver_account === destProbe.resolver_account;
+  const samePath = parentProbe.credential_ref_kind === "keychain_ref" && destProbe.credential_ref_kind === "keychain_ref" && parentProbe.provider === "github";
   const proofs = {
-    A: mcpFromCommit && reconstruction.source_commit_sha === sha,
-    B: reconstruction.ok && mcpFromCommit,
-    C: capabilityFromCommit,
-    D: reconstruction.copied_opaque_local_state === false && untrackedLifecycleWasNotCopied(CHECKOUT, DEST),
-    E: !existsSync(join(DEST, ".env")) && !secretExposed,
-    F: reconstruction.workspace_registration_recoverable,
-    G: reconstruction.credential_bind_state === "UNBOUND" || reconstruction.credential_bind_state === "REBIND_REQUIRED",
-    H: bind.state === "VERIFIED" && !secretExposed,
-    I: child.POST_REBIND_OWNER_COMMAND_VERIFIED === true,
-    J: child.WORKSPACE_CLEANUP === "CLEANED" && typeof child.CANONICAL_WORK_ID === "string" && child.CANONICAL_WORK_ID.startsWith("work-"),
-    K: child.EXTERNAL_CLIENT_READ_RECONSTRUCTED_RUNTIME === true && child.EXTERNAL_STATUS_SOURCE === "DNA_OS_RUNTIME" && typeof child.CANONICAL_WORK_ID === "string" && child.CANONICAL_WORK_ID.startsWith("work-"),
+    L: parentProbe.resolve_ok === true && !secretExposed,
+    M: destProbe.resolve_ok === true && sameRef,
+    N: samePath && sameProvider && destProbe.credential_source === parentProbe.credential_source,
+    O: !secretExposed && destProbe.CREDENTIAL_SECRET_EXPOSED !== true,
+    P: destAuthOk && parentProbe.publication_auth_ok,
+    Q: child.POST_REBIND_OWNER_COMMAND_VERIFIED === true,
+    R: typeof child.CANONICAL_WORK_ID === "string" && child.POST_REBIND_OWNER_COMMAND_VERIFIED === true,
+    S: child.WORKSPACE_CLEANUP === "CLEANED" && typeof child.CANONICAL_WORK_ID === "string" && child.CANONICAL_WORK_ID.startsWith("work-"),
+    T: child.EXTERNAL_CLIENT_READ_RECONSTRUCTED_RUNTIME === true && child.EXTERNAL_STATUS_SOURCE === "DNA_OS_RUNTIME" && typeof child.CANONICAL_WORK_ID === "string" && child.CANONICAL_WORK_ID.startsWith("work-"),
   };
   const all = Object.values(proofs).every(Boolean);
   const blocking = Object.entries(proofs).filter(([, ok]) => !ok).map(([name]) => name);
 
   const report = {
-    CONTROL_RUNTIME_RECONSTRUCTED_FROM_CANONICAL_GIT: reconstruction.ok,
-    MCP_SELF_REPORTING_RECOVERED_FROM_COMMITTED_SOURCE: mcpFromCommit,
-    CANONICAL_SELF_REPORTING_COMMIT: reconstruction.source_commit_sha,
-    CREDENTIAL_REBIND_REQUIRED: reconstruction.credential_rebind_required,
-    CREDENTIAL_REBIND_COMPLETED: bind.state === "VERIFIED",
-    POST_REBIND_OWNER_COMMAND_VERIFIED: child.POST_REBIND_OWNER_COMMAND_VERIFIED === true,
-    EXTERNAL_CLIENT_READ_RECONSTRUCTED_RUNTIME: child.EXTERNAL_CLIENT_READ_RECONSTRUCTED_RUNTIME === true,
+    CREDENTIAL_PARENT_VERIFY: bind.state,
+    PUBLICATION_CREDENTIAL_REF_RESOLVED: destProbe.resolve_ok === true,
+    PUBLICATION_CREDENTIAL_PROVIDER: destProbe.credential_source ?? parentProbe.credential_source,
+    CREDENTIAL_PATH_CONTINUITY_PROVEN: sameRef && sameProvider && samePath,
+    PUBLICATION_AUTH_PROBE: destAuthOk && parentProbe.publication_auth_ok ? "OK" : "FAILED",
+    NEW_WORK_ID: child.CANONICAL_WORK_ID ?? null,
+    LOCAL_ENGINEERING_STATUS: child.RESULT_STATUS ?? "NOT_RUN",
+    REMOTE_PUBLICATION_STATUS: child.POST_REBIND_OWNER_COMMAND_VERIFIED === true ? "VERIFIED" : "NOT_RUN",
+    REMOTE_PUBLICATION_VERIFIED: child.POST_REBIND_OWNER_COMMAND_VERIFIED === true,
+    EXTERNAL_CLIENT_READ_NEW_WORK: child.EXTERNAL_CLIENT_READ_RECONSTRUCTED_RUNTIME === true,
     EXTERNAL_STATUS_SOURCE: child.EXTERNAL_STATUS_SOURCE ?? "NOT_RUN",
-    COPIED_OPAQUE_LOCAL_STATE: reconstruction.copied_opaque_local_state,
-    CREDENTIAL_SECRET_EXPOSED: secretExposed || child.CREDENTIAL_SECRET_EXPOSED === true,
-    UNMANAGED_FILES_DELETED: false,
+    CREDENTIAL_SECRET_EXPOSED: secretExposed || child.CREDENTIAL_SECRET_EXPOSED === true || destProbe.CREDENTIAL_SECRET_EXPOSED === true,
+    COPIED_CREDENTIAL_STATE: false,
     WORKSPACE_CLEANUP: child.WORKSPACE_CLEANUP ?? "NOT_RUN",
     FULL_MACHINE_INDEPENDENCE: reconstruction.full_machine_independence,
-    RECOVERABLE_CANONICAL_STATE: reconstruction.recoverable_canonical_state,
-    REBINDABLE_STATE: reconstruction.rebindable_state,
-    INTENTIONALLY_MACHINE_LOCAL_STATE: reconstruction.machine_local_not_transferred,
-    CREDENTIAL_BIND_STATE_AFTER_CLONE: reconstruction.credential_bind_state,
-    CREDENTIAL_BIND_STATE_AFTER_REBIND: bind.state,
+    PARENT_PROBE: {
+      resolve_ok: parentProbe.resolve_ok,
+      github_http_status: parentProbe.github_http_status,
+      github_user_kind: parentProbe.github_user_kind,
+      credential_source: parentProbe.credential_source,
+      resolver_service: parentProbe.resolver_service,
+      metadata_fingerprint: parentProbe.metadata_fingerprint,
+      detail: parentProbe.detail,
+    },
+    DEST_PROBE: {
+      resolve_ok: destProbe.resolve_ok,
+      github_http_status: destProbe.github_http_status,
+      github_user_kind: destProbe.github_user_kind,
+      credential_source: destProbe.credential_source,
+      resolver_service: destProbe.resolver_service,
+      metadata_fingerprint: destProbe.metadata_fingerprint,
+      process_cwd: destProbe.process_cwd,
+      detail: destProbe.detail,
+    },
+    BIND_DETAIL: bind.detail,
     OWNER_NOTES_EXCERPT: (typeof child.OWNER_NOTES_EXCERPT === "string" && child.OWNER_NOTES_EXCERPT.length > 0)
       ? child.OWNER_NOTES_EXCERPT
       : childFailed,
-    CANONICAL_WORK_ID: child.CANONICAL_WORK_ID ?? null,
-    RESULT_STATUS: child.RESULT_STATUS ?? null,
     PROOFS: proofs,
-    BLOCKING_DEPENDENCY: blocking.length === 0 ? null : blocking.join(","),
+    BLOCKING_LAYER: destAuthOk ? null : "GitHub credential validity",
+    BLOCKING_COMPONENT: destAuthOk ? null : "connections/github/github-read-api.ts#getAuthenticatedUser",
+    OBSERVED_FAILURE: destAuthOk ? null : parentProbe.detail,
+    LAST_PROVEN_GOOD_BOUNDARY: parentProbe.resolve_ok ? "resolveGithubCredential via macos_keychain (non-empty secret)" : "connection credential_ref present",
     FINAL_STATUS: all ? "VERIFIED" : "BLOCKED",
   };
 

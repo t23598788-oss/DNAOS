@@ -11,6 +11,7 @@
 
 import type { ConnectionRegistration } from "../../contracts/connector/connection";
 import type { MacOsKeychainProvider } from "../../credentials/macos-keychain/index";
+import { getAuthenticatedUser } from "./github-read-api";
 import { resolveGithubCredential } from "./credential-resolution";
 
 export type CredentialBindState = "UNBOUND" | "REBIND_REQUIRED" | "VERIFIED";
@@ -66,6 +67,7 @@ export function inspectGithubCredentialBind(connection: ConnectionRegistration |
 export async function verifyGithubCredentialBind(
   connection: ConnectionRegistration | null,
   provider?: MacOsKeychainProvider,
+  options: { readonly authenticate_github?: boolean } = {},
 ): Promise<CredentialBindReport> {
   const inspected = inspectGithubCredentialBind(connection);
   if (inspected.state === "UNBOUND" || !connection) return inspected;
@@ -77,13 +79,33 @@ export async function verifyGithubCredentialBind(
       detail: `rebind required: ${resolved.reason}`,
     };
   }
+  const authenticateGithub = options.authenticate_github ?? provider === undefined;
+  if (!authenticateGithub) {
+    return {
+      state: "VERIFIED",
+      connection_id: connection.connection_id,
+      credential_ref: inspected.credential_ref,
+      credential_source: resolved.credential_source,
+      secret_exposed: false,
+      detail: `credential resolved via ${resolved.credential_source} (GitHub /user not requested)`,
+    };
+  }
+  const user = await getAuthenticatedUser(resolved.token);
+  if (user.kind !== "found") {
+    return {
+      ...inspected,
+      state: "REBIND_REQUIRED",
+      credential_source: resolved.credential_source,
+      detail: `Keychain resolved ${resolved.credential_source} but GitHub /user rejected it (http_status=${user.http_status}) — Device Flow rebind is required`,
+    };
+  }
   return {
     state: "VERIFIED",
     connection_id: connection.connection_id,
     credential_ref: inspected.credential_ref,
     credential_source: resolved.credential_source,
     secret_exposed: false,
-    detail: `credential verified via ${resolved.credential_source}`,
+    detail: `credential verified via ${resolved.credential_source} as GitHub login ${user.login}`,
   };
 }
 
