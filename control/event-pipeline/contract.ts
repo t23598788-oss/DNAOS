@@ -6,23 +6,14 @@
  * `./canonical-event-pipeline.ts` stay reachable only through here.
  *
  * Input: re-exports only.
- * Output: `RegistrationCandidate`, `RegistrationFingerprint`,
- * `ClassificationDecision`, `ClassificationResult`, `fingerprintCandidate`,
- * `classifyCandidate` (Domain/Resource Type Classification only — never
- * duplicate detection, that is
- * `control/registration-pipeline/duplicate-resolution.ts`'s exclusive
- * job), plus the Domain Classification boundary types
- * (`RegistrationDomain`, `RegistrationResourceType`, `DomainRoutingResult`,
- * `DomainClassificationResult`, `BatchClassificationResult`) and functions
- * (`classifyRegistrationDomain`, `classifyRegistrationBatch`), plus the
- * AI_INGRESS Type Validation boundary (`IngressMetadata`,
- * `IngressAudience`, `IngressValidationResult`, `validateIngressMetadata`)
- * and `CandidateRelationship` for caller-supplied relationship edges.
- * Dependency ที่อนุญาต: ./registration-contract.ts, ./domain-classification.ts.
+ * Output: registration/classification plus Owner activity producers that
+ * emit through `control/owner-backbone` `emitSystemEvent` (Display Queue
+ * after persist, then Owner projection).
+ * Dependency ที่อนุญาต: ./registration-contract.ts, ./domain-classification.ts,
+ * ./owner-activity.ts.
  * สิ่งที่ห้ามแตะ: never re-export `./canonical-event-pipeline.ts`'s
- * internals here until a real caller needs them — this round only wires
- * the registration/duplicate-detection gate, not the event ingestion
- * pipeline itself.
+ * internals here until a real caller needs them. Display Queue must never
+ * be the execution/coordination queue.
  */
 
 export type { RegistrationCandidate, RegistrationFingerprint, CandidateRelationship, ClassificationDecision, ClassificationResult } from "./registration-contract";
@@ -41,3 +32,29 @@ export type {
   IngressValidationResult,
 } from "./domain-classification";
 export { classifyRegistrationDomain, classifyRegistrationBatch, validateIngressMetadata } from "./domain-classification";
+export {
+  AGENT_DIRECT_UI_WRITE,
+  DIRECT_RAW_EVENT_TO_UI,
+  EXTERNAL_SELF_VERIFICATION,
+  OWNER_ACTIVITY_SOURCE,
+  denyDirectOwnerSurfaceWrite,
+  ingestOwnerActivity,
+  listDisplayQueue,
+  loadOwnerActivityEvents,
+  projectOwnerActivity,
+  recordAgentMessageActivity,
+  recordGithubPublicationActivity,
+} from "./owner-activity";
+export type {
+  ActivityHierarchyLevel,
+  ActivityStatus,
+  ActorType,
+  DisplayQueueItem,
+  ExternalVerificationProof,
+  OwnerActivityEvent,
+  OwnerActivityIngest,
+  OwnerActivityIngestResult,
+  OwnerActivityProjection,
+  OwnerProcessingGroup,
+  VerificationAuthority,
+} from "./owner-activity";
