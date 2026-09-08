@@ -255,7 +255,7 @@ export async function reconstructControlRuntime(input: {
       // Canonical source may itself be a freshly initialized repo.
     }
     if (input.checkout_sha && /^[0-9a-f]{40}$/i.test(input.checkout_sha)) {
-      git(destination, ["checkout", "--detach", input.checkout_sha]);
+      git(destination, ["checkout", "-B", "dna-os-reconstructed", input.checkout_sha]);
     }
   } catch (error) {
     return fail(`git clone from canonical source failed: ${error instanceof Error ? error.message : String(error)}`);

@@ -99,8 +99,8 @@ async function main(): Promise<void> {
     G: reconstruction.credential_bind_state === "UNBOUND" || reconstruction.credential_bind_state === "REBIND_REQUIRED",
     H: bind.state === "VERIFIED" && !secretExposed,
     I: child.POST_REBIND_OWNER_COMMAND_VERIFIED === true,
-    J: child.WORKSPACE_CLEANUP === "CLEANED",
-    K: child.EXTERNAL_CLIENT_READ_RECONSTRUCTED_RUNTIME === true && child.EXTERNAL_STATUS_SOURCE === "DNA_OS_RUNTIME",
+    J: child.WORKSPACE_CLEANUP === "CLEANED" && typeof child.CANONICAL_WORK_ID === "string" && child.CANONICAL_WORK_ID.startsWith("work-"),
+    K: child.EXTERNAL_CLIENT_READ_RECONSTRUCTED_RUNTIME === true && child.EXTERNAL_STATUS_SOURCE === "DNA_OS_RUNTIME" && typeof child.CANONICAL_WORK_ID === "string" && child.CANONICAL_WORK_ID.startsWith("work-"),
   };
   const all = Object.values(proofs).every(Boolean);
   const blocking = Object.entries(proofs).filter(([, ok]) => !ok).map(([name]) => name);
