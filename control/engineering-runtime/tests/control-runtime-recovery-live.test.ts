@@ -127,9 +127,8 @@ async function main(): Promise<void> {
     OWNER_NOTES_EXCERPT: (typeof child.OWNER_NOTES_EXCERPT === "string" && child.OWNER_NOTES_EXCERPT.length > 0)
       ? child.OWNER_NOTES_EXCERPT
       : childFailed,
-    RAW_ERROR: child.RAW_ERROR ?? null,
-    RAW_HTTP_STATUS: child.RAW_HTTP_STATUS ?? null,
-    CONVERSATION_STATUS: child.CONVERSATION_STATUS ?? null,
+    CANONICAL_WORK_ID: child.CANONICAL_WORK_ID ?? null,
+    RESULT_STATUS: child.RESULT_STATUS ?? null,
     PROOFS: proofs,
     BLOCKING_DEPENDENCY: blocking.length === 0 ? null : blocking.join(","),
     FINAL_STATUS: all ? "VERIFIED" : "BLOCKED",
