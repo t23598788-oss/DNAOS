@@ -1,6 +1,6 @@
 {
   "document_type": "engineering_fixture_contract",
   "version": 1,
-  "command_id": "cmd_eng_live_a_9b1760ee-8b66-4dc5-86e8-629486ebb45d",
-  "proof": "live-github-publish"
+  "proof": "owner-surface-live",
+  "tag": "oslive-1788868870579"
 }
