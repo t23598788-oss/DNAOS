@@ -81,7 +81,11 @@ async function main(): Promise<void> {
     },
   }), res);
 
-  const body = res.json as {
+  const raw = res.json as Record<string, unknown>;
+  const body = raw as {
+    error?: string;
+    status?: string;
+    conversation_status?: string;
     mcp?: {
       dna_os_work_id?: string;
       dna_os_command_id?: string;
@@ -126,6 +130,9 @@ async function main(): Promise<void> {
     CREDENTIAL_SECRET_EXPOSED: containsCredentialMaterial({ identity, health, status, evidence, notes }),
     OWNER_NOTES_EXCERPT: notes.slice(0, 1200),
     OWNER_SURFACE: String(mcpBody?.result?.summary ?? "").slice(0, 200),
+    RAW_RESPONSE_STATUS: body.status ?? null,
+    RAW_ERROR: body.error ?? null,
+    CONVERSATION_STATUS: body.conversation_status ?? null,
     FIXTURE_UNCHANGED_AFTER: readFileSync(join(CHECKOUT, CODE), "utf8") === MASTER_CODE,
   };
   console.log(`DNA_OS_RECONSTRUCTED_OWNER_COMMAND ${JSON.stringify(report)}`);

@@ -256,6 +256,12 @@ export async function reconstructControlRuntime(input: {
     }
     if (input.checkout_sha && /^[0-9a-f]{40}$/i.test(input.checkout_sha)) {
       git(destination, ["checkout", "-B", "dna-os-reconstructed", input.checkout_sha]);
+      try {
+        const sourceBranch = git(source, ["branch", "--show-current"]);
+        if (sourceBranch) git(destination, ["branch", `--set-upstream-to=origin/${sourceBranch}`]);
+      } catch {
+        // Tracking is rebindable; a missing remote-tracking branch is not reconstruction failure.
+      }
     }
   } catch (error) {
     return fail(`git clone from canonical source failed: ${error instanceof Error ? error.message : String(error)}`);
