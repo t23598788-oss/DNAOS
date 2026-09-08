@@ -61,12 +61,6 @@ async function main(): Promise<void> {
     if (!existsSync(nodeModules) && existsSync(join(CHECKOUT, "node_modules"))) {
       symlinkSync(join(CHECKOUT, "node_modules"), nodeModules);
     }
-    execFileSync("npm", ["run", "conversation-runtime:build"], {
-      cwd: DEST,
-      encoding: "utf8",
-      timeout: 120_000,
-      env: { ...process.env },
-    });
     try {
       const stdout = execFileSync("npx", ["tsx", "control/engineering-runtime/tests/reconstructed-runtime-owner-command.ts"], {
         cwd: DEST,

@@ -17,7 +17,6 @@ import { createDnaOsCommit } from "./commit-authority";
 import { resolveGithubDestination } from "./github-destination";
 import { publishDnaOsCommit, type GithubPublishDeps } from "./github-publish-authority";
 import { persistCompletionRegistry } from "./persist";
-import { recordGithubPublicationActivity } from "../event-pipeline/contract";
 import type { EngineeringCompletionResult, EngineeringLineage, EngineeringPublicationResult } from "./types";
 
 function record(taskId: string, note: string, payload: unknown, lineage?: { correlation_id: string; work_order_id: string }): void {
@@ -137,18 +136,6 @@ export async function publishEngineeringSource(input: {
       force_push_attempted: publish.force_push_attempted,
     },
   }, lineageIds);
-  await recordGithubPublicationActivity({
-    command_id: completion.lineage.command_id,
-    work_order_id: completion.lineage.work_id,
-    dna_os_commit_sha: commit.commit_sha,
-    github_owner: dest.owner,
-    github_repository: dest.repository,
-    publish_branch: dest.publish_branch,
-    pre_publish_remote_sha: publish.pre_publish_remote_sha,
-    post_publish_remote_sha: publish.post_publish_remote_sha,
-    published: publish.published,
-    publish_source: "connections/github/github-read-api.ts#getBranch",
-  });
 
   const lineage: EngineeringLineage = {
     ...destLineage,
