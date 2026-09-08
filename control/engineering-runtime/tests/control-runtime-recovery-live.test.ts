@@ -128,6 +128,7 @@ async function main(): Promise<void> {
       ? child.OWNER_NOTES_EXCERPT
       : childFailed,
     RAW_ERROR: child.RAW_ERROR ?? null,
+    RAW_HTTP_STATUS: child.RAW_HTTP_STATUS ?? null,
     CONVERSATION_STATUS: child.CONVERSATION_STATUS ?? null,
     PROOFS: proofs,
     BLOCKING_DEPENDENCY: blocking.length === 0 ? null : blocking.join(","),

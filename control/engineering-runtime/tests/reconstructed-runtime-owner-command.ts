@@ -49,7 +49,11 @@ function mockRes(): ServerResponse & { statusCode: number; json: unknown } {
       return this;
     },
     end(payload?: unknown) {
-      if (typeof payload === "string") state.json = JSON.parse(payload);
+      const text = typeof payload === "string" ? payload
+        : payload instanceof Uint8Array ? Buffer.from(payload).toString("utf8")
+        : payload == null ? ""
+        : String(payload);
+      if (text.startsWith("{") || text.startsWith("[")) state.json = JSON.parse(text);
     },
     get json() { return state.json; },
   } as ServerResponse & { statusCode: number; json: unknown };
@@ -131,6 +135,7 @@ async function main(): Promise<void> {
     OWNER_NOTES_EXCERPT: notes.slice(0, 1200),
     OWNER_SURFACE: String(mcpBody?.result?.summary ?? "").slice(0, 200),
     RAW_RESPONSE_STATUS: body.status ?? null,
+    RAW_HTTP_STATUS: res.statusCode,
     RAW_ERROR: body.error ?? null,
     CONVERSATION_STATUS: body.conversation_status ?? null,
     FIXTURE_UNCHANGED_AFTER: readFileSync(join(CHECKOUT, CODE), "utf8") === MASTER_CODE,
