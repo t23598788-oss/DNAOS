@@ -24,9 +24,10 @@
  * `./adapter-contract` (types only), `./github-read-api` (`getPathStatus`
  * only, to discover the existing blob sha before an update).
  * สิ่งที่ห้ามแตะ: **ห้ามใส่ token ลงใน reason string, URL, หรือ log** —
- * token อยู่ใน Authorization header เท่านั้น. ห้ามเพิ่ม intent อื่นนอกจาก
- * "create or update one file" ในไฟล์นี้ — ไม่มี delete, ไม่มี PR, ไม่มี
- * branch creation. ห้าม hardcode owner/repo/branch ค่า default ใดๆ.
+ * token อยู่ใน Authorization header เท่านั้น. For the registered DNA OS
+ * SOURCE_AUTHORITY repository, this function refuses with
+ * DNA_OS_PUBLISH_AUTHORITY_REQUIRED — publication is DNA OS GitHub
+ * Publish Authority only.
  */
 
 import {
@@ -35,6 +36,7 @@ import {
   MAX_ERROR_BODY_CHARACTERS,
 } from "./adapter-config";
 import type { GithubBranchTarget } from "./adapter-contract";
+import { DNA_OS_PUBLISH_AUTHORITY_REQUIRED, isRegisteredGithubSourceAuthorityTarget } from "./authoritative-source";
 import { hostFetchWrite } from "./host-runtime";
 import { githubHeaders, getPathStatus } from "./github-read-api";
 import { encodeRepoPath } from "./repo-path";
@@ -67,6 +69,13 @@ export async function putFileContents(
   content: string,
   commitMessage: string,
 ): Promise<WriteFileResult> {
+  if (isRegisteredGithubSourceAuthorityTarget(target)) {
+    return {
+      kind: "failed",
+      http_status: null,
+      reason: `${DNA_OS_PUBLISH_AUTHORITY_REQUIRED}: GitHub Contents write is closed for ${target.owner}/${target.repo} — source publication must use DNA OS GitHub Publish Authority`,
+    };
+  }
   // Discover whether this path already exists — GitHub requires the
   // existing blob sha to update a file; a fresh create must omit it.
   const existing = await getPathStatus(token, target, normalizedPath);

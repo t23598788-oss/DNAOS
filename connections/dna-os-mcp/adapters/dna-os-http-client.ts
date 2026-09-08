@@ -136,9 +136,11 @@ export class DnaOsHttpClient {
    * (classify → routeOwnerCommand → execution-policy → executor/task).
    * Does not use POST /command (chat intake / WorkOrder door).
    */
-  submitCommand(input: { commandText: string; ownerIdentity?: { id: string; email: string } }): Promise<DnaOsHttpResponse> {
+  submitCommand(input: { commandText: string; work_id?: string; payload?: Record<string, unknown>; ownerIdentity?: { id: string; email: string } }): Promise<DnaOsHttpResponse> {
     return this.postJson("/owner/submit-command", {
       commandText: input.commandText,
+      ...(input.work_id ? { work_id: input.work_id } : {}),
+      ...(input.payload ? { payload: input.payload } : {}),
       ...(input.ownerIdentity ? { ownerIdentity: input.ownerIdentity } : {}),
     });
   }

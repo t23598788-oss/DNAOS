@@ -63,6 +63,24 @@ export const TOOL_POLICIES: readonly ToolPolicy[] = [
   { tool_name: "get_system_status", read_write_class: "READ_ONLY", side_effect_class: "NONE",
     authority_requirement: "NONE", export_class: "INTERNAL_ONLY",
     reason: "อ่านสภาพระบบสด เปิดเผยว่าอะไรรันอยู่บ้าง" },
+  { tool_name: "dna_os.get_runtime_identity", read_write_class: "READ_ONLY", side_effect_class: "NONE",
+    authority_requirement: "NONE", export_class: "EXTERNAL_ALLOWED",
+    reason: "อ่านตัวตนรันไทม์ของ DNA OS — ไม่มี secret" },
+  { tool_name: "dna_os.get_system_health", read_write_class: "READ_ONLY", side_effect_class: "NONE",
+    authority_requirement: "NONE", export_class: "EXTERNAL_ALLOWED",
+    reason: "อ่านสุขภาพระบบจาก registry/runtime ของ DNA OS" },
+  { tool_name: "dna_os.get_latest_work", read_write_class: "READ_ONLY", side_effect_class: "NONE",
+    authority_requirement: "NONE", export_class: "EXTERNAL_ALLOWED",
+    reason: "อ่านงานล่าสุดจาก lifecycle ที่ DNA OS บันทึกไว้" },
+  { tool_name: "dna_os.get_work_status", read_write_class: "READ_ONLY", side_effect_class: "NONE",
+    authority_requirement: "NONE", export_class: "EXTERNAL_ALLOWED",
+    reason: "อ่านสถานะงานจากหลักฐานของ DNA OS ไม่ใช่จาก GitHub โดยตรง" },
+  { tool_name: "dna_os.get_work_evidence", read_write_class: "READ_ONLY", side_effect_class: "NONE",
+    authority_requirement: "NONE", export_class: "EXTERNAL_ALLOWED",
+    reason: "อ่านหลักฐานงานที่ DNA OS persist ไว้ หลังกรอง secret" },
+  { tool_name: "dna_os.get_capability_status", read_write_class: "READ_ONLY", side_effect_class: "NONE",
+    authority_requirement: "NONE", export_class: "EXTERNAL_ALLOWED",
+    reason: "อ่านสถานะความสามารถจาก registry ที่มีอยู่" },
 ];
 
 /**
@@ -108,9 +126,10 @@ export function canDiscover(toolName: string, ctx: CallerContext): { allowed: bo
    * ยังต้องเป็นเจ้าของที่ยืนยันตัวตนแล้วเท่านั้น กุญแจของช่องทางไม่ใช่สิทธิ์ของคน
    */
   if (klass === "INTERNAL_DNA_OS") {
-    return p.export_class === "INTERNAL_ONLY"
-      ? { allowed: true, reason: "ตัวตนภายในของ DNA OS — เห็นได้เฉพาะเครื่องมืออ่าน" }
-      : { allowed: false, reason: `${p.export_class} — ตัวตนของเครื่องไม่ใช่สิทธิ์ของเจ้าของ` };
+    if (p.export_class === "INTERNAL_ONLY" || (p.export_class === "EXTERNAL_ALLOWED" && p.read_write_class === "READ_ONLY")) {
+      return { allowed: true, reason: "ตัวตนภายในของ DNA OS — เห็นได้เฉพาะเครื่องมืออ่าน" };
+    }
+    return { allowed: false, reason: `${p.export_class} — ตัวตนของเครื่องไม่ใช่สิทธิ์ของเจ้าของ` };
   }
   if (klass === "OWNER_VERIFIED" && hasVerifiedOwner(ctx)) return { allowed: true, reason: "เจ้าของยืนยันตัวตนแล้ว" };
   if (ctx.channel === "INTERNAL" && hasVerifiedOwner(ctx)) return { allowed: true, reason: "ช่องทางภายในที่ยืนยันแล้ว" };

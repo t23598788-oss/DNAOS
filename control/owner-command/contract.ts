@@ -20,4 +20,17 @@
 export { previewOwnerCommand, renderOwnerSurface, submitOwnerCommand, findOpenOwnerQuestion } from "./owner-command";
 export type { SubmitOwnerCommandOutcome } from "./owner-command";
 export { recordCommandLineage, lineageForCommand, listCommandLineage } from "./input-gateway";
+export {
+  allocateCanonicalWorkId,
+  fingerprintOwnerAction,
+  isCanonicalWorkId,
+  isTerminalWorkStatus,
+  isWorkContinuationPhrase,
+  latestWorkForIdentity,
+  latestWorkPointer,
+  rememberLatestWork,
+  resolveCanonicalWorkId,
+  workStatusFromCapability,
+} from "./work-identity";
+export type { CanonicalWorkPointer, CanonicalWorkStatus } from "./work-identity";
 export type { OwnerCapabilityStatus, OwnerSurfaceState } from "./types";

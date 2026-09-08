@@ -47,6 +47,7 @@ export interface CreateWorkspaceInput {
   /** The real local repository_root this worktree is created from — see software/repository-registry/'s own RepositoryRegistration.repository_root. */
   repository_root: string;
   base_branch: string;
+  purpose?: "ENGINEERING_ISOLATION" | "PUBLICATION_PROOF" | "RECOVERY_CHECKOUT";
 }
 
 export type CreateWorkspaceStatus = "CREATED" | "FAILED";

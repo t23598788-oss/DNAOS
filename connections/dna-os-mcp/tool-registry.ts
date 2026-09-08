@@ -34,6 +34,14 @@ import { resolveCapabilityForTool } from "./capability-gate";
 import { DnaOsHttpClient } from "./adapters/dna-os-http-client";
 import { resolveAgentIdentity } from "./identity";
 import { projectCapability, projectCapabilityList } from "./capability-projection";
+import {
+  getCapabilityStatusFact,
+  getLatestWorkFact,
+  getRuntimeIdentityFact,
+  getSystemHealthFact,
+  getWorkEvidenceFact,
+  getWorkStatusFact,
+} from "./runtime-facts";
 
 const AgentIdentityShape = z.object({ id: z.string(), email: z.string().optional() }).optional();
 
@@ -71,6 +79,8 @@ export const DNA_OS_MCP_TOOLS: readonly DnaOsMcpTool[] = [
     },
     inputShape: {
       commandText: z.string().min(1).describe("The command text, exactly as DNA OS's owner-command ingress expects it"),
+      work_id: z.string().optional().describe("Canonical work_id to continue; never a command_id"),
+      payload: z.record(z.unknown()).optional().describe("Owner-presented envelope payload such as engineering_coding_intent"),
       agentIdentity: AgentIdentityShape.describe("Correlation-only identity for the MCP response — DNA OS authenticates the Owner via its own session, never via this field as authority"),
     },
     handler: async (args, client) => {
@@ -79,6 +89,8 @@ export const DNA_OS_MCP_TOOLS: readonly DnaOsMcpTool[] = [
       const identity = resolveAgentIdentity(args.agentIdentity as { id?: unknown; email?: unknown } | undefined);
       const response = await client.submitCommand({
         commandText: String(args.commandText),
+        ...(typeof args.work_id === "string" ? { work_id: args.work_id } : {}),
+        ...(args.payload && typeof args.payload === "object" && !Array.isArray(args.payload) ? { payload: args.payload as Record<string, unknown> } : {}),
       });
       const body = response.body as Record<string, unknown>;
       const result = body.result as Record<string, unknown> | undefined;
@@ -131,6 +143,9 @@ export const DNA_OS_MCP_TOOLS: readonly DnaOsMcpTool[] = [
     metadata: {
       name: "lookup_capability",
       title: "Lookup Registered Capability",
+      description: "Look up one sanitized capability row from the existing command-router registry.",
+      read_write: "read",
+      permission_scope: "registry-lookup",
       evidence_behavior: "returns a sanitized projection of control/command-router/capability-registry.ts",
       dna_os_capability_id: null,
     },
@@ -268,6 +283,105 @@ export const DNA_OS_MCP_TOOLS: readonly DnaOsMcpTool[] = [
       const gate = resolveCapabilityForTool(null);
       const response = await client.getSystemStatus();
       return textResult({ status: response.status, correlation_id, gate, system_status: response.body });
+    },
+  },
+  {
+    metadata: {
+      name: "dna_os.get_runtime_identity",
+      title: "DNA OS Runtime Identity",
+      description: "Return DNA OS runtime and system instance identity from DNA OS itself. Never credentials.",
+      read_write: "read",
+      permission_scope: "system-status",
+      evidence_behavior: "returns DNA OS runtime/evidence facts with a DNA_OS_RUNTIME proof envelope",
+      dna_os_capability_id: null,
+    },
+    inputShape: {},
+    handler: async () => {
+      const correlation_id = randomUUID();
+      return textResult({ status: 200, correlation_id, gate: resolveCapabilityForTool(null), ...getRuntimeIdentityFact() });
+    },
+  },
+  {
+    metadata: {
+      name: "dna_os.get_system_health",
+      title: "DNA OS System Health",
+      description: "Return structured DNA OS health from the runtime and capability registry. Not inferred from GitHub.",
+      read_write: "read",
+      permission_scope: "system-status",
+      evidence_behavior: "returns DNA OS runtime/evidence facts with a DNA_OS_RUNTIME proof envelope",
+      dna_os_capability_id: null,
+    },
+    inputShape: {},
+    handler: async () => {
+      const correlation_id = randomUUID();
+      return textResult({ status: 200, correlation_id, gate: resolveCapabilityForTool(null), ...getSystemHealthFact() });
+    },
+  },
+  {
+    metadata: {
+      name: "dna_os.get_latest_work",
+      title: "DNA OS Latest Work",
+      description: "Return the latest canonical work fact recorded by DNA OS runtime/evidence.",
+      read_write: "read",
+      permission_scope: "task-status",
+      evidence_behavior: "returns DNA OS runtime/evidence facts with a DNA_OS_RUNTIME proof envelope",
+      dna_os_capability_id: null,
+    },
+    inputShape: {},
+    handler: async () => {
+      const correlation_id = randomUUID();
+      return textResult({ status: 200, correlation_id, gate: resolveCapabilityForTool(null), ...getLatestWorkFact() });
+    },
+  },
+  {
+    metadata: {
+      name: "dna_os.get_work_status",
+      title: "DNA OS Work Status",
+      description: "Return DNA OS lifecycle status for a canonical work_id from persisted runtime evidence.",
+      read_write: "read",
+      permission_scope: "task-status",
+      evidence_behavior: "returns DNA OS runtime/evidence facts with a DNA_OS_RUNTIME proof envelope",
+      dna_os_capability_id: null,
+    },
+    inputShape: { work_id: z.string().optional() },
+    handler: async (args) => {
+      const correlation_id = randomUUID();
+      const workId = typeof args.work_id === "string" ? args.work_id : undefined;
+      return textResult({ status: 200, correlation_id, gate: resolveCapabilityForTool(null), ...getWorkStatusFact(workId) });
+    },
+  },
+  {
+    metadata: {
+      name: "dna_os.get_work_evidence",
+      title: "DNA OS Work Evidence",
+      description: "Return DNA OS persisted evidence for a work_id, including GitHub remote proof and workspace cleanup proof when recorded. Never secrets.",
+      read_write: "read",
+      permission_scope: "task-status",
+      evidence_behavior: "returns DNA OS runtime/evidence facts with a DNA_OS_RUNTIME proof envelope",
+      dna_os_capability_id: null,
+    },
+    inputShape: { work_id: z.string().optional() },
+    handler: async (args) => {
+      const correlation_id = randomUUID();
+      const workId = typeof args.work_id === "string" ? args.work_id : undefined;
+      return textResult({ status: 200, correlation_id, gate: resolveCapabilityForTool(null), ...getWorkEvidenceFact(workId) });
+    },
+  },
+  {
+    metadata: {
+      name: "dna_os.get_capability_status",
+      title: "DNA OS Capability Status",
+      description: "Return sanitized capability health from the existing command-router registry.",
+      read_write: "read",
+      permission_scope: "registry-lookup",
+      evidence_behavior: "returns DNA OS runtime/evidence facts with a DNA_OS_RUNTIME proof envelope",
+      dna_os_capability_id: null,
+    },
+    inputShape: { capability_id: z.string().optional() },
+    handler: async (args) => {
+      const correlation_id = randomUUID();
+      const capabilityId = typeof args.capability_id === "string" ? args.capability_id : undefined;
+      return textResult({ status: 200, correlation_id, gate: resolveCapabilityForTool(null), ...getCapabilityStatusFact(capabilityId) });
     },
   },
 ];

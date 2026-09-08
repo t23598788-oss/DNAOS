@@ -47,12 +47,21 @@ import { resolveOutputConsumers } from "../output-routing/contract";
 import { recordCommandLineage } from "./input-gateway";
 import { loadAllTasks, loadEvidenceForTask, ownerDecision, DEFAULT_AGENT_WORKERS } from "../agent-gateway/contract";
 import type { Task } from "../agent-gateway/contract";
-import { randomUUID } from "node:crypto";
 import type { OutputRoutingResult } from "../output-routing/contract";
 import type { RouteOptions } from "../command-router/contract";
 import type { CommandLifecycleStage, CommandLifecycleState } from "../command-status/lifecycle";
 import { hostNowIso, hostRandomId } from "./host-runtime";
 import type { OwnerCapabilityStatus, OwnerSurfaceState } from "./types";
+import {
+  fingerprintOwnerAction,
+  isCanonicalWorkId,
+  isTerminalWorkStatus,
+  latestWorkForIdentity,
+  rememberLatestWork,
+  resolveCanonicalWorkId,
+  workStatusFromCapability,
+  type CanonicalWorkPointer,
+} from "./work-identity";
 
 function pushStage(state: CommandLifecycleState, stage: CommandLifecycleStage, note?: string): void {
   state.stage = stage;
@@ -199,6 +208,66 @@ function isRefusal(text: string): boolean {
   return /^(ไม่|ยกเลิก|หยุด|no\b|cancel|stop|abort)/i.test(text.trim());
 }
 
+function workIdForPendingTask(task: Task, identityId: string): string | null {
+  const fromTask = task.route_context?.work_id;
+  if (isCanonicalWorkId(fromTask)) return fromTask;
+  const latest = latestWorkForIdentity(identityId);
+  return latest && isCanonicalWorkId(latest.work_id) ? latest.work_id : null;
+}
+
+function replayCapabilityResult(pointer: CanonicalWorkPointer | null, workId: string): CapabilityResult {
+  const status = pointer
+    ? pointer.status === "completed" ? "COMPLETED"
+      : pointer.status === "failed" ? "FAILED"
+        : pointer.status === "waiting_owner" ? "OWNER_REVIEW"
+          : pointer.status === "started" || pointer.status === "created" ? "RUNNING"
+            : "BLOCKED"
+    : "BLOCKED";
+  return {
+    task_id: pointer?.task_id ?? "(none)",
+    capability_id: pointer?.capability_id ?? "owner-command",
+    status,
+    summary: pointer?.summary ?? `canonical work ${workId}`,
+    evidence: [{ source: "control/owner-command/work-identity.ts", note: `reused_work_id=${workId}` }],
+    artifacts: [{ kind: "work_id", ref: workId }],
+    warnings: [],
+    next_action: status === "OWNER_REVIEW" ? "OWNER_REVIEW" : null,
+  };
+}
+
+function persistLatestWork(input: {
+  readonly identity_id: string;
+  readonly work_id: string;
+  readonly command_id: string;
+  readonly fingerprint: string;
+  readonly status: CanonicalWorkPointer["status"];
+  readonly execution_stage?: string;
+  readonly result?: CapabilityResult | null;
+}): void {
+  rememberLatestWork({
+    identity_id: input.identity_id,
+    work_id: input.work_id,
+    command_id: input.command_id,
+    task_id: input.result?.task_id && input.result.task_id !== "(none)" ? input.result.task_id : null,
+    status: input.status,
+    action_fingerprint: input.fingerprint,
+    summary: input.result?.summary ?? null,
+    capability_id: input.result?.capability_id ?? null,
+    execution_stage: input.execution_stage ?? input.status,
+    updated_at: hostNowIso(),
+  });
+}
+
+function executionStageFromResult(result: CapabilityResult): string {
+  const notes = result.evidence.map((row) => row.note).join("\n");
+  if (notes.includes("github_publish_status=VERIFIED")) return "github_publish_verified";
+  if (notes.includes("github_publish_status=BLOCKED")) return "github_publish_blocked";
+  if (notes.includes("engineering_status=VERIFIED") || notes.includes("engineering_status=COMPLETED")) return "engineering_verified";
+  if (notes.includes("coding_write_applied=true")) return "build_test";
+  if (notes.includes("engineering_status=")) return "engineering_execution";
+  return result.status.toLowerCase();
+}
+
 export async function submitOwnerCommand(commandText: string, ownerIdentity: EnvelopeIdentity, options: RouteOptions = {}, semanticOptions: SemanticOptions = {}): Promise<SubmitOwnerCommandOutcome> {
   if (ownerIdentity.kind !== "human") {
     throw new Error(`control/owner-command/ only accepts issued_by.kind "human", got "${ownerIdentity.kind}"`);
@@ -238,18 +307,30 @@ export async function submitOwnerCommand(commandText: string, ownerIdentity: Env
        * RouteOptions มีอยู่แล้ว ไม่ได้แก้ keyword และไม่ได้เพิ่มตัวจำแนกใหม่
        */
       const rooted = classifyCommand(rootIntent);
+      const pendingWorkId = workIdForPendingTask(pending, ownerIdentity.identity_id);
       const continuationOptions: RouteOptions = rooted.status === "MATCHED"
-        ? { ...options, parentTaskId: pending.task_id, steps: [{ capability_id: rooted.capability.capability_id, intent: continuationText, payload: {} }] }
-        : { ...options, parentTaskId: pending.task_id };
+        ? { ...options, parentTaskId: pending.task_id, work_id: pendingWorkId ?? options.work_id, steps: [{ capability_id: rooted.capability.capability_id, intent: continuationText, payload: {} }] }
+        : { ...options, parentTaskId: pending.task_id, work_id: pendingWorkId ?? options.work_id };
       return submitOwnerCommand(continuationText, ownerIdentity, continuationOptions, semanticOptions);
     }
   }
+
+  const existingPointer = latestWorkForIdentity(ownerIdentity.identity_id);
+  const resolution = resolveCanonicalWorkId({
+    identity_id: ownerIdentity.identity_id,
+    command_text: commandText,
+    requested_work_id: options.work_id ?? null,
+  });
+  const workId = resolution.work_id;
+  const actionFingerprint = resolution.continuation || resolution.status_query
+    ? (existingPointer?.action_fingerprint ?? fingerprintOwnerAction(commandText))
+    : fingerprintOwnerAction(commandText);
 
   const envelope: CommandEnvelope = {
     command_id: `cmd_${hostRandomId()}`,
     issued_by: ownerIdentity,
     intent: commandText,
-    payload: {},
+    payload: { ...(options.envelope_payload ?? {}), canonical_work_id: workId },
     issued_at: hostNowIso(),
   };
 
@@ -294,7 +375,7 @@ export async function submitOwnerCommand(commandText: string, ownerIdentity: Env
         recordResolution({
           selection_id: `sel_${hostRandomId()}`,
           command_id: envelope.command_id,
-          work_id: null,
+          work_id: workId,
           intent_status: "RESOLVED",
           required_capabilities: need.required_capabilities,
           selected_resources: selection.selected.map((r) => ({
@@ -351,22 +432,40 @@ export async function submitOwnerCommand(commandText: string, ownerIdentity: Env
     // Requirement 8/9: the router no longer receives a bare string. The
     // structured context rides on the envelope's own payload, which
     // ../command-router/ already forwards verbatim into every RouterStep.
-    envelope.payload = { structured_owner_context: context };
+    envelope.payload = { ...(options.envelope_payload ?? {}), structured_owner_context: context, canonical_work_id: workId };
   }
 
-  // ── ตัวตนของงานต้องมีก่อนการจัดเส้นทาง ไม่ใช่หลังจากนั้น ──
-  // ก่อนหน้านี้เส้นทางนี้สร้าง task แล้วจบ ไม่มี work_id เกิดขึ้นเลย ทำให้
-  // claimWork, base_commit_sha, requireWriteClaim และสตรีม /owner/events
-  // ซึ่งทั้งหมดใช้ work_id เป็นคีย์ ไม่มีอะไรให้ผูกพร้อมกันทั้งหมด
-  const workId = `work-${randomUUID()}`;
   recordCommandLineage({
     command_id: envelope.command_id, work_id: workId, task_id: null,
     stage: "command_received",
-    detail: `control/owner-command/owner-command.ts#submitOwnerCommand identity=${ownerIdentity.identity_id}`,
+    detail: `control/owner-command/owner-command.ts#submitOwnerCommand identity=${ownerIdentity.identity_id} reused=${resolution.reused} duplicate_action=${resolution.duplicate_action} continuation=${resolution.continuation}`,
   });
 
-  const result = await routeOwnerCommand(envelope, commandText, routeOptions);
+  const pointerForReplay = existingPointer && existingPointer.work_id === workId ? existingPointer : latestWorkForIdentity(ownerIdentity.identity_id);
+  const skipDispatch = resolution.status_query
+    || (resolution.duplicate_action && pointerForReplay !== null && pointerForReplay.work_id === workId && isTerminalWorkStatus(pointerForReplay.status));
+
+  if (!resolution.reused) {
+    persistLatestWork({ identity_id: ownerIdentity.identity_id, work_id: workId, command_id: envelope.command_id, fingerprint: actionFingerprint, status: "created" });
+  }
+  if (!skipDispatch) {
+    persistLatestWork({ identity_id: ownerIdentity.identity_id, work_id: workId, command_id: envelope.command_id, fingerprint: actionFingerprint, status: "started" });
+  }
+
+  const result = skipDispatch
+    ? replayCapabilityResult(pointerForReplay, workId)
+    : await routeOwnerCommand(envelope, commandText, { ...routeOptions, work_id: workId });
   const lifecycle = deriveLifecycle(envelope.command_id, result);
+
+  persistLatestWork({
+    identity_id: ownerIdentity.identity_id,
+    work_id: workId,
+    command_id: envelope.command_id,
+    fingerprint: actionFingerprint,
+    status: workStatusFromCapability(result.status),
+    execution_stage: executionStageFromResult(result),
+    result,
+  });
 
   // ผูก task เข้ากับ work ทันทีที่ task มีตัวตนจริง — ไม่เขียนค่าแทนก่อนหน้านั้น
   recordCommandLineage({

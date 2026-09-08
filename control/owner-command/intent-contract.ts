@@ -32,9 +32,9 @@
  */
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
-import { fileURLToPath } from "node:url";
 
-const MODULE_DIR = dirname(fileURLToPath(import.meta.url));
+declare const __dirname: string;
+const MODULE_DIR = __dirname;
 export const INTENT_CONTRACT_FILE: string = join(MODULE_DIR, "data", "executable-intent-contract.json");
 
 interface ExecutableEntry { intent_type: string; operation: string | null; consumer: string }

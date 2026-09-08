@@ -26,6 +26,16 @@ export { resolveCapabilityForTool } from "./capability-gate";
 export { DnaOsHttpClient } from "./adapters/dna-os-http-client";
 export type { DnaOsHttpClientOptions, DnaOsHttpResponse } from "./adapters/dna-os-http-client";
 export { resolveAgentIdentity } from "./identity";
+export {
+  getCapabilityStatusFact,
+  getLatestWorkFact,
+  getRuntimeIdentityFact,
+  getSystemHealthFact,
+  getWorkEvidenceFact,
+  getWorkStatusFact,
+} from "./runtime-facts";
+export { UNAUTHENTICATED_CONTEXT } from "./caller-context";
+export type { CallerContext } from "./export-policy";
 export type {
   McpToolMetadata,
   McpToolPermissionScope,

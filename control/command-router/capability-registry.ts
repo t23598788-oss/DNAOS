@@ -215,6 +215,22 @@ export const CAPABILITY_REGISTRY: Readonly<Record<string, CapabilityRegistration
     health_status: "CONNECTED",
   },
 
+  // ENGINEERING coding gate (Owner, Engineering Runtime boundary). Empty
+  // match_keyword_sets so Business READ/OPERATE/DOCUMENTATION text never
+  // classifies here. Owner coding intent enters via
+  // payload.engineering_coding_intent (authority=ENGINEERING) after
+  // classifyCommand reports UNSUPPORTED_COMMAND, or via explicit steps.
+  "engineering-runtime": {
+    capability_id: "engineering-runtime",
+    repo_id: "DNA-OS-INFRASTRUCTURE",
+    contract: "control/engineering-runtime/contract.ts",
+    endpoint: { kind: "contract", module: "control/engineering-runtime/contract.ts", entry: "runEngineeringCoding" },
+    supported_commands: ["engineering-runtime.scoped_coding"],
+    match_keyword_sets: [],
+    permission_requirement: "none",
+    health_status: "CONNECTED",
+  },
+
   digitalocean: {
     capability_id: "digitalocean",
     repo_id: "DNA-OS-INFRASTRUCTURE",

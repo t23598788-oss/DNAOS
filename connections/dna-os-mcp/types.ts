@@ -24,7 +24,7 @@ export type McpToolEvidenceBehavior =
   | "returns the real task/result/evidence trail for an existing task_id"
   | "returns the real handoff record and its dna_os_decision"
   | "returns the real live capability/runtime inventory, each entry with its own evidence array"
-  | "returns the real registered artifacts (resource_id/capability_id per split piece), the handoff recorded as evidence, and the next decision computed from persisted evidence";
+  | "returns DNA OS runtime/evidence facts with a DNA_OS_RUNTIME proof envelope";
 
 /** Declarative description of one MCP tool — used both to register it and to answer `tools/list` truthfully. */
 export interface McpToolMetadata {

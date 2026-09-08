@@ -38,6 +38,12 @@ export interface RepositoryRegistryStore {
   getRepository(repositoryId: string): RepositoryRegistration | null;
   listRepositories(): readonly RepositoryRegistration[];
   suspendRepository(repositoryId: string): RepositoryRegistration | null;
+  /**
+   * Replacement-environment rebind of checkout path / connection_id.
+   * Append-only; never copies secrets. Used after canonical git clone so
+   * cloned machine-local repository_root values are not treated as authority.
+   */
+  rebindRepositoryCheckout(repositoryId: string, input: { repository_root: string; connection_id?: string | null }): RepositoryRegistration | null;
 }
 
 function readAll(path: string): RepositoryRegistration[] {
@@ -96,6 +102,18 @@ export function createRepositoryRegistryStore(dataDir: string = join(process.cwd
       append(updated);
       return updated;
     },
+    rebindRepositoryCheckout(repositoryId, input) {
+      const existing = readAll(path).find((r) => r.repository_id === repositoryId);
+      if (!existing || existing.status !== "ACTIVE") return null;
+      const updated: RepositoryRegistration = {
+        ...existing,
+        repository_root: input.repository_root,
+        connection_id: input.connection_id === undefined ? existing.connection_id : input.connection_id,
+        registered_at: new Date().toISOString(),
+      };
+      append(updated);
+      return updated;
+    },
   };
 }
 
@@ -113,6 +131,9 @@ export function listRepositories(): readonly RepositoryRegistration[] {
 }
 export function suspendRepository(repositoryId: string): RepositoryRegistration | null {
   return defaultStore.suspendRepository(repositoryId);
+}
+export function rebindRepositoryCheckout(repositoryId: string, input: { repository_root: string; connection_id?: string | null }): RepositoryRegistration | null {
+  return defaultStore.rebindRepositoryCheckout(repositoryId, input);
 }
 
 /* ─────────────────────────────────────────────────────────────────────────
