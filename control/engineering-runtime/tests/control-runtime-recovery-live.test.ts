@@ -61,6 +61,12 @@ async function main(): Promise<void> {
     if (!existsSync(nodeModules) && existsSync(join(CHECKOUT, "node_modules"))) {
       symlinkSync(join(CHECKOUT, "node_modules"), nodeModules);
     }
+    execFileSync("npm", ["run", "conversation-runtime:build"], {
+      cwd: DEST,
+      encoding: "utf8",
+      timeout: 120_000,
+      env: { ...process.env },
+    });
     try {
       const stdout = execFileSync("npx", ["tsx", "control/engineering-runtime/tests/reconstructed-runtime-owner-command.ts"], {
         cwd: DEST,
@@ -118,7 +124,9 @@ async function main(): Promise<void> {
     INTENTIONALLY_MACHINE_LOCAL_STATE: reconstruction.machine_local_not_transferred,
     CREDENTIAL_BIND_STATE_AFTER_CLONE: reconstruction.credential_bind_state,
     CREDENTIAL_BIND_STATE_AFTER_REBIND: bind.state,
-    OWNER_NOTES_EXCERPT: child.OWNER_NOTES_EXCERPT ?? childFailed,
+    OWNER_NOTES_EXCERPT: (typeof child.OWNER_NOTES_EXCERPT === "string" && child.OWNER_NOTES_EXCERPT.length > 0)
+      ? child.OWNER_NOTES_EXCERPT
+      : childFailed,
     PROOFS: proofs,
     BLOCKING_DEPENDENCY: blocking.length === 0 ? null : blocking.join(","),
     FINAL_STATUS: all ? "VERIFIED" : "BLOCKED",
