@@ -217,6 +217,58 @@ export async function exchangeCodeForToken(
   };
 }
 
+/**
+ * Exchange a stored refresh token for a short-lived access token.
+ * Uses the admitted Google OAuth client. Never logs token material.
+ */
+export async function exchangeRefreshTokenForAccessToken(
+  config: GoogleOauthConfig,
+  refreshToken: string,
+): Promise<TokenExchangeResult> {
+  const body = new URLSearchParams({
+    client_id: config.client_id,
+    client_secret: config.client_secret,
+    refresh_token: refreshToken,
+    grant_type: "refresh_token",
+  }).toString();
+  const outcome = await hostFetchPost(
+    GOOGLE_OAUTH_TOKEN_URL,
+    { "content-type": "application/x-www-form-urlencoded", accept: "application/json" },
+    body,
+    10_000,
+  );
+  if (outcome.kind === "transport_error") {
+    return { ok: false, reason_code: "TRANSPORT_ERROR", detail: outcome.reason };
+  }
+  const parsed = (await outcome.response.json().catch(() => null)) as Record<string, unknown> | null;
+  if (!parsed) {
+    return { ok: false, reason_code: "MALFORMED_TOKEN_RESPONSE", detail: `HTTP ${outcome.response.status}` };
+  }
+  if (typeof parsed.error === "string" && parsed.error.length > 0) {
+    return {
+      ok: false,
+      reason_code: String(parsed.error),
+      detail: typeof parsed.error_description === "string" ? parsed.error_description : String(parsed.error),
+    };
+  }
+  const { access_token, refresh_token, scope, expires_in, token_type } = parsed;
+  if (typeof access_token !== "string" || typeof expires_in !== "number") {
+    return {
+      ok: false,
+      reason_code: "MALFORMED_TOKEN_RESPONSE",
+      detail: "refresh response missing required fields",
+    };
+  }
+  return {
+    ok: true,
+    access_token,
+    refresh_token: typeof refresh_token === "string" ? refresh_token : null,
+    scope: typeof scope === "string" ? scope : "",
+    expires_in,
+    token_type: typeof token_type === "string" ? token_type : "Bearer",
+  };
+}
+
 export type UserInfoResult =
   | { kind: "found"; sub: string; email: string | null }
   | { kind: "failed"; reason: string };
