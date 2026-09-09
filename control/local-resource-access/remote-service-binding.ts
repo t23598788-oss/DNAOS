@@ -101,7 +101,7 @@ export function listRemoteServiceBindings(ai_identity: string | null = null, ses
     schema: "REMOTE_SERVICE_CAPABILITY_BINDING_V1",
     service_id: "service://database/schema-read",
     provider: "database-schema",
-    connection_id: null,
+    connection_id: "connection.supabase.dna-os-project.v1",
     account_identity_non_secret: sbEntry?.account ?? null,
     credential_ref: SCHEMA_READ_REF,
     availability: sbAuth ? "BOUND" : "DISCOVERED",
