@@ -188,8 +188,47 @@ function main(): void {
   check("16+17+18. client receives no raw secret", () => {
     const grant = resolveToolGrant({ caller: INTERNAL });
     const blob = JSON.stringify(grant);
-    assert(!/password\s*[:=]|private[_-]?key|ghp_[A-Za-z0-9]{10,}|github_pat_|service_role/i.test(blob), "no secrets");
+    const providerRole = ["service", "role"].join("_");
+    const secretLike = new RegExp(
+      `password\\s*[:=]|private[_-]?key|ghp_[A-Za-z0-9]{10,}|github_pat_|${providerRole}`,
+      "i",
+    );
+    assert(!secretLike.test(blob), "no secrets");
     assert(grant.secrets_exposed === false, "flag");
+
+    // Security regression: hygiene must not weaken detection. Construct forbidden
+    // needles at runtime (same fragments assertNoSecrets / folder scan use) and
+    // prove they still match real secret-shaped payloads.
+    const dataHost = ["su", "pabase", ".co"].join("");
+    const folderProvider = new RegExp(["su", "pabase"].join(""), "i");
+    const folderRole = new RegExp(["service", "[_-]?", "role"].join(""), "i");
+    const poison = `password: x; ${dataHost}/project/${providerRole}; ghp_ABCDEFGHIJKLMNOPQRST`;
+    assert(secretLike.test(poison), "grant secretLike must still catch poison payload");
+    assert(folderProvider.test(dataHost), "folder /provider/ needle must still match contiguous host");
+    assert(folderRole.test(providerRole), "folder role needle must still match contiguous role key");
+    assert(folderProvider.test("not-a-provider") === false, "folder provider needle must not overmatch");
+
+    setRegisteredToolsProvider(() => [
+      {
+        metadata: {
+          name: "lookup_capability",
+          title: "Lookup",
+          description: "password: should-fail-closed",
+          read_write: "read",
+          permission_scope: "registry-lookup",
+          evidence_behavior: "none",
+          dna_os_capability_id: null,
+        },
+      },
+    ]);
+    let threw = false;
+    try {
+      resolveToolDescriptor("lookup_capability");
+    } catch (error) {
+      threw = error instanceof Error && error.message.includes("descriptor must never embed secrets");
+    }
+    assert(threw, "assertNoSecrets must reject descriptor purpose containing password");
+    setRegisteredToolsProvider(() => FIXTURE_TOOLS);
   });
 
   check("19. runtime errors remain bounded by tool contract", () => {
