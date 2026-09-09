@@ -3527,4 +3527,91 @@ export const DNA_OS_MCP_TOOLS: readonly DnaOsMcpTool[] = [
       return textResult({ status: 200, correlation_id, gate, source: "DNA_OS_RUNTIME", INFORMATION_ACCESS_GRANTS_AUTHORITY: false, result: payload });
     },
   })),
+  {
+    metadata: {
+      name: "dna_os.resolve_tool_grant",
+      title: "Resolve DNA OS MCP Tool Grant",
+      description: "Ask DNA OS which MCP tools this caller may discover/invoke for the current scope. DNA OS decides the grant from export policy, capability gate, and canonical descriptors — the client does not choose arbitrary internal functions. Returns descriptors (references only, never secrets).",
+      read_write: "read",
+      permission_scope: "system-status",
+      evidence_behavior: "returns DNA OS runtime/evidence facts with a DNA_OS_RUNTIME proof envelope",
+      dna_os_capability_id: null,
+    },
+    inputShape: {
+      requested_tool_id: z.string().optional().describe("Optional single tool_id to resolve; omit to list grants for this caller"),
+      requested_capability_id: z.string().optional().describe("Optional capability_id filter"),
+      task_scope: z.string().optional().describe("Optional scope such as VERIFICATION_READ_ONLY"),
+      caller_context: z.object({
+        caller: z.string(),
+        channel: z.enum(["INTERNAL", "EXTERNAL"]),
+        caller_class: z.enum(["UNAUTHENTICATED", "INTERNAL_DNA_OS", "OWNER_VERIFIED"]).optional(),
+        owner_session_id: z.string().nullable().optional(),
+        client_id: z.string().optional(),
+        authority_domain: z.enum(["OPERATIONAL", "DEVELOPMENT"]).optional(),
+        lease_active: z.boolean().optional(),
+        granted_tools: z.array(z.string()).optional(),
+      }).optional().describe("Caller context; when omitted, UNAUTHENTICATED EXTERNAL is assumed"),
+    },
+    handler: async (args) => {
+      const { resolveToolGrant } = await import("./tool-grant");
+      const correlation_id = randomUUID();
+      const ctxRaw = args.caller_context;
+      const caller = (ctxRaw && typeof ctxRaw === "object"
+        ? ctxRaw
+        : { caller: "external", channel: "EXTERNAL", caller_class: "UNAUTHENTICATED", owner_session_id: null }) as import("./export-policy").CallerContext;
+      const result = resolveToolGrant({
+        caller,
+        requested_tool_id: typeof args.requested_tool_id === "string" ? args.requested_tool_id : undefined,
+        requested_capability_id: typeof args.requested_capability_id === "string" ? args.requested_capability_id : undefined,
+        task_scope: typeof args.task_scope === "string" ? args.task_scope : undefined,
+      });
+      return textResult({
+        status: 200,
+        correlation_id,
+        source: "DNA_OS_RUNTIME",
+        DNA_OS_IS_TOOL_AUTHORITY: true,
+        secrets_exposed: false,
+        ...result,
+      });
+    },
+  },
+  {
+    metadata: {
+      name: "dna_os.inspect_tool_descriptor",
+      title: "Inspect Canonical MCP Tool Descriptor",
+      description: "Resolve one tool_id to its canonical descriptor (capability/schema/connector/permission/approval/evidence references). Fail closed on unknown/revoked tools. Never returns credentials.",
+      read_write: "read",
+      permission_scope: "system-status",
+      evidence_behavior: "returns DNA OS runtime/evidence facts with a DNA_OS_RUNTIME proof envelope",
+      dna_os_capability_id: null,
+    },
+    inputShape: {
+      tool_id: z.string().min(1).describe("Exact MCP tool_id to inspect"),
+    },
+    handler: async (args) => {
+      const { resolveToolDescriptor } = await import("./tool-grant");
+      const { canDiscover } = await import("./export-policy");
+      const correlation_id = randomUUID();
+      const toolId = String(args.tool_id ?? "");
+      const discovery = canDiscover(toolId, { caller: "external", channel: "EXTERNAL", caller_class: "UNAUTHENTICATED" });
+      // Unauthenticated inspect only for EXTERNAL_ALLOWED tools; others fail closed as not exposed
+      const resolved = resolveToolDescriptor(toolId);
+      if (resolved.status === "UNKNOWN_TOOL" || resolved.status === "REVOKED_TOOL") {
+        return textResult({ status: resolved.status, correlation_id, tool_id: toolId, reason: resolved.reason, secrets_exposed: false }, true);
+      }
+      if (!discovery.allowed && resolved.descriptor?.export_class !== "EXTERNAL_ALLOWED") {
+        return textResult({ status: "PERMISSION_DENIED", correlation_id, tool_id: toolId, reason: discovery.reason, secrets_exposed: false }, true);
+      }
+      if (resolved.status !== "RESOLVED") {
+        return textResult({ status: resolved.status, correlation_id, tool_id: toolId, reason: resolved.reason, secrets_exposed: false }, true);
+      }
+      return textResult({
+        status: 200,
+        correlation_id,
+        source: "DNA_OS_RUNTIME",
+        secrets_exposed: false,
+        descriptor: resolved.descriptor,
+      });
+    },
+  },
 ];
