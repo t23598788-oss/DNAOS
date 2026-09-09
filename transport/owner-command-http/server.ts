@@ -109,6 +109,7 @@ import type { HistoryRecord } from "../../control/owner-command-semantics/contra
 import { currentStateProjection } from "../../control/work-session-state/contract";
 import { listConnectionDeclarations } from "../../connections/connection-registry/declaration-registry";
 import { providerMetadataFor } from "../../connections/connection-registry/provider-metadata";
+import { resolveProviderBrandAsset } from "../../connections/connection-registry/brand-asset-resolver";
 import type { ConnectionDeclaration } from "../../contracts/connector/connection-declaration";
 import type { CapabilityLookupResult, CapabilityRow, EvidenceRow, RelationshipRow, ResourceRow } from "../../software/registry-database/types";
 
@@ -375,6 +376,7 @@ async function runtimeInventory(): Promise<unknown> {
     const apiRoute = canonical?.relationships?.find((edge) => edge.relationship_kind === "CAPABILITY_TO_API" && edge.to_id.startsWith("route:"))?.to_id.slice("route:".length) ?? null;
     const provider = connection?.provider_id ?? null;
     const providerMetadata = provider ? providerMetadataFor(provider) : null;
+    const providerBrand = provider ? resolveProviderBrandAsset(provider) : null;
     const mcpTools = capability.capability_id === "dispatcher" ? ["submit_work_result"] : [];
     return {
     capability_id: capability.capability_id,
@@ -420,10 +422,17 @@ async function runtimeInventory(): Promise<unknown> {
     mcp: { available: true, bound_to_capability: mcpTools.length > 0, tools: mcpTools },
     provider_metadata: providerMetadata ? {
       provider_id: providerMetadata.provider_id,
+      display_name: providerMetadata.display_name,
       brand_slug: providerMetadata.brand_slug,
-      brand_icon_url: providerMetadata.brand_icon_url,
+      brand_icon_url: null, // production UI must not hotlink; use brand_asset_ref
       brand_icon_source: providerMetadata.brand_icon_source,
       source: providerMetadata.source,
+      parent_provider_id: providerMetadata.parent_provider_id,
+      official_brand_source_ref: providerMetadata.official_brand_source_ref,
+      asset_state: providerBrand?.asset_state ?? providerMetadata.asset_state,
+      brand_asset_ref: providerBrand?.brand_asset_ref ?? null,
+      remote_render_url: null,
+      fallback_used: providerBrand?.fallback_used ?? true,
     } : null,
     last_verified: evidence?.created_at ?? canonicalMetadata?.verified_at ?? null,
     verification_evidence_id: evidence?.evidence_id ?? null,

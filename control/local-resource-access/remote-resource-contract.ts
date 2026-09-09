@@ -13,6 +13,7 @@ export type RemoteServiceFamily =
   | "gmail"
   | "google_calendar"
   | "google_contacts"
+  | "google_sheets"
   | "github"
   | "supabase"
   | "line"
@@ -35,6 +36,7 @@ export const REMOTE_SERVICE_ACTION_MAP: Readonly<Record<RemoteServiceFamily, rea
   gmail: ["SEARCH", "READ", "CREATE", "DOWNLOAD", "SHARE"],
   google_calendar: ["SEARCH", "READ", "CREATE", "WRITE", "DELETE"],
   google_contacts: ["SEARCH", "READ"],
+  google_sheets: ["SEARCH", "READ", "CREATE", "WRITE", "EXPORT"],
   github: ["SEARCH", "READ", "WRITE"],
   supabase: ["SEARCH", "READ", "CREATE", "WRITE", "DELETE", "EXPORT"],
   line: ["READ", "SHARE"],

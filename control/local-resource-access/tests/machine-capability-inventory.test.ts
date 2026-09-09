@@ -194,13 +194,17 @@ async function main(): Promise<void> {
 
   await check("I. Google capability binding is limited to actually connected supported services", async () => {
     const drive = getRemoteServiceBinding("service://google/drive", AI, SESSION);
-    assert(drive?.availability === "NOT_AVAILABLE", drive?.availability ?? "missing");
+    // Wired to connection.google.workspace.v1; without ACTIVE scoped credential stays DISCOVERED (AUTH_REQUIRED).
+    assert(drive?.availability === "DISCOVERED" || drive?.availability === "BOUND", drive?.availability ?? "missing");
+    assert(drive?.connection_id === "connection.google.workspace.v1", "family connection_id");
     assert((drive?.canonical_action_mapping ?? []).every((row) => row.states.ADAPTER_PRESENT === false), "no fake adapter");
+    assert((drive?.canonical_action_mapping ?? []).filter((row) => row.action === "WRITE").every((row) => row.states.OWNER_ENABLED === false), "write blocked");
   });
 
   await check("J. Unavailable/unsupported provider is reported truthfully", async () => {
     const gmail = getRemoteServiceBinding("service://google/gmail", AI, SESSION);
-    assert(gmail?.availability === "NOT_AVAILABLE", "gmail not connected");
+    assert(gmail?.availability === "DISCOVERED" || gmail?.availability === "BOUND", "gmail family wired");
+    assert(gmail?.credential_ref === "credential://google/workspace/oauth", "shared credential_ref");
     const line = listRemoteServiceBindings().find((row) => row.provider === "line");
     assert(line === undefined, "LINE must not be bound in this phase");
   });

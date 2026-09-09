@@ -1,0 +1,123 @@
+{
+  "document_type": "dna_os_connection_document",
+  "document_id": "connection.google.workspace.v1",
+  "title": "DNA OS ↔ Google Workspace Connection Family",
+  "version": 1,
+  "recorded_at": "2026-09-09",
+  "status_vocabulary": ["VERIFIED", "CONNECTED", "PARTIALLY_AUTHORIZED", "AUTH_REQUIRED", "NOT_VERIFIED", "BLOCKED", "NOT_WIRED"],
+  "status": "AUTH_REQUIRED",
+  "verification_level": "CONNECTION_FAMILY_WIRING",
+  "scope": "One Google Workspace connection family covering Gmail, Calendar, Drive, and Sheets under a single OAuth identity/credential_ref. Reuses existing service://google/* bindings. No new MCP tools. V1 is read-only.",
+  "security": {
+    "rule": "Secret values are never recorded. Only credential_ref, account identity, granted scope summary, and connection status are recorded.",
+    "references": [
+      {
+        "name": "credential://google/workspace/oauth",
+        "purpose": "Single Google Workspace OAuth family pointer (Keychain); shared by Gmail/Calendar/Drive/Sheets",
+        "resolution": "macOS Keychain via DNA OS secret authority — never stored in source"
+      },
+      {
+        "name": "https://www.googleapis.com/auth/gmail.readonly",
+        "purpose": "Gmail V1 least-privilege read scope",
+        "resolution": "granted_scopes on credential reference"
+      },
+      {
+        "name": "https://www.googleapis.com/auth/calendar.readonly",
+        "purpose": "Calendar V1 least-privilege read scope",
+        "resolution": "granted_scopes on credential reference"
+      },
+      {
+        "name": "https://www.googleapis.com/auth/drive.readonly",
+        "purpose": "Drive V1 least-privilege read scope",
+        "resolution": "granted_scopes on credential reference"
+      },
+      {
+        "name": "https://www.googleapis.com/auth/spreadsheets.readonly",
+        "purpose": "Sheets V1 least-privilege read scope",
+        "resolution": "granted_scopes on credential reference"
+      }
+    ]
+  },
+  "connection_family": {
+    "provider": "google",
+    "family": "google_workspace",
+    "google_connection_id": "connection.google.workspace.v1",
+    "credential_ref": "credential://google/workspace/oauth",
+    "account_identity_resolution": "Resolved only after Owner OAuth; never invented",
+    "child_services": [
+      {
+        "service_id": "service://google/gmail",
+        "capability_id": "google.gmail.readonly",
+        "required_scopes": ["https://www.googleapis.com/auth/gmail.readonly"],
+        "write_enabled": false
+      },
+      {
+        "service_id": "service://google/calendar",
+        "capability_id": "google.calendar.readonly",
+        "required_scopes": ["https://www.googleapis.com/auth/calendar.readonly"],
+        "write_enabled": false
+      },
+      {
+        "service_id": "service://google/drive",
+        "capability_id": "google.drive.readonly",
+        "required_scopes": ["https://www.googleapis.com/auth/drive.readonly"],
+        "write_enabled": false
+      },
+      {
+        "service_id": "service://google/sheets",
+        "capability_id": "google.sheets.readonly",
+        "required_scopes": ["https://www.googleapis.com/auth/spreadsheets.readonly"],
+        "write_enabled": false
+      }
+    ],
+    "sibling_existing": [
+      {
+        "service_id": "service://google/contacts",
+        "note": "Already declared in remote-service-binding; remains in family but not a V1 live verification target"
+      }
+    ]
+  },
+  "canonical_path": [
+    "AI Client",
+    "DNA OS MCP ingress",
+    "DNA OS tool grant",
+    "connection.google.workspace.v1",
+    "service capability (gmail|calendar|drive|sheets)",
+    "scope/policy validation",
+    "credential://google/workspace/oauth (pointer)",
+    "Google APIs / approved adapter",
+    "evidence/result",
+    "DNA OS MCP egress"
+  ],
+  "boundary_statuses": {
+    "Google Workspace connection family document": "CONNECTED",
+    "Shared OAuth credential reference": "AUTH_REQUIRED",
+    "Gmail readonly capability": "AUTH_REQUIRED",
+    "Calendar readonly capability": "AUTH_REQUIRED",
+    "Drive readonly capability": "AUTH_REQUIRED",
+    "Sheets readonly capability": "AUTH_REQUIRED",
+    "Write operations": "BLOCKED"
+  },
+  "overall_gaps": [
+    "No ACTIVE credential://google/workspace/oauth row in DNA OS registry yet — Owner OAuth admission required before BOUND",
+    "No DNA OS-hosted Google OAuth client config in this repository (by prior Owner rule); tokens must enter only via existing secret authority",
+    "Gmail live path today may still resolve via existing email-alert-source → Edge Function; Workspace family wiring does not invent a second Gmail identity",
+    "Official Google Workspace MCP, if used, must remain DNA OS–owned (no client-direct registration)"
+  ],
+  "next_required_connection": "Owner-device Google OAuth into credential://google/workspace/oauth with least-privilege readonly scopes; bind granted_scopes per service",
+  "projections": {
+    "machine_view": "control/local-resource-access/remote-service-binding.ts service://google/*",
+    "developer_view": "connections/google-workspace/GOOGLE_WORKSPACE_CONNECTION.md",
+    "human_view": "Connection Center parent: Google Workspace; children: Gmail, Calendar, Drive, Sheets",
+    "brand_view": {
+      "resolver": "connections/connection-registry/brand-asset-resolver.ts",
+      "metadata_owner": "connections/connection-registry/provider-metadata.ts",
+      "google_workspace": "google",
+      "gmail": "google-gmail",
+      "calendar": "google-calendar",
+      "drive": "google-drive",
+      "sheets": "google-sheets"
+    }
+  },
+  "future_document_rule": "Do not create a second Google login family or duplicate credential identity per service. Missing scope ⇒ that service AUTH_REQUIRED only; parent may be PARTIALLY_AUTHORIZED."
+}

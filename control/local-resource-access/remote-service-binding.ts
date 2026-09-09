@@ -1,12 +1,26 @@
 /**
  * REMOTE_SERVICE_CAPABILITY_BINDING_V1.
- * Binds only real connections/adapters. Google families stay CONTRACT_ONLY when unconnected.
+ * Binds only real connections/adapters. Google Workspace is one connection family
+ * (shared connection_id + credential_ref); per-service availability follows granted scopes.
  * Never stores credential values.
  */
 
 import { listConnections } from "../../connections/connection-registry/contract";
 import { findApiCredential } from "../../credentials/registry/api-credential-registry";
 import { CREDENTIAL_REF as SCHEMA_READ_REF } from "../../connections/supabase-schema-read/contract";
+import {
+  CALENDAR_SERVICE_ID,
+  CALENDAR_SCOPES,
+  CONTACTS_SERVICE_ID,
+  DRIVE_SCOPE,
+  DRIVE_SERVICE_ID,
+  GMAIL_SCOPE,
+  GMAIL_SERVICE_ID,
+  GOOGLE_CONNECTION_ID,
+  GOOGLE_CREDENTIAL_REF,
+  SHEETS_SCOPE,
+  SHEETS_SERVICE_ID,
+} from "../../connections/google-workspace/contract";
 import { atoms } from "./capability-states";
 import { matchingCapabilityBindingPolicy } from "./owner-capability-policy";
 import type {
@@ -17,6 +31,11 @@ import type {
 } from "./types";
 
 const GH_REF = "credential://github/t23598788-oss/-DNA-OS-INFRASTRUCTURE-/source-authority";
+
+/** Write-class actions stay Owner-disabled in Google Workspace V1 (read-only family). */
+const GOOGLE_WRITE_ACTIONS: ReadonlySet<BindableActionId> = new Set([
+  "CREATE", "WRITE", "DELETE", "UPLOAD", "MOVE", "SHARE", "CREATE_DRAFT", "SEND",
+]);
 
 function enabled(session_id: string | null, ai_identity: string | null, binding_id: string): boolean {
   if (!session_id || !ai_identity) return false;
@@ -38,21 +57,100 @@ function githubConnection(): { connection_id: string; account: string; credentia
   return { connection_id: connected.connection_id, account: connected.account_id, credential_ref: ref, status: connected.status };
 }
 
-function googleBinding(service_id: string, provider: string, actions: readonly BindableActionId[], owner_enabled: boolean): RemoteServiceCapabilityBindingV1 {
+function grantedScopesFromCredential(entry: ReturnType<typeof findApiCredential>): readonly string[] {
+  if (!entry) return [];
+  const raw = entry as { scope?: readonly string[]; granted_scopes?: readonly string[] };
+  if (Array.isArray(raw.granted_scopes) && raw.granted_scopes.length > 0) return raw.granted_scopes;
+  if (Array.isArray(raw.scope)) return raw.scope;
+  return [];
+}
+
+function hasAllScopes(granted: readonly string[], required: readonly string[]): boolean {
+  if (required.length === 0) return false;
+  const set = new Set(granted);
+  return required.every((s) => set.has(s));
+}
+
+/**
+ * Map Google family credential into per-service auth.
+ * Missing credential / missing required scope ⇒ AUTH_REQUIRED for that service only.
+ */
+function googleFamilyCredential(): {
+  credential_ref: string;
+  account: string | null;
+  status: string | null;
+  granted_scopes: readonly string[];
+  revoked: boolean;
+  expired: boolean;
+} {
+  const entry = findApiCredential(GOOGLE_CREDENTIAL_REF);
+  if (!entry) {
+    return {
+      credential_ref: GOOGLE_CREDENTIAL_REF,
+      account: null,
+      status: null,
+      granted_scopes: [],
+      revoked: false,
+      expired: false,
+    };
+  }
+  return {
+    credential_ref: GOOGLE_CREDENTIAL_REF,
+    account: entry.account ?? null,
+    status: entry.status,
+    granted_scopes: grantedScopesFromCredential(entry),
+    revoked: entry.status === "REVOKED",
+    expired: entry.status === "DISABLED",
+  };
+}
+
+function googleServiceBinding(input: {
+  service_id: string;
+  provider: string;
+  actions: readonly BindableActionId[];
+  required_scopes: readonly string[];
+  read_scope: readonly string[];
+  session_id: string | null;
+  ai_identity: string | null;
+}): RemoteServiceCapabilityBindingV1 {
+  const family = googleFamilyCredential();
+  const ownerOn = enabled(input.session_id, input.ai_identity, input.service_id);
+  const scopeOk = !family.revoked && !family.expired && family.status === "ACTIVE"
+    && hasAllScopes(family.granted_scopes, input.required_scopes);
+  // V1: no DNA OS-hosted Google API adapter in this wiring commit — AUTH may be ready later; adapter stays false.
+  const adapterPresent = false;
+  const authReady = scopeOk;
+  const availability = family.revoked
+    ? "UNAVAILABLE"
+    : scopeOk
+      ? "BOUND"
+      : "DISCOVERED";
+
   return {
     schema: "REMOTE_SERVICE_CAPABILITY_BINDING_V1",
-    service_id,
-    provider,
-    connection_id: null,
-    account_identity_non_secret: null,
-    credential_ref: null,
-    availability: "NOT_AVAILABLE",
-    capabilities: actions,
-    canonical_action_mapping: actions.map((action) => map(action, (action === "CREATE_DRAFT" || action === "SEND" || action === "DOWNLOAD_ATTACHMENT") ? (action === "SEND" ? "SHARE" : action === "CREATE_DRAFT" ? "CREATE" : "DOWNLOAD") : action as EverydayActionId, atoms(true, false, false, false, owner_enabled))),
+    service_id: input.service_id,
+    provider: input.provider,
+    connection_id: GOOGLE_CONNECTION_ID,
+    account_identity_non_secret: family.account,
+    credential_ref: family.credential_ref,
+    availability,
+    capabilities: input.actions,
+    canonical_action_mapping: input.actions.map((action) => {
+      const isWrite = GOOGLE_WRITE_ACTIONS.has(action);
+      const canonical: EverydayActionId | null =
+        action === "CREATE_DRAFT" || action === "SEND" || action === "DOWNLOAD_ATTACHMENT"
+          ? (action === "SEND" ? "SHARE" : action === "CREATE_DRAFT" ? "CREATE" : "DOWNLOAD")
+          : (action as EverydayActionId);
+      return map(
+        action,
+        canonical,
+        atoms(true, adapterPresent, authReady && !isWrite, false, isWrite ? false : ownerOn && authReady),
+      );
+    }),
     data_classes: ["REMOTE_OBJECT"],
     network_destinations: ["https://www.googleapis.com"],
-    owner_authority_state: "DENY",
-    read_scope: [],
+    owner_authority_state: ownerOn && authReady ? "ALLOW" : "DENY",
+    read_scope: [...input.read_scope],
     write_scope: [],
     publish_scope: [],
     evidence_policy: "LOCAL_EXECUTION_ENVELOPE",
@@ -124,12 +222,51 @@ export function listRemoteServiceBindings(ai_identity: string | null = null, ses
     evidence_policy: "LOCAL_EXECUTION_ENVELOPE",
   };
 
+  const googleCommon = { session_id, ai_identity };
+
   return [
     github,
-    googleBinding("service://google/drive", "google_drive", ["SEARCH", "READ", "CREATE", "WRITE", "MOVE", "DOWNLOAD", "UPLOAD", "SHARE"], enabled(session_id, ai_identity, "service://google/drive")),
-    googleBinding("service://google/gmail", "gmail", ["SEARCH", "READ", "CREATE_DRAFT", "SEND", "DOWNLOAD_ATTACHMENT"], enabled(session_id, ai_identity, "service://google/gmail")),
-    googleBinding("service://google/calendar", "google_calendar", ["SEARCH", "READ", "CREATE", "WRITE", "DELETE"], enabled(session_id, ai_identity, "service://google/calendar")),
-    googleBinding("service://google/contacts", "google_contacts", ["SEARCH", "READ"], enabled(session_id, ai_identity, "service://google/contacts")),
+    googleServiceBinding({
+      ...googleCommon,
+      service_id: DRIVE_SERVICE_ID,
+      provider: "google_drive",
+      actions: ["SEARCH", "READ", "CREATE", "WRITE", "MOVE", "DOWNLOAD", "UPLOAD", "SHARE"],
+      required_scopes: [DRIVE_SCOPE],
+      read_scope: ["drive.readonly"],
+    }),
+    googleServiceBinding({
+      ...googleCommon,
+      service_id: GMAIL_SERVICE_ID,
+      provider: "gmail",
+      actions: ["SEARCH", "READ", "CREATE_DRAFT", "SEND", "DOWNLOAD_ATTACHMENT"],
+      required_scopes: [GMAIL_SCOPE],
+      read_scope: ["gmail.readonly"],
+    }),
+    googleServiceBinding({
+      ...googleCommon,
+      service_id: CALENDAR_SERVICE_ID,
+      provider: "google_calendar",
+      actions: ["SEARCH", "READ", "CREATE", "WRITE", "DELETE"],
+      required_scopes: [...CALENDAR_SCOPES],
+      read_scope: ["calendar.readonly"],
+    }),
+    googleServiceBinding({
+      ...googleCommon,
+      service_id: CONTACTS_SERVICE_ID,
+      provider: "google_contacts",
+      actions: ["SEARCH", "READ"],
+      // Contacts not in V1 live scope set — remains AUTH_REQUIRED unless future scopes admitted
+      required_scopes: ["https://www.googleapis.com/auth/contacts.readonly"],
+      read_scope: ["contacts.readonly"],
+    }),
+    googleServiceBinding({
+      ...googleCommon,
+      service_id: SHEETS_SERVICE_ID,
+      provider: "google_sheets",
+      actions: ["SEARCH", "READ", "CREATE", "WRITE", "EXPORT"],
+      required_scopes: [SHEETS_SCOPE],
+      read_scope: ["spreadsheets.readonly"],
+    }),
     schema,
   ];
 }
