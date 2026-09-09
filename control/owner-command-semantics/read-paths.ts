@@ -17,7 +17,11 @@
  * Output: `ReadResult<T>` — `{ found: true, value, provenance, source }` or
  * `{ found: false, reason, source }`.
  * Dependency ที่อนุญาต: `../../software/registry-database/contract.ts`,
- * `../agent-gateway/contract.ts`, ./types.ts, node built-ins.
+ * `../conversation-read-model/contract.ts` (read-only side only — never
+ * `publish*`), ./types.ts, node built-ins. Never `../agent-gateway/`
+ * directly (Owner UNLOCK, 2026-09-06 — task/evidence reads go through
+ * `../conversation-read-model/`'s published projections instead, see that
+ * folder's `contract.ts` for the boundary).
  * สิ่งที่ห้ามแตะ:
  * - ห้ามเขียนลง store ใดๆ จากไฟล์นี้.
  * - ห้ามคืน found:true โดยไม่มี source ที่ตรวจสอบได้.
@@ -26,12 +30,12 @@
  */
 
 declare const require: any;
-declare const __dirname: string;
+declare const process: { cwd(): string };
 
-import type { Provenance } from "./types";
+import type { Provenance, ReadOnlyKnowledgeMatch } from "./types";
 import { findCapability } from "../../software/registry-database/contract";
-import type { RegistryStore } from "../../software/registry-database/contract";
-import { getTask, loadEvidenceForTask } from "../agent-gateway/contract";
+import type { ReadOnlyRegistryView } from "./read-only-registry-view";
+import { readTaskEvidenceProjection, readTaskStatusProjection } from "../conversation-read-model/contract";
 
 const fs = require("node:fs");
 const path = require("node:path");
@@ -53,7 +57,7 @@ export type ReadResult<T> =
  * Returns the REFERENCES only (file path, test-run id, URL). The underlying log
  * or source is never copied here — that is the registry's own stated rule.
  */
-export function readEvidenceForCapability(capabilityId: string, store: RegistryStore | undefined): ReadResult<readonly string[]> {
+export function readEvidenceForCapability(capabilityId: string, store: ReadOnlyRegistryView | undefined): ReadResult<readonly string[]> {
   const source = "software/registry-database/contract.ts#findCapability -> evidence_refs";
   if (!store) return { found: false, reason: "no registry store was provided to this read", source };
   const result = findCapability({ capability_id: capabilityId }, store);
@@ -72,12 +76,12 @@ export function readEvidenceForCapability(capabilityId: string, store: RegistryS
  * failure mode.
  */
 export function readEvidenceForTask(taskId: string): ReadResult<readonly { kind: string; source: string; recorded_at: string }[]> {
-  const source = "control/agent-gateway/contract.ts#loadEvidenceForTask";
-  const rows = loadEvidenceForTask(taskId);
-  if (!rows || rows.length === 0) return { found: false, reason: `no evidence rows for task_id "${taskId}"`, source };
+  const source = "control/conversation-read-model/contract.ts#readTaskEvidenceProjection";
+  const projection = readTaskEvidenceProjection(taskId);
+  if (!projection || projection.rows.length === 0) return { found: false, reason: `no evidence rows for task_id "${taskId}"`, source };
   return {
     found: true,
-    value: rows.map((row) => ({ kind: row.kind, source: row.source, recorded_at: row.recorded_at })),
+    value: projection.rows,
     provenance: "EVIDENCE",
     source: `${source}#${taskId}`,
   };
@@ -100,12 +104,12 @@ export interface TaskStateResult {
  * `tasks.jsonl` directly.
  */
 export function readTaskState(taskId: string): ReadResult<TaskStateResult> {
-  const source = "control/agent-gateway/contract.ts#getTask";
-  const task = getTask(taskId);
-  if (!task) return { found: false, reason: `task_id "${taskId}" is not in the gateway task store`, source };
+  const source = "control/conversation-read-model/contract.ts#readTaskStatusProjection";
+  const projection = readTaskStatusProjection(taskId);
+  if (!projection) return { found: false, reason: `task_id "${taskId}" is not in the published task-status projection`, source };
   return {
     found: true,
-    value: { task_id: task.task_id, status: task.status, updated_at: task.updated_at, next_action: (task as { next_action?: string }).next_action ?? null },
+    value: projection,
     provenance: "RUNTIME",
     source: `${source}#${taskId}`,
   };
@@ -136,9 +140,27 @@ export interface HistoryRecord {
   /** Filled by a second record once routing produced a real task — see ../owner-command/owner-command.ts. */
   task_id?: string | null;
   owner_visible_result?: Record<string, unknown> | null;
+  /**
+   * Added (Owner UNLOCK 2026-09-06, BUILD_SELF_WORK_LEDGER_V1) on RESOLUTION
+   * records only — the model's one-phrase reading of what the Owner wanted,
+   * and everything this resolver could NOT prove, kept apart exactly as
+   * `StructuredOwnerContext` keeps them. A self-work ledger built from this
+   * history needs to know not just what resolved, but why something did not
+   * — a `resolved_capability_ids: []` alone cannot distinguish "no capability
+   * exists for this" from "a capability exists but no command matches" from
+   * "a relationship never resolved". Records from before this field existed
+   * carry none of it — a ledger reading an old record reports those fields
+   * `UNKNOWN`, never guesses them retroactively.
+   */
+  intent?: string;
+  resolved_state?: "RESOLVED" | "UNRESOLVED" | "NO_REFERENCES";
+  unresolved_refs?: readonly { kind: string; mention: string; evidence_refs: readonly string[] }[];
+  relationship_query_status?: string | null;
 }
 
-export const HISTORY_FILE: string = path.join(__dirname, "data", "semantic-history.jsonl");
+// `process.cwd()`, not `__dirname` — see control/conversation-read-model/store.ts's
+// header for why (this file also compiles into control/conversation-runtime/dist/).
+export const HISTORY_FILE: string = path.join(process.cwd(), "control/owner-command-semantics/data", "semantic-history.jsonl");
 
 /** Lookup key: `identity_id`. Source: this layer's own durable append-only history. */
 export function readHistoryForIdentity(identityId: string): ReadResult<readonly HistoryRecord[]> {
@@ -163,6 +185,74 @@ export function readHistoryForCommand(commandId: string): ReadResult<HistoryReco
   const matches = lines.map((line: string) => JSON.parse(line) as HistoryRecord).filter((record) => record.command_id === commandId);
   if (matches.length === 0) return { found: false, reason: `command_id "${commandId}" is not in semantic history`, source };
   return { found: true, value: matches[matches.length - 1], provenance: "HISTORY", source };
+}
+
+// ---------------------------------------------------------------------------
+// QUERY -> REGISTERED KNOWLEDGE RECORD / KNOWLEDGE RESULT
+// ---------------------------------------------------------------------------
+
+const OWNER_COMMAND_DISPLAY_HISTORY = "OWNER_COMMAND_DISPLAY_HISTORY";
+const OWNER_COMMAND_DISPLAY_HISTORY_SOURCE = "governance/system-knowledge/owner-command-display-history.knowledge.json";
+
+function normalizeKnowledgeQuestion(value: string): string {
+  return value.normalize("NFC").toLocaleLowerCase().replace(/\s+/g, " ").trim();
+}
+
+/**
+ * Reads one exact, already-registered knowledge record. The registry lookup is
+ * the gate: this function never searches repositories or scans source files.
+ * After the canonical capability points at the known source_location, only
+ * that one registered JSON record is read. A question must match one of the
+ * record's explicit match_exact phrases; otherwise it stays unresolved.
+ */
+export function readOwnerCommandDisplayHistory(rawText: string, store: ReadOnlyRegistryView | undefined): ReadResult<ReadOnlyKnowledgeMatch> {
+  const source = `software/registry-database#canonical_name:${OWNER_COMMAND_DISPLAY_HISTORY}`;
+  if (!store) return { found: false, reason: "no registry store was provided to this knowledge read", source };
+
+  const registered = findCapability({ canonical_name: OWNER_COMMAND_DISPLAY_HISTORY }, store);
+  if (!registered) return { found: false, reason: `knowledge capability "${OWNER_COMMAND_DISPLAY_HISTORY}" is not registered`, source };
+
+  const resourceId = registered.resource_ids.find((id) => id.length > 0) ?? null;
+  const sourceLocation = registered.source_location.find((location) => location === OWNER_COMMAND_DISPLAY_HISTORY_SOURCE);
+  if (!sourceLocation) return { found: false, reason: `registered knowledge has no exact source_location "${OWNER_COMMAND_DISPLAY_HISTORY_SOURCE}"`, source };
+
+  const repoRoot = process.cwd();
+  const knowledgePath = path.resolve(repoRoot, sourceLocation);
+  if (!knowledgePath.startsWith(`${repoRoot}${path.sep}`)) return { found: false, reason: "registered knowledge source escaped the infrastructure repository", source };
+
+  let record: { record_id?: unknown; READBACK_INDEX?: unknown };
+  try { record = JSON.parse(String(fs.readFileSync(knowledgePath, "utf8"))) as typeof record; }
+  catch { return { found: false, reason: `registered knowledge record could not be read: ${sourceLocation}`, source };
+  }
+
+  const readback = record.READBACK_INDEX;
+  if (!readback || typeof readback !== "object" || Array.isArray(readback)) {
+    return { found: false, reason: `registered knowledge record has no READBACK_INDEX: ${sourceLocation}`, source };
+  }
+  const question = normalizeKnowledgeQuestion(rawText);
+  for (const [key, value] of Object.entries(readback as Record<string, unknown>)) {
+    if (!value || typeof value !== "object" || Array.isArray(value)) continue;
+    const item = value as { match_exact?: unknown; owner_reply_th?: unknown };
+    const aliases = Array.isArray(item.match_exact) ? item.match_exact.filter((alias): alias is string => typeof alias === "string").map(normalizeKnowledgeQuestion) : [];
+    const answer = typeof item.owner_reply_th === "string" ? item.owner_reply_th.trim() : "";
+    if (answer !== "" && aliases.includes(question)) {
+      return {
+        found: true,
+        value: {
+          knowledge_id: `${String(record.record_id ?? OWNER_COMMAND_DISPLAY_HISTORY)}.${key}`,
+          matched_query: rawText,
+          owner_reply_th: answer,
+          registry_capability_id: registered.capability_id,
+          registry_resource_id: resourceId,
+          source: sourceLocation,
+          evidence_refs: [sourceLocation, `software/registry-database#${registered.capability_id}`],
+        },
+        provenance: "REGISTRY",
+        source: `${source}#${key}`,
+      };
+    }
+  }
+  return { found: false, reason: `no exact registered readback question matched`, source };
 }
 
 // ---------------------------------------------------------------------------

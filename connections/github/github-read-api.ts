@@ -1,10 +1,8 @@
 /**
- * หน้าที่: speak the real GitHub REST API — GET only. Three reads:
- * the repository itself, one branch, and one path's metadata inside that
- * branch. Every failure is returned as data (`failed` / `not_found`),
- * never thrown and never swallowed by a catch-all, so a caller can always
- * tell "no HTTP response at all" (transport) from "HTTP 401" from
- * "HTTP 404" from "HTTP 500".
+ * หน้าที่: speak the real GitHub REST API — GET only. Reads: repository,
+ * branch, path metadata, commit-by-SHA, check-runs, and Actions runs for a
+ * head SHA. Every failure is returned as data (`failed` / `not_found`),
+ * never thrown and never swallowed by a catch-all.
  *
  * READ-ONLY BY CONSTRUCTION: this file's only outbound call is
  * `githubGet`, which uses `./host-runtime`'s `hostFetch` — a function with
@@ -23,7 +21,8 @@
  *
  * Input: a resolved token (in memory, from ./credential-resolution.ts) and
  * caller-supplied target data.
- * Output: `RepositoryLookup`, `BranchLookup`, `PathLookup`.
+ * Output: `RepositoryLookup`, `BranchLookup`, `PathLookup`, `CommitLookup`,
+ * `CheckRunsLookup`, `WorkflowRunsLookup`.
  * Dependency ที่อนุญาต: `./adapter-config`, `./host-runtime`,
  * `./repo-path`, `./adapter-contract` (types only).
  * สิ่งที่ห้ามแตะ: **ห้ามใส่ token ลงใน reason string, URL query, หรือ log**
@@ -151,7 +150,7 @@ function encodeOwnerRepo(target: GithubRepoTarget): string {
 }
 
 export type RepositoryLookup =
-  | { kind: "found"; http_status: number; default_branch: string | null; visibility: string | null }
+  | { kind: "found"; http_status: number; default_branch: string | null; visibility: string | null; repository_id: string | null }
   /** GitHub answers 404 both for "does not exist" and for "your token may not see it" — reported as the ambiguity it is. */
   | { kind: "not_found_or_no_access"; http_status: number; reason: string }
   | { kind: "failed"; http_status: number | null; reason: string };
@@ -191,11 +190,80 @@ export async function getRepository(token: string, target: GithubRepoTarget): Pr
     return { kind: "failed", http_status: outcome.http_status, reason: "GitHub returned a repository body that was not a JSON object" };
   }
 
+  const idNum = numberField(outcome.body, "id");
   return {
     kind: "found",
     http_status: outcome.http_status,
     default_branch: stringField(outcome.body, "default_branch"),
     visibility: stringField(outcome.body, "visibility"),
+    repository_id: idNum !== null ? String(idNum) : null,
+  };
+}
+
+export type EnvironmentsLookup =
+  | {
+      kind: "found";
+      http_status: number;
+      names: readonly string[];
+      protection_rules_visible: boolean;
+      required_reviewers_visible: boolean;
+      prevent_self_review_visible: boolean;
+    }
+  | { kind: "authorization_insufficient"; http_status: number; reason: string }
+  | { kind: "authentication_failed"; http_status: number | null; reason: string }
+  | { kind: "not_found_or_no_access"; http_status: number; reason: string }
+  | { kind: "failed"; http_status: number | null; reason: string };
+
+/** GET /repos/{owner}/{repo}/environments — read only. A 404 after the repository itself is visible is not treated as "no repository". */
+export async function getRepositoryEnvironments(token: string, target: GithubRepoTarget): Promise<EnvironmentsLookup> {
+  const outcome = await githubGet(token, `${GITHUB_API_BASE_URL}/repos/${encodeOwnerRepo(target)}/environments`);
+  if (outcome.kind === "not_found") {
+    return {
+      kind: "not_found_or_no_access",
+      http_status: 404,
+      reason: "environments endpoint returned HTTP 404 — missing environments, insufficient Actions/environment permission, or plan limitation. This is not proof the repository is absent.",
+    };
+  }
+  if (outcome.kind === "failed") {
+    if (outcome.http_status === 401) {
+      return { kind: "authentication_failed", http_status: 401, reason: outcome.reason };
+    }
+    if (outcome.http_status === 403) {
+      return { kind: "authorization_insufficient", http_status: 403, reason: outcome.reason };
+    }
+    return { kind: "failed", http_status: outcome.http_status, reason: outcome.reason };
+  }
+  if (!isRecord(outcome.body)) {
+    return { kind: "failed", http_status: outcome.http_status, reason: "GitHub returned an environments body that was not a JSON object" };
+  }
+  const names: string[] = [];
+  let protection_rules_visible = false;
+  let required_reviewers_visible = false;
+  let prevent_self_review_visible = false;
+  const list = outcome.body["environments"];
+  if (Array.isArray(list)) {
+    for (const env of list) {
+      if (!isRecord(env)) continue;
+      const name = stringField(env, "name");
+      if (name) names.push(name);
+      if (typeof env["prevent_self_review"] === "boolean") prevent_self_review_visible = true;
+      const rules = env["protection_rules"];
+      if (Array.isArray(rules) && rules.length > 0) {
+        protection_rules_visible = true;
+        for (const rule of rules) {
+          if (!isRecord(rule)) continue;
+          if (stringField(rule, "type") === "required_reviewers") required_reviewers_visible = true;
+        }
+      }
+    }
+  }
+  return {
+    kind: "found",
+    http_status: outcome.http_status,
+    names,
+    protection_rules_visible,
+    required_reviewers_visible,
+    prevent_self_review_visible,
   };
 }
 
@@ -298,4 +366,113 @@ export async function getPathStatus(token: string, target: GithubBranchTarget, n
     blob_sha: stringField(outcome.body, "sha") ?? "",
     size_bytes: numberField(outcome.body, "size") ?? 0,
   };
+}
+
+export type CommitLookup =
+  | { kind: "found"; http_status: number; sha: string; message: string; files: readonly string[]; html_url: string | null }
+  | { kind: "absent" }
+  | { kind: "failed"; http_status: number | null; reason: string };
+
+export async function getCommit(token: string, target: GithubRepoTarget & { readonly sha: string }): Promise<CommitLookup> {
+  const url = `${GITHUB_API_BASE_URL}/repos/${encodeOwnerRepo(target)}/commits/${encodeURIComponent(target.sha)}?per_page=100`;
+  const outcome = await githubGet(token, url);
+  if (outcome.kind === "not_found") return { kind: "absent" };
+  if (outcome.kind === "failed") return { kind: "failed", http_status: outcome.http_status, reason: outcome.reason };
+  if (!isRecord(outcome.body)) {
+    return { kind: "failed", http_status: outcome.http_status, reason: "GitHub returned a commit body that was not a JSON object" };
+  }
+  const sha = stringField(outcome.body, "sha") ?? "";
+  const inner = isRecord(outcome.body["commit"]) ? outcome.body["commit"] : null;
+  const message = inner ? stringField(inner, "message") ?? "" : "";
+  const files: string[] = [];
+  if (Array.isArray(outcome.body["files"])) {
+    for (const row of outcome.body["files"]) {
+      if (!isRecord(row)) continue;
+      const name = stringField(row, "filename");
+      if (name) files.push(name);
+    }
+  }
+  return {
+    kind: "found",
+    http_status: outcome.http_status,
+    sha,
+    message,
+    files,
+    html_url: stringField(outcome.body, "html_url"),
+  };
+}
+
+export interface GithubCheckRunSummary {
+  readonly name: string;
+  readonly status: string;
+  readonly conclusion: string | null;
+  readonly html_url: string | null;
+}
+
+export type CheckRunsLookup =
+  | { kind: "found"; http_status: number; total: number; runs: readonly GithubCheckRunSummary[] }
+  | { kind: "failed"; http_status: number | null; reason: string };
+
+export async function listCheckRunsForCommit(token: string, target: GithubRepoTarget & { readonly sha: string }): Promise<CheckRunsLookup> {
+  const url = `${GITHUB_API_BASE_URL}/repos/${encodeOwnerRepo(target)}/commits/${encodeURIComponent(target.sha)}/check-runs?per_page=100`;
+  const outcome = await githubGet(token, url);
+  if (outcome.kind === "not_found") {
+    return { kind: "found", http_status: 404, total: 0, runs: [] };
+  }
+  if (outcome.kind === "failed") return { kind: "failed", http_status: outcome.http_status, reason: outcome.reason };
+  if (!isRecord(outcome.body)) {
+    return { kind: "failed", http_status: outcome.http_status, reason: "GitHub returned a check-runs body that was not a JSON object" };
+  }
+  const total = numberField(outcome.body, "total_count") ?? 0;
+  const runs: GithubCheckRunSummary[] = [];
+  if (Array.isArray(outcome.body["check_runs"])) {
+    for (const row of outcome.body["check_runs"]) {
+      if (!isRecord(row)) continue;
+      runs.push({
+        name: stringField(row, "name") ?? "",
+        status: stringField(row, "status") ?? "",
+        conclusion: stringField(row, "conclusion"),
+        html_url: stringField(row, "html_url"),
+      });
+    }
+  }
+  return { kind: "found", http_status: outcome.http_status, total, runs };
+}
+
+export interface GithubWorkflowRunSummary {
+  readonly id: number | null;
+  readonly name: string;
+  readonly status: string;
+  readonly conclusion: string | null;
+  readonly html_url: string | null;
+  readonly head_sha: string | null;
+}
+
+export type WorkflowRunsLookup =
+  | { kind: "found"; http_status: number; runs: readonly GithubWorkflowRunSummary[] }
+  | { kind: "failed"; http_status: number | null; reason: string };
+
+export async function listWorkflowRunsForHeadSha(token: string, target: GithubRepoTarget & { readonly sha: string }): Promise<WorkflowRunsLookup> {
+  const url = `${GITHUB_API_BASE_URL}/repos/${encodeOwnerRepo(target)}/actions/runs?head_sha=${encodeURIComponent(target.sha)}&per_page=100`;
+  const outcome = await githubGet(token, url);
+  if (outcome.kind === "not_found") return { kind: "found", http_status: 404, runs: [] };
+  if (outcome.kind === "failed") return { kind: "failed", http_status: outcome.http_status, reason: outcome.reason };
+  if (!isRecord(outcome.body)) {
+    return { kind: "failed", http_status: outcome.http_status, reason: "GitHub returned an actions-runs body that was not a JSON object" };
+  }
+  const runs: GithubWorkflowRunSummary[] = [];
+  if (Array.isArray(outcome.body["workflow_runs"])) {
+    for (const row of outcome.body["workflow_runs"]) {
+      if (!isRecord(row)) continue;
+      runs.push({
+        id: numberField(row, "id"),
+        name: stringField(row, "name") ?? "",
+        status: stringField(row, "status") ?? "",
+        conclusion: stringField(row, "conclusion"),
+        html_url: stringField(row, "html_url"),
+        head_sha: stringField(row, "head_sha"),
+      });
+    }
+  }
+  return { kind: "found", http_status: outcome.http_status, runs };
 }

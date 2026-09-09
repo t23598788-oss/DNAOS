@@ -1,0 +1,174 @@
+{
+  "$schema": "dna-os/owner-command-display-history-knowledge/v1",
+  "record_type": "OWNER_COMMAND_DISPLAY_HISTORY",
+  "record_id": "OWNER_COMMAND_DISPLAY_HISTORY",
+  "purpose": "read-only relationship knowledge for why old Owner Command execution cards reappear after refresh",
+  "RELATIONSHIP": {
+    "surface": "#command",
+    "history_loader": {
+      "product_function": "getOwnerHistory()",
+      "product_endpoint": "/api/core/owner/history",
+      "core_endpoint": "/owner/history",
+      "source": "~/Developer/DNA-OS/source/dna-os-control-workspace/core-connection/core-client.mjs:117"
+    },
+    "history_store": {
+      "path": "control/owner-command-semantics/data/semantic-history.jsonl",
+      "reader": "readHistoryForIdentity()"
+    },
+    "projection": {
+      "source": "~/Developer/DNA-OS/source/dna-os-control-workspace/features/control-chat/chat.mjs",
+      "entrypoint": "createChat()",
+      "selection": "groups records by command_id, selects RAW_MESSAGE/RESOLUTION/OWNER_RESULT, and applies isExecutionHistoryResult() to the saved result"
+    },
+    "renderer": {
+      "source": "~/Developer/DNA-OS/source/dna-os-control-workspace/features/control-chat/chat.mjs",
+      "headline": "ownerResultHeadline(saved)",
+      "card_row": "line(\"result\", ownerResultHeadline(savedResult), \"ประวัติจาก Core\")"
+    },
+    "original_record_producer": {
+      "summary_source": "control/command-router/router.ts#runAgentHostStep",
+      "summary_line": "summary: agent-host task ...",
+      "history_writer": "control/owner-command/owner-command.ts#recordOwnerVisibleResult"
+    },
+    "live_progress": {
+      "endpoint": "/owner/language-events",
+      "protocol": "SSE",
+      "role": "live language progress only",
+      "causes_old_history_cards": false
+    },
+    "source_return_path": {
+      "meaning": "ทะเบียนเรื่องนี้ชี้กลับไปยัง source จริงและระบุโปรแกรมที่อ่าน Git, ตรวจ GitHub และเปิดโฟลเดอร์ โดยไม่ค้น filesystem ใหม่จากคำถาม",
+      "registered_knowledge_source": {
+        "source_location": "/Users/tam/Desktop/DNA-OS-INFRASTRUCTURE/governance/system-knowledge/owner-command-display-history.knowledge.json",
+        "canonical_name": "OWNER_COMMAND_DISPLAY_HISTORY",
+        "registry_resource_id": "resource-2c911716-fcb8-4212-af59-b211e2d4ade1"
+      },
+      "active_owner_workspace": {
+        "source_location": "/Users/tam/Developer/DNA-OS/source/dna-os-control-workspace",
+        "runtime_evidence": "launchd com.dnaos.control-workspace -> server/server.mjs, WorkingDirectory=/Users/tam/Developer/DNA-OS/source/dna-os-control-workspace, port=127.0.0.1:5181",
+        "git_observation_2026_09_06": {
+          "local_revision": "2da54f4d1fc3910dfcddea858bb5f34f9bcd009b",
+          "remote": "https://github.com/t23598788-oss/dna-os-control-workspace.git",
+          "remote_main_revision": "98b8f2a131e017bd1693a7f765b5b174950d84ac",
+          "working_tree_status": "DIRTY",
+          "working_tree_changed_entries": 71,
+          "github_sync": "NOT_SYNCHRONIZED"
+        }
+      },
+      "workspace_git_inspector": {
+        "source_location": "/Users/tam/Desktop/DNA-OS-INFRASTRUCTURE/control/owner-command/local-read-operations.ts",
+        "function": "executeLocalRead()",
+        "operation": "READ_GIT",
+        "commands": ["git branch --show-current", "git rev-parse HEAD", "git status --short", "git diff --stat"],
+        "configured_workspace": "/Users/tam/Desktop/dna-os-control-workspace",
+        "configured_workspace_exists": false,
+        "runtime_status": "BLOCKED_STALE_WORKSPACE_PATH",
+        "evidence_note": "Core currently has a real READ_GIT executor, but its cwd points at a path that is absent; no current Owner Workspace revision may be claimed through this executor until that boundary is corrected."
+      },
+      "github_status_inspector": {
+        "registry_capability": "github",
+        "source_location": "/Users/tam/Desktop/DNA-OS-INFRASTRUCTURE/connections/github/github-adapter.ts",
+        "entrypoint": "handleGithubCommand()",
+        "read_intent": "connector.github.read_status",
+        "connection_id": "connection://github/SOURCE_AUTHORITY/t23598788-oss/-DNA-OS-INFRASTRUCTURE-/main",
+        "adapter_probe_2026_09_06": "REJECTED_AT_CLASSIFY",
+        "adapter_probe_reason": "payload.connection.credential_ref.kind must be env_var or not_yet_built; received keychain_ref",
+        "direct_git_remote_observation": {
+          "remote_head": "e6ddf03f514dc52649e15ee172b573ec37b5932f",
+          "remote_reachable": true,
+          "scope": "read-only git ls-remote against the registered Infrastructure origin"
+        },
+        "knowledge_record_git_state": {
+          "working_tree_state": "UNTRACKED",
+          "remote_includes_this_record": false,
+          "evidence": "git status --short shows governance/system-knowledge/owner-command-display-history.knowledge.json as ??"
+        },
+        "runtime_status": "ADAPTER_BLOCKED_BUT_REMOTE_READABLE"
+      },
+      "workspace_opener": {
+        "source_location": "/Users/tam/Desktop/DNA-OS-INFRASTRUCTURE/connections/os-ui/adapter-contract.ts",
+        "lookup": "resolveOsUiTargetLocator()",
+        "existing_target": "finder-infra",
+        "existing_target_path": "/Users/tam/Desktop/DNA-OS-INFRASTRUCTURE",
+        "actual_owner_workspace_path": "/Users/tam/Developer/DNA-OS/source/dna-os-control-workspace",
+        "actual_owner_workspace_allowlist": "NOT_ALLOWLISTED",
+        "runtime_status": "INFRA_FOLDER_OPENABLE; OWNER_WORKSPACE_FOLDER_BLOCKED"
+      }
+    }
+  },
+  "READBACK_INDEX": {
+    "why_old_cards_remain": {
+      "match_exact": [
+        "ทำไมหน้าจอลบออกยังไม่หมด",
+        "ทำไมหน้าจอลบออกยังไม่หมดหลัง refresh",
+        "ทำไมการ์ดเก่ายังกลับมา"
+      ],
+      "owner_reply_th": "เพราะหน้า Owner Command ยังโหลด execution history เก่าจาก semantic-history ผ่าน /owner/history แล้วโปรแกรมแสดงผลนำ OWNER_RESULT กลับมาวาดใหม่หลัง refresh ไม่ได้เกิดจาก progress สดจาก /owner/language-events (SSE)"
+    },
+    "renderer": {
+      "match_exact": [
+        "โปรแกรมไหนเป็นตัววาด",
+        "ตัวไหนเป็นคนวาด",
+        "ตัวไหนวาดการ์ด"
+      ],
+      "owner_reply_th": "ตัววาดคือ features/control-chat/chat.mjs โดย createChat() จัดกลุ่มประวัติ แล้ว ownerResultHeadline(saved) สร้างข้อความก่อนวาดแถวผลลัพธ์บนหน้า #command"
+    },
+    "data_source": {
+      "match_exact": [
+        "ข้อมูลมาจากไหน",
+        "history มาจากไหน",
+        "ข้อมูลการ์ดเก่ามาจากไหน"
+      ],
+      "owner_reply_th": "ข้อมูลต้นทางมาจาก control/owner-command-semantics/data/semantic-history.jsonl ซึ่ง Core เปิดอ่านผ่าน GET /owner/history แล้ว Product ส่งต่อให้หน้า #command"
+    },
+    "history_loader": {
+      "match_exact": [
+        "ตัวไหนโหลด",
+        "โปรแกรมไหนโหลด history",
+        "ใครโหลดประวัติ"
+      ],
+      "owner_reply_th": "ตัวโหลดฝั่งหน้าเว็บคือ getOwnerHistory() ใน core-connection/core-client.mjs; มันเรียก /api/core/owner/history แล้ว Product proxy ไป Core /owner/history ซึ่งอ่านด้วย readHistoryForIdentity()"
+    },
+    "agent_host_producer": {
+      "match_exact": [
+        "ตัวไหนสร้างข้อความ agent-host",
+        "ใครสร้างข้อความ agent-host",
+        "ข้อความ agent-host สร้างจากไหน"
+      ],
+      "owner_reply_th": "ข้อความ agent-host task ... ถูกสร้างที่ control/command-router/router.ts#runAgentHostStep แล้ว control/owner-command/owner-command.ts#recordOwnerVisibleResult เขียนเป็น OWNER_RESULT ลง semantic-history; router เป็น producer ไม่ใช่ตัววาดหน้าจอ"
+    },
+    "source_location": {
+      "match_exact": [
+        "เรื่องนี้อยู่ที่ไหน",
+        "OWNER_COMMAND_DISPLAY_HISTORY อยู่ที่ไหน",
+        "source อยู่ที่ไหน",
+        "source location อยู่ที่ไหน"
+      ],
+      "owner_reply_th": "ทะเบียน OWNER_COMMAND_DISPLAY_HISTORY อยู่ที่ governance/system-knowledge/owner-command-display-history.knowledge.json ใน Infrastructure; source หน้าจอจริงอยู่ที่ /Users/tam/Developer/DNA-OS/source/dna-os-control-workspace และ runtime 5181 ใช้โฟลเดอร์นี้ตาม launchd"
+    },
+    "workspace_revision": {
+      "match_exact": [
+        "revision ไหน",
+        "workspace revision ไหน",
+        "ตอนนี้อยู่ revision ไหน"
+      ],
+      "owner_reply_th": "จากหลักฐานที่ทะเบียนบันทึกเมื่อ 2026-09-06 Owner Workspace อยู่ที่ /Users/tam/Developer/DNA-OS/source/dna-os-control-workspace, local revision 2da54f4d1fc3910dfcddea858bb5f34f9bcd009b; working tree มีการเปลี่ยนแปลง 71 รายการ และ GitHub main อยู่ที่ 98b8f2a131e017bd1693a7f765b5b174950d84ac จึงยังไม่ synchronized"
+    },
+    "github_sync": {
+      "match_exact": [
+        "เก็บ GitHub แล้วหรือยัง",
+        "อยู่ GitHub แล้วหรือยัง",
+        "GitHub เก็บ revision นี้แล้วหรือยัง"
+      ],
+      "owner_reply_th": "ยังยืนยันว่าเส้นนี้เก็บครบใน GitHub ไม่ได้: Owner Workspace local revision คือ 2da54f4d แต่ GitHub main คือ 98b8f2a1 และ working tree ยัง dirty 71 รายการ; knowledge record นี้เองยังเป็นไฟล์ untracked ใน Infrastructure จึงยังไม่อยู่ใน remote commit; GitHub adapter ที่มีอยู่ก็ถูกปฏิเสธที่ payload validation เพราะ connection จริงเป็น keychain_ref"
+    },
+    "open_workspace": {
+      "match_exact": [
+        "เปิด workspace",
+        "เปิดโฟลเดอร์นี้",
+        "เปิดเรื่องนี้"
+      ],
+      "owner_reply_th": "ตัวเปิดที่มีอยู่จริงคือ os-ui ผ่าน resolveOsUiTargetLocator(); เปิดโฟลเดอร์ Infrastructure ได้ด้วย target finder-infra แต่ Owner Workspace ที่ runtime 5181 ใช้อยู่ที่ /Users/tam/Developer/DNA-OS/source/dna-os-control-workspace ยังไม่อยู่ใน allowlist จึงยังสั่งเปิดโฟลเดอร์นั้นไม่ได้"
+    }
+  }
+}

@@ -32,7 +32,9 @@ import { existsSync, readdirSync, statSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { inspectWriteOwnershipIndex } from "../../software/capability-registrar/contract";
 import { checkImportBoundaries } from "./boundary-checker";
-import type { FolderLawGateResult, FolderLawViolation } from "./types";
+import type { FolderLawGateResult, FolderLawViolation, FolderLawRootCause } from "./types";
+
+type RawFolderLawViolation = Omit<FolderLawViolation, "classification" | "classification_reason" | "root_cause"> & { root_cause?: FolderLawRootCause };
 
 const GATE_ID = "capability-folder-law-gate";
 const STAGE_ID = "capability-folder-law";
@@ -51,7 +53,7 @@ function isSourceFile(name: string): boolean {
  * `now` รับเข้ามาได้เพื่อให้เทสต์ประทับเวลาเองได้ ไม่ใช่เพื่อให้ผู้เรียกย้อนเวลา
  */
 export function runCapabilityFolderLawGate(now: string = new Date().toISOString()): FolderLawGateResult {
-  const violations: FolderLawViolation[] = [];
+  const violations: RawFolderLawViolation[] = [];
   const evidenceRefs = new Set<string>([LAW]);
   const index = inspectWriteOwnershipIndex();
   evidenceRefs.add("software/capability-registrar/write-ownership-index.ts#inspectWriteOwnershipIndex");
@@ -126,9 +128,35 @@ export function runCapabilityFolderLawGate(now: string = new Date().toISOString(
       source_location: b.from_file,
       measured: `${b.from_capability} import ตรงเข้า ${b.to_file} ของ ${b.to_capability} (${b.import_specifier})`,
       evidence_ref: `${LAW}#ข้อ9`,
+      root_cause: b.to_file.includes("/adapters/") ? "ADAPTER_BYPASS" : b.to_file.endsWith("/types.ts") ? "INTERNAL_TYPE_BYPASS" : "PUBLIC_CONTRACT_BYPASS",
     });
   }
   for (const v of violations) evidenceRefs.add(v.evidence_ref);
+
+  // No current exemption registry exists. Every finding is therefore a real
+  // violation until an Owner-approved rule change supplies evidence for a
+  // stale rule or legacy exemption. Classification is explicit so a future
+  // exemption cannot silently turn a finding into PASS.
+  const classifiedViolations = violations.map((v) => ({
+    ...v,
+    classification: "REAL_VIOLATION" as const,
+    classification_reason: "current locked law applies; no approved stale-rule or legacy-exemption evidence exists",
+    root_cause: v.root_cause ?? (v.rule_row === "DUPLICATE_OR_OVERLAPPING_CAPABILITY" ? "DUPLICATE_OWNERSHIP_REGISTRATION" : "PUBLIC_CONTRACT_BYPASS"),
+  }));
+  const classification_counts = {
+    REAL_VIOLATION: classifiedViolations.length,
+    STALE_RULE: 0,
+    LEGACY_EXEMPTION: 0,
+  } as const;
+  const root_cause_counts = classifiedViolations.reduce((counts, violation) => {
+    counts[violation.root_cause] += 1;
+    return counts;
+  }, {
+    DUPLICATE_OWNERSHIP_REGISTRATION: 0,
+    ADAPTER_BYPASS: 0,
+    INTERNAL_TYPE_BYPASS: 0,
+    PUBLIC_CONTRACT_BYPASS: 0,
+  } as Record<FolderLawRootCause, number>);
 
   const subjectCount = subjectsRow1.length + index.ambiguous_paths.length + looseChecked + boundary.length;
   const failedCount = violations.length;
@@ -138,7 +166,7 @@ export function runCapabilityFolderLawGate(now: string = new Date().toISOString(
     subject_count: subjectCount,
     passed_count: Math.max(0, subjectCount - failedCount),
     failed_count: failedCount,
-    violations, evidence_refs: [...evidenceRefs].sort(),
+    violations: classifiedViolations, evidence_refs: [...evidenceRefs].sort(),
     checked_per_rule: {
       CAPABILITY_WITHOUT_OWN_FOLDER: subjectsRow1.length,
       SOURCE_FILE_OUTSIDE_CAPABILITY_BOUNDARY: groupsScanned,
@@ -147,6 +175,8 @@ export function runCapabilityFolderLawGate(now: string = new Date().toISOString(
     },
     // สถานะเป็นฟังก์ชันของจำนวนการละเมิดเท่านั้น ไม่มีทางอื่นที่ทำให้ PASS
     status: failedCount === 0 ? "PASS" : "FAIL",
+    classification_counts,
+    root_cause_counts,
     not_snapshot_checkable: [
       "ลบ capability ที่ยังมี dependency ค้างไม่ได้ตรวจ (BLOCK) — เป็นกฎของเหตุการณ์ลบ ไม่ใช่คุณสมบัติของ snapshot",
       "ลบ capability หลัง dependency validation ผ่านแล้ว (อนุญาต) — เช่นเดียวกัน",

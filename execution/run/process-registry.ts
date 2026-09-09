@@ -361,6 +361,152 @@ export const PROCESS_REGISTRY: Readonly<Record<string, ProcessDescriptor>> = {
     confinement: "policy",
     build_confinement_spec: buildNpmScriptConfinementSpec,
   },
+  "local.git.status": {
+    executable_id: "local.git.status",
+    canonical_path: "/usr/bin/git",
+    allowed_callers: ["control/local-resource-access/git-adapter.ts"],
+    allowed_operations: ["read"],
+    allowed_argv_shape: (argv) =>
+      argv.length === 4
+      && argv[0] === "status"
+      && argv[1] === "--porcelain"
+      && argv[2] === "--"
+      && typeof argv[3] === "string"
+      && !argv[3].includes(".."),
+    allowed_cwd_scope: "/Users/tam/Desktop/DNA-OS-INFRASTRUCTURE",
+    environment_profile: DEFAULT_ENV_PROFILE,
+    network_profile: "none",
+    credential_profile: "none",
+    timeout_ms: 10_000,
+    confinement: "direct",
+  },
+  "local.git.diff": {
+    executable_id: "local.git.diff",
+    canonical_path: "/usr/bin/git",
+    allowed_callers: ["control/local-resource-access/git-adapter.ts"],
+    allowed_operations: ["read"],
+    allowed_argv_shape: (argv) =>
+      argv.length === 4
+      && argv[0] === "diff"
+      && argv[1] === "--name-only"
+      && argv[2] === "--"
+      && typeof argv[3] === "string"
+      && !argv[3].includes(".."),
+    allowed_cwd_scope: "/Users/tam/Desktop/DNA-OS-INFRASTRUCTURE",
+    environment_profile: DEFAULT_ENV_PROFILE,
+    network_profile: "none",
+    credential_profile: "none",
+    timeout_ms: 10_000,
+    confinement: "direct",
+  },
+  "local.git.search": {
+    executable_id: "local.git.search",
+    canonical_path: "/usr/bin/git",
+    allowed_callers: ["control/local-resource-access/git-adapter.ts"],
+    allowed_operations: ["read"],
+    allowed_argv_shape: (argv) =>
+      argv.length === 8
+      && argv[0] === "grep"
+      && argv[1] === "-n"
+      && argv[2] === "-I"
+      && argv[3] === "-F"
+      && argv[4] === "--"
+      && typeof argv[5] === "string"
+      && /^[A-Za-z0-9._ -]{1,80}$/.test(argv[5])
+      && argv[6] === "--"
+      && typeof argv[7] === "string"
+      && !argv[7].includes(".."),
+    allowed_cwd_scope: "/Users/tam/Desktop/DNA-OS-INFRASTRUCTURE",
+    environment_profile: DEFAULT_ENV_PROFILE,
+    network_profile: "none",
+    credential_profile: "none",
+    timeout_ms: 10_000,
+    confinement: "direct",
+  },
+  "local.compute.true": {
+    executable_id: "local.compute.true",
+    canonical_path: "/usr/bin/true",
+    allowed_callers: ["control/local-resource-access/process-adapter.ts"],
+    allowed_operations: ["run"],
+    allowed_argv_shape: exactArgv(),
+    allowed_cwd_scope: "/Users/tam/Desktop/DNA-OS-INFRASTRUCTURE",
+    environment_profile: DEFAULT_ENV_PROFILE,
+    network_profile: "none",
+    credential_profile: "none",
+    timeout_ms: 5_000,
+    confinement: "direct",
+  },
+  "local.os.ps-list": {
+    executable_id: "local.os.ps-list",
+    canonical_path: "/bin/ps",
+    allowed_callers: ["control/local-resource-access/process-adapter.ts"],
+    allowed_operations: ["read"],
+    allowed_argv_shape: exactArgv("-axo", "pid=,ppid=,pcpu=,pmem=,state=,comm="),
+    allowed_cwd_scope: "/Users/tam/Desktop/DNA-OS-INFRASTRUCTURE",
+    environment_profile: DEFAULT_ENV_PROFILE,
+    network_profile: "none",
+    credential_profile: "none",
+    timeout_ms: 8_000,
+    confinement: "direct",
+  },
+  "local.os.ps-inspect": {
+    executable_id: "local.os.ps-inspect",
+    canonical_path: "/bin/ps",
+    allowed_callers: ["control/local-resource-access/process-adapter.ts"],
+    allowed_operations: ["read"],
+    allowed_argv_shape: (argv) =>
+      argv.length === 4
+      && argv[0] === "-p"
+      && typeof argv[1] === "string"
+      && /^\d{1,10}$/.test(argv[1])
+      && argv[2] === "-o"
+      && argv[3] === "pid=,ppid=,pcpu=,pmem=,state=,comm=",
+    allowed_cwd_scope: "/Users/tam/Desktop/DNA-OS-INFRASTRUCTURE",
+    environment_profile: DEFAULT_ENV_PROFILE,
+    network_profile: "none",
+    credential_profile: "none",
+    timeout_ms: 8_000,
+    confinement: "direct",
+  },
+  "local.os.lsof-listen": {
+    executable_id: "local.os.lsof-listen",
+    canonical_path: "/usr/sbin/lsof",
+    allowed_callers: ["control/local-resource-access/process-adapter.ts"],
+    allowed_operations: ["read"],
+    allowed_argv_shape: exactArgv("-nP", "-iTCP", "-sTCP:LISTEN"),
+    allowed_cwd_scope: "/Users/tam/Desktop/DNA-OS-INFRASTRUCTURE",
+    environment_profile: DEFAULT_ENV_PROFILE,
+    network_profile: "none",
+    credential_profile: "none",
+    timeout_ms: 8_000,
+    confinement: "direct",
+  },
+  "local.os.df": {
+    executable_id: "local.os.df",
+    canonical_path: "/bin/df",
+    allowed_callers: ["control/local-resource-access/process-adapter.ts"],
+    allowed_operations: ["read"],
+    allowed_argv_shape: exactArgv("-k", "-P"),
+    allowed_cwd_scope: "/Users/tam/Desktop/DNA-OS-INFRASTRUCTURE",
+    environment_profile: DEFAULT_ENV_PROFILE,
+    network_profile: "none",
+    credential_profile: "none",
+    timeout_ms: 8_000,
+    confinement: "direct",
+  },
+  "local.os.mount": {
+    executable_id: "local.os.mount",
+    canonical_path: "/sbin/mount",
+    allowed_callers: ["control/local-resource-access/process-adapter.ts"],
+    allowed_operations: ["read"],
+    allowed_argv_shape: exactArgv(),
+    allowed_cwd_scope: "/Users/tam/Desktop/DNA-OS-INFRASTRUCTURE",
+    environment_profile: DEFAULT_ENV_PROFILE,
+    network_profile: "none",
+    credential_profile: "none",
+    timeout_ms: 8_000,
+    confinement: "direct",
+  },
 };
 
 export interface ProcessResolution {

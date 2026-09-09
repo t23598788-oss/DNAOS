@@ -49,6 +49,7 @@ import { applyMutation } from "../registration-update/contract";
 import { checkRepoPath } from "../../connections/github/repo-path";
 import { resolveGithubCredential } from "../../connections/github/credential-resolution";
 import { getRepository } from "../../connections/github/github-read-api";
+import { isRegisteredGithubSourceAuthorityTarget } from "../../connections/github/authoritative-source";
 import { putFileContents } from "../../connections/github/write-api";
 import { newExecutionId, nowIso } from "./host-runtime";
 import type { AdmissionResult } from "../admission/contract";
@@ -135,6 +136,13 @@ export async function executeSource(input: SourceExecutionInput, context: Source
     return finalize(input, "UNRESOLVED", "GITHUB_CONNECTION_NOT_REGISTERED");
   }
 
+  if (!input.repository_reference) {
+    return finalize(input, "UNRESOLVED", "REPOSITORY_NOT_FOUND");
+  }
+  if (isRegisteredGithubSourceAuthorityTarget(input.repository_reference)) {
+    return finalize(input, "FAILED", "DNA_OS_PUBLISH_AUTHORITY_REQUIRED", { repository_reference: input.repository_reference, branch: input.repository_reference.branch });
+  }
+
   // Credential — resolved only through the existing DNA OS credential
   // boundary (connections/github/credential-resolution.ts), never inline.
   const credential = await resolveGithubCredential(input.connection);
@@ -142,10 +150,6 @@ export async function executeSource(input: SourceExecutionInput, context: Source
     return finalize(input, "UNRESOLVED", "CREDENTIAL_NOT_RESOLVED");
   }
 
-  // Repository — real, caller-supplied target, verified live.
-  if (!input.repository_reference) {
-    return finalize(input, "UNRESOLVED", "REPOSITORY_NOT_FOUND");
-  }
   const repoLookup = await getRepository(credential.token, input.repository_reference);
   if (repoLookup.kind !== "found") {
     return finalize(input, "UNRESOLVED", "REPOSITORY_NOT_FOUND", { repository_reference: input.repository_reference, branch: input.repository_reference.branch });

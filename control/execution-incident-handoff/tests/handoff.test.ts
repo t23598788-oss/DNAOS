@@ -124,7 +124,7 @@ const EMAIL_FIELDS = ["sender", "message_id", "thread_id", "email_evidence", "re
     .split("\n").filter(Boolean).map((l) => JSON.parse(l) as { capability_id: string });
   const realCapabilityId = capLinks[0]!.capability_id;
   const byIdentity = resolveInternalTarget({
-    work_order_id: "wo-identity", task_id: null, plan_id: null, step_id: null,
+    work_order_id: "wo-identity", task_id: null, plan_id: null, step_id: null, lifecycle_stage_id: null,
     failure_type: "FAILED", failure_stage: "RESOURCE_INVOCATION",
     capability_id: realCapabilityId, resource_id: null, operation: null,
     started_at: new Date().toISOString(), last_progress_at: null, detected_at: new Date().toISOString(),
@@ -138,7 +138,7 @@ const EMAIL_FIELDS = ["sender", "message_id", "thread_id", "email_evidence", "re
   ok("I5. BROAD_FILENAME_SCAN_USED_FIRST = NO",
     !/source scan found/.test(JSON.stringify(byIdentity)) && byIdentity.reason.length > 0);
   ok("I6. ตัวตนไม่พอ → บอกความสัมพันธ์ที่ขาด ไม่เดา",
-    (() => { const r = resolveInternalTarget({ work_order_id: "w", task_id: null, plan_id: null, step_id: null,
+    (() => { const r = resolveInternalTarget({ work_order_id: "w", task_id: null, plan_id: null, step_id: null, lifecycle_stage_id: null,
       failure_type: "FAILED", failure_stage: "x", capability_id: null, resource_id: null, operation: null,
       started_at: "t", last_progress_at: null, detected_at: "t", error: null, exit_code: null, timeout_ms: null,
       source_location: null, last_successful_evidence_id: null, observed_by: "test" });

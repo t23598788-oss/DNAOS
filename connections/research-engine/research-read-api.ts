@@ -13,7 +13,7 @@
  * parameter ใน function ใดในไฟล์นี้.
  */
 
-import { RESEARCH_ENGINE_HEALTH_PATH, RESEARCH_ENGINE_LATEST_PATH } from "./adapter-config";
+import { RESEARCH_ENGINE_HEALTH_PATH, RESEARCH_ENGINE_LATEST_PATH, RESEARCH_ENGINE_LINEAGE_LATEST_PATH } from "./adapter-config";
 import { hostFetch } from "./host-runtime";
 
 const JSON_ACCEPT_HEADERS: Record<string, string> = { Accept: "application/json" };
@@ -59,6 +59,28 @@ export async function fetchResearchEngineLatest(baseUrl: string, timeoutMillisec
   }
   if (!outcome.response.ok) {
     return { kind: "http_error", http_status: outcome.response.status, reason: `latest endpoint returned HTTP ${outcome.response.status}` };
+  }
+  try {
+    const body = await outcome.response.json();
+    return { kind: "ok", http_status: outcome.response.status, body };
+  } catch (error) {
+    return { kind: "invalid_json", reason: error instanceof Error ? error.message : String(error) };
+  }
+}
+
+/**
+ * Fetches the read-only lineage slice when the Research Monitor API exposes
+ * it. The adapter treats absence as data, not as permission to fabricate:
+ * callers can fall back to `/api/research/latest`, but execution/cost/process
+ * fields then remain null.
+ */
+export async function fetchResearchEngineLatestLineage(baseUrl: string, timeoutMilliseconds: number): Promise<LatestFetchOutcome> {
+  const outcome = await hostFetch(`${baseUrl}${RESEARCH_ENGINE_LINEAGE_LATEST_PATH}`, JSON_ACCEPT_HEADERS, timeoutMilliseconds);
+  if (outcome.kind === "transport_error") {
+    return { kind: "transport_error", reason: outcome.reason };
+  }
+  if (!outcome.response.ok) {
+    return { kind: "http_error", http_status: outcome.response.status, reason: `lineage endpoint returned HTTP ${outcome.response.status}` };
   }
   try {
     const body = await outcome.response.json();

@@ -26,6 +26,8 @@
 
 export type CapabilityHealthStatus = "CONNECTED" | "NOT_CONNECTED";
 
+export type CapabilityRuntimeStatus = "REGISTERED" | "WIRED" | "LIVE" | "EXECUTABLE" | "VERIFIED" | "BLOCKED";
+
 /** Whether a routed capability must pass a permission decision before it may run. "none" still means "the capability enforces its own scope check" (see connections/github/github-adapter.ts's account-scope check) — never a blanket bypass. */
 export type PermissionRequirement = "none" | "execution-policy";
 
@@ -59,6 +61,30 @@ export interface CapabilityRegistration {
   match_keyword_sets: readonly (readonly string[])[];
   permission_requirement: PermissionRequirement;
   health_status: CapabilityHealthStatus;
+}
+
+/**
+ * Narrow, read-only projection of `CapabilityRegistration` for callers that
+ * only need to match text against a known capability id — never the
+ * `endpoint` (real adapter module/entry) or `permission_requirement` a full
+ * registration carries. Added (Owner UNLOCK, 2026-09-06) so
+ * `control/owner-command-semantics/` can resolve a mention to a
+ * `capability_id` without importing execution-wiring fields.
+ */
+export interface CapabilitySummary {
+  capability_id: string;
+  repo_id: string;
+  match_keyword_sets: readonly (readonly string[])[];
+  /**
+   * Added (Owner UNLOCK 2026-09-06, BUILD_SELF_WORK_LEDGER_V1): the list of
+   * command strings this capability actually supports — still just data
+   * (command NAMES, never the `endpoint`/module reference that would
+   * execute one). Needed so a read-only ledger can tell "capability id
+   * matched by keyword" apart from "a command exists for what the Owner
+   * actually asked to do" without reintroducing the write/endpoint leak
+   * `ReadOnlyRegistryView`/`CapabilitySummary` were built to close.
+   */
+  supported_commands: readonly string[];
 }
 
 /** One step of a (possibly multi-worker) Owner command. */

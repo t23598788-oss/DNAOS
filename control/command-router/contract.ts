@@ -12,7 +12,7 @@
  *
  * Input: re-exports only.
  * Output: `routeOwnerCommand`, `classifyCommand`, `listCapabilities`,
- * `getCapability`, `classifyOutput` (the SYSTEM_STATE/WORK_ITEM Output
+ * `listCapabilitySummaries`, `getCapability`, `classifyOutput` (the SYSTEM_STATE/WORK_ITEM Output
  * Contract lane for a `CapabilityResult`), plus every type a caller needs
  * to build a request or read a decision/registration.
  * Dependency ที่อนุญาต: ./router.ts, ./capability-registry.ts, ./types.ts,
@@ -25,6 +25,6 @@
 
 export { classifyCommand, routeOwnerCommand } from "./router";
 export type { RouteOptions } from "./router";
-export { CAPABILITY_REGISTRY, getCapability, listCapabilities } from "./capability-registry";
-export type { CapabilityHealthStatus, CapabilityRegistration, ClassificationOutcome, EndpointReference, PermissionRequirement, RouterStep } from "./types";
+export { CAPABILITY_REGISTRY, getCapability, listCapabilities, listCapabilitySummaries } from "./capability-registry";
+export type { CapabilityHealthStatus, CapabilityRegistration, CapabilitySummary, ClassificationOutcome, EndpointReference, PermissionRequirement, RouterStep } from "./types";
 export { classifyOutput } from "./output-classifier";

@@ -208,7 +208,7 @@ async function main(): Promise<void> {
     for (let i = 1; i <= 4; i += 1) {
       await runOp(i, { label: `CLICK #${i}`, op: "click", ui: { coordinate: mid, scope: "screen", risk_confirmed: true }, expected: "clicks เพิ่มขึ้น" });
     }
-    try { revokeAuthority(AUTH, "repeat-click probe finished"); } catch { /* ignore */ }
+    try { revokeAuthority(AUTH); } catch { /* ignore */ }
     const outP = join(BASE, `owner-surface-acceptance-${Date.now()}.json`);
     writeFileSync(outP, JSON.stringify({ surface: SURFACE, profile: "repeat-click", originator: ORIGINATOR, chrome_pid: PID, operations: records }, null, 1));
     const vv = records.filter((r) => r.EFFECT_VERDICT === "VERIFIED").length;
@@ -265,7 +265,7 @@ async function main(): Promise<void> {
       console.log(`  [${n - 1}] scroll           NOT_APPLICABLE — mx=${st?.mx ?? "?"}`);
     }
     await runOp(n++, { label: "SCREENSHOT", op: "screenshot", ui: { target: "", scope: "screen", risk_confirmed: true }, scope: ["display-read"], expected: "ได้ภาพแอปจริง" });
-    try { revokeAuthority(AUTH, "real-target acceptance finished"); } catch { /* ignore */ }
+    try { revokeAuthority(AUTH); } catch { /* ignore */ }
     const outR = join(BASE, `owner-surface-acceptance-${Date.now()}.json`);
     writeFileSync(outR, JSON.stringify({ surface: SURFACE, profile: "real", originator: ORIGINATOR, chrome_pid: PID, published_state_at_start: st, operations: records }, null, 1));
     const v2 = records.filter((r) => r.EFFECT_VERDICT === "VERIFIED").length;
@@ -288,7 +288,7 @@ async function main(): Promise<void> {
   await runOp(11, { label: "KEY", op: "key", ui: { key: "Tab", scope: "ui-control" }, expected: "st เปลี่ยนเป็น key:Tab" });
   await runOp(12, { label: "NAVIGATION", op: "click", ui: { coordinate: nav, scope: "screen", risk_confirmed: true }, expected: "clicks เพิ่มขึ้น / v เปลี่ยน view" });
 
-  try { revokeAuthority(AUTH, "acceptance run finished"); } catch { /* lease หมดอายุเองอยู่แล้ว */ }
+  try { revokeAuthority(AUTH); } catch { /* lease หมดอายุเองอยู่แล้ว */ }
 
   const out = join(BASE, `owner-surface-acceptance-${Date.now()}.json`);
   writeFileSync(out, JSON.stringify({ surface: SURFACE, originator: ORIGINATOR, owner_session_id: SID, authority_id: AUTH, chrome_pid: PID, published_state_at_start: st, operations: records }, null, 1));

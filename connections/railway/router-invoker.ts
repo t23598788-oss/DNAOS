@@ -1,92 +1,272 @@
 /**
- * หน้าที่: Railway's real `ConnectorInvoker` — the one function
- * `../../control/connector-execution-boundary/registry.ts` is allowed to
- * import from this folder (Capability Folder Law ข้อ 9). Closes over the
- * credential resolution at module load time, matching
- * `connections/digitalocean/router-invoker.ts`'s own composition
- * discipline — the boundary and router never construct or see a
- * credential provider directly.
- *
- * SCOPE THIS ROUND: exactly one read-only intent,
- * "railway.environment_status" — resolves the real project/environment
- * status via Railway's GraphQL API using a Keychain-resolved,
- * project-scoped token (credential://railway/dna-os-infrastructure/
- * production/project-token, registered in credentials/registry/). No
- * write/deploy intent is wired here — proven live this session via a
- * real read-only GraphQL call (environment lookup returned real
- * id/name/projectId matching the already-registered resource).
- *
- * Input: a `CommandEnvelope`.
- * Output: `invokeRailwayConnector` -> `ConnectorBoundaryOutcome`.
- * Dependency ที่อนุญาต: node:https, ../../contracts/command/command-envelope.ts,
- * ../../control/connector-execution-boundary/types.ts (type only),
- * ../../credentials/registry/api-credential-registry.ts,
- * ../../credentials/macos-keychain/provider.ts.
- * สิ่งที่ห้ามแตะ: never resolve/log/return the raw token — it must stay
- * local to resolveEnvironmentStatus()'s own scope. Never add a write/
- * deploy/mutation intent here without a separate, explicit Owner
- * authorization round.
+ * Railway ConnectorInvoker — existing read intent plus a NARROW deploy
+ * mutation constructed inside this folder. Clients cannot supply GraphQL.
  */
 
-import { request } from "node:https";
 import type { CommandEnvelope } from "../../contracts/command/command-envelope";
 import type { ConnectorBoundaryOutcome, ConnectorInvoker } from "../../control/connector-execution-boundary/types";
-import { findApiCredential } from "../../credentials/registry/api-credential-registry";
 import { MacOsKeychainProvider } from "../../credentials/macos-keychain/provider";
+import {
+  DEPLOY_EXISTING_SERVICE_REVISION_MUTATION,
+  RAILWAY_ENVIRONMENT_ID,
+  REDEPLOY_DEPLOYMENT_MUTATION,
+  isRecord,
+  railwayGraphql,
+  stringField,
+} from "./graphql";
 
-const CREDENTIAL_REF = "credential://railway/dna-os-infrastructure/production/project-token";
-const ENVIRONMENT_ID = "4d28eafa-9735-4405-a585-55ea354bafab";
-const GRAPHQL_ENDPOINT = "https://backboard.railway.com/graphql/v2";
+const productionKeychainProvider = new MacOsKeychainProvider();
 
-function postJson(url: string, headers: Record<string, string>, body: unknown): Promise<{ status: number; text: string }> {
-  return new Promise((resolvePromise, reject) => {
-    const payload = JSON.stringify(body);
-    const req = request(url, { method: "POST", headers: { ...headers, "Content-Type": "application/json", "Content-Length": Buffer.byteLength(payload) } }, (res) => {
-      const chunks: Buffer[] = [];
-      res.on("data", (c) => chunks.push(c));
-      res.on("end", () => resolvePromise({ status: res.statusCode ?? 0, text: Buffer.concat(chunks).toString("utf8") }));
-    });
-    req.on("error", reject);
-    req.write(payload);
-    req.end();
-  });
+const ALLOWED_INTENTS = new Set([
+  "railway.environment_status",
+  "railway.list_project_services",
+  "railway.get_service_instance",
+  "railway.get_deployment",
+  "railway.introspect_deploy_mutation",
+  "railway.deploy_revision",
+  "railway.redeploy_deployment",
+]);
+
+function forbiddenGenericGraphql(payload: Record<string, unknown>): boolean {
+  return "query" in payload || "graphql" in payload || "mutation" in payload || "raw_graphql" in payload;
 }
 
-async function resolveEnvironmentStatus(provider: MacOsKeychainProvider): Promise<ConnectorBoundaryOutcome> {
-  const entry = findApiCredential(CREDENTIAL_REF);
-  if (!entry || entry.status !== "ACTIVE") {
-    return { ok: false, auth_required: true, summary: `credential_ref "${CREDENTIAL_REF}" not registered or inactive`, evidence: [], artifacts: [] };
+function outcomeFromGraphql(
+  result: Awaited<ReturnType<typeof railwayGraphql>>,
+  artifacts: ConnectorBoundaryOutcome["artifacts"],
+  summaryOk: string,
+): ConnectorBoundaryOutcome {
+  if (result.auth_required) {
+    return { ok: false, auth_required: true, summary: result.summary, evidence: [], artifacts: [] };
   }
-  const resolution = await provider.resolve({ service: entry.resolver_service, account: entry.resolver_account, kind: "api_key" });
-  if (!resolution.ok) {
-    return { ok: false, auth_required: true, summary: `Keychain resolution failed (${resolution.code}): ${resolution.reason}`, evidence: [], artifacts: [] };
-  }
-
-  const token = resolution.secret; // local to this call only, never logged, never returned
-  const res = await postJson(GRAPHQL_ENDPOINT, { "Project-Access-Token": token }, { query: `query { environment(id: "${ENVIRONMENT_ID}") { id name projectId } }` });
-
-  if (res.status < 200 || res.status >= 300) {
-    return { ok: false, auth_required: false, summary: `Railway API returned HTTP ${res.status}`, evidence: [{ source: "connections/railway/router-invoker.ts", note: "non-2xx response" }], artifacts: [] };
-  }
-  const parsed = JSON.parse(res.text) as { data?: { environment?: { id: string; name: string; projectId: string } }; errors?: unknown[] };
-  if (!parsed.data?.environment) {
-    return { ok: false, auth_required: false, summary: "Railway API returned no environment data", evidence: [{ source: "connections/railway/router-invoker.ts", note: JSON.stringify(parsed.errors ?? []) }], artifacts: [] };
+  if (result.errors.length > 0 || !result.data) {
+    const note = JSON.stringify(result.errors).slice(0, 400);
+    return {
+      ok: false,
+      auth_required: false,
+      summary: result.summary,
+      evidence: [{ source: "connections/railway/router-invoker.ts", note }],
+      artifacts,
+    };
   }
   return {
     ok: true,
     auth_required: false,
-    summary: `railway environment "${parsed.data.environment.name}" reachable, project ${parsed.data.environment.projectId}`,
-    evidence: [{ source: "connections/railway/router-invoker.ts", note: `credential_source=${resolution.credential_source}` }],
-    artifacts: [{ kind: "environment_id", ref: parsed.data.environment.id }],
+    summary: summaryOk,
+    evidence: [{ source: "connections/railway/router-invoker.ts", note: "typed intent; no client GraphQL" }],
+    artifacts,
   };
 }
 
-const productionKeychainProvider = new MacOsKeychainProvider();
+async function environmentStatus(): Promise<ConnectorBoundaryOutcome> {
+  const result = await railwayGraphql(
+    `query EnvironmentStatus($id: String!) { environment(id: $id) { id name projectId } }`,
+    { id: RAILWAY_ENVIRONMENT_ID },
+    productionKeychainProvider,
+  );
+  const env = result.data && isRecord(result.data["environment"]) ? result.data["environment"] : null;
+  const artifacts = env ? [{ kind: "environment_id", ref: stringField(env, "id") ?? "" }] : [];
+  const name = env ? stringField(env, "name") ?? "" : "";
+  const projectId = env ? stringField(env, "projectId") ?? "" : "";
+  const base = outcomeFromGraphql(result, artifacts, `railway environment "${name}" reachable, project ${projectId}`);
+  if (!base.ok || !env) return base;
+  return {
+    ...base,
+    artifacts: [
+      { kind: "environment_id", ref: stringField(env, "id") ?? "" },
+      { kind: "project_id", ref: projectId },
+      { kind: "environment_name", ref: name },
+    ],
+  };
+}
+
+async function listProjectServices(projectId: string | undefined): Promise<ConnectorBoundaryOutcome> {
+  let id = projectId ?? "";
+  if (!id) {
+    const env = await environmentStatus();
+    const found = env.artifacts.find((row) => row.kind === "project_id");
+    id = found?.ref ?? "";
+  }
+  if (!id) return { ok: false, auth_required: false, summary: "project_id unavailable", evidence: [], artifacts: [] };
+  const result = await railwayGraphql(
+    `query ProjectServices($id: String!) { project(id: $id) { id name services { edges { node { id name } } } } }`,
+    { id },
+    productionKeychainProvider,
+  );
+  const project = result.data && isRecord(result.data["project"]) ? result.data["project"] : null;
+  const artifacts: Array<{ kind: string; ref: string }> = [{ kind: "project_id", ref: id }];
+  if (project && isRecord(project["services"]) && Array.isArray((project["services"] as { edges?: unknown }).edges)) {
+    const edges = (project["services"] as { edges: unknown[] }).edges;
+    for (const edge of edges) {
+      if (!isRecord(edge) || !isRecord(edge["node"])) continue;
+      const node = edge["node"];
+      const name = stringField(node, "name") ?? "";
+      const serviceId = stringField(node, "id") ?? "";
+      if (serviceId) artifacts.push({ kind: `service:${name || "unnamed"}`, ref: serviceId });
+    }
+  }
+  return outcomeFromGraphql(result, artifacts, `listed railway services for project ${id}`);
+}
+
+async function getServiceInstance(serviceId: string, environmentId: string): Promise<ConnectorBoundaryOutcome> {
+  const result = await railwayGraphql(
+    `query ServiceInstance($serviceId: String!, $environmentId: String!) {
+      serviceInstance(serviceId: $serviceId, environmentId: $environmentId) {
+        domains { serviceDomains { domain } }
+        latestDeployment { id status meta canRedeploy }
+      }
+      service(id: $serviceId) { id name }
+    }`,
+    { serviceId, environmentId },
+    productionKeychainProvider,
+  );
+  const artifacts: Array<{ kind: string; ref: string }> = [
+    { kind: "service_id", ref: serviceId },
+    { kind: "environment_id", ref: environmentId },
+  ];
+  const instance = result.data && isRecord(result.data["serviceInstance"]) ? result.data["serviceInstance"] : null;
+  const service = result.data && isRecord(result.data["service"]) ? result.data["service"] : null;
+  if (service) artifacts.push({ kind: "service_name", ref: stringField(service, "name") ?? "" });
+  if (instance && isRecord(instance["domains"]) && isRecord((instance["domains"] as Record<string, unknown>)["serviceDomains"])) {
+    /* ignore */
+  }
+  if (instance && Array.isArray((instance["domains"] as { serviceDomains?: unknown } | undefined)?.serviceDomains)) {
+    for (const domain of ((instance["domains"] as { serviceDomains: unknown[] }).serviceDomains)) {
+      if (isRecord(domain) && stringField(domain, "domain")) artifacts.push({ kind: "runtime_domain", ref: stringField(domain, "domain") ?? "" });
+    }
+  }
+  if (instance && isRecord(instance["latestDeployment"])) {
+    const dep = instance["latestDeployment"];
+    artifacts.push({ kind: "latest_deployment_id", ref: stringField(dep, "id") ?? "" });
+    artifacts.push({ kind: "latest_deployment_status", ref: stringField(dep, "status") ?? "" });
+    artifacts.push({ kind: "can_redeploy", ref: dep["canRedeploy"] === true ? "true" : "false" });
+  }
+  return outcomeFromGraphql(result, artifacts, "service instance read");
+}
+
+async function getDeployment(deploymentId: string): Promise<ConnectorBoundaryOutcome> {
+  const result = await railwayGraphql(
+    `query Deployment($id: String!) {
+      deployment(id: $id) { id status staticUrl meta createdAt canRedeploy serviceId environmentId }
+    }`,
+    { id: deploymentId },
+    productionKeychainProvider,
+  );
+  const dep = result.data && isRecord(result.data["deployment"]) ? result.data["deployment"] : null;
+  const artifacts: Array<{ kind: string; ref: string }> = [{ kind: "deployment_id", ref: deploymentId }];
+  if (dep) {
+    artifacts.push({ kind: "deployment_status", ref: stringField(dep, "status") ?? "" });
+    artifacts.push({ kind: "static_url", ref: stringField(dep, "staticUrl") ?? "" });
+    artifacts.push({ kind: "can_redeploy", ref: dep["canRedeploy"] === true ? "true" : "false" });
+    const meta = dep["meta"];
+    if (isRecord(meta)) {
+      const sha = stringField(meta, "commitHash") ?? stringField(meta, "commitSha") ?? stringField(meta, "imageDigest");
+      if (sha) artifacts.push({ kind: "provider_revision", ref: sha });
+    }
+  }
+  return outcomeFromGraphql(result, artifacts, dep ? `deployment ${stringField(dep, "status")}` : "deployment read");
+}
+
+async function introspectDeploy(): Promise<ConnectorBoundaryOutcome> {
+  const result = await railwayGraphql(
+    `query IntrospectDeployMutation { __type(name: "Mutation") { fields { name } } }`,
+    undefined,
+    productionKeychainProvider,
+  );
+  const type = result.data && isRecord(result.data["__type"]) ? result.data["__type"] : null;
+  const fields = type && Array.isArray(type["fields"]) ? type["fields"] : [];
+  const names: string[] = [];
+  for (const field of fields) {
+    if (isRecord(field)) {
+      const name = stringField(field, "name");
+      if (name) names.push(name);
+    }
+  }
+  const present = names.includes("serviceInstanceDeployV2");
+  return outcomeFromGraphql(
+    result,
+    [{ kind: "deploy_mutation_field", ref: present ? "serviceInstanceDeployV2" : "ABSENT" }],
+    present ? "serviceInstanceDeployV2 present on Mutation" : "serviceInstanceDeployV2 not visible",
+  );
+}
+
+async function deployRevision(serviceId: string, environmentId: string, commitSha: string): Promise<ConnectorBoundaryOutcome> {
+  if (!/^[0-9a-f]{7,40}$/i.test(commitSha)) {
+    return { ok: false, auth_required: false, summary: "DEPLOYMENT_REVISION_NOT_FOUND", evidence: [], artifacts: [] };
+  }
+  const result = await railwayGraphql(
+    DEPLOY_EXISTING_SERVICE_REVISION_MUTATION,
+    { serviceId, environmentId, commitSha },
+    productionKeychainProvider,
+  );
+  const errorText = JSON.stringify(result.errors).toLowerCase();
+  if (/commit not found|unknown commit|revision not found/.test(errorText)) {
+    return {
+      ok: false,
+      auth_required: false,
+      summary: "DEPLOYMENT_REVISION_NOT_FOUND",
+      evidence: [{ source: "connections/railway/router-invoker.ts", note: "provider rejected commit" }],
+      artifacts: [],
+    };
+  }
+  const id = result.data ? result.data["serviceInstanceDeployV2"] : null;
+  const deploymentId = typeof id === "string" ? id : null;
+  if (!deploymentId) return outcomeFromGraphql(result, [], "deploy did not return deployment id");
+  return {
+    ok: true,
+    auth_required: false,
+    summary: "railway accepted deploy request",
+    evidence: [{ source: "connections/railway/router-invoker.ts", note: "serviceInstanceDeployV2" }],
+    artifacts: [{ kind: "deployment_id", ref: deploymentId }],
+  };
+}
+
+async function redeploy(deploymentId: string): Promise<ConnectorBoundaryOutcome> {
+  const result = await railwayGraphql(REDEPLOY_DEPLOYMENT_MUTATION, { id: deploymentId }, productionKeychainProvider);
+  const node = result.data && isRecord(result.data["deploymentRedeploy"]) ? result.data["deploymentRedeploy"] : null;
+  const artifacts = node ? [{ kind: "deployment_id", ref: stringField(node, "id") ?? deploymentId }] : [];
+  return outcomeFromGraphql(result, artifacts, "redeploy requested");
+}
 
 export const invokeRailwayConnector: ConnectorInvoker = async (command: CommandEnvelope): Promise<ConnectorBoundaryOutcome> => {
-  const payload = command.payload as { intent?: string } | undefined;
-  if (payload?.intent !== "railway.environment_status") {
-    return { ok: false, auth_required: false, summary: `unsupported railway intent: ${payload?.intent ?? "none"}`, evidence: [], artifacts: [] };
+  const payload = (command.payload && typeof command.payload === "object") ? command.payload as Record<string, unknown> : {};
+  if (forbiddenGenericGraphql(payload)) {
+    return { ok: false, auth_required: false, summary: "GENERIC_GRAPHQL_FORBIDDEN", evidence: [], artifacts: [] };
   }
-  return resolveEnvironmentStatus(productionKeychainProvider);
+  const intent = typeof payload.intent === "string" ? payload.intent : "";
+  if (!ALLOWED_INTENTS.has(intent)) {
+    return { ok: false, auth_required: false, summary: `unsupported railway intent: ${intent || "none"}`, evidence: [], artifacts: [] };
+  }
+  if (intent === "railway.environment_status") return environmentStatus();
+  if (intent === "railway.list_project_services") {
+    return listProjectServices(typeof payload.project_id === "string" ? payload.project_id : undefined);
+  }
+  if (intent === "railway.get_service_instance") {
+    if (typeof payload.service_id !== "string" || typeof payload.environment_id !== "string") {
+      return { ok: false, auth_required: false, summary: "service_id and environment_id required", evidence: [], artifacts: [] };
+    }
+    return getServiceInstance(payload.service_id, payload.environment_id);
+  }
+  if (intent === "railway.get_deployment") {
+    if (typeof payload.deployment_id !== "string") {
+      return { ok: false, auth_required: false, summary: "deployment_id required", evidence: [], artifacts: [] };
+    }
+    return getDeployment(payload.deployment_id);
+  }
+  if (intent === "railway.introspect_deploy_mutation") return introspectDeploy();
+  if (intent === "railway.deploy_revision") {
+    if (typeof payload.service_id !== "string" || typeof payload.environment_id !== "string" || typeof payload.commit_sha !== "string") {
+      return { ok: false, auth_required: false, summary: "typed deploy fields required", evidence: [], artifacts: [] };
+    }
+    return deployRevision(payload.service_id, payload.environment_id, payload.commit_sha);
+  }
+  if (intent === "railway.redeploy_deployment") {
+    if (typeof payload.deployment_id !== "string") {
+      return { ok: false, auth_required: false, summary: "deployment_id required", evidence: [], artifacts: [] };
+    }
+    return redeploy(payload.deployment_id);
+  }
+  return { ok: false, auth_required: false, summary: `unsupported railway intent: ${intent}`, evidence: [], artifacts: [] };
 };
+
+export { DEPLOY_EXISTING_SERVICE_REVISION_MUTATION } from "./graphql";

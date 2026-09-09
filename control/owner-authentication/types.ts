@@ -12,13 +12,22 @@
  * สิ่งที่ห้ามแตะ: ห้ามสร้างผล biometric ปลอม; ห้ามให้สตริงชื่อผ่านเป็น authentication.
  */
 
-export type OwnerAuthMethod = "macos-console-session" | "touch-id";
+/**
+ * วิธีที่ผู้เรียก "ขอ" ใช้ยืนยัน — ไม่ใช่สิ่งที่ระบบเชื่อ
+ *
+ * ADDITIVE 2026-09-05: "human-verification" คือทางเดียวที่ออก session ได้จริง
+ * ส่วนอีกสองตัวคงไว้เพื่อไม่ให้ผู้เรียกเดิมพัง แต่ ./authenticate.ts ปฏิเสธทั้งคู่
+ * ด้วย HUMAN_VERIFICATION_REQUIRED แล้ว — `macos-console-session` เหลือความหมาย
+ * เป็น OWNER_PRESENCE_CHECK เท่านั้น
+ */
+export type OwnerAuthMethod = "macos-console-session" | "touch-id" | "human-verification";
 export type OwnerSessionState = "ACTIVE" | "EXPIRED" | "REVOKED";
 
 export interface OwnerSession {
   session_id: string;
   owner_identity: string;         // ผู้ใช้จริงที่พิสูจน์แล้ว เช่น "tam"
-  authenticated_via: OwnerAuthMethod;
+  /** วิธีที่ผ่านจริง — สำหรับ human-verification จะมีชั้นของวิธีต่อท้าย เช่น "human-verification:BIOMETRIC" */
+  authenticated_via: OwnerAuthMethod | `human-verification:${string}`;
   device_binding: string | null;  // machine identity (reuse machine-binding ถ้ามี)
   issued_at: string;
   expires_at: string;
@@ -29,6 +38,8 @@ export interface OwnerSession {
 
 export interface AuthenticateOwnerInput {
   method: OwnerAuthMethod;
+  /** ต้องมีเมื่อ method = "human-verification" — challenge ที่ macOS ยืนยันแล้วและยังไม่ถูกใช้ */
+  verified_challenge_id?: string;
   /** owner ที่ระบบคาดว่าเป็นเจ้าของ — ต้องตรงกับ signal จริง ไม่ใช่แค่ประกาศ */
   expected_owner: string;
   ttl_seconds: number;

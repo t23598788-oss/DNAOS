@@ -8,7 +8,7 @@ export type DisplayPayload =
   | { schema: "OWNER_DISPLAY_PAYLOAD_V1"; projection: "UNSUPPORTED_PROJECTION"; subject: "UNKNOWN"; state: "UNSUPPORTED"; owner_attention: true; evidence_available: boolean; details_reference: string | null };
 
 type CanonicalResult = Readonly<Record<string, unknown>>;
-const SUPPORTED = new Set(["runtime", "capability", "agent", "resource", "git", "test", "error"]);
+const SUPPORTED = new Set(["runtime", "capability", "agent", "resource", "git", "test", "error", "activity", "github", "railway", "supabase"]);
 
 function text(value: unknown): string | null { return typeof value === "string" && value.length > 0 ? value : null; }
 function scalar(value: unknown): string | number | boolean | null { return typeof value === "string" || typeof value === "number" || typeof value === "boolean" ? value : null; }
@@ -38,7 +38,7 @@ export function projectOwnerDisplayPayload(result: CanonicalResult): DisplayPayl
   const subject = text(result.subject) ?? type.toUpperCase();
   const state = text(result.state) ?? text(result.status) ?? "UNKNOWN";
   const summary_facts: Record<string, string | number | boolean> = {};
-  for (const key of ["health", "branch", "revision", "assignable", "count", "exit_code", "test_count"]) {
+  for (const key of ["health", "branch", "revision", "assignable", "count", "exit_code", "test_count", "sha_match", "remote_sha", "icon_ref"]) {
     const value = scalar(result[key]);
     if (value !== null) summary_facts[key] = value;
   }

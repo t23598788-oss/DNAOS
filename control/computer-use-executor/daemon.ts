@@ -166,10 +166,53 @@ async function loop(): Promise<void> {
   }
 }
 
+/**
+ * COMPUTER_USE_EXECUTION_OWNER = com.dnaos.computer-use-executor (Owner, 2026-09-05)
+ *
+ * ALLOWED_EXECUTION_PATH   = launchd daemon → inbox consume
+ * FORBIDDEN_EXECUTION_PATH = manual --once · agent-spawned executor · shell-spawned executor
+ *
+ * REASON: macOS ผูกสิทธิ์ระดับ OS (TCC — Screen Recording, Accessibility) กับ
+ * "responsible process" ของสายโปรเซส ไม่ใช่กับ path ของ binary โปรเซสที่ถูก
+ * spawn จาก shell ของ Agent จึงสืบทอดการระบุตัวตนของ agent host ซึ่งไม่มีสิทธิ์
+ * แม้จะเป็นไฟล์เดียวกัน ผู้ใช้เดียวกัน และเครื่องเดียวกัน
+ *
+ * วัดจริงเมื่อ 2026-09-05:
+ *   pid 974  ppid 852 (launchd daemon)     -> screencapture=OK   07:34 และ 07:49
+ *   pid 62904 / 63971 (spawn จาก shell)    -> screencapture=FAILED 07:39, 07:40
+ *   "could not create image from display" — จอไม่ได้ล็อก สิทธิ์ไม่ได้เปลี่ยน
+ *   ตัวแปรเดียวที่ต่างคือใครเป็นผู้รัน
+ *
+ * ผลเสียที่แท้จริงของการฝืน: โปรเซสที่ไม่มีสิทธิ์จะ "แย่ง" ใบงานจาก daemon ไปทำ
+ * แล้วบันทึกผล FAILED ทั้งที่ระบบทำได้ — กลายเป็นหลักฐานเท็จในสายหลักฐาน
+ * จึงต้องปฏิเสธตั้งแต่ต้น ไม่ใช่ปล่อยให้ทำแล้วค่อยล้ม
+ */
+const LAUNCHD_PPID = 1;
+function launchedByLaunchd(): boolean {
+  // launchd เป็น pid 1 — daemon ที่ launchd จัดการจะมี ppid = 1 เสมอ
+  try { return process.ppid === LAUNCHD_PPID; } catch { return false; }
+}
+
 // entrypoint
 if (process.argv[1] && process.argv[1].endsWith("daemon.ts")) {
   const once = process.argv.includes("--once");
-  console.log(`computer-use-executor daemon starting (pid=${process.pid}, mode=${once ? "once" : "loop"}, execution_owner=${EXECUTOR_IDENTITY})`);
+  const owned = launchedByLaunchd();
+  console.log(`computer-use-executor daemon starting (pid=${process.pid}, ppid=${process.ppid}, mode=${once ? "once" : "loop"}, execution_owner=${EXECUTOR_IDENTITY}, launchd_owned=${owned})`);
+
+  if (!owned) {
+    // fail closed — ไม่แตะ inbox เลย เพื่อไม่ให้แย่งใบงานไปทำในบริบทที่ไม่มีสิทธิ์
+    console.error(JSON.stringify({
+      refused: true,
+      reason_code: "EXECUTION_CONTEXT_NOT_LAUNCHD",
+      execution_owner: EXECUTOR_IDENTITY,
+      allowed_execution_path: "launchd daemon -> inbox consume",
+      forbidden_execution_path: "manual --once / agent-spawned / shell-spawned",
+      detail: "สิทธิ์ระดับ OS (TCC) ผูกกับสายโปรเซสของ launchd — โปรเซสนี้ไม่มีสิทธิ์ถ่ายหน้าจอ/ควบคุม UI แม้จะเป็นไฟล์เดียวกัน ส่งใบงานเข้า inbox แล้วปล่อยให้ daemon ที่ launchd จัดการหยิบไปทำ (ปกติภายในไม่กี่วินาที)",
+      how_to_dispatch: "control/computer-use-authority/work-lease.ts#dispatchComputerUseWork",
+    }, null, 1));
+    process.exit(2);
+  }
+
   if (once) { void drainInbox().then((r) => { console.log(JSON.stringify(r, null, 1)); process.exit(0); }); }
   else void loop();
 }

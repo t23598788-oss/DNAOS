@@ -39,6 +39,32 @@ export type LifecycleStage =
 
 export type LifecycleStageStatus = "PASSED" | "FAILED" | "BLOCKED" | "UNRESOLVED" | "NOT_APPLICABLE";
 
+/** The external-system pipeline has 15 operational stages and one terminal state. COMPLETE is never counted as an operational stage. */
+export const EXTERNAL_OPERATIONAL_STAGES: readonly Exclude<LifecycleStage, "COMPLETE">[] = [
+  "DISCOVER", "CLASSIFY", "DUPLICATE_CHECK", "BOUNDARY_REPO_DECISION", "BUILD", "TEST", "VERIFY",
+  "REGISTRATION_PIPELINE", "REGISTRY_WRITER", "RELATIONSHIP", "INTEGRATION", "TARGET_RESOLUTION",
+  "PERMISSION_ADMISSION", "DEPLOY_INSTALL", "RUNTIME_VERIFY",
+];
+
+/** Explicit reconciliation: architecture governance is a 14-entry index; external registration is a 15-stage operational pipeline. */
+export const CANONICAL_LIFECYCLE_MAPPING: Readonly<Record<Exclude<LifecycleStage, "COMPLETE">, readonly string[]>> = {
+  DISCOVER: ["connection-census", "target-identity-discovery"],
+  CLASSIFY: ["semantic-contract-discovery"],
+  DUPLICATE_CHECK: ["capability-folder-law", "capability-catalog-dry-run"],
+  BOUNDARY_REPO_DECISION: ["capability-repository-lineage", "cross-system-instance-registry"],
+  BUILD: ["vercel-boundary"],
+  TEST: ["operational-lifecycle-model"],
+  VERIFY: ["operational-lifecycle-model"],
+  REGISTRATION_PIPELINE: ["capability-catalog-dry-run"],
+  REGISTRY_WRITER: ["capability-catalog-projection"],
+  RELATIONSHIP: ["cross-system-instance-registry"],
+  INTEGRATION: ["connection-contract"],
+  TARGET_RESOLUTION: ["target-identity-discovery"],
+  PERMISSION_ADMISSION: ["vercel-boundary"],
+  DEPLOY_INSTALL: ["vercel-boundary"],
+  RUNTIME_VERIFY: ["operational-lifecycle-model"],
+};
+
 /** One real, append-only event — the persistent source of truth `./store.ts` writes and replays. Never mutated after being written. */
 export interface LifecycleEvent {
   event_id: string;

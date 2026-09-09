@@ -3,6 +3,7 @@
   "private": true,
   "scripts": {
     "owner-command:serve": "tsx transport/owner-command-http/server.ts",
+    "conversation-runtime:build": "tsc -p control/conversation-runtime/tsconfig.build.json && tsx control/conversation-runtime/build-manifest-writer.ts",
     "typecheck": "tsc --noEmit",
     "census": "tsx software/live-census/cli.ts",
     "census:drift": "tsx software/live-census/cli.ts --drift",

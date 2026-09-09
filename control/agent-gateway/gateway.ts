@@ -697,7 +697,7 @@ export async function submitTask(
       catch { return null; }
     };
     const before = shaOf();
-    const origin = { kind: "ADMITTED_TASK" as const, task_id: taskId, command_id: taskId.replace(/^task-/, "") };
+    const origin = { kind: "ADMITTED_TASK" as const, task_id: taskId, command_id: taskId.replace(/^task-/, ""), work_id: workOrder.work_order_id };
     const agentResult = await runAgentWorkOrder(
       workOrder,
       origin,

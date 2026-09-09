@@ -97,6 +97,7 @@ export interface CapabilityRow { capability_id: string; canonical_name: string; 
 export interface ResourceRow { resource_id: string; source_location?: string | null }
 export interface ResourceCapabilityRow { capability_id: string; resource_id: string }
 export interface RuntimeTargetRow {
+  runtime_target_id?: string;
   capability_id: string;
   canonical_name?: string;
   network?: { host?: string; port?: number } | null;
@@ -153,25 +154,29 @@ export function resolveCapabilityRoute(
     .filter((s): s is string => typeof s === "string" && s.length > 0);
 
   const targets = stores.runtimeTargets.filter((t) => t.capability_id === cap.capability_id);
+  const latestTargets = [...targets.reduce((m, t, i) => {
+    m.set(t.runtime_target_id ?? `row:${i}`, t);
+    return m;
+  }, new Map<string, RuntimeTargetRow>()).values()];
   identity = {
     capability_id: cap.capability_id, canonical_name: cap.canonical_name, source_pointer,
-    has_runtime_pointer: targets.length > 0,
+    has_runtime_pointer: latestTargets.length > 0,
   };
   const declarations = stores.connectionDeclarations.filter(
     (d) => d.executor_capability_id === cap.capability_id && typeof d.endpoint === "string" && d.endpoint.length > 0,
   );
 
-  if (targets.length + declarations.length === 0) {
+  if (latestTargets.length + declarations.length === 0) {
     return fail("NO_RUNTIME_BINDING",
       `capability ${cap.canonical_name} มีตัวตนแต่ไม่มีใครประกาศว่ามันรันที่ไหน — ต้องมี RuntimeTarget หรือ ConnectionDeclaration ก่อนจึงจะเรียกได้`);
   }
-  if (targets.length + declarations.length > 1) {
+  if (latestTargets.length + declarations.length > 1) {
     return fail("RUNTIME_BINDING_AMBIGUOUS",
-      `capability ${cap.canonical_name} มีที่อยู่ที่ประกาศไว้ ${targets.length + declarations.length} แห่ง — ไม่เลือกให้เอง`);
+      `capability ${cap.canonical_name} มีที่อยู่ที่ประกาศไว้ ${latestTargets.length + declarations.length} แห่ง — ไม่เลือกให้เอง`);
   }
 
-  if (targets.length === 1) {
-    const t = targets[0]!;
+  if (latestTargets.length === 1) {
+    const t = latestTargets[0]!;
     const host = t.network?.host, port = t.network?.port;
     if (!host || !port) {
       return fail("NO_RUNTIME_BINDING",

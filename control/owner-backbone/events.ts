@@ -12,6 +12,9 @@
  *     satisfied by reuse, not by a new stream.
  * Durability reuses `../agent-gateway/#saveEvidence`, the same append-only
  * store `work-resolution` and `incident-remediation` already persist into.
+ * After persist, the producer-side Display Queue is enqueued — still not a
+ * fourth durable rail; Owner Projection reads that queue, never raw
+ * evidence JSON.
  *
  * DELIVERY FAILURE NEVER LOSES THE EVENT: the event is persisted FIRST and
  * fan-out failures are recorded against it. A dead channel degrades
@@ -19,8 +22,8 @@
  *
  * Input: a `SystemEvent`.
  * Output: `emitSystemEvent`, `eventsForWork`, `eventsForCommand`,
- * `eventsSince`, `latestEventForWork`.
- * Dependency ที่อนุญาต: ./types.ts, ../agent-gateway/contract.ts,
+ * `eventsForCorrelation`, `eventsSince`, `latestEventForWork`.
+ * Dependency ที่อนุญาต: ./types.ts, ./display-queue.ts, ../agent-gateway/contract.ts,
  * ../output-routing/contract.ts, ../../observability/joint-monitor/contract.ts.
  * สิ่งที่ห้ามแตะ: never emit an event that was not persisted first, and
  * never let a consumer failure throw out of `emitSystemEvent` — a broken
@@ -28,10 +31,11 @@
  */
 
 import { randomUUID } from "node:crypto";
-import { saveEvidence, loadEvidenceForTask, loadAllEvidence } from "../agent-gateway/contract";
+import { saveEvidence, loadEvidenceForTask, loadAllEvidence } from "../agent-gateway/memory-store";
 import { resolveOutputConsumers } from "../output-routing/contract";
 import { reportJoint } from "../../observability/joint-monitor/contract";
-import type { SystemEvent, SystemEventType } from "./types";
+import { enqueueOwnerDisplay } from "./display-queue";
+import type { SystemEvent, SystemEventType, SystemEventDraft } from "./types";
 
 const SOURCE_MARKER = "control/owner-backbone/events.ts";
 
@@ -43,29 +47,82 @@ export interface EmitResult {
   readonly delivery_detail: string;
 }
 
-export function buildSystemEvent(input: Omit<SystemEvent, "event_id" | "observed_at">): SystemEvent {
-  return { ...input, event_id: `evt-${Date.now()}-${randomUUID().slice(0, 8)}`, observed_at: new Date().toISOString() };
+function normalizeEvent(row: SystemEvent): SystemEvent {
+  return {
+    ...row,
+    correlation_id: row.correlation_id ?? row.command_id ?? row.work_id ?? row.event_id,
+    work_order_id: row.work_order_id ?? row.work_id ?? null,
+    actor_icon_ref: row.actor_icon_ref ?? null,
+    verification_authority: row.verification_authority ?? null,
+    parent_event_id: row.parent_event_id ?? null,
+    remote_sha: row.remote_sha ?? null,
+    sha_match: row.sha_match ?? null,
+    processing_group_id: row.processing_group_id ?? null,
+    step_id: row.step_id ?? null,
+  };
 }
 
-/**
- * Persist, then fan out. The persist happens first and unconditionally, so
- * an event survives even when every channel is down.
- */
-export async function emitSystemEvent(input: Omit<SystemEvent, "event_id" | "observed_at">): Promise<EmitResult> {
-  const event = buildSystemEvent(input);
+export function buildSystemEvent(input: SystemEventDraft): SystemEvent {
+  const event_id = `evt-${Date.now()}-${randomUUID().slice(0, 8)}`;
+  const correlation_id = input.correlation_id ?? input.command_id ?? input.work_id ?? event_id;
+  return {
+    command_id: input.command_id,
+    work_id: input.work_id,
+    incident_id: input.incident_id,
+    event_type: input.event_type,
+    state: input.state,
+    source: input.source,
+    resource_ids: input.resource_ids,
+    capability_ids: input.capability_ids,
+    evidence_refs: input.evidence_refs,
+    next_action: input.next_action,
+    event_id,
+    observed_at: new Date().toISOString(),
+    correlation_id,
+    work_order_id: input.work_order_id ?? input.work_id ?? null,
+    actor_icon_ref: input.actor_icon_ref ?? null,
+    verification_authority: input.verification_authority ?? null,
+    parent_event_id: input.parent_event_id ?? null,
+    remote_sha: input.remote_sha ?? null,
+    sha_match: input.sha_match ?? null,
+    processing_group_id: input.processing_group_id ?? null,
+    step_id: input.step_id ?? null,
+  };
+}
 
-  // 1. DURABILITY FIRST. Keyed by work_id when there is one, so
-  //    `eventsForWork` is a direct read rather than a scan.
+function persistSystemEvent(event: SystemEvent): void {
   saveEvidence({
     evidence_id: event.event_id,
     task_id: event.work_id ?? event.command_id ?? event.event_id,
-    kind: "execution_output",
+    correlation_id: event.correlation_id,
+    work_order_id: event.work_order_id ?? undefined,
+    kind: event.event_type === "GITHUB_COMMIT_ACCEPTED" || event.event_type === "VERIFICATION_PASSED" ? "verification" : "execution_output",
     source: SOURCE_MARKER,
     recorded_at: event.observed_at,
     payload: event,
   });
+  enqueueOwnerDisplay(event);
+}
 
-  // 2. ROUTING — decided by the existing boundary, not by this module.
+/**
+ * Persist, then Display Queue, then fan out. The persist happens first and
+ * unconditionally, so an event survives even when every channel is down.
+ */
+export async function emitSystemEvent(input: SystemEventDraft): Promise<EmitResult> {
+  if (input.event_type === "GITHUB_COMMIT_ACCEPTED") {
+    const confirmed = input.sha_match === true
+      && input.verification_authority === "GITHUB"
+      && typeof input.remote_sha === "string"
+      && input.remote_sha.length > 0
+      && input.source.includes("github");
+    if (!confirmed) {
+      throw new Error("GITHUB_REMOTE_VERIFICATION: GITHUB_COMMIT_ACCEPTED requires confirmed remote SHA match from GitHub");
+    }
+  }
+  const event = buildSystemEvent(input);
+
+  persistSystemEvent(event);
+
   const routing = resolveOutputConsumers({
     lane: "SYSTEM_STATE",
     task_id: event.work_id ?? event.event_id,
@@ -74,21 +131,9 @@ export async function emitSystemEvent(input: Omit<SystemEvent, "event_id" | "obs
   } as never) as unknown as { status: string; consumers?: { consumer_id: string }[] };
   const routedTo = routing.consumers?.map((c) => c.consumer_id) ?? [];
 
-  // 3. DELIVERY to the live Owner surface. A failure here is recorded, not
-  //    thrown — the event is already durable.
   let delivered = false;
   let detail = "";
   try {
-    // reportJoint now returns the REAL transport result (fixed 2026-08-26
-    // in observability/joint-monitor/client.ts). Delivery is READ from it —
-    // never inferred from "the call returned".
-    // THE REAL `ReportJointInput` — `{ from_capability, to_capability,
-    // task_id, status, summary, source }`. It previously sent
-    // `{ caller, callee, detail, correlation_id }` behind an `as never`,
-    // which the collector rejected with 400 on EVERY event; the void
-    // return hid it. Same class of bug as the owner-escalation payload
-    // (2026-08-26). The contract was right, the caller was wrong — never
-    // cast a payload past a contract.
     const sent = await reportJoint({
       from_capability: "control/owner-backbone",
       to_capability: event.source,
@@ -108,13 +153,6 @@ export async function emitSystemEvent(input: Omit<SystemEvent, "event_id" | "obs
   return { event, persisted: true, routed_to: routedTo, delivered, delivery_detail: detail };
 }
 
-/**
- * §14 live tail. NOT a new event bus: it is an in-process notification of
- * the ONE emit path above, so an already-open SSE response can be written
- * to without polling the evidence store. It carries no delivery guarantee —
- * durability is the `saveEvidence` call, and a client that missed events
- * recovers them through `eventsSince`, never through this.
- */
 type SystemEventListener = (event: SystemEvent) => void;
 const listeners = new Set<SystemEventListener>();
 
@@ -125,21 +163,35 @@ export function onSystemEvent(listener: SystemEventListener): () => void {
 
 function notifyListeners(event: SystemEvent): void {
   for (const listener of listeners) {
-    // A broken subscriber must never break the emit path.
     try { listener(event); } catch { /* recorded by the subscriber, not here */ }
   }
 }
 
 function rowsToEvents(rows: readonly { source: string; payload: unknown }[]): readonly SystemEvent[] {
-  return rows.filter((r) => r.source === SOURCE_MARKER).map((r) => r.payload as SystemEvent);
+  return rows.filter((r) => r.source === SOURCE_MARKER).map((r) => normalizeEvent(r.payload as SystemEvent));
+}
+
+function matchesLineage(event: SystemEvent, id: string): boolean {
+  return event.work_id === id
+    || event.work_order_id === id
+    || event.correlation_id === id
+    || event.command_id === id;
 }
 
 export function eventsForWork(workId: string): readonly SystemEvent[] {
-  return [...rowsToEvents(loadEvidenceForTask(workId))].sort((a: SystemEvent, b: SystemEvent) => a.event_id.localeCompare(b.event_id));
+  const keyed = rowsToEvents(loadEvidenceForTask(workId));
+  const scanned = rowsToEvents(loadAllEvidence()).filter((event) => matchesLineage(event, workId));
+  const byId = new Map<string, SystemEvent>();
+  for (const event of [...keyed, ...scanned]) byId.set(event.event_id, event);
+  return [...byId.values()].sort((a, b) => a.event_id.localeCompare(b.event_id));
 }
 
 export function eventsForCommand(commandId: string): readonly SystemEvent[] {
-  return rowsToEvents(loadAllEvidence()).filter((e) => e.command_id === commandId);
+  return rowsToEvents(loadAllEvidence()).filter((e) => e.command_id === commandId || e.correlation_id === commandId);
+}
+
+export function eventsForCorrelation(correlationId: string): readonly SystemEvent[] {
+  return rowsToEvents(loadAllEvidence()).filter((e) => matchesLineage(e, correlationId));
 }
 
 export function latestEventForWork(workId: string): SystemEvent | null {
@@ -147,13 +199,6 @@ export function latestEventForWork(workId: string): SystemEvent | null {
   return events.length > 0 ? events[events.length - 1] : null;
 }
 
-/**
- * §14 — replay from a reconnecting interface's `last_event_id`. Mirrors the
- * semantics joint-monitor's SSE already uses (`?since=` names the LAST
- * event the client saw; everything AFTER it is returned). An unknown id
- * returns everything, because a client that cannot be placed must not be
- * silently given a partial history.
- */
 export function eventsSince(workId: string, lastEventId: string | null): readonly SystemEvent[] {
   const all = eventsForWork(workId);
   if (lastEventId === null) return all;

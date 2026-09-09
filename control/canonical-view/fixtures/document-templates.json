@@ -1,0 +1,5 @@
+{
+  "note": "Fixture templates live in templates.ts. TH_TAX_INVOICE_V1 / TH_RECEIPT_V1 are reserved ids only.",
+  "legal_correctness_claimed": false,
+  "reserved_template_ids": ["TH_TAX_INVOICE_V1", "TH_RECEIPT_V1", "PURCHASE_ORDER_V1", "INVOICE_V1", "PAYMENT_SUMMARY_V1", "BUSINESS_REPORT_V1"]
+}

@@ -20,8 +20,10 @@
 export { submitOwnerCommandEnvelope, resolveCommand, dispatchCommand, getWorkState, loadCommand, commandsForWork, newOwnerCommand, awaitDispatch, resumeWorkOnDependency } from "./gateway";
 export type { ResolutionOutcome, DispatchOutcome, ResumeOutcome } from "./gateway";
 
-export { emitSystemEvent, buildSystemEvent, eventsForWork, eventsForCommand, eventsSince, latestEventForWork, onSystemEvent } from "./events";
+export { emitSystemEvent, buildSystemEvent, eventsForWork, eventsForCommand, eventsForCorrelation, eventsSince, latestEventForWork, onSystemEvent } from "./events";
 export type { EmitResult } from "./events";
+export { enqueueOwnerDisplay, listDisplayQueue, ownerSurfaceFrame, projectSystemEventDisplay } from "./display-queue";
+export type { DisplayQueueItem } from "./display-queue";
 
 export type {
   CommandAcknowledgement,
@@ -32,6 +34,7 @@ export type {
   ReplyChannel,
   SystemEvent,
   SystemEventType,
+  SystemEventDraft,
   WorkStateView,
 } from "./types";
 

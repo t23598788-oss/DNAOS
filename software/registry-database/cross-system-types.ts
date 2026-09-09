@@ -45,6 +45,10 @@ export type CrossSystemEntityType =
   | "PROCESS"
   | "WORK"
   | "EXECUTION"
+  | "RESEARCH_RUN"
+  | "METRIC"
+  | "COST"
+  | "DECISION"
   | "EVIDENCE";
 
 export type ExtendedRelationshipEntityType = RelationshipEntityType | CrossSystemEntityType;
@@ -77,7 +81,16 @@ export type CrossSystemRelationshipKind =
   | "PROCESS_OBSERVES_RUNTIME"
   | "WORK_TARGETS_RESOURCE"
   | "WORK_TARGETS_CAPABILITY"
-  | "EXECUTION_OF_WORK";
+  | "EXECUTION_OF_WORK"
+  | "EXECUTION_RUNS_PROCESS"
+  | "EXECUTION_HAS_RESEARCH_RUN"
+  | "RESEARCH_RUN_HAS_METRIC"
+  | "RESEARCH_RUN_HAS_COST"
+  | "RESEARCH_RUN_HAS_DECISION"
+  | "METRIC_HAS_EVIDENCE"
+  | "COST_HAS_EVIDENCE"
+  | "DECISION_HAS_EVIDENCE"
+  | "PROCESS_HAS_EVIDENCE";
 
 export type ExtendedRelationshipKind = RelationshipKind | CrossSystemRelationshipKind;
 

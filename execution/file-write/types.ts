@@ -39,6 +39,8 @@ export type FileWriteRefusalCode =
   | "NO_GATE_DECISION"
   | "GATE_DECISION_MISMATCH"
   | "GATE_DECISION_NOT_ALLOW"
+  /** ADDITIVE 2026-09-05 — เป้าหมายอยู่นอกขอบเขตที่ DNA OS อนุมัติให้งานนี้ (control/system-map/) */
+  | "OUT_OF_SCOPE_WRITE"
   | "UNSUPPORTED_TARGET_TYPE"
   | "UNSUPPORTED_OPERATION"
   | "MISSING_CONTENT"

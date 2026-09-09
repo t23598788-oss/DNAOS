@@ -1,0 +1,3 @@
+alpha line
+beta line with zzqegate-local-resource-marker
+gamma line

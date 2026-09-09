@@ -41,3 +41,26 @@ export type {
   IngressValidationResult,
 } from "./domain-classification";
 export { classifyRegistrationDomain, classifyRegistrationBatch, validateIngressMetadata } from "./domain-classification";
+export {
+  AGENT_DIRECT_UI_WRITE,
+  DIRECT_RAW_EVENT_TO_UI,
+  EXTERNAL_SELF_VERIFICATION,
+  denyDirectOwnerSurfaceWrite,
+  ingestOwnerActivity,
+  listDisplayQueue,
+  loadOwnerActivityEvents,
+  projectOwnerActivity,
+  recordAgentMessageActivity,
+  recordGithubPublicationActivity,
+} from "./owner-activity";
+export type {
+  ActivityHierarchyLevel,
+  ActivityStatus,
+  ActorType,
+  OwnerActivityEvent,
+  OwnerActivityIngest,
+  OwnerActivityIngestResult,
+  OwnerActivityProjection,
+  OwnerProcessingGroup,
+  VerificationAuthority,
+} from "./owner-activity";

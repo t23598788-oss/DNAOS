@@ -30,6 +30,7 @@ async function main(): Promise<void> {
       forbidden_files: [],
       evidence: [{ source: "transport/owner-command-http/tests/wiring.test.ts", note: "focused transport wiring test" }],
     },
+    ownerIdentity: { id: "http-wiring-test-owner", email: "http-wiring-test@example.invalid" },
   };
   const req = Object.assign(Readable.from([Buffer.from(JSON.stringify(envelopeBody))]), { method: "POST", url: "/command" }) as IncomingMessage;
   let statusCode = 0;

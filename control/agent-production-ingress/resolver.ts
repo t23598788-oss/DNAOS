@@ -58,6 +58,8 @@
  * `control/duplicate-reservation/`'s own locked section.
  */
 
+import { execFileSync } from "node:child_process";
+import { resolve } from "node:path";
 import { getRepository, buildRepositoryId } from "../../software/repository-registry/contract";
 import { claimWork, releaseWorkClaim } from "../work-coordination/coordination";
 import { createWorkspace } from "../source-workspace/contract";
@@ -83,6 +85,15 @@ function stop(input: AgentProductionRequest, stage: AgentProductionStage, status
   };
 }
 
+function gitCommonDir(cwd: string): string | null {
+  try {
+    const raw = execFileSync("git", ["rev-parse", "--git-common-dir"], { cwd, encoding: "utf8", timeout: 10_000 }).trim();
+    return resolve(cwd, raw);
+  } catch {
+    return null;
+  }
+}
+
 export async function submitAgentWork(input: AgentProductionRequest, storeFactory: () => RegistryStore): Promise<AgentProductionResult> {
   // 1. REPOSITORY_AUTHORITY_RESOLUTION — a plain read, no lock needed yet.
   const repositoryId = buildRepositoryId(input.requested_owner, input.requested_repository);
@@ -104,7 +115,16 @@ export async function submitAgentWork(input: AgentProductionRequest, storeFactor
     // 3. SOURCE_WORKSPACE_ISOLATION — real, local git worktree (control/source-workspace/), only when there is real source to write.
     let workspace = null;
     if (input.resource_scope.length > 0) {
-      const workspaceResult = await createWorkspace({ work_id: input.work_id, repository_id: repositoryId, repository_root: repository.repository_root, base_branch: repository.default_branch });
+      let isolationRoot = repository.repository_root;
+      if (typeof input.isolation_checkout_root === "string" && input.isolation_checkout_root.trim().length > 0) {
+        const registeredCommon = gitCommonDir(repository.repository_root);
+        const offeredCommon = gitCommonDir(input.isolation_checkout_root);
+        if (!registeredCommon || !offeredCommon || registeredCommon !== offeredCommon) {
+          return stop(input, "SOURCE_WORKSPACE_ISOLATION", "REJECTED", "isolation_checkout_root is not the registered repository git directory", { resolved_repository_id: repositoryId });
+        }
+        isolationRoot = input.isolation_checkout_root;
+      }
+      const workspaceResult = await createWorkspace({ work_id: input.work_id, repository_id: repositoryId, repository_root: isolationRoot, base_branch: repository.default_branch });
       if (workspaceResult.status !== "CREATED") {
         return stop(input, "SOURCE_WORKSPACE_ISOLATION", "UNRESOLVED", workspaceResult.reason, { resolved_repository_id: repositoryId });
       }

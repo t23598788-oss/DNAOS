@@ -14,7 +14,10 @@
  *
  * Input: none (module-level constant).
  * Output: `CAPABILITY_REGISTRY`, `listCapabilities`, `getCapability`.
- * Dependency ที่อนุญาต: ./types.ts.
+ * Dependency ที่อนุญาต: ./types.ts,
+ * `../conversation-read-model/contract.ts` (producer-side projection
+ * publish only — see Owner UNLOCK 2026-09-06 physical separation of the
+ * Owner Conversation Layer from this package).
  * สิ่งที่ห้ามแตะ: never set `health_status: "CONNECTED"` for an entry
  * whose `endpoint.kind` is `"not_yet_built"` — the two must always agree.
  * Never add a `repo_id` for DNA-LAB-FILE-INTELLIGENCE,
@@ -22,7 +25,8 @@
  * local path — those repos are not present in this checkout.
  */
 
-import type { CapabilityRegistration } from "./types";
+import type { CapabilityRegistration, CapabilitySummary } from "./types";
+import { publishCapabilitySummaries } from "../conversation-read-model/contract";
 
 export const CAPABILITY_REGISTRY: Readonly<Record<string, CapabilityRegistration>> = {
   "file-intelligence": {
@@ -211,6 +215,22 @@ export const CAPABILITY_REGISTRY: Readonly<Record<string, CapabilityRegistration
     health_status: "CONNECTED",
   },
 
+  // ENGINEERING coding gate (Owner, Engineering Runtime boundary). Empty
+  // match_keyword_sets so Business READ/OPERATE/DOCUMENTATION text never
+  // classifies here. Owner coding intent enters via
+  // payload.engineering_coding_intent (authority=ENGINEERING) after
+  // classifyCommand reports UNSUPPORTED_COMMAND, or via explicit steps.
+  "engineering-runtime": {
+    capability_id: "engineering-runtime",
+    repo_id: "DNA-OS-INFRASTRUCTURE",
+    contract: "control/engineering-runtime/contract.ts",
+    endpoint: { kind: "contract", module: "control/engineering-runtime/contract.ts", entry: "runEngineeringCoding" },
+    supported_commands: ["engineering-runtime.scoped_coding"],
+    match_keyword_sets: [],
+    permission_requirement: "none",
+    health_status: "CONNECTED",
+  },
+
   digitalocean: {
     capability_id: "digitalocean",
     repo_id: "DNA-OS-INFRASTRUCTURE",
@@ -221,11 +241,34 @@ export const CAPABILITY_REGISTRY: Readonly<Record<string, CapabilityRegistration
     permission_requirement: "none", // connections/digitalocean/authorization.ts enforces its own binding-status + scope checks internally, same pattern as github
     health_status: "CONNECTED",
   },
+
+  "local-resource-access": {
+    capability_id: "local-resource-access",
+    repo_id: "DNA-OS-INFRASTRUCTURE",
+    contract: "control/local-resource-access/contract.ts",
+    endpoint: { kind: "contract", module: "control/local-resource-access/contract.ts", entry: "invokeLocalCapability" },
+    supported_commands: [
+      "local.files.search",
+      "local.git.status",
+      "local.compute.run_registered_job",
+    ],
+    match_keyword_sets: [],
+    permission_requirement: "none",
+    health_status: "CONNECTED",
+  },
 };
 
 export function listCapabilities(): readonly CapabilityRegistration[] {
   return Object.values(CAPABILITY_REGISTRY);
 }
+
+export function listCapabilitySummaries(): readonly CapabilitySummary[] {
+  return Object.values(CAPABILITY_REGISTRY).map(({ capability_id, repo_id, match_keyword_sets, supported_commands }) => ({ capability_id, repo_id, match_keyword_sets, supported_commands }));
+}
+
+// Producer-side snapshot, once, at module load — never re-run per query. See
+// execution/run/registry.ts's identical publish-at-load pattern.
+publishCapabilitySummaries(listCapabilitySummaries());
 
 export function getCapability(capabilityId: string): CapabilityRegistration | undefined {
   return CAPABILITY_REGISTRY[capabilityId];

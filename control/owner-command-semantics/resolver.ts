@@ -13,19 +13,30 @@
  * There is no "probably". A mention this file cannot prove stays unproven and
  * travels downstream as `unresolved_refs`, never as a target.
  *
- * Every lookup goes to something that already existed: `../command-router/`'s
- * capability registry, `../../execution/run/`'s command descriptors,
- * `../../permissions/`'s identity/account/workspace/membership stores,
- * `../../software/registry-database/`'s resource graph, and this layer's own
- * durable history. Nothing here invents a capability, a resource, or an id.
+ * Every lookup goes to something that already existed — but never directly.
+ * Capability ids and command ids come from `../conversation-read-model/`'s
+ * published projections, never from `../command-router/` or
+ * `../../execution/run/` themselves (Owner UNLOCK, 2026-09-06: this layer
+ * is physically separated from DNA OS Control/Execution — see
+ * `../conversation-read-model/contract.ts`'s header for the boundary and
+ * why). Resource/identity/permission lookups still go to
+ * `../../permissions/`'s stores and `../../software/registry-database/`'s
+ * resource graph — those are not part of the execution boundary this round
+ * separates. Nothing here invents a capability, a resource, or an id.
  *
  * Input: the Owner's raw text + identity, and (optionally) a `RegistryStore`
  * for the resource graph.
  * Output: `StructuredOwnerContext` — the model's reading and the proven
  * references, kept apart, with a per-field `source_trace`.
  * Dependency ที่อนุญาต: ./types.ts, ./ai-contract.ts,
- * `../command-router/contract.ts`, `../../execution/run/contract.ts`,
- * `../../software/registry-database/contract.ts` (type + lookup only), node built-ins.
+ * `../conversation-read-model/contract.ts` (read-only side only — never
+ * `publish*`), `../../software/registry-database/contract.ts` (type +
+ * lookup only), node built-ins.
+ * สิ่งที่ห้ามแตะ (เพิ่ม 2026-09-06):
+ * - ห้าม import จาก `../command-router/`, `../../execution/run/`, หรือ
+ *   `../agent-gateway/` โดยตรงอีก — ต้องผ่าน
+ *   `../conversation-read-model/contract.ts` เท่านั้น.
+ * - ห้ามเรียกฟังก์ชัน `publish*` ใดๆ จากไฟล์นี้.
  * สิ่งที่ห้ามแตะ:
  * - ห้ามให้ค่าใดๆ จากโมเดลกลายเป็น id โดยไม่ผ่านการค้นทะเบียนจริง.
  * - ห้ามคืน RESOLVER_MATCHED โดยไม่มี evidence_refs.
@@ -35,29 +46,288 @@
  */
 
 declare const require: any;
-declare const process: { env: Record<string, string | undefined> };
-declare const __dirname: string;
+declare const process: { env: Record<string, string | undefined>; cwd(): string };
 
 import { validateAiInterpretation } from "./ai-contract";
 import type { AiSemanticInterpretation, ResolvedReference, ResolvedRelationshipQuery, SourceTraceEntry, StructuredOwnerContext } from "./types";
-import { listCapabilities } from "../command-router/contract";
-import { readEvidenceForCapability, readEvidenceForTask, readHistoryForIdentity, readTaskState, readDocumentReferences, HISTORY_FILE, type HistoryRecord } from "./read-paths";
-import { listCommandDescriptors } from "../../execution/run/contract";
-import type { RegistryStore } from "../../software/registry-database/contract";
+import { readCapabilitySummaries, readCommandIdentities } from "../conversation-read-model/contract";
+import { readEvidenceForCapability, readEvidenceForTask, readHistoryForIdentity, readTaskState, readDocumentReferences, readOwnerCommandDisplayHistory, HISTORY_FILE, type HistoryRecord } from "./read-paths";
+import type { ReadOnlyRegistryView } from "./read-only-registry-view";
 import { findResourceById, findCapability } from "../../software/registry-database/contract";
 import type { RelationshipRow } from "../../software/registry-database/contract";
+import { runLanguageProcessor } from "./language-processor/contract";
 
 const fs = require("node:fs");
 const path = require("node:path");
-const { execFileSync } = require("node:child_process");
-const os = require("node:os");
+
+export type LanguageStageType =
+  | "OWNER_TEXT_RECEIVED"
+  | "LANGUAGE_PROCESSOR_STARTED"
+  | "SEMANTIC_INTERPRETATION_COMPLETED"
+  | "RELATIONSHIP_LOOKUP_STARTED"
+  | "RELATIONSHIP_LOOKUP_COMPLETED"
+  | "READ_ONLY_PROJECTION_COMPLETED"
+  | "LANGUAGE_PROCESSOR_COMPLETED"
+  | "LANGUAGE_PROCESSOR_FAILED"
+  | "RESPONSE_GENERATION_STARTED"
+  | "RESPONSE_GENERATION_COMPLETED"
+  | "OWNER_ANSWER_READY"
+  // EMIT_FACT_OWNER_RUNTIME_EVENTS (Owner UNLOCK 2026-09-06): the
+  // subject-first dispatch path (control/conversation-runtime/subject-router.ts)
+  // emits these INSTEAD OF the generic LANGUAGE_PROCESSOR_*/RELATIONSHIP_LOOKUP_*
+  // stages above — never alongside them for the same request, since a
+  // request either goes through the generic semantic pipeline or through
+  // fact-owner dispatch, never both. Which of the READ_STARTED/COMPLETED
+  // pairs fires depends entirely on which real program actually ran.
+  | "SUBJECT_RESOLVED"
+  | "FACT_OWNER_SELECTED"
+  | "SELF_KNOWLEDGE_READ_STARTED"
+  | "SELF_KNOWLEDGE_READ_COMPLETED"
+  | "SELF_EXPLANATION_READ_STARTED"
+  | "SELF_EXPLANATION_READ_COMPLETED"
+  | "WORK_STATUS_READ_STARTED"
+  | "WORK_STATUS_READ_COMPLETED"
+  | "MEASUREMENT_READ_STARTED"
+  | "MEASUREMENT_READ_COMPLETED"
+  | "ANSWER_ASSEMBLY_STARTED"
+  | "ANSWER_ASSEMBLY_COMPLETED"
+  | "HUMAN_PRESENTATION_STARTED"
+  | "HUMAN_PRESENTATION_COMPLETED"
+  | "UNSUPPORTED_STOPPED"
+  // CONNECT_HUMAN_CAUSAL_EXPLANATION_READER (Owner UNLOCK 2026-09-06): fires
+  // only when `control/conversation-runtime/causal-explanation-reader.ts`
+  // actually ran a real `control/causal-change-chain/contract.ts` query.
+  | "CAUSAL_EXPLANATION_READ_STARTED"
+  | "CAUSAL_EXPLANATION_READ_COMPLETED";
+
+export interface LanguageStageNotification {
+  readonly event_id?: string;
+  readonly stage: LanguageStageType;
+  readonly status: "STARTED" | "COMPLETED" | "FAILED";
+  readonly detail: string;
+  readonly program_id?: string | null;
+  readonly source_file?: string | null;
+  readonly source_function?: string | null;
+  readonly source_line?: number | null;
+  readonly evidence_ref?: string | null;
+  readonly input_summary?: string | null;
+  readonly operation_summary?: string | null;
+  readonly output_summary?: string | null;
+  readonly reason?: string | null;
+  readonly decision?: string | null;
+  readonly next_program?: string | null;
+  readonly next_action?: string | null;
+  readonly target_type?: string | null;
+  readonly target_id?: string | null;
+  readonly target_display_name?: string | null;
+  readonly blocker_kind?: string | null;
+  readonly blocker_detail?: string | null;
+  /**
+   * EMIT_FACT_OWNER_RUNTIME_EVENTS shared vocabulary (Owner UNLOCK
+   * 2026-09-06) — the Owner's own naming: subject_id (what/who the
+   * question is about), fact_owner (which real program's data answers
+   * it), question_type (which shape of question was classified). Every
+   * fact-owner-dispatch stage sets these; the generic semantic pipeline's
+   * stages leave them null — never invented for a path that didn't
+   * resolve them.
+   */
+  readonly subject_id?: string | null;
+  readonly fact_owner?: string | null;
+  readonly question_type?: string | null;
+}
+
+export interface LanguageStageEvent extends LanguageStageNotification {
+  readonly event_id: string;
+  readonly request_id: string;
+  readonly trace_id: string;
+  readonly observed_at: string;
+  readonly source: string;
+  readonly program_id: string | null;
+  readonly source_file: string | null;
+  readonly source_function: string | null;
+  readonly source_line: number | null;
+  readonly evidence_ref: string | null;
+  readonly human_title: string;
+  readonly human_detail: string;
+  readonly input_summary: string | null;
+  readonly operation_summary: string | null;
+  readonly output_summary: string | null;
+  readonly reason: string | null;
+  readonly decision: string | null;
+  readonly next_program: string | null;
+  readonly next_action: string | null;
+  readonly target_type: string | null;
+  readonly target_id: string | null;
+  readonly target_display_name: string | null;
+  readonly blocker_kind: string | null;
+  readonly blocker_detail: string | null;
+  readonly subject_id: string | null;
+  readonly fact_owner: string | null;
+  readonly question_type: string | null;
+  readonly previous_event_id: string | null;
+  readonly next_expected_stage: LanguageStageType | null;
+  readonly terminal: boolean;
+}
+
+interface LanguageRun {
+  events: LanguageStageEvent[];
+  listeners: Set<(event: LanguageStageEvent) => void>;
+  terminal: boolean;
+  cleanup_timer: ReturnType<typeof setTimeout> | null;
+}
+
+const languageRuns = new Map<string, LanguageRun>();
+
+const NEXT_STAGE: Partial<Record<LanguageStageType, LanguageStageType | null>> = {
+  OWNER_TEXT_RECEIVED: "LANGUAGE_PROCESSOR_STARTED",
+  LANGUAGE_PROCESSOR_STARTED: "SEMANTIC_INTERPRETATION_COMPLETED",
+  SEMANTIC_INTERPRETATION_COMPLETED: "RELATIONSHIP_LOOKUP_STARTED",
+  RELATIONSHIP_LOOKUP_STARTED: "RELATIONSHIP_LOOKUP_COMPLETED",
+  RELATIONSHIP_LOOKUP_COMPLETED: "READ_ONLY_PROJECTION_COMPLETED",
+  READ_ONLY_PROJECTION_COMPLETED: "LANGUAGE_PROCESSOR_COMPLETED",
+  LANGUAGE_PROCESSOR_COMPLETED: "RESPONSE_GENERATION_STARTED",
+  LANGUAGE_PROCESSOR_FAILED: "OWNER_ANSWER_READY",
+  RESPONSE_GENERATION_STARTED: "RESPONSE_GENERATION_COMPLETED",
+  RESPONSE_GENERATION_COMPLETED: "OWNER_ANSWER_READY",
+  OWNER_ANSWER_READY: null,
+};
+
+function humanMeaning(notification: LanguageStageNotification): { human_title: string; human_detail: string } {
+  const titles: Record<LanguageStageType, string> = {
+    OWNER_TEXT_RECEIVED: "รับคำสั่งจาก Owner แล้ว",
+    LANGUAGE_PROCESSOR_STARTED: "กำลังตีความคำสั่ง",
+    SEMANTIC_INTERPRETATION_COMPLETED: "เข้าใจความหมายของคำสั่งแล้ว",
+    RELATIONSHIP_LOOKUP_STARTED: "กำลังตรวจทะเบียนและความสัมพันธ์",
+    RELATIONSHIP_LOOKUP_COMPLETED: "ตรวจทะเบียนและความสัมพันธ์เสร็จแล้ว",
+    READ_ONLY_PROJECTION_COMPLETED: "ตรวจข้อมูลระบบเสร็จแล้ว",
+    LANGUAGE_PROCESSOR_COMPLETED: "ตีความและอ่านข้อมูลเสร็จแล้ว",
+    LANGUAGE_PROCESSOR_FAILED: "การตีความคำสั่งหยุดลง",
+    RESPONSE_GENERATION_STARTED: "กำลังสร้างคำตอบสำหรับ Owner",
+    RESPONSE_GENERATION_COMPLETED: "สร้างคำตอบสำหรับ Owner เสร็จแล้ว",
+    OWNER_ANSWER_READY: "พร้อมตอบ Owner",
+    SUBJECT_RESOLVED: "ระบุตัวตนของสิ่งที่ถามแล้ว",
+    FACT_OWNER_SELECTED: "เลือกโปรแกรมเจ้าของข้อมูลแล้ว",
+    SELF_KNOWLEDGE_READ_STARTED: "กำลังอ่านข้อมูลตัวตนของโปรแกรม",
+    SELF_KNOWLEDGE_READ_COMPLETED: "อ่านข้อมูลตัวตนของโปรแกรมเสร็จแล้ว",
+    SELF_EXPLANATION_READ_STARTED: "กำลังตรวจความสัมพันธ์",
+    SELF_EXPLANATION_READ_COMPLETED: "ตรวจความสัมพันธ์เสร็จแล้ว",
+    WORK_STATUS_READ_STARTED: "กำลังอ่านสถานะงานล่าสุด",
+    WORK_STATUS_READ_COMPLETED: "อ่านสถานะงานล่าสุดเสร็จแล้ว",
+    MEASUREMENT_READ_STARTED: "กำลังอ่านผลการวัดล่าสุด",
+    MEASUREMENT_READ_COMPLETED: "อ่านผลการวัดล่าสุดเสร็จแล้ว",
+    ANSWER_ASSEMBLY_STARTED: "กำลังประกอบคำตอบจากข้อมูลจริง",
+    ANSWER_ASSEMBLY_COMPLETED: "ประกอบคำตอบเสร็จแล้ว",
+    HUMAN_PRESENTATION_STARTED: "กำลังแปลงคำตอบเป็นภาษาคน",
+    HUMAN_PRESENTATION_COMPLETED: "แปลงคำตอบเป็นภาษาคนเสร็จแล้ว",
+    UNSUPPORTED_STOPPED: "คำถามนี้อยู่นอกขอบเขตที่ตอบได้จากทะเบียนจริง — หยุดโดยไม่แต่งคำตอบ",
+    CAUSAL_EXPLANATION_READ_STARTED: "กำลังตรวจสาเหตุและผลของการเปลี่ยนแปลง",
+    CAUSAL_EXPLANATION_READ_COMPLETED: "ตรวจสาเหตุและผลของการเปลี่ยนแปลงเสร็จแล้ว",
+  };
+  const displayTarget = notification.target_display_name ?? notification.target_id;
+  if (notification.stage === "OWNER_TEXT_RECEIVED" && notification.input_summary) {
+    return { human_title: titles[notification.stage], human_detail: `ได้รับข้อความ "${notification.input_summary}" และส่งต่อให้โปรแกรมตีความภาษา` };
+  }
+  if (notification.stage === "RELATIONSHIP_LOOKUP_STARTED" && displayTarget) {
+    return { human_title: titles[notification.stage], human_detail: `กำลังค้น ${displayTarget} ในทะเบียนความสามารถและความสัมพันธ์ของ DNA OS` };
+  }
+  if (notification.stage === "READ_ONLY_PROJECTION_COMPLETED" && notification.blocker_detail) {
+    return { human_title: titles[notification.stage], human_detail: notification.blocker_detail };
+  }
+  if (notification.stage === "OWNER_ANSWER_READY" && notification.blocker_detail) {
+    return { human_title: titles[notification.stage], human_detail: notification.blocker_detail };
+  }
+  return { human_title: titles[notification.stage], human_detail: notification.detail };
+}
+
+function languageRun(requestId: string): LanguageRun {
+  const existing = languageRuns.get(requestId);
+  if (existing) return existing;
+  const created: LanguageRun = { events: [], listeners: new Set(), terminal: false, cleanup_timer: null };
+  languageRuns.set(requestId, created);
+  return created;
+}
+
+/**
+ * Read-only language progress projection. It is deliberately in-memory and
+ * never enters the execution SystemEvent/evidence path. The notification is
+ * emitted only at the real semantic boundaries below.
+ */
+export function publishLanguageStage(requestId: string, notification: LanguageStageNotification, source = "control/owner-command-semantics/resolver.ts", traceId = requestId): LanguageStageEvent {
+  const run = languageRun(requestId);
+  const meaning = humanMeaning(notification);
+  const previousEventId = run.events.at(-1)?.event_id ?? null;
+  const event: LanguageStageEvent = {
+    ...notification,
+    event_id: notification.event_id ?? `language-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`,
+    request_id: requestId,
+    trace_id: traceId,
+    observed_at: new Date().toISOString(),
+    source,
+    program_id: notification.program_id ?? null,
+    source_file: notification.source_file ?? null,
+    source_function: notification.source_function ?? null,
+    source_line: notification.source_line ?? null,
+    evidence_ref: notification.evidence_ref ?? null,
+    human_title: meaning.human_title,
+    human_detail: meaning.human_detail,
+    input_summary: notification.input_summary ?? null,
+    operation_summary: notification.operation_summary ?? null,
+    output_summary: notification.output_summary ?? null,
+    reason: notification.reason ?? null,
+    decision: notification.decision ?? null,
+    next_program: notification.next_program ?? null,
+    next_action: notification.next_action ?? null,
+    target_type: notification.target_type ?? null,
+    target_id: notification.target_id ?? null,
+    target_display_name: notification.target_display_name ?? null,
+    blocker_kind: notification.blocker_kind ?? null,
+    blocker_detail: notification.blocker_detail ?? null,
+    subject_id: notification.subject_id ?? null,
+    fact_owner: notification.fact_owner ?? null,
+    question_type: notification.question_type ?? null,
+    previous_event_id: previousEventId,
+    next_expected_stage: NEXT_STAGE[notification.stage] ?? null,
+    terminal: notification.stage === "OWNER_ANSWER_READY" || notification.stage === "LANGUAGE_PROCESSOR_FAILED",
+  };
+  run.events.push(event);
+  if (event.terminal) {
+    run.terminal = true;
+    if (run.cleanup_timer) clearTimeout(run.cleanup_timer);
+    run.cleanup_timer = setTimeout(() => languageRuns.delete(requestId), 5 * 60 * 1000);
+  }
+  for (const listener of run.listeners) {
+    try { listener(event); } catch { /* a browser stream must not affect language processing */ }
+  }
+  return event;
+}
+
+export function languageEventsSince(requestId: string, lastEventId: string | null): readonly LanguageStageEvent[] {
+  const events = languageRun(requestId).events;
+  if (!lastEventId) return [...events];
+  const index = events.findIndex((event) => event.event_id === lastEventId);
+  return index < 0 ? [...events] : events.slice(index + 1);
+}
+
+export function onLanguageStage(requestId: string, listener: (event: LanguageStageEvent) => void): () => void {
+  const run = languageRun(requestId);
+  run.listeners.add(listener);
+  return () => { run.listeners.delete(listener); };
+}
+
+function notifyLanguageStage(deps: SemanticDeps, notification: LanguageStageNotification): void {
+  try { deps.onStage?.(notification); } catch { /* progress projection cannot change semantic outcome */ }
+}
 
 
 export interface SemanticDeps {
   /** The resource graph. Injected, never constructed here — this folder must not choose a storage adapter for someone else. */
-  registryStore?: RegistryStore;
+  registryStore?: ReadOnlyRegistryView;
   /** Where the model process runs. A fresh directory holding only its input. */
   sandboxDir?: string;
+  /** Read-only callers may inspect the semantic result without appending history. */
+  persist?: boolean;
+  /** Runtime observer for the read-only language progress projection. */
+  onStage?: (notification: LanguageStageNotification) => void;
 }
 
 export type SemanticOutcome =
@@ -76,16 +346,15 @@ export interface TranslationOutcome {
 // The model call — isolated, and never trusted afterwards
 // ---------------------------------------------------------------------------
 
-function runModel(rawText: string, sandboxDir: string): { ok: true; raw: string } | { ok: false; reason: string } {
-  try {
-    fs.mkdirSync(sandboxDir, { recursive: true });
-    fs.writeFileSync(path.join(sandboxDir, "input.json"), JSON.stringify({ raw_text: rawText }));
-    const launcher = path.join(__dirname, "run-semantic.sh");
-    const raw = execFileSync(launcher, [sandboxDir, "input.json"], { encoding: "utf8", maxBuffer: 8 * 1024 * 1024, stdio: ["ignore", "pipe", "ignore"] });
-    return { ok: true, raw: String(raw) };
-  } catch (error) {
-    return { ok: false, reason: error instanceof Error ? error.message : String(error) };
-  }
+// PHASE 2D (Owner UNLOCK, 2026-09-06): this used to run execFileSync
+// directly, giving every reader of this file the impression that the
+// conversation layer has generic process-launch authority. It does not —
+// `./language-processor/fixed-runner.ts` is the ONLY file in this whole
+// capability folder allowed to import `node:child_process`, with a fixed
+// executable path and a fixed two-element argv. This wrapper exists only so
+// the rest of this file keeps calling `runModel(rawText, sandboxDir)`.
+function runModel(rawText: string, sandboxDir?: string): { ok: true; raw: string } | { ok: false; reason: string } {
+  return runLanguageProcessor(rawText, sandboxDir);
 }
 
 // ---------------------------------------------------------------------------
@@ -120,12 +389,12 @@ function phraseMatches(phrase: string, aliases: readonly string[]): boolean {
 }
 
 function readConnectionLocks(): readonly Record<string, unknown>[] {
-  const file = path.join(__dirname, "../..", "control/owner-backbone/data/connection-locks.jsonl");
+  const file = path.join(process.cwd(), "control/owner-backbone/data/connection-locks.jsonl");
   if (!fs.existsSync(file)) return [];
   return String(fs.readFileSync(file, "utf8")).split("\n").filter((line: string) => line.trim()).map((line: string) => JSON.parse(line) as Record<string, unknown>);
 }
 
-function resolveRelationshipQuery(ai: AiSemanticInterpretation, store: RegistryStore | undefined): ResolvedRelationshipQuery | null {
+function resolveRelationshipQuery(ai: AiSemanticInterpretation, store: ReadOnlyRegistryView | undefined): ResolvedRelationshipQuery | null {
   if (ai.action.toLocaleUpperCase() !== "CHECK" || !store?.listRelationshipRows) return null;
   const mentionedEntities = ai.entity_mentions.filter((m): m is string => typeof m === "string" && m.length > 0 && isOwnerQuoted(m, ai.raw_text));
   const atomicMentions = mentionedEntities
@@ -142,7 +411,7 @@ function resolveRelationshipQuery(ai: AiSemanticInterpretation, store: RegistryS
   const targetMention = mentions[mentions.length - 1];
   const relationships = store.listRelationshipRows().filter((row) => row.from_type === "CAPABILITY" && row.to_type === "CAPABILITY");
   const locks = readConnectionLocks();
-  const caps = listCapabilities();
+  const caps = readCapabilitySummaries();
   const aliasesFor = (id: string, side: "source" | "target", row: RelationshipRow): string[] => {
     const names = caps.filter((cap) => cap.capability_id === id).flatMap((cap) => [cap.capability_id, cap.repo_id, ...cap.match_keyword_sets.flat()]);
     const lock = locks.find((candidate) => candidate.source_capability_id === row.from_id && candidate.target_capability_id === row.to_id);
@@ -168,7 +437,7 @@ function resolveRelationshipQuery(ai: AiSemanticInterpretation, store: RegistryS
  */
 export function resolveCapabilityMention(mention: string): ResolvedReference {
   const normalized = mention.toLocaleLowerCase();
-  const registered = listCapabilities();
+  const registered = readCapabilitySummaries();
 
   const exact = registered.filter((cap) => normalized.includes(cap.capability_id.toLocaleLowerCase()));
   const byKeywords = registered.filter((cap) => cap.match_keyword_sets.some((set) => set.every((keyword) => normalized.includes(keyword.toLocaleLowerCase()))));
@@ -192,7 +461,7 @@ export function resolveCapabilityMention(mention: string): ResolvedReference {
     resolved_id: matches[0].capability_id,
     kind: "capability",
     provenance: "REGISTRY",
-    evidence_refs: [`control/command-router/capability-registry.ts#${matches[0].capability_id}`, `contract=${matches[0].contract}`],
+    evidence_refs: [`control/command-router/capability-registry.ts#${matches[0].capability_id}`],
     candidates: [],
   };
 }
@@ -204,7 +473,7 @@ export function resolveCapabilityMention(mention: string): ResolvedReference {
  * phrase that is not one of those two things is UNRESOLVED, which is the
  * correct answer rather than a shortfall to paper over.
  */
-export function resolveResourceMention(mention: string, store: RegistryStore | undefined): ResolvedReference {
+export function resolveResourceMention(mention: string, store: ReadOnlyRegistryView | undefined): ResolvedReference {
   if (!store) return unresolved(mention, "resource", "no resource graph store was provided to this resolution");
   const byId = findResourceById(mention, store);
   if (byId) {
@@ -222,13 +491,13 @@ export function resolveResourceMention(mention: string, store: RegistryStore | u
 export function resolvePolicyCommandId(mention: string | null): ResolvedReference | null {
   if (!mention) return null;
   const normalized = mention.toLocaleLowerCase();
-  const descriptors = listCommandDescriptors();
-  const matches = descriptors.filter((d) => normalized.includes(d.command_id.toLocaleLowerCase()));
-  if (matches.length === 0) return unresolved(mention, "command_policy", "no registered command descriptor matched (execution/run/registry.ts)");
+  const commandIds = readCommandIdentities().map((projection) => projection.command_id);
+  const matches = commandIds.filter((id) => normalized.includes(id.toLocaleLowerCase()));
+  if (matches.length === 0) return unresolved(mention, "command_policy", "no registered command id matched (execution/run/registry.ts)");
   if (matches.length > 1) {
-    return { mention, status: "RESOLVER_AMBIGUOUS", resolved_id: null, kind: "command_policy", provenance: "REGISTRY", evidence_refs: ["execution/run/registry.ts"], candidates: matches.map((m) => m.command_id) };
+    return { mention, status: "RESOLVER_AMBIGUOUS", resolved_id: null, kind: "command_policy", provenance: "REGISTRY", evidence_refs: ["execution/run/registry.ts"], candidates: matches };
   }
-  return { mention, status: "RESOLVER_MATCHED", resolved_id: matches[0].command_id, kind: "command_policy", provenance: "REGISTRY", evidence_refs: [`execution/run/registry.ts#${matches[0].command_id}`], candidates: [] };
+  return { mention, status: "RESOLVER_MATCHED", resolved_id: matches[0], kind: "command_policy", provenance: "REGISTRY", evidence_refs: [`execution/run/registry.ts#${matches[0]}`], candidates: [] };
 }
 
 /**
@@ -298,6 +567,10 @@ function appendHistory(context: StructuredOwnerContext): void {
     policy_command_id: context.policy_command_id,
     task_id: null,
     kind: "RESOLUTION",
+    intent: context.intent,
+    resolved_state: context.resolved_state === "RESOLVED" || context.resolved_state === "UNRESOLVED" || context.resolved_state === "NO_REFERENCES" ? context.resolved_state : undefined,
+    unresolved_refs: context.unresolved_refs.map((r) => ({ kind: r.kind, mention: r.mention, evidence_refs: r.evidence_refs })),
+    relationship_query_status: context.relationship_query?.status ?? null,
   };
   fs.mkdirSync(path.dirname(HISTORY_FILE), { recursive: true });
   fs.appendFileSync(HISTORY_FILE, `${JSON.stringify(record)}\n`);
@@ -380,7 +653,14 @@ export function resolveFromInterpretation(
   const policy = resolvePolicyCommandId(ai.target_text ?? ai.intent);
   if (policy) trace.push({ field: "policy_command_id", provenance: "REGISTRY", detail: "execution/run/registry.ts command descriptors" });
 
+  notifyLanguageStage(deps, { stage: "RELATIONSHIP_LOOKUP_STARTED", status: "STARTED", detail: "ตรวจ relationship จาก RegistryStore และ connection-locks.jsonl", program_id: "owner-command-semantics", source_file: "control/owner-command-semantics/resolver.ts", source_function: "resolveFromInterpretation", source_line: 594, evidence_ref: null, operation_summary: "ค้นทะเบียนความสามารถและความสัมพันธ์", reason: "ต้องตรวจสอบเป้าหมายก่อนตัดสินใจส่งต่อ", next_program: "owner-command-semantics", next_action: "ตรวจความสัมพันธ์", target_type: "resource", target_id: resolvedTargets[0]?.resolved_id ?? null, target_display_name: resolvedTargets[0]?.mention ?? null });
   const relationshipQuery = resolveRelationshipQuery(ai, deps.registryStore);
+  notifyLanguageStage(deps, {
+    stage: "RELATIONSHIP_LOOKUP_COMPLETED",
+    status: "COMPLETED",
+    detail: relationshipQuery?.status ?? "RELATIONSHIP_NOT_REQUESTED",
+    program_id: "owner-command-semantics", source_file: "control/owner-command-semantics/resolver.ts", source_function: "resolveFromInterpretation", source_line: 597, evidence_ref: null, operation_summary: "สรุปผลการค้นทะเบียนความสัมพันธ์", output_summary: relationshipQuery?.status ?? "RELATIONSHIP_NOT_REQUESTED", decision: relationshipQuery?.status ?? "RELATIONSHIP_NOT_REQUESTED", next_program: "owner-command-semantics", next_action: "อ่านข้อมูลแบบ read-only", target_type: "resource", target_id: resolvedTargets[0]?.resolved_id ?? null, target_display_name: resolvedTargets[0]?.mention ?? null,
+  });
   if (relationshipQuery) trace.push({ field: "relationship_query", provenance: "REGISTRY", detail: "software/registry-database relationships + control/owner-backbone/data/connection-locks.jsonl" });
 
   // QUERY -> EVIDENCE STORE, once per capability this run actually proved.
@@ -423,6 +703,14 @@ export function resolveFromInterpretation(
   const documentRead = readDocumentReferences(ai.target_text ?? ai.raw_text);
   trace.push({ field: "resolved_documents", provenance: "EVIDENCE", detail: documentRead.found ? documentRead.source : documentRead.reason });
 
+  // QUERY -> REGISTERED KNOWLEDGE RECORD. This is an exact readback lookup,
+  // gated by the canonical registry; it never scans source or chooses an
+  // execution target. An unmatched question remains unmatched.
+  const readOnlyKnowledge = readOwnerCommandDisplayHistory(ai.raw_text, deps.registryStore);
+  if (readOnlyKnowledge.found) {
+    trace.push({ field: "read_only_knowledge", provenance: readOnlyKnowledge.provenance, detail: readOnlyKnowledge.source });
+  }
+
   const all = [...resolvedCapabilities, ...resolvedTargets, ...resolvedEvidence, ...(continuation ? [continuation] : []), ...(policy ? [policy] : [])];
   const matched = all.filter((r) => r.status === "RESOLVER_MATCHED" || r.status === "VERIFIED_REFERENCE");
 
@@ -440,16 +728,17 @@ export function resolveFromInterpretation(
     parameters: ai.parameters,
     constraints: ai.constraints,
     resolved_history: continuation,
-    resolved_state: matched.length > 0 ? "RESOLVED" : all.length > 0 ? "UNRESOLVED" : "NO_REFERENCES",
-    evidence_refs: matched.flatMap((r) => r.evidence_refs),
+    resolved_state: readOnlyKnowledge.found ? "RESOLVED" : matched.length > 0 ? "RESOLVED" : all.length > 0 ? "UNRESOLVED" : "NO_REFERENCES",
+    evidence_refs: [...matched.flatMap((r) => r.evidence_refs), ...(readOnlyKnowledge.found ? readOnlyKnowledge.value.evidence_refs : [])],
     unresolved_refs: all.filter((r) => r.status === "RESOLVER_UNRESOLVED"),
     ambiguities: all.filter((r) => r.status === "RESOLVER_AMBIGUOUS"),
     source_trace: trace,
     policy_command_id: policy && policy.status === "RESOLVER_MATCHED" ? policy.resolved_id : null,
     relationship_query: relationshipQuery,
+    read_only_knowledge: readOnlyKnowledge.found ? readOnlyKnowledge.value : null,
   };
 
-  appendHistory(context);
+  if (deps.persist !== false) appendHistory(context);
   return context;
 }
 
@@ -522,12 +811,25 @@ export function resolveOwnerCommandSemantics(
   ownerIdentity: { identity_id: string; kind: string },
   deps: SemanticDeps = {},
 ): SemanticOutcome {
-  const sandboxDir = deps.sandboxDir ?? fs.mkdtempSync(path.join(os.tmpdir(), "dna-os-semantic-"));
-  const model = runModel(rawText, sandboxDir);
-  if (!model.ok) return { ok: false, stage: "MODEL", reasons: [model.reason] };
+  notifyLanguageStage(deps, { stage: "LANGUAGE_PROCESSOR_STARTED", status: "STARTED", detail: "เริ่ม isolated semantic processor", program_id: "owner-command-semantics", source_file: "control/owner-command-semantics/resolver.ts", source_function: "resolveOwnerCommandSemantics", source_line: 752, evidence_ref: null, operation_summary: "ส่งข้อความเข้า semantic processor แบบแยกส่วน", reason: "ต้องแปลงข้อความ Owner เป็นโครงสร้างที่ตรวจสอบได้", next_program: "owner-command-semantics", next_action: "แยก action และ target" });
+  // `deps.sandboxDir` stays optional: when absent, `./language-processor/
+  // fixed-runner.ts` mints its own `mkdtempSync` scratch dir — this file no
+  // longer touches `node:os` at all.
+  const model = runModel(rawText, deps.sandboxDir);
+  if (!model.ok) {
+    notifyLanguageStage(deps, { stage: "LANGUAGE_PROCESSOR_FAILED", status: "FAILED", detail: model.reason, program_id: "owner-command-semantics", source_file: "control/owner-command-semantics/resolver.ts", source_function: "resolveOwnerCommandSemantics", source_line: 664, evidence_ref: null });
+    return { ok: false, stage: "MODEL", reasons: [model.reason] };
+  }
 
   const validation = validateAiInterpretation(model.raw, rawText);
-  if (!validation.ok) return { ok: false, stage: "CONTRACT", reasons: validation.reasons };
+  if (!validation.ok) {
+    notifyLanguageStage(deps, { stage: "LANGUAGE_PROCESSOR_FAILED", status: "FAILED", detail: validation.reasons.join("; "), program_id: "owner-command-semantics", source_file: "control/owner-command-semantics/resolver.ts", source_function: "resolveOwnerCommandSemantics", source_line: 670, evidence_ref: null });
+    return { ok: false, stage: "CONTRACT", reasons: validation.reasons };
+  }
 
-  return { ok: true, context: resolveFromInterpretation(commandId, ownerIdentity, validation.interpretation, deps) };
+  notifyLanguageStage(deps, { stage: "SEMANTIC_INTERPRETATION_COMPLETED", status: "COMPLETED", detail: "ผ่าน semantic contract validation", program_id: "owner-command-semantics", source_file: "control/owner-command-semantics/resolver.ts", source_function: "resolveOwnerCommandSemantics", source_line: 768, evidence_ref: null, input_summary: validation.interpretation.raw_text, operation_summary: "แยก action และ target จากข้อความ Owner", output_summary: `action=${validation.interpretation.action}, target=${validation.interpretation.target_text ?? "null"}`, reason: "ผ่าน deterministic semantic contract validation", decision: "SEMANTIC_ACCEPTED", next_program: "owner-command-semantics", next_action: "ตรวจทะเบียนและความสัมพันธ์", target_type: "resource", target_id: null, target_display_name: validation.interpretation.target_text ?? null });
+  const context = resolveFromInterpretation(commandId, ownerIdentity, validation.interpretation, deps);
+  notifyLanguageStage(deps, { stage: "READ_ONLY_PROJECTION_COMPLETED", status: "COMPLETED", detail: `resolved_state=${context.resolved_state}`, program_id: "owner-command-semantics", source_file: "control/owner-command-semantics/resolver.ts", source_function: "resolveOwnerCommandSemantics", source_line: 770, evidence_ref: null, operation_summary: "อ่าน read-only projection", output_summary: `resolved_state=${context.resolved_state}`, reason: "ใช้ผลการ resolve ที่ deterministic resolver คืนมา", decision: context.resolved_state, next_program: "response-generation", next_action: "สร้างคำตอบ Owner", blocker_kind: context.unresolved_refs.length > 0 ? "UNRESOLVED_REFERENCE" : null, blocker_detail: context.unresolved_refs.length > 0 ? context.unresolved_refs.map((ref) => `${ref.kind}:${ref.mention}`).join("; ") : null });
+  notifyLanguageStage(deps, { stage: "LANGUAGE_PROCESSOR_COMPLETED", status: "COMPLETED", detail: "semantic + relationship read จบแล้ว", program_id: "owner-command-semantics", source_file: "control/owner-command-semantics/resolver.ts", source_function: "resolveOwnerCommandSemantics", source_line: 771, evidence_ref: null, output_summary: "semantic + relationship read จบแล้ว", decision: "LANGUAGE_PROCESSOR_COMPLETED", next_program: "response-generation", next_action: "สร้างคำตอบ Owner" });
+  return { ok: true, context };
 }

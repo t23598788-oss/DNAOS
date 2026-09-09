@@ -47,6 +47,8 @@ export const RESEARCH_ENGINE_MALFORMED_WARNING = "RESEARCH_ENGINE_MALFORMED_RESP
 export interface ResearchEngineLatestFields {
   experiment_id: string;
   run_id: string;
+  research_execution_id: string | null;
+  work_id: string | null;
   provider: string;
   model_id: string;
   safety_score: number | string | null;
@@ -60,6 +62,11 @@ export interface ResearchEngineLatestFields {
   false_allow: number | null;
   unknown_rate: number | null;
   malformed_rate: number | null;
+  metrics: Readonly<Record<string, unknown>>;
+  formulas: Readonly<Record<string, unknown>>;
+  decision: Readonly<Record<string, unknown>> | null;
+  cost: Readonly<Record<string, unknown>> | null;
+  process: Readonly<Record<string, unknown>> | null;
   /**
    * ASSUMPTION (documented, not guessed): every key from
    * `candidate.metrics` and `candidate.lifecycle` whose name contains

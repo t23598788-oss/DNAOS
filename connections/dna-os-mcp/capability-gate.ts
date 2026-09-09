@@ -17,7 +17,7 @@
  *               an actually invocable module/entry, not just a reserved
  *               capability_id.
  *
- * A subset of MCP tools (submit_command, lookup_capability, get_resource,
+ * A subset of MCP tools (submit_command, list_capabilities, lookup_capability, get_resource,
  * get_task, get_system_status) are core DNA OS ingress/lookup primitives,
  * not optional routed capabilities in that registry's sense — routing
  * capability resolution for submit_command happens INSIDE DNA OS's own

@@ -8,7 +8,7 @@
 export { submitTask, getTask, getResult, explain, ownerDecision, listCapabilities, admitCompletedTask } from "./gateway";
 export { dispatchTask, startTaskController } from "./controller";
 export { recordHandoff, validateHandoff, confirmDnaOsDecision, computeNextDecisionFromEvidence } from "./handoff";
-export { loadAllHandoffs, loadHandoffsForTask, loadEvidenceForTask, loadAllEvidence, loadAllTasks, saveEvidence, saveTask } from "./memory-store";
+export { loadAllHandoffs, loadHandoffsForTask, loadEvidenceForTask, loadAllEvidence, loadEvidenceForCorrelation, loadAllTasks, saveEvidence, saveTask } from "./memory-store";
 export type { HandoffAdmission, HandoffInput, NextDecision } from "./handoff";
 export type { AgentAdapter, AgentRunSpec, Artifact, Capability, Context, DnaOsDecision, Evidence, ExecutionRequest, ExecutionResult, HandoffRecord, HandoffStatus, MemoryReference, Status, Task, TaskOutputLane, WorkOrder } from "./types";
 export { fileIntelligenceAdapter } from "./adapters/file-intelligence-adapter";
@@ -28,7 +28,7 @@ export { runCorrectiveLoop } from "./agent-execution-loop";
 export type { CorrectiveLoopOutcome, CorrectiveLoopState } from "./agent-execution-loop";
 export { routeRequestedAction, EXECUTOR_REGISTRY } from "./agent-authority-router";
 export type { AuthorityRouterOutcome } from "./agent-authority-router";
-export { createTaskWorkspace, transitionWorkspace, assignAgent, getWorkspace } from "./workspace-manager";
+export { createTaskWorkspace, transitionWorkspace, assignAgent, getWorkspace, listWorkspacesFromDisk } from "./workspace-manager";
 export type { TaskWorkspace, WorkspaceState, CreateTaskWorkspaceInput, TransitionOutcome } from "./workspace-manager";
 export {
   CAPABILITY_CANDIDATE_CONTRACT_VERSION,

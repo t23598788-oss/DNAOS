@@ -37,7 +37,10 @@
  * Output: `COMMAND_REGISTRY`, `listCommandDescriptors`,
  * `getCommandDescriptor`, `validateDynamicArgs`, `resolveWorkingDirectory`,
  * `buildChildEnv`, `isCommandDenied`.
- * Dependency ที่อนุญาต: ./types.ts, ./host-runtime.ts.
+ * Dependency ที่อนุญาต: ./types.ts, ./host-runtime.ts,
+ * `../../control/conversation-read-model/contract.ts` (producer-side
+ * projection publish only — see Owner UNLOCK 2026-09-06 physical
+ * separation of the Owner Conversation Layer from this package).
  * สิ่งที่ห้ามแตะ: never add a command whose `fixedArgs` were not read from
  * a real, verified source (see each entry's `evidenceSource`). Never add
  * an `npm run <script>` entry until this repo has a real `package.json`
@@ -50,6 +53,7 @@
 
 import { currentWorkingDirectory, readEnvVar } from "./host-runtime";
 import { type CommandDescriptor, ExecutionError } from "./types";
+import { publishCommandIdentities } from "../../control/conversation-read-model/contract";
 
 const SEC_10S = 10_000;
 
@@ -186,6 +190,23 @@ export const COMMAND_REGISTRY: Readonly<Record<string, CommandDescriptor>> = {
 export function listCommandDescriptors(): readonly CommandDescriptor[] {
   return Object.values(COMMAND_REGISTRY);
 }
+
+/**
+ * Narrow, read-only projection for callers that only need to know which
+ * `command_id`s exist — never the executable/argv/timeout shape a full
+ * `CommandDescriptor` carries. Added (Owner UNLOCK, 2026-09-06) so
+ * `control/owner-command-semantics/` can check id existence without
+ * importing the allowlist entries `spawn()` actually uses.
+ */
+export function listCommandIds(): readonly string[] {
+  return Object.keys(COMMAND_REGISTRY);
+}
+
+// Producer-side snapshot, once, at module load — never re-run per query.
+// `COMMAND_REGISTRY` is a module-level constant, so "load time" IS "the
+// moment this registry's real content is known", which is the only trigger
+// this package uses to publish into control/conversation-read-model/.
+publishCommandIdentities(listCommandIds());
 
 export function getCommandDescriptor(commandId: string): CommandDescriptor | undefined {
   return COMMAND_REGISTRY[commandId];

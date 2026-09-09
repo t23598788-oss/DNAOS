@@ -40,6 +40,7 @@ export type ExecutionReasonCode =
   | "CREDENTIAL_NOT_RESOLVED"
   | "REPOSITORY_NOT_FOUND"
   | "GITHUB_WRITE_FAILED"
+  | "DNA_OS_PUBLISH_AUTHORITY_REQUIRED"
   | "SUCCEEDED";
 
 export interface GithubRepositoryReference {

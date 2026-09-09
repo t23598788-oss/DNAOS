@@ -174,7 +174,8 @@ export function duplicatesOf(object: string) {
 /** ถ้าลบ object นี้ flow ไหนเสีย */
 export function breakageIfRemoved(object: string) {
   const value = valueFlows().filter((vf) => vf.stages.some((s: any) => s.data_object.includes(object))).map((vf) => vf.flow_id);
-  return { object, runtime_flows: flowsBrokenBy(object).map((f) => f.flow_id), value_flows: value, ...provenanceOf(object) };
+  const provenance = provenanceOf(object);
+  return { ...provenance, runtime_flows: flowsBrokenBy(object).map((f) => f.flow_id), value_flows: value };
 }
 
 /** ถ้า component นี้ตาย ข้อมูลค้างตรงไหน */

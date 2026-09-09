@@ -32,7 +32,7 @@ export type { CommitResult, RegistrationIngressStatus, DuplicateOf, CandidateRel
 export { findCapability, findResourceById, searchCapabilities } from "./lookup";
 export { resolveCanonicalResource } from "./canonical-resource-resolution";
 export type { CanonicalResourceQuery, CanonicalResourceResolution, ResourceIdentity } from "./canonical-resource-resolution";
-export type { RegistryStore, ApprovedCandidateWrite, WriteOutcome } from "./store-port";
+export type { RegistryStore, ReadOnlyRegistryStore, ApprovedCandidateWrite, WriteOutcome } from "./store-port";
 
 /**
  * การนำ `RegistryStore` ไปใช้จริงบนไฟล์ — เปิดผ่าน contract เพราะเดิมไม่เคยเปิด

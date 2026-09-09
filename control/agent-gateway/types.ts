@@ -28,6 +28,8 @@ export interface WorkOrder {
   required_tests: readonly ("sandbox.write" | "sandbox.readback")[];
   forbidden_files: readonly string[];
   evidence: readonly { source: string; note: string }[];
+  /** Canonical Owner work identity when this order is part of an Owner command lifecycle. */
+  work_order_id?: string;
   /**
    * Additive (Owner, "Authority Assembly Phase 1A — Unify Work Unit").
    * Present ONLY when this WorkOrder also describes real Agent Host work
@@ -74,6 +76,12 @@ export interface AgentRunSpec {
   workspace_path: string;
   timeout_ms: number;
   expected_result_contract: "DNA_OS_AGENT_RESULT_V1";
+  /**
+   * ENGINEERING coding scope only. When present, DNA OS — not the worker —
+   * supplies allowed_write_paths from admitted coding paths. Omitted on
+   * Business Runtime agent-host runs so their write scope is unchanged.
+   */
+  coding_write_paths?: readonly string[];
 }
 
 export interface MemoryReference {
@@ -177,6 +185,9 @@ export interface ExecutionRequest {
 export interface Evidence {
   evidence_id: string;
   task_id: string;
+  /** Owner/command correlation. Optional on historical rows; new producers set it. */
+  correlation_id?: string;
+  work_order_id?: string;
   kind: "policy_decision" | "execution_output" | "verification" | "owner_decision" | "capability_lookup" | "admission" | "recovery" | "idempotency" | "explain_resource_request" | "post_commit_check" | "post_commit_verification" | "runtime_discovery" | "build_execution" | "deployable_artifact_readiness" | "continuation" | "workspace_lifecycle" | "candidate_manifest" | "artifact_inspection" | "test_verification" | "security_verification" | "contract_verification" | "promotion_decision" | "candidate_verification";
   source: string;
   recorded_at: string;

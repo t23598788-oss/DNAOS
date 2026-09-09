@@ -24,6 +24,7 @@ export const RESEARCH_ENGINE_BASE_URL = "http://localhost:8787";
 
 export const RESEARCH_ENGINE_HEALTH_PATH = "/api/research/health";
 export const RESEARCH_ENGINE_LATEST_PATH = "/api/research/latest";
+export const RESEARCH_ENGINE_LINEAGE_LATEST_PATH = "/api/research/lineage/latest";
 
 /** Every request in this capability is bounded — a hung connector must fail (BLOCKED), never hang forever. Kept short: this is a local service, not a WAN call. */
 export const RESEARCH_ENGINE_REQUEST_TIMEOUT_MILLISECONDS = 5_000;

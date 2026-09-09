@@ -128,6 +128,22 @@ export interface RegistryStore {
 }
 
 /**
+ * Every mutation method `RegistryStore` exposes — `writeApprovedCandidate`,
+ * `appendRegistrationEvent`, `addRelationship`, `removeRelationship`,
+ * `addEvidence`, `addVersion`, `setCapabilityStatus` — is absent here. This
+ * is what `./lookup.ts` actually needs and nothing more; the Owner
+ * Conversation Layer boundary (Owner UNLOCK, 2026-09-06,
+ * `control/owner-command-semantics/read-only-registry-view.ts`) is built on
+ * top of exactly this type so a caller structurally cannot hold write
+ * authority, not merely conventionally agree not to use it.
+ */
+export type ReadOnlyRegistryStore = Pick<
+  RegistryStore,
+  "findCapabilityById" | "findCapabilityBySemanticFingerprint" | "findCapabilityByCanonicalName" | "findResourceById"
+> &
+  Partial<Pick<RegistryStore, "listCapabilityRows" | "listResourceRows" | "listResourceCapabilityLinks" | "listRelationshipRows" | "listEvidenceRows">>;
+
+/**
  * หน้าที่: the same port as `RegistryStore`, Promise-returning throughout
  * (2026-08-24, Railway migration — a real `pg.Pool` round trip is
  * inherently async; see `adapters/postgres-store.ts`'s own header on why

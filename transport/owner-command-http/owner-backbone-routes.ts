@@ -36,6 +36,7 @@ import {
   onSystemEvent,
   getIncidentState,
   waitingRowFor,
+  ownerSurfaceFrame,
 } from "../../control/owner-backbone/contract";
 import type { SystemEvent } from "../../control/owner-backbone/contract";
 import { listOwnerConsoleItems } from "../../control/owner-error-lane/contract";
@@ -55,7 +56,7 @@ async function body(req: IncomingMessage): Promise<string> {
 
 /** SSE frame. `id:` is the event_id, which is exactly what a reconnecting client sends back as Last-Event-ID. */
 function frame(event: SystemEvent): string {
-  return `id: ${event.event_id}\nevent: ${event.event_type}\ndata: ${JSON.stringify(event)}\n\n`;
+  return `id: ${event.event_id}\nevent: ${event.event_type}\ndata: ${JSON.stringify(ownerSurfaceFrame(event))}\n\n`;
 }
 
 /**
@@ -171,7 +172,7 @@ export function handleOwnerBackboneRoute(req: IncomingMessage, res: ServerRespon
     res.write(`: replayed ${replayed.length} event(s) after ${lastEventId ?? "the beginning"}\n\n`);
 
     const unsubscribe = onSystemEvent((event) => {
-      if (event.work_id !== workId) return;
+      if (event.work_id !== workId && event.work_order_id !== workId && event.correlation_id !== workId && event.command_id !== workId) return;
       if (delivered.has(event.event_id)) return;
       delivered.add(event.event_id);
       res.write(frame(event));

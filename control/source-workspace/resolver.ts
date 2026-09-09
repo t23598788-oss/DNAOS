@@ -20,6 +20,7 @@
 import { randomUUID } from "node:crypto";
 import { appendFileSync, existsSync, mkdirSync, readFileSync } from "node:fs";
 import { dirnameOf, joinPath, nowIso, resolvePath, runGit } from "./host-runtime";
+import { registerReservationWorkspace } from "./local-registry";
 import type { CreateWorkspaceInput, CreateWorkspaceResult, RemoveWorkspaceResult, WorkspaceReservation } from "./types";
 
 function sanitize(value: string): string {
@@ -45,7 +46,8 @@ export async function createWorkspace(input: CreateWorkspaceInput): Promise<Crea
   const worktreePath = resolvePath(deriveWorktreePath(repositoryRoot, input.repository_id, input.work_id));
 
   // Capture the real base commit SHA atomically relative to branch creation — real, live-read, never guessed.
-  const baseShaResult = await runGit(["rev-parse", input.base_branch], repositoryRoot);
+  const detached = !(await runGit(["symbolic-ref", "-q", "HEAD"], repositoryRoot)).ok;
+  const baseShaResult = await runGit(["rev-parse", detached ? "HEAD" : input.base_branch], repositoryRoot);
   if (!baseShaResult.ok) {
     return { status: "FAILED", reason: `could not resolve real base_branch="${input.base_branch}": ${baseShaResult.reason}`, reservation: null };
   }
@@ -66,6 +68,11 @@ export async function createWorkspace(input: CreateWorkspaceInput): Promise<Crea
     created_at: nowIso(),
   };
   persistReservation(reservation);
+  registerReservationWorkspace({
+    reservation,
+    repository_root: repositoryRoot,
+    purpose: input.purpose ?? "ENGINEERING_ISOLATION",
+  });
   return { status: "CREATED", reason: "real git worktree created via git worktree add", reservation };
 }
 
@@ -104,6 +111,17 @@ export function listReservations(): readonly WorkspaceReservation[] {
 /** ค้นด้วย reservation_id เท่านั้น — ไม่ค้นด้วย path และไม่เดา */
 export function loadReservation(reservationId: string): WorkspaceReservation | null {
   return listReservations().filter((r) => r.reservation_id === reservationId).at(-1) ?? null;
+}
+
+export async function removeWorkspaceSafe(reservation: Pick<WorkspaceReservation, "repository_id" | "worktree_path" | "branch_ref">, repositoryRoot: string): Promise<RemoveWorkspaceResult> {
+  const absoluteRoot = resolvePath(repositoryRoot);
+  const removeResult = await runGit(["worktree", "remove", reservation.worktree_path], absoluteRoot);
+  if (!removeResult.ok) {
+    return { status: "FAILED", reason: `git worktree remove without --force failed: ${removeResult.reason}` };
+  }
+  await runGit(["worktree", "prune"], absoluteRoot);
+  await runGit(["branch", "-D", reservation.branch_ref], absoluteRoot);
+  return { status: "REMOVED", reason: "real git worktree removed via git worktree remove without --force" };
 }
 
 export async function removeWorkspace(reservation: Pick<WorkspaceReservation, "repository_id" | "worktree_path" | "branch_ref">, repositoryRoot: string): Promise<RemoveWorkspaceResult> {

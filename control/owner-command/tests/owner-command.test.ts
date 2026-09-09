@@ -122,7 +122,7 @@ async function main(): Promise<void> {
   });
 
   await check("submitOwnerCommand: OWNER_REVIEW surfaces one task, lifecycle stops at rejected", async () => {
-    const outcome = await submitOwnerCommand("execute an audit repo scan", OWNER_IDENTITY);
+    const outcome = await submitOwnerCommand("execute an audit repo scan", OWNER_IDENTITY, {}, { enabled: false });
     assert(outcome.result.status === "OWNER_REVIEW", `expected OWNER_REVIEW, got ${outcome.result.status}`);
     assert(outcome.lifecycle.stage === "rejected", `expected lifecycle stage "rejected", got ${outcome.lifecycle.stage}`);
     assert(outcome.surface.progress === "DONE", `expected progress DONE, got ${outcome.surface.progress}`);
@@ -130,13 +130,13 @@ async function main(): Promise<void> {
   });
 
   await check("submitOwnerCommand: UNSUPPORTED_COMMAND is reported, never silently dropped", async () => {
-    const outcome = await submitOwnerCommand("play some music please", OWNER_IDENTITY);
+    const outcome = await submitOwnerCommand("play some music please", OWNER_IDENTITY, {}, { enabled: false });
     assert(outcome.result.status === "FAILED", `expected FAILED, got ${outcome.result.status}`);
     assert(outcome.result.next_action === "UNSUPPORTED_COMMAND", "expected next_action UNSUPPORTED_COMMAND");
   });
 
   await check("submitOwnerCommand: research-engine reports its real live state with evidence", async () => {
-    const outcome = await submitOwnerCommand("เอาผลทดลองโมเดลล่าสุด", OWNER_IDENTITY);
+    const outcome = await submitOwnerCommand("เอาผลทดลองโมเดลล่าสุด", OWNER_IDENTITY, {}, { enabled: false });
     assert(outcome.result.status === "COMPLETED" || outcome.result.status === "BLOCKED", `expected COMPLETED or BLOCKED, got ${outcome.result.status}`);
     const capabilityRow = outcome.surface.available_capabilities.find((c) => c.capability_id === "research-engine");
     assert(capabilityRow !== undefined && capabilityRow.connected === true, "expected research-engine's existing adapter to be listed as connected");

@@ -137,3 +137,38 @@ export async function resolveGithubCredential(connection: ConnectionRegistration
     reason: `connection "${connection.connection_id}" has credential_ref.kind="${reference.kind}" — no real credential reference is registered yet, and this adapter refuses to run unauthenticated`,
   };
 }
+
+/**
+ * The ONLY credential_ref this capability's inbound webhook receiver ever
+ * resolves — same canonical Keychain path as `resolveGithubCredential`'s
+ * `keychain_ref` branch (`../../credentials/registry/api-credential-registry.ts`
+ * -> `MacOsKeychainProvider`), just keyed by a fixed, well-known reference
+ * instead of a per-connection one, because a webhook has no
+ * `ConnectionRegistration` of its own to carry it — GitHub, not this
+ * repo, initiates the request. Registered separately (Owner-only) as
+ * `credential://github/<owner>/<repo>/webhook-secret` per repository this
+ * receiver is meant to accept pushes for; `repoRef` composes that exact
+ * string so callers never hand-format it differently in two places.
+ *
+ * TEST/LEGACY fallback: `GITHUB_WEBHOOK_SECRET_INFRASTRUCTURE`, same
+ * single-channel discipline as `EXPECTED_GITHUB_CREDENTIAL_ENV_VAR_NAME`
+ * above — read only when no Keychain entry is registered yet.
+ */
+export function githubWebhookSecretCredentialRef(owner: string, repo: string): string {
+  return `credential://github/${owner}/${repo}/webhook-secret`;
+}
+
+const WEBHOOK_SECRET_ENV_VAR_FALLBACK = "GITHUB_WEBHOOK_SECRET_INFRASTRUCTURE";
+
+export async function resolveGithubWebhookSecret(owner: string, repo: string, provider?: MacOsKeychainProvider): Promise<GithubCredentialResolution> {
+  const ref = githubWebhookSecretCredentialRef(owner, repo);
+  const viaKeychain = await resolveViaKeychain(ref, provider);
+  if (viaKeychain.ok) return viaKeychain;
+
+  const fallback = readEnvVar(WEBHOOK_SECRET_ENV_VAR_FALLBACK);
+  if (fallback !== undefined && fallback.trim().length > 0) {
+    return { ok: true, token: fallback.trim(), credential_source: `env:${WEBHOOK_SECRET_ENV_VAR_FALLBACK}` };
+  }
+
+  return { ok: false, reason: `no webhook secret resolvable for "${ref}" — Keychain resolution failed (${viaKeychain.reason}) and TEST/LEGACY fallback env var "${WEBHOOK_SECRET_ENV_VAR_FALLBACK}" is not set` };
+}

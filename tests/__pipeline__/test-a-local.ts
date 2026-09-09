@@ -24,12 +24,16 @@ const sha = (b: Buffer | string) => createHash("sha256").update(b).digest("hex")
 function memoryStore(): RegistryStore {
   const events: unknown[] = [];
   return {
-    writeApprovedCandidate: () => ({ ok: true, capability_id: `cap-${randomUUID()}`,
-      resource_id: `res-${randomUUID()}` } as ReturnType<RegistryStore["writeApprovedCandidate"]>),
-    appendRegistrationEvent: (e) => { events.push(e); },
+    writeApprovedCandidate: () => ({
+      inserted: true,
+      capability_id: `cap-${randomUUID()}`,
+      resource_id: `res-${randomUUID()}`,
+    }),
+    appendRegistrationEvent: (e: Parameters<RegistryStore["appendRegistrationEvent"]>[0]) => { events.push(e); },
     findCapabilityById: () => null,
     findCapabilityBySemanticFingerprint: () => null,
     findCapabilityByCanonicalName: () => null,
+    listCapabilities: () => [],
     findResourceByContentHash: () => null,
     findResourceById: () => null,
   } as unknown as RegistryStore;

@@ -98,6 +98,15 @@ try {
     mk("SOURCE_FILE", "SOURCE_REFERENCES_DATABASE_OBJECT", "DATABASE_OBJECT", "app/api/admin/documents/route.ts", "xeytcavxejhyzxwevgto.public.invoices", { source_authority: "DERIVED", rule_id: "RULE-DB-LITERAL-001" }),
     mk("RUNTIME", "RUNTIME_EXECUTES_RESOURCE", "RESOURCE", "process:3442", "resource-31f1c7bd-14a6-4254-a705-83517ce0de28", { source_authority: "RUNTIME" }),
     mk("PROVIDER_PROJECT", "PROVIDER_PROJECT_HAS_SERVICE", "SERVICE", "ffe589bf-58fb-4e3e-8969-4a75915fda1a", "c08254e4-9679-4984-b388-402f7909bf47", { source_authority: "RAILWAY" }),
+    mk("EXECUTION", "EXECUTION_RUNS_PROCESS", "PROCESS", "execution://research-engine/exec-fixture", "process://research-engine/exec-fixture", { source_authority: "RUNTIME" }),
+    mk("EXECUTION", "EXECUTION_HAS_RESEARCH_RUN", "RESEARCH_RUN", "execution://research-engine/exec-fixture", "research_run://research-engine/run-fixture", { source_authority: "RUNTIME" }),
+    mk("RESEARCH_RUN", "RESEARCH_RUN_HAS_METRIC", "METRIC", "research_run://research-engine/run-fixture", "metric://research-engine/run-fixture/latency", { source_authority: "RUNTIME" }),
+    mk("RESEARCH_RUN", "RESEARCH_RUN_HAS_COST", "COST", "research_run://research-engine/run-fixture", "cost://research-engine/exec-fixture", { source_authority: "RUNTIME" }),
+    mk("RESEARCH_RUN", "RESEARCH_RUN_HAS_DECISION", "DECISION", "research_run://research-engine/run-fixture", "decision://research-engine/run-fixture", { source_authority: "RUNTIME" }),
+    mk("METRIC", "METRIC_HAS_EVIDENCE", "EVIDENCE", "metric://research-engine/run-fixture/latency", "evidence://research-engine/evidence-fixture", { source_authority: "RUNTIME" }),
+    mk("COST", "COST_HAS_EVIDENCE", "EVIDENCE", "cost://research-engine/exec-fixture", "evidence://research-engine/evidence-fixture", { source_authority: "RUNTIME" }),
+    mk("DECISION", "DECISION_HAS_EVIDENCE", "EVIDENCE", "decision://research-engine/run-fixture", "evidence://research-engine/evidence-fixture", { source_authority: "RUNTIME" }),
+    mk("PROCESS", "PROCESS_HAS_EVIDENCE", "EVIDENCE", "process://research-engine/exec-fixture", "evidence://research-engine/evidence-fixture", { source_authority: "RUNTIME" }),
   ];
 
   const invalid = rows.map((r) => ({ r, v: validateCrossSystemRelationship(r) })).filter((x) => !x.v.valid);

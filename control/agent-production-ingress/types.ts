@@ -33,6 +33,12 @@ export interface AgentProductionRequest {
   resource_scope: readonly string[];
   lease_ms: number;
   correlation_id: string;
+  /**
+   * DNA OS checkout used for local isolation. Must share the registered
+   * git common directory. Never an Agent-chosen path; Engineering Runtime
+   * supplies the admitted proof/registered checkout.
+   */
+  isolation_checkout_root?: string;
 }
 
 export type AgentProductionStage =

@@ -41,17 +41,27 @@ import type { CapabilityResult } from "../../contracts/command/capability-result
 import type { DnaOsOutput } from "../../contracts/command/output-contract";
 import { classifyCommand, classifyOutput, listCapabilities, routeOwnerCommand } from "../command-router/contract";
 import { recordCommandTaskId, recordOwnerVisibleResult, resolveOwnerCommandSemantics, type SemanticDeps } from "../owner-command-semantics/contract";
+import { requiredCapabilitiesFor, selectResourcesFor, recordResolution } from "../resource-selection/contract";
 import { resolveEntryContext } from "../entry-context/contract";
 import { resolveOutputConsumers } from "../output-routing/contract";
 import { recordCommandLineage } from "./input-gateway";
 import { loadAllTasks, loadEvidenceForTask, ownerDecision, DEFAULT_AGENT_WORKERS } from "../agent-gateway/contract";
 import type { Task } from "../agent-gateway/contract";
-import { randomUUID } from "node:crypto";
 import type { OutputRoutingResult } from "../output-routing/contract";
 import type { RouteOptions } from "../command-router/contract";
 import type { CommandLifecycleStage, CommandLifecycleState } from "../command-status/lifecycle";
 import { hostNowIso, hostRandomId } from "./host-runtime";
 import type { OwnerCapabilityStatus, OwnerSurfaceState } from "./types";
+import {
+  fingerprintOwnerAction,
+  isCanonicalWorkId,
+  isTerminalWorkStatus,
+  latestWorkForIdentity,
+  rememberLatestWork,
+  resolveCanonicalWorkId,
+  workStatusFromCapability,
+  type CanonicalWorkPointer,
+} from "./work-identity";
 
 function pushStage(state: CommandLifecycleState, stage: CommandLifecycleStage, note?: string): void {
   state.stage = stage;
@@ -102,7 +112,11 @@ function toProgress(stage: CommandLifecycleStage): OwnerSurfaceState["progress"]
 }
 
 function availableCapabilities(): readonly OwnerCapabilityStatus[] {
-  return listCapabilities().map((cap) => ({ capability_id: cap.capability_id, connected: cap.health_status === "CONNECTED" }));
+  return listCapabilities().map((cap) => ({
+    capability_id: cap.capability_id,
+    status: cap.endpoint.kind === "not_yet_built" ? "BLOCKED" : cap.health_status === "CONNECTED" ? "EXECUTABLE" : "REGISTERED",
+    connected: cap.health_status === "CONNECTED",
+  }));
 }
 
 /** How the semantic layer is run for this submission. `enabled: false` is for suites that must not spawn a model — the pre-2026-08-26 behavior, unchanged. */
@@ -150,8 +164,12 @@ export interface SubmitOwnerCommandOutcome {
 export function findOpenOwnerQuestion(identityId: string): Task | null {
   const latest = new Map<string, Task>();
   for (const task of loadAllTasks()) latest.set(task.task_id, task);
+  const hasDescendant = (taskId: string): boolean => [...latest.values()].some((candidate) => candidate.memory.parent_task_id === taskId);
   const open = [...latest.values()].filter(
-    (t) => t.status === "WAITING_OWNER_DECISION" && t.memory.user_id === identityId && agentActuallyAsked(t),
+    (t) => t.status === "WAITING_OWNER_DECISION"
+      && t.memory.user_id === identityId
+      && !hasDescendant(t.task_id)
+      && agentActuallyAsked(t),
   );
   return open.sort((a, b) => a.updated_at.localeCompare(b.updated_at)).at(-1) ?? null;
 }
@@ -188,6 +206,66 @@ function rootIntentOf(intentText: string): string {
 /** ปฏิเสธเท่านั้นที่ทำให้งานหยุด — ทุกคำตอบอื่นคือ "ทำต่อ" พร้อมคำตอบนั้นติดไปด้วย */
 function isRefusal(text: string): boolean {
   return /^(ไม่|ยกเลิก|หยุด|no\b|cancel|stop|abort)/i.test(text.trim());
+}
+
+function workIdForPendingTask(task: Task, identityId: string): string | null {
+  const fromTask = task.route_context?.work_id;
+  if (isCanonicalWorkId(fromTask)) return fromTask;
+  const latest = latestWorkForIdentity(identityId);
+  return latest && isCanonicalWorkId(latest.work_id) ? latest.work_id : null;
+}
+
+function replayCapabilityResult(pointer: CanonicalWorkPointer | null, workId: string): CapabilityResult {
+  const status = pointer
+    ? pointer.status === "completed" ? "COMPLETED"
+      : pointer.status === "failed" ? "FAILED"
+        : pointer.status === "waiting_owner" ? "OWNER_REVIEW"
+          : pointer.status === "started" || pointer.status === "created" ? "RUNNING"
+            : "BLOCKED"
+    : "BLOCKED";
+  return {
+    task_id: pointer?.task_id ?? "(none)",
+    capability_id: pointer?.capability_id ?? "owner-command",
+    status,
+    summary: pointer?.summary ?? `canonical work ${workId}`,
+    evidence: [{ source: "control/owner-command/work-identity.ts", note: `reused_work_id=${workId}` }],
+    artifacts: [{ kind: "work_id", ref: workId }],
+    warnings: [],
+    next_action: status === "OWNER_REVIEW" ? "OWNER_REVIEW" : null,
+  };
+}
+
+function persistLatestWork(input: {
+  readonly identity_id: string;
+  readonly work_id: string;
+  readonly command_id: string;
+  readonly fingerprint: string;
+  readonly status: CanonicalWorkPointer["status"];
+  readonly execution_stage?: string;
+  readonly result?: CapabilityResult | null;
+}): void {
+  rememberLatestWork({
+    identity_id: input.identity_id,
+    work_id: input.work_id,
+    command_id: input.command_id,
+    task_id: input.result?.task_id && input.result.task_id !== "(none)" ? input.result.task_id : null,
+    status: input.status,
+    action_fingerprint: input.fingerprint,
+    summary: input.result?.summary ?? null,
+    capability_id: input.result?.capability_id ?? null,
+    execution_stage: input.execution_stage ?? input.status,
+    updated_at: hostNowIso(),
+  });
+}
+
+function executionStageFromResult(result: CapabilityResult): string {
+  const notes = result.evidence.map((row) => row.note).join("\n");
+  if (notes.includes("github_publish_status=VERIFIED")) return "github_publish_verified";
+  if (notes.includes("github_publish_status=BLOCKED")) return "github_publish_blocked";
+  if (notes.includes("engineering_status=VERIFIED") || notes.includes("engineering_status=COMPLETED")) return "engineering_verified";
+  if (notes.includes("coding_write_applied=true")) return "build_test";
+  if (notes.includes("engineering_status=")) return "engineering_execution";
+  return result.status.toLowerCase();
 }
 
 export async function submitOwnerCommand(commandText: string, ownerIdentity: EnvelopeIdentity, options: RouteOptions = {}, semanticOptions: SemanticOptions = {}): Promise<SubmitOwnerCommandOutcome> {
@@ -229,18 +307,30 @@ export async function submitOwnerCommand(commandText: string, ownerIdentity: Env
        * RouteOptions มีอยู่แล้ว ไม่ได้แก้ keyword และไม่ได้เพิ่มตัวจำแนกใหม่
        */
       const rooted = classifyCommand(rootIntent);
+      const pendingWorkId = workIdForPendingTask(pending, ownerIdentity.identity_id);
       const continuationOptions: RouteOptions = rooted.status === "MATCHED"
-        ? { ...options, parentTaskId: pending.task_id, steps: [{ capability_id: rooted.capability.capability_id, intent: continuationText, payload: {} }] }
-        : { ...options, parentTaskId: pending.task_id };
+        ? { ...options, parentTaskId: pending.task_id, work_id: pendingWorkId ?? options.work_id, steps: [{ capability_id: rooted.capability.capability_id, intent: continuationText, payload: {} }] }
+        : { ...options, parentTaskId: pending.task_id, work_id: pendingWorkId ?? options.work_id };
       return submitOwnerCommand(continuationText, ownerIdentity, continuationOptions, semanticOptions);
     }
   }
+
+  const existingPointer = latestWorkForIdentity(ownerIdentity.identity_id);
+  const resolution = resolveCanonicalWorkId({
+    identity_id: ownerIdentity.identity_id,
+    command_text: commandText,
+    requested_work_id: options.work_id ?? null,
+  });
+  const workId = resolution.work_id;
+  const actionFingerprint = resolution.continuation || resolution.status_query
+    ? (existingPointer?.action_fingerprint ?? fingerprintOwnerAction(commandText))
+    : fingerprintOwnerAction(commandText);
 
   const envelope: CommandEnvelope = {
     command_id: `cmd_${hostRandomId()}`,
     issued_by: ownerIdentity,
     intent: commandText,
-    payload: {},
+    payload: { ...(options.envelope_payload ?? {}), canonical_work_id: workId },
     issued_at: hostNowIso(),
   };
 
@@ -259,7 +349,54 @@ export async function submitOwnerCommand(commandText: string, ownerIdentity: Env
     ? undefined
     : resolveOwnerCommandSemantics(envelope.command_id, commandText, { identity_id: ownerIdentity.identity_id, kind: ownerIdentity.kind }, semanticOptions.deps ?? {});
 
+  /**
+   * RESOURCE RESOLUTION (Owner, 2026-09-05) — อยู่ตรงนี้เพราะที่นี่คือจุดแรกที่
+   * เจตนาถูก resolve แล้ว และเป็นจุดสุดท้ายก่อนขอให้ router ลงมือ
+   *
+   * ลำดับเป็นข้อบังคับ ไม่ใช่ธรรมเนียม: ถ้า `semantics.ok` ไม่จริง บล็อกนี้ไม่ทำงาน
+   * เลย จึงไม่มีการค้นทะเบียน ไม่มีการเลือกทรัพยากร และไม่มีการเตรียม tool
+   * ล่วงหน้า — ตรงตามข้อ 2 ที่ห้ามเตรียมเครื่องมือก่อนเข้าใจคำสั่ง
+   *
+   * ตัวเลือกทรัพยากรเป็นของ DNA OS: ความสามารถที่ต้องใช้มาจากตารางใน
+   * ../resource-selection/intent-capabilities.ts และตัวทรัพยากรมาจากทะเบียนกลาง
+   * ไม่มีจุดใดที่ Agent หรือโมเดลเป็นผู้เลือก
+   *
+   * บล็อกนี้ไม่เรียกทรัพยากรใด ๆ มันบันทึกว่า "ต้องใช้อะไร และมีอะไร" เท่านั้น
+   * การเรียก connector จริงยังทำจากฝั่ง DNA OS ไม่ได้ เพราะ connector เหล่านี้
+   * เข้าถึงผ่าน MCP client ที่ถือ OAuth ของ Owner ซึ่ง DNA OS ไม่มีเส้นทางถึง
+   * (ตรวจแล้ว 2026-09-05: connections/dna-os-mcp/ เป็น MCP server ไม่ใช่ client)
+   * จึงบันทึกเป็น BLOCKED:NO_CREDENTIAL_PATH ไม่ใช่แกล้งว่าเรียกสำเร็จ
+   */
   if (semantics && semantics.ok) {
+    try {
+      const need = requiredCapabilitiesFor(commandText);
+      if (need.status === "RESOLVED") {
+        const selection = selectResourcesFor(need.required_capabilities);
+        recordResolution({
+          selection_id: `sel_${hostRandomId()}`,
+          command_id: envelope.command_id,
+          work_id: workId,
+          intent_status: "RESOLVED",
+          required_capabilities: need.required_capabilities,
+          selected_resources: selection.selected.map((r) => ({
+            resource_id: r.resource_id, capability_id: r.capability, canonical_name: r.resource_name,
+            access_method: "CONNECTOR",
+            reason_selected: `ทะเบียนกลางประกาศความสามารถ "${r.capability}" ไว้ที่ทรัพยากรนี้ และสถานะยัง REGISTERED`,
+          })),
+          unresolved_capabilities: selection.missing,
+          executions: selection.selected.map((r) => ({
+            resource_execution_id: `rex_${hostRandomId()}`,
+            resource_id: r.resource_id, capability_id: r.capability, tool_name: r.capability,
+            started_at: hostNowIso(), finished_at: hostNowIso(), duration_ms: 0,
+            status: "BLOCKED" as const, read_write_class: "READ_ONLY",
+            result_summary: null, error_code: "NO_CREDENTIAL_PATH",
+          })),
+          agent_invoked: false,
+          recorded_at: hostNowIso(),
+        });
+      }
+    } catch { /* การหาทรัพยากรล้มต้องไม่ทำให้คำสั่งของ Owner ออกไม่ได้ */ }
+
     let context = semantics.context;
 
     // Requirement 6/7: ../entry-context/ is called for real, with the real
@@ -295,22 +432,40 @@ export async function submitOwnerCommand(commandText: string, ownerIdentity: Env
     // Requirement 8/9: the router no longer receives a bare string. The
     // structured context rides on the envelope's own payload, which
     // ../command-router/ already forwards verbatim into every RouterStep.
-    envelope.payload = { structured_owner_context: context };
+    envelope.payload = { ...(options.envelope_payload ?? {}), structured_owner_context: context, canonical_work_id: workId };
   }
 
-  // ── ตัวตนของงานต้องมีก่อนการจัดเส้นทาง ไม่ใช่หลังจากนั้น ──
-  // ก่อนหน้านี้เส้นทางนี้สร้าง task แล้วจบ ไม่มี work_id เกิดขึ้นเลย ทำให้
-  // claimWork, base_commit_sha, requireWriteClaim และสตรีม /owner/events
-  // ซึ่งทั้งหมดใช้ work_id เป็นคีย์ ไม่มีอะไรให้ผูกพร้อมกันทั้งหมด
-  const workId = `work-${randomUUID()}`;
   recordCommandLineage({
     command_id: envelope.command_id, work_id: workId, task_id: null,
     stage: "command_received",
-    detail: `control/owner-command/owner-command.ts#submitOwnerCommand identity=${ownerIdentity.identity_id}`,
+    detail: `control/owner-command/owner-command.ts#submitOwnerCommand identity=${ownerIdentity.identity_id} reused=${resolution.reused} duplicate_action=${resolution.duplicate_action} continuation=${resolution.continuation}`,
   });
 
-  const result = await routeOwnerCommand(envelope, commandText, routeOptions);
+  const pointerForReplay = existingPointer && existingPointer.work_id === workId ? existingPointer : latestWorkForIdentity(ownerIdentity.identity_id);
+  const skipDispatch = resolution.status_query
+    || (resolution.duplicate_action && pointerForReplay !== null && pointerForReplay.work_id === workId && isTerminalWorkStatus(pointerForReplay.status));
+
+  if (!resolution.reused) {
+    persistLatestWork({ identity_id: ownerIdentity.identity_id, work_id: workId, command_id: envelope.command_id, fingerprint: actionFingerprint, status: "created" });
+  }
+  if (!skipDispatch) {
+    persistLatestWork({ identity_id: ownerIdentity.identity_id, work_id: workId, command_id: envelope.command_id, fingerprint: actionFingerprint, status: "started" });
+  }
+
+  const result = skipDispatch
+    ? replayCapabilityResult(pointerForReplay, workId)
+    : await routeOwnerCommand(envelope, commandText, { ...routeOptions, work_id: workId });
   const lifecycle = deriveLifecycle(envelope.command_id, result);
+
+  persistLatestWork({
+    identity_id: ownerIdentity.identity_id,
+    work_id: workId,
+    command_id: envelope.command_id,
+    fingerprint: actionFingerprint,
+    status: workStatusFromCapability(result.status),
+    execution_stage: executionStageFromResult(result),
+    result,
+  });
 
   // ผูก task เข้ากับ work ทันทีที่ task มีตัวตนจริง — ไม่เขียนค่าแทนก่อนหน้านั้น
   recordCommandLineage({

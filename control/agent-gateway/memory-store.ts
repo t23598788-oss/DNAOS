@@ -14,12 +14,17 @@
  *
  * Input: Task / Evidence / OwnerDecision records.
  * Output: append + read-all functions per record kind.
- * Dependency ที่อนุญาต: ./host-runtime.ts, ./types.ts (type only).
+ * Dependency ที่อนุญาต: ./host-runtime.ts, ./types.ts (type only),
+ * `../conversation-read-model/contract.ts` (producer-side projection
+ * publish only, at the same moment a task/evidence row is actually saved —
+ * see Owner UNLOCK 2026-09-06 physical separation of the Owner
+ * Conversation Layer from this package).
  * สิ่งที่ห้ามแตะ: never store a raw credential/secret value in these
  * files — evidence payloads must reference, never embed, a secret.
  */
 import { appendFileUtf8, ensureDir, fileExists, joinPath, readFileUtf8, repoRootDirname, writeFileUtf8 } from "./host-runtime";
 import type { Evidence, HandoffRecord, Task } from "./types";
+import { publishTaskEvidence, publishTaskStatus } from "../conversation-read-model/contract";
 
 const DATA_DIR_RELATIVE = "control/agent-gateway/data";
 
@@ -80,6 +85,9 @@ export function tasksFilePath(): string {
 export function saveTask(task: Task): void {
   ensureFiles();
   appendFileUtf8(tasksFile(), JSON.stringify(task) + "\n");
+  // Producer-side snapshot, at the moment this task's real state is saved —
+  // never re-derived later on a conversation query.
+  publishTaskStatus({ task_id: task.task_id, status: task.status, updated_at: task.updated_at, next_action: task.next_action ?? null });
 }
 
 /** Returns the LATEST record for a given task_id — a task is appended each time its status changes, never mutated in place, so history survives too. */
@@ -98,6 +106,11 @@ export function loadTaskHistory(taskId: string): Task[] {
 export function saveEvidence(evidence: Evidence): void {
   ensureFiles();
   appendFileUtf8(evidenceFile(), JSON.stringify(evidence) + "\n");
+  // Producer-side snapshot, at the moment this evidence row is saved. The
+  // full current row set for this task_id is republished (not just the new
+  // row) so a conversation read never has to reconstruct history itself.
+  const rows = loadEvidenceForTask(evidence.task_id).map((row) => ({ kind: row.kind, source: row.source, recorded_at: row.recorded_at }));
+  publishTaskEvidence({ task_id: evidence.task_id, rows });
 }
 
 export function loadEvidenceForTask(taskId: string): Evidence[] {
@@ -115,6 +128,14 @@ export function loadEvidenceForTask(taskId: string): Evidence[] {
 export function loadAllEvidence(): Evidence[] {
   ensureFiles();
   return readJsonl<Evidence>(evidenceFile());
+}
+
+export function loadEvidenceForCorrelation(correlationId: string): Evidence[] {
+  return loadAllEvidence().filter((row) =>
+    row.correlation_id === correlationId
+    || row.work_order_id === correlationId
+    || row.task_id === correlationId,
+  );
 }
 
 export function loadAllTasks(): Task[] {

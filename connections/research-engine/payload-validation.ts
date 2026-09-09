@@ -44,6 +44,38 @@ function numberOrStringOrNull(value: unknown): number | string | null {
   return typeof value === "number" || typeof value === "string" ? value : null;
 }
 
+function recordOrNull(value: unknown): Readonly<Record<string, unknown>> | null {
+  return isRecord(value) ? value : null;
+}
+
+function costFromExecution(execution: unknown): Readonly<Record<string, unknown>> | null {
+  if (!isRecord(execution)) return null;
+  const out: Record<string, unknown> = {};
+  for (const key of [
+    "input_tokens", "output_tokens", "cached_input_tokens", "cached_output_tokens",
+    "reasoning_tokens", "total_tokens", "provider_cost_usd", "cost_usd",
+    "cost_source", "pricing_version", "fx_rate_usd_thb", "fx_rate_source",
+    "fx_rate_timestamp", "cost_thb",
+  ]) out[key] = execution[key] ?? null;
+  const metadata = recordOrNull(execution["metadata"]);
+  if (metadata && recordOrNull(metadata["cost"])) out["metadata_cost"] = metadata["cost"];
+  return out;
+}
+
+function processFromExecution(execution: unknown): Readonly<Record<string, unknown>> | null {
+  if (!isRecord(execution)) return null;
+  const metadata = recordOrNull(execution["metadata"]);
+  const processMeasurement = metadata ? recordOrNull(metadata["process_measurement"]) : null;
+  if (processMeasurement) return processMeasurement;
+  return null;
+}
+
+function workIdFromExecution(execution: unknown): string | null {
+  if (!isRecord(execution)) return null;
+  const metadata = recordOrNull(execution["metadata"]);
+  return metadata ? stringOrNull(metadata["work_id"]) : null;
+}
+
 /** Collects every key whose name contains "latency" (case-insensitive) out of the given objects, without assuming exact field names — see ./adapter-contract.ts's documented assumption on ResearchEngineLatestFields.latency. */
 function collectLatencyFields(...sources: unknown[]): Record<string, unknown> {
   const collected: Record<string, unknown> = {};
@@ -66,7 +98,7 @@ export function parseLatestResearchResult(raw: unknown): ParseOutcome {
     return { ok: false, reason: "missing or non-string top-level field: experiment_id" };
   }
 
-  const candidate = raw["candidate"];
+  const candidate = isRecord(raw["candidate"]) ? raw["candidate"] : raw;
   if (!isRecord(candidate)) {
     return { ok: false, reason: "missing or non-object top-level field: candidate" };
   }
@@ -104,6 +136,8 @@ export function parseLatestResearchResult(raw: unknown): ParseOutcome {
   const value: ResearchEngineLatestFields = {
     experiment_id: experimentId,
     run_id: runId,
+    research_execution_id: stringOrNull(recordOrNull(raw["execution"])?.["execution_id"]),
+    work_id: workIdFromExecution(raw["execution"]),
     provider,
     model_id: modelId,
     safety_score: formulaValue("SAFETY_SCORE"),
@@ -115,6 +149,11 @@ export function parseLatestResearchResult(raw: unknown): ParseOutcome {
     false_allow: numberOrNull(metrics["false_allow_rate"]),
     unknown_rate: numberOrNull(metrics["unknown_rate"]),
     malformed_rate: numberOrNull(metrics["malformed_rate"]),
+    metrics,
+    formulas,
+    decision,
+    cost: costFromExecution(raw["execution"]),
+    process: processFromExecution(raw["execution"]),
     latency: collectLatencyFields(metrics, lifecycle),
   };
 

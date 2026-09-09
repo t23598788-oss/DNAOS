@@ -37,6 +37,8 @@
  * "connector"`, added 2026-08-22 to fix the DigitalOcean DI gap generically
  * rather than importing `connections/digitalocean/` directly here — see
  * `runConnectorStep`).
+ * `../engineering-runtime/contract.ts` (`runEngineeringCoding` — ENGINEERING
+ * coding authority only; Business capabilities never share this write path).
  * สิ่งที่ห้ามแตะ: never call `../../execution/run/contract.ts`'s
  * `startExecution` for a step without first getting an `ALLOW` decision
  * from `evaluateExecutionPermission` in THIS SAME call — no
@@ -66,6 +68,7 @@ import type { Status as DispatcherTaskStatus, WorkerKind, WorkOrder, TaskWorkspa
 import { resolveWorker } from "../agent-host/contract";
 import { join } from "node:path";
 import { readFileSync } from "node:fs";
+import { randomUUID } from "node:crypto";
 import { submitAgentWork } from "../agent-production-ingress/contract";
 import { listRepositories } from "../../software/repository-registry/contract";
 import type { RepositoryRegistration } from "../../software/repository-registry/contract";
@@ -77,6 +80,7 @@ import { getCapability, listCapabilities } from "./capability-registry";
 import { hostNowIso } from "./host-runtime";
 import { reportJoint } from "../../observability/joint-monitor/contract";
 import { executeConnectorCommand } from "../connector-execution-boundary/contract";
+import { isBusinessCapabilityId, readEngineeringCodingIntent, resolveIsolatedEngineeringCheckout, removePublicationProofCheckout, runAutonomousEngineeringLoop } from "../engineering-runtime/contract";
 import type { CapabilityRegistration, ClassificationOutcome, RouterStep } from "./types";
 import type { StructuredOwnerContext } from "../owner-command-semantics/types";
 
@@ -97,6 +101,39 @@ export interface RouteOptions {
    * ตัวตนที่คงอยู่คือสายงานของ DNA OS ไม่ใช่ PID ของโปรเซสไหน
    */
   parentTaskId?: string | null;
+  /**
+   * Canonical Owner work identity (`work-<uuid>`). command_id stays a command
+   * identifier and is never used as this value.
+   */
+  work_id?: string | null;
+  /** Owner-presented envelope fields (e.g. engineering_coding_intent). Merged, never invented. */
+  envelope_payload?: Record<string, unknown> | null;
+}
+
+const CANONICAL_WORK_ID = /^work-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+function canonicalWorkIdFrom(envelope: CommandEnvelope, options: RouteOptions): string {
+  if (typeof options.work_id === "string" && CANONICAL_WORK_ID.test(options.work_id)) return options.work_id;
+  const payload = envelope.payload;
+  if (payload && typeof payload === "object") {
+    const id = (payload as { canonical_work_id?: unknown }).canonical_work_id;
+    if (typeof id === "string" && CANONICAL_WORK_ID.test(id)) return id;
+  }
+  return `work-${randomUUID()}`;
+}
+
+function proposedWritesFromPayload(payload: unknown): readonly { readonly relative_path: string; readonly content: string }[] | undefined {
+  if (typeof payload !== "object" || payload === null) return undefined;
+  const raw = (payload as { proposed_writes?: unknown }).proposed_writes;
+  if (!Array.isArray(raw) || raw.length === 0) return undefined;
+  const writes: { relative_path: string; content: string }[] = [];
+  for (const row of raw) {
+    if (!row || typeof row !== "object") continue;
+    const relative_path = (row as { relative_path?: unknown }).relative_path;
+    const content = (row as { content?: unknown }).content;
+    if (typeof relative_path === "string" && typeof content === "string") writes.push({ relative_path, content });
+  }
+  return writes.length > 0 ? writes : undefined;
 }
 
 function matchesText(cap: CapabilityRegistration, text: string): boolean {
@@ -615,7 +652,7 @@ async function readBackendContextBeforeDispatch(): Promise<{ capability_count: n
  * own cwd/source here; WorkspaceManager already decided it before this
  * function runs.
  */
-function buildAgentHostWorkOrder(step: RouterStep, workerKind: WorkerKind, workspace: TaskWorkspace): WorkOrder {
+function buildAgentHostWorkOrder(step: RouterStep, workerKind: WorkerKind, workspace: TaskWorkspace, workOrderId: string): WorkOrder {
   const localWorker = workerKind === "LOCAL" ? resolveWorker("LOCAL") : null;
   const instruction = workerKind === "LOCAL" && localWorker?.ok
     ? JSON.stringify({ action: "credential_probe" })
@@ -631,6 +668,7 @@ function buildAgentHostWorkOrder(step: RouterStep, workerKind: WorkerKind, works
     required_tests: [],
     forbidden_files: [],
     evidence: [],
+    work_order_id: workOrderId,
     agent_run: {
       worker_kind: workerKind,
       instruction,
@@ -671,10 +709,10 @@ function resolveSelfRepository(root: string): RepositoryRegistration | null {
   return corroborated.length === 1 ? corroborated[0]! : null;
 }
 
-async function runAgentHostStep(step: RouterStep, envelope: CommandEnvelope): Promise<StepOutcome> {
+async function runAgentHostStep(step: RouterStep, envelope: CommandEnvelope, options: RouteOptions): Promise<StepOutcome> {
   const backendContext = await readBackendContextBeforeDispatch();
   const workerKind = selectWorkerKind(step.intent);
-  const workOrderId = `wo-${envelope.command_id}`;
+  const workOrderId = canonicalWorkIdFrom(envelope, options);
 
   // WORKSPACE_MANAGER (Owner, Phase 2): DNA OS selects assigned MASTER_SOURCE
   // (read-only) and materializes a fresh TASK_WORKSPACE (read+write) BEFORE
@@ -753,8 +791,8 @@ async function runAgentHostStep(step: RouterStep, envelope: CommandEnvelope): Pr
     }
   }
 
-  const workOrder = buildAgentHostWorkOrder(step, workerKind, workspace);
-  const result = await runAgentWorkOrder(workOrder, envelope.command_id, process.env);
+  const workOrder = buildAgentHostWorkOrder(step, workerKind, workspace, workOrderId);
+  const result = await runAgentWorkOrder(workOrder, { kind: "DIRECT", correlation_id: envelope.command_id, work_id: workOrderId }, process.env);
 
   const loopOutcome = await runCorrectiveLoop(result, "command-router");
 
@@ -828,6 +866,66 @@ async function runAgentHostStep(step: RouterStep, envelope: CommandEnvelope): Pr
  * CapabilityResultStatus value — see this STEP's own commit note on why
  * that closed union was left untouched.
  */
+async function runEngineeringStep(step: RouterStep, envelope: CommandEnvelope, options: RouteOptions): Promise<StepOutcome> {
+  const workId = canonicalWorkIdFrom(envelope, options);
+  const isolated = await resolveIsolatedEngineeringCheckout(process.cwd(), workId);
+  if (!isolated.ok) {
+    return {
+      status: "BLOCKED",
+      evidenceEntries: [evidence("engineering-runtime", `isolated_checkout=FAILED reason_code=${isolated.reason_code} ${isolated.detail}`)],
+      artifacts: [{ kind: "engineering_work_id", ref: workId }],
+      warnings: [isolated.detail],
+      summary: isolated.detail,
+    };
+  }
+  const payload = step.payload ?? envelope.payload;
+  const proposedWrites = proposedWritesFromPayload(payload);
+  try {
+    const loop = await runAutonomousEngineeringLoop({
+      command_id: envelope.command_id,
+      work_id: workId,
+      intent_text: step.intent,
+      payload,
+      checkout_root: isolated.checkout_root,
+      selected_capability_id: step.capability_id,
+      proposed_writes: proposedWrites,
+    });
+    const result = loop.completion;
+    const publication = loop.publication;
+    const engineeringStatus = result?.status ?? loop.status;
+    const lineageNote = `command_id=${envelope.command_id} work_id=${loop.work_id} reservation_id=${result?.lineage.reservation_id ?? "none"} changed_path=${result?.lineage.changed_path ?? "none"} worktree_path=${result?.lineage.worktree_path ?? "none"} manifest_id=${result?.lineage.manifest_id ?? "none"} admission_decision=${result?.lineage.admission_decision ?? "none"} integration_status=${result?.lineage.integration_status ?? "none"} isolated_checkout=${isolated.isolated} checkout_root=${isolated.checkout_root} dna_os_commit_sha=${publication?.lineage.dna_os_commit_sha ?? "none"} github_destination=${publication?.lineage.github_owner && publication.lineage.github_repository ? `${publication.lineage.github_owner}/${publication.lineage.github_repository}` : "none"} publish_status=${publication?.lineage.publish_status ?? "not_attempted"} pre_publish_remote_sha=${publication?.lineage.pre_publish_remote_sha ?? "none"} post_publish_remote_sha=${publication?.lineage.post_publish_remote_sha ?? "none"} autonomous_loop_status=${loop.status} lifecycle_stage=${loop.lifecycle?.stage ?? "none"} worker_id=${loop.worker_id ?? "none"} repair_count=${loop.repair_count}`;
+    const status = loop.status === "VERIFIED" ? "COMPLETED"
+      : loop.status === "CI_PENDING" ? "RUNNING"
+      : loop.status === "OWNER_REVIEW" ? "OWNER_REVIEW"
+        : loop.status === "REJECTED" ? "FAILED"
+          : loop.status;
+    return {
+      status,
+      evidenceEntries: [
+        evidence("engineering-runtime", `engineering_status=${engineeringStatus} reason_code=${loop.reason_code} coding_write_applied=${result?.coding.write_applied ?? false}`),
+        evidence("engineering-runtime", lineageNote),
+        evidence("engineering-runtime", loop.detail),
+        ...(publication ? [evidence("engineering-runtime", `github_publish_status=${publication.status} reason_code=${publication.reason_code} ${publication.detail}`)] : []),
+        ...(loop.github_proof ? [evidence("engineering-runtime", `github_permanence_status=${loop.github_proof.status} lineage_verified=${loop.github_proof.lineage_verified} expected_files_verified=${loop.github_proof.expected_files_verified} ci_required=${loop.github_proof.ci_required} remote_sha=${loop.github_proof.remote_sha}`)] : []),
+        ...(loop.workspace_cleanup.length > 0 ? [evidence("engineering-runtime", `workspace_cleanup=${loop.workspace_cleanup.map((row) => `${row.workspace_id}:${row.status}`).join(",")}`)] : []),
+        ...(loop.registry_written ? [evidence("engineering-runtime", "registry_write_after_verify=true")] : [evidence("engineering-runtime", `registry_write_after_verify=false registry_written=${loop.registry_written}`)]),
+      ],
+      artifacts: [
+        { kind: "engineering_work_id", ref: loop.work_id },
+        ...(result?.lineage.reservation_id ? [{ kind: "engineering_reservation_id", ref: result.lineage.reservation_id }] : []),
+        ...(result?.lineage.manifest_id ? [{ kind: "engineering_manifest_id", ref: result.lineage.manifest_id }] : []),
+        ...(result?.lineage.changed_path ? [{ kind: "engineering_changed_path", ref: result.lineage.changed_path }] : []),
+        ...(publication?.lineage.dna_os_commit_sha ? [{ kind: "engineering_commit_sha", ref: publication.lineage.dna_os_commit_sha }] : []),
+        ...(publication?.lineage.post_publish_remote_sha ? [{ kind: "engineering_remote_sha", ref: publication.lineage.post_publish_remote_sha }] : []),
+      ],
+      warnings: status === "BLOCKED" || status === "FAILED" || status === "OWNER_REVIEW" ? [loop.detail] : [],
+      summary: loop.owner_result,
+    };
+  } finally {
+    if (isolated.proof) removePublicationProofCheckout(isolated.proof);
+  }
+}
+
 async function runConnectorStep(step: RouterStep, envelope: CommandEnvelope, capabilityId: string): Promise<StepOutcome> {
   const stepEnvelope: CommandEnvelope = { ...envelope, intent: step.intent, payload: step.payload };
   const outcome = await executeConnectorCommand(capabilityId, stepEnvelope);
@@ -868,7 +966,8 @@ async function runStep(step: RouterStep, envelope: CommandEnvelope, options: Rou
   if (capability.capability_id === "research-engine") return runResearchEngineStep();
   if (capability.capability_id === "permission-reasoner") return runPermissionReasonerStep(step, envelope, options);
   if (capability.capability_id === "dispatcher") return runDispatcherStep(step, envelope);
-  if (capability.capability_id === "agent-host") return runAgentHostStep(step, envelope);
+  if (capability.capability_id === "agent-host") return runAgentHostStep(step, envelope, options);
+  if (capability.capability_id === "engineering-runtime") return runEngineeringStep(step, envelope, options);
   if (capability.capability_id === "os-login") return runOsLoginStep(step);
   if (capability.capability_id === "os-ui") return runOsUiStep(step);
   if (capability.capability_id === "voice-bridge") return runVoiceBridgeStep(step, envelope);
@@ -926,7 +1025,10 @@ export async function routeOwnerCommand(envelope: CommandEnvelope, commandText: 
 
     if (proven.length === 1) {
       routingSource = "STRUCTURED_OWNER_CONTEXT";
-      routingNote = `selected_capability_id=${proven[0]} proven by control/owner-command-semantics (status=RESOLVER_MATCHED, evidence present, id exists in ./capability-registry.ts)`;
+      const ignoredEngineering = isBusinessCapabilityId(proven[0]) && readEngineeringCodingIntent(envelope.payload)
+        ? " engineering_coding_intent ignored — Business Runtime has zero source-write authority"
+        : "";
+      routingNote = `selected_capability_id=${proven[0]} proven by control/owner-command-semantics (status=RESOLVER_MATCHED, evidence present, id exists in ./capability-registry.ts)${ignoredEngineering}`;
       steps = [{ capability_id: proven[0], intent: envelope.intent, payload: envelope.payload }];
     } else {
       // ยังไม่มี target ที่ resolve ได้ — คงพฤติกรรมเดิมไว้ แต่ต้องติดป้ายว่า
@@ -937,10 +1039,20 @@ export async function routeOwnerCommand(envelope: CommandEnvelope, commandText: 
         return terminal(envelope, "router", "OWNER_REVIEW", classification.reason, [evidence("router", `routing_source=FALLBACK_RAW_TEXT candidates=${classification.candidates.join(",")}`)], [], "Owner must pick one candidate capability explicitly");
       }
       if (classification.status === "UNSUPPORTED_COMMAND") {
-        return terminal(envelope, "router", "FAILED", classification.reason, [evidence("router", "routing_source=FALLBACK_RAW_TEXT UNSUPPORTED_COMMAND")], [], "UNSUPPORTED_COMMAND");
+        if (readEngineeringCodingIntent(envelope.payload)) {
+          routingSource = "STRUCTURED_OWNER_CONTEXT";
+          routingNote = "engineering_coding_intent present; no Business capability matched — ENGINEERING coding path";
+          steps = [{ capability_id: "engineering-runtime", intent: envelope.intent, payload: envelope.payload }];
+        } else {
+          return terminal(envelope, "router", "FAILED", classification.reason, [evidence("router", "routing_source=FALLBACK_RAW_TEXT UNSUPPORTED_COMMAND")], [], "UNSUPPORTED_COMMAND");
+        }
+      } else {
+        const ignoredEngineering = isBusinessCapabilityId(classification.capability.capability_id) && readEngineeringCodingIntent(envelope.payload)
+          ? " engineering_coding_intent ignored — Business Runtime has zero source-write authority"
+          : "";
+        routingNote = `selected_capability_id=${classification.capability.capability_id} matched by match_keyword_sets on raw commandText — no proven capability was present in structured_owner_context${ignoredEngineering}`;
+        steps = [{ capability_id: classification.capability.capability_id, intent: envelope.intent, payload: envelope.payload }];
       }
-      routingNote = `selected_capability_id=${classification.capability.capability_id} matched by match_keyword_sets on raw commandText — no proven capability was present in structured_owner_context`;
-      steps = [{ capability_id: classification.capability.capability_id, intent: envelope.intent, payload: envelope.payload }];
     }
   }
 

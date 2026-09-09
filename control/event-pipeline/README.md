@@ -29,7 +29,7 @@ resource_id/capability_id/event_id — it is not the same thing as
 table (a persistent, DB-backed audit trail of registration *decisions*
 specifically). Do not conflate the two when reading either.
 
-**สถานะ:** `registration-contract.ts`'s logic is real, but until this
-round it had zero importers and no test anywhere in the repo — see
-`tests/registration-contract.test.ts` for the first proof it actually
-produces all four decision outcomes correctly.
+**สถานะ:** Owner Evidence Activity Pipeline lives in `owner-activity.ts`
+and is the only path from runtime actions/messages onto the Owner Surface.
+`ingestSource()` remains the execution/coordination log and must not be
+used as a UI feed. Display Queue is `data/display-queue.jsonl`.

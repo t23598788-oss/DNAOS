@@ -1,0 +1,1135 @@
+{
+  "document_type": "dna_os_connection_index",
+  "index_id": "connection-index.v1",
+  "title": "DNA OS Connection Index",
+  "version": 1,
+  "generated_at": "2026-09-07",
+  "source_of_truth": "Each authoritative per-connection connection-document.json record. This index is a projection, not a second runtime registry.",
+  "status_vocabulary": [
+    "VERIFIED",
+    "CONNECTED",
+    "NOT_VERIFIED",
+    "BLOCKED",
+    "NOT_WIRED"
+  ],
+  "projection_rules": {
+    "authoritative_document_status": "Project the document status and boundary statuses without reinterpretation.",
+    "declaration_without_document": "status=NOT_VERIFIED and source_document_status=DOCUMENT_MISSING.",
+    "configuration_drift_without_document": "status=BLOCKED and source_document_status=DOCUMENT_MISSING.",
+    "connected_without_live_evidence": "status=CONNECTED only when the authoritative document says CONNECTED; never infer it from source existence or reachability alone.",
+    "secrets": "Index reference names and resolution mechanisms only; never credential values."
+  },
+  "entries": [
+    {
+      "connection_id": "connection.ai-model.dna-os-mcp.v1",
+      "name": "OpenAI / AI Model → DNA OS MCP Requester Connection",
+      "source_system": "External OpenAI / AI Model requester",
+      "destination_system": "DNA OS MCP host and Owner authority/execution system",
+      "connection_type": "MODEL_REQUESTER_TOOL_INGRESS",
+      "status": "CONNECTED",
+      "verification_level": "MCP_PATH_CONNECTED_PROVIDER_API_NOT_VERIFIED",
+      "document_path": "connections/ai-model/connection-document.json",
+      "machine_record_path": "connections/ai-model/connection-document.json",
+      "human_document_path": "connections/ai-model/OPENAI_AI_MODEL_CONNECTION.md",
+      "entry_boundary": {
+        "source": "External OpenAI / AI Model requester",
+        "destination": "DNA OS MCP host",
+        "contract": "createDnaOsMcpServer; MCP tool registration and invocation"
+      },
+      "exit_boundary": {
+        "source": "AI semantic interpretation",
+        "destination": "DNA OS deterministic resolver and Owner command authority",
+        "contract": "control/owner-command-semantics/ai-contract.ts#validateAiInterpretation"
+      },
+      "authentication": [
+        {
+          "name": "OWNER_COMMAND_HTTP_SHARED_SECRET",
+          "used_by": "DnaOsHttpClient Authorization header and Core requireSharedSecret",
+          "resolution": "process environment supplied to the trusted local process; value is never documented"
+        },
+        {
+          "name": "DNA_OS_OWNER_SESSION_ID",
+          "used_by": "stdio MCP owner-session pointer when no explicit caller context is bound",
+          "resolution": "process environment; Core validates the pointer with validateOwnerSession"
+        },
+        {
+          "name": "x-dna-os-owner-session",
+          "used_by": "HTTP MCP caller context and Core Owner-session binding",
+          "resolution": "request header containing a session-store pointer; the header value is not authority by itself"
+        },
+        {
+          "name": "credential://anthropic/owner/agent-runtime",
+          "used_by": "credential registry metadata for an Anthropic agent-runtime provider reference",
+          "resolution": "macOS Keychain resolver metadata; no secret value is copied here",
+          "status": "REGISTERED_REFERENCE_ONLY; no provider adapter in this repository consumes it"
+        }
+      ],
+      "authority": [
+        "requester/reasoner only: proposes text or a structured interpretation; it cannot authenticate the Owner, select authority, create IDs, authorize execution, or write registries",
+        "authority/executor: authenticates the human Owner, resolves identity, applies policy, routes registered capabilities, executes workers, records task/result/evidence, and returns the authoritative result",
+        "NOT_ALLOWED and not wired"
+      ],
+      "capabilities": [
+        "MCP submit_command",
+        "Owner command request",
+        "read-only result/task/evidence observation"
+      ],
+      "live_evidence": {
+        "mcp_owner_command_connection_document": "connections/dna-os-mcp/connection-document.json",
+        "owner_command_id": "cmd_2f4cffcb-b7cc-40f0-a5f3-f062646e52db",
+        "work_id": "work-9f13084e-84f0-4462-8b2a-d9e6b96965d9",
+        "owner_command_task_id": "task-6c5c2bf5-9b8c-420d-be10-b1a3cd77eb17",
+        "agent_host_task_id": "task-cmd_2f4cffcb-b7cc-40f0-a5f3-f062646e52db-agent-host",
+        "agent_launch_id": "agent-launch-4aff06ce-d2f8-41dd-8b05-e5cb016b4904",
+        "result_id": "result-995507d6-5414-4897-8831-8e5db34d9a35",
+        "worker_status": "COMPLETED",
+        "voice_bridge_reference": "Previously verified voice-bridge COMPLETED path is a separate in-process bridge; it distinguishes direct in-process execution from this external-model MCP requester path."
+      },
+      "last_verified_at": "2026-09-07",
+      "known_gaps": [
+        "No OpenAI provider API client/adapter is implemented in this repository.",
+        "ai/model-router, ai/model-registry, and connections/ai-providers are README-only/not yet built.",
+        "The registered Anthropic credential reference is metadata only for this connection; no provider adapter consumes it here.",
+        "The live evidence proves the MCP → DNA OS path, not a provider-specific OpenAI API call."
+      ],
+      "next_required_connection": "If a direct provider connection is later requested, create a separate evidence-backed provider document only after an actual adapter, credential resolver, caller, and live verification exist. Do not upgrade this record's provider boundary from NOT_WIRED.",
+      "dependencies": [
+        "connections/dna-os-mcp/connection-document.json",
+        "connections/dna-os-mcp/server.ts",
+        "connections/dna-os-mcp/tool-registry.ts",
+        "connections/dna-os-mcp/adapters/dna-os-http-client.ts",
+        "transport/owner-command-http/server.ts",
+        "control/owner-authentication/authenticate.ts",
+        "control/owner-command/owner-command.ts",
+        "control/command-router/router.ts",
+        "control/command-router/capability-registry.ts",
+        "control/agent-gateway/agent-host-dispatch.ts",
+        "control/owner-command-semantics/ai-contract.ts"
+      ],
+      "owner_visible_summary": "The generic external-model → MCP → DNA OS requester path is CONNECTED and reaches a VERIFIED Owner/worker/result path. The model remains requester/reasoner only. Direct OpenAI provider API wiring is NOT_WIRED / NOT_VERIFIED; execution.run is also NOT_WIRED / NOT_VERIFIED.",
+      "boundary_statuses": {
+        "external model → MCP host": "CONNECTED",
+        "MCP submit_command → DnaOsHttpClient": "VERIFIED",
+        "Core HTTP Authorization": "VERIFIED",
+        "Owner Session Binding": "VERIFIED",
+        "submitOwnerCommand": "VERIFIED",
+        "routeOwnerCommand": "VERIFIED",
+        "Capability Registry": "VERIFIED",
+        "agent-host / LOCAL worker": "VERIFIED",
+        "isolated worktree": "VERIFIED",
+        "Result/Evidence → MCP response": "VERIFIED",
+        "AI semantic output safety gate": "CONNECTED",
+        "OpenAI provider API adapter": "NOT_WIRED",
+        "execution.run from Owner Command": "NOT_WIRED"
+      },
+      "source_document_status": "AUTHORITATIVE",
+      "projected_boundary_count": 15,
+      "declaration_ids": []
+    },
+    {
+      "connection_id": "connection.digitalocean.dna-os-provider.v1",
+      "name": "DNA OS ↔ DigitalOcean Provider Connection",
+      "source_system": "DNA OS Owner command and provider connector",
+      "destination_system": "DigitalOcean API and provider resources",
+      "connection_type": "INFRASTRUCTURE_PROVIDER",
+      "status": "BLOCKED",
+      "verification_level": "PARTIAL_LIVE_BOUNDARY_VERIFICATION",
+      "document_path": "connections/digitalocean/connection-document.json",
+      "machine_record_path": "connections/digitalocean/connection-document.json",
+      "human_document_path": "connections/digitalocean/DIGITALOCEAN_CONNECTION.md",
+      "entry_boundary": {
+        "source": "DNA OS provider definitions",
+        "destination": "DigitalOcean resource/API contract",
+        "contract": "providers/digitalocean/definition/provider.json + actions.json + billing.json"
+      },
+      "exit_boundary": {
+        "source": "DNA OS deployment/hosting intent",
+        "destination": "DigitalOcean Droplet/App Platform/other hosting resource",
+        "contract": "No production deployment connector or resource binding exists in this repository"
+      },
+      "authentication": [
+        {
+          "name": "vault://digitalocean/<team>/<credential>",
+          "purpose": "Reference shape accepted by the DigitalOcean credential provider",
+          "resolution": "A future Vault-backed CredentialProvider; no production Vault client exists"
+        },
+        {
+          "name": "DigitalOcean PAT / OAuth2 / Spaces key / inference bearer auth",
+          "purpose": "Provider-defined authentication method names",
+          "resolution": "Provider account binding and credential broker; no production binding or broker exists"
+        }
+      ],
+      "authority": [
+        "providers/digitalocean/definition files define supported resources, endpoints, methods, and scopes",
+        "Capability Registry and connector execution boundary determine whether a DigitalOcean command can reach the adapter",
+        "A future AccountBindingProvider would bind a DNA OS account to a DigitalOcean team and credential reference; no registry exists",
+        "A future Vault-backed CredentialProvider would resolve the reference; production implementation currently fails closed",
+        "DigitalOcean bearer credential plus provider scope; no authenticated credential is currently available",
+        "No deployment authority or target binding is present"
+      ],
+      "capabilities": [
+        "digitalocean.account.read",
+        "digitalocean.regions.list",
+        "digitalocean.sizes.list",
+        "digitalocean.droplets.list",
+        "digitalocean.billing.read"
+      ],
+      "live_evidence": {
+        "status": "PARTIAL",
+        "verified_boundaries": [
+          "command router and Capability Registry reach connector",
+          "connector invoker and adapter composition",
+          "binding status/scope gate behavior",
+          "normalized result/evidence behavior"
+        ],
+        "connected_not_live_verified": [
+          "provider/resource catalog"
+        ],
+        "blocked": [
+          "authenticated DigitalOcean API call: real endpoint reached but no authenticated credential exists; live call evidence is HTTP 404/unauthenticated probe HTTP 403"
+        ],
+        "not_wired": [
+          "account-binding registry",
+          "Vault credential broker",
+          "DigitalOcean deployment/hosting resource"
+        ],
+        "evidence_files": [
+          "control/command-router/tests/digitalocean-connector-routing.test.ts",
+          "connections/digitalocean/tests/adapter.test.ts",
+          "dna-os-circuit/definition/circuit.json",
+          "connections/connection-registry/data/connection-declarations.jsonl",
+          "software/live-census/data/verification-ledger.jsonl",
+          "providers/digitalocean/evidence/DIGITALOCEAN_PROVIDER_DISCOVERY.md"
+        ]
+      },
+      "last_verified_at": "2026-09-07",
+      "known_gaps": [
+        "No production DigitalOcean account-binding registry or persistence exists.",
+        "No production Vault/credential broker exists for DigitalOcean references.",
+        "The real API path has only unauthenticated/failed live evidence; no authenticated success is recorded.",
+        "No DigitalOcean deployment or hosting resource is bound to DNA OS.",
+        "The provider catalog contains resources beyond the five read-only adapter intents, but those capabilities are not wired into this connector."
+      ],
+      "next_required_connection": "If separately authorized, establish the existing account-binding and credential-broker boundaries before attempting authenticated verification. Do not infer deployment connectivity from provider definitions.",
+      "dependencies": [
+        "control/command-router/",
+        "control/connector-execution-boundary/",
+        "providers/digitalocean/definition/",
+        "credentials/provider-accounts/digitalocean/",
+        "connections/digitalocean/"
+      ],
+      "owner_visible_summary": "DigitalOcean command routing and the read-only connector are wired and evidence-backed, but the production account-binding registry and Vault credential broker are NOT_WIRED. Authenticated DigitalOcean API access is BLOCKED; deployment/hosting is NOT_WIRED.",
+      "boundary_statuses": {
+        "Provider/resource catalog": "CONNECTED",
+        "Owner command router → Capability Registry": "VERIFIED",
+        "Capability Registry → connector invoker": "VERIFIED",
+        "Connector invoker → read adapter": "VERIFIED",
+        "Account binding registry": "NOT_WIRED",
+        "Binding status and scope gates": "VERIFIED",
+        "Credential broker / Vault": "NOT_WIRED",
+        "DigitalOcean authenticated API call": "BLOCKED",
+        "Read-only normalized result / evidence": "VERIFIED",
+        "DigitalOcean deployment/hosting resource": "NOT_WIRED"
+      },
+      "source_document_status": "AUTHORITATIVE",
+      "projected_boundary_count": 10,
+      "declaration_ids": [
+        "connection-declaration://digitalocean/INFRASTRUCTURE_PROVIDER/OUTBOUND/api_host=api.digitalocean.com,api_version=v2"
+      ]
+    },
+    {
+      "connection_id": "connection.mcp.owner-command.v1",
+      "name": "DNA OS MCP → Owner Command Connection",
+      "source_system": "External Model / AI via DNA OS MCP host",
+      "destination_system": "DNA OS Owner command system",
+      "connection_type": "TOOL_INGRESS",
+      "status": "VERIFIED",
+      "verification_level": "LIVE_END_TO_END",
+      "document_path": "connections/dna-os-mcp/connection-document.json",
+      "machine_record_path": "connections/dna-os-mcp/connection-document.json",
+      "human_document_path": "connections/dna-os-mcp/MCP_OWNER_COMMAND_CONNECTION.md",
+      "entry_boundary": {
+        "source": "External Model / AI",
+        "destination": "DNA OS MCP host",
+        "contract": "MCP server registration via createDnaOsMcpServer"
+      },
+      "exit_boundary": {
+        "source": "Core HTTP response",
+        "destination": "MCP submit_command response",
+        "contract": "tool-registry submit_command handler → textResult"
+      },
+      "authentication": [
+        "Session must exist, be active, unexpired, and authenticated_via must start with human-verification",
+        "Transport shared-secret reference is documented by name only; secret value is never indexed."
+      ],
+      "authority": [
+        "Only a valid human-verified Owner session can bind Owner authority; header value alone is not proof",
+        "MCP export/invoke policy and Core Owner authentication gates remain authoritative."
+      ],
+      "capabilities": [
+        "MCP submit_command",
+        "Owner command submission",
+        "Owner command routing",
+        "Capability Registry resolution",
+        "agent-host / LOCAL worker dispatch",
+        "Result and evidence return"
+      ],
+      "live_evidence": {
+        "status": "VERIFIED",
+        "command_id": "cmd_2f4cffcb-b7cc-40f0-a5f3-f062646e52db",
+        "work_id": "work-9f13084e-84f0-4462-8b2a-d9e6b96965d9",
+        "owner_command_task_id": "task-6c5c2bf5-9b8c-420d-be10-b1a3cd77eb17",
+        "agent_host_task_id": "task-cmd_2f4cffcb-b7cc-40f0-a5f3-f062646e52db-agent-host",
+        "agent_launch_id": "agent-launch-4aff06ce-d2f8-41dd-8b05-e5cb016b4904",
+        "result_id": "result-995507d6-5414-4897-8831-8e5db34d9a35",
+        "observed_terminal_state": "COMPLETED",
+        "observed_worker": "LOCAL",
+        "evidence_files": [
+          "control/owner-command/data/envelopes.jsonl",
+          "control/agent-gateway/data/tasks.jsonl",
+          "control/agent-gateway/data/task-workspaces.jsonl",
+          "control/agent-gateway/data/evidence.jsonl",
+          "control/conversation-read-model/data/task-status.jsonl",
+          "control/conversation-read-model/data/task-evidence.jsonl",
+          "observability/joint-monitor/data/joints.jsonl"
+        ]
+      },
+      "last_verified_at": "2026-09-07",
+      "known_gaps": [
+        "execution.run from live POST /owner/submit-command is not verified/wired in this connection because executionRequestBase is not supplied by the live HTTP ingress. The router's runExecutionStep explicitly blocks when executionPolicyContext or executionRequestBase is missing; this document does not claim execution.run execution."
+      ],
+      "next_required_connection": "Owner Command → execution.run (requires executionRequestBase and executionPolicyContext; currently NOT_WIRED / NOT_VERIFIED)",
+      "dependencies": [
+        "connections/dna-os-mcp/server.ts#createDnaOsMcpServer",
+        "connections/dna-os-mcp/server.ts#startHttp",
+        "connections/dna-os-mcp/export-policy.ts#canDiscover",
+        "connections/dna-os-mcp/export-policy.ts#canInvoke",
+        "connections/dna-os-mcp/tool-registry.ts#submit_command",
+        "connections/dna-os-mcp/server.ts#registered tool callback",
+        "connections/dna-os-mcp/adapters/dna-os-http-client.ts#authorizationHeader",
+        "connections/dna-os-mcp/adapters/dna-os-http-client.ts#ownerSessionPointer",
+        "connections/dna-os-mcp/adapters/dna-os-http-client.ts#submitCommand",
+        "transport/owner-command-http/server.ts#requireSharedSecret",
+        "connections/dna-os-mcp/caller-context.ts#verifiedSessionFrom",
+        "connections/dna-os-mcp/caller-context.ts#callerContextFromHttp",
+        "control/owner-authentication/authenticate.ts#validateOwnerSession",
+        "transport/owner-command-http/server.ts#resolveAuthenticatedOwnerIdentity",
+        "transport/owner-command-http/server.ts#resolveOwnerIdentity",
+        "transport/owner-command-http/server.ts#POST /owner/submit-command",
+        "control/owner-command/owner-command.ts#submitOwnerCommand",
+        "control/command-router/router.ts#routeOwnerCommand",
+        "control/command-router/router.ts#admitAndBuildResult",
+        "control/command-router/router.ts#classifyCommand",
+        "control/command-router/capability-registry.ts#agent-host",
+        "control/command-router/router.ts#runAgentWorkOrder dispatch",
+        "control/agent-gateway/contract.ts#runAgentWorkOrder",
+        "control/agent-gateway/agent-host-dispatch.ts#runAgentWorkOrder",
+        "control/agent-host/worker-registry.ts#resolveWorker",
+        "control/agent-host/host-runtime.ts",
+        "control/agent-gateway/workspace-manager.ts",
+        "control/source-workspace/contract.ts",
+        "control/agent-gateway/agent-host-dispatch.ts#writeWorkspace",
+        "control/agent-gateway/agent-host-dispatch.ts#interpretLaunchResult",
+        "connections/dna-os-mcp/tool-registry.ts#submit_command textResult",
+        "connections/dna-os-mcp/adapters/dna-os-http-client.ts#DnaOsHttpResponse",
+        "connections/dna-os-mcp/connection-document.json"
+      ],
+      "owner_visible_summary": "MCP → Owner Command is live-verified end-to-end. Network authorization, Owner session binding, submitOwnerCommand, routing, Capability Registry, agent-host LOCAL worker, isolated worktree, and result/evidence return are VERIFIED. execution.run remains NOT_WIRED / NOT_VERIFIED.",
+      "boundary_statuses": {
+        "MCP → Owner Command": "VERIFIED",
+        "Network Authorization": "VERIFIED",
+        "Owner Session Binding": "VERIFIED",
+        "submitOwnerCommand": "VERIFIED",
+        "Router": "VERIFIED",
+        "Capability Registry": "VERIFIED",
+        "agent-host / LOCAL worker": "VERIFIED",
+        "Result/Evidence return": "VERIFIED",
+        "execution.run from Owner Command": "NOT_WIRED"
+      },
+      "source_document_status": "AUTHORITATIVE",
+      "projected_boundary_count": 13,
+      "registry_boundary_reference": "classifyCommand/listCapabilities/getCapability",
+      "worker_boundary_reference": "control/agent-gateway/agent-host-dispatch.ts#runAgentWorkOrder",
+      "declaration_ids": [
+        "connection-declaration://dna-os/TOOL_INGRESS/INBOUND/host=127.0.0.1,path=/mcp,port=8793"
+      ]
+    },
+    {
+      "connection_id": "connection.engineering-runtime.coding-gate.v1",
+      "name": "DNA OS Engineering Runtime Coding Gate",
+      "source_system": "Owner coding intent",
+      "destination_system": "DNA OS Engineering Runtime isolated worktree and LOCAL coding worker",
+      "connection_type": "ENGINEERING_CODING_GATE",
+      "status": "VERIFIED",
+      "verification_level": "DNA_OS_SOURCE_PUBLICATION_AUTHORITY",
+      "document_path": "connections/engineering-runtime/connection-document.json",
+      "machine_record_path": "connections/engineering-runtime/connection-document.json",
+      "human_document_path": "connections/engineering-runtime/ENGINEERING_RUNTIME_CONNECTION.md",
+      "entry_boundary": {
+        "source": "Owner coding intent",
+        "destination": "admitEngineeringCoding",
+        "contract": "control/engineering-runtime/gate.ts#admitEngineeringCoding"
+      },
+      "exit_boundary": {
+        "source": "GITHUB_PUBLISH",
+        "destination": "DEPLOYMENT_AUTHORITY",
+        "contract": "not wired"
+      },
+      "authentication": [],
+      "authority": [
+        "ENGINEERING authority path only. DNA OS chooses repository, worktree, and branch. The model/worker cannot expand allowed_paths or write repository_root.",
+        "READ / OPERATE / DOCUMENTATION capabilities have zero source-write authority and cannot enter this path.",
+        "Missing allowed_paths, empty required_tests, missing forbidden_paths, or ambiguous/missing repository identity refuse admission before worker dispatch.",
+        "May request scoped writes inside an isolated worktree. COMMIT=DENY PUSH=DENY PR=DENY DEPLOY=DENY. Cannot copy into the registered checkout, commit, push, or hold a GitHub credential.",
+        "DNA OS independently compares original intent, registered repository, reservation, allowed paths/symbols, actual diff, forbidden paths, required tests, and manifest hashes. Worker self-report is not trusted.",
+        "After Admission=ALLOW, DNA OS copies only admitted paths from the worktree into the registered source repository and records registry/evidence.",
+        "DNA OS only. After local VERIFIED integration, DNA OS creates a commit-tree of admitted paths parented at the registered default branch. Worker-supplied git commit commands are refused.",
+        "DNA OS only. Pushes the DNA OS-created commit to the registered GitHub destination resolved from repository_id. No force push. No worker token.",
+        "DENIED_BY_ARCHITECTURE. External AI may produce structured Engineering Intent and submit through DNA OS Tool/Authority. It may not select repository paths as authority, write source, commit, push, use GitHub write credentials, or deploy.",
+        "NOT_WIRED. No Supabase/Vercel/Railway/DigitalOcean production deploy."
+      ],
+      "capabilities": [
+        "engineering-runtime.scoped_coding",
+        "admission",
+        "local integration",
+        "DNA OS commit",
+        "DNA OS GitHub publish"
+      ],
+      "live_evidence": {
+        "test": "npx tsx control/engineering-runtime/tests/engineering-gate.test.ts",
+        "recorded_at": "2026-09-07",
+        "proof_1_allowed_write_in_worktree": {
+          "command_id": "cmd_eng_ok_565b6889-6ebb-4f0f-aa9e-417016cc918a",
+          "work_id": "wo-cmd_eng_ok_565b6889-6ebb-4f0f-aa9e-417016cc918a",
+          "reservation_id": "wsr-a8fdf460-151b-4315-81ba-ccf91d2641f3",
+          "changed_path": "control/engineering-runtime/fixtures/allowed-target.txt",
+          "worktree_path": "/Users/tam/Desktop/.dna-os-agent-worktrees/repository---t23598788-oss--DNA-OS-INFRASTRUCTURE-/wo-cmd_eng_ok_565b6889-6ebb-4f0f-aa9e-417016cc918a",
+          "repository_id": "repository://t23598788-oss/-DNA-OS-INFRASTRUCTURE-",
+          "status": "COMPLETED"
+        },
+        "proof_2_unrelated_rejected": {
+          "command_id": "cmd_eng_unrel_d18feb85-4e33-4684-bfb6-7622daaa564d",
+          "work_id": "wo-cmd_eng_unrel_d18feb85-4e33-4684-bfb6-7622daaa564d",
+          "reservation_id": "wsr-8eba8c82-0308-4818-8f63-2e9c370de07a",
+          "reason_code": "WRITE_IN_FORBIDDEN_SCOPE"
+        },
+        "proof_3_outside_worktree_rejected": {
+          "command_id": "cmd_eng_out_3e5d14e1-1690-46de-8d01-00838c1c1dcf",
+          "work_id": "wo-cmd_eng_out_3e5d14e1-1690-46de-8d01-00838c1c1dcf",
+          "reservation_id": "wsr-7cca9dcc-cb65-41fc-a31f-4710d036c834",
+          "reason_code": "WRITE_OUTSIDE_WORKTREE"
+        },
+        "proof_4_missing_scope_rejected": {
+          "command_id": "cmd_eng_missing_e01c33d4-7e6f-473a-95ca-7de2f5c98793",
+          "reason_code": "MISSING_CODING_SCOPE"
+        },
+        "proof_5_business_cannot_enter": {
+          "command_id": "cmd_e69cc28e-8c0e-4f28-a8d9-16a1160247dd",
+          "capability_id": "os-login",
+          "status": "OWNER_REVIEW",
+          "engineering_coding_intent_ignored": true
+        },
+        "proof_6_lineage": {
+          "command_id": "cmd_eng_ok_565b6889-6ebb-4f0f-aa9e-417016cc918a",
+          "work_id": "wo-cmd_eng_ok_565b6889-6ebb-4f0f-aa9e-417016cc918a",
+          "reservation_id": "wsr-a8fdf460-151b-4315-81ba-ccf91d2641f3",
+          "changed_path": "control/engineering-runtime/fixtures/allowed-target.txt"
+        },
+        "completion_test": "npx tsx control/engineering-runtime/tests/engineering-completion.test.ts",
+        "proof_a_verified_integration": {
+          "command_id": "cmd_eng_complete_a_8dc7d330-e7b4-4191-87c7-15530e77c3f2",
+          "work_id": "wo-cmd_eng_complete_a_8dc7d330-e7b4-4191-87c7-15530e77c3f2",
+          "repository_id": "repository://t23598788-oss/-DNA-OS-INFRASTRUCTURE-",
+          "reservation_id": "wsr-f97ba012-d124-4904-8edd-15b8d7f44cc9",
+          "manifest_id": "erm-2b624399-ae62-49a7-b59d-5ffd19cee135",
+          "admission_decision": "ALLOW",
+          "integration_status": "INTEGRATED",
+          "status": "VERIFIED",
+          "changed_paths": [
+            "control/engineering-runtime/fixtures/completion/HUMAN.md",
+            "control/engineering-runtime/fixtures/completion/code-target.txt",
+            "control/engineering-runtime/fixtures/completion/contract.json",
+            "control/engineering-runtime/fixtures/completion/registry-record.json"
+          ]
+        },
+        "proof_b_undeclared_denied": {
+          "command_id": "cmd_eng_complete_b_60fb2d87-b20c-44ec-b803-9162f9867161",
+          "reason_code": "UNDECLARED_FILE_CHANGE",
+          "admission_decision": "DENY"
+        },
+        "proof_c_fake_manifest_denied": {
+          "command_id": "cmd_eng_complete_c_63a8f16f-97ae-42f0-a9e3-931a3fc2589a",
+          "reason_code": "SCOPE_EXPANDED",
+          "admission_decision": "DENY"
+        },
+        "proof_d_missing_test_denied": {
+          "command_id": "cmd_eng_complete_d_c585f7c0-2643-40ac-9e05-f2f07a0e1f1e",
+          "reason_code": "TEST_EVIDENCE_MISSING"
+        },
+        "proof_e_base_revision_mismatch": {
+          "command_id": "cmd_eng_complete_e_b864db40-0f67-48c7-a265-7ff3ea4633cc",
+          "reason_code": "BASE_REVISION_MISMATCH"
+        },
+        "github_publish_live_test": "npx tsx control/engineering-runtime/tests/engineering-github-publish-live.test.ts",
+        "proof_live_remote_verified": {
+          "status": "VERIFIED",
+          "reason_code": "ADMITTED",
+          "authenticated_login": "t23598788-oss",
+          "credential_ref": "credential://github/t23598788-oss/-DNA-OS-INFRASTRUCTURE-/source-authority",
+          "credential_source": "keychain:dna-os-github-device-flow:t23598788-oss/-DNA-OS-INFRASTRUCTURE-/t23598788-oss",
+          "command_id": "cmd_eng_live_a_653c6896-a98e-4117-b05a-a88202dffc9f",
+          "work_id": "wo-cmd_eng_live_a_653c6896-a98e-4117-b05a-a88202dffc9f",
+          "reservation_id": "wsr-418dc86c-1280-4902-9fa7-00fcf8bcda05",
+          "manifest_id": "erm-42489d2a-8296-4c29-a7d0-5c3abac09523",
+          "dna_os_commit_sha": "3c992c709a99fe8892d7b7093870b877c223ab32",
+          "pre_publish_remote_sha": "30e313dbb9167376799677f9268189ff6e894809",
+          "post_publish_remote_sha": "3c992c709a99fe8892d7b7093870b877c223ab32",
+          "sha_match": true,
+          "force_push_attempted": false,
+          "github_destination": "t23598788-oss/-DNA-OS-INFRASTRUCTURE-@main",
+          "owner_activity": {
+            "schema": "OWNER_ACTIVITY_PROJECTION_V1",
+            "group_status": "VERIFIED",
+            "actor_icon_ref": "icon:github",
+            "human_readable": "Commit accepted",
+            "details_reference": "ev-activity-oae-36692989-c7fb-4cff-b24c-e3f7e5bd6799"
+          }
+        },
+        "proof_publish_a_dirty_checkout_blocked": {
+          "command_id": "cmd_eng_publish_a_c1a75980-cc82-41bd-883d-02658578a461",
+          "work_id": "wo-cmd_eng_publish_a_c1a75980-cc82-41bd-883d-02658578a461",
+          "repository_id": "repository://t23598788-oss/-DNA-OS-INFRASTRUCTURE-",
+          "reservation_id": "wsr-179beaa6-ce75-4981-afa1-8f2232b45be0",
+          "manifest_id": "erm-4ef51f96-a78e-44ff-9f25-ccff592430ae",
+          "local_status": "VERIFIED",
+          "publish_status": "BLOCKED",
+          "reason_code": "UNRELATED_CHANGE_PRESENT"
+        },
+        "proof_publish_b_direct_write_denied": {
+          "worker": "WORKER_GITHUB_WRITE_DENIED",
+          "contents": "DNA_OS_PUBLISH_AUTHORITY_REQUIRED"
+        },
+        "proof_publish_c_other_repo": {
+          "reason_code": "REMOTE_IDENTITY_MISMATCH"
+        },
+        "proof_publish_d_branch_policy": {
+          "reason_code": "BRANCH_POLICY_DENIED"
+        },
+        "proof_publish_e_unrelated": {
+          "reason_code": "UNRELATED_CHANGE_PRESENT"
+        },
+        "proof_publish_f_remote_head_moved": {
+          "reason_code": "REMOTE_HEAD_MOVED",
+          "force_push_attempted": false
+        },
+        "proof_publish_g_credential": {
+          "reason_code": "CREDENTIAL_UNAVAILABLE"
+        },
+        "proof_publish_h_business": {
+          "command_id": "cmd_56e1aac1-ad0b-4d9e-a575-570a087428e5",
+          "capability_id": "os-login"
+        }
+      },
+      "last_verified_at": "2026-09-07",
+      "known_gaps": [
+        "Pull Request creation is NOT_WIRED",
+        "production deploy (Supabase/Vercel/Railway/DigitalOcean) is NOT_WIRED",
+        "continueRegisteredArtifact remains a legacy Contents path that is DNA_OS_PUBLISH_AUTHORITY_REQUIRED for this registered repository"
+      ],
+      "next_required_connection": "Do not wire DEPLOYMENT_AUTHORITY, Pull Request automation, or Contents write. GITHUB_PUBLISH is live-verified: DNA_OS_COMMIT_SHA equals REMOTE_POST_PUBLISH_SHA.",
+      "dependencies": [
+        "control/engineering-runtime/contract.ts",
+        "control/work-resolution/contract.ts",
+        "software/repository-registry/contract.ts",
+        "control/agent-production-ingress/contract.ts",
+        "control/agent-gateway/contract.ts",
+        "control/command-router/router.ts"
+      ],
+      "owner_visible_summary": "Engineering Runtime is the coding and source-publication authority path. CODING, ADMISSION, LOCAL_INTEGRATION, DNA_OS_COMMIT, GITHUB_PUBLISH, OWNER_EVIDENCE_PIPELINE, and DISPLAY_QUEUE are live-verified. EXTERNAL_AI_SOURCE_WRITE is DENIED_BY_ARCHITECTURE. DEPLOYMENT remains NOT_WIRED.",
+      "boundary_statuses": {
+        "Owner coding intent → admission": "VERIFIED",
+        "Business Runtime exclusion": "VERIFIED",
+        "repository + isolated worktree": "VERIFIED",
+        "scoped write enforcement": "VERIFIED",
+        "command_id → work_id → reservation → changed_path": "VERIFIED",
+        "CODING_WORKER": "VERIFIED",
+        "ADMISSION_AUTHORITY": "VERIFIED",
+        "INTEGRATION_AUTHORITY": "VERIFIED",
+        "ENGINEERING_CODING": "VERIFIED",
+        "ADMISSION": "VERIFIED",
+        "LOCAL_INTEGRATION": "VERIFIED",
+        "DNA_OS_COMMIT": "VERIFIED",
+        "GITHUB_PUBLISH": "VERIFIED",
+        "OWNER_EVIDENCE_PIPELINE": "VERIFIED",
+        "DISPLAY_QUEUE": "VERIFIED",
+        "EXTERNAL_AI_SOURCE_WRITE": "DENIED_BY_ARCHITECTURE",
+        "DEPLOYMENT": "NOT_WIRED",
+        "DEPLOYMENT_AUTHORITY": "NOT_WIRED",
+        "continueRegisteredArtifact": "NOT_WIRED"
+      },
+      "source_document_status": "AUTHORITATIVE",
+      "projected_boundary_count": 13,
+      "declaration_ids": []
+    },
+    {
+      "connection_id": "connection.github.dna-os-source-authority.v1",
+      "name": "DNA OS ↔ GitHub Source Authority Connection",
+      "source_system": "DNA OS Owner command and Engineering GitHub Publish Authority",
+      "destination_system": "GitHub source-authority repository and REST API",
+      "connection_type": "SOURCE_AUTHORITY",
+      "status": "CONNECTED",
+      "verification_level": "PARTIAL_LIVE_VERIFICATION",
+      "document_path": "connections/github/connection-document.json",
+      "machine_record_path": "connections/github/connection-document.json",
+      "human_document_path": "connections/github/GITHUB_CONNECTION.md",
+      "entry_boundary": {
+        "source": "DNA OS connection declaration and GitHub adapter configuration",
+        "destination": "GitHub source-authority repository contract",
+        "contract": "ConnectionRegistration + connection declaration for SOURCE_AUTHORITY"
+      },
+      "exit_boundary": {
+        "source": "DNA OS Commit Authority",
+        "destination": "registered GitHub repository t23598788-oss/-DNA-OS-INFRASTRUCTURE-",
+        "contract": "control/engineering-runtime/github-publish-authority.ts#publishDnaOsCommit"
+      },
+      "authentication": [
+        {
+          "name": "credential://github/t23598788-oss/-DNA-OS-INFRASTRUCTURE-/source-authority",
+          "purpose": "Canonical source-authority credential reference for the declared repository",
+          "resolution": "credentials/registry metadata → macOS Keychain provider; secret value remains in Keychain"
+        },
+        {
+          "name": "GITHUB_PAT_INFRASTRUCTURE",
+          "purpose": "Explicit TEST/LEGACY credential channel accepted by the GitHub adapter and source-execution tests",
+          "resolution": "Process environment only; no other environment name is accepted"
+        },
+        {
+          "name": "credential://github/<owner>/<repo>/webhook-secret",
+          "purpose": "Per-repository inbound push webhook secret reference",
+          "resolution": "credentials/registry metadata → macOS Keychain, with explicit legacy fallback channel GITHUB_WEBHOOK_SECRET_INFRASTRUCTURE"
+        }
+      ],
+      "authority": [
+        "GitHub repository visibility, fine-grained token repository selection, branch protection, and write permissions",
+        "Capability Registry and GitHub adapter account-scope check",
+        "Persisted AdmissionResult, execution-ready target, authorized_action=WRITE_SOURCE, registered connected connection, credential, and live repository lookup",
+        "Owner-registered credential reference metadata plus macOS Keychain provider; no raw credential in registry",
+        "Trusted routing repository identity plus per-repository secret and X-Hub-Signature-256 verification",
+        "DNA OS evidence store and registration-update path, only after actual result"
+      ],
+      "capabilities": [
+        "connector.github.check_access",
+        "connector.github.read_status",
+        "DNA OS GitHub Publish Authority",
+        "push webhook verification"
+      ],
+      "live_evidence": {
+        "status": "PARTIAL",
+        "verified_boundaries": [
+          "command routing to GitHub adapter",
+          "account-scope gate",
+          "credential reference → Keychain wiring",
+          "read API against accessible repository",
+          "branch/path validation",
+          "typed normalized read results",
+          "webhook pure verifier tests",
+          "DNA OS GitHub Publish Authority live SHA match"
+        ],
+        "connected_not_live_verified": [
+          "source-execution admission-to-write orchestration",
+          "commit/evidence return",
+          "inbound webhook function boundary"
+        ],
+        "blocked": [
+          "declared -DNA-OS-INFRASTRUCTURE- adapter live-suite repository access still records HTTP 404 for the older Contents-path probe; publication itself is verified via GitHub Publish Authority"
+        ],
+        "not_verified": [
+          "live one-file commit/write execution"
+        ],
+        "not_wired": [
+          "local worktree path",
+          "Pull Request path",
+          "live HTTP webhook listener"
+        ],
+        "evidence_files": [
+          "control/engineering-runtime/tests/engineering-github-publish-live.test.ts",
+          "connections/github/adapter.test.ts",
+          "connections/github/keychain-credential-resolution.test.ts",
+          "connections/github/webhook-receiver.test.ts",
+          "control/command-router/tests/router.test.ts",
+          "control/source-execution/tests/source-execution.test.ts",
+          "connections/connection-registry/data/connection-declarations.jsonl",
+          "credentials/registry/data/api-credential-references.jsonl",
+          "software/live-census/data/verification-ledger.jsonl"
+        ]
+      },
+      "last_verified_at": "2026-09-07",
+      "known_gaps": [
+        "GitHub Contents / executeSource writes to this registered repository are closed (DNA_OS_PUBLISH_AUTHORITY_REQUIRED).",
+        "No Pull Request, review, branch protection, release, Actions, or deploy path exists in this connection.",
+        "No live HTTP webhook listener is wired; only the pure signature/payload verifier is tested."
+      ],
+      "next_required_connection": "Do not reopen Contents write, PR, or production deploy from this connection. DNA OS GitHub Publish Authority is live-verified on t23598788-oss/-DNA-OS-INFRASTRUCTURE-@main.",
+      "dependencies": [
+        "control/command-router/",
+        "control/source-execution/",
+        "control/admission/",
+        "control/agent-gateway/",
+        "control/registration-update/",
+        "connections/github/",
+        "connections/connection-registry/",
+        "credentials/registry/",
+        "credentials/macos-keychain/"
+      ],
+      "owner_visible_summary": "GitHub read routing and credential wiring are verified; declared repository t23598788-oss/-DNA-OS-INFRASTRUCTURE- Contents write is closed. Source publication is DNA OS GitHub Publish Authority only; live publish is VERIFIED (DNA OS commit SHA equals remote SHA). Pull Request and production deploy are NOT_WIRED.",
+      "boundary_statuses": {
+        "GitHub provider/repository declaration": "CONNECTED",
+        "Owner command router → GitHub Capability Registry": "VERIFIED",
+        "GitHub account-scope authority gate": "VERIFIED",
+        "Canonical credential reference → macOS Keychain": "VERIFIED",
+        "GitHub read/access/status API": "VERIFIED",
+        "Declared -DNA-OS-INFRASTRUCTURE- repository access": "BLOCKED",
+        "Admission → source-execution": "CONNECTED",
+        "Branch/path validation": "VERIFIED",
+        "GitHub Contents write → one commit on caller branch": "DENIED_BY_ARCHITECTURE",
+        "DNA OS GitHub Publish Authority": "VERIFIED",
+        "Commit/result/evidence return": "CONNECTED",
+        "Local worktree → GitHub connection": "NOT_WIRED",
+        "Pull Request path": "NOT_WIRED",
+        "Inbound push webhook verifier": "CONNECTED"
+      },
+      "source_document_status": "AUTHORITATIVE",
+      "projected_boundary_count": 14,
+      "declaration_ids": [
+        "connection-declaration://github/SOURCE_AUTHORITY/OUTBOUND/branch=main,owner=t23598788-oss,repository=-DNA-OS-INFRASTRUCTURE-"
+      ]
+    },
+    {
+      "connection_id": "connection.n8n.dna-os-workflow-control.v1",
+      "name": "DNA OS ↔ n8n Workflow Control Connection",
+      "source_system": "DNA OS central event router",
+      "destination_system": "n8n workflow-control instance and router workflow",
+      "connection_type": "WORKFLOW_CONTROL",
+      "status": "BLOCKED",
+      "verification_level": "HISTORICAL_LIVE_PROOF_WITH_CURRENT_CONFIGURATION_DRIFT",
+      "document_path": "connections/n8n/connection-document.json",
+      "machine_record_path": "connections/n8n/connection-document.json",
+      "human_document_path": "connections/n8n/N8N_CONNECTION.md",
+      "entry_boundary": {
+        "source": "DNA OS connection declaration",
+        "destination": "n8n workflow-control target",
+        "contract": "WORKFLOW_CONTROL connection declaration"
+      },
+      "exit_boundary": {
+        "source": "n8n service",
+        "destination": "DNA OS inbound control/event listener",
+        "contract": "No inbound n8n callback/listener is implemented"
+      },
+      "authentication": [
+        {
+          "name": "credential://macos-keychain/dna-os/n8n-api-key",
+          "purpose": "Declared n8n API credential reference with workflow.read/workflow.write scope",
+          "resolution": "macOS Keychain reference metadata; current instance association is not proven"
+        },
+        {
+          "name": "n8n webhook authentication",
+          "purpose": "Authentication behavior of the configured outbound webhook",
+          "resolution": "The sender does not resolve a credential; current outbound workflow is documented as unauthenticated unless the workflow adds its own check"
+        }
+      ],
+      "authority": [
+        "Classify structured events, enforce workflow loop guard, return route_group and route metadata",
+        "Resolve capability/agent, read permission requirements, create work, enforce policy/admission/write gates, dispatch, and persist evidence",
+        "Reference-only Keychain metadata; the outbound webhook sender does not use the declared API credential",
+        "Fixed N8N_BASE_URL is the source of outbound target truth; drift is reported, not silently repaired"
+      ],
+      "capabilities": [
+        "central event classification",
+        "loop guard",
+        "route_group decision",
+        "DNA OS owner resolution handoff",
+        "routing evidence"
+      ],
+      "live_evidence": {
+        "status": "PARTIAL_WITH_DRIFT",
+        "verified_boundaries": [
+          "historical remote webhook POST and n8n execution",
+          "workflow classification and loop guard",
+          "DNA OS-side owner resolution",
+          "routing evidence shape"
+        ],
+        "connected_not_live_verified": [
+          "observed local runtime",
+          "credential reference registration",
+          "DNA OS gateway dispatch/result persistence"
+        ],
+        "blocked": [
+          "current declared remote target and outbound sender due HTTP 000 unreachable/configuration drift"
+        ],
+        "not_verified": [
+          "credential against observed local instance"
+        ],
+        "not_wired": [
+          "DNA OS → local :5678",
+          "n8n → DNA OS inbound callback"
+        ],
+        "evidence_files": [
+          "connections/n8n/evidence/outbound-proof-1787777479804.json",
+          "connections/n8n/evidence/connection-proof-2026-08-27.json",
+          "connections/n8n/evidence/ten-group-routing-proof-1787778508112.json",
+          "connections/n8n/evidence/ten-group-routing-proof-1787780204259.json",
+          "connections/n8n/evidence/configuration-drift-reconciliation-2026-09-01.json",
+          "connections/connection-registry/data/connection-declarations.jsonl"
+        ]
+      },
+      "last_verified_at": "2026-09-07",
+      "known_gaps": [
+        "Configuration drift: declared Hostinger target is unreachable while local :5678 is observed without DNA OS ownership or wiring.",
+        "No evidence proves the registered n8n API credential authenticates the observed local instance.",
+        "Outbound webhook path is historically live-verified but currently blocked by target reachability drift.",
+        "No inbound n8n-to-DNA OS callback/listener is wired.",
+        "The n8n workflow can be live in historical evidence while current runtime identity remains unresolved."
+      ],
+      "next_required_connection": "If separately authorized, reconcile the declared endpoint with an Owner-controlled/supervised n8n instance and verify the existing credential against that exact instance. Do not repoint the sender or create a workflow in this documentation task.",
+      "dependencies": [
+        "connections/n8n/",
+        "connections/connection-registry/",
+        "control/command-router/",
+        "control/agent-gateway/",
+        "software/registry-database/",
+        "control/owner-backbone/"
+      ],
+      "owner_visible_summary": "n8n has historical live workflow proof, but the current declared target https://n8n.srv1740014.hstgr.cloud is in CONFIGURATION_DRIFT and BLOCKED. The observed local runtime is not wired to DNA OS; inbound callbacks are NOT_WIRED.",
+      "boundary_statuses": {
+        "n8n workflow-control declaration": "BLOCKED",
+        "DNA OS outbound webhook sender → declared remote n8n": "BLOCKED",
+        "Historical remote workflow POST/execution": "VERIFIED",
+        "Observed local n8n runtime :5678": "CONNECTED",
+        "DNA OS → local :5678 wiring": "NOT_WIRED",
+        "n8n API credential reference": "CONNECTED",
+        "n8n API credential → observed instance": "NOT_VERIFIED",
+        "Central event contract": "VERIFIED",
+        "n8n classification and loop guard": "VERIFIED",
+        "n8n decision → DNA OS resolution": "VERIFIED",
+        "DNA OS resolution → agent gateway dispatch": "CONNECTED",
+        "Result/evidence persistence": "CONNECTED",
+        "n8n → DNA OS inbound callback": "NOT_WIRED"
+      },
+      "source_document_status": "AUTHORITATIVE",
+      "projected_boundary_count": 12,
+      "declaration_ids": [
+        "connection-declaration://n8n/WORKFLOW_CONTROL/OUTBOUND/host=n8n.srv1740014.hstgr.cloud"
+      ]
+    },
+    {
+      "connection_id": "connection.railway.dna-os-provider.v1",
+      "name": "DNA OS ↔ Railway Provider and Runtime Connection",
+      "source_system": "DNA OS provider/project registry and connector boundary",
+      "destination_system": "Railway project, GraphQL API, hosted services, and recorded runtime resources",
+      "connection_type": "DEPLOYMENT_PLATFORM",
+      "status": "CONNECTED",
+      "verification_level": "PARTIAL_LIVE_BOUNDARY_VERIFICATION",
+      "document_path": "connections/railway/connection-document.json",
+      "machine_record_path": "connections/railway/connection-document.json",
+      "human_document_path": "connections/railway/RAILWAY_CONNECTION.md",
+      "entry_boundary": {
+        "source": "DNA OS provider/project registry",
+        "destination": "Railway project/environment identity",
+        "contract": "register-provider-projects.ts#CANDIDATES[railway]"
+      },
+      "exit_boundary": {
+        "source": "Railway provider connector",
+        "destination": "Railway deployment/write/mutation APIs",
+        "contract": "No implemented contract"
+      },
+      "authentication": [
+        {
+          "name": "credential://railway/dna-os-infrastructure/production/project-token",
+          "purpose": "Project-scoped Railway API credential reference",
+          "resolution": "credentials/registry metadata → macOS Keychain provider"
+        },
+        {
+          "name": "resolver_service=dna-os-railway-dna-os-infrastructure-production",
+          "purpose": "Keychain service reference",
+          "resolution": "MacOsKeychainProvider; secret value is never returned or logged"
+        }
+      ],
+      "authority": [
+        "Read-only Railway environment-status authority only",
+        "No deployment/write/mutation authority is wired"
+      ],
+      "capabilities": [
+        "railway.environment_status",
+        "Railway runtime/deployment evidence projection",
+        "registered Railway CLI read records"
+      ],
+      "live_evidence": {
+        "verified_boundaries": [
+          "rw01",
+          "rw02",
+          "rw03",
+          "rw04",
+          "rw05",
+          "rw06",
+          "rw07"
+        ],
+        "historical_live_evidence": [
+          "2026-08-23 Railway connector end-to-end",
+          "2026-08-24 Railway deployment/runtime report",
+          "2026-08-31 provider project/resource registration",
+          "2026-09-05 Railway CLI read capability records"
+        ],
+        "not_verified_boundaries": [
+          "rw09"
+        ],
+        "not_wired_boundaries": [
+          "rw08",
+          "rw10",
+          "rw11"
+        ]
+      },
+      "last_verified_at": "2026-09-05",
+      "known_gaps": [
+        "The Railway invoker is registered in control/connector-execution-boundary but no railway capability entry exists in control/command-router/capability-registry.ts; direct invoker verification must not be presented as Owner-command routing verification.",
+        "The connection declaration target_resolution is UNRESOLVED and state OBSERVED.",
+        "Railway CLI capability records have live evidence in the canonical registry, but their caller implementation is not located in this repository.",
+        "Railway Postgres exists and its schema was reported applied/verified, but application wiring is explicitly NOT_WIRED.",
+        "No Railway deployment/write/mutation connector is implemented or verified."
+      ],
+      "next_required_connection": "Wire and live-verify an explicit Owner command capability for Railway only if requested; separately verify any CLI callers and Postgres application integration. Do not infer deployment/mutation authority from the read-only connection.",
+      "dependencies": [
+        "software/registry-database/data/canonical/capabilities.jsonl",
+        "software/provider-project-registry/data/provider-projects.jsonl",
+        "credentials/registry/data/api-credential-references.jsonl",
+        "credentials/macos-keychain/provider.ts",
+        "control/connector-execution-boundary/registry.ts"
+      ],
+      "owner_visible_summary": "Railway project identity, the read-only environment-status invoker, credential resolution, Railway-hosted runtime evidence, and result/evidence return are VERIFIED. Owner command-router registration, Railway Postgres application wiring, CLI caller wiring, and deployment/write/mutation are NOT_WIRED or NOT_VERIFIED.",
+      "boundary_statuses": {
+        "Railway project/environment identity": "VERIFIED",
+        "Connector execution registry → Railway invoker": "VERIFIED",
+        "CommandEnvelope → railway.environment_status": "VERIFIED",
+        "Owner command-router capability entry → Railway": "NOT_WIRED",
+        "Credential reference → ACTIVE registry record": "VERIFIED",
+        "Credential registry → macOS Keychain": "VERIFIED",
+        "Keychain credential → Railway GraphQL": "VERIFIED",
+        "Environment query → provider identity/result": "VERIFIED",
+        "Railway result → ConnectorBoundaryOutcome/evidence": "VERIFIED",
+        "Railway-hosted DNA OS deployments": "VERIFIED",
+        "Railway public domain/auth gates": "VERIFIED",
+        "Postgres service → DNA OS software_registry application wiring": "NOT_WIRED",
+        "Railway deployment/write/mutation connector": "NOT_WIRED",
+        "Railway CLI capability callers in this repository": "NOT_VERIFIED"
+      },
+      "source_document_status": "AUTHORITATIVE",
+      "projected_boundary_count": 11,
+      "declaration_ids": [
+        "connection-declaration://railway/DEPLOYMENT_PLATFORM/OUTBOUND/environment_id=4d28eafa-9735-4405-a585-55ea354bafab,project=dna-os-infrastructure"
+      ],
+      "provider_identity": {
+        "provider_id": "railway",
+        "project": "dna-os-infrastructure",
+        "environment_id": "4d28eafa-9735-4405-a585-55ea354bafab"
+      }
+    },
+    {
+      "connection_id": "connection.supabase.dna-os-project.v1",
+      "name": "DNA OS ↔ Supabase Project Connection",
+      "source_system": "DNA OS callers and local control-plane processes",
+      "destination_system": "Supabase project xeytcavxejhyzxwevgto",
+      "connection_type": "INFRASTRUCTURE_PROVIDER",
+      "status": "CONNECTED",
+      "verification_level": "PARTIAL_BOUNDARY_VERIFICATION",
+      "document_path": "connections/supabase/connection-document.json",
+      "machine_record_path": "connections/supabase/connection-document.json",
+      "human_document_path": "connections/supabase/SUPABASE_CONNECTION.md",
+      "entry_boundary": {
+        "source": "DNA OS provider/connection declarations",
+        "destination": "Supabase project xeytcavxejhyzxwevgto",
+        "contract": "SUPABASE_PRODUCTION_PROJECT_REF and provider-project/connection declarations"
+      },
+      "exit_boundary": {
+        "source": "DNA OS joint monitor",
+        "destination": "Supabase sensor RPC / PostgREST",
+        "contract": "observability/joint-monitor/supabase-sink.ts#sinkSensorEvents"
+      },
+      "authentication": [
+        {
+          "name": "credential://supabase/xeytcavxejhyzxwevgto/schema-read",
+          "purpose": "Owner-approved metadata-only Supabase Management API access",
+          "resolution": "macOS Keychain service Supabase CLI, account supabase"
+        },
+        {
+          "name": "credential://supabase/xeytcavxejhyzxwevgto/PROVIDER_ALERT_EMAIL_READ_SECRET",
+          "purpose": "Caller secret for provider-alert-email-read Edge Function",
+          "resolution": "macOS Keychain service dna-os-supabase-edge, account PROVIDER_ALERT_EMAIL_READ_SECRET"
+        },
+        {
+          "name": "NEXT_PUBLIC_SUPABASE_URL",
+          "purpose": "Supabase project URL for application/Auth callers",
+          "resolution": "application environment"
+        },
+        {
+          "name": "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+          "purpose": "anon/Auth client credential reference",
+          "resolution": "application environment"
+        },
+        {
+          "name": "SUPABASE_SERVICE_ROLE_KEY",
+          "purpose": "server-only membership/business-data caller reference",
+          "resolution": "server/application environment; never browser/client authority"
+        },
+        {
+          "name": "SUPABASE_URL",
+          "purpose": "Edge Function Supabase client URL reference",
+          "resolution": "Supabase Edge Function environment"
+        },
+        {
+          "name": "JOINT_MONITOR_SUPABASE_URL / JOINT_MONITOR_SUPABASE_ANON_KEY / JOINT_MONITOR_SUPABASE_JWT",
+          "purpose": "optional DNA OS sensor sink configuration",
+          "resolution": "DNA OS process environment; absent configuration disables sink"
+        }
+      ],
+      "authority": [
+        "Pinned SUPABASE_PRODUCTION_PROJECT_REF and provider-project declaration",
+        "Supabase/Postgres plus RLS/roles; DNA OS provider checks expected database/role/schema before READY",
+        "Supabase Auth establishes sessions; application identity/membership code determines application authority",
+        "Function-specific signature/shared-secret gates and function code",
+        "Owner authorization, allowlist, Process Gate, and Keychain reference boundaries",
+        "Local JSONL evidence is primary; Supabase sensor sink is optional and never controls local state"
+      ],
+      "capabilities": [
+        "SUPABASE_PRODUCTION_PROJECT_REF and provider-project/connection declarations",
+        "PostgresRegistryConnectionProvider#connect",
+        "connections/supabase-schema-read/client.ts#readMetadata / fetchLiveTypescriptTypes",
+        "Supabase JS client calls and Edge Function supabase.from(...) calls",
+        "connections/email-alert-source/authenticated-invoke.ts#invokeProviderAlertEmailRead → fetchAlertEmails",
+        "../dna-os-deadboard/supabase/functions/line-webhook-v2/index.ts",
+        "../dna-os-deadboard/identity/auth-flow/server.ts#createAuthFlowServerClient and session helpers",
+        "credentials/supabase-edge-secret/installer.ts#installEdgeFunctionSecret / verifySupabaseSecretPresent",
+        "observability/joint-monitor/supabase-sink.ts#sinkSensorEvents"
+      ],
+      "live_evidence": {
+        "status": "PARTIAL",
+        "verified_boundaries": [
+          "provider-alert-email-read authenticated call"
+        ],
+        "connected_not_live_verified": [
+          "project identity",
+          "schema-read reference/contract",
+          "line-webhook-v2 deployment/reference"
+        ],
+        "not_verified": [
+          "PostgREST application path",
+          "Supabase Auth",
+          "Edge secret provisioning",
+          "DNA OS sensor Supabase sink"
+        ],
+        "not_wired": [
+          "Supabase Postgres software_registry target credential path"
+        ],
+        "evidence_files": [
+          "connections/connection-registry/data/connection-declarations.jsonl",
+          "credentials/registry/data/api-credential-references.jsonl",
+          "control/owner-authentication/data/verification-challenges.jsonl",
+          "observability/joint-monitor/data/joints.jsonl",
+          "software/live-census/data/verification-ledger.jsonl",
+          "connections/tiktok-authorization/PUBLIC_OAUTH_SUPPORT_REPORT.md"
+        ]
+      },
+      "last_verified_at": "2026-09-07",
+      "known_gaps": [
+        "No authoritative live PostgREST success record is available for this documentation pass.",
+        "No live Supabase Auth session proof is available in this repository evidence set.",
+        "No persisted production database credential reference exists for the software_registry Postgres provider.",
+        "Secret provisioning has source and active-reference evidence but no authoritative successful install/verify result record.",
+        "The optional DNA OS sensor Supabase sink has no claimed live success evidence."
+      ],
+      "next_required_connection": "Do not create another connector. The next verification action, if separately authorized, is to produce live evidence for the existing NOT_VERIFIED boundaries; the software_registry database path first requires an Owner-only production credential registration.",
+      "dependencies": [
+        "execution/run/process-registry.ts",
+        "credentials/macos-keychain/",
+        "credentials/registry/",
+        "connections/supabase-schema-read/",
+        "credentials/supabase-edge-secret/",
+        "software/registry-database/",
+        "observability/joint-monitor/",
+        "../dna-os-deadboard/identity/auth-flow/",
+        "../dna-os-deadboard/supabase/functions/",
+        "../dna-os-deadboard/supabase/migrations/"
+      ],
+      "owner_visible_summary": "Supabase is CONNECTED as the resolved DNA OS provider project. The provider-alert Edge Function boundary is VERIFIED; PostgREST/Auth/secret provisioning/sensor sink remain NOT_VERIFIED, and the software_registry production database target is NOT_WIRED.",
+      "boundary_statuses": {
+        "Supabase project identity": "CONNECTED",
+        "PostgreSQL software_registry target": "NOT_WIRED",
+        "Supabase Management API schema-read": "CONNECTED",
+        "PostgREST application data path": "NOT_VERIFIED",
+        "Edge Function provider-alert-email-read": "VERIFIED",
+        "Edge Function line-webhook-v2": "CONNECTED",
+        "Supabase Auth session path": "NOT_VERIFIED",
+        "Edge secret provisioning": "NOT_VERIFIED",
+        "DNA OS sensor PostgREST RPC sink": "NOT_VERIFIED"
+      },
+      "source_document_status": "AUTHORITATIVE",
+      "projected_boundary_count": 9,
+      "declaration_ids": [
+        "connection-declaration://supabase/SECRET_PROVISIONING/OUTBOUND/project_ref=xeytcavxejhyzxwevgto",
+        "connection-declaration://supabase/TOOL_INGRESS/BIDIRECTIONAL/project_ref=xeytcavxejhyzxwevgto,surface=edge-function",
+        "connection-declaration://supabase/INFRASTRUCTURE_PROVIDER/OUTBOUND/project_ref=xeytcavxejhyzxwevgto,surface=postgrest"
+      ]
+    },
+    {
+      "connection_id": "connection-declaration://tiktok/SOCIAL_ACCOUNT/BIDIRECTIONAL/account=owner-primary,login_kit=v2",
+      "name": "tiktok connection declaration",
+      "source_system": "dna-os-infrastructure",
+      "destination_system": "tiktok ({\"login_kit\":\"v2\",\"account\":\"owner-primary\"})",
+      "connection_type": "SOCIAL_ACCOUNT",
+      "status": "NOT_VERIFIED",
+      "verification_level": "DECLARATION_ONLY",
+      "document_path": null,
+      "machine_record_path": null,
+      "human_document_path": null,
+      "entry_boundary": {
+        "source": "dna-os-infrastructure",
+        "destination": "tiktok",
+        "contract": "connections/tiktok-authorization/lifecycle.ts"
+      },
+      "exit_boundary": {
+        "source": "tiktok",
+        "destination": "dna-os-infrastructure",
+        "contract": null
+      },
+      "authentication": [
+        "No credential reference declared"
+      ],
+      "authority": "No authoritative per-connection semantic document exists yet; do not infer runtime authority from this declaration.",
+      "capabilities": [],
+      "live_evidence": [],
+      "last_verified_at": null,
+      "known_gaps": [
+        "DOCUMENT_MISSING"
+      ],
+      "next_required_connection": "Create and live-verify an authoritative connection document for this declared connection.",
+      "dependencies": [
+        "connections/tiktok-authorization/lifecycle.ts",
+        "connections/tiktok-authorization/tiktok-oauth.ts (TIKTOK_CLIENT_KEY, TIKTOK_CLIENT_SECRET, TIKTOK_REDIRECT_URI)"
+      ],
+      "owner_visible_summary": "tiktok is declared in the existing Connection Registry, but has no authoritative connection document and is NOT_VERIFIED.",
+      "boundary_statuses": {},
+      "source_document_status": "DOCUMENT_MISSING"
+    }
+  ],
+  "missing_authoritative_documents": [
+    {
+      "connection_id": "connection-declaration://tiktok/SOCIAL_ACCOUNT/BIDIRECTIONAL/account=owner-primary,login_kit=v2",
+      "name": "tiktok connection declaration",
+      "status": "NOT_VERIFIED"
+    }
+  ],
+  "documentation_surface": {
+    "human_index": "connections/connection-index/INDEX.md",
+    "machine_index": "connections/connection-index/index.json",
+    "builder": "connections/connection-index/build.ts",
+    "open_rule": "Open an entry's human_document_path for the detailed human-readable connection document; open machine_record_path for automation."
+  }
+}

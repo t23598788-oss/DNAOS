@@ -118,7 +118,11 @@ export type SystemEventType =
   | "WORK_COMPLETED"
   | "WORK_BLOCKED"
   /** §3 — the SAME work_id waking after its dependency arrived. Never a new work_id. */
-  | "WORK_RESUMED";
+  | "WORK_RESUMED"
+  | "AGENT_MESSAGE"
+  | "SOURCE_PUBLISH_REQUESTED"
+  | "GITHUB_REMOTE_OBSERVED"
+  | "GITHUB_COMMIT_ACCEPTED";
 
 /**
  * THE one output contract. Ids, states and evidence — never prose as truth.
@@ -139,9 +143,31 @@ export interface SystemEvent {
   readonly evidence_refs: readonly string[];
   readonly observed_at: string;
   readonly next_action: string;
+  /** First-class lineage. Never inferred at Owner read time. */
+  readonly correlation_id: string;
+  readonly work_order_id: string | null;
+  readonly actor_icon_ref: string | null;
+  readonly verification_authority: string | null;
+  readonly parent_event_id: string | null;
+  readonly remote_sha: string | null;
+  readonly sha_match: boolean | null;
+  readonly processing_group_id: string | null;
+  readonly step_id: string | null;
 }
 
 /** §13's read models. All derived from existing persistent stores. */
+export type SystemEventDraft = Omit<SystemEvent, "event_id" | "observed_at" | "correlation_id" | "work_order_id" | "actor_icon_ref" | "verification_authority" | "parent_event_id" | "remote_sha" | "sha_match" | "processing_group_id" | "step_id"> & {
+  readonly correlation_id?: string | null;
+  readonly work_order_id?: string | null;
+  readonly actor_icon_ref?: string | null;
+  readonly verification_authority?: string | null;
+  readonly parent_event_id?: string | null;
+  readonly remote_sha?: string | null;
+  readonly sha_match?: boolean | null;
+  readonly processing_group_id?: string | null;
+  readonly step_id?: string | null;
+};
+
 export interface WorkStateView {
   readonly work_id: string;
   readonly known: boolean;

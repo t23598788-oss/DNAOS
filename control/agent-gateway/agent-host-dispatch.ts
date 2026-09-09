@@ -320,8 +320,8 @@ function interpretLaunchResult(dispatch: AgentHostDispatchResult, workOrderId: s
  * ส่งเป็น string = DIRECT (รูปเดิม ผู้เรียกเดิมทุกตัวจึงไม่ต้องแก้)
  */
 export type AgentExecutionOrigin =
-  | { kind: "ADMITTED_TASK"; task_id: string; command_id: string }
-  | { kind: "DIRECT"; correlation_id: string };
+  | { kind: "ADMITTED_TASK"; task_id: string; command_id: string; work_id?: string }
+  | { kind: "DIRECT"; correlation_id: string; work_id?: string };
 
 /**
  * ดึง "สิ่งที่ Agent พูด" ออกจากหนึ่งบรรทัดของ stream ที่มันปล่อยอยู่แล้ว
@@ -446,7 +446,7 @@ export async function runAgentWorkOrder(workOrder: WorkOrder, origin: string | A
   if (executionOrigin.kind === "ADMITTED_TASK" && !executionOrigin.task_id) {
     // ปิดตาย ไม่สร้าง task id แทนให้ — งานที่บอกว่าผ่าน admission แล้วต้องมี identity ของมันจริง
     return {
-      protocol: MACHINE_CONTRACT_VERSION, work_order_id: `wo-${command_id}`, workspace_id: "(none)",
+      protocol: MACHINE_CONTRACT_VERSION, work_order_id: executionOrigin.work_id ?? workOrder.work_order_id ?? "", workspace_id: "(none)",
       launch_id: null, result_id: newEvidenceId(), verification_id: null,
       task_id: "(none)", worker_id: workOrder.agent_run?.worker_kind ?? "(none)",
       status: "FAIL_CLOSED", summary: "execution declared ADMITTED_TASK origin without a task_id",
@@ -462,7 +462,9 @@ export async function runAgentWorkOrder(workOrder: WorkOrder, origin: string | A
   }
 
   const run = workOrder.agent_run;
-  const workOrderId = `wo-${command_id}`;
+  const workOrderId = executionOrigin.work_id
+    ?? workOrder.work_order_id
+    ?? `work-${randomUUID()}`;
   /**
    * งานที่ admit แล้วใช้ task identity เดิมของมัน ไม่สร้างใหม่
    * งาน DIRECT ไม่มี admitted task จึงได้ id ที่ผูกกับ correlation ของตัวเอง —
@@ -496,6 +498,13 @@ export async function runAgentWorkOrder(workOrder: WorkOrder, origin: string | A
   const { loadReservation } = await import("../source-workspace/contract");
   const sourceReservation = workspace?.source_reservation_id ? loadReservation(workspace.source_reservation_id) : null;
   const writeWorkspace = sourceReservation?.worktree_path ?? workspace?.allowed_write_workspace ?? run.workspace_path;
+  const codingWritePaths = run.coding_write_paths && run.coding_write_paths.length > 0 ? run.coding_write_paths : null;
+  if (codingWritePaths) {
+    const escaped = codingWritePaths.filter((p) => p !== writeWorkspace && !p.startsWith(`${writeWorkspace}/`));
+    if (escaped.length > 0) {
+      throw new Error(`ENGINEERING_WRITE_SCOPE_ESCAPE: ${escaped.join(", ")}`);
+    }
+  }
 
   if (workspace) {
     transitionWorkspace(workspaceId, "PREPARE_CONTEXT", "context resolved from WorkspaceManager");
@@ -533,7 +542,7 @@ export async function runAgentWorkOrder(workOrder: WorkOrder, origin: string | A
     acceptance_criteria: [],
     task_type: workOrder.operation === "CREATE" ? "CREATE_FILE" : "MODIFY_FILE",
     authorization_reference: policyEvidenceId,
-    allowed_write_paths: [writeWorkspace],
+    allowed_write_paths: codingWritePaths ?? [writeWorkspace],
     forbidden_files: workOrder.forbidden_files,
     verification_requirements: workOrder.required_tests,
     required_checks: [],
@@ -554,15 +563,22 @@ export async function runAgentWorkOrder(workOrder: WorkOrder, origin: string | A
    * ถ้าไม่ตรง แปลว่า Agent กำลังจะทำงานใต้ขอบเขตที่มันไม่ได้ถูกบอก — หยุดดีกว่ารัน
    */
   const kernelWriteScope = writeWorkspace;
-  if (agentInput.allowed_write_paths[0] !== kernelWriteScope) {
+  if (!codingWritePaths && agentInput.allowed_write_paths[0] !== kernelWriteScope) {
     throw new Error(`AGENT_INPUT_SCOPE_MISMATCH: declared=${agentInput.allowed_write_paths[0]} kernel=${kernelWriteScope}`);
   }
 
   // หลักฐานของ "สิ่งที่ถูกอนุญาตจริง" — เก็บก่อนปล่อยโปรเซส ไม่ใช่หลังจากรู้ผล
   const inputEvidenceId = newEvidenceId();
-  saveEvidence({ evidence_id: inputEvidenceId, task_id: taskId, kind: "execution_output",
+  saveEvidence({
+    evidence_id: inputEvidenceId,
+    task_id: taskId,
+    correlation_id: command_id,
+    work_order_id: workOrderId,
+    kind: "execution_output",
     source: "control/agent-gateway/agent-host-dispatch.ts#DNA_OS_AGENT_INPUT_V1",
-    recorded_at: new Date().toISOString(), payload: { agent_input: agentInput } });
+    recorded_at: new Date().toISOString(),
+    payload: { agent_input: agentInput },
+  });
 
   /**
    * AGENT_MESSAGE (Owner, USE_EXISTING_CONTINUATION_MODEL ข้อ 1)
@@ -578,11 +594,26 @@ export async function runAgentWorkOrder(workOrder: WorkOrder, origin: string | A
     const text = agentSpokenText(line);
     if (text === null) return;
     spoken.push(text);
+    const evidenceId = newEvidenceId();
     saveEvidence({
-      evidence_id: newEvidenceId(), task_id: taskId, kind: "execution_output",
+      evidence_id: evidenceId,
+      task_id: taskId,
+      correlation_id: command_id,
+      work_order_id: workOrderId,
+      kind: "execution_output",
       source: "control/agent-gateway/agent-host-dispatch.ts#agent-message",
       recorded_at: new Date().toISOString(),
       payload: { agent_message: text, sequence: spoken.length },
+    });
+    void import("../event-pipeline/contract").then((mod) => {
+      void mod.recordAgentMessageActivity({
+        correlation_id: command_id,
+        work_order_id: workOrderId,
+        actor_identity: run.worker_kind,
+        actor_icon_ref: `icon:${String(run.worker_kind).toLowerCase()}`,
+        evidence_ref: evidenceId,
+        sequence: spoken.length,
+      });
     });
   };
 

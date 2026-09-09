@@ -40,6 +40,15 @@ const ALLOWED: Readonly<Record<string, readonly string[]>> = {
   // อนุมัติโดยเจ้าของ 2026-09-05 (chal-55cda0ef) — ปิดงบรายเดือน
   invoices: ["id", "invoice_no", "invoice_status", "customer_company_id", "invoice_date", "subtotal", "vat_amount", "total_amount", "paid_amount", "created_at"],
   standalone_documents: ["id", "document_no", "document_type", "document_date", "customer_company_id", "subtotal", "vat_amount", "total_amount", "status", "created_at"],
+  // อนุมัติโดยเจ้าของ 2026-09-05 (chal-c9b39c12) — งบจากเอกสารต้นฉบับ
+  // รายการในเอกสาร: คำอธิบายสินค้า/บริการ จำนวน หน่วย ราคา ไม่มีชื่อหรือที่อยู่ลูกค้า
+  invoice_items: ["id", "invoice_id", "description", "qty", "unit", "unit_price", "line_total", "sort_order", "created_at"],
+  standalone_document_items: ["id", "document_id", "description", "qty", "unit", "unit_price", "sort_order", "created_at"],
+  // อนุมัติโดยเจ้าของ 2026-09-05 (chal-38831ba5) — ตรวจสายเงินออก
+  // ไม่อ่าน partner_name / partner_line_user_id / description
+  partner_payable_requests: ["id", "partner_company_id", "amount", "business_event_id", "status",
+    "owner_notified_at", "owner_acknowledged_at", "paid_line_event_id", "bank_email_verified",
+    "completed_at", "created_at"],
   bank_notifications: ["id", "gmail_message_id", "amount", "reference_number", "transaction_datetime", "matched_receipt_document_id", "created_at"],
 };
 

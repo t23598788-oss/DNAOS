@@ -89,5 +89,5 @@ export async function runCorrectiveLoop(result: DnaOsAgentResult, clientId: stri
   } catch {
     return { state: "OWNER_REVIEW_REQUIRED", decision_id: decision.decision_id, decision_type: decision.decision_type, corrective_task_id: null, next_action: decision.next_action, decision_reason: decision.decision_reason };
   }
-  return { state: "CORRECTED", decision_id: decision.decision_id, decision_type: decision.decision_type, corrective_task_id: correctiveTask.task_id };
+  return { state: "CORRECTED", decision_id: decision.decision_id, decision_type: decision.decision_type, corrective_task_id: correctiveTask.task_id, next_action: decision.next_action, decision_reason: decision.decision_reason };
 }

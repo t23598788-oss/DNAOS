@@ -1,4 +1,9 @@
-# CURRENT CAPABILITY MAP — READ-ONLY AUDIT
+# CURRENT CAPABILITY MAP — STALE READ-ONLY AUDIT
+
+> This inventory is historical evidence, not current runtime truth. It predates
+> the live loopback Owner Command transport and must not be used to claim that
+> Owner input is unwired. Current runtime truth is `/runtime/inventory` plus
+> `/state/current`, both carrying source revision evidence.
 
 Scope: a factual, verified inventory of every capability reachable (or
 claimed) from `control/owner-command/` → `control/command-router/` in

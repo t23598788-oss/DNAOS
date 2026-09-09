@@ -96,6 +96,10 @@ INFRA / SECURITY / EXTERNAL / AUTOMATION** แต่ละกลุ่มมี 
 ทุกครั้งที่อ่าน ไม่มีที่ใดเก็บคำว่า "เสร็จแล้ว" ไว้ให้แก้ด้วยมือ
 อ่านสถานะปัจจุบันได้ที่ `GET /owner/lifecycle`
 
+ตารางนี้มีเอกสาร 15 ฉบับ: 14 รายการใน operational index และ
+`STRUCTURE_LOCK_MAP.md` เป็น governance companion ที่ถูก index ไว้แต่ไม่ใช่
+ขั้น lifecycle อีกชุดหนึ่ง ไม่ควรเรียก companion นี้ว่า "ขั้นที่ 15"
+
 | # | เอกสาร | ขึ้นกับขั้น |
 |---|--------|-------------|
 | 01 | [`README.md`](./README.md) — ดัชนีนี้เอง | — |
@@ -112,9 +116,10 @@ INFRA / SECURITY / EXTERNAL / AUTOMATION** แต่ละกลุ่มมี 
 | 12 | [`OPERATIONAL_LIFECYCLE_MODEL.md`](./OPERATIONAL_LIFECYCLE_MODEL.md) | 06, 05 |
 | 13 | [`ACCOUNTING_CANONICAL_TRUTH.md`](./ACCOUNTING_CANONICAL_TRUTH.md) | 02 |
 | 14 | [`VERCEL_BOUNDARY_PLAN.md`](./VERCEL_BOUNDARY_PLAN.md) | 08, 12 |
+| 15 | [`STRUCTURE_LOCK_MAP.md`](./STRUCTURE_LOCK_MAP.md) — governance companion, ไม่ใช่ขั้น | — |
 
 เอกสารกำกับที่ไม่ใช่ขั้นของงาน — อ่านคู่กับตารางข้างบน:
-[`STRUCTURE_LOCK_MAP.md`](./STRUCTURE_LOCK_MAP.md) — ขอบเขตที่ถูกล็อกแล้วและจุดต่อขยาย
+`STRUCTURE_LOCK_MAP.md` และ `ACCOUNTING_AUTHORITY_ROLES.md` — ขอบเขตที่ถูกล็อกแล้วและบทบาท authority
 
 ขั้น 05 กับ 09/10 และ 13 ประกาศไว้ว่าขนานกันได้ (`parallel_group`) — การขนานที่
 ไม่ได้ประกาศไว้ถือว่าไม่อนุญาต

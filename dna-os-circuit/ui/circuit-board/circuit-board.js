@@ -934,3 +934,221 @@ boot().catch((err) => {
   btn.addEventListener("click", submitProblem);
   input.addEventListener("keydown", (e) => { if (e.key === "Enter") submitProblem(); });
 })();
+
+(function ownerReviewDock() {
+  const stateEl = document.getElementById("review-state");
+  const bodyEl = document.getElementById("review-body");
+  const launcherEl = document.getElementById("review-launcher");
+  if (!stateEl || !bodyEl || !launcherEl) return;
+
+  async function refresh() {
+    const res = await fetch("/canonical-view.json");
+    const data = await res.json();
+    const latest = data.latest;
+    stateEl.textContent = latest ? latest.state : "VIEW";
+    const facing = latest && latest.owner_facing ? latest.owner_facing : null;
+    const primary = facing ? {
+      WHAT: facing.what,
+      SOURCE: facing.source,
+      DESTINATION: facing.destination,
+      WHO: facing.who,
+      HOW: facing.how,
+      DATA: facing.data,
+      IMPACT: facing.impact,
+      AUTHORITY: facing.authority,
+      RESULT: facing.result,
+    } : null;
+    const preview = latest && latest.preview ? JSON.stringify({
+      action: latest.preview.action,
+      source: latest.preview.source,
+      destination: latest.preview.destination,
+      execution_blocked: latest.preview.execution_blocked,
+    }, null, 2) : "";
+    const result = latest && latest.result ? JSON.stringify({
+      ok: latest.result.ok,
+      result_status: latest.result.result_status,
+      execution_id: latest.execution_id,
+      predicted: latest.result.predicted,
+    }, null, 2) : "";
+    const expandable = facing ? JSON.stringify(facing.provider_metadata_expandable, null, 2) : "";
+    bodyEl.innerHTML = `<pre>${escapeHtml(primary ? JSON.stringify(primary, null, 2) : (preview || result || "No review loaded. Use MCP dna_os.open_owner_review."))}</pre>${expandable ? `<details><summary>Provider / model metadata</summary><pre>${escapeHtml(expandable)}</pre></details>` : ""}`;
+    launcherEl.innerHTML = "";
+    for (const item of (data.launcher || []).slice(0, 16)) {
+      const btn = document.createElement("button");
+      btn.textContent = `${item.label}\n${item.lifecycle}`;
+      btn.dataset.lifecycle = item.lifecycle;
+      btn.title = "Discovery does not grant authority. Actions: " + (item.actions_available || []).join(", ");
+      btn.addEventListener("click", () => {
+        bodyEl.innerHTML = `<pre>${escapeHtml(JSON.stringify({ item_id: item.item_id, grants_authority: false, actions_available: item.actions_available, lifecycle: item.lifecycle }, null, 2))}</pre>`;
+      });
+      launcherEl.appendChild(btn);
+    }
+  }
+
+  document.querySelectorAll("#owner-review-dock .controls button").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      const res = await fetch("/canonical-view.json");
+      const data = await res.json();
+      if (!data.latest || !data.latest.review_id) {
+        bodyEl.innerHTML = "<pre>No review_id. Open a review through MCP first.</pre>";
+        return;
+      }
+      const posted = await fetch("/canonical-view/decision", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ review_id: data.latest.review_id, decision: btn.getAttribute("data-decision") }),
+      });
+      const out = await posted.json();
+      bodyEl.innerHTML = `<pre>${escapeHtml(JSON.stringify(out, null, 2))}</pre>`;
+      refresh();
+    });
+  });
+
+  refresh().catch(() => {
+    bodyEl.innerHTML = "<pre>canonical-view snapshot unavailable</pre>";
+  });
+})();
+
+(function ownerWorkSurface() {
+  const root = document.getElementById("owner-work");
+  const btn = document.getElementById("btn-view-work");
+  const left = document.getElementById("ow-left");
+  const center = document.getElementById("ow-center-body");
+  const right = document.getElementById("ow-right");
+  const activity = document.getElementById("ow-activity");
+  const stateEl = document.getElementById("ow-state");
+  const searchInput = document.getElementById("ow-search");
+  const searchBtn = document.getElementById("ow-search-btn");
+  const workIdEl = document.getElementById("ow-work-id");
+  if (!root || !btn || !left || !center || !right || !activity) return;
+  let latestReviewId = null;
+  let workId = "work-circuit-ui";
+
+  function hideWork() { root.classList.remove("visible"); }
+  ["btn-view-owner", "btn-view-technical", "btn-view-evidence", "btn-view-world"].forEach((id) => {
+    const other = document.getElementById(id);
+    if (other) other.addEventListener("click", hideWork);
+  });
+
+  function facingBlock(facing) {
+    if (!facing) return "";
+    return JSON.stringify({
+      WHAT: facing.what,
+      SOURCE: facing.source,
+      DESTINATION: facing.destination,
+      WHO: facing.who,
+      DATA: facing.data,
+      IMPACT: facing.impact,
+      NETWORK: facing.network,
+      REVERSIBILITY: facing.reversibility,
+      AUTHORITY: facing.authority,
+      EVIDENCE: facing.evidence,
+      RESULT: facing.result,
+    }, null, 2);
+  }
+
+  async function refresh() {
+    const res = await fetch("/owner-work.json");
+    const data = await res.json();
+    latestReviewId = data.latest && data.latest.review_id ? data.latest.review_id : latestReviewId;
+    if (data.latest && data.latest.work_id) workId = data.latest.work_id;
+    workIdEl.textContent = workId;
+    stateEl.textContent = data.center_state || "VIEW";
+    left.innerHTML = "<h3>Launcher</h3>";
+    (data.launcher_primary || []).forEach((item) => {
+      const b = document.createElement("button");
+      b.textContent = item.display_name + " · " + item.badge_status;
+      b.addEventListener("click", async () => {
+        await fetch("/owner-work/open", {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ app_id: item.app_id, work_id: workId }),
+        });
+        refresh();
+      });
+      left.appendChild(b);
+    });
+    const unused = document.createElement("h3");
+    unused.textContent = "Services / Add capability";
+    left.appendChild(unused);
+    (data.launcher_secondary || []).forEach((item) => {
+      const b = document.createElement("button");
+      b.className = "secondary";
+      b.textContent = item.display_name + " · " + item.badge_status;
+      b.title = "Discovery does not grant authority";
+      b.addEventListener("click", async () => {
+        await fetch("/owner-work/open", {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ app_id: item.app_id, work_id: workId }),
+        });
+        refresh();
+      });
+      left.appendChild(b);
+    });
+    const latest = data.latest;
+    const viewPayload = latest && latest.view ? latest.view.payload : null;
+    center.innerHTML = "<pre>" + escapeHtml(facingBlock(data.owner_facing) || JSON.stringify({
+      state: data.center_state,
+      view_type: latest && latest.view ? latest.view.view_type : null,
+      payload: viewPayload,
+      preview: latest && latest.preview ? {
+        action: latest.preview.action,
+        source: latest.preview.source,
+        destination: latest.preview.destination,
+        bytes: latest.preview.bytes_transferred,
+        hash: latest.preview.source_hash,
+        reversibility: latest.preview.reversibility,
+        network_egress: latest.preview.network_egress,
+        execution_blocked: latest.preview.execution_blocked,
+      } : null,
+      result: latest && latest.result ? { ok: latest.result.ok, predicted: latest.result.predicted, execution_id: latest.execution_id } : null,
+    }, null, 2)) + "</pre>";
+    right.innerHTML = "<h3>Context / approval</h3><pre>" + escapeHtml(JSON.stringify({
+      who: data.owner_facing && data.owner_facing.who,
+      provider: data.owner_facing && data.owner_facing.provider_metadata_expandable,
+      grants_authority: data.grants_authority,
+      ai_arbitrary_layout_authority: data.ai_arbitrary_layout_authority,
+    }, null, 2)) + "</pre>";
+    activity.innerHTML = "<h3>Activity</h3><pre>" + escapeHtml(JSON.stringify((data.activity || []).slice(-12).map((row) => ({
+      time: row.time, work: row.work_id, action: row.canonical_action, resource: row.resource,
+      local: row.local_execution, bytes: row.network_egress, approval: row.approval_state, result: row.result,
+    })), null, 2)) + "</pre>";
+  }
+
+  btn.addEventListener("click", () => {
+    root.classList.add("visible");
+    refresh();
+  });
+  searchBtn.addEventListener("click", async () => {
+    const out = await fetch("/owner-work/search", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ query: searchInput.value, work_id: workId }),
+    });
+    const data = await out.json();
+    center.innerHTML = "<pre>" + escapeHtml(JSON.stringify(data.search || data, null, 2)) + "</pre>";
+  });
+  root.querySelectorAll("[data-decision]").forEach((btnEl) => {
+    btnEl.addEventListener("click", async () => {
+      if (!latestReviewId) return;
+      await fetch("/canonical-view/decision", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ review_id: latestReviewId, decision: btnEl.getAttribute("data-decision") }),
+      });
+      refresh();
+    });
+  });
+  const copyBtn = root.querySelector("[data-ow-action='COPY']");
+  if (copyBtn) {
+    copyBtn.addEventListener("click", async () => {
+      if (!latestReviewId) return;
+      await fetch("/owner-work/action", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          review_id: latestReviewId, action: "COPY",
+          resource_id: "resource://local/files/fixture-corpus", work_id: workId,
+          payload: { source_logical: "notes.txt", destination_logical: "owner-work-copy.txt", destination_resource_id: "resource://local/files/fixture-writable" },
+        }),
+      });
+      refresh();
+    });
+  }
+})();

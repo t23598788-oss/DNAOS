@@ -58,6 +58,9 @@ import { readTelemetry } from "../../connections/telemetry/summary";
 import { startTelemetryCollector } from "../../connections/telemetry/collector-loop";
 import { listRegisteredAgents } from "../../connections/agent-registry/registry";
 import { verifySharedSecret, evaluateBindPolicy } from "../../permissions/network-auth-gate/contract";
+import { applyOwnerReviewDecision, ownerReviewSurfaceSnapshot } from "../../control/canonical-view/contract";
+import { invokeSiteTool, listSiteTools } from "../../control/ai-client-bridge/contract";
+import { ownerWorkSurfaceSnapshot, openOwnerWorkItem, ownerSearch, requestOwnerWorkAction } from "../../control/owner-work-surface/contract";
 
 // Owner Work Order 2026-08-20 (DATA INTEGRATION BUILD): one periodic
 // collector per server process, same recovery-only-heartbeat shape as
@@ -311,6 +314,119 @@ function sendJson(res: HostHttpResponse, status: number, body: unknown): void {
  * copies of a security check) — this is just the thin transport-specific
  * glue around it.
  */
+async function handleCanonicalViewDecision(req: HostHttpRequest, res: HostHttpResponse): Promise<void> {
+  const bodyResult = await readRequestBody(req);
+  if (!bodyResult.ok) {
+    sendJson(res, 400, { error: bodyResult.reason });
+    return;
+  }
+  let parsed: { review_id?: string; decision?: string; ai_client_id?: string; session_id?: string };
+  try {
+    parsed = JSON.parse(bodyResult.body) as typeof parsed;
+  } catch {
+    sendJson(res, 400, { error: "body must be JSON" });
+    return;
+  }
+  const review = await applyOwnerReviewDecision({
+    review_id: String(parsed.review_id ?? ""),
+    decision: String(parsed.decision ?? "") as never,
+    ai_client_id: String(parsed.ai_client_id ?? "ai://circuit-ui"),
+    session_id: String(parsed.session_id ?? "session-circuit-ui"),
+  });
+  sendJson(res, "ok" in review && review.ok === false ? 403 : 200, { ok: !("ok" in review && review.ok === false), review });
+}
+
+async function handleOwnerWorkSearch(req: HostHttpRequest, res: HostHttpResponse): Promise<void> {
+  const bodyResult = await readRequestBody(req);
+  if (!bodyResult.ok) {
+    sendJson(res, 400, { error: bodyResult.reason });
+    return;
+  }
+  let parsed: { query?: string; ai_client_id?: string; session_id?: string; work_id?: string };
+  try {
+    parsed = JSON.parse(bodyResult.body) as typeof parsed;
+  } catch {
+    sendJson(res, 400, { error: "body must be JSON" });
+    return;
+  }
+  const searched = await ownerSearch({
+    query: String(parsed.query ?? ""),
+    ai_client_id: String(parsed.ai_client_id ?? "ai://circuit-ui"),
+    session_id: String(parsed.session_id ?? "session-circuit-ui"),
+    work_id: String(parsed.work_id ?? "work-circuit-ui"),
+  });
+  sendJson(res, 200, { ok: true, search: searched });
+}
+
+async function handleOwnerWorkOpen(req: HostHttpRequest, res: HostHttpResponse): Promise<void> {
+  const bodyResult = await readRequestBody(req);
+  if (!bodyResult.ok) {
+    sendJson(res, 400, { error: bodyResult.reason });
+    return;
+  }
+  let parsed: { app_id?: string; ai_client_id?: string; session_id?: string; work_id?: string; logical_path?: string };
+  try {
+    parsed = JSON.parse(bodyResult.body) as typeof parsed;
+  } catch {
+    sendJson(res, 400, { error: "body must be JSON" });
+    return;
+  }
+  const opened = await openOwnerWorkItem({
+    app_id: String(parsed.app_id ?? ""),
+    ai_client_id: String(parsed.ai_client_id ?? "ai://circuit-ui"),
+    session_id: String(parsed.session_id ?? "session-circuit-ui"),
+    work_id: String(parsed.work_id ?? "work-circuit-ui"),
+    logical_path: typeof parsed.logical_path === "string" ? parsed.logical_path : undefined,
+  });
+  sendJson(res, opened.ok === false ? 403 : 200, opened);
+}
+
+async function handleOwnerWorkAction(req: HostHttpRequest, res: HostHttpResponse): Promise<void> {
+  const bodyResult = await readRequestBody(req);
+  if (!bodyResult.ok) {
+    sendJson(res, 400, { error: bodyResult.reason });
+    return;
+  }
+  let parsed: { review_id?: string; action?: string; resource_id?: string; work_id?: string; payload?: Record<string, unknown> };
+  try {
+    parsed = JSON.parse(bodyResult.body) as typeof parsed;
+  } catch {
+    sendJson(res, 400, { error: "body must be JSON" });
+    return;
+  }
+  const requested = await requestOwnerWorkAction({
+    review_id: String(parsed.review_id ?? ""),
+    action: String(parsed.action ?? ""),
+    resource_id: String(parsed.resource_id ?? ""),
+    work_id: String(parsed.work_id ?? "work-circuit-ui"),
+    payload: parsed.payload,
+  });
+  sendJson(res, requested.ok === false ? 403 : 200, requested);
+}
+
+async function handleSiteToolInvoke(req: HostHttpRequest, res: HostHttpResponse): Promise<void> {
+  const bodyResult = await readRequestBody(req);
+  if (!bodyResult.ok) {
+    sendJson(res, 400, { error: bodyResult.reason });
+    return;
+  }
+  let parsed: { tool_name?: string; arguments?: Record<string, unknown>; ai_client_id?: string; session_id?: string; work_id?: string };
+  try {
+    parsed = JSON.parse(bodyResult.body) as typeof parsed;
+  } catch {
+    sendJson(res, 400, { error: "body must be JSON" });
+    return;
+  }
+  const invoked = await invokeSiteTool({
+    tool_name: String(parsed.tool_name ?? ""),
+    arguments: parsed.arguments ?? {},
+    ai_client_id: String(parsed.ai_client_id ?? "ai://circuit-ui"),
+    session_id: String(parsed.session_id ?? "session-circuit-ui"),
+    work_id: parsed.work_id,
+  });
+  sendJson(res, invoked.ok ? 200 : 403, invoked);
+}
+
 function requireSharedSecret(req: HostHttpRequest, res: HostHttpResponse): boolean {
   const expected = process.env.DNA_OS_CIRCUIT_SHARED_SECRET;
   if (!expected) return true;
@@ -601,6 +717,38 @@ export function startCircuitServer(state: CircuitState, port: number): ReturnTyp
       }
       if (url && url.startsWith("/gateway/") && (req.method === "GET" || req.method === "POST")) {
         void handleGatewayRequest(req, res, url);
+        return;
+      }
+      if (url === "/canonical-view.json" && (req.method === "GET" || req.method === undefined)) {
+        sendJson(res, 200, { ok: true, ...ownerReviewSurfaceSnapshot() });
+        return;
+      }
+      if (url === "/owner-work.json" && (req.method === "GET" || req.method === undefined)) {
+        sendJson(res, 200, { ok: true, ...ownerWorkSurfaceSnapshot() });
+        return;
+      }
+      if (url === "/owner-work/search" && req.method === "POST") {
+        void handleOwnerWorkSearch(req, res);
+        return;
+      }
+      if (url === "/owner-work/open" && req.method === "POST") {
+        void handleOwnerWorkOpen(req, res);
+        return;
+      }
+      if (url === "/owner-work/action" && req.method === "POST") {
+        void handleOwnerWorkAction(req, res);
+        return;
+      }
+      if ((url === "/.well-known/webmcp.json" || url === "/site-tools.json") && (req.method === "GET" || req.method === undefined)) {
+        sendJson(res, 200, { ok: true, ...listSiteTools() });
+        return;
+      }
+      if (url === "/site-tools/invoke" && req.method === "POST") {
+        void handleSiteToolInvoke(req, res);
+        return;
+      }
+      if (url === "/canonical-view/decision" && req.method === "POST") {
+        void handleCanonicalViewDecision(req, res);
         return;
       }
       if (url === "/resolve-problem" && req.method === "POST") {

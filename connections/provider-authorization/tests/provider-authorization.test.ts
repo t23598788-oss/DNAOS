@@ -85,7 +85,7 @@ function buildHarness(overrides: Partial<LifecycleDeps> = {}) {
     },
     resolveGithubCredential: async (): Promise<GithubCredentialResolution> => ({ ok: true, token: "fake-resolved-token", credential_source: "keychain:fake-service/fake-account" }),
     getAuthenticatedUser: async (): Promise<AuthenticatedUserLookup> => ({ kind: "found", http_status: 200, login: "test-owner" }),
-    getRepository: async (): Promise<RepositoryLookup> => ({ kind: "found", http_status: 200, default_branch: "main", visibility: "private" }),
+    getRepository: async (): Promise<RepositoryLookup> => ({ kind: "found", http_status: 200, default_branch: "main", visibility: "private", repository_id: "1" }),
     findAuthorizationRecord: authStore.findAuthorizationRecord,
     upsertAuthorizationRecord: authStore.upsertAuthorizationRecord,
     sleep: async () => {},

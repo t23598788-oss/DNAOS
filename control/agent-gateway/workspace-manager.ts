@@ -197,6 +197,21 @@ export function getWorkspace(workspace_id: string): TaskWorkspace | undefined {
   return registry.get(workspace_id) ?? loadWorkspaceFromDisk(workspace_id);
 }
 
+/** Read every latest workspace row from the same append-only file used by getWorkspace. */
+export function listWorkspacesFromDisk(): readonly TaskWorkspace[] {
+  const p = workspaceFile();
+  if (!existsSync(p)) return [];
+  const latest = new Map<string, TaskWorkspace>();
+  for (const line of readFileSync(p, "utf-8").split("\n")) {
+    if (!line.trim()) continue;
+    try {
+      const row = JSON.parse(line) as TaskWorkspace;
+      latest.set(row.workspace_id, row);
+    } catch { /* malformed historical row is not current state */ }
+  }
+  return [...latest.values()];
+}
+
 /**
  * ผูก workspace เข้ากับการจอง worktree (และงาน เมื่อรู้) — ความสัมพันธ์ที่มีชนิด
  * และถูกบันทึก ไม่ใช่การอนุมานจากสตริง path

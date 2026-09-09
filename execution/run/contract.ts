@@ -16,7 +16,7 @@
  * Input: re-exports only.
  * Output: `startExecution`, `getExecution`, `listExecutions`,
  * `cancelExecution`, `subscribeToExecutionEvents`, `listCommandDescriptors`,
- * `getCommandDescriptor`, `projectCommandPolicyDescriptor`,
+ * `listCommandIds`, `getCommandDescriptor`, `projectCommandPolicyDescriptor`,
  * `listCommandPolicyDescriptors`, `WORKSPACE_ROOT_CWD_SCOPE`, plus every
  * type a caller needs to build a request or read a result/event.
  * Dependency ที่อนุญาต: ./executor.ts, ./registry.ts, ./policy-descriptor.ts,
@@ -30,7 +30,7 @@
  */
 
 export { startExecution, getExecution, listExecutions, cancelExecution, subscribeToExecutionEvents } from "./executor";
-export { listCommandDescriptors, getCommandDescriptor, WORKSPACE_ROOT_CWD_SCOPE } from "./registry";
+export { listCommandDescriptors, listCommandIds, getCommandDescriptor, WORKSPACE_ROOT_CWD_SCOPE } from "./registry";
 export { projectCommandPolicyDescriptor, listCommandPolicyDescriptors } from "./policy-descriptor";
 export { ExecutionError } from "./types";
 export type { ExecutionAuditEvent } from "./audit";

@@ -56,6 +56,7 @@ function realWorkOrderBody(idempotencyKey: string, targetPath: string): unknown 
       forbidden_files: [],
       evidence: [{ source: "transport/owner-command-http/tests/auth-gate.test.ts", note: "auth gate enforcement test" }],
     },
+    ownerIdentity: { id: "auth-gate-test-owner", email: "auth-gate-test@example.invalid" },
   };
 }
 
