@@ -105,8 +105,18 @@ function resolver(): GoogleWorkspaceCredentialResolver {
         credential_source: "hermetic:fixture",
         account_identity_non_secret: "fixture-account",
         refreshed: false,
+        material_kind: "access_token",
       };
     },
+  };
+}
+
+function credentialMeta(granted_scopes: readonly string[]) {
+  return {
+    present: true,
+    status: "ACTIVE",
+    account: "fixture-account",
+    granted_scopes,
   };
 }
 
@@ -152,11 +162,7 @@ async function main(): Promise<void> {
       }),
       {
         credentialResolver: countingResolver,
-        readCredentialMeta: () => ({
-          present: true,
-          status: "ACTIVE",
-          granted_scopes: [SHEETS_SCOPE, DRIVE_SCOPE],
-        }),
+        readCredentialMeta: () => credentialMeta([SHEETS_SCOPE, DRIVE_SCOPE]),
         fetchImpl: hermeticFetch((url) => {
           if (url.includes("/drive/")) { driveHits += 1; return { files: [] }; }
           if (url.includes("/values/")) return { range: "Sheet1!A1:B2", majorDimension: "ROWS", values: [["a", "b"], ["c", "d"]] };
@@ -182,11 +188,7 @@ async function main(): Promise<void> {
       }),
       {
         credentialResolver: resolver(),
-        readCredentialMeta: () => ({
-          present: true,
-          status: "ACTIVE",
-          granted_scopes: [SHEETS_SCOPE, DRIVE_SCOPE],
-        }),
+        readCredentialMeta: () => credentialMeta([SHEETS_SCOPE, DRIVE_SCOPE]),
         fetchImpl: hermeticFetch((url) => {
           if (url.includes("/drive/v3/files")) {
             return {
@@ -222,11 +224,7 @@ async function main(): Promise<void> {
       }),
       {
         credentialResolver: resolver(),
-        readCredentialMeta: () => ({
-          present: true,
-          status: "ACTIVE",
-          granted_scopes: [SHEETS_SCOPE, DRIVE_SCOPE],
-        }),
+        readCredentialMeta: () => credentialMeta([SHEETS_SCOPE, DRIVE_SCOPE]),
         fetchImpl: hermeticFetch((url) => {
           if (url.includes("/drive/v3/files")) {
             return {
@@ -256,11 +254,7 @@ async function main(): Promise<void> {
       }),
       {
         credentialResolver: resolver(),
-        readCredentialMeta: () => ({
-          present: true,
-          status: "ACTIVE",
-          granted_scopes: [SHEETS_SCOPE, DRIVE_SCOPE],
-        }),
+        readCredentialMeta: () => credentialMeta([SHEETS_SCOPE, DRIVE_SCOPE]),
         fetchImpl: hermeticFetch((url) => {
           if (url.includes("/drive/v3/files")) return { files: [] };
           return null;
@@ -282,7 +276,7 @@ async function main(): Promise<void> {
       }),
       {
         credentialResolver: resolver(),
-        readCredentialMeta: () => ({ present: true, status: "ACTIVE", granted_scopes: [SHEETS_SCOPE, DRIVE_SCOPE] }),
+        readCredentialMeta: () => credentialMeta([SHEETS_SCOPE, DRIVE_SCOPE]),
         fetchImpl: hermeticFetch((url) => {
           if (url.includes("/values/")) {
             valuesUrl = url;
@@ -308,7 +302,7 @@ async function main(): Promise<void> {
       }),
       {
         credentialResolver: resolver(),
-        readCredentialMeta: () => ({ present: true, status: "ACTIVE", granted_scopes: [SHEETS_SCOPE, DRIVE_SCOPE] }),
+        readCredentialMeta: () => credentialMeta([SHEETS_SCOPE, DRIVE_SCOPE]),
         fetchImpl: hermeticFetch((url) => {
           if (url.includes("/spreadsheets/") && !url.includes("/values/")) {
             return {
@@ -346,7 +340,7 @@ async function main(): Promise<void> {
             return resolver().resolveAccessToken();
           },
         },
-        readCredentialMeta: () => ({ present: true, status: "ACTIVE", granted_scopes: [SHEETS_SCOPE, DRIVE_SCOPE] }),
+        readCredentialMeta: () => credentialMeta([SHEETS_SCOPE, DRIVE_SCOPE]),
         fetchImpl: async () => {
           network += 1;
           return { kind: "transport_error", reason: "should not run" };
@@ -375,7 +369,7 @@ async function main(): Promise<void> {
             return resolver().resolveAccessToken();
           },
         },
-        readCredentialMeta: () => ({ present: true, status: "ACTIVE", granted_scopes: [SHEETS_SCOPE] }),
+        readCredentialMeta: () => credentialMeta([SHEETS_SCOPE]),
         fetchImpl: async () => {
           network += 1;
           return { kind: "transport_error", reason: "should not run" };
@@ -405,7 +399,7 @@ async function main(): Promise<void> {
             return resolver().resolveAccessToken();
           },
         },
-        readCredentialMeta: () => ({ present: true, status: "ACTIVE", granted_scopes: [DRIVE_SCOPE] }),
+        readCredentialMeta: () => credentialMeta([DRIVE_SCOPE]),
         fetchImpl: async () => {
           network += 1;
           return { kind: "transport_error", reason: "should not run" };
@@ -424,7 +418,7 @@ async function main(): Promise<void> {
         envelope(w, { ai_identity: AI, session_id: SESSION }),
         {
           credentialResolver: countingResolver,
-          readCredentialMeta: () => ({ present: true, status: "ACTIVE", granted_scopes: [SHEETS_SCOPE, DRIVE_SCOPE] }),
+          readCredentialMeta: () => credentialMeta([SHEETS_SCOPE, DRIVE_SCOPE]),
           fetchImpl: async () => ({ kind: "transport_error", reason: "no" }),
         },
       );
@@ -443,7 +437,7 @@ async function main(): Promise<void> {
       }),
       {
         credentialResolver: resolver(),
-        readCredentialMeta: () => ({ present: true, status: "ACTIVE", granted_scopes: [SHEETS_SCOPE, DRIVE_SCOPE] }),
+        readCredentialMeta: () => credentialMeta([SHEETS_SCOPE, DRIVE_SCOPE]),
         fetchImpl: hermeticFetch((url) => {
           if (url.includes("/values/")) return { range: "A1:A1", values: [["ok"]] };
           return null;

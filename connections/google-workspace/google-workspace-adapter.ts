@@ -545,8 +545,11 @@ export async function handleGoogleWorkspaceReadCommand(
           resolved.candidates,
         );
       }
-      networkCalled = resolved.drive_discovery_used;
-      return reject(resolved.outcome, resolved.reason, resolved.denied_at_stage, evidence);
+      if (resolved.status === "BLOCKED") {
+        networkCalled = resolved.drive_discovery_used;
+        return reject(resolved.outcome, resolved.reason, resolved.denied_at_stage, evidence);
+      }
+      throw new Error(`unhandled Sheets input resolution status: ${String((resolved as { status?: unknown }).status)}`);
     }
     networkCalled = resolved.drive_discovery_used;
     effectivePayload = {
