@@ -2,84 +2,115 @@
  * หน้าที่: the PARENT-side client for `./main.ts`'s standalone process
  * (Owner UNLOCK 2026-09-06, PHASE 2C; spawn target fixed to prebuilt plain
  * JS by Owner UNLOCK REMOVE_TSX_FROM_PRODUCTION_CONVERSATION_RUNTIME).
- * Lives here rather than inside `transport/` because this capability
- * folder owns both ends of its own process boundary; a transport that
- * wants to talk to the conversation runtime imports only `./contract.ts`.
  *
- * `child_process.spawn` here is PARENT-side authority to launch the
- * conversation child with a fixed executable/argv — it does not grant the
- * conversation process itself any process-launch authority (see
- * `./main.ts`'s own header: it never imports `node:child_process`).
+ * CONVERSATION_RUNTIME_LIVE_IO_V1:
+ * - Validate the prebuilt entrypoint before spawn (missing/empty → precise error).
+ * - Wait for a ready handshake before sending requests.
+ * - Treat exit after a delivered response as non-failure for that request
+ *   (waiter already removed from pending).
+ * - Treat exit before ready / before response / non-zero / timeout as precise failures.
+ * - Capture stderr ring for actionable 503 detail.
  *
- * PLAIN NODE, NOT tsx (root-caused 2026-09-06): the conversation child used
- * to be launched as `tsx/cli` interpreting `./main.ts` directly. Under real
- * production load — several other tsx-loaded processes already running on
- * the same machine — a freshly spawned tsx child hung indefinitely inside
- * tsx's own esbuild transform-service handshake, before `./main.ts`'s own
- * code (not even its module-level top) ever ran; proven via `sample` on the
- * hung PID (main thread parked on `uv_sem_wait`, tsx's loader worker thread
- * idle). tsx/esbuild are now entirely absent from this process's runtime
- * dependency: `RUNTIME_EXECUTABLE` is the real Node binary
- * (`process.execPath`, not a caller-supplied path) and `RUNTIME_ENTRYPOINT`
- * is the prebuilt, plain-CommonJS output of `./tsconfig.build.json`
- * (`./dist/control/conversation-runtime/main.js` — see that file's header
- * for the build command). Rebuild with
- * `npx tsc -p control/conversation-runtime/tsconfig.build.json` after any
- * source change in this capability's dependency closure; nothing here
- * builds on the fly.
+ * Architecture: one persistent long-running child per parent process, not
+ * one-shot-per-request. Requests are multiplexed by `request_id`.
  *
- * Transport is newline-delimited JSON over stdin/stdout, matching
- * `./main.ts`'s framing exactly (`ConversationRequest` in,
- * `ConversationResult` out, correlated by `request_id`).
- *
- * Dependency ที่อนุญาต: node:child_process, node:path, node:readline,
+ * Dependency ที่อนุญาต: node:child_process, node:fs, node:path, node:readline,
  * ./protocol.ts.
- * สิ่งที่ห้ามแตะ:
- * - never pass a caller-controlled executable path or extra argv into
- *   `spawn` here — the entrypoint script path and interpreter are fixed at
- *   the two constants below.
- * - never point `RUNTIME_ENTRYPOINT` back at a `tsx`/`.ts` path — this is
- *   the one thing this UNLOCK exists to prevent from regressing.
  */
 
 declare const require: any;
 declare const __dirname: string;
 declare const process: { execPath: string };
 
-import type { ConversationRequest, ConversationResult, ConversationStageMessage } from "./protocol";
+import type {
+  ConversationReadyMessage,
+  ConversationRequest,
+  ConversationResult,
+  ConversationStageMessage,
+} from "./protocol";
 
 const path = require("node:path");
+const fs = require("node:fs");
 const { spawn } = require("node:child_process");
 const readline = require("node:readline");
 
 /** Fixed, prebuilt, plain-CommonJS — never `.ts`, never routed through tsx. */
 const RUNTIME_ENTRYPOINT: string = path.join(__dirname, "dist", "control", "conversation-runtime", "main.js");
 
+const STDERR_RING_MAX = 8_000;
+const DEFAULT_READY_TIMEOUT_MS = 30_000;
+
 export interface ConversationRuntimeHandle {
   readonly pid: number;
   isAlive(): boolean;
+  isReady(): boolean;
   request(req: ConversationRequest, timeoutMs?: number, onStage?: (event: ConversationStageMessage["event"]) => void): Promise<ConversationResult>;
   stop(): void;
 }
 
+export type ConversationRuntimeSpawnOptions = {
+  /** Test-only override. Production always uses RUNTIME_ENTRYPOINT. */
+  readonly entrypoint?: string;
+  readonly readyTimeoutMs?: number;
+};
+
+function assertEntrypointUsable(entrypoint: string): void {
+  if (!fs.existsSync(entrypoint)) {
+    throw new Error(`CONVERSATION_RUNTIME_BUILD_MISSING: entrypoint not found at ${entrypoint}`);
+  }
+  const st = fs.statSync(entrypoint);
+  if (!st.isFile() || st.size <= 0) {
+    throw new Error(`CONVERSATION_RUNTIME_BUILD_EMPTY: entrypoint at ${entrypoint} is empty or not a file (size=${st.size})`);
+  }
+  // Force materialization of cloud-evicted files before spawn — empty reads
+  // previously produced a silent code=0 child with no stdin listener.
+  const bytes = fs.readFileSync(entrypoint);
+  if (!bytes || bytes.length === 0) {
+    throw new Error(`CONVERSATION_RUNTIME_BUILD_UNREADABLE: entrypoint at ${entrypoint} read as empty after stat reported size=${st.size}`);
+  }
+}
+
+function appendRing(ring: { text: string }, chunk: string): void {
+  ring.text = (ring.text + chunk).slice(-STDERR_RING_MAX);
+}
+
 /**
- * Spawns exactly one child process running `./main.ts`, fixed executable
- * (`tsx`, resolved via `require.resolve` — never a caller-supplied path)
- * and fixed single argv element (`RUNTIME_ENTRYPOINT`). Requests are
- * correlated by `request_id`; nothing here assumes in-order delivery.
- *
- * FAIL CLOSED (Owner UNLOCK 2026-09-06,
- * FLIP_PRODUCTION_OWNER_CONVERSATION_TO_ISOLATED_RUNTIME): once the child
- * exits or errors, every pending request is rejected immediately (never
- * left to time out) and `isAlive()` turns false — the caller is expected
- * to treat that as "conversation runtime unavailable" and deny, never to
- * quietly try `translateOwnerMessage`/`resolveOwnerCommandSemantics`
- * in-process instead.
+ * Spawns exactly one child process running the prebuilt conversation runtime.
+ * FAIL CLOSED once the child exits or errors: every still-pending request is
+ * rejected immediately. Requests that already received a ConversationResult
+ * are unaffected (already removed from pending) — exit code=0 after a valid
+ * response is therefore success for that request.
  */
-export function spawnConversationRuntime(): ConversationRuntimeHandle {
-  const child = spawn(process.execPath, [RUNTIME_ENTRYPOINT], { stdio: ["pipe", "pipe", "inherit"] });
-  const pending = new Map<string, { resolve: (r: ConversationResult) => void; reject: (e: Error) => void; timer: ReturnType<typeof setTimeout>; onStage?: (event: ConversationStageMessage["event"]) => void }>();
+export function spawnConversationRuntime(options: ConversationRuntimeSpawnOptions = {}): ConversationRuntimeHandle {
+  const entrypoint = options.entrypoint ?? RUNTIME_ENTRYPOINT;
+  const readyTimeoutMs = options.readyTimeoutMs ?? DEFAULT_READY_TIMEOUT_MS;
+  assertEntrypointUsable(entrypoint);
+
+  const child = spawn(process.execPath, [entrypoint], { stdio: ["pipe", "pipe", "pipe"] });
+  const pending = new Map<string, {
+    resolve: (r: ConversationResult) => void;
+    reject: (e: Error) => void;
+    timer: ReturnType<typeof setTimeout>;
+    onStage?: (event: ConversationStageMessage["event"]) => void;
+  }>();
   let alive = true;
+  let ready = false;
+  let exitCode: number | null = null;
+  let exitSignal: string | null = null;
+  const stderrRing = { text: "" };
+  const readyWaiters: Array<{ resolve: () => void; reject: (e: Error) => void }> = [];
+
+  function stderrSuffix(): string {
+    const t = stderrRing.text.trim();
+    return t.length > 0 ? ` stderr_tail=${JSON.stringify(t.slice(-1_500))}` : "";
+  }
+
+  function rejectReadyWaiters(reason: string): void {
+    while (readyWaiters.length > 0) {
+      const w = readyWaiters.shift()!;
+      w.reject(new Error(reason));
+    }
+  }
 
   function rejectAllPending(reason: string): void {
     alive = false;
@@ -90,26 +121,83 @@ export function spawnConversationRuntime(): ConversationRuntimeHandle {
     pending.clear();
   }
 
-  child.on("exit", (code: number | null, signal: string | null) => rejectAllPending(`conversation runtime process exited (code=${code}, signal=${signal})`));
-  child.on("error", (err: Error) => rejectAllPending(`conversation runtime process error: ${err.message}`));
+  function markReady(): void {
+    if (ready) return;
+    ready = true;
+    while (readyWaiters.length > 0) {
+      const w = readyWaiters.shift()!;
+      w.resolve();
+    }
+  }
+
+  function waitUntilReady(timeoutMs: number): Promise<void> {
+    if (ready) return Promise.resolve();
+    if (!alive) {
+      return Promise.reject(new Error(
+        `CONVERSATION_RUNTIME_EXITED_BEFORE_READY: process exited (code=${exitCode}, signal=${exitSignal}) before ready handshake${stderrSuffix()}`,
+      ));
+    }
+    return new Promise((resolve, reject) => {
+      const timer = setTimeout(() => {
+        const idx = readyWaiters.findIndex((w) => w.resolve === onResolve);
+        if (idx >= 0) readyWaiters.splice(idx, 1);
+        reject(new Error(`CONVERSATION_RUNTIME_READY_TIMEOUT: no ready handshake within ${timeoutMs}ms${stderrSuffix()}`));
+      }, timeoutMs);
+      const onResolve = (): void => {
+        clearTimeout(timer);
+        resolve();
+      };
+      const onReject = (e: Error): void => {
+        clearTimeout(timer);
+        reject(e);
+      };
+      readyWaiters.push({ resolve: onResolve, reject: onReject });
+    });
+  }
+
+  child.stderr?.on("data", (chunk: Buffer | string) => {
+    appendRing(stderrRing, typeof chunk === "string" ? chunk : chunk.toString("utf8"));
+  });
+
+  child.on("exit", (code: number | null, signal: string | null) => {
+    exitCode = code;
+    exitSignal = signal;
+    alive = false;
+    const precise = ready
+      ? `CONVERSATION_RUNTIME_EXITED_BEFORE_RESPONSE: process exited (code=${code}, signal=${signal}) while request(s) still pending${stderrSuffix()}`
+      : `CONVERSATION_RUNTIME_EXITED_BEFORE_READY: process exited (code=${code}, signal=${signal}) before ready handshake${stderrSuffix()}`;
+    rejectReadyWaiters(precise);
+    rejectAllPending(precise);
+  });
+  child.on("error", (err: Error) => {
+    alive = false;
+    const precise = `CONVERSATION_RUNTIME_SPAWN_ERROR: ${err.message}${stderrSuffix()}`;
+    rejectReadyWaiters(precise);
+    rejectAllPending(precise);
+  });
 
   const rl = readline.createInterface({ input: child.stdout, terminal: false });
   rl.on("line", (line: string) => {
-    let result: ConversationResult | ConversationStageMessage;
+    let parsed: ConversationResult | ConversationStageMessage | ConversationReadyMessage;
     try {
-      result = JSON.parse(line) as ConversationResult;
+      parsed = JSON.parse(line) as ConversationResult | ConversationStageMessage | ConversationReadyMessage;
     } catch {
       return;
     }
-    const waiter = pending.get(result.request_id);
+    if ("message_type" in parsed && parsed.message_type === "ready") {
+      markReady();
+      return;
+    }
+    if (!("request_id" in parsed) || typeof (parsed as { request_id?: unknown }).request_id !== "string") return;
+    const waiter = pending.get((parsed as { request_id: string }).request_id);
     if (!waiter) return;
-    if ("message_type" in result && result.message_type === "stage") {
-      waiter.onStage?.((result as unknown as ConversationStageMessage).event);
+    if ("message_type" in parsed && parsed.message_type === "stage") {
+      waiter.onStage?.((parsed as ConversationStageMessage).event);
       return;
     }
     clearTimeout(waiter.timer);
-    pending.delete(result.request_id);
-    waiter.resolve(result);
+    pending.delete((parsed as ConversationResult).request_id);
+    waiter.resolve(parsed as ConversationResult);
   });
 
   return {
@@ -117,19 +205,44 @@ export function spawnConversationRuntime(): ConversationRuntimeHandle {
     isAlive(): boolean {
       return alive;
     },
-    request(req: ConversationRequest, timeoutMs = 30_000, onStage?: (event: ConversationStageMessage["event"]) => void): Promise<ConversationResult> {
-      if (!alive) return Promise.reject(new Error(`conversation runtime process is not alive (request_id=${req.request_id})`));
+    isReady(): boolean {
+      return ready;
+    },
+    async request(req: ConversationRequest, timeoutMs = 30_000, onStage?: (event: ConversationStageMessage["event"]) => void): Promise<ConversationResult> {
+      if (!alive) {
+        return Promise.reject(new Error(
+          `CONVERSATION_RUNTIME_NOT_ALIVE: process is not alive (request_id=${req.request_id}, last_exit_code=${exitCode}, last_exit_signal=${exitSignal})${stderrSuffix()}`,
+        ));
+      }
+      await waitUntilReady(Math.min(timeoutMs, readyTimeoutMs));
+      if (!alive) {
+        return Promise.reject(new Error(
+          `CONVERSATION_RUNTIME_EXITED_BEFORE_RESPONSE: process died after ready before request write (request_id=${req.request_id})${stderrSuffix()}`,
+        ));
+      }
       return new Promise((resolve, reject) => {
         const timer = setTimeout(() => {
           pending.delete(req.request_id);
-          reject(new Error(`conversation runtime did not respond within ${timeoutMs}ms for request_id=${req.request_id}`));
+          reject(new Error(`CONVERSATION_RUNTIME_TIMEOUT: did not respond within ${timeoutMs}ms for request_id=${req.request_id}${stderrSuffix()}`));
         }, timeoutMs);
         pending.set(req.request_id, { resolve, reject, timer, onStage });
-        child.stdin.write(`${JSON.stringify(req)}\n`);
+        try {
+          child.stdin.write(`${JSON.stringify(req)}\n`);
+        } catch (error) {
+          clearTimeout(timer);
+          pending.delete(req.request_id);
+          reject(new Error(
+            `CONVERSATION_RUNTIME_STDIN_ERROR: ${error instanceof Error ? error.message : String(error)} (request_id=${req.request_id})${stderrSuffix()}`,
+          ));
+        }
       });
     },
     stop(): void {
       child.kill();
     },
   };
+}
+
+export function conversationRuntimeEntrypointPath(): string {
+  return RUNTIME_ENTRYPOINT;
 }

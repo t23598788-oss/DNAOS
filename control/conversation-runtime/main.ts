@@ -57,12 +57,20 @@ import {
 
 const readline = require("node:readline");
 
-// Constructed ONCE, at process start — never per request, never re-derived
-// from a caller-supplied object. `toReadOnlyRegistryView` (see its own
-// header) returns a frozen object that literally does not carry
-// `writeApprovedCandidate`/`appendRegistrationEvent`/`addRelationship`/etc,
-// regardless of what the underlying adapter implements.
-const registryStore = toReadOnlyRegistryView(createPersistentFileStore());
+/**
+ * Lazy, memoized registry view — constructed on first use, not at module
+ * load. A transient CONFLICTING/TARGET_CHANGED registry read during cold
+ * start must not kill the persistent child before the ready handshake.
+ * `toReadOnlyRegistryView` still strips every write method.
+ */
+let registryStore: ReturnType<typeof toReadOnlyRegistryView> | null = null;
+
+function getRegistryStore(): ReturnType<typeof toReadOnlyRegistryView> {
+  if (!registryStore) {
+    registryStore = toReadOnlyRegistryView(createPersistentFileStore());
+  }
+  return registryStore;
+}
 
 /** PHASE 2F: a projection that has never been published is treated as UNAVAILABLE, not as "nothing registered" — `../conversation-read-model/contract.ts#isPublished` checks the snapshot files exist, since its `read*` functions return `[]` for both "empty" and "never published". */
 function conversationReadModelAvailable(): boolean {
@@ -163,8 +171,8 @@ export function handleConversationRequest(request: ConversationRequest): Convers
       process.stdout.write(`${JSON.stringify({ message_type: "stage", request_id: request.request_id, event })}\n`);
     };
     semantic = request.persist === false
-      ? resolveOwnerCommandSemantics(request.request_id, request.text, request.owner_identity, { registryStore, persist: false, onStage })
-      : translateOwnerMessage(request.request_id, request.text, request.owner_identity, { registryStore, onStage }).semantic;
+      ? resolveOwnerCommandSemantics(request.request_id, request.text, request.owner_identity, { registryStore: getRegistryStore(), persist: false, onStage })
+      : translateOwnerMessage(request.request_id, request.text, request.owner_identity, { registryStore: getRegistryStore(), onStage }).semantic;
   } catch (error) {
     return { request_id: request.request_id, trace_id: request.trace_id, answer: null, intent: null, status: "DENIED", evidence_refs: [`unhandled exception during resolution: ${error instanceof Error ? error.message : String(error)}`], semantic_outcome: null };
   }
@@ -208,6 +216,9 @@ function rejectMalformed(rawLine: string): ConversationResult {
 
 function main(): void {
   const rl = readline.createInterface({ input: process.stdin, terminal: false });
+  // Ready handshake AFTER the stdin listener is attached — parent must not
+  // write requests until this line is observed (CONVERSATION_RUNTIME_LIVE_IO_V1).
+  process.stdout.write(`${JSON.stringify({ message_type: "ready" })}\n`);
   rl.on("line", (line: string) => {
     const trimmed = line.trim();
     if (trimmed.length === 0) return;
@@ -222,8 +233,27 @@ function main(): void {
       process.stdout.write(`${JSON.stringify(rejectMalformed(trimmed))}\n`);
       return;
     }
-    const result = handleConversationRequest(parsed);
-    process.stdout.write(`${JSON.stringify(result)}\n`);
+    try {
+      const result = handleConversationRequest(parsed);
+      process.stdout.write(`${JSON.stringify(result)}\n`);
+    } catch (error) {
+      const denied: ConversationResult = {
+        request_id: parsed.request_id,
+        trace_id: typeof parsed.trace_id === "string" ? parsed.trace_id : "unknown",
+        answer: null,
+        intent: null,
+        status: "DENIED",
+        evidence_refs: [`unhandled exception during request: ${error instanceof Error ? error.message : String(error)}`],
+        semantic_outcome: null,
+      };
+      process.stdout.write(`${JSON.stringify(denied)}\n`);
+    }
+  });
+  // Parent closed stdin (one-shot test, or transport shutdown) — exit cleanly
+  // AFTER any response already written. code=0 here is success for completed work,
+  // not CONVERSATION_RUNTIME_UNAVAILABLE.
+  rl.on("close", () => {
+    process.exit(0);
   });
 }
 

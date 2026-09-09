@@ -82,6 +82,16 @@ export interface ConversationStageMessage {
   readonly event: Readonly<Record<string, unknown>>;
 }
 
+/**
+ * Emitted once by `./main.ts` after the stdin readline listener is attached.
+ * Parent (`./client.ts`) must not write requests until this arrives — otherwise
+ * a silent empty/broken child that exits code=0 looks identical to a healthy one.
+ */
+export interface ConversationReadyMessage {
+  readonly message_type: "ready";
+  readonly pid?: number;
+}
+
 /** Field names a `ConversationRequest` must never carry. Checked on every line read from stdin before any processing — see `./main.ts`. */
 export const FORBIDDEN_REQUEST_FIELDS: readonly string[] = [
   "executable",
