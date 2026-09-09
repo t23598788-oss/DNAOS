@@ -94,6 +94,8 @@ import { findCapability, findResourceById } from "../../software/registry-databa
 import { handleOwnerBackboneRoute } from "./owner-backbone-routes";
 import { handleOwnerCredentialRoute } from "./owner-credential-routes";
 import { handleGoogleOauthRoute, renderGoogleOauthHtml } from "./google-oauth-routes";
+import { handleGoogleOauthClientAdmissionRoute } from "./google-oauth-client-admission-routes";
+import { handleGoogleOauthDiscoveryRoute } from "./google-oauth-discovery-routes";
 import { runPreExecutionPlan, latestPlanFor, latestPlan } from "../../control/pre-execution-planner/contract";
 import { executeLocalRead } from "../../control/owner-command/local-read-operations";
 import { resolveAndExecuteOwnerIntent, resolveAndExecuteOwnerRequest } from "../../control/owner-command/structured-intent";
@@ -1374,6 +1376,27 @@ function buildOwnerActivity(identity: string, commandIdInput: string | null): Re
         try { parsedBody = JSON.parse(raw); } catch { sendJson(res, 400, { error: "invalid JSON body" }); return; }
       }
       const reply = await handleOwnerCredentialRoute(req.method ?? "GET", parsed.pathname, parsed.searchParams, parsedBody);
+      if (!reply) { sendJson(res, 404, { error: "not found" }); return; }
+      sendJson(res, reply.status, reply.body);
+    })();
+    return;
+  }
+
+  /**
+   * Google Workspace OAuth *client* Owner admission — config + Keychain secret only.
+   * Never begins Google login; never returns client_secret.
+   */
+  if (req.url?.startsWith("/owner/google-workspace/oauth-client")) {
+    const parsed = new URL(req.url, "http://127.0.0.1");
+    void (async () => {
+      let parsedBody: unknown = null;
+      if (req.method === "POST") {
+        const raw = await readBody(req);
+        try { parsedBody = JSON.parse(raw); } catch { sendJson(res, 400, { error: "invalid JSON body" }); return; }
+      }
+      const discoveryReply = await handleGoogleOauthDiscoveryRoute(req.method ?? "GET", parsed.pathname, parsed.searchParams, parsedBody);
+      if (discoveryReply) { sendJson(res, discoveryReply.status, discoveryReply.body); return; }
+      const reply = await handleGoogleOauthClientAdmissionRoute(req.method ?? "GET", parsed.pathname, parsed.searchParams, parsedBody);
       if (!reply) { sendJson(res, 404, { error: "not found" }); return; }
       sendJson(res, reply.status, reply.body);
     })();

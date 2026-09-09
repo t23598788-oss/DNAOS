@@ -44,6 +44,8 @@ const ALLOWED_REQUESTERS = [
   // Google Workspace OAuth lifecycle — exact requester only (no google/* wildcard).
   // Token completion writes credential://google/workspace/oauth; never Agent-forwarded.
   "connections/google-workspace/oauth/lifecycle.ts",
+  // Google Workspace OAuth *client* admission — writes client-secret ref only.
+  "connections/google-workspace/oauth/client-admission.ts",
   // Owner-approved 2026-09-02: ช่องตั้งค่า credential ใน Owner Settings ของ :5181
   // เส้นทางคือ Owner Settings UI -> owner-authentication (ต้องมี session ที่ยัง
   // ACTIVE) -> route นี้ -> registerOwnerApiCredential -> Keychain

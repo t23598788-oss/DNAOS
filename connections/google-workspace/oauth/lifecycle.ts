@@ -117,9 +117,14 @@ export function beginAuthorization(
 
   const config = deps.readConfig();
   if ("missing" in config) {
+    // Incomplete config: mark CONFIGURATION_REQUIRED without creating PKCE/state transaction.
     deps.upsertRecord({
       ...base,
       state: "CONFIGURATION_REQUIRED",
+      code_verifier: null,
+      state_nonce: null,
+      redirect_uri: null,
+      authorize_expires_at: null,
       failure_reason: `GOOGLE_OAUTH_CLIENT_NOT_CONFIGURED: ${config.missing.join(", ")}`,
       updated_at: nowIso,
     });
@@ -142,6 +147,7 @@ export function beginAuthorization(
     };
   }
 
+  // Only after CONFIGURED: create single-use PKCE + state transaction.
   const codeVerifier = deps.randomHex(48);
   const stateNonce = deps.randomHex(16);
   const expiresAt = new Date(deps.now().getTime() + AUTHORIZE_LIFETIME_SECONDS * 1000).toISOString();

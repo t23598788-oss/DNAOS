@@ -23,3 +23,7 @@ export const CLIENT_CONFIGURATION_STATE = "CONFIGURATION_REQUIRED" as const;
 export const DEADBOARD_GMAIL_CLIENT_REUSED = false as const;
 export const NEW_GENERIC_OAUTH_FRAMEWORK_CREATED = false as const;
 export const GOOGLE_PKCE_METHOD = "S256_BASE64URL" as const;
+export const OWNER_ADMISSION_ROUTE = "POST /owner/google-workspace/oauth-client" as const;
+export const OWNER_APPROVAL_ACTION = "REGISTER_GOOGLE_WORKSPACE_OAUTH_CLIENT" as const;
+export const PUBLIC_CONFIG_OWNER = "connections/google-workspace/oauth/client-config-store.ts" as const;
+export const NEW_REGISTRIES_CREATED = 0 as const;

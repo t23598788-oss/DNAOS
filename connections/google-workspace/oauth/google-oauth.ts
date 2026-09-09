@@ -17,12 +17,17 @@
  * beyond returning them once to lifecycle.
  */
 
+import { execFileSync } from "node:child_process";
 import {
   GOOGLE_OAUTH_AUTHORIZE_URL,
+  GOOGLE_OAUTH_CLIENT_SECRET_REF,
   GOOGLE_OAUTH_TOKEN_URL,
   GOOGLE_USERINFO_URL,
 } from "../contract";
+import { getGoogleOauthClientConfigurationView } from "./client-admission";
+import { findLatestClientConfig } from "./client-config-store";
 import { base64UrlEncode, hostFetchGet, hostFetchPost, readEnvVar, sha256Raw } from "./host-runtime";
+import { findApiCredential } from "../../../credentials/registry/api-credential-registry";
 
 export const GOOGLE_OAUTH_ENDPOINTS = {
   AUTHORIZE_URL: GOOGLE_OAUTH_AUTHORIZE_URL,
@@ -34,31 +39,82 @@ export interface GoogleOauthConfig {
   client_id: string;
   client_secret: string;
   redirect_uri: string;
+  environment?: "TESTING" | "PRODUCTION";
 }
 
+export interface GoogleOauthConfigResolveDeps {
+  findLatestClientConfig: typeof findLatestClientConfig;
+  findApiCredential: typeof findApiCredential;
+  /** Returns client secret once for exchange; never log. Env fallback for hermetic/dev. */
+  resolveClientSecret: () => string | undefined;
+  readEnvVar: typeof readEnvVar;
+}
+
+const defaultResolveDeps: GoogleOauthConfigResolveDeps = {
+  findLatestClientConfig,
+  findApiCredential,
+  resolveClientSecret: () => {
+    const fromEnv = readEnvVar("GOOGLE_WORKSPACE_OAUTH_CLIENT_SECRET");
+    if (fromEnv) return fromEnv;
+    const entry = findApiCredential(GOOGLE_OAUTH_CLIENT_SECRET_REF);
+    if (!entry || entry.status !== "ACTIVE") return undefined;
+    // Resolve through macOS Keychain only — never log the value.
+    try {
+      const secret = String(
+        execFileSync(
+          "/usr/bin/security",
+          ["find-generic-password", "-s", entry.resolver_service, "-a", entry.resolver_account, "-w"],
+          { encoding: "utf8" },
+        ),
+      ).replace(/\n$/, "");
+      return secret.length > 0 ? secret : undefined;
+    } catch {
+      return undefined;
+    }
+  },
+  readEnvVar,
+};
+
 /**
- * Owner-supplied OAuth client. DNA OS does not invent Google Cloud projects.
- * Until Owner admits values, beginAuthorization returns CONFIGURATION_REQUIRED.
+ * Resolve admitted OAuth client for token exchange / authorize URL.
+ * Prefers Owner-admitted public config store; secret from approved secret authority
+ * (env mirror or injected Keychain resolver). Source alone ⇒ CONFIGURATION_REQUIRED.
  *
- * Env mirrors (staging / Owner admission; never commit real secrets):
- *   GOOGLE_WORKSPACE_OAUTH_CLIENT_ID
- *   GOOGLE_WORKSPACE_OAUTH_CLIENT_SECRET
- *   GOOGLE_WORKSPACE_OAUTH_REDIRECT_URI
- *
- * Canonical refs:
- *   credential://google/workspace/oauth-client/client-id
- *   credential://google/workspace/oauth-client/client-secret
+ * Never log/return client_secret from this module's public status helpers.
  */
-export function readGoogleOauthConfig(): GoogleOauthConfig | { missing: string[] } {
-  const client_id = readEnvVar("GOOGLE_WORKSPACE_OAUTH_CLIENT_ID");
-  const client_secret = readEnvVar("GOOGLE_WORKSPACE_OAUTH_CLIENT_SECRET");
-  const redirect_uri = readEnvVar("GOOGLE_WORKSPACE_OAUTH_REDIRECT_URI");
+export function readGoogleOauthConfig(
+  deps: GoogleOauthConfigResolveDeps = defaultResolveDeps,
+): GoogleOauthConfig | { missing: string[] } {
+  const admitted = deps.findLatestClientConfig();
+  const envClientId = deps.readEnvVar("GOOGLE_WORKSPACE_OAUTH_CLIENT_ID");
+  const envRedirect = deps.readEnvVar("GOOGLE_WORKSPACE_OAUTH_REDIRECT_URI");
+  const client_id = admitted?.oauth_client_id ?? envClientId;
+  const redirect_uri = admitted?.redirect_uri ?? envRedirect;
+  const client_secret = deps.resolveClientSecret();
+
   const missing: string[] = [];
-  if (!client_id) missing.push("GOOGLE_WORKSPACE_OAUTH_CLIENT_ID");
-  if (!client_secret) missing.push("GOOGLE_WORKSPACE_OAUTH_CLIENT_SECRET");
-  if (!redirect_uri) missing.push("GOOGLE_WORKSPACE_OAUTH_REDIRECT_URI");
+  if (!client_id) missing.push("GOOGLE_OAUTH_CLIENT_ID");
+  if (!client_secret) missing.push("GOOGLE_OAUTH_CLIENT_SECRET");
+  if (!redirect_uri) missing.push("GOOGLE_REDIRECT_URI");
+
+  // Secret must also be represented by canonical Keychain ref when admitted via Owner path,
+  // OR be present via env mirror for hermetic/dev — either satisfies resolution.
+  if (admitted && !deps.findApiCredential(GOOGLE_OAUTH_CLIENT_SECRET_REF) && !deps.readEnvVar("GOOGLE_WORKSPACE_OAUTH_CLIENT_SECRET")) {
+    if (!missing.includes("GOOGLE_OAUTH_CLIENT_SECRET")) missing.push("GOOGLE_OAUTH_CLIENT_SECRET");
+  }
+
   if (missing.length > 0) return { missing };
-  return { client_id: client_id!, client_secret: client_secret!, redirect_uri: redirect_uri! };
+  return {
+    client_id: client_id!,
+    client_secret: client_secret!,
+    redirect_uri: redirect_uri!,
+    environment: admitted?.environment,
+  };
+}
+
+/** Public status only — never includes resolved secret. */
+export function readGoogleOauthConfigStatus(): ReturnType<typeof getGoogleOauthClientConfigurationView> {
+  return getGoogleOauthClientConfigurationView();
 }
 
 /** Google PKCE S256: SHA-256 bytes → base64url without padding. */

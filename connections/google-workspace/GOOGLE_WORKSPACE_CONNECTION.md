@@ -46,6 +46,52 @@ GET  /oauth/google/workspace/callback → completeAuthorization()
 - Deadboard `GMAIL_CLIENT_*` must not be reused
 - Source path alone does **not** mark CONNECTED
 
+## Owner OAuth client admission
+
+Google Cloud OAuth client is created by **Owner** (not by DNA OS). DNA OS does not invent or create provider identity.
+
+Required future Owner values:
+
+| Field | Notes |
+|---|---|
+| `GOOGLE_APP_ENVIRONMENT` | `TESTING` or `PRODUCTION` only |
+| `GOOGLE_CLOUD_PROJECT_ID` | public project id |
+| `GOOGLE_OAUTH_CLIENT_ID` | public; `*.apps.googleusercontent.com` |
+| `GOOGLE_OAUTH_CLIENT_SECRET` | secret — biometric → Keychain only |
+| `GOOGLE_REDIRECT_URI` | exact URI ending in `/oauth/google/workspace/callback` |
+
+Admission path:
+
+```text
+POST /computer-use/owner/verify
+  → ACTIVE owner session
+POST /owner/google-workspace/oauth-client
+  → exact approval scope REGISTER_GOOGLE_WORKSPACE_OAUTH_CLIENT
+  → client_secret → credential://google/workspace/oauth-client/client-secret (Keychain)
+  → non-secret config → connections/google-workspace/oauth client-config store
+```
+
+### Find existing OAuth credential (Owner computer)
+
+Conceptual action: `FIND_GOOGLE_WORKSPACE_OAUTH_CLIENT`
+
+```text
+POST /owner/google-workspace/oauth-client/discover
+  → scan ~/Downloads, ~/Desktop, ~/Documents for Google Web OAuth JSON
+  → return non-secret candidates only (never client_secret)
+POST /owner/google-workspace/oauth-client/admit-discovered
+  → Touch ID / Owner session
+  → revalidate file hash
+  → Keychain + public config → CONFIGURED
+```
+
+Eligible JSON must be top-level `web` with matching TESTING redirect  
+`http://127.0.0.1:8791/oauth/google/workspace/callback`.  
+After admit: `SOURCE_FILE_CLEANUP_REQUIRED` — do not auto-delete Downloads JSON unless Owner policy says so.
+
+Until admission completes: `CLIENT_CONFIGURATION_STATE = CONFIGURATION_REQUIRED`.  
+Owner login / `POST /oauth/google/workspace/begin` is a **separate later action**.
+
 Missing one scope does **not** authorize another. Parent may become `PARTIALLY_AUTHORIZED` when only a subset of services has required scopes.
 
 ## DNA OS MCP path (reuse — no Google logic in MCP)
