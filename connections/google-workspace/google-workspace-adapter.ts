@@ -409,8 +409,9 @@ export async function handleGoogleWorkspaceReadCommand(
     );
   }
 
-  // Sheets values may need Drive discovery / metadata before a values.get —
-  // do not require Sheets scope before Drive-scope failure can be reported.
+  // Sheets values may need Drive discovery / metadata before a values.get.
+  // Every scope needed by the planned calls is validated before Keychain:
+  // owner policy → metadata → Drive scope? → Sheets scope → credential → APIs.
   const ownerTextParse = parseSheetsOwnerText(typeof payload.owner_text === "string" ? payload.owner_text : "");
   const hintedId =
     (typeof payload.spreadsheet_id === "string" && payload.spreadsheet_id.trim())
@@ -423,18 +424,8 @@ export async function handleGoogleWorkspaceReadCommand(
   const sheetsNeedsDriveDiscovery =
     intent === GOOGLE_WORKSPACE_INTENTS.sheetsValues && !hintedId;
 
-  // 3. Credential metadata — still no Keychain secret resolution
-  const meta = readMeta();
-  evidence.push(credentialMetaEvidence(GOOGLE_CREDENTIAL_REF, meta.status, meta.present));
-  if (!meta.present || meta.status !== "ACTIVE") {
-    return reject(
-      GOOGLE_WORKSPACE_OUTCOMES.AUTH_REQUIRED,
-      `ACTIVE credential required at ${GOOGLE_CREDENTIAL_REF}`,
-      "authenticate",
-      evidence,
-    );
-  }
-
+  // Sheets name resolution also requires Drive Owner authority. Prove that
+  // before reading even non-secret credential metadata.
   if (sheetsNeedsDriveDiscovery) {
     const drivePolicy = evaluatePolicy({
       ai_identity,
@@ -452,6 +443,13 @@ export async function handleGoogleWorkspaceReadCommand(
         evidence,
       );
     }
+  }
+
+  // Read non-secret registry metadata once. For Sheets values, required scopes
+  // are validated before the ACTIVE credential-state gate and before Keychain.
+  const meta = readMeta();
+
+  if (sheetsNeedsDriveDiscovery) {
     const driveScopeOk = hasRequiredScopes(meta.granted_scopes, [DRIVE_SCOPE]);
     evidence.push(scopeCheckEvidence(DRIVE_SERVICE_ID, [DRIVE_SCOPE], driveScopeOk));
     if (!driveScopeOk) {
@@ -462,25 +460,47 @@ export async function handleGoogleWorkspaceReadCommand(
         evidence,
       );
     }
-  } else if (!sheetsValuesNeedsInputResolution) {
-    const scopeOk = hasRequiredScopes(meta.granted_scopes, spec.required_scopes);
-    evidence.push(scopeCheckEvidence(spec.service, spec.required_scopes, scopeOk));
-    if (!scopeOk) {
-      return reject(
-        GOOGLE_WORKSPACE_OUTCOMES.SCOPE_REQUIRED,
-        `missing required scope(s) for ${spec.service}`,
-        "scope",
-        evidence,
-      );
-    }
-  } else {
-    // Have spreadsheet_id but need range/metadata — Sheets scope before Keychain
     const sheetsScopeOk = hasRequiredScopes(meta.granted_scopes, [SHEETS_SCOPE]);
     evidence.push(scopeCheckEvidence(SHEETS_SERVICE_ID, [SHEETS_SCOPE], sheetsScopeOk));
     if (!sheetsScopeOk) {
       return reject(
         GOOGLE_WORKSPACE_OUTCOMES.SCOPE_REQUIRED,
         `missing required Sheets scope after spreadsheet_id resolution`,
+        "scope",
+        evidence,
+      );
+    }
+  } else if (intent === GOOGLE_WORKSPACE_INTENTS.sheetsValues) {
+    const sheetsScopeOk = hasRequiredScopes(meta.granted_scopes, [SHEETS_SCOPE]);
+    evidence.push(scopeCheckEvidence(SHEETS_SERVICE_ID, [SHEETS_SCOPE], sheetsScopeOk));
+    if (!sheetsScopeOk) {
+      return reject(
+        GOOGLE_WORKSPACE_OUTCOMES.SCOPE_REQUIRED,
+        `missing required Sheets scope after spreadsheet_id resolution`,
+        "scope",
+        evidence,
+      );
+    }
+  }
+
+  evidence.push(credentialMetaEvidence(GOOGLE_CREDENTIAL_REF, meta.status, meta.present));
+  if (!meta.present || meta.status !== "ACTIVE") {
+    return reject(
+      GOOGLE_WORKSPACE_OUTCOMES.AUTH_REQUIRED,
+      `ACTIVE credential required at ${GOOGLE_CREDENTIAL_REF}`,
+      "authenticate",
+      evidence,
+    );
+  }
+
+  // Preserve existing Gmail/Calendar/Drive and Sheets metadata behavior.
+  if (intent !== GOOGLE_WORKSPACE_INTENTS.sheetsValues) {
+    const scopeOk = hasRequiredScopes(meta.granted_scopes, spec.required_scopes);
+    evidence.push(scopeCheckEvidence(spec.service, spec.required_scopes, scopeOk));
+    if (!scopeOk) {
+      return reject(
+        GOOGLE_WORKSPACE_OUTCOMES.SCOPE_REQUIRED,
+        `missing required scope(s) for ${spec.service}`,
         "scope",
         evidence,
       );
@@ -511,6 +531,7 @@ export async function handleGoogleWorkspaceReadCommand(
       accessToken: cred.access_token,
       evaluateOwnerPolicy: evaluatePolicy,
       readCredentialMeta: readMeta,
+      scopesAlreadyValidated: true,
     });
     for (const e of resolved.evidence) evidence.push(e);
     if (resolved.status !== "RESOLVED") {
@@ -534,19 +555,6 @@ export async function handleGoogleWorkspaceReadCommand(
       range: resolved.range,
       spreadsheet_name: resolved.resolved_name ?? payload.spreadsheet_name,
     };
-    // After Drive discovery, Sheets scope must still pass before values.get
-    const sheetsScopeOk = hasRequiredScopes(meta.granted_scopes, spec.required_scopes);
-    if (!evidence.some((e) => e.source === "google-workspace.scope" && String(e.note).includes(String(SHEETS_SERVICE_ID)))) {
-      evidence.push(scopeCheckEvidence(spec.service, spec.required_scopes, sheetsScopeOk));
-    }
-    if (!sheetsScopeOk) {
-      return reject(
-        GOOGLE_WORKSPACE_OUTCOMES.SCOPE_REQUIRED,
-        `missing required Sheets scope after spreadsheet_id resolution`,
-        "scope",
-        evidence,
-      );
-    }
   }
 
   // 6. Google API

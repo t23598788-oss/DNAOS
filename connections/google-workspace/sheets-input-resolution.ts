@@ -65,6 +65,8 @@ export interface SheetsInputResolutionDeps {
   readonly accessToken: string;
   readonly evaluateOwnerPolicy?: typeof evaluateOwnerCapabilityBinding;
   readonly readCredentialMeta: () => CredentialMeta;
+  /** The adapter proved Drive/Sheets scopes before resolving this token. */
+  readonly scopesAlreadyValidated?: boolean;
 }
 
 function mergeParse(payload: GoogleWorkspaceReadPayload): SheetsOwnerTextParse {
@@ -180,18 +182,20 @@ export async function resolveSheetsValuesInput(
       };
     }
 
-    const meta = deps.readCredentialMeta();
-    const driveScopeOk = hasRequiredScopes(meta.granted_scopes, [DRIVE_SCOPE]);
-    evidence.push(scopeCheckEvidence(DRIVE_SERVICE_ID, [DRIVE_SCOPE], driveScopeOk));
-    if (!driveScopeOk) {
-      return {
-        status: "BLOCKED",
-        outcome: GOOGLE_WORKSPACE_OUTCOMES.SCOPE_REQUIRED,
-        reason: `missing required Drive scope for spreadsheet name resolution`,
-        denied_at_stage: "scope",
-        evidence,
-        drive_discovery_used: false,
-      };
+    if (!deps.scopesAlreadyValidated) {
+      const meta = deps.readCredentialMeta();
+      const driveScopeOk = hasRequiredScopes(meta.granted_scopes, [DRIVE_SCOPE]);
+      evidence.push(scopeCheckEvidence(DRIVE_SERVICE_ID, [DRIVE_SCOPE], driveScopeOk));
+      if (!driveScopeOk) {
+        return {
+          status: "BLOCKED",
+          outcome: GOOGLE_WORKSPACE_OUTCOMES.SCOPE_REQUIRED,
+          reason: `missing required Drive scope for spreadsheet name resolution`,
+          denied_at_stage: "scope",
+          evidence,
+          drive_discovery_used: false,
+        };
+      }
     }
 
     drive_discovery_used = true;
@@ -258,19 +262,21 @@ export async function resolveSheetsValuesInput(
     };
   }
 
-  // Need Sheets metadata to prove a tab name or unique sheet — Sheets scope must pass first
-  const meta = deps.readCredentialMeta();
-  const sheetsScopeOk = hasRequiredScopes(meta.granted_scopes, [SHEETS_SCOPE]);
-  evidence.push(scopeCheckEvidence(SHEETS_SERVICE_ID, [SHEETS_SCOPE], sheetsScopeOk));
-  if (!sheetsScopeOk) {
-    return {
-      status: "BLOCKED",
-      outcome: GOOGLE_WORKSPACE_OUTCOMES.SCOPE_REQUIRED,
-      reason: `missing required Sheets scope after spreadsheet_id resolution`,
-      denied_at_stage: "scope",
-      evidence,
-      drive_discovery_used,
-    };
+  // The adapter checks this scope before Keychain; direct callers prove it here.
+  if (!deps.scopesAlreadyValidated) {
+    const meta = deps.readCredentialMeta();
+    const sheetsScopeOk = hasRequiredScopes(meta.granted_scopes, [SHEETS_SCOPE]);
+    evidence.push(scopeCheckEvidence(SHEETS_SERVICE_ID, [SHEETS_SCOPE], sheetsScopeOk));
+    if (!sheetsScopeOk) {
+      return {
+        status: "BLOCKED",
+        outcome: GOOGLE_WORKSPACE_OUTCOMES.SCOPE_REQUIRED,
+        reason: `missing required Sheets scope after spreadsheet_id resolution`,
+        denied_at_stage: "scope",
+        evidence,
+        drive_discovery_used,
+      };
+    }
   }
 
   const metaResult = await sheetsGetSpreadsheet(deps.fetchImpl, deps.accessToken, spreadsheet_id);
