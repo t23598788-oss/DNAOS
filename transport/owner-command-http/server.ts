@@ -78,6 +78,7 @@ import { DEFAULT_AGENT_WORKERS, startAgentGatewaySupervisor, getTask, getResult,
 import type { WorkOrder } from "../../control/agent-gateway/types";
 import type { UiWorkOrder } from "../../connections/os-ui/work-order";
 import { listCapabilities } from "../../control/command-router/capability-registry";
+import { classifyCommand } from "../../control/command-router/contract";
 import { startJointEventBridge } from "../../observability/joint-monitor/contract";
 import { startWriteFailureBridge, AUTOMATIC_AGENT_DISPATCH_ENABLED } from "../../control/write-failure-bridge/contract";
 import { intakeEvent } from "../../control/owner-backbone/contract";
@@ -136,7 +137,13 @@ const registrationStore = createPersistentFileStore();
 let conversationRuntimeHandle: ConversationRuntimeHandle | null = null;
 function conversationRuntime(): ConversationRuntimeHandle {
   if (!conversationRuntimeHandle || !conversationRuntimeHandle.isAlive()) {
-    conversationRuntimeHandle = spawnConversationRuntime();
+    try {
+      conversationRuntimeHandle = spawnConversationRuntime();
+    } catch (error) {
+      // Surface precise build/entrypoint failures (missing/empty/unreadable dist)
+      // instead of a vague later timeout — still fail-closed, never in-process fallback.
+      throw error instanceof Error ? error : new Error(String(error));
+    }
   }
   return conversationRuntimeHandle;
 }
@@ -146,9 +153,25 @@ function conversationRuntime(): ConversationRuntimeHandle {
  * Index, self-knowledge). Only a resolved executable Owner command is
  * forwarded through the existing MCP submit_command tool. This is not a
  * second MCP, classifier, or Thai-phrase table.
+ *
+ * CONVERSATION_RUNTIME_LIVE_IO_V1: when raw Owner text uniquely matches a
+ * registered connector capability (e.g. google-workspace via "gmail"),
+ * forward into the existing submitOwnerCommand path even if the conversation
+ * layer also produced a read-only Connection Index answer — execution must
+ * not be swallowed by self-knowledge.
  */
-function shouldForwardStructuredIntentToExistingMcp(result: ConversationResult, ownerPayload: Record<string, unknown> | null): boolean {
+function shouldForwardStructuredIntentToExistingMcp(
+  result: ConversationResult,
+  ownerPayload: Record<string, unknown> | null,
+  commandText: string = "",
+): boolean {
   if (readEngineeringCodingIntent(ownerPayload)) return true;
+  if (commandText.trim().length > 0) {
+    const classified = classifyCommand(commandText);
+    if (classified.status === "MATCHED" && classified.capability.endpoint.kind === "connector") {
+      return true;
+    }
+  }
   const name = result.intent?.intent ?? "";
   if (
     name === "SELF_KNOWLEDGE_QUERY"
@@ -538,7 +561,7 @@ async function respondWithChatIntake(
     sendJson(res, 503, { error: "CONVERSATION_RUNTIME_UNAVAILABLE", detail: error instanceof Error ? error.message : String(error), message_id: messageId });
     return;
   }
-  const forwardToMcp = shouldForwardStructuredIntentToExistingMcp(result, ownerPayload);
+  const forwardToMcp = shouldForwardStructuredIntentToExistingMcp(result, ownerPayload, rawText);
   let mcp: unknown = null;
   if (forwardToMcp) {
     mcp = await invokeExistingMcpSubmitCommand(rawText, ownerIdentity, ownerPayload, null);
