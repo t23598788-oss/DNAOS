@@ -10,8 +10,10 @@
  * Input: none (module-level constant).
  * Output: `CONNECTOR_INVOKER_REGISTRY`, `getConnectorInvoker`.
  * Dependency ที่อนุญาต: ./types.ts,
- * ../../connections/digitalocean/router-invoker.ts (its one documented
- * public entry point).
+ * ../../connections/digitalocean/router-invoker.ts,
+ * ../../connections/railway/router-invoker.ts,
+ * ../../connections/google-workspace/router-invoker.ts
+ * (each provider's one documented public entry point).
  * สิ่งที่ห้ามแตะ: never import a provider's internal binding/credential
  * provider files here — only the provider's own already-composed
  * `ConnectorInvoker` function, per Capability Folder Law ข้อ 9.
@@ -20,10 +22,12 @@
 import type { ConnectorInvoker } from "./types";
 import { invokeDigitalOceanConnector } from "../../connections/digitalocean/router-invoker";
 import { invokeRailwayConnector } from "../../connections/railway/router-invoker";
+import { invokeGoogleWorkspaceConnector } from "../../connections/google-workspace/router-invoker";
 
 export const CONNECTOR_INVOKER_REGISTRY: Readonly<Record<string, ConnectorInvoker>> = {
   digitalocean: invokeDigitalOceanConnector,
   railway: invokeRailwayConnector,
+  "google-workspace": invokeGoogleWorkspaceConnector,
 };
 
 export function getConnectorInvoker(capability_id: string): ConnectorInvoker | undefined {

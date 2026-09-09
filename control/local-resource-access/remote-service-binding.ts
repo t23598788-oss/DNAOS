@@ -21,6 +21,7 @@ import {
   SHEETS_SCOPE,
   SHEETS_SERVICE_ID,
 } from "../../connections/google-workspace/contract";
+import { isGoogleWorkspaceRuntimeAdapterPresent } from "../../connections/google-workspace/adapter-presence";
 import { atoms } from "./capability-states";
 import { matchingCapabilityBindingPolicy } from "./owner-capability-policy";
 import type {
@@ -112,13 +113,15 @@ function googleServiceBinding(input: {
   read_scope: readonly string[];
   session_id: string | null;
   ai_identity: string | null;
+  /** False for services the registered runtime adapter does not implement (e.g. contacts). */
+  runtime_adapter_supports_service: boolean;
 }): RemoteServiceCapabilityBindingV1 {
   const family = googleFamilyCredential();
   const ownerOn = enabled(input.session_id, input.ai_identity, input.service_id);
   const scopeOk = !family.revoked && !family.expired && family.status === "ACTIVE"
     && hasAllScopes(family.granted_scopes, input.required_scopes);
-  // V1: no DNA OS-hosted Google API adapter in this wiring commit — AUTH may be ready later; adapter stays false.
-  const adapterPresent = false;
+  // Reflect real CONNECTOR_INVOKER_REGISTRY registration — never a hard-coded flag.
+  const registeredAdapter = isGoogleWorkspaceRuntimeAdapterPresent();
   const authReady = scopeOk;
   const availability = family.revoked
     ? "UNAVAILABLE"
@@ -137,6 +140,7 @@ function googleServiceBinding(input: {
     capabilities: input.actions,
     canonical_action_mapping: input.actions.map((action) => {
       const isWrite = GOOGLE_WRITE_ACTIONS.has(action);
+      const adapterPresent = !isWrite && input.runtime_adapter_supports_service && registeredAdapter;
       const canonical: EverydayActionId | null =
         action === "CREATE_DRAFT" || action === "SEND" || action === "DOWNLOAD_ATTACHMENT"
           ? (action === "SEND" ? "SHARE" : action === "CREATE_DRAFT" ? "CREATE" : "DOWNLOAD")
@@ -144,7 +148,7 @@ function googleServiceBinding(input: {
       return map(
         action,
         canonical,
-        atoms(true, adapterPresent, authReady && !isWrite, false, isWrite ? false : ownerOn && authReady),
+        atoms(true, adapterPresent, authReady && !isWrite, adapterPresent && authReady && !isWrite, isWrite ? false : ownerOn && authReady),
       );
     }),
     data_classes: ["REMOTE_OBJECT"],
@@ -233,6 +237,7 @@ export function listRemoteServiceBindings(ai_identity: string | null = null, ses
       actions: ["SEARCH", "READ", "CREATE", "WRITE", "MOVE", "DOWNLOAD", "UPLOAD", "SHARE"],
       required_scopes: [DRIVE_SCOPE],
       read_scope: ["drive.readonly"],
+      runtime_adapter_supports_service: true,
     }),
     googleServiceBinding({
       ...googleCommon,
@@ -241,6 +246,7 @@ export function listRemoteServiceBindings(ai_identity: string | null = null, ses
       actions: ["SEARCH", "READ", "CREATE_DRAFT", "SEND", "DOWNLOAD_ATTACHMENT"],
       required_scopes: [GMAIL_SCOPE],
       read_scope: ["gmail.readonly"],
+      runtime_adapter_supports_service: true,
     }),
     googleServiceBinding({
       ...googleCommon,
@@ -249,6 +255,7 @@ export function listRemoteServiceBindings(ai_identity: string | null = null, ses
       actions: ["SEARCH", "READ", "CREATE", "WRITE", "DELETE"],
       required_scopes: [...CALENDAR_SCOPES],
       read_scope: ["calendar.calendarlist.readonly", "calendar.events.readonly"],
+      runtime_adapter_supports_service: true,
     }),
     googleServiceBinding({
       ...googleCommon,
@@ -258,6 +265,7 @@ export function listRemoteServiceBindings(ai_identity: string | null = null, ses
       // Contacts not in V1 live scope set — remains AUTH_REQUIRED unless future scopes admitted
       required_scopes: ["https://www.googleapis.com/auth/contacts.readonly"],
       read_scope: ["contacts.readonly"],
+      runtime_adapter_supports_service: false,
     }),
     googleServiceBinding({
       ...googleCommon,
@@ -266,6 +274,7 @@ export function listRemoteServiceBindings(ai_identity: string | null = null, ses
       actions: ["SEARCH", "READ", "CREATE", "WRITE", "EXPORT"],
       required_scopes: [SHEETS_SCOPE],
       read_scope: ["spreadsheets.readonly"],
+      runtime_adapter_supports_service: true,
     }),
     schema,
   ];

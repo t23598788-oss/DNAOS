@@ -242,6 +242,29 @@ export const CAPABILITY_REGISTRY: Readonly<Record<string, CapabilityRegistration
     health_status: "CONNECTED",
   },
 
+  "google-workspace": {
+    capability_id: "google-workspace",
+    repo_id: "DNA-OS-INFRASTRUCTURE",
+    contract: "connections/google-workspace/adapter-contract.ts",
+    endpoint: { kind: "connector", module: "connections/google-workspace/router-invoker.ts", entry: "invokeGoogleWorkspaceConnector" },
+    supported_commands: [
+      "google.gmail.messages.search",
+      "google.gmail.messages.list",
+      "google.gmail.messages.read",
+      "google.calendar.calendars.list",
+      "google.calendar.events.list",
+      "google.drive.files.search",
+      "google.drive.files.list",
+      "google.drive.files.metadata",
+      "google.drive.files.content",
+      "google.sheets.spreadsheets.metadata",
+      "google.sheets.values.read",
+    ],
+    match_keyword_sets: [["gmail"], ["google", "calendar"], ["google", "drive"], ["google", "sheets"], ["google", "workspace"]],
+    permission_requirement: "none", // Owner capability policy + scope checks enforced inside connections/google-workspace/google-workspace-adapter.ts
+    health_status: "CONNECTED",
+  },
+
   "local-resource-access": {
     capability_id: "local-resource-access",
     repo_id: "DNA-OS-INFRASTRUCTURE",

@@ -197,7 +197,9 @@ async function main(): Promise<void> {
     // Wired to connection.google.workspace.v1; without ACTIVE scoped credential stays DISCOVERED (AUTH_REQUIRED).
     assert(drive?.availability === "DISCOVERED" || drive?.availability === "BOUND", drive?.availability ?? "missing");
     assert(drive?.connection_id === "connection.google.workspace.v1", "family connection_id");
-    assert((drive?.canonical_action_mapping ?? []).every((row) => row.states.ADAPTER_PRESENT === false), "no fake adapter");
+    // Runtime adapter is registered via CONNECTOR_INVOKER_REGISTRY — read actions report ADAPTER_PRESENT.
+    assert((drive?.canonical_action_mapping ?? []).filter((row) => row.action === "READ" || row.action === "SEARCH" || row.action === "DOWNLOAD").every((row) => row.states.ADAPTER_PRESENT === true), "read adapter present");
+    assert((drive?.canonical_action_mapping ?? []).filter((row) => row.action === "WRITE").every((row) => row.states.ADAPTER_PRESENT === false), "write adapter absent");
     assert((drive?.canonical_action_mapping ?? []).filter((row) => row.action === "WRITE").every((row) => row.states.OWNER_ENABLED === false), "write blocked");
   });
 
