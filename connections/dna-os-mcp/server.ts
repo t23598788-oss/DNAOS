@@ -77,6 +77,9 @@ export function createDnaOsMcpServer(
           permission_scope: tool.metadata.permission_scope,
           evidence_behavior: tool.metadata.evidence_behavior,
           dna_os_capability_id: tool.metadata.dna_os_capability_id,
+          // Canonical refs are resolved on demand via dna_os.inspect_tool_descriptor /
+          // dna_os.resolve_tool_grant — never embed secrets or duplicate schemas here.
+          canonical_descriptor_resolver: "connections/dna-os-mcp/tool-grant.ts#resolveToolDescriptor",
         },
       },
       async (args) => {

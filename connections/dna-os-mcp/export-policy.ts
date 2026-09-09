@@ -480,6 +480,12 @@ export const TOOL_POLICIES: readonly ToolPolicy[] = [
   { tool_name: "dna_os.get_remote_admission_gate_status", read_write_class: "READ_ONLY", side_effect_class: "NONE",
     authority_requirement: "NONE", export_class: "EXTERNAL_ALLOWED",
     reason: "สถานะ DNA OS remote admission โดยไม่ rerun AI" },
+  { tool_name: "dna_os.resolve_tool_grant", read_write_class: "READ_ONLY", side_effect_class: "NONE",
+    authority_requirement: "NONE", export_class: "EXTERNAL_ALLOWED",
+    reason: "DNA OS เป็นผู้ตัดสิน tool grant จาก export-policy + capability-gate + descriptor — ไม่มี secret" },
+  { tool_name: "dna_os.inspect_tool_descriptor", read_write_class: "READ_ONLY", side_effect_class: "NONE",
+    authority_requirement: "NONE", export_class: "EXTERNAL_ALLOWED",
+    reason: "อ่าน canonical tool descriptor (references only) — fail closed เมื่อ tool ไม่รู้จักหรือถูก revoke" },
 ];
 
 /**

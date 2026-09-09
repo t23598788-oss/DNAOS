@@ -36,6 +36,32 @@ export {
 } from "./runtime-facts";
 export { UNAUTHENTICATED_CONTEXT } from "./caller-context";
 export type { CallerContext } from "./export-policy";
+export { canDiscover, canInvoke, policyFor, discoverableTools } from "./export-policy";
+export {
+  resolveToolDescriptor,
+  resolveToolGrant,
+  requiresOwnerDeviceApproval,
+  assertApprovalScopeExact,
+  setRegisteredToolsProvider,
+  setMcpIngressCheck,
+  detectCanonicalToolingDrift,
+} from "./tool-grant";
+export { CANONICAL_OWNERS } from "./canonical-tool-descriptor";
+export type {
+  CanonicalToolDescriptor,
+  DescriptorResolution,
+  DescriptorResolutionStatus,
+  ToolExecutionMode,
+  ToolRiskClass,
+  ToolReadWriteClass,
+} from "./canonical-tool-descriptor";
+export type { ToolGrant, ToolGrantRequest, ToolGrantResult } from "./tool-grant";
+export {
+  CONCEPTUAL_TOOL_ALIASES,
+  resolveCanonicalToolId,
+  toolSurfaceClass,
+} from "./conceptual-tool-aliases";
+export type { ToolSurfaceClass } from "./conceptual-tool-aliases";
 export type {
   McpToolMetadata,
   McpToolPermissionScope,
