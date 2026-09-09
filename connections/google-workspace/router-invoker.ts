@@ -43,11 +43,18 @@ export const invokeGoogleWorkspaceConnector: ConnectorInvoker = async (
 
   const code = outcome.rejection.outcome;
   const authRequired = code === GOOGLE_WORKSPACE_OUTCOMES.AUTH_REQUIRED;
+  const artifacts: Array<{ kind: string; ref: string }> = [];
+  if (outcome.rejection.clarification_candidates && outcome.rejection.clarification_candidates.length > 0) {
+    artifacts.push({
+      kind: "sheets_clarification_candidates",
+      ref: JSON.stringify(outcome.rejection.clarification_candidates),
+    });
+  }
   return {
     ok: false,
     auth_required: authRequired,
     summary: `${code}: ${outcome.rejection.reason}`,
     evidence: outcome.evidence,
-    artifacts: [],
+    artifacts,
   };
 };

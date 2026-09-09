@@ -58,10 +58,11 @@
  */
 
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
+import { readFileSync, existsSync, statSync } from "node:fs";
 import { decideContinuation, deriveLifecycle } from "../../control/operational-lifecycle/contract";
 import { readRuntimeRevision } from "../../control/runtime-revision/contract";
 import { fileURLToPath } from "node:url";
-import { resolve } from "node:path";
+import { join, resolve } from "node:path";
 import { verifySharedSecret, evaluateBindPolicy } from "../../permissions/network-auth-gate/contract";
 import type { EnvelopeIdentity } from "../../contracts/identity/envelope-identity";
 import { languageEventsSince, onLanguageStage, publishLanguageStage } from "../../control/owner-command-semantics/contract";
@@ -79,6 +80,15 @@ import type { WorkOrder } from "../../control/agent-gateway/types";
 import type { UiWorkOrder } from "../../connections/os-ui/work-order";
 import { listCapabilities } from "../../control/command-router/capability-registry";
 import { classifyCommand } from "../../control/command-router/contract";
+import { resolveGoogleWorkspaceReadIntentFromText } from "../../connections/google-workspace/owner-text-intent";
+import { parseSheetsOwnerText } from "../../connections/google-workspace/sheets-owner-text";
+import {
+  CALENDAR_SERVICE_ID,
+  DRIVE_SERVICE_ID,
+  GMAIL_SERVICE_ID,
+  SHEETS_SERVICE_ID,
+} from "../../connections/google-workspace/contract";
+import { issueOwnerCapabilityBindingPolicy, matchingCapabilityBindingPolicy } from "../../control/local-resource-access/contract";
 import { startJointEventBridge } from "../../observability/joint-monitor/contract";
 import { startWriteFailureBridge, AUTOMATIC_AGENT_DISPATCH_ENABLED } from "../../control/write-failure-bridge/contract";
 import { intakeEvent } from "../../control/owner-backbone/contract";
@@ -134,6 +144,84 @@ const registrationStore = createPersistentFileStore();
  * started) triggers exactly one respawn attempt before failing closed —
  * this file never falls back to calling the semantics layer directly.
  */
+/** Process start clock for /health runtime_instance — operational observability only. */
+const PROCESS_STARTED_AT = new Date().toISOString();
+
+function readConversationRuntimeBuildIdentity(): {
+  artifact_path: string | null;
+  artifact_bytes: number | null;
+  artifact_mtime: string | null;
+  build_id: string | null;
+  build_hash: string | null;
+  build_time: string | null;
+  build_from_commit: string | null;
+  build_from_commit_dirty: boolean | null;
+  branch: string | null;
+  local_worktree: string | null;
+  stale_runtime_build: boolean;
+  stale_reason: string | null;
+} {
+  const artifactPath = join(process.cwd(), "control/conversation-runtime/dist/control/conversation-runtime/main.js");
+  const manifestPath = join(process.cwd(), "control/conversation-runtime/dist/build-manifest.json");
+  let artifact_bytes: number | null = null;
+  let artifact_mtime: string | null = null;
+  let artifact_path: string | null = null;
+  if (existsSync(artifactPath)) {
+    const st = statSync(artifactPath);
+    artifact_path = artifactPath;
+    artifact_bytes = st.size;
+    artifact_mtime = st.mtime.toISOString();
+  }
+  let build_id: string | null = null;
+  let build_hash: string | null = null;
+  let build_time: string | null = null;
+  let build_from_commit: string | null = null;
+  let build_from_commit_dirty: boolean | null = null;
+  let branch: string | null = null;
+  let local_worktree: string | null = null;
+  if (existsSync(manifestPath)) {
+    try {
+      const m = JSON.parse(readFileSync(manifestPath, "utf8")) as Record<string, unknown>;
+      build_id = typeof m.BUILD_ID === "string" ? m.BUILD_ID : null;
+      build_hash = typeof m.BUILD_HASH === "string" ? m.BUILD_HASH : null;
+      build_time = typeof m.BUILD_TIME === "string" ? m.BUILD_TIME : null;
+      build_from_commit = typeof m.BUILD_FROM_COMMIT === "string" ? m.BUILD_FROM_COMMIT : null;
+      build_from_commit_dirty = typeof m.BUILD_FROM_COMMIT_DIRTY === "boolean" ? m.BUILD_FROM_COMMIT_DIRTY : null;
+      branch = typeof m.BRANCH === "string" ? m.BRANCH : null;
+      local_worktree = typeof m.LOCAL_WORKTREE === "string" ? m.LOCAL_WORKTREE : null;
+    } catch {
+      /* leave nulls — never invent */
+    }
+  }
+  const source = readRuntimeRevision();
+  let stale_runtime_build = false;
+  let stale_reason: string | null = null;
+  if (!artifact_path || !artifact_bytes) {
+    stale_runtime_build = true;
+    stale_reason = "CONVERSATION_RUNTIME_ARTIFACT_MISSING";
+  } else if (!build_from_commit) {
+    stale_runtime_build = true;
+    stale_reason = "BUILD_MANIFEST_MISSING_COMMIT";
+  } else if (source.revision && build_from_commit !== source.revision) {
+    stale_runtime_build = true;
+    stale_reason = "STALE_RUNTIME_BUILD";
+  }
+  return {
+    artifact_path,
+    artifact_bytes,
+    artifact_mtime,
+    build_id,
+    build_hash,
+    build_time,
+    build_from_commit,
+    build_from_commit_dirty,
+    branch,
+    local_worktree,
+    stale_runtime_build,
+    stale_reason,
+  };
+}
+
 let conversationRuntimeHandle: ConversationRuntimeHandle | null = null;
 function conversationRuntime(): ConversationRuntimeHandle {
   if (!conversationRuntimeHandle || !conversationRuntimeHandle.isAlive()) {
@@ -189,20 +277,86 @@ function shouldForwardStructuredIntentToExistingMcp(
   return semantic.context?.resolved_state === "RESOLVED";
 }
 
+function ensureOwnerGoogleReadPolicy(ai_identity: string, session_id: string): void {
+  if (matchingCapabilityBindingPolicy(ai_identity, session_id)) return;
+  // Owner Surface principal: allow Google READ services already registered on this machine.
+  // Does not invent write rights — allowed_actions stay SEARCH/READ/DOWNLOAD only.
+  issueOwnerCapabilityBindingPolicy({
+    ai_identity,
+    session_id,
+    effect: "ALLOW",
+    enabled_binding_ids: [GMAIL_SERVICE_ID, CALENDAR_SERVICE_ID, DRIVE_SERVICE_ID, SHEETS_SERVICE_ID, "*"],
+    allowed_actions: ["SEARCH", "READ", "DOWNLOAD"],
+    visible_data_classes: ["REMOTE_OBJECT"],
+    approval_required_actions: [],
+    allowed_connection_ids: ["connection.google.workspace.v1"],
+    read_scope: [],
+    write_scope: [],
+    publish_scope: [],
+    network_destinations: ["https://www.googleapis.com", "https://gmail.googleapis.com", "https://www.googleapis.com/drive", "https://sheets.googleapis.com", "https://www.googleapis.com/calendar"],
+    expires_at: null,
+  });
+}
+
 async function invokeExistingMcpSubmitCommand(
   commandText: string,
   ownerIdentity: EnvelopeIdentity,
   ownerPayload: Record<string, unknown> | null,
   workId: string | null,
 ): Promise<unknown> {
-  const outcome = await submitOwnerCommand(
-    commandText,
-    ownerIdentity,
-    {
-      ...(workId ? { work_id: workId } : {}),
-      ...(ownerPayload ? { envelope_payload: ownerPayload } : {}),
-    },
-  );
+  const classified = classifyCommand(commandText);
+  const ai_identity = typeof ownerPayload?.ai_identity === "string" ? ownerPayload.ai_identity : ownerIdentity.identity_id;
+  const session_id = typeof ownerPayload?.session_id === "string" ? ownerPayload.session_id : `owner-surface:${ownerIdentity.identity_id}`;
+  const basePayload: Record<string, unknown> = {
+    ...(ownerPayload ?? {}),
+    // Owner surface principal — required by google-workspace Owner capability policy gate.
+    ai_identity,
+    session_id,
+  };
+
+  let routeOptions: { work_id?: string; envelope_payload?: Record<string, unknown>; steps?: Array<{ capability_id: string; intent: string; payload: unknown }> } = {
+    ...(workId ? { work_id: workId } : {}),
+    envelope_payload: basePayload,
+  };
+
+  if (classified.status === "MATCHED" && classified.capability.capability_id === "google-workspace") {
+    ensureOwnerGoogleReadPolicy(ai_identity, session_id);
+    const intent = resolveGoogleWorkspaceReadIntentFromText(commandText);
+    if (intent) {
+      const payload: Record<string, unknown> = { ...basePayload };
+      if (intent === "google.calendar.events.list" && typeof payload.calendar_id !== "string") {
+        payload.calendar_id = "primary";
+      }
+      if (intent === "google.gmail.messages.search" && typeof payload.q !== "string") {
+        payload.q = "in:inbox";
+      }
+      if (intent === "google.drive.files.search" && typeof payload.q !== "string") {
+        payload.q = "trashed=false";
+      }
+      if (intent === "google.sheets.values.read" || intent === "google.sheets.spreadsheets.metadata") {
+        payload.owner_text = commandText;
+        const sheetsParse = parseSheetsOwnerText(commandText);
+        if (sheetsParse.spreadsheet_id && typeof payload.spreadsheet_id !== "string") {
+          payload.spreadsheet_id = sheetsParse.spreadsheet_id;
+        }
+        if (sheetsParse.spreadsheet_name && typeof payload.spreadsheet_name !== "string") {
+          payload.spreadsheet_name = sheetsParse.spreadsheet_name;
+        }
+        if (sheetsParse.range && typeof payload.range !== "string") {
+          payload.range = sheetsParse.range;
+        }
+        if (sheetsParse.sheet_tab && typeof payload.sheet_tab !== "string") {
+          payload.sheet_tab = sheetsParse.sheet_tab;
+        }
+      }
+      routeOptions = {
+        ...routeOptions,
+        steps: [{ capability_id: "google-workspace", intent, payload }],
+      };
+    }
+  }
+
+  const outcome = await submitOwnerCommand(commandText, ownerIdentity, routeOptions);
   return {
     dna_os_command_id: outcome.envelope.command_id,
     dna_os_work_id: outcome.work_id,
@@ -901,8 +1055,42 @@ export const server = createServer((req, res) => {
     // running", which nothing could answer before — see
     // control/runtime-revision/contract.ts for why a null here is honest
     // rather than filled in.
+    //
+    // LIVE_RUNTIME_INSTANCE_PROOF_V1: `runtime_instance` is operational
+    // observability only (PID / worktree / build / child) so agents can detect
+    // STALE_SOURCE_CONTEXT or STALE_RUNTIME_BUILD before trusting old proofs.
     const runtime = readRuntimeRevision();
-    sendJson(res, 200, { ok: true, revision: runtime.revision, revision_source: runtime.source, revision_dirty: runtime.dirty, revision_reason: runtime.reason });
+    const build = readConversationRuntimeBuildIdentity();
+    const child = conversationRuntimeHandle;
+    sendJson(res, 200, {
+      ok: true,
+      revision: runtime.revision,
+      revision_source: runtime.source,
+      revision_dirty: runtime.dirty,
+      revision_reason: runtime.reason,
+      runtime_instance: {
+        pid: process.pid,
+        ppid: process.ppid,
+        port: Number(process.env.PORT) || 8791,
+        worktree: process.cwd(),
+        started_at: PROCESS_STARTED_AT,
+        launch_agent_label: process.env.XPC_SERVICE_NAME ?? null,
+        branch: build.branch,
+        source_sha: runtime.revision,
+        build_from_commit: build.build_from_commit,
+        build_hash: build.build_hash,
+        build_id: build.build_id,
+        build_time: build.build_time,
+        artifact_path: build.artifact_path,
+        artifact_bytes: build.artifact_bytes,
+        artifact_mtime: build.artifact_mtime,
+        stale_runtime_build: build.stale_runtime_build,
+        stale_reason: build.stale_reason,
+        conversation_child_pid: child?.pid ?? null,
+        conversation_child_alive: child ? child.isAlive() : null,
+        conversation_child_ready: child ? child.isReady() : null,
+      },
+    });
     return;
   }
   if (req.method !== "GET" && req.method !== "HEAD" && !requireSharedSecret(req, res)) {

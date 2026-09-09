@@ -36,6 +36,7 @@ import {
   type GoogleWorkspaceOutcomeCode,
   type GoogleWorkspaceReadIntent,
   type GoogleWorkspaceReadPayload,
+  type GoogleWorkspaceRejection,
   type GoogleWorkspaceService,
   GOOGLE_WORKSPACE_EVENT_TYPES,
 } from "./adapter-contract";
@@ -68,6 +69,8 @@ import {
   type GoogleApiResult,
 } from "./google-api";
 import { hostFetch, hostNowIso, hostRandomId, type FetchImpl } from "./host-runtime";
+import { resolveSheetsValuesInput } from "./sheets-input-resolution";
+import { parseSheetsOwnerText } from "./sheets-owner-text";
 
 export interface GoogleWorkspaceAdapterDeps {
   credentialResolver?: GoogleWorkspaceCredentialResolver;
@@ -173,9 +176,22 @@ function reject(
   reason: string,
   stage: GoogleWorkspaceDeniedStage,
   evidence: CapabilityResultEvidence[],
+  clarification_candidates?: GoogleWorkspaceRejection["clarification_candidates"],
 ): GoogleWorkspaceAdapterOutcome {
   evidence.push(outcomeEvidence(outcome, reason));
-  return { ok: false, rejection: { ok: false, outcome, reason, denied_at_stage: stage }, evidence };
+  return {
+    ok: false,
+    rejection: {
+      ok: false,
+      outcome,
+      reason,
+      denied_at_stage: stage,
+      ...(clarification_candidates && clarification_candidates.length > 0
+        ? { clarification_candidates }
+        : {}),
+    },
+    evidence,
+  };
 }
 
 function countItems(data: unknown): number | null {
@@ -393,8 +409,80 @@ export async function handleGoogleWorkspaceReadCommand(
     );
   }
 
-  // 3. Credential metadata + scope — still no Keychain secret resolution
+  // Sheets values may need Drive discovery / metadata before a values.get.
+  // Every scope needed by the planned calls is validated before Keychain:
+  // owner policy → metadata → Drive scope? → Sheets scope → credential → APIs.
+  const ownerTextParse = parseSheetsOwnerText(typeof payload.owner_text === "string" ? payload.owner_text : "");
+  const hintedId =
+    (typeof payload.spreadsheet_id === "string" && payload.spreadsheet_id.trim())
+    || ownerTextParse.spreadsheet_id;
+  const hintedRange =
+    (typeof payload.range === "string" && payload.range.trim())
+    || ownerTextParse.range;
+  const sheetsValuesNeedsInputResolution =
+    intent === GOOGLE_WORKSPACE_INTENTS.sheetsValues && (!hintedId || !hintedRange);
+  const sheetsNeedsDriveDiscovery =
+    intent === GOOGLE_WORKSPACE_INTENTS.sheetsValues && !hintedId;
+
+  // Sheets name resolution also requires Drive Owner authority. Prove that
+  // before reading even non-secret credential metadata.
+  if (sheetsNeedsDriveDiscovery) {
+    const drivePolicy = evaluatePolicy({
+      ai_identity,
+      session_id,
+      binding_id: DRIVE_SERVICE_ID,
+      action: "SEARCH",
+      remote: true,
+    });
+    evidence.push(ownerPolicyEvidence(DRIVE_SERVICE_ID, drivePolicy.decision, drivePolicy.reason_code));
+    if (drivePolicy.decision !== "ALLOW") {
+      return reject(
+        GOOGLE_WORKSPACE_OUTCOMES.OWNER_DENIED,
+        `Owner capability policy denied Drive discovery for Sheets (${drivePolicy.reason_code})`,
+        "owner_policy",
+        evidence,
+      );
+    }
+  }
+
+  // Read non-secret registry metadata once. For Sheets values, required scopes
+  // are validated before the ACTIVE credential-state gate and before Keychain.
   const meta = readMeta();
+
+  if (sheetsNeedsDriveDiscovery) {
+    const driveScopeOk = hasRequiredScopes(meta.granted_scopes, [DRIVE_SCOPE]);
+    evidence.push(scopeCheckEvidence(DRIVE_SERVICE_ID, [DRIVE_SCOPE], driveScopeOk));
+    if (!driveScopeOk) {
+      return reject(
+        GOOGLE_WORKSPACE_OUTCOMES.SCOPE_REQUIRED,
+        `missing required Drive scope for spreadsheet name resolution`,
+        "scope",
+        evidence,
+      );
+    }
+    const sheetsScopeOk = hasRequiredScopes(meta.granted_scopes, [SHEETS_SCOPE]);
+    evidence.push(scopeCheckEvidence(SHEETS_SERVICE_ID, [SHEETS_SCOPE], sheetsScopeOk));
+    if (!sheetsScopeOk) {
+      return reject(
+        GOOGLE_WORKSPACE_OUTCOMES.SCOPE_REQUIRED,
+        `missing required Sheets scope after spreadsheet_id resolution`,
+        "scope",
+        evidence,
+      );
+    }
+  } else if (intent === GOOGLE_WORKSPACE_INTENTS.sheetsValues) {
+    const sheetsScopeOk = hasRequiredScopes(meta.granted_scopes, [SHEETS_SCOPE]);
+    evidence.push(scopeCheckEvidence(SHEETS_SERVICE_ID, [SHEETS_SCOPE], sheetsScopeOk));
+    if (!sheetsScopeOk) {
+      return reject(
+        GOOGLE_WORKSPACE_OUTCOMES.SCOPE_REQUIRED,
+        `missing required Sheets scope after spreadsheet_id resolution`,
+        "scope",
+        evidence,
+      );
+    }
+  }
+
   evidence.push(credentialMetaEvidence(GOOGLE_CREDENTIAL_REF, meta.status, meta.present));
   if (!meta.present || meta.status !== "ACTIVE") {
     return reject(
@@ -404,15 +492,19 @@ export async function handleGoogleWorkspaceReadCommand(
       evidence,
     );
   }
-  const scopeOk = hasRequiredScopes(meta.granted_scopes, spec.required_scopes);
-  evidence.push(scopeCheckEvidence(spec.service, spec.required_scopes, scopeOk));
-  if (!scopeOk) {
-    return reject(
-      GOOGLE_WORKSPACE_OUTCOMES.SCOPE_REQUIRED,
-      `missing required scope(s) for ${spec.service}`,
-      "scope",
-      evidence,
-    );
+
+  // Preserve existing Gmail/Calendar/Drive and Sheets metadata behavior.
+  if (intent !== GOOGLE_WORKSPACE_INTENTS.sheetsValues) {
+    const scopeOk = hasRequiredScopes(meta.granted_scopes, spec.required_scopes);
+    evidence.push(scopeCheckEvidence(spec.service, spec.required_scopes, scopeOk));
+    if (!scopeOk) {
+      return reject(
+        GOOGLE_WORKSPACE_OUTCOMES.SCOPE_REQUIRED,
+        `missing required scope(s) for ${spec.service}`,
+        "scope",
+        evidence,
+      );
+    }
   }
 
   // 4–5. Resolve credential (Keychain + refresh when needed)
@@ -432,9 +524,45 @@ export async function handleGoogleWorkspaceReadCommand(
     );
   }
 
+  let effectivePayload: GoogleWorkspaceReadPayload = payload;
+  if (sheetsValuesNeedsInputResolution) {
+    const resolved = await resolveSheetsValuesInput(payload, {
+      fetchImpl,
+      accessToken: cred.access_token,
+      evaluateOwnerPolicy: evaluatePolicy,
+      readCredentialMeta: readMeta,
+      scopesAlreadyValidated: true,
+    });
+    for (const e of resolved.evidence) evidence.push(e);
+    if (resolved.status !== "RESOLVED") {
+      if (resolved.status === "CLARIFICATION_REQUIRED" || resolved.status === "NOT_FOUND") {
+        networkCalled = resolved.drive_discovery_used;
+        return reject(
+          resolved.outcome,
+          resolved.reason,
+          "input_resolution",
+          evidence,
+          resolved.candidates,
+        );
+      }
+      if (resolved.status === "BLOCKED") {
+        networkCalled = resolved.drive_discovery_used;
+        return reject(resolved.outcome, resolved.reason, resolved.denied_at_stage, evidence);
+      }
+      throw new Error(`unhandled Sheets input resolution status: ${String((resolved as { status?: unknown }).status)}`);
+    }
+    networkCalled = resolved.drive_discovery_used;
+    effectivePayload = {
+      ...payload,
+      spreadsheet_id: resolved.spreadsheet_id,
+      range: resolved.range,
+      spreadsheet_name: resolved.resolved_name ?? payload.spreadsheet_name,
+    };
+  }
+
   // 6. Google API
-  const api = await executeRead(intent, payload, cred.access_token, fetchImpl);
-  networkCalled = api.endpoint !== "(not called)";
+  const api = await executeRead(intent, effectivePayload, cred.access_token, fetchImpl);
+  networkCalled = networkCalled || api.endpoint !== "(not called)";
   evidence.push(apiCallEvidence(spec.service, api.endpoint, api.http_status, api.ok));
   if (!api.ok) {
     return reject(api.outcome, api.reason, "route", evidence);

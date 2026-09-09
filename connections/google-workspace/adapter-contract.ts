@@ -25,6 +25,10 @@ export const GOOGLE_WORKSPACE_OUTCOMES = {
   UNSUPPORTED_ACTION: "UNSUPPORTED_ACTION",
   PROVIDER_ERROR: "PROVIDER_ERROR",
   TRANSPORT_ERROR: "TRANSPORT_ERROR",
+  /** Owner must disambiguate spreadsheet or range — no fabricated choice. */
+  CLARIFICATION_REQUIRED: "CLARIFICATION_REQUIRED",
+  /** Drive discovery found zero matching spreadsheet files. */
+  NOT_FOUND: "NOT_FOUND",
 } as const;
 
 export type GoogleWorkspaceOutcomeCode =
@@ -92,6 +96,10 @@ export interface GoogleWorkspaceReadPayload {
   readonly calendar_id?: string;
   readonly file_id?: string;
   readonly spreadsheet_id?: string;
+  readonly spreadsheet_name?: string;
+  readonly sheet_tab?: string;
+  /** Original Owner free-text — used for Sheets input parse only. */
+  readonly owner_text?: string;
   readonly range?: string;
   readonly page_token?: string;
 }
@@ -114,13 +122,21 @@ export type GoogleWorkspaceDeniedStage =
   | "owner_policy"
   | "scope"
   | "authenticate"
-  | "route";
+  | "route"
+  | "input_resolution";
+
+export interface SheetsClarificationCandidate {
+  readonly name: string;
+  readonly spreadsheet_id: string;
+  readonly modified_time: string | null;
+}
 
 export interface GoogleWorkspaceRejection {
   readonly ok: false;
   readonly outcome: Exclude<GoogleWorkspaceOutcomeCode, "SUCCESS">;
   readonly reason: string;
   readonly denied_at_stage: GoogleWorkspaceDeniedStage;
+  readonly clarification_candidates?: readonly SheetsClarificationCandidate[];
 }
 
 export type GoogleWorkspaceAdapterOutcome =
