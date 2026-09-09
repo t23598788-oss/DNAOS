@@ -109,7 +109,7 @@ async function main(): Promise<void> {
       : `PARTIAL:${String(github.result.detail ?? github.result.github_http_status)}`;
 
   const driveBinding = drive.binding as { availability?: string } | null;
-  const live4 = driveBinding?.availability === "NOT_AVAILABLE";
+  const live4 = driveBinding?.availability === "DISCOVERED" || driveBinding?.availability === "BOUND";
 
   const ranked = resolveCapabilityBindings({
     action: "SEARCH",
@@ -126,7 +126,7 @@ async function main(): Promise<void> {
   console.log(`LIVE_MACHINE_INVENTORY = ${live1}`);
   console.log(`LIVE_LOCAL_BINDING = ${live2}`);
   console.log(`LIVE_GITHUB_BINDING = ${live3status}`);
-  console.log(`LIVE_GOOGLE_BINDING = ${live4 ? "NOT_AVAILABLE" : "UNEXPECTED"}`);
+  console.log(`LIVE_GOOGLE_BINDING = ${live4 ? (driveBinding?.availability ?? "OK") : "UNEXPECTED"}`);
   console.log(`LIVE_CAPABILITY_ROUTING = ${live5}`);
   console.log(`GITHUB_CREDENTIAL_REF = ${String(ghBind?.credential_ref ?? github.result.credential_ref ?? "")}`);
   console.log(`SECRET_IN_GITHUB_RESULT = ${/ghp_|github_pat_|Bearer\s+\S/.test(ghBlob)}`);

@@ -93,6 +93,9 @@ import { createPersistentFileStore } from "../../software/registry-database/adap
 import { findCapability, findResourceById } from "../../software/registry-database/contract";
 import { handleOwnerBackboneRoute } from "./owner-backbone-routes";
 import { handleOwnerCredentialRoute } from "./owner-credential-routes";
+import { handleGoogleOauthRoute, renderGoogleOauthHtml } from "./google-oauth-routes";
+import { handleGoogleOauthClientAdmissionRoute } from "./google-oauth-client-admission-routes";
+import { handleGoogleOauthDiscoveryRoute } from "./google-oauth-discovery-routes";
 import { runPreExecutionPlan, latestPlanFor, latestPlan } from "../../control/pre-execution-planner/contract";
 import { executeLocalRead } from "../../control/owner-command/local-read-operations";
 import { resolveAndExecuteOwnerIntent, resolveAndExecuteOwnerRequest } from "../../control/owner-command/structured-intent";
@@ -109,6 +112,7 @@ import type { HistoryRecord } from "../../control/owner-command-semantics/contra
 import { currentStateProjection } from "../../control/work-session-state/contract";
 import { listConnectionDeclarations } from "../../connections/connection-registry/declaration-registry";
 import { providerMetadataFor } from "../../connections/connection-registry/provider-metadata";
+import { resolveProviderBrandAsset } from "../../connections/connection-registry/brand-asset-resolver";
 import type { ConnectionDeclaration } from "../../contracts/connector/connection-declaration";
 import type { CapabilityLookupResult, CapabilityRow, EvidenceRow, RelationshipRow, ResourceRow } from "../../software/registry-database/types";
 
@@ -375,6 +379,7 @@ async function runtimeInventory(): Promise<unknown> {
     const apiRoute = canonical?.relationships?.find((edge) => edge.relationship_kind === "CAPABILITY_TO_API" && edge.to_id.startsWith("route:"))?.to_id.slice("route:".length) ?? null;
     const provider = connection?.provider_id ?? null;
     const providerMetadata = provider ? providerMetadataFor(provider) : null;
+    const providerBrand = provider ? resolveProviderBrandAsset(provider) : null;
     const mcpTools = capability.capability_id === "dispatcher" ? ["submit_work_result"] : [];
     return {
     capability_id: capability.capability_id,
@@ -420,10 +425,17 @@ async function runtimeInventory(): Promise<unknown> {
     mcp: { available: true, bound_to_capability: mcpTools.length > 0, tools: mcpTools },
     provider_metadata: providerMetadata ? {
       provider_id: providerMetadata.provider_id,
+      display_name: providerMetadata.display_name,
       brand_slug: providerMetadata.brand_slug,
-      brand_icon_url: providerMetadata.brand_icon_url,
+      brand_icon_url: null, // production UI must not hotlink; use brand_asset_ref
       brand_icon_source: providerMetadata.brand_icon_source,
       source: providerMetadata.source,
+      parent_provider_id: providerMetadata.parent_provider_id,
+      official_brand_source_ref: providerMetadata.official_brand_source_ref,
+      asset_state: providerBrand?.asset_state ?? providerMetadata.asset_state,
+      brand_asset_ref: providerBrand?.brand_asset_ref ?? null,
+      remote_render_url: null,
+      fallback_used: providerBrand?.fallback_used ?? true,
     } : null,
     last_verified: evidence?.created_at ?? canonicalMetadata?.verified_at ?? null,
     verification_evidence_id: evidence?.evidence_id ?? null,
@@ -1365,6 +1377,51 @@ function buildOwnerActivity(identity: string, commandIdInput: string | null): Re
       }
       const reply = await handleOwnerCredentialRoute(req.method ?? "GET", parsed.pathname, parsed.searchParams, parsedBody);
       if (!reply) { sendJson(res, 404, { error: "not found" }); return; }
+      sendJson(res, reply.status, reply.body);
+    })();
+    return;
+  }
+
+  /**
+   * Google Workspace OAuth *client* Owner admission — config + Keychain secret only.
+   * Never begins Google login; never returns client_secret.
+   */
+  if (req.url?.startsWith("/owner/google-workspace/oauth-client")) {
+    const parsed = new URL(req.url, "http://127.0.0.1");
+    void (async () => {
+      let parsedBody: unknown = null;
+      if (req.method === "POST") {
+        const raw = await readBody(req);
+        try { parsedBody = JSON.parse(raw); } catch { sendJson(res, 400, { error: "invalid JSON body" }); return; }
+      }
+      const discoveryReply = await handleGoogleOauthDiscoveryRoute(req.method ?? "GET", parsed.pathname, parsed.searchParams, parsedBody);
+      if (discoveryReply) { sendJson(res, discoveryReply.status, discoveryReply.body); return; }
+      const reply = await handleGoogleOauthClientAdmissionRoute(req.method ?? "GET", parsed.pathname, parsed.searchParams, parsedBody);
+      if (!reply) { sendJson(res, 404, { error: "not found" }); return; }
+      sendJson(res, reply.status, reply.body);
+    })();
+    return;
+  }
+
+  /**
+   * Google Workspace OAuth — thin gate only. Lifecycle owns exchange/Keychain.
+   * Never invent client_id/secret here; CONFIGURATION_REQUIRED until Owner admits.
+   */
+  if (req.url?.startsWith("/oauth/google/workspace")) {
+    const parsed = new URL(req.url, "http://127.0.0.1");
+    void (async () => {
+      let parsedBody: unknown = null;
+      if (req.method === "POST") {
+        const raw = await readBody(req);
+        try { parsedBody = JSON.parse(raw); } catch { sendJson(res, 400, { error: "invalid JSON body" }); return; }
+      }
+      const reply = await handleGoogleOauthRoute(req.method ?? "GET", parsed.pathname, parsed.searchParams, parsedBody);
+      if (!reply) { sendJson(res, 404, { error: "not found" }); return; }
+      if (reply.contentType?.startsWith("text/html")) {
+        res.writeHead(reply.status, { "content-type": reply.contentType });
+        res.end(renderGoogleOauthHtml(reply.body));
+        return;
+      }
       sendJson(res, reply.status, reply.body);
     })();
     return;
