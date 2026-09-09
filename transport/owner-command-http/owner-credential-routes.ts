@@ -64,6 +64,18 @@ const OWNER_SETTABLE = {
     canonical_mode: "LOCAL_MACHINE_AUTH via control/claude-execution-boundary/",
     auto_selected: false,
   },
+  /** DNA OS Google Workspace OAuth client secret — Owner biometric admission only. */
+  "credential://google/workspace/oauth-client/client-secret": {
+    provider: "google_workspace_oauth_client",
+    account: "oauth-client",
+    scope: ["OAUTH_CLIENT_SECRET"] as readonly string[],
+    service: "dna-os-google-workspace-oauth-client",
+    keychainAccount: "client-secret",
+    label: "Google Workspace OAuth client secret (DNA OS client — not Deadboard GMAIL_CLIENT_*)",
+    mode: "OWNER_ADMISSION_REQUIRED",
+    canonical_mode: "POST /computer-use/owner/verify → ACTIVE session → POST /owner/credential",
+    auto_selected: false,
+  },
 } as const;
 
 type SettableRef = keyof typeof OWNER_SETTABLE;

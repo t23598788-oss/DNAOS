@@ -26,9 +26,25 @@ Overall parent status: `AUTH_REQUIRED` until an ACTIVE `credential://google/work
 | Service | Capability ID | Required scope | V1 write |
 |---|---|---|---|
 | Gmail | `google.gmail.readonly` | `gmail.readonly` | disabled |
-| Calendar | `google.calendar.readonly` | `calendar.readonly` | disabled |
+| Calendar | `google.calendar.readonly` | `calendar.calendarlist.readonly` + `calendar.events.readonly` | disabled |
 | Drive | `google.drive.readonly` | `drive.readonly` | disabled |
 | Sheets | `google.sheets.readonly` | `spreadsheets.readonly` | disabled |
+
+Free/busy (`calendar.events.freebusy`) is **not** requested until a capability actually performs free/busy lookup.
+
+## OAuth path (TikTok lifecycle discipline, Google semantics)
+
+```text
+POST /oauth/google/workspace/begin  → beginAuthorization()
+GET  /oauth/google/workspace/callback → completeAuthorization()
+```
+
+- Client refs: `credential://google/workspace/oauth-client/client-id` / `.../client-secret`
+- User token ref: `credential://google/workspace/oauth`
+- PKCE: S256 base64url (not TikTok hex)
+- `CLIENT_CONFIGURATION_STATE = CONFIGURATION_REQUIRED` until Owner admits client_id/secret/redirect
+- Deadboard `GMAIL_CLIENT_*` must not be reused
+- Source path alone does **not** mark CONNECTED
 
 Missing one scope does **not** authorize another. Parent may become `PARTIALLY_AUTHORIZED` when only a subset of services has required scopes.
 

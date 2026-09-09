@@ -41,6 +41,9 @@ const ALLOWED_REQUESTERS = [
   // discipline as GitHub's — turns an Owner's real browser approval into a
   // Keychain-backed credential_ref; never accepts an Agent-forwarded secret.
   "connections/tiktok-authorization/lifecycle.ts",
+  // Google Workspace OAuth lifecycle — exact requester only (no google/* wildcard).
+  // Token completion writes credential://google/workspace/oauth; never Agent-forwarded.
+  "connections/google-workspace/oauth/lifecycle.ts",
   // Owner-approved 2026-09-02: ช่องตั้งค่า credential ใน Owner Settings ของ :5181
   // เส้นทางคือ Owner Settings UI -> owner-authentication (ต้องมี session ที่ยัง
   // ACTIVE) -> route นี้ -> registerOwnerApiCredential -> Keychain

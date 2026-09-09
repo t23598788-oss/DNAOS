@@ -94,7 +94,10 @@ function main(): void {
     assert(DRIVE_CAPABILITY_ID === "google.drive.readonly", DRIVE_CAPABILITY_ID);
     assert(SHEETS_CAPABILITY_ID === "google.sheets.readonly", SHEETS_CAPABILITY_ID);
     assert(GMAIL_SCOPE.endsWith("/gmail.readonly"), GMAIL_SCOPE);
-    assert(CALENDAR_SCOPES[0]!.endsWith("/calendar.readonly"), CALENDAR_SCOPES[0]!);
+    assert(CALENDAR_SCOPES.some((s) => s.endsWith("/calendar.calendarlist.readonly")), "calendarlist");
+    assert(CALENDAR_SCOPES.some((s) => s.endsWith("/calendar.events.readonly")), "events.readonly");
+    assert(!CALENDAR_SCOPES.some((s) => s.endsWith("/calendar.events.freebusy")), "no freebusy until capability needs it");
+    assert(!CALENDAR_SCOPES.includes("https://www.googleapis.com/auth/calendar.readonly" as never), "prefer granular calendar scopes");
     assert(DRIVE_SCOPE.endsWith("/drive.readonly"), DRIVE_SCOPE);
     assert(SHEETS_SCOPE.endsWith("/spreadsheets.readonly"), SHEETS_SCOPE);
     assert(WRITE_ENABLED === false, "writes off");

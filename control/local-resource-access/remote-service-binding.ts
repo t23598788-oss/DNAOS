@@ -248,7 +248,7 @@ export function listRemoteServiceBindings(ai_identity: string | null = null, ses
       provider: "google_calendar",
       actions: ["SEARCH", "READ", "CREATE", "WRITE", "DELETE"],
       required_scopes: [...CALENDAR_SCOPES],
-      read_scope: ["calendar.readonly"],
+      read_scope: ["calendar.calendarlist.readonly", "calendar.events.readonly"],
     }),
     googleServiceBinding({
       ...googleCommon,

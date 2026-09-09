@@ -93,6 +93,7 @@ import { createPersistentFileStore } from "../../software/registry-database/adap
 import { findCapability, findResourceById } from "../../software/registry-database/contract";
 import { handleOwnerBackboneRoute } from "./owner-backbone-routes";
 import { handleOwnerCredentialRoute } from "./owner-credential-routes";
+import { handleGoogleOauthRoute, renderGoogleOauthHtml } from "./google-oauth-routes";
 import { runPreExecutionPlan, latestPlanFor, latestPlan } from "../../control/pre-execution-planner/contract";
 import { executeLocalRead } from "../../control/owner-command/local-read-operations";
 import { resolveAndExecuteOwnerIntent, resolveAndExecuteOwnerRequest } from "../../control/owner-command/structured-intent";
@@ -1374,6 +1375,30 @@ function buildOwnerActivity(identity: string, commandIdInput: string | null): Re
       }
       const reply = await handleOwnerCredentialRoute(req.method ?? "GET", parsed.pathname, parsed.searchParams, parsedBody);
       if (!reply) { sendJson(res, 404, { error: "not found" }); return; }
+      sendJson(res, reply.status, reply.body);
+    })();
+    return;
+  }
+
+  /**
+   * Google Workspace OAuth — thin gate only. Lifecycle owns exchange/Keychain.
+   * Never invent client_id/secret here; CONFIGURATION_REQUIRED until Owner admits.
+   */
+  if (req.url?.startsWith("/oauth/google/workspace")) {
+    const parsed = new URL(req.url, "http://127.0.0.1");
+    void (async () => {
+      let parsedBody: unknown = null;
+      if (req.method === "POST") {
+        const raw = await readBody(req);
+        try { parsedBody = JSON.parse(raw); } catch { sendJson(res, 400, { error: "invalid JSON body" }); return; }
+      }
+      const reply = await handleGoogleOauthRoute(req.method ?? "GET", parsed.pathname, parsed.searchParams, parsedBody);
+      if (!reply) { sendJson(res, 404, { error: "not found" }); return; }
+      if (reply.contentType?.startsWith("text/html")) {
+        res.writeHead(reply.status, { "content-type": reply.contentType });
+        res.end(renderGoogleOauthHtml(reply.body));
+        return;
+      }
       sendJson(res, reply.status, reply.body);
     })();
     return;

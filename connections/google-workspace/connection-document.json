@@ -22,8 +22,13 @@
         "resolution": "granted_scopes on credential reference"
       },
       {
-        "name": "https://www.googleapis.com/auth/calendar.readonly",
-        "purpose": "Calendar V1 least-privilege read scope",
+        "name": "https://www.googleapis.com/auth/calendar.calendarlist.readonly",
+        "purpose": "Calendar list V1 least-privilege read scope",
+        "resolution": "granted_scopes on credential reference"
+      },
+      {
+        "name": "https://www.googleapis.com/auth/calendar.events.readonly",
+        "purpose": "Calendar events V1 least-privilege read scope",
         "resolution": "granted_scopes on credential reference"
       },
       {
@@ -54,7 +59,10 @@
       {
         "service_id": "service://google/calendar",
         "capability_id": "google.calendar.readonly",
-        "required_scopes": ["https://www.googleapis.com/auth/calendar.readonly"],
+        "required_scopes": [
+          "https://www.googleapis.com/auth/calendar.calendarlist.readonly",
+          "https://www.googleapis.com/auth/calendar.events.readonly"
+        ],
         "write_enabled": false
       },
       {
@@ -100,11 +108,12 @@
   },
   "overall_gaps": [
     "No ACTIVE credential://google/workspace/oauth row in DNA OS registry yet — Owner OAuth admission required before BOUND",
-    "No DNA OS-hosted Google OAuth client config in this repository (by prior Owner rule); tokens must enter only via existing secret authority",
+    "OAuth source path exists (connections/google-workspace/oauth) but CLIENT_CONFIGURATION_STATE=CONFIGURATION_REQUIRED until Owner admits client_id/client_secret/redirect URI",
     "Gmail live path today may still resolve via existing email-alert-source → Edge Function; Workspace family wiring does not invent a second Gmail identity",
-    "Official Google Workspace MCP, if used, must remain DNA OS–owned (no client-direct registration)"
+    "Official Google Workspace MCP, if used, must remain DNA OS–owned (no client-direct registration)",
+    "Deadboard GMAIL_CLIENT_* must not be reused for this family"
   ],
-  "next_required_connection": "Owner-device Google OAuth into credential://google/workspace/oauth with least-privilege readonly scopes; bind granted_scopes per service",
+  "next_required_connection": "GOOGLE_WORKSPACE_OAUTH_CLIENT_OWNER_ADMISSION_V1 — Owner supplies client_id, client_secret, exact redirect URI; then Owner login",
   "projections": {
     "machine_view": "control/local-resource-access/remote-service-binding.ts service://google/*",
     "developer_view": "connections/google-workspace/GOOGLE_WORKSPACE_CONNECTION.md",
