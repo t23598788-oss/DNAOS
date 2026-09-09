@@ -124,7 +124,13 @@ export function deriveCodeChallenge(codeVerifier: string): string {
 
 export function buildAuthorizeUrl(
   config: GoogleOauthConfig,
-  params: { scope: readonly string[]; state: string; codeVerifier: string },
+  params: {
+    scope: readonly string[];
+    state: string;
+    codeVerifier: string;
+    /** Optional Google login_hint — transaction input only, never a global constant. */
+    login_hint?: string;
+  },
 ): string {
   const query = new URLSearchParams({
     client_id: config.client_id,
@@ -138,6 +144,8 @@ export function buildAuthorizeUrl(
     include_granted_scopes: "true",
     prompt: "consent",
   });
+  const hint = typeof params.login_hint === "string" ? params.login_hint.trim() : "";
+  if (hint.length > 0) query.set("login_hint", hint);
   return `${GOOGLE_OAUTH_AUTHORIZE_URL}?${query.toString()}`;
 }
 

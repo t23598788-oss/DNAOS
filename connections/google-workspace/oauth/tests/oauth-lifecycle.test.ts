@@ -99,6 +99,21 @@ function makeDeps(overrides: Partial<GoogleLifecycleDeps> = {}): {
       return { credential_ref: input.credential_ref, status: "ACTIVE" };
     },
     findApiCredential: () => null,
+    replaceApiCredential: (entry) => {
+      statusSets.push([entry.credential_ref, "REPLACE"]);
+      return {
+        credential_ref: entry.credential_ref,
+        provider: entry.provider,
+        account: entry.account,
+        scope: [...entry.scope],
+        status: entry.status,
+        created_at: entry.created_at ?? FIXED_NOW.toISOString(),
+        updated_at: entry.updated_at,
+        resolver_kind: "macos_keychain" as const,
+        resolver_service: entry.resolver_service,
+        resolver_account: entry.resolver_account,
+      };
+    },
     setApiCredentialStatus: (ref, status) => {
       statusSets.push([ref, status]);
       return null as never;
@@ -409,6 +424,11 @@ async function main(): Promise<void> {
       redirect_uri: null,
       authorize_expires_at: null,
       failure_reason: null,
+      expected_account_email: null,
+      prior_google_account_id: null,
+      prior_account_email: null,
+      prior_credential_ref: null,
+      prior_granted_scope: null,
       created_at: FIXED_NOW.toISOString(),
       updated_at: FIXED_NOW.toISOString(),
     };

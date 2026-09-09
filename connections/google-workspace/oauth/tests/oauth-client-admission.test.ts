@@ -286,6 +286,18 @@ async function main(): Promise<void> {
       getUserInfo: async () => ({ kind: "failed", reason: "no" }),
       registerOwnerApiCredential: async () => ({ credential_ref: "x", status: "ACTIVE" }),
       findApiCredential: () => null,
+      replaceApiCredential: (entry) => ({
+        credential_ref: entry.credential_ref,
+        provider: entry.provider,
+        account: entry.account,
+        scope: [...entry.scope],
+        status: entry.status,
+        created_at: "2026-09-09T00:00:00.000Z",
+        updated_at: entry.updated_at,
+        resolver_kind: "macos_keychain" as const,
+        resolver_service: entry.resolver_service,
+        resolver_account: entry.resolver_account,
+      }),
       setApiCredentialStatus: () => null as never,
       findRecord: (id) => [...rows].reverse().find((r) => r.connection_id === id) ?? null,
       upsertRecord: (r) => {

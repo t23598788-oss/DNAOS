@@ -57,9 +57,14 @@ export async function handleGoogleOauthRoute(
       return { status: 400, body: boundedFailure("CONNECTION_ID_MISMATCH", "only connection.google.workspace.v1 is admitted") };
     }
     const redirectUri = str(b.redirect_uri);
-    const result = deps
-      ? beginAuthorization({ redirect_uri: redirectUri }, deps)
-      : beginAuthorization({ redirect_uri: redirectUri });
+    const loginHint = str(b.login_hint);
+    const expectedAccountEmail = str(b.expected_account_email);
+    const beginInput = {
+      redirect_uri: redirectUri,
+      ...(loginHint ? { login_hint: loginHint } : {}),
+      ...(expectedAccountEmail ? { expected_account_email: expectedAccountEmail } : {}),
+    };
+    const result = deps ? beginAuthorization(beginInput, deps) : beginAuthorization(beginInput);
     if (!result.ok) {
       const status = result.reason_code === "CONFIGURATION_REQUIRED" ? 503 : 400;
       return {
@@ -124,6 +129,13 @@ export async function handleGoogleOauthRoute(
           detail: result.detail.slice(0, 240),
           connection_id: GOOGLE_CONNECTION_ID,
           authorization_state: result.record?.state ?? null,
+          replacement_committed: false,
+          original_binding_preserved:
+            result.reason_code === "ACCOUNT_MISMATCH"
+              ? result.record?.state === "CONNECTED"
+              : undefined,
+          account_email: result.record?.account_email ?? null,
+          // Never include tokens / verifier / client_secret
         },
       };
     }

@@ -38,6 +38,11 @@ export interface ApiCredentialEntry {
 
 export interface ApiCredentialReferenceStore {
   registerApiCredential(entry: ApiCredentialEntry): void;
+  /**
+   * Replace metadata for an existing credential_ref (append-only; latest wins).
+   * Used for same-identity OAuth rebind — never creates a second credential:// identity.
+   */
+  replaceApiCredential(entry: Omit<ApiCredentialEntry, "created_at"> & { created_at?: string }): ApiCredentialEntry;
   findApiCredential(credential_ref: string): ApiCredentialEntry | null;
   listApiCredentials(): readonly ApiCredentialEntry[];
   setApiCredentialStatus(credential_ref: string, status: ApiCredentialStatus): ApiCredentialEntry;
@@ -89,6 +94,20 @@ export function createApiCredentialReferenceStore(
       if (readLatest().has(entry.credential_ref)) throw new Error("DUPLICATE_CREDENTIAL_REF");
       appendEntry(Object.freeze({ ...entry, scope: [...entry.scope] }));
     },
+    replaceApiCredential(entry) {
+      if (!entry.credential_ref.startsWith("credential://")) throw new Error("INVALID_CREDENTIAL_REF");
+      const current = readLatest().get(entry.credential_ref);
+      if (!current) throw new Error("CREDENTIAL_NOT_REGISTERED");
+      const updated: ApiCredentialEntry = {
+        ...current,
+        ...entry,
+        created_at: current.created_at,
+        updated_at: entry.updated_at || new Date().toISOString(),
+        scope: [...entry.scope],
+      };
+      appendEntry(Object.freeze({ ...updated, scope: [...updated.scope] }));
+      return updated;
+    },
     findApiCredential(credential_ref) {
       return readLatest().get(credential_ref) ?? null;
     },
@@ -109,6 +128,12 @@ const defaultStore = createApiCredentialReferenceStore();
 
 export function registerApiCredential(entry: ApiCredentialEntry): void {
   defaultStore.registerApiCredential(entry);
+}
+
+export function replaceApiCredential(
+  entry: Omit<ApiCredentialEntry, "created_at"> & { created_at?: string },
+): ApiCredentialEntry {
+  return defaultStore.replaceApiCredential(entry);
 }
 
 export function findApiCredential(credential_ref: string): ApiCredentialEntry | null {

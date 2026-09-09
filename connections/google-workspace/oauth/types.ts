@@ -25,6 +25,16 @@ export interface GoogleAuthorizationRecord {
   redirect_uri: string | null;
   authorize_expires_at: string | null;
   failure_reason: string | null;
+  /**
+   * Transaction-scoped expected account email (login_hint companion).
+   * Not a global Google constant — set per begin input / connection instance.
+   */
+  expected_account_email: string | null;
+  /** Snapshot of prior CONNECTED binding for replace-after-success restore. */
+  prior_google_account_id: string | null;
+  prior_account_email: string | null;
+  prior_credential_ref: string | null;
+  prior_granted_scope: readonly string[] | null;
   created_at: string;
   updated_at: string;
 }
@@ -34,6 +44,16 @@ export interface BeginGoogleAuthorizationInput {
   redirect_uri: string;
   /** Scopes to request; defaults to GOOGLE_AUTHORIZE_SCOPES when omitted by caller. */
   scope?: readonly string[];
+  /**
+   * Optional Google OAuth login_hint (account suggestion only — not proof).
+   * Transaction/config input; never a hardcoded provider constant.
+   */
+  login_hint?: string;
+  /**
+   * When set, callback must prove this exact account email or fail ACCOUNT_MISMATCH
+   * without replacing the prior CONNECTED binding.
+   */
+  expected_account_email?: string;
 }
 
 export type BeginGoogleAuthorizationResult =

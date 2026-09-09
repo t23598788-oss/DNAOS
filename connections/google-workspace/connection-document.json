@@ -1,13 +1,28 @@
 {
   "document_type": "dna_os_connection_document",
   "document_id": "connection.google.workspace.v1",
+  "document_role": "DOCUMENTATION_PROJECTION",
   "title": "DNA OS ↔ Google Workspace Connection Family",
   "version": 1,
   "recorded_at": "2026-09-09",
-  "status_vocabulary": ["VERIFIED", "CONNECTED", "PARTIALLY_AUTHORIZED", "AUTH_REQUIRED", "NOT_VERIFIED", "BLOCKED", "NOT_WIRED"],
-  "status": "AUTH_REQUIRED",
-  "verification_level": "CONNECTION_FAMILY_WIRING",
-  "scope": "One Google Workspace connection family covering Gmail, Calendar, Drive, and Sheets under a single OAuth identity/credential_ref. Reuses existing service://google/* bindings. No new MCP tools. V1 is read-only.",
+  "status_vocabulary": ["VERIFIED", "CONNECTED", "PARTIALLY_AUTHORIZED", "AUTH_REQUIRED", "NOT_VERIFIED", "BLOCKED", "NOT_WIRED", "OUT_OF_SYNC", "DATA_MISSING"],
+  "status": "CONNECTED",
+  "verification_level": "LIVE_OAUTH_BOUND_READONLY_TESTING",
+  "state_source": "connections/google-workspace/oauth/data/authorizations.jsonl",
+  "scope": "One Google Workspace connection family covering Gmail, Calendar, Drive, and Sheets under a single OAuth identity/credential_ref. Reuses existing service://google/* bindings. No new MCP tools. V1 is read-only. This JSON is a documentation projection of runtime authorization state — not the runtime authority.",
+  "current": {
+    "account_email": "dnaos.tech@gmail.com",
+    "google_account_id": "100151411141238003583",
+    "credential_ref": "credential://google/workspace/oauth",
+    "write_enabled": false,
+    "environment": "TESTING",
+    "production_ready": false
+  },
+  "account_history": {
+    "previous_account_email": "t23598788@gmail.com",
+    "current_account_email": "dnaos.tech@gmail.com",
+    "replacement_method": "expected-account guarded OAuth rebind"
+  },
   "security": {
     "rule": "Secret values are never recorded. Only credential_ref, account identity, granted scope summary, and connection status are recorded.",
     "references": [
@@ -97,25 +112,35 @@
     "evidence/result",
     "DNA OS MCP egress"
   ],
+  "auth": {
+    "begin": "POST /oauth/google/workspace/begin",
+    "callback": "GET /oauth/google/workspace/callback",
+    "status": "GET /oauth/google/workspace/status"
+  },
+  "implementation": [
+    "connections/google-workspace/oauth/google-oauth.ts",
+    "connections/google-workspace/oauth/lifecycle.ts",
+    "transport/owner-command-http/google-oauth-routes.ts",
+    "connections/google-workspace/connection-status-projection.ts"
+  ],
   "boundary_statuses": {
     "Google Workspace connection family document": "CONNECTED",
-    "Shared OAuth credential reference": "AUTH_REQUIRED",
-    "Gmail readonly capability": "AUTH_REQUIRED",
-    "Calendar readonly capability": "AUTH_REQUIRED",
-    "Drive readonly capability": "AUTH_REQUIRED",
-    "Sheets readonly capability": "AUTH_REQUIRED",
+    "Shared OAuth credential reference": "CONNECTED",
+    "Gmail readonly capability": "CONNECTED",
+    "Calendar readonly capability": "CONNECTED",
+    "Drive readonly capability": "CONNECTED",
+    "Sheets readonly capability": "CONNECTED",
     "Write operations": "BLOCKED"
   },
   "overall_gaps": [
-    "No ACTIVE credential://google/workspace/oauth row in DNA OS registry yet — Owner OAuth admission required before BOUND",
-    "OAuth source path exists (connections/google-workspace/oauth) but CLIENT_CONFIGURATION_STATE=CONFIGURATION_REQUIRED until Owner admits client_id/client_secret/redirect URI",
-    "Gmail live path today may still resolve via existing email-alert-source → Edge Function; Workspace family wiring does not invent a second Gmail identity",
+    "Verified READ ONLY OAuth bind in TESTING; Production readiness remains NOT_READY.",
     "Official Google Workspace MCP, if used, must remain DNA OS–owned (no client-direct registration)",
     "Deadboard GMAIL_CLIENT_* must not be reused for this family"
   ],
-  "next_required_connection": "GOOGLE_WORKSPACE_OAUTH_CLIENT_OWNER_ADMISSION_V1 — Owner supplies client_id, client_secret, exact redirect URI; then Owner login",
+  "next_required_connection": "PRODUCTION_READINESS",
   "projections": {
     "machine_view": "control/local-resource-access/remote-service-binding.ts service://google/*",
+    "runtime_status_view": "connections/google-workspace/connection-status-projection.ts",
     "developer_view": "connections/google-workspace/GOOGLE_WORKSPACE_CONNECTION.md",
     "human_view": "Connection Center parent: Google Workspace; children: Gmail, Calendar, Drive, Sheets",
     "brand_view": {
@@ -128,5 +153,5 @@
       "sheets": "google-sheets"
     }
   },
-  "future_document_rule": "Do not create a second Google login family or duplicate credential identity per service. Missing scope ⇒ that service AUTH_REQUIRED only; parent may be PARTIALLY_AUTHORIZED."
+  "future_document_rule": "Do not create a second Google login family or duplicate credential identity per service. Missing scope ⇒ that service AUTH_REQUIRED only; parent may be PARTIALLY_AUTHORIZED. Documentation must not invent CONNECTED independent of authorizations.jsonl."
 }

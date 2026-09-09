@@ -2,10 +2,15 @@
  * Canonical connection summary — machine enums only. Human labels stay
  * out of the projection. Large connection documents are not dumped into
  * the primary Owner answer.
+ *
+ * Google Workspace status is overlaid from runtime authorization state
+ * (authorizations.jsonl), not from documentation alone.
  */
 
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
+import { projectGoogleWorkspaceConnectionStatus } from "../../connections/google-workspace/connection-status-projection";
+import { GOOGLE_CONNECTION_ID } from "../../connections/google-workspace/contract";
 
 export const CONNECTION_STATUS_ENUMS = [
   "VERIFIED",
@@ -144,6 +149,31 @@ export function summarizeConnection(entry: ConnectionIndexEntry, document: Conne
   };
 }
 
+function googleWorkspaceRuntimeSummary(): ConnectionSummaryV1 {
+  const projection = projectGoogleWorkspaceConnectionStatus();
+  // Hard gate: runtime CONNECTED must never project as NOT_CONNECTED / not-connected vocab.
+  const status: ConnectionStatusEnum =
+    projection.state === "CONNECTED" ? "CONNECTED" : "NOT_VERIFIED";
+  const verified: string[] = [];
+  const notWired: string[] = [];
+  for (const [label, value] of Object.entries(projection.capabilities)) {
+    const name = `google.${label}.readonly`;
+    if (value === "CONNECTED") verified.push(name);
+    else notWired.push(name);
+  }
+  return {
+    connection_id: GOOGLE_CONNECTION_ID,
+    system: "Google Workspace",
+    status,
+    verification: projection.state,
+    verified_boundaries: verified,
+    blocked_boundaries: ["Write operations"],
+    not_wired_boundaries: notWired,
+    next_missing_boundary: projection.production_ready ? null : "PRODUCTION_READINESS",
+    evidence_ref: projection.evidence_ref,
+  };
+}
+
 export function loadConnectionSummaries(cwd = process.cwd()): {
   readonly summaries: readonly ConnectionSummaryV1[];
   readonly source: string;
@@ -156,8 +186,11 @@ export function loadConnectionSummaries(cwd = process.cwd()): {
     if (typeof entry.machine_record_path !== "string") continue;
     const document = readJson(join(cwd, entry.machine_record_path)) as ConnectionDocument | null;
     if (!document) continue;
+    // Skip stale Google docs from index — runtime overlay is authoritative.
+    if (String(document.document_id ?? entry.connection_id) === GOOGLE_CONNECTION_ID) continue;
     summaries.push(summarizeConnection(entry, document, entry.machine_record_path));
   }
+  summaries.push(googleWorkspaceRuntimeSummary());
   return { summaries, source };
 }
 
