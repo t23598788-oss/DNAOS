@@ -1,0 +1,45 @@
+{
+  "document_type": "dna_os_google_workspace_production_readiness",
+  "version": 1,
+  "task_id": "GOOGLE_WORKSPACE_PRODUCTION_READINESS_V1",
+  "connection_id": "connection.google.workspace.v1",
+  "account_email": "dnaos.tech@gmail.com",
+  "current_state": {
+    "runtime_state": "CONNECTED",
+    "access_mode": "READ_ONLY",
+    "oauth_environment": "TESTING",
+    "production_ready": false
+  },
+  "required_scopes": [
+    "openid",
+    "email",
+    "https://www.googleapis.com/auth/gmail.readonly",
+    "https://www.googleapis.com/auth/calendar.calendarlist.readonly",
+    "https://www.googleapis.com/auth/calendar.events.readonly",
+    "https://www.googleapis.com/auth/drive.readonly",
+    "https://www.googleapis.com/auth/spreadsheets.readonly"
+  ],
+  "gates": {
+    "separate_production_project_or_client": "UNVERIFIED",
+    "owned_domains_configured": "UNVERIFIED",
+    "public_https_legal_and_support_urls": "UNVERIFIED",
+    "production_https_redirect_uri": "UNVERIFIED",
+    "scope_declarations_match_runtime": "UNVERIFIED",
+    "scope_justifications_complete": "UNVERIFIED",
+    "brand_verification": "UNVERIFIED",
+    "sensitive_or_restricted_scope_verification": "UNVERIFIED",
+    "security_assessment_if_required": "UNVERIFIED",
+    "owner_admitted_production_oauth_client": "UNVERIFIED",
+    "production_expected_account_bind": "UNVERIFIED",
+    "production_capability_probes": "UNVERIFIED"
+  },
+  "promotion_rule": "production_ready may become true only after every applicable gate has provider-side or runtime evidence; repository documentation alone is insufficient",
+  "secret_policy": "Never commit OAuth client secrets, access tokens, refresh tokens, authorization codes, PKCE verifiers, or session secrets",
+  "architecture": {
+    "credential_ref": "credential://google/workspace/oauth",
+    "one_connection_family": true,
+    "per_service_credentials_forbidden": true,
+    "direct_ai_to_google_credentials_forbidden": true,
+    "write_enabled": false
+  }
+}
