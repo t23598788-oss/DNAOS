@@ -5,10 +5,12 @@
  * How to run: npx tsx connections/google-workspace/oauth/tests/oauth-lifecycle.test.ts
  */
 
-import { readFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, rmSync } from "node:fs";
 import { createHash as cryptoHash } from "node:crypto";
+import { tmpdir } from "node:os";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
+import { createGoogleAuthorizationStore } from "../store";
 import {
   CALENDAR_SCOPES,
   DEADBOARD_GMAIL_CLIENT_ENV_NAMES,
@@ -244,13 +246,15 @@ async function main(): Promise<void> {
     ok("11. missing code fails", r.ok === false && r.reason_code === "CODE_REQUIRED");
   }
 
-  // 12. OAuth provider error returns bounded failure (HTTP route)
+  // 12. OAuth provider error returns bounded failure (HTTP route — no store touch)
   {
+    const { deps } = makeDeps();
     const reply = await handleGoogleOauthRoute(
       "GET",
       "/oauth/google/workspace/callback",
       new URLSearchParams({ error: "access_denied", error_description: "Owner denied" }),
       null,
+      deps,
     );
     ok("12. provider error bounded", reply !== null && reply.status === 400 && reply.body.reason_code === "OAUTH_PROVIDER_ERROR");
     ok("12b. no secret fields in error body", !JSON.stringify(reply?.body).includes("client_secret"));
@@ -359,21 +363,110 @@ async function main(): Promise<void> {
     ok("20c. no google/* wildcard allowlist", !reg.includes('"connections/google-workspace/*"') && !reg.includes('"google/*"'));
   }
 
-  // Begin route shape (uses real lifecycle — may be CONFIGURATION_REQUIRED without env)
+  // Begin route shape — hermetic deps only (never production store)
   {
+    const { deps, rows } = makeDeps();
     const reply = await handleGoogleOauthRoute(
       "POST",
       "/oauth/google/workspace/begin",
       new URLSearchParams(),
       { connection_id: GOOGLE_CONNECTION_ID, redirect_uri: CONFIG.redirect_uri },
+      deps,
     );
     ok("begin route returns non-secret body", reply !== null && typeof reply.body === "object");
+    ok("begin route hermetic ok", reply?.status === 200 && reply.body.ok === true);
+    ok("begin route hermetic pending", reply?.body.transaction_status === "AUTHORIZATION_PENDING");
+    ok("begin route wrote hermetic store only", rows.some((r) => r.state === "AUTHORIZATION_PENDING"));
     const blob = JSON.stringify(reply?.body ?? {});
     ok("begin route never returns code_verifier", !blob.includes("code_verifier"));
     ok(
       "begin route never returns client_secret value",
       !blob.includes("GOOGLE_TEST_CLIENT_SECRET_VALUE") && !/"client_secret"\s*:/.test(blob),
     );
+  }
+
+  // Isolation regression: hermetic begin must never mutate production authorizations.jsonl
+  {
+    const livePath = join(process.cwd(), "connections/google-workspace/oauth/data/authorizations.jsonl");
+    const liveBefore = existsSync(livePath) ? readFileSync(livePath) : null;
+    const liveBeforeHash = liveBefore
+      ? cryptoHash("sha256").update(liveBefore).digest("hex")
+      : "ABSENT";
+
+    const fixtureDir = join(tmpdir(), `dna-os-gw-oauth-prod-fixture-${Date.now()}`);
+    mkdirSync(fixtureDir, { recursive: true });
+    const productionFixture = createGoogleAuthorizationStore(fixtureDir);
+    const connectedSentinel: GoogleAuthorizationRecord = {
+      connection_id: GOOGLE_CONNECTION_ID,
+      provider: "google_workspace",
+      google_account_id: "hermetic-sentinel-account",
+      account_email: "sentinel@example.com",
+      state: "CONNECTED",
+      credential_ref: GOOGLE_CREDENTIAL_REF,
+      granted_scope: [...GOOGLE_AUTHORIZE_SCOPES],
+      code_verifier: null,
+      state_nonce: null,
+      redirect_uri: null,
+      authorize_expires_at: null,
+      failure_reason: null,
+      created_at: FIXED_NOW.toISOString(),
+      updated_at: FIXED_NOW.toISOString(),
+    };
+    productionFixture.upsertRecord(connectedSentinel);
+    const fixturePath = join(fixtureDir, "authorizations.jsonl");
+    const productionFixtureBefore = readFileSync(fixturePath, "utf8");
+    const productionFixtureBeforeHash = cryptoHash("sha256").update(productionFixtureBefore).digest("hex");
+
+    const { deps, rows } = makeDeps({
+      findRecord: (id) => {
+        // Hermetic in-memory only — never the fixture/production path
+        return [...rows].reverse().find((r) => r.connection_id === id) ?? null;
+      },
+      upsertRecord: (r) => {
+        rows.push(r);
+        return r;
+      },
+    });
+
+    ok(
+      "TEST_AUTHORIZATION_STORE != PRODUCTION_AUTHORIZATION_STORE",
+      // hermetic uses in-memory rows; production fixture is a distinct createGoogleAuthorizationStore
+      productionFixture.findRecord(GOOGLE_CONNECTION_ID)?.state === "CONNECTED" && rows.length === 0,
+    );
+
+    const reply = await handleGoogleOauthRoute(
+      "POST",
+      "/oauth/google/workspace/begin",
+      new URLSearchParams(),
+      { connection_id: GOOGLE_CONNECTION_ID, redirect_uri: CONFIG.redirect_uri },
+      deps,
+    );
+
+    ok("isolation begin ok", reply?.status === 200 && reply.body.ok === true);
+    ok("hermetic store received AUTHORIZATION_PENDING", rows.at(-1)?.state === "AUTHORIZATION_PENDING");
+    ok(
+      "production CONNECTED sentinel remains CONNECTED",
+      productionFixture.findRecord(GOOGLE_CONNECTION_ID)?.state === "CONNECTED"
+        && productionFixture.findRecord(GOOGLE_CONNECTION_ID)?.account_email === "sentinel@example.com",
+    );
+    const productionFixtureAfter = readFileSync(fixturePath, "utf8");
+    const productionFixtureAfterHash = cryptoHash("sha256").update(productionFixtureAfter).digest("hex");
+    ok(
+      "production fixture store byte-identical",
+      productionFixtureBeforeHash === productionFixtureAfterHash && productionFixtureBefore === productionFixtureAfter,
+    );
+
+    const liveAfter = existsSync(livePath) ? readFileSync(livePath) : null;
+    const liveAfterHash = liveAfter ? cryptoHash("sha256").update(liveAfter).digest("hex") : "ABSENT";
+    ok(
+      "LIVE_AUTH_STORE_MUTATED_BY_TEST = false",
+      liveBeforeHash === liveAfterHash
+        && ((liveBefore === null && liveAfter === null) || (liveBefore !== null && liveAfter !== null && Buffer.compare(liveBefore, liveAfter) === 0)),
+    );
+    ok("PRODUCTION_AUTHORIZATION_STORE_UNCHANGED = true", liveBeforeHash === liveAfterHash);
+
+    // cleanup fixture only (never touch live path)
+    rmSync(fixtureDir, { recursive: true, force: true });
   }
 
   console.log(`\n${passed} passed, ${failed} failed`);

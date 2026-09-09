@@ -13,6 +13,7 @@ import {
   beginAuthorization,
   completeAuthorization,
   getAuthorizationStatus,
+  type GoogleLifecycleDeps,
 } from "../../connections/google-workspace/oauth/lifecycle";
 
 export interface GoogleOauthHttpReply {
@@ -37,12 +38,17 @@ function boundedFailure(reason_code: string, detail: string): Record<string, unk
 /**
  * GET /oauth/google/workspace/callback
  * POST /oauth/google/workspace/begin
+ *
+ * Optional `deps` injects lifecycle collaborators (store/config/credential).
+ * Production server omits deps → default production lifecycle.
+ * Hermetic tests MUST pass deps so begin/complete never touch live authorizations.jsonl.
  */
 export async function handleGoogleOauthRoute(
   method: string,
   path: string,
   query: URLSearchParams,
   body: unknown,
+  deps?: GoogleLifecycleDeps,
 ): Promise<GoogleOauthHttpReply | null> {
   if (method === "POST" && path === GOOGLE_OAUTH_BEGIN_PATH) {
     const b = (body ?? {}) as Record<string, unknown>;
@@ -51,7 +57,9 @@ export async function handleGoogleOauthRoute(
       return { status: 400, body: boundedFailure("CONNECTION_ID_MISMATCH", "only connection.google.workspace.v1 is admitted") };
     }
     const redirectUri = str(b.redirect_uri);
-    const result = beginAuthorization({ redirect_uri: redirectUri });
+    const result = deps
+      ? beginAuthorization({ redirect_uri: redirectUri }, deps)
+      : beginAuthorization({ redirect_uri: redirectUri });
     if (!result.ok) {
       const status = result.reason_code === "CONFIGURATION_REQUIRED" ? 503 : 400;
       return {
@@ -103,11 +111,9 @@ export async function handleGoogleOauthRoute(
       return { status: 400, body: boundedFailure("STATE_REQUIRED", "state missing") };
     }
 
-    const result = await completeAuthorization({
-      connection_id: GOOGLE_CONNECTION_ID,
-      code,
-      state,
-    });
+    const result = deps
+      ? await completeAuthorization({ connection_id: GOOGLE_CONNECTION_ID, code, state }, deps)
+      : await completeAuthorization({ connection_id: GOOGLE_CONNECTION_ID, code, state });
 
     if (!result.ok) {
       return {
@@ -136,7 +142,9 @@ export async function handleGoogleOauthRoute(
   }
 
   if (method === "GET" && path === "/oauth/google/workspace/status") {
-    const status = getAuthorizationStatus(GOOGLE_CONNECTION_ID);
+    const status = deps
+      ? getAuthorizationStatus(GOOGLE_CONNECTION_ID, deps)
+      : getAuthorizationStatus(GOOGLE_CONNECTION_ID);
     if (!status.ok) {
       return {
         status: 200,
