@@ -260,7 +260,7 @@ export const CAPABILITY_REGISTRY: Readonly<Record<string, CapabilityRegistration
       "google.sheets.spreadsheets.metadata",
       "google.sheets.values.read",
     ],
-    match_keyword_sets: [["gmail"], ["google", "calendar"], ["google", "drive"], ["google", "sheets"], ["google", "workspace"]],
+    match_keyword_sets: [["gmail"], ["google", "calendar"], ["google", "drive"], ["google", "sheet"], ["google", "sheets"], ["google", "workspace"]],
     permission_requirement: "none", // Owner capability policy + scope checks enforced inside connections/google-workspace/google-workspace-adapter.ts
     health_status: "CONNECTED",
   },
