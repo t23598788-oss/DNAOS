@@ -29,6 +29,13 @@ const PROVIDER_METADATA: Readonly<Record<string, ProviderMetadata>> = {
     brand_icon_source: "simple-icons",
     source: "connection-provider-metadata",
   },
+  supabase: {
+    provider_id: "supabase",
+    brand_slug: "supabase",
+    brand_icon_url: "https://cdn.simpleicons.org/supabase",
+    brand_icon_source: "simple-icons",
+    source: "connection-provider-metadata",
+  },
 };
 
 export function providerMetadataFor(providerId: string): ProviderMetadata | null {

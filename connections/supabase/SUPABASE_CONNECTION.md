@@ -43,6 +43,26 @@ Supabase project `xeytcavxejhyzxwevgto` เป็น external software/data boun
 
 The strongest live evidence currently available is the authenticated `provider-alert-email-read` call referenced by the owner-backbone live probe and joint evidence. The remaining `CONNECTED`, `NOT_VERIFIED`, and `NOT_WIRED` labels are intentionally conservative. Source code, an active credential reference, a declaration, or a deployment reference alone does not promote a boundary to `VERIFIED`.
 
+## DNA OS MCP path (reuse — no Supabase logic in MCP)
+
+```text
+AI Client
+  → DNA OS MCP (dna_os.list_remote_services / dna_os.get_remote_service_capabilities / dna_os.get_capability_binding_status)
+  → DNA OS tool grant + local-resource-access gate
+  → REMOTE_SERVICE_CAPABILITY_BINDING_V1 service://database/schema-read
+  → connection.supabase.dna-os-project.v1
+  → credential://supabase/<project_ref>/schema-read (Keychain pointer)
+  → connections/supabase-schema-read (read-only metadata)
+```
+
+MCP must not hold tokens, query the provider directly, or embed provider business logic.
+
+### Official remote MCP (DNA OS owned, not client-direct)
+
+- URL: `https://mcp.supabase.com/mcp`
+- Default posture: `project_scoped=true`, `read_only=true`, features limited to `database,docs`
+- Clients do **not** receive this remote as a direct tool; DNA OS remains ingress authority.
+
 ## Human-readable and machine-readable paths
 
 - Human document: `connections/supabase/SUPABASE_CONNECTION.md`
