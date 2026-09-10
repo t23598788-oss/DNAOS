@@ -4,7 +4,7 @@
  */
 
 import { classifyCommand } from "../../../control/command-router/contract";
-import { shouldForwardStructuredIntentToExistingMcp } from "../server";
+import { canonicalExecutionFieldsFromMcp, shouldForwardStructuredIntentToExistingMcp } from "../server";
 import type { ConversationResult } from "../../../control/conversation-runtime/protocol";
 
 declare const process: { exitCode?: number };
@@ -62,6 +62,17 @@ function main(): void {
   ok("drive still forwards after conversation self-knowledge", shouldForwardStructuredIntentToExistingMcp(swallowedKnowledge(), null, drive) === true);
   ok("sheets still forwards after conversation self-knowledge", shouldForwardStructuredIntentToExistingMcp(swallowedKnowledge(), null, sheets) === true);
   ok("plain conversation stays on language path", shouldForwardStructuredIntentToExistingMcp(swallowedKnowledge(), null, conversation) === false);
+
+  const lifted = canonicalExecutionFieldsFromMcp({
+    dna_os_command_id: "cmd_blocked",
+    dna_os_work_id: "work_blocked",
+    dna_os_task_id: "task_blocked",
+    dna_os_result_status: "BLOCKED",
+    evidence: ["credential://google/workspace/oauth"],
+    result: { status: "BLOCKED", capability_id: "google-workspace", intent: "google.gmail.messages.search" },
+  });
+  ok("blocked execution still has real command_id", lifted.command_id === "cmd_blocked" && lifted.execution_started === true && lifted.status === "BLOCKED");
+  ok("conversation helper does not invent command_id", canonicalExecutionFieldsFromMcp(null).command_id === null);
 
   console.log(`${passed} passed, ${failed} failed`);
   process.exitCode = failed === 0 ? 0 : 1;

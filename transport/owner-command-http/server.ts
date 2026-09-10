@@ -389,6 +389,58 @@ function ownerIdentityForLanguagePath(req: IncomingMessage): EnvelopeIdentity {
   return resolveOwnerIdentity(authenticated) ?? LANGUAGE_OWNER_IDENTITY;
 }
 
+/**
+ * Lift existing submitOwnerCommand fields onto the language JSON.
+ * Does not infer execution from display text.
+ */
+export function canonicalExecutionFieldsFromMcp(mcp: unknown): {
+  readonly command_id: string | null;
+  readonly work_id: string | null;
+  readonly task_id: string | null;
+  readonly status: string | null;
+  readonly execution_started: true;
+  readonly work_order_created: boolean;
+  readonly task_created: boolean;
+  readonly evidence_refs: readonly unknown[];
+  readonly capability_id: string | null;
+  readonly provider: string | null;
+  readonly action: string | null;
+} {
+  const row = mcp && typeof mcp === "object" && !Array.isArray(mcp) ? mcp as Record<string, unknown> : {};
+  const result = row.result && typeof row.result === "object" && !Array.isArray(row.result)
+    ? row.result as Record<string, unknown>
+    : {};
+  const command_id = typeof row.dna_os_command_id === "string" && row.dna_os_command_id.trim() !== ""
+    ? row.dna_os_command_id
+    : null;
+  const work_id = typeof row.dna_os_work_id === "string" && row.dna_os_work_id.trim() !== ""
+    ? row.dna_os_work_id
+    : null;
+  const task_id = typeof row.dna_os_task_id === "string" && row.dna_os_task_id.trim() !== ""
+    ? row.dna_os_task_id
+    : (typeof result.task_id === "string" && result.task_id.trim() !== "" ? result.task_id : null);
+  const status = typeof row.dna_os_result_status === "string" && row.dna_os_result_status.trim() !== ""
+    ? row.dna_os_result_status
+    : (typeof result.status === "string" && result.status.trim() !== "" ? result.status : null);
+  const evidence = Array.isArray(row.evidence) ? row.evidence : (Array.isArray(result.evidence) ? result.evidence : []);
+  const capability_id = typeof result.capability_id === "string" ? result.capability_id : null;
+  const provider = typeof result.provider === "string" ? result.provider : (typeof result.connection_id === "string" ? result.connection_id : null);
+  const action = typeof result.action === "string" ? result.action : (typeof result.intent === "string" ? result.intent : null);
+  return {
+    command_id,
+    work_id,
+    task_id,
+    status,
+    execution_started: true,
+    work_order_created: work_id !== null,
+    task_created: task_id !== null,
+    evidence_refs: evidence,
+    capability_id,
+    provider,
+    action,
+  };
+}
+
 function ownerVisibleMcpSummary(mcp: unknown): string | null {
   if (!mcp || typeof mcp !== "object") return null;
   const row = mcp as Record<string, unknown>;
@@ -457,11 +509,12 @@ async function languageBodyWithExistingCommandForward(
   const owner_screen = body.owner_screen && typeof body.owner_screen === "object"
     ? { ...(body.owner_screen as Record<string, unknown>), visible_text: visible }
     : { visible_text: visible };
+  const execution = canonicalExecutionFieldsFromMcp(mcp);
   return {
     ...body,
     mcp,
+    ...execution,
     execution_path: "/owner/submit-command",
-    execution_started: true,
     EXECUTION_STARTED: true,
     owner_response: visible,
     answer: visible,
