@@ -32,7 +32,8 @@
  * Changed executable identity -> EXECUTABLE_IDENTITY_MISMATCH. Unauthorized
  * caller/cwd/argv -> DENY. Never a silent fallback to a bare/raw spawn.
  * Dependency ที่อนุญาต: ./process-registry.ts, ./audit.ts, ./host-runtime.ts,
- * ../../control/agent-host/contract.ts, ../../control/runtime-adapter/contract.ts.
+ * ../../control/agent-host/contract.ts, ../../control/runtime-adapter/contract.ts,
+ * ../../control/agent-physical-scope/contract.ts.
  * สิ่งที่ห้ามแตะ: never call `child_process.spawn`/`exec`/`execFile`/`fork`
  * directly in this file — all real execution goes through `launchAgent`
  * or `launchViaRuntimeAdapter`.
@@ -47,6 +48,7 @@ import { launchViaRuntimeAdapter } from "../../control/runtime-adapter/contract"
 import { resolveProcessDescriptor } from "./process-registry";
 import { defaultAuditSink, buildAuditEvent } from "./audit";
 import { nowIso } from "./host-runtime";
+import { looksLikeGitWriteEscape, looksLikeProcessEscape, agentContextActive } from "../../control/agent-physical-scope/contract";
 
 /** Same allowlist-only discipline as `control/agent-host/host.ts#buildAgentEnv` — this file reads no ambient env beyond these four names, ever, regardless of confinement branch. */
 function buildAllowlistedEnv(profile: readonly string[], hostEnv: Record<string, string | undefined>): Record<string, string> {
@@ -150,6 +152,9 @@ export async function requestProcessExecution(request: ProcessRequest): Promise<
   if (request.argv.some((a) => typeof a !== "string")) return deny(request, "DENY", "argv must be a structured string array");
   if (!descriptor.allowed_argv_shape(request.argv)) {
     return deny(request, "DENY", `argv shape not permitted for "${request.executable_id}"`);
+  }
+  if (agentContextActive() && (looksLikeGitWriteEscape(request.argv) || looksLikeProcessEscape(request.argv))) {
+    return deny(request, "DENY", "RUNTIME_SCOPE_DENIED or GIT_SCOPE_DENIED: agent process-gate argv escape");
   }
 
   // launchAgent itself only ensures its OWN .agent-host-profiles sibling

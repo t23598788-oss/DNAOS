@@ -91,8 +91,13 @@ export async function dispatchToAgentHost(request: AgentHostDispatchRequest): Pr
       timeoutMs: request.timeoutMs ?? 15_000,
       repositoryReadPaths: request.repositoryReadPaths ?? [],
       onEvent: request.onEvent,
+      task_id: request.task_id,
     },
-    request.hostEnv,
+    {
+      ...request.hostEnv,
+      DNA_OS_AGENT_TASK_ID: request.task_id,
+      DNA_OS_AGENT_EXECUTION_ID: request.hostEnv.DNA_OS_AGENT_EXECUTION_ID ?? randomUUID(),
+    },
     request.outsideProbeDirs ?? [],
   );
   return { task_id: request.task_id, worker_kind: request.worker_kind, status: "LAUNCHED", launch };

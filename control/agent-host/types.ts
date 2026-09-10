@@ -55,6 +55,8 @@ export interface AgentLaunchRequest {
    * เดิมครบทุกไบต์เหมือนเดิม ตัวนี้ "เพิ่มการได้ยิน" ไม่ได้เปลี่ยนผลลัพธ์
    */
   onEvent?: (line: string) => void;
+  /** Optional assigned task id stamped into the child env. Never copied from ambient host env. */
+  task_id?: string;
 }
 
 /** One currently-running launch, as tracked live by ./host.ts's in-memory registry — the only source of PIDs `control/circuit-breaker/` may ever kill (see ./host.ts's `listActiveLaunches`/`killLaunch` header). */
