@@ -248,7 +248,11 @@ function conversationRuntime(): ConversationRuntimeHandle {
  * layer also produced a read-only Connection Index answer — execution must
  * not be swallowed by self-knowledge.
  */
-function shouldForwardStructuredIntentToExistingMcp(
+/**
+ * Same connector-forward gate used by POST /chat. Exported so the Owner
+ * language ingress can be proven to reuse it — not a second classifier.
+ */
+export function shouldForwardStructuredIntentToExistingMcp(
   result: ConversationResult,
   ownerPayload: Record<string, unknown> | null,
   commandText: string = "",
@@ -368,6 +372,108 @@ async function invokeExistingMcpSubmitCommand(
     lifecycle: outcome.lifecycle,
     result: outcome.result,
     surface: outcome.surface,
+  };
+}
+
+const LANGUAGE_OWNER_IDENTITY: EnvelopeIdentity = {
+  identity_id: IDENTITY_ID,
+  acting_as_account_id: ACCOUNT_ID,
+  acting_as_tenant_id: "tenant-deadboard-owner",
+  software_id: "dna-os-deadboard",
+  kind: "human",
+};
+
+function ownerIdentityForLanguagePath(req: IncomingMessage): EnvelopeIdentity {
+  const authenticated = resolveAuthenticatedOwnerIdentity(req);
+  if (!authenticated) return LANGUAGE_OWNER_IDENTITY;
+  return resolveOwnerIdentity(authenticated) ?? LANGUAGE_OWNER_IDENTITY;
+}
+
+function ownerVisibleMcpSummary(mcp: unknown): string | null {
+  if (!mcp || typeof mcp !== "object") return null;
+  const row = mcp as Record<string, unknown>;
+  const surface = row.surface as { owner_response?: unknown } | undefined;
+  if (typeof surface?.owner_response === "string" && surface.owner_response.trim()) return surface.owner_response;
+  if (typeof row.summary === "string" && row.summary.trim()) return row.summary;
+  const result = row.result as { summary?: unknown; message?: unknown } | undefined;
+  if (typeof result?.summary === "string" && result.summary.trim()) return result.summary;
+  if (typeof result?.message === "string" && result.message.trim()) return result.message;
+  return null;
+}
+
+function projectLanguageAnswerForOwnerSurface(body: Record<string, unknown>): Record<string, unknown> {
+  const screen = body.owner_screen as { visible_text?: unknown } | undefined;
+  const visible = (typeof body.answer === "string" && body.answer.trim() !== "" ? body.answer : null)
+    ?? (typeof screen?.visible_text === "string" && screen.visible_text.trim() !== "" ? screen.visible_text : null);
+  if (!visible) return body;
+  const semantic = body.semantic && typeof body.semantic === "object" && !Array.isArray(body.semantic)
+    ? body.semantic as Record<string, unknown>
+    : {};
+  const priorContext = semantic.context && typeof semantic.context === "object" && !Array.isArray(semantic.context)
+    ? semantic.context as Record<string, unknown>
+    : {};
+  const existing = priorContext.read_only_knowledge;
+  const existingReply = existing && typeof existing === "object" && !Array.isArray(existing)
+    ? (existing as { owner_reply_th?: unknown }).owner_reply_th
+    : null;
+  const reply = typeof existingReply === "string" && existingReply.trim() !== "" ? existingReply : visible;
+  return {
+    ...body,
+    semantic: {
+      ...semantic,
+      ok: true,
+      context: {
+        ...priorContext,
+        read_only_knowledge: { owner_reply_th: reply },
+      },
+    },
+  };
+}
+
+/**
+ * GET /owner/language is the Owner Surface ingress. Knowledge answers stay
+ * on the conversation result. A registered connector match (gmail / drive /
+ * calendar / sheets) reuses the same in-process submitOwnerCommand forward
+ * as POST /chat so self-knowledge cannot swallow the live read.
+ */
+async function languageBodyWithExistingCommandForward(
+  result: ConversationResult,
+  text: string,
+  req: IncomingMessage,
+): Promise<Record<string, unknown>> {
+  const body = composeOwnerAskHttpBody(result, "READ_ONLY_LANGUAGE");
+  if (!shouldForwardStructuredIntentToExistingMcp(result, null, text)) {
+    return projectLanguageAnswerForOwnerSurface(body);
+  }
+  const mcp = await invokeExistingMcpSubmitCommand(text, ownerIdentityForLanguagePath(req), null, null);
+  const visible = ownerVisibleMcpSummary(mcp)
+    ?? "คำสั่งไปที่ submitOwnerCommand แล้ว แต่ยังไม่มีข้อความสรุปจากผลลัพธ์";
+  const semantic = body.semantic && typeof body.semantic === "object" && !Array.isArray(body.semantic)
+    ? body.semantic as Record<string, unknown>
+    : {};
+  const priorContext = semantic.context && typeof semantic.context === "object" && !Array.isArray(semantic.context)
+    ? semantic.context as Record<string, unknown>
+    : {};
+  const owner_screen = body.owner_screen && typeof body.owner_screen === "object"
+    ? { ...(body.owner_screen as Record<string, unknown>), visible_text: visible }
+    : { visible_text: visible };
+  return {
+    ...body,
+    mcp,
+    execution_path: "/owner/submit-command",
+    execution_started: true,
+    EXECUTION_STARTED: true,
+    owner_response: visible,
+    answer: visible,
+    owner_screen,
+    semantic: {
+      ...semantic,
+      ok: true,
+      context: {
+        ...priorContext,
+        read_only_knowledge: { owner_reply_th: visible },
+      },
+    },
   };
 }
 
@@ -1193,6 +1299,13 @@ export const server = createServer((req, res) => {
     return;
   }
 
+  /**
+   * Canonical Owner Surface language ingress.
+   *
+   * Conversation remains isolated. When Owner text uniquely matches a
+   * registered connector capability, this reuses the existing POST /chat
+   * submitOwnerCommand forward — it does not add a second router.
+   */
   if (req.method === "GET" && req.url?.startsWith("/owner/language?")) {
     const params = new URL(req.url, "http://127.0.0.1").searchParams;
     const text = params.get("text") ?? "";
@@ -1221,7 +1334,7 @@ export const server = createServer((req, res) => {
           owner_identity: { identity_id: "identity-owner-language-read-only", kind: "human" },
           text,
           persist: false,
-        }, 30_000, (event) => {
+        }, 120_000, (event) => {
           const stage = event as { stage?: string; status?: "STARTED" | "COMPLETED" | "FAILED"; detail?: string; event_id?: string; program_id?: string | null; source_file?: string | null; source_function?: string | null; source_line?: number | null; evidence_ref?: string | null; input_summary?: string | null; operation_summary?: string | null; output_summary?: string | null; reason?: string | null; decision?: string | null; next_program?: string | null; next_action?: string | null; target_type?: string | null; target_id?: string | null; target_display_name?: string | null; blocker_kind?: string | null; blocker_detail?: string | null };
           if (!stage.stage || !stage.status || typeof stage.detail !== "string") return;
           publishLanguageStage(requestId, { stage: stage.stage as never, status: stage.status, detail: stage.detail, event_id: stage.event_id, program_id: stage.program_id, source_file: stage.source_file, source_function: stage.source_function, source_line: stage.source_line, evidence_ref: stage.evidence_ref, input_summary: stage.input_summary, operation_summary: stage.operation_summary, output_summary: stage.output_summary, reason: stage.reason, decision: stage.decision, next_program: stage.next_program, next_action: stage.next_action, target_type: stage.target_type, target_id: stage.target_id, target_display_name: stage.target_display_name, blocker_kind: stage.blocker_kind, blocker_detail: stage.blocker_detail }, "core:control/owner-command-semantics/resolver.ts", traceId);
@@ -1232,7 +1345,7 @@ export const server = createServer((req, res) => {
         sendJson(res, 503, { error: "CONVERSATION_RUNTIME_UNAVAILABLE", detail: error instanceof Error ? error.message : String(error) });
         return;
       }
-      sendJson(res, 200, composeOwnerAskHttpBody(result, "READ_ONLY_LANGUAGE"));
+      sendJson(res, 200, await languageBodyWithExistingCommandForward(result, text, req));
     })();
     return;
   }
