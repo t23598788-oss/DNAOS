@@ -28,6 +28,8 @@ import { validateOwnerSession } from "../../control/owner-authentication/contrac
 import { CANONICAL_PROMOTION_TOOLS, filterMcpTools, SOURCE_MUTATION_TOOLS } from "../../control/mcp-code-knowledge/contract";
 import { grantedToolsForAiClient, isRawRailwayMcpTool } from "../../control/owner-client-runtime/ai-queen-grants";
 import { AGENT_EXECUTION_ID_ENV, AGENT_TASK_ID_ENV, mcpMutationRequiresTaskScope } from "../../control/agent-physical-scope/contract";
+import { liveRegistryFromExistingStores } from "../../control/agent-physical-scope/live-registry";
+import { resolveCanonicalTaskScope } from "../../control/agent-physical-scope/task-scope";
 
 export type ExportClass = "INTERNAL_ONLY" | "OWNER_ONLY" | "ORGANIZATION" | "EXTERNAL_ALLOWED";
 export const DEFAULT_EXPORT_CLASS: ExportClass = "INTERNAL_ONLY";
@@ -517,6 +519,7 @@ export interface CallerContext {
   readonly authority_domain?: "OPERATIONAL" | "DEVELOPMENT";
   readonly lease_active?: boolean;
   readonly work_id?: string;
+  readonly agent_execution_id?: string;
   readonly client_id?: string;
   readonly granted_tools?: readonly string[];
 }
@@ -603,10 +606,17 @@ export function canInvoke(toolName: string, ctx: CallerContext): { allowed: bool
     return { allowed: false, reason_code: "DEVELOPMENT_AUTHORITY_REQUIRED", reason: "source mutation tools require an active scoped lease" };
   }
   if (mcpMutationRequiresTaskScope(toolName)) {
-    const agentExec = process.env[AGENT_EXECUTION_ID_ENV];
-    const agentTask = process.env[AGENT_TASK_ID_ENV];
-    if (typeof agentExec === "string" && agentExec !== "" && (!agentTask || agentTask === "")) {
+    const agentTask = ctx.work_id || process.env[AGENT_TASK_ID_ENV];
+    const agentExec = ctx.agent_execution_id || process.env[AGENT_EXECUTION_ID_ENV] || "mcp-invoke";
+    if (!agentTask || agentTask === "") {
       return { allowed: false, reason_code: "SCOPE_UNRESOLVED", reason: "coding-agent mutation requires resolved task scope" };
+    }
+    const decision = resolveCanonicalTaskScope(
+      { task_id: agentTask, agent_execution_id: agentExec },
+      liveRegistryFromExistingStores(),
+    );
+    if (!decision.ok) {
+      return { allowed: false, reason_code: "SCOPE_UNRESOLVED", reason: decision.detail ?? "coding-agent mutation requires a registered assignment" };
     }
   }
   const p = policyFor(toolName);

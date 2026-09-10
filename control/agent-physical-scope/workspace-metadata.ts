@@ -4,6 +4,7 @@
 
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
+import { canonicalizePath, realExistingPath } from "./host-runtime";
 import type { CanonicalAgentScope } from "./types";
 
 export interface WorkspaceScopeMetadata {
@@ -38,6 +39,9 @@ export function readWorkspaceMetadata(worktree_path: string): WorkspaceScopeMeta
 }
 
 export function verifyHookContext(scope: CanonicalAgentScope, git_root: string, remote: string | null): { ok: true } | { ok: false; reason: string } {
+  const root = realExistingPath(git_root) ?? canonicalizePath(git_root, "/");
+  const assigned = realExistingPath(scope.worktree_path) ?? canonicalizePath(scope.worktree_path, "/");
+  if (root !== assigned) return { ok: false, reason: "PATH_SCOPE_DENIED" };
   const meta = readWorkspaceMetadata(git_root);
   if (!meta) return { ok: false, reason: "TASK_SCOPE_UNRESOLVED" };
   if (meta.task_id !== scope.task_id) return { ok: false, reason: "TASK_ID_SPOOFED" };

@@ -4,7 +4,7 @@
 
 import { existsSync, lstatSync, realpathSync } from "node:fs";
 import { dirname, relative, resolve, sep } from "node:path";
-import { interpretAgentPath } from "./task-scope";
+import { canonicalizePath } from "./host-runtime";
 import type { CanonicalAgentScope, PathGuardResult } from "./types";
 
 function deepestExisting(path: string): string {
@@ -42,24 +42,33 @@ export function pathInsideRoot(root: string, candidate: string): boolean {
   return resolvedCandidate === resolvedRoot || resolvedCandidate.startsWith(resolvedRoot + sep);
 }
 
-function resolveAgainstWorktree(scope: CanonicalAgentScope, requested: string): string | null {
-  if (requested.startsWith("/") || requested.split(/[\\/]/).includes("..")) return null;
-  const interpreted = interpretAgentPath(scope, requested);
-  const existing = deepestExisting(interpreted);
-  try {
-    if (existsSync(existing) && lstatSync(existing).isSymbolicLink()) {
-      const target = realpathSync(existing);
-      if (!pathInsideRoot(scope.worktree_path, target)) return null;
-    }
-  } catch {
-    return null;
+function resolveAgainstReadRoots(scope: CanonicalAgentScope, requested: string): string | null {
+  if (requested.split(/[\\/]/).includes("..")) return null;
+  const roots = scope.read_allowed_paths.length > 0 ? scope.read_allowed_paths : [scope.worktree_path];
+  const candidates: string[] = [];
+  if (requested.startsWith("/")) {
+    candidates.push(requested);
+  } else {
+    for (const root of roots) candidates.push(canonicalizePath(requested, root));
   }
-  if (!pathInsideRoot(scope.worktree_path, interpreted)) return null;
-  return existsSync(interpreted) ? realpathIfExists(interpreted) : interpreted;
+  for (const interpreted of candidates) {
+    const existing = deepestExisting(interpreted);
+    try {
+      if (existsSync(existing) && lstatSync(existing).isSymbolicLink()) {
+        const target = realpathSync(existing);
+        if (!roots.some((root) => pathInsideRoot(root, target))) continue;
+      }
+    } catch {
+      continue;
+    }
+    if (!roots.some((root) => pathInsideRoot(root, interpreted))) continue;
+    return existsSync(interpreted) ? realpathIfExists(interpreted) : interpreted;
+  }
+  return null;
 }
 
 export function guardReadPath(scope: CanonicalAgentScope, requested: string): PathGuardResult {
-  const resolved = resolveAgainstWorktree(scope, requested);
+  const resolved = resolveAgainstReadRoots(scope, requested);
   if (!resolved) return { ok: false, reason: "PATH_SCOPE_DENIED", detail: "absolute, traversal, or symlink escape" };
   for (const sibling of scope.sibling_worktrees_denied) {
     if (pathInsideRoot(sibling, resolved) && !pathInsideRoot(scope.worktree_path, resolved)) {

@@ -135,7 +135,7 @@ export async function runOperation(serviceId: ServiceId, action: Action, request
   // `status` are single-sample reads by definition.
   let healthAfter: HealthCheckResult;
   let readiness_wait_ms = 0;
-  const readiness_deadline_ms = action === "start" || action === "restart" ? def.readiness_timeout_ms : 0;
+  const readiness_deadline_ms = mutationError === null && (action === "start" || action === "restart") ? def.readiness_timeout_ms : 0;
   if (readiness_deadline_ms > 0) {
     const ready = await waitForReadiness(def.port, def.health_path, readiness_deadline_ms);
     healthAfter = ready.health;

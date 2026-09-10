@@ -145,11 +145,11 @@ function main(): void {
   );
   ok("13. spoof repository_id denied", !spoofTask.ok && spoofTask.reason === "REPOSITORY_ID_SPOOFED");
 
-  const writeB = applyScopedPatch(scopeA, { task_id: "task-a", relative_path: join("..", "repo-b", "src", "pwn.ts"), contents: "nope" });
+  const writeB = applyScopedPatch(scopeA, { task_id: "task-a", relative_path: join("..", "repo-b", "src", "pwn.ts"), contents: "nope", expected_base_sha: "sha-a" });
   ok("1+3. ../ write Repo B denied", !writeB.ok);
   ok("Repo B untouched", readFileSync(join(trees.b, "src", "secret.ts"), "utf8").includes("B = 1"));
 
-  const abs = applyScopedPatch(scopeA, { task_id: "task-a", relative_path: trees.b + "/x.ts", contents: "nope" });
+  const abs = applyScopedPatch(scopeA, { task_id: "task-a", relative_path: trees.b + "/x.ts", contents: "nope", expected_base_sha: "sha-a" });
   ok("5. absolute path denied", !abs.ok);
 
   const neighbor = guardWritePath(scopeA, join("..", "repo-b", "src", "secret.ts"));
@@ -174,6 +174,7 @@ function main(): void {
   });
   ok("10. push Repo B denied", pushB.reason === "GIT_SCOPE_DENIED");
   ok("11. git remote change treated as write escape", looksLikeGitWriteEscape(["git", "remote", "set-url", "origin", "https://evil.example/x.git"]));
+  ok("git search query is not a write escape", looksLikeGitWriteEscape(["git", "log", "-S", "push"]) === false);
 
   const snapDecision = resolveCanonicalTaskScope(
     { task_id: "task-snap", agent_execution_id: "exec-snap" },
@@ -181,11 +182,11 @@ function main(): void {
   );
   ok("12. snapshot not mutation target", snapDecision.ok && snapDecision.scope.write_allowed === false && snapDecision.scope.safe_for_current_execution === false);
   if (snapDecision.ok) {
-    const snapWrite = applyScopedPatch(snapDecision.scope, { task_id: "task-snap", relative_path: "src/x.ts", contents: "no" });
+    const snapWrite = applyScopedPatch(snapDecision.scope, { task_id: "task-snap", relative_path: "src/x.ts", contents: "no", expected_base_sha: "sha-snap" });
     ok("12b. snapshot write denied", !snapWrite.ok);
   }
 
-  const spoofPatch = applyScopedPatch(scopeA, { task_id: "task-b", relative_path: "src/ok.ts", contents: "no" });
+  const spoofPatch = applyScopedPatch(scopeA, { task_id: "task-b", relative_path: "src/ok.ts", contents: "no", expected_base_sha: "sha-a" });
   ok("13b. spoof task_id on patch denied", spoofPatch.reason === "TASK_ID_SPOOFED");
 
   const stale = applyScopedPatch(scopeA, { task_id: "task-a", relative_path: "src/ok.ts", contents: "x", expected_base_sha: "old" });
@@ -194,30 +195,32 @@ function main(): void {
   ok("16. broad PAT env denied", guardAgentEnvironmentCredentials({ GITHUB_TOKEN: "gho_not_a_real_token" }).reason === "BROAD_GIT_CREDENTIAL");
   ok("16b. agent git authority is NONE", agentGitCredentialAuthority().expose_pat === false);
 
-  const generated = applyScopedPatch(scopeA, { task_id: "task-a", relative_path: join("dist", "out.js"), contents: "ok" });
+  const generated = applyScopedPatch(scopeA, { task_id: "task-a", relative_path: join("dist", "out.js"), contents: "ok", expected_base_sha: "sha-a" });
   ok("generated file inside scope allowed", generated.ok === true, generated.ok ? `class=${scopeA.safety_class} write=${scopeA.write_allowed}` : `${generated.reason} ${generated.detail} class=${scopeA.safety_class} write=${scopeA.write_allowed}`);
 
-  const outsideGen = applyScopedPatch(scopeA, { task_id: "task-a", relative_path: join("..", "out.js"), contents: "no" });
+  const outsideGen = applyScopedPatch(scopeA, { task_id: "task-a", relative_path: join("..", "out.js"), contents: "no", expected_base_sha: "sha-a" });
   ok("generated file outside scope denied", outsideGen.ok === false);
 
   const nestedGit = guardWritePath(scopeA, join(".git", "config"));
   ok("nested git metadata write denied", nestedGit.ok === false);
 
-  const positive = applyScopedPatch(scopeA, { task_id: "task-a", relative_path: "src/ok.ts", contents: "export const A = 2;\n" });
+  const positive = applyScopedPatch(scopeA, { task_id: "task-a", relative_path: "src/ok.ts", contents: "export const A = 2;\n", expected_base_sha: "sha-a" });
   ok("positive apply allowed patch", positive.ok === true, positive.ok ? "" : `${positive.reason} ${positive.detail}`);
   ok("positive file contents", readFileSync(join(trees.a, "src", "ok.ts"), "utf8").includes("A = 2"));
 
+  const allocSnap = allocateRuntimePort(snapDecision.ok ? snapDecision.scope : scopeA, "dev-server");
+  ok("snapshot cannot allocate ports", "ok" in allocSnap && allocSnap.ok === false);
   const alloc = allocateRuntimePort(scopeA, "dev-server");
   ok("port allocated for task A", "port" in alloc);
   if ("port" in alloc) {
-    const scoped = withAllocatedPort(scopeA, alloc.port);
+    const scoped = withAllocatedPort(scopeA, alloc);
     ok("A can use allocated port", guardPortMutation(scoped, alloc.port).ok === true);
     ok("B cannot use A's port", guardPortMutation(scopeB, alloc.port).ok === false);
     ok("A still cannot take Owner port", guardPortMutation(scoped, OWNER_SURFACE_PORT).ok === false);
   }
 
-  ok("A cannot mutate B", applyScopedPatch(scopeA, { task_id: "task-a", relative_path: join("..", "repo-b", "hack.ts"), contents: "x" }).ok === false);
-  ok("B cannot mutate A", applyScopedPatch(scopeB, { task_id: "task-b", relative_path: join("..", "repo-a", "hack.ts"), contents: "x" }).ok === false);
+  ok("A cannot mutate B", applyScopedPatch(scopeA, { task_id: "task-a", relative_path: join("..", "repo-b", "hack.ts"), contents: "x", expected_base_sha: "sha-a" }).ok === false);
+  ok("B cannot mutate A", applyScopedPatch(scopeB, { task_id: "task-b", relative_path: join("..", "repo-a", "hack.ts"), contents: "x", expected_base_sha: "sha-b" }).ok === false);
   ok("A cannot control B runtime", guardRuntimeMutation(scopeA, "task-b-runtime").reason === "RUNTIME_SCOPE_DENIED");
   ok("B cannot control A runtime", guardRuntimeMutation(scopeB, "task-a-runtime").reason === "RUNTIME_SCOPE_DENIED");
 
@@ -239,6 +242,7 @@ function main(): void {
   writeWorkspaceMetadata(scopeA);
   ok("hook metadata matches assignment", verifyHookContext(scopeA, trees.a, "https://github.com/example/a.git").ok === true);
   ok("hook remote mismatch denied", verifyHookContext(scopeA, trees.a, "https://github.com/example/b.git").ok === false);
+  ok("hook git_root must be assigned worktree", verifyHookContext(scopeA, trees.b, "https://github.com/example/a.git").ok === false);
 
   recordDeniedMutation({
     task_id: "task-a",
@@ -253,7 +257,9 @@ function main(): void {
   const audit = readFileSync(join(isolated, "denials.jsonl"), "utf8");
   ok("audit has no secret-shaped tokens", !/gho_|github_pat_|ya29\./.test(audit));
 
-  const gitCommitOk = guardGitWrite(scopeA, { repository_id: "repo://a", operation: "commit", base_sha: "sha-a" });
+  const gitCommitMissingRoot = guardGitWrite(scopeA, { repository_id: "repo://a", operation: "commit", base_sha: "sha-a" });
+  ok("commit without scoped git_root denied", gitCommitMissingRoot.ok === false);
+  const gitCommitOk = guardGitWrite(scopeA, { repository_id: "repo://a", operation: "commit", base_sha: "sha-a", git_root: trees.a, branch: "agent-work/task-a" });
   ok("local commit path may proceed past repo match (push still closed)", gitCommitOk.ok === true);
   const gitPushClosed = guardGitWrite(scopeA, { repository_id: "repo://a", operation: "push" });
   ok("direct push closed", gitPushClosed.ok === false);

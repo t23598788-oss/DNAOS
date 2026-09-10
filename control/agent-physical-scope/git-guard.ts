@@ -3,6 +3,7 @@
  */
 
 import type { CanonicalAgentScope, ScopeDenialReason } from "./types";
+import { canonicalizePath, realExistingPath } from "./host-runtime";
 
 export interface GitGuardResult {
   readonly ok: boolean;
@@ -25,16 +26,33 @@ export function guardAgentEnvironmentCredentials(env: Readonly<Record<string, st
 }
 
 export function looksLikeGitWriteEscape(argv: readonly string[]): boolean {
-  const joined = argv.join(" ").toLowerCase();
-  if (joined.includes("remote set-url") || joined.includes("remote add")) return true;
-  if (/\bgit\s+push\b/.test(joined) || argv.includes("push")) return true;
-  if (joined.includes("--force") || argv.includes("-f")) return true;
+  const exe = argv[0] ?? "";
+  const base = exe.split(/[/\\]/).pop() ?? "";
+  if (base !== "git") return false;
+  const rest = argv.slice(1);
+  for (let i = 0; i < rest.length; i += 1) {
+    const token = rest[i]!;
+    if (token === "-C" || token === "-c") {
+      i += 1;
+      continue;
+    }
+    if (token.startsWith("-")) continue;
+    if (token === "push") return true;
+    if (token === "remote" && (rest[i + 1] === "set-url" || rest[i + 1] === "add")) return true;
+    return false;
+  }
   return false;
 }
 
 export function guardGitWrite(
   scope: CanonicalAgentScope,
-  input: { readonly repository_id: string; readonly operation: "commit" | "push"; readonly base_sha?: string },
+  input: {
+    readonly repository_id: string;
+    readonly operation: "commit" | "push";
+    readonly base_sha?: string;
+    readonly git_root?: string;
+    readonly branch?: string;
+  },
 ): GitGuardResult {
   if (input.repository_id !== scope.repository_id) {
     return { ok: false, reason: "GIT_SCOPE_DENIED", detail: "repository_id mismatch" };
@@ -47,6 +65,19 @@ export function guardGitWrite(
   }
   if (!scope.write_allowed) {
     return { ok: false, reason: "GIT_SCOPE_DENIED", detail: "git write not in scope" };
+  }
+  if (input.operation === "commit") {
+    if (!input.git_root || !input.branch) {
+      return { ok: false, reason: "GIT_SCOPE_DENIED", detail: "commit requires scoped git_root and branch" };
+    }
+    const root = realExistingPath(input.git_root) ?? canonicalizePath(input.git_root, "/");
+    const scoped = realExistingPath(scope.worktree_path) ?? canonicalizePath(scope.worktree_path, "/");
+    if (root !== scoped) {
+      return { ok: false, reason: "GIT_SCOPE_DENIED", detail: "git_root is not the assigned worktree" };
+    }
+    if (input.branch !== scope.git_scope.allowed_branch) {
+      return { ok: false, reason: "GIT_SCOPE_DENIED", detail: "branch is not the assigned agent-work branch" };
+    }
   }
   return { ok: true };
 }
