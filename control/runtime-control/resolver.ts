@@ -12,7 +12,8 @@
  *
  * Input: `ServiceId`, `Action`, และ `RuntimeOperationRequest` ที่เป็น optional.
  * Output: `runOperation(serviceId, action, request?): Promise<OperationEvidence>`.
- * Dependency ที่อนุญาต: ./types.ts, ./host-runtime.ts.
+ * Dependency ที่อนุญาต: ./types.ts, ./host-runtime.ts,
+ * ../agent-physical-scope/contract.ts (coding-agent runtime deny only).
  * สิ่งที่ห้ามแตะ: never let `start`/`restart` report SUCCESS without both
  * a real post-action PID from launchd AND a real healthy HTTP response —
  * either one missing is a FAILED result with a stated reason. Never let a
@@ -36,6 +37,7 @@ import {
 import { buildRequesterProvenance } from "./requester";
 import type { RuntimeOperationRequest } from "./requester";
 import type { Action, HealthCheckResult, OperationEvidence, ServiceId } from "./types";
+import { denyProtectedRuntimeIfAgent } from "../agent-physical-scope/contract";
 
 const SETTLE_POLL_INTERVAL_MS = 500;
 const SETTLE_MAX_WAIT_MS = 10_000;
@@ -103,8 +105,10 @@ export async function runOperation(serviceId: ServiceId, action: Action, request
   const healthBefore: HealthCheckResult = await httpHealthCheck(def.port, def.health_path);
 
   let mutationError: string | null = null;
+  const agentRuntime = denyProtectedRuntimeIfAgent({ service_id: serviceId, action, env: process.env });
+  if (!agentRuntime.ok) mutationError = agentRuntime.detail;
 
-  if (action === "start" || action === "restart") {
+  if (mutationError === null && (action === "start" || action === "restart")) {
     if (!stateBefore.loaded) {
       const r = launchctlBootstrap(def.plist_path);
       if (!r.ok) mutationError = r.error;
@@ -113,7 +117,7 @@ export async function runOperation(serviceId: ServiceId, action: Action, request
       if (!r.ok) mutationError = r.error;
     }
     await waitForLaunchdSettle(def.launchd_label, true);
-  } else if (action === "stop") {
+  } else if (mutationError === null && action === "stop") {
     if (stateBefore.loaded) {
       const r = launchctlBootout(def.launchd_label);
       if (!r.ok) mutationError = r.error;

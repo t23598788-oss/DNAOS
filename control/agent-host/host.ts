@@ -96,7 +96,7 @@ declare const clearTimeout: (timer: unknown) => void;
  * purpose, registered POSIX diagnostics — but the same "credential-free
  * child env" principle is enforced here for the Agent process).
  */
-const AGENT_ENV_ALLOWLIST = ["PATH", "TMPDIR", "LANG", "LC_ALL"] as const;
+const AGENT_ENV_ALLOWLIST = ["PATH", "TMPDIR", "LANG", "LC_ALL", "DNA_OS_AGENT_EXECUTION_ID", "DNA_OS_AGENT_TASK_ID"] as const;
 
 function buildAgentEnv(hostEnv: Readonly<Record<string, string | undefined>>): Record<string, string> {
   const env: Record<string, string> = {};
@@ -118,6 +118,10 @@ export function launchAgent(request: AgentLaunchRequest, hostEnv: Readonly<Recor
                       request.repositoryReadPaths ?? [], request.workerRuntimeReadPaths, argvPaths);
 
   const env = buildAgentEnv(hostEnv);
+  env.DNA_OS_AGENT_EXECUTION_ID = launchId;
+  if (typeof request.task_id === "string" && request.task_id.length > 0) {
+    env.DNA_OS_AGENT_TASK_ID = request.task_id;
+  }
   const startedAt = nowIso();
 
   return new Promise((resolve) => {
