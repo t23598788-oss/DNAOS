@@ -523,11 +523,11 @@ export const DNA_OS_MCP_TOOLS: readonly DnaOsMcpTool[] = [
       evidence_behavior: "returns git + repository-registry projection with provenance",
       dna_os_capability_id: null,
     },
-    inputShape: { work_id: z.string().optional() },
+    inputShape: { work_id: z.string().optional(), include_historical: z.boolean().optional() },
     handler: async (args) => {
       const correlation_id = randomUUID();
       const workId = typeof args.work_id === "string" ? args.work_id : undefined;
-      return textResult({ status: 200, correlation_id, gate: resolveCapabilityForTool(null), ...resolveCurrentSourceFact(workId) });
+      return textResult({ status: 200, correlation_id, gate: resolveCapabilityForTool(null), ...resolveCurrentSourceFact(workId, args.include_historical === true) });
     },
   },
   {

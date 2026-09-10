@@ -25,6 +25,8 @@ import type { WorkSessionCheckpoint } from "./types";
 /**
  * Where DNA OS keeps this.
  *
+ * Default is this process's cwd `local-runtime/` (worktree-local). That is
+ * intentional: a worktree does not silently inherit another checkout's journal.
  * `WORK_SESSION_STATE_ROOT` exists so a proof run — or a second runtime on the
  * same machine — can point at its own directory instead of writing test rows
  * into the live journal. It is read here, in the ONE place the path is

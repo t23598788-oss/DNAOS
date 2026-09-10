@@ -52,6 +52,8 @@ export interface SourceReference {
   readonly safe_for_current_execution: boolean;
   readonly last_verified_at: string;
   readonly provenance: string;
+  /** Git remote URL when known. Metadata only — never repository contents. */
+  readonly source_authority: string | null;
   readonly related_work_id: string | null;
   readonly related_capability_ids: readonly string[];
   readonly reason: string;
@@ -89,7 +91,7 @@ export interface CodeReferenceLookup {
   readonly current_refs: readonly SourceReference[];
   readonly historical_refs: readonly SourceReference[];
   readonly action_ids: readonly string[];
-  readonly SOURCE_SEARCH_REQUIRED: false;
+  readonly SOURCE_SEARCH_REQUIRED: boolean;
   readonly sources: readonly { readonly fact: string; readonly authority: string; readonly path: string }[];
   readonly interpretation: string | null;
 }
@@ -242,6 +244,7 @@ function refFor(input: {
     safe_for_current_execution: current && realPath(input.source_root) === realPath(input.cwd),
     last_verified_at: input.now,
     provenance: classified.repository_id ? "software/repository-registry" : "git",
+    source_authority: gitRemote(input.source_root),
     related_work_id: input.work_id,
     related_capability_ids: input.capability_ids,
     reason: input.reason,
@@ -255,8 +258,9 @@ function operationalForRemote(remote: string | null) {
   return listOperationalRepositories().filter((row) => normalizeRemote(row.source_authority) === n);
 }
 
-export function resolveCurrentSource(workId?: string): CurrentSourceResolution {
+export function resolveCurrentSource(workId?: string, options?: { readonly include_historical?: boolean }): CurrentSourceResolution {
   const queried_at = new Date().toISOString();
+  const include_historical = options?.include_historical === true;
   const cwd = process.cwd();
   const sha = currentRevision(cwd);
   const branch = currentBranch(cwd);
@@ -309,11 +313,8 @@ export function resolveCurrentSource(workId?: string): CurrentSourceResolution {
   for (const tree of listGitWorktrees(cwd)) {
     if (realPath(tree.source_root) === realPath(cwd)) continue;
     if (registeredRow && realPath(tree.source_root) === realPath(registeredRow.repository_root)) continue;
-    if (MANAGED_WORKTREE.test(tree.source_root)) {
-      snapshot_omitted_count += 1;
-      continue;
-    }
-    if (related_snapshots.length >= 8) {
+    const managed = MANAGED_WORKTREE.test(tree.source_root);
+    if (!include_historical || managed || related_snapshots.length >= 8) {
       snapshot_omitted_count += 1;
       continue;
     }
@@ -325,7 +326,7 @@ export function resolveCurrentSource(workId?: string): CurrentSourceResolution {
       cwd,
       work_id: work.work_id,
       capability_ids: [],
-      reason: "git worktree of the same repository — not current execution",
+      reason: "explicit historical/snapshot lookup — git worktree, not current execution",
       now: queried_at,
       current_sha: sha,
     }));
@@ -423,7 +424,7 @@ export function lookupCodeReferences(input: {
 
   const historical_refs: SourceReference[] = [];
   if (include_historical) {
-    const resolved = resolveCurrentSource(input.work_id);
+    const resolved = resolveCurrentSource(input.work_id, { include_historical: true });
     const snapshotRoots = [
       ...(resolved.registered_canonical && realPath(resolved.registered_canonical.source_root) !== realPath(cwd)
         ? [resolved.registered_canonical]
@@ -455,7 +456,7 @@ export function lookupCodeReferences(input: {
     current_refs,
     historical_refs,
     action_ids: cap?.supported_commands ?? [],
-    SOURCE_SEARCH_REQUIRED: false,
+    SOURCE_SEARCH_REQUIRED: Boolean(unresolved_reason && paths.length === 0),
     sources: [
       { fact: "capability_implementation", authority: "capability_registry", path: "control/command-router/capability-registry.ts" },
       { fact: "work_files", authority: "work_session_state", path: "control/work-session-state/contract.ts#getCurrentWorkContext" },

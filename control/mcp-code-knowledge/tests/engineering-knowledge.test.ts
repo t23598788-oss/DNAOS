@@ -6,15 +6,22 @@
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { mkdtempSync } from "node:fs";
-import { recordEngineeringHandoff, getCurrentWorkContext, currentRevision } from "../../work-session-state/contract";
-import { lookupCodeReferences, resolveCurrentSource } from "../contract";
+import { recordEngineeringHandoff, getCurrentWorkContext, currentRevision, appendCheckpoint, currentCheckpoint } from "../../work-session-state/contract";
+import {
+  lookupCodeReferences,
+  resolveCurrentSource,
+  classifyEngineeringSource,
+  ENGINEERING_SESSION_BOOTSTRAP,
+  filterMcpTools,
+} from "../contract";
 import {
   getCurrentWorkContextFact,
   lookupCodeReferencesFact,
   resolveCurrentSourceFact,
   containsCredentialMaterial,
 } from "../../../connections/dna-os-mcp/runtime-facts";
-import { canDiscover, policyFor } from "../../../connections/dna-os-mcp/export-policy";
+import { canDiscover, canInvoke, policyFor } from "../../../connections/dna-os-mcp/export-policy";
+import { resolveCanonicalToolId } from "../../../connections/dna-os-mcp/conceptual-tool-aliases";
 
 declare const process: { env: Record<string, string | undefined>; cwd(): string; exitCode?: number };
 declare const console: { log(...args: unknown[]): void; error(...args: unknown[]): void };
@@ -152,6 +159,54 @@ function main(): void {
 
   const lookupFact = lookupCodeReferencesFact({ capability_id: "google-workspace", work_id: workId });
   ok("lookup MCP fact has no secrets", containsCredentialMaterial(lookupFact) === false);
+
+  ok("default current-source query lists no snapshot worktrees", sourceA.related_snapshots.length === 0);
+  const historicalSource = resolveCurrentSource(workId, { include_historical: true });
+  ok("explicit historical source query may list snapshots", historicalSource.related_snapshots.every((row) => row.safe_for_current_execution === false && row.current === false));
+  ok("same filename in snapshot is not current implementation", historical.historical_refs.every((row) => row.path !== "connections/google-workspace/adapter-contract.ts" || (row.current === false && row.classification !== "CURRENT_CANONICAL")));
+  ok("UNKNOWN is not auto-promoted to CURRENT_CANONICAL", classifyEngineeringSource({
+    source_root: process.cwd(),
+    cwd: process.cwd(),
+    census: "UNCLASSIFIED",
+  }) === "UNKNOWN");
+  ok("engineering bootstrap forbids chat/IDE as authority", ENGINEERING_SESSION_BOOTSTRAP.MCP_KNOWLEDGE_QUERY_FIRST === true && ENGINEERING_SESSION_BOOTSTRAP.non_authoritative.includes("ai_memory"));
+  ok("DEVELOPMENT-gated coding knowledge stays gated", !filterMcpTools({
+    authority_domain: "OPERATIONAL",
+    lease_active: false,
+    tool_names: ["dna_os.get_coding_knowledge", "dna_os.resolve_current_source"],
+  }).AVAILABLE_TOOLS.includes("dna_os.get_coding_knowledge"));
+  ok("resolve_current_source remains visible on the operational surface", filterMcpTools({
+    authority_domain: "OPERATIONAL",
+    lease_active: false,
+    tool_names: ["dna_os.resolve_current_source"],
+  }).AVAILABLE_TOOLS.includes("dna_os.resolve_current_source"));
+  ok("conceptual alias is not itself an MCP tool name", canDiscover("dnaos.get_current_work", { caller: "cursor", channel: "EXTERNAL" }).allowed === false);
+  ok("alias resolution still uses canonical export policy", canDiscover(resolveCanonicalToolId("dnaos.get_current_work"), { caller: "cursor", channel: "EXTERNAL" }).allowed === true);
+  ok("alias cannot invoke a more-privileged tool", canInvoke("dnaos.get_current_work", { caller: "cursor", channel: "EXTERNAL" }).allowed === false);
+
+  const previousRuntime = process.env.DNA_OS_SOURCE_REVISION;
+  process.env.DNA_OS_SOURCE_REVISION = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb";
+  const drifted = getCurrentWorkContext(workId);
+  ok("runtime SHA != HEAD is runtime_stale", drifted.revision_awareness.runtime_stale === true && drifted.git.source_revision === sha);
+  if (previousRuntime === undefined) delete process.env.DNA_OS_SOURCE_REVISION;
+  else process.env.DNA_OS_SOURCE_REVISION = previousRuntime;
+
+  const prior = currentCheckpoint(workId);
+  ok("checkpoint exists for drift proof", prior !== null);
+  if (prior) {
+    appendCheckpoint({
+      ...prior,
+      checkpoint_id: undefined,
+      updated_at: undefined,
+      source_revision: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    });
+  }
+  const staleCtx = getCurrentWorkContext(workId);
+  ok("old checkpoint is fail-visible stale", staleCtx.revision_awareness.checkpoint_stale === true);
+  ok("stale context still reports live HEAD as git authority", staleCtx.git.source_revision === sha && staleCtx.resume.revision_drifted === true);
+
+  ok("google current boundary preserved", aCtx.current_boundary?.id === "oauth-client-config-resolution");
+  ok("google constraints preserved", ["no Production OAuth", "no writes", "no second Google credential family"].every((c) => aCtx.constraints.includes(c)));
 
   console.log(`FRESH_SESSION_MCP_CALLS=3 (get_current_work_context, resolve_current_source, lookup_code_references)`);
   console.log(`BROAD_SEARCHES=0`);

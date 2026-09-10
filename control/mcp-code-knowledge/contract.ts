@@ -4,6 +4,7 @@ export {
   DEVELOPMENT_KNOWLEDGE_URIS,
   SOURCE_MUTATION_TOOLS,
   CANONICAL_PROMOTION_TOOLS,
+  ENGINEERING_SESSION_BOOTSTRAP,
   applyRegisteredSourceMutation,
   codeKnowledgeMetrics,
   codingClientBarriers,

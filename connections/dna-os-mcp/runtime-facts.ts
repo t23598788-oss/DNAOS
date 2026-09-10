@@ -47,7 +47,7 @@ export interface ProofEnvelope {
 
 function redact(value: unknown): unknown {
   if (typeof value === "string") {
-    if (SECRET_VALUE.test(value) || SECRET_KEY.test(value)) return "[redacted]";
+    if (SECRET_VALUE.test(value) || /keychain:\/\//i.test(value)) return "[redacted]";
     return value;
   }
   if (Array.isArray(value)) return value.map(redact);
@@ -252,8 +252,8 @@ export function getCurrentWorkContextFact(workId?: string): Record<string, unkno
   }) as Record<string, unknown>;
 }
 
-export function resolveCurrentSourceFact(workId?: string): Record<string, unknown> {
-  const resolved = resolveCurrentSource(workId);
+export function resolveCurrentSourceFact(workId?: string, includeHistorical = false): Record<string, unknown> {
+  const resolved = resolveCurrentSource(workId, { include_historical: includeHistorical });
   return redact({
     ...identity(),
     proof: envelope(
