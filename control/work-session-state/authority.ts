@@ -127,6 +127,42 @@ export const STATE_AUTHORITY: readonly StateAuthority[] = [
     lifetime: "durable log; the in-memory ring is a bounded projection of it",
     kind: "DERIVABLE",
   },
+  {
+    state_type: "GIT_HEAD (branch, source SHA)",
+    canonical_owner: "git",
+    writer: "git (rev-parse)",
+    readers: ["control/work-session-state/store.ts#currentRevision", "control/work-session-state/engineering-context.ts#getCurrentWorkContext"],
+    persistence_path: ".git",
+    lifetime: "until the next commit/checkout",
+    kind: "AUTHORITATIVE",
+  },
+  {
+    state_type: "GITHUB_PULL_REQUEST (open PR number/url/head SHA pointers)",
+    canonical_owner: "GitHub / repository metadata",
+    writer: "GitHub API / gh",
+    readers: ["control/work-session-state/engineering-context.ts (stores pointers only)"],
+    persistence_path: "not stored as a PR database here — checkpoint.engineering.open_pr_refs are pointers",
+    lifetime: "until the PR is updated or closed on GitHub",
+    kind: "AUTHORITATIVE",
+  },
+  {
+    state_type: "RUNTIME_REVISION (process source_sha / DNA_OS_SOURCE_REVISION / local git)",
+    canonical_owner: "control/runtime-revision",
+    writer: "control/runtime-revision/contract.ts#readRuntimeRevision",
+    readers: ["transport/owner-command-http/server.ts#/health", "control/work-session-state/engineering-context.ts"],
+    persistence_path: "process env + local git; reported, never invented",
+    lifetime: "lifetime of the process",
+    kind: "AUTHORITATIVE",
+  },
+  {
+    state_type: "CREDENTIAL_POINTER (credential_ref / Keychain names — never secret values)",
+    canonical_owner: "credentials/registry + macos-keychain",
+    writer: "credentials/registry/api-credential-registry.ts",
+    readers: ["connections/google-workspace/credential-resolution.ts"],
+    persistence_path: "credentials/registry/data/api-credential-references.jsonl + Keychain items",
+    lifetime: "until replaced or revoked",
+    kind: "AUTHORITATIVE",
+  },
 ];
 
 export function authorityOf(stateTypeFragment: string): StateAuthority | null {

@@ -43,6 +43,7 @@ import {
   getSystemHealthFact,
   getWorkEvidenceFact,
   getWorkStatusFact,
+  getCurrentWorkContextFact,
 } from "./runtime-facts";
 import {
   capabilitiesPublicView,
@@ -491,6 +492,23 @@ export const DNA_OS_MCP_TOOLS: readonly DnaOsMcpTool[] = [
     handler: async () => {
       const correlation_id = randomUUID();
       return textResult({ status: 200, correlation_id, gate: resolveCapabilityForTool(null), ...getLatestWorkFact() });
+    },
+  },
+  {
+    metadata: {
+      name: "dna_os.get_current_work_context",
+      title: "DNA OS Current Work Context",
+      description: "Return compact canonical engineering work context from DNA OS + Git + runtime. Not AI memory. No secrets.",
+      read_write: "read",
+      permission_scope: "task-status",
+      evidence_behavior: "returns work-session-state projection with git/runtime provenance",
+      dna_os_capability_id: null,
+    },
+    inputShape: { work_id: z.string().optional() },
+    handler: async (args) => {
+      const correlation_id = randomUUID();
+      const workId = typeof args.work_id === "string" ? args.work_id : undefined;
+      return textResult({ status: 200, correlation_id, gate: resolveCapabilityForTool(null), ...getCurrentWorkContextFact(workId) });
     },
   },
   {

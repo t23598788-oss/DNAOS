@@ -33,6 +33,7 @@ export {
   getSystemHealthFact,
   getWorkEvidenceFact,
   getWorkStatusFact,
+  getCurrentWorkContextFact,
 } from "./runtime-facts";
 export { UNAUTHENTICATED_CONTEXT } from "./caller-context";
 export type { CallerContext } from "./export-policy";

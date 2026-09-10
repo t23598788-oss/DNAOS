@@ -158,6 +158,15 @@ export const READ_PATHS: readonly ReadPathDeclaration[] = [
     provider: { capability: "control/work-session-state", contract_path: "control/work-session-state/contract.ts", symbol: "resolveChangeOwner" },
     evidence: ["control/work-coordination/write-scope.ts#listWriteLocks (the live lock directory)", "local-runtime/work-session-state/checkpoints.jsonl"],
   },
+  {
+    id: "RP-CURRENT-WORK-CONTEXT",
+    domain: "CONTINUATION",
+    answers: "what engineering work is current, at which SHA, what is proven/blocked/next, and which files/capabilities/PRs to read — without scanning the repository or using AI memory",
+    request: { sends: ["optional work_id"], lookup_key: "work_id", never_sends: ["conversation history", "AI-produced summaries as authority"] },
+    response: { returns: ["work_id", "title", "git", "runtime", "revision_awareness", "completed_boundaries", "current_boundary", "next_boundary", "relevant_files", "relevant_capabilities", "open_prs", "proofs", "blockers", "constraints", "resume", "sources"], provenance: "HISTORY", failure_state: "work_id=null and resume_status=NO_SUCH_WORK when no checkpoint exists", carries_evidence: true },
+    provider: { capability: "control/work-session-state", contract_path: "control/work-session-state/contract.ts", symbol: "getCurrentWorkContext" },
+    evidence: ["local-runtime/work-session-state/checkpoints.jsonl", "control/work-session-state/store.ts#currentRevision", "control/runtime-revision/contract.ts#readRuntimeRevision", "control/command-router/capability-registry.ts"],
+  },
 ];
 
 /** Resolves a declared symbol on its real provider module. Returns undefined when the symbol is not on that public contract. */
