@@ -54,7 +54,7 @@ function recordGoogleHandoff(): string {
     completed_boundaries: [
       { id: "owner-authorization-orchestration", authority: "github", source: "pr://16", observed_at: observed, source_revision: "0ea36aa77ba06ed56ed671c265570ce420689bfc", evidence_ref: "https://github.com/t23598788-oss/-DNA-OS-INFRASTRUCTURE-/pull/16" },
       { id: "owner-intent-to-canonical-action", authority: "github", source: "pr://17", observed_at: observed, source_revision: "879e33bc5bd7fe8ee6b02c88751acaae37b4bad6", evidence_ref: "https://github.com/t23598788-oss/-DNA-OS-INFRASTRUCTURE-/pull/17" },
-      { id: "owner-google-read-admission", authority: "github", source: "pr://18", observed_at: observed, source_revision: "92f331451249a4331ffeaec0b38c48", evidence_ref: "https://github.com/t23598788-oss/-DNA-OS-INFRASTRUCTURE-/pull/18" },
+      { id: "owner-google-read-admission", authority: "github", source: "pr://18", observed_at: observed, source_revision: "92f331451249a4331ffeaec0b0ac6eab80b38c48", evidence_ref: "https://github.com/t23598788-oss/-DNA-OS-INFRASTRUCTURE-/pull/18" },
       { id: "canonical-user-credential-pointer", authority: "github", source: "pr://19", observed_at: observed, source_revision: "aa278a397f019e882eb28d2bcdf89444d9457022", evidence_ref: "https://github.com/t23598788-oss/-DNA-OS-INFRASTRUCTURE-/pull/19" },
     ],
     current_boundary: {
@@ -76,7 +76,7 @@ function recordGoogleHandoff(): string {
     open_pr_refs: [
       { number: 16, url: "https://github.com/t23598788-oss/-DNA-OS-INFRASTRUCTURE-/pull/16", head_sha: "0ea36aa77ba06ed56ed671c265570ce420689bfc", authority: "github", observed_at: observed },
       { number: 17, url: "https://github.com/t23598788-oss/-DNA-OS-INFRASTRUCTURE-/pull/17", head_sha: "879e33bc5bd7fe8ee6b02c88751acaae37b4bad6", authority: "github", observed_at: observed },
-      { number: 18, url: "https://github.com/t23598788-oss/-DNA-OS-INFRASTRUCTURE-/pull/18", head_sha: "92f331451249a4331ffeaec0b38c48", authority: "github", observed_at: observed },
+      { number: 18, url: "https://github.com/t23598788-oss/-DNA-OS-INFRASTRUCTURE-/pull/18", head_sha: "92f331451249a4331ffeaec0b0ac6eab80b38c48", authority: "github", observed_at: observed },
       { number: 19, url: "https://github.com/t23598788-oss/-DNA-OS-INFRASTRUCTURE-/pull/19", head_sha: "aa278a397f019e882eb28d2bcdf89444d9457022", authority: "github", observed_at: observed },
     ],
     proofs: {
