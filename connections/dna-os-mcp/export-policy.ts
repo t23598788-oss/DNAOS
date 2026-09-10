@@ -27,7 +27,7 @@
 import { validateOwnerSession } from "../../control/owner-authentication/contract";
 import { CANONICAL_PROMOTION_TOOLS, filterMcpTools, SOURCE_MUTATION_TOOLS } from "../../control/mcp-code-knowledge/contract";
 import { grantedToolsForAiClient, isRawRailwayMcpTool } from "../../control/owner-client-runtime/ai-queen-grants";
-import { AGENT_EXECUTION_ID_ENV, AGENT_TASK_ID_ENV, mcpMutationRequiresTaskScope } from "../../control/agent-physical-scope/contract";
+import { mcpMutationRequiresTaskScope } from "../../control/agent-physical-scope/contract";
 import { liveRegistryFromExistingStores } from "../../control/agent-physical-scope/live-registry";
 import { resolveCanonicalTaskScope } from "../../control/agent-physical-scope/task-scope";
 
@@ -606,10 +606,10 @@ export function canInvoke(toolName: string, ctx: CallerContext): { allowed: bool
     return { allowed: false, reason_code: "DEVELOPMENT_AUTHORITY_REQUIRED", reason: "source mutation tools require an active scoped lease" };
   }
   if (mcpMutationRequiresTaskScope(toolName)) {
-    const agentTask = ctx.work_id || process.env[AGENT_TASK_ID_ENV];
-    const agentExec = ctx.agent_execution_id || process.env[AGENT_EXECUTION_ID_ENV] || "mcp-invoke";
-    if (!agentTask || agentTask === "") {
-      return { allowed: false, reason_code: "SCOPE_UNRESOLVED", reason: "coding-agent mutation requires resolved task scope" };
+    const agentTask = ctx.work_id;
+    const agentExec = ctx.agent_execution_id;
+    if (!agentTask || agentTask === "" || !agentExec || agentExec === "") {
+      return { allowed: false, reason_code: "SCOPE_UNRESOLVED", reason: "coding-agent mutation requires resolved task scope on the request context" };
     }
     const decision = resolveCanonicalTaskScope(
       { task_id: agentTask, agent_execution_id: agentExec },

@@ -17,7 +17,7 @@ import {
   type RegisteredToolLike,
 } from "../tool-grant";
 import { canDiscover, canInvoke, policyFor, type CallerContext } from "../export-policy";
-import { UNAUTHENTICATED_CONTEXT } from "../caller-context";
+import { UNAUTHENTICATED_CONTEXT, callerContextFromHttp } from "../caller-context";
 import { CANONICAL_OWNERS } from "../canonical-tool-descriptor";
 import { resolveCanonicalToolId, CONCEPTUAL_TOOL_ALIASES } from "../conceptual-tool-aliases";
 import { isRawRailwayMcpTool } from "../../../control/owner-client-runtime/ai-queen-grants";
@@ -297,6 +297,18 @@ function main(): void {
     const drift = detectCanonicalToolingDrift();
     assert(drift.status === "ALIGNED", drift.reason);
     assert(drift.mcp_ingress_declared === true, "ingress");
+  });
+
+  check("HTTP MCP mutation requires request-context task identity, not daemon env", () => {
+    const http = callerContextFromHttp({
+      "x-dna-os-agent-task-id": "task-unregistered",
+      "x-dna-os-agent-execution-id": "exec-http",
+    });
+    assert(http.work_id === "task-unregistered", http.work_id);
+    assert(http.agent_execution_id === "exec-http", http.agent_execution_id);
+    const lease = { caller: "cursor", channel: "EXTERNAL" as const, authority_domain: "DEVELOPMENT" as const, lease_active: true };
+    assert(canInvoke("dna_os.apply_scoped_source_write", lease).allowed === false, "no task on context");
+    assert(canInvoke("dna_os.apply_scoped_source_write", { ...lease, ...http }).reason_code === "SCOPE_UNRESOLVED", "unregistered task");
   });
 
   check("undeclared policy tool fails closed as OUT_OF_SYNC", () => {
