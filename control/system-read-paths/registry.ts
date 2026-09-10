@@ -29,6 +29,7 @@ import * as registryDatabase from "../../software/registry-database/contract";
 import * as commandRouter from "../command-router/contract";
 import * as executionRun from "../../execution/run/contract";
 import * as workSessionState from "../work-session-state/contract";
+import * as mcpCodeKnowledge from "../mcp-code-knowledge/contract";
 import { blueprintReadPathStatus } from "./blueprint-index";
 
 export const READ_PATHS: readonly ReadPathDeclaration[] = [
@@ -167,6 +168,24 @@ export const READ_PATHS: readonly ReadPathDeclaration[] = [
     provider: { capability: "control/work-session-state", contract_path: "control/work-session-state/contract.ts", symbol: "getCurrentWorkContext" },
     evidence: ["local-runtime/work-session-state/checkpoints.jsonl", "control/work-session-state/store.ts#currentRevision", "control/runtime-revision/contract.ts#readRuntimeRevision", "control/command-router/capability-registry.ts"],
   },
+  {
+    id: "RP-CURRENT-SOURCE",
+    domain: "CONTINUATION",
+    answers: "which git checkout should be used for current engineering work — process cwd + registered OPERATIONAL repository, never a snapshot guessed by recency",
+    request: { sends: ["optional work_id"], lookup_key: "work_id", never_sends: ["directory name as authority", "AI-produced summaries"] },
+    response: { returns: ["resolution", "execution", "registered_canonical", "work_id", "next_boundary_id", "relevant_files", "revision_awareness", "related_snapshots"], provenance: "REGISTRY", failure_state: "resolution=UNRESOLVED when multiple OPERATIONAL roots share the remote and none match cwd", carries_evidence: true },
+    provider: { capability: "control/mcp-code-knowledge", contract_path: "control/mcp-code-knowledge/contract.ts", symbol: "resolveCurrentSource" },
+    evidence: ["software/repository-registry/registry.ts#listOperationalRepositories", "git rev-parse HEAD", "git worktree list --porcelain"],
+  },
+  {
+    id: "RP-CODE-REFERENCES",
+    domain: "CAPABILITY",
+    answers: "which current (or explicitly requested historical) source paths implement a capability or current work files — references only, never a repository dump",
+    request: { sends: ["capability_id | query", "optional include_historical"], lookup_key: "capability_id", never_sends: ["full-repo grep as the default"] },
+    response: { returns: ["current_refs", "historical_refs", "action_ids", "unresolved_reason"], provenance: "REGISTRY", failure_state: "unresolved_reason set when the query matches multiple capabilities", carries_evidence: true },
+    provider: { capability: "control/mcp-code-knowledge", contract_path: "control/mcp-code-knowledge/contract.ts", symbol: "lookupCodeReferences" },
+    evidence: ["control/command-router/capability-registry.ts", "control/mcp-code-knowledge/source-resolution.ts"],
+  },
 ];
 
 /** Resolves a declared symbol on its real provider module. Returns undefined when the symbol is not on that public contract. */
@@ -174,6 +193,7 @@ function resolveSymbol(contractPath: string, symbol: string): unknown {
   const modules: Record<string, Record<string, unknown>> = {
     "control/agent-gateway/contract.ts": gateway as unknown as Record<string, unknown>,
     "control/work-session-state/contract.ts": workSessionState as unknown as Record<string, unknown>,
+    "control/mcp-code-knowledge/contract.ts": mcpCodeKnowledge as unknown as Record<string, unknown>,
     "software/registry-database/contract.ts": registryDatabase as unknown as Record<string, unknown>,
     "control/command-router/contract.ts": commandRouter as unknown as Record<string, unknown>,
     "execution/run/contract.ts": executionRun as unknown as Record<string, unknown>,

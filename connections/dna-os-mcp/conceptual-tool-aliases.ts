@@ -20,6 +20,10 @@ export const CONCEPTUAL_TOOL_ALIASES: Readonly<Record<string, string>> = {
   "dnaos.verify_publication": "dna_os.get_runtime_verification",
   "dnaos.get_task": "get_task",
   "dnaos.get_system_status": "get_system_status",
+  "dnaos.get_current_work": "dna_os.get_current_work_context",
+  "dnaos.resolve_current_source": "dna_os.resolve_current_source",
+  "dnaos.lookup_code_references": "dna_os.lookup_code_references",
+  "dnaos.get_capability_sources": "dna_os.lookup_code_references",
 };
 
 export type ToolSurfaceClass = "OPERATIONAL" | "DEVELOPMENT" | "VERIFICATION" | "GRANT";

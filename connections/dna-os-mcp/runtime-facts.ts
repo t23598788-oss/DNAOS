@@ -22,6 +22,7 @@ import {
 } from "../../control/engineering-runtime/contract";
 import { latestWorkPointer } from "../../control/owner-command/contract";
 import { getCurrentWorkContext } from "../../control/work-session-state/contract";
+import { lookupCodeReferences, resolveCurrentSource } from "../../control/mcp-code-knowledge/contract";
 import {
   listLocalWorkspaces,
   listWorkspaceCleanupEvidence,
@@ -238,9 +239,55 @@ export function getCurrentWorkContextFact(workId?: string): Record<string, unkno
       ],
     ),
     work_context: ctx,
+    targeted_read: {
+      SOURCE_SEARCH_REQUIRED: false,
+      read_only_paths: ctx.relevant_files,
+      instruction: "Read only these paths unless they are insufficient. Do not start with a repository-wide search.",
+    },
     source_components: [
       "control/work-session-state/engineering-context.ts",
       "control/runtime-revision/contract.ts",
+      "control/command-router/capability-registry.ts",
+    ],
+  }) as Record<string, unknown>;
+}
+
+export function resolveCurrentSourceFact(workId?: string): Record<string, unknown> {
+  const resolved = resolveCurrentSource(workId);
+  return redact({
+    ...identity(),
+    proof: envelope(
+      "current_source",
+      resolved.resolution,
+      resolved.work_id,
+      resolved.sources.map((row) => row.path),
+    ),
+    current_source: resolved,
+    source_components: [
+      "control/mcp-code-knowledge/source-resolution.ts",
+      "software/repository-registry/registry.ts",
+    ],
+  }) as Record<string, unknown>;
+}
+
+export function lookupCodeReferencesFact(input: {
+  readonly capability_id?: string;
+  readonly query?: string;
+  readonly include_historical?: boolean;
+  readonly work_id?: string;
+}): Record<string, unknown> {
+  const lookup = lookupCodeReferences(input);
+  return redact({
+    ...identity(),
+    proof: envelope(
+      "code_references",
+      lookup.unresolved_reason ? "UNRESOLVED" : "RESOLVED",
+      lookup.capability_id,
+      lookup.sources.map((row) => row.path),
+    ),
+    code_references: lookup,
+    source_components: [
+      "control/mcp-code-knowledge/source-resolution.ts",
       "control/command-router/capability-registry.ts",
     ],
   }) as Record<string, unknown>;

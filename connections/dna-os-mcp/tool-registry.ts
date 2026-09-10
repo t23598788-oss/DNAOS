@@ -44,6 +44,8 @@ import {
   getWorkEvidenceFact,
   getWorkStatusFact,
   getCurrentWorkContextFact,
+  resolveCurrentSourceFact,
+  lookupCodeReferencesFact,
 } from "./runtime-facts";
 import {
   capabilitiesPublicView,
@@ -509,6 +511,54 @@ export const DNA_OS_MCP_TOOLS: readonly DnaOsMcpTool[] = [
       const correlation_id = randomUUID();
       const workId = typeof args.work_id === "string" ? args.work_id : undefined;
       return textResult({ status: 200, correlation_id, gate: resolveCapabilityForTool(null), ...getCurrentWorkContextFact(workId) });
+    },
+  },
+  {
+    metadata: {
+      name: "dna_os.resolve_current_source",
+      title: "DNA OS Current Source Resolution",
+      description: "Resolve which git checkout is current for engineering work. Snapshots are labeled and never returned as current implementation.",
+      read_write: "read",
+      permission_scope: "task-status",
+      evidence_behavior: "returns git + repository-registry projection with provenance",
+      dna_os_capability_id: null,
+    },
+    inputShape: { work_id: z.string().optional() },
+    handler: async (args) => {
+      const correlation_id = randomUUID();
+      const workId = typeof args.work_id === "string" ? args.work_id : undefined;
+      return textResult({ status: 200, correlation_id, gate: resolveCapabilityForTool(null), ...resolveCurrentSourceFact(workId) });
+    },
+  },
+  {
+    metadata: {
+      name: "dna_os.lookup_code_references",
+      title: "DNA OS Code References",
+      description: "Return targeted source references for a capability or current work. Historical/snapshot roots only when include_historical is true.",
+      read_write: "read",
+      permission_scope: "task-status",
+      evidence_behavior: "returns capability-registry and work-journal path references, not file contents",
+      dna_os_capability_id: null,
+    },
+    inputShape: {
+      capability_id: z.string().optional(),
+      query: z.string().optional(),
+      include_historical: z.boolean().optional(),
+      work_id: z.string().optional(),
+    },
+    handler: async (args) => {
+      const correlation_id = randomUUID();
+      return textResult({
+        status: 200,
+        correlation_id,
+        gate: resolveCapabilityForTool(null),
+        ...lookupCodeReferencesFact({
+          capability_id: typeof args.capability_id === "string" ? args.capability_id : undefined,
+          query: typeof args.query === "string" ? args.query : undefined,
+          include_historical: args.include_historical === true,
+          work_id: typeof args.work_id === "string" ? args.work_id : undefined,
+        }),
+      });
     },
   },
   {

@@ -20,3 +20,15 @@ export {
   readScopedSource,
   scopedWorktreeFile,
 } from "./boundary";
+export {
+  classifyEngineeringSource,
+  lookupCodeReferences,
+  resolveCurrentSource,
+  ENGINEERING_SOURCE_ROLES,
+} from "./source-resolution";
+export type {
+  CodeReferenceLookup,
+  CurrentSourceResolution,
+  EngineeringSourceRole,
+  SourceReference,
+} from "./source-resolution";
