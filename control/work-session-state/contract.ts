@@ -4,9 +4,10 @@
  * `governance/architecture-rules/CAPABILITY_FOLDER_LAW.md` ข้อ 9.
  *
  * Input: re-exports only.
- * Output: the persistent work-state journal, the resume engine, and change
- * ownership resolution.
- * Dependency ที่อนุญาต: ./store.ts, ./resume.ts, ./ownership.ts, ./types.ts.
+ * Output: the persistent work-state journal, the resume engine, change
+ * ownership resolution, and getCurrentWorkContext (engineering-session bootstrap).
+ * Dependency ที่อนุญาต: ./store.ts, ./resume.ts, ./ownership.ts, ./types.ts,
+ * ./engineering-context.ts.
  */
 export {
   appendCheckpoint,
@@ -63,6 +64,8 @@ export { buildRehydrationPlan, allRehydrationPlans, recoverRuntime, renderRehydr
 export type { RehydrationPlan, RuntimeRecovery } from "./rehydrate";
 export { currentStateProjection } from "./current-state";
 export type { CurrentStateProjection } from "./current-state";
+export { getCurrentWorkContext, recordEngineeringHandoff, activeEngineeringWorkId } from "./engineering-context";
+export type { CanonicalWorkContext } from "./engineering-context";
 export type {
   WorkSessionCheckpoint,
   WorkStep,
@@ -78,4 +81,8 @@ export type {
   SyncState,
   ResolutionRef,
   CrossRepoEvidence,
+  EngineeringProgress,
+  ProvenancedRef,
+  ProofPointer,
+  SourceAuthorityKind,
 } from "./types";

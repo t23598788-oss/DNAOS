@@ -21,6 +21,7 @@ import {
   latestPublicationPointer,
 } from "../../control/engineering-runtime/contract";
 import { latestWorkPointer } from "../../control/owner-command/contract";
+import { getCurrentWorkContext } from "../../control/work-session-state/contract";
 import {
   listLocalWorkspaces,
   listWorkspaceCleanupEvidence,
@@ -219,6 +220,28 @@ export function getWorkEvidenceFact(workId?: string): Record<string, unknown> {
     source_components: [
       "control/engineering-runtime/persist.ts",
       "control/source-workspace/cleanup.ts",
+    ],
+  }) as Record<string, unknown>;
+}
+
+export function getCurrentWorkContextFact(workId?: string): Record<string, unknown> {
+  const ctx = getCurrentWorkContext(workId);
+  return redact({
+    ...identity(),
+    proof: envelope(
+      "current_work_context",
+      ctx.resume.resume_status,
+      ctx.work_id,
+      [
+        "control/work-session-state/contract.ts#getCurrentWorkContext",
+        ...ctx.sources.map((row) => row.path),
+      ],
+    ),
+    work_context: ctx,
+    source_components: [
+      "control/work-session-state/engineering-context.ts",
+      "control/runtime-revision/contract.ts",
+      "control/command-router/capability-registry.ts",
     ],
   }) as Record<string, unknown>;
 }

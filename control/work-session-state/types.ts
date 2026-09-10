@@ -148,6 +148,12 @@ export interface WorkSessionCheckpoint {
    * A reader that wants any of those asks `./authority.ts`, which goes to the
    * canonical record every time.
    */
+  /**
+   * Engineering-session progress owned by this journal (boundaries, proof
+   * pointers, PR/capability *references*). Never copies Git history, PR
+   * bodies, capability registry rows, or secrets. Absent on older checkpoints.
+   */
+  engineering?: EngineeringProgress | null;
   resolution_ref: ResolutionRef | null;
   /**
    * Completed steps whose proof lives in ANOTHER repository, so it cannot be
@@ -280,6 +286,63 @@ export interface ResumeContext {
   /** The one thing to do next, or the blocker/decision that stops everything. */
   next_action: string;
   resume_status: "RESUMABLE" | "BLOCKED" | "DECISION_REQUIRED" | "COMPLETE" | "NO_SUCH_WORK";
+}
+
+/**
+ * Who produced a fact. `interpretation` may explain; it must never be treated
+ * as Git, runtime, registry, evidence, or Owner-decision authority.
+ */
+export type SourceAuthorityKind =
+  | "git"
+  | "github"
+  | "runtime"
+  | "capability_registry"
+  | "credential_authority"
+  | "command_evidence"
+  | "owner_decision"
+  | "work_session_state"
+  | "interpretation";
+
+export interface ProvenancedRef {
+  readonly id: string;
+  readonly authority: SourceAuthorityKind;
+  readonly source: string;
+  readonly observed_at: string;
+  readonly source_revision: string | null;
+  readonly evidence_ref: string | null;
+}
+
+export type ProofKindStatus = "UNPROVEN" | "STATIC" | "HERMETIC" | "LIVE" | "STALE";
+
+export interface ProofPointer {
+  readonly status: ProofKindStatus;
+  readonly authority: SourceAuthorityKind;
+  readonly evidence_ref: string | null;
+  readonly source_revision: string | null;
+  readonly observed_at: string;
+}
+
+export interface EngineeringProgress {
+  readonly title: string;
+  readonly domain: string;
+  readonly completed_boundaries: readonly ProvenancedRef[];
+  readonly current_boundary: ProvenancedRef | null;
+  readonly next_boundary: ProvenancedRef | null;
+  readonly relevant_capability_ids: readonly string[];
+  readonly open_pr_refs: readonly {
+    readonly number: number;
+    readonly url: string;
+    readonly head_sha: string | null;
+    readonly authority: "github";
+    readonly observed_at: string;
+  }[];
+  readonly proofs: {
+    readonly static: ProofPointer;
+    readonly hermetic: ProofPointer;
+    readonly live: ProofPointer;
+  };
+  /** Supplemental only. Never used as the source of a structured field. */
+  readonly interpretation: string | null;
 }
 
 /** Who owns a real change to a real path. `UNKNOWN` is a legitimate, common answer. */
