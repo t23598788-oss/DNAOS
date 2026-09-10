@@ -4,6 +4,7 @@ export {
   DEVELOPMENT_KNOWLEDGE_URIS,
   SOURCE_MUTATION_TOOLS,
   CANONICAL_PROMOTION_TOOLS,
+  ENGINEERING_SESSION_BOOTSTRAP,
   applyRegisteredSourceMutation,
   codeKnowledgeMetrics,
   codingClientBarriers,
@@ -20,3 +21,15 @@ export {
   readScopedSource,
   scopedWorktreeFile,
 } from "./boundary";
+export {
+  classifyEngineeringSource,
+  lookupCodeReferences,
+  resolveCurrentSource,
+  ENGINEERING_SOURCE_ROLES,
+} from "./source-resolution";
+export type {
+  CodeReferenceLookup,
+  CurrentSourceResolution,
+  EngineeringSourceRole,
+  SourceReference,
+} from "./source-resolution";

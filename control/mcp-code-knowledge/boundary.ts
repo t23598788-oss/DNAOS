@@ -33,6 +33,24 @@ export const CANONICAL_PROMOTION_TOOLS = [
   "dna_os.create_worktree",
 ] as const;
 
+/**
+ * Engineering-agent bootstrap on the existing MCP knowledge contract.
+ * Not a second policy engine: extends MCP_KNOWLEDGE_QUERY_FIRST.
+ */
+export const ENGINEERING_SESSION_BOOTSTRAP = {
+  MCP_KNOWLEDGE_QUERY_FIRST: true,
+  SOURCE_SEARCH_REQUIRED_DEFAULT: false,
+  historical_requires_explicit_include_historical: true,
+  non_authoritative: ["ai_memory", "ide_index", "local_file_cache", "chat_history"] as const,
+  steps: [
+    "dna_os.get_current_work_context",
+    "dna_os.resolve_current_source",
+    "dna_os.lookup_code_references",
+    "targeted_read_of_returned_paths",
+  ] as const,
+  broad_search_only_when: "SOURCE_SEARCH_REQUIRED=true or returned references are insufficient",
+} as const;
+
 const metrics = {
   MCP_FACT_LOOKUPS: 0,
   SOURCE_SEARCH_FALLBACKS: 0,
@@ -99,6 +117,7 @@ export function developmentContext(input: {
     acceptance_criteria: ["scoped worktree only", "revision checked", "evidence required"],
     authority_state: input.lease && leaseIsActive(input.lease) ? "LEASE_ACTIVE" : "DEVELOPMENT_SOURCE_AUTHORITY_DENY",
     FULL_CHAT_TRANSCRIPT_REQUIRED: false,
+    ENGINEERING_SESSION_BOOTSTRAP,
     cacheScope: "private",
     ttl: 15,
   };

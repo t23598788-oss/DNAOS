@@ -34,6 +34,8 @@ export {
   getWorkEvidenceFact,
   getWorkStatusFact,
   getCurrentWorkContextFact,
+  resolveCurrentSourceFact,
+  lookupCodeReferencesFact,
 } from "./runtime-facts";
 export { UNAUTHENTICATED_CONTEXT } from "./caller-context";
 export type { CallerContext } from "./export-policy";

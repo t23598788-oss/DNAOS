@@ -163,6 +163,15 @@ export const STATE_AUTHORITY: readonly StateAuthority[] = [
     lifetime: "until replaced or revoked",
     kind: "AUTHORITATIVE",
   },
+  {
+    state_type: "ENGINEERING_SOURCE_ROLE (CURRENT_CANONICAL vs SNAPSHOT/HISTORICAL)",
+    canonical_owner: "git + software/repository-registry (projected by control/mcp-code-knowledge)",
+    writer: "git worktree metadata + repository registration",
+    readers: ["control/mcp-code-knowledge/source-resolution.ts#resolveCurrentSource"],
+    persistence_path: "software/repository-registry/data/repositories.jsonl + git worktree list (metadata only)",
+    lifetime: "until checkout or registration changes",
+    kind: "DERIVABLE",
+  },
 ];
 
 export function authorityOf(stateTypeFragment: string): StateAuthority | null {
