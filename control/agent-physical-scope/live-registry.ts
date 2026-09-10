@@ -15,6 +15,10 @@ export function liveRegistryFromExistingStores(): PhysicalScopeRegistry {
       const rows = listReservations().filter((row) => row.work_id === task_id);
       return rows.length > 0 ? rows[rows.length - 1]! : null;
     },
+    findReservationByWorktreePath(worktree_path) {
+      const rows = listReservations().filter((row) => row.worktree_path === worktree_path);
+      return rows.length > 0 ? rows[rows.length - 1]! : null;
+    },
     getRepository(repository_id) {
       const row = getRepository(repository_id);
       if (!row) return null;

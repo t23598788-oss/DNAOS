@@ -9,6 +9,10 @@ import type { AgentActionClass, CanonicalAgentScope } from "./types";
 export type McpToolClass = AgentActionClass | "UNKNOWN";
 
 export function classifyMcpTool(tool_name: string): McpToolClass {
+  if (tool_name === "apply_scoped_patch" || tool_name.endsWith("apply_scoped_patch")) return "SOURCE_MUTATION";
+  if (tool_name === "run_scoped_test" || tool_name.endsWith("run_scoped_test")) return "SOURCE_DISCOVERY";
+  if (tool_name === "publish_scoped_change" || tool_name.endsWith("publish_scoped_change")) return "GIT_WRITE";
+  if (tool_name === "restart_task_runtime" || tool_name.endsWith("restart_task_runtime")) return "RUNTIME_MUTATION";
   if ((SOURCE_MUTATION_TOOLS as readonly string[]).includes(tool_name)) return "SOURCE_MUTATION";
   if ((CANONICAL_PROMOTION_TOOLS as readonly string[]).includes(tool_name)) return "GIT_WRITE";
   if (tool_name.includes("modify_source") || tool_name.includes("write_file")) return "SOURCE_MUTATION";

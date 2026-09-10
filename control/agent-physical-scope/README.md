@@ -30,11 +30,30 @@ authoritative.
 
 ## Honest remaining gap
 
-Interactive Cursor/Codex sessions that use host tools **without**
-`control/agent-host#launchAgent` still have ambient OS authority. This
-capability closes DNA OS mutation APIs and sandboxed agent-host children.
-It cannot kernel-confine a tool runtime that never enters `launchAgent`.
+Cursor/IDE built-in Shell and Write still run as the host Cursor process.
+They are **not** Seatbelt-confined unless DNA OS launches the worker through
+`control/agent-host#launchAgent`.
+
+Project hooks (`.cursor/hooks.json`) map Cursor `beforeShellExecution` /
+`preToolUse` / `beforeMCPExecution` onto the same physical-scope guards.
+Hooks are policy, not kernel: they can be disabled. Allowed IDE shell is
+classified `NON_CANONICAL_UNTRUSTED_EXECUTION` and is not eligible for
+automatic promotion (`agentProducedChangeEligibleForAutoPromotion`).
+
+Canonical engineering execution:
+
+`Cursor/IDE agent → task admission → control/agent-host launchAgent → Seatbelt / task scope → assigned workspace`
+
+Preferred mutation tools (existing names reused):
+
+- `dna_os.apply_scoped_source_write` / `apply_scoped_patch`
+- `run_scoped_test` (read/discovery class; does not grant write)
+- `publish_scoped_change` (Git write class; still closed to direct push)
+- `restart_task_runtime` (runtime class; protected Owner ports remain denied)
 
 ## Tests
 
 `npx tsx control/agent-physical-scope/tests/agent-physical-scope.test.ts`
+`npx tsx control/agent-physical-scope/tests/seatbelt-isolation.test.ts`
+`npx tsx control/agent-physical-scope/tests/cursor-hook.test.ts`
+`npx tsx control/agent-physical-scope/tests/cursor-class-boundary.test.ts`

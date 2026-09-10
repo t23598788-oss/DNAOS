@@ -45,3 +45,12 @@ export { recordDeniedMutation } from "./audit";
 export { classifyMcpTool, mcpMutationAllowed, mcpMutationRequiresTaskScope } from "./mcp-scope";
 export { writeWorkspaceMetadata, verifyHookContext } from "./workspace-metadata";
 export { liveRegistryFromExistingStores, agentContextActive, denyProtectedRuntimeIfAgent } from "./live-registry";
+export {
+  classifyExecutionCanonicality,
+  evaluateCursorHook,
+  looksLikeUnscopedHostShell,
+  resolveCursorSessionScope,
+  agentProducedChangeEligibleForAutoPromotion,
+  NON_CANONICAL_UNTRUSTED_EXECUTION,
+} from "./cursor-admission";
+export { launchCursorClassKernelProbe } from "./cursor-class-runner";

@@ -39,20 +39,18 @@ export function defaultProtectedRuntimes(): readonly ProtectedRuntime[] {
   return fromRegistry;
 }
 
-const PROTECTED_DEFAULT = defaultProtectedRuntimes();
-
-export function isProtectedPort(port: number, protectedRuntimes: readonly ProtectedRuntime[] = PROTECTED_DEFAULT): boolean {
+export function isProtectedPort(port: number, protectedRuntimes: readonly ProtectedRuntime[] = defaultProtectedRuntimes()): boolean {
   return protectedRuntimes.some((row) => row.port === port);
 }
 
-export function isProtectedRuntimeId(runtime_id: string, protectedRuntimes: readonly ProtectedRuntime[] = PROTECTED_DEFAULT): boolean {
+export function isProtectedRuntimeId(runtime_id: string, protectedRuntimes: readonly ProtectedRuntime[] = defaultProtectedRuntimes()): boolean {
   return protectedRuntimes.some((row) => row.runtime_id === runtime_id);
 }
 
 export function guardRuntimeMutation(
   scope: CanonicalAgentScope,
   runtime_id: string,
-  protectedRuntimes: readonly ProtectedRuntime[] = PROTECTED_DEFAULT,
+  protectedRuntimes: readonly ProtectedRuntime[] = defaultProtectedRuntimes(),
 ): RuntimeGuardResult {
   if (isProtectedRuntimeId(runtime_id, protectedRuntimes)) {
     return { ok: false, reason: "RUNTIME_SCOPE_DENIED", detail: `protected runtime ${runtime_id}` };
@@ -66,7 +64,7 @@ export function guardRuntimeMutation(
 export function guardPortMutation(
   scope: CanonicalAgentScope,
   port: number,
-  protectedRuntimes: readonly ProtectedRuntime[] = PROTECTED_DEFAULT,
+  protectedRuntimes: readonly ProtectedRuntime[] = defaultProtectedRuntimes(),
 ): RuntimeGuardResult {
   if (isProtectedPort(port, protectedRuntimes)) {
     return { ok: false, reason: "PORT_SCOPE_DENIED", detail: `protected port ${port}` };
@@ -89,7 +87,7 @@ export function looksLikeProcessEscape(argv: readonly string[]): boolean {
   return false;
 }
 
-export function looksLikePortEscape(argv: readonly string[], protectedRuntimes: readonly ProtectedRuntime[] = PROTECTED_DEFAULT): boolean {
+export function looksLikePortEscape(argv: readonly string[], protectedRuntimes: readonly ProtectedRuntime[] = defaultProtectedRuntimes()): boolean {
   for (const row of protectedRuntimes) {
     if (argv.some((a) => a.includes(`:${row.port}`) || a === String(row.port))) return true;
   }

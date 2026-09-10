@@ -54,6 +54,7 @@ export interface ProtectedRuntime {
 
 export interface PhysicalScopeRegistry {
   findReservationByWorkId(task_id: string): ReservationView | null;
+  findReservationByWorktreePath?(worktree_path: string): ReservationView | null;
   getRepository(repository_id: string): RepositoryView | null;
   siblingWorktreePaths(except_path: string): readonly string[];
   protectedRuntimes(): readonly ProtectedRuntime[];

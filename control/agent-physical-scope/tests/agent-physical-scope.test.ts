@@ -98,6 +98,11 @@ function registryFor(a: string, b: string): PhysicalScopeRegistry {
       }
       return null;
     },
+    findReservationByWorktreePath(worktree_path) {
+      if (worktree_path === a) return this.findReservationByWorkId("task-a");
+      if (worktree_path === b) return this.findReservationByWorkId("task-b");
+      return null;
+    },
     getRepository(repository_id) {
       if (repository_id === "repo://a") {
         return { repository_id, source_authority: "https://github.com/example/a.git", repository_root: a, status: "ACTIVE" };
