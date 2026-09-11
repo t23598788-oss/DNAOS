@@ -6,6 +6,8 @@
 import { request } from "node:https";
 import { findApiCredential } from "../../credentials/registry/api-credential-registry";
 import { MacOsKeychainProvider } from "../../credentials/macos-keychain/provider";
+import { secretResolutionBackend } from "../../credentials/secret-resolver/node-credential-resolver";
+import { resolveProcessEnvironmentSecret } from "../../credentials/process-environment/provider";
 
 export const RAILWAY_CREDENTIAL_REF = "credential://railway/dna-os-infrastructure/production/project-token";
 export const RAILWAY_ENVIRONMENT_ID = "4d28eafa-9735-4405-a585-55ea354bafab";
@@ -50,11 +52,26 @@ export async function railwayGraphql(
   if (!entry || entry.status !== "ACTIVE") {
     return { http_status: 0, data: null, errors: [], auth_required: true, summary: `credential_ref "${RAILWAY_CREDENTIAL_REF}" not registered or inactive` };
   }
-  const resolution = await provider.resolve({ service: entry.resolver_service, account: entry.resolver_account, kind: "api_key" });
-  if (!resolution.ok) {
-    return { http_status: 0, data: null, errors: [], auth_required: true, summary: `Keychain resolution failed (${resolution.code}): ${resolution.reason}` };
+  let token: string;
+  if (secretResolutionBackend("CORE_NODE") === "process_environment") {
+    const envResolution = resolveProcessEnvironmentSecret(RAILWAY_CREDENTIAL_REF);
+    if (!envResolution.ok) {
+      return {
+        http_status: 0,
+        data: null,
+        errors: [],
+        auth_required: true,
+        summary: `Railway adapter unavailable (${envResolution.code}): ${envResolution.reason}`,
+      };
+    }
+    token = envResolution.secret;
+  } else {
+    const resolution = await provider.resolve({ service: entry.resolver_service, account: entry.resolver_account, kind: "api_key" });
+    if (!resolution.ok) {
+      return { http_status: 0, data: null, errors: [], auth_required: true, summary: `Keychain resolution failed (${resolution.code}): ${resolution.reason}` };
+    }
+    token = resolution.secret;
   }
-  const token = resolution.secret;
   const res = await postJson(GRAPHQL_ENDPOINT, { "Project-Access-Token": token }, { query: document, variables: variables ?? {} });
   if (res.status < 200 || res.status >= 300) {
     return { http_status: res.status, data: null, errors: [], auth_required: false, summary: `Railway API returned HTTP ${res.status}` };
