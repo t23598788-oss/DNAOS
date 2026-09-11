@@ -28,6 +28,7 @@
 import { appendFileSync, existsSync, mkdirSync } from "node:fs";
 import { join } from "node:path";
 import { randomUUID } from "node:crypto";
+import { coreNodeUnavailableForCapability, coreNodeUnavailableForOwnerAuthMethod } from "./mac-local-agent-gate";
 import { readComputerUseStatus } from "../../control/computer-use-authority/status-contract";
 import { revokeAuthority, listLeases } from "../../control/computer-use-authority/contract";
 import { authenticateOwner, validateOwnerSession, revokeOwnerSession, grantAuthorityAsOwner } from "../../control/owner-authentication/contract";
@@ -142,6 +143,8 @@ export function handleComputerUseApi(method: string, path: string, body: unknown
     const ttl = Number(b.ttl_seconds);
     if (!expected_owner || !methodName) return deny("INVALID_REQUEST", "ต้องมี method และ expected_owner");
     if (!Number.isFinite(ttl)) return deny("INVALID_REQUEST", "ttl_seconds ต้องเป็นตัวเลข");
+    const denied = coreNodeUnavailableForOwnerAuthMethod(methodName);
+    if (denied) return { status: 503, body: denied };
     const result = authenticateOwner({ method: methodName as never, expected_owner, ttl_seconds: ttl });
     const evidence_id = recordEvidence({ endpoint: "owner/authenticate", outcome: result.ok ? "AUTHENTICATED" : "DENIED",
       expected_owner, method: methodName, reason_code: result.ok ? null : result.reason_code });
@@ -160,6 +163,8 @@ export function handleComputerUseApi(method: string, path: string, body: unknown
    * และ session_id ไม่ถูกส่งกลับไปให้หน้าจอ
    */
   if (method === "POST" && path === "/computer-use/owner/verify") {
+    const denied = coreNodeUnavailableForCapability("control/owner-authentication");
+    if (denied) return { status: 503, body: denied };
     const expected = str(b.expected_owner) ?? "tam";
     const purpose = str(b.purpose) ?? "ยืนยันตัวตนเพื่ออนุญาตให้ DNA OS ควบคุมคอมพิวเตอร์ตามสิทธิ์ที่กำหนด";
     const ceiling = (str(b.authority_class) ?? "CLASS_1_NAVIGATION") as never;

@@ -4,6 +4,8 @@
  * Never exchange tokens, store secrets, or return code_verifier / client_secret / tokens.
  */
 
+import { coreNodeUnavailableForCapability } from "./mac-local-agent-gate";
+import { findRecord as findGoogleAuthorizationRecord } from "../../connections/google-workspace/oauth/store";
 import {
   GOOGLE_CONNECTION_ID,
   GOOGLE_OAUTH_BEGIN_PATH,
@@ -51,6 +53,10 @@ export async function handleGoogleOauthRoute(
   deps?: GoogleLifecycleDeps,
 ): Promise<GoogleOauthHttpReply | null> {
   if (method === "POST" && path === GOOGLE_OAUTH_BEGIN_PATH) {
+    if (!deps) {
+      const denied = coreNodeUnavailableForCapability("credentials/macos-keychain");
+      if (denied) return { status: 503, body: denied };
+    }
     const b = (body ?? {}) as Record<string, unknown>;
     const connectionId = str(b.connection_id) || GOOGLE_CONNECTION_ID;
     if (connectionId !== GOOGLE_CONNECTION_ID) {
@@ -115,6 +121,10 @@ export async function handleGoogleOauthRoute(
     if (!state) {
       return { status: 400, body: boundedFailure("STATE_REQUIRED", "state missing") };
     }
+    if (!deps) {
+      const denied = coreNodeUnavailableForCapability("credentials/macos-keychain");
+      if (denied) return { status: 503, body: denied };
+    }
 
     const result = deps
       ? await completeAuthorization({ connection_id: GOOGLE_CONNECTION_ID, code, state }, deps)
@@ -154,9 +164,16 @@ export async function handleGoogleOauthRoute(
   }
 
   if (method === "GET" && path === "/oauth/google/workspace/status") {
+    // Portable JSONL record only. Production must not go through default
+    // lifecycle deps (those close Keychain writers). Injected test deps
+    // may supply findRecord; they still must not be required to supply a resolver.
     const status = deps
       ? getAuthorizationStatus(GOOGLE_CONNECTION_ID, deps)
-      : getAuthorizationStatus(GOOGLE_CONNECTION_ID);
+      : (() => {
+          const record = findGoogleAuthorizationRecord(GOOGLE_CONNECTION_ID);
+          if (!record) return { ok: false as const, reason_code: "AUTHORIZATION_NOT_FOUND" as const };
+          return { ok: true as const, record };
+        })();
     if (!status.ok) {
       return {
         status: 200,

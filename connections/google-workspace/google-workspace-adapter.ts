@@ -55,6 +55,7 @@ import {
   readGoogleCredentialMetadata,
   type GoogleWorkspaceCredentialResolver,
 } from "./credential-resolution";
+import { MAC_LOCAL_AGENT_UNAVAILABLE_ON_CORE, macLocalAgentExecutionDecision } from "../../contracts/architecture/runtime-node-and-optional-provider";
 import {
   calendarListCalendars,
   calendarListEvents,
@@ -358,6 +359,17 @@ export async function handleGoogleWorkspaceReadCommand(
   const fetchImpl = deps.fetchImpl ?? hostFetch;
   const evaluatePolicy = deps.evaluateOwnerPolicy ?? evaluateOwnerCapabilityBinding;
   const readMeta = deps.readCredentialMeta ?? readGoogleCredentialMetadata;
+  if (!deps.credentialResolver) {
+    const node = macLocalAgentExecutionDecision({ current_node: "CORE_NODE" });
+    if (!node.execute) {
+      return reject(
+        GOOGLE_WORKSPACE_OUTCOMES.AUTH_REQUIRED,
+        `${MAC_LOCAL_AGENT_UNAVAILABLE_ON_CORE}: required_node=MAC_LOCAL_AGENT current_node=${node.current_node} execution_attempted=false — Keychain resolver not invoked`,
+        "authenticate",
+        evidence,
+      );
+    }
+  }
   const resolver = deps.credentialResolver ?? createProductionCredentialResolver();
 
   evidence.push({

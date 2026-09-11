@@ -96,6 +96,7 @@ import { issueBootstrapChallenge, completeBootstrapProbe } from "../../connectio
 import type { RegistrationCandidate } from "../../control/event-pipeline/contract";
 import { runRegistrationPipeline } from "../../control/registration-pipeline/contract";
 import { handleComputerUseApi } from "./computer-use-api";
+import { coreNodeUnavailableForCapability } from "./mac-local-agent-gate";
 import { listOwnerSessions, validateOwnerSession } from "../../control/owner-authentication/contract";
 import { applyMutation } from "../../control/registration-update/contract";
 import { ingestWorkResult } from "../../control/work-result-ingress/contract";
@@ -970,6 +971,14 @@ export async function handleCommand(req: IncomingMessage, res: ServerResponse): 
   const ownerIdentity = resolveOwnerIdentity(ownerIdentityInput);
   if (!ownerIdentity) { sendJson(res, 401, { error: "authenticated owner identity required" }); return; }
 
+  if (uiWorkOrder) {
+    const denied = coreNodeUnavailableForCapability("connections/os-ui");
+    if (denied) {
+      sendJson(res, 503, denied);
+      return;
+    }
+  }
+
   try {
     // A structured WorkOrder is the existing DNA OS admission path. Keep
     // free-form/UI commands on their existing owner-command router path;
@@ -1446,6 +1455,11 @@ export const server = createServer((req, res) => {
     return;
   }
   if (req.method === "POST" && req.url === "/local/operation") {
+    const denied = coreNodeUnavailableForCapability("control/owner-command/local-read-operations");
+    if (denied) {
+      sendJson(res, 503, denied);
+      return;
+    }
     void readBody(req).then(async (raw) => { try { const value = await executeLocalRead(JSON.parse(raw)); sendJson(res, (value as any).result?.status === "BLOCKED" ? 403 : 200, value); } catch { sendJson(res, 400, { error: "invalid JSON body" }); } });
     return;
   }

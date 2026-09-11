@@ -12,6 +12,7 @@ import { join } from "node:path";
 import { listConnectionDeclarations } from "../../connections/connection-registry/declaration-registry";
 import { readTelemetry } from "../../connections/telemetry/summary";
 import { listReservations, listLocalWorkspaces, listWorkspaceCleanupEvidence } from "../../control/source-workspace/contract";
+import { MAC_LOCAL_AGENT_UNAVAILABLE_ON_CORE, macLocalAgentExecutionDecision } from "../../contracts/architecture/runtime-node-and-optional-provider";
 
 type FieldStatus = "MEASURED" | "NOT_MEASURED" | "DATA_MISSING";
 type EventStatus = "LIVE" | "OK" | "STALE" | "OFFLINE" | "BLOCKED" | "FAILED" | "COMPLETED" | "RUNNING" | "DATA_MISSING" | string;
@@ -341,14 +342,31 @@ function telemetryEvent(time: string): MonitorActivityEvent {
 }
 
 function processEvents(time: string): MonitorActivityEvent[] {
-  return [
+  const targets = [
     { source: "DNA OS Core / owner-command", port: 8791, endpoint: OWNER_BASE },
     { source: "Research API", port: 8787, endpoint: RESEARCH_BASE },
     { source: "Research Monitor UI", port: 5177, endpoint: MONITOR_UI_BASE },
     { source: "Joint Monitor", port: 5178, endpoint: JOINT_MONITOR_BASE },
     { source: "dna_os compute API", port: 8788, endpoint: DNA_OS_COMPUTE_BASE },
     { source: "DNA_OS_RUNTIME / MCP", port: 8793, endpoint: MCP_BASE },
-  ].map((p) => {
+  ];
+  const node = macLocalAgentExecutionDecision({ current_node: "CORE_NODE" });
+  if (!node.execute) {
+    return [
+      event({
+        time,
+        source: "machine-observation",
+        provider: "LOCAL_MAC",
+        event_type: "PROCESS_LISTENING",
+        status: "UNAVAILABLE",
+        error: MAC_LOCAL_AGENT_UNAVAILABLE_ON_CORE,
+        health: "MAC_LOCAL_AGENT required; no process table read attempted",
+        evidence_ref: "execution_attempted=false",
+        source_endpoint: "control/machine-observation",
+      }),
+    ];
+  }
+  return targets.map((p) => {
     const proc = listeningProcess(p.port);
     return event({
       time,

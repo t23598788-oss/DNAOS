@@ -63,7 +63,25 @@ const defaultDeps: OwnerAuthDeps = {
   baseDir: join(process.cwd(), DATA_DIR),
 };
 
-export function authenticateOwner(input: AuthenticateOwnerInput, deps: OwnerAuthDeps = defaultDeps): AuthenticateOwnerResult {
+function resolveOwnerAuthDeps(deps?: OwnerAuthDeps):
+  | { ok: true; deps: OwnerAuthDeps }
+  | { ok: false; reason_code: "OWNER_AUTHORIZATION_STORE_UNRESOLVED"; detail: string } {
+  if (deps) return { ok: true, deps };
+  try {
+    return { ok: true, deps: defaultDeps };
+  } catch (error) {
+    const detail = error instanceof Error ? error.message : String(error);
+    if (detail.startsWith("OWNER_AUTHORIZATION_STORE_UNRESOLVED:")) {
+      return { ok: false, reason_code: "OWNER_AUTHORIZATION_STORE_UNRESOLVED", detail };
+    }
+    throw error;
+  }
+}
+
+export function authenticateOwner(input: AuthenticateOwnerInput, deps?: OwnerAuthDeps): AuthenticateOwnerResult {
+  const resolved = resolveOwnerAuthDeps(deps);
+  if (!resolved.ok) return { ok: false, reason_code: resolved.reason_code, detail: resolved.detail };
+  deps = resolved.deps;
   if (!Number.isFinite(input.ttl_seconds) || input.ttl_seconds <= 0 || input.ttl_seconds > 43_200) {
     return { ok: false, reason_code: "INVALID_TTL", detail: "ttl ต้องอยู่ใน (0, 43200]" };
   }
@@ -114,7 +132,10 @@ export function authenticateOwner(input: AuthenticateOwnerInput, deps: OwnerAuth
   return { ok: true, session };
 }
 
-export function validateOwnerSession(session_id: string, deps: OwnerAuthDeps = defaultDeps): ValidateOwnerSessionResult {
+export function validateOwnerSession(session_id: string, deps?: OwnerAuthDeps): ValidateOwnerSessionResult {
+  const resolved = resolveOwnerAuthDeps(deps);
+  if (!resolved.ok) return { ok: false, reason_code: resolved.reason_code, detail: resolved.detail };
+  deps = resolved.deps;
   const s = store(deps.baseDir).find(session_id);
   if (!s) return { ok: false, reason_code: "OWNER_SESSION_NOT_FOUND", detail: session_id };
   if (s.state === "REVOKED" || s.revoked_at !== null) return { ok: false, reason_code: "OWNER_SESSION_REVOKED", detail: s.revoked_at ?? "revoked" };
@@ -136,7 +157,10 @@ export function validateOwnerSession(session_id: string, deps: OwnerAuthDeps = d
   return { ok: true, session: s };
 }
 
-export function revokeOwnerSession(session_id: string, deps: OwnerAuthDeps = defaultDeps): RevokeOwnerSessionResult {
+export function revokeOwnerSession(session_id: string, deps?: OwnerAuthDeps): RevokeOwnerSessionResult {
+  const resolved = resolveOwnerAuthDeps(deps);
+  if (!resolved.ok) return { ok: false, reason_code: resolved.reason_code };
+  deps = resolved.deps;
   const s = store(deps.baseDir).find(session_id);
   if (!s) return { ok: false, reason_code: "OWNER_SESSION_NOT_FOUND" };
   const revoked: OwnerSession = { ...s, state: "REVOKED", revoked_at: deps.now().toISOString() };
@@ -144,8 +168,10 @@ export function revokeOwnerSession(session_id: string, deps: OwnerAuthDeps = def
   return { ok: true, session: revoked };
 }
 
-export function listOwnerSessions(deps: OwnerAuthDeps = defaultDeps): readonly OwnerSession[] {
-  return store(deps.baseDir).list();
+export function listOwnerSessions(deps?: OwnerAuthDeps): readonly OwnerSession[] {
+  const resolved = resolveOwnerAuthDeps(deps);
+  if (!resolved.ok) return [];
+  return store(resolved.deps.baseDir).list();
 }
 
 export { readConsoleUserReal };

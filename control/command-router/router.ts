@@ -76,6 +76,7 @@ import { createPersistentFileStore } from "../../software/registry-database/adap
 import { parseOsLoginTarget, requestOsLogin } from "../../connections/os-login/adapter-contract";
 import { openOsUi, parseOsUiTarget, runUiWorkOrder } from "../../connections/os-ui/adapter-contract";
 import type { UiWorkOrder } from "../../connections/os-ui/work-order";
+import { MAC_LOCAL_AGENT_UNAVAILABLE_ON_CORE, macLocalAgentExecutionDecision } from "../../contracts/architecture/runtime-node-and-optional-provider";
 import { getCapability, listCapabilities } from "./capability-registry";
 import { hostNowIso } from "./host-runtime";
 import { reportJoint } from "../../observability/joint-monitor/contract";
@@ -423,7 +424,24 @@ async function runResearchEngineStep(): Promise<StepOutcome> {
   return fetchResearchEngineLatestResult();
 }
 
+
+function macLocalAgentBlockedStep(capability: string): StepOutcome {
+  const decision = macLocalAgentExecutionDecision({ current_node: "CORE_NODE" });
+  if (decision.execute) {
+    throw new Error("macLocalAgentBlockedStep on a host that may execute MAC_LOCAL_AGENT");
+  }
+  return {
+    status: "BLOCKED",
+    evidenceEntries: [evidence(capability, `${decision.reason_code}: required_node=${decision.required_node} current_node=${decision.current_node} execution_attempted=${String(decision.execution_attempted)}`)],
+    artifacts: [],
+    warnings: [MAC_LOCAL_AGENT_UNAVAILABLE_ON_CORE],
+    summary: `${capability} is unavailable on CORE_NODE; MAC_LOCAL_AGENT required; no execution attempted`,
+  };
+}
+
 async function runOsLoginStep(step: RouterStep): Promise<StepOutcome> {
+  const node = macLocalAgentExecutionDecision({ current_node: "CORE_NODE" });
+  if (!node.execute) return macLocalAgentBlockedStep("connections/os-login");
   const payload = step.payload ?? {};
   const target = parseOsLoginTarget(step.intent, payload);
   if (!target) {
@@ -490,6 +508,8 @@ async function runVoiceBridgeStep(step: RouterStep, envelope: CommandEnvelope): 
 }
 
 async function runOsUiStep(step: RouterStep): Promise<StepOutcome> {
+  const node = macLocalAgentExecutionDecision({ current_node: "CORE_NODE" });
+  if (!node.execute) return macLocalAgentBlockedStep("connections/os-ui");
   // 2026-08-20 (Owner Work Order): a structured UiWorkOrder payload routes
   // to the richer, validated runUiWorkOrder path (open_url/open_path/
   // screenshot/read_screen/speak/click/type/key/focus/wait, admission before execute) — same "os-ui" capability, same
