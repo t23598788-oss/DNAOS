@@ -43,6 +43,7 @@ import { loadPreviousSnapshot, deriveEdges } from "../live-census/contract";
 import type { CapabilityRecord } from "../live-census/contract";
 import { SERVICES, runOperation } from "../../control/runtime-control/contract";
 import type { ServiceId } from "../../control/runtime-control/types";
+import { serviceNodeEligibility } from "../../control/runtime-control/service-eligibility";
 import { MAC_LOCAL_AGENT_UNAVAILABLE_ON_CORE, canExecuteMacLocalAgentCapability } from "../../contracts/architecture/runtime-node-and-optional-provider";
 import type { ConnectionType, Declared, EdgeRuntimeStatus, EdgeState, FlowKind, GraphEdge, GraphNode, InterfaceKind, NodeOperations, ProviderIdentity, SystemGraph, UndeclaredReason } from "./types";
 
@@ -488,6 +489,11 @@ export async function buildSystemGraph(options: BuildOptions = {}): Promise<Syst
     let runtimeStatus: GraphNode["runtime_status"] = "UNKNOWN";
     let evidence = `runtime-control#SERVICES:${serviceId}`;
     if (options.probeServices) {
+      const eligibility = serviceNodeEligibility(serviceId as ServiceId);
+      if (eligibility === "MAC_LOCAL_AGENT_ONLY" && coreNodeLiveServiceProbeKind() === "http_only") {
+        runtimeStatus = "UNKNOWN";
+        evidence = `${MAC_LOCAL_AGENT_UNAVAILABLE_ON_CORE}: skip HTTP probe for MAC_LOCAL_AGENT_ONLY service ${serviceId}`;
+      } else {
       const probeKind = coreNodeLiveServiceProbeKind();
       if (probeKind === "http_only") {
         try {
@@ -507,6 +513,7 @@ export async function buildSystemGraph(options: BuildOptions = {}): Promise<Syst
           runtimeStatus = "UNKNOWN";
           evidence = `runtime-control probe failed: ${error instanceof Error ? error.message : String(error)}`;
         }
+      }
       }
     }
     const id = nodeId("service", serviceId);

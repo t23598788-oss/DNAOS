@@ -188,11 +188,53 @@ async function main(): Promise<void> {
         snap = sup.inspect("joint-monitor");
       }
       assert(snap.lifecycle === "FAILED", snap.lifecycle);
+      assert(snap.pid === null, "live pid must clear after unexpected exit");
       assert(snap.last_exit_code === 2 || snap.failure_reason !== null, String(snap.last_exit_code));
       await new Promise((r) => setTimeout(r, 200));
       const later = sup.inspect("joint-monitor");
       assert(later.lifecycle === "FAILED", "auto-restarted");
+      assert(later.pid === null, "pid still published after exit");
       delete process.env.DNA_OS_TEST_CRASH_MS;
+    });
+
+    await check("P1: second supervisor refuses start when port already has orphan listener", async () => {
+      setRuntimeNodePlatformForTests("linux");
+      const port = 26000 + Math.floor(Math.random() * 500);
+      const catalog = { "joint-monitor": fixtureDef("joint-monitor", port) };
+      const first = new PortableProcessSupervisor({ catalog, cwd: process.cwd() });
+      const started = await first.run("joint-monitor", "start");
+      assert(started.result === "SUCCESS", started.failure_reason ?? "first start");
+      const second = new PortableProcessSupervisor({ catalog, cwd: process.cwd() });
+      const dup = await second.run("joint-monitor", "start");
+      assert(dup.result === "FAILED", "duplicate start must fail");
+      assert((dup.failure_reason ?? "").includes("not owned"), dup.failure_reason ?? "");
+      await first.run("joint-monitor", "stop");
+    });
+
+    await check("P1: Mac-only health/status denied on Core (no fixed-port probe success)", async () => {
+      setRuntimeNodePlatformForTests("linux");
+      const catalog = { "machine-observer": fixtureDef("machine-observer", 22003) };
+      const sup = new PortableProcessSupervisor({ catalog, cwd: process.cwd() });
+      const health = await sup.run("machine-observer", "health");
+      assert(health.result === "FAILED", "health must deny");
+      assert((health.failure_reason ?? "").includes("MAC_LOCAL_AGENT"), health.failure_reason ?? "");
+      const status = await sup.run("machine-observer", "status");
+      assert(status.result === "FAILED", "status must deny");
+    });
+
+    await check("P1: Core credential env names are explicitly allowlisted for owner-command-http", () => {
+      const allow = SERVICES["owner-command-http"].portable_process?.env_allowlist ?? [];
+      for (const name of [
+        "GITHUB_PAT_INFRASTRUCTURE",
+        "GITHUB_WEBHOOK_SECRET_INFRASTRUCTURE",
+        "RAILWAY_PROJECT_TOKEN",
+        "SUPABASE_SCHEMA_READ_TOKEN",
+      ]) {
+        assert(allow.includes(name), `missing ${name}`);
+      }
+      const src = readFileSync(join(process.cwd(), "control/runtime-control/host-runtime.ts"), "utf8");
+      assert(src.includes("CORE_PROCESS_ENV_BINDINGS"), "must compose existing process-environment authority");
+      assert(!/Object\.assign\(.*process\.env|\{ \.\.\.process\.env/.test(src), "must not dump parent env wholesale");
     });
 
     await check("secret values are not present in logs/status", async () => {

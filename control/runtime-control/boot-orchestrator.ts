@@ -30,6 +30,9 @@ import {
 } from "./host-runtime";
 import { buildRequesterFields } from "./requester";
 import type { HealthCheckResult } from "./types";
+import { runtimeNodePlatform } from "../../contracts/architecture/runtime-node-and-optional-provider";
+import { PortableProcessSupervisor } from "./portable-supervisor";
+import { serviceNodeEligibility } from "./service-eligibility";
 
 /**
  * ตัวตนของผู้ขอ boot — โปรเซสที่เรียก `bootAll()` ใน production มีจุดเดียวคือ
@@ -337,6 +340,13 @@ export async function bootAll(options: { only?: readonly ServiceId[]; deps?: Boo
   const bootId = newOperationId();
   const startedAt = d.now();
   const { order } = resolveStartOrder();
+
+  // Non-Darwin Core: launchd filter would drop portable services. Route them
+  // through PortableProcessSupervisor instead of returning an empty success.
+  if (runtimeNodePlatform() !== "darwin") {
+    return bootAllPortable(order, options.only, bootId, startedAt, d);
+  }
+
   const launchdOrder = order.filter((id) => SERVICES[id].launchd_job !== "not_installed");
   const targets = options.only
     ? launchdOrder.filter((id) => options.only!.includes(id))
@@ -354,9 +364,6 @@ export async function bootAll(options: { only?: readonly ServiceId[]; deps?: Boo
         service_id: id, state: "SKIPPED_DEPENDENCY", attempts: 0, pid: null, port: service.port,
         http_status: null, depends_on: dependsOn,
         reason: `ข้าม เพราะ dependency ยังไม่ READY: ${missing.join(", ")}`,
-        // ไม่มี OperationEvidence สำหรับกรณีนี้โดยเจตนา: ไม่มีปฏิบัติการใดถูกลงมือ
-        // และไม่มีการสังเกตใดถูกวัด การใส่แถวลงไปเพื่อให้จำนวนแถวครบ จะทำให้สโตร์
-        // ที่แปลว่า "สิ่งที่ลงมือหรือสังเกตแล้ว" มีแถวที่ไม่ได้ทำทั้งสองอย่าง
         checked_at: d.now(), evidence_ref: `boot:${bootId}:${id}`,
       });
       continue;
@@ -369,6 +376,76 @@ export async function bootAll(options: { only?: readonly ServiceId[]; deps?: Boo
   return {
     boot_id: bootId, started_at: startedAt, finished_at: d.now(),
     order: targets, results,
+    ready: results.filter((r) => r.state === "READY").length,
+    failed_locked: results.filter((r) => r.state === "FAILED_LOCKED").length,
+    skipped: results.filter((r) => r.state === "SKIPPED_DEPENDENCY").length,
+  };
+}
+
+async function bootAllPortable(
+  order: readonly ServiceId[],
+  only: readonly ServiceId[] | undefined,
+  bootId: string,
+  startedAt: string,
+  d: ResolvedDeps,
+): Promise<BootReport> {
+  const portableOrder = order.filter((id) => {
+    const def = SERVICES[id];
+    if (!def?.portable_process) return false;
+    return serviceNodeEligibility(id) === "CORE_NODE_CAPABLE";
+  });
+  const targets = only ? portableOrder.filter((id) => only.includes(id)) : portableOrder;
+  const results: ServiceBootResult[] = [];
+  const readyIds = new Set<ServiceId>();
+  const supervisor = new PortableProcessSupervisor({
+    healthCheck: d.healthCheck,
+    append: d.append,
+  });
+
+  for (const id of targets) {
+    const service = SERVICES[id];
+    const dependsOn = service.depends_on ?? [];
+    const missing = dependsOn.filter((dep) => !readyIds.has(dep));
+    if (missing.length > 0) {
+      results.push({
+        service_id: id,
+        state: "SKIPPED_DEPENDENCY",
+        attempts: 0,
+        pid: null,
+        port: service.port,
+        http_status: null,
+        depends_on: dependsOn,
+        reason: `ข้าม เพราะ dependency ยังไม่ READY: ${missing.join(", ")}`,
+        checked_at: d.now(),
+        evidence_ref: `boot:${bootId}:${id}`,
+      });
+      continue;
+    }
+    const ev = await supervisor.run(id, "start");
+    const ready = ev.result === "SUCCESS" && ev.health_after.http_status === service.health_expect_status;
+    if (ready) readyIds.add(id);
+    results.push({
+      service_id: id,
+      state: ready ? "READY" : "FAILED_LOCKED",
+      attempts: 1,
+      pid: ev.pid_after,
+      port: service.port,
+      http_status: ev.health_after.http_status,
+      depends_on: dependsOn,
+      reason: ready
+        ? `portable supervisor started ${id}`
+        : (ev.failure_reason ?? "portable start failed"),
+      checked_at: d.now(),
+      evidence_ref: ev.operation_id,
+    });
+  }
+
+  return {
+    boot_id: bootId,
+    started_at: startedAt,
+    finished_at: d.now(),
+    order: targets,
+    results,
     ready: results.filter((r) => r.state === "READY").length,
     failed_locked: results.filter((r) => r.state === "FAILED_LOCKED").length,
     skipped: results.filter((r) => r.state === "SKIPPED_DEPENDENCY").length,

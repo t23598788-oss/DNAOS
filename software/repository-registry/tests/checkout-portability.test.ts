@@ -4,7 +4,7 @@
  */
 
 import { execFileSync } from "node:child_process";
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync, statSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import {
@@ -180,6 +180,29 @@ async function main(): Promise<void> {
       assert(!two.ok && two.code === "CONTROL_PLANE_AMBIGUOUS", two.ok ? "ok" : two.code);
       const none = resolveControlPlaneCheckout({ lookup: lookupFor([]) });
       assert(!none.ok && none.code === "CONTROL_PLANE_UNRESOLVED", none.ok ? "ok" : none.code);
+    });
+
+    await check("P1: wrong repository at registered path is rejected", () => {
+      const wrong = join(base, "wrong-repo");
+      makeGitCheckout(wrong, "https://github.com/example/other.git");
+      const row = controlPlaneRow(wrong);
+      // row claims DNA-OS remote but checkout is other
+      const resolved = resolveRepositoryCheckout(REPO_ID, { lookup: lookupFor([row]) });
+      assert(!resolved.ok && resolved.code === "CHECKOUT_IDENTITY_MISMATCH", resolved.ok ? "ok" : resolved.code);
+    });
+
+    await check("P2: linked git worktree with matching identity is accepted", () => {
+      const mainRoot = join(base, "worktree-main");
+      const linked = join(base, "worktree-linked");
+      makeGitCheckout(mainRoot, REMOTE);
+      execFileSync("git", ["worktree", "add", linked, "HEAD"], { cwd: mainRoot });
+      assert(existsSync(join(linked, ".git")), "gitfile missing");
+      assert(!statSync(join(linked, ".git")).isDirectory(), ".git should be gitfile");
+      const row = controlPlaneRow(linked);
+      const resolved = resolveRepositoryCheckout(REPO_ID, { lookup: lookupFor([row]) });
+      assert(resolved.ok, resolved.ok ? "ok" : resolved.reason);
+      if (!resolved.ok) return;
+      assert(resolved.repository_root === resolve(linked), resolved.repository_root);
     });
   } finally {
     setCheckoutResolutionForTests(undefined);

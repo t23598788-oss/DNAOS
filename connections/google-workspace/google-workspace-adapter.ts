@@ -359,25 +359,13 @@ export async function handleGoogleWorkspaceReadCommand(
   const fetchImpl = deps.fetchImpl ?? hostFetch;
   const evaluatePolicy = deps.evaluateOwnerPolicy ?? evaluateOwnerCapabilityBinding;
   const readMeta = deps.readCredentialMeta ?? readGoogleCredentialMetadata;
-  if (!deps.credentialResolver) {
-    const node = macLocalAgentExecutionDecision({ current_node: "CORE_NODE" });
-    if (!node.execute) {
-      return reject(
-        GOOGLE_WORKSPACE_OUTCOMES.AUTH_REQUIRED,
-        `${MAC_LOCAL_AGENT_UNAVAILABLE_ON_CORE}: required_node=MAC_LOCAL_AGENT current_node=${node.current_node} execution_attempted=false — Keychain resolver not invoked`,
-        "authenticate",
-        evidence,
-      );
-    }
-  }
-  const resolver = deps.credentialResolver ?? createProductionCredentialResolver();
 
   evidence.push({
     source: GOOGLE_WORKSPACE_ADAPTER_NAME,
     note: `connection_id=${GOOGLE_CONNECTION_ID} credential_ref=${GOOGLE_CREDENTIAL_REF} intent=${command.intent}`,
   });
 
-  // 1. classify — write actions fail closed before policy/cred/network
+  // 1. classify — write/unknown fail closed BEFORE host/auth gate
   if (isWriteIntent(command.intent) && !isReadIntent(command.intent)) {
     return reject(
       GOOGLE_WORKSPACE_OUTCOMES.UNSUPPORTED_ACTION,
@@ -395,13 +383,27 @@ export async function handleGoogleWorkspaceReadCommand(
     );
   }
 
+  // 2. host/credential availability (after classification only)
+  if (!deps.credentialResolver) {
+    const node = macLocalAgentExecutionDecision({ current_node: "CORE_NODE" });
+    if (!node.execute) {
+      return reject(
+        GOOGLE_WORKSPACE_OUTCOMES.AUTH_REQUIRED,
+        `${MAC_LOCAL_AGENT_UNAVAILABLE_ON_CORE}: required_node=MAC_LOCAL_AGENT current_node=${node.current_node} execution_attempted=false — Keychain resolver not invoked`,
+        "authenticate",
+        evidence,
+      );
+    }
+  }
+  const resolver = deps.credentialResolver ?? createProductionCredentialResolver();
+
   const intent = command.intent;
   const spec = INTENT_SPECS[intent];
   const payload = asPayload(command.payload);
   let credentialResolved = false;
   let networkCalled = false;
 
-  // 2. Owner capability policy — DENY ⇒ zero credential resolution, zero network
+  // 3. Owner capability policy — DENY ⇒ zero credential resolution, zero network
   const ai_identity = typeof payload.ai_identity === "string" ? payload.ai_identity : "";
   const session_id = typeof payload.session_id === "string" ? payload.session_id : "";
   const policy = evaluatePolicy({

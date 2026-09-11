@@ -32,9 +32,13 @@ import { get as httpGet } from "node:http";
 import { join } from "node:path";
 import { randomUUID } from "node:crypto";
 import { userInfo } from "node:os";
+import { CORE_PROCESS_ENV_BINDINGS } from "../../credentials/process-environment";
 import type { ServiceDefinition, ServiceId, LaunchdState, HealthCheckResult, OperationEvidence } from "./types";
 
 const HOME = userInfo().homedir;
+
+/** Explicit Core credential env names from process-environment mapping (not a second authority). */
+const CORE_CREDENTIAL_ENV_ALLOWLIST: readonly string[] = CORE_PROCESS_ENV_BINDINGS.map((b) => b.env_var);
 
 export const SERVICES: Record<ServiceId, ServiceDefinition> = {
   // OBSERVATION SPINE. Everything that reports a joint needs this listening,
@@ -185,7 +189,11 @@ export const SERVICES: Record<ServiceId, ServiceDefinition> = {
     capability_folder: "connections/dna-os-mcp",
     portable_process: {
       argv: ["npx", "tsx", "connections/dna-os-mcp/server.ts"],
-      env_allowlist: ["OWNER_COMMAND_HTTP_SHARED_SECRET", "DNA_OS_HTTP_BASE_URL"],
+      env_allowlist: [
+        "OWNER_COMMAND_HTTP_SHARED_SECRET",
+        "DNA_OS_HTTP_BASE_URL",
+        ...CORE_CREDENTIAL_ENV_ALLOWLIST,
+      ],
     },
     port: 8793,
     health_path: "/health",
@@ -208,7 +216,11 @@ export const SERVICES: Record<ServiceId, ServiceDefinition> = {
     launchd_job: "not_installed",
     portable_process: {
       argv: ["npx", "tsx", "transport/owner-command-http/server.ts"],
-      env_allowlist: ["OWNER_COMMAND_HTTP_SHARED_SECRET", "HOST"],
+      env_allowlist: [
+        "OWNER_COMMAND_HTTP_SHARED_SECRET",
+        "HOST",
+        ...CORE_CREDENTIAL_ENV_ALLOWLIST,
+      ],
     },
     port: 8791,
     health_path: "/health",

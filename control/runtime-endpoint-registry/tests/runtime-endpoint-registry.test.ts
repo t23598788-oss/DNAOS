@@ -114,6 +114,13 @@ check("8. resolver source has no provider awareness", () => {
 check("9. no secret stored or exposed on registration", () => {
   const secret = validateRuntimeEndpoint({ ...localCircuit, address: "http://127.0.0.1:9/?token=abc" });
   assert(secret === "SECRET_MATERIAL", String(secret));
+  const userinfo = validateRuntimeEndpoint({
+    ...remoteCircuit,
+    address: "https://user:password@example.com/x",
+  });
+  assert(userinfo === "SECRET_MATERIAL", String(userinfo));
+  const userOnly = validateRuntimeEndpoint({ ...localCircuit, address: "http://user@127.0.0.1:9/health" });
+  assert(userOnly === "SECRET_MATERIAL", String(userOnly));
   const extra = validateRuntimeEndpoint({ ...localCircuit, railway_service_id: "x" } as RuntimeEndpointRegistration);
   assert(extra === "FORBIDDEN_FIELD", String(extra));
   replaceRuntimeEndpointsForTests([localCircuit]);

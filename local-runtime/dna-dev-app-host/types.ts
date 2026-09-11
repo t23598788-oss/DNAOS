@@ -34,7 +34,13 @@ export interface BuildManifest {
 }
 
 export interface InstallRecord {
-  installed_at: string;
-  destination: string;
+  install_id: string;
   build_id: string;
+  installed_path: string;
+  desktop_launcher_sha256: string;
+  desktop_bundle_sha256: string;
+  built_launcher_sha256: string;
+  built_bundle_sha256: string;
+  provenance_match: boolean;
+  installed_at: string;
 }

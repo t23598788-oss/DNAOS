@@ -21,20 +21,26 @@ ROOT="$(cd "$DIR/../.." && pwd)"
 LAUNCH_URL="$(node -e "
 const fs = require('fs');
 const p = process.argv[1];
+const rows = [];
 for (const line of fs.readFileSync(p, 'utf8').split(/\n/)) {
   if (!line.trim()) continue;
-  const j = JSON.parse(line);
-  if (j.endpoint_id === 'endpoint://dna-os-circuit/public' && j.status === 'ACTIVE') {
-    process.stdout.write(j.address);
-    process.exit(0);
-  }
+  rows.push(JSON.parse(line));
 }
-process.exit(1);
+// Latest-row-wins (same semantics as runtime-endpoint-registry).
+let selected = null;
+for (const j of rows) {
+  if (j.endpoint_id === 'endpoint://dna-os-circuit/public') selected = j;
+}
+if (!selected || selected.status !== 'ACTIVE' || typeof selected.address !== 'string' || !selected.address) {
+  process.exit(1);
+}
+process.stdout.write(selected.address);
 " "$ROOT/connections/railway/data/runtime-endpoints.jsonl")"
 if [ -z "$LAUNCH_URL" ]; then
-  echo "build: FAILED — could not read the canonical url from config.ts" >&2
+  echo "build: FAILED — could not resolve latest ACTIVE endpoint://dna-os-circuit/public" >&2
   exit 1
 fi
+ENDPOINT_JSONL="$ROOT/connections/railway/data/runtime-endpoints.jsonl"
 
 rm -rf "$OUT"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
@@ -67,6 +73,10 @@ for f in launcher.template.sh Info.plist config.ts types.ts contract.ts; do
   h="$(shasum -a 256 "$DIR/$f" | awk '{print $1}')"
   src_json="$src_json    \"$f\": \"$h\",\n"
 done
+# Endpoint JSONL participates in baked launcher URL — include in provenance hashes.
+endpoint_rel="connections/railway/data/runtime-endpoints.jsonl"
+endpoint_h="$(shasum -a 256 "$ENDPOINT_JSONL" | awk '{print $1}')"
+src_json="$src_json    \"$endpoint_rel\": \"$endpoint_h\",\n"
 src_json="${src_json%,\\n}"
 
 cat > "$OUT/build-manifest.json" <<MANIFEST

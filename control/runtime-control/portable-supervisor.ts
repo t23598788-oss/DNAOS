@@ -13,6 +13,7 @@ import type { RuntimeOperationRequest } from "./requester";
 import {
   SERVICES,
   appendEvidence,
+  getListeningPids,
   httpHealthCheck,
   newOperationId,
   nowIso,
@@ -37,8 +38,9 @@ const ENV_NAME = /^[A-Z][A-Z0-9_]*$/;
 export type ServiceCatalog = Record<string, ServiceDefinition>;
 
 interface ChildRecord {
-  pid: number;
-  child: ChildProcess;
+  /** Live process id, or null after unexpected exit (exit evidence retained). */
+  pid: number | null;
+  child: ChildProcess | null;
   lifecycle: ProcessLifecycleState;
   last_exit_code: number | null;
   last_exit_signal: string | null;
@@ -116,7 +118,8 @@ export class PortableProcessSupervisor implements ProcessSupervisor {
     }
 
     const eligibility = serviceNodeEligibility(serviceId);
-    if (eligibility === "MAC_LOCAL_AGENT_ONLY" && (action === "start" || action === "restart" || action === "stop")) {
+    // Observation actions must not probe Mac-only fixed ports on CORE_NODE.
+    if (eligibility === "MAC_LOCAL_AGENT_ONLY") {
       return this.finishDenied(
         def,
         action,
@@ -139,7 +142,8 @@ export class PortableProcessSupervisor implements ProcessSupervisor {
 
     const healthBefore = await this.probe(def);
     let mutationError: string | null = null;
-    const pidBefore = this.children.get(serviceId)?.pid ?? null;
+    const ownedBefore = this.children.get(serviceId);
+    const pidBefore = ownedBefore?.pid ?? null;
 
     if (action === "start") mutationError = await this.startChild(def);
     else if (action === "stop") mutationError = await this.stopChild(serviceId);
@@ -201,7 +205,10 @@ export class PortableProcessSupervisor implements ProcessSupervisor {
       launchd_loaded_after: pidAfter !== null,
       health_before: healthBefore,
       health_after: healthAfter,
-      duplicate_check: { listening_pids: pidAfter !== null ? [pidAfter] : [], duplicate_detected: false },
+      duplicate_check: {
+        listening_pids: getListeningPids(def.port),
+        duplicate_detected: getListeningPids(def.port).length > 1,
+      },
       readiness_wait_ms,
       readiness_deadline_ms,
       timestamp_started,
@@ -261,6 +268,12 @@ export class PortableProcessSupervisor implements ProcessSupervisor {
       return `already has pid ${existing.pid}`;
     }
 
+    // Process ownership: in-memory map alone is not enough across supervisor instances.
+    const listeners = getListeningPids(def.port);
+    if (listeners.length > 0) {
+      return `port ${def.port} already has listener pid(s) ${listeners.join(",")} not owned by this supervisor instance — refuse duplicate start / false readiness`;
+    }
+
     const spec = def.portable_process;
     if (!spec || spec.argv.length === 0) {
       return `no portable_process.argv for ${def.service_id}`;
@@ -278,10 +291,28 @@ export class PortableProcessSupervisor implements ProcessSupervisor {
       env: this.childEnv(def),
       stdio: ["ignore", "ignore", "ignore"],
     });
+
+    // Async spawn failure must become lifecycle evidence, not an uncaught crash.
+    const spawnFailure = await new Promise<string | null>((resolveSpawn) => {
+      let settled = false;
+      const finish = (err: string | null) => {
+        if (settled) return;
+        settled = true;
+        resolveSpawn(err);
+      };
+      child.once("error", (err) => finish(`spawn failed: ${err instanceof Error ? err.message : String(err)}`));
+      child.once("spawn", () => finish(null));
+      // Some Node versions assign pid synchronously without emitting "spawn".
+      queueMicrotask(() => {
+        if (child.pid !== undefined) finish(null);
+      });
+    });
+    if (spawnFailure) return spawnFailure;
     if (child.pid === undefined) return "spawn produced no pid";
 
+    const ownedPid = child.pid;
     const rec: ChildRecord = {
-      pid: child.pid,
+      pid: ownedPid,
       child,
       lifecycle: "STARTING",
       last_exit_code: null,
@@ -293,10 +324,11 @@ export class PortableProcessSupervisor implements ProcessSupervisor {
 
     child.on("exit", (code, signal) => {
       const current = this.children.get(def.service_id);
-      if (!current || current.pid !== rec.pid) return;
+      if (!current || current.child !== child) return;
       current.last_exit_code = code;
       current.last_exit_signal = signal;
-      current.pid = rec.pid;
+      // Clear LIVE pid; keep exit evidence on the record until stop/delete.
+      current.pid = null;
       if (current.lifecycle === "STOPPING") {
         current.lifecycle = "STOPPED";
         this.children.delete(def.service_id);
@@ -310,29 +342,60 @@ export class PortableProcessSupervisor implements ProcessSupervisor {
   }
 
   private async stopChild(serviceId: string): Promise<string | null> {
+    const def = this.catalog[serviceId];
     const rec = this.children.get(serviceId);
-    if (!rec) return null;
-    rec.lifecycle = "STOPPING";
-    try {
-      rec.child.kill("SIGTERM");
-    } catch {
-      rec.lifecycle = "STOPPED";
-      this.children.delete(serviceId);
+    if (rec?.child && rec.pid !== null) {
+      rec.lifecycle = "STOPPING";
+      try {
+        rec.child.kill("SIGTERM");
+      } catch {
+        rec.lifecycle = "STOPPED";
+        this.children.delete(serviceId);
+        return null;
+      }
+      const deadline = Date.now() + STOP_WAIT_MS;
+      while (Date.now() < deadline && this.children.has(serviceId) && this.children.get(serviceId)?.lifecycle === "STOPPING") {
+        await sleep(50);
+      }
+      const still = this.children.get(serviceId);
+      if (still && still.lifecycle === "STOPPING") {
+        try {
+          still.child?.kill("SIGKILL");
+        } catch {
+          // already gone
+        }
+        still.lifecycle = "STOPPED";
+        this.children.delete(serviceId);
+      }
       return null;
     }
-    const deadline = Date.now() + STOP_WAIT_MS;
-    while (Date.now() < deadline && this.children.has(serviceId) && this.children.get(serviceId)?.lifecycle === "STOPPING") {
-      await sleep(50);
-    }
-    const still = this.children.get(serviceId);
-    if (still && still.lifecycle === "STOPPING") {
+
+    // No owned child in this instance — do not silent-success if the port still listens.
+    if (!def) return null;
+    const listeners = getListeningPids(def.port);
+    if (listeners.length === 0) return null;
+    for (const pid of listeners) {
       try {
-        still.child.kill("SIGKILL");
+        process.kill(pid, "SIGTERM");
       } catch {
-        // already gone
+        // gone
       }
-      still.lifecycle = "STOPPED";
-      this.children.delete(serviceId);
+    }
+    await sleep(STOP_WAIT_MS);
+    const remain = getListeningPids(def.port);
+    if (remain.length > 0) {
+      for (const pid of remain) {
+        try {
+          process.kill(pid, "SIGKILL");
+        } catch {
+          // gone
+        }
+      }
+      await sleep(100);
+    }
+    const after = getListeningPids(def.port);
+    if (after.length > 0) {
+      return `recovered stop: port ${def.port} still has listener pid(s) ${after.join(",")}`;
     }
     return null;
   }

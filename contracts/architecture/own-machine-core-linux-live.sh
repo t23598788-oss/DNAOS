@@ -160,28 +160,41 @@ run_esbuild_test() {
   local suite="$1"
   local entry="$2"
   local out="/tmp/${suite}.cjs"
+  local status=0
   set +e
   ./node_modules/.bin/esbuild "$entry" --bundle --platform=node --format=cjs --outfile="$out" --log-level=error
-  if [[ $? -ne 0 ]]; then
+  status=$?
+  if [[ $status -ne 0 ]]; then
     echo BUILD_FAIL > "/evidence/${suite}.exit"
     echo "BUILD_FAIL $suite" | tee "/evidence/${suite}.log"
     set -e
-    return 0
+    return "$status"
   fi
+  # Preserve node exit (not tee): pipefail + PIPESTATUS[0]
+  set -o pipefail
   node "$out" | tee "/evidence/${suite}.log"
-  echo $? > "/evidence/${suite}.exit"
+  status=${PIPESTATUS[0]:-$?}
+  set +o pipefail
+  echo "$status" > "/evidence/${suite}.exit"
   rm -f "$out"
   set -e
+  return "$status"
 }
-run_esbuild_test runtime-endpoint-registry control/runtime-endpoint-registry/tests/runtime-endpoint-registry.test.ts
-run_esbuild_test caller-migration control/runtime-endpoint-registry/tests/caller-migration.test.ts
-run_esbuild_test portability-domain-guard control/runtime-endpoint-registry/tests/portability-domain-guard.test.ts
-run_esbuild_test runtime-node contracts/architecture/runtime-node-and-optional-provider.test.ts
-run_esbuild_test portable-supervisor control/runtime-control/tests/portable-supervisor.test.ts
-run_esbuild_test secret-resolver credentials/secret-resolver/tests/core-node-secret-resolver.test.ts
-run_esbuild_test checkout-portability software/repository-registry/tests/checkout-portability.test.ts
-run_esbuild_test network-auth-gate permissions/network-auth-gate/tests/policy.test.ts
-run_esbuild_test own-machine-core-acceptance contracts/architecture/own-machine-core-acceptance.test.ts
+SUITE_FAIL=0
+run_esbuild_test runtime-endpoint-registry control/runtime-endpoint-registry/tests/runtime-endpoint-registry.test.ts || SUITE_FAIL=1
+run_esbuild_test caller-migration control/runtime-endpoint-registry/tests/caller-migration.test.ts || SUITE_FAIL=1
+run_esbuild_test portability-domain-guard control/runtime-endpoint-registry/tests/portability-domain-guard.test.ts || SUITE_FAIL=1
+run_esbuild_test runtime-node contracts/architecture/runtime-node-and-optional-provider.test.ts || SUITE_FAIL=1
+run_esbuild_test portable-supervisor control/runtime-control/tests/portable-supervisor.test.ts || SUITE_FAIL=1
+run_esbuild_test secret-resolver credentials/secret-resolver/tests/core-node-secret-resolver.test.ts || SUITE_FAIL=1
+run_esbuild_test checkout-portability software/repository-registry/tests/checkout-portability.test.ts || SUITE_FAIL=1
+run_esbuild_test network-auth-gate permissions/network-auth-gate/tests/policy.test.ts || SUITE_FAIL=1
+run_esbuild_test own-machine-core-acceptance contracts/architecture/own-machine-core-acceptance.test.ts || SUITE_FAIL=1
+if [[ "$SUITE_FAIL" != 0 ]]; then
+  echo SUITE_FAIL > /evidence/suite-aggregate.txt
+  exit 1
+fi
+echo SUITE_OK > /evidence/suite-aggregate.txt
 PROBE
 chmod +x "$EVIDENCE_DIR/in-container-probe.sh"
 
@@ -201,5 +214,9 @@ docker run --rm \
   -w /work \
   "$IMAGE" \
   bash /evidence/in-container-probe.sh
-
+PROOF_RC=$?
+if [[ "$PROOF_RC" -ne 0 ]]; then
+  echo "Linux live proof FAILED (container exit $PROOF_RC). Evidence: $EVIDENCE_DIR" >&2
+  exit "$PROOF_RC"
+fi
 echo "Linux live proof finished. Evidence: $EVIDENCE_DIR"

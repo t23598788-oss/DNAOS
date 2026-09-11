@@ -15,6 +15,7 @@ export {
   resolveRepositoryCheckout,
   resolveControlPlaneCheckout,
   setCheckoutResolutionForTests,
+  resolveGitDir,
 } from "./checkout-resolution";
 export type {
   CheckoutResolution,

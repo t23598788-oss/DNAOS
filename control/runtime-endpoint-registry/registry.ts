@@ -69,7 +69,23 @@ export function validateRuntimeEndpoint(
   if (typeof address !== "string" || address.trim() === "") return "MALFORMED_ADDRESS";
   if (/secret=|token=|password=/i.test(address)) return "SECRET_MATERIAL";
   if (input.health_path !== null && typeof input.health_path !== "string") return "MALFORMED_ADDRESS";
-  return transportMatchesAddress(input.transport, address);
+  const transportReject = transportMatchesAddress(input.transport, address);
+  if (transportReject) return transportReject;
+  return rejectCredentialBearingUrl(input.transport, address);
+}
+
+function rejectCredentialBearingUrl(
+  transport: RuntimeEndpointTransport,
+  address: string,
+): RegistrationRejection | null {
+  if (transport !== "HTTP" && transport !== "HTTPS") return null;
+  try {
+    const u = new URL(address);
+    if (u.username !== "" || u.password !== "") return "SECRET_MATERIAL";
+  } catch {
+    return "MALFORMED_ADDRESS";
+  }
+  return null;
 }
 
 function transportMatchesAddress(transport: RuntimeEndpointTransport, address: string): RegistrationRejection | null {

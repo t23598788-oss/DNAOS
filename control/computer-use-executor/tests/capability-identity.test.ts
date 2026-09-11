@@ -58,6 +58,7 @@ const deps = (id: string) => ({
   now: () => new Date(),
   newEvidenceId: () => id,
   evidenceDir,
+  platform: "darwin",
 }) as never;
 /** Any adapter call at all is a failure for the refusal cases: identity is settled first. */
 const depsNeverRun = (id: string) => ({
@@ -66,6 +67,7 @@ const depsNeverRun = (id: string) => ({
   now: () => new Date(),
   newEvidenceId: () => id,
   evidenceDir,
+  platform: "darwin",
 }) as never;
 
 (async () => {
