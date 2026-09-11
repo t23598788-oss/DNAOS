@@ -7,20 +7,20 @@
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
 import { randomUUID } from "node:crypto";
 import {
   createWorkspace,
   evaluateDisposableCleanup,
   isRegisteredManagedWorktree,
   latestWorkspaceForWork,
-  recreateWorkspaceFromRegisteredSource,
   removeWorkspace,
   resumeCleanupPending,
   transitionLocalWorkspace,
   workspacesForWork,
 } from "../contract";
 import { evaluateScopedWrite } from "../../engineering-runtime/contract";
+import { createRepositoryRegistryStore } from "../../../software/repository-registry/contract";
 
 const run = promisify(execFile);
 declare const process: { cwd(): string; env: Record<string, string | undefined>; exitCode?: number };
@@ -50,7 +50,7 @@ async function check(name: string, body: () => Promise<void> | void): Promise<vo
 }
 
 async function makeRepo(): Promise<string> {
-  const root = join("tests/__sandbox__", `lws-repo-${Date.now()}-${Math.random().toString(36).slice(2)}`);
+  const root = resolve(join("tests/__sandbox__", `lws-repo-${Date.now()}-${Math.random().toString(36).slice(2)}`));
   mkdirSync(root, { recursive: true });
   await run("git", ["init", "-b", "main"], { cwd: root });
   await run("git", ["config", "user.email", "test@example.com"], { cwd: root });
@@ -59,6 +59,19 @@ async function makeRepo(): Promise<string> {
   await run("git", ["add", "."], { cwd: root });
   await run("git", ["commit", "-m", "initial"], { cwd: root });
   return root;
+}
+
+function controlPlaneStore(repositoryRoot: string) {
+  const store = createRepositoryRegistryStore(join(repositoryRoot, ".registry"));
+  store.registerRepository({
+    owner: "test",
+    repository: "local-workspace-lifecycle",
+    world: "CONTROL_PLANE",
+    source_authority: "git://test/local-workspace-lifecycle",
+    default_branch: "main",
+    repository_root: repositoryRoot,
+  });
+  return store;
 }
 
 function facts(ok: boolean) {
@@ -88,6 +101,7 @@ const admission = {
 async function main(): Promise<void> {
   const repositoryRoot = await makeRepo();
   const repositoryId = "repository://test/local-workspace-lifecycle";
+  const store = controlPlaneStore(repositoryRoot);
   const ownerFile = join("tests/__sandbox__", `owner-unknown-${STAMP}.txt`);
   writeFileSync(ownerFile, "owner-owned never delete\n");
 
@@ -96,7 +110,7 @@ async function main(): Promise<void> {
 
   await check("A. Registered workspace is created for new engineering work", async () => {
     const work_id = `work-${randomUUID()}`;
-    const created = await createWorkspace({ work_id, repository_id: repositoryId, repository_root: repositoryRoot, base_branch: "main" });
+    const created = await createWorkspace({ work_id, repository_id: repositoryId, repository_root: repositoryRoot, base_branch: "main" }, store);
     assert(created.status === "CREATED", created.reason);
     const row = latestWorkspaceForWork(work_id);
     assert(row !== null, "workspace must be registered");
@@ -122,7 +136,7 @@ async function main(): Promise<void> {
   await check("C. VERIFIED published workspace is cleaned safely", async () => {
     const work_id = `work-${randomUUID()}`;
     verifiedWorkId = work_id;
-    const created = await createWorkspace({ work_id, repository_id: repositoryId, repository_root: repositoryRoot, base_branch: "main" });
+    const created = await createWorkspace({ work_id, repository_id: repositoryId, repository_root: repositoryRoot, base_branch: "main" }, store);
     assert(created.status === "CREATED", created.reason);
     verifiedSha = created.reservation!.base_commit_sha;
     const row = latestWorkspaceForWork(work_id)!;
@@ -135,7 +149,7 @@ async function main(): Promise<void> {
 
   await check("D. Unverified work is never cleaned", async () => {
     const work_id = `work-${randomUUID()}`;
-    const created = await createWorkspace({ work_id, repository_id: repositoryId, repository_root: repositoryRoot, base_branch: "main" });
+    const created = await createWorkspace({ work_id, repository_id: repositoryId, repository_root: repositoryRoot, base_branch: "main" }, store);
     const row = latestWorkspaceForWork(work_id)!;
     const outcome = await evaluateDisposableCleanup({ workspace: row, facts: facts(false) });
     assert(outcome.status === "PRESERVED" || outcome.status === "BLOCKED", outcome.status);
@@ -145,7 +159,7 @@ async function main(): Promise<void> {
 
   await check("E. Uncommitted required source blocks cleanup", async () => {
     const work_id = `work-${randomUUID()}`;
-    const created = await createWorkspace({ work_id, repository_id: repositoryId, repository_root: repositoryRoot, base_branch: "main" });
+    const created = await createWorkspace({ work_id, repository_id: repositoryId, repository_root: repositoryRoot, base_branch: "main" }, store);
     writeFileSync(join(created.reservation!.worktree_path, "required.txt"), "dirty-uncommitted\n");
     const row = latestWorkspaceForWork(work_id)!;
     const outcome = await evaluateDisposableCleanup({ workspace: row, facts: facts(true) });
@@ -162,7 +176,7 @@ async function main(): Promise<void> {
 
   await check("G. Restart resumes CLEANUP_PENDING safely", async () => {
     const work_id = `work-${randomUUID()}`;
-    const created = await createWorkspace({ work_id, repository_id: repositoryId, repository_root: repositoryRoot, base_branch: "main" });
+    const created = await createWorkspace({ work_id, repository_id: repositoryId, repository_root: repositoryRoot, base_branch: "main" }, store);
     const row = latestWorkspaceForWork(work_id)!;
     transitionLocalWorkspace(row.workspace_id, "CLEANUP_PENDING", "simulated-restart");
     const resumed = await resumeCleanupPending(work_id, facts(true));
@@ -172,25 +186,20 @@ async function main(): Promise<void> {
   });
 
   await check("H. Replacement-machine recovery reconstructs workspace from registered remote source", async () => {
-    const recovered = await recreateWorkspaceFromRegisteredSource({
+    const recovered = await createWorkspace({
       work_id: verifiedWorkId,
       repository_id: repositoryId,
       repository_root: repositoryRoot,
-      commit_sha: verifiedSha,
       base_branch: "main",
-    });
-    assert(recovered.ok, recovered.ok ? "" : recovered.detail);
-    if (recovered.ok) {
-      assert(existsSync(join(recovered.worktree_path, "required.txt")), "required source restored from registered commit");
-      assert(readFileSync(join(recovered.worktree_path, "required.txt"), "utf8") === "source-v1\n", "content matches registered source");
-      const reservation = workspacesForWork(verifiedWorkId).find((row) => row.workspace_id === recovered.workspace_id);
-      assert(reservation !== undefined, "recovered workspace is registered");
-      await removeWorkspace({
-        repository_id: repositoryId,
-        worktree_path: recovered.worktree_path,
-        branch_ref: `agent-work/${verifiedWorkId}`,
-      }, repositoryRoot);
-    }
+      purpose: "RECOVERY_CHECKOUT",
+    }, store);
+    assert(recovered.status === "CREATED", recovered.reason);
+    await run("git", ["checkout", "--detach", verifiedSha], { cwd: recovered.reservation!.worktree_path });
+    assert(existsSync(join(recovered.reservation!.worktree_path, "required.txt")), "required source restored from registered commit");
+    assert(readFileSync(join(recovered.reservation!.worktree_path, "required.txt"), "utf8") === "source-v1\n", "content matches registered source");
+    const reservation = workspacesForWork(verifiedWorkId).find((row) => row.path_reference === recovered.reservation!.worktree_path);
+    assert(reservation !== undefined, "recovered workspace is registered");
+    await removeWorkspace(recovered.reservation!, repositoryRoot);
   });
 
   rmSync(repositoryRoot, { recursive: true, force: true });
