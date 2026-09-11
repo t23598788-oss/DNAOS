@@ -15,9 +15,22 @@ OUT="$DIR/build"
 APP="$OUT/DNA DEV.app"
 BUILD_ID="build-$(date -u +%Y%m%dT%H%M%SZ)-$(head -c 6 /dev/urandom | xxd -p)"
 
-# The launch URL is read from ./config.ts so the artifact can never point
-# somewhere config.ts does not declare.
-LAUNCH_URL="$(sed -n 's/^  url: "\(.*\)",$/\1/p' "$DIR/config.ts" | head -1)"
+# The launch URL is the REGISTERED_REMOTE circuit endpoint from the Railway
+# adapter JSONL (optional provider backing). Core config.ts resolves the same id.
+ROOT="$(cd "$DIR/../.." && pwd)"
+LAUNCH_URL="$(node -e "
+const fs = require('fs');
+const p = process.argv[1];
+for (const line of fs.readFileSync(p, 'utf8').split(/\n/)) {
+  if (!line.trim()) continue;
+  const j = JSON.parse(line);
+  if (j.endpoint_id === 'endpoint://dna-os-circuit/public' && j.status === 'ACTIVE') {
+    process.stdout.write(j.address);
+    process.exit(0);
+  }
+}
+process.exit(1);
+" "$ROOT/connections/railway/data/runtime-endpoints.jsonl")"
 if [ -z "$LAUNCH_URL" ]; then
   echo "build: FAILED — could not read the canonical url from config.ts" >&2
   exit 1
@@ -66,7 +79,7 @@ $(printf "$src_json")
   },
   "artifact_launcher_sha256": "$launcher_sha",
   "artifact_bundle_sha256": "$bundle_sha",
-  "launch_target": { "url": "$LAUNCH_URL", "runtime_kind": "RAILWAY_DEPLOYMENT", "railway_service": "dna-os-circuit" },
+  "launch_target": { "url": "$LAUNCH_URL", "runtime_kind": "REGISTERED_REMOTE", "service_id": "dna-os-circuit" },
   "icon": "$ICON_STATE",
   "built_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 }

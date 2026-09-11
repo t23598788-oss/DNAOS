@@ -28,6 +28,11 @@ import {
 } from "./persist";
 import { isFixtureRevision } from "./remote-discovery";
 import { inspectDeploymentTargets, remoteProductionGate } from "./closure";
+import {
+  ensureRuntimeEndpointsLoaded,
+  joinEndpointAddress,
+  resolveRuntimeEndpoint,
+} from "../runtime-endpoint-registry/contract";
 
 export const CIRCUIT_TARGET_ID = "deploy://railway/dna-os-circuit";
 const ENVIRONMENT_ID = "4d28eafa-9735-4405-a585-55ea354bafab";
@@ -172,6 +177,18 @@ export function classifyCurrentRemoteLineage(): {
   };
 }
 
+function registeredRemoteHost(serviceId: string): string | null {
+  if (serviceId !== "dna-os-circuit" && serviceId !== "joint-monitor") return null;
+  ensureRuntimeEndpointsLoaded();
+  const resolved = resolveRuntimeEndpoint({ query: `endpoint://${serviceId}/public`, purpose: "observe" });
+  if (!resolved.ok) return null;
+  try {
+    return new URL(resolved.endpoint.address).host;
+  } catch {
+    return null;
+  }
+}
+
 export async function resolveExistingRailwayServices(): Promise<{
   readonly project_id: string | null;
   readonly environment_id: string;
@@ -196,8 +213,7 @@ export async function resolveExistingRailwayServices(): Promise<{
   const services = [];
   for (const name of ALLOWED_SERVICES) {
     const match = found.find((row) => row.name === name || row.name.includes(name));
-    let runtime_domain: string | null = name === "dna-os-circuit" ? "dna-os-circuit-production.up.railway.app"
-      : name === "joint-monitor" ? "joint-monitor-production.up.railway.app" : null;
+    let runtime_domain: string | null = registeredRemoteHost(name);
     let latest_deployment_id: string | null = null;
     let can_redeploy = false;
     if (invoker && match?.id) {
@@ -480,7 +496,18 @@ export async function verifyCircuitRuntimeRevision(expected: string | null): Pro
   readonly REAL_RUNTIME_REVISION: string;
   readonly http_200_is_not_revision_proof: true;
 }> {
-  const url = "https://dna-os-circuit-production.up.railway.app/circuit.json";
+  ensureRuntimeEndpointsLoaded();
+  const resolved = resolveRuntimeEndpoint({ query: "endpoint://dna-os-circuit/public", purpose: "observe" });
+  if (!resolved.ok) {
+    return {
+      reachable: false,
+      health_http: null,
+      RUNTIME_REVISION_PROOF: "NOT_AVAILABLE",
+      REAL_RUNTIME_REVISION: "NOT_AVAILABLE",
+      http_200_is_not_revision_proof: true,
+    };
+  }
+  const url = joinEndpointAddress(resolved.endpoint);
   try {
     const response = await fetch(url, { headers: { Accept: "application/json", "User-Agent": "DNA-OS-INFRASTRUCTURE" } });
     const reachable = response.ok;

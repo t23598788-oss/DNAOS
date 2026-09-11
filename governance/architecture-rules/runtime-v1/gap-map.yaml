@@ -1,0 +1,471 @@
+# Non-authoritative Runtime V1 gap map.
+# CURRENT law = TypeScript contracts/tests/evidence in this checkout.
+# DOCX files are not executable truth.
+#
+# status: VERIFIED | PARTIAL | MISSING | CONFLICT | RETIRE_CANDIDATE | DEFERRED
+
+meta:
+  destination_source: governance/architecture-rules/runtime-v1/source/destination-self-hosted.docx
+  placement_source: governance/architecture-rules/runtime-v1/source/placement-audit.docx
+  branch: control/google-owner-remote-binding-policy-v1
+  head: bf1658a3e52af223ecc0e832ffe62e6211c7b156
+  origin_main: f2dddba17dad66a2ae31511c42d1332ed3c12f54
+  working_tree_has_uncommitted_step_1_to_8: false
+  audited_at: "2026-09-11"
+  step7_status: VERIFIED
+  step7_validation_note: >
+    Legacy full-repository domain-scan job aborted — non-authoritative.
+    Verified before abort: runtime-endpoint-registry 14/14 PASS.
+    Narrowed Core/runtime-tree domain guard completed independently: 1056 files PASS
+    (1054 before Step-8 files; 1056 after own-machine-core contract/test).
+    This-session Linux live container re-ran the same guard: 1057 files PASS
+    (linux-live harness/test files added). Do not merge aborted-job totals.
+    Remaining Step 7 suite results are from later independent runs, not the aborted batch.
+    Do not merge aborted-job totals.
+  step8_status: NOT_IN_THIS_COMMIT
+  step8_validation_note: >
+    Not in this commit. Own-machine Linux Core proof follows as Step 8.
+  status_vocabulary:
+    - VERIFIED
+    - PARTIAL
+    - MISSING
+    - CONFLICT
+    - RETIRE_CANDIDATE
+    - DEFERRED
+  current_law: executable TypeScript contracts, registries, permissions, tests, evidence
+
+items:
+  - runtime_v1_item: LAW_AUTHORITY
+    destination_requirement: Owner is root; providers/AI/platforms are not execution authority
+    current_implementation: machine-model/execution-authority.ts; providerIsExecutionAuthority always false
+    authoritative_files:
+      - control/machine-model/execution-authority.ts
+      - contracts/architecture/runtime-node-and-optional-provider.ts
+    tests_evidence:
+      - control/machine-model/tests/machine-model.test.ts
+      - contracts/architecture/runtime-node-and-optional-provider.test.ts
+    status: VERIFIED
+    next_action: KEEP; do not add a second execution-authority module
+
+  - runtime_v1_item: LAW_COMMAND
+    destination_requirement: All executable intent is a canonical command; Ingress→Envelope→Router→Permission→Execution
+    current_implementation: submitOwnerCommand → routeOwnerCommand → evaluateExecutionPermission inside router
+    authoritative_files:
+      - control/owner-command/owner-command.ts
+      - control/command-router/contract.ts
+      - control/command-router/router.ts
+      - contracts/command/command-envelope.ts
+    tests_evidence:
+      - control/owner-command/tests/owner-command.test.ts
+    status: PARTIAL
+    next_action: KEEP flow; later adapter for POST /v1/commands; do not reorder permission in front of router
+
+  - runtime_v1_item: LAW_PROCESS
+    destination_requirement: Core coordinates; heavy work is job→worker→bounded execution→terminate
+    current_implementation: Agent gateway JSONL tasks; PortableProcessSupervisor for fixed SERVICES only; control/scheduler is provider fabric
+    authoritative_files:
+      - control/agent-gateway/supervisor.ts
+      - control/runtime-control/portable-supervisor.ts
+      - control/scheduler/contract.ts
+    tests_evidence:
+      - control/runtime-control/tests/portable-supervisor.test.ts
+    status: PARTIAL
+    next_action: DEFERRED workload-runtime after release split; do not enlarge runtime-control into job runtime
+
+  - runtime_v1_item: LAW_STATE
+    destination_requirement: PostgreSQL current operational authority; JSONL evidence/export
+    current_implementation: JSONL live; registry-database postgres adapter exists; server.ts has no pg.Pool
+    authoritative_files:
+      - software/registry-database/adapters/postgres-store.ts
+      - software/registry-database/connection-provider.ts
+      - software/registry-database/store-port.ts
+      - transport/owner-command-http/server.ts
+    tests_evidence:
+      - software/registry-database/tests/postgres-schema-contract.test.ts
+    status: CONFLICT
+    next_action: Record header/code drift; activate existing store port after Step 7–8; do not add a second DB capability
+
+  - runtime_v1_item: LAW_SOURCE
+    destination_requirement: commit→build→artifact→signed release; checkout is not production execution
+    current_implementation: GitHub SOURCE_AUTHORITY; execute from checkout; node-local checkout resolution
+    authoritative_files:
+      - connections/github/authoritative-source.ts
+      - connections/connection-registry/declaration-registry.ts
+      - software/repository-registry/checkout-resolution.ts
+    tests_evidence:
+      - connections/connection-registry/tests/connection-registry.test.ts
+      - software/repository-registry/tests/checkout-portability.test.ts
+    status: PARTIAL
+    next_action: DEFERRED release split; GitHub stays SOURCE_AUTHORITY until explicit event
+
+  - runtime_v1_item: LAW_NODE
+    destination_requirement: repository identity ≠ node identity ≠ release identity; two node kinds only
+    current_implementation: RepositoryRegistration has no node_id; rebind+resolve checkout; no node-registry folder
+    authoritative_files:
+      - software/repository-registry/types.ts
+      - software/repository-registry/registry.ts
+      - software/repository-registry/checkout-resolution.ts
+      - contracts/architecture/runtime-node-and-optional-provider.ts
+    tests_evidence:
+      - software/repository-registry/tests/checkout-portability.test.ts
+    status: PARTIAL
+    next_action: KEEP identity split; ADD node-registry later; never merge into repository-registry
+
+  - runtime_v1_item: LAW_PROVIDER
+    destination_requirement: Provider supplies machine lifecycle only
+    current_implementation: OPTIONAL_PROVIDER roles; Railway adapter remains; listen URLs resolved via runtime-endpoint-registry
+    authoritative_files:
+      - contracts/architecture/runtime-node-and-optional-provider.ts
+      - connections/railway/
+      - control/runtime-endpoint-registry/contract.ts
+    tests_evidence:
+      - contracts/architecture/runtime-node-and-optional-provider.test.ts
+      - control/runtime-endpoint-registry/tests/runtime-endpoint-registry.test.ts
+    status: PARTIAL
+    next_action: KEEP adapter; Step 8 PROVEN (Railway not required for Core boot)
+
+  - runtime_v1_item: LAW_PORTABILITY
+    destination_requirement: Runtime decisions must not depend on provider domains/ids except optional adapter
+    current_implementation: resolveRuntimeEndpoint; REGISTERED_REMOTE backing in connections/railway/data/runtime-endpoints.jsonl; canonical TS listen-URL decisions migrated
+    authoritative_files:
+      - control/runtime-endpoint-registry/contract.ts
+      - local-runtime/dna-dev-app-host/config.ts
+      - control/production-checkpoint/remote-discovery.ts
+      - control/production-checkpoint/railway-deploy.ts
+    tests_evidence:
+      - control/runtime-endpoint-registry/tests/runtime-endpoint-registry.test.ts
+      - control/runtime-endpoint-registry/tests/portability-domain-guard.test.ts
+      - control/runtime-endpoint-registry/tests/caller-migration.test.ts
+    status: VERIFIED
+    next_action: KEEP; remaining *.railway.app are adapter/IAC/email evidence; Step 7 COMPLETE
+
+  - runtime_v1_item: WT_STEP7_ENDPOINT_PORTABILITY
+    destination_requirement: one resolveRuntimeEndpoint; no provider hostname in Core decisions
+    current_implementation: control/runtime-endpoint-registry; callers migrated; narrowed domain guard PASS
+    authoritative_files:
+      - control/runtime-endpoint-registry/contract.ts
+      - local-runtime/dna-dev-app-host/config.ts
+      - control/production-checkpoint/remote-discovery.ts
+    tests_evidence:
+      - control/runtime-endpoint-registry/tests/runtime-endpoint-registry.test.ts
+      - control/runtime-endpoint-registry/tests/portability-domain-guard.test.ts
+      - control/runtime-endpoint-registry/tests/caller-migration.test.ts
+      - control/runtime-endpoint-registry/tests/cross-repo-http-contract.test.ts
+    status: VERIFIED
+    next_action: KEEP; do not rerun aborted full-repo scan
+
+  - runtime_v1_item: WT_STEP8_OWN_MACHINE_CORE
+    destination_requirement: same TypeScript Core on generic Linux; Railway optional
+    current_implementation: live server.ts on generic Linux via ephemeral node:22-bookworm; composition harness retained
+    authoritative_files:
+      - contracts/architecture/own-machine-core.ts
+      - contracts/architecture/own-machine-core-acceptance.test.ts
+      - contracts/architecture/own-machine-core-linux-live.sh
+      - transport/owner-command-http/server.ts
+      - control/runtime-control/portable-supervisor.ts
+      - credentials/secret-resolver/node-credential-resolver.ts
+      - software/repository-registry/checkout-resolution.ts
+    tests_evidence:
+      - contracts/architecture/own-machine-core-acceptance.test.ts
+      - contracts/architecture/own-machine-core-linux-live.test.ts
+    status: PARTIAL
+    next_action: Step 8 own-machine Core proof not in this commit
+
+  - runtime_v1_item: WT_CORE_NODE_SYMBOLS
+    destination_requirement: CORE_NODE / MAC_LOCAL_AGENT vocabulary
+    current_implementation: present in working tree; absent on origin/main
+    authoritative_files:
+      - contracts/architecture/runtime-node-and-optional-provider.ts
+    tests_evidence:
+      - contracts/architecture/runtime-node-and-optional-provider.test.ts
+    status: VERIFIED
+    next_action: KEEP; commit onto canonical branch before calling it main law
+
+  - runtime_v1_item: WT_OPTIONAL_PROVIDER_ROLES
+    destination_requirement: Railway/Vercel optional; GitHub source; Supabase data
+    current_implementation: PROVIDER_ROLES map in runtime-node contract
+    authoritative_files:
+      - contracts/architecture/runtime-node-and-optional-provider.ts
+      - governance/architecture-rules/RUNTIME_NODE_AND_OPTIONAL_PROVIDER.md
+    tests_evidence:
+      - contracts/architecture/runtime-node-and-optional-provider.test.ts
+    status: VERIFIED
+    next_action: KEEP
+
+  - runtime_v1_item: WT_STEP3_MAC_FAIL_CLOSED
+    destination_requirement: Linux Core does not execute Mac-only capabilities
+    current_implementation: mac-local-agent-gate + router macLocalAgentExecutionDecision
+    authoritative_files:
+      - transport/owner-command-http/mac-local-agent-gate.ts
+      - control/command-router/router.ts
+    tests_evidence:
+      - transport/owner-command-http/tests/core-node-macos-routes.test.ts
+    status: VERIFIED
+    next_action: KEEP
+
+  - runtime_v1_item: WT_STEP4_SECRET_RESOLVER
+    destination_requirement: Core secrets not Keychain-only
+    current_implementation: process-environment backend on non-darwin CORE_NODE
+    authoritative_files:
+      - credentials/secret-resolver/node-credential-resolver.ts
+      - credentials/process-environment/
+    tests_evidence:
+      - credentials/secret-resolver/tests/core-node-secret-resolver.test.ts
+    status: VERIFIED
+    next_action: KEEP; Railway token mapping remains optional-adapter concern
+
+  - runtime_v1_item: WT_STEP5_PORTABLE_SUPERVISOR
+    destination_requirement: Process supervision not launchd-only
+    current_implementation: PortableProcessSupervisor for non-darwin; darwin launchd; not cgroup
+    authoritative_files:
+      - control/runtime-control/portable-supervisor.ts
+      - control/runtime-control/resolver.ts
+    tests_evidence:
+      - control/runtime-control/tests/portable-supervisor.test.ts
+    status: PARTIAL
+    next_action: KEEP catalog supervisor; DEFERRED workload cgroup runtime as separate capability
+
+  - runtime_v1_item: WT_STEP6_CHECKOUT_RESOLUTION
+    destination_requirement: Same repository_id; node-local checkout; no second registry
+    current_implementation: checkout-resolution.ts + rebindRepositoryCheckout; single global JSONL root
+    authoritative_files:
+      - software/repository-registry/checkout-resolution.ts
+      - software/repository-registry/registry.ts
+      - permissions/write-gate/rules.ts
+      - control/source-workspace/resolver.ts
+    tests_evidence:
+      - software/repository-registry/tests/checkout-portability.test.ts
+      - permissions/write-gate/tests/policy.test.ts
+      - control/source-workspace/tests/source-workspace.test.ts
+    status: PARTIAL
+    next_action: KEEP; multi-node persistence still one global repository_root
+
+  - runtime_v1_item: DEST_RUNTIME_ENDPOINT_REGISTRY
+    destination_requirement: resolveRuntimeEndpoint; no hardcoded provider hosts
+    current_implementation: control/runtime-endpoint-registry owns listen URLs; locals from SERVICES; remotes from adapter JSONL
+    authoritative_files:
+      - control/runtime-endpoint-registry/contract.ts
+      - control/runtime-endpoint-registry/resolver.ts
+      - connections/railway/data/runtime-endpoints.jsonl
+    tests_evidence:
+      - control/runtime-endpoint-registry/tests/runtime-endpoint-registry.test.ts
+      - control/runtime-endpoint-registry/tests/portability-domain-guard.test.ts
+      - control/runtime-endpoint-registry/tests/caller-migration.test.ts
+      - control/runtime-endpoint-registry/tests/cross-repo-http-contract.test.ts
+    status: VERIFIED
+    next_action: KEEP; do not add a second listen-URL registry
+
+  - runtime_v1_item: DEST_DURABLE_JOBS
+    destination_requirement: Postgres SKIP LOCKED jobs, at-least-once, LISTEN/NOTIFY wake-up only
+    current_implementation: work-coordination claim + agent-gateway JSONL
+    authoritative_files:
+      - control/work-coordination/coordination.ts
+      - control/agent-gateway/
+    tests_evidence:
+      - control/work-coordination/atomic-claim.test.ts
+    status: PARTIAL
+    next_action: MIGRATE existing claim owner; do not ADD execution/job-queue yet
+
+  - runtime_v1_item: DEST_RELEASE_ARTIFACT
+    destination_requirement: Immutable signed /opt/dna/releases; current symlink
+    current_implementation: deployable-artifact-readiness + artifact-destination + execution/deploy plan
+    authoritative_files:
+      - control/deployable-artifact-readiness/contract.ts
+      - control/artifact-destination/contract.ts
+      - execution/deploy/contract.ts
+    tests_evidence: []
+    status: MISSING
+    next_action: DEFERRED after own-machine Core and state authority; extend existing artifact folders
+
+  - runtime_v1_item: DEST_DNA_GIT
+    destination_requirement: DNA Git primary; GitHub optional mirror
+    current_implementation: GitHub is SOURCE_AUTHORITY
+    authoritative_files:
+      - connections/github/authoritative-source.ts
+    tests_evidence:
+      - connections/connection-registry/tests/connection-declaration.test.ts
+    status: DEFERRED
+    next_action: Explicit migration event only; do not change enum now
+
+  - runtime_v1_item: DEST_CGROUP_WORKER
+    destination_requirement: per-job cgroup; Landlock later
+    current_implementation: none
+    authoritative_files: []
+    tests_evidence: []
+    status: MISSING
+    next_action: DEFERRED V1A after release split; Landlock is not first milestone
+
+  - runtime_v1_item: DEST_HA_REGION
+    destination_requirement: Core B same DB+release; multi-region later
+    current_implementation: none
+    authoritative_files: []
+    tests_evidence: []
+    status: DEFERRED
+    next_action: After release + Postgres authority
+
+  - runtime_v1_item: DEST_GO_TREE
+    destination_requirement: Example cmd/dna-core in Go (destination spec)
+    current_implementation: TypeScript capability folders (KEEP)
+    authoritative_files: []
+    tests_evidence: []
+    status: RETIRE_CANDIDATE
+    next_action: Treat Go tree as illustrative; never recreate as CURRENT
+
+  - runtime_v1_item: RETIRE_RAILWAY_LITERAL_URLS
+    destination_requirement: No provider host in Core decisions
+    current_implementation: Core listen-URL literals removed; remaining occurrences are adapter JSONL, IAC, notify.railway.app email evidence
+    authoritative_files:
+      - control/runtime-endpoint-registry/tests/portability-domain-guard.test.ts
+      - connections/railway/data/runtime-endpoints.jsonl
+    tests_evidence:
+      - control/runtime-endpoint-registry/tests/portability-domain-guard.test.ts
+    status: VERIFIED
+    next_action: KEEP adapter JSONL; do not copy hostnames back into Core TS
+
+# Provider separation map (Step 7 plan). Actions: KEEP | WRAP | MOVE_BEHIND_INTERFACE | MIGRATE_CALLER | RETIRE_CANDIDATE
+# Compatibility: sibling HTTP contracts must not change in Step 7.
+provider_separation:
+  - component: railway_connector_invoker
+    current_location: connections/railway/router-invoker.ts
+    current_callers:
+      - control/connector-execution-boundary/registry.ts
+      - control/production-checkpoint/remote-discovery.ts
+      - control/production-checkpoint/railway-deploy.ts
+    destination_boundary: OPTIONAL_PROVIDER_ADAPTER
+    action: KEEP
+    compatibility_requirement: getConnectorInvoker("railway") intents and GraphQL endpoint unchanged
+    step: 7
+    status: VERIFIED
+
+  - component: railway_iac
+    current_location: .railway/railway.ts
+    current_callers:
+      - Railway deploy pipeline
+      - JOINT_MONITOR_PUBLIC_URL injection into owner-command-http and dna-os-circuit
+    destination_boundary: IAC_DEPLOYMENT_CONFIG
+    action: KEEP
+    compatibility_requirement: may still contain *.railway.app; Core TS decisions must not
+    step: 7
+    status: VERIFIED
+
+  - component: deadboard_infra_command
+    current_location: sibling app/api/infra-command/route.ts
+    current_callers:
+      - Deadboard Owner UI
+    destination_boundary: provider-neutral Core HTTP
+    action: KEEP
+    compatibility_requirement: POST /command on 127.0.0.1:8791; Bearer; INFRA_* env names; commandText/workOrder/ownerIdentity
+    step: 7
+    status: VERIFIED
+
+  - component: control_workspace_core_proxy
+    current_location: sibling server/core-endpoints.mjs and server/server.mjs
+    current_callers:
+      - Control Workspace UI via /api/core/*
+    destination_boundary: provider-neutral Core HTTP
+    action: KEEP
+    compatibility_requirement: DNA_OS_CORE_URL default 8791; /owner/command and /owner/submit-command; product port 5181
+    step: 7
+    status: VERIFIED
+
+  - component: joint_monitor_env_contract
+    current_location: observability/joint-monitor/client.ts
+    current_callers:
+      - command-router / agent-gateway reporters
+      - Control Workspace DNA_OS_JOINT_MONITOR_URL
+    destination_boundary: provider-neutral env; IAC may set Railway URL
+    action: KEEP
+    compatibility_requirement: JOINT_MONITOR_URL and JOINT_MONITOR_SHARED_SECRET names unchanged
+    step: 7
+    status: VERIFIED
+
+  - component: dna_dev_launch_target
+    current_location: local-runtime/dna-dev-app-host/config.ts
+    current_callers:
+      - dna-dev-app-host build.sh / resolveLaunchTarget
+      - local-runtime/dna-dev-app-host/tests/dna-dev-app-host.test.ts
+    destination_boundary: resolveRuntimeEndpoint REGISTERED_REMOTE / NODE_LOCAL
+    action: WRAP
+    compatibility_requirement: default must not silently become localhost; tests updated in same cut
+    step: 7
+    status: VERIFIED
+
+  - component: remote_discovery_historical_services
+    current_location: control/production-checkpoint/remote-discovery.ts
+    current_callers:
+      - existing remote production discovery / binding
+    destination_boundary: resolveRuntimeEndpoint for URLs; Railway invoker KEEP for GraphQL
+    action: MIGRATE_CALLER
+    compatibility_requirement: discovery still normalizes deploy://railway/* target ids until Step 8
+    step: 7
+    status: VERIFIED
+
+  - component: railway_deploy_domain_map
+    current_location: control/production-checkpoint/railway-deploy.ts
+    current_callers:
+      - production checkpoint deploy mutation path
+    destination_boundary: URL selection behind resolver; invoker KEEP
+    action: MOVE_BEHIND_INTERFACE
+    compatibility_requirement: mutation intents unchanged
+    step: 7
+    status: VERIFIED
+
+  - component: capability_registrar_runtime_health_stamp
+    current_location: software/capability-registrar/register-application-01.ts
+    current_callers:
+      - application-01 registration
+    destination_boundary: resolver health URL; RAILWAY_BUILD remains revision source not placement
+    action: MIGRATE_CALLER
+    compatibility_requirement: stamp string may change host only via resolver
+    step: 7
+    status: VERIFIED
+
+  - component: vercel_billing_connector
+    current_location: control/infrastructure-billing/connectors/vercel.ts
+    current_callers:
+      - infrastructure-billing collect
+    destination_boundary: OPTIONAL_PROVIDER_ADAPTER read-only
+    action: KEEP
+    compatibility_requirement: G-ARCH-001 no charges APIs
+    step: 7
+    status: VERIFIED
+
+  - component: vercel_runtime_adapter
+    current_location: connections/vercel/
+    current_callers: []
+    destination_boundary: OPTIONAL_PROVIDER_ADAPTER unused
+    action: KEEP
+    compatibility_requirement: not RETIRE_CANDIDATE; callers not proven empty of future IAC
+    step: 7
+    status: PARTIAL
+
+  - component: railway_credential_mapping
+    current_location: credentials/process-environment/mapping.ts
+    current_callers:
+      - secret-resolver CORE_NODE path
+    destination_boundary: CREDENTIAL_MAPPING inside adapter/resolver
+    action: KEEP
+    compatibility_requirement: RAILWAY_PROJECT_TOKEN env name unchanged
+    step: 7
+    status: VERIFIED
+
+  - component: capability_route_join
+    current_location: control/capability-route/contract.ts
+    current_callers:
+      - control/capability-route/host-runtime.ts
+      - owner-command-http GET /capability/route
+      - Control Workspace /api/core capability_route probe
+    destination_boundary: consume RuntimeEndpointRegistration; prefer NODE_LOCAL
+    action: WRAP
+    compatibility_requirement: fail-closed outcomes unchanged; listen URLs are owned by runtime-endpoint-registry, not this join
+    step: 7
+    status: VERIFIED
+
+  - component: hardcoded_railway_app_literals
+    current_location: retired from canonical TS; live in connections/railway/data + .railway + email evidence
+    current_callers: []
+    destination_boundary: adapter/IAC only
+    action: RETIRE_CANDIDATE
+    compatibility_requirement: domain guard must stay green
+    step: 7
+    status: VERIFIED
