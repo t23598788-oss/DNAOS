@@ -49,6 +49,9 @@ export function parseSemanticId(raw: string): ParsedSemanticId | { ok: false; re
   if (!namespace || !name || /\s/.test(namespace) || /\s/.test(name)) {
     return { ok: false, reason: "empty_parts" };
   }
+  if (name.startsWith("/") || namespace.startsWith("/") || name.includes("//") || namespace.includes("//")) {
+    return { ok: false, reason: "absolute_path" };
+  }
   const canonical = version
     ? `${scheme}://${namespace}/${name}@${version}`
     : `${scheme}://${namespace}/${name}`;

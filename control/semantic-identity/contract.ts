@@ -65,5 +65,6 @@ export {
   advanceLifecycle,
   lifecycleRank,
 } from "./observation";
-export { bridgeWorkContextToSemantic } from "./bridge-work-context";
+// Bridge is intentionally NOT re-exported here: importing work-context/MCP
+ // registries has module side effects. Use ./bridge-work-context directly.
 export { PILOT_DESCRIPTORS, INFRA_REPO_ID } from "./pilot-descriptors";

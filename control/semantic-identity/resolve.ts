@@ -148,17 +148,20 @@ export function doctorSemanticGraph(
   // Placeholders / missing endpoints only — not declared nodes that are relation-blocked.
   const missing_sources = uniqueSorted(diagnostics.missing_sources);
   const missing_targets = uniqueSorted(diagnostics.missing_targets);
+  const syntheticMissing = graph.nodes.filter((n) => n.synthetic).map((n) => n.id);
   const unresolved_references = uniqueSorted([
     ...diagnostics.unresolved_references,
     ...missing_sources,
     ...missing_targets,
+    ...syntheticMissing,
   ]);
+  const awaiting_relation = by_state["AWAITING_RELATION"] ?? 0;
 
   const report: SemanticDoctorReport = {
     nodes: graph.nodes.length,
     edges: graph.edges.length,
     by_state,
-    awaiting_relation: by_state["AWAITING_RELATION"] ?? 0,
+    awaiting_relation,
     duplicate_semantic_ids: duplicate_ids.length,
     duplicate_ids,
     invalid_ids: diagnostics.invalid_ids,
@@ -185,7 +188,8 @@ export function doctorIsHealthy(report: SemanticDoctorReport): boolean {
     report.unresolved_references.length === 0 &&
     report.invalid_implementations.length === 0 &&
     report.dependency_cycles === 0 &&
-    report.conflicting_authority === 0
+    report.conflicting_authority === 0 &&
+    report.awaiting_relation === 0
   );
 }
 

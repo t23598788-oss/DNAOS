@@ -401,16 +401,32 @@ export function discoverSemantic(options: DiscoverOptions = {}): SemanticDiscove
 
       const outgoing = edgeList.filter((e) => e.from === node.id);
       const incoming = edgeList.filter((e) => e.to === node.id);
-      let state: SemanticLifecycleState = node.declaredCanonical ? "CANONICAL" : "IDENTIFIED";
-      if (implementationBroken.has(node.id) && !node.declaredCanonical) {
+      let state: SemanticLifecycleState =
+        node.declaredCanonical && !implementationBroken.has(node.id) ? "CANONICAL" : "IDENTIFIED";
+      if (implementationBroken.has(node.id)) {
         state = "IDENTIFIED";
       }
       if (outgoing.length + incoming.length > 0 && state === "IDENTIFIED") {
         state = "LINKED";
       }
 
-      const neighborAwaiting = [...outgoing, ...incoming].some((e) => {
-        const other = e.from === node.id ? e.to : e.from;
+      // Propagate awaiting only toward dependents (outgoing dependency-like edges),
+      // never through incoming OWNS into unrelated siblings.
+      const DEPENDENCY_LIKE = new Set<SemanticRelation>([
+        "DEPENDS_ON",
+        "REQUIRES",
+        "VERIFIED_BY",
+        "PROVEN_BY",
+        "IMPLEMENTS",
+        "AUTHORIZED_BY",
+        "EXECUTED_BY",
+        "USES_CONNECTION",
+        "USES_CREDENTIAL",
+        "REACHABLE_AT",
+      ]);
+      const neighborAwaiting = outgoing.some((e) => {
+        if (!DEPENDENCY_LIKE.has(e.relation)) return false;
+        const other = e.to;
         return nodeMap.get(other)?.state === "AWAITING_RELATION" || placeholderIds.has(other);
       });
       const implBroken = implementationBroken.has(node.id) || (Boolean(node.implementation) && !implementationResolved.has(node.id));
@@ -421,12 +437,18 @@ export function discoverSemantic(options: DiscoverOptions = {}): SemanticDiscove
         if (state === "LINKED" || state === "IDENTIFIED") state = "RESOLVED";
       }
 
-      const verified = outgoing.some(
-        (e) =>
-          e.relation === "VERIFIED_BY" &&
-          declaredNodes.has(e.to) &&
-          nodeMap.get(e.to)?.state !== "AWAITING_RELATION",
-      );
+      const verified = outgoing.some((e) => {
+        if (e.relation !== "VERIFIED_BY") return false;
+        const target = nodeMap.get(e.to);
+        if (!target || !declaredNodes.has(e.to) || target.synthetic) return false;
+        if (implementationBroken.has(e.to)) return false;
+        return (
+          target.state === "RESOLVED" ||
+          target.state === "VERIFIED" ||
+          target.state === "CANONICAL" ||
+          target.state === "PROVEN"
+        );
+      });
       if (verified && !implBroken && !neighborAwaiting && (state === "RESOLVED" || state === "CANONICAL")) {
         if (state !== "CANONICAL") state = "VERIFIED";
       }
