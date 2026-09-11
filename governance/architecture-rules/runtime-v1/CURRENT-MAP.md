@@ -11,7 +11,7 @@
 | Branch inspected | `control/google-owner-remote-binding-policy-v1` |
 | HEAD | `bf1658a3e52af223ecc0e832ffe62e6211c7b156` |
 | origin/main | `f2dddba17dad66a2ae31511c42d1332ed3c12f54` |
-| Working tree | Steps 1–7 source in this history; Step 8 not yet committed |
+| Working tree | Steps 1–8 source committed on this branch; runtime JSONL may still be dirty |
 | Audited | 2026-09-11 |
 | Status vocabulary | `VERIFIED` `PARTIAL` `MISSING` `CONFLICT` `RETIRE_CANDIDATE` `DEFERRED` |
 
@@ -299,10 +299,54 @@ Independent Step-7 suites (working-tree esbuild/CJS, cwd = repo root):
 
 Railway adapter mutation/live tests are optional-provider; not merged into the Step-7 total. Deadboard / Control Workspace HTTP contracts unchanged (read-only sibling freeze).
 
-### Step 8 — RAILWAY_OFF_CRITICAL_PATH / Own-Machine Core — **not in this commit**
+### Step 8 — RAILWAY_OFF_CRITICAL_PATH / Own-Machine Core — **PROVEN** (not CANONICAL)
 
-Own-machine generic-Linux Core proof lands in the following Step-8 commit.
-This commit ends at listen-URL portability (Step 7 VERIFIED / COMPLETE).
+Live generic-Linux process of current `transport/owner-command-http/server.ts` (not a replacement HTTP server).
+
+| Field | Evidence |
+|---|---|
+| Image | `node:22-bookworm` (Debian 12) |
+| Kernel | Linux 6.12.76-linuxkit aarch64 |
+| Node | v22.23.2 |
+| Commit | `bf1658a3e52af223ecc0e832ffe62e6211c7b156` |
+| Command | `npx tsx transport/owner-command-http/server.ts` |
+| CWD | `/work` (repository checkout) |
+| Env supplied | `OWNER_COMMAND_HTTP_SHARED_SECRET`, `HOST=127.0.0.1`, `PORT=8791` |
+| Env absent | `RAILWAY_PROJECT_TOKEN`, `RAILWAY_ENVIRONMENT_ID`, `RAILWAY_SERVICE_ID`, `RAILWAY_DEPLOYMENT_ID`, `VERCEL_TOKEN` |
+| Harness | `contracts/architecture/own-machine-core-linux-live.sh` (ephemeral Docker; not DNA OS architecture) |
+
+Write-gate `schg` files were not unlocked. The container mounts git-object overlay at `permissions/write-gate` only inside Linux.
+
+`CHALLENGE_FILE` is no longer evaluated at `human-verification.ts` import time (Linux Core could not boot: `OWNER_AUTHORIZATION_STORE_UNRESOLVED:UNSUPPORTED_PLATFORM`). Mac Owner-auth still fail-closes when invoked.
+
+Authenticated `POST /command` `"ตรวจ permission"` entered `submitOwnerCommand` → `routeOwnerCommand` → `runPermissionReasonerStep` → `evaluateExecutionPermission`. Result: `capability_id=permission-reasoner`, `decision=DENY`, `reason_codes=UNKNOWN_COMMAND`, `execution` not started (`status=BLOCKED`). Decision id `c43aa64d-945b-4625-8f1e-75ffffc04b5b`.
+
+HTTP Core now passes existing `resolveEntryContext` into `RouteOptions` (same entry-context module, not a second permission engine). Unique `permission-reasoner` keyword matches may forward through the existing conversation MCP gate so POST `/command` reaches that path.
+
+Mac-only: `POST /computer-use/owner/authenticate` and `POST /local/operation` → HTTP 503 `MAC_LOCAL_AGENT_UNAVAILABLE_ON_CORE`, `execution_attempted: false`.
+
+SIGTERM on the Core process: **SIGTERM_OK** (~1s); listen port released; no leftover children. Conversation-runtime child is stopped from the existing SIGTERM handler.
+
+This-session Linux independent suites (do not merge aborted full-repo scan):
+
+| Suite | Result |
+|---|---|
+| runtime-endpoint-registry | 14/14 PASS |
+| caller-migration | 15/15 PASS |
+| portability-domain-guard | PASS, 1057 files |
+| runtime-node | 22/22 PASS |
+| portable-supervisor | 13/13 PASS |
+| secret-resolver | 16/16 PASS |
+| checkout-portability | 6/6 PASS |
+| network-auth-gate | 11/11 PASS |
+| own-machine-core-acceptance | 10/10 PASS |
+| own-machine-core-linux-live.test.ts | evidence assertions (host) |
+
+**Not CANONICAL.** Later destination work remains deferred.
+
+**Acceptance:** composition harness remains. Live proof: `own-machine-core-linux-live.sh` + `own-machine-core-linux-live.test.ts`.
+
+---
 
 ## Unresolved contradictions (recorded, not fixed)
 
@@ -316,4 +360,4 @@ This commit ends at listen-URL portability (Step 7 VERIFIED / COMPLETE).
 
 ## Confirmation
 
-This document set records Step 7 COMPLETE. Step 8 is not in this commit. It does not start Postgres authority, durable jobs, immutable releases, DNA Git, cgroup workers, HA, or region. Public Core HTTP paths (`POST /command`, `GET /owner/console`, `GET /task/:id`, `/runtime/inventory`, `/handoffs`) remain. GitHub stays SOURCE_AUTHORITY. Supabase stays DATA_SERVICE. Write-gate OWNER_LOCKED files were not unlocked.
+This document set records Step 7 COMPLETE and Step 8 PROVEN (not CANONICAL). It does not start Postgres authority, durable jobs, immutable releases, DNA Git, cgroup workers, HA, or region. Public Core HTTP paths (`POST /command`, `GET /owner/console`, `GET /task/:id`, `/runtime/inventory`, `/handoffs`) remain. GitHub stays SOURCE_AUTHORITY. Supabase stays DATA_SERVICE. Write-gate OWNER_LOCKED files were not unlocked.

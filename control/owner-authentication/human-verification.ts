@@ -31,6 +31,13 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 export const CHALLENGE_FILE: string = join(HERE, "data", "verification-challenges.jsonl");
 const HELPER = join(HERE, "native", "owner-verify");
 
+<<<<<<< HEAD
+=======
+export function challengeFile(storeDir: string = canonicalOwnerAuthorizationStoreDir()): string {
+  return join(storeDir, OWNER_CHALLENGES_FILE);
+}
+
+>>>>>>> c41db79 (Prove TypeScript Core boots on generic Linux without provider authority.)
 /** ระดับความเสี่ยงของสิ่งที่ session จะได้รับอนุญาตให้ทำ */
 export type AuthorityClass =
   | "CLASS_0_READ" | "CLASS_1_NAVIGATION" | "CLASS_2_INPUT"

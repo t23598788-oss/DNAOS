@@ -22,9 +22,12 @@ meta:
     (linux-live harness/test files added). Do not merge aborted-job totals.
     Remaining Step 7 suite results are from later independent runs, not the aborted batch.
     Do not merge aborted-job totals.
-  step8_status: NOT_IN_THIS_COMMIT
+  step8_status: PROVEN
   step8_validation_note: >
-    Not in this commit. Own-machine Linux Core proof follows as Step 8.
+    Live Debian 12 (node:22-bookworm, aarch64, Node v22.23.2) ran
+    npx tsx transport/owner-command-http/server.ts without RAILWAY_*/VERCEL_TOKEN.
+    POST /command "ตรวจ permission" reached permission-reasoner; evaluateExecutionPermission
+    returned DENY UNKNOWN_COMMAND (decision_id recorded). Mac-only routes 503. SIGTERM_OK.
   status_vocabulary:
     - VERIFIED
     - PARTIAL
@@ -168,8 +171,8 @@ items:
     tests_evidence:
       - contracts/architecture/own-machine-core-acceptance.test.ts
       - contracts/architecture/own-machine-core-linux-live.test.ts
-    status: PARTIAL
-    next_action: Step 8 own-machine Core proof not in this commit
+    status: VERIFIED
+    next_action: PROVEN not CANONICAL; do not start Postgres/jobs/releases
 
   - runtime_v1_item: WT_CORE_NODE_SYMBOLS
     destination_requirement: CORE_NODE / MAC_LOCAL_AGENT vocabulary

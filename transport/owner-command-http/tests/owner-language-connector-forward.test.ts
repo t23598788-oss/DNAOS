@@ -62,6 +62,10 @@ function main(): void {
   ok("drive still forwards after conversation self-knowledge", shouldForwardStructuredIntentToExistingMcp(swallowedKnowledge(), null, drive) === true);
   ok("sheets still forwards after conversation self-knowledge", shouldForwardStructuredIntentToExistingMcp(swallowedKnowledge(), null, sheets) === true);
   ok("plain conversation stays on language path", shouldForwardStructuredIntentToExistingMcp(swallowedKnowledge(), null, conversation) === false);
+  ok(
+    "permission-reasoner unique match forwards to submitOwnerCommand",
+    shouldForwardStructuredIntentToExistingMcp(swallowedKnowledge(), null, "ตรวจ permission") === true,
+  );
 
   const lifted = canonicalExecutionFieldsFromMcp({
     dna_os_command_id: "cmd_blocked",
