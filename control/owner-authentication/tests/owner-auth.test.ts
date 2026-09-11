@@ -42,9 +42,9 @@ const grantInput = {
   requester: "agent:claude",
   executor: "control/computer-use-executor",
   capability: "connections/os-ui",
-  operations: ["screenshot"],
+  operations: ["screenshot"] as const,
   target: "screen",
-  scope: ["display-read"] as string[],
+  scope: ["display-read"] as const,
   ttl_seconds: 120,
 };
 
@@ -82,7 +82,7 @@ ok("UNAUTHENTICATED: ไม่มี console session → DENY", authenticateOwne
 
 // grant โดยไม่มี session (string ล้วน) → DENY
 ok("grant โดยไม่มี Owner session → DENY",
-  grantAuthorityAsOwner("no-such-session", { ...grantInput, scope: [] }, deps("tam")).ok === false);
+  grantAuthorityAsOwner("no-such-session", { ...grantInput, scope: [] as const }, deps("tam")).ok === false);
 
 // Seeded human-verified session → validate + grant
 {
@@ -103,7 +103,7 @@ ok("grant โดยไม่มี Owner session → DENY",
   const later = { ...d, now: () => new Date(FIXED.getTime() + 101_000) };
   ok("EXPIRED session → validate DENY", validateOwnerSession(session.session_id, later).ok === false);
   ok("EXPIRED session → grant DENY",
-    grantAuthorityAsOwner(session.session_id, { ...grantInput, scope: [], ttl_seconds: 60 }, later).ok === false);
+    grantAuthorityAsOwner(session.session_id, { ...grantInput, scope: [] as const, ttl_seconds: 60 }, later).ok === false);
 }
 
 // REVOKED → DENY
@@ -113,7 +113,7 @@ ok("grant โดยไม่มี Owner session → DENY",
   revokeOwnerSession(session.session_id, d);
   ok("REVOKED session → validate DENY", validateOwnerSession(session.session_id, d).ok === false);
   ok("REVOKED session → grant DENY",
-    grantAuthorityAsOwner(session.session_id, { ...grantInput, scope: [], ttl_seconds: 60 }, d).ok === false);
+    grantAuthorityAsOwner(session.session_id, { ...grantInput, scope: [] as const, ttl_seconds: 60 }, d).ok === false);
 }
 
 console.log(`\n${passed} passed, ${failed} failed`);

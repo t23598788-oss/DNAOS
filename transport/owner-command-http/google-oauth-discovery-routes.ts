@@ -53,7 +53,7 @@ export async function handleGoogleOauthDiscoveryRoute(
 
   if (method === "POST" && path === "/owner/google-workspace/oauth-client/admit-discovered") {
     const denied = coreNodeUnavailableForCapability("credentials/macos-keychain");
-    if (denied) return { status: 503, body: denied };
+    if (denied) return { status: 503, body: denied as unknown as Record<string, unknown> };
     const b = (body ?? {}) as Record<string, unknown>;
     const result = await admitDiscoveredGoogleOauthClient({
       selected_absolute_path: str(b.selected_absolute_path) || undefined,

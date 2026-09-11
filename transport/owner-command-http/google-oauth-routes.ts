@@ -55,7 +55,7 @@ export async function handleGoogleOauthRoute(
   if (method === "POST" && path === GOOGLE_OAUTH_BEGIN_PATH) {
     if (!deps) {
       const denied = coreNodeUnavailableForCapability("credentials/macos-keychain");
-      if (denied) return { status: 503, body: denied };
+      if (denied) return { status: 503, body: denied as unknown as Record<string, unknown> };
     }
     const b = (body ?? {}) as Record<string, unknown>;
     const connectionId = str(b.connection_id) || GOOGLE_CONNECTION_ID;
@@ -123,7 +123,7 @@ export async function handleGoogleOauthRoute(
     }
     if (!deps) {
       const denied = coreNodeUnavailableForCapability("credentials/macos-keychain");
-      if (denied) return { status: 503, body: denied };
+      if (denied) return { status: 503, body: denied as unknown as Record<string, unknown> };
     }
 
     const result = deps

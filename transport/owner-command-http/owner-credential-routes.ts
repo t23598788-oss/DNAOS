@@ -150,7 +150,7 @@ export async function handleOwnerCredentialRoute(
     }
 
     const denied = coreNodeUnavailableForCapability("credentials/macos-keychain");
-    if (denied) return { status: 503, body: denied };
+    if (denied) return { status: 503, body: denied as unknown as Record<string, unknown> };
 
     const secret = typeof b.secret === "string" ? b.secret : "";
     if (secret.trim() === "") return { status: 400, body: { error: "SECRET_REQUIRED" } };

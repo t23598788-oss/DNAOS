@@ -53,6 +53,11 @@ function check(name: string, body: () => void | Promise<void>): Promise<void> {
     });
 }
 
+function nonNull<T>(value: T | null | undefined, label: string): T {
+  assert(value != null, label);
+  return value as T;
+}
+
 function denialShape(body: Record<string, unknown>, capability: string): void {
   assert(body.ok === false, "ok should be false");
   assert(body.reason_code === MAC_LOCAL_AGENT_UNAVAILABLE_ON_CORE, String(body.reason_code));
@@ -122,8 +127,9 @@ async function run(): Promise<void> {
         owner_session_id: "",
         secret: "x",
       });
-      assert(empty !== null && empty.status === 401, "empty session must 401");
-      assert((empty.body as { error?: string }).error !== MAC_LOCAL_AGENT_UNAVAILABLE_ON_CORE, "skipped session auth");
+      const emptyReply = nonNull(empty, "empty cred reply");
+      assert(emptyReply.status === 401, "empty session must 401");
+      assert((emptyReply.body as { error?: string }).error !== MAC_LOCAL_AGENT_UNAVAILABLE_ON_CORE, "skipped session auth");
 
       let keychainCalls = 0;
       const denied = await handleOwnerCredentialRoute(
@@ -143,15 +149,17 @@ async function run(): Promise<void> {
           }) as never,
         },
       );
-      assert(denied !== null && denied.status === 503, `expected 503, got ${denied?.status}`);
-      denialShape(denied.body as Record<string, unknown>, "credentials/macos-keychain");
+      const deniedReply = nonNull(denied, "denied cred reply");
+      assert(deniedReply.status === 503, `expected 503, got ${deniedReply.status}`);
+      denialShape(deniedReply.body as Record<string, unknown>, "credentials/macos-keychain");
       assert(keychainCalls === 0, "Keychain register was called");
     });
 
     await check("5. CORE_NODE Mac browser/AppleEvent verify denied", async () => {
       const api = handleComputerUseApi("POST", "/computer-use/owner/verify", { purpose: "test" });
-      assert(api !== null && api.status === 503, "api path");
-      denialShape(api.body as Record<string, unknown>, "control/owner-authentication");
+      const apiReply = nonNull(api, "verify api");
+      assert(apiReply.status === 503, "api path");
+      denialShape(apiReply.body as Record<string, unknown>, "control/owner-authentication");
       const apple = readRel("control/agent-gateway/agent-authority-router.ts");
       const gate = apple.indexOf("macLocalAgentExecutionDecision");
       const dyn = apple.indexOf('import("../../connections/os-ui/adapter-contract")');
@@ -212,8 +220,9 @@ async function run(): Promise<void> {
         operations: ["screenshot"],
         ttl_seconds: 60,
       });
-      assert(grant !== null && grant.status === 200, "grant path missing");
-      const body = grant.body as { reason_code?: string; error?: string };
+      const grantReply = nonNull(grant, "grant reply");
+      assert(grantReply.status === 200, "grant path missing");
+      const body = grantReply.body as { reason_code?: string; error?: string };
       assert(typeof body.reason_code === "string", JSON.stringify(body));
       assert(body.reason_code !== MAC_LOCAL_AGENT_UNAVAILABLE_ON_CORE, "grant became Mac-only");
       const leaseKind = lookupRuntimeNodeKind("control/computer-use-authority/lease.ts");
@@ -243,8 +252,9 @@ async function run(): Promise<void> {
       const reply = await handleGoogleOauthRoute("POST", GOOGLE_OAUTH_BEGIN_PATH, new URLSearchParams(), {
         redirect_uri: "https://example.invalid/callback",
       });
-      assert(reply !== null && reply.status === 503, `status ${reply?.status}`);
-      denialShape(reply.body, "credentials/macos-keychain");
+      const beginReply = nonNull(reply, "oauth begin reply");
+      assert(beginReply.status === 503, `status ${beginReply.status}`);
+      denialShape(beginReply.body, "credentials/macos-keychain");
     });
 
     await check("Google OAuth status does not invoke Keychain on CORE_NODE", async () => {
@@ -277,8 +287,9 @@ async function run(): Promise<void> {
         }) as never,
       } as unknown as GoogleLifecycleDeps;
       const reply = await handleGoogleOauthRoute("GET", "/oauth/google/workspace/status", new URLSearchParams(), {}, deps);
-      assert(reply !== null && reply.status === 200, `status ${reply?.status}`);
-      assert((reply.body as { ok?: boolean }).ok === true, JSON.stringify(reply.body));
+      const statusReply = nonNull(reply, "oauth status reply");
+      assert(statusReply.status === 200, `status ${statusReply.status}`);
+      assert((statusReply.body as { ok?: boolean }).ok === true, JSON.stringify(statusReply.body));
       assert(keychainCalls === 0, "Keychain register was invoked");
       const src = readRel("transport/owner-command-http/google-oauth-routes.ts");
       const statusIdx = src.indexOf('path === "/oauth/google/workspace/status"');
@@ -296,8 +307,9 @@ async function run(): Promise<void> {
           method,
           ttl_seconds: 60,
         });
-        assert(api !== null && api.status === 503, `${method} status ${api?.status}`);
-        denialShape(api.body as Record<string, unknown>, "control/owner-authentication");
+        const apiReply = nonNull(api, `${method} authenticate`);
+        assert(apiReply.status === 503, `${method} status ${apiReply.status}`);
+        denialShape(apiReply.body as Record<string, unknown>, "control/owner-authentication");
       }
       assert(classifyOwnerAuthMethod("password") === "UNKNOWN", "password");
       const unknown = handleComputerUseApi("POST", "/computer-use/owner/authenticate", {
@@ -305,7 +317,8 @@ async function run(): Promise<void> {
         method: "password",
         ttl_seconds: 60,
       });
-      assert(unknown !== null && unknown.status === 503, "unknown method not fail-closed");
+      const unknownReply = nonNull(unknown, "unknown method authenticate");
+      assert(unknownReply.status === 503, "unknown method not fail-closed");
       const authSrc = readRel("control/owner-authentication/authenticate.ts");
       const apiSrc = readRel("transport/owner-command-http/computer-use-api.ts");
       const gate = apiSrc.indexOf("coreNodeUnavailableForOwnerAuthMethod");

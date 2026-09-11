@@ -206,7 +206,7 @@ async function main(): Promise<void> {
           cwd_scope: ".",
           requested_args: [],
           correlation_id: "step8",
-        }, { identities: [], memberships: [], grants: [] }, "2026-09-11T00:00:00.000Z");
+        }, { identity: undefined, memberships: [], grants: [], command: undefined }, "2026-09-11T00:00:00.000Z");
         send(200, {
           ok: true,
           railway_required: false,
@@ -220,34 +220,34 @@ async function main(): Promise<void> {
     send(404, { error: "not found" });
   });
 
-  let bound: { port: number; close: () => Promise<void> } | null = null;
+  let bound: { port: number; close: () => Promise<void> } | undefined;
   try {
     await check("0. boot env contract does not require Railway names", () => {
-      for (const name of CORE_BOOT_REQUIRED_ENV) {
-        assert(name !== "RAILWAY_PROJECT_TOKEN", name);
-      }
-      assert(CORE_BOOT_MUST_NOT_REQUIRE_ENV.includes("RAILWAY_PROJECT_TOKEN"), "token listed");
+      assert(!(CORE_BOOT_REQUIRED_ENV as readonly string[]).includes("RAILWAY_PROJECT_TOKEN"), "railway not required");
+      assert((CORE_BOOT_MUST_NOT_REQUIRE_ENV as readonly string[]).includes("RAILWAY_PROJECT_TOKEN"), "token listed");
       assert(process.env.RAILWAY_PROJECT_TOKEN === undefined, "token still set");
     });
 
     await check("1-2. Core loopback health without Railway", async () => {
       bound = await listen(server);
+      const listening = bound;
       const bind = evaluateBindPolicy("127.0.0.1", FAKE_SECRET);
       assert(bind.allowed, "loopback bind");
-      const health = await httpJson(`http://127.0.0.1:${bound.port}/health`);
+      const health = await httpJson(`http://127.0.0.1:${listening.port}/health`);
       assert(health.status === 200 && health.body.ok === true, JSON.stringify(health));
       assert(health.body.railway_required === false, "health must not require Railway");
     });
 
     await check("3. authenticated POST /command; missing bearer fails", async () => {
-      assert(bound !== null, "not listening");
-      const denied = await httpJson(`http://127.0.0.1:${bound.port}/command`, {
+      if (!bound) throw new Error("not listening");
+      const listening = bound;
+      const denied = await httpJson(`http://127.0.0.1:${listening.port}/command`, {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ commandText: "status" }),
       });
       assert(denied.status === 401, String(denied.status));
-      const ok = await httpJson(`http://127.0.0.1:${bound.port}/command`, {
+      const ok = await httpJson(`http://127.0.0.1:${listening.port}/command`, {
         method: "POST",
         headers: { "content-type": "application/json", Authorization: `Bearer ${FAKE_SECRET}` },
         body: JSON.stringify({ commandText: "status" }),
@@ -258,8 +258,9 @@ async function main(): Promise<void> {
     });
 
     await check("4. execution-policy runs on the command path (DENY without grant)", async () => {
-      assert(bound !== null, "not listening");
-      const ok = await httpJson(`http://127.0.0.1:${bound.port}/command`, {
+      if (!bound) throw new Error("not listening");
+      const listening = bound;
+      const ok = await httpJson(`http://127.0.0.1:${listening.port}/command`, {
         method: "POST",
         headers: { "content-type": "application/json", Authorization: `Bearer ${FAKE_SECRET}` },
         body: JSON.stringify({ commandText: "anything" }),

@@ -45,7 +45,7 @@ export async function handleGoogleOauthClientAdmissionRoute(
 
   if (method === "POST" && path === "/owner/google-workspace/oauth-client") {
     const denied = coreNodeUnavailableForCapability("credentials/macos-keychain");
-    if (denied) return { status: 503, body: denied };
+    if (denied) return { status: 503, body: denied as unknown as Record<string, unknown> };
     const b = (body ?? {}) as Record<string, unknown>;
     const approvalRaw = (b.approval ?? {}) as Record<string, unknown>;
     const environment = str(b.google_app_environment) as GoogleOauthAppEnvironment;
