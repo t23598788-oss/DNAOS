@@ -25,7 +25,9 @@
     "dna-os-mcp:serve:stdio": "tsx connections/dna-os-mcp/server.ts --stdio",
     "test:mcp": "tsx connections/dna-os-mcp/tests/mcp-server.test.ts",
     "runtime-control": "tsx control/runtime-control/cli.ts",
-    "test:runtime-control": "tsx control/runtime-control/tests/runtime-control.test.ts"
+    "test:runtime-control": "tsx control/runtime-control/tests/runtime-control.test.ts",
+    "semantic": "tsx control/semantic-identity/cli.ts",
+    "test:semantic": "tsx control/semantic-identity/tests/semantic-identity.test.ts"
   },
   "engines": {
     "node": ">=18"
