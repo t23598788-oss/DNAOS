@@ -23,6 +23,11 @@
 import { getEntity, linkEntities, registerEntity, resolveApplication } from "../registry-database/cross-system-store";
 import { findCapability } from "../registry-database/contract";
 import { createPersistentFileStore } from "../registry-database/adapters/persistent-file-store";
+import {
+  ensureRuntimeEndpointsLoaded,
+  joinEndpointAddress,
+  resolveRuntimeEndpoint,
+} from "../../control/runtime-endpoint-registry/contract";
 
 const store = createPersistentFileStore();
 
@@ -39,6 +44,13 @@ const REVISION_LINEAGE = [
 ];
 const FINAL_REVISION = REVISION_LINEAGE[REVISION_LINEAGE.length - 1]!;
 
+function jointMonitorHealthEvidence(): string {
+  ensureRuntimeEndpointsLoaded();
+  const resolved = resolveRuntimeEndpoint({ query: "endpoint://joint-monitor/public", purpose: "observe" });
+  const health = resolved.ok ? joinEndpointAddress(resolved.endpoint, "/health") : "UNRESOLVED";
+  return `runtime_health:${health} revision=${FINAL_REVISION} revision_source=RAILWAY_BUILD`;
+}
+
 const CAPABILITY_NAMES = [
   "source-execution", "github-source-executor", "railway-connector", "runtime-revision-reporting",
   "ui-render-verification", "ui-render-screenshots", "work-result-ingress", "target-resolution",
@@ -50,7 +62,7 @@ const EVIDENCE_POINTERS = [
   WORK_ID,
   `github_revision:${FINAL_REVISION}`,
   `railway_deployment:joint-monitor@${FINAL_REVISION} SUCCESS`,
-  `runtime_health:https://joint-monitor-production.up.railway.app/health revision=${FINAL_REVISION} revision_source=RAILWAY_BUILD`,
+  jointMonitorHealthEvidence(),
   "control/ui-render-verification/data/render-evidence.jsonl execution_id=task-app01-jm-server-20260901T072113Z verdict=VERIFIED",
 ];
 

@@ -30,6 +30,7 @@
 import { validateOwnerSession } from "../../control/owner-authentication/contract";
 import { registerOwnerApiCredential } from "../../credentials/macos-keychain/index";
 import { findApiCredential } from "../../credentials/registry/api-credential-registry";
+import { coreNodeUnavailableForCapability } from "./mac-local-agent-gate";
 
 export interface OwnerCredentialReply {
   status: number;
@@ -112,11 +113,17 @@ function statusOf(ref: SettableRef): Record<string, unknown> {
   };
 }
 
+export interface OwnerCredentialRouteDeps {
+  validateOwnerSession?: typeof validateOwnerSession;
+  registerOwnerApiCredential?: typeof registerOwnerApiCredential;
+}
+
 export async function handleOwnerCredentialRoute(
   method: string,
   path: string,
   query: URLSearchParams,
   body: unknown,
+  deps: OwnerCredentialRouteDeps = {},
 ): Promise<OwnerCredentialReply | null> {
   if (method === "GET" && path === "/owner/credentials") {
     return { status: 200, body: { credentials: (Object.keys(OWNER_SETTABLE) as SettableRef[]).map(statusOf) } };
@@ -137,17 +144,21 @@ export async function handleOwnerCredentialRoute(
     // ใช้ตัวตรวจเดียวกับที่ computer-use ใช้อยู่ ไม่ได้เขียนกฎใหม่
     const sessionId = str(b.owner_session_id);
     if (!sessionId) return { status: 401, body: { error: "OWNER_SESSION_REQUIRED" } };
-    const session = validateOwnerSession(sessionId);
+    const session = (deps.validateOwnerSession ?? validateOwnerSession)(sessionId);
     if (!session.ok) {
       return { status: 403, body: { error: session.reason_code, detail: "detail" in session ? String(session.detail ?? "") : "" } };
     }
+
+    const denied = coreNodeUnavailableForCapability("credentials/macos-keychain");
+    if (denied) return { status: 503, body: denied as unknown as Record<string, unknown> };
 
     const secret = typeof b.secret === "string" ? b.secret : "";
     if (secret.trim() === "") return { status: 400, body: { error: "SECRET_REQUIRED" } };
 
     const meta = OWNER_SETTABLE[ref];
     try {
-      const result = await registerOwnerApiCredential({
+      const register = deps.registerOwnerApiCredential ?? registerOwnerApiCredential;
+      const result = await register({
         requester_identity: "transport/owner-command-http/owner-credential-routes.ts",
         credential_ref: ref,
         provider: meta.provider,

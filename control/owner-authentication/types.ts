@@ -55,4 +55,4 @@ export type ValidateOwnerSessionResult =
 
 export type RevokeOwnerSessionResult =
   | { ok: true; session: OwnerSession }
-  | { ok: false; reason_code: "OWNER_SESSION_NOT_FOUND" };
+  | { ok: false; reason_code: "OWNER_SESSION_NOT_FOUND" | "OWNER_AUTHORIZATION_STORE_UNRESOLVED" };

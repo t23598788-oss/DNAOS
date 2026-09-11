@@ -15,13 +15,17 @@
  */
 
 export { runOperation } from "./resolver";
+export { SERVICES } from "./host-runtime";
+export { serviceNodeEligibility, isKnownServiceId } from "./service-eligibility";
+export type { ServiceNodeEligibility } from "./service-eligibility";
+export { PortableProcessSupervisor, getPortableSupervisor, resetPortableSupervisorForTests, portableSupervisorActive } from "./portable-supervisor";
+export type { ProcessSupervisor, SupervisorInspect } from "./supervisor";
 export { buildRequesterProvenance, readRequester, RUNTIME_CONTROL_EXECUTOR } from "./requester";
 export type {
   RuntimeOperationRequest, RuntimeRequesterIdentity, RuntimeRequestLineage,
   RuntimeExecutor, RequesterReading,
 } from "./requester";
 export { evidenceStoreFile } from "./host-runtime";
-export { SERVICES } from "./host-runtime";
 export type {
   ServiceId,
   Action,
@@ -31,12 +35,14 @@ export type {
   DuplicateCheck,
   OperationEvidence,
   OperationResult,
+  ProcessLifecycleState,
 } from "./types";
 
 /**
  * BOOT SENSOR → DEPENDENCY START. ใช้ SERVICES ชุดเดียวกับ resolver
- * ไม่มี registry ที่สอง และไม่มี supervisor ตัวที่สอง — ตัวที่รันมันคือ
+ * ไม่มี registry ที่สอง — ตัวที่รันบน Mac คือ
  * `control/owner-backbone/start.ts` ที่ launchd คุมอยู่แล้ว
+ * CORE_NODE ใช้ PortableProcessSupervisor กับ SERVICES ชุดเดียวกัน
  */
 export { bootAll, resolveStartOrder, MAX_START_ATTEMPTS } from "./boot-orchestrator";
 export type { BootReport, ServiceBootResult, ServiceState } from "./boot-orchestrator";

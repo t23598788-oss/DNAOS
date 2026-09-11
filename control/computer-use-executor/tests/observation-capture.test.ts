@@ -66,6 +66,7 @@ function deps(id: string, readings: Observation[]) {
     now: () => new Date(),
     newEvidenceId: () => id,
     evidenceDir,
+    platform: "darwin",
   } as never;
 }
 
@@ -144,6 +145,7 @@ function deps(id: string, readings: Observation[]) {
     runUiWorkOrder: async () => { throw new Error("adapter must not run"); },
     observe: () => { throw new Error("observer must not run when authority denies"); },
     now: () => new Date(), newEvidenceId: () => "cue-obs-denied", evidenceDir,
+    platform: "darwin",
   } as never);
   const deniedRow = rows().find((r) => r.evidence_id === "cue-obs-denied")!;
   check("13. denied execution records NOT_OBSERVED, never a reading",
@@ -155,6 +157,7 @@ function deps(id: string, readings: Observation[]) {
     runUiWorkOrder: async () => { throw new Error("adapter must not run"); },
     observe: () => { throw new Error("observer must not run before identity is settled"); },
     now: () => new Date(), newEvidenceId: () => "cue-obs-badid", evidenceDir,
+    platform: "darwin",
   } as never);
   const badId = rows().find((r) => r.evidence_id === "cue-obs-badid")!;
   check("14. malformed capability still fails closed before any observation",

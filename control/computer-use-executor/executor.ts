@@ -32,6 +32,7 @@ import { join } from "node:path";
 import { validateAuthority } from "../computer-use-authority/contract";
 import type { ComputerUseOperation } from "../computer-use-authority/types";
 import { runUiWorkOrder } from "../../connections/os-ui/adapter-contract";
+import { macLocalAgentExecutionDecision } from "../../contracts/architecture/runtime-node-and-optional-provider";
 import { NOT_OBSERVED, observeWindowTitleState, type Observation, type ObservationTarget } from "./observation";
 import { NO_EXPECTATION_ATTEMPTED, buildExpectation, type ExpectationRecord, type IntentDeclaration } from "./expectation";
 import { evaluateEffect, type EffectVerdict } from "./effect-verdict";
@@ -257,6 +258,8 @@ export interface ExecutorDeps {
   evidenceDir: string;
   /** Reads routing context immediately before dispatch. Injected so tests never touch the OS. */
   captureRoutingContext?: (target: { pid?: number }) => RoutingContext;
+  /** Host platform for MAC_LOCAL_AGENT execution. Tests inject; production uses the real host. */
+  platform?: string;
 }
 
 const defaultDeps: ExecutorDeps = {
@@ -337,6 +340,28 @@ export async function executeComputerUse(req: ComputerUseRequest, deps: Executor
   const uiAction = OPERATION_TO_UI_ACTION[req.operation];
   if (!uiAction) {
     const evidence: ExecutionEvidence = { ...baseEvidence, authorized: true, authorization_reason: "AUTHORIZED", executed: false, result_status: "OPERATION_NOT_WIRED", started_at: startedAt, completed_at: deps.now().toISOString(), outcome: null, expectation, observation_before: NOT_OBSERVED, routing_context: NOT_CAPTURED, cgevent_instrumentation: NO_CGEVENT_INSTRUMENTATION, observation_after: NOT_OBSERVED, effect_verdict: evaluateEffect(expectation, NOT_OBSERVED, NOT_OBSERVED, deps.now) };
+    writeEvidence(deps.evidenceDir, evidence);
+    return { outcome: null, evidence };
+  }
+
+  const node = macLocalAgentExecutionDecision({ current_node: "CORE_NODE", platform: deps.platform });
+  if (!node.execute) {
+    const evidence: ExecutionEvidence = {
+      ...baseEvidence,
+      authorized: true,
+      authorization_reason: "AUTHORIZED",
+      executed: false,
+      result_status: node.reason_code,
+      started_at: startedAt,
+      completed_at: deps.now().toISOString(),
+      outcome: null,
+      expectation,
+      observation_before: NOT_OBSERVED,
+      routing_context: NOT_CAPTURED,
+      cgevent_instrumentation: NO_CGEVENT_INSTRUMENTATION,
+      observation_after: NOT_OBSERVED,
+      effect_verdict: evaluateEffect(expectation, NOT_OBSERVED, NOT_OBSERVED, deps.now),
+    };
     writeEvidence(deps.evidenceDir, evidence);
     return { outcome: null, evidence };
   }

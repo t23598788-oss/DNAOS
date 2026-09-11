@@ -16,7 +16,10 @@ import type { Action, ServiceId } from "./types";
 const [, , actionArg, targetArg] = process.argv;
 
 const VALID_ACTIONS: Action[] = ["start", "stop", "restart", "health", "status"];
-const VALID_TARGETS: (ServiceId | "all")[] = ["deadboard", "lab-ui", "research-api", "compute-api", "machine-observer", "dna-os-mcp", "all"];
+const VALID_TARGETS: (ServiceId | "all")[] = [
+  "deadboard", "lab-ui", "research-api", "compute-api", "machine-observer",
+  "dna-os-mcp", "owner-command-http", "dna-os-circuit", "all",
+];
 
 if (!actionArg || !targetArg || !VALID_ACTIONS.includes(actionArg as Action) || !VALID_TARGETS.includes(targetArg as ServiceId | "all")) {
   console.error(`Usage: npx tsx control/runtime-control/cli.ts <${VALID_ACTIONS.join("|")}> <${VALID_TARGETS.join("|")}>`);

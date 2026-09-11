@@ -8,7 +8,7 @@
  * therefore never reach an execution path through it.
  */
 
-export { buildSystemGraph } from "./projection";
+export { buildSystemGraph, coreNodeLiveServiceProbeKind, httpProbeDeclaredService } from "./projection";
 export type { BuildOptions } from "./projection";
 export type {
   SystemGraph, GraphNode, GraphEdge, GraphNodeType, ConnectionType,

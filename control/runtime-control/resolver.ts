@@ -38,6 +38,8 @@ import { buildRequesterProvenance } from "./requester";
 import type { RuntimeOperationRequest } from "./requester";
 import type { Action, HealthCheckResult, OperationEvidence, ServiceId } from "./types";
 import { denyProtectedRuntimeIfAgent } from "../agent-physical-scope/contract";
+import { portableSupervisorActive, getPortableSupervisor } from "./portable-supervisor";
+import { isKnownServiceId } from "./service-eligibility";
 
 const SETTLE_POLL_INTERVAL_MS = 500;
 const SETTLE_MAX_WAIT_MS = 10_000;
@@ -97,6 +99,65 @@ async function waitForLaunchdSettle(label: string, wantRunning: boolean): Promis
  * NOT_MEASURED ไม่ใช่ค่าเริ่มต้นที่เป็น OWNER หรือ SYSTEM
  */
 export async function runOperation(serviceId: ServiceId, action: Action, request?: RuntimeOperationRequest): Promise<OperationEvidence> {
+  if (!isKnownServiceId(serviceId)) {
+    const timestamp_started = nowIso();
+    const evidence: OperationEvidence = {
+      operation_id: newOperationId(),
+      service_id: serviceId,
+      launchd_label: "",
+      requested_action: action,
+      port: 0,
+      pid_before: null,
+      pid_after: null,
+      launchd_loaded_before: false,
+      launchd_loaded_after: false,
+      health_before: { checked_at: timestamp_started, http_status: null, healthy: false, error: "unknown ServiceId" },
+      health_after: { checked_at: nowIso(), http_status: null, healthy: false, error: "unknown ServiceId" },
+      readiness_wait_ms: 0,
+      readiness_deadline_ms: 0,
+      timestamp_started,
+      timestamp_completed: nowIso(),
+      result: "FAILED",
+      failure_reason: `unknown ServiceId "${String(serviceId)}"`,
+      ...buildRequesterProvenance(request),
+    };
+    appendEvidence(evidence);
+    return evidence;
+  }
+
+  // Agent runtime guard applies before either supervisor path (launchd or portable).
+  const agentRuntime = denyProtectedRuntimeIfAgent({ service_id: serviceId, action, env: process.env });
+  if (!agentRuntime.ok) {
+    const def = SERVICES[serviceId];
+    const timestamp_started = nowIso();
+    const evidence: OperationEvidence = {
+      operation_id: newOperationId(),
+      service_id: serviceId,
+      launchd_label: def?.launchd_label ?? "",
+      requested_action: action,
+      port: def?.port ?? 0,
+      pid_before: null,
+      pid_after: null,
+      launchd_loaded_before: false,
+      launchd_loaded_after: false,
+      health_before: { checked_at: timestamp_started, http_status: null, healthy: false, error: agentRuntime.detail },
+      health_after: { checked_at: nowIso(), http_status: null, healthy: false, error: agentRuntime.detail },
+      readiness_wait_ms: 0,
+      readiness_deadline_ms: 0,
+      timestamp_started,
+      timestamp_completed: nowIso(),
+      result: "FAILED",
+      failure_reason: agentRuntime.detail,
+      ...buildRequesterProvenance(request),
+    };
+    appendEvidence(evidence);
+    return evidence;
+  }
+
+  if (portableSupervisorActive()) {
+    return getPortableSupervisor().run(serviceId, action, request);
+  }
+
   const def = SERVICES[serviceId];
   const operation_id = newOperationId();
   const timestamp_started = nowIso();
@@ -105,8 +166,6 @@ export async function runOperation(serviceId: ServiceId, action: Action, request
   const healthBefore: HealthCheckResult = await httpHealthCheck(def.port, def.health_path);
 
   let mutationError: string | null = null;
-  const agentRuntime = denyProtectedRuntimeIfAgent({ service_id: serviceId, action, env: process.env });
-  if (!agentRuntime.ok) mutationError = agentRuntime.detail;
 
   if (mutationError === null && (action === "start" || action === "restart")) {
     if (!stateBefore.loaded) {

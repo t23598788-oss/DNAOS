@@ -5,8 +5,8 @@
  *
  * The cases that matter are C1 and C3: the launcher must NOT open the repository
  * folder in Finder (the exact 2026-08-24 defect this capability exists to fix),
- * and the built artifact must point at the canonical Railway runtime rather than
- * silently at localhost.
+ * and the built artifact must point at the REGISTERED_REMOTE circuit endpoint
+ * rather than silently at localhost.
  *
  * Run: npx tsx local-runtime/dna-dev-app-host/tests/dna-dev-app-host.test.ts
  * (build first: ./local-runtime/dna-dev-app-host/build.sh)
@@ -30,19 +30,19 @@ const BUILT = join(HERE, "build/DNA DEV.app");
 const BUILT_LAUNCHER = join(BUILT, "Contents/MacOS/launcher");
 
 function main(): void {
-  // ---- A. the declared target is the canonical Railway runtime ----
-  check("A1. canonical target is the Railway deployment, not localhost",
-    CANONICAL_TARGET.runtime_kind === "RAILWAY_DEPLOYMENT" && CANONICAL_TARGET.url.startsWith("https://"), CANONICAL_TARGET);
-  check("A2. canonical target names the real Railway service from .railway/railway.ts",
-    CANONICAL_TARGET.railway_service === "dna-os-circuit");
-  check("A3. the target carries the evidence that proves it was discovered, not chosen",
-    CANONICAL_TARGET.evidence.length >= 4 && CANONICAL_TARGET.evidence.some((e) => e.includes(".railway/railway.ts")));
+  // ---- A. the declared target is REGISTERED_REMOTE, not a silent localhost ----
+  check("A1. canonical target is REGISTERED_REMOTE https, not localhost",
+    CANONICAL_TARGET.runtime_kind === "REGISTERED_REMOTE" && CANONICAL_TARGET.url.startsWith("https://") && CANONICAL_TARGET.url.length > 8, CANONICAL_TARGET);
+  check("A2. canonical target reuses ServiceId dna-os-circuit",
+    CANONICAL_TARGET.service_id === "dna-os-circuit");
+  check("A3. the target carries resolution evidence, not a Core hostname constant",
+    CANONICAL_TARGET.evidence.length >= 3 && CANONICAL_TARGET.evidence.some((e) => e.includes("runtime-endpoint-registry")));
 
-  // ---- B. no SILENT localhost fallback (the Owner's explicit rule) ----
-  check("B1. resolveLaunchTarget defaults to the Railway deployment",
-    resolveLaunchTarget("RAILWAY_DEPLOYMENT").runtime_kind === "RAILWAY_DEPLOYMENT");
+  // ---- B. no SILENT localhost fallback ----
+  check("B1. resolveLaunchTarget REGISTERED_REMOTE is the canonical target",
+    resolveLaunchTarget("REGISTERED_REMOTE").runtime_kind === "REGISTERED_REMOTE");
   check("B2. the local target exists but is NAMED, never implied",
-    LOCAL_TARGET.runtime_kind === "LOCAL_DEVELOPMENT" && resolveLaunchTarget("LOCAL_DEVELOPMENT").url === LOCAL_TARGET.url);
+    LOCAL_TARGET.runtime_kind === "NODE_LOCAL" && resolveLaunchTarget("NODE_LOCAL").url === LOCAL_TARGET.url);
   check("B3. the two targets are genuinely different runtimes",
     CANONICAL_TARGET.url !== LOCAL_TARGET.url);
 
@@ -55,7 +55,7 @@ function main(): void {
       !launcher.includes("DNA-OS-INFRASTRUCTURE\"") && !/open\s+"\/Users\/[^"]*DNA-OS-INFRASTRUCTURE/.test(launcher), launcher.slice(0, 160));
     check("C2. the built launcher opens a UI, not a directory",
       launcher.includes("--app=") || launcher.includes("exec open \"$DNA_DEV_URL\""));
-    check("C3. the built launcher carries the CANONICAL Railway url, baked from config.ts",
+    check("C3. the built launcher carries the canonical REGISTERED_REMOTE url",
       launcher.includes(CANONICAL_TARGET.url), (launcher.match(/DNA_DEV_URL="[^"]*"/) ?? [])[0]);
     check("C4. the built launcher does NOT silently reference localhost",
       !launcher.includes("127.0.0.1") && !launcher.includes("localhost"));

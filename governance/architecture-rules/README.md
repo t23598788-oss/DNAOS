@@ -96,9 +96,10 @@ INFRA / SECURITY / EXTERNAL / AUTOMATION** แต่ละกลุ่มมี 
 ทุกครั้งที่อ่าน ไม่มีที่ใดเก็บคำว่า "เสร็จแล้ว" ไว้ให้แก้ด้วยมือ
 อ่านสถานะปัจจุบันได้ที่ `GET /owner/lifecycle`
 
-ตารางนี้มีเอกสาร 15 ฉบับ: 14 รายการใน operational index และ
-`STRUCTURE_LOCK_MAP.md` เป็น governance companion ที่ถูก index ไว้แต่ไม่ใช่
-ขั้น lifecycle อีกชุดหนึ่ง ไม่ควรเรียก companion นี้ว่า "ขั้นที่ 15"
+ตารางนี้มีเอกสาร 17 ฉบับ: 14 รายการใน operational index และ
+companion ที่ไม่ใช่ขั้น lifecycle
+companion ที่ถูก index ไว้แต่ไม่ใช่ขั้น lifecycle (`STRUCTURE_LOCK_MAP.md`,
+`RUNTIME_NODE_AND_OPTIONAL_PROVIDER.md`, `runtime-v1/`) ไม่ควรเรียกว่าขั้นงาน
 
 | # | เอกสาร | ขึ้นกับขั้น |
 |---|--------|-------------|
@@ -117,9 +118,16 @@ INFRA / SECURITY / EXTERNAL / AUTOMATION** แต่ละกลุ่มมี 
 | 13 | [`ACCOUNTING_CANONICAL_TRUTH.md`](./ACCOUNTING_CANONICAL_TRUTH.md) | 02 |
 | 14 | [`VERCEL_BOUNDARY_PLAN.md`](./VERCEL_BOUNDARY_PLAN.md) | 08, 12 |
 | 15 | [`STRUCTURE_LOCK_MAP.md`](./STRUCTURE_LOCK_MAP.md) — governance companion, ไม่ใช่ขั้น | — |
+| 16 | [`RUNTIME_NODE_AND_OPTIONAL_PROVIDER.md`](./RUNTIME_NODE_AND_OPTIONAL_PROVIDER.md) — companion, ไม่ใช่ขั้น | — |
+| 17 | [`runtime-v1/`](./runtime-v1/) — DESTINATION + PLACEMENT + CURRENT-MAP + Step 7 adapter plan, ไม่ใช่ขั้น | — |
 
 เอกสารกำกับที่ไม่ใช่ขั้นของงาน — อ่านคู่กับตารางข้างบน:
-`STRUCTURE_LOCK_MAP.md` และ `ACCOUNTING_AUTHORITY_ROLES.md` — ขอบเขตที่ถูกล็อกแล้วและบทบาท authority
+`STRUCTURE_LOCK_MAP.md`, `ACCOUNTING_AUTHORITY_ROLES.md`, และ
+[`RUNTIME_NODE_AND_OPTIONAL_PROVIDER.md`](./RUNTIME_NODE_AND_OPTIONAL_PROVIDER.md)
+— คำนิยาม CURRENT ว่า Railway/Vercel เป็น `OPTIONAL_PROVIDER` และ runtime แยก
+`CORE_NODE` / `MAC_LOCAL_AGENT`. แผนปลายทางและช่องว่างอยู่ที่
+[`runtime-v1/`](./runtime-v1/) (DESTINATION / PLACEMENT / CURRENT-MAP / STEP-7-ADAPTER-BOUNDARY) — เอกสารนั้น
+ไม่ใช่ executable law
 
 ขั้น 05 กับ 09/10 และ 13 ประกาศไว้ว่าขนานกันได้ (`parallel_group`) — การขนานที่
 ไม่ได้ประกาศไว้ถือว่าไม่อนุญาต

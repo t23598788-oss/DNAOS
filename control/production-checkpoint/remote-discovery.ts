@@ -22,6 +22,11 @@ import { closeRegisteredWork, inspectDeploymentTargets, probeGithubEnvironments,
 import { collectRegisteredWork } from "./reconcile";
 import { repoRoot } from "./host-runtime";
 import {
+  ensureRuntimeEndpointsLoaded,
+  joinEndpointAddress,
+  resolveRuntimeEndpoint,
+} from "../runtime-endpoint-registry/contract";
+import {
   lastRemoteProductionDiscovery,
   persistRemoteProductionDiscovery,
   rememberCatchup,
@@ -47,29 +52,45 @@ const REPO_NAME = "-DNA-OS-INFRASTRUCTURE-";
 const REPO_BINDING = `github://${REPO_OWNER}/${REPO_NAME}`;
 const DEPLOYMENT_METHOD = "railway_hosted_github_integration";
 
-const HISTORICAL_SERVICES = [
-  {
-    name: "dna-os-circuit",
-    target_id: "deploy://railway/dna-os-circuit",
-    runtime_url_ref: "https://dna-os-circuit-production.up.railway.app/circuit.json",
-    health_probe: "https://dna-os-circuit-production.up.railway.app/circuit.json",
-    evidence: "reports/RECOVERY_INDEX_2026-08-24.md#40ffd5ab-3033-4c14-9fd6-23b153cb9fd5",
-  },
-  {
-    name: "joint-monitor",
-    target_id: "deploy://railway/joint-monitor",
-    runtime_url_ref: "https://joint-monitor-production.up.railway.app/joints",
-    health_probe: "https://joint-monitor-production.up.railway.app/joints",
-    evidence: "reports/RECOVERY_INDEX_2026-08-24.md#0a0ecaca-e4fe-4b90-976b-d6822a567763",
-  },
-  {
-    name: "owner-command-http",
-    target_id: "deploy://railway/owner-command-http",
-    runtime_url_ref: null,
-    health_probe: "",
-    evidence: "reports/RECOVERY_INDEX_2026-08-24.md#3247c5ac-cf51-424c-9131-4e5f834c8ddd",
-  },
-] as const;
+function observedPublicUrl(endpointId: string): string | null {
+  ensureRuntimeEndpointsLoaded();
+  const resolved = resolveRuntimeEndpoint({ query: endpointId, purpose: "observe" });
+  return resolved.ok ? joinEndpointAddress(resolved.endpoint) : null;
+}
+
+function historicalServices(): readonly {
+  readonly name: string;
+  readonly target_id: string;
+  readonly runtime_url_ref: string | null;
+  readonly health_probe: string;
+  readonly evidence: string;
+}[] {
+  const circuit = observedPublicUrl("endpoint://dna-os-circuit/public");
+  const joint = observedPublicUrl("endpoint://joint-monitor/public");
+  return [
+    {
+      name: "dna-os-circuit",
+      target_id: "deploy://railway/dna-os-circuit",
+      runtime_url_ref: circuit,
+      health_probe: circuit ?? "",
+      evidence: "reports/RECOVERY_INDEX_2026-08-24.md#40ffd5ab-3033-4c14-9fd6-23b153cb9fd5",
+    },
+    {
+      name: "joint-monitor",
+      target_id: "deploy://railway/joint-monitor",
+      runtime_url_ref: joint,
+      health_probe: joint ?? "",
+      evidence: "reports/RECOVERY_INDEX_2026-08-24.md#0a0ecaca-e4fe-4b90-976b-d6822a567763",
+    },
+    {
+      name: "owner-command-http",
+      target_id: "deploy://railway/owner-command-http",
+      runtime_url_ref: null,
+      health_probe: "",
+      evidence: "reports/RECOVERY_INDEX_2026-08-24.md#3247c5ac-cf51-424c-9131-4e5f834c8ddd",
+    },
+  ];
+}
 
 export function isFixtureRevision(value: string | null | undefined): boolean {
   if (!value || value === "UNCOMMITTED" || value === "NOT_AVAILABLE") return true;
@@ -292,7 +313,7 @@ function realLineage(remoteSha: string | null): RealProductionLineageV1 {
 function normalizeRailwayTargets(railway: { exists: boolean; auth_ready: boolean; environment_id: string; project_id: string | null }): ExistingDeploymentTargetNormalizationV1[] {
   const targets: ExistingDeploymentTargetNormalizationV1[] = [];
   const provider_resource_id = railway.project_id ?? "resource-7691c9a8-4bed-4c12-adb7-c66b93f86f16";
-  for (const service of HISTORICAL_SERVICES) {
+  for (const service of historicalServices()) {
     const existing = getDeploymentTarget(service.target_id);
     if (!existing) {
       registerDeploymentTarget({
@@ -419,7 +440,7 @@ export async function discoverExistingRemoteProduction(): Promise<RemoteProducti
     OWNER_ENABLED: false,
   });
 
-  for (const service of HISTORICAL_SERVICES) {
+  for (const service of historicalServices()) {
     resources.push({
       schema: REMOTE_RESOURCE_IDENTITY,
       provider: "railway",

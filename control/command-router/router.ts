@@ -66,16 +66,17 @@ import { fetchResearchEngineLatestResult } from "../../connections/research-engi
 import { dispatchTask, DEFAULT_AGENT_WORKERS, setVoiceBridgeEnabled, isVoiceBridgeEnabled, admitCompletedTask, runAgentWorkOrder, runCorrectiveLoop, createTaskWorkspace, transitionWorkspace, linkSourceReservation, loadEvidenceForTask } from "../agent-gateway/contract";
 import type { Status as DispatcherTaskStatus, WorkerKind, WorkOrder, TaskWorkspace } from "../agent-gateway/contract";
 import { resolveWorker } from "../agent-host/contract";
-import { join } from "node:path";
+import { join, resolve as resolvePath } from "node:path";
 import { readFileSync } from "node:fs";
 import { randomUUID } from "node:crypto";
 import { submitAgentWork } from "../agent-production-ingress/contract";
-import { listRepositories } from "../../software/repository-registry/contract";
+import { listRepositories, resolveRepositoryCheckout } from "../../software/repository-registry/contract";
 import type { RepositoryRegistration } from "../../software/repository-registry/contract";
 import { createPersistentFileStore } from "../../software/registry-database/adapters/persistent-file-store";
 import { parseOsLoginTarget, requestOsLogin } from "../../connections/os-login/adapter-contract";
 import { openOsUi, parseOsUiTarget, runUiWorkOrder } from "../../connections/os-ui/adapter-contract";
 import type { UiWorkOrder } from "../../connections/os-ui/work-order";
+import { MAC_LOCAL_AGENT_UNAVAILABLE_ON_CORE, macLocalAgentExecutionDecision } from "../../contracts/architecture/runtime-node-and-optional-provider";
 import { getCapability, listCapabilities } from "./capability-registry";
 import { hostNowIso } from "./host-runtime";
 import { reportJoint } from "../../observability/joint-monitor/contract";
@@ -424,6 +425,8 @@ async function runResearchEngineStep(): Promise<StepOutcome> {
 }
 
 async function runOsLoginStep(step: RouterStep): Promise<StepOutcome> {
+  const node = macLocalAgentExecutionDecision({ current_node: "CORE_NODE" });
+  if (!node.execute) return macLocalAgentBlockedStep("connections/os-login");
   const payload = step.payload ?? {};
   const target = parseOsLoginTarget(step.intent, payload);
   if (!target) {
@@ -489,7 +492,23 @@ async function runVoiceBridgeStep(step: RouterStep, envelope: CommandEnvelope): 
   };
 }
 
+function macLocalAgentBlockedStep(capability: string): StepOutcome {
+  const decision = macLocalAgentExecutionDecision({ current_node: "CORE_NODE" });
+  if (decision.execute) {
+    throw new Error("macLocalAgentBlockedStep on a host that may execute MAC_LOCAL_AGENT");
+  }
+  return {
+    status: "BLOCKED",
+    evidenceEntries: [evidence(capability, `${decision.reason_code}: required_node=${decision.required_node} current_node=${decision.current_node} execution_attempted=${String(decision.execution_attempted)}`)],
+    artifacts: [],
+    warnings: [MAC_LOCAL_AGENT_UNAVAILABLE_ON_CORE],
+    summary: `${capability} is unavailable on CORE_NODE; MAC_LOCAL_AGENT required; no execution attempted`,
+  };
+}
+
 async function runOsUiStep(step: RouterStep): Promise<StepOutcome> {
+  const node = macLocalAgentExecutionDecision({ current_node: "CORE_NODE" });
+  if (!node.execute) return macLocalAgentBlockedStep("connections/os-ui");
   // 2026-08-20 (Owner Work Order): a structured UiWorkOrder payload routes
   // to the richer, validated runUiWorkOrder path (open_url/open_path/
   // screenshot/read_screen/speak/click/type/key/focus/wait, admission before execute) — same "os-ui" capability, same
@@ -696,17 +715,24 @@ function buildAgentHostWorkOrder(step: RouterStep, workerKind: WorkerKind, works
  * ตรงกันหลายแถว = คลุมเครือ คืน null ไม่เลือกให้เอง — และ null แปลว่าไม่แยก
  * worktree (คงพฤติกรรมเดิมไว้) ไม่ใช่เดาตัวตนขึ้นมา
  */
-function resolveSelfRepository(root: string): RepositoryRegistration | null {
+function resolveSelfRepository(root: string): { registration: RepositoryRegistration; checkout_root: string } | null {
+  const abs = resolvePath(root);
   let gitConfig: string;
   try {
-    gitConfig = readFileSync(join(root, ".git", "config"), "utf8");
+    gitConfig = readFileSync(join(abs, ".git", "config"), "utf8");
   } catch {
     return null;
   }
-  const corroborated = listRepositories().filter(
-    (r) => r.status === "ACTIVE" && r.repository_root === root && r.source_authority.length > 0 && gitConfig.includes(r.source_authority),
-  );
-  return corroborated.length === 1 ? corroborated[0]! : null;
+  const hits: Array<{ registration: RepositoryRegistration; checkout_root: string }> = [];
+  for (const r of listRepositories()) {
+    if (r.status !== "ACTIVE" || r.source_authority.length === 0) continue;
+    if (!gitConfig.includes(r.source_authority)) continue;
+    const resolved = resolveRepositoryCheckout(r.repository_id, { nodeCheckoutCandidate: abs });
+    if (resolved.ok && resolved.repository_root === abs) {
+      hits.push({ registration: r, checkout_root: resolved.repository_root });
+    }
+  }
+  return hits.length === 1 ? hits[0]! : null;
 }
 
 async function runAgentHostStep(step: RouterStep, envelope: CommandEnvelope, options: RouteOptions): Promise<StepOutcome> {
@@ -745,11 +771,12 @@ async function runAgentHostStep(step: RouterStep, envelope: CommandEnvelope, opt
    * เราไม่แยก worktree และไม่แต่งตัวตนขึ้นมา — พฤติกรรมเดิมคงอยู่ทั้งดุ้น และ
    * เหตุผลจริงถูกบันทึกเป็น evidence ให้ Owner เห็น ไม่ใช่กลืนเงียบ
    */
-  const repository = resolveSelfRepository(process.cwd());
+  const self = resolveSelfRepository(process.cwd());
   let isolationEvidence: string;
-  if (!repository) {
+  if (!self) {
     isolationEvidence = "source_isolation=NOT_APPLIED reason=NO_CORROBORATED_REPOSITORY_IDENTITY";
   } else {
+    const repository = self.registration;
     const ingress = await submitAgentWork({
       work_id: workOrderId,
       holder_agent_id: "control/command-router/router.ts#runAgentHostStep",
@@ -778,7 +805,7 @@ async function runAgentHostStep(step: RouterStep, envelope: CommandEnvelope, opt
         requested_repository: repository.repository,
       },
       // ขอบเขตจริงที่งานนี้แตะ — ไม่ว่างจึงทำให้ ingress สร้าง git worktree จริง
-      resource_scope: [repository.repository_root],
+      resource_scope: [self.checkout_root],
       lease_ms: 120_000,
       correlation_id: envelope.command_id,
     }, () => createPersistentFileStore());

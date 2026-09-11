@@ -8,8 +8,8 @@
  * `control/command-router/`, `control/agent-gateway/` and
  * `control/circuit-breaker/` was answered 401 and dropped silently
  * (`reportJoint` is fire-and-forget by design, so nothing surfaced the
- * failure). Proven live against
- * https://joint-monitor-production.up.railway.app before the fix: an
+ * failure). Proven live against the registered public joint-monitor
+ * endpoint before the fix: an
  * unauthenticated `POST /joints` returned a real 401.
  *
  * This asserts BOTH directions, because a reporter that always sends a

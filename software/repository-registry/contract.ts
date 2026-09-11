@@ -7,10 +7,23 @@
  * Output: `registerRepository`, `getRepository`, `listRepositories`,
  * `suspendRepository`, `buildRepositoryId`, `createRepositoryRegistryStore`,
  * plus every type a caller needs.
- * Dependency ที่อนุญาต: ./registry.ts, ./types.ts.
+ * Dependency ที่อนุญาต: ./registry.ts, ./types.ts, ./checkout-resolution.ts.
  */
 
 export { registerRepository, getRepository, listRepositories, suspendRepository, rebindRepositoryCheckout, buildRepositoryId, createRepositoryRegistryStore } from "./registry";
+export {
+  resolveRepositoryCheckout,
+  resolveControlPlaneCheckout,
+  setCheckoutResolutionForTests,
+  resolveGitDir,
+  normalizeGitRemoteIdentity,
+} from "./checkout-resolution";
+export type {
+  CheckoutResolution,
+  CheckoutResolutionFailureCode,
+  CheckoutResolutionHost,
+  CheckoutResolutionLookup,
+} from "./checkout-resolution";
 export type { RepositoryRegistryStore } from "./registry";
 export type { RepositoryStatus, RepositoryRegistration, RegisterRepositoryInput } from "./types";
 

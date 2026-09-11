@@ -14,8 +14,10 @@
  */
 
 import { MacOsKeychainProvider } from "../../credentials/macos-keychain/provider";
+import { secretResolutionBackend } from "../../credentials/secret-resolver/node-credential-resolver";
+import { resolveProcessEnvironmentSecret } from "../../credentials/process-environment/provider";
 import {
-  KEYCHAIN_ACCOUNT, KEYCHAIN_SERVICE, MANAGEMENT_QUERY_ENDPOINT, MANAGEMENT_TYPES_ENDPOINT,
+  CREDENTIAL_REF, KEYCHAIN_ACCOUNT, KEYCHAIN_SERVICE, MANAGEMENT_QUERY_ENDPOINT, MANAGEMENT_TYPES_ENDPOINT,
 } from "./contract";
 import { guardMetadataSql } from "./guard";
 
@@ -28,6 +30,11 @@ type TokenResult =
   | { ok: false; reason_code: string; reason: string };
 
 async function resolveToken(): Promise<TokenResult> {
+  if (secretResolutionBackend("CORE_NODE") === "process_environment") {
+    const res = resolveProcessEnvironmentSecret(CREDENTIAL_REF);
+    if (!res.ok) return { ok: false, reason_code: res.code, reason: res.reason };
+    return { ok: true, token: res.secret };
+  }
   const provider = new MacOsKeychainProvider();
   const res = await provider.resolve({ service: KEYCHAIN_SERVICE, account: KEYCHAIN_ACCOUNT, kind: "oauth_token" });
   if (!res.ok) return { ok: false, reason_code: `KEYCHAIN_${res.code}`, reason: res.reason };

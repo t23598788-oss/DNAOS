@@ -5,6 +5,7 @@
  */
 
 import { admitGoogleOauthClient, getGoogleOauthClientConfigurationView } from "../../connections/google-workspace/oauth/client-admission";
+import { coreNodeUnavailableForCapability } from "./mac-local-agent-gate";
 import {
   GOOGLE_OAUTH_APPLICATION_TYPE,
   REGISTER_GOOGLE_WORKSPACE_OAUTH_CLIENT_ACTION,
@@ -43,6 +44,8 @@ export async function handleGoogleOauthClientAdmissionRoute(
   }
 
   if (method === "POST" && path === "/owner/google-workspace/oauth-client") {
+    const denied = coreNodeUnavailableForCapability("credentials/macos-keychain");
+    if (denied) return { status: 503, body: denied as unknown as Record<string, unknown> };
     const b = (body ?? {}) as Record<string, unknown>;
     const approvalRaw = (b.approval ?? {}) as Record<string, unknown>;
     const environment = str(b.google_app_environment) as GoogleOauthAppEnvironment;
