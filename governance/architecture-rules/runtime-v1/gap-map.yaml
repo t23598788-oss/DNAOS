@@ -7,8 +7,8 @@
 meta:
   destination_source: governance/architecture-rules/runtime-v1/source/destination-self-hosted.docx
   placement_source: governance/architecture-rules/runtime-v1/source/placement-audit.docx
-  branch: control/google-owner-remote-binding-policy-v1
-  head: c41db795b0f0dccf376754c1ad4b2ff984c542f2
+  branch: control/runtime-steps-1-8-canonical-v1
+  head: 994ac046c92939c9b1e4e8abbf76659bd1512957
   origin_main: f2dddba17dad66a2ae31511c42d1332ed3c12f54
   working_tree_has_uncommitted_step_1_to_8: false
   step8_canonical: true
@@ -26,11 +26,10 @@ meta:
   step8_status: CANONICAL
   step8_proof_status: PROVEN
   step8_validation_note: >
-    Clean Git worktree of c41db795b0f0dccf376754c1ad4b2ff984c542f2 reproduced
-    live Debian 12 (node:22-bookworm, aarch64, Node v22.23.2)
-    npx tsx transport/owner-command-http/server.ts without RAILWAY_*/VERCEL_TOKEN.
-    POST /command "ตรวจ permission" reached permission-reasoner; evaluateExecutionPermission
-    returned DENY UNKNOWN_COMMAND. Mac-only routes 503. SIGTERM_OK. core-node-macos-routes 17/17.
+    Foundation branch tip 994ac046c92939c9b1e4e8abbf76659bd1512957 (from origin/main).
+    Clean Linux live proof: BOOT_OK, unauth 401, permission-reasoner DENY, Mac 503,
+    SIGTERM_OK. Cherry-pick conflict markers fixed at tip (994ac04). Does not include
+    Google #16 orchestration / #18 binding policy.
   status_vocabulary:
     - VERIFIED
     - PARTIAL

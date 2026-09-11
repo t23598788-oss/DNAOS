@@ -8,10 +8,10 @@
 |---|---|
 | Destination source | `source/destination-self-hosted.docx` — DNA OS Runtime V1 — แบบสถาปัตยกรรม Self-Hosted ที่ให้ผู้ให้บริการเหลือแค่เครื่องรัน |
 | Placement/audit source | `source/placement-audit.docx` — DNA OS Runtime V1 — Audit จากรีโปจริงและแบบสถาปัตยกรรมปลายทาง |
-| Branch inspected | `control/google-owner-remote-binding-policy-v1` |
-| HEAD | `c41db795b0f0dccf376754c1ad4b2ff984c542f2` (Step 8 source SHA; this file’s CANONICAL stamp is the following status commit) |
+| Branch inspected | `control/runtime-steps-1-8-canonical-v1` |
+| HEAD | `994ac046c92939c9b1e4e8abbf76659bd1512957` (foundation tip; Step-8 proof SHA on this branch) |
 | origin/main | `f2dddba17dad66a2ae31511c42d1332ed3c12f54` |
-| Working tree | Steps 1–8 source committed; runtime JSONL and UNKNOWN write-gate files remain unstaged |
+| Working tree | Isolated on `control/runtime-steps-1-8-canonical-v1` from `origin/main`; not the mixed #18 head |
 | Audited | 2026-09-11 |
 | Status vocabulary | `VERIFIED` `PARTIAL` `MISSING` `CONFLICT` `RETIRE_CANDIDATE` `DEFERRED` |
 
@@ -308,7 +308,7 @@ Live generic-Linux process of current `transport/owner-command-http/server.ts` (
 | Image | `node:22-bookworm` (Debian 12) |
 | Kernel | Linux 6.12.76-linuxkit aarch64 |
 | Node | v22.23.2 |
-| Commit | `c41db795b0f0dccf376754c1ad4b2ff984c542f2` |
+| Commit | `994ac046c92939c9b1e4e8abbf76659bd1512957` |
 | Command | `npx tsx transport/owner-command-http/server.ts` |
 | CWD | `/work` (repository checkout) |
 | Env supplied | `OWNER_COMMAND_HTTP_SHARED_SECRET`, `HOST=127.0.0.1`, `PORT=8791` |
@@ -365,3 +365,25 @@ This-session Linux independent suites (do not merge aborted full-repo scan):
 ## Confirmation
 
 This document set records Step 7 COMPLETE and Step 8 CANONICAL (proof remains PROVEN). It does not start Postgres authority, durable jobs, immutable releases, DNA Git, cgroup workers, HA, or region. Public Core HTTP paths (`POST /command`, `GET /owner/console`, `GET /task/:id`, `/runtime/inventory`, `/handoffs`) remain. GitHub stays SOURCE_AUTHORITY. Supabase stays DATA_SERVICE. Write-gate OWNER_LOCKED files were not unlocked.
+
+
+---
+
+---
+
+## Isolation mapping (mixed #18 → foundation)
+
+Cherry-picked onto `origin/main` as `control/runtime-steps-1-8-canonical-v1`.
+
+| Mixed SHA | Foundation SHA | Scope |
+|---|---|---|
+| `b3a3ba7007f6fa2826fdddffe83548acd0e16be3` | `2d265ab6a7dd6f40d85d670628c341278d38bd50` | Steps 1–2 |
+| `5fa974814953dcf3a3b9df55ef591c9d38e04aad` | `e2a27231963b4578cc4fc09b4050ef7fe8e30c9c` | Step 3 (no #16 orchestration) |
+| `f9a6d48b7b06196199d468fd621d541da26101f7` | `d697283e1714950cf40fa9e8c4fe1e80e503b086` | Step 4 |
+| `f0872eeb04c917857608f1b70360b48a4ededeab` | `5209da78a1f601935c8ed560372be287c2f776f5` | Step 5 (+ keep #22 agent deny) |
+| `b91db8efe94d561fb1408d25d7b0966b6ed5ae26` | `e89f4da94f39f4caaf49cd49fc84c43a56d6cd72` | Step 6 |
+| `d4e4eea217ec68cf2ffb3c7fd25b41aa6ffea8f6` | `a0942e03f11c6f8d649da6c71541cf032e9068df` | Step 7 |
+| `c41db795b0f0dccf376754c1ad4b2ff984c542f2` | `5f644eae31b463d2d22b82278de1ad3e5a7498ea` + fix `994ac046c92939c9b1e4e8abbf76659bd1512957` | Step 8 |
+| `5f90f2a7e6a05bffe49fbe6f8897df8bf53964d1` | `347170b63807883f0e629200d74ef7e039341c48` | status stamp |
+
+Foundation tip / clean-SHA proof: `994ac046c92939c9b1e4e8abbf76659bd1512957`.
