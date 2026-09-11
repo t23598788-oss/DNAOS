@@ -17,6 +17,9 @@ export type {
   SemanticNode,
   SemanticGraph,
   SemanticDoctorReport,
+  SemanticDiscoveryResult,
+  SemanticDiscoveryDiagnostics,
+  SemanticDiagnostic,
   SemanticSourceRef,
   SemanticObservation,
 } from "./types";
@@ -29,7 +32,12 @@ export {
   isSemanticKind,
 } from "./id";
 export { semanticKey } from "./key";
-export { discoverSemanticGraph, graphFingerprint } from "./discover";
+export {
+  discoverSemantic,
+  discoverSemanticGraph,
+  graphFingerprint,
+  emptyDiscoveryDiagnostics,
+} from "./discover";
 export type { DiscoverOptions } from "./discover";
 export {
   dependencyClosure,
@@ -40,7 +48,13 @@ export {
   outgoing,
   incoming,
 } from "./graph";
-export { resolveSemanticId, doctorSemanticGraph } from "./resolve";
+export {
+  resolveSemanticId,
+  doctorSemanticGraph,
+  doctorDiscovery,
+  doctorIsHealthy,
+  doctorExitCode,
+} from "./resolve";
 export type { SemanticResolveResult, ResolveStatus } from "./resolve";
 export { projectResolveThai, kindToThai, stateToThai } from "./project-th";
 export {
@@ -48,6 +62,8 @@ export {
   recordObservation,
   applyObservations,
   correlateRuntimeEvent,
+  advanceLifecycle,
+  lifecycleRank,
 } from "./observation";
 export { bridgeWorkContextToSemantic } from "./bridge-work-context";
 export { PILOT_DESCRIPTORS, INFRA_REPO_ID } from "./pilot-descriptors";

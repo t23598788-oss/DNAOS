@@ -1,16 +1,22 @@
 /**
  * Compose SemanticNodes/Edges from existing authorities + explicit descriptors.
  * Derived only. Deterministic. No AI. No second central registry.
+ *
+ * Returns BOTH a usable derived graph AND discovery diagnostics.
+ * Invalid declarations must never silently disappear.
  */
 
 import { execFileSync } from "node:child_process";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
-import { assertSemanticId, canonicalizeSemanticId, kindOf } from "./id";
+import { canonicalizeSemanticId, kindOf } from "./id";
 import { semanticKey } from "./key";
 import { PILOT_DESCRIPTORS, INFRA_REPO_ID } from "./pilot-descriptors";
 import type {
   SemanticDescriptor,
+  SemanticDiagnostic,
+  SemanticDiscoveryDiagnostics,
+  SemanticDiscoveryResult,
   SemanticEdge,
   SemanticGraph,
   SemanticId,
@@ -54,14 +60,28 @@ function gitSha(root: string): string | null {
   }
 }
 
+function emptyDiagnostics(): SemanticDiscoveryDiagnostics {
+  return {
+    duplicate_ids: [],
+    invalid_ids: [],
+    missing_sources: [],
+    missing_targets: [],
+    unresolved_references: [],
+    invalid_implementations: [],
+  };
+}
+
 function sourceFor(
   d: SemanticDescriptor,
   commitSha: string | null,
   fallbackPath: string,
+  ownerRepository: SemanticId | null,
 ): SemanticSourceRef {
   const impl = d.implementation;
   return {
-    repositoryId: impl?.repositoryId ?? d.ownerRepository ?? INFRA_REPO_ID,
+    repositoryId: impl?.repositoryId
+      ? (canonicalizeSemanticId(impl.repositoryId) ?? INFRA_REPO_ID)
+      : ownerRepository ?? INFRA_REPO_ID,
     commitSha,
     path: impl?.path ?? fallbackPath,
     symbol: impl?.symbol,
@@ -69,45 +89,36 @@ function sourceFor(
 }
 
 function baseState(d: SemanticDescriptor, pathOk: boolean): SemanticLifecycleState {
+  // Declared implementation that failed validation stays IDENTIFIED — not RESOLVED.
   if (!pathOk && d.implementation) return "IDENTIFIED";
   if (d.declaredCanonical) return "CANONICAL";
   return "IDENTIFIED";
 }
 
-function edgesFromDescriptor(
-  d: SemanticDescriptor,
-  source: SemanticSourceRef,
-): SemanticEdge[] {
-  const out: SemanticEdge[] = [];
-  const from = assertSemanticId(d.id);
-  if (d.ownerRepository) {
-    out.push({
-      from: assertSemanticId(d.ownerRepository),
-      relation: "OWNS",
-      to: from,
-      source,
-    });
-  }
-  for (const { key, relation } of RELATION_FIELDS) {
-    const targets = d[key];
-    if (!Array.isArray(targets)) continue;
-    for (const toRaw of targets) {
-      const to = canonicalizeSemanticId(String(toRaw));
-      if (!to) continue;
-      out.push({ from, relation, to, source });
-    }
-  }
-  return out;
+function placeholderNode(id: SemanticId, source: SemanticSourceRef): SemanticNode | null {
+  const kind = kindOf(id);
+  if (!kind) return null;
+  return {
+    id,
+    kind,
+    semantic_key: semanticKey(id),
+    title: null,
+    ownerRepository: null,
+    implementation: null,
+    declaredCanonical: false,
+    state: "AWAITING_RELATION",
+    source,
+  };
+}
+
+function uniqueSorted(ids: readonly string[]): string[] {
+  return [...new Set(ids)].sort((a, b) => a.localeCompare(b));
 }
 
 /**
- * Discovery order (compose, do not replace authorities):
- * 1) explicit semantic descriptors (pilot + extra)
- * 2) optional live endpoint IDs already shaped as SemanticId (registry)
- * Repository/capability registries remain authoritative elsewhere —
- * this scanner only projects known SemanticIds into a derived graph.
+ * Full discovery: usable derived graph + deterministic diagnostics.
  */
-export function discoverSemanticGraph(options: DiscoverOptions = {}): SemanticGraph {
+export function discoverSemantic(options: DiscoverOptions = {}): SemanticDiscoveryResult {
   const root = options.root ?? process.cwd();
   const commitSha = options.commitSha !== undefined ? options.commitSha : gitSha(root);
   const descriptors = [...PILOT_DESCRIPTORS, ...(options.extraDescriptors ?? [])];
@@ -115,65 +126,175 @@ export function discoverSemanticGraph(options: DiscoverOptions = {}): SemanticGr
   const nodeMap = new Map<SemanticId, SemanticNode>();
   const edges: SemanticEdge[] = [];
   const duplicateIds: SemanticId[] = [];
+  const invalidIds: SemanticDiagnostic[] = [];
+  const invalidImplementations: SemanticDiagnostic[] = [];
+  const implementationResolved = new Set<SemanticId>();
 
   for (const d of descriptors) {
-    const id = assertSemanticId(d.id);
+    const id = canonicalizeSemanticId(String(d.id));
+    if (!id) {
+      invalidIds.push({
+        code: "INVALID_SEMANTIC_ID",
+        message: "descriptor id failed canonicalization",
+        raw: String(d.id),
+        field: "id",
+        descriptor_id: String(d.id),
+      });
+      continue;
+    }
     const kind = kindOf(id);
     if (!kind || kind !== d.kind) {
-      throw new Error(`KIND_MISMATCH:${id}`);
+      invalidIds.push({
+        code: "INVALID_SEMANTIC_ID",
+        message: `KIND_MISMATCH:${id}`,
+        raw: String(d.id),
+        field: "kind",
+        descriptor_id: id,
+      });
+      continue;
     }
     if (nodeMap.has(id)) {
       duplicateIds.push(id);
       continue;
     }
-    const source = sourceFor(d, commitSha, "control/semantic-identity/pilot-descriptors.ts");
+
+    let ownerRepository: SemanticId | null = null;
+    if (d.ownerRepository) {
+      const owner = canonicalizeSemanticId(String(d.ownerRepository));
+      if (!owner) {
+        invalidIds.push({
+          code: "INVALID_SEMANTIC_ID",
+          message: "ownerRepository failed canonicalization",
+          raw: String(d.ownerRepository),
+          field: "ownerRepository",
+          descriptor_id: id,
+        });
+      } else {
+        ownerRepository = owner;
+      }
+    }
+
+    let implRef = null as SemanticNode["implementation"];
+    if (d.implementation) {
+      const repoId = canonicalizeSemanticId(String(d.implementation.repositoryId));
+      if (!repoId) {
+        invalidIds.push({
+          code: "INVALID_SEMANTIC_ID",
+          message: "implementation.repositoryId failed canonicalization",
+          raw: String(d.implementation.repositoryId),
+          field: "implementation.repositoryId",
+          descriptor_id: id,
+        });
+      } else {
+        implRef = {
+          repositoryId: repoId,
+          path: d.implementation.path,
+          symbol: d.implementation.symbol,
+        };
+      }
+    }
+
+    const source = sourceFor(d, commitSha, "control/semantic-identity/pilot-descriptors.ts", ownerRepository);
     const pathOk =
       options.skipPathCheck ||
-      !d.implementation ||
-      existsSync(join(root, d.implementation.path));
-    let state = baseState(d, pathOk);
+      !implRef ||
+      existsSync(join(root, implRef.path));
+    if (implRef && pathOk) {
+      implementationResolved.add(id);
+    }
+    if (implRef && !pathOk) {
+      invalidImplementations.push({
+        code: "MISSING_IMPLEMENTATION",
+        message: "implementation declared but path does not exist",
+        descriptor_id: id,
+        path: implRef.path,
+        field: "implementation.path",
+      });
+    }
+
+    let state = baseState({ ...d, implementation: implRef ?? undefined }, pathOk);
 
     nodeMap.set(id, {
       id,
       kind,
       semantic_key: semanticKey(id),
       title: d.title ?? null,
-      ownerRepository: d.ownerRepository ? assertSemanticId(d.ownerRepository) : null,
-      implementation: d.implementation
-        ? {
-            repositoryId: assertSemanticId(d.implementation.repositoryId),
-            path: d.implementation.path,
-            symbol: d.implementation.symbol,
-          }
-        : null,
+      ownerRepository,
+      implementation: implRef,
       declaredCanonical: Boolean(d.declaredCanonical),
       state,
       source,
     });
-    edges.push(...edgesFromDescriptor(d, source));
-  }
 
-  // Placeholder nodes for relation targets not yet discovered → AWAITING_RELATION later
-  for (const e of edges) {
-    if (!nodeMap.has(e.to)) {
-      const kind = kindOf(e.to);
-      if (!kind) continue;
-      nodeMap.set(e.to, {
-        id: e.to,
-        kind,
-        semantic_key: semanticKey(e.to),
-        title: null,
-        ownerRepository: null,
-        implementation: null,
-        declaredCanonical: false,
-        state: "AWAITING_RELATION",
-        source: e.source,
+    // OWNS edge from owner → capability (only when owner id is canonical)
+    if (ownerRepository) {
+      edges.push({
+        from: ownerRepository,
+        relation: "OWNS",
+        to: id,
+        source,
       });
+    }
+
+    for (const { key, relation } of RELATION_FIELDS) {
+      const targets = d[key];
+      if (!Array.isArray(targets)) continue;
+      for (const toRaw of targets) {
+        const to = canonicalizeSemanticId(String(toRaw));
+        if (!to) {
+          invalidIds.push({
+            code: "INVALID_SEMANTIC_ID",
+            message: `relation target failed canonicalization (${String(key)})`,
+            raw: String(toRaw),
+            field: String(key),
+            relation,
+            descriptor_id: id,
+          });
+          continue;
+        }
+        edges.push({ from: id, relation, to, source });
+      }
     }
   }
 
-  // Enrich lifecycle: LINKED if has edges; RESOLVED if all targets exist and not awaiting;
-  // VERIFIED if has VERIFIED_BY edge to an existing test node; PROVEN only via observation API.
+  // BOTH endpoints must exist: placeholder for missing source and/or target.
+  const missingSources: SemanticId[] = [];
+  const missingTargets: SemanticId[] = [];
+  for (const e of edges) {
+    if (!nodeMap.has(e.from)) {
+      const ph = placeholderNode(e.from, e.source);
+      if (ph) {
+        nodeMap.set(e.from, ph);
+        missingSources.push(e.from);
+      } else {
+        invalidIds.push({
+          code: "MISSING_EDGE_SOURCE",
+          message: "edge source is not a valid SemanticId and has no node",
+          raw: e.from,
+          edge_from: e.from,
+          edge_to: e.to,
+          relation: e.relation,
+        });
+      }
+    }
+    if (!nodeMap.has(e.to)) {
+      const ph = placeholderNode(e.to, e.source);
+      if (ph) {
+        nodeMap.set(e.to, ph);
+        missingTargets.push(e.to);
+      } else {
+        invalidIds.push({
+          code: "MISSING_EDGE_TARGET",
+          message: "edge target is not a valid SemanticId and has no node",
+          raw: e.to,
+          edge_from: e.from,
+          edge_to: e.to,
+          relation: e.relation,
+        });
+      }
+    }
+  }
+
   const edgeList = [...edges].sort(compareEdge);
   for (const node of nodeMap.values()) {
     if (node.state === "AWAITING_RELATION") continue;
@@ -185,36 +306,60 @@ export function discoverSemanticGraph(options: DiscoverOptions = {}): SemanticGr
         state = "LINKED";
       }
     }
-    const awaiting = outgoing.some((e) => nodeMap.get(e.to)?.state === "AWAITING_RELATION");
+    const awaiting = outgoing.some((e) => nodeMap.get(e.to)?.state === "AWAITING_RELATION")
+      || incoming.some((e) => nodeMap.get(e.from)?.state === "AWAITING_RELATION");
+    const implBroken = Boolean(node.implementation) && !implementationResolved.has(node.id);
     if (awaiting) {
       state = "AWAITING_RELATION";
-    } else if (outgoing.length > 0 || node.implementation) {
+    } else if (!implBroken && (outgoing.length > 0 || implementationResolved.has(node.id))) {
+      // IMPLEMENTATION_DECLARED ≠ IMPLEMENTATION_RESOLVED
       if (state === "LINKED" || state === "IDENTIFIED") state = "RESOLVED";
     }
     const verified = outgoing.some(
-      (e) => e.relation === "VERIFIED_BY" && nodeMap.has(e.to) && nodeMap.get(e.to)!.state !== "AWAITING_RELATION",
+      (e) =>
+        e.relation === "VERIFIED_BY" &&
+        nodeMap.has(e.to) &&
+        nodeMap.get(e.to)!.state !== "AWAITING_RELATION",
     );
-    if (verified && (state === "RESOLVED" || state === "LINKED" || state === "CANONICAL")) {
-      // CANONICAL stays distinct: keep CANONICAL if declared; still record verified via doctor counts
+    // Never promote broken implementation to VERIFIED.
+    if (verified && !implBroken && (state === "RESOLVED" || state === "CANONICAL")) {
       if (state !== "CANONICAL") state = "VERIFIED";
     }
-    // Never promote static discovery to PROVEN here.
     nodeMap.set(node.id, { ...node, state });
   }
 
-  if (duplicateIds.length > 0) {
-    // Surface as invariant via doctor; mark nodes ERROR-equivalent state remains CANONICAL/IDENTIFIED
-    // Doctor counts duplicates separately.
-  }
+  const missing_sources = uniqueSorted(missingSources);
+  const missing_targets = uniqueSorted(missingTargets);
+  const unresolved_references = uniqueSorted([...missing_sources, ...missing_targets]);
 
   const nodes = [...nodeMap.values()].sort((a, b) => a.id.localeCompare(b.id));
-  return {
+  const graph: SemanticGraph = {
     nodes,
     edges: edgeList,
     source_revision: commitSha,
     derived: true,
     authoritative: false,
   };
+
+  const diagnostics: SemanticDiscoveryDiagnostics = {
+    duplicate_ids: [...duplicateIds].sort((a, b) => a.localeCompare(b)),
+    invalid_ids: invalidIds,
+    missing_sources,
+    missing_targets,
+    unresolved_references,
+    invalid_implementations: invalidImplementations,
+  };
+
+  return { graph, diagnostics };
+}
+
+/** Graph-only convenience — callers that need integrity must use discoverSemantic. */
+export function discoverSemanticGraph(options: DiscoverOptions = {}): SemanticGraph {
+  return discoverSemantic(options).graph;
+}
+
+export function emptyDiscoveryDiagnostics(): SemanticDiscoveryDiagnostics {
+  return emptyDiagnostics();
 }
 
 function compareEdge(a: SemanticEdge, b: SemanticEdge): number {

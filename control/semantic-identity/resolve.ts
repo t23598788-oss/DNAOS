@@ -1,6 +1,8 @@
 /**
  * Read-only semantic resolution API.
  * Exact SemanticId match only — no fuzzy / AI matching.
+ *
+ * Doctor consumes graph + discovery diagnostics (not sanitized nodes alone).
  */
 
 import { canonicalizeSemanticId } from "./id";
@@ -13,7 +15,10 @@ import {
   outgoing,
   topologicalDependencyOrder,
 } from "./graph";
+import { emptyDiscoveryDiagnostics } from "./discover";
 import type {
+  SemanticDiscoveryDiagnostics,
+  SemanticDiscoveryResult,
   SemanticDoctorReport,
   SemanticEdge,
   SemanticGraph,
@@ -101,36 +106,95 @@ function unresolved(id: SemanticId | null): SemanticResolveResult {
   };
 }
 
-export function doctorSemanticGraph(graph: SemanticGraph): SemanticDoctorReport {
+function uniqueSorted(ids: readonly string[]): string[] {
+  return [...new Set(ids)].sort((a, b) => a.localeCompare(b));
+}
+
+/**
+ * Doctor from full discovery result (preferred).
+ */
+export function doctorDiscovery(result: SemanticDiscoveryResult): SemanticDoctorReport {
+  return doctorSemanticGraph(result.graph, result.diagnostics);
+}
+
+/**
+ * Doctor from graph + optional discovery diagnostics.
+ * Without diagnostics, duplicate declarations already deduped into the graph
+ * cannot be recovered — callers should pass discovery diagnostics.
+ */
+export function doctorSemanticGraph(
+  graph: SemanticGraph,
+  diagnostics: SemanticDiscoveryDiagnostics = emptyDiscoveryDiagnostics(),
+): SemanticDoctorReport {
   const by_state: Record<string, number> = {};
   for (const n of graph.nodes) {
     by_state[n.state] = (by_state[n.state] ?? 0) + 1;
   }
+
+  // Graph-level duplicate nodes (should be rare; discovery already dedupes map).
   const idCounts = new Map<string, number>();
   for (const n of graph.nodes) {
     idCounts.set(n.id, (idCounts.get(n.id) ?? 0) + 1);
   }
-  let duplicate_semantic_ids = 0;
-  for (const c of idCounts.values()) {
-    if (c > 1) duplicate_semantic_ids += 1;
+  const graphDupes: string[] = [];
+  for (const [id, c] of idCounts) {
+    if (c > 1) graphDupes.push(id);
   }
+
+  const duplicate_ids = uniqueSorted([...diagnostics.duplicate_ids, ...graphDupes]);
   const cycles = detectDependencyCycles(graph);
   const conflicts = conflictingOwners(graph);
-  const unresolved_references = graph.nodes
-    .filter((n) => n.state === "AWAITING_RELATION" && n.implementation === null)
-    .map((n) => n.id)
-    .sort((a, b) => a.localeCompare(b));
 
-  return {
+  // Placeholders + discovery missing endpoints.
+  const awaitingIds = graph.nodes
+    .filter((n) => n.state === "AWAITING_RELATION" && n.implementation === null)
+    .map((n) => n.id);
+
+  const missing_sources = uniqueSorted(diagnostics.missing_sources);
+  const missing_targets = uniqueSorted(diagnostics.missing_targets);
+  const unresolved_references = uniqueSorted([
+    ...diagnostics.unresolved_references,
+    ...awaitingIds,
+    ...missing_sources,
+    ...missing_targets,
+  ]);
+
+  const report: SemanticDoctorReport = {
     nodes: graph.nodes.length,
     edges: graph.edges.length,
     by_state,
     awaiting_relation: by_state["AWAITING_RELATION"] ?? 0,
-    duplicate_semantic_ids,
+    duplicate_semantic_ids: duplicate_ids.length,
+    duplicate_ids,
+    invalid_ids: diagnostics.invalid_ids,
+    missing_sources,
+    missing_targets,
+    unresolved_references,
+    invalid_implementations: diagnostics.invalid_implementations,
     dependency_cycles: cycles.cycles,
     conflicting_authority: conflicts.length,
-    unresolved_references,
     cycle_samples: cycles.samples,
     source_revision: graph.source_revision,
+    healthy: false,
   };
+
+  return { ...report, healthy: doctorIsHealthy(report) };
+}
+
+export function doctorIsHealthy(report: SemanticDoctorReport): boolean {
+  return (
+    report.duplicate_semantic_ids === 0 &&
+    report.invalid_ids.length === 0 &&
+    report.missing_sources.length === 0 &&
+    report.missing_targets.length === 0 &&
+    report.unresolved_references.length === 0 &&
+    report.invalid_implementations.length === 0 &&
+    report.dependency_cycles === 0 &&
+    report.conflicting_authority === 0
+  );
+}
+
+/** Nonzero when any graph integrity invariant is violated. */
+export function doctorExitCode(report: SemanticDoctorReport): number {
+  return doctorIsHealthy(report) ? 0 : 1;
 }

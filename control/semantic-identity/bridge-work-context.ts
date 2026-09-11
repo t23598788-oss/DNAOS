@@ -2,6 +2,9 @@
  * Bridge to existing #20/#21 engineering mechanisms.
  * Does NOT duplicate get_current_work_context / resolve_current_source /
  * lookup_code_references — calls them and attaches SemanticId when present.
+ *
+ * ONE BRIDGE RESULT = ONE WORK CORRELATION.
+ * When work_id is supplied, all three authorities resolve under that same work.
  */
 
 import {
@@ -33,22 +36,27 @@ export function bridgeWorkContextToSemantic(
   options: { work_id?: string; lookup_query?: string } = {},
 ): SemanticWorkBridgeResult {
   const work = getCurrentWorkContext(options.work_id);
+  // Correlate every downstream call to the same resolved work_id (not a second active session).
+  const correlatedWorkId = work.work_id ?? options.work_id ?? undefined;
+
   const capability_semantic_ids: SemanticId[] = [];
   for (const c of work.relevant_capabilities ?? []) {
     const id = canonicalizeSemanticId(c.capability_id);
     if (id) capability_semantic_ids.push(id);
   }
   const resolved = capability_semantic_ids.map((id) => resolveSemanticId(graph, id));
-  const current_source = resolveCurrentSource(work.work_id ?? undefined);
+  const current_source = resolveCurrentSource(correlatedWorkId);
   const code_refs = options.lookup_query
     ? lookupCodeReferences({
         query: options.lookup_query,
         include_historical: false,
+        work_id: correlatedWorkId,
       })
     : capability_semantic_ids[0]
       ? lookupCodeReferences({
           capability_id: capability_semantic_ids[0],
           include_historical: false,
+          work_id: correlatedWorkId,
         })
       : null;
 

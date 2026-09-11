@@ -63,7 +63,10 @@ export type SemanticInvariantError =
   | "DUPLICATE_CANONICAL_ID"
   | "DEPENDENCY_CYCLE"
   | "CONFLICTING_AUTHORITY"
-  | "INVALID_SEMANTIC_ID";
+  | "INVALID_SEMANTIC_ID"
+  | "MISSING_IMPLEMENTATION"
+  | "MISSING_EDGE_SOURCE"
+  | "MISSING_EDGE_TARGET";
 
 export interface SemanticSourceRef {
   readonly repositoryId: SemanticId;
@@ -134,17 +137,50 @@ export interface SemanticGraph {
   readonly authoritative: false;
 }
 
+/** Derived evidence from discovery — not a registry, not durable authority. */
+export interface SemanticDiagnostic {
+  readonly code: SemanticInvariantError;
+  readonly message: string;
+  readonly raw?: string;
+  readonly field?: string;
+  readonly relation?: SemanticRelation;
+  readonly descriptor_id?: string;
+  readonly edge_from?: string;
+  readonly edge_to?: string;
+  readonly path?: string;
+}
+
+export interface SemanticDiscoveryDiagnostics {
+  readonly duplicate_ids: readonly SemanticId[];
+  readonly invalid_ids: readonly SemanticDiagnostic[];
+  readonly missing_sources: readonly SemanticId[];
+  readonly missing_targets: readonly SemanticId[];
+  readonly unresolved_references: readonly SemanticId[];
+  readonly invalid_implementations: readonly SemanticDiagnostic[];
+}
+
+export interface SemanticDiscoveryResult {
+  readonly graph: SemanticGraph;
+  readonly diagnostics: SemanticDiscoveryDiagnostics;
+}
+
 export interface SemanticDoctorReport {
   readonly nodes: number;
   readonly edges: number;
   readonly by_state: Readonly<Record<string, number>>;
   readonly awaiting_relation: number;
   readonly duplicate_semantic_ids: number;
+  readonly duplicate_ids: readonly SemanticId[];
+  readonly invalid_ids: readonly SemanticDiagnostic[];
+  readonly missing_sources: readonly SemanticId[];
+  readonly missing_targets: readonly SemanticId[];
+  readonly unresolved_references: readonly SemanticId[];
+  readonly invalid_implementations: readonly SemanticDiagnostic[];
   readonly dependency_cycles: number;
   readonly conflicting_authority: number;
-  readonly unresolved_references: readonly SemanticId[];
   readonly cycle_samples: readonly string[];
   readonly source_revision: string | null;
+  readonly healthy: boolean;
 }
 
 export interface ParsedSemanticId {

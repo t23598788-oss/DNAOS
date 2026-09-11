@@ -11,9 +11,9 @@
  *   npx tsx control/semantic-identity/cli.ts doctor
  */
 
-import { discoverSemanticGraph } from "./discover";
+import { discoverSemantic } from "./discover";
 import { projectResolveThai } from "./project-th";
-import { doctorSemanticGraph, resolveSemanticId } from "./resolve";
+import { doctorDiscovery, doctorExitCode, resolveSemanticId } from "./resolve";
 
 const [, , cmd, idArg] = process.argv;
 
@@ -34,10 +34,11 @@ if (!cmd || !COMMANDS.has(cmd) || (cmd !== "doctor" && !idArg)) {
   process.exit(2);
 }
 
-const graph = discoverSemanticGraph();
+const discovery = discoverSemantic();
+const graph = discovery.graph;
 
 if (cmd === "doctor") {
-  const report = doctorSemanticGraph(graph);
+  const report = doctorDiscovery(discovery);
   console.log("SEMANTIC GRAPH");
   console.log(`nodes: ${report.nodes}`);
   console.log(`edges: ${report.edges}`);
@@ -46,14 +47,27 @@ if (cmd === "doctor") {
   }
   console.log(`awaiting relation: ${report.awaiting_relation}`);
   console.log(`duplicate semantic IDs: ${report.duplicate_semantic_ids}`);
+  console.log(`invalid semantic IDs: ${report.invalid_ids.length}`);
+  console.log(`missing sources: ${report.missing_sources.length}`);
+  console.log(`missing targets: ${report.missing_targets.length}`);
+  console.log(`unresolved references: ${report.unresolved_references.length}`);
+  console.log(`invalid implementations: ${report.invalid_implementations.length}`);
   console.log(`dependency cycles: ${report.dependency_cycles}`);
   console.log(`conflicting authority: ${report.conflicting_authority}`);
+  console.log(`healthy: ${report.healthy ? "yes" : "no"}`);
+  if (report.duplicate_ids.length > 0) {
+    console.log(`duplicate_ids: ${report.duplicate_ids.join(", ")}`);
+  }
+  if (report.unresolved_references.length > 0) {
+    console.log(`unresolved_references: ${report.unresolved_references.join(", ")}`);
+  }
+  if (report.invalid_ids.length > 0) {
+    for (const d of report.invalid_ids) {
+      console.log(`invalid_id: ${d.raw ?? ""} field=${d.field ?? ""} code=${d.code}`);
+    }
+  }
   if (report.source_revision) console.log(`revision: ${report.source_revision}`);
-  process.exit(
-    report.duplicate_semantic_ids || report.dependency_cycles || report.conflicting_authority
-      ? 1
-      : 0,
-  );
+  process.exit(doctorExitCode(report));
 }
 
 const result = resolveSemanticId(graph, idArg!);
@@ -95,4 +109,4 @@ if (cmd === "resolve") {
   );
 }
 
-process.exit(result.status === "IDENTITY_MATCHED" || cmd === "doctor" ? 0 : 1);
+process.exit(result.status === "IDENTITY_MATCHED" ? 0 : 1);
