@@ -343,13 +343,11 @@ export function discoverSemantic(options: DiscoverOptions = {}): SemanticDiscove
       const outgoing = edgeList.filter((e) => e.from === node.id);
       const incoming = edgeList.filter((e) => e.to === node.id);
       let state: SemanticLifecycleState = node.declaredCanonical ? "CANONICAL" : "IDENTIFIED";
-      if (implementationBroken.has(node.id) && node.implementation) {
+      if (implementationBroken.has(node.id) && !node.declaredCanonical) {
         state = "IDENTIFIED";
       }
-      if (outgoing.length + incoming.length > 0) {
-        if (state === "IDENTIFIED" || state === "DISCOVERED" || state === "CLASSIFIED") {
-          state = "LINKED";
-        }
+      if (outgoing.length + incoming.length > 0 && state === "IDENTIFIED") {
+        state = "LINKED";
       }
 
       const neighborAwaiting = [...outgoing, ...incoming].some((e) => {

@@ -92,7 +92,7 @@ export function projectResolveThai(result: SemanticResolveResult): string {
     result.current_state === "VERIFIED" ||
     result.current_state === "PROVEN" ||
     result.current_state === "CANONICAL";
-  if (result.tests.length && proofOk && result.current_state !== "AWAITING_RELATION") {
+  if (result.tests.length && proofOk) {
     lines.push("  ✓ ผลทดสอบยืนยันแล้ว (VERIFIED_BY)");
   }
   if (result.evidence.length && (result.current_state === "PROVEN" || result.current_state === "CANONICAL")) {
