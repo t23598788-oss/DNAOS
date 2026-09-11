@@ -8,9 +8,10 @@ meta:
   destination_source: governance/architecture-rules/runtime-v1/source/destination-self-hosted.docx
   placement_source: governance/architecture-rules/runtime-v1/source/placement-audit.docx
   branch: control/google-owner-remote-binding-policy-v1
-  head: bf1658a3e52af223ecc0e832ffe62e6211c7b156
+  head: c41db795b0f0dccf376754c1ad4b2ff984c542f2
   origin_main: f2dddba17dad66a2ae31511c42d1332ed3c12f54
   working_tree_has_uncommitted_step_1_to_8: false
+  step8_canonical: true
   audited_at: "2026-09-11"
   step7_status: VERIFIED
   step7_validation_note: >
@@ -22,12 +23,14 @@ meta:
     (linux-live harness/test files added). Do not merge aborted-job totals.
     Remaining Step 7 suite results are from later independent runs, not the aborted batch.
     Do not merge aborted-job totals.
-  step8_status: PROVEN
+  step8_status: CANONICAL
+  step8_proof_status: PROVEN
   step8_validation_note: >
-    Live Debian 12 (node:22-bookworm, aarch64, Node v22.23.2) ran
+    Clean Git worktree of c41db795b0f0dccf376754c1ad4b2ff984c542f2 reproduced
+    live Debian 12 (node:22-bookworm, aarch64, Node v22.23.2)
     npx tsx transport/owner-command-http/server.ts without RAILWAY_*/VERCEL_TOKEN.
     POST /command "ตรวจ permission" reached permission-reasoner; evaluateExecutionPermission
-    returned DENY UNKNOWN_COMMAND (decision_id recorded). Mac-only routes 503. SIGTERM_OK.
+    returned DENY UNKNOWN_COMMAND. Mac-only routes 503. SIGTERM_OK. core-node-macos-routes 17/17.
   status_vocabulary:
     - VERIFIED
     - PARTIAL
@@ -172,7 +175,7 @@ items:
       - contracts/architecture/own-machine-core-acceptance.test.ts
       - contracts/architecture/own-machine-core-linux-live.test.ts
     status: VERIFIED
-    next_action: PROVEN not CANONICAL; do not start Postgres/jobs/releases
+    next_action: CANONICAL; proof remains PROVEN; do not start Postgres/jobs/releases
 
   - runtime_v1_item: WT_CORE_NODE_SYMBOLS
     destination_requirement: CORE_NODE / MAC_LOCAL_AGENT vocabulary

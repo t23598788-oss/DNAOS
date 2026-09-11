@@ -9,9 +9,9 @@
 | Destination source | `source/destination-self-hosted.docx` — DNA OS Runtime V1 — แบบสถาปัตยกรรม Self-Hosted ที่ให้ผู้ให้บริการเหลือแค่เครื่องรัน |
 | Placement/audit source | `source/placement-audit.docx` — DNA OS Runtime V1 — Audit จากรีโปจริงและแบบสถาปัตยกรรมปลายทาง |
 | Branch inspected | `control/google-owner-remote-binding-policy-v1` |
-| HEAD | `bf1658a3e52af223ecc0e832ffe62e6211c7b156` |
+| HEAD | `c41db795b0f0dccf376754c1ad4b2ff984c542f2` (Step 8 source SHA; this file’s CANONICAL stamp is the following status commit) |
 | origin/main | `f2dddba17dad66a2ae31511c42d1332ed3c12f54` |
-| Working tree | Steps 1–8 source committed on this branch; runtime JSONL may still be dirty |
+| Working tree | Steps 1–8 source committed; runtime JSONL and UNKNOWN write-gate files remain unstaged |
 | Audited | 2026-09-11 |
 | Status vocabulary | `VERIFIED` `PARTIAL` `MISSING` `CONFLICT` `RETIRE_CANDIDATE` `DEFERRED` |
 
@@ -285,7 +285,7 @@ Independent Step-7 suites (working-tree esbuild/CJS, cwd = repo root):
 | Suite | Result | Provenance |
 |---|---|---|
 | runtime-endpoint-registry | 14/14 PASS | independent run; also the only aborted-job figure allowed |
-| portability-domain-guard | PASS, 1056 files | independent 2026-09-11 (1054 before Step-8 files; 1056 after adding own-machine-core) |
+| portability-domain-guard | PASS, 1057 files | independent 2026-09-11 (1054 before Step-8 files; 1057 after linux-live harness/test) |
 | caller-migration | 15/15 PASS | independent |
 | cross-repo HTTP freeze | 15/15 PASS | independent |
 | runtime-node | 22/22 PASS | independent |
@@ -294,21 +294,21 @@ Independent Step-7 suites (working-tree esbuild/CJS, cwd = repo root):
 | checkout-portability | 6/6 PASS | independent |
 | network-auth-gate | 11/11 PASS | independent |
 | dna-dev-app-host | 10 PASS / 4 FAIL | independent; C0–D3 require built `DNA DEV.app` launcher, not remaining coupling |
-| core-node-macos-routes / owner-command | BUILD_FAIL | esbuild EPERM on write-gate `schg` — not unlocked |
+| core-node-macos-routes | 17/17 PASS | Linux `npx tsx` on clean Step-8 SHA; host esbuild remains EPERM on write-gate `schg` |
 | `tsc --noEmit` | 5× TS6053 | known protected write-gate files |
 
 Railway adapter mutation/live tests are optional-provider; not merged into the Step-7 total. Deadboard / Control Workspace HTTP contracts unchanged (read-only sibling freeze).
 
-### Step 8 — RAILWAY_OFF_CRITICAL_PATH / Own-Machine Core — **PROVEN** (not CANONICAL)
+### Step 8 — RAILWAY_OFF_CRITICAL_PATH / Own-Machine Core — **CANONICAL** (proof status remains **PROVEN**)
 
-Live generic-Linux process of current `transport/owner-command-http/server.ts` (not a replacement HTTP server).
+Live generic-Linux process of current `transport/owner-command-http/server.ts` (not a replacement HTTP server). Reproduced from a Git worktree of SHA `c41db795b0f0dccf376754c1ad4b2ff984c542f2` (not the dirty original workspace).
 
 | Field | Evidence |
 |---|---|
 | Image | `node:22-bookworm` (Debian 12) |
 | Kernel | Linux 6.12.76-linuxkit aarch64 |
 | Node | v22.23.2 |
-| Commit | `bf1658a3e52af223ecc0e832ffe62e6211c7b156` |
+| Commit | `c41db795b0f0dccf376754c1ad4b2ff984c542f2` |
 | Command | `npx tsx transport/owner-command-http/server.ts` |
 | CWD | `/work` (repository checkout) |
 | Env supplied | `OWNER_COMMAND_HTTP_SHARED_SECRET`, `HOST=127.0.0.1`, `PORT=8791` |
@@ -340,9 +340,13 @@ This-session Linux independent suites (do not merge aborted full-repo scan):
 | checkout-portability | 6/6 PASS |
 | network-auth-gate | 11/11 PASS |
 | own-machine-core-acceptance | 10/10 PASS |
-| own-machine-core-linux-live.test.ts | evidence assertions (host) |
+| own-machine-core-linux-live.test.ts | 29/29 PASS (host evidence vs clean-SHA live dir) |
+| owner-language-connector-forward | 13/13 PASS |
+| command-router | 9/9 PASS |
+| core-node-macos-routes | 17/17 PASS |
+| owner-authentication | 12/12 PASS |
 
-**Not CANONICAL.** Later destination work remains deferred.
+**CANONICAL.** Proof status remains PROVEN. Later destination work remains deferred.
 
 **Acceptance:** composition harness remains. Live proof: `own-machine-core-linux-live.sh` + `own-machine-core-linux-live.test.ts`.
 
@@ -360,4 +364,4 @@ This-session Linux independent suites (do not merge aborted full-repo scan):
 
 ## Confirmation
 
-This document set records Step 7 COMPLETE and Step 8 PROVEN (not CANONICAL). It does not start Postgres authority, durable jobs, immutable releases, DNA Git, cgroup workers, HA, or region. Public Core HTTP paths (`POST /command`, `GET /owner/console`, `GET /task/:id`, `/runtime/inventory`, `/handoffs`) remain. GitHub stays SOURCE_AUTHORITY. Supabase stays DATA_SERVICE. Write-gate OWNER_LOCKED files were not unlocked.
+This document set records Step 7 COMPLETE and Step 8 CANONICAL (proof remains PROVEN). It does not start Postgres authority, durable jobs, immutable releases, DNA Git, cgroup workers, HA, or region. Public Core HTTP paths (`POST /command`, `GET /owner/console`, `GET /task/:id`, `/runtime/inventory`, `/handoffs`) remain. GitHub stays SOURCE_AUTHORITY. Supabase stays DATA_SERVICE. Write-gate OWNER_LOCKED files were not unlocked.
