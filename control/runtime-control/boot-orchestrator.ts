@@ -337,7 +337,10 @@ export async function bootAll(options: { only?: readonly ServiceId[]; deps?: Boo
   const bootId = newOperationId();
   const startedAt = d.now();
   const { order } = resolveStartOrder();
-  const targets = options.only ? order.filter((id) => options.only!.includes(id)) : order;
+  const launchdOrder = order.filter((id) => SERVICES[id].launchd_job !== "not_installed");
+  const targets = options.only
+    ? launchdOrder.filter((id) => options.only!.includes(id))
+    : launchdOrder;
 
   const results: ServiceBootResult[] = [];
   const readyIds = new Set<ServiceId>();
