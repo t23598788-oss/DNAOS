@@ -56,7 +56,7 @@ export function resolveSemanticId(graph: SemanticGraph, rawId: string): Semantic
     return unresolved(null, graph.source_revision);
   }
   const node = graph.nodes.find((n) => n.id === id);
-  if (!node) {
+  if (!node || node.synthetic) {
     return unresolved(id, graph.source_revision);
   }
   const ownerNode = node.ownerRepository

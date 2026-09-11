@@ -20,6 +20,8 @@ export interface SemanticWorkBridgeResult {
   readonly work_id: string | null;
   readonly source_revision: string | null;
   readonly capability_semantic_ids: readonly SemanticId[];
+  /** Registry keys that are not SemanticId-shaped (visible; not silently mapped). */
+  readonly unmapped_registry_capability_ids: readonly string[];
   readonly resolved: readonly ReturnType<typeof resolveSemanticId>[];
   readonly current_source: ReturnType<typeof resolveCurrentSource>;
   readonly code_refs: ReturnType<typeof lookupCodeReferences> | null;
@@ -30,19 +32,23 @@ export interface SemanticWorkBridgeResult {
  * Pipeline:
  * getCurrentWorkContext → semantic capability IDs → graph resolve
  * → resolveCurrentSource → lookupCodeReferences
+ *
+ * Registry capability keys are NOT auto-invented into SemanticIds (no second map-registry).
+ * Only already-canonical SemanticId strings are attached.
  */
 export function bridgeWorkContextToSemantic(
   graph: SemanticGraph,
   options: { work_id?: string; lookup_query?: string } = {},
 ): SemanticWorkBridgeResult {
   const work = getCurrentWorkContext(options.work_id);
-  // Correlate every downstream call to the same resolved work_id (not a second active session).
   const correlatedWorkId = work.work_id ?? options.work_id ?? undefined;
 
   const capability_semantic_ids: SemanticId[] = [];
+  const unmapped_registry_capability_ids: string[] = [];
   for (const c of work.relevant_capabilities ?? []) {
     const id = canonicalizeSemanticId(c.capability_id);
     if (id) capability_semantic_ids.push(id);
+    else if (c.capability_id) unmapped_registry_capability_ids.push(c.capability_id);
   }
   const resolved = capability_semantic_ids.map((id) => resolveSemanticId(graph, id));
   const current_source = resolveCurrentSource(correlatedWorkId);
@@ -64,6 +70,7 @@ export function bridgeWorkContextToSemantic(
     work_id: work.work_id,
     source_revision: work.git.source_revision,
     capability_semantic_ids,
+    unmapped_registry_capability_ids,
     resolved,
     current_source,
     code_refs,

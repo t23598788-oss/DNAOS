@@ -117,6 +117,8 @@ export interface SemanticNode {
   readonly ownerRepository: SemanticId | null;
   readonly implementation: SemanticImplementationRef | null;
   readonly declaredCanonical: boolean;
+  /** True only for discovery placeholders (missing edge endpoints). */
+  readonly synthetic: boolean;
   readonly state: SemanticLifecycleState;
   readonly source: SemanticSourceRef;
 }

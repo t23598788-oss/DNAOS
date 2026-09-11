@@ -912,6 +912,48 @@ const base = discovery.graph;
   );
 }
 
+// T3 tip-3 regressions
+{
+  const g = discoverSemantic({
+    root: ROOT,
+    skipPathCheck: true,
+    commitSha: "t3-ph",
+    extraDescriptors: [
+      {
+        id: "capability://pilot/t3-placeholder",
+        kind: "capability",
+        dependsOn: ["capability://missing/t3-ph"],
+      },
+    ],
+  });
+  const r = resolveSemanticId(g.graph, "capability://missing/t3-ph");
+  neg("T3 placeholder resolve is UNRESOLVED", r.status === "UNRESOLVED");
+
+  const dupEdges = discoverSemantic({
+    root: ROOT,
+    skipPathCheck: true,
+    commitSha: "t3-dedupe",
+    extraDescriptors: [
+      {
+        id: "capability://pilot/t3-dedupe",
+        kind: "capability",
+        ownerRepository: INFRA_REPO_ID,
+        verifiedBy: ["test://runtime/endpoint-registry", "test://runtime/endpoint-registry"],
+      },
+    ],
+  });
+  const vCount = dupEdges.graph.edges.filter(
+    (e) => e.from === "capability://pilot/t3-dedupe" && e.relation === "VERIFIED_BY",
+  ).length;
+  neg("T3 duplicate relations deduped", vCount === 1);
+
+  const edge = base.edges.find((e) => e.relation === "DEPENDS_ON");
+  neg(
+    "T3 edge provenance points at descriptor file",
+    Boolean(edge?.source.path.includes("pilot-descriptors.ts")),
+  );
+}
+
 // Pilot stability after integrity model
 {
   const doc = doctorDiscovery(discovery);

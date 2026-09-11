@@ -7,11 +7,11 @@
  */
 
 import { execFileSync } from "node:child_process";
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { canonicalizeSemanticId, kindOf } from "./id";
 import { semanticKey } from "./key";
-import { PILOT_DESCRIPTORS, INFRA_REPO_ID } from "./pilot-descriptors";
+import { PILOT_DESCRIPTORS, INFRA_REPO_ID, PILOT_DESCRIPTOR_SOURCE } from "./pilot-descriptors";
 import type {
   SemanticDescriptor,
   SemanticDiagnostic,
@@ -60,6 +60,25 @@ function gitSha(root: string): string | null {
   }
 }
 
+function gitDirty(root: string): boolean {
+  try {
+    const out = execFileSync("git", ["status", "--porcelain"], { cwd: root, encoding: "utf8" });
+    return out.trim().length > 0;
+  } catch {
+    return false;
+  }
+}
+
+function symbolPresent(root: string, path: string, symbol: string | undefined): boolean {
+  if (!symbol) return true;
+  try {
+    const text = readFileSync(join(root, path), "utf8");
+    return text.includes(symbol);
+  } catch {
+    return false;
+  }
+}
+
 function emptyDiagnostics(): SemanticDiscoveryDiagnostics {
   return {
     duplicate_ids: [],
@@ -88,6 +107,19 @@ function sourceFor(
   };
 }
 
+function descriptorEdgeSource(
+  d: SemanticDescriptor,
+  commitSha: string | null,
+  ownerRepository: SemanticId | null,
+): SemanticSourceRef {
+  return {
+    repositoryId: ownerRepository ?? INFRA_REPO_ID,
+    commitSha,
+    path: PILOT_DESCRIPTOR_SOURCE.path,
+    symbol: PILOT_DESCRIPTOR_SOURCE.symbol,
+  };
+}
+
 function baseState(d: SemanticDescriptor, pathOk: boolean): SemanticLifecycleState {
   // Declared implementation that failed validation stays IDENTIFIED — not RESOLVED.
   if (!pathOk && d.implementation) return "IDENTIFIED";
@@ -106,6 +138,7 @@ function placeholderNode(id: SemanticId, source: SemanticSourceRef): SemanticNod
     ownerRepository: null,
     implementation: null,
     declaredCanonical: false,
+    synthetic: true,
     state: "AWAITING_RELATION",
     source,
   };
@@ -120,7 +153,12 @@ function uniqueSorted(ids: readonly string[]): string[] {
  */
 export function discoverSemantic(options: DiscoverOptions = {}): SemanticDiscoveryResult {
   const root = options.root ?? process.cwd();
-  const commitSha = options.commitSha !== undefined ? options.commitSha : gitSha(root);
+  const headSha = options.commitSha !== undefined ? options.commitSha : gitSha(root);
+  const dirty = options.commitSha !== undefined ? false : gitDirty(root);
+  const commitSha = dirty && headSha ? `${headSha}+dirty` : headSha;
+  if (dirty && options.commitSha === undefined) {
+    // Dirty trees are labeled; graph is not claimed reproducible from clean HEAD alone.
+  }
   const descriptors = [...PILOT_DESCRIPTORS, ...(options.extraDescriptors ?? [])];
 
   const nodeMap = new Map<SemanticId, SemanticNode>();
@@ -174,6 +212,7 @@ export function discoverSemantic(options: DiscoverOptions = {}): SemanticDiscove
     }
 
     const source = sourceFor(d, commitSha, "control/semantic-identity/pilot-descriptors.ts", ownerRepository);
+    const edgeSource = descriptorEdgeSource(d, commitSha, ownerRepository);
 
     // Duplicate declaration: keep first node, but retain alternate OWNS for authority conflict diagnosis.
     if (nodeMap.has(id) && declaredNodes.has(id)) {
@@ -183,7 +222,7 @@ export function discoverSemantic(options: DiscoverOptions = {}): SemanticDiscove
           from: ownerRepository,
           relation: "OWNS",
           to: id,
-          source,
+          source: edgeSource,
         });
       }
       continue;
@@ -221,8 +260,24 @@ export function discoverSemantic(options: DiscoverOptions = {}): SemanticDiscove
       options.skipPathCheck ||
       !implRef ||
       existsSync(join(root, implRef.path));
-    if (implRef && pathOk) {
+    const symbolOk =
+      options.skipPathCheck ||
+      !implRef ||
+      !implRef.symbol ||
+      symbolPresent(root, implRef.path, implRef.symbol);
+    if (implRef && pathOk && symbolOk) {
       implementationResolved.add(id);
+    }
+    if (implRef && pathOk && !symbolOk) {
+      implementationBroken.add(id);
+      invalidImplementations.push({
+        code: "MISSING_IMPLEMENTATION",
+        message: "implementation path exists but declared symbol was not found",
+        descriptor_id: id,
+        path: implRef.path,
+        field: "implementation.symbol",
+        raw: implRef.symbol,
+      });
     }
     if (implRef && !pathOk) {
       implementationBroken.add(id);
@@ -235,7 +290,10 @@ export function discoverSemantic(options: DiscoverOptions = {}): SemanticDiscove
       });
     }
 
-    const state = baseState({ ...d, implementation: implRef ?? undefined }, pathOk && !implementationBroken.has(id));
+    const state = baseState(
+      { ...d, implementation: implRef ?? undefined },
+      pathOk && symbolOk && !implementationBroken.has(id),
+    );
 
     nodeMap.set(id, {
       id,
@@ -245,6 +303,7 @@ export function discoverSemantic(options: DiscoverOptions = {}): SemanticDiscove
       ownerRepository,
       implementation: implRef,
       declaredCanonical: Boolean(d.declaredCanonical),
+      synthetic: false,
       state,
       source,
     });
@@ -255,7 +314,7 @@ export function discoverSemantic(options: DiscoverOptions = {}): SemanticDiscove
         from: ownerRepository,
         relation: "OWNS",
         to: id,
-        source,
+        source: edgeSource,
       });
     }
 
@@ -275,7 +334,7 @@ export function discoverSemantic(options: DiscoverOptions = {}): SemanticDiscove
           });
           continue;
         }
-        edges.push({ from: id, relation, to, source });
+        edges.push({ from: id, relation, to, source: edgeSource });
       }
     }
   }
@@ -326,7 +385,7 @@ export function discoverSemantic(options: DiscoverOptions = {}): SemanticDiscove
     }
   }
 
-  const edgeList = [...edges].sort(compareEdge);
+  const edgeList = dedupeEdges([...edges].sort(compareEdge));
 
   // Fixed-point lifecycle: propagate AWAITING through neighbors before promoting RESOLVED.
   let changed = true;
@@ -420,6 +479,18 @@ function compareEdge(a: SemanticEdge, b: SemanticEdge): number {
     a.to.localeCompare(b.to) ||
     a.source.path.localeCompare(b.source.path)
   );
+}
+
+function dedupeEdges(edges: readonly SemanticEdge[]): SemanticEdge[] {
+  const seen = new Set<string>();
+  const out: SemanticEdge[] = [];
+  for (const e of edges) {
+    const key = `${e.from}\0${e.relation}\0${e.to}\0${e.source.path}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(e);
+  }
+  return out;
 }
 
 export function graphFingerprint(graph: SemanticGraph): string {
