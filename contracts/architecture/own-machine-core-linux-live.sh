@@ -156,40 +156,29 @@ ss -ltn 2>/dev/null | grep ":${PORT}" > /evidence/port-after.txt || true
 pgrep -P "$SERVER_PID" > /evidence/children-after.txt 2>/dev/null || true
 printf 'exit_waited_s=%s\n' "$waited" >> /evidence/shutdown.txt
 
-run_esbuild_test() {
+# Run suites via tsx (not esbuild bundle): preserves source __dirname / import.meta
+# paths and returns the real suite exit code into evidence + harness status.
+run_suite_test() {
   local suite="$1"
   local entry="$2"
-  local out="/tmp/${suite}.cjs"
   local status=0
   set +e
-  ./node_modules/.bin/esbuild "$entry" --bundle --platform=node --format=cjs --outfile="$out" --log-level=error
+  ./node_modules/.bin/tsx "$entry" > "/evidence/${suite}.log" 2>&1
   status=$?
-  if [[ $status -ne 0 ]]; then
-    echo BUILD_FAIL > "/evidence/${suite}.exit"
-    echo "BUILD_FAIL $suite" | tee "/evidence/${suite}.log"
-    set -e
-    return "$status"
-  fi
-  # Preserve node exit (not tee): pipefail + PIPESTATUS[0]
-  set -o pipefail
-  node "$out" | tee "/evidence/${suite}.log"
-  status=${PIPESTATUS[0]:-$?}
-  set +o pipefail
   echo "$status" > "/evidence/${suite}.exit"
-  rm -f "$out"
   set -e
   return "$status"
 }
 SUITE_FAIL=0
-run_esbuild_test runtime-endpoint-registry control/runtime-endpoint-registry/tests/runtime-endpoint-registry.test.ts || SUITE_FAIL=1
-run_esbuild_test caller-migration control/runtime-endpoint-registry/tests/caller-migration.test.ts || SUITE_FAIL=1
-run_esbuild_test portability-domain-guard control/runtime-endpoint-registry/tests/portability-domain-guard.test.ts || SUITE_FAIL=1
-run_esbuild_test runtime-node contracts/architecture/runtime-node-and-optional-provider.test.ts || SUITE_FAIL=1
-run_esbuild_test portable-supervisor control/runtime-control/tests/portable-supervisor.test.ts || SUITE_FAIL=1
-run_esbuild_test secret-resolver credentials/secret-resolver/tests/core-node-secret-resolver.test.ts || SUITE_FAIL=1
-run_esbuild_test checkout-portability software/repository-registry/tests/checkout-portability.test.ts || SUITE_FAIL=1
-run_esbuild_test network-auth-gate permissions/network-auth-gate/tests/policy.test.ts || SUITE_FAIL=1
-run_esbuild_test own-machine-core-acceptance contracts/architecture/own-machine-core-acceptance.test.ts || SUITE_FAIL=1
+run_suite_test runtime-endpoint-registry control/runtime-endpoint-registry/tests/runtime-endpoint-registry.test.ts || SUITE_FAIL=1
+run_suite_test caller-migration control/runtime-endpoint-registry/tests/caller-migration.test.ts || SUITE_FAIL=1
+run_suite_test portability-domain-guard control/runtime-endpoint-registry/tests/portability-domain-guard.test.ts || SUITE_FAIL=1
+run_suite_test runtime-node contracts/architecture/runtime-node-and-optional-provider.test.ts || SUITE_FAIL=1
+run_suite_test portable-supervisor control/runtime-control/tests/portable-supervisor.test.ts || SUITE_FAIL=1
+run_suite_test secret-resolver credentials/secret-resolver/tests/core-node-secret-resolver.test.ts || SUITE_FAIL=1
+run_suite_test checkout-portability software/repository-registry/tests/checkout-portability.test.ts || SUITE_FAIL=1
+run_suite_test network-auth-gate permissions/network-auth-gate/tests/policy.test.ts || SUITE_FAIL=1
+run_suite_test own-machine-core-acceptance contracts/architecture/own-machine-core-acceptance.test.ts || SUITE_FAIL=1
 if [[ "$SUITE_FAIL" != 0 ]]; then
   echo SUITE_FAIL > /evidence/suite-aggregate.txt
   exit 1

@@ -27,12 +27,12 @@
  */
 
 import { execFileSync } from "node:child_process";
-import { existsSync, mkdirSync, appendFileSync } from "node:fs";
+import { existsSync, mkdirSync, appendFileSync, readdirSync, readFileSync, readlinkSync } from "node:fs";
 import { get as httpGet } from "node:http";
 import { join } from "node:path";
 import { randomUUID } from "node:crypto";
 import { userInfo } from "node:os";
-import { CORE_PROCESS_ENV_BINDINGS } from "../../credentials/process-environment";
+import { CORE_PROCESS_ENV_BINDINGS } from "../../credentials/process-environment/mapping";
 import type { ServiceDefinition, ServiceId, LaunchdState, HealthCheckResult, OperationEvidence } from "./types";
 
 const HOME = userInfo().homedir;
@@ -296,16 +296,88 @@ export function launchctlKickstart(label: string, force = true): { ok: boolean; 
   }
 }
 
-/** Real listening-socket owners for a port, via `lsof` — independent of whatever launchd believes; this is what makes health/duplicate detection a separate fact from launchd state, per the Owner's explicit rule. */
+/** Real listening-socket owners for a port — independent of launchd claims. */
 export function getListeningPids(port: number): number[] {
   try {
     const out = execFileSync("lsof", ["-tiTCP:" + port, "-sTCP:LISTEN"], { encoding: "utf8" });
-    return out
+    const pids = out
       .split("\n")
       .map((s) => s.trim())
       .filter(Boolean)
       .map((s) => Number.parseInt(s, 10))
       .filter((n) => Number.isFinite(n));
+    if (pids.length > 0) return [...new Set(pids)];
+  } catch {
+    // fall through
+  }
+  try {
+    const out = execFileSync("ss", ["-ltnp"], { encoding: "utf8" });
+    const needle = `:${port} `;
+    const pids: number[] = [];
+    for (const line of out.split("\n")) {
+      if (!line.includes(needle) && !line.includes(`:${port}\n`)) {
+        // also match end of local address column
+        if (!new RegExp(`:${port}\\s`).test(line)) continue;
+      }
+      if (!new RegExp(`:${port}(\\s|$)`).test(line)) continue;
+      for (const m of line.matchAll(/pid=(\d+)/g)) {
+        const n = Number.parseInt(m[1]!, 10);
+        if (Number.isFinite(n)) pids.push(n);
+      }
+    }
+    if (pids.length > 0) return [...new Set(pids)];
+  } catch {
+    // fall through
+  }
+  return getListeningPidsFromProc(port);
+}
+
+/** Linux /proc fallback when lsof/ss are unavailable (minimal Core images). */
+function getListeningPidsFromProc(port: number): number[] {
+  try {
+    if (!existsSync("/proc/net/tcp")) return [];
+    const portHex = port.toString(16).padStart(4, "0").toLowerCase();
+    const inodes = new Set<string>();
+    for (const table of ["/proc/net/tcp", "/proc/net/tcp6"]) {
+      if (!existsSync(table)) continue;
+      const body = readFileSync(table, "utf8");
+      for (const line of body.split("\n").slice(1)) {
+        const parts = line.trim().split(/\s+/);
+        if (parts.length < 10) continue;
+        const local = parts[1] ?? "";
+        const state = parts[3] ?? "";
+        if (state !== "0A") continue; // LISTEN
+        const localPort = local.split(":")[1]?.toLowerCase();
+        if (localPort !== portHex) continue;
+        inodes.add(parts[9]!);
+      }
+    }
+    if (inodes.size === 0) return [];
+    const pids: number[] = [];
+    for (const ent of readdirSync("/proc")) {
+      if (!/^\d+$/.test(ent)) continue;
+      const fdDir = `/proc/${ent}/fd`;
+      if (!existsSync(fdDir)) continue;
+      let fds: string[];
+      try {
+        fds = readdirSync(fdDir);
+      } catch {
+        continue;
+      }
+      for (const fd of fds) {
+        try {
+          const target = readlinkSync(join(fdDir, fd));
+          const m = /^socket:\[(\d+)\]$/.exec(target);
+          if (m && inodes.has(m[1]!)) {
+            pids.push(Number.parseInt(ent, 10));
+            break;
+          }
+        } catch {
+          // ignore
+        }
+      }
+    }
+    return [...new Set(pids.filter((n) => Number.isFinite(n)))];
   } catch {
     return [];
   }
