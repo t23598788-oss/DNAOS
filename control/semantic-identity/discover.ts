@@ -124,11 +124,14 @@ export function discoverSemantic(options: DiscoverOptions = {}): SemanticDiscove
   const descriptors = [...PILOT_DESCRIPTORS, ...(options.extraDescriptors ?? [])];
 
   const nodeMap = new Map<SemanticId, SemanticNode>();
+  const declaredNodes = new Set<SemanticId>();
+  const placeholderIds = new Set<SemanticId>();
   const edges: SemanticEdge[] = [];
   const duplicateIds: SemanticId[] = [];
   const invalidIds: SemanticDiagnostic[] = [];
   const invalidImplementations: SemanticDiagnostic[] = [];
   const implementationResolved = new Set<SemanticId>();
+  const implementationBroken = new Set<SemanticId>();
 
   for (const d of descriptors) {
     const id = canonicalizeSemanticId(String(d.id));
@@ -153,10 +156,6 @@ export function discoverSemantic(options: DiscoverOptions = {}): SemanticDiscove
       });
       continue;
     }
-    if (nodeMap.has(id)) {
-      duplicateIds.push(id);
-      continue;
-    }
 
     let ownerRepository: SemanticId | null = null;
     if (d.ownerRepository) {
@@ -174,6 +173,22 @@ export function discoverSemantic(options: DiscoverOptions = {}): SemanticDiscove
       }
     }
 
+    const source = sourceFor(d, commitSha, "control/semantic-identity/pilot-descriptors.ts", ownerRepository);
+
+    // Duplicate declaration: keep first node, but retain alternate OWNS for authority conflict diagnosis.
+    if (nodeMap.has(id) && declaredNodes.has(id)) {
+      duplicateIds.push(id);
+      if (ownerRepository) {
+        edges.push({
+          from: ownerRepository,
+          relation: "OWNS",
+          to: id,
+          source,
+        });
+      }
+      continue;
+    }
+
     let implRef = null as SemanticNode["implementation"];
     if (d.implementation) {
       const repoId = canonicalizeSemanticId(String(d.implementation.repositoryId));
@@ -185,6 +200,14 @@ export function discoverSemantic(options: DiscoverOptions = {}): SemanticDiscove
           field: "implementation.repositoryId",
           descriptor_id: id,
         });
+        implementationBroken.add(id);
+        invalidImplementations.push({
+          code: "MISSING_IMPLEMENTATION",
+          message: "implementation declared but repositoryId is invalid",
+          descriptor_id: id,
+          raw: String(d.implementation.repositoryId),
+          field: "implementation.repositoryId",
+        });
       } else {
         implRef = {
           repositoryId: repoId,
@@ -194,7 +217,6 @@ export function discoverSemantic(options: DiscoverOptions = {}): SemanticDiscove
       }
     }
 
-    const source = sourceFor(d, commitSha, "control/semantic-identity/pilot-descriptors.ts", ownerRepository);
     const pathOk =
       options.skipPathCheck ||
       !implRef ||
@@ -203,6 +225,7 @@ export function discoverSemantic(options: DiscoverOptions = {}): SemanticDiscove
       implementationResolved.add(id);
     }
     if (implRef && !pathOk) {
+      implementationBroken.add(id);
       invalidImplementations.push({
         code: "MISSING_IMPLEMENTATION",
         message: "implementation declared but path does not exist",
@@ -212,7 +235,7 @@ export function discoverSemantic(options: DiscoverOptions = {}): SemanticDiscove
       });
     }
 
-    let state = baseState({ ...d, implementation: implRef ?? undefined }, pathOk);
+    const state = baseState({ ...d, implementation: implRef ?? undefined }, pathOk && !implementationBroken.has(id));
 
     nodeMap.set(id, {
       id,
@@ -225,8 +248,8 @@ export function discoverSemantic(options: DiscoverOptions = {}): SemanticDiscove
       state,
       source,
     });
+    declaredNodes.add(id);
 
-    // OWNS edge from owner → capability (only when owner id is canonical)
     if (ownerRepository) {
       edges.push({
         from: ownerRepository,
@@ -257,75 +280,105 @@ export function discoverSemantic(options: DiscoverOptions = {}): SemanticDiscove
     }
   }
 
-  // BOTH endpoints must exist: placeholder for missing source and/or target.
+  // Classify missing endpoints against descriptor-backed nodes (not placeholder-mutated map).
   const missingSources: SemanticId[] = [];
   const missingTargets: SemanticId[] = [];
   for (const e of edges) {
-    if (!nodeMap.has(e.from)) {
-      const ph = placeholderNode(e.from, e.source);
-      if (ph) {
-        nodeMap.set(e.from, ph);
-        missingSources.push(e.from);
-      } else {
-        invalidIds.push({
-          code: "MISSING_EDGE_SOURCE",
-          message: "edge source is not a valid SemanticId and has no node",
-          raw: e.from,
-          edge_from: e.from,
-          edge_to: e.to,
-          relation: e.relation,
-        });
+    if (!declaredNodes.has(e.from)) {
+      missingSources.push(e.from);
+      if (!nodeMap.has(e.from)) {
+        const ph = placeholderNode(e.from, e.source);
+        if (ph) {
+          nodeMap.set(e.from, ph);
+          placeholderIds.add(e.from);
+        } else {
+          invalidIds.push({
+            code: "MISSING_EDGE_SOURCE",
+            message: "edge source is not a valid SemanticId and has no node",
+            raw: e.from,
+            edge_from: e.from,
+            edge_to: e.to,
+            relation: e.relation,
+          });
+        }
       }
     }
-    if (!nodeMap.has(e.to)) {
-      const ph = placeholderNode(e.to, e.source);
-      if (ph) {
-        nodeMap.set(e.to, ph);
-        missingTargets.push(e.to);
+    if (!declaredNodes.has(e.to)) {
+      missingTargets.push(e.to);
+      if (!nodeMap.has(e.to)) {
+        const ph = placeholderNode(e.to, e.source);
+        if (ph) {
+          nodeMap.set(e.to, ph);
+          placeholderIds.add(e.to);
+        } else {
+          invalidIds.push({
+            code: "MISSING_EDGE_TARGET",
+            message: "edge target is not a valid SemanticId and has no node",
+            raw: e.to,
+            edge_from: e.from,
+            edge_to: e.to,
+            relation: e.relation,
+          });
+        }
       } else {
-        invalidIds.push({
-          code: "MISSING_EDGE_TARGET",
-          message: "edge target is not a valid SemanticId and has no node",
-          raw: e.to,
-          edge_from: e.from,
-          edge_to: e.to,
-          relation: e.relation,
-        });
+        placeholderIds.add(e.to);
       }
     }
   }
 
   const edgeList = [...edges].sort(compareEdge);
-  for (const node of nodeMap.values()) {
-    if (node.state === "AWAITING_RELATION") continue;
-    const outgoing = edgeList.filter((e) => e.from === node.id);
-    const incoming = edgeList.filter((e) => e.to === node.id);
-    let state: SemanticLifecycleState = node.state;
-    if (outgoing.length + incoming.length > 0) {
-      if (state === "IDENTIFIED" || state === "DISCOVERED" || state === "CLASSIFIED") {
-        state = "LINKED";
+
+  // Fixed-point lifecycle: propagate AWAITING through neighbors before promoting RESOLVED.
+  let changed = true;
+  let guard = 0;
+  while (changed && guard < nodeMap.size + 2) {
+    changed = false;
+    guard += 1;
+    for (const node of [...nodeMap.values()]) {
+      if (placeholderIds.has(node.id) || node.state === "AWAITING_RELATION" && !declaredNodes.has(node.id)) {
+        continue;
+      }
+      if (!declaredNodes.has(node.id)) continue;
+
+      const outgoing = edgeList.filter((e) => e.from === node.id);
+      const incoming = edgeList.filter((e) => e.to === node.id);
+      let state: SemanticLifecycleState = node.declaredCanonical ? "CANONICAL" : "IDENTIFIED";
+      if (implementationBroken.has(node.id) && node.implementation) {
+        state = "IDENTIFIED";
+      }
+      if (outgoing.length + incoming.length > 0) {
+        if (state === "IDENTIFIED" || state === "DISCOVERED" || state === "CLASSIFIED") {
+          state = "LINKED";
+        }
+      }
+
+      const neighborAwaiting = [...outgoing, ...incoming].some((e) => {
+        const other = e.from === node.id ? e.to : e.from;
+        return nodeMap.get(other)?.state === "AWAITING_RELATION" || placeholderIds.has(other);
+      });
+      const implBroken = implementationBroken.has(node.id) || (Boolean(node.implementation) && !implementationResolved.has(node.id));
+
+      if (neighborAwaiting) {
+        state = "AWAITING_RELATION";
+      } else if (!implBroken && (outgoing.length > 0 || implementationResolved.has(node.id))) {
+        if (state === "LINKED" || state === "IDENTIFIED") state = "RESOLVED";
+      }
+
+      const verified = outgoing.some(
+        (e) =>
+          e.relation === "VERIFIED_BY" &&
+          declaredNodes.has(e.to) &&
+          nodeMap.get(e.to)?.state !== "AWAITING_RELATION",
+      );
+      if (verified && !implBroken && !neighborAwaiting && (state === "RESOLVED" || state === "CANONICAL")) {
+        if (state !== "CANONICAL") state = "VERIFIED";
+      }
+
+      if (state !== node.state) {
+        nodeMap.set(node.id, { ...node, state });
+        changed = true;
       }
     }
-    const awaiting = outgoing.some((e) => nodeMap.get(e.to)?.state === "AWAITING_RELATION")
-      || incoming.some((e) => nodeMap.get(e.from)?.state === "AWAITING_RELATION");
-    const implBroken = Boolean(node.implementation) && !implementationResolved.has(node.id);
-    if (awaiting) {
-      state = "AWAITING_RELATION";
-    } else if (!implBroken && (outgoing.length > 0 || implementationResolved.has(node.id))) {
-      // IMPLEMENTATION_DECLARED ≠ IMPLEMENTATION_RESOLVED
-      if (state === "LINKED" || state === "IDENTIFIED") state = "RESOLVED";
-    }
-    const verified = outgoing.some(
-      (e) =>
-        e.relation === "VERIFIED_BY" &&
-        nodeMap.has(e.to) &&
-        nodeMap.get(e.to)!.state !== "AWAITING_RELATION",
-    );
-    // Never promote broken implementation to VERIFIED.
-    if (verified && !implBroken && (state === "RESOLVED" || state === "CANONICAL")) {
-      if (state !== "CANONICAL") state = "VERIFIED";
-    }
-    nodeMap.set(node.id, { ...node, state });
   }
 
   const missing_sources = uniqueSorted(missingSources);

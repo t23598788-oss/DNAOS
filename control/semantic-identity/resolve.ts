@@ -53,11 +53,11 @@ export interface SemanticResolveResult {
 export function resolveSemanticId(graph: SemanticGraph, rawId: string): SemanticResolveResult {
   const id = canonicalizeSemanticId(rawId);
   if (!id) {
-    return unresolved(null);
+    return unresolved(null, graph.source_revision);
   }
   const node = graph.nodes.find((n) => n.id === id);
   if (!node) {
-    return unresolved(id);
+    return unresolved(id, graph.source_revision);
   }
   const ownerNode = node.ownerRepository
     ? graph.nodes.find((n) => n.id === node.ownerRepository)
@@ -85,7 +85,7 @@ export function resolveSemanticId(graph: SemanticGraph, rawId: string): Semantic
   };
 }
 
-function unresolved(id: SemanticId | null): SemanticResolveResult {
+function unresolved(id: SemanticId | null, source_revision: string | null = null): SemanticResolveResult {
   return {
     status: "UNRESOLVED",
     id,
@@ -100,7 +100,7 @@ function unresolved(id: SemanticId | null): SemanticResolveResult {
     tests: [],
     evidence: [],
     current_state: "UNRESOLVED",
-    source_revision: null,
+    source_revision,
     semantic_key: null,
     title: null,
   };
@@ -145,16 +145,11 @@ export function doctorSemanticGraph(
   const cycles = detectDependencyCycles(graph);
   const conflicts = conflictingOwners(graph);
 
-  // Placeholders + discovery missing endpoints.
-  const awaitingIds = graph.nodes
-    .filter((n) => n.state === "AWAITING_RELATION" && n.implementation === null)
-    .map((n) => n.id);
-
+  // Placeholders / missing endpoints only — not declared nodes that are relation-blocked.
   const missing_sources = uniqueSorted(diagnostics.missing_sources);
   const missing_targets = uniqueSorted(diagnostics.missing_targets);
   const unresolved_references = uniqueSorted([
     ...diagnostics.unresolved_references,
-    ...awaitingIds,
     ...missing_sources,
     ...missing_targets,
   ]);

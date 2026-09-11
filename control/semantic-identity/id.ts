@@ -46,7 +46,7 @@ export function parseSemanticId(raw: string): ParsedSemanticId | { ok: false; re
   const namespace = m[2]!;
   const name = m[3]!;
   const version = m[4] ?? null;
-  if (!namespace || !name || namespace.includes(" ") || name.includes(" ")) {
+  if (!namespace || !name || /\s/.test(namespace) || /\s/.test(name)) {
     return { ok: false, reason: "empty_parts" };
   }
   const canonical = version

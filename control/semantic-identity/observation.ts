@@ -71,13 +71,21 @@ export function applyObservations(
   for (const obs of store.observations) {
     const node = byId.get(obs.semantic_id);
     if (!node) continue;
+    // Waiting / unresolved states are not cleared by ordinary observation.
+    if (
+      node.state === "AWAITING_RELATION" ||
+      node.state === "AWAITING_RUNTIME_OBSERVATION" ||
+      node.state === "AWAITING_EVIDENCE" ||
+      node.state === "UNRESOLVED"
+    ) {
+      continue;
+    }
     let candidate: SemanticLifecycleState = node.state;
     if (obs.kind === "RUNTIME") {
       candidate = "OBSERVED";
     } else if (obs.kind === "EVIDENCE") {
       candidate = "PROVEN";
     } else if (obs.kind === "TEST") {
-      // TEST alone does not equal PROVEN or VERIFIED via observation API.
       candidate = node.state;
     } else if (obs.kind === "AUTHORITY") {
       candidate = "CANONICAL";

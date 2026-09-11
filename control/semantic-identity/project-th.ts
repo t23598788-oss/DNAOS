@@ -87,10 +87,15 @@ export function projectResolveThai(result: SemanticResolveResult): string {
   }
   lines.push("สถานะ:");
   lines.push(`  ✓ ${stateToThai(result.current_state)}`);
-  if (result.tests.length && result.current_state !== "PROVEN") {
+  // Do not claim verification/proof succeeded while relation targets are unresolved.
+  const proofOk =
+    result.current_state === "VERIFIED" ||
+    result.current_state === "PROVEN" ||
+    result.current_state === "CANONICAL";
+  if (result.tests.length && proofOk && result.current_state !== "AWAITING_RELATION") {
     lines.push("  ✓ ผลทดสอบยืนยันแล้ว (VERIFIED_BY)");
   }
-  if (result.evidence.length) {
+  if (result.evidence.length && (result.current_state === "PROVEN" || result.current_state === "CANONICAL")) {
     lines.push("  ✓ มีหลักฐาน (PROVEN_BY)");
   }
   if (result.current_state === "CANONICAL") {

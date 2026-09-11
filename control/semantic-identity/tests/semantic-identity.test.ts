@@ -689,6 +689,229 @@ const base = discovery.graph;
   );
 }
 
+// ---------- Tip-2 Codex integrity regressions ----------
+
+// T2-1 shared undeclared ID as both source and target → both diagnostics
+{
+  const shared = "repository://missing/shared-endpoint";
+  const result = discoverSemantic({
+    root: ROOT,
+    skipPathCheck: true,
+    commitSha: "shared-ep",
+    extraDescriptors: [
+      {
+        id: "capability://pilot/uses-shared",
+        kind: "capability",
+        dependsOn: [shared.replace("repository://", "capability://").replace("shared-endpoint", "x")],
+      },
+      {
+        id: "capability://pilot/owned-by-shared",
+        kind: "capability",
+        ownerRepository: shared,
+        dependsOn: [shared], // invalid kind as dependsOn - use proper capability
+      },
+    ],
+  });
+  // Cleaner fixture:
+  const r2 = discoverSemantic({
+    root: ROOT,
+    skipPathCheck: true,
+    commitSha: "shared-ep2",
+    extraDescriptors: [
+      {
+        id: "capability://pilot/target-shared",
+        kind: "capability",
+        ownerRepository: INFRA_REPO_ID,
+        dependsOn: ["capability://missing/shared-role"],
+      },
+      {
+        id: "capability://pilot/source-shared",
+        kind: "capability",
+        ownerRepository: "capability://missing/shared-role",
+      },
+    ],
+  });
+  neg(
+    "T2-1 shared missing endpoint classified as both source and target",
+    r2.diagnostics.missing_targets.includes("capability://missing/shared-role") &&
+      r2.diagnostics.missing_sources.includes("capability://missing/shared-role"),
+  );
+  void result;
+}
+
+// T2-2 awaiting propagation A→B→C order independent
+{
+  const ordered = (extra: SemanticDescriptor[]) =>
+    discoverSemantic({ root: ROOT, skipPathCheck: true, commitSha: "prop", extraDescriptors: extra });
+  const a = {
+    id: "capability://order/a",
+    kind: "capability" as const,
+    dependsOn: ["capability://order/b"],
+  };
+  const b = {
+    id: "capability://order/b",
+    kind: "capability" as const,
+    dependsOn: ["capability://order/c-missing"],
+  };
+  const g1 = ordered([a, b]);
+  const g2 = ordered([b, a]);
+  neg(
+    "T2-2 awaiting propagates regardless of descriptor order",
+    g1.graph.nodes.find((n) => n.id === a.id)?.state === "AWAITING_RELATION" &&
+      g2.graph.nodes.find((n) => n.id === a.id)?.state === "AWAITING_RELATION" &&
+      g1.graph.nodes.find((n) => n.id === b.id)?.state === "AWAITING_RELATION",
+  );
+}
+
+// T2-3 whitespace rejected
+{
+  neg(
+    "T2-3 tab/newline in SemanticId rejected",
+    canonicalizeSemanticId("capability://run\ttime/foo") === null &&
+      canonicalizeSemanticId("capability://run\ntime/foo") === null,
+  );
+}
+
+// T2-4 duplicate owners → conflicting_authority
+{
+  const result = discoverSemantic({
+    root: ROOT,
+    skipPathCheck: true,
+    commitSha: "dup-own",
+    extraDescriptors: [
+      {
+        id: "capability://pilot/multi-owner",
+        kind: "capability",
+        ownerRepository: INFRA_REPO_ID,
+      },
+      {
+        id: "capability://pilot/multi-owner",
+        kind: "capability",
+        ownerRepository: "repository://other/owner",
+      },
+    ],
+  });
+  const doc = doctorDiscovery(result);
+  neg(
+    "T2-4 duplicate owners retained for authority conflict",
+    doc.duplicate_semantic_ids > 0 && doc.conflicting_authority > 0,
+  );
+}
+
+// T2-5 invalid implementation.repositoryId stays unresolved
+{
+  const result = discoverSemantic({
+    root: ROOT,
+    skipPathCheck: true,
+    commitSha: "bad-impl-repo",
+    extraDescriptors: [
+      {
+        id: "capability://pilot/bad-impl-repo",
+        kind: "capability",
+        ownerRepository: INFRA_REPO_ID,
+        verifiedBy: ["test://runtime/endpoint-registry"],
+        implementation: {
+          repositoryId: "not-a-valid-id",
+          path: "control/semantic-identity/discover.ts",
+          symbol: "x",
+        },
+      },
+    ],
+  });
+  const node = result.graph.nodes.find((n) => n.id === "capability://pilot/bad-impl-repo")!;
+  neg(
+    "T2-5 invalid impl repositoryId not RESOLVED/VERIFIED",
+    node.state !== "RESOLVED" &&
+      node.state !== "VERIFIED" &&
+      node.implementation === null &&
+      result.diagnostics.invalid_implementations.length > 0,
+  );
+}
+
+// T2-6 observation does not clear AWAITING_RELATION
+{
+  const g = discoverSemantic({
+    root: ROOT,
+    skipPathCheck: true,
+    commitSha: "obs-await",
+    extraDescriptors: [
+      {
+        id: "capability://pilot/obs-await",
+        kind: "capability",
+        dependsOn: ["capability://missing/obs-target"],
+      },
+    ],
+  }).graph;
+  const store = createObservationStore();
+  recordObservation(store, {
+    semantic_id: "capability://pilot/obs-await",
+    observed_at: new Date().toISOString(),
+    occurrence_id: "r",
+    kind: "RUNTIME",
+    note: "must not clear awaiting",
+  });
+  const after = applyObservations(g, store);
+  neg(
+    "T2-6 RUNTIME does not clear AWAITING_RELATION",
+    after.nodes.find((n) => n.id === "capability://pilot/obs-await")!.state === "AWAITING_RELATION",
+  );
+}
+
+// T2-7 unresolved_references are absent endpoints only
+{
+  const result = discoverSemantic({
+    root: ROOT,
+    skipPathCheck: true,
+    commitSha: "unres-only",
+    extraDescriptors: [
+      {
+        id: "capability://pilot/declared-no-impl",
+        kind: "capability",
+        ownerRepository: INFRA_REPO_ID,
+        dependsOn: ["capability://missing/only-target"],
+      },
+    ],
+  });
+  const doc = doctorDiscovery(result);
+  neg(
+    "T2-7 unresolved refs exclude declared source without impl",
+    doc.unresolved_references.includes("capability://missing/only-target") &&
+      !doc.unresolved_references.includes("capability://pilot/declared-no-impl"),
+  );
+}
+
+// T2-8 unresolved lookup preserves graph revision
+{
+  const r = resolveSemanticId(base, "capability://does/not-exist-rev");
+  neg(
+    "T2-8 unresolved lookup keeps graph source_revision",
+    r.status === "UNRESOLVED" && r.source_revision === base.source_revision && base.source_revision !== null,
+  );
+}
+
+// T2-9 Thai projection does not claim verified for awaiting proof target
+{
+  const result = discoverSemantic({
+    root: ROOT,
+    skipPathCheck: true,
+    commitSha: "thai-await",
+    extraDescriptors: [
+      {
+        id: "capability://pilot/thai-await-proof",
+        kind: "capability",
+        ownerRepository: INFRA_REPO_ID,
+        verifiedBy: ["test://missing/proof-target"],
+      },
+    ],
+  });
+  const resolved = resolveSemanticId(result.graph, "capability://pilot/thai-await-proof");
+  const thai = projectResolveThai(resolved);
+  neg(
+    "T2-9 Thai does not claim VERIFIED_BY success while awaiting",
+    resolved.current_state === "AWAITING_RELATION" && !thai.includes("ผลทดสอบยืนยันแล้ว"),
+  );
+}
+
 // Pilot stability after integrity model
 {
   const doc = doctorDiscovery(discovery);
