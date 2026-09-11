@@ -1,8 +1,9 @@
 /**
  * หน้าที่: สารบัญเดียวของขั้นปฏิบัติการ — ลำดับ ความสัมพันธ์ และเงื่อนไขจบของ
- * 14 operational entries. The architecture folder has one additional
- * governance companion, STRUCTURE_LOCK_MAP.md, which is indexed but is not a
- * fifteenth lifecycle step.
+ * 14 operational entries. The architecture folder has additional
+ * governance companions, STRUCTURE_LOCK_MAP.md and
+ * RUNTIME_NODE_AND_OPTIONAL_PROVIDER.md, which are indexed but are not
+ * extra lifecycle steps.
  *
  * นี่คือ metadata ที่ *เพิ่มเข้าไป* กับเอกสารเดิม ไม่ใช่เอกสารชุดที่สอง —
  * `document_id` ชี้กลับไปที่ไฟล์ .md ตัวจริงเสมอ และเนื้อหายังอ่านจากที่เดิม
