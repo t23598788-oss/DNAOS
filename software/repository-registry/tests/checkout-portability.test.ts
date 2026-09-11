@@ -204,6 +204,13 @@ async function main(): Promise<void> {
       if (!resolved.ok) return;
       assert(resolved.repository_root === resolve(linked), resolved.repository_root);
     });
+    await check("P2: HTTPS registered authority matches SSH checkout remote", () => {
+      const sshRoot = join(base, "ssh-clone");
+      makeGitCheckout(sshRoot, "git@github.com:t23598788-oss/-DNA-OS-INFRASTRUCTURE-.git");
+      const row = controlPlaneRow(sshRoot); // HTTPS authority
+      const resolved = resolveRepositoryCheckout(REPO_ID, { lookup: lookupFor([row]) });
+      assert(resolved.ok, resolved.ok ? "ok" : resolved.reason);
+    });
   } finally {
     setCheckoutResolutionForTests(undefined);
     rmSync(base, { recursive: true, force: true });

@@ -125,6 +125,35 @@ export async function runOperation(serviceId: ServiceId, action: Action, request
     return evidence;
   }
 
+  // Agent runtime guard applies before either supervisor path (launchd or portable).
+  const agentRuntime = denyProtectedRuntimeIfAgent({ service_id: serviceId, action, env: process.env });
+  if (!agentRuntime.ok) {
+    const def = SERVICES[serviceId];
+    const timestamp_started = nowIso();
+    const evidence: OperationEvidence = {
+      operation_id: newOperationId(),
+      service_id: serviceId,
+      launchd_label: def?.launchd_label ?? "",
+      requested_action: action,
+      port: def?.port ?? 0,
+      pid_before: null,
+      pid_after: null,
+      launchd_loaded_before: false,
+      launchd_loaded_after: false,
+      health_before: { checked_at: timestamp_started, http_status: null, healthy: false, error: agentRuntime.detail },
+      health_after: { checked_at: nowIso(), http_status: null, healthy: false, error: agentRuntime.detail },
+      readiness_wait_ms: 0,
+      readiness_deadline_ms: 0,
+      timestamp_started,
+      timestamp_completed: nowIso(),
+      result: "FAILED",
+      failure_reason: agentRuntime.detail,
+      ...buildRequesterProvenance(request),
+    };
+    appendEvidence(evidence);
+    return evidence;
+  }
+
   if (portableSupervisorActive()) {
     return getPortableSupervisor().run(serviceId, action, request);
   }
@@ -137,8 +166,6 @@ export async function runOperation(serviceId: ServiceId, action: Action, request
   const healthBefore: HealthCheckResult = await httpHealthCheck(def.port, def.health_path);
 
   let mutationError: string | null = null;
-  const agentRuntime = denyProtectedRuntimeIfAgent({ service_id: serviceId, action, env: process.env });
-  if (!agentRuntime.ok) mutationError = agentRuntime.detail;
 
   if (mutationError === null && (action === "start" || action === "restart")) {
     if (!stateBefore.loaded) {

@@ -165,6 +165,30 @@ check("14. empty query fails closed", () => {
   assert(resolveRuntimeEndpoint("  ").reason === "INVALID_QUERY", "blank");
 });
 
+check("15. REGISTERED_REMOTE cannot replace NODE_LOCAL endpoint id", () => {
+  replaceRuntimeEndpointsForTests([]);
+  assert(registerRuntimeEndpoint(localCircuit).ok, "local");
+  const clash = registerRuntimeEndpoint({
+    ...remoteCircuit,
+    endpoint_id: localCircuit.endpoint_id,
+    service_id: localCircuit.service_id,
+  });
+  assert(!clash.ok && clash.rejection === "CROSS_SOURCE_COLLISION", String(clash));
+  const kept = listRuntimeEndpoints().find((e) => e.endpoint_id === localCircuit.endpoint_id);
+  assert(kept?.source === "NODE_LOCAL" && kept.address === localCircuit.address, JSON.stringify(kept));
+});
+
+check("16. invalid latest replacement removes prior ACTIVE row", () => {
+  replaceRuntimeEndpointsForTests([]);
+  assert(registerRuntimeEndpoint(remoteCircuit).ok, "remote");
+  const bad = registerRuntimeEndpoint({ ...remoteCircuit, address: "" });
+  assert(!bad.ok, "empty address must reject");
+  // Simulate host-runtime fail-closed policy for rejected same-id replacement.
+  const { removeRuntimeEndpoint } = require("../registry") as typeof import("../registry");
+  removeRuntimeEndpoint(remoteCircuit.endpoint_id);
+  assert(listRuntimeEndpoints().every((e) => e.endpoint_id !== remoteCircuit.endpoint_id), "stale ACTIVE remains");
+});
+
 resetRuntimeEndpointsForTests();
 console.log(`\n${passed} passed, ${failed} failed`);
 if (failed > 0) process.exitCode = 1;

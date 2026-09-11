@@ -25,7 +25,8 @@ export type RegistrationRejection =
   | "MALFORMED_ADDRESS"
   | "TRANSPORT_ADDRESS_MISMATCH"
   | "FORBIDDEN_FIELD"
-  | "SECRET_MATERIAL";
+  | "SECRET_MATERIAL"
+  | "CROSS_SOURCE_COLLISION";
 
 const FORBIDDEN_KEYS = new Set([
   "railway_service_id",
@@ -119,7 +120,20 @@ export function registerRuntimeEndpoint(
     status: input.status,
   };
   const idx = rows.findIndex((r) => r.endpoint_id === endpoint.endpoint_id);
-  if (idx >= 0) rows[idx] = endpoint;
-  else rows.push(endpoint);
+  if (idx >= 0) {
+    const existing = rows[idx]!;
+    // NODE_LOCAL Core endpoints must not be overwritten by optional-adapter remotes.
+    if (existing.source === "NODE_LOCAL" && endpoint.source === "REGISTERED_REMOTE") {
+      return { ok: false, rejection: "CROSS_SOURCE_COLLISION" };
+    }
+    rows[idx] = endpoint;
+  } else {
+    rows.push(endpoint);
+  }
   return { ok: true, endpoint };
+}
+
+/** Remove an endpoint_id so a rejected latest replacement cannot leave stale ACTIVE. */
+export function removeRuntimeEndpoint(endpointId: string): void {
+  rows = rows.filter((r) => r.endpoint_id !== endpointId);
 }

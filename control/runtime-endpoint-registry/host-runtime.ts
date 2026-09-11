@@ -11,7 +11,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { localEndpointsFromServices } from "./local-from-services";
-import { registerRuntimeEndpoint, resetRuntimeEndpointStore } from "./registry";
+import { registerRuntimeEndpoint, removeRuntimeEndpoint, resetRuntimeEndpointStore } from "./registry";
 import type { RuntimeEndpointRegistration } from "./types";
 
 const OPTIONAL_ADAPTER_JSONL = [
@@ -48,7 +48,15 @@ export function ensureRuntimeEndpointsLoaded(): void {
   const root = runtimeEndpointRepoRoot();
   for (const rel of OPTIONAL_ADAPTER_JSONL) {
     for (const row of readJsonl(join(root, rel))) {
-      registerRuntimeEndpoint(row);
+      const result = registerRuntimeEndpoint(row);
+      if (!result.ok) {
+        // Cross-source collision: keep NODE_LOCAL Core endpoint.
+        if (result.rejection === "CROSS_SOURCE_COLLISION") continue;
+        // Rejected latest replacement must not leave a prior ACTIVE row canonical.
+        if (typeof row.endpoint_id === "string" && row.endpoint_id.trim() !== "") {
+          removeRuntimeEndpoint(row.endpoint_id.trim());
+        }
+      }
     }
   }
   loaded = true;

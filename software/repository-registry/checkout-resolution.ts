@@ -137,15 +137,55 @@ function gitConfigTextAt(root: string, usedHost: CheckoutResolutionHost): string
 }
 
 /**
+ * Normalize Git remote identity so HTTPS and SSH clones of the same
+ * host/owner/repo match. Path alone is never identity; protocol is not either.
+ */
+export function normalizeGitRemoteIdentity(raw: string): string | null {
+  const trimmed = raw.trim();
+  if (!trimmed) return null;
+  let host = "";
+  let path = "";
+  const ssh = /^git@([^:]+):(.+)$/.exec(trimmed);
+  if (ssh) {
+    host = ssh[1]!.toLowerCase();
+    path = ssh[2]!;
+  } else {
+    try {
+      const withScheme = /^[a-zA-Z][a-zA-Z0-9+.-]*:\/\//.test(trimmed) ? trimmed : `https://${trimmed}`;
+      const u = new URL(withScheme);
+      host = u.hostname.toLowerCase();
+      path = u.pathname.replace(/^\//, "");
+    } catch {
+      return null;
+    }
+  }
+  path = path.replace(/\.git$/i, "").replace(/\/+$/, "");
+  if (!host || !path) return null;
+  return `${host}/${path}`.toLowerCase();
+}
+
+function configContainsAuthority(config: string, authority: string): boolean {
+  if (config.includes(authority)) return true;
+  const want = normalizeGitRemoteIdentity(authority);
+  if (!want) return false;
+  const urlMatches = config.matchAll(/url\s*=\s*(.+)/gi);
+  for (const m of urlMatches) {
+    const got = normalizeGitRemoteIdentity(m[1]!.trim());
+    if (got && got === want) return true;
+  }
+  return false;
+}
+
+/**
  * Registered path + `.git` is insufficient.
- * Require source_authority to appear in Git config (worktree-aware).
+ * Require source_authority to match Git remotes (worktree-aware, protocol-normalized).
  */
 function identityMatchesWith(root: string, row: RepositoryRegistration, usedHost: CheckoutResolutionHost): boolean {
   if (!usedHost.exists(root) || !gitMetadataPresentAt(root, usedHost)) return false;
   const authority = row.source_authority;
   if (!authority) return false;
   const config = gitConfigTextAt(root, usedHost);
-  return config !== null && config.includes(authority);
+  return config !== null && configContainsAuthority(config, authority);
 }
 
 function fail(code: CheckoutResolutionFailureCode, reason: string, repository_id: string | null): CheckoutResolution {

@@ -169,6 +169,9 @@ async function main(): Promise<void> {
       const resolverSrc = readFileSync(join(process.cwd(), "control/runtime-control/resolver.ts"), "utf8");
       assert(resolverSrc.includes("launchctlKickstart"), "launchd kickstart removed");
       assert(resolverSrc.includes("portableSupervisorActive"), "dispatch missing");
+      const guardAt = resolverSrc.indexOf("denyProtectedRuntimeIfAgent");
+      const portableAt = resolverSrc.indexOf("portableSupervisorActive()");
+      assert(guardAt >= 0 && portableAt > guardAt, "agent guard must precede portable dispatch");
       const ev = await runOperation("joint-monitor", "status");
       assert(ev.service_id === "joint-monitor", "status service");
       assert(typeof ev.launchd_label === "string" && ev.launchd_label.includes("joint-monitor"), ev.launchd_label);
@@ -208,6 +211,9 @@ async function main(): Promise<void> {
       const dup = await second.run("joint-monitor", "start");
       assert(dup.result === "FAILED", "duplicate start must fail");
       assert((dup.failure_reason ?? "").includes("not owned"), dup.failure_reason ?? "");
+      const orphanStop = await second.run("joint-monitor", "stop");
+      assert(orphanStop.result === "FAILED", "unverified stop must fail closed");
+      assert((orphanStop.failure_reason ?? "").includes("refuse kill"), orphanStop.failure_reason ?? "");
       await first.run("joint-monitor", "stop");
     });
 

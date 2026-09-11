@@ -44,6 +44,7 @@ async function makeRealThrowawayRepo(): Promise<string> {
   await run("git", ["init", "-b", "main"], { cwd: root });
   await run("git", ["config", "user.email", "test@example.com"], { cwd: root });
   await run("git", ["config", "user.name", "test"], { cwd: root });
+  await run("git", ["remote", "add", "origin", "git://test/source-workspace-repo"], { cwd: root });
   writeFileSync(join(root, "shared.txt"), "original content\n");
   await run("git", ["add", "."], { cwd: root });
   await run("git", ["commit", "-m", "initial"], { cwd: root });

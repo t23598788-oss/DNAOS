@@ -370,34 +370,11 @@ export class PortableProcessSupervisor implements ProcessSupervisor {
       return null;
     }
 
-    // No owned child in this instance — do not silent-success if the port still listens.
+    // No owned child in this instance — refuse to signal unverified port listeners.
     if (!def) return null;
     const listeners = getListeningPids(def.port);
     if (listeners.length === 0) return null;
-    for (const pid of listeners) {
-      try {
-        process.kill(pid, "SIGTERM");
-      } catch {
-        // gone
-      }
-    }
-    await sleep(STOP_WAIT_MS);
-    const remain = getListeningPids(def.port);
-    if (remain.length > 0) {
-      for (const pid of remain) {
-        try {
-          process.kill(pid, "SIGKILL");
-        } catch {
-          // gone
-        }
-      }
-      await sleep(100);
-    }
-    const after = getListeningPids(def.port);
-    if (after.length > 0) {
-      return `recovered stop: port ${def.port} still has listener pid(s) ${after.join(",")}`;
-    }
-    return null;
+    return `no owned child for ${serviceId}; port ${def.port} has unverified listener pid(s) ${listeners.join(",")} — refuse kill without ownership proof`;
   }
 
   private finishUnknown(

@@ -25,6 +25,7 @@ export type { ResolveRuntimeEndpointInput } from "./resolver";
 export {
   listRuntimeEndpoints,
   registerRuntimeEndpoint,
+  removeRuntimeEndpoint,
   replaceRuntimeEndpointsForTests,
   validateRuntimeEndpoint,
 } from "./registry";

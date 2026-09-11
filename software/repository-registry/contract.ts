@@ -16,6 +16,7 @@ export {
   resolveControlPlaneCheckout,
   setCheckoutResolutionForTests,
   resolveGitDir,
+  normalizeGitRemoteIdentity,
 } from "./checkout-resolution";
 export type {
   CheckoutResolution,
