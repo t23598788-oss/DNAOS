@@ -78,13 +78,8 @@ import type { ExecutionPolicyContext } from "../../permissions/execution-policy/
 import { DEFAULT_AGENT_WORKERS, startAgentGatewaySupervisor, getTask, getResult, explain, loadAllHandoffs, loadHandoffsForTask } from "../../control/agent-gateway/contract";
 import type { WorkOrder } from "../../control/agent-gateway/types";
 import type { UiWorkOrder } from "../../connections/os-ui/work-order";
-<<<<<<< HEAD
 import { listCapabilities } from "../../control/command-router/capability-registry";
-import { classifyCommand } from "../../control/command-router/contract";
-=======
-import { listCapabilities, getCapability } from "../../control/command-router/capability-registry";
-import { classifyCommand, provenCapabilityIdsFromContext, type RouteOptions } from "../../control/command-router/contract";
->>>>>>> c41db79 (Prove TypeScript Core boots on generic Linux without provider authority.)
+import { classifyCommand, type RouteOptions } from "../../control/command-router/contract";
 import { resolveGoogleWorkspaceReadIntentFromText } from "../../connections/google-workspace/owner-text-intent";
 import { parseSheetsOwnerText } from "../../connections/google-workspace/sheets-owner-text";
 import {
@@ -291,7 +286,6 @@ export function shouldForwardStructuredIntentToExistingMcp(
   return semantic.context?.resolved_state === "RESOLVED";
 }
 
-<<<<<<< HEAD
 function ensureOwnerGoogleReadPolicy(ai_identity: string, session_id: string): void {
   if (matchingCapabilityBindingPolicy(ai_identity, session_id)) return;
   // Owner Surface principal: allow Google READ services already registered on this machine.
@@ -311,7 +305,8 @@ function ensureOwnerGoogleReadPolicy(ai_identity: string, session_id: string): v
     network_destinations: ["https://www.googleapis.com", "https://gmail.googleapis.com", "https://www.googleapis.com/drive", "https://sheets.googleapis.com", "https://www.googleapis.com/calendar"],
     expires_at: null,
   });
-=======
+}
+
 function existingExecutionRouteOptions(ownerIdentity: EnvelopeIdentity): Pick<RouteOptions, "executionRequestBase" | "executionPolicyContext"> {
   const entry = resolveEntryContext({
     identity_id: ownerIdentity.identity_id,
@@ -323,7 +318,6 @@ function existingExecutionRouteOptions(ownerIdentity: EnvelopeIdentity): Pick<Ro
     executionRequestBase: entry.executionRequestBase,
     executionPolicyContext: entry.context,
   };
->>>>>>> c41db79 (Prove TypeScript Core boots on generic Linux without provider authority.)
 }
 
 async function invokeExistingMcpSubmitCommand(
@@ -1956,50 +1950,11 @@ function buildOwnerActivity(identity: string, commandIdInput: string | null): Re
         if (!ownerIdentity) { sendJson(res, 401, { error: "authenticated owner identity required" }); return; }
         const requestedWorkId = typeof body.work_id === "string" ? body.work_id : typeof body.work_id_if_existing === "string" ? body.work_id_if_existing : null;
         const presented = ownerPresentedPayload(body);
-<<<<<<< HEAD
         const outcome = await submitOwnerCommand(text, ownerIdentity, {
           ...(requestedWorkId ? { work_id: requestedWorkId } : {}),
           ...(presented ? { envelope_payload: presented } : {}),
+          ...existingExecutionRouteOptions(ownerIdentity),
         });
-=======
-        const runSubmit = async (ownerId: string) => {
-          if (body.ownerIdentity?.id !== undefined && body.ownerIdentity.id !== ownerId) {
-            const err = new Error("OWNER_IDENTITY_MISMATCH");
-            (err as Error & { code?: string }).code = "OWNER_IDENTITY_MISMATCH";
-            throw err;
-          }
-          const ownerIdentity = resolveOwnerIdentity({ id: ownerId });
-          if (!ownerIdentity) {
-            const err = new Error("authenticated owner identity required");
-            (err as Error & { code?: string }).code = "OWNER_IDENTITY_REQUIRED";
-            throw err;
-          }
-          return submitOwnerCommand(text, ownerIdentity, {
-            ...(requestedWorkId ? { work_id: requestedWorkId } : {}),
-            ...(presented ? { envelope_payload: presented } : {}),
-            ...existingExecutionRouteOptions(ownerIdentity),
-          });
-        };
-        let outcome;
-        const existing = resolveAuthenticatedOwnerIdentity(req);
-        if (existing) {
-          outcome = await runSubmit(existing.id);
-        } else {
-          const wrapped = await withOwnerAuthorization({
-            purpose: "DNA OS requires Owner verification to authorize this command.",
-            requested_authority_class: "CLASS_0_READ",
-          }, ({ owner_identity }) => runSubmit(owner_identity));
-          if (!wrapped.ok) {
-            sendJson(res, 401, {
-              error: "OWNER_AUTHENTICATION_REQUIRED",
-              authorization_state: wrapped.authorization.state,
-              reason_code: wrapped.authorization.reason_code,
-            });
-            return;
-          }
-          outcome = wrapped.result;
-        }
->>>>>>> c41db79 (Prove TypeScript Core boots on generic Linux without provider authority.)
         sendJson(res, 200, {
           command_id: outcome.envelope.command_id, work_id: outcome.work_id,
           lifecycle: outcome.lifecycle, result: outcome.result,
