@@ -14,13 +14,13 @@ on every filesystem path that happens to contain a clone of that remote.
 
 ## Node-local binding
 
-`resolveControlPlaneCheckout()` (`software/repository-registry/registry.ts`):
+`resolveControlPlaneCheckout()` (`software/repository-registry/checkout-resolution.ts`, exported from `contract.ts`; not re-implemented in `registry.ts`):
 
 1. Requires exactly one operational row with `status=ACTIVE` and `world=CONTROL_PLANE`.
-2. Prefers registered `repository_root` when that path exists on this node.
+2. Prefers registered `repository_root` when that path exists on this node and Git identity matches.
 3. If the registered path is missing/stale, may bind to the current git
-   checkout of this process only when `.git` exists there.
-4. Otherwise returns `null` (fail closed).
+   checkout of this process only when identity matches.
+4. Otherwise returns `{ ok: false, … }` (fail closed).
 
 A stale Mac checkout path from another machine therefore does **not**
 grant CONTROL_PLANE write authority on a different node.

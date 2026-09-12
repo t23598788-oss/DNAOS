@@ -24,7 +24,7 @@ Write Gate
 
 Implemented by:
 
-- `software/repository-registry/registry.ts` → `resolveControlPlaneCheckout()`
+- `software/repository-registry/checkout-resolution.ts` → `resolveControlPlaneCheckout()` (exported via `contract.ts`; not re-implemented in `registry.ts`)
 - `permissions/write-gate/rules.ts` → `ruleControlPlanePath()` before capability overlap
 
 ## What Control Plane is not
