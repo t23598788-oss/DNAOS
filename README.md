@@ -10,6 +10,11 @@ blocked by policy.
 See [CONTROL_PLANE_PRODUCT_CONTRACT.md](CONTROL_PLANE_PRODUCT_CONTRACT.md)
 for setup, runtime flow, health/evidence endpoints, and phase evidence.
 
+## Documentation index
+
+Ordered CONTROL_PLANE docs (existing implementation only):
+[docs/README.md](docs/README.md).
+
 **Runtime:** Node >= 18 (see `.nvmrc`; `npm install` refuses an older
 Node via `engine-strict=true` in `.npmrc`). Run `nvm use` at the repo
 root first.

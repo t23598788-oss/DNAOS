@@ -10,7 +10,7 @@
  * Dependency ที่อนุญาต: ./registry.ts, ./types.ts.
  */
 
-export { registerRepository, getRepository, listRepositories, suspendRepository, rebindRepositoryCheckout, buildRepositoryId, createRepositoryRegistryStore } from "./registry";
+export { registerRepository, getRepository, listRepositories, suspendRepository, rebindRepositoryCheckout, buildRepositoryId, createRepositoryRegistryStore, resolveControlPlaneCheckout, setCheckoutResolutionForTests } from "./registry";
 export type { RepositoryRegistryStore } from "./registry";
 export type { RepositoryStatus, RepositoryRegistration, RegisterRepositoryInput } from "./types";
 
