@@ -142,6 +142,7 @@ async function main() {
     validateAuthority: () => ({ ok: true, lease: {} as never }),
     runUiWorkOrder: (async (o: unknown) => { calledWith = o; return { ok: true, status: "COMPLETED", summary: "shot", evidence: [], artifacts: [{ kind: "screenshot_file", ref: "/x.png" }], next_action: null, idempotent_replay: false, presentation: null, focus_restored: null }; }) as never,
     now: () => FIXED, newEvidenceId: () => "cue-fixed-2", evidenceDir: "/tmp/cue-test-data",
+    platform: "darwin",
   };
   const { outcome, evidence } = await executeComputerUse({ work_order_id: "wo2", authority_id: "ok", requester: "agent:claude", operation: "screenshot", target: "screen", ui: { target: "", scope: "screen" } }, exDeps);
   ok("executor: authorized → execute ผ่าน os-ui", outcome?.status === "COMPLETED" && calledWith !== null && evidence.executed === true);

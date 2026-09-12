@@ -15,13 +15,32 @@ OUT="$DIR/build"
 APP="$OUT/DNA DEV.app"
 BUILD_ID="build-$(date -u +%Y%m%dT%H%M%SZ)-$(head -c 6 /dev/urandom | xxd -p)"
 
-# The launch URL is read from ./config.ts so the artifact can never point
-# somewhere config.ts does not declare.
-LAUNCH_URL="$(sed -n 's/^  url: "\(.*\)",$/\1/p' "$DIR/config.ts" | head -1)"
+# The launch URL is the REGISTERED_REMOTE circuit endpoint from the Railway
+# adapter JSONL (optional provider backing). Core config.ts resolves the same id.
+ROOT="$(cd "$DIR/../.." && pwd)"
+LAUNCH_URL="$(node -e "
+const fs = require('fs');
+const p = process.argv[1];
+const rows = [];
+for (const line of fs.readFileSync(p, 'utf8').split(/\n/)) {
+  if (!line.trim()) continue;
+  rows.push(JSON.parse(line));
+}
+// Latest-row-wins (same semantics as runtime-endpoint-registry).
+let selected = null;
+for (const j of rows) {
+  if (j.endpoint_id === 'endpoint://dna-os-circuit/public') selected = j;
+}
+if (!selected || selected.status !== 'ACTIVE' || typeof selected.address !== 'string' || !selected.address) {
+  process.exit(1);
+}
+process.stdout.write(selected.address);
+" "$ROOT/connections/railway/data/runtime-endpoints.jsonl")"
 if [ -z "$LAUNCH_URL" ]; then
-  echo "build: FAILED — could not read the canonical url from config.ts" >&2
+  echo "build: FAILED — could not resolve latest ACTIVE endpoint://dna-os-circuit/public" >&2
   exit 1
 fi
+ENDPOINT_JSONL="$ROOT/connections/railway/data/runtime-endpoints.jsonl"
 
 rm -rf "$OUT"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
@@ -54,6 +73,10 @@ for f in launcher.template.sh Info.plist config.ts types.ts contract.ts; do
   h="$(shasum -a 256 "$DIR/$f" | awk '{print $1}')"
   src_json="$src_json    \"$f\": \"$h\",\n"
 done
+# Endpoint JSONL participates in baked launcher URL — include in provenance hashes.
+endpoint_rel="connections/railway/data/runtime-endpoints.jsonl"
+endpoint_h="$(shasum -a 256 "$ENDPOINT_JSONL" | awk '{print $1}')"
+src_json="$src_json    \"$endpoint_rel\": \"$endpoint_h\",\n"
 src_json="${src_json%,\\n}"
 
 cat > "$OUT/build-manifest.json" <<MANIFEST
@@ -66,7 +89,7 @@ $(printf "$src_json")
   },
   "artifact_launcher_sha256": "$launcher_sha",
   "artifact_bundle_sha256": "$bundle_sha",
-  "launch_target": { "url": "$LAUNCH_URL", "runtime_kind": "RAILWAY_DEPLOYMENT", "railway_service": "dna-os-circuit" },
+  "launch_target": { "url": "$LAUNCH_URL", "runtime_kind": "REGISTERED_REMOTE", "service_id": "dna-os-circuit" },
   "icon": "$ICON_STATE",
   "built_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 }

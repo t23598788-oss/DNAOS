@@ -82,6 +82,7 @@ function tickingClock(): () => Date {
     now: clock,
     newEvidenceId: () => "cue-exp-order",
     evidenceDir,
+    platform: "darwin",
   } as never);
   const ordered = rows().find((r) => r.evidence_id === "cue-exp-order")!;
   const createdAt = (ordered.expectation as ExpectationAvailable).created_at;
@@ -110,6 +111,7 @@ function tickingClock(): () => Date {
     now: tickingClock(),
     newEvidenceId: () => "cue-exp-afterproof",
     evidenceDir,
+    platform: "darwin",
   } as never);
   const afterProof = rows().find((r) => r.evidence_id === "cue-exp-afterproof")!;
   const stripTime = (e: unknown) => JSON.stringify(e).replace(/"created_at":"[^"]*"/, '"created_at":"*"');
@@ -131,6 +133,7 @@ function tickingClock(): () => Date {
     runUiWorkOrder: async () => OUTCOME as never,
     observe: () => READING("0", "2026-09-02T00:00:00.000Z"),
     now: tickingClock(), newEvidenceId: () => "cue-exp-nomove", evidenceDir,
+    platform: "darwin",
   } as never);
   const nomove = rows().find((r) => r.evidence_id === "cue-exp-nomove")!;
   check("5c. absent expectation did not block execution or change authority",
@@ -193,6 +196,7 @@ function tickingClock(): () => Date {
     runUiWorkOrder: async () => { throw new Error("adapter must not run"); },
     observe: () => { throw new Error("observer must not run"); },
     now: tickingClock(), newEvidenceId: () => "cue-exp-denied", evidenceDir,
+    platform: "darwin",
   } as never);
   const deniedRow = rows().find((r) => r.evidence_id === "cue-exp-denied")!;
   check("15. denied execution records no expectation and no result",

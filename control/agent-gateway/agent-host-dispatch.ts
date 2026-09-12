@@ -91,7 +91,7 @@ export async function dispatchToAgentHost(request: AgentHostDispatchRequest): Pr
     liveRegistryFromExistingStores(),
   );
   let allowedWorkspaceDir = request.workspace_dir;
-  let hostEnv = { ...request.hostEnv, DNA_OS_AGENT_EXECUTION_ID: executionId };
+  let hostEnv: Record<string, string | undefined> = { ...request.hostEnv, DNA_OS_AGENT_EXECUTION_ID: executionId };
   if (scoped.ok) {
     allowedWorkspaceDir = scoped.scope.worktree_path;
     hostEnv = { ...hostEnv, DNA_OS_AGENT_TASK_ID: request.task_id };

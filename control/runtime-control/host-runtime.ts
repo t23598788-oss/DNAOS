@@ -27,14 +27,18 @@
  */
 
 import { execFileSync } from "node:child_process";
-import { existsSync, mkdirSync, appendFileSync } from "node:fs";
+import { existsSync, mkdirSync, appendFileSync, readdirSync, readFileSync, readlinkSync } from "node:fs";
 import { get as httpGet } from "node:http";
 import { join } from "node:path";
 import { randomUUID } from "node:crypto";
 import { userInfo } from "node:os";
+import { CORE_PROCESS_ENV_BINDINGS } from "../../credentials/process-environment/mapping";
 import type { ServiceDefinition, ServiceId, LaunchdState, HealthCheckResult, OperationEvidence } from "./types";
 
 const HOME = userInfo().homedir;
+
+/** Explicit Core credential env names from process-environment mapping (not a second authority). */
+const CORE_CREDENTIAL_ENV_ALLOWLIST: readonly string[] = CORE_PROCESS_ENV_BINDINGS.map((b) => b.env_var);
 
 export const SERVICES: Record<ServiceId, ServiceDefinition> = {
   // OBSERVATION SPINE. Everything that reports a joint needs this listening,
@@ -46,6 +50,11 @@ export const SERVICES: Record<ServiceId, ServiceDefinition> = {
     service_id: "joint-monitor",
     launchd_label: "com.dnaos.joint-monitor",
     plist_path: join(HOME, "Library/LaunchAgents/com.dnaos.joint-monitor.plist"),
+    capability_folder: "observability/joint-monitor",
+    portable_process: {
+      argv: ["npx", "tsx", "observability/joint-monitor/start.ts"],
+      env_allowlist: ["JOINT_MONITOR_SHARED_SECRET", "JOINT_MONITOR_PORT"],
+    },
     port: 5178,
     health_path: "/joints",
     health_expect_status: 200,
@@ -63,6 +72,7 @@ export const SERVICES: Record<ServiceId, ServiceDefinition> = {
     service_id: "control-workspace",
     launchd_label: "com.dnaos.control-workspace",
     plist_path: join(HOME, "Library/LaunchAgents/com.dnaos.control-workspace.plist"),
+    capability_folder: "control/macos-native-bridge",
     port: 5181,
     health_path: "/api/health",
     health_expect_status: 200,
@@ -79,6 +89,7 @@ export const SERVICES: Record<ServiceId, ServiceDefinition> = {
     service_id: "machine-observer",
     launchd_label: "com.dnaos.machine-observer",
     plist_path: join(HOME, "Library/LaunchAgents/com.dnaos.machine-observer.plist"),
+    capability_folder: "control/machine-observation",
     port: 5179,
     health_path: "/health",
     health_expect_status: 200,
@@ -100,6 +111,7 @@ export const SERVICES: Record<ServiceId, ServiceDefinition> = {
     service_id: "recovery-supervisor",
     launchd_label: "com.dnaos.recovery-supervisor",
     plist_path: join(HOME, "Library/LaunchAgents/com.dnaos.recovery-supervisor.plist"),
+    capability_folder: "control/runtime-control",
     port: 5180,
     health_path: "/health",
     health_expect_status: 200,
@@ -112,6 +124,7 @@ export const SERVICES: Record<ServiceId, ServiceDefinition> = {
     service_id: "deadboard",
     launchd_label: "com.dnaos.deadboard-dev",
     plist_path: join(HOME, "Library/LaunchAgents/com.dnaos.deadboard-dev.plist"),
+    capability_folder: "research/deadboard",
     port: 3000,
     health_path: "/login",
     health_expect_status: 200,
@@ -123,6 +136,7 @@ export const SERVICES: Record<ServiceId, ServiceDefinition> = {
     service_id: "lab-ui",
     launchd_label: "com.dnaos.research-monitor-ui",
     plist_path: join(HOME, "Library/LaunchAgents/com.dnaos.research-monitor-ui.plist"),
+    capability_folder: "research/dashboard/monitor-ui",
     port: 5177,
     health_path: "/",
     health_expect_status: 200,
@@ -134,6 +148,7 @@ export const SERVICES: Record<ServiceId, ServiceDefinition> = {
     service_id: "research-api",
     launchd_label: "com.dnaos.research-api",
     plist_path: join(HOME, "Library/LaunchAgents/com.dnaos.research-api.plist"),
+    capability_folder: "research/dashboard/api",
     port: 8787,
     health_path: "/api/research/latest",
     health_expect_status: 200,
@@ -145,6 +160,7 @@ export const SERVICES: Record<ServiceId, ServiceDefinition> = {
     service_id: "compute-api",
     launchd_label: "com.dnaos.dna-os-compute-api",
     plist_path: join(HOME, "Library/LaunchAgents/com.dnaos.dna-os-compute-api.plist"),
+    capability_folder: "connections/compute-api",
     port: 8788,
     health_path: "/api/gpu/offers",
     health_expect_status: 200,
@@ -164,21 +180,70 @@ export const SERVICES: Record<ServiceId, ServiceDefinition> = {
   // การพิสูจน์สองอย่างหลังต้อง POST /mcp ซึ่งอยู่นอกสัญญา health ทั่วไปของ
   // capability นี้ จึงไม่ถูกอ้างว่าตรวจแล้วที่นี่
   //
-  // depends_on: [] ตามคำนิยาม "ไม่มี DNA OS dependency" ในความหมายของ
-  // ตารางนี้ — ที่ตอนสตาร์ทเป็นจริง เพราะ server bind และตอบ /health ได้
-  // โดยไม่ต้องมี 8791 ส่วน DNA_OS_HTTP_BASE_URL=127.0.0.1:8791
-  // (owner-command-http) จำเป็นตอน "เรียก tool" ไม่ใช่ตอนสตาร์ท และ
-  // owner-command-http ยังไม่ใช่ ServiceId ในตารางนี้ จึงประกาศเป็น
-  // dependency ที่นี่ไม่ได้ — บันทึกไว้ตรงนี้แทนการเงียบ
+  // depends_on: [] — bind ไม่ต้องรอ 8791. owner-command-http เป็น ServiceId
+  // แล้ว (Step 5) แต่ MCP ยังไม่ประกาศ dependency ตอนสตาร์ท ตามเดิม
   "dna-os-mcp": {
     service_id: "dna-os-mcp",
     launchd_label: "com.dnaos.dna-os-mcp",
     plist_path: join(HOME, "Library/LaunchAgents/com.dnaos.dna-os-mcp.plist"),
+    capability_folder: "connections/dna-os-mcp",
+    portable_process: {
+      argv: ["npx", "tsx", "connections/dna-os-mcp/server.ts"],
+      env_allowlist: [
+        "OWNER_COMMAND_HTTP_SHARED_SECRET",
+        "DNA_OS_HTTP_BASE_URL",
+        ...CORE_CREDENTIAL_ENV_ALLOWLIST,
+      ],
+    },
     port: 8793,
     health_path: "/health",
     health_expect_status: 200,
     // tsx cold start บน node v24 — วัดจริงก่อนลงทะเบียน: bind ที่วินาทีที่ 2
     // 30s คือ headroom เดียวกับบริการ tsx ตัวอื่นในตารางนี้ ไม่ใช่ค่าเดา
+    readiness_timeout_ms: 30_000,
+    depends_on: [],
+  },
+
+  // Step 5: enroll in the same SERVICES catalog. No LaunchAgent in this
+  // repo — launchd boot conveyor skips `not_installed`. CORE_NODE spawns
+  // via portable_process. Mac start via runtime-control remains launchd
+  // and will fail closed until a plist exists (Step 5 does not install one).
+  "owner-command-http": {
+    service_id: "owner-command-http",
+    launchd_label: "com.dnaos.owner-command-http",
+    plist_path: join(HOME, "Library/LaunchAgents/com.dnaos.owner-command-http.plist"),
+    capability_folder: "transport/owner-command-http",
+    launchd_job: "not_installed",
+    portable_process: {
+      argv: ["npx", "tsx", "transport/owner-command-http/server.ts"],
+      env_allowlist: [
+        "OWNER_COMMAND_HTTP_SHARED_SECRET",
+        "HOST",
+        ...CORE_CREDENTIAL_ENV_ALLOWLIST,
+      ],
+    },
+    port: 8791,
+    health_path: "/health",
+    health_expect_status: 200,
+    readiness_timeout_ms: 30_000,
+    depends_on: [],
+  },
+
+  // Same catalog enrollment. Health uses existing `/circuit.json` (no new
+  // circuit endpoint). No dedicated /health route — do not redesign circuit.
+  "dna-os-circuit": {
+    service_id: "dna-os-circuit",
+    launchd_label: "com.dnaos.dna-os-circuit",
+    plist_path: join(HOME, "Library/LaunchAgents/com.dnaos.dna-os-circuit.plist"),
+    capability_folder: "dna-os-circuit",
+    launchd_job: "not_installed",
+    portable_process: {
+      argv: ["npx", "tsx", "dna-os-circuit/runtime/start.ts"],
+      env_allowlist: ["DNA_OS_CIRCUIT_SHARED_SECRET", "CIRCUIT_PORT", "HOST"],
+    },
+    port: 8790,
+    health_path: "/circuit.json",
+    health_expect_status: 200,
     readiness_timeout_ms: 30_000,
     depends_on: [],
   },
@@ -231,16 +296,88 @@ export function launchctlKickstart(label: string, force = true): { ok: boolean; 
   }
 }
 
-/** Real listening-socket owners for a port, via `lsof` — independent of whatever launchd believes; this is what makes health/duplicate detection a separate fact from launchd state, per the Owner's explicit rule. */
+/** Real listening-socket owners for a port — independent of launchd claims. */
 export function getListeningPids(port: number): number[] {
   try {
     const out = execFileSync("lsof", ["-tiTCP:" + port, "-sTCP:LISTEN"], { encoding: "utf8" });
-    return out
+    const pids = out
       .split("\n")
       .map((s) => s.trim())
       .filter(Boolean)
       .map((s) => Number.parseInt(s, 10))
       .filter((n) => Number.isFinite(n));
+    if (pids.length > 0) return [...new Set(pids)];
+  } catch {
+    // fall through
+  }
+  try {
+    const out = execFileSync("ss", ["-ltnp"], { encoding: "utf8" });
+    const needle = `:${port} `;
+    const pids: number[] = [];
+    for (const line of out.split("\n")) {
+      if (!line.includes(needle) && !line.includes(`:${port}\n`)) {
+        // also match end of local address column
+        if (!new RegExp(`:${port}\\s`).test(line)) continue;
+      }
+      if (!new RegExp(`:${port}(\\s|$)`).test(line)) continue;
+      for (const m of line.matchAll(/pid=(\d+)/g)) {
+        const n = Number.parseInt(m[1]!, 10);
+        if (Number.isFinite(n)) pids.push(n);
+      }
+    }
+    if (pids.length > 0) return [...new Set(pids)];
+  } catch {
+    // fall through
+  }
+  return getListeningPidsFromProc(port);
+}
+
+/** Linux /proc fallback when lsof/ss are unavailable (minimal Core images). */
+function getListeningPidsFromProc(port: number): number[] {
+  try {
+    if (!existsSync("/proc/net/tcp")) return [];
+    const portHex = port.toString(16).padStart(4, "0").toLowerCase();
+    const inodes = new Set<string>();
+    for (const table of ["/proc/net/tcp", "/proc/net/tcp6"]) {
+      if (!existsSync(table)) continue;
+      const body = readFileSync(table, "utf8");
+      for (const line of body.split("\n").slice(1)) {
+        const parts = line.trim().split(/\s+/);
+        if (parts.length < 10) continue;
+        const local = parts[1] ?? "";
+        const state = parts[3] ?? "";
+        if (state !== "0A") continue; // LISTEN
+        const localPort = local.split(":")[1]?.toLowerCase();
+        if (localPort !== portHex) continue;
+        inodes.add(parts[9]!);
+      }
+    }
+    if (inodes.size === 0) return [];
+    const pids: number[] = [];
+    for (const ent of readdirSync("/proc")) {
+      if (!/^\d+$/.test(ent)) continue;
+      const fdDir = `/proc/${ent}/fd`;
+      if (!existsSync(fdDir)) continue;
+      let fds: string[];
+      try {
+        fds = readdirSync(fdDir);
+      } catch {
+        continue;
+      }
+      for (const fd of fds) {
+        try {
+          const target = readlinkSync(join(fdDir, fd));
+          const m = /^socket:\[(\d+)\]$/.exec(target);
+          if (m && inodes.has(m[1]!)) {
+            pids.push(Number.parseInt(ent, 10));
+            break;
+          }
+        } catch {
+          // ignore
+        }
+      }
+    }
+    return [...new Set(pids.filter((n) => Number.isFinite(n)))];
   } catch {
     return [];
   }

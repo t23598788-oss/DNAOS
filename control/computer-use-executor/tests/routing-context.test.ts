@@ -79,6 +79,7 @@ function runWith(id: string, capture: boolean, ctx: RoutingContext | (() => Rout
     observe: () => { order.push("OBSERVE"); return seen(); },
     captureRoutingContext: () => { order.push("ROUTING"); return typeof ctx === "function" ? ctx() : ctx; },
     now: () => new Date(), newEvidenceId: () => id, evidenceDir,
+    platform: "darwin",
   } as never);
 }
 

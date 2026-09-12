@@ -1,0 +1,2 @@
+{"endpoint_id":"endpoint://dna-os-circuit/public","service_id":"dna-os-circuit","scope":"PUBLIC","transport":"HTTPS","address":"https://dna-os-circuit-production.up.railway.app","health_path":"/circuit.json","source":"REGISTERED_REMOTE","status":"ACTIVE"}
+{"endpoint_id":"endpoint://joint-monitor/public","service_id":"joint-monitor","scope":"PUBLIC","transport":"HTTPS","address":"https://joint-monitor-production.up.railway.app","health_path":"/joints","source":"REGISTERED_REMOTE","status":"ACTIVE"}

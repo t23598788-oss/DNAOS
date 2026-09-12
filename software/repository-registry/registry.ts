@@ -22,7 +22,7 @@
  */
 
 import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { join, resolve } from "node:path";
+import { join } from "node:path";
 import type { RegisterRepositoryInput, RepositoryRegistration } from "./types";
 
 const DEFAULT_DATA_DIR_RELATIVE = "software/repository-registry/data";
@@ -175,64 +175,7 @@ export function listOperationalRepositories(): readonly RepositoryRegistration[]
   return listRepositories().filter((r) => classifyRepository(r) === "OPERATIONAL");
 }
 
-export interface CheckoutResolutionDeps {
-  readonly lookup: {
-    getRepository(repositoryId: string): RepositoryRegistration | null;
-    listOperationalRepositories(): readonly RepositoryRegistration[];
-  };
-  readonly host: {
-    cwd(): string;
-    exists(path: string): boolean;
-  };
-}
-
-let checkoutResolutionForTests: CheckoutResolutionDeps | undefined;
-
-export function setCheckoutResolutionForTests(
-  deps: CheckoutResolutionDeps | undefined
-): void {
-  checkoutResolutionForTests = deps;
-}
-
-/**
- * Resolve exactly one ACTIVE CONTROL_PLANE checkout for this node.
- *
- * Registered repository_root is preferred when it exists locally.
- * A stale machine-local path never grants authority by itself.
- * If the registered path is stale, the current git checkout may represent
- * the same node-local checkout. Otherwise fail closed.
- */
-export function resolveControlPlaneCheckout(): RepositoryRegistration | null {
-  const deps: CheckoutResolutionDeps = checkoutResolutionForTests ?? {
-    lookup: {
-      getRepository,
-      listOperationalRepositories,
-    },
-    host: {
-      cwd: () => process.cwd(),
-      exists: existsSync,
-    },
-  };
-
-  const matches = deps.lookup.listOperationalRepositories().filter(
-    (r) => r.status === "ACTIVE" && r.world === "CONTROL_PLANE"
-  );
-
-  if (matches.length !== 1) return null;
-
-  const candidate =
-    deps.lookup.getRepository(matches[0].repository_id) ?? matches[0];
-
-  const registeredRoot = resolve(candidate.repository_root);
-  if (deps.host.exists(registeredRoot)) {
-    return { ...candidate, repository_root: registeredRoot };
-  }
-
-  const localRoot = resolve(deps.host.cwd());
-  if (!deps.host.exists(join(localRoot, ".git"))) return null;
-
-  return { ...candidate, repository_root: localRoot };
-}
+/** Checkout / CONTROL_PLANE resolution lives in ./checkout-resolution.ts (Git identity verified). Do not re-implement here. */
 
 export function countRepositoriesByClassification(): {
   readonly OPERATIONAL: number; readonly TEST_FIXTURE: number;

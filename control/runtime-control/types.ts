@@ -6,8 +6,11 @@
  * capability never spawns, forks, or polls a process itself — it only
  * issues one-shot `launchctl`/HTTP calls and records what was actually
  * true before and after, per the Owner's explicit architecture:
- * DNA OS Control -> Runtime Control Adapter -> launchd -> Process ->
+ * DNA OS Control -> Runtime Control Adapter -> Supervisor -> Process ->
  * Health/Evidence -> DNA OS.
+ * Darwin / MAC_LOCAL_AGENT: launchd (`launchctl`).
+ * CORE_NODE (non-darwin): PortableProcessSupervisor (Node spawn).
+ * One SERVICES catalog. launchd remains the Mac supervisor.
  *
  * Input: none (pure type definitions).
  * Output: `ServiceId`, `Action`, `ServiceDefinition`, `HealthCheckResult`,
@@ -42,15 +45,57 @@ export type ServiceId =
   | "deadboard" | "lab-ui" | "research-api" | "compute-api"
   | "machine-observer" | "recovery-supervisor"
   | "control-workspace" | "joint-monitor"
-  | "dna-os-mcp";
+  | "dna-os-mcp"
+  | "owner-command-http"
+  | "dna-os-circuit";
 
 export type Action = "start" | "stop" | "restart" | "health" | "status";
+
+/**
+ * Live child-process lifecycle for the portable CORE_NODE supervisor.
+ * Boot conveyor `ServiceState` (`READY` / `FAILED_LOCKED` / …) stays for
+ * `bootAll`. Operation evidence still uses `SUCCESS` | `FAILED`.
+ * This vocabulary is derived from pid + HTTP health + last exit — not a
+ * second service catalog.
+ */
+export type ProcessLifecycleState =
+  | "STOPPED"
+  | "STARTING"
+  | "RUNNING"
+  | "UNHEALTHY"
+  | "STOPPING"
+  | "FAILED";
+
+export type LaunchdJobPresence = "installed" | "not_installed";
+
+export interface PortableProcessSpec {
+  /** argv[0] is the executable; remaining entries are arguments. Relative paths resolve against supervisor cwd. */
+  readonly argv: readonly string[];
+  /**
+   * Parent env keys that may be copied into the child. Names only — never
+   * values in source. The supervisor never enumerates `process.env`.
+   */
+  readonly env_allowlist: readonly string[];
+}
 
 export interface ServiceDefinition {
   service_id: ServiceId;
   launchd_label: string;
   /** Absolute path to the LaunchAgent plist — used only for `bootstrap` when the job isn't currently loaded. */
   plist_path: string;
+  /**
+   * Capability-folder path for `lookupRuntimeNodeKind`. One catalog still;
+   * this is how CORE_NODE vs MAC_LOCAL_AGENT eligibility is decided.
+   */
+  capability_folder: string;
+  /**
+   * `installed` — launchd adapter / `bootAll` may bootstrap this job.
+   * `not_installed` — no LaunchAgent in this catalog; CORE_NODE portable
+   * supervisor may spawn it. Darwin `bootAll` skips these so Mac launchd
+   * conveyor does not change.
+   */
+  launchd_job?: LaunchdJobPresence;
+  portable_process?: PortableProcessSpec;
   port: number;
   /** Path used for the HTTP health probe. A response (any status the server itself returns) counts as reachable; only a specific expected status counts as healthy — see `health_expect_status`. */
   health_path: string;

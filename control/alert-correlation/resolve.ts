@@ -4,32 +4,25 @@
  * Resolution failure is a first-class outcome (`UNRESOLVED_ALERT`), never
  * a guess.
  *
- * Every row in `KNOWN_SERVICES` below is EVIDENCE-BACKED, not assumed:
- * the repo paths were confirmed with a real `existsSync`, and the two
- * Railway hostnames were confirmed by a real HTTP request returning 200
- * while building this (2026-08-26). A service whose URL nobody has ever
- * observed is left `UNKNOWN` deliberately — that produces `UNVERIFIABLE`
- * downstream, which is honest, instead of a fabricated endpoint that
- * would produce a confident wrong answer.
+ * Listen URLs come from control/runtime-endpoint-registry. This file only
+ * maps alert keys (how the provider spells the service in email) onto an
+ * existing ServiceId endpoint_id. It does not invent public hosts.
  *
  * Input: an `AlertEvent`.
  * Output: `resolveTarget`, `KNOWN_SERVICES`.
- * Dependency ที่อนุญาต: ./types.ts, ./host-runtime.ts.
- * สิ่งที่ห้ามแตะ: never synthesise a health URL from a naming convention
- * (e.g. `<service>-production.up.railway.app`). Two of this repo's real
- * services already break that pattern — `joint-monitor` is deployed under
- * a name that does not match its folder — so a derived URL would probe
- * the wrong host and report a healthy service as down, or worse, a
- * different tenant's host entirely.
+ * Dependency ที่อนุญาต: ./types.ts, ./host-runtime.ts, runtime-endpoint-registry
+ * สิ่งที่ห้ามแตะ: never synthesise a health URL from a naming convention.
  */
 
+import {
+  ensureRuntimeEndpointsLoaded,
+  resolveRuntimeEndpoint,
+} from "../runtime-endpoint-registry/contract";
 import { UNKNOWN, PROVIDER_UNRESOLVED, type AlertEvent, type ResolvedTarget } from "./types";
 import { repoPathExists } from "./host-runtime";
 
 interface KnownService {
-  /** Real, observed URL. `null` = never observed; do NOT invent one. */
-  readonly health_url: string | null;
-  /** Repo path backing this service, verified with existsSync at resolve time. */
+  readonly endpoint_id: string | null;
   readonly repo_path: string | null;
 }
 
@@ -40,20 +33,25 @@ interface KnownService {
  */
 export const KNOWN_SERVICES: Readonly<Record<string, KnownService>> = {
   "railway/DNA-OS-INFRASTRUCTURE/dna-os-circuit": {
-    health_url: "https://dna-os-circuit-production.up.railway.app",
+    endpoint_id: "endpoint://dna-os-circuit/public",
     repo_path: "dna-os-circuit",
   },
   "railway/DNA-OS-INFRASTRUCTURE/owner-command-http": {
-    // Repo path is real; no public URL for this service has ever been
-    // observed from this machine, so it stays null on purpose.
-    health_url: null,
+    endpoint_id: null,
     repo_path: "transport/owner-command-http",
   },
   "railway/DNA-OS-INFRASTRUCTURE/joint-monitor": {
-    health_url: "https://joint-monitor-production.up.railway.app",
+    endpoint_id: "endpoint://joint-monitor/public",
     repo_path: "observability/joint-monitor",
   },
 };
+
+function observedAddress(endpointId: string | null): string | null {
+  if (!endpointId) return null;
+  ensureRuntimeEndpointsLoaded();
+  const resolved = resolveRuntimeEndpoint({ query: endpointId, purpose: "observe" });
+  return resolved.ok ? resolved.endpoint.address : null;
+}
 
 export function serviceKey(alert: AlertEvent): string {
   return `${alert.provider}/${alert.project}/${alert.service}`;
@@ -73,17 +71,15 @@ export function resolveTarget(alert: AlertEvent): ResolvedTarget {
     return { resolved: false, health_url: UNKNOWN, repo_path: UNKNOWN, reason: `no registered service matches "${key}" — alert is real but its target is unknown to DNA OS` };
   }
 
-  // The repo path is re-verified on every resolve, never trusted from
-  // the table alone: a folder that has been moved or deleted must stop
-  // resolving rather than keep reporting a path that no longer exists.
   const repoOk = known.repo_path !== null && repoPathExists(known.repo_path);
+  const health_url = observedAddress(known.endpoint_id);
 
   return {
     resolved: true,
-    health_url: known.health_url ?? UNKNOWN,
+    health_url: health_url ?? UNKNOWN,
     repo_path: repoOk ? (known.repo_path as string) : UNKNOWN,
-    reason: known.health_url
-      ? `matched "${key}"; probe target observed previously and re-checked live${repoOk ? "; repo path verified" : "; repo path MISSING on disk"}`
-      : `matched "${key}", but no health URL has ever been observed for it — correlation will report UNVERIFIABLE rather than guess`,
+    reason: health_url
+      ? `matched "${key}"; probe target from runtime-endpoint-registry${repoOk ? "; repo path verified" : "; repo path MISSING on disk"}`
+      : `matched "${key}", but no health URL is registered — correlation will report UNVERIFIABLE rather than guess`,
   };
 }

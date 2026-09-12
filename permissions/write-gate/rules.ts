@@ -114,7 +114,7 @@ function underRoot(abs: string, root: string): boolean {
 
 function activeControlPlaneRoot(): string | null {
   const resolved = resolveControlPlaneCheckout();
-  if (!resolved) return null;
+  if (!resolved.ok) return null;
   return resolved.repository_root;
 }
 

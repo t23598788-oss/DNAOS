@@ -33,15 +33,15 @@
  * `../../credentials/registry/api-credential-registry.ts` (metadata read
  * only — `findApiCredential`, never a write), `../../credentials/macos-
  * keychain/index.ts` (`MacOsKeychainProvider` — the real Keychain read,
- * reused unmodified).
+ * reused unmodified), `../../credentials/secret-resolver/` and
+ * `../../credentials/process-environment/` (CORE_NODE material only).
  * สิ่งที่ห้ามแตะ: ห้ามอ่าน credential จากที่อื่นนอกจาก
- * `process.env[EXPECTED_GITHUB_CREDENTIAL_ENV_VAR_NAME]` (legacy path) or
- * a real, registered Keychain entry resolved through
- * `MacOsKeychainProvider` (canonical path) — ไม่มี fallback อื่น, ไม่มีการ
- * อ่านจากไฟล์/ฐานข้อมูล/env var ชื่ออื่น. ห้ามใส่ค่า token ลงใน `reason`,
- * log, error, event, หรือ return value ใดๆ นอกจาก `token` เอง — ทุก
- * failure message ในไฟล์นี้อ้างถึงได้แค่ "ชื่อ"/"reference" เท่านั้น. ห้าม
- * cache token ไว้ข้ามการเรียกแต่ละครั้ง — resolve ใหม่ทุกครั้งที่ใช้.
+ * `process.env[EXPECTED_GITHUB_CREDENTIAL_ENV_VAR_NAME]` (legacy path),
+ * a registered Keychain entry via `MacOsKeychainProvider` on darwin, or
+ * the explicit CORE_NODE process-environment mapping for the same
+ * credential_ref — ไม่มี fallback อื่น, ไม่มีการอ่าน env var ชื่อที่ไม่ได้
+ * ถูก map. ห้ามใส่ค่า token ลงใน `reason`, log, error, event, หรือ
+ * return value ใดๆ นอกจาก `token` เอง. ห้าม cache token ไว้ข้ามการเรียก.
  */
 
 import type { ConnectionRegistration } from "../../contracts/connector/connection";
@@ -49,6 +49,8 @@ import { EXPECTED_GITHUB_CREDENTIAL_ENV_VAR_NAME } from "./adapter-config";
 import { readEnvVar } from "./host-runtime";
 import { findApiCredential } from "../../credentials/registry/api-credential-registry";
 import { MacOsKeychainProvider } from "../../credentials/macos-keychain/index";
+import { secretResolutionBackend } from "../../credentials/secret-resolver/node-credential-resolver";
+import { resolveProcessEnvironmentSecret } from "../../credentials/process-environment/provider";
 
 export type GithubCredentialResolution =
   | { ok: true; token: string; credential_source: string }
@@ -78,6 +80,14 @@ async function resolveViaKeychain(ref: string, provider: MacOsKeychainProvider =
   }
   if (entry.resolver_kind !== "macos_keychain") {
     return { ok: false, reason: `credential_ref "${ref}" names an unsupported resolver_kind "${entry.resolver_kind}" — only macos_keychain is understood today` };
+  }
+
+  if (secretResolutionBackend("CORE_NODE") === "process_environment") {
+    const envResolution = resolveProcessEnvironmentSecret(ref);
+    if (!envResolution.ok) {
+      return { ok: false, reason: `CORE_NODE secret resolution failed for credential_ref "${ref}" (${envResolution.code}): ${envResolution.reason}` };
+    }
+    return { ok: true, token: envResolution.secret, credential_source: envResolution.credential_source };
   }
 
   const resolution = await provider.resolve({ service: entry.resolver_service, account: entry.resolver_account, kind: "api_key" });

@@ -73,6 +73,7 @@ function readRows(): ExecutionEvidence[] {
     now: () => new Date(),
     newEvidenceId: () => "cue-test-full",
     evidenceDir,
+    platform: "darwin",
   } as never);
 
   const persisted = readRows().find((r) => r.evidence_id === "cue-test-full")!;
@@ -118,6 +119,7 @@ function readRows(): ExecutionEvidence[] {
     now: () => new Date(),
     newEvidenceId: () => "cue-test-denied",
     evidenceDir,
+    platform: "darwin",
   } as never);
   const deniedRow = readRows().find((r) => r.evidence_id === "cue-test-denied")!;
   check("7. denied path fail-closed: not executed, no outcome, null status",

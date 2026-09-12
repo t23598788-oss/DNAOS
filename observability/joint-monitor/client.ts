@@ -25,19 +25,24 @@
 
 import { hostPostJson, hostRandomId, nowIso, readEnvVar } from "./host-runtime";
 import type { OccurrenceStamp, ReportJointInput, ReportViolationInput, JointReport, ViolationReport } from "./types";
+import {
+  ensureRuntimeEndpointsLoaded,
+  resolveRuntimeEndpoint,
+} from "../../control/runtime-endpoint-registry/contract";
 
 // Moved off 5177 2026-08-22 — that port is DNA-LAB-PERMISSION-REASONER's
 // real Research Monitor UI, not this repo's to claim (see start.ts's own
 // header comment for the correction).
-const DEFAULT_BASE_URL = "http://127.0.0.1:5178";
 const REPORT_TIMEOUT_MS = 500;
-// A remote (Railway) joint-monitor is reached over the public internet,
-// not loopback — 500ms is a loopback budget. Raised only for the remote
-// case so the local Mac path keeps its original, proven timing.
 const REMOTE_REPORT_TIMEOUT_MS = 3000;
 
 function baseUrl(): string {
-  return readEnvVar("JOINT_MONITOR_URL") ?? DEFAULT_BASE_URL;
+  const configured = readEnvVar("JOINT_MONITOR_URL");
+  if (configured && configured.length > 0) return configured;
+  ensureRuntimeEndpointsLoaded();
+  const resolved = resolveRuntimeEndpoint({ query: "endpoint://joint-monitor/local", purpose: "execute" });
+  if (resolved.ok) return resolved.endpoint.address;
+  return "";
 }
 
 function isRemote(url: string): boolean {
@@ -128,6 +133,7 @@ export async function reportJoint(input: ReportJointInput): Promise<{ ok: boolea
   for (const listener of jointListeners) {
     try { listener(report); } catch { /* ผู้ฟังพังต้องไม่ทำให้การรายงานพัง */ }
   }
+  if (!url) return { ok: false };
   return hostPostJson(`${url}/joints`, report, timeoutFor(url), authorizationHeader());
 }
 
@@ -147,5 +153,6 @@ export async function reportViolation(input: ReportViolationInput): Promise<{ ok
   for (const listener of violationListeners) {
     try { listener(report); } catch { /* ผู้ฟังพังต้องไม่ทำให้การรายงานพัง */ }
   }
+  if (!url) return { ok: false };
   return hostPostJson(`${url}/violations`, report, timeoutFor(url), authorizationHeader());
 }

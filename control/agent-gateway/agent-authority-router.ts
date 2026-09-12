@@ -32,6 +32,7 @@ import { evaluateWriteIntent } from "../../permissions/write-gate/contract";
 import { executeFileWrite } from "../../execution/file-write/contract";
 import type { RequestedAction, RequestedActionOperation } from "./agent-execution-contract";
 import { ERROR_CODES } from "./agent-execution-contract";
+import { macLocalAgentExecutionDecision } from "../../contracts/architecture/runtime-node-and-optional-provider";
 import type { TaskWorkspace } from "./workspace-manager";
 import type { AgentExecutionOrigin } from "./agent-host-dispatch";
 
@@ -250,6 +251,15 @@ async function executeAppleEventAction(action: RequestedAction, context: Request
   }
 
   const ownerAuthorized = context.origin.kind === "ADMITTED_TASK" && context.authorization_reference !== null;
+
+  const node = macLocalAgentExecutionDecision({ current_node: "CORE_NODE" });
+  if (!node.execute) {
+    return {
+      status: "DENIED",
+      operation: action.operation,
+      reason: `${node.reason_code}: required_node=${node.required_node} current_node=${node.current_node} execution_attempted=${String(node.execution_attempted)}`,
+    };
+  }
 
   const { runUiWorkOrder } = await import("../../connections/os-ui/adapter-contract");
   const order = {

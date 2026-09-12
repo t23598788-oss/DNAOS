@@ -38,10 +38,13 @@
 
 import { readFileSync, existsSync, statSync } from "node:fs";
 import { join, resolve as resolvePath } from "node:path";
+import { get as httpGet } from "node:http";
 import { loadPreviousSnapshot, deriveEdges } from "../live-census/contract";
 import type { CapabilityRecord } from "../live-census/contract";
 import { SERVICES, runOperation } from "../../control/runtime-control/contract";
 import type { ServiceId } from "../../control/runtime-control/types";
+import { serviceNodeEligibility } from "../../control/runtime-control/service-eligibility";
+import { MAC_LOCAL_AGENT_UNAVAILABLE_ON_CORE, canExecuteMacLocalAgentCapability } from "../../contracts/architecture/runtime-node-and-optional-provider";
 import type { ConnectionType, Declared, EdgeRuntimeStatus, EdgeState, FlowKind, GraphEdge, GraphNode, InterfaceKind, NodeOperations, ProviderIdentity, SystemGraph, UndeclaredReason } from "./types";
 
 const SOURCE_MARKER = "software/system-graph/projection.ts";
@@ -154,6 +157,30 @@ export interface BuildOptions {
   /** Probe every declared service for real health. Off by default: it costs real HTTP. */
   readonly probeServices?: boolean;
   readonly now?: number;
+}
+
+/**
+ * CORE_NODE on non-darwin: HTTP health of declared ports may run.
+ * launchctl / lsof / LaunchAgent host probes must not.
+ */
+export function coreNodeLiveServiceProbeKind(): "launchd_lsof_and_http" | "http_only" {
+  return canExecuteMacLocalAgentCapability({ current_node: "CORE_NODE" }) ? "launchd_lsof_and_http" : "http_only";
+}
+
+/** Portable loopback GET against a declared health_path. Not a launchd/lsof probe. */
+export function httpProbeDeclaredService(port: number, healthPath: string, timeoutMs = 1500): Promise<{ healthy: boolean; http_status: number | null }> {
+  return new Promise((resolve) => {
+    const req = httpGet({ host: "127.0.0.1", port, path: healthPath, timeout: timeoutMs }, (res) => {
+      res.resume();
+      const status = res.statusCode ?? null;
+      resolve({ healthy: status !== null && status >= 200 && status < 400, http_status: status });
+    });
+    req.on("timeout", () => {
+      req.destroy();
+      resolve({ healthy: false, http_status: null });
+    });
+    req.on("error", () => resolve({ healthy: false, http_status: null }));
+  });
 }
 
 export async function buildSystemGraph(options: BuildOptions = {}): Promise<SystemGraph> {
@@ -462,13 +489,31 @@ export async function buildSystemGraph(options: BuildOptions = {}): Promise<Syst
     let runtimeStatus: GraphNode["runtime_status"] = "UNKNOWN";
     let evidence = `runtime-control#SERVICES:${serviceId}`;
     if (options.probeServices) {
-      try {
-        const probe = await runOperation(serviceId as ServiceId, "health");
-        runtimeStatus = probe.health_after.healthy === true ? "HEALTHY" : "UNHEALTHY";
-        evidence = `runtime-control:${probe.operation_id}`;
-      } catch (error) {
+      const eligibility = serviceNodeEligibility(serviceId as ServiceId);
+      if (eligibility === "MAC_LOCAL_AGENT_ONLY" && coreNodeLiveServiceProbeKind() === "http_only") {
         runtimeStatus = "UNKNOWN";
-        evidence = `runtime-control probe failed: ${error instanceof Error ? error.message : String(error)}`;
+        evidence = `${MAC_LOCAL_AGENT_UNAVAILABLE_ON_CORE}: skip HTTP probe for MAC_LOCAL_AGENT_ONLY service ${serviceId}`;
+      } else {
+      const probeKind = coreNodeLiveServiceProbeKind();
+      if (probeKind === "http_only") {
+        try {
+          const probe = await httpProbeDeclaredService(definition.port, definition.health_path);
+          runtimeStatus = probe.healthy ? "HEALTHY" : "UNHEALTHY";
+          evidence = `http:127.0.0.1:${definition.port}${definition.health_path}; ${MAC_LOCAL_AGENT_UNAVAILABLE_ON_CORE}: launchd/lsof not attempted`;
+        } catch (error) {
+          runtimeStatus = "UNKNOWN";
+          evidence = `${MAC_LOCAL_AGENT_UNAVAILABLE_ON_CORE}: ${error instanceof Error ? error.message : String(error)}`;
+        }
+      } else {
+        try {
+          const probe = await runOperation(serviceId as ServiceId, "health");
+          runtimeStatus = probe.health_after.healthy === true ? "HEALTHY" : "UNHEALTHY";
+          evidence = `runtime-control:${probe.operation_id}`;
+        } catch (error) {
+          runtimeStatus = "UNKNOWN";
+          evidence = `runtime-control probe failed: ${error instanceof Error ? error.message : String(error)}`;
+        }
+      }
       }
     }
     const id = nodeId("service", serviceId);
@@ -477,7 +522,9 @@ export async function buildSystemGraph(options: BuildOptions = {}): Promise<Syst
       boundary: "launchd (macOS user domain)",
       source_path: null, runtime_owner: definition.launchd_label,
       runtime_status: runtimeStatus,
-      verification_status: options.probeServices ? "PROBED" : "NOT_PROBED",
+      verification_status: options.probeServices
+        ? (coreNodeLiveServiceProbeKind() === "http_only" ? "HTTP_PROBED_MAC_HOST_DEFERRED" : "PROBED")
+        : "NOT_PROBED",
       capability_id: null, service_id: serviceId, domain: "runtime", parent_id: null,
       evidence_refs: [evidence, `launchd:${definition.launchd_label}`, `port:${definition.port}${definition.health_path}`],
       source: "control/runtime-control#SERVICES",
@@ -619,7 +666,7 @@ export async function buildSystemGraph(options: BuildOptions = {}): Promise<Syst
     sources: [
       { id: "live-census", detail: `${census.length} capability record(s)`, as_of: censusAsOf, available: census.length > 0 },
       { id: "joint-monitor", detail: `${joints.length} observed call row(s), ${runtimePairs.size} distinct pair(s)`, as_of: jointsAsOf, available: joints.length > 0 },
-      { id: "runtime-control", detail: `${serviceIds.length} declared service(s)${options.probeServices ? ", probed live" : ", not probed"}`, as_of: null, available: true },
+      { id: "runtime-control", detail: `${serviceIds.length} declared service(s)${options.probeServices ? (coreNodeLiveServiceProbeKind() === "http_only" ? ", HTTP probed (mac host deferred)" : ", probed live") : ", not probed"}`, as_of: null, available: true },
       { id: "credentials-registry", detail: `${providers.size} provider(s) with a credential reference`, as_of: credentialsAsOf, available: providers.size > 0 },
       { id: "persistent-registry", detail: `${registryRows.length} registered capability row(s) — the only source of role/inputs/outputs/produced-evidence`, as_of: registryAsOf, available: registryRows.length > 0 },
     ],

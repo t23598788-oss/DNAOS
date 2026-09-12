@@ -72,6 +72,7 @@ const run = (id: string, readings: Observation[], status = "COMPLETED", extra: R
     runUiWorkOrder: async () => OUTCOME(status),
     observe: (() => { let i = 0; return () => readings[Math.min(i++, readings.length - 1)]!; })(),
     now: () => new Date(), newEvidenceId: () => id, evidenceDir,
+    platform: "darwin",
   } as never);
 
 (async () => {
@@ -154,6 +155,7 @@ const run = (id: string, readings: Observation[], status = "COMPLETED", extra: R
     runUiWorkOrder: async () => OUTCOME(),
     observe: () => { afterReadAt = ++tick; return seen({ sy: String(afterReadAt) }, `2026-09-02T13:00:0${afterReadAt}.000Z`); },
     now: orderClock, newEvidenceId: () => "cue-v-order", evidenceDir,
+    platform: "darwin",
   } as never);
   const r12 = rows().find((r) => r.evidence_id === "cue-v-order")!;
   check("12. verdict was evaluated after the AFTER observation was acquired",
@@ -194,6 +196,7 @@ const run = (id: string, readings: Observation[], status = "COMPLETED", extra: R
     runUiWorkOrder: async () => { throw new Error("adapter must not run"); },
     observe: () => { throw new Error("observer must not run"); },
     now: () => new Date(), newEvidenceId: () => "cue-v-badid", evidenceDir,
+    platform: "darwin",
   } as never);
   const r19 = rows().find((r) => r.evidence_id === "cue-v-badid")!;
   check("19. malformed capability fails closed and claims no effect",
@@ -205,6 +208,7 @@ const run = (id: string, readings: Observation[], status = "COMPLETED", extra: R
     runUiWorkOrder: async () => { throw new Error("adapter must not run"); },
     observe: () => { throw new Error("observer must not run"); },
     now: () => new Date(), newEvidenceId: () => "cue-v-denied", evidenceDir,
+    platform: "darwin",
   } as never);
   const r20 = rows().find((r) => r.evidence_id === "cue-v-denied")!;
   check("20. denied execution fabricates neither VERIFIED nor FAILED",

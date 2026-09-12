@@ -10,18 +10,66 @@
  * Input: `CreateWorkspaceInput` / a real `WorkspaceReservation`.
  * Output: `createWorkspace` -> `CreateWorkspaceResult`, `removeWorkspace`
  * -> `RemoveWorkspaceResult`.
- * Dependency ที่อนุญาต: ./types.ts, ./host-runtime.ts.
+ * Dependency ที่อนุญาต: ./types.ts, ./host-runtime.ts,
+ * ../../software/repository-registry/contract.ts (`getRepository` and
+ * `resolveRepositoryCheckout` — identity/status/world plus this node's
+ * checkout; never a second registry).
  * สิ่งที่ห้ามแตะ: never let a caller supply `branch_ref`/`worktree_path`
  * directly — always derived here. Never call GitHub's remote API from
  * this file — local `git` only, matching the real, unblocked precedent
  * `connections/connection-registry/git-discovery.ts` already established.
+ * Never create a worktree until the registered repository admits it.
  */
 
 import { randomUUID } from "node:crypto";
 import { appendFileSync, existsSync, mkdirSync, readFileSync } from "node:fs";
+import { getRepository, resolveRepositoryCheckout } from "../../software/repository-registry/contract";
+import type { RepositoryRegistryStore } from "../../software/repository-registry/contract";
 import { dirnameOf, joinPath, nowIso, resolvePath, runGit } from "./host-runtime";
 import { registerReservationWorkspace } from "./local-registry";
 import type { CreateWorkspaceInput, CreateWorkspaceResult, RemoveWorkspaceResult, WorkspaceReservation } from "./types";
+
+type RepositoryLookup = Pick<RepositoryRegistryStore, "getRepository">;
+
+const defaultRegistry: RepositoryLookup = { getRepository };
+
+function admitRegisteredRepository(
+  input: CreateWorkspaceInput,
+  registry: RepositoryLookup,
+): { ok: true; repositoryRoot: string } | { ok: false; reason: string } {
+  const registration = registry.getRepository(input.repository_id);
+  if (!registration) {
+    return { ok: false, reason: `UNKNOWN_REPOSITORY: repository_id "${input.repository_id}" is not in the repository registry` };
+  }
+  if (registration.status !== "ACTIVE") {
+    return { ok: false, reason: `REPOSITORY_NOT_ACTIVE: repository_id "${input.repository_id}" has status=${registration.status}` };
+  }
+  const purpose = input.purpose ?? "ENGINEERING_ISOLATION";
+  if (registration.world === "BUSINESS_LINE_FINANCE" || registration.world === "PRODUCT_SURFACE") {
+    return { ok: false, reason: `REPOSITORY_WORLD_DENIED: world=${registration.world} is fail-closed for source-workspace isolation` };
+  }
+  if (purpose === "ENGINEERING_ISOLATION" && registration.world !== "CONTROL_PLANE") {
+    return { ok: false, reason: `ENGINEERING_ISOLATION_WORLD_DENIED: ENGINEERING_ISOLATION requires world=CONTROL_PLANE, got world=${registration.world}` };
+  }
+  const suppliedRoot = resolvePath(input.repository_root);
+  const resolved = resolveRepositoryCheckout(input.repository_id, {
+    nodeCheckoutCandidate: suppliedRoot,
+    lookup: {
+      getRepository: (id) => registry.getRepository(id),
+      listOperationalRepositories: () => {
+        const row = registry.getRepository(input.repository_id);
+        return row ? [row] : [];
+      },
+    },
+  });
+  if (!resolved.ok) {
+    return { ok: false, reason: `REPOSITORY_ROOT_MISMATCH: ${resolved.reason}` };
+  }
+  if (suppliedRoot !== resolved.repository_root) {
+    return { ok: false, reason: `REPOSITORY_ROOT_MISMATCH: supplied repository_root does not match this node's checkout` };
+  }
+  return { ok: true, repositoryRoot: resolved.repository_root };
+}
 
 function sanitize(value: string): string {
   return value.replace(/[^a-zA-Z0-9_.-]/g, "-");
@@ -35,13 +83,20 @@ function deriveWorktreePath(repositoryRoot: string, repositoryId: string, workId
   return joinPath(dirnameOf(repositoryRoot), ".dna-os-agent-worktrees", sanitize(repositoryId), sanitize(workId));
 }
 
-export async function createWorkspace(input: CreateWorkspaceInput): Promise<CreateWorkspaceResult> {
+export async function createWorkspace(
+  input: CreateWorkspaceInput,
+  registry: RepositoryLookup = defaultRegistry,
+): Promise<CreateWorkspaceResult> {
+  const admission = admitRegisteredRepository(input, registry);
+  if (!admission.ok) {
+    return { status: "FAILED", reason: admission.reason, reservation: null };
+  }
   // Absolute, always — a relative worktree_path argument would otherwise be
   // resolved by git's own subprocess relative to its cwd (repository_root),
   // not the caller's, silently landing the real worktree somewhere other
   // than the path this function returns (found and fixed via this folder's
   // own real test, see ./tests/source-workspace.test.ts test C).
-  const repositoryRoot = resolvePath(input.repository_root);
+  const repositoryRoot = admission.repositoryRoot;
   const branchRef = deriveBranchRef(input.work_id);
   const worktreePath = resolvePath(deriveWorktreePath(repositoryRoot, input.repository_id, input.work_id));
 

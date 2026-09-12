@@ -79,7 +79,7 @@ import { DEFAULT_AGENT_WORKERS, startAgentGatewaySupervisor, getTask, getResult,
 import type { WorkOrder } from "../../control/agent-gateway/types";
 import type { UiWorkOrder } from "../../connections/os-ui/work-order";
 import { listCapabilities } from "../../control/command-router/capability-registry";
-import { classifyCommand } from "../../control/command-router/contract";
+import { classifyCommand, type RouteOptions } from "../../control/command-router/contract";
 import { resolveGoogleWorkspaceReadIntentFromText } from "../../connections/google-workspace/owner-text-intent";
 import { parseSheetsOwnerText } from "../../connections/google-workspace/sheets-owner-text";
 import {
@@ -96,6 +96,7 @@ import { issueBootstrapChallenge, completeBootstrapProbe } from "../../connectio
 import type { RegistrationCandidate } from "../../control/event-pipeline/contract";
 import { runRegistrationPipeline } from "../../control/registration-pipeline/contract";
 import { handleComputerUseApi } from "./computer-use-api";
+import { coreNodeUnavailableForCapability } from "./mac-local-agent-gate";
 import { listOwnerSessions, validateOwnerSession } from "../../control/owner-authentication/contract";
 import { applyMutation } from "../../control/registration-update/contract";
 import { ingestWorkResult } from "../../control/work-result-ingress/contract";
@@ -111,6 +112,7 @@ import { runPreExecutionPlan, latestPlanFor, latestPlan } from "../../control/pr
 import { executeLocalRead } from "../../control/owner-command/local-read-operations";
 import { resolveAndExecuteOwnerIntent, resolveAndExecuteOwnerRequest } from "../../control/owner-command/structured-intent";
 import { findOpenOwnerQuestion, previewOwnerCommand, submitOwnerCommand, lineageForCommand } from "../../control/owner-command/contract";
+import { resolveEntryContext } from "../../control/entry-context/contract";
 import { readEngineeringCodingIntent } from "../../control/engineering-runtime/contract";
 import { readHistoryForIdentity } from "../../control/owner-command-semantics/contract";
 import { resolutionFor } from "../../control/resource-selection/contract";
@@ -260,8 +262,11 @@ export function shouldForwardStructuredIntentToExistingMcp(
   if (readEngineeringCodingIntent(ownerPayload)) return true;
   if (commandText.trim().length > 0) {
     const classified = classifyCommand(commandText);
-    if (classified.status === "MATCHED" && classified.capability.endpoint.kind === "connector") {
-      return true;
+    if (classified.status === "MATCHED") {
+      const id = classified.capability.capability_id;
+      if (classified.capability.endpoint.kind === "connector" || id === "permission-reasoner") {
+        return true;
+      }
     }
   }
   const name = result.intent?.intent ?? "";
@@ -302,6 +307,19 @@ function ensureOwnerGoogleReadPolicy(ai_identity: string, session_id: string): v
   });
 }
 
+function existingExecutionRouteOptions(ownerIdentity: EnvelopeIdentity): Pick<RouteOptions, "executionRequestBase" | "executionPolicyContext"> {
+  const entry = resolveEntryContext({
+    identity_id: ownerIdentity.identity_id,
+    account_id: ownerIdentity.acting_as_account_id ?? ACCOUNT_ID,
+    workspace_id: WORKSPACE_ID,
+    command_id: "unknown",
+  });
+  return {
+    executionRequestBase: entry.executionRequestBase,
+    executionPolicyContext: entry.context,
+  };
+}
+
 async function invokeExistingMcpSubmitCommand(
   commandText: string,
   ownerIdentity: EnvelopeIdentity,
@@ -318,9 +336,10 @@ async function invokeExistingMcpSubmitCommand(
     session_id,
   };
 
-  let routeOptions: { work_id?: string; envelope_payload?: Record<string, unknown>; steps?: Array<{ capability_id: string; intent: string; payload: unknown }> } = {
+  let routeOptions: RouteOptions = {
     ...(workId ? { work_id: workId } : {}),
     envelope_payload: basePayload,
+    ...existingExecutionRouteOptions(ownerIdentity),
   };
 
   if (classified.status === "MATCHED" && classified.capability.capability_id === "google-workspace") {
@@ -970,6 +989,14 @@ export async function handleCommand(req: IncomingMessage, res: ServerResponse): 
   const ownerIdentity = resolveOwnerIdentity(ownerIdentityInput);
   if (!ownerIdentity) { sendJson(res, 401, { error: "authenticated owner identity required" }); return; }
 
+  if (uiWorkOrder) {
+    const denied = coreNodeUnavailableForCapability("connections/os-ui");
+    if (denied) {
+      sendJson(res, 503, denied);
+      return;
+    }
+  }
+
   try {
     // A structured WorkOrder is the existing DNA OS admission path. Keep
     // free-form/UI commands on their existing owner-command router path;
@@ -1446,6 +1473,11 @@ export const server = createServer((req, res) => {
     return;
   }
   if (req.method === "POST" && req.url === "/local/operation") {
+    const denied = coreNodeUnavailableForCapability("control/owner-command/local-read-operations");
+    if (denied) {
+      sendJson(res, 503, denied);
+      return;
+    }
     void readBody(req).then(async (raw) => { try { const value = await executeLocalRead(JSON.parse(raw)); sendJson(res, (value as any).result?.status === "BLOCKED" ? 403 : 200, value); } catch { sendJson(res, 400, { error: "invalid JSON body" }); } });
     return;
   }
@@ -1921,6 +1953,7 @@ function buildOwnerActivity(identity: string, commandIdInput: string | null): Re
         const outcome = await submitOwnerCommand(text, ownerIdentity, {
           ...(requestedWorkId ? { work_id: requestedWorkId } : {}),
           ...(presented ? { envelope_payload: presented } : {}),
+          ...existingExecutionRouteOptions(ownerIdentity),
         });
         sendJson(res, 200, {
           command_id: outcome.envelope.command_id, work_id: outcome.work_id,
@@ -2120,5 +2153,13 @@ if (isMainModule) {
   });
 }
 
-process.on("SIGTERM", () => { supervisor?.stop(); jointBridge?.stop(); writeFailureBridge?.stop(); server.close(() => process.exit(0)); });
-process.on("SIGINT", () => { supervisor?.stop(); jointBridge?.stop(); writeFailureBridge?.stop(); server.close(() => process.exit(0)); });
+function stopOwnedRuntime(): void {
+  conversationRuntimeHandle?.stop();
+  conversationRuntimeHandle = null;
+  supervisor?.stop();
+  jointBridge?.stop();
+  writeFailureBridge?.stop();
+}
+
+process.on("SIGTERM", () => { stopOwnedRuntime(); server.close(() => process.exit(0)); });
+process.on("SIGINT", () => { stopOwnedRuntime(); server.close(() => process.exit(0)); });
