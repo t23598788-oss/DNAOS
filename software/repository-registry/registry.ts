@@ -175,6 +175,8 @@ export function listOperationalRepositories(): readonly RepositoryRegistration[]
   return listRepositories().filter((r) => classifyRepository(r) === "OPERATIONAL");
 }
 
+/** Checkout / CONTROL_PLANE resolution lives in ./checkout-resolution.ts (Git identity verified). Do not re-implement here. */
+
 export function countRepositoriesByClassification(): {
   readonly OPERATIONAL: number; readonly TEST_FIXTURE: number;
   readonly UNCLASSIFIED: number; readonly total: number;

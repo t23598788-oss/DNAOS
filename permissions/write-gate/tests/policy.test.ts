@@ -12,6 +12,12 @@ import { evaluateWriteIntent } from "../contract";
 import type { WriteGateContext, WriteIntent } from "../contract";
 import { getCapabilityIndex } from "../../../software/capability-registrar/contract";
 import type { CapabilityMetadata } from "../../../software/capability-registrar/contract";
+import { getRepository, listOperationalRepositories, setCheckoutResolutionForTests } from "../../../software/repository-registry/contract";
+import type { RepositoryRegistration } from "../../../software/repository-registry/contract";
+import { execFileSync } from "node:child_process";
+import { existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join, resolve } from "node:path";
 
 declare const process: { exitCode?: number };
 declare const console: { log(...args: unknown[]): void; error(...args: unknown[]): void };
@@ -119,6 +125,154 @@ function run(): void {
     const decision = evaluateWriteIntent(baseIntent({ target_path: "another-ambiguous/deep/x.ts" }), ambiguousContext);
     assert(decision.decision !== "ALLOW_CREATE" && decision.decision !== "ALLOW_MODIFY", "UNKNOWN is never confused with an ALLOW_* value");
     console.log("PASS: UNKNOWN decision is structurally distinct from any ALLOW_* value (fail-closed contract holds)");
+  }
+
+  const controlPlane = listOperationalRepositories().find((row) => row.status === "ACTIVE" && row.world === "CONTROL_PLANE");
+  const deadboard = getRepository("repository://t23598788-oss/---------------DNA-OS");
+  const controlWorkspace = getRepository("repository://t23598788-oss/dna-os-control-workspace");
+  assert(controlPlane !== undefined, "ACTIVE CONTROL_PLANE repository must already be registered");
+  const controlPlaneRoot = resolve(controlPlane!.repository_root);
+
+  // 8. Valid path inside registered ACTIVE CONTROL_PLANE root continues through existing overlap behavior.
+  {
+    const decision = evaluateWriteIntent(baseIntent({ target_path: "connections/genuinely-new-thing-2026/adapter.ts" }), realContext);
+    assert(decision.decision === "ALLOW_CREATE", `expected ALLOW_CREATE inside CONTROL_PLANE, got ${decision.decision} ${decision.reason_codes.join(",")}`);
+    console.log("PASS: path inside ACTIVE CONTROL_PLANE root continues to existing ALLOW_CREATE");
+  }
+
+  // 9. Deadboard BUSINESS_LINE_FINANCE path -> DENY.
+  {
+    assert(deadboard !== null, "Deadboard must already be registered");
+    const decision = evaluateWriteIntent(baseIntent({ target_path: join(deadboard!.repository_root, "app/page.tsx") }), realContext);
+    assert(decision.decision === "DENY", `expected DENY for Deadboard path, got ${decision.decision}`);
+    assert(decision.reason_codes.includes("OUTSIDE_CONTROL_PLANE_ROOT"), `expected OUTSIDE_CONTROL_PLANE_ROOT, got ${decision.reason_codes.join(",")}`);
+    console.log("PASS: Deadboard path -> DENY");
+  }
+
+  // 10. Control Workspace PRODUCT_SURFACE path -> DENY.
+  {
+    assert(controlWorkspace !== null, "Control Workspace must already be registered");
+    const decision = evaluateWriteIntent(baseIntent({ target_path: join(controlWorkspace!.repository_root, "src/main.ts") }), realContext);
+    assert(decision.decision === "DENY", `expected DENY for Control Workspace path, got ${decision.decision}`);
+    assert(decision.reason_codes.includes("OUTSIDE_CONTROL_PLANE_ROOT"), `expected OUTSIDE_CONTROL_PLANE_ROOT, got ${decision.reason_codes.join(",")}`);
+    console.log("PASS: Control Workspace path -> DENY");
+  }
+
+  // 11. Arbitrary/unregistered sibling repo path -> DENY.
+  {
+    const decision = evaluateWriteIntent(baseIntent({ target_path: "/Users/tam/Desktop/DNA-LAB-FILE-INTELLIGENCE/index.ts" }), realContext);
+    assert(decision.decision === "DENY", `expected DENY for unregistered sibling path, got ${decision.decision}`);
+    assert(decision.reason_codes.includes("OUTSIDE_CONTROL_PLANE_ROOT"), `expected OUTSIDE_CONTROL_PLANE_ROOT, got ${decision.reason_codes.join(",")}`);
+    console.log("PASS: unregistered sibling repo path -> DENY");
+  }
+
+  // 12. Prefix-confusion path must DENY (sibling name sharing a string prefix is not inside the root).
+  {
+    const decision = evaluateWriteIntent(baseIntent({ target_path: `${controlPlaneRoot}-evil/file.ts` }), realContext);
+    assert(decision.decision === "DENY", `expected DENY for prefix-confusion path, got ${decision.decision}`);
+    assert(decision.reason_codes.includes("OUTSIDE_CONTROL_PLANE_ROOT"), `expected OUTSIDE_CONTROL_PLANE_ROOT, got ${decision.reason_codes.join(",")}`);
+    console.log("PASS: prefix-confusion path -> DENY");
+  }
+
+  // 13. .env / secret path denial.
+  {
+    const envDecision = evaluateWriteIntent(baseIntent({ target_path: ".env" }), realContext);
+    assert(envDecision.decision === "DENY", `expected DENY for .env, got ${envDecision.decision}`);
+    assert(envDecision.reason_codes.includes("SECRET_OR_ENV_PATH_DENIED"), `expected SECRET_OR_ENV_PATH_DENIED, got ${envDecision.reason_codes.join(",")}`);
+    const secretDecision = evaluateWriteIntent(baseIntent({ target_path: "credentials/secret.key" }), realContext);
+    assert(secretDecision.decision === "DENY", `expected DENY for secret.key, got ${secretDecision.decision}`);
+    assert(secretDecision.reason_codes.includes("SECRET_OR_ENV_PATH_DENIED"), `expected SECRET_OR_ENV_PATH_DENIED, got ${secretDecision.reason_codes.join(",")}`);
+    console.log("PASS: .env / secret path denial");
+  }
+
+  // 14. Existing valid capability CREATE/EDIT behavior still passes after CONTROL_PLANE confinement.
+  {
+    const createDecision = evaluateWriteIntent(baseIntent({ target_path: "execution/run/some-new-file.ts" }), realContext);
+    assert(createDecision.decision === "REUSE_EXISTING", `expected REUSE_EXISTING, got ${createDecision.decision}`);
+    const editDecision = evaluateWriteIntent(baseIntent({ operation: "MODIFY", target_path: "connections/github/adapter-config.ts" }), realContext);
+    assert(editDecision.decision === "ALLOW_MODIFY", `expected ALLOW_MODIFY, got ${editDecision.decision}`);
+    console.log("PASS: existing capability CREATE/EDIT behavior still passes");
+  }
+
+  const portabilityBase = mkdtempSync(join(tmpdir(), "dnaos-write-gate-portability-"));
+  const linuxRoot = join(portabilityBase, "srv", "dna-os");
+  mkdirSync(linuxRoot, { recursive: true });
+  execFileSync("git", ["init", "-b", "main"], { cwd: linuxRoot });
+  execFileSync("git", ["config", "user.email", "test@example.com"], { cwd: linuxRoot });
+  execFileSync("git", ["config", "user.name", "test"], { cwd: linuxRoot });
+  execFileSync("git", ["remote", "add", "origin", "https://github.com/t23598788-oss/-DNA-OS-INFRASTRUCTURE-.git"], { cwd: linuxRoot });
+  writeFileSync(join(linuxRoot, "README.md"), "write-gate-portability\n");
+  execFileSync("git", ["add", "."], { cwd: linuxRoot });
+  execFileSync("git", ["commit", "-m", "initial"], { cwd: linuxRoot });
+  const staleMac = "/Users/tam/Desktop/DNA-OS-INFRASTRUCTURE";
+  const linuxRow: RepositoryRegistration = {
+    repository_id: "repository://t23598788-oss/-DNA-OS-INFRASTRUCTURE-",
+    owner: "t23598788-oss",
+    repository: "-DNA-OS-INFRASTRUCTURE-",
+    world: "CONTROL_PLANE",
+    source_authority: "https://github.com/t23598788-oss/-DNA-OS-INFRASTRUCTURE-.git",
+    default_branch: "main",
+    repository_root: linuxRoot,
+    connection_id: null,
+    status: "ACTIVE",
+    registered_at: "2026-01-01T00:00:00.000Z",
+  };
+  const staleRow: RepositoryRegistration = { ...linuxRow, repository_root: staleMac };
+  const isolatedContext: WriteGateContext = { registryIndex: [] };
+
+  function installLookup(row: RepositoryRegistration, existsFn: (p: string) => boolean, cwd: string): void {
+    setCheckoutResolutionForTests({
+      lookup: {
+        getRepository: (id) => (id === row.repository_id ? row : null),
+        listOperationalRepositories: () => [row],
+      },
+      host: { cwd: () => cwd, exists: existsFn },
+    });
+  }
+
+  try {
+    installLookup(linuxRow, existsSync, linuxRoot);
+    {
+      const decision = evaluateWriteIntent(baseIntent({ target_path: join(linuxRoot, "connections/new-adapter.ts") }), isolatedContext);
+      assert(decision.decision === "ALLOW_CREATE", `expected ALLOW_CREATE inside resolved root, got ${decision.decision} ${decision.reason_codes.join(",")}`);
+      console.log("PASS: write-gate accepts path inside resolved CONTROL_PLANE root");
+    }
+    {
+      const decision = evaluateWriteIntent(baseIntent({ target_path: join(portabilityBase, "outside", "file.ts") }), isolatedContext);
+      assert(decision.decision === "DENY", `expected DENY outside root, got ${decision.decision}`);
+      assert(decision.reason_codes.includes("OUTSIDE_CONTROL_PLANE_ROOT"), `expected OUTSIDE_CONTROL_PLANE_ROOT, got ${decision.reason_codes.join(",")}`);
+      console.log("PASS: write-gate denies path outside resolved root");
+    }
+    {
+      const decision = evaluateWriteIntent(baseIntent({ target_path: `${resolve(linuxRoot)}-evil/file.ts` }), isolatedContext);
+      assert(decision.decision === "DENY", `expected DENY for prefix-confusion, got ${decision.decision}`);
+      assert(decision.reason_codes.includes("OUTSIDE_CONTROL_PLANE_ROOT"), `expected OUTSIDE_CONTROL_PLANE_ROOT, got ${decision.reason_codes.join(",")}`);
+      console.log("PASS: prefix-confusion remains denied after node-local root");
+    }
+
+    installLookup(staleRow, (p) => {
+      if (resolve(p) === resolve(staleMac)) return false;
+      return existsSync(p);
+    }, linuxRoot);
+    {
+      const stale = evaluateWriteIntent(baseIntent({ target_path: join(staleMac, "connections/adapter.ts") }), isolatedContext);
+      assert(stale.decision === "DENY", `stale Mac path authorized writes: ${stale.decision} ${stale.reason_codes.join(",")}`);
+      assert(stale.reason_codes.includes("OUTSIDE_CONTROL_PLANE_ROOT"), `expected OUTSIDE_CONTROL_PLANE_ROOT, got ${stale.reason_codes.join(",")}`);
+      const inside = evaluateWriteIntent(baseIntent({ target_path: join(linuxRoot, "connections/adapter.ts") }), isolatedContext);
+      assert(inside.decision === "ALLOW_CREATE", `expected ALLOW_CREATE on node-local root, got ${inside.decision} ${inside.reason_codes.join(",")}`);
+      console.log("PASS: stale old Mac path does not authorize writes on CORE_NODE");
+    }
+
+    installLookup({ ...linuxRow, repository_root: join(portabilityBase, "missing-checkout") }, existsSync, join(portabilityBase, "not-git"));
+    {
+      const decision = evaluateWriteIntent(baseIntent({ target_path: "connections/x.ts" }), isolatedContext);
+      assert(decision.decision === "DENY", `expected DENY when checkout missing, got ${decision.decision}`);
+      assert(decision.reason_codes.includes("CONTROL_PLANE_REPOSITORY_UNRESOLVED"), `expected CONTROL_PLANE_REPOSITORY_UNRESOLVED, got ${decision.reason_codes.join(",")}`);
+      console.log("PASS: write-gate fails closed when local checkout is missing");
+    }
+  } finally {
+    setCheckoutResolutionForTests(undefined);
+    rmSync(portabilityBase, { recursive: true, force: true });
   }
 
   console.log("=== ALL write-gate policy.test.ts CASES PASSED ===");

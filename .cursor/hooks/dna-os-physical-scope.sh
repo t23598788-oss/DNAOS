@@ -36,6 +36,9 @@ fi
 if printf '%s' "$command" | grep -Eq 'launchctl[[:space:]]+(bootout|kickstart|kill)'; then
   deny "RUNTIME_SCOPE_DENIED"
 fi
+if printf '%s' "$command" | grep -Eq '\.\./|^/Users|/Desktop/DNA-OS|Application Support/DNA OS'; then
+  deny "PATH_SCOPE_DENIED"
+fi
 if printf '%s' "$path" | grep -Eq '^/Users|/Desktop/DNA-OS|Application Support/DNA OS|(^|[[:space:]])\.\./'; then
   deny "PATH_SCOPE_DENIED"
 fi

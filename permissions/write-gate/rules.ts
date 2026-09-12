@@ -13,18 +13,23 @@
  *
  * Input: `WriteIntent`, `WriteGateContext`.
  * Output: `RuleOutcome` per rule.
- * Dependency ที่อนุญาต: ./evidence.ts, ./types.ts.
+ * Dependency ที่อนุญาต: ./evidence.ts, ./types.ts,
+ * ../../software/repository-registry/contract.ts (`resolveControlPlaneCheckout`
+ * — this node's CONTROL_PLANE checkout; never a second registry).
  * สิ่งที่ห้ามแตะ: never make `ruleWellFormedIntent` return anything but
  * "continue"/"DENY" — only `ruleRegistryLookup` may ever produce a
  * terminal ALLOW_CREATE/ALLOW_MODIFY/REUSE_EXISTING/UNKNOWN, matching
  * `../execution-policy/rules.ts`'s own "only the final rule may ALLOW"
- * structural guarantee.
+ * structural guarantee. Capability-folder overlap runs only after the
+ * target resolves inside an ACTIVE CONTROL_PLANE repository_root.
  */
 
+import { resolve as resolvePath, sep } from "node:path";
 import { fail, pass } from "./evidence";
 import type { WriteGateCanonicalReference, WriteGateEvidence, WriteGateContext, WriteIntent } from "./types";
 import type { CapabilityMetadata } from "../../software/capability-registrar/contract";
 import { searchOverlap } from "../../software/capability-registrar/contract";
+import { resolveControlPlaneCheckout } from "../../software/repository-registry/contract";
 
 export type RuleOutcome =
   | { kind: "continue"; evidence: WriteGateEvidence }
@@ -101,8 +106,70 @@ function findOverlaps(intent: WriteIntent, registryIndex: readonly CapabilityMet
   return searchOverlap(intent.target_path, registryIndex);
 }
 
-/** Rule 2 (final) — the only rule allowed to produce a terminal ALLOW_CREATE (via "continue", terminaled by policy.ts)/ALLOW_MODIFY/REUSE_EXISTING/UNKNOWN. Owner ข้อ 7, literally. */
+function underRoot(abs: string, root: string): boolean {
+  const a = resolvePath(abs);
+  const r = resolvePath(root);
+  return a === r || a.startsWith(`${r}${sep}`);
+}
+
+function activeControlPlaneRoot(): string | null {
+  const resolved = resolveControlPlaneCheckout();
+  if (!resolved.ok) return null;
+  return resolved.repository_root;
+}
+
+function resolveIntentPath(targetPath: string, controlPlaneRoot: string): string {
+  if (targetPath.startsWith("/") || /^[A-Za-z]:[\\/]/.test(targetPath)) {
+    return resolvePath(targetPath);
+  }
+  return resolvePath(controlPlaneRoot, targetPath);
+}
+
+function isSecretOrEnvPath(targetPath: string): boolean {
+  const base = targetPath.replaceAll("\\", "/").split("/").pop() ?? "";
+  if (/^\.env(\.|$)/i.test(base)) return true;
+  if (/^\.npmrc$|^\.netrc$/i.test(base)) return true;
+  if (/\.(pem|key)$/i.test(base)) return true;
+  if (/^id_rsa/i.test(base)) return true;
+  if (/credential/i.test(base) || /secret/i.test(base)) return true;
+  return false;
+}
+
+function ruleControlPlanePath(intent: WriteIntent): GateOutcome {
+  const controlPlaneRoot = activeControlPlaneRoot();
+  if (!controlPlaneRoot) {
+    return {
+      kind: "DENY",
+      reason_code: "CONTROL_PLANE_REPOSITORY_UNRESOLVED",
+      canonical: null,
+      evidence: fail("control_plane_path", "repository_root", "exactly one ACTIVE CONTROL_PLANE repository_root", "unresolved"),
+    };
+  }
+  if (isSecretOrEnvPath(intent.target_path)) {
+    return {
+      kind: "DENY",
+      reason_code: "SECRET_OR_ENV_PATH_DENIED",
+      canonical: null,
+      evidence: fail("control_plane_path", "target_path", "non-secret path inside CONTROL_PLANE root", intent.target_path),
+    };
+  }
+  const resolved = resolveIntentPath(intent.target_path, controlPlaneRoot);
+  if (!underRoot(resolved, controlPlaneRoot)) {
+    return {
+      kind: "DENY",
+      reason_code: "OUTSIDE_CONTROL_PLANE_ROOT",
+      canonical: null,
+      evidence: fail("control_plane_path", "target_path", `path under ${controlPlaneRoot}`, intent.target_path),
+    };
+  }
+  return { kind: "continue", evidence: pass("control_plane_path", "target_path", controlPlaneRoot, intent.target_path) };
+}
+
+/** Rule 2 (final) — the only rule allowed to produce a terminal ALLOW_CREATE (via "continue", terminaled by policy.ts)/ALLOW_MODIFY/REUSE_EXISTING/UNKNOWN. Owner ข้อ 7, literally. CONTROL_PLANE root confinement runs first so capability-folder overlap never sees a foreign tree. */
 export function ruleRegistryLookup(intent: WriteIntent, context: WriteGateContext): GateOutcome | TerminalOutcome {
+  const scoped = ruleControlPlanePath(intent);
+  if (scoped.kind !== "continue") return scoped;
+
   const overlaps = findOverlaps(intent, context.registryIndex);
 
   if (intent.operation === "CREATE") {

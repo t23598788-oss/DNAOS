@@ -5,7 +5,7 @@
  */
 
 import { execFileSync } from "node:child_process";
-import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, realpathSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import type { PhysicalScopeRegistry } from "../types";
@@ -49,15 +49,12 @@ function registryFor(a: string, b: string): PhysicalScopeRegistry {
       return null;
     },
     findReservationByWorktreePath(worktree_path) {
-      if (worktree_path === a) {
-        return {
-          reservation_id: "ws-a",
-          work_id: "task-a",
-          repository_id: "repo://a",
-          worktree_path: a,
-          base_commit_sha: "sha-a",
-          purpose: "ENGINEERING_ISOLATION",
-        };
+      try {
+        const want = existsSync(worktree_path) ? realpathSync(worktree_path) : worktree_path;
+        const aReal = existsSync(a) ? realpathSync(a) : a;
+        if (want === aReal) return this.findReservationByWorkId("task-a");
+      } catch {
+        if (worktree_path === a) return this.findReservationByWorkId("task-a");
       }
       return null;
     },
@@ -125,6 +122,13 @@ function main(): void {
   const ideShell = evaluateCursorHook({ event: "beforeShellExecution", command: "npx tsx ./x.ts", cwd: a }, registry, {});
   ok("IDE shell without agent-host env is NON_CANONICAL", ideShell.canonicality === NON_CANONICAL_UNTRUSTED_EXECUTION && ideShell.permission === "allow");
 
+  const orphan = join(root, "orphan");
+  mkdirSync(orphan, { recursive: true });
+  writeFileSync(join(orphan, "x.ts"), "export {}\n");
+  gitInit(orphan);
+  const unregistered = evaluateCursorHook({ event: "beforeShellExecution", command: "npx tsx ./x.ts", cwd: orphan }, registry, {});
+  ok("unregistered Cursor git root is SCOPE_UNRESOLVED", unregistered.permission === "deny" && unregistered.reason === "TASK_SCOPE_UNRESOLVED");
+
   const outsideWrite = evaluateCursorHook({ event: "preToolUse", tool_name: "Write", path: join(b, "secret.ts"), cwd: a }, registry, env);
   ok("Write to sibling worktree denied", outsideWrite.permission === "deny");
 
@@ -150,6 +154,7 @@ function main(): void {
   ok("bash hook denies 5181 bind", runHook({ command: "python3 -m http.server 5181" }).permission === "deny");
   ok("bash hook denies /Users write path", runHook({ tool_name: "Write", path: "/Users/tam/Desktop/secret.ts" }).permission === "deny");
   ok("bash hook allows in-repo relative write", runHook({ tool_name: "Write", path: "control/agent-physical-scope/README.md" }).permission === "allow");
+  ok("bash hook denies sibling traversal in shell", runHook({ command: "rm -rf ../sibling-worktree" }).permission === "deny");
 
   console.log(`${passed} passed, ${failed} failed`);
   process.exitCode = failed === 0 ? 0 : 1;

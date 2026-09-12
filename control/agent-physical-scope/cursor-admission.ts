@@ -53,14 +53,6 @@ function gitToplevel(cwd: string): string | null {
   }
 }
 
-function gitHead(cwd: string): string {
-  try {
-    return execFileSync("git", ["rev-parse", "HEAD"], { cwd, encoding: "utf8", timeout: 3000 }).trim();
-  } catch {
-    return "UNRESOLVED";
-  }
-}
-
 export function classifyExecutionCanonicality(env: Readonly<Record<string, string | undefined>> = process.env): ExecutionCanonicality {
   const execId = env[AGENT_EXECUTION_ID_ENV];
   if (typeof execId === "string" && execId.trim() !== "") return "CANONICAL_AGENT_HOST";
@@ -103,39 +95,7 @@ export function resolveCursorSessionScope(
     return resolveCanonicalTaskScope({ task_id: byPath.work_id, agent_execution_id: execId }, registry);
   }
 
-  return resolveCanonicalTaskScope({
-    task_id: `cursor-implicit:${root}`,
-    agent_execution_id: execId,
-  }, {
-    findReservationByWorkId(task_id) {
-      if (task_id === `cursor-implicit:${root}`) {
-        return {
-          reservation_id: `implicit:${root}`,
-          work_id: task_id,
-          repository_id: "repo://cwd",
-          worktree_path: root,
-          base_commit_sha: gitHead(root),
-          purpose: "ENGINEERING_ISOLATION",
-        };
-      }
-      return registry.findReservationByWorkId(task_id);
-    },
-    findReservationByWorktreePath: registry.findReservationByWorktreePath?.bind(registry),
-    getRepository(repository_id) {
-      if (repository_id === "repo://cwd") {
-        return {
-          repository_id,
-          source_authority: "local://worktree",
-          repository_root: root,
-          status: "ACTIVE",
-        };
-      }
-      return registry.getRepository(repository_id);
-    },
-    siblingWorktreePaths: (except) => registry.siblingWorktreePaths(except),
-    protectedRuntimes: () => registry.protectedRuntimes(),
-    now: () => registry.now(),
-  });
+  return { ok: false, reason: "TASK_SCOPE_UNRESOLVED", detail: "git root is not a registered assignment" };
 }
 
 function argvOf(command: string): readonly string[] {
@@ -235,6 +195,19 @@ export function evaluateCursorHook(
       canonicality,
       host_unscoped_shell: false,
     };
+  }
+
+  if (command && (command.includes("../") || command.includes("/Users/") || command.includes("/Desktop/DNA-OS"))) {
+    recordDeniedMutation({
+      task_id: scope.scope.task_id,
+      agent_execution_id: scope.scope.agent_execution_id,
+      requested_action: "HOST_SHELL",
+      resolved_repository: scope.scope.repository_id,
+      requested_resource: command,
+      denial_reason: "PATH_SCOPE_DENIED",
+      timestamp: new Date().toISOString(),
+    });
+    return deny("PATH_SCOPE_DENIED", { host_unscoped_shell: true, canonicality });
   }
 
   if (command && looksLikeUnscopedHostShell(command)) {

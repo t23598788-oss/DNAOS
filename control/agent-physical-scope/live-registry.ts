@@ -2,22 +2,61 @@
  * Bind physical-scope to existing DNA OS stores without a second registry.
  */
 
-import { listReservations } from "../source-workspace/contract";
+import { existsSync } from "node:fs";
+import { listLocalWorkspaces, listReservations, latestWorkspaceForWork } from "../source-workspace/contract";
 import { getRepository } from "../../software/repository-registry/contract";
 import { AGENT_EXECUTION_ID_ENV, AGENT_TASK_ID_ENV } from "./types";
-import type { PhysicalScopeRegistry } from "./types";
+import type { PhysicalScopeRegistry, ReservationView } from "./types";
 import { defaultProtectedRuntimes, isProtectedRuntimeId } from "./process-port";
 import { recordDeniedMutation } from "./audit";
+import { realExistingPath } from "./host-runtime";
+
+const INACTIVE_WORKSPACE_STATES = new Set(["CLEANED", "BLOCKED"]);
+
+function toView(row: {
+  readonly reservation_id: string;
+  readonly work_id: string;
+  readonly repository_id: string;
+  readonly worktree_path: string;
+  readonly base_commit_sha: string;
+  readonly purpose?: ReservationView["purpose"];
+}): ReservationView | null {
+  const local = latestWorkspaceForWork(row.work_id)
+    ?? listLocalWorkspaces().find((w) => w.reservation_id === row.reservation_id)
+    ?? null;
+  if (local && INACTIVE_WORKSPACE_STATES.has(local.current_state)) return null;
+  if (!existsSync(row.worktree_path)) return null;
+  return {
+    reservation_id: row.reservation_id,
+    work_id: row.work_id,
+    repository_id: row.repository_id,
+    worktree_path: row.worktree_path,
+    base_commit_sha: row.base_commit_sha,
+    purpose: local?.purpose ?? row.purpose,
+  };
+}
+
+function sameWorktree(a: string, b: string): boolean {
+  return (realExistingPath(a) ?? a) === (realExistingPath(b) ?? b);
+}
 
 export function liveRegistryFromExistingStores(): PhysicalScopeRegistry {
   return {
     findReservationByWorkId(task_id) {
       const rows = listReservations().filter((row) => row.work_id === task_id);
-      return rows.length > 0 ? rows[rows.length - 1]! : null;
+      for (let i = rows.length - 1; i >= 0; i -= 1) {
+        const view = toView(rows[i]!);
+        if (view) return view;
+      }
+      return null;
     },
     findReservationByWorktreePath(worktree_path) {
-      const rows = listReservations().filter((row) => row.worktree_path === worktree_path);
-      return rows.length > 0 ? rows[rows.length - 1]! : null;
+      const rows = listReservations().filter((row) => sameWorktree(row.worktree_path, worktree_path));
+      for (let i = rows.length - 1; i >= 0; i -= 1) {
+        const view = toView(rows[i]!);
+        if (view) return view;
+      }
+      return null;
     },
     getRepository(repository_id) {
       const row = getRepository(repository_id);
@@ -32,7 +71,7 @@ export function liveRegistryFromExistingStores(): PhysicalScopeRegistry {
     siblingWorktreePaths(except_path) {
       return listReservations()
         .map((row) => row.worktree_path)
-        .filter((path) => path !== except_path);
+        .filter((path) => !sameWorktree(path, except_path));
     },
     protectedRuntimes: defaultProtectedRuntimes,
     now: () => new Date(),

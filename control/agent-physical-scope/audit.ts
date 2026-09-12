@@ -18,9 +18,16 @@ export function auditFilePath(): string {
 
 function redact(resource: string): string {
   return resource
+    .replace(/Authorization:\s*Bearer\s+\S+/gi, "Authorization: Bearer [redacted]")
+    .replace(/sk-[A-Za-z0-9_-]{10,}/g, "[redacted]")
+    .replace(/npm_[A-Za-z0-9]{10,}/g, "[redacted]")
     .replace(/gh[pousr]_[A-Za-z0-9_]+/g, "[redacted]")
     .replace(/github_pat_\w+/g, "[redacted]")
-    .replace(/ya29\.[A-Za-z0-9._-]+/g, "[redacted]");
+    .replace(/ya29\.[A-Za-z0-9._-]+/g, "[redacted]")
+    .replace(/(api[_-]?key)\s*[:=]\s*['"]?[\w-]+/gi, "$1=[redacted]")
+    .replace(/\btoken\s*=\s*\S+/gi, "token=[redacted]")
+    .replace(/\bsecret\s*=\s*\S+/gi, "secret=[redacted]")
+    .replace(/\bpassword\s*=\s*\S+/gi, "password=[redacted]");
 }
 
 export function recordDeniedMutation(entry: PhysicalMutationAudit): PhysicalMutationAudit {

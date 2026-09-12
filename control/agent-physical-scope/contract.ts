@@ -32,7 +32,7 @@ export {
   OWNER_SURFACE_RUNTIME_ID,
   OWNER_SURFACE_PORT,
 } from "./process-port";
-export { allocateRuntimePort, withAllocatedPort, allocationsForTask } from "./port-allocator";
+export { allocateRuntimePort, withAllocatedPort, allocationsForTask, releaseRuntimePort } from "./port-allocator";
 export {
   guardGitWrite,
   guardGitPushProxy,

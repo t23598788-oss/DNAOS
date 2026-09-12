@@ -80,10 +80,10 @@ export function guardKillByPid(_scope: CanonicalAgentScope, _pid: number): Runti
 }
 
 export function looksLikeProcessEscape(argv: readonly string[]): boolean {
-  const joined = argv.join(" ").toLowerCase();
-  if (/\bkill\b/.test(joined) && /\d{2,}/.test(joined)) return true;
-  if (joined.includes("launchctl bootout") || joined.includes("launchctl kill")) return true;
-  if (/\blsof\b/.test(joined) && /\bkill\b/.test(joined)) return true;
+  const exe = argv[0] ?? "";
+  const base = (exe.split(/[/\\]/).pop() ?? "").toLowerCase();
+  if (base === "kill" || base === "pkill" || base === "killall") return true;
+  if (base === "launchctl" && argv.slice(1).some((a) => a === "bootout" || a === "kill" || a === "kickstart")) return true;
   return false;
 }
 

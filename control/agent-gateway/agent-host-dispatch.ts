@@ -31,11 +31,13 @@
  * decides whether one ever runs.
  */
 
-import { readFileSync, readdirSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { createHash, randomUUID } from "node:crypto";
 import { join, dirname } from "node:path";
 import { launchAgent, resolveWorker } from "../agent-host/contract";
 import type { AgentLaunchResult, WorkerKind } from "../agent-host/contract";
+import { liveRegistryFromExistingStores } from "../agent-physical-scope/live-registry";
+import { resolveCanonicalTaskScope } from "../agent-physical-scope/task-scope";
 import { loadEvidenceForTask, saveEvidence } from "./memory-store";
 import type { WorkOrder } from "./types";
 import {
@@ -83,21 +85,30 @@ export async function dispatchToAgentHost(request: AgentHostDispatchRequest): Pr
   if (!resolution.ok) {
     return { task_id: request.task_id, worker_kind: request.worker_kind, status: "WORKER_NOT_AVAILABLE", reason: resolution.detail };
   }
+  const executionId = request.hostEnv.DNA_OS_AGENT_EXECUTION_ID ?? randomUUID();
+  const scoped = resolveCanonicalTaskScope(
+    { task_id: request.task_id, agent_execution_id: executionId },
+    liveRegistryFromExistingStores(),
+  );
+  let allowedWorkspaceDir = request.workspace_dir;
+  let hostEnv: Record<string, string | undefined> = { ...request.hostEnv, DNA_OS_AGENT_EXECUTION_ID: executionId };
+  if (scoped.ok) {
+    allowedWorkspaceDir = scoped.scope.worktree_path;
+    hostEnv = { ...hostEnv, DNA_OS_AGENT_TASK_ID: request.task_id };
+  } else if (existsSync(join(request.workspace_dir, ".git"))) {
+    return { task_id: request.task_id, worker_kind: request.worker_kind, status: "WORKER_NOT_AVAILABLE", reason: "TASK_SCOPE_UNRESOLVED" };
+  }
   const launch = await launchAgent(
     {
-      allowedWorkspaceDir: request.workspace_dir,
+      allowedWorkspaceDir,
       agentExecutable: resolution.worker.executable,
       agentArgv: request.instructionArgv,
       timeoutMs: request.timeoutMs ?? 15_000,
       repositoryReadPaths: request.repositoryReadPaths ?? [],
       onEvent: request.onEvent,
-      task_id: request.task_id,
+      task_id: scoped.ok ? request.task_id : undefined,
     },
-    {
-      ...request.hostEnv,
-      DNA_OS_AGENT_TASK_ID: request.task_id,
-      DNA_OS_AGENT_EXECUTION_ID: request.hostEnv.DNA_OS_AGENT_EXECUTION_ID ?? randomUUID(),
-    },
+    hostEnv,
     request.outsideProbeDirs ?? [],
   );
   return { task_id: request.task_id, worker_kind: request.worker_kind, status: "LAUNCHED", launch };
