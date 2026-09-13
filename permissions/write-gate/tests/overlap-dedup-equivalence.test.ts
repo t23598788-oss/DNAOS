@@ -116,6 +116,8 @@ async function main() {
   });
 
   await check("10. REQUIRED PROOF — agent-gateway initialization: the REAL production aiWriteAdapter.execute(), reached through control/agent-gateway/contract's own eager import chain, produces a genuine ALLOW_CREATE overlap decision — not a crash, a real decision", async () => {
+    const fs = await import("node:fs/promises");
+    await fs.mkdir("tests/__sandbox__", { recursive: true });
     const targetPath = `tests/__sandbox__/overlap-dedup-proof-${uniq}/file.ts`;
     const workOrder: WorkOrder = { operation: "CREATE", target_type: "FILE", target_path: targetPath, requested_change: "overlap dedup real proof", content: `// real proof ${uniq}\n`, workspace_scope: `tests/__sandbox__/overlap-dedup-proof-${uniq}/`, mode: "sandbox", required_tests: ["sandbox.write"], forbidden_files: [], evidence: [{ source: "permissions/write-gate/tests/overlap-dedup-equivalence.test.ts", note: "real proof" }] };
     const request: ExecutionRequest = { task_id: `task-overlap-dedup-proof-${uniq}`, capability: { capability_id: "ai-write-control-adapter", problem_type: "code_change_work_order", source: "control/command-router" }, adapter_id: "ai-write-control-adapter", input: { work_order: workOrder } };
@@ -124,7 +126,6 @@ async function main() {
     const output = result.output as { decision: { decision: string } };
     assert(output.decision.decision === "ALLOW_CREATE", `expected a real ALLOW_CREATE overlap decision (no real capability exists at this fresh sandbox path), got ${output.decision.decision}`);
 
-    const fs = await import("node:fs/promises");
     await fs.rm(`tests/__sandbox__/overlap-dedup-proof-${uniq}`, { recursive: true, force: true });
   });
 
