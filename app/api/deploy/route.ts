@@ -4,6 +4,9 @@ import { ADMIN_TIER } from "@/core/auth/session";
 import { readFileSync, existsSync } from "fs";
 import { join } from "path";
 import { execSync } from "child_process";
+import { selectRuntimeProvider } from "@/engines/integration-gateway/runtime-router";
+import { vercelRuntimeProvider } from "@/engines/integration-gateway/adapters/vercel";
+import { railwayRuntimeProvider } from "@/engines/integration-gateway/adapters/railway";
 
 const ROOT = process.cwd();
 
@@ -44,10 +47,19 @@ export async function GET() {
 
   const git = getGitInfo();
   const vercel = getVercelInfo();
+  const runtimeSelection = await selectRuntimeProvider(
+    [vercelRuntimeProvider, railwayRuntimeProvider],
+    {
+      required_capabilities: ["runtime.render", "runtime.display"],
+      max_latency_ms: Number(process.env.RUNTIME_PROVIDER_MAX_LATENCY_MS ?? 3000),
+      allow_paid_providers: true,
+    },
+  );
 
   return NextResponse.json({
     git,
     vercel,
+    runtime_selection: runtimeSelection,
     environment: process.env.NODE_ENV ?? "development",
     platform: process.platform,
     node_version: process.version,

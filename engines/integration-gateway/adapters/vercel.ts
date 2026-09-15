@@ -7,6 +7,7 @@
  * signing secret, header `x-vercel-signature`).
  */
 import { createHmac, timingSafeEqual } from "crypto";
+import { SYSTEM_LINKS } from "@/config/system-links";
 import type { GatewayEvent } from "../contracts/event";
 import {
   DNA_OS_RUNTIME_STATE_BOUNDARY,
@@ -68,8 +69,31 @@ export interface VercelRuntimeProviderConfig {
   capabilities?: string[];
 }
 
+type RuntimeHealthFetch = (input: string, init: RequestInit) => Promise<{ ok: boolean }>;
+
+function getConfiguredVercelRuntimeUrl(): string | null {
+  return process.env.VERCEL_RUNTIME_URL
+    ?? process.env.NEXT_PUBLIC_APP_URL
+    ?? SYSTEM_LINKS.find((group) => group.id === "vercel")?.items.find((item) => item.label === "Production site")?.url
+    ?? null;
+}
+
+async function probeRuntimeUrl(runtimeUrl: string, fetchImpl: RuntimeHealthFetch): Promise<{ available: boolean; healthy: boolean; latencyMs: number }> {
+  const startedAt = Date.now();
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 3000);
+  try {
+    const response = await fetchImpl(runtimeUrl, { method: "GET", cache: "no-store", signal: controller.signal });
+    return { available: true, healthy: response.ok, latencyMs: Date.now() - startedAt };
+  } catch {
+    return { available: false, healthy: false, latencyMs: Date.now() - startedAt };
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 export function vercelRuntimeProviderStatus(config: VercelRuntimeProviderConfig = {}): RuntimeProviderStatus {
-  const runtimeUrl = config.runtimeUrl ?? process.env.VERCEL_RUNTIME_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? null;
+  const runtimeUrl = config.runtimeUrl ?? getConfiguredVercelRuntimeUrl();
   const paid = config.paid ?? process.env.VERCEL_RUNTIME_PAID === "true";
   const ownerApproved = config.ownerApproved ?? process.env.VERCEL_RUNTIME_OWNER_APPROVED === "true";
   const available = config.available ?? Boolean(runtimeUrl);
@@ -91,7 +115,25 @@ export function vercelRuntimeProviderStatus(config: VercelRuntimeProviderConfig 
   };
 }
 
+export async function observeVercelRuntimeProviderStatus(
+  config: VercelRuntimeProviderConfig = {},
+  fetchImpl: RuntimeHealthFetch = fetch,
+): Promise<RuntimeProviderStatus> {
+  const base = vercelRuntimeProviderStatus(config);
+  if (!base.runtime_url || config.available !== undefined || config.healthy !== undefined || config.latencyMs !== undefined) {
+    return base;
+  }
+
+  const probe = await probeRuntimeUrl(base.runtime_url, fetchImpl);
+  return {
+    ...base,
+    availability: probe.available ? "available" : "unavailable",
+    health: probe.healthy ? "healthy" : "unhealthy",
+    latency_ms: probe.latencyMs,
+  };
+}
+
 export const vercelRuntimeProvider = {
   provider_id: "vercel" as const,
-  observeRuntimeStatus: vercelRuntimeProviderStatus,
+  observeRuntimeStatus: observeVercelRuntimeProviderStatus,
 };

@@ -13,6 +13,22 @@ export interface RailwayRuntimeProviderConfig {
   capabilities?: string[];
 }
 
+type RuntimeHealthFetch = (input: string, init: RequestInit) => Promise<{ ok: boolean }>;
+
+async function probeRuntimeUrl(runtimeUrl: string, fetchImpl: RuntimeHealthFetch): Promise<{ available: boolean; healthy: boolean; latencyMs: number }> {
+  const startedAt = Date.now();
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 3000);
+  try {
+    const response = await fetchImpl(runtimeUrl, { method: "GET", cache: "no-store", signal: controller.signal });
+    return { available: true, healthy: response.ok, latencyMs: Date.now() - startedAt };
+  } catch {
+    return { available: false, healthy: false, latencyMs: Date.now() - startedAt };
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 export function railwayRuntimeProviderStatus(config: RailwayRuntimeProviderConfig = {}): RuntimeProviderStatus {
   const runtimeUrl = config.runtimeUrl ?? process.env.RAILWAY_RUNTIME_URL ?? null;
   const paid = config.paid ?? process.env.RAILWAY_RUNTIME_PAID === "true";
@@ -36,7 +52,25 @@ export function railwayRuntimeProviderStatus(config: RailwayRuntimeProviderConfi
   };
 }
 
+export async function observeRailwayRuntimeProviderStatus(
+  config: RailwayRuntimeProviderConfig = {},
+  fetchImpl: RuntimeHealthFetch = fetch,
+): Promise<RuntimeProviderStatus> {
+  const base = railwayRuntimeProviderStatus(config);
+  if (!base.runtime_url || config.available !== undefined || config.healthy !== undefined || config.latencyMs !== undefined) {
+    return base;
+  }
+
+  const probe = await probeRuntimeUrl(base.runtime_url, fetchImpl);
+  return {
+    ...base,
+    availability: probe.available ? "available" : "unavailable",
+    health: probe.healthy ? "healthy" : "unhealthy",
+    latency_ms: probe.latencyMs,
+  };
+}
+
 export const railwayRuntimeProvider = {
   provider_id: "railway" as const,
-  observeRuntimeStatus: railwayRuntimeProviderStatus,
+  observeRuntimeStatus: observeRailwayRuntimeProviderStatus,
 };
