@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-07T21:51:15.685Z",
+  "generated_at": "2026-10-07T21:52:01.900Z",
   "version": 1,
   "nodes": [
     {
@@ -90442,7 +90442,7 @@
       "type": "Module",
       "layer": "engines",
       "name_en": "engines/integration-gateway/contracts/runtime-provider.ts",
-      "purpose_th": "Runtime-provider status contract — RuntimeProviderStatus shape (availability/health/latency/cost/capabilities) plus DNA_OS_RUNTIME_STATE_BOUNDARY: business state authority stays in DNA OS, providers only render/display.",
+      "purpose_th": "สัญญา status ของ runtime provider — รูป RuntimeProviderStatus (availability/health/latency/ค่าใช้จ่าย/capabilities) + DNA_OS_RUNTIME_STATE_BOUNDARY: อำนาจข้อมูลธุรกิจอยู่กับ DNA OS เสมอ provider มีหน้าที่ render/display เท่านั้น",
       "exports": [
         "DNA_OS_RUNTIME_STATE_BOUNDARY",
         "RuntimeProviderAdapter",
