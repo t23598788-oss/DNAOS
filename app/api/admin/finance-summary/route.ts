@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { requireAuth } from "@/core/auth/requireAuth"
 import { ADMIN_TIER } from "@/core/auth/session"
 import { supabaseAdmin as supabase } from "@/services/supabase/queries"
+import { buildFinancialStatements } from "@/engines/accounting/financial-statements"
 
 // Finance Summary (owner request 2026-07-25): "ยังไม่เห็นกำไรและงบดุลบริษัทเลย"
 // — a real, honest cash-flow summary aggregated from the actual documents/
@@ -114,19 +115,28 @@ export async function GET() {
   const totalPaymentsReceived = months.reduce((s, m) => s + m.payments_received_verified, 0)
   const totalFuelBills = months.reduce((s, m) => s + m.fuel_bills, 0)
   const latestFuelPrice = fuelRes.data?.[0]?.price ?? null
+  const totals = {
+    revenue_documented: Math.round(totalRevenueDocumented * 100) / 100,
+    payments_received_verified: Math.round(totalPaymentsReceived * 100) / 100,
+    fuel_bills: Math.round(totalFuelBills * 100) / 100,
+    outstanding_debt: Math.round(totalOutstandingDebt * 100) / 100,
+    unverified_transfer_slips: Math.round(unverifiedTransferSlipTotal * 100) / 100,
+    unverified_transfer_slips_count: unverifiedTransferSlipCount,
+    company_expenses: Math.round(totalCompanyExpenses * 100) / 100,
+  }
 
   return NextResponse.json({
     ok: true,
     months,
-    totals: {
-      revenue_documented: Math.round(totalRevenueDocumented * 100) / 100,
-      payments_received_verified: Math.round(totalPaymentsReceived * 100) / 100,
-      fuel_bills: Math.round(totalFuelBills * 100) / 100,
-      outstanding_debt: Math.round(totalOutstandingDebt * 100) / 100,
-      unverified_transfer_slips: Math.round(unverifiedTransferSlipTotal * 100) / 100,
-      unverified_transfer_slips_count: unverifiedTransferSlipCount,
-      company_expenses: Math.round(totalCompanyExpenses * 100) / 100,
-    },
+    totals,
+    financial_statements: buildFinancialStatements({
+      revenueDocumented: totals.revenue_documented,
+      paymentsReceivedVerified: totals.payments_received_verified,
+      fuelBills: totals.fuel_bills,
+      outstandingDebt: totals.outstanding_debt,
+      unverifiedTransferSlips: totals.unverified_transfer_slips,
+      companyExpenses: totals.company_expenses,
+    }),
     expense_categories: expenseCategories,
     latest_fuel_price: latestFuelPrice,
     honesty_note:
