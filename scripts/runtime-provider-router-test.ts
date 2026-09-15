@@ -5,8 +5,8 @@ import {
   type RuntimeProviderStatus,
 } from "../engines/integration-gateway/contracts/runtime-provider";
 import { selectRuntimeProvider } from "../engines/integration-gateway/runtime-router";
-import { railwayRuntimeProviderStatus } from "../engines/integration-gateway/adapters/railway";
-import { vercelRuntimeProviderStatus } from "../engines/integration-gateway/adapters/vercel";
+import { observeRailwayRuntimeProviderStatus, railwayRuntimeProviderStatus } from "../engines/integration-gateway/adapters/railway";
+import { observeVercelRuntimeProviderStatus, vercelRuntimeProviderStatus } from "../engines/integration-gateway/adapters/vercel";
 
 function adapter(status: RuntimeProviderStatus): RuntimeProviderAdapter {
   return {
@@ -127,6 +127,79 @@ async function main() {
   assert.equal("business_state" in result, false);
   assert.equal("data_state" in result, false);
   assert.equal("auth_state" in result, false);
+}
+
+{
+  const originalVercelRuntimeUrl = process.env.VERCEL_RUNTIME_URL;
+  const originalNextPublicAppUrl = process.env.NEXT_PUBLIC_APP_URL;
+  const originalVercelPaid = process.env.VERCEL_RUNTIME_PAID;
+  const originalVercelOwnerApproved = process.env.VERCEL_RUNTIME_OWNER_APPROVED;
+  const originalRailwayRuntimeUrl = process.env.RAILWAY_RUNTIME_URL;
+  const originalRailwayPaid = process.env.RAILWAY_RUNTIME_PAID;
+  const originalRailwayOwnerApproved = process.env.RAILWAY_RUNTIME_OWNER_APPROVED;
+
+  delete process.env.VERCEL_RUNTIME_URL;
+  delete process.env.NEXT_PUBLIC_APP_URL;
+  delete process.env.VERCEL_RUNTIME_PAID;
+  delete process.env.VERCEL_RUNTIME_OWNER_APPROVED;
+  delete process.env.RAILWAY_RUNTIME_URL;
+  delete process.env.RAILWAY_RUNTIME_PAID;
+  delete process.env.RAILWAY_RUNTIME_OWNER_APPROVED;
+
+  const vercel = vercelRuntimeProviderStatus({ latencyMs: 80 });
+  const railway = railwayRuntimeProviderStatus({ latencyMs: 90 });
+  const result = await selectRuntimeProvider([adapter(vercel), adapter(railway)], request);
+
+  assert.equal(vercel.runtime_url, "https://dnaos.dev");
+  assert.equal(vercel.cost.paid, false);
+  assert.equal(vercel.cost.owner_approved, false);
+  assert.equal(railway.runtime_url, null);
+  assert.equal(railway.availability, "unavailable");
+  assert.equal(result.ok, true);
+  assert.equal(result.selected_provider_id, "vercel");
+
+  if (originalVercelRuntimeUrl === undefined) delete process.env.VERCEL_RUNTIME_URL;
+  else process.env.VERCEL_RUNTIME_URL = originalVercelRuntimeUrl;
+  if (originalNextPublicAppUrl === undefined) delete process.env.NEXT_PUBLIC_APP_URL;
+  else process.env.NEXT_PUBLIC_APP_URL = originalNextPublicAppUrl;
+  if (originalVercelPaid === undefined) delete process.env.VERCEL_RUNTIME_PAID;
+  else process.env.VERCEL_RUNTIME_PAID = originalVercelPaid;
+  if (originalVercelOwnerApproved === undefined) delete process.env.VERCEL_RUNTIME_OWNER_APPROVED;
+  else process.env.VERCEL_RUNTIME_OWNER_APPROVED = originalVercelOwnerApproved;
+  if (originalRailwayRuntimeUrl === undefined) delete process.env.RAILWAY_RUNTIME_URL;
+  else process.env.RAILWAY_RUNTIME_URL = originalRailwayRuntimeUrl;
+  if (originalRailwayPaid === undefined) delete process.env.RAILWAY_RUNTIME_PAID;
+  else process.env.RAILWAY_RUNTIME_PAID = originalRailwayPaid;
+  if (originalRailwayOwnerApproved === undefined) delete process.env.RAILWAY_RUNTIME_OWNER_APPROVED;
+  else process.env.RAILWAY_RUNTIME_OWNER_APPROVED = originalRailwayOwnerApproved;
+}
+
+{
+  const result = await selectRuntimeProvider([
+    adapter(vercelRuntimeProviderStatus({ runtimeUrl: null, healthy: false, available: false, latencyMs: 0 })),
+    adapter(railwayRuntimeProviderStatus({ runtimeUrl: null, healthy: false, available: false, latencyMs: 0 })),
+  ], request);
+
+  assert.equal(result.ok, false);
+  assert.equal(result.selected_provider_id, null);
+  assert.equal(result.runtime_url, null);
+  assert.equal(result.requires_owner_approval, false);
+}
+
+{
+  const vercel = await observeVercelRuntimeProviderStatus(
+    { runtimeUrl: "https://vercel.test", paid: false, ownerApproved: true },
+    async () => ({ ok: true }),
+  );
+  const railway = await observeRailwayRuntimeProviderStatus(
+    { runtimeUrl: "https://railway.test", paid: false, ownerApproved: true },
+    async () => ({ ok: false }),
+  );
+
+  assert.equal(vercel.health, "healthy");
+  assert.equal(vercel.availability, "available");
+  assert.equal(railway.health, "unhealthy");
+  assert.equal(railway.availability, "available");
 }
 
 console.log("runtime-provider-router-test: PASS");
