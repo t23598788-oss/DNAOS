@@ -66,6 +66,31 @@ async function main() {
 
 {
   const result = await selectRuntimeProvider([
+    adapter(vercelRuntimeProviderStatus({
+      runtimeUrl: "https://vercel.test",
+      healthy: true,
+      available: true,
+      latencyMs: 80,
+      paid: true,
+      ownerApproved: false,
+    })),
+    adapter(railwayRuntimeProviderStatus({
+      runtimeUrl: "https://railway.test",
+      healthy: true,
+      available: true,
+      latencyMs: 90,
+      paid: false,
+    })),
+  ], request);
+
+  assert.equal(result.ok, true);
+  assert.equal(result.selected_provider_id, "railway");
+  assert.equal(result.runtime_url, "https://railway.test");
+  assert.equal(result.requires_owner_approval, false);
+}
+
+{
+  const result = await selectRuntimeProvider([
     adapter(railwayRuntimeProviderStatus({
       runtimeUrl: "https://railway.test",
       healthy: true,

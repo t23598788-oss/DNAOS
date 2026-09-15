@@ -21,6 +21,7 @@ export async function selectRuntimeProvider(
 ): Promise<RuntimeTargetSelection> {
   const statuses = await Promise.all(adapters.map((adapter) => adapter.observeRuntimeStatus()));
   const rejections: RuntimeProviderRejection[] = [];
+  let approvalCandidate: RuntimeProviderStatus | null = null;
 
   for (const provider of statuses) {
     if (provider.health !== "healthy") {
@@ -44,14 +45,8 @@ export async function selectRuntimeProvider(
       continue;
     }
     if (provider.cost.requires_owner_approval || (provider.cost.paid && (!provider.cost.owner_approved || !request.allow_paid_providers))) {
-      return {
-        ok: false,
-        selected_provider_id: provider.provider_id,
-        runtime_url: provider.runtime_url,
-        requires_owner_approval: true,
-        rejections,
-        state_boundary: DNA_OS_RUNTIME_STATE_BOUNDARY,
-      };
+      approvalCandidate ??= provider;
+      continue;
     }
 
     return {
@@ -59,6 +54,17 @@ export async function selectRuntimeProvider(
       selected_provider_id: provider.provider_id,
       runtime_url: provider.runtime_url,
       requires_owner_approval: false,
+      rejections,
+      state_boundary: DNA_OS_RUNTIME_STATE_BOUNDARY,
+    };
+  }
+
+  if (approvalCandidate) {
+    return {
+      ok: false,
+      selected_provider_id: approvalCandidate.provider_id,
+      runtime_url: approvalCandidate.runtime_url,
+      requires_owner_approval: true,
       rejections,
       state_boundary: DNA_OS_RUNTIME_STATE_BOUNDARY,
     };
