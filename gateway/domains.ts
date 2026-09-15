@@ -183,6 +183,11 @@ export async function executeZoneCreate(token: string): Promise<DomainActionResp
 }
 
 // ---- vercel.domain.add / remove ----
+//
+// Provider-specific CONNECT SERVICE operation only. Vercel domain binding is
+// an external runtime/display provider action; DNA OS remains the authority
+// for business logic, data, and authorization, and Vercel is not treated as
+// the canonical runtime provider by this gateway.
 
 export function previewVercelDomainAdd(domain: string): DomainActionResponse {
   const token = issueToken("vercel.domain.add", { domain });

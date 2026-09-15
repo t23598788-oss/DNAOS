@@ -7891,7 +7891,10 @@
       "purpose": "Integration Gateway: normalizes real Vercel deployment webhook payloads into GatewayEvent (Observe Channel only), plus HMAC-SHA1 signature verification for the ingress route.",
       "purpose_th": "Integration Gateway: แปลง Vercel deployment webhook payload จริงเป็น GatewayEvent (Observe Channel เท่านั้น) พร้อมตรวจ signature HMAC-SHA1 ให้ ingress route",
       "exports": [
+        "VercelRuntimeProviderConfig",
         "normalizeVercelWebhook",
+        "vercelRuntimeProvider",
+        "vercelRuntimeProviderStatus",
         "verifyVercelSignature"
       ],
       "status": "active",
@@ -13449,8 +13452,11 @@
       "purpose_th": "Integration Gateway: แปลง Railway deployment webhook payload จริงเป็น GatewayEvent (Observe Channel เท่านั้น) — parity กับ Vercel adapter ภายใต้ contract deployment.status.observed เดียวกัน ไม่แทนที่ Vercel",
       "exports": [
         "RailwayDeploymentStatus",
+        "RailwayRuntimeProviderConfig",
         "isRailwayTerminalStatus",
         "normalizeRailwayWebhook",
+        "railwayRuntimeProvider",
+        "railwayRuntimeProviderStatus",
         "railwayWebhookTypeToStatus"
       ],
       "status": "active"
@@ -16091,6 +16097,45 @@
         "OwnerVerificationClientOptions",
         "OwnerVerificationVerdict",
         "verifyOwnerArtifact"
+      ],
+      "status": "active"
+    },
+    "scripts/runtime-provider-router-test.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "Contract test for selectRuntimeProvider — ranking, capability/latency gates, unapproved-paid-provider continuation and failover behaviour of the Railway/Vercel runtime providers.",
+      "purpose_th": "ทดสอบ selectRuntimeProvider — การจัดอันดับ เงื่อนไข capability/latency การข้ามผู้ให้บริการแบบ paid ที่ยังไม่ได้รับอนุมัติ และ failover ของผู้ให้บริการ Railway/Vercel",
+      "exports": [],
+      "status": "active"
+    },
+    "engines/integration-gateway/runtime-router.ts": {
+      "owner": "engines",
+      "layer": "engines",
+      "purpose": "Runtime-provider router — selectRuntimeProvider ranks the configured adapters (Railway/Vercel) by availability, health, latency and owner-approved cost, returning the chosen provider or a typed rejection.",
+      "purpose_th": "router ผู้ให้บริการ runtime — selectRuntimeProvider เลือก adapter (Railway/Vercel) จาก availability/health/latency/ค่าใช้จ่ายที่เจ้าของอนุมัติ แล้วคืน provider ที่เลือกหรือ rejection แบบมีชนิด",
+      "exports": [
+        "selectRuntimeProvider"
+      ],
+      "status": "active"
+    },
+    "engines/integration-gateway/contracts/runtime-provider.ts": {
+      "owner": "engines",
+      "layer": "engines",
+      "purpose": "Runtime-provider status contract — RuntimeProviderStatus shape (availability/health/latency/cost/capabilities) plus DNA_OS_RUNTIME_STATE_BOUNDARY: business state authority stays in DNA OS, providers only render/display.",
+      "purpose_th": "สัญญา status ของ runtime provider — รูป RuntimeProviderStatus (availability/health/latency/ค่าใช้จ่าย/capabilities) + DNA_OS_RUNTIME_STATE_BOUNDARY: อำนาจข้อมูลธุรกิจอยู่กับ DNA OS เสมอ provider มีหน้าที่ render/display เท่านั้น",
+      "exports": [
+        "DNA_OS_RUNTIME_STATE_BOUNDARY",
+        "RuntimeProviderAdapter",
+        "RuntimeProviderAvailability",
+        "RuntimeProviderCostStatus",
+        "RuntimeProviderHealth",
+        "RuntimeProviderId",
+        "RuntimeProviderRejection",
+        "RuntimeProviderRejectionReason",
+        "RuntimeProviderStateBoundary",
+        "RuntimeProviderStatus",
+        "RuntimeTargetRequest",
+        "RuntimeTargetSelection"
       ],
       "status": "active"
     }
