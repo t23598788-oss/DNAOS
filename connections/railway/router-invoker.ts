@@ -40,8 +40,36 @@ const MUTATION_INTENTS = new Set([
   "railway.create_domain",
 ]);
 
+type RailwayReadIntent =
+  | "railway.project_status"
+  | "railway.environment_status"
+  | "railway.list_project_services"
+  | "railway.get_service_instance"
+  | "railway.get_source_status"
+  | "railway.list_variable_names"
+  | "railway.get_deployment"
+  | "railway.get_deployment_logs"
+  | "railway.get_domain"
+  | "railway.introspect_deploy_mutation";
+
+type RailwayMutationIntent =
+  | "railway.create_service"
+  | "railway.connect_source"
+  | "railway.create_deployment_trigger"
+  | "railway.deploy_revision"
+  | "railway.redeploy_deployment"
+  | "railway.create_domain";
+
 function forbiddenGenericGraphql(payload: Record<string, unknown>): boolean {
   return "query" in payload || "graphql" in payload || "mutation" in payload || "raw_graphql" in payload;
+}
+
+function isReadIntent(intent: string): intent is RailwayReadIntent {
+  return READ_INTENTS.has(intent);
+}
+
+function isMutationIntent(intent: string): intent is RailwayMutationIntent {
+  return MUTATION_INTENTS.has(intent);
 }
 
 export type RailwayInvokerDeps = {
@@ -467,6 +495,105 @@ async function createDomain(deps: RailwayInvokerDeps, serviceId: string, environ
   return outcomeFromGraphql(result, artifacts, "domain created");
 }
 
+async function invokeRailwayReadIntent(
+  deps: RailwayInvokerDeps,
+  intent: RailwayReadIntent,
+  payload: Record<string, unknown>,
+): Promise<ConnectorBoundaryOutcome> {
+  if (intent === "railway.project_status") {
+    const projectId = typeof payload.project_id === "string" ? payload.project_id.trim() : "";
+    if (!projectId) {
+      return { ok: false, auth_required: false, summary: "project_id required", evidence: [], artifacts: [] };
+    }
+    return projectStatus(deps, projectId);
+  }
+  if (intent === "railway.environment_status") return environmentStatus(deps);
+  if (intent === "railway.list_project_services") {
+    return listProjectServices(deps, typeof payload.project_id === "string" ? payload.project_id : undefined);
+  }
+  if (intent === "railway.get_service_instance") {
+    if (typeof payload.service_id !== "string" || typeof payload.environment_id !== "string") {
+      return { ok: false, auth_required: false, summary: "service_id and environment_id required", evidence: [], artifacts: [] };
+    }
+    return getServiceInstance(deps, payload.service_id, payload.environment_id);
+  }
+  if (intent === "railway.get_source_status") {
+    if (typeof payload.service_id !== "string") {
+      return { ok: false, auth_required: false, summary: "service_id required", evidence: [], artifacts: [] };
+    }
+    return getSourceStatus(deps, payload.service_id);
+  }
+  if (intent === "railway.list_variable_names") {
+    if (typeof payload.environment_id !== "string") {
+      return { ok: false, auth_required: false, summary: "environment_id required", evidence: [], artifacts: [] };
+    }
+    return listVariableNames(deps, payload.environment_id);
+  }
+  if (intent === "railway.get_deployment") {
+    if (typeof payload.deployment_id !== "string") {
+      return { ok: false, auth_required: false, summary: "deployment_id required", evidence: [], artifacts: [] };
+    }
+    return getDeployment(deps, payload.deployment_id);
+  }
+  if (intent === "railway.get_deployment_logs") {
+    if (typeof payload.deployment_id !== "string") {
+      return { ok: false, auth_required: false, summary: "deployment_id required", evidence: [], artifacts: [] };
+    }
+    return getDeploymentLogs(deps, payload.deployment_id);
+  }
+  if (intent === "railway.get_domain") {
+    if (typeof payload.service_id !== "string" || typeof payload.environment_id !== "string") {
+      return { ok: false, auth_required: false, summary: "service_id and environment_id required", evidence: [], artifacts: [] };
+    }
+    return getDomain(deps, payload.service_id, payload.environment_id);
+  }
+  return introspectDeploy(deps);
+}
+
+async function invokeRailwayMutationIntent(
+  deps: RailwayInvokerDeps,
+  intent: RailwayMutationIntent,
+  payload: Record<string, unknown>,
+): Promise<ConnectorBoundaryOutcome> {
+  const authorization = await ensureOwnerAuthorization(deps, payload);
+  if (!authorization.ok) return authorization.outcome;
+
+  if (intent === "railway.create_service") {
+    if (typeof payload.project_id !== "string" || typeof payload.service_name !== "string") {
+      return { ok: false, auth_required: false, summary: "project_id and service_name required", evidence: [], artifacts: [] };
+    }
+    return createService(deps, payload.project_id, payload.service_name);
+  }
+  if (intent === "railway.connect_source") {
+    if (typeof payload.service_id !== "string" || typeof payload.source_owner !== "string" || typeof payload.source_repo !== "string") {
+      return { ok: false, auth_required: false, summary: "service_id, source_owner, source_repo required", evidence: [], artifacts: [] };
+    }
+    return connectSource(deps, payload.service_id, payload.source_owner, payload.source_repo);
+  }
+  if (intent === "railway.create_deployment_trigger") {
+    if (typeof payload.service_id !== "string" || typeof payload.environment_id !== "string" || typeof payload.commit_sha !== "string") {
+      return { ok: false, auth_required: false, summary: "service_id, environment_id, commit_sha required", evidence: [], artifacts: [] };
+    }
+    return createDeploymentTrigger(deps, payload.service_id, payload.environment_id, payload.commit_sha);
+  }
+  if (intent === "railway.deploy_revision") {
+    if (typeof payload.service_id !== "string" || typeof payload.environment_id !== "string" || typeof payload.commit_sha !== "string") {
+      return { ok: false, auth_required: false, summary: "typed deploy fields required", evidence: [], artifacts: [] };
+    }
+    return deployRevision(deps, payload.service_id, payload.environment_id, payload.commit_sha);
+  }
+  if (intent === "railway.redeploy_deployment") {
+    if (typeof payload.deployment_id !== "string") {
+      return { ok: false, auth_required: false, summary: "deployment_id required", evidence: [], artifacts: [] };
+    }
+    return redeploy(deps, payload.deployment_id);
+  }
+  if (typeof payload.service_id !== "string" || typeof payload.environment_id !== "string" || typeof payload.domain !== "string") {
+    return { ok: false, auth_required: false, summary: "service_id, environment_id, domain required", evidence: [], artifacts: [] };
+  }
+  return createDomain(deps, payload.service_id, payload.environment_id, payload.domain);
+}
+
 export function createRailwayConnectorInvoker(overrides: Partial<RailwayInvokerDeps> = {}): ConnectorInvoker {
   const deps: RailwayInvokerDeps = {
     validateOwnerSession,
@@ -480,98 +607,12 @@ export function createRailwayConnectorInvoker(overrides: Partial<RailwayInvokerD
       return { ok: false, auth_required: false, summary: "GENERIC_GRAPHQL_FORBIDDEN", evidence: [], artifacts: [] };
     }
     const intent = typeof payload.intent === "string" ? payload.intent : "";
-    if (!READ_INTENTS.has(intent) && !MUTATION_INTENTS.has(intent)) {
+    if (!isReadIntent(intent) && !isMutationIntent(intent)) {
       return { ok: false, auth_required: false, summary: `unsupported railway intent: ${intent || "none"}`, evidence: [], artifacts: [] };
     }
-    if (MUTATION_INTENTS.has(intent)) {
-      const authorization = await ensureOwnerAuthorization(deps, payload);
-      if (!authorization.ok) return authorization.outcome;
-    }
-    if (intent === "railway.project_status") {
-      const projectId = typeof payload.project_id === "string" ? payload.project_id.trim() : "";
-      if (!projectId) {
-        return { ok: false, auth_required: false, summary: "project_id required", evidence: [], artifacts: [] };
-      }
-      return projectStatus(deps, projectId);
-    }
-    if (intent === "railway.environment_status") return environmentStatus(deps);
-    if (intent === "railway.list_project_services") {
-      return listProjectServices(deps, typeof payload.project_id === "string" ? payload.project_id : undefined);
-    }
-    if (intent === "railway.get_service_instance") {
-      if (typeof payload.service_id !== "string" || typeof payload.environment_id !== "string") {
-        return { ok: false, auth_required: false, summary: "service_id and environment_id required", evidence: [], artifacts: [] };
-      }
-      return getServiceInstance(deps, payload.service_id, payload.environment_id);
-    }
-    if (intent === "railway.get_source_status") {
-      if (typeof payload.service_id !== "string") {
-        return { ok: false, auth_required: false, summary: "service_id required", evidence: [], artifacts: [] };
-      }
-      return getSourceStatus(deps, payload.service_id);
-    }
-    if (intent === "railway.list_variable_names") {
-      if (typeof payload.environment_id !== "string") {
-        return { ok: false, auth_required: false, summary: "environment_id required", evidence: [], artifacts: [] };
-      }
-      return listVariableNames(deps, payload.environment_id);
-    }
-    if (intent === "railway.get_deployment") {
-      if (typeof payload.deployment_id !== "string") {
-        return { ok: false, auth_required: false, summary: "deployment_id required", evidence: [], artifacts: [] };
-      }
-      return getDeployment(deps, payload.deployment_id);
-    }
-    if (intent === "railway.get_deployment_logs") {
-      if (typeof payload.deployment_id !== "string") {
-        return { ok: false, auth_required: false, summary: "deployment_id required", evidence: [], artifacts: [] };
-      }
-      return getDeploymentLogs(deps, payload.deployment_id);
-    }
-    if (intent === "railway.get_domain") {
-      if (typeof payload.service_id !== "string" || typeof payload.environment_id !== "string") {
-        return { ok: false, auth_required: false, summary: "service_id and environment_id required", evidence: [], artifacts: [] };
-      }
-      return getDomain(deps, payload.service_id, payload.environment_id);
-    }
-    if (intent === "railway.introspect_deploy_mutation") return introspectDeploy(deps);
-    if (intent === "railway.create_service") {
-      if (typeof payload.project_id !== "string" || typeof payload.service_name !== "string") {
-        return { ok: false, auth_required: false, summary: "project_id and service_name required", evidence: [], artifacts: [] };
-      }
-      return createService(deps, payload.project_id, payload.service_name);
-    }
-    if (intent === "railway.connect_source") {
-      if (typeof payload.service_id !== "string" || typeof payload.source_owner !== "string" || typeof payload.source_repo !== "string") {
-        return { ok: false, auth_required: false, summary: "service_id, source_owner, source_repo required", evidence: [], artifacts: [] };
-      }
-      return connectSource(deps, payload.service_id, payload.source_owner, payload.source_repo);
-    }
-    if (intent === "railway.create_deployment_trigger") {
-      if (typeof payload.service_id !== "string" || typeof payload.environment_id !== "string" || typeof payload.commit_sha !== "string") {
-        return { ok: false, auth_required: false, summary: "service_id, environment_id, commit_sha required", evidence: [], artifacts: [] };
-      }
-      return createDeploymentTrigger(deps, payload.service_id, payload.environment_id, payload.commit_sha);
-    }
-    if (intent === "railway.deploy_revision") {
-      if (typeof payload.service_id !== "string" || typeof payload.environment_id !== "string" || typeof payload.commit_sha !== "string") {
-        return { ok: false, auth_required: false, summary: "typed deploy fields required", evidence: [], artifacts: [] };
-      }
-      return deployRevision(deps, payload.service_id, payload.environment_id, payload.commit_sha);
-    }
-    if (intent === "railway.redeploy_deployment") {
-      if (typeof payload.deployment_id !== "string") {
-        return { ok: false, auth_required: false, summary: "deployment_id required", evidence: [], artifacts: [] };
-      }
-      return redeploy(deps, payload.deployment_id);
-    }
-    if (intent === "railway.create_domain") {
-      if (typeof payload.service_id !== "string" || typeof payload.environment_id !== "string" || typeof payload.domain !== "string") {
-        return { ok: false, auth_required: false, summary: "service_id, environment_id, domain required", evidence: [], artifacts: [] };
-      }
-      return createDomain(deps, payload.service_id, payload.environment_id, payload.domain);
-    }
-    return { ok: false, auth_required: false, summary: `unsupported railway intent: ${intent}`, evidence: [], artifacts: [] };
+    return isReadIntent(intent)
+      ? invokeRailwayReadIntent(deps, intent, payload)
+      : invokeRailwayMutationIntent(deps, intent, payload);
   };
 }
 
