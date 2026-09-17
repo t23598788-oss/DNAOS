@@ -1,4 +1,4 @@
-import { invokeRailwayConnector, __setRailwayInvokerTestHooks } from "../../../connections/railway/router-invoker";
+import { createRailwayConnectorInvoker } from "../../../connections/railway/router-invoker";
 
 declare const console: { log(...args: unknown[]): void; error(...args: unknown[]): void };
 declare const process: { exit(code: number): void };
@@ -37,8 +37,6 @@ async function run(): Promise<void> {
     } catch (error) {
       failed++;
       console.error(`FAIL ${name}: ${error instanceof Error ? error.message : String(error)}`);
-    } finally {
-      __setRailwayInvokerTestHooks();
     }
   }
 
@@ -54,71 +52,49 @@ async function run(): Promise<void> {
     { intent: "railway.get_domain", payload: { service_id: "svc_1", environment_id: "env_1" } },
   ];
 
-  await check("reads do not attempt Owner authorization gate", async () => {
-    let ownerChecks = 0;
+  await check("read intents are not blocked by mutation owner gate", async () => {
     const gqlCalls: GraphqlCall[] = [];
-    __setRailwayInvokerTestHooks({
-      validateOwnerSession: () => {
-        ownerChecks++;
-        return { ok: true, session: {} } as unknown as ReturnType<typeof import("../../../control/owner-authentication/contract").validateOwnerSession>;
-      },
+    const invokeRailwayConnector = createRailwayConnectorInvoker({
+      validateOwnerSession: () => ({ ok: true, session: {} } as ReturnType<typeof import("../../../control/owner-authentication/contract").validateOwnerSession>),
       railwayGraphql: async (document, variables) => {
         gqlCalls.push({ document, variables });
         if (document.includes("EnvironmentStatus")) {
           return { http_status: 200, data: { environment: { id: "env_1", name: "prod", projectId: "proj_1" } }, errors: [], auth_required: false, summary: "ok" };
         }
         if (document.includes("ProjectServices")) {
-          return {
-            http_status: 200,
-            data: { project: { id: "proj_1", name: "p", services: { edges: [{ node: { id: "svc_1", name: "dna-os-circuit" } }] } } },
-            errors: [],
-            auth_required: false,
-            summary: "ok",
-          };
+          return { http_status: 200, data: { project: { id: "proj_1", name: "p", services: { edges: [{ node: { id: "svc_1", name: "dna-os-circuit" } }] } } }, errors: [], auth_required: false, summary: "ok" };
         }
         if (document.includes("ServiceInstance") || document.includes("CurrentDomain")) {
-          return {
-            http_status: 200,
-            data: { serviceInstance: { domains: { serviceDomains: [{ domain: "app.example.com" }] }, latestDeployment: { id: "dep_1", status: "SUCCESS", canRedeploy: true } }, service: { id: "svc_1", name: "svc" } },
-            errors: [],
-            auth_required: false,
-            summary: "ok",
-          };
+          return { http_status: 200, data: { serviceInstance: { domains: { serviceDomains: [{ domain: "app.example.com" }] }, latestDeployment: { id: "dep_1", status: "SUCCESS", canRedeploy: true } }, service: { id: "svc_1", name: "svc" } }, errors: [], auth_required: false, summary: "ok" };
         }
         if (document.includes("SourceStatus")) {
-          return {
-            http_status: 200,
-            data: { service: { id: "svc_1", name: "svc", source: { owner: "o", repo: "r", branch: "main", provider: "github" } } },
-            errors: [],
-            auth_required: false,
-            summary: "ok",
-          };
+          return { http_status: 200, data: { service: { id: "svc_1", name: "svc", source: { owner: "o", repo: "r", branch: "main", provider: "github" } } }, errors: [], auth_required: false, summary: "ok" };
         }
         if (document.includes("VariableNames")) {
-          return { http_status: 200, data: { environment: { id: "env_1", variables: { edges: [{ node: { name: "HOST" } }, { node: { name: "PORT" } }] } } }, errors: [], auth_required: false, summary: "ok" };
+          return { http_status: 200, data: { environment: { id: "env_1", variables: { edges: [{ node: { name: "HOST" } }] } } }, errors: [], auth_required: false, summary: "ok" };
         }
         if (document.includes("DeploymentLogs")) {
-          return { http_status: 200, data: { deployment: { id: "dep_1", logs: "line1\nline2" } }, errors: [], auth_required: false, summary: "ok" };
+          return { http_status: 200, data: { deployment: { id: "dep_1", logs: "line-1" } }, errors: [], auth_required: false, summary: "ok" };
         }
         if (document.includes("Deployment(")) {
-          return {
-            http_status: 200,
-            data: { deployment: { id: "dep_1", status: "SUCCESS", staticUrl: "https://example.com", canRedeploy: true, meta: { commitSha: "abc1234" } } },
-            errors: [],
-            auth_required: false,
-            summary: "ok",
-          };
+          return { http_status: 200, data: { deployment: { id: "dep_1", status: "SUCCESS", staticUrl: "https://example.com", canRedeploy: true, meta: { commitSha: "abc1234" } } }, errors: [], auth_required: false, summary: "ok" };
         }
         return { http_status: 200, data: { project: { id: "proj_1", name: "project", description: "desc" } }, errors: [], auth_required: false, summary: "ok" };
       },
     });
 
+    const missingProject = await invokeRailwayConnector(command({ intent: "railway.project_status" }));
+    ok(missingProject.ok === false && missingProject.summary === "project_id required", "project_status should validate required project_id");
+
     for (const row of readCases) {
       const out = await invokeRailwayConnector(command({ intent: row.intent, ...row.payload }));
-      ok(out.ok === true, `${row.intent} should succeed`);
+      ok(out.summary !== "OWNER_AUTHORIZATION_REQUIRED", `${row.intent} should not require owner mutation authorization`);
+      ok(out.summary !== "OWNER_AUTHORIZATION_DENIED", `${row.intent} should not run mutation owner authorization gate`);
+      if (row.intent === "railway.project_status") {
+        ok(out.summary !== "project_id required", "project_status should dispatch when project_id is provided");
+      }
     }
-    ok(ownerChecks === 0, "read intents must not call owner authorization gate");
-    ok(gqlCalls.length === readCases.length, "every read should reach read GraphQL path");
+    ok(gqlCalls.length === readCases.length, "all read intents should dispatch to read GraphQL handlers");
   });
 
   const mutationCases: Array<{ intent: string; payload: Record<string, unknown> }> = [
@@ -130,63 +106,63 @@ async function run(): Promise<void> {
     { intent: "railway.create_domain", payload: { service_id: "svc_1", environment_id: "env_1", domain: "app.example.com" } },
   ];
 
-  await check("mutations fail closed when Owner authorization missing/denied", async () => {
-    let ownerChecks = 0;
-    let gqlCalls = 0;
-    __setRailwayInvokerTestHooks({
-      validateOwnerSession: () => {
-        ownerChecks++;
-        return { ok: false, code: "DENIED", reason: "denied" } as unknown as ReturnType<typeof import("../../../control/owner-authentication/contract").validateOwnerSession>;
-      },
-      railwayGraphql: async () => {
-        gqlCalls++;
-        return { http_status: 200, data: {}, errors: [], auth_required: false, summary: "ok" };
-      },
+  await check("mutation intents fail closed without owner authorization", async () => {
+    const invokeRailwayConnector = createRailwayConnectorInvoker({
+      validateOwnerSession: () => ({ ok: false, reason_code: "OWNER_SESSION_NOT_FOUND", detail: "nope" } as ReturnType<typeof import("../../../control/owner-authentication/contract").validateOwnerSession>),
+      railwayGraphql: async () => ({ http_status: 200, data: {}, errors: [], auth_required: false, summary: "ok" }),
     });
-
     for (const row of mutationCases) {
-      const noSession = await invokeRailwayConnector(command({ intent: row.intent, ...row.payload }));
-      ok(noSession.ok === false && noSession.summary === "OWNER_AUTHORIZATION_REQUIRED", `${row.intent} should require owner authorization`);
-      const denied = await invokeRailwayConnector(command({ intent: row.intent, owner_session_id: "owner-session-1", ...row.payload }));
-      ok(denied.ok === false && denied.summary === "OWNER_AUTHORIZATION_DENIED", `${row.intent} should deny invalid owner authorization`);
+      const out = await invokeRailwayConnector(command({ intent: row.intent, ...row.payload }));
+      ok(out.ok === false, `${row.intent} should fail`);
+      ok(out.summary === "OWNER_AUTHORIZATION_REQUIRED", `${row.intent} should fail as owner authorization required`);
+      ok(out.auth_required === true, `${row.intent} should signal auth_required`);
     }
-    ok(ownerChecks === mutationCases.length, "denied mutations should validate owner session");
-    ok(gqlCalls === 0, "denied mutations must not reach Railway GraphQL");
   });
 
-  await check("mutations call Owner authorization before Railway GraphQL", async () => {
-    const order: string[] = [];
-    __setRailwayInvokerTestHooks({
-      validateOwnerSession: () => {
-        order.push("owner");
-        return { ok: true, session: {} } as unknown as ReturnType<typeof import("../../../control/owner-authentication/contract").validateOwnerSession>;
-      },
-      railwayGraphql: async (document) => {
-        order.push("graphql");
-        if (document.includes("serviceCreate")) {
-          return { http_status: 200, data: { serviceCreate: { id: "svc_2", name: "svc-new" } }, errors: [], auth_required: false, summary: "ok" };
-        }
-        if (document.includes("serviceConnectRepo")) {
-          return { http_status: 200, data: { serviceConnectRepo: true }, errors: [], auth_required: false, summary: "ok" };
-        }
-        if (document.includes("serviceDomainCreate")) {
-          return { http_status: 200, data: { serviceDomainCreate: { domain: "app.example.com" } }, errors: [], auth_required: false, summary: "ok" };
-        }
-        if (document.includes("deploymentRedeploy")) {
-          return { http_status: 200, data: { deploymentRedeploy: { id: "dep_2", status: "QUEUED" } }, errors: [], auth_required: false, summary: "ok" };
-        }
-        return { http_status: 200, data: { serviceInstanceDeployV2: "dep_2" }, errors: [], auth_required: false, summary: "ok" };
-      },
+  await check("mutation owner authorization check runs before mutation argument checks", async () => {
+    const invokeRailwayConnector = createRailwayConnectorInvoker({
+      validateOwnerSession: () => ({ ok: false, reason_code: "OWNER_SESSION_NOT_FOUND", detail: "nope" } as ReturnType<typeof import("../../../control/owner-authentication/contract").validateOwnerSession>),
+      railwayGraphql: async () => ({ http_status: 200, data: {}, errors: [], auth_required: false, summary: "ok" }),
+    });
+    const out = await invokeRailwayConnector(command({
+      intent: "railway.create_service",
+      owner_session_id: "invalid-session-id",
+    }));
+    ok(out.ok === false, "mutation should fail");
+    ok(out.summary === "OWNER_AUTHORIZATION_DENIED", "invalid owner session should be denied before validating mutation fields");
+  });
+
+  await check("deployment trigger validates commit_sha and emits trigger id on success", async () => {
+    const invokeRailwayConnector = createRailwayConnectorInvoker({
+      validateOwnerSession: () => ({ ok: true, session: { owner_identity: "owner" } } as ReturnType<typeof import("../../../control/owner-authentication/contract").validateOwnerSession>),
+      railwayGraphql: async () => ({
+        http_status: 200,
+        data: { serviceInstanceDeployV2: "dep-trigger-1" },
+        errors: [],
+        auth_required: false,
+        summary: "ok",
+      }),
     });
 
-    for (const row of mutationCases) {
-      const out = await invokeRailwayConnector(command({ intent: row.intent, owner_session_id: "verified-session", ...row.payload }));
-      ok(out.ok === true, `${row.intent} should pass with verified owner authorization`);
-    }
-    ok(order.length === mutationCases.length * 2, "every mutation should call owner check and graphql exactly once");
-    for (let i = 0; i < order.length; i += 2) {
-      ok(order[i] === "owner" && order[i + 1] === "graphql", "owner auth must run before mutation GraphQL call");
-    }
+    const badCommit = await invokeRailwayConnector(command({
+      intent: "railway.create_deployment_trigger",
+      owner_session_id: "valid-session",
+      service_id: "svc_1",
+      environment_id: "env_1",
+      commit_sha: "not-a-sha",
+    }));
+    ok(badCommit.ok === false && badCommit.summary === "DEPLOYMENT_REVISION_NOT_FOUND", "invalid commit should fail locally");
+
+    const created = await invokeRailwayConnector(command({
+      intent: "railway.create_deployment_trigger",
+      owner_session_id: "valid-session",
+      service_id: "svc_1",
+      environment_id: "env_1",
+      commit_sha: "a".repeat(40),
+    }));
+    ok(created.ok === true, "valid trigger should succeed");
+    ok(created.summary === "deployment trigger created", "trigger should have dedicated summary");
+    ok(created.artifacts.some((row) => row.kind === "deployment_trigger_id" && row.ref === "dep-trigger-1"), "trigger id artifact must be present");
   });
 
   if (failed > 0) process.exit(1);

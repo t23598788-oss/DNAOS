@@ -44,21 +44,15 @@ function forbiddenGenericGraphql(payload: Record<string, unknown>): boolean {
   return "query" in payload || "graphql" in payload || "mutation" in payload || "raw_graphql" in payload;
 }
 
-type ValidateOwnerSessionFn = typeof validateOwnerSession;
-type RailwayGraphqlFn = typeof railwayGraphql;
+export type RailwayInvokerDeps = {
+  readonly validateOwnerSession: typeof validateOwnerSession;
+  readonly railwayGraphql: typeof railwayGraphql;
+};
 
-let validateOwnerSessionImpl: ValidateOwnerSessionFn = validateOwnerSession;
-let railwayGraphqlImpl: RailwayGraphqlFn = railwayGraphql;
-
-export function __setRailwayInvokerTestHooks(hooks?: {
-  readonly validateOwnerSession?: ValidateOwnerSessionFn;
-  readonly railwayGraphql?: RailwayGraphqlFn;
-}): void {
-  validateOwnerSessionImpl = hooks?.validateOwnerSession ?? validateOwnerSession;
-  railwayGraphqlImpl = hooks?.railwayGraphql ?? railwayGraphql;
-}
-
-function ensureOwnerAuthorization(payload: Record<string, unknown>): { ok: true } | { ok: false; outcome: ConnectorBoundaryOutcome } {
+async function ensureOwnerAuthorization(
+  deps: RailwayInvokerDeps,
+  payload: Record<string, unknown>,
+): Promise<{ ok: true } | { ok: false; outcome: ConnectorBoundaryOutcome }> {
   const ownerSessionId = typeof payload.owner_session_id === "string" ? payload.owner_session_id.trim() : "";
   if (!ownerSessionId) {
     return {
@@ -66,8 +60,17 @@ function ensureOwnerAuthorization(payload: Record<string, unknown>): { ok: true 
       outcome: { ok: false, auth_required: true, summary: "OWNER_AUTHORIZATION_REQUIRED", evidence: [], artifacts: [] },
     };
   }
-  const verified = validateOwnerSessionImpl(ownerSessionId) as { ok: boolean };
-  if (!verified.ok) {
+  let verified: unknown;
+  try {
+    verified = await Promise.resolve(deps.validateOwnerSession(ownerSessionId));
+  } catch {
+    verified = null;
+  }
+  const authorized = typeof verified === "object"
+    && verified !== null
+    && "ok" in verified
+    && (verified as { ok?: unknown }).ok === true;
+  if (!authorized) {
     return {
       ok: false,
       outcome: { ok: false, auth_required: true, summary: "OWNER_AUTHORIZATION_DENIED", evidence: [], artifacts: [] },
@@ -103,8 +106,8 @@ function outcomeFromGraphql(
   };
 }
 
-async function environmentStatus(): Promise<ConnectorBoundaryOutcome> {
-  const result = await railwayGraphqlImpl(
+async function environmentStatus(deps: RailwayInvokerDeps): Promise<ConnectorBoundaryOutcome> {
+  const result = await deps.railwayGraphql(
     `query EnvironmentStatus($id: String!) { environment(id: $id) { id name projectId } }`,
     { id: RAILWAY_ENVIRONMENT_ID },
     productionKeychainProvider,
@@ -125,8 +128,8 @@ async function environmentStatus(): Promise<ConnectorBoundaryOutcome> {
   };
 }
 
-async function projectStatus(projectId: string): Promise<ConnectorBoundaryOutcome> {
-  const result = await railwayGraphqlImpl(
+async function projectStatus(deps: RailwayInvokerDeps, projectId: string): Promise<ConnectorBoundaryOutcome> {
+  const result = await deps.railwayGraphql(
     `query ProjectStatus($id: String!) { project(id: $id) { id name description } }`,
     { id: projectId },
     productionKeychainProvider,
@@ -141,15 +144,15 @@ async function projectStatus(projectId: string): Promise<ConnectorBoundaryOutcom
   return outcomeFromGraphql(result, artifacts, "project status read");
 }
 
-async function listProjectServices(projectId: string | undefined): Promise<ConnectorBoundaryOutcome> {
+async function listProjectServices(deps: RailwayInvokerDeps, projectId: string | undefined): Promise<ConnectorBoundaryOutcome> {
   let id = projectId ?? "";
   if (!id) {
-    const env = await environmentStatus();
+    const env = await environmentStatus(deps);
     const found = env.artifacts.find((row) => row.kind === "project_id");
     id = found?.ref ?? "";
   }
   if (!id) return { ok: false, auth_required: false, summary: "project_id unavailable", evidence: [], artifacts: [] };
-  const result = await railwayGraphqlImpl(
+  const result = await deps.railwayGraphql(
     `query ProjectServices($id: String!) { project(id: $id) { id name services { edges { node { id name } } } } }`,
     { id },
     productionKeychainProvider,
@@ -169,8 +172,8 @@ async function listProjectServices(projectId: string | undefined): Promise<Conne
   return outcomeFromGraphql(result, artifacts, `listed railway services for project ${id}`);
 }
 
-async function getServiceInstance(serviceId: string, environmentId: string): Promise<ConnectorBoundaryOutcome> {
-  const result = await railwayGraphqlImpl(
+async function getServiceInstance(deps: RailwayInvokerDeps, serviceId: string, environmentId: string): Promise<ConnectorBoundaryOutcome> {
+  const result = await deps.railwayGraphql(
     `query ServiceInstance($serviceId: String!, $environmentId: String!) {
       serviceInstance(serviceId: $serviceId, environmentId: $environmentId) {
         domains { serviceDomains { domain } }
@@ -205,8 +208,8 @@ async function getServiceInstance(serviceId: string, environmentId: string): Pro
   return outcomeFromGraphql(result, artifacts, "service instance read");
 }
 
-async function getSourceStatus(serviceId: string): Promise<ConnectorBoundaryOutcome> {
-  const result = await railwayGraphqlImpl(
+async function getSourceStatus(deps: RailwayInvokerDeps, serviceId: string): Promise<ConnectorBoundaryOutcome> {
+  const result = await deps.railwayGraphql(
     `query SourceStatus($serviceId: String!) {
       service(id: $serviceId) {
         id
@@ -229,8 +232,8 @@ async function getSourceStatus(serviceId: string): Promise<ConnectorBoundaryOutc
   return outcomeFromGraphql(result, artifacts, "source status read");
 }
 
-async function listVariableNames(environmentId: string): Promise<ConnectorBoundaryOutcome> {
-  const result = await railwayGraphqlImpl(
+async function listVariableNames(deps: RailwayInvokerDeps, environmentId: string): Promise<ConnectorBoundaryOutcome> {
+  const result = await deps.railwayGraphql(
     `query VariableNames($environmentId: String!) {
       environment(id: $environmentId) { id variables { edges { node { name } } } }
     }`,
@@ -250,8 +253,8 @@ async function listVariableNames(environmentId: string): Promise<ConnectorBounda
   return outcomeFromGraphql(result, artifacts, "variable names read");
 }
 
-async function getDeployment(deploymentId: string): Promise<ConnectorBoundaryOutcome> {
-  const result = await railwayGraphqlImpl(
+async function getDeployment(deps: RailwayInvokerDeps, deploymentId: string): Promise<ConnectorBoundaryOutcome> {
+  const result = await deps.railwayGraphql(
     `query Deployment($id: String!) {
       deployment(id: $id) { id status staticUrl meta createdAt canRedeploy serviceId environmentId }
     }`,
@@ -273,8 +276,8 @@ async function getDeployment(deploymentId: string): Promise<ConnectorBoundaryOut
   return outcomeFromGraphql(result, artifacts, dep ? `deployment ${stringField(dep, "status")}` : "deployment read");
 }
 
-async function getDeploymentLogs(deploymentId: string): Promise<ConnectorBoundaryOutcome> {
-  const result = await railwayGraphqlImpl(
+async function getDeploymentLogs(deps: RailwayInvokerDeps, deploymentId: string): Promise<ConnectorBoundaryOutcome> {
+  const result = await deps.railwayGraphql(
     `query DeploymentLogs($id: String!) {
       deployment(id: $id) { id logs }
     }`,
@@ -283,15 +286,17 @@ async function getDeploymentLogs(deploymentId: string): Promise<ConnectorBoundar
   );
   const dep = result.data && isRecord(result.data["deployment"]) ? result.data["deployment"] : null;
   const logs = dep ? stringField(dep, "logs") ?? "" : "";
+  const logLineCount = logs.length === 0 ? 0 : logs.split(/\r?\n/).filter((line) => line.trim() !== "").length;
   const artifacts = [
     { kind: "deployment_id", ref: deploymentId },
-    { kind: "logs", ref: logs.slice(0, 4000) },
+    { kind: "logs_present", ref: logs.length > 0 ? "true" : "false" },
+    { kind: "logs_line_count", ref: String(logLineCount) },
   ];
   return outcomeFromGraphql(result, artifacts, "deployment logs read");
 }
 
-async function getDomain(serviceId: string, environmentId: string): Promise<ConnectorBoundaryOutcome> {
-  const result = await railwayGraphqlImpl(
+async function getDomain(deps: RailwayInvokerDeps, serviceId: string, environmentId: string): Promise<ConnectorBoundaryOutcome> {
+  const result = await deps.railwayGraphql(
     `query CurrentDomain($serviceId: String!, $environmentId: String!) {
       serviceInstance(serviceId: $serviceId, environmentId: $environmentId) {
         domains { serviceDomains { domain } }
@@ -305,16 +310,22 @@ async function getDomain(serviceId: string, environmentId: string): Promise<Conn
     ? (instance?.domains as { serviceDomains: unknown[] }).serviceDomains
     : [];
   const artifacts: Array<{ kind: string; ref: string }> = [{ kind: "service_id", ref: serviceId }, { kind: "environment_id", ref: environmentId }];
-  for (const domain of domains) {
-    if (!isRecord(domain)) continue;
-    const value = stringField(domain, "domain");
-    if (value) artifacts.push({ kind: "runtime_domain", ref: value });
+  for (const domainNode of domains) {
+    if (!isRecord(domainNode)) continue;
+    const directValue = stringField(domainNode, "domain");
+    if (directValue) {
+      artifacts.push({ kind: "runtime_domain", ref: directValue });
+      continue;
+    }
+    const nestedDomain = isRecord(domainNode["domain"]) ? domainNode["domain"] : null;
+    const nestedValue = nestedDomain ? stringField(nestedDomain, "domain") ?? stringField(nestedDomain, "name") : null;
+    if (nestedValue) artifacts.push({ kind: "runtime_domain", ref: nestedValue });
   }
   return outcomeFromGraphql(result, artifacts, "domain status read");
 }
 
-async function introspectDeploy(): Promise<ConnectorBoundaryOutcome> {
-  const result = await railwayGraphqlImpl(
+async function introspectDeploy(deps: RailwayInvokerDeps): Promise<ConnectorBoundaryOutcome> {
+  const result = await deps.railwayGraphql(
     `query IntrospectDeployMutation { __type(name: "Mutation") { fields { name } } }`,
     undefined,
     productionKeychainProvider,
@@ -336,11 +347,11 @@ async function introspectDeploy(): Promise<ConnectorBoundaryOutcome> {
   );
 }
 
-async function deployRevision(serviceId: string, environmentId: string, commitSha: string): Promise<ConnectorBoundaryOutcome> {
+async function deployRevision(deps: RailwayInvokerDeps, serviceId: string, environmentId: string, commitSha: string): Promise<ConnectorBoundaryOutcome> {
   if (!/^[0-9a-f]{7,40}$/i.test(commitSha)) {
     return { ok: false, auth_required: false, summary: "DEPLOYMENT_REVISION_NOT_FOUND", evidence: [], artifacts: [] };
   }
-  const result = await railwayGraphqlImpl(
+  const result = await deps.railwayGraphql(
     DEPLOY_EXISTING_SERVICE_REVISION_MUTATION,
     { serviceId, environmentId, commitSha },
     productionKeychainProvider,
@@ -367,15 +378,15 @@ async function deployRevision(serviceId: string, environmentId: string, commitSh
   };
 }
 
-async function redeploy(deploymentId: string): Promise<ConnectorBoundaryOutcome> {
-  const result = await railwayGraphqlImpl(REDEPLOY_DEPLOYMENT_MUTATION, { id: deploymentId }, productionKeychainProvider);
+async function redeploy(deps: RailwayInvokerDeps, deploymentId: string): Promise<ConnectorBoundaryOutcome> {
+  const result = await deps.railwayGraphql(REDEPLOY_DEPLOYMENT_MUTATION, { id: deploymentId }, productionKeychainProvider);
   const node = result.data && isRecord(result.data["deploymentRedeploy"]) ? result.data["deploymentRedeploy"] : null;
   const artifacts = node ? [{ kind: "deployment_id", ref: stringField(node, "id") ?? deploymentId }] : [];
   return outcomeFromGraphql(result, artifacts, "redeploy requested");
 }
 
-async function createService(projectId: string, name: string): Promise<ConnectorBoundaryOutcome> {
-  const result = await railwayGraphqlImpl(
+async function createService(deps: RailwayInvokerDeps, projectId: string, name: string): Promise<ConnectorBoundaryOutcome> {
+  const result = await deps.railwayGraphql(
     `mutation CreateService($projectId: String!, $name: String!) {
       serviceCreate(input: { projectId: $projectId, name: $name }) { id name }
     }`,
@@ -389,8 +400,8 @@ async function createService(projectId: string, name: string): Promise<Connector
   return outcomeFromGraphql(result, artifacts, "service created");
 }
 
-async function connectSource(serviceId: string, owner: string, repo: string): Promise<ConnectorBoundaryOutcome> {
-  const result = await railwayGraphqlImpl(
+async function connectSource(deps: RailwayInvokerDeps, serviceId: string, owner: string, repo: string): Promise<ConnectorBoundaryOutcome> {
+  const result = await deps.railwayGraphql(
     `mutation ConnectSource($serviceId: String!, $owner: String!, $repo: String!) {
       serviceConnectRepo(serviceId: $serviceId, owner: $owner, repo: $repo)
     }`,
@@ -404,12 +415,41 @@ async function connectSource(serviceId: string, owner: string, repo: string): Pr
   return outcomeFromGraphql(result, artifacts, accepted ? "source connected" : "source connect requested");
 }
 
-async function createDeploymentTrigger(serviceId: string, environmentId: string, commitSha: string): Promise<ConnectorBoundaryOutcome> {
-  return deployRevision(serviceId, environmentId, commitSha);
+async function createDeploymentTrigger(deps: RailwayInvokerDeps, serviceId: string, environmentId: string, commitSha: string): Promise<ConnectorBoundaryOutcome> {
+  if (!/^[0-9a-f]{7,40}$/i.test(commitSha)) {
+    return { ok: false, auth_required: false, summary: "DEPLOYMENT_REVISION_NOT_FOUND", evidence: [], artifacts: [] };
+  }
+  const result = await deps.railwayGraphql(
+    `mutation CreateDeploymentTrigger($serviceId: String!, $environmentId: String!, $commitSha: String) {
+      serviceInstanceDeployV2(serviceId: $serviceId, environmentId: $environmentId, commitSha: $commitSha)
+    }`,
+    { serviceId, environmentId, commitSha },
+    productionKeychainProvider,
+  );
+  const base = outcomeFromGraphql(result, [], "deployment trigger requested");
+  if (!base.ok) return base;
+  const triggerId = result.data ? result.data["serviceInstanceDeployV2"] : null;
+  const deploymentTriggerId = typeof triggerId === "string" ? triggerId.trim() : "";
+  if (!deploymentTriggerId) {
+    return {
+      ok: false,
+      auth_required: false,
+      summary: "deployment trigger creation did not return id",
+      evidence: [...base.evidence, { source: "connections/railway/router-invoker.ts", note: "serviceInstanceDeployV2 returned empty deployment id" }],
+      artifacts: [...base.artifacts],
+    };
+  }
+  return {
+    ok: true,
+    auth_required: false,
+    summary: "deployment trigger created",
+    evidence: [...base.evidence, { source: "connections/railway/router-invoker.ts", note: "serviceInstanceDeployV2 trigger" }],
+    artifacts: [...base.artifacts, { kind: "deployment_trigger_id", ref: deploymentTriggerId }],
+  };
 }
 
-async function createDomain(serviceId: string, environmentId: string, domain: string): Promise<ConnectorBoundaryOutcome> {
-  const result = await railwayGraphqlImpl(
+async function createDomain(deps: RailwayInvokerDeps, serviceId: string, environmentId: string, domain: string): Promise<ConnectorBoundaryOutcome> {
+  const result = await deps.railwayGraphql(
     `mutation CreateDomain($serviceId: String!, $environmentId: String!, $domain: String!) {
       serviceDomainCreate(serviceId: $serviceId, environmentId: $environmentId, domain: $domain) { domain }
     }`,
@@ -417,107 +457,124 @@ async function createDomain(serviceId: string, environmentId: string, domain: st
     productionKeychainProvider,
   );
   const created = result.data && isRecord(result.data["serviceDomainCreate"]) ? result.data["serviceDomainCreate"] : null;
-  const artifacts = created ? [{ kind: "service_id", ref: serviceId }, { kind: "runtime_domain", ref: stringField(created, "domain") ?? domain }] : [];
+  const artifacts = created
+    ? [
+      { kind: "service_id", ref: serviceId },
+      { kind: "environment_id", ref: environmentId },
+      { kind: "runtime_domain", ref: stringField(created, "domain") ?? domain },
+    ]
+    : [];
   return outcomeFromGraphql(result, artifacts, "domain created");
 }
 
-export const invokeRailwayConnector: ConnectorInvoker = async (command: CommandEnvelope): Promise<ConnectorBoundaryOutcome> => {
-  const payload = (command.payload && typeof command.payload === "object") ? command.payload as Record<string, unknown> : {};
-  if (forbiddenGenericGraphql(payload)) {
-    return { ok: false, auth_required: false, summary: "GENERIC_GRAPHQL_FORBIDDEN", evidence: [], artifacts: [] };
-  }
-  const intent = typeof payload.intent === "string" ? payload.intent : "";
-  if (!READ_INTENTS.has(intent) && !MUTATION_INTENTS.has(intent)) {
-    return { ok: false, auth_required: false, summary: `unsupported railway intent: ${intent || "none"}`, evidence: [], artifacts: [] };
-  }
-  if (MUTATION_INTENTS.has(intent)) {
-    const authorization = ensureOwnerAuthorization(payload);
-    if (!authorization.ok) return authorization.outcome;
-  }
-  if (intent === "railway.project_status") {
-    if (typeof payload.project_id !== "string") {
-      return { ok: false, auth_required: false, summary: "project_id required", evidence: [], artifacts: [] };
+export function createRailwayConnectorInvoker(overrides: Partial<RailwayInvokerDeps> = {}): ConnectorInvoker {
+  const deps: RailwayInvokerDeps = {
+    validateOwnerSession,
+    railwayGraphql,
+    ...overrides,
+  };
+
+  return async (command: CommandEnvelope): Promise<ConnectorBoundaryOutcome> => {
+    const payload = (command.payload && typeof command.payload === "object") ? command.payload as Record<string, unknown> : {};
+    if (forbiddenGenericGraphql(payload)) {
+      return { ok: false, auth_required: false, summary: "GENERIC_GRAPHQL_FORBIDDEN", evidence: [], artifacts: [] };
     }
-    return projectStatus(payload.project_id);
-  }
-  if (intent === "railway.environment_status") return environmentStatus();
-  if (intent === "railway.list_project_services") {
-    return listProjectServices(typeof payload.project_id === "string" ? payload.project_id : undefined);
-  }
-  if (intent === "railway.get_service_instance") {
-    if (typeof payload.service_id !== "string" || typeof payload.environment_id !== "string") {
-      return { ok: false, auth_required: false, summary: "service_id and environment_id required", evidence: [], artifacts: [] };
+    const intent = typeof payload.intent === "string" ? payload.intent : "";
+    if (!READ_INTENTS.has(intent) && !MUTATION_INTENTS.has(intent)) {
+      return { ok: false, auth_required: false, summary: `unsupported railway intent: ${intent || "none"}`, evidence: [], artifacts: [] };
     }
-    return getServiceInstance(payload.service_id, payload.environment_id);
-  }
-  if (intent === "railway.get_source_status") {
-    if (typeof payload.service_id !== "string") {
-      return { ok: false, auth_required: false, summary: "service_id required", evidence: [], artifacts: [] };
+    if (MUTATION_INTENTS.has(intent)) {
+      const authorization = await ensureOwnerAuthorization(deps, payload);
+      if (!authorization.ok) return authorization.outcome;
     }
-    return getSourceStatus(payload.service_id);
-  }
-  if (intent === "railway.list_variable_names") {
-    if (typeof payload.environment_id !== "string") {
-      return { ok: false, auth_required: false, summary: "environment_id required", evidence: [], artifacts: [] };
+    if (intent === "railway.project_status") {
+      const projectId = typeof payload.project_id === "string" ? payload.project_id.trim() : "";
+      if (!projectId) {
+        return { ok: false, auth_required: false, summary: "project_id required", evidence: [], artifacts: [] };
+      }
+      return projectStatus(deps, projectId);
     }
-    return listVariableNames(payload.environment_id);
-  }
-  if (intent === "railway.get_deployment") {
-    if (typeof payload.deployment_id !== "string") {
-      return { ok: false, auth_required: false, summary: "deployment_id required", evidence: [], artifacts: [] };
+    if (intent === "railway.environment_status") return environmentStatus(deps);
+    if (intent === "railway.list_project_services") {
+      return listProjectServices(deps, typeof payload.project_id === "string" ? payload.project_id : undefined);
     }
-    return getDeployment(payload.deployment_id);
-  }
-  if (intent === "railway.get_deployment_logs") {
-    if (typeof payload.deployment_id !== "string") {
-      return { ok: false, auth_required: false, summary: "deployment_id required", evidence: [], artifacts: [] };
+    if (intent === "railway.get_service_instance") {
+      if (typeof payload.service_id !== "string" || typeof payload.environment_id !== "string") {
+        return { ok: false, auth_required: false, summary: "service_id and environment_id required", evidence: [], artifacts: [] };
+      }
+      return getServiceInstance(deps, payload.service_id, payload.environment_id);
     }
-    return getDeploymentLogs(payload.deployment_id);
-  }
-  if (intent === "railway.get_domain") {
-    if (typeof payload.service_id !== "string" || typeof payload.environment_id !== "string") {
-      return { ok: false, auth_required: false, summary: "service_id and environment_id required", evidence: [], artifacts: [] };
+    if (intent === "railway.get_source_status") {
+      if (typeof payload.service_id !== "string") {
+        return { ok: false, auth_required: false, summary: "service_id required", evidence: [], artifacts: [] };
+      }
+      return getSourceStatus(deps, payload.service_id);
     }
-    return getDomain(payload.service_id, payload.environment_id);
-  }
-  if (intent === "railway.introspect_deploy_mutation") return introspectDeploy();
-  if (intent === "railway.create_service") {
-    if (typeof payload.project_id !== "string" || typeof payload.service_name !== "string") {
-      return { ok: false, auth_required: false, summary: "project_id and service_name required", evidence: [], artifacts: [] };
+    if (intent === "railway.list_variable_names") {
+      if (typeof payload.environment_id !== "string") {
+        return { ok: false, auth_required: false, summary: "environment_id required", evidence: [], artifacts: [] };
+      }
+      return listVariableNames(deps, payload.environment_id);
     }
-    return createService(payload.project_id, payload.service_name);
-  }
-  if (intent === "railway.connect_source") {
-    if (typeof payload.service_id !== "string" || typeof payload.source_owner !== "string" || typeof payload.source_repo !== "string") {
-      return { ok: false, auth_required: false, summary: "service_id, source_owner, source_repo required", evidence: [], artifacts: [] };
+    if (intent === "railway.get_deployment") {
+      if (typeof payload.deployment_id !== "string") {
+        return { ok: false, auth_required: false, summary: "deployment_id required", evidence: [], artifacts: [] };
+      }
+      return getDeployment(deps, payload.deployment_id);
     }
-    return connectSource(payload.service_id, payload.source_owner, payload.source_repo);
-  }
-  if (intent === "railway.create_deployment_trigger") {
-    if (typeof payload.service_id !== "string" || typeof payload.environment_id !== "string" || typeof payload.commit_sha !== "string") {
-      return { ok: false, auth_required: false, summary: "service_id, environment_id, commit_sha required", evidence: [], artifacts: [] };
+    if (intent === "railway.get_deployment_logs") {
+      if (typeof payload.deployment_id !== "string") {
+        return { ok: false, auth_required: false, summary: "deployment_id required", evidence: [], artifacts: [] };
+      }
+      return getDeploymentLogs(deps, payload.deployment_id);
     }
-    return createDeploymentTrigger(payload.service_id, payload.environment_id, payload.commit_sha);
-  }
-  if (intent === "railway.deploy_revision") {
-    if (typeof payload.service_id !== "string" || typeof payload.environment_id !== "string" || typeof payload.commit_sha !== "string") {
-      return { ok: false, auth_required: false, summary: "typed deploy fields required", evidence: [], artifacts: [] };
+    if (intent === "railway.get_domain") {
+      if (typeof payload.service_id !== "string" || typeof payload.environment_id !== "string") {
+        return { ok: false, auth_required: false, summary: "service_id and environment_id required", evidence: [], artifacts: [] };
+      }
+      return getDomain(deps, payload.service_id, payload.environment_id);
     }
-    return deployRevision(payload.service_id, payload.environment_id, payload.commit_sha);
-  }
-  if (intent === "railway.redeploy_deployment") {
-    if (typeof payload.deployment_id !== "string") {
-      return { ok: false, auth_required: false, summary: "deployment_id required", evidence: [], artifacts: [] };
+    if (intent === "railway.introspect_deploy_mutation") return introspectDeploy(deps);
+    if (intent === "railway.create_service") {
+      if (typeof payload.project_id !== "string" || typeof payload.service_name !== "string") {
+        return { ok: false, auth_required: false, summary: "project_id and service_name required", evidence: [], artifacts: [] };
+      }
+      return createService(deps, payload.project_id, payload.service_name);
     }
-    return redeploy(payload.deployment_id);
-  }
-  if (intent === "railway.create_domain") {
-    if (typeof payload.service_id !== "string" || typeof payload.environment_id !== "string" || typeof payload.domain !== "string") {
-      return { ok: false, auth_required: false, summary: "service_id, environment_id, domain required", evidence: [], artifacts: [] };
+    if (intent === "railway.connect_source") {
+      if (typeof payload.service_id !== "string" || typeof payload.source_owner !== "string" || typeof payload.source_repo !== "string") {
+        return { ok: false, auth_required: false, summary: "service_id, source_owner, source_repo required", evidence: [], artifacts: [] };
+      }
+      return connectSource(deps, payload.service_id, payload.source_owner, payload.source_repo);
     }
-    return createDomain(payload.service_id, payload.environment_id, payload.domain);
-  }
-  return { ok: false, auth_required: false, summary: `unsupported railway intent: ${intent}`, evidence: [], artifacts: [] };
-};
+    if (intent === "railway.create_deployment_trigger") {
+      if (typeof payload.service_id !== "string" || typeof payload.environment_id !== "string" || typeof payload.commit_sha !== "string") {
+        return { ok: false, auth_required: false, summary: "service_id, environment_id, commit_sha required", evidence: [], artifacts: [] };
+      }
+      return createDeploymentTrigger(deps, payload.service_id, payload.environment_id, payload.commit_sha);
+    }
+    if (intent === "railway.deploy_revision") {
+      if (typeof payload.service_id !== "string" || typeof payload.environment_id !== "string" || typeof payload.commit_sha !== "string") {
+        return { ok: false, auth_required: false, summary: "typed deploy fields required", evidence: [], artifacts: [] };
+      }
+      return deployRevision(deps, payload.service_id, payload.environment_id, payload.commit_sha);
+    }
+    if (intent === "railway.redeploy_deployment") {
+      if (typeof payload.deployment_id !== "string") {
+        return { ok: false, auth_required: false, summary: "deployment_id required", evidence: [], artifacts: [] };
+      }
+      return redeploy(deps, payload.deployment_id);
+    }
+    if (intent === "railway.create_domain") {
+      if (typeof payload.service_id !== "string" || typeof payload.environment_id !== "string" || typeof payload.domain !== "string") {
+        return { ok: false, auth_required: false, summary: "service_id, environment_id, domain required", evidence: [], artifacts: [] };
+      }
+      return createDomain(deps, payload.service_id, payload.environment_id, payload.domain);
+    }
+    return { ok: false, auth_required: false, summary: `unsupported railway intent: ${intent}`, evidence: [], artifacts: [] };
+  };
+}
+
+export const invokeRailwayConnector: ConnectorInvoker = createRailwayConnectorInvoker();
 
 export { DEPLOY_EXISTING_SERVICE_REVISION_MUTATION } from "./graphql";
