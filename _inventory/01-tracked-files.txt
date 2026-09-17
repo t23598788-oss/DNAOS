@@ -1,3 +1,6 @@
+"00-ai-roles (\340\270\253\340\270\231\340\271\211\340\270\262\340\270\227\340\270\265\340\271\210 AI).json"
+"01-auditor-ai (AI \340\270\225\340\270\243\340\270\247\340\270\210\340\270\207\340\270\262\340\270\231).json"
+"01-folder-registry (\340\270\227\340\270\260\340\271\200\340\270\232\340\270\265\340\270\242\340\270\231\340\271\202\340\270\237\340\270\245\340\271\200\340\270\224\340\270\255\340\270\243\340\271\214\340\270\253\340\270\245\340\270\261\340\270\201)Untitled-2.json"
 .claude/settings.json
 .env.local.example
 .githooks/pre-commit
@@ -10,9 +13,6 @@
 .vscode/mcp.json
 .vscode/settings.json
 .vscode/tasks.json
-"00-ai-roles (\340\270\253\340\270\231\340\271\211\340\270\262\340\270\227\340\270\265\340\271\210 AI).json"
-"01-auditor-ai (AI \340\270\225\340\270\243\340\270\247\340\270\210\340\270\207\340\270\262\340\270\231).json"
-"01-folder-registry (\340\270\227\340\270\260\340\271\200\340\270\232\340\270\265\340\270\242\340\270\231\340\271\202\340\270\237\340\270\245\340\271\200\340\270\224\340\270\255\340\270\243\340\271\214\340\270\253\340\270\245\340\270\261\340\270\201)Untitled-2.json"
 01-folder-registry.json
 04-api-registry.json
 05-database-registry.json
@@ -1468,7 +1468,6 @@ supabase/functions/trigger-complete/index.ts
 supabase/local-migration/extracted_tables.sql
 supabase/local-migration/extracted_types.sql
 supabase/local-migration/full_schema.sql
-supabase/local-migration/real_data.sql
 supabase/migrations/20260620000000_clearinghouse_upgrade.sql
 supabase/migrations/20260620000001_back_to_back_triggers.sql
 supabase/migrations/20260620000002_clearinghouse_scalability.sql

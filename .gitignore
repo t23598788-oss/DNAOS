@@ -70,3 +70,8 @@ lib/macos/line-ctrl
 lib/drivers/line/line-driver
 lib/macos/line-ctrl
 lib/drivers/line/line-driver
+
+# DNA OS — REAL DATA / PRIVATE DATA
+supabase/local-migration/real_data.sql
+_local-data/
+_inventory/
