@@ -54,8 +54,12 @@ async function run(): Promise<void> {
 
   await check("read intents are not blocked by mutation owner gate", async () => {
     const gqlCalls: GraphqlCall[] = [];
+    let validateCalls = 0;
     const invokeRailwayConnector = createRailwayConnectorInvoker({
-      validateOwnerSession: () => ({ ok: true, session: {} } as ReturnType<typeof import("../../../control/owner-authentication/contract").validateOwnerSession>),
+      validateOwnerSession: () => {
+        validateCalls++;
+        return { ok: true, session: {} } as ReturnType<typeof import("../../../control/owner-authentication/contract").validateOwnerSession>;
+      },
       railwayGraphql: async (document, variables) => {
         gqlCalls.push({ document, variables });
         if (document.includes("EnvironmentStatus")) {
@@ -94,6 +98,7 @@ async function run(): Promise<void> {
         ok(out.summary !== "project_id required", "project_status should dispatch when project_id is provided");
       }
     }
+    ok(validateCalls === 0, "read intents must not attempt the mutation owner authorization gate");
     ok(gqlCalls.length === readCases.length, "all read intents should dispatch to read GraphQL handlers");
   });
 
@@ -107,9 +112,13 @@ async function run(): Promise<void> {
   ];
 
   await check("mutation intents fail closed without owner authorization", async () => {
+    const gqlCalls: GraphqlCall[] = [];
     const invokeRailwayConnector = createRailwayConnectorInvoker({
       validateOwnerSession: () => ({ ok: false, reason_code: "OWNER_SESSION_NOT_FOUND", detail: "nope" } as ReturnType<typeof import("../../../control/owner-authentication/contract").validateOwnerSession>),
-      railwayGraphql: async () => ({ http_status: 200, data: {}, errors: [], auth_required: false, summary: "ok" }),
+      railwayGraphql: async (document, variables) => {
+        gqlCalls.push({ document, variables });
+        return { http_status: 200, data: {}, errors: [], auth_required: false, summary: "ok" };
+      },
     });
     for (const row of mutationCases) {
       const out = await invokeRailwayConnector(command({ intent: row.intent, ...row.payload }));
@@ -117,6 +126,7 @@ async function run(): Promise<void> {
       ok(out.summary === "OWNER_AUTHORIZATION_REQUIRED", `${row.intent} should fail as owner authorization required`);
       ok(out.auth_required === true, `${row.intent} should signal auth_required`);
     }
+    ok(gqlCalls.length === 0, "missing owner authorization must not reach Railway GraphQL");
   });
 
   await check("mutation owner authorization check runs before mutation argument checks", async () => {
@@ -130,6 +140,34 @@ async function run(): Promise<void> {
     }));
     ok(out.ok === false, "mutation should fail");
     ok(out.summary === "OWNER_AUTHORIZATION_DENIED", "invalid owner session should be denied before validating mutation fields");
+  });
+
+  await check("mutation owner authorization runs before Railway GraphQL mutation calls", async () => {
+    const sequence: string[] = [];
+    const invokeRailwayConnector = createRailwayConnectorInvoker({
+      validateOwnerSession: () => {
+        sequence.push("authorize");
+        return { ok: true, session: { owner_identity: "owner" } } as ReturnType<typeof import("../../../control/owner-authentication/contract").validateOwnerSession>;
+      },
+      railwayGraphql: async () => {
+        sequence.push("graphql");
+        return {
+          http_status: 200,
+          data: { serviceCreate: { id: "svc_2", name: "svc-new" } },
+          errors: [],
+          auth_required: false,
+          summary: "ok",
+        };
+      },
+    });
+    const out = await invokeRailwayConnector(command({
+      intent: "railway.create_service",
+      owner_session_id: "valid-session",
+      project_id: "proj_1",
+      service_name: "svc-new",
+    }));
+    ok(out.ok === true, "authorized mutation should succeed");
+    ok(sequence.join(">") === "authorize>graphql", "owner authorization must happen before Railway GraphQL mutation");
   });
 
   await check("deployment trigger validates commit_sha and emits trigger id on success", async () => {
