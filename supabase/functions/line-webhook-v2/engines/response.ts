@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.43.4";
+import { getLineChannelAccessToken } from "../../_shared/line-client.ts";
 
 async function logErrorToDb(errorMsg: string) {
   try {
@@ -107,7 +108,9 @@ async function replyMessages(replyToken: string, messages: object[]) {
     return
   }
 
-  const lineAccessToken = Deno.env.get('LINE_CHANNEL_ACCESS_TOKEN')
+  // Canonical credential path (LINE cutover): bridge → connector lifecycle
+  // Run gate — fail-closed, no env fallback (mock log = token unavailable).
+  const lineAccessToken = await getLineChannelAccessToken()
   if (!lineAccessToken) {
     console.log(`[LINE Reply Mock]`, JSON.stringify(messages))
     return
@@ -134,7 +137,7 @@ async function replyMessages(replyToken: string, messages: object[]) {
 // promise, an actual visual cue the platform provides for exactly this.
 async function showLoadingAnimation(userId: string, seconds: number) {
   if (!(await isOwnerLineUserId(userId))) return // customer auto-reply is off — see replyMessages
-  const lineAccessToken = Deno.env.get('LINE_CHANNEL_ACCESS_TOKEN')
+  const lineAccessToken = await getLineChannelAccessToken()
   if (!lineAccessToken) return
   // LINE requires a multiple of 5, clamped 5-60.
   const clamped = Math.min(60, Math.max(5, Math.round(seconds / 5) * 5))
@@ -154,7 +157,7 @@ async function pushMessages(to: string, messages: object[]) {
     return
   }
 
-  const lineAccessToken = Deno.env.get('LINE_CHANNEL_ACCESS_TOKEN')
+  const lineAccessToken = await getLineChannelAccessToken()
   if (!lineAccessToken) {
     console.log(`[LINE Push Mock]`, JSON.stringify(messages))
     return

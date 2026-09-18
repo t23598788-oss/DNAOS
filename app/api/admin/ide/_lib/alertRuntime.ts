@@ -93,8 +93,8 @@ async function dispatchWebhook(payload: object): Promise<ChannelDispatchResult> 
 }
 
 async function dispatchLine(title: string, reason: string): Promise<ChannelDispatchResult> {
-  const def = listAlertChannels().find((c) => c.id === "LINE")!;
-  if (def.status !== "CONFIGURED") return { channel: "LINE", attempted: false, ok: false, detail: "real LINE_CHANNEL_ACCESS_TOKEN not configured — not attempted", dispatchedAt: null };
+  const def = (await listAlertChannels()).find((c) => c.id === "LINE")!;
+  if (def.status !== "CONFIGURED") return { channel: "LINE", attempted: false, ok: false, detail: "LINE connector not runnable (Register/Test/Enable at /admin/connectors) — not attempted", dispatchedAt: null };
   try {
     const mod = await import("@/registry/communication");
     // Real owner LINE userId lookup — reuses the SAME real line_profiles
@@ -106,7 +106,7 @@ async function dispatchLine(title: string, reason: string): Promise<ChannelDispa
       new Promise<{ data: null }>((resolve) => setTimeout(() => resolve({ data: null }), 8000)),
     ]) as { data: { line_user_id: string } | null };
     if (!data?.line_user_id) return { channel: "LINE", attempted: true, ok: false, detail: "no real owner line_profile found", dispatchedAt: new Date().toISOString() };
-    const res = await mod.sendLineMessage(data.line_user_id, [{ type: "text", text: `${title}\n${reason}` }]);
+    const res = await mod.sendLineMessage(db, data.line_user_id, [{ type: "text", text: `${title}\n${reason}` }]);
     return { channel: "LINE", attempted: true, ok: res.success, detail: res.success ? "real LINE API accepted the push" : `real LINE API error: ${res.error}`, dispatchedAt: new Date().toISOString() };
   } catch (e) {
     return { channel: "LINE", attempted: true, ok: false, detail: `real dispatch error: ${e instanceof Error ? e.message : String(e)}`, dispatchedAt: new Date().toISOString() };

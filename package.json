@@ -120,7 +120,10 @@
     "dispatcher-execution-mode:test": "npx tsx scripts/dispatcher-execution-mode-test.ts",
     "settings-real-wiring:test": "npx tsx scripts/settings-real-wiring-test.ts",
     "autosave-runtime:test": "npx tsx scripts/autosave-runtime-test.ts",
-    "github-connector:test": "npx tsx scripts/github-connector-test.ts"
+    "github-connector:test": "npx tsx scripts/github-connector-test.ts",
+    "railway-adapter:test": "npx tsx scripts/railway-adapter-test.ts",
+    "line-credential-path:test": "npx tsx scripts/line-credential-path-test.ts",
+    "business-bridge:test": "npx tsx scripts/business-failure-bridge-test.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.115.0",

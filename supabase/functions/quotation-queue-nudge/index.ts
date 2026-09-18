@@ -5,6 +5,7 @@
 // เยอะ"). Guarded by the same secret as line-profile-reconcile.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.43.4"
+import { getLineChannelAccessToken } from "../_shared/line-client.ts"
 
 const MISSING_LABEL: Record<string, string> = {
   partner: "ขอชื่อบริษัทหรือชื่อที่ติดต่อด้วยครับ",
@@ -27,10 +28,12 @@ Deno.serve(async (req) => {
 
   const supabaseUrl = Deno.env.get('SUPABASE_URL')!
   const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-  const lineToken = Deno.env.get('LINE_CHANNEL_ACCESS_TOKEN')
-  if (!lineToken) return Response.json({ error: 'LINE_CHANNEL_ACCESS_TOKEN not set' }, { status: 500 })
 
   const supabase = createClient(supabaseUrl, serviceKey)
+
+  // Canonical credential path (LINE cutover): bridge → Run gate — fail-closed.
+  const lineToken = await getLineChannelAccessToken()
+  if (!lineToken) return Response.json({ error: 'LINE connector ยังไม่พร้อม — bridge คืน token ไม่ได้ (เช็ค lifecycle ที่ /admin/connectors)' }, { status: 500 })
 
   const { data: events, error } = await supabase
     .from('business_events')

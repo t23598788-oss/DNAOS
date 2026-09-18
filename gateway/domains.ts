@@ -15,6 +15,7 @@ import { randomUUID } from "crypto";
 import * as hostinger from "@/engines/domains/hostinger";
 import * as cloudflare from "@/engines/domains/cloudflare";
 import * as vercelBinding from "@/engines/domains/vercel-binding";
+import * as railwayBinding from "@/engines/domains/railway-binding";
 import type { DomainRegistrationRequest, DnsRecord } from "@/engines/domains/types";
 
 export type DomainAction =
@@ -25,7 +26,9 @@ export type DomainAction =
   | "nameserver.set"
   | "cloudflare.zone.create"
   | "vercel.domain.add"
-  | "vercel.domain.remove";
+  | "vercel.domain.remove"
+  | "railway.domain.add"
+  | "railway.domain.remove";
 
 export interface DomainActionResponse {
   ok: boolean;
@@ -213,4 +216,45 @@ export async function executeVercelDomainRemove(token: string): Promise<DomainAc
   const r = await vercelBinding.removeDomainFromProject(domain);
   if (!r.ok) return { ok: false, mode: "execute", action: "vercel.domain.remove", error: r.error };
   return { ok: true, mode: "execute", action: "vercel.domain.remove" };
+}
+
+// ---- railway.domain.add / remove ----
+
+// Capability parity with vercel.domain.add/remove under the same
+// preview→token→execute flow — the only difference is the provider adapter
+// behind the action and where its credential lives (railway-binding.ts:
+// connector lifecycle, like cloudflare.ts).
+
+export function previewRailwayDomainAdd(domain: string): DomainActionResponse {
+  const token = issueToken("railway.domain.add", { domain });
+  return {
+    ok: true, mode: "preview", action: "railway.domain.add", preview_token: token,
+    preview: { domain, will_change: [`ผูก ${domain} เข้ากับ Railway service ของ connector "railway" — ต้องมี DNS record ชี้มา Railway ให้ถูกต้องก่อนจึงจะใช้งานได้จริง`] },
+  };
+}
+
+export async function executeRailwayDomainAdd(token: string): Promise<DomainActionResponse> {
+  const consumed = consumeToken(token, "railway.domain.add");
+  if (!consumed.valid) return { ok: false, mode: "execute", action: "railway.domain.add", error: consumed.error };
+  const { domain } = consumed.payload as { domain: string };
+  const r = await railwayBinding.addDomainToService(domain);
+  if (!r.ok) return { ok: false, mode: "execute", action: "railway.domain.add", error: r.error };
+  return { ok: true, mode: "execute", action: "railway.domain.add", result: r.result as unknown as Record<string, unknown> };
+}
+
+export function previewRailwayDomainRemove(domain: string): DomainActionResponse {
+  const token = issueToken("railway.domain.remove", { domain });
+  return {
+    ok: true, mode: "preview", action: "railway.domain.remove", preview_token: token,
+    preview: { domain, will_change: [`ถอด ${domain} ออกจาก Railway service — โดเมนนี้จะเข้าเว็บไม่ได้ทันทีจนกว่าจะผูกใหม่`], warning: "ย้อนกลับได้โดยการ railway.domain.add ใหม่ แต่จะมี downtime ระหว่างนั้น" },
+  };
+}
+
+export async function executeRailwayDomainRemove(token: string): Promise<DomainActionResponse> {
+  const consumed = consumeToken(token, "railway.domain.remove");
+  if (!consumed.valid) return { ok: false, mode: "execute", action: "railway.domain.remove", error: consumed.error };
+  const { domain } = consumed.payload as { domain: string };
+  const r = await railwayBinding.removeDomainFromService(domain);
+  if (!r.ok) return { ok: false, mode: "execute", action: "railway.domain.remove", error: r.error };
+  return { ok: true, mode: "execute", action: "railway.domain.remove" };
 }

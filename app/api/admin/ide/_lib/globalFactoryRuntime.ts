@@ -237,7 +237,7 @@ export function computeGlobalFactoryReport(): GlobalFactoryReport {
   domains.push({
     domain: "Alerting",
     status: "PARTIAL",
-    evidence: "real Alert Runtime exists (Step 12.5) — real, deterministic dispatch from real Incidents via the real, single LINE gateway (registry/communication.ts#sendLineMessage); LINE channel is real but PARTIAL in this environment (LINE_CHANNEL_ACCESS_TOKEN not configured); DISPATCHED never implies DELIVERED.",
+    evidence: "real Alert Runtime exists (Step 12.5) — real, deterministic dispatch from real Incidents via the real, single LINE gateway (registry/communication.ts#sendLineMessage through the connector lifecycle Run gate); LINE channel status follows the \"line\" connector lifecycle state; DISPATCHED never implies DELIVERED.",
   });
 
   return { generatedAt: new Date().toISOString(), domains };

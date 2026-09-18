@@ -123,11 +123,18 @@ export async function GET(_req: Request, { params }: Params) {
   // only the workspace's root identity changed, not how LINE sends work.
   const primaryLineUserId = messages.length ? [...messages].reverse()[0].line_user_id : lineUserIds[0] ?? null
 
-  const [{ data: invoices }, { data: standalone }, { data: debtRow }, { data: partnerEvents }] = await Promise.all([
+  const [{ data: invoices }, { data: standalone }, { data: debtRow }, { data: partnerEvents }, { data: payables }] = await Promise.all([
     db.from("invoices").select("id, invoice_no, invoice_status, total_amount, invoice_date, customer_order_id").eq("customer_company_id", relationshipId),
     db.from("standalone_documents").select("id, document_no, document_type, total_amount, document_date, customer_order_id").eq("customer_company_id", relationshipId),
     db.from("debt_snapshots").select("total_outstanding, collection_state, days_overdue, debt_start_at").eq("customer_company_id", relationshipId).maybeSingle(),
     db.from("business_events").select("id, transaction_id").eq("partner_id", relationshipId),
+    // Business Workspace V1 (owner, 2026-09-18): รายจ่ายต่อราย — the real
+    // outgoing-side table this repo already owns (partner-payable cascade,
+    // migration 20260727000003) is keyed by partner_company_id. NOT
+    // company_expenses: that table attributes to the internal staff member
+    // who submitted a bill (submitted_by_line_user_id), not to this
+    // relationship. No recalculation — rows are read as recorded.
+    db.from("partner_payable_requests").select("amount, status").eq("partner_company_id", relationshipId),
   ])
 
   const eventByTransactionId = new Map(
@@ -154,6 +161,26 @@ export async function GET(_req: Request, { params }: Params) {
     ...(invoices ?? []).map((d) => ({ ...withPresentation(d), table: "invoices" as const })),
     ...(standalone ?? []).map((d) => ({ ...withPresentation(d), table: "standalone_documents" as const })),
   ]
+
+  // Business Workspace V1 (owner, 2026-09-18): per-relationship finance
+  // summary from ONLY the real sources this route already reads, plus the
+  // payable table above. Revenue counts real, not-yet-PAID sales documents
+  // (invoices filtered on their own invoice_status; standalone_documents
+  // carry no status and are counted whole — same rows the feed already
+  // renders). The list endpoint (app/api/admin/relationships/route.ts)
+  // already ships debt for every row using the same real tables, so the
+  // detail view stays in agreement with the list — never two truths.
+  const openInvoices = (invoices ?? []).filter((d) => (d as { invoice_status?: string | null }).invoice_status !== "PAID")
+  const revenueDocs = [...openInvoices, ...(standalone ?? [])]
+  const revenueTotal = revenueDocs.reduce((sum, d) => sum + Number((d as { total_amount?: number | null }).total_amount ?? 0), 0)
+  const openPayables = (payables ?? []).filter((p) => p.status !== "completed")
+  const expenseTotal = openPayables.reduce((sum, p) => sum + Number(p.amount ?? 0), 0)
+  const finance = {
+    revenue_total: revenueTotal,
+    revenue_doc_count: revenueDocs.length,
+    expense_total: expenseTotal,
+    expense_request_count: openPayables.length,
+  }
   // Debt Single Source of Truth (owner, 2026-07-17, PRIORITY task): was
   // `debtRow` — the raw debt_snapshots.total_outstanding, a stale number set
   // once and never recomputed with interest/penalty (root cause: see
@@ -244,6 +271,7 @@ export async function GET(_req: Request, { params }: Params) {
     messages,
     documents,
     debt,
+    finance,
     events,
     receipts,
     unlinkedCount,

@@ -2,6 +2,8 @@
 // Called at save-time (see events/store.ts) so a contact's identity is known from
 // their very first event — including "follow" (add friend), which carries no text.
 
+import { getLineChannelAccessToken } from "../../_shared/line-client.ts"
+
 export interface LineProfile {
   displayName: string | null
   pictureUrl: string | null
@@ -31,8 +33,9 @@ async function fetchLineProfileOnce(userId: string, token: string): Promise<Line
 // delay right after a "follow") — does NOT retry 404 (not a friend, will never
 // succeed) since that's a real, permanent answer, not a glitch.
 export async function fetchLineProfile(userId: string): Promise<LineProfile | null> {
-  const token = Deno.env.get('LINE_CHANNEL_ACCESS_TOKEN')
-  if (!token) return { displayName: null, pictureUrl: null, error: 'LINE_CHANNEL_ACCESS_TOKEN not set' }
+  // Canonical credential path (LINE cutover): bridge → Run gate — fail-closed.
+  const token = await getLineChannelAccessToken()
+  if (!token) return { displayName: null, pictureUrl: null, error: 'LINE connector ยังไม่พร้อม (เช็ค lifecycle ที่ /admin/connectors)' }
 
   const delays = [0, 400, 1200]
   let last: LineProfile = { displayName: null, pictureUrl: null, error: 'unknown' }

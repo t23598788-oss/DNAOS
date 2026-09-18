@@ -5,10 +5,10 @@
 // transfer-confirmation email landing in the owner's own Gmail inbox.
 //
 // Real Gmail OAuth (read-only scope, gmail.readonly — never send/modify/
-// delete): GMAIL_CLIENT_ID/GMAIL_CLIENT_SECRET/GMAIL_REFRESH_TOKEN, obtained
-// via scripts/gmail-oauth-setup.mjs (one-time interactive consent, run
-// locally on the owner's own Mac — Google requires a real human login for
-// this, no way to automate that specific step).
+// delete): credential now lives behind the connector lifecycle — the OAuth
+// grant is authorized once by the owner through /admin/connectors (Google
+// requires a real human consent for that step), then tokens flow through the
+// internal bridge (app/api/internal/gmail/token) → connector Run gate.
 //
 // Same per-function cron-secret pattern as fuel-price-sync/
 // receipt-reconcile-sweep (Rule 108 — no shared secret reused across jobs).
@@ -177,7 +177,7 @@ Deno.serve(async (req) => {
 
   const accessToken = await getAccessToken()
   if (!accessToken) {
-    return Response.json({ error: "Gmail access token ล้มเหลว — เช็ค GMAIL_CLIENT_ID/SECRET/REFRESH_TOKEN" }, { status: 502 })
+    return Response.json({ error: "Gmail access token ล้มเหลว — เช็ค connector lifecycle ที่ /admin/connectors" }, { status: 502 })
   }
 
   // One-time backfill support (owner, 2026-07-27): "อยากรู้ว่าเงินเข้ามาแล้ว

@@ -7,6 +7,11 @@ import { documentFlex } from "@/engines/documents/flex-template";
 import { DOC_LABELS, type DocType } from "@/engines/documents/engine";
 import { loadCompanySettings } from "@/core/config/company-settings";
 import { sendLineMessage } from "@/registry/communication";
+import {
+  normalizeGatewayResult,
+  normalizeSendResult,
+  isProviderPushFailure,
+} from "@/app/api/admin/ide/_lib/businessFailureBridge";
 
 // Rule 72 confirm step for the chat secretary — the preview_token already
 // carries the full payload from when cognitive/executor/index.ts called
@@ -51,7 +56,25 @@ export async function POST(request: Request) {
     // does not trust anything from the ConfirmInvoice result object.
     if (doc.id) {
       const sendResult = await sendInvoiceToLine(doc.id);
-      if (!sendResult.ok) lineSendError = sendResult.error;
+      // Business → Infrastructure failure bridge (owner, 2026-09-19): only
+      // the real provider push failure crosses the bridge; business-data
+      // failures stay business results. lineSendError carries ONLY the
+      // normalized, credential-free message — never raw provider text.
+      if (!sendResult.ok) {
+        if (isProviderPushFailure(sendResult.error ?? "")) {
+          const normalized = await normalizeGatewayResult(sendResult, {
+            providerSlug: "line",
+            businessAction: "invoice.send",
+            ownerId: auth.id,
+            actor: auth.email,
+            source: "/api/chat/confirm",
+          });
+          lineSendError = normalized.message;
+        } else {
+          lineSendError = sendResult.error;
+          if (sendResult.error) console.error(`[chat/confirm] invoice.send business failure: ${sendResult.error.slice(0, 200)}`);
+        }
+      }
     }
     return NextResponse.json({ ...result, line_send_error: lineSendError });
   }
@@ -74,7 +97,7 @@ export async function POST(request: Request) {
     });
     const label = DOC_LABELS[doc.document_type]?.th ?? doc.document_type;
 
-    const lineRes = await sendLineMessage(lineUserId, [
+    const lineRes = await sendLineMessage(supabase(), lineUserId, [
       { type: "flex", altText: `${label} ${doc.document_number}`, contents: flex },
     ]);
 
@@ -91,7 +114,14 @@ export async function POST(request: Request) {
         extracted: { flex },
       });
     } else {
-      lineSendError = `ส่ง LINE ไม่สำเร็จ: ${(lineRes.error ?? "").slice(0, 200)}`;
+      const normalized = await normalizeSendResult(lineRes, {
+        providerSlug: "line",
+        businessAction: `line.send_document.${doc.document_type}`,
+        ownerId: auth.id,
+        actor: auth.email,
+        source: "/api/chat/confirm",
+      });
+      lineSendError = normalized.message;
     }
   }
 

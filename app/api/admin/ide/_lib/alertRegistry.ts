@@ -38,24 +38,37 @@ export interface AlertChannelDefinition {
   evidence: string;
 }
 
-function computeLineStatus(): ChannelStatus {
-  return process.env.LINE_CHANNEL_ACCESS_TOKEN ? "CONFIGURED" : "PARTIAL";
+// LINE credential now lives behind the canonical connector lifecycle — the
+// honest status question is "is the 'line' connector Registered+Tested+
+// Enabled?", answered through the same sanctioned gateway listConnectors()
+// read every other status surface uses (never env, never the table directly).
+async function computeLineStatus(): Promise<ChannelStatus> {
+  try {
+    const { listConnectors } = await import("@/gateway/connectors");
+    const connectors = await listConnectors();
+    const line = connectors.find((c) => c.slug === "line");
+    return line && line.status === "connected" && line.enabled ? "CONFIGURED" : "PARTIAL";
+  } catch {
+    return "PARTIAL";
+  }
 }
 function computeWebhookStatus(): ChannelStatus {
   return process.env.ALERT_WEBHOOK_URL ? "CONFIGURED" : "PARTIAL";
 }
 
-export function listAlertChannels(): AlertChannelDefinition[] {
+export async function listAlertChannels(): Promise<AlertChannelDefinition[]> {
+  const lineStatus = await computeLineStatus();
+  const lineConfigured = lineStatus === "CONFIGURED";
   return [
     { id: "OWNER_UI", displayName: "Owner UI (Operations tab)", adapter: "in-memory alert store, read by the real Operations tab", requiresCredential: null, status: "ACTIVE", evidence: "no external dependency — real, always available whenever the IDE Workspace is open" },
-    { id: "LINE", displayName: "LINE", adapter: "registry/communication.ts#sendLineMessage (the real, single LINE gateway)", requiresCredential: "LINE_CHANNEL_ACCESS_TOKEN", status: computeLineStatus(), evidence: process.env.LINE_CHANNEL_ACCESS_TOKEN ? "real credential present in this environment" : "real adapter code exists and is reused, but LINE_CHANNEL_ACCESS_TOKEN is not set in this environment — dispatch attempts fail closed honestly" },
-    { id: "EMAIL", displayName: "Email", adapter: "none reachable from this Runtime layer", requiresCredential: "GMAIL_CLIENT_ID/SECRET/REFRESH_TOKEN (Edge Function only)", status: "NOT_IMPLEMENTED", evidence: "the real Gmail client only exists inside supabase/functions/_shared/ (Deno runtime) — not importable from app/api/admin/ide" },
+    { id: "LINE", displayName: "LINE", adapter: "registry/communication.ts#sendLineMessage (the real, single LINE gateway — connector lifecycle Run gate)", requiresCredential: "line connector (secret.channel_access_token) via /admin/connectors", status: lineStatus, evidence: lineConfigured ? "connector \"line\" is Registered+Tested+Enabled" : "connector \"line\" missing or not Enabled — dispatch attempts fail closed honestly" },
+    { id: "EMAIL", displayName: "Email", adapter: "none reachable from this Runtime layer", requiresCredential: "gmail connector (OAuth) via /admin/connectors", status: "NOT_IMPLEMENTED", evidence: "the real Gmail client only exists inside supabase/functions/_shared/ (Deno runtime, connector-backed via the internal token bridge) — not importable from app/api/admin/ide" },
     { id: "WEBHOOK", displayName: "Generic Webhook", adapter: "alertRuntime.ts#dispatchWebhook (real, new, minimal fetch POST)", requiresCredential: "ALERT_WEBHOOK_URL", status: computeWebhookStatus(), evidence: process.env.ALERT_WEBHOOK_URL ? "real ALERT_WEBHOOK_URL configured" : "no real ALERT_WEBHOOK_URL configured in this environment" },
     { id: "SYSTEM_EVENT", displayName: "System Event Log", adapter: "the real, bounded alert event log this Runtime already maintains", requiresCredential: null, status: "ACTIVE", evidence: "no external dependency — every real Alert Record always gets a real SYSTEM_EVENT entry" },
   ];
 }
-export function getAlertChannelDefinition(id: string): AlertChannelDefinition | undefined {
-  return listAlertChannels().find((c) => c.id === id);
+export async function getAlertChannelDefinition(id: string): Promise<AlertChannelDefinition | undefined> {
+  return (await listAlertChannels()).find((c) => c.id === id);
 }
 
 export interface AlertPolicy {

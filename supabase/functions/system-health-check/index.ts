@@ -15,6 +15,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.43.4"
 import { alertOwnerAnomaly } from "../line-webhook-v2/engines/owner-dispatcher.ts"
 import { getGmailAccessToken } from "../_shared/gmail-client.ts"
+import { getLineChannelAccessToken } from "../_shared/line-client.ts"
 
 const CONSECUTIVE_FAILURES_BEFORE_ALERT = 2
 
@@ -69,8 +70,10 @@ async function checkAnthropic(): Promise<CheckResult> {
 // documented lightweight endpoint LINE provides specifically for this
 // (returns the bot's own profile if the channel access token is valid).
 async function checkLineMessaging(): Promise<CheckResult> {
-  const token = Deno.env.get("LINE_CHANNEL_ACCESS_TOKEN")
-  if (!token) return { service_key: "line_messaging", check_kind: "config_presence", ok: false, detail: { reason: "LINE_CHANNEL_ACCESS_TOKEN ยังไม่ได้ตั้งค่า" } }
+  // Canonical credential path (LINE cutover): token comes only through the
+  // internal bridge → connector lifecycle Run gate — fail-closed, no env fallback.
+  const token = await getLineChannelAccessToken()
+  if (!token) return { service_key: "line_messaging", check_kind: "config_presence", ok: false, detail: { reason: "LINE connector ยังไม่พร้อม (Register/Test/Enable ที่ /admin/connectors) — bridge คืน token ไม่ได้" } }
   try {
     const res = await fetch("https://api.line.me/v2/bot/info", {
       headers: { Authorization: `Bearer ${token}` },
@@ -94,7 +97,7 @@ async function checkGmail(): Promise<CheckResult> {
     service_key: "gmail",
     check_kind: "oauth_token",
     ok: !!token,
-    detail: token ? { reason: "refresh token ใช้ได้" } : { reason: "ขอ access token ไม่สำเร็จ — เช็ค GMAIL_CLIENT_ID/SECRET/REFRESH_TOKEN" },
+    detail: token ? { reason: "connector ให้ access token ได้" } : { reason: "ขอ access token ไม่สำเร็จ — เช็ค Gmail connector lifecycle ที่ /admin/connectors" },
   }
 }
 

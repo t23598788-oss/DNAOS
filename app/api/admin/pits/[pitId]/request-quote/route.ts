@@ -45,7 +45,7 @@ export async function POST(req: Request, { params }: Params) {
   const qtyText = quantity ? ` จำนวน ${quantity} คิว` : ""
   const message = `สวัสดีครับ ขอสอบถามราคา${material.name}${qtyText} ล่าสุดวันนี้เท่าไหร่ครับ (ตอบเป็นตัวเลขราคาต่อคิวได้เลยครับ)`
 
-  const lineRes = await sendLineMessage(pit.line_user_id, [{ type: "text", text: message }])
+  const lineRes = await sendLineMessage(supabase(), pit.line_user_id, [{ type: "text", text: message }])
   if (!lineRes.success) {
     return NextResponse.json({ error: `ส่ง LINE ไม่สำเร็จ: ${(lineRes.error ?? "").slice(0, 200)}` }, { status: 502 })
   }

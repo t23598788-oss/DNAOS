@@ -210,6 +210,48 @@ export default function ConnectorsPage() {
     await load();
   }
 
+  // ── Resource Discovery (owner principle: มนุษย์เลือก ไม่ใช่พิมพ์ ID เอง) ──
+  // ระบบค้น Project/Service/Environment ผ่าน API ของ provider แล้วเติม config
+  // ให้เองผ่าน PATCH /api/admin/connectors/[id] (updateConnector เดิม) —
+  // ไม่มีฟอร์มกรอก Project ID/Service ID/Environment ID ด้วยมือ
+  type RNode = { kind: string; id: string; name: string; parent_id: string | null; children?: RNode[] };
+  const [disc, setDisc] = useState<{ rowId: string | null; loading: boolean; error: string | null; resources: RNode[] | null }>({ rowId: null, loading: false, error: null, resources: null });
+  const R_LABELS: Record<string, string> = { project: "โปรเจกต์", service: "Service", environment: "Environment" };
+
+  function flattenResources(nodes: RNode[], depth = 0): { node: RNode; depth: number }[] {
+    return nodes.flatMap((n) => [{ node: n, depth }, ...flattenResources(n.children ?? [], depth + 1)]);
+  }
+
+  async function discoverFor(c: Connector) {
+    setDisc({ rowId: c.id, loading: true, error: null, resources: null });
+    try {
+      const res = await fetch(`/api/admin/connectors/discover/${c.slug}`, { method: "POST" });
+      const data = await res.json();
+      if (!res.ok || !data.ok) {
+        setDisc({ rowId: c.id, loading: false, error: data.error ?? "ค้นหาไม่สำเร็จ", resources: null });
+        return;
+      }
+      setDisc({ rowId: c.id, loading: false, error: null, resources: data.resources ?? [] });
+    } catch (e) {
+      setDisc({ rowId: c.id, loading: false, error: e instanceof Error ? e.message : "ค้นหาไม่สำเร็จ", resources: null });
+    }
+  }
+
+  async function applyResource(c: Connector, kind: "service" | "environment", id: string) {
+    const key = kind === "service" ? "service_id" : "environment_id";
+    const res = await fetch(`/api/admin/connectors/${c.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ config: { [key]: id } }),
+    });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      setDisc((d) => ({ ...d, error: data.error ?? "บันทึกไม่สำเร็จ" }));
+      return;
+    }
+    await load();
+  }
+
   return (
     <div className="min-h-screen bg-stone-50">
       <div className="bg-white border-b border-stone-200 px-6 py-4 flex items-center justify-between">
@@ -316,6 +358,35 @@ export default function ConnectorsPage() {
                     <div className="mt-1.5"><LifecycleSteps c={c} /></div>
                     {c.last_error && (
                       <p className="text-[11px] text-red-500 mt-1">{c.last_error}</p>
+                    )}
+                    {c.auth_type !== "webhook" && (
+                      <div className="mt-2">
+                        <button
+                          onClick={() => (disc.rowId === c.id ? setDisc({ rowId: null, loading: false, error: null, resources: null }) : discoverFor(c))}
+                          className="text-[11px] px-2.5 py-1 rounded-lg border border-stone-200 text-stone-600 hover:bg-stone-50 transition"
+                        >
+                          {disc.loading && disc.rowId === c.id ? "กำลังค้นหา..." : disc.rowId === c.id ? "ปิดรายการ Resources" : "ค้นหา Resources อัตโนมัติ (เลือก แทนการพิมพ์ ID)"}
+                        </button>
+                        {disc.rowId === c.id && disc.error && <p className="text-[11px] text-red-500 mt-1">{disc.error}</p>}
+                        {disc.rowId === c.id && disc.resources && (
+                          <div className="mt-2 border border-stone-200 rounded-lg max-h-56 overflow-auto divide-y divide-stone-100">
+                            {flattenResources(disc.resources).map(({ node, depth }) => (
+                              <button
+                                key={`${node.kind}-${node.id}`}
+                                disabled={node.kind === "project"}
+                                onClick={() => node.kind !== "project" && applyResource(c, node.kind as "service" | "environment", node.id)}
+                                className={`w-full text-left px-3 py-1.5 text-[11px] flex items-center justify-between gap-2 ${node.kind === "project" ? "bg-stone-50 text-stone-500 cursor-default" : "hover:bg-stone-50 text-stone-700"}`}
+                              >
+                                <span style={{ paddingLeft: depth * 12 }}>
+                                  <span className="text-[10px] text-stone-400 mr-1.5">{R_LABELS[node.kind] ?? node.kind}</span>
+                                  {node.name}
+                                </span>
+                                <code className="font-mono text-[9px] text-stone-300">{node.id.slice(0, 12)}…</code>
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
                     )}
                     {c.auth_type === "webhook" && (
                       <div className="mt-2 text-[11px] text-stone-500 space-y-0.5">

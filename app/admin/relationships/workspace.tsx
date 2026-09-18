@@ -16,6 +16,18 @@ import AppHeader from "@/components/nav/AppHeader"
 import { WorkspaceProvider, useWorkspace } from "./workspace-state"
 import { buildFeed, buildInspectorFields, DOCUMENT_TYPE_LABEL, type Relationship, type RelationshipDetail, type ActionLogEntry, type FeedItem } from "./feed"
 
+// Business Workspace V1 (owner, 2026-09-18): the real row shape the
+// transactions API already returns (see /api/admin/transactions GET mapping
+// + /admin/jobs/page.tsx's own Job interface — same source, no second shape).
+interface JobRow {
+  id: string
+  title: string | null
+  state: string
+  state_changed_at: string
+  created_at: string
+  partners: { id: string; name: string } | null
+}
+
 const REASON_LABEL: Record<string, string> = {
   debt_inquiry: "ตอบคำถามยอดหนี้",
 }
@@ -261,6 +273,7 @@ function RelationshipWorkspace({ initialRelationshipId }: { initialRelationshipI
       messages: d.messages ?? [], documents: d.documents ?? [], events: d.events ?? [],
       receipts: d.receipts ?? [],
       unlinkedCount: d.unlinkedCount ?? 0, drafts: d.drafts ?? [],
+      finance: d.finance ?? null, debt: d.debt ?? null,
     })
   }, [])
 
@@ -727,8 +740,34 @@ function RelationshipWorkspace({ initialRelationshipId }: { initialRelationshipI
   const pendingDrafts = detail?.drafts.filter((d) => d.status === "pending_review") ?? []
   const [contactSettingsOpen, setContactSettingsOpen] = useState(false)
 
+  // Business Workspace V1 (owner, 2026-09-18): งาน + รายรับ/รายจ่าย + สถานะชำระ
+  // on the SAME screen. Jobs come from the real transactions API the Jobs
+  // page already uses (it has supported ?partner_id= from day one — this only
+  // calls it with the relationship id). Finance comes from the detail
+  // endpoint itself (single source — no second calculation). Fail-soft: a
+  // failed fetch renders "—", never a guessed number.
+  const [jobs, setJobs] = useState<JobRow[]>([])
+  const [jobsLoaded, setJobsLoaded] = useState(false)
+  useEffect(() => {
+    setJobs([])
+    setJobsLoaded(false)
+    if (!activeId) return
+    let cancelled = false
+    fetch(`/api/admin/transactions?partner_id=${encodeURIComponent(activeId)}`, { cache: "no-store" })
+      .then((r) => (r.ok ? r.json() : { transactions: [] }))
+      .then((d) => { if (!cancelled) setJobs(d.transactions ?? []) })
+      .catch(() => { if (!cancelled) setJobs([]) })
+      .finally(() => { if (!cancelled) setJobsLoaded(true) })
+    return () => { cancelled = true }
+  }, [activeId])
+
   const companyName = activeRelationship?.name ?? null
   const lastLocation = [...(detail?.messages ?? [])].reverse().find((m) => m.raw_type === "location" && m.extracted?.latitude != null)
+
+  const openJobs = jobs.filter((j) => j.state !== "PAID" && j.state !== "CLOSED")
+  const finance = detail?.finance ?? null
+  const debtRow = detail?.debt ?? activeRelationship?.debt ?? null
+  const isDebtClosed = debtRow?.collection_state === "CLOSED"
 
   // Owner request 2026-07-11 (Event Card Framework / Timeline module): one
   // merged, time-sorted feed — messages + business events + past documents —
@@ -1241,6 +1280,12 @@ function RelationshipWorkspace({ initialRelationshipId }: { initialRelationshipI
                         <p className="text-xs font-semibold text-rose-600">{formatMoney(activeRelationship.debt.total_outstanding)} บาท</p>
                         <p className="text-[10px] text-stone-400">ผิดนัด {activeRelationship.debt.days_overdue} วัน</p>
                       </div>
+                      {/* Business Workspace V1: สถานะชำระ from the real
+                          collection_state (debt_snapshots) — CLOSED is the
+                          value the payment-reconcile migration writes. */}
+                      <span className={"text-[10px] px-2 py-1 rounded-full border flex-shrink-0 " + (isDebtClosed ? "border-emerald-200 text-emerald-700 bg-emerald-50" : "border-rose-200 text-rose-700 bg-rose-50")}>
+                        {isDebtClosed ? "ชำระแล้ว" : "ค้างชำระ"}
+                      </span>
                       <button
                         onClick={() => primaryLineUserId && sendDebt(primaryLineUserId)}
                         disabled={actionSending || !primaryLineUserId}
@@ -1263,6 +1308,35 @@ function RelationshipWorkspace({ initialRelationshipId }: { initialRelationshipI
               <div className="px-4 py-2.5 bg-rose-50 border-b border-rose-200 flex-shrink-0">
                 <div className="text-xs font-bold text-rose-700">มนุษย์รับช่วงต่อแล้ว — AI หยุดตอบอัตโนมัติ</div>
                 <div className="text-[11px] text-rose-600 mt-0.5">เหตุผล: {detail.takeover.reason ?? "ข้อความมีข้อขัดแย้งกับระบบ"}</div>
+              </div>
+            )}
+
+            {/* Business Workspace V1 (owner, 2026-09-18): รายรับ/รายจ่าย/งาน บนจอเดียว
+                — real data only. Finance = detail API's own summary (open sales
+                documents + partner_payable_requests); Jobs = the transactions API
+                the Jobs page already uses (?partner_id=). "—" when a source has
+                nothing real yet, never a guessed number. */}
+            {activeId && (
+              <div className="px-4 py-2 border-b border-stone-100 bg-stone-50/60 flex-shrink-0 flex items-center gap-4 overflow-x-auto">
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="text-[10px] uppercase tracking-wide text-stone-400">รายรับ</span>
+                  <span className="text-xs font-semibold text-emerald-700 whitespace-nowrap">{finance ? `${formatMoney(finance.revenue_total)} บาท` : "—"}</span>
+                  {finance && finance.revenue_doc_count > 0 && <span className="text-[10px] text-stone-400 whitespace-nowrap">{finance.revenue_doc_count} เอกสารค้างรับ</span>}
+                </div>
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="text-[10px] uppercase tracking-wide text-stone-400">รายจ่าย</span>
+                  <span className="text-xs font-semibold text-amber-700 whitespace-nowrap">{finance ? `${formatMoney(finance.expense_total)} บาท` : "—"}</span>
+                  {finance && finance.expense_request_count > 0 && <span className="text-[10px] text-stone-400 whitespace-nowrap">{finance.expense_request_count} รายการค้างจ่าย</span>}
+                </div>
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="text-[10px] uppercase tracking-wide text-stone-400">งาน</span>
+                  <span className="text-xs font-semibold text-stone-700 whitespace-nowrap">{jobsLoaded ? `${openJobs.length} งานเปิด` : "—"}</span>
+                  {openJobs.slice(0, 2).map((j) => (
+                    <span key={j.id} className="text-[10px] text-stone-500 border border-stone-200 rounded-full px-2 py-0.5 whitespace-nowrap truncate max-w-[200px]">
+                      {j.title ?? "คำสั่งซื้อ"} · {j.state}
+                    </span>
+                  ))}
+                </div>
               </div>
             )}
 

@@ -6,6 +6,7 @@ import { DOC_LABELS, type DocType } from "@/engines/documents/engine"
 import { storeDocumentArtifacts, lineDocumentMessages } from "@/gateway/document-artifact-storage"
 import { loadCompanySettings } from "@/core/config/company-settings"
 import { sendLineMessage } from "@/registry/communication"
+import { normalizeSendResult } from "@/app/api/admin/ide/_lib/businessFailureBridge"
 
 type Params = { params: Promise<{ lineUserId: string }> }
 
@@ -88,10 +89,21 @@ export async function POST(req: NextRequest, { params }: Params) {
   })
   const label = DOC_LABELS[documentType]?.th ?? documentType
 
-  const lineRes = await sendLineMessage(lineUserId, lineDocumentMessages(artifacts, `${label} ${documentNumber}`))
+  const lineRes = await sendLineMessage(supabase(), lineUserId, lineDocumentMessages(artifacts, `${label} ${documentNumber}`))
 
-  if (!lineRes.success) {
-    return NextResponse.json({ error: `ส่ง LINE ไม่สำเร็จ: ${(lineRes.error ?? "").slice(0, 200)}` }, { status: 502 })
+  // Business → Infrastructure failure bridge (owner, 2026-09-19): the
+  // document artifact was stored (immutable) but nothing is logged to
+  // line_events on infrastructure failure; Business receives ONLY the
+  // normalized result — never raw provider error text.
+  const normalized = await normalizeSendResult(lineRes, {
+    providerSlug: "line",
+    businessAction: "line.send_document",
+    ownerId: auth.id,
+    actor: auth.email,
+    source: "/api/admin/line-customers/[lineUserId]/send-document",
+  })
+  if (!normalized.ok) {
+    return NextResponse.json(normalized, { status: 503 })
   }
 
   await db.from("line_events").insert({

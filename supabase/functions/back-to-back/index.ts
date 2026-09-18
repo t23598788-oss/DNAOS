@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.43.4"
+import { getLineChannelAccessToken } from "../_shared/line-client.ts"
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -132,9 +133,11 @@ Deno.serve(async (req) => {
         }
 
         if (lineUserId) {
-          const lineAccessToken = Deno.env.get('LINE_CHANNEL_ACCESS_TOKEN')
+          // Canonical credential path (LINE cutover): fail-closed via bridge →
+          // connector lifecycle Run gate — no env fallback.
+          const lineAccessToken = await getLineChannelAccessToken()
           if (!lineAccessToken) {
-            console.error('Missing LINE_CHANNEL_ACCESS_TOKEN environment variable')
+            console.error('LINE connector ยังไม่พร้อม — bridge คืน token ไม่ได้ (เช็ค lifecycle ที่ /admin/connectors)')
           } else {
             let docDetailsText = ''
             if (doc.data && Array.isArray(doc.data.items)) {

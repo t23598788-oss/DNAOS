@@ -3,6 +3,7 @@ import { requireAuth } from "@/core/auth/requireAuth"
 import { ADMIN_TIER } from "@/core/auth/session"
 import { supabaseAdmin as supabase } from "@/services/supabase/queries"
 import { sendLineMessage } from "@/registry/communication"
+import { normalizeSendResult } from "@/app/api/admin/ide/_lib/businessFailureBridge"
 
 type Params = { params: Promise<{ id: string }> }
 
@@ -30,10 +31,22 @@ export async function POST(req: NextRequest, { params }: Params) {
   const body = await req.json().catch(() => ({}))
   const finalText = (typeof body?.text === "string" && body.text.trim()) || draft.proposed_text
 
-  const res = await sendLineMessage(draft.line_user_id, [{ type: "text", text: finalText }])
+  const res = await sendLineMessage(supabase(), draft.line_user_id, [{ type: "text", text: finalText }])
 
-  if (!res.success) {
-    return NextResponse.json({ error: `LINE API ปฏิเสธ: ${(res.error ?? "").slice(0, 300)}` }, { status: 502 })
+  // Business → Infrastructure failure bridge (owner, 2026-09-19): the
+  // draft stays pending_review on infrastructure failure (status update
+  // below never runs), the failure is routed through the existing
+  // infrastructure pipeline, and Business receives ONLY the normalized
+  // result — never raw provider error text.
+  const normalized = await normalizeSendResult(res, {
+    providerSlug: "line",
+    businessAction: "line.draft_send",
+    ownerId: auth.id,
+    actor: auth.email,
+    source: "/api/admin/outbound-drafts/[id]/send",
+  })
+  if (!normalized.ok) {
+    return NextResponse.json(normalized, { status: 503 })
   }
 
   const { error: updErr } = await db

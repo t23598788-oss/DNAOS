@@ -499,7 +499,7 @@ export async function sendInvoiceToLine(invoiceId: string): Promise<ActionRespon
     },
   });
 
-  const lineRes = await sendLineMessage(link.line_user_id, [
+  const lineRes = await sendLineMessage(supabase(), link.line_user_id, [
     { type: "flex", altText: `ใบแจ้งหนี้ ${invoice.invoice_no}`, contents: flex },
   ]);
 

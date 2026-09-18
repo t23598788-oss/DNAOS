@@ -20,6 +20,7 @@ export const ADAPTERS: AdapterDescription[] = [
   { provider: "github", observes: ["repository", "branch", "commit", "pull_request", "workflow_run"], ingress: "webhook" },
   { provider: "supabase", observes: ["health", "migration_state"], ingress: "poll" },
   { provider: "vercel", observes: ["deployment"], ingress: "webhook" },
+  { provider: "railway", observes: ["deployment"], ingress: "webhook" },
 ];
 
 export const CHANNELS: { channel: GatewayChannel; enabled: boolean; description: string }[] = [

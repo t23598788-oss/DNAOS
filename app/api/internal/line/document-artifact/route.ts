@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server"
 import { lineDocumentMessages, storeDocumentArtifacts } from "@/gateway/document-artifact-storage"
 import type { DocData } from "@/engines/documents/engine"
-import { sendLineMessage } from "@/registry/communication"
+import { sendLineMessage } from "@/registry/communication";
+import { supabaseAdmin } from "@/services/supabase/queries";
 
 /**
  * Edge-cron bridge. Supabase Edge Functions cannot import the Node artifact
@@ -19,7 +20,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "ข้อมูลเอกสารไม่ครบ" }, { status: 400 })
   }
   const artifacts = await storeDocumentArtifacts(body.documentId, body.document)
-  const lineRes = await sendLineMessage(body.lineUserId, lineDocumentMessages(artifacts, body.altText ?? "เอกสาร"))
+  const lineRes = await sendLineMessage(supabaseAdmin(), body.lineUserId, lineDocumentMessages(artifacts, body.altText ?? "เอกสาร"))
   if (!lineRes.success) return NextResponse.json({ error: `ส่ง LINE ไม่สำเร็จ: ${(lineRes.error ?? "").slice(0, 200)}` }, { status: 502 })
   return NextResponse.json({ ok: true, document_artifact: artifacts })
 }

@@ -1,21 +1,21 @@
 {
-  "generated_at": "2026-08-08T12:14:23.586Z",
+  "generated_at": "2026-09-18T18:50:38.098Z",
   "note": "Computed live from registry/CONSTITUTION.json + registry/rule-coverage.json + registry/factory-mapping.json by app/api/admin/ide/_lib/governanceRuntime.ts — never hand-edited, never a cached stale number. Re-run via `npm run sync` or `npx tsx scripts/build-governance-summary.ts`.",
-  "totalRules": 268,
-  "enforced": 173,
-  "declaredNotEnforced": 8,
+  "totalRules": 282,
+  "enforced": 179,
+  "declaredNotEnforced": 16,
   "notImplemented": 7,
   "deprecated": 0,
   "ghost": 74,
   "unknown": 6,
-  "coveragePercent": 64.6,
+  "coveragePercent": 63.5,
   "bySource": {
-    "rule-coverage": 168,
+    "rule-coverage": 182,
     "uncovered": 74,
     "iron-rule": 15,
     "runtime-contract": 11
   },
-  "inspectionCoveragePercent": 61.9,
+  "inspectionCoveragePercent": 61,
   "factories": [
     {
       "factoryId": "executive-office",
@@ -38,7 +38,7 @@
     {
       "factoryId": "software-factory",
       "factoryName": "Software Factory",
-      "ruleCount": 122,
+      "ruleCount": 123,
       "coveragePercent": 100,
       "missingRuleCount": 0,
       "health": "HEALTHY",
@@ -110,7 +110,7 @@
     {
       "factoryId": "deployment-factory",
       "factoryName": "Deployment Factory",
-      "ruleCount": 2,
+      "ruleCount": 3,
       "coveragePercent": 100,
       "missingRuleCount": 0,
       "health": "HEALTHY",

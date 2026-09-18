@@ -18,6 +18,7 @@
 // already sent to manually earlier the same day.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.43.4"
+import { getLineChannelAccessToken } from "../_shared/line-client.ts"
 import { calcDebtTrackingSummary, deriveFreezeWindows } from "../../../engines/debt/tracking-calculator.ts"
 
 function debtReminderFlex(opts: {
@@ -90,7 +91,6 @@ Deno.serve(async (req) => {
 
   const supabaseUrl = Deno.env.get('SUPABASE_URL')!
   const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-  const lineToken = Deno.env.get('LINE_CHANNEL_ACCESS_TOKEN')
   const supabase = createClient(supabaseUrl, serviceKey)
 
   const { data: configRows, error: configErr } = await supabase
@@ -114,7 +114,9 @@ Deno.serve(async (req) => {
     return Response.json({ skipped: `not the configured hour (now ${bangkokHour}, configured ${configuredHour})` })
   }
 
-  if (!lineToken) return Response.json({ error: 'LINE_CHANNEL_ACCESS_TOKEN not set' }, { status: 500 })
+  // Canonical credential path (LINE cutover): bridge → Run gate — fail-closed.
+  const lineToken = await getLineChannelAccessToken()
+  if (!lineToken) return Response.json({ error: 'LINE connector ยังไม่พร้อม — bridge คืน token ไม่ได้ (เช็ค lifecycle ที่ /admin/connectors)' }, { status: 500 })
 
   const branding = {
     ourCompanyName: config['company-name'] || undefined,

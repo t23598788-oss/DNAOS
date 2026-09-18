@@ -6,6 +6,7 @@
 // architectureDriftDetector.ts, which needs real filesystem/process access
 // this Edge Function doesn't have).
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { getLineChannelAccessToken } from "../_shared/line-client.ts";
 
 Deno.serve(async (req: Request) => {
   const expectedSecret = Deno.env.get("AI_CALLBACK_SECRET");
@@ -32,7 +33,8 @@ Deno.serve(async (req: Request) => {
   const lines = (findings ?? []).slice(0, 8).map((f) => `- [${f.kind}] ${f.detail}`).join("\n");
   const text = `⚠️ Architecture Drift: พบ Local AI Runtime/Model บนเครื่องพัฒนา\n${lines}${(findings?.length ?? 0) > 8 ? `\n...และอีก ${findings.length - 8} รายการ` : ""}\n\nนโยบาย: เครื่อง Local เก็บเฉพาะ Source Code/Build Tools/Dev Environment — AI Runtime ต้องอยู่บน Cloud เท่านั้น`;
 
-  const lineAccessToken = Deno.env.get("LINE_CHANNEL_ACCESS_TOKEN");
+  // Canonical credential path (LINE cutover): bridge → connector lifecycle Run gate.
+  const lineAccessToken = await getLineChannelAccessToken();
   if (lineAccessToken) {
     await fetch("https://api.line.me/v2/bot/message/push", {
       method: "POST",

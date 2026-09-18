@@ -32,14 +32,21 @@ const SERVICE_ENV_VARS: Record<string, string[]> = {
   vercel: ["VERCEL_TOKEN"],
   anthropic: ["ANTHROPIC_API_KEY"],
   gemini: ["GEMINI_API_KEY"],
-  line_messaging: ["LINE_CHANNEL_ACCESS_TOKEN", "LINE_CHANNEL_SECRET"],
-  line_notify: ["LINE_CHANNEL_ACCESS_TOKEN"],
+  // LINE credential lives behind the connector lifecycle ("line" connector,
+  // /admin/connectors) since the credential-path cutover — the Node/Edge code
+  // no longer reads LINE_CHANNEL_ACCESS_TOKEN from env. LINE_CHANNEL_SECRET
+  // remains the webhook-signature env on the Edge side.
+  line_messaging: ["LINE_CHANNEL_SECRET (webhook sig only; channel token via line connector)"],
+  line_notify: [],
   // registry/infrastructure.json's "google_maps" entry is real but the code
   // it actually gates is a Longdo Map key, not a Google Maps key (found
   // live during this sync — flagged, not silently "fixed" by renaming the
   // registry entry without the owner's say-so).
   google_maps: ["LONGDO_MAP_API_KEY"],
-  gmail: ["GMAIL_CLIENT_ID", "GMAIL_CLIENT_SECRET", "GMAIL_REFRESH_TOKEN"],
+  // Gmail credential lives behind the connector lifecycle (gmail OAuth
+  // connector via the internal token bridge) since Gmail Phase 2 — the Edge
+  // functions no longer read GMAIL_* env vars.
+  gmail: [],
   github: [],
   domain: [],
   node_runtime: [],

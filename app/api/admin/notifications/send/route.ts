@@ -5,8 +5,8 @@
  * supabase/functions/line-webhook-v2/engines/response.ts (pushMessages) — this route
  * exists because that Edge Function is triggered by inbound LINE webhooks, and there
  * was no path for the admin UI to trigger an outbound push directly. Reuses the same
- * real endpoint, same required credential (LINE_CHANNEL_ACCESS_TOKEN), not a second
- * notification system.
+ * real endpoint and the same canonical credential path (the "line" connector through
+ * the connector lifecycle Run gate), not a second notification system.
  *
  * Requires human confirmation at the UI level (see app/admin/notifications/page.tsx —
  * explicit "ส่ง" button, no auto-send) — matches the registry's own
@@ -18,6 +18,7 @@ import { requireAuth } from "@/core/auth/requireAuth"
 import { ADMIN_TIER } from "@/core/auth/session"
 import { supabaseAdmin } from "@/services/supabase/queries"
 import { sendLineMessage } from "@/registry/communication"
+import { normalizeSendResult } from "@/app/api/admin/ide/_lib/businessFailureBridge"
 
 async function logNotification(action: "sent" | "failed", detail: { to: string; note?: string }) {
   const { error } = await supabaseAdmin().from("audit_logs").insert({
@@ -43,11 +44,21 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "ต้องระบุ to (LINE userId) และ message" }, { status: 400 })
   }
 
-  const res = await sendLineMessage(to, [{ type: "text", text: message }])
+  const res = await sendLineMessage(supabaseAdmin(), to, [{ type: "text", text: message }])
 
-  if (!res.success) {
-    await logNotification("failed", { to, note: res.error?.slice(0, 300) })
-    return NextResponse.json({ error: `LINE API ปฏิเสธ: ${(res.error ?? "").slice(0, 300)}` }, { status: 502 })
+  // Business → Infrastructure failure bridge (owner, 2026-09-19): delivery
+  // failures are infrastructure-owned; Business receives ONLY the normalized
+  // result — never raw provider error text.
+  const normalized = await normalizeSendResult(res, {
+    providerSlug: "line",
+    businessAction: "line.send_notification",
+    ownerId: auth.id,
+    actor: auth.email,
+    source: "/api/admin/notifications/send",
+  })
+  if (!normalized.ok) {
+    await logNotification("failed", { to, note: `normalized:${normalized.failureClass ?? "UNKNOWN"}` })
+    return NextResponse.json(normalized, { status: 503 })
   }
 
   await logNotification("sent", { to, note: message.slice(0, 200) })

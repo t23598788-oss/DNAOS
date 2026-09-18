@@ -154,6 +154,16 @@ export interface RelationshipDetail {
   receipts: Receipt[]
   unlinkedCount: number
   drafts: Draft[]
+  // Business Workspace V1: the detail endpoint's own debt block (fresh
+  // getCurrentDebt + collection_state) — preferred over the list snapshot,
+  // which the UI keeps as fallback.
+  debt?: { total_outstanding: number; collection_state: string | null; days_overdue: number } | null
+  // Business Workspace V1 (owner, 2026-09-18): per-relationship finance
+  // summary computed by the detail API from the same real rows it already
+  // read (open invoices/standalone_documents + partner_payable_requests).
+  // null when the relationship has no company yet (unmatched) — the UI
+  // renders "—" honestly, never a guessed number.
+  finance?: { revenue_total: number; revenue_doc_count: number; expense_total: number; expense_request_count: number } | null
   takeover?: { line_user_id?: string; mode: "ai" | "human_takeover"; reason: string | null; created_at: string; updated_at: string } | null
 }
 

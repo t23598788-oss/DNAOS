@@ -35,6 +35,8 @@
 // customer's payment-confirmation message looks like every other real card
 // this system sends, and the admin timeline (FlexPreview) can render the
 // identical thing.
+import { getLineChannelAccessToken } from "../../_shared/line-client.ts"
+
 function paymentConfirmedFlex(opts: { companyName: string; amountPaid: number; outstandingAfter: number }): object {
   const paidOff = opts.outstandingAfter <= 0
   const color = paidOff ? "#2E7D32" : "#EF6C00"
@@ -93,7 +95,9 @@ export interface AutoConfirmInput {
 }
 
 export async function tryAutoConfirmPayment(supabase: any, input: AutoConfirmInput): Promise<void> {
-  const lineToken = Deno.env.get("LINE_CHANNEL_ACCESS_TOKEN")
+  // Canonical credential path (LINE cutover): bridge → Run gate — fail-closed
+  // (no token → leave as Pending Review for a human, exactly as before).
+  const lineToken = await getLineChannelAccessToken()
   if (!lineToken) return // can't message the customer without it — leave as Pending Review for a human
 
   const { data: rows, error } = await supabase.rpc("reconcile_receipt_payment", {

@@ -39,6 +39,7 @@ import { calcCapacity } from "@/engines/capacity";
 import { calcCost } from "@/engines/cost";
 import { documentFlex } from "@/engines/documents/flex-template";
 import { sendLineMessage } from "@/registry/communication";
+import { supabaseAdmin } from "@/services/supabase/queries";
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const key = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -139,7 +140,7 @@ async function main() {
   console.log(JSON.stringify(flex, null, 2).slice(0, 600) + " ...(ตัดแสดงบางส่วน)");
 
   console.log("\n5) พยายามส่งจริงกลับไปที่ LINE ของลูกค้า (registry/communication.ts sendLineMessage — เรียก LINE API จริง)...");
-  const sendResult = await sendLineMessage(DEMO_LINE_USER_ID, [flex]);
+  const sendResult = await sendLineMessage(supabaseAdmin(), DEMO_LINE_USER_ID, [flex]);
   console.log(`   ผลจริงจาก LINE API: ${JSON.stringify(sendResult)}`);
   if (!sendResult.success) {
     console.log(`   → ตามคาด: ${DEMO_LINE_USER_ID} เป็น LINE user id ปลอมที่สร้างไว้สาธิต ไม่ใช่บัญชีจริงที่แอดเพื่อน OA ไว้`);

@@ -4752,6 +4752,8 @@
         "executeDnsRecordUpdate",
         "executeDomainRegister",
         "executeNameserverSet",
+        "executeRailwayDomainAdd",
+        "executeRailwayDomainRemove",
         "executeVercelDomainAdd",
         "executeVercelDomainRemove",
         "executeZoneCreate",
@@ -4760,6 +4762,8 @@
         "previewDnsRecordUpdate",
         "previewDomainRegister",
         "previewNameserverSet",
+        "previewRailwayDomainAdd",
+        "previewRailwayDomainRemove",
         "previewVercelDomainAdd",
         "previewVercelDomainRemove",
         "previewZoneCreate"
@@ -13829,6 +13833,120 @@
         "__resetCredentialCacheForTest",
         "__setListConnectorsForTest",
         "digitalOceanApiAdapter"
+      ],
+      "status": "active"
+    },
+    "scripts/railway-adapter-test.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "Railway Deployment Adapter capability-parity acceptance test — proves the Railway observe adapter emits the same GatewayEvent contract as the Vercel adapter, that gateway/domains.ts exposes matching preview→token→execute actions, and that forged-token executes fail closed. Pure logic, no network/DB.",
+      "purpose_th": "ทดสอบยอมรับ parity ของ Railway Deployment Adapter — พิสูจน์ว่า observe adapter ของ Railway ปล่อย GatewayEvent ตาม contract เดียวกับ Vercel adapter, gateway/domains.ts มี preview→token→execute ครบเหมือนกัน และ execute ด้วย token ปลอม fail-closed",
+      "exports": [],
+      "status": "active"
+    },
+    "engines/domains/railway-binding.ts": {
+      "owner": "engines",
+      "layer": "engines",
+      "purpose": "Railway GraphQL API client for adding/listing/verifying/removing a custom domain on the target service — capability parity with vercel-binding.ts; uses the canonical connector lifecycle (railway connector: secret.api_token + config.service_id/environment_id) like cloudflare.ts, never env vars.",
+      "purpose_th": "client เรียก Railway GraphQL API สำหรับเพิ่ม/ลิสต์/ยืนยัน/ถอดโดเมนกำหนดเองของ service เป้าหมาย — parity กับ vercel-binding.ts แต่ใช้ connector lifecycle (connector railway: secret.api_token + config.service_id/environment_id) เหมือน cloudflare.ts ไม่อ่าน env",
+      "exports": [
+        "RailwayCustomDomain",
+        "RailwayResourceNode",
+        "addDomainToService",
+        "discoverResources",
+        "listDomains",
+        "removeDomainFromService",
+        "verifyDomain"
+      ],
+      "status": "active"
+    },
+    "engines/integration-gateway/adapters/railway.ts": {
+      "owner": "engines",
+      "layer": "engines",
+      "purpose": "Integration Gateway: normalizes real Railway deployment webhook payloads into GatewayEvent (Observe Channel only) — capability parity with the Vercel adapter under the same deployment.status.observed contract; Vercel is not removed.",
+      "purpose_th": "Integration Gateway: แปลง Railway deployment webhook payload จริงเป็น GatewayEvent (Observe Channel เท่านั้น) — parity กับ Vercel adapter ภายใต้ contract deployment.status.observed เดียวกัน ไม่แทนที่ Vercel",
+      "exports": [
+        "RailwayDeploymentStatus",
+        "isRailwayTerminalStatus",
+        "normalizeRailwayWebhook",
+        "railwayWebhookTypeToStatus"
+      ],
+      "status": "active"
+    },
+    "app/api/gateway/observe/railway/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Railway webhook ingress for the Observe Channel — verifies the docs-prescribed secret-in-URL token (RAILWAY_WEBHOOK_SECRET, constant-time) fail-closed, then normalizes and publishes the event; same never-runs-anything pattern as the vercel/github observe routes.",
+      "purpose_th": "ช่องทางรับ Railway webhook เข้า Observe Channel — ตรวจ secret ใน URL ตามที่ docs กำหนด (RAILWAY_WEBHOOK_SECRET, constant-time) แบบ fail-closed แล้ว normalize และ publish event ตาม pattern เดียวกับ observe route ของ vercel/github",
+      "exports": [
+        "POST"
+      ],
+      "status": "active"
+    },
+    "scripts/line-credential-path-test.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "LINE Communication Gateway canonical-credential-path acceptance test — proves sendLineMessage() resolves the token only through the \"line\" connector Run gate (requireConnector), fails closed when the connector is missing, never leaks the token, and never falls back to LINE_CHANNEL_ACCESS_TOKEN env.",
+      "purpose_th": "ทดสอบยอมรับเส้นทาง credential หลักของ LINE Communication Gateway — พิสูจน์ว่า sendLineMessage() หยิบ token จาก connector \"line\" ผ่าน Run gate (requireConnector) เท่านั้น, fail-closed เมื่อยังไม่มี connector, ไม่รั่ว token และไม่ fallback ไป env LINE_CHANNEL_ACCESS_TOKEN",
+      "exports": [],
+      "status": "active"
+    },
+    "app/api/admin/connectors/discover/[slug]/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Resource Discovery for the Connector Owner Surface — canonical requireAuth(ADMIN_TIER) + core/connector-loader getConnector(slug) + provider adapter discovery, returning a normalized resource list (projects/services/environments) so the owner selects instead of typing technical ids; providers without discovery honestly answer NOT_SUPPORTED.",
+      "purpose_th": "Resource Discovery สำหรับ Owner Surface ของ Connector — ใช้ requireAuth(ADMIN_TIER) + connector-loader + discovery ของ adapter แต่ละตัว คืนรายการ resource แบบ normalized (project/service/environment) เพื่อให้ Owner \"เลือก\" แทนการพิมพ์ ID เอง; provider ที่ยังไม่มี discovery ตอบ NOT_SUPPORTED อย่างตรงไปตรงมา",
+      "exports": [
+        "POST"
+      ],
+      "status": "active"
+    },
+    "supabase/functions/_shared/line-client.ts": {
+      "owner": "supabase",
+      "layer": "supabase",
+      "purpose": "Edge-side LINE credential access — replaces direct Deno.env LINE_CHANNEL_ACCESS_TOKEN reads with a call to the canonical internal bridge (DNA_OS_APP_URL/api/internal/line/token, secret-gated), which resolves the \"line\" connector through the Connector Lifecycle Run gate. Fail-closed: returns null when the bridge is unavailable so callers skip LINE honestly.",
+      "purpose_th": "การเข้าถึง credential ฝั่ง Edge ของ LINE — แทนที่การอ่าน Deno.env LINE_CHANNEL_ACCESS_TOKEN ตรง ๆ ด้วยการเรียก internal bridge กลาง (secret-gated) ซึ่ง resolve connector \"line\" ผ่าน Run gate ของ Connector Lifecycle; fail-closed เมื่อ bridge ใช้ไม่ได้ (คืน null) เพื่อให้ caller ข้าม LINE อย่างตรงไปตรงมา",
+      "exports": [
+        "getLineChannelAccessToken"
+      ],
+      "status": "active"
+    },
+    "app/api/internal/line/token/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Internal Edge-to-Node bridge for LINE credentials (same pattern as /api/internal/gmail/token): authenticates Edge Functions via x-line-internal-secret, resolves the \"line\" connector through core/connector-loader requireConnector (the Run gate), and returns only the short-lived channel access token. Never returns or logs the credential; fails closed on missing/incorrect secret or a connector that is not connected+enabled.",
+      "purpose_th": "สะพานภายใน Edge→Node สำหรับ credential ของ LINE (รูปแบบเดียวกับ /api/internal/gmail/token): ยืนยัน Edge Function ด้วย x-line-internal-secret, resolve connector \"line\" ผ่าน requireConnector (Run gate) แล้วคืนเฉพาะ channel access token อายุสั้น — ไม่คืน/ไม่ log credential, fail-closed เมื่อ secret ขาด/ผิด หรือ connector ยังไม่ connected+enabled",
+      "exports": [
+        "POST"
+      ],
+      "status": "active"
+    },
+    "scripts/business-failure-bridge-test.ts": {
+      "owner": "system",
+      "layer": "scripts",
+      "purpose": "Live proof suite for the Business → Infrastructure failure bridge (owner, 2026-09-19): a real business send through the real LINE credential path (api.line.me 401) must produce ONLY a normalized, credential-free business result while the failure is routed through the EXISTING infrastructure chain — connection identity, canonical Signal ingress, deduped Incident, one PLAN_ONLY Recovery Plan, work-session job, checksummed artifacts, Owner escalation. Proves one incident identity across retries, bounded recovery (bridge never retries the provider), and that business-data failures never open infrastructure incidents.",
+      "purpose_th": "ชุดพิสูจน์สดของสะพานความล้มเหลว Business → Infrastructure (owner, 2026-09-19): การส่งจริงผ่าน credential path ของ LINE (api.line.me 401) ต้องให้ผลลัพธ์ normalized ที่ไม่มีข้อมูล credential กลับฝั่งธุรกิจเท่านั้น โดยความล้มเหลวถูกส่งเข้าห่วงโซ่ infrastructure เดิมทั้งหมด — connection identity, Signal ingress เดิม, Incident แบบ dedupe, Recovery Plan เดียวแบบ PLAN_ONLY, work-session job, artifact ตรวจสอบได้ และการแจ้งเตือน Owner — พิสูจน์ว่า incident identity เดียวกันครอบคลุมทุก retry, recovery มีขอบเขต (สะพานไม่ retry เอง), และ business-data failure ไม่เปิด incident โครงสร้างพื้นฐาน",
+      "exports": [],
+      "status": "active",
+      "entry_point": true,
+      "declared_callers": []
+    },
+    "app/api/admin/ide/_lib/businessFailureBridge.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Business Failure Bridge (owner, 2026-09-19) — the missing BUSINESS → INFRASTRUCTURE failure boundary. Routes real provider failures from business send paths through the EXISTING infrastructure systems only: connection identity (connector-loader/connectors table), canonical event ingress (monitoringRuntime collectSignal CONNECTOR_HEALTH), incident-remediation (incidentRuntime openIncidentFromSignal + recoveryRuntime createRecoveryPlan), work-session-state (queueRuntime Operations jobs), evidence (artifactRuntime + audit_logs), Owner escalation (alertRuntime dispatchAlert). Returns a deterministic, credential-free normalized business result; raw provider errors never reach Business UI. No new subsystem, no AI deciding technical truth, bounded recovery only.",
+      "purpose_th": "สะพานความล้มเหลว Business → Infrastructure (owner, 2026-09-19) — ขอบเขตความล้มเหลวที่หายไประหว่างโลกธุรกิจกับโลกโครงสร้างพื้นฐาน ส่ง failure จริงจาก business send paths เข้าระบบ infrastructure เดิมที่มีอยู่เท่านั้น: connection identity (connectors table), event ingress เดิม (monitoringRuntime collectSignal CONNECTOR_HEALTH), incident-remediation เดิม (incidentRuntime + recoveryRuntime), work-session-state เดิม (queueRuntime), evidence เดิม (artifactRuntime + audit_logs), และการ escalate ถึง Owner เดิม (alertRuntime) คืนผลลัพธ์ normalized ที่ไม่มีข้อมูล credential กลับให้ธุรกิจเสมอ ห้าม raw provider error หลุดเข้า Business UI ไม่สร้าง subsystem ใหม่ ไม่ใช้ AI ตัดสินความจริงทางเทคนิค และ recovery แบบมีขอบเขตเท่านั้น",
+      "exports": [
+        "BusinessFailureInput",
+        "NormalizedBusinessResult",
+        "NormalizedFailureClass",
+        "classifyProviderFailure",
+        "failureFingerprint",
+        "isProviderPushFailure",
+        "normalizeGatewayResult",
+        "normalizeSendResult",
+        "readConnectionIdentity",
+        "reportBusinessActionFailure"
       ],
       "status": "active"
     }

@@ -13,6 +13,7 @@
 // except via supabase/functions/_shared/. Known, small, non-blocking dup;
 // worth moving into _shared/owner-notify.ts in a follow-up pass.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { getLineChannelAccessToken } from "../_shared/line-client.ts";
 
 Deno.serve(async (req: Request) => {
   const expectedSecret = Deno.env.get("AI_CALLBACK_SECRET");
@@ -40,7 +41,8 @@ Deno.serve(async (req: Request) => {
   const text = `💾 พื้นที่ SSD ต่ำกว่าเป้าหมาย\nว่างอยู่: ${gb(freeBytes)}GB (เป้าหมาย ${gb(thresholdBytes)}GB)\n` +
     (reclaimableBytes != null ? `คืนได้จริง (SAFE): ${gb(reclaimableBytes)}GB — เปิด /admin/storage เพื่อดูรายละเอียด` : `เปิด /admin/storage เพื่อสแกนและดูว่าจะคืนพื้นที่ได้เท่าไร`);
 
-  const lineAccessToken = Deno.env.get("LINE_CHANNEL_ACCESS_TOKEN");
+  // Canonical credential path (LINE cutover): bridge → connector lifecycle Run gate.
+  const lineAccessToken = await getLineChannelAccessToken();
   if (lineAccessToken) {
     await fetch("https://api.line.me/v2/bot/message/push", {
       method: "POST",

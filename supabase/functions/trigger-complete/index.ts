@@ -4,6 +4,7 @@
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.43.4"
 import { tryCompleteAwaitingEvent } from "../line-webhook-v2/engines/event-followup.ts"
+import { getLineChannelAccessToken } from "../_shared/line-client.ts"
 
 Deno.serve(async (req) => {
   const expected = Deno.env.get('RECONCILE_CRON_SECRET')
@@ -17,7 +18,9 @@ Deno.serve(async (req) => {
   const reply = await tryCompleteAwaitingEvent(supabase, userId, "")
 
   if (reply) {
-    const token = Deno.env.get('LINE_CHANNEL_ACCESS_TOKEN')
+    // Canonical credential path (LINE cutover): skip silently when the
+    // connector isn't runnable (same token-missing skip behavior as before).
+    const token = await getLineChannelAccessToken()
     if (token) {
       await fetch('https://api.line.me/v2/bot/message/push', {
         method: 'POST',

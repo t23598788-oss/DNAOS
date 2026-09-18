@@ -14,6 +14,8 @@
 // the same Content API endpoint). extHint comes from LINE's own fileName
 // when the message type provides one (real, not guessed); falls back to
 // sniffing the response's content-type otherwise.
+import { getLineChannelAccessToken } from "../../_shared/line-client.ts"
+
 function extensionFor(contentType: string, extHint?: string | null): string {
   if (extHint) return extHint.replace(/^\./, "")
   if (contentType.includes("png")) return "png"
@@ -30,9 +32,10 @@ export async function fetchAndStoreLineMedia(
   contentTypeHint: string,
   fileNameHint?: string | null
 ): Promise<string | null> {
-  const token = Deno.env.get('LINE_CHANNEL_ACCESS_TOKEN')
+  // Canonical credential path (LINE cutover): bridge → Run gate — fail-closed.
+  const token = await getLineChannelAccessToken()
   if (!token) {
-    console.error('[media] LINE_CHANNEL_ACCESS_TOKEN not set — cannot fetch original content')
+    console.error('[media] LINE connector ยังไม่พร้อม — cannot fetch original content (เช็ค lifecycle ที่ /admin/connectors)')
     return null
   }
 

@@ -84,6 +84,44 @@ async function testGithubUser(testUrl: string, accessToken: string): Promise<Tes
   return { ok: true };
 }
 
+/**
+ * Railway-specific real check — mirrors the GitHub-shaped check above
+ * (TASK-073) and reuses this SAME [id]/test route pattern, never a
+ * parallel test mechanism. Railway's Public API is GraphQL-only
+ * (POST https://backboard.railway.com/graphql/v2): the generic GET ping
+ * can never honestly pass against it, AND a bare HTTP 200 is insufficient
+ * evidence — Railway's real error convention is HTTP 200 + a non-empty
+ * errors[] array. So the real check is a GraphQL `me { id }` query whose
+ * body must contain data.me.id — a wrong/missing token is reported
+ * failed, never silently 200-passed.
+ */
+async function testRailwayGraphql(testUrl: string, accessToken: string): Promise<TestResult> {
+  const res = await timedFetch(testUrl, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+    },
+    body: JSON.stringify({ query: "query { me { id } }" }),
+  });
+  if (!res.ok) return { ok: false, error: `Railway API (${testUrl}) ตอบกลับ HTTP ${res.status}` };
+  let body: unknown;
+  try {
+    body = await res.json();
+  } catch {
+    return { ok: false, error: "Railway API ไม่ตอบกลับเป็น JSON ที่ถูกต้อง" };
+  }
+  const b = body as { errors?: { message?: string }[]; data?: { me?: { id?: unknown } } } | null;
+  if (b?.errors?.length) {
+    return { ok: false, error: `Railway API ปฏิเสธการเข้าถึง: ${b.errors[0]?.message ?? "unknown error"}` };
+  }
+  const id = b?.data?.me?.id;
+  if (typeof id !== "string" || !id) {
+    return { ok: false, error: 'Railway API ตอบกลับ 200 แต่ไม่ใช่ identity จริง (ไม่มี data.me.id) — ปฏิเสธเพื่อกันผลบวกลวง' };
+  }
+  return { ok: true };
+}
+
 async function testOAuth(config: Record<string, unknown>, secret: Record<string, unknown>): Promise<TestResult> {
   const accessToken = secret.access_token as string | undefined;
   if (!accessToken) {
@@ -116,6 +154,13 @@ async function testApiKeyOrToken(config: Record<string, unknown>, secret: Record
   if (!baseUrl) return { ok: false, error: "ยังไม่ได้ระบุ base_url" };
   const testPath = (config.test_path as string) || "";
   const url = testPath ? `${baseUrl.replace(/\/$/, "")}/${testPath.replace(/^\//, "")}` : baseUrl;
+
+  // Railway-shaped real check (same reasoning as the GitHub check in
+  // testOAuth above): GraphQL POST + body-level identity, because the
+  // generic GET ping cannot honestly test a GraphQL-only provider.
+  if (url.includes("backboard.railway")) {
+    return await testRailwayGraphql(url, (secret.api_key as string) ?? (secret.token as string) ?? "");
+  }
 
   const res = await timedFetch(url, {
     method: "GET",

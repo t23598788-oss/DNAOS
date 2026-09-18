@@ -6,6 +6,7 @@ import { debtReminderFlex } from "@/engines/documents/flex-template"
 import { loadCompanySettings } from "@/core/config/company-settings"
 import { getCurrentDebt } from "@/engines/debt/tracking"
 import { sendLineMessage } from "@/registry/communication"
+import { normalizeSendResult } from "@/app/api/admin/ide/_lib/businessFailureBridge"
 
 type Params = { params: Promise<{ lineUserId: string }> }
 
@@ -84,12 +85,23 @@ export async function POST(req: Request, { params }: Params) {
     return NextResponse.json({ ok: true, flex_preview: flex })
   }
 
-  const lineRes = await sendLineMessage(lineUserId, [
+  const lineRes = await sendLineMessage(supabase(), lineUserId, [
     { type: "flex", altText: "แจ้งยอดค้างชำระ", contents: flex },
   ])
 
-  if (!lineRes.success) {
-    return NextResponse.json({ error: `ส่ง LINE ไม่สำเร็จ: ${(lineRes.error ?? "").slice(0, 200)}` }, { status: 502 })
+  // Business → Infrastructure failure bridge (owner, 2026-09-19): the
+  // debt figure and business_event stay untouched on infrastructure
+  // failure (writes below never run); Business receives ONLY the
+  // normalized result — never raw provider error text.
+  const normalized = await normalizeSendResult(lineRes, {
+    providerSlug: "line",
+    businessAction: "line.send_debt",
+    ownerId: auth.id,
+    actor: auth.email,
+    source: "/api/admin/line-customers/[lineUserId]/send-debt",
+  })
+  if (!normalized.ok) {
+    return NextResponse.json(normalized, { status: 503 })
   }
 
   await db.from("line_events").insert({

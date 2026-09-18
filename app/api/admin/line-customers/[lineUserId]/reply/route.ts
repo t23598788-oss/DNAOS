@@ -3,6 +3,7 @@ import { requireAuth } from "@/core/auth/requireAuth"
 import { ADMIN_TIER } from "@/core/auth/session"
 import { supabaseAdmin as supabase } from "@/services/supabase/queries"
 import { sendLineMessage } from "@/registry/communication"
+import { normalizeSendResult } from "@/app/api/admin/ide/_lib/businessFailureBridge"
 
 type Params = { params: Promise<{ lineUserId: string }> }
 
@@ -24,10 +25,22 @@ export async function POST(req: NextRequest, { params }: Params) {
   const text = typeof body?.text === "string" ? body.text.trim() : ""
   if (!text) return NextResponse.json({ error: "ข้อความว่างเปล่า" }, { status: 400 })
 
-  const res = await sendLineMessage(lineUserId, [{ type: "text", text }])
+  const res = await sendLineMessage(supabase(), lineUserId, [{ type: "text", text }])
 
-  if (!res.success) {
-    return NextResponse.json({ error: `LINE API ปฏิเสธ: ${(res.error ?? "").slice(0, 300)}` }, { status: 502 })
+  // Business → Infrastructure failure bridge (owner, 2026-09-19): a
+  // provider failure is routed through the existing infrastructure
+  // pipeline (Signal → Incident → Remediation → Owner escalation) and
+  // Business receives ONLY the normalized result — never raw provider
+  // error text, never credential/runtime internals.
+  const normalized = await normalizeSendResult(res, {
+    providerSlug: "line",
+    businessAction: "line.reply",
+    ownerId: auth.id,
+    actor: auth.email,
+    source: "/api/admin/line-customers/[lineUserId]/reply",
+  })
+  if (!normalized.ok) {
+    return NextResponse.json(normalized, { status: 503 })
   }
 
   const db = supabase()

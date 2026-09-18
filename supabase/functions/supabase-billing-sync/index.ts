@@ -73,7 +73,7 @@ Deno.serve(async (req) => {
 
   const accessToken = await getGmailAccessToken()
   if (!accessToken) {
-    return Response.json({ error: "Gmail access token ล้มเหลว — เช็ค GMAIL_CLIENT_ID/SECRET/REFRESH_TOKEN" }, { status: 502 })
+    return Response.json({ error: "Gmail access token ล้มเหลว — เช็ค connector lifecycle ที่ /admin/connectors" }, { status: 502 })
   }
 
   const listRes = await fetch(

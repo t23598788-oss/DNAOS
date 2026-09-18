@@ -66,7 +66,7 @@ export async function GET(req: Request) {
 
     if (ownerLineUserId) {
       const lines = unhealthy.map((p) => `- ${p.name}: ${p.status}`).join("\n")
-      await sendLineMessage(ownerLineUserId, [{
+      await sendLineMessage(supabaseAdmin(), ownerLineUserId, [{
         type: "text",
         text: `🚨 พบโปรเจกต์ Supabase ที่ไม่ปกติ:\n${lines}\n\nเช็คที่ supabase.com/dashboard — อาจเกิดจากใบแจ้งหนี้ค้างชำระหรือ project ถูกพัก`,
       }])

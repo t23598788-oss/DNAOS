@@ -91,7 +91,7 @@ export async function POST(req: Request) {
     await db.from("driver_equipment_permissions").insert({ line_user_id: lineUserId, equipment_id: equipmentId, is_active: isActive })
   }
 
-  const richMenu = await setDriverStartButtonRichMenu(lineUserId, isActive)
+  const richMenu = await setDriverStartButtonRichMenu(supabase(), lineUserId, isActive)
 
   let lockWarning: string | null = null
   if (!isActive) {
