@@ -74,6 +74,17 @@
         "reveal": "always",
         "panel": "shared"
       }
+    },
+    {
+      "label": "DNA OS: Start AI",
+      "type": "shell",
+      "command": "freebuff",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "clear": true,
+        "focus": true
+      }
     }
   ]
 }
