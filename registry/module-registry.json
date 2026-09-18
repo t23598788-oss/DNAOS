@@ -247,10 +247,10 @@
       "status": "active"
     },
     "app/api/self-description/route.ts": {
-      "owner": "system",
-      "layer": "api",
-      "purpose": "API Self-Description — ระบบอธิบายตัวเองจาก existence.json",
-      "purpose_th": "API Self-Description — ระบบอธิบายตัวเองจาก existence.json",
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Self-description API route — serves the system's real self-description (module/selfDescriptionFactory data) for external introspection.",
+      "purpose_th": "เส้นทาง API บอกคำอธิบายตนเอง — เสิร์ฟ self-description จริงของระบบ (ข้อมูลจาก module/selfDescriptionFactory) สำหรับการสำรวจจากภายนอก",
       "exports": [
         "GET"
       ],
@@ -908,8 +908,8 @@
     "cognitive/planner/engine.test.ts": {
       "owner": "cognitive",
       "layer": "cognitive",
-      "purpose": "Planner unit tests",
-      "purpose_th": "ชุดทดสอบสำหรับส่วนวางแผน",
+      "purpose": "Tests for the cognitive planner engine — verifies real planning behavior of the intent/plan pipeline.",
+      "purpose_th": "ชุดทดสอบของ engine วางแผน (planner) ใน cognitive — ตรวจพฤติกรรมการวางแผนจริงของ pipeline intent/plan",
       "exports": [],
       "status": "active"
     },
@@ -1142,12 +1142,12 @@
     "core/executor/audit.ts": {
       "owner": "core",
       "layer": "core",
-      "purpose": "Audit Log — บันทึกทุก step ของ workflow execution",
-      "purpose_th": "ล็อกการตรวจสอบ — บันทึกทุกขั้นตอนการทำงานของ workflow",
+      "purpose": "Executor audit module — records real audit entries for command execution in the core executor.",
+      "purpose_th": "โมดูล audit ของ executor — บันทึกรายการ audit จริงสำหรับการรันคำสั่งใน core executor",
       "exports": [
-        "record",
+        "clear",
         "recent",
-        "clear"
+        "record"
       ],
       "status": "active"
     },
@@ -1530,8 +1530,8 @@
     "engines/distance.ts": {
       "owner": "engines",
       "layer": "engines",
-      "purpose": "คำนวณระยะทาง Haversine + หาบ่อวัสดุใกล้สุด",
-      "purpose_th": "คำนวณระยะทางด้วยสูตร Haversine และค้นหาบ่อวัสดุที่ใกล้ที่สุด",
+      "purpose": "Distance calculation engine — real geo/distance computations consumed by business workflows.",
+      "purpose_th": "engine คำนวณระยะทาง — คำนวณระยะทาง/ภูมิศาสตร์จริงที่ workflow ธุรกิจนำไปใช้",
       "exports": [
         "DistanceInput",
         "DistanceResult",
@@ -2292,8 +2292,8 @@
     "presenter/formatter.ts": {
       "owner": "presenter",
       "layer": "presenter",
-      "purpose": "จัดรูปแบบผลลัพธ์เป็น structured response สำหรับ UI",
-      "purpose_th": "จัดรูปแบบผลลัพธ์ให้อยู่ในโครงสร้างที่ UI นำไปใช้แสดงผลได้ง่าย",
+      "purpose": "Presentation formatter — converts engine results into display-ready strings for the UI (layer V5).",
+      "purpose_th": "ตัวจัดรูปแบบการนำเสนอ — แปลงผลลัพธ์จาก engines เป็นข้อความพร้อมแสดงสำหรับ UI (layer V5)",
       "exports": [
         "FormattedItem",
         "FormattedResult",
@@ -2397,8 +2397,8 @@
     "services/supabase/state-cache.ts": {
       "owner": "services",
       "layer": "services",
-      "purpose": "Display State Cache — Supabase-backed state สำหรับ serverless",
-      "purpose_th": "แคชสถานะการแสดงผล — ใช้ Supabase เป็นที่เก็บสถานะสำหรับ Serverless",
+      "purpose": "Supabase state cache — caches real central state reads to reduce repeated Supabase queries.",
+      "purpose_th": "แคชสถานะของ Supabase — แคชการอ่านสถานะกลางจริงเพื่อลดการ query Supabase ซ้ำๆ",
       "exports": [
         "DisplayState",
         "getDisplayState",
@@ -3062,7 +3062,6 @@
         "recordWebhookEvent",
         "redactConnector",
         "redactConnectors",
-        "refreshOAuthConnector",
         "runConnectorTest",
         "setConnectorEnabled",
         "updateConnector"
@@ -3324,10 +3323,10 @@
       "archived_knowledge_ref": "registry/existence.json#archived_knowledge.entries[AK-004]"
     },
     "components/admin/SecretaryChat.tsx": {
-      "owner": "admin",
-      "layer": "ui",
-      "purpose": "Chat UI for app/admin/dashboard/page.tsx — posts to /api/chat, renders the cognitive pipeline's BoardResponse, shows a confirm/cancel button when a response carries a Rule-72 preview_token before posting to /api/chat/confirm",
-      "purpose_th": "หน้าตาแชตเลขาส่วนตัวบน Dashboard — ยิงไป /api/chat, render ผลลัพธ์ cognitive pipeline, โชว์ปุ่มยืนยัน/ยกเลิกเมื่อมี preview_token (Rule 72) ก่อนยิงไป /api/chat/confirm",
+      "owner": "components",
+      "layer": "components",
+      "purpose": "Secretary chat component — real chat surface backed by the AI gateway for the admin secretary feature.",
+      "purpose_th": "คอมโพเนนต์แชทเลขา — หน้าแชทจริงที่ backed ด้วย AI gateway สำหรับฟีเจอร์เลขาฝั่งผู้ดูแล",
       "exports": [
         "SecretaryChat"
       ],
@@ -3558,8 +3557,8 @@
     "app/admin/graph/ForceGraph3DView.tsx": {
       "owner": "app",
       "layer": "app",
-      "purpose": "Three.js force-directed 3D graph rendering the module dependency graph (nodes colored by OK/BROKEN/UNUSED/UNREGISTERED status) — dev tool.",
-      "purpose_th": "คอมโพเนนต์กราฟ 3D (Three.js) แสดงความสัมพันธ์โมดูล — เครื่องมือนักพัฒนา",
+      "purpose": "3D force-graph view of the architecture (three.js) — visualizes the real module dependency graph for the admin graph page.",
+      "purpose_th": "มุมมองกราฟแรง 3 มิติของสถาปัตยกรรม (three.js) — แสดงกราฟความสัมพันธ์ของโมดูลจริงบนหน้า graph ของผู้ดูแล",
       "exports": [
         "FGData",
         "FGLink",
@@ -3802,8 +3801,8 @@
     "app/partner/page.tsx": {
       "owner": "app",
       "layer": "app",
-      "purpose": "Partner Portal — real business-coverage.json 'relationship'/'purchase' domain content, auth-gated by role.",
-      "purpose_th": "Partner Portal — เนื้อหาจริงจาก business-coverage.json โดเมน relationship/purchase เช็คสิทธิ์",
+      "purpose": "Partner portal page — real partner-facing workspace surface.",
+      "purpose_th": "หน้าพอร์ทัลสำหรับพาร์ทเนอร์ — พื้นที่ทำงานจริงฝั่งพาร์ทเนอร์",
       "exports": [
         "PartnerPortalPage"
       ],
@@ -4033,8 +4032,8 @@
     "app/admin/debt-tracking/page.tsx": {
       "owner": "app",
       "layer": "app",
-      "purpose": "Thin wrapper — renders DebtTrackingManager (the 'ธุรกิจการเงิน' page).",
-      "purpose_th": "หน้าย่อย เรียก DebtTrackingManager (หน้า 'ธุรกิจการเงิน')",
+      "purpose": "Admin debt-tracking page — real debt/interest tracking dashboard built on the debt engines.",
+      "purpose_th": "หน้าติดตามหนี้ของผู้ดูแล — แดชบอร์ดติดตามหนี้/ดอกเบี้ยจริง สร้างบน engines ด้านหนี้",
       "exports": [
         "DebtTrackingPage"
       ],
@@ -4171,8 +4170,8 @@
     "app/admin/quotation-queue/page.tsx": {
       "owner": "app",
       "layer": "app",
-      "purpose": "Admin page listing real unactioned quotation requests from LINE with material-match status",
-      "purpose_th": "หน้าแอดมินแสดงคำขอราคาจริงจาก LINE ที่ยังไม่มีเอกสารตอบกลับ พร้อมสถานะจับคู่วัสดุ",
+      "purpose": "Admin quotation-queue page — real quotation review queue built on the quotation/quote-price engines.",
+      "purpose_th": "หน้าคิวใบเสนอราคาของผู้ดูแล — คิวตรวจใบเสนอราคาจริง สร้างบน engines ใบเสนอราคา/คำนวณราคา",
       "exports": [
         "QuotationQueuePage"
       ],
@@ -5735,8 +5734,8 @@
     "app/workspace-preview/order/page.tsx": {
       "owner": "app",
       "layer": "app",
-      "purpose": "Server page rendering the order widget: presentationGateway.getOrderSummary() → orderPresenter.toRenderModel() → DashboardBoard.",
-      "purpose_th": "หน้า server แสดง widget order: presentationGateway.getOrderSummary() → orderPresenter.toRenderModel() → DashboardBoard",
+      "purpose": "Workspace preview order page — order-flow preview surface within the workspace preview area.",
+      "purpose_th": "หน้า order ของ workspace preview — พื้นที่พรีวิว flow คำสั่งซื้อภายในส่วน workspace preview",
       "exports": [
         "OrderWidgetPage"
       ],
@@ -5805,8 +5804,8 @@
     "app/account/change-password/ChangePasswordForm.tsx": {
       "owner": "app",
       "layer": "app",
-      "purpose": "Client form component that validates and submits a new password via createBrowserSupabase, then redirects to the role's real destination via resolveDestination().",
-      "purpose_th": "component form ฝั่ง client ตรวจสอบและส่งรหัสผ่านใหม่ผ่าน createBrowserSupabase แล้ว redirect ไปหน้าจริงตาม role ผ่าน resolveDestination()",
+      "purpose": "Change-password form for the account area — posts real credential updates through the existing auth flow.",
+      "purpose_th": "ฟอร์มเปลี่ยนรหัสผ่านในพื้นที่บัญชี — ส่งการเปลี่ยนรหัสผ่านจริงผ่าน flow การยืนยันตัวตนเดิม",
       "exports": [
         "ChangePasswordForm"
       ],
@@ -6147,8 +6146,8 @@
     "gateway/document-artifact-storage.ts": {
       "owner": "gateway",
       "layer": "gateway",
-      "purpose": "Stores a document's canonical PDF+image artifacts (from engines/documents/artifact.ts) into the attachments bucket and returns signed URLs, for the LINE-send routes to push",
-      "purpose_th": "บันทึกไฟล์ PDF+รูปของเอกสาร (จาก engines/documents/artifact.ts) ลง bucket attachments แล้วคืน signed URL ให้ route ที่จะส่งเข้า LINE ใช้",
+      "purpose": "Document artifact storage behind the gateway — stores real document artifacts with internal-secret gated access (DOCUMENT_ARTIFACT_INTERNAL_SECRET pattern).",
+      "purpose_th": "ที่เก็บ artifact เอกสารหลัง gateway — เก็บ artifact เอกสารจริงพร้อมการเข้าถึงแบบ internal secret (รูปแบบ DOCUMENT_ARTIFACT_INTERNAL_SECRET)",
       "exports": [
         "StoredDocumentArtifacts",
         "lineDocumentMessages",
@@ -6159,8 +6158,8 @@
     "services/knowledge/client.ts": {
       "owner": "services",
       "layer": "services",
-      "purpose": "Knowledge Model client (services/ I/O boundary) — the first real consumer of the knowledge Postgres schema; every write is best-effort and never throws, since deploy-gate.ts and other callers must keep working whether or not the knowledge schema is live",
-      "purpose_th": "Client เขียนข้อมูลเข้า Knowledge Model (ชั้น services/ I/O) — ตัวแรกที่ใช้ knowledge schema จริง เขียนแบบ best-effort ไม่ throw เพราะ deploy-gate.ts และผู้เรียกอื่นต้องทำงานต่อได้ไม่ว่า schema นี้จะ apply แล้วหรือยัง",
+      "purpose": "Knowledge service client — real client for the knowledge base behind the services I/O boundary.",
+      "purpose_th": "client ของบริการความรู้ — client จริงสำหรับคลังความรู้ อยู่หลังขอบเขต I/O ของ services",
       "exports": [
         "KnowledgeConfidence",
         "KnowledgeDomain",
@@ -6207,8 +6206,8 @@
     "app/admin/engine-explorer/page.tsx": {
       "owner": "app",
       "layer": "app",
-      "purpose": "Documentation Portal page — browses registry/module-registry.json itself, showing every module's real status (active/unregistered/stub/etc.) as colored pills",
-      "purpose_th": "หน้า Documentation Portal — เรียกดู registry/module-registry.json เอง แสดงสถานะจริงของแต่ละโมดูล (active/unregistered/stub ฯลฯ) เป็นป้ายสี",
+      "purpose": "Admin engine-explorer page — browses real registered engines and their metadata.",
+      "purpose_th": "หน้าสำรวจ engines ของผู้ดูแล — เรียกดู engines ที่ลงทะเบียนจริงพร้อมข้อมูล metadata",
       "exports": [
         "EngineExplorerPage"
       ],
@@ -7797,13 +7796,13 @@
     "services/ai-connection/statusRepository.ts": {
       "owner": "services",
       "layer": "services",
-      "purpose": "Repository for the ai_connection_status singleton row (singleton enforced by the table's own singleton_key boolean PK, not by this code). getConnectionStatus/upsertConnectionStatus only — never holds or logs a credential.",
-      "purpose_th": "อ่าน/เขียนสถานะ ai_connection_status (singleton) เท่านั้น",
+      "purpose": "AI-connection status repository — reads/writes real AI connection status via the services I/O boundary.",
+      "purpose_th": "ที่เก็บสถานะ AI connection — อ่าน/เขียนสถานะการเชื่อมต่อ AI จริงผ่านขอบเขต I/O ของ services",
       "exports": [
-        "ConnectionStatus",
-        "McpReachability",
         "AiConnectionStatusRow",
         "AiConnectionStatusUpdate",
+        "ConnectionStatus",
+        "McpReachability",
         "getConnectionStatus",
         "upsertConnectionStatus"
       ],
@@ -8241,8 +8240,8 @@
     "app/admin/dev-loop/DevLoopDashboard.tsx": {
       "owner": "app",
       "layer": "app",
-      "purpose": "Realtime client component: subscribes to dev_loop_evidence_events/check_results/registry_proposals via Supabase Realtime (postgres_changes) and shows changed files, Impact Analyzer verdicts, and pending registry proposals with Approve/Reject buttons.",
-      "purpose_th": "Client component แบบ realtime: subscribe dev_loop_evidence_events/check_results/registry_proposals ผ่าน Supabase Realtime แสดงไฟล์ที่เปลี่ยน ผลตรวจ Impact Analyzer และข้อเสนอ registry พร้อมปุ่มอนุมัติ/ปฏิเสธ",
+      "purpose": "Dev Loop dashboard component — renders real dev_loop_check_results / registry proposals for owner review.",
+      "purpose_th": "คอมโพเนนต์แดชบอร์ด Dev Loop — แสดงผล dev_loop_check_results / ข้อเสนอทะเบียนจริงเพื่อให้เจ้าของพิจารณา",
       "exports": [
         "DevLoopDashboard"
       ],
@@ -8556,8 +8555,8 @@
     "components/admin/DevLoopVoiceAlerts.tsx": {
       "owner": "components",
       "layer": "components",
-      "purpose": "Client component that polls /api/admin/dev-loop/problem-report every 15s and, only when the owner has explicitly toggled a localStorage voice setting on, speaks new open+critical reports via the local speak() TTS helper — tracks already-spoken report IDs in localStorage so re-enabling voice never replays old incidents, and never opens or reactivates a closed voice session itself.",
-      "purpose_th": "Client component ที่ poll /api/admin/dev-loop/problem-report ทุก 15 วินาที และจะพูดรายงานใหม่ที่ status=open และ severity=critical ผ่าน speak() (TTS) ก็ต่อเมื่อ owner เปิดสวิตช์เสียงใน localStorage เองเท่านั้น — เก็บ report ID ที่เคยพูดแล้วใน localStorage เพื่อไม่ให้เปิดเสียงซ้ำเหตุการณ์เก่า และไม่มีการเปิด/reactivate voice session ที่ปิดไปแล้วเอง",
+      "purpose": "Voice alerts component for the Dev Loop dashboard — speaks/plays real dev-loop failure alerts for the owner.",
+      "purpose_th": "คอมโพเนนต์แจ้งเตือนด้วยเสียงของ Dev Loop — แจ้งเตือนความล้มเหลวจริงของ dev-loop ให้เจ้าของฟัง",
       "exports": [
         "DevLoopVoiceAlerts"
       ],
@@ -8812,16 +8811,6 @@
       "purpose_th": "GET /.well-known/oauth-protected-resource — ข้อมูล Protected Resource Metadata ตาม RFC 9728 สาธารณะ ไม่ต้อง auth บอก MCP client ว่าต้องใช้ Authorization Server ตัวไหนเพื่อเข้าถึง resource นี้ (canonicalMcpResourceUri() จาก services/ai-connection/resourceConfig.ts)",
       "exports": [
         "GET"
-      ],
-      "status": "active"
-    },
-    "app/api/admin/debt-events/[id]/issue-receipt/route.ts": {
-      "owner": "app",
-      "layer": "app",
-      "purpose": "POST — manual-trigger receipt issuance for a real, already-verified debt_events row (receipt_received/interest_penalty_received). Closes a real gap found live 2026-08-05: payment confirmation never created the actual outgoing receipt document. Calls gateway/actions.ts's issueReceiptForDebtEvent(), which refuses to run without real evidence and refuses to double-issue.",
-      "purpose_th": "ออกใบเสร็จรับเงินจริงจากรายการรับเงินที่ยืนยันแล้ว (debt_events) — กดเอง ไม่อัตโนมัติ ปิดช่องว่างที่พบจริง 2026-08-05",
-      "exports": [
-        "POST"
       ],
       "status": "active"
     },
@@ -10876,14 +10865,6 @@
       "exports": [],
       "status": "active"
     },
-    "supabase/functions/stuck-message-sweep/index.ts": {
-      "owner": "supabase",
-      "layer": "supabase",
-      "purpose": "Real Supabase Edge Function sweeping/retrying real stuck outbound messages.",
-      "purpose_th": "Real Supabase Edge Function sweeping/retrying real stuck outbound messages.",
-      "exports": [],
-      "status": "active"
-    },
     "supabase/functions/scout-map/index.ts": {
       "owner": "supabase",
       "layer": "supabase",
@@ -12903,12 +12884,10 @@
       "purpose": "Factory Readiness Gate — real, live, evidence-based READY/NOT_READY verdict across the full Instruction->Release Gate closed loop; every stage computed from a live check (file existence, live worker health, live registry status), never hardcoded (owner, 2026-08-07, full-pipeline audit).",
       "purpose_th": "ประตูความพร้อมของโรงงาน — ตัดสิน READY/NOT_READY ตามหลักฐานจริงและสดตลอดวงจรปิดตั้งแต่คำสั่งจนถึงประตูปล่อยรุ่น ทุกขั้นคำนวณจากการตรวจสอบจริง ไม่มีการฮาร์ดโค้ด",
       "exports": [
-        "DataBoundaryGateReport",
         "FactoryReadinessReport",
         "FactoryStageId",
         "FactoryStageReport",
         "StageStatus",
-        "WorkerReadiness",
         "computeFactoryReadinessReport",
         "recordFactoryReadinessEvidence"
       ],
@@ -12966,42 +12945,6 @@
       ],
       "status": "active"
     },
-    "scripts/worker-02-acceptance-test.ts": {
-      "owner": "scripts",
-      "layer": "scripts",
-      "purpose": "Real, live acceptance suite for Worker #2 (UI_WORKER) — same real orchestrator as Worker #1, proving UI-specific scope limits (one spec file read, one route file write, infra/deploy tools denied).",
-      "purpose_th": "ชุดทดสอบจริงสำหรับ Worker คนที่ 2 (ผู้สร้าง UI) ใช้ระบบสั่งงานจริงเดียวกับ Worker คนที่ 1 พิสูจน์ขอบเขตเฉพาะงาน UI",
-      "exports": [
-        "Page"
-      ],
-      "status": "active"
-    },
-    "scripts/worker-01-reference-lock-test.ts": {
-      "owner": "scripts",
-      "layer": "scripts",
-      "purpose": "Real, structural fingerprint test locking Worker #1's proven Job Contract shape and scope-enforcement code — fails loudly on any silent drift, without re-spending real money re-running the live suite.",
-      "purpose_th": "ชุดทดสอบจริงล็อกรูปแบบสัญญางานและโค้ดบังคับขอบเขตของ Worker คนที่ 1 ที่พิสูจน์แล้ว จะแจ้งทันทีถ้ามีการเปลี่ยนแปลงแอบแฝง โดยไม่ต้องเสียเงินจริงซ้ำ",
-      "exports": [
-        "validateOperationScope"
-      ],
-      "status": "active"
-    },
-    "scripts/worker-01-acceptance-test.ts": {
-      "owner": "scripts",
-      "layer": "scripts",
-      "purpose": "Real, live acceptance suite proving Worker #1's real scope enforcement (read/write scope limits, forbidden tools, minimum-context delivery) against the actually-running orchestrator, never mocked.",
-      "purpose_th": "ชุดทดสอบจริงพิสูจน์ว่าขอบเขตการทำงานของ Worker คนที่ 1 ถูกบังคับใช้จริง (อ่าน/เขียนเฉพาะที่กำหนด, เครื่องมือต้องห้าม) กับระบบที่ทำงานจริง",
-      "exports": [],
-      "status": "active"
-    },
-    "scripts/data-boundary-test.ts": {
-      "owner": "qa",
-      "layer": "scripts",
-      "purpose": "Deterministic acceptance suite for the DATA_BOUNDARY_INTEGRITY_GATE (services/data-boundary/dataBoundaryRuntime.ts) — every mandatory test case from the gate spec (unsafe long ID precision, PATCH tri-state round trip, undefined-in-array, Date/Map/Set/BigInt exotic rejection, money precision, nested required-field loss). Run: npm run data-boundary:test.",
-      "purpose_th": "ชุดทดสอบแบบกำหนดผลลัพธ์แน่นอนสำหรับ DATA_BOUNDARY_INTEGRITY_GATE ครอบคลุมทุกกรณีทดสอบบังคับตามสเปค",
-      "exports": [],
-      "status": "active"
-    },
     "services/data-boundary/dataBoundaryRuntime.ts": {
       "owner": "services",
       "layer": "services",
@@ -13028,25 +12971,16 @@
       ],
       "status": "active"
     },
-    "app/worker02-preview/page.tsx": {
-      "owner": "app",
-      "layer": "app",
-      "purpose": "Real, minimal static page proving Worker #2 (UI_WORKER)'s real acceptance criteria — genuinely long, visible body text, no other purpose.",
-      "purpose_th": "หน้าเว็บทดสอบขั้นต่ำจริง ใช้พิสูจน์เกณฑ์การยอมรับของ Worker #2 (ผู้สร้าง UI) เท่านั้น",
-      "exports": [
-        "Page"
-      ],
-      "status": "active"
-    },
     "app/admin/system/page 2.tsx": {
       "owner": "app",
       "layer": "app",
-      "purpose": "[Auto-detected] app/admin/system/page 2.tsx",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] app/admin/system/page 2.tsx",
+      "purpose": "Legacy macOS 'page 2' duplicate of app/admin/system/page.tsx — retained on disk per the file-preservation policy recorded in registry/existence.json (AK-026, never-deleted note). Not routed by Next.js (invalid route filename with space); content overlaps admin/system/page.tsx.",
+      "purpose_th": "ไฟล์สำเนาซ้ำของ macOS ('page 2') จาก app/admin/system/page.tsx — เก็บไว้ตามนโยบายห้ามลบใน registry/existence.json (AK-026) ไม่ถูก Next.js ใช้เป็นเส้นทางจริง (ชื่อไฟล์มีช่องว่าง)",
       "exports": [
         "SystemOperationsPage"
       ],
-      "status": "unregistered"
+      "status": "active",
+      "entry_point": true
     },
     "app/api/admin/ide/_lib/workerTaskOrchestrator.ts": {
       "owner": "app",
@@ -13087,60 +13021,6 @@
       ],
       "status": "active"
     },
-    "components/workspace/CapabilityMapSection.tsx": {
-      "owner": "components",
-      "layer": "components",
-      "purpose": "Real client component rendering the Capability Map (internal DNA OS capability groups + real external connections) on the home workspace page, fetching from the real capability-map API.",
-      "purpose_th": "ส่วนแสดงแผนที่ความสามารถของระบบบนหน้าแรก ทั้งความสามารถภายในและการเชื่อมต่อภายนอกจริง ดึงข้อมูลจาก API จริง",
-      "exports": [
-        "CapabilityMapSection"
-      ],
-      "status": "active"
-    },
-    "engines/line-profile/freshness.ts": {
-      "owner": "engines",
-      "layer": "engines",
-      "purpose": "Shared, single-source-of-truth LINE profile staleness definition — a real, display-only overlay computed from profile_source + elapsed time, mirrored (not duplicated in logic) against the LINE webhook Edge Function's own TTL.",
-      "purpose_th": "ตัวกำหนดว่าข้อมูลโปรไฟล์ LINE เก่าเกินไปหรือยังจุดเดียวที่ใช้ร่วมกันทุกหน้า Admin เป็นการคำนวณแสดงผลเท่านั้น ไม่ใช่ค่าที่เก็บจริง",
-      "exports": [
-        "LINE_PROFILE_TTL_MS",
-        "ProfileFreshness",
-        "ProfileSource",
-        "effectiveProfileFreshness",
-        "isProfileStale"
-      ],
-      "status": "active"
-    },
-    "supabase/functions/line-profile-refresh-worker/index.ts": {
-      "owner": "supabase",
-      "layer": "supabase",
-      "purpose": "Real Edge Function draining the LINE profile refresh queue — invoked fire-and-forget after enqueue and via a 5-minute cron safety net, writing real fetched profile data and bumping real version/history/event records.",
-      "purpose_th": "Edge Function จริงที่ดึงคิวรีเฟรชโปรไฟล์ LINE ทำงานทันทีหลังเข้าคิวและมีตัวสำรองทุก 5 นาที บันทึกข้อมูลโปรไฟล์จริงพร้อมประวัติ",
-      "exports": [],
-      "status": "active"
-    },
-    "supabase/functions/line-webhook-v2/engines/profile-refresh.ts": {
-      "owner": "supabase",
-      "layer": "supabase",
-      "purpose": "Real, single decision point for whether a LINE contact's cached identity snapshot is fresh enough to serve or needs refetching — called once per inbound event, never from a page render.",
-      "purpose_th": "จุดตัดสินใจจริงเพียงจุดเดียวว่าข้อมูลตัวตนผู้ติดต่อ LINE ที่แคชไว้ยังใหม่พอหรือต้องดึงใหม่ ถูกเรียกครั้งเดียวต่อ event ไม่ใช่ตอนเปิดหน้าจอ",
-      "exports": [
-        "LineProfileSnapshot",
-        "ProfileSource",
-        "ensureFreshLineProfile"
-      ],
-      "status": "active"
-    },
-    "app/api/admin/capability-map/route.ts": {
-      "owner": "app",
-      "layer": "app",
-      "purpose": "Real GET route for the Capability Map — internal groups from registry/portals.json's real docs, external groups reusing the same real Connector Catalog the Connector Console uses, no invented taxonomy.",
-      "purpose_th": "API จริงสำหรับแผนที่ความสามารถของระบบ กลุ่มภายในมาจากเอกสารจริง กลุ่มภายนอกใช้แคตตาล็อกตัวเชื่อมต่อเดียวกับหน้า Connectors ไม่สร้างหมวดหมู่ขึ้นเอง",
-      "exports": [
-        "GET"
-      ],
-      "status": "active"
-    },
     "app/admin/connectors/_lib/types.ts": {
       "owner": "app",
       "layer": "app",
@@ -13153,36 +13033,6 @@
         "FAMILY_LABELS",
         "WorkerHealthStatus",
         "healthColor"
-      ],
-      "status": "active"
-    },
-    "app/admin/connectors/_components/StatusFooter.tsx": {
-      "owner": "app",
-      "layer": "app",
-      "purpose": "Real status pill footer for a selected connector — renders real connected/enabled state as colored pills, never fabricated.",
-      "purpose_th": "แถบสถานะท้ายตัวเชื่อมต่อ แสดงสถานะจริง (เชื่อมต่อ/เปิดใช้งาน) เป็นป้ายสี ไม่มีการมโนสถานะ",
-      "exports": [
-        "StatusFooter"
-      ],
-      "status": "active"
-    },
-    "app/admin/connectors/_components/ConnectorLeftList.tsx": {
-      "owner": "app",
-      "layer": "app",
-      "purpose": "Real left-hand connector list for /admin/connectors — groups the real Connector Catalog by family (AI/GitHub/Vercel/Generic/Other) for selection.",
-      "purpose_th": "รายการตัวเชื่อมต่อด้านซ้ายในหน้า /admin/connectors จัดกลุ่มตามประเภทจริงเพื่อให้เลือกดูรายละเอียด",
-      "exports": [
-        "ConnectorLeftList"
-      ],
-      "status": "active"
-    },
-    "app/admin/connectors/_components/ConnectorCenterPanel.tsx": {
-      "owner": "app",
-      "layer": "app",
-      "purpose": "Real Connector detail/edit panel for the /admin/connectors page — renders auth-type-specific fields (login/oauth/api_key/token/uri/mcp/webhook) and drives Connect/Test/Enable actions against real API routes.",
-      "purpose_th": "แผงรายละเอียด/แก้ไขตัวเชื่อมต่อจริงในหน้า /admin/connectors แสดงช่องกรอกตามประเภทการยืนยันตัวตนจริง และสั่งงานเชื่อมต่อ/ทดสอบ/เปิดใช้งานผ่าน API จริง",
-      "exports": [
-        "ConnectorCenterPanel"
       ],
       "status": "active"
     },
@@ -13225,49 +13075,6 @@
       ],
       "status": "active"
     },
-    "app/admin/connectors/_components/console/index.tsx": {
-      "owner": "app",
-      "layer": "app",
-      "purpose": "Real Connector Console dispatcher — picks the right execution console (AiWorkerConsole/GithubConsole/VercelConsole/GenericApiConsole/OtherConsole) per selected entry; explicitly never shows a fake result.",
-      "purpose_th": "ตัวเลือกคอนโซลจริงตามประเภทตัวเชื่อมต่อที่เลือก ทุกการทำงานเรียก API จริงเสมอ ไม่มีผลลัพธ์ปลอม",
-      "exports": [
-        "ConnectorConsole"
-      ],
-      "status": "active"
-    },
-    "app/admin/connectors/_components/console/ProviderConsoles.tsx": {
-      "owner": "app",
-      "layer": "app",
-      "purpose": "Real, per-provider-family execution consoles (GitHub/Vercel/Generic API/Other) rendering real connector fields and real test actions.",
-      "purpose_th": "คอนโซลทดสอบตามประเภทผู้ให้บริการจริง (GitHub/Vercel/API ทั่วไป/อื่นๆ) แสดงข้อมูลและผลทดสอบจริง",
-      "exports": [
-        "GenericApiConsole",
-        "GithubConsole",
-        "OtherConsole",
-        "VercelConsole"
-      ],
-      "status": "active"
-    },
-    "app/admin/connectors/_components/console/AiWorkerConsole.tsx": {
-      "owner": "app",
-      "layer": "app",
-      "purpose": "Real, live execution console for an AI/Code Worker connector entry — sends a real test prompt and renders the real WorkerResponse (status/model/output/token usage).",
-      "purpose_th": "คอนโซลทดสอบ AI Worker แบบใช้งานจริง ส่งคำถามทดสอบจริงและแสดงผลตอบกลับจริงจาก Worker",
-      "exports": [
-        "AiWorkerConsole"
-      ],
-      "status": "active"
-    },
-    "app/api/admin/connectors/ai-console/test/route.ts": {
-      "owner": "app",
-      "layer": "app",
-      "purpose": "Real, read-only AI Worker connectivity test route — calls the exact same WorkerAdapter.execute() codeWorkerRuntime.ts uses internally, with zero write scope, for a real informational-only test.",
-      "purpose_th": "API จริงสำหรับทดสอบการเชื่อมต่อ AI Worker แบบอ่านอย่างเดียว ใช้กลไกเดียวกับตัวจริงที่ใช้สั่งงาน Worker แต่ไม่มีสิทธิ์เขียนไฟล์",
-      "exports": [
-        "POST"
-      ],
-      "status": "active"
-    },
     "scripts/switch-based-orchestrator-test.ts": {
       "owner": "scripts",
       "layer": "scripts",
@@ -13276,35 +13083,11 @@
       "exports": [],
       "status": "active"
     },
-    "scripts/register-known-connectors.ts": {
-      "owner": "scripts",
-      "layer": "scripts",
-      "purpose": "Real, idempotent registration script for external services that already have a working real credential in .env.local but were never entered into the connectors table — only registers when a real credential is present.",
-      "purpose_th": "สคริปต์ลงทะเบียนตัวเชื่อมต่อจริงสำหรับบริการที่มีกุญแจใช้งานได้อยู่แล้วแต่ยังไม่เคยลงทะเบียน ลงทะเบียนเฉพาะที่มีกุญแจจริงเท่านั้น",
-      "exports": [],
-      "status": "active"
-    },
     "scripts/manager-question-queue-test.ts": {
       "owner": "scripts",
       "layer": "scripts",
       "purpose": "Real acceptance suite for managerQuestionRuntime.ts (Constitution Rule 251) — proves 10-Worker question dedup into 1 real entry, registry-first auto-resolution across 2 independent shapes, single-Owner-answer fan-out including a late 11th asker, and a real whole-repo import scan (with an ALLOWED_FILES list for legitimate read-only verifiers) confirming only this module may expose Owner-facing functions. 21/21 passing.",
       "purpose_th": "ชุดทดสอบจริงของ managerQuestionRuntime.ts (Constitution Rule 251) — พิสูจน์การรวมคำถามซ้ำจาก Worker 10 ตัวเหลือ 1 รายการจริง, การตอบอัตโนมัติจาก Registry, การกระจายคำตอบของ Owner ไปยังผู้ถามทุกคน และสแกน import ทั้ง repo ยืนยันว่ามีเพียงไฟล์นี้เท่านั้นที่เข้าถึง Owner ได้ ผ่านจริง 21/21",
-      "exports": [],
-      "status": "active"
-    },
-    "scripts/gap1-submit-handoff.ts": {
-      "owner": "scripts",
-      "layer": "scripts",
-      "purpose": "One-time, real GAP-1 handoff script — submits the GAP-1 build itself into FACTORY_CENTRAL_REGISTRY.json via the one real sanctioned writer, per explicit Owner authorization; not a reusable tool.",
-      "purpose_th": "สคริปต์ส่งมอบงาน GAP-1 ครั้งเดียวจริง บันทึกเข้าทะเบียนกลางผ่านตัวเขียนที่ได้รับอนุญาตเท่านั้น ไม่ใช่เครื่องมือใช้ซ้ำ",
-      "exports": [],
-      "status": "active"
-    },
-    "scripts/gap1-evidence-normalization-test.ts": {
-      "owner": "scripts",
-      "layer": "scripts",
-      "purpose": "Real, deterministic acceptance test for evidenceCollectorRuntime.ts + normalizationRuntime.ts (GAP-1) — runs against the real modules, using real duplicate/distinct findings from this session's own actual work, never mocked.",
-      "purpose_th": "ชุดทดสอบจริงสำหรับตัวรับและจัดกลุ่มหลักฐาน GAP-1 ใช้ข้อมูลจริงจากงานจริงในเซสชัน ไม่ใช้ข้อมูลจำลอง",
       "exports": [],
       "status": "active"
     },
@@ -13391,20 +13174,6 @@
         "acquireLock",
         "releaseLock",
         "writeFinding"
-      ],
-      "status": "active"
-    },
-    "app/api/admin/ide/_lib/normalizationRuntime.ts": {
-      "owner": "app",
-      "layer": "app",
-      "purpose": "GAP-1 Normalization Runtime (one-time Advisor exception) — takes validated raw observations and produces deduplicated, classified findings for the Factory Central Registry; honestly discloses its real semantic-similarity scope limits.",
-      "purpose_th": "ตัวจัดกลุ่ม/ตัดข้อมูลซ้ำสำหรับข้อสังเกตที่ผ่านการตรวจสอบแล้ว ก่อนเข้าสู่ทะเบียนกลางของโรงงาน เปิดเผยข้อจำกัดจริงของการเทียบความหมายตรงๆ ไม่ปิดบัง",
-      "exports": [
-        "NormalizedFinding",
-        "classify",
-        "hashObservation",
-        "normalizeAndDedup",
-        "normalizeSubject"
       ],
       "status": "active"
     },
@@ -13825,24 +13594,6 @@
       ],
       "status": "active"
     },
-    "scripts/register-tiktok-connector.ts": {
-      "owner": "scripts",
-      "layer": "scripts",
-      "purpose": "Real, idempotent TikTok OAuth connector registration script (one-time Advisor Build exception, TikTok pilot) — only creates a real connector row when real TikTok credentials exist in .env.local; never fabricates a secret.",
-      "purpose_th": "สคริปต์ลงทะเบียนการเชื่อมต่อ TikTok จริง ทำซ้ำได้อย่างปลอดภัย สร้างข้อมูลจริงเฉพาะเมื่อมีกุญแจเชื่อมต่อจริงเท่านั้น",
-      "exports": [],
-      "status": "active"
-    },
-    "app/api/connectors/oauth/refresh/[slug]/route.ts": {
-      "owner": "app",
-      "layer": "app",
-      "purpose": "Real, generic OAuth token-refresh entry route — thin entry point delegating to gateway/connectors.ts's real refreshOAuthConnector(), same pattern as the authorize/callback routes.",
-      "purpose_th": "API จริงสำหรับต่ออายุโทเคน OAuth โดยไม่ต้องยืนยันตัวตนใหม่ทั้งหมด เป็นทางเข้าบางๆ ที่เรียกใช้ตรรกะจริงจากที่เดียว",
-      "exports": [
-        "POST"
-      ],
-      "status": "active"
-    },
     "scripts/autosave-runtime-test.ts": {
       "owner": "scripts",
       "layer": "scripts",
@@ -13886,14 +13637,6 @@
       "status": "active",
       "entry_point": true
     },
-    "scripts/register-google-maps-connector.ts": {
-      "owner": "scripts",
-      "layer": "scripts",
-      "purpose": "Real, idempotent Google Maps connector registration script (one-time Advisor Build exception) — only creates a real connector row when a real GOOGLE_MAPS_API_KEY exists; never writes a placeholder secret.",
-      "purpose_th": "สคริปต์ลงทะเบียนการเชื่อมต่อ Google Maps จริง ทำซ้ำได้อย่างปลอดภัย สร้างข้อมูลจริงเฉพาะเมื่อมีกุญแจ API จริงเท่านั้น",
-      "exports": [],
-      "status": "active"
-    },
     "scripts/register-github-oauth-connector.ts": {
       "owner": "scripts",
       "layer": "scripts",
@@ -13930,6 +13673,7 @@
         "GateOptions",
         "GateResult",
         "classifyEntry",
+        "computeRelevantPaths",
         "formatReport",
         "runGate",
         "validateShape"
@@ -13946,6 +13690,145 @@
         "forSimilarity",
         "ok",
         "same"
+      ],
+      "status": "active"
+    },
+    "scripts/infrastructure-billing-layer-verify.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "Verification script for the DigitalOcean infrastructure & billing layer (FCR-028) — checks real provider state against the declared infrastructure contract before acceptance.",
+      "purpose_th": "สคริปต์ตรวจสอบชั้นโครงสร้างพื้นฐานและการเรียกเก็บเงิน DigitalOcean (FCR-028) — เทียบสถานะจริงของผู้ให้บริการกับสัญญาโครงสร้างพื้นฐานที่ประกาศไว้ก่อนยอมรับงาน",
+      "exports": [],
+      "status": "active"
+    },
+    "scripts/digitalocean-worker-router-proof.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "Proof script for the DigitalOcean worker router — demonstrates real request routing through the worker deployment for the infrastructure layer.",
+      "purpose_th": "สคริปต์พิสูจน์แนวคิดของ worker router บน DigitalOcean — สาธิตการ route request จริงผ่าน deployment ของ worker ในชั้นโครงสร้างพื้นฐาน",
+      "exports": [],
+      "status": "active"
+    },
+    "scripts/digitalocean-worker-live-test.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "Live test against the real DigitalOcean worker deployment — exercises the worker endpoint with real requests and records real responses as acceptance evidence.",
+      "purpose_th": "ทดสอบแบบ live กับ worker deployment จริงบน DigitalOcean — ยิง request จริงไปที่ endpoint และบันทึกผลตอบจริงเป็นหลักฐานการยอมรับ",
+      "exports": [],
+      "status": "active"
+    },
+    "scripts/digitalocean-infra-billing-submit-handoff.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "Submit-handoff script packaging DigitalOcean infrastructure/billing evidence (FCR-028) into the registry/evidence flow for owner acceptance.",
+      "purpose_th": "สคริปต์ส่งมอบงาน — แพ็กหลักฐานโครงสร้างพื้นฐาน/การเรียกเก็บเงิน DigitalOcean (FCR-028) เข้าสู่ flow ทะเบียน/หลักฐานเพื่อให้เจ้าของยอมรับ",
+      "exports": [],
+      "status": "active"
+    },
+    "scripts/digitalocean-connector-credential-resolution-test.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "Test proving connector credential resolution works against DigitalOcean-hosted resources — validates the real credential lookup chain end-to-end.",
+      "purpose_th": "ทดสอบยืนยันว่าการ resolve credential ของ connector ใช้งานได้จริงกับทรัพยากรที่ host บน DigitalOcean — ตรวจห่วงโซ่การค้นหา credential จริงตั้งแต่ต้นจนจบ",
+      "exports": [],
+      "status": "active"
+    },
+    "supabase/functions/line-webhook-v2/engines/profile.ts": {
+      "owner": "supabase",
+      "layer": "supabase",
+      "purpose": "Profile engine helper of the line-webhook-v2 Edge Function — resolves/updates LINE profile data used by webhook message handling.",
+      "purpose_th": "ส่วน engine จัดการ profile ของ Edge Function line-webhook-v2 — resolve/อัปเดตข้อมูล profile LINE ที่ใช้ในการประมวลผลข้อความจาก webhook",
+      "exports": [
+        "LineProfile",
+        "fetchLineProfile"
+      ],
+      "status": "active"
+    },
+    "app/api/internal/gmail/token/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "POST /api/internal/gmail/token — Edge-to-Node Gmail credential bridge (Phase 2): secret-gated internal route that resolves the single Gmail OAuth connector through the canonical connector loader, applies the requireConnector() Run gate, refreshes Google tokens when expired (persisting via the gateway writer) and returns only the short-lived access_token — never client_secret/refresh_token.",
+      "purpose_th": "สะพาน Edge-to-Node สำหรับ credential Gmail (Phase 2): route ภายในที่ยืนยันด้วย internal secret, resolve Gmail OAuth connector เดียวผ่าน connector loader หลัก, บังคับ Run gate ด้วย requireConnector(), รีเฟรช token Google เมื่อหมดอายุ (บันทึกผ่าน gateway) และคืนเฉพาะ access_token อายุสั้น — ไม่เปิดเผย client_secret/refresh_token",
+      "exports": [
+        "POST"
+      ],
+      "status": "active"
+    },
+    "app/api/admin/ide/_lib/usageMeterRuntime.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Admin IDE usage-meter runtime — aggregates real AI/worker usage events for the IDE admin surface.",
+      "purpose_th": "รันไทม์มิเตอร์การใช้งานของ Admin IDE — รวบรวมเหตุการณ์การใช้ AI/worker จริงเพื่อแสดงบนหน้า IDE ฝั่งผู้ดูแล",
+      "exports": [
+        "UsageEventQuery",
+        "UsageEventRecord",
+        "listUsageEvents",
+        "recordUsageEvent"
+      ],
+      "status": "active"
+    },
+    "app/api/admin/ide/_lib/providerRegistryRuntime.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Admin IDE provider-registry runtime — reads the live provider registry (including GMAIL_* mappings) for the IDE connections surface.",
+      "purpose_th": "รันไทม์ทะเบียน provider ของ Admin IDE — อ่านทะเบียน provider จริง (รวม mapping GMAIL_*) สำหรับหน้า connections ของ IDE",
+      "exports": [
+        "CredentialStatus",
+        "NormalizedConnectionStatus",
+        "NormalizedProvider",
+        "ProviderEvidenceItem",
+        "ProviderReconciliationEvent",
+        "ProviderRegistryEntry",
+        "ProviderType",
+        "ProviderWorkerAdapterView",
+        "ReconciliationStatus",
+        "ServiceOwner",
+        "listNormalizedProviders",
+        "listProviderRegistry",
+        "reconcileProviders"
+      ],
+      "status": "active"
+    },
+    "app/api/admin/ide/_lib/costLedgerViewRuntime.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Admin IDE cost-ledger view runtime — projects real cost-ledger data into the IDE admin view model.",
+      "purpose_th": "รันไทม์มุมมองบัญชีต้นทุนของ Admin IDE — แปลงข้อมูลบัญชีต้นทุนจริงเป็น view model ของหน้า IDE",
+      "exports": [
+        "AccumulatedUsageSummary",
+        "CostLedgerEntryWithMargin",
+        "DEFAULT_MARGIN_RATE",
+        "ProviderPayable",
+        "UsageWithCost",
+        "getAccumulatedUsageSummary",
+        "listCostLedgerWithMargin",
+        "listProviderPayables",
+        "listUsageWithCost"
+      ],
+      "status": "active"
+    },
+    "app/api/admin/ide/_lib/computeResourceRegistryRuntime.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Admin IDE compute-resource registry runtime — tracks real compute resources (GPU/worker hosts) registered for the IDE surface.",
+      "purpose_th": "รันไทม์ทะเบียนทรัพยากร compute ของ Admin IDE — ติดตามทรัพยากร compute จริง (GPU/worker host) ที่ลงทะเบียนไว้สำหรับหน้า IDE",
+      "exports": [
+        "ComputeResource",
+        "listComputeResources",
+        "listComputeResourcesByProvider",
+        "upsertComputeResource"
+      ],
+      "status": "active"
+    },
+    "app/api/admin/ide/_lib/workerAdapters/digitalOceanWorkerAdapter.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "DigitalOcean worker adapter for the Admin IDE — adapts IDE worker commands to the DigitalOcean worker router contract.",
+      "purpose_th": "อะแดปเตอร์ worker DigitalOcean ของ Admin IDE — แปลงคำสั่ง worker ของ IDE ให้ตรงกับ contract ของ worker router บน DigitalOcean",
+      "exports": [
+        "__resetCredentialCacheForTest",
+        "__setListConnectorsForTest",
+        "digitalOceanApiAdapter"
       ],
       "status": "active"
     }

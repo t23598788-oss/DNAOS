@@ -60,8 +60,15 @@ echo "╚═══════════════════════�
 # ══════════════════════════════════════════════════════════
 log_head "Level 1: Source files → Module Registry"
 
-REGISTERED=$(rq keys "$MODULE_REGISTRY" modules)
-
+# Registered keys go through a temp FILE, not an `echo | grep -q` pipeline:
+# under `set -o pipefail`, when `grep -q` matches it closes stdin early and
+# `echo` receives SIGPIPE, so the pipeline exits non-zero and `if !` wrongly
+# reports existing files as unregistered — non-deterministic (observed 16/30/19
+# violations for the same tree across runs, 2026-09-18). grep on a real file
+# cannot receive SIGPIPE, so the check is deterministic (same reason L2/L3
+# below already use temp files).
+REGISTERED_KEYS_FILE="$(mktemp)"
+rq keys "$MODULE_REGISTRY" modules > "$REGISTERED_KEYS_FILE"
 SOURCE_FILES=$(find app components core engines gateway cognitive presenter services plugins -type f \( -name "*.ts" -o -name "*.tsx" \) \
   ! -path "registry/*" \
   ! -path "*/.next/*" \
@@ -71,7 +78,7 @@ SOURCE_FILES=$(find app components core engines gateway cognitive presenter serv
 
 L1_UNREGISTERED=0
 while IFS= read -r file; do
-  if ! echo "$REGISTERED" | grep -Fxq "$file"; then
+  if ! grep -Fxq -- "$file" "$REGISTERED_KEYS_FILE"; then
     log_warn "Not registered: $file"
     L1_UNREGISTERED=$((L1_UNREGISTERED + 1))
   fi
@@ -140,14 +147,15 @@ WORKFLOW_STEPS_FILE=""
 if [ ! -f "$WORKFLOW_REGISTRY" ]; then
   log_warn "Workflow registry not found: $WORKFLOW_REGISTRY (skipping)"
 else
-  COMMAND_NAMES=$(rq keys "$COMMAND_REGISTRY" commands)
+  COMMAND_NAMES_FILE="$(mktemp)"
+  rq keys "$COMMAND_REGISTRY" commands > "$COMMAND_NAMES_FILE"
   L4_MISSING=0
   WORKFLOW_STEPS_FILE="$(mktemp)"
   rq workflow-steps "$WORKFLOW_REGISTRY" > "$WORKFLOW_STEPS_FILE" 2>/dev/null || true
 
   while IFS= read -r ref_cmd; do
     [[ -z "$ref_cmd" ]] && continue
-    if ! echo "$COMMAND_NAMES" | grep -Fxq "$ref_cmd"; then
+    if ! grep -Fxq -- "$ref_cmd" "$COMMAND_NAMES_FILE"; then
       log_warn "Workflow references unknown command: $ref_cmd"
       L4_MISSING=$((L4_MISSING + 1))
     fi

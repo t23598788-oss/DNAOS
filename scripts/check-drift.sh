@@ -54,7 +54,14 @@ echo "--- Checking for undeclared top-level directories ---"
 # and its cross-layer isolation is structural, not just conventional; see
 # registry/dependency-graph.json's "mcp" layer (empty allow-list) and
 # registry/mcp-planned-manifest.json.
-DECLARED_TOP_LEVEL="core gateway engines cognitive presenter services plugins registry app components scripts supabase config node_modules backups public observatory docs styles src-tauri local-runtime dna-os-mcp-server"
+# _inventory/, platform/, project/, system/, workers/, e2e/ (owner-approved Phase 4
+# deploy-repair, 2026-09-18) — real tracked folders from the 2026-09-17 repo
+# reorganization (source inventory snapshots, archived local-runtime docs, project
+# policy docs, system policy/observability/registry metadata, worker evidence,
+# Playwright e2e specs). Real folders with real tracked content — declaring them
+# instead of leaving them flagging as a "Shadow Layer" every run, same treatment
+# as docs/ and styles/ above.
+DECLARED_TOP_LEVEL="core gateway engines cognitive presenter services plugins registry app components scripts supabase config node_modules backups public observatory docs styles src-tauri local-runtime dna-os-mcp-server _inventory platform project system workers e2e"
 
 for dir in */; do
   dirname=$(basename "$dir")

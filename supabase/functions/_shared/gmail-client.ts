@@ -4,27 +4,36 @@
 // findPart()/htmlToPlainText()/extractBodyText() (real KM-002-shaped
 // duplication, caught while building a THIRD copy for
 // subscription-email-sync — Rule 101/103: extend, don't triplicate).
-// Read-only Gmail OAuth (gmail.readonly scope, never send/modify/delete),
-// same GMAIL_CLIENT_ID/GMAIL_CLIENT_SECRET/GMAIL_REFRESH_TOKEN secrets the
-// other two functions already use.
+// Read-only Gmail OAuth (gmail.readonly scope, never send/modify/delete).
+
+// Credential acquisition (owner-approved Phase 2): the OAuth material no longer
+// lives in Deno env (GMAIL_CLIENT_ID/GMAIL_CLIENT_SECRET/GMAIL_REFRESH_TOKEN).
+// This function now asks the Node-side internal bridge
+// (app/api/internal/gmail/token) which resolves the real Gmail connector
+// through the canonical loader and enforces the connector lifecycle Run gate
+// (Connect → Register → Test → Enable → Run — registry/connector-lifecycle.json).
+// Fail-closed by design: bridge unreachable / connector not runnable → null —
+// NO env fallback (never silently bypass the lifecycle).
+async function fetchAccessTokenViaBridge(): Promise<string | null> {
+  const appUrl = Deno.env.get("DNA_OS_APP_URL")
+  const internalSecret = Deno.env.get("GMAIL_INTERNAL_SECRET")
+  if (!appUrl || !internalSecret) return null
+
+  try {
+    const res = await fetch(`${appUrl.replace(/\/+$/, "")}/api/internal/gmail/token`, {
+      method: "POST",
+      headers: { "x-gmail-internal-secret": internalSecret },
+    })
+    if (!res.ok) return null
+    const data = await res.json()
+    return data?.access_token ?? null
+  } catch {
+    return null
+  }
+}
 
 export async function getGmailAccessToken(): Promise<string | null> {
-  const clientId = Deno.env.get("GMAIL_CLIENT_ID")
-  const clientSecret = Deno.env.get("GMAIL_CLIENT_SECRET")
-  const refreshToken = Deno.env.get("GMAIL_REFRESH_TOKEN")
-  if (!clientId || !clientSecret || !refreshToken) return null
-
-  const res = await fetch("https://oauth2.googleapis.com/token", {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams({
-      client_id: clientId, client_secret: clientSecret,
-      refresh_token: refreshToken, grant_type: "refresh_token",
-    }),
-  })
-  if (!res.ok) return null
-  const data = await res.json()
-  return data.access_token ?? null
+  return fetchAccessTokenViaBridge()
 }
 
 function base64UrlDecode(data: string): string {

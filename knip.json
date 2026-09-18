@@ -61,7 +61,10 @@
     "engine.ts",
     "gateway/index.ts",
     "app/admin/system/page 2.tsx",
-    "app/api/admin/ide/_lib/openCapabilityArchitecture.ts"
+    "app/api/admin/ide/_lib/openCapabilityArchitecture.ts",
+    "e2e/**",
+    "playwright.config.ts",
+    "plugins/agent/server.ts"
   ],
   "workspaces": {
     "dna-os-mcp-server": {

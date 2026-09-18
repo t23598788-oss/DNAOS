@@ -48,5 +48,14 @@ export async function GET(req: NextRequest, { params }: Params) {
   if (scope) url.searchParams.set("scope", scope)
   url.searchParams.set("state", connector.id)
 
+  // Google ต้องการ access_type=offline + prompt=consent เพื่อให้ได้ refresh_token
+  // อย่างน่าเชื่อถือจาก code exchange (ไม่งั้น Google คืนแค่ access_token อายุ ~1 ชม.)
+  // เงื่อนไขคือ host ของ authorize_url เท่านั้น — ห้าม branch ตาม slug/ชื่อ connector
+  // (กฎ lifecycle: ห้าม if/switch ตามตัวตน connector) — provider อื่นไม่ได้รับ 2 พารามิเตอร์นี้
+  if (new URL(authorizeUrl).hostname === "accounts.google.com") {
+    url.searchParams.set("access_type", "offline")
+    url.searchParams.set("prompt", "consent")
+  }
+
   return NextResponse.redirect(url.toString())
 }
