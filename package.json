@@ -123,7 +123,8 @@
     "github-connector:test": "npx tsx scripts/github-connector-test.ts",
     "railway-adapter:test": "npx tsx scripts/railway-adapter-test.ts",
     "line-credential-path:test": "npx tsx scripts/line-credential-path-test.ts",
-    "business-bridge:test": "npx tsx scripts/business-failure-bridge-test.ts"
+    "business-bridge:test": "npx tsx scripts/business-failure-bridge-test.ts",
+    "place-discovery:test": "npx tsx scripts/place-discovery-test.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.115.0",
