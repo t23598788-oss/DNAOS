@@ -13949,6 +13949,51 @@
         "reportBusinessActionFailure"
       ],
       "status": "active"
+    },
+    "scripts/mcp-worker-test.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "MCP (DNA OS) worker adapter regression suite — verifies the real adapter against the real artifacts, never a mock of the artifact under test: preflight, live capability discovery compared to the real registry, read-only tool call, blocked write without Owner Approval, allowed write only with approvalPolicy=OWNER_APPROVAL_REQUIRED + permittedTools, declared request timeout, malformed response never parsed into a fabricated success, unavailable server reported honestly (never SUCCEEDED), no token leak in any response field, and no git/deploy path statically asserted against the real adapter source — plus a registry drift check that every registered capability exists in the real MCP server source. Run: npm run mcp-worker:test",
+      "purpose_th": "ชุดทดสอบถดถอยของ Adapter ผู้ปฏิบัติงาน MCP (DNA OS) — ตรวจจริงกับไฟล์จริง ไม่ใช้ mock แทนของที่กำลังทดสอบ: preflight, ค้นหา capability สดแล้วเทียบกับ registry จริง, เรียกเครื่องมืออ่านข้อมูล, การเขียนที่ถูกบล็อกเมื่อไม่มี Owner Approval, การเขียนที่อนุญาต เฉพาะเมื่อมี approvalPolicy=OWNER_APPROVAL_REQUIRED และอยู่ใน permittedTools, timeout ตามที่ประกาศไว้, response ที่ผิดรูปแบบต้องไม่ถูกตีความเป็นความสำเร็จแบบกุขึ้น, เซิร์ฟเวอร์ไม่พร้อมต้องรายงานตามจริง (ไม่ใช่ SUCCEEDED), ไม่มี token รั่วในฟิลด์ใด ๆ ที่ส่งคืน และยืนยันเชิงสถิตกับซอร์สจริงว่าไม่มีเส้นทาง git/deploy พร้อมตรวจ drift ของ registry ว่า capability ที่ลงทะเบียนทุกตัวมีอยู่จริงในซอร์สของ MCP server. รันด้วย: npm run mcp-worker:test",
+      "exports": [
+        "RESOURCE_NAME",
+        "RESOURCE_URI",
+        "TOOL_NAME",
+        "WorkerPreflightStatus",
+        "mcpPreflight"
+      ],
+      "status": "active"
+    },
+    "app/api/admin/ide/_lib/workerAdapters/mcpDnaOsAdapter.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "DNA OS as a real MCP CLIENT (read-only by construction) — the second, complementary direction to mcpWorkerAdapter.ts, which stays FOUNDATION_ONLY and is deliberately left untouched. Spawns the real dna-os-mcp-server over stdio with shell:false and an explicit argv array (tsx by its real resolved path, never a shell string); the API token (DNA_OS_API_TOKEN) reaches the child through env only, never argv, and every value returned to a caller is redacted. Read-only tools need no approval; write-capable tools require approvalPolicy=OWNER_APPROVAL_REQUIRED plus membership in the request's permittedTools, and forbiddenTools always wins. Declares only new capabilities (mcp.registry.read, mcp.architecture.read, mcp.runtime.read, mcp.governance.read, mcp.proposal.write) and deliberately never code.generate, so it can never be selected in place of the existing code workers. No git/deploy/vercel/railway/supabase/delete/reset/restore code path exists in the file.",
+      "purpose_th": "DNA OS ในบทบาท MCP client จริง (ออกแบบให้อ่านอย่างเดียวโดยโครงสร้าง) — เป็นทิศทางที่สองที่ เสริมกับ mcpWorkerAdapter.ts ซึ่งคงสถานะ FOUNDATION_ONLY และไม่ถูกแก้ไขโดยเจตนา เรียก dna-os-mcp-server จริงผ่าน stdio แบบ shell:false ด้วย argv ที่ชัดเจน (รัน tsx ด้วย path จริงที่ resolve ได้ ไม่มีการต่อสตริงเชลล์) ส่ง API token (DNA_OS_API_TOKEN) ให้โปรเซสลูกทาง env เท่านั้น ไม่ผ่าน argv และปิดบังทุกค่าที่ส่งคืน เครื่องมือที่อ่านข้อมูลไม่ต้องขออนุมัติ ส่วนเครื่องมือที่เขียนได้ต้องมี approvalPolicy=OWNER_APPROVAL_REQUIRED และอยู่ใน permittedTools ของคำขอนั้น โดย forbiddenTools ชนะเสมอ ประกาศ capability เฉพาะของใหม่ (mcp.registry.read, mcp.architecture.read, mcp.runtime.read, mcp.governance.read, mcp.proposal.write) และจงใจไม่ประกาศ code.generate จึงถูกเลือกแทน code worker เดิมไม่ได้ และภายในไฟล์ไม่มีเส้นทาง git/deploy/vercel/railway/supabase/delete/reset/restore เลย",
+      "exports": [
+        "MCP_DNA_OS_ADAPTER_ID",
+        "McpDiscoveryResult",
+        "McpToolCallSpec",
+        "McpToolCallTransport",
+        "McpToolEntry",
+        "McpToolRegistry",
+        "ToolPolicyDecision",
+        "createMcpDnaOsAdapter",
+        "createStdioTransport",
+        "discoverMcpCapabilities",
+        "evaluateToolPolicy",
+        "executeMcpToolCall",
+        "loadMcpToolRegistry",
+        "mcpDnaOsAdapter",
+        "mcpHealth",
+        "mcpPreflight",
+        "mcpToolRegistryPath",
+        "parseToolCallSpec",
+        "redactSecrets",
+        "resolveBaseUrl",
+        "resolveMcpServerEntrypoints",
+        "tokenConfigured"
+      ],
+      "status": "active"
     }
   },
   "excluded": [
