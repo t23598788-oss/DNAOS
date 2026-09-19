@@ -14,6 +14,7 @@ import { anthropicApiAdapter, openaiApiAdapter, geminiApiAdapter } from "../app/
 import { digitalOceanApiAdapter } from "../app/api/admin/ide/_lib/workerAdapters/digitalOceanWorkerAdapter";
 import { claudeCliAdapter } from "../app/api/admin/ide/_lib/workerAdapters/cliWorkerAdapter";
 import { mcpWorkerAdapter } from "../app/api/admin/ide/_lib/workerAdapters/mcpWorkerAdapter";
+import { mcpDnaOsAdapter } from "../app/api/admin/ide/_lib/workerAdapters/mcpDnaOsAdapter";
 import { ollamaLocalAdapter } from "../app/api/admin/ide/_lib/workerAdapters/localModelWorkerAdapter";
 import { humanWorkerAdapter } from "../app/api/admin/ide/_lib/workerAdapters/humanWorkerAdapter";
 import type { WorkerRequest } from "../app/api/admin/ide/_lib/workerContract";
@@ -41,9 +42,9 @@ function baseRequest(): WorkerRequest {
 }
 
 async function main() {
-  await test("Registry completeness: all 8 real Adapters (4 API + CLI + MCP + Local + Human) are registered in WORKER_ADAPTER_REGISTRY", () => {
-    assert(WORKER_ADAPTER_REGISTRY.length === 8, `expected 8 real Adapters, got ${WORKER_ADAPTER_REGISTRY.length}`);
-    for (const a of [anthropicApiAdapter, openaiApiAdapter, geminiApiAdapter, digitalOceanApiAdapter, claudeCliAdapter, mcpWorkerAdapter, ollamaLocalAdapter, humanWorkerAdapter]) {
+  await test("Registry completeness: all 9 real Adapters (4 API + CLI + 2 MCP + Local + Human) are registered in WORKER_ADAPTER_REGISTRY", () => {
+    assert(WORKER_ADAPTER_REGISTRY.length === 9, `expected 9 real Adapters, got ${WORKER_ADAPTER_REGISTRY.length}`);
+    for (const a of [anthropicApiAdapter, openaiApiAdapter, geminiApiAdapter, digitalOceanApiAdapter, claudeCliAdapter, mcpWorkerAdapter, mcpDnaOsAdapter, ollamaLocalAdapter, humanWorkerAdapter]) {
       assert(getWorkerAdapter(a.id) === a, `expected getWorkerAdapter("${a.id}") to return the real, exact same object`);
     }
   });

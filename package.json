@@ -89,6 +89,7 @@
     "vscode-exit:test": "npx tsx scripts/vscode-exit-test.ts",
     "code-worker:test": "npx tsx scripts/code-worker-test.ts",
     "security-intelligence:test": "npx tsx scripts/security-intelligence-test.ts",
+    "mcp-worker:test": "npx tsx scripts/mcp-worker-test.ts",
     "worker-adapter:test": "npx tsx scripts/worker-adapter-test.ts",
     "worker-selector:test": "npx tsx scripts/worker-selector-test.ts",
     "worker-budget:test": "npx tsx scripts/worker-budget-test.ts",
