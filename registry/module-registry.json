@@ -8767,6 +8767,7 @@
       "exports": [
         "GatewayProposal",
         "decideProposal",
+        "getLatestProposal",
         "listPendingProposals",
         "recordProposal"
       ],
@@ -13032,9 +13033,15 @@
       "purpose_th": "สำเนาชนิดข้อมูลจริงของรายการผู้ให้บริการที่ใช้ฝั่งหน้าเว็บ ให้ตรงกับข้อมูลจริงฝั่งเซิร์ฟเวอร์เสมอ",
       "exports": [
         "CatalogEntry",
+        "ConnectPrepareResponse",
         "ConnectorFamily",
         "Direction",
         "FAMILY_LABELS",
+        "ProviderDerivedValue",
+        "ProviderDiscoveryEntry",
+        "ProviderEvidenceRef",
+        "ProviderFieldSpec",
+        "ProvidersListResponse",
         "WorkerHealthStatus",
         "healthColor"
       ],
@@ -13789,7 +13796,8 @@
         "ServiceOwner",
         "listNormalizedProviders",
         "listProviderRegistry",
-        "reconcileProviders"
+        "reconcileProviders",
+        "resolveConnectorProvider"
       ],
       "status": "active"
     },
@@ -13992,6 +14000,116 @@
         "resolveBaseUrl",
         "resolveMcpServerEntrypoints",
         "tokenConfigured"
+      ],
+      "status": "active"
+    },
+    "engines/connectors/registry.ts": {
+      "owner": "engines",
+      "layer": "engines",
+      "purpose": "Connect Core — the single registry of provider contracts. findContract(providerId) is the only lookup central routes/gateways/UI use, so no layer branches on a provider name (same single-array pattern as WORKER_ADAPTER_REGISTRY). Imports only ./contract and ./providers/* — deliberately no engines -> gateway edge, so runtime wiring (connector summary + canonical Test) is injected by the caller's own layer.",
+      "purpose_th": "ทะเบียนเดียวของ contract provider ทั้งหมดใน Connect Core — findContract(providerId) เป็นทางเดียวที่ route/gateway/UI กลางใช้ค้นหา จึงไม่มีชั้นใดต้อง branch ตามชื่อ provider (แพตเทิร์น array เดียวเหมือน WORKER_ADAPTER_REGISTRY) import เฉพาะ ./contract และ ./providers/* โดยเจตนาไม่มี edge engines → gateway ดังนั้นการ wiring ตอนรันจริง (สรุป connector + การ Test มาตรฐาน) จึงถูกฉีดเข้ามาจากชั้นของผู้เรียกเอง",
+      "exports": [
+        "CONNECT_CONTRACTS",
+        "findContract",
+        "listConnectContractIds"
+      ],
+      "status": "active"
+    },
+    "engines/connectors/contract.ts": {
+      "owner": "engines",
+      "layer": "engines",
+      "purpose": "Connect Core — the provider-neutral contract (TYPES only). Covers Discover/Identify/Prepare, resource discovery and Test delegation, and declares no provider behaviour: implementations live in engines/connectors/providers/* and are listed in engines/connectors/registry.ts. Secret-free by construction — credential presence travels as status plus FIELD NAMES (secret_keys / missing_field_keys), never values. AuthMode reuses the connectors table's own auth_type union; EvidenceRef and DiscoveredResource mirror shapes that already exist in providerRegistryRuntime.ts and engines/domains/railway-binding.ts. The lifecycle itself (Connect -> Register -> Test -> Enable -> Run) is untouched.",
+      "purpose_th": "สัญญากลางแบบ provider-neutral ของ Connect Core (เฉพาะ type) ครอบ Discover/Identify/Prepare, การค้นหา resource และการ delegate การ Test โดยไม่มีพฤติกรรมของ provider ใดอยู่ ในไฟล์นี้ (implementation อยู่ที่ engines/connectors/providers/* และขึ้นทะเบียนที่ engines/connectors/registry.ts) ออกแบบให้ไม่ถือค่า secret: สถานะของ credential สื่อสารเป็นสถานะ + ชื่อฟิลด์ (secret_keys / missing_field_keys) เท่านั้น ไม่มีค่าจริง AuthMode ใช้ union เดียวกับ auth_type ของตาราง connectors และ EvidenceRef/DiscoveredResource ล้อ shape ที่มีอยู่แล้วใน providerRegistryRuntime.ts กับ engines/domains/railway-binding.ts โดย lifecycle เดิม (Connect → Register → Test → Enable → Run) ไม่ถูกแก้",
+      "exports": [
+        "ApprovalRequirement",
+        "AuthMode",
+        "CapabilityDirection",
+        "CapabilityMetadata",
+        "ConnectContract",
+        "ConnectIntent",
+        "ConnectPreparation",
+        "ConnectRuntimeDeps",
+        "ConnectTestResult",
+        "ConnectorSummary",
+        "CredentialStatus",
+        "DerivedValue",
+        "DetectDeps",
+        "DiscoverResourcesResult",
+        "DiscoveredResource",
+        "EvidenceRef",
+        "FieldSpec",
+        "InspectionResult"
+      ],
+      "status": "active"
+    },
+    "engines/connectors/providers/railway.ts": {
+      "owner": "engines",
+      "layer": "engines",
+      "purpose": "Connect Core — Railway provider contract, the first proof provider. Every method delegates to code that already exists: resource discovery to engines/domains/railway-binding.ts#discoverResources (that function owns the Run gate), Test to the injected canonical gateway/connectors.ts#runConnectorTest, and evidence to real workspace artifacts plus the declared Integration Gateway observer. approvalRequirement=OWNER_REQUIRED follows the binding's own source statement that the API token cannot be minted by the system. No secret value is ever read or returned.",
+      "purpose_th": "contract ของ provider railway — ตัวแรกที่ใช้พิสูจน์แกนกลาง ทุกเมธอด delegate ไปของเดิม: การค้นหา resource ใช้ engines/domains/railway-binding.ts#discoverResources (ฟังก์ชันนั้น ถือ Run gate เอง), การ Test ใช้ gateway/connectors.ts#runConnectorTest ที่ฉีดเข้ามา และ หลักฐานมาจากไฟล์จริงในโปรเจกต์บวก observer ที่ประกาศไว้ใน Integration Gateway กำหนด approvalRequirement=OWNER_REQUIRED ตามที่ซอร์สของ binding ระบุเองว่า API token นี้ระบบสร้างเองไม่ได้ และไม่มีการอ่านหรือคืนค่า secret ใด ๆ",
+      "exports": [
+        "railwayConnectContract"
+      ],
+      "status": "active"
+    },
+    "app/api/admin/connectors/providers/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Pre-Connect provider discovery surface (GET /api/admin/connectors/providers). Lists every provider this system can already see — identity, capabilities, connection/credential status and real evidence from providerRegistryRuntime.ts#listNormalizedProviders (6 evidence sources, including the existing dependency-discovery artifact) — joined by provider id to the Connect contract registry, so a provider is visible BEFORE any connectors row exists and no central route branches on a provider name. Read-only by design: reconcileProviders() (which persists a snapshot) is deliberately not called, and no secret value can appear in the response.",
+      "purpose_th": "surface สำหรับค้นหา provider ก่อนถึงขั้น Connect (GET /api/admin/connectors/providers) — แสดง provider ทุกตัวที่ระบบมองเห็นได้แล้ว ทั้ง identity, capabilities, สถานะการเชื่อมต่อ/credential และหลักฐานจริงจาก providerRegistryRuntime.ts#listNormalizedProviders (6 แหล่ง หลักฐาน รวม artifact ของ dependency discovery ที่มีอยู่) แล้ว join ด้วย provider id เข้ากับ ทะเบียน contract ของ Connect จึงเห็น provider ได้ตั้งแต่ยังไม่มีแถวในตาราง connectors และ ไม่มี route กลางที่ต้อง branch ตามชื่อ provider ออกแบบให้อ่านเท่านั้นโดยเจตนา: ไม่เรียก reconcileProviders() (ซึ่งเขียน snapshot) และ response ไม่มีค่า secret ได้เลย",
+      "exports": [
+        "GET"
+      ],
+      "status": "active"
+    },
+    "app/api/admin/connectors/_lib/connectRuntime.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Connect runtime wiring for the app layer. Builds DetectDeps (workspace file existence + environment variable NAMES only) and ConnectRuntimeDeps (this app's own origin, a read-only connector summary carrying status/enabled/config plus secret FIELD NAMES, and the canonical Test call gateway/connectors.ts#runConnectorTest) for engines/connectors contracts. It lives here because engines may not import gateway (registry/dependency-graph.json allowed_imports.engines = core/services/registry only), so the wiring sits in the one layer allowed to import both and is shared by every Connect route instead of being re-implemented per route. No secret value is ever exposed to a provider adapter.",
+      "purpose_th": "การ wiring ตอนรันจริงของ Connect ที่ชั้น app — สร้าง DetectDeps (การมีอยู่ของไฟล์ในโปรเจกต์ + ชื่อ environment variable เท่านั้น) และ ConnectRuntimeDeps (origin ของแอปเอง, สรุป connector แบบอ่านเท่านั้นที่มี status/enabled/config พร้อมชื่อฟิลด์ secret และการเรียก Test มาตรฐาน gateway/connectors.ts#runConnectorTest) ให้ contract ใน engines/connectors ใช้งาน อยู่ที่นี่เพราะ engines import gateway ไม่ได้ (registry/dependency-graph.json allowed_imports.engines = core/services/registry เท่านั้น) การ wiring จึงอยู่ในชั้นเดียวที่ import ได้ทั้งสองฝั่ง และใช้ร่วมกันทุก route ของ Connect แทนการเขียนซ้ำในแต่ละ route โดยไม่เปิดเผยค่า secret ให้ adapter ใดเลย",
+      "exports": [
+        "appOrigin",
+        "buildConnectRuntimeDeps",
+        "buildDetectDeps",
+        "getConnectorSummary"
+      ],
+      "status": "active"
+    },
+    "app/api/admin/connectors/providers/[providerId]/prepare/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Pre-Connect PREPARE endpoint for one provider (POST /api/admin/connectors/providers/[providerId]/prepare). Returns what the system fills in itself (read-only derived URLs plus non-secret defaults), which fields the owner still has to supply (secret field NAMES only), the provider's approval requirement, its declared capability metadata and the real evidence behind each answer — by calling that provider's own contract inspect()/prepareConnect() through the shared app-layer wiring. Provider-neutral: the provider is looked up in the one contract registry, never switched on by name. Read-only: creates no connector, runs no Test, reads no secret value; a provider without a contract answers NOT_SUPPORTED instead of inventing a field set.",
+      "purpose_th": "ปลายทางขั้น PREPARE ก่อนถึง Connect ของ provider หนึ่งตัว (POST /api/admin/connectors/providers/[providerId]/prepare) — คืนค่าที่ระบบเติมเอง (URL ที่ derive แล้วแบบอ่านเท่านั้น + ค่า default ที่ไม่ใช่ความลับ), ฟิลด์ที่เฮียยังต้องกรอก (เฉพาะชื่อ ฟิลด์ secret), ข้อกำหนดการอนุมัติของ provider, capability metadata ที่ประกาศไว้ และหลักฐานจริง ที่รองรับคำตอบแต่ละข้อ โดยเรียก inspect()/prepareConnect() ของ contract provider นั้นผ่านการ wiring กลางของชั้น app — ไม่ผูกกับ provider ใดเป็นพิเศษเพราะค้นจากทะเบียน contract เดียว อ่านเท่านั้น: ไม่สร้าง connector, ไม่รัน Test, ไม่อ่านค่า secret และ provider ที่ยังไม่มี contract จะตอบ NOT_SUPPORTED แทนการเดา field set",
+      "exports": [
+        "POST"
+      ],
+      "status": "active"
+    },
+    "app/api/admin/connectors/providers/[providerId]/approval-request/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Connect Core Owner-approval REQUEST endpoint (POST /api/admin/connectors/providers/[providerId]/approval-request). Records a real 'connect.approval.requested' proposal on the SAME Integration Gateway Propose Channel every other proposal already uses (bus publish -> integration_gateway_events + integration_gateway_proposals) and is decided through the SAME route (POST /api/gateway/proposals/[id]/decide) — no second approval store and no second decide path. Idempotent: an already approved or already pending request returns that proposal instead of piling up duplicates, and a provider whose contract does not require approval answers approval_not_required. The evidence attached is the same real, secret-free evidence the PREPARE step shows (workspace artifacts + connector state), so the Owner decides on facts rather than on a prompt.",
+      "purpose_th": "ปลายทางREQUEST การอนุมัติโดยเจ้าของของ Connect Core (POST /api/admin/connectors/providers/[providerId]/approval-request) — บันทึก proposal จริง ชื่อ 'connect.approval.requested' ลง Propose Channel เดิมของ Integration Gateway ที่ proposal อื่นใช้อยู่ (bus publish → integration_gateway_events + integration_gateway_proposals) และ ตัดสินผ่าน route เดิม (POST /api/gateway/proposals/[id]/decide) ไม่มีที่เก็บการอนุมัติหรือ เส้นทางตัดสินที่สอง ทำงานแบบ idempotent: ถ้ามีคำขอที่อนุมัติแล้วหรือรออยู่ จะคืน proposal นั้น แทนการสร้างซ้ำ และ provider ที่ contract ไม่ต้องอนุมัติจะตอบ approval_not_required หลักฐานที่แนบคือหลักฐานจริงที่ไม่มีความลับชุดเดียวกับที่ขั้น PREPARE แสดง เพื่อให้เจ้าของ ตัดสินจากข้อเท็จจริง",
+      "exports": [
+        "POST"
+      ],
+      "status": "active"
+    },
+    "scripts/connect-core-acceptance-test.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "Connect Core acceptance harness (npm run connect-core:test). Proves the core rules of the pre-Connect layer against the real code with no network and no live database (a local stub client answers the connector read, the same technique scripts/line-credential-path-test.ts uses; source assertions read the real files, the way scripts/mcp-worker-test.ts asserts properties of the adapter it tests). Rules covered: (1) DISCOVER BEFORE ROW — a provider with a Connect contract is visible before any connectors row exists; (2) IDENTITY IS DECLARED — a connector's provider is never guessed from a display name (declared value wins, legacy slug identity is the documented fallback); (3) NO SECRET LEAK — a canary planted in the environment never appears in detect()/inspect()/prepareConnect() output, only FIELD NAMES do; (4) APPROVAL IS A TRUST BOUNDARY — railway requires Owner approval and the Connect route fails closed with OWNER_APPROVAL_REQUIRED; (5) THE LIFECYCLE IS UNCHANGED — exactly its 5 locked stages, and the Run gate still rejects missing/unproven/not-enabled connectors; (6) NO PROVIDER SWITCH — the central discovery route resolves providers through the contract registry, never a hardcoded map. Exits non-zero on any failure.",
+      "purpose_th": "ชุดทดสอบยอมรับของ Connect Core (npm run connect-core:test) — พิสูจน์กติกาแกนกลางของชั้น ก่อน Connect กับโค้ดจริง โดยไม่ใช้เครือข่ายและไม่ใช้ฐานข้อมูลจริง (stub client ตอบการอ่าน connector เหมือน scripts/line-credential-path-test.ts และตรวจ source ของไฟล์จริงแบบเดียวกับ scripts/mcp-worker-test.ts) ครอบคลุม: (1) เห็น provider ก่อนมีแถว connector (2) provider ถูกประกาศ ไม่ถูกเดาจากชื่อที่แสดง (ค่าที่ประกาศชนะ, slug เดิมเป็น fallback ที่ระบุไว้) (3) ไม่มีค่า secret รั่ว — canary ที่ใส่ใน environment ไม่โผล่ในผลของ detect()/inspect()/prepareConnect() มีแต่ชื่อฟิลด์ (4) การอนุมัติเป็นขอบเขตความเชื่อถือจริง — railway ต้องอนุมัติ โดยเจ้าของ และ route Connect ปฏิเสธแบบ fail-closed ด้วย OWNER_APPROVAL_REQUIRED (5) lifecycle เดิมไม่ถูกแก้ — ยังมี 5 ขั้นที่ล็อกไว้ และ Run gate ยังปฏิเสธ connector ที่ไม่มี/ไม่ผ่าน Test/ไม่ Enable (6) ไม่มี provider switch — route ค้นหา provider ผ่านทะเบียน contract ไม่ใช่ map hardcode ออกด้วย exit code ที่ไม่ใช่ 0 เมื่อมีข้อใดล้มเหลว",
+      "exports": [],
+      "status": "active"
+    },
+    "engines/connectors/providers/github.ts": {
+      "owner": "engines",
+      "layer": "engines",
+      "purpose": "Connect Core — GitHub provider contract (the second provider; STEP 8's provider-neutrality proof). Every method delegates to code that already exists: detect() reads real workspace artifacts (the idempotent OAuth registration script, the webhook normalizer, the observe ingress, the generic OAuth routes and the tester's own GitHub-shaped check); inspect() reads the live connector row through injected deps (status/enabled/config plus secret FIELD NAMES only); prepareConnect() declares the exact field set the existing registration script writes plus the callback URL the system derives once the row exists (nothing invented before that); discoverResources() answers NOT_SUPPORTED honestly because no GitHub resource-listing implementation exists in this repo; test() uses the injected canonical Test stage. approvalRequirement=NONE because GitHub's own consent screen already requires the Owner to authorize personally (no credential automation, ADMIN_TIER-gated), unlike Railway's provider-minted API token. Adding this provider required no change to any central route, gateway, catalog or UI file — only this adapter and one line in engines/connectors/registry.ts.",
+      "purpose_th": "contract ของ provider GitHub (provider ตัวที่สอง — หลักฐาน provider-neutrality ของ STEP 8) ทุกเมธอด delegate ไปของเดิม: detect() อ่านไฟล์จริงในโปรเจกต์ (สคริปต์ลงทะเบียน OAuth แบบ idempotent, ตัว normalize webhook, ingress observe, OAuth route กลาง และการเช็ค GitHub-shaped ใน tester) · inspect() อ่านแถว connector จริงผ่าน deps ที่ฉีดเข้ามา (status/enabled/config พร้อมชื่อฟิลด์ secret เท่านั้น) · prepareConnect() ประกาศชุดฟิลด์ตามที่สคริปต์ลงทะเบียนเดิมเขียน บวก callback URL ที่ระบบ derive เองเมื่อมีแถวแล้วเท่านั้น (ไม่ประดิษฐ์ขึ้นก่อน) · discoverResources() ตอบ NOT_SUPPORTED ตามจริงเพราะโปรเจกต์นี้ยังไม่มีตัวค้น resource ของ GitHub · test() ใช้ canonical Test ที่ฉีดเข้ามา โดย approvalRequirement=NONE เพราะหน้าขอ consent ของ GitHub บังคับให้เจ้าของ authorize เองอยู่แล้ว (ไม่มี credential automation และติด ADMIN_TIER) ต่างจาก Railway ที่ token ออกโดยผู้ให้บริการเอง การเพิ่ม provider นี้ไม่ต้องแก้ route/gateway/catalog/UI กลางใดเลย ใช้แค่ adapter ไฟล์นี้และหนึ่งบรรทัดใน engines/connectors/registry.ts",
+      "exports": [
+        "githubConnectContract"
       ],
       "status": "active"
     }

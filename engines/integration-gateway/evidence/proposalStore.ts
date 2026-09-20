@@ -47,6 +47,29 @@ export async function listPendingProposals(db: SupabaseClient, limit = 50): Prom
   return (data ?? []) as GatewayProposal[];
 }
 
+/**
+ * Latest proposal for one provider (optionally narrowed to one capability), any
+ * status — the real read used by Connect Core's trust boundary: a provider whose
+ * contract declares OWNER_REQUIRED approval may only be connected while an
+ * approved 'connect.approval.requested' proposal exists. Same table, same
+ * decision route, never a second approval store.
+ */
+export async function getLatestProposal(
+  db: SupabaseClient,
+  provider: string,
+  capability?: string
+): Promise<GatewayProposal | null> {
+  let query = db
+    .from("integration_gateway_proposals")
+    .select("*")
+    .eq("provider", provider)
+    .order("proposed_at", { ascending: false })
+    .limit(1);
+  if (capability) query = query.eq("capability", capability);
+  const { data } = await query;
+  return ((data ?? [])[0] as GatewayProposal | undefined) ?? null;
+}
+
 export async function decideProposal(
   db: SupabaseClient,
   id: string,

@@ -45,6 +45,19 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   const proposal = pending.find((p) => p.id === id && p.status === "pending");
   if (!proposal) return NextResponse.json({ error: "proposal not found or already decided" }, { status: 404 });
 
+  // A Connect approval request carries no command to run — approving it only
+  // records the Owner's decision, and the Connect route (POST
+  // /api/admin/connectors) then checks for exactly that approved row. Same
+  // store, same route, no second approval mechanism.
+  if (proposal.capability === "connect.approval.requested") {
+    const approvedOnly = await decideProposal(db, id, "approved", auth.email, {
+      approved_only: true,
+      note: "connect approval — no command executed",
+    });
+    if (!approvedOnly.ok) return NextResponse.json({ error: approvedOnly.error }, { status: 500 });
+    return NextResponse.json({ ok: true, proposal: approvedOnly.proposal });
+  }
+
   const command = (proposal.evidence as any)?.command;
   if (!command || !(command in AUTOMATION_COMMANDS)) {
     const result = await decideProposal(db, id, "approved", auth.email, { exit_code: 1, output: `proposal's command '${command}' is no longer in the whitelist` });

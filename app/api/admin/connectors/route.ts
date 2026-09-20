@@ -6,7 +6,11 @@
 import { NextRequest, NextResponse } from "next/server"
 import { requireAuth } from "@/core/auth/requireAuth"
 import { ADMIN_TIER } from "@/core/auth/session"
+import { supabaseAdmin } from "@/services/supabase/queries"
 import { listConnectors, createConnector, runConnectorTest, redactConnector, redactConnectors, type CreateConnectorInput } from "@/gateway/connectors"
+import { findContract } from "@/engines/connectors/registry"
+import { getLatestProposal } from "@/engines/integration-gateway/evidence/proposalStore"
+import { buildConnectRuntimeDeps } from "./_lib/connectRuntime"
 
 export async function GET() {
   const auth = await requireAuth(ADMIN_TIER)
@@ -37,12 +41,52 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: `auth_type ต้องเป็นหนึ่งใน: ${validTypes.join(", ")}` }, { status: 400 })
     }
 
+    const provider = typeof body.provider === "string" ? body.provider.trim().toLowerCase() : ""
+
     const input: CreateConnectorInput = {
       name,
       auth_type: authType as CreateConnectorInput["auth_type"],
+      provider: provider || undefined,
       config: body.config ?? {},
       secret: body.secret ?? {},
     }
+
+    // Provider-declared requirements — only when the caller declares a provider
+    // that actually has a Connect contract (engines/connectors/registry.ts).
+    // Required secret field NAMES must be present, and the provider's own
+    // non-secret defaults are filled in so one Connect is enough. Field names are
+    // reported; secret values are never echoed back.
+    const contract = provider ? findContract(provider) : undefined
+    if (contract) {
+      const prep = await contract.prepareConnect(buildConnectRuntimeDeps())
+      const secretObj = input.secret as Record<string, unknown>
+      const missing = prep.required_secret_field_keys.filter((key) => {
+        const value = secretObj[key]
+        return value === undefined || value === null || String(value).length === 0
+      })
+      if (missing.length > 0) {
+        return NextResponse.json({ error: "missing_required_secret_fields", missing_fields: missing }, { status: 400 })
+      }
+      const configObj = input.config as Record<string, unknown>
+      for (const d of prep.defaults) {
+        if (configObj[d.key] === undefined) configObj[d.key] = d.value
+      }
+    }
+
+    // Owner approval is a real trust boundary, enforced here on the server (a UI
+    // gate alone would be bypassable through this same API): a provider whose
+    // contract declares OWNER_REQUIRED may only be connected while an approved
+    // 'connect.approval.requested' proposal exists in the one proposal store.
+    if (contract && contract.approvalRequirement === "OWNER_REQUIRED") {
+      const approval = await getLatestProposal(supabaseAdmin(), contract.providerId, "connect.approval.requested")
+      if (approval?.status !== "approved") {
+        return NextResponse.json(
+          { error: "OWNER_APPROVAL_REQUIRED", provider: contract.providerId, approval_status: approval?.status ?? "none" },
+          { status: 403 }
+        )
+      }
+    }
+
     let connector = await createConnector(input)
 
     // ทดสอบการเชื่อมต่อทันทีหลังสร้าง (ยกเว้น oauth ที่ต้อง authorize ก่อน)

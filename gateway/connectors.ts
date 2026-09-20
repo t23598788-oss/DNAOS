@@ -13,6 +13,13 @@ import { testConnector } from "@/engines/connectors/tester";
 export interface CreateConnectorInput {
   name: string;
   auth_type: ConnectorAuthType;
+  /**
+   * The provider this connector belongs to, declared at Connect time (Connect
+   * Core, 2026-09-20). Optional so every existing caller keeps working; when
+   * present it is stored as config.provider and becomes the connector's real
+   * identity instead of a display-name/slug guess.
+   */
+  provider?: string;
   config?: Record<string, unknown>;
   secret?: Record<string, unknown>;
 }
@@ -63,6 +70,11 @@ export async function createConnector(input: CreateConnectorInput): Promise<Conn
   const slug = slugify(input.name);
   const config: Record<string, unknown> = { ...(input.config ?? {}) };
   const secret: Record<string, unknown> = { ...(input.secret ?? {}) };
+
+  // Declared provider identity (Connect Core, 2026-09-20) — stored with the
+  // record so every later reader resolves the provider from a declared value
+  // instead of guessing it from a display name or a slug.
+  if (input.provider) config.provider = input.provider.trim().toLowerCase();
 
   if (input.auth_type === "webhook") {
     config.receiving_path = `/api/connectors/webhook/${slug}`;

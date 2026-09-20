@@ -21,6 +21,8 @@ import type { WorkerHealthStatus } from "@/app/api/admin/ide/_lib/workerAdapter"
 import { describeGateway } from "@/engines/integration-gateway/selfDescription";
 import { channelIsEnabled } from "@/engines/integration-gateway/policy/gate";
 import { KNOWN_PROVIDER_DESCRIPTORS, AI_WORKER_DESCRIPTORS, describeConnectorSlug } from "./providerDescriptors";
+import { findContract } from "@/engines/connectors/registry";
+import { resolveConnectorProvider } from "@/app/api/admin/ide/_lib/providerRegistryRuntime";
 
 export type Direction = "INBOUND" | "OUTBOUND" | "BIDIRECTIONAL";
 export type ConnectorFamily = "AI_CODE_WORKER" | "GITHUB" | "VERCEL" | "GENERIC_API" | "OTHER";
@@ -75,6 +77,10 @@ function healthFromConnector(c: ConnectorRecord): WorkerHealthStatus {
 function connectorEntry(c: ConnectorRecord): CatalogEntry {
   const descriptor = describeConnectorSlug(c.slug, c.name);
   const family = familyForConnector(c);
+  // Declared provider wins; the legacy slug/name heuristic stays only as the
+  // fallback for rows created before a provider was declared (Connect Core,
+  // 2026-09-20), and a provider with a contract reports its canonical id.
+  const declaredProviderId = resolveConnectorProvider(c.config as Record<string, unknown>, c.slug);
   const direction: Direction = c.auth_type === "webhook" ? "INBOUND" : "OUTBOUND";
   const endpoints = [
     typeof c.config.base_url === "string" ? c.config.base_url : null,
@@ -86,7 +92,7 @@ function connectorEntry(c: ConnectorRecord): CatalogEntry {
   return {
     id: c.id,
     kind: "db_connector",
-    provider: descriptor?.provider ?? c.slug,
+    provider: findContract(declaredProviderId)?.providerId ?? descriptor?.provider ?? c.slug,
     product: descriptor?.product ?? c.name,
     model: descriptor?.model ?? null,
     logo: descriptor?.logo ?? null,

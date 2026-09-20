@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import type { ConnectPrepareResponse, ProviderDiscoveryEntry, ProviderFieldSpec } from "./_lib/types";
 
 type AuthType = "login" | "oauth" | "api_key" | "token" | "uri" | "mcp" | "webhook";
 type Status = "disconnected" | "connecting" | "connected" | "error";
@@ -79,6 +80,16 @@ interface FieldDef {
   optional?: boolean;
 }
 
+/** One normalized row of the create form, whichever source produced it. */
+interface FormField {
+  key: string;
+  label: string;
+  target: "config" | "secret";
+  secret: boolean;
+  required: boolean;
+  placeholder?: string;
+}
+
 const FIELDS_BY_TYPE: Record<AuthType, FieldDef[]> = {
   login: [
     { key: "login_url", label: "Login URL", target: "config", placeholder: "https://service.example.com/login" },
@@ -129,6 +140,18 @@ export default function ConnectorsPage() {
   const [formError, setFormError] = useState<string | null>(null);
   const [testingId, setTestingId] = useState<string | null>(null);
 
+  // ── Connect Core: pre-Connect discovery + prepare (owner-approved design) ──
+  // The provider is chosen from what the system can SEE (not typed), and the
+  // form fields/derived values then come from that provider's own contract
+  // instead of a hardcoded per-auth_type list.
+  const [providers, setProviders] = useState<ProviderDiscoveryEntry[] | null>(null);
+  const [providerId, setProviderId] = useState<string>("");
+  const [prep, setPrep] = useState<ConnectPrepareResponse | null>(null);
+  const [prepError, setPrepError] = useState<string | null>(null);
+  const [prepLoading, setPrepLoading] = useState(false);
+  const [copiedKey, setCopiedKey] = useState<string | null>(null);
+  const [approvalBusy, setApprovalBusy] = useState(false);
+
   const load = useCallback(async () => {
     setLoading(true);
     try {
@@ -146,6 +169,104 @@ export default function ConnectorsPage() {
     setName("");
     setFieldValues({});
     setFormError(null);
+    setProviderId("");
+    setPrep(null);
+    setPrepError(null);
+  }
+
+  const loadProviders = useCallback(async () => {
+    try {
+      const res = await fetch("/api/admin/connectors/providers");
+      const data = await res.json();
+      setProviders(data.providers ?? []);
+    } catch {
+      setProviders([]);
+    }
+  }, []);
+
+  // Choose a provider from what the system actually sees, then let that
+  // provider's contract say which fields are needed and which values the system
+  // derives itself. A provider with no contract keeps the generic form below.
+  async function selectProvider(id: string) {
+    setProviderId(id);
+    setPrep(null);
+    setPrepError(null);
+    setFieldValues({});
+    if (!id) return;
+    setPrepLoading(true);
+    try {
+      const res = await fetch(`/api/admin/connectors/providers/${encodeURIComponent(id)}/prepare`, { method: "POST" });
+      const data = await res.json();
+      if (!res.ok || !data.ok) {
+        setPrepError(data.error ?? "prepare_failed");
+        return;
+      }
+      const prepared = data as ConnectPrepareResponse;
+      setPrep(prepared);
+      const seeded: Record<string, string> = {};
+      for (const d of prepared.preparation.defaults) seeded[d.key] = d.value;
+      setFieldValues(seeded);
+    } catch (e) {
+      setPrepError(e instanceof Error ? e.message : "prepare_failed");
+    } finally {
+      setPrepLoading(false);
+    }
+  }
+
+  async function copyValue(key: string, value: string) {
+    try {
+      await navigator.clipboard.writeText(value);
+      setCopiedKey(key);
+      setTimeout(() => setCopiedKey((k) => (k === key ? null : k)), 1500);
+    } catch {
+      setCopiedKey(null);
+    }
+  }
+
+  // Owner approval for a provider whose contract requires it. The request goes
+  // onto the existing Integration Gateway Propose Channel, and the decision uses
+  // the existing decide route — no second approval mechanism anywhere.
+  async function requestApproval() {
+    if (!prep) return;
+    setApprovalBusy(true);
+    setPrepError(null);
+    try {
+      const res = await fetch(`/api/admin/connectors/providers/${encodeURIComponent(prep.provider_id)}/approval-request`, { method: "POST" });
+      const data = await res.json();
+      if (!res.ok || !data.ok) {
+        setPrepError(data.error ?? "approval_request_failed");
+        return;
+      }
+      await selectProvider(prep.provider_id);
+    } catch (e) {
+      setPrepError(e instanceof Error ? e.message : "approval_request_failed");
+    } finally {
+      setApprovalBusy(false);
+    }
+  }
+
+  async function decideApproval(decision: "approved" | "rejected") {
+    const proposalId = prep?.approval_state.proposal_id;
+    if (!proposalId || !prep) return;
+    setApprovalBusy(true);
+    setPrepError(null);
+    try {
+      const res = await fetch(`/api/gateway/proposals/${encodeURIComponent(proposalId)}/decide`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ decision }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.ok) {
+        setPrepError(data.error ?? "approval_decision_failed");
+        return;
+      }
+      await selectProvider(prep.provider_id);
+    } catch (e) {
+      setPrepError(e instanceof Error ? e.message : "approval_decision_failed");
+    } finally {
+      setApprovalBusy(false);
+    }
   }
 
   async function submitCreate() {
@@ -154,10 +275,33 @@ export default function ConnectorsPage() {
     try {
       const config: Record<string, string> = {};
       const secret: Record<string, string> = {};
-      for (const f of FIELDS_BY_TYPE[authType]) {
+      // A provider with a Connect contract declares its own fields (and which of
+      // them are secret / required); every other provider keeps the generic
+      // per-auth_type form exactly as before.
+      const contractFields: FormField[] | null = prep
+        ? prep.preparation.fields.map((f: ProviderFieldSpec) => ({
+            key: f.key,
+            label: f.label_key,
+            target: f.target,
+            secret: f.secret,
+            required: f.required,
+            placeholder: f.placeholder,
+          }))
+        : null;
+      const fields: FormField[] =
+        contractFields ??
+        FIELDS_BY_TYPE[authType].map((f) => ({
+          key: f.key,
+          label: f.label,
+          target: f.target,
+          secret: f.secret === true,
+          required: f.optional !== true,
+          placeholder: f.placeholder,
+        }));
+      for (const f of fields) {
         const v = fieldValues[f.key];
-        if (!v && !f.optional) {
-          setFormError(`กรุณากรอก: ${f.label}`);
+        if (!v && f.required) {
+          setFormError(contractFields ? `missing_required_field: ${f.key}` : `กรุณากรอก: ${f.label}`);
           setSubmitting(false);
           return;
         }
@@ -167,10 +311,20 @@ export default function ConnectorsPage() {
       const res = await fetch("/api/admin/connectors", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, auth_type: authType, config, secret }),
+        body: JSON.stringify({
+          name,
+          auth_type: prep?.auth_modes?.[0] ?? authType,
+          provider: providerId || undefined,
+          config,
+          secret,
+        }),
       });
       const data = await res.json();
-      if (!res.ok) { setFormError(data.error ?? "สร้างไม่สำเร็จ"); return; }
+      if (!res.ok) {
+        // The server names the exact missing secret FIELDS (never values).
+        setFormError(data.missing_fields?.length ? `${data.error}: ${data.missing_fields.join(", ")}` : data.error ?? "สร้างไม่สำเร็จ");
+        return;
+      }
 
       resetForm();
       setShowForm(false);
@@ -262,7 +416,7 @@ export default function ConnectorsPage() {
           </p>
         </div>
         <button
-          onClick={() => { resetForm(); setShowForm((v) => !v); }}
+          onClick={() => { resetForm(); if (!showForm && providers === null) void loadProviders(); setShowForm((v) => !v); }}
           className="text-xs px-3 py-1.5 rounded-lg bg-stone-900 text-white hover:bg-stone-800 transition font-medium shrink-0"
         >
           {showForm ? "ยกเลิก" : "+ เพิ่ม Connector"}
@@ -282,24 +436,176 @@ export default function ConnectorsPage() {
               />
             </div>
 
+            {/* Connect Core: pick a provider the SYSTEM can see, so identity is
+                declared instead of guessed from the name above. */}
             <div>
-              <label className="block text-[11px] font-semibold text-stone-500 mb-1">ประเภทการเชื่อมต่อ</label>
-              <div className="flex flex-wrap gap-1.5">
-                {(Object.keys(AUTH_TYPE_LABELS) as AuthType[]).map((t) => (
-                  <button
-                    key={t}
-                    onClick={() => { setAuthType(t); setFieldValues({}); }}
-                    className={`px-2.5 py-1 rounded-lg text-xs border transition ${
-                      authType === t ? "bg-stone-800 text-white border-stone-800" : "bg-white text-stone-600 border-stone-200 hover:border-stone-400"
-                    }`}
-                  >
-                    {AUTH_TYPE_LABELS[t]}
-                  </button>
+              <label className="block text-[11px] font-semibold text-stone-500 mb-1">
+                Provider (Connect Core) <span className="text-stone-300">— picked from what the system can see, never typed</span>
+              </label>
+              <select
+                value={providerId}
+                onChange={(e) => void selectProvider(e.target.value)}
+                className="w-full text-sm border border-stone-200 rounded-lg px-3 py-2 focus:outline-none focus:border-stone-500 bg-white"
+              >
+                <option value="">— none (use the generic form by connection type below) —</option>
+                {(providers ?? []).map((p) => (
+                  <option key={p.provider_id} value={p.provider_id}>
+                    {p.provider_id} · {p.connection_status}
+                    {p.connect.contract_implemented ? " · contract ✓" : ""}
+                  </option>
                 ))}
-              </div>
+              </select>
+              {providers === null && <p className="text-[10px] text-stone-400 mt-1">loading providers…</p>}
+              {prepLoading && <p className="text-[10px] text-stone-400 mt-1">preparing…</p>}
+              {prepError && <p className="text-[11px] text-red-500 mt-1">prepare: {prepError}</p>}
             </div>
 
-            {authType === "webhook" ? (
+            {prep ? (
+              <p className="text-[11px] text-stone-500 bg-stone-50 border border-stone-200 rounded-lg p-3 font-mono">
+                auth_type: {prep.auth_modes.join(" / ")} — declared by {prep.provider_id}&apos;s contract, not chosen by hand
+              </p>
+            ) : (
+              <div>
+                <label className="block text-[11px] font-semibold text-stone-500 mb-1">ประเภทการเชื่อมต่อ</label>
+                <div className="flex flex-wrap gap-1.5">
+                  {(Object.keys(AUTH_TYPE_LABELS) as AuthType[]).map((t) => (
+                    <button
+                      key={t}
+                      onClick={() => { setAuthType(t); setFieldValues({}); }}
+                      className={`px-2.5 py-1 rounded-lg text-xs border transition ${
+                        authType === t ? "bg-stone-800 text-white border-stone-800" : "bg-white text-stone-600 border-stone-200 hover:border-stone-400"
+                      }`}
+                    >
+                      {AUTH_TYPE_LABELS[t]}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {prep ? (
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 flex-wrap text-[11px]">
+                  <span className="px-2 py-0.5 rounded-full bg-stone-100 text-stone-600 font-mono">
+                    auth_type: {prep.auth_modes.join(" / ")}
+                  </span>
+                  <span
+                    className={`px-2 py-0.5 rounded-full border ${
+                      prep.approval_requirement === "OWNER_REQUIRED"
+                        ? "border-amber-200 bg-amber-50 text-amber-700"
+                        : "border-stone-200 bg-stone-50 text-stone-500"
+                    }`}
+                  >
+                    approval: {prep.approval_requirement}
+                  </span>
+                  <span className="px-2 py-0.5 rounded-full bg-stone-100 text-stone-600 font-mono">
+                    credential: {prep.inspection.credential_status}
+                  </span>
+                </div>
+
+                {prep.approval_state.required && (
+                  <div className="border border-amber-200 bg-amber-50 rounded-lg px-3 py-2 text-[11px] text-amber-800 space-y-1.5">
+                    <div>
+                      owner approval required:{" "}
+                      <span className="font-mono">
+                        {prep.approval_state.approved ? "approved" : prep.approval_state.pending ? "pending" : "not requested"}
+                      </span>
+                      {prep.approval_state.decided_by && (
+                        <span className="text-amber-600"> · by {prep.approval_state.decided_by}</span>
+                      )}
+                    </div>
+                    {!prep.approval_state.approved && (
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        {!prep.approval_state.pending && (
+                          <button
+                            onClick={() => void requestApproval()}
+                            disabled={approvalBusy}
+                            className="px-2 py-1 rounded-lg bg-amber-600 text-white hover:bg-amber-700 disabled:opacity-40"
+                          >
+                            {approvalBusy ? "…" : "request approval"}
+                          </button>
+                        )}
+                        {prep.approval_state.pending && (
+                          <>
+                            <button
+                              onClick={() => void decideApproval("approved")}
+                              disabled={approvalBusy}
+                              className="px-2 py-1 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-40"
+                            >
+                              {approvalBusy ? "…" : "approve (owner)"}
+                            </button>
+                            <button
+                              onClick={() => void decideApproval("rejected")}
+                              disabled={approvalBusy}
+                              className="px-2 py-1 rounded-lg border border-amber-300 text-amber-700 hover:bg-amber-100 disabled:opacity-40"
+                            >
+                              reject
+                            </button>
+                          </>
+                        )}
+                        <span className="text-amber-600">the server refuses Connect until this is approved</span>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {prep.preparation.derived.length > 0 && (
+                  <div className="border border-stone-200 rounded-lg divide-y divide-stone-100">
+                    {prep.preparation.derived.map((d) => (
+                      <div key={d.key} className="flex items-center gap-2 px-3 py-2">
+                        <div className="min-w-0 flex-1">
+                          <div className="text-[10px] text-stone-400 font-mono">{d.key} — read-only, derived by DNA OS</div>
+                          <div className="text-[11px] text-stone-700 font-mono truncate">{d.value}</div>
+                        </div>
+                        <button
+                          onClick={() => void copyValue(d.key, d.value)}
+                          className="text-[11px] px-2 py-1 rounded-lg border border-stone-200 text-stone-600 hover:bg-stone-50 shrink-0"
+                        >
+                          {copiedKey === d.key ? "copied" : "copy"}
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <div className="space-y-2.5">
+                  {prep.preparation.fields.map((f) => (
+                    <div key={f.key}>
+                      <label className="block text-[11px] text-stone-500 mb-1">
+                        <span className="font-mono text-stone-600">{f.key}</span>
+                        <span className="text-stone-300"> · {f.label_key}</span>
+                        {!f.required && <span className="text-stone-300"> (optional)</span>}
+                        {f.secret && <span className="text-red-400"> · secret{f.required ? " · required" : ""}</span>}
+                      </label>
+                      <input
+                        type={f.secret ? "password" : "text"}
+                        value={fieldValues[f.key] ?? ""}
+                        onChange={(e) => setFieldValues((v) => ({ ...v, [f.key]: e.target.value }))}
+                        placeholder={f.placeholder}
+                        className="w-full text-sm border border-stone-200 rounded-lg px-3 py-2 focus:outline-none focus:border-stone-500 font-mono"
+                      />
+                    </div>
+                  ))}
+                </div>
+
+                <details className="text-[11px] text-stone-500">
+                  <summary className="cursor-pointer text-stone-400">evidence</summary>
+                  <ul className="mt-1.5 space-y-1">
+                    <li className="text-stone-400">
+                      derived values:{" "}
+                      {prep.preparation.derived.length === 0
+                        ? "none yet — this app's own origin is not configured (see the evidence below)"
+                        : `${prep.preparation.derived.length} value(s)`}
+                    </li>
+                    {prep.preparation.evidence.map((e, i) => (
+                      <li key={`${e.source}-${i}`} className="font-mono break-all">
+                        {e.source}: {e.detail}
+                      </li>
+                    ))}
+                  </ul>
+                </details>
+              </div>
+            ) : authType === "webhook" ? (
               <p className="text-xs text-stone-500 bg-stone-50 border border-stone-200 rounded-lg p-3">
                 Webhook ไม่ต้องกรอกอะไรเพิ่ม — ระบบจะสร้าง URL รับ event และ signing secret ให้อัตโนมัติหลังกดสร้าง
               </p>
@@ -326,7 +632,8 @@ export default function ConnectorsPage() {
 
             <button
               onClick={submitCreate}
-              disabled={submitting || !name}
+              disabled={submitting || !name || Boolean(prep && prep.approval_state.required && !prep.approval_state.approved)}
+              title={prep && prep.approval_state.required && !prep.approval_state.approved ? "owner approval is required before Connect (server-enforced)" : undefined}
               className="px-4 py-2 bg-emerald-600 text-white rounded-lg text-xs font-semibold hover:bg-emerald-700 disabled:opacity-40 transition"
             >
               {submitting ? "กำลังเชื่อมต่อ..." : "สร้าง + ทดสอบการเชื่อมต่อ"}

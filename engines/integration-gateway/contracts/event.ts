@@ -45,6 +45,12 @@ export type GatewayCapability =
   // Proposal Channel (owner, 2026-08-05) — requests a run of an
   // already-whitelisted Automation command; never runs on its own.
   | "automation.command.proposed"
+  // Connect Core (owner-approved design, 2026-09-20) — an Owner approval request
+  // for connecting one provider through the lifecycle (Discover -> Identify ->
+  // Prepare -> Owner Approve -> Connect). Propose Channel only: it never runs
+  // anything; the decision is what unlocks Connect, recorded in the SAME store
+  // and decided through the SAME route every other proposal already uses.
+  | "connect.approval.requested"
   // Proposal Channel (owner, 2026-08-05) — scripts/check-transitional-layers.ts
   // proposes removing a Compatibility/Transitional Layer entry from
   // registry/transitional-layers.json, but ONLY for entries the owner

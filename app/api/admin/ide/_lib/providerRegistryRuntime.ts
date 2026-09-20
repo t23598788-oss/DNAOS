@@ -297,6 +297,24 @@ function stripConnectorSlugSuffix(slug: string): string {
   return slug.replace(/-[a-f0-9]{6}$/, "");
 }
 
+/**
+ * The ONE connector -> provider-id resolver (owner-approved Connect Core
+ * design, 2026-09-20). Prefers the connector's OWN declared provider
+ * (config.provider, written at Connect time once a caller declares it) and
+ * falls back to the legacy slug-derived identity — minus slugify's random
+ * suffix — for every row created before a provider was declared. Reuses
+ * stripConnectorSlugSuffix above, so the suffix rule still lives in exactly one
+ * place; callers must never re-derive identity from a display name.
+ */
+export function resolveConnectorProvider(
+  config: Record<string, unknown> | null | undefined,
+  slug: string,
+): string {
+  const declared = typeof config?.provider === "string" ? config.provider.trim().toLowerCase() : "";
+  if (declared) return declared;
+  return stripConnectorSlugSuffix(slug).toLowerCase();
+}
+
 function resolveProviderId(rawName: string): string {
   return RAW_NAME_TO_PROVIDER_ID[rawName] ?? rawName.replace(/[^a-z0-9]+/gi, "_").toLowerCase();
 }

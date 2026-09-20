@@ -23,28 +23,10 @@ import { requireAuth } from "@/core/auth/requireAuth";
 import { ADMIN_TIER } from "@/core/auth/session";
 import { getConnector } from "@/core/connector-loader";
 import { supabaseAdmin } from "@/services/supabase/queries";
-import * as railwayBinding from "@/engines/domains/railway-binding";
+import { findContract } from "@/engines/connectors/registry";
+import { resolveConnectorProvider } from "@/app/api/admin/ide/_lib/providerRegistryRuntime";
 
 type Params = { params: Promise<{ slug: string }> };
-
-interface DiscoveredResource {
-  kind: string;
-  id: string;
-  name: string;
-  parent_id: string | null;
-  children?: DiscoveredResource[];
-}
-
-/** Whitelist of providers whose adapters expose real, API-backed resource
- * discovery. Providers not listed here honestly answer NOT_SUPPORTED
- * (manual input stays allowed there per the owner's rules) — no guessing. */
-const DISCOVERERS: Record<string, () => Promise<{ ok: true; resources: DiscoveredResource[] } | { ok: false; error: string }>> = {
-  railway: async () => {
-    const r = await railwayBinding.discoverResources();
-    if (!r.ok) return { ok: false, error: r.error };
-    return { ok: true, resources: r.resources as DiscoveredResource[] };
-  },
-};
 
 export async function POST(_req: NextRequest, { params }: Params) {
   const auth = await requireAuth(ADMIN_TIER);
@@ -54,18 +36,29 @@ export async function POST(_req: NextRequest, { params }: Params) {
   const connector = await getConnector(supabaseAdmin(), slug);
   if (!connector) return NextResponse.json({ error: "ไม่พบ Connector นี้" }, { status: 404 });
 
-  const discover = DISCOVERERS[connector.slug];
-  if (!discover) {
+  // Provider-neutral: the connector's declared provider (config.provider) or its
+  // legacy slug identity is looked up in the ONE contract registry — this route
+  // never switches on a provider name, and every provider's discovery already
+  // exists in its own adapter (engines/connectors/providers/*). Fixes a real
+  // pre-existing gap: the previous provider->function map was keyed by the FULL
+  // slug, which never matches a real row (gateway/connectors.ts#slugify appends a
+  // random 6-hex suffix), so discovery could not run for a normally created row.
+  const providerId = resolveConnectorProvider(connector.config as Record<string, unknown>, connector.slug);
+  const contract = findContract(providerId);
+  if (!contract) {
     return NextResponse.json(
       { ok: false, code: "NOT_SUPPORTED", error: `Provider นี้ยังไม่มี resource discovery — กรอก config ด้วยมือได้ตามปกติ (manual input อนุญาตเฉพาะเมื่อ API ค้นไม่ได้จริง)` },
       { status: 501 }
     );
   }
 
-  const result = await discover();
+  const result = await contract.discoverResources();
   if (!result.ok) {
+    if (result.code === "NOT_SUPPORTED") {
+      return NextResponse.json({ ok: false, code: result.code, error: result.error }, { status: 501 });
+    }
     // NotReady errors carry their own clear owner guidance (connectorNotReady)
-    return NextResponse.json({ ok: false, error: result.error }, { status: 502 });
+    return NextResponse.json({ ok: false, code: result.code, error: result.error }, { status: 502 });
   }
 
   return NextResponse.json({ ok: true, resources: result.resources });

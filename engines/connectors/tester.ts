@@ -24,10 +24,24 @@ async function timedFetch(url: string, init: RequestInit): Promise<Response> {
   }
 }
 
+/**
+ * The canonical secret field names a bearer credential may arrive under, in
+ * priority order — ONE place, so a provider never has to store the same value
+ * twice under an alias. `api_token` is third (not first) so every existing
+ * provider's behaviour is unchanged; it is included because that is the name the
+ * real provider bindings already read (engines/domains/railway-binding.ts:51,66
+ * and engines/domains/cloudflare.ts:29), and the Railway connector record is
+ * declared with `secret.api_token` only
+ * (engines/connectors/providers/railway.ts).
+ */
+function resolveBearerCredential(secret: Record<string, unknown>): string {
+  return (secret.api_key as string) ?? (secret.token as string) ?? (secret.api_token as string) ?? "";
+}
+
 function buildAuthHeader(config: Record<string, unknown>, secret: Record<string, unknown>): Record<string, string> {
   const headerName = (config.header_name as string) || "Authorization";
   const headerPrefix = config.header_prefix !== undefined ? String(config.header_prefix) : "Bearer ";
-  const value = (secret.api_key as string) ?? (secret.token as string) ?? "";
+  const value = resolveBearerCredential(secret);
   if (!value) return {};
   return { [headerName]: `${headerPrefix}${value}` };
 }
@@ -157,9 +171,11 @@ async function testApiKeyOrToken(config: Record<string, unknown>, secret: Record
 
   // Railway-shaped real check (same reasoning as the GitHub check in
   // testOAuth above): GraphQL POST + body-level identity, because the
-  // generic GET ping cannot honestly test a GraphQL-only provider.
+  // generic GET ping cannot honestly test a GraphQL-only provider. The token
+  // comes from the same canonical resolver the generic header path uses, so the
+  // Railway connector record only ever needs `secret.api_token` — no second copy.
   if (url.includes("backboard.railway")) {
-    return await testRailwayGraphql(url, (secret.api_key as string) ?? (secret.token as string) ?? "");
+    return await testRailwayGraphql(url, resolveBearerCredential(secret));
   }
 
   const res = await timedFetch(url, {
