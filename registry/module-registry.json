@@ -11222,11 +11222,13 @@
       "purpose": "Real Recovery Type Registry (Step 12) — 12 real Recovery Types, every real mutating action honestly PLAN_ONLY or NOT_IMPLEMENTED.",
       "purpose_th": "Real Recovery Type Registry (Step 12) — 12 real Recovery Types, every real mutating action honestly PLAN_ONLY or NOT_IMPLEMENTED.",
       "exports": [
+        "BUSINESS_STOP_CONDITION_RECOVERY",
         "MutationLevel",
         "RECOVERY_TYPE_REGISTRY",
         "RecoveryType",
         "RecoveryTypeDefinition",
         "RecoveryTypeStatus",
+        "getBusinessStopConditionRecovery",
         "getRecoveryTypeDefinition",
         "listRecoveryTypes"
       ],
