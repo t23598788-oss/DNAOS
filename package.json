@@ -127,6 +127,7 @@
     "business-bridge:test": "npx tsx scripts/business-failure-bridge-test.ts",
     "material-source-discovery:test": "npx tsx scripts/material-source-discovery-test.ts",
     "connect-core:test": "npx tsx scripts/connect-core-acceptance-test.ts",
+    "state:reconcile": "npx tsx scripts/state-reconcile.ts",
     "canonical:test": "npx tsx scripts/canonical-phase-c-acceptance-test.ts",
     "canonical:write:test": "npx tsx scripts/canonical-phase-d-acceptance-test.ts",
     "canonical:finance:test": "npx tsx scripts/canonical-finance-acceptance-test.ts"

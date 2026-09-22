@@ -1,0 +1,86 @@
+name: DNA OS Auto Main State Reconcile
+
+# Owner directive, 2026-09-22: after a push to main, the system itself must
+# detect the changed modules, run the relevant existing verification, recompute
+# the reality model, and update current state / next step / handoff — then render
+# MASTER_EXECUTION_STATE.md. No state change ⇒ the job is a real no-op (no commit).
+#
+# It is deliberately the ONLY new piece of machinery: scripts/state-reconcile.ts
+# uses the registries and gates that already exist (module-registry,
+# architecture-book/dependency graph, check-drift.sh, check-imports.sh,
+# build-arch-book.ts, current_state/HANDOFF, systemRealityRuntime). No new
+# architecture, registry or UI is introduced.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      base:
+        description: "Base ref to diff against (default: the pushed commit's parent)"
+        required: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: state-reconcile-main
+  cancel-in-progress: false
+
+jobs:
+  reconcile:
+    # loop guard: never run for the state commit this job itself creates
+    if: github.actor != 'github-actions[bot]' && !contains(github.event.head_commit.message, '[state-reconcile]')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # need the pushed commit's parent to diff modules
+          ref: main
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Reconcile state from the pushed commit
+        id: reconcile
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          set -euo pipefail
+          BEFORE="${{ github.event.before }}"
+          if [ -z "$BEFORE" ] || [ "$BEFORE" = "0000000000000000000000000000000000000000" ]; then
+            BEFORE="HEAD^"
+          fi
+          BASE="${{ github.event.inputs.base }}"
+          if [ -n "$BASE" ]; then BEFORE="$BASE"; fi
+          echo "base=$BEFORE head=HEAD"
+          npx tsx scripts/state-reconcile.ts --base "$BEFORE" --head HEAD
+
+      - name: Commit state updates back to main (only when something changed)
+        if: always()
+        run: |
+          set -euo pipefail
+          git config user.name "dna-os-state-bot"
+          git config user.email "state-bot@users.noreply.github.com"
+          # only the state artifacts the reconciler owns — never -A, never other work
+          git add -- MASTER_EXECUTION_STATE.md registry/CURRENT_STATE.json registry/HANDOFF.json registry/architecture-book.json
+          if git diff --cached --quiet; then
+            echo "no state change → nothing to commit (no-op)"
+            exit 0
+          fi
+          git commit -m "chore(state): auto reconcile main state [state-reconcile]"
+          git push origin HEAD:refs/heads/main
+
+      - name: Step summary
+        if: always()
+        run: |
+          {
+            echo "### Auto main state reconcile"
+            echo ""
+            sed -n '/state:reconcile:begin/,/state:reconcile:end/p' MASTER_EXECUTION_STATE.md
+          } >> "$GITHUB_STEP_SUMMARY" || true

@@ -14318,6 +14318,15 @@
       "exports": [],
       "status": "active",
       "entry_point": true
+    },
+    "scripts/state-reconcile.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "Auto main state reconcile — on a push to main it detects changed modules, runs the existing verification gates, recomputes the reality model, updates current state/next step/handoff and renders MASTER_EXECUTION_STATE.md; no state change is a no-op.",
+      "purpose_th": "auto reconcile สถานะ main — เมื่อมี push เข้า main จะตรวจโมดูลที่เปลี่ยน รัน gate เดิมที่เกี่ยวข้อง คำนวณ reality ใหม่ อัปเดต current state/next step/handoff และ render MASTER_EXECUTION_STATE.md; ถ้าไม่มีอะไรเปลี่ยนจะไม่ทำอะไรเลย",
+      "exports": [],
+      "status": "active",
+      "entry_point": true
     }
   },
   "excluded": [
