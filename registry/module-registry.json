@@ -4220,6 +4220,7 @@
       "exports": [
         "FollowupReply",
         "completeAfterMaterialResolved",
+        "extractEventDeterministically",
         "tryCompleteAwaitingEvent"
       ],
       "status": "active"
@@ -6153,6 +6154,7 @@
       "purpose": "Document artifact storage behind the gateway — stores real document artifacts with internal-secret gated access (DOCUMENT_ARTIFACT_INTERNAL_SECRET pattern).",
       "purpose_th": "ที่เก็บ artifact เอกสารหลัง gateway — เก็บ artifact เอกสารจริงพร้อมการเข้าถึงแบบ internal secret (รูปแบบ DOCUMENT_ARTIFACT_INTERNAL_SECRET)",
       "exports": [
+        "StoreArtifactOptions",
         "StoredDocumentArtifacts",
         "lineDocumentMessages",
         "storeDocumentArtifacts"
@@ -6377,7 +6379,8 @@
       "purpose": "GET — lists pending transfer_slip receipt_documents (status ai_read) joined with partner name and live debt_snapshots.total_outstanding, classified via resolvePaymentDocumentLink() so the same full/partial decision the confirm route will execute is previewed here first",
       "purpose_th": "GET — ดึงรายการสลิปโอนเงินที่รอตรวจสอบ (status ai_read) พร้อมชื่อคู่ค้าและยอดหนี้คงเหลือจริง จำแนกด้วย resolvePaymentDocumentLink() ตัวเดียวกับที่ confirm route จะใช้จริง ไม่ใช่การเดาแยกกัน",
       "exports": [
-        "GET"
+        "GET",
+        "POST"
       ],
       "status": "active"
     },
@@ -14324,7 +14327,9 @@
       "layer": "scripts",
       "purpose": "Auto main state reconcile — on a push to main it detects changed modules, runs the existing verification gates, recomputes the reality model, updates current state/next step/handoff and renders MASTER_EXECUTION_STATE.md; no state change is a no-op.",
       "purpose_th": "auto reconcile สถานะ main — เมื่อมี push เข้า main จะตรวจโมดูลที่เปลี่ยน รัน gate เดิมที่เกี่ยวข้อง คำนวณ reality ใหม่ อัปเดต current state/next step/handoff และ render MASTER_EXECUTION_STATE.md; ถ้าไม่มีอะไรเปลี่ยนจะไม่ทำอะไรเลย",
-      "exports": [],
+      "exports": [
+        "ReconcileInputs"
+      ],
       "status": "active",
       "entry_point": true
     },
@@ -14343,11 +14348,21 @@
       "purpose": "Business job adapter (control envelope, IntegrPASS2/G1) — validates a CANONICAL_JOB_CONTRACT envelope against the declared business capabilities and calls the existing canonical writer as the business executor; holds no DB client and never writes business truth.",
       "purpose_th": "อะแดปเตอร์งานธุรกิจ (ซองควบคุม PASS2/G1) — ตรวจซองงานตามสัญญากลางกับ capability ที่ประกาศไว้ แล้วเรียก canonical writer เดิมเป็นตัวทำงานจริง ไม่มี DB client และไม่เขียนความจริงทางธุรกิจเอง",
       "exports": [
+        "AcceptanceRunner",
+        "BuildBusinessJobInput",
+        "BusinessCapabilityDeclaration",
+        "BusinessExecutor",
+        "BusinessJobControlRecord",
+        "BusinessJobEnvelope",
+        "BusinessJobExecOutcome",
+        "BusinessJobExecution",
+        "BusinessJobStatus",
+        "ExecuteBusinessJobOptions",
         "buildBusinessJob",
-        "validateBusinessJobEnvelope",
-        "executeBusinessJob",
         "declaredBusinessCapabilities",
-        "findBusinessCapability"
+        "executeBusinessJob",
+        "findBusinessCapability",
+        "validateBusinessJobEnvelope"
       ],
       "status": "active",
       "entry_point": false
@@ -14367,8 +14382,11 @@
       "purpose": "Approval evidence normalizer (IntegrPASS3/G5) — reads the five real approval sources (owner passkey, pending authorizations, connector proposals, destructive-action gate, audit log) and restates them in one shared evidence language; SELECT-only, never an approval authority.",
       "purpose_th": "ตัวปรับหลักฐานการอนุมัติให้เป็นภาษาเดียว (PASS3/G5) — อ่านแหล่งอนุมัติจริง 5 แหล่งแล้วแปลงเป็นหลักฐานรูปแบบเดียว อ่านเท่านั้น ไม่เป็นผู้อนุมัติเอง",
       "exports": [
-        "resolveApprovalEvidence",
-        "hasVerifiedApproval"
+        "ApprovalSource",
+        "ApprovalVerificationState",
+        "NormalizedApprovalEvidence",
+        "hasVerifiedApproval",
+        "resolveApprovalEvidence"
       ],
       "status": "active",
       "entry_point": false
@@ -14379,6 +14397,8 @@
       "purpose": "Business acceptance runtime (IntegrPASS3/G3) — verifies business acceptance ids against real business truth (document versions, canonical revenue vs raw SQL, FK orphans, VOID/quotation revenue rules) and delegates file-shaped criteria to the existing acceptanceContractRuntime compiler.",
       "purpose_th": "ตัวตรวจ acceptance ของงานธุรกิจ (PASS3/G3) — ตรวจ acceptance จากความจริงในฐานข้อมูล และมอบเกณฑ์แบบไฟล์ให้ compiler เดิม",
       "exports": [
+        "AcceptanceOutcome",
+        "AcceptanceRunContext",
         "runBusinessAcceptance",
         "verifiableBusinessAcceptanceIds"
       ],
@@ -14400,6 +14420,8 @@
       "purpose": "Business job progress (IntegrPASS4/G8) — maps a business job's control record onto the EXISTING checkpoint chain via writeExecutionContextCheckpoint; explicitly control-plane only (business truth stays in the canonical writer's rows) and supports dry-run.",
       "purpose_th": "ความคืบหน้าของงานธุรกิจ (PASS4/G8) — บันทึกสถานะงานลงห่วงโซ่ checkpoint เดิม ระบุชัดว่าเป็นชั้นควบคุมเท่านั้น ความจริงทางธุรกิจอยู่ในแถวข้อมูลที่ canonical writer เขียน และรองรับ dry-run",
       "exports": [
+        "BusinessJobProgressInput",
+        "BusinessJobProgressResult",
         "recordBusinessJobProgress"
       ],
       "status": "active",
@@ -14411,11 +14433,15 @@
       "purpose": "Job recovery decision (IntegrPASS5/G4) — pure, DB-free resolver that maps a business stop condition to a bounded recovery policy (retry/waits/review/owner-only/escalate) from the approved contract; refuses to retry when the caller did not observe checkpoint/business truth/evidence/cost gate.",
       "purpose_th": "ตัวตัดสิน recovery ของงาน (PASS5/G4) — บริสุทธิ์ ไม่แตะ DB แปลง stop condition เป็นนโยบายกู้คืนแบบมีขอบเขต และปฏิเสธการ retry ถ้าผู้เรียกยังไม่ได้ตรวจ checkpoint/ความจริงธุรกิจ/หลักฐาน/cost gate",
       "exports": [
-        "resolveRecoveryDecision",
-        "recoveryPolicies",
+        "RecoveryAction",
+        "RecoveryContext",
+        "RecoveryDecision",
+        "RecoveryPolicy",
+        "describeRecoverySemantics",
         "findRecoveryPolicy",
         "isPaidRetryAllowed",
-        "describeRecoverySemantics"
+        "recoveryPolicies",
+        "resolveRecoveryDecision"
       ],
       "status": "active",
       "entry_point": false
@@ -14426,6 +14452,8 @@
       "purpose": "Job recovery preflight (IntegrPASS5/G4) — read-only gathering of the owner-required prerequisites (checkpoint, business truth re-read, acceptance evidence, approval state, cost already consumed, paid-retry cost gate) before any retry/resume, then delegates the decision to the pure resolver.",
       "purpose_th": "preflight การกู้คืนงาน (PASS5/G4) — อ่านเงื่อนไขที่ owner กำหนดก่อน retry/resume (checkpoint, ความจริงธุรกิจ, หลักฐาน acceptance, สถานะอนุมัติ, ค่าใช้จ่ายที่ใช้ไป, cost gate) แล้วส่งให้ตัวตัดสินบริสุทธิ์ ไม่เขียนอะไรเลย",
       "exports": [
+        "RecoveryPreflightInput",
+        "RecoveryPreflightResult",
         "assessRecoveryPrerequisites"
       ],
       "status": "active",
@@ -14446,8 +14474,12 @@
       "purpose": "Cross-runtime canonical job transport (IntegrPASS6/G2) — validates an Edge/Deno transport envelope, performs the idempotency lookup against real business truth before anything runs, checks approval evidence, runs the job through the SAME adapter and canonical executor, and answers with the declared response contract.",
       "purpose_th": "transport งานข้ามรันไทม์ (PASS6/G2) — ตรวจซองงานจาก Edge/Deno กันการทำซ้ำด้วยการอ่านความจริงจริงก่อนรัน ตรวจหลักฐานการอนุมัติ แล้วรันผ่าน adapter และ canonical executor ตัวเดิม",
       "exports": [
-        "handleCanonicalJobRequest",
-        "CANONICAL_RUNTIME_EXECUTORS"
+        "CANONICAL_RUNTIME_EXECUTORS",
+        "CrossRuntimeEnvelope",
+        "CrossRuntimeExecutors",
+        "CrossRuntimeResponse",
+        "HandleOptions",
+        "handleCanonicalJobRequest"
       ],
       "status": "active",
       "entry_point": false
@@ -14457,7 +14489,9 @@
       "layer": "api",
       "purpose": "Internal canonical job transport endpoint (IntegrPASS6/G2) — secret-gated POST that hands the envelope to the transport runtime; reuses the existing internal-secret header pattern and echoes only the response contract.",
       "purpose_th": "ปลายทางภายในสำหรับรับงาน canonical (PASS6/G2) — POST ที่ตรวจ secret แล้วส่งซองงานให้ transport runtime ใช้รูปแบบ internal secret เดิมของระบบ",
-      "exports": [],
+      "exports": [
+        "POST"
+      ],
       "status": "active",
       "entry_point": true
     },
@@ -14467,8 +14501,10 @@
       "purpose": "Edge/Deno canonical transport client (IntegrPASS6/G2) — CHANNEL-role only: builds the transport envelope, sends it with the existing internal secret, carries no business logic, and reports an unknown write outcome honestly instead of retrying a writer.",
       "purpose_th": "client transport ฝั่ง Edge/Deno (PASS6/G2) — ทำหน้าที่ช่องทางเท่านั้น สร้างซองงาน ส่งด้วย secret เดิม ไม่มี logic ธุรกิจ และรายงานตามจริงเมื่อไม่รู้ผลการเขียน",
       "exports": [
-        "requestCanonicalJob",
-        "idempotencyKeyFor"
+        "CanonicalJobRequest",
+        "CanonicalJobResponse",
+        "idempotencyKeyFor",
+        "requestCanonicalJob"
       ],
       "status": "active",
       "entry_point": false
