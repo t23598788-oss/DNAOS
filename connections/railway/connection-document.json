@@ -4,7 +4,7 @@
   "title": "DNA OS ↔ Railway Provider and Runtime Connection",
   "version": 1,
   "recorded_at": "2026-09-07",
-  "last_verified_at": "2026-09-05",
+  "last_verified_at": "2026-09-22",
   "status_vocabulary": ["VERIFIED", "CONNECTED", "NOT_VERIFIED", "BLOCKED", "NOT_WIRED"],
   "status": "CONNECTED",
   "verification_level": "PARTIAL_LIVE_BOUNDARY_VERIFICATION",
@@ -40,7 +40,7 @@
     "Railway project/environment identity": "VERIFIED",
     "Connector execution registry → Railway invoker": "VERIFIED",
     "CommandEnvelope → railway.environment_status": "VERIFIED",
-    "Owner command-router capability entry → Railway": "NOT_WIRED",
+    "Owner command-router capability entry → Railway": "VERIFIED",
     "Credential reference → ACTIVE registry record": "VERIFIED",
     "Credential registry → macOS Keychain": "VERIFIED",
     "Keychain credential → Railway GraphQL": "VERIFIED",
@@ -223,15 +223,15 @@
       "contract_function": "routeOwnerCommand → control/command-router/capability-registry.ts",
       "transport_or_signal": "In-process Owner Command routing",
       "endpoint": null,
-      "authentication": "Upstream Owner authentication remains separate; no Railway entry is present in this registry",
-      "authority_permission": "No Owner command authority is inferred from the standalone connector invoker registration",
+      "authentication": "Owner authorization stays separate from routing: mutation intents require a live Owner session validated by control/owner-authentication's validateOwnerSession; this registry row carries no credential and no authority",
+      "authority_permission": "The capability entry only routes Owner commands to the Railway invoker; mutation intents remain owner-session guarded and no deployment/mutation authority is granted by this entry",
       "input_schema": "Owner Command / CommandEnvelope",
-      "output_result": "No verified route from this capability registry to Railway",
-      "state_transition": "Owner route lookup → Railway entry absent",
+      "output_result": "Live-verified route: Owner command → railway capability → ConnectorBoundaryOutcome with real environment/project artifacts (2026-09-22)",
+      "state_transition": "Owner route lookup → railway capability entry → invokeRailwayConnector → typed result/evidence",
       "source_code_reference": ["control/command-router/router.ts", "control/command-router/capability-registry.ts", "control/connector-execution-boundary/registry.ts"],
-      "live_evidence_reference": ["No live Owner-command evidence supplied for a Railway command; direct getConnectorInvoker verification is recorded separately"],
+      "live_evidence_reference": ["2026-09-22 live Owner-command run on main's entry: routeOwnerCommand → capability entry railway → executeConnectorCommand → getConnectorInvoker(\"railway\") → invokeRailwayConnector (macOS Keychain credential + real Railway GraphQL) — ConnectorBoundaryOutcome ok=true, environment \"production\", project ffe589bf-58fb-4e3e-8969-4a75915fda1a, environment_id 4d28eafa-9735-4405-a585-55ea354bafab"],
       "failure_modes": ["unknown capability", "route not registered", "connected invoker not reachable through Owner route"],
-      "verification_status": "NOT_WIRED"
+      "verification_status": "VERIFIED"
     },
     {
       "id": "rw11",
@@ -253,19 +253,18 @@
     }
   ],
   "live_verification": {
-    "verified_boundaries": ["rw01", "rw02", "rw03", "rw04", "rw05", "rw06", "rw07"],
-    "historical_live_evidence": ["2026-08-23 Railway connector end-to-end", "2026-08-24 Railway deployment/runtime report", "2026-08-31 provider project/resource registration", "2026-09-05 Railway CLI read capability records"],
+    "verified_boundaries": ["rw01", "rw02", "rw03", "rw04", "rw05", "rw06", "rw07", "rw10"],
+    "historical_live_evidence": ["2026-08-23 Railway connector end-to-end", "2026-08-24 Railway deployment/runtime report", "2026-08-31 provider project/resource registration", "2026-09-05 Railway CLI read capability records", "2026-09-22 Owner command → railway capability → Railway API"],
     "not_verified_boundaries": ["rw09"],
-    "not_wired_boundaries": ["rw08", "rw10", "rw11"]
+    "not_wired_boundaries": ["rw08", "rw11"]
   },
   "overall_gaps": [
-    "The Railway invoker is registered in control/connector-execution-boundary but no railway capability entry exists in control/command-router/capability-registry.ts; direct invoker verification must not be presented as Owner-command routing verification.",
     "The connection declaration target_resolution is UNRESOLVED and state OBSERVED.",
     "Railway CLI capability records have live evidence in the canonical registry, but their caller implementation is not located in this repository.",
     "Railway Postgres exists and its schema was reported applied/verified, but application wiring is explicitly NOT_WIRED.",
     "No Railway deployment/write/mutation connector is implemented or verified."
   ],
-  "next_required_connection": "Wire and live-verify an explicit Owner command capability for Railway only if requested; separately verify any CLI callers and Postgres application integration. Do not infer deployment/mutation authority from the read-only connection.",
+  "next_required_connection": "Owner command routing for Railway is wired and live-verified (2026-09-22): routeOwnerCommand → capability entry railway → executeConnectorCommand → getConnectorInvoker(\"railway\") → Railway API. Remaining work: verify any Railway CLI callers, and Postgres application integration. Do not infer deployment/mutation authority from this connection — the mutation intents stay guarded by an Owner session validated in control/owner-authentication.",
   "dependencies": [
     "software/registry-database/data/canonical/capabilities.jsonl",
     "software/provider-project-registry/data/provider-projects.jsonl",

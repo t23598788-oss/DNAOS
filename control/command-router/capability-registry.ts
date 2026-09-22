@@ -265,6 +265,52 @@ export const CAPABILITY_REGISTRY: Readonly<Record<string, CapabilityRegistration
     health_status: "CONNECTED",
   },
 
+  // Registered on main from the branch/commit that already carried it
+  // (`8b0d4ee`, owner-verification-transport-remote-core, whose entry comment
+  // recorded the Owner approval "close Railway wiring gap"): Railway's
+  // ConnectorInvoker (`connections/railway/router-invoker.ts`'s
+  // `invokeRailwayConnector`) and its registration under this exact
+  // capability_id in `../connector-execution-boundary/registry.ts` already
+  // existed — this wires the missing router-side CapabilityRegistration, the
+  // same `endpoint.kind: "connector"` pattern as digitalocean/google-workspace
+  // above. Railway has no separate `adapter-contract.ts` (unlike those two), so
+  // `contract` points at `router-invoker.ts` itself — the one real, verified
+  // public surface this capability has.
+  //
+  // `supported_commands` is exactly that file's real intent set after PR #34
+  // ("Split Railway read and mutation dispatch"): READ_INTENTS ∪ MUTATION_INTENTS
+  // — no more, no less. Reads execute directly; the mutation intents stay guarded
+  // INSIDE the invoker by control/owner-authentication's `validateOwnerSession`
+  // (payload.owner_session_id), so this registry row routes them but grants no
+  // authority of its own.
+  railway: {
+    capability_id: "railway",
+    repo_id: "DNA-OS-INFRASTRUCTURE",
+    contract: "connections/railway/router-invoker.ts",
+    endpoint: { kind: "connector", module: "connections/railway/router-invoker.ts", entry: "invokeRailwayConnector" },
+    supported_commands: [
+      "railway.project_status",
+      "railway.environment_status",
+      "railway.list_project_services",
+      "railway.get_service_instance",
+      "railway.get_source_status",
+      "railway.list_variable_names",
+      "railway.get_deployment",
+      "railway.get_deployment_logs",
+      "railway.get_domain",
+      "railway.introspect_deploy_mutation",
+      "railway.create_service",
+      "railway.connect_source",
+      "railway.create_deployment_trigger",
+      "railway.deploy_revision",
+      "railway.redeploy_deployment",
+      "railway.create_domain",
+    ],
+    match_keyword_sets: [["railway"]],
+    permission_requirement: "none", // router-invoker.ts enforces its own intent sets + forbiddenGenericGraphql + owner-session validation for mutations, same pattern as digitalocean/github
+    health_status: "CONNECTED",
+  },
+
   "local-resource-access": {
     capability_id: "local-resource-access",
     repo_id: "DNA-OS-INFRASTRUCTURE",
