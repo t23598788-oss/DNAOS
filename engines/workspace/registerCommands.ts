@@ -18,6 +18,7 @@ import {
   inspectDocker, verifySupabase, checkThreshold,
 } from "@/engines/storage/engine";
 import { acquireLockWithRetry, releaseLock } from "@/engines/workspace/lockManager";
+import { withRegistryLock } from "@/engines/workspace/registryWriter";
 import { getDependents, analyzeImpact } from "@/engines/workspace/dependencyRegistry";
 import { createMigrationPlan, approveMigrationPlan, executeMigration } from "@/engines/workspace/migrationEngine";
 import { verifyWorkspaceRoot } from "@/engines/workspace/workspaceRootVerifier";
@@ -53,3 +54,37 @@ registerCommand("workspace.verify_root", async (args) => verifyWorkspaceRoot({
 }));
 
 export const STORAGE_WORKSPACE_COMMANDS_REGISTERED = true;
+
+/**
+ * Core chain wiring (P3): the safe registry writer
+ * (engines/workspace/registryWriter.ts — Rule 116 path: Lock Manager + atomic
+ * read/mutate/write) had NO command-surface caller at all; registry edits only
+ * happened through ad-hoc scripts. Registering the existing writer as a real
+ * Runtime-callable command is what lets the Core chain reach
+ * CAPABILITY_ROUTER -> SOURCE_CONTROL -> registry write with the same lock
+ * discipline every other workspace mutation already uses. The mutate function
+ * is a shallow merge of an explicit patch object — no business logic, and the
+ * caller must already hold a real actor + session id.
+ */
+registerCommand("registry.write", async (args) => {
+  const relativePath = String(args.path ?? "");
+  const patch = args.patch;
+  if (!/^registry\/[A-Za-z0-9._\/-]+\.json$/.test(relativePath)) {
+    throw new Error("registry.write only accepts a JSON path under registry/");
+  }
+  if (typeof patch !== "object" || patch === null || Array.isArray(patch)) {
+    throw new Error("registry.write requires a JSON object patch");
+  }
+  return withRegistryLock<Record<string, unknown>>(
+    supabaseAdmin(),
+    relativePath,
+    actorFrom(args),
+    String(args.sessionId ?? ""),
+    (current) => {
+      if (typeof current !== "object" || current === null || Array.isArray(current)) {
+        throw new Error("registry.write target is not a JSON object — refusing to overwrite");
+      }
+      return { ...(current as Record<string, unknown>), ...(patch as Record<string, unknown>) };
+    }
+  );
+});
