@@ -1589,5 +1589,15 @@
       "owner_module": "(none)",
       "verification_method": "policy vs code review"
     }
-  ]
+  ],
+  "system_name": "ระบบธุรกิจ",
+  "system_id": "business-system",
+  "business_system_version": "1.0.0",
+  "source_baseline": "df180701a4cad3f1c8d082d677bc20af76a4f5b4",
+  "source_reconciled": "PARTIAL",
+  "production_verified": false,
+  "repository_role": "DNA-OS = ระบบธุรกิจ",
+  "infrastructure_boundary": "DNA-OS-INFRASTRUCTURE = ระบบโครงสร้างพื้นฐาน ระบบคอนเนกเตอร์ และ Automation",
+  "version_summary": "Version 1.0.0 คือ baseline แรกอย่างเป็นทางการของระบบธุรกิจจาก source จริงบน main โดยไม่ได้หมายความว่าทุก capability สมบูรณ์หรือพร้อม production",
+  "connector_policy": "Connector และ provider ภายนอกไม่ใช่ขอบเขต implementation ของระบบธุรกิจ รายการเดิมที่เกี่ยวข้องให้ถือเป็น legacy หรือ external dependency และย้ายขอบเขตในรอบ migration แยก"
 }
