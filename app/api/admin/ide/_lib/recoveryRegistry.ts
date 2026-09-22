@@ -133,3 +133,29 @@ export function listRecoveryTypes(): RecoveryTypeDefinition[] {
 export function getRecoveryTypeDefinition(type: string): RecoveryTypeDefinition | undefined {
   return RECOVERY_TYPE_REGISTRY[type as RecoveryType];
 }
+
+/**
+ * IntegrPASS 5 (G4) — bridge from BUSINESS stop conditions to the recovery types that already
+ * exist above. This adds a mapping into the existing registry; it introduces no new recovery
+ * engine, queue or registry. The full policy (max_attempts/backoff/cost behaviour/terminal
+ * state) lives in registry/CANONICAL_JOB_CONTRACT.json#recovery_policies so both the domain
+ * layer and this control-plane registry read one source.
+ */
+export const BUSINESS_STOP_CONDITION_RECOVERY: Record<string, RecoveryType> = {
+  SCOPE_VIOLATION: "CUSTOM_RECOVERY",
+  APPROVAL_REQUIRED: "MANUAL_INTERVENTION",
+  BUDGET_EXCEEDED: "MANUAL_INTERVENTION",
+  PROVIDER_UNAVAILABLE: "SWITCH_PROVIDER",
+  TRANSIENT_RUNTIME_ERROR: "RETRY_OPERATION",
+  EXECUTOR_FAILED_BEFORE_WRITE: "RETRY_OPERATION",
+  EXECUTED_REQUIRES_REVIEW: "MANUAL_INTERVENTION",
+  VERIFICATION_FAILED: "MANUAL_INTERVENTION",
+  DESTRUCTIVE_ACTION_REQUIRED: "MANUAL_INTERVENTION",
+  UNKNOWN_FAILURE: "CUSTOM_RECOVERY",
+};
+
+/** Real recovery-type definition for a business stop condition (never invented). */
+export function getBusinessStopConditionRecovery(code: string): RecoveryTypeDefinition | undefined {
+  const type = BUSINESS_STOP_CONDITION_RECOVERY[code];
+  return type ? RECOVERY_TYPE_REGISTRY[type] : undefined;
+}
