@@ -13,6 +13,9 @@ import { loadCompanySettings } from "@/core/config/company-settings"
 import { getCanonicalDocumentRows } from "@/services/canonical/document-list"
 import { resolveOrderForDocument } from "@/engines/canonical/transaction-write"
 import { createDocument } from "@/engines/canonical/document-write"
+import { buildBusinessJob, executeBusinessJob } from "@/engines/jobs/business-job-adapter"
+import { runBusinessAcceptance } from "@/app/api/admin/ide/_lib/businessAcceptanceRuntime"
+import { recordBusinessJobProgress } from "@/app/api/admin/ide/_lib/businessJobProgressRuntime"
 
 // PHASE D3/D9 — canonical transaction linking.
 // The old behaviour created a customer_order with only company+status when none
@@ -155,36 +158,68 @@ export async function POST(req: NextRequest) {
 
   // PHASE D2/D9 — every document goes through the canonical write service:
   // v1.1 money ladder, real line items, version 1 snapshot, audit.
-  let created
+  //
+  // IntegrPASS 3 (G1+G3) — the SAME writer now runs inside the canonical job envelope.
+  // Control metadata is added separately; the business payload/paths below are untouched.
+  const writeInput = {
+    kind: draft.type === "invoice" ? ("invoice" as const) : ("standalone_document" as const),
+    document_no: docNumber,
+    document_type: draft.type,
+    customer_company_id: draft.partnerId || null,
+    customer_order_id: orderId,
+    issue_date: draft.issueDate || null,
+    due_date: draft.type === "invoice" ? draft.dueDate || null : null,
+    reference_no: draft.reference || null,
+    notes: draft.note || null,
+    rows: draft.rows,
+    discountAmount: draft.discountAmount ?? 0,
+    vatEnabled: draft.vatEnabled,
+    vatMode: draft.vatMode,
+    withholdingTaxPercent: draft.withholdingTaxPercent,
+    items: draft.rows.map((r, i) => ({
+      description: r.description,
+      qty: r.qty,
+      unit: r.unit ?? null,
+      unit_price: r.unitPrice,
+      sort_order: i,
+    })),
+    actor: auth.email,
+    status: draft.type === "invoice" ? ("DRAFT" as const) : ("active" as const),
+  }
+
+  const builtJob = buildBusinessJob({
+    capability: "document.create",
+    requested_by: { kind: "staff", id: auth.email ?? "admin" },
+    idempotency_key: `document.create:${docNumber}`,
+    exec_args: writeInput,
+  })
+
+  let execution: Awaited<ReturnType<typeof executeBusinessJob<Awaited<ReturnType<typeof createDocument>>>>>
   try {
-    created = await createDocument({
-      kind: draft.type === "invoice" ? "invoice" : "standalone_document",
-      document_no: docNumber,
-      document_type: draft.type,
-      customer_company_id: draft.partnerId || null,
-      customer_order_id: orderId,
-      issue_date: draft.issueDate || null,
-      due_date: draft.type === "invoice" ? draft.dueDate || null : null,
-      reference_no: draft.reference || null,
-      notes: draft.note || null,
-      rows: draft.rows,
-      discountAmount: draft.discountAmount ?? 0,
-      vatEnabled: draft.vatEnabled,
-      vatMode: draft.vatMode,
-      withholdingTaxPercent: draft.withholdingTaxPercent,
-      items: draft.rows.map((r, i) => ({
-        description: r.description,
-        qty: r.qty,
-        unit: r.unit ?? null,
-        unit_price: r.unitPrice,
-        sort_order: i,
-      })),
-      actor: auth.email,
-      status: draft.type === "invoice" ? "DRAFT" : "active",
-    })
+    execution = await executeBusinessJob(
+      builtJob.envelope!,
+      async (envelope) => ({
+        // The canonical writer remains the executor — unchanged.
+        result: await createDocument(envelope.exec_args as Parameters<typeof createDocument>[0]),
+        observed_writes: writeInput.kind === "invoice"
+          ? ["invoices", "invoice_items", "document_versions", "audit_logs"]
+          : ["standalone_documents", "standalone_document_items", "document_versions", "audit_logs"],
+      }),
+      { acceptanceRunner: runBusinessAcceptance },
+    )
   } catch (e: unknown) {
     return NextResponse.json({ error: e instanceof Error ? e.message : "สร้างเอกสารไม่สำเร็จ" }, { status: 500 })
   }
+
+  // Control-plane failure (blocked/pending/failed) — the business payload is not sent.
+  if (!execution.result) {
+    return NextResponse.json(
+      { error: execution.violations[0] ?? "งานถูกปฏิเสธโดย canonical job envelope", control: { status: execution.status, job_id: execution.job_id, violations: execution.violations } },
+      { status: 500 },
+    )
+  }
+
+  const created = execution.result
 
   const doc = {
     id: created.document_id,
@@ -201,5 +236,32 @@ export async function POST(req: NextRequest) {
   void rendered
   void totals
 
-  return NextResponse.json({ document: doc }, { status: 201 })
+  // Business response unchanged; control metadata is additive and separate.
+  // IntegrPASS 4 (G8) — the same job also appends real progress to the EXISTING checkpoint chain
+  // (control plane only; business truth stays in the canonical writer's rows).
+  const progress = await recordBusinessJobProgress({
+    job_id: execution.job_id ?? "unknown",
+    capability: execution.capability,
+    status: execution.status,
+    executor: execution.control?.executor ?? { module: "engines/canonical/document-write.ts", export: "createDocument" },
+    acceptance: execution.acceptance ?? [],
+    document_id: created.document_id,
+    actor: auth.email ?? "admin",
+  })
+
+  return NextResponse.json(
+    {
+      document: doc,
+      control: {
+        status: execution.status,
+        job_id: execution.job_id,
+        capability: execution.capability,
+        executor: execution.control?.executor ?? null,
+        envelope_digest: execution.control?.envelope_digest ?? null,
+        acceptance: execution.acceptance ?? [],
+        progress: { step: progress.step, checkpoint_id: progress.checkpoint_id, recorded: progress.recorded, business_truth: progress.business_truth },
+      },
+    },
+    { status: 201 },
+  )
 }

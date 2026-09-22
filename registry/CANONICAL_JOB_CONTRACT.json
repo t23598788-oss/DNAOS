@@ -1,0 +1,1301 @@
+{
+  "version": "1.0.0",
+  "contract_id": "dna-os.canonical-job-contract",
+  "status": "APPROVED_FOR_INTEGRATION",
+  "generated": "2026-09-22",
+  "note": "ซองงานกลางของทุกงานใน DNA OS (agent/worker/business/edge) — ไม่อ้าง orchestrator ใหม่ อ้างกลไกที่มีจริงเท่านั้น ห้าม coding จนกว่า owner อนุมัติ",
+  "extends": [
+    "registry/EXECUTION_CONTRACT.json",
+    "registry/SCHEDULER.json",
+    "registry/LOCK_MANAGER.json",
+    "registry/COST_BUDGETS.json + registry/COST_LEDGER.json",
+    "registry/EXECUTION_CONTEXT.json",
+    "registry/worker-tool-registry.json",
+    "registry/AI_REGISTRY.json",
+    "registry/FACTORY_CENTRAL_REGISTRY.json",
+    "registry/capability-registry.json"
+  ],
+  "enums": {
+    "job_type": [
+      "agent_code",
+      "worker_task",
+      "business_workflow",
+      "edge_function",
+      "cron",
+      "inspection",
+      "repair"
+    ],
+    "plane": [
+      "A_agent",
+      "B_worker",
+      "C_business",
+      "D_edge"
+    ],
+    "status": [
+      "REQUESTED",
+      "PLANNED",
+      "SCOPED",
+      "LOCKED",
+      "COST_CLEARED",
+      "PENDING_APPROVAL",
+      "RUNNING",
+      "OBSERVED",
+      "VERIFYING",
+      "VERIFIED",
+      "EVIDENCE_RECORDED",
+      "HANDED_OFF",
+      "CLOSED",
+      "FAILED_RETRYABLE",
+      "FAILED_FINAL",
+      "CANCELLED",
+      "DRAINED",
+      "BLOCKED"
+    ],
+    "cost_kind": [
+      "FREE",
+      "PAID",
+      "UNKNOWN_COST"
+    ],
+    "approval_kind": [
+      "gate_none",
+      "owner_decide",
+      "owner_passkey",
+      "connector_proposal"
+    ],
+    "retry_policy": [
+      "none",
+      "transient",
+      "manual"
+    ],
+    "recovery_mode": [
+      "resume_checkpoint",
+      "void_and_reissue",
+      "manual_owner",
+      "escalate_central"
+    ],
+    "requested_by_kind": [
+      "owner",
+      "staff",
+      "agent",
+      "system",
+      "customer"
+    ]
+  },
+  "required_fields": [
+    "job_id",
+    "contract_version",
+    "requested_by",
+    "requested_at",
+    "job_type",
+    "plane",
+    "priority",
+    "idempotency_key",
+    "scope",
+    "acceptance",
+    "cost",
+    "approval",
+    "retry",
+    "recovery"
+  ],
+  "fields": {
+    "job_id": {
+      "type": "uuid",
+      "backing": "app/api/admin/ide/_lib/executionRegistry.ts"
+    },
+    "contract_version": {
+      "type": "string"
+    },
+    "requested_by": {
+      "type": "object",
+      "props": {
+        "kind": "requested_by_kind",
+        "id": "string"
+      },
+      "backing": [
+        "registry/permissions.json",
+        "public.owner_devices"
+      ]
+    },
+    "requested_at": {
+      "type": "iso8601"
+    },
+    "job_type": {
+      "type": "job_type",
+      "backing": [
+        "app/api/admin/ide/_lib/workerContract.ts",
+        "app/api/admin/ide/_lib/queueRuntime.ts"
+      ]
+    },
+    "plane": {
+      "type": "plane",
+      "backing": "DNA_OS_EXECUTION_LIFECYCLE.md#2"
+    },
+    "priority": {
+      "type": "enum",
+      "values": [
+        "P0",
+        "P1",
+        "P2",
+        "P3"
+      ],
+      "backing": "registry/TASK_QUEUE.json"
+    },
+    "idempotency_key": {
+      "type": "string",
+      "backing": "app/api/admin/ide/_lib/queueRuntime.ts"
+    },
+    "parent_job_id": {
+      "type": "uuid?",
+      "backing": "registry/HANDOFF.json"
+    },
+    "scope": {
+      "type": "object",
+      "props": {
+        "files": {
+          "type": "string[]",
+          "backing": "registry/LOCK_MANAGER.json"
+        },
+        "paths": {
+          "type": "string[]",
+          "backing": "registry/SCHEDULER.json"
+        },
+        "capabilities": {
+          "type": "string[]",
+          "backing": "registry/capability-registry.json"
+        },
+        "tools": {
+          "type": "string[]",
+          "backing": "registry/worker-tool-registry.json"
+        },
+        "data_read": {
+          "type": "string[]",
+          "backing": [
+            "registry/module-registry.json",
+            "registry/schemas.json"
+          ]
+        },
+        "data_write": {
+          "type": "string[]",
+          "constraint": "must be within node boundary (registry/DNA_OS_SYSTEM_OPERATING_GRAPH.json)"
+        },
+        "spend": {
+          "type": "object",
+          "props": {
+            "kind": "cost_kind",
+            "authorized_ref": "string?"
+          },
+          "backing": [
+            "registry/COST_BUDGETS.json",
+            "app/api/admin/ide/_lib/costGateRuntime.ts"
+          ]
+        },
+        "external": {
+          "type": "string[]",
+          "backing": [
+            "registry/PROVIDER_DIRECTORY.json",
+            "public.connectors"
+          ]
+        },
+        "forbidden": {
+          "type": "string[]",
+          "backing": "node.must_not_do (registry/DNA_OS_SYSTEM_OPERATING_GRAPH.json)"
+        }
+      }
+    },
+    "plan": {
+      "type": "object",
+      "props": {
+        "steps": "array",
+        "stop_points": "array"
+      },
+      "backing": [
+        "app/api/admin/ide/_lib/executionPlanRuntime.ts",
+        "app/api/admin/ide/_lib/executionPlannerRuntime.ts"
+      ]
+    },
+    "acceptance": {
+      "type": "string[]",
+      "examples": [
+        "canonical_finance_matches_raw",
+        "document_snapshot_matches_issue",
+        "no_orphan_fk",
+        "quotation_not_counted_as_revenue",
+        "check_drift_ok",
+        "tsc_ok",
+        "imports_ok"
+      ],
+      "backing": [
+        "app/api/admin/ide/_lib/acceptanceContractRuntime.ts",
+        "registry/VALIDATION_RESULTS.json"
+      ]
+    },
+    "cost": {
+      "type": "object",
+      "props": {
+        "kind": "cost_kind",
+        "estimate": "number",
+        "currency": "string",
+        "authorization_ref": "string?"
+      },
+      "backing": [
+        "registry/COST_BUDGETS.json",
+        "registry/COST_LEDGER.json",
+        "app/api/admin/ide/_lib/executionBudgetRuntime.ts"
+      ]
+    },
+    "approval": {
+      "type": "object",
+      "props": {
+        "required": "boolean",
+        "kind": "approval_kind",
+        "ref": "string?"
+      },
+      "backing": [
+        "public.pending_authorizations",
+        "public.owner_auth_audit_log",
+        "app/api/admin/ide/owner-command/approve"
+      ]
+    },
+    "retry": {
+      "type": "object",
+      "props": {
+        "policy": "retry_policy",
+        "max_attempts": "integer",
+        "retryable_signals": "string[]"
+      },
+      "backing": [
+        "app/api/admin/ide/queue/retry/[id]",
+        "app/api/admin/ide/_lib/recoveryRuntime.ts"
+      ]
+    },
+    "stop_conditions": {
+      "type": "string[]",
+      "backing": "DNA_OS_EXECUTION_LIFECYCLE.md#4"
+    },
+    "recovery": {
+      "type": "object",
+      "props": {
+        "mode": "recovery_mode"
+      },
+      "backing": [
+        "app/api/admin/ide/_lib/recoveryRegistry.ts",
+        "app/api/admin/ide/_lib/restoreTestRegistry.ts"
+      ]
+    },
+    "checkpoint_ref": {
+      "type": "object",
+      "props": {
+        "checkpoint_id": "uuid",
+        "hash": "string"
+      },
+      "backing": "registry/EXECUTION_CONTEXT.json"
+    },
+    "status": {
+      "type": "status",
+      "backing": "app/api/admin/ide/_lib/executionRegistry.ts"
+    },
+    "business_status": {
+      "type": "string",
+      "backing": [
+        "public.business_events.status",
+        "public.customer_orders.status",
+        "public.jobs.job_status",
+        "public.document_versions.status",
+        "public.receipt_documents.status",
+        "public.debt_events.event_type"
+      ]
+    },
+    "entity_refs": {
+      "type": "array",
+      "props": {
+        "table": "string",
+        "id": "uuid"
+      },
+      "backing": "92 public tables"
+    },
+    "evidence": {
+      "type": "array",
+      "props": {
+        "kind": "string",
+        "ref": "string",
+        "sha256": "string?"
+      },
+      "backing": [
+        "public.audit_logs",
+        "public.document_artifacts",
+        "registry/VALIDATION_RESULTS.json"
+      ]
+    },
+    "touched_files": {
+      "type": "string[]",
+      "constraint": "must be subset of scope.files; otherwise report violation"
+    },
+    "cost_actual": {
+      "type": "number?",
+      "backing": "registry/COST_LEDGER.json (written only by app/api/admin/ide/_lib/costGateRuntime.ts#recordActualCost)"
+    },
+    "report_to": {
+      "type": "string[]",
+      "backing": [
+        "registry/FACTORY_CENTRAL_REGISTRY.json",
+        "registry/HANDOFF.json"
+      ]
+    }
+  },
+  "validation_rules": [
+    "scope.data_write must be within the boundary of the declared data owner node",
+    "cost.kind != FREE requires authorization_ref before dispatch (cost gate L3)",
+    "approval.required=true without ref => job stays PENDING_APPROVAL (L4)",
+    "cost_actual is append-only; written only by the cost gate",
+    "every job must leave at least one evidence row (audit_logs or equivalent)",
+    "touched_files not subset of scope.files => violation must be reported, never silent",
+    "business_workflow jobs touching money must go through engines/canonical/* (no direct DB writes)",
+    "status=CLOSED requires all acceptance entries passed + evidence complete",
+    "no secrets in payload — only credential_ref is allowed",
+    "plane=D_edge requires transport to canonical (NOT implemented today => known gap BOM-002)"
+  ],
+  "known_gaps": {
+    "D_edge_transport": "missing — supabase/functions เขียน DB ตรง",
+    "business_job_object": "missing — business plane ยังไม่มี job envelope",
+    "cline_registry_entry": "Cline ไม่มีแถวใน registry/AI_REGISTRY.json",
+    "ai_connection_status": "0 แถว — ไม่มีสถานะ AI จริงใน DB"
+  },
+  "approved": {
+    "by": "owner (นายวัชชัย มูลราช)",
+    "at": "2026-09-22",
+    "decision": "APPROVE CANONICAL JOB CONTRACT AS INTEGRATION CONTRACT",
+    "conditions": [
+      "no new execution engine",
+      "no new queue",
+      "no new worker system",
+      "no new approval system",
+      "no new cost system",
+      "no new state system"
+    ],
+    "single_purpose": "ทำให้ของเดิมทั้งหมดพูดภาษางานเดียวกัน (integration contract only)"
+  },
+  "maps_into": [
+    {
+      "system": "registry/EXECUTION_CONTRACT.json",
+      "provides": "execution_order, execution_rules, output_contract, lock_management, work_scheduling",
+      "contract_fields": [
+        "(whole lifecycle)",
+        "report_to"
+      ],
+      "pass": "PASS1"
+    },
+    {
+      "system": "app/api/admin/ide/_lib/executionPlannerRuntime.ts + executionPlanRuntime.ts",
+      "provides": "plan ของงาน (ลำดับ + จุดหยุด)",
+      "contract_fields": [
+        "plan.steps",
+        "plan.stop_points"
+      ],
+      "pass": "PASS1"
+    },
+    {
+      "system": "registry/LOCK_MANAGER.json (+ public.workspace_locks)",
+      "provides": "per-file lock ledger",
+      "contract_fields": [
+        "scope.files"
+      ],
+      "pass": "PASS1"
+    },
+    {
+      "system": "app/api/admin/ide/_lib/costGateRuntime.ts + registry/COST_BUDGETS.json + COST_LEDGER.json",
+      "provides": "cost gate + owner authorization + append-only actual",
+      "contract_fields": [
+        "cost",
+        "scope.spend",
+        "cost_actual"
+      ],
+      "pass": "PASS1"
+    },
+    {
+      "system": "public.pending_authorizations + owner_auth_audit_log (+ owner-command/approve, gateway proposals, destructive_action_gate)",
+      "provides": "approval records ทุกทาง",
+      "contract_fields": [
+        "approval"
+      ],
+      "pass": "PASS3"
+    },
+    {
+      "system": "registry/worker-tool-registry.json",
+      "provides": "per-tool read/write scope + approvalPolicy + forbiddenTools",
+      "contract_fields": [
+        "scope.tools",
+        "scope.forbidden"
+      ],
+      "pass": "PASS1"
+    },
+    {
+      "system": "app/api/admin/ide/_lib/acceptanceContractRuntime.ts + registry/VALIDATION_RESULTS.json",
+      "provides": "acceptance/verification records",
+      "contract_fields": [
+        "acceptance"
+      ],
+      "pass": "PASS3"
+    },
+    {
+      "system": "app/api/admin/ide/_lib/evidenceCollectorRuntime.ts + public.audit_logs",
+      "provides": "evidence collection",
+      "contract_fields": [
+        "evidence",
+        "entity_refs"
+      ],
+      "pass": "PASS4"
+    },
+    {
+      "system": "app/api/admin/ide/_lib/recoveryRuntime.ts + recoveryRegistry.ts (queue/retry, restore tests)",
+      "provides": "recovery/retry mechanisms",
+      "contract_fields": [
+        "retry",
+        "recovery",
+        "stop_conditions"
+      ],
+      "pass": "PASS5"
+    },
+    {
+      "system": "registry/CURRENT_STATE.json + HANDOFF.json + EXECUTION_CONTEXT.json",
+      "provides": "state/handoff/checkpoint chain",
+      "contract_fields": [
+        "status",
+        "checkpoint_ref",
+        "report_to"
+      ],
+      "pass": "PASS4"
+    }
+  ],
+  "scope_authority": {
+    "note": "G7 — ประกาศ 'เจ้าของ' ของแต่ละมิติของ scope ให้ชัด เพื่อให้ทั้ง 3 ที่เดิมอ้างที่เดียวกัน ไม่รวมโค้ด ไม่ลบของเดิม",
+    "files": {
+      "authority": "registry/LOCK_MANAGER.json",
+      "mechanism": "per-file lock ledger",
+      "other_readers": [
+        "registry/EXECUTION_CONTRACT.json#lock_management"
+      ]
+    },
+    "paths": {
+      "authority": "registry/SCHEDULER.json",
+      "mechanism": "path-scoped work assignment",
+      "other_readers": [
+        "registry/EXECUTION_CONTRACT.json#work_scheduling"
+      ]
+    },
+    "capabilities": {
+      "authority": "registry/capability-registry.json",
+      "mechanism": "202 capabilities + Input/Output contract"
+    },
+    "tools": {
+      "authority": "registry/worker-tool-registry.json",
+      "mechanism": "per-tool policy + forbiddenTools (forbiddenToolsAlwaysWin)"
+    },
+    "spend": {
+      "authority": "registry/COST_BUDGETS.json + app/api/admin/ide/_lib/costGateRuntime.ts",
+      "mechanism": "owner authorization + ceiling (2 ชั้น ห้ามรวม)"
+    },
+    "data_boundary": {
+      "authority": "registry/DNA_OS_SYSTEM_OPERATING_GRAPH.json",
+      "mechanism": "node.boundary + node.must_not_do"
+    },
+    "url_target": {
+      "authority": "app/api/admin/ide/_lib/targetPolicy.ts",
+      "mechanism": "URL/SSRF policy สำหรับ inspection"
+    },
+    "agents": {
+      "authority": "registry/AI_REGISTRY.json + registry/AI_SESSIONS.json",
+      "mechanism": "agent authority + live session roster"
+    }
+  },
+  "integration_passes": {
+    "PASS1_DECLARE": {
+      "gaps": [
+        "G6",
+        "G7"
+      ],
+      "status": "done",
+      "completed_at": "2026-09-22",
+      "evidence": [
+        "G7: contract.scope_authority declares 8 dimensions, each naming an existing authority (LOCK_MANAGER / SCHEDULER / capability-registry / worker-tool-registry / COST_BUDGETS+costGateRuntime / operating graph / targetPolicy / AI_REGISTRY+AI_SESSIONS)",
+        "G6: registry/AI_REGISTRY.json = 15 agents, every one with role + authority + must_not_do + tooling + status_source (cline + codex added)",
+        "G6: registry/AI_SESSIONS.json = this cline session declared (status working + honest status_note) per EXECUTION_CONTRACT#execution_order",
+        "G6: all 27 file-backed field declarations normalized to real repo paths (verified resolvable)",
+        "verifier: npm run job-contract:test = 46 passed / 0 failed (read-only)",
+        "gates: tsc 0 errors · check-imports OK · module-registry 1192 (new script registered)"
+      ],
+      "no_new_system": [
+        "no new execution engine",
+        "no new queue",
+        "no new worker system",
+        "no new approval system",
+        "no new cost system",
+        "no new state system"
+      ]
+    },
+    "PASS2_WRAP": {
+      "gaps": [
+        "G1"
+      ],
+      "status": "done",
+      "completed_at": "2026-09-22",
+      "shape": "job (control envelope) -> business job adapter -> existing canonical writer -> result/evidence -> acceptance/checkpoint (PASS3/4)",
+      "evidence": [
+        "contract.business_capabilities = 10 capabilities, each pointing at a real existing export (createDocument, createVersion, updateDocumentDraft, issueDocument, voidDocument, createTransaction, confirmPayment, appendDebtEvent, recordInboundSource, persistGeneratedArtifact)",
+        "engines/jobs/business-job-adapter.ts = control envelope only (no DB client, no SQL, no control-plane import) — verified by static checks",
+        "refusals before execution: unknown capability / write outside declared scope / paid job without authorization_ref / approval-required without ref (executor NOT called — proven with call counter)",
+        "result passed through untouched; adapter adds control metadata only (job id, envelope digest, timings, observed_writes, acceptance list)",
+        "executor writing outside declared scope => EXECUTED_OUT_OF_SCOPE_VIOLATION reported (never silent)",
+        "verifier: npm run job-contract:wrap:test = 46 passed / 0 failed (read-only; executor in the checks is a control stub — no business rows created)",
+        "gates: tsc 0 errors · check-imports OK · module-registry 1194 · job-contract:test still 46/0"
+      ],
+      "no_new_system": [
+        "no new execution engine",
+        "no new queue",
+        "no new worker system",
+        "no new approval system",
+        "no new cost system",
+        "no new state system"
+      ],
+      "not_done_on_purpose": "ยังไม่สลับ route จริงให้รันผ่านซอง — PASS 3 ต้องแนบ acceptance contract + หลักฐานการอนุมัติก่อน แล้วจึงสลับ (ตามคำสั่ง owner)"
+    },
+    "PASS3_VERIFY": {
+      "gaps": [
+        "G3",
+        "G5"
+      ],
+      "status": "done",
+      "completed_at": "2026-09-22",
+      "evidence": [
+        "G3: app/api/admin/ide/_lib/businessAcceptanceRuntime.ts verifies 5 business acceptance ids from real truth (document_versions snapshot ladder, canonical view revenue vs raw tables, 5 FK orphan edges, VOID/quotation revenue rules) and delegates other criteria to the existing acceptanceContractRuntime compiler; every outcome carries verifier_id + evidence_ref + observed_at + pass/fail",
+        "G5: engines/jobs/approval-evidence.ts normalizes all 5 real sources (owner_auth_audit_log, pending_authorizations, integration_gateway_proposals, destructive_action_log, audit_logs) into 11 shared fields; SELECT-only; each record states it is evidence only and the source table remains the authority",
+        "single real call site: POST /api/admin/documents now runs through buildBusinessJob -> executeBusinessJob(acceptanceRunner=runBusinessAcceptance) with createDocument unchanged as the executor",
+        "semantic parity: executor receives caller args byte-identical, result passed through unchanged, business payload keys/status codes unchanged, control metadata added as a separate field",
+        "failure behaviour: acceptance failure => EXECUTED_REQUIRES_REVIEW (row kept, executor not re-run); executor throw => FAILED_FINAL with the real message; no rollback/delete/retry in the adapter",
+        "structural guard: engines/canonical/* import no control-plane module; engines/jobs imports nothing from app/",
+        "verifier: npm run job-contract:verify:test = 42 passed / 0 failed (read-only; no business row created)",
+        "gates: tsc 0 errors · job-contract:test 46/0 · job-contract:wrap:test 46/0 · canonical:test/write/finance re-run green"
+      ],
+      "not_done_on_purpose": [
+        "payment route",
+        "debt route",
+        "LINE",
+        "transaction route",
+        "artifact route",
+        "PASS 4 state propagation"
+      ]
+    },
+    "PASS4_OBSERVE": {
+      "gaps": [
+        "G8"
+      ],
+      "status": "done",
+      "completed_at": "2026-09-22",
+      "evidence": [
+        "app/api/admin/ide/_lib/businessJobProgressRuntime.ts reuses writeExecutionContextCheckpoint (existing state system) — no new state file, no queue, no DB writer (static check)",
+        "progress is declared control-plane only and returns business_truth pointer (canonical writer rows / document_versions) — the chain never becomes the business source of truth",
+        "the single switched call site now also records progress and returns it as additive control metadata (progress.step/checkpoint_id/recorded/business_truth)",
+        "dry-run path proves the mapping without touching registry/EXECUTION_CONTEXT.json (file length unchanged before/after in the verifier)",
+        "verifier: npm run job-contract:verify:test = 48 passed / 0 failed (was 42 before this pass)",
+        "gates: tsc 0 errors · check-imports OK · job-contract:test 46/0 · job-contract:wrap:test 46/0"
+      ],
+      "not_done_on_purpose": [
+        "payment route",
+        "debt route",
+        "LINE",
+        "transaction route",
+        "artifact route",
+        "PASS 5 retry/stop policy",
+        "PASS 6 cross-runtime transport"
+      ]
+    },
+    "PASS5_RECOVER": {
+      "gaps": [
+        "G4"
+      ],
+      "status": "done",
+      "completed_at": "2026-09-22",
+      "evidence": [
+        "recovery_policies (10 stop conditions × 9 policy fields) added into the APPROVED contract; recovery-type bridge added INTO the existing app/api/admin/ide/_lib/recoveryRegistry.ts (BUSINESS_STOP_CONDITION_RECOVERY) — no new registry",
+        "engines/jobs/job-recovery.ts = pure resolver (no DB/queue/state import): RECOVERY != RETRY, RETRY EXECUTION != RESUME WORKFLOW, never re-fires a writer when business truth was already written, bounded (max_attempts+backoff+terminal state), unknown failure => STOP + escalate",
+        "app/api/admin/ide/_lib/jobRecoveryRuntime.ts = read-only preflight using existing runtimes: getCurrentExecutionContext, runBusinessAcceptance, approval-evidence, listCostLedgerEntries, checkCostGate; writes_performed=false asserted",
+        "cases proven: (1) transient before write => bounded retry; (2) acceptance fail after write => REVIEW (no executor re-run); (3) approval missing => WAIT_APPROVAL; (4) budget exceeded => WAIT_BUDGET + paid retry blocked before consuming; (5) destructive => OWNER_ONLY (approval cannot be self-granted); (6) provider outage => bounded exponential retry then terminal",
+        "structural guards: switched route has no retry logic; engines/canonical/* know no recovery/control runtime; only POST /api/admin/documents switched; no new queue/engine",
+        "verifier: npm run job-contract:recover:test = 52 passed / 0 failed (read-only; no business row created, no retry executed)",
+        "gates: tsc 0 errors · job-contract:test 46/0 · job-contract:wrap:test 46/0 · job-contract:verify:test 48/0 · canonical:test 50/0 · canonical:write:test 54/0 · canonical:finance:test 48/0"
+      ],
+      "not_done_on_purpose": [
+        "PASS 6 cross-runtime transport",
+        "payment/debt/transaction/artifact routes",
+        "LINE/Deno",
+        "UI"
+      ]
+    },
+    "PASS6_CROSS_RUNTIME": {
+      "gaps": [
+        "G2"
+      ],
+      "status": "done",
+      "completed_at": "2026-09-22",
+      "pilot_flow": "LINE inbound chain creation (supabase/functions/line-webhook-v2/engines/event-followup.ts) -> transport -> transaction.create",
+      "evidence": [
+        "Phase A inventory: 10 business-table direct writers under supabase/functions classified (BUSINESS_TRUTH_BYPASS / BUSINESS_INTENT / COMPATIBILITY_WRITE) in cross_runtime_transport.phase_a_inventory",
+        "pilot: the three direct inserts (projects/document_groups/customer_orders) + reply reconstruction replaced by requestCanonicalJob({capability:'transaction.create'}); no fallback direct write remains",
+        "canonical side: app/api/internal/canonical/jobs/route.ts (secret-gated, existing internal-secret pattern) -> canonicalJobTransportRuntime.handleCanonicalJobRequest -> SAME adapter -> SAME createTransaction executor; response contract = job_id/status/capability/business_refs/acceptance/evidence_refs/recovery",
+        "idempotency: real business-truth lookup (business_events.transaction_id) BEFORE anything runs => ALREADY_EXECUTED + previous refs, executor never called (proven against a real event)",
+        "timeout safety: transport returns TRANSPORT_UNAVAILABLE with 'write outcome unknown'; the pilot never retries a writer",
+        "approval: capability needing approval without a presented ref => PENDING_APPROVAL + recovery WAIT_APPROVAL (never self-granted)",
+        "declaration corrected: transaction.create data_write now matches the real writer (projects/document_groups/customer_orders/customer_sites/audit_logs)",
+        "verifier: npm run job-contract:cross-runtime:test = 43 passed / 0 failed (read-only; executor stubbed in checks, no business row created)",
+        "gates: tsc 0 errors - check-imports OK - PASS1-5 suites green - canonical suites green"
+      ],
+      "not_switched_on_purpose": [
+        "payment-claim",
+        "process-classified-image",
+        "auto-confirm-payment",
+        "receipt-reconcile-sweep",
+        "bank-*",
+        "handlers/location",
+        "supplier-quote-reply",
+        "owner-dispatcher",
+        "print-jobs",
+        "payment/debt/artifact routes",
+        "UI",
+        "voice/phone",
+        "production rollout"
+      ]
+    }
+  },
+  "business_capabilities": {
+    "note": "G1 — งานธุรกิจ = capability ที่ชี้ไปยัง canonical writer ที่มีอยู่แล้ว. job = control envelope; writer = business executor (ไม่เปลี่ยน ownership/semantics)",
+    "executor_family": "SERVICE (canonical writers)",
+    "envelope_only": true,
+    "items": [
+      {
+        "capability": "document.create",
+        "executor": {
+          "module": "engines/canonical/document-write.ts",
+          "export": "createDocument",
+          "family": "SERVICE"
+        },
+        "data_read": [
+          "companies",
+          "customer_orders"
+        ],
+        "data_write": [
+          "invoices",
+          "invoice_items",
+          "standalone_documents",
+          "standalone_document_items",
+          "document_versions",
+          "audit_logs"
+        ],
+        "approval": {
+          "required": false,
+          "kind": "gate_none"
+        },
+        "cost": {
+          "kind": "FREE"
+        },
+        "acceptance_default": [
+          "document_snapshot_matches_issue"
+        ],
+        "pass": "PASS2"
+      },
+      {
+        "capability": "document.version.create",
+        "executor": {
+          "module": "engines/canonical/document-write.ts",
+          "export": "createVersion",
+          "family": "SERVICE"
+        },
+        "data_read": [
+          "invoices",
+          "standalone_documents"
+        ],
+        "data_write": [
+          "document_versions",
+          "audit_logs"
+        ],
+        "approval": {
+          "required": false,
+          "kind": "gate_none"
+        },
+        "cost": {
+          "kind": "FREE"
+        },
+        "acceptance_default": [
+          "version_chain_appends_only"
+        ],
+        "pass": "PASS2"
+      },
+      {
+        "capability": "document.update_draft",
+        "executor": {
+          "module": "engines/canonical/document-write.ts",
+          "export": "updateDocumentDraft",
+          "family": "SERVICE"
+        },
+        "data_read": [
+          "invoices",
+          "standalone_documents"
+        ],
+        "data_write": [
+          "invoices",
+          "standalone_documents",
+          "document_versions",
+          "audit_logs"
+        ],
+        "approval": {
+          "required": false,
+          "kind": "gate_none"
+        },
+        "cost": {
+          "kind": "FREE"
+        },
+        "acceptance_default": [
+          "draft_edits_never_touch_issued_version"
+        ],
+        "pass": "PASS2"
+      },
+      {
+        "capability": "document.issue",
+        "executor": {
+          "module": "engines/canonical/document-write.ts",
+          "export": "issueDocument",
+          "family": "SERVICE"
+        },
+        "data_read": [
+          "invoices",
+          "standalone_documents",
+          "document_versions"
+        ],
+        "data_write": [
+          "invoices",
+          "standalone_documents",
+          "document_versions",
+          "audit_logs"
+        ],
+        "approval": {
+          "required": false,
+          "kind": "gate_none"
+        },
+        "cost": {
+          "kind": "FREE"
+        },
+        "acceptance_default": [
+          "document_snapshot_matches_issue"
+        ],
+        "pass": "PASS2"
+      },
+      {
+        "capability": "document.void",
+        "executor": {
+          "module": "engines/canonical/document-write.ts",
+          "export": "voidDocument",
+          "family": "SERVICE"
+        },
+        "data_read": [
+          "invoices",
+          "standalone_documents"
+        ],
+        "data_write": [
+          "invoices",
+          "standalone_documents",
+          "document_versions",
+          "audit_logs"
+        ],
+        "approval": {
+          "required": true,
+          "kind": "owner_decide"
+        },
+        "approval_note": "เอกสารการเงินที่ออกแล้ว = ต้องมีหลักฐานการอนุมัติ (PASS3 จะรวมหลักฐานให้ชี้ที่เดียว) แต่ยังไม่เปลี่ยน semantics ของ writer",
+        "cost": {
+          "kind": "FREE"
+        },
+        "acceptance_default": [
+          "void_keeps_history",
+          "voided_excluded_from_revenue"
+        ],
+        "pass": "PASS2"
+      },
+      {
+        "capability": "transaction.create",
+        "executor": {
+          "module": "engines/canonical/transaction-write.ts",
+          "export": "createTransaction",
+          "family": "SERVICE"
+        },
+        "data_read": [
+          "companies",
+          "customer_sites",
+          "projects",
+          "document_groups",
+          "customer_orders"
+        ],
+        "data_write": [
+          "projects",
+          "document_groups",
+          "customer_orders",
+          "customer_sites",
+          "audit_logs"
+        ],
+        "approval": {
+          "required": false,
+          "kind": "gate_none"
+        },
+        "cost": {
+          "kind": "FREE"
+        },
+        "acceptance_default": [
+          "no_half_chain",
+          "no_orphan_fk"
+        ],
+        "pass": "PASS2",
+        "declaration_note": "corrected to match the real executor: engines/canonical/transaction-write.ts writes projects/document_groups/customer_orders/customer_sites (+ canonical audit)"
+      },
+      {
+        "capability": "payment.confirm",
+        "executor": {
+          "module": "engines/canonical/payment-write.ts",
+          "export": "confirmPayment",
+          "family": "SERVICE"
+        },
+        "data_read": [
+          "receipt_documents",
+          "invoices",
+          "debt_events"
+        ],
+        "data_write": [
+          "payment_allocations",
+          "invoices",
+          "receipt_documents",
+          "debt_events",
+          "audit_logs"
+        ],
+        "approval": {
+          "required": false,
+          "kind": "gate_none"
+        },
+        "cost": {
+          "kind": "FREE"
+        },
+        "acceptance_default": [
+          "paid_equals_allocations",
+          "ledger_equals_snapshot"
+        ],
+        "pass": "PASS2"
+      },
+      {
+        "capability": "debt.event.append",
+        "executor": {
+          "module": "engines/canonical/debt-write.ts",
+          "export": "appendDebtEvent",
+          "family": "SERVICE"
+        },
+        "data_read": [
+          "debt_events",
+          "debt_snapshots"
+        ],
+        "data_write": [
+          "debt_events",
+          "debt_snapshots",
+          "audit_logs"
+        ],
+        "approval": {
+          "required": false,
+          "kind": "gate_none"
+        },
+        "cost": {
+          "kind": "FREE"
+        },
+        "acceptance_default": [
+          "ledger_equals_snapshot"
+        ],
+        "pass": "PASS2"
+      },
+      {
+        "capability": "inbound.source.record",
+        "executor": {
+          "module": "engines/canonical/inbound-write.ts",
+          "export": "recordInboundSource",
+          "family": "SERVICE"
+        },
+        "data_read": [
+          "line_events"
+        ],
+        "data_write": [
+          "receipt_documents",
+          "audit_logs"
+        ],
+        "approval": {
+          "required": false,
+          "kind": "gate_none"
+        },
+        "cost": {
+          "kind": "FREE"
+        },
+        "acceptance_default": [
+          "inbound_never_invented"
+        ],
+        "pass": "PASS2"
+      },
+      {
+        "capability": "artifact.persist",
+        "executor": {
+          "module": "engines/canonical/artifact-write.ts",
+          "export": "persistGeneratedArtifact",
+          "family": "SERVICE"
+        },
+        "data_read": [
+          "document_versions"
+        ],
+        "data_write": [
+          "document_artifacts",
+          "audit_logs"
+        ],
+        "approval": {
+          "required": false,
+          "kind": "gate_none"
+        },
+        "cost": {
+          "kind": "FREE"
+        },
+        "acceptance_default": [
+          "artifact_has_checksum_and_version"
+        ],
+        "pass": "PASS2"
+      }
+    ],
+    "control_plane_rule": "control-plane state (job id/status/checkpoint) ต้องไม่เป็น source of truth ของธุรกิจ — ความจริงของธุรกิจอยู่ใน DB/ledger/version ที่ canonical writer เขียนเท่านั้น"
+  },
+  "recovery_policies": {
+    "note": "G4 — mapping stop condition -> recovery policy. Adds a mapping into the EXISTING recovery infrastructure (recoveryRegistry/recoveryRuntime + queue retry + EXECUTION_CONTEXT + cost gate). No new recovery engine/queue/registry.",
+    "policy_shape": [
+      "failure_code",
+      "retry_allowed",
+      "max_attempts",
+      "backoff",
+      "requires_owner",
+      "requires_reverify",
+      "resume_mode",
+      "cost_behavior",
+      "terminal_state"
+    ],
+    "reuse": {
+      "recovery_registry": "app/api/admin/ide/_lib/recoveryRegistry.ts (RecoveryType/RECOVERY_TYPE_REGISTRY)",
+      "recovery_runtime": "app/api/admin/ide/_lib/recoveryRuntime.ts (plan/approve/verify)",
+      "queue_retry": "app/api/admin/ide/queue/retry/[id] + queueRuntime.ts",
+      "checkpoints": "app/api/admin/ide/_lib/executionContextRuntime.ts + registry/EXECUTION_CONTEXT.json",
+      "cost_gate": "app/api/admin/ide/_lib/costGateRuntime.ts#checkCostGate + registry/COST_BUDGETS.json + registry/COST_LEDGER.json",
+      "approval": "engines/jobs/approval-evidence.ts (sources remain the authority)",
+      "loops": "app/api/admin/ide/_lib/gapLoopRuntime.ts + deadEndSweepRuntime.ts"
+    },
+    "policies": [
+      {
+        "failure_code": "SCOPE_VIOLATION",
+        "retry_allowed": false,
+        "max_attempts": 0,
+        "backoff": "none",
+        "requires_owner": true,
+        "requires_reverify": true,
+        "resume_mode": "SCOPED_REPAIR_ONLY",
+        "cost_behavior": "NO_PAID_RETRY",
+        "terminal_state": "TERMINAL_REVIEW"
+      },
+      {
+        "failure_code": "APPROVAL_REQUIRED",
+        "retry_allowed": false,
+        "max_attempts": 0,
+        "backoff": "none",
+        "requires_owner": true,
+        "requires_reverify": false,
+        "resume_mode": "WAIT_APPROVAL_THEN_RESUME_SAME_JOB",
+        "cost_behavior": "NO_COST_UNTIL_APPROVED",
+        "terminal_state": "WAIT_APPROVAL"
+      },
+      {
+        "failure_code": "BUDGET_EXCEEDED",
+        "retry_allowed": false,
+        "max_attempts": 0,
+        "backoff": "none",
+        "requires_owner": true,
+        "requires_reverify": false,
+        "resume_mode": "WAIT_BUDGET_AUTHORIZATION_THEN_RESUME",
+        "cost_behavior": "NEW_AUTHORIZATION_REQUIRED",
+        "terminal_state": "WAIT_BUDGET"
+      },
+      {
+        "failure_code": "PROVIDER_UNAVAILABLE",
+        "retry_allowed": true,
+        "max_attempts": 3,
+        "backoff": "exponential",
+        "requires_owner": false,
+        "requires_reverify": true,
+        "resume_mode": "RETRY_EXECUTION",
+        "cost_behavior": "GATE_EACH_ATTEMPT",
+        "terminal_state": "TERMINAL_AFTER_MAX_ATTEMPTS"
+      },
+      {
+        "failure_code": "TRANSIENT_RUNTIME_ERROR",
+        "retry_allowed": true,
+        "max_attempts": 2,
+        "backoff": "linear",
+        "requires_owner": false,
+        "requires_reverify": true,
+        "resume_mode": "RETRY_EXECUTION",
+        "cost_behavior": "GATE_EACH_ATTEMPT",
+        "terminal_state": "TERMINAL_AFTER_MAX_ATTEMPTS"
+      },
+      {
+        "failure_code": "EXECUTOR_FAILED_BEFORE_WRITE",
+        "retry_allowed": true,
+        "max_attempts": 2,
+        "backoff": "linear",
+        "requires_owner": false,
+        "requires_reverify": true,
+        "resume_mode": "RETRY_EXECUTION_AFTER_NO_WRITE_PROOF",
+        "cost_behavior": "GATE_EACH_ATTEMPT",
+        "terminal_state": "TERMINAL_AFTER_MAX_ATTEMPTS"
+      },
+      {
+        "failure_code": "EXECUTED_REQUIRES_REVIEW",
+        "retry_allowed": false,
+        "max_attempts": 0,
+        "backoff": "none",
+        "requires_owner": true,
+        "requires_reverify": true,
+        "resume_mode": "REVERIFY_OR_RESUME_FROM_CHECKPOINT",
+        "cost_behavior": "NO_AUTO_REEXECUTION",
+        "terminal_state": "REVIEW"
+      },
+      {
+        "failure_code": "VERIFICATION_FAILED",
+        "retry_allowed": false,
+        "max_attempts": 0,
+        "backoff": "none",
+        "requires_owner": true,
+        "requires_reverify": true,
+        "resume_mode": "REVERIFY_OR_MANUAL_REVIEW",
+        "cost_behavior": "NO_WRITER_REEXECUTION",
+        "terminal_state": "REVIEW"
+      },
+      {
+        "failure_code": "DESTRUCTIVE_ACTION_REQUIRED",
+        "retry_allowed": false,
+        "max_attempts": 0,
+        "backoff": "none",
+        "requires_owner": true,
+        "requires_reverify": false,
+        "resume_mode": "OWNER_ONLY",
+        "cost_behavior": "NO_AUTO_RETRY",
+        "terminal_state": "OWNER_ONLY"
+      },
+      {
+        "failure_code": "UNKNOWN_FAILURE",
+        "retry_allowed": false,
+        "max_attempts": 0,
+        "backoff": "none",
+        "requires_owner": true,
+        "requires_reverify": true,
+        "resume_mode": "STOP_AND_ESCALATE_CENTRAL",
+        "cost_behavior": "NO_COST",
+        "terminal_state": "ESCALATED"
+      }
+    ],
+    "recovery_type_bridge": {
+      "note": "business failure code -> existing recoveryRegistry.RecoveryType (bridge defined in recoveryRegistry.ts#BUSINESS_STOP_CONDITION_RECOVERY)",
+      "PROVIDER_UNAVAILABLE": "SWITCH_PROVIDER",
+      "TRANSIENT_RUNTIME_ERROR": "RETRY_OPERATION",
+      "EXECUTOR_FAILED_BEFORE_WRITE": "RETRY_OPERATION",
+      "EXECUTED_REQUIRES_REVIEW": "MANUAL_INTERVENTION",
+      "VERIFICATION_FAILED": "MANUAL_INTERVENTION",
+      "SCOPE_VIOLATION": "CUSTOM_RECOVERY",
+      "APPROVAL_REQUIRED": "MANUAL_INTERVENTION",
+      "BUDGET_EXCEEDED": "MANUAL_INTERVENTION",
+      "DESTRUCTIVE_ACTION_REQUIRED": "MANUAL_INTERVENTION",
+      "UNKNOWN_FAILURE": "CUSTOM_RECOVERY"
+    },
+    "rules": [
+      "RECOVERY != RETRY",
+      "RETRY EXECUTION != RESUME WORKFLOW",
+      "if the canonical writer already wrote business truth, never re-fire it speculatively",
+      "before any retry/resume check: latest checkpoint + business_refs + current business truth + previous outcome + acceptance/evidence + approval state + cost already consumed + attempt count",
+      "canonical writers must not know any recovery/control runtime",
+      "routes must contain no retry logic",
+      "no rollback/delete/reset of business truth to pretend a job never happened",
+      "destructive actions are never auto-retried",
+      "retry is bounded (max_attempts + backoff + terminal state)",
+      "a retry that uses a paid resource must pass checkCostGate again and counts as a NEW attempt with new usage evidence"
+    ]
+  },
+  "cross_runtime_transport": {
+    "note": "G2 — Edge/Deno (LINE, Supabase Edge) ส่ง business intent เข้า canonical execution path ผ่าน envelope เดียวกัน ห้ามคัดลอก logic ของ canonical writer และห้ามเขียน business truth ตรงถ้ามี capability รองรับ",
+    "roles": {
+      "edge": "CHANNEL / INBOUND RUNTIME (รับ-ส่ง-สกัดข้อมูล ไม่เป็นเจ้าของความจริง)",
+      "canonical": "BUSINESS TRUTH OWNER (executor เดิม)"
+    },
+    "endpoint": {
+      "path": "/api/internal/canonical/jobs",
+      "method": "POST",
+      "auth": "reuse existing internal secret header pattern (x-canonical-job-secret = CANONICAL_JOB_INTERNAL_SECRET)"
+    },
+    "envelope_fields": [
+      "job_id",
+      "kind",
+      "source_runtime",
+      "source_channel",
+      "capability",
+      "executor",
+      "intent",
+      "identity_refs",
+      "scope",
+      "plan_ref",
+      "approval_refs",
+      "evidence_refs",
+      "correlation_id",
+      "idempotency_key",
+      "requested_at",
+      "source_event_id"
+    ],
+    "rules": [
+      "Edge ต้องไม่คำนวณ business truth (ยอด/สถานะ/ความสัมพันธ์) ที่ canonical side เป็นเจ้าของ",
+      "Edge ห้ามเขียนตาราง business truth ตรงเมื่อมี canonical capability รองรับ",
+      "Edge ห้าม import/copy โค้ด canonical writer",
+      "canonical writer ห้าม import runtime ของ Edge/LINE",
+      "transport ต้องพก job/context/evidence พอให้ canonical side ทำงานได้ครบ",
+      "auth ต้อง reuse ของเดิม (internal secret + connector/service identity) ห้ามสร้าง auth system ใหม่",
+      "secret ห้ามอยู่ใน payload/log",
+      "replay ต้องถูกกันด้วย idempotency_key/correlation_id (ดูด้วย source_event_id)"
+    ],
+    "response_contract": [
+      "job_id",
+      "status",
+      "capability",
+      "business_refs",
+      "acceptance",
+      "evidence_refs",
+      "recovery"
+    ],
+    "edge_duties": [
+      "render/ตอบ channel",
+      "ไม่ reinterpret business truth",
+      "ไม่แก้ยอด/สถานะเอง"
+    ],
+    "phase_a_inventory": {
+      "scope": "supabase/functions/** (edge/Deno)",
+      "classes": [
+        "CHANNEL_DATA",
+        "BUSINESS_INTENT",
+        "BUSINESS_TRUTH_BYPASS",
+        "COMPATIBILITY_WRITE",
+        "UNKNOWN"
+      ],
+      "business_table_direct_writers": [
+        {
+          "file": "supabase/functions/line-webhook-v2/engines/event-followup.ts",
+          "tables": [
+            "projects",
+            "document_groups",
+            "customer_orders"
+          ],
+          "class": "BUSINESS_TRUTH_BYPASS",
+          "pilot": true,
+          "canonical_capability": "transaction.create"
+        },
+        {
+          "file": "supabase/functions/line-webhook-v2/engines/event-followup.ts",
+          "tables": [
+            "customer_sites"
+          ],
+          "class": "BUSINESS_TRUTH_BYPASS",
+          "canonical_capability": "none yet (site is part of transaction context)"
+        },
+        {
+          "file": "supabase/functions/line-webhook-v2/handlers/location.ts",
+          "tables": [
+            "customer_sites"
+          ],
+          "class": "BUSINESS_INTENT",
+          "canonical_capability": "none yet"
+        },
+        {
+          "file": "supabase/functions/line-webhook-v2/engines/payment-claim.ts",
+          "tables": [
+            "receipt_documents"
+          ],
+          "class": "BUSINESS_TRUTH_BYPASS",
+          "canonical_capability": "inbound.source.record"
+        },
+        {
+          "file": "supabase/functions/line-webhook-v2/engines/process-classified-image.ts",
+          "tables": [
+            "receipt_documents"
+          ],
+          "class": "BUSINESS_TRUTH_BYPASS",
+          "canonical_capability": "inbound.source.record"
+        },
+        {
+          "file": "supabase/functions/receipt-reconcile-sweep/index.ts",
+          "tables": [
+            "receipt_documents"
+          ],
+          "class": "BUSINESS_TRUTH_BYPASS",
+          "canonical_capability": "inbound.source.record"
+        },
+        {
+          "file": "supabase/functions/line-webhook-v2/engines/auto-confirm-payment.ts",
+          "tables": [
+            "business_events"
+          ],
+          "class": "BUSINESS_INTENT",
+          "canonical_capability": "payment.confirm (via payment-write)"
+        },
+        {
+          "file": "supabase/functions/line-webhook-v2/engines/build-event-from-extraction.ts",
+          "tables": [
+            "business_events"
+          ],
+          "class": "BUSINESS_INTENT",
+          "canonical_capability": "none yet (event intake)"
+        },
+        {
+          "file": "supabase/functions/bank-email-sync/index.ts",
+          "tables": [
+            "business_events",
+            "partner_payable_requests"
+          ],
+          "class": "COMPATIBILITY_WRITE",
+          "canonical_capability": "none yet (AP)"
+        },
+        {
+          "file": "supabase/functions/bank-statement-reconcile/index.ts",
+          "tables": [
+            "business_events"
+          ],
+          "class": "COMPATIBILITY_WRITE",
+          "canonical_capability": "bank matching (not yet canonical)"
+        }
+      ],
+      "channel_tables": [
+        "line_events",
+        "line_profiles",
+        "line_customer_memory",
+        "line_outbound_drafts",
+        "line_channels",
+        "company_line_links",
+        "line_conversation_controls"
+      ],
+      "unchanged_in_pass6": [
+        "payment-claim",
+        "process-classified-image",
+        "auto-confirm-payment",
+        "receipt-reconcile-sweep",
+        "bank-*",
+        "handlers/location",
+        "supplier-quote-reply",
+        "owner-dispatcher",
+        "print-jobs"
+      ]
+    }
+  }
+}

@@ -19,6 +19,10 @@
 
 import { tryQuoteMaterialPrice } from "./quote-price.ts"
 import { ResponseGateway } from "./response.ts"
+import { requestCanonicalJob } from "../../_shared/canonicalTransport.ts"
+// Type-only import (erased at runtime, so no import cycle with
+// build-event-from-extraction.ts, which imports THIS file).
+import type { ExtractedEvent } from "./build-event-from-extraction.ts"
 
 // Deterministic, not an LLM guess (owner instruction 2026-07-10: "อย่าให้ AI
 // เข้ามามั่วเยอะ") — a reply containing these words is almost certainly a
@@ -518,34 +522,97 @@ export async function tryCompleteAwaitingEvent(
     }
   }
 
-  // Everything needed is here now — actually open the Job, same chain as
-  // engines/jobs/auto-create.ts / app/api/admin/transactions/route.ts.
-  const stamp = Date.now().toString().slice(-6)
-  const dateStr = new Date().toISOString().split("T")[0].replace(/-/g, "")
+  // IntegrPASS 6 (G2) — CROSS-RUNTIME: the chain is no longer written here.
+  // Same chain, same semantics, but the write now goes through the canonical transport:
+  //   LINE/Deno (CHANNEL) → transport envelope → canonical job → canonical executor → result
+  // The Edge never writes projects/document_groups/customer_orders directly any more.
   const title = [merged.material_text, merged.quantity ? `${merged.quantity} ${merged.quantity_unit ?? ""}`.trim() : null]
     .filter(Boolean).join(" ") || "งานใหม่จาก LINE"
+  const orderAttempt = await requestCanonicalJob({
+    capability: "transaction.create",
+    source_channel: "LINE",
+    intent: "open_job_from_line_request",
+    identity_refs: { line_user_id: userId ?? undefined, partner_id: merged.partner_id ?? null, event_id: ev.id },
+    source_event_id: String(ev.id),
+    correlation_id: String(ev.id),
+    evidence_refs: [`line_event:${currentLineEventId ?? "-"}`],
+    data_write: ["projects", "document_groups", "customer_orders"],
+    exec_args: {
+      customer_company_id: merged.partner_id,
+      customer_site_id: siteId,
+      title,
+      contact_name: merged.contact_name ?? null,
+      contact_phone: merged.contact_phone ?? null,
+    },
+  })
 
-  const { data: project, error: pErr } = await supabase.from("projects").insert({
-    project_no: `PRJ-${dateStr}-${stamp}`, customer_company_id: merged.partner_id, customer_site_id: siteId,
-    title, status: "ACTIVE", updated_at: new Date().toISOString(),
-  }).select("id, project_no").single()
-  if (pErr) return { text: "รับทราบครับ เดี๋ยวเปิดงานให้ครับ" } // save what we have, don't block the reply on an internal error
+  const orderRef = orderAttempt.business_refs.find((r) => r.table === "customer_orders")
+  if (orderAttempt.status === "ALREADY_EXECUTED" && orderRef) {
+    // idempotent replay: the same source event already opened a job — never write twice
+    return { text: "งานนี้เปิดไว้แล้วครับ เดี๋ยวทีมงานติดต่อกลับไปนะครับ" }
+  }
+  if (!orderRef || !orderAttempt.wrote) {
+    // canonical side unavailable / blocked / needs approval: keep the channel reply honest and
+    // do NOT fall back to a direct write (that is the bypass we are removing).
+    return { text: "รับทราบครับ เดี๋ยวเปิดงานให้ครับ" }
+  }
 
-  const { data: dg, error: dgErr } = await supabase.from("document_groups").insert({
-    group_no: `DG-${dateStr}-${stamp}`, project_id: project.id, project_no: project.project_no,
-    customer_company_id: merged.partner_id, title, status: "OPEN", updated_at: new Date().toISOString(),
-  }).select("id").single()
-  if (dgErr) return { text: "รับทราบครับ เดี๋ยวเปิดงานให้ครับ" }
+  await supabase.from("business_events").update({ transaction_id: orderRef.id, status: "job_created" }).eq("id", ev.id)
 
-  const { data: order, error: oErr } = await supabase.from("customer_orders").insert({
-    order_no: `ORD-${dateStr}-${stamp}`, project_id: project.id, document_group_id: dg.id,
-    customer_company_id: merged.partner_id, customer_site_id: siteId, status: "DRAFT",
-    delivery_note: `ผู้ติดต่อหน้างาน: ${merged.contact_name ?? "-"} โทร ${merged.contact_phone}`,
-    updated_at: new Date().toISOString(),
-  }).select("id, order_no").single()
-  if (oErr) return { text: "รับทราบครับ เดี๋ยวเปิดงานให้ครับ" }
+  return { text: `เปิดงานให้แล้วครับ เดี๋ยวทีมงานติดต่อกลับไปนะครับ` }
+}
 
-  await supabase.from("business_events").update({ transaction_id: order.id, status: "job_created" }).eq("id", ev.id)
+// ── Deterministic first pass (owner, 2026-09-20, item #5) ────────────────────
+// Before this, the ONLY way a brand-new free-text message became a
+// business_events row was the async local-AI pipeline: handlers/text.ts
+// enqueues ai_tasks kind="handle_text" → ~/dna-os-ollama/ai-task-watcher.mjs on
+// the owner's Mac → ai-callback → build-event-from-extraction.ts. Real
+// consequence (REALITY_INVENTORY_STEP1.md headline #3 / FCR-015): when that one
+// watcher process stopped, EVERY free-text request stalled — 29 tasks stuck
+// since 2026-08-05 — because the Mac was a single point of failure for the
+// whole channel. This is the in-repo, no-AI, no-Mac fallback that runs first.
+//
+// It fires only on signals that are already real and closed-set:
+//   - the material matches a row in material_types (the same deterministic
+//     matcher the rest of this file uses), AND
+//   - either a real quantity ("10 คิว" / "5 ตัน") or an explicit price/order
+//     phrase is present.
+// Anything ambiguous still falls through to the same ai_tasks queue as before
+// — that queue remains the deeper path for free text, it is simply no longer
+// the ONLY path. Never guesses a material name (owner's standing rule:
+// "ห้ามเดา") and never invents a destination — an empty destination produces
+// the existing "ขอ GPS/ที่อยู่" question through the normal awaiting_info flow.
+const PRICE_OR_ORDER_INTENT = /ราคา|ขอ|เท่าไหร่|เท่าไร|สั่ง|จัดส่ง|ส่งของ|ส่งให้|เอา|รับ|คิดเงิน|ประเมิน/
+// The intent regex above is deliberately broad ("เอา"/"รับ"), so a clear
+// cancellation is checked first — "ไม่เอาหินคลุกแล้ว" must never be read as a
+// new price request.
+const NEGATED_REQUEST = /ยกเลิก|ไม่ต้อง|ไม่เอา|เลิกเอา|ยังไม่(?:ต้อง|เอา)/
 
-  return { text: `เปิดงานให้แล้วครับ (${order.order_no}) เดี๋ยวทีมงานติดต่อกลับไปนะครับ` }
+export function extractEventDeterministically(
+  text: string,
+  materialTypes: { id: string; name: string }[],
+): ExtractedEvent | null {
+  const trimmed = text.trim()
+  if (!trimmed || looksLikeConfusionOrFiller(trimmed)) return null
+  if (NEGATED_REQUEST.test(trimmed)) return null
+
+  const material = resolveMaterialInText(trimmed, materialTypes)
+  if (!material.matched) return null // not a material in the closed set — nothing real to assert
+
+  const quantity = extractQuantity(trimmed)
+  if (!quantity && !PRICE_OR_ORDER_INTENT.test(trimmed)) return null // a material word alone isn't a request
+
+  return {
+    event_type: "ขอราคา",
+    material_text: material.matched.name,
+    quantity: quantity?.quantity ?? null,
+    quantity_unit: quantity?.unit ?? null,
+    destination: null,
+    schedule_text: null,
+    contact_name: null,
+    contact_phone: extractPhone(trimmed),
+    status: "quotation_pending",
+    // 1 = deterministic closed-set match, deliberately not an AI confidence score.
+    confidence: 1,
+  }
 }

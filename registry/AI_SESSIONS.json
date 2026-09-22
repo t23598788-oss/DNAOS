@@ -56,6 +56,17 @@
       "last_seen": "2026-07-13T21:57:00+0700",
       "status": "unknown",
       "status_note": "ห้ามเดา — no confirmed agent_id/provider for this session. Real evidence it exists: docs/domain-governance.md, production-governance.md, route-lifecycle.md, deployment-contract.md, url-lifecycle-policy.md, route-stability-policy.md were all created/edited today (2026-07-13) at timestamps this session (claude-code-session-f683b46b) did not produce via any of its own tool calls — confirmed by direct file-mtime inspection. domain-governance.md was observed growing (2314→3907 bytes) between two checks minutes apart, meaning it was actively being written concurrently. registry/LOCK_MANAGER.json had zero lock entries during this whole window — this session was not following the lock protocol. If this is your session, please upsert this entry with real values instead of leaving it to another AI to guess, per registry/README.md's Communication Rules (no AI talks to another AI directly — only through the Registry)."
+    },
+    {
+      "agent_id": "cline",
+      "provider": "Cline",
+      "model": "claude-sonnet (session default)",
+      "version": "VS Code extension",
+      "session_id": "cline-2026-09-22-canonical-integration",
+      "started_at": "2026-09-22T09:30:00+0700",
+      "last_seen": "2026-09-22T10:30:00+0700",
+      "status": "working",
+      "status_note": "กำลังทำ IntegrPASS 1 (DECLARE) ของ CANONICAL_JOB_CONTRACT ตามคำสั่ง owner — ขอบเขต: registry/*.json ที่ owner อนุมัติ, ห้ามแตะ production business truth"
     }
   ]
 }
