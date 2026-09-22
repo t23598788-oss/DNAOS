@@ -3,6 +3,10 @@
  *
  * เงินต้น + ค่าธรรมเนียม + ดอกเบี้ยสะสม + ค่าทวงถาม - ชำระแล้ว = ยอดคงเหลือ
  * ทุกค่ามาจาก policy (DB) ไม่ hardcode
+ *
+ * @deprecated LEGACY (Phase E5.5, 2026-09-22) — NOT a financial production path.
+ * Finance/credit/reminder routes use the canonical ledger projection
+ * (`company_debt_current`) instead. Do not derive money from this again.
  */
 
 import { round } from "@/core/shared/types";

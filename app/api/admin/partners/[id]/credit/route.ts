@@ -2,83 +2,65 @@ import { NextRequest, NextResponse } from "next/server"
 import { requireAuth } from "@/core/auth/requireAuth"
 import { ADMIN_TIER } from "@/core/auth/session"
 import { supabaseAdmin as supabase } from "@/services/supabase/queries"
-import { calcDebtTrackingSummary, deriveFreezeWindows, sumManualAdjustments, sumManualInterestAdjustments } from "@/engines/debt/tracking"
 
 type Params = { params: Promise<{ id: string }> }
 
-// documents(invoice/receipt) → invoices (receipt = invoice ที่ invoice_status = PAID)
-// debt_trackings → debt_snapshots, transactions → customer_orders
+// documents(invoice/receipt) → invoices (receipt = invoice ที่ PAID) · debt → canonical ledger
+// PHASE E5.2 — every money figure comes from the canonical model:
+//   invoiced/received  = document_canonical + payment_allocations (never `invoice_status === 'PAID'`)
+//   open debt          = company_debt_current (ledger projection) — interest/penalty are NOT
+//                        recomputed here any more (that lived in the legacy debt calculator)
 export async function GET(_req: NextRequest, { params }: Params) {
   const auth = await requireAuth(ADMIN_TIER)
   if (auth instanceof NextResponse) return auth
 
   const { id: partnerId } = await params
 
-  const [invoicesRes, debtRes, txRes, debtEventsRes] = await Promise.all([
+  const [docsRes, allocRes, debtRes, txRes] = await Promise.all([
     supabase()
-      .from("invoices")
-      .select("id, total_amount, invoice_date, invoice_status, created_at")
-      .eq("customer_company_id", partnerId),
-
+      .from("document_canonical")
+      .select("document_kind, document_id, document_type, document_status, issue_date, subtotal, vat_amount, gross_amount, total_amount, wht_amount, net_payable"),
     supabase()
-      .from("debt_snapshots")
-      .select("id, total_outstanding, debt_start_at, created_at, freeze_from, freeze_until")
-      .eq("customer_company_id", partnerId),
-
+      .from("payment_allocations")
+      .select("amount, invoice_id, standalone_document_id, allocation_kind, allocated_at")
+      .or(`invoice_id.not.is.null,standalone_document_id.not.is.null`),
     supabase()
-      .from("customer_orders")
-      .select("id, status, created_at")
-      .eq("customer_company_id", partnerId),
-
-    // Phase B (owner, 2026-07-18) — single partner, so this is one extra
-    // query total (not N+1 like the list-view routes).
-    supabase()
-      .from("debt_events")
-      .select("event_type, occurred_at, amount")
-      .eq("customer_company_id", partnerId)
-      .in("event_type", ["collection_paused", "collection_resumed", "manual_adjustment", "manual_interest_adjustment", "debt_closed"]),
+      .from("company_debt_current")
+      .select("company_id, snapshot_total_outstanding, ledger_outstanding, ledger_event_count, snapshot_collection_state, snapshot_days_overdue, last_event_at")
+      .eq("company_id", partnerId),
+    supabase().from("customer_orders").select("id, status, created_at").eq("customer_company_id", partnerId),
   ])
 
-  const invoices = invoicesRes.data ?? []
-  const receipts = invoices.filter((d: any) => d.invoice_status === "PAID")
-  const debts = debtRes.data ?? []
   const transactions = txRes.data ?? []
-  const freezeWindows = deriveFreezeWindows(debtEventsRes.data ?? [])
 
-  // ─── คำนวณ ────────────────────────────────────────────────────────────────
+  // documents of this partner only (document_canonical carries customer_company_id)
+  const { data: partnerDocs } = await supabase()
+    .from("document_canonical")
+    .select("document_id, document_kind, document_type, document_status, gross_amount, total_amount, net_payable, wht_amount, vat_amount, subtotal")
+    .eq("customer_company_id", partnerId)
+  const docs = (partnerDocs ?? []).filter((d) => !["VOID", "void"].includes(String(d.document_status ?? "")))
 
-  const totalInvoiced = invoices.reduce((s, d: any) => s + Number(d.total_amount ?? 0), 0)
-  const totalReceived = receipts.reduce((s, d: any) => s + Number(d.total_amount ?? 0), 0)
-  const outstanding = Math.max(0, totalInvoiced - totalReceived)
-  const paymentRate = totalInvoiced > 0 ? Math.min(1, totalReceived / totalInvoiced) : null
+  const docIds = new Set(docs.map((d) => String(d.document_id)))
+  const allocations = (allocRes.data ?? []).filter(
+    (a) => (a.invoice_id && docIds.has(String(a.invoice_id))) || (a.standalone_document_id && docIds.has(String(a.standalone_document_id))),
+  )
+  const receivedFromAllocations = allocations.reduce((s, a) => s + Number(a.amount ?? 0), 0)
 
-  // จำนวนงานที่ปิดสำเร็จ vs ทั้งหมด
-  const closedJobs = transactions.filter((t: any) => t.status === "PAID").length
+  // receivable = Σ net_payable (fallback gross) of the partner's own non-void documents
+  const totalInvoiced = docs.reduce((s, d) => s + Number(d.net_payable ?? d.gross_amount ?? d.total_amount ?? 0), 0)
+  const receivedDocs = docs.filter((d) => allocations.some((a) => [a.invoice_id, a.standalone_document_id].includes(d.document_id)))
+  const totalReceived = receivedFromAllocations
+  const outstanding = Math.max(0, totalInvoiced - receivedFromAllocations)
+  const paymentRate = totalInvoiced > 0 ? Math.min(1, receivedFromAllocations / totalInvoiced) : null
+  const voidedCount = (partnerDocs ?? []).filter((d) => ["VOID", "void"].includes(String(d.document_status ?? ""))).length
+
+  const closedJobs = transactions.filter((t) => t.status === "PAID").length
   const totalJobs = transactions.length
 
-  // หนี้ค้างชำระ — Debt Single Source of Truth (owner, 2026-07-17, PRIORITY
-  // task): was summing raw total_outstanding (stale, never recomputed with
-  // interest/penalty — see engines/debt/tracking.ts's getCurrentDebt
-  // comment). Recomputed with the same real formula every other consumer
-  // now uses, so the credit score reflects the actual current amount owed.
-  const openDebt = debts.length > 0
-  const totalDebt = debts.reduce((s, d: any) => {
-    if (!d.total_outstanding) return s
-    const summary = calcDebtTrackingSummary({
-      principalAmount: Number(d.total_outstanding),
-      feeRate: 0,
-      interestStartAt: d.debt_start_at ?? d.created_at,
-      // Debt Collection Freeze Window (owner, 2026-07-18) — same reason as
-      // every other calcDebtTrackingSummary caller: must read this or the
-      // credit score diverges from the reminder card/detail view.
-      freezeFrom: d.freeze_from ?? null,
-      freezeUntil: d.freeze_until ?? null,
-      freezeWindows,
-      manualAdjustmentAmount: sumManualAdjustments(debtEventsRes.data ?? []),
-      manualInterestAdjustmentAmount: sumManualInterestAdjustments(debtEventsRes.data ?? []),
-    })
-    return s + summary.totalAmount
-  }, 0)
+  const debtRow = debtRes.data?.[0]
+  const openDebt = Boolean(debtRow && Number(debtRow.ledger_outstanding ?? 0) > 0)
+  const totalDebt = Number(debtRow?.ledger_outstanding ?? 0)
+
 
   // ─── Score (0-100) ────────────────────────────────────────────────────────
 
@@ -133,13 +115,16 @@ export async function GET(_req: NextRequest, { params }: Params) {
       total_received: totalReceived,
       outstanding,
       payment_rate: paymentRate,
-      invoice_count: invoices.length,
-      receipt_count: receipts.length,
-      open_debt_count: debts.length,
+      invoice_count: docs.length,
+      receipt_count: receivedDocs.length,
+      voided_count: voidedCount,
+      open_debt_count: debtRow ? 1 : 0,
       total_debt: totalDebt,
       job_count: totalJobs,
       closed_job_count: closedJobs,
     },
+    payment_basis: "payment_allocations — ยอดที่รับจริงมาจากแถวการจัดสรร ไม่ใช้ invoice_status='PAID'",
+    debt_basis: "company_debt_current (ledger ของ debt_events) — ไม่คำนวณดอกเบี้ย/ค่าปรับซ้ำในเส้นนี้",
     calculated_at: new Date().toISOString(),
   })
 }

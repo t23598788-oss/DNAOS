@@ -76,6 +76,17 @@ export async function calculateDebt(args: {
   return { ...result };
 }
 
+/**
+ * @deprecated LEGACY (Phase E5.5, 2026-09-22) — NOT a financial production path.
+ *
+ * `calculateDocumentTotals()` in engines/documents/document-editor.ts is the ONE
+ * document money ladder (subtotal → discount → VAT → gross → WHT → net).
+ * This function computes VAT/WHT on the raw `amount` (no discount base, rate from
+ * config) and returns `net = amount + vat - wht`, which does NOT match the canonical
+ * ladder. It has **no remaining consumer** (only the self-registration below), and
+ * every finance route now reads canonical values instead. Kept for compatibility
+ * with older registrations only — do not add new callers.
+ */
 export async function calculateTax(args: {
   amount: number;
   vat_rate?: number;

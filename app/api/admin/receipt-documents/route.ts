@@ -3,6 +3,70 @@ import { requireAuth } from "@/core/auth/requireAuth"
 import { ADMIN_TIER } from "@/core/auth/session"
 import { supabaseAdmin as supabase } from "@/services/supabase/queries"
 import { resolvePaymentDocumentLink } from "@/engines/transactions/document-link"
+import { recordInboundSource, linkInboundSource, type InboundChannel } from "@/engines/canonical/inbound-write"
+
+const ALLOWED_CHANNELS: InboundChannel[] = ["line", "upload", "email", "bank", "drive"]
+
+// PHASE D6/D9 — canonical inbound ingest for the channels the Next app owns
+// (manual upload / forwarded email / bank export / drive sync). The LINE webhook
+// runs in a Deno edge function and keeps its own writes for now (reported as a
+// remaining gap); everything that goes through the app normalises here with real
+// provenance — media facts only when provable, linkage only when evidenced.
+export async function POST(req: Request) {
+  const auth = await requireAuth(ADMIN_TIER)
+  if (auth instanceof NextResponse) return auth
+
+  const body = await req.json().catch(() => ({}))
+  const channel = body.channel as InboundChannel
+  if (!ALLOWED_CHANNELS.includes(channel)) {
+    return NextResponse.json({ error: `channel ต้องเป็นหนึ่งใน ${ALLOWED_CHANNELS.join(", ")}`, code: "INBOUND_CHANNEL_INVALID" }, { status: 400 })
+  }
+  if (!body.media_path || typeof body.media_path !== "string") {
+    return NextResponse.json({ error: "ต้องระบุ media_path ของต้นฉบับจริง", code: "INBOUND_MEDIA_REQUIRED" }, { status: 400 })
+  }
+  if (!body.document_type || typeof body.document_type !== "string") {
+    return NextResponse.json({ error: "ต้องระบุ document_type", code: "INBOUND_TYPE_REQUIRED" }, { status: 400 })
+  }
+
+  try {
+    const created = await recordInboundSource({
+      channel,
+      media_path: body.media_path,
+      document_type: body.document_type,
+      received_at: body.received_at ?? null,
+      media_size_bytes: typeof body.media_size_bytes === "number" ? body.media_size_bytes : null,
+      media_mime_type: typeof body.media_mime_type === "string" ? body.media_mime_type : null,
+      media_sha256: typeof body.media_sha256 === "string" ? body.media_sha256 : null,
+      raw_ocr_text: body.raw_ocr_text ?? null,
+      amount: typeof body.amount === "number" ? body.amount : null,
+      sender_name: body.sender_name ?? null,
+      sender_bank: body.sender_bank ?? null,
+      sender_account_number: body.sender_account_number ?? null,
+      transaction_datetime: body.transaction_datetime ?? null,
+      confidence: typeof body.confidence === "number" ? body.confidence : null,
+      customer_company_id: body.customer_company_id ?? null,
+      provider_message_id: body.provider_message_id ?? null,
+      actor: auth.email,
+      provenance: { channel, received_via: "app:receipt-documents" },
+    })
+
+    // link to a document only when the caller supplies real evidence of the link
+    if (body.link && body.link.document_kind && body.link.document_id && body.link.evidence_ref) {
+      await linkInboundSource({
+        receipt_document_id: created.receipt_document_id,
+        document_kind: body.link.document_kind,
+        document_id: body.link.document_id,
+        actor: auth.email,
+        evidence_ref: body.link.evidence_ref,
+      })
+    }
+
+    return NextResponse.json({ receipt_document: created }, { status: 201 })
+  } catch (e: unknown) {
+    const message = e instanceof Error ? e.message : "บันทึกต้นฉบับขาเข้าไม่สำเร็จ"
+    return NextResponse.json({ error: message }, { status: message.startsWith("INBOUND_") ? 400 : 500 })
+  }
+}
 
 // Payment Verification Queue — list (owner, 2026-07-24): the OCR slip pipeline
 // (supabase/functions/line-webhook-v2/handlers/image.ts) has been writing

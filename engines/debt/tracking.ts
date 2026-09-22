@@ -4,6 +4,13 @@
  * ดอกเบี้ยคงที่ 25%/ปี แบบไม่ทบต้น (simple interest)
  * ต่างจาก calcCompoundInterest (invoice_debts) ซึ่งเป็นดอกเบี้ยทบต้น
  * ทุกค่าคำนวณจาก record จริงใน debt_trackings ห้าม hardcode ตัวเลขธุรกิจอื่น
+ *
+ * @deprecated LEGACY (Phase E5.5, 2026-09-22) — NOT a financial production path.
+ * Phase E5 moved finance-summary, partner credit, line-customers, relationships and
+ * the partner summaries off this module: they now read the canonical ledger
+ * projection (`company_debt_current`) so one company shows ONE debt number.
+ * What remains here is the debt-tracking tracker itself (its own UI + API) and the
+ * document drafts it feeds — never a source of money for finance/credit again.
  */
 
 import { supabaseAdmin } from "@/services/supabase/queries";

@@ -2,7 +2,6 @@ import { NextResponse } from "next/server"
 import { requireAuth } from "@/core/auth/requireAuth"
 import { ADMIN_TIER } from "@/core/auth/session"
 import { supabaseAdmin as supabase } from "@/services/supabase/queries"
-import { calcDebtTrackingSummary, deriveFreezeWindows, sumManualAdjustments, sumManualInterestAdjustments } from "@/engines/debt/tracking"
 
 // Cross-reference view: every distinct LINE contact, their message history,
 // and — where the LINE display name matches a real company/partner record —
@@ -78,50 +77,23 @@ export async function GET() {
   const allCompanyIds = [...companyByLineUserId.values(), ...(namedCompanies ?? [])].map((c: any) => c.id)
 
   const { data: debts } = allCompanyIds.length
-    ? await db.from("debt_snapshots").select("customer_company_id, total_outstanding, collection_state, debt_start_at, created_at, freeze_from, freeze_until").in("customer_company_id", allCompanyIds)
+    ? await db.from("company_debt_current").select("company_id, ledger_outstanding, ledger_event_count, snapshot_collection_state, snapshot_days_overdue").in("company_id", allCompanyIds)
     : { data: [] }
 
-  // Phase B (owner, 2026-07-18) — batched, one query for the whole list, see
-  // app/api/admin/relationships/route.ts's identical comment.
-  const { data: debtEvents } = allCompanyIds.length
-    ? await db.from("debt_events").select("customer_company_id, event_type, occurred_at, amount")
-        .in("customer_company_id", allCompanyIds)
-        .in("event_type", ["collection_paused", "collection_resumed", "manual_adjustment", "manual_interest_adjustment", "debt_closed"])
-    : { data: [] }
-  const eventsByCompanyId = new Map<string, { event_type: string; occurred_at: string; amount?: number | null }[]>()
-  for (const e of debtEvents ?? []) {
-    const arr = eventsByCompanyId.get(e.customer_company_id) ?? []
-    arr.push({ event_type: e.event_type, occurred_at: e.occurred_at, amount: e.amount })
-    eventsByCompanyId.set(e.customer_company_id, arr)
-  }
-
-  // Debt Single Source of Truth (owner, 2026-07-17, PRIORITY task) — was
-  // storing the raw stale total_outstanding (never recomputed with
-  // interest/penalty — see engines/debt/tracking.ts's getCurrentDebt
-  // comment). Same formula as every other consumer, computed once per row
-  // here (not getCurrentDebt(), which would be N+1 queries for a list).
+  // PHASE E5.2 — the debt figure is the canonical ledger projection
+  // (company_debt_current). Interest/penalty are NOT recomputed here any more:
+  // that duplicate maths lived in the legacy debt calculator and made this list
+  // disagree with the ledger. Overdue days come from the snapshot projection.
   const debtByCompanyId = new Map(
-    (debts ?? [])
-      .filter((d) => d.total_outstanding)
-      .map((d) => {
-        const summary = calcDebtTrackingSummary({
-          principalAmount: Number(d.total_outstanding),
-          feeRate: 0,
-          interestStartAt: d.debt_start_at ?? d.created_at,
-          // Debt Collection Freeze Window (owner, 2026-07-18) — see
-          // app/api/admin/relationships/route.ts's identical comment.
-          freezeFrom: d.freeze_from ?? null,
-          freezeUntil: d.freeze_until ?? null,
-          freezeWindows: deriveFreezeWindows(eventsByCompanyId.get(d.customer_company_id) ?? []),
-          manualAdjustmentAmount: sumManualAdjustments(eventsByCompanyId.get(d.customer_company_id) ?? []),
-          manualInterestAdjustmentAmount: sumManualInterestAdjustments(eventsByCompanyId.get(d.customer_company_id) ?? []),
-        })
-        return [d.customer_company_id, {
-          total_outstanding: summary.totalAmount,
-          collection_state: d.collection_state,
-          days_overdue: summary.daysOverdue,
-        }]
-      })
+    (debts ?? []).map((d) => [
+      String(d.company_id),
+      {
+        total_outstanding: Number(d.ledger_outstanding ?? 0),
+        collection_state: d.snapshot_collection_state,
+        days_overdue: Number(d.snapshot_days_overdue ?? 0),
+        ledger_event_count: Number(d.ledger_event_count ?? 0),
+      },
+    ]),
   )
 
   // Outbound messages waiting on human approval (Rule 72) — flagged per

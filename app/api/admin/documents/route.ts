@@ -10,60 +10,18 @@ import {
 } from "@/engines/documents/document-editor"
 import { DOC_LABELS, generateDoc } from "@/engines/documents/engine"
 import { loadCompanySettings } from "@/core/config/company-settings"
+import { getCanonicalDocumentRows } from "@/services/canonical/document-list"
+import { resolveOrderForDocument } from "@/engines/canonical/transaction-write"
+import { createDocument } from "@/engines/canonical/document-write"
 
-// ── autoLinkTransaction ────────────────────────────────────────────────────────
-// เรียกหลังสร้างเอกสาร — หา transaction ที่เปิดอยู่ของ partner นั้น
-// ถ้าไม่มี: สร้างใหม่อัตโนมัติจากข้อมูล partner และเอกสารที่เพิ่งสร้าง
-// ถ้ามี transactionId ที่ระบุมา: ใช้ตัวนั้นเลย
-// ทั้งหมดนี้ใช้ข้อมูลที่มีอยู่แล้ว — ไม่ต้องกรอกใหม่
+// PHASE D3/D9 — canonical transaction linking.
+// The old behaviour created a customer_order with only company+status when none
+// existed (a half chain). Now the target order is resolved BEFORE the document is
+// written; when the context is incomplete the request fails validation and nothing
+// is written (no half chain, no orphan document).
 
-async function autoLinkTransaction(opts: {
-  documentId: string
-  documentType: string
-  partnerId: string
-  netAmount: number
-  transactionId: string | null
-}) {
-  let orderId = opts.transactionId
-
-  if (!orderId) {
-    // หา customer_order ที่ยังเปิดอยู่ของ company นี้
-    const { data: existing } = await supabase()
-      .from("customer_orders")
-      .select("id, status")
-      .eq("customer_company_id", opts.partnerId)
-      .not("status", "in", '("PAID","CANCELLED")')
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle()
-
-    if (existing) {
-      orderId = existing.id
-    } else {
-      // สร้าง customer_order ใหม่อัตโนมัติ
-      const { data: newOrder } = await supabase()
-        .from("customer_orders")
-        .insert({ customer_company_id: opts.partnerId, status: "CONFIRMED" })
-        .select("id")
-        .single()
-      orderId = newOrder?.id ?? null
-    }
-  }
-
-  if (!orderId) return
-
-  // link invoice → customer_order
-  if (opts.documentType === "invoice") {
-    await supabase()
-      .from("invoices")
-      .update({ customer_order_id: orderId })
-      .eq("id", opts.documentId)
-  } else {
-    await supabase()
-      .from("standalone_documents")
-      .update({ customer_order_id: orderId })
-      .eq("id", opts.documentId)
-  }
+async function resolveOrder(opts: { partnerId: string; transactionId: string | null }) {
+  return resolveOrderForDocument({ customer_company_id: opts.partnerId, transactionId: opts.transactionId })
 }
 
 export async function GET(req: NextRequest) {
@@ -108,7 +66,11 @@ export async function GET(req: NextRequest) {
       partners: d.companies ?? null,
     }))
 
-    return NextResponse.json({ documents })
+    // PHASE C7 — canonical financials attached to each list row (UI unchanged).
+    const canon = await getCanonicalDocumentRows(documents.map((d: { id: string }) => d.id))
+    return NextResponse.json({
+      documents: documents.map((d: any) => ({ ...d, canonical: canon.get(d.id) ?? null })),
+    })
   }
 
   // other types → standalone_documents
@@ -141,7 +103,11 @@ export async function GET(req: NextRequest) {
     partners: d.companies ?? null,
   }))
 
-  return NextResponse.json({ documents })
+  // PHASE C7 — canonical financials attached to each list row (UI unchanged).
+  const canon = await getCanonicalDocumentRows(documents.map((d: { id: string }) => d.id))
+  return NextResponse.json({
+    documents: documents.map((d: any) => ({ ...d, canonical: canon.get(d.id) ?? null })),
+  })
 }
 
 export async function POST(req: NextRequest) {
@@ -172,63 +138,68 @@ export async function POST(req: NextRequest) {
   const documentData = draftToDocData(draft, docNumber, settings)
   const rendered = generateDoc(documentData)
   const totals = calculateDocumentTotals(draft)
-  const netAmount = Math.round((rendered.summary.total - totals.withholdingAmount) * 100) / 100
-  let doc: { id: string; document_number: string; document_type: string; status: string; created_at: string }
-  let docErr: { message: string } | null
 
-  if (draft.type === "invoice") {
-    const { data, error } = await supabase()
-      .from("invoices")
-      .insert({
-        invoice_no: docNumber,
-        customer_company_id: draft.partnerId || null,
-        invoice_date: draft.issueDate || new Date().toISOString().split("T")[0],
-        due_date: draft.dueDate || null,
-        reference_no: draft.reference || null,
-        notes: draft.note || null,
-        subtotal: rendered.summary.subtotal,
-        vat_rate: draft.vatEnabled ? 7 : 0,
-        vat_amount: rendered.summary.vat,
-        total_amount: netAmount,
-        paid_amount: 0,
-        invoice_status: "DRAFT",
-      })
-      .select("id, invoice_no, invoice_status, created_at")
-      .single()
-    doc = data ? { id: data.id, document_number: data.invoice_no, document_type: "invoice", status: data.invoice_status?.toLowerCase() ?? "draft", created_at: data.created_at } : null as any
-    docErr = error
-  } else {
-    const { data, error } = await supabase()
-      .from("standalone_documents")
-      .insert({
-        document_no: docNumber,
-        document_type: draft.type,
-        customer_company_id: draft.partnerId || null,
-        document_date: draft.issueDate || new Date().toISOString().split("T")[0],
-        reference_no: draft.reference || null,
-        notes: draft.note || null,
-        subtotal: rendered.summary.subtotal,
-        vat_rate: draft.vatEnabled ? 7 : 0,
-        vat_amount: rendered.summary.vat,
-        total_amount: netAmount,
-      })
-      .select("id, document_no, document_type, created_at")
-      .single()
-    doc = data ? { id: data.id, document_number: data.document_no, document_type: data.document_type, status: "draft", created_at: data.created_at } : null as any
-    docErr = error
-  }
-
-  if (docErr) return NextResponse.json({ error: docErr.message }, { status: 500 })
-
+  // PHASE D3/D9 — resolve the transaction BEFORE writing anything.
+  // Incomplete context ⇒ validation error, no document, no half chain.
+  let orderId: string | null = null
   if (draft.partnerId) {
-    await autoLinkTransaction({
-      documentId: doc.id,
-      documentType: draft.type,
-      partnerId: draft.partnerId,
-      netAmount: netAmount,
-      transactionId: draft.transactionId || null,
-    })
+    const resolution = await resolveOrder({ partnerId: draft.partnerId, transactionId: draft.transactionId || null })
+    if (!resolution.linked || !resolution.order_id) {
+      return NextResponse.json(
+        { error: resolution.reason ?? "บริบทงานไม่ครบ", code: resolution.code ?? "TRANSACTION_CONTEXT_INCOMPLETE" },
+        { status: 400 },
+      )
+    }
+    orderId = resolution.order_id
   }
+
+  // PHASE D2/D9 — every document goes through the canonical write service:
+  // v1.1 money ladder, real line items, version 1 snapshot, audit.
+  let created
+  try {
+    created = await createDocument({
+      kind: draft.type === "invoice" ? "invoice" : "standalone_document",
+      document_no: docNumber,
+      document_type: draft.type,
+      customer_company_id: draft.partnerId || null,
+      customer_order_id: orderId,
+      issue_date: draft.issueDate || null,
+      due_date: draft.type === "invoice" ? draft.dueDate || null : null,
+      reference_no: draft.reference || null,
+      notes: draft.note || null,
+      rows: draft.rows,
+      discountAmount: draft.discountAmount ?? 0,
+      vatEnabled: draft.vatEnabled,
+      vatMode: draft.vatMode,
+      withholdingTaxPercent: draft.withholdingTaxPercent,
+      items: draft.rows.map((r, i) => ({
+        description: r.description,
+        qty: r.qty,
+        unit: r.unit ?? null,
+        unit_price: r.unitPrice,
+        sort_order: i,
+      })),
+      actor: auth.email,
+      status: draft.type === "invoice" ? "DRAFT" : "active",
+    })
+  } catch (e: unknown) {
+    return NextResponse.json({ error: e instanceof Error ? e.message : "สร้างเอกสารไม่สำเร็จ" }, { status: 500 })
+  }
+
+  const doc = {
+    id: created.document_id,
+    document_number: created.document_no,
+    document_type: draft.type,
+    status: draft.type === "invoice" ? "draft" : "active",
+    created_at: new Date().toISOString(),
+    totals: created.totals,
+    version_no: created.version.version_no,
+    items_written: created.items_written,
+    transaction_id: orderId,
+  }
+
+  void rendered
+  void totals
 
   return NextResponse.json({ document: doc }, { status: 201 })
 }

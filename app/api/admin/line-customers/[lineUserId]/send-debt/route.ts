@@ -4,7 +4,6 @@ import { ADMIN_TIER } from "@/core/auth/session"
 import { supabaseAdmin as supabase } from "@/services/supabase/queries"
 import { debtReminderFlex } from "@/engines/documents/flex-template"
 import { loadCompanySettings } from "@/core/config/company-settings"
-import { getCurrentDebt } from "@/engines/debt/tracking"
 import { sendLineMessage } from "@/registry/communication"
 import { normalizeSendResult } from "@/app/api/admin/ide/_lib/businessFailureBridge"
 
@@ -35,14 +34,46 @@ export async function POST(req: Request, { params }: Params) {
   const company = (link as any)?.companies ?? null
   if (!company) return NextResponse.json({ error: "ยังไม่จับคู่บริษัทลูกค้า" }, { status: 400 })
 
-  // Debt Single Source of Truth (owner, 2026-07-17, PRIORITY task) — was
-  // reading debt_snapshots.total_outstanding raw, which is the stale
-  // never-recomputed principal (see engines/debt/tracking.ts's
-  // getCurrentDebt comment for the full root cause). This route sends a
-  // real amount to a real customer — the exact place a stale number does
-  // the most damage. Fixed to the same authoritative calculation as every
-  // other consumer, not a separate/new calculation.
-  const debt = await getCurrentDebt(company.id)
+  // PHASE E5.2 — the amount sent to a real customer now comes from the canonical
+  // ledger projection (company_debt_current). The legacy engine's
+  // principal+interest+penalty recalculation is NOT used here any more: the ledger
+  // already carries every movement, and interest/penalty that were actually
+  // collected are its own event type (reported separately, never re-derived).
+  const { data: debtProjection } = await db
+    .from("company_debt_current")
+    .select("ledger_outstanding, ledger_debt_started, ledger_receipt_received, ledger_interest_penalty_received, ledger_manual_adjustment, snapshot_collection_state, snapshot_days_overdue")
+    .eq("company_id", company.id)
+    .maybeSingle()
+  const { data: debtRow } = await db
+    .from("debt_snapshots")
+    .select("debt_type, document_type")
+    .eq("customer_company_id", company.id)
+    .maybeSingle()
+
+  const ledgerOutstanding = Number(debtProjection?.ledger_outstanding ?? 0)
+  const principalOutstanding = Math.round(
+    (Number(debtProjection?.ledger_debt_started ?? 0) +
+      Number(debtProjection?.ledger_manual_adjustment ?? 0) -
+      Number(debtProjection?.ledger_receipt_received ?? 0)) *
+      100,
+  ) / 100
+  const interestPenaltyReceived = Number(debtProjection?.ledger_interest_penalty_received ?? 0)
+
+  const debt = debtRow
+    ? {
+        total_due: Math.round(ledgerOutstanding * 100) / 100,
+        overdue_days: Number(debtProjection?.snapshot_days_overdue ?? 0),
+        principal: principalOutstanding,
+        // the ledger does not accrue interest/penalty (only records what was received),
+        // so nothing is invented here — the collected amount is shown separately
+        interest: 0,
+        penalty: 0,
+        collection_fee: 0,
+        interest_penalty_received: interestPenaltyReceived,
+        debt_type: debtRow.debt_type,
+        document_type: debtRow.document_type,
+      }
+    : null
 
   if (!debt || debt.total_due <= 0) {
     return NextResponse.json({ error: "ไม่มียอดหนี้ค้างชำระให้ส่ง" }, { status: 400 })

@@ -4,6 +4,11 @@
  * ดึง policy จาก config-loader (DB)
  * คำนวณ: สถานะ + ดอกเบี้ย + ค่าทวงถาม + ยอดรวม
  * AI ห้ามเรียกตรง — ต้องผ่าน Engine เท่านั้น
+ *
+ * @deprecated LEGACY (Phase E5.5, 2026-09-22) — NOT a financial production path.
+ * The canonical debt figure is the ledger projection in `company_debt_current`
+ * (written by `engines/canonical/debt-write.ts`). Every finance/credit/reminder
+ * route was moved off this engine in Phase E5; keep for existing regressions only.
  */
 
 import { round } from "@/core/shared/types";

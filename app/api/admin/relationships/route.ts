@@ -2,7 +2,6 @@ import { NextResponse } from "next/server"
 import { requireAuth } from "@/core/auth/requireAuth"
 import { ADMIN_TIER } from "@/core/auth/session"
 import { supabaseAdmin as supabase, getPartners } from "@/services/supabase/queries"
-import { calcDebtTrackingSummary, deriveFreezeWindows, sumManualAdjustments, sumManualInterestAdjustments } from "@/engines/debt/tracking"
 
 // Architecture Migration Phase 1 (2026-07-13, owner-directed): the
 // relationship list is rooted at `companies` — every real company gets a
@@ -79,54 +78,24 @@ export async function GET() {
 
   const allCompanyIds = companies.map((c) => c.id)
   const { data: debts } = allCompanyIds.length
-    ? await db.from("debt_snapshots").select("customer_company_id, total_outstanding, collection_state, debt_start_at, created_at, freeze_from, freeze_until").in("customer_company_id", allCompanyIds)
+    ? await db
+        .from("company_debt_current")
+        .select("company_id, ledger_outstanding, ledger_event_count, snapshot_collection_state, snapshot_days_overdue")
+        .in("company_id", allCompanyIds)
     : { data: [] }
-
-  // Phase B (owner, 2026-07-18) — batched, one query for every company in
-  // this list (not per-row), so event-derived freeze windows don't turn this
-  // into N+1.
-  const { data: debtEvents } = allCompanyIds.length
-    ? await db.from("debt_events").select("customer_company_id, event_type, occurred_at, amount")
-        .in("customer_company_id", allCompanyIds)
-        .in("event_type", ["collection_paused", "collection_resumed", "manual_adjustment", "manual_interest_adjustment", "debt_closed"])
-    : { data: [] }
-  const eventsByCompanyId = new Map<string, { event_type: string; occurred_at: string; amount?: number | null }[]>()
-  for (const e of debtEvents ?? []) {
-    const arr = eventsByCompanyId.get(e.customer_company_id) ?? []
-    arr.push({ event_type: e.event_type, occurred_at: e.occurred_at, amount: e.amount })
-    eventsByCompanyId.set(e.customer_company_id, arr)
-  }
-  // Debt Single Source of Truth (owner, 2026-07-17, PRIORITY task): the raw
-  // `days_overdue`/`total_outstanding` columns are stale (see
-  // engines/debt/tracking.ts's getCurrentDebt comment for the full root
-  // cause) — recompute here with the same real formula instead of trusting
-  // them directly. Pure-function call per row (not getCurrentDebt(), which
-  // does its own DB query) so listing many relationships stays one query,
-  // not N+1.
+  // PHASE E5.2 — the debt figure is the canonical ledger projection
+  // (company_debt_current). The legacy interest/penalty recalculation is gone:
+  // it made this list disagree with the ledger for the same company.
   const debtByCompanyId = new Map(
-    (debts ?? [])
-      .filter((d) => d.total_outstanding)
-      .map((d) => {
-        const summary = calcDebtTrackingSummary({
-          principalAmount: Number(d.total_outstanding),
-          feeRate: 0, // no fee_rate column exists yet — see tracking.ts comment
-          interestStartAt: d.debt_start_at ?? d.created_at,
-          // Debt Collection Freeze Window (owner, 2026-07-18) — must be
-          // read here too, or the list view diverges from getCurrentDebt()
-          // (used by the detail view/reminder card), reintroducing the
-          // exact "multiple sources of truth" inconsistency fixed earlier.
-          freezeFrom: d.freeze_from ?? null,
-          freezeUntil: d.freeze_until ?? null,
-          freezeWindows: deriveFreezeWindows(eventsByCompanyId.get(d.customer_company_id) ?? []),
-          manualAdjustmentAmount: sumManualAdjustments(eventsByCompanyId.get(d.customer_company_id) ?? []),
-          manualInterestAdjustmentAmount: sumManualInterestAdjustments(eventsByCompanyId.get(d.customer_company_id) ?? []),
-        })
-        return [d.customer_company_id, {
-          total_outstanding: summary.totalAmount,
-          collection_state: d.collection_state,
-          days_overdue: summary.daysOverdue,
-        }]
-      })
+    (debts ?? []).map((d) => [
+      String(d.company_id),
+      {
+        total_outstanding: Number(d.ledger_outstanding ?? 0),
+        collection_state: d.snapshot_collection_state,
+        days_overdue: Number(d.snapshot_days_overdue ?? 0),
+        ledger_event_count: Number(d.ledger_event_count ?? 0),
+      },
+    ]),
   )
 
   const allLineUserIds = [...companyIdByLineUserId.keys()]

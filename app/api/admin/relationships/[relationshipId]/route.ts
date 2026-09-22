@@ -3,7 +3,6 @@ import { requireAuth } from "@/core/auth/requireAuth"
 import { ADMIN_TIER } from "@/core/auth/session"
 import { supabaseAdmin as supabase } from "@/services/supabase/queries"
 import { resolvePresentationTemplate } from "@/engines/presentation/template-resolver"
-import { getCurrentDebt } from "@/engines/debt/tracking"
 
 type Params = { params: Promise<{ relationshipId: string }> }
 
@@ -124,8 +123,8 @@ export async function GET(_req: Request, { params }: Params) {
   const primaryLineUserId = messages.length ? [...messages].reverse()[0].line_user_id : lineUserIds[0] ?? null
 
   const [{ data: invoices }, { data: standalone }, { data: debtRow }, { data: partnerEvents }, { data: payables }] = await Promise.all([
-    db.from("invoices").select("id, invoice_no, invoice_status, total_amount, invoice_date, customer_order_id").eq("customer_company_id", relationshipId),
-    db.from("standalone_documents").select("id, document_no, document_type, total_amount, document_date, customer_order_id").eq("customer_company_id", relationshipId),
+    db.from("invoices").select("id, invoice_no, invoice_status, gross_amount, total_amount, invoice_date, customer_order_id").eq("customer_company_id", relationshipId),
+    db.from("standalone_documents").select("id, document_no, document_type, status, gross_amount, total_amount, document_date, customer_order_id").eq("customer_company_id", relationshipId),
     db.from("debt_snapshots").select("total_outstanding, collection_state, days_overdue, debt_start_at").eq("customer_company_id", relationshipId).maybeSingle(),
     db.from("business_events").select("id, transaction_id").eq("partner_id", relationshipId),
     // Business Workspace V1 (owner, 2026-09-18): รายจ่ายต่อราย — the real
@@ -162,17 +161,23 @@ export async function GET(_req: Request, { params }: Params) {
     ...(standalone ?? []).map((d) => ({ ...withPresentation(d), table: "standalone_documents" as const })),
   ]
 
-  // Business Workspace V1 (owner, 2026-09-18): per-relationship finance
-  // summary from ONLY the real sources this route already reads, plus the
-  // payable table above. Revenue counts real, not-yet-PAID sales documents
-  // (invoices filtered on their own invoice_status; standalone_documents
-  // carry no status and are counted whole — same rows the feed already
-  // renders). The list endpoint (app/api/admin/relationships/route.ts)
-  // already ships debt for every row using the same real tables, so the
-  // detail view stays in agreement with the list — never two truths.
-  const openInvoices = (invoices ?? []).filter((d) => (d as { invoice_status?: string | null }).invoice_status !== "PAID")
-  const revenueDocs = [...openInvoices, ...(standalone ?? [])]
-  const revenueTotal = revenueDocs.reduce((sum, d) => sum + Number((d as { total_amount?: number | null }).total_amount ?? 0), 0)
+  // PHASE E5.1b — the per-relationship revenue summary now follows the canonical
+  // semantics: VOID documents and quotations are NOT revenue (the previous version
+  // counted VOID invoices and every standalone document, including quotations).
+  // Amounts are the persisted gross (fallback total_amount); nothing is recomputed.
+  const openInvoices = (invoices ?? []).filter(
+    (d) => !["PAID", "VOID"].includes(String((d as { invoice_status?: string | null }).invoice_status ?? "")),
+  )
+  const revenueStandalone = (standalone ?? []).filter(
+    (d) =>
+      (d as { document_type?: string | null }).document_type !== "quotation" &&
+      (d as { status?: string | null }).status !== "void",
+  )
+  const revenueDocs = [...openInvoices, ...revenueStandalone]
+  const revenueTotal = revenueDocs.reduce(
+    (sum, d) => sum + Number((d as { gross_amount?: number | null; total_amount?: number | null }).gross_amount ?? (d as { total_amount?: number | null }).total_amount ?? 0),
+    0,
+  )
   const openPayables = (payables ?? []).filter((p) => p.status !== "completed")
   const expenseTotal = openPayables.reduce((sum, p) => sum + Number(p.amount ?? 0), 0)
   const finance = {
@@ -181,25 +186,35 @@ export async function GET(_req: Request, { params }: Params) {
     expense_total: expenseTotal,
     expense_request_count: openPayables.length,
   }
-  // Debt Single Source of Truth (owner, 2026-07-17, PRIORITY task): was
-  // `debtRow` — the raw debt_snapshots.total_outstanding, a stale number set
-  // once and never recomputed with interest/penalty (root cause: see
-  // getCurrentDebt's own comment in engines/debt/tracking.ts). Every field
-  // the Chat header/Relationship page shows now comes from the same
-  // authoritative calculation the Debt Tracking Manager and debt notices
-  // already use — no separate calculation here.
-  const currentDebt = await getCurrentDebt(relationshipId)
-  const debt = currentDebt
+  // PHASE E5.2 — debt comes from the canonical ledger projection
+  // (company_debt_current): total_outstanding = ledger, overdue days/collection
+  // state = snapshot projection. Interest/penalty are NOT recomputed here; the
+  // ledger records only what actually moved, so the collected amount is reported
+  // as its own field instead of an invented accrual.
+  const { data: debtProjection } = await db
+    .from("company_debt_current")
+    .select("ledger_outstanding, ledger_debt_started, ledger_receipt_received, ledger_interest_penalty_received, ledger_manual_adjustment, snapshot_collection_state, snapshot_days_overdue, last_event_at")
+    .eq("company_id", relationshipId)
+    .maybeSingle()
+  const principalOutstanding = Math.round(
+    (Number(debtProjection?.ledger_debt_started ?? 0) +
+      Number(debtProjection?.ledger_manual_adjustment ?? 0) -
+      Number(debtProjection?.ledger_receipt_received ?? 0)) *
+      100,
+  ) / 100
+  const debt = debtProjection
     ? {
-        total_outstanding: currentDebt.total_due,
-        collection_state: debtRow?.collection_state ?? null,
-        days_overdue: currentDebt.overdue_days,
-        principal: currentDebt.principal,
-        interest: currentDebt.interest,
-        penalty: currentDebt.penalty,
-        collection_fee: currentDebt.collection_fee,
-        vat: currentDebt.vat,
-        calculated_at: currentDebt.calculated_at,
+        total_outstanding: Math.round(Number(debtProjection.ledger_outstanding ?? 0) * 100) / 100,
+        collection_state: debtProjection.snapshot_collection_state ?? debtRow?.collection_state ?? null,
+        days_overdue: Number(debtProjection.snapshot_days_overdue ?? 0),
+        principal: principalOutstanding,
+        interest: 0,
+        penalty: 0,
+        collection_fee: 0,
+        interest_penalty_received: Number(debtProjection.ledger_interest_penalty_received ?? 0),
+        vat: null,
+        calculated_at: debtProjection.last_event_at ?? null,
+        basis: "company_debt_current (ledger ของ debt_events) — ไม่คำนวณดอกเบี้ย/ค่าปรับซ้ำ",
       }
     : debtRow ?? null
 

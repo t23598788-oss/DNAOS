@@ -79,39 +79,49 @@ function mapStandaloneToDocument(d: any) {
 // ---- INVOICE DEBTS (ดึงจาก invoices ที่ยังไม่ paid) ----
 
 export async function getOpenDebts() {
+  // PHASE E5.2 — reads the canonical views: the receivable comes from
+  // invoice_payment_summary (persisted net_payable/gross + allocation-derived paid),
+  // never from re-deriving it out of `total_amount`. `current_interest_amount` stays
+  // 0 because the ledger does not accrue interest — it only records what was received.
   const { data, error } = await supabaseAdmin()
-    .from("invoices")
-    .select("id, customer_order_id, total_amount, paid_amount, invoice_status, created_at")
-    .not("invoice_status", "in", '("PAID","VOID")')
-    .order("created_at", { ascending: false });
+    .from("invoice_payment_summary")
+    .select("invoice_id, invoice_no, receivable_amount, receivable_basis, paid_amount, outstanding, derived_status")
+    .not("derived_status", "in", '("VOID","PAID")')
+    .gt("outstanding", 0);
   if (error) throw new Error(error.message);
   return (data ?? []).map((d: any) => ({
-    id: d.id,
-    document_id: d.id,
-    principal_amount: Number(d.total_amount ?? 0),
-    outstanding_amount: Number(d.total_amount ?? 0) - Number(d.paid_amount ?? 0),
+    id: d.invoice_id,
+    document_id: d.invoice_id,
+    document_number: d.invoice_no,
+    principal_amount: Number(d.receivable_amount ?? 0),
+    outstanding_amount: Number(d.outstanding ?? 0),
     invoice_status: "OPEN",
     paid_amount: Number(d.paid_amount ?? 0),
     current_interest_amount: 0,
-    created_at: d.created_at,
+    receivable_basis: d.receivable_basis,
+    created_at: null,
   }));
 }
 
 export async function getAllDebts() {
+  // PHASE E5.2 — same canonical view as getOpenDebts (all statuses, VOID included so
+  // the history stays complete). Amounts are the persisted receivable + allocation-derived
+  // paid amount; nothing is recomputed from `total_amount`.
   const { data, error } = await supabaseAdmin()
-    .from("invoices")
-    .select("id, customer_order_id, total_amount, paid_amount, invoice_status, created_at")
-    .order("created_at", { ascending: false });
+    .from("invoice_payment_summary")
+    .select("invoice_id, invoice_no, receivable_amount, receivable_basis, paid_amount, outstanding, derived_status");
   if (error) throw new Error(error.message);
   return (data ?? []).map((d: any) => ({
-    id: d.id,
-    document_id: d.id,
-    principal_amount: Number(d.total_amount ?? 0),
-    outstanding_amount: Number(d.total_amount ?? 0) - Number(d.paid_amount ?? 0),
-    invoice_status: d.invoice_status === "PAID" ? "CLOSED" : "OPEN",
+    id: d.invoice_id,
+    document_id: d.invoice_id,
+    document_number: d.invoice_no,
+    principal_amount: Number(d.receivable_amount ?? 0),
+    outstanding_amount: Number(d.outstanding ?? 0),
+    invoice_status: d.derived_status === "PAID" || d.derived_status === "VOID" ? "CLOSED" : "OPEN",
     paid_amount: Number(d.paid_amount ?? 0),
     current_interest_amount: 0,
-    created_at: d.created_at,
+    receivable_basis: d.receivable_basis,
+    created_at: null,
   }));
 }
 
@@ -729,37 +739,65 @@ export async function getTransactionById(id: string) {
 }
 
 export async function getPartnersWithDocumentSummary() {
-  const [partners, invoices] = await Promise.all([
+  // PHASE E5.2 — canonical sources: receivables from invoice_payment_summary
+  // (persisted net/gross per document) and received amounts from
+  // payment_allocations. The old version summed `total_amount` and subtracted the
+  // always-zero `paid_amount`, so every partner looked fully outstanding.
+  const [partners, summaries, allocations] = await Promise.all([
     getPartners(),
     supabaseAdmin()
-      .from("invoices")
-      .select("customer_company_id, total_amount, paid_amount, invoice_status, invoice_date")
+      .from("invoice_payment_summary")
+      .select("invoice_id, receivable_amount, paid_amount, outstanding")
       .then(({ data, error }) => {
         if (error) throw new Error(error.message);
         return data ?? [];
       }),
-  ]);
+    supabaseAdmin()
+      .from("payment_allocations")
+      .select("amount, invoice_id")
+      .not("invoice_id", "is", null)
+      .then(({ data, error }) => {
+        if (error) throw new Error(error.message);
+        return data ?? [];
+      }),
+  ])
+
+  const { data: invoiceOwners } = await supabaseAdmin()
+    .from("invoices")
+    .select("id, customer_company_id, invoice_date")
+  const ownerById = new Map((invoiceOwners ?? []).map((i: any) => [String(i.id), i]))
 
   const summaryMap = new Map<string, { total_invoiced: number; total_received: number; count: number; last_date: string | null }>();
-  for (const d of invoices) {
-    if (!d.customer_company_id) continue;
-    const s = summaryMap.get(d.customer_company_id) ?? { total_invoiced: 0, total_received: 0, count: 0, last_date: null };
-    s.total_invoiced += Number(d.total_amount ?? 0);
-    s.total_received += Number(d.paid_amount ?? 0);
-    s.count += 1;
-    if (d.invoice_date && (!s.last_date || d.invoice_date > s.last_date)) s.last_date = d.invoice_date;
-    summaryMap.set(d.customer_company_id, s);
+  for (const s of summaries) {
+    const owner = ownerById.get(String(s.invoice_id))
+    if (!owner?.customer_company_id) continue
+    const acc = summaryMap.get(owner.customer_company_id) ?? { total_invoiced: 0, total_received: 0, count: 0, last_date: null };
+    acc.total_invoiced += Number(s.receivable_amount ?? 0);
+    acc.total_received += Number(s.paid_amount ?? 0);
+    acc.count += 1;
+    if (owner.invoice_date && (!acc.last_date || owner.invoice_date > acc.last_date)) acc.last_date = owner.invoice_date;
+    summaryMap.set(owner.customer_company_id, acc);
+  }
+
+  // allocations are the truth for money received; they are attributed to the owning company
+  const receivedByCompany = new Map<string, number>();
+  for (const a of allocations) {
+    const owner = ownerById.get(String(a.invoice_id));
+    if (!owner?.customer_company_id) continue;
+    receivedByCompany.set(owner.customer_company_id, (receivedByCompany.get(owner.customer_company_id) ?? 0) + Number(a.amount ?? 0));
   }
 
   return partners.map((p) => {
     const s = summaryMap.get(p.id) ?? { total_invoiced: 0, total_received: 0, count: 0, last_date: null };
+    const allocated = Math.round((receivedByCompany.get(p.id) ?? 0) * 100) / 100;
     return {
       ...p,
-      total_invoiced: s.total_invoiced,
-      total_received: s.total_received,
-      outstanding: s.total_invoiced - s.total_received,
+      total_invoiced: Math.round(s.total_invoiced * 100) / 100,
+      total_received: allocated,
+      outstanding: Math.round((s.total_invoiced - allocated) * 100) / 100,
       document_count: s.count,
       last_activity: s.last_date,
+      payment_basis: "payment_allocations",
     };
   });
 }

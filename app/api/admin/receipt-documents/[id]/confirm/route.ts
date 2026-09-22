@@ -3,6 +3,8 @@ import { requireAuth } from "@/core/auth/requireAuth"
 import { ADMIN_TIER } from "@/core/auth/session"
 import { supabaseAdmin as supabase } from "@/services/supabase/queries"
 import { resolvePaymentDocumentLink } from "@/engines/transactions/document-link"
+import { confirmPayment } from "@/engines/canonical/payment-write"
+import { appendDebtEvent, refreshDebtSnapshotFromLedger } from "@/engines/canonical/debt-write"
 
 type Params = { params: Promise<{ id: string }> }
 
@@ -79,106 +81,73 @@ export async function POST(_req: Request, { params }: Params) {
     reference: doc.reference_number ?? undefined,
   })
 
-  // Real gap found live 2026-08-03: debt_snapshots.total_outstanding only
-  // ever tracks principal (verified against a real debt-reminder card that
-  // showed "เงินต้น 31,424.66" matching this field exactly). A payment that
-  // covers the interest/penalty shown on that same reminder card was
-  // recorded as one lump receipt_received for the FULL amount, then
-  // total_outstanding was clamped at 0 — the interest/penalty portion
-  // vanished from any structured record (still a real bank deposit, just no
-  // longer traceable as interest income vs. principal collected). Split
-  // into two typed events instead: principal against what was actually
-  // owed, and a separate interest_penalty_received event for whatever the
-  // payment covered beyond that — same total money, now honestly
-  // attributed.
+  // PHASE D4/D9 — the ledger + allocation + projection writes now go through the
+  // canonical payment service. The legacy pointer receipt_documents.matched_debt_event_id
+  // is still written for compatibility, but the TRUTH is the allocation row.
   const principalPortion = Math.min(amount, outstandingBefore)
   const interestPenaltyPortion = Math.round((amount - principalPortion) * 100) / 100
 
-  const { data: event, error: eventErr } = await db
-    .from("debt_events")
-    .insert({
-      customer_company_id: doc.customer_company_id,
-      event_type: "receipt_received",
-      amount: principalPortion,
-      occurred_at: occurredAt,
-      note: link.document.note,
-      source: "line_chat",
-      created_by: auth.email,
+  let canonical: Awaited<ReturnType<typeof confirmPayment>> | null = null
+  try {
+    canonical = await confirmPayment({
+      receipt_document_id: id,
+      allocations: [
+        {
+          target: { kind: "anchor" },
+          allocation_kind: "principal",
+          amount: principalPortion,
+          note: link.document.note ?? null,
+        },
+        ...(interestPenaltyPortion > 0
+          ? [
+              {
+                target: { kind: "anchor" as const },
+                allocation_kind: "penalty" as const,
+                amount: interestPenaltyPortion,
+                note: `ดอกเบี้ย/ค่าปรับที่ได้รับพร้อมเงินต้น (สลิป ${doc.reference_number ?? id})`,
+              },
+            ]
+          : []),
+      ],
+      actor: auth.email,
+      debt_event_anchor: {
+        event_type: "receipt_received",
+        amount: principalPortion,
+        note: link.document.note ?? null,
+      },
     })
-    .select("id")
-    .single()
-  if (eventErr) return NextResponse.json({ error: eventErr.message }, { status: 500 })
+  } catch (e: unknown) {
+    const message = e instanceof Error ? e.message : "ยืนยันการชำระไม่สำเร็จ"
+    return NextResponse.json({ error: message }, { status: message.startsWith("PAYMENT_") ? 409 : 500 })
+  }
 
+  // split of the real deposit: principal vs interest/penalty (same money, honestly attributed)
   if (interestPenaltyPortion > 0) {
-    const { error: interestErr } = await db.from("debt_events").insert({
-      customer_company_id: doc.customer_company_id,
+    await appendDebtEvent({
+      customer_company_id: String(doc.customer_company_id),
       event_type: "interest_penalty_received",
       amount: interestPenaltyPortion,
       occurred_at: occurredAt,
       note: `ดอกเบี้ย/ค่าปรับที่ได้รับพร้อมเงินต้น (สลิป ${doc.reference_number ?? id}, ยอดรวมที่โอนมาจริง ${amount.toLocaleString("th-TH")} บาท)`,
       source: "line_chat",
-      created_by: auth.email,
+      actor: auth.email,
+      evidence: { receipt_document_id: id },
     })
-    if (interestErr) console.error("[receipt-documents/confirm] interest_penalty_received insert failed:", interestErr.message)
+    await refreshDebtSnapshotFromLedger(String(doc.customer_company_id), auth.email)
   }
 
-  // Clamped at 0 rather than going negative; an overpayment beyond
-  // principal + this transaction's real interest/penalty still isn't
-  // handled (out of scope for this pass — flagged, not silently wrong).
-  //
-  // Real gap found live 2026-08-03 (คุณเท่ห์/เทย่า ขอนแก่น): reaching 0
-  // outstanding here never closed collection_state — the debt-tracking
-  // admin page kept showing "กำลังติดตาม" and a still-accruing daily
-  // penalty (calcDebtTrackingSummary's penalty is flat-per-day, independent
-  // of the remaining balance) for a debt that was already fully paid, until
-  // someone noticed the mismatch and clicked "ปิดรายการ" by hand. Auto-close
-  // whenever a payment actually brings the balance to 0, using the exact
-  // same debt_closed event the manual button inserts (app/api/admin/
-  // debt-trackings/[id]/events/route.ts) so this isn't a second parallel
-  // close mechanism.
-  if (snapshot) {
-    const newOutstanding = Math.max(0, outstandingBefore - principalPortion)
-    const snapshotUpdate: Record<string, unknown> = { total_outstanding: newOutstanding, updated_at: new Date().toISOString() }
-    if (newOutstanding === 0) {
-      snapshotUpdate.collection_state = "CLOSED"
-      snapshotUpdate.overdue_amount = 0
-      snapshotUpdate.days_overdue = 0
-    }
-    await db.from("debt_snapshots")
-      .update(snapshotUpdate)
-      .eq("customer_company_id", doc.customer_company_id)
-
-    if (newOutstanding === 0) {
-      await db.from("debt_events").insert({
-        customer_company_id: doc.customer_company_id,
-        event_type: "debt_closed",
-        amount: null,
-        occurred_at: occurredAt,
-        note: `จ่ายครบแล้ว (สลิป ${doc.reference_number ?? id}) — ปิดรายการติดตามทวงหนี้อัตโนมัติ`,
-        source: "line_chat",
-        created_by: auth.email,
-      })
-    }
-  }
-
-  // Payment Verification Priority (owner, 2026-07-18) — payment_verified=true
-  // only fires here, on a real human confirmation, standing in for the
-  // unbuilt Level 3/4 sources (bank email/statement). Not automatic.
-  await db.from("receipt_documents")
-    .update({
-      status: "confirmed",
-      matched_debt_event_id: event.id,
-      confirmed_by: auth.email,
-      payment_verified: true,
-      updated_at: new Date().toISOString(),
-    })
+  // legacy compat pointer + human confirmation evidence (the truth stays in payment_allocations)
+  await db
+    .from("receipt_documents")
+    .update({ matched_debt_event_id: canonical.debt_event_id, confirmed_by: auth.email })
     .eq("id", id)
 
   return NextResponse.json({
     ok: true,
-    debt_event_id: event.id,
+    debt_event_id: canonical.debt_event_id,
     amount_deducted: amount,
     payment_kind: link.kind,
     document: link.document,
+    canonical,
   })
 }

@@ -46,90 +46,120 @@ export async function GET() {
 
   const db = supabase()
 
-  const [invoicesRes, standaloneRes, receiptsRes, debtRes, fuelRes, expensesRes] = await Promise.all([
-    db.from("invoices").select("total_amount, created_at"),
-    db.from("standalone_documents").select("total_amount, document_date, document_type"),
-    db.from("receipt_documents").select("amount, document_date, document_type, payment_verified"),
-    db.from("debt_snapshots").select("total_outstanding"),
+  // PHASE E5.1 — canonical sources only:
+  //   revenue  = document_canonical (VOID + quotation excluded; gross/net per v1.1)
+  //   payments = payment_allocations (rows are the truth; `payment_verified` is
+  //              evidence/status and is NEVER counted as money)
+  //   debt     = company_debt_current (ledger projection, never recomputed here)
+  //   VAT in   = company_expenses.amount_pre_vat + vat_amount (never gross `amount`)
+  const [docsRes, receiptsRes, debtRes, fuelRes, expensesRes, allocRes] = await Promise.all([
+    db
+      .from("document_canonical")
+      .select("document_kind, document_type, document_status, issue_date, subtotal, discount_amount, vat_amount, gross_amount, total_amount, wht_amount, net_payable, paid_amount, data_completeness"),
+    db.from("receipt_documents").select("amount, document_date, document_type, status"),
+    db.from("company_debt_current").select("ledger_outstanding, snapshot_total_outstanding"),
     db.from("fuel_price_log").select("price, fetched_at").order("fetched_at", { ascending: false }).limit(1),
-    db.from("company_expenses").select("document_type, vendor_name, amount, expense_date"),
+    db.from("company_expenses").select("document_type, vendor_name, amount, amount_pre_vat, vat_amount, expense_date"),
+    db.from("payment_allocations").select("amount, allocated_at"),
   ])
 
+  const canonicalDocs = (docsRes.data ?? []).filter(
+    (d) => !["VOID", "void"].includes(String(d.document_status ?? "")) && d.document_type !== "quotation",
+  )
+
   const revenueByMonth = new Map<string, number>()
-  for (const inv of invoicesRes.data ?? []) {
-    const k = monthKey(inv.created_at)
-    revenueByMonth.set(k, (revenueByMonth.get(k) ?? 0) + Number(inv.total_amount ?? 0))
-  }
-  for (const doc of standaloneRes.data ?? []) {
-    // ใบเสนอราคา (QT) ยังไม่ใช่รายได้จริง — นับเฉพาะเอกสารที่แปลว่าเงินจะเข้า/ออกจริง
-    if (doc.document_type === "QT") continue
-    const k = monthKey(doc.document_date)
-    revenueByMonth.set(k, (revenueByMonth.get(k) ?? 0) + Number(doc.total_amount ?? 0))
+  for (const d of canonicalDocs) {
+    const k = monthKey(d.issue_date ?? null)
+    const gross = Number(d.gross_amount ?? d.total_amount ?? 0)
+    revenueByMonth.set(k, (revenueByMonth.get(k) ?? 0) + gross)
   }
 
-  const paymentsReceivedByMonth = new Map<string, number>()
+  const paymentsAllocatedByMonth = new Map<string, number>()
+  for (const a of allocRes.data ?? []) {
+    const k = monthKey(a.allocated_at ?? null)
+    paymentsAllocatedByMonth.set(k, (paymentsAllocatedByMonth.get(k) ?? 0) + Number(a.amount ?? 0))
+  }
+
   const fuelBillsByMonth = new Map<string, number>()
-  // สลิปโอนเงินที่ยังไม่ถูกยืนยัน (owner needs to see this — real gap found
-  // 2026-07-25: 12 real transfer_slip rows, ฿136,020, all payment_verified=false)
-  let unverifiedTransferSlipTotal = 0
-  let unverifiedTransferSlipCount = 0
+  // Unconfirmed slips are payment EVIDENCE, not payments: reported separately with
+  // their own count/amount and deliberately excluded from every money total above.
+  let unconfirmedEvidenceTotal = 0
+  let unconfirmedEvidenceCount = 0
   for (const r of receiptsRes.data ?? []) {
     const k = monthKey(r.document_date)
-    if (r.document_type === "transfer_slip") {
-      if (r.payment_verified) {
-        paymentsReceivedByMonth.set(k, (paymentsReceivedByMonth.get(k) ?? 0) + Number(r.amount ?? 0))
-      } else {
-        unverifiedTransferSlipTotal += Number(r.amount ?? 0)
-        unverifiedTransferSlipCount += 1
-      }
-    }
     if (r.document_type === "fuel_bill") {
       fuelBillsByMonth.set(k, (fuelBillsByMonth.get(k) ?? 0) + Number(r.amount ?? 0))
     }
+    if (["transfer_slip", "payment_advice"].includes(String(r.document_type)) && r.status !== "confirmed") {
+      unconfirmedEvidenceTotal += Number(r.amount ?? 0)
+      unconfirmedEvidenceCount += 1
+    }
   }
 
-  const allMonths = [...new Set([...revenueByMonth.keys(), ...paymentsReceivedByMonth.keys(), ...fuelBillsByMonth.keys()])]
+  const allMonths = [...new Set([...revenueByMonth.keys(), ...paymentsAllocatedByMonth.keys(), ...fuelBillsByMonth.keys()])]
     .filter((m) => m !== "unknown")
     .sort()
 
-  const months = allMonths.map((m) => ({
-    month: m,
-    revenue_documented: Math.round((revenueByMonth.get(m) ?? 0) * 100) / 100,
-    payments_received_verified: Math.round((paymentsReceivedByMonth.get(m) ?? 0) * 100) / 100,
-    fuel_bills: Math.round((fuelBillsByMonth.get(m) ?? 0) * 100) / 100,
-  }))
+  const months = allMonths.map((m) => {
+    const payments = Math.round((paymentsAllocatedByMonth.get(m) ?? 0) * 100) / 100
+    return {
+      month: m,
+      revenue_documented: Math.round((revenueByMonth.get(m) ?? 0) * 100) / 100,
+      payments_allocated: payments,
+      // legacy key kept so the existing UI keeps working — the source is now
+      // allocation rows, not the payment_verified flag
+      payments_received_verified: payments,
+      fuel_bills: Math.round((fuelBillsByMonth.get(m) ?? 0) * 100) / 100,
+    }
+  })
 
   const expenseByCategory = new Map<string, number>()
+  let expenseVatInput = 0
   for (const e of expensesRes.data ?? []) {
     const cat = expenseCategory(e.document_type, e.vendor_name)
-    expenseByCategory.set(cat, (expenseByCategory.get(cat) ?? 0) + Number(e.amount ?? 0))
+    const base = e.amount_pre_vat !== null && e.amount_pre_vat !== undefined ? Number(e.amount_pre_vat) : Number(e.amount ?? 0)
+    expenseByCategory.set(cat, (expenseByCategory.get(cat) ?? 0) + base)
+    expenseVatInput += Number(e.vat_amount ?? 0)
   }
   const expenseCategories = [...expenseByCategory.entries()]
     .map(([category, total]) => ({ category, total: Math.round(total * 100) / 100 }))
     .sort((a, b) => b.total - a.total)
   const totalCompanyExpenses = expenseCategories.reduce((s, c) => s + c.total, 0)
 
-  const totalOutstandingDebt = (debtRes.data ?? []).reduce((s, d) => s + Number(d.total_outstanding ?? 0), 0)
+  const totalOutstandingDebt = (debtRes.data ?? []).reduce((s, d) => s + Number(d.ledger_outstanding ?? 0), 0)
   const totalRevenueDocumented = months.reduce((s, m) => s + m.revenue_documented, 0)
-  const totalPaymentsReceived = months.reduce((s, m) => s + m.payments_received_verified, 0)
+  const totalPaymentsAllocated = months.reduce((s, m) => s + m.payments_allocated, 0)
   const totalFuelBills = months.reduce((s, m) => s + m.fuel_bills, 0)
   const latestFuelPrice = fuelRes.data?.[0]?.price ?? null
+  const sumCanon = (pick: (d: (typeof canonicalDocs)[number]) => unknown) =>
+    Math.round(canonicalDocs.reduce((s, d) => s + Number(pick(d) ?? 0), 0) * 100) / 100
 
   return NextResponse.json({
     ok: true,
     months,
     totals: {
       revenue_documented: Math.round(totalRevenueDocumented * 100) / 100,
-      payments_received_verified: Math.round(totalPaymentsReceived * 100) / 100,
-      fuel_bills: Math.round(totalFuelBills * 100) / 100,
+      revenue_subtotal: sumCanon((d) => d.subtotal),
+      revenue_vat_output: sumCanon((d) => d.vat_amount),
+      revenue_wht_output: sumCanon((d) => d.wht_amount),
+      revenue_gross: sumCanon((d) => d.gross_amount ?? d.total_amount),
+      revenue_net_payable: sumCanon((d) => d.net_payable ?? d.gross_amount ?? d.total_amount),
+      payments_allocated: Math.round(totalPaymentsAllocated * 100) / 100,
+      // legacy key kept for the existing UI (now allocation-derived)
+      payments_received_verified: Math.round(totalPaymentsAllocated * 100) / 100,
       outstanding_debt: Math.round(totalOutstandingDebt * 100) / 100,
-      unverified_transfer_slips: Math.round(unverifiedTransferSlipTotal * 100) / 100,
-      unverified_transfer_slips_count: unverifiedTransferSlipCount,
+      unverified_transfer_slips: Math.round(unconfirmedEvidenceTotal * 100) / 100,
+      unverified_transfer_slips_count: unconfirmedEvidenceCount,
       company_expenses: Math.round(totalCompanyExpenses * 100) / 100,
+      company_expenses_pre_vat: Math.round(totalCompanyExpenses * 100) / 100,
+      vat_input: Math.round(expenseVatInput * 100) / 100,
+      fuel_bills: Math.round(totalFuelBills * 100) / 100,
     },
+    revenue_basis: "document_canonical — ตัดเอกสาร VOID และใบเสนอราคา (quotation); ยอดเป็น gross/net ตาม canonical v1.1",
+    payment_basis: "payment_allocations — แถวการจัดสรรคือความจริง; payment_verified เป็นเพียงสถานะ/หลักฐาน ไม่ถูกนับเป็นเงิน",
     expense_categories: expenseCategories,
     latest_fuel_price: latestFuelPrice,
     honesty_note:
-      "นี่คือสรุปกระแสเงินสดจากเอกสาร/สลิปจริงในระบบ ไม่ใช่งบดุลทางบัญชีที่ถูกต้องตามมาตรฐาน — ระบบยังไม่มีข้อมูลสินทรัพย์ถาวร/ทุน/หนี้สินโครงสร้างจริง จึงยังสร้างงบดุลจริงไม่ได้ ตัวเลขข้างต้นคำนวณจากเอกสารที่มีอยู่จริงในระบบเท่านั้น เอกสาร/สลิปที่ไม่เคยถูกบันทึกเข้าระบบจะไม่ปรากฏในนี้",
+      "นี่คือสรุปกระแสเงินสดจากเอกสาร/สลิปจริงในระบบ (canonical model v1.1) ไม่ใช่งบดุลทางบัญชีที่ถูกต้องตามมาตรฐาน — ยังไม่มีข้อมูลสินทรัพย์ถาวร/ทุน/หนี้สินโครงสร้างจริง จึงยังสร้างงบดุลจริงไม่ได้ · รายได้ตัดเอกสาร VOID และใบเสนอราคาออก · การรับเงินนับจากแถวการจัดสรร (payment_allocations) เท่านั้น ไม่นับจากธง payment_verified · ยอดค้างชำระมาจาก ledger ของหนี้ (company_debt_current) · ค่าใช้จ่ายแสดงแบบก่อน VAT และแยก VAT ซื้อไว้ที่ totals.vat_input",
   })
 }

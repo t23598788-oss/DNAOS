@@ -8,6 +8,8 @@ import {
 } from "@/engines/documents/document-editor"
 import { DOC_LABELS, generateDoc } from "@/engines/documents/engine"
 import { loadCompanySettings } from "@/core/config/company-settings"
+import { getDocumentDetail } from "@/services/canonical/document-detail"
+import { updateDocumentDraft, voidDocument } from "@/engines/canonical/document-write"
 
 type Params = { params: Promise<{ id: string }> }
 
@@ -102,14 +104,23 @@ export async function GET(_req: NextRequest, { params }: Params) {
 
   const { id } = await params
 
-  const invoice = await findInvoice(id)
+  // PHASE C7 — canonical detail is attached alongside the legacy payload (UI unchanged).
+  const [invoice, standalone] = await Promise.all([findInvoice(id), findStandalone(id)])
+
   if (invoice) {
     const items = await findInvoiceItems(invoice.id)
-    return NextResponse.json({ document: invoiceToDocument(invoice, items) })
+    return NextResponse.json({
+      document: invoiceToDocument(invoice, items),
+      canonical: await getDocumentDetail("invoice", invoice.id),
+    })
   }
 
-  const standalone = await findStandalone(id)
-  if (standalone) return NextResponse.json({ document: standaloneToDocument(standalone) })
+  if (standalone) {
+    return NextResponse.json({
+      document: standaloneToDocument(standalone),
+      canonical: await getDocumentDetail("standalone_document", standalone.id),
+    })
+  }
 
   return NextResponse.json({ error: "ไม่พบเอกสาร" }, { status: 404 })
 }
@@ -139,71 +150,67 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     )
   }
   const documentData = draftToDocData(draft, docNumber, settings)
-  const rendered = generateDoc(documentData)
+  void documentData
 
-  if (draft.type === "invoice") {
-    const { data, error } = await supabase()
-      .from("invoices")
-      .update({
-        invoice_no: docNumber,
-        customer_company_id: draft.partnerId || null,
-        invoice_date: draft.issueDate || null,
-        due_date: draft.dueDate || null,
-        reference_no: draft.reference || null,
-        notes: draft.note || null,
-        subtotal: rendered.summary.subtotal,
-        vat_rate: draft.vatEnabled ? 7 : 0,
-        vat_amount: rendered.summary.vat,
-        total_amount: rendered.summary.total,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", id)
-      .select("id, invoice_no, invoice_status, updated_at")
-      .single()
-
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-    return NextResponse.json({ document: { id: data.id, document_number: data.invoice_no, status: data.invoice_status?.toLowerCase(), updated_at: data.updated_at } })
-  }
-
-  const { data, error } = await supabase()
-    .from("standalone_documents")
-    .update({
+  const kind = draft.type === "invoice" ? "invoice" : "standalone_document"
+  try {
+    const result = await updateDocumentDraft({
+      document_kind: kind,
+      document_id: id,
+      actor: auth.email,
       document_no: docNumber,
       document_type: draft.type,
       customer_company_id: draft.partnerId || null,
-      document_date: draft.issueDate || null,
+      issue_date: draft.issueDate || null,
+      due_date: draft.type === "invoice" ? draft.dueDate || null : null,
       reference_no: draft.reference || null,
       notes: draft.note || null,
-      subtotal: rendered.summary.subtotal,
-      vat_rate: draft.vatEnabled ? 7 : 0,
-      vat_amount: rendered.summary.vat,
-      total_amount: rendered.summary.total,
-      updated_at: new Date().toISOString(),
+      rows: draft.rows,
+      discountAmount: draft.discountAmount ?? 0,
+      vatEnabled: draft.vatEnabled,
+      vatMode: draft.vatMode,
+      withholdingTaxPercent: draft.withholdingTaxPercent,
+      items: draft.rows.map((r, i) => ({
+        description: r.description,
+        qty: r.qty,
+        unit: r.unit ?? null,
+        unit_price: r.unitPrice,
+        sort_order: i,
+      })),
     })
-    .eq("id", id)
-    .select("id, document_no, updated_at")
-    .single()
-
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-  return NextResponse.json({ document: { id: data.id, document_number: data.document_no, status: "draft", updated_at: data.updated_at } })
+    return NextResponse.json({
+      document: {
+        id: result.document_id,
+        document_number: docNumber,
+        status: kind === "invoice" ? "sent" : "active",
+        updated_at: new Date().toISOString(),
+        totals: result.totals,
+        items_written: result.items_written,
+      },
+    })
+  } catch (e: unknown) {
+    const message = e instanceof Error ? e.message : "แก้ไขเอกสารไม่สำเร็จ"
+    const status = message.startsWith("DOCUMENT_VOIDED") || message.startsWith("DOCUMENT_NOT_FOUND") ? 400 : 500
+    return NextResponse.json({ error: message }, { status })
+  }
 }
 
-// invoices มี invoice_status (soft-delete = VOID) แต่ standalone_documents ไม่มีคอลัมน์สถานะเลย
-// จึงไม่มีทาง soft-delete ได้จริง — ลบแถวจริงสำหรับประเภทนี้
+// PHASE D9 — void is business semantics now, never a delete:
+// both invoices and standalone_documents keep every row and gain a void version.
 export async function DELETE(_req: NextRequest, { params }: Params) {
   const auth = await requireAuth(ADMIN_TIER)
   if (auth instanceof NextResponse) return auth
 
   const { id } = await params
 
-  const invoice = await findInvoice(id)
-  if (invoice) {
-    const { error } = await supabase().from("invoices").update({ invoice_status: "VOID" }).eq("id", id)
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-    return NextResponse.json({ ok: true })
-  }
+  const [invoice, standalone] = await Promise.all([findInvoice(id), findStandalone(id)])
+  const kind = invoice ? "invoice" : standalone ? "standalone_document" : null
+  if (!kind) return NextResponse.json({ error: "ไม่พบเอกสาร" }, { status: 404 })
 
-  const { error } = await supabase().from("standalone_documents").delete().eq("id", id)
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-  return NextResponse.json({ ok: true })
+  try {
+    const result = await voidDocument({ document_kind: kind, document_id: id, actor: auth.email, reason: "owner void via API" })
+    return NextResponse.json({ ok: true, voided: true, deleted: result.deleted, version_no: result.version_no })
+  } catch (e: unknown) {
+    return NextResponse.json({ error: e instanceof Error ? e.message : "ยกเลิกเอกสารไม่สำเร็จ" }, { status: 500 })
+  }
 }

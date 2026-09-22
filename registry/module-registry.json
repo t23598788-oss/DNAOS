@@ -14112,6 +14112,212 @@
         "githubConnectContract"
       ],
       "status": "active"
+    },
+    "services/canonical/read-model.ts": {
+      "owner": "services",
+      "layer": "services",
+      "purpose": "Canonical financial/read-model primitives (v1.1 contract): persisted money ladder, receivable basis, completeness flag.",
+      "purpose_th": "primitive ของ read model/การเงินตามสัญญา canonical v1.1 — บันไดตัวเลขที่บันทึกจริง ฐานของ receivable และธงความครบถ้วน",
+      "exports": [
+        "CanonicalDocumentRef",
+        "CanonicalFinancials",
+        "CanonicalTransactionDetail",
+        "CanonicalDocumentDetail",
+        "DocumentKind",
+        "canonicalFinancials"
+      ],
+      "status": "active"
+    },
+    "services/canonical/payments.ts": {
+      "owner": "services",
+      "layer": "services",
+      "purpose": "Canonical payment/debt readers over payment_allocations + the canonical views (allocation is the single truth).",
+      "purpose_th": "ตัวอ่านการจ่ายเงิน/หนี้ตาม canonical จาก payment_allocations และ view — allocation คือความจริงเดียว",
+      "exports": [
+        "CanonicalPaymentAllocation",
+        "getCanonicalAllocations",
+        "getCanonicalAllocationsForDocuments",
+        "getCanonicalCompanyDebt"
+      ],
+      "status": "active"
+    },
+    "services/canonical/transaction-detail.ts": {
+      "owner": "services",
+      "layer": "services",
+      "purpose": "TransactionDetail read model — composes company/site/project/group/documents/payments/debt/evidence for one transaction.",
+      "purpose_th": "read model ของรายละเอียดธุรกรรม — ประกอบบริษัท/ไซต์/โครงการ/กลุ่มงาน/เอกสาร/การจ่าย/หนี้/หลักฐานของธุรกรรมหนึ่งรายการ",
+      "exports": [
+        "getTransactionDetail"
+      ],
+      "status": "active"
+    },
+    "services/canonical/document-detail.ts": {
+      "owner": "services",
+      "layer": "services",
+      "purpose": "DocumentDetail read model — persisted version snapshot, line items, tax snapshot, source lineage, artifacts, allocations.",
+      "purpose_th": "read model ของรายละเอียดเอกสาร — snapshot ของ version ที่บันทึกไว้ รายการสินค้า snapshot ภาษี สายที่มา artifact และการจัดสรรเงิน",
+      "exports": [
+        "getDocumentDetail"
+      ],
+      "status": "active"
+    },
+    "services/canonical/transaction-list.ts": {
+      "owner": "services",
+      "layer": "services",
+      "purpose": "Transaction list money summary from document_canonical + invoice_payment_summary (no recomputation in routes).",
+      "purpose_th": "สรุปตัวเลขของรายการธุรกรรมจาก document_canonical + invoice_payment_summary (ไม่คำนวณซ้ำใน route)",
+      "exports": [
+        "TransactionMoneySummary",
+        "getTransactionMoneySummaries"
+      ],
+      "status": "active"
+    },
+    "services/canonical/document-list.ts": {
+      "owner": "services",
+      "layer": "services",
+      "purpose": "Document list canonical rows — persisted financials, receivable basis, completeness and current version per document.",
+      "purpose_th": "แถว canonical ของรายการเอกสาร — ตัวเลขที่บันทึกจริง ฐาน receivable ความครบถ้วน และ version ปัจจุบันของเอกสาร",
+      "exports": [
+        "CanonicalListRow",
+        "getCanonicalDocumentRows"
+      ],
+      "status": "active"
+    },
+    "engines/canonical/audit.ts": {
+      "owner": "engines",
+      "layer": "engines",
+      "purpose": "Canonical audit writer — the single audit vocabulary (actor/time/entity/evidence) every canonical write records through.",
+      "purpose_th": "ตัวเขียน audit ตาม canonical — คำศัพท์ audit ชุดเดียว (ผู้กระทำ/เวลา/เอนทิตี/หลักฐาน) ที่ทุกการเขียน canonical ต้องผ่าน",
+      "exports": [
+        "CANONICAL_AUDIT_ACTIONS",
+        "CanonicalAuditAction",
+        "CanonicalAuditInput",
+        "CanonicalAuditRecord",
+        "recordCanonicalAudit"
+      ],
+      "status": "active"
+    },
+    "engines/canonical/document-write.ts": {
+      "owner": "engines",
+      "layer": "engines",
+      "purpose": "Canonical document write service — create/update/issue/void + version chain + real line items using the existing v1.1 money ladder.",
+      "purpose_th": "บริการเขียนเอกสารตาม canonical — สร้าง/แก้/ออก/ยกเลิก พร้อม version chain และรายการสินค้าจริง โดยใช้บันไดตัวเลข v1.1 เดิม",
+      "exports": [
+        "WriteDocumentKind",
+        "DocumentLineItem",
+        "WriteDocumentInput",
+        "WriteDocumentResult",
+        "computeCanonicalTotals",
+        "createDocument",
+        "createVersion",
+        "updateDocumentDraft",
+        "issueDocument",
+        "voidDocument"
+      ],
+      "status": "active"
+    },
+    "engines/canonical/transaction-write.ts": {
+      "owner": "engines",
+      "layer": "engines",
+      "purpose": "Canonical transaction write model — full-chain creation (company→site→project→group→order) and validated document linking, no half chains.",
+      "purpose_th": "โมเดลเขียนธุรกรรมตาม canonical — สร้างสายครบ (บริษัท→ไซต์→โครงการ→กลุ่มเอกสาร→งาน) และผูกเอกสารแบบตรวจสอบได้ ไม่มีสายครึ่งเดียว",
+      "exports": [
+        "TransactionContext",
+        "ChainValidation",
+        "validateTransactionChain",
+        "createTransaction",
+        "LinkResolution",
+        "resolveOrderForDocument",
+        "linkDocumentToTransaction",
+        "linkDocumentWithValidation",
+        "changeTransactionStatus"
+      ],
+      "status": "active"
+    },
+    "engines/canonical/payment-write.ts": {
+      "owner": "engines",
+      "layer": "engines",
+      "purpose": "Canonical payment write service — allocation rows are the truth; invoice/receipt/debt projections are refreshed from them; partial and many-to-many supported.",
+      "purpose_th": "บริการเขียนการจ่ายเงินตาม canonical — แถว allocation คือความจริง และ projection ของใบแจ้งหนี้/สลิป/หนี้ถูกคำนวณใหม่จากมัน รองรับจ่ายบางส่วนและหลายต่อหลาย",
+      "exports": [
+        "AllocationTarget",
+        "PaymentAllocationInput",
+        "ConfirmPaymentInput",
+        "ConfirmPaymentResult",
+        "confirmPayment",
+        "reallocatePayment"
+      ],
+      "status": "active"
+    },
+    "engines/canonical/debt-write.ts": {
+      "owner": "engines",
+      "layer": "engines",
+      "purpose": "Canonical debt write model — debt_events is the ledger (source of truth); debt_snapshots is a projection recomputed from the ledger only.",
+      "purpose_th": "โมเดลเขียนหนี้ตาม canonical — debt_events คือ ledger (แหล่งความจริง) และ debt_snapshots เป็น projection ที่คำนวณใหม่จาก ledger เท่านั้น",
+      "exports": [
+        "DEBT_EVENT_TYPES",
+        "DebtEventType",
+        "AppendDebtEventInput",
+        "DebtSnapshotProjection",
+        "appendDebtEvent",
+        "refreshDebtSnapshotFromLedger"
+      ],
+      "status": "active"
+    },
+    "engines/canonical/inbound-write.ts": {
+      "owner": "engines",
+      "layer": "engines",
+      "purpose": "Canonical inbound source write model — normalises LINE/upload/email/bank into receipt_documents (media+extraction+evidence) with real provenance, never guessed.",
+      "purpose_th": "โมเดลเขียนต้นฉบับขาเข้าตาม canonical — normalize LINE/อัปโหลด/อีเมล/ธนาคารเข้า receipt_documents (ไฟล์+ผลสกัด+หลักฐาน) พร้อม provenance จริง ไม่เดา",
+      "exports": [
+        "InboundChannel",
+        "InboundSourceInput",
+        "InboundSourceResult",
+        "recordInboundSource",
+        "linkInboundSource"
+      ],
+      "status": "active"
+    },
+    "engines/canonical/artifact-write.ts": {
+      "owner": "engines",
+      "layer": "engines",
+      "purpose": "Canonical generated-artifact writer — version → storage → sha256/size/mime → audit, with rollback so storage and DB never disagree.",
+      "purpose_th": "ตัวเขียนไฟล์ที่ระบบสร้างตาม canonical — version → storage → sha256/size/mime → audit พร้อม rollback ไม่ให้ storage กับ DB ขัดกัน",
+      "exports": [
+        "PersistArtifactInput",
+        "PersistArtifactResult",
+        "sha256Of",
+        "persistGeneratedArtifact",
+        "signedArtifactUrl"
+      ],
+      "status": "active"
+    },
+    "scripts/canonical-phase-c-acceptance-test.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "Canonical model v1.1 Phase C8 acceptance harness — read-only live proof of the canonical read model (transaction trace, version snapshot, legacy LEGACY_PARTIAL, original file, payment→debt, totals untouched).",
+      "purpose_th": "harness ยอมรับของ canonical v1.1 เฟส C8 — พิสูจน์สดแบบอ่านอย่างเดียวของ read model (สายธุรกรรม snapshot ของ version เอกสารเก่าแบบ LEGACY_PARTIAL ไฟล์ต้นฉบับ การจ่าย→หนี้ และยอดเดิมไม่เปลี่ยน)",
+      "exports": [],
+      "status": "active",
+      "entry_point": true
+    },
+    "scripts/canonical-phase-d-acceptance-test.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "Phase D10 acceptance harness — real-data proof of the canonical write model (create→items→version→artifact→issue→void, payment guard, debt projection).",
+      "purpose_th": "harness ยอมรับของ Phase D10 — พิสูจน์ด้วยข้อมูลจริงของ write model (สร้าง→รายการสินค้า→version→ไฟล์ที่สร้าง→ออก→ยกเลิก, guard การจ่าย, projection หนี้)",
+      "exports": [],
+      "status": "active",
+      "entry_point": true
+    },
+    "scripts/canonical-finance-acceptance-test.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "Canonical finance harness (Phase E4/E5) — READ-ONLY audit of VAT/WHT/discount, void/quotation exclusion, VAT input, payment allocations, debt projection, tax traceability and the legacy→canonical reconciliation.",
+      "purpose_th": "harness การเงินตาม canonical (Phase E4/E5) — ตรวจแบบอ่านอย่างเดียวเรื่อง VAT/WHT/ส่วนลด การตัดเอกสาร void/ใบเสนอราคาออกจากรายได้ VAT ซื้อ การจัดสรรเงิน โครงการหนี้ การย้อนรอยภาษี และการกระทบยอด legacy→canonical",
+      "exports": [],
+      "status": "active",
+      "entry_point": true
     }
   },
   "excluded": [

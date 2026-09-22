@@ -1,4 +1,14 @@
-/** Shared pure debt formula for Node and Supabase Edge runtimes. */
+/**
+ * Shared pure debt formula for Node and Supabase Edge runtimes.
+ *
+ * @deprecated LEGACY (Phase E5.5, 2026-09-22) — NOT a financial production path.
+ * The debt figure every finance route now reads is the canonical ledger projection
+ * (`company_debt_current` → `engines/canonical/debt-write.ts#refreshDebtSnapshotFromLedger`).
+ * This calculator accrues interest/penalty from a principal snapshot, which is a
+ * DIFFERENT number from the ledger and must never be used to derive money for
+ * finance/credit/reminder paths again. Remaining callers are the debt-tracking
+ * tracker UI/API only (its own domain) — do not add new callers.
+ */
 
 export const DEBT_TRACKING_INTEREST_RATE = 0.25
 export const DEBT_TRACKING_PENALTY_PER_DAY = 100

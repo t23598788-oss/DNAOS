@@ -2,11 +2,12 @@ import { NextRequest, NextResponse } from "next/server"
 import { requireAuth } from "@/core/auth/requireAuth"
 import { ADMIN_TIER } from "@/core/auth/session"
 import { supabaseAdmin } from "@/services/supabase/queries"
+import { appendDebtEvent, refreshDebtSnapshotFromLedger, type DebtEventType } from "@/engines/canonical/debt-write"
 
 type Params = { params: Promise<{ id: string }> }
 type Action = "pause" | "resume" | "adjust_fee" | "adjust_interest" | "close"
 
-const EVENT_TYPES: Record<Action, string> = {
+const EVENT_TYPES: Record<Action, DebtEventType> = {
   pause: "collection_paused",
   resume: "collection_resumed",
   adjust_fee: "manual_adjustment",
@@ -14,6 +15,8 @@ const EVENT_TYPES: Record<Action, string> = {
   close: "debt_closed",
 }
 
+// PHASE D5/D9 — every debt mutation goes through the canonical ledger service and
+// then refreshes the snapshot projection from that ledger (never from invoices).
 export async function POST(req: NextRequest, { params }: Params) {
   const auth = await requireAuth(ADMIN_TIER)
   if (auth instanceof NextResponse) return auth
@@ -43,16 +46,31 @@ export async function POST(req: NextRequest, { params }: Params) {
     return NextResponse.json({ error: "กรุณาระบุเหตุผลการปรับยอด" }, { status: 400 })
   }
 
-  const { data, error } = await db.from("debt_events").insert({
-    customer_company_id: tracking.customer_company_id,
-    event_type: EVENT_TYPES[action],
-    amount,
-    occurred_at: body.occurredAt || new Date().toISOString().slice(0, 10),
-    note: note || null,
-    source: "admin_manual",
-    created_by: auth.email,
-  }).select("id, event_type, amount, occurred_at, note").single()
-
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-  return NextResponse.json({ event: data }, { status: 201 })
+  try {
+    const event = await appendDebtEvent({
+      customer_company_id: String(tracking.customer_company_id),
+      event_type: EVENT_TYPES[action],
+      amount,
+      occurred_at: body.occurredAt || new Date().toISOString().slice(0, 10),
+      note: note || null,
+      source: "admin_manual",
+      actor: auth.email,
+    })
+    const projection = await refreshDebtSnapshotFromLedger(String(tracking.customer_company_id), auth.email)
+    return NextResponse.json(
+      {
+        event: {
+          id: event.id,
+          event_type: event.event_type,
+          amount: event.amount,
+          occurred_at: event.occurred_at,
+          note: event.note,
+        },
+        projection,
+      },
+      { status: 201 },
+    )
+  } catch (e: unknown) {
+    return NextResponse.json({ error: e instanceof Error ? e.message : "บันทึกเหตุการณ์หนี้ไม่สำเร็จ" }, { status: 500 })
+  }
 }
