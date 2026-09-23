@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-23T05:51:58.475Z",
+  "generated_at": "2026-09-23T06:21:54.450Z",
   "policy": "Phase 1.1 (Factory Constitution) — read-only analysis + mapping only. No file was moved, renamed, deleted, merged, or refactored to produce this. ownedModules is derived entirely from registry/module-registry.json + real, pre-verified path evidence in scripts/build-factory-registry.ts. See registry/factory-mapping.json for the per-module assignment and registry/factory-summary.json for the coverage report (including UNKNOWN and CONFLICT — reported honestly, never silently resolved).",
   "factories": [
     {
@@ -1630,6 +1630,7 @@
         "scripts/digitalocean-worker-live-test.ts",
         "scripts/dispatcher-execution-mode-test.ts",
         "scripts/document-lifecycle-test.ts",
+        "scripts/document-source-rewire-test.ts",
         "scripts/edge-function-worker-test.ts",
         "scripts/execution-context-test.ts",
         "scripts/execution-hand-test.ts",
@@ -1700,7 +1701,7 @@
       "dependencies": "Not yet declared — see inputs.",
       "interfaces": "Not yet declared — see inputs.",
       "health": {
-        "moduleCount": 102,
+        "moduleCount": 103,
         "status": "populated"
       },
       "owner": "unassigned — Phase 1.2 assigns a real human/team owner per Factory",

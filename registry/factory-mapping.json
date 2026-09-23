@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-23T05:51:58.478Z",
+  "generated_at": "2026-09-23T06:21:54.452Z",
   "policy": "Per-module Factory mapping only — no file was moved. See registry/factory-registry.json for the Factory contracts this maps into.",
   "modules": {
     "app/.well-known/oauth-authorization-server/route.ts": {
@@ -9489,6 +9489,15 @@
       "domain": "Quality",
       "capability": "scripts",
       "responsibility": "Document Lifecycle Constitution Regression Suite (owner, 2026-08-07, Software Factory Step 10, Phase 8) — ตรวจทุก policy จริงของ Document Lifecycle รายงาน DE...",
+      "evidence": [
+        "real test file — QA Factory owns all test code regardless of domain"
+      ]
+    },
+    "scripts/document-source-rewire-test.ts": {
+      "factoryOwner": "qa-factory",
+      "domain": "Quality",
+      "capability": "scripts",
+      "responsibility": "Regression test for B-01 / B-02 — document source rewire (2026-09-23).",
       "evidence": [
         "real test file — QA Factory owns all test code regardless of domain"
       ]

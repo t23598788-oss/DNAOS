@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-23T05:46:31.301Z",
+  "generated_at": "2026-09-23T06:21:51.945Z",
   "nodes": [
     {
       "id": "layer:core",
@@ -29316,6 +29316,23 @@
       "cost_source": "UNKNOWN"
     },
     {
+      "id": "module:scripts/document-source-rewire-test.ts",
+      "name": "scripts/document-source-rewire-test.ts",
+      "type": "Module",
+      "layer": "scripts",
+      "source_file": "scripts/document-source-rewire-test.ts",
+      "status": "OK",
+      "runtime_callable": true,
+      "provider": "UNKNOWN",
+      "dependencies": [],
+      "dependents": [],
+      "commands": [],
+      "events": [],
+      "capabilities": [],
+      "health": "OK",
+      "cost_source": "UNKNOWN"
+    },
+    {
       "id": "command:invoice.items",
       "name": "invoice.items",
       "type": "Command",
@@ -41190,6 +41207,11 @@
     {
       "source": "layer:scripts",
       "target": "module:scripts/document-lifecycle-test.ts",
+      "type": "governed_by"
+    },
+    {
+      "source": "layer:scripts",
+      "target": "module:scripts/document-source-rewire-test.ts",
       "type": "governed_by"
     },
     {
@@ -59984,9 +60006,9 @@
     }
   ],
   "summary": {
-    "total_nodes": 1638,
-    "total_edges": 4807,
-    "modules": 1239,
+    "total_nodes": 1639,
+    "total_edges": 4808,
+    "modules": 1240,
     "layers": 9,
     "commands": 99,
     "events": 60,
@@ -59995,8 +60017,8 @@
     "drivers": 11,
     "connector_stages": 5,
     "module_health": {
-      "total": 1239,
-      "ok": 1239,
+      "total": 1240,
+      "ok": 1240,
       "broken": 0,
       "unused": 0,
       "unregistered": 0
@@ -60010,7 +60032,7 @@
     "unknown_field_counts": {
       "nodes_with_unknown_source_file": 82,
       "nodes_with_unknown_status": 159,
-      "nodes_with_unknown_provider": 1614
+      "nodes_with_unknown_provider": 1615
     },
     "unknown_dimensions": [
       "ai_model_registry",

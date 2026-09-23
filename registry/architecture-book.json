@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-23T05:52:00.340Z",
+  "generated_at": "2026-09-23T06:21:51.606Z",
   "version": 1,
   "nodes": [
     {
@@ -8654,8 +8654,9 @@
         "module:components/documents/DocumentBuilder.tsx"
       ],
       "data_tables": [
-        "documents",
-        "partners"
+        "companies",
+        "invoices",
+        "standalone_documents"
       ],
       "business_capabilities": [
         "business.draft-builders.buildDraftFromDocument",
@@ -8675,31 +8676,31 @@
         {
           "name": "NEXT_DOC_SUGGESTIONS",
           "kind": "const",
-          "line_start": 18,
-          "line_end": 27
+          "line_start": 30,
+          "line_end": 39
         },
         {
           "name": "buildDraftFromPartner",
           "kind": "function",
-          "line_start": 33,
-          "line_end": 58
+          "line_start": 68,
+          "line_end": 92
         },
         {
           "name": "buildDraftFromDocument",
           "kind": "function",
-          "line_start": 64,
-          "line_end": 105
+          "line_start": 112,
+          "line_end": 187
         }
       ],
       "import_sites": [
         {
           "specifier": "@/services/supabase/queries",
-          "line": 9,
+          "line": 21,
           "resolved_target": "services/supabase/queries.ts"
         },
         {
           "specifier": "@/engines/documents/document-editor",
-          "line": 10,
+          "line": 22,
           "resolved_target": "engines/documents/document-editor.ts"
         }
       ]
@@ -84643,6 +84644,39 @@
       "related_documents": "UNKNOWN",
       "related_commands": "UNKNOWN",
       "related_services": "UNKNOWN"
+    },
+    {
+      "id": "module:scripts/document-source-rewire-test.ts",
+      "type": "Module",
+      "layer": "scripts",
+      "name_en": "scripts/document-source-rewire-test.ts",
+      "purpose_th": "Regression test for B-01 / B-02 — document source rewire (2026-09-23).",
+      "exports": [
+        "buildDraftFromDocument",
+        "buildDraftFromPartner"
+      ],
+      "status": "OK",
+      "runtime_entry_point": true,
+      "internal_dependencies": [],
+      "dependents": [],
+      "data_tables": [
+        "companies",
+        "documents",
+        "invoices",
+        "partners",
+        "standalone_documents"
+      ],
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "scripts",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN"
     }
   ],
   "edges": [
@@ -89889,6 +89923,11 @@
     {
       "source": "layer:scripts",
       "target": "module:scripts/document-lifecycle-test.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:scripts",
+      "target": "module:scripts/document-source-rewire-test.ts",
       "label": "contains"
     },
     {
@@ -107178,8 +107217,8 @@
     }
   ],
   "summary": {
-    "total": 1239,
-    "ok": 1239,
+    "total": 1240,
+    "ok": 1240,
     "broken": 0,
     "unused": 0,
     "unregistered": 0

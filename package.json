@@ -129,6 +129,7 @@
     "workspace-capability:test": "npx tsx scripts/workspace-capability-access-test.ts",
     "workspace-job-path:test": "npx tsx scripts/workspace-job-path-test.ts",
     "job-live-path:test": "npx tsx scripts/job-live-path-test.ts",
+    "document-source-rewire:test": "npx tsx scripts/document-source-rewire-test.ts",
     "material-source-discovery:test": "npx tsx scripts/material-source-discovery-test.ts",
     "connect-core:test": "npx tsx scripts/connect-core-acceptance-test.ts",
     "state:reconcile": "npx tsx scripts/state-reconcile.ts",
