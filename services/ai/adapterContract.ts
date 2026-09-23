@@ -156,6 +156,9 @@ export interface AiAdapterDeclaration {
   provider: string;
   runtimes: AiRuntimeKind[];
   capabilities: AiCapability[];
+  /** A8: where each capability is really available, per runtime. Adapter
+   *  CONFIGURATION — never a business capability→provider map. */
+  capabilities_by_runtime?: Record<string, AiCapability[]>;
   enabled: boolean;
   /** Lower number wins. Deterministic policy — never a capability→provider map. */
   priority: number;

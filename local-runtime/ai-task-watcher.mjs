@@ -18,6 +18,7 @@ import { fileURLToPath } from "url";
 import { dirname } from "path";
 
 const PROJECT_DIR = join(dirname(fileURLToPath(import.meta.url)), "..");
+import { runDeviceAiCapability } from "./ai/device-ai-runtime.mjs";
 // Upgraded 2026-08-04 (owner: "ข้อจำกัดเดิมเรื่องทรัพยากรเครื่องไม่มีผลเหมือน
 // เดิมแล้ว...เลือกโมเดลตามความเหมาะสมของงาน ความแม่นยำ...ไม่ต้องยึดตาม
 // ข้อจำกัดของ Mac อีกต่อไป") from qwen2.5vl:7b/qwen3:8b — real document/
@@ -25,8 +26,10 @@ const PROJECT_DIR = join(dirname(fileURLToPath(import.meta.url)), "..");
 // runs on the RunPod GPU (runpod-controller.mjs), not this Mac. Needs an
 // 80GB-class GPU (GPU_FALLBACK_CHAIN in runpod-controller.mjs updated to
 // match) — qwen2.5vl:72b alone needs ~45GB VRAM.
-const VISION_MODEL = "qwen2.5vl:72b";
-const TEXT_MODEL = "thawatchai";
+// A8 cutover (owner, 2026-09-23): VISION_MODEL / TEXT_MODEL are GONE from this
+// file. Which model serves a capability is adapter configuration in
+// registry/ai-adapter-registry.json (capability_models), resolved by the device
+// AI runtime — this watcher no longer chooses it.
 // No local Ollama URL — Migration Completion (owner, 2026-08-04): Cloud
 // Runtime only, ~/.ollama removed from this Mac. See main()'s routing below.
 
@@ -64,33 +67,39 @@ async function appendTrace(stage, detail) {
   }
 }
 
-async function ollamaGenerate(model, systemPrompt, prompt, images) {
-  await appendTrace("ollama_request_sent", `${model} @ ${OLLAMA_BASE_URL}`);
-  let res;
-  try {
-    res = await fetch(`${OLLAMA_BASE_URL}/api/generate`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model,
-        system: systemPrompt,
-        prompt,
-        images,
-        stream: false,
-        format: images ? "json" : undefined,
-      }),
-    });
-  } catch (e) {
-    await appendTrace("ollama_request_failed", e.message);
-    throw e;
-  }
-  if (!res.ok) {
-    await appendTrace("ollama_request_failed", `http ${res.status}`);
-    throw new Error(`ollama http ${res.status}`);
-  }
-  const json = await res.json();
-  await appendTrace("ollama_response_received", model);
-  return json.response;
+/**
+ * A8: this file states a CAPABILITY; the device AI runtime resolves adapter +
+ * model from the canonical registry and performs the provider call. Polling,
+ * task identity, tracing, callback, RunPod pod lifecycle, the code-level privacy
+ * guards and every LINE continuation stay exactly as they were.
+ */
+async function aiEvidence(event) {
+  const stage = event.status === "requested" ? "ai_request_sent"
+    : event.status === "completed" ? "ai_response_received"
+    : "ai_request_failed";
+  await appendTrace(stage, `${event.adapterId}${event.model ? ` (${event.model})` : ""}${event.status === "failed" && event.error ? `: ${event.error}` : ""}`);
+  // Evidence must really exist, not just a trace line — same service_key/kind as
+  // the Node/Next and Deno runtimes, so all three report into one place.
+  const { error } = await db.from("system_health_status").upsert({
+    service_key: "dna_os_ai_gateway",
+    check_kind: "ai_invocation",
+    status: event.status === "failed" ? "degraded" : "healthy",
+    consecutive_failures: event.status === "failed" ? 1 : 0,
+    last_check_at: new Date().toISOString(),
+    last_error: event.error ?? null,
+    detail: { ...event, origin: "local-runtime/ai-task-watcher", taskId: CURRENT_TASK_ID },
+  }, { onConflict: "service_key" });
+  if (error) throw new Error(`AI_GATEWAY_EVIDENCE_FAILED:${error.message}`);
+}
+
+async function generateForCapability(capability, systemPrompt, prompt, images) {
+  const result = await runDeviceAiCapability(
+    capability,
+    { systemPrompt, prompt, images },
+    { endpoint: OLLAMA_BASE_URL, evidence: aiEvidence },
+  );
+  if (!result.ok) throw new Error(result.error);
+  return result.output;
 }
 
 async function postCallback(payload) {
@@ -153,7 +162,7 @@ async function classifyImage(task) {
   }
   const roleHint = senderRole && ROLE_HINTS[senderRole] ? `\n\nบริบทผู้ส่ง: ${ROLE_HINTS[senderRole]}` : "";
 
-  const raw = await ollamaGenerate(VISION_MODEL, OCR_SYSTEM_PROMPT + roleHint, "จำแนกเอกสารในรูปนี้", [b64]);
+  const raw = await generateForCapability("document.ocr", OCR_SYSTEM_PROMPT + roleHint, "จำแนกเอกสารในรูปนี้", [b64]);
   const match = raw.match(/\{[\s\S]*\}/);
   let classified = null;
   if (match) {
@@ -234,7 +243,7 @@ async function tryExtractEvent(userId, currentEventId, currentText) {
   if (unlinked.length === 0) return null;
 
   const transcript = unlinked.map((m) => `[${m.created_at}] ${m.raw_type === "text" ? m.raw_text : "(ส่งตำแหน่ง)"}`).join("\n");
-  const raw = await ollamaGenerate(TEXT_MODEL, EXTRACT_SYSTEM_PROMPT, transcript);
+  const raw = await generateForCapability("text.entity_extract", EXTRACT_SYSTEM_PROMPT, transcript);
   const match = raw.match(/\{[\s\S]*\}/);
   if (!match) return null;
 
@@ -336,12 +345,12 @@ async function handleText(task) {
     ? `${dateTimeBlock}${signalsBlock}${memoryBlock}บทสนทนาล่าสุด:\n${history}\n\nข้อความล่าสุดที่ต้องตอบ: "${task.input_text}"`
     : `${dateTimeBlock}${signalsBlock}${memoryBlock}ข้อความจากลูกค้า (ยังไม่เคยคุยกันมาก่อน): "${task.input_text}"`;
 
-  const replyText = (await ollamaGenerate(TEXT_MODEL, REPLY_SYSTEM_PROMPT, userPrompt)).trim();
+  const replyText = (await generateForCapability("conversation.answer", REPLY_SYSTEM_PROMPT, userPrompt)).trim();
 
   const memPrompt = memory
     ? `บันทึกเดิม:\n${memory}\n\nบทสนทนาล่าสุด:\nลูกค้า: ${task.input_text}\nแอดมิน: ${replyText}\n\nอัปเดตบันทึกให้ครับ`
     : `บทสนทนาแรกกับลูกค้ารายนี้:\nลูกค้า: ${task.input_text}\nแอดมิน: ${replyText}\n\nสร้างบันทึกเริ่มต้นให้ครับ`;
-  const updatedMemoryNotes = (await ollamaGenerate(TEXT_MODEL, MEMORY_SYSTEM_PROMPT, memPrompt)).trim();
+  const updatedMemoryNotes = (await generateForCapability("memory.draft", MEMORY_SYSTEM_PROMPT, memPrompt)).trim();
 
   await postCallback({
     taskId: task.id, kind: "handle_text", replyText, updatedMemoryNotes,
@@ -367,7 +376,7 @@ async function resolveMaterialSemantic(task) {
   const names = (materialTypes ?? []).map((m) => m.name);
   const prompt = `รายชื่อวัสดุจริงในระบบ:\n${names.map((n) => `- ${n}`).join("\n")}\n\nลูกค้าพิมพ์ว่า: "${task.input_text}"`;
 
-  const raw = await ollamaGenerate(TEXT_MODEL, MATERIAL_MATCH_SYSTEM_PROMPT, prompt);
+  const raw = await generateForCapability("material.resolve", MATERIAL_MATCH_SYSTEM_PROMPT, prompt);
   const match = raw.match(/\{[\s\S]*\}/);
   let resolvedMaterialName = null;
   if (match) {
@@ -463,7 +472,7 @@ async function backfillMissingDocuments() {
 // timestamp file is the real state across separate process runs.
 //
 // Cloud-only since Migration Completion (owner, 2026-08-04): main() routes
-// every ollamaGenerate() call to the pod's real URL, no local fallback.
+// every capability call to the pod's real URL, no local fallback.
 const LAST_ACTIVE_PATH = join(PROJECT_DIR, "local-runtime", ".runpod-last-active");
 const IDLE_STOP_MINUTES = 15;
 

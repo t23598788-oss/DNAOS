@@ -1,7 +1,7 @@
 {
   "version": 1,
   "kind": "ai_adapter_registry",
-  "note": "ONE AI ADAPTER REGISTRY (PHASE A4.1, owner 2026-09-23). Machine-readable declaration of every AI adapter DNA OS can select. This is the ONLY place where 'which provider/model sits behind which capability' is expressed; business callers name a capability only. It deliberately does NOT reuse registry/AI_REGISTRY.json, which declares AI agents/tools (claude-code, gemini-cli, …) with different semantics. Model identity lives in `configuration`, never in a capability id. A declared-but-not-executable provider is not an adapter: see `execution.status`.",
+  "note": "ONE AI ADAPTER REGISTRY (PHASE A4.1, owner 2026-09-23). Machine-readable declaration of every AI adapter DNA OS can select. This is the ONLY place where 'which provider/model sits behind which capability' is expressed; business callers name a capability only. It deliberately does NOT reuse registry/AI_REGISTRY.json, which declares AI agents/tools (claude-code, gemini-cli, …) with different semantics. Model identity lives in `configuration`, never in a capability id. A declared-but-not-executable provider is not an adapter: see `execution.status`. A8: adapters now declare capabilities_by_runtime — where each capability is really available — because the same adapter can serve a different set in each runtime (the device watcher's vision/text work vs the Next gateway's routing). Priority stays a single per-adapter value; no capability→provider map exists anywhere.",
   "authority": {
     "entry": "services/ai/gateway.ts#invokeAiGateway (unchanged public entry)",
     "selection": "services/ai/resolver.ts (single logical selection authority, same contract in every runtime)"
@@ -36,11 +36,13 @@
       ],
       "capabilities": [
         "conversation.answer",
-        "intent.classify",
-        "screen.describe",
         "document.crop",
+        "document.ocr",
+        "intent.classify",
+        "material.resolve",
         "memory.draft",
-        "material.resolve"
+        "screen.describe",
+        "text.entity_extract"
       ],
       "enabled": true,
       "priority": 10,
@@ -56,7 +58,9 @@
         "model_env": "AI_GATEWAY_OLLAMA_MODEL",
         "default_model": "thawatchai",
         "capability_models": {
-          "screen.describe": "qwen2.5vl:7b"
+          "screen.describe": "qwen2.5vl:7b",
+          "document.ocr": "qwen2.5vl:72b",
+          "text.entity_extract": "thawatchai"
         },
         "unconfigured_error": "AI_GATEWAY_OLLAMA_NOT_CONFIGURED"
       },
@@ -65,7 +69,24 @@
         "note": "moved out of gateway.ts's inline ollamaProvider() with behaviour unchanged (same URL, model env + default, 60s timeout, /api/generate body, AI_GATEWAY_EMPTY_PROVIDER_RESULT check)"
       },
       "declared_by": "services/ai/adapters.ts#ollamaAdapter",
-      "evidence": "A0–A3 census: services/ai/gateway.ts:160-183 (inline impl). The device vision-OCR path (local-runtime/ai-task-watcher.mjs) is a SEPARATE runtime path, reconciled in A6+, and does not route through this registry yet."
+      "evidence": "A0–A3 census: services/ai/gateway.ts:160-183 (inline impl). The device vision-OCR path (local-runtime/ai-task-watcher.mjs) is a SEPARATE runtime path, reconciled in A6+, and does not route through this registry yet.",
+      "capabilities_by_runtime": {
+        "next": [
+          "conversation.answer",
+          "intent.classify",
+          "screen.describe",
+          "document.crop",
+          "memory.draft",
+          "material.resolve"
+        ],
+        "device": [
+          "document.ocr",
+          "text.entity_extract",
+          "conversation.answer",
+          "memory.draft",
+          "material.resolve"
+        ]
+      }
     },
     {
       "id": "anthropic",
@@ -76,13 +97,13 @@
         "deno"
       ],
       "capabilities": [
-        "document.ocr",
-        "document.event_extract",
         "code.generate",
-        "text.entity_extract",
         "conversation.answer",
+        "document.event_extract",
+        "document.ocr",
+        "intent.classify",
         "memory.draft",
-        "intent.classify"
+        "text.entity_extract"
       ],
       "enabled": true,
       "priority": 20,
@@ -104,7 +125,22 @@
         "note": "moved out of gateway.ts's inline anthropicProvider(); the model literal is kept on purpose — A4.2 forbids model replacement in this phase"
       },
       "declared_by": "services/ai/adapters.ts#anthropicAdapter",
-      "evidence": "A0–A3 census: services/ai/gateway.ts:132-157 (inline impl) + the old CAPABILITY_PROVIDER map (document.ocr/document.event_extract/code.generate -> anthropic). A6: text.entity_extract added because anthropic is the provider that REALLY serves it in production today — engines/events/event-builder.ts:68-74 (claude-haiku-4-5-20251001, system prompt = synthesize a cluster of LINE messages into one structured business event), so the A6 cutover of that caller keeps its effective model instead of silently moving it to another provider. A7: runtimes += deno and capabilities += conversation.answer / memory.draft / intent.classify, because the Deno LINE engines already perform exactly these works with Anthropic today — claude-client.ts#callClaudeText (thoughtful-fallback reply, customer-memory notes) and #callClaudeTool (tool choice, currently unreferenced). Next-routing parity is unaffected: ollama keeps priority 10, so those three capabilities still resolve to it in the Next runtime."
+      "evidence": "A0–A3 census: services/ai/gateway.ts:132-157 (inline impl) + the old CAPABILITY_PROVIDER map (document.ocr/document.event_extract/code.generate -> anthropic). A6: text.entity_extract added because anthropic is the provider that REALLY serves it in production today — engines/events/event-builder.ts:68-74 (claude-haiku-4-5-20251001, system prompt = synthesize a cluster of LINE messages into one structured business event), so the A6 cutover of that caller keeps its effective model instead of silently moving it to another provider. A7: runtimes += deno and capabilities += conversation.answer / memory.draft / intent.classify, because the Deno LINE engines already perform exactly these works with Anthropic today — claude-client.ts#callClaudeText (thoughtful-fallback reply, customer-memory notes) and #callClaudeTool (tool choice, currently unreferenced). Next-routing parity is unaffected: ollama keeps priority 10, so those three capabilities still resolve to it in the Next runtime.",
+      "capabilities_by_runtime": {
+        "next": [
+          "document.ocr",
+          "document.event_extract",
+          "code.generate",
+          "text.entity_extract"
+        ],
+        "deno": [
+          "document.ocr",
+          "conversation.answer",
+          "memory.draft",
+          "intent.classify",
+          "text.entity_extract"
+        ]
+      }
     },
     {
       "id": "gemini",
@@ -115,8 +151,8 @@
         "next"
       ],
       "capabilities": [
-        "text.entity_extract",
-        "location.geocode"
+        "location.geocode",
+        "text.entity_extract"
       ],
       "enabled": true,
       "priority": 30,
@@ -138,7 +174,17 @@
         "note": "declared so these two capabilities have a real adapter; the Deno callers in line-webhook-v2/helpers.ts are NOT cut over in A5 (scope limit A5.7) and keep their current direct call"
       },
       "declared_by": "services/ai/adapters.ts#geminiAdapter",
-      "evidence": "A0–A3 census: supabase/functions/line-webhook-v2/helpers.ts:634,675 (real direct HTTP calls, gemini-2.5-flash-lite, key from Deno.env GEMINI_API_KEY) — the only real Gemini callers in the repo"
+      "evidence": "A0–A3 census: supabase/functions/line-webhook-v2/helpers.ts:634,675 (real direct HTTP calls, gemini-2.5-flash-lite, key from Deno.env GEMINI_API_KEY) — the only real Gemini callers in the repo",
+      "capabilities_by_runtime": {
+        "next": [
+          "text.entity_extract",
+          "location.geocode"
+        ],
+        "deno": [
+          "text.entity_extract",
+          "location.geocode"
+        ]
+      }
     },
     {
       "id": "digitalocean",
@@ -170,7 +216,12 @@
         "note": "its real execution path today is app/api/admin/ide/_lib/workerAdapters/digitalOceanWorkerAdapter.ts (worker layer, connector-resolved credential) — NOT the AI gateway. Declared so it is discoverable; kept DISABLED so the resolver cannot silently change the effective routing of code.generate (A5.1 parity). Cutover belongs to A6+."
       },
       "declared_by": "(no gateway adapter implementation yet — deliberately absent)",
-      "evidence": "A0–A3 census: digitalOceanWorkerAdapter.ts:21,41,53,209,315 (DIGITALOCEAN_INFERENCE_MODEL/API_KEY handling + connector credential cache)"
+      "evidence": "A0–A3 census: digitalOceanWorkerAdapter.ts:21,41,53,209,315 (DIGITALOCEAN_INFERENCE_MODEL/API_KEY handling + connector credential cache)",
+      "capabilities_by_runtime": {
+        "next": [
+          "code.generate"
+        ]
+      }
     }
   ]
 }

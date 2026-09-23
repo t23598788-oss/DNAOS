@@ -107,8 +107,9 @@ export function selectDenoAiAdapter(capability: DenoAiCapability, runtime = "den
   if (!declared) {
     return { ok: false, code: "AI_GATEWAY_CAPABILITY_NOT_REGISTERED", error: `AI_GATEWAY_CAPABILITY_NOT_REGISTERED: ${capability}` };
   }
+  const capsOf = (d: DenoAiAdapterDeclaration) => d.capabilities_by_runtime?.[runtime] ?? d.capabilities;
   const usable = DENO_AI_DECLARATIONS
-    .filter((d) => d.enabled && d.runtimes.includes(runtime) && ADAPTERS[d.id] && d.capabilities.includes(capability))
+    .filter((d) => d.enabled && d.runtimes.includes(runtime) && ADAPTERS[d.id] && capsOf(d).includes(capability))
     .sort((a, b) => (a.priority !== b.priority ? a.priority - b.priority : a.id < b.id ? -1 : 1));
   if (usable.length === 0) {
     return { ok: false, code: "AI_NO_COMPATIBLE_ADAPTER", error: `AI_NO_COMPATIBLE_ADAPTER: no enabled, runtime-compatible adapter declares ${capability} (runtime ${runtime})` };
@@ -137,8 +138,9 @@ export function describeDenoAiReadiness(runtime = "deno"): DenoAiAdapterReadines
   return DENO_AI_DECLARATIONS.map((d) => {
     const runtimeCompatible = d.runtimes.includes(runtime);
     const credentialPresent = d.credential_env.length === 0 ? true : credentialOf(d) !== null;
+    const declaredForRuntime = d.capabilities_by_runtime?.[runtime] ?? d.capabilities;
     const capabilityReady = d.enabled && runtimeCompatible && credentialPresent
-      ? d.capabilities.filter((c) => selectDenoAiAdapter(c, runtime).ok)
+      ? declaredForRuntime.filter((c) => selectDenoAiAdapter(c, runtime).ok)
       : [];
     const reason = !d.enabled ? "disabled by the adapter registry"
       : !runtimeCompatible ? `not declared for the ${runtime} runtime`

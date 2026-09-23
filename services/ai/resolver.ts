@@ -77,7 +77,10 @@ export function selectAiAdapter(capability: AiCapability, options: AiResolverOpt
     return { ok: false, code: "AI_GATEWAY_CAPABILITY_NOT_REGISTERED", error: `AI_GATEWAY_CAPABILITY_NOT_REGISTERED: ${capability}`, candidates: [] };
   }
 
-  const supported = registry.adapters.filter((d) => d.capabilities.includes(capability));
+  // A8: a declaration may scope its capabilities per runtime; fall back to the
+  // flat list when it does not.
+  const capsOf = (d: AiAdapterDeclaration) => d.capabilities_by_runtime?.[runtime] ?? d.capabilities;
+  const supported = registry.adapters.filter((d) => capsOf(d).includes(capability));
   const usable = supported
     .filter((d) => d.enabled && d.runtimes.includes(runtime) && Boolean(implementations[d.id]))
     .sort(order);

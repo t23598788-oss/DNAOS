@@ -155,7 +155,8 @@
     "document-authority:test": "tsx scripts/document-authority-census.test.ts",
     "ai-resolver:test": "npx tsx scripts/ai-resolver-test.ts",
     "ai-caller-cutover:test": "npx tsx scripts/ai-caller-cutover-test.ts",
-    "ai-deno-cutover:test": "npx tsx scripts/ai-deno-cutover-test.ts"
+    "ai-deno-cutover:test": "npx tsx scripts/ai-deno-cutover-test.ts",
+    "ai-device-cutover:test": "npx tsx scripts/ai-device-cutover-test.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.115.0",

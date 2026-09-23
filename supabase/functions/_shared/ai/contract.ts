@@ -30,6 +30,8 @@ export type DenoAiCapability =
 export interface DenoAiAdapterDeclaration {
   id: string;
   capabilities: DenoAiCapability[];
+  /** A8: where each capability is really available, per runtime. */
+  capabilities_by_runtime?: Record<string, DenoAiCapability[]>;
   /** Runtime contracts this adapter can execute in ("deno" = this runtime). */
   runtimes: string[];
   enabled: boolean;
@@ -65,7 +67,11 @@ export const DENO_AI_POLICY = {
 export const DENO_AI_DECLARATIONS: DenoAiAdapterDeclaration[] = [
   {
     id: "anthropic",
-    capabilities: ["document.ocr", "document.event_extract", "code.generate", "text.entity_extract", "conversation.answer", "memory.draft", "intent.classify"],
+    capabilities: ["code.generate", "conversation.answer", "document.event_extract", "document.ocr", "intent.classify", "memory.draft", "text.entity_extract"],
+    capabilities_by_runtime: {
+      next: ["document.ocr", "document.event_extract", "code.generate", "text.entity_extract"],
+      deno: ["document.ocr", "conversation.answer", "memory.draft", "intent.classify", "text.entity_extract"],
+    },
     runtimes: ["next", "deno"],
     enabled: true,
     priority: 20,
@@ -76,7 +82,11 @@ export const DENO_AI_DECLARATIONS: DenoAiAdapterDeclaration[] = [
   },
   {
     id: "gemini",
-    capabilities: ["text.entity_extract", "location.geocode"],
+    capabilities: ["location.geocode", "text.entity_extract"],
+    capabilities_by_runtime: {
+      next: ["text.entity_extract", "location.geocode"],
+      deno: ["text.entity_extract", "location.geocode"],
+    },
     runtimes: ["deno", "next"],
     enabled: true,
     priority: 30,
@@ -87,7 +97,11 @@ export const DENO_AI_DECLARATIONS: DenoAiAdapterDeclaration[] = [
   },
   {
     id: "ollama",
-    capabilities: ["conversation.answer", "intent.classify", "screen.describe", "document.crop", "memory.draft", "material.resolve"],
+    capabilities: ["conversation.answer", "document.crop", "intent.classify", "material.resolve", "memory.draft", "screen.describe", "document.ocr", "text.entity_extract"],
+    capabilities_by_runtime: {
+      next: ["conversation.answer", "intent.classify", "screen.describe", "document.crop", "memory.draft", "material.resolve"],
+      device: ["document.ocr", "text.entity_extract", "conversation.answer", "memory.draft", "material.resolve"],
+    },
     runtimes: ["next", "device"],
     enabled: true,
     priority: 10,
@@ -95,7 +109,7 @@ export const DENO_AI_DECLARATIONS: DenoAiAdapterDeclaration[] = [
     model_env: "AI_GATEWAY_OLLAMA_MODEL",
     default_model: "thawatchai",
     unconfigured_error: "AI_GATEWAY_OLLAMA_NOT_CONFIGURED",
-    capability_models: { "screen.describe": "qwen2.5vl:7b" },
+    capability_models: { "screen.describe": "qwen2.5vl:7b", "document.ocr": "qwen2.5vl:72b", "text.entity_extract": "thawatchai" },
   },
   {
     id: "digitalocean",

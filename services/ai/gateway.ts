@@ -155,7 +155,7 @@ export function aiGatewayProviderFor(capability: AiCapability): AiProviderName |
   const selection = selectAiAdapter(capability);
   if (selection.ok) return selection.id;
   const declared = registry.adapters
-    .filter((d) => d.capabilities.includes(capability))
+    .filter((d) => (d.capabilities_by_runtime?.["next"] ?? d.capabilities).includes(capability))
     .sort((a, b) => (a.priority - b.priority) || (a.id < b.id ? -1 : 1))[0];
   return declared ? declared.id : null;
 }
