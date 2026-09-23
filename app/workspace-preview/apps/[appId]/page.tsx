@@ -3,7 +3,7 @@ import { requireAuthPage } from "@/core/auth/requireAuthPage";
 import { ANY_AUTHENTICATED } from "@/core/auth/session";
 import { resolveApplication } from "@/core/workspace/applicationRouter";
 import { resolvePanelRenderModel } from "@/core/workspace/gateway/presenterMap";
-import { DashboardBoard } from "@/components/workspace/boards/DashboardBoard";
+import { DashboardBoard } from "@/presentation/shell/workspace/DashboardBoard";
 import { OpenInCanvasButton } from "./OpenInCanvasButton";
 import { presentationGatewayDeps } from "../../presentationGatewayDeps";
 

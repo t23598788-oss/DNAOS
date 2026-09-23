@@ -36,6 +36,7 @@
 // this system sends, and the admin timeline (FlexPreview) can render the
 // identical thing.
 import { getLineChannelAccessToken } from "../../_shared/line-client.ts"
+import { sendConnectEventCommand, CONNECT_PROVIDER } from "../../_shared/connect-event.ts"
 
 function paymentConfirmedFlex(opts: { companyName: string; amountPaid: number; outstandingAfter: number }): object {
   const paidOff = opts.outstandingAfter <= 0
@@ -151,17 +152,20 @@ export async function tryAutoConfirmPayment(supabase: any, input: AutoConfirmInp
     const mm = String(now.getMonth() + 1).padStart(2, "0")
     const dd = String(now.getDate()).padStart(2, "0")
     const eventCode = `EV${yy}${mm}${dd}-${String((count ?? 0) + 1).padStart(4, "0")}`
-    await supabase.from("business_events").insert({
+    // Capability D: the business EVENT row goes through the Connect transport →
+    // canonical writer. This is event business data only — the payment
+    // reconciliation above/below stays B-04's authority (untouched).
+    await sendConnectEventCommand("business_event.create", {
       event_code: eventCode,
       event_type: "แจ้งชำระเงิน",
       event_date: new Date().toISOString().slice(0, 10),
       title: `รับชำระบางส่วน ${input.amount.toLocaleString("th-TH")} บาท คงเหลือ ${outstandingAfter.toLocaleString("th-TH")} บาท (อัตโนมัติ)`,
-      source_line_user_id: input.lineUserId,
+      source_provider: CONNECT_PROVIDER,
+      source_external_subject_id: input.lineUserId,
       partner_id: input.customerCompanyId,
       status: "awaiting_payment_date",
       confidence: 1,
-      updated_at: new Date().toISOString(),
-    })
+    }, `system:${CONNECT_PROVIDER}:auto-confirm-payment`)
   }
 
   await tryPushReceiptDocument(input, outstandingAfter)

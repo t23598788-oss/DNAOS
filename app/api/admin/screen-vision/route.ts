@@ -1,25 +1,31 @@
-import { NextResponse } from "next/server";
-import { readFile } from "fs/promises";
-import { requireAuth } from "@/core/auth/requireAuth";
-import { ADMIN_TIER } from "@/core/auth/session";
-
 // Screen Vision, read-only (owner, 2026-07-30): "อ่านสิ่งที่อยู่บนจอเฮียเอง
 // ตอนที่เฮียสั่งเอง" — src-tauri/src/lib.rs's `capture_screen` Tauri command
 // runs macOS's own `screencapture` CLI (on explicit command only, never a
-// background watcher) and saves to a fixed local path; this route reads
-// that file straight off disk (both this Next.js server and the Tauri app
-// run on the SAME Mac, so no upload/base64-over-IPC needed) and sends it to
-// the local Ollama vision model (qwen2.5vl:7b, "thawatchai" setup — same
-// model already used for real document OCR in
-// supabase/functions/line-webhook-v2/engines/ocr-classify.ts, Rule 103
-// reuse) to transcribe/describe what's actually on screen. Never clicks or
-// types anything — read-only, by design (see the same conversation's
-// explanation of why autonomous input control stays declined).
+// background watcher) and saves to a fixed local path; this route reads that
+// file straight off disk (both this Next.js server and the Tauri app run on the
+// SAME Mac) and asks DNA OS for the `screen.describe` AI capability to
+// transcribe/describe what is actually on screen. Never clicks or types
+// anything — read-only, by design.
+//
+// A6 cutover (owner, 2026-09-23): this route no longer knows a provider, a model
+// or an endpoint. It states the capability and the resolver + adapter registry
+// decide what runs,
+// emitting provenance/evidence through the same canonical gateway every other AI
+// caller uses. The effective model is unchanged: the registry declares
+// the vision model as adapter configuration (proven from this very route before
+// the cutover), so behaviour is preserved while the caller's provider knowledge
+// is gone.
 //
 // Requires the built .app to have real macOS Screen Recording permission
 // granted once (System Settings → Privacy & Security → Screen Recording) —
 // a one-time OS-level grant, separate from Tauri's own capability system;
 // without it, screencapture silently produces a black/empty image.
+import { NextResponse } from "next/server";
+import { readFile } from "fs/promises";
+import { requireAuth } from "@/core/auth/requireAuth";
+import { ADMIN_TIER } from "@/core/auth/session";
+import { invokeAiGateway } from "@/services/ai/gateway";
+
 const SCREENSHOT_PATH = "/tmp/dna_os_screen_capture.png";
 
 export async function POST(request: Request) {
@@ -57,22 +63,25 @@ export async function POST(request: Request) {
     : "ดูภาพหน้าจอนี้ ทำ 2 อย่างเป็นภาษาไทยล้วน:\n1) แปลข้อความภาษาอังกฤษทุกส่วนที่เห็นในภาพให้ครบถ้วนเป็นภาษาไทย (ไม่ใช่แค่สรุปสั้นๆ) — ถ้าไม่มีภาษาอังกฤษในภาพ ให้บอกว่าไม่มี\n2) สรุปสั้นๆ ว่าหน้าจอนี้กำลังแสดงอะไรอยู่ (เช่น กำลังคุยแชทกับใคร หรือเป็นหน้าจอโปรแกรม/เว็บไซต์อะไร)\nห้ามแต่งเติมสิ่งที่ไม่เห็นในภาพจริง";
 
   try {
-    const res = await fetch("http://localhost:11434/api/generate", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: "qwen2.5vl:7b",
-        prompt,
-        images: [b64],
-        stream: false,
-      }),
-      signal: AbortSignal.timeout(60000),
+    // Capability only — no provider, no model, no endpoint (A6.1).
+    const result = await invokeAiGateway({
+      origin: "api/admin/screen-vision",
+      ownerId: auth.email,
+      sessionId: request.headers.get("x-dna-session") ?? "screen-vision",
+      capability: "screen.describe",
+      effect: "analysis",
+      prompt,
+      image: { base64: b64, mediaType: "image/png" },
+      maxTokens: 900,
     });
-    if (!res.ok) {
-      return NextResponse.json({ error: `เรียกโมเดลอ่านภาพไม่สำเร็จ: HTTP ${res.status}` }, { status: 502 });
+    if (!result.ok) {
+      const message = result.error ?? "unknown AI failure";
+      if (message.includes("AI_GATEWAY_EMPTY_PROVIDER_RESULT")) {
+        return NextResponse.json({ error: "อ่านภาพหน้าจอไม่ได้ผลลัพธ์ — ลองใหม่อีกครั้งครับ" }, { status: 502 });
+      }
+      return NextResponse.json({ error: `เรียกโมเดลอ่านภาพไม่สำเร็จ: ${message}` }, { status: 502 });
     }
-    const data = await res.json();
-    const text = typeof data?.response === "string" ? data.response.trim() : "";
+    const text = (result.output ?? "").trim();
     if (!text) {
       return NextResponse.json({ error: "อ่านภาพหน้าจอไม่ได้ผลลัพธ์ — ลองใหม่อีกครั้งครับ" }, { status: 502 });
     }

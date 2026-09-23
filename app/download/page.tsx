@@ -1,6 +1,6 @@
-import PortalShell from "@/components/portal/PortalShell";
+import PortalShell from "@/presentation/shell/PortalShell";
 import constitution from "@/registry/CONSTITUTION.json";
-import CopyButton from "@/components/landing/CopyButton";
+import CopyButton from "@/presentation/feedback/CopyButton";
 import { Terminal } from "lucide-react";
 
 export default function DownloadCenterPage() {

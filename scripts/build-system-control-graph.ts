@@ -27,6 +27,7 @@
 
 import * as fs from "fs";
 import * as path from "path";
+import { stableGeneratedAt } from "./lib/deterministicOutput";
 
 const ROOT = path.resolve(__dirname, "..");
 const REGISTRY_DIR = path.join(ROOT, "registry");
@@ -488,19 +489,20 @@ function main() {
 
   const sources = SOURCES.filter((s) => loaded[s.key] !== null).map((s) => `registry/${s.file}`);
 
+  const graphPath = path.join(outDir, "system-control-graph.json");
+  const summaryPath = path.join(outDir, "system-control-summary.json");
+
+  // Deterministic output (scripts/lib/deterministicOutput.ts): this graph is rebuilt
+  // identically from the same registries, so generated_at must not move unless the
+  // content really changed. Behaviour/serialization are otherwise unchanged.
+  const graphContent = { nodes, edges, summary, sources, unknown_dimensions: UNKNOWN_DIMENSIONS };
   const graph = {
-    generated_at: new Date().toISOString(),
-    nodes,
-    edges,
-    summary,
-    sources,
-    unknown_dimensions: UNKNOWN_DIMENSIONS,
+    generated_at: stableGeneratedAt(graphPath, graphContent),
+    ...graphContent,
   };
 
   validateGraph(graph);
 
-  const graphPath = path.join(outDir, "system-control-graph.json");
-  const summaryPath = path.join(outDir, "system-control-summary.json");
   fs.writeFileSync(graphPath, JSON.stringify(graph, null, 2));
   fs.writeFileSync(
     summaryPath,

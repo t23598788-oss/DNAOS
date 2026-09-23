@@ -25,7 +25,7 @@
 
 export type GatewayChannel = "observe" | "propose" | "execute";
 
-export type GatewayProvider = "github" | "supabase" | "vercel" | "railway" | "vscode" | "chatgpt-mcp";
+export type GatewayProvider = "github" | "supabase" | "vercel" | "railway" | "vscode" | "chatgpt-mcp" | "line";
 
 /**
  * Capability strings are dot-namespaced, provider-agnostic verbs — e.g.
@@ -42,6 +42,17 @@ export type GatewayCapability =
   | "deployment.status.observed"
   | "workspace.file.changed"
   | "intent.received"
+  // LINE boundary adoption (capability A of the provider-retreat line,
+  // 2026-09-23) — the inbound verbs engines/integration-gateway/adapters/line.ts
+  // actually emits from a real LINE webhook. Provider-agnostic by design: any
+  // messaging provider that can hand over a message / document / location /
+  // identity signal / interaction normalizes into these SAME ids, so nothing
+  // downstream ever branches on "LINE".
+  | "message.received"
+  | "document.received"
+  | "location.received"
+  | "identity.signal.received"
+  | "interaction.received"
   // Proposal Channel (owner, 2026-08-05) — requests a run of an
   // already-whitelisted Automation command; never runs on its own.
   | "automation.command.proposed"

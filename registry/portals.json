@@ -2,7 +2,7 @@
   "version": 2,
   "note": "Portal Registry — Single Source of Truth สำหรับทุก Portal ของ DNA OS. ทุก Portal ใช้ Core, Gateway, Registry, Database ชุดเดียวกันเสมอ — ความต่างระหว่าง Portal อนุญาตให้ต่างกันได้แค่ 2 อย่างเท่านั้น: UI และสิทธิ์การเข้าถึง ห้ามสร้าง Business Logic ใหม่ต่อ Portal (Portal คือ View เท่านั้น)",
   "workspace_directive_note": "v2 (owner, 2026-08-04, 'DNA OS Workspace Transformation Directive'): this domain is the operational workspace of DNA OS, not a marketing site. No architecture change — same routes, same components, same logic, same DB. Only presentation/navigation/labeling changed: `docs[]` entries below gained a real `workspace_category` field (one of `workspace_categories` below), replacing the old business/dev binary grouping. Every category maps only to routes that already existed before this directive — zero new routes created.",
-  "shared_shell_component": "components/portal/PortalShell.tsx",
+  "shared_shell_component": "presentation/shell/PortalShell.tsx",
   "workspace_categories": [
     { "id": "control-center", "label_en": "Control Center", "label_th": "ศูนย์ควบคุม", "icon": "Cpu" },
     { "id": "operations", "label_en": "Operations", "label_th": "ปฏิบัติการ", "icon": "Database" },

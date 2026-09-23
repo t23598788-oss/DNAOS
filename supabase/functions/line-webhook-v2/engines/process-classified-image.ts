@@ -12,6 +12,7 @@ import type { ClassifiedReceipt } from "./ocr-classify.ts"
 import { tryAutoConfirmPayment } from "./auto-confirm-payment.ts"
 import { maybeCreatePrintJob, matchPaymentToPrintJob } from "./print-jobs.ts"
 import { alertOwnerAnomaly } from "./owner-dispatcher.ts"
+import { sendConnectEventCommand, CONNECT_PROVIDER } from "../../_shared/connect-event.ts"
 
 export async function processClassifiedImage(
   supabase: any,
@@ -242,9 +243,11 @@ export async function processClassifiedImage(
         .limit(1).maybeSingle()
       if (recentEvent) {
         const priorPhotos = Array.isArray(recentEvent.context?.photos) ? recentEvent.context.photos : []
-        await supabase.from("business_events").update({
-          context: { ...(recentEvent.context ?? {}), photos: [...priorPhotos, classified.description] },
-        }).eq("id", recentEvent.id)
+        // Capability D: BUSINESS METADATA (context) through the Connect transport.
+        await sendConnectEventCommand("business_event.enrich", {
+          event_id: recentEvent.id,
+          fields: { context: { ...(recentEvent.context ?? {}), photos: [...priorPhotos, classified.description] } },
+        }, `system:${CONNECT_PROVIDER}:process-classified-image`)
       }
       // Owner-reported 2026-07-30 (same conversation as the vehicle-payment
       // gap above): "เค้ากำลังซ่อมรถแม็คโครใช่ไหม เราต้องถามเค้าว่ายังไง
@@ -315,8 +318,12 @@ export async function processClassifiedImage(
       // no longer sufficient on its own — same principle just applied to
       // receipt-issuance above, extended here at the owner's explicit
       // confirmation since dispatching a real truck carries the same risk.
-      await supabase.from("business_events")
-        .update({ status: "payment_confirmed" }).eq("id", pendingOrder.id)
+      // Capability D: proven transition awaiting_payment → payment_confirmed
+      await sendConnectEventCommand("business_event.transition", {
+        event_id: pendingOrder.id,
+        from_status: "awaiting_payment",
+        status: "payment_confirmed",
+      }, `system:${CONNECT_PROVIDER}:bank-confirm`)
       const { ResponseGateway } = await import("./response.ts")
       await ResponseGateway.pushMessage(
         userId,

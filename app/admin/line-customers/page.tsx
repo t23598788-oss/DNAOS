@@ -7,7 +7,11 @@ import {
   MapPin, FileSignature, Receipt, Truck, Banknote, Phone, Paperclip, Bot,
 } from "lucide-react"
 import { formatMoney } from "@/engines/documents/document-editor"
-import { AppShell, ActionBar, MapView, type IconRailItem, type ListColumnItem, type ActionBarItem } from "@/components/ui-kit"
+import AppShell from "@/presentation/shell/AppShell";
+import ActionBar, { type ActionBarItem } from "@/presentation/panels/ActionBar";
+import MapView from "@/presentation/viewer/MapView";
+import type { IconRailItem } from "@/presentation/shell/navigation/IconRail";
+import type { ListColumnItem } from "@/presentation/shell/navigation/ListColumn";
 
 interface Contact {
   line_user_id: string

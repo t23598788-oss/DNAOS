@@ -19,6 +19,7 @@
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.43.4"
 import { getLineChannelAccessToken } from "../_shared/line-client.ts"
+import { sendConnectEventCommand, CONNECT_PROVIDER } from "../_shared/connect-event.ts"
 import { calcDebtTrackingSummary, deriveFreezeWindows } from "../../../engines/debt/tracking-calculator.ts"
 
 function debtReminderFlex(opts: {
@@ -238,17 +239,29 @@ Deno.serve(async (req) => {
     const dd = String(new Date().getDate()).padStart(2, '0')
     const eventCode = `EV${yy}${mm}${dd}-${String((count ?? 0) + 1).padStart(4, '0')}`
 
-    await supabase.from('business_events').insert({
+    // BLOCK-1 cutover (2026-09-23): this used to be a direct single-quoted
+    // `supabase.from('business_events').insert(...)` — invisible to the old
+    // double-quote-only census, so the canonical authority claim was wrong.
+    // It now goes through the Connect transport → canonical event writer, the
+    // only path allowed to mutate business_events. Same business fields, same
+    // status; timestamps are the writer's business (no `updated_at` here).
+    // Fail-closed: a transport failure marks this company and moves on — there
+    // is deliberately NO local fallback write.
+    const wrote = await sendConnectEventCommand('business_event.create', {
       event_code: eventCode,
       event_type: 'แจ้งชำระเงิน',
       event_date: todayStr,
       title: `แจ้งยอดค้างชำระ ${totalDue.toLocaleString('th-TH')} บาท (อัตโนมัติ)`,
-      source_line_user_id: lineUserId,
-      partner_id: company.id,
       status: 'awaiting_payment_date',
       confidence: 1,
-      updated_at: new Date().toISOString(),
-    })
+      partner_id: company.id,
+      source_provider: CONNECT_PROVIDER,
+      source_external_subject_id: lineUserId,
+    }, `system:${CONNECT_PROVIDER}:debt-reminder-cron`)
+    if (!wrote.ok) {
+      results[company.name] = `event write rejected: ${wrote.error}`
+      continue
+    }
 
     results[company.name] = 'sent'
   }

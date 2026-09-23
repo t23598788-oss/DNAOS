@@ -75,3 +75,6 @@ lib/drivers/line/line-driver
 supabase/local-migration/real_data.sql
 _local-data/
 _inventory/
+
+# Contractor pull-model runtime artifacts (NEW-2)
+.agents/

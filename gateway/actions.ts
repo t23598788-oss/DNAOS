@@ -11,10 +11,12 @@
 // as every admin API route already uses (`supabaseAdmin as supabase`).
 import { supabaseAdmin as supabase } from "@/services/supabase/queries";
 import { DOC_LABELS, generateDoc, type DocData, type DocItem, type DocType } from "@/engines/documents/engine";
+import { issueDocument, createDocument } from "@/engines/canonical/document-write";
 import { documentFlex } from "@/engines/documents/flex-template";
 import { loadCompanySettings } from "@/core/config/company-settings";
 import { randomUUID } from "crypto";
 import { sendLineMessage } from "@/registry/communication";
+import { confirmPayment } from "@/engines/canonical/payment-write";
 
 // ---- Types ----
 
@@ -23,6 +25,8 @@ export interface ActionRequest {
   mode: "preview" | "execute";
   payload: Record<string, unknown>;
   preview_token?: string;
+  /** server context only: requireAuth → auth.email. Never taken from the request body. */
+  actor?: string;
 }
 
 export interface ActionResponse {
@@ -58,122 +62,206 @@ function consumeToken(token: string, action: string): { valid: boolean; error?: 
   return { valid: true, payload: entry.payload };
 }
 
-// ---- PAYMENT ----
+// ---- PAYMENT (canonical, B-04C) ----
+//
+// This gateway used to be its own payment system: it read `invoice_debts`, inserted
+// `invoice_payments` and updated `invoice_debts` itself. Both tables do not exist in
+// the live schema, so the path could never work, and the token it issued carried only
+// an invoice_debt_id with no amount at all.
+//
+// It is now only an ENTRY POINT into the canonical payment path:
+//
+//   gateway action → canonical input (receipt + deterministic invoice relation)
+//                  → engines/canonical/payment-write.ts#confirmPayment
+//                  → confirm_payment_allocation RPC (single transaction)
+//                  → payment_allocations → invoice_payment_summary → company debt projection
+//
+// No monetary row is written here, no legacy fallback exists, and nothing about money
+// is taken from the caller: the amount is the receipt's persisted amount, the invoice
+// comes from an explicit id or the deterministic inbound_source_links relation (never
+// guessed from company/amount/date), and the actor always comes from the server context.
 
-export async function previewPayment(invoiceDebtId: string): Promise<ActionResponse> {
-  const { data: debt, error: debtErr } = await supabase()
-    .from("invoice_debts")
-    .select("id, document_id, principal_amount, outstanding_amount, invoice_status, paid_amount, current_interest_amount")
-    .eq("id", invoiceDebtId)
-    .single();
+export interface PaymentInput {
+  /** the money evidence: a real receipt_documents row */
+  receipt_document_id: string;
+  /** optional explicit allocation target; when absent the deterministic relation is used */
+  invoice_id?: string | null;
+}
 
-  if (debtErr || !debt) {
-    return { ok: false, mode: "preview", action: "payment", error: debtErr?.message ?? "ไม่พบหนี้" };
+interface PaymentFacts {
+  receipt_document_id: string;
+  invoice_id: string;
+  invoice_no: string;
+  company_name: string;
+  amount: number;
+  paid_amount: number;
+  outstanding: number;
+  derived_status: string;
+}
+
+/** Deterministic receipt → invoice relation: the inbound_source_links SOURCE edge. */
+async function resolveReceiptInvoiceRelation(receiptDocumentId: string): Promise<{ invoiceId: string | null; error?: string }> {
+  const { data, error } = await supabase()
+    .from("inbound_source_links")
+    .select("invoice_id")
+    .eq("receipt_document_id", receiptDocumentId)
+    .eq("relation_type", "SOURCE")
+    .not("invoice_id", "is", null);
+  if (error) return { invoiceId: null, error: `อ่าน deterministic relation ไม่สำเร็จ: ${error.message}` };
+  const ids = [...new Set((data ?? []).map((r) => String((r as { invoice_id: string }).invoice_id)))];
+  if (ids.length === 0) return { invoiceId: null, error: "ไม่มี deterministic relation จาก receipt นี้ไป invoice (inbound_source_links) — ต้องระบุ allocation อย่างชัดเจน ห้ามเดา" };
+  if (ids.length > 1) return { invoiceId: null, error: `receipt นี้ผูกหลาย invoice (${ids.length}) — ต้องระบุ allocation อย่างชัดเจน` };
+  return { invoiceId: ids[0] };
+}
+
+/** Reads every fact from canonical sources and applies the fail-fast money guards. */
+async function resolvePaymentFacts(input: PaymentInput): Promise<{ ok: true; facts: PaymentFacts } | { ok: false; error: string }> {
+  if (!input.receipt_document_id) {
+    return { ok: false, error: "ต้องระบุ receipt_document_id (หลักฐานการรับเงิน)" };
+  }
+  const db = supabase();
+  const { data: receipt, error: receiptErr } = await db
+    .from("receipt_documents")
+    .select("id, document_type, status, amount, customer_company_id, allocation_state, reference_number")
+    .eq("id", input.receipt_document_id)
+    .maybeSingle();
+  if (receiptErr || !receipt) return { ok: false, error: receiptErr?.message ?? "ไม่พบหลักฐานการรับเงิน (receipt_documents)" };
+  if (!["transfer_slip", "payment_advice"].includes(String(receipt.document_type))) {
+    return { ok: false, error: `เอกสารนี้ไม่ใช่หลักฐานการจ่าย (document_type=${receipt.document_type})` };
+  }
+  if (!receipt.amount || Number(receipt.amount) <= 0) return { ok: false, error: "receipt ไม่มียอดเงิน (canonical amount)" };
+
+  const { data: allocated } = await db.from("payment_allocations").select("id").eq("receipt_document_id", input.receipt_document_id);
+  if ((allocated ?? []).length > 0) return { ok: false, error: "สลิปนี้ถูกจัดสรรแล้ว — ห้ามลงเงินซ้ำ" };
+
+  let invoiceId = input.invoice_id ?? null;
+  if (!invoiceId) {
+    const relation = await resolveReceiptInvoiceRelation(input.receipt_document_id);
+    if (!relation.invoiceId) return { ok: false, error: relation.error ?? "ระบุ invoice ไม่ได้" };
+    invoiceId = relation.invoiceId;
   }
 
-  const { data: doc } = await supabase()
-    .from("documents")
-    .select("document_number, party_name, net_amount")
-    .eq("id", debt.document_id)
-    .single();
+  const { data: summary } = await db
+    .from("invoice_payment_summary")
+    .select("invoice_id, invoice_no, paid_amount, outstanding, derived_status")
+    .eq("invoice_id", invoiceId)
+    .maybeSingle();
+  const { data: invoice } = await db.from("invoices").select("id, customer_company_id, invoice_status").eq("id", invoiceId).maybeSingle();
+  if (!summary || !invoice) return { ok: false, error: "ไม่พบใบแจ้งหนี้ใน canonical read (invoice_payment_summary/invoices)" };
+  if (String(invoice.invoice_status) === "VOID") return { ok: false, error: "ห้ามจัดสรรเงินเข้าใบแจ้งหนี้ที่ถูกยกเลิก (VOID)" };
+  if (!receipt.customer_company_id || String(invoice.customer_company_id) !== String(receipt.customer_company_id)) {
+    return { ok: false, error: "บริษัทของ receipt ไม่ตรงกับบริษัทของ invoice" };
+  }
 
-  const token = issueToken("payment", { invoice_debt_id: invoiceDebtId });
+  const amount = Number(receipt.amount);
+  const outstanding = Number(summary.outstanding ?? 0);
+  // single-invoice gateway path: the whole receipt must fit. A larger slip needs an
+  // explicit allocation instruction for the remainder, which this path does not accept.
+  if (amount > outstanding) {
+    return { ok: false, error: `ยอด receipt ${amount} เกินยอดคงค้าง ${outstanding} — ต้องมีคำสั่งจัดสรรส่วนที่เหลืออย่างชัดเจน (ห้าม clamp/ห้ามเดา)` };
+  }
 
+  const { data: company } = await db.from("companies").select("name").eq("id", String(invoice.customer_company_id)).maybeSingle();
+  return {
+    ok: true,
+    facts: {
+      receipt_document_id: String(receipt.id),
+      invoice_id: String(invoiceId),
+      invoice_no: String(summary.invoice_no ?? "-"),
+      company_name: String(company?.name ?? "-"),
+      amount,
+      paid_amount: Number(summary.paid_amount ?? 0),
+      outstanding,
+      derived_status: String(summary.derived_status ?? ""),
+    },
+  };
+}
+
+
+export async function previewPayment(input: PaymentInput): Promise<ActionResponse> {
+  const resolved = await resolvePaymentFacts(input);
+  if (!resolved.ok) {
+    return { ok: false, mode: "preview", action: "payment", error: resolved.error };
+  }
+  const f = resolved.facts;
+  // The token is a snapshot of the operation to confirm — never a financial authority
+  // and never a carrier of identity: { receipt_document_id, invoice_id, amount }.
+  const token = issueToken("payment", {
+    receipt_document_id: f.receipt_document_id,
+    invoice_id: f.invoice_id,
+    amount: f.amount,
+  });
   return {
     ok: true,
     mode: "preview",
     action: "payment",
     preview_token: token,
     preview: {
-      invoice_debt_id: debt.id,
-      document_number: doc?.document_number ?? "-",
-      party_name: doc?.party_name ?? "-",
-      principal_amount: debt.principal_amount,
-      outstanding_amount: debt.outstanding_amount,
-      current_interest: debt.current_interest_amount,
-      paid_so_far: debt.paid_amount,
-      status: debt.invoice_status,
+      receipt_document_id: f.receipt_document_id,
+      invoice_id: f.invoice_id,
+      document_number: f.invoice_no,
+      party_name: f.company_name,
+      amount: f.amount,
+      paid_so_far: f.paid_amount,
+      outstanding_amount: f.outstanding,
+      status: f.derived_status,
       will_change: {
-        invoice_status: "OPEN → PAID",
-        outstanding_amount: `${debt.outstanding_amount} → 0`,
-        triggers: ["back-to-back webhook จะยิงอัตโนมัติ", "LINE Notify แจ้งเจ้าของ"],
+        note: "confirm จะจัดสรรเงินเข้า invoice ผ่าน canonical payment RPC ใน transaction เดียว",
+        allocation_amount: f.amount,
       },
     },
-    next_actions: [
-      `.pay execute ${debt.id} ${debt.outstanding_amount}`,
-    ],
+    next_actions: [`.pay confirm ${f.receipt_document_id}`],
   };
 }
 
-export async function executePayment(payload: {
-  invoice_debt_id: string;
-  payment_amount: number;
-  note?: string;
-}): Promise<ActionResponse> {
-  if (!payload.invoice_debt_id || !payload.payment_amount) {
-    return { ok: false, mode: "execute", action: "payment", error: "ต้องระบุ invoice_debt_id และ payment_amount" };
+/**
+ * Confirms a payment through the canonical writer. `actor` is server context
+ * (requireAuth → auth.email); a client-supplied actor is never read.
+ */
+export async function executePayment(payload: PaymentInput, actor: string): Promise<ActionResponse> {
+  if (!actor?.trim()) {
+    return { ok: false, mode: "execute", action: "payment", error: "AUDIT_ACTOR_REQUIRED: ต้องมี actor จาก server context" };
   }
-
-  const { data: debt, error: debtErr } = await supabase()
-    .from("invoice_debts")
-    .select("id, document_id, outstanding_amount, invoice_status")
-    .eq("id", payload.invoice_debt_id)
-    .single();
-
-  if (debtErr || !debt) {
-    return { ok: false, mode: "execute", action: "payment", error: debtErr?.message ?? "ไม่พบหนี้" };
+  const resolved = await resolvePaymentFacts(payload);
+  if (!resolved.ok) {
+    return { ok: false, mode: "execute", action: "payment", error: resolved.error };
   }
-
-  if (debt.invoice_status === "PAID") {
-    return { ok: false, mode: "execute", action: "payment", error: "หนี้นี้ชำระแล้ว" };
+  const f = resolved.facts;
+  try {
+    const confirmed = await confirmPayment({
+      receipt_document_id: f.receipt_document_id,
+      allocations: [
+        {
+          target: { kind: "invoice", id: f.invoice_id },
+          allocation_kind: "principal",
+          // the allocation amount is the receipt's canonical amount, re-read here — the
+          // token's snapshot is informational only and is never used as authority
+          amount: f.amount,
+        },
+      ],
+      actor,
+    });
+    const invoice = confirmed.refreshed.invoices[0];
+    return {
+      ok: true,
+      mode: "execute",
+      action: "payment",
+      result: {
+        receipt_document_id: confirmed.receipt_document_id,
+        invoice_id: f.invoice_id,
+        allocation_ids: confirmed.allocation_ids,
+        allocations_written: confirmed.allocations_written,
+        amount_allocated: f.amount,
+        invoice_paid_amount: invoice?.paid_amount ?? null,
+        invoice_status: invoice?.invoice_status ?? null,
+        receipt_allocation_state: confirmed.refreshed.receipt_allocation_state,
+      },
+      next_actions: [`.invoice find ${f.invoice_id}`, `.debt list`],
+    };
+  } catch (e) {
+    // fail closed: canonical error only, no legacy fallback of any kind
+    return { ok: false, mode: "execute", action: "payment", error: e instanceof Error ? e.message : "ยืนยันการชำระไม่สำเร็จ" };
   }
-
-  const { data: payment, error: payErr } = await supabase()
-    .from("invoice_payments")
-    .insert({
-      invoice_debt_id: payload.invoice_debt_id,
-      payment_amount: payload.payment_amount,
-      paid_at: new Date().toISOString(),
-      principal_before_payment: debt.outstanding_amount,
-      outstanding_before_payment: debt.outstanding_amount,
-      outstanding_after_payment: Math.max(0, debt.outstanding_amount - payload.payment_amount),
-      note: payload.note ?? null,
-    })
-    .select()
-    .single();
-
-  if (payErr) {
-    return { ok: false, mode: "execute", action: "payment", error: payErr.message };
-  }
-
-  const newOutstanding = Math.max(0, debt.outstanding_amount - payload.payment_amount);
-  const newStatus = newOutstanding <= 0 ? "PAID" : "OPEN";
-
-  await supabase()
-    .from("invoice_debts")
-    .update({
-      paid_amount: payload.payment_amount,
-      outstanding_amount: newOutstanding,
-      invoice_status: newStatus,
-      paid_at: newStatus === "PAID" ? new Date().toISOString() : null,
-    })
-    .eq("id", payload.invoice_debt_id);
-
-  return {
-    ok: true,
-    mode: "execute",
-    action: "payment",
-    result: {
-      payment_id: payment.id,
-      amount_paid: payload.payment_amount,
-      outstanding_after: newOutstanding,
-      new_status: newStatus,
-    },
-    next_actions: [
-      `.invoice find ${debt.document_id}`,
-      `.debt list`,
-    ],
-  };
 }
 
 // ---- DOCUMENT CREATE ----
@@ -316,7 +404,10 @@ export async function executeDocumentCreate(payload: {
   note?: string;
   items?: DocItem[];
   tax?: { subtotal: number; vatRate: number; vat: number; total: number };
-}): Promise<ActionResponse> {
+}, actor: string): Promise<ActionResponse> {
+  if (!actor?.trim()) {
+    return { ok: false, mode: "execute", action: "document.create", error: "AUDIT_ACTOR_REQUIRED: ต้องมี actor จาก server context" };
+  }
   if (!payload.customer_company_id) {
     return { ok: false, mode: "execute", action: "document.create", error: "ต้องจับคู่บริษัทลูกค้าก่อนถึงจะออกเอกสารได้" };
   }
@@ -360,55 +451,86 @@ export async function executeDocumentCreate(payload: {
   let savedStatus: string;
 
   if (documentType === "invoice") {
-    // ConfirmInvoice (owner, 2026-07-17, Invoice Workflow Redesign): header
-    // + line items committed in ONE Postgres transaction via the
-    // confirm_invoice() function (supabase/migrations/
-    // 20260717000003_invoice_items.sql) — Supabase's JS/REST client has no
-    // multi-statement transaction primitive, so an RPC call is the only way
-    // to guarantee this per the owner's explicit "commit one transaction"
-    // requirement. Does NOT touch LINE — that is SendInvoiceToLINE's job
-    // alone (owner: "Do not combine ConfirmInvoice and SendInvoiceToLINE").
-    // vat_rate/vat_amount/total_amount come straight from rendered.summary,
-    // which (via precomputedSummary above) IS payload.tax verbatim — not
-    // recalculated here.
-    const { data: newInvoiceId, error } = await supabase().rpc("confirm_invoice", {
-      p_invoice_no: docNum,
-      p_customer_company_id: payload.customer_company_id,
-      p_invoice_date: issueDate,
-      p_subtotal: rendered.summary.subtotal,
-      p_vat_rate: payload.tax?.vatRate ?? 0,
-      p_vat_amount: rendered.summary.vat,
-      p_total_amount: rendered.summary.total,
-      p_notes: payload.note ?? null,
-      p_items: items,
-    });
-    if (error) return { ok: false, mode: "execute", action: "document.create", error: error.message };
-    savedId = newInvoiceId as string;
-    savedStatus = "DRAFT"; // confirm_invoice() always inserts as DRAFT — "created, not yet sent to customer"
+    // PHASE E cutover (2026-09-23): this used to call the SQL RPC
+    // confirm_invoice() directly — a second, parallel creation entry.
+    // It now goes through the canonical document authority, which owns
+    // validation, the canonical money ladder (computeCanonicalTotals) and the
+    // version/audit, and which itself uses the promoted atomic RPC underneath
+    // (header + items + version in ONE Postgres transaction).
+    // Compatibility mapping: the approved preview totals
+    // (payload.tax ← business.calculate_tax) use the same 7% exclusive rule as
+    // the canonical ladder, so the persisted totals are unchanged; the invoice
+    // still starts as DRAFT ("created, not yet sent to customer").
+    try {
+      const written = await createDocument({
+        kind: "invoice",
+        document_no: docNum,
+        document_type: "invoice",
+        customer_company_id: payload.customer_company_id,
+        issue_date: issueDate,
+        notes: payload.note ?? null,
+        rows: items.map((it) => ({ qty: Number(it.qty) || 0, unitPrice: Number(it.unitPrice) || 0 })),
+        vatEnabled: (payload.tax?.vatRate ?? 0) > 0,
+        items: items.map((it, i) => ({
+          description: it.description,
+          qty: Number(it.qty) || 0,
+          unit: it.unit ?? null,
+          unit_price: Number(it.unitPrice) || 0,
+          sort_order: i,
+        })),
+        actor,
+        status: "DRAFT",
+      });
+      savedId = written.document_id;
+      savedStatus = "DRAFT";
+    } catch (err) {
+      return {
+        ok: false, mode: "execute", action: "document.create",
+        error: `สร้างใบแจ้งหนี้ผ่าน canonical writer ไม่สำเร็จ: ${err instanceof Error ? err.message : String(err)}`,
+      };
+    }
   } else {
     const enumValue = STANDALONE_ENUM[documentType];
     if (!enumValue) {
       return { ok: false, mode: "execute", action: "document.create", error: `ยังไม่รองรับเอกสารประเภทนี้: ${documentType}` };
     }
-    const { data, error } = await supabase()
-      .from("standalone_documents")
-      .insert({
+    // PHASE C cutover (2026-09-23): this used to be a direct
+    // `.from("standalone_documents").insert({...})` that wrote a header with
+    // caller-supplied totals and NO line items. It now goes through the canonical
+    // document authority, which owns validation, the money ladder
+    // (computeCanonicalTotals), the items, the version and the audit.
+    // Compatibility mapping (recorded, not invented):
+    //   status "saved"  -> canonical standalone creation state "active"
+    //   vat_rate 0.07   -> canonical vatEnabled (7% when the approved preview had VAT)
+    //   items           -> now persisted (canonical requirement; the old path dropped them)
+    try {
+      const written = await createDocument({
+        kind: "standalone_document",
         document_no: docNum,
         document_type: enumValue,
-        document_date: issueDate,
         customer_company_id: payload.customer_company_id,
-        vat_rate: 0.07,
-        subtotal: rendered.summary.subtotal,
-        vat_amount: rendered.summary.vat,
-        total_amount: rendered.summary.total,
-        notes: payload.note,
-        updated_at: new Date().toISOString(),
-      })
-      .select("id")
-      .single();
-    if (error) return { ok: false, mode: "execute", action: "document.create", error: error.message };
-    savedId = data.id;
-    savedStatus = "saved";
+        issue_date: issueDate,
+        notes: payload.note ?? null,
+        rows: items.map((it) => ({ qty: Number(it.qty) || 0, unitPrice: Number(it.unitPrice) || 0 })),
+        vatEnabled: (payload.tax?.vatRate ?? 0) > 0,
+        items: items.map((it, i) => ({
+          description: it.description,
+          qty: Number(it.qty) || 0,
+          unit: it.unit ?? null,
+          unit_price: Number(it.unitPrice) || 0,
+          sort_order: i,
+        })),
+        actor,
+        status: "active",
+      });
+      savedId = written.document_id;
+      savedStatus = "saved";
+    } catch (err) {
+      return {
+        ok: false, mode: "execute", action: "document.create",
+        error: `สร้างเอกสารผ่าน canonical writer ไม่สำเร็จ: ${err instanceof Error ? err.message : String(err)}`,
+      };
+    }
   }
 
   return {
@@ -449,7 +571,20 @@ export async function executeDocumentCreate(payload: {
 // this codebase's "created, not yet sent" state) so this same function can
 // be called again later with the same invoiceId: Retry Send, never
 // recreates the invoice or its items.
-export async function sendInvoiceToLine(invoiceId: string): Promise<ActionResponse> {
+export async function sendInvoiceToLine(invoiceId: string, actor: string): Promise<ActionResponse> {
+  // PHASE C (owner decision 2026-09-23) — DOCUMENT STATE ≠ DELIVERY STATE.
+  //   document lifecycle (DRAFT → SENT) is owned by the canonical document
+  //   authority: engines/canonical/document-write.ts#issueDocument (validation
+  //   + version + audit). Delivery to a provider NEVER decides document state.
+  //   Delivery is recorded as EVIDENCE in the existing outbound record
+  //   (line_events, direction "out" — the same pattern send-debt / reply /
+  //   send-document already use) and THAT evidence is what retry/idempotency
+  //   reads — not invoice_status. A failed push therefore cannot roll back
+  //   issuance, and a SENT invoice can still be (re)sent when no delivery
+  //   evidence exists yet.
+  if (!actor?.trim()) {
+    return { ok: false, mode: "execute", action: "invoice.send", error: "AUDIT_ACTOR_REQUIRED: ต้องมี actor จาก server context" };
+  }
   const { data: invoice, error: invoiceError } = await supabase()
     .from("invoices")
     .select("id, invoice_no, invoice_status, customer_company_id, subtotal, vat_amount, total_amount, companies(name)")
@@ -458,7 +593,18 @@ export async function sendInvoiceToLine(invoiceId: string): Promise<ActionRespon
   if (invoiceError || !invoice) {
     return { ok: false, mode: "execute", action: "invoice.send", error: invoiceError?.message ?? "ไม่พบใบแจ้งหนี้นี้ในระบบ" };
   }
-  if (invoice.invoice_status === "SENT") {
+  if (invoice.invoice_status === "VOID") {
+    return { ok: false, mode: "execute", action: "invoice.send", error: `ใบแจ้งหนี้ ${invoice.invoice_no} ถูกยกเลิกแล้ว` };
+  }
+
+  // Retry / idempotency from DELIVERY EVIDENCE, not from document status.
+  const { data: delivered } = await supabase()
+    .from("line_events")
+    .select("id, created_at")
+    .eq("direction", "out")
+    .eq("extracted->>document_id", invoiceId)
+    .limit(1);
+  if (delivered?.length) {
     return { ok: false, mode: "execute", action: "invoice.send", error: `ใบแจ้งหนี้ ${invoice.invoice_no} ถูกส่งไปแล้ว` };
   }
 
@@ -473,6 +619,19 @@ export async function sendInvoiceToLine(invoiceId: string): Promise<ActionRespon
   const items: DocItem[] = (itemRows ?? []).map((it) => ({
     description: it.description, qty: Number(it.qty), unit: it.unit, unitPrice: Number(it.unit_price),
   }));
+
+  // Document lifecycle — owned by the canonical document authority, performed
+  // BEFORE transport so a delivery failure can never roll issuance back.
+  if (invoice.invoice_status === "DRAFT") {
+    try {
+      await issueDocument({ document_kind: "invoice", document_id: invoiceId, actor });
+    } catch (err) {
+      return {
+        ok: false, mode: "execute", action: "invoice.send",
+        error: `ออกเอกสาร (issue) ไม่สำเร็จ: ${err instanceof Error ? err.message : String(err)}`,
+      };
+    }
+  }
 
   const { data: link } = await supabase()
     .from("company_line_links")
@@ -504,36 +663,34 @@ export async function sendInvoiceToLine(invoiceId: string): Promise<ActionRespon
   ]);
 
   if (!lineRes.success) {
-    // Owner instruction: on LINE push failure, invoice stays saved as-is
-    // (status untouched — still DRAFT) so Retry Send can call this same
-    // function again without recreating anything.
+    // Delivery failed → the document stays exactly as issued. Retry is possible
+    // because no delivery evidence was written.
     return { ok: false, mode: "execute", action: "invoice.send", error: `ส่ง LINE ไม่สำเร็จ: ${(lineRes.error ?? "").slice(0, 200)}` };
   }
 
-  const { error: statusError } = await supabase()
-    .from("invoices")
-    .update({ invoice_status: "SENT", updated_at: new Date().toISOString() })
-    .eq("id", invoiceId);
-  if (statusError) {
-    // LINE push already succeeded — do not report this as a send failure
-    // (that would invite an accidental duplicate push on retry). Surface it
-    // honestly as a separate, lower-severity problem instead.
-    return {
-      ok: true, mode: "execute", action: "invoice.send",
-      result: { invoice_id: invoiceId, invoice_no: invoice.invoice_no, line_pushed: true, flex_preview: flex },
-      error: `ส่ง LINE สำเร็จ แต่อัปเดตสถานะไม่สำเร็จ: ${statusError.message}`,
-    };
-  }
+  // Delivery EVIDENCE (line_events, direction "out") — the record the retry
+  // guard above and the admin control room both read. Provider text is never
+  // stored: only the exact card that was sent plus the canonical document ref.
+  const { error: evidenceError } = await supabase().from("line_events").insert({
+    line_user_id: link.line_user_id,
+    raw_type: "flex",
+    raw_text: `📄 ส่งใบแจ้งหนี้ ${invoice.invoice_no} ให้ ${partyName}`,
+    direction: "out",
+    line_message_id: lineRes.messageId ?? null,
+    extracted: { flex, document_kind: "invoice", document_id: invoiceId, document_no: invoice.invoice_no, provider: "line" },
+  });
 
   return {
     ok: true,
     mode: "execute",
     action: "invoice.send",
-    // flex_preview included so the caller (e.g. Retry Send button) can
-    // render the same chat-timeline bubble the auto-send path already
-    // does — same object that was actually pushed to LINE, not rebuilt
-    // again client-side.
-    result: { invoice_id: invoiceId, invoice_no: invoice.invoice_no, status: "SENT", flex_preview: flex },
+    // flex_preview included so the caller (e.g. Retry Send button) can render the
+    // same chat-timeline bubble that was actually pushed, not a rebuild.
+    result: {
+      invoice_id: invoiceId, invoice_no: invoice.invoice_no, status: "SENT", flex_preview: flex,
+      delivery_evidence_recorded: !evidenceError,
+      ...(evidenceError ? { delivery_evidence_error: evidenceError.message } : {}),
+    },
   };
 }
 
@@ -640,13 +797,13 @@ export async function dispatchAction(req: ActionRequest): Promise<ActionResponse
   switch (action) {
     case "payment":
       return mode === "preview"
-        ? previewPayment(payload.invoice_debt_id as string)
-        : executePayment(payload as Parameters<typeof executePayment>[0]);
+        ? previewPayment(payload as unknown as Parameters<typeof previewPayment>[0])
+        : executePayment(payload as unknown as Parameters<typeof executePayment>[0], req.actor ?? "");
 
     case "document.create":
       return mode === "preview"
         ? previewDocumentCreate(payload)
-        : executeDocumentCreate(payload as Parameters<typeof executeDocumentCreate>[0]);
+        : executeDocumentCreate(payload as Parameters<typeof executeDocumentCreate>[0], req.actor ?? "");
 
     case "debt.create":
       return mode === "preview"

@@ -2,7 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import { Briefcase, Users, User, LayoutGrid } from "lucide-react";
-import IconRail, { type IconRailItem } from "@/components/ui-kit/IconRail";
+import IconRail, { type IconRailItem } from "@/presentation/shell/navigation/IconRail";
 import LogoutButton from "@/components/auth/LogoutButton";
 import type { WorkspaceNavItem } from "@/core/navigation/resolveNavItems";
 

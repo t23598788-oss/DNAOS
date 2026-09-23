@@ -1,197 +1,17 @@
 {
-  "generated_at": "2026-08-08T11:08:53.715Z",
+  "generated_at": "2026-09-23T04:37:50.952Z",
   "policy": "Report only — this script NEVER deletes or moves anything. safeToRemove is a conservative suggestion (untracked + unreferenced + a real original exists), not an action. A human must set ownerConfirmation before any removal happens, and removal itself is a separate, manual step not performed by this script.",
-  "total_found": 20,
-  "suggested_safe_count": 19,
+  "total_found": 2,
+  "suggested_safe_count": 0,
   "entries": [
     {
-      "duplicate": "dna-os-mcp-server/_diag-token-test 2.mjs",
-      "original": "dna-os-mcp-server/_diag-token-test.mjs",
+      "duplicate": "app/admin/system/page 2.tsx",
+      "original": "app/admin/system/page.tsx",
       "originalExists": true,
-      "gitTracked": false,
-      "referencedElsewhere": false,
-      "lastModified": "2026-08-04T01:20:37.000Z",
-      "safeToRemove": true,
-      "ownerConfirmation": null
-    },
-    {
-      "duplicate": "dna-os-mcp-server/_run-diag-token-test 2.sh",
-      "original": "dna-os-mcp-server/_run-diag-token-test.sh",
-      "originalExists": true,
-      "gitTracked": false,
-      "referencedElsewhere": false,
-      "lastModified": "2026-08-04T01:20:48.000Z",
-      "safeToRemove": true,
-      "ownerConfirmation": null
-    },
-    {
-      "duplicate": "docs/codex-dna-os-mcp-handoff 2.md",
-      "original": "docs/codex-dna-os-mcp-handoff.md",
-      "originalExists": true,
-      "gitTracked": false,
-      "referencedElsewhere": false,
-      "lastModified": "2026-08-04T16:49:43.000Z",
-      "safeToRemove": true,
-      "ownerConfirmation": null
-    },
-    {
-      "duplicate": "docs/dev-loop-verification-handoff 2.md",
-      "original": "docs/dev-loop-verification-handoff.md",
-      "originalExists": true,
-      "gitTracked": false,
-      "referencedElsewhere": false,
-      "lastModified": "2026-08-04T17:55:14.000Z",
-      "safeToRemove": true,
-      "ownerConfirmation": null
-    },
-    {
-      "duplicate": "local-runtime/launchagents/com.dnaos.storage-threshold-watcher 2.plist",
-      "original": "local-runtime/launchagents/com.dnaos.storage-threshold-watcher.plist",
-      "originalExists": true,
-      "gitTracked": false,
+      "gitTracked": true,
       "referencedElsewhere": true,
-      "lastModified": "2026-08-04T13:02:36.000Z",
+      "lastModified": "2026-09-22T15:40:36.825Z",
       "safeToRemove": false,
-      "ownerConfirmation": null
-    },
-    {
-      "duplicate": "registry/auto-dependency-graph 2.json",
-      "original": "registry/auto-dependency-graph.json",
-      "originalExists": true,
-      "gitTracked": false,
-      "referencedElsewhere": false,
-      "lastModified": "2026-08-04T10:21:25.000Z",
-      "safeToRemove": true,
-      "ownerConfirmation": null
-    },
-    {
-      "duplicate": "registry/hardcode-governance/approved-compile-time-constants 2.json",
-      "original": "registry/hardcode-governance/approved-compile-time-constants.json",
-      "originalExists": true,
-      "gitTracked": false,
-      "referencedElsewhere": false,
-      "lastModified": "2026-08-04T00:38:03.000Z",
-      "safeToRemove": true,
-      "ownerConfirmation": null
-    },
-    {
-      "duplicate": "registry/hardcode-governance/enforcement-config 2.json",
-      "original": "registry/hardcode-governance/enforcement-config.json",
-      "originalExists": true,
-      "gitTracked": false,
-      "referencedElsewhere": false,
-      "lastModified": "2026-08-04T01:12:35.000Z",
-      "safeToRemove": true,
-      "ownerConfirmation": null
-    },
-    {
-      "duplicate": "registry/hardcode-governance/hardcode-policy-registry 2.json",
-      "original": "registry/hardcode-governance/hardcode-policy-registry.json",
-      "originalExists": true,
-      "gitTracked": false,
-      "referencedElsewhere": false,
-      "lastModified": "2026-08-04T02:20:26.000Z",
-      "safeToRemove": true,
-      "ownerConfirmation": null
-    },
-    {
-      "duplicate": "registry/hardcode-governance/hardware-profile-registry 2.json",
-      "original": "registry/hardcode-governance/hardware-profile-registry.json",
-      "originalExists": true,
-      "gitTracked": false,
-      "referencedElsewhere": false,
-      "lastModified": "2026-08-04T00:38:03.000Z",
-      "safeToRemove": true,
-      "ownerConfirmation": null
-    },
-    {
-      "duplicate": "registry/hardcode-governance/HCG_PHASE_2.5_STABILIZATION_REPORT 2.md",
-      "original": "registry/hardcode-governance/HCG_PHASE_2.5_STABILIZATION_REPORT.md",
-      "originalExists": true,
-      "gitTracked": false,
-      "referencedElsewhere": false,
-      "lastModified": "2026-08-04T04:27:53.000Z",
-      "safeToRemove": true,
-      "ownerConfirmation": null
-    },
-    {
-      "duplicate": "registry/hardcode-governance/platform-constraint-registry 2.json",
-      "original": "registry/hardcode-governance/platform-constraint-registry.json",
-      "originalExists": true,
-      "gitTracked": false,
-      "referencedElsewhere": false,
-      "lastModified": "2026-08-04T00:38:03.000Z",
-      "safeToRemove": true,
-      "ownerConfirmation": null
-    },
-    {
-      "duplicate": "registry/hardcode-governance/protocol-constants-registry 2.json",
-      "original": "registry/hardcode-governance/protocol-constants-registry.json",
-      "originalExists": true,
-      "gitTracked": false,
-      "referencedElsewhere": false,
-      "lastModified": "2026-08-04T00:38:03.000Z",
-      "safeToRemove": true,
-      "ownerConfirmation": null
-    },
-    {
-      "duplicate": "registry/hardcode-governance/README 2.md",
-      "original": "registry/hardcode-governance/README.md",
-      "originalExists": true,
-      "gitTracked": false,
-      "referencedElsewhere": false,
-      "lastModified": "2026-08-04T01:19:51.000Z",
-      "safeToRemove": true,
-      "ownerConfirmation": null
-    },
-    {
-      "duplicate": "registry/hardcode-governance/schema-identifier-cache 2.json",
-      "original": "registry/hardcode-governance/schema-identifier-cache.json",
-      "originalExists": true,
-      "gitTracked": false,
-      "referencedElsewhere": false,
-      "lastModified": "2026-08-04T02:18:16.000Z",
-      "safeToRemove": true,
-      "ownerConfirmation": null
-    },
-    {
-      "duplicate": "registry/hardcode-governance/service-endpoint-registry 2.json",
-      "original": "registry/hardcode-governance/service-endpoint-registry.json",
-      "originalExists": true,
-      "gitTracked": false,
-      "referencedElsewhere": false,
-      "lastModified": "2026-08-04T22:22:27.000Z",
-      "safeToRemove": true,
-      "ownerConfirmation": null
-    },
-    {
-      "duplicate": "registry/infra-dependency-graph 2.json",
-      "original": "registry/infra-dependency-graph.json",
-      "originalExists": true,
-      "gitTracked": false,
-      "referencedElsewhere": false,
-      "lastModified": "2026-08-04T00:59:21.000Z",
-      "safeToRemove": true,
-      "ownerConfirmation": null
-    },
-    {
-      "duplicate": "registry/system-control-graph 2.json",
-      "original": "registry/system-control-graph.json",
-      "originalExists": true,
-      "gitTracked": false,
-      "referencedElsewhere": false,
-      "lastModified": "2026-08-04T18:04:38.000Z",
-      "safeToRemove": true,
-      "ownerConfirmation": null
-    },
-    {
-      "duplicate": "registry/system-control-summary 2.json",
-      "original": "registry/system-control-summary.json",
-      "originalExists": true,
-      "gitTracked": false,
-      "referencedElsewhere": false,
-      "lastModified": "2026-08-04T18:04:38.000Z",
-      "safeToRemove": true,
       "ownerConfirmation": null
     },
     {
@@ -199,9 +19,9 @@
       "original": "scripts/_ide_regression_fixtures/dup-scan/sample.txt",
       "originalExists": true,
       "gitTracked": false,
-      "referencedElsewhere": false,
-      "lastModified": "2026-08-08T11:08:52.650Z",
-      "safeToRemove": true,
+      "referencedElsewhere": true,
+      "lastModified": "2026-09-23T04:30:08.619Z",
+      "safeToRemove": false,
       "ownerConfirmation": null
     }
   ]

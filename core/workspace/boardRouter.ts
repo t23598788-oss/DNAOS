@@ -1,8 +1,8 @@
 import type { ComponentType } from "react";
 import type { RenderModel } from "./renderModel";
 import type { BoardType } from "./board";
-import { DashboardBoard } from "@/components/workspace/boards/DashboardBoard";
-import { NotImplementedBoard } from "@/components/workspace/boards/NotImplementedBoard";
+import { DashboardBoard } from "@/presentation/shell/workspace/DashboardBoard";
+import { NotImplementedBoard } from "@/presentation/shell/workspace/NotImplementedBoard";
 
 // Board Router (Phase 4, Step 9) — Workspace -> Presenter -> Board Router ->
 // Selected Board. The only thing this file does is map a BoardType to the

@@ -1,6 +1,8 @@
+import { headers } from "next/headers";
 import { requireAuthPage } from "@/core/auth/requireAuthPage";
 import { ADMIN_TIER } from "@/core/auth/session";
-import { HomeBackBar } from "@/components/nav/HomeBackBar";
+import { LOCAL_UI_REVIEW_HEADER } from "@/core/auth/devReviewAccess";
+import { HomeBackBar } from "@/presentation/shell/navigation/HomeBackBar";
 import { VoiceStandbyWidget } from "@/components/admin/VoiceStandbyWidget";
 
 /**
@@ -51,7 +53,15 @@ export default async function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  await requireAuthPage("/admin", ADMIN_TIER);
+  // LOCAL UI REVIEW (dev only) — middleware.ts ติด header นี้ให้เฉพาะคำขอที่อยู่ใต้
+  // /admin/ui-gallery บน loopback และใน NODE_ENV ที่ไม่ใช่ production เท่านั้น
+  // คำขออื่นทั้งหมด (และ header ที่ browser ปลอมมาใน production) ยังเรียก guard ตัวจริงตามเดิม
+  const requestHeaders = await headers();
+  const isLocalUiReview =
+    process.env.NODE_ENV !== "production" && requestHeaders.get(LOCAL_UI_REVIEW_HEADER) === "1";
+  if (!isLocalUiReview) {
+    await requireAuthPage("/admin", ADMIN_TIER);
+  }
 
   return (
     <div className="h-screen flex flex-col bg-stone-50">

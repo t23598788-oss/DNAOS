@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import portals from '@/registry/portals.json';
 import { ArrowRight } from 'lucide-react';
-import CapabilityPageShell from '@/components/landing/CapabilityPageShell';
+import CapabilityPageShell from '@/presentation/shell/PortalShell';
 
 export default function ProductsPage() {
   return (

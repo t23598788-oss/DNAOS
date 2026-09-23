@@ -3,6 +3,11 @@
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.43.4"
 import { verifyLineSignature } from "./middleware/signature.ts"
+import { forwardLineInbound } from "../_shared/connect-forward.ts"
+import { resolveAccountCredential } from "../_shared/connect-identity.ts"
+
+/** The provider id this edge serves — identity/config is otherwise provider-neutral. */
+const PROVIDER = "line"
 import { handleFollow }   from "./handlers/follow.ts"
 import { handleUnfollow } from "./handlers/unfollow.ts"
 import { handleText }     from "./handlers/text.ts"
@@ -39,21 +44,23 @@ Deno.serve(async (req: Request) => {
     return new Response("Bad JSON", { status: 400, headers: CORS })
   }
 
-  // Multi-storefront LINE (owner, 2026-07-25): `destination` identifies
-  // which real LINE Official Account this event arrived through — look up
-  // its own channel_secret/channel_access_token in line_channels first
-  // (village-photocopy-storefront style accounts), falling back to the
-  // single-channel env vars (main account) when no row matches, so nothing
-  // about the existing main account's behavior changes.
+  // Multi-storefront (owner, 2026-07-25): `destination` identifies which real
+  // messaging account this event arrived through. Capability C (2026-09-23):
+  // the per-account config/credential now resolves through the canonical
+  // Connect accessor (supabase/functions/_shared/connect-identity.ts →
+  // public.connect_external_account_credentials) instead of a single
+  // LINE_CHANNEL_SECRET env var being the authority for every channel. The env
+  // vars stay the MAIN account's own configuration (unchanged fallback) — they
+  // are no longer the answer for any other account.
   let channelSecret = Deno.env.get("LINE_CHANNEL_SECRET") ?? ""
   let channelAccessToken: string | null = null
   if (payload.destination) {
-    const { data: channelRow } = await supabase
-      .from("line_channels").select("channel_secret, channel_access_token")
-      .eq("channel_id", payload.destination).maybeSingle()
-    if (channelRow) {
-      channelSecret = channelRow.channel_secret
-      channelAccessToken = channelRow.channel_access_token
+    const account = await resolveAccountCredential(supabase, PROVIDER, payload.destination)
+    const resolvedSecret = account?.credentialResolved ? account.credential?.channel_secret ?? null : null
+    const resolvedToken = account?.credentialResolved ? account.credential?.channel_access_token ?? null : null
+    if (resolvedSecret) {
+      channelSecret = resolvedSecret
+      channelAccessToken = resolvedToken
     }
   }
 
@@ -114,14 +121,24 @@ Deno.serve(async (req: Request) => {
     processEvent(event).catch((err) => console.error("[webhook] event processing failed:", err))
   ))
 
+  // DNA OS main path (capability A, 2026-09-23): the SAME verified raw body
+  // also enters the canonical gateway observe ingress, where it is translated
+  // into the provider-neutral contract (engines/integration-gateway/adapters/line.ts)
+  // and published to the event bus. Additive only — the handling below is
+  // untouched, and a forward failure never affects the provider's ACK.
+  const forward = forwardLineInbound(rawBody, signature)
+
   // @ts-ignore — EdgeRuntime is a Supabase-specific global, not in standard Deno types
   if (typeof EdgeRuntime !== "undefined" && EdgeRuntime.waitUntil) {
     // @ts-ignore
     EdgeRuntime.waitUntil(processAll)
+    // @ts-ignore
+    EdgeRuntime.waitUntil(forward)
   } else {
     // Fallback for local `supabase functions serve` (no EdgeRuntime global) —
     // still await it directly so events aren't silently dropped in dev.
     await processAll
+    await forward
   }
 
   return new Response(JSON.stringify({ ok: true }), {

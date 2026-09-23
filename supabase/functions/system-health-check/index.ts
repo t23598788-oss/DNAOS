@@ -16,6 +16,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.43.4"
 import { alertOwnerAnomaly } from "../line-webhook-v2/engines/owner-dispatcher.ts"
 import { getGmailAccessToken } from "../_shared/gmail-client.ts"
 import { getLineChannelAccessToken } from "../_shared/line-client.ts"
+import { describeDenoAiReadiness } from "../_shared/ai/runtime.ts"
 
 const CONSECUTIVE_FAILURES_BEFORE_ALERT = 2
 
@@ -43,27 +44,25 @@ async function checkSupabase(supabaseUrl: string, anonKey: string): Promise<Chec
   return { service_key: "supabase", check_kind: "http_reachability", ok: !error, detail: { error } }
 }
 
-// Real Anthropic reachability + key-validity check — a 401 means the key
-// itself is invalid, not just "the service happens to be down"; a 5xx means
-// Anthropic's own service is unreachable; anything else (200, or a 4xx from
-// the deliberately-tiny request itself) proves the network path and auth
-// both work, which is all this check claims.
-async function checkAnthropic(): Promise<CheckResult> {
-  const key = Deno.env.get("ANTHROPIC_API_KEY")
-  if (!key) return { service_key: "anthropic", check_kind: "config_presence", ok: false, detail: { reason: "ANTHROPIC_API_KEY ยังไม่ได้ตั้งค่า" } }
-  try {
-    const res = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: { "x-api-key": key, "anthropic-version": "2023-06-01", "content-type": "application/json" },
-      body: JSON.stringify({ model: "claude-haiku-4-5-20251001", max_tokens: 1, messages: [{ role: "user", content: "ping" }] }),
-      signal: AbortSignal.timeout(8000),
-    })
-    if (res.status === 401) return { service_key: "anthropic", check_kind: "oauth_token", ok: false, detail: { status: 401, reason: "API key ไม่ถูกต้อง" } }
-    if (res.status >= 500) return { service_key: "anthropic", check_kind: "http_reachability", ok: false, detail: { status: res.status } }
-    return { service_key: "anthropic", check_kind: "http_reachability", ok: true, detail: { status: res.status } }
-  } catch (e) {
-    return { service_key: "anthropic", check_kind: "http_reachability", ok: false, detail: { error: (e as Error).message } }
-  }
+// A7.8 — AI health is adapter READINESS from the canonical registry, not "some
+// provider answered". Each declared adapter is reported separately, and the
+// dimensions stay separated on purpose: runtime-compatible / enabled /
+// credential-present / capability-ready. A single provider responding is NOT
+// evidence that the AI system is healthy, so no provider ping happens here.
+async function checkAiAdapters(): Promise<CheckResult[]> {
+  const readiness = describeDenoAiReadiness();
+  return readiness.map((r) => ({
+    service_key: `ai_adapter_${r.id}`,
+    check_kind: "config_presence",
+    ok: r.enabled && r.runtimeCompatible && r.credentialPresent,
+    detail: {
+      enabled: r.enabled,
+      runtime_compatible: r.runtimeCompatible,
+      credential_present: r.credentialPresent,
+      capability_ready: r.capabilityReady,
+      reason: r.reason,
+    },
+  }));
 }
 
 // Real LINE Messaging API token-validity check — /v2/bot/info is the real,
@@ -137,7 +136,7 @@ Deno.serve(async (req) => {
 
   const checks: CheckResult[] = [
     await checkSupabase(supabaseUrl, anonKey),
-    await checkAnthropic(),
+    ...(await checkAiAdapters()),
     await checkLineMessaging(),
     await checkGmail(),
     ...(await checkCronJobs(supabase)),

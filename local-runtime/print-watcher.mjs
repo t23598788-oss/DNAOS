@@ -6,6 +6,8 @@
 // Designed to run forever via a macOS LaunchAgent (see
 // com.dnaos.print-watcher.plist), independent of any Claude/chat session.
 import { createClient } from "@supabase/supabase-js";
+import { runDeviceAiCapability } from "./ai/device-ai-runtime.mjs";
+import { createDeviceEvidence } from "./ai/device-ai-evidence.mjs";
 import { readFileSync, writeFileSync, unlinkSync } from "fs";
 import { execSync } from "child_process";
 import { getReadyOllamaUrl } from "./ollama-cloud-gateway.mjs";
@@ -42,7 +44,7 @@ async function sendLineText(lineUserId, text) {
 // ประชาชนเท่านั้น...สแกนตัดเอาเฉพาะขอบบัตรประชาชนสี่เหลี่ยม" — the raw photo
 // includes whatever background/table the customer photographed it on;
 // detect the card's edges and crop to just the card before laying it out.
-// Uses the same Cloud Runtime vision model (qwen2.5vl:72b, via
+// Uses the same adapter-configured Cloud Runtime vision model (via
 // ollama-cloud-gateway.mjs) already proven for OCR classification, asked
 // instead for a bounding box — an approximate,
 // best-effort estimate (vision-model spatial grounding is not pixel-exact),
@@ -61,19 +63,15 @@ function imageDimensions(path) {
 
 async function detectCardBoundingBox(imagePath) {
   const b64 = readFileSync(imagePath).toString("base64");
-  const ollamaUrl = await getReadyOllamaUrl("[print-watcher]");
-  if (!ollamaUrl) return null; // Cloud Runtime not ready — skip auto-crop this round rather than fail the whole print job
-  const res = await fetch(`${ollamaUrl}/api/generate`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    // Upgraded from qwen2.5vl:7b (Mac-only model, never installed on the
-    // Cloud Runtime's Network Volume) to qwen2.5vl:72b — the same model
-    // already required/verified there (runpod-controller.mjs REQUIRED_MODELS).
-    body: JSON.stringify({ model: "qwen2.5vl:72b", system: BBOX_PROMPT, prompt: "ระบุกรอบบัตร", images: [b64], stream: false, format: "json" }),
-  });
-  if (!res.ok) return null;
-  const json = await res.json();
-  const match = json.response.match(/\{[\s\S]*\}/);
+  const endpoint = await getReadyOllamaUrl("[print-watcher]");
+  if (!endpoint) return null; // Cloud Runtime not ready — skip auto-crop this round rather than fail the whole print job
+  const result = await runDeviceAiCapability(
+    "document.crop",
+    { systemPrompt: BBOX_PROMPT, prompt: "ระบุกรอบบัตร", images: [b64], maxTokens: 300 },
+    { endpoint, evidence: createDeviceEvidence({ db, origin: "local-runtime/print-watcher.mjs" }) },
+  );
+  if (!result.ok) return null;
+  const match = result.output.match(/\{[\s\S]*\}/);
   if (!match) return null;
   try {
     const box = JSON.parse(match[0]);

@@ -1,7 +1,7 @@
 import arch from '@/registry/architecture.json';
 import connectorLifecycle from '@/registry/connector-lifecycle.json';
 import { Cable, ShieldCheck, AlertOctagon } from 'lucide-react';
-import CapabilityPageShell from '@/components/landing/CapabilityPageShell';
+import CapabilityPageShell from '@/presentation/shell/PortalShell';
 
 export default function MarketplacePage() {
   return (

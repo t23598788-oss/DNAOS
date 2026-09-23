@@ -431,94 +431,39 @@ interface ExecOutputLine { seq: number; stream: "stdout" | "stderr"; text: strin
 // app/api/admin/ide/_lib/classification.ts's real types. The client never
 // decides a category/risk itself — it only ever renders what the server's
 // evidence-based classifyFile() returned. ----
-type CodeCategory = "CORE_LOGIC" | "AI" | "INTEGRATION" | "WORKFLOW" | "DATABASE" | "SECURITY" | "UI" | "CONFIGURATION" | "DOCUMENTATION" | "UNKNOWN";
-type RiskLevel = "NORMAL" | "SENSITIVE" | "CRITICAL" | "LOCKED" | "UNKNOWN";
-interface ClassificationInfo {
-  category: CodeCategory; categoryLabel: string; capability: string | null; riskLevel: RiskLevel;
-  evidence: string[]; requiredChecks: string[]; purposeTh: string | null;
-}
+// ---- IDE Primitives ที่ EXTRACT แล้ว (ONE IMPLEMENTATION · TWO CONSUMERS) ----
+// TabStrip + ชนิดข้อมูล/ค่าสีที่มันใช้ ย้ายไป presentation/shell/ide/TabStrip.tsx
+// โดยไม่แก้ behavior — IDE และ Business Workspace (/workspace) ใช้ตัวเดียวกัน
+import {
+  TabStrip,
+  isDirty,
+  classificationTooltip,
+  CATEGORY_COLORS,
+  RISK_COLORS,
+  RISK_LABELS_TH,
+  type Tab,
+  type FileTabState,
+  type CodeCategory,
+  type RiskLevel,
+  type ClassificationInfo,
+} from "@/presentation/shell/ide/TabStrip";
+// คง export เดิมไว้เพื่อความเข้ากันได้กับผู้ใช้ที่มีอยู่จริง
+// (scripts/ide-regression-test.ts:37 import { isDirty, type FileTabState })
+export { isDirty };
+export type { FileTabState };
+
+// ClassificationEntry / ClassificationListResponse ยังอยู่ที่นี่ (ใช้เฉพาะ IDE)
 interface ClassificationEntry { path: string; category: CodeCategory; categoryLabel: string; capability: string | null; riskLevel: RiskLevel; registered: boolean }
 type ClassificationListResponse = { ok: true; entries: ClassificationEntry[] } | { ok: false; code: IdeErrorCode; message: string };
 
-// Muted, low-saturation tones per spec ("โทนหม่น ไม่จัดจ้าน") — re-tuned
-// (owner, 2026-08-10, TASK-074 Light Theme pass) for real contrast against
-// the light styles/tokens/colors.ts surface (card #FFFFFF / background
-// #F5F7FA), not picked for vibrance. Distinct hue per category, same hue
-// family as the original dark-theme swatches, just darkened/saturated for
-// legibility on a light background; UI/UNKNOWN intentionally reuse the
-// real description/border-strong neutrals rather than inventing a new gray.
-const CATEGORY_COLORS: Record<CodeCategory, string> = {
-  CORE_LOGIC: "#A6484B",
-  AI: "#3F7A54",
-  INTEGRATION: "#3E6690",
-  WORKFLOW: "#6B4E9E",
-  DATABASE: "#A06A2E",
-  SECURITY: "#8A7A2E",
-  UI: "#64748B",
-  CONFIGURATION: "#2F7D78",
-  DOCUMENTATION: "#4C5D80",
-  UNKNOWN: "#94A3B8",
-};
-// RISK_COLORS reuses the real semantic-colors.ts tones directly where a
-// role matches (SENSITIVE=warning, CRITICAL=error); LOCKED reuses heading
-// (the strongest available dark accent — read as "most severe/final",
-// distinct from CRITICAL's red) since no 5th semantic tone exists to
-// invent from; NORMAL/UNKNOWN reuse the real neutral tokens.
-const RISK_COLORS: Record<RiskLevel, string> = {
-  NORMAL: "#94A3B8", SENSITIVE: "#B45309", CRITICAL: "#B91C1C", LOCKED: "#0F172A", UNKNOWN: "#64748B",
-};
-const RISK_LABELS_TH: Record<RiskLevel, string> = {
-  NORMAL: "ปกติ", SENSITIVE: "ละเอียดอ่อน", CRITICAL: "วิกฤต", LOCKED: "ล็อก (อ่านอย่างเดียว)", UNKNOWN: "ไม่ทราบ",
-};
+// CATEGORY_COLORS / RISK_COLORS / RISK_LABELS_TH / classificationTooltip
+// ย้ายไป presentation/shell/ide/TabStrip.tsx แล้ว (import ที่ด้านบนของไฟล์)
 
-function classificationTooltip(c: ClassificationInfo): string {
-  const lines = [`${c.categoryLabel}${c.capability ? ` / ${c.capability}` : ""} · ${RISK_LABELS_TH[c.riskLevel]}`];
-  if (c.purposeTh) lines.push(c.purposeTh);
-  if (c.evidence.length > 0) lines.push(...c.evidence.map((e) => `• ${e}`));
-  return lines.join("\n");
-}
+// (ย้ายไป presentation/shell/ide/TabStrip.tsx: CATEGORY_COLORS · RISK_COLORS ·
+//  RISK_LABELS_TH · classificationTooltip — ค่าเดิมทุกตัว ไม่แก้)
 
-interface Tab {
-  id: string;
-  title: string;
-  kind: "file" | "diff";
-  path: string;
-  staged?: boolean; // only meaningful for kind "diff"
-}
-
-// Per-file editor state (owner, 2026-08-05, Phase 2) — lives at page level,
-// keyed by tab id, so switching tabs never loses in-progress edits (unlike
-// the old read-only Editor, which just re-fetched on every tab switch).
-// "dirty" is derived (content !== originalContent), never stored
-// separately, so it can never drift out of sync with the actual buffer.
-export interface FileTabState {
-  content: string;
-  originalContent: string;
-  hash: string;
-  modifiedAt: string;
-  loading: boolean;
-  error: string | null;
-  conflict: { diskContent: string; diskHash: string; diskModifiedAt: string } | null;
-  // Optional (owner, 2026-08-05, Semantic Code Classification) — absent on
-  // states constructed before a real GET response arrives, so existing
-  // FileTabState literals elsewhere (including scripts/ide-regression-
-  // test.ts's fixtures) stay valid without every call site adding it.
-  classification?: ClassificationInfo | null;
-  // Optional (owner, 2026-08-06, Real Editor Write Path Step 1) — real
-  // encoding/line-ending as detected server-side from the actual bytes on
-  // disk, and the real wall-clock time of the last successful save (client-
-  // side only, reset on reload). Same "absent on pre-GET states" reasoning
-  // as classification above.
-  encoding?: string;
-  lineEnding?: "LF" | "CRLF" | "mixed";
-  lastSavedAt?: string | null;
-}
-// Exported (checkpoint, 2026-08-05) purely so scripts/ide-regression-test.ts
-// can import the real function instead of re-implementing dirty-detection
-// logic — not a behavior change, still only called internally otherwise.
-export function isDirty(state: FileTabState | undefined): boolean {
-  return !!state && !state.loading && !state.error && state.content !== state.originalContent;
-}
+// Tab / FileTabState / isDirty ย้ายไป presentation/shell/ide/TabStrip.tsx
+// (import + re-export ที่ด้านบนของไฟล์นี้)
 
 const LEFT_MIN = 180;
 const LEFT_MAX = 480;
@@ -2540,40 +2485,7 @@ const disabledBtnStyle: React.CSSProperties = {
 };
 
 // ---- Tab strip + editor ----
-function TabStrip({ tabs, activeTabId, onSelect, onClose, dirtyTabIds, fileStates }: {
-  tabs: Tab[]; activeTabId: string | null; onSelect: (id: string) => void; onClose: (id: string) => void; dirtyTabIds: string[];
-  fileStates: Record<string, FileTabState>;
-}) {
-  if (tabs.length === 0) return <div style={{ height: 35, background: "#EEF2F7", borderBottom: "1px solid #E2E8F0", flexShrink: 0 }} />;
-  const dirtySet = new Set(dirtyTabIds);
-  return (
-    <div style={{ display: "flex", background: "#EEF2F7", borderBottom: "1px solid #E2E8F0", overflowX: "auto", overflowY: "hidden", flexShrink: 0 }}>
-      {tabs.map((t) => {
-        const dirty = dirtySet.has(t.id);
-        const classification = fileStates[t.id]?.classification;
-        const categoryColor = classification ? CATEGORY_COLORS[classification.category] : null;
-        return (
-          <div
-            key={t.id}
-            onClick={() => onSelect(t.id)}
-            title={classification ? classificationTooltip(classification) : (dirty ? `${t.title} — unsaved changes` : t.title)}
-            style={{
-              display: "flex", alignItems: "center", gap: 6, padding: "8px 10px", fontSize: 12.5, cursor: "pointer",
-              background: activeTabId === t.id ? "#FFFFFF" : "transparent", borderRight: "1px solid #E2E8F0",
-              borderTop: categoryColor ? `2px solid ${categoryColor}` : "2px solid transparent",
-              color: activeTabId === t.id ? "#0F172A" : "#64748B", whiteSpace: "nowrap", flexShrink: 0,
-            }}
-          >
-            {dirty && <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#B45309", flexShrink: 0 }} />}
-            {classification?.riskLevel === "LOCKED" && <Lock size={11} style={{ color: RISK_COLORS.LOCKED, flexShrink: 0 }} />}
-            {t.title}
-            <X size={12} onClick={(e) => { e.stopPropagation(); onClose(t.id); }} />
-          </div>
-        );
-      })}
-    </div>
-  );
-}
+// TabStrip ย้ายไป presentation/shell/ide/TabStrip.tsx (import ที่ด้านบนของไฟล์)
 
 // ---- Editor toolbar — Save / Save All / Refresh / Find, cursor position ----
 const WRAP_MODE_ORDER: readonly ("smart" | "on" | "off")[] = ["smart", "on", "off"];

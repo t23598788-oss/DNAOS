@@ -170,10 +170,16 @@ const FACTORY_RULES: { test: RegExp; factoryId: FactoryId; reason: string }[] = 
   { test: /^app\/admin\/ide\//, factoryId: "software-factory", reason: "IDE page" },
   { test: /^core\/workspace\//, factoryId: "software-factory", reason: "operational workspace UI engine (application/board/dock/panel/presenter registries)" },
   { test: /^app\/playground\//, factoryId: "software-factory", reason: "dev playground page" },
-  { test: /^components\/(ui-kit|nav|landing|portal|settings)\//, factoryId: "software-factory", reason: "shared UI component library" },
+  { test: /^components\/settings\//, factoryId: "software-factory", reason: "shared UI component library" },
+  // Canonical presentation implementation (Phase 3/4 migration, 2026-09-22).
+  // Replaces the old `components/(ui-kit|nav|landing|portal)/` + `styles/` rules,
+  // whose directories no longer exist — the implementation now lives under
+  // presentation/{foundation,shell,viewer,table,form,documents,panels,feedback,ai,assets}.
+  // presentation/finance/ is intentionally absent: it has no implementation yet,
+  // and no placeholder file was created to make a registry pass.
+  { test: /^presentation\//, factoryId: "software-factory", reason: "canonical presentation implementation" },
   { test: /^core\/navigation\//, factoryId: "software-factory", reason: "app navigation resolution" },
   { test: /^app\/workspace\//, factoryId: "software-factory", reason: "operational workspace page" },
-  { test: /^styles\//, factoryId: "software-factory", reason: "design tokens/styles" },
   { test: /^app\/(page|layout|OperationalWorkspace)\.tsx$/, factoryId: "software-factory", reason: "application shell" },
   { test: /^app\/(examples|download|start)\//, factoryId: "software-factory", reason: "product demo/utility page" },
   { test: /^app\/\.well-known\//, factoryId: "software-factory", reason: "app-level well-known route" },

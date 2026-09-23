@@ -11,16 +11,17 @@ type Params = { params: Promise<{ invoiceId: string }> };
 
 // Retry Send (owner, 2026-07-17, Invoice Workflow Redesign): "If LINE Push
 // fails, the invoice must remain saved with status = CREATED and allow
-// Retry Send without recreating the invoice." This is that retry path —
-// calls SendInvoiceToLINE(invoiceId) directly, standalone, on an already-
-// confirmed invoice. Safe to call repeatedly: sendInvoiceToLine() itself
-// refuses to re-push an invoice already at status SENT.
+// Retry Send without recreating the invoice." This is that retry path — calls
+// SendInvoiceToLINE(invoiceId, actor) directly, standalone, on an already-
+// confirmed invoice. PHASE C (2026-09-23): idempotency now comes from DELIVERY
+// EVIDENCE (line_events direction "out" for this document), not from
+// invoice_status — document status is owned by issueDocument() alone.
 export async function POST(_req: Request, { params }: Params) {
   const auth = await requireAuth(ADMIN_TIER);
   if (auth instanceof NextResponse) return auth;
 
   const { invoiceId } = await params;
-  const result = await sendInvoiceToLine(invoiceId);
+  const result = await sendInvoiceToLine(invoiceId, auth.email);
   if (result.ok) return NextResponse.json(result, { status: 200 });
 
   // Business → Infrastructure failure bridge (owner, 2026-09-19): only the

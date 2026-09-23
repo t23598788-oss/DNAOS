@@ -22,6 +22,13 @@ export interface TransactionContext {
   document_group_id?: string | null;
   tx_type?: string | null;
   title?: string | null;
+  /**
+   * PHASE D (2026-09-23): `customer_orders.delivery_note` is a real, nullable
+   * business column that the pre-cutover callers wrote (contact/delivery
+   * instructions). Carried here so routing them through the canonical command
+   * does not silently drop data. No new state, no new meaning.
+   */
+  delivery_note?: string | null;
 }
 
 export interface ChainValidation {
@@ -165,6 +172,7 @@ export async function createTransaction(
       customer_site_id: ctx.customer_site_id,
       status: "DRAFT",
       tx_type: ctx.tx_type ?? "sale",
+      delivery_note: ctx.delivery_note ?? null,
       updated_at: new Date().toISOString(),
     })
     .select("id, order_no, status, customer_company_id, created_at")

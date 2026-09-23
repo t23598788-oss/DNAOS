@@ -236,7 +236,13 @@ const SERVICE_OWNER_OVERRIDE: Record<string, ServiceOwner> = {
  * names independently confirmed (via source-code grep) to belong to a real
  * external provider integration are mapped, so internal secrets (CRON_SECRET,
  * ADMIN_PASSWORD, etc.) are never miscounted as provider evidence. */
-const ENV_VAR_TO_PROVIDER: Record<string, string> = {
+/**
+ * ENV VAR → provider id. Exported (2026-09-23, Developer Connect §(ข)) so a
+ * developer runtime can LOOK UP which connector owns a credential by its env-var
+ * name — the mapping is not a credential source, and nothing reads the value
+ * from the environment any more (see edgeFunctionWorkerRuntime.resolveAuthHeader).
+ */
+export const ENV_VAR_TO_PROVIDER: Record<string, string> = {
   BOT_API_KEY: "bank_of_thailand",
   KASIKORN_STATEMENT_PASSWORD: "kasikorn_bank",
   GMAIL_CLIENT_ID: "gmail", GMAIL_CLIENT_SECRET: "gmail", GMAIL_REFRESH_TOKEN: "gmail",
@@ -245,6 +251,7 @@ const ENV_VAR_TO_PROVIDER: Record<string, string> = {
   OPENCLAW_INTERNAL_SECRET: "openclaw",
   OPENAI_API_KEY: "openai",
   RUNPOD_API_KEY: "runpod",
+  GOOGLE_PLACES_API_KEY: "google_places", GOOGLE_MAPS_API_KEY: "google_places",
   SUPABASE_MANAGEMENT_API_TOKEN: "supabase", SUPABASE_SERVICE_ROLE_KEY: "supabase", NEXT_PUBLIC_SUPABASE_URL: "supabase", NEXT_PUBLIC_SUPABASE_ANON_KEY: "supabase",
 };
 
@@ -284,6 +291,14 @@ const MANUAL_DISCOVERY: { provider_id: string; capabilities: string[]; evidence:
     capabilities: ["geocoding", "map_search"],
     evidence: [
       ["manual_discovery:2026-08-11", "engines/geocoding.ts — real client gated on process.env.LONGDO_MAP_API_KEY (absent from .env.local); also referenced by engines/equipment/relay-command.ts, scripts/sync-infrastructure-dependencies.ts, services/ai/bridge-claude.ts"],
+    ],
+  },
+  {
+    provider_id: "google_places",
+    capabilities: ["place_discovery", "material_supplier_search"],
+    evidence: [
+      ["manual_discovery:2026-09-23", "engines/place-discovery.ts — real, read-only Google Places API (New) Text Search client (searchGooglePlaces / discoverKhonKaenMaterialPlaces). Credential resolved as options.apiKey ?? process.env.GOOGLE_PLACES_API_KEY ?? process.env.GOOGLE_MAPS_API_KEY and failing closed with a structured result when absent (same pattern as engines/geocoding.ts); a caller may inject the key it resolved elsewhere, so no second credential path is introduced. Writes no table — it does not touch pit_profiles, pit_materials, contacts or prices"],
+      ["manual_discovery:2026-09-23", "scripts/place-discovery-test.ts + package.json#place-discovery:test — regression test with the network stubbed, so no live Google request is made; also .github/workflows/place-discovery-test.yml"],
     ],
   },
 ];

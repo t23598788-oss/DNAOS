@@ -7,15 +7,32 @@
  * Owner's explicit direction 2026-07-10 — see registry/TASK_QUEUE.json.
  *
  * Translation only: does not touch DB, does not decide, does not write.
- * Matches the bridge-claude.ts convention (services/ai/bridge-claude.ts).
  *
- * Owner instruction (2026-07-25): "เขียน AI ที่กูเอามาผูกไว้ในระบบ (ChatGPT)
- * ออกไปจากระบบให้ถาวรเลย" — swapped from OpenAI/gpt-4o-mini to Claude.
+ * A6 cutover (owner, 2026-09-23): the provider SDK import, the API-key check and
+ * the model literal are gone. This engine asks DNA OS for the
+ * `text.entity_extract` AI capability (the WORK: pull structured business
+ * entities out of free Thai text — proven to be the same semantic class as the
+ * real Gemini caller in line-webhook-v2/helpers.ts#extractStructuredEntitiesWithGemini),
+ * and the resolver + adapter registry decide which provider/model serves it.
+ * The effective adapter is unchanged: the registry keeps this capability on the
+ * adapter that really serves it today (A6.2/A6.3 evidence), so output shape and
+ * the downstream continuation are untouched.
  */
+import { invokeAiGateway } from "@/services/ai/gateway"
 
-import Anthropic from "@anthropic-ai/sdk"
+export interface EventBuilderContext {
+  origin: string
+  ownerId: string
+  sessionId: string
+}
 
-const MODEL = "claude-haiku-4-5-20251001"
+/** Non-empty defaults: the gateway requires a real origin/owner/session for
+ *  evidence. Callers that have an authenticated user pass it explicitly. */
+const DEFAULT_CONTEXT: EventBuilderContext = {
+  origin: "engines/events/event-builder",
+  ownerId: "owner",
+  sessionId: "event-builder",
+}
 
 export interface RawMessage {
   id: string
@@ -55,26 +72,32 @@ const SYSTEM_PROMPT = `คุณอ่าน "กลุ่มข้อควา�
   "confidence": ตัวเลข 0-1 ความมั่นใจว่าข้อความกลุ่มนี้รวมกันเป็นเหตุการณ์เดียวจริง
 }`
 
-export async function buildEventFromMessages(messages: RawMessage[]): Promise<{ ok: true; event: ExtractedEvent } | { ok: false; error: string }> {
-  const apiKey = process.env.ANTHROPIC_API_KEY
-  if (!apiKey) return { ok: false, error: "ไม่มี ANTHROPIC_API_KEY" }
-
+export async function buildEventFromMessages(
+  messages: RawMessage[],
+  context: EventBuilderContext = DEFAULT_CONTEXT,
+): Promise<{ ok: true; event: ExtractedEvent } | { ok: false; error: string }> {
   const transcript = messages
     .map((m) => `[${m.created_at}] ${m.raw_type === "text" ? m.raw_text : `(${m.raw_type})`}`)
     .join("\n")
 
   try {
-    const client = new Anthropic({ apiKey })
-    const response = await client.messages.create({
-      model: MODEL,
-      max_tokens: 500,
-      temperature: 0,
-      system: SYSTEM_PROMPT,
-      messages: [{ role: "user", content: transcript }],
+    // Capability only — this engine no longer knows Anthropic, Claude, a model
+    // name or an API key. The resolver picks the adapter and its configuration.
+    const result = await invokeAiGateway({
+      origin: context.origin,
+      ownerId: context.ownerId,
+      sessionId: context.sessionId,
+      capability: "text.entity_extract",
+      effect: "classification",
+      systemPrompt: SYSTEM_PROMPT,
+      prompt: transcript,
+      maxTokens: 500,
     })
+    if (!result.ok || result.output === null) {
+      return { ok: false, error: result.error ?? "AI_GATEWAY_PROVIDER_FAILED" }
+    }
 
-    const block = response.content[0]
-    const text = block?.type === "text" ? block.text.trim() : ""
+    const text = result.output.trim()
     const jsonMatch = text.match(/\{[\s\S]*\}/)
     if (!jsonMatch) return { ok: false, error: "AI ไม่ตอบเป็น JSON: " + text.slice(0, 200) }
 
@@ -94,7 +117,7 @@ export async function buildEventFromMessages(messages: RawMessage[]): Promise<{ 
     }
     return { ok: true, event }
   } catch (e: unknown) {
-    return { ok: false, error: e instanceof Error ? e.message : "OpenAI error" }
+    return { ok: false, error: e instanceof Error ? e.message : "AI error" }
   }
 }
 

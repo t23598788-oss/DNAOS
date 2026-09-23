@@ -1,114 +1,64 @@
-import Anthropic from "@anthropic-ai/sdk";
+/**
+ * DNA OS — AI Gateway (entry point). PHASE A5 refactor, owner 2026-09-23.
+ *
+ * `invokeAiGateway()` stays the canonical Next entry with the SAME signature,
+ * context validation, effect guard, prompt cap, evidence emission, provenance
+ * shape, result contract and error vocabulary. What changed is what sits behind
+ * it — this file is no longer registry + resolver + provider implementations +
+ * entry point at once:
+ *
+ *   capability (business request)
+ *     -> services/ai/resolver.ts            (selection authority, shared contract)
+ *     -> registry/ai-adapter-registry.json  (machine-readable declarations)
+ *     -> services/ai/adapters.ts            (implementation)
+ *     -> provenance records the adapter ACTUALLY selected (evidence, not instruction)
+ *
+ * A5.2: `providerHint` is gone from the business request; privileged explicit
+ * selection survives only as `deps.adapterConstraint` (runtime/diagnostic/
+ * owner-config). A4/A5: the AI has no canonical-write authority — this file only
+ * returns text.
+ */
 import { supabaseAdmin } from "@/services/supabase/queries";
+import { loadAiAdapterRegistry, selectAiAdapter, type AiAdapterConstraint } from "./resolver";
+import type {
+  AiAdapter, AiAdapterId, AiAdapterRegistryFile, AiCapability, AiEvidenceEvent, AiGatewayRequest,
+  AiGatewayResult, AiProviderName, AiProvenance, AiRuntimeKind, AiAdapterInvokeContext,
+} from "./adapterContract";
 
-export type AiCapability =
-  | "conversation.answer"
-  | "intent.classify"
-  | "screen.describe"
-  | "document.ocr"
-  | "document.event_extract"
-  | "document.crop"
-  | "memory.draft"
-  | "material.resolve"
-  | "code.generate";
-
-export type AiEffect = "analysis" | "classification" | "draft";
-export type AiProviderName = "anthropic" | "ollama";
-
-export interface AiGatewayImage {
-  base64: string;
-  // Real Anthropic SDK accepted literals (node_modules/@anthropic-ai/sdk
-  // resources/messages/messages.d.ts's Base64ImageSource for images,
-  // Base64PDFSource for documents) — a bare `string` doesn't narrow to
-  // these, which is what made anthropicProvider()'s content-block call
-  // fail type-check.
-  mediaType: "image/jpeg" | "image/png" | "image/gif" | "image/webp" | "application/pdf";
-}
-
-export interface AiGatewayRequest {
-  origin: string;
-  ownerId: string;
-  sessionId: string;
-  capability: AiCapability;
-  effect: AiEffect;
-  systemPrompt?: string;
-  prompt: string;
-  image?: AiGatewayImage;
-  maxTokens?: number;
-  providerHint?: AiProviderName;
-}
-
-export interface AiProvenance {
-  requestId: string;
-  origin: string;
-  ownerId: string;
-  sessionId: string;
-  capability: AiCapability;
-  effect: AiEffect;
-  provider: AiProviderName;
-  evidenceId: string;
-  occurredAt: string;
-}
-
-export interface AiGatewayResult {
-  ok: boolean;
-  output: string | null;
-  error?: string;
-  provenance: AiProvenance;
-}
-
-export interface AiEvidenceEvent {
-  evidenceId: string;
-  requestId: string;
-  status: "requested" | "completed" | "failed" | "denied";
-  origin: string;
-  ownerId: string;
-  sessionId: string;
-  capability: AiCapability;
-  effect: AiEffect;
-  provider: AiProviderName;
-  occurredAt: string;
-  error?: string;
-}
-
-export interface AiProviderRequest {
-  systemPrompt?: string;
-  prompt: string;
-  image?: AiGatewayImage;
-  maxTokens: number;
-}
-
-export interface AiProvider {
-  complete(request: AiProviderRequest): Promise<string>;
-}
+export type {
+  AiCapability, AiEffect, AiProviderName, AiAdapterId, AiRuntimeKind,
+  AiGatewayImage, AiGatewayRequest, AiProvenance, AiGatewayResult, AiEvidenceEvent,
+  AiAdapter, AiAdapterDeclaration, AiAdapterStatus, AiAdapterRegistryFile,
+} from "./adapterContract";
 
 export interface AiGatewayDependencies {
-  providers?: Partial<Record<AiProviderName, AiProvider>>;
   emitEvidence?: (event: AiEvidenceEvent) => Promise<void>;
   reportFailure?: (input: { request: AiGatewayRequest; error: string; evidenceId: string }) => Promise<void>;
   now?: () => string;
   requestId?: () => string;
+  /** Privileged explicit selection (test/diagnostics/owner-config) — A5.2. */
+  adapterConstraint?: AiAdapterConstraint;
+  /** Test/DI seam: a fixture registry (proves an added adapter needs no business edit). */
+  registry?: AiAdapterRegistryFile;
+  /** Test/DI seam: adapter implementations keyed by id. */
+  implementations?: Partial<Record<AiAdapterId, AiAdapter>>;
+  /** Which runtime contract this caller obeys (default "next"). */
+  runtime?: AiRuntimeKind;
+  /** Test/DI seam passed through to the selected adapter. */
+  context?: AiAdapterInvokeContext;
 }
 
-const CAPABILITY_PROVIDER: Record<AiCapability, AiProviderName> = {
-  "conversation.answer": "ollama",
-  "intent.classify": "ollama",
-  "screen.describe": "ollama",
-  "document.ocr": "anthropic",
-  "document.event_extract": "anthropic",
-  "document.crop": "ollama",
-  "memory.draft": "ollama",
-  "material.resolve": "ollama",
-  "code.generate": "anthropic",
-};
 
 function id(prefix: string): string {
   return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
 }
 
+/** Same guards as before A5. The capability check now asks the registry — a
+ * capability exists iff at least one adapter declares it — instead of the
+ * removed static map. */
 function assertSafeRequest(request: AiGatewayRequest): void {
   if (!request.origin || !request.ownerId || !request.sessionId) throw new Error("AI_GATEWAY_CONTEXT_REQUIRED");
-  if (!request.capability || !CAPABILITY_PROVIDER[request.capability]) throw new Error("AI_GATEWAY_CAPABILITY_NOT_REGISTERED");
+  if (!request.capability || !loadAiAdapterRegistry().capabilities[request.capability]) throw new Error("AI_GATEWAY_CAPABILITY_NOT_REGISTERED");
   if (!["analysis", "classification", "draft"].includes(request.effect)) throw new Error("AI_GATEWAY_EFFECT_DENIED");
   if (!request.prompt || request.prompt.length > 200_000) throw new Error("AI_GATEWAY_PROMPT_INVALID");
 }
@@ -129,64 +79,20 @@ async function emitDefaultEvidence(event: AiEvidenceEvent): Promise<void> {
   if (error) throw new Error(`AI_GATEWAY_EVIDENCE_FAILED:${error.message}`);
 }
 
-function anthropicProvider(): AiProvider {
-  return {
-    async complete(request) {
-      const apiKey = process.env.ANTHROPIC_API_KEY;
-      if (!apiKey) throw new Error("AI_GATEWAY_ANTHROPIC_NOT_CONFIGURED");
-      const client = new Anthropic({ apiKey });
-      const content = request.image
-        ? [
-            { type: "text" as const, text: request.prompt },
-            request.image.mediaType === "application/pdf"
-              ? { type: "document" as const, source: { type: "base64" as const, media_type: request.image.mediaType, data: request.image.base64 } }
-              : { type: "image" as const, source: { type: "base64" as const, media_type: request.image.mediaType, data: request.image.base64 } },
-          ]
-        : request.prompt;
-      const response = await client.messages.create({
-        model: "claude-haiku-4-5-20251001",
-        max_tokens: request.maxTokens,
-        temperature: 0,
-        system: request.systemPrompt ?? "",
-        messages: [{ role: "user", content }],
-      });
-      const block = response.content.find((item) => item.type === "text");
-      if (block?.type !== "text" || !block.text.trim()) throw new Error("AI_GATEWAY_EMPTY_PROVIDER_RESULT");
-      return block.text.trim();
-    },
-  };
-}
-
-function ollamaProvider(): AiProvider {
-  return {
-    async complete(request) {
-      const baseUrl = process.env.AI_GATEWAY_OLLAMA_URL;
-      if (!baseUrl) throw new Error("AI_GATEWAY_OLLAMA_NOT_CONFIGURED");
-      const response = await fetch(`${baseUrl.replace(/\/$/, "")}/api/generate`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          model: process.env.AI_GATEWAY_OLLAMA_MODEL ?? "thawatchai",
-          system: request.systemPrompt,
-          prompt: request.prompt,
-          images: request.image ? [request.image.base64] : undefined,
-          stream: false,
-        }),
-        signal: AbortSignal.timeout(60_000),
-      });
-      if (!response.ok) throw new Error(`AI_GATEWAY_OLLAMA_HTTP_${response.status}`);
-      const body = await response.json() as { response?: unknown };
-      if (typeof body.response !== "string" || !body.response.trim()) throw new Error("AI_GATEWAY_EMPTY_PROVIDER_RESULT");
-      return body.response.trim();
-    },
-  };
-}
-
 export async function invokeAiGateway(request: AiGatewayRequest, deps: AiGatewayDependencies = {}): Promise<AiGatewayResult> {
   const now = deps.now ?? (() => new Date().toISOString());
   const requestId = deps.requestId?.() ?? id("ai");
   const evidenceId = id("evidence");
-  const providerName = request.providerHint ?? CAPABILITY_PROVIDER[request.capability];
+  // Selection runs BEFORE the guard block only so a denied request still carries
+  // the same adapter identity it had pre-A4 (evidence parity). Selection never
+  // invokes anything — the guards below still decide the outcome.
+  const selection = selectAiAdapter(request.capability, {
+    adapterConstraint: deps.adapterConstraint,
+    registry: deps.registry,
+    implementations: deps.implementations,
+    runtime: deps.runtime ?? "next",
+    context: deps.context,
+  });
   const provenance: AiProvenance = {
     requestId,
     origin: request.origin,
@@ -194,7 +100,7 @@ export async function invokeAiGateway(request: AiGatewayRequest, deps: AiGateway
     sessionId: request.sessionId,
     capability: request.capability,
     effect: request.effect,
-    provider: providerName,
+    provider: selection.ok ? selection.id : "unselected",
     evidenceId,
     occurredAt: now(),
   };
@@ -208,15 +114,26 @@ export async function invokeAiGateway(request: AiGatewayRequest, deps: AiGateway
     return { ok: false, output: null, error: message, provenance };
   }
 
+  if (!selection.ok) {
+    // Fail closed: no compatible adapter means NO invocation and NO fallback to
+    // another provider — the resolver's reason becomes the result and evidence.
+    await emit({ ...provenance, status: "failed", error: selection.error });
+    await deps.reportFailure?.({ request, error: selection.error, evidenceId });
+    return { ok: false, output: null, error: selection.error, provenance };
+  }
+
   await emit({ ...provenance, status: "requested" });
   try {
-    const provider = deps.providers?.[providerName] ?? (providerName === "anthropic" ? anthropicProvider() : ollamaProvider());
-    const output = await provider.complete({
-      systemPrompt: request.systemPrompt,
-      prompt: request.prompt,
-      image: request.image,
-      maxTokens: request.maxTokens ?? 600,
-    });
+    const output = await selection.adapter.invoke(
+      {
+        capability: request.capability,
+        systemPrompt: request.systemPrompt,
+        prompt: request.prompt,
+        image: request.image,
+        maxTokens: request.maxTokens ?? 600,
+      },
+      { ...(deps.context ?? {}), runtime: selection.runtime, model: selection.model },
+    );
     await emit({ ...provenance, status: "completed" });
     return { ok: true, output, provenance };
   } catch (error) {
@@ -227,6 +144,20 @@ export async function invokeAiGateway(request: AiGatewayRequest, deps: AiGateway
   }
 }
 
-export function aiGatewayProviderFor(capability: AiCapability): AiProviderName {
-  return CAPABILITY_PROVIDER[capability];
+/**
+ * Kept for back-compat (it had no caller even before A5). It now answers from the
+ * resolver instead of the removed static map: the adapter that WOULD serve this
+ * capability, or null when nothing declares it.
+ */
+export function aiGatewayProviderFor(capability: AiCapability): AiProviderName | null {
+  const registry = loadAiAdapterRegistry();
+  if (!registry.capabilities[capability]) return null;
+  const selection = selectAiAdapter(capability);
+  if (selection.ok) return selection.id;
+  const declared = registry.adapters
+    .filter((d) => (d.capabilities_by_runtime?.["next"] ?? d.capabilities).includes(capability))
+    .sort((a, b) => (a.priority - b.priority) || (a.id < b.id ? -1 : 1))[0];
+  return declared ? declared.id : null;
 }
+
+

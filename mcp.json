@@ -1,0 +1,14 @@
+{
+  "$comment": "DNA OS — MCP discovery for external contractors (NEW-2, 2026-09-23). Freebuff loads this file (and .agents/) from the working directory when run with --trust-agents; Cline is registered separately in its own cline_mcp_settings.json. This file only POINTS at the DNA OS MCP server — it holds no credential: DNA_OS_API_TOKEN must be exported by whoever launches Freebuff (a token value must never be committed here).",
+  "mcpServers": {
+    "dna-os": {
+      "command": "node",
+      "args": ["dna-os-mcp-server/dist/index.js"],
+      "cwd": ".",
+      "env": {
+        "DNA_OS_BASE_URL": "http://localhost:3000"
+      },
+      "description": "DNA OS central coordinator. Contractors PULL work through contractor.task.claim, report back through contractor.evidence.submit, and read status through contractor.status. Read-only tools are safe to auto-run; claim/submit require the DNA OS API token and Owner approval per the Worker Contract."
+    }
+  }
+}

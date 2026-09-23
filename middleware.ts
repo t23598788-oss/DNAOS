@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { SESSION_COOKIE_MAX_AGE } from "@/services/supabase/browser";
+import { LOCAL_UI_REVIEW_HEADER, isLocalReviewRequest } from "@/core/auth/devReviewAccess";
 
 // TASK-001 (SSO): coarse "must be authenticated" gate + Supabase session
 // refresh, for every Portal and every protected API route — not just
@@ -9,7 +10,11 @@ import { SESSION_COOKIE_MAX_AGE } from "@/services/supabase/browser";
 // and core/auth/requireAuthPage (Server Component layouts/pages), both
 // reading registry/permissions.json — kept out of middleware so this file
 // never needs a DB round trip per request, just a JWT check + refresh.
-const PROTECTED_PAGE_PREFIXES = ["/admin", "/business", "/user", "/partner", "/account", "/workspace-preview"];
+// "/business-workspace-template" (owner, 2026-09-23): DEVELOPMENT / TEMPLATE / REVIEW
+// surface — not a public production business route. Adding the prefix here means
+// anonymous visitors in production get the same /login redirect every other protected
+// area gets; the dev-only review allowance below is what lets the Owner open it locally.
+const PROTECTED_PAGE_PREFIXES = ["/admin", "/business", "/user", "/partner", "/account", "/workspace-preview", "/business-workspace-template"];
 // Exact-match only, never startsWith — "/" as a PREFIX would match every
 // route in the app (every pathname starts with "/"), locking out /login,
 // /api/*, /liff, /oauth, everything. Root Domain UI Conversion (owner,
@@ -23,7 +28,19 @@ const PAGE_EXEMPTIONS = ["/admin/login"];
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  let response = NextResponse.next({ request: req });
+  // LOCAL UI REVIEW (dev only) — ทำงานเฉพาะ path ที่อยู่ใน LOCAL_UI_REVIEW_PREFIXES
+  // (/admin/ui-gallery และ /business-workspace-template) บน loopback ใน build ที่ไม่ใช่
+  // production; คืนก่อนแตะ Supabase เลย จึงไม่กระทบเส้นทาง auth จริง และไม่พึ่ง session/credential
+  //
+  // header ภายในถูก strip จากทุกคำขอ (รวมคำขอที่ browser ส่งมาเอง) เพื่อไม่ให้ปลอมได้
+  const requestHeaders = new Headers(req.headers);
+  requestHeaders.delete(LOCAL_UI_REVIEW_HEADER);
+  if (isLocalReviewRequest(pathname, req.headers.get("host"))) {
+    requestHeaders.set(LOCAL_UI_REVIEW_HEADER, "1");
+    return NextResponse.next({ request: { headers: requestHeaders } });
+  }
+
+  let response = NextResponse.next({ request: { headers: requestHeaders } });
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -36,7 +53,7 @@ export async function middleware(req: NextRequest) {
         },
         setAll(cookiesToSet) {
           cookiesToSet.forEach(({ name, value }) => req.cookies.set(name, value));
-          response = NextResponse.next({ request: req });
+          response = NextResponse.next({ request: { headers: requestHeaders } });
           cookiesToSet.forEach(({ name, value, options }) =>
             response.cookies.set(name, value, options)
           );
@@ -95,6 +112,7 @@ export const config = {
     "/partner/:path*",
     "/account/:path*",
     "/workspace-preview/:path*",
+    "/business-workspace-template/:path*",
     "/api/admin/:path*",
     "/api/document/:path*",
     "/api/action/:path*",

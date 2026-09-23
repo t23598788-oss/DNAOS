@@ -21,6 +21,11 @@ export const ADAPTERS: AdapterDescription[] = [
   { provider: "supabase", observes: ["health", "migration_state"], ingress: "poll" },
   { provider: "vercel", observes: ["deployment"], ingress: "webhook" },
   { provider: "railway", observes: ["deployment"], ingress: "webhook" },
+  // Messaging provider boundary (capability A, 2026-09-23) — what the LINE
+  // adapter really translates today: inbound message / document / location /
+  // identity signal / interaction. Listed by provider because this record is
+  // about which adapter exists, not about a business capability.
+  { provider: "line", observes: ["message", "document", "location", "identity_signal", "interaction"], ingress: "webhook" },
 ];
 
 export const CHANNELS: { channel: GatewayChannel; enabled: boolean; description: string }[] = [

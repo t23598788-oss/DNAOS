@@ -26,6 +26,9 @@
 
 import { createClient } from "@supabase/supabase-js";
 import { haversine } from "@/engines/distance";
+import { createBusinessEvent, linkBusinessEventTransaction } from "@/engines/canonical/event-write";
+import { createTransaction, changeTransactionStatus } from "@/engines/canonical/transaction-write";
+import { createDocument } from "@/engines/canonical/document-write";
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const key = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -165,99 +168,97 @@ async function main() {
   console.log(`   customer_sites.id = ${site.id}`);
 
   console.log("\n5) สร้าง business_events (คำขอที่ระบบประกอบจากแชตจริง) พร้อมราคาที่คำนวณจริง...");
-  const { data: event, error: evErr } = await db
-    .from("business_events")
-    .insert({
-      event_code: `EV${today}-${stamp}`,
-      event_type: "สั่งซื้อ",
-      source_line_user_id: DEMO_LINE_USER_ID,
-      source_message_ids: [textEvent.id, locEvent.id],
-      partner_id: company.id,
-      material_id: materialType.id,
-      material_text: materialType.name,
-      quantity,
-      quantity_unit: "คิว",
-      destination: CUSTOMER_GPS.address,
-      contact_name: "สมชาย ทดสอบระบบ (DEMO)",
-      contact_phone: "0800000000",
-      status: "job_created",
-      context: {
-        demo: true,
-        matched_pit_id: pit.id,
-        matched_pit_name: pit.pit_name,
-        unit_price: unitPrice,
-        distance_km: distanceKm,
-        note: "ราคาคำนวณจริงจาก pit_materials.price จริงในระบบ, ระยะทางคำนวณจาก engines/distance.ts haversine() จริง — ไม่ได้ mock",
-      },
-      confidence: 1,
-    })
-    .select("id")
-    .single();
-  if (evErr) throw evErr;
+  // Capability D: the demo is an executable DB writer, so it sits under the SAME
+  // canonical authority as the app — no direct business_events write here.
+  // Field census (every property of the previous insert was mapped; none dropped):
+  //   event_code/event_type/status/context/confidence/material_*/quantity*/destination/
+  //   contact_* → CreateBusinessEventInput · source_line_user_id + source_message_ids →
+  //   source{provider, externalSubjectId, messageIds}.
+  //   REPORTED DIFFERENCE: the writer requires `title` and `event_date`, which the
+  //   old direct insert left NULL — the demo now supplies them explicitly
+  //   (title = the material it demonstrates; event_date = today).
+  const eventCreated = await createBusinessEvent(db, {
+    eventCode: `EV${today}-${stamp}`,
+    eventType: "สั่งซื้อ",
+    eventDate: today,
+    title: materialType.name,
+    source: { provider: "line", externalSubjectId: DEMO_LINE_USER_ID, messageIds: [textEvent.id, locEvent.id] },
+    partnerId: company.id,
+    materialId: materialType.id,
+    materialText: materialType.name,
+    quantity,
+    quantityUnit: "คิว",
+    destination: CUSTOMER_GPS.address,
+    contactName: "สมชาย ทดสอบระบบ (DEMO)",
+    contactPhone: "0800000000",
+    status: "job_created",
+    context: {
+      demo: true,
+      matched_pit_id: pit.id,
+      matched_pit_name: pit.pit_name,
+      unit_price: unitPrice,
+      distance_km: distanceKm,
+      note: "ราคาคำนวณจริงจาก pit_materials.price จริงในระบบ, ระยะทางคำนวณจาก engines/distance.ts haversine() จริง — ไม่ได้ mock",
+    },
+    confidence: 1,
+    actor: "script:demo-full-pipeline",
+  })
+  if (!eventCreated.ok || !eventCreated.data) throw new Error(eventCreated.error ?? "demo event create failed")
+  const event = eventCreated.data
   created.business_event_id = event.id;
   console.log(`   business_events.id = ${event.id}`);
 
-  console.log("\n6) เปิดงานจริง (projects → document_groups → customer_orders)...");
-  const { data: project, error: projErr } = await db
-    .from("projects")
-    .insert({ project_no: `PRJ-${today}-${stamp}`, customer_company_id: company.id, customer_site_id: site.id, title: "โครงการทดสอบ (DEMO)", status: "ACTIVE", created_at: now, updated_at: now })
-    .select("id")
-    .single();
-  if (projErr) throw projErr;
-  created.project_id = project.id;
-
-  const { data: group, error: groupErr } = await db
-    .from("document_groups")
-    .insert({ group_no: `DG-${today}-${stamp}`, project_id: project.id, project_no: `PRJ-${today}-${stamp}`, customer_company_id: company.id, title: "ชุดเอกสารทดสอบ (DEMO)", status: "OPEN", created_at: now, updated_at: now })
-    .select("id")
-    .single();
-  if (groupErr) throw groupErr;
-  created.document_group_id = group.id;
-
-  const { data: order, error: orderErr } = await db
-    .from("customer_orders")
-    .insert({
-      order_no: `ORD-${today}-${stamp}`,
-      project_id: project.id,
-      document_group_id: group.id,
+  console.log("\n6) เปิดงานจริง (projects → document_groups → customer_orders) ผ่าน canonical transaction authority...");
+  // PHASE D cutover (2026-09-23): was three direct inserts. The canonical
+  // transaction authority creates the same chain (same PRJ-/DG-/ORD- shapes and
+  // ACTIVE/OPEN/DRAFT states) and carries the delivery note as a real field.
+  // The demo's end state is QUOTED, which is a real canonical workflow state
+  // (engines/transactions/workflows.ts) reached through the canonical transition
+  // command — creation first, then the state change, exactly like production.
+  const tx = await createTransaction(
+    {
       customer_company_id: company.id,
       customer_site_id: site.id,
-      status: "QUOTED",
+      title: "โครงการทดสอบ (DEMO)",
       delivery_note: `${materialType.name} ${quantity} คิว จาก "${pit.pit_name}" (${distanceKm} กม.)`,
-      created_at: now,
-      updated_at: now,
-    })
-    .select("id")
-    .single();
-  if (orderErr) throw orderErr;
+    },
+    "script:demo-full-pipeline",
+  );
+  const project = { id: String(tx.project_id) };
+  const group = { id: String(tx.document_group_id) };
+  const order = tx.order as { id: string; order_no: string };
+  created.project_id = project.id;
+  created.document_group_id = group.id;
   created.customer_order_id = order.id;
-  await db.from("business_events").update({ transaction_id: order.id }).eq("id", event.id);
+  await changeTransactionStatus({ order_id: order.id, status: "QUOTED", actor: "script:demo-full-pipeline" });
+  // Capability D: LINK only — the link command never changes event state.
+  await linkBusinessEventTransaction(db, { eventId: event.id, transactionId: order.id, actor: "script:demo-full-pipeline" });
   console.log(`   projects.id=${project.id}, document_groups.id=${group.id}, customer_orders.id=${order.id}`);
 
-  console.log("\n7) ออกใบเสนอราคาจริง (standalone_documents, document_type='QT')...");
-  const { data: doc, error: docErr } = await db
-    .from("standalone_documents")
-    .insert({
-      document_no: `QT-${today}-${stamp}`,
-      document_type: "QT",
-      document_date: new Date().toISOString(),
-      customer_company_id: company.id,
-      project_id: project.id,
-      customer_order_id: order.id,
-      recipient_address: CUSTOMER_GPS.address,
-      notes: `${materialType.name} ${quantity} คิว x ${unitPrice} บาท — จาก "${pit.pit_name}" ระยะทาง ${distanceKm} กม. (สร้างเพื่อสาธิตระบบ 2026-07-24)`,
-      vat_rate: vatRate,
-      subtotal,
-      vat_amount: vatAmount,
-      total_amount: totalAmount,
-      created_at: now,
-      updated_at: now,
-    })
-    .select("id")
-    .single();
-  if (docErr) throw docErr;
-  created.standalone_document_id = doc.id;
-  console.log(`   standalone_documents.id = ${doc.id}  ยอดรวม ${totalAmount} บาท`);
+  console.log("\n7) ออกใบเสนอราคาจริง (standalone_documents, document_type='QT') ผ่าน canonical document authority...");
+  // PHASE D cutover: was a direct insert with caller-supplied totals. The
+  // canonical writer recomputes the same money ladder (qty × unit_price, VAT 7%
+  // exclusive ⇒ identical figures) and now also persists items + version + audit.
+  // `recipient_address` has no reader anywhere in the repo (schema-only field,
+  // demo-only writer), so its value is folded into `notes` rather than expanding
+  // the production contract for a demo.
+  const doc = await createDocument({
+    kind: "standalone_document",
+    document_no: `QT-${today}-${stamp}`,
+    document_type: "QT",
+    customer_company_id: company.id,
+    project_id: project.id,
+    customer_order_id: order.id,
+    issue_date: new Date().toISOString(),
+    notes: `${materialType.name} ${quantity} คิว x ${unitPrice} บาท — จาก "${pit.pit_name}" ระยะทาง ${distanceKm} กม. (สร้างเพื่อสาธิตระบบ 2026-07-24) | ที่อยู่ผู้รับ: ${CUSTOMER_GPS.address}`,
+    rows: [{ qty: quantity, unitPrice }],
+    vatEnabled: vatRate > 0,
+    items: [{ description: materialType.name, qty: quantity, unit: "คิว", unit_price: unitPrice, sort_order: 0 }],
+    actor: "script:demo-full-pipeline",
+    status: "active",
+  });
+  created.standalone_document_id = doc.document_id;
+  console.log(`   standalone_documents.id = ${doc.document_id}  ยอดรวม ${doc.totals.gross_amount} บาท (canonical ladder)`);
 
   console.log("\n=== เสร็จสิ้น — สรุป record จริงที่สร้าง (เก็บ id ไว้ลบทีหลังได้) ===");
   console.log(JSON.stringify(created, null, 2));
@@ -270,7 +271,7 @@ async function main() {
   console.log(`- /admin/create-document หรือหน้าที่แสดง standalone_documents → เอกสารใบเสนอราคา ${`QT-${today}-${stamp}`} ยอด ${totalAmount} บาท`);
 
   console.log("\n=== SQL ลบข้อมูลสาธิตทั้งหมด (รันทีหลังเมื่อดูจบแล้ว) ===");
-  console.log(`delete from standalone_documents where id = '${doc.id}';`);
+  console.log(`delete from standalone_documents where id = '${doc.document_id}';`);
   console.log(`delete from customer_orders where id = '${order.id}';`);
   console.log(`delete from document_groups where id = '${group.id}';`);
   console.log(`delete from projects where id = '${project.id}';`);

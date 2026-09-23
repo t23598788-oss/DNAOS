@@ -1,10 +1,12 @@
 // Backfill real slip images (owner's local folders, March-July 2026) into
-// receipt_documents via Cloud Runtime vision (qwen2.5vl:72b via
+// receipt_documents via Cloud Runtime vision (the adapter-configured model, via
 // ollama-cloud-gateway.mjs, Migration Completion 2026-08-04 — no local
 // Ollama, no ANTHROPIC_API_KEY needed either).
 // Real extraction, real insert — logs every file processed/skipped/failed,
 // never fabricates a row for an image that didn't parse cleanly.
 import { createClient } from "@supabase/supabase-js";
+import { runDeviceAiCapability } from "./ai/device-ai-runtime.mjs";
+import { createDeviceEvidence } from "./ai/device-ai-evidence.mjs";
 import { readFileSync, readdirSync, statSync } from "fs";
 import { join } from "path";
 import { getReadyOllamaUrl } from "./ollama-cloud-gateway.mjs";
@@ -45,22 +47,15 @@ function thaiToIsoDate(thaiDateTime, fileModTime) {
 async function extractSlip(imagePath) {
   const buf = readFileSync(imagePath);
   const b64 = buf.toString("base64");
-  const ollamaUrl = await getReadyOllamaUrl("[backfill-slips]");
-  if (!ollamaUrl) throw new Error("Cloud Runtime ยังไม่พร้อม");
-  const res = await fetch(`${ollamaUrl}/api/generate`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      model: "qwen2.5vl:72b",
-      prompt: "อ่านสลิปโอนเงินนี้ ตอบเป็น JSON เท่านั้น ห้ามมีข้อความอื่น format: {\"sender\":\"ชื่อผู้โอน หรือ null\",\"receiver\":\"ชื่อผู้รับ หรือ null\",\"amount\":ตัวเลขจำนวนเงินอย่างเดียว ไม่มีหน่วย หรือ null,\"bank\":\"ธนาคาร หรือ null\",\"is_receipt_type\":true หรือ false (true ถ้าเป็นสลิปโอนเงิน/ใบเสร็จจริง false ถ้าไม่ใช่)}",
-      images: [b64],
-      stream: false,
-      format: "json",
-    }),
-  });
-  if (!res.ok) throw new Error(`ollama http ${res.status}`);
-  const json = await res.json();
-  return JSON.parse(json.response);
+  const endpoint = await getReadyOllamaUrl("[backfill-slips]");
+  if (!endpoint) throw new Error("Cloud Runtime ยังไม่พร้อม");
+  const result = await runDeviceAiCapability(
+    "document.ocr",
+    { prompt: "อ่านสลิปโอนเงินนี้ ตอบเป็น JSON เท่านั้น ห้ามมีข้อความอื่น format: {\"sender\":\"ชื่อผู้โอน หรือ null\",\"receiver\":\"ชื่อผู้รับ หรือ null\",\"amount\":ตัวเลขจำนวนเงินอย่างเดียว ไม่มีหน่วย หรือ null,\"bank\":\"ธนาคาร หรือ null\",\"is_receipt_type\":true หรือ false (true ถ้าเป็นสลิปโอนเงิน/ใบเสร็จจริง false ถ้าไม่ใช่)}", images: [b64], maxTokens: 500 },
+    { endpoint, evidence: createDeviceEvidence({ db, origin: "local-runtime/backfill-slips.mjs" }) },
+  );
+  if (!result.ok) throw new Error(result.error);
+  return JSON.parse(result.output);
 }
 
 async function main() {

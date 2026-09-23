@@ -393,55 +393,14 @@ export async function getReceipts() {
   }));
 }
 
-export async function createDocument(payload: {
-  document_type: string;
-  document_number: string;
-  partner_id?: string;
-  party_name: string;
-  net_amount: number;
-  issue_date?: string;
-  status?: string;
-  note?: string;
-}) {
-  if (payload.document_type === "invoice") {
-    const { data, error } = await supabaseAdmin()
-      .from("invoices")
-      .insert({
-        invoice_no: payload.document_number,
-        customer_company_id: payload.partner_id ?? null,
-        invoice_date: payload.issue_date ?? new Date().toISOString().split("T")[0],
-        invoice_status: "DRAFT",
-        total_amount: payload.net_amount,
-        subtotal: payload.net_amount,
-        vat_rate: 0,
-        vat_amount: 0,
-        paid_amount: 0,
-        notes: payload.note ?? null,
-      })
-      .select()
-      .single();
-    if (error) throw new Error(error.message);
-    return data;
-  }
-
-  const { data, error } = await supabaseAdmin()
-    .from("standalone_documents")
-    .insert({
-      document_no: payload.document_number,
-      document_type: payload.document_type,
-      customer_company_id: payload.partner_id ?? null,
-      document_date: payload.issue_date ?? new Date().toISOString().split("T")[0],
-      total_amount: payload.net_amount,
-      subtotal: payload.net_amount,
-      vat_rate: 0,
-      vat_amount: 0,
-      notes: payload.note ?? null,
-    })
-    .select()
-    .single();
-  if (error) throw new Error(error.message);
-  return data;
-}
+// PHASE C (2026-09-23) — RETIRE: the legacy `createDocument(payload)` that used to
+// live here was deleted. It was a second document-creation entry (direct
+// `.from("invoices")` / `.from("standalone_documents")` inserts, caller-supplied
+// net_amount as the totals authority, no items/version/audit) and the caller
+// census proved ZERO runtime callers: the only same-named consumer,
+// app/api/admin/documents/route.ts, imports the canonical
+// `engines/canonical/document-write#createDocument` (see its import block). The
+// canonical writer is now the single creation entry point for these tables.
 
 // ---- PARTNER BY NAME (fuzzy match) ----
 
@@ -483,30 +442,53 @@ export async function getDebtsByCustomerName(name: string) {
   return { invoiceDebts, debtTrackings };
 }
 
-// ---- JOBS (transport_jobs) ----
-
+// ---- JOBS (public.jobs — LIVE table; transport_jobs does NOT exist) ----
+//
+// Repaired against the LIVE schema (verified read-only 2026-09-23 through the
+// project's PostgREST schema cache): public.transport_jobs returns
+// PGRST205 "Could not find the table" while public.jobs EXISTS with real rows.
+// The returned shape below is byte-for-byte the SAME contract this function
+// already promised (id / project_name / job_status / partner_id / contact_name /
+// distance_km / required_quantity / delivered_quantity / created_at / partners)
+// — only the SOURCE changed, and three fields that were previously hardcoded 0
+// (distance_km / required_quantity / delivered_quantity) now carry the real
+// persisted values.
+//
+// OWNER DECISION (2026-09-23): `deleted_at IS NOT NULL` means the job has been
+// soft-deleted, so it must NOT appear in the current job list — this query is
+// therefore scoped to `deleted_at IS NULL` for BOTH job.list and job.active.
+// LIVE facts at the time of the decision: 18 rows total, 11 soft-deleted,
+// 7 live (SUSPENDED 3 / PENDING_REVIEW 3 / COMPLETED 1); all 6 IN_PROGRESS rows
+// were in the soft-deleted group, so job.active legitimately returns [] until a
+// live IN_PROGRESS job exists again — no fallback ever re-admits a deleted row.
+//
+// NOT ADDED (still out of scope): a join for `partners` — LIVE has no FK from
+// jobs to companies/partners (PostgREST relationship resolution returns
+// PGRST200 for every candidate), so `partner_id` is returned as the canonical
+// reference and `partners` stays null instead of a guessed client-side join.
 export async function getJobs(status?: string) {
   let query = supabaseAdmin()
-    .from("transport_jobs")
-    .select("id, job_no, status, fleet_company_id, customer_order_id, transport_cost, created_at, companies(id, name)")
+    .from("jobs")
+    .select("id, project_name, job_status, partner_id, contact_name, distance_km, required_quantity, delivered_quantity, created_at")
+    .is("deleted_at", null)
     .order("created_at", { ascending: false });
 
   if (status) {
-    query = query.eq("status", status);
+    query = query.eq("job_status", status);
   }
   const { data, error } = await query;
   if (error) throw new Error(error.message);
   return (data ?? []).map((j: any) => ({
     id: j.id,
-    project_name: j.job_no ?? "-",
-    job_status: j.status ?? "-",
-    partner_id: j.fleet_company_id ?? null,
-    contact_name: (j.companies as any)?.name ?? "-",
-    distance_km: 0,
-    required_quantity: 0,
-    delivered_quantity: 0,
+    project_name: j.project_name ?? "-",
+    job_status: j.job_status ?? "-",
+    partner_id: j.partner_id ?? null,
+    contact_name: j.contact_name ?? "-",
+    distance_km: j.distance_km ?? 0,
+    required_quantity: j.required_quantity ?? 0,
+    delivered_quantity: j.delivered_quantity ?? 0,
     created_at: j.created_at,
-    partners: j.companies,
+    partners: null,
   }));
 }
 

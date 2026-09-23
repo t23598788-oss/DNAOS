@@ -36,6 +36,8 @@
 
 import { createClient } from "@supabase/supabase-js";
 import { calcCapacity } from "@/engines/capacity";
+import { enrichBusinessEvent } from "@/engines/canonical/event-write";
+import { createDocument } from "@/engines/canonical/document-write";
 import { calcCost } from "@/engines/cost";
 import { documentFlex } from "@/engines/documents/flex-template";
 import { sendLineMessage } from "@/registry/communication";
@@ -106,27 +108,26 @@ async function main() {
 
   console.log("\n3) ออกใบส่งของจริง (standalone_documents, document_type='ORD')...");
   const now = new Date().toISOString();
-  const { data: deliveryDoc, error: ddErr } = await db
-    .from("standalone_documents")
-    .insert({
-      document_no: `DO-${today}-${stamp}`,
-      document_type: "ORD",
-      document_date: now,
-      customer_company_id: event.partner_id,
-      project_id: order.project_id,
-      customer_order_id: order.id,
-      notes: `จัดส่ง ${event.material_text} ${quantity} คิว ด้วย "${chosenVehicle.name}" ${tripsRequired} เที่ยว จาก "${ctx.matched_pit_name}"`,
-      vat_rate: 0,
-      subtotal: 0,
-      vat_amount: 0,
-      total_amount: 0,
-      created_at: now,
-      updated_at: now,
-    })
-    .select("id")
-    .single();
-  if (ddErr) throw ddErr;
-  console.log(`   standalone_documents.id (ใบส่งของ) = ${deliveryDoc.id}`);
+  // PHASE D cutover (2026-09-23): was a direct insert. A delivery order carries no
+  // money, so the canonical ladder legitimately yields zero totals from empty
+  // rows/items — no fake item and no fake totals are invented to satisfy the
+  // writer, and nothing the pre-cutover row stored is dropped (notes preserved).
+  const deliveryDoc = await createDocument({
+    kind: "standalone_document",
+    document_no: `DO-${today}-${stamp}`,
+    document_type: "ORD",
+    customer_company_id: event.partner_id,
+    project_id: order.project_id,
+    customer_order_id: order.id,
+    issue_date: now,
+    notes: `จัดส่ง ${event.material_text} ${quantity} คิว ด้วย "${chosenVehicle.name}" ${tripsRequired} เที่ยว จาก "${ctx.matched_pit_name}"`,
+    rows: [],
+    vatEnabled: false,
+    items: [],
+    actor: "script:demo-full-pipeline:part2",
+    status: "active",
+  });
+  console.log(`   standalone_documents.id (ใบส่งของ) = ${deliveryDoc.document_id}`);
 
   console.log("\n4) สร้าง Flex Message จริงของใบเสนอราคา (engines/documents/flex-template.ts)...");
   const flex = documentFlex({
@@ -148,24 +149,31 @@ async function main() {
     console.log(`     กับลูกค้าจริงที่แอดเพื่อนไลน์ OA ไว้แล้ว ขั้นตอนนี้จะส่งการ์ดใบเสนอราคาเข้าไปในแชตจริงทันที`);
   }
 
-  await db.from("business_events").update({
-    context: {
-      ...ctx,
-      vehicle_type_id: chosenVehicle.id,
-      vehicle_name: chosenVehicle.name,
-      trips_required: tripsRequired,
-      material_cost: costBreakdown?.material_cost ?? null,
-      fuel_cost: costBreakdown?.fuel_cost ?? null,
-      total_cost: costBreakdown?.total_cost ?? null,
-      margin,
-      delivery_order_document_id: deliveryDoc.id,
-      line_send_attempted: true,
-      line_send_result: sendResult,
+  // Capability D: BUSINESS METADATA through the canonical writer — the context
+  // object is passed as an explicit allow-listed field (`context`), not as a
+  // direct row patch; the writer owns updated_at.
+  await enrichBusinessEvent(db, {
+    eventId: event.id,
+    fields: {
+      context: {
+        ...ctx,
+        vehicle_type_id: chosenVehicle.id,
+        vehicle_name: chosenVehicle.name,
+        trips_required: tripsRequired,
+        material_cost: costBreakdown?.material_cost ?? null,
+        fuel_cost: costBreakdown?.fuel_cost ?? null,
+        total_cost: costBreakdown?.total_cost ?? null,
+        margin,
+        delivery_order_document_id: deliveryDoc.document_id,
+        line_send_attempted: true,
+        line_send_result: sendResult,
+      },
     },
-  }).eq("id", event.id);
+    actor: "script:demo-full-pipeline-part2",
+  });
 
   console.log("\n=== เพิ่มเติมสำหรับ SQL ลบทีหลัง ===");
-  console.log(`delete from standalone_documents where id = '${deliveryDoc.id}';`);
+  console.log(`delete from standalone_documents where id = '${deliveryDoc.document_id}';`);
 }
 
 main().catch((e) => {

@@ -1,4 +1,4 @@
-import CapabilitySkeleton from '@/components/landing/CapabilitySkeleton';
+import CapabilitySkeleton from '@/presentation/feedback/CapabilitySkeleton';
 
 export default function Loading() {
   return <CapabilitySkeleton cards={8} />;

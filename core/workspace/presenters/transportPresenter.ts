@@ -1,13 +1,16 @@
 import type { RenderModel } from "../renderModel";
 
 // Transport Presenter — carries an explicit `available` state rather than
-// silently returning empty data or crashing. Confirmed via live schema
-// inspection (2026-07-14): no transport-job table exists anywhere in the
-// production database (transport_jobs, jobs, delivery_jobs,
-// transportation_jobs, vehicle_jobs, shipments all checked — none exist).
-// This is not "0 rows", it's "no real data source" — the two states must
-// stay visually distinguishable, so `available: false` is a real, separate
-// case, not fabricated placeholder content.
+// silently returning empty data or crashing.
+//
+// CORRECTION (2026-09-23, live read-only check): the earlier note here claimed
+// no job table exists anywhere in production (2026-07-14 inspection). That is
+// no longer true — public.jobs EXISTS and is the table the job capability reads
+// (getJobs(), scoped to deleted_at IS NULL); only public.transport_jobs,
+// delivery_jobs and the other legacy names checked remain absent. This presenter
+// is still NOT wired to that data source, and its DTO still carries the old
+// transport_jobs shape, so `available: false` stays exactly as-is: a real
+// "not wired" state, never fabricated placeholder content.
 export interface TransportSummaryDTO {
   available: boolean;
   totalCount: number;

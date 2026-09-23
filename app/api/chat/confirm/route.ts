@@ -36,7 +36,9 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: false, error: "ขาด action หรือ preview_token" }, { status: 400 });
   }
 
-  const result = await dispatchAction({ action, mode: "execute", payload: {}, preview_token });
+  // B-04C: the payment actor is SERVER context (the authenticated admin), never the
+  // request body — any client-sent `actor` field is simply not read.
+  const result = await dispatchAction({ action, mode: "execute", payload: {}, preview_token, actor: auth.email });
   let lineSendError: string | undefined;
 
   if (!result.ok || action !== "document.create") {
@@ -55,7 +57,7 @@ export async function POST(request: Request) {
     // (above) already succeeded. Re-loads the SAVED invoice+items itself;
     // does not trust anything from the ConfirmInvoice result object.
     if (doc.id) {
-      const sendResult = await sendInvoiceToLine(doc.id);
+      const sendResult = await sendInvoiceToLine(doc.id, auth.email);
       // Business → Infrastructure failure bridge (owner, 2026-09-19): only
       // the real provider push failure crosses the bridge; business-data
       // failures stay business results. lineSendError carries ONLY the
