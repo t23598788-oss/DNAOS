@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-23T04:26:21.097Z",
+  "generated_at": "2026-09-23T05:32:33.895Z",
   "policy": "Phase 1.1 (Factory Constitution) — read-only analysis + mapping only. No file was moved, renamed, deleted, merged, or refactored to produce this. ownedModules is derived entirely from registry/module-registry.json + real, pre-verified path evidence in scripts/build-factory-registry.ts. See registry/factory-mapping.json for the per-module assignment and registry/factory-summary.json for the coverage report (including UNKNOWN and CONFLICT — reported honestly, never silently resolved).",
   "factories": [
     {
@@ -558,6 +558,7 @@
         "app/start/page.tsx",
         "app/workspace/BusinessWorkspace.tsx",
         "app/workspace/_lib/businessTools.ts",
+        "app/workspace/_lib/jobDisplayModel.ts",
         "app/workspace/_lib/partnerDisplayModel.ts",
         "app/workspace/page.tsx",
         "components/ide-shell/IDEWorkspace.tsx",
@@ -813,7 +814,7 @@
       "dependencies": "Not yet declared — see inputs.",
       "interfaces": "Not yet declared — see inputs.",
       "health": {
-        "moduleCount": 449,
+        "moduleCount": 450,
         "status": "populated"
       },
       "owner": "unassigned — Phase 1.2 assigns a real human/team owner per Factory",
@@ -1687,7 +1688,8 @@
         "scripts/worker-fallback-test.ts",
         "scripts/worker-security-test.ts",
         "scripts/worker-selector-test.ts",
-        "scripts/workspace-capability-access-test.ts"
+        "scripts/workspace-capability-access-test.ts",
+        "scripts/workspace-job-path-test.ts"
       ],
       "ownedRoutes": [],
       "ownedServices": [],
@@ -1697,7 +1699,7 @@
       "dependencies": "Not yet declared — see inputs.",
       "interfaces": "Not yet declared — see inputs.",
       "health": {
-        "moduleCount": 100,
+        "moduleCount": 101,
         "status": "populated"
       },
       "owner": "unassigned — Phase 1.2 assigns a real human/team owner per Factory",

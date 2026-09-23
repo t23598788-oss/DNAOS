@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-23T02:52:09.082Z",
+  "generated_at": "2026-09-23T05:32:14.400Z",
   "version": 1,
   "nodes": [
     {
@@ -13152,6 +13152,7 @@
         "module:app/api/internal/line/document-artifact/route.ts",
         "module:app/api/internal/line/token/route.ts",
         "module:app/workspace-preview/presentationGatewayDeps.ts",
+        "module:app/workspace/_lib/jobDisplayModel.ts",
         "module:app/workspace/_lib/partnerDisplayModel.ts",
         "module:cognitive/pipeline.ts",
         "module:engines/business.ts",
@@ -13192,6 +13193,7 @@
         "module:scripts/canonical-phase-c-acceptance-test.ts",
         "module:scripts/canonical-phase-d-acceptance-test.ts",
         "module:scripts/demo-full-pipeline-part2.ts",
+        "module:scripts/workspace-job-path-test.ts",
         "module:services/ai/gateway.ts",
         "module:services/canonical/document-detail.ts",
         "module:services/canonical/document-list.ts",
@@ -29701,6 +29703,7 @@
       "runtime_entry_point": true,
       "internal_dependencies": [
         "module:app/workspace/BusinessWorkspace.tsx",
+        "module:app/workspace/_lib/jobDisplayModel.ts",
         "module:app/workspace/_lib/partnerDisplayModel.ts",
         "module:core/auth/session.ts",
         "module:core/navigation/resolveCapabilityAccess.ts"
@@ -29722,8 +29725,8 @@
         {
           "name": "WorkspacePage",
           "kind": "function",
-          "line_start": 26,
-          "line_end": 52
+          "line_start": 33,
+          "line_end": 67
         }
       ],
       "import_sites": [
@@ -29746,6 +29749,11 @@
           "specifier": "./_lib/partnerDisplayModel",
           "line": 5,
           "resolved_target": "app/workspace/_lib/partnerDisplayModel.ts"
+        },
+        {
+          "specifier": "./_lib/jobDisplayModel",
+          "line": 6,
+          "resolved_target": "app/workspace/_lib/jobDisplayModel.ts"
         }
       ]
     },
@@ -77845,7 +77853,9 @@
         "module:services/supabase/queries.ts"
       ],
       "dependents": [
-        "module:app/api/admin/transactions/route.ts"
+        "module:app/api/admin/transactions/route.ts",
+        "module:app/workspace/_lib/jobDisplayModel.ts",
+        "module:scripts/workspace-job-path-test.ts"
       ],
       "data_tables": [
         "document_canonical",
@@ -82688,8 +82698,8 @@
         {
           "name": "BusinessWorkspace",
           "kind": "function",
-          "line_start": 46,
-          "line_end": 187
+          "line_start": 47,
+          "line_end": 188
         }
       ],
       "import_sites": [
@@ -82912,8 +82922,10 @@
       ],
       "dependents": [
         "module:app/workspace/BusinessWorkspace.tsx",
+        "module:app/workspace/_lib/jobDisplayModel.ts",
         "module:app/workspace/_lib/partnerDisplayModel.ts",
-        "module:scripts/workspace-capability-access-test.ts"
+        "module:scripts/workspace-capability-access-test.ts",
+        "module:scripts/workspace-job-path-test.ts"
       ],
       "data_tables": "UNKNOWN",
       "business_capabilities": "UNKNOWN",
@@ -83338,6 +83350,7 @@
         "module:app/admin/ui-gallery/business-display/page.tsx",
         "module:app/workspace/BusinessWorkspace.tsx",
         "module:app/workspace/_lib/businessTools.ts",
+        "module:app/workspace/_lib/jobDisplayModel.ts",
         "module:app/workspace/_lib/partnerDisplayModel.ts"
       ],
       "data_tables": "UNKNOWN",
@@ -84290,7 +84303,8 @@
       ],
       "dependents": [
         "module:app/workspace/page.tsx",
-        "module:scripts/workspace-capability-access-test.ts"
+        "module:scripts/workspace-capability-access-test.ts",
+        "module:scripts/workspace-job-path-test.ts"
       ],
       "data_tables": "UNKNOWN",
       "business_capabilities": "UNKNOWN",
@@ -84449,6 +84463,154 @@
         },
         {
           "specifier": "@/app/workspace/_lib/businessTools",
+          "line": 28,
+          "resolved_target": "app/workspace/_lib/businessTools.ts"
+        }
+      ]
+    },
+    {
+      "id": "module:scripts/workspace-job-path-test.ts",
+      "type": "Module",
+      "layer": "scripts",
+      "name_en": "scripts/workspace-job-path-test.ts",
+      "purpose_th": "Regression test for SLICE-2 — the JOB path into the NEW Business Workspace.",
+      "exports": [],
+      "status": "OK",
+      "runtime_entry_point": true,
+      "internal_dependencies": [
+        "module:app/workspace/_lib/businessTools.ts",
+        "module:app/workspace/_lib/jobDisplayModel.ts",
+        "module:core/navigation/resolveCapabilityAccess.ts",
+        "module:registry/permissions.json.ts",
+        "module:services/canonical/transaction-list.ts",
+        "module:services/supabase/queries.ts"
+      ],
+      "dependents": [],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "scripts",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "import_sites": [
+        {
+          "specifier": "@/registry/permissions.json",
+          "line": 25,
+          "resolved_target": "registry/permissions.json.ts"
+        },
+        {
+          "specifier": "@/core/navigation/resolveCapabilityAccess",
+          "line": 26,
+          "resolved_target": "core/navigation/resolveCapabilityAccess.ts"
+        },
+        {
+          "specifier": "@/app/workspace/_lib/businessTools",
+          "line": 27,
+          "resolved_target": "app/workspace/_lib/businessTools.ts"
+        },
+        {
+          "specifier": "@/services/supabase/queries",
+          "line": 28,
+          "resolved_target": "services/supabase/queries.ts"
+        },
+        {
+          "specifier": "@/services/canonical/transaction-list",
+          "line": 29,
+          "resolved_target": "services/canonical/transaction-list.ts"
+        },
+        {
+          "specifier": "@/app/workspace/_lib/jobDisplayModel",
+          "line": 30,
+          "resolved_target": "app/workspace/_lib/jobDisplayModel.ts"
+        }
+      ]
+    },
+    {
+      "id": "module:app/workspace/_lib/jobDisplayModel.ts",
+      "type": "Module",
+      "layer": "app",
+      "name_en": "app/workspace/_lib/jobDisplayModel.ts",
+      "purpose_th": "BUSINESS WORKSPACE — JOB list → BusinessDisplayModel (SLICE-2)",
+      "exports": [
+        "JOB_TABLE_TARGET_ID",
+        "buildJobListModel",
+        "buildJobTargets",
+        "loadJobWorkspace"
+      ],
+      "status": "OK",
+      "runtime_entry_point": false,
+      "internal_dependencies": [
+        "module:app/admin/ui-gallery/_lib/businessDisplayModel.ts",
+        "module:app/workspace/_lib/businessTools.ts",
+        "module:services/canonical/transaction-list.ts",
+        "module:services/supabase/queries.ts"
+      ],
+      "dependents": [
+        "module:app/workspace/page.tsx",
+        "module:scripts/workspace-job-path-test.ts"
+      ],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "app",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "symbols": [
+        {
+          "name": "JOB_TABLE_TARGET_ID",
+          "kind": "const",
+          "line_start": 32,
+          "line_end": 32
+        },
+        {
+          "name": "buildJobListModel",
+          "kind": "function",
+          "line_start": 49,
+          "line_end": 115
+        },
+        {
+          "name": "buildJobTargets",
+          "kind": "function",
+          "line_start": 117,
+          "line_end": 197
+        },
+        {
+          "name": "loadJobWorkspace",
+          "kind": "function",
+          "line_start": 203,
+          "line_end": 215
+        }
+      ],
+      "import_sites": [
+        {
+          "specifier": "@/services/supabase/queries",
+          "line": 25,
+          "resolved_target": "services/supabase/queries.ts"
+        },
+        {
+          "specifier": "@/services/canonical/transaction-list",
+          "line": 26,
+          "resolved_target": "services/canonical/transaction-list.ts"
+        },
+        {
+          "specifier": "@/app/admin/ui-gallery/_lib/businessDisplayModel",
+          "line": 27,
+          "resolved_target": "app/admin/ui-gallery/_lib/businessDisplayModel.ts"
+        },
+        {
+          "specifier": "./businessTools",
           "line": 28,
           "resolved_target": "app/workspace/_lib/businessTools.ts"
         }
@@ -87303,6 +87465,11 @@
     },
     {
       "source": "layer:app",
+      "target": "module:app/workspace/_lib/jobDisplayModel.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:app",
       "target": "module:app/workspace/_lib/partnerDisplayModel.ts",
       "label": "contains"
     },
@@ -90094,6 +90261,11 @@
     {
       "source": "layer:scripts",
       "target": "module:scripts/workspace-capability-access-test.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:scripts",
+      "target": "module:scripts/workspace-job-path-test.ts",
       "label": "contains"
     },
     {
@@ -99752,6 +99924,26 @@
       "label": "imports"
     },
     {
+      "source": "module:app/workspace/_lib/jobDisplayModel.ts",
+      "target": "module:app/admin/ui-gallery/_lib/businessDisplayModel.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/workspace/_lib/jobDisplayModel.ts",
+      "target": "module:app/workspace/_lib/businessTools.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/workspace/_lib/jobDisplayModel.ts",
+      "target": "module:services/canonical/transaction-list.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/workspace/_lib/jobDisplayModel.ts",
+      "target": "module:services/supabase/queries.ts",
+      "label": "imports"
+    },
+    {
       "source": "module:app/workspace/_lib/partnerDisplayModel.ts",
       "target": "module:app/admin/ui-gallery/_lib/businessDisplayModel.ts",
       "label": "imports"
@@ -99769,6 +99961,11 @@
     {
       "source": "module:app/workspace/page.tsx",
       "target": "module:app/workspace/BusinessWorkspace.tsx",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/workspace/page.tsx",
+      "target": "module:app/workspace/_lib/jobDisplayModel.ts",
       "label": "imports"
     },
     {
@@ -106207,6 +106404,36 @@
       "label": "imports"
     },
     {
+      "source": "module:scripts/workspace-job-path-test.ts",
+      "target": "module:app/workspace/_lib/businessTools.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:scripts/workspace-job-path-test.ts",
+      "target": "module:app/workspace/_lib/jobDisplayModel.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:scripts/workspace-job-path-test.ts",
+      "target": "module:core/navigation/resolveCapabilityAccess.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:scripts/workspace-job-path-test.ts",
+      "target": "module:registry/permissions.json.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:scripts/workspace-job-path-test.ts",
+      "target": "module:services/canonical/transaction-list.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:scripts/workspace-job-path-test.ts",
+      "target": "module:services/supabase/queries.ts",
+      "label": "imports"
+    },
+    {
       "source": "module:services/ai-connection/healthCheck.ts",
       "target": "module:services/ai-connection/statusRepository.ts",
       "label": "imports"
@@ -106918,8 +107145,8 @@
     }
   ],
   "summary": {
-    "total": 1236,
-    "ok": 1236,
+    "total": 1238,
+    "ok": 1238,
     "broken": 0,
     "unused": 0,
     "unregistered": 0

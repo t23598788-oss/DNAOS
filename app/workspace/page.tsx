@@ -3,6 +3,7 @@ import { getAuthedUser } from "@/core/auth/session";
 import { resolveAllowedCapabilities } from "@/core/navigation/resolveCapabilityAccess";
 import { BusinessWorkspace } from "./BusinessWorkspace";
 import { loadPartnerWorkspace } from "./_lib/partnerDisplayModel";
+import { loadJobWorkspace } from "./_lib/jobDisplayModel";
 
 // BUSINESS WORKSPACE — หน้าจอใช้งานจริงเพียงหน้าจอเดียวของ DNA OS (owner, 2026-09-22)
 //
@@ -23,6 +24,12 @@ import { loadPartnerWorkspace } from "./_lib/partnerDisplayModel";
 //   · ข้อมูลมาจาก getPartnersWithDocumentSummary() ตัวเดิม (อ่านอย่างเดียว)
 //   · role ไม่ถูกส่งลง component — ส่งเป็นรายการ tool key ที่อนุญาตแล้ว
 //   · ถ้า role ไม่ได้สิทธิ์ tool ใดเลย query จะไม่ถูกเรียกแม้แต่ครั้งเดียว
+//
+// SLICE-2 (2026-09-23) — JOB / RESOURCE rewire บนเส้นเดียวกัน
+//   · tool "jobs" → getTransactions() [customer_orders + FK companies] ตัวเดิม
+//     + getTransactionMoneySummaries() [canonical persisted sums] ตัวเดิม
+//     — สอง call เดียวกับที่ app/api/admin/transactions/route.ts ใช้อยู่
+//   · ไม่มี job engine/store/API ใหม่ · ไม่ใช้ getJobs() (transport_jobs ไม่มีจริง)
 export default async function WorkspacePage() {
   const user = await getAuthedUser();
 
@@ -32,21 +39,29 @@ export default async function WorkspacePage() {
 
   const allowedTools = resolveAllowedCapabilities(user.role);
   const canReadPartners = allowedTools.includes("people");
+  const canReadJobs = allowedTools.includes("jobs");
 
   // อ่านข้อมูลจริงเฉพาะเมื่อ registry อนุญาต tool นั้น (ไม่มีการอ่านเผื่อ)
-  const partners = canReadPartners ? await loadPartnerWorkspace() : null;
+  const [partners, jobs] = await Promise.all([
+    canReadPartners ? loadPartnerWorkspace() : Promise.resolve(null),
+    canReadJobs ? loadJobWorkspace() : Promise.resolve(null),
+  ]);
 
   console.log("[TRACE-WORKSPACE]", {
     role: user.role,
     allowedTools: allowedTools.length,
     partnerRows: partners?.rowCount ?? 0,
+    jobRows: jobs?.rowCount ?? 0,
   });
 
   return (
     <BusinessWorkspace
       allowedTools={allowedTools}
-      liveModels={partners ? { people: partners.listModel } : {}}
-      liveTargets={partners ? partners.targets : {}}
+      liveModels={{
+        ...(partners ? { people: partners.listModel } : {}),
+        ...(jobs ? { jobs: jobs.listModel } : {}),
+      }}
+      liveTargets={{ ...(partners?.targets ?? {}), ...(jobs?.targets ?? {}) }}
     />
   );
 }

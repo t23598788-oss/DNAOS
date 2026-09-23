@@ -41,6 +41,7 @@ const TOOL_TARGETS: Record<string, string[]> = {
   changes: ["d-attach"],
   problems: ["d-attach"],
   people: ["partners-table"],
+  jobs: ["jobs-table"],
 };
 
 export function BusinessWorkspace({

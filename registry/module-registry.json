@@ -15020,6 +15020,27 @@
       "purpose_th": "Regression test for the /workspace CENTRAL AUTHORITY (SLICE-1, owner decision",
       "exports": [],
       "status": "active"
+    },
+    "scripts/workspace-job-path-test.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "Regression test for SLICE-2 — the JOB path into the NEW Business Workspace.",
+      "purpose_th": "Regression test for SLICE-2 — the JOB path into the NEW Business Workspace.",
+      "exports": [],
+      "status": "active"
+    },
+    "app/workspace/_lib/jobDisplayModel.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "BUSINESS WORKSPACE — JOB list → BusinessDisplayModel (SLICE-2)",
+      "purpose_th": "BUSINESS WORKSPACE — JOB list → BusinessDisplayModel (SLICE-2)",
+      "exports": [
+        "JOB_TABLE_TARGET_ID",
+        "buildJobListModel",
+        "buildJobTargets",
+        "loadJobWorkspace"
+      ],
+      "status": "active"
     }
   },
   "excluded": [
