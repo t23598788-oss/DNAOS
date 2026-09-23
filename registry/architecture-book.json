@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-23T06:21:51.606Z",
+  "generated_at": "2026-09-23T06:37:21.301Z",
   "version": 1,
   "nodes": [
     {
@@ -10166,9 +10166,9 @@
       "data_tables": [
         "company_line_links",
         "debt_trackings",
-        "documents",
         "invoice_debts",
         "invoice_items",
+        "invoice_payment_summary",
         "invoice_payments",
         "invoices",
         "standalone_documents"
@@ -10209,49 +10209,49 @@
           "name": "previewPayment",
           "kind": "function",
           "line_start": 63,
-          "line_end": 106
+          "line_end": 119
         },
         {
           "name": "executePayment",
           "kind": "function",
-          "line_start": 108,
-          "line_end": 177
+          "line_start": 121,
+          "line_end": 190
         },
         {
           "name": "previewDocumentCreate",
           "kind": "function",
-          "line_start": 202,
-          "line_end": 307
+          "line_start": 215,
+          "line_end": 320
         },
         {
           "name": "executeDocumentCreate",
           "kind": "function",
-          "line_start": 309,
-          "line_end": 438
+          "line_start": 322,
+          "line_end": 451
         },
         {
           "name": "sendInvoiceToLine",
           "kind": "function",
-          "line_start": 452,
-          "line_end": 538
+          "line_start": 465,
+          "line_end": 551
         },
         {
           "name": "previewDebtCreate",
           "kind": "function",
-          "line_start": 558,
-          "line_end": 584
+          "line_start": 571,
+          "line_end": 597
         },
         {
           "name": "executeDebtCreate",
           "kind": "function",
-          "line_start": 586,
-          "line_end": 617
+          "line_start": 599,
+          "line_end": 630
         },
         {
           "name": "dispatchAction",
           "kind": "function",
-          "line_start": 621,
-          "line_end": 659
+          "line_start": 634,
+          "line_end": 672
         }
       ],
       "import_sites": [
@@ -84677,6 +84677,39 @@
       "related_documents": "UNKNOWN",
       "related_commands": "UNKNOWN",
       "related_services": "UNKNOWN"
+    },
+    {
+      "id": "module:scripts/payment-preview-rewire-test.ts",
+      "type": "Module",
+      "layer": "scripts",
+      "name_en": "scripts/payment-preview-rewire-test.ts",
+      "purpose_th": "Regression test for B-03 — payment preview / canonical financial read",
+      "exports": [
+        "previewPayment"
+      ],
+      "status": "OK",
+      "runtime_entry_point": true,
+      "internal_dependencies": [],
+      "dependents": [],
+      "data_tables": [
+        "debt_trackings",
+        "documents",
+        "invoice_debts",
+        "invoice_payment_summary",
+        "invoice_payments",
+        "invoices"
+      ],
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "scripts",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN"
     }
   ],
   "edges": [
@@ -90148,6 +90181,11 @@
     {
       "source": "layer:scripts",
       "target": "module:scripts/package-test.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:scripts",
+      "target": "module:scripts/payment-preview-rewire-test.ts",
       "label": "contains"
     },
     {
@@ -107217,8 +107255,8 @@
     }
   ],
   "summary": {
-    "total": 1240,
-    "ok": 1240,
+    "total": 1241,
+    "ok": 1241,
     "broken": 0,
     "unused": 0,
     "unregistered": 0

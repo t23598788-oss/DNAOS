@@ -15062,6 +15062,16 @@
         "buildDraftFromPartner"
       ],
       "status": "active"
+    },
+    "scripts/payment-preview-rewire-test.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "Regression test for B-03 — payment preview / canonical financial read",
+      "purpose_th": "Regression test for B-03 — payment preview / canonical financial read",
+      "exports": [
+        "previewPayment"
+      ],
+      "status": "active"
     }
   },
   "excluded": [

@@ -61,23 +61,35 @@ function consumeToken(token: string, action: string): { valid: boolean; error?: 
 // ---- PAYMENT ----
 
 export async function previewPayment(invoiceDebtId: string): Promise<ActionResponse> {
-  const { data: debt, error: debtErr } = await supabase()
-    .from("invoice_debts")
-    .select("id, document_id, principal_amount, outstanding_amount, invoice_status, paid_amount, current_interest_amount")
+  // B-03 reconciliation (2026-09-23, FULL_BUSINESS_SYSTEM_RECONCILIATION §21)
+  //   OLD: `invoice_debts` + `documents` — ทั้งสองตาราง **ไม่มีใน LIVE** (PGRST205)
+  //   NEW: canonical per-invoice receivable view `invoice_payment_summary`
+  //        (persisted receivable_amount / paid_amount / outstanding / derived_status — ไม่คำนวณใหม่)
+  //        + `invoices` → companies ตาม FK เดิม (`invoices_customer_company_id_fkey`) สำหรับชื่อคู่ค้า
+  //   id semantic: legacy `invoice_debts.id` = `document_id` = **invoice id** ตาม canonical debt read
+  //        ที่มีอยู่จริง (services/supabase/queries.ts#getAllDebts: `id: d.invoice_id, document_id: d.invoice_id`)
+  //   READ ONLY — ไม่เขียนอะไรลง DB (B-04 executePayment ไม่ถูกแตะในรอบนี้)
+  const { data: receivable, error: receivableErr } = await supabase()
+    .from("invoice_payment_summary")
+    .select("invoice_id, invoice_no, receivable_amount, receivable_basis, paid_amount, outstanding, derived_status")
+    .eq("invoice_id", invoiceDebtId)
+    .single();
+
+  if (receivableErr || !receivable) {
+    return { ok: false, mode: "preview", action: "payment", error: receivableErr?.message ?? "ไม่พบหนี้" };
+  }
+
+  const { data: invoice } = await supabase()
+    .from("invoices")
+    .select("id, companies!invoices_customer_company_id_fkey(id, name)")
     .eq("id", invoiceDebtId)
     .single();
 
-  if (debtErr || !debt) {
-    return { ok: false, mode: "preview", action: "payment", error: debtErr?.message ?? "ไม่พบหนี้" };
-  }
-
-  const { data: doc } = await supabase()
-    .from("documents")
-    .select("document_number, party_name, net_amount")
-    .eq("id", debt.document_id)
-    .single();
-
+  const company = (invoice?.companies as unknown as { id: string; name: string } | null) ?? null;
   const token = issueToken("payment", { invoice_debt_id: invoiceDebtId });
+  const outstanding = Number(receivable.outstanding ?? 0);
+  // canonical status mapping ตัวเดียวกับ getOpenDebts/getAllDebts (PAID|VOID → CLOSED, อื่น ๆ → OPEN)
+  const status = receivable.derived_status === "PAID" || receivable.derived_status === "VOID" ? "CLOSED" : "OPEN";
 
   return {
     ok: true,
@@ -85,22 +97,23 @@ export async function previewPayment(invoiceDebtId: string): Promise<ActionRespo
     action: "payment",
     preview_token: token,
     preview: {
-      invoice_debt_id: debt.id,
-      document_number: doc?.document_number ?? "-",
-      party_name: doc?.party_name ?? "-",
-      principal_amount: debt.principal_amount,
-      outstanding_amount: debt.outstanding_amount,
-      current_interest: debt.current_interest_amount,
-      paid_so_far: debt.paid_amount,
-      status: debt.invoice_status,
+      invoice_debt_id: receivable.invoice_id,
+      document_number: receivable.invoice_no ?? "-",
+      party_name: company?.name ?? "-",
+      principal_amount: Number(receivable.receivable_amount ?? 0),
+      outstanding_amount: outstanding,
+      // canonical stance: ledger ไม่คิดดอกเบี้ย (queries.ts#getOpenDebts: "current_interest_amount stays 0")
+      current_interest: 0,
+      paid_so_far: Number(receivable.paid_amount ?? 0),
+      status,
       will_change: {
         invoice_status: "OPEN → PAID",
-        outstanding_amount: `${debt.outstanding_amount} → 0`,
+        outstanding_amount: `${outstanding} → 0`,
         triggers: ["back-to-back webhook จะยิงอัตโนมัติ", "LINE Notify แจ้งเจ้าของ"],
       },
     },
     next_actions: [
-      `.pay execute ${debt.id} ${debt.outstanding_amount}`,
+      `.pay execute ${receivable.invoice_id} ${outstanding}`,
     ],
   };
 }
