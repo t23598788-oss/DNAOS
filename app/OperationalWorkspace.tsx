@@ -17,7 +17,7 @@ import {
   Puzzle, Workflow, Layers, GitBranch, Building, Target, Users, Menu, X, Package, Store,
   FileText, LogIn, AlertTriangle, XCircle, Cable, Network,
 } from 'lucide-react';
-import { ThemeProvider, ThemeToggle, useTheme, elevation, typography, fontWeight, semanticColors, spacing, type SemanticTone } from '@/styles/tokens';
+import { ThemeProvider, ThemeToggle, useTheme, elevation, typography, fontWeight, semanticColors, spacing, type SemanticTone } from '@/presentation/foundation/tokens';
 import { SystemRealityReportSection } from '@/components/workspace/SystemRealityReportSection';
 
 const iconMap: { [key: string]: React.ElementType } = {

@@ -1,20 +1,21 @@
 {
-  "generated_at": "2026-08-05T17:19:28.801Z",
+  "generated_at": "2026-09-22T20:53:11.489Z",
   "policy": "Evidence-based only — registry/module-registry.json + registry/CONSTITUTION.json. No per-file hardcoding; see app/api/admin/ide/_lib/classification.ts. Data, not UI — this file plus the live /api/admin/ide/classification route are the one classification source every consumer (IDE, AI, Documentation, Architecture, Search, Git, Runtime) should read, never re-derive independently.",
   "category_counts": {
-    "UNKNOWN": 54,
-    "UI": 152,
-    "AI": 93,
-    "INTEGRATION": 70,
-    "WORKFLOW": 9,
-    "CORE_LOGIC": 286,
+    "UNKNOWN": 104,
+    "UI": 135,
+    "AI": 109,
+    "INTEGRATION": 88,
+    "WORKFLOW": 14,
+    "CORE_LOGIC": 533,
     "SECURITY": 17,
-    "DATABASE": 56,
-    "CONFIGURATION": 39
+    "DATABASE": 70,
+    "CONFIGURATION": 144
   },
   "risk_counts": {
-    "NORMAL": 481,
-    "SENSITIVE": 288,
+    "NORMAL": 633,
+    "SENSITIVE": 571,
+    "LOCKED": 3,
     "CRITICAL": 7
   },
   "capability_counts": {
@@ -39,14 +40,10 @@
     "Admin": 10,
     "Auth": 2,
     "Documents": 12,
-    "Ide Shell": 2,
-    "Landing": 3,
+    "Ide Shell": 1,
     "Line": 2,
-    "Nav": 2,
-    "Portal": 1,
     "Settings": 1,
     "Transactions": 4,
-    "Ui Kit": 10,
     "Workspace": 41,
     "Index": 4,
     "Require Auth": 1,
@@ -55,13 +52,14 @@
     "Session": 1,
     "Bot Exchange Rate": 1,
     "Business": 1,
+    "Canonical": 7,
     "Capacity": 1,
-    "Connectors": 2,
+    "Connectors": 6,
     "Cost": 1,
     "Debt": 10,
     "Distance.self Description": 1,
     "Distance": 1,
-    "Domains": 5,
+    "Domains": 6,
     "Equipment": 2,
     "Events": 1,
     "Fuel Live": 1,
@@ -69,8 +67,8 @@
     "Geocoding": 1,
     "Governance": 3,
     "Impact": 1,
-    "Integration Gateway": 10,
-    "Jobs": 1,
+    "Integration Gateway": 11,
+    "Jobs": 4,
     "Material Resolver": 1,
     "Partner": 1,
     "Presentation": 3,
@@ -84,6 +82,7 @@
     "Weather": 1,
     "Actions": 1,
     "Document Artifact Storage": 1,
+    "Agent": 1,
     "Capabilities": 1,
     "Capability Manager": 1,
     "Drivers": 24,
@@ -192,6 +191,16 @@
       "riskLevel": "NORMAL",
       "evidence": [
         "path matches components/ or a non-API app page/component"
+      ],
+      "requiredChecks": []
+    },
+    "app/admin/connectors/_lib/types.ts": {
+      "category": "INTEGRATION",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path matches gateway/connector/plugins pattern",
+        "category INTEGRATION is a real external/production trust boundary"
       ],
       "requiredChecks": []
     },
@@ -691,6 +700,65 @@
       ],
       "requiredChecks": []
     },
+    "app/admin/ui-gallery/_lib/componentHost.tsx": {
+      "category": "UI",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path matches components/ or a non-API app page/component"
+      ],
+      "requiredChecks": []
+    },
+    "app/admin/ui-gallery/_lib/uiCatalog.ts": {
+      "category": "UNKNOWN",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [],
+      "requiredChecks": []
+    },
+    "app/admin/ui-gallery/_lib/uiIndex.ts": {
+      "category": "UNKNOWN",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [],
+      "requiredChecks": []
+    },
+    "app/admin/ui-gallery/compare/page.tsx": {
+      "category": "UI",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path matches components/ or a non-API app page/component"
+      ],
+      "requiredChecks": []
+    },
+    "app/admin/ui-gallery/lab/page.tsx": {
+      "category": "UI",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path matches components/ or a non-API app page/component"
+      ],
+      "requiredChecks": []
+    },
+    "app/admin/ui-gallery/page.tsx": {
+      "category": "UI",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path matches components/ or a non-API app page/component"
+      ],
+      "requiredChecks": []
+    },
+    "app/admin/ui-gallery/preview/page.tsx": {
+      "category": "UI",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path matches components/ or a non-API app page/component"
+      ],
+      "requiredChecks": []
+    },
     "app/admin/users/page.tsx": {
       "category": "UI",
       "capability": null,
@@ -797,7 +865,17 @@
       ],
       "requiredChecks": []
     },
-    "app/api/admin/connectors/route.ts": {
+    "app/api/admin/connectors/_lib/catalog.ts": {
+      "category": "AI",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path matches cognitive/AI-service/presenter pattern, or registry purpose mentions AI",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/connectors/_lib/connectRuntime.ts": {
       "category": "INTEGRATION",
       "capability": null,
       "riskLevel": "SENSITIVE",
@@ -807,13 +885,73 @@
       ],
       "requiredChecks": []
     },
-    "app/api/admin/debt-events/[id]/issue-receipt/route.ts": {
-      "category": "CORE_LOGIC",
+    "app/api/admin/connectors/_lib/providerDescriptors.ts": {
+      "category": "INTEGRATION",
       "capability": null,
       "riskLevel": "SENSITIVE",
       "evidence": [
-        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
-        "real backend API route surface"
+        "path matches gateway/connector/plugins pattern",
+        "category INTEGRATION is a real external/production trust boundary"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/connectors/catalog/route.ts": {
+      "category": "INTEGRATION",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path matches gateway/connector/plugins pattern",
+        "category INTEGRATION is a real external/production trust boundary"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/connectors/discover/[slug]/route.ts": {
+      "category": "INTEGRATION",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path matches gateway/connector/plugins pattern",
+        "category INTEGRATION is a real external/production trust boundary"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/connectors/providers/[providerId]/approval-request/route.ts": {
+      "category": "INTEGRATION",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path matches gateway/connector/plugins pattern",
+        "category INTEGRATION is a real external/production trust boundary"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/connectors/providers/[providerId]/prepare/route.ts": {
+      "category": "INTEGRATION",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path matches gateway/connector/plugins pattern",
+        "category INTEGRATION is a real external/production trust boundary"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/connectors/providers/route.ts": {
+      "category": "INTEGRATION",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path matches gateway/connector/plugins pattern",
+        "category INTEGRATION is a real external/production trust boundary"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/connectors/route.ts": {
+      "category": "INTEGRATION",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path matches gateway/connector/plugins pattern",
+        "category INTEGRATION is a real external/production trust boundary"
       ],
       "requiredChecks": []
     },
@@ -1027,6 +1165,196 @@
       ],
       "requiredChecks": []
     },
+    "app/api/admin/ide/_lib/acceptanceContractRuntime.ts": {
+      "category": "AI",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path matches cognitive/AI-service/presenter pattern, or registry purpose mentions AI",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/_lib/aiContextRuntime.ts": {
+      "category": "AI",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path matches cognitive/AI-service/presenter pattern, or registry purpose mentions AI",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/_lib/alertRegistry.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/_lib/alertRuntime.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/_lib/architectureSummaryRuntime.ts": {
+      "category": "AI",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path matches cognitive/AI-service/presenter pattern, or registry purpose mentions AI",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/_lib/artifactRegistry.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/_lib/artifactRuntime.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "LOCKED",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "registry/CONSTITUTION.json declares this a generated/ledger file that is immutable once written (Rule 107 class)"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/_lib/autoSaveRuntime.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/_lib/backupRegistry.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/_lib/backupRuntime.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/_lib/browserInspectionRuntime.ts": {
+      "category": "AI",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path matches cognitive/AI-service/presenter pattern, or registry purpose mentions AI",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/_lib/buildRegistry.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/_lib/buildRuntime.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "LOCKED",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "registry/CONSTITUTION.json declares this a generated/ledger file that is immutable once written (Rule 107 class)"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/_lib/businessAcceptanceRuntime.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/_lib/businessFailureBridge.ts": {
+      "category": "AI",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path matches cognitive/AI-service/presenter pattern, or registry purpose mentions AI",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/_lib/businessJobProgressRuntime.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/_lib/canonicalJobTransportRuntime.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/_lib/capabilityResolverRuntime.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/_lib/changeSetRuntime.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
     "app/api/admin/ide/_lib/classification.ts": {
       "category": "AI",
       "capability": null,
@@ -1037,12 +1365,232 @@
       ],
       "requiredChecks": []
     },
+    "app/api/admin/ide/_lib/codeWorkerRuntime.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/_lib/commandSurfaceRuntime.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/_lib/computeResourceRegistryRuntime.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/_lib/contextPlannerRuntime.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/_lib/continuousOperationsRegistry.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/_lib/continuousOperationsRuntime.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/_lib/costGateRuntime.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/_lib/costLedgerViewRuntime.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/_lib/countryPackageRegistry.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/_lib/deadEndSweepRuntime.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
     "app/api/admin/ide/_lib/decisions.ts": {
       "category": "CORE_LOGIC",
       "capability": null,
       "riskLevel": "SENSITIVE",
       "evidence": [
         "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/_lib/deploymentRegistry.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/_lib/deploymentRuntime.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/_lib/digitalForensicsRuntime.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/_lib/documentLifecycleConstitution.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/_lib/domainAssetRuntime.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/_lib/edgeFunctionWorkerRuntime.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/_lib/evidenceCollectorRuntime.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/_lib/executionBudgetRuntime.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/_lib/executionContextRuntime.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/_lib/executionHandRuntime.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/_lib/executionPlanRuntime.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/_lib/executionPlannerRuntime.ts": {
+      "category": "AI",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path matches cognitive/AI-service/presenter pattern, or registry purpose mentions AI",
         "real backend API route surface"
       ],
       "requiredChecks": []
@@ -1063,6 +1611,86 @@
       "riskLevel": "SENSITIVE",
       "evidence": [
         "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/_lib/externalAttackSurfaceRuntime.ts": {
+      "category": "AI",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path matches cognitive/AI-service/presenter pattern, or registry purpose mentions AI",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/_lib/externalDiscoveryAdapters/dnsVerificationRuntime.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/_lib/externalDiscoveryAdapters/httpxAdapter.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/_lib/externalDiscoveryAdapters/subfinderAdapter.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/_lib/factoryCompletionRegistry.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/_lib/factoryCompletionRuntime.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/_lib/factoryReadinessGateRuntime.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/_lib/factoryWorkspaceRuntime.ts": {
+      "category": "AI",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path matches cognitive/AI-service/presenter pattern, or registry purpose mentions AI",
         "real backend API route surface"
       ],
       "requiredChecks": []
@@ -1097,7 +1725,137 @@
       ],
       "requiredChecks": []
     },
+    "app/api/admin/ide/_lib/gapLoopRuntime.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
     "app/api/admin/ide/_lib/gitReadOnly.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/_lib/globalFactoryRuntime.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/_lib/governanceRuntime.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/_lib/incidentRegistry.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/_lib/incidentRuntime.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/_lib/inspectionRegistry.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/_lib/inspectionRuntime.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/_lib/intentRuntime.ts": {
+      "category": "AI",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path matches cognitive/AI-service/presenter pattern, or registry purpose mentions AI",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/_lib/jobRecoveryRuntime.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/_lib/managerQuestionRuntime.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/_lib/monitoringRegistry.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/_lib/monitoringRuntime.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/_lib/openCapabilityArchitecture.ts": {
       "category": "CORE_LOGIC",
       "capability": null,
       "riskLevel": "SENSITIVE",
@@ -1117,6 +1875,126 @@
       ],
       "requiredChecks": []
     },
+    "app/api/admin/ide/_lib/providerRegistryRuntime.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/_lib/queueRegistry.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/_lib/queueRuntime.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/_lib/recoveryRegistry.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/_lib/recoveryRuntime.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/_lib/registryWriterRuntime.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/_lib/releaseRegistry.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/_lib/releaseRuntime.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "LOCKED",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "registry/CONSTITUTION.json declares this a generated/ledger file that is immutable once written (Rule 107 class)"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/_lib/restoreTestRegistry.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/_lib/restoreTestRuntime.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/_lib/restrictedCapabilityRegistry.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/_lib/reviewRegistry.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
     "app/api/admin/ide/_lib/search.ts": {
       "category": "CORE_LOGIC",
       "capability": null,
@@ -1127,7 +2005,117 @@
       ],
       "requiredChecks": []
     },
+    "app/api/admin/ide/_lib/securityDefenseRuntime.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/_lib/securityExecutionRuntime.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/_lib/securityKnowledgeRegistry.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/_lib/securityKnowledgeRuntime.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/_lib/securityTargetRuntime.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
     "app/api/admin/ide/_lib/standards.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/_lib/switchBasedOrchestratorRuntime.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/_lib/systemRealityRuntime.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/_lib/targetPolicy.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/_lib/testRegistry.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/_lib/testRuntime.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/_lib/threatPatternRegistry.ts": {
       "category": "CORE_LOGIC",
       "capability": null,
       "riskLevel": "SENSITIVE",
@@ -1157,6 +2145,376 @@
       ],
       "requiredChecks": []
     },
+    "app/api/admin/ide/_lib/uiInspectionCapability.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/_lib/usageMeterRuntime.ts": {
+      "category": "AI",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path matches cognitive/AI-service/presenter pattern, or registry purpose mentions AI",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/_lib/viewportRegistry.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/_lib/workerAdapter.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/_lib/workerAdapters/apiWorkerAdapter.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/_lib/workerAdapters/cliWorkerAdapter.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/_lib/workerAdapters/digitalOceanWorkerAdapter.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/_lib/workerAdapters/humanWorkerAdapter.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/_lib/workerAdapters/localModelWorkerAdapter.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/_lib/workerAdapters/mcpDnaOsAdapter.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/_lib/workerAdapters/mcpWorkerAdapter.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/_lib/workerContract.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/_lib/workerRegistry.ts": {
+      "category": "AI",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path matches cognitive/AI-service/presenter pattern, or registry purpose mentions AI",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/_lib/workerSelectorRuntime.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/_lib/workerSettingsRuntime.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/_lib/workerTaskOrchestrator.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/artifact/[artifactId]/children/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/artifact/[artifactId]/evidence/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/artifact/[artifactId]/lineage/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/artifact/[artifactId]/parents/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/artifact/[artifactId]/regenerate/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/artifact/[artifactId]/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/artifact/events/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/artifact/integrity/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/artifact/list/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/build/environment-profiles/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/build/registry/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/build/runs/[buildRunId]/artifacts/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/build/runs/[buildRunId]/cancel/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/build/runs/[buildRunId]/compare/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/build/runs/[buildRunId]/evidence/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/build/runs/[buildRunId]/findings/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/build/runs/[buildRunId]/manifest/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/build/runs/[buildRunId]/outputs/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/build/runs/[buildRunId]/rerun/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/build/runs/[buildRunId]/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/build/runs/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
     "app/api/admin/ide/classification/route.ts": {
       "category": "CORE_LOGIC",
       "capability": null,
@@ -1167,7 +2525,67 @@
       ],
       "requiredChecks": []
     },
+    "app/api/admin/ide/command/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
     "app/api/admin/ide/decisions/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/deployment/plans/[deploymentPlanId]/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/deployment/plans/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/execution-context/approve/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/execution-context/gate/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/execution-context/route.ts": {
       "category": "CORE_LOGIC",
       "capability": null,
       "riskLevel": "SENSITIVE",
@@ -1237,6 +2655,216 @@
       ],
       "requiredChecks": []
     },
+    "app/api/admin/ide/factory-completion/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/factory-readiness/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/factory-workspace/capabilities/search/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/factory-workspace/sessions/[id]/approve-context/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/factory-workspace/sessions/[id]/approve-plan/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/factory-workspace/sessions/[id]/approve-proposal/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/factory-workspace/sessions/[id]/approve-review/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/factory-workspace/sessions/[id]/build/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/factory-workspace/sessions/[id]/create-plan/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/factory-workspace/sessions/[id]/decide/route.ts": {
+      "category": "AI",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path matches cognitive/AI-service/presenter pattern, or registry purpose mentions AI",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/factory-workspace/sessions/[id]/execute/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/factory-workspace/sessions/[id]/generate-proposal/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/factory-workspace/sessions/[id]/intent/route.ts": {
+      "category": "AI",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path matches cognitive/AI-service/presenter pattern, or registry purpose mentions AI",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/factory-workspace/sessions/[id]/prepare-context/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/factory-workspace/sessions/[id]/release/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/factory-workspace/sessions/[id]/resolve-capabilities/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/factory-workspace/sessions/[id]/result/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/factory-workspace/sessions/[id]/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/factory-workspace/sessions/[id]/vscode-dependency/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/factory-workspace/sessions/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/factory-workspace/workers/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
     "app/api/admin/ide/file/route.ts": {
       "category": "CORE_LOGIC",
       "capability": null,
@@ -1297,7 +2925,57 @@
       ],
       "requiredChecks": []
     },
+    "app/api/admin/ide/git/blame/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/git/branches/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/git/conflicts/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
     "app/api/admin/ide/git/diff/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/git/history/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/git/merge-status/route.ts": {
       "category": "CORE_LOGIC",
       "capability": null,
       "riskLevel": "SENSITIVE",
@@ -1317,7 +2995,627 @@
       ],
       "requiredChecks": []
     },
+    "app/api/admin/ide/git/tags/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/global-factory/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/governance/events/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/governance/factories/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/governance/rules/[ruleId]/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/governance/rules/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/governance/summary/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/governance/verify/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/inspection/[inspectionId]/cancel/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/inspection/[inspectionId]/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/inspection/job/[jobId]/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/inspection/list/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/inspection/run/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/operations/alerts/[id]/acknowledge/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/operations/alerts/[id]/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/operations/alerts/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/operations/backups/[id]/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/operations/backups/[id]/verify/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/operations/backups/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/operations/events/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/operations/incidents/[incidentId]/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/operations/incidents/[incidentId]/status/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/operations/incidents/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/operations/loop/run/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/operations/loop/runs/[id]/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/operations/loop/runs/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/operations/monitoring/collect/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/operations/monitoring/signals/[signalId]/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/operations/monitoring/signals/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/operations/monitoring/summary/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/operations/readiness/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/operations/recovery/plans/[planId]/approve/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/operations/recovery/plans/[planId]/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/operations/recovery/plans/[planId]/verify/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/operations/recovery/plans/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/operations/restore-tests/[id]/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/operations/restore-tests/[id]/verify/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/operations/restore-tests/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/operations/status/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/owner-command/approve/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/owner-command/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
     "app/api/admin/ide/problems/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/queue/cancel/[id]/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/queue/clear/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/queue/job/[id]/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/queue/jobs/route.ts": {
+      "category": "WORKFLOW",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path matches workflow/jobs pattern",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/queue/retry/[id]/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/queue/types/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/release/packages/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/release/registry/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/release/runs/[releaseRunId]/rerun/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/release/runs/[releaseRunId]/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/release/runs/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/review/change-sets/[changeSetId]/artifacts/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/review/change-sets/[changeSetId]/decision/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/review/change-sets/[changeSetId]/diff/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/review/change-sets/[changeSetId]/evidence/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/review/change-sets/[changeSetId]/findings/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/review/change-sets/[changeSetId]/impact/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/review/change-sets/[changeSetId]/refresh/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/review/change-sets/[changeSetId]/review/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/review/change-sets/[changeSetId]/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/review/change-sets/route.ts": {
       "category": "CORE_LOGIC",
       "capability": null,
       "riskLevel": "SENSITIVE",
@@ -1337,6 +3635,96 @@
       ],
       "requiredChecks": []
     },
+    "app/api/admin/ide/security/capabilities/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/security/defense/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/security/execution-gate/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/security/external-surface/discover/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/security/external-surface/domains/[id]/verify/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/security/external-surface/domains/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/security/forensics/[artifactId]/timeline/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/security/knowledge/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/settings/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
     "app/api/admin/ide/standards/route.ts": {
       "category": "AI",
       "capability": null,
@@ -1347,7 +3735,227 @@
       ],
       "requiredChecks": []
     },
+    "app/api/admin/ide/test/runs/[testRunId]/rerun/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/test/runs/[testRunId]/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/test/runs/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
     "app/api/admin/ide/tree/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/ui-inspection/[inspectionId]/artifacts/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/ui-inspection/[inspectionId]/cancel/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/ui-inspection/[inspectionId]/findings/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/ui-inspection/[inspectionId]/rerun/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/ui-inspection/[inspectionId]/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/ui-inspection/[inspectionId]/snapshot/[artifactId]/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/ui-inspection/[inspectionId]/viewports/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/ui-inspection/capability/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/ui-inspection/list/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/ui-inspection/run/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/workers/[id]/health/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/workers/[id]/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/workers/budget/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/workers/execute/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/workers/executions/[id]/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/workers/executions/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/workers/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/workers/select/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/ide/workers/settings/route.ts": {
       "category": "CORE_LOGIC",
       "capability": null,
       "riskLevel": "SENSITIVE",
@@ -1757,6 +4365,36 @@
       ],
       "requiredChecks": []
     },
+    "app/api/admin/system-reality/_lib/gapLoopBridge.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/system-reality/_lib/ownerLanguage.ts": {
+      "category": "AI",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path matches cognitive/AI-service/presenter pattern, or registry purpose mentions AI",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/admin/system-reality/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
     "app/api/admin/transactions/[id]/advance/route.ts": {
       "category": "CORE_LOGIC",
       "capability": null,
@@ -1977,6 +4615,16 @@
       ],
       "requiredChecks": []
     },
+    "app/api/cron/operations-loop/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
     "app/api/cron/supabase-project-status/route.ts": {
       "category": "CORE_LOGIC",
       "capability": null,
@@ -2037,6 +4685,16 @@
       ],
       "requiredChecks": []
     },
+    "app/api/gateway/observe/railway/route.ts": {
+      "category": "INTEGRATION",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path matches gateway/connector/plugins pattern",
+        "category INTEGRATION is a real external/production trust boundary"
+      ],
+      "requiredChecks": []
+    },
     "app/api/gateway/observe/vercel/route.ts": {
       "category": "INTEGRATION",
       "capability": null,
@@ -2087,6 +4745,16 @@
       ],
       "requiredChecks": []
     },
+    "app/api/internal/canonical/jobs/route.ts": {
+      "category": "WORKFLOW",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path matches workflow/jobs pattern",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
     "app/api/internal/equipment/lock-command/route.ts": {
       "category": "CORE_LOGIC",
       "capability": null,
@@ -2107,6 +4775,16 @@
       ],
       "requiredChecks": []
     },
+    "app/api/internal/gmail/token/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
     "app/api/internal/line/command/route.ts": {
       "category": "CORE_LOGIC",
       "capability": null,
@@ -2118,6 +4796,16 @@
       "requiredChecks": []
     },
     "app/api/internal/line/document-artifact/route.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "real backend API route surface"
+      ],
+      "requiredChecks": []
+    },
+    "app/api/internal/line/token/route.ts": {
       "category": "CORE_LOGIC",
       "capability": null,
       "riskLevel": "SENSITIVE",
@@ -2397,6 +5085,60 @@
       ],
       "requiredChecks": []
     },
+    "app/business-workspace-template/documents/page.tsx": {
+      "category": "UI",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path matches components/ or a non-API app page/component"
+      ],
+      "requiredChecks": []
+    },
+    "app/business-workspace-template/login/page.tsx": {
+      "category": "UI",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path matches components/ or a non-API app page/component"
+      ],
+      "requiredChecks": []
+    },
+    "app/business-workspace-template/overview/page.tsx": {
+      "category": "UI",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path matches components/ or a non-API app page/component"
+      ],
+      "requiredChecks": []
+    },
+    "app/business-workspace-template/page.tsx": {
+      "category": "UI",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path matches components/ or a non-API app page/component"
+      ],
+      "requiredChecks": []
+    },
+    "app/business-workspace-template/tasks/page.tsx": {
+      "category": "UI",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path matches components/ or a non-API app page/component"
+      ],
+      "requiredChecks": []
+    },
+    "app/business-workspace-template/workspace/page.tsx": {
+      "category": "UI",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path matches components/ or a non-API app page/component"
+      ],
+      "requiredChecks": []
+    },
     "app/business/layout.tsx": {
       "category": "UI",
       "capability": null,
@@ -2583,51 +5325,6 @@
       "requiredChecks": []
     },
     "app/partner/page.tsx": {
-      "category": "UI",
-      "capability": null,
-      "riskLevel": "NORMAL",
-      "evidence": [
-        "path matches components/ or a non-API app page/component"
-      ],
-      "requiredChecks": []
-    },
-    "app/playground/_components/ChatInput.tsx": {
-      "category": "UI",
-      "capability": null,
-      "riskLevel": "NORMAL",
-      "evidence": [
-        "path matches components/ or a non-API app page/component"
-      ],
-      "requiredChecks": []
-    },
-    "app/playground/_components/ChatMessageList.tsx": {
-      "category": "UI",
-      "capability": null,
-      "riskLevel": "NORMAL",
-      "evidence": [
-        "path matches components/ or a non-API app page/component"
-      ],
-      "requiredChecks": []
-    },
-    "app/playground/_components/ClarifyingChoice.tsx": {
-      "category": "UI",
-      "capability": null,
-      "riskLevel": "NORMAL",
-      "evidence": [
-        "path matches components/ or a non-API app page/component"
-      ],
-      "requiredChecks": []
-    },
-    "app/playground/_components/ConfirmationPreview.tsx": {
-      "category": "UI",
-      "capability": null,
-      "riskLevel": "NORMAL",
-      "evidence": [
-        "path matches components/ or a non-API app page/component"
-      ],
-      "requiredChecks": []
-    },
-    "app/playground/_components/ResultCard.tsx": {
       "category": "UI",
       "capability": null,
       "riskLevel": "NORMAL",
@@ -3316,11 +6013,11 @@
       "requiredChecks": []
     },
     "components/admin/SecretaryChat.tsx": {
-      "category": "UI",
+      "category": "AI",
       "capability": "Admin",
       "riskLevel": "NORMAL",
       "evidence": [
-        "path matches components/ or a non-API app page/component",
+        "path matches cognitive/AI-service/presenter pattern, or registry purpose mentions AI",
         "derived from the real path segment directly under components/"
       ],
       "requiredChecks": []
@@ -3436,16 +6133,6 @@
       ],
       "requiredChecks": []
     },
-    "components/documents/FileUpload.tsx": {
-      "category": "UI",
-      "capability": "Documents",
-      "riskLevel": "NORMAL",
-      "evidence": [
-        "path matches components/ or a non-API app page/component",
-        "derived from the real path segment directly under components/"
-      ],
-      "requiredChecks": []
-    },
     "components/ide-shell/IDEWorkspace.tsx": {
       "category": "AI",
       "capability": "Ide Shell",
@@ -3456,79 +6143,9 @@
       ],
       "requiredChecks": []
     },
-    "components/ide-shell/mockData.ts": {
-      "category": "UI",
-      "capability": "Ide Shell",
-      "riskLevel": "NORMAL",
-      "evidence": [
-        "path matches components/ or a non-API app page/component",
-        "derived from the real path segment directly under components/"
-      ],
-      "requiredChecks": []
-    },
-    "components/landing/CapabilityPageShell.tsx": {
-      "category": "AI",
-      "capability": "Landing",
-      "riskLevel": "NORMAL",
-      "evidence": [
-        "path matches cognitive/AI-service/presenter pattern, or registry purpose mentions AI",
-        "derived from the real path segment directly under components/"
-      ],
-      "requiredChecks": []
-    },
-    "components/landing/CapabilitySkeleton.tsx": {
-      "category": "UI",
-      "capability": "Landing",
-      "riskLevel": "NORMAL",
-      "evidence": [
-        "path matches components/ or a non-API app page/component",
-        "derived from the real path segment directly under components/"
-      ],
-      "requiredChecks": []
-    },
-    "components/landing/CopyButton.tsx": {
-      "category": "UI",
-      "capability": "Landing",
-      "riskLevel": "NORMAL",
-      "evidence": [
-        "path matches components/ or a non-API app page/component",
-        "derived from the real path segment directly under components/"
-      ],
-      "requiredChecks": []
-    },
     "components/line/ContactSettingsModal.tsx": {
       "category": "UI",
       "capability": "Line",
-      "riskLevel": "NORMAL",
-      "evidence": [
-        "path matches components/ or a non-API app page/component",
-        "derived from the real path segment directly under components/"
-      ],
-      "requiredChecks": []
-    },
-    "components/nav/AppHeader.tsx": {
-      "category": "UI",
-      "capability": "Nav",
-      "riskLevel": "NORMAL",
-      "evidence": [
-        "path matches components/ or a non-API app page/component",
-        "derived from the real path segment directly under components/"
-      ],
-      "requiredChecks": []
-    },
-    "components/nav/HomeBackBar.tsx": {
-      "category": "UI",
-      "capability": "Nav",
-      "riskLevel": "NORMAL",
-      "evidence": [
-        "path matches components/ or a non-API app page/component",
-        "derived from the real path segment directly under components/"
-      ],
-      "requiredChecks": []
-    },
-    "components/portal/PortalShell.tsx": {
-      "category": "UI",
-      "capability": "Portal",
       "riskLevel": "NORMAL",
       "evidence": [
         "path matches components/ or a non-API app page/component",
@@ -3556,99 +6173,9 @@
       ],
       "requiredChecks": []
     },
-    "components/ui-kit/ActionBar.tsx": {
-      "category": "AI",
-      "capability": "Ui Kit",
-      "riskLevel": "NORMAL",
-      "evidence": [
-        "path matches cognitive/AI-service/presenter pattern, or registry purpose mentions AI",
-        "derived from the real path segment directly under components/"
-      ],
-      "requiredChecks": []
-    },
-    "components/ui-kit/AppShell.tsx": {
+    "components/workspace/SystemRealityReportSection.tsx": {
       "category": "UI",
-      "capability": "Ui Kit",
-      "riskLevel": "NORMAL",
-      "evidence": [
-        "path matches components/ or a non-API app page/component",
-        "derived from the real path segment directly under components/"
-      ],
-      "requiredChecks": []
-    },
-    "components/ui-kit/EmptyState.tsx": {
-      "category": "UI",
-      "capability": "Ui Kit",
-      "riskLevel": "NORMAL",
-      "evidence": [
-        "path matches components/ or a non-API app page/component",
-        "derived from the real path segment directly under components/"
-      ],
-      "requiredChecks": []
-    },
-    "components/ui-kit/FlexPreview.tsx": {
-      "category": "UI",
-      "capability": "Ui Kit",
-      "riskLevel": "NORMAL",
-      "evidence": [
-        "path matches components/ or a non-API app page/component",
-        "derived from the real path segment directly under components/"
-      ],
-      "requiredChecks": []
-    },
-    "components/ui-kit/IconRail.tsx": {
-      "category": "UI",
-      "capability": "Ui Kit",
-      "riskLevel": "NORMAL",
-      "evidence": [
-        "path matches components/ or a non-API app page/component",
-        "derived from the real path segment directly under components/"
-      ],
-      "requiredChecks": []
-    },
-    "components/ui-kit/Inspector.tsx": {
-      "category": "UI",
-      "capability": "Ui Kit",
-      "riskLevel": "NORMAL",
-      "evidence": [
-        "path matches components/ or a non-API app page/component",
-        "derived from the real path segment directly under components/"
-      ],
-      "requiredChecks": []
-    },
-    "components/ui-kit/ListColumn.tsx": {
-      "category": "UI",
-      "capability": "Ui Kit",
-      "riskLevel": "NORMAL",
-      "evidence": [
-        "path matches components/ or a non-API app page/component",
-        "derived from the real path segment directly under components/"
-      ],
-      "requiredChecks": []
-    },
-    "components/ui-kit/MapView.tsx": {
-      "category": "UI",
-      "capability": "Ui Kit",
-      "riskLevel": "NORMAL",
-      "evidence": [
-        "path matches components/ or a non-API app page/component",
-        "derived from the real path segment directly under components/"
-      ],
-      "requiredChecks": []
-    },
-    "components/ui-kit/Window.tsx": {
-      "category": "UI",
-      "capability": "Ui Kit",
-      "riskLevel": "NORMAL",
-      "evidence": [
-        "path matches components/ or a non-API app page/component",
-        "derived from the real path segment directly under components/"
-      ],
-      "requiredChecks": []
-    },
-    "components/ui-kit/index.ts": {
-      "category": "UI",
-      "capability": "Ui Kit",
+      "capability": "Workspace",
       "riskLevel": "NORMAL",
       "evidence": [
         "path matches components/ or a non-API app page/component",
@@ -3667,26 +6194,6 @@
       "requiredChecks": []
     },
     "components/workspace/WorkspaceShell.tsx": {
-      "category": "UI",
-      "capability": "Workspace",
-      "riskLevel": "NORMAL",
-      "evidence": [
-        "path matches components/ or a non-API app page/component",
-        "derived from the real path segment directly under components/"
-      ],
-      "requiredChecks": []
-    },
-    "components/workspace/boards/DashboardBoard.tsx": {
-      "category": "UI",
-      "capability": "Workspace",
-      "riskLevel": "NORMAL",
-      "evidence": [
-        "path matches components/ or a non-API app page/component",
-        "derived from the real path segment directly under components/"
-      ],
-      "requiredChecks": []
-    },
-    "components/workspace/boards/NotImplementedBoard.tsx": {
       "category": "UI",
       "capability": "Workspace",
       "riskLevel": "NORMAL",
@@ -3786,6 +6293,16 @@
       ],
       "requiredChecks": []
     },
+    "components/workspace/systemRealityPolling.ts": {
+      "category": "UI",
+      "capability": "Workspace",
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path matches components/ or a non-API app page/component",
+        "derived from the real path segment directly under components/"
+      ],
+      "requiredChecks": []
+    },
     "config/document-service-categories.ts": {
       "category": "UNKNOWN",
       "capability": null,
@@ -3875,6 +6392,15 @@
       "requiredChecks": []
     },
     "core/config/company-settings.ts": {
+      "category": "CORE_LOGIC",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)"
+      ],
+      "requiredChecks": []
+    },
+    "core/config/ide-settings.ts": {
       "category": "CORE_LOGIC",
       "capability": null,
       "riskLevel": "NORMAL",
@@ -4506,6 +7032,13 @@
       "evidence": [],
       "requiredChecks": []
     },
+    "dna-os-mcp-server/src/index-governance-http.ts": {
+      "category": "UNKNOWN",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [],
+      "requiredChecks": []
+    },
     "dna-os-mcp-server/src/index-http.ts": {
       "category": "UNKNOWN",
       "capability": null,
@@ -4599,6 +7132,20 @@
       ],
       "requiredChecks": []
     },
+    "e2e/auth.setup.ts": {
+      "category": "UNKNOWN",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [],
+      "requiredChecks": []
+    },
+    "engine.ts": {
+      "category": "UNKNOWN",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [],
+      "requiredChecks": []
+    },
     "engines/bot-exchange-rate.ts": {
       "category": "CORE_LOGIC",
       "capability": "Bot Exchange Rate",
@@ -4619,6 +7166,76 @@
       ],
       "requiredChecks": []
     },
+    "engines/canonical/artifact-write.ts": {
+      "category": "CORE_LOGIC",
+      "capability": "Canonical",
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "derived from the real path segment directly under engines/"
+      ],
+      "requiredChecks": []
+    },
+    "engines/canonical/audit.ts": {
+      "category": "CORE_LOGIC",
+      "capability": "Canonical",
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "derived from the real path segment directly under engines/"
+      ],
+      "requiredChecks": []
+    },
+    "engines/canonical/debt-write.ts": {
+      "category": "CORE_LOGIC",
+      "capability": "Canonical",
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "derived from the real path segment directly under engines/"
+      ],
+      "requiredChecks": []
+    },
+    "engines/canonical/document-write.ts": {
+      "category": "CORE_LOGIC",
+      "capability": "Canonical",
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "derived from the real path segment directly under engines/"
+      ],
+      "requiredChecks": []
+    },
+    "engines/canonical/inbound-write.ts": {
+      "category": "CORE_LOGIC",
+      "capability": "Canonical",
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "derived from the real path segment directly under engines/"
+      ],
+      "requiredChecks": []
+    },
+    "engines/canonical/payment-write.ts": {
+      "category": "CORE_LOGIC",
+      "capability": "Canonical",
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "derived from the real path segment directly under engines/"
+      ],
+      "requiredChecks": []
+    },
+    "engines/canonical/transaction-write.ts": {
+      "category": "CORE_LOGIC",
+      "capability": "Canonical",
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "derived from the real path segment directly under engines/"
+      ],
+      "requiredChecks": []
+    },
     "engines/capacity.ts": {
       "category": "CORE_LOGIC",
       "capability": "Capacity",
@@ -4626,6 +7243,50 @@
       "evidence": [
         "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
         "derived from the real path segment directly under engines/"
+      ],
+      "requiredChecks": []
+    },
+    "engines/connectors/contract.ts": {
+      "category": "INTEGRATION",
+      "capability": "Connectors",
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path matches gateway/connector/plugins pattern",
+        "derived from the real path segment directly under engines/",
+        "category INTEGRATION is a real external/production trust boundary"
+      ],
+      "requiredChecks": []
+    },
+    "engines/connectors/providers/github.ts": {
+      "category": "INTEGRATION",
+      "capability": "Connectors",
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path matches gateway/connector/plugins pattern",
+        "derived from the real path segment directly under engines/",
+        "category INTEGRATION is a real external/production trust boundary"
+      ],
+      "requiredChecks": []
+    },
+    "engines/connectors/providers/railway.ts": {
+      "category": "INTEGRATION",
+      "capability": "Connectors",
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path matches gateway/connector/plugins pattern",
+        "derived from the real path segment directly under engines/",
+        "category INTEGRATION is a real external/production trust boundary"
+      ],
+      "requiredChecks": []
+    },
+    "engines/connectors/registry.ts": {
+      "category": "INTEGRATION",
+      "capability": "Connectors",
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path matches gateway/connector/plugins pattern",
+        "derived from the real path segment directly under engines/",
+        "category INTEGRATION is a real external/production trust boundary"
       ],
       "requiredChecks": []
     },
@@ -4850,6 +7511,16 @@
       ],
       "requiredChecks": []
     },
+    "engines/documents/types.ts": {
+      "category": "CORE_LOGIC",
+      "capability": "Documents",
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "derived from the real path segment directly under engines/"
+      ],
+      "requiredChecks": []
+    },
     "engines/domains/cloudflare.ts": {
       "category": "CORE_LOGIC",
       "capability": "Domains",
@@ -4861,6 +7532,16 @@
       "requiredChecks": []
     },
     "engines/domains/hostinger.ts": {
+      "category": "CORE_LOGIC",
+      "capability": "Domains",
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path is under a real backend/business-logic layer (engines/, core/, app/api/)",
+        "derived from the real path segment directly under engines/"
+      ],
+      "requiredChecks": []
+    },
+    "engines/domains/railway-binding.ts": {
       "category": "CORE_LOGIC",
       "capability": "Domains",
       "riskLevel": "NORMAL",
@@ -5011,6 +7692,17 @@
       ],
       "requiredChecks": []
     },
+    "engines/integration-gateway/adapters/railway.ts": {
+      "category": "INTEGRATION",
+      "capability": "Integration Gateway",
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path matches gateway/connector/plugins pattern",
+        "derived from the real path segment directly under engines/",
+        "category INTEGRATION is a real external/production trust boundary"
+      ],
+      "requiredChecks": []
+    },
     "engines/integration-gateway/adapters/supabase.ts": {
       "category": "INTEGRATION",
       "capability": "Integration Gateway",
@@ -5110,7 +7802,37 @@
       ],
       "requiredChecks": []
     },
+    "engines/jobs/approval-evidence.ts": {
+      "category": "WORKFLOW",
+      "capability": "Jobs",
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path matches workflow/jobs pattern",
+        "derived from the real path segment directly under engines/"
+      ],
+      "requiredChecks": []
+    },
     "engines/jobs/auto-create.ts": {
+      "category": "WORKFLOW",
+      "capability": "Jobs",
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path matches workflow/jobs pattern",
+        "derived from the real path segment directly under engines/"
+      ],
+      "requiredChecks": []
+    },
+    "engines/jobs/business-job-adapter.ts": {
+      "category": "WORKFLOW",
+      "capability": "Jobs",
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path matches workflow/jobs pattern",
+        "derived from the real path segment directly under engines/"
+      ],
+      "requiredChecks": []
+    },
+    "engines/jobs/job-recovery.ts": {
       "category": "WORKFLOW",
       "capability": "Jobs",
       "riskLevel": "NORMAL",
@@ -5913,6 +8635,27 @@
       ],
       "requiredChecks": []
     },
+    "local-runtime/runtime-registration-test.ts": {
+      "category": "UNKNOWN",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [],
+      "requiredChecks": []
+    },
+    "local-runtime/storage-smoke-test.ts": {
+      "category": "UNKNOWN",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [],
+      "requiredChecks": []
+    },
+    "local-runtime/storage-threshold-watcher.ts": {
+      "category": "UNKNOWN",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [],
+      "requiredChecks": []
+    },
     "local-runtime/voice-print.mjs": {
       "category": "CONFIGURATION",
       "capability": null,
@@ -5958,6 +8701,13 @@
       ],
       "requiredChecks": []
     },
+    "local-runtime/workspace-root-verifier-acceptance-test.ts": {
+      "category": "UNKNOWN",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [],
+      "requiredChecks": []
+    },
     "middleware.ts": {
       "category": "SECURITY",
       "capability": null,
@@ -5982,6 +8732,26 @@
       "capability": null,
       "riskLevel": "NORMAL",
       "evidence": [],
+      "requiredChecks": []
+    },
+    "playwright.config.ts": {
+      "category": "CONFIGURATION",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path/layer matches configuration or build-tooling pattern"
+      ],
+      "requiredChecks": []
+    },
+    "plugins/agent/server.ts": {
+      "category": "INTEGRATION",
+      "capability": "Agent",
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path matches gateway/connector/plugins pattern",
+        "derived from the real path segment directly under plugins/",
+        "category INTEGRATION is a real external/production trust boundary"
+      ],
       "requiredChecks": []
     },
     "plugins/capabilities.ts": {
@@ -6423,6 +9193,244 @@
       ],
       "requiredChecks": []
     },
+    "presentation/ai/ChatInput.tsx": {
+      "category": "UNKNOWN",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [],
+      "requiredChecks": []
+    },
+    "presentation/ai/ChatMessageList.tsx": {
+      "category": "UNKNOWN",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [],
+      "requiredChecks": []
+    },
+    "presentation/ai/ClarifyingChoice.tsx": {
+      "category": "UNKNOWN",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [],
+      "requiredChecks": []
+    },
+    "presentation/ai/ConfirmationPreview.tsx": {
+      "category": "UNKNOWN",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [],
+      "requiredChecks": []
+    },
+    "presentation/ai/ResultCard.tsx": {
+      "category": "UNKNOWN",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [],
+      "requiredChecks": []
+    },
+    "presentation/assets/manifest.ts": {
+      "category": "UNKNOWN",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [],
+      "requiredChecks": []
+    },
+    "presentation/documents/FileUpload.tsx": {
+      "category": "UNKNOWN",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [],
+      "requiredChecks": []
+    },
+    "presentation/feedback/CapabilitySkeleton.tsx": {
+      "category": "UNKNOWN",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [],
+      "requiredChecks": []
+    },
+    "presentation/feedback/CopyButton.tsx": {
+      "category": "UNKNOWN",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [],
+      "requiredChecks": []
+    },
+    "presentation/feedback/EmptyState.tsx": {
+      "category": "UNKNOWN",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [],
+      "requiredChecks": []
+    },
+    "presentation/form/FormActions.tsx": {
+      "category": "UNKNOWN",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [],
+      "requiredChecks": []
+    },
+    "presentation/form/FormField.tsx": {
+      "category": "UNKNOWN",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [],
+      "requiredChecks": []
+    },
+    "presentation/foundation/tokens/colors.ts": {
+      "category": "UNKNOWN",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [],
+      "requiredChecks": []
+    },
+    "presentation/foundation/tokens/elevation.ts": {
+      "category": "UNKNOWN",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [],
+      "requiredChecks": []
+    },
+    "presentation/foundation/tokens/index.tsx": {
+      "category": "UNKNOWN",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [],
+      "requiredChecks": []
+    },
+    "presentation/foundation/tokens/semantic-colors.ts": {
+      "category": "UNKNOWN",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [],
+      "requiredChecks": []
+    },
+    "presentation/foundation/tokens/spacing.ts": {
+      "category": "UNKNOWN",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [],
+      "requiredChecks": []
+    },
+    "presentation/foundation/tokens/typography.ts": {
+      "category": "UNKNOWN",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [],
+      "requiredChecks": []
+    },
+    "presentation/panels/ActionBar.tsx": {
+      "category": "UNKNOWN",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [],
+      "requiredChecks": []
+    },
+    "presentation/panels/Inspector.tsx": {
+      "category": "UNKNOWN",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [],
+      "requiredChecks": []
+    },
+    "presentation/panels/Window.tsx": {
+      "category": "UNKNOWN",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [],
+      "requiredChecks": []
+    },
+    "presentation/shell/AppShell.tsx": {
+      "category": "UNKNOWN",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [],
+      "requiredChecks": []
+    },
+    "presentation/shell/PortalShell.tsx": {
+      "category": "UNKNOWN",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [],
+      "requiredChecks": []
+    },
+    "presentation/shell/TemplateShell.tsx": {
+      "category": "UNKNOWN",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [],
+      "requiredChecks": []
+    },
+    "presentation/shell/navigation/AppHeader.tsx": {
+      "category": "UNKNOWN",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [],
+      "requiredChecks": []
+    },
+    "presentation/shell/navigation/HomeBackBar.tsx": {
+      "category": "UNKNOWN",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [],
+      "requiredChecks": []
+    },
+    "presentation/shell/navigation/IconRail.tsx": {
+      "category": "UNKNOWN",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [],
+      "requiredChecks": []
+    },
+    "presentation/shell/navigation/ListColumn.tsx": {
+      "category": "UNKNOWN",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [],
+      "requiredChecks": []
+    },
+    "presentation/shell/workspace/DashboardBoard.tsx": {
+      "category": "UNKNOWN",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [],
+      "requiredChecks": []
+    },
+    "presentation/shell/workspace/NotImplementedBoard.tsx": {
+      "category": "UNKNOWN",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [],
+      "requiredChecks": []
+    },
+    "presentation/table/DataTable.tsx": {
+      "category": "UNKNOWN",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [],
+      "requiredChecks": []
+    },
+    "presentation/viewer/FlexPreview.tsx": {
+      "category": "UNKNOWN",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [],
+      "requiredChecks": []
+    },
+    "presentation/viewer/MapView.tsx": {
+      "category": "UNKNOWN",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [],
+      "requiredChecks": []
+    },
+    "presentation/viewer/Viewer.tsx": {
+      "category": "UNKNOWN",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [],
+      "requiredChecks": []
+    },
     "presenter/enricher.ts": {
       "category": "AI",
       "capability": null,
@@ -6608,7 +9616,142 @@
       "evidence": [],
       "requiredChecks": []
     },
+    "scripts/_hcg_unknown_analysis.ts": {
+      "category": "CONFIGURATION",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path/layer matches configuration or build-tooling pattern"
+      ],
+      "requiredChecks": []
+    },
+    "scripts/ai-context-test.ts": {
+      "category": "CONFIGURATION",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path/layer matches configuration or build-tooling pattern"
+      ],
+      "requiredChecks": []
+    },
+    "scripts/alerting-test.ts": {
+      "category": "CONFIGURATION",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path/layer matches configuration or build-tooling pattern"
+      ],
+      "requiredChecks": []
+    },
+    "scripts/arch-health-report.ts": {
+      "category": "CONFIGURATION",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path/layer matches configuration or build-tooling pattern"
+      ],
+      "requiredChecks": []
+    },
+    "scripts/architecture-summary-test.ts": {
+      "category": "CONFIGURATION",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path/layer matches configuration or build-tooling pattern"
+      ],
+      "requiredChecks": []
+    },
+    "scripts/artifact-test.ts": {
+      "category": "CONFIGURATION",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path/layer matches configuration or build-tooling pattern"
+      ],
+      "requiredChecks": []
+    },
+    "scripts/autosave-runtime-test.ts": {
+      "category": "CONFIGURATION",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path/layer matches configuration or build-tooling pattern"
+      ],
+      "requiredChecks": []
+    },
+    "scripts/backup-integrity-test.ts": {
+      "category": "CONFIGURATION",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path/layer matches configuration or build-tooling pattern"
+      ],
+      "requiredChecks": []
+    },
+    "scripts/backup.ts": {
+      "category": "CONFIGURATION",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path/layer matches configuration or build-tooling pattern"
+      ],
+      "requiredChecks": []
+    },
     "scripts/build-arch-book.ts": {
+      "category": "CONFIGURATION",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path/layer matches configuration or build-tooling pattern"
+      ],
+      "requiredChecks": []
+    },
+    "scripts/build-code-classification.ts": {
+      "category": "CONFIGURATION",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path/layer matches configuration or build-tooling pattern"
+      ],
+      "requiredChecks": []
+    },
+    "scripts/build-factory-completion-report.ts": {
+      "category": "CONFIGURATION",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path/layer matches configuration or build-tooling pattern"
+      ],
+      "requiredChecks": []
+    },
+    "scripts/build-factory-registry.ts": {
+      "category": "CONFIGURATION",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path/layer matches configuration or build-tooling pattern"
+      ],
+      "requiredChecks": []
+    },
+    "scripts/build-gate-test.ts": {
+      "category": "CONFIGURATION",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path/layer matches configuration or build-tooling pattern"
+      ],
+      "requiredChecks": []
+    },
+    "scripts/build-global-factory-report.ts": {
+      "category": "CONFIGURATION",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path/layer matches configuration or build-tooling pattern"
+      ],
+      "requiredChecks": []
+    },
+    "scripts/build-governance-summary.ts": {
       "category": "CONFIGURATION",
       "capability": null,
       "riskLevel": "NORMAL",
@@ -6626,6 +9769,60 @@
       ],
       "requiredChecks": []
     },
+    "scripts/build-test.ts": {
+      "category": "CONFIGURATION",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path/layer matches configuration or build-tooling pattern"
+      ],
+      "requiredChecks": []
+    },
+    "scripts/business-failure-bridge-test.ts": {
+      "category": "CONFIGURATION",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path/layer matches configuration or build-tooling pattern"
+      ],
+      "requiredChecks": []
+    },
+    "scripts/canonical-finance-acceptance-test.ts": {
+      "category": "CONFIGURATION",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path/layer matches configuration or build-tooling pattern"
+      ],
+      "requiredChecks": []
+    },
+    "scripts/canonical-phase-c-acceptance-test.ts": {
+      "category": "CONFIGURATION",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path/layer matches configuration or build-tooling pattern"
+      ],
+      "requiredChecks": []
+    },
+    "scripts/canonical-phase-d-acceptance-test.ts": {
+      "category": "CONFIGURATION",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path/layer matches configuration or build-tooling pattern"
+      ],
+      "requiredChecks": []
+    },
+    "scripts/capability-resolver-test.ts": {
+      "category": "CONFIGURATION",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path/layer matches configuration or build-tooling pattern"
+      ],
+      "requiredChecks": []
+    },
     "scripts/check-system-control-graph.ts": {
       "category": "CONFIGURATION",
       "capability": null,
@@ -6635,7 +9832,333 @@
       ],
       "requiredChecks": []
     },
+    "scripts/check-transitional-layers.ts": {
+      "category": "CONFIGURATION",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path/layer matches configuration or build-tooling pattern"
+      ],
+      "requiredChecks": []
+    },
+    "scripts/cli-worker-test.ts": {
+      "category": "CONFIGURATION",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path/layer matches configuration or build-tooling pattern"
+      ],
+      "requiredChecks": []
+    },
+    "scripts/code-worker-bridge-test.ts": {
+      "category": "CONFIGURATION",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path/layer matches configuration or build-tooling pattern"
+      ],
+      "requiredChecks": []
+    },
+    "scripts/code-worker-test.ts": {
+      "category": "CONFIGURATION",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path/layer matches configuration or build-tooling pattern"
+      ],
+      "requiredChecks": []
+    },
+    "scripts/command-surface-test.ts": {
+      "category": "CONFIGURATION",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path/layer matches configuration or build-tooling pattern"
+      ],
+      "requiredChecks": []
+    },
+    "scripts/compatibility-test.ts": {
+      "category": "CONFIGURATION",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path/layer matches configuration or build-tooling pattern"
+      ],
+      "requiredChecks": []
+    },
+    "scripts/connect-core-acceptance-test.ts": {
+      "category": "CONFIGURATION",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path/layer matches configuration or build-tooling pattern"
+      ],
+      "requiredChecks": []
+    },
+    "scripts/context-planner-test.ts": {
+      "category": "CONFIGURATION",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path/layer matches configuration or build-tooling pattern"
+      ],
+      "requiredChecks": []
+    },
+    "scripts/continuous-operations-test.ts": {
+      "category": "CONFIGURATION",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path/layer matches configuration or build-tooling pattern"
+      ],
+      "requiredChecks": []
+    },
+    "scripts/cost-gate-test.ts": {
+      "category": "CONFIGURATION",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path/layer matches configuration or build-tooling pattern"
+      ],
+      "requiredChecks": []
+    },
+    "scripts/country-test.ts": {
+      "category": "CONFIGURATION",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path/layer matches configuration or build-tooling pattern"
+      ],
+      "requiredChecks": []
+    },
+    "scripts/dead-end-sweep-test.ts": {
+      "category": "CONFIGURATION",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path/layer matches configuration or build-tooling pattern"
+      ],
+      "requiredChecks": []
+    },
+    "scripts/demo-full-pipeline-part2.ts": {
+      "category": "CONFIGURATION",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path/layer matches configuration or build-tooling pattern"
+      ],
+      "requiredChecks": []
+    },
+    "scripts/demo-full-pipeline.ts": {
+      "category": "CONFIGURATION",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path/layer matches configuration or build-tooling pattern"
+      ],
+      "requiredChecks": []
+    },
     "scripts/deploy-gate.ts": {
+      "category": "CONFIGURATION",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path/layer matches configuration or build-tooling pattern"
+      ],
+      "requiredChecks": []
+    },
+    "scripts/deployment-test.ts": {
+      "category": "CONFIGURATION",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path/layer matches configuration or build-tooling pattern"
+      ],
+      "requiredChecks": []
+    },
+    "scripts/digitalocean-connector-credential-resolution-test.ts": {
+      "category": "INTEGRATION",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path matches gateway/connector/plugins pattern",
+        "category INTEGRATION is a real external/production trust boundary"
+      ],
+      "requiredChecks": []
+    },
+    "scripts/digitalocean-infra-billing-submit-handoff.ts": {
+      "category": "CONFIGURATION",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path/layer matches configuration or build-tooling pattern"
+      ],
+      "requiredChecks": []
+    },
+    "scripts/digitalocean-worker-live-test.ts": {
+      "category": "CONFIGURATION",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path/layer matches configuration or build-tooling pattern"
+      ],
+      "requiredChecks": []
+    },
+    "scripts/digitalocean-worker-router-proof.ts": {
+      "category": "CONFIGURATION",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path/layer matches configuration or build-tooling pattern"
+      ],
+      "requiredChecks": []
+    },
+    "scripts/dispatcher-execution-mode-test.ts": {
+      "category": "CONFIGURATION",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path/layer matches configuration or build-tooling pattern"
+      ],
+      "requiredChecks": []
+    },
+    "scripts/document-lifecycle-test.ts": {
+      "category": "CONFIGURATION",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path/layer matches configuration or build-tooling pattern"
+      ],
+      "requiredChecks": []
+    },
+    "scripts/edge-function-worker-test.ts": {
+      "category": "CONFIGURATION",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path/layer matches configuration or build-tooling pattern"
+      ],
+      "requiredChecks": []
+    },
+    "scripts/execution-context-test.ts": {
+      "category": "CONFIGURATION",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path/layer matches configuration or build-tooling pattern"
+      ],
+      "requiredChecks": []
+    },
+    "scripts/execution-hand-dispatch-run.ts": {
+      "category": "CONFIGURATION",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path/layer matches configuration or build-tooling pattern"
+      ],
+      "requiredChecks": []
+    },
+    "scripts/execution-hand-test.ts": {
+      "category": "CONFIGURATION",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path/layer matches configuration or build-tooling pattern"
+      ],
+      "requiredChecks": []
+    },
+    "scripts/execution-planner-test.ts": {
+      "category": "CONFIGURATION",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path/layer matches configuration or build-tooling pattern"
+      ],
+      "requiredChecks": []
+    },
+    "scripts/external-attack-surface-test.ts": {
+      "category": "CONFIGURATION",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path/layer matches configuration or build-tooling pattern"
+      ],
+      "requiredChecks": []
+    },
+    "scripts/factory-completion-test.ts": {
+      "category": "CONFIGURATION",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path/layer matches configuration or build-tooling pattern"
+      ],
+      "requiredChecks": []
+    },
+    "scripts/factory-readiness-test.ts": {
+      "category": "CONFIGURATION",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path/layer matches configuration or build-tooling pattern"
+      ],
+      "requiredChecks": []
+    },
+    "scripts/factory-registry-test.ts": {
+      "category": "CONFIGURATION",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path/layer matches configuration or build-tooling pattern"
+      ],
+      "requiredChecks": []
+    },
+    "scripts/factory-workspace-test.ts": {
+      "category": "CONFIGURATION",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path/layer matches configuration or build-tooling pattern"
+      ],
+      "requiredChecks": []
+    },
+    "scripts/gap-loop-test.ts": {
+      "category": "CONFIGURATION",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path/layer matches configuration or build-tooling pattern"
+      ],
+      "requiredChecks": []
+    },
+    "scripts/gateway-observe-supabase.ts": {
+      "category": "CONFIGURATION",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path/layer matches configuration or build-tooling pattern"
+      ],
+      "requiredChecks": []
+    },
+    "scripts/github-connector-test.ts": {
+      "category": "INTEGRATION",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path matches gateway/connector/plugins pattern",
+        "category INTEGRATION is a real external/production trust boundary"
+      ],
+      "requiredChecks": []
+    },
+    "scripts/global-factory-test.ts": {
+      "category": "CONFIGURATION",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path/layer matches configuration or build-tooling pattern"
+      ],
+      "requiredChecks": []
+    },
+    "scripts/governance-test.ts": {
       "category": "CONFIGURATION",
       "capability": null,
       "riskLevel": "NORMAL",
@@ -6671,6 +10194,24 @@
       ],
       "requiredChecks": []
     },
+    "scripts/hardcode-precommit-hook.ts": {
+      "category": "CONFIGURATION",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path/layer matches configuration or build-tooling pattern"
+      ],
+      "requiredChecks": []
+    },
+    "scripts/hardcode-precommit-scan.ts": {
+      "category": "CONFIGURATION",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path/layer matches configuration or build-tooling pattern"
+      ],
+      "requiredChecks": []
+    },
     "scripts/hcg-build-schema-cache.ts": {
       "category": "CONFIGURATION",
       "capability": null,
@@ -6689,6 +10230,15 @@
       ],
       "requiredChecks": []
     },
+    "scripts/ide-editor-overflow-verify.ts": {
+      "category": "CONFIGURATION",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path/layer matches configuration or build-tooling pattern"
+      ],
+      "requiredChecks": []
+    },
     "scripts/ide-regression-test.ts": {
       "category": "CONFIGURATION",
       "capability": null,
@@ -6698,7 +10248,323 @@
       ],
       "requiredChecks": []
     },
+    "scripts/impact-analyzer.ts": {
+      "category": "CONFIGURATION",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path/layer matches configuration or build-tooling pattern"
+      ],
+      "requiredChecks": []
+    },
+    "scripts/incident-test.ts": {
+      "category": "CONFIGURATION",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path/layer matches configuration or build-tooling pattern"
+      ],
+      "requiredChecks": []
+    },
+    "scripts/infrastructure-billing-layer-verify.ts": {
+      "category": "CONFIGURATION",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path/layer matches configuration or build-tooling pattern"
+      ],
+      "requiredChecks": []
+    },
+    "scripts/job-contract-cross-runtime-test.ts": {
+      "category": "CONFIGURATION",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path/layer matches configuration or build-tooling pattern"
+      ],
+      "requiredChecks": []
+    },
+    "scripts/job-contract-declare-test.ts": {
+      "category": "AI",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path matches cognitive/AI-service/presenter pattern, or registry purpose mentions AI"
+      ],
+      "requiredChecks": []
+    },
+    "scripts/job-contract-recover-test.ts": {
+      "category": "CONFIGURATION",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path/layer matches configuration or build-tooling pattern"
+      ],
+      "requiredChecks": []
+    },
+    "scripts/job-contract-verify-test.ts": {
+      "category": "CONFIGURATION",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path/layer matches configuration or build-tooling pattern"
+      ],
+      "requiredChecks": []
+    },
+    "scripts/job-contract-wrap-test.ts": {
+      "category": "CONFIGURATION",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path/layer matches configuration or build-tooling pattern"
+      ],
+      "requiredChecks": []
+    },
+    "scripts/line-credential-path-test.ts": {
+      "category": "CONFIGURATION",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path/layer matches configuration or build-tooling pattern"
+      ],
+      "requiredChecks": []
+    },
+    "scripts/local-worker-test.ts": {
+      "category": "CONFIGURATION",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path/layer matches configuration or build-tooling pattern"
+      ],
+      "requiredChecks": []
+    },
+    "scripts/manager-question-queue-test.ts": {
+      "category": "CONFIGURATION",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path/layer matches configuration or build-tooling pattern"
+      ],
+      "requiredChecks": []
+    },
+    "scripts/mcp-worker-test.ts": {
+      "category": "CONFIGURATION",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path/layer matches configuration or build-tooling pattern"
+      ],
+      "requiredChecks": []
+    },
+    "scripts/monitoring-test.ts": {
+      "category": "CONFIGURATION",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path/layer matches configuration or build-tooling pattern"
+      ],
+      "requiredChecks": []
+    },
+    "scripts/native-factory-flow-test.ts": {
+      "category": "CONFIGURATION",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path/layer matches configuration or build-tooling pattern"
+      ],
+      "requiredChecks": []
+    },
+    "scripts/new-module.ts": {
+      "category": "CONFIGURATION",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path/layer matches configuration or build-tooling pattern"
+      ],
+      "requiredChecks": []
+    },
+    "scripts/operations-readiness-test.ts": {
+      "category": "CONFIGURATION",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path/layer matches configuration or build-tooling pattern"
+      ],
+      "requiredChecks": []
+    },
+    "scripts/operations-test.ts": {
+      "category": "CONFIGURATION",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path/layer matches configuration or build-tooling pattern"
+      ],
+      "requiredChecks": []
+    },
+    "scripts/package-test.ts": {
+      "category": "CONFIGURATION",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path/layer matches configuration or build-tooling pattern"
+      ],
+      "requiredChecks": []
+    },
+    "scripts/railway-adapter-test.ts": {
+      "category": "CONFIGURATION",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path/layer matches configuration or build-tooling pattern"
+      ],
+      "requiredChecks": []
+    },
+    "scripts/readiness-test.ts": {
+      "category": "CONFIGURATION",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path/layer matches configuration or build-tooling pattern"
+      ],
+      "requiredChecks": []
+    },
     "scripts/record-validation.ts": {
+      "category": "CONFIGURATION",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path/layer matches configuration or build-tooling pattern"
+      ],
+      "requiredChecks": []
+    },
+    "scripts/recovery-test.ts": {
+      "category": "CONFIGURATION",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path/layer matches configuration or build-tooling pattern"
+      ],
+      "requiredChecks": []
+    },
+    "scripts/register-github-oauth-connector.ts": {
+      "category": "INTEGRATION",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path matches gateway/connector/plugins pattern",
+        "category INTEGRATION is a real external/production trust boundary"
+      ],
+      "requiredChecks": []
+    },
+    "scripts/registry-integrity-gate-test.ts": {
+      "category": "CONFIGURATION",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path/layer matches configuration or build-tooling pattern"
+      ],
+      "requiredChecks": []
+    },
+    "scripts/registry-integrity-gate.ts": {
+      "category": "CONFIGURATION",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path/layer matches configuration or build-tooling pattern"
+      ],
+      "requiredChecks": []
+    },
+    "scripts/registry-sync-regression-test.ts": {
+      "category": "CONFIGURATION",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path/layer matches configuration or build-tooling pattern"
+      ],
+      "requiredChecks": []
+    },
+    "scripts/release-test.ts": {
+      "category": "CONFIGURATION",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path/layer matches configuration or build-tooling pattern"
+      ],
+      "requiredChecks": []
+    },
+    "scripts/restore-test-test.ts": {
+      "category": "CONFIGURATION",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path/layer matches configuration or build-tooling pattern"
+      ],
+      "requiredChecks": []
+    },
+    "scripts/review-test.ts": {
+      "category": "CONFIGURATION",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path/layer matches configuration or build-tooling pattern"
+      ],
+      "requiredChecks": []
+    },
+    "scripts/scan-duplicate-files.ts": {
+      "category": "CONFIGURATION",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path/layer matches configuration or build-tooling pattern"
+      ],
+      "requiredChecks": []
+    },
+    "scripts/security-intelligence-test.ts": {
+      "category": "CONFIGURATION",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path/layer matches configuration or build-tooling pattern"
+      ],
+      "requiredChecks": []
+    },
+    "scripts/seed-execution-context.ts": {
+      "category": "CONFIGURATION",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path/layer matches configuration or build-tooling pattern"
+      ],
+      "requiredChecks": []
+    },
+    "scripts/settings-real-wiring-test.ts": {
+      "category": "CONFIGURATION",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path/layer matches configuration or build-tooling pattern"
+      ],
+      "requiredChecks": []
+    },
+    "scripts/state-reconcile.ts": {
+      "category": "CONFIGURATION",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path/layer matches configuration or build-tooling pattern"
+      ],
+      "requiredChecks": []
+    },
+    "scripts/switch-based-orchestrator-test.ts": {
+      "category": "CONFIGURATION",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path/layer matches configuration or build-tooling pattern"
+      ],
+      "requiredChecks": []
+    },
+    "scripts/sync-infrastructure-dependencies.ts": {
       "category": "CONFIGURATION",
       "capability": null,
       "riskLevel": "NORMAL",
@@ -6725,6 +10591,51 @@
       ],
       "requiredChecks": []
     },
+    "scripts/system-reality-gaploop-test.ts": {
+      "category": "CONFIGURATION",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path/layer matches configuration or build-tooling pattern"
+      ],
+      "requiredChecks": []
+    },
+    "scripts/system-reality-model-test.ts": {
+      "category": "CONFIGURATION",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path/layer matches configuration or build-tooling pattern"
+      ],
+      "requiredChecks": []
+    },
+    "scripts/system-reality-report-test.ts": {
+      "category": "CONFIGURATION",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path/layer matches configuration or build-tooling pattern"
+      ],
+      "requiredChecks": []
+    },
+    "scripts/test-test.ts": {
+      "category": "CONFIGURATION",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path/layer matches configuration or build-tooling pattern"
+      ],
+      "requiredChecks": []
+    },
+    "scripts/ui-inspection-test.ts": {
+      "category": "CONFIGURATION",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path/layer matches configuration or build-tooling pattern"
+      ],
+      "requiredChecks": []
+    },
     "scripts/verification/dev-loop-e2e-harness.ts": {
       "category": "CONFIGURATION",
       "capability": null,
@@ -6740,6 +10651,78 @@
       "riskLevel": "NORMAL",
       "evidence": [
         "path matches cognitive/AI-service/presenter pattern, or registry purpose mentions AI"
+      ],
+      "requiredChecks": []
+    },
+    "scripts/vscode-exit-test.ts": {
+      "category": "CONFIGURATION",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path/layer matches configuration or build-tooling pattern"
+      ],
+      "requiredChecks": []
+    },
+    "scripts/watch-registry.ts": {
+      "category": "CONFIGURATION",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path/layer matches configuration or build-tooling pattern"
+      ],
+      "requiredChecks": []
+    },
+    "scripts/worker-adapter-test.ts": {
+      "category": "CONFIGURATION",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path/layer matches configuration or build-tooling pattern"
+      ],
+      "requiredChecks": []
+    },
+    "scripts/worker-assignment-test.ts": {
+      "category": "CONFIGURATION",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path/layer matches configuration or build-tooling pattern"
+      ],
+      "requiredChecks": []
+    },
+    "scripts/worker-budget-test.ts": {
+      "category": "CONFIGURATION",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path/layer matches configuration or build-tooling pattern"
+      ],
+      "requiredChecks": []
+    },
+    "scripts/worker-fallback-test.ts": {
+      "category": "CONFIGURATION",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path/layer matches configuration or build-tooling pattern"
+      ],
+      "requiredChecks": []
+    },
+    "scripts/worker-security-test.ts": {
+      "category": "CONFIGURATION",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path/layer matches configuration or build-tooling pattern"
+      ],
+      "requiredChecks": []
+    },
+    "scripts/worker-selector-test.ts": {
+      "category": "CONFIGURATION",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path/layer matches configuration or build-tooling pattern"
       ],
       "requiredChecks": []
     },
@@ -6853,6 +10836,55 @@
       ],
       "requiredChecks": []
     },
+    "services/canonical/document-detail.ts": {
+      "category": "UNKNOWN",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [],
+      "requiredChecks": []
+    },
+    "services/canonical/document-list.ts": {
+      "category": "UNKNOWN",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [],
+      "requiredChecks": []
+    },
+    "services/canonical/payments.ts": {
+      "category": "UNKNOWN",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [],
+      "requiredChecks": []
+    },
+    "services/canonical/read-model.ts": {
+      "category": "UNKNOWN",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [],
+      "requiredChecks": []
+    },
+    "services/canonical/transaction-detail.ts": {
+      "category": "UNKNOWN",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [],
+      "requiredChecks": []
+    },
+    "services/canonical/transaction-list.ts": {
+      "category": "UNKNOWN",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [],
+      "requiredChecks": []
+    },
+    "services/data-boundary/dataBoundaryRuntime.ts": {
+      "category": "UNKNOWN",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [],
+      "requiredChecks": []
+    },
     "services/knowledge/client.ts": {
       "category": "UNKNOWN",
       "capability": null,
@@ -6935,57 +10967,13 @@
       ],
       "requiredChecks": []
     },
-    "styles/tokens/colors.ts": {
-      "category": "UI",
+    "supabase/functions/_shared/canonicalTransport.ts": {
+      "category": "DATABASE",
       "capability": null,
-      "riskLevel": "NORMAL",
+      "riskLevel": "SENSITIVE",
       "evidence": [
-        "path matches components/ or a non-API app page/component"
-      ],
-      "requiredChecks": []
-    },
-    "styles/tokens/elevation.ts": {
-      "category": "UI",
-      "capability": null,
-      "riskLevel": "NORMAL",
-      "evidence": [
-        "path matches components/ or a non-API app page/component"
-      ],
-      "requiredChecks": []
-    },
-    "styles/tokens/index.tsx": {
-      "category": "UI",
-      "capability": null,
-      "riskLevel": "NORMAL",
-      "evidence": [
-        "path matches components/ or a non-API app page/component"
-      ],
-      "requiredChecks": []
-    },
-    "styles/tokens/semantic-colors.ts": {
-      "category": "UI",
-      "capability": null,
-      "riskLevel": "NORMAL",
-      "evidence": [
-        "path matches components/ or a non-API app page/component"
-      ],
-      "requiredChecks": []
-    },
-    "styles/tokens/spacing.ts": {
-      "category": "UI",
-      "capability": null,
-      "riskLevel": "NORMAL",
-      "evidence": [
-        "path matches components/ or a non-API app page/component"
-      ],
-      "requiredChecks": []
-    },
-    "styles/tokens/typography.ts": {
-      "category": "UI",
-      "capability": null,
-      "riskLevel": "NORMAL",
-      "evidence": [
-        "path matches components/ or a non-API app page/component"
+        "path matches supabase/migrations/database pattern",
+        "category DATABASE is a real external/production trust boundary"
       ],
       "requiredChecks": []
     },
@@ -7009,7 +10997,56 @@
       ],
       "requiredChecks": []
     },
+    "supabase/functions/_shared/line-client.ts": {
+      "category": "DATABASE",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path matches supabase/migrations/database pattern",
+        "category DATABASE is a real external/production trust boundary"
+      ],
+      "requiredChecks": []
+    },
+    "supabase/functions/ai-callback/index.ts": {
+      "category": "AI",
+      "capability": null,
+      "riskLevel": "NORMAL",
+      "evidence": [
+        "path matches cognitive/AI-service/presenter pattern, or registry purpose mentions AI"
+      ],
+      "requiredChecks": []
+    },
     "supabase/functions/architecture-drift-alert/index.ts": {
+      "category": "DATABASE",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path matches supabase/migrations/database pattern",
+        "category DATABASE is a real external/production trust boundary"
+      ],
+      "requiredChecks": []
+    },
+    "supabase/functions/back-to-back/index.ts": {
+      "category": "DATABASE",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path matches supabase/migrations/database pattern",
+        "category DATABASE is a real external/production trust boundary"
+      ],
+      "requiredChecks": []
+    },
+    "supabase/functions/bank-email-sync/index.ts": {
+      "category": "DATABASE",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path matches supabase/migrations/database pattern",
+        "category DATABASE is a real external/production trust boundary"
+      ],
+      "requiredChecks": []
+    },
+    "supabase/functions/bank-statement-reconcile/index.ts": {
       "category": "DATABASE",
       "capability": null,
       "riskLevel": "SENSITIVE",
@@ -7040,6 +11077,16 @@
       "requiredChecks": []
     },
     "supabase/functions/fuel-price-sync/index.ts": {
+      "category": "DATABASE",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path matches supabase/migrations/database pattern",
+        "category DATABASE is a real external/production trust boundary"
+      ],
+      "requiredChecks": []
+    },
+    "supabase/functions/kis-webhook/index.ts": {
       "category": "DATABASE",
       "capability": null,
       "riskLevel": "SENSITIVE",
@@ -7454,6 +11501,16 @@
       ],
       "requiredChecks": []
     },
+    "supabase/functions/line-webhook-v2/index.ts": {
+      "category": "DATABASE",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path matches supabase/migrations/database pattern",
+        "category DATABASE is a real external/production trust boundary"
+      ],
+      "requiredChecks": []
+    },
     "supabase/functions/line-webhook-v2/middleware/signature.ts": {
       "category": "SECURITY",
       "capability": null,
@@ -7514,6 +11571,16 @@
       ],
       "requiredChecks": []
     },
+    "supabase/functions/openclaw-webhook/index.ts": {
+      "category": "DATABASE",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path matches supabase/migrations/database pattern",
+        "category DATABASE is a real external/production trust boundary"
+      ],
+      "requiredChecks": []
+    },
     "supabase/functions/openclaw-webhook/middleware/signature.ts": {
       "category": "SECURITY",
       "capability": null,
@@ -7524,7 +11591,67 @@
       ],
       "requiredChecks": []
     },
+    "supabase/functions/quotation-queue-nudge/index.ts": {
+      "category": "DATABASE",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path matches supabase/migrations/database pattern",
+        "category DATABASE is a real external/production trust boundary"
+      ],
+      "requiredChecks": []
+    },
     "supabase/functions/receipt-reconcile-sweep/index.ts": {
+      "category": "DATABASE",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path matches supabase/migrations/database pattern",
+        "category DATABASE is a real external/production trust boundary"
+      ],
+      "requiredChecks": []
+    },
+    "supabase/functions/scout-map/index.ts": {
+      "category": "DATABASE",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path matches supabase/migrations/database pattern",
+        "category DATABASE is a real external/production trust boundary"
+      ],
+      "requiredChecks": []
+    },
+    "supabase/functions/storage-threshold-alert/index.ts": {
+      "category": "DATABASE",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path matches supabase/migrations/database pattern",
+        "category DATABASE is a real external/production trust boundary"
+      ],
+      "requiredChecks": []
+    },
+    "supabase/functions/subscription-email-sync/index.ts": {
+      "category": "DATABASE",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path matches supabase/migrations/database pattern",
+        "category DATABASE is a real external/production trust boundary"
+      ],
+      "requiredChecks": []
+    },
+    "supabase/functions/supabase-billing-sync/index.ts": {
+      "category": "DATABASE",
+      "capability": null,
+      "riskLevel": "SENSITIVE",
+      "evidence": [
+        "path matches supabase/migrations/database pattern",
+        "category DATABASE is a real external/production trust boundary"
+      ],
+      "requiredChecks": []
+    },
+    "supabase/functions/system-health-check/index.ts": {
       "category": "DATABASE",
       "capability": null,
       "riskLevel": "SENSITIVE",

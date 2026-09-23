@@ -23,8 +23,8 @@ import { resolveEntity } from "./_lib/entityResolver"
 import { callQuery } from "./_lib/apiClient"
 import { formatResult } from "./_lib/resultFormatters"
 import type { ChatMessage, PendingState } from "./_lib/conversationState"
-import { ChatMessageList } from "./_components/ChatMessageList"
-import { ChatInput } from "./_components/ChatInput"
+import { ChatMessageList } from "@/presentation/ai/ChatMessageList"
+import { ChatInput } from "@/presentation/ai/ChatInput"
 
 interface CommandSpec {
   type: string

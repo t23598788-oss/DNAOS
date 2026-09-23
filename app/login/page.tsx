@@ -2,6 +2,7 @@
 
 import { Suspense, useEffect, useRef, useState } from "react"
 import { useSearchParams } from "next/navigation"
+import { Eye, EyeOff } from "lucide-react"
 import { createBrowserSupabase } from "@/services/supabase/browser"
 import { resolveDestination } from "@/core/auth/resolveDestination"
 import type { AppRole } from "@/core/auth/session"
@@ -33,6 +34,11 @@ function LoginForm() {
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [autoLoggingIn, setAutoLoggingIn] = useState(false)
+  // Password visibility toggle (presentation only): toggles the input's `type`
+  // attribute. The password value itself is never read/copied/rewritten here —
+  // handleSignIn still reads the DOM value straight off passwordInputRef, so the
+  // submitted credential is identical whether the field is shown or hidden.
+  const [showPassword, setShowPassword] = useState(false)
 
   // Auto-login for the native desktop wrap (owner, 2026-07-30): "ล็อกอินกับ
   // เครื่องเลย...ถ้าเป็นแอปพลิเคชั่น" — single-owner system (see
@@ -150,9 +156,9 @@ function LoginForm() {
   }
 
   return (
-    <form onSubmit={handleSignIn} className="space-y-4">
+    <form onSubmit={handleSignIn} className="space-y-5">
       <div>
-        <label className="block text-xs font-semibold text-stone-600 mb-1.5">Email</label>
+        <label className="block text-sm font-semibold text-stone-600 mb-2">Email</label>
         <input
           ref={emailInputRef}
           name="email"
@@ -160,32 +166,45 @@ function LoginForm() {
           autoComplete="email"
           required
           disabled={loading}
-          className="w-full text-sm border border-stone-200 rounded-xl px-4 py-2.5 focus:outline-none focus:border-stone-500 focus:ring-1 focus:ring-stone-500 transition bg-stone-50 disabled:opacity-50"
+          className="w-full text-base rounded-xl px-4 py-3 bg-[#F7F4EF] border border-[#E3DACE] shadow-[inset_0_1px_2px_rgba(90,72,52,0.06)] transition hover:border-[#D5C8B6] focus:outline-none focus:border-[#B49C7C] focus:bg-white focus:ring-2 focus:ring-[#B49C7C]/25 disabled:opacity-50"
           placeholder="you@company.com"
         />
       </div>
 
       <div>
-        <label className="block text-xs font-semibold text-stone-600 mb-1.5">Password</label>
-        <input
-          ref={passwordInputRef}
-          name="password"
-          type="password"
-          autoComplete="current-password"
-          required
-          disabled={loading}
-          className="w-full text-sm border border-stone-200 rounded-xl px-4 py-2.5 focus:outline-none focus:border-stone-500 focus:ring-1 focus:ring-stone-500 transition bg-stone-50 disabled:opacity-50"
-          placeholder="••••••••"
-        />
+        <label className="block text-sm font-semibold text-stone-600 mb-2">Password</label>
+        <div className="relative">
+          <input
+            ref={passwordInputRef}
+            name="password"
+            type={showPassword ? "text" : "password"}
+            autoComplete="current-password"
+            required
+            disabled={loading}
+            className="w-full text-base rounded-xl pl-4 pr-12 py-3 bg-[#F7F4EF] border border-[#E3DACE] shadow-[inset_0_1px_2px_rgba(90,72,52,0.06)] transition hover:border-[#D5C8B6] focus:outline-none focus:border-[#B49C7C] focus:bg-white focus:ring-2 focus:ring-[#B49C7C]/25 disabled:opacity-50"
+            placeholder="••••••••"
+          />
+          <button
+            type="button"
+            onClick={() => setShowPassword((v) => !v)}
+            disabled={loading}
+            aria-label={showPassword ? "ซ่อนรหัสผ่าน" : "แสดงรหัสผ่าน"}
+            aria-pressed={showPassword}
+            title={showPassword ? "ซ่อนรหัสผ่าน" : "แสดงรหัสผ่าน"}
+            className="absolute inset-y-0 right-0 flex w-12 items-center justify-center rounded-r-xl text-stone-400 transition hover:text-stone-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B49C7C]/40 disabled:opacity-40"
+          >
+            {showPassword ? <EyeOff size={18} aria-hidden="true" /> : <Eye size={18} aria-hidden="true" />}
+          </button>
+        </div>
       </div>
 
       {forbidden && (
-        <div className="text-xs text-amber-700 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2">
+        <div className="text-sm text-amber-700 bg-amber-50 border border-amber-100 rounded-lg px-3.5 py-2.5">
           บัญชีนี้ไม่มีสิทธิ์เข้าถึงหน้าที่ขอ — ลองเข้าสู่ระบบด้วยบัญชีอื่น
         </div>
       )}
       {error && (
-        <div className="text-xs text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2">
+        <div className="text-sm text-red-600 bg-red-50 border border-red-100 rounded-lg px-3.5 py-2.5">
           {error}
         </div>
       )}
@@ -193,7 +212,7 @@ function LoginForm() {
       <button
         type="submit"
         disabled={loading}
-        className="w-full py-2.5 rounded-xl bg-stone-900 text-white text-sm font-semibold hover:bg-stone-800 transition disabled:opacity-40 disabled:cursor-not-allowed"
+        className="w-full py-3.5 rounded-xl bg-stone-900 text-white text-base font-semibold shadow-[0_2px_8px_-2px_rgba(70,58,44,0.28)] transition hover:bg-stone-800 hover:shadow-[0_5px_16px_-4px_rgba(70,58,44,0.30)] active:translate-y-[0.5px] disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none"
       >
         {loading ? "กำลังดำเนินการ..." : "Sign in"}
       </button>
@@ -203,27 +222,38 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-stone-100 to-stone-200 flex items-center justify-center p-4">
-      <div className="w-full max-w-sm">
-        <div className="bg-white rounded-2xl shadow-xl px-8 py-10">
-          <div className="mb-8">
-            <div className="text-[10px] font-bold tracking-[0.2em] text-stone-400 uppercase mb-3">
-              DNA OS
-            </div>
-            <h1 className="text-2xl font-bold text-stone-900 leading-tight">
-              Sign in to<br />DNA OS
-            </h1>
-            <p className="mt-2 text-xs text-stone-400">
-              บัญชีเดียว เข้าได้ทุก Portal — Admin / Business / Partner / User
-            </p>
+    <div className="min-h-screen bg-[#F0EBE5] flex items-center justify-center p-6">
+      <div className="w-full max-w-md">
+        <div className="bg-[#FDFBF8] rounded-2xl border border-[#E9E1D6] px-10 py-12 shadow-[0_2px_6px_-2px_rgba(96,78,58,0.10),0_22px_60px_-24px_rgba(96,78,58,0.30)]">
+          <div className="mb-10 flex justify-center">
+            {/* Official DNA OS master brand mark (D icon + wordmark).
+                Source: DNA-OS-INFRASTRUCTURE connections/connection-registry/
+                brand-assets/dna-os/dna-os-mark-d.png — Owner-provided official
+                logo, PROVENANCE sha256 e48d08e6…4c55, allowed surfaces include
+                "Owner / system identity". Copied byte-identical, never redrawn.
+                The art sits at 692x244 +offset(167,383) inside a 1024x1024
+                near-white (254,254,254) canvas, so object-cover/center trims
+                only that invisible padding — the mark itself is unmodified. */}
+            {/* No frame, no filter/glow: the asset is fully opaque with near-white
+                padding baked in, so any CSS shadow would render a soft RECTANGLE
+                around the whole 280x94 box (reads as a frame — explicitly not
+                wanted). Dimension comes from sizing + spacing only. */}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/brand/dna-os-mark-d.png"
+              alt="DNA OS"
+              width={280}
+              height={94}
+              className="h-[94px] w-[280px] object-cover object-center"
+            />
           </div>
 
-          <Suspense fallback={<div className="h-40 animate-pulse bg-stone-100 rounded-xl" />}>
+          <Suspense fallback={<div className="h-48 animate-pulse bg-stone-100 rounded-xl" />}>
             <LoginForm />
           </Suspense>
         </div>
 
-        <p className="mt-6 text-center text-[10px] text-stone-400">
+        <p className="mt-8 text-center text-sm text-stone-400">
           DNA OS — Single Sign-On
         </p>
       </div>

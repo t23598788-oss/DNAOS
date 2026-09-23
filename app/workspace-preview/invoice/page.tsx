@@ -2,7 +2,7 @@ import { requireAuthPage } from "@/core/auth/requireAuthPage";
 import { ADMIN_TIER } from "@/core/auth/session";
 import { createPresentationGateway } from "@/core/workspace/gateway/presentationGateway";
 import { toRenderModel } from "@/core/workspace/presenters/invoicePresenter";
-import { DashboardBoard } from "@/components/workspace/boards/DashboardBoard";
+import { DashboardBoard } from "@/presentation/shell/workspace/DashboardBoard";
 import { presentationGatewayDeps } from "../presentationGatewayDeps";
 
 export default async function InvoiceWidgetPage() {

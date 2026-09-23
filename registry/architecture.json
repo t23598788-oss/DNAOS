@@ -43,7 +43,7 @@
   "portal_layer": {
     "note": "2026-07-07 — every Portal is a thin app/ route that renders the same Core/Gateway/Registry/Database; portals differ only in UI and access rights, never in business logic. Full declaration + status (official vs shell) lives in registry/portals.json, not here.",
     "registry": "registry/portals.json",
-    "shared_shell_component": "components/portal/PortalShell.tsx",
+    "shared_shell_component": "presentation/shell/PortalShell.tsx",
     "portals": ["control_center", "developer_portal", "user_portal", "partner_portal", "business_portal", "download_center"]
   }
 }

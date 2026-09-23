@@ -4269,7 +4269,7 @@
     },
     {
       "CapabilityId": "presentation.dashboardboard.DashboardBoard",
-      "OwnerModule": "components/workspace/boards/DashboardBoard.tsx",
+      "OwnerModule": "presentation/shell/workspace/DashboardBoard.tsx",
       "ExportName": "DashboardBoard",
       "Category": "presentation",
       "Description": "Generic Board renderer — renders any RenderModel it receives, no business content knowledge",
@@ -4513,7 +4513,7 @@
     },
     {
       "CapabilityId": "presentation.notimplementedboard.NotImplementedBoard",
-      "OwnerModule": "components/workspace/boards/NotImplementedBoard.tsx",
+      "OwnerModule": "presentation/shell/workspace/NotImplementedBoard.tsx",
       "ExportName": "NotImplementedBoard",
       "Category": "presentation",
       "Description": "Honest placeholder for Boards with no real Presenter — never fabricates content",

@@ -40,7 +40,7 @@
  */
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ChevronDown, ChevronRight, CheckCircle2, AlertTriangle, XCircle, ArrowRight } from "lucide-react";
-import { elevation, typography, semanticColors, useTheme, fontWeight, type SemanticTone } from "@/styles/tokens";
+import { elevation, typography, semanticColors, useTheme, fontWeight, type SemanticTone } from "@/presentation/foundation/tokens";
 import type {
   OwnerSystemRealityReport,
   OwnerCapabilityCard,

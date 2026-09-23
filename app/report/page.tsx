@@ -3,7 +3,7 @@ import businessCoverage from '@/registry/business-coverage.json';
 import decisionCoverage from '@/registry/decision-coverage.json';
 import ruleCoverage from '@/registry/rule-coverage.json';
 import archBook from '@/registry/architecture-book.json';
-import CapabilityPageShell from '@/components/landing/CapabilityPageShell';
+import CapabilityPageShell from '@/presentation/shell/PortalShell';
 
 function StatCard({ title, value, sub, delayMs = 0 }: { title: string; value: string; sub?: string; delayMs?: number }) {
   return (

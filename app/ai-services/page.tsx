@@ -1,7 +1,7 @@
 import aiRegistry from '@/registry/AI_REGISTRY.json';
 import aiSessions from '@/registry/AI_SESSIONS.json';
 import { CheckCircle } from 'lucide-react';
-import CapabilityPageShell from '@/components/landing/CapabilityPageShell';
+import CapabilityPageShell from '@/presentation/shell/PortalShell';
 
 const sessionStatusStyle: { [key: string]: string } = {
   working: 'text-emerald-400 border-emerald-800 bg-emerald-950/40',

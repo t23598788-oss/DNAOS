@@ -1,18 +1,23 @@
 import { redirect } from "next/navigation";
 import { getAuthedUser } from "@/core/auth/session";
-import { resolveDestination } from "@/core/auth/resolveDestination";
+import { BusinessWorkspace } from "./BusinessWorkspace";
 
-// Single entry point (Single Workspace Shell migration). Thin redirect only —
-// reuses the exact same role -> destination logic every login already uses
-// (core/auth/resolveDestination.ts), rather than a second, parallel decision
-// here. Any authenticated role lands on its real workspace; anonymous visitors
-// go to /login same as every other protected route.
-export default async function WorkspaceEntryPage() {
+// BUSINESS WORKSPACE — หน้าจอใช้งานจริงเพียงหน้าจอเดียวของ DNA OS (owner, 2026-09-22)
+//
+// เดิม route นี้เป็น thin redirect ไป resolveDestination(user.role) เท่านั้น
+// (ผู้ใช้เข้าตรงที่ /workspace ไม่มี role ใดถูกส่งมาที่นี่ — registry/permissions.json
+//  workspace_landing ไม่มี "/workspace" จึงไม่มีผลกับ post-login landing ของบทบาทใด)
+//
+// เปลี่ยนเป็นหน้าจอจริงตามคำสั่ง Owner: APPLICATION_WORKSPACE_ROUTE = 1
+//   - ยังใช้ auth เดิม (getAuthedUser) — ไม่แตะ Login/middleware/registry
+//   - ประกอบจาก canonical primitives + display renderer ที่มีอยู่แล้ว
+//   - ไม่มี business logic / scanner / executor ใหม่
+export default async function WorkspacePage() {
   const user = await getAuthedUser();
 
   if (!user) {
     redirect("/login?next=/workspace");
   }
 
-  redirect(resolveDestination(user.role));
+  return <BusinessWorkspace />;
 }

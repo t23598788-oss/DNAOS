@@ -1,7 +1,7 @@
 import moduleRegistry from '@/registry/module-registry.json';
 import architectureBook from '@/registry/architecture-book.json';
 import { Bot, CheckCircle, XCircle, GitBranch, Layers, Plug, Puzzle, Server, Workflow } from 'lucide-react';
-import CopyButton from '@/components/landing/CopyButton';
+import CopyButton from '@/presentation/feedback/CopyButton';
 
 function StatCard({ title, value, icon: Icon, delayMs = 0 }: { title: string, value: number, icon: React.ElementType, delayMs?: number }) {
   return (

@@ -1,6 +1,6 @@
 import businessCoverage from '@/registry/business-coverage.json';
 import { CheckCircle, AlertTriangle, XCircle } from 'lucide-react';
-import CapabilityPageShell from '@/components/landing/CapabilityPageShell';
+import CapabilityPageShell from '@/presentation/shell/PortalShell';
 
 const coverageStyle: { [key: string]: { icon: React.ElementType; label: string; className: string } } = {
   covered: { icon: CheckCircle, label: 'Covered', className: 'text-emerald-400 border-emerald-800 bg-emerald-950/40' },

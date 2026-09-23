@@ -11,7 +11,7 @@
 // merging, template resolution, dedupe/sort) is unchanged from the LINE-
 // contact-keyed version; only the identity shape changed.
 
-import type { InspectorField } from "@/components/ui-kit"
+import type { InspectorField } from "@/presentation/panels/Inspector"
 import {
   resolvePresentationTemplate,
   uniqueResolvedTemplates,

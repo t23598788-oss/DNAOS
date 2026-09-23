@@ -23,7 +23,7 @@ import type { TxType } from "@/engines/transactions/workflows"
 import type { CompanySettings } from "@/core/config/company-settings"
 import type { DebtTrackingSummary } from "@/engines/debt/tracking"
 import DocumentPreview from "./DocumentPreview"
-import FileUpload, { type UploadedFile } from "./FileUpload"
+import FileUpload, { type UploadedFile } from "@/presentation/documents/FileUpload"
 
 function printDraft(draft: DocumentDraftInput, settings: CompanySettings) {
   const docNumber = draft.documentNumber?.trim() || "ร่าง"

@@ -120,6 +120,7 @@
       "purpose_th": "Script sync module-registry.json กับ source code จริง",
       "exports": [
         "ModuleEntry",
+        "RetiredEntry",
         "bar",
         "foo"
       ],
@@ -3938,58 +3939,6 @@
       ],
       "status": "active"
     },
-    "components/documents/FileUpload.tsx": {
-      "owner": "components",
-      "layer": "components",
-      "purpose": "Reusable file-attachment widget — uploads via /api/admin/upload, lists attachments, opens short-lived signed URLs to view/download.",
-      "purpose_th": "วิดเจ็ตแนบไฟล์ใช้ซ้ำได้ — อัปโหลดผ่าน /api/admin/upload",
-      "exports": [
-        "FileUpload",
-        "UploadedFile"
-      ],
-      "status": "active"
-    },
-    "components/landing/CapabilityPageShell.tsx": {
-      "owner": "components",
-      "layer": "components",
-      "purpose": "Shared header/footer shell for standalone capability pages (Products/Solutions/Marketplace/AI Services/Report) — Server Component, zero client JS.",
-      "purpose_th": "Shell ส่วนหัว/ท้ายที่ใช้ร่วมกันในหน้า capability สาธารณะ",
-      "exports": [
-        "CapabilityPageShell"
-      ],
-      "status": "active"
-    },
-    "components/landing/CapabilitySkeleton.tsx": {
-      "owner": "components",
-      "layer": "components",
-      "purpose": "Shared loading skeleton matching CapabilityPageShell's layout, used by every capability page's loading.tsx.",
-      "purpose_th": "Skeleton โหลดร่วมที่ทุกหน้า capability เรียกใช้",
-      "exports": [
-        "CapabilitySkeleton"
-      ],
-      "status": "active"
-    },
-    "components/landing/CopyButton.tsx": {
-      "owner": "components",
-      "layer": "components",
-      "purpose": "Tiny reusable copy-to-clipboard client button, kept separate so parent pages stay Server Components.",
-      "purpose_th": "ปุ่ม copy-to-clipboard เล็กๆ ใช้ซ้ำได้ แยกออกมาให้หน้าแม่เป็น Server Component ได้",
-      "exports": [
-        "CopyButton"
-      ],
-      "status": "active"
-    },
-    "components/portal/PortalShell.tsx": {
-      "owner": "components",
-      "layer": "components",
-      "purpose": "The one shared shell every registered Portal (registry/portals.json → portals{}) renders through — config-driven (name/purpose/status/access), no per-Portal business logic.",
-      "purpose_th": "Shell กลางที่ทุก Portal ใช้ร่วมกัน — ต่างกันแค่ config ใน portals.json",
-      "exports": [
-        "PortalId",
-        "PortalShell"
-      ],
-      "status": "active"
-    },
     "components/settings/SettingsDrawer.tsx": {
       "owner": "components",
       "layer": "components",
@@ -4324,111 +4273,6 @@
       "status": "active",
       "entry_point": true
     },
-    "components/ui-kit/IconRail.tsx": {
-      "owner": "admin",
-      "layer": "ui",
-      "purpose": "LINE-style leftmost icon rail, single-select — new layout primitive for AppShell (owner request 2026-07-11: mirror the real LINE app layout)",
-      "purpose_th": "แถบไอคอนซ้ายสุดแบบแอป LINE เลือกได้ทีละ 1 — layout primitive ใหม่ของ AppShell",
-      "exports": [
-        "IconRail",
-        "IconRailItem"
-      ],
-      "status": "active"
-    },
-    "components/ui-kit/ListColumn.tsx": {
-      "owner": "admin",
-      "layer": "ui",
-      "purpose": "LINE-style middle list column (search + rows with avatar/subtitle/timestamp/badge) — AppShell primitive",
-      "purpose_th": "คอลัมน์รายการกลางแบบแอป LINE (ค้นหา+รายชื่อ+badge) — layout primitive ของ AppShell",
-      "exports": [
-        "ListColumn",
-        "ListColumnItem",
-        "ListColumnWidth"
-      ],
-      "status": "active"
-    },
-    "components/ui-kit/AppShell.tsx": {
-      "owner": "admin",
-      "layer": "ui",
-      "purpose": "Composes IconRail + ListColumn + main content into a persistent 3-column LINE-style shell — first real page wired: app/admin/line-customers/page.tsx",
-      "purpose_th": "ประกอบ IconRail+ListColumn+เนื้อหาหลักเป็นโครง 3 คอลัมน์ถาวรแบบ LINE — หน้าจริงหน้าแรกที่ใช้: line-customers",
-      "exports": [
-        "AppShell"
-      ],
-      "status": "active"
-    },
-    "components/ui-kit/index.ts": {
-      "owner": "admin",
-      "layer": "ui",
-      "purpose": "UIKit barrel export — Window/Dock/AppShell/IconRail/ListColumn/ChatPanel/etc, all light-themed and props-driven, no hardcoded business data",
-      "purpose_th": "จุด export รวมของ UIKit — Window/Dock/AppShell/IconRail/ListColumn/ChatPanel ฯลฯ ธีมสว่างทั้งหมด รับข้อมูลผ่าน props ไม่ hardcode",
-      "exports": [
-        "ActionBar",
-        "AppShell",
-        "EmptyState",
-        "FlexPreview",
-        "IconRail",
-        "Inspector",
-        "ListColumn",
-        "MapView",
-        "Window"
-      ],
-      "status": "active"
-    },
-    "components/ui-kit/EmptyState.tsx": {
-      "owner": "admin",
-      "layer": "ui",
-      "purpose": "Shared empty-state placeholder used by every ui-kit content component",
-      "purpose_th": "ส่วนหนึ่งของ UIKit — Shared empty-state placeholder used by every ui-kit content component",
-      "exports": [
-        "EmptyState"
-      ],
-      "status": "active"
-    },
-    "components/ui-kit/Inspector.tsx": {
-      "owner": "admin",
-      "layer": "ui",
-      "purpose": "Key/value inspector panel, light theme",
-      "purpose_th": "ส่วนหนึ่งของ UIKit — Key/value inspector panel, light theme",
-      "exports": [
-        "Inspector",
-        "InspectorField"
-      ],
-      "status": "active"
-    },
-    "components/ui-kit/MapView.tsx": {
-      "owner": "admin",
-      "layer": "ui",
-      "purpose": "Provider-agnostic marker grid, light theme",
-      "purpose_th": "ส่วนหนึ่งของ UIKit — Provider-agnostic marker grid, light theme",
-      "exports": [
-        "MapMarker",
-        "MapView"
-      ],
-      "status": "active"
-    },
-    "components/ui-kit/Window.tsx": {
-      "owner": "admin",
-      "layer": "ui",
-      "purpose": "Shared frame every ui-kit content component wraps in — added variant window|panel 2026-07-11 for AppShell",
-      "purpose_th": "ส่วนหนึ่งของ UIKit — Shared frame every ui-kit content component wraps in — added variant window|panel 2026-07-11 for AppShell",
-      "exports": [
-        "Window",
-        "WindowProps"
-      ],
-      "status": "active"
-    },
-    "components/ui-kit/ActionBar.tsx": {
-      "owner": "admin",
-      "layer": "ui",
-      "purpose": "Bottom action-bar row (GPS/quotation/invoice/delivery/receipt/call/attach/ask-AI) — owner request 2026-07-11: hide Events/Documents/Transactions tables behind buttons so the chat stays the primary workspace",
-      "purpose_th": "แถบปุ่มด้านล่างกระทู้แชต (GPS/เอกสาร/โทร/แนบไฟล์/ถาม AI) — ซ่อนตาราง Events/Documents ไว้หลังปุ่มตามที่เฮียขอ",
-      "exports": [
-        "ActionBar",
-        "ActionBarItem"
-      ],
-      "status": "active"
-    },
     "app/api/admin/line-customers/[lineUserId]/reply/route.ts": {
       "owner": "admin",
       "layer": "api",
@@ -4644,78 +4488,6 @@
       "purpose_th": "API รายละเอียดลูกค้า — key ด้วย companies.id รวมข้อความ/เหตุการณ์จากทุกบัญชี LINE ที่ผูกกับลูกค้ารายนี้",
       "exports": [
         "GET"
-      ],
-      "status": "active"
-    },
-    "styles/tokens/colors.ts": {
-      "owner": "components",
-      "layer": "ui",
-      "purpose": "Design Tokens — raw color palette for Enterprise Light / Developer Dark themes. Consumed via elevation.ts/typography.ts/semantic-colors.ts, never used directly by components.",
-      "purpose_th": "Design Token สี — palette ดิบสำหรับธีม Enterprise Light / Developer Dark ใช้ผ่าน elevation.ts/typography.ts/semantic-colors.ts เท่านั้น",
-      "exports": [
-        "colors",
-        "Theme"
-      ],
-      "status": "active"
-    },
-    "styles/tokens/elevation.ts": {
-      "owner": "components",
-      "layer": "ui",
-      "purpose": "Design Tokens — 5-layer elevation system (Background/Section/Card/Interactive Card/Floating Surface) as ready-to-use Tailwind class strings per theme.",
-      "purpose_th": "Design Token ระบบชั้นความสูง (elevation) 5 ชั้น เป็น Tailwind class สำเร็จรูปต่อธีม",
-      "exports": [
-        "elevation"
-      ],
-      "status": "active"
-    },
-    "styles/tokens/semantic-colors.ts": {
-      "owner": "components",
-      "layer": "ui",
-      "purpose": "Design Tokens — enterprise-muted semantic status colors (success/warning/error/info) per theme, replacing saturated dashboard-style neon colors.",
-      "purpose_th": "Design Token สีสถานะ (success/warning/error/info) โทน enterprise ต่อธีม แทนสีสดแบบ dashboard เกม",
-      "exports": [
-        "semanticColors",
-        "SemanticTone"
-      ],
-      "status": "active"
-    },
-    "styles/tokens/typography.ts": {
-      "owner": "components",
-      "layer": "ui",
-      "purpose": "Design Tokens — heading/body/description text color layering and font-weight tokens per theme.",
-      "purpose_th": "Design Token ตัวอักษร — สี heading/body/description และน้ำหนักฟอนต์ต่อธีม",
-      "exports": [
-        "typography",
-        "fontWeight"
-      ],
-      "status": "active"
-    },
-    "styles/tokens/spacing.ts": {
-      "owner": "components",
-      "layer": "ui",
-      "purpose": "Design Tokens — shared vertical rhythm and container-width tokens.",
-      "purpose_th": "Design Token ระยะห่าง — จังหวะแนวตั้งและความกว้าง container ที่ใช้ร่วมกัน",
-      "exports": [
-        "spacing"
-      ],
-      "status": "active"
-    },
-    "styles/tokens/index.tsx": {
-      "owner": "components",
-      "layer": "ui",
-      "purpose": "Design Tokens barrel + ThemeProvider/useTheme/ThemeToggle — Enterprise Light vs Developer Dark theme switching, persisted to localStorage.",
-      "purpose_th": "Barrel export ของ Design Tokens พร้อม ThemeProvider/useTheme/ThemeToggle สลับธีม Enterprise Light / Developer Dark เก็บค่าไว้ที่ localStorage",
-      "exports": [
-        "ThemeProvider",
-        "ThemeToggle",
-        "colors",
-        "elevation",
-        "fontWeight",
-        "semanticColors",
-        "spacing",
-        "type SemanticTone",
-        "typography",
-        "useTheme"
       ],
       "status": "active"
     },
@@ -5300,26 +5072,6 @@
       ],
       "status": "active"
     },
-    "components/workspace/boards/DashboardBoard.tsx": {
-      "owner": "components",
-      "layer": "components",
-      "purpose": "Generic Board renderer — renders any RenderModel it receives, no business content knowledge",
-      "purpose_th": "Board แบบทั่วไป — แสดงผล RenderModel ใดก็ได้ที่ได้รับ ไม่รู้เนื้อหาธุรกิจ",
-      "exports": [
-        "DashboardBoard"
-      ],
-      "status": "active"
-    },
-    "components/workspace/boards/NotImplementedBoard.tsx": {
-      "owner": "components",
-      "layer": "components",
-      "purpose": "Honest placeholder for Boards with no real Presenter — never fabricates content",
-      "purpose_th": "Placeholder ที่บอกตรง ๆ ว่ายังไม่มี Presenter จริง — ไม่ปลอมเนื้อหา",
-      "exports": [
-        "NotImplementedBoard"
-      ],
-      "status": "active"
-    },
     "components/workspace/canvas/Canvas.tsx": {
       "owner": "components",
       "layer": "components",
@@ -5682,7 +5434,7 @@
       "purpose": "Single workspace entry point — thin redirect to the authed user's real workspace via resolveDestination(), or to /login if anonymous.",
       "purpose_th": "จุดเข้า workspace เดียว — redirect บาง ๆ ไปหน้า workspace จริงของ user ที่ login แล้วผ่าน resolveDestination() หรือไป /login ถ้ายังไม่ login",
       "exports": [
-        "WorkspaceEntryPage"
+        "WorkspacePage"
       ],
       "status": "active"
     },
@@ -6079,17 +5831,6 @@
       ],
       "status": "active"
     },
-    "components/nav/AppHeader.tsx": {
-      "owner": "components",
-      "layer": "components",
-      "purpose": "Shared page-header primitive (Navigation redesign, 2026-07-16/17): owns Back/Home buttons and the standard order (Back | Home | title | actions); every admin page supplies only its own title string and actions slot, so Navigation and module content stay separated by construction.",
-      "purpose_th": "Component กลางของ header หน้าเว็บ (Navigation redesign, 2026-07-16/17): เป็นเจ้าของปุ่ม Back/Home และลำดับมาตรฐาน (Back | Home | ชื่อหน้า | ปุ่มเฉพาะโมดูล) — แต่ละหน้าแอดมินส่งแค่ชื่อหน้ากับปุ่มของตัวเองเข้ามา แยกความรับผิดชอบ Navigation ออกจากเนื้อหาของโมดูลโดยโครงสร้าง",
-      "exports": [
-        "AppHeader",
-        "AppHeaderProps"
-      ],
-      "status": "active"
-    },
     "supabase/functions/line-webhook-v2/engines/media.ts": {
       "owner": "supabase",
       "layer": "supabase",
@@ -6424,16 +6165,6 @@
       "exports": [
         "AutoConfirmInput",
         "tryAutoConfirmPayment"
-      ],
-      "status": "active"
-    },
-    "components/ui-kit/FlexPreview.tsx": {
-      "owner": "components",
-      "layer": "components",
-      "purpose": "Rebuilt 2026-07-24 (real file archived as AK-018 after an earlier session deleted it without updating callers — see registry/existence.json#archived_knowledge). Renders real LINE Flex Message JSON (bubble/box/text/separator/button) as a visual card, same template the customer sees, for the admin control-room timeline — owner request: \"อยากให้มันเป็นรูปแบบเดียวกัน...การ์ด Template เดียวกัน ข้อมูลเดียวกัน\"",
-      "purpose_th": "สร้างใหม่ 2026-07-24 (ไฟล์จริงเคย archive เป็น AK-018 หลัง session ก่อนลบทิ้งโดยไม่แก้ผู้เรียกใช้ — ดู registry/existence.json#archived_knowledge) แปลง LINE Flex JSON จริง (bubble/box/text/separator/button) เป็นการ์ดที่เห็นในหน้าจอควบคุม เหมือนที่ลูกค้าเห็นทุกประการ — owner ขอ: \"อยากให้มันเป็นรูปแบบเดียวกัน...การ์ด Template เดียวกัน ข้อมูลเดียวกัน\"",
-      "exports": [
-        "FlexPreview"
       ],
       "status": "active"
     },
@@ -6806,16 +6537,6 @@
         "BufferedEventRecord",
         "bufferEvent",
         "flushBufferedEvents"
-      ],
-      "status": "active"
-    },
-    "components/nav/HomeBackBar.tsx": {
-      "owner": "components",
-      "layer": "components",
-      "purpose": "Home/Back navigation bar (owner, 2026-07-30) — real need surfaced by wrapping the admin app in a native Tauri desktop window (src-tauri/): unlike a browser tab, a Tauri webview has no back button, no address bar, nothing to navigate with except whatever the page itself provides. A 2026-07-16 attempt at this used a floating overlay and was reverted the same day because it covered real page content (see app/admin/layout.tsx's history). This renders in NORMAL DOCUMENT FLOW (not floating/absolute) — it takes its own real space and pushes page content down, so it can never cover anything. Wired once into app/admin/layout.tsx so every admin page gets it.",
-      "purpose_th": "แถบนำทางย้อนกลับ/หน้าหลัก (owner, 2026-07-30) — ความจำเป็นจริงที่เจอตอนห่อแอป admin เป็นหน้าต่าง Tauri (src-tauri/): ต่างจากแท็บเบราว์เซอร์ตรงที่ Tauri webview ไม่มีปุ่มย้อนกลับ ไม่มีแถบที่อยู่เว็บ ไม่มีอะไรให้กดนำทางเลยนอกจากที่หน้านั้นๆ มีเอง ความพยายามก่อนหน้า (2026-07-16) ใช้ overlay ลอยแล้วถูกยกเลิกวันเดียวกันเพราะบังเนื้อหาจริง (ดูประวัติใน app/admin/layout.tsx) ตัวนี้เรนเดอร์แบบ normal document flow (ไม่ลอย/absolute) กินพื้นที่จริงแล้วดันเนื้อหาลง จึงไม่มีทางไปบังอะไรได้เลย เชื่อมเข้า app/admin/layout.tsx ครั้งเดียว ทุกหน้า admin ได้แถบนี้หมด",
-      "exports": [
-        "HomeBackBar"
       ],
       "status": "active"
     },
@@ -7418,57 +7139,6 @@
       "exports": [
         "callQuery",
         "QueryResult"
-      ],
-      "status": "active"
-    },
-    "app/playground/_components/ResultCard.tsx": {
-      "owner": "app",
-      "layer": "app",
-      "purpose": "Displays a formatted (human-readable) /api/v1/query result in the chat.",
-      "purpose_th": "แสดงผลลัพธ์คำสั่งแบบอ่านง่าย",
-      "exports": [
-        "ResultCard"
-      ],
-      "status": "active"
-    },
-    "app/playground/_components/ConfirmationPreview.tsx": {
-      "owner": "app",
-      "layer": "app",
-      "purpose": "Shown for requires_confirmation:true intents. No confirm button that calls anything — /api/v1/query cannot execute a write command regardless — only a link to the relevant /admin page.",
-      "purpose_th": "preview คำสั่งที่ต้องยืนยัน Rule 72 พร้อมลิงก์ไปหน้า admin ไม่มีปุ่มยิงคำสั่ง",
-      "exports": [
-        "ConfirmationPreview"
-      ],
-      "status": "active"
-    },
-    "app/playground/_components/ClarifyingChoice.tsx": {
-      "owner": "app",
-      "layer": "app",
-      "purpose": "Renders entity/command clarification options as human-name chips (never raw IDs).",
-      "purpose_th": "แสดงตัวเลือกเมื่อระบบไม่แน่ใจ (ชื่อคนเท่านั้น ไม่แสดง UUID)",
-      "exports": [
-        "ClarifyingChoice"
-      ],
-      "status": "active"
-    },
-    "app/playground/_components/ChatMessageList.tsx": {
-      "owner": "app",
-      "layer": "app",
-      "purpose": "Renders the Conversational Command Surface's message history, dispatching each message to ResultCard/ClarifyingChoice/ConfirmationPreview by kind.",
-      "purpose_th": "แสดงประวัติข้อความแชทของ Playground",
-      "exports": [
-        "ChatMessageList",
-        "ClarifyMeta"
-      ],
-      "status": "active"
-    },
-    "app/playground/_components/ChatInput.tsx": {
-      "owner": "app",
-      "layer": "app",
-      "purpose": "The 'ต้องการให้ DNA OS ทำอะไร' input box + send button + example-sentence chips (not command cards).",
-      "purpose_th": "ช่องพิมพ์ข้อความของ Playground",
-      "exports": [
-        "ChatInput"
       ],
       "status": "active"
     },
@@ -8699,7 +8369,6 @@
       "purpose": "Code workspace shell for /admin/ide (owner, 2026-08-05) — Activity Bar (Explorer/Search/Source Control/Runtime/AI/Documents/Settings), resizable/collapsible left panel, tabbed editor/diff viewer, resizable/collapsible bottom panel, status bar, top bar. Explorer/Search/Source Control (Phase 1, read-only) plus the Editor (Phase 2, real editable + save) all work against the REAL project workspace. Editor: per-tab dirty state, Save/Save All, Cmd/Ctrl+S, native-textarea undo/redo, Find-in-file (Cmd/Ctrl+F), Go to Line, cursor Ln/Col, close-with-unsaved-changes confirmation, conflict banner (Reload from disk / Keep mine / Open diff — via a real client-side LCS line diff since no git ref exists to diff an in-progress edit against) on FILE_CONFLICT. No create/rename/move/delete/commit/push/pull anywhere. AI/Runtime/Database providers, Problems/Logs/Build Output/Runtime Events, and Documents remain mock (explicit Phase 2 scope). No Connector/GitHub-remote/Supabase/AI wiring, no deploy system, no Terminal.",
       "purpose_th": "เชลล์ห้องผลิตโค้ด /admin/ide (เฮีย, 2026-08-05) — Explorer/Search/Source Control (เฟส 1) และ Editor แก้ไข+บันทึกไฟล์จริงได้ (เฟส 2) พร้อม dirty state/Save/Save All/Undo-Redo/Find/Go to Line/ตรวจ conflict ก่อนบันทึกทับ ยังไม่มี create/rename/move/delete/commit/push/pull",
       "exports": [
-        "FileTabState",
         "IDEWorkspace",
         "isDirty",
         "isSettingCheckboxEnabled",
@@ -14519,9 +14188,987 @@
       "exports": [],
       "status": "active",
       "entry_point": true
+    },
+    "presentation/viewer/Viewer.tsx": {
+      "owner": "presentation",
+      "layer": "presentation",
+      "purpose": "kind=\"image\" — URL ที่ผู้เรียก resolve มาแล้ว",
+      "purpose_th": "kind=\"image\" — URL ที่ผู้เรียก resolve มาแล้ว",
+      "exports": [
+        "Viewer",
+        "ViewerKind",
+        "ViewerProps"
+      ],
+      "status": "active"
+    },
+    "presentation/viewer/MapView.tsx": {
+      "owner": "presentation",
+      "layer": "presentation",
+      "purpose": "UIKit — MapView",
+      "purpose_th": "UIKit — MapView",
+      "exports": [
+        "MapMarker",
+        "MapView"
+      ],
+      "status": "active"
+    },
+    "presentation/viewer/FlexPreview.tsx": {
+      "owner": "presentation",
+      "layer": "presentation",
+      "purpose": "Renders real LINE Flex Message JSON (the same object actually sent via",
+      "purpose_th": "Renders real LINE Flex Message JSON (the same object actually sent via",
+      "exports": [
+        "FlexPreview"
+      ],
+      "status": "active"
+    },
+    "presentation/table/DataTable.tsx": {
+      "owner": "presentation",
+      "layer": "presentation",
+      "purpose": "อ่านค่าจาก `sort` + เรียก `onSortChange` — primitive ไม่เรียงข้อมูลเอง",
+      "purpose_th": "อ่านค่าจาก `sort` + เรียก `onSortChange` — primitive ไม่เรียงข้อมูลเอง",
+      "exports": [
+        "DataTable",
+        "DataTableColumn",
+        "DataTableProps",
+        "DataTableSort"
+      ],
+      "status": "active"
+    },
+    "presentation/shell/TemplateShell.tsx": {
+      "owner": "presentation",
+      "layer": "presentation",
+      "purpose": "Business Workspace Template — STRUCTURE ONLY (presentation reset, owner-directed).",
+      "purpose_th": "Business Workspace Template — STRUCTURE ONLY (presentation reset, owner-directed).",
+      "exports": [
+        "Panel",
+        "StatusPill",
+        "TemplateShell"
+      ],
+      "status": "active"
+    },
+    "presentation/shell/PortalShell.tsx": {
+      "owner": "presentation",
+      "layer": "presentation",
+      "purpose": "Portal Shell — Canonical shell for standalone Portal / Capability pages",
+      "purpose_th": "Portal Shell — Canonical shell for standalone Portal / Capability pages",
+      "exports": [
+        "PortalId",
+        "PortalShell",
+        "PortalShellProps"
+      ],
+      "status": "active"
+    },
+    "presentation/shell/AppShell.tsx": {
+      "owner": "presentation",
+      "layer": "presentation",
+      "purpose": "UIKit — AppShell",
+      "purpose_th": "UIKit — AppShell",
+      "exports": [
+        "AppShell"
+      ],
+      "status": "active"
+    },
+    "presentation/form/FormField.tsx": {
+      "owner": "presentation",
+      "layer": "presentation",
+      "purpose": "ต้องตรงกับ id ของ control ที่ส่งมาใน children (ใช้ผูก label/error)",
+      "purpose_th": "ต้องตรงกับ id ของ control ที่ส่งมาใน children (ใช้ผูก label/error)",
+      "exports": [
+        "FormField",
+        "FormFieldProps"
+      ],
+      "status": "active"
+    },
+    "presentation/form/FormActions.tsx": {
+      "owner": "presentation",
+      "layer": "presentation",
+      "purpose": "ตำแหน่งปุ่มในแถว — ค่าเริ่มต้นคือชิดขวาแบบ form ทั่วไป",
+      "purpose_th": "ตำแหน่งปุ่มในแถว — ค่าเริ่มต้นคือชิดขวาแบบ form ทั่วไป",
+      "exports": [
+        "FormActions",
+        "FormActionsProps"
+      ],
+      "status": "active"
+    },
+    "presentation/panels/Window.tsx": {
+      "owner": "presentation",
+      "layer": "presentation",
+      "purpose": "UIKit — Window",
+      "purpose_th": "UIKit — Window",
+      "exports": [
+        "Window",
+        "WindowProps"
+      ],
+      "status": "active"
+    },
+    "presentation/panels/Inspector.tsx": {
+      "owner": "presentation",
+      "layer": "presentation",
+      "purpose": "UIKit — Inspector",
+      "purpose_th": "UIKit — Inspector",
+      "exports": [
+        "Inspector",
+        "InspectorField"
+      ],
+      "status": "active"
+    },
+    "presentation/panels/ActionBar.tsx": {
+      "owner": "presentation",
+      "layer": "presentation",
+      "purpose": "UIKit — ActionBar",
+      "purpose_th": "UIKit — ActionBar",
+      "exports": [
+        "ActionBar",
+        "ActionBarItem"
+      ],
+      "status": "active"
+    },
+    "presentation/feedback/EmptyState.tsx": {
+      "owner": "presentation",
+      "layer": "presentation",
+      "purpose": "UIKit — EmptyState",
+      "purpose_th": "UIKit — EmptyState",
+      "exports": [
+        "EmptyState"
+      ],
+      "status": "active"
+    },
+    "presentation/feedback/CopyButton.tsx": {
+      "owner": "presentation",
+      "layer": "presentation",
+      "purpose": "Small reusable copy-to-clipboard button. Kept as its own tiny Client Component",
+      "purpose_th": "Small reusable copy-to-clipboard button. Kept as its own tiny Client Component",
+      "exports": [
+        "CopyButton"
+      ],
+      "status": "active"
+    },
+    "presentation/feedback/CapabilitySkeleton.tsx": {
+      "owner": "presentation",
+      "layer": "presentation",
+      "purpose": "Shared loading skeleton for capability pages (Products/Solutions/Marketplace/",
+      "purpose_th": "Shared loading skeleton for capability pages (Products/Solutions/Marketplace/",
+      "exports": [
+        "CapabilitySkeleton"
+      ],
+      "status": "active"
+    },
+    "presentation/assets/manifest.ts": {
+      "owner": "presentation",
+      "layer": "presentation",
+      "purpose": "DNA OS — presentation/assets",
+      "purpose_th": "DNA OS — presentation/assets",
+      "exports": [
+        "PresentationAsset",
+        "presentationAssets"
+      ],
+      "status": "active"
+    },
+    "presentation/documents/FileUpload.tsx": {
+      "owner": "presentation",
+      "layer": "presentation",
+      "purpose": "Reusable file-attachment widget — uploads through /api/admin/upload (the one",
+      "purpose_th": "Reusable file-attachment widget — uploads through /api/admin/upload (the one",
+      "exports": [
+        "FileUpload",
+        "UploadedFile"
+      ],
+      "status": "active"
+    },
+    "presentation/ai/ResultCard.tsx": {
+      "owner": "presentation",
+      "layer": "presentation",
+      "purpose": "ผลลัพธ์คำตอบของ playground — การ์ดแสดง label + ข้อความ (presentation เท่านั้น ไม่มี business logic)",
+      "purpose_th": "ผลลัพธ์คำตอบของ playground — การ์ดแสดง label + ข้อความ (presentation เท่านั้น ไม่มี business logic)",
+      "exports": [
+        "ResultCard"
+      ],
+      "status": "active"
+    },
+    "presentation/ai/ConfirmationPreview.tsx": {
+      "owner": "presentation",
+      "layer": "presentation",
+      "purpose": "Shown for requires_confirmation:true intents. There is deliberately no",
+      "purpose_th": "Shown for requires_confirmation:true intents. There is deliberately no",
+      "exports": [
+        "ConfirmationPreview"
+      ],
+      "status": "active"
+    },
+    "presentation/ai/ClarifyingChoice.tsx": {
+      "owner": "presentation",
+      "layer": "presentation",
+      "purpose": "ตัวเลือกตอบคำถามกลับของ playground — แสดง prompt + options และส่ง index ที่ผู้ใช้เลือกกลับ (presentation เท่านั้น)",
+      "purpose_th": "ตัวเลือกตอบคำถามกลับของ playground — แสดง prompt + options และส่ง index ที่ผู้ใช้เลือกกลับ (presentation เท่านั้น)",
+      "exports": [
+        "ClarifyingChoice"
+      ],
+      "status": "active"
+    },
+    "presentation/ai/ChatMessageList.tsx": {
+      "owner": "presentation",
+      "layer": "presentation",
+      "purpose": "เรนเดอร์รายการข้อความบทสนทนาของ playground จาก ChatMessage (presentation เท่านั้น)",
+      "purpose_th": "เรนเดอร์รายการข้อความบทสนทนาของ playground จาก ChatMessage (presentation เท่านั้น)",
+      "exports": [
+        "ChatMessageList",
+        "ClarifyMeta"
+      ],
+      "status": "active"
+    },
+    "presentation/ai/ChatInput.tsx": {
+      "owner": "presentation",
+      "layer": "presentation",
+      "purpose": "ช่องพิมพ์ข้อความของ playground + ชิปตัวอย่างคำสั่ง (presentation เท่านั้น ไม่เรียก API เอง)",
+      "purpose_th": "ช่องพิมพ์ข้อความของ playground + ชิปตัวอย่างคำสั่ง (presentation เท่านั้น ไม่เรียก API เอง)",
+      "exports": [
+        "ChatInput"
+      ],
+      "status": "active"
+    },
+    "app/business-workspace-template/page.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "entry ของ Business Workspace Template — redirect ไป /business-workspace-template/overview",
+      "purpose_th": "entry ของ Business Workspace Template — redirect ไป /business-workspace-template/overview",
+      "exports": [
+        "BusinessWorkspaceTemplatePage"
+      ],
+      "status": "active"
+    },
+    "presentation/shell/workspace/NotImplementedBoard.tsx": {
+      "owner": "presentation",
+      "layer": "presentation",
+      "purpose": "Honest placeholder — Business/Finance/Partner/Mobile Board (Phase 4 Steps",
+      "purpose_th": "Honest placeholder — Business/Finance/Partner/Mobile Board (Phase 4 Steps",
+      "exports": [
+        "NotImplementedBoard"
+      ],
+      "status": "active"
+    },
+    "presentation/shell/workspace/DashboardBoard.tsx": {
+      "owner": "presentation",
+      "layer": "presentation",
+      "purpose": "Dashboard Board (Phase 4, Step 4) — a generic renderer of whatever",
+      "purpose_th": "Dashboard Board (Phase 4, Step 4) — a generic renderer of whatever",
+      "exports": [
+        "DashboardBoard"
+      ],
+      "status": "active"
+    },
+    "presentation/shell/navigation/ListColumn.tsx": {
+      "owner": "presentation",
+      "layer": "presentation",
+      "purpose": "UIKit — ListColumn",
+      "purpose_th": "UIKit — ListColumn",
+      "exports": [
+        "ListColumn",
+        "ListColumnItem",
+        "ListColumnWidth"
+      ],
+      "status": "active"
+    },
+    "presentation/shell/navigation/IconRail.tsx": {
+      "owner": "presentation",
+      "layer": "presentation",
+      "purpose": "UIKit — IconRail",
+      "purpose_th": "UIKit — IconRail",
+      "exports": [
+        "IconRail",
+        "IconRailItem"
+      ],
+      "status": "active"
+    },
+    "presentation/shell/navigation/HomeBackBar.tsx": {
+      "owner": "presentation",
+      "layer": "presentation",
+      "purpose": "Owner request (2026-07-30): once wrapped in a native Tauri window, there's",
+      "purpose_th": "Owner request (2026-07-30): once wrapped in a native Tauri window, there's",
+      "exports": [
+        "HomeBackBar"
+      ],
+      "status": "active"
+    },
+    "presentation/shell/navigation/AppHeader.tsx": {
+      "owner": "presentation",
+      "layer": "presentation",
+      "purpose": "Module name — owned by the module, not by Navigation (e.g. \"ข้อความ\", \"การเงิน\", \"ใบแจ้งหนี้\").",
+      "purpose_th": "Module name — owned by the module, not by Navigation (e.g. \"ข้อความ\", \"การเงิน\", \"ใบแจ้งหนี้\").",
+      "exports": [
+        "AppHeader",
+        "AppHeaderProps"
+      ],
+      "status": "active"
+    },
+    "presentation/foundation/tokens/typography.ts": {
+      "owner": "presentation",
+      "layer": "presentation",
+      "purpose": "Design Tokens — Typography",
+      "purpose_th": "Design Tokens — Typography",
+      "exports": [
+        "fontWeight",
+        "typography"
+      ],
+      "status": "active"
+    },
+    "presentation/foundation/tokens/spacing.ts": {
+      "owner": "presentation",
+      "layer": "presentation",
+      "purpose": "Design Tokens — Spacing",
+      "purpose_th": "Design Tokens — Spacing",
+      "exports": [
+        "spacing"
+      ],
+      "status": "active"
+    },
+    "presentation/foundation/tokens/semantic-colors.ts": {
+      "owner": "presentation",
+      "layer": "presentation",
+      "purpose": "Design Tokens — Semantic Colors",
+      "purpose_th": "Design Tokens — Semantic Colors",
+      "exports": [
+        "SemanticTone",
+        "semanticColors"
+      ],
+      "status": "active"
+    },
+    "presentation/foundation/tokens/index.tsx": {
+      "owner": "presentation",
+      "layer": "presentation",
+      "purpose": "Design Tokens — barrel + Theme Provider",
+      "purpose_th": "Design Tokens — barrel + Theme Provider",
+      "exports": [
+        "ThemeProvider",
+        "ThemeToggle",
+        "colors",
+        "elevation",
+        "fontWeight",
+        "semanticColors",
+        "spacing",
+        "type SemanticTone",
+        "typography",
+        "useTheme"
+      ],
+      "status": "active"
+    },
+    "presentation/foundation/tokens/elevation.ts": {
+      "owner": "presentation",
+      "layer": "presentation",
+      "purpose": "Design Tokens — Elevation",
+      "purpose_th": "Design Tokens — Elevation",
+      "exports": [
+        "elevation"
+      ],
+      "status": "active"
+    },
+    "presentation/foundation/tokens/colors.ts": {
+      "owner": "presentation",
+      "layer": "presentation",
+      "purpose": "Design Tokens — Colors",
+      "purpose_th": "Design Tokens — Colors",
+      "exports": [
+        "Theme",
+        "colors"
+      ],
+      "status": "active"
+    },
+    "app/business-workspace-template/workspace/page.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Business Workspace Template — พื้นที่ทำงาน (Workspace)",
+      "purpose_th": "Business Workspace Template — พื้นที่ทำงาน (Workspace)",
+      "exports": [
+        "BusinessWorkspacePage"
+      ],
+      "status": "active"
+    },
+    "app/business-workspace-template/tasks/page.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Business Workspace Template — งาน (Tasks)",
+      "purpose_th": "Business Workspace Template — งาน (Tasks)",
+      "exports": [
+        "BusinessWorkspaceTasksPage"
+      ],
+      "status": "active"
+    },
+    "app/business-workspace-template/documents/page.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Business Workspace Template — เอกสาร (Documents)",
+      "purpose_th": "Business Workspace Template — เอกสาร (Documents)",
+      "exports": [
+        "BusinessWorkspaceDocumentsPage"
+      ],
+      "status": "active"
+    },
+    "app/business-workspace-template/overview/page.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Business Workspace Template — ภาพรวม (Overview)",
+      "purpose_th": "Business Workspace Template — ภาพรวม (Overview)",
+      "exports": [
+        "BusinessWorkspaceOverviewPage"
+      ],
+      "status": "active"
+    },
+    "app/business-workspace-template/login/page.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "หน้าจอ template login (static prototype — ไม่ผูก Supabase Auth; พื้นที่นี้เป็น dev/review surface)",
+      "purpose_th": "หน้าจอ template login (static prototype — ไม่ผูก Supabase Auth; พื้นที่นี้เป็น dev/review surface)",
+      "exports": [
+        "BusinessWorkspaceLoginPage"
+      ],
+      "status": "active"
+    },
+    "app/admin/ui-gallery/page.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "UI Gallery — INDEX (/admin/ui-gallery)",
+      "purpose_th": "UI Gallery — INDEX (/admin/ui-gallery)",
+      "exports": [
+        "UiGalleryIndexPage"
+      ],
+      "status": "active"
+    },
+    "app/admin/ui-gallery/preview/page.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "UI Gallery — PREVIEW (/admin/ui-gallery/preview?id=<itemId>)",
+      "purpose_th": "UI Gallery — PREVIEW (/admin/ui-gallery/preview?id=<itemId>)",
+      "exports": [
+        "UiGalleryPreviewPage"
+      ],
+      "status": "active"
+    },
+    "app/admin/ui-gallery/lab/page.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "UI Gallery — LAB (/admin/ui-gallery/lab)",
+      "purpose_th": "UI Gallery — LAB (/admin/ui-gallery/lab)",
+      "exports": [
+        "UiGalleryLabPage"
+      ],
+      "status": "active"
+    },
+    "app/admin/ui-gallery/compare/page.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "UI Gallery — COMPARE (/admin/ui-gallery/compare?ids=a,b,c  |  ?preset=<presetId>)",
+      "purpose_th": "UI Gallery — COMPARE (/admin/ui-gallery/compare?ids=a,b,c  |  ?preset=<presetId>)",
+      "exports": [
+        "UiGalleryComparePage"
+      ],
+      "status": "active"
+    },
+    "app/admin/ui-gallery/_lib/uiIndex.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "UI Gallery — uiIndex.ts",
+      "purpose_th": "UI Gallery — uiIndex.ts",
+      "exports": [
+        "PRESENTATION_COUNTS",
+        "PRESENTATION_GROUP_ORDER",
+        "UI_CATEGORY_ORDER",
+        "UI_COMPARE_PRESETS",
+        "UI_COUNTS",
+        "UiCounts",
+        "UiFilter",
+        "computeUiCounts",
+        "filterUiItems",
+        "getUiItem",
+        "getUiItems",
+        "listUiItems",
+        "presentationItemsByGroup",
+        "shellSignature",
+        "uiBadges",
+        "uiItemsByCategory"
+      ],
+      "status": "active"
+    },
+    "app/admin/ui-gallery/_lib/uiCatalog.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "UI Gallery — uiCatalog.ts",
+      "purpose_th": "UI Gallery — uiCatalog.ts",
+      "exports": [
+        "PRESENTATION_CATALOG",
+        "PRESENTATION_GROUP_ORDER",
+        "PresentationEntry",
+        "PresentationGroup",
+        "UI_CATALOG",
+        "UI_CATEGORY_ORDER",
+        "UI_COMPARE_PRESETS",
+        "UiBranch",
+        "UiCategory",
+        "UiComparePreset",
+        "UiItem",
+        "UiRenderMode"
+      ],
+      "status": "active"
+    },
+    "app/admin/ui-gallery/_lib/componentHost.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "UI Gallery — componentHost.tsx",
+      "purpose_th": "UI Gallery — componentHost.tsx",
+      "exports": [
+        "HOST_KEYS",
+        "HostProps",
+        "REAL_NAV_ITEMS",
+        "REAL_RAIL_ITEMS",
+        "hasHost",
+        "renderHost"
+      ],
+      "status": "active"
+    },
+    "core/auth/devReviewAccess.ts": {
+      "owner": "core",
+      "layer": "core",
+      "purpose": "LOCAL UI REVIEW — dev-only allowance for Owner UI review (owner directive 2026-09-22).",
+      "purpose_th": "LOCAL UI REVIEW — dev-only allowance for Owner UI review (owner directive 2026-09-22).",
+      "exports": [
+        "LOCAL_UI_REVIEW_HEADER",
+        "LOCAL_UI_REVIEW_PREFIX",
+        "LOCAL_UI_REVIEW_PREFIXES",
+        "isLocalReviewPath",
+        "isLocalReviewRequest",
+        "isLocalUiGalleryReviewPath",
+        "isLocalUiGalleryReviewRequest",
+        "isLoopbackHost"
+      ],
+      "status": "active"
+    },
+    "app/workspace/BusinessWorkspace.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "BUSINESS WORKSPACE — หน้าจอใช้งานจริงเพียงหน้าจอเดียว (/workspace)",
+      "purpose_th": "BUSINESS WORKSPACE — หน้าจอใช้งานจริงเพียงหน้าจอเดียว (/workspace)",
+      "exports": [
+        "BusinessWorkspace"
+      ],
+      "status": "active"
+    },
+    "app/business-workspace-template/layout.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Business Workspace Template — auth boundary ของพื้นที่ template/review (owner, 2026-09-23)",
+      "purpose_th": "Business Workspace Template — auth boundary ของพื้นที่ template/review (owner, 2026-09-23)",
+      "exports": [
+        "BusinessWorkspaceTemplateLayout"
+      ],
+      "status": "active"
+    },
+    "presentation/shell/ide/TabStrip.tsx": {
+      "owner": "presentation",
+      "layer": "presentation",
+      "purpose": "IDE Primitives — TabStrip (EXTRACTED, source-preserving)",
+      "purpose_th": "IDE Primitives — TabStrip (EXTRACTED, source-preserving)",
+      "exports": [
+        "CATEGORY_COLORS",
+        "ClassificationInfo",
+        "CodeCategory",
+        "FileTabState",
+        "RISK_COLORS",
+        "RISK_LABELS_TH",
+        "RiskLevel",
+        "Tab",
+        "TabStrip",
+        "classificationTooltip",
+        "isDirty"
+      ],
+      "status": "active"
+    },
+    "app/workspace/_lib/businessTools.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "BUSINESS WORKSPACE — tool registry + เนื้อหาซ้าย/ขวา (หน้าจอจริง /workspace)",
+      "purpose_th": "BUSINESS WORKSPACE — tool registry + เนื้อหาซ้าย/ขวา (หน้าจอจริง /workspace)",
+      "exports": [
+        "BusinessTool",
+        "HIDDEN_DEV_TOOLS",
+        "OPEN_TARGETS",
+        "OpenTarget",
+        "TOOLS"
+      ],
+      "status": "active"
+    },
+    "app/api/admin/capability-boxes/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "GET /api/admin/capability-boxes",
+      "purpose_th": "GET /api/admin/capability-boxes",
+      "exports": [
+        "GET"
+      ],
+      "status": "active"
+    },
+    "app/admin/ui-gallery/visual-review/page.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "VISUAL REVIEW — แสดง icon / logo / image asset ที่มีอยู่จริงทั้งหมดในระบบ",
+      "purpose_th": "VISUAL REVIEW — แสดง icon / logo / image asset ที่มีอยู่จริงทั้งหมดในระบบ",
+      "exports": [
+        "VisualReviewPage"
+      ],
+      "status": "active"
+    },
+    "app/admin/ui-gallery/business-display/page.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "BUSINESS DISPLAY — REVIEW (/admin/ui-gallery/business-display)",
+      "purpose_th": "BUSINESS DISPLAY — REVIEW (/admin/ui-gallery/business-display)",
+      "exports": [
+        "BusinessDisplayReviewPage"
+      ],
+      "status": "active"
+    },
+    "app/admin/ui-gallery/_lib/visualAssets.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Visual Asset Inventory — ข้อมูลสำหรับหน้าจอ Review เท่านั้น",
+      "purpose_th": "Visual Asset Inventory — ข้อมูลสำหรับหน้าจอ Review เท่านั้น",
+      "exports": [
+        "AssetState",
+        "BRAND_ASSETS",
+        "BUSINESS_MODULE_ICONS",
+        "BusinessModuleIconEntry",
+        "INTERNAL_CAPABILITY_IDENTITIES",
+        "PROVIDER_BRANDS",
+        "ProviderBrandEntry",
+        "VISUAL_ASSET_SOURCE_NOTES",
+        "VisualAsset"
+      ],
+      "status": "active"
+    },
+    "app/admin/ui-gallery/_lib/iconRegistry.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Icon Registry — รายชื่อ icon component ที่ระบบ *ใช้จริง* (สแกนจาก import ของ lucide-react",
+      "purpose_th": "Icon Registry — รายชื่อ icon component ที่ระบบ *ใช้จริง* (สแกนจาก import ของ lucide-react",
+      "exports": [
+        "ICON_REGISTRY",
+        "IconRegistryEntry"
+      ],
+      "status": "active"
+    },
+    "app/admin/ui-gallery/_lib/businessDisplayModel.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "BUSINESS DISPLAY MODEL — DATA → DISPLAY MODEL → RENDER",
+      "purpose_th": "BUSINESS DISPLAY MODEL — DATA → DISPLAY MODEL → RENDER",
+      "exports": [
+        "BadgeItem",
+        "BusinessDisplayModel",
+        "DISPLAY_PRIMITIVE_MAPPING",
+        "DiffItem",
+        "DisplayBlock",
+        "DisplayItem",
+        "FieldRow",
+        "GroupItem",
+        "MAPPING_SUMMARY",
+        "MappingState",
+        "PrimitiveMapping",
+        "ProblemItem",
+        "ReferenceItem",
+        "SAMPLE_DISPLAY_MODELS",
+        "SearchHitItem",
+        "SeparatorItem",
+        "TextLine",
+        "Tone",
+        "TreeItem"
+      ],
+      "status": "active"
+    },
+    "app/admin/ui-gallery/_lib/assemblyHost.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "UI Gallery — assemblyHost.tsx",
+      "purpose_th": "UI Gallery — assemblyHost.tsx",
+      "exports": [
+        "AsmAdminOwnerWorkspace",
+        "AsmAiWorkspace",
+        "AsmApplicationShell",
+        "AsmCanvasWorkspace",
+        "AsmDocumentWorkspace",
+        "AsmFormWorkspace",
+        "AsmPortalCapability",
+        "AsmTableWorkspace",
+        "AsmTemplateSuite",
+        "AsmViewerWorkspace",
+        "AsmWorkspaceBoard",
+        "AssemblyFrame",
+        "AssemblyHost"
+      ],
+      "status": "active"
+    },
+    "app/admin/ui-gallery/_lib/assemblies.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "UI Gallery — assemblies.ts",
+      "purpose_th": "UI Gallery — assemblies.ts",
+      "exports": [
+        "ASSEMBLIES",
+        "AssemblySpec",
+        "getAssembly"
+      ],
+      "status": "active"
+    },
+    "app/admin/ui-gallery/_lib/BusinessDisplayRenderer.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "BUSINESS DISPLAY RENDERER — renderer ตัวเดียวสำหรับ display model ทุกชนิด",
+      "purpose_th": "BUSINESS DISPLAY RENDERER — renderer ตัวเดียวสำหรับ display model ทุกชนิด",
+      "exports": [
+        "BusinessDisplayRenderer"
+      ],
+      "status": "active"
+    },
+    "app/api/admin/capability-boxes/_lib/boxCatalog.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Capability Box Catalog — read-only join ของระบบที่มีอยู่จริงเท่านั้น",
+      "purpose_th": "Capability Box Catalog — read-only join ของระบบที่มีอยู่จริงเท่านั้น",
+      "exports": [
+        "BoxCapabilityLink",
+        "BoxCatalogSummary",
+        "BoxConnectLink",
+        "BoxKind",
+        "BoxMappingStatus",
+        "BoxQueryConstraint",
+        "CapabilityBox",
+        "CapabilityBoxCatalog",
+        "buildCapabilityBoxCatalog",
+        "findBox"
+      ],
+      "status": "active"
+    },
+    "app/api/admin/capability-boxes/run/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "POST /api/admin/capability-boxes/run",
+      "purpose_th": "POST /api/admin/capability-boxes/run",
+      "exports": [
+        "POST"
+      ],
+      "status": "active"
     }
   },
   "excluded": [
     "next-env.d.ts"
+  ],
+  "retired": [
+    {
+      "path": "components/documents/FileUpload.tsx",
+      "retired_at": "2026-09-22T20:51:04.335Z",
+      "reason": "ไฟล์ไม่มีอยู่ใน Source แล้ว (Git/Source = source of truth) — ย้ายออกจาก modules ไม่นับเป็น BROKEN ปัจจุบัน",
+      "last_status": "stale",
+      "purpose_th": "วิดเจ็ตแนบไฟล์ใช้ซ้ำได้ — อัปโหลดผ่าน /api/admin/upload"
+    },
+    {
+      "path": "components/landing/CapabilityPageShell.tsx",
+      "retired_at": "2026-09-22T20:51:04.335Z",
+      "reason": "ไฟล์ไม่มีอยู่ใน Source แล้ว (Git/Source = source of truth) — ย้ายออกจาก modules ไม่นับเป็น BROKEN ปัจจุบัน",
+      "last_status": "stale",
+      "purpose_th": "Shell ส่วนหัว/ท้ายที่ใช้ร่วมกันในหน้า capability สาธารณะ"
+    },
+    {
+      "path": "components/landing/CapabilitySkeleton.tsx",
+      "retired_at": "2026-09-22T20:51:04.335Z",
+      "reason": "ไฟล์ไม่มีอยู่ใน Source แล้ว (Git/Source = source of truth) — ย้ายออกจาก modules ไม่นับเป็น BROKEN ปัจจุบัน",
+      "last_status": "stale",
+      "purpose_th": "Skeleton โหลดร่วมที่ทุกหน้า capability เรียกใช้"
+    },
+    {
+      "path": "components/landing/CopyButton.tsx",
+      "retired_at": "2026-09-22T20:51:04.335Z",
+      "reason": "ไฟล์ไม่มีอยู่ใน Source แล้ว (Git/Source = source of truth) — ย้ายออกจาก modules ไม่นับเป็น BROKEN ปัจจุบัน",
+      "last_status": "stale",
+      "purpose_th": "ปุ่ม copy-to-clipboard เล็กๆ ใช้ซ้ำได้ แยกออกมาให้หน้าแม่เป็น Server Component ได้"
+    },
+    {
+      "path": "components/portal/PortalShell.tsx",
+      "retired_at": "2026-09-22T20:51:04.335Z",
+      "reason": "ไฟล์ไม่มีอยู่ใน Source แล้ว (Git/Source = source of truth) — ย้ายออกจาก modules ไม่นับเป็น BROKEN ปัจจุบัน",
+      "last_status": "stale",
+      "purpose_th": "Shell กลางที่ทุก Portal ใช้ร่วมกัน — ต่างกันแค่ config ใน portals.json"
+    },
+    {
+      "path": "components/ui-kit/IconRail.tsx",
+      "retired_at": "2026-09-22T20:51:04.335Z",
+      "reason": "ไฟล์ไม่มีอยู่ใน Source แล้ว (Git/Source = source of truth) — ย้ายออกจาก modules ไม่นับเป็น BROKEN ปัจจุบัน",
+      "last_status": "stale",
+      "purpose_th": "แถบไอคอนซ้ายสุดแบบแอป LINE เลือกได้ทีละ 1 — layout primitive ใหม่ของ AppShell"
+    },
+    {
+      "path": "components/ui-kit/ListColumn.tsx",
+      "retired_at": "2026-09-22T20:51:04.335Z",
+      "reason": "ไฟล์ไม่มีอยู่ใน Source แล้ว (Git/Source = source of truth) — ย้ายออกจาก modules ไม่นับเป็น BROKEN ปัจจุบัน",
+      "last_status": "stale",
+      "purpose_th": "คอลัมน์รายการกลางแบบแอป LINE (ค้นหา+รายชื่อ+badge) — layout primitive ของ AppShell"
+    },
+    {
+      "path": "components/ui-kit/AppShell.tsx",
+      "retired_at": "2026-09-22T20:51:04.335Z",
+      "reason": "ไฟล์ไม่มีอยู่ใน Source แล้ว (Git/Source = source of truth) — ย้ายออกจาก modules ไม่นับเป็น BROKEN ปัจจุบัน",
+      "last_status": "stale",
+      "purpose_th": "ประกอบ IconRail+ListColumn+เนื้อหาหลักเป็นโครง 3 คอลัมน์ถาวรแบบ LINE — หน้าจริงหน้าแรกที่ใช้: line-customers"
+    },
+    {
+      "path": "components/ui-kit/index.ts",
+      "retired_at": "2026-09-22T20:51:04.335Z",
+      "reason": "ไฟล์ไม่มีอยู่ใน Source แล้ว (Git/Source = source of truth) — ย้ายออกจาก modules ไม่นับเป็น BROKEN ปัจจุบัน",
+      "last_status": "stale",
+      "purpose_th": "จุด export รวมของ UIKit — Window/Dock/AppShell/IconRail/ListColumn/ChatPanel ฯลฯ ธีมสว่างทั้งหมด รับข้อมูลผ่าน props ไม่ hardcode"
+    },
+    {
+      "path": "components/ui-kit/EmptyState.tsx",
+      "retired_at": "2026-09-22T20:51:04.335Z",
+      "reason": "ไฟล์ไม่มีอยู่ใน Source แล้ว (Git/Source = source of truth) — ย้ายออกจาก modules ไม่นับเป็น BROKEN ปัจจุบัน",
+      "last_status": "stale",
+      "purpose_th": "ส่วนหนึ่งของ UIKit — Shared empty-state placeholder used by every ui-kit content component"
+    },
+    {
+      "path": "components/ui-kit/Inspector.tsx",
+      "retired_at": "2026-09-22T20:51:04.335Z",
+      "reason": "ไฟล์ไม่มีอยู่ใน Source แล้ว (Git/Source = source of truth) — ย้ายออกจาก modules ไม่นับเป็น BROKEN ปัจจุบัน",
+      "last_status": "stale",
+      "purpose_th": "ส่วนหนึ่งของ UIKit — Key/value inspector panel, light theme"
+    },
+    {
+      "path": "components/ui-kit/MapView.tsx",
+      "retired_at": "2026-09-22T20:51:04.335Z",
+      "reason": "ไฟล์ไม่มีอยู่ใน Source แล้ว (Git/Source = source of truth) — ย้ายออกจาก modules ไม่นับเป็น BROKEN ปัจจุบัน",
+      "last_status": "stale",
+      "purpose_th": "ส่วนหนึ่งของ UIKit — Provider-agnostic marker grid, light theme"
+    },
+    {
+      "path": "components/ui-kit/Window.tsx",
+      "retired_at": "2026-09-22T20:51:04.335Z",
+      "reason": "ไฟล์ไม่มีอยู่ใน Source แล้ว (Git/Source = source of truth) — ย้ายออกจาก modules ไม่นับเป็น BROKEN ปัจจุบัน",
+      "last_status": "stale",
+      "purpose_th": "ส่วนหนึ่งของ UIKit — Shared frame every ui-kit content component wraps in — added variant window|panel 2026-07-11 for AppShell"
+    },
+    {
+      "path": "components/ui-kit/ActionBar.tsx",
+      "retired_at": "2026-09-22T20:51:04.335Z",
+      "reason": "ไฟล์ไม่มีอยู่ใน Source แล้ว (Git/Source = source of truth) — ย้ายออกจาก modules ไม่นับเป็น BROKEN ปัจจุบัน",
+      "last_status": "stale",
+      "purpose_th": "แถบปุ่มด้านล่างกระทู้แชต (GPS/เอกสาร/โทร/แนบไฟล์/ถาม AI) — ซ่อนตาราง Events/Documents ไว้หลังปุ่มตามที่เฮียขอ"
+    },
+    {
+      "path": "styles/tokens/colors.ts",
+      "retired_at": "2026-09-22T20:51:04.336Z",
+      "reason": "ไฟล์ไม่มีอยู่ใน Source แล้ว (Git/Source = source of truth) — ย้ายออกจาก modules ไม่นับเป็น BROKEN ปัจจุบัน",
+      "last_status": "stale",
+      "purpose_th": "Design Token สี — palette ดิบสำหรับธีม Enterprise Light / Developer Dark ใช้ผ่าน elevation.ts/typography.ts/semantic-colors.ts เท่านั้น"
+    },
+    {
+      "path": "styles/tokens/elevation.ts",
+      "retired_at": "2026-09-22T20:51:04.336Z",
+      "reason": "ไฟล์ไม่มีอยู่ใน Source แล้ว (Git/Source = source of truth) — ย้ายออกจาก modules ไม่นับเป็น BROKEN ปัจจุบัน",
+      "last_status": "stale",
+      "purpose_th": "Design Token ระบบชั้นความสูง (elevation) 5 ชั้น เป็น Tailwind class สำเร็จรูปต่อธีม"
+    },
+    {
+      "path": "styles/tokens/semantic-colors.ts",
+      "retired_at": "2026-09-22T20:51:04.336Z",
+      "reason": "ไฟล์ไม่มีอยู่ใน Source แล้ว (Git/Source = source of truth) — ย้ายออกจาก modules ไม่นับเป็น BROKEN ปัจจุบัน",
+      "last_status": "stale",
+      "purpose_th": "Design Token สีสถานะ (success/warning/error/info) โทน enterprise ต่อธีม แทนสีสดแบบ dashboard เกม"
+    },
+    {
+      "path": "styles/tokens/typography.ts",
+      "retired_at": "2026-09-22T20:51:04.336Z",
+      "reason": "ไฟล์ไม่มีอยู่ใน Source แล้ว (Git/Source = source of truth) — ย้ายออกจาก modules ไม่นับเป็น BROKEN ปัจจุบัน",
+      "last_status": "stale",
+      "purpose_th": "Design Token ตัวอักษร — สี heading/body/description และน้ำหนักฟอนต์ต่อธีม"
+    },
+    {
+      "path": "styles/tokens/spacing.ts",
+      "retired_at": "2026-09-22T20:51:04.336Z",
+      "reason": "ไฟล์ไม่มีอยู่ใน Source แล้ว (Git/Source = source of truth) — ย้ายออกจาก modules ไม่นับเป็น BROKEN ปัจจุบัน",
+      "last_status": "stale",
+      "purpose_th": "Design Token ระยะห่าง — จังหวะแนวตั้งและความกว้าง container ที่ใช้ร่วมกัน"
+    },
+    {
+      "path": "styles/tokens/index.tsx",
+      "retired_at": "2026-09-22T20:51:04.336Z",
+      "reason": "ไฟล์ไม่มีอยู่ใน Source แล้ว (Git/Source = source of truth) — ย้ายออกจาก modules ไม่นับเป็น BROKEN ปัจจุบัน",
+      "last_status": "stale",
+      "purpose_th": "Barrel export ของ Design Tokens พร้อม ThemeProvider/useTheme/ThemeToggle สลับธีม Enterprise Light / Developer Dark เก็บค่าไว้ที่ localStorage"
+    },
+    {
+      "path": "components/workspace/boards/DashboardBoard.tsx",
+      "retired_at": "2026-09-22T20:51:04.336Z",
+      "reason": "ไฟล์ไม่มีอยู่ใน Source แล้ว (Git/Source = source of truth) — ย้ายออกจาก modules ไม่นับเป็น BROKEN ปัจจุบัน",
+      "last_status": "stale",
+      "purpose_th": "Board แบบทั่วไป — แสดงผล RenderModel ใดก็ได้ที่ได้รับ ไม่รู้เนื้อหาธุรกิจ"
+    },
+    {
+      "path": "components/workspace/boards/NotImplementedBoard.tsx",
+      "retired_at": "2026-09-22T20:51:04.336Z",
+      "reason": "ไฟล์ไม่มีอยู่ใน Source แล้ว (Git/Source = source of truth) — ย้ายออกจาก modules ไม่นับเป็น BROKEN ปัจจุบัน",
+      "last_status": "stale",
+      "purpose_th": "Placeholder ที่บอกตรง ๆ ว่ายังไม่มี Presenter จริง — ไม่ปลอมเนื้อหา"
+    },
+    {
+      "path": "components/nav/AppHeader.tsx",
+      "retired_at": "2026-09-22T20:51:04.336Z",
+      "reason": "ไฟล์ไม่มีอยู่ใน Source แล้ว (Git/Source = source of truth) — ย้ายออกจาก modules ไม่นับเป็น BROKEN ปัจจุบัน",
+      "last_status": "stale",
+      "purpose_th": "Component กลางของ header หน้าเว็บ (Navigation redesign, 2026-07-16/17): เป็นเจ้าของปุ่ม Back/Home และลำดับมาตรฐาน (Back | Home | ชื่อหน้า | ปุ่มเฉพาะโมดูล) — แต่ละหน้าแอดมินส่งแค่ชื่อหน้ากับปุ่มของตัวเองเข้ามา แยกความรับผิดชอบ Navigation ออกจากเนื้อหาของโมดูลโดยโครงสร้าง"
+    },
+    {
+      "path": "components/ui-kit/FlexPreview.tsx",
+      "retired_at": "2026-09-22T20:51:04.336Z",
+      "reason": "ไฟล์ไม่มีอยู่ใน Source แล้ว (Git/Source = source of truth) — ย้ายออกจาก modules ไม่นับเป็น BROKEN ปัจจุบัน",
+      "last_status": "stale",
+      "purpose_th": "สร้างใหม่ 2026-07-24 (ไฟล์จริงเคย archive เป็น AK-018 หลัง session ก่อนลบทิ้งโดยไม่แก้ผู้เรียกใช้ — ดู registry/existence.json#archived_knowledge) แปลง LINE Flex JSON จริง (bubble/box/text/separator/button) เป็นการ์ดที่เห็นในหน้าจอควบคุม เหมือนที่ลูกค้าเห็นทุกประการ — owner ขอ: \"อยากให้มันเป็นรูปแบบเดียวกัน...การ์ด Template เดียวกัน ข้อมูลเดียวกัน\""
+    },
+    {
+      "path": "components/nav/HomeBackBar.tsx",
+      "retired_at": "2026-09-22T20:51:04.336Z",
+      "reason": "ไฟล์ไม่มีอยู่ใน Source แล้ว (Git/Source = source of truth) — ย้ายออกจาก modules ไม่นับเป็น BROKEN ปัจจุบัน",
+      "last_status": "stale",
+      "purpose_th": "แถบนำทางย้อนกลับ/หน้าหลัก (owner, 2026-07-30) — ความจำเป็นจริงที่เจอตอนห่อแอป admin เป็นหน้าต่าง Tauri (src-tauri/): ต่างจากแท็บเบราว์เซอร์ตรงที่ Tauri webview ไม่มีปุ่มย้อนกลับ ไม่มีแถบที่อยู่เว็บ ไม่มีอะไรให้กดนำทางเลยนอกจากที่หน้านั้นๆ มีเอง ความพยายามก่อนหน้า (2026-07-16) ใช้ overlay ลอยแล้วถูกยกเลิกวันเดียวกันเพราะบังเนื้อหาจริง (ดูประวัติใน app/admin/layout.tsx) ตัวนี้เรนเดอร์แบบ normal document flow (ไม่ลอย/absolute) กินพื้นที่จริงแล้วดันเนื้อหาลง จึงไม่มีทางไปบังอะไรได้เลย เชื่อมเข้า app/admin/layout.tsx ครั้งเดียว ทุกหน้า admin ได้แถบนี้หมด"
+    },
+    {
+      "path": "app/playground/_components/ResultCard.tsx",
+      "retired_at": "2026-09-22T20:51:04.336Z",
+      "reason": "ไฟล์ไม่มีอยู่ใน Source แล้ว (Git/Source = source of truth) — ย้ายออกจาก modules ไม่นับเป็น BROKEN ปัจจุบัน",
+      "last_status": "stale",
+      "purpose_th": "แสดงผลลัพธ์คำสั่งแบบอ่านง่าย"
+    },
+    {
+      "path": "app/playground/_components/ConfirmationPreview.tsx",
+      "retired_at": "2026-09-22T20:51:04.336Z",
+      "reason": "ไฟล์ไม่มีอยู่ใน Source แล้ว (Git/Source = source of truth) — ย้ายออกจาก modules ไม่นับเป็น BROKEN ปัจจุบัน",
+      "last_status": "stale",
+      "purpose_th": "preview คำสั่งที่ต้องยืนยัน Rule 72 พร้อมลิงก์ไปหน้า admin ไม่มีปุ่มยิงคำสั่ง"
+    },
+    {
+      "path": "app/playground/_components/ClarifyingChoice.tsx",
+      "retired_at": "2026-09-22T20:51:04.336Z",
+      "reason": "ไฟล์ไม่มีอยู่ใน Source แล้ว (Git/Source = source of truth) — ย้ายออกจาก modules ไม่นับเป็น BROKEN ปัจจุบัน",
+      "last_status": "stale",
+      "purpose_th": "แสดงตัวเลือกเมื่อระบบไม่แน่ใจ (ชื่อคนเท่านั้น ไม่แสดง UUID)"
+    },
+    {
+      "path": "app/playground/_components/ChatMessageList.tsx",
+      "retired_at": "2026-09-22T20:51:04.336Z",
+      "reason": "ไฟล์ไม่มีอยู่ใน Source แล้ว (Git/Source = source of truth) — ย้ายออกจาก modules ไม่นับเป็น BROKEN ปัจจุบัน",
+      "last_status": "stale",
+      "purpose_th": "แสดงประวัติข้อความแชทของ Playground"
+    },
+    {
+      "path": "app/playground/_components/ChatInput.tsx",
+      "retired_at": "2026-09-22T20:51:04.336Z",
+      "reason": "ไฟล์ไม่มีอยู่ใน Source แล้ว (Git/Source = source of truth) — ย้ายออกจาก modules ไม่นับเป็น BROKEN ปัจจุบัน",
+      "last_status": "stale",
+      "purpose_th": "ช่องพิมพ์ข้อความของ Playground"
+    }
   ]
 }

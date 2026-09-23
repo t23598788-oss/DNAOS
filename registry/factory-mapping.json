@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-08T11:21:50.757Z",
+  "generated_at": "2026-09-23T01:26:52.347Z",
   "policy": "Per-module Factory mapping only — no file was moved. See registry/factory-registry.json for the Factory contracts this maps into.",
   "modules": {
     "app/.well-known/oauth-authorization-server/route.ts": {
@@ -33,7 +33,7 @@
       "factoryOwner": "infrastructure-factory",
       "domain": "Infrastructure",
       "capability": "app",
-      "responsibility": "component form ฝั่ง client ตรวจสอบและส่งรหัสผ่านใหม่ผ่าน createBrowserSupabase แล้ว redirect ไปหน้าจริงตาม role ผ่าน resolveDestination()",
+      "responsibility": "ฟอร์มเปลี่ยนรหัสผ่านในพื้นที่บัญชี — ส่งการเปลี่ยนรหัสผ่านจริงผ่าน flow การยืนยันตัวตนเดิม",
       "evidence": [
         "auth-adjacent page"
       ]
@@ -92,6 +92,15 @@
         "admin UI page (remaining)"
       ]
     },
+    "app/admin/connectors/_lib/types.ts": {
+      "factoryOwner": "software-factory",
+      "domain": "Developer Tooling",
+      "capability": "app",
+      "responsibility": "สำเนาชนิดข้อมูลจริงของรายการผู้ให้บริการที่ใช้ฝั่งหน้าเว็บ ให้ตรงกับข้อมูลจริงฝั่งเซิร์ฟเวอร์เสมอ",
+      "evidence": [
+        "admin UI page (remaining)"
+      ]
+    },
     "app/admin/connectors/page.tsx": {
       "factoryOwner": "software-factory",
       "domain": "Developer Tooling",
@@ -141,7 +150,7 @@
       "factoryOwner": "software-factory",
       "domain": "Developer Tooling",
       "capability": "app",
-      "responsibility": "หน้าย่อย เรียก DebtTrackingManager (หน้า 'ธุรกิจการเงิน')",
+      "responsibility": "หน้าติดตามหนี้ของผู้ดูแล — แดชบอร์ดติดตามหนี้/ดอกเบี้ยจริง สร้างบน engines ด้านหนี้",
       "evidence": [
         "admin UI page (remaining)"
       ]
@@ -168,7 +177,7 @@
       "factoryOwner": "software-factory",
       "domain": "Developer Tooling",
       "capability": "app",
-      "responsibility": "Client component แบบ realtime: subscribe dev_loop_evidence_events/check_results/registry_proposals ผ่าน Supabase Realtime แสดงไฟล์ที่เปลี่ยน ผลตรวจ Impact An...",
+      "responsibility": "คอมโพเนนต์แดชบอร์ด Dev Loop — แสดงผล dev_loop_check_results / ข้อเสนอทะเบียนจริงเพื่อให้เจ้าของพิจารณา",
       "evidence": [
         "admin UI page (remaining)"
       ]
@@ -195,7 +204,7 @@
       "factoryOwner": "software-factory",
       "domain": "Developer Tooling",
       "capability": "app",
-      "responsibility": "หน้า Documentation Portal — เรียกดู registry/module-registry.json เอง แสดงสถานะจริงของแต่ละโมดูล (active/unregistered/stub ฯลฯ) เป็นป้ายสี",
+      "responsibility": "หน้าสำรวจ engines ของผู้ดูแล — เรียกดู engines ที่ลงทะเบียนจริงพร้อมข้อมูล metadata",
       "evidence": [
         "admin UI page (remaining)"
       ]
@@ -231,7 +240,7 @@
       "factoryOwner": "software-factory",
       "domain": "Developer Tooling",
       "capability": "app",
-      "responsibility": "คอมโพเนนต์กราฟ 3D (Three.js) แสดงความสัมพันธ์โมดูล — เครื่องมือนักพัฒนา",
+      "responsibility": "มุมมองกราฟแรง 3 มิติของสถาปัตยกรรม (three.js) — แสดงกราฟความสัมพันธ์ของโมดูลจริงบนหน้า graph ของผู้ดูแล",
       "evidence": [
         "admin UI page (remaining)"
       ]
@@ -429,7 +438,7 @@
       "factoryOwner": "software-factory",
       "domain": "Developer Tooling",
       "capability": "app",
-      "responsibility": "หน้าแอดมินแสดงคำขอราคาจริงจาก LINE ที่ยังไม่มีเอกสารตอบกลับ พร้อมสถานะจับคู่วัสดุ",
+      "responsibility": "หน้าคิวใบเสนอราคาของผู้ดูแล — คิวตรวจใบเสนอราคาจริง สร้างบน engines ใบเสนอราคา/คำนวณราคา",
       "evidence": [
         "admin UI page (remaining)"
       ]
@@ -542,6 +551,15 @@
         "admin UI page (remaining)"
       ]
     },
+    "app/admin/system/page 2.tsx": {
+      "factoryOwner": "software-factory",
+      "domain": "Developer Tooling",
+      "capability": "app",
+      "responsibility": "ไฟล์สำเนาซ้ำของ macOS ('page 2') จาก app/admin/system/page.tsx — เก็บไว้ตามนโยบายห้ามลบใน registry/existence.json (AK-026) ไม่ถูก Next.js ใช้เป็นเส้นทางจริง ...",
+      "evidence": [
+        "admin UI page (remaining)"
+      ]
+    },
     "app/admin/system/page.tsx": {
       "factoryOwner": "software-factory",
       "domain": "Developer Tooling",
@@ -574,6 +592,141 @@
       "domain": "Developer Tooling",
       "capability": "app",
       "responsibility": "หน้าย่อย เรียก TransactionPanel โหมดสร้าง แสดงธุรกรรมทั้งหมด",
+      "evidence": [
+        "admin UI page (remaining)"
+      ]
+    },
+    "app/admin/ui-gallery/_lib/BusinessDisplayRenderer.tsx": {
+      "factoryOwner": "software-factory",
+      "domain": "Developer Tooling",
+      "capability": "app",
+      "responsibility": "BUSINESS DISPLAY RENDERER — renderer ตัวเดียวสำหรับ display model ทุกชนิด",
+      "evidence": [
+        "admin UI page (remaining)"
+      ]
+    },
+    "app/admin/ui-gallery/_lib/assemblies.ts": {
+      "factoryOwner": "software-factory",
+      "domain": "Developer Tooling",
+      "capability": "app",
+      "responsibility": "UI Gallery — assemblies.ts",
+      "evidence": [
+        "admin UI page (remaining)"
+      ]
+    },
+    "app/admin/ui-gallery/_lib/assemblyHost.tsx": {
+      "factoryOwner": "software-factory",
+      "domain": "Developer Tooling",
+      "capability": "app",
+      "responsibility": "UI Gallery — assemblyHost.tsx",
+      "evidence": [
+        "admin UI page (remaining)"
+      ]
+    },
+    "app/admin/ui-gallery/_lib/businessDisplayModel.ts": {
+      "factoryOwner": "software-factory",
+      "domain": "Developer Tooling",
+      "capability": "app",
+      "responsibility": "BUSINESS DISPLAY MODEL — DATA → DISPLAY MODEL → RENDER",
+      "evidence": [
+        "admin UI page (remaining)"
+      ]
+    },
+    "app/admin/ui-gallery/_lib/componentHost.tsx": {
+      "factoryOwner": "software-factory",
+      "domain": "Developer Tooling",
+      "capability": "app",
+      "responsibility": "UI Gallery — componentHost.tsx",
+      "evidence": [
+        "admin UI page (remaining)"
+      ]
+    },
+    "app/admin/ui-gallery/_lib/iconRegistry.ts": {
+      "factoryOwner": "software-factory",
+      "domain": "Developer Tooling",
+      "capability": "app",
+      "responsibility": "Icon Registry — รายชื่อ icon component ที่ระบบ *ใช้จริง* (สแกนจาก import ของ lucide-react",
+      "evidence": [
+        "admin UI page (remaining)"
+      ]
+    },
+    "app/admin/ui-gallery/_lib/uiCatalog.ts": {
+      "factoryOwner": "software-factory",
+      "domain": "Developer Tooling",
+      "capability": "app",
+      "responsibility": "UI Gallery — uiCatalog.ts",
+      "evidence": [
+        "admin UI page (remaining)"
+      ]
+    },
+    "app/admin/ui-gallery/_lib/uiIndex.ts": {
+      "factoryOwner": "software-factory",
+      "domain": "Developer Tooling",
+      "capability": "app",
+      "responsibility": "UI Gallery — uiIndex.ts",
+      "evidence": [
+        "admin UI page (remaining)"
+      ]
+    },
+    "app/admin/ui-gallery/_lib/visualAssets.ts": {
+      "factoryOwner": "software-factory",
+      "domain": "Developer Tooling",
+      "capability": "app",
+      "responsibility": "Visual Asset Inventory — ข้อมูลสำหรับหน้าจอ Review เท่านั้น",
+      "evidence": [
+        "admin UI page (remaining)"
+      ]
+    },
+    "app/admin/ui-gallery/business-display/page.tsx": {
+      "factoryOwner": "software-factory",
+      "domain": "Developer Tooling",
+      "capability": "app",
+      "responsibility": "BUSINESS DISPLAY — REVIEW (/admin/ui-gallery/business-display)",
+      "evidence": [
+        "admin UI page (remaining)"
+      ]
+    },
+    "app/admin/ui-gallery/compare/page.tsx": {
+      "factoryOwner": "software-factory",
+      "domain": "Developer Tooling",
+      "capability": "app",
+      "responsibility": "UI Gallery — COMPARE (/admin/ui-gallery/compare?ids=a,b,c  |  ?preset=<presetId>)",
+      "evidence": [
+        "admin UI page (remaining)"
+      ]
+    },
+    "app/admin/ui-gallery/lab/page.tsx": {
+      "factoryOwner": "software-factory",
+      "domain": "Developer Tooling",
+      "capability": "app",
+      "responsibility": "UI Gallery — LAB (/admin/ui-gallery/lab)",
+      "evidence": [
+        "admin UI page (remaining)"
+      ]
+    },
+    "app/admin/ui-gallery/page.tsx": {
+      "factoryOwner": "software-factory",
+      "domain": "Developer Tooling",
+      "capability": "app",
+      "responsibility": "UI Gallery — INDEX (/admin/ui-gallery)",
+      "evidence": [
+        "admin UI page (remaining)"
+      ]
+    },
+    "app/admin/ui-gallery/preview/page.tsx": {
+      "factoryOwner": "software-factory",
+      "domain": "Developer Tooling",
+      "capability": "app",
+      "responsibility": "UI Gallery — PREVIEW (/admin/ui-gallery/preview?id=<itemId>)",
+      "evidence": [
+        "admin UI page (remaining)"
+      ]
+    },
+    "app/admin/ui-gallery/visual-review/page.tsx": {
+      "factoryOwner": "software-factory",
+      "domain": "Developer Tooling",
+      "capability": "app",
+      "responsibility": "VISUAL REVIEW — แสดง icon / logo / image asset ที่มีอยู่จริงทั้งหมดในระบบ",
       "evidence": [
         "admin UI page (remaining)"
       ]
@@ -651,6 +804,33 @@
         "backup API"
       ]
     },
+    "app/api/admin/capability-boxes/_lib/boxCatalog.ts": {
+      "factoryOwner": "business-factory",
+      "domain": "Business",
+      "capability": "app",
+      "responsibility": "Capability Box Catalog — read-only join ของระบบที่มีอยู่จริงเท่านั้น",
+      "evidence": [
+        "default: unmatched admin API surface on a business-operations platform"
+      ]
+    },
+    "app/api/admin/capability-boxes/route.ts": {
+      "factoryOwner": "business-factory",
+      "domain": "Business",
+      "capability": "app",
+      "responsibility": "GET /api/admin/capability-boxes",
+      "evidence": [
+        "default: unmatched admin API surface on a business-operations platform"
+      ]
+    },
+    "app/api/admin/capability-boxes/run/route.ts": {
+      "factoryOwner": "business-factory",
+      "domain": "Business",
+      "capability": "app",
+      "responsibility": "POST /api/admin/capability-boxes/run",
+      "evidence": [
+        "default: unmatched admin API surface on a business-operations platform"
+      ]
+    },
     "app/api/admin/connectors/[id]/enable/route.ts": {
       "factoryOwner": "infrastructure-factory",
       "domain": "Infrastructure",
@@ -678,6 +858,78 @@
         "connector/backup/domain/token/infrastructure admin API"
       ]
     },
+    "app/api/admin/connectors/_lib/catalog.ts": {
+      "factoryOwner": "infrastructure-factory",
+      "domain": "Infrastructure",
+      "capability": "app",
+      "responsibility": "รวมข้อมูลผู้ให้บริการภายนอกจริงจาก 3 แหล่ง (ตัวเชื่อมต่อในฐานข้อมูล, ทะเบียน AI Worker, Integration Gateway) เป็นรายการเดียว ทุกสถานะมาจากของจริงเท่านั้น ไม่...",
+      "evidence": [
+        "connector/backup/domain/token/infrastructure admin API"
+      ]
+    },
+    "app/api/admin/connectors/_lib/connectRuntime.ts": {
+      "factoryOwner": "infrastructure-factory",
+      "domain": "Infrastructure",
+      "capability": "app",
+      "responsibility": "การ wiring ตอนรันจริงของ Connect ที่ชั้น app — สร้าง DetectDeps (การมีอยู่ของไฟล์ในโปรเจกต์ + ชื่อ environment variable เท่านั้น) และ ConnectRuntimeDeps (ori...",
+      "evidence": [
+        "connector/backup/domain/token/infrastructure admin API"
+      ]
+    },
+    "app/api/admin/connectors/_lib/providerDescriptors.ts": {
+      "factoryOwner": "infrastructure-factory",
+      "domain": "Infrastructure",
+      "capability": "app",
+      "responsibility": "ข้อมูลอธิบายผู้ให้บริการที่รู้จักแล้ว (ชื่อ, ความสามารถ, โลโก้) เป็นข้อมูลคงที่เท่านั้น ไม่มีสถานะการเชื่อมต่อปนอยู่ สถานะจริงมาจากแหล่งอื่นเสมอ",
+      "evidence": [
+        "connector/backup/domain/token/infrastructure admin API"
+      ]
+    },
+    "app/api/admin/connectors/catalog/route.ts": {
+      "factoryOwner": "infrastructure-factory",
+      "domain": "Infrastructure",
+      "capability": "app",
+      "responsibility": "API จริงสำหรับดึงรายการผู้ให้บริการภายนอกที่รวมแล้ว ต้องยืนยันตัวตนระดับ Admin เป็นจุดเดียวที่ทั้งหน้า Connectors และแท็บ Connections ใหม่ใน IDE เรียกใช้ร่วมกัน",
+      "evidence": [
+        "connector/backup/domain/token/infrastructure admin API"
+      ]
+    },
+    "app/api/admin/connectors/discover/[slug]/route.ts": {
+      "factoryOwner": "infrastructure-factory",
+      "domain": "Infrastructure",
+      "capability": "app",
+      "responsibility": "Resource Discovery สำหรับ Owner Surface ของ Connector — ใช้ requireAuth(ADMIN_TIER) + connector-loader + discovery ของ adapter แต่ละตัว คืนรายการ resource แบ...",
+      "evidence": [
+        "connector/backup/domain/token/infrastructure admin API"
+      ]
+    },
+    "app/api/admin/connectors/providers/[providerId]/approval-request/route.ts": {
+      "factoryOwner": "infrastructure-factory",
+      "domain": "Infrastructure",
+      "capability": "app",
+      "responsibility": "ปลายทางREQUEST การอนุมัติโดยเจ้าของของ Connect Core (POST /api/admin/connectors/providers/[providerId]/approval-request) — บันทึก proposal จริง ชื่อ 'connect...",
+      "evidence": [
+        "connector/backup/domain/token/infrastructure admin API"
+      ]
+    },
+    "app/api/admin/connectors/providers/[providerId]/prepare/route.ts": {
+      "factoryOwner": "infrastructure-factory",
+      "domain": "Infrastructure",
+      "capability": "app",
+      "responsibility": "ปลายทางขั้น PREPARE ก่อนถึง Connect ของ provider หนึ่งตัว (POST /api/admin/connectors/providers/[providerId]/prepare) — คืนค่าที่ระบบเติมเอง (URL ที่ derive ...",
+      "evidence": [
+        "connector/backup/domain/token/infrastructure admin API"
+      ]
+    },
+    "app/api/admin/connectors/providers/route.ts": {
+      "factoryOwner": "infrastructure-factory",
+      "domain": "Infrastructure",
+      "capability": "app",
+      "responsibility": "surface สำหรับค้นหา provider ก่อนถึงขั้น Connect (GET /api/admin/connectors/providers) — แสดง provider ทุกตัวที่ระบบมองเห็นได้แล้ว ทั้ง identity, capabilitie...",
+      "evidence": [
+        "connector/backup/domain/token/infrastructure admin API"
+      ]
+    },
     "app/api/admin/connectors/route.ts": {
       "factoryOwner": "infrastructure-factory",
       "domain": "Infrastructure",
@@ -685,15 +937,6 @@
       "responsibility": "GET/POST /api/admin/connectors — แสดงรายการ Connector ทั้งหมด และลงทะเบียน Connector ใหม่ (ทดสอบการเชื่อมต่อทันทีตอนสร้าง)",
       "evidence": [
         "connector/backup/domain/token/infrastructure admin API"
-      ]
-    },
-    "app/api/admin/debt-events/[id]/issue-receipt/route.ts": {
-      "factoryOwner": "business-factory",
-      "domain": "Business",
-      "capability": "app",
-      "responsibility": "ออกใบเสร็จรับเงินจริงจากรายการรับเงินที่ยืนยันแล้ว (debt_events) — กดเอง ไม่อัตโนมัติ ปิดช่องว่างที่พบจริง 2026-08-05",
-      "evidence": [
-        "business-domain admin API (debt/finance/equipment/events)"
       ]
     },
     "app/api/admin/debt-trackings/[id]/draft/route.ts": {
@@ -885,6 +1128,15 @@
         "business-domain admin API (debt/finance/equipment/events)"
       ]
     },
+    "app/api/admin/ide/_lib/acceptanceContractRuntime.ts": {
+      "factoryOwner": "software-factory",
+      "domain": "Developer Tooling",
+      "capability": "app",
+      "responsibility": "ตัวแปลและตรวจเงื่อนไขการยอมรับงานแบบกำหนดแน่นอน (ไม่ใช้ AI ตัดสิน) — แปลเงื่อนไขจริงของงาน (เช่น ไฟล์ต้องมีอยู่จริง, การทดสอบต้องผ่านจริง) แล้วตรวจหลักฐานจริ...",
+      "evidence": [
+        "IDE backend (remaining, not execution/classification/decisions/problems)"
+      ]
+    },
     "app/api/admin/ide/_lib/aiContextRuntime.ts": {
       "factoryOwner": "software-factory",
       "domain": "Developer Tooling",
@@ -912,6 +1164,15 @@
         "IDE backend (remaining, not execution/classification/decisions/problems)"
       ]
     },
+    "app/api/admin/ide/_lib/architectureSummaryRuntime.ts": {
+      "factoryOwner": "software-factory",
+      "domain": "Developer Tooling",
+      "capability": "app",
+      "responsibility": "สร้างคำอธิบายไฟล์/โฟลเดอร์ 4 ชั้นภาษา (คอมพิวเตอร์/AI/ธุรกิจ/เจ้าของ) แบบเรียกตามต้องการ ประกอบจากข้อมูลจริงที่มีโครงสร้างอยู่แล้วเท่านั้น (module-registry.j...",
+      "evidence": [
+        "IDE backend (remaining, not execution/classification/decisions/problems)"
+      ]
+    },
     "app/api/admin/ide/_lib/artifactRegistry.ts": {
       "factoryOwner": "software-factory",
       "domain": "Developer Tooling",
@@ -926,6 +1187,15 @@
       "domain": "Developer Tooling",
       "capability": "app",
       "responsibility": "Artifact Pipeline & Evidence Warehouse Runtime (Step 5) — คลังชิ้นงานจริงแบบ immutable มี checksum/version/lineage จริง Evidence ต้องตรวจสอบได้จริงเท่านั้น ต...",
+      "evidence": [
+        "IDE backend (remaining, not execution/classification/decisions/problems)"
+      ]
+    },
+    "app/api/admin/ide/_lib/autoSaveRuntime.ts": {
+      "factoryOwner": "software-factory",
+      "domain": "Developer Tooling",
+      "capability": "app",
+      "responsibility": "ตัวจับเวลาสำหรับบันทึกไฟล์อัตโนมัติจริง ตรวจสอบสถานะเปิด/ปิดสดทั้งตอนตั้งเวลาและตอนจะบันทึกจริง เพื่อไม่ให้มีการบันทึกค้างหลังปิดใช้งานแล้ว เมื่อถึงเวลาบันทึ...",
       "evidence": [
         "IDE backend (remaining, not execution/classification/decisions/problems)"
       ]
@@ -975,6 +1245,42 @@
         "IDE backend (remaining, not execution/classification/decisions/problems)"
       ]
     },
+    "app/api/admin/ide/_lib/businessAcceptanceRuntime.ts": {
+      "factoryOwner": "software-factory",
+      "domain": "Developer Tooling",
+      "capability": "api",
+      "responsibility": "ตัวตรวจ acceptance ของงานธุรกิจ (PASS3/G3) — ตรวจ acceptance จากความจริงในฐานข้อมูล และมอบเกณฑ์แบบไฟล์ให้ compiler เดิม",
+      "evidence": [
+        "IDE backend (remaining, not execution/classification/decisions/problems)"
+      ]
+    },
+    "app/api/admin/ide/_lib/businessFailureBridge.ts": {
+      "factoryOwner": "software-factory",
+      "domain": "Developer Tooling",
+      "capability": "app",
+      "responsibility": "สะพานความล้มเหลว Business → Infrastructure (owner, 2026-09-19) — ขอบเขตความล้มเหลวที่หายไประหว่างโลกธุรกิจกับโลกโครงสร้างพื้นฐาน ส่ง failure จริงจาก business...",
+      "evidence": [
+        "IDE backend (remaining, not execution/classification/decisions/problems)"
+      ]
+    },
+    "app/api/admin/ide/_lib/businessJobProgressRuntime.ts": {
+      "factoryOwner": "software-factory",
+      "domain": "Developer Tooling",
+      "capability": "api",
+      "responsibility": "ความคืบหน้าของงานธุรกิจ (PASS4/G8) — บันทึกสถานะงานลงห่วงโซ่ checkpoint เดิม ระบุชัดว่าเป็นชั้นควบคุมเท่านั้น ความจริงทางธุรกิจอยู่ในแถวข้อมูลที่ canonical w...",
+      "evidence": [
+        "IDE backend (remaining, not execution/classification/decisions/problems)"
+      ]
+    },
+    "app/api/admin/ide/_lib/canonicalJobTransportRuntime.ts": {
+      "factoryOwner": "software-factory",
+      "domain": "Developer Tooling",
+      "capability": "api",
+      "responsibility": "transport งานข้ามรันไทม์ (PASS6/G2) — ตรวจซองงานจาก Edge/Deno กันการทำซ้ำด้วยการอ่านความจริงจริงก่อนรัน ตรวจหลักฐานการอนุมัติ แล้วรันผ่าน adapter และ canonic...",
+      "evidence": [
+        "IDE backend (remaining, not execution/classification/decisions/problems)"
+      ]
+    },
     "app/api/admin/ide/_lib/capabilityResolverRuntime.ts": {
       "factoryOwner": "software-factory",
       "domain": "Developer Tooling",
@@ -1020,6 +1326,15 @@
         "IDE backend (remaining, not execution/classification/decisions/problems)"
       ]
     },
+    "app/api/admin/ide/_lib/computeResourceRegistryRuntime.ts": {
+      "factoryOwner": "software-factory",
+      "domain": "Developer Tooling",
+      "capability": "app",
+      "responsibility": "รันไทม์ทะเบียนทรัพยากร compute ของ Admin IDE — ติดตามทรัพยากร compute จริง (GPU/worker host) ที่ลงทะเบียนไว้สำหรับหน้า IDE",
+      "evidence": [
+        "IDE backend (remaining, not execution/classification/decisions/problems)"
+      ]
+    },
     "app/api/admin/ide/_lib/contextPlannerRuntime.ts": {
       "factoryOwner": "software-factory",
       "domain": "Developer Tooling",
@@ -1047,11 +1362,38 @@
         "IDE backend (remaining, not execution/classification/decisions/problems)"
       ]
     },
+    "app/api/admin/ide/_lib/costGateRuntime.ts": {
+      "factoryOwner": "software-factory",
+      "domain": "Developer Tooling",
+      "capability": "app",
+      "responsibility": "Execution Plane Cost Gate (Constitution Rule 257) — จัดประเภทค่าใช้จ่ายจริง (FREE/ESTIMATED_COST/PAID/UNKNOWN_COST ต่อ Worker, FREE_LOCAL/PAID_EXTERNAL/UNKNO...",
+      "evidence": [
+        "IDE backend (remaining, not execution/classification/decisions/problems)"
+      ]
+    },
+    "app/api/admin/ide/_lib/costLedgerViewRuntime.ts": {
+      "factoryOwner": "software-factory",
+      "domain": "Developer Tooling",
+      "capability": "app",
+      "responsibility": "รันไทม์มุมมองบัญชีต้นทุนของ Admin IDE — แปลงข้อมูลบัญชีต้นทุนจริงเป็น view model ของหน้า IDE",
+      "evidence": [
+        "IDE backend (remaining, not execution/classification/decisions/problems)"
+      ]
+    },
     "app/api/admin/ide/_lib/countryPackageRegistry.ts": {
       "factoryOwner": "software-factory",
       "domain": "Developer Tooling",
       "capability": "app",
       "responsibility": "Country Package Foundation (owner, 2026-08-07, Software Factory Step 10, Phase 7) — สัญญา TypeScript จริงสำหรับ Country Package ในอนาคต (Legal/Tax/Document/B...",
+      "evidence": [
+        "IDE backend (remaining, not execution/classification/decisions/problems)"
+      ]
+    },
+    "app/api/admin/ide/_lib/deadEndSweepRuntime.ts": {
+      "factoryOwner": "software-factory",
+      "domain": "Developer Tooling",
+      "capability": "app",
+      "responsibility": "ตรวจสแกนทั้งระบบหาจุดที่สร้างไว้แต่ไม่มีใครเรียกใช้จริง (Dead End) 5 รูปแบบ — Engine ไม่มีผู้เรียก, API ไม่มี route, Registry ไม่มีตัวอ่านจริง, Worker ไม่มีต...",
       "evidence": [
         "IDE backend (remaining, not execution/classification/decisions/problems)"
       ]
@@ -1110,6 +1452,24 @@
         "IDE backend (remaining, not execution/classification/decisions/problems)"
       ]
     },
+    "app/api/admin/ide/_lib/edgeFunctionWorkerRuntime.ts": {
+      "factoryOwner": "software-factory",
+      "domain": "Developer Tooling",
+      "capability": "app",
+      "responsibility": "EDGE_FUNCTION_WORKER (WorkerType ที่ 11 ข้อยกเว้นที่ Owner อนุญาตต่อ Rule 252, DNA-000082/083) — สะพาน dispatch จริงจากโค้ด server ของ Next.js ไปยัง Supabase...",
+      "evidence": [
+        "IDE backend (remaining, not execution/classification/decisions/problems)"
+      ]
+    },
+    "app/api/admin/ide/_lib/evidenceCollectorRuntime.ts": {
+      "factoryOwner": "software-factory",
+      "domain": "Developer Tooling",
+      "capability": "app",
+      "responsibility": "ตัวรับและตรวจสอบหลักฐานขั้นแรกของ GAP-1 (ข้อยกเว้นเฉพาะกิจที่ Owner อนุญาต) — ตรวจว่าข้อสังเกตแต่ละรายการมีหลักฐานจริงแนบมาก่อนเข้าสู่ระบบ ถ้าไม่มีหลักฐานจะถ...",
+      "evidence": [
+        "IDE backend (remaining, not execution/classification/decisions/problems)"
+      ]
+    },
     "app/api/admin/ide/_lib/executionBudgetRuntime.ts": {
       "factoryOwner": "software-factory",
       "domain": "Developer Tooling",
@@ -1128,11 +1488,29 @@
         "IDE backend (remaining, not execution/classification/decisions/problems)"
       ]
     },
+    "app/api/admin/ide/_lib/executionHandRuntime.ts": {
+      "factoryOwner": "software-factory",
+      "domain": "Developer Tooling",
+      "capability": "app",
+      "responsibility": "EXECUTION_HAND (Constitution Rule 258) — Worker ปฏิบัติการฝ่ายหลังบ้านที่จำกัดบริบทให้น้อยที่สุด ตรวจสอบ Job Contract จริง (10 ฟิลด์บังคับ ขาดฟิลด์ใดคืน BLOC...",
+      "evidence": [
+        "IDE backend (remaining, not execution/classification/decisions/problems)"
+      ]
+    },
     "app/api/admin/ide/_lib/executionPlanRuntime.ts": {
       "factoryOwner": "software-factory",
       "domain": "Developer Tooling",
       "capability": "app",
       "responsibility": "รันไทม์แผนการดำเนินการ — สร้างแผนดำเนินการจริงตามลำดับ (วิเคราะห์ -> เสนอ -> ใช้จริง -> รีวิว -> ทดสอบ -> บิลด์ -> เตรียมรีลีส) จากแผนบริบทที่อนุมัติแล้ว การ...",
+      "evidence": [
+        "IDE backend (remaining, not execution/classification/decisions/problems)"
+      ]
+    },
+    "app/api/admin/ide/_lib/executionPlannerRuntime.ts": {
+      "factoryOwner": "software-factory",
+      "domain": "Developer Tooling",
+      "capability": "app",
+      "responsibility": "ตัวแตกคำสั่ง Owner เป็นขั้นตอนงานตามลำดับจริง (ไม่ใช้ AI ตัดสิน ใช้การจับรูปแบบคำจริง) แต่ละขั้นเชื่อมโยงพึ่งพากันจริงตามลำดับ ถูกออกแบบให้แยกเดี่ยวจงใจ ไม่เ...",
       "evidence": [
         "IDE backend (remaining, not execution/classification/decisions/problems)"
       ]
@@ -1254,6 +1632,15 @@
         "IDE backend (remaining, not execution/classification/decisions/problems)"
       ]
     },
+    "app/api/admin/ide/_lib/gapLoopRuntime.ts": {
+      "factoryOwner": "software-factory",
+      "domain": "Developer Tooling",
+      "capability": "app",
+      "responsibility": "Factory Gap Loop (ส่วนขยายของ Constitution Rule 255) — classifyGap() จัดหมวด Gap จริงตาม type_enum 10 หมวด (ไม่เดาถ้าไม่ชัด), findDuplicateGap() ใช้ตัวรวมคำถ...",
+      "evidence": [
+        "IDE backend (remaining, not execution/classification/decisions/problems)"
+      ]
+    },
     "app/api/admin/ide/_lib/gitReadOnly.ts": {
       "factoryOwner": "software-factory",
       "domain": "Developer Tooling",
@@ -1326,6 +1713,24 @@
         "IDE backend (remaining, not execution/classification/decisions/problems)"
       ]
     },
+    "app/api/admin/ide/_lib/jobRecoveryRuntime.ts": {
+      "factoryOwner": "software-factory",
+      "domain": "Developer Tooling",
+      "capability": "api",
+      "responsibility": "preflight การกู้คืนงาน (PASS5/G4) — อ่านเงื่อนไขที่ owner กำหนดก่อน retry/resume (checkpoint, ความจริงธุรกิจ, หลักฐาน acceptance, สถานะอนุมัติ, ค่าใช้จ่ายที่...",
+      "evidence": [
+        "IDE backend (remaining, not execution/classification/decisions/problems)"
+      ]
+    },
+    "app/api/admin/ide/_lib/managerQuestionRuntime.ts": {
+      "factoryOwner": "software-factory",
+      "domain": "Developer Tooling",
+      "capability": "app",
+      "responsibility": "Manager Question Queue (Constitution Rule 251, สิทธิ์ถาม Owner โดยตรงมีเพียง Manager) — ช่องทางเดียวที่แท้จริงในการถาม Owner ของโรงงาน รวมคำถามซ้ำจาก Worker ...",
+      "evidence": [
+        "IDE backend (remaining, not execution/classification/decisions/problems)"
+      ]
+    },
     "app/api/admin/ide/_lib/monitoringRegistry.ts": {
       "factoryOwner": "software-factory",
       "domain": "Developer Tooling",
@@ -1362,6 +1767,15 @@
         "Decision/Problem Registry loader"
       ]
     },
+    "app/api/admin/ide/_lib/providerRegistryRuntime.ts": {
+      "factoryOwner": "software-factory",
+      "domain": "Developer Tooling",
+      "capability": "app",
+      "responsibility": "รันไทม์ทะเบียน provider ของ Admin IDE — อ่านทะเบียน provider จริง (รวม mapping GMAIL_*) สำหรับหน้า connections ของ IDE",
+      "evidence": [
+        "IDE backend (remaining, not execution/classification/decisions/problems)"
+      ]
+    },
     "app/api/admin/ide/_lib/queueRegistry.ts": {
       "factoryOwner": "software-factory",
       "domain": "Developer Tooling",
@@ -1394,6 +1808,15 @@
       "domain": "Developer Tooling",
       "capability": "app",
       "responsibility": "Real Recovery Runtime (Step 12) — Plan + evidence-based Verification only; never executes a real provider mutation, deploy, rollback, or restore.",
+      "evidence": [
+        "IDE backend (remaining, not execution/classification/decisions/problems)"
+      ]
+    },
+    "app/api/admin/ide/_lib/registryWriterRuntime.ts": {
+      "factoryOwner": "software-factory",
+      "domain": "Developer Tooling",
+      "capability": "app",
+      "responsibility": "ตัวเขียนข้อมูลตัวเดียวที่ได้รับอนุญาตจริงให้เขียน registry/FACTORY_CENTRAL_REGISTRY.json (ข้อยกเว้น GAP-1) ไม่ตัดสินใจแทนใคร — ทุกรายการที่เขียนจะมีสถานะเป็น...",
       "evidence": [
         "IDE backend (remaining, not execution/classification/decisions/problems)"
       ]
@@ -1515,6 +1938,24 @@
         "Semantic Classification / Standards Registry loader"
       ]
     },
+    "app/api/admin/ide/_lib/switchBasedOrchestratorRuntime.ts": {
+      "factoryOwner": "software-factory",
+      "domain": "Developer Tooling",
+      "capability": "app",
+      "responsibility": "Switch-Based Orchestrator (Constitution Rule 252, Closed-Loop Factory Mode) — สายพาน gate จริง (VALIDATE->CLASSIFY->DEDUP->NOISE_FILTER->DEPENDENCY_CHECK->LO...",
+      "evidence": [
+        "IDE backend (remaining, not execution/classification/decisions/problems)"
+      ]
+    },
+    "app/api/admin/ide/_lib/systemRealityRuntime.ts": {
+      "factoryOwner": "software-factory",
+      "domain": "Developer Tooling",
+      "capability": "app",
+      "responsibility": "สร้างแบบจำลองสถานะจริงของระบบทั้งหมด (Owner System Reality) จากหลักฐานจริงเท่านั้น — อ่าน architecture-book.json, FACTORY_CENTRAL_REGISTRY.json และ REALITY_I...",
+      "evidence": [
+        "IDE backend (remaining, not execution/classification/decisions/problems)"
+      ]
+    },
     "app/api/admin/ide/_lib/targetPolicy.ts": {
       "factoryOwner": "software-factory",
       "domain": "Developer Tooling",
@@ -1578,6 +2019,15 @@
         "IDE backend (remaining, not execution/classification/decisions/problems)"
       ]
     },
+    "app/api/admin/ide/_lib/usageMeterRuntime.ts": {
+      "factoryOwner": "software-factory",
+      "domain": "Developer Tooling",
+      "capability": "app",
+      "responsibility": "รันไทม์มิเตอร์การใช้งานของ Admin IDE — รวบรวมเหตุการณ์การใช้ AI/worker จริงเพื่อแสดงบนหน้า IDE ฝั่งผู้ดูแล",
+      "evidence": [
+        "IDE backend (remaining, not execution/classification/decisions/problems)"
+      ]
+    },
     "app/api/admin/ide/_lib/viewportRegistry.ts": {
       "factoryOwner": "software-factory",
       "domain": "Developer Tooling",
@@ -1614,6 +2064,15 @@
         "IDE backend (remaining, not execution/classification/decisions/problems)"
       ]
     },
+    "app/api/admin/ide/_lib/workerAdapters/digitalOceanWorkerAdapter.ts": {
+      "factoryOwner": "software-factory",
+      "domain": "Developer Tooling",
+      "capability": "app",
+      "responsibility": "อะแดปเตอร์ worker DigitalOcean ของ Admin IDE — แปลงคำสั่ง worker ของ IDE ให้ตรงกับ contract ของ worker router บน DigitalOcean",
+      "evidence": [
+        "IDE backend (remaining, not execution/classification/decisions/problems)"
+      ]
+    },
     "app/api/admin/ide/_lib/workerAdapters/humanWorkerAdapter.ts": {
       "factoryOwner": "software-factory",
       "domain": "Developer Tooling",
@@ -1628,6 +2087,15 @@
       "domain": "Developer Tooling",
       "capability": "app",
       "responsibility": "ตัวปรับผู้ปฏิบัติงานโมเดลท้องถิ่น — ใช้การเชื่อมต่อ Ollama เดิมจาก gateway จริง รายงานตามจริงว่ายังไม่ได้ตั้งค่าในสภาพแวดล้อมนี้",
+      "evidence": [
+        "IDE backend (remaining, not execution/classification/decisions/problems)"
+      ]
+    },
+    "app/api/admin/ide/_lib/workerAdapters/mcpDnaOsAdapter.ts": {
+      "factoryOwner": "software-factory",
+      "domain": "Developer Tooling",
+      "capability": "app",
+      "responsibility": "DNA OS ในบทบาท MCP client จริง (ออกแบบให้อ่านอย่างเดียวโดยโครงสร้าง) — เป็นทิศทางที่สองที่ เสริมกับ mcpWorkerAdapter.ts ซึ่งคงสถานะ FOUNDATION_ONLY และไม่ถูก...",
       "evidence": [
         "IDE backend (remaining, not execution/classification/decisions/problems)"
       ]
@@ -1673,6 +2141,15 @@
       "domain": "Developer Tooling",
       "capability": "app",
       "responsibility": "รันไทม์การตั้งค่าผู้ปฏิบัติงานของเจ้าของ — การตั้งค่าจริงที่เจ้าของเท่านั้นเข้าถึงได้ ไม่ใช่หน้าตั้งค่าสาธารณะ ไม่เปิดเผยค่าลับใด ๆ",
+      "evidence": [
+        "IDE backend (remaining, not execution/classification/decisions/problems)"
+      ]
+    },
+    "app/api/admin/ide/_lib/workerTaskOrchestrator.ts": {
+      "factoryOwner": "software-factory",
+      "domain": "Developer Tooling",
+      "capability": "app",
+      "responsibility": "แกนกลาง dispatch ของ Job Contract (owner, 2026-08-09, Software Factory Readiness; MANAGER-07 ต่อเติมใน session นี้) createJobContract()/runScopedWorkerJob() ...",
       "evidence": [
         "IDE backend (remaining, not execution/classification/decisions/problems)"
       ]
@@ -2653,7 +3130,7 @@
       "factoryOwner": "software-factory",
       "domain": "Developer Tooling",
       "capability": "app",
-      "responsibility": "[ตรวจพบอัตโนมัติ] app/api/admin/ide/owner-command/approve/route.ts",
+      "responsibility": "POST /api/admin/ide/owner-command/approve — เจ้าของอนุมัติข้อเสนอจริง แล้วต่อเนื่องเขียนไฟล์/อนุมัติการลบ/Execute-Review-Test อัตโนมัติในคำขอเดียว เฉพาะผู้ดู...",
       "evidence": [
         "IDE backend (remaining, not execution/classification/decisions/problems)"
       ]
@@ -2662,7 +3139,7 @@
       "factoryOwner": "software-factory",
       "domain": "Developer Tooling",
       "capability": "app",
-      "responsibility": "[ตรวจพบอัตโนมัติ] app/api/admin/ide/owner-command/route.ts",
+      "responsibility": "POST /api/admin/ide/owner-command — จุดเข้าคำสั่งเจ้าของแบบเต็มรูปแบบ ลองเส้นทางเดิมที่กำหนดแน่นอนก่อน ถ้าไม่ตรงจึงส่งต่อให้ระบบขับเคลื่อนอัตโนมัติจริง เฉพาะ...",
       "evidence": [
         "IDE backend (remaining, not execution/classification/decisions/problems)"
       ]
@@ -2942,6 +3419,15 @@
       "domain": "Developer Tooling",
       "capability": "app",
       "responsibility": "แสดงรายการหมวดองค์ความรู้ความปลอดภัยจริงแบบอ่านอย่างเดียว เฉพาะเจ้าของเท่านั้น",
+      "evidence": [
+        "IDE backend (remaining, not execution/classification/decisions/problems)"
+      ]
+    },
+    "app/api/admin/ide/settings/route.ts": {
+      "factoryOwner": "software-factory",
+      "domain": "Developer Tooling",
+      "capability": "app",
+      "responsibility": "API จริงสำหรับอ่าน/เขียนค่าตั้งค่า IDE (คนละเส้นทางกับการตั้งค่าบริษัท) ต้องยืนยันตัวตนระดับ Admin ก่อนใช้งานเสมอ ทุกการบันทึกค่าจะสร้างหลักฐานการเปลี่ยนแปลง...",
       "evidence": [
         "IDE backend (remaining, not execution/classification/decisions/problems)"
       ]
@@ -3522,6 +4008,33 @@
         "default: unmatched admin API surface on a business-operations platform"
       ]
     },
+    "app/api/admin/system-reality/_lib/gapLoopBridge.ts": {
+      "factoryOwner": "business-factory",
+      "domain": "Business",
+      "capability": "app",
+      "responsibility": "สะพานเชื่อมจากรายงานสถานะจริงของ Owner เข้าสู่ Factory Gap Loop จริง — เขียนข้อมูลจริงผ่าน registryWriterRuntime.ts ก็ต่อเมื่อถูกสั่งอย่างชัดเจนเท่านั้น ไม่ท...",
+      "evidence": [
+        "default: unmatched admin API surface on a business-operations platform"
+      ]
+    },
+    "app/api/admin/system-reality/_lib/ownerLanguage.ts": {
+      "factoryOwner": "business-factory",
+      "domain": "Business",
+      "capability": "app",
+      "responsibility": "ชั้นแปลงข้อความให้เจ้าของอ่านเข้าใจ — sanitizeOwnerText() ตัดศัพท์เทคนิค (TypeScript, Git, ชื่อไฟล์ registry) ออกด้วยกลไกจริง ไม่ใช้ AI สรุป ส่วน computeSyst...",
+      "evidence": [
+        "default: unmatched admin API surface on a business-operations platform"
+      ]
+    },
+    "app/api/admin/system-reality/route.ts": {
+      "factoryOwner": "business-factory",
+      "domain": "Business",
+      "capability": "app",
+      "responsibility": "จุดเชื่อมต่อ API จริง (ต้องยืนยันตัวตนระดับ Admin) สำหรับส่งรายงานสถานะจริงของระบบให้เจ้าของ — เป็นทางเข้าเดียวที่หน้าจอ Owner เรียกใช้จริง",
+      "evidence": [
+        "default: unmatched admin API surface on a business-operations platform"
+      ]
+    },
     "app/api/admin/transactions/[id]/advance/route.ts": {
       "factoryOwner": "business-factory",
       "domain": "Business",
@@ -3783,6 +4296,15 @@
         "connector/OAuth/gateway API"
       ]
     },
+    "app/api/gateway/observe/railway/route.ts": {
+      "factoryOwner": "infrastructure-factory",
+      "domain": "Infrastructure",
+      "capability": "app",
+      "responsibility": "ช่องทางรับ Railway webhook เข้า Observe Channel — ตรวจ secret ใน URL ตามที่ docs กำหนด (RAILWAY_WEBHOOK_SECRET, constant-time) แบบ fail-closed แล้ว normalize...",
+      "evidence": [
+        "connector/OAuth/gateway API"
+      ]
+    },
     "app/api/gateway/observe/vercel/route.ts": {
       "factoryOwner": "infrastructure-factory",
       "domain": "Infrastructure",
@@ -3828,6 +4350,15 @@
         "internal command-execution API"
       ]
     },
+    "app/api/internal/canonical/jobs/route.ts": {
+      "factoryOwner": "runtime-factory",
+      "domain": "Runtime",
+      "capability": "api",
+      "responsibility": "ปลายทางภายในสำหรับรับงาน canonical (PASS6/G2) — POST ที่ตรวจ secret แล้วส่งซองงานให้ transport runtime ใช้รูปแบบ internal secret เดิมของระบบ",
+      "evidence": [
+        "internal command-execution API"
+      ]
+    },
     "app/api/internal/equipment/lock-command/route.ts": {
       "factoryOwner": "runtime-factory",
       "domain": "Runtime",
@@ -3846,6 +4377,15 @@
         "internal command-execution API"
       ]
     },
+    "app/api/internal/gmail/token/route.ts": {
+      "factoryOwner": "runtime-factory",
+      "domain": "Runtime",
+      "capability": "app",
+      "responsibility": "สะพาน Edge-to-Node สำหรับ credential Gmail (Phase 2): route ภายในที่ยืนยันด้วย internal secret, resolve Gmail OAuth connector เดียวผ่าน connector loader หลัก...",
+      "evidence": [
+        "internal command-execution API"
+      ]
+    },
     "app/api/internal/line/command/route.ts": {
       "factoryOwner": "communication-factory",
       "domain": "Communication",
@@ -3860,6 +4400,15 @@
       "domain": "Communication",
       "capability": "app",
       "responsibility": "สะพานเชื่อม Edge-cron — Supabase Edge Function เรียก Node artifact renderer ตรงไม่ได้ เลยเรียก route นี้ (มี secret คุ้มกัน) ให้สร้างและส่งไฟล์เอกสารแทน",
+      "evidence": [
+        "under a line/ directory"
+      ]
+    },
+    "app/api/internal/line/token/route.ts": {
+      "factoryOwner": "communication-factory",
+      "domain": "Communication",
+      "capability": "app",
+      "responsibility": "สะพานภายใน Edge→Node สำหรับ credential ของ LINE (รูปแบบเดียวกับ /api/internal/gmail/token): ยืนยัน Edge Function ด้วย x-line-internal-secret, resolve connect...",
       "evidence": [
         "under a line/ directory"
       ]
@@ -3912,8 +4461,8 @@
     "app/api/self-description/route.ts": {
       "factoryOwner": "architecture-office",
       "domain": "Architecture",
-      "capability": "api",
-      "responsibility": "API Self-Description — ระบบอธิบายตัวเองจาก existence.json",
+      "capability": "app",
+      "responsibility": "เส้นทาง API บอกคำอธิบายตนเอง — เสิร์ฟ self-description จริงของระบบ (ข้อมูลจาก module/selfDescriptionFactory) สำหรับการสำรวจจากภายนอก",
       "evidence": [
         "self-description/routes/governance API"
       ]
@@ -4106,6 +4655,55 @@
       "evidence": [
         "auth-adjacent page"
       ]
+    },
+    "app/business-workspace-template/documents/page.tsx": {
+      "factoryOwner": "UNKNOWN",
+      "domain": null,
+      "capability": null,
+      "responsibility": "Business Workspace Template — เอกสาร (Documents)",
+      "evidence": []
+    },
+    "app/business-workspace-template/layout.tsx": {
+      "factoryOwner": "UNKNOWN",
+      "domain": null,
+      "capability": null,
+      "responsibility": "Business Workspace Template — auth boundary ของพื้นที่ template/review (owner, 2026-09-23)",
+      "evidence": []
+    },
+    "app/business-workspace-template/login/page.tsx": {
+      "factoryOwner": "UNKNOWN",
+      "domain": null,
+      "capability": null,
+      "responsibility": "หน้าจอ template login (static prototype — ไม่ผูก Supabase Auth; พื้นที่นี้เป็น dev/review surface)",
+      "evidence": []
+    },
+    "app/business-workspace-template/overview/page.tsx": {
+      "factoryOwner": "UNKNOWN",
+      "domain": null,
+      "capability": null,
+      "responsibility": "Business Workspace Template — ภาพรวม (Overview)",
+      "evidence": []
+    },
+    "app/business-workspace-template/page.tsx": {
+      "factoryOwner": "UNKNOWN",
+      "domain": null,
+      "capability": null,
+      "responsibility": "entry ของ Business Workspace Template — redirect ไป /business-workspace-template/overview",
+      "evidence": []
+    },
+    "app/business-workspace-template/tasks/page.tsx": {
+      "factoryOwner": "UNKNOWN",
+      "domain": null,
+      "capability": null,
+      "responsibility": "Business Workspace Template — งาน (Tasks)",
+      "evidence": []
+    },
+    "app/business-workspace-template/workspace/page.tsx": {
+      "factoryOwner": "UNKNOWN",
+      "domain": null,
+      "capability": null,
+      "responsibility": "Business Workspace Template — พื้นที่ทำงาน (Workspace)",
+      "evidence": []
     },
     "app/business/layout.tsx": {
       "factoryOwner": "business-factory",
@@ -4300,54 +4898,9 @@
       "factoryOwner": "business-factory",
       "domain": "Business",
       "capability": "app",
-      "responsibility": "Partner Portal — เนื้อหาจริงจาก business-coverage.json โดเมน relationship/purchase เช็คสิทธิ์",
+      "responsibility": "หน้าพอร์ทัลสำหรับพาร์ทเนอร์ — พื้นที่ทำงานจริงฝั่งพาร์ทเนอร์",
       "evidence": [
         "business-domain preview/marketing page"
-      ]
-    },
-    "app/playground/_components/ChatInput.tsx": {
-      "factoryOwner": "software-factory",
-      "domain": "Developer Tooling",
-      "capability": "app",
-      "responsibility": "ช่องพิมพ์ข้อความของ Playground",
-      "evidence": [
-        "dev playground page"
-      ]
-    },
-    "app/playground/_components/ChatMessageList.tsx": {
-      "factoryOwner": "software-factory",
-      "domain": "Developer Tooling",
-      "capability": "app",
-      "responsibility": "แสดงประวัติข้อความแชทของ Playground",
-      "evidence": [
-        "dev playground page"
-      ]
-    },
-    "app/playground/_components/ClarifyingChoice.tsx": {
-      "factoryOwner": "software-factory",
-      "domain": "Developer Tooling",
-      "capability": "app",
-      "responsibility": "แสดงตัวเลือกเมื่อระบบไม่แน่ใจ (ชื่อคนเท่านั้น ไม่แสดง UUID)",
-      "evidence": [
-        "dev playground page"
-      ]
-    },
-    "app/playground/_components/ConfirmationPreview.tsx": {
-      "factoryOwner": "software-factory",
-      "domain": "Developer Tooling",
-      "capability": "app",
-      "responsibility": "preview คำสั่งที่ต้องยืนยัน Rule 72 พร้อมลิงก์ไปหน้า admin ไม่มีปุ่มยิงคำสั่ง",
-      "evidence": [
-        "dev playground page"
-      ]
-    },
-    "app/playground/_components/ResultCard.tsx": {
-      "factoryOwner": "software-factory",
-      "domain": "Developer Tooling",
-      "capability": "app",
-      "responsibility": "แสดงผลลัพธ์คำสั่งแบบอ่านง่าย",
-      "evidence": [
-        "dev playground page"
       ]
     },
     "app/playground/_lib/apiClient.ts": {
@@ -4579,7 +5132,7 @@
       "factoryOwner": "business-factory",
       "domain": "Business",
       "capability": "app",
-      "responsibility": "หน้า server แสดง widget order: presentationGateway.getOrderSummary() → orderPresenter.toRenderModel() → DashboardBoard",
+      "responsibility": "หน้า order ของ workspace preview — พื้นที่พรีวิว flow คำสั่งซื้อภายในส่วน workspace preview",
       "evidence": [
         "business-domain preview/marketing page"
       ]
@@ -4627,6 +5180,24 @@
       "responsibility": "หน้า server แสดง widget workflow: presentationGateway.getWorkflowSummary() → workflowPresenter.toRenderModel() → DashboardBoard",
       "evidence": [
         "business-domain preview/marketing page"
+      ]
+    },
+    "app/workspace/BusinessWorkspace.tsx": {
+      "factoryOwner": "software-factory",
+      "domain": "Developer Tooling",
+      "capability": "app",
+      "responsibility": "BUSINESS WORKSPACE — หน้าจอใช้งานจริงเพียงหน้าจอเดียว (/workspace)",
+      "evidence": [
+        "operational workspace page"
+      ]
+    },
+    "app/workspace/_lib/businessTools.ts": {
+      "factoryOwner": "software-factory",
+      "domain": "Developer Tooling",
+      "capability": "app",
+      "responsibility": "BUSINESS WORKSPACE — tool registry + เนื้อหาซ้าย/ขวา (หน้าจอจริง /workspace)",
+      "evidence": [
+        "operational workspace page"
       ]
     },
     "app/workspace/page.tsx": {
@@ -4813,7 +5384,7 @@
       "factoryOwner": "qa-factory",
       "domain": "Quality",
       "capability": "cognitive",
-      "responsibility": "ชุดทดสอบสำหรับส่วนวางแผน",
+      "responsibility": "ชุดทดสอบของ engine วางแผน (planner) ใน cognitive — ตรวจพฤติกรรมการวางแผนจริงของ pipeline intent/plan",
       "evidence": [
         "real test file — QA Factory owns all test code regardless of domain"
       ]
@@ -4993,7 +5564,7 @@
       "factoryOwner": "business-factory",
       "domain": "Business",
       "capability": "components",
-      "responsibility": "Client component ที่ poll /api/admin/dev-loop/problem-report ทุก 15 วินาที และจะพูดรายงานใหม่ที่ status=open และ severity=critical ผ่าน speak() (TTS) ก็ต่อเม...",
+      "responsibility": "คอมโพเนนต์แจ้งเตือนด้วยเสียงของ Dev Loop — แจ้งเตือนความล้มเหลวจริงของ dev-loop ให้เจ้าของฟัง",
       "evidence": [
         "business workspace/admin/transactions UI components"
       ]
@@ -5001,8 +5572,8 @@
     "components/admin/SecretaryChat.tsx": {
       "factoryOwner": "business-factory",
       "domain": "Business",
-      "capability": "ui",
-      "responsibility": "หน้าตาแชตเลขาส่วนตัวบน Dashboard — ยิงไป /api/chat, render ผลลัพธ์ cognitive pipeline, โชว์ปุ่มยืนยัน/ยกเลิกเมื่อมี preview_token (Rule 72) ก่อนยิงไป /api/ch...",
+      "capability": "components",
+      "responsibility": "คอมโพเนนต์แชทเลขา — หน้าแชทจริงที่ backed ด้วย AI gateway สำหรับฟีเจอร์เลขาฝั่งผู้ดูแล",
       "evidence": [
         "business workspace/admin/transactions UI components"
       ]
@@ -5106,15 +5677,6 @@
         "document UI components"
       ]
     },
-    "components/documents/FileUpload.tsx": {
-      "factoryOwner": "document-factory",
-      "domain": "Documents",
-      "capability": "components",
-      "responsibility": "วิดเจ็ตแนบไฟล์ใช้ซ้ำได้ — อัปโหลดผ่าน /api/admin/upload",
-      "evidence": [
-        "document UI components"
-      ]
-    },
     "components/ide-shell/IDEWorkspace.tsx": {
       "factoryOwner": "software-factory",
       "domain": "Developer Tooling",
@@ -5124,33 +5686,6 @@
         "IDE shell UI"
       ]
     },
-    "components/landing/CapabilityPageShell.tsx": {
-      "factoryOwner": "software-factory",
-      "domain": "Developer Tooling",
-      "capability": "components",
-      "responsibility": "Shell ส่วนหัว/ท้ายที่ใช้ร่วมกันในหน้า capability สาธารณะ",
-      "evidence": [
-        "shared UI component library"
-      ]
-    },
-    "components/landing/CapabilitySkeleton.tsx": {
-      "factoryOwner": "software-factory",
-      "domain": "Developer Tooling",
-      "capability": "components",
-      "responsibility": "Skeleton โหลดร่วมที่ทุกหน้า capability เรียกใช้",
-      "evidence": [
-        "shared UI component library"
-      ]
-    },
-    "components/landing/CopyButton.tsx": {
-      "factoryOwner": "software-factory",
-      "domain": "Developer Tooling",
-      "capability": "components",
-      "responsibility": "ปุ่ม copy-to-clipboard เล็กๆ ใช้ซ้ำได้ แยกออกมาให้หน้าแม่เป็น Server Component ได้",
-      "evidence": [
-        "shared UI component library"
-      ]
-    },
     "components/line/ContactSettingsModal.tsx": {
       "factoryOwner": "communication-factory",
       "domain": "Communication",
@@ -5158,33 +5693,6 @@
       "responsibility": "Popup ตั้งค่าผู้ติดต่อ — เป็น generic tree-renderer อ่านจาก registry/contact-settings-categories.ts แล้ว render ตามที่ประกาศไว้ ไม่ hardcode JSX เฉพาะโมดูล ม...",
       "evidence": [
         "under a line/ directory"
-      ]
-    },
-    "components/nav/AppHeader.tsx": {
-      "factoryOwner": "software-factory",
-      "domain": "Developer Tooling",
-      "capability": "components",
-      "responsibility": "Component กลางของ header หน้าเว็บ (Navigation redesign, 2026-07-16/17): เป็นเจ้าของปุ่ม Back/Home และลำดับมาตรฐาน (Back | Home | ชื่อหน้า | ปุ่มเฉพาะโมดูล) —...",
-      "evidence": [
-        "shared UI component library"
-      ]
-    },
-    "components/nav/HomeBackBar.tsx": {
-      "factoryOwner": "software-factory",
-      "domain": "Developer Tooling",
-      "capability": "components",
-      "responsibility": "แถบนำทางย้อนกลับ/หน้าหลัก (owner, 2026-07-30) — ความจำเป็นจริงที่เจอตอนห่อแอป admin เป็นหน้าต่าง Tauri (src-tauri/): ต่างจากแท็บเบราว์เซอร์ตรงที่ Tauri webvi...",
-      "evidence": [
-        "shared UI component library"
-      ]
-    },
-    "components/portal/PortalShell.tsx": {
-      "factoryOwner": "software-factory",
-      "domain": "Developer Tooling",
-      "capability": "components",
-      "responsibility": "Shell กลางที่ทุก Portal ใช้ร่วมกัน — ต่างกันแค่ config ใน portals.json",
-      "evidence": [
-        "shared UI component library"
       ]
     },
     "components/settings/SettingsDrawer.tsx": {
@@ -5205,94 +5713,13 @@
         "business workspace/admin/transactions UI components"
       ]
     },
-    "components/ui-kit/ActionBar.tsx": {
-      "factoryOwner": "software-factory",
-      "domain": "Developer Tooling",
-      "capability": "ui",
-      "responsibility": "แถบปุ่มด้านล่างกระทู้แชต (GPS/เอกสาร/โทร/แนบไฟล์/ถาม AI) — ซ่อนตาราง Events/Documents ไว้หลังปุ่มตามที่เฮียขอ",
-      "evidence": [
-        "shared UI component library"
-      ]
-    },
-    "components/ui-kit/AppShell.tsx": {
-      "factoryOwner": "software-factory",
-      "domain": "Developer Tooling",
-      "capability": "ui",
-      "responsibility": "ประกอบ IconRail+ListColumn+เนื้อหาหลักเป็นโครง 3 คอลัมน์ถาวรแบบ LINE — หน้าจริงหน้าแรกที่ใช้: line-customers",
-      "evidence": [
-        "shared UI component library"
-      ]
-    },
-    "components/ui-kit/EmptyState.tsx": {
-      "factoryOwner": "software-factory",
-      "domain": "Developer Tooling",
-      "capability": "ui",
-      "responsibility": "ส่วนหนึ่งของ UIKit — Shared empty-state placeholder used by every ui-kit content component",
-      "evidence": [
-        "shared UI component library"
-      ]
-    },
-    "components/ui-kit/FlexPreview.tsx": {
-      "factoryOwner": "software-factory",
-      "domain": "Developer Tooling",
+    "components/workspace/SystemRealityReportSection.tsx": {
+      "factoryOwner": "business-factory",
+      "domain": "Business",
       "capability": "components",
-      "responsibility": "สร้างใหม่ 2026-07-24 (ไฟล์จริงเคย archive เป็น AK-018 หลัง session ก่อนลบทิ้งโดยไม่แก้ผู้เรียกใช้ — ดู registry/existence.json#archived_knowledge) แปลง LINE ...",
+      "responsibility": "หน้าจอจริง 5 ส่วนที่แสดงรายงานสถานะระบบให้เจ้าของบนหน้าแรก (สถานะระบบ / ที่ทำงานได้ / ที่ยังไม่ทำงาน / จุดที่ยังไม่เชื่อมต่อ / ขั้นตอนถัดไป) รวมถึงกลไก polli...",
       "evidence": [
-        "shared UI component library"
-      ]
-    },
-    "components/ui-kit/IconRail.tsx": {
-      "factoryOwner": "software-factory",
-      "domain": "Developer Tooling",
-      "capability": "ui",
-      "responsibility": "แถบไอคอนซ้ายสุดแบบแอป LINE เลือกได้ทีละ 1 — layout primitive ใหม่ของ AppShell",
-      "evidence": [
-        "shared UI component library"
-      ]
-    },
-    "components/ui-kit/Inspector.tsx": {
-      "factoryOwner": "software-factory",
-      "domain": "Developer Tooling",
-      "capability": "ui",
-      "responsibility": "ส่วนหนึ่งของ UIKit — Key/value inspector panel, light theme",
-      "evidence": [
-        "shared UI component library"
-      ]
-    },
-    "components/ui-kit/ListColumn.tsx": {
-      "factoryOwner": "software-factory",
-      "domain": "Developer Tooling",
-      "capability": "ui",
-      "responsibility": "คอลัมน์รายการกลางแบบแอป LINE (ค้นหา+รายชื่อ+badge) — layout primitive ของ AppShell",
-      "evidence": [
-        "shared UI component library"
-      ]
-    },
-    "components/ui-kit/MapView.tsx": {
-      "factoryOwner": "software-factory",
-      "domain": "Developer Tooling",
-      "capability": "ui",
-      "responsibility": "ส่วนหนึ่งของ UIKit — Provider-agnostic marker grid, light theme",
-      "evidence": [
-        "shared UI component library"
-      ]
-    },
-    "components/ui-kit/Window.tsx": {
-      "factoryOwner": "software-factory",
-      "domain": "Developer Tooling",
-      "capability": "ui",
-      "responsibility": "ส่วนหนึ่งของ UIKit — Shared frame every ui-kit content component wraps in — added variant window|panel 2026-07-11 for AppShell",
-      "evidence": [
-        "shared UI component library"
-      ]
-    },
-    "components/ui-kit/index.ts": {
-      "factoryOwner": "software-factory",
-      "domain": "Developer Tooling",
-      "capability": "ui",
-      "responsibility": "จุด export รวมของ UIKit — Window/Dock/AppShell/IconRail/ListColumn/ChatPanel ฯลฯ ธีมสว่างทั้งหมด รับข้อมูลผ่าน props ไม่ hardcode",
-      "evidence": [
-        "shared UI component library"
+        "business workspace/admin/transactions UI components"
       ]
     },
     "components/workspace/WorkspaceContext.tsx": {
@@ -5309,24 +5736,6 @@
       "domain": "Business",
       "capability": "components",
       "responsibility": "shell ที่ Admin/Business/Partner/User Workspace ใช้ร่วมกัน (Enterprise Workspace Architecture Phase 2/3) ใช้ components/ui-kit/IconRail ซ้ำ resolve icon comp...",
-      "evidence": [
-        "business workspace/admin/transactions UI components"
-      ]
-    },
-    "components/workspace/boards/DashboardBoard.tsx": {
-      "factoryOwner": "business-factory",
-      "domain": "Business",
-      "capability": "components",
-      "responsibility": "Board แบบทั่วไป — แสดงผล RenderModel ใดก็ได้ที่ได้รับ ไม่รู้เนื้อหาธุรกิจ",
-      "evidence": [
-        "business workspace/admin/transactions UI components"
-      ]
-    },
-    "components/workspace/boards/NotImplementedBoard.tsx": {
-      "factoryOwner": "business-factory",
-      "domain": "Business",
-      "capability": "components",
-      "responsibility": "Placeholder ที่บอกตรง ๆ ว่ายังไม่มี Presenter จริง — ไม่ปลอมเนื้อหา",
       "evidence": [
         "business workspace/admin/transactions UI components"
       ]
@@ -5412,6 +5821,15 @@
         "business workspace/admin/transactions UI components"
       ]
     },
+    "components/workspace/systemRealityPolling.ts": {
+      "factoryOwner": "business-factory",
+      "domain": "Business",
+      "capability": "components",
+      "responsibility": "ตัวช่วย polling จริงทุก 120 วินาทีสำหรับส่วนรายงานสถานะระบบ ใช้รูปแบบเดิมที่มีอยู่แล้วในหน้า dashboard ไม่สร้างรูปแบบใหม่ ได้ตรวจสอบแล้วว่าไม่มีช่องทาง realt...",
+      "evidence": [
+        "business workspace/admin/transactions UI components"
+      ]
+    },
     "config/document-service-categories.ts": {
       "factoryOwner": "document-factory",
       "domain": "Documents",
@@ -5428,6 +5846,15 @@
       "responsibility": "สร้างลิงก์ตรงเข้า Supabase dashboard SQL editor สำหรับแต่ละตารางจริงที่ระบบใช้ (รายชื่อตารางมาจากการ grep .from() ทั้งโค้ด) เพื่อตรวจสอบข้อมูลเร็ว ๆ",
       "evidence": [
         "app-level config"
+      ]
+    },
+    "core/auth/devReviewAccess.ts": {
+      "factoryOwner": "infrastructure-factory",
+      "domain": "Infrastructure",
+      "capability": "core",
+      "responsibility": "LOCAL UI REVIEW — dev-only allowance for Owner UI review (owner directive 2026-09-22).",
+      "evidence": [
+        "auth foundation"
       ]
     },
     "core/auth/index.ts": {
@@ -5493,6 +5920,15 @@
         "core config"
       ]
     },
+    "core/config/ide-settings.ts": {
+      "factoryOwner": "infrastructure-factory",
+      "domain": "Infrastructure",
+      "capability": "core",
+      "responsibility": "ที่เก็บค่าตั้งค่าจริงของหน้าต่างแก้ไขโค้ดใน IDE ใช้กลไกเดิมที่มีอยู่แล้วร่วมกับข้อมูลบริษัท (ไม่สร้างระบบเก็บค่าใหม่) มี 3 ค่าจริง (บันทึกอัตโนมัติ/จัดรูปแบบ...",
+      "evidence": [
+        "core config"
+      ]
+    },
     "core/connector-loader.ts": {
       "factoryOwner": "infrastructure-factory",
       "domain": "Infrastructure",
@@ -5506,7 +5942,7 @@
       "factoryOwner": "runtime-factory",
       "domain": "Runtime",
       "capability": "core",
-      "responsibility": "ล็อกการตรวจสอบ — บันทึกทุกขั้นตอนการทำงานของ workflow",
+      "responsibility": "โมดูล audit ของ executor — บันทึกรายการ audit จริงสำหรับการรันคำสั่งใน core executor",
       "evidence": [
         "core command executor"
       ]
@@ -6127,7 +6563,7 @@
       "factoryOwner": "architecture-office",
       "domain": "Architecture",
       "capability": "dna-os-mcp-server",
-      "responsibility": "Real HTTP entry point for the DNA OS MCP Server's governance-facing endpoints.",
+      "responsibility": "Real HTTP entry point for the DNA OS MCP Server's governance-facing endpoints — โค้ดจริง ทำงานได้จริง แค่ยังไม่มี script เปิดใช้งานเองใน package.json",
       "evidence": [
         "MCP server exposing governance/registry data (governanceHttp.ts, governanceServer.ts)"
       ]
@@ -6249,6 +6685,13 @@
         "MCP server exposing governance/registry data (governanceHttp.ts, governanceServer.ts)"
       ]
     },
+    "e2e/auth.setup.ts": {
+      "factoryOwner": "UNKNOWN",
+      "domain": null,
+      "capability": null,
+      "responsibility": "ขั้นตอนเข้าสู่ระบบจริงสำหรับการทดสอบอัตโนมัติ ใช้แบบฟอร์มเข้าสู่ระบบจริงกับข้อมูลบัญชีจริงที่มีอยู่ ไม่ใช่ทางลัดปลอม ปัจจุบันล็อกอินไม่ผ่านจริง (FCR-023) เพร...",
+      "evidence": []
+    },
     "engine.ts": {
       "factoryOwner": "UNKNOWN",
       "domain": null,
@@ -6274,11 +6717,110 @@
         "business-domain engine (remaining)"
       ]
     },
+    "engines/canonical/artifact-write.ts": {
+      "factoryOwner": "business-factory",
+      "domain": "Business",
+      "capability": "engines",
+      "responsibility": "ตัวเขียนไฟล์ที่ระบบสร้างตาม canonical — version → storage → sha256/size/mime → audit พร้อม rollback ไม่ให้ storage กับ DB ขัดกัน",
+      "evidence": [
+        "business-domain engine (remaining)"
+      ]
+    },
+    "engines/canonical/audit.ts": {
+      "factoryOwner": "business-factory",
+      "domain": "Business",
+      "capability": "engines",
+      "responsibility": "ตัวเขียน audit ตาม canonical — คำศัพท์ audit ชุดเดียว (ผู้กระทำ/เวลา/เอนทิตี/หลักฐาน) ที่ทุกการเขียน canonical ต้องผ่าน",
+      "evidence": [
+        "business-domain engine (remaining)"
+      ]
+    },
+    "engines/canonical/debt-write.ts": {
+      "factoryOwner": "business-factory",
+      "domain": "Business",
+      "capability": "engines",
+      "responsibility": "โมเดลเขียนหนี้ตาม canonical — debt_events คือ ledger (แหล่งความจริง) และ debt_snapshots เป็น projection ที่คำนวณใหม่จาก ledger เท่านั้น",
+      "evidence": [
+        "business-domain engine (remaining)"
+      ]
+    },
+    "engines/canonical/document-write.ts": {
+      "factoryOwner": "business-factory",
+      "domain": "Business",
+      "capability": "engines",
+      "responsibility": "บริการเขียนเอกสารตาม canonical — สร้าง/แก้/ออก/ยกเลิก พร้อม version chain และรายการสินค้าจริง โดยใช้บันไดตัวเลข v1.1 เดิม",
+      "evidence": [
+        "business-domain engine (remaining)"
+      ]
+    },
+    "engines/canonical/inbound-write.ts": {
+      "factoryOwner": "business-factory",
+      "domain": "Business",
+      "capability": "engines",
+      "responsibility": "โมเดลเขียนต้นฉบับขาเข้าตาม canonical — normalize LINE/อัปโหลด/อีเมล/ธนาคารเข้า receipt_documents (ไฟล์+ผลสกัด+หลักฐาน) พร้อม provenance จริง ไม่เดา",
+      "evidence": [
+        "business-domain engine (remaining)"
+      ]
+    },
+    "engines/canonical/payment-write.ts": {
+      "factoryOwner": "business-factory",
+      "domain": "Business",
+      "capability": "engines",
+      "responsibility": "บริการเขียนการจ่ายเงินตาม canonical — แถว allocation คือความจริง และ projection ของใบแจ้งหนี้/สลิป/หนี้ถูกคำนวณใหม่จากมัน รองรับจ่ายบางส่วนและหลายต่อหลาย",
+      "evidence": [
+        "business-domain engine (remaining)"
+      ]
+    },
+    "engines/canonical/transaction-write.ts": {
+      "factoryOwner": "business-factory",
+      "domain": "Business",
+      "capability": "engines",
+      "responsibility": "โมเดลเขียนธุรกรรมตาม canonical — สร้างสายครบ (บริษัท→ไซต์→โครงการ→กลุ่มเอกสาร→งาน) และผูกเอกสารแบบตรวจสอบได้ ไม่มีสายครึ่งเดียว",
+      "evidence": [
+        "business-domain engine (remaining)"
+      ]
+    },
     "engines/capacity.ts": {
       "factoryOwner": "business-factory",
       "domain": "Business",
       "capability": "engines",
       "responsibility": "คำนวณจำนวนเที่ยวที่ต้องวิ่งจากปริมาณสินค้าและความจุของรถ",
+      "evidence": [
+        "business-domain engine (remaining)"
+      ]
+    },
+    "engines/connectors/contract.ts": {
+      "factoryOwner": "business-factory",
+      "domain": "Business",
+      "capability": "engines",
+      "responsibility": "สัญญากลางแบบ provider-neutral ของ Connect Core (เฉพาะ type) ครอบ Discover/Identify/Prepare, การค้นหา resource และการ delegate การ Test โดยไม่มีพฤติกรรมของ pr...",
+      "evidence": [
+        "business-domain engine (remaining)"
+      ]
+    },
+    "engines/connectors/providers/github.ts": {
+      "factoryOwner": "business-factory",
+      "domain": "Business",
+      "capability": "engines",
+      "responsibility": "contract ของ provider GitHub (provider ตัวที่สอง — หลักฐาน provider-neutrality ของ STEP 8) ทุกเมธอด delegate ไปของเดิม: detect() อ่านไฟล์จริงในโปรเจกต์ (สคริ...",
+      "evidence": [
+        "business-domain engine (remaining)"
+      ]
+    },
+    "engines/connectors/providers/railway.ts": {
+      "factoryOwner": "business-factory",
+      "domain": "Business",
+      "capability": "engines",
+      "responsibility": "contract ของ provider railway — ตัวแรกที่ใช้พิสูจน์แกนกลาง ทุกเมธอด delegate ไปของเดิม: การค้นหา resource ใช้ engines/domains/railway-binding.ts#discoverReso...",
+      "evidence": [
+        "business-domain engine (remaining)"
+      ]
+    },
+    "engines/connectors/registry.ts": {
+      "factoryOwner": "business-factory",
+      "domain": "Business",
+      "capability": "engines",
+      "responsibility": "ทะเบียนเดียวของ contract provider ทั้งหมดใน Connect Core — findContract(providerId) เป็นทางเดียวที่ route/gateway/UI กลางใช้ค้นหา จึงไม่มีชั้นใดต้อง branch ต...",
       "evidence": [
         "business-domain engine (remaining)"
       ]
@@ -6404,7 +6946,7 @@
       "factoryOwner": "business-factory",
       "domain": "Business",
       "capability": "engines",
-      "responsibility": "คำนวณระยะทางด้วยสูตร Haversine และค้นหาบ่อวัสดุที่ใกล้ที่สุด",
+      "responsibility": "engine คำนวณระยะทาง — คำนวณระยะทาง/ภูมิศาสตร์จริงที่ workflow ธุรกิจนำไปใช้",
       "evidence": [
         "business-domain engine (remaining)"
       ]
@@ -6504,6 +7046,15 @@
       "domain": "Business",
       "capability": "engines",
       "responsibility": "client เรียก Hostinger API สำหรับค้นหา/จดทะเบียน/ตั้งค่า nameserver/WHOIS ของโดเมน — ระบุชัดว่า endpoint ยัง 'ไม่ยืนยัน' (เข้าเว็บเอกสารอัตโนมัติไม่ได้) ทุก ...",
+      "evidence": [
+        "business-domain engine (remaining)"
+      ]
+    },
+    "engines/domains/railway-binding.ts": {
+      "factoryOwner": "business-factory",
+      "domain": "Business",
+      "capability": "engines",
+      "responsibility": "client เรียก Railway GraphQL API สำหรับเพิ่ม/ลิสต์/ยืนยัน/ถอดโดเมนกำหนดเองของ service เป้าหมาย — parity กับ vercel-binding.ts แต่ใช้ connector lifecycle (con...",
       "evidence": [
         "business-domain engine (remaining)"
       ]
@@ -6634,6 +7185,15 @@
         "integration gateway adapter"
       ]
     },
+    "engines/integration-gateway/adapters/railway.ts": {
+      "factoryOwner": "infrastructure-factory",
+      "domain": "Infrastructure",
+      "capability": "engines",
+      "responsibility": "Integration Gateway: แปลง Railway deployment webhook payload จริงเป็น GatewayEvent (Observe Channel เท่านั้น) — parity กับ Vercel adapter ภายใต้ contract dep...",
+      "evidence": [
+        "integration gateway adapter"
+      ]
+    },
     "engines/integration-gateway/adapters/supabase.ts": {
       "factoryOwner": "infrastructure-factory",
       "domain": "Infrastructure",
@@ -6715,11 +7275,38 @@
         "integration gateway adapter"
       ]
     },
+    "engines/jobs/approval-evidence.ts": {
+      "factoryOwner": "business-factory",
+      "domain": "Business",
+      "capability": "engines",
+      "responsibility": "ตัวปรับหลักฐานการอนุมัติให้เป็นภาษาเดียว (PASS3/G5) — อ่านแหล่งอนุมัติจริง 5 แหล่งแล้วแปลงเป็นหลักฐานรูปแบบเดียว อ่านเท่านั้น ไม่เป็นผู้อนุมัติเอง",
+      "evidence": [
+        "business-domain engine (remaining)"
+      ]
+    },
     "engines/jobs/auto-create.ts": {
       "factoryOwner": "business-factory",
       "domain": "Business",
       "capability": "engines",
       "responsibility": "เปิดงานจริงอัตโนมัติจาก business_event โดยไม่ต้องให้แอดมินกรอกฟอร์ม — ถ้าข้อมูลจริงไม่ครบ (วัสดุ/จำนวน/ที่อยู่) จะบอกว่าขาดอะไรแทนการเดา เพื่อให้ถามลูกค้าได้...",
+      "evidence": [
+        "business-domain engine (remaining)"
+      ]
+    },
+    "engines/jobs/business-job-adapter.ts": {
+      "factoryOwner": "business-factory",
+      "domain": "Business",
+      "capability": "engines",
+      "responsibility": "อะแดปเตอร์งานธุรกิจ (ซองควบคุม PASS2/G1) — ตรวจซองงานตามสัญญากลางกับ capability ที่ประกาศไว้ แล้วเรียก canonical writer เดิมเป็นตัวทำงานจริง ไม่มี DB client ...",
+      "evidence": [
+        "business-domain engine (remaining)"
+      ]
+    },
+    "engines/jobs/job-recovery.ts": {
+      "factoryOwner": "business-factory",
+      "domain": "Business",
+      "capability": "engines",
+      "responsibility": "ตัวตัดสิน recovery ของงาน (PASS5/G4) — บริสุทธิ์ ไม่แตะ DB แปลง stop condition เป็นนโยบายกู้คืนแบบมีขอบเขต และปฏิเสธการ retry ถ้าผู้เรียกยังไม่ได้ตรวจ checkp...",
       "evidence": [
         "business-domain engine (remaining)"
       ]
@@ -7241,7 +7828,7 @@
       "factoryOwner": "document-factory",
       "domain": "Documents",
       "capability": "gateway",
-      "responsibility": "บันทึกไฟล์ PDF+รูปของเอกสาร (จาก engines/documents/artifact.ts) ลง bucket attachments แล้วคืน signed URL ให้ route ที่จะส่งเข้า LINE ใช้",
+      "responsibility": "ที่เก็บ artifact เอกสารหลัง gateway — เก็บ artifact เอกสารจริงพร้อมการเข้าถึงแบบ internal secret (รูปแบบ DOCUMENT_ARTIFACT_INTERNAL_SECRET)",
       "evidence": [
         "document artifact storage"
       ]
@@ -7457,7 +8044,7 @@
       "factoryOwner": "qa-factory",
       "domain": "Quality",
       "capability": "local-runtime",
-      "responsibility": "Real acceptance test verifying local-runtime module registration behavior.",
+      "responsibility": "Real acceptance test verifying local-runtime module registration behavior. ยืนยัน caller จริงจาก package.json script test-storage-intelligence — ไม่ใช่ TS im...",
       "evidence": [
         "real test file — QA Factory owns all test code regardless of domain"
       ]
@@ -7466,7 +8053,7 @@
       "factoryOwner": "qa-factory",
       "domain": "Quality",
       "capability": "local-runtime",
-      "responsibility": "Real smoke test for local-runtime storage intelligence (disk usage / threshold detection).",
+      "responsibility": "Real smoke test for local-runtime storage intelligence (disk usage / threshold detection). รันเองผ่าน npx tsx — ไม่มีการ import เหมือนไฟล์ทดสอบพี่น้องที่ลงทะ...",
       "evidence": [
         "real test file — QA Factory owns all test code regardless of domain"
       ]
@@ -7475,7 +8062,7 @@
       "factoryOwner": "runtime-factory",
       "domain": "Runtime",
       "capability": "local-runtime",
-      "responsibility": "Real local-runtime watcher that monitors real disk storage thresholds and raises real alerts.",
+      "responsibility": "Real local-runtime watcher that monitors real disk storage thresholds and raises real alerts. ยืนยันจริงว่ากำลังรันอยู่ผ่าน launchctl list (com.dnaos.storage...",
       "evidence": [
         "dev-machine local runtime tooling (remaining)"
       ]
@@ -7529,7 +8116,7 @@
       "factoryOwner": "qa-factory",
       "domain": "Quality",
       "capability": "local-runtime",
-      "responsibility": "Real acceptance test verifying WORKSPACE_ROOT resolution is correct across local-runtime modules.",
+      "responsibility": "Real acceptance test verifying WORKSPACE_ROOT resolution is correct across local-runtime modules. Run manually via `npx tsx local-runtime/workspace-root-veri...",
       "evidence": [
         "real test file — QA Factory owns all test code regardless of domain"
       ]
@@ -7559,6 +8146,22 @@
       "responsibility": "หน้า HTML แยกต่างหาก (DNA OS Observatory) — UI สำหรับดีบั๊ก pipeline ธีมมืด ไม่ได้อยู่ใน build ของ Next.js app",
       "evidence": [
         "observatory dashboard"
+      ]
+    },
+    "playwright.config.ts": {
+      "factoryOwner": "UNKNOWN",
+      "domain": null,
+      "capability": null,
+      "responsibility": "ค่าตั้งค่าจริงสำหรับการทดสอบคลิกจริงผ่านเบราว์เซอร์ ใช้แพ็กเกจที่มีอยู่แล้วในระบบ ไม่ได้เพิ่มของใหม่ กำหนดขั้นตอนเข้าสู่ระบบจริงแยกจากการทดสอบเส้นทางที่ไม่ต้...",
+      "evidence": []
+    },
+    "plugins/agent/server.ts": {
+      "factoryOwner": "ai-factory",
+      "domain": "AI",
+      "capability": "plugins",
+      "responsibility": "HTTP stub ที่ตอบ NOT_IMPLEMENTED อย่างตรงไปตรงมา (TASK-018, DNA-000109) — แก้ปัญหา plugins/agent/start.sh สตาร์ทไม่ได้จริง (ไฟล์นี้ถูกลงทะเบียนใน services.js...",
+      "evidence": [
+        "AI agent plugin"
       ]
     },
     "plugins/capabilities.ts": {
@@ -7922,6 +8525,321 @@
         "plugin runtime/executor"
       ]
     },
+    "presentation/ai/ChatInput.tsx": {
+      "factoryOwner": "software-factory",
+      "domain": "Developer Tooling",
+      "capability": "presentation",
+      "responsibility": "ช่องพิมพ์ข้อความของ playground + ชิปตัวอย่างคำสั่ง (presentation เท่านั้น ไม่เรียก API เอง)",
+      "evidence": [
+        "canonical presentation implementation"
+      ]
+    },
+    "presentation/ai/ChatMessageList.tsx": {
+      "factoryOwner": "software-factory",
+      "domain": "Developer Tooling",
+      "capability": "presentation",
+      "responsibility": "เรนเดอร์รายการข้อความบทสนทนาของ playground จาก ChatMessage (presentation เท่านั้น)",
+      "evidence": [
+        "canonical presentation implementation"
+      ]
+    },
+    "presentation/ai/ClarifyingChoice.tsx": {
+      "factoryOwner": "software-factory",
+      "domain": "Developer Tooling",
+      "capability": "presentation",
+      "responsibility": "ตัวเลือกตอบคำถามกลับของ playground — แสดง prompt + options และส่ง index ที่ผู้ใช้เลือกกลับ (presentation เท่านั้น)",
+      "evidence": [
+        "canonical presentation implementation"
+      ]
+    },
+    "presentation/ai/ConfirmationPreview.tsx": {
+      "factoryOwner": "software-factory",
+      "domain": "Developer Tooling",
+      "capability": "presentation",
+      "responsibility": "Shown for requires_confirmation:true intents. There is deliberately no",
+      "evidence": [
+        "canonical presentation implementation"
+      ]
+    },
+    "presentation/ai/ResultCard.tsx": {
+      "factoryOwner": "software-factory",
+      "domain": "Developer Tooling",
+      "capability": "presentation",
+      "responsibility": "ผลลัพธ์คำตอบของ playground — การ์ดแสดง label + ข้อความ (presentation เท่านั้น ไม่มี business logic)",
+      "evidence": [
+        "canonical presentation implementation"
+      ]
+    },
+    "presentation/assets/manifest.ts": {
+      "factoryOwner": "software-factory",
+      "domain": "Developer Tooling",
+      "capability": "presentation",
+      "responsibility": "DNA OS — presentation/assets",
+      "evidence": [
+        "canonical presentation implementation"
+      ]
+    },
+    "presentation/documents/FileUpload.tsx": {
+      "factoryOwner": "software-factory",
+      "domain": "Developer Tooling",
+      "capability": "presentation",
+      "responsibility": "Reusable file-attachment widget — uploads through /api/admin/upload (the one",
+      "evidence": [
+        "canonical presentation implementation"
+      ]
+    },
+    "presentation/feedback/CapabilitySkeleton.tsx": {
+      "factoryOwner": "software-factory",
+      "domain": "Developer Tooling",
+      "capability": "presentation",
+      "responsibility": "Shared loading skeleton for capability pages (Products/Solutions/Marketplace/",
+      "evidence": [
+        "canonical presentation implementation"
+      ]
+    },
+    "presentation/feedback/CopyButton.tsx": {
+      "factoryOwner": "software-factory",
+      "domain": "Developer Tooling",
+      "capability": "presentation",
+      "responsibility": "Small reusable copy-to-clipboard button. Kept as its own tiny Client Component",
+      "evidence": [
+        "canonical presentation implementation"
+      ]
+    },
+    "presentation/feedback/EmptyState.tsx": {
+      "factoryOwner": "software-factory",
+      "domain": "Developer Tooling",
+      "capability": "presentation",
+      "responsibility": "UIKit — EmptyState",
+      "evidence": [
+        "canonical presentation implementation"
+      ]
+    },
+    "presentation/form/FormActions.tsx": {
+      "factoryOwner": "software-factory",
+      "domain": "Developer Tooling",
+      "capability": "presentation",
+      "responsibility": "ตำแหน่งปุ่มในแถว — ค่าเริ่มต้นคือชิดขวาแบบ form ทั่วไป",
+      "evidence": [
+        "canonical presentation implementation"
+      ]
+    },
+    "presentation/form/FormField.tsx": {
+      "factoryOwner": "software-factory",
+      "domain": "Developer Tooling",
+      "capability": "presentation",
+      "responsibility": "ต้องตรงกับ id ของ control ที่ส่งมาใน children (ใช้ผูก label/error)",
+      "evidence": [
+        "canonical presentation implementation"
+      ]
+    },
+    "presentation/foundation/tokens/colors.ts": {
+      "factoryOwner": "software-factory",
+      "domain": "Developer Tooling",
+      "capability": "presentation",
+      "responsibility": "Design Tokens — Colors",
+      "evidence": [
+        "canonical presentation implementation"
+      ]
+    },
+    "presentation/foundation/tokens/elevation.ts": {
+      "factoryOwner": "software-factory",
+      "domain": "Developer Tooling",
+      "capability": "presentation",
+      "responsibility": "Design Tokens — Elevation",
+      "evidence": [
+        "canonical presentation implementation"
+      ]
+    },
+    "presentation/foundation/tokens/index.tsx": {
+      "factoryOwner": "software-factory",
+      "domain": "Developer Tooling",
+      "capability": "presentation",
+      "responsibility": "Design Tokens — barrel + Theme Provider",
+      "evidence": [
+        "canonical presentation implementation"
+      ]
+    },
+    "presentation/foundation/tokens/semantic-colors.ts": {
+      "factoryOwner": "software-factory",
+      "domain": "Developer Tooling",
+      "capability": "presentation",
+      "responsibility": "Design Tokens — Semantic Colors",
+      "evidence": [
+        "canonical presentation implementation"
+      ]
+    },
+    "presentation/foundation/tokens/spacing.ts": {
+      "factoryOwner": "software-factory",
+      "domain": "Developer Tooling",
+      "capability": "presentation",
+      "responsibility": "Design Tokens — Spacing",
+      "evidence": [
+        "canonical presentation implementation"
+      ]
+    },
+    "presentation/foundation/tokens/typography.ts": {
+      "factoryOwner": "software-factory",
+      "domain": "Developer Tooling",
+      "capability": "presentation",
+      "responsibility": "Design Tokens — Typography",
+      "evidence": [
+        "canonical presentation implementation"
+      ]
+    },
+    "presentation/panels/ActionBar.tsx": {
+      "factoryOwner": "software-factory",
+      "domain": "Developer Tooling",
+      "capability": "presentation",
+      "responsibility": "UIKit — ActionBar",
+      "evidence": [
+        "canonical presentation implementation"
+      ]
+    },
+    "presentation/panels/Inspector.tsx": {
+      "factoryOwner": "software-factory",
+      "domain": "Developer Tooling",
+      "capability": "presentation",
+      "responsibility": "UIKit — Inspector",
+      "evidence": [
+        "canonical presentation implementation"
+      ]
+    },
+    "presentation/panels/Window.tsx": {
+      "factoryOwner": "software-factory",
+      "domain": "Developer Tooling",
+      "capability": "presentation",
+      "responsibility": "UIKit — Window",
+      "evidence": [
+        "canonical presentation implementation"
+      ]
+    },
+    "presentation/shell/AppShell.tsx": {
+      "factoryOwner": "software-factory",
+      "domain": "Developer Tooling",
+      "capability": "presentation",
+      "responsibility": "UIKit — AppShell",
+      "evidence": [
+        "canonical presentation implementation"
+      ]
+    },
+    "presentation/shell/PortalShell.tsx": {
+      "factoryOwner": "software-factory",
+      "domain": "Developer Tooling",
+      "capability": "presentation",
+      "responsibility": "Portal Shell — Canonical shell for standalone Portal / Capability pages",
+      "evidence": [
+        "canonical presentation implementation"
+      ]
+    },
+    "presentation/shell/TemplateShell.tsx": {
+      "factoryOwner": "software-factory",
+      "domain": "Developer Tooling",
+      "capability": "presentation",
+      "responsibility": "Business Workspace Template — STRUCTURE ONLY (presentation reset, owner-directed).",
+      "evidence": [
+        "canonical presentation implementation"
+      ]
+    },
+    "presentation/shell/ide/TabStrip.tsx": {
+      "factoryOwner": "software-factory",
+      "domain": "Developer Tooling",
+      "capability": "presentation",
+      "responsibility": "IDE Primitives — TabStrip (EXTRACTED, source-preserving)",
+      "evidence": [
+        "canonical presentation implementation"
+      ]
+    },
+    "presentation/shell/navigation/AppHeader.tsx": {
+      "factoryOwner": "software-factory",
+      "domain": "Developer Tooling",
+      "capability": "presentation",
+      "responsibility": "Module name — owned by the module, not by Navigation (e.g. \"ข้อความ\", \"การเงิน\", \"ใบแจ้งหนี้\").",
+      "evidence": [
+        "canonical presentation implementation"
+      ]
+    },
+    "presentation/shell/navigation/HomeBackBar.tsx": {
+      "factoryOwner": "software-factory",
+      "domain": "Developer Tooling",
+      "capability": "presentation",
+      "responsibility": "Owner request (2026-07-30): once wrapped in a native Tauri window, there's",
+      "evidence": [
+        "canonical presentation implementation"
+      ]
+    },
+    "presentation/shell/navigation/IconRail.tsx": {
+      "factoryOwner": "software-factory",
+      "domain": "Developer Tooling",
+      "capability": "presentation",
+      "responsibility": "UIKit — IconRail",
+      "evidence": [
+        "canonical presentation implementation"
+      ]
+    },
+    "presentation/shell/navigation/ListColumn.tsx": {
+      "factoryOwner": "software-factory",
+      "domain": "Developer Tooling",
+      "capability": "presentation",
+      "responsibility": "UIKit — ListColumn",
+      "evidence": [
+        "canonical presentation implementation"
+      ]
+    },
+    "presentation/shell/workspace/DashboardBoard.tsx": {
+      "factoryOwner": "software-factory",
+      "domain": "Developer Tooling",
+      "capability": "presentation",
+      "responsibility": "Dashboard Board (Phase 4, Step 4) — a generic renderer of whatever",
+      "evidence": [
+        "canonical presentation implementation"
+      ]
+    },
+    "presentation/shell/workspace/NotImplementedBoard.tsx": {
+      "factoryOwner": "software-factory",
+      "domain": "Developer Tooling",
+      "capability": "presentation",
+      "responsibility": "Honest placeholder — Business/Finance/Partner/Mobile Board (Phase 4 Steps",
+      "evidence": [
+        "canonical presentation implementation"
+      ]
+    },
+    "presentation/table/DataTable.tsx": {
+      "factoryOwner": "software-factory",
+      "domain": "Developer Tooling",
+      "capability": "presentation",
+      "responsibility": "อ่านค่าจาก `sort` + เรียก `onSortChange` — primitive ไม่เรียงข้อมูลเอง",
+      "evidence": [
+        "canonical presentation implementation"
+      ]
+    },
+    "presentation/viewer/FlexPreview.tsx": {
+      "factoryOwner": "software-factory",
+      "domain": "Developer Tooling",
+      "capability": "presentation",
+      "responsibility": "Renders real LINE Flex Message JSON (the same object actually sent via",
+      "evidence": [
+        "canonical presentation implementation"
+      ]
+    },
+    "presentation/viewer/MapView.tsx": {
+      "factoryOwner": "software-factory",
+      "domain": "Developer Tooling",
+      "capability": "presentation",
+      "responsibility": "UIKit — MapView",
+      "evidence": [
+        "canonical presentation implementation"
+      ]
+    },
+    "presentation/viewer/Viewer.tsx": {
+      "factoryOwner": "software-factory",
+      "domain": "Developer Tooling",
+      "capability": "presentation",
+      "responsibility": "kind=\"image\" — URL ที่ผู้เรียก resolve มาแล้ว",
+      "evidence": [
+        "canonical presentation implementation"
+      ]
+    },
     "presenter/enricher.ts": {
       "factoryOwner": "ai-factory",
       "domain": "AI",
@@ -7944,7 +8862,7 @@
       "factoryOwner": "ai-factory",
       "domain": "AI",
       "capability": "presenter",
-      "responsibility": "จัดรูปแบบผลลัพธ์ให้อยู่ในโครงสร้างที่ UI นำไปใช้แสดงผลได้ง่าย",
+      "responsibility": "ตัวจัดรูปแบบการนำเสนอ — แปลงผลลัพธ์จาก engines เป็นข้อความพร้อมแสดงสำหรับ UI (layer V5)",
       "evidence": [
         "AI output presentation (rank/format/explain)"
       ]
@@ -8179,11 +9097,29 @@
       "responsibility": "Real script rendering a human-readable Architecture Health Report from registry/architecture-book.json's real computed data.",
       "evidence": []
     },
+    "scripts/architecture-summary-test.ts": {
+      "factoryOwner": "qa-factory",
+      "domain": "Quality",
+      "capability": "scripts",
+      "responsibility": "ชุดทดสอบจริง 18 ข้อสำหรับ architectureSummaryRuntime.ts — พิสูจน์ว่าไม่มีการมโนเนื้อหา อ้างอิงแหล่งข้อมูลจริงถูกต้อง และรายงานตรงๆ ว่า 'ยังไม่มีเอกสาร' สำหรั...",
+      "evidence": [
+        "real test file — QA Factory owns all test code regardless of domain"
+      ]
+    },
     "scripts/artifact-test.ts": {
       "factoryOwner": "qa-factory",
       "domain": "Quality",
       "capability": "scripts",
       "responsibility": "Real Artifact Pipeline & Evidence Warehouse regression suite (Step 5) — npm run artifact:test.",
+      "evidence": [
+        "real test file — QA Factory owns all test code regardless of domain"
+      ]
+    },
+    "scripts/autosave-runtime-test.ts": {
+      "factoryOwner": "qa-factory",
+      "domain": "Quality",
+      "capability": "scripts",
+      "responsibility": "ชุดทดสอบจริง 27 ข้อสำหรับตัวบันทึกไฟล์อัตโนมัติ — พิสูจน์ว่าปิดใช้งานแล้วไม่มีตัวจับเวลาค้างอยู่ พิสูจน์ว่าปิดระหว่างรอก็ยังตรวจจับได้ พิสูจน์ว่าไฟล์ที่ถูกล็...",
       "evidence": [
         "real test file — QA Factory owns all test code regardless of domain"
       ]
@@ -8277,6 +9213,42 @@
         "real test file — QA Factory owns all test code regardless of domain"
       ]
     },
+    "scripts/business-failure-bridge-test.ts": {
+      "factoryOwner": "qa-factory",
+      "domain": "Quality",
+      "capability": "scripts",
+      "responsibility": "ชุดพิสูจน์สดของสะพานความล้มเหลว Business → Infrastructure (owner, 2026-09-19): การส่งจริงผ่าน credential path ของ LINE (api.line.me 401) ต้องให้ผลลัพธ์ norma...",
+      "evidence": [
+        "real test file — QA Factory owns all test code regardless of domain"
+      ]
+    },
+    "scripts/canonical-finance-acceptance-test.ts": {
+      "factoryOwner": "qa-factory",
+      "domain": "Quality",
+      "capability": "scripts",
+      "responsibility": "harness การเงินตาม canonical (Phase E4/E5) — ตรวจแบบอ่านอย่างเดียวเรื่อง VAT/WHT/ส่วนลด การตัดเอกสาร void/ใบเสนอราคาออกจากรายได้ VAT ซื้อ การจัดสรรเงิน โครงก...",
+      "evidence": [
+        "real test file — QA Factory owns all test code regardless of domain"
+      ]
+    },
+    "scripts/canonical-phase-c-acceptance-test.ts": {
+      "factoryOwner": "qa-factory",
+      "domain": "Quality",
+      "capability": "scripts",
+      "responsibility": "harness ยอมรับของ canonical v1.1 เฟส C8 — พิสูจน์สดแบบอ่านอย่างเดียวของ read model (สายธุรกรรม snapshot ของ version เอกสารเก่าแบบ LEGACY_PARTIAL ไฟล์ต้นฉบับ ...",
+      "evidence": [
+        "real test file — QA Factory owns all test code regardless of domain"
+      ]
+    },
+    "scripts/canonical-phase-d-acceptance-test.ts": {
+      "factoryOwner": "qa-factory",
+      "domain": "Quality",
+      "capability": "scripts",
+      "responsibility": "harness ยอมรับของ Phase D10 — พิสูจน์ด้วยข้อมูลจริงของ write model (สร้าง→รายการสินค้า→version→ไฟล์ที่สร้าง→ออก→ยกเลิก, guard การจ่าย, projection หนี้)",
+      "evidence": [
+        "real test file — QA Factory owns all test code regardless of domain"
+      ]
+    },
     "scripts/capability-resolver-test.ts": {
       "factoryOwner": "qa-factory",
       "domain": "Quality",
@@ -8349,6 +9321,15 @@
         "real test file — QA Factory owns all test code regardless of domain"
       ]
     },
+    "scripts/connect-core-acceptance-test.ts": {
+      "factoryOwner": "qa-factory",
+      "domain": "Quality",
+      "capability": "scripts",
+      "responsibility": "ชุดทดสอบยอมรับของ Connect Core (npm run connect-core:test) — พิสูจน์กติกาแกนกลางของชั้น ก่อน Connect กับโค้ดจริง โดยไม่ใช้เครือข่ายและไม่ใช้ฐานข้อมูลจริง (st...",
+      "evidence": [
+        "real test file — QA Factory owns all test code regardless of domain"
+      ]
+    },
     "scripts/context-planner-test.ts": {
       "factoryOwner": "qa-factory",
       "domain": "Quality",
@@ -8367,11 +9348,29 @@
         "real test file — QA Factory owns all test code regardless of domain"
       ]
     },
+    "scripts/cost-gate-test.ts": {
+      "factoryOwner": "qa-factory",
+      "domain": "Quality",
+      "capability": "scripts",
+      "responsibility": "ชุดทดสอบจริงของ costGateRuntime.ts (Constitution Rule 257) — พิสูจน์การจัดประเภท FREE_LOCAL/PAID_EXTERNAL/UNKNOWN_COST, ผล RELEASE/LOCK ตามงบประมาณจริง, การ ...",
+      "evidence": [
+        "real test file — QA Factory owns all test code regardless of domain"
+      ]
+    },
     "scripts/country-test.ts": {
       "factoryOwner": "qa-factory",
       "domain": "Quality",
       "capability": "scripts",
       "responsibility": "Country Package Foundation Regression Suite (owner, 2026-08-07, Software Factory Step 10, Phase 7) — ตรวจ Country Package framework จริงรายงาน NOT_IMPLEMENTE...",
+      "evidence": [
+        "real test file — QA Factory owns all test code regardless of domain"
+      ]
+    },
+    "scripts/dead-end-sweep-test.ts": {
+      "factoryOwner": "qa-factory",
+      "domain": "Quality",
+      "capability": "scripts",
+      "responsibility": "ชุดทดสอบจริง 24 ข้อสำหรับ deadEndSweepRuntime.ts — พิสูจน์ว่าทุกรายการที่พบมีหลักฐานจริงอ้างอิง ตรวจพบจุดที่รู้อยู่แล้วว่าเป็น Dead End จริง (engines/tax.ts,...",
       "evidence": [
         "real test file — QA Factory owns all test code regardless of domain"
       ]
@@ -8408,6 +9407,47 @@
         "real test file — QA Factory owns all test code regardless of domain"
       ]
     },
+    "scripts/digitalocean-connector-credential-resolution-test.ts": {
+      "factoryOwner": "qa-factory",
+      "domain": "Quality",
+      "capability": "scripts",
+      "responsibility": "ทดสอบยืนยันว่าการ resolve credential ของ connector ใช้งานได้จริงกับทรัพยากรที่ host บน DigitalOcean — ตรวจห่วงโซ่การค้นหา credential จริงตั้งแต่ต้นจนจบ",
+      "evidence": [
+        "real test file — QA Factory owns all test code regardless of domain"
+      ]
+    },
+    "scripts/digitalocean-infra-billing-submit-handoff.ts": {
+      "factoryOwner": "UNKNOWN",
+      "domain": null,
+      "capability": null,
+      "responsibility": "สคริปต์ส่งมอบงาน — แพ็กหลักฐานโครงสร้างพื้นฐาน/การเรียกเก็บเงิน DigitalOcean (FCR-028) เข้าสู่ flow ทะเบียน/หลักฐานเพื่อให้เจ้าของยอมรับ",
+      "evidence": []
+    },
+    "scripts/digitalocean-worker-live-test.ts": {
+      "factoryOwner": "qa-factory",
+      "domain": "Quality",
+      "capability": "scripts",
+      "responsibility": "ทดสอบแบบ live กับ worker deployment จริงบน DigitalOcean — ยิง request จริงไปที่ endpoint และบันทึกผลตอบจริงเป็นหลักฐานการยอมรับ",
+      "evidence": [
+        "real test file — QA Factory owns all test code regardless of domain"
+      ]
+    },
+    "scripts/digitalocean-worker-router-proof.ts": {
+      "factoryOwner": "UNKNOWN",
+      "domain": null,
+      "capability": null,
+      "responsibility": "สคริปต์พิสูจน์แนวคิดของ worker router บน DigitalOcean — สาธิตการ route request จริงผ่าน deployment ของ worker ในชั้นโครงสร้างพื้นฐาน",
+      "evidence": []
+    },
+    "scripts/dispatcher-execution-mode-test.ts": {
+      "factoryOwner": "qa-factory",
+      "domain": "Quality",
+      "capability": "scripts",
+      "responsibility": "ชุดทดสอบจริง 12 ข้อสำหรับส่วนแยกเส้นทางงานแบบ ASYNCHRONOUS ในตัวจ่ายงาน — พิสูจน์ว่าฟังก์ชันจัดหมวดถูกเปิดให้เรียกจากภายนอกได้จริง งานแบบ ASYNCHRONOUS ไปถึงร...",
+      "evidence": [
+        "real test file — QA Factory owns all test code regardless of domain"
+      ]
+    },
     "scripts/document-lifecycle-test.ts": {
       "factoryOwner": "qa-factory",
       "domain": "Quality",
@@ -8417,11 +9457,45 @@
         "real test file — QA Factory owns all test code regardless of domain"
       ]
     },
+    "scripts/edge-function-worker-test.ts": {
+      "factoryOwner": "qa-factory",
+      "domain": "Quality",
+      "capability": "scripts",
+      "responsibility": "ชุดทดสอบจริงของ edgeFunctionWorkerRuntime.ts (WorkerType ที่ 11) — พิสูจน์การลงทะเบียนจริง, ลำดับการตรวจ Cost Gate ก่อนเรียก network จริงเสมอ, และการปฏิเสธ m...",
+      "evidence": [
+        "real test file — QA Factory owns all test code regardless of domain"
+      ]
+    },
     "scripts/execution-context-test.ts": {
       "factoryOwner": "qa-factory",
       "domain": "Quality",
       "capability": "scripts",
       "responsibility": "ชุดทดสอบสำหรับรันไทม์บริบทการดำเนินการแบบถาวร — การอยู่รอดข้ามการรีสตาร์ท ประวัติแบบเพิ่มต่อท้าย ประตูอนุมัติ Step จริง การแยกการอนุมัติของเจ้าของ",
+      "evidence": [
+        "real test file — QA Factory owns all test code regardless of domain"
+      ]
+    },
+    "scripts/execution-hand-dispatch-run.ts": {
+      "factoryOwner": "UNKNOWN",
+      "domain": null,
+      "capability": null,
+      "responsibility": "เครื่องมือ CLI เล็กๆ ที่เรียก runExecutionHandJobFromInbox() จริงของ executionHandRuntime.ts เพื่อรัน Job Contract ที่วางไว้ใน workers/execution-hand/INBOX/ ...",
+      "evidence": []
+    },
+    "scripts/execution-hand-test.ts": {
+      "factoryOwner": "qa-factory",
+      "domain": "Quality",
+      "capability": "scripts",
+      "responsibility": "ชุดทดสอบจริงของ executionHandRuntime.ts (Constitution Rule 258) — พิสูจน์การตรวจ Job Contract, ปฏิบัติการทั้ง 10 ประเภท, การต่อ Cost Gate, และข้อห้ามเชิงโครง...",
+      "evidence": [
+        "real test file — QA Factory owns all test code regardless of domain"
+      ]
+    },
+    "scripts/execution-planner-test.ts": {
+      "factoryOwner": "qa-factory",
+      "domain": "Quality",
+      "capability": "scripts",
+      "responsibility": "ชุดทดสอบจริง 11 ข้อสำหรับตัวแตกคำสั่ง Execution Planner — พิสูจน์ว่าตัวอย่างจริงที่ Owner กำหนด (8 ขั้นตอนตามลำดับ) ถูกแตกออกมาถูกต้อง พิสูจน์ว่าขอบเขตการแยก...",
       "evidence": [
         "real test file — QA Factory owns all test code regardless of domain"
       ]
@@ -8471,12 +9545,30 @@
         "real test file — QA Factory owns all test code regardless of domain"
       ]
     },
+    "scripts/gap-loop-test.ts": {
+      "factoryOwner": "qa-factory",
+      "domain": "Quality",
+      "capability": "scripts",
+      "responsibility": "ชุดทดสอบจริงของ gapLoopRuntime.ts (ส่วนขยาย Rule 255) — พิสูจน์การจัดหมวดจริงของ FCR-009/011/012, การตรวจจับ Gap ซ้ำจริง, การคำนวณ NOT_STABLE จากสถานะจริงของ...",
+      "evidence": [
+        "real test file — QA Factory owns all test code regardless of domain"
+      ]
+    },
     "scripts/gateway-observe-supabase.ts": {
       "factoryOwner": "UNKNOWN",
       "domain": null,
       "capability": null,
       "responsibility": "Real script observing/reporting real Supabase gateway connectivity (npm run gateway:observe:supabase).",
       "evidence": []
+    },
+    "scripts/github-connector-test.ts": {
+      "factoryOwner": "qa-factory",
+      "domain": "Quality",
+      "capability": "scripts",
+      "responsibility": "ชุดทดสอบจริง 22 ข้อสำหรับส่วนเชื่อมต่อ GitHub ใหม่ — พิสูจน์ว่าคำสั่ง Owner จดจำได้ถูกต้อง การตรวจสอบเฉพาะ GitHub ไม่หลอกผลบวกปลอม และสคริปต์ลงทะเบียนหยุดทำง...",
+      "evidence": [
+        "real test file — QA Factory owns all test code regardless of domain"
+      ]
     },
     "scripts/global-factory-test.ts": {
       "factoryOwner": "qa-factory",
@@ -8553,6 +9645,13 @@
       "responsibility": "โปรโตคอลแนะนำตัวระบบ (SDRN-P1) — คำสั่งแรกที่ AI ควรรันก่อนอ่าน source code รวมข้อมูลจาก registry หลักเป็นรายงานเดียว",
       "evidence": []
     },
+    "scripts/ide-editor-overflow-verify.ts": {
+      "factoryOwner": "UNKNOWN",
+      "domain": null,
+      "capability": null,
+      "responsibility": "ชุดทดสอบจริงพิสูจน์ว่าการแก้ไขปัญหาบรรทัดยาวล้นจอได้ผลจริง — บรรทัดยาวเกิน 5,000 ตัวอักษรไม่ทำให้หน้าจอพัง และมีโค้ดจำกัดขอบเขตการเลื่อนจริงในไฟล์",
+      "evidence": []
+    },
     "scripts/ide-regression-test.ts": {
       "factoryOwner": "qa-factory",
       "domain": "Quality",
@@ -8578,11 +9677,90 @@
         "real test file — QA Factory owns all test code regardless of domain"
       ]
     },
+    "scripts/infrastructure-billing-layer-verify.ts": {
+      "factoryOwner": "UNKNOWN",
+      "domain": null,
+      "capability": null,
+      "responsibility": "สคริปต์ตรวจสอบชั้นโครงสร้างพื้นฐานและการเรียกเก็บเงิน DigitalOcean (FCR-028) — เทียบสถานะจริงของผู้ให้บริการกับสัญญาโครงสร้างพื้นฐานที่ประกาศไว้ก่อนยอมรับงาน",
+      "evidence": []
+    },
+    "scripts/job-contract-cross-runtime-test.ts": {
+      "factoryOwner": "qa-factory",
+      "domain": "Quality",
+      "capability": "scripts",
+      "responsibility": "ตัวตรวจ PASS 6 — พิสูจน์ inventory, การตัด direct write ของ pilot, เส้น transport, เจ้าของ executor, ไม่มี logic ซ้ำใน Deno, auth เดิม, idempotency จริง, tim...",
+      "evidence": [
+        "real test file — QA Factory owns all test code regardless of domain"
+      ]
+    },
+    "scripts/job-contract-declare-test.ts": {
+      "factoryOwner": "qa-factory",
+      "domain": "Quality",
+      "capability": "scripts",
+      "responsibility": "ตัวตรวจ PASS 1 (DECLARE) ของสัญญางานกลาง — อ่านกฎที่ประกาศไว้แล้วพิสูจน์ว่าทุกมิติของ scope ระบบที่ถูก map เพดานของ AI ทุกตัว และพาธอ้างอิงทุกจุดมีอยู่จริง ไ...",
+      "evidence": [
+        "real test file — QA Factory owns all test code regardless of domain"
+      ]
+    },
+    "scripts/job-contract-recover-test.ts": {
+      "factoryOwner": "qa-factory",
+      "domain": "Quality",
+      "capability": "scripts",
+      "responsibility": "ตัวตรวจ PASS 5 — พิสูจน์ 6 เคส recovery ที่กำหนด, retry มีขอบเขต, ไม่เขียนความจริงธุรกิจซ้ำ, preflight อ่าน checkpoint จริง, paid retry ผ่าน cost gate, destr...",
+      "evidence": [
+        "real test file — QA Factory owns all test code regardless of domain"
+      ]
+    },
+    "scripts/job-contract-verify-test.ts": {
+      "factoryOwner": "qa-factory",
+      "domain": "Quality",
+      "capability": "scripts",
+      "responsibility": "ตัวตรวจ PASS 3 — พิสูจน์ว่า acceptance ใช้ตัวตรวจและหลักฐานจริง แหล่งอนุมัติทั้ง 5 ถูก normalize โดยไม่กลายเป็นผู้อนุมัติ call site จริงเส้นเดียวรันผ่านซองโด...",
+      "evidence": [
+        "real test file — QA Factory owns all test code regardless of domain"
+      ]
+    },
+    "scripts/job-contract-wrap-test.ts": {
+      "factoryOwner": "qa-factory",
+      "domain": "Quality",
+      "capability": "scripts",
+      "responsibility": "ตัวตรวจ PASS 2 (WRAP) — พิสูจน์ว่างานธุรกิจเป็นเพียงซองควบคุม: อะแดปเตอร์ไม่มี DB/SQL ไม่ดึงของ control plane มาใช้ ทุก capability ชี้โมดูล/export จริงและตาร...",
+      "evidence": [
+        "real test file — QA Factory owns all test code regardless of domain"
+      ]
+    },
+    "scripts/line-credential-path-test.ts": {
+      "factoryOwner": "qa-factory",
+      "domain": "Quality",
+      "capability": "scripts",
+      "responsibility": "ทดสอบยอมรับเส้นทาง credential หลักของ LINE Communication Gateway — พิสูจน์ว่า sendLineMessage() หยิบ token จาก connector \"line\" ผ่าน Run gate (requireConnect...",
+      "evidence": [
+        "real test file — QA Factory owns all test code regardless of domain"
+      ]
+    },
     "scripts/local-worker-test.ts": {
       "factoryOwner": "qa-factory",
       "domain": "Quality",
       "capability": "scripts",
       "responsibility": "ชุดทดสอบ Adapter ผู้ปฏิบัติงานโมเดลท้องถิ่นจริง",
+      "evidence": [
+        "real test file — QA Factory owns all test code regardless of domain"
+      ]
+    },
+    "scripts/manager-question-queue-test.ts": {
+      "factoryOwner": "qa-factory",
+      "domain": "Quality",
+      "capability": "scripts",
+      "responsibility": "ชุดทดสอบจริงของ managerQuestionRuntime.ts (Constitution Rule 251) — พิสูจน์การรวมคำถามซ้ำจาก Worker 10 ตัวเหลือ 1 รายการจริง, การตอบอัตโนมัติจาก Registry, กา...",
+      "evidence": [
+        "real test file — QA Factory owns all test code regardless of domain"
+      ]
+    },
+    "scripts/mcp-worker-test.ts": {
+      "factoryOwner": "qa-factory",
+      "domain": "Quality",
+      "capability": "scripts",
+      "responsibility": "ชุดทดสอบถดถอยของ Adapter ผู้ปฏิบัติงาน MCP (DNA OS) — ตรวจจริงกับไฟล์จริง ไม่ใช้ mock แทนของที่กำลังทดสอบ: preflight, ค้นหา capability สดแล้วเทียบกับ registr...",
       "evidence": [
         "real test file — QA Factory owns all test code regardless of domain"
       ]
@@ -8641,6 +9819,15 @@
         "real test file — QA Factory owns all test code regardless of domain"
       ]
     },
+    "scripts/railway-adapter-test.ts": {
+      "factoryOwner": "qa-factory",
+      "domain": "Quality",
+      "capability": "scripts",
+      "responsibility": "ทดสอบยอมรับ parity ของ Railway Deployment Adapter — พิสูจน์ว่า observe adapter ของ Railway ปล่อย GatewayEvent ตาม contract เดียวกับ Vercel adapter, gateway/d...",
+      "evidence": [
+        "real test file — QA Factory owns all test code regardless of domain"
+      ]
+    },
     "scripts/readiness-test.ts": {
       "factoryOwner": "qa-factory",
       "domain": "Quality",
@@ -8667,6 +9854,29 @@
       "evidence": [
         "real test file — QA Factory owns all test code regardless of domain"
       ]
+    },
+    "scripts/register-github-oauth-connector.ts": {
+      "factoryOwner": "UNKNOWN",
+      "domain": null,
+      "capability": null,
+      "responsibility": "สคริปต์ลงทะเบียนการเชื่อมต่อ GitHub จริง ทำซ้ำได้อย่างปลอดภัย จะหยุดทำงานตรงไปตรงมา (ไม่สร้างข้อมูลปลอม) ถ้ายังไม่มีกุญแจเชื่อมต่อจริงตั้งค่าไว้",
+      "evidence": []
+    },
+    "scripts/registry-integrity-gate-test.ts": {
+      "factoryOwner": "qa-factory",
+      "domain": "Quality",
+      "capability": "scripts",
+      "responsibility": "ชุดทดสอบจริง 16 ข้อสำหรับเครื่องมือตรวจสอบทะเบียน — จำลองบั๊กจริงที่เจอในเซสชันนี้ และครอบคลุมสถานการณ์จำลองที่กำหนดไว้ทั้ง 9 แบบ",
+      "evidence": [
+        "real test file — QA Factory owns all test code regardless of domain"
+      ]
+    },
+    "scripts/registry-integrity-gate.ts": {
+      "factoryOwner": "UNKNOWN",
+      "domain": null,
+      "capability": null,
+      "responsibility": "เครื่องมือตรวจสอบความถูกต้องระหว่างไฟล์จริง/ทะเบียน/Git แบบถาวร จำแนกทุกรายการในทะเบียนตามสถานะจริง ยังไม่ต่อเข้าขั้นตอน commit จริงจนกว่าจะแก้ขอบเขตการตรวจใ...",
+      "evidence": []
     },
     "scripts/registry-sync-regression-test.ts": {
       "factoryOwner": "qa-factory",
@@ -8727,6 +9937,31 @@
       "responsibility": "สคริปต์เริ่มต้นครั้งเดียวที่เขียน checkpoint บริบทการดำเนินการจริงตัวแรก (Step 13.7 ยืนยันเสร็จสมบูรณ์, EXTERNAL_ATTACK_SURFACE_DISCOVERY=PARTIAL) รันซ้ำได้อ...",
       "evidence": []
     },
+    "scripts/settings-real-wiring-test.ts": {
+      "factoryOwner": "qa-factory",
+      "domain": "Quality",
+      "capability": "scripts",
+      "responsibility": "ชุดทดสอบจริง 12 ข้อสำหรับการเชื่อมต่อหน้าตั้งค่า IDE ให้ใช้งานได้จริง — พิสูจน์ว่าสถานะ ใช้งานไม่ได้จริง คำนวณจากของจริงไม่ใช่ค่าตายตัว พิสูจน์ว่าช่องกาเครื่...",
+      "evidence": [
+        "real test file — QA Factory owns all test code regardless of domain"
+      ]
+    },
+    "scripts/state-reconcile.ts": {
+      "factoryOwner": "UNKNOWN",
+      "domain": null,
+      "capability": null,
+      "responsibility": "auto reconcile สถานะ main — เมื่อมี push เข้า main จะตรวจโมดูลที่เปลี่ยน รัน gate เดิมที่เกี่ยวข้อง คำนวณ reality ใหม่ อัปเดต current state/next step/handoff...",
+      "evidence": []
+    },
+    "scripts/switch-based-orchestrator-test.ts": {
+      "factoryOwner": "qa-factory",
+      "domain": "Quality",
+      "capability": "scripts",
+      "responsibility": "ชุดทดสอบจริงของ switchBasedOrchestratorRuntime.ts (Constitution Rule 252) — พิสูจน์การ DROP เมื่อ input ไม่ถูกต้อง/ซ้ำ/ไม่มีหลักฐาน, BLOCKED เมื่อมี dependen...",
+      "evidence": [
+        "real test file — QA Factory owns all test code regardless of domain"
+      ]
+    },
     "scripts/sync-infrastructure-dependencies.ts": {
       "factoryOwner": "UNKNOWN",
       "domain": null,
@@ -8750,6 +9985,33 @@
       "responsibility": "Script sync module-registry.json กับ source code จริง",
       "evidence": [
         "registry/architecture-book generation or drift check"
+      ]
+    },
+    "scripts/system-reality-gaploop-test.ts": {
+      "factoryOwner": "qa-factory",
+      "domain": "Quality",
+      "capability": "scripts",
+      "responsibility": "ชุดทดสอบจริง 17 ข้อสำหรับ gapLoopBridge.ts — พิสูจน์ว่าการเขียนข้อมูลจริงเกิดขึ้นครั้งเดียวตามที่ควร ตรวจจับรายการซ้ำได้ถูกต้องเมื่อรันซ้ำ และไม่ถูกเชื่อมให้...",
+      "evidence": [
+        "real test file — QA Factory owns all test code regardless of domain"
+      ]
+    },
+    "scripts/system-reality-model-test.ts": {
+      "factoryOwner": "qa-factory",
+      "domain": "Quality",
+      "capability": "scripts",
+      "responsibility": "ชุดทดสอบจริง 26 ข้อสำหรับ systemRealityRuntime.ts — ตรวจสอบสถานะและช่องว่างการเชื่อมต่อทุกรายการที่อ้างว่าพบ เทียบกับหลักฐานจริงปัจจุบันใน registry/architect...",
+      "evidence": [
+        "real test file — QA Factory owns all test code regardless of domain"
+      ]
+    },
+    "scripts/system-reality-report-test.ts": {
+      "factoryOwner": "qa-factory",
+      "domain": "Quality",
+      "capability": "scripts",
+      "responsibility": "ชุดทดสอบจริง 10 ข้อสำหรับ ownerLanguage.ts — สแกนข้อความทั้งหมด (ไม่ใช่สุ่มตรวจ) พิสูจน์ว่าไม่มีศัพท์เทคนิคต้องห้ามหลุดไปถึงเจ้าของเลย ในขณะที่รายละเอียดทางเ...",
+      "evidence": [
+        "real test file — QA Factory owns all test code regardless of domain"
       ]
     },
     "scripts/test-test.ts": {
@@ -8909,7 +10171,7 @@
       "factoryOwner": "ai-factory",
       "domain": "AI",
       "capability": "services",
-      "responsibility": "อ่าน/เขียนสถานะ ai_connection_status (singleton) เท่านั้น",
+      "responsibility": "ที่เก็บสถานะ AI connection — อ่าน/เขียนสถานะการเชื่อมต่อ AI จริงผ่านขอบเขต I/O ของ services",
       "evidence": [
         "AI connection management"
       ]
@@ -8959,11 +10221,60 @@
         "AI provider bridge"
       ]
     },
+    "services/canonical/document-detail.ts": {
+      "factoryOwner": "UNKNOWN",
+      "domain": null,
+      "capability": null,
+      "responsibility": "read model ของรายละเอียดเอกสาร — snapshot ของ version ที่บันทึกไว้ รายการสินค้า snapshot ภาษี สายที่มา artifact และการจัดสรรเงิน",
+      "evidence": []
+    },
+    "services/canonical/document-list.ts": {
+      "factoryOwner": "UNKNOWN",
+      "domain": null,
+      "capability": null,
+      "responsibility": "แถว canonical ของรายการเอกสาร — ตัวเลขที่บันทึกจริง ฐาน receivable ความครบถ้วน และ version ปัจจุบันของเอกสาร",
+      "evidence": []
+    },
+    "services/canonical/payments.ts": {
+      "factoryOwner": "UNKNOWN",
+      "domain": null,
+      "capability": null,
+      "responsibility": "ตัวอ่านการจ่ายเงิน/หนี้ตาม canonical จาก payment_allocations และ view — allocation คือความจริงเดียว",
+      "evidence": []
+    },
+    "services/canonical/read-model.ts": {
+      "factoryOwner": "UNKNOWN",
+      "domain": null,
+      "capability": null,
+      "responsibility": "primitive ของ read model/การเงินตามสัญญา canonical v1.1 — บันไดตัวเลขที่บันทึกจริง ฐานของ receivable และธงความครบถ้วน",
+      "evidence": []
+    },
+    "services/canonical/transaction-detail.ts": {
+      "factoryOwner": "UNKNOWN",
+      "domain": null,
+      "capability": null,
+      "responsibility": "read model ของรายละเอียดธุรกรรม — ประกอบบริษัท/ไซต์/โครงการ/กลุ่มงาน/เอกสาร/การจ่าย/หนี้/หลักฐานของธุรกรรมหนึ่งรายการ",
+      "evidence": []
+    },
+    "services/canonical/transaction-list.ts": {
+      "factoryOwner": "UNKNOWN",
+      "domain": null,
+      "capability": null,
+      "responsibility": "สรุปตัวเลขของรายการธุรกรรมจาก document_canonical + invoice_payment_summary (ไม่คำนวณซ้ำใน route)",
+      "evidence": []
+    },
+    "services/data-boundary/dataBoundaryRuntime.ts": {
+      "factoryOwner": "UNKNOWN",
+      "domain": null,
+      "capability": null,
+      "responsibility": "ประตูตรวจสอบความถูกต้องของข้อมูลที่ข้ามขอบเขต JSON/API/Queue/Worker/Storage แบบรวมศูนย์ — ตรวจจับ ID จำนวนเต็มไม่ปลอดภัย, ความคลาดเคลื่อนของทศนิยมเงิน, Date/...",
+      "evidence": []
+    },
     "services/knowledge/client.ts": {
       "factoryOwner": "ai-factory",
       "domain": "AI",
       "capability": "services",
-      "responsibility": "Client เขียนข้อมูลเข้า Knowledge Model (ชั้น services/ I/O) — ตัวแรกที่ใช้ knowledge schema จริง เขียนแบบ best-effort ไม่ throw เพราะ deploy-gate.ts และผู้เร...",
+      "responsibility": "client ของบริการความรู้ — client จริงสำหรับคลังความรู้ อยู่หลังขอบเขต I/O ของ services",
       "evidence": [
         "knowledge base service"
       ]
@@ -9026,63 +10337,18 @@
       "factoryOwner": "infrastructure-factory",
       "domain": "Infrastructure",
       "capability": "services",
-      "responsibility": "แคชสถานะการแสดงผล — ใช้ Supabase เป็นที่เก็บสถานะสำหรับ Serverless",
+      "responsibility": "แคชสถานะของ Supabase — แคชการอ่านสถานะกลางจริงเพื่อลดการ query Supabase ซ้ำๆ",
       "evidence": [
         "Supabase client/service layer"
       ]
     },
-    "styles/tokens/colors.ts": {
-      "factoryOwner": "software-factory",
-      "domain": "Developer Tooling",
-      "capability": "ui",
-      "responsibility": "Design Token สี — palette ดิบสำหรับธีม Enterprise Light / Developer Dark ใช้ผ่าน elevation.ts/typography.ts/semantic-colors.ts เท่านั้น",
+    "supabase/functions/_shared/canonicalTransport.ts": {
+      "factoryOwner": "deployment-factory",
+      "domain": "Deployment",
+      "capability": "supabase",
+      "responsibility": "client transport ฝั่ง Edge/Deno (PASS6/G2) — ทำหน้าที่ช่องทางเท่านั้น สร้างซองงาน ส่งด้วย secret เดิม ไม่มี logic ธุรกิจ และรายงานตามจริงเมื่อไม่รู้ผลการเขียน",
       "evidence": [
-        "design tokens/styles"
-      ]
-    },
-    "styles/tokens/elevation.ts": {
-      "factoryOwner": "software-factory",
-      "domain": "Developer Tooling",
-      "capability": "ui",
-      "responsibility": "Design Token ระบบชั้นความสูง (elevation) 5 ชั้น เป็น Tailwind class สำเร็จรูปต่อธีม",
-      "evidence": [
-        "design tokens/styles"
-      ]
-    },
-    "styles/tokens/index.tsx": {
-      "factoryOwner": "software-factory",
-      "domain": "Developer Tooling",
-      "capability": "ui",
-      "responsibility": "Barrel export ของ Design Tokens พร้อม ThemeProvider/useTheme/ThemeToggle สลับธีม Enterprise Light / Developer Dark เก็บค่าไว้ที่ localStorage",
-      "evidence": [
-        "design tokens/styles"
-      ]
-    },
-    "styles/tokens/semantic-colors.ts": {
-      "factoryOwner": "software-factory",
-      "domain": "Developer Tooling",
-      "capability": "ui",
-      "responsibility": "Design Token สีสถานะ (success/warning/error/info) โทน enterprise ต่อธีม แทนสีสดแบบ dashboard เกม",
-      "evidence": [
-        "design tokens/styles"
-      ]
-    },
-    "styles/tokens/spacing.ts": {
-      "factoryOwner": "software-factory",
-      "domain": "Developer Tooling",
-      "capability": "ui",
-      "responsibility": "Design Token ระยะห่าง — จังหวะแนวตั้งและความกว้าง container ที่ใช้ร่วมกัน",
-      "evidence": [
-        "design tokens/styles"
-      ]
-    },
-    "styles/tokens/typography.ts": {
-      "factoryOwner": "software-factory",
-      "domain": "Developer Tooling",
-      "capability": "ui",
-      "responsibility": "Design Token ตัวอักษร — สี heading/body/description และน้ำหนักฟอนต์ต่อธีม",
-      "evidence": [
-        "design tokens/styles"
+        "Supabase Edge Function (remaining, not architecture-drift-alert)"
       ]
     },
     "supabase/functions/_shared/gmail-client.ts": {
@@ -9099,6 +10365,15 @@
       "domain": "Deployment",
       "capability": "supabase",
       "responsibility": "คำนวณระยะทาง Haversine สำหรับ Supabase functions",
+      "evidence": [
+        "Supabase Edge Function (remaining, not architecture-drift-alert)"
+      ]
+    },
+    "supabase/functions/_shared/line-client.ts": {
+      "factoryOwner": "deployment-factory",
+      "domain": "Deployment",
+      "capability": "supabase",
+      "responsibility": "การเข้าถึง credential ฝั่ง Edge ของ LINE — แทนที่การอ่าน Deno.env LINE_CHANNEL_ACCESS_TOKEN ตรง ๆ ด้วยการเรียก internal bridge กลาง (secret-gated) ซึ่ง resol...",
       "evidence": [
         "Supabase Edge Function (remaining, not architecture-drift-alert)"
       ]
@@ -9368,7 +10643,7 @@
       "factoryOwner": "deployment-factory",
       "domain": "Deployment",
       "capability": "supabase",
-      "responsibility": "ดึงชื่อ/รูปโปรไฟล์จริงของผู้ติดต่อ LINE ผ่าน Get Profile API พร้อม retry เมื่อล้มเหลวชั่วคราว",
+      "responsibility": "ส่วน engine จัดการ profile ของ Edge Function line-webhook-v2 — resolve/อัปเดตข้อมูล profile LINE ที่ใช้ในการประมวลผลข้อความจาก webhook",
       "evidence": [
         "Supabase Edge Function (remaining, not architecture-drift-alert)"
       ]
@@ -9666,15 +10941,6 @@
       "domain": "Deployment",
       "capability": "supabase",
       "responsibility": "Real Supabase Edge Function alerting when real storage usage crosses a real threshold.",
-      "evidence": [
-        "Supabase Edge Function (remaining, not architecture-drift-alert)"
-      ]
-    },
-    "supabase/functions/stuck-message-sweep/index.ts": {
-      "factoryOwner": "deployment-factory",
-      "domain": "Deployment",
-      "capability": "supabase",
-      "responsibility": "Real Supabase Edge Function sweeping/retrying real stuck outbound messages.",
       "evidence": [
         "Supabase Edge Function (remaining, not architecture-drift-alert)"
       ]

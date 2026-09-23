@@ -33,6 +33,22 @@ interface ModuleRegistry {
   version: number;
   policy: string;
   modules: Record<string, ModuleEntry>;
+  // Historical evidence for files that no longer exist in Source (Owner directive
+  // 2026-09-22: Git/Source = source of truth). A retired path is recorded here
+  // instead of being left inside `modules` as status:"stale" — this repo's own
+  // scripts/registry-integrity-gate.ts classifies such an entry as a DELETED/STALE
+  // finding and states plainly that "the entry must be removed". Keeping it in
+  // `modules` also made build-arch-book.ts count it as a current BROKEN module.
+  retired?: RetiredEntry[];
+}
+
+/** Historical record of a registry entry whose file is gone from Source. Not a module. */
+export interface RetiredEntry {
+  path: string;
+  retired_at: string;
+  reason: string;
+  last_status?: string;
+  purpose_th?: string;
 }
 
 // ── Helpers ────────────────────────────────────────
@@ -44,6 +60,50 @@ function loadRegistry(): ModuleRegistry {
 
 function saveRegistry(reg: ModuleRegistry) {
   writeFileSync(REGISTRY_PATH, JSON.stringify(reg, null, 2) + "\n", "utf-8");
+}
+
+// Git/Source = source of truth (Owner directive, 2026-09-22): a module's
+// description must come from what the module itself declares — never from a
+// per-file hardcoded table in this script and never from a guess. Reads the
+// first comment the file really has: a leading `//` block, or the first
+// `/** … */` block within the file's first 40 lines. Returns null when the file
+// declares nothing, so the caller leaves it `unregistered` and reports it
+// instead of inventing a purpose (Guard 13 rejects auto-stub purposes).
+function purposeFromSource(content: string): string | null {
+  const head = content.split("\n").slice(0, 40);
+  for (const raw of head) {
+    const line = raw.trim();
+    if (!line) continue;
+    // A file-level directive is not content — step over it instead of stopping.
+    if (/^["']use (client|server)["'];?$/.test(line)) continue;
+    if (line.startsWith("//")) {
+      const text = line.replace(/^\/\/+\s*/, "").trim();
+      if (text && !/^(eslint|@ts-|!)/i.test(text)) return text;
+      continue;
+    }
+    break;
+  }
+  const block = head.join("\n").match(/\/\*\*([\s\S]*?)\*\//);
+  if (block) {
+    const first = block[1]
+      .split("\n")
+      .map((l) => l.replace(/^\s*\*?\s?/, "").trim())
+      .find(Boolean);
+    if (first) return first;
+  }
+  // Fallback: most real files put their doc comment after the import block and
+  // before the first export — take the first comment line that appears before
+  // any `export`. Still strictly what the file itself declares; still no guessing.
+  for (const raw of head) {
+    const line = raw.trim();
+    if (!line || /^["']use (client|server)["'];?$/.test(line)) continue;
+    if (/^export\b/.test(line)) break;
+    if (line.startsWith("//")) {
+      const text = line.replace(/^\/\/+\s*/, "").trim();
+      if (text && !/^(eslint|@ts-|!)/i.test(text)) return text;
+    }
+  }
+  return null;
 }
 
 // KM-001 (registry/existence.json known_mistakes): this duplicates scripts/build-arch-book.ts's
@@ -111,6 +171,7 @@ async function syncRegistry() {
   const confirmedPairs = loadConfirmedDuplicatePairs();
   let added = 0;
   let updated = 0;
+  let promoted = 0;
 
   const files = await glob("**/*.{ts,tsx}", {
     cwd: ROOT,
@@ -155,15 +216,19 @@ async function syncRegistry() {
     const existing = registry.modules[file];
     if (!existing) {
       const layer = layerFromPath(file);
+      const derived = purposeFromSource(content);
       registry.modules[file] = {
         owner: layer,
         layer,
-        purpose: `[Auto-detected] ${file}`,
-        purpose_th: `[ตรวจพบอัตโนมัติ] ${file}`,
+        purpose: derived ?? `[Auto-detected] ${file}`,
+        purpose_th: derived ?? `[ตรวจพบอัตโนมัติ] ${file}`,
         exports,
-        status: "unregistered",
+        // A file that exists in Source AND declares what it is in its own header
+        // is registered/active straight away. A file that declares nothing stays
+        // `unregistered` so the real gap is reported, never covered up.
+        status: derived ? "active" : "unregistered",
       };
-      console.log(`  + เพิ่ม: ${file} (${exports.length} exports)`);
+      console.log(`  + เพิ่ม: ${file} (${exports.length} exports, ${derived ? "active (จาก header ของ source)" : "unregistered — ไฟล์ไม่มี header ให้ดึง purpose"})`);
       added++;
 
       // Rule 100 / KM-002: warn immediately if this brand-new file is one half of an
@@ -184,24 +249,50 @@ async function syncRegistry() {
         console.log(`  ~ อัปเดต exports: ${file}`);
         updated++;
       }
+      // An entry previously auto-added as `unregistered` is re-described from the
+      // file's own header, so it becomes a real registration instead of staying an
+      // auto-stub (Guard 13 in scripts/pre-commit-check.sh rejects auto-stubs at
+      // commit time). No purpose is ever invented here — no header ⇒ no promotion.
+      if (registry.modules[file].status === "unregistered") {
+        const derived = purposeFromSource(content);
+        if (derived) {
+          registry.modules[file] = {
+            ...registry.modules[file],
+            purpose: derived,
+            purpose_th: derived,
+            status: "active",
+          };
+          console.log(`  ^ ลงทะเบียนจาก header ของ source: ${file}`);
+          promoted++;
+        }
+      }
     }
   }
 
-  // ตรวจ module ใน registry ที่ไฟล์หายไป
-  let missing = 0;
-  for (const [path] of Object.entries(registry.modules)) {
+  // Registry entries whose file is gone from Source ⇒ retire them (move out of
+  // `modules` into the `retired` evidence list). Git/Source is the source of
+  // truth: the registry follows Source, never the other way round — no deleted
+  // file is ever re-created to satisfy the registry, and a retired path is never
+  // counted as a current BROKEN module.
+  let retiredCount = 0;
+  registry.retired = registry.retired ?? [];
+  for (const [path, entry] of Object.entries(registry.modules)) {
     if (!existsSync(join(ROOT, path))) {
-      registry.modules[path] = {
-        ...registry.modules[path],
-        status: "stale",
-      };
-      console.log(`  ! ไม่พบไฟล์: ${path} (marked stale)`);
-      missing++;
+      delete registry.modules[path];
+      registry.retired.push({
+        path,
+        retired_at: new Date().toISOString(),
+        reason: "ไฟล์ไม่มีอยู่ใน Source แล้ว (Git/Source = source of truth) — ย้ายออกจาก modules ไม่นับเป็น BROKEN ปัจจุบัน",
+        last_status: entry.status ?? "unknown",
+        purpose_th: entry.purpose_th,
+      });
+      console.log(`  → retired: ${path} (ย้ายออกจาก modules → retired[] เก็บเป็นหลักฐาน)`)
+      retiredCount++;
     }
   }
 
   saveRegistry(registry);
-  console.log(`\nSync เสร็จ: +${added} ใหม่, ~${updated} อัปเดต, !${missing} หายไป`);
+  console.log(`\nSync เสร็จ: +${added} ใหม่, ~${updated} อัปเดต, ^${promoted} ลงทะเบียนจาก source, →${retiredCount} retired (ไฟล์หายจาก Source)`);
 }
 
 syncRegistry().catch((e) => {
