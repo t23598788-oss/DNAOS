@@ -14,6 +14,25 @@
  */
 import { readFileSync, readdirSync } from "fs";
 import { join } from "path";
+import { createRequire } from "node:module";
+
+// The census lives in scripts/lib/directDbMutationCensus.cjs on purpose: it is
+// test-only infrastructure, and .cjs under scripts/lib/ is this repo's existing
+// pattern for shared gate/helper tooling (see scripts/lib/registry-query.cjs) —
+// sync-registry registers only **/*.{ts,tsx}, so a helper there needs no
+// module-registry entry and causes no registry churn.
+type MutationOp = "insert" | "update" | "upsert" | "delete" | "rpc";
+interface MutationSite { file: string; line: number; op: MutationOp }
+interface CensusModule {
+  CANONICAL_WRITER_DIR: string;
+  stripComments: (src: string) => string;
+  findMutationSitesInSource: (code: string, file: string, table: string) => MutationSite[];
+  findDirectMutations: (o: { root: string; table: string; dirs: readonly string[] }) => MutationSite[];
+  describeSites: (sites: readonly MutationSite[]) => string;
+}
+const requireCensus = createRequire(join(__dirname, "noop.cjs"));
+const census = requireCensus("./lib/directDbMutationCensus.cjs") as CensusModule;
+const { CANONICAL_WRITER_DIR, findDirectMutations, findMutationSitesInSource, describeSites } = census;
 import {
   BUSINESS_EVENT_STATES,
   createBusinessEvent,
@@ -43,28 +62,35 @@ const stripComments = (src: string): string =>
   src.replace(/\/\*[\s\S]*?\*\//g, "").replace(/(^|[^:])\/\/[^\n]*/g, "$1");
 
 // ── D0/D1 — the authority census ────────────────────────────────────────────
-const WRITE_OP = /\.from\("business_events"\)[\s\S]{0,240}?\.(insert|upsert|update|delete)\s*\(/;
-const offenders: string[] = [];
-let writerOps = 0;
-const walk = (relDir: string): void => {
-  for (const entry of readdirSync(join(ROOT, relDir), { withFileTypes: true })) {
-    const rel = `${relDir}/${entry.name}`;
-    if (entry.isDirectory()) {
-      if (entry.name === "node_modules" || entry.name.startsWith(".")) continue;
-      walk(rel);
-      continue;
-    }
-    if (!entry.name.endsWith(".ts") && !entry.name.endsWith(".tsx")) continue;
-    const code = stripComments(read(rel));
-    if (WRITE_OP.test(code)) {
-      if (rel === WRITER) writerOps += 1;
-      else offenders.push(rel);
-    }
-  }
-};
-for (const dir of ["app", "core", "engines", "services", "gateway", "supabase", "scripts"]) walk(dir);
-check("D0 no business_events mutation outside the canonical writer", offenders.length === 0, offenders.join(", "));
-check("D1 exactly one canonical authority holds every mutation", writerOps === 1, `writer mutation source=${writerOps}`);
+// BLOCK-1 (2026-09-23): the detector used to be a local double-quote-only regex,
+// which silently missed single-quoted Deno writers. It now comes from the shared
+// census module (scripts/lib/directDbMutationCensus.ts) and is quote-style aware,
+// chain-scoped, and covers insert/update/upsert/delete.
+const CENSUS_DIRS = ["app", "core", "engines", "services", "gateway", "supabase", "scripts"];
+const sites = findDirectMutations({ root: ROOT, table: "business_events", dirs: CENSUS_DIRS });
+const offenders = [...new Set(sites.filter((s) => !s.file.startsWith(CANONICAL_WRITER_DIR)).map((s) => s.file))];
+const authorityFiles = [...new Set(sites.map((s) => s.file))];
+const writerSites = sites.filter((s) => s.file === WRITER);
+
+// Detector self-proof: the four mutating ops AND the single-quote Deno style must
+// both be caught, otherwise NC1's file-level form could pass vacuously. The probe
+// interpolates the table name so this test file's own source never contains a
+// literal `.from('business_events')` chain — otherwise the census (correctly)
+// flags the probe itself and we would be tempted to exclude a path.
+const PROBE_TABLE = "business_" + "events";
+const probeSrc = [
+  `await supabase.from('${PROBE_TABLE}').insert({ a: 1 })`,
+  `await db.from("${PROBE_TABLE}").update({ a: 1 }).eq("id", x)`,
+  `await db.from(\`${PROBE_TABLE}\`).upsert({ a: 1 })`,
+  `await db.from('${PROBE_TABLE}').delete().eq('id', x)`,
+].join("\n");
+const probeOps = findMutationSitesInSource(probeSrc, "probe.ts", PROBE_TABLE).map((s) => s.op).sort();
+check("D1d the probe itself is not a census hit (no path exclusion needed)", findMutationSitesInSource(read("scripts/business-event-authority-test.ts"), "self.ts", "business_events").length === 0, "this test file contains a literal business_events chain");
+
+check("D0 no business_events mutation outside the canonical writer", offenders.length === 0, describeSites(sites.filter((s) => !s.file.startsWith(CANONICAL_WRITER_DIR))));
+check("D1 exactly one canonical authority file holds every mutation", authorityFiles.length === 1 && authorityFiles[0] === WRITER, `authority files=${authorityFiles.join(", ")}`);
+check("D1b the detector catches all four ops in both quote styles", probeOps.join(",") === "delete,insert,update,upsert", `ops=${probeOps.join(",")}`);
+check("D1c the writer itself is still detected (census is not vacuous)", writerSites.length >= 1, `writerSites=${writerSites.length}`);
 
 // ── D2 — closed command surface / explicit allow-list ───────────────────────
 const writerSrc = stripComments(read(WRITER));
