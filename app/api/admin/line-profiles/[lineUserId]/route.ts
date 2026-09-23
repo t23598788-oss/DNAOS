@@ -2,16 +2,23 @@ import { NextRequest, NextResponse } from "next/server"
 import { requireAuth } from "@/core/auth/requireAuth"
 import { ADMIN_TIER } from "@/core/auth/session"
 import { supabaseAdmin as supabase } from "@/services/supabase/queries"
+import { resolveExternalIdentity, linkExternalIdentity } from "@/engines/connect/identity"
 
 type Params = { params: Promise<{ lineUserId: string }> }
+
+/** The provider this route configures. Identity itself is provider-neutral —
+ *  this constant is the user's choice of which provider account they are
+ *  editing, not a business identity authority. */
+const PROVIDER = "line"
 
 const VALID_ROLES = ["employee", "customer", "supplier", "driver", "owner", "contractor", "accountant", "manager", "admin", "external"]
 const VALID_TRUST_LEVELS = ["verified", "unverified", "flagged"]
 
 // Contact Settings Popup (owner, 2026-07-18) — single-contact fetch, feeds
-// the categorized popup opened from the chat header. Falls back to defaults
-// for a contact with no line_profiles row yet (not an error — most contacts
-// are unclassified until an admin sets something).
+// the categorized popup opened from the chat header.
+// Capability C (2026-09-23): reads/writes the canonical Connect identity model
+// (engines/connect/identity.ts) instead of the provider-shaped line_profiles
+// table — which is now a read-only projection of that model.
 export async function GET(_req: NextRequest, { params }: Params) {
   const auth = await requireAuth(ADMIN_TIER)
   if (auth instanceof NextResponse) return auth
@@ -19,12 +26,19 @@ export async function GET(_req: NextRequest, { params }: Params) {
   const { lineUserId } = await params
   const db = supabase()
 
-  const { data: profile, error } = await db
-    .from("line_profiles")
-    .select("line_user_id, display_name, role, company_id, department, trust_level, notes, permissions, companies(id, name)")
-    .eq("line_user_id", lineUserId)
-    .maybeSingle()
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  const identity = await resolveExternalIdentity(db, { provider: PROVIDER, externalSubjectId: lineUserId })
+  const profile = identity
+    ? {
+        line_user_id: identity.externalSubjectId,
+        display_name: identity.displayName,
+        role: identity.role,
+        company_id: identity.companyId,
+        department: identity.department,
+        trust_level: identity.trustLevel,
+        permissions: identity.permissions,
+        companies: identity.companyId ? { id: identity.companyId, name: identity.companyName } : null,
+      }
+    : null
 
   return NextResponse.json({
     profile: profile ?? {
@@ -64,28 +78,41 @@ export async function PATCH(req: NextRequest, { params }: Params) {
 
   // Permissions save as a merge (only the edited category's keys change),
   // matching the popup's "กดบันทึกเฉพาะหมวดที่แก้ไข" requirement — read the
-  // existing jsonb first rather than overwrite the whole object blindly.
+  // canonical identity first rather than overwrite the whole object blindly.
   let mergedPermissions: Record<string, unknown> | undefined
   if (body.permissions !== undefined) {
-    const { data: existing } = await db.from("line_profiles").select("permissions").eq("line_user_id", lineUserId).maybeSingle()
+    const existing = await resolveExternalIdentity(db, { provider: PROVIDER, externalSubjectId: lineUserId })
     mergedPermissions = { ...(existing?.permissions ?? {}), ...body.permissions }
   }
 
-  const update: Record<string, unknown> = { line_user_id: lineUserId, updated_at: new Date().toISOString() }
-  if (body.displayName !== undefined) update.display_name = body.displayName || null
-  if (body.role !== undefined) update.role = body.role
-  if (body.companyId !== undefined) update.company_id = body.companyId || null
-  if (body.department !== undefined) update.department = body.department || null
-  if (body.trustLevel !== undefined) update.trust_level = body.trustLevel
-  if (body.notes !== undefined) update.notes = body.notes || null
-  if (mergedPermissions !== undefined) update.permissions = mergedPermissions
+  // The canonical writer (linkExternalIdentity) is the ONLY way a provider
+  // identity mapping changes; the legacy line_profiles row is projected from it.
+  const write = await linkExternalIdentity(db, {
+    provider: PROVIDER,
+    externalSubjectId: lineUserId,
+    ...(body.displayName !== undefined ? { displayName: body.displayName || null } : {}),
+    ...(body.role !== undefined ? { role: body.role } : {}),
+    ...(body.companyId !== undefined ? { companyId: body.companyId || null } : {}),
+    ...(body.department !== undefined ? { department: body.department || null } : {}),
+    ...(body.trustLevel !== undefined ? { trustLevel: body.trustLevel } : {}),
+    ...(body.notes !== undefined ? { notes: body.notes || null } : {}),
+    ...(mergedPermissions !== undefined ? { permissions: mergedPermissions } : {}),
+    actor: auth.email ?? auth.id ?? "admin",
+  })
+  if (!write.ok) return NextResponse.json({ error: write.error }, { status: 500 })
 
-  const { data, error } = await db
-    .from("line_profiles")
-    .upsert(update, { onConflict: "line_user_id" })
-    .select("line_user_id, role, company_id, department, trust_level, notes, permissions, updated_at")
-    .single()
-
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-  return NextResponse.json({ profile: data })
+  const saved = await resolveExternalIdentity(db, { provider: PROVIDER, externalSubjectId: lineUserId })
+  if (!saved) return NextResponse.json({ error: "บันทึกแล้วแต่ยังอ่าน identity กลับไม่ได้" }, { status: 500 })
+  return NextResponse.json({
+    profile: {
+      line_user_id: saved.externalSubjectId,
+      role: saved.role,
+      company_id: saved.companyId,
+      department: saved.department,
+      trust_level: saved.trustLevel,
+      notes: null,
+      permissions: saved.permissions,
+      updated_at: new Date().toISOString(),
+    },
+  })
 }

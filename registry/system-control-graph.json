@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-23T11:37:12.137Z",
+  "generated_at": "2026-09-23T11:52:10.034Z",
   "nodes": [
     {
       "id": "layer:core",
@@ -12194,6 +12194,7 @@
       "dependencies": [
         "module:core/auth/requireAuth.ts",
         "module:core/auth/session.ts",
+        "module:engines/connect/identity.ts",
         "module:services/supabase/queries.ts"
       ],
       "dependents": [],
@@ -12215,6 +12216,7 @@
       "dependencies": [
         "module:core/auth/requireAuth.ts",
         "module:core/auth/session.ts",
+        "module:engines/connect/identity.ts",
         "module:services/supabase/queries.ts"
       ],
       "dependents": [],
@@ -20941,6 +20943,7 @@
       "provider": "UNKNOWN",
       "dependencies": [
         "module:supabase/functions/_shared/connect-forward.ts",
+        "module:supabase/functions/_shared/connect-identity.ts",
         "module:supabase/functions/line-webhook-v2/events/types.ts",
         "module:supabase/functions/line-webhook-v2/handlers/audio.ts",
         "module:supabase/functions/line-webhook-v2/handlers/fallback.ts",
@@ -29524,11 +29527,87 @@
       "runtime_callable": true,
       "provider": "UNKNOWN",
       "dependencies": [
+        "module:engines/connect/accounts.ts",
         "module:engines/integration-gateway/adapters/line.ts",
         "module:engines/integration-gateway/event-bus/bus.ts",
         "module:services/supabase/queries.ts"
       ],
       "dependents": [],
+      "commands": [],
+      "events": [],
+      "capabilities": [],
+      "health": "OK",
+      "cost_source": "UNKNOWN"
+    },
+    {
+      "id": "module:scripts/connect-identity-model-test.ts",
+      "name": "scripts/connect-identity-model-test.ts",
+      "type": "Module",
+      "layer": "scripts",
+      "source_file": "scripts/connect-identity-model-test.ts",
+      "status": "OK",
+      "runtime_callable": true,
+      "provider": "UNKNOWN",
+      "dependencies": [],
+      "dependents": [],
+      "commands": [],
+      "events": [],
+      "capabilities": [],
+      "health": "OK",
+      "cost_source": "UNKNOWN"
+    },
+    {
+      "id": "module:engines/connect/identity.ts",
+      "name": "engines/connect/identity.ts",
+      "type": "Module",
+      "layer": "engines",
+      "source_file": "engines/connect/identity.ts",
+      "status": "OK",
+      "runtime_callable": false,
+      "provider": "UNKNOWN",
+      "dependencies": [],
+      "dependents": [
+        "module:app/api/admin/line-profiles/[lineUserId]/route.ts",
+        "module:app/api/admin/relationships/[relationshipId]/match/route.ts"
+      ],
+      "commands": [],
+      "events": [],
+      "capabilities": [],
+      "health": "OK",
+      "cost_source": "UNKNOWN"
+    },
+    {
+      "id": "module:engines/connect/accounts.ts",
+      "name": "engines/connect/accounts.ts",
+      "type": "Module",
+      "layer": "engines",
+      "source_file": "engines/connect/accounts.ts",
+      "status": "OK",
+      "runtime_callable": false,
+      "provider": "UNKNOWN",
+      "dependencies": [],
+      "dependents": [
+        "module:app/api/gateway/observe/line/route.ts"
+      ],
+      "commands": [],
+      "events": [],
+      "capabilities": [],
+      "health": "OK",
+      "cost_source": "UNKNOWN"
+    },
+    {
+      "id": "module:supabase/functions/_shared/connect-identity.ts",
+      "name": "supabase/functions/_shared/connect-identity.ts",
+      "type": "Module",
+      "layer": "supabase",
+      "source_file": "supabase/functions/_shared/connect-identity.ts",
+      "status": "OK",
+      "runtime_callable": false,
+      "provider": "UNKNOWN",
+      "dependencies": [],
+      "dependents": [
+        "module:supabase/functions/line-webhook-v2/index.ts"
+      ],
       "commands": [],
       "events": [],
       "capabilities": [],
@@ -39819,6 +39898,16 @@
     },
     {
       "source": "layer:engines",
+      "target": "module:engines/connect/accounts.ts",
+      "type": "governed_by"
+    },
+    {
+      "source": "layer:engines",
+      "target": "module:engines/connect/identity.ts",
+      "type": "governed_by"
+    },
+    {
+      "source": "layer:engines",
       "target": "module:engines/connectors/contract.ts",
       "type": "governed_by"
     },
@@ -41359,6 +41448,11 @@
     },
     {
       "source": "layer:scripts",
+      "target": "module:scripts/connect-identity-model-test.ts",
+      "type": "governed_by"
+    },
+    {
+      "source": "layer:scripts",
       "target": "module:scripts/connect-inbound-boundary-test.ts",
       "type": "governed_by"
     },
@@ -42035,6 +42129,11 @@
     {
       "source": "layer:supabase",
       "target": "module:supabase/functions/_shared/connect-forward.ts",
+      "type": "governed_by"
+    },
+    {
+      "source": "layer:supabase",
+      "target": "module:supabase/functions/_shared/connect-identity.ts",
       "type": "governed_by"
     },
     {
@@ -49174,6 +49273,11 @@
     },
     {
       "source": "module:app/api/admin/line-profiles/[lineUserId]/route.ts",
+      "target": "module:engines/connect/identity.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/api/admin/line-profiles/[lineUserId]/route.ts",
       "target": "module:services/supabase/queries.ts",
       "type": "imports"
     },
@@ -49530,6 +49634,11 @@
     {
       "source": "module:app/api/admin/relationships/[relationshipId]/match/route.ts",
       "target": "module:core/auth/session.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/api/admin/relationships/[relationshipId]/match/route.ts",
+      "target": "module:engines/connect/identity.ts",
       "type": "imports"
     },
     {
@@ -50240,6 +50349,11 @@
     {
       "source": "module:app/api/gateway/observe/github/route.ts",
       "target": "module:services/supabase/queries.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/api/gateway/observe/line/route.ts",
+      "target": "module:engines/connect/accounts.ts",
       "type": "imports"
     },
     {
@@ -58694,6 +58808,11 @@
     },
     {
       "source": "module:supabase/functions/line-webhook-v2/index.ts",
+      "target": "module:supabase/functions/_shared/connect-identity.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:supabase/functions/line-webhook-v2/index.ts",
       "target": "module:supabase/functions/line-webhook-v2/events/types.ts",
       "type": "imports"
     },
@@ -60319,9 +60438,9 @@
     }
   ],
   "summary": {
-    "total_nodes": 1649,
-    "total_edges": 4830,
-    "modules": 1250,
+    "total_nodes": 1653,
+    "total_edges": 4838,
+    "modules": 1254,
     "layers": 9,
     "commands": 99,
     "events": 60,
@@ -60330,8 +60449,8 @@
     "drivers": 11,
     "connector_stages": 5,
     "module_health": {
-      "total": 1250,
-      "ok": 1250,
+      "total": 1254,
+      "ok": 1254,
       "broken": 0,
       "unused": 0,
       "unregistered": 0
@@ -60345,7 +60464,7 @@
     "unknown_field_counts": {
       "nodes_with_unknown_source_file": 82,
       "nodes_with_unknown_status": 159,
-      "nodes_with_unknown_provider": 1625
+      "nodes_with_unknown_provider": 1629
     },
     "unknown_dimensions": [
       "ai_model_registry",
