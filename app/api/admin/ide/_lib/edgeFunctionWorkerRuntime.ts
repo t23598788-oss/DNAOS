@@ -266,25 +266,94 @@ export function buildEdgeFunctionUrl(targetFunction: string): { ok: true; url: s
 
 export interface ResolvedAuthHeader { name: string; value: string }
 
+/**
+ * CREDENTIAL AUTHORITY ONLY (owner decision 2026-09-23, Developer Connect §2/§(ข)):
+ * this runtime must never read a credential from the environment itself. Every
+ * auth header is resolved through the canonical connector authority —
+ * core/connector-loader.ts#requireConnector (connect → register → test → enable
+ * → run) — so the credential stays owned by the Credential Authority and is
+ * never handed to an AI/tool as a long-lived value. A missing or not-enabled
+ * connector is an honest, fail-closed BLOCKED (never an env fallback).
+ */
+type ConnectorCredentialResolver = (slug: string, caller: string) => Promise<Record<string, unknown> | null>;
+
+let _connectorCredentialResolver: ConnectorCredentialResolver | null = null;
+
+/** Test seam only — production always resolves through requireConnector below. */
+export function __setConnectorCredentialResolverForTest(fn: ConnectorCredentialResolver | null): void {
+  _connectorCredentialResolver = fn;
+}
+
+async function resolveConnectorSecret(slug: string, caller: string): Promise<{ ok: true; secret: Record<string, unknown> } | { ok: false; reason: string }> {
+  try {
+    if (_connectorCredentialResolver) {
+      const secret = await _connectorCredentialResolver(slug, caller);
+      if (!secret) return { ok: false, reason: `connector "${slug}" is not available through the Credential Authority` };
+      return { ok: true, secret };
+    }
+    const { requireConnector } = await import("@/core/connector-loader");
+    const { supabaseAdmin } = await import("@/services/supabase/queries");
+    const record = await requireConnector(supabaseAdmin(), slug, caller);
+    return { ok: true, secret: (record.secret ?? {}) as Record<string, unknown> };
+  } catch (err) {
+    return { ok: false, reason: `Credential Authority rejected connector "${slug}": ${err instanceof Error ? err.message : String(err)}` };
+  }
+}
+
+const firstString = (secret: Record<string, unknown>, keys: readonly string[]): string | null => {
+  for (const k of keys) {
+    const v = secret[k];
+    if (typeof v === "string" && v.trim()) return v;
+  }
+  return null;
+};
+
 /** Exported (not just internal) so scripts/edge-function-worker-test.ts can
- * structurally, directly unit-test real credential resolution for both
- * auth shapes without needing a real Cost Gate RELEASE to reach this code
- * path through dispatchEdgeFunctionWorkerJob() itself — see that test
- * file's own header for why a real RELEASE is honestly unreachable for
- * this Worker's always-null cost estimate under today's real
- * costGateRuntime.ts. */
-export function resolveAuthHeader(contract: EdgeFunctionWorkerJobContract): { ok: true; header: ResolvedAuthHeader } | { ok: false; reason: string } {
+ * structurally, directly unit-test credential resolution for both auth shapes
+ * without needing a real Cost Gate RELEASE to reach this code path through
+ * dispatchEdgeFunctionWorkerJob() itself. */
+export async function resolveAuthHeader(contract: EdgeFunctionWorkerJobContract): Promise<{ ok: true; header: ResolvedAuthHeader } | { ok: false; reason: string }> {
   if (contract.authMode === "SERVICE_ROLE_BEARER") {
-    const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-    if (!key) return { ok: false, reason: "SUPABASE_SERVICE_ROLE_KEY is not configured — Supabase Edge Functions require a valid Authorization: Bearer <anon-or-service-role-key> JWT unless the target function's own config sets verify_jwt=false" };
+    const resolved = await resolveConnectorSecret("supabase", "ide/edgeFunctionWorkerRuntime.resolveAuthHeader");
+    if (!resolved.ok) {
+      return {
+        ok: false,
+        reason: `${resolved.reason} — the Supabase service role must be connected/enabled at /admin/connectors (Developer Connect); this runtime no longer reads SUPABASE_SERVICE_ROLE_KEY from the environment`,
+      };
+    }
+    const key = firstString(resolved.secret, ["service_role_key", "service_role", "api_key", "token", "secret"]);
+    if (!key) {
+      return { ok: false, reason: 'connector "supabase" carries no service-role value in its secret — Connect it at /admin/connectors (never guessed, never read from env)' };
+    }
     return { ok: true, header: { name: "Authorization", value: `Bearer ${key}` } };
   }
   if (!contract.customSecretHeaderName || !contract.customSecretEnvVar) {
     return { ok: false, reason: "authMode=CUSTOM_SECRET_HEADER requires both customSecretHeaderName and customSecretEnvVar on the Job Contract — never guessed" };
   }
-  const secret = process.env[contract.customSecretEnvVar];
-  if (!secret) return { ok: false, reason: `env var ${contract.customSecretEnvVar} is not configured — cannot resolve the real custom secret header value` };
-  return { ok: true, header: { name: contract.customSecretHeaderName, value: secret } };
+  // The named env var is only used to LOOK UP the connector that owns this
+  // credential (registry mapping), never to read a value from the environment.
+  const { ENV_VAR_TO_PROVIDER } = await import("./providerRegistryRuntime");
+  const slug = (ENV_VAR_TO_PROVIDER as Record<string, string>)[contract.customSecretEnvVar];
+  if (!slug) {
+    return {
+      ok: false,
+      reason: `no connector owns ${contract.customSecretEnvVar} — register/connect this credential at /admin/connectors (Developer Connect) instead of passing it through an environment variable`,
+    };
+  }
+  const resolved = await resolveConnectorSecret(slug, `ide/edgeFunctionWorkerRuntime.resolveAuthHeader:${contract.customSecretHeaderName}`);
+  if (!resolved.ok) return { ok: false, reason: resolved.reason };
+  const normalized = contract.customSecretHeaderName.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "");
+  const value = firstString(resolved.secret, [
+    normalized,
+    contract.customSecretEnvVar.toLowerCase(),
+    "api_key",
+    "token",
+    "secret",
+  ]);
+  if (!value) {
+    return { ok: false, reason: `connector "${slug}" carries no value for header ${contract.customSecretHeaderName} — Connect it at /admin/connectors (never read from env, never fabricated)` };
+  }
+  return { ok: true, header: { name: contract.customSecretHeaderName, value } };
 }
 
 // ============================================================
@@ -404,7 +473,7 @@ async function performPostGateDispatch(
   // BLOCKED, distinct from a Cost Gate LOCK — the same
   // AI_GATEWAY_ANTHROPIC_NOT_CONFIGURED-style disclosure codeWorkerRuntime.ts
   // already uses for CODE_WORKER's own real, missing-credential case.
-  const auth = resolveAuthHeader(contract);
+  const auth = await resolveAuthHeader(contract);
   if (!auth.ok) {
     return buildResult({
       jobContractId: contract.jobContractId, targetFunction: contract.targetFunction, status: "BLOCKED",

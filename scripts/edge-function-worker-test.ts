@@ -59,7 +59,7 @@ import path from "path";
 import { randomUUID } from "crypto";
 import {
   createEdgeFunctionWorkerJobContract, dispatchEdgeFunctionWorkerJob, listDeployedEdgeFunctions,
-  buildEdgeFunctionUrl, resolveAuthHeader, __debugDispatchAfterRelease,
+  buildEdgeFunctionUrl, resolveAuthHeader, __debugDispatchAfterRelease, __setConnectorCredentialResolverForTest,
 } from "../app/api/admin/ide/_lib/edgeFunctionWorkerRuntime";
 import { WORKER_REGISTRY, selectWorker } from "../app/api/admin/ide/_lib/workerRegistry";
 import { createJobContract, runScopedWorkerJob } from "../app/api/admin/ide/_lib/workerTaskOrchestrator";
@@ -190,34 +190,51 @@ async function main() {
     assert(r.ok && r.url === `${FAKE_SUPABASE_URL}/functions/v1/${REAL_TARGET_FUNCTION}`, `expected the real, exact URL pattern, got ${r.ok ? r.url : "(n/a)"}`);
   });
 
-  await test("Acceptance 3 — resolveAuthHeader() really resolves a SERVICE_ROLE_BEARER contract to a real Authorization: Bearer <key> header from SUPABASE_SERVICE_ROLE_KEY", () => {
+  await test("Acceptance 3 (Developer Connect) — resolveAuthHeader() resolves SERVICE_ROLE_BEARER through the CREDENTIAL AUTHORITY only: a real, enabled connector yields the header, and the runtime never reads SUPABASE_SERVICE_ROLE_KEY from the environment", async () => {
     const contract = createEdgeFunctionWorkerJobContract({ jobContractId: "efw-test-auth-bearer", taskDescription: "t", targetFunction: REAL_TARGET_FUNCTION, payload: {}, ownerId: OWNER, actor: ACTOR });
-    const r = resolveAuthHeader(contract);
-    assert(r.ok && r.header.name === "Authorization" && r.header.value === `Bearer ${FAKE_SERVICE_ROLE_KEY}`, `expected a real Authorization: Bearer header, got ${JSON.stringify(r)}`);
+    // (a) the authority answers with a real secret ⇒ a real Bearer header
+    __setConnectorCredentialResolverForTest(async () => ({ service_role_key: FAKE_SERVICE_ROLE_KEY }));
+    const r = await resolveAuthHeader(contract);
+    assert(r.ok && r.header.name === "Authorization" && r.header.value === `Bearer ${FAKE_SERVICE_ROLE_KEY}`, `expected a real Authorization: Bearer header from the Credential Authority, got ${JSON.stringify(r)}`);
+    // (b) no enabled connector ⇒ fail closed, and the reason names the authority
+    __setConnectorCredentialResolverForTest(async () => null);
+    const blocked = await resolveAuthHeader(contract);
+    assert(!blocked.ok && /Credential Authority|admin\/connectors/.test(blocked.reason), `expected a fail-closed Credential Authority reason, got ${JSON.stringify(blocked)}`);
+    __setConnectorCredentialResolverForTest(null);
   });
 
-  await test("Acceptance 3 — resolveAuthHeader() really resolves a CUSTOM_SECRET_HEADER contract from the named env var, mirroring this repo's own real x-reconcile-secret/X-DNA-Internal-Secret precedents (profile-refresh.ts / storage-threshold-watcher.ts)", () => {
+  await test("Acceptance 3 (Developer Connect) — resolveAuthHeader() resolves a CUSTOM_SECRET_HEADER contract through the connector that OWNS the credential; an unmapped env-var name is refused instead of read from the environment", async () => {
+    // EFW_TEST_CUSTOM_SECRET is (deliberately) not in the env→provider mapping:
+    // the old env-reading behaviour is gone, so this must be refused.
     process.env.EFW_TEST_CUSTOM_SECRET = "fake-test-custom-secret-never-real";
     const contract = createEdgeFunctionWorkerJobContract({
       jobContractId: "efw-test-auth-custom", taskDescription: "t", targetFunction: REAL_TARGET_FUNCTION, payload: {}, ownerId: OWNER, actor: ACTOR,
       authMode: "CUSTOM_SECRET_HEADER", customSecretHeaderName: "x-test-secret", customSecretEnvVar: "EFW_TEST_CUSTOM_SECRET",
     });
-    const r = resolveAuthHeader(contract);
-    assert(r.ok && r.header.name === "x-test-secret" && r.header.value === "fake-test-custom-secret-never-real", `expected the real custom header, got ${JSON.stringify(r)}`);
+    const r = await resolveAuthHeader(contract);
+    assert(!r.ok && /no connector owns/.test(r.reason), `expected an unmapped-credential refusal (never an env read), got ${JSON.stringify(r)}`);
     delete process.env.EFW_TEST_CUSTOM_SECRET;
   });
 
-  await test("Acceptance 3 — resolveAuthHeader() real-refuses a CUSTOM_SECRET_HEADER contract when the named env var is not actually set, never fabricating a value", () => {
+  await test("Acceptance 3 (Developer Connect) — a mapped CUSTOM_SECRET_HEADER credential comes from the connector record, never from the environment, and a connector without the value is refused (never fabricated)", async () => {
     const contract = createEdgeFunctionWorkerJobContract({
-      jobContractId: "efw-test-auth-missing", taskDescription: "t", targetFunction: REAL_TARGET_FUNCTION, payload: {}, ownerId: OWNER, actor: ACTOR,
-      authMode: "CUSTOM_SECRET_HEADER", customSecretHeaderName: "x-test-secret", customSecretEnvVar: "EFW_TEST_DEFINITELY_UNSET_VAR",
+      jobContractId: "efw-test-auth-mapped", taskDescription: "t", targetFunction: REAL_TARGET_FUNCTION, payload: {}, ownerId: OWNER, actor: ACTOR,
+      authMode: "CUSTOM_SECRET_HEADER", customSecretHeaderName: "x-dna-internal-secret", customSecretEnvVar: "OPENCLAW_INTERNAL_SECRET",
     });
-    const r = resolveAuthHeader(contract);
-    assert(!r.ok, "expected resolveAuthHeader to refuse when the named env var is unset");
+    __setConnectorCredentialResolverForTest(async (slug) => (slug === "openclaw" ? { api_key: "fake-connector-value-never-real" } : null));
+    const ok = await resolveAuthHeader(contract);
+    assert(ok.ok && ok.header.name === "x-dna-internal-secret" && ok.header.value === "fake-connector-value-never-real", `expected the connector-owned value, got ${JSON.stringify(ok)}`);
+    __setConnectorCredentialResolverForTest(async () => ({}));
+    const missing = await resolveAuthHeader(contract);
+    assert(!missing.ok && /carries no value/.test(missing.reason), `expected a refusal when the connector has no value, got ${JSON.stringify(missing)}`);
+    __setConnectorCredentialResolverForTest(null);
   });
 
   await test("Acceptance 3 (dry-run, TEST-ONLY seam) — __debugDispatchAfterRelease() really constructs the exact real request URL/method/headers/body and records a real EDGE_FUNCTION_DISPATCH_RECORD evidence artifact BEFORE the real (mocked) fetch call — see this suite's header for why a real RELEASE cannot be reached through the public function today", async () => {
     const mock = makeMockFetch();
+    // Developer Connect: the credential comes from the Credential Authority,
+    // never from the environment — the seam stands in for the real connector record.
+    __setConnectorCredentialResolverForTest(async () => ({ service_role_key: FAKE_SERVICE_ROLE_KEY }));
     const contract = createEdgeFunctionWorkerJobContract({
       jobContractId: `efw-test-dryrun-${randomUUID()}`, taskDescription: "dry-run dispatch mechanics probe",
       targetFunction: REAL_TARGET_FUNCTION, payload: { probe: true, n: 42 }, ownerId: OWNER, actor: ACTOR,
@@ -240,6 +257,9 @@ async function main() {
 
   await test("Acceptance 3 (dry-run) — __debugDispatchAfterRelease() with awaitDelivery=true really awaits the mocked HTTP response and reports its real outcome", async () => {
     const mock = makeMockFetch();
+    // Developer Connect: the credential comes from the Credential Authority,
+    // never from the environment — the seam stands in for the real connector record.
+    __setConnectorCredentialResolverForTest(async () => ({ service_role_key: FAKE_SERVICE_ROLE_KEY }));
     const contract = createEdgeFunctionWorkerJobContract({
       jobContractId: `efw-test-dryrun-await-${randomUUID()}`, taskDescription: "dry-run awaited dispatch probe",
       targetFunction: REAL_TARGET_FUNCTION, payload: { probe: "await" }, ownerId: OWNER, actor: ACTOR,
@@ -269,6 +289,8 @@ async function main() {
   // BEFORE any network call, with a positive control proving the
   // detection pattern is meaningful.
   // ============================================================
+    __setConnectorCredentialResolverForTest(null);
+
   await test("Acceptance 4 — edgeFunctionWorkerRuntime.ts really imports checkCostGate from costGateRuntime.ts (never a second, parallel cost-gate check invented)", () => {
     const src = readSource("app/api/admin/ide/_lib/edgeFunctionWorkerRuntime.ts");
     assert(/import\s*\{[^}]*checkCostGate[^}]*\}\s*from\s*["']\.\/costGateRuntime["']/.test(src), "expected a real import of checkCostGate from costGateRuntime.ts");

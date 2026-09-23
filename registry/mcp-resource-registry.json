@@ -15,6 +15,63 @@
       "integration_tested": true,
       "note_2": "Read live via a real MCP client's resources/read call during Phase 1B integration testing (stdio transport) — content verified to include registry/CONSTITUTION.json's real version field.",
       "status": "active"
+    },
+    "developer.connect_contract": {
+      "owner": "dna-os-mcp-server",
+      "source_file": "engines/connectors/contract.ts",
+      "related_sources": [
+        "registry/connector-lifecycle.json",
+        "engines/integration-gateway/contracts/event.ts",
+        "engines/integration-gateway/evidence/proposalStore.ts",
+        "engines/jobs/approval-evidence.ts",
+        "services/ai-connection/vault.ts",
+        "core/connector-loader.ts"
+      ],
+      "reads_endpoint": "GET /api/v1/mcp/manifest",
+      "reuses_existing_route": true,
+      "mime_type": "application/json",
+      "description": "The ONE Developer Connect contract for developer/AI/tool requesters: how to ask for a capability, who authorises it, where credentials live, how execution happens and where evidence lands. Declares no new authority — every path in the flow already exists and stays the owner of its own decision.",
+      "description_th": "สัญญากลางของ Developer Connect — AI/เครื่องมือขอ capability ผ่านเส้นนี้ ไม่มีใครอ่าน secret เอง และไม่มีเส้นอนุมัติซ้ำ",
+      "read_only": true,
+      "implementation": "registry/mcp-resource-registry.json (declaration only) + the existing endpoints listed in flow",
+      "integration_tested": false,
+      "status": "planned",
+      "note": "Declared 2026-09-23 (Developer Connect directive). status stays 'planned' until the live Owner-authorised proof is run — an Owner approval may never be simulated, so this entry is not marked integration_tested yet.",
+      "flow": {
+        "requester": "AI / Cline / Codex / MCP client / developer tool — requester and worker only, never an authority",
+        "1_capability_request": "POST /api/admin/connectors/providers/[providerId]/approval-request — records a REAL proposal on the existing Integration Gateway Propose Channel (idempotent; answers approval_not_required when the contract says so)",
+        "2_owner_decision": "POST /api/gateway/proposals/[id]/decide { decision: approved | rejected } — the ONLY path that turns a proposal into a run, reusing runAutomationCommand()'s whitelist",
+        "3_owner_evidence": "engines/jobs/approval-evidence.ts#resolveApprovalEvidence — READ-ONLY index over owner_auth_audit_log (passkey/biometric), pending_authorizations, integration_gateway_proposals, destructive_action_log, audit_logs; it can BLOCK a job, never approve one",
+        "4_credential_authority": "Supabase Vault via the SECURITY DEFINER RPCs in services/ai-connection/vault.ts (the vault schema is not exposed to PostgREST) + the connector Run gate core/connector-loader.ts#requireConnector (connect → register → test → enable → run, enforced by scripts/check-connector-lifecycle.sh)",
+        "5_authorized_executor": "engines/integration-gateway/automationCommands.ts#runAutomationCommand — single whitelisted execution path, on top of the canonical writers",
+        "6_providers": "Supabase / GitHub / Railway / LINE / other providers reached through their Connect adapters — never by a tool holding a raw secret",
+        "7_evidence": "integration_gateway_events + integration_gateway_proposals + audit_logs (+ dev_loop_evidence_events for developer-loop work)"
+      },
+      "capabilities": {
+        "policy": "Scopes are separate capabilities; holding one NEVER implies the next. database.verify does not permit database.write; database.write does not permit database.migration.apply; a Supabase credential never permits deploy.production. Each capability is requested and decided on its own.",
+        "entries": {
+          "database.read": { "scope": "read", "approval": "not_required_for_existing_read_routes", "credential": "none beyond the requester's own session" },
+          "database.verify": { "scope": "read + proof", "approval": "owner_required", "credential": "supabase_service_role (opened by the credential authority, never handed to the requester)" },
+          "database.write": { "scope": "write", "approval": "owner_required", "credential": "supabase_service_role" },
+          "database.migration.apply": { "scope": "schema change", "approval": "owner_required_separately_from_verify", "credential": "supabase_service_role + migration authority" },
+          "deploy.production": { "scope": "deploy", "approval": "owner_required_separately_from_every_database_scope", "credential": "provider token (Railway/Vercel/GitHub)" }
+        }
+      },
+      "credential_boundary_decision": {
+        "decided_by": "owner",
+        "date": "2026-09-23",
+        "decision": "A",
+        "rule": "The application runtime (services/**) keeps its SUPABASE_SERVICE_ROLE_KEY environment bootstrap; canonical writers and supabaseAdmin() are NOT rerouted in this work. Every developer tool / AI / Cline / Codex / MCP surface must NOT read the service-role (or any credential) from the environment — it resolves credentials through this contract (Credential Authority + Owner Authorization) only. Enforced by scripts/developer-connect-contract.test.ts (D5/D5b/D5d/D5e).",
+        "closed_bypass": "app/api/admin/ide/_lib/edgeFunctionWorkerRuntime.ts used to read SUPABASE_SERVICE_ROLE_KEY and arbitrary named env vars directly; it now resolves every auth header through core/connector-loader.ts#requireConnector and fails closed without one.",
+        "separate_later_work": "Moving the whole application runtime (supabaseAdmin() and every canonical writer) into the Credential Authority is deliberately NOT part of this work."
+      },
+      "forbidden_by_contract": [
+        "a requester reading a credential value itself (no env/secret access from AI or developer tools)",
+        "a permanent service-role/API key/token held by any AI",
+        "a second approval store, a second decide route, or a second credential vault",
+        "using database.verify approval to apply a migration or to deploy",
+        "simulating an Owner decision (biometric/passkey) from inside the system"
+      ]
     }
   }
 }

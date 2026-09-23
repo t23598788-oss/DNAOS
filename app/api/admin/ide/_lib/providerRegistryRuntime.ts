@@ -236,7 +236,13 @@ const SERVICE_OWNER_OVERRIDE: Record<string, ServiceOwner> = {
  * names independently confirmed (via source-code grep) to belong to a real
  * external provider integration are mapped, so internal secrets (CRON_SECRET,
  * ADMIN_PASSWORD, etc.) are never miscounted as provider evidence. */
-const ENV_VAR_TO_PROVIDER: Record<string, string> = {
+/**
+ * ENV VAR → provider id. Exported (2026-09-23, Developer Connect §(ข)) so a
+ * developer runtime can LOOK UP which connector owns a credential by its env-var
+ * name — the mapping is not a credential source, and nothing reads the value
+ * from the environment any more (see edgeFunctionWorkerRuntime.resolveAuthHeader).
+ */
+export const ENV_VAR_TO_PROVIDER: Record<string, string> = {
   BOT_API_KEY: "bank_of_thailand",
   KASIKORN_STATEMENT_PASSWORD: "kasikorn_bank",
   GMAIL_CLIENT_ID: "gmail", GMAIL_CLIENT_SECRET: "gmail", GMAIL_REFRESH_TOKEN: "gmail",
