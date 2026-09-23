@@ -1,4 +1,5 @@
 import { getCanonicalDebtForCompany } from "./relationship-qa.ts"
+import { sendConnectEventCommand, CONNECT_PROVIDER } from "../../_shared/connect-event.ts"
 
 // Payment Instructions — auto-send (owner, 2026-07-18)
 //
@@ -123,17 +124,19 @@ export async function tryBuildPaymentInstructionsReply(supabase: any, userId: st
   const dd = String(new Date().getDate()).padStart(2, "0")
   const eventCode = `EV${yy}${mm}${dd}-${String((count ?? 0) + 1).padStart(4, "0")}`
 
-  await supabase.from("business_events").insert({
+  // Capability D: business event mutation goes through the Connect transport
+  // boundary → canonical event writer. No direct table write remains here.
+  await sendConnectEventCommand("business_event.create", {
     event_code: eventCode,
     event_type: "แจ้งข้อมูลการชำระเงิน",
     event_date: todayStr,
     title: invoice ? `ส่งข้อมูลการชำระเงิน อ้างอิง ${invoice.invoice_no}` : "ส่งข้อมูลการชำระเงิน",
-    source_line_user_id: userId,
+    source_provider: CONNECT_PROVIDER,
+    source_external_subject_id: userId,
     partner_id: company.id,
     status: "sent",
     confidence: 1,
-    updated_at: new Date().toISOString(),
-  })
+  }, `system:${CONNECT_PROVIDER}:payment-instructions`)
 
   return replyText
 }

@@ -16,6 +16,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.43.4"
 import { tryAutoConfirmPayment } from "../line-webhook-v2/engines/auto-confirm-payment.ts"
 import { ResponseGateway } from "../line-webhook-v2/engines/response.ts"
 import { getGmailAccessToken, extractBodyText } from "../_shared/gmail-client.ts"
+import { sendConnectEventCommand, CONNECT_PROVIDER } from "../_shared/connect-event.ts"
 
 // getAccessToken/base64UrlDecode/htmlToPlainText/findPart/extractBodyText
 // moved to ../_shared/gmail-client.ts (2026-08-03) — this file and
@@ -123,8 +124,12 @@ async function matchPendingOnNewEmail(supabase: any, referenceNumber: string, em
       .order("created_at", { ascending: true })
       .limit(1).maybeSingle()
     if (pendingOrder && Math.abs(Number(pendingOrder.quoted_amount) - emailAmount) <= 5) {
-      await supabase.from("business_events")
-        .update({ status: "payment_confirmed" }).eq("id", pendingOrder.id)
+      // Capability D: proven transition awaiting_payment → payment_confirmed
+      await sendConnectEventCommand("business_event.transition", {
+        event_id: pendingOrder.id,
+        from_status: "awaiting_payment",
+        status: "payment_confirmed",
+      }, `system:${CONNECT_PROVIDER}:bank-confirm`)
       await ResponseGateway.pushMessage(
         userId,
         `✅ ตรวจสอบกับธนาคารแล้ว ยอด ${emailAmount.toLocaleString()} บาท ตรงกับใบเสนอราคา ${pendingOrder.event_code} ครับ เดี๋ยวจัดรถให้เลยนะครับ`,

@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-23T11:52:09.697Z",
+  "generated_at": "2026-09-23T12:28:46.776Z",
   "version": 1,
   "nodes": [
     {
@@ -13162,6 +13162,7 @@
         "module:app/api/gateway/proposals/[id]/decide/route.ts",
         "module:app/api/gateway/proposals/route.ts",
         "module:app/api/internal/ai/gateway/route.ts",
+        "module:app/api/internal/connect/event/route.ts",
         "module:app/api/internal/equipment/lock-command/route.ts",
         "module:app/api/internal/equipment/telemetry/route.ts",
         "module:app/api/internal/gmail/token/route.ts",
@@ -13642,6 +13643,7 @@
       "status": "OK",
       "runtime_entry_point": false,
       "internal_dependencies": [
+        "module:supabase/functions/_shared/connect-event.ts",
         "module:supabase/functions/line-webhook-v2/engines/print-jobs.ts",
         "module:supabase/functions/line-webhook-v2/engines/response.ts",
         "module:supabase/functions/line-webhook-v2/events/store.ts",
@@ -13670,8 +13672,8 @@
         {
           "name": "handlePostback",
           "kind": "function",
-          "line_start": 6,
-          "line_end": 129
+          "line_start": 7,
+          "line_end": 137
         }
       ],
       "import_sites": [
@@ -13694,6 +13696,11 @@
           "specifier": "../engines/print-jobs.ts",
           "line": 4,
           "resolved_target": "supabase/functions/line-webhook-v2/engines/print-jobs.ts"
+        },
+        {
+          "specifier": "../../_shared/connect-event.ts",
+          "line": 5,
+          "resolved_target": "supabase/functions/_shared/connect-event.ts"
         }
       ]
     },
@@ -22379,6 +22386,7 @@
       "internal_dependencies": [
         "module:core/auth/requireAuth.ts",
         "module:core/auth/session.ts",
+        "module:engines/canonical/event-write.ts",
         "module:engines/events/event-builder.ts",
         "module:engines/jobs/auto-create.ts",
         "module:services/supabase/queries.ts"
@@ -22395,7 +22403,7 @@
       "domain_owner": "app",
       "lifecycle_status": "active",
       "deprecated": false,
-      "event_producer": true,
+      "event_producer": false,
       "event_consumer": true,
       "related_workflows": "UNKNOWN",
       "related_business_events": "UNKNOWN",
@@ -22406,8 +22414,8 @@
         {
           "name": "POST",
           "kind": "function",
-          "line_start": 34,
-          "line_end": 178
+          "line_start": 42,
+          "line_end": 231
         }
       ],
       "import_sites": [
@@ -22435,6 +22443,11 @@
           "specifier": "@/engines/jobs/auto-create",
           "line": 6,
           "resolved_target": "engines/jobs/auto-create.ts"
+        },
+        {
+          "specifier": "@/engines/canonical/event-write",
+          "line": 7,
+          "resolved_target": "engines/canonical/event-write.ts"
         }
       ]
     },
@@ -22621,6 +22634,7 @@
       "status": "OK",
       "runtime_entry_point": false,
       "internal_dependencies": [
+        "module:engines/canonical/event-write.ts",
         "module:engines/geocoding.ts",
         "module:engines/material-resolver.ts"
       ],
@@ -22628,7 +22642,6 @@
         "module:app/api/admin/line-customers/[lineUserId]/build-event/route.ts"
       ],
       "data_tables": [
-        "business_events",
         "customer_orders",
         "customer_sites",
         "document_groups",
@@ -22643,8 +22656,8 @@
       "domain_owner": "engines",
       "lifecycle_status": "active",
       "deprecated": false,
-      "event_producer": false,
-      "event_consumer": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
       "related_workflows": "UNKNOWN",
       "related_business_events": "UNKNOWN",
       "related_documents": "UNKNOWN",
@@ -22654,32 +22667,32 @@
         {
           "name": "AutoCreateEventInput",
           "kind": "interface",
-          "line_start": 14,
-          "line_end": 25
+          "line_start": 15,
+          "line_end": 26
         },
         {
           "name": "MissingField",
           "kind": "type",
-          "line_start": 45,
-          "line_end": 45
+          "line_start": 46,
+          "line_end": 46
         },
         {
           "name": "AutoCreateResult",
           "kind": "type",
-          "line_start": 47,
-          "line_end": 51
+          "line_start": 48,
+          "line_end": 52
         },
         {
           "name": "tryAutoCreateJob",
           "kind": "function",
-          "line_start": 53,
-          "line_end": 190
+          "line_start": 54,
+          "line_end": 204
         },
         {
           "name": "composeMissingInfoMessage",
           "kind": "function",
-          "line_start": 269,
-          "line_end": 278
+          "line_start": 283,
+          "line_end": 292
         }
       ],
       "import_sites": [
@@ -22692,6 +22705,11 @@
           "specifier": "@/engines/geocoding",
           "line": 2,
           "resolved_target": "engines/geocoding.ts"
+        },
+        {
+          "specifier": "@/engines/canonical/event-write",
+          "line": 3,
+          "resolved_target": "engines/canonical/event-write.ts"
         }
       ]
     },
@@ -22711,6 +22729,7 @@
       "runtime_entry_point": false,
       "internal_dependencies": [
         "module:supabase/functions/_shared/canonicalTransport.ts",
+        "module:supabase/functions/_shared/connect-event.ts",
         "module:supabase/functions/line-webhook-v2/engines/build-event-from-extraction.ts",
         "module:supabase/functions/line-webhook-v2/engines/quote-price.ts",
         "module:supabase/functions/line-webhook-v2/engines/response.ts"
@@ -22750,20 +22769,20 @@
         {
           "name": "completeAfterMaterialResolved",
           "kind": "function",
-          "line_start": 150,
-          "line_end": 188
+          "line_start": 152,
+          "line_end": 208
         },
         {
           "name": "tryCompleteAwaitingEvent",
           "kind": "function",
-          "line_start": 219,
-          "line_end": 563
+          "line_start": 239,
+          "line_end": 629
         },
         {
           "name": "extractEventDeterministically",
           "kind": "function",
-          "line_start": 591,
-          "line_end": 618
+          "line_start": 657,
+          "line_end": 684
         }
       ],
       "import_sites": [
@@ -22786,6 +22805,11 @@
           "specifier": "./build-event-from-extraction.ts",
           "line": 25,
           "resolved_target": "supabase/functions/line-webhook-v2/engines/build-event-from-extraction.ts"
+        },
+        {
+          "specifier": "../../_shared/connect-event.ts",
+          "line": 150,
+          "resolved_target": "supabase/functions/_shared/connect-event.ts"
         }
       ]
     },
@@ -23806,6 +23830,7 @@
         "module:core/auth/requireAuth.ts",
         "module:core/auth/session.ts",
         "module:core/config/company-settings.ts",
+        "module:engines/canonical/event-write.ts",
         "module:engines/documents/flex-template.ts",
         "module:registry/communication.ts",
         "module:services/supabase/queries.ts"
@@ -23822,7 +23847,7 @@
       "domain_owner": "admin",
       "lifecycle_status": "active",
       "deprecated": false,
-      "event_producer": true,
+      "event_producer": false,
       "event_consumer": true,
       "related_workflows": "UNKNOWN",
       "related_business_events": "UNKNOWN",
@@ -23833,8 +23858,8 @@
         {
           "name": "POST",
           "kind": "function",
-          "line_start": 23,
-          "line_end": 177
+          "line_start": 27,
+          "line_end": 184
         }
       ],
       "import_sites": [
@@ -23844,33 +23869,38 @@
           "resolved_target": "core/auth/requireAuth.ts"
         },
         {
-          "specifier": "@/core/auth/session",
+          "specifier": "@/engines/canonical/event-write",
           "line": 3,
+          "resolved_target": "engines/canonical/event-write.ts"
+        },
+        {
+          "specifier": "@/core/auth/session",
+          "line": 4,
           "resolved_target": "core/auth/session.ts"
         },
         {
           "specifier": "@/services/supabase/queries",
-          "line": 4,
+          "line": 5,
           "resolved_target": "services/supabase/queries.ts"
         },
         {
           "specifier": "@/engines/documents/flex-template",
-          "line": 5,
+          "line": 6,
           "resolved_target": "engines/documents/flex-template.ts"
         },
         {
           "specifier": "@/core/config/company-settings",
-          "line": 6,
+          "line": 7,
           "resolved_target": "core/config/company-settings.ts"
         },
         {
           "specifier": "@/registry/communication",
-          "line": 7,
+          "line": 8,
           "resolved_target": "registry/communication.ts"
         },
         {
           "specifier": "@/app/api/admin/ide/_lib/businessFailureBridge",
-          "line": 8,
+          "line": 9,
           "resolved_target": "app/api/admin/ide/_lib/businessFailureBridge.ts"
         }
       ]
@@ -23977,7 +24007,9 @@
       ],
       "status": "OK",
       "runtime_entry_point": false,
-      "internal_dependencies": [],
+      "internal_dependencies": [
+        "module:supabase/functions/_shared/connect-event.ts"
+      ],
       "dependents": [
         "module:supabase/functions/line-webhook-v2/handlers/text.ts"
       ],
@@ -23999,8 +24031,15 @@
         {
           "name": "tryFollowUpDebtAck",
           "kind": "function",
-          "line_start": 30,
-          "line_end": 86
+          "line_start": 32,
+          "line_end": 96
+        }
+      ],
+      "import_sites": [
+        {
+          "specifier": "../../_shared/connect-event.ts",
+          "line": 30,
+          "resolved_target": "supabase/functions/_shared/connect-event.ts"
         }
       ]
     },
@@ -32843,6 +32882,7 @@
       "status": "OK",
       "runtime_entry_point": false,
       "internal_dependencies": [
+        "module:supabase/functions/_shared/connect-event.ts",
         "module:supabase/functions/line-webhook-v2/engines/relationship-qa.ts"
       ],
       "dependents": [
@@ -32859,7 +32899,7 @@
       "domain_owner": "supabase",
       "lifecycle_status": "active",
       "deprecated": false,
-      "event_producer": true,
+      "event_producer": false,
       "event_consumer": true,
       "related_workflows": "UNKNOWN",
       "related_business_events": "UNKNOWN",
@@ -32870,14 +32910,14 @@
         {
           "name": "isPaymentInfoRequest",
           "kind": "function",
-          "line_start": 32,
-          "line_end": 34
+          "line_start": 33,
+          "line_end": 35
         },
         {
           "name": "tryBuildPaymentInstructionsReply",
           "kind": "function",
-          "line_start": 36,
-          "line_end": 139
+          "line_start": 37,
+          "line_end": 142
         }
       ],
       "import_sites": [
@@ -32885,6 +32925,11 @@
           "specifier": "./relationship-qa.ts",
           "line": 1,
           "resolved_target": "supabase/functions/line-webhook-v2/engines/relationship-qa.ts"
+        },
+        {
+          "specifier": "../../_shared/connect-event.ts",
+          "line": 2,
+          "resolved_target": "supabase/functions/_shared/connect-event.ts"
         }
       ]
     },
@@ -33943,6 +33988,7 @@
       "status": "OK",
       "runtime_entry_point": false,
       "internal_dependencies": [
+        "module:supabase/functions/_shared/connect-event.ts",
         "module:supabase/functions/_shared/line-client.ts"
       ],
       "dependents": [
@@ -33959,7 +34005,7 @@
       "domain_owner": "supabase",
       "lifecycle_status": "active",
       "deprecated": false,
-      "event_producer": true,
+      "event_producer": false,
       "event_consumer": true,
       "related_workflows": "UNKNOWN",
       "related_business_events": "UNKNOWN",
@@ -33970,14 +34016,14 @@
         {
           "name": "AutoConfirmInput",
           "kind": "interface",
-          "line_start": 87,
-          "line_end": 95
+          "line_start": 88,
+          "line_end": 96
         },
         {
           "name": "tryAutoConfirmPayment",
           "kind": "function",
-          "line_start": 97,
-          "line_end": 168
+          "line_start": 98,
+          "line_end": 172
         }
       ],
       "import_sites": [
@@ -33985,6 +34031,11 @@
           "specifier": "../../_shared/line-client.ts",
           "line": 38,
           "resolved_target": "supabase/functions/_shared/line-client.ts"
+        },
+        {
+          "specifier": "../../_shared/connect-event.ts",
+          "line": 39,
+          "resolved_target": "supabase/functions/_shared/connect-event.ts"
         }
       ]
     },
@@ -35319,6 +35370,7 @@
       "status": "OK",
       "runtime_entry_point": false,
       "internal_dependencies": [
+        "module:supabase/functions/_shared/connect-event.ts",
         "module:supabase/functions/line-webhook-v2/engines/auto-confirm-payment.ts",
         "module:supabase/functions/line-webhook-v2/engines/ocr-classify.ts",
         "module:supabase/functions/line-webhook-v2/engines/owner-dispatcher.ts",
@@ -35354,8 +35406,8 @@
         {
           "name": "processClassifiedImage",
           "kind": "function",
-          "line_start": 16,
-          "line_end": 386
+          "line_start": 17,
+          "line_end": 393
         }
       ],
       "import_sites": [
@@ -35378,6 +35430,11 @@
           "specifier": "./owner-dispatcher.ts",
           "line": 14,
           "resolved_target": "supabase/functions/line-webhook-v2/engines/owner-dispatcher.ts"
+        },
+        {
+          "specifier": "../../_shared/connect-event.ts",
+          "line": 15,
+          "resolved_target": "supabase/functions/_shared/connect-event.ts"
         }
       ]
     },
@@ -35558,6 +35615,7 @@
       "status": "OK",
       "runtime_entry_point": false,
       "internal_dependencies": [
+        "module:supabase/functions/_shared/connect-event.ts",
         "module:supabase/functions/line-webhook-v2/engines/event-followup.ts"
       ],
       "dependents": [
@@ -35572,7 +35630,7 @@
       "domain_owner": "supabase",
       "lifecycle_status": "active",
       "deprecated": false,
-      "event_producer": true,
+      "event_producer": false,
       "event_consumer": true,
       "related_workflows": "UNKNOWN",
       "related_business_events": "UNKNOWN",
@@ -35583,14 +35641,14 @@
         {
           "name": "ExtractedEvent",
           "kind": "interface",
-          "line_start": 10,
-          "line_end": 21
+          "line_start": 11,
+          "line_end": 22
         },
         {
           "name": "buildEventFromExtraction",
           "kind": "function",
-          "line_start": 23,
-          "line_end": 74
+          "line_start": 24,
+          "line_end": 81
         }
       ],
       "import_sites": [
@@ -35598,6 +35656,11 @@
           "specifier": "./event-followup.ts",
           "line": 8,
           "resolved_target": "supabase/functions/line-webhook-v2/engines/event-followup.ts"
+        },
+        {
+          "specifier": "../../_shared/connect-event.ts",
+          "line": 9,
+          "resolved_target": "supabase/functions/_shared/connect-event.ts"
         }
       ]
     },
@@ -57047,11 +57110,11 @@
       "status": "OK",
       "runtime_entry_point": true,
       "internal_dependencies": [
+        "module:engines/canonical/event-write.ts",
         "module:engines/distance.ts"
       ],
       "dependents": [],
       "data_tables": [
-        "business_events",
         "companies",
         "company_line_links",
         "customer_orders",
@@ -57067,8 +57130,8 @@
       "domain_owner": "scripts",
       "lifecycle_status": "active",
       "deprecated": false,
-      "event_producer": true,
-      "event_consumer": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
       "related_workflows": "UNKNOWN",
       "related_business_events": "UNKNOWN",
       "related_documents": "UNKNOWN",
@@ -57079,6 +57142,11 @@
           "specifier": "@/engines/distance",
           "line": 28,
           "resolved_target": "engines/distance.ts"
+        },
+        {
+          "specifier": "@/engines/canonical/event-write",
+          "line": 29,
+          "resolved_target": "engines/canonical/event-write.ts"
         }
       ]
     },
@@ -57092,6 +57160,7 @@
       "status": "OK",
       "runtime_entry_point": true,
       "internal_dependencies": [
+        "module:engines/canonical/event-write.ts",
         "module:engines/capacity.ts",
         "module:engines/cost.ts",
         "module:engines/documents/flex-template.ts",
@@ -57123,23 +57192,28 @@
           "resolved_target": "engines/capacity.ts"
         },
         {
-          "specifier": "@/engines/cost",
+          "specifier": "@/engines/canonical/event-write",
           "line": 39,
+          "resolved_target": "engines/canonical/event-write.ts"
+        },
+        {
+          "specifier": "@/engines/cost",
+          "line": 40,
           "resolved_target": "engines/cost.ts"
         },
         {
           "specifier": "@/engines/documents/flex-template",
-          "line": 40,
+          "line": 41,
           "resolved_target": "engines/documents/flex-template.ts"
         },
         {
           "specifier": "@/registry/communication",
-          "line": 41,
+          "line": 42,
           "resolved_target": "registry/communication.ts"
         },
         {
           "specifier": "@/services/supabase/queries",
-          "line": 42,
+          "line": 43,
           "resolved_target": "services/supabase/queries.ts"
         }
       ]
@@ -58096,6 +58170,7 @@
       "status": "OK",
       "runtime_entry_point": true,
       "internal_dependencies": [
+        "module:supabase/functions/_shared/connect-event.ts",
         "module:supabase/functions/_shared/gmail-client.ts",
         "module:supabase/functions/line-webhook-v2/engines/auto-confirm-payment.ts",
         "module:supabase/functions/line-webhook-v2/engines/response.ts"
@@ -58135,6 +58210,11 @@
           "specifier": "../_shared/gmail-client.ts",
           "line": 18,
           "resolved_target": "supabase/functions/_shared/gmail-client.ts"
+        },
+        {
+          "specifier": "../_shared/connect-event.ts",
+          "line": 19,
+          "resolved_target": "supabase/functions/_shared/connect-event.ts"
         }
       ]
     },
@@ -58241,6 +58321,7 @@
       "status": "OK",
       "runtime_entry_point": true,
       "internal_dependencies": [
+        "module:supabase/functions/_shared/connect-event.ts",
         "module:supabase/functions/line-webhook-v2/engines/auto-confirm-payment.ts",
         "module:supabase/functions/line-webhook-v2/engines/response.ts"
       ],
@@ -58273,6 +58354,11 @@
           "specifier": "../line-webhook-v2/engines/response.ts",
           "line": 26,
           "resolved_target": "supabase/functions/line-webhook-v2/engines/response.ts"
+        },
+        {
+          "specifier": "../_shared/connect-event.ts",
+          "line": 27,
+          "resolved_target": "supabase/functions/_shared/connect-event.ts"
         }
       ]
     },
@@ -85421,6 +85507,252 @@
           "line_end": 133
         }
       ]
+    },
+    {
+      "id": "module:scripts/business-event-authority-test.ts",
+      "type": "Module",
+      "layer": "scripts",
+      "name_en": "scripts/business-event-authority-test.ts",
+      "purpose_th": "Capability D — Business Event canonical authority test (2026-09-23).",
+      "exports": [
+        "BusinessEventSource",
+        "createBusinessEvent",
+        "enrichBusinessEvent",
+        "linkBusinessEventTransaction",
+        "transitionBusinessEvent"
+      ],
+      "status": "OK",
+      "runtime_entry_point": true,
+      "internal_dependencies": [
+        "module:engines/canonical/event-write.ts"
+      ],
+      "dependents": [],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "scripts",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "import_sites": [
+        {
+          "specifier": "@/engines/canonical/event-write",
+          "line": 17,
+          "resolved_target": "engines/canonical/event-write.ts"
+        }
+      ]
+    },
+    {
+      "id": "module:engines/canonical/event-write.ts",
+      "type": "Module",
+      "layer": "engines",
+      "name_en": "engines/canonical/event-write.ts",
+      "purpose_th": "DNA OS — canonical Business Event writer (capability D, owner decision D5, 2026-09-23).",
+      "exports": [
+        "BUSINESS_EVENT_STATES",
+        "BusinessEventSource",
+        "CreateBusinessEventInput",
+        "WriteResult",
+        "createBusinessEvent",
+        "enrichBusinessEvent",
+        "linkBusinessEventTransaction",
+        "transitionBusinessEvent"
+      ],
+      "status": "OK",
+      "runtime_entry_point": false,
+      "internal_dependencies": [],
+      "dependents": [
+        "module:app/api/admin/line-customers/[lineUserId]/build-event/route.ts",
+        "module:app/api/admin/line-customers/[lineUserId]/send-debt/route.ts",
+        "module:app/api/internal/connect/event/route.ts",
+        "module:engines/jobs/auto-create.ts",
+        "module:scripts/business-event-authority-test.ts",
+        "module:scripts/demo-full-pipeline-part2.ts",
+        "module:scripts/demo-full-pipeline.ts"
+      ],
+      "data_tables": [
+        "business_events"
+      ],
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "engines",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": true,
+      "event_consumer": true,
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "symbols": [
+        {
+          "name": "BUSINESS_EVENT_STATES",
+          "kind": "const",
+          "line_start": 32,
+          "line_end": 51
+        },
+        {
+          "name": "BusinessEventSource",
+          "kind": "interface",
+          "line_start": 93,
+          "line_end": 100
+        },
+        {
+          "name": "WriteResult",
+          "kind": "interface",
+          "line_start": 102,
+          "line_end": 106
+        },
+        {
+          "name": "CreateBusinessEventInput",
+          "kind": "interface",
+          "line_start": 110,
+          "line_end": 131
+        },
+        {
+          "name": "createBusinessEvent",
+          "kind": "function",
+          "line_start": 134,
+          "line_end": 173
+        },
+        {
+          "name": "transitionBusinessEvent",
+          "kind": "function",
+          "line_start": 176,
+          "line_end": 201
+        },
+        {
+          "name": "enrichBusinessEvent",
+          "kind": "function",
+          "line_start": 204,
+          "line_end": 216
+        },
+        {
+          "name": "linkBusinessEventTransaction",
+          "kind": "function",
+          "line_start": 225,
+          "line_end": 235
+        }
+      ]
+    },
+    {
+      "id": "module:supabase/functions/_shared/connect-event.ts",
+      "type": "Module",
+      "layer": "supabase",
+      "name_en": "supabase/functions/_shared/connect-event.ts",
+      "purpose_th": "Connect event transport (capability D, 2026-09-23) — the Deno side's only way",
+      "exports": [
+        "CONNECT_PROVIDER",
+        "ConnectEventCommand",
+        "ConnectEventResult",
+        "sendConnectEventCommand"
+      ],
+      "status": "OK",
+      "runtime_entry_point": false,
+      "internal_dependencies": [],
+      "dependents": [
+        "module:supabase/functions/bank-email-sync/index.ts",
+        "module:supabase/functions/bank-statement-reconcile/index.ts",
+        "module:supabase/functions/line-webhook-v2/engines/auto-confirm-payment.ts",
+        "module:supabase/functions/line-webhook-v2/engines/build-event-from-extraction.ts",
+        "module:supabase/functions/line-webhook-v2/engines/debt-followup.ts",
+        "module:supabase/functions/line-webhook-v2/engines/event-followup.ts",
+        "module:supabase/functions/line-webhook-v2/engines/payment-instructions.ts",
+        "module:supabase/functions/line-webhook-v2/engines/process-classified-image.ts",
+        "module:supabase/functions/line-webhook-v2/handlers/postback.ts"
+      ],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "supabase",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "symbols": [
+        {
+          "name": "ConnectEventCommand",
+          "kind": "type",
+          "line_start": 13,
+          "line_end": 17
+        },
+        {
+          "name": "ConnectEventResult",
+          "kind": "interface",
+          "line_start": 19,
+          "line_end": 23
+        },
+        {
+          "name": "sendConnectEventCommand",
+          "kind": "function",
+          "line_start": 25,
+          "line_end": 51
+        },
+        {
+          "name": "CONNECT_PROVIDER",
+          "kind": "const",
+          "line_start": 54,
+          "line_end": 54
+        }
+      ]
+    },
+    {
+      "id": "module:app/api/internal/connect/event/route.ts",
+      "type": "Module",
+      "layer": "app",
+      "name_en": "app/api/internal/connect/event/route.ts",
+      "purpose_th": "POST /api/internal/connect/event — DNA OS Connect transport boundary for",
+      "exports": [
+        "POST"
+      ],
+      "status": "OK",
+      "runtime_entry_point": true,
+      "internal_dependencies": [
+        "module:engines/canonical/event-write.ts",
+        "module:services/supabase/queries.ts"
+      ],
+      "dependents": [],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "app",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "symbols": [
+        {
+          "name": "POST",
+          "kind": "function",
+          "line_start": 56,
+          "line_end": 161
+        }
+      ],
+      "import_sites": [
+        {
+          "specifier": "@/services/supabase/queries",
+          "line": 27,
+          "resolved_target": "services/supabase/queries.ts"
+        },
+        {
+          "specifier": "@/engines/canonical/event-write",
+          "line": 28,
+          "resolved_target": "engines/canonical/event-write.ts"
+        }
+      ]
     }
   ],
   "edges": [
@@ -87881,6 +88213,11 @@
     },
     {
       "source": "layer:app",
+      "target": "module:app/api/internal/connect/event/route.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:app",
       "target": "module:app/api/internal/equipment/lock-command/route.ts",
       "label": "contains"
     },
@@ -89052,6 +89389,11 @@
     {
       "source": "layer:engines",
       "target": "module:engines/canonical/document-write.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:engines",
+      "target": "module:engines/canonical/event-write.ts",
       "label": "contains"
     },
     {
@@ -90556,6 +90898,11 @@
     },
     {
       "source": "layer:scripts",
+      "target": "module:scripts/business-event-authority-test.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:scripts",
       "target": "module:scripts/business-failure-bridge-test.ts",
       "label": "contains"
     },
@@ -91302,6 +91649,11 @@
     {
       "source": "layer:supabase",
       "target": "module:supabase/functions/_shared/canonicalTransport.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:supabase",
+      "target": "module:supabase/functions/_shared/connect-event.ts",
       "label": "contains"
     },
     {
@@ -98296,6 +98648,11 @@
     },
     {
       "source": "module:app/api/admin/line-customers/[lineUserId]/build-event/route.ts",
+      "target": "module:engines/canonical/event-write.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/line-customers/[lineUserId]/build-event/route.ts",
       "target": "module:engines/events/event-builder.ts",
       "label": "imports"
     },
@@ -98367,6 +98724,11 @@
     {
       "source": "module:app/api/admin/line-customers/[lineUserId]/send-debt/route.ts",
       "target": "module:core/config/company-settings.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/line-customers/[lineUserId]/send-debt/route.ts",
+      "target": "module:engines/canonical/event-write.ts",
       "label": "imports"
     },
     {
@@ -99667,6 +100029,16 @@
     {
       "source": "module:app/api/internal/canonical/jobs/route.ts",
       "target": "module:app/api/admin/ide/_lib/canonicalJobTransportRuntime.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/internal/connect/event/route.ts",
+      "target": "module:engines/canonical/event-write.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/internal/connect/event/route.ts",
+      "target": "module:services/supabase/queries.ts",
       "label": "imports"
     },
     {
@@ -103506,6 +103878,11 @@
     },
     {
       "source": "module:engines/jobs/auto-create.ts",
+      "target": "module:engines/canonical/event-write.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:engines/jobs/auto-create.ts",
       "target": "module:engines/geocoding.ts",
       "label": "imports"
     },
@@ -105500,6 +105877,11 @@
       "label": "imports"
     },
     {
+      "source": "module:scripts/business-event-authority-test.ts",
+      "target": "module:engines/canonical/event-write.ts",
+      "label": "imports"
+    },
+    {
       "source": "module:scripts/business-failure-bridge-test.ts",
       "target": "module:app/api/admin/ide/_lib/alertRuntime.ts",
       "label": "imports"
@@ -105906,6 +106288,11 @@
     },
     {
       "source": "module:scripts/demo-full-pipeline-part2.ts",
+      "target": "module:engines/canonical/event-write.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:scripts/demo-full-pipeline-part2.ts",
       "target": "module:engines/capacity.ts",
       "label": "imports"
     },
@@ -105927,6 +106314,11 @@
     {
       "source": "module:scripts/demo-full-pipeline-part2.ts",
       "target": "module:services/supabase/queries.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:scripts/demo-full-pipeline.ts",
+      "target": "module:engines/canonical/event-write.ts",
       "label": "imports"
     },
     {
@@ -107561,6 +107953,11 @@
     },
     {
       "source": "module:supabase/functions/bank-email-sync/index.ts",
+      "target": "module:supabase/functions/_shared/connect-event.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:supabase/functions/bank-email-sync/index.ts",
       "target": "module:supabase/functions/_shared/gmail-client.ts",
       "label": "imports"
     },
@@ -107572,6 +107969,11 @@
     {
       "source": "module:supabase/functions/bank-email-sync/index.ts",
       "target": "module:supabase/functions/line-webhook-v2/engines/response.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:supabase/functions/bank-statement-reconcile/index.ts",
+      "target": "module:supabase/functions/_shared/connect-event.ts",
       "label": "imports"
     },
     {
@@ -107606,7 +108008,17 @@
     },
     {
       "source": "module:supabase/functions/line-webhook-v2/engines/auto-confirm-payment.ts",
+      "target": "module:supabase/functions/_shared/connect-event.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:supabase/functions/line-webhook-v2/engines/auto-confirm-payment.ts",
       "target": "module:supabase/functions/_shared/line-client.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:supabase/functions/line-webhook-v2/engines/build-event-from-extraction.ts",
+      "target": "module:supabase/functions/_shared/connect-event.ts",
       "label": "imports"
     },
     {
@@ -107620,8 +108032,18 @@
       "label": "imports"
     },
     {
+      "source": "module:supabase/functions/line-webhook-v2/engines/debt-followup.ts",
+      "target": "module:supabase/functions/_shared/connect-event.ts",
+      "label": "imports"
+    },
+    {
       "source": "module:supabase/functions/line-webhook-v2/engines/event-followup.ts",
       "target": "module:supabase/functions/_shared/canonicalTransport.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:supabase/functions/line-webhook-v2/engines/event-followup.ts",
+      "target": "module:supabase/functions/_shared/connect-event.ts",
       "label": "imports"
     },
     {
@@ -107656,7 +108078,17 @@
     },
     {
       "source": "module:supabase/functions/line-webhook-v2/engines/payment-instructions.ts",
+      "target": "module:supabase/functions/_shared/connect-event.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:supabase/functions/line-webhook-v2/engines/payment-instructions.ts",
       "target": "module:supabase/functions/line-webhook-v2/engines/relationship-qa.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:supabase/functions/line-webhook-v2/engines/process-classified-image.ts",
+      "target": "module:supabase/functions/_shared/connect-event.ts",
       "label": "imports"
     },
     {
@@ -107891,6 +108323,11 @@
     },
     {
       "source": "module:supabase/functions/line-webhook-v2/handlers/postback.ts",
+      "target": "module:supabase/functions/_shared/connect-event.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:supabase/functions/line-webhook-v2/handlers/postback.ts",
       "target": "module:supabase/functions/line-webhook-v2/engines/print-jobs.ts",
       "label": "imports"
     },
@@ -108111,8 +108548,8 @@
     }
   ],
   "summary": {
-    "total": 1254,
-    "ok": 1254,
+    "total": 1258,
+    "ok": 1258,
     "broken": 0,
     "unused": 0,
     "unregistered": 0

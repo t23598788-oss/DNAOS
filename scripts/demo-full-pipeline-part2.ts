@@ -36,6 +36,7 @@
 
 import { createClient } from "@supabase/supabase-js";
 import { calcCapacity } from "@/engines/capacity";
+import { enrichBusinessEvent } from "@/engines/canonical/event-write";
 import { calcCost } from "@/engines/cost";
 import { documentFlex } from "@/engines/documents/flex-template";
 import { sendLineMessage } from "@/registry/communication";
@@ -148,21 +149,28 @@ async function main() {
     console.log(`     กับลูกค้าจริงที่แอดเพื่อนไลน์ OA ไว้แล้ว ขั้นตอนนี้จะส่งการ์ดใบเสนอราคาเข้าไปในแชตจริงทันที`);
   }
 
-  await db.from("business_events").update({
-    context: {
-      ...ctx,
-      vehicle_type_id: chosenVehicle.id,
-      vehicle_name: chosenVehicle.name,
-      trips_required: tripsRequired,
-      material_cost: costBreakdown?.material_cost ?? null,
-      fuel_cost: costBreakdown?.fuel_cost ?? null,
-      total_cost: costBreakdown?.total_cost ?? null,
-      margin,
-      delivery_order_document_id: deliveryDoc.id,
-      line_send_attempted: true,
-      line_send_result: sendResult,
+  // Capability D: BUSINESS METADATA through the canonical writer — the context
+  // object is passed as an explicit allow-listed field (`context`), not as a
+  // direct row patch; the writer owns updated_at.
+  await enrichBusinessEvent(db, {
+    eventId: event.id,
+    fields: {
+      context: {
+        ...ctx,
+        vehicle_type_id: chosenVehicle.id,
+        vehicle_name: chosenVehicle.name,
+        trips_required: tripsRequired,
+        material_cost: costBreakdown?.material_cost ?? null,
+        fuel_cost: costBreakdown?.fuel_cost ?? null,
+        total_cost: costBreakdown?.total_cost ?? null,
+        margin,
+        delivery_order_document_id: deliveryDoc.id,
+        line_send_attempted: true,
+        line_send_result: sendResult,
+      },
     },
-  }).eq("id", event.id);
+    actor: "script:demo-full-pipeline-part2",
+  });
 
   console.log("\n=== เพิ่มเติมสำหรับ SQL ลบทีหลัง ===");
   console.log(`delete from standalone_documents where id = '${deliveryDoc.id}';`);

@@ -3,8 +3,16 @@ import { requireAuth } from "@/core/auth/requireAuth"
 import { ADMIN_TIER } from "@/core/auth/session"
 import { supabaseAdmin as supabase } from "@/services/supabase/queries"
 import { buildEventFromMessages, generateEventCode } from "@/engines/events/event-builder"
-import { tryAutoCreateJob, composeMissingInfoMessage } from "@/engines/jobs/auto-create"
+import { tryAutoCreateJob, composeMissingInfoMessage, type AutoCreateEventInput } from "@/engines/jobs/auto-create"
+import {
+  createBusinessEvent,
+  enrichBusinessEvent,
+  transitionBusinessEvent,
+} from "@/engines/canonical/event-write"
 type Params = { params: Promise<{ lineUserId: string }> }
+
+/** The provider this admin screen acts on — a value, never a branch. */
+const PROVIDER = "line"
 
 // Turns a LINE contact's not-yet-eventized messages into one business_events
 // row — the Event Builder step of the message-centric → event-centric bridge
@@ -115,52 +123,97 @@ export async function POST(_req: Request, { params }: Params) {
     ? [...new Set([...(awaitingEvent.source_message_ids ?? []), ...unlinked.map((m) => m.id)])]
     : unlinked.map((m) => m.id)
 
-  const rowData = {
+  // Capability D — field census result: the AI extraction result is NOT passed
+  // as a row patch. Every field is mapped explicitly into the canonical writer's
+  // typed input; `updated_at` is owned by the writer.
+  //   OMITTED + REPORTED: `metadata` (rowData set it to the SAME value as
+  //   `context`, i.e. redundant; metadata now carries canonical provenance
+  //   written_by/source_provider, which a blind copy would erase).
+  const eventDate = new Date().toISOString().slice(0, 10)
+  const enrichFields = {
     event_type: event.event_type ?? "line_chat",
     title,
     description,
-    metadata: event.context,
-    source_line_user_id: lineUserId,
-    source_message_ids: combinedMessageIds,
     partner_id: partnerId,
     material_id: materialId,
-    material_text: event.material_text,
-    quantity: event.quantity,
-    quantity_unit: event.quantity_unit,
-    destination: event.destination,
-    schedule_text: event.schedule_text,
-    contact_name: event.contact_name,
-    contact_phone: event.contact_phone,
-    status: event.status,
-    context: event.context,
-    confidence: event.confidence,
-    updated_at: new Date().toISOString(),
+    material_text: event.material_text ?? null,
+    quantity: event.quantity ?? null,
+    quantity_unit: event.quantity_unit ?? null,
+    destination: event.destination ?? null,
+    schedule_text: event.schedule_text ?? null,
+    contact_name: event.contact_name ?? null,
+    contact_phone: event.contact_phone ?? null,
+    context: event.context ?? null,
+    confidence: event.confidence ?? null,
+    source_message_ids: combinedMessageIds,
   }
 
-  let inserted
-  let insertError
+  let inserted: AutoCreateEventInput | null = null
+  let insertedStatus: string | null = null
+  let insertError: { message: string } | null = null
+  const actor = auth.email ?? auth.id ?? "admin"
+
   if (awaitingEvent) {
-    ;({ data: inserted, error: insertError } = await db
-      .from("business_events").update(rowData).eq("id", awaitingEvent.id).select().single())
+    // Merge path — same business effect as the pre-cutover single UPDATE, split
+    // into its real meanings: ENRICH (allow-listed fields) then TRANSITION to
+    // the extracted target state (target-only; no FROM→TO rule is invented here).
+    const enriched = await enrichBusinessEvent(db, { eventId: awaitingEvent.id, fields: enrichFields, actor })
+    if (!enriched.ok) {
+      insertError = { message: enriched.error ?? "event enrich failed" }
+    } else if (event.status) {
+      const moved = await transitionBusinessEvent(db, { eventId: awaitingEvent.id, to: event.status, actor })
+      if (!moved.ok) insertError = { message: moved.error ?? "event transition failed" }
+    }
+    if (!insertError) {
+      const { data: readBack } = await db.from("business_events").select("*").eq("id", awaitingEvent.id).single()
+      inserted = (readBack ?? null) as AutoCreateEventInput | null
+      insertedStatus = (readBack as { status?: string | null } | null)?.status ?? null
+    }
   } else {
     const { count } = await db
       .from("business_events")
       .select("id", { count: "exact", head: true })
-      .gte("created_at", new Date().toISOString().slice(0, 10))
+      .gte("created_at", eventDate)
     const eventCode = generateEventCode((count ?? 0) + 1)
-    ;({ data: inserted, error: insertError } = await db
-      .from("business_events")
-      .insert({ ...rowData, event_code: eventCode, event_date: new Date().toISOString().slice(0, 10) })
-      .select().single())
+    const created = await createBusinessEvent(db, {
+      eventCode,
+      eventDate,
+      eventType: event.event_type ?? "line_chat",
+      title,
+      description,
+      source: { provider: PROVIDER, externalSubjectId: lineUserId, messageIds: combinedMessageIds },
+      partnerId,
+      materialId,
+      materialText: event.material_text ?? null,
+      quantity: event.quantity ?? null,
+      quantityUnit: event.quantity_unit ?? null,
+      destination: event.destination ?? null,
+      scheduleText: event.schedule_text ?? null,
+      contactName: event.contact_name ?? null,
+      contactPhone: event.contact_phone ?? null,
+      status: event.status,
+      context: event.context ?? null,
+      confidence: event.confidence ?? null,
+      actor: auth.email ?? auth.id ?? "admin",
+    })
+    if (!created.ok) {
+      insertError = { message: created.error ?? "event create failed" }
+    } else {
+      const { data: readBack } = await db.from("business_events").select("*").eq("id", created.data!.id).single()
+      inserted = (readBack ?? null) as AutoCreateEventInput | null
+      insertedStatus = created.data?.status ?? null
+    }
   }
 
-  if (insertError) return NextResponse.json({ error: insertError.message }, { status: 500 })
+  if (insertError || !inserted) {
+    return NextResponse.json({ error: insertError?.message ?? "event write failed" }, { status: 500 })
+  }
 
   // Only requests that actually need a Job get the auto-create attempt —
   // general questions ("สอบถามทั่วไป") don't need one.
   let autoJob: Awaited<ReturnType<typeof tryAutoCreateJob>> | null = null
   let pendingReply: string | null = null
-  if (inserted.status === "quotation_pending") {
+  if (insertedStatus === "quotation_pending") {
     autoJob = await tryAutoCreateJob(db, inserted)
     if (autoJob.status === "needs_info") {
       // Not sent automatically (2026-07-24 fix) — the caller shows this in
@@ -168,9 +221,9 @@ export async function POST(_req: Request, { params }: Params) {
       // entirely if the classification itself was wrong (e.g. this cluster
       // wasn't actually a material request).
       pendingReply = composeMissingInfoMessage(autoJob)
-      await db.from("business_events").update({ status: "awaiting_info" }).eq("id", inserted.id)
+      await transitionBusinessEvent(db, { eventId: String(inserted.id), from: "quotation_pending", to: "awaiting_info", actor })
     } else if (autoJob.status === "ready_to_quote") {
-      await db.from("business_events").update({ status: "ready_to_quote" }).eq("id", inserted.id)
+      await transitionBusinessEvent(db, { eventId: String(inserted.id), from: "quotation_pending", to: "ready_to_quote", actor })
     }
   }
 

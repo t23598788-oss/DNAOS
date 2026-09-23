@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { requireAuth } from "@/core/auth/requireAuth"
+import { createBusinessEvent } from "@/engines/canonical/event-write"
 import { ADMIN_TIER } from "@/core/auth/session"
 import { supabaseAdmin as supabase } from "@/services/supabase/queries"
 import { debtReminderFlex } from "@/engines/documents/flex-template"
@@ -8,6 +9,9 @@ import { sendLineMessage } from "@/registry/communication"
 import { normalizeSendResult } from "@/app/api/admin/ide/_lib/businessFailureBridge"
 
 type Params = { params: Promise<{ lineUserId: string }> }
+
+/** The provider this admin screen acts on — a value, never a branch. */
+const PROVIDER = "line"
 
 // Owner request 2026-07-11: the debt figure shown in this page's header was
 // only ever passive display — เฮีย wants a one-click "send" from the same
@@ -161,16 +165,19 @@ export async function POST(req: Request, { params }: Params) {
   const dd = String(new Date().getDate()).padStart(2, "0")
   const eventCode = `EV${yy}${mm}${dd}-${String((count ?? 0) + 1).padStart(4, "0")}`
 
-  await db.from("business_events").insert({
-    event_code: eventCode,
-    event_type: "แจ้งชำระเงิน",
-    event_date: new Date().toISOString().slice(0, 10),
+  // Capability D: created through the canonical Business Event writer. The
+  // canonical input carries a provider-neutral source reference; the legacy
+  // provider-shaped column names never appear here.
+  await createBusinessEvent(db, {
+    eventCode,
+    eventType: "แจ้งชำระเงิน",
+    eventDate: new Date().toISOString().slice(0, 10),
     title: `แจ้งยอดค้างชำระ ${debt.total_due.toLocaleString("th-TH")} บาท`,
-    source_line_user_id: lineUserId,
-    partner_id: company.id,
+    source: { provider: PROVIDER, externalSubjectId: lineUserId },
+    partnerId: company.id,
     status: "awaiting_payment_date",
     confidence: 1,
-    updated_at: new Date().toISOString(),
+    actor: auth.email ?? auth.id ?? "admin",
   })
 
   return NextResponse.json({ ok: true })

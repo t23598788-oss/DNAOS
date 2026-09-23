@@ -2,6 +2,7 @@ import type { HandlerContext, LinePostbackEvent } from "../events/types.ts"
 import { saveEvent } from "../events/store.ts"
 import { ResponseGateway } from "../engines/response.ts"
 import { handlePrintCopiesSelected, handlePrintPaymentMethodSelected } from "../engines/print-jobs.ts"
+import { sendConnectEventCommand, CONNECT_PROVIDER } from "../../_shared/connect-event.ts"
 
 export async function handlePostback(ctx: HandlerContext): Promise<void> {
   const pb = (ctx.event as LinePostbackEvent).postback
@@ -35,9 +36,14 @@ export async function handlePostback(ctx: HandlerContext): Promise<void> {
     // record to "awaiting_payment", not "confirmed" — a real transfer slip
     // matching quoted_amount (handled where transfer_slip/payment_advice
     // images are classified) is what actually clears it for dispatch.
+    // Capability D: UNPROVEN_FROM_COMPATIBILITY_TRANSITION — the source does not
+    // prove the from-state for a postback, so only the validated target state is
+    // sent (no invented FROM→TO rule).
+    await sendConnectEventCommand("business_event.transition", {
+      event_id: payload, status: "awaiting_payment",
+    }, `system:${CONNECT_PROVIDER}:postback`)
     const { data: ev } = await ctx.supabase
-      .from("business_events").update({ status: "awaiting_payment" }).eq("id", payload)
-      .select("event_code, quoted_amount").maybeSingle()
+      .from("business_events").select("event_code, quoted_amount").eq("id", payload).maybeSingle()
     if (ctx.replyToken) {
       await ResponseGateway.replyText(
         ctx.replyToken,
@@ -50,9 +56,11 @@ export async function handlePostback(ctx: HandlerContext): Promise<void> {
   }
 
   if (action === "CANCEL_JOB") {
+    await sendConnectEventCommand("business_event.transition", {
+      event_id: payload, status: "cancelled",
+    }, `system:${CONNECT_PROVIDER}:postback`)
     const { data: ev } = await ctx.supabase
-      .from("business_events").update({ status: "cancelled" }).eq("id", payload)
-      .select("event_code").maybeSingle()
+      .from("business_events").select("event_code").eq("id", payload).maybeSingle()
     if (ctx.replyToken) {
       await ResponseGateway.replyText(
         ctx.replyToken,

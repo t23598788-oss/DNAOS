@@ -147,6 +147,8 @@ export interface FollowupReply {
   flex?: object[]
 }
 
+import { sendConnectEventCommand, CONNECT_PROVIDER } from "../../_shared/connect-event.ts"
+
 export async function completeAfterMaterialResolved(
   supabase: any,
   userId: string,
@@ -160,7 +162,11 @@ export async function completeAfterMaterialResolved(
     .maybeSingle()
   if (!ev) return null
 
-  await supabase.from("business_events").update({ material_text: resolvedMaterialName }).eq("id", ev.id)
+  // Capability D: BUSINESS METADATA through the Connect transport.
+  await sendConnectEventCommand("business_event.enrich", {
+    event_id: ev.id,
+    fields: { material_text: resolvedMaterialName },
+  }, `system:${CONNECT_PROVIDER}:event-followup`)
   const merged = { ...ev, material_text: resolvedMaterialName }
 
   const isQuoteOnly = QUOTE_ONLY_TYPES.has(ev.event_type ?? "")
@@ -174,7 +180,10 @@ export async function completeAfterMaterialResolved(
       .order("created_at", { ascending: false }).limit(1).maybeSingle()
     if (recentLocation) {
       merged.destination = recentLocation.raw_text
-      await supabase.from("business_events").update({ destination: recentLocation.raw_text }).eq("id", ev.id)
+      await sendConnectEventCommand("business_event.enrich", {
+        event_id: ev.id,
+        fields: { destination: recentLocation.raw_text },
+      }, `system:${CONNECT_PROVIDER}:event-followup`)
     } else {
       return { text: MISSING_LABEL.destination }
     }
@@ -182,7 +191,18 @@ export async function completeAfterMaterialResolved(
 
   const priceResult = await tryQuoteMaterialPrice(supabase, userId, merged.material_text, merged.quantity, merged.destination, merged.quantity_unit, ev.id)
   if (priceResult.ok) {
-    await supabase.from("business_events").update({ status: "quoted", quoted_amount: priceResult.amount ?? null }).eq("id", ev.id)
+    // Capability D — composite, preserving the original business effect:
+    //   ENRICH quoted_amount (EVENT DATA ONLY — no payment/allocation/ledger/debt
+    //   arithmetic happens here or anywhere in the event writer) then
+    //   TRANSITION → quoted (target-only: this function never proved the from-state).
+    await sendConnectEventCommand("business_event.enrich", {
+      event_id: ev.id,
+      fields: { quoted_amount: priceResult.amount ?? null },
+    }, `system:${CONNECT_PROVIDER}:event-followup`)
+    await sendConnectEventCommand("business_event.transition", {
+      event_id: ev.id,
+      status: "quoted",
+    }, `system:${CONNECT_PROVIDER}:event-followup`)
   }
   return { text: priceResult.text, flex: priceResult.flex ? [priceResult.flex] : undefined }
 }
@@ -302,7 +322,23 @@ export async function tryCompleteAwaitingEvent(
   }
 
   if (Object.keys(updates).length > 0) {
-    await supabase.from("business_events").update(updates).eq("id", ev.id)
+    // Capability D — FIELD CENSUS of `updates` (all seven properties are
+    // business metadata, none is a state or a transaction link):
+    //   quantity · quantity_unit · material_text · contact_phone · contact_name
+    //   · destination · source_message_ids  →  ENRICH (explicit fields only).
+    // The object is NOT forwarded: each property is mapped explicitly below.
+    await sendConnectEventCommand("business_event.enrich", {
+      event_id: ev.id,
+      fields: {
+        ...(updates.quantity !== undefined ? { quantity: updates.quantity } : {}),
+        ...(updates.quantity_unit !== undefined ? { quantity_unit: updates.quantity_unit } : {}),
+        ...(updates.material_text !== undefined ? { material_text: updates.material_text } : {}),
+        ...(updates.contact_phone !== undefined ? { contact_phone: updates.contact_phone } : {}),
+        ...(updates.contact_name !== undefined ? { contact_name: updates.contact_name } : {}),
+        ...(updates.destination !== undefined ? { destination: updates.destination } : {}),
+        ...(updates.source_message_ids !== undefined ? { source_message_ids: updates.source_message_ids } : {}),
+      },
+    }, `system:${CONNECT_PROVIDER}:event-followup`)
   }
   if (currentLineEventId) {
     await supabase.from("line_events").update({ status: "processed", admin_note: `used_by_business_event:${ev.id}` }).eq("id", currentLineEventId)
@@ -340,7 +376,10 @@ export async function tryCompleteAwaitingEvent(
         .order("created_at", { ascending: false }).limit(1).maybeSingle()
       if (recentLocation) {
         merged.destination = recentLocation.raw_text
-        await supabase.from("business_events").update({ destination: recentLocation.raw_text }).eq("id", ev.id)
+        await sendConnectEventCommand("business_event.enrich", {
+          event_id: ev.id,
+          fields: { destination: recentLocation.raw_text },
+        }, `system:${CONNECT_PROVIDER}:event-followup`)
       } else {
         missing.push("destination")
       }
@@ -431,7 +470,17 @@ export async function tryCompleteAwaitingEvent(
     // /admin/pits).
     if (priceResults.every((r) => r.ok)) {
       const totalAmount = priceResults.reduce((sum, r) => sum + (r.amount ?? 0), 0)
-      await supabase.from("business_events").update({ status: "quoted", quoted_amount: totalAmount }).eq("id", ev.id)
+      // Capability D — composite: ENRICH quoted_amount (EVENT DATA ONLY; the sum is
+      // the pre-existing price aggregation, not new financial authority) then
+      // TRANSITION → quoted (target-only, from-state not proven here).
+      await sendConnectEventCommand("business_event.enrich", {
+        event_id: ev.id,
+        fields: { quoted_amount: totalAmount },
+      }, `system:${CONNECT_PROVIDER}:event-followup`)
+      await sendConnectEventCommand("business_event.transition", {
+        event_id: ev.id,
+        status: "quoted",
+      }, `system:${CONNECT_PROVIDER}:event-followup`)
     }
     const flexCards = priceResults.flatMap((r) => (r.flex ? [r.flex] : []))
     return { text: priceResults.map((r) => r.text).join("\n\n"), flex: flexCards.length ? flexCards : undefined }
@@ -479,7 +528,13 @@ export async function tryCompleteAwaitingEvent(
         customer_company_id: merged.partner_id, site_name: (gpsText ?? "หน้างานใหม่").slice(0, 40), address: gpsText,
         gps_lat: gpsLat, gps_lng: gpsLng, is_active: true, updated_at: new Date().toISOString(),
       }).select("id").single()
-      if (!error) { siteId = newSite.id; await supabase.from("business_events").update({ destination: gpsText }).eq("id", ev.id) }
+      if (!error) {
+        siteId = newSite.id
+        await sendConnectEventCommand("business_event.enrich", {
+          event_id: ev.id,
+          fields: { destination: gpsText },
+        }, `system:${CONNECT_PROVIDER}:event-followup`)
+      }
       else missing.push("destination")
     } else if (merged.destination) {
       const parsed = parseThaiAddress(merged.destination)
@@ -557,7 +612,18 @@ export async function tryCompleteAwaitingEvent(
     return { text: "รับทราบครับ เดี๋ยวเปิดงานให้ครับ" }
   }
 
-  await supabase.from("business_events").update({ transaction_id: orderRef.id, status: "job_created" }).eq("id", ev.id)
+  // Capability D — split into its two real meanings, in the original effect order:
+  //   LINK (canonical transaction identity) then TRANSITION (state). Neither the
+  //   link nor the transition touches financial state; the transaction itself is
+  //   owned by the canonical transaction writer / B-04.
+  await sendConnectEventCommand("business_event.link_transaction", {
+    event_id: ev.id,
+    transaction_id: orderRef.id,
+  }, `system:${CONNECT_PROVIDER}:event-followup`)
+  await sendConnectEventCommand("business_event.transition", {
+    event_id: ev.id,
+    status: "job_created",
+  }, `system:${CONNECT_PROVIDER}:event-followup`)
 
   return { text: `เปิดงานให้แล้วครับ เดี๋ยวทีมงานติดต่อกลับไปนะครับ` }
 }

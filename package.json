@@ -139,6 +139,7 @@
     "connect-core:test": "npx tsx scripts/connect-core-acceptance-test.ts",
     "connect-inbound-boundary:test": "npx tsx scripts/connect-inbound-boundary-test.ts",
     "connect-identity-model:test": "npx tsx scripts/connect-identity-model-test.ts",
+    "business-event-authority:test": "npx tsx scripts/business-event-authority-test.ts",
     "state:reconcile": "npx tsx scripts/state-reconcile.ts",
     "canonical:test": "npx tsx scripts/canonical-phase-c-acceptance-test.ts",
     "canonical:write:test": "npx tsx scripts/canonical-phase-d-acceptance-test.ts",

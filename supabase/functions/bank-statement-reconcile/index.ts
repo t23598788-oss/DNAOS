@@ -24,6 +24,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.43.4"
 import { tryAutoConfirmPayment } from "../line-webhook-v2/engines/auto-confirm-payment.ts"
 import { ResponseGateway } from "../line-webhook-v2/engines/response.ts"
+import { sendConnectEventCommand, CONNECT_PROVIDER } from "../_shared/connect-event.ts"
 
 Deno.serve(async (req) => {
   const expected = Deno.env.get("BANK_STATEMENT_RECONCILE_SECRET")
@@ -102,8 +103,12 @@ Deno.serve(async (req) => {
       .order("created_at", { ascending: true })
       .limit(1).maybeSingle()
     if (pendingOrder && Math.abs(Number(pendingOrder.quoted_amount) - Number(doc.amount)) <= 5) {
-      await supabase.from("business_events")
-        .update({ status: "payment_confirmed" }).eq("id", pendingOrder.id)
+      // Capability D: proven transition awaiting_payment → payment_confirmed
+      await sendConnectEventCommand("business_event.transition", {
+        event_id: pendingOrder.id,
+        from_status: "awaiting_payment",
+        status: "payment_confirmed",
+      }, `system:${CONNECT_PROVIDER}:bank-confirm`)
       await ResponseGateway.pushMessage(
         userId,
         `✅ ตรวจสอบกับใบแจ้งยอดธนาคารแล้ว ยอด ${Number(doc.amount).toLocaleString()} บาท ตรงกับใบเสนอราคา ${pendingOrder.event_code} ครับ เดี๋ยวจัดรถให้เลยนะครับ`,

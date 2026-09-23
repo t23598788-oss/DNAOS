@@ -15219,6 +15219,60 @@
         "resolveSubjectsForCompany"
       ],
       "status": "active"
+    },
+    "scripts/business-event-authority-test.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "Capability D — Business Event canonical authority test (2026-09-23).",
+      "purpose_th": "Capability D — Business Event canonical authority test (2026-09-23).",
+      "exports": [
+        "BusinessEventSource",
+        "createBusinessEvent",
+        "enrichBusinessEvent",
+        "linkBusinessEventTransaction",
+        "transitionBusinessEvent"
+      ],
+      "status": "active"
+    },
+    "engines/canonical/event-write.ts": {
+      "owner": "engines",
+      "layer": "engines",
+      "purpose": "DNA OS — canonical Business Event writer (capability D, owner decision D5, 2026-09-23).",
+      "purpose_th": "DNA OS — canonical Business Event writer (capability D, owner decision D5, 2026-09-23).",
+      "exports": [
+        "BUSINESS_EVENT_STATES",
+        "BusinessEventSource",
+        "CreateBusinessEventInput",
+        "WriteResult",
+        "createBusinessEvent",
+        "enrichBusinessEvent",
+        "linkBusinessEventTransaction",
+        "transitionBusinessEvent"
+      ],
+      "status": "active"
+    },
+    "supabase/functions/_shared/connect-event.ts": {
+      "owner": "supabase",
+      "layer": "supabase",
+      "purpose": "Connect event transport (capability D, 2026-09-23) — the Deno side's only way",
+      "purpose_th": "Connect event transport (capability D, 2026-09-23) — the Deno side's only way",
+      "exports": [
+        "CONNECT_PROVIDER",
+        "ConnectEventCommand",
+        "ConnectEventResult",
+        "sendConnectEventCommand"
+      ],
+      "status": "active"
+    },
+    "app/api/internal/connect/event/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "POST /api/internal/connect/event — DNA OS Connect transport boundary for",
+      "purpose_th": "POST /api/internal/connect/event — DNA OS Connect transport boundary for",
+      "exports": [
+        "POST"
+      ],
+      "status": "active"
     }
   },
   "excluded": [

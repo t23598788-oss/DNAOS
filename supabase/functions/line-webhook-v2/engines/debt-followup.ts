@@ -27,6 +27,8 @@ function looksLikePaymentDateAnswer(text: string): boolean {
   return DATE_SIGNAL_PATTERN.test(text)
 }
 
+import { sendConnectEventCommand, CONNECT_PROVIDER } from "../../_shared/connect-event.ts"
+
 export async function tryFollowUpDebtAck(supabase: any, userId: string, text: string): Promise<string | null> {
   const { data: pending } = await supabase
     .from("business_events")
@@ -77,10 +79,18 @@ export async function tryFollowUpDebtAck(supabase: any, userId: string, text: st
   // Not a plain ack, and contains a real date signal — treat the message
   // itself as the customer's answer, recorded verbatim (no date parsing),
   // trimmed only to drop incidental leading/trailing whitespace.
-  await supabase
-    .from("business_events")
-    .update({ schedule_text: text.trim(), status: "confirmed", updated_at: new Date().toISOString() })
-    .eq("id", pending.id)
+  // Capability D — composite, in the original effect order:
+  //   ENRICH (schedule_text) then TRANSITION (proven awaiting_payment_date → confirmed,
+  //   the reader above selected only rows in awaiting_payment_date).
+  await sendConnectEventCommand("business_event.enrich", {
+    event_id: pending.id,
+    fields: { schedule_text: text.trim() },
+  }, `system:${CONNECT_PROVIDER}:debt-followup`)
+  await sendConnectEventCommand("business_event.transition", {
+    event_id: pending.id,
+    from_status: "awaiting_payment_date",
+    status: "confirmed",
+  }, `system:${CONNECT_PROVIDER}:debt-followup`)
 
   return `รับทราบครับ บันทึกไว้แล้วว่าจะชำระ "${text}" ขอบคุณครับ 🙏`
 }

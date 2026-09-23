@@ -1,5 +1,6 @@
 import { resolveMaterialText } from "@/engines/material-resolver"
 import { geocodeThaiAddress } from "@/engines/geocoding"
+import { linkBusinessEventTransaction, transitionBusinessEvent } from "@/engines/canonical/event-write"
 
 // Two different intents need two different amounts of information — a price
 // question is not a commitment (owner instruction 2026-07-10: "ถ้าอยากได้
@@ -184,7 +185,20 @@ export async function tryAutoCreateJob(db: any, event: AutoCreateEventInput): Pr
     .single()
   if (orderError) return { status: "skipped", reason: orderError.message }
 
-  await db.from("business_events").update({ transaction_id: order.id, status: "job_created" }).eq("id", event.id)
+  // Capability D: the event → canonical transaction link goes through the
+  // canonical Business Event writer (engines/canonical/event-write.ts), split
+  // into its two real meanings: LINK (transaction identity) then TRANSITION
+  // (state). No direct business_events mutation remains in this engine.
+  await linkBusinessEventTransaction(db, {
+    eventId: event.id,
+    transactionId: order.id,
+    actor: "system:jobs:auto-create",
+  })
+  await transitionBusinessEvent(db, {
+    eventId: event.id,
+    to: "job_created",
+    actor: "system:jobs:auto-create",
+  })
 
   return { status: "created", orderId: order.id, orderNo: order.order_no }
 }

@@ -26,6 +26,7 @@
 
 import { createClient } from "@supabase/supabase-js";
 import { haversine } from "@/engines/distance";
+import { createBusinessEvent, linkBusinessEventTransaction } from "@/engines/canonical/event-write";
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const key = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -165,35 +166,43 @@ async function main() {
   console.log(`   customer_sites.id = ${site.id}`);
 
   console.log("\n5) สร้าง business_events (คำขอที่ระบบประกอบจากแชตจริง) พร้อมราคาที่คำนวณจริง...");
-  const { data: event, error: evErr } = await db
-    .from("business_events")
-    .insert({
-      event_code: `EV${today}-${stamp}`,
-      event_type: "สั่งซื้อ",
-      source_line_user_id: DEMO_LINE_USER_ID,
-      source_message_ids: [textEvent.id, locEvent.id],
-      partner_id: company.id,
-      material_id: materialType.id,
-      material_text: materialType.name,
-      quantity,
-      quantity_unit: "คิว",
-      destination: CUSTOMER_GPS.address,
-      contact_name: "สมชาย ทดสอบระบบ (DEMO)",
-      contact_phone: "0800000000",
-      status: "job_created",
-      context: {
-        demo: true,
-        matched_pit_id: pit.id,
-        matched_pit_name: pit.pit_name,
-        unit_price: unitPrice,
-        distance_km: distanceKm,
-        note: "ราคาคำนวณจริงจาก pit_materials.price จริงในระบบ, ระยะทางคำนวณจาก engines/distance.ts haversine() จริง — ไม่ได้ mock",
-      },
-      confidence: 1,
-    })
-    .select("id")
-    .single();
-  if (evErr) throw evErr;
+  // Capability D: the demo is an executable DB writer, so it sits under the SAME
+  // canonical authority as the app — no direct business_events write here.
+  // Field census (every property of the previous insert was mapped; none dropped):
+  //   event_code/event_type/status/context/confidence/material_*/quantity*/destination/
+  //   contact_* → CreateBusinessEventInput · source_line_user_id + source_message_ids →
+  //   source{provider, externalSubjectId, messageIds}.
+  //   REPORTED DIFFERENCE: the writer requires `title` and `event_date`, which the
+  //   old direct insert left NULL — the demo now supplies them explicitly
+  //   (title = the material it demonstrates; event_date = today).
+  const eventCreated = await createBusinessEvent(db, {
+    eventCode: `EV${today}-${stamp}`,
+    eventType: "สั่งซื้อ",
+    eventDate: today,
+    title: materialType.name,
+    source: { provider: "line", externalSubjectId: DEMO_LINE_USER_ID, messageIds: [textEvent.id, locEvent.id] },
+    partnerId: company.id,
+    materialId: materialType.id,
+    materialText: materialType.name,
+    quantity,
+    quantityUnit: "คิว",
+    destination: CUSTOMER_GPS.address,
+    contactName: "สมชาย ทดสอบระบบ (DEMO)",
+    contactPhone: "0800000000",
+    status: "job_created",
+    context: {
+      demo: true,
+      matched_pit_id: pit.id,
+      matched_pit_name: pit.pit_name,
+      unit_price: unitPrice,
+      distance_km: distanceKm,
+      note: "ราคาคำนวณจริงจาก pit_materials.price จริงในระบบ, ระยะทางคำนวณจาก engines/distance.ts haversine() จริง — ไม่ได้ mock",
+    },
+    confidence: 1,
+    actor: "script:demo-full-pipeline",
+  })
+  if (!eventCreated.ok || !eventCreated.data) throw new Error(eventCreated.error ?? "demo event create failed")
+  const event = eventCreated.data
   created.business_event_id = event.id;
   console.log(`   business_events.id = ${event.id}`);
 
@@ -231,7 +240,8 @@ async function main() {
     .single();
   if (orderErr) throw orderErr;
   created.customer_order_id = order.id;
-  await db.from("business_events").update({ transaction_id: order.id }).eq("id", event.id);
+  // Capability D: LINK only — the link command never changes event state.
+  await linkBusinessEventTransaction(db, { eventId: event.id, transactionId: order.id, actor: "script:demo-full-pipeline" });
   console.log(`   projects.id=${project.id}, document_groups.id=${group.id}, customer_orders.id=${order.id}`);
 
   console.log("\n7) ออกใบเสนอราคาจริง (standalone_documents, document_type='QT')...");
