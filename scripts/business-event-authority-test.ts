@@ -29,10 +29,17 @@ interface CensusModule {
   findMutationSitesInSource: (code: string, file: string, table: string) => MutationSite[];
   findDirectMutations: (o: { root: string; table: string; dirs: readonly string[] }) => MutationSite[];
   describeSites: (sites: readonly MutationSite[]) => string;
+  resolveFiniteLiteralSet: (expr: string) => { ok: true; values: string[] } | { ok: false; reason: string };
+  findDynamicTableMutationsInSource: (code: string, file: string, allowList: readonly string[]) => {
+    sites: (MutationSite & { table: string })[];
+    outside: object[];
+    violations: object[];
+    unresolved: object[];
+  };
 }
 const requireCensus = createRequire(join(__dirname, "noop.cjs"));
 const census = requireCensus("./lib/directDbMutationCensus.cjs") as CensusModule;
-const { CANONICAL_WRITER_DIR, findDirectMutations, findMutationSitesInSource, describeSites } = census;
+const { CANONICAL_WRITER_DIR, findDirectMutations, findMutationSitesInSource, describeSites, findDynamicTableMutationsInSource } = census;
 import {
   BUSINESS_EVENT_STATES,
   createBusinessEvent,
@@ -74,18 +81,20 @@ const writerSites = sites.filter((s) => s.file === WRITER);
 
 // Detector self-proof: the four mutating ops AND the single-quote Deno style must
 // both be caught, otherwise NC1's file-level form could pass vacuously. The probe
-// interpolates the table name so this test file's own source never contains a
-// literal `.from('business_events')` chain — otherwise the census (correctly)
-// flags the probe itself and we would be tempted to exclude a path.
+// is BUILT BY CONCATENATION so this file's own text never contains a scanable
+// `.from(<table>)` chain — otherwise the census (correctly) flags the probe
+// itself and we would be tempted to exclude a path.
 const PROBE_TABLE = "business_" + "events";
 const probeSrc = [
-  `await supabase.from('${PROBE_TABLE}').insert({ a: 1 })`,
-  `await db.from("${PROBE_TABLE}").update({ a: 1 }).eq("id", x)`,
-  `await db.from(\`${PROBE_TABLE}\`).upsert({ a: 1 })`,
-  `await db.from('${PROBE_TABLE}').delete().eq('id', x)`,
+  "await supabase.from('" + PROBE_TABLE + "').insert({ a: 1 })",
+  'await db.from("' + PROBE_TABLE + '").update({ a: 1 }).eq("id", x)',
+  "await db.from(`" + PROBE_TABLE + "`).upsert({ a: 1 })",
+  "await db.from('" + PROBE_TABLE + "').delete().eq('id', x)",
 ].join("\n");
 const probeOps = findMutationSitesInSource(probeSrc, "probe.ts", PROBE_TABLE).map((s) => s.op).sort();
-check("D1d the probe itself is not a census hit (no path exclusion needed)", findMutationSitesInSource(read("scripts/business-event-authority-test.ts"), "self.ts", "business_events").length === 0, "this test file contains a literal business_events chain");
+const selfLiteral = findMutationSitesInSource(read("scripts/business-event-authority-test.ts"), "self.ts", "business_events");
+const selfDynamic = findDynamicTableMutationsInSource(read("scripts/business-event-authority-test.ts"), "self.ts", ["business_events"]);
+check("D1d the probe itself is not a census hit (no path exclusion needed)", selfLiteral.length === 0 && selfDynamic.sites.length === 0 && selfDynamic.unresolved.length === 0, `literal=${selfLiteral.length} dynamic=${selfDynamic.sites.length} unresolved=${selfDynamic.unresolved.length}`);
 
 check("D0 no business_events mutation outside the canonical writer", offenders.length === 0, describeSites(sites.filter((s) => !s.file.startsWith(CANONICAL_WRITER_DIR))));
 check("D1 exactly one canonical authority file holds every mutation", authorityFiles.length === 1 && authorityFiles[0] === WRITER, `authority files=${authorityFiles.join(", ")}`);
