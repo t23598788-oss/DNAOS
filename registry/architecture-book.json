@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-23T01:52:00.229Z",
+  "generated_at": "2026-09-23T02:22:19.983Z",
   "version": 1,
   "nodes": [
     {
@@ -75492,26 +75492,26 @@
         {
           "name": "resolveConnectorProvider",
           "kind": "function",
-          "line_start": 309,
-          "line_end": 316
+          "line_start": 318,
+          "line_end": 325
         },
         {
           "name": "listNormalizedProviders",
           "kind": "function",
-          "line_start": 363,
-          "line_end": 531
+          "line_start": 372,
+          "line_end": 540
         },
         {
           "name": "ProviderReconciliationEvent",
           "kind": "interface",
-          "line_start": 533,
-          "line_end": 543
+          "line_start": 542,
+          "line_end": 552
         },
         {
           "name": "reconcileProviders",
           "kind": "function",
-          "line_start": 583,
-          "line_end": 642
+          "line_start": 592,
+          "line_end": 651
         }
       ],
       "import_sites": [
@@ -84143,6 +84143,110 @@
           "line_end": 49
         }
       ]
+    },
+    {
+      "id": "module:scripts/place-discovery-test.ts",
+      "type": "Module",
+      "layer": "scripts",
+      "name_en": "scripts/place-discovery-test.ts",
+      "purpose_th": "Regression test for engines/place-discovery.ts.",
+      "exports": [],
+      "status": "OK",
+      "runtime_entry_point": true,
+      "internal_dependencies": [
+        "module:engines/place-discovery.ts"
+      ],
+      "dependents": [],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "scripts",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "import_sites": [
+        {
+          "specifier": "@/engines/place-discovery",
+          "line": 15,
+          "resolved_target": "engines/place-discovery.ts"
+        }
+      ]
+    },
+    {
+      "id": "module:engines/place-discovery.ts",
+      "type": "Module",
+      "layer": "engines",
+      "name_en": "engines/place-discovery.ts",
+      "purpose_th": "External place discovery for construction-material suppliers.",
+      "exports": [
+        "DiscoveredPlace",
+        "GooglePlacesDiscoveryOptions",
+        "KHON_KAEN_MATERIAL_DISCOVERY_QUERIES",
+        "PlaceDiscoveryResult",
+        "discoverKhonKaenMaterialPlaces",
+        "searchGooglePlaces"
+      ],
+      "status": "OK",
+      "runtime_entry_point": false,
+      "internal_dependencies": [],
+      "dependents": [
+        "module:scripts/place-discovery-test.ts"
+      ],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "engines",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "symbols": [
+        {
+          "name": "DiscoveredPlace",
+          "kind": "interface",
+          "line_start": 14,
+          "line_end": 25
+        },
+        {
+          "name": "PlaceDiscoveryResult",
+          "kind": "interface",
+          "line_start": 27,
+          "line_end": 32
+        },
+        {
+          "name": "GooglePlacesDiscoveryOptions",
+          "kind": "interface",
+          "line_start": 34,
+          "line_end": 38
+        },
+        {
+          "name": "KHON_KAEN_MATERIAL_DISCOVERY_QUERIES",
+          "kind": "const",
+          "line_start": 51,
+          "line_end": 61
+        },
+        {
+          "name": "searchGooglePlaces",
+          "kind": "function",
+          "line_start": 83,
+          "line_end": 152
+        },
+        {
+          "name": "discoverKhonKaenMaterialPlaces",
+          "kind": "function",
+          "line_start": 159,
+          "line_end": 184
+        }
+      ]
     }
   ],
   "edges": [
@@ -88078,6 +88182,11 @@
     },
     {
       "source": "layer:engines",
+      "target": "module:engines/place-discovery.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:engines",
       "target": "module:engines/presentation/event-style.ts",
       "label": "contains"
     },
@@ -89584,6 +89693,11 @@
     {
       "source": "layer:scripts",
       "target": "module:scripts/package-test.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:scripts",
+      "target": "module:scripts/place-discovery-test.ts",
       "label": "contains"
     },
     {
@@ -105237,6 +105351,11 @@
       "label": "imports"
     },
     {
+      "source": "module:scripts/place-discovery-test.ts",
+      "target": "module:engines/place-discovery.ts",
+      "label": "imports"
+    },
+    {
       "source": "module:scripts/railway-adapter-test.ts",
       "target": "module:engines/connectors/tester.ts",
       "label": "imports"
@@ -106523,8 +106642,8 @@
     }
   ],
   "summary": {
-    "total": 1231,
-    "ok": 1231,
+    "total": 1233,
+    "ok": 1233,
     "broken": 0,
     "unused": 0,
     "unregistered": 0

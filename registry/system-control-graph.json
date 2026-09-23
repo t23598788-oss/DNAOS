@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-23T01:52:00.601Z",
+  "generated_at": "2026-09-23T02:22:20.338Z",
   "nodes": [
     {
       "id": "layer:core",
@@ -29127,6 +29127,44 @@
       "cost_source": "UNKNOWN"
     },
     {
+      "id": "module:scripts/place-discovery-test.ts",
+      "name": "scripts/place-discovery-test.ts",
+      "type": "Module",
+      "layer": "scripts",
+      "source_file": "scripts/place-discovery-test.ts",
+      "status": "OK",
+      "runtime_callable": true,
+      "provider": "UNKNOWN",
+      "dependencies": [
+        "module:engines/place-discovery.ts"
+      ],
+      "dependents": [],
+      "commands": [],
+      "events": [],
+      "capabilities": [],
+      "health": "OK",
+      "cost_source": "UNKNOWN"
+    },
+    {
+      "id": "module:engines/place-discovery.ts",
+      "name": "engines/place-discovery.ts",
+      "type": "Module",
+      "layer": "engines",
+      "source_file": "engines/place-discovery.ts",
+      "status": "OK",
+      "runtime_callable": false,
+      "provider": "UNKNOWN",
+      "dependencies": [],
+      "dependents": [
+        "module:scripts/place-discovery-test.ts"
+      ],
+      "commands": [],
+      "events": [],
+      "capabilities": [],
+      "health": "OK",
+      "cost_source": "UNKNOWN"
+    },
+    {
       "id": "command:invoice.items",
       "name": "invoice.items",
       "type": "Command",
@@ -39690,6 +39728,11 @@
     },
     {
       "source": "layer:engines",
+      "target": "module:engines/place-discovery.ts",
+      "type": "governed_by"
+    },
+    {
+      "source": "layer:engines",
       "target": "module:engines/presentation/event-style.ts",
       "type": "governed_by"
     },
@@ -41196,6 +41239,11 @@
     {
       "source": "layer:scripts",
       "target": "module:scripts/package-test.ts",
+      "type": "governed_by"
+    },
+    {
+      "source": "layer:scripts",
+      "target": "module:scripts/place-discovery-test.ts",
       "type": "governed_by"
     },
     {
@@ -56849,6 +56897,11 @@
       "type": "imports"
     },
     {
+      "source": "module:scripts/place-discovery-test.ts",
+      "target": "module:engines/place-discovery.ts",
+      "type": "imports"
+    },
+    {
       "source": "module:scripts/railway-adapter-test.ts",
       "target": "module:engines/connectors/tester.ts",
       "type": "imports"
@@ -59640,9 +59693,9 @@
     }
   ],
   "summary": {
-    "total_nodes": 1630,
-    "total_edges": 4776,
-    "modules": 1231,
+    "total_nodes": 1632,
+    "total_edges": 4779,
+    "modules": 1233,
     "layers": 9,
     "commands": 99,
     "events": 60,
@@ -59651,8 +59704,8 @@
     "drivers": 11,
     "connector_stages": 5,
     "module_health": {
-      "total": 1231,
-      "ok": 1231,
+      "total": 1233,
+      "ok": 1233,
       "broken": 0,
       "unused": 0,
       "unregistered": 0
@@ -59666,7 +59719,7 @@
     "unknown_field_counts": {
       "nodes_with_unknown_source_file": 82,
       "nodes_with_unknown_status": 159,
-      "nodes_with_unknown_provider": 1606
+      "nodes_with_unknown_provider": 1608
     },
     "unknown_dimensions": [
       "ai_model_registry",

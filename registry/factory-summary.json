@@ -1,19 +1,19 @@
 {
-  "generated_at": "2026-09-23T01:56:46.415Z",
+  "generated_at": "2026-09-23T02:22:45.759Z",
   "policy": "Phase 1.1 (Factory Constitution) — Factory Summary + Coverage Report. Read-only analysis; no cleanup, no move, no delete, no merge, no auto-fix performed to produce this.",
   "factory_count": 12,
-  "total_modules": 1231,
+  "total_modules": 1233,
   "modules_per_factory": {
     "executive-office": 6,
     "architecture-office": 95,
     "software-factory": 447,
     "ai-factory": 57,
-    "business-factory": 181,
+    "business-factory": 182,
     "communication-factory": 28,
     "document-factory": 24,
     "runtime-factory": 44,
     "infrastructure-factory": 112,
-    "qa-factory": 98,
+    "qa-factory": 99,
     "deployment-factory": 75,
     "operations-center": 21
   },
@@ -24,7 +24,7 @@
   "unknown_count": 43,
   "conflict_count": 0,
   "coverage": {
-    "modules_with_factory_owner": 1188,
+    "modules_with_factory_owner": 1190,
     "coverage_percent": 96.5,
     "unknown_modules": [
       "app/business-workspace-template/documents/page.tsx",

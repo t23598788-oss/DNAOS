@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-09-23T01:52:00.601Z",
-  "total_nodes": 1630,
-  "total_edges": 4776,
-  "modules": 1231,
+  "generated_at": "2026-09-23T02:22:20.338Z",
+  "total_nodes": 1632,
+  "total_edges": 4779,
+  "modules": 1233,
   "layers": 9,
   "commands": 99,
   "events": 60,
@@ -11,8 +11,8 @@
   "drivers": 11,
   "connector_stages": 5,
   "module_health": {
-    "total": 1231,
-    "ok": 1231,
+    "total": 1233,
+    "ok": 1233,
     "broken": 0,
     "unused": 0,
     "unregistered": 0
@@ -26,7 +26,7 @@
   "unknown_field_counts": {
     "nodes_with_unknown_source_file": 82,
     "nodes_with_unknown_status": 159,
-    "nodes_with_unknown_provider": 1606
+    "nodes_with_unknown_provider": 1608
   },
   "unknown_dimensions": [
     "ai_model_registry",

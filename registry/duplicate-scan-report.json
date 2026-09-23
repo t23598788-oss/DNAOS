@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-23T01:57:23.552Z",
+  "generated_at": "2026-09-23T02:23:49.363Z",
   "policy": "Report only — this script NEVER deletes or moves anything. safeToRemove is a conservative suggestion (untracked + unreferenced + a real original exists), not an action. A human must set ownerConfirmation before any removal happens, and removal itself is a separate, manual step not performed by this script.",
   "total_found": 2,
   "suggested_safe_count": 0,
@@ -20,7 +20,7 @@
       "originalExists": true,
       "gitTracked": false,
       "referencedElsewhere": true,
-      "lastModified": "2026-09-23T01:57:03.420Z",
+      "lastModified": "2026-09-23T02:23:27.276Z",
       "safeToRemove": false,
       "ownerConfirmation": null
     }

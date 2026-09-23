@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-23T01:56:46.413Z",
+  "generated_at": "2026-09-23T02:22:45.756Z",
   "policy": "Per-module Factory mapping only — no file was moved. See registry/factory-registry.json for the Factory contracts this maps into.",
   "modules": {
     "app/.well-known/oauth-authorization-server/route.ts": {
@@ -7329,6 +7329,15 @@
         "business-domain engine (remaining)"
       ]
     },
+    "engines/place-discovery.ts": {
+      "factoryOwner": "business-factory",
+      "domain": "Business",
+      "capability": "engines",
+      "responsibility": "External place discovery for construction-material suppliers.",
+      "evidence": [
+        "business-domain engine (remaining)"
+      ]
+    },
     "engines/presentation/event-style.ts": {
       "factoryOwner": "document-factory",
       "domain": "Documents",
@@ -9822,6 +9831,15 @@
       "domain": "Quality",
       "capability": "scripts",
       "responsibility": "Capability Packaging Regression Suite (owner, 2026-08-07, Software Factory Step 10) — ตรวจ packageCapabilities()/checkPackageIntegrity() ต่อ capability จริง ...",
+      "evidence": [
+        "real test file — QA Factory owns all test code regardless of domain"
+      ]
+    },
+    "scripts/place-discovery-test.ts": {
+      "factoryOwner": "qa-factory",
+      "domain": "Quality",
+      "capability": "scripts",
+      "responsibility": "Regression test for engines/place-discovery.ts.",
       "evidence": [
         "real test file — QA Factory owns all test code regardless of domain"
       ]

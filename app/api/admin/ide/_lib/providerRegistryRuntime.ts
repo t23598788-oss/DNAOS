@@ -245,6 +245,7 @@ const ENV_VAR_TO_PROVIDER: Record<string, string> = {
   OPENCLAW_INTERNAL_SECRET: "openclaw",
   OPENAI_API_KEY: "openai",
   RUNPOD_API_KEY: "runpod",
+  GOOGLE_PLACES_API_KEY: "google_places", GOOGLE_MAPS_API_KEY: "google_places",
   SUPABASE_MANAGEMENT_API_TOKEN: "supabase", SUPABASE_SERVICE_ROLE_KEY: "supabase", NEXT_PUBLIC_SUPABASE_URL: "supabase", NEXT_PUBLIC_SUPABASE_ANON_KEY: "supabase",
 };
 
@@ -284,6 +285,14 @@ const MANUAL_DISCOVERY: { provider_id: string; capabilities: string[]; evidence:
     capabilities: ["geocoding", "map_search"],
     evidence: [
       ["manual_discovery:2026-08-11", "engines/geocoding.ts — real client gated on process.env.LONGDO_MAP_API_KEY (absent from .env.local); also referenced by engines/equipment/relay-command.ts, scripts/sync-infrastructure-dependencies.ts, services/ai/bridge-claude.ts"],
+    ],
+  },
+  {
+    provider_id: "google_places",
+    capabilities: ["place_discovery", "material_supplier_search"],
+    evidence: [
+      ["manual_discovery:2026-09-23", "engines/place-discovery.ts — real, read-only Google Places API (New) Text Search client (searchGooglePlaces / discoverKhonKaenMaterialPlaces). Credential resolved as options.apiKey ?? process.env.GOOGLE_PLACES_API_KEY ?? process.env.GOOGLE_MAPS_API_KEY and failing closed with a structured result when absent (same pattern as engines/geocoding.ts); a caller may inject the key it resolved elsewhere, so no second credential path is introduced. Writes no table — it does not touch pit_profiles, pit_materials, contacts or prices"],
+      ["manual_discovery:2026-09-23", "scripts/place-discovery-test.ts + package.json#place-discovery:test — regression test with the network stubbed, so no live Google request is made; also .github/workflows/place-discovery-test.yml"],
     ],
   },
 ];

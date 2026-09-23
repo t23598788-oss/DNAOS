@@ -14965,6 +14965,29 @@
         "stableGeneratedAt"
       ],
       "status": "active"
+    },
+    "scripts/place-discovery-test.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "Regression test for engines/place-discovery.ts.",
+      "purpose_th": "Regression test for engines/place-discovery.ts.",
+      "exports": [],
+      "status": "active"
+    },
+    "engines/place-discovery.ts": {
+      "owner": "engines",
+      "layer": "engines",
+      "purpose": "External place discovery for construction-material suppliers.",
+      "purpose_th": "External place discovery for construction-material suppliers.",
+      "exports": [
+        "DiscoveredPlace",
+        "GooglePlacesDiscoveryOptions",
+        "KHON_KAEN_MATERIAL_DISCOVERY_QUERIES",
+        "PlaceDiscoveryResult",
+        "discoverKhonKaenMaterialPlaces",
+        "searchGooglePlaces"
+      ],
+      "status": "active"
     }
   },
   "excluded": [
