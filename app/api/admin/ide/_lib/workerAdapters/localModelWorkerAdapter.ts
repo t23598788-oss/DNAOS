@@ -61,7 +61,12 @@ export const ollamaLocalAdapter: WorkerAdapter = {
     const prompt = `Respond with ONLY a single, valid JSON object {"files":[{"path":"<real file path>","operation":"CREATE|MODIFY|DELETE|RENAME","content":"<new content or null>","purpose":"<why>","risk":"LOW|MEDIUM|HIGH"}]}. Task: ${request.taskDescription}\n\nReal file contents:\n${fileBlocks}`;
     const result = await invokeAiGateway({
       origin: "worker-bridge", ownerId: request.workspaceSessionId, sessionId: request.workspaceSessionId,
-      capability: "conversation.answer", effect: "draft", prompt, providerHint: "ollama", maxTokens: Math.min(4000, request.maxTokens),
+      capability: "conversation.answer", effect: "draft", prompt, maxTokens: Math.min(4000, request.maxTokens),
+    }, {
+      // A5.2 — this tool runs the LOCAL model on purpose (runtime constraint),
+      // never as a business provider preference. The capability above is what
+      // business speaks; the constraint is a privileged, runtime-level fact.
+      adapterConstraint: { adapterId: "ollama", reason: "runtime" },
     });
     lastLiveCallAt = new Date().toISOString();
     lastLiveCallOk = result.ok;

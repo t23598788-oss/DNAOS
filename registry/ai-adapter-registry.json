@@ -1,0 +1,112 @@
+{
+  "version": 1,
+  "kind": "ai_adapter_registry",
+  "note": "ONE AI ADAPTER REGISTRY (PHASE A4.1, owner 2026-09-23). Machine-readable declaration of every AI adapter DNA OS can select. This is the ONLY place where 'which provider/model sits behind which capability' is expressed; business callers name a capability only. It deliberately does NOT reuse registry/AI_REGISTRY.json, which declares AI agents/tools (claude-code, gemini-cli, …) with different semantics. Model identity lives in `configuration`, never in a capability id. A declared-but-not-executable provider is not an adapter: see `execution.status`.",
+  "authority": {
+    "entry": "services/ai/gateway.ts#invokeAiGateway (unchanged public entry)",
+    "selection": "services/ai/resolver.ts (single logical selection authority, same contract in every runtime)"
+  },
+  "policy": {
+    "selection": "registry_order_then_adapter_priority",
+    "fallback": "none",
+    "fail_closed": true,
+    "tie_break": "priority ascending, then adapter id ascending (deterministic)"
+  },
+  "capabilities": {
+    "conversation.answer": "answer a customer/user conversation turn (proven caller: workerAdapters/localModelWorkerAdapter.ts)",
+    "intent.classify": "classify what the caller is asking for",
+    "screen.describe": "read a screen capture and say what is on it / what to click next",
+    "document.ocr": "read text out of an image/PDF document",
+    "document.event_extract": "extract structured business fields out of a document",
+    "document.crop": "locate or crop the document region inside an image",
+    "memory.draft": "draft durable customer memory notes",
+    "material.resolve": "resolve free-text material wording to a material",
+    "code.generate": "produce a code/proposal artifact for Owner approval",
+    "text.entity_extract": "A5.5 ADDED — extract structured business entities (material/quantity/contact/project/destination/vehicle) from free Thai text. Source evidence: supabase/functions/line-webhook-v2/helpers.ts#extractStructuredEntitiesWithGemini (named by the WORK, not by Gemini)",
+    "location.geocode": "A5.5 ADDED — turn a written address into latitude/longitude. Source evidence: supabase/functions/line-webhook-v2/helpers.ts#resolveAddressToCoordinates (named by the WORK, not by Gemini)"
+  },
+  "adapters": [
+    {
+      "id": "ollama",
+      "kind": "ai",
+      "provider": "ollama",
+      "runtimes": ["next", "device"],
+      "capabilities": ["conversation.answer", "intent.classify", "screen.describe", "document.crop", "memory.draft", "material.resolve"],
+      "enabled": true,
+      "priority": 10,
+      "authorization": { "requirement": "none", "note": "self-hosted runtime — reachability IS the configuration (AI_GATEWAY_OLLAMA_URL); no third-party credential" },
+      "configuration": {
+        "required_any_env": ["AI_GATEWAY_OLLAMA_URL"],
+        "endpoint_env": "AI_GATEWAY_OLLAMA_URL",
+        "model_env": "AI_GATEWAY_OLLAMA_MODEL",
+        "default_model": "thawatchai",
+        "unconfigured_error": "AI_GATEWAY_OLLAMA_NOT_CONFIGURED"
+      },
+      "execution": { "status": "gateway-adapter", "note": "moved out of gateway.ts's inline ollamaProvider() with behaviour unchanged (same URL, model env + default, 60s timeout, /api/generate body, AI_GATEWAY_EMPTY_PROVIDER_RESULT check)" },
+      "declared_by": "services/ai/adapters.ts#ollamaAdapter",
+      "evidence": "A0–A3 census: services/ai/gateway.ts:160-183 (inline impl). The device vision-OCR path (local-runtime/ai-task-watcher.mjs) is a SEPARATE runtime path, reconciled in A6+, and does not route through this registry yet."
+    },
+    {
+      "id": "anthropic",
+      "kind": "ai",
+      "provider": "anthropic",
+      "runtimes": ["next"],
+      "capabilities": ["document.ocr", "document.event_extract", "code.generate"],
+      "enabled": true,
+      "priority": 20,
+      "authorization": { "requirement": "credential", "note": "ANTHROPIC_API_KEY presence is the configuration check (same check the pre-A4 gateway made)" },
+      "configuration": {
+        "required_any_env": ["ANTHROPIC_API_KEY"],
+        "endpoint_env": null,
+        "model_env": null,
+        "default_model": "claude-haiku-4-5-20251001",
+        "unconfigured_error": "AI_GATEWAY_ANTHROPIC_NOT_CONFIGURED"
+      },
+      "execution": { "status": "gateway-adapter", "note": "moved out of gateway.ts's inline anthropicProvider(); the model literal is kept on purpose — A4.2 forbids model replacement in this phase" },
+      "declared_by": "services/ai/adapters.ts#anthropicAdapter",
+      "evidence": "A0–A3 census: services/ai/gateway.ts:132-157 (inline impl) + the old CAPABILITY_PROVIDER map (document.ocr/document.event_extract/code.generate -> anthropic)"
+    },
+    {
+      "id": "gemini",
+      "kind": "ai",
+      "provider": "google-gemini",
+      "runtimes": ["deno", "next"],
+      "capabilities": ["text.entity_extract", "location.geocode"],
+      "enabled": true,
+      "priority": 30,
+      "authorization": { "requirement": "credential", "note": "GEMINI_API_KEY presence is the configuration check" },
+      "configuration": {
+        "required_any_env": ["GEMINI_API_KEY"],
+        "endpoint_env": null,
+        "model_env": "AI_GATEWAY_GEMINI_MODEL",
+        "default_model": "gemini-2.5-flash-lite",
+        "unconfigured_error": "AI_GATEWAY_GEMINI_NOT_CONFIGURED"
+      },
+      "execution": { "status": "gateway-adapter", "note": "declared so these two capabilities have a real adapter; the Deno callers in line-webhook-v2/helpers.ts are NOT cut over in A5 (scope limit A5.7) and keep their current direct call" },
+      "declared_by": "services/ai/adapters.ts#geminiAdapter",
+      "evidence": "A0–A3 census: supabase/functions/line-webhook-v2/helpers.ts:634,675 (real direct HTTP calls, gemini-2.5-flash-lite, key from Deno.env GEMINI_API_KEY) — the only real Gemini callers in the repo"
+    },
+    {
+      "id": "digitalocean",
+      "kind": "ai",
+      "provider": "digitalocean-inference",
+      "runtimes": ["next"],
+      "capabilities": ["code.generate"],
+      "enabled": false,
+      "priority": 40,
+      "authorization": { "requirement": "credential", "note": "credential resolves through the connector (header_prefix/api_key), never a raw env read from a business caller" },
+      "configuration": {
+        "required_any_env": ["DIGITALOCEAN_INFERENCE_API_KEY"],
+        "endpoint_env": "DIGITALOCEAN_INFERENCE_API_URL",
+        "model_env": "DIGITALOCEAN_INFERENCE_MODEL",
+        "default_model": "llama3-8b-instruct",
+        "unconfigured_error": "AI_GATEWAY_DIGITALOCEAN_NOT_CONFIGURED"
+      },
+      "execution": { "status": "worker-adapter-only", "note": "its real execution path today is app/api/admin/ide/_lib/workerAdapters/digitalOceanWorkerAdapter.ts (worker layer, connector-resolved credential) — NOT the AI gateway. Declared so it is discoverable; kept DISABLED so the resolver cannot silently change the effective routing of code.generate (A5.1 parity). Cutover belongs to A6+." },
+      "declared_by": "(no gateway adapter implementation yet — deliberately absent)",
+      "evidence": "A0–A3 census: digitalOceanWorkerAdapter.ts:21,41,53,209,315 (DIGITALOCEAN_INFERENCE_MODEL/API_KEY handling + connector credential cache)"
+    }
+  ]
+}
+
+
