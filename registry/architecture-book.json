@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-23T02:22:19.983Z",
+  "generated_at": "2026-09-23T02:52:09.082Z",
   "version": 1,
   "nodes": [
     {
@@ -13152,6 +13152,7 @@
         "module:app/api/internal/line/document-artifact/route.ts",
         "module:app/api/internal/line/token/route.ts",
         "module:app/workspace-preview/presentationGatewayDeps.ts",
+        "module:app/workspace/_lib/partnerDisplayModel.ts",
         "module:cognitive/pipeline.ts",
         "module:engines/business.ts",
         "module:engines/canonical/artifact-write.ts",
@@ -17912,6 +17913,7 @@
         "module:core/auth/requireAuth.ts",
         "module:core/auth/requireAuthPage.ts",
         "module:core/auth/resolveDestination.ts",
+        "module:core/navigation/resolveCapabilityAccess.ts",
         "module:core/navigation/resolveNavItems.ts",
         "module:core/workspace/application.ts",
         "module:core/workspace/applicationRegistry.ts",
@@ -29699,7 +29701,9 @@
       "runtime_entry_point": true,
       "internal_dependencies": [
         "module:app/workspace/BusinessWorkspace.tsx",
-        "module:core/auth/session.ts"
+        "module:app/workspace/_lib/partnerDisplayModel.ts",
+        "module:core/auth/session.ts",
+        "module:core/navigation/resolveCapabilityAccess.ts"
       ],
       "dependents": [],
       "data_tables": "UNKNOWN",
@@ -29718,8 +29722,8 @@
         {
           "name": "WorkspacePage",
           "kind": "function",
-          "line_start": 15,
-          "line_end": 23
+          "line_start": 26,
+          "line_end": 52
         }
       ],
       "import_sites": [
@@ -29729,9 +29733,19 @@
           "resolved_target": "core/auth/session.ts"
         },
         {
-          "specifier": "./BusinessWorkspace",
+          "specifier": "@/core/navigation/resolveCapabilityAccess",
           "line": 3,
+          "resolved_target": "core/navigation/resolveCapabilityAccess.ts"
+        },
+        {
+          "specifier": "./BusinessWorkspace",
+          "line": 4,
           "resolved_target": "app/workspace/BusinessWorkspace.tsx"
+        },
+        {
+          "specifier": "./_lib/partnerDisplayModel",
+          "line": 5,
+          "resolved_target": "app/workspace/_lib/partnerDisplayModel.ts"
         }
       ]
     },
@@ -82648,6 +82662,7 @@
       "runtime_entry_point": false,
       "internal_dependencies": [
         "module:app/admin/ui-gallery/_lib/BusinessDisplayRenderer.tsx",
+        "module:app/admin/ui-gallery/_lib/businessDisplayModel.ts",
         "module:app/workspace/_lib/businessTools.ts",
         "module:presentation/feedback/EmptyState.tsx",
         "module:presentation/panels/ActionBar.tsx",
@@ -82673,39 +82688,44 @@
         {
           "name": "BusinessWorkspace",
           "kind": "function",
-          "line_start": 38,
-          "line_end": 153
+          "line_start": 46,
+          "line_end": 187
         }
       ],
       "import_sites": [
         {
           "specifier": "@/presentation/shell/navigation/IconRail",
-          "line": 15,
+          "line": 20,
           "resolved_target": "presentation/shell/navigation/IconRail.tsx"
         },
         {
           "specifier": "@/presentation/panels/ActionBar",
-          "line": 16,
+          "line": 21,
           "resolved_target": "presentation/panels/ActionBar.tsx"
         },
         {
           "specifier": "@/presentation/feedback/EmptyState",
-          "line": 17,
+          "line": 22,
           "resolved_target": "presentation/feedback/EmptyState.tsx"
         },
         {
           "specifier": "@/app/admin/ui-gallery/_lib/BusinessDisplayRenderer",
-          "line": 18,
+          "line": 23,
           "resolved_target": "app/admin/ui-gallery/_lib/BusinessDisplayRenderer.tsx"
         },
         {
+          "specifier": "@/app/admin/ui-gallery/_lib/businessDisplayModel",
+          "line": 24,
+          "resolved_target": "app/admin/ui-gallery/_lib/businessDisplayModel.ts"
+        },
+        {
           "specifier": "@/presentation/shell/ide/TabStrip",
-          "line": 19,
+          "line": 25,
           "resolved_target": "presentation/shell/ide/TabStrip.tsx"
         },
         {
           "specifier": "./_lib/businessTools",
-          "line": 20,
+          "line": 26,
           "resolved_target": "app/workspace/_lib/businessTools.ts"
         }
       ]
@@ -82891,7 +82911,9 @@
         "module:app/admin/ui-gallery/_lib/businessDisplayModel.ts"
       ],
       "dependents": [
-        "module:app/workspace/BusinessWorkspace.tsx"
+        "module:app/workspace/BusinessWorkspace.tsx",
+        "module:app/workspace/_lib/partnerDisplayModel.ts",
+        "module:scripts/workspace-capability-access-test.ts"
       ],
       "data_tables": "UNKNOWN",
       "business_capabilities": "UNKNOWN",
@@ -83314,7 +83336,9 @@
       "dependents": [
         "module:app/admin/ui-gallery/_lib/BusinessDisplayRenderer.tsx",
         "module:app/admin/ui-gallery/business-display/page.tsx",
-        "module:app/workspace/_lib/businessTools.ts"
+        "module:app/workspace/BusinessWorkspace.tsx",
+        "module:app/workspace/_lib/businessTools.ts",
+        "module:app/workspace/_lib/partnerDisplayModel.ts"
       ],
       "data_tables": "UNKNOWN",
       "business_capabilities": "UNKNOWN",
@@ -84245,6 +84269,188 @@
           "kind": "function",
           "line_start": 159,
           "line_end": 184
+        }
+      ]
+    },
+    {
+      "id": "module:core/navigation/resolveCapabilityAccess.ts",
+      "type": "Module",
+      "layer": "core",
+      "name_en": "core/navigation/resolveCapabilityAccess.ts",
+      "purpose_th": "Central Authority — Business Capability Access resolver (SLICE-1 of the",
+      "exports": [
+        "isCapabilityAllowed",
+        "resolveAllowedCapabilities"
+      ],
+      "status": "OK",
+      "runtime_entry_point": false,
+      "internal_dependencies": [
+        "module:core/auth/session.ts",
+        "module:registry/permissions.json.ts"
+      ],
+      "dependents": [
+        "module:app/workspace/page.tsx",
+        "module:scripts/workspace-capability-access-test.ts"
+      ],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "core",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "symbols": [
+        {
+          "name": "isCapabilityAllowed",
+          "kind": "function",
+          "line_start": 29,
+          "line_end": 32
+        },
+        {
+          "name": "resolveAllowedCapabilities",
+          "kind": "function",
+          "line_start": 40,
+          "line_end": 42
+        }
+      ],
+      "import_sites": [
+        {
+          "specifier": "@/registry/permissions.json",
+          "line": 22,
+          "resolved_target": "registry/permissions.json.ts"
+        },
+        {
+          "specifier": "@/core/auth/session",
+          "line": 23,
+          "resolved_target": "core/auth/session.ts"
+        }
+      ]
+    },
+    {
+      "id": "module:app/workspace/_lib/partnerDisplayModel.ts",
+      "type": "Module",
+      "layer": "app",
+      "name_en": "app/workspace/_lib/partnerDisplayModel.ts",
+      "purpose_th": "BUSINESS WORKSPACE — Company/Partner master → BusinessDisplayModel (SLICE-1)",
+      "exports": [
+        "PARTNER_TABLE_TARGET_ID",
+        "buildPartnerListModel",
+        "buildPartnerTargets",
+        "loadPartnerWorkspace"
+      ],
+      "status": "OK",
+      "runtime_entry_point": false,
+      "internal_dependencies": [
+        "module:app/admin/ui-gallery/_lib/businessDisplayModel.ts",
+        "module:app/workspace/_lib/businessTools.ts",
+        "module:services/supabase/queries.ts"
+      ],
+      "dependents": [
+        "module:app/workspace/page.tsx"
+      ],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "app",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "symbols": [
+        {
+          "name": "PARTNER_TABLE_TARGET_ID",
+          "kind": "const",
+          "line_start": 27,
+          "line_end": 27
+        },
+        {
+          "name": "buildPartnerListModel",
+          "kind": "function",
+          "line_start": 49,
+          "line_end": 106
+        },
+        {
+          "name": "buildPartnerTargets",
+          "kind": "function",
+          "line_start": 108,
+          "line_end": 179
+        },
+        {
+          "name": "loadPartnerWorkspace",
+          "kind": "function",
+          "line_start": 186,
+          "line_end": 197
+        }
+      ],
+      "import_sites": [
+        {
+          "specifier": "@/services/supabase/queries",
+          "line": 21,
+          "resolved_target": "services/supabase/queries.ts"
+        },
+        {
+          "specifier": "@/app/admin/ui-gallery/_lib/businessDisplayModel",
+          "line": 22,
+          "resolved_target": "app/admin/ui-gallery/_lib/businessDisplayModel.ts"
+        },
+        {
+          "specifier": "./businessTools",
+          "line": 23,
+          "resolved_target": "app/workspace/_lib/businessTools.ts"
+        }
+      ]
+    },
+    {
+      "id": "module:scripts/workspace-capability-access-test.ts",
+      "type": "Module",
+      "layer": "scripts",
+      "name_en": "scripts/workspace-capability-access-test.ts",
+      "purpose_th": "Regression test for the /workspace CENTRAL AUTHORITY (SLICE-1, owner decision",
+      "exports": [],
+      "status": "OK",
+      "runtime_entry_point": true,
+      "internal_dependencies": [
+        "module:app/workspace/_lib/businessTools.ts",
+        "module:core/navigation/resolveCapabilityAccess.ts",
+        "module:registry/permissions.json.ts"
+      ],
+      "dependents": [],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "scripts",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "import_sites": [
+        {
+          "specifier": "@/registry/permissions.json",
+          "line": 26,
+          "resolved_target": "registry/permissions.json.ts"
+        },
+        {
+          "specifier": "@/core/navigation/resolveCapabilityAccess",
+          "line": 27,
+          "resolved_target": "core/navigation/resolveCapabilityAccess.ts"
+        },
+        {
+          "specifier": "@/app/workspace/_lib/businessTools",
+          "line": 28,
+          "resolved_target": "app/workspace/_lib/businessTools.ts"
         }
       ]
     }
@@ -87097,6 +87303,11 @@
     },
     {
       "source": "layer:app",
+      "target": "module:app/workspace/_lib/partnerDisplayModel.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:app",
       "target": "module:app/workspace/page.tsx",
       "label": "contains"
     },
@@ -87518,6 +87729,11 @@
     {
       "source": "layer:core",
       "target": "module:core/executor/registry.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:core",
+      "target": "module:core/navigation/resolveCapabilityAccess.ts",
       "label": "contains"
     },
     {
@@ -89873,6 +90089,11 @@
     {
       "source": "layer:scripts",
       "target": "module:scripts/worker-selector-test.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:scripts",
+      "target": "module:scripts/workspace-capability-access-test.ts",
       "label": "contains"
     },
     {
@@ -99497,6 +99718,11 @@
     },
     {
       "source": "module:app/workspace/BusinessWorkspace.tsx",
+      "target": "module:app/admin/ui-gallery/_lib/businessDisplayModel.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/workspace/BusinessWorkspace.tsx",
       "target": "module:app/workspace/_lib/businessTools.ts",
       "label": "imports"
     },
@@ -99526,13 +99752,38 @@
       "label": "imports"
     },
     {
+      "source": "module:app/workspace/_lib/partnerDisplayModel.ts",
+      "target": "module:app/admin/ui-gallery/_lib/businessDisplayModel.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/workspace/_lib/partnerDisplayModel.ts",
+      "target": "module:app/workspace/_lib/businessTools.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/workspace/_lib/partnerDisplayModel.ts",
+      "target": "module:services/supabase/queries.ts",
+      "label": "imports"
+    },
+    {
       "source": "module:app/workspace/page.tsx",
       "target": "module:app/workspace/BusinessWorkspace.tsx",
       "label": "imports"
     },
     {
       "source": "module:app/workspace/page.tsx",
+      "target": "module:app/workspace/_lib/partnerDisplayModel.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/workspace/page.tsx",
       "target": "module:core/auth/session.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/workspace/page.tsx",
+      "target": "module:core/navigation/resolveCapabilityAccess.ts",
       "label": "imports"
     },
     {
@@ -100423,6 +100674,16 @@
     {
       "source": "module:core/executor/registry.ts",
       "target": "module:core/shared/types.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:core/navigation/resolveCapabilityAccess.ts",
+      "target": "module:core/auth/session.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:core/navigation/resolveCapabilityAccess.ts",
+      "target": "module:registry/permissions.json.ts",
       "label": "imports"
     },
     {
@@ -105931,6 +106192,21 @@
       "label": "imports"
     },
     {
+      "source": "module:scripts/workspace-capability-access-test.ts",
+      "target": "module:app/workspace/_lib/businessTools.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:scripts/workspace-capability-access-test.ts",
+      "target": "module:core/navigation/resolveCapabilityAccess.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:scripts/workspace-capability-access-test.ts",
+      "target": "module:registry/permissions.json.ts",
+      "label": "imports"
+    },
+    {
       "source": "module:services/ai-connection/healthCheck.ts",
       "target": "module:services/ai-connection/statusRepository.ts",
       "label": "imports"
@@ -106642,8 +106918,8 @@
     }
   ],
   "summary": {
-    "total": 1233,
-    "ok": 1233,
+    "total": 1236,
+    "ok": 1236,
     "broken": 0,
     "unused": 0,
     "unregistered": 0

@@ -10,12 +10,18 @@
  * reuse ของเดิมทั้งหมด: IconRail · ActionBar · EmptyState · TabStrip (extracted)
  * · BusinessDisplayRenderer (ตัวเดิม) — ไม่มี renderer/executor/scanner ใหม่
  * ไม่มี Top Bar · ไม่มี Bottom Bar ถาวร · ไม่มี pane ที่สาม
+ *
+ * SLICE-1 (owner decision D1=A, 2026-09-23): component นี้ "ไม่รู้จัก role" และ
+ * ห้าม hardcode role — ได้รับ allowedTools (tool key ที่ central authority
+ * registry/permissions.json#capability_access อนุญาตแล้ว) ผ่าน props เท่านั้น
+ * และใช้ liveModels/liveTargets แทนโมเดลตัวอย่างเมื่อมีข้อมูลจริงส่งมา
  */
 import { useRef, useState } from "react";
 import IconRail, { type IconRailItem } from "@/presentation/shell/navigation/IconRail";
 import ActionBar from "@/presentation/panels/ActionBar";
 import EmptyState from "@/presentation/feedback/EmptyState";
 import { BusinessDisplayRenderer } from "@/app/admin/ui-gallery/_lib/BusinessDisplayRenderer";
+import type { BusinessDisplayModel } from "@/app/admin/ui-gallery/_lib/businessDisplayModel";
 import { TabStrip, type Tab } from "@/presentation/shell/ide/TabStrip";
 import { TOOLS, OPEN_TARGETS, type OpenTarget } from "./_lib/businessTools";
 import { ChevronLeft, ChevronRight } from "lucide-react";
@@ -25,7 +31,8 @@ const LEFT_MIN = 200;
 const LEFT_MAX = 560;
 const RAIL_W = 64;
 
-/** รายการที่เปิดได้ต่อเครื่องมือ (กดจากฝั่งซ้าย → เปิด tab ฝั่งขวา) */
+/** รายการที่เปิดได้ต่อเครื่องมือ (กดจากฝั่งซ้าย → เปิด tab ฝั่งขวา)
+ *  id ที่ไม่มีอยู่ใน targets (OPEN_TARGETS + liveTargets) จะถูกข้ามอย่างปลอดภัย */
 const TOOL_TARGETS: Record<string, string[]> = {
   documents: ["d-sales", "d-invoice", "d-attach"],
   search: ["sr1"],
@@ -33,23 +40,38 @@ const TOOL_TARGETS: Record<string, string[]> = {
   connections: ["c1"],
   changes: ["d-attach"],
   problems: ["d-attach"],
+  people: ["partners-table"],
 };
 
-export function BusinessWorkspace() {
-  const [tool, setTool] = useState(TOOLS[0].key);
+export function BusinessWorkspace({
+  allowedTools,
+  liveModels = {},
+  liveTargets = {},
+}: {
+  /** tool key ที่ central authority อนุญาต — มาจาก server เท่านั้น (ไม่มี role ในไฟล์นี้) */
+  allowedTools: string[];
+  /** โมเดลที่สร้างจากข้อมูลจริงต่อ tool key — ไม่มี = ใช้โมเดลเดิมของ tool นั้น */
+  liveModels?: Record<string, BusinessDisplayModel>;
+  /** เป้าหมายฝั่งขวาที่สร้างจากข้อมูลจริง (รวมกับ OPEN_TARGETS) */
+  liveTargets?: Record<string, OpenTarget>;
+}) {
+  const tools = TOOLS.filter((t) => allowedTools.includes(t.key));
+  const targets: Record<string, OpenTarget> = { ...OPEN_TARGETS, ...liveTargets };
+
+  const [tool, setTool] = useState(tools[0]?.key ?? "");
   const [leftWidth, setLeftWidth] = useState(LEFT_DEFAULT);
   const [collapsed, setCollapsed] = useState(false);
   const [tabs, setTabs] = useState<OpenTarget[]>([]);
   const [activeTabId, setActiveTabId] = useState<string | null>(null);
   const dragging = useRef(false);
 
-  const activeTool = TOOLS.find((t) => t.key === tool) ?? TOOLS[0];
+  const activeTool = tools.find((t) => t.key === tool) ?? tools[0] ?? null;
   const activeTab = tabs.find((t) => t.id === activeTabId) ?? null;
 
-  const railItems: IconRailItem[] = TOOLS.map((t) => ({ key: t.key, label: t.label, icon: t.icon }));
+  const railItems: IconRailItem[] = tools.map((t) => ({ key: t.key, label: t.label, icon: t.icon }));
 
   function openTarget(id: string) {
-    const target = OPEN_TARGETS[id];
+    const target = targets[id];
     if (!target) return;
     setTabs((prev) => (prev.some((t) => t.id === id) ? prev : [...prev, target]));
     setActiveTabId(id);
@@ -63,12 +85,14 @@ export function BusinessWorkspace() {
   }
 
   const tabStripTabs: Tab[] = tabs.map((t) => ({ id: t.id, title: t.title, kind: "file", path: t.id }));
-  const targetActions = (TOOL_TARGETS[activeTool.key] ?? []).map((id) => ({
-    key: id,
-    label: OPEN_TARGETS[id]?.title ?? id,
-    icon: ChevronRight,
-    onClick: () => openTarget(id),
-  }));
+  const targetActions = (TOOL_TARGETS[activeTool?.key ?? ""] ?? [])
+    .filter((id) => targets[id])
+    .map((id) => ({
+      key: id,
+      label: targets[id].title,
+      icon: ChevronRight,
+      onClick: () => openTarget(id),
+    }));
 
   return (
     <div className="flex h-[100dvh] w-full overflow-hidden bg-[#F0EBE5] text-stone-800">
@@ -79,7 +103,7 @@ export function BusinessWorkspace() {
       {!collapsed && (
         <div className="flex flex-shrink-0 flex-col border-r border-[#E9E1D6] bg-[#FDFBF8]" style={{ width: leftWidth }}>
           <div className="flex items-center gap-2 border-b border-[#E9E1D6] px-3 py-2">
-            <span className="text-xs font-semibold">{activeTool.label}</span>
+            <span className="text-xs font-semibold">{activeTool?.label ?? "ไม่มีเครื่องมือ"}</span>
             <button
               type="button"
               onClick={() => setCollapsed(true)}
@@ -93,7 +117,17 @@ export function BusinessWorkspace() {
           {targetActions.length > 0 && <ActionBar actions={targetActions} />}
 
           <div className="flex-1 overflow-y-auto">
-            <BusinessDisplayRenderer model={activeTool.leftModel} onSelectItem={openTarget} />
+            {activeTool ? (
+              <BusinessDisplayRenderer
+                model={liveModels[activeTool.key] ?? activeTool.leftModel}
+                onSelectItem={openTarget}
+              />
+            ) : (
+              <EmptyState
+                message="ยังไม่ได้รับสิทธิ์ใช้งานเครื่องมือ"
+                hint="บัญชีนี้ยังไม่ได้รับอนุญาตให้เปิดเครื่องมือใดในพื้นที่ทำงานนี้"
+              />
+            )}
           </div>
         </div>
       )}

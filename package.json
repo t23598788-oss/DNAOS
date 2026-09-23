@@ -126,6 +126,7 @@
     "line-credential-path:test": "npx tsx scripts/line-credential-path-test.ts",
     "business-bridge:test": "npx tsx scripts/business-failure-bridge-test.ts",
     "place-discovery:test": "npx tsx scripts/place-discovery-test.ts",
+    "workspace-capability:test": "npx tsx scripts/workspace-capability-access-test.ts",
     "material-source-discovery:test": "npx tsx scripts/material-source-discovery-test.ts",
     "connect-core:test": "npx tsx scripts/connect-core-acceptance-test.ts",
     "state:reconcile": "npx tsx scripts/state-reconcile.ts",

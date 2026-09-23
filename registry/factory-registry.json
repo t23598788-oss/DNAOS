@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-23T02:22:45.755Z",
+  "generated_at": "2026-09-23T04:26:21.097Z",
   "policy": "Phase 1.1 (Factory Constitution) — read-only analysis + mapping only. No file was moved, renamed, deleted, merged, or refactored to produce this. ownedModules is derived entirely from registry/module-registry.json + real, pre-verified path evidence in scripts/build-factory-registry.ts. See registry/factory-mapping.json for the per-module assignment and registry/factory-summary.json for the coverage report (including UNKNOWN and CONFLICT — reported honestly, never silently resolved).",
   "factories": [
     {
@@ -558,9 +558,11 @@
         "app/start/page.tsx",
         "app/workspace/BusinessWorkspace.tsx",
         "app/workspace/_lib/businessTools.ts",
+        "app/workspace/_lib/partnerDisplayModel.ts",
         "app/workspace/page.tsx",
         "components/ide-shell/IDEWorkspace.tsx",
         "components/settings/SettingsDrawer.tsx",
+        "core/navigation/resolveCapabilityAccess.ts",
         "core/navigation/resolveNavItems.ts",
         "core/workspace/application.ts",
         "core/workspace/applicationRegistry.ts",
@@ -811,7 +813,7 @@
       "dependencies": "Not yet declared — see inputs.",
       "interfaces": "Not yet declared — see inputs.",
       "health": {
-        "moduleCount": 447,
+        "moduleCount": 449,
         "status": "populated"
       },
       "owner": "unassigned — Phase 1.2 assigns a real human/team owner per Factory",
@@ -1684,7 +1686,8 @@
         "scripts/worker-budget-test.ts",
         "scripts/worker-fallback-test.ts",
         "scripts/worker-security-test.ts",
-        "scripts/worker-selector-test.ts"
+        "scripts/worker-selector-test.ts",
+        "scripts/workspace-capability-access-test.ts"
       ],
       "ownedRoutes": [],
       "ownedServices": [],
@@ -1694,7 +1697,7 @@
       "dependencies": "Not yet declared — see inputs.",
       "interfaces": "Not yet declared — see inputs.",
       "health": {
-        "moduleCount": 99,
+        "moduleCount": 100,
         "status": "populated"
       },
       "owner": "unassigned — Phase 1.2 assigns a real human/team owner per Factory",

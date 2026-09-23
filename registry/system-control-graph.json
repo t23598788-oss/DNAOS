@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-23T02:22:20.338Z",
+  "generated_at": "2026-09-23T02:52:09.704Z",
   "nodes": [
     {
       "id": "layer:core",
@@ -4706,6 +4706,7 @@
         "module:app/api/internal/line/document-artifact/route.ts",
         "module:app/api/internal/line/token/route.ts",
         "module:app/workspace-preview/presentationGatewayDeps.ts",
+        "module:app/workspace/_lib/partnerDisplayModel.ts",
         "module:cognitive/pipeline.ts",
         "module:engines/business.ts",
         "module:engines/canonical/artifact-write.ts",
@@ -6309,6 +6310,7 @@
         "module:core/auth/requireAuth.ts",
         "module:core/auth/requireAuthPage.ts",
         "module:core/auth/resolveDestination.ts",
+        "module:core/navigation/resolveCapabilityAccess.ts",
         "module:core/navigation/resolveNavItems.ts",
         "module:core/workspace/application.ts",
         "module:core/workspace/applicationRegistry.ts",
@@ -11095,7 +11097,9 @@
       "provider": "UNKNOWN",
       "dependencies": [
         "module:app/workspace/BusinessWorkspace.tsx",
-        "module:core/auth/session.ts"
+        "module:app/workspace/_lib/partnerDisplayModel.ts",
+        "module:core/auth/session.ts",
+        "module:core/navigation/resolveCapabilityAccess.ts"
       ],
       "dependents": [],
       "commands": [],
@@ -28750,6 +28754,7 @@
       "provider": "UNKNOWN",
       "dependencies": [
         "module:app/admin/ui-gallery/_lib/BusinessDisplayRenderer.tsx",
+        "module:app/admin/ui-gallery/_lib/businessDisplayModel.ts",
         "module:app/workspace/_lib/businessTools.ts",
         "module:presentation/feedback/EmptyState.tsx",
         "module:presentation/panels/ActionBar.tsx",
@@ -28819,7 +28824,9 @@
         "module:app/admin/ui-gallery/_lib/businessDisplayModel.ts"
       ],
       "dependents": [
-        "module:app/workspace/BusinessWorkspace.tsx"
+        "module:app/workspace/BusinessWorkspace.tsx",
+        "module:app/workspace/_lib/partnerDisplayModel.ts",
+        "module:scripts/workspace-capability-access-test.ts"
       ],
       "commands": [],
       "events": [],
@@ -28947,7 +28954,9 @@
       "dependents": [
         "module:app/admin/ui-gallery/_lib/BusinessDisplayRenderer.tsx",
         "module:app/admin/ui-gallery/business-display/page.tsx",
-        "module:app/workspace/_lib/businessTools.ts"
+        "module:app/workspace/BusinessWorkspace.tsx",
+        "module:app/workspace/_lib/businessTools.ts",
+        "module:app/workspace/_lib/partnerDisplayModel.ts"
       ],
       "commands": [],
       "events": [],
@@ -29158,6 +29167,73 @@
       "dependents": [
         "module:scripts/place-discovery-test.ts"
       ],
+      "commands": [],
+      "events": [],
+      "capabilities": [],
+      "health": "OK",
+      "cost_source": "UNKNOWN"
+    },
+    {
+      "id": "module:core/navigation/resolveCapabilityAccess.ts",
+      "name": "core/navigation/resolveCapabilityAccess.ts",
+      "type": "Module",
+      "layer": "core",
+      "source_file": "core/navigation/resolveCapabilityAccess.ts",
+      "status": "OK",
+      "runtime_callable": false,
+      "provider": "UNKNOWN",
+      "dependencies": [
+        "module:core/auth/session.ts",
+        "module:registry/permissions.json.ts"
+      ],
+      "dependents": [
+        "module:app/workspace/page.tsx",
+        "module:scripts/workspace-capability-access-test.ts"
+      ],
+      "commands": [],
+      "events": [],
+      "capabilities": [],
+      "health": "OK",
+      "cost_source": "UNKNOWN"
+    },
+    {
+      "id": "module:app/workspace/_lib/partnerDisplayModel.ts",
+      "name": "app/workspace/_lib/partnerDisplayModel.ts",
+      "type": "Module",
+      "layer": "app",
+      "source_file": "app/workspace/_lib/partnerDisplayModel.ts",
+      "status": "OK",
+      "runtime_callable": false,
+      "provider": "UNKNOWN",
+      "dependencies": [
+        "module:app/admin/ui-gallery/_lib/businessDisplayModel.ts",
+        "module:app/workspace/_lib/businessTools.ts",
+        "module:services/supabase/queries.ts"
+      ],
+      "dependents": [
+        "module:app/workspace/page.tsx"
+      ],
+      "commands": [],
+      "events": [],
+      "capabilities": [],
+      "health": "OK",
+      "cost_source": "UNKNOWN"
+    },
+    {
+      "id": "module:scripts/workspace-capability-access-test.ts",
+      "name": "scripts/workspace-capability-access-test.ts",
+      "type": "Module",
+      "layer": "scripts",
+      "source_file": "scripts/workspace-capability-access-test.ts",
+      "status": "OK",
+      "runtime_callable": true,
+      "provider": "UNKNOWN",
+      "dependencies": [
+        "module:app/workspace/_lib/businessTools.ts",
+        "module:core/navigation/resolveCapabilityAccess.ts",
+        "module:registry/permissions.json.ts"
+      ],
+      "dependents": [],
       "commands": [],
       "events": [],
       "capabilities": [],
@@ -38643,6 +38719,11 @@
     },
     {
       "source": "layer:app",
+      "target": "module:app/workspace/_lib/partnerDisplayModel.ts",
+      "type": "governed_by"
+    },
+    {
+      "source": "layer:app",
       "target": "module:app/workspace/page.tsx",
       "type": "governed_by"
     },
@@ -39064,6 +39145,11 @@
     {
       "source": "layer:core",
       "target": "module:core/executor/registry.ts",
+      "type": "governed_by"
+    },
+    {
+      "source": "layer:core",
+      "target": "module:core/navigation/resolveCapabilityAccess.ts",
       "type": "governed_by"
     },
     {
@@ -41419,6 +41505,11 @@
     {
       "source": "layer:scripts",
       "target": "module:scripts/worker-selector-test.ts",
+      "type": "governed_by"
+    },
+    {
+      "source": "layer:scripts",
+      "target": "module:scripts/workspace-capability-access-test.ts",
       "type": "governed_by"
     },
     {
@@ -51043,6 +51134,11 @@
     },
     {
       "source": "module:app/workspace/BusinessWorkspace.tsx",
+      "target": "module:app/admin/ui-gallery/_lib/businessDisplayModel.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/workspace/BusinessWorkspace.tsx",
       "target": "module:app/workspace/_lib/businessTools.ts",
       "type": "imports"
     },
@@ -51072,13 +51168,38 @@
       "type": "imports"
     },
     {
+      "source": "module:app/workspace/_lib/partnerDisplayModel.ts",
+      "target": "module:app/admin/ui-gallery/_lib/businessDisplayModel.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/workspace/_lib/partnerDisplayModel.ts",
+      "target": "module:app/workspace/_lib/businessTools.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/workspace/_lib/partnerDisplayModel.ts",
+      "target": "module:services/supabase/queries.ts",
+      "type": "imports"
+    },
+    {
       "source": "module:app/workspace/page.tsx",
       "target": "module:app/workspace/BusinessWorkspace.tsx",
       "type": "imports"
     },
     {
       "source": "module:app/workspace/page.tsx",
+      "target": "module:app/workspace/_lib/partnerDisplayModel.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/workspace/page.tsx",
       "target": "module:core/auth/session.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/workspace/page.tsx",
+      "target": "module:core/navigation/resolveCapabilityAccess.ts",
       "type": "imports"
     },
     {
@@ -51969,6 +52090,16 @@
     {
       "source": "module:core/executor/registry.ts",
       "target": "module:core/shared/types.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:core/navigation/resolveCapabilityAccess.ts",
+      "target": "module:core/auth/session.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:core/navigation/resolveCapabilityAccess.ts",
+      "target": "module:registry/permissions.json.ts",
       "type": "imports"
     },
     {
@@ -57477,6 +57608,21 @@
       "type": "imports"
     },
     {
+      "source": "module:scripts/workspace-capability-access-test.ts",
+      "target": "module:app/workspace/_lib/businessTools.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:scripts/workspace-capability-access-test.ts",
+      "target": "module:core/navigation/resolveCapabilityAccess.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:scripts/workspace-capability-access-test.ts",
+      "target": "module:registry/permissions.json.ts",
+      "type": "imports"
+    },
+    {
       "source": "module:services/ai-connection/healthCheck.ts",
       "target": "module:services/ai-connection/statusRepository.ts",
       "type": "imports"
@@ -59693,9 +59839,9 @@
     }
   ],
   "summary": {
-    "total_nodes": 1632,
-    "total_edges": 4779,
-    "modules": 1233,
+    "total_nodes": 1635,
+    "total_edges": 4793,
+    "modules": 1236,
     "layers": 9,
     "commands": 99,
     "events": 60,
@@ -59704,8 +59850,8 @@
     "drivers": 11,
     "connector_stages": 5,
     "module_health": {
-      "total": 1233,
-      "ok": 1233,
+      "total": 1236,
+      "ok": 1236,
       "broken": 0,
       "unused": 0,
       "unregistered": 0
@@ -59719,7 +59865,7 @@
     "unknown_field_counts": {
       "nodes_with_unknown_source_file": 82,
       "nodes_with_unknown_status": 159,
-      "nodes_with_unknown_provider": 1608
+      "nodes_with_unknown_provider": 1611
     },
     "unknown_dimensions": [
       "ai_model_registry",

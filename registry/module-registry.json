@@ -14988,6 +14988,38 @@
         "searchGooglePlaces"
       ],
       "status": "active"
+    },
+    "core/navigation/resolveCapabilityAccess.ts": {
+      "owner": "core",
+      "layer": "core",
+      "purpose": "Central Authority — Business Capability Access resolver (SLICE-1 of the",
+      "purpose_th": "Central Authority — Business Capability Access resolver (SLICE-1 of the",
+      "exports": [
+        "isCapabilityAllowed",
+        "resolveAllowedCapabilities"
+      ],
+      "status": "active"
+    },
+    "app/workspace/_lib/partnerDisplayModel.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "BUSINESS WORKSPACE — Company/Partner master → BusinessDisplayModel (SLICE-1)",
+      "purpose_th": "BUSINESS WORKSPACE — Company/Partner master → BusinessDisplayModel (SLICE-1)",
+      "exports": [
+        "PARTNER_TABLE_TARGET_ID",
+        "buildPartnerListModel",
+        "buildPartnerTargets",
+        "loadPartnerWorkspace"
+      ],
+      "status": "active"
+    },
+    "scripts/workspace-capability-access-test.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "Regression test for the /workspace CENTRAL AUTHORITY (SLICE-1, owner decision",
+      "purpose_th": "Regression test for the /workspace CENTRAL AUTHORITY (SLICE-1, owner decision",
+      "exports": [],
+      "status": "active"
     }
   },
   "excluded": [

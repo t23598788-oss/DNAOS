@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-23T02:22:45.756Z",
+  "generated_at": "2026-09-23T04:26:21.100Z",
   "policy": "Per-module Factory mapping only — no file was moved. See registry/factory-registry.json for the Factory contracts this maps into.",
   "modules": {
     "app/.well-known/oauth-authorization-server/route.ts": {
@@ -5200,6 +5200,15 @@
         "operational workspace page"
       ]
     },
+    "app/workspace/_lib/partnerDisplayModel.ts": {
+      "factoryOwner": "software-factory",
+      "domain": "Developer Tooling",
+      "capability": "app",
+      "responsibility": "BUSINESS WORKSPACE — Company/Partner master → BusinessDisplayModel (SLICE-1)",
+      "evidence": [
+        "operational workspace page"
+      ]
+    },
     "app/workspace/page.tsx": {
       "factoryOwner": "software-factory",
       "domain": "Developer Tooling",
@@ -5972,6 +5981,15 @@
       "responsibility": "ทะเบียนไดรเวอร์ — ลงทะเบียน, ค้นหา, และแสดงรายการไดรเวอร์สำหรับโปรแกรมบน macOS",
       "evidence": [
         "core command executor"
+      ]
+    },
+    "core/navigation/resolveCapabilityAccess.ts": {
+      "factoryOwner": "software-factory",
+      "domain": "Developer Tooling",
+      "capability": "core",
+      "responsibility": "Central Authority — Business Capability Access resolver (SLICE-1 of the",
+      "evidence": [
+        "app navigation resolution"
       ]
     },
     "core/navigation/resolveNavItems.ts": {
@@ -10143,6 +10161,15 @@
       "domain": "Quality",
       "capability": "scripts",
       "responsibility": "ชุดทดสอบตัวเลือกผู้ปฏิบัติงานจริง",
+      "evidence": [
+        "real test file — QA Factory owns all test code regardless of domain"
+      ]
+    },
+    "scripts/workspace-capability-access-test.ts": {
+      "factoryOwner": "qa-factory",
+      "domain": "Quality",
+      "capability": "scripts",
+      "responsibility": "Regression test for the /workspace CENTRAL AUTHORITY (SLICE-1, owner decision",
       "evidence": [
         "real test file — QA Factory owns all test code regardless of domain"
       ]
