@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-23T08:18:04.096Z",
+  "generated_at": "2026-09-23T10:55:11.962Z",
   "version": 1,
   "nodes": [
     {
@@ -405,7 +405,7 @@
           "name": "POST",
           "kind": "function",
           "line_start": 30,
-          "line_end": 129
+          "line_end": 131
         }
       ],
       "import_sites": [
@@ -10139,6 +10139,7 @@
       "exports": [
         "ActionRequest",
         "ActionResponse",
+        "PaymentInput",
         "dispatchAction",
         "executeDebtCreate",
         "executeDocumentCreate",
@@ -10152,6 +10153,7 @@
       "runtime_entry_point": false,
       "internal_dependencies": [
         "module:core/config/company-settings.ts",
+        "module:engines/canonical/payment-write.ts",
         "module:engines/documents/engine.ts",
         "module:engines/documents/flex-template.ts",
         "module:registry/communication.ts",
@@ -10164,13 +10166,15 @@
         "module:gateway/index.ts"
       ],
       "data_tables": [
+        "companies",
         "company_line_links",
         "debt_trackings",
-        "invoice_debts",
+        "inbound_source_links",
         "invoice_items",
         "invoice_payment_summary",
-        "invoice_payments",
         "invoices",
+        "payment_allocations",
+        "receipt_documents",
         "standalone_documents"
       ],
       "business_capabilities": [
@@ -10196,62 +10200,68 @@
         {
           "name": "ActionRequest",
           "kind": "interface",
-          "line_start": 21,
-          "line_end": 26
+          "line_start": 22,
+          "line_end": 29
         },
         {
           "name": "ActionResponse",
           "kind": "interface",
-          "line_start": 28,
-          "line_end": 37
+          "line_start": 31,
+          "line_end": 40
+        },
+        {
+          "name": "PaymentInput",
+          "kind": "interface",
+          "line_start": 83,
+          "line_end": 88
         },
         {
           "name": "previewPayment",
           "kind": "function",
-          "line_start": 63,
-          "line_end": 119
+          "line_start": 180,
+          "line_end": 214
         },
         {
           "name": "executePayment",
           "kind": "function",
-          "line_start": 121,
-          "line_end": 190
+          "line_start": 220,
+          "line_end": 264
         },
         {
           "name": "previewDocumentCreate",
           "kind": "function",
-          "line_start": 215,
-          "line_end": 320
+          "line_start": 289,
+          "line_end": 394
         },
         {
           "name": "executeDocumentCreate",
           "kind": "function",
-          "line_start": 322,
-          "line_end": 451
+          "line_start": 396,
+          "line_end": 525
         },
         {
           "name": "sendInvoiceToLine",
           "kind": "function",
-          "line_start": 465,
-          "line_end": 551
+          "line_start": 539,
+          "line_end": 625
         },
         {
           "name": "previewDebtCreate",
           "kind": "function",
-          "line_start": 571,
-          "line_end": 597
+          "line_start": 645,
+          "line_end": 671
         },
         {
           "name": "executeDebtCreate",
           "kind": "function",
-          "line_start": 599,
-          "line_end": 630
+          "line_start": 673,
+          "line_end": 704
         },
         {
           "name": "dispatchAction",
           "kind": "function",
-          "line_start": 634,
-          "line_end": 672
+          "line_start": 708,
+          "line_end": 746
         }
       ],
       "import_sites": [
@@ -10279,6 +10289,11 @@
           "specifier": "@/registry/communication",
           "line": 17,
           "resolved_target": "registry/communication.ts"
+        },
+        {
+          "specifier": "@/engines/canonical/payment-write",
+          "line": 18,
+          "resolved_target": "engines/canonical/payment-write.ts"
         }
       ]
     },
@@ -78301,6 +78316,7 @@
       ],
       "dependents": [
         "module:app/api/admin/receipt-documents/[id]/confirm/route.ts",
+        "module:gateway/actions.ts",
         "module:scripts/canonical-payment-invariant-test.ts",
         "module:scripts/canonical-phase-d-acceptance-test.ts",
         "module:scripts/payment-rpc-adapter-test.ts"
@@ -84723,9 +84739,7 @@
       "layer": "scripts",
       "name_en": "scripts/payment-preview-rewire-test.ts",
       "purpose_th": "Regression test for B-03 — payment preview / canonical financial read",
-      "exports": [
-        "previewPayment"
-      ],
+      "exports": [],
       "status": "OK",
       "runtime_entry_point": true,
       "internal_dependencies": [],
@@ -84734,9 +84748,7 @@
         "debt_trackings",
         "documents",
         "invoice_debts",
-        "invoice_payment_summary",
-        "invoice_payments",
-        "invoices"
+        "invoice_payments"
       ],
       "business_capabilities": "UNKNOWN",
       "domain_owner": "scripts",
@@ -84847,6 +84859,32 @@
           "resolved_target": "engines/canonical/payment-write.ts"
         }
       ]
+    },
+    {
+      "id": "module:scripts/payment-legacy-rewire-test.ts",
+      "type": "Module",
+      "layer": "scripts",
+      "name_en": "scripts/payment-legacy-rewire-test.ts",
+      "purpose_th": "B-04C — complete payment reconciliation: gateway → canonical writer, legacy removed.",
+      "exports": [
+        "executePayment"
+      ],
+      "status": "OK",
+      "runtime_entry_point": true,
+      "internal_dependencies": [],
+      "dependents": [],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "scripts",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN"
     }
   ],
   "edges": [
@@ -90328,6 +90366,11 @@
     {
       "source": "layer:scripts",
       "target": "module:scripts/payment-atomic-boundary-test.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:scripts",
+      "target": "module:scripts/payment-legacy-rewire-test.ts",
       "label": "contains"
     },
     {
@@ -103432,6 +103475,11 @@
     },
     {
       "source": "module:gateway/actions.ts",
+      "target": "module:engines/canonical/payment-write.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:gateway/actions.ts",
       "target": "module:engines/documents/engine.ts",
       "label": "imports"
     },
@@ -107407,8 +107455,8 @@
     }
   ],
   "summary": {
-    "total": 1244,
-    "ok": 1244,
+    "total": 1245,
+    "ok": 1245,
     "broken": 0,
     "unused": 0,
     "unregistered": 0

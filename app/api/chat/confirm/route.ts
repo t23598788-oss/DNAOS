@@ -36,7 +36,9 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: false, error: "ขาด action หรือ preview_token" }, { status: 400 });
   }
 
-  const result = await dispatchAction({ action, mode: "execute", payload: {}, preview_token });
+  // B-04C: the payment actor is SERVER context (the authenticated admin), never the
+  // request body — any client-sent `actor` field is simply not read.
+  const result = await dispatchAction({ action, mode: "execute", payload: {}, preview_token, actor: auth.email });
   let lineSendError: string | undefined;
 
   if (!result.ok || action !== "document.create") {

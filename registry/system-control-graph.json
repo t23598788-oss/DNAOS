@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-23T08:18:04.448Z",
+  "generated_at": "2026-09-23T10:55:12.306Z",
   "nodes": [
     {
       "id": "layer:core",
@@ -3593,6 +3593,7 @@
       "provider": "UNKNOWN",
       "dependencies": [
         "module:core/config/company-settings.ts",
+        "module:engines/canonical/payment-write.ts",
         "module:engines/documents/engine.ts",
         "module:engines/documents/flex-template.ts",
         "module:registry/communication.ts",
@@ -27157,6 +27158,7 @@
       ],
       "dependents": [
         "module:app/api/admin/receipt-documents/[id]/confirm/route.ts",
+        "module:gateway/actions.ts",
         "module:scripts/canonical-payment-invariant-test.ts",
         "module:scripts/canonical-phase-d-acceptance-test.ts",
         "module:scripts/payment-rpc-adapter-test.ts"
@@ -29395,6 +29397,23 @@
       "dependencies": [
         "module:engines/canonical/payment-write.ts"
       ],
+      "dependents": [],
+      "commands": [],
+      "events": [],
+      "capabilities": [],
+      "health": "OK",
+      "cost_source": "UNKNOWN"
+    },
+    {
+      "id": "module:scripts/payment-legacy-rewire-test.ts",
+      "name": "scripts/payment-legacy-rewire-test.ts",
+      "type": "Module",
+      "layer": "scripts",
+      "source_file": "scripts/payment-legacy-rewire-test.ts",
+      "status": "OK",
+      "runtime_callable": true,
+      "provider": "UNKNOWN",
+      "dependencies": [],
       "dependents": [],
       "commands": [],
       "events": [],
@@ -41512,6 +41531,11 @@
     {
       "source": "layer:scripts",
       "target": "module:scripts/payment-atomic-boundary-test.ts",
+      "type": "governed_by"
+    },
+    {
+      "source": "layer:scripts",
+      "target": "module:scripts/payment-legacy-rewire-test.ts",
       "type": "governed_by"
     },
     {
@@ -54616,6 +54640,11 @@
     },
     {
       "source": "module:gateway/actions.ts",
+      "target": "module:engines/canonical/payment-write.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:gateway/actions.ts",
       "target": "module:engines/documents/engine.ts",
       "type": "imports"
     },
@@ -60096,9 +60125,9 @@
     }
   ],
   "summary": {
-    "total_nodes": 1643,
-    "total_edges": 4812,
-    "modules": 1244,
+    "total_nodes": 1644,
+    "total_edges": 4814,
+    "modules": 1245,
     "layers": 9,
     "commands": 99,
     "events": 60,
@@ -60107,8 +60136,8 @@
     "drivers": 11,
     "connector_stages": 5,
     "module_health": {
-      "total": 1244,
-      "ok": 1244,
+      "total": 1245,
+      "ok": 1245,
       "broken": 0,
       "unused": 0,
       "unregistered": 0
@@ -60122,7 +60151,7 @@
     "unknown_field_counts": {
       "nodes_with_unknown_source_file": 82,
       "nodes_with_unknown_status": 159,
-      "nodes_with_unknown_provider": 1619
+      "nodes_with_unknown_provider": 1620
     },
     "unknown_dimensions": [
       "ai_model_registry",

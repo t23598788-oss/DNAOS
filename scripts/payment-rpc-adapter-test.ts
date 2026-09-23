@@ -184,8 +184,11 @@ function testErrorMapping() {
 
 function testAuthorityBoundaries() {
   const gateway = stripComments(read("gateway/actions.ts"));
-  assert.equal(/rpc\("(confirm_payment_allocation|reallocate_payment_allocation)"/.test(gateway), false, "the gateway must not call the payment RPCs directly");
-  assert.equal(/from\("payment_allocations"\)/.test(gateway), false, "the gateway must not touch payment_allocations");
+  // B-04C: the gateway may READ payment_allocations (idempotency check) but must never write it
+  assert.equal(/from\("payment_allocations"\)[\s\S]{0,60}?\.(insert|update|upsert|delete)\(/.test(gateway), false,
+    "the gateway must not write payment_allocations");
+  assert.equal(/rpc\("(confirm_payment_allocation|reallocate_payment_allocation)"/.test(gateway), false,
+    "the gateway must not call the payment RPCs directly (the canonical writer owns that call)");
   assert.ok(gateway.includes('.from("debt_trackings")'), "B-05 executeDebtCreate must stay untouched (it is a separate round)");
 
   const auth = read("core/auth/session.ts");

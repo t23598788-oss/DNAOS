@@ -15,8 +15,8 @@
  *   4. the ActionResponse contract, the preview payload keys, the
  *      `issueToken("payment", { invoice_debt_id })` handshake and the function
  *      signature are unchanged — B-04 executePayment keeps working as before
- *   5. B-04 / B-05 code is untouched (executePayment still on invoice_debts /
- *      invoice_payments, executeDebtCreate still on debt_trackings)
+ *   5. B-04C finished B-04: executePayment is canonical (no invoice_debts /
+ *      invoice_payments); B-05 executeDebtCreate still on debt_trackings
  *   6. no parallel implementation (no previewPaymentV2 / paymentPreviewRepository)
  *   7. LIVE (optional, READ ONLY): the new selects answer 200 while the two
  *      legacy tables answer 404 PGRST205 — skipped when no local credentials.
@@ -98,59 +98,42 @@ async function main() {
   );
 
   // 2 · canonical read authority instead (persisted values, no recomputation)
-  assert.ok(preview.includes('.from("invoice_payment_summary")'), "B-03 must read the canonical receivable view");
-  assert.ok(preview.includes("receivable_amount"), "principal must come from the persisted receivable_amount");
-  assert.ok(preview.includes("receivable.outstanding"), "outstanding must be the persisted canonical value");
-  assert.ok(preview.includes("receivable.paid_amount"), "paid must be the persisted canonical value");
-  assert.ok(preview.includes('.from("invoices")'), "party name must come from the canonical invoices read");
-  assert.ok(
-    preview.includes("companies!invoices_customer_company_id_fkey"),
-    "the counterparty must use the existing FK embed, never a hand-rolled join",
-  );
-  assert.ok(
-    preview.includes('receivable.derived_status === "PAID"') && preview.includes('"VOID"') && preview.includes('"CLOSED"'),
-    "status must follow the canonical PAID|VOID → CLOSED mapping used by getOpenDebts/getAllDebts",
-  );
+  //      B-04C moved the reads into resolvePaymentFacts(), which previewPayment and
+  //      executePayment share — so the assertion is on the payment section, not one body.
+  const paymentSection = code.slice(code.indexOf("resolveReceiptInvoiceRelation"), code.indexOf("// ---- DOCUMENT CREATE ----"));
+  assert.ok(paymentSection.includes('from("invoice_payment_summary")'), "the payment path must read the canonical receivable view");
+  assert.ok(paymentSection.includes("outstanding"), "outstanding must be the persisted canonical value");
+  assert.ok(paymentSection.includes("paid_amount"), "paid must be the persisted canonical value");
+  assert.ok(paymentSection.includes("derived_status"), "status must come from the canonical view");
+  assert.ok(paymentSection.includes('from("invoices")'), "invoice company/status must come from the canonical invoices read");
+  assert.ok(paymentSection.includes('from("receipt_documents")'), "the receipt must be read from receipt_documents");
+  assert.ok(paymentSection.includes('from("inbound_source_links")'), "the deterministic invoice relation must be inbound_source_links");
 
-  // 3 · no new financial formula
+  // 3 · no new financial formula anywhere in the payment path
   for (const forbidden of [
     "VAT_RATE", "* 0.07", "calculateDocumentTotals", "roundMoney",
-    "total_amount -", "receivable_amount -", "outstanding -",
+    "total_amount -", "receivable_amount -", "outstanding -", "Math.max(0",
   ]) {
-    assert.equal(preview.includes(forbidden), false, `no new money formula may be introduced (${forbidden})`);
+    assert.equal(paymentSection.includes(forbidden), false, `no money formula may exist in the payment path (${forbidden})`);
   }
-  assert.equal(
-    /outstanding\s*=\s*[^;]*[-+*/]/.test(preview),
-    false,
-    "outstanding must not be re-derived by arithmetic — read the canonical persisted value",
-  );
 
-  // 4 · contract + handshake unchanged (this is what keeps B-04 executePayment working)
-  for (const key of [
-    "invoice_debt_id:", "document_number:", "party_name:", "principal_amount:", "outstanding_amount:",
-    "current_interest:", "paid_so_far:", "status:", "will_change:",
-  ]) {
-    assert.ok(preview.includes(key), `preview contract key missing: ${key}`);
+  // 4 · canonical token contract (B-04C): receipt + invoice + amount, never identity
+  assert.ok(preview.includes('issueToken("payment", {'), "the preview must still issue a payment token");
+  assert.ok(preview.includes("receipt_document_id: f.receipt_document_id"), "the token must carry the canonical receipt id");
+  assert.ok(preview.includes("invoice_id: f.invoice_id"), "the token must carry the deterministic invoice id");
+  assert.ok(preview.includes("amount: f.amount"), "the token must carry the canonical receipt amount");
+  assert.equal(/issueToken\("payment", \{[^}]*actor/.test(code), false, "the token must never carry an actor");
+  for (const key of ["receipt_document_id", "invoice_id", "document_number", "party_name", "amount", "outstanding_amount", "status"]) {
+    assert.ok(preview.includes(key), `preview response key missing: ${key}`);
   }
-  assert.ok(
-    preview.includes('issueToken("payment", { invoice_debt_id: invoiceDebtId })'),
-    "the preview→execute token payload must stay the same",
-  );
-  assert.ok(
-    /export async function previewPayment\(invoiceDebtId: string\): Promise<ActionResponse>/.test(raw),
-    "previewPayment signature must stay the same",
-  );
-  assert.equal(
-    /\.(insert|update|upsert|delete)\(/.test(preview),
-    false,
-    "preview must stay READ ONLY (no write call in the body)",
-  );
 
-  // 5 · B-04 / B-05 boundaries: their code must be untouched
+  // 5 · B-04C completed B-04: the gateway payment path is canonical now (no legacy
+  // monetary write, no legacy tables), while B-05 is still untouched.
   const execPay = stripComments(bodyOf(raw, "executePayment"));
-  assert.ok(execPay.includes('.from("invoice_debts")'), "B-04 executePayment must keep its own (unchanged) legacy path");
-  assert.ok(execPay.includes('.from("invoice_payments")'), "B-04 executePayment must keep invoice_payments");
-  assert.ok(execPay.includes("invoice_debt_id"), "B-04 must still accept the invoice_debt_id handshake from preview");
+  assert.equal(execPay.includes('.from("invoice_debts")'), false, "B-04C removed the invoice_debts dependency");
+  assert.equal(execPay.includes('.from("invoice_payments")'), false, "B-04C removed the invoice_payments dependency");
+  assert.ok(execPay.includes("confirmPayment("), "executePayment must commit through the canonical writer");
+  assert.ok(execPay.includes("actor"), "executePayment must take a server actor");
   const execDebt = stripComments(bodyOf(raw, "executeDebtCreate"));
   assert.ok(execDebt.includes('.from("debt_trackings")'), "B-05 executeDebtCreate must keep debt_trackings");
 
@@ -165,7 +148,7 @@ async function main() {
 
   console.log("payment-preview-rewire:test PASS");
   console.log(
-    `checks: no invoice_debts/documents in previewPayment · canonical invoice_payment_summary + invoices FK embed wired · persisted paid/outstanding (no formula) · contract+token handshake intact · B-04/B-05 untouched · no parallel impl · live=${live}`,
+    `checks: no invoice_debts/documents in previewPayment · canonical invoice_payment_summary + invoices FK embed wired · persisted paid/outstanding (no formula) · contract retained · B-04C canonical executePayment · B-05 untouched · no parallel impl · live=${live}`,
   );
 }
 

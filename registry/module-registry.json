@@ -1882,6 +1882,7 @@
       "exports": [
         "ActionRequest",
         "ActionResponse",
+        "PaymentInput",
         "dispatchAction",
         "executeDebtCreate",
         "executeDocumentCreate",
@@ -15075,9 +15076,7 @@
       "layer": "scripts",
       "purpose": "Regression test for B-03 — payment preview / canonical financial read",
       "purpose_th": "Regression test for B-03 — payment preview / canonical financial read",
-      "exports": [
-        "previewPayment"
-      ],
+      "exports": [],
       "status": "active"
     },
     "scripts/canonical-payment-invariant-test.ts": {
@@ -15105,6 +15104,16 @@
       "purpose": "B-04R3 — canonical payment RPC adapter tests (F1–F8).",
       "purpose_th": "B-04R3 — canonical payment RPC adapter tests (F1–F8).",
       "exports": [],
+      "status": "active"
+    },
+    "scripts/payment-legacy-rewire-test.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "B-04C — complete payment reconciliation: gateway → canonical writer, legacy removed.",
+      "purpose_th": "B-04C — complete payment reconciliation: gateway → canonical writer, legacy removed.",
+      "exports": [
+        "executePayment"
+      ],
       "status": "active"
     }
   },
@@ -15321,6 +15330,20 @@
       "reason": "ไฟล์ไม่มีอยู่ใน Source แล้ว (Git/Source = source of truth) — ย้ายออกจาก modules ไม่นับเป็น BROKEN ปัจจุบัน",
       "last_status": "stale",
       "purpose_th": "ช่องพิมพ์ข้อความของ Playground"
+    },
+    {
+      "path": "_b04c_e2e.ts",
+      "retired_at": "2026-09-23T10:55:10.143Z",
+      "reason": "ไฟล์ไม่มีอยู่ใน Source แล้ว (Git/Source = source of truth) — ย้ายออกจาก modules ไม่นับเป็น BROKEN ปัจจุบัน",
+      "last_status": "active",
+      "purpose_th": "B-04C — gateway → canonical payment path, end-to-end over the real HTTP API (C01–C10)."
+    },
+    {
+      "path": "_b04c_c08.ts",
+      "retired_at": "2026-09-23T10:55:10.144Z",
+      "reason": "ไฟล์ไม่มีอยู่ใน Source แล้ว (Git/Source = source of truth) — ย้ายออกจาก modules ไม่นับเป็น BROKEN ปัจจุบัน",
+      "last_status": "active",
+      "purpose_th": "B-04C C08 — RPC unavailable must fail closed through the gateway (no legacy fallback)."
     }
   ]
 }

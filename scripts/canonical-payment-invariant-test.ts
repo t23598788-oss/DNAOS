@@ -170,7 +170,8 @@ function testWriterUsesTheGuards() {
 function testNoSecondAuthority() {
   // T13 · the gateway must not write money
   const gateway = stripComments(read("gateway/actions.ts"));
-  assert.equal(gateway.includes("payment_allocations"), false, "gateway/actions.ts must not touch payment_allocations");
+  assert.equal(/from\("payment_allocations"\)[\s\S]{0,60}?\.(insert|update|upsert|delete)\(/.test(gateway), false,
+    "gateway/actions.ts must not WRITE payment_allocations (reading it for idempotency is fine)");
   // T14 · B-05 is untouched
   assert.ok(gateway.includes('.from("debt_trackings")'), "executeDebtCreate (B-05) must keep its own path");
 
