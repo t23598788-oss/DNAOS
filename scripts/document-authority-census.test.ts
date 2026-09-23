@@ -65,22 +65,15 @@ const DYNAMIC_ALLOW = ["invoices", "standalone_documents"];
  * PHASE C must shrink this to nothing (except the D5 blocker, see below).
  */
 const DECLARED_OUTSIDE: Record<string, readonly string[]> = {
-  // PHASE C cutovers done: invoices (D5 + retired legacy createDocument) → [].
+  // PHASE C + PHASE D closed every direct writer on all eight document tables.
   invoices: [],
-  standalone_documents: [
-    // PHASE C STOP: canonical createDocument has no `recipient_address` input and
-    // the demo's DO row is written with zero totals and no items — a mechanical
-    // cutover would silently drop those. Needs an owner decision.
-    "scripts/demo-full-pipeline.ts:insert",
-    "scripts/demo-full-pipeline-part2.ts:insert",
-  ],
-  document_groups: [
-    // PHASE C STOP: canonical createTransaction() cannot express `delivery_note`
-    // and always creates the order as DRAFT, while these two sites write
-    // delivery_note (auto-create) / status "QUOTED" + delivery_note (demo).
-    "engines/jobs/auto-create.ts:insert",
-    "scripts/demo-full-pipeline.ts:insert",
-  ],
+  invoice_items: [],
+  standalone_documents: [],
+  standalone_document_items: [],
+  document_versions: [],
+  document_groups: [],
+  document_artifacts: [],
+  document_references: [],
 };
 
 /**
@@ -266,8 +259,58 @@ void (async () => {
     sendBody.indexOf("if (!lineRes.success)") < sendBody.indexOf('.from("line_events").insert(')
       && !/status:\s*"(VOID|DRAFT)"/.test(sendBody));
 
-  console.log(`\nDOCUMENT_OUTSIDE_WRITES_NOW = ${Object.values(DECLARED_OUTSIDE).reduce((a, b) => a + b.length, 0)} declared sites remaining (PHASE C STOPs, owner decision pending)`);
+  // NC9–NC14 (PHASE D) ───────────────────────────────────────────────────────
+  const chatRoute = readFileSync(join(ROOT, "app/api/chat/confirm/route.ts"), "utf-8");
+  const autoCreate = readFileSync(join(ROOT, "engines/jobs/auto-create.ts"), "utf-8");
+  const writerSrc = readFileSync(join(ROOT, "engines/canonical/document-write.ts"), "utf-8");
+  const txWriter = readFileSync(join(ROOT, "engines/canonical/transaction-write.ts"), "utf-8");
+  const demo1 = readFileSync(join(ROOT, "scripts/demo-full-pipeline.ts"), "utf-8");
+
+  // NC9 — the existing causal ordering is preserved, not rearranged.
+  check("NC9a preview → execute ordering kept (issueToken before dispatch, execute after confirm)",
+    GATEWAY.indexOf("export async function previewDocumentCreate") < GATEWAY.indexOf("export async function executeDocumentCreate")
+      && chatRoute.includes('mode: "execute"') && chatRoute.indexOf("requireAuth") < chatRoute.indexOf("dispatchAction"));
+  check("NC9b auto-create ordering kept: transaction first, then event LINK, then TRANSITION",
+    autoCreate.indexOf("await createTransaction(") < autoCreate.indexOf("await linkBusinessEventTransaction(")
+      && autoCreate.indexOf("await linkBusinessEventTransaction(") < autoCreate.indexOf("await transitionBusinessEvent("));
+  check("NC9c invoice send: issuance precedes transport (recorded in PHASE C, still true)",
+    sendBody.indexOf("await issueDocument(") < sendBody.indexOf("await sendLineMessage("));
+
+  // NC10 — an AI/provider result can never own document lifecycle state.
+  check("NC10 no AI/provider module writes document lifecycle tables",
+    DOC_TABLES.every((t) => census.findDirectMutations({ root: ROOT, table: t, dirs: DIRS })
+      .filter((s) => !s.file.startsWith(census.CANONICAL_WRITER_DIR)).length === 0));
+  check("NC10b the lifecycle writer accepts no provider identity",
+    !/\bprovider\b|lineUserId|anthropic|openai|ollama|gemini|api\.line\.me/i.test(writerSrc.replace(/\/\/[^\n]*/g, "")));
+
+  // NC11 — swapping the provider cannot change the document contract.
+  check("NC11 the document contract is provider-free and outbound stays behind the one gateway",
+    !/anthropic|openai|ollama|gemini|api\.line\.me/.test(writerSrc)
+      && GATEWAY.includes('from "@/registry/communication"')
+      && !/api\.line\.me/.test(GATEWAY));
+
+  // NC12 — createTransaction now carries the real delivery_note field; QUOTED stays a
+  // canonical workflow state reached by transition (not a new creation-time state).
+  check("NC12a createTransaction accepts and writes delivery_note (real nullable column)",
+    txWriter.includes("delivery_note?: string | null") && txWriter.includes("delivery_note: ctx.delivery_note ?? null"));
+  check("NC12b QUOTED is reached through the canonical transition, not invented at creation",
+    demo1.includes('await changeTransactionStatus({ order_id: order.id, status: "QUOTED"')
+      && !demo1.slice(demo1.indexOf("await createTransaction("), demo1.indexOf("await changeTransactionStatus(")).includes("QUOTED"));
+
+  // NC13 — demo-only data must not expand the production contract.
+  check("NC13 the canonical contract still has no recipient_address (demo folded it into notes)",
+    !writerSrc.includes("recipient_address") && demo1.includes("ที่อยู่ผู้รับ: ${CUSTOMER_GPS.address}"));
+
+  // NC14 — invoice atomicity must not be silently downgraded.
+  const invoiceItemsMigration = readFileSync(join(ROOT, "supabase/migrations/20260717000003_invoice_items.sql"), "utf-8");
+  check("NC14a confirm_invoice RPC still exists (no silent drop, no fake single authority)",
+    invoiceItemsMigration.includes("create or replace function public.confirm_invoice("));
+  check("NC14b the invoice path still uses the single-transaction RPC (no downgrade to compensating writes)",
+    GATEWAY.includes('supabase().rpc("confirm_invoice"') && writerSrc.includes("Compensating rollback"));
+
+  console.log(`\nDOCUMENT_OUTSIDE_WRITES_NOW = ${Object.values(DECLARED_OUTSIDE).reduce((a, b) => a + b.length, 0)} declared sites remaining`);
   console.log(`D5_OLD_SITE = ${D5_OLD_SITE} — RESOLVED (document state ≠ delivery state)`);
+  console.log(`INVOICE_ATOMICITY = confirm_invoice RPC retained (canonical writer has no equivalent single-transaction invariant) → migration spec required, owner approval pending`);
 
   console.log(`\n${checks - failures}/${checks} passed`);
   if (failures > 0) {

@@ -1,6 +1,7 @@
 import { resolveMaterialText } from "@/engines/material-resolver"
 import { geocodeThaiAddress } from "@/engines/geocoding"
 import { linkBusinessEventTransaction, transitionBusinessEvent } from "@/engines/canonical/event-write"
+import { createTransaction } from "@/engines/canonical/transaction-write"
 
 // Two different intents need two different amounts of information — a price
 // question is not a commitment (owner instruction 2026-07-10: "ถ้าอยากได้
@@ -139,51 +140,27 @@ export async function tryAutoCreateJob(db: any, event: AutoCreateEventInput): Pr
   const jobTitle = [event.material_text, event.quantity ? `${event.quantity} ${event.quantity_unit ?? ""}`.trim() : null]
     .filter(Boolean).join(" ") || "งานใหม่จาก LINE"
 
-  const { data: project, error: projectError } = await db
-    .from("projects")
-    .insert({
-      project_no: `PRJ-${dateStr}-${stamp}`,
+  // PHASE D cutover (2026-09-23): the project → document_group → customer_order
+  // chain used to be three direct inserts here. It now goes through the canonical
+  // transaction authority, which creates exactly that chain (createMissingChain)
+  // and audits it. Behaviour preserved: same numbering shapes (PRJ-/DG-/ORD-),
+  // same statuses (ACTIVE / OPEN / DRAFT), and the delivery note is carried as
+  // ctx.delivery_note instead of being dropped. Causal ordering unchanged:
+  // the event link/transition below still runs after the transaction exists.
+  if (!event.partner_id || !confirmedSiteId) {
+    return { status: "skipped", reason: "TRANSACTION_CONTEXT_INCOMPLETE: ขาด customer_company_id/customer_site_id" }
+  }
+
+  const tx = await createTransaction(
+    {
       customer_company_id: event.partner_id,
       customer_site_id: confirmedSiteId,
       title: jobTitle,
-      status: "ACTIVE",
-      updated_at: new Date().toISOString(),
-    })
-    .select("id, project_no")
-    .single()
-  if (projectError) return { status: "skipped", reason: projectError.message }
-
-  const { data: docGroup, error: docGroupError } = await db
-    .from("document_groups")
-    .insert({
-      group_no: `DG-${dateStr}-${stamp}`,
-      project_id: project.id,
-      project_no: project.project_no,
-      customer_company_id: event.partner_id,
-      title: jobTitle,
-      status: "OPEN",
-      updated_at: new Date().toISOString(),
-    })
-    .select("id")
-    .single()
-  if (docGroupError) return { status: "skipped", reason: docGroupError.message }
-
-  const orderNo = `ORD-${dateStr}-${stamp}`
-  const { data: order, error: orderError } = await db
-    .from("customer_orders")
-    .insert({
-      order_no: orderNo,
-      project_id: project.id,
-      document_group_id: docGroup.id,
-      customer_company_id: event.partner_id,
-      customer_site_id: confirmedSiteId,
-      status: "DRAFT",
       delivery_note: `ผู้ติดต่อหน้างาน: ${event.contact_name ?? "-"} โทร ${event.contact_phone}`,
-      updated_at: new Date().toISOString(),
-    })
-    .select("id, order_no")
-    .single()
-  if (orderError) return { status: "skipped", reason: orderError.message }
+    },
+    "system:jobs:auto-create",
+  );
+  const order = tx.order as { id: string; order_no: string };
 
   // Capability D: the event → canonical transaction link goes through the
   // canonical Business Event writer (engines/canonical/event-write.ts), split
