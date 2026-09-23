@@ -171,6 +171,111 @@ export async function createDocument(input: WriteDocumentInput): Promise<WriteDo
     base.status = input.status ?? "active";
   }
 
+  // ── INVOICE: the DB atomic primitive (promoted public.confirm_invoice) ──────
+  // PHASE E (owner decision 2026-09-23): header + line items + initial version
+  // commit in ONE Postgres transaction. Every guard above (validation, canonical
+  // totals, authority) still runs in TypeScript FIRST — the RPC is an
+  // implementation detail underneath this authority, not a parallel authority,
+  // and no caller may reach it directly (census-enforced: NC-E).
+  if (input.kind === "invoice") {
+    const issueDate = input.issue_date ?? new Date().toISOString().split("T")[0];
+    const { data: rpcResult, error: rpcErr } = await db.rpc("confirm_invoice", {
+      p_invoice_no: input.document_no,
+      p_customer_company_id: input.customer_company_id,
+      p_invoice_date: issueDate,
+      p_vat_rate: totals.vat_rate,
+      p_subtotal: totals.subtotal,
+      p_vat_amount: totals.vat_amount,
+      p_total_amount: totals.gross_amount,
+      p_notes: input.notes ?? null,
+      p_items: input.items.map((it, i) => ({
+        description: it.description,
+        qty: it.qty,
+        unit: it.unit ?? "รายการ",
+        unit_price: it.unit_price,
+        sort_order: it.sort_order ?? i,
+      })),
+      p_status: input.status ?? "DRAFT",
+      p_discount_amount: totals.discount_amount,
+      p_vat_mode: totals.vat_mode,
+      p_gross_amount: totals.gross_amount,
+      p_wht_rate: totals.wht_rate,
+      p_wht_amount: totals.wht_amount,
+      p_net_payable: totals.net_payable,
+      p_data_completeness: "FULL",
+      p_reference_no: input.reference_no ?? null,
+      p_project_id: input.project_id ?? null,
+      p_customer_order_id: input.customer_order_id ?? null,
+      p_due_date: input.due_date ?? null,
+      p_actor: input.actor,
+      p_version_snapshot: buildVersionSnapshot({
+        document_kind: "invoice",
+        document_no: input.document_no,
+        document_type: "invoice",
+        issue_date: issueDate,
+        due_date: input.due_date ?? null,
+        reference_no: input.reference_no ?? null,
+        financial: {
+          subtotal: totals.subtotal,
+          discount_amount: totals.discount_amount,
+          vat_mode: totals.vat_mode,
+          vat_rate: totals.vat_rate,
+          vat_amount: totals.vat_amount,
+          gross_amount: totals.gross_amount,
+          total_amount: totals.gross_amount,
+          wht_rate: totals.wht_rate,
+          wht_amount: totals.wht_amount,
+          net_payable: totals.net_payable,
+          paid_amount: null,
+        },
+        items: input.items,
+        note: null,
+      }),
+    });
+    if (rpcErr || !rpcResult) {
+      throw new Error(`สร้างใบแจ้งหนี้ (atomic) ไม่สำเร็จ: ${rpcErr?.message ?? "no result"}`);
+    }
+    const out = rpcResult as {
+      document_id: string; status: string; version_id: string; version_no: number; items_written: number;
+    };
+
+    await recordCanonicalAudit({
+      action: "document.created",
+      entity_type: "invoices",
+      entity_id: out.document_id,
+      actor: input.actor,
+      company_id: input.customer_company_id,
+      new_value: { document_no: input.document_no, gross_amount: totals.gross_amount, version_no: out.version_no },
+      evidence: { version_id: out.version_id, items: out.items_written, atomic: "confirm_invoice" },
+    });
+
+    return {
+      document_id: out.document_id,
+      document_kind: input.kind,
+      document_no: input.document_no,
+      totals: {
+        subtotal: totals.subtotal,
+        discount_amount: totals.discount_amount,
+        vat_mode: totals.vat_mode,
+        vat_rate: totals.vat_rate,
+        vat_amount: totals.vat_amount,
+        gross_amount: totals.gross_amount,
+        wht_rate: totals.wht_rate,
+        wht_amount: totals.wht_amount,
+        net_payable: totals.net_payable,
+      },
+      items_written: out.items_written,
+      version: {
+        id: out.version_id,
+        version_no: out.version_no,
+        previous_version_id: null,
+        data_completeness: "FULL",
+      },
+    };
+  }
+
+  // ── STANDALONE_DOCUMENT: same TS path as before (its own atomic promotion is
+  //    NOT part of PHASE E's approved scope — reported, not silently changed) ──
   const { data: doc, error } = await db.from(table).insert(base).select("id").single();
   if (error) throw new Error(`สร้างเอกสารไม่สำเร็จ: ${error.message}`);
   const documentId = String(doc.id);
@@ -260,6 +365,36 @@ async function rollbackPartialDocument(input: {
 
 
 /**
+ * The version snapshot shape — built in ONE place so the TS path
+ * (createVersion) and the atomic SQL path (public.confirm_invoice, PHASE E)
+ * can never drift apart.
+ */
+function buildVersionSnapshot(input: {
+  document_kind: WriteDocumentKind;
+  document_no: string | null;
+  document_type: string;
+  issue_date: string | null;
+  due_date: string | null;
+  reference_no: string | null;
+  financial: Record<string, unknown>;
+  items: DocumentLineItem[];
+  note?: string | null;
+}): Record<string, unknown> {
+  return {
+    document_kind: input.document_kind,
+    document_no: input.document_no,
+    document_type: input.document_type,
+    issue_date: input.issue_date,
+    due_date: input.due_date,
+    reference: input.reference_no,
+    financial: input.financial,
+    items: input.items,
+    items_count: input.items.length,
+    legacy: { written_by: "canonical-write-service", note: input.note ?? null },
+  };
+}
+
+/**
  * Append a version row (append-only chain: new → previous). The snapshot holds the
  * issued state so an old document can always be reopened exactly as issued.
  */
@@ -297,13 +432,13 @@ export async function createVersion(input: {
     items = (liveItems ?? []) as unknown as DocumentLineItem[];
   }
 
-  const snapshot = {
+  const snapshot = buildVersionSnapshot({
     document_kind: input.document_kind,
-    document_no: row.invoice_no ?? row.document_no ?? null,
+    document_no: (row.invoice_no ?? row.document_no ?? null) as string | null,
     document_type: input.document_kind === "invoice" ? "invoice" : String(row.document_type ?? "standalone_document"),
-    issue_date: row.invoice_date ?? row.document_date ?? null,
-    due_date: row.due_date ?? null,
-    reference: row.reference_no ?? null,
+    issue_date: (row.invoice_date ?? row.document_date ?? null) as string | null,
+    due_date: (row.due_date ?? null) as string | null,
+    reference_no: (row.reference_no ?? null) as string | null,
     financial: {
       subtotal: row.subtotal ?? null,
       discount_amount: row.discount_amount ?? null,
@@ -317,10 +452,9 @@ export async function createVersion(input: {
       net_payable: row.net_payable ?? null,
       paid_amount: row.paid_amount ?? null,
     },
-    items: items ?? [],
-    items_count: (items ?? []).length,
-    legacy: { written_by: "canonical-write-service", note: input.note ?? null },
-  };
+    items: (items ?? []) as DocumentLineItem[],
+    note: input.note ?? null,
+  });
 
   const { data: version, error } = await db
     .from("document_versions")

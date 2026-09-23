@@ -21,7 +21,7 @@
  * (sync-registry ignores it; nine other files already use it), which keeps this
  * test-only infrastructure out of the module registry.
  */
-import { readFileSync } from "fs";
+import { readFileSync, readdirSync } from "fs";
 import { createRequire } from "node:module";
 import { join } from "path";
 import { sendInvoiceToLine, executeDocumentCreate } from "@/gateway/actions";
@@ -259,12 +259,37 @@ void (async () => {
     sendBody.indexOf("if (!lineRes.success)") < sendBody.indexOf('.from("line_events").insert(')
       && !/status:\s*"(VOID|DRAFT)"/.test(sendBody));
 
-  // NC9–NC14 (PHASE D) ───────────────────────────────────────────────────────
+  // NC9–NC14 (PHASE D/E) ─────────────────────────────────────────────────────
   const chatRoute = readFileSync(join(ROOT, "app/api/chat/confirm/route.ts"), "utf-8");
   const autoCreate = readFileSync(join(ROOT, "engines/jobs/auto-create.ts"), "utf-8");
   const writerSrc = readFileSync(join(ROOT, "engines/canonical/document-write.ts"), "utf-8");
   const txWriter = readFileSync(join(ROOT, "engines/canonical/transaction-write.ts"), "utf-8");
   const demo1 = readFileSync(join(ROOT, "scripts/demo-full-pipeline.ts"), "utf-8");
+
+  // NC14c support (PHASE E): who calls the atomic primitive directly?
+  const rpcCallers = ["app", "core", "engines", "services", "gateway", "supabase", "scripts"].flatMap((dir) => {
+    const hits: string[] = [];
+    const walkRpc = (rel: string): void => {
+      let entries;
+      try {
+        entries = readdirSync(join(ROOT, rel), { withFileTypes: true });
+      } catch {
+        return;
+      }
+      for (const e of entries) {
+        const child = `${rel}/${e.name}`;
+        if (e.isDirectory()) {
+          if (e.name === "node_modules" || e.name.startsWith(".")) continue;
+          walkRpc(child);
+          continue;
+        }
+        if (!e.name.endsWith(".ts") && !e.name.endsWith(".tsx")) continue;
+        if (/\.rpc\(\s*["']confirm_invoice["']/.test(readFileSync(join(ROOT, child), "utf-8"))) hits.push(child);
+      }
+    };
+    walkRpc(dir);
+    return hits;
+  });
 
   // NC9 — the existing causal ordering is preserved, not rearranged.
   check("NC9a preview → execute ordering kept (issueToken before dispatch, execute after confirm)",
@@ -301,16 +326,32 @@ void (async () => {
   check("NC13 the canonical contract still has no recipient_address (demo folded it into notes)",
     !writerSrc.includes("recipient_address") && demo1.includes("ที่อยู่ผู้รับ: ${CUSTOMER_GPS.address}"));
 
-  // NC14 — invoice atomicity must not be silently downgraded.
+  // NC14 / PHASE E — the invoice atomic primitive is now UNDER the canonical
+  // authority: exactly one creation entry, and the RPC is reachable only from it.
   const invoiceItemsMigration = readFileSync(join(ROOT, "supabase/migrations/20260717000003_invoice_items.sql"), "utf-8");
-  check("NC14a confirm_invoice RPC still exists (no silent drop, no fake single authority)",
+  check("NC14a the pre-promotion RPC definition is intact in migration history",
     invoiceItemsMigration.includes("create or replace function public.confirm_invoice("));
-  check("NC14b the invoice path still uses the single-transaction RPC (no downgrade to compensating writes)",
-    GATEWAY.includes('supabase().rpc("confirm_invoice"') && writerSrc.includes("Compensating rollback"));
+  const promotedMigration = readFileSync(join(ROOT, "supabase/migrations/20260923000004_canonical_document_atomic_v1_1.sql"), "utf-8");
+  check("NC14b the promotion keeps one function (old signature dropped, history untouched)",
+    promotedMigration.includes("drop function if exists public.confirm_invoice(")
+      && promotedMigration.includes("create or replace function public.confirm_invoice(")
+      && promotedMigration.includes("document_versions"));
+  check("NC14c the canonical writer is the ONLY caller of the atomic primitive",
+    rpcCallers.length === 1 && rpcCallers[0] === "engines/canonical/document-write.ts");
+  check("NC14d the invoice path is the RPC (atomic), not the compensating write",
+    writerSrc.indexOf("db.rpc(\"confirm_invoice\"") > 0
+      && writerSrc.indexOf("db.rpc(\"confirm_invoice\"") < writerSrc.indexOf("rollbackPartialDocument(")
+      && writerSrc.includes('if (input.kind === "invoice")'));
+  check("NC14e the compensating rollback survives only for the standalone path (reported, not hidden)",
+    writerSrc.includes("STANDALONE_DOCUMENT: same TS path as before"));
+  check("NC14f the RPC never recomputes money (totals arrive from the TS ladder)",
+    !/round\(|percentile|sum\(/i.test(promotedMigration.match(/as \$\$[\s\S]*?\$\$;/)?.[0] ?? ""));
+  check("NC14g the RPC writes the initial version inside the same transaction",
+    promotedMigration.indexOf("insert into public.document_versions") < promotedMigration.indexOf("return jsonb_build_object"));
 
   console.log(`\nDOCUMENT_OUTSIDE_WRITES_NOW = ${Object.values(DECLARED_OUTSIDE).reduce((a, b) => a + b.length, 0)} declared sites remaining`);
   console.log(`D5_OLD_SITE = ${D5_OLD_SITE} — RESOLVED (document state ≠ delivery state)`);
-  console.log(`INVOICE_ATOMICITY = confirm_invoice RPC retained (canonical writer has no equivalent single-transaction invariant) → migration spec required, owner approval pending`);
+  console.log(`INVOICE_ATOMICITY = promoted into canonical authority (migration 20260923000004, APPLY = NO — local proof only)`);
 
   console.log(`\n${checks - failures}/${checks} passed`);
   if (failures > 0) {

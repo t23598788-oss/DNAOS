@@ -451,31 +451,44 @@ export async function executeDocumentCreate(payload: {
   let savedStatus: string;
 
   if (documentType === "invoice") {
-    // ConfirmInvoice (owner, 2026-07-17, Invoice Workflow Redesign): header
-    // + line items committed in ONE Postgres transaction via the
-    // confirm_invoice() function (supabase/migrations/
-    // 20260717000003_invoice_items.sql) — Supabase's JS/REST client has no
-    // multi-statement transaction primitive, so an RPC call is the only way
-    // to guarantee this per the owner's explicit "commit one transaction"
-    // requirement. Does NOT touch LINE — that is SendInvoiceToLINE's job
-    // alone (owner: "Do not combine ConfirmInvoice and SendInvoiceToLINE").
-    // vat_rate/vat_amount/total_amount come straight from rendered.summary,
-    // which (via precomputedSummary above) IS payload.tax verbatim — not
-    // recalculated here.
-    const { data: newInvoiceId, error } = await supabase().rpc("confirm_invoice", {
-      p_invoice_no: docNum,
-      p_customer_company_id: payload.customer_company_id,
-      p_invoice_date: issueDate,
-      p_subtotal: rendered.summary.subtotal,
-      p_vat_rate: payload.tax?.vatRate ?? 0,
-      p_vat_amount: rendered.summary.vat,
-      p_total_amount: rendered.summary.total,
-      p_notes: payload.note ?? null,
-      p_items: items,
-    });
-    if (error) return { ok: false, mode: "execute", action: "document.create", error: error.message };
-    savedId = newInvoiceId as string;
-    savedStatus = "DRAFT"; // confirm_invoice() always inserts as DRAFT — "created, not yet sent to customer"
+    // PHASE E cutover (2026-09-23): this used to call the SQL RPC
+    // confirm_invoice() directly — a second, parallel creation entry.
+    // It now goes through the canonical document authority, which owns
+    // validation, the canonical money ladder (computeCanonicalTotals) and the
+    // version/audit, and which itself uses the promoted atomic RPC underneath
+    // (header + items + version in ONE Postgres transaction).
+    // Compatibility mapping: the approved preview totals
+    // (payload.tax ← business.calculate_tax) use the same 7% exclusive rule as
+    // the canonical ladder, so the persisted totals are unchanged; the invoice
+    // still starts as DRAFT ("created, not yet sent to customer").
+    try {
+      const written = await createDocument({
+        kind: "invoice",
+        document_no: docNum,
+        document_type: "invoice",
+        customer_company_id: payload.customer_company_id,
+        issue_date: issueDate,
+        notes: payload.note ?? null,
+        rows: items.map((it) => ({ qty: Number(it.qty) || 0, unitPrice: Number(it.unitPrice) || 0 })),
+        vatEnabled: (payload.tax?.vatRate ?? 0) > 0,
+        items: items.map((it, i) => ({
+          description: it.description,
+          qty: Number(it.qty) || 0,
+          unit: it.unit ?? null,
+          unit_price: Number(it.unitPrice) || 0,
+          sort_order: i,
+        })),
+        actor,
+        status: "DRAFT",
+      });
+      savedId = written.document_id;
+      savedStatus = "DRAFT";
+    } catch (err) {
+      return {
+        ok: false, mode: "execute", action: "document.create",
+        error: `สร้างใบแจ้งหนี้ผ่าน canonical writer ไม่สำเร็จ: ${err instanceof Error ? err.message : String(err)}`,
+      };
+    }
   } else {
     const enumValue = STANDALONE_ENUM[documentType];
     if (!enumValue) {
