@@ -495,18 +495,23 @@ export async function getDebtsByCustomerName(name: string) {
 // (distance_km / required_quantity / delivered_quantity) now carry the real
 // persisted values.
 //
-// DELIBERATELY NOT ADDED (needs an owner decision, not a guess here):
-//   · no `deleted_at` filter — the old query had none, and 11 of the 18 LIVE
-//     rows are soft-deleted (all 6 IN_PROGRESS rows currently are). Filtering
-//     would silently change what job.list/job.active mean.
-//   · no join for `partners` — LIVE has no FK from jobs to companies/partners
-//     (PostgREST relationship resolution returns PGRST200 for every candidate),
-//     so `partner_id` is returned as the canonical reference and `partners`
-//     stays null instead of a guessed client-side join.
+// OWNER DECISION (2026-09-23): `deleted_at IS NOT NULL` means the job has been
+// soft-deleted, so it must NOT appear in the current job list — this query is
+// therefore scoped to `deleted_at IS NULL` for BOTH job.list and job.active.
+// LIVE facts at the time of the decision: 18 rows total, 11 soft-deleted,
+// 7 live (SUSPENDED 3 / PENDING_REVIEW 3 / COMPLETED 1); all 6 IN_PROGRESS rows
+// were in the soft-deleted group, so job.active legitimately returns [] until a
+// live IN_PROGRESS job exists again — no fallback ever re-admits a deleted row.
+//
+// NOT ADDED (still out of scope): a join for `partners` — LIVE has no FK from
+// jobs to companies/partners (PostgREST relationship resolution returns
+// PGRST200 for every candidate), so `partner_id` is returned as the canonical
+// reference and `partners` stays null instead of a guessed client-side join.
 export async function getJobs(status?: string) {
   let query = supabaseAdmin()
     .from("jobs")
     .select("id, project_name, job_status, partner_id, contact_name, distance_km, required_quantity, delivered_quantity, created_at")
+    .is("deleted_at", null)
     .order("created_at", { ascending: false });
 
   if (status) {

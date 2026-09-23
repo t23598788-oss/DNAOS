@@ -155,12 +155,14 @@ export function createPresentationGateway(deps: PresentationGatewayDeps) {
 
     async getTransportSummary(): Promise<TransportSummaryDTO> {
       await requireGatewayAuth();
-      // getJobs() queries transport_jobs, which does not exist anywhere in
-      // the production schema — confirmed via live schema inspection
-      // (2026-07-14, full public-schema table list checked, no
-      // transport/job/delivery table found). Not calling it: it would only
-      // throw. Returning an explicit unavailable state instead of a
-      // fabricated or silently-empty one.
+      // This OLD workspace presenter is deliberately not wired to the job
+      // capability, and its original note here was factually corrected on
+      // 2026-09-23 by a live read-only check: public.jobs DOES exist and is the
+      // table getJobs() reads (now scoped to deleted_at IS NULL);
+      // public.transport_jobs still does not exist. Runtime behaviour is
+      // unchanged — an explicit unavailable state, never a fabricated or
+      // silently-empty one. (Its DTO still carries the legacy transport_jobs
+      // shape, so wiring it is a separate, owner-approved change.)
       return { available: false, totalCount: 0, items: [] };
     },
 

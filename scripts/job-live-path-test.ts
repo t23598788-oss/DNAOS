@@ -79,7 +79,30 @@ async function liveCheck(): Promise<string> {
   assert.equal(deadRes.status, 404, `LIVE public.transport_jobs must not exist (expected 404, got ${deadRes.status})`);
   const deadBody = (await deadRes.json()) as { code?: string };
   assert.equal(deadBody.code, "PGRST205", "LIVE transport_jobs must report PGRST205 (not in schema cache)");
-  return `checked live (${rows.length} row sampled)`;
+
+  // --- soft-delete proof (owner decision 2026-09-23) -------------------------
+  // A/B/C/D: the getJobs() scope must equal LIVE `deleted_at IS NULL`, must never
+  // return a soft-deleted row, and must return [] (not a fallback) when no live
+  // row matches — so the expected counts are MEASURED live, never hardcoded.
+  type Row = { id: string; deleted_at: string | null; job_status?: string };
+  const all = (await (await fetch(`${url}/rest/v1/jobs?select=id,deleted_at,job_status`, { headers })).json()) as Row[];
+  const liveRows = all.filter((r) => !r.deleted_at);
+  const liveActive = liveRows.filter((r) => r.job_status === "IN_PROGRESS");
+
+  const filtered = (await (await fetch(`${url}/rest/v1/jobs?select=id,deleted_at&deleted_at=is.null`, { headers })).json()) as Row[];
+  assert.equal(filtered.length, liveRows.length, `deleted_at IS NULL must return exactly the ${liveRows.length} live rows, got ${filtered.length}`);
+  assert.ok(filtered.every((r) => r.deleted_at === null), "A: getJobs() scope must never return a soft-deleted row");
+
+  const filteredActive = (await (await fetch(`${url}/rest/v1/jobs?select=id,deleted_at,job_status&deleted_at=is.null&job_status=eq.IN_PROGRESS`, { headers })).json()) as Row[];
+  assert.equal(
+    filteredActive.length,
+    liveActive.length,
+    `job.active scope must return exactly the ${liveActive.length} live IN_PROGRESS rows, got ${filteredActive.length}`,
+  );
+  assert.ok(filteredActive.every((r) => r.deleted_at === null), "B: job.active must never return a soft-deleted row");
+  if (liveActive.length === 0) assert.equal(filteredActive.length, 0, "C: with no live IN_PROGRESS job the result must be [] — no fallback");
+
+  return `checked live (total ${all.length}, live ${liveRows.length}, soft-deleted ${all.length - liveRows.length}, live IN_PROGRESS ${liveActive.length} → filtered ${filtered.length}/${filteredActive.length})`;
 }
 
 async function main() {
@@ -96,6 +119,12 @@ async function main() {
     /distance_km: 0|required_quantity: 0|delivered_quantity: 0/.test(queries),
     false,
     "the hardcoded 0 fallbacks must be replaced by the real persisted values",
+  );
+  // soft-delete scope (owner decision 2026-09-23): the ONE job query must be
+  // scoped to deleted_at IS NULL — removing that clause must fail this test.
+  assert.ok(
+    /\.from\("jobs"\)[\s\S]{0,400}?\.is\("deleted_at",\s*null\)/.test(queries),
+    "getJobs() must be scoped with .is(\"deleted_at\", null) so soft-deleted jobs never surface",
   );
 
   // 3 · job.list keeps routing to the existing getJobs()

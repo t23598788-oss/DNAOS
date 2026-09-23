@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-23T05:46:30.934Z",
+  "generated_at": "2026-09-23T05:52:00.340Z",
   "version": 1,
   "nodes": [
     {
@@ -13348,74 +13348,74 @@
         {
           "name": "getJobs",
           "kind": "function",
-          "line_start": 506,
-          "line_end": 529
+          "line_start": 510,
+          "line_end": 534
         },
         {
           "name": "getPartners",
           "kind": "function",
-          "line_start": 533,
-          "line_end": 540
+          "line_start": 538,
+          "line_end": 545
         },
         {
           "name": "getDebtorPartners",
           "kind": "function",
-          "line_start": 542,
-          "line_end": 552
+          "line_start": 547,
+          "line_end": 557
         },
         {
           "name": "getMaterialTypes",
           "kind": "function",
-          "line_start": 556,
-          "line_end": 567
+          "line_start": 561,
+          "line_end": 572
         },
         {
           "name": "getCustomerGps",
           "kind": "function",
-          "line_start": 574,
-          "line_end": 621
+          "line_start": 579,
+          "line_end": 626
         },
         {
           "name": "getPartnerById",
           "kind": "function",
-          "line_start": 625,
-          "line_end": 633
+          "line_start": 630,
+          "line_end": 638
         },
         {
           "name": "getDocumentsByPartner",
           "kind": "function",
-          "line_start": 635,
-          "line_end": 653
+          "line_start": 640,
+          "line_end": 658
         },
         {
           "name": "getBusinessEventsByPartner",
           "kind": "function",
-          "line_start": 655,
-          "line_end": 672
+          "line_start": 660,
+          "line_end": 677
         },
         {
           "name": "getTransactions",
           "kind": "function",
-          "line_start": 676,
-          "line_end": 709
+          "line_start": 681,
+          "line_end": 714
         },
         {
           "name": "getTransactionById",
           "kind": "function",
-          "line_start": 711,
-          "line_end": 757
+          "line_start": 716,
+          "line_end": 762
         },
         {
           "name": "getPartnersWithDocumentSummary",
           "kind": "function",
-          "line_start": 759,
-          "line_end": 821
+          "line_start": 764,
+          "line_end": 826
         },
         {
           "name": "getPendingDrafts",
           "kind": "function",
-          "line_start": 825,
-          "line_end": 827
+          "line_start": 830,
+          "line_end": 832
         }
       ]
     },
@@ -27043,14 +27043,14 @@
         {
           "name": "TransportSummaryDTO",
           "kind": "interface",
-          "line_start": 11,
-          "line_end": 15
+          "line_start": 14,
+          "line_end": 18
         },
         {
           "name": "toRenderModel",
           "kind": "function",
-          "line_start": 17,
-          "line_end": 44
+          "line_start": 20,
+          "line_end": 47
         }
       ],
       "import_sites": [
@@ -27586,7 +27586,7 @@
           "name": "createPresentationGateway",
           "kind": "function",
           "line_start": 76,
-          "line_end": 186
+          "line_end": 188
         }
       ],
       "import_sites": [
