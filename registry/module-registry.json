@@ -14954,6 +14954,17 @@
         "POST"
       ],
       "status": "active"
+    },
+    "scripts/lib/deterministicOutput.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "ตัวช่วยกลางของ canonical generators — ทำให้ rerun บน source เดิมได้ไฟล์เดิม (idempotent)",
+      "purpose_th": "ตัวช่วยกลางของ canonical generators — ทำให้ rerun บน source เดิมได้ไฟล์เดิม (idempotent)",
+      "exports": [
+        "canonicalJson",
+        "stableGeneratedAt"
+      ],
+      "status": "active"
     }
   },
   "excluded": [

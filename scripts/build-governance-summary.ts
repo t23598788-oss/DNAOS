@@ -14,6 +14,7 @@
  */
 import { writeFileSync } from "fs";
 import { join } from "path";
+import { stableGeneratedAt } from "./lib/deterministicOutput";
 import {
   computeAllRules, computeCoverageSummary, computeFactoryGovernance, findGhostFindings,
 } from "../app/api/admin/ide/_lib/governanceRuntime";
@@ -33,8 +34,7 @@ function main() {
   const rulesWithFileEvidence = rules.filter((r) => r.resolvedFiles.length > 0 || r.missingFiles.length > 0).length;
   const inspectionCoveragePercent = rules.length > 0 ? Math.round((rulesWithFileEvidence / rules.length) * 1000) / 10 : 0;
 
-  const output = {
-    generated_at: new Date().toISOString(),
+  const outputContent = {
     note: "Computed live from registry/CONSTITUTION.json + registry/rule-coverage.json + registry/factory-mapping.json by app/api/admin/ide/_lib/governanceRuntime.ts — never hand-edited, never a cached stale number. Re-run via `npm run sync` or `npx tsx scripts/build-governance-summary.ts`.",
     totalRules: summary.totalRules,
     enforced: summary.enforced,
@@ -55,7 +55,17 @@ function main() {
     ghostFindings,
   };
 
-  writeFileSync(join(ROOT, "registry/governance-summary.json"), JSON.stringify(output, null, 2) + "\n", "utf-8");
+  const outputPath = join(ROOT, "registry/governance-summary.json");
+
+  // Deterministic output (scripts/lib/deterministicOutput.ts): keep the previous
+  // generated_at when everything else is identical, so a canonical re-run on the same
+  // source leaves this file byte-identical instead of re-diffing a timestamp.
+  const output = {
+    generated_at: stableGeneratedAt(outputPath, outputContent),
+    ...outputContent,
+  };
+
+  writeFileSync(outputPath, JSON.stringify(output, null, 2) + "\n", "utf-8");
   console.log("Governance Summary สร้างเสร็จ");
   console.log(`  Total Rules: ${summary.totalRules}`);
   console.log(`  Enforced: ${summary.enforced} | Declared: ${summary.declaredNotEnforced} | Not Implemented: ${summary.notImplemented}`);

@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-23T01:26:52.347Z",
+  "generated_at": "2026-09-23T01:56:46.413Z",
   "policy": "Per-module Factory mapping only — no file was moved. See registry/factory-registry.json for the Factory contracts this maps into.",
   "modules": {
     "app/.well-known/oauth-authorization-server/route.ts": {
@@ -9728,6 +9728,13 @@
       "evidence": [
         "real test file — QA Factory owns all test code regardless of domain"
       ]
+    },
+    "scripts/lib/deterministicOutput.ts": {
+      "factoryOwner": "UNKNOWN",
+      "domain": null,
+      "capability": null,
+      "responsibility": "ตัวช่วยกลางของ canonical generators — ทำให้ rerun บน source เดิมได้ไฟล์เดิม (idempotent)",
+      "evidence": []
     },
     "scripts/line-credential-path-test.ts": {
       "factoryOwner": "qa-factory",

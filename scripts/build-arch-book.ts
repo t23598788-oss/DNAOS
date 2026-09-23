@@ -10,6 +10,7 @@ import { readFileSync, writeFileSync, existsSync } from "fs";
 import { join } from "path";
 import { glob } from "glob";
 import * as ts from "typescript";
+import { stableGeneratedAt } from "./lib/deterministicOutput";
 
 const ROOT = join(__dirname, "..");
 const REGISTRY = join(ROOT, "registry");
@@ -460,6 +461,26 @@ function calcStatus(
 
 // ── Main ───────────────────────────────────────────
 
+// ── Deterministic output (owner, 2026-09-23) ────────────────────────────────
+// The canonical pipeline (sync-registry → build-arch-book → build-system-control-graph
+// → build-governance-summary) has to be idempotent: running it twice on unchanged
+// source must not rewrite the same architecture book. Two properties were missing —
+// neither of them changes the graph itself (the edge set and every node stay exactly
+// the same; nothing is added, dropped or re-weighted):
+//   1. edges[] was serialized in file-iteration order, which varies between runs.
+//   2. generated_at was wall-clock, so every run produced a fresh diff.
+
+/** Edge order: source → target → label, code-unit comparison (locale-independent). */
+function compareEdges(a: ArchEdge, b: ArchEdge): number {
+  if (a.source !== b.source) return a.source < b.source ? -1 : 1;
+  if (a.target !== b.target) return a.target < b.target ? -1 : 1;
+  if (a.label !== b.label) return a.label < b.label ? -1 : 1;
+  return 0;
+}
+
+// generated_at: ใช้ตัวช่วยกลาง scripts/lib/deterministicOutput.ts (ไม่ทำสำเนาไว้ที่นี่)
+// เหตุผลเดียวกับ compareEdges ด้านบน — canonical re-run ต้องได้ไฟล์เดิม
+
 async function buildArchBook() {
   const moduleReg = load<{ modules?: Record<string, ModuleRegistryEntry> }>("module-registry.json");
   const archReg = load<{ layers?: Record<string, { purpose?: string }> }>("architecture.json");
@@ -626,6 +647,9 @@ async function buildArchBook() {
     });
   }
 
+  // Stable edge order (compareEdges) — identical edge set, deterministic bytes.
+  edges.sort(compareEdges);
+
   // Summary
   const moduleNodes = nodes.filter((n) => n.type === "Module");
   const summary = {
@@ -636,15 +660,17 @@ async function buildArchBook() {
     unregistered: moduleNodes.filter((n) => n.status === "UNREGISTERED").length,
   };
 
+  const outPath = join(REGISTRY, "architecture-book.json");
+
+  // Deterministic: keep the previous timestamp when the generated content is otherwise
+  // identical (scripts/lib/deterministicOutput.ts) — a canonical re-run on unchanged
+  // source must not rewrite this file.
+  const bookContent = { version: 1, nodes, edges, summary };
   const book: ArchitectureBook = {
-    generated_at: new Date().toISOString(),
-    version: 1,
-    nodes,
-    edges,
-    summary,
+    generated_at: stableGeneratedAt(outPath, bookContent),
+    ...bookContent,
   };
 
-  const outPath = join(REGISTRY, "architecture-book.json");
   writeFileSync(outPath, JSON.stringify(book, null, 2) + "\n", "utf-8");
 
   console.log(`\nArchitecture Book สร้างเสร็จ`);
