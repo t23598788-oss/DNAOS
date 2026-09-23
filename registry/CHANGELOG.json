@@ -3241,5 +3241,18 @@
       "registry/CHANGELOG.json (this entry)"
     ],
     "summary": "Unblocked the release deploy at Railway Staging. Real root cause found from the build log: the build runs `prebuild -> scripts/deploy-gate.ts`, which runs scripts/governance.sh and blocks when any check in DNA_OS_HEALTH.json is 0. At the release commit architecture_drift was 0 because of three drifts: (1) presentation/ existed but was not declared in check-drift.sh's DECLARED_TOP_LEVEL, (2) dna-os-contractor/ likewise, (3) a FALSE POSITIVE 'JWT token found hardcoded' — that rule is a literal three-character JWT-prefix grep over *.ts/*.json, and it was matching this repo's own secret-detector regex, which contained that prefix inside its pattern. Fixed by declaring both real top-level layers (following the file's own documented precedent for docs/, styles/, src-tauri/, local-runtime/, dna-os-mcp-server/) and by assembling the detector's JWT prefix from fragments so the pattern no longer contains the literal — detection strength unchanged, proven by re-running the test (17/17) and by governance.sh now reporting Health 100/100, 8/8 PASSED, 0 FAILED in the clean deploy tree. No product behaviour, no canonical writer, no financial authority and no UI changed."
+  },
+  {
+    "change_id": "DNA-000203",
+    "agent": "Claude",
+    "agent_id": null,
+    "agent_id_note": "Not available to this session — not guessed.",
+    "session_id": null,
+    "date": "2026-09-24",
+    "files": [
+      "12-environments.json (staging declared real: Railway url/project/env/service + the separate staging Supabase project; production deploy_target moved off Vercel, which is no longer used)",
+      "registry/CHANGELOG.json (this entry)"
+    ],
+    "summary": "R2 slice 1-2 — environment + account registry. (1) The canonical Connect account registry on the staging database (public.connect_external_accounts, migration 20260923000003) was populated with the real resources of this environment: supabase/zjhgysugbmyyciatmltv, railway/d5ae6989-...-staging, github/---------------DNA-OS, and line (state NOT_CONNECTED, no credential_ref). Every credential is stored as a credential_ref NAME pointing at the existing credential authority — no secret value is stored or printed. connect_identity_current stays empty (0 identities) because no real people are linked yet — the model is not seeded with fake links. (2) 12-environments.json's staging entry changed from \"planned / Vercel Preview\" to the real, working environment: url https://dna-os-staging.up.railway.app, Railway project/environment/service ids, the separate staging Supabase project, and status active — so the repository now describes what actually exists. production's deploy_target moved off Vercel to Railway per the Owner's decision (the Vercel account is blocked and unused); no production cutover happened. No product behaviour, canonical writer, financial authority or UI changed."
   }
 ]
