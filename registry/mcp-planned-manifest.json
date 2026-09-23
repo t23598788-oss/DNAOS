@@ -3,6 +3,33 @@
   "loaded_by_runtime": false,
   "policy": "This file is NOT read by app/api/v1/spec, engines/validation/dispatcher.ts, or any runtime path. It exists solely to pin down the HTTP contract for planned MCP tools/resources before they are promoted into registry/command-registry.json or registry/mcp-resource-registry.json with status:active. No entry here is callable by any client.",
   "tools": {
+    "contractor.task.claim": {
+      "reads_endpoint": "POST /api/v1/mcp/contractor/task-claim",
+      "reads_source_files": ["app/api/admin/ide/_lib/workerContract.ts", "app/api/admin/ide/_lib/workerTaskOrchestrator.ts"],
+      "new_route_required": true,
+      "route_implemented": true,
+      "implementation": "app/api/v1/mcp/contractor/task-claim/route.ts + dna-os-mcp-server/src/tools/contractorTaskClaim.ts",
+      "contract": "Universal Worker Contract (workerContract.ts) — WorkerRequest; task = a real JobContract created by workerTaskOrchestrator.createJobContract, never a second task store",
+      "writes": "queue job + job contract (existing runtimes only; no business table, no canonical writer)"
+    },
+    "contractor.evidence.submit": {
+      "reads_endpoint": "POST /api/v1/mcp/contractor/evidence-submit",
+      "reads_source_files": ["app/api/admin/ide/_lib/workerContract.ts", "app/api/admin/ide/_lib/changeSetRuntime.ts"],
+      "new_route_required": true,
+      "route_implemented": true,
+      "implementation": "app/api/v1/mcp/contractor/evidence-submit/route.ts + dna-os-mcp-server/src/tools/contractorEvidenceSubmit.ts",
+      "contract": "Universal Worker Contract (workerContract.ts) — WorkerResponse; evidence refs verified by changeSetRuntime.verifyEvidenceReference",
+      "writes": "queue job finalize + evidence reference verification only"
+    },
+    "contractor.status": {
+      "reads_endpoint": "GET /api/v1/mcp/contractor/status?ownerId=",
+      "reads_source_files": ["app/api/admin/ide/_lib/queueRuntime.ts"],
+      "new_route_required": true,
+      "route_implemented": true,
+      "implementation": "app/api/v1/mcp/contractor/status/route.ts + dna-os-mcp-server/src/tools/contractorStatus.ts",
+      "contract": "queueRuntime.listJobs/getJob — the existing job lifecycle, no new status model",
+      "writes": "none (read-only)"
+    },
     "architecture.system_summary": {
       "reads_endpoint": "GET /api/v1/mcp/architecture/summary",
       "reads_source_files": ["registry/CONSTITUTION.json", "registry/dependency-graph.json"],

@@ -15295,6 +15295,78 @@
         "writeLedgerAtomic"
       ],
       "status": "active"
+    },
+    "dna-os-mcp-server/src/tools/contractorTaskClaim.ts": {
+      "owner": "dna-os-mcp-server",
+      "layer": "dna-os-mcp-server",
+      "purpose": "contractor.task.claim — contractor task intake over MCP (NEW-1, App-side half",
+      "purpose_th": "contractor.task.claim — contractor task intake over MCP (NEW-1, App-side half",
+      "exports": [
+        "ContractorTaskClaimInput",
+        "TOOL_NAME",
+        "runContractorTaskClaim"
+      ],
+      "status": "active",
+      "entry_point": true,
+      "entry_point_note": "entry_point:true here means 'outside the main app import-graph scan root', not 'a process entrypoint' — dna-os-mcp-server is a standalone npm package (own tsconfig/node_modules), so scripts/build-arch-book.ts's import scanner cannot see server.ts importing this tool file. Real caller: dna-os-mcp-server/src/server.ts (TOOL_DEFINITIONS + the CallToolRequestSchema switch). Same pattern as the other 11 files in this package."
+    },
+    "dna-os-mcp-server/src/tools/contractorStatus.ts": {
+      "owner": "dna-os-mcp-server",
+      "layer": "dna-os-mcp-server",
+      "purpose": "contractor.status — contractor job status over MCP (NEW-1; App-side half is",
+      "purpose_th": "contractor.status — contractor job status over MCP (NEW-1; App-side half is",
+      "exports": [
+        "ContractorStatusInput",
+        "TOOL_NAME",
+        "runContractorStatus"
+      ],
+      "status": "active",
+      "entry_point": true,
+      "entry_point_note": "entry_point:true here means 'outside the main app import-graph scan root', not 'a process entrypoint' — dna-os-mcp-server is a standalone npm package (own tsconfig/node_modules), so scripts/build-arch-book.ts's import scanner cannot see server.ts importing this tool file. Real caller: dna-os-mcp-server/src/server.ts (TOOL_DEFINITIONS + the CallToolRequestSchema switch). Same pattern as the other 11 files in this package."
+    },
+    "dna-os-mcp-server/src/tools/contractorEvidenceSubmit.ts": {
+      "owner": "dna-os-mcp-server",
+      "layer": "dna-os-mcp-server",
+      "purpose": "contractor.evidence.submit — contractor result/evidence intake over MCP",
+      "purpose_th": "contractor.evidence.submit — contractor result/evidence intake over MCP",
+      "exports": [
+        "ContractorEvidenceSubmitInput",
+        "TOOL_NAME",
+        "runContractorEvidenceSubmit"
+      ],
+      "status": "active",
+      "entry_point": true,
+      "entry_point_note": "entry_point:true here means 'outside the main app import-graph scan root', not 'a process entrypoint' — dna-os-mcp-server is a standalone npm package (own tsconfig/node_modules), so scripts/build-arch-book.ts's import scanner cannot see server.ts importing this tool file. Real caller: dna-os-mcp-server/src/server.ts (TOOL_DEFINITIONS + the CallToolRequestSchema switch). Same pattern as the other 11 files in this package."
+    },
+    "app/api/v1/mcp/contractor/task-claim/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "POST /api/v1/mcp/contractor/task-claim — contractor task intake (NEW-1, 2026-09-23).",
+      "purpose_th": "POST /api/v1/mcp/contractor/task-claim — contractor task intake (NEW-1, 2026-09-23).",
+      "exports": [
+        "POST"
+      ],
+      "status": "active"
+    },
+    "app/api/v1/mcp/contractor/status/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "GET /api/v1/mcp/contractor/status?ownerId=… — contractor job status (NEW-1, 2026-09-23).",
+      "purpose_th": "GET /api/v1/mcp/contractor/status?ownerId=… — contractor job status (NEW-1, 2026-09-23).",
+      "exports": [
+        "GET"
+      ],
+      "status": "active"
+    },
+    "app/api/v1/mcp/contractor/evidence-submit/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "POST /api/v1/mcp/contractor/evidence-submit — contractor result/evidence intake",
+      "purpose_th": "POST /api/v1/mcp/contractor/evidence-submit — contractor result/evidence intake",
+      "exports": [
+        "POST"
+      ],
+      "status": "active"
     }
   },
   "excluded": [

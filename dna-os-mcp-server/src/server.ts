@@ -22,6 +22,9 @@ import { TOOL_NAME as LIST_MODULES, runRegistryListModules } from "./tools/regis
 import { TOOL_NAME as LIST_COMMANDS, runRegistryListCommands } from "./tools/registryListCommands.js"
 import { TOOL_NAME as DEPENDENCY_GRAPH, runArchitectureGetDependencyGraph } from "./tools/architectureDependencyGraph.js"
 import { TOOL_NAME as RUNTIME_QUERY, runRuntimeQuery, type RuntimeQueryInput } from "./tools/runtimeQuery.js"
+import { TOOL_NAME as CONTRACTOR_TASK_CLAIM, runContractorTaskClaim, type ContractorTaskClaimInput } from "./tools/contractorTaskClaim.js"
+import { TOOL_NAME as CONTRACTOR_EVIDENCE_SUBMIT, runContractorEvidenceSubmit, type ContractorEvidenceSubmitInput } from "./tools/contractorEvidenceSubmit.js"
+import { TOOL_NAME as CONTRACTOR_STATUS, runContractorStatus, type ContractorStatusInput } from "./tools/contractorStatus.js"
 import { RESOURCE_NAME as CONSTITUTION_RESOURCE, RESOURCE_URI as CONSTITUTION_URI, readConstitutionGetRules } from "./resources/constitutionGetRules.js"
 
 const TOOL_DEFINITIONS = [
@@ -55,6 +58,50 @@ const TOOL_DEFINITIONS = [
         args: { type: "object", description: "Command arguments, per registry.list_commands output" },
       },
       required: ["command"],
+    },
+  },
+  {
+    name: CONTRACTOR_TASK_CLAIM,
+    description: "Claim a contractor task: creates a real JobContract (workerTaskOrchestrator) + queue job (queueRuntime) and returns the canonical WorkerRequest payload. Requires DNA_OS_API_TOKEN with a propose scope.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        ownerId: { type: "string", description: "Owning session id (queue ownership is enforced by queueRuntime)" },
+        capabilityRequired: { type: "string", description: "DNA OS capability the contractor must provide, e.g. code.generate" },
+        taskDescription: { type: "string" },
+        acceptanceCriteria: { type: "array", items: { type: "string" } },
+        permittedReadScope: { type: "array", items: { type: "string" } },
+        permittedWriteScope: { type: "array", items: { type: "string" } },
+        permittedTools: { type: "array", items: { type: "string" } },
+        forbiddenTools: { type: "array", items: { type: "string" } },
+      },
+      required: ["ownerId", "capabilityRequired", "taskDescription"],
+    },
+  },
+  {
+    name: CONTRACTOR_EVIDENCE_SUBMIT,
+    description: "Submit a contractor result/evidence (WorkerResponse shape). Evidence refs are verified by changeSetRuntime; an unverifiable SUCCEEDED result is downgraded to PARTIAL. Nothing is applied.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        ownerId: { type: "string" },
+        jobId: { type: "string" },
+        workerResponse: { type: "object", description: "WorkerResponse: { status, output?, error?, evidence? }" },
+        evidenceRefs: { type: "array", items: { type: "object", properties: { kind: { type: "string" }, refId: { type: "string" } } } },
+      },
+      required: ["ownerId", "jobId", "workerResponse"],
+    },
+  },
+  {
+    name: CONTRACTOR_STATUS,
+    description: "Read contractor job status from the existing queue lifecycle (queueRuntime.listJobs/getJob). Read-only.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        ownerId: { type: "string" },
+        jobId: { type: "string", description: "Optional: one job instead of the owner's whole list" },
+      },
+      required: ["ownerId"],
     },
   },
 ]
@@ -114,6 +161,18 @@ export function createDnaOsMcpServer(config: DnaOsConfig): Server {
     const { name, arguments: args } = request.params
 
     switch (name) {
+      case CONTRACTOR_TASK_CLAIM: {
+        const outcome = await runContractorTaskClaim(config, args as unknown as ContractorTaskClaimInput)
+        return outcome.ok ? resultToToolResult(outcome.result) : errorToToolResult(outcome.error)
+      }
+      case CONTRACTOR_EVIDENCE_SUBMIT: {
+        const outcome = await runContractorEvidenceSubmit(config, args as unknown as ContractorEvidenceSubmitInput)
+        return outcome.ok ? resultToToolResult(outcome.result) : errorToToolResult(outcome.error)
+      }
+      case CONTRACTOR_STATUS: {
+        const outcome = await runContractorStatus(config, args as unknown as ContractorStatusInput)
+        return outcome.ok ? resultToToolResult(outcome.result) : errorToToolResult(outcome.error)
+      }
       case SYSTEM_SUMMARY: {
         const outcome = await runArchitectureSystemSummary(config)
         return outcome.ok ? resultToToolResult(outcome.result) : errorToToolResult(outcome.error)

@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-23T13:20:47.891Z",
+  "generated_at": "2026-09-23T13:34:54.842Z",
   "nodes": [
     {
       "id": "layer:core",
@@ -13798,6 +13798,9 @@
         "module:dna-os-mcp-server/src/resources/constitutionGetRules.js.ts",
         "module:dna-os-mcp-server/src/tools/architectureDependencyGraph.js.ts",
         "module:dna-os-mcp-server/src/tools/architectureSystemSummary.js.ts",
+        "module:dna-os-mcp-server/src/tools/contractorEvidenceSubmit.js.ts",
+        "module:dna-os-mcp-server/src/tools/contractorStatus.js.ts",
+        "module:dna-os-mcp-server/src/tools/contractorTaskClaim.js.ts",
         "module:dna-os-mcp-server/src/tools/registryListCommands.js.ts",
         "module:dna-os-mcp-server/src/tools/registryListModules.js.ts",
         "module:dna-os-mcp-server/src/tools/runtimeQuery.js.ts"
@@ -16275,6 +16278,9 @@
         "module:services/supabase/api-tokens.ts"
       ],
       "dependents": [
+        "module:app/api/v1/mcp/contractor/evidence-submit/route.ts",
+        "module:app/api/v1/mcp/contractor/status/route.ts",
+        "module:app/api/v1/mcp/contractor/task-claim/route.ts",
         "module:app/api/v1/mcp/governance/deploy-approval-status/route.ts",
         "module:app/api/v1/mcp/governance/impact/[evidenceEventId]/route.ts",
         "module:app/api/v1/mcp/governance/registry-proposals/route.ts",
@@ -17817,6 +17823,9 @@
         "module:app/api/admin/ide/test/runs/route.ts",
         "module:app/api/admin/ide/ui-inspection/[inspectionId]/rerun/route.ts",
         "module:app/api/admin/ide/ui-inspection/run/route.ts",
+        "module:app/api/v1/mcp/contractor/evidence-submit/route.ts",
+        "module:app/api/v1/mcp/contractor/status/route.ts",
+        "module:app/api/v1/mcp/contractor/task-claim/route.ts",
         "module:scripts/artifact-test.ts",
         "module:scripts/business-failure-bridge-test.ts",
         "module:scripts/code-worker-test.ts",
@@ -19157,6 +19166,7 @@
         "module:app/api/admin/ide/review/change-sets/[changeSetId]/route.ts",
         "module:app/api/admin/ide/review/change-sets/route.ts",
         "module:app/api/admin/ide/test/runs/route.ts",
+        "module:app/api/v1/mcp/contractor/evidence-submit/route.ts",
         "module:scripts/build-gate-test.ts",
         "module:scripts/build-test.ts",
         "module:scripts/deployment-test.ts",
@@ -24078,6 +24088,8 @@
         "module:app/api/admin/ide/_lib/workerAdapters/mcpWorkerAdapter.ts",
         "module:app/api/admin/ide/_lib/workerSelectorRuntime.ts",
         "module:app/api/admin/ide/workers/select/route.ts",
+        "module:app/api/v1/mcp/contractor/evidence-submit/route.ts",
+        "module:app/api/v1/mcp/contractor/task-claim/route.ts",
         "module:scripts/cli-worker-test.ts",
         "module:scripts/code-worker-bridge-test.ts",
         "module:scripts/code-worker-test.ts",
@@ -25045,6 +25057,7 @@
         "module:app/api/admin/ide/_lib/workerRegistry.ts"
       ],
       "dependents": [
+        "module:app/api/v1/mcp/contractor/task-claim/route.ts",
         "module:scripts/edge-function-worker-test.ts",
         "module:scripts/manager-question-queue-test.ts"
       ],
@@ -29734,6 +29747,139 @@
       "dependents": [
         "module:dna-os-contractor/test/leaseClient.test.ts"
       ],
+      "commands": [],
+      "events": [],
+      "capabilities": [],
+      "health": "OK",
+      "cost_source": "UNKNOWN"
+    },
+    {
+      "id": "module:dna-os-mcp-server/src/tools/contractorTaskClaim.ts",
+      "name": "dna-os-mcp-server/src/tools/contractorTaskClaim.ts",
+      "type": "Module",
+      "layer": "dna-os-mcp-server",
+      "source_file": "dna-os-mcp-server/src/tools/contractorTaskClaim.ts",
+      "status": "OK",
+      "runtime_callable": true,
+      "provider": "UNKNOWN",
+      "dependencies": [
+        "module:dna-os-mcp-server/src/config.js.ts",
+        "module:dna-os-mcp-server/src/errors.js.ts",
+        "module:dna-os-mcp-server/src/httpClient.js.ts",
+        "module:dna-os-mcp-server/src/manifestClient.js.ts",
+        "module:dna-os-mcp-server/src/normalize.js.ts"
+      ],
+      "dependents": [],
+      "commands": [],
+      "events": [],
+      "capabilities": [],
+      "health": "OK",
+      "cost_source": "UNKNOWN"
+    },
+    {
+      "id": "module:dna-os-mcp-server/src/tools/contractorStatus.ts",
+      "name": "dna-os-mcp-server/src/tools/contractorStatus.ts",
+      "type": "Module",
+      "layer": "dna-os-mcp-server",
+      "source_file": "dna-os-mcp-server/src/tools/contractorStatus.ts",
+      "status": "OK",
+      "runtime_callable": true,
+      "provider": "UNKNOWN",
+      "dependencies": [
+        "module:dna-os-mcp-server/src/config.js.ts",
+        "module:dna-os-mcp-server/src/errors.js.ts",
+        "module:dna-os-mcp-server/src/httpClient.js.ts",
+        "module:dna-os-mcp-server/src/manifestClient.js.ts",
+        "module:dna-os-mcp-server/src/normalize.js.ts"
+      ],
+      "dependents": [],
+      "commands": [],
+      "events": [],
+      "capabilities": [],
+      "health": "OK",
+      "cost_source": "UNKNOWN"
+    },
+    {
+      "id": "module:dna-os-mcp-server/src/tools/contractorEvidenceSubmit.ts",
+      "name": "dna-os-mcp-server/src/tools/contractorEvidenceSubmit.ts",
+      "type": "Module",
+      "layer": "dna-os-mcp-server",
+      "source_file": "dna-os-mcp-server/src/tools/contractorEvidenceSubmit.ts",
+      "status": "OK",
+      "runtime_callable": true,
+      "provider": "UNKNOWN",
+      "dependencies": [
+        "module:dna-os-mcp-server/src/config.js.ts",
+        "module:dna-os-mcp-server/src/errors.js.ts",
+        "module:dna-os-mcp-server/src/httpClient.js.ts",
+        "module:dna-os-mcp-server/src/manifestClient.js.ts",
+        "module:dna-os-mcp-server/src/normalize.js.ts"
+      ],
+      "dependents": [],
+      "commands": [],
+      "events": [],
+      "capabilities": [],
+      "health": "OK",
+      "cost_source": "UNKNOWN"
+    },
+    {
+      "id": "module:app/api/v1/mcp/contractor/task-claim/route.ts",
+      "name": "app/api/v1/mcp/contractor/task-claim/route.ts",
+      "type": "Module",
+      "layer": "app",
+      "source_file": "app/api/v1/mcp/contractor/task-claim/route.ts",
+      "status": "OK",
+      "runtime_callable": true,
+      "provider": "UNKNOWN",
+      "dependencies": [
+        "module:app/api/admin/ide/_lib/queueRuntime.ts",
+        "module:app/api/admin/ide/_lib/workerContract.ts",
+        "module:app/api/admin/ide/_lib/workerTaskOrchestrator.ts",
+        "module:app/api/v1/mcp/governance/_lib/auth.ts"
+      ],
+      "dependents": [],
+      "commands": [],
+      "events": [],
+      "capabilities": [],
+      "health": "OK",
+      "cost_source": "UNKNOWN"
+    },
+    {
+      "id": "module:app/api/v1/mcp/contractor/status/route.ts",
+      "name": "app/api/v1/mcp/contractor/status/route.ts",
+      "type": "Module",
+      "layer": "app",
+      "source_file": "app/api/v1/mcp/contractor/status/route.ts",
+      "status": "OK",
+      "runtime_callable": true,
+      "provider": "UNKNOWN",
+      "dependencies": [
+        "module:app/api/admin/ide/_lib/queueRuntime.ts",
+        "module:app/api/v1/mcp/governance/_lib/auth.ts"
+      ],
+      "dependents": [],
+      "commands": [],
+      "events": [],
+      "capabilities": [],
+      "health": "OK",
+      "cost_source": "UNKNOWN"
+    },
+    {
+      "id": "module:app/api/v1/mcp/contractor/evidence-submit/route.ts",
+      "name": "app/api/v1/mcp/contractor/evidence-submit/route.ts",
+      "type": "Module",
+      "layer": "app",
+      "source_file": "app/api/v1/mcp/contractor/evidence-submit/route.ts",
+      "status": "OK",
+      "runtime_callable": true,
+      "provider": "UNKNOWN",
+      "dependencies": [
+        "module:app/api/admin/ide/_lib/changeSetRuntime.ts",
+        "module:app/api/admin/ide/_lib/queueRuntime.ts",
+        "module:app/api/admin/ide/_lib/workerContract.ts",
+        "module:app/api/v1/mcp/governance/_lib/auth.ts"
+      ],
+      "dependents": [],
       "commands": [],
       "events": [],
       "capabilities": [],
@@ -38899,6 +39045,21 @@
     },
     {
       "source": "layer:app",
+      "target": "module:app/api/v1/mcp/contractor/evidence-submit/route.ts",
+      "type": "governed_by"
+    },
+    {
+      "source": "layer:app",
+      "target": "module:app/api/v1/mcp/contractor/status/route.ts",
+      "type": "governed_by"
+    },
+    {
+      "source": "layer:app",
+      "target": "module:app/api/v1/mcp/contractor/task-claim/route.ts",
+      "type": "governed_by"
+    },
+    {
+      "source": "layer:app",
       "target": "module:app/api/v1/mcp/governance/_lib/auth.ts",
       "type": "governed_by"
     },
@@ -39970,6 +40131,21 @@
     {
       "source": "layer:dna-os-mcp-server",
       "target": "module:dna-os-mcp-server/src/index-governance-http.ts",
+      "type": "governed_by"
+    },
+    {
+      "source": "layer:dna-os-mcp-server",
+      "target": "module:dna-os-mcp-server/src/tools/contractorEvidenceSubmit.ts",
+      "type": "governed_by"
+    },
+    {
+      "source": "layer:dna-os-mcp-server",
+      "target": "module:dna-os-mcp-server/src/tools/contractorStatus.ts",
+      "type": "governed_by"
+    },
+    {
+      "source": "layer:dna-os-mcp-server",
+      "target": "module:dna-os-mcp-server/src/tools/contractorTaskClaim.ts",
       "type": "governed_by"
     },
     {
@@ -50858,6 +51034,56 @@
       "type": "imports"
     },
     {
+      "source": "module:app/api/v1/mcp/contractor/evidence-submit/route.ts",
+      "target": "module:app/api/admin/ide/_lib/changeSetRuntime.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/api/v1/mcp/contractor/evidence-submit/route.ts",
+      "target": "module:app/api/admin/ide/_lib/queueRuntime.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/api/v1/mcp/contractor/evidence-submit/route.ts",
+      "target": "module:app/api/admin/ide/_lib/workerContract.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/api/v1/mcp/contractor/evidence-submit/route.ts",
+      "target": "module:app/api/v1/mcp/governance/_lib/auth.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/api/v1/mcp/contractor/status/route.ts",
+      "target": "module:app/api/admin/ide/_lib/queueRuntime.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/api/v1/mcp/contractor/status/route.ts",
+      "target": "module:app/api/v1/mcp/governance/_lib/auth.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/api/v1/mcp/contractor/task-claim/route.ts",
+      "target": "module:app/api/admin/ide/_lib/queueRuntime.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/api/v1/mcp/contractor/task-claim/route.ts",
+      "target": "module:app/api/admin/ide/_lib/workerContract.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/api/v1/mcp/contractor/task-claim/route.ts",
+      "target": "module:app/api/admin/ide/_lib/workerTaskOrchestrator.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/api/v1/mcp/contractor/task-claim/route.ts",
+      "target": "module:app/api/v1/mcp/governance/_lib/auth.ts",
+      "type": "imports"
+    },
+    {
       "source": "module:app/api/v1/mcp/governance/_lib/auth.ts",
       "target": "module:services/supabase/api-tokens.ts",
       "type": "imports"
@@ -53624,6 +53850,21 @@
     },
     {
       "source": "module:dna-os-mcp-server/src/server.ts",
+      "target": "module:dna-os-mcp-server/src/tools/contractorEvidenceSubmit.js.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:dna-os-mcp-server/src/server.ts",
+      "target": "module:dna-os-mcp-server/src/tools/contractorStatus.js.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:dna-os-mcp-server/src/server.ts",
+      "target": "module:dna-os-mcp-server/src/tools/contractorTaskClaim.js.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:dna-os-mcp-server/src/server.ts",
       "target": "module:dna-os-mcp-server/src/tools/registryListCommands.js.ts",
       "type": "imports"
     },
@@ -53694,6 +53935,81 @@
     },
     {
       "source": "module:dna-os-mcp-server/src/tools/architectureSystemSummary.ts",
+      "target": "module:dna-os-mcp-server/src/normalize.js.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:dna-os-mcp-server/src/tools/contractorEvidenceSubmit.ts",
+      "target": "module:dna-os-mcp-server/src/config.js.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:dna-os-mcp-server/src/tools/contractorEvidenceSubmit.ts",
+      "target": "module:dna-os-mcp-server/src/errors.js.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:dna-os-mcp-server/src/tools/contractorEvidenceSubmit.ts",
+      "target": "module:dna-os-mcp-server/src/httpClient.js.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:dna-os-mcp-server/src/tools/contractorEvidenceSubmit.ts",
+      "target": "module:dna-os-mcp-server/src/manifestClient.js.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:dna-os-mcp-server/src/tools/contractorEvidenceSubmit.ts",
+      "target": "module:dna-os-mcp-server/src/normalize.js.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:dna-os-mcp-server/src/tools/contractorStatus.ts",
+      "target": "module:dna-os-mcp-server/src/config.js.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:dna-os-mcp-server/src/tools/contractorStatus.ts",
+      "target": "module:dna-os-mcp-server/src/errors.js.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:dna-os-mcp-server/src/tools/contractorStatus.ts",
+      "target": "module:dna-os-mcp-server/src/httpClient.js.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:dna-os-mcp-server/src/tools/contractorStatus.ts",
+      "target": "module:dna-os-mcp-server/src/manifestClient.js.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:dna-os-mcp-server/src/tools/contractorStatus.ts",
+      "target": "module:dna-os-mcp-server/src/normalize.js.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:dna-os-mcp-server/src/tools/contractorTaskClaim.ts",
+      "target": "module:dna-os-mcp-server/src/config.js.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:dna-os-mcp-server/src/tools/contractorTaskClaim.ts",
+      "target": "module:dna-os-mcp-server/src/errors.js.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:dna-os-mcp-server/src/tools/contractorTaskClaim.ts",
+      "target": "module:dna-os-mcp-server/src/httpClient.js.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:dna-os-mcp-server/src/tools/contractorTaskClaim.ts",
+      "target": "module:dna-os-mcp-server/src/manifestClient.js.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:dna-os-mcp-server/src/tools/contractorTaskClaim.ts",
       "target": "module:dna-os-mcp-server/src/normalize.js.ts",
       "type": "imports"
     },
@@ -60679,9 +60995,9 @@
     }
   ],
   "summary": {
-    "total_nodes": 1658,
-    "total_edges": 4861,
-    "modules": 1259,
+    "total_nodes": 1664,
+    "total_edges": 4895,
+    "modules": 1265,
     "layers": 9,
     "commands": 99,
     "events": 60,
@@ -60690,8 +61006,8 @@
     "drivers": 11,
     "connector_stages": 5,
     "module_health": {
-      "total": 1259,
-      "ok": 1259,
+      "total": 1265,
+      "ok": 1265,
       "broken": 0,
       "unused": 0,
       "unregistered": 0
@@ -60705,7 +61021,7 @@
     "unknown_field_counts": {
       "nodes_with_unknown_source_file": 82,
       "nodes_with_unknown_status": 159,
-      "nodes_with_unknown_provider": 1634
+      "nodes_with_unknown_provider": 1640
     },
     "unknown_dimensions": [
       "ai_model_registry",
