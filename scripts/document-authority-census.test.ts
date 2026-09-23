@@ -24,12 +24,14 @@
 import { readFileSync } from "fs";
 import { createRequire } from "node:module";
 import { join } from "path";
+import { sendInvoiceToLine, executeDocumentCreate } from "@/gateway/actions";
 
 const ROOT = join(__dirname, "..");
 const requireCensus = createRequire(join(__dirname, "noop.cjs"));
 const census = requireCensus("./lib/directDbMutationCensus.cjs") as {
   CANONICAL_WRITER_DIR: string;
   findDirectMutations: (o: { root: string; table: string; dirs: readonly string[] }) => { file: string; line: number; op: string }[];
+  findMutationSitesInSource: (code: string, file: string, table: string) => { file: string; line: number; op: string }[];
   findDynamicTableMutations: (o: { root: string; dirs: readonly string[]; allowList: readonly string[] }) => {
     sites: { file: string; line: number; op: string; table: string }[];
     outside: { file: string; line: number; op: string; tables: string[] }[];
@@ -63,14 +65,22 @@ const DYNAMIC_ALLOW = ["invoices", "standalone_documents"];
  * PHASE C must shrink this to nothing (except the D5 blocker, see below).
  */
 const DECLARED_OUTSIDE: Record<string, readonly string[]> = {
-  invoices: ["services/supabase/queries.ts:insert", "gateway/actions.ts:update"],
+  // PHASE C cutovers done: invoices (D5 + retired legacy createDocument) → [].
+  invoices: [],
   standalone_documents: [
-    "services/supabase/queries.ts:insert",
-    "gateway/actions.ts:insert",
+    // PHASE C STOP: canonical createDocument has no `recipient_address` input and
+    // the demo's DO row is written with zero totals and no items — a mechanical
+    // cutover would silently drop those. Needs an owner decision.
     "scripts/demo-full-pipeline.ts:insert",
     "scripts/demo-full-pipeline-part2.ts:insert",
   ],
-  document_groups: ["engines/jobs/auto-create.ts:insert", "scripts/demo-full-pipeline.ts:insert"],
+  document_groups: [
+    // PHASE C STOP: canonical createTransaction() cannot express `delivery_note`
+    // and always creates the order as DRAFT, while these two sites write
+    // delivery_note (auto-create) / status "QUOTED" + delivery_note (demo).
+    "engines/jobs/auto-create.ts:insert",
+    "scripts/demo-full-pipeline.ts:insert",
+  ],
 };
 
 /**
@@ -88,8 +98,10 @@ const DECLARED_UNRESOLVED: readonly string[] = [
   "scripts/monitoring-test.ts:EXTERNAL_TABLE_EXPRESSION",
 ];
 
-/** D5 — owner-declared BLOCKED_SEMANTIC_DECISION: this site stays as an exception. */
-const D5_BLOCKER = "gateway/actions.ts:update:invoices";
+/** D5 resolution reference (owner decision 2026-09-23): the gateway's direct
+ *  `invoices.update(invoice_status="SENT")` is gone — document lifecycle is owned
+ *  by issueDocument(), delivery is evidence in line_events. */
+const D5_OLD_SITE = "gateway/actions.ts:update:invoices";
 
 let failures = 0;
 let checks = 0;
@@ -187,16 +199,79 @@ check("NC-F this test's own probes are not census hits (proves no path exclusion
   selfProbe.sites.length === 0 && selfProbe.unresolved.length === 0 && selfProbe.violations.length === 0 && selfProbe.outside.length === 0,
   `sites=${selfProbe.sites.length} unresolved=${selfProbe.unresolved.length} violations=${selfProbe.violations.length} outside=${selfProbe.outside.length}`);
 
-// ── 5 — the open closure blocker ────────────────────────────────────────────
-const d5 = census.findDirectMutations({ root: ROOT, table: "invoices", dirs: DIRS })
-  .filter((s) => s.file === "gateway/actions.ts" && s.op === "update");
-check("C1 the D5 site is tracked as the open BLOCKED_SEMANTIC_DECISION", d5.length === 1,
-  d5.map((s) => `${s.file}:${s.line}:${s.op}`).join(", "));
-console.log(`\nDOCUMENT_CLOSURE_BLOCKER = D5 (${D5_BLOCKER}) — STATUS: BLOCKED_SEMANTIC_DECISION (owner decision pending)`);
-console.log(`DOCUMENT_OUTSIDE_WRITES_NOW = ${Object.values(DECLARED_OUTSIDE).reduce((a, b) => a + b.length, 0)} declared baseline sites (PHASE C target) + D5 held`);
+// ── 5 — the D5 semantic separation is now enforced ──────────────────────────
+const GATEWAY = readFileSync(join(ROOT, "gateway/actions.ts"), "utf-8");
+const sendBody = GATEWAY.slice(GATEWAY.indexOf("export async function sendInvoiceToLine"));
+check("C1 D5 resolved: the send path no longer mutates document status",
+  !/\.from\("invoices"\)\s*\n?\s*\.update\(/.test(sendBody) && !sendBody.includes('invoice_status: "SENT", updated_at'),
+  "gateway still updates invoice_status from the delivery path");
+check("C2 delivery is recorded as EVIDENCE (line_events direction out)",
+  sendBody.includes('.from("line_events").insert(') && sendBody.includes('direction: "out"') && sendBody.includes("document_id: invoiceId"));
+check("C3 retry/idempotency reads delivery evidence, not document status",
+  sendBody.includes('extracted->>document_id') && !sendBody.includes('if (invoice.invoice_status === "SENT")'),
+  "retry guard still keyed on invoice_status");
+check("C4 document lifecycle goes through the canonical authority (issueDocument)",
+  sendBody.includes("await issueDocument({ document_kind: \"invoice\", document_id: invoiceId, actor })"));
+check("C5 issuance happens BEFORE transport (a delivery failure cannot roll it back)",
+  sendBody.indexOf("await issueDocument(") < sendBody.indexOf("await sendLineMessage("));
 
-console.log(`\n${checks - failures}/${checks} passed`);
-if (failures > 0) {
-  console.log(`${failures} FAILED`);
-  process.exit(1);
-}
+// ── 6 — negative controls NC1–NC8 (owner list) ──────────────────────────────
+// NC1–NC3 probes are assembled by concatenation so this test's own text is never
+// a census hit (same rule as the resolver probes; no path exclusion anywhere).
+const NC1 = census.findDirectMutations({ root: ROOT, table: "invoices", dirs: DIRS });
+check("NC1 a direct invoices mutation outside authority is DETECTED",
+  census.findMutationSitesInSource("await db.from(" + '"invoices").insert({ invoice_no: "x" })', "services/rogue.ts", "invoices").length === 1
+    && NC1.filter((s) => !s.file.startsWith(census.CANONICAL_WRITER_DIR)).length === 0);
+check("NC2 a direct standalone_documents mutation is DETECTED",
+  census.findMutationSitesInSource("await db.from(" + "'standalone_documents').update({}).eq('id', 1)", "services/rogue.ts", "standalone_documents").length === 1);
+check("NC3 a direct document_groups writer is DETECTED",
+  census.findMutationSitesInSource("await db.from(" + '"document_groups").insert({})', "services/rogue.ts", "document_groups").length === 1);
+
+// NC4 — a second document creation authority: every canonical write to a document
+// table must come from the two known writers (adding a third file fails this).
+const canonicalDocWriters = [
+  ...new Set([
+    ...DIRS.flatMap((d) => DOC_TABLES.flatMap((t) => census.findDirectMutations({ root: ROOT, table: t, dirs: [d] })))
+      .filter((s) => s.file.startsWith(census.CANONICAL_WRITER_DIR))
+      .map((s) => s.file),
+    ...repoDynamic.sites.map((s) => s.file),
+  ]),
+].sort();
+check("NC4 the canonical document authority set is exactly the known writers",
+  canonicalDocWriters.join(",") === "engines/canonical/artifact-write.ts,engines/canonical/document-write.ts,engines/canonical/transaction-write.ts",
+  canonicalDocWriters.join(", "));
+
+// NC5 — caller-controlled dynamic table (already proved by NC-C, re-asserted here)
+check("NC5 caller-controlled dynamic table is never authority", NC_C.sites.length === 0 && NC_C.unresolved.length === 1);
+
+// NC6 — client/AI actor spoof must be REJECTED (real runtime calls; both check the
+// actor BEFORE any database access, so this stays offline and side-effect free).
+void (async () => {
+  const spoofDoc = await executeDocumentCreate({ document_type: "quotation", party_name: "x", net_amount: 1 }, "");
+  const spoofSend = await sendInvoiceToLine("00000000-0000-0000-0000-000000000000", "");
+  check("NC6 an empty (client-derived) actor is REJECTED by both entry points",
+    spoofDoc.ok === false && String(spoofDoc.error).startsWith("AUDIT_ACTOR_REQUIRED")
+      && spoofSend.ok === false && String(spoofSend.error).startsWith("AUDIT_ACTOR_REQUIRED"),
+    `${spoofDoc.error} | ${spoofSend.error}`);
+  const routesWithActor = ["app/api/chat/confirm/route.ts", "app/api/admin/invoices/[invoiceId]/send/route.ts"]
+    .every((f) => readFileSync(join(ROOT, f), "utf-8").includes("auth.email"));
+  check("NC6b callers pass the SERVER actor (auth.email), never a request-body actor",
+    routesWithActor && !GATEWAY.includes("body.actor") && !GATEWAY.includes("payload.actor"));
+
+  // NC7 / NC8 — provider delivery cannot own the lifecycle, and a failed delivery
+  // cannot damage canonical state.
+  check("NC7 the delivery path never sets document lifecycle state",
+    !/invoice_status:\s*"SENT"/.test(sendBody.replace(/\/\/[^\n]*/g, "")));
+  check("NC8 failure branch precedes the evidence write and performs no status change",
+    sendBody.indexOf("if (!lineRes.success)") < sendBody.indexOf('.from("line_events").insert(')
+      && !/status:\s*"(VOID|DRAFT)"/.test(sendBody));
+
+  console.log(`\nDOCUMENT_OUTSIDE_WRITES_NOW = ${Object.values(DECLARED_OUTSIDE).reduce((a, b) => a + b.length, 0)} declared sites remaining (PHASE C STOPs, owner decision pending)`);
+  console.log(`D5_OLD_SITE = ${D5_OLD_SITE} — RESOLVED (document state ≠ delivery state)`);
+
+  console.log(`\n${checks - failures}/${checks} passed`);
+  if (failures > 0) {
+    console.log(`${failures} FAILED`);
+    process.exit(1);
+  }
+})();

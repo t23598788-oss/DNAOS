@@ -57,7 +57,7 @@ export async function POST(request: Request) {
     // (above) already succeeded. Re-loads the SAVED invoice+items itself;
     // does not trust anything from the ConfirmInvoice result object.
     if (doc.id) {
-      const sendResult = await sendInvoiceToLine(doc.id);
+      const sendResult = await sendInvoiceToLine(doc.id, auth.email);
       // Business → Infrastructure failure bridge (owner, 2026-09-19): only
       // the real provider push failure crosses the bridge; business-data
       // failures stay business results. lineSendError carries ONLY the

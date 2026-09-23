@@ -393,55 +393,14 @@ export async function getReceipts() {
   }));
 }
 
-export async function createDocument(payload: {
-  document_type: string;
-  document_number: string;
-  partner_id?: string;
-  party_name: string;
-  net_amount: number;
-  issue_date?: string;
-  status?: string;
-  note?: string;
-}) {
-  if (payload.document_type === "invoice") {
-    const { data, error } = await supabaseAdmin()
-      .from("invoices")
-      .insert({
-        invoice_no: payload.document_number,
-        customer_company_id: payload.partner_id ?? null,
-        invoice_date: payload.issue_date ?? new Date().toISOString().split("T")[0],
-        invoice_status: "DRAFT",
-        total_amount: payload.net_amount,
-        subtotal: payload.net_amount,
-        vat_rate: 0,
-        vat_amount: 0,
-        paid_amount: 0,
-        notes: payload.note ?? null,
-      })
-      .select()
-      .single();
-    if (error) throw new Error(error.message);
-    return data;
-  }
-
-  const { data, error } = await supabaseAdmin()
-    .from("standalone_documents")
-    .insert({
-      document_no: payload.document_number,
-      document_type: payload.document_type,
-      customer_company_id: payload.partner_id ?? null,
-      document_date: payload.issue_date ?? new Date().toISOString().split("T")[0],
-      total_amount: payload.net_amount,
-      subtotal: payload.net_amount,
-      vat_rate: 0,
-      vat_amount: 0,
-      notes: payload.note ?? null,
-    })
-    .select()
-    .single();
-  if (error) throw new Error(error.message);
-  return data;
-}
+// PHASE C (2026-09-23) — RETIRE: the legacy `createDocument(payload)` that used to
+// live here was deleted. It was a second document-creation entry (direct
+// `.from("invoices")` / `.from("standalone_documents")` inserts, caller-supplied
+// net_amount as the totals authority, no items/version/audit) and the caller
+// census proved ZERO runtime callers: the only same-named consumer,
+// app/api/admin/documents/route.ts, imports the canonical
+// `engines/canonical/document-write#createDocument` (see its import block). The
+// canonical writer is now the single creation entry point for these tables.
 
 // ---- PARTNER BY NAME (fuzzy match) ----
 

@@ -11,6 +11,7 @@
 // as every admin API route already uses (`supabaseAdmin as supabase`).
 import { supabaseAdmin as supabase } from "@/services/supabase/queries";
 import { DOC_LABELS, generateDoc, type DocData, type DocItem, type DocType } from "@/engines/documents/engine";
+import { issueDocument, createDocument } from "@/engines/canonical/document-write";
 import { documentFlex } from "@/engines/documents/flex-template";
 import { loadCompanySettings } from "@/core/config/company-settings";
 import { randomUUID } from "crypto";
@@ -403,7 +404,10 @@ export async function executeDocumentCreate(payload: {
   note?: string;
   items?: DocItem[];
   tax?: { subtotal: number; vatRate: number; vat: number; total: number };
-}): Promise<ActionResponse> {
+}, actor: string): Promise<ActionResponse> {
+  if (!actor?.trim()) {
+    return { ok: false, mode: "execute", action: "document.create", error: "AUDIT_ACTOR_REQUIRED: ต้องมี actor จาก server context" };
+  }
   if (!payload.customer_company_id) {
     return { ok: false, mode: "execute", action: "document.create", error: "ต้องจับคู่บริษัทลูกค้าก่อนถึงจะออกเอกสารได้" };
   }
@@ -477,25 +481,43 @@ export async function executeDocumentCreate(payload: {
     if (!enumValue) {
       return { ok: false, mode: "execute", action: "document.create", error: `ยังไม่รองรับเอกสารประเภทนี้: ${documentType}` };
     }
-    const { data, error } = await supabase()
-      .from("standalone_documents")
-      .insert({
+    // PHASE C cutover (2026-09-23): this used to be a direct
+    // `.from("standalone_documents").insert({...})` that wrote a header with
+    // caller-supplied totals and NO line items. It now goes through the canonical
+    // document authority, which owns validation, the money ladder
+    // (computeCanonicalTotals), the items, the version and the audit.
+    // Compatibility mapping (recorded, not invented):
+    //   status "saved"  -> canonical standalone creation state "active"
+    //   vat_rate 0.07   -> canonical vatEnabled (7% when the approved preview had VAT)
+    //   items           -> now persisted (canonical requirement; the old path dropped them)
+    try {
+      const written = await createDocument({
+        kind: "standalone_document",
         document_no: docNum,
         document_type: enumValue,
-        document_date: issueDate,
         customer_company_id: payload.customer_company_id,
-        vat_rate: 0.07,
-        subtotal: rendered.summary.subtotal,
-        vat_amount: rendered.summary.vat,
-        total_amount: rendered.summary.total,
-        notes: payload.note,
-        updated_at: new Date().toISOString(),
-      })
-      .select("id")
-      .single();
-    if (error) return { ok: false, mode: "execute", action: "document.create", error: error.message };
-    savedId = data.id;
-    savedStatus = "saved";
+        issue_date: issueDate,
+        notes: payload.note ?? null,
+        rows: items.map((it) => ({ qty: Number(it.qty) || 0, unitPrice: Number(it.unitPrice) || 0 })),
+        vatEnabled: (payload.tax?.vatRate ?? 0) > 0,
+        items: items.map((it, i) => ({
+          description: it.description,
+          qty: Number(it.qty) || 0,
+          unit: it.unit ?? null,
+          unit_price: Number(it.unitPrice) || 0,
+          sort_order: i,
+        })),
+        actor,
+        status: "active",
+      });
+      savedId = written.document_id;
+      savedStatus = "saved";
+    } catch (err) {
+      return {
+        ok: false, mode: "execute", action: "document.create",
+        error: `สร้างเอกสารผ่าน canonical writer ไม่สำเร็จ: ${err instanceof Error ? err.message : String(err)}`,
+      };
+    }
   }
 
   return {
@@ -536,7 +558,20 @@ export async function executeDocumentCreate(payload: {
 // this codebase's "created, not yet sent" state) so this same function can
 // be called again later with the same invoiceId: Retry Send, never
 // recreates the invoice or its items.
-export async function sendInvoiceToLine(invoiceId: string): Promise<ActionResponse> {
+export async function sendInvoiceToLine(invoiceId: string, actor: string): Promise<ActionResponse> {
+  // PHASE C (owner decision 2026-09-23) — DOCUMENT STATE ≠ DELIVERY STATE.
+  //   document lifecycle (DRAFT → SENT) is owned by the canonical document
+  //   authority: engines/canonical/document-write.ts#issueDocument (validation
+  //   + version + audit). Delivery to a provider NEVER decides document state.
+  //   Delivery is recorded as EVIDENCE in the existing outbound record
+  //   (line_events, direction "out" — the same pattern send-debt / reply /
+  //   send-document already use) and THAT evidence is what retry/idempotency
+  //   reads — not invoice_status. A failed push therefore cannot roll back
+  //   issuance, and a SENT invoice can still be (re)sent when no delivery
+  //   evidence exists yet.
+  if (!actor?.trim()) {
+    return { ok: false, mode: "execute", action: "invoice.send", error: "AUDIT_ACTOR_REQUIRED: ต้องมี actor จาก server context" };
+  }
   const { data: invoice, error: invoiceError } = await supabase()
     .from("invoices")
     .select("id, invoice_no, invoice_status, customer_company_id, subtotal, vat_amount, total_amount, companies(name)")
@@ -545,7 +580,18 @@ export async function sendInvoiceToLine(invoiceId: string): Promise<ActionRespon
   if (invoiceError || !invoice) {
     return { ok: false, mode: "execute", action: "invoice.send", error: invoiceError?.message ?? "ไม่พบใบแจ้งหนี้นี้ในระบบ" };
   }
-  if (invoice.invoice_status === "SENT") {
+  if (invoice.invoice_status === "VOID") {
+    return { ok: false, mode: "execute", action: "invoice.send", error: `ใบแจ้งหนี้ ${invoice.invoice_no} ถูกยกเลิกแล้ว` };
+  }
+
+  // Retry / idempotency from DELIVERY EVIDENCE, not from document status.
+  const { data: delivered } = await supabase()
+    .from("line_events")
+    .select("id, created_at")
+    .eq("direction", "out")
+    .eq("extracted->>document_id", invoiceId)
+    .limit(1);
+  if (delivered?.length) {
     return { ok: false, mode: "execute", action: "invoice.send", error: `ใบแจ้งหนี้ ${invoice.invoice_no} ถูกส่งไปแล้ว` };
   }
 
@@ -560,6 +606,19 @@ export async function sendInvoiceToLine(invoiceId: string): Promise<ActionRespon
   const items: DocItem[] = (itemRows ?? []).map((it) => ({
     description: it.description, qty: Number(it.qty), unit: it.unit, unitPrice: Number(it.unit_price),
   }));
+
+  // Document lifecycle — owned by the canonical document authority, performed
+  // BEFORE transport so a delivery failure can never roll issuance back.
+  if (invoice.invoice_status === "DRAFT") {
+    try {
+      await issueDocument({ document_kind: "invoice", document_id: invoiceId, actor });
+    } catch (err) {
+      return {
+        ok: false, mode: "execute", action: "invoice.send",
+        error: `ออกเอกสาร (issue) ไม่สำเร็จ: ${err instanceof Error ? err.message : String(err)}`,
+      };
+    }
+  }
 
   const { data: link } = await supabase()
     .from("company_line_links")
@@ -591,36 +650,34 @@ export async function sendInvoiceToLine(invoiceId: string): Promise<ActionRespon
   ]);
 
   if (!lineRes.success) {
-    // Owner instruction: on LINE push failure, invoice stays saved as-is
-    // (status untouched — still DRAFT) so Retry Send can call this same
-    // function again without recreating anything.
+    // Delivery failed → the document stays exactly as issued. Retry is possible
+    // because no delivery evidence was written.
     return { ok: false, mode: "execute", action: "invoice.send", error: `ส่ง LINE ไม่สำเร็จ: ${(lineRes.error ?? "").slice(0, 200)}` };
   }
 
-  const { error: statusError } = await supabase()
-    .from("invoices")
-    .update({ invoice_status: "SENT", updated_at: new Date().toISOString() })
-    .eq("id", invoiceId);
-  if (statusError) {
-    // LINE push already succeeded — do not report this as a send failure
-    // (that would invite an accidental duplicate push on retry). Surface it
-    // honestly as a separate, lower-severity problem instead.
-    return {
-      ok: true, mode: "execute", action: "invoice.send",
-      result: { invoice_id: invoiceId, invoice_no: invoice.invoice_no, line_pushed: true, flex_preview: flex },
-      error: `ส่ง LINE สำเร็จ แต่อัปเดตสถานะไม่สำเร็จ: ${statusError.message}`,
-    };
-  }
+  // Delivery EVIDENCE (line_events, direction "out") — the record the retry
+  // guard above and the admin control room both read. Provider text is never
+  // stored: only the exact card that was sent plus the canonical document ref.
+  const { error: evidenceError } = await supabase().from("line_events").insert({
+    line_user_id: link.line_user_id,
+    raw_type: "flex",
+    raw_text: `📄 ส่งใบแจ้งหนี้ ${invoice.invoice_no} ให้ ${partyName}`,
+    direction: "out",
+    line_message_id: lineRes.messageId ?? null,
+    extracted: { flex, document_kind: "invoice", document_id: invoiceId, document_no: invoice.invoice_no, provider: "line" },
+  });
 
   return {
     ok: true,
     mode: "execute",
     action: "invoice.send",
-    // flex_preview included so the caller (e.g. Retry Send button) can
-    // render the same chat-timeline bubble the auto-send path already
-    // does — same object that was actually pushed to LINE, not rebuilt
-    // again client-side.
-    result: { invoice_id: invoiceId, invoice_no: invoice.invoice_no, status: "SENT", flex_preview: flex },
+    // flex_preview included so the caller (e.g. Retry Send button) can render the
+    // same chat-timeline bubble that was actually pushed, not a rebuild.
+    result: {
+      invoice_id: invoiceId, invoice_no: invoice.invoice_no, status: "SENT", flex_preview: flex,
+      delivery_evidence_recorded: !evidenceError,
+      ...(evidenceError ? { delivery_evidence_error: evidenceError.message } : {}),
+    },
   };
 }
 
@@ -733,7 +790,7 @@ export async function dispatchAction(req: ActionRequest): Promise<ActionResponse
     case "document.create":
       return mode === "preview"
         ? previewDocumentCreate(payload)
-        : executeDocumentCreate(payload as Parameters<typeof executeDocumentCreate>[0]);
+        : executeDocumentCreate(payload as Parameters<typeof executeDocumentCreate>[0], req.actor ?? "");
 
     case "debt.create":
       return mode === "preview"
