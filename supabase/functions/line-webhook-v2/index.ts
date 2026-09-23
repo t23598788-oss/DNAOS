@@ -3,6 +3,7 @@
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.43.4"
 import { verifyLineSignature } from "./middleware/signature.ts"
+import { forwardLineInbound } from "../_shared/connect-forward.ts"
 import { handleFollow }   from "./handlers/follow.ts"
 import { handleUnfollow } from "./handlers/unfollow.ts"
 import { handleText }     from "./handlers/text.ts"
@@ -114,14 +115,24 @@ Deno.serve(async (req: Request) => {
     processEvent(event).catch((err) => console.error("[webhook] event processing failed:", err))
   ))
 
+  // DNA OS main path (capability A, 2026-09-23): the SAME verified raw body
+  // also enters the canonical gateway observe ingress, where it is translated
+  // into the provider-neutral contract (engines/integration-gateway/adapters/line.ts)
+  // and published to the event bus. Additive only — the handling below is
+  // untouched, and a forward failure never affects the provider's ACK.
+  const forward = forwardLineInbound(rawBody, signature)
+
   // @ts-ignore — EdgeRuntime is a Supabase-specific global, not in standard Deno types
   if (typeof EdgeRuntime !== "undefined" && EdgeRuntime.waitUntil) {
     // @ts-ignore
     EdgeRuntime.waitUntil(processAll)
+    // @ts-ignore
+    EdgeRuntime.waitUntil(forward)
   } else {
     // Fallback for local `supabase functions serve` (no EdgeRuntime global) —
     // still await it directly so events aren't silently dropped in dev.
     await processAll
+    await forward
   }
 
   return new Response(JSON.stringify({ ok: true }), {
