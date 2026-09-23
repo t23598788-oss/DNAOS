@@ -61,7 +61,15 @@ echo "--- Checking for undeclared top-level directories ---"
 # Playwright e2e specs). Real folders with real tracked content — declaring them
 # instead of leaving them flagging as a "Shadow Layer" every run, same treatment
 # as docs/ and styles/ above.
-DECLARED_TOP_LEVEL="core gateway engines cognitive presenter services plugins registry app components scripts supabase config node_modules backups public observatory docs styles src-tauri local-runtime dna-os-mcp-server _inventory platform project system workers e2e"
+# presentation/ (owner-approved workspace consolidation, 2026-09-23) — the real, tracked
+# presentation layer (shell/navigation/table/viewer/form/primitives) built for the new
+# Business Workspace; it is a UI layer above app/, not business logic of its own, and it
+# is registered in registry/module-registry.json like every other layer.
+# dna-os-contractor/ (owner-approved contractor adapter, 2026-09-23) — the standalone
+# contractor/worker coordination package (own package.json/tsconfig, lease client over
+# registry/LOCK_MANAGER.json, Freebuff pull-mode adapter). Same treatment as
+# dna-os-mcp-server/ above: a real tracked top-level folder with its own package.
+DECLARED_TOP_LEVEL="core gateway engines cognitive presenter services plugins registry app components scripts supabase config node_modules backups public observatory docs styles src-tauri local-runtime dna-os-mcp-server _inventory platform project system workers e2e presentation dna-os-contractor"
 
 for dir in */; do
   dirname=$(basename "$dir")
