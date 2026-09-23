@@ -2991,5 +2991,20 @@
       "registry/* (canonical sync output)"
     ],
     "summary": "NEW-2 — Freebuff contractor integration in PULL mode only (owner decision: no headless probe; the CLI is a TUI agent and one run already created .freebuff/project-id in the working tree). mcp.json at the repository root publishes the DNA OS MCP server for any agent that loads the repo's mcp.json/.agents discovery (Freebuff's --trust-agents path); it holds NO credential — DNA_OS_API_TOKEN must be exported by whoever launches the agent. dna-os-contractor/src/adapters/freebuffPullAdapter.ts publishes a task offer under .agents/tasks/ (.gitignore'd runtime dir), reads the agent's submitted result as DATA only, and never evaluates, applies or executes anything: claiming still happens through contractor.task.claim and verification through contractor.evidence.submit (the MCP boundary), while applying stays with the canonical authority. HARD RULE proved by test + negative controls: the adapter never spawns a process — no node:child_process import, no spawn/exec/fork call, no process-launching export (asserted statically AND against the module's runtime export surface), with NC-1 (injecting a child_process import) and NC-2 (exporting runFreebuff) both DETECTED and restored byte-identically. Verification: contractor-freebuff-pull:test 10/10 PASS, contractor-lease:test 14/14 PASS, root tsc 0 errors, registry sync OK, pre-commit 'All guards passed'. No process was launched to prove this; no deploy, no LIVE migration/write, and the three carried release dependencies remain NOT APPLIED."
+  },
+  {
+    "change_id": "DNA-000188",
+    "agent": "Claude",
+    "agent_id": null,
+    "agent_id_note": "Not available to this session — not guessed.",
+    "session_id": null,
+    "date": "2026-09-23",
+    "files": [
+      "services/supabase/api-tokens.ts (scope allow-list + validateApiTokenScopes + createApiToken(email, label, scopes?))",
+      "app/api/admin/api-tokens/route.ts (admin may choose from the allow-list; unallowed scope → 400 before any DB write)",
+      "scripts/api-token-scope-test.ts + package.json (17-check scope issuer proof)",
+      "registry/* (canonical sync output)"
+    ],
+    "summary": "Runtime activation preparation: the canonical API-token issuer could only ever mint scope [read], so the pre-existing governance:propose surface (and therefore the new contractor.task.claim / contractor.evidence.submit routes) had no canonical way to obtain a usable token. Fixed strictly inside the three rules the Owner set: (1) NO client can request scopes — the only reader of a scope field is the admin-authenticated issuer route (requireAuth(ADMIN_TIER)), and every contractor MCP route is asserted to contain no scopes field at all; (2) NO wildcard or admin scope — ALLOWED_API_TOKEN_SCOPES is exactly read, governance:read, governance:propose (the only scopes the runtime enforces); 'write' stays absent because supabase/migrations/20260705000006_api_tokens.sql documents it as not implemented; (3) NO new credential path — same table, same validateApiToken()/revokeApiToken(), same x-dna-token header, and createApiToken() fails closed (API_TOKEN_SCOPE_NOT_ALLOWED) before any insert. Default behaviour is unchanged: omitting scopes still mints [read], and read is implied when a higher scope is granted. Verification: api-token-scope:test 17/17 PASS; negative controls NC-1 (allow-list accepts anything) and NC-2 (default changed) both DETECTED with byte-identical restores; root tsc 0 errors; registry sync OK; pre-commit 'All guards passed'. No token was created, no credential read or written, nothing printed. Migrations 1/2/3 remain NOT APPLIED — a separate release track, untouched."
   }
 ]

@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-23T13:39:50.369Z",
+  "generated_at": "2026-09-23T14:13:21.221Z",
   "version": 1,
   "nodes": [
     {
@@ -2925,30 +2925,30 @@
         {
           "name": "GET",
           "kind": "function",
-          "line_start": 11,
-          "line_end": 23
+          "line_start": 18,
+          "line_end": 30
         },
         {
           "name": "POST",
           "kind": "function",
-          "line_start": 25,
-          "line_end": 38
+          "line_start": 32,
+          "line_end": 60
         }
       ],
       "import_sites": [
         {
           "specifier": "@/core/auth/requireAuth",
-          "line": 7,
+          "line": 14,
           "resolved_target": "core/auth/requireAuth.ts"
         },
         {
           "specifier": "@/core/auth/session",
-          "line": 8,
+          "line": 15,
           "resolved_target": "core/auth/session.ts"
         },
         {
           "specifier": "@/services/supabase/api-tokens",
-          "line": 9,
+          "line": 16,
           "resolved_target": "services/supabase/api-tokens.ts"
         }
       ]
@@ -12571,12 +12571,15 @@
       "name_en": "services/supabase/api-tokens.ts",
       "purpose_th": "จัดการ token สำหรับ AI ภายนอก: validate, list, สร้างใหม่, revoke — ผ่าน service role key เท่านั้น",
       "exports": [
+        "ALLOWED_API_TOKEN_SCOPES",
         "ApiToken",
+        "ApiTokenScope",
         "createApiToken",
         "listTokensForEmail",
         "revokeApiToken",
         "serviceClient",
-        "validateApiToken"
+        "validateApiToken",
+        "validateApiTokenScopes"
       ],
       "status": "OK",
       "runtime_entry_point": false,
@@ -12587,6 +12590,7 @@
         "module:app/api/v1/mcp/governance/_lib/auth.ts",
         "module:app/api/v1/query/route.ts",
         "module:app/oauth/authorize/page.tsx",
+        "module:scripts/api-token-scope-test.ts",
         "module:services/ai-connection/healthCheck.ts",
         "module:services/ai-connection/manager.ts",
         "module:services/ai-connection/oauth.ts",
@@ -12633,16 +12637,34 @@
           "line_end": 83
         },
         {
+          "name": "ALLOWED_API_TOKEN_SCOPES",
+          "kind": "const",
+          "line_start": 95,
+          "line_end": 95
+        },
+        {
+          "name": "ApiTokenScope",
+          "kind": "type",
+          "line_start": 96,
+          "line_end": 96
+        },
+        {
+          "name": "validateApiTokenScopes",
+          "kind": "function",
+          "line_start": 105,
+          "line_end": 118
+        },
+        {
           "name": "createApiToken",
           "kind": "function",
-          "line_start": 85,
-          "line_end": 94
+          "line_start": 120,
+          "line_end": 135
         },
         {
           "name": "revokeApiToken",
           "kind": "function",
-          "line_start": 96,
-          "line_end": 104
+          "line_start": 137,
+          "line_end": 145
         }
       ]
     },
@@ -86400,6 +86422,39 @@
           "line_end": 104
         }
       ]
+    },
+    {
+      "id": "module:scripts/api-token-scope-test.ts",
+      "type": "Module",
+      "layer": "scripts",
+      "name_en": "scripts/api-token-scope-test.ts",
+      "purpose_th": "API token scope issuer test (2026-09-23).",
+      "exports": [],
+      "status": "OK",
+      "runtime_entry_point": true,
+      "internal_dependencies": [
+        "module:services/supabase/api-tokens.ts"
+      ],
+      "dependents": [],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "scripts",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "import_sites": [
+        {
+          "specifier": "@/services/supabase/api-tokens",
+          "line": 15,
+          "resolved_target": "services/supabase/api-tokens.ts"
+        }
+      ]
     }
   ],
   "edges": [
@@ -91506,6 +91561,11 @@
     {
       "source": "layer:scripts",
       "target": "module:scripts/alerting-test.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:scripts",
+      "target": "module:scripts/api-token-scope-test.ts",
       "label": "contains"
     },
     {
@@ -106504,6 +106564,11 @@
       "label": "imports"
     },
     {
+      "source": "module:scripts/api-token-scope-test.ts",
+      "target": "module:services/supabase/api-tokens.ts",
+      "label": "imports"
+    },
+    {
       "source": "module:scripts/architecture-summary-test.ts",
       "target": "module:app/api/admin/ide/_lib/architectureSummaryRuntime.ts",
       "label": "imports"
@@ -109385,8 +109450,8 @@
     }
   ],
   "summary": {
-    "total": 1266,
-    "ok": 1266,
+    "total": 1267,
+    "ok": 1267,
     "broken": 0,
     "unused": 0,
     "unregistered": 0

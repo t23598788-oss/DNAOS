@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-23T13:39:50.709Z",
+  "generated_at": "2026-09-23T14:13:21.583Z",
   "nodes": [
     {
       "id": "layer:core",
@@ -4469,6 +4469,7 @@
         "module:app/api/v1/mcp/governance/_lib/auth.ts",
         "module:app/api/v1/query/route.ts",
         "module:app/oauth/authorize/page.tsx",
+        "module:scripts/api-token-scope-test.ts",
         "module:services/ai-connection/healthCheck.ts",
         "module:services/ai-connection/manager.ts",
         "module:services/ai-connection/oauth.ts",
@@ -29906,6 +29907,25 @@
       "cost_source": "UNKNOWN"
     },
     {
+      "id": "module:scripts/api-token-scope-test.ts",
+      "name": "scripts/api-token-scope-test.ts",
+      "type": "Module",
+      "layer": "scripts",
+      "source_file": "scripts/api-token-scope-test.ts",
+      "status": "OK",
+      "runtime_callable": true,
+      "provider": "UNKNOWN",
+      "dependencies": [
+        "module:services/supabase/api-tokens.ts"
+      ],
+      "dependents": [],
+      "commands": [],
+      "events": [],
+      "capabilities": [],
+      "health": "OK",
+      "cost_source": "UNKNOWN"
+    },
+    {
       "id": "command:invoice.items",
       "name": "invoice.items",
       "type": "Command",
@@ -41640,6 +41660,11 @@
     {
       "source": "layer:scripts",
       "target": "module:scripts/alerting-test.ts",
+      "type": "governed_by"
+    },
+    {
+      "source": "layer:scripts",
+      "target": "module:scripts/api-token-scope-test.ts",
       "type": "governed_by"
     },
     {
@@ -56638,6 +56663,11 @@
       "type": "imports"
     },
     {
+      "source": "module:scripts/api-token-scope-test.ts",
+      "target": "module:services/supabase/api-tokens.ts",
+      "type": "imports"
+    },
+    {
       "source": "module:scripts/architecture-summary-test.ts",
       "target": "module:app/api/admin/ide/_lib/architectureSummaryRuntime.ts",
       "type": "imports"
@@ -61024,9 +61054,9 @@
     }
   ],
   "summary": {
-    "total_nodes": 1665,
-    "total_edges": 4897,
-    "modules": 1266,
+    "total_nodes": 1666,
+    "total_edges": 4899,
+    "modules": 1267,
     "layers": 9,
     "commands": 99,
     "events": 60,
@@ -61035,8 +61065,8 @@
     "drivers": 11,
     "connector_stages": 5,
     "module_health": {
-      "total": 1266,
-      "ok": 1266,
+      "total": 1267,
+      "ok": 1267,
       "broken": 0,
       "unused": 0,
       "unregistered": 0
@@ -61050,7 +61080,7 @@
     "unknown_field_counts": {
       "nodes_with_unknown_source_file": 82,
       "nodes_with_unknown_status": 159,
-      "nodes_with_unknown_provider": 1641
+      "nodes_with_unknown_provider": 1642
     },
     "unknown_dimensions": [
       "ai_model_registry",
