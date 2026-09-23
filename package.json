@@ -132,6 +132,7 @@
     "document-source-rewire:test": "npx tsx scripts/document-source-rewire-test.ts",
     "payment-preview-rewire:test": "npx tsx scripts/payment-preview-rewire-test.ts",
     "canonical-payment-invariant:test": "npx tsx scripts/canonical-payment-invariant-test.ts",
+    "payment-atomic-boundary:test": "npx tsx scripts/payment-atomic-boundary-test.ts",
     "material-source-discovery:test": "npx tsx scripts/material-source-discovery-test.ts",
     "connect-core:test": "npx tsx scripts/connect-core-acceptance-test.ts",
     "state:reconcile": "npx tsx scripts/state-reconcile.ts",

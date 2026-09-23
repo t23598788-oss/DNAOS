@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-23T07:16:34.367Z",
+  "generated_at": "2026-09-23T08:01:48.210Z",
   "version": 1,
   "nodes": [
     {
@@ -84786,6 +84786,30 @@
           "resolved_target": "engines/canonical/payment-write.ts"
         }
       ]
+    },
+    {
+      "id": "module:scripts/payment-atomic-boundary-test.ts",
+      "type": "Module",
+      "layer": "scripts",
+      "name_en": "scripts/payment-atomic-boundary-test.ts",
+      "purpose_th": "B-04R2 — atomic payment commit boundary: structural checks + LOCAL database proof.",
+      "exports": [],
+      "status": "OK",
+      "runtime_entry_point": true,
+      "internal_dependencies": [],
+      "dependents": [],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "scripts",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN"
     }
   ],
   "edges": [
@@ -90262,6 +90286,11 @@
     {
       "source": "layer:scripts",
       "target": "module:scripts/package-test.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:scripts",
+      "target": "module:scripts/payment-atomic-boundary-test.ts",
       "label": "contains"
     },
     {
@@ -107341,8 +107370,8 @@
     }
   ],
   "summary": {
-    "total": 1242,
-    "ok": 1242,
+    "total": 1243,
+    "ok": 1243,
     "broken": 0,
     "unused": 0,
     "unregistered": 0

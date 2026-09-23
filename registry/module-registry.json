@@ -15088,6 +15088,14 @@
         "ConfirmPaymentResult"
       ],
       "status": "active"
+    },
+    "scripts/payment-atomic-boundary-test.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "B-04R2 — atomic payment commit boundary: structural checks + LOCAL database proof.",
+      "purpose_th": "B-04R2 — atomic payment commit boundary: structural checks + LOCAL database proof.",
+      "exports": [],
+      "status": "active"
     }
   },
   "excluded": [
