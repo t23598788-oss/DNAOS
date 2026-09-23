@@ -14,6 +14,7 @@
  */
 import { readFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
+import { tmpdir } from "node:os";
 import {
   acquire,
   release,
@@ -34,7 +35,10 @@ import {
  */
 const ROOT = process.cwd();
 const REAL_LEDGER = join(ROOT, "registry", "LOCK_MANAGER.json");
-const TMP_LEDGER = join(ROOT, "dna-os-contractor", "test", "tmp-lease-ledger.json");
+// The write test never touches the repository: a test artifact must not be able
+// to land in a commit (the first version of this test wrote it next to itself
+// and a stray tmp file was picked up by `git add -A`).
+const TMP_LEDGER = join(tmpdir(), `dna-os-contractor-lease-${process.pid}.json`);
 
 if (!existsSync(REAL_LEDGER)) {
   console.log(`FAIL  L0 real ledger not found at ${REAL_LEDGER} — run this test from the repository root`);
