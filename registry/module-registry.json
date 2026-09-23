@@ -13915,9 +13915,14 @@
       "purpose_th": "บริการเขียนการจ่ายเงินตาม canonical — แถว allocation คือความจริง และ projection ของใบแจ้งหนี้/สลิป/หนี้ถูกคำนวณใหม่จากมัน รองรับจ่ายบางส่วนและหลายต่อหลาย",
       "exports": [
         "AllocationTarget",
-        "PaymentAllocationInput",
+        "AllocationTargetIds",
         "ConfirmPaymentInput",
         "ConfirmPaymentResult",
+        "InvoiceAllocationGuardInput",
+        "PaymentAllocationInput",
+        "allocationTargetIds",
+        "assertInvoiceAllocationAllowed",
+        "assertReceiptAllocationTotal",
         "confirmPayment",
         "reallocatePayment"
       ],
@@ -15070,6 +15075,17 @@
       "purpose_th": "Regression test for B-03 — payment preview / canonical financial read",
       "exports": [
         "previewPayment"
+      ],
+      "status": "active"
+    },
+    "scripts/canonical-payment-invariant-test.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "Canonical payment invariant tests — B-04R (2026-09-23).",
+      "purpose_th": "Canonical payment invariant tests — B-04R (2026-09-23).",
+      "exports": [
+        "ConfirmPaymentInput",
+        "ConfirmPaymentResult"
       ],
       "status": "active"
     }

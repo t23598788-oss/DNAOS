@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-23T06:37:21.647Z",
+  "generated_at": "2026-09-23T07:16:34.861Z",
   "nodes": [
     {
       "id": "layer:core",
@@ -27160,6 +27160,7 @@
       ],
       "dependents": [
         "module:app/api/admin/receipt-documents/[id]/confirm/route.ts",
+        "module:scripts/canonical-payment-invariant-test.ts",
         "module:scripts/canonical-phase-d-acceptance-test.ts"
       ],
       "commands": [],
@@ -29342,6 +29343,25 @@
       "runtime_callable": true,
       "provider": "UNKNOWN",
       "dependencies": [],
+      "dependents": [],
+      "commands": [],
+      "events": [],
+      "capabilities": [],
+      "health": "OK",
+      "cost_source": "UNKNOWN"
+    },
+    {
+      "id": "module:scripts/canonical-payment-invariant-test.ts",
+      "name": "scripts/canonical-payment-invariant-test.ts",
+      "type": "Module",
+      "layer": "scripts",
+      "source_file": "scripts/canonical-payment-invariant-test.ts",
+      "status": "OK",
+      "runtime_callable": true,
+      "provider": "UNKNOWN",
+      "dependencies": [
+        "module:engines/canonical/payment-write.ts"
+      ],
       "dependents": [],
       "commands": [],
       "events": [],
@@ -41094,6 +41114,11 @@
     {
       "source": "layer:scripts",
       "target": "module:scripts/canonical-finance-acceptance-test.ts",
+      "type": "governed_by"
+    },
+    {
+      "source": "layer:scripts",
+      "target": "module:scripts/canonical-payment-invariant-test.ts",
       "type": "governed_by"
     },
     {
@@ -56012,6 +56037,11 @@
       "type": "imports"
     },
     {
+      "source": "module:scripts/canonical-payment-invariant-test.ts",
+      "target": "module:engines/canonical/payment-write.ts",
+      "type": "imports"
+    },
+    {
       "source": "module:scripts/canonical-phase-c-acceptance-test.ts",
       "target": "module:services/canonical/document-detail.ts",
       "type": "imports"
@@ -60028,9 +60058,9 @@
     }
   ],
   "summary": {
-    "total_nodes": 1640,
-    "total_edges": 4809,
-    "modules": 1241,
+    "total_nodes": 1641,
+    "total_edges": 4811,
+    "modules": 1242,
     "layers": 9,
     "commands": 99,
     "events": 60,
@@ -60039,8 +60069,8 @@
     "drivers": 11,
     "connector_stages": 5,
     "module_health": {
-      "total": 1241,
-      "ok": 1241,
+      "total": 1242,
+      "ok": 1242,
       "broken": 0,
       "unused": 0,
       "unregistered": 0
@@ -60054,7 +60084,7 @@
     "unknown_field_counts": {
       "nodes_with_unknown_source_file": 82,
       "nodes_with_unknown_status": 159,
-      "nodes_with_unknown_provider": 1616
+      "nodes_with_unknown_provider": 1617
     },
     "unknown_dimensions": [
       "ai_model_registry",

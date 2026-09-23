@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-23T06:37:21.301Z",
+  "generated_at": "2026-09-23T07:16:34.367Z",
   "version": 1,
   "nodes": [
     {
@@ -78282,9 +78282,14 @@
       "purpose_th": "บริการเขียนการจ่ายเงินตาม canonical — แถว allocation คือความจริง และ projection ของใบแจ้งหนี้/สลิป/หนี้ถูกคำนวณใหม่จากมัน รองรับจ่ายบางส่วนและหลายต่อหลาย",
       "exports": [
         "AllocationTarget",
-        "PaymentAllocationInput",
+        "AllocationTargetIds",
         "ConfirmPaymentInput",
         "ConfirmPaymentResult",
+        "InvoiceAllocationGuardInput",
+        "PaymentAllocationInput",
+        "allocationTargetIds",
+        "assertInvoiceAllocationAllowed",
+        "assertReceiptAllocationTotal",
         "confirmPayment",
         "reallocatePayment"
       ],
@@ -78297,9 +78302,11 @@
       ],
       "dependents": [
         "module:app/api/admin/receipt-documents/[id]/confirm/route.ts",
+        "module:scripts/canonical-payment-invariant-test.ts",
         "module:scripts/canonical-phase-d-acceptance-test.ts"
       ],
       "data_tables": [
+        "invoice_payment_summary",
         "invoices",
         "payment_allocations",
         "receipt_documents"
@@ -78341,16 +78348,46 @@
           "line_end": 51
         },
         {
+          "name": "AllocationTargetIds",
+          "kind": "interface",
+          "line_start": 61,
+          "line_end": 65
+        },
+        {
+          "name": "allocationTargetIds",
+          "kind": "function",
+          "line_start": 72,
+          "line_end": 83
+        },
+        {
+          "name": "InvoiceAllocationGuardInput",
+          "kind": "interface",
+          "line_start": 85,
+          "line_end": 92
+        },
+        {
+          "name": "assertInvoiceAllocationAllowed",
+          "kind": "function",
+          "line_start": 102,
+          "line_end": 126
+        },
+        {
+          "name": "assertReceiptAllocationTotal",
+          "kind": "function",
+          "line_start": 133,
+          "line_end": 146
+        },
+        {
           "name": "confirmPayment",
           "kind": "function",
-          "line_start": 91,
-          "line_end": 183
+          "line_start": 196,
+          "line_end": 307
         },
         {
           "name": "reallocatePayment",
           "kind": "function",
-          "line_start": 186,
-          "line_end": 226
+          "line_start": 310,
+          "line_end": 381
         }
       ],
       "import_sites": [
@@ -84710,6 +84747,45 @@
       "related_documents": "UNKNOWN",
       "related_commands": "UNKNOWN",
       "related_services": "UNKNOWN"
+    },
+    {
+      "id": "module:scripts/canonical-payment-invariant-test.ts",
+      "type": "Module",
+      "layer": "scripts",
+      "name_en": "scripts/canonical-payment-invariant-test.ts",
+      "purpose_th": "Canonical payment invariant tests — B-04R (2026-09-23).",
+      "exports": [
+        "ConfirmPaymentInput",
+        "ConfirmPaymentResult"
+      ],
+      "status": "OK",
+      "runtime_entry_point": true,
+      "internal_dependencies": [
+        "module:engines/canonical/payment-write.ts"
+      ],
+      "dependents": [],
+      "data_tables": [
+        "debt_trackings",
+        "invoice_payment_summary"
+      ],
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "scripts",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "import_sites": [
+        {
+          "specifier": "../engines/canonical/payment-write",
+          "line": 29,
+          "resolved_target": "engines/canonical/payment-write.ts"
+        }
+      ]
     }
   ],
   "edges": [
@@ -89826,6 +89902,11 @@
     {
       "source": "layer:scripts",
       "target": "module:scripts/canonical-finance-acceptance-test.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:scripts",
+      "target": "module:scripts/canonical-payment-invariant-test.ts",
       "label": "contains"
     },
     {
@@ -104744,6 +104825,11 @@
       "label": "imports"
     },
     {
+      "source": "module:scripts/canonical-payment-invariant-test.ts",
+      "target": "module:engines/canonical/payment-write.ts",
+      "label": "imports"
+    },
+    {
       "source": "module:scripts/canonical-phase-c-acceptance-test.ts",
       "target": "module:services/canonical/document-detail.ts",
       "label": "imports"
@@ -107255,8 +107341,8 @@
     }
   ],
   "summary": {
-    "total": 1241,
-    "ok": 1241,
+    "total": 1242,
+    "ok": 1242,
     "broken": 0,
     "unused": 0,
     "unregistered": 0
