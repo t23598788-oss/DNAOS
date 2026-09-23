@@ -15273,6 +15273,28 @@
         "POST"
       ],
       "status": "active"
+    },
+    "dna-os-contractor/src/lease/leaseClient.ts": {
+      "owner": "dna-os-contractor",
+      "layer": "dna-os-contractor",
+      "purpose": "DNA OS Contractor — Lease Client (NEW-3).",
+      "purpose_th": "DNA OS Contractor — Lease Client (NEW-3).",
+      "exports": [
+        "AcquireResult",
+        "LeaseHandle",
+        "LockEntry",
+        "LockLedger",
+        "ReleaseResult",
+        "acquire",
+        "heldBy",
+        "isExpired",
+        "isLockedByOther",
+        "readLedger",
+        "release",
+        "sweepExpired",
+        "writeLedgerAtomic"
+      ],
+      "status": "active"
     }
   },
   "excluded": [

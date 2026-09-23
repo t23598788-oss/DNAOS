@@ -138,6 +138,7 @@
     "material-source-discovery:test": "npx tsx scripts/material-source-discovery-test.ts",
     "connect-core:test": "npx tsx scripts/connect-core-acceptance-test.ts",
     "connect-inbound-boundary:test": "npx tsx scripts/connect-inbound-boundary-test.ts",
+    "contractor-lease:test": "tsx dna-os-contractor/test/leaseClient.test.ts",
     "connect-identity-model:test": "npx tsx scripts/connect-identity-model-test.ts",
     "business-event-authority:test": "npx tsx scripts/business-event-authority-test.ts",
     "state:reconcile": "npx tsx scripts/state-reconcile.ts",

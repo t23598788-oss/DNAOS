@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-23T12:28:46.776Z",
+  "generated_at": "2026-09-23T13:20:47.529Z",
   "version": 1,
   "nodes": [
     {
@@ -85753,6 +85753,126 @@
           "resolved_target": "engines/canonical/event-write.ts"
         }
       ]
+    },
+    {
+      "id": "module:dna-os-contractor/src/lease/leaseClient.ts",
+      "type": "Module",
+      "layer": "dna-os-contractor",
+      "name_en": "dna-os-contractor/src/lease/leaseClient.ts",
+      "purpose_th": "DNA OS Contractor — Lease Client (NEW-3).",
+      "exports": [
+        "AcquireResult",
+        "LeaseHandle",
+        "LockEntry",
+        "LockLedger",
+        "ReleaseResult",
+        "acquire",
+        "heldBy",
+        "isExpired",
+        "isLockedByOther",
+        "readLedger",
+        "release",
+        "sweepExpired",
+        "writeLedgerAtomic"
+      ],
+      "status": "OK",
+      "runtime_entry_point": false,
+      "internal_dependencies": [],
+      "dependents": [
+        "module:dna-os-contractor/test/leaseClient.test.ts"
+      ],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "dna-os-contractor",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "symbols": [
+        {
+          "name": "LockEntry",
+          "kind": "interface",
+          "line_start": 29,
+          "line_end": 35
+        },
+        {
+          "name": "LockLedger",
+          "kind": "interface",
+          "line_start": 37,
+          "line_end": 43
+        },
+        {
+          "name": "LeaseHandle",
+          "kind": "interface",
+          "line_start": 45,
+          "line_end": 50
+        },
+        {
+          "name": "AcquireResult",
+          "kind": "type",
+          "line_start": 52,
+          "line_end": 54
+        },
+        {
+          "name": "ReleaseResult",
+          "kind": "type",
+          "line_start": 56,
+          "line_end": 58
+        },
+        {
+          "name": "readLedger",
+          "kind": "function",
+          "line_start": 62,
+          "line_end": 67
+        },
+        {
+          "name": "isExpired",
+          "kind": "function",
+          "line_start": 69,
+          "line_end": 72
+        },
+        {
+          "name": "isLockedByOther",
+          "kind": "function",
+          "line_start": 75,
+          "line_end": 77
+        },
+        {
+          "name": "acquire",
+          "kind": "function",
+          "line_start": 84,
+          "line_end": 109
+        },
+        {
+          "name": "release",
+          "kind": "function",
+          "line_start": 112,
+          "line_end": 118
+        },
+        {
+          "name": "heldBy",
+          "kind": "function",
+          "line_start": 121,
+          "line_end": 123
+        },
+        {
+          "name": "writeLedgerAtomic",
+          "kind": "function",
+          "line_start": 129,
+          "line_end": 137
+        },
+        {
+          "name": "sweepExpired",
+          "kind": "function",
+          "line_start": 139,
+          "line_end": 143
+        }
+      ]
     }
   ],
   "edges": [
@@ -89334,6 +89454,11 @@
     {
       "source": "layer:core",
       "target": "module:core/workspace/workspaceTemplate.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:dna-os-contractor",
+      "target": "module:dna-os-contractor/src/lease/leaseClient.ts",
       "label": "contains"
     },
     {
@@ -102862,6 +102987,11 @@
       "label": "imports"
     },
     {
+      "source": "module:dna-os-contractor/test/leaseClient.test.ts",
+      "target": "module:dna-os-contractor/src/lease/leaseClient.ts",
+      "label": "imports"
+    },
+    {
       "source": "module:dna-os-mcp-server/src/governanceHttp.ts",
       "target": "module:dna-os-mcp-server/src/config.js.ts",
       "label": "imports"
@@ -108548,8 +108678,8 @@
     }
   ],
   "summary": {
-    "total": 1258,
-    "ok": 1258,
+    "total": 1259,
+    "ok": 1259,
     "broken": 0,
     "unused": 0,
     "unregistered": 0

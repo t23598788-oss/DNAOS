@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-23T12:27:20.399Z",
+  "generated_at": "2026-09-23T13:20:47.891Z",
   "nodes": [
     {
       "id": "layer:core",
@@ -29722,6 +29722,25 @@
       "cost_source": "UNKNOWN"
     },
     {
+      "id": "module:dna-os-contractor/src/lease/leaseClient.ts",
+      "name": "dna-os-contractor/src/lease/leaseClient.ts",
+      "type": "Module",
+      "layer": "dna-os-contractor",
+      "source_file": "dna-os-contractor/src/lease/leaseClient.ts",
+      "status": "OK",
+      "runtime_callable": false,
+      "provider": "UNKNOWN",
+      "dependencies": [],
+      "dependents": [
+        "module:dna-os-contractor/test/leaseClient.test.ts"
+      ],
+      "commands": [],
+      "events": [],
+      "capabilities": [],
+      "health": "OK",
+      "cost_source": "UNKNOWN"
+    },
+    {
       "id": "command:invoice.items",
       "name": "invoice.items",
       "type": "Command",
@@ -39931,6 +39950,11 @@
     {
       "source": "layer:core",
       "target": "module:core/workspace/workspaceTemplate.ts",
+      "type": "governed_by"
+    },
+    {
+      "source": "layer:dna-os-contractor",
+      "target": "module:dna-os-contractor/src/lease/leaseClient.ts",
       "type": "governed_by"
     },
     {
@@ -53459,6 +53483,11 @@
       "type": "imports"
     },
     {
+      "source": "module:dna-os-contractor/test/leaseClient.test.ts",
+      "target": "module:dna-os-contractor/src/lease/leaseClient.ts",
+      "type": "imports"
+    },
+    {
       "source": "module:dna-os-mcp-server/src/governanceHttp.ts",
       "target": "module:dna-os-mcp-server/src/config.js.ts",
       "type": "imports"
@@ -60650,9 +60679,9 @@
     }
   ],
   "summary": {
-    "total_nodes": 1657,
-    "total_edges": 4859,
-    "modules": 1258,
+    "total_nodes": 1658,
+    "total_edges": 4861,
+    "modules": 1259,
     "layers": 9,
     "commands": 99,
     "events": 60,
@@ -60661,8 +60690,8 @@
     "drivers": 11,
     "connector_stages": 5,
     "module_health": {
-      "total": 1258,
-      "ok": 1258,
+      "total": 1259,
+      "ok": 1259,
       "broken": 0,
       "unused": 0,
       "unregistered": 0
@@ -60676,7 +60705,7 @@
     "unknown_field_counts": {
       "nodes_with_unknown_source_file": 82,
       "nodes_with_unknown_status": 159,
-      "nodes_with_unknown_provider": 1633
+      "nodes_with_unknown_provider": 1634
     },
     "unknown_dimensions": [
       "ai_model_registry",
