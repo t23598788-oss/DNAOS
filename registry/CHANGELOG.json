@@ -3196,5 +3196,18 @@
       "package.json (ai-device-cutover:test)"
     ],
     "summary": "PHASE A8 — DEVICE/WATCHER AI DECOUPLING (the third runtime). The watcher's whole working process is untouched — ai_tasks polling, task identity, ai_tasks.trace stages, RunPod pod lifecycle and readiness, ai-callback posting, the code-level government_document PII guard, the material verbatim-name guard, and every LINE continuation. What was removed is only the watcher's AUTHORITY to choose the provider/model: VISION_MODEL/TEXT_MODEL constants and the ollamaGenerate() helper are gone, and its five call sites now state capabilities (document.ocr, text.entity_extract, conversation.answer, memory.draft, material.resolve) through local-runtime/ai/device-ai-runtime.mjs. That runtime loads registry/ai-adapter-registry.json straight from disk (no snapshot to drift), implements the same deterministic fail-closed policy as Node/Next and Deno, and requires an evidence hook that must succeed BEFORE any provider call (ai_tasks.trace plus system_health_status, same service_key/kind as the other runtimes) — a run can no longer succeed while silently skipping evidence. Model identity moved into adapter configuration: capability_models now carries the proven values (document.ocr -> qwen2.5vl:72b, text.entity_extract -> thawatchai, screen.describe -> qwen2.5vl:7b). NEW SHARED SCHEMA FIELD: capabilities_by_runtime — the same adapter serves a different capability set in each runtime (the device watcher's vision/text work vs the Next gateway's routing), so scoping capabilities per runtime is what keeps every runtime's effective routing unchanged without any capability→provider map; all three runtimes honour it. Gates: TSC 0, registry sync + integrity PASS, check-registry 0, pre-commit 'All guards passed', ai-device-cutover 34/34, ai-deno-cutover 35/35, ai-resolver 30/30, ai-caller-cutover 32/32, document-authority-census 58/58, business-event-authority 34/34, connect 53/53, document-source-rewire PASS, payment-legacy-rewire ACTIVE_RUNTIME=0, local-worker 8/8, ai-context 11/11. NOT DONE ON PURPOSE: no ai_tasks schema/kind change, no ai-callback change, no LINE ingress/reply change, no canonical-writer change, no migration, no deploy, no legacy deletion; the remaining device scripts (watch-drive, backfill-slips, runpod-controller, print-watcher) and LaunchAgents are unchanged."
+  },
+  {
+    "change_id": "DNA-000200",
+    "agent": "Claude",
+    "agent_id": null,
+    "agent_id_note": "Not available to this session — not guessed.",
+    "session_id": null,
+    "date": "2026-09-23",
+    "files": [
+      "registry/TASK_QUEUE.json (TASK-083, TASK-084 added)",
+      "registry/CHANGELOG.json"
+    ],
+    "summary": "Recorded the runtime verification debt created by A7 and A8 instead of implying it was proved. TASK-083: this machine has no deno binary, so the Deno cutover was verified by syntax parse + static/contract tests only — `deno check` and a live edge smoke of the five Deno capabilities (plus the evidence write and the fail-closed path) must close before any Deno deploy. TASK-084: the device AI runtime and the A8 watcher cutover were verified by tests + node --check only — a real RunPod pod run per ai_tasks kind, the trace/callback payloads, the device evidence rows, the government_document PII guard on a real ID-card image, and the pod-not-ready fail-closed path still need a real window. Neither task blocks A9 (three-runtime census) or the Railway census; both block their respective deploys."
   }
 ]

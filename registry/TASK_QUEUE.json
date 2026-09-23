@@ -715,5 +715,19 @@
     "priority": "P2",
     "status": "blocked_owner_approval",
     "detail": "Owner decision (2026-09-23): the Contractor/MCP runtime-activation track is frozen at PAUSED / INCOMPLETE, baseline commit 76f6995ff9527b0dfbb500b0691a94ecf0416382 (CHANGELOG DNA-000188). Source side is finished and independently tested: TOKEN_ISSUER_SOURCE = COMPLETE (services/supabase/api-tokens.ts — allow-listed scopes with default [\"read\"] unchanged; admin issuer app/api/admin/api-tokens/route.ts), NEW-1 contractor MCP task tools, NEW-3 atomic lease client, NEW-2 Freebuff pull-mode adapter (no spawn; negative control proven), Cline MCP registration. Deliberately NOT done: TOKEN_ISSUER_RUNTIME = NOT ACTIVATED, OWNER_TOKEN = NOT CREATED, CONTRACTOR_RUNTIME = NOT ACTIVATED, CLINE/FREEBUFF END-TO-END = NOT PROVEN. The Owner does not want a token created through an ad-hoc or temporary route. Resume only after the DNA OS Owner Settings / Credential / Authorization surface exists, then activate contractor runtime through that canonical UI/authority. Runtime activation intentionally deferred until DNA OS Owner Settings / Credential Authorization surface is available. Do not create alternate token/credential path. Separate release track (do not mix): the 3 migrations 20260923000001 (canonical payment atomic), 20260923000002 (gateway allow line provider) and 20260923000003 (connect external identity) remain NOT APPLIED."
+  },
+  {
+    "id": "TASK-083",
+    "title": "Close the Deno runtime verification debt before any Deno deploy (deno check + live capability smoke)",
+    "priority": "P1",
+    "status": "blocked_owner_approval",
+    "detail": "A7 cut the Deno AI callers over to the canonical capability contract, but this machine has NO deno binary, so the Deno files were verified by syntax parse (esbuild) plus static/contract tests only — never by `deno check` and never by a live run of the edge functions. Recorded as debt, not as proof. Required before deploying Deno code: (1) `deno check` over supabase/functions/_shared/ai/*.ts and the four cut-over callers, (2) a live smoke of one capability per adapter from the Deno runtime (document.ocr, text.entity_extract, conversation.answer, memory.draft, material.resolve), (3) confirm the evidence write to system_health_status succeeds in the real edge environment, (4) confirm LINE continuation is unchanged when an adapter is unconfigured (fail-closed path). Owner approval needed for the deploy window; do not treat A7 as runtime-verified until this closes."
+  },
+  {
+    "id": "TASK-084",
+    "title": "Verify the device AI runtime end-to-end after the A8 watcher cutover",
+    "priority": "P1",
+    "status": "blocked_no_real_data",
+    "detail": "A8 removed the watcher's provider-selection authority and routed its five calls through local-runtime/ai/device-ai-runtime.mjs (canonical registry read from disk, evidence required before execution). Verified by tests + node --check only. Required before trusting it in production: (1) run the watcher once with a real ai_tasks row per kind (classify_image, handle_text, resolve_material) against the real RunPod pod and confirm trace stages + ai-callback payloads are unchanged, (2) confirm system_health_status rows appear with service_key dna_os_ai_gateway for device-originated calls, (3) confirm the government_document PII guard still nulls raw_ocr_text on a real ID-card image, (4) confirm the fail-closed path (pod not ready / endpoint not configured) leaves the task honestly failed rather than silently retried. Needs a real pod window from the Owner."
   }
 ]
