@@ -123,6 +123,9 @@ export interface AiAdapterInvokeRequest {
 export interface AiAdapterInvokeContext {
   /** Resolver-selected runtime (the same adapter may run in more than one). */
   runtime: AiRuntimeKind;
+  /** Model the resolver read from the adapter declaration for THIS capability.
+   *  Model is configuration — never something a business caller names. */
+  model?: string | null;
   /** Test/DI seam only — never a production path around configuration. */
   env?: (name: string) => string | undefined;
   fetchImpl?: typeof fetch;
@@ -162,6 +165,9 @@ export interface AiAdapterDeclaration {
     endpoint_env: string | null;
     model_env: string | null;
     default_model: string | null;
+    /** Per-capability model — configuration the RESOLVER reads and hands to the
+     *  adapter, so a caller never names a model. Proven values only. */
+    capability_models?: Record<string, string>;
     /** Same code the pre-A4 gateway threw, so error parity is preserved. */
     unconfigured_error: string;
   };

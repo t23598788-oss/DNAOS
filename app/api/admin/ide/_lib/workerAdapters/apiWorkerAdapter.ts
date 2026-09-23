@@ -17,6 +17,7 @@
  * Node.js IDE Runtime, so also honestly NOT_IMPLEMENTED here.
  */
 import { invokeAiGateway } from "@/services/ai/gateway";
+import { describeAiAdapterFor } from "@/services/ai/resolver";
 import type { WorkerAdapter, WorkerAvailability, WorkerCostEstimate, WorkerHealthReport, WorkerPreflightResult } from "../workerAdapter";
 import type { WorkerRequest, WorkerResponse } from "../workerContract";
 
@@ -45,9 +46,12 @@ export const anthropicApiAdapter: WorkerAdapter = {
   // quantify it pre- or post-call, the literal UNKNOWN_COST case.
   costClass: "UNKNOWN_COST",
   availability(): WorkerAvailability {
-    const configured = !!process.env.ANTHROPIC_API_KEY;
-    return { available: configured, reason: configured ? "real ANTHROPIC_API_KEY present" : "no real ANTHROPIC_API_KEY configured in this environment" };
+    // A6.4 — the resolver owns provider selection/configuration; this worker
+    // layer only asks it. No provider env var is read here any more.
+    const info = describeAiAdapterFor("code.generate");
+    return { available: info.available, reason: info.reason };
   },
+
   capabilities() { return ["code.generate"]; },
   estimate(request: WorkerRequest): WorkerCostEstimate {
     const bytes = request.fileContents.reduce((s, f) => s + f.content.length, 0);
@@ -57,7 +61,7 @@ export const anthropicApiAdapter: WorkerAdapter = {
   async execute(request: WorkerRequest): Promise<WorkerResponse> {
     const started = Date.now();
     if (!this.availability().available) {
-      return { workerRequestId: request.workerRequestId, workerId: "CODE_WORKER", adapterId: this.id, provider: this.provider, model: null, status: "NOT_CONFIGURED", output: null, proposedChanges: [], toolCalls: [], tokenUsage: { input: null, output: null }, cost: { amount: null, currency: null, kind: "UNKNOWN" }, durationMs: Date.now() - started, evidence: [], limitations: ["real ANTHROPIC_API_KEY not configured in this environment"], error: "AI_GATEWAY_ANTHROPIC_NOT_CONFIGURED", finishedAt: new Date().toISOString() };
+      return { workerRequestId: request.workerRequestId, workerId: "CODE_WORKER", adapterId: this.id, provider: this.provider, model: null, status: "NOT_CONFIGURED", output: null, proposedChanges: [], toolCalls: [], tokenUsage: { input: null, output: null }, cost: { amount: null, currency: null, kind: "UNKNOWN" }, durationMs: Date.now() - started, evidence: [], limitations: [describeAiAdapterFor("code.generate").reason], error: "AI_GATEWAY_ANTHROPIC_NOT_CONFIGURED", finishedAt: new Date().toISOString() };
     }
     const fileBlocks = request.fileContents.map((f) => `--- FILE: ${f.path} ---\n${f.content}`).join("\n\n");
     const prompt = `Task: ${request.taskDescription}\n\nAcceptance Criteria:\n${request.acceptanceCriteria.map((c) => `- ${c}`).join("\n") || "(none)"}\n\nReal, current file contents (the ONLY files you may propose changes to):\n\n${fileBlocks}`;
@@ -70,13 +74,13 @@ export const anthropicApiAdapter: WorkerAdapter = {
     lastLiveCallOk = result.ok;
     const durationMs = Date.now() - started;
     if (!result.ok || !result.output) {
-      return { workerRequestId: request.workerRequestId, workerId: "CODE_WORKER", adapterId: this.id, provider: this.provider, model: "claude-haiku-4-5-20251001", status: "FAILED", output: null, proposedChanges: [], toolCalls: [], tokenUsage: { input: null, output: null }, cost: { amount: null, currency: null, kind: "UNKNOWN" }, durationMs, evidence: [result.provenance.evidenceId], limitations: [], error: result.error ?? "unknown gateway failure", finishedAt: new Date().toISOString() };
+      return { workerRequestId: request.workerRequestId, workerId: "CODE_WORKER", adapterId: this.id, provider: this.provider, model: describeAiAdapterFor("code.generate").model, status: "FAILED", output: null, proposedChanges: [], toolCalls: [], tokenUsage: { input: null, output: null }, cost: { amount: null, currency: null, kind: "UNKNOWN" }, durationMs, evidence: [result.provenance.evidenceId], limitations: [], error: result.error ?? "unknown gateway failure", finishedAt: new Date().toISOString() };
     }
     try {
       const { files, answer } = parseProposal(result.output);
-      return { workerRequestId: request.workerRequestId, workerId: "CODE_WORKER", adapterId: this.id, provider: this.provider, model: "claude-haiku-4-5-20251001", status: "SUCCEEDED", output: result.output, answer, proposedChanges: files, toolCalls: [], tokenUsage: { input: null, output: null }, cost: { amount: null, currency: null, kind: "UNKNOWN" }, durationMs, evidence: [result.provenance.evidenceId, result.provenance.requestId], limitations: ["real per-token cost is not exposed by services/ai/gateway.ts"], error: null, finishedAt: new Date().toISOString() };
+      return { workerRequestId: request.workerRequestId, workerId: "CODE_WORKER", adapterId: this.id, provider: this.provider, model: describeAiAdapterFor("code.generate").model, status: "SUCCEEDED", output: result.output, answer, proposedChanges: files, toolCalls: [], tokenUsage: { input: null, output: null }, cost: { amount: null, currency: null, kind: "UNKNOWN" }, durationMs, evidence: [result.provenance.evidenceId, result.provenance.requestId], limitations: ["real per-token cost is not exposed by services/ai/gateway.ts"], error: null, finishedAt: new Date().toISOString() };
     } catch (e) {
-      return { workerRequestId: request.workerRequestId, workerId: "CODE_WORKER", adapterId: this.id, provider: this.provider, model: "claude-haiku-4-5-20251001", status: "FAILED", output: result.output, proposedChanges: [], toolCalls: [], tokenUsage: { input: null, output: null }, cost: { amount: null, currency: null, kind: "UNKNOWN" }, durationMs, evidence: [result.provenance.evidenceId], limitations: [], error: `real response did not match the required structured schema: ${e instanceof Error ? e.message : String(e)}`, finishedAt: new Date().toISOString() };
+      return { workerRequestId: request.workerRequestId, workerId: "CODE_WORKER", adapterId: this.id, provider: this.provider, model: describeAiAdapterFor("code.generate").model, status: "FAILED", output: result.output, proposedChanges: [], toolCalls: [], tokenUsage: { input: null, output: null }, cost: { amount: null, currency: null, kind: "UNKNOWN" }, durationMs, evidence: [result.provenance.evidenceId], limitations: [], error: `real response did not match the required structured schema: ${e instanceof Error ? e.message : String(e)}`, finishedAt: new Date().toISOString() };
     }
   },
   async health(): Promise<WorkerHealthReport> {
@@ -103,7 +107,7 @@ export const anthropicApiAdapter: WorkerAdapter = {
     }
     return { status: "AVAILABLE", reason: "real, free, local preflight passed — real ANTHROPIC_API_KEY is present (no real live LLM call made yet this process)", checkedAt, costIncurred: false };
   },
-  limitations() { return ["single model (claude-haiku-4-5-20251001) hardcoded in the real gateway", "no real per-call cost number exposed"]; },
+  limitations() { return ["model + provider identity are adapter configuration (registry/ai-adapter-registry.json), resolved per capability by services/ai/resolver.ts", "no real per-call cost number exposed"]; },
 };
 
 export const openaiApiAdapter: WorkerAdapter = {

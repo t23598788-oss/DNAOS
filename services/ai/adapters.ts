@@ -51,7 +51,9 @@ export const ollamaAdapter: AiAdapter = {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: env("AI_GATEWAY_OLLAMA_MODEL") ?? OLLAMA_DEFAULT_MODEL,
+        // Model is configuration: the resolver hands down the declaration's
+        // per-capability value, then the env, then the declared default.
+        model: context.model ?? env("AI_GATEWAY_OLLAMA_MODEL") ?? OLLAMA_DEFAULT_MODEL,
         system: request.systemPrompt,
         prompt: request.prompt,
         images: request.image ? [request.image.base64] : undefined,

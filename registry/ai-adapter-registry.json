@@ -40,6 +40,7 @@
         "endpoint_env": "AI_GATEWAY_OLLAMA_URL",
         "model_env": "AI_GATEWAY_OLLAMA_MODEL",
         "default_model": "thawatchai",
+        "capability_models": { "screen.describe": "qwen2.5vl:7b" },
         "unconfigured_error": "AI_GATEWAY_OLLAMA_NOT_CONFIGURED"
       },
       "execution": { "status": "gateway-adapter", "note": "moved out of gateway.ts's inline ollamaProvider() with behaviour unchanged (same URL, model env + default, 60s timeout, /api/generate body, AI_GATEWAY_EMPTY_PROVIDER_RESULT check)" },
@@ -51,7 +52,7 @@
       "kind": "ai",
       "provider": "anthropic",
       "runtimes": ["next"],
-      "capabilities": ["document.ocr", "document.event_extract", "code.generate"],
+      "capabilities": ["document.ocr", "document.event_extract", "code.generate", "text.entity_extract"],
       "enabled": true,
       "priority": 20,
       "authorization": { "requirement": "credential", "note": "ANTHROPIC_API_KEY presence is the configuration check (same check the pre-A4 gateway made)" },
@@ -64,7 +65,7 @@
       },
       "execution": { "status": "gateway-adapter", "note": "moved out of gateway.ts's inline anthropicProvider(); the model literal is kept on purpose — A4.2 forbids model replacement in this phase" },
       "declared_by": "services/ai/adapters.ts#anthropicAdapter",
-      "evidence": "A0–A3 census: services/ai/gateway.ts:132-157 (inline impl) + the old CAPABILITY_PROVIDER map (document.ocr/document.event_extract/code.generate -> anthropic)"
+      "evidence": "A0–A3 census: services/ai/gateway.ts:132-157 (inline impl) + the old CAPABILITY_PROVIDER map (document.ocr/document.event_extract/code.generate -> anthropic). A6: text.entity_extract added because anthropic is the provider that REALLY serves it in production today — engines/events/event-builder.ts:68-74 (claude-haiku-4-5-20251001, system prompt = synthesize a cluster of LINE messages into one structured business event), so the A6 cutover of that caller keeps its effective model instead of silently moving it to another provider."
     },
     {
       "id": "gemini",

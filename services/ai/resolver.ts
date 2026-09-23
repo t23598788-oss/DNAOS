@@ -41,7 +41,7 @@ export interface AiResolverOptions {
 }
 
 export type AiSelection =
-  | { ok: true; adapter: AiAdapter; declaration: AiAdapterDeclaration; id: AiAdapterId; runtime: AiRuntimeKind }
+  | { ok: true; adapter: AiAdapter; declaration: AiAdapterDeclaration; id: AiAdapterId; runtime: AiRuntimeKind; model: string | null }
   | { ok: false; code: AiSelectionFailureCode | string; error: string; candidates: AiAdapterId[] };
 
 /**
@@ -113,13 +113,40 @@ export function selectAiAdapter(capability: AiCapability, options: AiResolverOpt
     return { ok: false, code: first.configuration.unconfigured_error, error: first.configuration.unconfigured_error, candidates: candidates.map((d) => d.id) };
   }
 
+  // Model is configuration: the declaration decides it for this capability (a
+  // per-capability override wins, then the env var, then the declared default) —
+  // the adapter only receives the answer, and the caller never sees a model name.
+  const model = chosen.configuration.capability_models?.[capability] ?? null;
+
   return {
     ok: true,
     adapter: implementations[chosen.id]!,
     declaration: chosen,
     id: chosen.id,
     runtime,
+    model,
   };
+}
+
+/**
+ * Worker/route-layer convenience: ask the resolver what would serve a capability
+ * instead of each layer reading provider env vars itself (A6.4). This keeps ONE
+ * provider-selection authority — callers describe, the resolver decides.
+ */
+export interface AiAdapterDescription {
+  available: boolean;
+  reason: string;
+  adapterId: AiAdapterId | null;
+  model: string | null;
+  /** Adapter-declared endpoint (configuration), never read from env by callers. */
+  endpoint: string | null;
+}
+
+export function describeAiAdapterFor(capability: AiCapability, options: AiResolverOptions = {}): AiAdapterDescription {
+  const selection = selectAiAdapter(capability, options);
+  if (!selection.ok) return { available: false, reason: selection.error, adapterId: null, model: null, endpoint: null };
+  const status = selection.adapter.status(options.context);
+  return { available: status.configured, reason: status.reason, adapterId: selection.id, model: selection.model ?? status.model, endpoint: status.endpoint };
 }
 
 /** Thin invoke helper so every runtime executes a selection the same way. */
@@ -129,5 +156,5 @@ export async function invokeSelectedAdapter(
   context: AiAdapterInvokeContext = { runtime: "next" },
 ): Promise<string> {
   if (!selection.ok) throw new Error(selection.error);
-  return selection.adapter.invoke(request, { ...context, runtime: selection.runtime });
+  return selection.adapter.invoke(request, { ...context, runtime: selection.runtime, model: selection.model });
 }

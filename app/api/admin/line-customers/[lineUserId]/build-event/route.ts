@@ -87,7 +87,11 @@ export async function POST(_req: Request, { params }: Params) {
     ? (allMessages ?? []).filter((m) => (awaitingEvent.source_message_ids ?? []).includes(m.id) || unlinked.some((u) => u.id === m.id))
     : unlinked
 
-  const result = await buildEventFromMessages(messagesForBuilder)
+  const result = await buildEventFromMessages(messagesForBuilder, {
+    origin: "api/admin/line-customers/build-event",
+    ownerId: auth.email,
+    sessionId: lineUserId,
+  })
   if (!result.ok) return NextResponse.json({ error: result.error }, { status: 502 })
 
   const { event } = result

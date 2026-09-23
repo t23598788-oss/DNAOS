@@ -132,7 +132,7 @@ export async function invokeAiGateway(request: AiGatewayRequest, deps: AiGateway
         image: request.image,
         maxTokens: request.maxTokens ?? 600,
       },
-      { ...(deps.context ?? {}), runtime: selection.runtime },
+      { ...(deps.context ?? {}), runtime: selection.runtime, model: selection.model },
     );
     await emit({ ...provenance, status: "completed" });
     return { ok: true, output, provenance };

@@ -153,7 +153,8 @@
     "job-contract:recover:test": "npx tsx scripts/job-contract-recover-test.ts",
     "job-contract:cross-runtime:test": "npx tsx scripts/job-contract-cross-runtime-test.ts",
     "document-authority:test": "tsx scripts/document-authority-census.test.ts",
-    "ai-resolver:test": "npx tsx scripts/ai-resolver-test.ts"
+    "ai-resolver:test": "npx tsx scripts/ai-resolver-test.ts",
+    "ai-caller-cutover:test": "npx tsx scripts/ai-caller-cutover-test.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.115.0",
