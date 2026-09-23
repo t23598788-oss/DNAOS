@@ -3006,5 +3006,22 @@
       "registry/* (canonical sync output)"
     ],
     "summary": "Runtime activation preparation: the canonical API-token issuer could only ever mint scope [read], so the pre-existing governance:propose surface (and therefore the new contractor.task.claim / contractor.evidence.submit routes) had no canonical way to obtain a usable token. Fixed strictly inside the three rules the Owner set: (1) NO client can request scopes — the only reader of a scope field is the admin-authenticated issuer route (requireAuth(ADMIN_TIER)), and every contractor MCP route is asserted to contain no scopes field at all; (2) NO wildcard or admin scope — ALLOWED_API_TOKEN_SCOPES is exactly read, governance:read, governance:propose (the only scopes the runtime enforces); 'write' stays absent because supabase/migrations/20260705000006_api_tokens.sql documents it as not implemented; (3) NO new credential path — same table, same validateApiToken()/revokeApiToken(), same x-dna-token header, and createApiToken() fails closed (API_TOKEN_SCOPE_NOT_ALLOWED) before any insert. Default behaviour is unchanged: omitting scopes still mints [read], and read is implied when a higher scope is granted. Verification: api-token-scope:test 17/17 PASS; negative controls NC-1 (allow-list accepts anything) and NC-2 (default changed) both DETECTED with byte-identical restores; root tsc 0 errors; registry sync OK; pre-commit 'All guards passed'. No token was created, no credential read or written, nothing printed. Migrations 1/2/3 remain NOT APPLIED — a separate release track, untouched."
+  },
+  {
+    "change_id": "DNA-000189",
+    "agent": "Claude",
+    "agent_id": null,
+    "agent_id_note": "Not available to this session — not guessed.",
+    "session_id": null,
+    "date": "2026-09-23",
+    "files": [
+      "registry/TASK_QUEUE.json (TASK-082 added — Contractor/MCP runtime activation PAUSED / INCOMPLETE)",
+      "registry/CURRENT_STATE.json (current_task + next_step + open_questions + see_also + new contractor_track block)",
+      "services/supabase/api-tokens.ts (deferral TODO comment only — no behaviour change)",
+      "app/api/admin/api-tokens/route.ts (status comment only)",
+      "app/api/v1/mcp/contractor/task-claim/route.ts (status comment only)",
+      "dna-os-contractor/src/adapters/freebuffPullAdapter.ts (status comment only)"
+    ],
+    "summary": "Owner decision (2026-09-23): the Contractor / MCP runtime-activation track is frozen as PAUSED / INCOMPLETE at baseline commit 76f6995ff9527b0dfbb500b0691a94ecf0416382 (DNA-000188). Recorded state: TOKEN_ISSUER_SOURCE = COMPLETE (allow-listed scopes with default [\"read\"] unchanged; admin-only issuer) · TOKEN_ISSUER_RUNTIME = NOT ACTIVATED · OWNER_TOKEN = NOT CREATED · CONTRACTOR_RUNTIME = NOT ACTIVATED · CLINE/FREEBUFF END-TO-END = NOT PROVEN. The Owner will not create a token through an ad-hoc or temporary route; activation must resume later through the canonical DNA OS Owner Settings / Credential Authorization surface. Nothing runtime-facing was added or changed: comments/TODO only (no token, no temporary UI, no new credential path, no MCP/Freebuff/Cline integration change), no deploy, no migration applied, no LIVE write. The separate release track is untouched and still NOT APPLIED: migrations 20260923000001 (canonical payment atomic), 20260923000002 (gateway allow line provider), 20260923000003 (connect external identity)."
   }
 ]

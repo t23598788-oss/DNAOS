@@ -95,6 +95,13 @@ export async function listTokensForEmail(email: string): Promise<ApiToken[]> {
 export const ALLOWED_API_TOKEN_SCOPES = ["read", "governance:read", "governance:propose"] as const;
 export type ApiTokenScope = (typeof ALLOWED_API_TOKEN_SCOPES)[number];
 
+// TODO (contractor/MCP runtime activation — PAUSED, Owner 2026-09-23, TASK-082):
+// Runtime activation intentionally deferred until DNA OS Owner Settings / Credential
+// Authorization surface is available. Do not create alternate token/credential path.
+// Issuing a contractor token ([read, governance:propose]) and activating the
+// contractor runtime must go through that canonical Owner-authorised surface later —
+// not through an ad-hoc call, temporary UI, or a new issuer introduced here.
+
 /**
  * Validate a REQUESTED scope set. The requester here is always the
  * admin-authenticated issuer (POST /api/admin/api-tokens); a contractor/MCP

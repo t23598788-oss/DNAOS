@@ -2,9 +2,9 @@
   "protocol": "DNA OS Unified AI Runtime v1",
   "change_id": "DNA-000117",
   "status": "READY",
-  "current_task": "Factory Stabilization & Baseline Phase (Owner, 2026-08-10), STEP 1-2 in progress. Real Control Plane built and independently verified across DNA-000079 through DNA-000117: Constitution Rules 250-259 (MANAGER-07 governance/dispatch authority, EXECUTION_HAND, Manager Question Queue, Switch-Based Orchestrator gate pipeline, Execution Plane Cost Gate incl. FREE_LOCAL fast-path, MANAGER-07 tool-calling authority, Factory Gap Loop). 8 real test suites passing (worker-01 12/12, worker-02 9/9, native-factory-flow 17/17, manager-question-queue 21/21, switch-based-orchestrator 22/22, cost-gate 49/49, execution-hand 37/37, edge-function-worker 20/20). FACTORY_BASELINE_V1 scope explicitly confirmed by Owner (AskUserQuestion) as Control Plane only — Front Office (0% built, TASK-046) and Worker Team registration (registry/WORKER_IDENTITIES.json 0/6) are real, disclosed, non-blocking debt for V1, not silently dropped (see registry/FACTORY_CENTRAL_REGISTRY.json FCR-008).",
+  "current_task": "Contractor / MCP runtime-activation track — PAUSED / INCOMPLETE (Owner, 2026-09-23). Source complete (token issuer source, contractor MCP task tools, atomic lease client, Freebuff pull-mode adapter, Cline MCP registration); runtime NOT activated (no owner token created, end-to-end not proven). See registry/TASK_QUEUE.json#TASK-082.",
   "current_file": "N/A — no file mid-edit by MANAGER-07 directly; TASK-051 (FCR-012 fix) dispatched to CODE_WORKER, in progress",
-  "next_step": "STEP 1 remaining: verify TASK-051 (FCR-012, DNA_OS_HEALTH.json schema collision) once CODE_WORKER returns. STEP 2: finish regenerating MASTER_EXECUTION_STATE.md as the real Reference Index (this same DNA entry). STEP 3: Baseline Verify (typecheck, all 8 suites, gap loop, cost gate, registry/lock integrity, runtime paths, deployment readiness) — full sweep, distinguish pre-existing errors from new regressions. STEP 4: FREEZE (declare FACTORY_BASELINE_V1) — NOTE, not yet done: involves a real git commit, which needs a check-in given registry/FACTORY_CENTRAL_REGISTRY.json's own FCR-008 finding that the working tree carries unrelated modified files and unpushed commits predating this session's work; do not commit blind. STEP 5: Board Readiness, after STEP 4 only.",
+  "next_step": "Wait for the DNA OS Owner Settings / Credential Authorization surface before activating the contractor runtime. Runtime activation intentionally deferred until DNA OS Owner Settings / Credential Authorization surface is available. Do not create alternate token/credential path — no token, no temporary UI, no ad-hoc issuer. Separate release track still pending (NOT APPLIED): migrations 20260923000001 / 20260923000002 / 20260923000003.",
   "handoff": "Read MASTER_EXECUTION_STATE.md first — regenerated 2026-08-10 (DNA-000117) as the real Factory Stabilization Phase STEP 2 Reference Index, pointing to Architecture/Control Plane/Worker Roles/Runtime/Registry/Rules/Routing/Evidence/Completed Tasks/Known Remaining Gaps. If MASTER_EXECUTION_STATE.md and this file (or TASK_QUEUE.json) ever disagree, these JSON registries win — same relationship CLAUDE.md has to registry/CONSTITUTION.json. This file's own pre-2026-08-09 content (architecture_freeze, plan_lock, older exceptions_log entries) is real, historical, and left unedited (C-010, append-only) — only the top-level current_task/next_step/handoff/change_id fields and plan_lock.exceptions_log (one new FACTORY entry appended) reflect today's real work.",
   "open_questions": [
     {
@@ -20,6 +20,13 @@
       "question": "Expects real 'role-based dashboards' nav content for the Business Portal. Only one real page (app/business/page.tsx) exists today — what the eventual multi-dashboard nav should contain is still undecided and must not be guessed (ห้ามเดาเนื้อหาการขาย).",
       "status": "unresolved",
       "workaround_applied": "2026-07-07: added registry/portals.json → business[] with a single honest entry pointing at the one real page. No sales/marketing nav items were invented."
+    },
+    {
+      "raised_by": "Claude",
+      "file": "services/supabase/api-tokens.ts",
+      "question": "Contractor/MCP runtime activation is deferred (TASK-082). Which canonical surface in the DNA OS Owner Settings / Credential Authorization UI should issue the contractor token (scopes read + governance:propose) and inject it into the Cline / Freebuff runtime environment? Do not create an alternate token/credential path in the meantime.",
+      "status": "open",
+      "workaround_applied": "None — runtime activation intentionally deferred; no token was created."
     }
   ],
   "known_stale_docs_not_yet_fixed": [
@@ -156,14 +163,27 @@
     "full_history": "registry/CHANGELOG.json",
     "governing_rules": "registry/CONSTITUTION.json",
     "how_to_comply": "registry/EXECUTION_CONTRACT.json",
-    "program_level_tracking": "registry/GOVERNANCE_REGISTRY.json — Architecture Programs (AUTH/DATA/DEPLOY/REL/EWA/DOMAIN/DOMCONN/CONN), canonical Program-Phase IDs, dependency graph, conflict matrix. Read this before using a bare 'Phase N' anywhere — every phase now requires a program prefix."
+    "program_level_tracking": "registry/GOVERNANCE_REGISTRY.json — Architecture Programs (AUTH/DATA/DEPLOY/REL/EWA/DOMAIN/DOMCONN/CONN), canonical Program-Phase IDs, dependency graph, conflict matrix. Read this before using a bare 'Phase N' anywhere — every phase now requires a program prefix.",
+    "contractor_runtime_activation": "registry/TASK_QUEUE.json#TASK-082"
   },
-  "updated_at": "2026-08-10T00:45:00.000Z",
+  "updated_at": "2026-09-23T00:00:00.000Z",
   "autonomous_maintenance": {
     "note": "Pointer only — full detail lives in registry/CHANGELOG.json autonomous_execution blocks and registry/VALIDATION_RESULTS.json, not duplicated here (Rule 103). Updated per Rule 105 (registry/CONSTITUTION.json) every time an autonomous modification completes.",
     "last_change_id": "DNA-000052",
     "last_timestamp": "2026-07-14T14:41:16.094Z",
     "last_summary": "scripts/governance.sh Duplicate Detector: jscpd --exitCode -> --exit-code (real CLI flag name fix, runtime repair, no business logic touched)"
   },
-  "previous_change_id_2026_07_13": "DNA-000021 (Relationship-Centric Workspace Phase 2 freeze) — superseded as the CURRENT focus by the work below, but architecture_freeze itself remains real and active, see that key unchanged."
+  "previous_change_id_2026_07_13": "DNA-000021 (Relationship-Centric Workspace Phase 2 freeze) — superseded as the CURRENT focus by the work below, but architecture_freeze itself remains real and active, see that key unchanged.",
+  "contractor_track": {
+    "status": "PAUSED_INCOMPLETE",
+    "baseline_commit": "76f6995ff9527b0dfbb500b0691a94ecf0416382",
+    "token_issuer_source": "COMPLETE",
+    "token_issuer_runtime": "NOT_ACTIVATED",
+    "owner_token": "NOT_CREATED",
+    "contractor_runtime": "NOT_ACTIVATED",
+    "cline_freebuff_end_to_end": "NOT_PROVEN",
+    "resume_condition": "DNA OS Owner Settings / Credential Authorization surface available",
+    "forbidden": "alternate token/credential path, temporary UI, ad-hoc token creation",
+    "note": "Runtime activation intentionally deferred until DNA OS Owner Settings / Credential Authorization surface is available. Do not create alternate token/credential path."
+  }
 }

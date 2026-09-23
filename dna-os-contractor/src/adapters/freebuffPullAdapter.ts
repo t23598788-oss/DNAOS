@@ -13,6 +13,11 @@
  *   does not call spawn/exec/fork, and has no way to launch Freebuff — the only
  *   I/O it performs is reading and writing files inside the task-offer directory.
  *
+ * ACTIVATION STATUS: PAUSED / INCOMPLETE (Owner 2026-09-23, TASK-082). Runtime
+ * activation intentionally deferred until DNA OS Owner Settings / Credential
+ * Authorization surface is available. Do not create alternate token/credential path —
+ * the agent still needs an Owner-issued DNA_OS_API_TOKEN from that surface to claim work.
+ *
  * Why a file offer at all, when the agent could call MCP directly? Because a pull
  * model needs a discoverable, human-inspectable pointer for a TUI agent that is
  * started by a person. Publishing the offer is DNA OS's side of the handshake;

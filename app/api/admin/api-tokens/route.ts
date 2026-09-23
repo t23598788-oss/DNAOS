@@ -8,6 +8,12 @@
  * runtime can be given ["read","governance:propose"]. Clients never request
  * scopes: this route is the only place the field is read, it requires an admin
  * session, and anything outside the allow-list is rejected before any DB write.
+ *
+ * STATUS OF THE CONTRACTOR/MCP TRACK: PAUSED / INCOMPLETE (Owner 2026-09-23,
+ * registry/TASK_QUEUE.json#TASK-082). Runtime activation intentionally deferred
+ * until DNA OS Owner Settings / Credential Authorization surface is available.
+ * Do not create alternate token/credential path. No token has been created; the
+ * Cline/Freebuff end-to-end path is NOT proven yet.
  */
 
 import { NextRequest, NextResponse } from "next/server"

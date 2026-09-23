@@ -11,6 +11,10 @@
  * Auth: the existing governance token mechanism (services/supabase/api-tokens via
  * app/api/v1/mcp/governance/_lib/auth.ts) — a contractor PROPOSES work, so it
  * needs the same scope a proposal needs. No new auth mechanism.
+ *
+ * RUNTIME ACTIVATION: PAUSED / INCOMPLETE (Owner 2026-09-23, registry/TASK_QUEUE.json#TASK-082).
+ * Runtime activation intentionally deferred until DNA OS Owner Settings / Credential
+ * Authorization surface is available. Do not create alternate token/credential path.
  */
 import { NextResponse } from "next/server"
 import { authenticate } from "@/app/api/v1/mcp/governance/_lib/auth"
