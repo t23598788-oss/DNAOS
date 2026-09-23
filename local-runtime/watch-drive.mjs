@@ -1,12 +1,14 @@
 // Persistent Google Drive watcher — reads NEW financial document images from
 // the locally-synced Google Drive folder using Cloud Runtime vision
-// (qwen2.5vl:72b via ollama-cloud-gateway.mjs, Migration Completion
+// (the adapter-configured Cloud Runtime vision model, Migration Completion
 // 2026-08-04 — no local Ollama), inserts real rows into receipt_documents.
 // Designed to run independently forever via a macOS LaunchAgent (see
 // com.dnaos.drive-watcher.plist) — does NOT depend on any Claude/AI chat
 // session being open. Tracks already-processed files in a local log so it
 // never double-processes on repeated runs.
 import { createClient } from "@supabase/supabase-js";
+import { runDeviceAiCapability } from "./ai/device-ai-runtime.mjs";
+import { createDeviceEvidence } from "./ai/device-ai-evidence.mjs";
 import { readFileSync, readdirSync, statSync, existsSync, appendFileSync, writeFileSync } from "fs";
 import { join } from "path";
 import { getReadyOllamaUrl } from "./ollama-cloud-gateway.mjs";
@@ -53,22 +55,15 @@ function listImagesRecursive(dir, depth = 0, maxDepth = 3) {
 async function extractSlip(imagePath) {
   const buf = readFileSync(imagePath);
   const b64 = buf.toString("base64");
-  const ollamaUrl = await getReadyOllamaUrl("[watch-drive]");
-  if (!ollamaUrl) throw new Error("Cloud Runtime ยังไม่พร้อม — จะลองใหม่รอบถัดไป");
-  const res = await fetch(`${ollamaUrl}/api/generate`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      model: "qwen2.5vl:72b",
-      prompt: "อ่านรูปนี้ ตอบเป็น JSON เท่านั้น format: {\"sender\":\"ชื่อผู้โอน หรือ null\",\"receiver\":\"ชื่อผู้รับ หรือ null\",\"amount\":ตัวเลขเงินอย่างเดียว หรือ null,\"bank\":\"ธนาคาร หรือ null\",\"is_receipt_type\":true หรือ false (true เฉพาะสลิปโอนเงิน/ใบเสร็จ/ใบแจ้งหนี้จริง)}",
-      images: [b64],
-      stream: false,
-      format: "json",
-    }),
-  });
-  if (!res.ok) throw new Error(`ollama http ${res.status}`);
-  const json = await res.json();
-  return JSON.parse(json.response);
+  const endpoint = await getReadyOllamaUrl("[watch-drive]");
+  if (!endpoint) throw new Error("Cloud Runtime ยังไม่พร้อม — จะลองใหม่รอบถัดไป");
+  const result = await runDeviceAiCapability(
+    "document.ocr",
+    { prompt: "อ่านรูปนี้ ตอบเป็น JSON เท่านั้น format: {\"sender\":\"ชื่อผู้โอน หรือ null\",\"receiver\":\"ชื่อผู้รับ หรือ null\",\"amount\":ตัวเลขเงินอย่างเดียว หรือ null,\"bank\":\"ธนาคาร หรือ null\",\"is_receipt_type\":true หรือ false (true เฉพาะสลิปโอนเงิน/ใบเสร็จ/ใบแจ้งหนี้จริง)}", images: [b64], maxTokens: 500 },
+    { endpoint, evidence: createDeviceEvidence({ db, origin: "local-runtime/watch-drive.mjs" }) },
+  );
+  if (!result.ok) throw new Error(result.error);
+  return JSON.parse(result.output);
 }
 
 async function main() {

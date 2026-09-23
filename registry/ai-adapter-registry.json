@@ -69,7 +69,7 @@
         "note": "moved out of gateway.ts's inline ollamaProvider() with behaviour unchanged (same URL, model env + default, 60s timeout, /api/generate body, AI_GATEWAY_EMPTY_PROVIDER_RESULT check)"
       },
       "declared_by": "services/ai/adapters.ts#ollamaAdapter",
-      "evidence": "A0–A3 census: services/ai/gateway.ts:160-183 (inline impl). The device vision-OCR path (local-runtime/ai-task-watcher.mjs) is a SEPARATE runtime path, reconciled in A6+, and does not route through this registry yet.",
+      "evidence": "A0–A3 census: services/ai/gateway.ts:160-183 (inline impl). The device vision-OCR path (local-runtime/ai-task-watcher.mjs) is a SEPARATE runtime path, reconciled in A6+, and does not route through this registry yet. A10: device set += document.crop because local-runtime/print-watcher.mjs really locates/crops the document region with the local vision model today. The next set is unchanged, so Next routing is unaffected.",
       "capabilities_by_runtime": {
         "next": [
           "conversation.answer",
@@ -84,9 +84,11 @@
           "text.entity_extract",
           "conversation.answer",
           "memory.draft",
-          "material.resolve"
+          "material.resolve",
+          "document.crop"
         ]
-      }
+      },
+      "display_name": "Ollama (Local/Cloud Runtime)"
     },
     {
       "id": "anthropic",
@@ -140,7 +142,8 @@
           "intent.classify",
           "text.entity_extract"
         ]
-      }
+      },
+      "display_name": "Claude (Anthropic)"
     },
     {
       "id": "gemini",
@@ -184,7 +187,8 @@
           "text.entity_extract",
           "location.geocode"
         ]
-      }
+      },
+      "display_name": "Gemini (Google)"
     },
     {
       "id": "digitalocean",
@@ -221,7 +225,8 @@
         "next": [
           "code.generate"
         ]
-      }
+      },
+      "display_name": "DigitalOcean Inference"
     }
   ]
 }

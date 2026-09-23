@@ -114,6 +114,38 @@ async function main(): Promise<void> {
   check("T36c every write-op target the watcher uses was already its own duty (unchanged by A8)", writeOps.every((w) => /^(ai_tasks|system_health_status|business_events):/.test(w)));
 
 
+  // ---- A10: the last device scripts + the config surface ----
+  const A10_SCRIPTS: [string, string][] = [
+    ["local-runtime/watch-drive.mjs", "document.ocr"],
+    ["local-runtime/backfill-slips.mjs", "document.ocr"],
+    ["local-runtime/backfill-slips-test.mjs", "document.ocr"],
+    ["local-runtime/print-watcher.mjs", "document.crop"],
+  ];
+  for (const [file, capability] of A10_SCRIPTS) {
+    const code = readCode(file);
+    // `ollama` may survive ONLY in device-INFRASTRUCTURE names that A10 must not
+    // rename (all owned outside these scripts): the pod gateway helper
+    // getReadyOllamaUrl, the module ./ollama-cloud-gateway.mjs, and the local
+    // state directory /Users/tam/dna-os-ollama/. Every other provider token —
+    // endpoint, model literal, selection — must be zero.
+    const offenders = PROVIDER_TOKENS.filter((t) => t !== "ollama").filter((t) => code.includes(t));
+    const ollamaMentions = (code.match(/ollama/gi) ?? []).length;
+    const allowedOllama = [/getReadyOllamaUrl/g, /ollama-cloud-gateway\.mjs/g, /dna-os-ollama/g];
+    const allowedMentions = allowedOllama.reduce((total, re) => total + (code.match(re) ?? []).length, 0);
+    check(`A10 ${file} has no provider endpoint/model literal/selection token`, offenders.length === 0 && ollamaMentions === allowedMentions, `${offenders.join(",")} ollama=${ollamaMentions} allowed=${allowedMentions}`);
+    check(`A10a ${file} declares no model literal`, !/model:\s*["']/.test(code) && !/qwen|thawatchai|claude-|gemini-/.test(code));
+    check(`A10b ${file} states the ${capability} capability`, code.includes(`"${capability}"`) && code.includes("runDeviceAiCapability"));
+    check(`A10c ${file} supplies real evidence`, code.includes("createDeviceEvidence"));
+  }
+  check("A10d ollama declares document.crop for the device runtime", (registry.adapters.find((a: { id: string }) => a.id === "ollama") as { capabilities_by_runtime: { device: string[] } }).capabilities_by_runtime.device.includes("document.crop"));
+
+  const configSrc = read("app/api/admin/system-config/route.ts");
+  check("A10e system-config holds no hardcoded provider list", !/"Claude \(Anthropic\)"|"Ollama \(Local\)"/.test(configSrc) && configSrc.includes("loadAiAdapterRegistry"));
+  check("A10f it reports readiness through the resolver", configSrc.includes("describeAiAdapterFor"));
+  check("A10g the output contract keys are preserved", ["id", "name", "integrated", "configured", "env_var"].every((k) => configSrc.includes(`${k}:`)) && configSrc.includes("ai_models:"));
+  check("A10h every declaration carries a display name", (registry.adapters as { display_name?: string }[]).every((a) => Boolean(a.display_name)));
+  check("A10i no device script contains selection logic", A10_SCRIPTS.every(([file]) => !/priority|selectDeviceAdapter/.test(readCode(file))));
+
   console.log(`\n${passed} passed, ${failures.length} failed`);
   if (failures.length > 0) {
     console.log("FAILED:");

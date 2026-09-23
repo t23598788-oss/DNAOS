@@ -154,6 +154,8 @@ export interface AiAdapterDeclaration {
   id: AiAdapterId;
   kind: "ai";
   provider: string;
+  /** Human-readable name for configuration screens (A10) — data, not a second list. */
+  display_name?: string;
   runtimes: AiRuntimeKind[];
   capabilities: AiCapability[];
   /** A8: where each capability is really available, per runtime. Adapter

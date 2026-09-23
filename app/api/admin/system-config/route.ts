@@ -10,6 +10,8 @@ import { ADMIN_TIER } from "@/core/auth/session";
 import { supabaseAdmin } from "@/services/supabase/queries";
 import { AUTOMATION_COMMANDS, AUTOMATION_NOT_IMPLEMENTED } from "@/engines/integration-gateway/automationCommands";
 import { listConnectors, redactConnectors } from "@/gateway/connectors";
+import { loadAiAdapterRegistry, describeAiAdapterFor } from "@/services/ai/resolver";
+import type { AiCapability } from "@/services/ai/adapterContract";
 
 export async function GET() {
   const auth = await requireAuth(ADMIN_TIER);
@@ -26,13 +28,26 @@ export async function GET() {
     .order("occurred_at", { ascending: false })
     .limit(1);
 
-  const aiModels = [
-    { id: "anthropic", name: "Claude (Anthropic)", integrated: true, configured: !!process.env.ANTHROPIC_API_KEY, env_var: "ANTHROPIC_API_KEY" },
-    { id: "ollama", name: "Ollama (Local)", integrated: true, configured: !!process.env.AI_GATEWAY_OLLAMA_URL, env_var: "AI_GATEWAY_OLLAMA_URL" },
-    { id: "openai", name: "OpenAI", integrated: false, reason: "No adapter in services/ai/gateway.ts — bridge was removed" },
-    { id: "gemini", name: "Gemini", integrated: false, reason: "No adapter in services/ai/gateway.ts" },
-    { id: "local", name: "Local Models (other)", integrated: false, reason: "No local-model runner beyond Ollama" },
-  ];
+  // A10: this route no longer keeps its own provider list. Readiness comes from
+  // the one AI adapter registry, through the same resolver every AI caller uses —
+  // a provider that has no executable adapter reports itself as not integrated,
+  // and no provider name is hardcoded here.
+  const adapterRegistry = loadAiAdapterRegistry();
+  const aiModels = adapterRegistry.adapters.map((declaration) => {
+    const capabilities = declaration.capabilities_by_runtime?.next ?? declaration.capabilities;
+    const probe = capabilities[0]
+      ? describeAiAdapterFor(capabilities[0] as AiCapability, { adapterConstraint: { adapterId: declaration.id, reason: "owner-config" } })
+      : null;
+    const integrated = declaration.enabled && declaration.execution.status === "gateway-adapter" && probe?.adapterId === declaration.id;
+    return {
+      id: declaration.id,
+      name: declaration.display_name ?? declaration.provider,
+      integrated,
+      configured: Boolean(probe?.available),
+      env_var: declaration.configuration.required_any_env[0] ?? null,
+      reason: integrated ? undefined : (probe?.reason ?? "no executable adapter in services/ai/adapters.ts"),
+    };
+  });
 
   return NextResponse.json({
     connectors: connectors ?? [],

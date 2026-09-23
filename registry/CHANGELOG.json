@@ -3209,5 +3209,23 @@
       "registry/CHANGELOG.json"
     ],
     "summary": "Recorded the runtime verification debt created by A7 and A8 instead of implying it was proved. TASK-083: this machine has no deno binary, so the Deno cutover was verified by syntax parse + static/contract tests only — `deno check` and a live edge smoke of the five Deno capabilities (plus the evidence write and the fail-closed path) must close before any Deno deploy. TASK-084: the device AI runtime and the A8 watcher cutover were verified by tests + node --check only — a real RunPod pod run per ai_tasks kind, the trace/callback payloads, the device evidence rows, the government_document PII guard on a real ID-card image, and the pod-not-ready fail-closed path still need a real window. Neither task blocks A9 (three-runtime census) or the Railway census; both block their respective deploys."
+  },
+  {
+    "change_id": "DNA-000201",
+    "agent": "Claude",
+    "agent_id": null,
+    "agent_id_note": "Not available to this session — not guessed.",
+    "session_id": null,
+    "date": "2026-09-23",
+    "files": [
+      "local-runtime/watch-drive.mjs + backfill-slips.mjs + backfill-slips-test.mjs + print-watcher.mjs (cutover: direct /api/generate + the hardcoded vision model removed; capabilities document.ocr / document.crop)",
+      "local-runtime/ai/device-ai-evidence.mjs (new — device evidence hook factory, same table/keys as the other runtimes)",
+      "app/api/admin/system-config/route.ts (readiness read from the AI adapter registry + resolver; no second provider list)",
+      "registry/ai-adapter-registry.json (display_name per adapter; ollama device set += document.crop)",
+      "services/ai/adapterContract.ts (display_name field)",
+      "scripts/ai-device-cutover-test.ts (+22 A10 checks)",
+      "registry/CHANGELOG.json"
+    ],
+    "summary": "PHASE A10 — FINAL AI SOURCE RESIDUAL CUTOVER (closes the A9 residual only). Three device scripts that still talked to the generation endpoint directly with a hardcoded model now state capabilities: watch-drive.mjs and backfill-slips.mjs (slip/document reading -> document.ocr) and print-watcher.mjs (locate/crop the document region -> document.crop), all through local-runtime/ai/device-ai-runtime.mjs with a real evidence hook (createDeviceEvidence -> system_health_status, same service_key/check_kind as Node/Deno). Every workflow is preserved: polling/watch loops, file ingest, receipt_documents writes, the print/auto-crop flow (a crop failure still skips the crop, never the print job), trace/evidence, callback/downstream, error semantics, and the error strings each script already returned. backfill-slips-test.mjs was adjusted only to test the new contract; architecture-drift-acceptance-test.ts was left alone on purpose — the endpoint string in it is the deliberate fixture its detector tests. app/api/admin/system-config/route.ts no longer hardcodes ['anthropic','ollama',…]: it maps the AI adapter registry, asking the same resolver every AI caller uses for each adapter's readiness, keeping the existing output keys (id/name/integrated/configured/env_var) and using a new display_name from the registry instead of a second provider list. services/ai/bridge-claude.ts (caller = 0) stays in place and is classified as dead/reference. Final census: whole-source direct provider business callers = 0 (only adapter implementations, the deliberate detector fixture, and test files reference a provider endpoint); business model hardcode = 0 (remaining literals are adapter configuration, the pod-provisioning REQUIRED_MODELS list, connector descriptors, tests, dead code and historical comments); business provider-selection authority = 0 (the three runtime resolvers only); AI canonical-write authority = 0. Gates: TSC 0, SYNC 0, integrity PASS, check-registry 0, pre-commit 'All guards passed', ai-device-cutover 56/56, ai-deno-cutover 35/35, ai-resolver 30/30, ai-caller-cutover 32/32, document-authority-census 58/58, business-event-authority 34/34, connect 53/53, document-source-rewire PASS, payment-legacy-rewire ACTIVE_RUNTIME=0, local-worker 8/8, ai-context 11/11. TASK-083 / TASK-084 remain open runtime verification debt, unchanged. No Railway work, no deploy, no migration, no legacy deletion, no LINE/canonical-writer change."
   }
 ]
