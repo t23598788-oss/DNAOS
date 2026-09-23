@@ -81,14 +81,25 @@ function testSqlStructure() {
   assert.ok(/debt_event_id\s+= case when p_target_kind = 'debt_event' then p_target_id else null end/.test(sql), "reallocation must clear debt_event_id when moving to an invoice");
 }
 
-function testNotWiredAndCensus() {
+function testWiredAndCensus() {
+  // B-04R3 wired the writer to the atomic RPC. The layers are now:
+  //   canonical business authority = engines/canonical/payment-write.ts (one module)
+  //   transactional commit implementation = the SQL functions (one migration)
+  // and NO TypeScript file writes a monetary row directly any more.
   const writer = stripComments(read(WRITER));
-  assert.equal(/\.rpc\(/.test(writer), false, "payment-write.ts must not call the RPC while it is unapplied");
+  assert.ok(writer.includes('rpc("confirm_payment_allocation"'), "the writer must commit through the confirm RPC");
+  assert.ok(writer.includes('rpc("reallocate_payment_allocation"'), "the writer must commit through the reallocation RPC");
+  assert.equal(/from\("payment_allocations"\)[\s\S]{0,60}?\.(insert|update|upsert|delete)\(/.test(writer), false,
+    "the writer must not write payment_allocations directly (the RPC owns the commit)");
+  assert.equal(/from\("(invoices|receipt_documents|debt_events|debt_snapshots)"\)[\s\S]{0,80}?\.(insert|update|upsert|delete)\(/.test(writer), false,
+    "the writer must not write any other monetary row directly");
   assert.ok(writer.includes("assertInvoiceAllocationAllowed(") && writer.includes("assertReceiptAllocationTotal("),
     "the application guards must stay as fail-fast validation");
 
+  // census over the whole TypeScript app
   const dirs = ["app", "core", "engines", "services", "gateway", "scripts"];
-  const writers: string[] = [];
+  const rpcCallers: string[] = [];
+  const directWriters: string[] = [];
   const walk = (dir: string) => {
     for (const entry of readdirSync(join(ROOT, dir), { withFileTypes: true })) {
       if (entry.name === "node_modules" || entry.name === ".next") continue;
@@ -96,10 +107,11 @@ function testNotWiredAndCensus() {
       if (entry.isDirectory()) walk(rel);
       else if (/\.(ts|tsx)$/.test(entry.name)) {
         const src = stripComments(readFileSync(join(ROOT, rel), "utf-8"));
+        if (/rpc\("(confirm_payment_allocation|reallocate_payment_allocation)"/.test(src)) rpcCallers.push(rel);
         let idx = src.indexOf('from("payment_allocations")');
         while (idx !== -1) {
           if (/\.(insert|upsert|update|delete)\(/.test(src.slice(idx, idx + 160))) {
-            writers.push(rel);
+            directWriters.push(rel);
             break;
           }
           idx = src.indexOf('from("payment_allocations")', idx + 1);
@@ -108,11 +120,19 @@ function testNotWiredAndCensus() {
     }
   };
   for (const d of dirs) walk(d);
-  const unique = [...new Set(writers)];
-  assert.deepEqual(unique, [WRITER], `exactly one runtime payment writer expected, got: ${unique.join(", ")}`);
-  return unique;
-}
 
+  // scripts/ are tests: they may name the RPCs in assertions. The census is about runtime code.
+  const rpcCallerSet = [...new Set(rpcCallers)].filter((f) => !f.startsWith("scripts/"));
+  assert.deepEqual(rpcCallerSet, [WRITER], `only the canonical writer may call the payment RPCs, got: ${rpcCallerSet.join(", ")}`);
+  assert.deepEqual([...new Set(directWriters)].filter((f) => !f.startsWith("scripts/")), [],
+    `no TypeScript file may write payment_allocations directly, got: ${[...new Set(directWriters)].join(", ")}`);
+
+  // the commit implementation must exist in exactly one migration
+  const sqlFiles = readdirSync(join(ROOT, "supabase/migrations")).filter((f) => f.endsWith(".sql"));
+  const definers = sqlFiles.filter((f) => read("supabase/migrations/" + f).includes("function public.confirm_payment_allocation"));
+  assert.equal(definers.length, 1, `exactly one migration may define the commit implementation, got: ${definers.join(", ")}`);
+  return { rpcCallers: rpcCallerSet, directWriters: [...new Set(directWriters)], commitImplementation: "supabase/migrations/" + definers[0] };
+}
 
 // ── SQL fixtures (local database only) ───────────────────────────────────────
 
@@ -389,12 +409,12 @@ exception when others then raise notice 'SESSION_C4 -> %', sqlerrm; end $$;
 
 async function main() {
   testSqlStructure();
-  const authorities = testNotWiredAndCensus();
+  const authorities = testWiredAndCensus();
   const local = await runLocalProof();
 
   console.log("payment-atomic-boundary:test PASS");
   console.log(
-    `checks: security model (definer + search_path + revoke/grant) · lock order (receipt → sorted invoices) · A1-A9 + A11/A12 codes · no clamp/penalty · no client authority params · stale target ids cleared · writer intentionally UNWIRED · authority=${authorities.join(",")} (count=${authorities.length})`,
+    `checks: security model (definer + search_path + revoke/grant) · lock order (receipt → sorted invoices) · A1-A9 + A11/A12 codes · no clamp/penalty · no client authority params · stale target ids cleared · rpc_callers=${authorities.rpcCallers.join(",")} (count=${authorities.rpcCallers.length}) · direct_writers=${authorities.directWriters.length} · commit_impl=${authorities.commitImplementation}`,
   );
   console.log(`local database proof = ${local}`);
 }

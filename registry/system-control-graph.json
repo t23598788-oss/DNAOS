@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-23T08:01:48.570Z",
+  "generated_at": "2026-09-23T08:18:04.448Z",
   "nodes": [
     {
       "id": "layer:core",
@@ -27083,7 +27083,6 @@
         "module:engines/canonical/debt-write.ts",
         "module:engines/canonical/document-write.ts",
         "module:engines/canonical/inbound-write.ts",
-        "module:engines/canonical/payment-write.ts",
         "module:engines/canonical/transaction-write.ts"
       ],
       "commands": [],
@@ -27154,14 +27153,13 @@
       "runtime_callable": false,
       "provider": "UNKNOWN",
       "dependencies": [
-        "module:engines/canonical/audit.ts",
-        "module:engines/canonical/debt-write.ts",
         "module:services/supabase/queries.ts"
       ],
       "dependents": [
         "module:app/api/admin/receipt-documents/[id]/confirm/route.ts",
         "module:scripts/canonical-payment-invariant-test.ts",
-        "module:scripts/canonical-phase-d-acceptance-test.ts"
+        "module:scripts/canonical-phase-d-acceptance-test.ts",
+        "module:scripts/payment-rpc-adapter-test.ts"
       ],
       "commands": [],
       "events": [],
@@ -27185,7 +27183,6 @@
       "dependents": [
         "module:app/api/admin/debt-trackings/[id]/events/route.ts",
         "module:app/api/admin/receipt-documents/[id]/confirm/route.ts",
-        "module:engines/canonical/payment-write.ts",
         "module:scripts/canonical-phase-d-acceptance-test.ts"
       ],
       "commands": [],
@@ -29379,6 +29376,25 @@
       "runtime_callable": true,
       "provider": "UNKNOWN",
       "dependencies": [],
+      "dependents": [],
+      "commands": [],
+      "events": [],
+      "capabilities": [],
+      "health": "OK",
+      "cost_source": "UNKNOWN"
+    },
+    {
+      "id": "module:scripts/payment-rpc-adapter-test.ts",
+      "name": "scripts/payment-rpc-adapter-test.ts",
+      "type": "Module",
+      "layer": "scripts",
+      "source_file": "scripts/payment-rpc-adapter-test.ts",
+      "status": "OK",
+      "runtime_callable": true,
+      "provider": "UNKNOWN",
+      "dependencies": [
+        "module:engines/canonical/payment-write.ts"
+      ],
       "dependents": [],
       "commands": [],
       "events": [],
@@ -41505,6 +41521,11 @@
     },
     {
       "source": "layer:scripts",
+      "target": "module:scripts/payment-rpc-adapter-test.ts",
+      "type": "governed_by"
+    },
+    {
+      "source": "layer:scripts",
       "target": "module:scripts/place-discovery-test.ts",
       "type": "governed_by"
     },
@@ -53360,16 +53381,6 @@
     },
     {
       "source": "module:engines/canonical/payment-write.ts",
-      "target": "module:engines/canonical/audit.ts",
-      "type": "imports"
-    },
-    {
-      "source": "module:engines/canonical/payment-write.ts",
-      "target": "module:engines/canonical/debt-write.ts",
-      "type": "imports"
-    },
-    {
-      "source": "module:engines/canonical/payment-write.ts",
       "target": "module:services/supabase/queries.ts",
       "type": "imports"
     },
@@ -57239,6 +57250,11 @@
       "type": "imports"
     },
     {
+      "source": "module:scripts/payment-rpc-adapter-test.ts",
+      "target": "module:engines/canonical/payment-write.ts",
+      "type": "imports"
+    },
+    {
       "source": "module:scripts/place-discovery-test.ts",
       "target": "module:engines/place-discovery.ts",
       "type": "imports"
@@ -60080,9 +60096,9 @@
     }
   ],
   "summary": {
-    "total_nodes": 1642,
+    "total_nodes": 1643,
     "total_edges": 4812,
-    "modules": 1243,
+    "modules": 1244,
     "layers": 9,
     "commands": 99,
     "events": 60,
@@ -60091,8 +60107,8 @@
     "drivers": 11,
     "connector_stages": 5,
     "module_health": {
-      "total": 1243,
-      "ok": 1243,
+      "total": 1244,
+      "ok": 1244,
       "broken": 0,
       "unused": 0,
       "unregistered": 0
@@ -60106,7 +60122,7 @@
     "unknown_field_counts": {
       "nodes_with_unknown_source_file": 82,
       "nodes_with_unknown_status": 159,
-      "nodes_with_unknown_provider": 1618
+      "nodes_with_unknown_provider": 1619
     },
     "unknown_dimensions": [
       "ai_model_registry",

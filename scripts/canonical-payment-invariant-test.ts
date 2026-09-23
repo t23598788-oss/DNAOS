@@ -121,31 +121,50 @@ function testWriterUsesTheGuards() {
   assert.ok(code.includes("assertInvoiceAllocationAllowed("), "invoice targets must be checked with assertInvoiceAllocationAllowed");
   assert.ok(code.includes("invoiceGuardFacts("), "guards must read canonical facts from the DB");
 
-  // I7 · exactly one target id in BOTH write paths (insert rows + reallocation patch)
+  // B-04R3 — the monetary commit moved into the atomic RPC; the writer keeps only the
+  // pure guards + the RPC adapter, and carries NO direct monetary write.
+  assert.ok(code.includes('rpc("confirm_payment_allocation"'), "confirmPayment must commit through the atomic RPC");
+  assert.ok(code.includes('rpc("reallocate_payment_allocation"'), "reallocatePayment must commit through the atomic RPC");
+  assert.equal(/from\("payment_allocations"\)[\s\S]{0,60}?\.(insert|update|upsert|delete)\(/.test(code), false,
+    "the writer must not write payment_allocations directly");
+  assert.equal(/from\("(invoices|receipt_documents|debt_events|debt_snapshots)"\)[\s\S]{0,80}?\.(insert|update|upsert|delete)\(/.test(code), false,
+    "the writer must not write any other monetary row directly");
+  // the projection/refresh logic lives in the RPC transaction now, not in TypeScript
+  assert.equal(code.includes("refreshInvoiceProjection"), false, "invoice projection belongs to the RPC transaction");
+  assert.equal(code.includes("refreshReceiptAllocationState"), false, "receipt allocation_state belongs to the RPC transaction");
+  // fail-closed: no fallback branch may exist around the RPC call
+  assert.equal(/if \(error\) \{[^}]*\}/.test(code), false, "an RPC error must throw, never fall through to a fallback write");
+  assert.ok(code.includes("if (error) throw new Error(mapPaymentRpcError(error.message))"), "RPC errors must map to canonical errors and throw");
+
+  // the pure guard helpers are still the fail-fast layer
+  assert.ok(code.includes("assertInvoiceAllocationAllowed("), "invoice guards must stay");
+  assert.ok(code.includes("assertReceiptAllocationTotal("), "receipt-total guards must stay");
   const targetUsages = code.split("allocationTargetIds(").length - 1;
-  assert.ok(targetUsages >= 3, `allocationTargetIds must be used by the row map and the reallocation patch (found ${targetUsages})`);
+  assert.ok(targetUsages >= 2, `allocationTargetIds must survive as the one-target helper (found ${targetUsages})`);
+  assert.ok((code.match(/throw new Error\("PAYMENT_/g) ?? []).length >= 4, "the writer must fail closed with deterministic PAYMENT_* errors");
+
+  // error-code parity: every code the writer can raise has a mapping entry
+  for (const code2 of ["receipt_not_found", "receipt_not_eligible", "receipt_already_allocated", "receipt_total_exceeded",
+                       "overpayment_not_allowed", "company_mismatch", "invoice_void", "invoice_not_found", "actor_required"]) {
+    assert.ok(code.includes(`  ${code2}: `), `RPC error mapping missing for ${code2}`);
+  }
 
   // no clamp / penalty / silent fix-up in the money path (owner policy: fail closed)
   for (const forbidden of ["Math.min(", "Math.max(0", "penaltyPortion", "creditBalance"]) {
     assert.equal(code.includes(forbidden), false, `no clamp/penalty fallback may exist in the writer (${forbidden})`);
   }
-  assert.ok((code.match(/throw new Error\("PAYMENT_/g) ?? []).length >= 5, "the writer must fail closed with deterministic PAYMENT_* errors");
 
   // T11 · authority comes from the DB, never from the caller's numbers
   assert.ok(code.includes('.select("id, status, document_type, amount, customer_company_id, matched_debt_event_id, media_path")'), "receipt authority (amount + company) must be read from receipt_documents");
   assert.ok(code.includes("invoice_payment_summary"), "outstanding authority must be the canonical view");
-  assert.ok(code.includes(".select(\"id, customer_company_id, invoice_status\")"), "invoice company/status must be read from invoices");
+  assert.ok(code.includes('.select("id, customer_company_id, invoice_status")'), "invoice company/status must be read from invoices");
   const input = read(WRITER).slice(read(WRITER).indexOf("export interface ConfirmPaymentInput"), read(WRITER).indexOf("export interface ConfirmPaymentResult"));
   for (const forbiddenField of ["paid", "outstanding", "company_id", "invoice_status"]) {
     assert.equal(input.includes(forbiddenField), false, `ConfirmPaymentInput must not accept ${forbiddenField} from the caller`);
   }
 
-  // T7/STEP 7 · reallocation must refresh the SOURCE invoice too (the NC4 target)
-  assert.ok(code.includes('String(allocation.invoice_id ?? "")'), "reallocatePayment must refresh the invoice the money moved away from");
-  assert.ok(code.includes("String(patch.invoice_id ?? \"\")"), "reallocatePayment must also refresh the destination invoice");
-  // I8 · reallocation is an UPDATE of the same row (identity preserved), never delete+insert
-  assert.ok(code.includes(".update(patch).eq(\"id\", input.allocation_id)"), "reallocation must update the existing allocation row");
-  assert.equal(/from\("payment_allocations"\)[\s\S]{0,40}\.delete\(/.test(code), false, "reallocation must never delete allocation rows");
+  // the returned contract keys must not change (B-04R3 keeps callers working)
+  assert.ok(code.includes("receipt_allocation_state:") && code.includes("debt_snapshot:"), "the refreshed result contract must stay intact");
 }
 
 function testNoSecondAuthority() {
@@ -183,7 +202,7 @@ function testNoSecondAuthority() {
   };
   for (const d of dirs) walk(d);
   const uniqueWriters = [...new Set(writers)];
-  assert.deepEqual(uniqueWriters, [WRITER], `payment_allocations must have exactly ONE writer, got: ${uniqueWriters.join(", ")}`);
+  assert.deepEqual(uniqueWriters, [], `no TypeScript file may write payment_allocations directly (the RPC owns the commit), got: ${uniqueWriters.join(", ")}`);
   return uniqueWriters;
 }
 
@@ -196,7 +215,7 @@ function main() {
 
   console.log("canonical-payment-invariant:test PASS");
   console.log(
-    `checks: T1-T5 invoice guards (partial/exact pass · overpay/company/VOID fail closed) · T6 receipt total · T7-T9 target ids (no stale id) · T10 no double count · T11 DB authority · T12 B-03 read intact · T13 gateway clean · T14 B-05 intact · authority=${authorities.join(",")} (count=${authorities.length})`,
+    `checks: T1-T5 invoice guards (partial/exact pass · overpay/company/VOID fail closed) · T6 receipt total · T7-T9 target ids (no stale id) · T10 no double count · T11 DB authority · T12 B-03 read intact · T13 gateway clean · T14 B-05 intact · direct_ts_writers=${authorities.length === 0 ? "0 (the RPC owns the commit)" : authorities.join(",")}`,
   );
   console.log(
     "NOT_EXECUTED (environment): DB-integration cases (real insert/update, projection refresh, anchor→invoice move against Postgres) need a local DB (docker unavailable) or a service-role credential — reported, not claimed.",

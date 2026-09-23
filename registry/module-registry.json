@@ -13920,10 +13920,12 @@
         "ConfirmPaymentResult",
         "InvoiceAllocationGuardInput",
         "PaymentAllocationInput",
+        "__setPaymentWriteClientForTest",
         "allocationTargetIds",
         "assertInvoiceAllocationAllowed",
         "assertReceiptAllocationTotal",
         "confirmPayment",
+        "mapPaymentRpcError",
         "reallocatePayment"
       ],
       "status": "active"
@@ -15094,6 +15096,14 @@
       "layer": "scripts",
       "purpose": "B-04R2 — atomic payment commit boundary: structural checks + LOCAL database proof.",
       "purpose_th": "B-04R2 — atomic payment commit boundary: structural checks + LOCAL database proof.",
+      "exports": [],
+      "status": "active"
+    },
+    "scripts/payment-rpc-adapter-test.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "B-04R3 — canonical payment RPC adapter tests (F1–F8).",
+      "purpose_th": "B-04R3 — canonical payment RPC adapter tests (F1–F8).",
       "exports": [],
       "status": "active"
     }
