@@ -1,136 +1,97 @@
-// Shared Claude (Anthropic Messages API) caller for the LINE webhook engines
-// (owner instruction 2026-07-25: "เขียน AI ที่กูเอามาผูกไว้ในระบบ (ChatGPT)
-// ออกไปจากระบบให้ถาวรเลย"). Replaces the OpenAI-fetch pattern each of
-// auto-build-event.ts / ocr-classify.ts / tool-router.ts used to duplicate
-// independently — Rule 103 (reuse before build): one real HTTP-call helper,
-// three call sites, instead of the same fetch boilerplate three times.
+// LINE webhook AI call sites — thin, provider-neutral wrappers over the shared
+// Deno AI capability runtime (supabase/functions/_shared/ai/runtime.ts).
 //
-// No SDK — raw fetch, same convention this Deno runtime already used for
-// OpenAI (esm.sh imports are avoided here on purpose; the Messages API is a
-// simple enough POST that a dependency isn't worth it).
+// A7 cutover (owner, 2026-09-23): the file keeps its name and its three exported
+// functions, so no LINE engine changes shape — but the code inside no longer
+// selects Anthropic, no longer names a model and no longer reads
+// ANTHROPIC_API_KEY. Each call states the CAPABILITY it needs and the shared
+// resolver (same policy as Node/Next) decides which adapter serves it.
 //
-// HONESTY NOTE: image-url support (callClaudeVision) uses Anthropic's
-// {type:"image", source:{type:"url", url}} content block shape — not
-// exercised against a live key in this session (no ANTHROPIC_API_KEY set
-// yet). Verify once a real key exists, per Rule 109.
+// The `string | null` contract is unchanged on purpose: every existing caller
+// already treats null as "AI could not help", so LINE continuation semantics
+// (and the best-effort memory/fallback behaviour) are untouched.
+import { runAiCapability } from "../../_shared/ai/runtime.ts";
 
-const ANTHROPIC_API = "https://api.anthropic.com/v1/messages"
-const MODEL = "claude-haiku-4-5-20251001"
-const ANTHROPIC_VERSION = "2023-06-01"
+const ORIGIN = "line-webhook-v2/claude-client";
+const LINE_CONTEXT = { origin: ORIGIN, ownerId: "line", sessionId: "line-webhook" } as const;
 
-function headers(apiKey: string) {
-  return {
-    "Content-Type": "application/json",
-    "x-api-key": apiKey,
-    "anthropic-version": ANTHROPIC_VERSION,
-  }
+function firstJsonObject(text: string): string | null {
+  const match = text.match(/\{[\s\S]*\}/);
+  return match ? match[0] : null;
 }
 
-function firstText(json: any): string {
-  const block = json?.content?.find((c: any) => c.type === "text")
-  return (block?.text ?? "").trim()
+/** Capability is named by the caller — "conversation.answer" (reply) or
+ *  "memory.draft" (customer-memory notes). Never a provider or a model. */
+export async function callClaudeText(
+  systemPrompt: string,
+  userText: string,
+  maxTokens: number,
+  capability: "conversation.answer" | "memory.draft" = "conversation.answer",
+): Promise<string | null> {
+  const result = await runAiCapability(capability, { systemPrompt, prompt: userText, maxTokens }, LINE_CONTEXT);
+  if (!result.ok) {
+    console.error("[ai-capability]", capability, "failed:", result.error);
+    return null;
+  }
+  return result.output;
 }
 
-export async function callClaudeText(systemPrompt: string, userText: string, maxTokens: number): Promise<string | null> {
-  const apiKey = Deno.env.get("ANTHROPIC_API_KEY")
-  if (!apiKey) {
-    console.error("[claude-client] ANTHROPIC_API_KEY not set")
-    return null
+export async function callClaudeVision(
+  systemPrompt: string,
+  promptText: string,
+  image: { base64: string; mediaType: string },
+  maxTokens: number,
+): Promise<string | null> {
+  const result = await runAiCapability(
+    "document.ocr",
+    { systemPrompt, prompt: promptText, image: { base64: image.base64, mediaType: image.mediaType }, maxTokens },
+    LINE_CONTEXT,
+  );
+  if (!result.ok) {
+    console.error("[ai-capability] document.ocr failed:", result.error);
+    return null;
   }
-  const res = await fetch(ANTHROPIC_API, {
-    method: "POST",
-    headers: headers(apiKey),
-    body: JSON.stringify({
-      model: MODEL,
-      max_tokens: maxTokens,
-      temperature: 0,
-      system: systemPrompt,
-      messages: [{ role: "user", content: userText }],
-    }),
-  })
-  if (!res.ok) {
-    console.error("[claude-client] Claude text call failed:", res.status, await res.text())
-    return null
-  }
-  return firstText(await res.json())
-}
-
-// Real fix (owner, 2026-07-27, first real ANTHROPIC_API_KEY set): the
-// original {type:"url"} shape never actually worked and couldn't have —
-// media.ts stores every LINE image in the PRIVATE 'attachments' Storage
-// bucket on purpose (owner instruction, private customer data), so
-// Anthropic's servers could never have fetched a bare URL anyway. Takes
-// real base64 image bytes instead — the caller already has to download the
-// bytes from private Storage itself, so this is the only shape that could
-// ever have worked here.
-// Owner request (2026-07-31): "ไฟล์ PDF จะให้ทำยังไงก็ให้อ่านสิ" — real PDFs
-// (LINE's "file" message type, handlers/file.ts) were never actually
-// readable here: Anthropic's API needs a `type: "document"` content block
-// for PDFs, a different shape from the `type: "image"` block this always
-// hardcoded. Branches on image.mediaType instead of assuming every caller
-// sends a photo.
-export async function callClaudeVision(systemPrompt: string, promptText: string, image: { base64: string; mediaType: string }, maxTokens: number): Promise<string | null> {
-  const apiKey = Deno.env.get("ANTHROPIC_API_KEY")
-  if (!apiKey) {
-    console.error("[claude-client] ANTHROPIC_API_KEY not set")
-    return null
-  }
-  const contentBlock = image.mediaType === "application/pdf"
-    ? { type: "document", source: { type: "base64", media_type: image.mediaType, data: image.base64 } }
-    : { type: "image", source: { type: "base64", media_type: image.mediaType, data: image.base64 } }
-  const res = await fetch(ANTHROPIC_API, {
-    method: "POST",
-    headers: headers(apiKey),
-    body: JSON.stringify({
-      model: MODEL,
-      max_tokens: maxTokens,
-      temperature: 0,
-      system: systemPrompt,
-      messages: [{
-        role: "user",
-        content: [
-          { type: "text", text: promptText },
-          contentBlock,
-        ],
-      }],
-    }),
-  })
-  if (!res.ok) {
-    console.error("[claude-client] Claude vision call failed:", res.status, await res.text())
-    return null
-  }
-  return firstText(await res.json())
+  return result.output;
 }
 
 export interface ClaudeTool {
-  name: string
-  description: string
+  name: string;
+  description: string;
 }
 
-// Returns the chosen tool name, or null if the model didn't call one.
+/**
+ * Returns the chosen tool name, or null if the model didn't choose one.
+ * (Legacy name kept for its callers; the body is provider-neutral now. The old
+ * Anthropic tool-call JSON shape is gone — the capability asks the same question
+ * as text and the answer is matched against the real tool names.)
+ */
 export async function callClaudeTool(systemPrompt: string, userText: string, tools: ClaudeTool[], maxTokens: number): Promise<string | null> {
-  const apiKey = Deno.env.get("ANTHROPIC_API_KEY")
-  if (!apiKey) {
-    console.error("[claude-client] ANTHROPIC_API_KEY not set")
-    return null
+  const toolBlock = tools.map((t) => `- ${t.name}: ${t.description}`).join("\n");
+  const result = await runAiCapability(
+    "intent.classify",
+    {
+      systemPrompt,
+      prompt: `${userText}\n\nเครื่องมือที่เลือกได้:\n${toolBlock}\n\nตอบชื่อเครื่องมือเดียวจากรายการนี้เท่านั้น ถ้าไม่มีเหมาะสมให้ตอบ NONE`,
+      maxTokens,
+    },
+    LINE_CONTEXT,
+  );
+  if (!result.ok || !result.output) {
+    console.error("[ai-capability] intent.classify failed:", result.error);
+    return null;
   }
-  const res = await fetch(ANTHROPIC_API, {
-    method: "POST",
-    headers: headers(apiKey),
-    body: JSON.stringify({
-      model: MODEL,
-      max_tokens: maxTokens,
-      temperature: 0,
-      system: systemPrompt,
-      messages: [{ role: "user", content: userText }],
-      tools: tools.map((t) => ({ name: t.name, description: t.description, input_schema: { type: "object", properties: {} } })),
-    }),
-  })
-  if (!res.ok) {
-    console.error("[claude-client] Claude tool call failed:", res.status, await res.text())
-    return null
+  const answer = result.output.trim();
+  const chosen = tools.find((t) => answer.includes(t.name));
+  if (chosen) return chosen.name;
+  const json = firstJsonObject(answer);
+  if (json) {
+    try {
+      const parsed = JSON.parse(json) as { tool?: string; name?: string };
+      const named = parsed.tool ?? parsed.name;
+      if (named && tools.some((t) => t.name === named)) return named;
+    } catch {
+      // fall through to null — an unparsable answer is honestly "no tool chosen"
+    }
   }
-  const json = await res.json()
-  const toolUse = json?.content?.find((c: any) => c.type === "tool_use")
-  return toolUse?.name ?? null
+  return null;
 }

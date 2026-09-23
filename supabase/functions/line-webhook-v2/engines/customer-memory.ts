@@ -35,7 +35,8 @@ export async function updateCustomerMemory(
       ? `บันทึกเดิม:\n${existing}\n\nบทสนทนาล่าสุด:\nลูกค้า: ${exchange.customerText}\nแอดมิน: ${exchange.botReply}\n\nอัปเดตบันทึกให้ครับ`
       : `บทสนทนาแรกกับลูกค้ารายนี้:\nลูกค้า: ${exchange.customerText}\nแอดมิน: ${exchange.botReply}\n\nสร้างบันทึกเริ่มต้นให้ครับ`
 
-    const updated = await callClaudeText(UPDATE_SYSTEM_PROMPT, prompt, 300)
+    // A7 — capability, not provider: drafting durable customer memory notes.
+    const updated = await callClaudeText(UPDATE_SYSTEM_PROMPT, prompt, 300, "memory.draft")
     if (!updated?.trim()) return
 
     await supabase.from("line_customer_memory").upsert({

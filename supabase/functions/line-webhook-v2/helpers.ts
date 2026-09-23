@@ -1,4 +1,5 @@
 import { haversine as calculateDistance } from "../_shared/haversine.ts"
+import { runAiCapability } from "../_shared/ai/runtime.ts"
 
 export interface ConversationState {
   line_user_id: string;
@@ -607,14 +608,7 @@ export async function extractStructuredEntitiesWithGemini(text: string): Promise
   vehicle_type?: string;
   concrete_type?: string;
 } | null> {
-  const apiKey = Deno.env.get('GEMINI_API_KEY');
-  if (!apiKey) {
-    console.warn("Missing GEMINI_API_KEY for extraction");
-    return null;
-  }
-
-  try {
-    const prompt = `Analyze the following customer message requesting construction materials and extract the details as a valid JSON object.
+  const prompt = `Analyze the following customer message requesting construction materials and extract the details as a valid JSON object.
 Do not include any explanation or markdown formatting (no \`\`\`json blocks), just return the plain raw JSON.
 
 Return format:
@@ -631,77 +625,41 @@ Return format:
 
 Message: "${text}"`;
 
-    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${apiKey}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [
-          { role: 'user', parts: [{ text: prompt }] }
-        ],
-        generationConfig: {
-          maxOutputTokens: 200,
-          temperature: 0.1,
-          responseMimeType: "application/json"
-        }
-      })
-    });
-
-    if (!res.ok) {
-      console.warn("Gemini Extraction call failed:", await res.text());
-      return null;
-    }
-
-    const json = await res.json();
-    const resultText = json.candidates?.[0]?.content?.parts?.[0]?.text;
-    if (resultText) {
-      return JSON.parse(resultText.trim());
-    }
+  try {
+    // Capability only — the provider, endpoint, model and key are gone (A7.6).
+    const result = await runAiCapability(
+      "text.entity_extract",
+      { systemPrompt: "สกัดข้อมูลจากข้อความลูกค้าเป็น JSON ตามรูปแบบที่กำหนดในคำสั่ง ถ้าไม่พบให้ใส่ null ห้ามเดา", prompt, maxTokens: 200 },
+      { origin: "line-webhook-v2/helpers", ownerId: "line", sessionId: "structured-entities" },
+    );
+    if (!result.ok || !result.output) return null;
+    return JSON.parse(result.output.trim());
   } catch (err) {
-    console.error("Gemini Extraction Error:", err);
+    console.error("Entity extraction error:", err);
   }
   return null;
 }
 
 export async function resolveAddressToCoordinates(address: string): Promise<{ lat: number, lng: number } | null> {
-  const apiKey = Deno.env.get('GEMINI_API_KEY');
-  if (!apiKey) return null;
-
-  try {
-    const prompt = `Geocode the following address text in Thailand and resolve it to approximate GPS latitude and longitude coordinates.
+  const prompt = `Geocode the following address text in Thailand and resolve it to approximate GPS latitude and longitude coordinates.
 Return ONLY a raw JSON object with keys "lat" (number) and "lng" (number). If the address is extremely vague, return null coordinates. Do not include markdown formatting or explanations.
 
 Address: "${address}"`;
 
-    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${apiKey}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [
-          { role: 'user', parts: [{ text: prompt }] }
-        ],
-        generationConfig: {
-          maxOutputTokens: 100,
-          temperature: 0.1,
-          responseMimeType: "application/json"
-        }
-      })
-    });
-
-    if (!res.ok) {
-      console.warn("Gemini Geocoding call failed:", await res.text());
-      return null;
-    }
-
-    const json = await res.json();
-    const resultText = json.candidates?.[0]?.content?.parts?.[0]?.text;
-    if (resultText) {
-      const parsed = JSON.parse(resultText.trim());
-      if (parsed && typeof parsed.lat === 'number' && typeof parsed.lng === 'number') {
-        return { lat: parsed.lat, lng: parsed.lng };
-      }
+  try {
+    // Capability only — the provider, endpoint, model and key are gone (A7.6).
+    const result = await runAiCapability(
+      "location.geocode",
+      { systemPrompt: "แปลงที่อยู่เป็นพิกัด ตอบ JSON {lat,lng} เท่านั้น", prompt, maxTokens: 100 },
+      { origin: "line-webhook-v2/helpers", ownerId: "line", sessionId: "geocode" },
+    );
+    if (!result.ok || !result.output) return null;
+    const parsed = JSON.parse(result.output.trim());
+    if (parsed && typeof parsed.lat === 'number' && typeof parsed.lng === 'number') {
+      return { lat: parsed.lat, lng: parsed.lng };
     }
   } catch (err) {
-    console.error("Gemini Geocoding Error:", err);
+    console.error("Geocoding error:", err);
   }
   return null;
 }
