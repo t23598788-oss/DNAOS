@@ -15041,6 +15041,16 @@
         "loadJobWorkspace"
       ],
       "status": "active"
+    },
+    "scripts/job-live-path-test.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "Regression test for the JOB LIVE PATH reconciliation (2026-09-23).",
+      "purpose_th": "Regression test for the JOB LIVE PATH reconciliation (2026-09-23).",
+      "exports": [
+        "getJobs"
+      ],
+      "status": "active"
     }
   },
   "excluded": [

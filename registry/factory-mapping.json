@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-23T05:32:33.897Z",
+  "generated_at": "2026-09-23T05:46:47.379Z",
   "policy": "Per-module Factory mapping only — no file was moved. See registry/factory-registry.json for the Factory contracts this maps into.",
   "modules": {
     "app/.well-known/oauth-authorization-server/route.ts": {
@@ -9761,6 +9761,15 @@
       "domain": "Quality",
       "capability": "scripts",
       "responsibility": "ตัวตรวจ PASS 2 (WRAP) — พิสูจน์ว่างานธุรกิจเป็นเพียงซองควบคุม: อะแดปเตอร์ไม่มี DB/SQL ไม่ดึงของ control plane มาใช้ ทุก capability ชี้โมดูล/export จริงและตาร...",
+      "evidence": [
+        "real test file — QA Factory owns all test code regardless of domain"
+      ]
+    },
+    "scripts/job-live-path-test.ts": {
+      "factoryOwner": "qa-factory",
+      "domain": "Quality",
+      "capability": "scripts",
+      "responsibility": "Regression test for the JOB LIVE PATH reconciliation (2026-09-23).",
       "evidence": [
         "real test file — QA Factory owns all test code regardless of domain"
       ]

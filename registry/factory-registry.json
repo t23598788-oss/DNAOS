@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-23T05:32:33.895Z",
+  "generated_at": "2026-09-23T05:46:47.374Z",
   "policy": "Phase 1.1 (Factory Constitution) — read-only analysis + mapping only. No file was moved, renamed, deleted, merged, or refactored to produce this. ownedModules is derived entirely from registry/module-registry.json + real, pre-verified path evidence in scripts/build-factory-registry.ts. See registry/factory-mapping.json for the per-module assignment and registry/factory-summary.json for the coverage report (including UNKNOWN and CONFLICT — reported honestly, never silently resolved).",
   "factories": [
     {
@@ -1653,6 +1653,7 @@
         "scripts/job-contract-recover-test.ts",
         "scripts/job-contract-verify-test.ts",
         "scripts/job-contract-wrap-test.ts",
+        "scripts/job-live-path-test.ts",
         "scripts/line-credential-path-test.ts",
         "scripts/local-worker-test.ts",
         "scripts/manager-question-queue-test.ts",
@@ -1699,7 +1700,7 @@
       "dependencies": "Not yet declared — see inputs.",
       "interfaces": "Not yet declared — see inputs.",
       "health": {
-        "moduleCount": 101,
+        "moduleCount": 102,
         "status": "populated"
       },
       "owner": "unassigned — Phase 1.2 assigns a real human/team owner per Factory",

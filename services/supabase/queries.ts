@@ -483,30 +483,48 @@ export async function getDebtsByCustomerName(name: string) {
   return { invoiceDebts, debtTrackings };
 }
 
-// ---- JOBS (transport_jobs) ----
-
+// ---- JOBS (public.jobs — LIVE table; transport_jobs does NOT exist) ----
+//
+// Repaired against the LIVE schema (verified read-only 2026-09-23 through the
+// project's PostgREST schema cache): public.transport_jobs returns
+// PGRST205 "Could not find the table" while public.jobs EXISTS with real rows.
+// The returned shape below is byte-for-byte the SAME contract this function
+// already promised (id / project_name / job_status / partner_id / contact_name /
+// distance_km / required_quantity / delivered_quantity / created_at / partners)
+// — only the SOURCE changed, and three fields that were previously hardcoded 0
+// (distance_km / required_quantity / delivered_quantity) now carry the real
+// persisted values.
+//
+// DELIBERATELY NOT ADDED (needs an owner decision, not a guess here):
+//   · no `deleted_at` filter — the old query had none, and 11 of the 18 LIVE
+//     rows are soft-deleted (all 6 IN_PROGRESS rows currently are). Filtering
+//     would silently change what job.list/job.active mean.
+//   · no join for `partners` — LIVE has no FK from jobs to companies/partners
+//     (PostgREST relationship resolution returns PGRST200 for every candidate),
+//     so `partner_id` is returned as the canonical reference and `partners`
+//     stays null instead of a guessed client-side join.
 export async function getJobs(status?: string) {
   let query = supabaseAdmin()
-    .from("transport_jobs")
-    .select("id, job_no, status, fleet_company_id, customer_order_id, transport_cost, created_at, companies(id, name)")
+    .from("jobs")
+    .select("id, project_name, job_status, partner_id, contact_name, distance_km, required_quantity, delivered_quantity, created_at")
     .order("created_at", { ascending: false });
 
   if (status) {
-    query = query.eq("status", status);
+    query = query.eq("job_status", status);
   }
   const { data, error } = await query;
   if (error) throw new Error(error.message);
   return (data ?? []).map((j: any) => ({
     id: j.id,
-    project_name: j.job_no ?? "-",
-    job_status: j.status ?? "-",
-    partner_id: j.fleet_company_id ?? null,
-    contact_name: (j.companies as any)?.name ?? "-",
-    distance_km: 0,
-    required_quantity: 0,
-    delivered_quantity: 0,
+    project_name: j.project_name ?? "-",
+    job_status: j.job_status ?? "-",
+    partner_id: j.partner_id ?? null,
+    contact_name: j.contact_name ?? "-",
+    distance_km: j.distance_km ?? 0,
+    required_quantity: j.required_quantity ?? 0,
+    delivered_quantity: j.delivered_quantity ?? 0,
     created_at: j.created_at,
-    partners: j.companies,
+    partners: null,
   }));
 }
 

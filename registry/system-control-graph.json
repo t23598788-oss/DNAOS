@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-23T05:32:14.755Z",
+  "generated_at": "2026-09-23T05:46:31.301Z",
   "nodes": [
     {
       "id": "layer:core",
@@ -29299,6 +29299,23 @@
       "cost_source": "UNKNOWN"
     },
     {
+      "id": "module:scripts/job-live-path-test.ts",
+      "name": "scripts/job-live-path-test.ts",
+      "type": "Module",
+      "layer": "scripts",
+      "source_file": "scripts/job-live-path-test.ts",
+      "status": "OK",
+      "runtime_callable": true,
+      "provider": "UNKNOWN",
+      "dependencies": [],
+      "dependents": [],
+      "commands": [],
+      "events": [],
+      "capabilities": [],
+      "health": "OK",
+      "cost_source": "UNKNOWN"
+    },
+    {
       "id": "command:invoice.items",
       "name": "invoice.items",
       "type": "Command",
@@ -41333,6 +41350,11 @@
     {
       "source": "layer:scripts",
       "target": "module:scripts/job-contract-wrap-test.ts",
+      "type": "governed_by"
+    },
+    {
+      "source": "layer:scripts",
+      "target": "module:scripts/job-live-path-test.ts",
       "type": "governed_by"
     },
     {
@@ -59962,9 +59984,9 @@
     }
   ],
   "summary": {
-    "total_nodes": 1637,
-    "total_edges": 4806,
-    "modules": 1238,
+    "total_nodes": 1638,
+    "total_edges": 4807,
+    "modules": 1239,
     "layers": 9,
     "commands": 99,
     "events": 60,
@@ -59973,8 +59995,8 @@
     "drivers": 11,
     "connector_stages": 5,
     "module_health": {
-      "total": 1238,
-      "ok": 1238,
+      "total": 1239,
+      "ok": 1239,
       "broken": 0,
       "unused": 0,
       "unregistered": 0
@@ -59988,7 +60010,7 @@
     "unknown_field_counts": {
       "nodes_with_unknown_source_file": 82,
       "nodes_with_unknown_status": 159,
-      "nodes_with_unknown_provider": 1613
+      "nodes_with_unknown_provider": 1614
     },
     "unknown_dimensions": [
       "ai_model_registry",

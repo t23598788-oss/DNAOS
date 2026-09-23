@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-23T05:32:14.400Z",
+  "generated_at": "2026-09-23T05:46:30.934Z",
   "version": 1,
   "nodes": [
     {
@@ -13213,11 +13213,11 @@
         "debt_snapshots",
         "invoice_payment_summary",
         "invoices",
+        "jobs",
         "line_events",
         "material_types",
         "payment_allocations",
-        "standalone_documents",
-        "transport_jobs"
+        "standalone_documents"
       ],
       "business_capabilities": "UNKNOWN",
       "domain_owner": "services",
@@ -13348,74 +13348,74 @@
         {
           "name": "getJobs",
           "kind": "function",
-          "line_start": 488,
-          "line_end": 511
+          "line_start": 506,
+          "line_end": 529
         },
         {
           "name": "getPartners",
           "kind": "function",
-          "line_start": 515,
-          "line_end": 522
+          "line_start": 533,
+          "line_end": 540
         },
         {
           "name": "getDebtorPartners",
           "kind": "function",
-          "line_start": 524,
-          "line_end": 534
+          "line_start": 542,
+          "line_end": 552
         },
         {
           "name": "getMaterialTypes",
           "kind": "function",
-          "line_start": 538,
-          "line_end": 549
+          "line_start": 556,
+          "line_end": 567
         },
         {
           "name": "getCustomerGps",
           "kind": "function",
-          "line_start": 556,
-          "line_end": 603
+          "line_start": 574,
+          "line_end": 621
         },
         {
           "name": "getPartnerById",
           "kind": "function",
-          "line_start": 607,
-          "line_end": 615
+          "line_start": 625,
+          "line_end": 633
         },
         {
           "name": "getDocumentsByPartner",
           "kind": "function",
-          "line_start": 617,
-          "line_end": 635
+          "line_start": 635,
+          "line_end": 653
         },
         {
           "name": "getBusinessEventsByPartner",
           "kind": "function",
-          "line_start": 637,
-          "line_end": 654
+          "line_start": 655,
+          "line_end": 672
         },
         {
           "name": "getTransactions",
           "kind": "function",
-          "line_start": 658,
-          "line_end": 691
+          "line_start": 676,
+          "line_end": 709
         },
         {
           "name": "getTransactionById",
           "kind": "function",
-          "line_start": 693,
-          "line_end": 739
+          "line_start": 711,
+          "line_end": 757
         },
         {
           "name": "getPartnersWithDocumentSummary",
           "kind": "function",
-          "line_start": 741,
-          "line_end": 803
+          "line_start": 759,
+          "line_end": 821
         },
         {
           "name": "getPendingDrafts",
           "kind": "function",
-          "line_start": 807,
-          "line_end": 809
+          "line_start": 825,
+          "line_end": 827
         }
       ]
     },
@@ -84615,6 +84615,34 @@
           "resolved_target": "app/workspace/_lib/businessTools.ts"
         }
       ]
+    },
+    {
+      "id": "module:scripts/job-live-path-test.ts",
+      "type": "Module",
+      "layer": "scripts",
+      "name_en": "scripts/job-live-path-test.ts",
+      "purpose_th": "Regression test for the JOB LIVE PATH reconciliation (2026-09-23).",
+      "exports": [
+        "getJobs"
+      ],
+      "status": "OK",
+      "runtime_entry_point": true,
+      "internal_dependencies": [],
+      "dependents": [],
+      "data_tables": [
+        "jobs"
+      ],
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "scripts",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN"
     }
   ],
   "edges": [
@@ -90021,6 +90049,11 @@
     {
       "source": "layer:scripts",
       "target": "module:scripts/job-contract-wrap-test.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:scripts",
+      "target": "module:scripts/job-live-path-test.ts",
       "label": "contains"
     },
     {
@@ -107145,8 +107178,8 @@
     }
   ],
   "summary": {
-    "total": 1238,
-    "ok": 1238,
+    "total": 1239,
+    "ok": 1239,
     "broken": 0,
     "unused": 0,
     "unregistered": 0
