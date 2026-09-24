@@ -80,6 +80,7 @@ export const UI_CATEGORY_ORDER: UiCategory[] = [
 const T = "presentation/foundation/tokens ThemeProvider";
 
 export const UI_CATALOG: UiItem[] = [
+  { id: "assistant-crew", label: "พนักงานผู้ช่วย — 4 รูปแบบขยับได้", path: "app/admin/ui-gallery/assistants/page.tsx", branch: "branch", category: "Preview", renderMode: "route", route: "/admin/ui-gallery/assistants", notes: "น้องพร้อม / น้องแฟ้ม / น้องมิว / น้องออร์บ — ต้นแบบบุคลิกและอารมณ์ ไม่มีการอ่านข้อมูลหรือส่งงานจริง" },
   // ── FULL WORKSPACES (main 9) ───────────────────────────────────────────────
   { id: "owner-control-center", label: "Owner Control Center", path: "app/OperationalWorkspace.tsx", branch: "main", category: "Full Workspace", renderMode: "route", route: "/", shell: T, layout: "app/layout.tsx", needsRealData: true, notes: "gated ด้วย requireAuthPage(ADMIN_TIER) เหมือน /admin" },
   { id: "relationship-workspace", label: "Relationship Workspace V1", path: "app/admin/relationships/workspace.tsx", branch: "main", category: "Full Workspace", renderMode: "route", route: "/admin/relationships", shell: "presentation/shell/AppShell", layout: "app/admin/layout.tsx", needsRealData: true },
@@ -190,7 +191,7 @@ export const UI_CATALOG: UiItem[] = [
   // ทุกตัวเป็น route จริง เปิดด้วย iframe (same-origin, session เดิม)
   // ตัวที่ต้องมี id/param จริง หรือเป็น redirect-only จะถูกทำเครื่องหมายตามจริง
   { id: "page-admin-root", label: "Admin entry (redirect)", path: "app/admin/page.tsx", branch: "main", category: "Business Page", renderMode: "blocked", route: "/admin/relationships", blockedReason: "redirect ไป /admin/relationships เท่านั้น" },
-  { id: "page-workspace-entry", label: "Workspace entry (role redirect)", path: "app/workspace/page.tsx", branch: "main", category: "Business Page", renderMode: "blocked", route: "/login", blockedReason: "redirect ตาม role (resolveDestination) — ต้องมี session จึงเห็นผล" },
+  { id: "page-workspace-entry", label: "Business Workspace — พื้นที่ทำงานปัจจุบัน", path: "app/workspace/page.tsx", branch: "main", category: "Full Workspace", renderMode: "route", route: "/workspace", shell: "app/workspace/BusinessWorkspace", needsRealData: true, notes: "IconRail + พื้นที่ซ้าย + แท็บด้านขวา ใช้สิทธิ์จากระบบกลางและข้อมูลคู่ค้า/งานจริง — ต้องเข้าสู่ระบบ" },
   { id: "page-telemetry-redirect", label: "Telemetry (redirect → /admin/system)", path: "app/admin/telemetry/page.tsx", branch: "main", category: "Business Page", renderMode: "blocked", route: "/admin/system", blockedReason: "ถูกรวมเข้า /admin/system แล้ว (redirect)" },
   { id: "page-graph-redirect", label: "Graph (redirect → /admin/system)", path: "app/admin/graph/page.tsx", branch: "main", category: "Business Page", renderMode: "blocked", route: "/admin/system", blockedReason: "ถูกรวมเข้า /admin/system แล้ว (redirect)" },
   { id: "page-admin-build", label: "Build", path: "app/admin/build/page.tsx", branch: "main", category: "Business Page", renderMode: "route", route: "/admin/build", layout: "app/admin/layout.tsx", needsRealData: true },
@@ -424,4 +425,3 @@ export const PRESENTATION_CATALOG: PresentationEntry[] = [
   // ── Assets (1) ─────────────────────────────────────────────────────────────
   { path: "presentation/assets/manifest.ts", group: "Assets", kind: "renderable", uiItemId: "presentation-assets-manifest" },
 ];
-

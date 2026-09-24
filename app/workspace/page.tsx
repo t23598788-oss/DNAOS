@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { getAuthedUser } from "@/core/auth/session";
 import { resolveAllowedCapabilities } from "@/core/navigation/resolveCapabilityAccess";
+import { resolveNavItems } from "@/core/navigation/resolveNavItems";
 import { BusinessWorkspace } from "./BusinessWorkspace";
 import { loadPartnerWorkspace } from "./_lib/partnerDisplayModel";
 import { loadJobWorkspace } from "./_lib/jobDisplayModel";
@@ -57,6 +58,7 @@ export default async function WorkspacePage() {
   return (
     <BusinessWorkspace
       allowedTools={allowedTools}
+      canManageSettings={resolveNavItems(user.role).some(item => item.href === "/admin/dashboard")}
       liveModels={{
         ...(partners ? { people: partners.listModel } : {}),
         ...(jobs ? { jobs: jobs.listModel } : {}),

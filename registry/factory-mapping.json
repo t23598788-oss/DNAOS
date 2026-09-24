@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-23T06:21:54.452Z",
+  "generated_at": "2026-09-24T00:18:56.805Z",
   "policy": "Per-module Factory mapping only — no file was moved. See registry/factory-registry.json for the Factory contracts this maps into.",
   "modules": {
     "app/.well-known/oauth-authorization-server/route.ts": {
@@ -673,6 +673,15 @@
       "domain": "Developer Tooling",
       "capability": "app",
       "responsibility": "Visual Asset Inventory — ข้อมูลสำหรับหน้าจอ Review เท่านั้น",
+      "evidence": [
+        "admin UI page (remaining)"
+      ]
+    },
+    "app/admin/ui-gallery/assistants/page.tsx": {
+      "factoryOwner": "software-factory",
+      "domain": "Developer Tooling",
+      "capability": "app",
+      "responsibility": "Saved character study; protected by the existing admin layout.",
       "evidence": [
         "admin UI page (remaining)"
       ]
@@ -4296,6 +4305,20 @@
         "connector/OAuth/gateway API"
       ]
     },
+    "app/api/gateway/observe/line/route.ts": {
+      "factoryOwner": "CONFLICT",
+      "domain": null,
+      "capability": null,
+      "responsibility": "POST /api/gateway/observe/line — inbound LINE webhook ingress for the",
+      "evidence": [
+        "communication-factory: under a line/ directory",
+        "infrastructure-factory: connector/OAuth/gateway API"
+      ],
+      "conflictingFactories": [
+        "communication-factory",
+        "infrastructure-factory"
+      ]
+    },
     "app/api/gateway/observe/railway/route.ts": {
       "factoryOwner": "infrastructure-factory",
       "domain": "Infrastructure",
@@ -4355,6 +4378,15 @@
       "domain": "Runtime",
       "capability": "api",
       "responsibility": "ปลายทางภายในสำหรับรับงาน canonical (PASS6/G2) — POST ที่ตรวจ secret แล้วส่งซองงานให้ transport runtime ใช้รูปแบบ internal secret เดิมของระบบ",
+      "evidence": [
+        "internal command-execution API"
+      ]
+    },
+    "app/api/internal/connect/event/route.ts": {
+      "factoryOwner": "runtime-factory",
+      "domain": "Runtime",
+      "capability": "app",
+      "responsibility": "POST /api/internal/connect/event — DNA OS Connect transport boundary for",
       "evidence": [
         "internal command-execution API"
       ]
@@ -4535,6 +4567,33 @@
       "domain": "Architecture",
       "capability": "app",
       "responsibility": "endpoint สรุปสถาปัตยกรรมระบบ",
+      "evidence": [
+        "self-description/manifest/constitution/capabilities API surface"
+      ]
+    },
+    "app/api/v1/mcp/contractor/evidence-submit/route.ts": {
+      "factoryOwner": "architecture-office",
+      "domain": "Architecture",
+      "capability": "app",
+      "responsibility": "POST /api/v1/mcp/contractor/evidence-submit — contractor result/evidence intake",
+      "evidence": [
+        "self-description/manifest/constitution/capabilities API surface"
+      ]
+    },
+    "app/api/v1/mcp/contractor/status/route.ts": {
+      "factoryOwner": "architecture-office",
+      "domain": "Architecture",
+      "capability": "app",
+      "responsibility": "GET /api/v1/mcp/contractor/status?ownerId=… — contractor job status (NEW-1, 2026-09-23).",
+      "evidence": [
+        "self-description/manifest/constitution/capabilities API surface"
+      ]
+    },
+    "app/api/v1/mcp/contractor/task-claim/route.ts": {
+      "factoryOwner": "architecture-office",
+      "domain": "Architecture",
+      "capability": "app",
+      "responsibility": "POST /api/v1/mcp/contractor/task-claim — contractor task intake (NEW-1, 2026-09-23).",
       "evidence": [
         "self-description/manifest/constitution/capabilities API surface"
       ]
@@ -5191,6 +5250,15 @@
         "operational workspace page"
       ]
     },
+    "app/workspace/WorkspaceSettings.tsx": {
+      "factoryOwner": "software-factory",
+      "domain": "Developer Tooling",
+      "capability": "app",
+      "responsibility": "Navigation to existing guarded screens only; mounting does not run services.",
+      "evidence": [
+        "operational workspace page"
+      ]
+    },
     "app/workspace/_lib/businessTools.ts": {
       "factoryOwner": "software-factory",
       "domain": "Developer Tooling",
@@ -5214,6 +5282,24 @@
       "domain": "Developer Tooling",
       "capability": "app",
       "responsibility": "BUSINESS WORKSPACE — Company/Partner master → BusinessDisplayModel (SLICE-1)",
+      "evidence": [
+        "operational workspace page"
+      ]
+    },
+    "app/workspace/_lib/toolBindings.ts": {
+      "factoryOwner": "software-factory",
+      "domain": "Developer Tooling",
+      "capability": "app",
+      "responsibility": "Presentation bindings only. Routes keep their own server authority checks.",
+      "evidence": [
+        "operational workspace page"
+      ]
+    },
+    "app/workspace/_lib/workspaceAppearance.ts": {
+      "factoryOwner": "software-factory",
+      "domain": "Developer Tooling",
+      "capability": "app",
+      "responsibility": "Owner-editable presentation only. Keep bindings and authority out of here.",
       "evidence": [
         "operational workspace page"
       ]
@@ -6514,6 +6600,20 @@
         "operational workspace UI engine (application/board/dock/panel/presenter registries)"
       ]
     },
+    "dna-os-contractor/src/adapters/freebuffPullAdapter.ts": {
+      "factoryOwner": "UNKNOWN",
+      "domain": null,
+      "capability": null,
+      "responsibility": "DNA OS Contractor — Freebuff PULL adapter (NEW-2, 2026-09-23).",
+      "evidence": []
+    },
+    "dna-os-contractor/src/lease/leaseClient.ts": {
+      "factoryOwner": "UNKNOWN",
+      "domain": null,
+      "capability": null,
+      "responsibility": "DNA OS Contractor — Lease Client (NEW-3).",
+      "evidence": []
+    },
     "dna-os-mcp-server/package.json": {
       "factoryOwner": "architecture-office",
       "domain": "Architecture",
@@ -6676,6 +6776,33 @@
         "MCP server exposing governance/registry data (governanceHttp.ts, governanceServer.ts)"
       ]
     },
+    "dna-os-mcp-server/src/tools/contractorEvidenceSubmit.ts": {
+      "factoryOwner": "architecture-office",
+      "domain": "Architecture",
+      "capability": "dna-os-mcp-server",
+      "responsibility": "contractor.evidence.submit — contractor result/evidence intake over MCP",
+      "evidence": [
+        "MCP server exposing governance/registry data (governanceHttp.ts, governanceServer.ts)"
+      ]
+    },
+    "dna-os-mcp-server/src/tools/contractorStatus.ts": {
+      "factoryOwner": "architecture-office",
+      "domain": "Architecture",
+      "capability": "dna-os-mcp-server",
+      "responsibility": "contractor.status — contractor job status over MCP (NEW-1; App-side half is",
+      "evidence": [
+        "MCP server exposing governance/registry data (governanceHttp.ts, governanceServer.ts)"
+      ]
+    },
+    "dna-os-mcp-server/src/tools/contractorTaskClaim.ts": {
+      "factoryOwner": "architecture-office",
+      "domain": "Architecture",
+      "capability": "dna-os-mcp-server",
+      "responsibility": "contractor.task.claim — contractor task intake over MCP (NEW-1, App-side half",
+      "evidence": [
+        "MCP server exposing governance/registry data (governanceHttp.ts, governanceServer.ts)"
+      ]
+    },
     "dna-os-mcp-server/src/tools/registryListCommands.ts": {
       "factoryOwner": "architecture-office",
       "domain": "Architecture",
@@ -6780,6 +6907,15 @@
         "business-domain engine (remaining)"
       ]
     },
+    "engines/canonical/event-write.ts": {
+      "factoryOwner": "business-factory",
+      "domain": "Business",
+      "capability": "engines",
+      "responsibility": "DNA OS — canonical Business Event writer (capability D, owner decision D5, 2026-09-23).",
+      "evidence": [
+        "business-domain engine (remaining)"
+      ]
+    },
     "engines/canonical/inbound-write.ts": {
       "factoryOwner": "business-factory",
       "domain": "Business",
@@ -6816,6 +6952,24 @@
         "business-domain engine (remaining)"
       ]
     },
+    "engines/connect/accounts.ts": {
+      "factoryOwner": "business-factory",
+      "domain": "Business",
+      "capability": "engines",
+      "responsibility": "Connect — external accounts / channels + credential accessor",
+      "evidence": [
+        "business-domain engine (remaining)"
+      ]
+    },
+    "engines/connect/identity.ts": {
+      "factoryOwner": "business-factory",
+      "domain": "Business",
+      "capability": "engines",
+      "responsibility": "Connect — canonical external identity (capability C, owner decision D4, 2026-09-23).",
+      "evidence": [
+        "business-domain engine (remaining)"
+      ]
+    },
     "engines/connectors/contract.ts": {
       "factoryOwner": "business-factory",
       "domain": "Business",
@@ -6832,6 +6986,15 @@
       "responsibility": "contract ของ provider GitHub (provider ตัวที่สอง — หลักฐาน provider-neutrality ของ STEP 8) ทุกเมธอด delegate ไปของเดิม: detect() อ่านไฟล์จริงในโปรเจกต์ (สคริ...",
       "evidence": [
         "business-domain engine (remaining)"
+      ]
+    },
+    "engines/connectors/providers/line.ts": {
+      "factoryOwner": "communication-factory",
+      "domain": "Communication",
+      "capability": "engines",
+      "responsibility": "Connect Core — LINE provider contract (capability A, 2026-09-23).",
+      "evidence": [
+        "line.ts driver"
       ]
     },
     "engines/connectors/providers/railway.ts": {
@@ -7210,6 +7373,20 @@
       "responsibility": "Integration Gateway: แปลง GitHub webhook payload จริง (push/pull_request/workflow_run) เป็น GatewayEvent (Observe Channel เท่านั้น) พร้อมตรวจ signature HMAC-...",
       "evidence": [
         "integration gateway adapter"
+      ]
+    },
+    "engines/integration-gateway/adapters/line.ts": {
+      "factoryOwner": "CONFLICT",
+      "domain": null,
+      "capability": null,
+      "responsibility": "Integration Gateway — LINE Adapter (capability A, 2026-09-23).",
+      "evidence": [
+        "communication-factory: line.ts driver",
+        "infrastructure-factory: integration gateway adapter"
+      ],
+      "conflictingFactories": [
+        "communication-factory",
+        "infrastructure-factory"
       ]
     },
     "engines/integration-gateway/adapters/railway.ts": {
@@ -9108,6 +9285,15 @@
       "responsibility": "Real standalone script scanning the real Hardcode Governance decision engine output for UNKNOWN-category findings (masking secret-shaped values) — a diagnost...",
       "evidence": []
     },
+    "scripts/ai-caller-cutover-test.ts": {
+      "factoryOwner": "qa-factory",
+      "domain": "Quality",
+      "capability": "scripts",
+      "responsibility": "A6 — direct-provider caller cutover tests (owner, 2026-09-23).",
+      "evidence": [
+        "real test file — QA Factory owns all test code regardless of domain"
+      ]
+    },
     "scripts/ai-context-test.ts": {
       "factoryOwner": "qa-factory",
       "domain": "Quality",
@@ -9117,11 +9303,47 @@
         "real test file — QA Factory owns all test code regardless of domain"
       ]
     },
+    "scripts/ai-deno-cutover-test.ts": {
+      "factoryOwner": "qa-factory",
+      "domain": "Quality",
+      "capability": "scripts",
+      "responsibility": "A7 — Deno AI provider decoupling tests (owner, 2026-09-23).",
+      "evidence": [
+        "real test file — QA Factory owns all test code regardless of domain"
+      ]
+    },
+    "scripts/ai-device-cutover-test.ts": {
+      "factoryOwner": "qa-factory",
+      "domain": "Quality",
+      "capability": "scripts",
+      "responsibility": "A8 — Device/Watcher AI decoupling tests (owner, 2026-09-23).",
+      "evidence": [
+        "real test file — QA Factory owns all test code regardless of domain"
+      ]
+    },
+    "scripts/ai-resolver-test.ts": {
+      "factoryOwner": "qa-factory",
+      "domain": "Quality",
+      "capability": "scripts",
+      "responsibility": "AI Resolver / Adapter contract tests (PHASE A4–A5, owner 2026-09-23).",
+      "evidence": [
+        "real test file — QA Factory owns all test code regardless of domain"
+      ]
+    },
     "scripts/alerting-test.ts": {
       "factoryOwner": "qa-factory",
       "domain": "Quality",
       "capability": "scripts",
       "responsibility": "Real Alert Runtime regression suite (Step 12.5) — npm run alerting:test.",
+      "evidence": [
+        "real test file — QA Factory owns all test code regardless of domain"
+      ]
+    },
+    "scripts/api-token-scope-test.ts": {
+      "factoryOwner": "qa-factory",
+      "domain": "Quality",
+      "capability": "scripts",
+      "responsibility": "API token scope issuer test (2026-09-23).",
       "evidence": [
         "real test file — QA Factory owns all test code regardless of domain"
       ]
@@ -9249,6 +9471,15 @@
         "real test file — QA Factory owns all test code regardless of domain"
       ]
     },
+    "scripts/business-event-authority-test.ts": {
+      "factoryOwner": "qa-factory",
+      "domain": "Quality",
+      "capability": "scripts",
+      "responsibility": "Capability D — Business Event canonical authority test (2026-09-23).",
+      "evidence": [
+        "real test file — QA Factory owns all test code regardless of domain"
+      ]
+    },
     "scripts/business-failure-bridge-test.ts": {
       "factoryOwner": "qa-factory",
       "domain": "Quality",
@@ -9263,6 +9494,15 @@
       "domain": "Quality",
       "capability": "scripts",
       "responsibility": "harness การเงินตาม canonical (Phase E4/E5) — ตรวจแบบอ่านอย่างเดียวเรื่อง VAT/WHT/ส่วนลด การตัดเอกสาร void/ใบเสนอราคาออกจากรายได้ VAT ซื้อ การจัดสรรเงิน โครงก...",
+      "evidence": [
+        "real test file — QA Factory owns all test code regardless of domain"
+      ]
+    },
+    "scripts/canonical-payment-invariant-test.ts": {
+      "factoryOwner": "qa-factory",
+      "domain": "Quality",
+      "capability": "scripts",
+      "responsibility": "Canonical payment invariant tests — B-04R (2026-09-23).",
       "evidence": [
         "real test file — QA Factory owns all test code regardless of domain"
       ]
@@ -9362,6 +9602,24 @@
       "domain": "Quality",
       "capability": "scripts",
       "responsibility": "ชุดทดสอบยอมรับของ Connect Core (npm run connect-core:test) — พิสูจน์กติกาแกนกลางของชั้น ก่อน Connect กับโค้ดจริง โดยไม่ใช้เครือข่ายและไม่ใช้ฐานข้อมูลจริง (st...",
+      "evidence": [
+        "real test file — QA Factory owns all test code regardless of domain"
+      ]
+    },
+    "scripts/connect-identity-model-test.ts": {
+      "factoryOwner": "qa-factory",
+      "domain": "Quality",
+      "capability": "scripts",
+      "responsibility": "Capability C (slice 1) — canonical Connect identity model test (2026-09-23).",
+      "evidence": [
+        "real test file — QA Factory owns all test code regardless of domain"
+      ]
+    },
+    "scripts/connect-inbound-boundary-test.ts": {
+      "factoryOwner": "qa-factory",
+      "domain": "Quality",
+      "capability": "scripts",
+      "responsibility": "Capability A — provider receive/webhook boundary test (2026-09-23).",
       "evidence": [
         "real test file — QA Factory owns all test code regardless of domain"
       ]
@@ -9880,6 +10138,42 @@
         "real test file — QA Factory owns all test code regardless of domain"
       ]
     },
+    "scripts/payment-atomic-boundary-test.ts": {
+      "factoryOwner": "qa-factory",
+      "domain": "Quality",
+      "capability": "scripts",
+      "responsibility": "B-04R2 — atomic payment commit boundary: structural checks + LOCAL database proof.",
+      "evidence": [
+        "real test file — QA Factory owns all test code regardless of domain"
+      ]
+    },
+    "scripts/payment-legacy-rewire-test.ts": {
+      "factoryOwner": "qa-factory",
+      "domain": "Quality",
+      "capability": "scripts",
+      "responsibility": "B-04C — complete payment reconciliation: gateway → canonical writer, legacy removed.",
+      "evidence": [
+        "real test file — QA Factory owns all test code regardless of domain"
+      ]
+    },
+    "scripts/payment-preview-rewire-test.ts": {
+      "factoryOwner": "qa-factory",
+      "domain": "Quality",
+      "capability": "scripts",
+      "responsibility": "Regression test for B-03 — payment preview / canonical financial read",
+      "evidence": [
+        "real test file — QA Factory owns all test code regardless of domain"
+      ]
+    },
+    "scripts/payment-rpc-adapter-test.ts": {
+      "factoryOwner": "qa-factory",
+      "domain": "Quality",
+      "capability": "scripts",
+      "responsibility": "B-04R3 — canonical payment RPC adapter tests (F1–F8).",
+      "evidence": [
+        "real test file — QA Factory owns all test code regardless of domain"
+      ]
+    },
     "scripts/place-discovery-test.ts": {
       "factoryOwner": "qa-factory",
       "domain": "Quality",
@@ -10210,6 +10504,13 @@
         "real test file — QA Factory owns all test code regardless of domain"
       ]
     },
+    "scripts/workspace-tool-bindings-test.tsx": {
+      "factoryOwner": "UNKNOWN",
+      "domain": null,
+      "capability": null,
+      "responsibility": "ชุดทดสอบ regression ของ workspace tool bindings (owner, 2026-09-23) — ตรวจว่า TOOL_BINDINGS ครบทุก tool key, orderGrantedTools เคารพสิทธิ์ที่ได้รับ + ลำดับที...",
+      "evidence": []
+    },
     "services/ai-connection/healthCheck.ts": {
       "factoryOwner": "ai-factory",
       "domain": "AI",
@@ -10273,6 +10574,24 @@
         "AI connection management"
       ]
     },
+    "services/ai/adapterContract.ts": {
+      "factoryOwner": "ai-factory",
+      "domain": "AI",
+      "capability": "services",
+      "responsibility": "DNA OS — AI Adapter Contract (PHASE A4, owner 2026-09-23).",
+      "evidence": [
+        "AI provider bridge"
+      ]
+    },
+    "services/ai/adapters.ts": {
+      "factoryOwner": "ai-factory",
+      "domain": "AI",
+      "capability": "services",
+      "responsibility": "DNA OS — AI adapter implementations (PHASE A4/A5, owner 2026-09-23).",
+      "evidence": [
+        "AI provider bridge"
+      ]
+    },
     "services/ai/bridge-claude.ts": {
       "factoryOwner": "ai-factory",
       "domain": "AI",
@@ -10296,6 +10615,15 @@
       "domain": "AI",
       "capability": "services",
       "responsibility": "Gateway ความสามารถ AI ฝั่งเซิร์ฟเวอร์เท่านั้น — invokeAiGateway() ตรวจสอบ context ของคำขอ (origin/owner/session/capability/effect/ความยาว prompt) กำหนดเส้นทา...",
+      "evidence": [
+        "AI provider bridge"
+      ]
+    },
+    "services/ai/resolver.ts": {
+      "factoryOwner": "ai-factory",
+      "domain": "AI",
+      "capability": "services",
+      "responsibility": "DNA OS — AI Resolver (PHASE A5, owner 2026-09-23). The SINGLE logical",
       "evidence": [
         "AI provider bridge"
       ]
@@ -10430,11 +10758,56 @@
         "Supabase client/service layer"
       ]
     },
+    "supabase/functions/_shared/ai/contract.ts": {
+      "factoryOwner": "deployment-factory",
+      "domain": "Deployment",
+      "capability": "supabase",
+      "responsibility": "DNA OS — Deno AI capability contract (PHASE A7, owner 2026-09-23).",
+      "evidence": [
+        "Supabase Edge Function (remaining, not architecture-drift-alert)"
+      ]
+    },
+    "supabase/functions/_shared/ai/runtime.ts": {
+      "factoryOwner": "deployment-factory",
+      "domain": "Deployment",
+      "capability": "supabase",
+      "responsibility": "DNA OS — Deno AI capability runtime (PHASE A7). An implementation of the same",
+      "evidence": [
+        "Supabase Edge Function (remaining, not architecture-drift-alert)"
+      ]
+    },
     "supabase/functions/_shared/canonicalTransport.ts": {
       "factoryOwner": "deployment-factory",
       "domain": "Deployment",
       "capability": "supabase",
       "responsibility": "client transport ฝั่ง Edge/Deno (PASS6/G2) — ทำหน้าที่ช่องทางเท่านั้น สร้างซองงาน ส่งด้วย secret เดิม ไม่มี logic ธุรกิจ และรายงานตามจริงเมื่อไม่รู้ผลการเขียน",
+      "evidence": [
+        "Supabase Edge Function (remaining, not architecture-drift-alert)"
+      ]
+    },
+    "supabase/functions/_shared/connect-event.ts": {
+      "factoryOwner": "deployment-factory",
+      "domain": "Deployment",
+      "capability": "supabase",
+      "responsibility": "Connect event transport (capability D, 2026-09-23) — the Deno side's only way",
+      "evidence": [
+        "Supabase Edge Function (remaining, not architecture-drift-alert)"
+      ]
+    },
+    "supabase/functions/_shared/connect-forward.ts": {
+      "factoryOwner": "deployment-factory",
+      "domain": "Deployment",
+      "capability": "supabase",
+      "responsibility": "Provider boundary → DNA OS main path (capability A, 2026-09-23).",
+      "evidence": [
+        "Supabase Edge Function (remaining, not architecture-drift-alert)"
+      ]
+    },
+    "supabase/functions/_shared/connect-identity.ts": {
+      "factoryOwner": "deployment-factory",
+      "domain": "Deployment",
+      "capability": "supabase",
+      "responsibility": "Connect identity — Deno-side reader of the canonical model (capability C, 2026-09-23).",
       "evidence": [
         "Supabase Edge Function (remaining, not architecture-drift-alert)"
       ]

@@ -14,7 +14,7 @@
  * SLICE-1 (owner decision D1=A, 2026-09-23): component นี้ "ไม่รู้จัก role" และ
  * ห้าม hardcode role — ได้รับ allowedTools (tool key ที่ central authority
  * registry/permissions.json#capability_access อนุญาตแล้ว) ผ่าน props เท่านั้น
- * และใช้ liveModels/liveTargets แทนโมเดลตัวอย่างเมื่อมีข้อมูลจริงส่งมา
+ * liveModels/liveTargets มาจาก server เท่านั้น; ไม่มีข้อมูล = รอเชื่อม ไม่ใช้ตัวอย่างแทน
  */
 import { useRef, useState } from "react";
 import IconRail, { type IconRailItem } from "@/presentation/shell/navigation/IconRail";
@@ -23,45 +23,39 @@ import EmptyState from "@/presentation/feedback/EmptyState";
 import { BusinessDisplayRenderer } from "@/app/admin/ui-gallery/_lib/BusinessDisplayRenderer";
 import type { BusinessDisplayModel } from "@/app/admin/ui-gallery/_lib/businessDisplayModel";
 import { TabStrip, type Tab } from "@/presentation/shell/ide/TabStrip";
-import { TOOLS, OPEN_TARGETS, type OpenTarget } from "./_lib/businessTools";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { TOOLS, type OpenTarget } from "./_lib/businessTools";
+import { ChevronLeft, ChevronRight, Settings } from "lucide-react";
+import { TOOL_BINDINGS, orderGrantedTools } from "./_lib/toolBindings";
+import { WORKSPACE_APPEARANCE, type WorkspaceAppearance } from "./_lib/workspaceAppearance";
+import { WorkspaceSettings } from "./WorkspaceSettings";
 
-const LEFT_DEFAULT = 300;
 const LEFT_MIN = 200;
 const LEFT_MAX = 560;
 const RAIL_W = 64;
-
-/** รายการที่เปิดได้ต่อเครื่องมือ (กดจากฝั่งซ้าย → เปิด tab ฝั่งขวา)
- *  id ที่ไม่มีอยู่ใน targets (OPEN_TARGETS + liveTargets) จะถูกข้ามอย่างปลอดภัย */
-const TOOL_TARGETS: Record<string, string[]> = {
-  documents: ["d-sales", "d-invoice", "d-attach"],
-  search: ["sr1"],
-  chat: ["cv"],
-  connections: ["c1"],
-  changes: ["d-attach"],
-  problems: ["d-attach"],
-  people: ["partners-table"],
-  jobs: ["jobs-table"],
-};
 
 export function BusinessWorkspace({
   allowedTools,
   liveModels = {},
   liveTargets = {},
+  canManageSettings = false,
+  appearance = WORKSPACE_APPEARANCE,
 }: {
   /** tool key ที่ central authority อนุญาต — มาจาก server เท่านั้น (ไม่มี role ในไฟล์นี้) */
   allowedTools: string[];
-  /** โมเดลที่สร้างจากข้อมูลจริงต่อ tool key — ไม่มี = ใช้โมเดลเดิมของ tool นั้น */
+  /** โมเดลที่สร้างจากข้อมูลจริงต่อ tool key — ไม่มี = แสดงสถานะรอเชื่อม */
   liveModels?: Record<string, BusinessDisplayModel>;
-  /** เป้าหมายฝั่งขวาที่สร้างจากข้อมูลจริง (รวมกับ OPEN_TARGETS) */
+  /** เป้าหมายฝั่งขวาที่สร้างจากข้อมูลจริงเท่านั้น */
   liveTargets?: Record<string, OpenTarget>;
+  canManageSettings?: boolean;
+  appearance?: WorkspaceAppearance;
 }) {
-  const tools = TOOLS.filter((t) => allowedTools.includes(t.key));
-  const targets: Record<string, OpenTarget> = { ...OPEN_TARGETS, ...liveTargets };
+  const tools = orderGrantedTools(TOOLS, allowedTools, appearance.toolOrder);
+  const targets = liveTargets;
 
   const [tool, setTool] = useState(tools[0]?.key ?? "");
-  const [leftWidth, setLeftWidth] = useState(LEFT_DEFAULT);
-  const [collapsed, setCollapsed] = useState(false);
+  const [leftWidth, setLeftWidth] = useState(Math.min(LEFT_MAX, Math.max(LEFT_MIN, appearance.panelWidth)));
+  const [collapsed, setCollapsed] = useState(appearance.panelInitiallyClosed);
+  const [screen, setScreen] = useState<"work" | "settings">("work");
   const [tabs, setTabs] = useState<OpenTarget[]>([]);
   const [activeTabId, setActiveTabId] = useState<string | null>(null);
   const dragging = useRef(false);
@@ -86,7 +80,8 @@ export function BusinessWorkspace({
   }
 
   const tabStripTabs: Tab[] = tabs.map((t) => ({ id: t.id, title: t.title, kind: "file", path: t.id }));
-  const targetActions = (TOOL_TARGETS[activeTool?.key ?? ""] ?? [])
+  const binding = TOOL_BINDINGS[activeTool?.key ?? ""];
+  const targetActions = (binding?.targetIds ?? [])
     .filter((id) => targets[id])
     .map((id) => ({
       key: id,
@@ -97,12 +92,18 @@ export function BusinessWorkspace({
 
   return (
     <div className="flex h-[100dvh] w-full overflow-hidden bg-[#F0EBE5] text-stone-800">
+      {screen === "settings" && canManageSettings ? (
+        <WorkspaceSettings columns={appearance.settingsColumns} onBack={() => setScreen("work")} />
+      ) : <>
       {/* ICON RAIL — client launcher (ตำแหน่งเดิมของระบบ) */}
-      <IconRail items={railItems} activeKey={tool} onSelect={setTool} />
+      <div className={`flex shrink-0 flex-col overflow-y-auto ${appearance.railSide === "right" ? "order-last" : ""}`}>
+        <IconRail items={railItems} activeKey={collapsed ? "" : tool} onSelect={key => { setTool(key); setCollapsed(false); }} />
+        {canManageSettings && <button type="button" aria-label="Settings" onClick={() => setScreen("settings")} className="mt-auto flex min-h-11 items-center justify-center py-3"><Settings className="h-5 w-5" /></button>}
+      </div>
 
       {/* LEFT WORK AREA */}
       {!collapsed && (
-        <div className="flex flex-shrink-0 flex-col border-r border-[#E9E1D6] bg-[#FDFBF8]" style={{ width: leftWidth }}>
+        <div className="flex flex-shrink-0 flex-col border-r border-[#E9E1D6] bg-[#FDFBF8]" style={{ width: leftWidth, maxWidth: "calc(100vw - 100px)" }}>
           <div className="flex items-center gap-2 border-b border-[#E9E1D6] px-3 py-2">
             <span className="text-xs font-semibold">{activeTool?.label ?? "ไม่มีเครื่องมือ"}</span>
             <button
@@ -118,17 +119,18 @@ export function BusinessWorkspace({
           {targetActions.length > 0 && <ActionBar actions={targetActions} />}
 
           <div className="flex-1 overflow-y-auto">
-            {activeTool ? (
+            {activeTool && liveModels[activeTool.key] ? (
               <BusinessDisplayRenderer
-                model={liveModels[activeTool.key] ?? activeTool.leftModel}
+                model={liveModels[activeTool.key]}
                 onSelectItem={openTarget}
               />
             ) : (
               <EmptyState
-                message="ยังไม่ได้รับสิทธิ์ใช้งานเครื่องมือ"
-                hint="บัญชีนี้ยังไม่ได้รับอนุญาตให้เปิดเครื่องมือใดในพื้นที่ทำงานนี้"
+                message={activeTool ? activeTool.label : "ยังไม่ได้รับสิทธิ์ใช้งานเครื่องมือ"}
+                hint={activeTool ? binding?.pendingReason ?? "ยังไม่ได้เชื่อมความสามารถนี้" : "บัญชีนี้ยังไม่ได้รับอนุญาตให้เปิดเครื่องมือ"}
               />
             )}
+            {activeTool && binding?.route && <a href={binding.route} target="_blank" rel="noopener noreferrer" className="m-3 block rounded-lg border border-stone-300 p-3 text-center text-sm">เปิดเครื่องมือเดิมในแท็บใหม่ ↗</a>}
           </div>
         </div>
       )}
@@ -153,7 +155,7 @@ export function BusinessWorkspace({
           }}
           onPointerMove={(e) => {
             if (!dragging.current) return;
-            setLeftWidth(Math.min(LEFT_MAX, Math.max(LEFT_MIN, e.clientX - RAIL_W)));
+            setLeftWidth(Math.min(LEFT_MAX, Math.max(LEFT_MIN, e.clientX - (appearance.railSide === "left" ? RAIL_W : 0))));
           }}
           onPointerUp={() => {
             dragging.current = false;
@@ -183,6 +185,7 @@ export function BusinessWorkspace({
           )}
         </div>
       </div>
+      </>}
     </div>
   );
 }

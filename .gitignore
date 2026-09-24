@@ -37,6 +37,12 @@ e2e/.auth
 /.next/
 /out/
 
+# Local build artifacts — never part of git history: A4/PDF export output and
+# scratch build scripts (tmp/pdfs/build-a4-vector.mjs). The editable sources
+# live in presentation/assets/document-a4/; regenerate output/ locally.
+/output/
+/tmp/
+
 # production
 /build
 

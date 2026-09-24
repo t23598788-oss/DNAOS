@@ -101,6 +101,10 @@ export default function VisualReviewPage() {
           ส่วนนี้เป็น REVIEW INVENTORY เท่านั้น — ไม่ใช่ Top Bar · ไม่ใช่ Navigation Architecture · ยังไม่ล็อกตำแหน่ง
         </p>
 
+        <Link href="/admin/ui-gallery/assistants" className="mt-4 block rounded-xl border border-[#D5C8B6] bg-[#FDFBF8] p-4 text-sm hover:bg-[#F7F4EF]">
+          พนักงานผู้ช่วย · น้องพร้อม / น้องแฟ้ม / น้องมิว / น้องออร์บ → ทดลองการขยับและบุคลิก
+        </Link>
+
         {/* 1) BRAND / APP / PWA */}
         <section className="mt-4 rounded-2xl border border-[#E9E1D6] bg-[#FDFBF8] p-4">
           <h2 className="text-sm font-semibold">1 · BRAND / APP / PWA — ไฟล์จริงในเครื่อง</h2>
@@ -402,4 +406,3 @@ export default function VisualReviewPage() {
     </div>
   );
 }
-

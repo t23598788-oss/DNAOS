@@ -2470,7 +2470,6 @@
       "exports": [
         "canonicalDocumentType",
         "createDebtTracking",
-        "createDocument",
         "deleteDebtTracking",
         "documentTypeVariants",
         "getAllDebts",
@@ -4012,6 +4011,7 @@
       "purpose": "Event Builder — bridges message-centric LINE data to event-centric business data by synthesizing a cluster of raw LINE messages into one structured business event via Claude (swapped from OpenAI, owner instruction 2026-07-25), translation only (no DB writes, no decisions).",
       "purpose_th": "Event Builder — สะพานเชื่อมข้อมูลแบบข้อความ (LINE) ไปสู่ข้อมูลแบบ event ทางธุรกิจ โดยสังเคราะห์กลุ่มข้อความ LINE ดิบเป็น business event เดียวผ่าน Claude (สลับจาก OpenAI ตาม owner สั่ง 2026-07-25) แปลอย่างเดียว ไม่เขียน DB ไม่ตัดสินใจ",
       "exports": [
+        "EventBuilderContext",
         "ExtractedEvent",
         "RawMessage",
         "buildEventFromMessages",
@@ -8205,17 +8205,7 @@
       "purpose": "Server-only AI capability gateway — invokeAiGateway() validates request context (origin/owner/session/capability/effect/prompt length), routes each of 8 declared capabilities to a fixed provider (Anthropic claude-haiku-4-5 for document.ocr/event_extract, self-hosted Ollama for the rest via AI_GATEWAY_OLLAMA_URL), and emits requested/completed/failed/denied evidence into system_health_status (service_key dna_os_ai_gateway) before/after every call, calling an optional reportFailure hook on provider errors.",
       "purpose_th": "Gateway ความสามารถ AI ฝั่งเซิร์ฟเวอร์เท่านั้น — invokeAiGateway() ตรวจสอบ context ของคำขอ (origin/owner/session/capability/effect/ความยาว prompt) กำหนดเส้นทางแต่ละ capability ใน 8 ตัวไปยัง provider ที่กำหนดไว้ตายตัว (Anthropic claude-haiku-4-5 สำหรับ document.ocr/event_extract, Ollama self-hosted ผ่าน AI_GATEWAY_OLLAMA_URL สำหรับที่เหลือ) และบันทึกหลักฐานสถานะ requested/completed/failed/denied เข้า system_health_status (service_key dna_os_ai_gateway) ก่อน/หลังทุกครั้งที่เรียก พร้อมเรียก hook reportFailure เสริมเมื่อ provider ล้มเหลว",
       "exports": [
-        "AiCapability",
-        "AiEffect",
-        "AiEvidenceEvent",
         "AiGatewayDependencies",
-        "AiGatewayImage",
-        "AiGatewayRequest",
-        "AiGatewayResult",
-        "AiProvenance",
-        "AiProvider",
-        "AiProviderName",
-        "AiProviderRequest",
         "aiGatewayProviderFor",
         "invokeAiGateway"
       ],
@@ -13029,6 +13019,7 @@
         "JobContractValidationOk",
         "ResolvedAuthHeader",
         "__debugDispatchAfterRelease",
+        "__setConnectorCredentialResolverForTest",
         "buildEdgeFunctionUrl",
         "createEdgeFunctionWorkerJobContract",
         "dispatchEdgeFunctionWorkerJob",
@@ -13463,6 +13454,7 @@
       "purpose_th": "รันไทม์ทะเบียน provider ของ Admin IDE — อ่านทะเบียน provider จริง (รวม mapping GMAIL_*) สำหรับหน้า connections ของ IDE",
       "exports": [
         "CredentialStatus",
+        "ENV_VAR_TO_PROVIDER",
         "NormalizedConnectionStatus",
         "NormalizedProvider",
         "ProviderEvidenceItem",
@@ -15395,6 +15387,186 @@
       "purpose_th": "API token scope issuer test (2026-09-23).",
       "exports": [],
       "status": "active"
+    },
+    "scripts/workspace-tool-bindings-test.tsx": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "Workspace tool-bindings regression test (owner, 2026-09-23) — verifies TOOL_BINDINGS covers every tool key exactly, orderGrantedTools honours grant + owner order (duplicates/unknown ignored), every binding/settings route is an existing guarded /admin screen on disk, a granted-but-unconnected tool renders the pending state with no sample fallback, a denied account sees neither Settings nor any /admin link, liveModels/liveTargets dispatch real rows, and routed tools open their existing screen. Run via `npx tsx scripts/workspace-tool-bindings-test.tsx`.",
+      "purpose_th": "ชุดทดสอบ regression ของ workspace tool bindings (owner, 2026-09-23) — ตรวจว่า TOOL_BINDINGS ครบทุก tool key, orderGrantedTools เคารพสิทธิ์ที่ได้รับ + ลำดับที่ Owner จัด (ทับซ้ำ/ไม่รู้จักถูกข้าม), ทุก route ที่ binding ระบุเป็นจอ /admin ที่มีจริงและมี guard ของตัวเอง, เครื่องมือที่ยังไม่ต่อกลับเป็นสถานะรอเชื่อมโดยไม่แสดงข้อมูลตัวอย่าง, บัญชีที่ไม่ได้รับสิทธิ์ไม่เห็นทั้ง Settings และลิงก์ /admin, liveModels/liveTargets ส่งแถวจริงเข้า renderer และเครื่องมือที่มี route เปิดจอเดิมที่มีอยู่ รันด้วย `npx tsx scripts/workspace-tool-bindings-test.tsx`",
+      "exports": [],
+      "status": "active"
+    },
+    "app/workspace/WorkspaceSettings.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Navigation to existing guarded screens only; mounting does not run services.",
+      "purpose_th": "Navigation to existing guarded screens only; mounting does not run services.",
+      "exports": [
+        "WorkspaceSettings"
+      ],
+      "status": "active"
+    },
+    "app/workspace/_lib/workspaceAppearance.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Owner-editable presentation only. Keep bindings and authority out of here.",
+      "purpose_th": "Owner-editable presentation only. Keep bindings and authority out of here.",
+      "exports": [
+        "WORKSPACE_APPEARANCE",
+        "WorkspaceAppearance"
+      ],
+      "status": "active"
+    },
+    "app/workspace/_lib/toolBindings.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Presentation bindings only. Routes keep their own server authority checks.",
+      "purpose_th": "Presentation bindings only. Routes keep their own server authority checks.",
+      "exports": [
+        "SETTINGS_BOXES",
+        "TOOL_BINDINGS",
+        "ToolBinding",
+        "orderGrantedTools"
+      ],
+      "status": "active"
+    },
+    "app/admin/ui-gallery/assistants/page.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Saved character study; protected by the existing admin layout.",
+      "purpose_th": "Saved character study; protected by the existing admin layout.",
+      "exports": [
+        "AssistantGalleryPage"
+      ],
+      "status": "active"
+    },
+    "scripts/ai-resolver-test.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "AI Resolver / Adapter contract tests (PHASE A4–A5, owner 2026-09-23).",
+      "purpose_th": "AI Resolver / Adapter contract tests (PHASE A4–A5, owner 2026-09-23).",
+      "exports": [
+        "extractStructuredEntitiesWithGemini",
+        "resolveAddressToCoordinates"
+      ],
+      "status": "active"
+    },
+    "services/ai/resolver.ts": {
+      "owner": "services",
+      "layer": "services",
+      "purpose": "DNA OS — AI Resolver (PHASE A5, owner 2026-09-23). The SINGLE logical",
+      "purpose_th": "DNA OS — AI Resolver (PHASE A5, owner 2026-09-23). The SINGLE logical",
+      "exports": [
+        "AiAdapterConstraint",
+        "AiAdapterDescription",
+        "AiResolverOptions",
+        "AiSelection",
+        "describeAiAdapterFor",
+        "invokeSelectedAdapter",
+        "listDeclaredCapabilities",
+        "loadAiAdapterRegistry",
+        "selectAiAdapter"
+      ],
+      "status": "active"
+    },
+    "services/ai/adapters.ts": {
+      "owner": "services",
+      "layer": "services",
+      "purpose": "DNA OS — AI adapter implementations (PHASE A4/A5, owner 2026-09-23).",
+      "purpose_th": "DNA OS — AI adapter implementations (PHASE A4/A5, owner 2026-09-23).",
+      "exports": [
+        "AI_ADAPTER_IMPLEMENTATIONS",
+        "ANTHROPIC_MODEL",
+        "GEMINI_DEFAULT_MODEL",
+        "OLLAMA_DEFAULT_MODEL",
+        "OLLAMA_TIMEOUT_MS",
+        "anthropicAdapter",
+        "geminiAdapter",
+        "ollamaAdapter"
+      ],
+      "status": "active"
+    },
+    "services/ai/adapterContract.ts": {
+      "owner": "services",
+      "layer": "services",
+      "purpose": "DNA OS — AI Adapter Contract (PHASE A4, owner 2026-09-23).",
+      "purpose_th": "DNA OS — AI Adapter Contract (PHASE A4, owner 2026-09-23).",
+      "exports": [
+        "AiAdapter",
+        "AiAdapterDeclaration",
+        "AiAdapterId",
+        "AiAdapterInvokeContext",
+        "AiAdapterInvokeRequest",
+        "AiAdapterRegistryFile",
+        "AiAdapterStatus",
+        "AiCapability",
+        "AiEffect",
+        "AiEvidenceEvent",
+        "AiGatewayImage",
+        "AiGatewayRequest",
+        "AiGatewayResult",
+        "AiProvenance",
+        "AiProviderName",
+        "AiRuntimeKind",
+        "AiSelectionFailureCode"
+      ],
+      "status": "active"
+    },
+    "scripts/ai-caller-cutover-test.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "A6 — direct-provider caller cutover tests (owner, 2026-09-23).",
+      "purpose_th": "A6 — direct-provider caller cutover tests (owner, 2026-09-23).",
+      "exports": [
+        "POST"
+      ],
+      "status": "active"
+    },
+    "scripts/ai-deno-cutover-test.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "A7 — Deno AI provider decoupling tests (owner, 2026-09-23).",
+      "purpose_th": "A7 — Deno AI provider decoupling tests (owner, 2026-09-23).",
+      "exports": [],
+      "status": "active"
+    },
+    "supabase/functions/_shared/ai/runtime.ts": {
+      "owner": "supabase",
+      "layer": "supabase",
+      "purpose": "DNA OS — Deno AI capability runtime (PHASE A7). An implementation of the same",
+      "purpose_th": "DNA OS — Deno AI capability runtime (PHASE A7). An implementation of the same",
+      "exports": [
+        "DenoAiAdapterReadiness",
+        "DenoAiInvokeRequest",
+        "DenoAiSelection",
+        "describeDenoAiReadiness",
+        "emitAiEvidence",
+        "runAiCapability",
+        "selectDenoAiAdapter"
+      ],
+      "status": "active"
+    },
+    "supabase/functions/_shared/ai/contract.ts": {
+      "owner": "supabase",
+      "layer": "supabase",
+      "purpose": "DNA OS — Deno AI capability contract (PHASE A7, owner 2026-09-23).",
+      "purpose_th": "DNA OS — Deno AI capability contract (PHASE A7, owner 2026-09-23).",
+      "exports": [
+        "DENO_AI_DECLARATIONS",
+        "DENO_AI_POLICY",
+        "DenoAiAdapterDeclaration",
+        "DenoAiCapability",
+        "DenoAiResult"
+      ],
+      "status": "active"
+    },
+    "scripts/ai-device-cutover-test.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "A8 — Device/Watcher AI decoupling tests (owner, 2026-09-23).",
+      "purpose_th": "A8 — Device/Watcher AI decoupling tests (owner, 2026-09-23).",
+      "exports": [],
+      "status": "active"
     }
   },
   "excluded": [
@@ -15624,6 +15796,13 @@
       "reason": "ไฟล์ไม่มีอยู่ใน Source แล้ว (Git/Source = source of truth) — ย้ายออกจาก modules ไม่นับเป็น BROKEN ปัจจุบัน",
       "last_status": "active",
       "purpose_th": "B-04C C08 — RPC unavailable must fail closed through the gateway (no legacy fallback)."
+    },
+    {
+      "path": "scripts/lib/directDbMutationCensus.ts",
+      "retired_at": "2026-09-23T15:14:22.214Z",
+      "reason": "ไฟล์ไม่มีอยู่ใน Source แล้ว (Git/Source = source of truth) — ย้ายออกจาก modules ไม่นับเป็น BROKEN ปัจจุบัน",
+      "last_status": "active",
+      "purpose_th": "Direct-DB mutation census (BLOCK-1, owner 2026-09-23)."
     }
   ]
 }

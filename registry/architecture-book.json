@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-23T14:13:21.221Z",
+  "generated_at": "2026-09-24T00:18:54.843Z",
   "version": 1,
   "nodes": [
     {
@@ -1190,6 +1190,7 @@
       "status": "OK",
       "runtime_entry_point": false,
       "internal_dependencies": [
+        "module:supabase/functions/_shared/ai/runtime.ts",
         "module:supabase/functions/_shared/haversine.ts"
       ],
       "dependents": [],
@@ -1215,56 +1216,56 @@
         {
           "name": "ConversationState",
           "kind": "interface",
-          "line_start": 3,
-          "line_end": 24
+          "line_start": 4,
+          "line_end": 25
         },
         {
           "name": "getOrInitState",
           "kind": "function",
-          "line_start": 27,
-          "line_end": 74
+          "line_start": 28,
+          "line_end": 75
         },
         {
           "name": "updateConversationState",
           "kind": "function",
-          "line_start": 77,
-          "line_end": 97
+          "line_start": 78,
+          "line_end": 98
         },
         {
           "name": "extractEntities",
           "kind": "function",
-          "line_start": 100,
-          "line_end": 284
+          "line_start": 101,
+          "line_end": 285
         },
         {
           "name": "saveEntitiesToRegistry",
           "kind": "function",
-          "line_start": 287,
-          "line_end": 320
+          "line_start": 288,
+          "line_end": 321
         },
         {
           "name": "executeBusinessValidation",
           "kind": "function",
-          "line_start": 323,
-          "line_end": 567
+          "line_start": 324,
+          "line_end": 568
         },
         {
           "name": "checkBusinessQualification",
           "kind": "function",
-          "line_start": 570,
-          "line_end": 598
+          "line_start": 571,
+          "line_end": 599
         },
         {
           "name": "extractStructuredEntitiesWithGemini",
           "kind": "function",
-          "line_start": 600,
-          "line_end": 663
+          "line_start": 601,
+          "line_end": 641
         },
         {
           "name": "resolveAddressToCoordinates",
           "kind": "function",
-          "line_start": 665,
-          "line_end": 707
+          "line_start": 643,
+          "line_end": 665
         }
       ],
       "import_sites": [
@@ -1272,6 +1273,11 @@
           "specifier": "../_shared/haversine.ts",
           "line": 1,
           "resolved_target": "supabase/functions/_shared/haversine.ts"
+        },
+        {
+          "specifier": "../_shared/ai/runtime.ts",
+          "line": 2,
+          "resolved_target": "supabase/functions/_shared/ai/runtime.ts"
         }
       ]
     },
@@ -2925,30 +2931,30 @@
         {
           "name": "GET",
           "kind": "function",
-          "line_start": 18,
-          "line_end": 30
+          "line_start": 24,
+          "line_end": 36
         },
         {
           "name": "POST",
           "kind": "function",
-          "line_start": 32,
-          "line_end": 60
+          "line_start": 38,
+          "line_end": 66
         }
       ],
       "import_sites": [
         {
           "specifier": "@/core/auth/requireAuth",
-          "line": 14,
+          "line": 20,
           "resolved_target": "core/auth/requireAuth.ts"
         },
         {
           "specifier": "@/core/auth/session",
-          "line": 15,
+          "line": 21,
           "resolved_target": "core/auth/session.ts"
         },
         {
           "specifier": "@/services/supabase/api-tokens",
-          "line": 16,
+          "line": 22,
           "resolved_target": "services/supabase/api-tokens.ts"
         }
       ]
@@ -10153,6 +10159,7 @@
       "runtime_entry_point": false,
       "internal_dependencies": [
         "module:core/config/company-settings.ts",
+        "module:engines/canonical/document-write.ts",
         "module:engines/canonical/payment-write.ts",
         "module:engines/documents/engine.ts",
         "module:engines/documents/flex-template.ts",
@@ -10163,7 +10170,8 @@
         "module:app/api/admin/invoices/[invoiceId]/send/route.ts",
         "module:app/api/chat/confirm/route.ts",
         "module:cognitive/executor/index.ts",
-        "module:gateway/index.ts"
+        "module:gateway/index.ts",
+        "module:scripts/document-authority-census.test.ts"
       ],
       "data_tables": [
         "companies",
@@ -10173,6 +10181,7 @@
         "invoice_items",
         "invoice_payment_summary",
         "invoices",
+        "line_events",
         "payment_allocations",
         "receipt_documents",
         "standalone_documents"
@@ -10200,68 +10209,68 @@
         {
           "name": "ActionRequest",
           "kind": "interface",
-          "line_start": 22,
-          "line_end": 29
+          "line_start": 23,
+          "line_end": 30
         },
         {
           "name": "ActionResponse",
           "kind": "interface",
-          "line_start": 31,
-          "line_end": 40
+          "line_start": 32,
+          "line_end": 41
         },
         {
           "name": "PaymentInput",
           "kind": "interface",
-          "line_start": 83,
-          "line_end": 88
+          "line_start": 84,
+          "line_end": 89
         },
         {
           "name": "previewPayment",
           "kind": "function",
-          "line_start": 180,
-          "line_end": 214
+          "line_start": 181,
+          "line_end": 215
         },
         {
           "name": "executePayment",
           "kind": "function",
-          "line_start": 220,
-          "line_end": 264
+          "line_start": 221,
+          "line_end": 265
         },
         {
           "name": "previewDocumentCreate",
           "kind": "function",
-          "line_start": 289,
-          "line_end": 394
+          "line_start": 290,
+          "line_end": 395
         },
         {
           "name": "executeDocumentCreate",
           "kind": "function",
-          "line_start": 396,
-          "line_end": 525
+          "line_start": 397,
+          "line_end": 560
         },
         {
           "name": "sendInvoiceToLine",
           "kind": "function",
-          "line_start": 539,
-          "line_end": 625
+          "line_start": 574,
+          "line_end": 695
         },
         {
           "name": "previewDebtCreate",
           "kind": "function",
-          "line_start": 645,
-          "line_end": 671
+          "line_start": 715,
+          "line_end": 741
         },
         {
           "name": "executeDebtCreate",
           "kind": "function",
-          "line_start": 673,
-          "line_end": 704
+          "line_start": 743,
+          "line_end": 774
         },
         {
           "name": "dispatchAction",
           "kind": "function",
-          "line_start": 708,
-          "line_end": 746
+          "line_start": 778,
+          "line_end": 816
         }
       ],
       "import_sites": [
@@ -10276,23 +10285,28 @@
           "resolved_target": "engines/documents/engine.ts"
         },
         {
-          "specifier": "@/engines/documents/flex-template",
+          "specifier": "@/engines/canonical/document-write",
           "line": 14,
+          "resolved_target": "engines/canonical/document-write.ts"
+        },
+        {
+          "specifier": "@/engines/documents/flex-template",
+          "line": 15,
           "resolved_target": "engines/documents/flex-template.ts"
         },
         {
           "specifier": "@/core/config/company-settings",
-          "line": 15,
+          "line": 16,
           "resolved_target": "core/config/company-settings.ts"
         },
         {
           "specifier": "@/registry/communication",
-          "line": 17,
+          "line": 18,
           "resolved_target": "registry/communication.ts"
         },
         {
           "specifier": "@/engines/canonical/payment-write",
-          "line": 18,
+          "line": 19,
           "resolved_target": "engines/canonical/payment-write.ts"
         }
       ]
@@ -12651,20 +12665,20 @@
         {
           "name": "validateApiTokenScopes",
           "kind": "function",
-          "line_start": 105,
-          "line_end": 118
+          "line_start": 112,
+          "line_end": 125
         },
         {
           "name": "createApiToken",
           "kind": "function",
-          "line_start": 120,
-          "line_end": 135
+          "line_start": 127,
+          "line_end": 142
         },
         {
           "name": "revokeApiToken",
           "kind": "function",
-          "line_start": 137,
-          "line_end": 145
+          "line_start": 144,
+          "line_end": 152
         }
       ]
     },
@@ -13062,7 +13076,6 @@
       "exports": [
         "canonicalDocumentType",
         "createDebtTracking",
-        "createDocument",
         "deleteDebtTracking",
         "documentTypeVariants",
         "getAllDebts",
@@ -13368,94 +13381,88 @@
           "line_end": 394
         },
         {
-          "name": "createDocument",
-          "kind": "function",
-          "line_start": 396,
-          "line_end": 444
-        },
-        {
           "name": "getPartnerByName",
           "kind": "function",
-          "line_start": 448,
-          "line_end": 460
+          "line_start": 407,
+          "line_end": 419
         },
         {
           "name": "getDebtsByCustomerName",
           "kind": "function",
-          "line_start": 464,
-          "line_end": 484
+          "line_start": 423,
+          "line_end": 443
         },
         {
           "name": "getJobs",
           "kind": "function",
-          "line_start": 510,
-          "line_end": 534
+          "line_start": 469,
+          "line_end": 493
         },
         {
           "name": "getPartners",
           "kind": "function",
-          "line_start": 538,
-          "line_end": 545
+          "line_start": 497,
+          "line_end": 504
         },
         {
           "name": "getDebtorPartners",
           "kind": "function",
-          "line_start": 547,
-          "line_end": 557
+          "line_start": 506,
+          "line_end": 516
         },
         {
           "name": "getMaterialTypes",
           "kind": "function",
-          "line_start": 561,
-          "line_end": 572
+          "line_start": 520,
+          "line_end": 531
         },
         {
           "name": "getCustomerGps",
           "kind": "function",
-          "line_start": 579,
-          "line_end": 626
+          "line_start": 538,
+          "line_end": 585
         },
         {
           "name": "getPartnerById",
           "kind": "function",
-          "line_start": 630,
-          "line_end": 638
+          "line_start": 589,
+          "line_end": 597
         },
         {
           "name": "getDocumentsByPartner",
           "kind": "function",
-          "line_start": 640,
-          "line_end": 658
+          "line_start": 599,
+          "line_end": 617
         },
         {
           "name": "getBusinessEventsByPartner",
           "kind": "function",
-          "line_start": 660,
-          "line_end": 677
+          "line_start": 619,
+          "line_end": 636
         },
         {
           "name": "getTransactions",
           "kind": "function",
-          "line_start": 681,
-          "line_end": 714
+          "line_start": 640,
+          "line_end": 673
         },
         {
           "name": "getTransactionById",
           "kind": "function",
-          "line_start": 716,
-          "line_end": 762
+          "line_start": 675,
+          "line_end": 721
         },
         {
           "name": "getPartnersWithDocumentSummary",
           "kind": "function",
-          "line_start": 764,
-          "line_end": 826
+          "line_start": 723,
+          "line_end": 785
         },
         {
           "name": "getPendingDrafts",
           "kind": "function",
-          "line_start": 830,
-          "line_end": 832
+          "line_start": 789,
+          "line_end": 791
         }
       ]
     },
@@ -14364,7 +14371,8 @@
       "runtime_entry_point": true,
       "internal_dependencies": [
         "module:core/auth/requireAuth.ts",
-        "module:core/auth/session.ts"
+        "module:core/auth/session.ts",
+        "module:services/ai/gateway.ts"
       ],
       "dependents": [],
       "data_tables": "UNKNOWN",
@@ -14383,20 +14391,25 @@
         {
           "name": "POST",
           "kind": "function",
-          "line_start": 25,
-          "line_end": 83
+          "line_start": 31,
+          "line_end": 92
         }
       ],
       "import_sites": [
         {
           "specifier": "@/core/auth/requireAuth",
-          "line": 3,
+          "line": 25,
           "resolved_target": "core/auth/requireAuth.ts"
         },
         {
           "specifier": "@/core/auth/session",
-          "line": 4,
+          "line": 26,
           "resolved_target": "core/auth/session.ts"
+        },
+        {
+          "specifier": "@/services/ai/gateway",
+          "line": 27,
+          "resolved_target": "services/ai/gateway.ts"
         }
       ]
     },
@@ -17063,6 +17076,8 @@
         "module:core/auth/session.ts",
         "module:engines/integration-gateway/automationCommands.ts",
         "module:gateway/connectors.ts",
+        "module:services/ai/adapterContract.ts",
+        "module:services/ai/resolver.ts",
         "module:services/supabase/queries.ts"
       ],
       "dependents": [],
@@ -17084,8 +17099,8 @@
         {
           "name": "GET",
           "kind": "function",
-          "line_start": 14,
-          "line_end": 54
+          "line_start": 16,
+          "line_end": 69
         }
       ],
       "import_sites": [
@@ -17113,6 +17128,16 @@
           "specifier": "@/gateway/connectors",
           "line": 12,
           "resolved_target": "gateway/connectors.ts"
+        },
+        {
+          "specifier": "@/services/ai/resolver",
+          "line": 13,
+          "resolved_target": "services/ai/resolver.ts"
+        },
+        {
+          "specifier": "@/services/ai/adapterContract",
+          "line": 14,
+          "resolved_target": "services/ai/adapterContract.ts"
         }
       ]
     },
@@ -21853,6 +21878,7 @@
       "name_en": "engines/events/event-builder.ts",
       "purpose_th": "Event Builder — สะพานเชื่อมข้อมูลแบบข้อความ (LINE) ไปสู่ข้อมูลแบบ event ทางธุรกิจ โดยสังเคราะห์กลุ่มข้อความ LINE ดิบเป็น business event เดียวผ่าน Claude (สลับจาก OpenAI ตาม owner สั่ง 2026-07-25) แปลอย่างเดียว ไม่เขียน DB ไม่ตัดสินใจ",
       "exports": [
+        "EventBuilderContext",
         "ExtractedEvent",
         "RawMessage",
         "buildEventFromMessages",
@@ -21860,9 +21886,12 @@
       ],
       "status": "OK",
       "runtime_entry_point": false,
-      "internal_dependencies": [],
+      "internal_dependencies": [
+        "module:services/ai/gateway.ts"
+      ],
       "dependents": [
-        "module:app/api/admin/line-customers/[lineUserId]/build-event/route.ts"
+        "module:app/api/admin/line-customers/[lineUserId]/build-event/route.ts",
+        "module:scripts/ai-caller-cutover-test.ts"
       ],
       "data_tables": "UNKNOWN",
       "business_capabilities": [
@@ -21881,28 +21910,41 @@
       "related_services": "UNKNOWN",
       "symbols": [
         {
+          "name": "EventBuilderContext",
+          "kind": "interface",
+          "line_start": 23,
+          "line_end": 27
+        },
+        {
           "name": "RawMessage",
           "kind": "interface",
-          "line_start": 20,
-          "line_end": 25
+          "line_start": 37,
+          "line_end": 42
         },
         {
           "name": "ExtractedEvent",
           "kind": "interface",
-          "line_start": 27,
-          "line_end": 39
+          "line_start": 44,
+          "line_end": 56
         },
         {
           "name": "buildEventFromMessages",
           "kind": "function",
-          "line_start": 58,
-          "line_end": 99
+          "line_start": 75,
+          "line_end": 122
         },
         {
           "name": "generateEventCode",
           "kind": "function",
-          "line_start": 101,
-          "line_end": 106
+          "line_start": 124,
+          "line_end": 129
+        }
+      ],
+      "import_sites": [
+        {
+          "specifier": "@/services/ai/gateway",
+          "line": 21,
+          "resolved_target": "services/ai/gateway.ts"
         }
       ]
     },
@@ -22437,7 +22479,7 @@
           "name": "POST",
           "kind": "function",
           "line_start": 42,
-          "line_end": 231
+          "line_end": 235
         }
       ],
       "import_sites": [
@@ -22657,6 +22699,7 @@
       "runtime_entry_point": false,
       "internal_dependencies": [
         "module:engines/canonical/event-write.ts",
+        "module:engines/canonical/transaction-write.ts",
         "module:engines/geocoding.ts",
         "module:engines/material-resolver.ts"
       ],
@@ -22664,12 +22707,9 @@
         "module:app/api/admin/line-customers/[lineUserId]/build-event/route.ts"
       ],
       "data_tables": [
-        "customer_orders",
         "customer_sites",
-        "document_groups",
         "line_events",
-        "material_types",
-        "projects"
+        "material_types"
       ],
       "business_capabilities": [
         "business.auto-create.composeMissingInfoMessage",
@@ -22689,32 +22729,32 @@
         {
           "name": "AutoCreateEventInput",
           "kind": "interface",
-          "line_start": 15,
-          "line_end": 26
+          "line_start": 16,
+          "line_end": 27
         },
         {
           "name": "MissingField",
           "kind": "type",
-          "line_start": 46,
-          "line_end": 46
+          "line_start": 47,
+          "line_end": 47
         },
         {
           "name": "AutoCreateResult",
           "kind": "type",
-          "line_start": 48,
-          "line_end": 52
+          "line_start": 49,
+          "line_end": 53
         },
         {
           "name": "tryAutoCreateJob",
           "kind": "function",
-          "line_start": 54,
-          "line_end": 204
+          "line_start": 55,
+          "line_end": 181
         },
         {
           "name": "composeMissingInfoMessage",
           "kind": "function",
-          "line_start": 283,
-          "line_end": 292
+          "line_start": 260,
+          "line_end": 269
         }
       ],
       "import_sites": [
@@ -22732,6 +22772,11 @@
           "specifier": "@/engines/canonical/event-write",
           "line": 3,
           "resolved_target": "engines/canonical/event-write.ts"
+        },
+        {
+          "specifier": "@/engines/canonical/transaction-write",
+          "line": 4,
+          "resolved_target": "engines/canonical/transaction-write.ts"
         }
       ]
     },
@@ -23709,6 +23754,7 @@
       "runtime_entry_point": true,
       "internal_dependencies": [
         "module:engines/debt/tracking-calculator.ts",
+        "module:supabase/functions/_shared/connect-event.ts",
         "module:supabase/functions/_shared/line-client.ts"
       ],
       "dependents": [],
@@ -23738,8 +23784,13 @@
           "resolved_target": "supabase/functions/_shared/line-client.ts"
         },
         {
-          "specifier": "../../../engines/debt/tracking-calculator.ts",
+          "specifier": "../_shared/connect-event.ts",
           "line": 22,
+          "resolved_target": "supabase/functions/_shared/connect-event.ts"
+        },
+        {
+          "specifier": "../../../engines/debt/tracking-calculator.ts",
+          "line": 23,
           "resolved_target": "engines/debt/tracking-calculator.ts"
         }
       ]
@@ -25319,6 +25370,7 @@
         "module:app/business/layout.tsx",
         "module:app/partner/layout.tsx",
         "module:app/user/layout.tsx",
+        "module:app/workspace/page.tsx",
         "module:components/workspace/WorkspaceShell.tsx"
       ],
       "data_tables": "UNKNOWN",
@@ -29784,7 +29836,8 @@
         "module:app/workspace/_lib/jobDisplayModel.ts",
         "module:app/workspace/_lib/partnerDisplayModel.ts",
         "module:core/auth/session.ts",
-        "module:core/navigation/resolveCapabilityAccess.ts"
+        "module:core/navigation/resolveCapabilityAccess.ts",
+        "module:core/navigation/resolveNavItems.ts"
       ],
       "dependents": [],
       "data_tables": "UNKNOWN",
@@ -29803,8 +29856,8 @@
         {
           "name": "WorkspacePage",
           "kind": "function",
-          "line_start": 33,
-          "line_end": 67
+          "line_start": 34,
+          "line_end": 69
         }
       ],
       "import_sites": [
@@ -29819,18 +29872,23 @@
           "resolved_target": "core/navigation/resolveCapabilityAccess.ts"
         },
         {
-          "specifier": "./BusinessWorkspace",
+          "specifier": "@/core/navigation/resolveNavItems",
           "line": 4,
+          "resolved_target": "core/navigation/resolveNavItems.ts"
+        },
+        {
+          "specifier": "./BusinessWorkspace",
+          "line": 5,
           "resolved_target": "app/workspace/BusinessWorkspace.tsx"
         },
         {
           "specifier": "./_lib/partnerDisplayModel",
-          "line": 5,
+          "line": 6,
           "resolved_target": "app/workspace/_lib/partnerDisplayModel.ts"
         },
         {
           "specifier": "./_lib/jobDisplayModel",
-          "line": 6,
+          "line": 7,
           "resolved_target": "app/workspace/_lib/jobDisplayModel.ts"
         }
       ]
@@ -33420,8 +33478,8 @@
         {
           "name": "POST",
           "kind": "function",
-          "line_start": 18,
-          "line_end": 42
+          "line_start": 19,
+          "line_end": 43
         }
       ],
       "import_sites": [
@@ -33538,6 +33596,7 @@
         "module:gateway/actions.ts",
         "module:scripts/business-failure-bridge-test.ts",
         "module:scripts/demo-full-pipeline-part2.ts",
+        "module:scripts/document-authority-census.test.ts",
         "module:scripts/line-credential-path-test.ts"
       ],
       "data_tables": "UNKNOWN",
@@ -34763,7 +34822,9 @@
       ],
       "status": "OK",
       "runtime_entry_point": true,
-      "internal_dependencies": [],
+      "internal_dependencies": [
+        "module:supabase/functions/_shared/ai/runtime.ts"
+      ],
       "dependents": [
         "module:supabase/functions/line-webhook-v2/engines/customer-memory.ts",
         "module:supabase/functions/line-webhook-v2/engines/ocr-classify.ts",
@@ -34785,26 +34846,33 @@
         {
           "name": "callClaudeText",
           "kind": "function",
-          "line_start": 34,
-          "line_end": 56
+          "line_start": 25,
+          "line_end": 37
         },
         {
           "name": "callClaudeVision",
           "kind": "function",
-          "line_start": 72,
-          "line_end": 103
+          "line_start": 39,
+          "line_end": 55
         },
         {
           "name": "ClaudeTool",
           "kind": "interface",
-          "line_start": 105,
-          "line_end": 108
+          "line_start": 57,
+          "line_end": 60
         },
         {
           "name": "callClaudeTool",
           "kind": "function",
-          "line_start": 111,
-          "line_end": 136
+          "line_start": 68,
+          "line_end": 97
+        }
+      ],
+      "import_sites": [
+        {
+          "specifier": "../../_shared/ai/runtime.ts",
+          "line": 13,
+          "resolved_target": "supabase/functions/_shared/ai/runtime.ts"
         }
       ]
     },
@@ -35613,7 +35681,7 @@
           "name": "updateCustomerMemory",
           "kind": "function",
           "line_start": 26,
-          "line_end": 49
+          "line_end": 50
         }
       ],
       "import_sites": [
@@ -36297,7 +36365,8 @@
         "line_events",
         "line_profiles",
         "material_types",
-        "receipt_documents"
+        "receipt_documents",
+        "system_health_status"
       ],
       "business_capabilities": "UNKNOWN",
       "domain_owner": "local-runtime",
@@ -43903,30 +43972,26 @@
       "name_en": "services/ai/gateway.ts",
       "purpose_th": "Gateway ความสามารถ AI ฝั่งเซิร์ฟเวอร์เท่านั้น — invokeAiGateway() ตรวจสอบ context ของคำขอ (origin/owner/session/capability/effect/ความยาว prompt) กำหนดเส้นทางแต่ละ capability ใน 8 ตัวไปยัง provider ที่กำหนดไว้ตายตัว (Anthropic claude-haiku-4-5 สำหรับ document.ocr/event_extract, Ollama self-hosted ผ่าน AI_GATEWAY_OLLAMA_URL สำหรับที่เหลือ) และบันทึกหลักฐานสถานะ requested/completed/failed/denied เข้า system_health_status (service_key dna_os_ai_gateway) ก่อน/หลังทุกครั้งที่เรียก พร้อมเรียก hook reportFailure เสริมเมื่อ provider ล้มเหลว",
       "exports": [
-        "AiCapability",
-        "AiEffect",
-        "AiEvidenceEvent",
         "AiGatewayDependencies",
-        "AiGatewayImage",
-        "AiGatewayRequest",
-        "AiGatewayResult",
-        "AiProvenance",
-        "AiProvider",
-        "AiProviderName",
-        "AiProviderRequest",
         "aiGatewayProviderFor",
         "invokeAiGateway"
       ],
       "status": "OK",
       "runtime_entry_point": false,
       "internal_dependencies": [
+        "module:services/ai/adapterContract.ts",
+        "module:services/ai/resolver.ts",
         "module:services/supabase/queries.ts"
       ],
       "dependents": [
         "module:app/api/admin/ide/_lib/workerAdapters/apiWorkerAdapter.ts",
         "module:app/api/admin/ide/_lib/workerAdapters/localModelWorkerAdapter.ts",
+        "module:app/api/admin/screen-vision/route.ts",
         "module:app/api/internal/ai/gateway/route.ts",
-        "module:cognitive/pipeline.ts"
+        "module:cognitive/pipeline.ts",
+        "module:engines/events/event-builder.ts",
+        "module:scripts/ai-caller-cutover-test.ts",
+        "module:scripts/ai-resolver-test.ts"
       ],
       "data_tables": [
         "system_health_status"
@@ -43944,89 +44009,39 @@
       "related_services": "UNKNOWN",
       "symbols": [
         {
-          "name": "AiCapability",
-          "kind": "type",
-          "line_start": 4,
-          "line_end": 13
-        },
-        {
-          "name": "AiEffect",
-          "kind": "type",
-          "line_start": 15,
-          "line_end": 15
-        },
-        {
-          "name": "AiProviderName",
-          "kind": "type",
-          "line_start": 16,
-          "line_end": 16
-        },
-        {
-          "name": "AiGatewayImage",
-          "kind": "interface",
-          "line_start": 18,
-          "line_end": 26
-        },
-        {
-          "name": "AiGatewayRequest",
-          "kind": "interface",
-          "line_start": 28,
-          "line_end": 39
-        },
-        {
-          "name": "AiProvenance",
-          "kind": "interface",
-          "line_start": 41,
-          "line_end": 51
-        },
-        {
-          "name": "AiGatewayResult",
-          "kind": "interface",
-          "line_start": 53,
-          "line_end": 58
-        },
-        {
-          "name": "AiEvidenceEvent",
-          "kind": "interface",
-          "line_start": 60,
-          "line_end": 72
-        },
-        {
-          "name": "AiProviderRequest",
-          "kind": "interface",
-          "line_start": 74,
-          "line_end": 79
-        },
-        {
-          "name": "AiProvider",
-          "kind": "interface",
-          "line_start": 81,
-          "line_end": 83
-        },
-        {
           "name": "AiGatewayDependencies",
           "kind": "interface",
-          "line_start": 85,
-          "line_end": 91
+          "line_start": 34,
+          "line_end": 49
         },
         {
           "name": "invokeAiGateway",
           "kind": "function",
-          "line_start": 185,
-          "line_end": 228
+          "line_start": 82,
+          "line_end": 145
         },
         {
           "name": "aiGatewayProviderFor",
           "kind": "function",
-          "line_start": 230,
-          "line_end": 232
+          "line_start": 152,
+          "line_end": 161
         }
       ],
       "import_sites": [
         {
           "specifier": "@/services/supabase/queries",
-          "line": 2,
+          "line": 21,
           "resolved_target": "services/supabase/queries.ts"
+        },
+        {
+          "specifier": "./resolver",
+          "line": 22,
+          "resolved_target": "services/ai/resolver.ts"
+        },
+        {
+          "specifier": "./adapterContract",
+          "line": 23,
+          "resolved_target": "services/ai/adapterContract.ts"
         }
       ]
     },
@@ -57157,21 +57172,19 @@
       "status": "OK",
       "runtime_entry_point": true,
       "internal_dependencies": [
+        "module:engines/canonical/document-write.ts",
         "module:engines/canonical/event-write.ts",
+        "module:engines/canonical/transaction-write.ts",
         "module:engines/distance.ts"
       ],
       "dependents": [],
       "data_tables": [
         "companies",
         "company_line_links",
-        "customer_orders",
         "customer_sites",
-        "document_groups",
         "line_events",
         "line_profiles",
-        "pit_materials",
-        "projects",
-        "standalone_documents"
+        "pit_materials"
       ],
       "business_capabilities": "UNKNOWN",
       "domain_owner": "scripts",
@@ -57194,6 +57207,16 @@
           "specifier": "@/engines/canonical/event-write",
           "line": 29,
           "resolved_target": "engines/canonical/event-write.ts"
+        },
+        {
+          "specifier": "@/engines/canonical/transaction-write",
+          "line": 30,
+          "resolved_target": "engines/canonical/transaction-write.ts"
+        },
+        {
+          "specifier": "@/engines/canonical/document-write",
+          "line": 31,
+          "resolved_target": "engines/canonical/document-write.ts"
         }
       ]
     },
@@ -57207,6 +57230,7 @@
       "status": "OK",
       "runtime_entry_point": true,
       "internal_dependencies": [
+        "module:engines/canonical/document-write.ts",
         "module:engines/canonical/event-write.ts",
         "module:engines/capacity.ts",
         "module:engines/cost.ts",
@@ -57244,23 +57268,28 @@
           "resolved_target": "engines/canonical/event-write.ts"
         },
         {
-          "specifier": "@/engines/cost",
+          "specifier": "@/engines/canonical/document-write",
           "line": 40,
+          "resolved_target": "engines/canonical/document-write.ts"
+        },
+        {
+          "specifier": "@/engines/cost",
+          "line": 41,
           "resolved_target": "engines/cost.ts"
         },
         {
           "specifier": "@/engines/documents/flex-template",
-          "line": 41,
+          "line": 42,
           "resolved_target": "engines/documents/flex-template.ts"
         },
         {
           "specifier": "@/registry/communication",
-          "line": 42,
+          "line": 43,
           "resolved_target": "registry/communication.ts"
         },
         {
           "specifier": "@/services/supabase/queries",
-          "line": 43,
+          "line": 44,
           "resolved_target": "services/supabase/queries.ts"
         }
       ]
@@ -57826,6 +57855,7 @@
       "status": "OK",
       "runtime_entry_point": true,
       "internal_dependencies": [
+        "module:supabase/functions/_shared/ai/runtime.ts",
         "module:supabase/functions/_shared/gmail-client.ts",
         "module:supabase/functions/_shared/line-client.ts",
         "module:supabase/functions/line-webhook-v2/engines/owner-dispatcher.ts"
@@ -57860,6 +57890,11 @@
           "specifier": "../_shared/line-client.ts",
           "line": 18,
           "resolved_target": "supabase/functions/_shared/line-client.ts"
+        },
+        {
+          "specifier": "../_shared/ai/runtime.ts",
+          "line": 19,
+          "resolved_target": "supabase/functions/_shared/ai/runtime.ts"
         }
       ]
     },
@@ -68615,7 +68650,8 @@
       "internal_dependencies": [
         "module:app/api/admin/ide/_lib/workerAdapter.ts",
         "module:app/api/admin/ide/_lib/workerContract.ts",
-        "module:services/ai/gateway.ts"
+        "module:services/ai/gateway.ts",
+        "module:services/ai/resolver.ts"
       ],
       "dependents": [
         "module:app/api/admin/ide/_lib/workerSelectorRuntime.ts",
@@ -68638,30 +68674,35 @@
         {
           "name": "realOllamaReachabilityCheck",
           "kind": "function",
-          "line_start": 34,
-          "line_end": 39
+          "line_start": 39,
+          "line_end": 44
         },
         {
           "name": "ollamaLocalAdapter",
           "kind": "const",
-          "line_start": 41,
-          "line_end": 88
+          "line_start": 46,
+          "line_end": 105
         }
       ],
       "import_sites": [
         {
           "specifier": "@/services/ai/gateway",
-          "line": 15,
+          "line": 19,
           "resolved_target": "services/ai/gateway.ts"
         },
         {
+          "specifier": "@/services/ai/resolver",
+          "line": 20,
+          "resolved_target": "services/ai/resolver.ts"
+        },
+        {
           "specifier": "../workerAdapter",
-          "line": 16,
+          "line": 21,
           "resolved_target": "app/api/admin/ide/_lib/workerAdapter.ts"
         },
         {
           "specifier": "../workerContract",
-          "line": 17,
+          "line": 22,
           "resolved_target": "app/api/admin/ide/_lib/workerContract.ts"
         }
       ]
@@ -68822,7 +68863,8 @@
       "internal_dependencies": [
         "module:app/api/admin/ide/_lib/workerAdapter.ts",
         "module:app/api/admin/ide/_lib/workerContract.ts",
-        "module:services/ai/gateway.ts"
+        "module:services/ai/gateway.ts",
+        "module:services/ai/resolver.ts"
       ],
       "dependents": [
         "module:app/api/admin/ide/_lib/workerSelectorRuntime.ts",
@@ -68845,20 +68887,20 @@
         {
           "name": "anthropicApiAdapter",
           "kind": "const",
-          "line_start": 38,
-          "line_end": 107
+          "line_start": 39,
+          "line_end": 111
         },
         {
           "name": "openaiApiAdapter",
           "kind": "const",
-          "line_start": 109,
-          "line_end": 124
+          "line_start": 113,
+          "line_end": 128
         },
         {
           "name": "geminiApiAdapter",
           "kind": "const",
-          "line_start": 126,
-          "line_end": 140
+          "line_start": 130,
+          "line_end": 144
         }
       ],
       "import_sites": [
@@ -68868,13 +68910,18 @@
           "resolved_target": "services/ai/gateway.ts"
         },
         {
-          "specifier": "../workerAdapter",
+          "specifier": "@/services/ai/resolver",
           "line": 20,
+          "resolved_target": "services/ai/resolver.ts"
+        },
+        {
+          "specifier": "../workerAdapter",
+          "line": 21,
           "resolved_target": "app/api/admin/ide/_lib/workerAdapter.ts"
         },
         {
           "specifier": "../workerContract",
-          "line": 21,
+          "line": 22,
           "resolved_target": "app/api/admin/ide/_lib/workerContract.ts"
         }
       ]
@@ -73113,6 +73160,7 @@
         "JobContractValidationOk",
         "ResolvedAuthHeader",
         "__debugDispatchAfterRelease",
+        "__setConnectorCredentialResolverForTest",
         "buildEdgeFunctionUrl",
         "createEdgeFunctionWorkerJobContract",
         "dispatchEdgeFunctionWorkerJob",
@@ -73198,46 +73246,52 @@
           "line_end": 267
         },
         {
+          "name": "__setConnectorCredentialResolverForTest",
+          "kind": "function",
+          "line_start": 283,
+          "line_end": 285
+        },
+        {
           "name": "resolveAuthHeader",
           "kind": "function",
-          "line_start": 276,
-          "line_end": 288
+          "line_start": 315,
+          "line_end": 357
         },
         {
           "name": "EdgeFunctionDispatchStatus",
           "kind": "type",
-          "line_start": 328,
-          "line_end": 328
+          "line_start": 397,
+          "line_end": 397
         },
         {
           "name": "AwaitedDeliveryOutcome",
           "kind": "interface",
-          "line_start": 330,
-          "line_end": 330
+          "line_start": 399,
+          "line_end": 399
         },
         {
           "name": "EdgeFunctionDispatchResult",
           "kind": "interface",
-          "line_start": 332,
-          "line_end": 354
+          "line_start": 401,
+          "line_end": 423
         },
         {
           "name": "DispatchEdgeFunctionWorkerJobOptions",
           "kind": "interface",
-          "line_start": 364,
-          "line_end": 378
+          "line_start": 433,
+          "line_end": 447
         },
         {
           "name": "dispatchEdgeFunctionWorkerJob",
           "kind": "function",
-          "line_start": 472,
-          "line_end": 510
+          "line_start": 541,
+          "line_end": 579
         },
         {
           "name": "__debugDispatchAfterRelease",
           "kind": "function",
-          "line_start": 519,
-          "line_end": 525
+          "line_start": 588,
+          "line_end": 594
         }
       ],
       "import_sites": [
@@ -75583,6 +75637,7 @@
       "purpose_th": "รันไทม์ทะเบียน provider ของ Admin IDE — อ่านทะเบียน provider จริง (รวม mapping GMAIL_*) สำหรับหน้า connections ของ IDE",
       "exports": [
         "CredentialStatus",
+        "ENV_VAR_TO_PROVIDER",
         "NormalizedConnectionStatus",
         "NormalizedProvider",
         "ProviderEvidenceItem",
@@ -75688,28 +75743,34 @@
           "line_end": 159
         },
         {
+          "name": "ENV_VAR_TO_PROVIDER",
+          "kind": "const",
+          "line_start": 245,
+          "line_end": 256
+        },
+        {
           "name": "resolveConnectorProvider",
           "kind": "function",
-          "line_start": 318,
-          "line_end": 325
+          "line_start": 324,
+          "line_end": 331
         },
         {
           "name": "listNormalizedProviders",
           "kind": "function",
-          "line_start": 372,
-          "line_end": 540
+          "line_start": 378,
+          "line_end": 546
         },
         {
           "name": "ProviderReconciliationEvent",
           "kind": "interface",
-          "line_start": 542,
-          "line_end": 552
+          "line_start": 548,
+          "line_end": 558
         },
         {
           "name": "reconcileProviders",
           "kind": "function",
-          "line_start": 592,
-          "line_end": 651
+          "line_start": 598,
+          "line_end": 657
         }
       ],
       "import_sites": [
@@ -78241,8 +78302,11 @@
         "module:app/api/admin/documents/[id]/confirm/route.ts",
         "module:app/api/admin/documents/[id]/route.ts",
         "module:app/api/admin/documents/route.ts",
+        "module:gateway/actions.ts",
         "module:scripts/canonical-finance-acceptance-test.ts",
-        "module:scripts/canonical-phase-d-acceptance-test.ts"
+        "module:scripts/canonical-phase-d-acceptance-test.ts",
+        "module:scripts/demo-full-pipeline-part2.ts",
+        "module:scripts/demo-full-pipeline.ts"
       ],
       "data_tables": [
         "document_versions",
@@ -78295,31 +78359,31 @@
           "name": "createDocument",
           "kind": "function",
           "line_start": 148,
-          "line_end": 229
+          "line_end": 334
         },
         {
           "name": "createVersion",
           "kind": "function",
-          "line_start": 266,
-          "line_end": 346
+          "line_start": 401,
+          "line_end": 480
         },
         {
           "name": "updateDocumentDraft",
           "kind": "function",
-          "line_start": 353,
-          "line_end": 425
+          "line_start": 487,
+          "line_end": 559
         },
         {
           "name": "issueDocument",
           "kind": "function",
-          "line_start": 432,
-          "line_end": 482
+          "line_start": 566,
+          "line_end": 616
         },
         {
           "name": "voidDocument",
           "kind": "function",
-          "line_start": 489,
-          "line_end": 527
+          "line_start": 623,
+          "line_end": 661
         }
       ],
       "import_sites": [
@@ -78367,7 +78431,9 @@
         "module:app/api/admin/documents/route.ts",
         "module:app/api/admin/ide/_lib/canonicalJobTransportRuntime.ts",
         "module:app/api/admin/transactions/route.ts",
-        "module:scripts/canonical-phase-d-acceptance-test.ts"
+        "module:engines/jobs/auto-create.ts",
+        "module:scripts/canonical-phase-d-acceptance-test.ts",
+        "module:scripts/demo-full-pipeline.ts"
       ],
       "data_tables": [
         "companies",
@@ -78392,55 +78458,55 @@
           "name": "TransactionContext",
           "kind": "interface",
           "line_start": 18,
-          "line_end": 25
+          "line_end": 32
         },
         {
           "name": "ChainValidation",
           "kind": "interface",
-          "line_start": 27,
-          "line_end": 36
+          "line_start": 34,
+          "line_end": 43
         },
         {
           "name": "validateTransactionChain",
           "kind": "function",
-          "line_start": 47,
-          "line_end": 97
+          "line_start": 54,
+          "line_end": 104
         },
         {
           "name": "createTransaction",
           "kind": "function",
-          "line_start": 100,
-          "line_end": 184
+          "line_start": 107,
+          "line_end": 192
         },
         {
           "name": "LinkResolution",
           "kind": "interface",
-          "line_start": 186,
-          "line_end": 191
+          "line_start": 194,
+          "line_end": 199
         },
         {
           "name": "resolveOrderForDocument",
           "kind": "function",
-          "line_start": 197,
-          "line_end": 243
+          "line_start": 205,
+          "line_end": 251
         },
         {
           "name": "linkDocumentToTransaction",
           "kind": "function",
-          "line_start": 246,
-          "line_end": 264
+          "line_start": 254,
+          "line_end": 272
         },
         {
           "name": "linkDocumentWithValidation",
           "kind": "function",
-          "line_start": 270,
-          "line_end": 295
+          "line_start": 278,
+          "line_end": 303
         },
         {
           "name": "changeTransactionStatus",
           "kind": "function",
-          "line_start": 298,
-          "line_end": 322
+          "line_start": 306,
+          "line_end": 330
         }
       ],
       "import_sites": [
@@ -82410,43 +82476,43 @@
           "name": "UI_CATALOG",
           "kind": "const",
           "line_start": 82,
-          "line_end": 263
+          "line_end": 264
         },
         {
           "name": "UiComparePreset",
           "kind": "interface",
-          "line_start": 269,
-          "line_end": 274
+          "line_start": 270,
+          "line_end": 275
         },
         {
           "name": "UI_COMPARE_PRESETS",
           "kind": "const",
-          "line_start": 276,
-          "line_end": 319
+          "line_start": 277,
+          "line_end": 320
         },
         {
           "name": "PresentationGroup",
           "kind": "type",
-          "line_start": 330,
-          "line_end": 341
+          "line_start": 331,
+          "line_end": 342
         },
         {
           "name": "PRESENTATION_GROUP_ORDER",
           "kind": "const",
-          "line_start": 343,
-          "line_end": 355
+          "line_start": 344,
+          "line_end": 356
         },
         {
           "name": "PresentationEntry",
           "kind": "interface",
-          "line_start": 357,
-          "line_end": 366
+          "line_start": 358,
+          "line_end": 367
         },
         {
           "name": "PRESENTATION_CATALOG",
           "kind": "const",
-          "line_start": 370,
-          "line_end": 426
+          "line_start": 371,
+          "line_end": 427
         }
       ]
     },
@@ -82897,14 +82963,18 @@
       "internal_dependencies": [
         "module:app/admin/ui-gallery/_lib/BusinessDisplayRenderer.tsx",
         "module:app/admin/ui-gallery/_lib/businessDisplayModel.ts",
+        "module:app/workspace/WorkspaceSettings.tsx",
         "module:app/workspace/_lib/businessTools.ts",
+        "module:app/workspace/_lib/toolBindings.ts",
+        "module:app/workspace/_lib/workspaceAppearance.ts",
         "module:presentation/feedback/EmptyState.tsx",
         "module:presentation/panels/ActionBar.tsx",
         "module:presentation/shell/ide/TabStrip.tsx",
         "module:presentation/shell/navigation/IconRail.tsx"
       ],
       "dependents": [
-        "module:app/workspace/page.tsx"
+        "module:app/workspace/page.tsx",
+        "module:scripts/workspace-tool-bindings-test.tsx"
       ],
       "data_tables": "UNKNOWN",
       "business_capabilities": "UNKNOWN",
@@ -82922,8 +82992,8 @@
         {
           "name": "BusinessWorkspace",
           "kind": "function",
-          "line_start": 47,
-          "line_end": 188
+          "line_start": 36,
+          "line_end": 191
         }
       ],
       "import_sites": [
@@ -82961,6 +83031,21 @@
           "specifier": "./_lib/businessTools",
           "line": 26,
           "resolved_target": "app/workspace/_lib/businessTools.ts"
+        },
+        {
+          "specifier": "./_lib/toolBindings",
+          "line": 28,
+          "resolved_target": "app/workspace/_lib/toolBindings.ts"
+        },
+        {
+          "specifier": "./_lib/workspaceAppearance",
+          "line": 29,
+          "resolved_target": "app/workspace/_lib/workspaceAppearance.ts"
+        },
+        {
+          "specifier": "./WorkspaceSettings",
+          "line": 30,
+          "resolved_target": "app/workspace/WorkspaceSettings.tsx"
         }
       ]
     },
@@ -83149,7 +83234,8 @@
         "module:app/workspace/_lib/jobDisplayModel.ts",
         "module:app/workspace/_lib/partnerDisplayModel.ts",
         "module:scripts/workspace-capability-access-test.ts",
-        "module:scripts/workspace-job-path-test.ts"
+        "module:scripts/workspace-job-path-test.ts",
+        "module:scripts/workspace-tool-bindings-test.tsx"
       ],
       "data_tables": "UNKNOWN",
       "business_capabilities": "UNKNOWN",
@@ -83299,7 +83385,7 @@
           "name": "VisualReviewPage",
           "kind": "function",
           "line_start": 61,
-          "line_end": 404
+          "line_end": 408
         }
       ],
       "import_sites": [
@@ -85592,7 +85678,7 @@
       "import_sites": [
         {
           "specifier": "@/engines/canonical/event-write",
-          "line": 17,
+          "line": 43,
           "resolved_target": "engines/canonical/event-write.ts"
         }
       ]
@@ -85708,6 +85794,7 @@
       "dependents": [
         "module:supabase/functions/bank-email-sync/index.ts",
         "module:supabase/functions/bank-statement-reconcile/index.ts",
+        "module:supabase/functions/debt-reminder-cron/index.ts",
         "module:supabase/functions/line-webhook-v2/engines/auto-confirm-payment.ts",
         "module:supabase/functions/line-webhook-v2/engines/build-event-from-extraction.ts",
         "module:supabase/functions/line-webhook-v2/engines/debt-followup.ts",
@@ -86201,29 +86288,29 @@
         {
           "name": "POST",
           "kind": "function",
-          "line_start": 38,
-          "line_end": 108
+          "line_start": 42,
+          "line_end": 112
         }
       ],
       "import_sites": [
         {
           "specifier": "@/app/api/v1/mcp/governance/_lib/auth",
-          "line": 16,
+          "line": 20,
           "resolved_target": "app/api/v1/mcp/governance/_lib/auth.ts"
         },
         {
           "specifier": "@/app/api/admin/ide/_lib/workerTaskOrchestrator",
-          "line": 17,
+          "line": 21,
           "resolved_target": "app/api/admin/ide/_lib/workerTaskOrchestrator.ts"
         },
         {
           "specifier": "@/app/api/admin/ide/_lib/queueRuntime",
-          "line": 18,
+          "line": 22,
           "resolved_target": "app/api/admin/ide/_lib/queueRuntime.ts"
         },
         {
           "specifier": "@/app/api/admin/ide/_lib/workerContract",
-          "line": 19,
+          "line": 23,
           "resolved_target": "app/api/admin/ide/_lib/workerContract.ts"
         }
       ]
@@ -86376,50 +86463,50 @@
         {
           "name": "TaskOffer",
           "kind": "interface",
-          "line_start": 25,
-          "line_end": 37
+          "line_start": 30,
+          "line_end": 42
         },
         {
           "name": "SubmittedResult",
           "kind": "interface",
-          "line_start": 39,
-          "line_end": 46
+          "line_start": 44,
+          "line_end": 51
         },
         {
           "name": "publishTaskOffer",
           "kind": "function",
-          "line_start": 55,
-          "line_end": 66
+          "line_start": 60,
+          "line_end": 71
         },
         {
           "name": "readTaskOffer",
           "kind": "function",
-          "line_start": 68,
-          "line_end": 72
+          "line_start": 73,
+          "line_end": 77
         },
         {
           "name": "listOpenOffers",
           "kind": "function",
-          "line_start": 74,
-          "line_end": 78
+          "line_start": 79,
+          "line_end": 83
         },
         {
           "name": "withdrawTaskOffer",
           "kind": "function",
-          "line_start": 80,
-          "line_end": 83
+          "line_start": 85,
+          "line_end": 88
         },
         {
           "name": "readSubmittedResult",
           "kind": "function",
-          "line_start": 92,
-          "line_end": 96
+          "line_start": 97,
+          "line_end": 101
         },
         {
           "name": "PULL_PROTOCOL",
           "kind": "const",
-          "line_start": 99,
-          "line_end": 104
+          "line_start": 104,
+          "line_end": 109
         }
       ]
     },
@@ -86453,6 +86540,911 @@
           "specifier": "@/services/supabase/api-tokens",
           "line": 15,
           "resolved_target": "services/supabase/api-tokens.ts"
+        }
+      ]
+    },
+    {
+      "id": "module:scripts/workspace-tool-bindings-test.tsx",
+      "type": "Module",
+      "layer": "scripts",
+      "name_en": "scripts/workspace-tool-bindings-test.tsx",
+      "purpose_th": "ชุดทดสอบ regression ของ workspace tool bindings (owner, 2026-09-23) — ตรวจว่า TOOL_BINDINGS ครบทุก tool key, orderGrantedTools เคารพสิทธิ์ที่ได้รับ + ลำดับที่ Owner จัด (ทับซ้ำ/ไม่รู้จักถูกข้าม), ทุก route ที่ binding ระบุเป็นจอ /admin ที่มีจริงและมี guard ของตัวเอง, เครื่องมือที่ยังไม่ต่อกลับเป็นสถานะรอเชื่อมโดยไม่แสดงข้อมูลตัวอย่าง, บัญชีที่ไม่ได้รับสิทธิ์ไม่เห็นทั้ง Settings และลิงก์ /admin, liveModels/liveTargets ส่งแถวจริงเข้า renderer และเครื่องมือที่มี route เปิดจอเดิมที่มีอยู่ รันด้วย `npx tsx scripts/workspace-tool-bindings-test.tsx`",
+      "exports": [],
+      "status": "OK",
+      "runtime_entry_point": true,
+      "internal_dependencies": [
+        "module:app/workspace/BusinessWorkspace.tsx",
+        "module:app/workspace/_lib/businessTools.ts",
+        "module:app/workspace/_lib/toolBindings.ts",
+        "module:app/workspace/_lib/workspaceAppearance.ts"
+      ],
+      "dependents": [],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "scripts",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "import_sites": [
+        {
+          "specifier": "../app/workspace/BusinessWorkspace",
+          "line": 4,
+          "resolved_target": "app/workspace/BusinessWorkspace.tsx"
+        },
+        {
+          "specifier": "../app/workspace/_lib/businessTools",
+          "line": 5,
+          "resolved_target": "app/workspace/_lib/businessTools.ts"
+        },
+        {
+          "specifier": "../app/workspace/_lib/toolBindings",
+          "line": 6,
+          "resolved_target": "app/workspace/_lib/toolBindings.ts"
+        },
+        {
+          "specifier": "../app/workspace/_lib/workspaceAppearance",
+          "line": 7,
+          "resolved_target": "app/workspace/_lib/workspaceAppearance.ts"
+        }
+      ]
+    },
+    {
+      "id": "module:app/workspace/WorkspaceSettings.tsx",
+      "type": "Module",
+      "layer": "app",
+      "name_en": "app/workspace/WorkspaceSettings.tsx",
+      "purpose_th": "Navigation to existing guarded screens only; mounting does not run services.",
+      "exports": [
+        "WorkspaceSettings"
+      ],
+      "status": "OK",
+      "runtime_entry_point": false,
+      "internal_dependencies": [
+        "module:app/workspace/_lib/toolBindings.ts"
+      ],
+      "dependents": [
+        "module:app/workspace/BusinessWorkspace.tsx"
+      ],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "app",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "symbols": [
+        {
+          "name": "WorkspaceSettings",
+          "kind": "function",
+          "line_start": 6,
+          "line_end": 25
+        }
+      ],
+      "import_sites": [
+        {
+          "specifier": "./_lib/toolBindings",
+          "line": 3,
+          "resolved_target": "app/workspace/_lib/toolBindings.ts"
+        }
+      ]
+    },
+    {
+      "id": "module:app/workspace/_lib/workspaceAppearance.ts",
+      "type": "Module",
+      "layer": "app",
+      "name_en": "app/workspace/_lib/workspaceAppearance.ts",
+      "purpose_th": "Owner-editable presentation only. Keep bindings and authority out of here.",
+      "exports": [
+        "WORKSPACE_APPEARANCE",
+        "WorkspaceAppearance"
+      ],
+      "status": "OK",
+      "runtime_entry_point": false,
+      "internal_dependencies": [],
+      "dependents": [
+        "module:app/workspace/BusinessWorkspace.tsx",
+        "module:scripts/workspace-tool-bindings-test.tsx"
+      ],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "app",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "symbols": [
+        {
+          "name": "WorkspaceAppearance",
+          "kind": "interface",
+          "line_start": 5,
+          "line_end": 11
+        },
+        {
+          "name": "WORKSPACE_APPEARANCE",
+          "kind": "const",
+          "line_start": 13,
+          "line_end": 19
+        }
+      ]
+    },
+    {
+      "id": "module:app/workspace/_lib/toolBindings.ts",
+      "type": "Module",
+      "layer": "app",
+      "name_en": "app/workspace/_lib/toolBindings.ts",
+      "purpose_th": "Presentation bindings only. Routes keep their own server authority checks.",
+      "exports": [
+        "SETTINGS_BOXES",
+        "TOOL_BINDINGS",
+        "ToolBinding",
+        "orderGrantedTools"
+      ],
+      "status": "OK",
+      "runtime_entry_point": false,
+      "internal_dependencies": [],
+      "dependents": [
+        "module:app/workspace/BusinessWorkspace.tsx",
+        "module:app/workspace/WorkspaceSettings.tsx",
+        "module:scripts/workspace-tool-bindings-test.tsx"
+      ],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "app",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "symbols": [
+        {
+          "name": "ToolBinding",
+          "kind": "interface",
+          "line_start": 5,
+          "line_end": 9
+        },
+        {
+          "name": "TOOL_BINDINGS",
+          "kind": "const",
+          "line_start": 11,
+          "line_end": 26
+        },
+        {
+          "name": "SETTINGS_BOXES",
+          "kind": "const",
+          "line_start": 29,
+          "line_end": 39
+        },
+        {
+          "name": "orderGrantedTools",
+          "kind": "function",
+          "line_start": 42,
+          "line_end": 48
+        }
+      ]
+    },
+    {
+      "id": "module:app/admin/ui-gallery/assistants/page.tsx",
+      "type": "Module",
+      "layer": "app",
+      "name_en": "app/admin/ui-gallery/assistants/page.tsx",
+      "purpose_th": "Saved character study; protected by the existing admin layout.",
+      "exports": [
+        "AssistantGalleryPage"
+      ],
+      "status": "OK",
+      "runtime_entry_point": true,
+      "internal_dependencies": [],
+      "dependents": [],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "app",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "symbols": [
+        {
+          "name": "AssistantGalleryPage",
+          "kind": "function",
+          "line_start": 8,
+          "line_end": 20
+        }
+      ]
+    },
+    {
+      "id": "module:scripts/ai-resolver-test.ts",
+      "type": "Module",
+      "layer": "scripts",
+      "name_en": "scripts/ai-resolver-test.ts",
+      "purpose_th": "AI Resolver / Adapter contract tests (PHASE A4–A5, owner 2026-09-23).",
+      "exports": [
+        "extractStructuredEntitiesWithGemini",
+        "resolveAddressToCoordinates"
+      ],
+      "status": "OK",
+      "runtime_entry_point": true,
+      "internal_dependencies": [
+        "module:services/ai/adapterContract.ts",
+        "module:services/ai/adapters.ts",
+        "module:services/ai/gateway.ts",
+        "module:services/ai/resolver.ts"
+      ],
+      "dependents": [],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "scripts",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "import_sites": [
+        {
+          "specifier": "../services/ai/resolver",
+          "line": 9,
+          "resolved_target": "services/ai/resolver.ts"
+        },
+        {
+          "specifier": "../services/ai/adapters",
+          "line": 10,
+          "resolved_target": "services/ai/adapters.ts"
+        },
+        {
+          "specifier": "../services/ai/gateway",
+          "line": 11,
+          "resolved_target": "services/ai/gateway.ts"
+        },
+        {
+          "specifier": "../services/ai/adapterContract",
+          "line": 12,
+          "resolved_target": "services/ai/adapterContract.ts"
+        }
+      ]
+    },
+    {
+      "id": "module:services/ai/resolver.ts",
+      "type": "Module",
+      "layer": "services",
+      "name_en": "services/ai/resolver.ts",
+      "purpose_th": "DNA OS — AI Resolver (PHASE A5, owner 2026-09-23). The SINGLE logical",
+      "exports": [
+        "AiAdapterConstraint",
+        "AiAdapterDescription",
+        "AiResolverOptions",
+        "AiSelection",
+        "describeAiAdapterFor",
+        "invokeSelectedAdapter",
+        "listDeclaredCapabilities",
+        "loadAiAdapterRegistry",
+        "selectAiAdapter"
+      ],
+      "status": "OK",
+      "runtime_entry_point": false,
+      "internal_dependencies": [
+        "module:services/ai/adapterContract.ts",
+        "module:services/ai/adapters.ts"
+      ],
+      "dependents": [
+        "module:app/api/admin/ide/_lib/workerAdapters/apiWorkerAdapter.ts",
+        "module:app/api/admin/ide/_lib/workerAdapters/localModelWorkerAdapter.ts",
+        "module:app/api/admin/system-config/route.ts",
+        "module:scripts/ai-caller-cutover-test.ts",
+        "module:scripts/ai-resolver-test.ts",
+        "module:services/ai/gateway.ts"
+      ],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "services",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "symbols": [
+        {
+          "name": "AiAdapterConstraint",
+          "kind": "interface",
+          "line_start": 27,
+          "line_end": 31
+        },
+        {
+          "name": "AiResolverOptions",
+          "kind": "interface",
+          "line_start": 33,
+          "line_end": 41
+        },
+        {
+          "name": "AiSelection",
+          "kind": "type",
+          "line_start": 43,
+          "line_end": 45
+        },
+        {
+          "name": "loadAiAdapterRegistry",
+          "kind": "function",
+          "line_start": 55,
+          "line_end": 61
+        },
+        {
+          "name": "listDeclaredCapabilities",
+          "kind": "function",
+          "line_start": 64,
+          "line_end": 66
+        },
+        {
+          "name": "selectAiAdapter",
+          "kind": "function",
+          "line_start": 71,
+          "line_end": 132
+        },
+        {
+          "name": "AiAdapterDescription",
+          "kind": "interface",
+          "line_start": 139,
+          "line_end": 146
+        },
+        {
+          "name": "describeAiAdapterFor",
+          "kind": "function",
+          "line_start": 148,
+          "line_end": 153
+        },
+        {
+          "name": "invokeSelectedAdapter",
+          "kind": "function",
+          "line_start": 156,
+          "line_end": 163
+        }
+      ],
+      "import_sites": [
+        {
+          "specifier": "./adapterContract",
+          "line": 21,
+          "resolved_target": "services/ai/adapterContract.ts"
+        },
+        {
+          "specifier": "./adapters",
+          "line": 25,
+          "resolved_target": "services/ai/adapters.ts"
+        }
+      ]
+    },
+    {
+      "id": "module:services/ai/adapters.ts",
+      "type": "Module",
+      "layer": "services",
+      "name_en": "services/ai/adapters.ts",
+      "purpose_th": "DNA OS — AI adapter implementations (PHASE A4/A5, owner 2026-09-23).",
+      "exports": [
+        "AI_ADAPTER_IMPLEMENTATIONS",
+        "ANTHROPIC_MODEL",
+        "GEMINI_DEFAULT_MODEL",
+        "OLLAMA_DEFAULT_MODEL",
+        "OLLAMA_TIMEOUT_MS",
+        "anthropicAdapter",
+        "geminiAdapter",
+        "ollamaAdapter"
+      ],
+      "status": "OK",
+      "runtime_entry_point": false,
+      "internal_dependencies": [
+        "module:services/ai/adapterContract.ts"
+      ],
+      "dependents": [
+        "module:scripts/ai-resolver-test.ts",
+        "module:services/ai/resolver.ts"
+      ],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "services",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "symbols": [
+        {
+          "name": "OLLAMA_TIMEOUT_MS",
+          "kind": "const",
+          "line_start": 20,
+          "line_end": 20
+        },
+        {
+          "name": "ANTHROPIC_MODEL",
+          "kind": "const",
+          "line_start": 22,
+          "line_end": 22
+        },
+        {
+          "name": "OLLAMA_DEFAULT_MODEL",
+          "kind": "const",
+          "line_start": 24,
+          "line_end": 24
+        },
+        {
+          "name": "GEMINI_DEFAULT_MODEL",
+          "kind": "const",
+          "line_start": 26,
+          "line_end": 26
+        },
+        {
+          "name": "ollamaAdapter",
+          "kind": "const",
+          "line_start": 31,
+          "line_end": 69
+        },
+        {
+          "name": "anthropicAdapter",
+          "kind": "const",
+          "line_start": 72,
+          "line_end": 109
+        },
+        {
+          "name": "geminiAdapter",
+          "kind": "const",
+          "line_start": 111,
+          "line_end": 147
+        },
+        {
+          "name": "AI_ADAPTER_IMPLEMENTATIONS",
+          "kind": "const",
+          "line_start": 156,
+          "line_end": 160
+        }
+      ],
+      "import_sites": [
+        {
+          "specifier": "./adapterContract",
+          "line": 15,
+          "resolved_target": "services/ai/adapterContract.ts"
+        }
+      ]
+    },
+    {
+      "id": "module:services/ai/adapterContract.ts",
+      "type": "Module",
+      "layer": "services",
+      "name_en": "services/ai/adapterContract.ts",
+      "purpose_th": "DNA OS — AI Adapter Contract (PHASE A4, owner 2026-09-23).",
+      "exports": [
+        "AiAdapter",
+        "AiAdapterDeclaration",
+        "AiAdapterId",
+        "AiAdapterInvokeContext",
+        "AiAdapterInvokeRequest",
+        "AiAdapterRegistryFile",
+        "AiAdapterStatus",
+        "AiCapability",
+        "AiEffect",
+        "AiEvidenceEvent",
+        "AiGatewayImage",
+        "AiGatewayRequest",
+        "AiGatewayResult",
+        "AiProvenance",
+        "AiProviderName",
+        "AiRuntimeKind",
+        "AiSelectionFailureCode"
+      ],
+      "status": "OK",
+      "runtime_entry_point": false,
+      "internal_dependencies": [],
+      "dependents": [
+        "module:app/api/admin/system-config/route.ts",
+        "module:scripts/ai-resolver-test.ts",
+        "module:services/ai/adapters.ts",
+        "module:services/ai/gateway.ts",
+        "module:services/ai/resolver.ts"
+      ],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "services",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "symbols": [
+        {
+          "name": "AiCapability",
+          "kind": "type",
+          "line_start": 21,
+          "line_end": 37
+        },
+        {
+          "name": "AiEffect",
+          "kind": "type",
+          "line_start": 39,
+          "line_end": 39
+        },
+        {
+          "name": "AiAdapterId",
+          "kind": "type",
+          "line_start": 42,
+          "line_end": 42
+        },
+        {
+          "name": "AiProviderName",
+          "kind": "type",
+          "line_start": 46,
+          "line_end": 46
+        },
+        {
+          "name": "AiRuntimeKind",
+          "kind": "type",
+          "line_start": 49,
+          "line_end": 49
+        },
+        {
+          "name": "AiSelectionFailureCode",
+          "kind": "type",
+          "line_start": 52,
+          "line_end": 55
+        },
+        {
+          "name": "AiGatewayImage",
+          "kind": "interface",
+          "line_start": 57,
+          "line_end": 60
+        },
+        {
+          "name": "AiGatewayRequest",
+          "kind": "interface",
+          "line_start": 62,
+          "line_end": 75
+        },
+        {
+          "name": "AiProvenance",
+          "kind": "interface",
+          "line_start": 77,
+          "line_end": 90
+        },
+        {
+          "name": "AiGatewayResult",
+          "kind": "interface",
+          "line_start": 92,
+          "line_end": 97
+        },
+        {
+          "name": "AiEvidenceEvent",
+          "kind": "interface",
+          "line_start": 99,
+          "line_end": 112
+        },
+        {
+          "name": "AiAdapterInvokeRequest",
+          "kind": "interface",
+          "line_start": 115,
+          "line_end": 121
+        },
+        {
+          "name": "AiAdapterInvokeContext",
+          "kind": "interface",
+          "line_start": 123,
+          "line_end": 132
+        },
+        {
+          "name": "AiAdapterStatus",
+          "kind": "interface",
+          "line_start": 134,
+          "line_end": 140
+        },
+        {
+          "name": "AiAdapter",
+          "kind": "interface",
+          "line_start": 142,
+          "line_end": 150
+        },
+        {
+          "name": "AiAdapterDeclaration",
+          "kind": "interface",
+          "line_start": 153,
+          "line_end": 182
+        },
+        {
+          "name": "AiAdapterRegistryFile",
+          "kind": "interface",
+          "line_start": 184,
+          "line_end": 193
+        }
+      ]
+    },
+    {
+      "id": "module:scripts/ai-caller-cutover-test.ts",
+      "type": "Module",
+      "layer": "scripts",
+      "name_en": "scripts/ai-caller-cutover-test.ts",
+      "purpose_th": "A6 — direct-provider caller cutover tests (owner, 2026-09-23).",
+      "exports": [
+        "POST"
+      ],
+      "status": "OK",
+      "runtime_entry_point": true,
+      "internal_dependencies": [
+        "module:engines/events/event-builder.ts",
+        "module:services/ai/gateway.ts",
+        "module:services/ai/resolver.ts"
+      ],
+      "dependents": [],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "scripts",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "import_sites": [
+        {
+          "specifier": "../services/ai/resolver",
+          "line": 9,
+          "resolved_target": "services/ai/resolver.ts"
+        },
+        {
+          "specifier": "../services/ai/gateway",
+          "line": 10,
+          "resolved_target": "services/ai/gateway.ts"
+        },
+        {
+          "specifier": "../engines/events/event-builder",
+          "line": 11,
+          "resolved_target": "engines/events/event-builder.ts"
+        }
+      ]
+    },
+    {
+      "id": "module:scripts/ai-deno-cutover-test.ts",
+      "type": "Module",
+      "layer": "scripts",
+      "name_en": "scripts/ai-deno-cutover-test.ts",
+      "purpose_th": "A7 — Deno AI provider decoupling tests (owner, 2026-09-23).",
+      "exports": [],
+      "status": "OK",
+      "runtime_entry_point": true,
+      "internal_dependencies": [],
+      "dependents": [],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "scripts",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN"
+    },
+    {
+      "id": "module:supabase/functions/_shared/ai/runtime.ts",
+      "type": "Module",
+      "layer": "supabase",
+      "name_en": "supabase/functions/_shared/ai/runtime.ts",
+      "purpose_th": "DNA OS — Deno AI capability runtime (PHASE A7). An implementation of the same",
+      "exports": [
+        "DenoAiAdapterReadiness",
+        "DenoAiInvokeRequest",
+        "DenoAiSelection",
+        "describeDenoAiReadiness",
+        "emitAiEvidence",
+        "runAiCapability",
+        "selectDenoAiAdapter"
+      ],
+      "status": "OK",
+      "runtime_entry_point": false,
+      "internal_dependencies": [
+        "module:supabase/functions/_shared/ai/contract.ts"
+      ],
+      "dependents": [
+        "module:supabase/functions/line-webhook-v2/engines/claude-client.ts",
+        "module:supabase/functions/line-webhook-v2/helpers.ts",
+        "module:supabase/functions/system-health-check/index.ts"
+      ],
+      "data_tables": [
+        "system_health_status"
+      ],
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "supabase",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "symbols": [
+        {
+          "name": "DenoAiInvokeRequest",
+          "kind": "interface",
+          "line_start": 20,
+          "line_end": 25
+        },
+        {
+          "name": "DenoAiSelection",
+          "kind": "type",
+          "line_start": 100,
+          "line_end": 102
+        },
+        {
+          "name": "selectDenoAiAdapter",
+          "kind": "function",
+          "line_start": 105,
+          "line_end": 124
+        },
+        {
+          "name": "DenoAiAdapterReadiness",
+          "kind": "interface",
+          "line_start": 127,
+          "line_end": 135
+        },
+        {
+          "name": "describeDenoAiReadiness",
+          "kind": "function",
+          "line_start": 137,
+          "line_end": 151
+        },
+        {
+          "name": "emitAiEvidence",
+          "kind": "function",
+          "line_start": 161,
+          "line_end": 174
+        },
+        {
+          "name": "runAiCapability",
+          "kind": "function",
+          "line_start": 180,
+          "line_end": 207
+        }
+      ],
+      "import_sites": [
+        {
+          "specifier": "./contract.ts",
+          "line": 13,
+          "resolved_target": "supabase/functions/_shared/ai/contract.ts"
+        }
+      ]
+    },
+    {
+      "id": "module:supabase/functions/_shared/ai/contract.ts",
+      "type": "Module",
+      "layer": "supabase",
+      "name_en": "supabase/functions/_shared/ai/contract.ts",
+      "purpose_th": "DNA OS — Deno AI capability contract (PHASE A7, owner 2026-09-23).",
+      "exports": [
+        "DENO_AI_DECLARATIONS",
+        "DENO_AI_POLICY",
+        "DenoAiAdapterDeclaration",
+        "DenoAiCapability",
+        "DenoAiResult"
+      ],
+      "status": "OK",
+      "runtime_entry_point": false,
+      "internal_dependencies": [],
+      "dependents": [
+        "module:supabase/functions/_shared/ai/runtime.ts"
+      ],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "supabase",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "symbols": [
+        {
+          "name": "DenoAiCapability",
+          "kind": "type",
+          "line_start": 17,
+          "line_end": 28
+        },
+        {
+          "name": "DenoAiAdapterDeclaration",
+          "kind": "interface",
+          "line_start": 30,
+          "line_end": 48
+        },
+        {
+          "name": "DenoAiResult",
+          "kind": "interface",
+          "line_start": 50,
+          "line_end": 58
+        },
+        {
+          "name": "DENO_AI_POLICY",
+          "kind": "const",
+          "line_start": 60,
+          "line_end": 65
+        },
+        {
+          "name": "DENO_AI_DECLARATIONS",
+          "kind": "const",
+          "line_start": 67,
+          "line_end": 125
+        }
+      ]
+    },
+    {
+      "id": "module:scripts/ai-device-cutover-test.ts",
+      "type": "Module",
+      "layer": "scripts",
+      "name_en": "scripts/ai-device-cutover-test.ts",
+      "purpose_th": "A8 — Device/Watcher AI decoupling tests (owner, 2026-09-23).",
+      "exports": [],
+      "status": "OK",
+      "runtime_entry_point": true,
+      "internal_dependencies": [
+        "module:local-runtime/ai/device-ai-runtime.mjs.ts"
+      ],
+      "dependents": [],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "scripts",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "import_sites": [
+        {
+          "specifier": "../local-runtime/ai/device-ai-runtime.mjs",
+          "line": 9,
+          "resolved_target": "local-runtime/ai/device-ai-runtime.mjs.ts"
         }
       ]
     }
@@ -87041,6 +88033,11 @@
     {
       "source": "layer:app",
       "target": "module:app/admin/ui-gallery/_lib/visualAssets.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:app",
+      "target": "module:app/admin/ui-gallery/assistants/page.tsx",
       "label": "contains"
     },
     {
@@ -89325,6 +90322,11 @@
     },
     {
       "source": "layer:app",
+      "target": "module:app/workspace/WorkspaceSettings.tsx",
+      "label": "contains"
+    },
+    {
+      "source": "layer:app",
       "target": "module:app/workspace/_lib/businessTools.ts",
       "label": "contains"
     },
@@ -89336,6 +90338,16 @@
     {
       "source": "layer:app",
       "target": "module:app/workspace/_lib/partnerDisplayModel.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:app",
+      "target": "module:app/workspace/_lib/toolBindings.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:app",
+      "target": "module:app/workspace/_lib/workspaceAppearance.ts",
       "label": "contains"
     },
     {
@@ -91555,7 +92567,27 @@
     },
     {
       "source": "layer:scripts",
+      "target": "module:scripts/ai-caller-cutover-test.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:scripts",
       "target": "module:scripts/ai-context-test.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:scripts",
+      "target": "module:scripts/ai-deno-cutover-test.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:scripts",
+      "target": "module:scripts/ai-device-cutover-test.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:scripts",
+      "target": "module:scripts/ai-resolver-test.ts",
       "label": "contains"
     },
     {
@@ -92239,6 +93271,11 @@
       "label": "contains"
     },
     {
+      "source": "layer:scripts",
+      "target": "module:scripts/workspace-tool-bindings-test.tsx",
+      "label": "contains"
+    },
+    {
       "source": "layer:services",
       "target": "module:services/ai-connection/healthCheck.ts",
       "label": "contains"
@@ -92275,6 +93312,16 @@
     },
     {
       "source": "layer:services",
+      "target": "module:services/ai/adapterContract.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:services",
+      "target": "module:services/ai/adapters.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:services",
       "target": "module:services/ai/bridge-claude.ts",
       "label": "contains"
     },
@@ -92286,6 +93333,11 @@
     {
       "source": "layer:services",
       "target": "module:services/ai/gateway.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:services",
+      "target": "module:services/ai/resolver.ts",
       "label": "contains"
     },
     {
@@ -92391,6 +93443,16 @@
     {
       "source": "layer:services",
       "target": "module:supabase/functions/receipt-reconcile-sweep/index.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:supabase",
+      "target": "module:supabase/functions/_shared/ai/contract.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:supabase",
+      "target": "module:supabase/functions/_shared/ai/runtime.ts",
       "label": "contains"
     },
     {
@@ -96119,6 +97181,11 @@
       "label": "imports"
     },
     {
+      "source": "module:app/api/admin/ide/_lib/workerAdapters/apiWorkerAdapter.ts",
+      "target": "module:services/ai/resolver.ts",
+      "label": "imports"
+    },
+    {
       "source": "module:app/api/admin/ide/_lib/workerAdapters/cliWorkerAdapter.ts",
       "target": "module:app/api/admin/ide/_lib/workerAdapter.ts",
       "label": "imports"
@@ -96166,6 +97233,11 @@
     {
       "source": "module:app/api/admin/ide/_lib/workerAdapters/localModelWorkerAdapter.ts",
       "target": "module:services/ai/gateway.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/ide/_lib/workerAdapters/localModelWorkerAdapter.ts",
+      "target": "module:services/ai/resolver.ts",
       "label": "imports"
     },
     {
@@ -100009,6 +101081,11 @@
       "label": "imports"
     },
     {
+      "source": "module:app/api/admin/screen-vision/route.ts",
+      "target": "module:services/ai/gateway.ts",
+      "label": "imports"
+    },
+    {
       "source": "module:app/api/admin/settings/route.ts",
       "target": "module:core/auth/requireAuth.ts",
       "label": "imports"
@@ -100086,6 +101163,16 @@
     {
       "source": "module:app/api/admin/system-config/route.ts",
       "target": "module:gateway/connectors.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/system-config/route.ts",
+      "target": "module:services/ai/adapterContract.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/system-config/route.ts",
+      "target": "module:services/ai/resolver.ts",
       "label": "imports"
     },
     {
@@ -101980,7 +103067,22 @@
     },
     {
       "source": "module:app/workspace/BusinessWorkspace.tsx",
+      "target": "module:app/workspace/WorkspaceSettings.tsx",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/workspace/BusinessWorkspace.tsx",
       "target": "module:app/workspace/_lib/businessTools.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/workspace/BusinessWorkspace.tsx",
+      "target": "module:app/workspace/_lib/toolBindings.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/workspace/BusinessWorkspace.tsx",
+      "target": "module:app/workspace/_lib/workspaceAppearance.ts",
       "label": "imports"
     },
     {
@@ -102001,6 +103103,11 @@
     {
       "source": "module:app/workspace/BusinessWorkspace.tsx",
       "target": "module:presentation/shell/navigation/IconRail.tsx",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/workspace/WorkspaceSettings.tsx",
+      "target": "module:app/workspace/_lib/toolBindings.ts",
       "label": "imports"
     },
     {
@@ -102066,6 +103173,11 @@
     {
       "source": "module:app/workspace/page.tsx",
       "target": "module:core/navigation/resolveCapabilityAccess.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/workspace/page.tsx",
+      "target": "module:core/navigation/resolveNavItems.ts",
       "label": "imports"
     },
     {
@@ -104539,6 +105651,11 @@
       "label": "imports"
     },
     {
+      "source": "module:engines/events/event-builder.ts",
+      "target": "module:services/ai/gateway.ts",
+      "label": "imports"
+    },
+    {
       "source": "module:engines/fuel.ts",
       "target": "module:core/config-loader.ts",
       "label": "imports"
@@ -104776,6 +105893,11 @@
     {
       "source": "module:engines/jobs/auto-create.ts",
       "target": "module:engines/canonical/event-write.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:engines/jobs/auto-create.ts",
+      "target": "module:engines/canonical/transaction-write.ts",
       "label": "imports"
     },
     {
@@ -105376,6 +106498,11 @@
     {
       "source": "module:gateway/actions.ts",
       "target": "module:core/config/company-settings.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:gateway/actions.ts",
+      "target": "module:engines/canonical/document-write.ts",
       "label": "imports"
     },
     {
@@ -106504,6 +107631,21 @@
       "label": "imports"
     },
     {
+      "source": "module:scripts/ai-caller-cutover-test.ts",
+      "target": "module:engines/events/event-builder.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:scripts/ai-caller-cutover-test.ts",
+      "target": "module:services/ai/gateway.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:scripts/ai-caller-cutover-test.ts",
+      "target": "module:services/ai/resolver.ts",
+      "label": "imports"
+    },
+    {
       "source": "module:scripts/ai-connection-hmac.test.ts",
       "target": "module:services/ai-connection/hmac.ts",
       "label": "imports"
@@ -106536,6 +107678,31 @@
     {
       "source": "module:scripts/ai-context-test.ts",
       "target": "module:app/api/admin/ide/_lib/workerRegistry.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:scripts/ai-device-cutover-test.ts",
+      "target": "module:local-runtime/ai/device-ai-runtime.mjs.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:scripts/ai-resolver-test.ts",
+      "target": "module:services/ai/adapterContract.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:scripts/ai-resolver-test.ts",
+      "target": "module:services/ai/adapters.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:scripts/ai-resolver-test.ts",
+      "target": "module:services/ai/gateway.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:scripts/ai-resolver-test.ts",
+      "target": "module:services/ai/resolver.ts",
       "label": "imports"
     },
     {
@@ -107190,6 +108357,11 @@
     },
     {
       "source": "module:scripts/demo-full-pipeline-part2.ts",
+      "target": "module:engines/canonical/document-write.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:scripts/demo-full-pipeline-part2.ts",
       "target": "module:engines/canonical/event-write.ts",
       "label": "imports"
     },
@@ -107220,7 +108392,17 @@
     },
     {
       "source": "module:scripts/demo-full-pipeline.ts",
+      "target": "module:engines/canonical/document-write.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:scripts/demo-full-pipeline.ts",
       "target": "module:engines/canonical/event-write.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:scripts/demo-full-pipeline.ts",
+      "target": "module:engines/canonical/transaction-write.ts",
       "label": "imports"
     },
     {
@@ -107361,6 +108543,16 @@
     {
       "source": "module:scripts/dispatcher-execution-mode-test.ts",
       "target": "module:engines/integration-gateway/policy/gate.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:scripts/document-authority-census.test.ts",
+      "target": "module:gateway/actions.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:scripts/document-authority-census.test.ts",
+      "target": "module:registry/communication.ts",
       "label": "imports"
     },
     {
@@ -108684,6 +109876,26 @@
       "label": "imports"
     },
     {
+      "source": "module:scripts/workspace-tool-bindings-test.tsx",
+      "target": "module:app/workspace/BusinessWorkspace.tsx",
+      "label": "imports"
+    },
+    {
+      "source": "module:scripts/workspace-tool-bindings-test.tsx",
+      "target": "module:app/workspace/_lib/businessTools.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:scripts/workspace-tool-bindings-test.tsx",
+      "target": "module:app/workspace/_lib/toolBindings.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:scripts/workspace-tool-bindings-test.tsx",
+      "target": "module:app/workspace/_lib/workspaceAppearance.ts",
+      "label": "imports"
+    },
+    {
       "source": "module:services/ai-connection/healthCheck.ts",
       "target": "module:services/ai-connection/statusRepository.ts",
       "label": "imports"
@@ -108744,13 +109956,43 @@
       "label": "imports"
     },
     {
+      "source": "module:services/ai/adapters.ts",
+      "target": "module:services/ai/adapterContract.ts",
+      "label": "imports"
+    },
+    {
       "source": "module:services/ai/bridge-claude.ts",
       "target": "module:services/ai/bridge-local.ts",
       "label": "imports"
     },
     {
       "source": "module:services/ai/gateway.ts",
+      "target": "module:services/ai/adapterContract.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:services/ai/gateway.ts",
+      "target": "module:services/ai/adapterContract.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:services/ai/gateway.ts",
+      "target": "module:services/ai/resolver.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:services/ai/gateway.ts",
       "target": "module:services/supabase/queries.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:services/ai/resolver.ts",
+      "target": "module:services/ai/adapterContract.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:services/ai/resolver.ts",
+      "target": "module:services/ai/adapters.ts",
       "label": "imports"
     },
     {
@@ -108821,6 +110063,11 @@
     {
       "source": "module:services/supabase/state-cache.ts",
       "target": "module:services/supabase/queries.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:supabase/functions/_shared/ai/runtime.ts",
+      "target": "module:supabase/functions/_shared/ai/contract.ts",
       "label": "imports"
     },
     {
@@ -108895,6 +110142,11 @@
     },
     {
       "source": "module:supabase/functions/debt-reminder-cron/index.ts",
+      "target": "module:supabase/functions/_shared/connect-event.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:supabase/functions/debt-reminder-cron/index.ts",
       "target": "module:supabase/functions/_shared/line-client.ts",
       "label": "imports"
     },
@@ -108926,6 +110178,11 @@
     {
       "source": "module:supabase/functions/line-webhook-v2/engines/build-event-from-extraction.ts",
       "target": "module:supabase/functions/line-webhook-v2/engines/event-followup.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:supabase/functions/line-webhook-v2/engines/claude-client.ts",
+      "target": "module:supabase/functions/_shared/ai/runtime.ts",
       "label": "imports"
     },
     {
@@ -109315,6 +110572,11 @@
     },
     {
       "source": "module:supabase/functions/line-webhook-v2/helpers.ts",
+      "target": "module:supabase/functions/_shared/ai/runtime.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:supabase/functions/line-webhook-v2/helpers.ts",
       "target": "module:supabase/functions/_shared/haversine.ts",
       "label": "imports"
     },
@@ -109425,6 +110687,11 @@
     },
     {
       "source": "module:supabase/functions/system-health-check/index.ts",
+      "target": "module:supabase/functions/_shared/ai/runtime.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:supabase/functions/system-health-check/index.ts",
       "target": "module:supabase/functions/_shared/gmail-client.ts",
       "label": "imports"
     },
@@ -109450,8 +110717,8 @@
     }
   ],
   "summary": {
-    "total": 1267,
-    "ok": 1267,
+    "total": 1281,
+    "ok": 1281,
     "broken": 0,
     "unused": 0,
     "unregistered": 0

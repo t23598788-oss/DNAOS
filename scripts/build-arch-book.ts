@@ -299,11 +299,11 @@ const ENTRY_POINT_PATTERNS = [
   /^app\/.+\/route\.(ts|tsx)$/,              // Next.js route handlers — any path under app/, not just app/api/ (e.g. app/observer.json/route.ts)
   /^app\/(layout|page|error|loading)\.(tsx|ts)$/, // Next.js root files
   /^app\/.+\/(layout|page|error|loading)\.(tsx|ts)$/, // Next.js page files
-  /^scripts\/.+\.ts$/,                       // CLI scripts
+  /^scripts\/.+\.tsx?$/,                   // CLI scripts — รวม .tsx (กัน .tsx-blindness ตระกูล DNA-000018: scripts/workspace-tool-bindings-test.tsx เป็น .tsx ไฟล์แรกใน scripts/ แล้วเคยหลุดเป็น UNUSED)
   /^next\.config\.(ts|js)$/,                 // Next.js config
   /^supabase\/functions\/.+\/index\.ts$/,    // Supabase edge function entry
   /^middleware\.ts$/,                        // Next.js middleware — framework-auto-loaded, never explicitly imported
-  /\.test\.ts$/, /\.spec\.ts$/,              // Test files
+  /\.test\.(ts|tsx)$/, /\.spec\.(ts|tsx)$/,  // Test files (รวม .tsx — DNA-000018 family)
 ];
 
 function isEntryPoint(filePath: string): boolean {

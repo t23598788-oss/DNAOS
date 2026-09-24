@@ -1,31 +1,31 @@
 {
-  "generated_at": "2026-09-23T06:21:54.453Z",
+  "generated_at": "2026-09-24T00:18:56.807Z",
   "policy": "Phase 1.1 (Factory Constitution) — Factory Summary + Coverage Report. Read-only analysis; no cleanup, no move, no delete, no merge, no auto-fix performed to produce this.",
   "factory_count": 12,
-  "total_modules": 1240,
+  "total_modules": 1281,
   "modules_per_factory": {
     "executive-office": 6,
-    "architecture-office": 95,
-    "software-factory": 450,
-    "ai-factory": 57,
-    "business-factory": 182,
-    "communication-factory": 28,
+    "architecture-office": 101,
+    "software-factory": 454,
+    "ai-factory": 60,
+    "business-factory": 185,
+    "communication-factory": 29,
     "document-factory": 24,
-    "runtime-factory": 44,
+    "runtime-factory": 45,
     "infrastructure-factory": 112,
-    "qa-factory": 103,
-    "deployment-factory": 75,
+    "qa-factory": 116,
+    "deployment-factory": 80,
     "operations-center": 21
   },
-  "api_route_count": 308,
+  "api_route_count": 313,
   "registry_file_count": 20,
-  "worker_count": 72,
-  "route_count": 409,
-  "unknown_count": 43,
-  "conflict_count": 0,
+  "worker_count": 77,
+  "route_count": 415,
+  "unknown_count": 46,
+  "conflict_count": 2,
   "coverage": {
-    "modules_with_factory_owner": 1197,
-    "coverage_percent": 96.5,
+    "modules_with_factory_owner": 1233,
+    "coverage_percent": 96.3,
     "unknown_modules": [
       "app/business-workspace-template/documents/page.tsx",
       "app/business-workspace-template/layout.tsx",
@@ -34,6 +34,8 @@
       "app/business-workspace-template/page.tsx",
       "app/business-workspace-template/tasks/page.tsx",
       "app/business-workspace-template/workspace/page.tsx",
+      "dna-os-contractor/src/adapters/freebuffPullAdapter.ts",
+      "dna-os-contractor/src/lease/leaseClient.ts",
       "e2e/auth.setup.ts",
       "engine.ts",
       "playwright.config.ts",
@@ -63,6 +65,7 @@
       "scripts/seed-execution-context.ts",
       "scripts/state-reconcile.ts",
       "scripts/sync-infrastructure-dependencies.ts",
+      "scripts/workspace-tool-bindings-test.tsx",
       "services/canonical/document-detail.ts",
       "services/canonical/document-list.ts",
       "services/canonical/payments.ts",
@@ -71,6 +74,21 @@
       "services/canonical/transaction-list.ts",
       "services/data-boundary/dataBoundaryRuntime.ts"
     ],
-    "conflict_modules": []
+    "conflict_modules": [
+      {
+        "path": "app/api/gateway/observe/line/route.ts",
+        "factories": [
+          "communication-factory",
+          "infrastructure-factory"
+        ]
+      },
+      {
+        "path": "engines/integration-gateway/adapters/line.ts",
+        "factories": [
+          "communication-factory",
+          "infrastructure-factory"
+        ]
+      }
+    ]
   }
 }

@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-23T06:37:22.023Z",
+  "generated_at": "2026-09-24T00:09:55.960Z",
   "note": "Computed live from registry/CONSTITUTION.json + registry/rule-coverage.json + registry/factory-mapping.json by app/api/admin/ide/_lib/governanceRuntime.ts — never hand-edited, never a cached stale number. Re-run via `npm run sync` or `npx tsx scripts/build-governance-summary.ts`.",
   "totalRules": 282,
   "enforced": 179,
@@ -33,7 +33,7 @@
       "coveragePercent": 100,
       "missingRuleCount": 0,
       "health": "HEALTHY",
-      "unknownFileCount": 90
+      "unknownFileCount": 96
     },
     {
       "factoryId": "software-factory",
@@ -42,7 +42,7 @@
       "coveragePercent": 100,
       "missingRuleCount": 0,
       "health": "HEALTHY",
-      "unknownFileCount": 396
+      "unknownFileCount": 400
     },
     {
       "factoryId": "ai-factory",
@@ -51,7 +51,7 @@
       "coveragePercent": 0,
       "missingRuleCount": 0,
       "health": "UNGOVERNED",
-      "unknownFileCount": 57
+      "unknownFileCount": 60
     },
     {
       "factoryId": "business-factory",
@@ -60,7 +60,7 @@
       "coveragePercent": 100,
       "missingRuleCount": 0,
       "health": "HEALTHY",
-      "unknownFileCount": 179
+      "unknownFileCount": 182
     },
     {
       "factoryId": "communication-factory",
@@ -69,7 +69,7 @@
       "coveragePercent": 0,
       "missingRuleCount": 0,
       "health": "UNGOVERNED",
-      "unknownFileCount": 28
+      "unknownFileCount": 29
     },
     {
       "factoryId": "document-factory",
@@ -87,7 +87,7 @@
       "coveragePercent": 100,
       "missingRuleCount": 0,
       "health": "HEALTHY",
-      "unknownFileCount": 41
+      "unknownFileCount": 42
     },
     {
       "factoryId": "infrastructure-factory",
@@ -105,7 +105,7 @@
       "coveragePercent": 100,
       "missingRuleCount": 0,
       "health": "HEALTHY",
-      "unknownFileCount": 99
+      "unknownFileCount": 112
     },
     {
       "factoryId": "deployment-factory",
@@ -114,7 +114,7 @@
       "coveragePercent": 100,
       "missingRuleCount": 0,
       "health": "HEALTHY",
-      "unknownFileCount": 72
+      "unknownFileCount": 77
     },
     {
       "factoryId": "operations-center",
