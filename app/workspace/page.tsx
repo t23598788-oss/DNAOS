@@ -1,8 +1,11 @@
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { getAuthedUser } from "@/core/auth/session";
+import { LOCAL_UI_REVIEW_HEADER } from "@/core/auth/devReviewAccess";
 import { resolveAllowedCapabilities } from "@/core/navigation/resolveCapabilityAccess";
 import { resolveNavItems } from "@/core/navigation/resolveNavItems";
 import { BusinessWorkspace } from "./BusinessWorkspace";
+import { TOOLS } from "./_lib/businessTools";
 import { loadPartnerWorkspace } from "./_lib/partnerDisplayModel";
 import { loadJobWorkspace } from "./_lib/jobDisplayModel";
 
@@ -35,6 +38,28 @@ export default async function WorkspacePage() {
   const user = await getAuthedUser();
 
   if (!user) {
+    // LOCAL UI REVIEW (owner approval 2026-09-24) — เปลือกหน้าจอสำหรับ Owner
+    // เปิดดูบนเครื่องตัวเอง: header นี้ถูก strip จากทุกคำขอโดย middleware และ
+    // ติดเฉพาะ NODE_ENV !== production + host loopback + path ตรง prefix เท่านั้น
+    // (predicate เดียวใน core/auth/devReviewAccess.ts — ไม่ใช่ระบบ auth ที่สอง)
+    // เฉพาะ branch นี้เท่านั้นที่ไม่ต้อง login: ไม่มี session · ไม่มี role ·
+    // ไม่ query ข้อมูลธุรกิจ · ไม่มี Settings · production เข้าเส้นทางนี้ไม่ได้
+    // และทุก route ที่อยู่หลังเครื่องมือยังมี server guard ของตัวเองเหมือนเดิม
+    const requestHeaders = await headers();
+    const isLocalReview =
+      process.env.NODE_ENV !== "production" &&
+      requestHeaders.get(LOCAL_UI_REVIEW_HEADER) === "1";
+
+    if (isLocalReview) {
+      console.log("[TRACE-WORKSPACE] local UI review shell (no session, no data, no settings)");
+      return (
+        <BusinessWorkspace
+          allowedTools={TOOLS.map((t) => t.key)}
+          canManageSettings={false}
+        />
+      );
+    }
+
     redirect("/login?next=/workspace");
   }
 

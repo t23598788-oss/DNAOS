@@ -14,9 +14,14 @@
 // Note (owner, 2026-09-23): /business-workspace-template ถูกเพิ่มเข้ามาในรายการนี้แล้ว
 // เพราะเป็น DEVELOPMENT / TEMPLATE / REVIEW surface ไม่ใช่ public business route —
 // production ยัง fail closed เหมือนเดิม (เงื่อนไข NODE_ENV ด้านล่างไม่เปลี่ยน)
+//
+// Note (owner approval, 2026-09-24): /workspace ถูกเพิ่มเข้ามาตามคำอนุมัติของ Owner
+// (เปิดดูหน้าจอ workspace บนเครื่องตัวเองได้โดยไม่ต้อง login) — เฉพาะเปลือก UI:
+// ไม่มี session · ไม่มี role · ไม่ query ข้อมูลธุรกิจ · ไม่มี Settings และทุก route
+// ที่อยู่หลังเครื่องมือยังมี server guard ของตัวเองเหมือนเดิมทุกบรรทัด
 
 /** prefix ที่อนุญาตให้ review แบบ dev — ต้องตรงทั้งหมดหรือขึ้นต้นด้วย prefix + "/" เท่านั้น */
-export const LOCAL_UI_REVIEW_PREFIXES = ["/admin/ui-gallery", "/business-workspace-template"] as const;
+export const LOCAL_UI_REVIEW_PREFIXES = ["/admin/ui-gallery", "/business-workspace-template", "/workspace"] as const;
 
 /** เดิม (2026-09-22) — คงไว้เพื่อความเข้ากันได้กับผู้เรียกที่มีอยู่จริง */
 export const LOCAL_UI_REVIEW_PREFIX = LOCAL_UI_REVIEW_PREFIXES[0];

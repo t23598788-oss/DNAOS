@@ -34,6 +34,29 @@ export interface NormalizedApprovalEvidence {
 const AUTHORITY_NOTE = "index/evidence only — the source table remains the approval authority; this layer can block a job but never approve one";
 const APPROVAL_ACTIONS = ["document.voided", "ADMIN_LOGIN", "approve", "approved", "decided", "rejected", "enabled", "register"];
 
+/**
+ * audit_logs has NO `actor` text column — verified against LIVE (2026-09-24):
+ * `select=actor` → 400/42703 "column audit_logs.actor does not exist", while
+ * `actor_user_id` and `new_value` both answer 200. The canonical writers put
+ * the actor INSIDE `new_value` as JSON text: `{ value, evidence: { actor } }`
+ * (the exact shape engines/canonical/audit.ts and the canonical payment RPCs
+ * write — see supabase/migrations/20260923000001 comment "the actor travels
+ * inside the evidence text because the table has no actor text column").
+ * SELECT-only parse helper: prefers the dedicated column, falls back to the
+ * evidence text, never guesses a value that is not really there.
+ */
+function actorFromAuditRow(row: { actor_user_id?: string | null; new_value?: string | null }): string | null {
+  if (row.actor_user_id) return row.actor_user_id;
+  if (!row.new_value) return null;
+  try {
+    const parsed = JSON.parse(row.new_value) as { evidence?: { actor?: unknown } };
+    const actor = parsed?.evidence?.actor;
+    return typeof actor === "string" && actor.trim() ? actor : null;
+  } catch {
+    return null; // new_value ไม่ใช่ JSON ที่ถูกต้อง → คืน null ห้ามเดา
+  }
+}
+
 export async function resolveApprovalEvidence(input: {
   capability: string;
   approval_ref?: string | null;
@@ -94,10 +117,10 @@ export async function resolveApprovalEvidence(input: {
   }
 
   const { data: audits } = await db.from("audit_logs")
-    .select("id, action, entity_type, entity_id, actor, created_at").in("action", APPROVAL_ACTIONS)
+    .select("id, action, entity_type, entity_id, actor_user_id, new_value, created_at").in("action", APPROVAL_ACTIONS)
     .order("created_at", { ascending: false }).limit(limit);
   for (const r of audits ?? []) {
-    push({ approval_ref: `audit_log:${r.id}`, source: "audit_log", actor: r.actor ?? null, authority: "public.audit_logs",
+    push({ approval_ref: `audit_log:${r.id}`, source: "audit_log", actor: actorFromAuditRow(r), authority: "public.audit_logs",
       decision: String(r.action ?? "unknown"), scope: r.entity_type ? `${r.entity_type}:${r.entity_id ?? "-"}` : null,
       decided_at: r.created_at ?? null, evidence_ref: `public.audit_logs#${r.id}`,
       verification_state: r.created_at ? "VERIFIED" : "NOT_FOUND" });

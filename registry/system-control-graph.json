@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-24T00:18:55.188Z",
+  "generated_at": "2026-09-24T00:52:57.200Z",
   "nodes": [
     {
       "id": "layer:core",
@@ -11122,8 +11122,10 @@
       "provider": "UNKNOWN",
       "dependencies": [
         "module:app/workspace/BusinessWorkspace.tsx",
+        "module:app/workspace/_lib/businessTools.ts",
         "module:app/workspace/_lib/jobDisplayModel.ts",
         "module:app/workspace/_lib/partnerDisplayModel.ts",
+        "module:core/auth/devReviewAccess.ts",
         "module:core/auth/session.ts",
         "module:core/navigation/resolveCapabilityAccess.ts",
         "module:core/navigation/resolveNavItems.ts"
@@ -28815,6 +28817,7 @@
       "dependents": [
         "module:app/admin/layout.tsx",
         "module:app/business-workspace-template/layout.tsx",
+        "module:app/workspace/page.tsx",
         "module:middleware.ts"
       ],
       "commands": [],
@@ -28911,6 +28914,7 @@
         "module:app/workspace/BusinessWorkspace.tsx",
         "module:app/workspace/_lib/jobDisplayModel.ts",
         "module:app/workspace/_lib/partnerDisplayModel.ts",
+        "module:app/workspace/page.tsx",
         "module:scripts/workspace-capability-access-test.ts",
         "module:scripts/workspace-job-path-test.ts",
         "module:scripts/workspace-tool-bindings-test.tsx"
@@ -52597,12 +52601,22 @@
     },
     {
       "source": "module:app/workspace/page.tsx",
+      "target": "module:app/workspace/_lib/businessTools.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/workspace/page.tsx",
       "target": "module:app/workspace/_lib/jobDisplayModel.ts",
       "type": "imports"
     },
     {
       "source": "module:app/workspace/page.tsx",
       "target": "module:app/workspace/_lib/partnerDisplayModel.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/workspace/page.tsx",
+      "target": "module:core/auth/devReviewAccess.ts",
       "type": "imports"
     },
     {
@@ -61663,7 +61677,7 @@
   ],
   "summary": {
     "total_nodes": 1680,
-    "total_edges": 4954,
+    "total_edges": 4956,
     "modules": 1281,
     "layers": 9,
     "commands": 99,

@@ -29,8 +29,9 @@ export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
   // LOCAL UI REVIEW (dev only) — ทำงานเฉพาะ path ที่อยู่ใน LOCAL_UI_REVIEW_PREFIXES
-  // (/admin/ui-gallery และ /business-workspace-template) บน loopback ใน build ที่ไม่ใช่
-  // production; คืนก่อนแตะ Supabase เลย จึงไม่กระทบเส้นทาง auth จริง และไม่พึ่ง session/credential
+  // (/admin/ui-gallery · /business-workspace-template · /workspace — owner approval
+  // 2026-09-24) บน loopback ใน build ที่ไม่ใช่ production; คืนก่อนแตะ Supabase เลย
+  // จึงไม่กระทบเส้นทาง auth จริง และไม่พึ่ง session/credential
   //
   // header ภายในถูก strip จากทุกคำขอ (รวมคำขอที่ browser ส่งมาเอง) เพื่อไม่ให้ปลอมได้
   const requestHeaders = new Headers(req.headers);
@@ -113,6 +114,11 @@ export const config = {
     "/account/:path*",
     "/workspace-preview/:path*",
     "/business-workspace-template/:path*",
+    // /workspace (owner approval 2026-09-24): middleware ต้องรันเพื่อ strip header
+    // ปลอมจากทุกคำขอ และติด LOCAL_UI_REVIEW_HEADER เฉพาะ dev+loopback เท่านั้น
+    // (ตัวหน้าเองยังกัน anonymous ด้วย getAuthedUser ใน page — ไม่ได้เพิ่ม prefix
+    // เข้า PROTECTED_PAGE_PREFIXES จึงไม่มีพฤติกรรม redirect ใหม่)
+    "/workspace",
     "/api/admin/:path*",
     "/api/document/:path*",
     "/api/action/:path*",
