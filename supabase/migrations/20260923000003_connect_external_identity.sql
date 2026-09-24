@@ -100,7 +100,10 @@ insert into public.connect_external_identities
 select
   'line',
   s.subject,
-  p.company_id,
+  -- links-only subjects (profile row ยังไม่มี/ไม่เคยมี) เคยถูกทิ้งบริษัทไว้แค่ใน
+  -- company_line_links — coalesce ตัวนี้คือ lossless fix ที่ local release proof
+  -- จับได้ (2026-09-24): ต้องเอาบริษัทจาก links มาด้วย ไม่งั้นสูญจริง
+  coalesce(p.company_id, l.company_id),
   p.display_name,
   p.role,
   p.department,
