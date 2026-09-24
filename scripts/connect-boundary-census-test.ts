@@ -29,13 +29,17 @@ import { join } from "node:path";
 const ROOT = process.cwd();
 
 // ── Baselines (วัดจาก source จริง 2026-09-24 · ตรง §12 ของ Phase-1 report) ─
+// D2 = ก (owner, 2026-09-24): หลัง P4a rewire — reconcile_receipt_payment
+// ถูกแทนที่ด้วย Connect payment-confirm bridge แล้ว ⇒ caller ต้อง = 0 และ
+// payment authority เหลือ exactly 1 (canonical payment-write) — ค่าสองตัวนี้
+// จึงเป็น invariant แล้ว ไม่ใช่เพดานอีกต่อไป
 const BASELINE = {
   DENO_BUSINESS_SITES: 26,
   DENO_BUSINESS_TABLES: 12,
   NEXT_BUSINESS_SITES: 3,
   PROVIDER_MONETARY_SITES: 7,
-  RECONCILE_RPC_CALLERS: 1,
-  PAYMENT_AUTHORITIES: 2,
+  RECONCILE_RPC_CALLERS: 0,
+  PAYMENT_AUTHORITIES: 1,
 } as const;
 
 /** ตาราง edge ของ provider เอง (§6 KEEP) — ไม่ใช่ business truth */
@@ -129,18 +133,18 @@ function main() {
     `${denoMonetary.length}/${BASELINE.PROVIDER_MONETARY_SITES}`,
   );
   check(
-    "T2b reconcile_receipt_payment callers stay within baseline (target 0 after D2)",
+    "T2b reconcile_receipt_payment callers in the provider tier = 0 (D2=ก implemented)",
     denoReconcile.length <= BASELINE.RECONCILE_RPC_CALLERS,
     `${denoReconcile.length}/${BASELINE.RECONCILE_RPC_CALLERS}`,
   );
 
-  // ── T12 payment authority (B-04 regression): canonical writer ต้องมี 1 เสมอ ──
+  // ── T12 payment authority (B-04 regression): canonical writer ต้องเป็น authority เดียว ──
   const paymentWriteSrc = readFileSync(join(ROOT, "engines/canonical/payment-write.ts"), "utf8");
   const canonicalAlive = /confirm_payment_allocation/.test(stripComments(paymentWriteSrc));
   check(
-    "T12 canonical payment-write alive + total authorities within baseline (target 1 after D2)",
+    "T12 PAYMENT_AUTHORITIES = 1 (canonical only — legacy reconcile path removed)",
     canonicalAlive && 1 + denoReconcile.length <= BASELINE.PAYMENT_AUTHORITIES,
-    `canonical=${canonicalAlive ? 1 : 0} + legacy=${denoReconcile.length} (baseline ≤ ${BASELINE.PAYMENT_AUTHORITIES})`,
+    `canonical=${canonicalAlive ? 1 : 0} + legacy=${denoReconcile.length} (baseline ${BASELINE.PAYMENT_AUTHORITIES})`,
   );
 
   // ── T4/T5: P2/P3 artifacts ต่อเข้าของเดิมจริง ──────────────────────────
@@ -174,6 +178,17 @@ function main() {
   const commented = "// await db.from('" + NC_TABLE + "').insert({ a: 1 });";
   const nc2 = scanSource(commented, "<fixture-comment>");
   check("NC1b a commented-out write is NOT counted (comment stripping is real)", nc2.writes.length === 0);
+
+  // NC2 (Phase-1 §9): a reintroduced reconcile RPC call must be caught —
+  // fixture สร้างด้วย concatenation เหมือน NC1 (กัน D0 census ของ
+  // business-event-authority นับไฟล์นี้เป็น offender)
+  const NC_RPC = "reconcile_" + "receipt_payment";
+  const ncRpc = scanSource("await client.rpc('" + NC_RPC + "', { p_receipt_id: id })", "<fixture-rpc>");
+  check(
+    "NC2 a reintroduced reconcile_receipt_payment rpc call is detected by the same scanner",
+    ncRpc.rpcs.some((r) => r.name === NC_RPC),
+    `detected ${ncRpc.rpcs.length}`,
+  );
 
   console.log(`\n${pass}/${pass + failures.length} passed`);
   if (failures.length) {

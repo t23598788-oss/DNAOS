@@ -28,6 +28,14 @@
 // reimplementing (Rule 103) — its own `for update` row lock plus the
 // `already_reconciled` check are the actual double-send guard, not
 // application-level code that could itself race.
+//
+// LINE financial-edge removal P4 (owner decision D2 = ก, 2026-09-24): the
+// call itself moved out of this provider tier again — now → Connect payment
+// bridge (_shared/connect-payment.ts) → engines/canonical/
+// receipt-confirm-flow.ts → confirmPayment (the canonical writer keeps the
+// row-lock/idempotency guarantees; this tier keeps only send/receive).
+// Same Rule 103 reasoning: no re-implementation — one sequence, two callers
+// (this automatic path + the manual confirm route).
 
 // Owner request 2026-07-24: "อยากให้มันเป็นรูปแบบเดียวกัน...การ์ด Template
 // เดียวกัน" — a real card (same bubble/box/text/separator shape as
@@ -37,6 +45,7 @@
 // identical thing.
 import { getLineChannelAccessToken } from "../../_shared/line-client.ts"
 import { sendConnectEventCommand, CONNECT_PROVIDER } from "../../_shared/connect-event.ts"
+import { sendConnectPaymentConfirm } from "../../_shared/connect-payment.ts"
 
 function paymentConfirmedFlex(opts: { companyName: string; amountPaid: number; outstandingAfter: number }): object {
   const paidOff = opts.outstandingAfter <= 0
@@ -101,24 +110,26 @@ export async function tryAutoConfirmPayment(supabase: any, input: AutoConfirmInp
   const lineToken = await getLineChannelAccessToken()
   if (!lineToken) return // can't message the customer without it — leave as Pending Review for a human
 
-  const { data: rows, error } = await supabase.rpc("reconcile_receipt_payment", {
-    p_receipt_id: input.receiptDocumentId,
-    p_actor: "system:auto-ocr",
-  })
-  if (error) return // receipt_not_reconcilable / debt_snapshot_not_found / etc — leave as Pending Review, don't guess
-  const result = rows?.[0] as {
-    new_outstanding: number
-    already_reconciled: boolean
-  } | undefined
-  if (!result) return
+  // LINE financial-edge removal P4 (owner decision D2 = ก, 2026-09-24): the
+  // money mutation no longer runs in this provider tier. It goes through the
+  // Connect payment bridge → receipt-confirm-flow → confirmPayment — the ONE
+  // canonical payment authority (B-04 guards + atomic confirm_payment_allocation)
+  // — replacing the direct reconcile_receipt_payment RPC call this file used
+  // to make (that RPC stays in the database, uncalled from here; the census
+  // gate enforces caller count = 0).
+  //
+  // Fail-closed + idempotent exactly like the legacy call it replaces:
+  //   transport/eligibility failure → return (receipt stays Pending Review,
+  //   a human handles it — same as the old `if (error) return`);
+  //   already_reconciled → return BEFORE any customer message (the owner's
+  //   own double-send guard, 2026-07-24 — now the flow's confirmed/matched/
+  //   allocations pre-check + confirm_payment_allocation's row lock).
+  const confirmed = await sendConnectPaymentConfirm(input.receiptDocumentId, "system:auto-ocr")
+  if (!confirmed.ok) return
+  if (!confirmed.data) return
+  if (confirmed.data.already_reconciled) return
 
-  // Idempotency guard (owner's own concern, 2026-07-24: same slip resent
-  // 2-3-4 times) — the RPC's row lock already made this safe at the data
-  // layer; this just avoids sending a second "payment received" message and
-  // a second receipt for the same already-processed slip.
-  if (result.already_reconciled) return
-
-  const outstandingAfter = Number(result.new_outstanding)
+  const outstandingAfter = Number(confirmed.data.new_outstanding ?? 0)
   const flex = paymentConfirmedFlex({ companyName: input.companyName, amountPaid: input.amount, outstandingAfter })
   const sent = await pushLineFlex(lineToken, input.lineUserId, "ยืนยันรับชำระเงิน", flex)
 

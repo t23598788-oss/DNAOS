@@ -17,7 +17,8 @@
 // pending receipt_documents claim (payment_advice/transfer_slip, status
 // 'ai_read') whose amount and calendar date match a real statement row,
 // complete the SAME real downstream chain as any other confirmation source
-// — reconcile_receipt_payment() (debt ledger + receipt), or the order
+// — the Connect payment-confirm chain (debt ledger + receipt, P4/D2=ก), or
+// the order
 // dispatch gate for the quote/order flow — never both silently guessed
 // blind: a day with more than one same-amount statement row is treated as
 // genuinely ambiguous and left for a human, not auto-matched to either.

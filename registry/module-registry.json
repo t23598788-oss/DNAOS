@@ -15577,6 +15577,38 @@
         "scanSource"
       ],
       "status": "active"
+    },
+    "engines/canonical/receipt-confirm-flow.ts": {
+      "owner": "engines",
+      "layer": "engines",
+      "purpose": "Canonical receipt-confirm flow — ONE sequence, TWO callers",
+      "purpose_th": "Canonical receipt-confirm flow — ONE sequence, TWO callers",
+      "exports": [
+        "ReceiptConfirmOutcome",
+        "confirmReceiptPayment"
+      ],
+      "status": "active"
+    },
+    "supabase/functions/_shared/connect-payment.ts": {
+      "owner": "supabase",
+      "layer": "supabase",
+      "purpose": "Connect payment-confirmation transport (LINE financial-edge removal P4 ·",
+      "purpose_th": "Connect payment-confirmation transport (LINE financial-edge removal P4 ·",
+      "exports": [
+        "ConnectPaymentConfirmResult",
+        "sendConnectPaymentConfirm"
+      ],
+      "status": "active"
+    },
+    "app/api/internal/connect/payment-confirm/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "POST /api/internal/connect/payment-confirm — Connect money bridge",
+      "purpose_th": "POST /api/internal/connect/payment-confirm — Connect money bridge",
+      "exports": [
+        "POST"
+      ],
+      "status": "active"
     }
   },
   "excluded": [

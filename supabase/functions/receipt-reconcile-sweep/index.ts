@@ -12,7 +12,8 @@
 // Review but has complete evidence, backfills company-matching if that's
 // the only thing missing (same company_line_links lookup every other
 // consumer uses, never a guess), then reuses the EXACT SAME reconcile path
-// (tryAutoConfirmPayment -> reconcile_receipt_payment RPC) as the inline
+// (tryAutoConfirmPayment → Connect payment-confirm bridge → confirmPayment,
+// P4/D2=ก 2026-09-24) as the inline
 // path — one reconciliation engine, two triggers (event-driven + swept),
 // not two separate implementations.
 

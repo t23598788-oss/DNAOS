@@ -2,9 +2,7 @@ import { NextResponse } from "next/server"
 import { requireAuth } from "@/core/auth/requireAuth"
 import { ADMIN_TIER } from "@/core/auth/session"
 import { supabaseAdmin as supabase } from "@/services/supabase/queries"
-import { resolvePaymentDocumentLink } from "@/engines/transactions/document-link"
-import { confirmPayment } from "@/engines/canonical/payment-write"
-import { appendDebtEvent, refreshDebtSnapshotFromLedger } from "@/engines/canonical/debt-write"
+import { confirmReceiptPayment } from "@/engines/canonical/receipt-confirm-flow"
 
 type Params = { params: Promise<{ id: string }> }
 
@@ -22,6 +20,12 @@ type Params = { params: Promise<{ id: string }> }
 // This manual route remains the path for everything else: incomplete
 // evidence, a customer_company_id that needed matching after the fact, or
 // any slip that stayed Pending Review for a human to check.
+//
+// P4 (owner decision D2 = ก, 2026-09-24): the money sequence itself moved
+// into engines/canonical/receipt-confirm-flow.ts — ONE implementation shared
+// with the Connect payment bridge (confirmPayment + penalty split + receipt
+// finalization 4 fields). This route keeps its own auth + eligibility checks
+// and maps the outcome to the exact same responses it always returned.
 export async function POST(_req: Request, { params }: Params) {
   const auth = await requireAuth(ADMIN_TIER)
   if (auth instanceof NextResponse) return auth
@@ -54,100 +58,45 @@ export async function POST(_req: Request, { params }: Params) {
     return NextResponse.json({ error: "ไม่มีจำนวนเงินที่อ่านได้จากสลิป" }, { status: 400 })
   }
 
-  const occurredAt = (doc.transaction_datetime ?? doc.document_date ?? new Date().toISOString()).slice(0, 10)
-  const amount = Number(doc.amount)
+  // เงินทั้งก้อน + receipt finalization = โฟลว์กลาง (manual/bridge ใช้ร่วมกัน —
+  // debt snapshot อ่านข้างใน · resolvePaymentDocumentLink · confirmPayment ·
+  // penalty split · finalization 4 fields)
+  const outcome = await confirmReceiptPayment({ receipt_document_id: id, actor: auth.email })
 
-  // Debt Tracking Model is the Single Source of Truth (owner, 2026-07-17/18)
-  // — read outstanding BEFORE mutating it, so resolvePaymentDocumentLink()
-  // (engines/transactions/document-link.ts) classifies full vs. partial
-  // against the real pre-payment balance, same function the preview list
-  // (../route.ts GET) already used to show this slip's preview on the UI —
-  // one classification, not two guesses.
-  const { data: snapshot } = await db
-    .from("debt_snapshots")
-    .select("total_outstanding")
-    .eq("customer_company_id", doc.customer_company_id)
-    .maybeSingle()
-  const outstandingBefore = Number(snapshot?.total_outstanding ?? 0)
-
-  const { data: company } = await db
-    .from("companies").select("name").eq("id", doc.customer_company_id).maybeSingle()
-
-  const link = resolvePaymentDocumentLink({
-    amount,
-    transactionOutstanding: outstandingBefore,
-    transactionId: doc.customer_company_id,
-    partnerName: company?.name ?? undefined,
-    reference: doc.reference_number ?? undefined,
-  })
-
-  // PHASE D4/D9 — the ledger + allocation + projection writes now go through the
-  // canonical payment service. The legacy pointer receipt_documents.matched_debt_event_id
-  // is still written for compatibility, but the TRUTH is the allocation row.
-  const principalPortion = Math.min(amount, outstandingBefore)
-  const interestPenaltyPortion = Math.round((amount - principalPortion) * 100) / 100
-
-  let canonical: Awaited<ReturnType<typeof confirmPayment>> | null = null
-  try {
-    canonical = await confirmPayment({
-      receipt_document_id: id,
-      allocations: [
-        {
-          target: { kind: "anchor" },
-          allocation_kind: "principal",
-          amount: principalPortion,
-          note: link.document.note ?? null,
-        },
-        ...(interestPenaltyPortion > 0
-          ? [
-              {
-                target: { kind: "anchor" as const },
-                allocation_kind: "penalty" as const,
-                amount: interestPenaltyPortion,
-                note: `ดอกเบี้ย/ค่าปรับที่ได้รับพร้อมเงินต้น (สลิป ${doc.reference_number ?? id})`,
-              },
-            ]
-          : []),
-      ],
-      actor: auth.email,
-      debt_event_anchor: {
-        event_type: "receipt_received",
-        amount: principalPortion,
-        note: link.document.note ?? null,
-      },
-    })
-  } catch (e: unknown) {
-    const message = e instanceof Error ? e.message : "ยืนยันการชำระไม่สำเร็จ"
-    return NextResponse.json({ error: message }, { status: message.startsWith("PAYMENT_") ? 409 : 500 })
+  if (outcome.already_reconciled) {
+    return NextResponse.json(
+      { error: `เอกสารนี้ถูกดำเนินการไปแล้ว (สถานะ: ${outcome.receipt_status ?? "confirmed"})` },
+      { status: 400 },
+    )
   }
-
-  // split of the real deposit: principal vs interest/penalty (same money, honestly attributed)
-  if (interestPenaltyPortion > 0) {
-    await appendDebtEvent({
-      customer_company_id: String(doc.customer_company_id),
-      event_type: "interest_penalty_received",
-      amount: interestPenaltyPortion,
-      occurred_at: occurredAt,
-      note: `ดอกเบี้ย/ค่าปรับที่ได้รับพร้อมเงินต้น (สลิป ${doc.reference_number ?? id}, ยอดรวมที่โอนมาจริง ${amount.toLocaleString("th-TH")} บาท)`,
-      source: "line_chat",
-      actor: auth.email,
-      evidence: { receipt_document_id: id },
-    })
-    await refreshDebtSnapshotFromLedger(String(doc.customer_company_id), auth.email)
+  if (!outcome.ok) {
+    const message = outcome.error ?? "ยืนยันการชำระไม่สำเร็จ"
+    if (message === "RECEIPT_NOT_FOUND") return NextResponse.json({ error: "ไม่พบเอกสาร" }, { status: 404 })
+    if (message === "RECEIPT_WRONG_TYPE") {
+      return NextResponse.json({ error: "ยืนยันได้เฉพาะสลิปโอนเงินหรือ Payment Advice เท่านั้น" }, { status: 400 })
+    }
+    if (message === "RECEIPT_NO_COMPANY") {
+      return NextResponse.json({ error: "ยังไม่จับคู่บริษัทลูกค้า — ไม่สามารถหักยอดหนี้ได้" }, { status: 400 })
+    }
+    if (message === "RECEIPT_NO_AMOUNT") {
+      return NextResponse.json({ error: "ไม่มีจำนวนเงินที่อ่านได้จากสลิป" }, { status: 400 })
+    }
+    if (message === "RECEIPT_NOT_ELIGIBLE") {
+      return NextResponse.json(
+        { error: `เอกสารนี้ถูกดำเนินการไปแล้ว (สถานะ: ${outcome.receipt_status ?? "unknown"})` },
+        { status: 400 },
+      )
+    }
+    const isPaymentClass = message.startsWith("PAYMENT_") || message === "DEBT_SNAPSHOT_NOT_FOUND"
+    return NextResponse.json({ error: message }, { status: isPaymentClass ? 409 : 500 })
   }
-
-  // legacy compat pointer + human confirmation evidence (the truth stays in payment_allocations)
-  await db
-    .from("receipt_documents")
-    .update({ matched_debt_event_id: canonical.debt_event_id, confirmed_by: auth.email })
-    .eq("id", id)
 
   return NextResponse.json({
     ok: true,
-    debt_event_id: canonical.debt_event_id,
-    amount_deducted: amount,
-    payment_kind: link.kind,
-    document: link.document,
-    canonical,
+    debt_event_id: outcome.debt_event_id,
+    amount_deducted: Number(doc.amount),
+    payment_kind: outcome.payment_kind,
+    document: outcome.document,
+    canonical: outcome.canonical,
   })
 }

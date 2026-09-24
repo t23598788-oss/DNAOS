@@ -44,8 +44,9 @@ export async function processClassifiedImage(
   // truck dispatched for free. Neither existing safeguard catches this: the
   // ±5-baht amount match above only checks the number matches, not whether
   // this exact transaction already paid for something else; and
-  // reconcile_receipt_payment()'s idempotency check (auto-confirm-payment.ts)
-  // only guards against reprocessing the SAME receipt_documents row twice,
+  // the payment-confirm idempotency check (auto-confirm-payment.ts →
+  // receipt-confirm-flow, P4/D2=ก) only guards against reprocessing the SAME
+  // receipt_documents row twice,
   // not a different row carrying the same real bank reference_number. This
   // closes that gap: if this reference_number was already used on a
   // CONFIRMED payment before, no auto-confirm path may fire, no matter what

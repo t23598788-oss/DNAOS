@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-24T01:23:18.451Z",
+  "generated_at": "2026-09-24T05:00:37.431Z",
   "nodes": [
     {
       "id": "layer:core",
@@ -3471,9 +3471,9 @@
         "module:engines/transactions/workflows.ts"
       ],
       "dependents": [
-        "module:app/api/admin/receipt-documents/[id]/confirm/route.ts",
         "module:app/api/admin/receipt-documents/route.ts",
-        "module:components/documents/DocumentBuilder.tsx"
+        "module:components/documents/DocumentBuilder.tsx",
+        "module:engines/canonical/receipt-confirm-flow.ts"
       ],
       "commands": [],
       "events": [],
@@ -4723,6 +4723,7 @@
         "module:engines/canonical/document-write.ts",
         "module:engines/canonical/inbound-write.ts",
         "module:engines/canonical/payment-write.ts",
+        "module:engines/canonical/receipt-confirm-flow.ts",
         "module:engines/canonical/transaction-write.ts",
         "module:engines/capacity.ts",
         "module:engines/cost.ts",
@@ -12284,9 +12285,7 @@
       "dependencies": [
         "module:core/auth/requireAuth.ts",
         "module:core/auth/session.ts",
-        "module:engines/canonical/debt-write.ts",
-        "module:engines/canonical/payment-write.ts",
-        "module:engines/transactions/document-link.ts",
+        "module:engines/canonical/receipt-confirm-flow.ts",
         "module:services/supabase/queries.ts"
       ],
       "dependents": [],
@@ -12527,6 +12526,7 @@
       "provider": "UNKNOWN",
       "dependencies": [
         "module:supabase/functions/_shared/connect-event.ts",
+        "module:supabase/functions/_shared/connect-payment.ts",
         "module:supabase/functions/_shared/line-client.ts"
       ],
       "dependents": [
@@ -27234,7 +27234,7 @@
         "module:services/supabase/queries.ts"
       ],
       "dependents": [
-        "module:app/api/admin/receipt-documents/[id]/confirm/route.ts",
+        "module:engines/canonical/receipt-confirm-flow.ts",
         "module:gateway/actions.ts",
         "module:scripts/canonical-payment-invariant-test.ts",
         "module:scripts/canonical-phase-d-acceptance-test.ts",
@@ -27261,7 +27261,7 @@
       ],
       "dependents": [
         "module:app/api/admin/debt-trackings/[id]/events/route.ts",
-        "module:app/api/admin/receipt-documents/[id]/confirm/route.ts",
+        "module:engines/canonical/receipt-confirm-flow.ts",
         "module:scripts/canonical-phase-d-acceptance-test.ts"
       ],
       "commands": [],
@@ -30272,6 +30272,69 @@
       "runtime_callable": true,
       "provider": "UNKNOWN",
       "dependencies": [],
+      "dependents": [],
+      "commands": [],
+      "events": [],
+      "capabilities": [],
+      "health": "OK",
+      "cost_source": "UNKNOWN"
+    },
+    {
+      "id": "module:engines/canonical/receipt-confirm-flow.ts",
+      "name": "engines/canonical/receipt-confirm-flow.ts",
+      "type": "Module",
+      "layer": "engines",
+      "source_file": "engines/canonical/receipt-confirm-flow.ts",
+      "status": "OK",
+      "runtime_callable": false,
+      "provider": "UNKNOWN",
+      "dependencies": [
+        "module:engines/canonical/debt-write.ts",
+        "module:engines/canonical/payment-write.ts",
+        "module:engines/transactions/document-link.ts",
+        "module:services/supabase/queries.ts"
+      ],
+      "dependents": [
+        "module:app/api/admin/receipt-documents/[id]/confirm/route.ts",
+        "module:app/api/internal/connect/payment-confirm/route.ts"
+      ],
+      "commands": [],
+      "events": [],
+      "capabilities": [],
+      "health": "OK",
+      "cost_source": "UNKNOWN"
+    },
+    {
+      "id": "module:supabase/functions/_shared/connect-payment.ts",
+      "name": "supabase/functions/_shared/connect-payment.ts",
+      "type": "Module",
+      "layer": "supabase",
+      "source_file": "supabase/functions/_shared/connect-payment.ts",
+      "status": "OK",
+      "runtime_callable": false,
+      "provider": "UNKNOWN",
+      "dependencies": [],
+      "dependents": [
+        "module:supabase/functions/line-webhook-v2/engines/auto-confirm-payment.ts"
+      ],
+      "commands": [],
+      "events": [],
+      "capabilities": [],
+      "health": "OK",
+      "cost_source": "UNKNOWN"
+    },
+    {
+      "id": "module:app/api/internal/connect/payment-confirm/route.ts",
+      "name": "app/api/internal/connect/payment-confirm/route.ts",
+      "type": "Module",
+      "layer": "app",
+      "source_file": "app/api/internal/connect/payment-confirm/route.ts",
+      "status": "OK",
+      "runtime_callable": true,
+      "provider": "UNKNOWN",
+      "dependencies": [
+        "module:engines/canonical/receipt-confirm-flow.ts"
+      ],
       "dependents": [],
       "commands": [],
       "events": [],
@@ -39378,6 +39441,11 @@
     },
     {
       "source": "layer:app",
+      "target": "module:app/api/internal/connect/payment-confirm/route.ts",
+      "type": "governed_by"
+    },
+    {
+      "source": "layer:app",
       "target": "module:app/api/internal/equipment/lock-command/route.ts",
       "type": "governed_by"
     },
@@ -40619,6 +40687,11 @@
     {
       "source": "layer:engines",
       "target": "module:engines/canonical/payment-write.ts",
+      "type": "governed_by"
+    },
+    {
+      "source": "layer:engines",
+      "target": "module:engines/canonical/receipt-confirm-flow.ts",
       "type": "governed_by"
     },
     {
@@ -42939,6 +43012,11 @@
     {
       "source": "layer:supabase",
       "target": "module:supabase/functions/_shared/connect-identity.ts",
+      "type": "governed_by"
+    },
+    {
+      "source": "layer:supabase",
+      "target": "module:supabase/functions/_shared/connect-payment.ts",
       "type": "governed_by"
     },
     {
@@ -50393,17 +50471,7 @@
     },
     {
       "source": "module:app/api/admin/receipt-documents/[id]/confirm/route.ts",
-      "target": "module:engines/canonical/debt-write.ts",
-      "type": "imports"
-    },
-    {
-      "source": "module:app/api/admin/receipt-documents/[id]/confirm/route.ts",
-      "target": "module:engines/canonical/payment-write.ts",
-      "type": "imports"
-    },
-    {
-      "source": "module:app/api/admin/receipt-documents/[id]/confirm/route.ts",
-      "target": "module:engines/transactions/document-link.ts",
+      "target": "module:engines/canonical/receipt-confirm-flow.ts",
       "type": "imports"
     },
     {
@@ -51339,6 +51407,11 @@
     {
       "source": "module:app/api/internal/connect/event/route.ts",
       "target": "module:services/supabase/queries.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/api/internal/connect/payment-confirm/route.ts",
+      "target": "module:engines/canonical/receipt-confirm-flow.ts",
       "type": "imports"
     },
     {
@@ -54708,6 +54781,26 @@
     },
     {
       "source": "module:engines/canonical/payment-write.ts",
+      "target": "module:services/supabase/queries.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:engines/canonical/receipt-confirm-flow.ts",
+      "target": "module:engines/canonical/debt-write.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:engines/canonical/receipt-confirm-flow.ts",
+      "target": "module:engines/canonical/payment-write.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:engines/canonical/receipt-confirm-flow.ts",
+      "target": "module:engines/transactions/document-link.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:engines/canonical/receipt-confirm-flow.ts",
       "target": "module:services/supabase/queries.ts",
       "type": "imports"
     },
@@ -59643,6 +59736,11 @@
     },
     {
       "source": "module:supabase/functions/line-webhook-v2/engines/auto-confirm-payment.ts",
+      "target": "module:supabase/functions/_shared/connect-payment.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:supabase/functions/line-webhook-v2/engines/auto-confirm-payment.ts",
       "target": "module:supabase/functions/_shared/line-client.ts",
       "type": "imports"
     },
@@ -61698,9 +61796,9 @@
     }
   ],
   "summary": {
-    "total_nodes": 1681,
-    "total_edges": 4957,
-    "modules": 1282,
+    "total_nodes": 1684,
+    "total_edges": 4964,
+    "modules": 1285,
     "layers": 9,
     "commands": 99,
     "events": 60,
@@ -61709,8 +61807,8 @@
     "drivers": 11,
     "connector_stages": 5,
     "module_health": {
-      "total": 1282,
-      "ok": 1282,
+      "total": 1285,
+      "ok": 1285,
       "broken": 0,
       "unused": 0,
       "unregistered": 0
@@ -61724,7 +61822,7 @@
     "unknown_field_counts": {
       "nodes_with_unknown_source_file": 82,
       "nodes_with_unknown_status": 159,
-      "nodes_with_unknown_provider": 1657
+      "nodes_with_unknown_provider": 1660
     },
     "unknown_dimensions": [
       "ai_model_registry",
