@@ -101,6 +101,13 @@ const RAIL_ITEMS: IconRailItem[] = [
   { key: "pits", label: "บ่อวัสดุ", icon: Mountain, href: "/admin/pits" },
 ]
 
+// P5 display split (owner display-first directive, 2026-09-24): แยกโซนปุ่มเป็น
+// "งานธุรกิจ" (เอกสาร/ข้อมูล/พิกัด — ข้อมูลที่อ่าน/สร้างฝั่งธุรกิจ) กับ
+// "การสื่อสาร" (แนบไฟล์/ถาม AI — เส้นทางไปถึงลูกค้าผ่านผู้ให้บริการ LINE)
+// จัดกลุ่มเพื่อแสดงผลเท่านั้น — ไม่มีการย้าย fetch, เปลี่ยน route, หรือแตะ
+// backend เส้นเดิม (Owner: "เส้นเดิมทางข้อความ รูป แชต การส่งข้อมูลอย่างเดิม")
+const BUSINESS_ACTION_KEYS = new Set(["gps", "quotation", "invoice", "delivery", "receipt", "call", "boq", "billing"])
+
 function fmtTime(d: string) {
   return new Date(d).toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit" })
 }
@@ -482,6 +489,12 @@ export default function LineCustomersPage() {
     item.key === "pits" && pendingQuotesCount > 0 ? { ...item, badge: pendingQuotesCount } : item
   )
 
+  // P5 display split — แยกปุ่มเป็น 2 โซน (display-only: ปุ่ม/onClick/route เดิมทุกตัว)
+  // · งานธุรกิจ = เอกสาร/ข้อมูล/พิกัด (รวม overflow BOQ/ใบวางบิล)
+  // · การสื่อสาร = เส้นทางถึงลูกค้าผ่านผู้ให้บริการ LINE (แนบไฟล์/ถาม AI)
+  const businessActionItems = actionBarItems.filter((a) => BUSINESS_ACTION_KEYS.has(a.key))
+  const communicationActionItems = actionBarItems.filter((a) => !BUSINESS_ACTION_KEYS.has(a.key))
+
   return (
     <AppShell
       railItems={railItems}
@@ -536,7 +549,7 @@ export default function LineCustomersPage() {
           {/* Pending drafts — Rule 72 approval banner */}
           {pendingDrafts.length > 0 && (
             <div className="px-4 py-3 bg-rose-50 border-b border-rose-100 flex-shrink-0 space-y-2">
-              <div className="text-xs font-bold text-rose-600">📤 ข้อความรอเฮียอนุมัติก่อนส่ง ({pendingDrafts.length})</div>
+              <div className="text-xs font-bold text-rose-600">📤 ข้อความรอเฮียอนุมัติก่อนส่ง ({pendingDrafts.length}) · เส้นทาง LINE</div>
               {draftError && <div className="text-xs text-rose-600 bg-white border border-rose-200 rounded-lg px-3 py-2">{draftError}</div>}
               {pendingDrafts.map((d) => (
                 <div key={d.id} className="bg-white border border-rose-200 rounded-lg p-3">
@@ -611,6 +624,10 @@ export default function LineCustomersPage() {
 
           {/* พิมพ์ตอบลูกค้าโดยตรง — ข้อความจริงส่งเข้า LINE จริง ไม่ใช่ ephemeral */}
           <div className="border-t border-stone-200 bg-white flex-shrink-0 p-2.5">
+            {/* P5 display: ป้ายโซนบอกว่านี่คือ provider control — เส้นส่งเดิมไม่เคยเปลี่ยน */}
+            <div className="text-[10px] font-bold text-stone-400 uppercase tracking-wide mb-1.5">
+              ส่งข้อความถึงลูกค้า · LINE
+            </div>
             {replyError && <div className="text-[11px] text-rose-600 bg-rose-50 border border-rose-200 rounded-lg px-2.5 py-1.5 mb-2">{replyError}</div>}
             <div className="flex items-center gap-2">
               <input
@@ -666,9 +683,23 @@ export default function LineCustomersPage() {
             </div>
           )}
 
-          {/* Action Bar — ซ่อน Events/Documents/Transactions ไว้เบื้องหลังปุ่ม */}
-          {actionBarItems.length > 0 && (
-            <ActionBar actions={actionBarItems} overflowActions={overflowActions} />
+          {/* Action Bar — P5 display split: 2 โซน label ชัดเจน · ปุ่ม/ป backend เดิมทุกตัว
+              โซน 1 = งานธุรกิจ (เอกสาร/ข้อมูล) · โซน 2 = การสื่อสารถึงลูกค้าผ่าน LINE */}
+          {businessActionItems.length > 0 && (
+            <>
+              <div className="px-3 pt-2 text-[10px] font-bold text-stone-400 uppercase tracking-wide bg-white flex-shrink-0">
+                งานธุรกิจ · เอกสารและข้อมูล
+              </div>
+              <ActionBar actions={businessActionItems} overflowActions={overflowActions} />
+            </>
+          )}
+          {communicationActionItems.length > 0 && (
+            <>
+              <div className="px-3 pt-2 text-[10px] font-bold text-stone-400 uppercase tracking-wide bg-white flex-shrink-0 border-t border-stone-100">
+                การสื่อสารกับลูกค้า · ผ่าน LINE
+              </div>
+              <ActionBar actions={communicationActionItems} />
+            </>
           )}
           <input
             ref={fileInputRef}
