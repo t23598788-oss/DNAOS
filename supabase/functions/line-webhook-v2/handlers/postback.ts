@@ -120,6 +120,9 @@ export async function handlePostback(ctx: HandlerContext): Promise<void> {
   // real payment confirmation trigger is still the owner's own slip photo
   // (handlers/image.ts, matchOwnerSlipToPartnerPayable) — this button only
   // records that the owner has seen and accepted the request.
+  // TEMPORARY (D3 = ข, owner 2026-09-24): this direct payable update stays
+  // until the canonical expense writer lands — expiry enforced by
+  // D3_TEMPORARY_EXPIRES in scripts/connect-boundary-census-test.ts.
   if (action === "OWNER_PAYABLE_ACK") {
     await ctx.supabase
       .from("partner_payable_requests")

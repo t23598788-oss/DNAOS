@@ -9,7 +9,7 @@
  *   BUSINESS_EVENTS_WRITES  = 0    (P3 cutover — invariant ถาวร ห้ามกลับ)
  *   DENO_BUSINESS_SITES     ≤ 26   (12 ตาราง — ลดตาม P4/P6 ห้ามเพิ่ม)
  *   NEXT_BUSINESS_SITES     ≤ 3    (live_commands + receipt_documents)
- *   PROVIDER_MONETARY_SITES ≤ 7    (→ 0 หลัง P4/D2-D3)
+ *   PROVIDER_MONETARY_SITES ≤ 7    (D3=ข temporary window — หมดอายุ 2026-10-24)
  *   RECONCILE_RPC_CALLERS   ≤ 1    (→ 0 หลัง D2)
  *   PAYMENT_AUTHORITIES     ≤ 2    (canonical ต้องมี 1 เสมอ · target 1 หลัง D2)
  *
@@ -39,10 +39,18 @@ const BASELINE = {
   DENO_BUSINESS_SITES: 24,
   DENO_BUSINESS_TABLES: 12,
   NEXT_BUSINESS_SITES: 3,
+  // D3 = ข (owner, 2026-09-24): ค่าใช้จ่าย/เจ้าหนี้ของ LINE ยังเขียนตรง
+  // ชั่วคราว — canonical expense writer เป็นคนละงาน ( deferred ตาม D3) ·
+  // baseline คง7 จนกว่างานนั้นจะลดมันจริง
   PROVIDER_MONETARY_SITES: 7,
   RECONCILE_RPC_CALLERS: 0,
   PAYMENT_AUTHORITIES: 1,
 } as const;
+
+/** D3=ข temporary window — วันหมดอายุของสิทธิ์เขียนเงินชั่วคราว (owner 2026-09-24).
+ * หลังวันนี้ T2a จะ block ทุก commit จนกว่า monetary sites จะลดลงจริง หรือ
+ * Owner ขยายเวลาโดยแก้วันที่นี้อย่างเห็นได้ชัดใน git (ห้ามปล่อยผ่านเงียบ ๆ) */
+const D3_TEMPORARY_EXPIRES = "2026-10-24";
 
 /** ตาราง edge ของ provider เอง (§6 KEEP) — ไม่ใช่ business truth */
 const EDGE_TABLES = new Set([
@@ -129,10 +137,18 @@ function main() {
   );
 
   // ── เสาการเงิน: P4 (D2/D3) ยังไม่ตัดสิน — ล็อกไม่ให้เพิ่ม ลดเมื่อปิดเส้น ──
+  // ── เสาการเงิน: D3=ข (owner 2026-09-24) เลือกแยกงาน expense canonical —
+  //    หน้าต่างชั่วคราวมีวันหมดอายุจริง: หลัง D3_TEMPORARY_EXPIRES ต้องมี
+  //    ความคืบหน้า (sites < baseline) ไม่งั้น block — ห้ามผ่านเงียบ ๆ ────
+  const d3Expired = new Date().toISOString().slice(0, 10) > D3_TEMPORARY_EXPIRES;
   check(
-    "T2a PROVIDER monetary write sites stay within baseline (target 0 after P4/D2-D3)",
-    denoMonetary.length <= BASELINE.PROVIDER_MONETARY_SITES,
-    `${denoMonetary.length}/${BASELINE.PROVIDER_MONETARY_SITES}`,
+    d3Expired
+      ? `T2a D3 temporary window EXPIRED (${D3_TEMPORARY_EXPIRES}) — land the canonical expense writer or record an Owner-approved extension of D3_TEMPORARY_EXPIRES`
+      : "T2a PROVIDER monetary write sites within D3=ข temporary baseline",
+    d3Expired
+      ? denoMonetary.length < BASELINE.PROVIDER_MONETARY_SITES
+      : denoMonetary.length <= BASELINE.PROVIDER_MONETARY_SITES,
+    `${denoMonetary.length}/${BASELINE.PROVIDER_MONETARY_SITES}${d3Expired ? " · WINDOW EXPIRED" : ` · window until ${D3_TEMPORARY_EXPIRES}`}`,
   );
   check(
     "T2b reconcile_receipt_payment callers in the provider tier = 0 (D2=ก implemented)",

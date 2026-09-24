@@ -44,6 +44,14 @@ export async function alertOwnerAnomaly(supabase: any, text: string): Promise<vo
 // owner's own slip photo sent afterward in this same chat (see
 // handlers/image.ts), not this button; the button only records that the
 // owner has seen and accepted the request.
+//
+// TEMPORARY (D3 = ข, owner 2026-09-24): the three monetary writes in this
+// file (partner_payable_requests insert/update + company_expenses insert)
+// deliberately stay DIRECT for now — the canonical expense writer is a
+// separate deferred task with an expiry the census enforces
+// (D3_TEMPORARY_EXPIRES in scripts/connect-boundary-census-test.ts — after
+// that date every commit blocks until the sites shrink or Owner extends the
+// window explicitly in git). Do not add new direct money writes here.
 export async function requestPartnerPayableApproval(
   supabase: any,
   params: { partnerCompanyId: string | null; partnerName: string; partnerLineUserId: string | null; amount: number; description: string | null; businessEventId: string | null },

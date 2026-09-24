@@ -198,6 +198,9 @@ export async function processClassifiedImage(
   // two exact roles, still requires verified trust — a customer/supplier/
   // driver role can never reach this regardless of what the AI classifies.
   const INTERNAL_EXPENSE_ROLES = new Set(["owner", "manager"])
+  // TEMPORARY (D3 = ข, owner 2026-09-24): this direct company_expenses insert
+  // stays as-is until the canonical expense writer lands — expiry enforced by
+  // D3_TEMPORARY_EXPIRES in scripts/connect-boundary-census-test.ts.
   if (classified && EXPENSE_DOCUMENT_TYPES.has(classified.document_type) && userId && insertedDoc) {
     const { data: profile } = await supabase
       .from("line_profiles").select("display_name, role, trust_level").eq("line_user_id", userId).maybeSingle()
