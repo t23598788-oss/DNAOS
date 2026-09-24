@@ -15632,6 +15632,19 @@
         "POST"
       ],
       "status": "active"
+    },
+    "app/workspace/_lib/connectDisplayModel.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "BUSINESS WORKSPACE — Connect capabilities → BusinessDisplayModel",
+      "purpose_th": "BUSINESS WORKSPACE — Connect capabilities → BusinessDisplayModel",
+      "exports": [
+        "CONNECT_TABLE_TARGET_ID",
+        "buildConnectListModel",
+        "buildConnectTargets",
+        "loadConnectWorkspace"
+      ],
+      "status": "active"
     }
   },
   "excluded": [

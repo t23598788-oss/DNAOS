@@ -7,6 +7,7 @@ import { resolveNavItems } from "@/core/navigation/resolveNavItems";
 import { BusinessWorkspace } from "./BusinessWorkspace";
 import { TOOLS } from "./_lib/businessTools";
 import { loadPartnerWorkspace } from "./_lib/partnerDisplayModel";
+import { loadConnectWorkspace } from "./_lib/connectDisplayModel";
 import { loadJobWorkspace } from "./_lib/jobDisplayModel";
 
 // BUSINESS WORKSPACE — หน้าจอใช้งานจริงเพียงหน้าจอเดียวของ DNA OS (owner, 2026-09-22)
@@ -66,11 +67,14 @@ export default async function WorkspacePage() {
   const allowedTools = resolveAllowedCapabilities(user.role);
   const canReadPartners = allowedTools.includes("people");
   const canReadJobs = allowedTools.includes("jobs");
+  const canReadConnections = allowedTools.includes("connections");
 
   // อ่านข้อมูลจริงเฉพาะเมื่อ registry อนุญาต tool นั้น (ไม่มีการอ่านเผื่อ)
-  const [partners, jobs] = await Promise.all([
+  const [partners, jobs, connect] = await Promise.all([
     canReadPartners ? loadPartnerWorkspace() : Promise.resolve(null),
     canReadJobs ? loadJobWorkspace() : Promise.resolve(null),
+    // contract facts เท่านั้น (registry ใน process · ไม่มี DB/health claim)
+    canReadConnections ? loadConnectWorkspace() : Promise.resolve(null),
   ]);
 
   console.log("[TRACE-WORKSPACE]", {
@@ -78,6 +82,7 @@ export default async function WorkspacePage() {
     allowedTools: allowedTools.length,
     partnerRows: partners?.rowCount ?? 0,
     jobRows: jobs?.rowCount ?? 0,
+    connectProviders: connect?.rowCount ?? 0,
   });
 
   return (
@@ -87,8 +92,13 @@ export default async function WorkspacePage() {
       liveModels={{
         ...(partners ? { people: partners.listModel } : {}),
         ...(jobs ? { jobs: jobs.listModel } : {}),
+        ...(connect ? { connections: connect.listModel } : {}),
       }}
-      liveTargets={{ ...(partners?.targets ?? {}), ...(jobs?.targets ?? {}) }}
+      liveTargets={{
+        ...(partners?.targets ?? {}),
+        ...(jobs?.targets ?? {}),
+        ...(connect?.targets ?? {}),
+      }}
     />
   );
 }
