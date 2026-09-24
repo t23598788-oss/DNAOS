@@ -66,6 +66,23 @@ export async function getConnectorById(id: string): Promise<ConnectorRecord | nu
   return data as ConnectorRecord;
 }
 
+/**
+ * Find the single Connector that DECLARES this provider (config.provider — the
+ * declared Connect Core provider identity, 2026-09-20). Read-only lookup for
+ * the Provider Credentials routes so Guard A of the Connector Lifecycle Law
+ * holds: those routes never touch the connectors table themselves — every
+ * read/write goes through this module.
+ */
+export async function findConnectorIdByProvider(providerId: string): Promise<string | null> {
+  const { data, error } = await supabaseAdmin()
+    .from("connectors")
+    .select("id")
+    .filter("config->>provider", "eq", providerId)
+    .limit(1);
+  if (error) return null;
+  return (data?.[0] as { id: string } | undefined)?.id ?? null;
+}
+
 export async function createConnector(input: CreateConnectorInput): Promise<ConnectorRecord> {
   const slug = slugify(input.name);
   const config: Record<string, unknown> = { ...(input.config ?? {}) };

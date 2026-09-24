@@ -93,13 +93,19 @@ export async function listConnectorsByAuthType(db: SupabaseClient, authType: Con
 // ── Lifecycle Audit Log — บันทึกลง audit_logs จริง (ไม่ใช่ in-memory) ──────────
 
 export type ConnectorLifecycleAction =
-  | "register" | "test_passed" | "test_failed" | "enabled" | "disabled" | "run" | "run_rejected";
+  | "register" | "test_passed" | "test_failed" | "enabled" | "disabled" | "run" | "run_rejected"
+  // Provider Credentials UI (Connections & Credentials, 2026-09-24): the
+  // credential-mutation actions. Every secret write/rotate and every
+  // disconnect MUST land in audit_logs through this one function —
+  // actor_user_id is the authenticated user that pressed the button
+  // (audit_logs has actor_user_id uuid, not a text actor column).
+  | "secret_saved" | "rotated" | "rotate_failed" | "disconnected";
 
 export async function logConnectorLifecycleEvent(
   db: SupabaseClient,
   connectorId: string,
   action: ConnectorLifecycleAction,
-  detail: { oldValue?: string | null; newValue?: string | null; note?: string } = {}
+  detail: { oldValue?: string | null; newValue?: string | null; note?: string; actorUserId?: string | null } = {}
 ): Promise<void> {
   const { error } = await db.from("audit_logs").insert({
     entity_type: "connector",
@@ -108,6 +114,7 @@ export async function logConnectorLifecycleEvent(
     field: detail.note ?? null,
     old_value: detail.oldValue ?? null,
     new_value: detail.newValue ?? null,
+    actor_user_id: detail.actorUserId ?? null,
   });
   // การ log ล้มเหลวต้องไม่ทำให้ระบบหลักพัง — แค่แจ้งเตือนใน console
   if (error) console.error(`[connector-lifecycle] audit log failed for ${connectorId}/${action}:`, error.message);

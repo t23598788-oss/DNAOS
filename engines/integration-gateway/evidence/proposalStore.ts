@@ -93,3 +93,24 @@ export async function decideProposal(
   if (error || !data) return { ok: false, error: error?.message ?? "proposal not found or already decided" };
   return { ok: true, proposal: data as GatewayProposal };
 }
+
+/**
+ * Latest proposal per connector mutation capability (rotate / disconnect) for
+ * one provider, any status — the read the Provider Credentials UI and the
+ * destructive-mutation gates use. Same table, same decision route
+ * (POST /api/gateway/proposals/[id]/decide), never a second approval store.
+ * "latest wins": an approved request stands until a newer decision replaces
+ * it (mirrors Connect approval's getLatestProposal semantics).
+ */
+export async function listConnectorMutationProposals(
+  db: SupabaseClient,
+  limit = 100
+): Promise<GatewayProposal[]> {
+  const { data } = await db
+    .from("integration_gateway_proposals")
+    .select("*")
+    .or("capability.eq.connector.rotate.requested,capability.eq.connector.disconnect.requested")
+    .order("proposed_at", { ascending: false })
+    .limit(limit);
+  return (data ?? []) as GatewayProposal[];
+}

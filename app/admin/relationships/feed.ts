@@ -120,7 +120,9 @@ export interface BizEvent {
 // returned, no fabricated defaults.
 export interface Receipt {
   id: string
-  line_event_id: string
+  // nullable since migration 20260725000001 — receipts from non-LINE channels
+  // (admin upload / email / bank / drive) have no LINE message to key to.
+  line_event_id: string | null
   media_url: string | null // signed fresh per request, same pattern as Message.media_url
   document_type: "receipt" | "tax_invoice" | "invoice" | "fuel_bill" | "transfer_slip" | "weight_slip" | "other"
   vendor_name: string | null
@@ -247,16 +249,31 @@ export function buildFeed(detail: RelationshipDetail | null, actionLog: ActionLo
   // content. The original image is still one click away via the card
   // itself, never discarded (Human Reality Timeline).
   const receiptByLineEventId = new Map((detail?.receipts ?? []).map((r) => [r.line_event_id, r]))
+  const attachedReceiptIds = new Set<string>()
 
   for (const m of detail?.messages ?? []) {
     const receipt = receiptByLineEventId.get(m.id)
     if (receipt) {
       const template = resolvePresentationTemplate({ source_kind: "receipt", source_id: receipt.id })
       items.push({ source_type: "receipt", id: `receipt-${receipt.id}`, timestamp: m.created_at, ...presentation(template), receipt })
+      attachedReceiptIds.add(receipt.id)
       continue
     }
     const template = resolvePresentationTemplate({ source_kind: "message", source_id: m.id })
     items.push({ source_type: "message", id: `msg-${m.id}`, timestamp: m.created_at, ...presentation(template), message: m })
+  }
+
+  // E2E image-upload→OCR connection: a receipt from a NON-LINE channel
+  // (line_event_id = null) is keyed to the company, not to any message above,
+  // so the loop never attaches it and it would be silently dropped. Render it
+  // as its own receipt.timeline-card (same existing renderer + label map) in
+  // the chronology by its created_at, so upload-channel receipts actually
+  // appear on the relationship feed. Deduped by id against attached receipts,
+  // and by uniqueResolvedTemplates()' template_key downstream.
+  for (const r of detail?.receipts ?? []) {
+    if (attachedReceiptIds.has(r.id)) continue
+    const template = resolvePresentationTemplate({ source_kind: "receipt", source_id: r.id })
+    items.push({ source_type: "receipt", id: `receipt-${r.id}`, timestamp: r.created_at, ...presentation(template), receipt: r })
   }
   for (const e of actionLog) {
     const template = resolvePresentationTemplate({ source_kind: "action_log", source_id: e.id })

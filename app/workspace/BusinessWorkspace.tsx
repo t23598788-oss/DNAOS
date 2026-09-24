@@ -28,6 +28,7 @@ import { ChevronLeft, ChevronRight, Settings } from "lucide-react";
 import { TOOL_BINDINGS, orderGrantedTools } from "./_lib/toolBindings";
 import { WORKSPACE_APPEARANCE, type WorkspaceAppearance } from "./_lib/workspaceAppearance";
 import { WorkspaceSettings } from "./WorkspaceSettings";
+import InboxIndicator from "./InboxIndicator";
 
 const LEFT_MIN = 200;
 const LEFT_MAX = 560;
@@ -95,6 +96,10 @@ export function BusinessWorkspace({
       {screen === "settings" && canManageSettings ? (
         <WorkspaceSettings columns={appearance.settingsColumns} onBack={() => setScreen("work")} />
       ) : <>
+      {/* กล่องรับเข้า — ขวาบนตามแบบ workspace-reference (มุมจอ ไม่ใช่แถบบน);
+          โชว์เฉพาะเมื่อได้รับสิทธิ์ chat capability (registry
+          capability_access) — ตัวเลขจาก API จริง2ตัวนั้นเท่านั้น */}
+      {allowedTools.includes("chat") && <InboxIndicator />}
       {/* ICON RAIL — client launcher (ตำแหน่งเดิมของระบบ) */}
       <div className={`flex shrink-0 flex-col overflow-y-auto ${appearance.railSide === "right" ? "order-last" : ""}`}>
         <IconRail items={railItems} activeKey={collapsed ? "" : tool} onSelect={key => { setTool(key); setCollapsed(false); }} />

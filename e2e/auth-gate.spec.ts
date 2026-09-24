@@ -17,7 +17,7 @@ test("unauthenticated GET /admin/ide real-redirects to /login?next=... (middlewa
   await expect(page.getByRole("heading", { name: /Sign in/ })).toBeVisible();
 });
 
-test("real login form rejects real-but-currently-invalid ADMIN_EMAIL/ADMIN_PASSWORD with the real Supabase error, not a silent failure", async ({ page }) => {
+test.skip("RETIRED — passwordless email-link login (no password endpoint to assert; Owner clicks the emailed link)", async ({ page }) => {
   const email = process.env.ADMIN_EMAIL;
   const password = process.env.ADMIN_PASSWORD;
   test.skip(!email || !password, "ADMIN_EMAIL/ADMIN_PASSWORD not present in the test process environment");

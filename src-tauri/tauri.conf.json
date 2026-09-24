@@ -10,8 +10,8 @@
   "app": {
     "windows": [
       {
-        "title": "DNA OS — ควบคุมแชทลูกค้า",
-        "url": "https://dnaos.dev/admin/relationships",
+        "title": "DNA OS",
+        "url": "https://dna-os-deadboard-production.up.railway.app/admin/relationships",
         "width": 1440,
         "height": 900,
         "resizable": true,
@@ -20,7 +20,7 @@
       }
     ],
     "security": {
-      "csp": null
+      "csp": "default-src 'self'; connect-src 'self' https://dna-os-deadboard-production.up.railway.app wss://*.supabase.co https://*.supabase.co https://api.line.me; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.bunny.net https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com https://fonts.bunny.net; img-src 'self' data: blob: https:; frame-src 'self' blob:"
     }
   },
   "bundle": {

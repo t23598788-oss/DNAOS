@@ -3060,6 +3060,7 @@
         "CreateConnectorInput",
         "createConnector",
         "deleteConnector",
+        "findConnectorIdByProvider",
         "getConnectorById",
         "listConnectors",
         "recordConnectorTest",
@@ -4627,6 +4628,7 @@
       "purpose": "The single place deciding where a role lands after login; validates the ?next= redirect param against an open-redirect guard (AUTH-P3 fix 2026-07-14) before trusting it over the role's default landing page.",
       "purpose_th": "จุดเดียวที่ตัดสินว่า role หนึ่งควรไปหน้าไหนหลัง login ตรวจสอบพารามิเตอร์ ?next= กันโจมตีแบบ open-redirect (แก้ไข AUTH-P3 2026-07-14) ก่อนเชื่อถือมันแทนหน้า default ของ role",
       "exports": [
+        "isSafeInternalPath",
         "resolveDestination"
       ],
       "status": "active"
@@ -8434,6 +8436,7 @@
         "GatewayProposal",
         "decideProposal",
         "getLatestProposal",
+        "listConnectorMutationProposals",
         "listPendingProposals",
         "recordProposal"
       ],
@@ -15685,6 +15688,422 @@
         "POST"
       ],
       "status": "active"
+    },
+    "scripts/provider-credentials-test.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "provider-credentials-test.ts — Connections & Credentials (Provider Settings",
+      "purpose_th": "provider-credentials-test.ts — Connections & Credentials (Provider Settings",
+      "exports": [],
+      "status": "active"
+    },
+    "components/admin/ConnectionsCredentialsBoard.tsx": {
+      "owner": "components",
+      "layer": "components",
+      "purpose": "Connections & Credentials board — THE shared provider-card renderer.",
+      "purpose_th": "Connections & Credentials board — THE shared provider-card renderer.",
+      "exports": [
+        "ConnectionsCredentialsBoard"
+      ],
+      "status": "active"
+    },
+    "app/api/admin/provider-settings/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "GET /api/admin/provider-settings — the ONE aggregate read the Connections &",
+      "purpose_th": "GET /api/admin/provider-settings — the ONE aggregate read the Connections &",
+      "exports": [
+        "GET",
+        "dynamic"
+      ],
+      "status": "active"
+    },
+    "app/api/admin/provider-settings/_lib/providerCredentialMeta.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Provider Credentials metadata layer — the shared read/write helpers behind",
+      "purpose_th": "Provider Credentials metadata layer — the shared read/write helpers behind",
+      "exports": [
+        "CredentialEventInput",
+        "MutationGate",
+        "RequirementRow",
+        "SettingsRow",
+        "assertProviderMutationAllowed",
+        "insertEvent",
+        "isEnvironment",
+        "loadRecentEvents",
+        "loadRequirements",
+        "loadSettings",
+        "splitFieldsByRequirements",
+        "upsertSettings"
+      ],
+      "status": "active"
+    },
+    "app/api/admin/provider-settings/[providerId]/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "PUT /api/admin/provider-settings/[providerId] — save one provider card:",
+      "purpose_th": "PUT /api/admin/provider-settings/[providerId] — save one provider card:",
+      "exports": [
+        "PUT"
+      ],
+      "status": "active"
+    },
+    "app/api/admin/provider-settings/[providerId]/request-approval/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "POST /api/admin/provider-settings/[providerId]/request-approval — the Owner",
+      "purpose_th": "POST /api/admin/provider-settings/[providerId]/request-approval — the Owner",
+      "exports": [
+        "POST"
+      ],
+      "status": "active"
+    },
+    "app/api/admin/provider-settings/[providerId]/rotate/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "POST /api/admin/provider-settings/[providerId]/rotate — PHASE 6.15.",
+      "purpose_th": "POST /api/admin/provider-settings/[providerId]/rotate — PHASE 6.15.",
+      "exports": [
+        "POST"
+      ],
+      "status": "active"
+    },
+    "scripts/relationships-ui-test.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "relationships-ui-test.ts — /admin/relationships display-layer replacement",
+      "purpose_th": "relationships-ui-test.ts — /admin/relationships display-layer replacement",
+      "exports": [],
+      "status": "active"
+    },
+    "scripts/pwa-install-test.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "pwa-install-test.ts — install/update path integrity (2026-09-24).",
+      "purpose_th": "pwa-install-test.ts — install/update path integrity (2026-09-24).",
+      "exports": [],
+      "status": "active"
+    },
+    "scripts/auth-access-test.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "auth-access-test.ts — login/permission/redirect integrity (2026-09-24).",
+      "purpose_th": "auth-access-test.ts — login/permission/redirect integrity (2026-09-24).",
+      "exports": [],
+      "status": "active"
+    },
+    "components/pwa/PwaRegistration.tsx": {
+      "owner": "components",
+      "layer": "components",
+      "purpose": "PWA lifecycle (2026-09-24): registers public/sw.js and announces updates.",
+      "purpose_th": "PWA lifecycle (2026-09-24): registers public/sw.js and announces updates.",
+      "exports": [
+        "PwaRegistration"
+      ],
+      "status": "active"
+    },
+    "app/workspace/InboxIndicator.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "กล่องรับเข้า — ขวาบนของ Workspace (handoff workspace-reference.html:",
+      "purpose_th": "กล่องรับเข้า — ขวาบนของ Workspace (handoff workspace-reference.html:",
+      "exports": [
+        "InboxIndicator"
+      ],
+      "status": "active"
+    },
+    "app/install/page.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "วิธีติดตั้งแอป (PWA) — หน้าช่วยติดตั้งสาธารณะ (ไม่มีข้อมูลบัญชี/ความลับใด ๆ)",
+      "purpose_th": "วิธีติดตั้งแอป (PWA) — หน้าช่วยติดตั้งสาธารณะ (ไม่มีข้อมูลบัญชี/ความลับใด ๆ)",
+      "exports": [
+        "InstallHelpPage"
+      ],
+      "status": "active"
+    },
+    "app/app/page.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "PWA start_url bounce (2026-09-24, step: ทางติดตั้งเว็บแอป) — the ONE",
+      "purpose_th": "PWA start_url bounce (2026-09-24, step: ทางติดตั้งเว็บแอป) — the ONE",
+      "exports": [
+        "AppStartPage"
+      ],
+      "status": "active"
+    },
+    "scripts/device-connector-test.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "device-connector-test.ts — step1 inventory + step3/5 contract proof for the",
+      "purpose_th": "device-connector-test.ts — step1 inventory + step3/5 contract proof for the",
+      "exports": [],
+      "status": "active"
+    },
+    "app/admin/devices/page.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Devices (2026-09-25) — the admin surface for paired user-machine executors:",
+      "purpose_th": "Devices (2026-09-25) — the admin surface for paired user-machine executors:",
+      "exports": [
+        "DevicesPage"
+      ],
+      "status": "active"
+    },
+    "app/admin/devices/DevicesBoard.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Devices board (2026-09-25) — admin surface for paired device executors.",
+      "purpose_th": "Devices board (2026-09-25) — admin surface for paired device executors.",
+      "exports": [
+        "DevicesBoard"
+      ],
+      "status": "active"
+    },
+    "app/api/admin/devices/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "GET  /api/admin/devices — list paired devices (metadata only; token hash",
+      "purpose_th": "GET  /api/admin/devices — list paired devices (metadata only; token hash",
+      "exports": [
+        "GET",
+        "POST",
+        "dynamic"
+      ],
+      "status": "active"
+    },
+    "app/api/internal/device/pair/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "POST /api/internal/device/pair { code, health? } — the machine exchanges a",
+      "purpose_th": "POST /api/internal/device/pair { code, health? } — the machine exchanges a",
+      "exports": [
+        "POST"
+      ],
+      "status": "active"
+    },
+    "app/api/internal/device/health/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "POST /api/internal/device/health — device heartbeat (header:",
+      "purpose_th": "POST /api/internal/device/health — device heartbeat (header:",
+      "exports": [
+        "POST"
+      ],
+      "status": "active"
+    },
+    "app/api/admin/devices/_lib/deviceRegistry.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Device Registry metadata layer (2026-09-25) — the ONE read/write path for",
+      "purpose_th": "Device Registry metadata layer (2026-09-25) — the ONE read/write path for",
+      "exports": [
+        "DEVICE_COMMANDS",
+        "DEVICE_GRANTS",
+        "DeviceAuth",
+        "DeviceCommand",
+        "DeviceGrant",
+        "DeviceRow",
+        "HealthInput",
+        "PairResult",
+        "authenticateDevice",
+        "createPairingCode",
+        "isMissingTable",
+        "loadDevices",
+        "pairDevice",
+        "queueDeviceProbe",
+        "recordDeviceHealth",
+        "revokeDevice",
+        "sha256Hex"
+      ],
+      "status": "active"
+    },
+    "app/api/admin/devices/[id]/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "DELETE /api/admin/devices/[id] — REVOKE a device: token stops",
+      "purpose_th": "DELETE /api/admin/devices/[id] — REVOKE a device: token stops",
+      "exports": [
+        "DELETE"
+      ],
+      "status": "active"
+    },
+    "app/api/admin/devices/[id]/probe/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "POST /api/admin/devices/[id]/probe { kind } — queue a server→device command.",
+      "purpose_th": "POST /api/admin/devices/[id]/probe { kind } — queue a server→device command.",
+      "exports": [
+        "POST"
+      ],
+      "status": "active"
+    },
+    "scripts/tool-scope-test.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "tool-scope-test.ts — owner steps2/4/6/7/8 (2026-09-26).",
+      "purpose_th": "tool-scope-test.ts — owner steps2/4/6/7/8 (2026-09-26).",
+      "exports": [],
+      "status": "active"
+    },
+    "scripts/access-path-survey-test.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "access-path-survey-test.ts (owner step1+5,2026-09-26) — THE scope-vulnerability",
+      "purpose_th": "access-path-survey-test.ts (owner step1+5,2026-09-26) — THE scope-vulnerability",
+      "exports": [],
+      "status": "active"
+    },
+    "core/policy/scope.ts": {
+      "owner": "core",
+      "layer": "core",
+      "purpose": "Tool Scope Policy — the ONE deny-by-default evaluator for \"may this subject",
+      "purpose_th": "Tool Scope Policy — the ONE deny-by-default evaluator for \"may this subject",
+      "exports": [
+        "GrantRow",
+        "SCOPE_ACTIONS",
+        "ScopeAction",
+        "ScopeDecision",
+        "ScopeRequest",
+        "ScopeSubject",
+        "evaluateScope",
+        "isGrantorRole"
+      ],
+      "status": "active"
+    },
+    "app/api/internal/device/commands/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "POST /api/internal/device/commands { op:\"pull\" } — header:",
+      "purpose_th": "POST /api/internal/device/commands { op:\"pull\" } — header:",
+      "exports": [
+        "POST"
+      ],
+      "status": "active"
+    },
+    "app/api/admin/devices/grants/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Scoped Grants — the owner-controlled permission rows (deny-by-default data",
+      "purpose_th": "Scoped Grants — the owner-controlled permission rows (deny-by-default data",
+      "exports": [
+        "GET",
+        "POST"
+      ],
+      "status": "active"
+    },
+    "app/api/admin/devices/commands/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "GET  /api/admin/devices/commands — latest command rows (owner view: งานใดกำลังทำ).",
+      "purpose_th": "GET  /api/admin/devices/commands — latest command rows (owner view: งานใดกำลังทำ).",
+      "exports": [
+        "GET",
+        "POST"
+      ],
+      "status": "active"
+    },
+    "app/api/admin/devices/_lib/deviceCommands.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Device Command lifecycle (owner step7,2026-09-26) — command_id, expiry,",
+      "purpose_th": "Device Command lifecycle (owner step7,2026-09-26) — command_id, expiry,",
+      "exports": [
+        "AckResult",
+        "COMMAND_KINDS",
+        "CmdFail",
+        "CommandKind",
+        "CompleteResult",
+        "CreateResult",
+        "DeviceCommandRow",
+        "ackCommand",
+        "completeCommand",
+        "createDeviceCommand",
+        "pullDeviceCommands",
+        "requeueCommand"
+      ],
+      "status": "active"
+    },
+    "app/api/internal/device/commands/[cmdId]/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "POST /api/internal/device/commands/[cmdId] — header: x-dnaos-device-token.",
+      "purpose_th": "POST /api/internal/device/commands/[cmdId] — header: x-dnaos-device-token.",
+      "exports": [
+        "POST"
+      ],
+      "status": "active"
+    },
+    "app/api/admin/devices/commands/[cmdId]/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "POST /api/admin/devices/commands/[cmdId] { op: \"cancel\" | \"requeue\" }",
+      "purpose_th": "POST /api/admin/devices/commands/[cmdId] { op: \"cancel\" | \"requeue\" }",
+      "exports": [
+        "POST"
+      ],
+      "status": "active"
+    },
+    "scripts/receipt-upload-ocr-e2e.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "receipt-upload-ocr-e2e.ts — E2E: image upload → Apple Vision OCR →",
+      "purpose_th": "receipt-upload-ocr-e2e.ts — E2E: image upload → Apple Vision OCR →",
+      "exports": [],
+      "status": "active"
+    },
+    "scripts/login-autofill-test.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "login-autofill-test.ts — browser autofill semantics of /login (2026-09-24).",
+      "purpose_th": "login-autofill-test.ts — browser autofill semantics of /login (2026-09-24).",
+      "exports": [],
+      "status": "active"
+    },
+    "scripts/identity-layer-test.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "identity-layer-test.ts — central Identity Layer invariants (2026-09-24).",
+      "purpose_th": "identity-layer-test.ts — central Identity Layer invariants (2026-09-24).",
+      "exports": [
+        "extractLinkedIdentities",
+        "resolveIdentityContext"
+      ],
+      "status": "active"
+    },
+    "scripts/auth-single-flow-test.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "auth-single-flow-test.ts — ONE authentication flow invariant (2026-09-24).",
+      "purpose_th": "auth-single-flow-test.ts — ONE authentication flow invariant (2026-09-24).",
+      "exports": [],
+      "status": "active"
+    },
+    "core/identity/identity.ts": {
+      "owner": "core",
+      "layer": "core",
+      "purpose": "Identity Layer — the ONE central module (owner, 2026-09-24).",
+      "purpose_th": "Identity Layer — the ONE central module (owner, 2026-09-24).",
+      "exports": [
+        "CanonicalProfile",
+        "IdentityContext",
+        "LinkedIdentity",
+        "ProfileLookup",
+        "extractLinkedIdentities",
+        "resolveIdentityContext"
+      ],
+      "status": "active"
+    },
+    "app/auth/verify/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Email-template entry alias (owner, 2026-09-24): Supabase's default mailer",
+      "purpose_th": "Email-template entry alias (owner, 2026-09-24): Supabase's default mailer",
+      "exports": [
+        "GET"
+      ],
+      "status": "active"
     }
   },
   "excluded": [
@@ -15928,6 +16347,20 @@
       "reason": "ไฟล์ไม่มีอยู่ใน Source แล้ว (Git/Source = source of truth) — ย้ายออกจาก modules ไม่นับเป็น BROKEN ปัจจุบัน",
       "last_status": "active",
       "purpose_th": "TEMP discovery: multiline scan for direct WRITES to the two legacy identity tables"
+    },
+    {
+      "path": "tmp/e2e-ocr/layer1.ts",
+      "retired_at": "2026-09-24T13:17:37.492Z",
+      "reason": "ไฟล์ไม่มีอยู่ใน Source แล้ว (Git/Source = source of truth) — ย้ายออกจาก modules ไม่นับเป็น BROKEN ปัจจุบัน",
+      "last_status": "active",
+      "purpose_th": "E2E layer 1 (safe/local): fixture image → REAL window-executor Vision OCR →"
+    },
+    {
+      "path": "tmp/cap-probe/generate-probe.ts",
+      "retired_at": "2026-09-24T13:17:37.493Z",
+      "reason": "ไฟล์ไม่มีอยู่ใน Source แล้ว (Git/Source = source of truth) — ย้ายออกจาก modules ไม่นับเป็น BROKEN ปัจจุบัน",
+      "last_status": "active",
+      "purpose_th": "READ-ONLY capability probe: does generateDependencyGraph() write anything?"
     }
   ]
 }

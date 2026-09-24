@@ -11,8 +11,18 @@ const WORKSPACE_LANDING = permissions.workspace_landing as unknown as Record<str
 // URL) — a standard open-redirect guard. AUTH-P3 defect fix (2026-07-14); this
 // gap pre-dates EWA, the original ROLE_HOME/landingPathFor had the same
 // unvalidated pattern.
-function isSafeInternalPath(path: string): boolean {
-  return path.startsWith("/") && !path.startsWith("//") && !path.includes("://");
+// Exported (2026-09-24): every other ?next= consumer (login auto-login branch,
+// /auth/confirm) now guards through THIS function instead of re-implementing
+// `startsWith("/")`, which //evil.com passes. Also rejects a leading
+// backslash: WHATWG URL parsing treats "\" like "/" for special schemes, so
+// `/\evil.com` also becomes protocol-relative (external).
+export function isSafeInternalPath(path: string): boolean {
+  return (
+    path.startsWith("/") &&
+    !path.startsWith("//") &&
+    !path.startsWith("/\\") &&
+    !path.includes("://")
+  );
 }
 
 // The one place "where does this role land after login" is decided (Enterprise

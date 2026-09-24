@@ -92,6 +92,15 @@ export default function DashboardPage() {
               ข้อมูลอัปเดต {refreshAt.toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit" })}
             </p>
           )}
+          {/* One-click entry to Provider Settings (Connections & Credentials) —
+              a plain link, not a data card: the owner's "pure chat board"
+              directive for this page (2026-07-30) still stands. */}
+          <a
+            href="/admin/settings"
+            className="mt-1 inline-block text-[11px] font-medium text-stone-500 underline decoration-dotted hover:text-stone-800"
+          >
+            ⚙ Connections &amp; Credentials →
+          </a>
         </div>
         <button
           onClick={load}

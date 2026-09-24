@@ -249,7 +249,8 @@
     "/examples",
     "/playground",
     "/observer",
-    "/download"
+    "/download",
+    "/install"
   ],
   "workspace_landing": {
     "note": "Single source of truth for role -> post-login destination. Read only by core/auth/resolveDestination.ts — no route file may hardcode its own landing map (same rule as route_access above). super_admin/admin/employee land directly on /admin/relationships (Navigation redesign, owner, 2026-07-16: Relationship Workspace is the system Home), not /admin, so the login flow itself never passes through app/admin/page.tsx's own redirect.",

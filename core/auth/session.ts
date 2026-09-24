@@ -1,5 +1,6 @@
 import { getServerSupabaseClient } from "@/gateway/auth";
 import permissions from "@/registry/permissions.json";
+import { resolveIdentityContext, type ProfileLookup, type LinkedIdentity } from "@/core/identity/identity";
 
 export type AppRole =
   | "super_admin"
@@ -13,6 +14,10 @@ export interface AuthedUser {
   id: string;
   email: string;
   role: AppRole;
+  /** linked provider identities (Identity Layer) — identifiers only, never credentials */
+  identities?: LinkedIdentity[];
+  /** THE profiles row for this human (=== id unless resolved via email fallback) */
+  canonicalProfileId?: string;
 }
 
 export const ADMIN_TIER = permissions.role_tiers.admin_tier as AppRole[];
@@ -34,24 +39,44 @@ export async function getAuthedUser(): Promise<AuthedUser | null> {
     return null;
   }
 
-  const { data: profile, error: profileError } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", user.id)
-    .single();
+  // Identity Layer (core/identity/identity.ts, owner 2026-09-24): session →
+  // canonical profile (id first, EMAIL fallback → same row, never a new one)
+  // → linked provider identities — the CHAIN lives in the layer; this file
+  // only keeps the query (core cannot import services — gateway pattern) and
+  // delegates. Connections/credentials stay behind core/connector-loader
+  // (server capability code only); /login reveals none of it.
+  let lastProfileError: string | undefined;
+  const lookup: ProfileLookup = async ({ field, value }) => {
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("id, role")
+      .eq(field, value)
+      .maybeSingle();
+    lastProfileError = error?.message;
+    return data ?? null;
+  };
+  const ctx = await resolveIdentityContext(user, lookup);
 
   console.log("[TRACE-AUTH] getAuthedUser", {
     userId: user.id,
     userEmail: user.email,
-    profileFound: !!profile,
-    profileRole: profile?.role,
-    profileError: profileError?.message,
-    profileErrorCode: profileError?.code,
+    profileFound: !!ctx,
+    profileId: ctx?.canonical.profileId,
+    profileRole: ctx?.canonical.role,
+    profileResolvedBy: ctx?.canonical.resolvedBy,
+    linkedProviders: ctx?.identities.map((i) => i.provider) ?? [],
+    profileError: lastProfileError,
   });
 
-  if (!profile) return null;
+  if (!ctx) return null;
 
-  return { id: user.id, email: user.email ?? "", role: profile.role as AppRole };
+  return {
+    id: user.id,
+    email: user.email ?? "",
+    role: ctx.canonical.role as AppRole,
+    identities: ctx.identities,
+    canonicalProfileId: ctx.canonical.profileId,
+  };
 }
 
 // Access token for the rare call site (core/config/company-settings.ts) that

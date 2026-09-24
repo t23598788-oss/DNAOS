@@ -8,6 +8,7 @@ import {
 } from "lucide-react"
 import { formatMoney } from "@/engines/documents/document-editor"
 import AppShell from "@/presentation/shell/AppShell";
+import { ConnectionsCredentialsBoard } from "@/components/admin/ConnectionsCredentialsBoard";
 import ActionBar, { type ActionBarItem } from "@/presentation/panels/ActionBar";
 import MapView from "@/presentation/viewer/MapView";
 import type { IconRailItem } from "@/presentation/shell/navigation/IconRail";
@@ -121,6 +122,10 @@ export default function LineCustomersPage() {
   // reuses the existing quotation-queue instead of a new alerts table.
   const [pendingQuotesCount, setPendingQuotesCount] = useState(0)
   const [activeId, setActiveId] = useState<string | null>(null)
+  // PROVIDER CONTROL tab on this page: chat (default) vs the SAME Connections
+  // & Credentials board/data source /admin/settings renders — one settings
+  // system, never two (Connections & Credentials, 2026-09-24).
+  const [rightTab, setRightTab] = useState<"chat" | "credentials">("chat")
   const [detail, setDetail] = useState<{ messages: Message[]; documents: DocRow[]; events: BizEvent[]; unlinkedCount: number; drafts: Draft[] } | null>(null)
   const [detailLoading, setDetailLoading] = useState(false)
   const [building, setBuilding] = useState(false)
@@ -505,7 +510,37 @@ export default function LineCustomersPage() {
       listSearchPlaceholder="ค้นหาชื่อหรือข้อความ..."
       listEmptyMessage={loading ? "กำลังโหลด..." : "ยังไม่มีผู้ติดต่อ"}
     >
-      {!activeContact ? (
+      {/* PROVIDER CONTROL — Tab: API & Credentials Management. Renders the SAME
+          shared board as /admin/settings → Connections & Credentials (one
+          component, one GET /api/admin/provider-settings, no second settings). */}
+      <div className="flex shrink-0 items-center justify-between border-b border-stone-200 bg-stone-50 px-4 py-1.5">
+        <div className="flex gap-1">
+          <button
+            type="button"
+            onClick={() => setRightTab("chat")}
+            className={`rounded-md px-2.5 py-1 text-[11px] ${
+              rightTab === "chat" ? "bg-white font-medium text-stone-800 shadow-sm" : "text-stone-500 hover:text-stone-700"
+            }`}
+          >
+            บทสนทนา
+          </button>
+          <button
+            type="button"
+            onClick={() => setRightTab("credentials")}
+            className={`rounded-md px-2.5 py-1 text-[11px] ${
+              rightTab === "credentials" ? "bg-white font-medium text-stone-800 shadow-sm" : "text-stone-500 hover:text-stone-700"
+            }`}
+          >
+            API &amp; Credentials Management
+          </button>
+        </div>
+        <span className="text-[9px] font-semibold uppercase tracking-wider text-stone-400">Provider Control</span>
+      </div>
+      {rightTab === "credentials" ? (
+        <div className="min-h-0 flex-1 overflow-y-auto bg-stone-50 p-4">
+          <ConnectionsCredentialsBoard />
+        </div>
+      ) : !activeContact ? (
         <div className="flex items-center justify-center h-full text-sm text-stone-400">
           เลือกผู้ติดต่อทางซ้ายเพื่อดูบทสนทนา
         </div>

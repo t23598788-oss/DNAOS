@@ -259,13 +259,31 @@ export async function GET(_req: Request, { params }: Params) {
   // keyed by line_event_id, which is exactly `messages[].id` above (both
   // read from line_events). Same signed-URL-per-request pattern as message
   // images (private bucket, no persisted URL).
-  const messageIds = messages.map((m) => m.id)
-  const { data: rawReceipts } = messageIds.length
-    ? await db
-        .from("receipt_documents")
-        .select("id, line_event_id, media_path, document_type, vendor_name, amount, document_date, confidence, status, error_th, created_at")
-        .in("line_event_id", messageIds)
-    : { data: [] }
+  //
+  // E2E image-upload→OCR connection: receipts that arrived through a NON-LINE
+  // channel (admin upload / email / bank / drive) are keyed by
+  // customer_company_id and carry line_event_id = null (nullable since
+  // migration 20260725000001, exactly for these sources). They must still
+  // surface on this company's feed, so the line_event_id read is UNIONed with
+  // a customer_company_id read (deduped by id). READ-only addition — the write
+  // still goes through the one canonical writer (recordInboundSource); no
+  // parallel write path is introduced here.
+  const RECEIPT_SELECT =
+    "id, line_event_id, media_path, document_type, vendor_name, amount, document_date, confidence, status, error_th, created_at";
+  const messageIds = messages.map((m) => m.id);
+  const { data: byMessage } = messageIds.length
+    ? await db.from("receipt_documents").select(RECEIPT_SELECT).in("line_event_id", messageIds)
+    : { data: [] };
+  const { data: byCompany } = await db
+    .from("receipt_documents")
+    .select(RECEIPT_SELECT)
+    .eq("customer_company_id", relationshipId);
+  const _seenReceiptIds = new Set<string>();
+  const rawReceipts = [...(byMessage ?? []), ...(byCompany ?? [])].filter((r: { id: string }) => {
+    if (_seenReceiptIds.has(r.id)) return false;
+    _seenReceiptIds.add(r.id);
+    return true;
+  });
   const lineNameByEventId = new Map(messages.map((m) => [m.id, m.line_name as string | null]))
   const receipts = await Promise.all((rawReceipts ?? []).map(async (r) => {
     const { data: signed } = await db.storage.from("attachments").createSignedUrl(r.media_path, 60 * 5)

@@ -213,6 +213,15 @@ export default function ConnectorsPage() {
     }
   }
 
+  // Setup Provider deep-link (Connections & Credentials board →
+  // /admin/connectors?provider=<id>): preselects that provider's prepare step —
+  // same create flow, no second connect path (2026-09-24).
+  useEffect(() => {
+    const p = new URLSearchParams(window.location.search).get("provider");
+    if (p) void selectProvider(p);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   async function copyValue(key: string, value: string) {
     try {
       await navigator.clipboard.writeText(value);

@@ -4,16 +4,18 @@ import { useState, useEffect, useCallback, useMemo, useRef } from "react"
 import Link from "next/link"
 import {
   LayoutGrid, MessageCircle, Briefcase, Building2, FileText, Wallet, Mountain,
-  MapPin, FileSignature, Receipt, Truck, Banknote, Phone, Paperclip, Bot, X, ExternalLink, Settings, Wrench, BarChart3, Satellite, Server, Cloud,
+  MapPin, FileSignature, Receipt, Truck, Banknote, Phone, Paperclip, Bot, X, ExternalLink, Settings, Wrench, BarChart3, Satellite, Server, Cloud, ChevronLeft, ChevronRight,
 } from "lucide-react"
 import { formatMoney } from "@/engines/documents/document-editor"
 import { openExternal } from "@/components/admin/openExternal"
 import AppShell from "@/presentation/shell/AppShell"
+import ListColumn from "@/presentation/shell/navigation/ListColumn"
+import { TabStrip } from "@/presentation/shell/ide/TabStrip"
 import ActionBar, { type ActionBarItem } from "@/presentation/panels/ActionBar"
 import MapView from "@/presentation/viewer/MapView"
 import FlexPreview from "@/presentation/viewer/FlexPreview"
 import Inspector from "@/presentation/panels/Inspector"
-import type { IconRailItem } from "@/presentation/shell/navigation/IconRail"
+import IconRail, { type IconRailItem } from "@/presentation/shell/navigation/IconRail"
 import type { ListColumnItem } from "@/presentation/shell/navigation/ListColumn"
 import { createBrowserSupabase } from "@/services/supabase/browser"
 import SettingsDrawer from "@/components/settings/SettingsDrawer"
@@ -138,15 +140,19 @@ function openHtmlDocument(html: string) {
 // same workspace with that one relationship opened on load — the real,
 // bookmarkable/deep-linkable route the architecture migration asked for.
 // Both page.tsx files below just render this with a different prop.
-export function RelationshipWorkspacePage({ initialRelationshipId }: { initialRelationshipId: string | null }) {
+// Display-layer switch (2026-09-24): legacyUi=true renders the ORIGINAL
+// AppShell screen (rollback path — same URL/session/data, byte-for-byte
+// behavior); default renders the BusinessWorkspace-family screen the Owner
+// chose. Both wrap ONE shared `workspaceContent` fragment — zero logic copies.
+export function RelationshipWorkspacePage({ initialRelationshipId, legacyUi = false }: { initialRelationshipId: string | null; legacyUi?: boolean }) {
   return (
     <WorkspaceProvider>
-      <RelationshipWorkspace initialRelationshipId={initialRelationshipId} />
+      <RelationshipWorkspace initialRelationshipId={initialRelationshipId} legacyUi={legacyUi} />
     </WorkspaceProvider>
   )
 }
 
-function RelationshipWorkspace({ initialRelationshipId }: { initialRelationshipId: string | null }) {
+function RelationshipWorkspace({ initialRelationshipId, legacyUi = false }: { initialRelationshipId: string | null; legacyUi?: boolean }) {
   const { state, dispatch } = useWorkspace()
   const [relationships, setRelationships] = useState<Relationship[]>([])
   const [loading, setLoading] = useState(true)
@@ -746,6 +752,30 @@ function RelationshipWorkspace({ initialRelationshipId }: { initialRelationshipI
   const pendingDrafts = detail?.drafts.filter((d) => d.status === "pending_review") ?? []
   const [contactSettingsOpen, setContactSettingsOpen] = useState(false)
 
+  // ── NEW DISPLAY ONLY (no business logic): opened-relationship tabs +
+  // resizable list panel — the BusinessWorkspace-family chrome. Selecting a
+  // relationship still goes through the SAME selectRelationship()/detail
+  // fetch; the tab strip is a view of "which relationships are open here".
+  const [openRelIds, setOpenRelIds] = useState<string[]>(initialRelationshipId ? [initialRelationshipId] : [])
+  const [listWidth, setListWidth] = useState(300)
+  const [listCollapsed, setListCollapsed] = useState(false)
+  const listDragging = useRef(false)
+  function openRelationship(id: string) {
+    setOpenRelIds((prev) => (prev.includes(id) ? prev : [...prev, id]))
+    void selectRelationship(id)
+  }
+  function closeRelationshipTab(id: string) {
+    setOpenRelIds((prev) => {
+      const next = prev.filter((x) => x !== id)
+      if (id === activeId) {
+        const fallback = next[next.length - 1] ?? null
+        if (fallback) void selectRelationship(fallback)
+        else setActiveId(null)
+      }
+      return next
+    })
+  }
+
   // Business Workspace V1 (owner, 2026-09-18): งาน + รายรับ/รายจ่าย + สถานะชำระ
   // on the SAME screen. Jobs come from the real transactions API the Jobs
   // page already uses (it has supported ?partner_id= from day one — this only
@@ -1211,20 +1241,13 @@ function RelationshipWorkspace({ initialRelationshipId }: { initialRelationshipI
     return item
   })
 
-  return (
-    <AppShell
-      railItems={railItems}
-      activeRailKey="relationships"
-      onSelectRail={(key) => {
-        if (key === "runpod") openExternal(RUNPOD_CONSOLE_URL)
-      }}
-      listItems={listItems}
-      activeListId={activeId}
-      onSelectList={selectRelationship}
-      listSearchPlaceholder="ค้นหาชื่อหรือข้อความ..."
-      listEmptyMessage={loading ? "กำลังโหลด..." : "ยังไม่มีลูกค้าในระบบ"}
-      listCollapsible
-    >
+  // ── ONE content fragment, TWO display layers ─────────────────────────────
+  // Everything below (AppHeader/debt/drafts/timeline/ActionBar/cockpit/
+  // reply/GPS/match/SettingsDrawer/lightbox …) renders IDENTICALLY inside
+  // the new shell and the rollback shell — capabilities cannot drift between
+  // the two screens because there is only one copy of them.
+  const workspaceContent = (
+    <>
       {!activeRelationship ? (
         <div className="flex items-center justify-center h-full text-sm text-stone-400">
           เลือกลูกค้าทางซ้ายเพื่อเปิด Workspace
@@ -1586,6 +1609,127 @@ function RelationshipWorkspace({ initialRelationshipId }: { initialRelationshipI
           <img src={lightboxUrl} alt="รูปภาพเต็มจอ" className="max-w-[92vw] max-h-[92vh] object-contain" />
         </div>
       )}
-    </AppShell>
+    </>
+  )
+
+  // ── ROLLBACK SCREEN (?ui=legacy): the original AppShell display, same
+  // content fragment, same behavior. Kept until the Owner inspects and
+  // approves the new screen; removing it is a separate approved change.
+  if (legacyUi) {
+    return (
+      <AppShell
+        railItems={railItems}
+        activeRailKey="relationships"
+        onSelectRail={(key) => {
+          if (key === "runpod") openExternal(RUNPOD_CONSOLE_URL)
+        }}
+        listItems={listItems}
+        activeListId={activeId}
+        onSelectList={selectRelationship}
+        listSearchPlaceholder="ค้นหาชื่อหรือข้อความ..."
+        listEmptyMessage={loading ? "กำลังโหลด..." : "ยังไม่มีลูกค้าในระบบ"}
+        listCollapsible
+      >
+        {workspaceContent}
+      </AppShell>
+    )
+  }
+
+  // ── NEW DISPLAY — the format the Owner chose: BusinessWorkspace-family
+  // shell (canvas tokens + IconRail + resizable list + TabStrip), imported
+  // from the SAME presentation modules /workspace renders with. Same rail
+  // destinations (RAIL_ITEMS), same list (listItems), same content above.
+  const tabIdSet = [...new Set([...openRelIds, ...(activeId ? [activeId] : [])])]
+  const relTabs = tabIdSet.map((id) => ({
+    id,
+    title: relationships.find((r) => r.relationship_id === id)?.name ?? listItems.find((i) => i.id === id)?.title ?? "ความสัมพันธ์",
+    kind: "file" as const,
+    path: id,
+  }))
+
+  return (
+    <div className="flex h-[100dvh] w-full overflow-hidden bg-[#F0EBE5] text-stone-800">
+      <IconRail
+        items={railItems}
+        activeKey="relationships"
+        onSelect={(key) => {
+          if (key === "runpod") openExternal(RUNPOD_CONSOLE_URL)
+        }}
+      />
+
+      {/* LEFT — รายชื่อลูกค้า: แหล่งข้อมูล/กฎ unread/highlight เดิมทั้งหมด */}
+      {listCollapsed ? (
+        <button
+          type="button"
+          onClick={() => setListCollapsed(false)}
+          title="เปิดรายชื่อลูกค้า"
+          className="flex w-4 flex-shrink-0 items-center justify-center border-r border-[#E9E1D6] bg-[#F7F4EF] text-stone-400 hover:text-stone-700"
+        >
+          <ChevronRight className="h-3.5 w-3.5" />
+        </button>
+      ) : (
+        <div
+          className="flex shrink-0 flex-col border-r border-[#E9E1D6] bg-[#FDFBF8]"
+          style={{ width: listWidth, maxWidth: "calc(100vw - 100px)" }}
+        >
+          <div className="flex items-center gap-2 border-b border-[#E9E1D6] px-3 py-2">
+            <span className="text-xs font-semibold">ลูกค้า / ความสัมพันธ์</span>
+            <span className="ml-auto text-[10px] text-stone-400">{listItems.length} ราย</span>
+            <button
+              type="button"
+              onClick={() => setListCollapsed(true)}
+              title="ย่อรายชื่อ"
+              className="flex h-6 w-6 items-center justify-center rounded-md border border-[#E9E1D6] text-stone-500 hover:border-[#D5C8B6]"
+            >
+              <ChevronLeft className="h-3.5 w-3.5" />
+            </button>
+          </div>
+          <div className="min-h-0 flex-1 overflow-hidden">
+            <ListColumn
+              items={listItems}
+              activeId={activeId}
+              onSelect={openRelationship}
+              searchPlaceholder="ค้นหาชื่อหรือข้อความ..."
+              emptyMessage={loading ? "กำลังโหลด..." : "ยังไม่มีลูกค้าในระบบ"}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* DIVIDER — ลากปรับขนาดซ้าย↔ขวา (แบบ BusinessWorkspace) */}
+      {!listCollapsed && (
+        <div
+          role="separator"
+          aria-orientation="vertical"
+          onPointerDown={(e) => {
+            listDragging.current = true
+            ;(e.target as HTMLElement).setPointerCapture(e.pointerId)
+          }}
+          onPointerMove={(e) => {
+            if (!listDragging.current) return
+            setListWidth(Math.min(560, Math.max(200, e.clientX - 64)))
+          }}
+          onPointerUp={() => {
+            listDragging.current = false
+          }}
+          className="w-1 flex-shrink-0 cursor-col-resize bg-[#E9E1D6] hover:bg-[#B49C7C]"
+        />
+      )}
+
+      {/* RIGHT — TabStrip ของความสัมพันธ์ที่เปิดไว้ + content เดิมทั้งผืน */}
+      <div className="flex min-w-0 flex-1 flex-col bg-[#FDFBF8]">
+        <TabStrip
+          tabs={relTabs}
+          activeTabId={activeId}
+          onSelect={(id) => void selectRelationship(id)}
+          onClose={closeRelationshipTab}
+          dirtyTabIds={[]}
+          fileStates={{}}
+        />
+        <div className="relative min-h-0 flex-1 overflow-hidden">
+          {workspaceContent}
+        </div>
+      </div>
+    </div>
   )
 }

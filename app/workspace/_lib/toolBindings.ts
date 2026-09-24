@@ -32,6 +32,8 @@ export const SETTINGS_BOXES = [
   { key: "files", label: "ไฟล์และเอกสาร", route: "/admin/storage" },
   { key: "access", label: "ผู้ใช้และสิทธิ์", route: "/admin/users" },
   { key: "connect", label: "Connect / ผู้ให้บริการ", route: "/admin/connectors" },
+  { key: "credentials", label: "Connections & Credentials", route: "/admin/settings" },
+  { key: "devices", label: "อุปกรณ์ที่จับคู่ (Device Connector)", route: "/admin/devices" },
   { key: "capabilities", label: "งานและความสามารถ", route: "/admin/engine-explorer" },
   { key: "history", label: "เหตุการณ์และหลักฐาน", route: "/admin/event-inbox" },
   { key: "backup", label: "สำรองและกู้คืน", route: "/admin/backup" },

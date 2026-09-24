@@ -2,7 +2,7 @@ import { test as setup, expect } from "playwright/test";
 import path from "path";
 
 // TASK-070 real-auth setup — logs in through the SAME real login form a
-// human uses (app/login/page.tsx -> Supabase Auth signInWithPassword),
+// human uses — RETIRED2026-09-24: /login now emails a magic link
 // using the real ADMIN_EMAIL/ADMIN_PASSWORD already configured in this
 // repo's own .env.local (the same credentials app/api/auth/auto-login
 // already uses for the native Tauri wrap — see that route's comment).
@@ -12,6 +12,11 @@ import path from "path";
 const STORAGE_STATE_PATH = path.join(__dirname, ".auth", "admin.json");
 
 setup("authenticate as real admin via /login", async ({ page }) => {
+  // RETIRED — single auth flow (2026-09-24): /login is now passwordless
+  // (signInWithOtp → emailed link → /auth/confirm). No password field or
+  // password endpoint exists anymore; completing the flow requires the Owner
+  // to open the email (this suite deliberately never touches a mailbox).
+  setup.skip(true, "email-link flow: no scripted password login exists by design");
   const email = process.env.ADMIN_EMAIL;
   const password = process.env.ADMIN_PASSWORD;
   if (!email || !password) {
@@ -25,7 +30,6 @@ setup("authenticate as real admin via /login", async ({ page }) => {
 
   await page.goto("/login");
   await page.locator('input[name="email"]').fill(email);
-  await page.locator('input[name="password"]').fill(password);
   await page.locator('button[type="submit"]').click();
 
   // Real navigation away from /login proves a real session was established

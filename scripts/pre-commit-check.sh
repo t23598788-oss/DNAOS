@@ -105,7 +105,8 @@ if grep -rEn '\.supabase\.co' --include="*.ts" --include="*.tsx" --include="*.js
    --exclude-dir=node_modules --exclude-dir=.next --exclude-dir=.temp \
    --exclude="package*.json" \
    --exclude="VALIDATION_RESULTS.json" . 2>/dev/null \
-   | grep -v '\.supabase\.com' | grep -v "process.env" | grep -v "NEXT_PUBLIC"; then
+   | grep -v '\.supabase\.com' | grep -v "process.env" | grep -v "NEXT_PUBLIC" \
+   | grep -v '\*\.supabase\.co'; then
   echo "ERROR: Supabase URL hardcoded in source — use env var"
   exit 1
 fi

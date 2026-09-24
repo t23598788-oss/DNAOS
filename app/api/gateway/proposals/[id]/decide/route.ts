@@ -45,11 +45,13 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   const proposal = pending.find((p) => p.id === id && p.status === "pending");
   if (!proposal) return NextResponse.json({ error: "proposal not found or already decided" }, { status: 404 });
 
-  // A Connect approval request carries no command to run — approving it only
-  // records the Owner's decision, and the Connect route (POST
-  // /api/admin/connectors) then checks for exactly that approved row. Same
+  // A Connect approval request — and its destructive cousins from the Provider
+  // Credentials UI (connector.rotate.requested / connector.disconnect.requested)
+  // — carry no command to run: approving them only records the Owner's
+  // decision. The executing routes (POST /api/admin/connectors, the rotate and
+  // DELETE connector routes) then check for exactly that approved row. Same
   // store, same route, no second approval mechanism.
-  if (proposal.capability === "connect.approval.requested") {
+  if (proposal.capability === "connect.approval.requested" || proposal.capability.startsWith("connector.")) {
     const approvedOnly = await decideProposal(db, id, "approved", auth.email, {
       approved_only: true,
       note: "connect approval — no command executed",

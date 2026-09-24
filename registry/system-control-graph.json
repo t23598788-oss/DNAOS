@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-24T06:20:47.603Z",
+  "generated_at": "2026-09-24T13:17:39.762Z",
   "nodes": [
     {
       "id": "layer:core",
@@ -316,7 +316,8 @@
       "runtime_callable": true,
       "provider": "UNKNOWN",
       "dependencies": [
-        "module:app/globals.css.ts"
+        "module:app/globals.css.ts",
+        "module:components/pwa/PwaRegistration.tsx"
       ],
       "dependents": [],
       "commands": [],
@@ -3046,7 +3047,8 @@
         "module:engines/canonical/document-write.ts",
         "module:engines/documents/debt-notice-draft.ts",
         "module:engines/documents/draft-builders.ts",
-        "module:scripts/canonical-finance-acceptance-test.ts"
+        "module:scripts/canonical-finance-acceptance-test.ts",
+        "module:scripts/relationships-ui-test.ts"
       ],
       "commands": [],
       "events": [],
@@ -4222,7 +4224,8 @@
         "module:plugins/platform/mac/applescript.ts"
       ],
       "dependents": [
-        "module:plugins/platform/mac/mac-platform.ts"
+        "module:plugins/platform/mac/mac-platform.ts",
+        "module:scripts/receipt-upload-ocr-e2e.ts"
       ],
       "commands": [],
       "events": [],
@@ -4619,6 +4622,7 @@
       "dependents": [
         "module:app/admin/partners/page.tsx",
         "module:app/api/admin/backup/route.ts",
+        "module:app/api/admin/connectors/[id]/route.ts",
         "module:app/api/admin/connectors/_lib/connectRuntime.ts",
         "module:app/api/admin/connectors/discover/[slug]/route.ts",
         "module:app/api/admin/connectors/providers/[providerId]/approval-request/route.ts",
@@ -4629,6 +4633,12 @@
         "module:app/api/admin/debt-trackings/route.ts",
         "module:app/api/admin/dev-loop/approve/route.ts",
         "module:app/api/admin/dev-loop/problem-report/route.ts",
+        "module:app/api/admin/devices/[id]/probe/route.ts",
+        "module:app/api/admin/devices/[id]/route.ts",
+        "module:app/api/admin/devices/commands/[cmdId]/route.ts",
+        "module:app/api/admin/devices/commands/route.ts",
+        "module:app/api/admin/devices/grants/route.ts",
+        "module:app/api/admin/devices/route.ts",
         "module:app/api/admin/documents/[id]/confirm/route.ts",
         "module:app/api/admin/documents/[id]/route.ts",
         "module:app/api/admin/documents/route.ts",
@@ -4668,6 +4678,10 @@
         "module:app/api/admin/pits/[pitId]/request-quote/route.ts",
         "module:app/api/admin/pits/[pitId]/route.ts",
         "module:app/api/admin/pits/route.ts",
+        "module:app/api/admin/provider-settings/[providerId]/request-approval/route.ts",
+        "module:app/api/admin/provider-settings/[providerId]/rotate/route.ts",
+        "module:app/api/admin/provider-settings/[providerId]/route.ts",
+        "module:app/api/admin/provider-settings/route.ts",
         "module:app/api/admin/pulse/route.ts",
         "module:app/api/admin/quotation-queue/route.ts",
         "module:app/api/admin/receipt-documents/[id]/confirm/route.ts",
@@ -4691,7 +4705,6 @@
         "module:app/api/admin/workspace/database/route.ts",
         "module:app/api/admin/workspace/route.ts",
         "module:app/api/admin/workspace/status/route.ts",
-        "module:app/api/auth/auto-login/route.ts",
         "module:app/api/chat/confirm/route.ts",
         "module:app/api/connectors/oauth/authorize/[slug]/route.ts",
         "module:app/api/connectors/oauth/callback/[slug]/route.ts",
@@ -4706,6 +4719,10 @@
         "module:app/api/gateway/proposals/route.ts",
         "module:app/api/internal/ai/gateway/route.ts",
         "module:app/api/internal/connect/event/route.ts",
+        "module:app/api/internal/device/commands/[cmdId]/route.ts",
+        "module:app/api/internal/device/commands/route.ts",
+        "module:app/api/internal/device/health/route.ts",
+        "module:app/api/internal/device/pair/route.ts",
         "module:app/api/internal/equipment/lock-command/route.ts",
         "module:app/api/internal/equipment/telemetry/route.ts",
         "module:app/api/internal/gmail/token/route.ts",
@@ -5663,6 +5680,9 @@
         "module:app/api/admin/connectors/route.ts",
         "module:app/api/admin/ide/_lib/providerRegistryRuntime.ts",
         "module:app/api/admin/ide/_lib/workerAdapters/digitalOceanWorkerAdapter.ts",
+        "module:app/api/admin/provider-settings/[providerId]/rotate/route.ts",
+        "module:app/api/admin/provider-settings/[providerId]/route.ts",
+        "module:app/api/admin/provider-settings/route.ts",
         "module:app/api/admin/system-config/route.ts",
         "module:app/api/connectors/oauth/callback/[slug]/route.ts",
         "module:app/api/connectors/webhook/[slug]/route.ts",
@@ -5696,10 +5716,13 @@
       "provider": "UNKNOWN",
       "dependencies": [],
       "dependents": [
+        "module:app/api/admin/connectors/[id]/route.ts",
         "module:app/api/admin/connectors/_lib/catalog.ts",
         "module:app/api/admin/connectors/_lib/connectRuntime.ts",
         "module:app/api/admin/connectors/discover/[slug]/route.ts",
         "module:app/api/admin/ide/_lib/businessFailureBridge.ts",
+        "module:app/api/admin/provider-settings/[providerId]/rotate/route.ts",
+        "module:app/api/admin/provider-settings/[providerId]/route.ts",
         "module:app/api/connectors/oauth/authorize/[slug]/route.ts",
         "module:app/api/connectors/oauth/callback/[slug]/route.ts",
         "module:app/api/connectors/webhook/[slug]/route.ts",
@@ -5829,9 +5852,12 @@
       "runtime_callable": true,
       "provider": "UNKNOWN",
       "dependencies": [
+        "module:app/api/admin/provider-settings/_lib/providerCredentialMeta.ts",
         "module:core/auth/requireAuth.ts",
         "module:core/auth/session.ts",
-        "module:gateway/connectors.ts"
+        "module:core/connector-loader.ts",
+        "module:gateway/connectors.ts",
+        "module:services/supabase/queries.ts"
       ],
       "dependents": [],
       "commands": [],
@@ -5914,7 +5940,6 @@
       "provider": "UNKNOWN",
       "dependencies": [
         "module:core/auth/resolveDestination.ts",
-        "module:core/auth/session.ts",
         "module:services/supabase/browser.ts"
       ],
       "dependents": [],
@@ -5998,12 +6023,12 @@
         "module:app/account/change-password/ChangePasswordForm.tsx",
         "module:app/admin/dev-loop/DevLoopDashboard.tsx",
         "module:app/admin/relationships/workspace.tsx",
-        "module:app/api/auth/auto-login/route.ts",
         "module:app/login/page.tsx",
         "module:components/admin/SecretaryChat.tsx",
         "module:components/admin/VoiceStandbyWidget.tsx",
         "module:components/admin/useAiTaskPulse.ts",
         "module:middleware.ts",
+        "module:scripts/login-autofill-test.ts",
         "module:services/supabase/server.ts"
       ],
       "commands": [],
@@ -6022,14 +6047,18 @@
       "runtime_callable": false,
       "provider": "UNKNOWN",
       "dependencies": [
+        "module:core/identity/identity.ts",
         "module:gateway/auth.ts",
         "module:registry/permissions.json.ts"
       ],
       "dependents": [
         "module:app/account/change-password/ChangePasswordForm.tsx",
         "module:app/admin/dev-loop/page.tsx",
+        "module:app/admin/devices/page.tsx",
         "module:app/admin/ide/page.tsx",
         "module:app/admin/layout.tsx",
+        "module:app/admin/relationships/[relationshipId]/page.tsx",
+        "module:app/admin/relationships/page.tsx",
         "module:app/admin/settings/page.tsx",
         "module:app/admin/system-config/page.tsx",
         "module:app/admin/users/page.tsx",
@@ -6054,6 +6083,12 @@
         "module:app/api/admin/debt-trackings/route.ts",
         "module:app/api/admin/dev-loop/approve/route.ts",
         "module:app/api/admin/dev-loop/problem-report/route.ts",
+        "module:app/api/admin/devices/[id]/probe/route.ts",
+        "module:app/api/admin/devices/[id]/route.ts",
+        "module:app/api/admin/devices/commands/[cmdId]/route.ts",
+        "module:app/api/admin/devices/commands/route.ts",
+        "module:app/api/admin/devices/grants/route.ts",
+        "module:app/api/admin/devices/route.ts",
         "module:app/api/admin/documents/[id]/confirm/route.ts",
         "module:app/api/admin/documents/[id]/route.ts",
         "module:app/api/admin/documents/route.ts",
@@ -6259,6 +6294,10 @@
         "module:app/api/admin/pits/[pitId]/request-quote/route.ts",
         "module:app/api/admin/pits/[pitId]/route.ts",
         "module:app/api/admin/pits/route.ts",
+        "module:app/api/admin/provider-settings/[providerId]/request-approval/route.ts",
+        "module:app/api/admin/provider-settings/[providerId]/rotate/route.ts",
+        "module:app/api/admin/provider-settings/[providerId]/route.ts",
+        "module:app/api/admin/provider-settings/route.ts",
         "module:app/api/admin/pulse/route.ts",
         "module:app/api/admin/quotation-queue/route.ts",
         "module:app/api/admin/receipt-documents/[id]/confirm/route.ts",
@@ -6287,7 +6326,6 @@
         "module:app/api/admin/workspace/file/route.ts",
         "module:app/api/admin/workspace/status/route.ts",
         "module:app/api/admin/workspace/tree/route.ts",
-        "module:app/api/auth/auto-login/route.ts",
         "module:app/api/build/route.ts",
         "module:app/api/chat/confirm/route.ts",
         "module:app/api/chat/route.ts",
@@ -6304,9 +6342,9 @@
         "module:app/api/routes/route.ts",
         "module:app/api/self-description/route.ts",
         "module:app/api/traces/route.ts",
+        "module:app/app/page.tsx",
         "module:app/business-workspace-template/layout.tsx",
         "module:app/business/layout.tsx",
-        "module:app/login/page.tsx",
         "module:app/oauth/authorize/page.tsx",
         "module:app/page.tsx",
         "module:app/partner/layout.tsx",
@@ -6374,6 +6412,12 @@
         "module:app/api/admin/debt-trackings/route.ts",
         "module:app/api/admin/dev-loop/approve/route.ts",
         "module:app/api/admin/dev-loop/problem-report/route.ts",
+        "module:app/api/admin/devices/[id]/probe/route.ts",
+        "module:app/api/admin/devices/[id]/route.ts",
+        "module:app/api/admin/devices/commands/[cmdId]/route.ts",
+        "module:app/api/admin/devices/commands/route.ts",
+        "module:app/api/admin/devices/grants/route.ts",
+        "module:app/api/admin/devices/route.ts",
         "module:app/api/admin/documents/[id]/confirm/route.ts",
         "module:app/api/admin/documents/[id]/route.ts",
         "module:app/api/admin/documents/route.ts",
@@ -6579,6 +6623,10 @@
         "module:app/api/admin/pits/[pitId]/request-quote/route.ts",
         "module:app/api/admin/pits/[pitId]/route.ts",
         "module:app/api/admin/pits/route.ts",
+        "module:app/api/admin/provider-settings/[providerId]/request-approval/route.ts",
+        "module:app/api/admin/provider-settings/[providerId]/rotate/route.ts",
+        "module:app/api/admin/provider-settings/[providerId]/route.ts",
+        "module:app/api/admin/provider-settings/route.ts",
         "module:app/api/admin/pulse/route.ts",
         "module:app/api/admin/quotation-queue/route.ts",
         "module:app/api/admin/receipt-documents/[id]/confirm/route.ts",
@@ -6646,8 +6694,11 @@
       "dependents": [
         "module:app/account/change-password/page.tsx",
         "module:app/admin/dev-loop/page.tsx",
+        "module:app/admin/devices/page.tsx",
         "module:app/admin/ide/page.tsx",
         "module:app/admin/layout.tsx",
+        "module:app/admin/relationships/[relationshipId]/page.tsx",
+        "module:app/admin/relationships/page.tsx",
         "module:app/admin/settings/page.tsx",
         "module:app/admin/system-config/page.tsx",
         "module:app/admin/users/page.tsx",
@@ -8962,7 +9013,9 @@
       "runtime_callable": true,
       "provider": "UNKNOWN",
       "dependencies": [
-        "module:app/admin/relationships/workspace.tsx"
+        "module:app/admin/relationships/workspace.tsx",
+        "module:core/auth/requireAuthPage.ts",
+        "module:core/auth/session.ts"
       ],
       "dependents": [],
       "commands": [],
@@ -8981,7 +9034,9 @@
       "runtime_callable": true,
       "provider": "UNKNOWN",
       "dependencies": [
-        "module:app/admin/relationships/workspace.tsx"
+        "module:app/admin/relationships/workspace.tsx",
+        "module:core/auth/requireAuthPage.ts",
+        "module:core/auth/session.ts"
       ],
       "dependents": [],
       "commands": [],
@@ -9009,6 +9064,7 @@
         "module:presentation/panels/ActionBar.tsx",
         "module:presentation/panels/Inspector.tsx",
         "module:presentation/shell/AppShell.tsx",
+        "module:presentation/shell/ide/TabStrip.tsx",
         "module:presentation/shell/navigation/AppHeader.tsx",
         "module:presentation/shell/navigation/IconRail.tsx",
         "module:presentation/shell/navigation/ListColumn.tsx",
@@ -9041,7 +9097,8 @@
         "module:presentation/panels/Inspector.tsx"
       ],
       "dependents": [
-        "module:app/admin/relationships/workspace.tsx"
+        "module:app/admin/relationships/workspace.tsx",
+        "module:scripts/receipt-upload-ocr-e2e.ts"
       ],
       "commands": [],
       "events": [],
@@ -9328,8 +9385,10 @@
       ],
       "dependents": [
         "module:app/account/change-password/ChangePasswordForm.tsx",
-        "module:app/api/auth/auto-login/route.ts",
-        "module:app/login/page.tsx"
+        "module:app/app/page.tsx",
+        "module:app/auth/confirm/route.ts",
+        "module:app/login/page.tsx",
+        "module:scripts/auth-access-test.ts"
       ],
       "commands": [],
       "events": [],
@@ -10983,6 +11042,7 @@
       "runtime_callable": true,
       "provider": "UNKNOWN",
       "dependencies": [
+        "module:core/auth/resolveDestination.ts",
         "module:services/supabase/server.ts"
       ],
       "dependents": [],
@@ -11392,6 +11452,7 @@
       "runtime_callable": true,
       "provider": "UNKNOWN",
       "dependencies": [
+        "module:components/admin/ConnectionsCredentialsBoard.tsx",
         "module:engines/documents/document-editor.ts",
         "module:presentation/panels/ActionBar.tsx",
         "module:presentation/shell/AppShell.tsx",
@@ -13305,12 +13366,7 @@
       "status": "OK",
       "runtime_callable": true,
       "provider": "UNKNOWN",
-      "dependencies": [
-        "module:core/auth/resolveDestination.ts",
-        "module:core/auth/session.ts",
-        "module:services/supabase/browser.ts",
-        "module:services/supabase/queries.ts"
-      ],
+      "dependencies": [],
       "dependents": [],
       "commands": [],
       "events": [],
@@ -16015,6 +16071,7 @@
       "dependents": [
         "module:app/api/admin/connectors/providers/[providerId]/approval-request/route.ts",
         "module:app/api/admin/ide/_lib/switchBasedOrchestratorRuntime.ts",
+        "module:app/api/admin/provider-settings/[providerId]/request-approval/route.ts",
         "module:app/api/gateway/proposals/route.ts",
         "module:engines/integration-gateway/adapters/github.ts",
         "module:engines/integration-gateway/adapters/line.ts",
@@ -16056,6 +16113,7 @@
       "dependents": [
         "module:app/api/admin/connectors/providers/[providerId]/approval-request/route.ts",
         "module:app/api/admin/ide/_lib/switchBasedOrchestratorRuntime.ts",
+        "module:app/api/admin/provider-settings/[providerId]/request-approval/route.ts",
         "module:app/api/gateway/observe/github/route.ts",
         "module:app/api/gateway/observe/line/route.ts",
         "module:app/api/gateway/observe/railway/route.ts",
@@ -16578,6 +16636,7 @@
       "runtime_callable": true,
       "provider": "UNKNOWN",
       "dependencies": [
+        "module:components/admin/ConnectionsCredentialsBoard.tsx",
         "module:config/system-links.ts",
         "module:core/auth/requireAuthPage.ts",
         "module:core/auth/session.ts",
@@ -16806,6 +16865,8 @@
         "module:app/api/admin/connectors/providers/[providerId]/approval-request/route.ts",
         "module:app/api/admin/connectors/providers/[providerId]/prepare/route.ts",
         "module:app/api/admin/connectors/route.ts",
+        "module:app/api/admin/provider-settings/[providerId]/request-approval/route.ts",
+        "module:app/api/admin/provider-settings/route.ts",
         "module:app/api/gateway/proposals/[id]/decide/route.ts",
         "module:app/api/gateway/proposals/route.ts",
         "module:engines/integration-gateway/event-bus/bus.ts"
@@ -26404,6 +26465,7 @@
         "module:app/api/admin/connectors/discover/[slug]/route.ts",
         "module:app/api/admin/connectors/providers/route.ts",
         "module:app/api/admin/infrastructure/route.ts",
+        "module:app/api/admin/provider-settings/route.ts",
         "module:scripts/connect-core-acceptance-test.ts",
         "module:scripts/infrastructure-billing-layer-verify.ts"
       ],
@@ -26799,6 +26861,7 @@
         "module:app/api/admin/connectors/providers/[providerId]/prepare/route.ts",
         "module:app/api/admin/connectors/providers/route.ts",
         "module:app/api/admin/connectors/route.ts",
+        "module:app/api/admin/provider-settings/route.ts",
         "module:app/workspace/_lib/connectDisplayModel.ts",
         "module:scripts/connect-core-acceptance-test.ts",
         "module:scripts/connect-inbound-boundary-test.ts"
@@ -28325,7 +28388,8 @@
         "module:app/admin/relationships/workspace.tsx",
         "module:app/admin/ui-gallery/_lib/assemblyHost.tsx",
         "module:app/admin/ui-gallery/_lib/componentHost.tsx",
-        "module:presentation/shell/AppShell.tsx"
+        "module:presentation/shell/AppShell.tsx",
+        "module:scripts/relationships-ui-test.ts"
       ],
       "commands": [],
       "events": [],
@@ -28349,7 +28413,8 @@
         "module:app/admin/ui-gallery/_lib/componentHost.tsx",
         "module:app/workspace/BusinessWorkspace.tsx",
         "module:components/workspace/WorkspaceShell.tsx",
-        "module:presentation/shell/AppShell.tsx"
+        "module:presentation/shell/AppShell.tsx",
+        "module:scripts/relationships-ui-test.ts"
       ],
       "commands": [],
       "events": [],
@@ -28850,6 +28915,7 @@
       "dependencies": [
         "module:app/admin/ui-gallery/_lib/BusinessDisplayRenderer.tsx",
         "module:app/admin/ui-gallery/_lib/businessDisplayModel.ts",
+        "module:app/workspace/InboxIndicator.tsx",
         "module:app/workspace/WorkspaceSettings.tsx",
         "module:app/workspace/_lib/businessTools.ts",
         "module:app/workspace/_lib/toolBindings.ts",
@@ -28901,8 +28967,10 @@
       "provider": "UNKNOWN",
       "dependencies": [],
       "dependents": [
+        "module:app/admin/relationships/workspace.tsx",
         "module:app/workspace/BusinessWorkspace.tsx",
-        "module:components/ide-shell/IDEWorkspace.tsx"
+        "module:components/ide-shell/IDEWorkspace.tsx",
+        "module:scripts/relationships-ui-test.ts"
       ],
       "commands": [],
       "events": [],
@@ -30058,6 +30126,7 @@
       "dependents": [
         "module:app/workspace/BusinessWorkspace.tsx",
         "module:app/workspace/WorkspaceSettings.tsx",
+        "module:scripts/auth-access-test.ts",
         "module:scripts/workspace-tool-bindings-test.tsx"
       ],
       "commands": [],
@@ -30474,6 +30543,792 @@
       "dependencies": [
         "module:engines/canonical/expense-write.ts"
       ],
+      "dependents": [],
+      "commands": [],
+      "events": [],
+      "capabilities": [],
+      "health": "OK",
+      "cost_source": "UNKNOWN"
+    },
+    {
+      "id": "module:scripts/provider-credentials-test.ts",
+      "name": "scripts/provider-credentials-test.ts",
+      "type": "Module",
+      "layer": "scripts",
+      "source_file": "scripts/provider-credentials-test.ts",
+      "status": "OK",
+      "runtime_callable": true,
+      "provider": "UNKNOWN",
+      "dependencies": [],
+      "dependents": [],
+      "commands": [],
+      "events": [],
+      "capabilities": [],
+      "health": "OK",
+      "cost_source": "UNKNOWN"
+    },
+    {
+      "id": "module:components/admin/ConnectionsCredentialsBoard.tsx",
+      "name": "components/admin/ConnectionsCredentialsBoard.tsx",
+      "type": "Module",
+      "layer": "components",
+      "source_file": "components/admin/ConnectionsCredentialsBoard.tsx",
+      "status": "OK",
+      "runtime_callable": false,
+      "provider": "UNKNOWN",
+      "dependencies": [],
+      "dependents": [
+        "module:app/admin/line-customers/page.tsx",
+        "module:app/admin/settings/page.tsx"
+      ],
+      "commands": [],
+      "events": [],
+      "capabilities": [],
+      "health": "OK",
+      "cost_source": "UNKNOWN"
+    },
+    {
+      "id": "module:app/api/admin/provider-settings/route.ts",
+      "name": "app/api/admin/provider-settings/route.ts",
+      "type": "Module",
+      "layer": "app",
+      "source_file": "app/api/admin/provider-settings/route.ts",
+      "status": "OK",
+      "runtime_callable": true,
+      "provider": "UNKNOWN",
+      "dependencies": [
+        "module:app/api/admin/ide/_lib/providerRegistryRuntime.ts",
+        "module:app/api/admin/provider-settings/_lib/providerCredentialMeta.ts",
+        "module:core/auth/requireAuth.ts",
+        "module:core/auth/session.ts",
+        "module:engines/connectors/registry.ts",
+        "module:engines/integration-gateway/evidence/proposalStore.ts",
+        "module:gateway/connectors.ts",
+        "module:services/supabase/queries.ts"
+      ],
+      "dependents": [],
+      "commands": [],
+      "events": [],
+      "capabilities": [],
+      "health": "OK",
+      "cost_source": "UNKNOWN"
+    },
+    {
+      "id": "module:app/api/admin/provider-settings/_lib/providerCredentialMeta.ts",
+      "name": "app/api/admin/provider-settings/_lib/providerCredentialMeta.ts",
+      "type": "Module",
+      "layer": "app",
+      "source_file": "app/api/admin/provider-settings/_lib/providerCredentialMeta.ts",
+      "status": "OK",
+      "runtime_callable": false,
+      "provider": "UNKNOWN",
+      "dependencies": [],
+      "dependents": [
+        "module:app/api/admin/connectors/[id]/route.ts",
+        "module:app/api/admin/provider-settings/[providerId]/request-approval/route.ts",
+        "module:app/api/admin/provider-settings/[providerId]/rotate/route.ts",
+        "module:app/api/admin/provider-settings/[providerId]/route.ts",
+        "module:app/api/admin/provider-settings/route.ts"
+      ],
+      "commands": [],
+      "events": [],
+      "capabilities": [],
+      "health": "OK",
+      "cost_source": "UNKNOWN"
+    },
+    {
+      "id": "module:app/api/admin/provider-settings/[providerId]/route.ts",
+      "name": "app/api/admin/provider-settings/[providerId]/route.ts",
+      "type": "Module",
+      "layer": "app",
+      "source_file": "app/api/admin/provider-settings/[providerId]/route.ts",
+      "status": "OK",
+      "runtime_callable": true,
+      "provider": "UNKNOWN",
+      "dependencies": [
+        "module:app/api/admin/provider-settings/_lib/providerCredentialMeta.ts",
+        "module:core/auth/requireAuth.ts",
+        "module:core/auth/session.ts",
+        "module:core/connector-loader.ts",
+        "module:gateway/connectors.ts",
+        "module:services/supabase/queries.ts"
+      ],
+      "dependents": [],
+      "commands": [],
+      "events": [],
+      "capabilities": [],
+      "health": "OK",
+      "cost_source": "UNKNOWN"
+    },
+    {
+      "id": "module:app/api/admin/provider-settings/[providerId]/request-approval/route.ts",
+      "name": "app/api/admin/provider-settings/[providerId]/request-approval/route.ts",
+      "type": "Module",
+      "layer": "app",
+      "source_file": "app/api/admin/provider-settings/[providerId]/request-approval/route.ts",
+      "status": "OK",
+      "runtime_callable": true,
+      "provider": "UNKNOWN",
+      "dependencies": [
+        "module:app/api/admin/provider-settings/_lib/providerCredentialMeta.ts",
+        "module:core/auth/requireAuth.ts",
+        "module:core/auth/session.ts",
+        "module:engines/integration-gateway/contracts/event.ts",
+        "module:engines/integration-gateway/event-bus/bus.ts",
+        "module:engines/integration-gateway/evidence/proposalStore.ts",
+        "module:services/supabase/queries.ts"
+      ],
+      "dependents": [],
+      "commands": [],
+      "events": [],
+      "capabilities": [],
+      "health": "OK",
+      "cost_source": "UNKNOWN"
+    },
+    {
+      "id": "module:app/api/admin/provider-settings/[providerId]/rotate/route.ts",
+      "name": "app/api/admin/provider-settings/[providerId]/rotate/route.ts",
+      "type": "Module",
+      "layer": "app",
+      "source_file": "app/api/admin/provider-settings/[providerId]/rotate/route.ts",
+      "status": "OK",
+      "runtime_callable": true,
+      "provider": "UNKNOWN",
+      "dependencies": [
+        "module:app/api/admin/provider-settings/_lib/providerCredentialMeta.ts",
+        "module:core/auth/requireAuth.ts",
+        "module:core/auth/session.ts",
+        "module:core/connector-loader.ts",
+        "module:gateway/connectors.ts",
+        "module:services/supabase/queries.ts"
+      ],
+      "dependents": [],
+      "commands": [],
+      "events": [],
+      "capabilities": [],
+      "health": "OK",
+      "cost_source": "UNKNOWN"
+    },
+    {
+      "id": "module:scripts/relationships-ui-test.ts",
+      "name": "scripts/relationships-ui-test.ts",
+      "type": "Module",
+      "layer": "scripts",
+      "source_file": "scripts/relationships-ui-test.ts",
+      "status": "OK",
+      "runtime_callable": true,
+      "provider": "UNKNOWN",
+      "dependencies": [
+        "module:engines/documents/document-editor.ts",
+        "module:presentation/shell/ide/TabStrip.tsx",
+        "module:presentation/shell/navigation/IconRail.tsx",
+        "module:presentation/shell/navigation/ListColumn.tsx"
+      ],
+      "dependents": [],
+      "commands": [],
+      "events": [],
+      "capabilities": [],
+      "health": "OK",
+      "cost_source": "UNKNOWN"
+    },
+    {
+      "id": "module:scripts/pwa-install-test.ts",
+      "name": "scripts/pwa-install-test.ts",
+      "type": "Module",
+      "layer": "scripts",
+      "source_file": "scripts/pwa-install-test.ts",
+      "status": "OK",
+      "runtime_callable": true,
+      "provider": "UNKNOWN",
+      "dependencies": [
+        "module:registry/permissions.json.ts"
+      ],
+      "dependents": [],
+      "commands": [],
+      "events": [],
+      "capabilities": [],
+      "health": "OK",
+      "cost_source": "UNKNOWN"
+    },
+    {
+      "id": "module:scripts/auth-access-test.ts",
+      "name": "scripts/auth-access-test.ts",
+      "type": "Module",
+      "layer": "scripts",
+      "source_file": "scripts/auth-access-test.ts",
+      "status": "OK",
+      "runtime_callable": true,
+      "provider": "UNKNOWN",
+      "dependencies": [
+        "module:app/workspace/_lib/toolBindings.ts",
+        "module:core/auth/resolveDestination.ts",
+        "module:registry/permissions.json.ts"
+      ],
+      "dependents": [],
+      "commands": [],
+      "events": [],
+      "capabilities": [],
+      "health": "OK",
+      "cost_source": "UNKNOWN"
+    },
+    {
+      "id": "module:components/pwa/PwaRegistration.tsx",
+      "name": "components/pwa/PwaRegistration.tsx",
+      "type": "Module",
+      "layer": "components",
+      "source_file": "components/pwa/PwaRegistration.tsx",
+      "status": "OK",
+      "runtime_callable": false,
+      "provider": "UNKNOWN",
+      "dependencies": [],
+      "dependents": [
+        "module:app/layout.tsx"
+      ],
+      "commands": [],
+      "events": [],
+      "capabilities": [],
+      "health": "OK",
+      "cost_source": "UNKNOWN"
+    },
+    {
+      "id": "module:app/workspace/InboxIndicator.tsx",
+      "name": "app/workspace/InboxIndicator.tsx",
+      "type": "Module",
+      "layer": "app",
+      "source_file": "app/workspace/InboxIndicator.tsx",
+      "status": "OK",
+      "runtime_callable": false,
+      "provider": "UNKNOWN",
+      "dependencies": [],
+      "dependents": [
+        "module:app/workspace/BusinessWorkspace.tsx"
+      ],
+      "commands": [],
+      "events": [],
+      "capabilities": [],
+      "health": "OK",
+      "cost_source": "UNKNOWN"
+    },
+    {
+      "id": "module:app/install/page.tsx",
+      "name": "app/install/page.tsx",
+      "type": "Module",
+      "layer": "app",
+      "source_file": "app/install/page.tsx",
+      "status": "OK",
+      "runtime_callable": true,
+      "provider": "UNKNOWN",
+      "dependencies": [],
+      "dependents": [],
+      "commands": [],
+      "events": [],
+      "capabilities": [],
+      "health": "OK",
+      "cost_source": "UNKNOWN"
+    },
+    {
+      "id": "module:app/app/page.tsx",
+      "name": "app/app/page.tsx",
+      "type": "Module",
+      "layer": "app",
+      "source_file": "app/app/page.tsx",
+      "status": "OK",
+      "runtime_callable": true,
+      "provider": "UNKNOWN",
+      "dependencies": [
+        "module:core/auth/resolveDestination.ts",
+        "module:core/auth/session.ts"
+      ],
+      "dependents": [],
+      "commands": [],
+      "events": [],
+      "capabilities": [],
+      "health": "OK",
+      "cost_source": "UNKNOWN"
+    },
+    {
+      "id": "module:scripts/device-connector-test.ts",
+      "name": "scripts/device-connector-test.ts",
+      "type": "Module",
+      "layer": "scripts",
+      "source_file": "scripts/device-connector-test.ts",
+      "status": "OK",
+      "runtime_callable": true,
+      "provider": "UNKNOWN",
+      "dependencies": [],
+      "dependents": [],
+      "commands": [],
+      "events": [],
+      "capabilities": [],
+      "health": "OK",
+      "cost_source": "UNKNOWN"
+    },
+    {
+      "id": "module:app/admin/devices/page.tsx",
+      "name": "app/admin/devices/page.tsx",
+      "type": "Module",
+      "layer": "app",
+      "source_file": "app/admin/devices/page.tsx",
+      "status": "OK",
+      "runtime_callable": true,
+      "provider": "UNKNOWN",
+      "dependencies": [
+        "module:app/admin/devices/DevicesBoard.tsx",
+        "module:core/auth/requireAuthPage.ts",
+        "module:core/auth/session.ts"
+      ],
+      "dependents": [],
+      "commands": [],
+      "events": [],
+      "capabilities": [],
+      "health": "OK",
+      "cost_source": "UNKNOWN"
+    },
+    {
+      "id": "module:app/admin/devices/DevicesBoard.tsx",
+      "name": "app/admin/devices/DevicesBoard.tsx",
+      "type": "Module",
+      "layer": "app",
+      "source_file": "app/admin/devices/DevicesBoard.tsx",
+      "status": "OK",
+      "runtime_callable": false,
+      "provider": "UNKNOWN",
+      "dependencies": [],
+      "dependents": [
+        "module:app/admin/devices/page.tsx"
+      ],
+      "commands": [],
+      "events": [],
+      "capabilities": [],
+      "health": "OK",
+      "cost_source": "UNKNOWN"
+    },
+    {
+      "id": "module:app/api/admin/devices/route.ts",
+      "name": "app/api/admin/devices/route.ts",
+      "type": "Module",
+      "layer": "app",
+      "source_file": "app/api/admin/devices/route.ts",
+      "status": "OK",
+      "runtime_callable": true,
+      "provider": "UNKNOWN",
+      "dependencies": [
+        "module:app/api/admin/devices/_lib/deviceRegistry.ts",
+        "module:core/auth/requireAuth.ts",
+        "module:core/auth/session.ts",
+        "module:services/supabase/queries.ts"
+      ],
+      "dependents": [],
+      "commands": [],
+      "events": [],
+      "capabilities": [],
+      "health": "OK",
+      "cost_source": "UNKNOWN"
+    },
+    {
+      "id": "module:app/api/internal/device/pair/route.ts",
+      "name": "app/api/internal/device/pair/route.ts",
+      "type": "Module",
+      "layer": "app",
+      "source_file": "app/api/internal/device/pair/route.ts",
+      "status": "OK",
+      "runtime_callable": true,
+      "provider": "UNKNOWN",
+      "dependencies": [
+        "module:app/api/admin/devices/_lib/deviceRegistry.ts",
+        "module:services/supabase/queries.ts"
+      ],
+      "dependents": [],
+      "commands": [],
+      "events": [],
+      "capabilities": [],
+      "health": "OK",
+      "cost_source": "UNKNOWN"
+    },
+    {
+      "id": "module:app/api/internal/device/health/route.ts",
+      "name": "app/api/internal/device/health/route.ts",
+      "type": "Module",
+      "layer": "app",
+      "source_file": "app/api/internal/device/health/route.ts",
+      "status": "OK",
+      "runtime_callable": true,
+      "provider": "UNKNOWN",
+      "dependencies": [
+        "module:app/api/admin/devices/_lib/deviceRegistry.ts",
+        "module:services/supabase/queries.ts"
+      ],
+      "dependents": [],
+      "commands": [],
+      "events": [],
+      "capabilities": [],
+      "health": "OK",
+      "cost_source": "UNKNOWN"
+    },
+    {
+      "id": "module:app/api/admin/devices/_lib/deviceRegistry.ts",
+      "name": "app/api/admin/devices/_lib/deviceRegistry.ts",
+      "type": "Module",
+      "layer": "app",
+      "source_file": "app/api/admin/devices/_lib/deviceRegistry.ts",
+      "status": "OK",
+      "runtime_callable": false,
+      "provider": "UNKNOWN",
+      "dependencies": [],
+      "dependents": [
+        "module:app/api/admin/devices/[id]/probe/route.ts",
+        "module:app/api/admin/devices/[id]/route.ts",
+        "module:app/api/admin/devices/_lib/deviceCommands.ts",
+        "module:app/api/admin/devices/route.ts",
+        "module:app/api/internal/device/commands/[cmdId]/route.ts",
+        "module:app/api/internal/device/commands/route.ts",
+        "module:app/api/internal/device/health/route.ts",
+        "module:app/api/internal/device/pair/route.ts"
+      ],
+      "commands": [],
+      "events": [],
+      "capabilities": [],
+      "health": "OK",
+      "cost_source": "UNKNOWN"
+    },
+    {
+      "id": "module:app/api/admin/devices/[id]/route.ts",
+      "name": "app/api/admin/devices/[id]/route.ts",
+      "type": "Module",
+      "layer": "app",
+      "source_file": "app/api/admin/devices/[id]/route.ts",
+      "status": "OK",
+      "runtime_callable": true,
+      "provider": "UNKNOWN",
+      "dependencies": [
+        "module:app/api/admin/devices/_lib/deviceRegistry.ts",
+        "module:core/auth/requireAuth.ts",
+        "module:core/auth/session.ts",
+        "module:services/supabase/queries.ts"
+      ],
+      "dependents": [],
+      "commands": [],
+      "events": [],
+      "capabilities": [],
+      "health": "OK",
+      "cost_source": "UNKNOWN"
+    },
+    {
+      "id": "module:app/api/admin/devices/[id]/probe/route.ts",
+      "name": "app/api/admin/devices/[id]/probe/route.ts",
+      "type": "Module",
+      "layer": "app",
+      "source_file": "app/api/admin/devices/[id]/probe/route.ts",
+      "status": "OK",
+      "runtime_callable": true,
+      "provider": "UNKNOWN",
+      "dependencies": [
+        "module:app/api/admin/devices/_lib/deviceRegistry.ts",
+        "module:core/auth/requireAuth.ts",
+        "module:core/auth/session.ts",
+        "module:services/supabase/queries.ts"
+      ],
+      "dependents": [],
+      "commands": [],
+      "events": [],
+      "capabilities": [],
+      "health": "OK",
+      "cost_source": "UNKNOWN"
+    },
+    {
+      "id": "module:scripts/tool-scope-test.ts",
+      "name": "scripts/tool-scope-test.ts",
+      "type": "Module",
+      "layer": "scripts",
+      "source_file": "scripts/tool-scope-test.ts",
+      "status": "OK",
+      "runtime_callable": true,
+      "provider": "UNKNOWN",
+      "dependencies": [
+        "module:core/policy/scope.ts"
+      ],
+      "dependents": [],
+      "commands": [],
+      "events": [],
+      "capabilities": [],
+      "health": "OK",
+      "cost_source": "UNKNOWN"
+    },
+    {
+      "id": "module:scripts/access-path-survey-test.ts",
+      "name": "scripts/access-path-survey-test.ts",
+      "type": "Module",
+      "layer": "scripts",
+      "source_file": "scripts/access-path-survey-test.ts",
+      "status": "OK",
+      "runtime_callable": true,
+      "provider": "UNKNOWN",
+      "dependencies": [],
+      "dependents": [],
+      "commands": [],
+      "events": [],
+      "capabilities": [],
+      "health": "OK",
+      "cost_source": "UNKNOWN"
+    },
+    {
+      "id": "module:core/policy/scope.ts",
+      "name": "core/policy/scope.ts",
+      "type": "Module",
+      "layer": "core",
+      "source_file": "core/policy/scope.ts",
+      "status": "OK",
+      "runtime_callable": false,
+      "provider": "UNKNOWN",
+      "dependencies": [
+        "module:registry/permissions.json.ts"
+      ],
+      "dependents": [
+        "module:app/api/admin/devices/_lib/deviceCommands.ts",
+        "module:app/api/admin/devices/grants/route.ts",
+        "module:scripts/tool-scope-test.ts"
+      ],
+      "commands": [],
+      "events": [],
+      "capabilities": [],
+      "health": "OK",
+      "cost_source": "UNKNOWN"
+    },
+    {
+      "id": "module:app/api/internal/device/commands/route.ts",
+      "name": "app/api/internal/device/commands/route.ts",
+      "type": "Module",
+      "layer": "app",
+      "source_file": "app/api/internal/device/commands/route.ts",
+      "status": "OK",
+      "runtime_callable": true,
+      "provider": "UNKNOWN",
+      "dependencies": [
+        "module:app/api/admin/devices/_lib/deviceCommands.ts",
+        "module:app/api/admin/devices/_lib/deviceRegistry.ts",
+        "module:services/supabase/queries.ts"
+      ],
+      "dependents": [],
+      "commands": [],
+      "events": [],
+      "capabilities": [],
+      "health": "OK",
+      "cost_source": "UNKNOWN"
+    },
+    {
+      "id": "module:app/api/admin/devices/grants/route.ts",
+      "name": "app/api/admin/devices/grants/route.ts",
+      "type": "Module",
+      "layer": "app",
+      "source_file": "app/api/admin/devices/grants/route.ts",
+      "status": "OK",
+      "runtime_callable": true,
+      "provider": "UNKNOWN",
+      "dependencies": [
+        "module:core/auth/requireAuth.ts",
+        "module:core/auth/session.ts",
+        "module:core/policy/scope.ts",
+        "module:services/supabase/queries.ts"
+      ],
+      "dependents": [],
+      "commands": [],
+      "events": [],
+      "capabilities": [],
+      "health": "OK",
+      "cost_source": "UNKNOWN"
+    },
+    {
+      "id": "module:app/api/admin/devices/commands/route.ts",
+      "name": "app/api/admin/devices/commands/route.ts",
+      "type": "Module",
+      "layer": "app",
+      "source_file": "app/api/admin/devices/commands/route.ts",
+      "status": "OK",
+      "runtime_callable": true,
+      "provider": "UNKNOWN",
+      "dependencies": [
+        "module:app/api/admin/devices/_lib/deviceCommands.ts",
+        "module:core/auth/requireAuth.ts",
+        "module:core/auth/session.ts",
+        "module:services/supabase/queries.ts"
+      ],
+      "dependents": [],
+      "commands": [],
+      "events": [],
+      "capabilities": [],
+      "health": "OK",
+      "cost_source": "UNKNOWN"
+    },
+    {
+      "id": "module:app/api/admin/devices/_lib/deviceCommands.ts",
+      "name": "app/api/admin/devices/_lib/deviceCommands.ts",
+      "type": "Module",
+      "layer": "app",
+      "source_file": "app/api/admin/devices/_lib/deviceCommands.ts",
+      "status": "OK",
+      "runtime_callable": false,
+      "provider": "UNKNOWN",
+      "dependencies": [
+        "module:app/api/admin/devices/_lib/deviceRegistry.ts",
+        "module:core/policy/scope.ts"
+      ],
+      "dependents": [
+        "module:app/api/admin/devices/commands/[cmdId]/route.ts",
+        "module:app/api/admin/devices/commands/route.ts",
+        "module:app/api/internal/device/commands/[cmdId]/route.ts",
+        "module:app/api/internal/device/commands/route.ts"
+      ],
+      "commands": [],
+      "events": [],
+      "capabilities": [],
+      "health": "OK",
+      "cost_source": "UNKNOWN"
+    },
+    {
+      "id": "module:app/api/internal/device/commands/[cmdId]/route.ts",
+      "name": "app/api/internal/device/commands/[cmdId]/route.ts",
+      "type": "Module",
+      "layer": "app",
+      "source_file": "app/api/internal/device/commands/[cmdId]/route.ts",
+      "status": "OK",
+      "runtime_callable": true,
+      "provider": "UNKNOWN",
+      "dependencies": [
+        "module:app/api/admin/devices/_lib/deviceCommands.ts",
+        "module:app/api/admin/devices/_lib/deviceRegistry.ts",
+        "module:services/supabase/queries.ts"
+      ],
+      "dependents": [],
+      "commands": [],
+      "events": [],
+      "capabilities": [],
+      "health": "OK",
+      "cost_source": "UNKNOWN"
+    },
+    {
+      "id": "module:app/api/admin/devices/commands/[cmdId]/route.ts",
+      "name": "app/api/admin/devices/commands/[cmdId]/route.ts",
+      "type": "Module",
+      "layer": "app",
+      "source_file": "app/api/admin/devices/commands/[cmdId]/route.ts",
+      "status": "OK",
+      "runtime_callable": true,
+      "provider": "UNKNOWN",
+      "dependencies": [
+        "module:app/api/admin/devices/_lib/deviceCommands.ts",
+        "module:core/auth/requireAuth.ts",
+        "module:core/auth/session.ts",
+        "module:services/supabase/queries.ts"
+      ],
+      "dependents": [],
+      "commands": [],
+      "events": [],
+      "capabilities": [],
+      "health": "OK",
+      "cost_source": "UNKNOWN"
+    },
+    {
+      "id": "module:scripts/receipt-upload-ocr-e2e.ts",
+      "name": "scripts/receipt-upload-ocr-e2e.ts",
+      "type": "Module",
+      "layer": "scripts",
+      "source_file": "scripts/receipt-upload-ocr-e2e.ts",
+      "status": "OK",
+      "runtime_callable": true,
+      "provider": "UNKNOWN",
+      "dependencies": [
+        "module:app/admin/relationships/feed.ts",
+        "module:plugins/platform/mac/window-executor.ts"
+      ],
+      "dependents": [],
+      "commands": [],
+      "events": [],
+      "capabilities": [],
+      "health": "OK",
+      "cost_source": "UNKNOWN"
+    },
+    {
+      "id": "module:scripts/login-autofill-test.ts",
+      "name": "scripts/login-autofill-test.ts",
+      "type": "Module",
+      "layer": "scripts",
+      "source_file": "scripts/login-autofill-test.ts",
+      "status": "OK",
+      "runtime_callable": true,
+      "provider": "UNKNOWN",
+      "dependencies": [
+        "module:services/supabase/browser.ts"
+      ],
+      "dependents": [],
+      "commands": [],
+      "events": [],
+      "capabilities": [],
+      "health": "OK",
+      "cost_source": "UNKNOWN"
+    },
+    {
+      "id": "module:scripts/identity-layer-test.ts",
+      "name": "scripts/identity-layer-test.ts",
+      "type": "Module",
+      "layer": "scripts",
+      "source_file": "scripts/identity-layer-test.ts",
+      "status": "OK",
+      "runtime_callable": true,
+      "provider": "UNKNOWN",
+      "dependencies": [],
+      "dependents": [],
+      "commands": [],
+      "events": [],
+      "capabilities": [],
+      "health": "OK",
+      "cost_source": "UNKNOWN"
+    },
+    {
+      "id": "module:scripts/auth-single-flow-test.ts",
+      "name": "scripts/auth-single-flow-test.ts",
+      "type": "Module",
+      "layer": "scripts",
+      "source_file": "scripts/auth-single-flow-test.ts",
+      "status": "OK",
+      "runtime_callable": true,
+      "provider": "UNKNOWN",
+      "dependencies": [],
+      "dependents": [],
+      "commands": [],
+      "events": [],
+      "capabilities": [],
+      "health": "OK",
+      "cost_source": "UNKNOWN"
+    },
+    {
+      "id": "module:core/identity/identity.ts",
+      "name": "core/identity/identity.ts",
+      "type": "Module",
+      "layer": "core",
+      "source_file": "core/identity/identity.ts",
+      "status": "OK",
+      "runtime_callable": false,
+      "provider": "UNKNOWN",
+      "dependencies": [],
+      "dependents": [
+        "module:core/auth/session.ts"
+      ],
+      "commands": [],
+      "events": [],
+      "capabilities": [],
+      "health": "OK",
+      "cost_source": "UNKNOWN"
+    },
+    {
+      "id": "module:app/auth/verify/route.ts",
+      "name": "app/auth/verify/route.ts",
+      "type": "Module",
+      "layer": "app",
+      "source_file": "app/auth/verify/route.ts",
+      "status": "OK",
+      "runtime_callable": true,
+      "provider": "UNKNOWN",
+      "dependencies": [],
       "dependents": [],
       "commands": [],
       "events": [],
@@ -37440,6 +38295,16 @@
     },
     {
       "source": "layer:app",
+      "target": "module:app/admin/devices/DevicesBoard.tsx",
+      "type": "governed_by"
+    },
+    {
+      "source": "layer:app",
+      "target": "module:app/admin/devices/page.tsx",
+      "type": "governed_by"
+    },
+    {
+      "source": "layer:app",
       "target": "module:app/admin/dna/page.tsx",
       "type": "governed_by"
     },
@@ -37841,6 +38706,46 @@
     {
       "source": "layer:app",
       "target": "module:app/api/admin/dev-loop/problem-report/route.ts",
+      "type": "governed_by"
+    },
+    {
+      "source": "layer:app",
+      "target": "module:app/api/admin/devices/[id]/probe/route.ts",
+      "type": "governed_by"
+    },
+    {
+      "source": "layer:app",
+      "target": "module:app/api/admin/devices/[id]/route.ts",
+      "type": "governed_by"
+    },
+    {
+      "source": "layer:app",
+      "target": "module:app/api/admin/devices/_lib/deviceCommands.ts",
+      "type": "governed_by"
+    },
+    {
+      "source": "layer:app",
+      "target": "module:app/api/admin/devices/_lib/deviceRegistry.ts",
+      "type": "governed_by"
+    },
+    {
+      "source": "layer:app",
+      "target": "module:app/api/admin/devices/commands/[cmdId]/route.ts",
+      "type": "governed_by"
+    },
+    {
+      "source": "layer:app",
+      "target": "module:app/api/admin/devices/commands/route.ts",
+      "type": "governed_by"
+    },
+    {
+      "source": "layer:app",
+      "target": "module:app/api/admin/devices/grants/route.ts",
+      "type": "governed_by"
+    },
+    {
+      "source": "layer:app",
+      "target": "module:app/api/admin/devices/route.ts",
       "type": "governed_by"
     },
     {
@@ -39365,6 +40270,31 @@
     },
     {
       "source": "layer:app",
+      "target": "module:app/api/admin/provider-settings/[providerId]/request-approval/route.ts",
+      "type": "governed_by"
+    },
+    {
+      "source": "layer:app",
+      "target": "module:app/api/admin/provider-settings/[providerId]/rotate/route.ts",
+      "type": "governed_by"
+    },
+    {
+      "source": "layer:app",
+      "target": "module:app/api/admin/provider-settings/[providerId]/route.ts",
+      "type": "governed_by"
+    },
+    {
+      "source": "layer:app",
+      "target": "module:app/api/admin/provider-settings/_lib/providerCredentialMeta.ts",
+      "type": "governed_by"
+    },
+    {
+      "source": "layer:app",
+      "target": "module:app/api/admin/provider-settings/route.ts",
+      "type": "governed_by"
+    },
+    {
+      "source": "layer:app",
       "target": "module:app/api/admin/pulse/route.ts",
       "type": "governed_by"
     },
@@ -39595,6 +40525,26 @@
     },
     {
       "source": "layer:app",
+      "target": "module:app/api/internal/device/commands/[cmdId]/route.ts",
+      "type": "governed_by"
+    },
+    {
+      "source": "layer:app",
+      "target": "module:app/api/internal/device/commands/route.ts",
+      "type": "governed_by"
+    },
+    {
+      "source": "layer:app",
+      "target": "module:app/api/internal/device/health/route.ts",
+      "type": "governed_by"
+    },
+    {
+      "source": "layer:app",
+      "target": "module:app/api/internal/device/pair/route.ts",
+      "type": "governed_by"
+    },
+    {
+      "source": "layer:app",
       "target": "module:app/api/internal/equipment/lock-command/route.ts",
       "type": "governed_by"
     },
@@ -39715,7 +40665,17 @@
     },
     {
       "source": "layer:app",
+      "target": "module:app/app/page.tsx",
+      "type": "governed_by"
+    },
+    {
+      "source": "layer:app",
       "target": "module:app/auth/confirm/route.ts",
+      "type": "governed_by"
+    },
+    {
+      "source": "layer:app",
+      "target": "module:app/auth/verify/route.ts",
       "type": "governed_by"
     },
     {
@@ -39776,6 +40736,11 @@
     {
       "source": "layer:app",
       "target": "module:app/download/page.tsx",
+      "type": "governed_by"
+    },
+    {
+      "source": "layer:app",
+      "target": "module:app/install/page.tsx",
       "type": "governed_by"
     },
     {
@@ -39996,6 +40961,11 @@
     {
       "source": "layer:app",
       "target": "module:app/workspace/BusinessWorkspace.tsx",
+      "type": "governed_by"
+    },
+    {
+      "source": "layer:app",
+      "target": "module:app/workspace/InboxIndicator.tsx",
       "type": "governed_by"
     },
     {
@@ -40240,6 +41210,11 @@
     },
     {
       "source": "layer:components",
+      "target": "module:components/admin/ConnectionsCredentialsBoard.tsx",
+      "type": "governed_by"
+    },
+    {
+      "source": "layer:components",
       "target": "module:components/admin/DevLoopVoiceAlerts.tsx",
       "type": "governed_by"
     },
@@ -40296,6 +41271,11 @@
     {
       "source": "layer:components",
       "target": "module:components/line/ContactSettingsModal.tsx",
+      "type": "governed_by"
+    },
+    {
+      "source": "layer:components",
+      "target": "module:components/pwa/PwaRegistration.tsx",
       "type": "governed_by"
     },
     {
@@ -40460,12 +41440,22 @@
     },
     {
       "source": "layer:core",
+      "target": "module:core/identity/identity.ts",
+      "type": "governed_by"
+    },
+    {
+      "source": "layer:core",
       "target": "module:core/navigation/resolveCapabilityAccess.ts",
       "type": "governed_by"
     },
     {
       "source": "layer:core",
       "target": "module:core/navigation/resolveNavItems.ts",
+      "type": "governed_by"
+    },
+    {
+      "source": "layer:core",
+      "target": "module:core/policy/scope.ts",
       "type": "governed_by"
     },
     {
@@ -42260,6 +43250,11 @@
     },
     {
       "source": "layer:scripts",
+      "target": "module:scripts/access-path-survey-test.ts",
+      "type": "governed_by"
+    },
+    {
+      "source": "layer:scripts",
       "target": "module:scripts/ai-caller-cutover-test.ts",
       "type": "governed_by"
     },
@@ -42306,6 +43301,16 @@
     {
       "source": "layer:scripts",
       "target": "module:scripts/artifact-test.ts",
+      "type": "governed_by"
+    },
+    {
+      "source": "layer:scripts",
+      "target": "module:scripts/auth-access-test.ts",
+      "type": "governed_by"
+    },
+    {
+      "source": "layer:scripts",
+      "target": "module:scripts/auth-single-flow-test.ts",
       "type": "governed_by"
     },
     {
@@ -42505,6 +43510,11 @@
     },
     {
       "source": "layer:scripts",
+      "target": "module:scripts/device-connector-test.ts",
+      "type": "governed_by"
+    },
+    {
+      "source": "layer:scripts",
       "target": "module:scripts/digitalocean-connector-credential-resolution-test.ts",
       "type": "governed_by"
     },
@@ -42660,6 +43670,11 @@
     },
     {
       "source": "layer:scripts",
+      "target": "module:scripts/identity-layer-test.ts",
+      "type": "governed_by"
+    },
+    {
+      "source": "layer:scripts",
       "target": "module:scripts/impact-analyzer.ts",
       "type": "governed_by"
     },
@@ -42716,6 +43731,11 @@
     {
       "source": "layer:scripts",
       "target": "module:scripts/local-worker-test.ts",
+      "type": "governed_by"
+    },
+    {
+      "source": "layer:scripts",
+      "target": "module:scripts/login-autofill-test.ts",
       "type": "governed_by"
     },
     {
@@ -42785,12 +43805,27 @@
     },
     {
       "source": "layer:scripts",
+      "target": "module:scripts/provider-credentials-test.ts",
+      "type": "governed_by"
+    },
+    {
+      "source": "layer:scripts",
+      "target": "module:scripts/pwa-install-test.ts",
+      "type": "governed_by"
+    },
+    {
+      "source": "layer:scripts",
       "target": "module:scripts/railway-adapter-test.ts",
       "type": "governed_by"
     },
     {
       "source": "layer:scripts",
       "target": "module:scripts/readiness-test.ts",
+      "type": "governed_by"
+    },
+    {
+      "source": "layer:scripts",
+      "target": "module:scripts/receipt-upload-ocr-e2e.ts",
       "type": "governed_by"
     },
     {
@@ -42821,6 +43856,11 @@
     {
       "source": "layer:scripts",
       "target": "module:scripts/registry-sync-regression-test.ts",
+      "type": "governed_by"
+    },
+    {
+      "source": "layer:scripts",
+      "target": "module:scripts/relationships-ui-test.ts",
       "type": "governed_by"
     },
     {
@@ -42901,6 +43941,11 @@
     {
       "source": "layer:scripts",
       "target": "module:scripts/test-test.ts",
+      "type": "governed_by"
+    },
+    {
+      "source": "layer:scripts",
+      "target": "module:scripts/tool-scope-test.ts",
       "type": "governed_by"
     },
     {
@@ -43764,6 +44809,21 @@
       "type": "imports"
     },
     {
+      "source": "module:app/admin/devices/page.tsx",
+      "target": "module:app/admin/devices/DevicesBoard.tsx",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/admin/devices/page.tsx",
+      "target": "module:core/auth/requireAuthPage.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/admin/devices/page.tsx",
+      "target": "module:core/auth/session.ts",
+      "type": "imports"
+    },
+    {
       "source": "module:app/admin/engine-explorer/page.tsx",
       "target": "module:registry/module-registry.json.ts",
       "type": "imports"
@@ -43841,6 +44901,11 @@
     {
       "source": "module:app/admin/layout.tsx",
       "target": "module:presentation/shell/navigation/HomeBackBar.tsx",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/admin/line-customers/page.tsx",
+      "target": "module:components/admin/ConnectionsCredentialsBoard.tsx",
       "type": "imports"
     },
     {
@@ -43924,6 +44989,16 @@
       "type": "imports"
     },
     {
+      "source": "module:app/admin/relationships/[relationshipId]/page.tsx",
+      "target": "module:core/auth/requireAuthPage.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/admin/relationships/[relationshipId]/page.tsx",
+      "target": "module:core/auth/session.ts",
+      "type": "imports"
+    },
+    {
       "source": "module:app/admin/relationships/feed.ts",
       "target": "module:engines/presentation/template-resolver.ts",
       "type": "imports"
@@ -43941,6 +45016,16 @@
     {
       "source": "module:app/admin/relationships/page.tsx",
       "target": "module:app/admin/relationships/workspace.tsx",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/admin/relationships/page.tsx",
+      "target": "module:core/auth/requireAuthPage.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/admin/relationships/page.tsx",
+      "target": "module:core/auth/session.ts",
       "type": "imports"
     },
     {
@@ -43990,12 +45075,22 @@
     },
     {
       "source": "module:app/admin/relationships/workspace.tsx",
+      "target": "module:presentation/shell/ide/TabStrip.tsx",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/admin/relationships/workspace.tsx",
       "target": "module:presentation/shell/navigation/AppHeader.tsx",
       "type": "imports"
     },
     {
       "source": "module:app/admin/relationships/workspace.tsx",
       "target": "module:presentation/shell/navigation/IconRail.tsx",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/admin/relationships/workspace.tsx",
+      "target": "module:presentation/shell/navigation/ListColumn.tsx",
       "type": "imports"
     },
     {
@@ -44016,6 +45111,11 @@
     {
       "source": "module:app/admin/relationships/workspace.tsx",
       "target": "module:services/supabase/browser.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/admin/settings/page.tsx",
+      "target": "module:components/admin/ConnectionsCredentialsBoard.tsx",
       "type": "imports"
     },
     {
@@ -44795,6 +45895,11 @@
     },
     {
       "source": "module:app/api/admin/connectors/[id]/route.ts",
+      "target": "module:app/api/admin/provider-settings/_lib/providerCredentialMeta.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/api/admin/connectors/[id]/route.ts",
       "target": "module:core/auth/requireAuth.ts",
       "type": "imports"
     },
@@ -44805,7 +45910,17 @@
     },
     {
       "source": "module:app/api/admin/connectors/[id]/route.ts",
+      "target": "module:core/connector-loader.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/api/admin/connectors/[id]/route.ts",
       "target": "module:gateway/connectors.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/api/admin/connectors/[id]/route.ts",
+      "target": "module:services/supabase/queries.ts",
       "type": "imports"
     },
     {
@@ -45185,6 +46300,136 @@
     },
     {
       "source": "module:app/api/admin/dev-loop/problem-report/route.ts",
+      "target": "module:services/supabase/queries.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/api/admin/devices/[id]/probe/route.ts",
+      "target": "module:app/api/admin/devices/_lib/deviceRegistry.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/api/admin/devices/[id]/probe/route.ts",
+      "target": "module:core/auth/requireAuth.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/api/admin/devices/[id]/probe/route.ts",
+      "target": "module:core/auth/session.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/api/admin/devices/[id]/probe/route.ts",
+      "target": "module:services/supabase/queries.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/api/admin/devices/[id]/route.ts",
+      "target": "module:app/api/admin/devices/_lib/deviceRegistry.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/api/admin/devices/[id]/route.ts",
+      "target": "module:core/auth/requireAuth.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/api/admin/devices/[id]/route.ts",
+      "target": "module:core/auth/session.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/api/admin/devices/[id]/route.ts",
+      "target": "module:services/supabase/queries.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/api/admin/devices/_lib/deviceCommands.ts",
+      "target": "module:app/api/admin/devices/_lib/deviceRegistry.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/api/admin/devices/_lib/deviceCommands.ts",
+      "target": "module:core/policy/scope.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/api/admin/devices/commands/[cmdId]/route.ts",
+      "target": "module:app/api/admin/devices/_lib/deviceCommands.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/api/admin/devices/commands/[cmdId]/route.ts",
+      "target": "module:core/auth/requireAuth.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/api/admin/devices/commands/[cmdId]/route.ts",
+      "target": "module:core/auth/session.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/api/admin/devices/commands/[cmdId]/route.ts",
+      "target": "module:services/supabase/queries.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/api/admin/devices/commands/route.ts",
+      "target": "module:app/api/admin/devices/_lib/deviceCommands.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/api/admin/devices/commands/route.ts",
+      "target": "module:core/auth/requireAuth.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/api/admin/devices/commands/route.ts",
+      "target": "module:core/auth/session.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/api/admin/devices/commands/route.ts",
+      "target": "module:services/supabase/queries.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/api/admin/devices/grants/route.ts",
+      "target": "module:core/auth/requireAuth.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/api/admin/devices/grants/route.ts",
+      "target": "module:core/auth/session.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/api/admin/devices/grants/route.ts",
+      "target": "module:core/policy/scope.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/api/admin/devices/grants/route.ts",
+      "target": "module:services/supabase/queries.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/api/admin/devices/route.ts",
+      "target": "module:app/api/admin/devices/_lib/deviceRegistry.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/api/admin/devices/route.ts",
+      "target": "module:core/auth/requireAuth.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/api/admin/devices/route.ts",
+      "target": "module:core/auth/session.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/api/admin/devices/route.ts",
       "target": "module:services/supabase/queries.ts",
       "type": "imports"
     },
@@ -50594,6 +51839,146 @@
       "type": "imports"
     },
     {
+      "source": "module:app/api/admin/provider-settings/[providerId]/request-approval/route.ts",
+      "target": "module:app/api/admin/provider-settings/_lib/providerCredentialMeta.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/api/admin/provider-settings/[providerId]/request-approval/route.ts",
+      "target": "module:core/auth/requireAuth.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/api/admin/provider-settings/[providerId]/request-approval/route.ts",
+      "target": "module:core/auth/session.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/api/admin/provider-settings/[providerId]/request-approval/route.ts",
+      "target": "module:engines/integration-gateway/contracts/event.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/api/admin/provider-settings/[providerId]/request-approval/route.ts",
+      "target": "module:engines/integration-gateway/event-bus/bus.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/api/admin/provider-settings/[providerId]/request-approval/route.ts",
+      "target": "module:engines/integration-gateway/evidence/proposalStore.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/api/admin/provider-settings/[providerId]/request-approval/route.ts",
+      "target": "module:services/supabase/queries.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/api/admin/provider-settings/[providerId]/rotate/route.ts",
+      "target": "module:app/api/admin/provider-settings/_lib/providerCredentialMeta.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/api/admin/provider-settings/[providerId]/rotate/route.ts",
+      "target": "module:core/auth/requireAuth.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/api/admin/provider-settings/[providerId]/rotate/route.ts",
+      "target": "module:core/auth/session.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/api/admin/provider-settings/[providerId]/rotate/route.ts",
+      "target": "module:core/connector-loader.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/api/admin/provider-settings/[providerId]/rotate/route.ts",
+      "target": "module:gateway/connectors.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/api/admin/provider-settings/[providerId]/rotate/route.ts",
+      "target": "module:services/supabase/queries.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/api/admin/provider-settings/[providerId]/route.ts",
+      "target": "module:app/api/admin/provider-settings/_lib/providerCredentialMeta.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/api/admin/provider-settings/[providerId]/route.ts",
+      "target": "module:core/auth/requireAuth.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/api/admin/provider-settings/[providerId]/route.ts",
+      "target": "module:core/auth/session.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/api/admin/provider-settings/[providerId]/route.ts",
+      "target": "module:core/connector-loader.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/api/admin/provider-settings/[providerId]/route.ts",
+      "target": "module:core/connector-loader.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/api/admin/provider-settings/[providerId]/route.ts",
+      "target": "module:gateway/connectors.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/api/admin/provider-settings/[providerId]/route.ts",
+      "target": "module:services/supabase/queries.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/api/admin/provider-settings/route.ts",
+      "target": "module:app/api/admin/ide/_lib/providerRegistryRuntime.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/api/admin/provider-settings/route.ts",
+      "target": "module:app/api/admin/provider-settings/_lib/providerCredentialMeta.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/api/admin/provider-settings/route.ts",
+      "target": "module:core/auth/requireAuth.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/api/admin/provider-settings/route.ts",
+      "target": "module:core/auth/session.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/api/admin/provider-settings/route.ts",
+      "target": "module:engines/connectors/registry.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/api/admin/provider-settings/route.ts",
+      "target": "module:engines/integration-gateway/evidence/proposalStore.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/api/admin/provider-settings/route.ts",
+      "target": "module:gateway/connectors.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/api/admin/provider-settings/route.ts",
+      "target": "module:services/supabase/queries.ts",
+      "type": "imports"
+    },
+    {
       "source": "module:app/api/admin/pulse/route.ts",
       "target": "module:core/auth/requireAuth.ts",
       "type": "imports"
@@ -51169,26 +52554,6 @@
       "type": "imports"
     },
     {
-      "source": "module:app/api/auth/auto-login/route.ts",
-      "target": "module:core/auth/resolveDestination.ts",
-      "type": "imports"
-    },
-    {
-      "source": "module:app/api/auth/auto-login/route.ts",
-      "target": "module:core/auth/session.ts",
-      "type": "imports"
-    },
-    {
-      "source": "module:app/api/auth/auto-login/route.ts",
-      "target": "module:services/supabase/browser.ts",
-      "type": "imports"
-    },
-    {
-      "source": "module:app/api/auth/auto-login/route.ts",
-      "target": "module:services/supabase/queries.ts",
-      "type": "imports"
-    },
-    {
       "source": "module:app/api/auth/logout/route.ts",
       "target": "module:services/supabase/server.ts",
       "type": "imports"
@@ -51594,6 +52959,56 @@
       "type": "imports"
     },
     {
+      "source": "module:app/api/internal/device/commands/[cmdId]/route.ts",
+      "target": "module:app/api/admin/devices/_lib/deviceCommands.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/api/internal/device/commands/[cmdId]/route.ts",
+      "target": "module:app/api/admin/devices/_lib/deviceRegistry.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/api/internal/device/commands/[cmdId]/route.ts",
+      "target": "module:services/supabase/queries.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/api/internal/device/commands/route.ts",
+      "target": "module:app/api/admin/devices/_lib/deviceCommands.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/api/internal/device/commands/route.ts",
+      "target": "module:app/api/admin/devices/_lib/deviceRegistry.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/api/internal/device/commands/route.ts",
+      "target": "module:services/supabase/queries.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/api/internal/device/health/route.ts",
+      "target": "module:app/api/admin/devices/_lib/deviceRegistry.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/api/internal/device/health/route.ts",
+      "target": "module:services/supabase/queries.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/api/internal/device/pair/route.ts",
+      "target": "module:app/api/admin/devices/_lib/deviceRegistry.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/api/internal/device/pair/route.ts",
+      "target": "module:services/supabase/queries.ts",
+      "type": "imports"
+    },
+    {
       "source": "module:app/api/internal/equipment/lock-command/route.ts",
       "target": "module:engines/equipment/relay-command.ts",
       "type": "imports"
@@ -51934,6 +53349,21 @@
       "type": "imports"
     },
     {
+      "source": "module:app/app/page.tsx",
+      "target": "module:core/auth/resolveDestination.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/app/page.tsx",
+      "target": "module:core/auth/session.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/auth/confirm/route.ts",
+      "target": "module:core/auth/resolveDestination.ts",
+      "type": "imports"
+    },
+    {
       "source": "module:app/auth/confirm/route.ts",
       "target": "module:services/supabase/server.ts",
       "type": "imports"
@@ -52044,13 +53474,13 @@
       "type": "imports"
     },
     {
-      "source": "module:app/login/page.tsx",
-      "target": "module:core/auth/resolveDestination.ts",
+      "source": "module:app/layout.tsx",
+      "target": "module:components/pwa/PwaRegistration.tsx",
       "type": "imports"
     },
     {
       "source": "module:app/login/page.tsx",
-      "target": "module:core/auth/session.ts",
+      "target": "module:core/auth/resolveDestination.ts",
       "type": "imports"
     },
     {
@@ -52781,6 +54211,11 @@
     {
       "source": "module:app/workspace/BusinessWorkspace.tsx",
       "target": "module:app/admin/ui-gallery/_lib/businessDisplayModel.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/workspace/BusinessWorkspace.tsx",
+      "target": "module:app/workspace/InboxIndicator.tsx",
       "type": "imports"
     },
     {
@@ -53775,6 +55210,11 @@
     },
     {
       "source": "module:core/auth/session.ts",
+      "target": "module:core/identity/identity.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:core/auth/session.ts",
       "target": "module:gateway/auth.ts",
       "type": "imports"
     },
@@ -53840,6 +55280,11 @@
     },
     {
       "source": "module:core/navigation/resolveNavItems.ts",
+      "target": "module:registry/permissions.json.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:core/policy/scope.ts",
       "target": "module:registry/permissions.json.ts",
       "type": "imports"
     },
@@ -57564,6 +59009,21 @@
       "type": "imports"
     },
     {
+      "source": "module:scripts/auth-access-test.ts",
+      "target": "module:app/workspace/_lib/toolBindings.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:scripts/auth-access-test.ts",
+      "target": "module:core/auth/resolveDestination.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:scripts/auth-access-test.ts",
+      "target": "module:registry/permissions.json.ts",
+      "type": "imports"
+    },
+    {
       "source": "module:scripts/autosave-runtime-test.ts",
       "target": "module:app/api/admin/ide/_lib/artifactRegistry.ts",
       "type": "imports"
@@ -58869,6 +60329,11 @@
       "type": "imports"
     },
     {
+      "source": "module:scripts/login-autofill-test.ts",
+      "target": "module:services/supabase/browser.ts",
+      "type": "imports"
+    },
+    {
       "source": "module:scripts/manager-question-queue-test.ts",
       "target": "module:app/api/admin/ide/_lib/managerQuestionRuntime.ts",
       "type": "imports"
@@ -59039,6 +60504,11 @@
       "type": "imports"
     },
     {
+      "source": "module:scripts/pwa-install-test.ts",
+      "target": "module:registry/permissions.json.ts",
+      "type": "imports"
+    },
+    {
       "source": "module:scripts/railway-adapter-test.ts",
       "target": "module:engines/connectors/tester.ts",
       "type": "imports"
@@ -59076,6 +60546,16 @@
     {
       "source": "module:scripts/readiness-test.ts",
       "target": "module:app/api/admin/ide/_lib/releaseRuntime.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:scripts/receipt-upload-ocr-e2e.ts",
+      "target": "module:app/admin/relationships/feed.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:scripts/receipt-upload-ocr-e2e.ts",
+      "target": "module:plugins/platform/mac/window-executor.ts",
       "type": "imports"
     },
     {
@@ -59121,6 +60601,26 @@
     {
       "source": "module:scripts/registry-integrity-gate.ts",
       "target": "module:scripts/sync-registry.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:scripts/relationships-ui-test.ts",
+      "target": "module:engines/documents/document-editor.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:scripts/relationships-ui-test.ts",
+      "target": "module:presentation/shell/ide/TabStrip.tsx",
+      "type": "imports"
+    },
+    {
+      "source": "module:scripts/relationships-ui-test.ts",
+      "target": "module:presentation/shell/navigation/IconRail.tsx",
+      "type": "imports"
+    },
+    {
+      "source": "module:scripts/relationships-ui-test.ts",
+      "target": "module:presentation/shell/navigation/ListColumn.tsx",
       "type": "imports"
     },
     {
@@ -59401,6 +60901,11 @@
     {
       "source": "module:scripts/test-test.ts",
       "target": "module:app/api/admin/ide/_lib/testRuntime.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:scripts/tool-scope-test.ts",
+      "target": "module:core/policy/scope.ts",
       "type": "imports"
     },
     {
@@ -62035,9 +63540,9 @@
     }
   ],
   "summary": {
-    "total_nodes": 1690,
-    "total_edges": 4984,
-    "modules": 1291,
+    "total_nodes": 1728,
+    "total_edges": 5114,
+    "modules": 1329,
     "layers": 9,
     "commands": 99,
     "events": 60,
@@ -62046,8 +63551,8 @@
     "drivers": 11,
     "connector_stages": 5,
     "module_health": {
-      "total": 1291,
-      "ok": 1291,
+      "total": 1329,
+      "ok": 1329,
       "broken": 0,
       "unused": 0,
       "unregistered": 0
@@ -62061,7 +63566,7 @@
     "unknown_field_counts": {
       "nodes_with_unknown_source_file": 82,
       "nodes_with_unknown_status": 159,
-      "nodes_with_unknown_provider": 1666
+      "nodes_with_unknown_provider": 1704
     },
     "unknown_dimensions": [
       "ai_model_registry",

@@ -17,6 +17,7 @@ import { requireAuthPage } from "@/core/auth/requireAuthPage";
 import { ADMIN_TIER } from "@/core/auth/session";
 import { SYSTEM_LINKS } from "@/config/system-links";
 import permissions from "@/registry/permissions.json";
+import { ConnectionsCredentialsBoard } from "@/components/admin/ConnectionsCredentialsBoard";
 
 function readEnvVarNames(): string[] {
   try {
@@ -35,6 +36,16 @@ export default async function SettingsPage() {
   return (
     <div style={{ padding: 24, fontFamily: "system-ui, sans-serif", maxWidth: 1000, margin: "0 auto" }}>
       <h1 style={{ fontSize: 20, fontWeight: 600, marginBottom: 24 }}>Settings</h1>
+
+      <section style={{ marginBottom: 32 }} id="connections-credentials">
+        <h2 style={{ fontSize: 15, fontWeight: 600, marginBottom: 4 }}>Connections &amp; Credentials</h2>
+        <p style={{ fontSize: 12, color: "#888", marginBottom: 12 }}>
+          Schema-driven provider cards — same registry &amp; data source as line-customers → PROVIDER CONTROL →
+          API &amp; Credentials Management (one settings system, rendered from provider_credential_requirements).
+          ค่ารหัสจริงอยู่ที่ Connect credential authority — หน้านี้เห็นเฉพาะสถานะ/metadata
+        </p>
+        <ConnectionsCredentialsBoard />
+      </section>
 
       <section style={{ marginBottom: 32 }}>
         <h2 style={{ fontSize: 15, fontWeight: 600, marginBottom: 8 }}>Environment Variables ({envVarNames.length})</h2>
