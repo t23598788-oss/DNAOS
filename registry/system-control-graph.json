@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-24T05:13:10.549Z",
+  "generated_at": "2026-09-24T05:36:56.008Z",
   "nodes": [
     {
       "id": "layer:core",
@@ -11124,6 +11124,7 @@
       "dependencies": [
         "module:app/workspace/BusinessWorkspace.tsx",
         "module:app/workspace/_lib/businessTools.ts",
+        "module:app/workspace/_lib/connectDisplayModel.ts",
         "module:app/workspace/_lib/jobDisplayModel.ts",
         "module:app/workspace/_lib/partnerDisplayModel.ts",
         "module:core/auth/devReviewAccess.ts",
@@ -26794,6 +26795,7 @@
         "module:app/api/admin/connectors/providers/[providerId]/prepare/route.ts",
         "module:app/api/admin/connectors/providers/route.ts",
         "module:app/api/admin/connectors/route.ts",
+        "module:app/workspace/_lib/connectDisplayModel.ts",
         "module:scripts/connect-core-acceptance-test.ts",
         "module:scripts/connect-inbound-boundary-test.ts"
       ],
@@ -26818,6 +26820,7 @@
       "dependents": [
         "module:app/api/admin/connectors/_lib/connectRuntime.ts",
         "module:app/api/admin/connectors/providers/route.ts",
+        "module:app/workspace/_lib/connectDisplayModel.ts",
         "module:engines/connectors/providers/github.ts",
         "module:engines/connectors/providers/line.ts",
         "module:engines/connectors/providers/railway.ts",
@@ -28916,6 +28919,7 @@
       ],
       "dependents": [
         "module:app/workspace/BusinessWorkspace.tsx",
+        "module:app/workspace/_lib/connectDisplayModel.ts",
         "module:app/workspace/_lib/jobDisplayModel.ts",
         "module:app/workspace/_lib/partnerDisplayModel.ts",
         "module:app/workspace/page.tsx",
@@ -29051,6 +29055,7 @@
         "module:app/admin/ui-gallery/business-display/page.tsx",
         "module:app/workspace/BusinessWorkspace.tsx",
         "module:app/workspace/_lib/businessTools.ts",
+        "module:app/workspace/_lib/connectDisplayModel.ts",
         "module:app/workspace/_lib/jobDisplayModel.ts",
         "module:app/workspace/_lib/partnerDisplayModel.ts"
       ],
@@ -30379,6 +30384,30 @@
         "module:engines/canonical/inbound-write.ts"
       ],
       "dependents": [],
+      "commands": [],
+      "events": [],
+      "capabilities": [],
+      "health": "OK",
+      "cost_source": "UNKNOWN"
+    },
+    {
+      "id": "module:app/workspace/_lib/connectDisplayModel.ts",
+      "name": "app/workspace/_lib/connectDisplayModel.ts",
+      "type": "Module",
+      "layer": "app",
+      "source_file": "app/workspace/_lib/connectDisplayModel.ts",
+      "status": "OK",
+      "runtime_callable": false,
+      "provider": "UNKNOWN",
+      "dependencies": [
+        "module:app/admin/ui-gallery/_lib/businessDisplayModel.ts",
+        "module:app/workspace/_lib/businessTools.ts",
+        "module:engines/connectors/contract.ts",
+        "module:engines/connectors/registry.ts"
+      ],
+      "dependents": [
+        "module:app/workspace/page.tsx"
+      ],
       "commands": [],
       "events": [],
       "capabilities": [],
@@ -39905,6 +39934,11 @@
     {
       "source": "layer:app",
       "target": "module:app/workspace/_lib/businessTools.ts",
+      "type": "governed_by"
+    },
+    {
+      "source": "layer:app",
+      "target": "module:app/workspace/_lib/connectDisplayModel.ts",
       "type": "governed_by"
     },
     {
@@ -52713,6 +52747,26 @@
       "type": "imports"
     },
     {
+      "source": "module:app/workspace/_lib/connectDisplayModel.ts",
+      "target": "module:app/admin/ui-gallery/_lib/businessDisplayModel.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/workspace/_lib/connectDisplayModel.ts",
+      "target": "module:app/workspace/_lib/businessTools.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/workspace/_lib/connectDisplayModel.ts",
+      "target": "module:engines/connectors/contract.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/workspace/_lib/connectDisplayModel.ts",
+      "target": "module:engines/connectors/registry.ts",
+      "type": "imports"
+    },
+    {
       "source": "module:app/workspace/_lib/jobDisplayModel.ts",
       "target": "module:app/admin/ui-gallery/_lib/businessDisplayModel.ts",
       "type": "imports"
@@ -52755,6 +52809,11 @@
     {
       "source": "module:app/workspace/page.tsx",
       "target": "module:app/workspace/_lib/businessTools.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/workspace/page.tsx",
+      "target": "module:app/workspace/_lib/connectDisplayModel.ts",
       "type": "imports"
     },
     {
@@ -61864,9 +61923,9 @@
     }
   ],
   "summary": {
-    "total_nodes": 1686,
-    "total_edges": 4969,
-    "modules": 1287,
+    "total_nodes": 1687,
+    "total_edges": 4975,
+    "modules": 1288,
     "layers": 9,
     "commands": 99,
     "events": 60,
@@ -61875,8 +61934,8 @@
     "drivers": 11,
     "connector_stages": 5,
     "module_health": {
-      "total": 1287,
-      "ok": 1287,
+      "total": 1288,
+      "ok": 1288,
       "broken": 0,
       "unused": 0,
       "unregistered": 0
@@ -61890,7 +61949,7 @@
     "unknown_field_counts": {
       "nodes_with_unknown_source_file": 82,
       "nodes_with_unknown_status": 159,
-      "nodes_with_unknown_provider": 1662
+      "nodes_with_unknown_provider": 1663
     },
     "unknown_dimensions": [
       "ai_model_registry",
