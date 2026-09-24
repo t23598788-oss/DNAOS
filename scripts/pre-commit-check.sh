@@ -187,6 +187,16 @@ if [ -x "$SCRIPT_DIR/check-connector-lifecycle.sh" ]; then
   fi
 fi
 
+# Guard 8b: Connect Boundary Census (T1/T2/T12 — LINE Phase-1 §9 · Owner approval
+# 2026-09-24 อนุมัติ wire เข้า hook). Provider tier ห้ามเพิ่มการเขียน business
+# table เหนือ baseline (ลดได้เสมอ) · business_events direct write ต้องเป็น 0
+# ตลอดกาล (P3 invariant) · canonical payment writer ต้องอยู่ — เพิ่มไม่ได้
+echo "--- Connect Boundary Census (Guard 8b / T1/T2/T12 / Phase-1 §9) ---"
+if ! npx tsx scripts/connect-boundary-census-test.ts; then
+  echo "ERROR: Connect Boundary Census BLOCKED this commit — provider tier added a business/monetary write, or the P3 business_events invariant regressed (see report above)"
+  exit 1
+fi
+
 # Guard 9: Known Mistake Pattern Check (DNA OS Core Learning Policy, CONST-100,
 # registry/existence.json known_mistakes.KM-002) — WARN only, does not block commit.
 # A file basename that already exists under a different directory is a real, mechanical

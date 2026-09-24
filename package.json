@@ -138,6 +138,7 @@
     "material-source-discovery:test": "npx tsx scripts/material-source-discovery-test.ts",
     "connect-core:test": "npx tsx scripts/connect-core-acceptance-test.ts",
     "connect-inbound-boundary:test": "npx tsx scripts/connect-inbound-boundary-test.ts",
+    "connect-census:test": "npx tsx scripts/connect-boundary-census-test.ts",
     "contractor-lease:test": "tsx dna-os-contractor/test/leaseClient.test.ts",
     "contractor-freebuff-pull:test": "tsx dna-os-contractor/test/freebuffPullAdapter.test.ts",
     "api-token-scope:test": "tsx scripts/api-token-scope-test.ts",

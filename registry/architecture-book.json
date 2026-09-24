@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-24T00:52:56.591Z",
+  "generated_at": "2026-09-24T01:27:49.485Z",
   "version": 1,
   "nodes": [
     {
@@ -87461,6 +87461,40 @@
           "resolved_target": "local-runtime/ai/device-ai-runtime.mjs.ts"
         }
       ]
+    },
+    {
+      "id": "module:scripts/connect-boundary-census-test.ts",
+      "type": "Module",
+      "layer": "scripts",
+      "name_en": "scripts/connect-boundary-census-test.ts",
+      "purpose_th": "CONNECT BOUNDARY CENSUS (T1/T2/T4/T12 — LINE provider-retreat Phase-1 §9).",
+      "exports": [
+        "scanSource"
+      ],
+      "status": "OK",
+      "runtime_entry_point": true,
+      "internal_dependencies": [],
+      "dependents": [],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "scripts",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "symbols": [
+        {
+          "name": "scanSource",
+          "kind": "function",
+          "line_start": 193,
+          "line_end": 203
+        }
+      ]
     }
   ],
   "edges": [
@@ -92757,6 +92791,11 @@
     {
       "source": "layer:scripts",
       "target": "module:scripts/compatibility-test.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:scripts",
+      "target": "module:scripts/connect-boundary-census-test.ts",
       "label": "contains"
     },
     {
@@ -110741,8 +110780,8 @@
     }
   ],
   "summary": {
-    "total": 1281,
-    "ok": 1281,
+    "total": 1282,
+    "ok": 1282,
     "broken": 0,
     "unused": 0,
     "unregistered": 0
