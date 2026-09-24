@@ -3,6 +3,7 @@ import { saveEvent } from "../events/store.ts"
 import { ResponseGateway } from "../engines/response.ts"
 import { handlePrintCopiesSelected, handlePrintPaymentMethodSelected } from "../engines/print-jobs.ts"
 import { sendConnectEventCommand, CONNECT_PROVIDER } from "../../_shared/connect-event.ts"
+import { sendConnectExpenseCommand } from "../../_shared/connect-expense.ts"
 
 export async function handlePostback(ctx: HandlerContext): Promise<void> {
   const pb = (ctx.event as LinePostbackEvent).postback
@@ -120,16 +121,25 @@ export async function handlePostback(ctx: HandlerContext): Promise<void> {
   // real payment confirmation trigger is still the owner's own slip photo
   // (handlers/image.ts, matchOwnerSlipToPartnerPayable) — this button only
   // records that the owner has seen and accepted the request.
-  // TEMPORARY (D3 = ข, owner 2026-09-24): this direct payable update stays
-  // until the canonical expense writer lands — expiry enforced by
-  // D3_TEMPORARY_EXPIRES in scripts/connect-boundary-census-test.ts.
+  // LANDED (D3 deferred work, owner 2026-09-24): this payable ack now goes
+  // through the Connect expense bridge → engines/canonical/expense-write
+  // (row-filtered fail-closed transition + canonical audit).
   if (action === "OWNER_PAYABLE_ACK") {
-    await ctx.supabase
-      .from("partner_payable_requests")
-      .update({ status: "owner_acknowledged", owner_acknowledged_at: new Date().toISOString() })
-      .eq("id", payload).eq("status", "pending")
+    const ack = await sendConnectExpenseCommand("payable.transition", {
+      payable_id: payload,
+      to: "owner_acknowledged",
+    }, "system:line-postback")
     if (ctx.replyToken) {
-      await ResponseGateway.replyText(ctx.replyToken, "รับทราบครับ โอนเสร็จส่งสลิปมาในแชทนี้ได้เลย")
+      // honest replies (P4b precedent): transition ไม่สำเร็จ = ไม่ตอบว่า "รับทราบ"
+      const reply = ack.ok
+        ? "รับทราบครับ โอนเสร็จส่งสลิปมาในแชทนี้ได้เลย"
+        : ack.error?.startsWith("PAYABLE_TRANSITION_INVALID")
+          ? "รายการนี้ถูกดำเนินการไปแล้วครับ"
+          : "บันทึกข้อมูลไม่สำเร็จ ลองใหม่อีกครั้งครับ"
+      await ResponseGateway.replyText(ctx.replyToken, reply)
+      if (!ack.ok) console.error(`[postback] PAYABLE_ACK_FAILED(${payload}): ${ack.error}`)
+    } else if (!ack.ok) {
+      console.error(`[postback] PAYABLE_ACK_FAILED(${payload}): ${ack.error}`)
     }
     return
   }

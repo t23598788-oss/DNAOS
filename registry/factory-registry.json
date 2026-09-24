@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-24T05:00:39.069Z",
+  "generated_at": "2026-09-24T06:20:35.734Z",
   "policy": "Phase 1.1 (Factory Constitution) — read-only analysis + mapping only. No file was moved, renamed, deleted, merged, or refactored to produce this. ownedModules is derived entirely from registry/module-registry.json + real, pre-verified path evidence in scripts/build-factory-registry.ts. See registry/factory-mapping.json for the per-module assignment and registry/factory-summary.json for the coverage report (including UNKNOWN and CONFLICT — reported honestly, never silently resolved).",
   "factories": [
     {
@@ -569,6 +569,7 @@
         "app/workspace/BusinessWorkspace.tsx",
         "app/workspace/WorkspaceSettings.tsx",
         "app/workspace/_lib/businessTools.ts",
+        "app/workspace/_lib/connectDisplayModel.ts",
         "app/workspace/_lib/jobDisplayModel.ts",
         "app/workspace/_lib/partnerDisplayModel.ts",
         "app/workspace/_lib/toolBindings.ts",
@@ -827,7 +828,7 @@
       "dependencies": "Not yet declared — see inputs.",
       "interfaces": "Not yet declared — see inputs.",
       "health": {
-        "moduleCount": 454,
+        "moduleCount": 455,
         "status": "populated"
       },
       "owner": "unassigned — Phase 1.2 assigns a real human/team owner per Factory",
@@ -1362,6 +1363,7 @@
         "app/api/internal/ai/gateway/route.ts",
         "app/api/internal/canonical/jobs/route.ts",
         "app/api/internal/connect/event/route.ts",
+        "app/api/internal/connect/inbound-source/route.ts",
         "app/api/internal/connect/payment-confirm/route.ts",
         "app/api/internal/equipment/lock-command/route.ts",
         "app/api/internal/equipment/telemetry/route.ts",
@@ -1408,6 +1410,7 @@
         "app/api/internal/ai/gateway/route.ts",
         "app/api/internal/canonical/jobs/route.ts",
         "app/api/internal/connect/event/route.ts",
+        "app/api/internal/connect/inbound-source/route.ts",
         "app/api/internal/connect/payment-confirm/route.ts",
         "app/api/internal/equipment/lock-command/route.ts",
         "app/api/internal/equipment/telemetry/route.ts",
@@ -1426,7 +1429,7 @@
       "dependencies": "Not yet declared — see inputs.",
       "interfaces": "Not yet declared — see inputs.",
       "health": {
-        "moduleCount": 46,
+        "moduleCount": 47,
         "status": "populated"
       },
       "owner": "unassigned — Phase 1.2 assigns a real human/team owner per Factory",
@@ -1770,6 +1773,7 @@
         "supabase/functions/_shared/connect-event.ts",
         "supabase/functions/_shared/connect-forward.ts",
         "supabase/functions/_shared/connect-identity.ts",
+        "supabase/functions/_shared/connect-inbound.ts",
         "supabase/functions/_shared/connect-payment.ts",
         "supabase/functions/_shared/gmail-client.ts",
         "supabase/functions/_shared/haversine.ts",
@@ -1853,7 +1857,7 @@
       "dependencies": "Not yet declared — see inputs.",
       "interfaces": "Not yet declared — see inputs.",
       "health": {
-        "moduleCount": 81,
+        "moduleCount": 82,
         "status": "populated"
       },
       "owner": "unassigned — Phase 1.2 assigns a real human/team owner per Factory",

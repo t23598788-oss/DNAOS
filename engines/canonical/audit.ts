@@ -27,6 +27,11 @@ export const CANONICAL_AUDIT_ACTIONS = [
   "transaction.status_changed",
   "artifact.created",
   "artifact.failed",
+  // D3 deferred work landed (owner 2026-09-24) — money-out side vocabulary,
+  // appended additively; no test pins this list (grep-verified)
+  "expense.recorded",
+  "payable.requested",
+  "payable.transitioned",
 ] as const;
 
 export type CanonicalAuditAction = (typeof CANONICAL_AUDIT_ACTIONS)[number];

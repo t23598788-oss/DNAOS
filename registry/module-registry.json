@@ -15645,6 +15645,46 @@
         "loadConnectWorkspace"
       ],
       "status": "active"
+    },
+    "engines/canonical/expense-write.ts": {
+      "owner": "engines",
+      "layer": "engines",
+      "purpose": "Canonical expense/payable write model (D3 deferred work landed, owner 2026-09-24).",
+      "purpose_th": "Canonical expense/payable write model (D3 deferred work landed, owner 2026-09-24).",
+      "exports": [
+        "CompanyExpenseResult",
+        "PartnerPayableResult",
+        "PayableTransitionTarget",
+        "RecordCompanyExpenseInput",
+        "RequestPartnerPayableInput",
+        "TransitionPartnerPayableInput",
+        "recordCompanyExpense",
+        "requestPartnerPayable",
+        "transitionPartnerPayable"
+      ],
+      "status": "active"
+    },
+    "supabase/functions/_shared/connect-expense.ts": {
+      "owner": "supabase",
+      "layer": "supabase",
+      "purpose": "Connect money-OUT transport (LINE financial-edge removal · D3 deferred work",
+      "purpose_th": "Connect money-OUT transport (LINE financial-edge removal · D3 deferred work",
+      "exports": [
+        "ConnectExpenseCommand",
+        "ConnectExpenseResult",
+        "sendConnectExpenseCommand"
+      ],
+      "status": "active"
+    },
+    "app/api/internal/connect/expense/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "POST /api/internal/connect/expense — Connect money-OUT bridge",
+      "purpose_th": "POST /api/internal/connect/expense — Connect money-OUT bridge",
+      "exports": [
+        "POST"
+      ],
+      "status": "active"
     }
   },
   "excluded": [

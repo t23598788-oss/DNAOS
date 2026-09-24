@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-24T05:00:39.072Z",
+  "generated_at": "2026-09-24T06:20:35.736Z",
   "policy": "Per-module Factory mapping only — no file was moved. See registry/factory-registry.json for the Factory contracts this maps into.",
   "modules": {
     "app/.well-known/oauth-authorization-server/route.ts": {
@@ -4391,6 +4391,15 @@
         "internal command-execution API"
       ]
     },
+    "app/api/internal/connect/inbound-source/route.ts": {
+      "factoryOwner": "runtime-factory",
+      "domain": "Runtime",
+      "capability": "app",
+      "responsibility": "POST /api/internal/connect/inbound-source — Connect inbound-evidence bridge",
+      "evidence": [
+        "internal command-execution API"
+      ]
+    },
     "app/api/internal/connect/payment-confirm/route.ts": {
       "factoryOwner": "runtime-factory",
       "domain": "Runtime",
@@ -5273,6 +5282,15 @@
       "domain": "Developer Tooling",
       "capability": "app",
       "responsibility": "BUSINESS WORKSPACE — tool registry + เนื้อหาซ้าย/ขวา (หน้าจอจริง /workspace)",
+      "evidence": [
+        "operational workspace page"
+      ]
+    },
+    "app/workspace/_lib/connectDisplayModel.ts": {
+      "factoryOwner": "software-factory",
+      "domain": "Developer Tooling",
+      "capability": "app",
+      "responsibility": "BUSINESS WORKSPACE — Connect capabilities → BusinessDisplayModel",
       "evidence": [
         "operational workspace page"
       ]
@@ -10835,6 +10853,15 @@
       "domain": "Deployment",
       "capability": "supabase",
       "responsibility": "Connect identity — Deno-side reader of the canonical model (capability C, 2026-09-23).",
+      "evidence": [
+        "Supabase Edge Function (remaining, not architecture-drift-alert)"
+      ]
+    },
+    "supabase/functions/_shared/connect-inbound.ts": {
+      "factoryOwner": "deployment-factory",
+      "domain": "Deployment",
+      "capability": "supabase",
+      "responsibility": "Connect inbound-source transport (LINE financial-edge removal P4b ·",
       "evidence": [
         "Supabase Edge Function (remaining, not architecture-drift-alert)"
       ]

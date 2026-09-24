@@ -10,6 +10,7 @@
 // (see project_partner_purchase_cascade memory — the outgoing mirror of
 // the customer-incoming-payment cascade).
 import { ResponseGateway } from "./response.ts"
+import { sendConnectExpenseCommand } from "../../_shared/connect-expense.ts"
 
 let _ownerLineUserIdCache: string | null | undefined
 
@@ -45,13 +46,14 @@ export async function alertOwnerAnomaly(supabase: any, text: string): Promise<vo
 // handlers/image.ts), not this button; the button only records that the
 // owner has seen and accepted the request.
 //
-// TEMPORARY (D3 = ข, owner 2026-09-24): the three monetary writes in this
-// file (partner_payable_requests insert/update + company_expenses insert)
-// deliberately stay DIRECT for now — the canonical expense writer is a
-// separate deferred task with an expiry the census enforces
-// (D3_TEMPORARY_EXPIRES in scripts/connect-boundary-census-test.ts — after
-// that date every commit blocks until the sites shrink or Owner extends the
-// window explicitly in git). Do not add new direct money writes here.
+// LANDED (D3 deferred work, owner 2026-09-24): the three monetary writes in
+// this file (partner_payable_requests insert/transition + company_expenses
+// insert) now go through the Connect expense bridge → engines/canonical/
+// expense-write.ts (closed status vocabulary + row-filtered fail-closed
+// transitions + canonical audit on every money-out row). No direct money
+// write remains here — supabase_billing_events stays (chore status flip, not
+// a money row). Census keeps provider monetary sites at the out-of-scope pair
+// only (scripts/connect-boundary-census-test.ts).
 export async function requestPartnerPayableApproval(
   supabase: any,
   params: { partnerCompanyId: string | null; partnerName: string; partnerLineUserId: string | null; amount: number; description: string | null; businessEventId: string | null },
@@ -59,17 +61,22 @@ export async function requestPartnerPayableApproval(
   const ownerId = await getOwnerLineUserId(supabase)
   if (!ownerId) return null
 
-  const { data: row } = await supabase.from("partner_payable_requests").insert({
+  // P4/D3 (owner 2026-09-24): money-out row สร้างผ่าน Connect expense bridge →
+  // engines/canonical/expense-write (status เริ่ม pending เสมอ + audit ทุกแถว) —
+  // fail-closed: ไม่มีแถว = ไม่แจ้งเตือน (null contract เดิมตอน insert ล้มเหลว)
+  const created = await sendConnectExpenseCommand("payable.request", {
     partner_company_id: params.partnerCompanyId,
     partner_name: params.partnerName,
     partner_line_user_id: params.partnerLineUserId,
     amount: params.amount,
     description: params.description,
     business_event_id: params.businessEventId,
-    status: "pending",
-    owner_notified_at: new Date().toISOString(),
-  }).select("id").single()
-  if (!row) return null
+  }, "system:line-owner-dispatcher")
+  if (!created.ok || !created.data?.payable_id) {
+    console.error(`[owner-dispatcher] PAYABLE_REQUEST_FAILED: ${created.error}`)
+    return null
+  }
+  const row = { id: String(created.data.payable_id) }
 
   await ResponseGateway.pushWithQuickReply(
     ownerId,
@@ -108,12 +115,16 @@ export async function matchOwnerSlipToPartnerPayable(
     if (bankMatch && Math.abs(Number(bankMatch.amount) - params.amount) <= 5) bankEmailVerified = true
   }
 
-  await supabase.from("partner_payable_requests").update({
-    status: bankEmailVerified ? "completed" : "paid_confirmed",
+  // P4/D3: status transition ผ่าน bridge (row-filtered fail-closed + audit) —
+  // ของเดิม update error ถูกกลืนเงียบแล้ว flow ไปต่อ → คงพฤติกรรมเดิม (log ให้
+  // เห็น ไม่หยุด flow) เพราะ expense+push ข้างล่างไม่ขึ้นกับผลลัพธ์นี้
+  const settled = await sendConnectExpenseCommand("payable.transition", {
+    payable_id: match.id,
+    to: bankEmailVerified ? "completed" : "paid_confirmed",
     paid_line_event_id: params.lineEventId,
     bank_email_verified: bankEmailVerified,
-    completed_at: bankEmailVerified ? new Date().toISOString() : null,
-  }).eq("id", match.id)
+  }, "system:line-owner-dispatcher")
+  if (!settled.ok) console.error(`[owner-dispatcher] PAYABLE_TRANSITION_FAILED(${match.id}): ${settled.error}`)
 
   // Real gap, owner-reported 2026-07-31: "โอนแล้ว...นำค่าใช้จ่ายเข้าไปลง
   // บันทึกไว้ในค่าใช้จ่าย รายรับรายจ่ายของบริษัทซะ" — the owner's own slip
@@ -122,7 +133,9 @@ export async function matchOwnerSlipToPartnerPayable(
   // record it into company_expenses here, the one real place this
   // confirmation happens, instead of only marking the request row done.
   const ownerLineUserId = await getOwnerLineUserId(supabase)
-  await supabase.from("company_expenses").insert({
+  // P4/D3: expense row ผ่าน bridge → canonical expense-write (+ audit) —
+  // ของเดิม insert error ก็ถูกกลืนเงียบ → log แล้วไปต่อ เหมือนเดิมทุกประการ
+  const expense = await sendConnectExpenseCommand("expense.record", {
     document_type: "partner_payable",
     amount: Number(match.amount),
     vendor_name: match.partner_name,
@@ -130,7 +143,8 @@ export async function matchOwnerSlipToPartnerPayable(
     submitted_by_line_user_id: ownerLineUserId ?? "unknown",
     submitted_by_name: "เฮีย (owner)",
     submitted_by_role: "owner",
-  })
+  }, "system:line-owner-dispatcher")
+  if (!expense.ok) console.error(`[owner-dispatcher] EXPENSE_RECORD_FAILED(${match.id}): ${expense.error}`)
 
   // Supabase billing events are one real kind of partner-payable request —
   // close the loop back to that table too, so its own status (pending →

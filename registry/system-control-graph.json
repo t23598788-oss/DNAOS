@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-24T05:36:56.008Z",
+  "generated_at": "2026-09-24T06:20:47.603Z",
   "nodes": [
     {
       "id": "layer:core",
@@ -4721,6 +4721,7 @@
         "module:engines/canonical/audit.ts",
         "module:engines/canonical/debt-write.ts",
         "module:engines/canonical/document-write.ts",
+        "module:engines/canonical/expense-write.ts",
         "module:engines/canonical/inbound-write.ts",
         "module:engines/canonical/payment-write.ts",
         "module:engines/canonical/receipt-confirm-flow.ts",
@@ -4857,6 +4858,7 @@
       "provider": "UNKNOWN",
       "dependencies": [
         "module:supabase/functions/_shared/connect-event.ts",
+        "module:supabase/functions/_shared/connect-expense.ts",
         "module:supabase/functions/line-webhook-v2/engines/print-jobs.ts",
         "module:supabase/functions/line-webhook-v2/engines/response.ts",
         "module:supabase/functions/line-webhook-v2/events/store.ts",
@@ -13048,6 +13050,7 @@
       "provider": "UNKNOWN",
       "dependencies": [
         "module:supabase/functions/_shared/connect-event.ts",
+        "module:supabase/functions/_shared/connect-expense.ts",
         "module:supabase/functions/_shared/connect-inbound.ts",
         "module:supabase/functions/line-webhook-v2/engines/auto-confirm-payment.ts",
         "module:supabase/functions/line-webhook-v2/engines/ocr-classify.ts",
@@ -13177,6 +13180,7 @@
       "runtime_callable": false,
       "provider": "UNKNOWN",
       "dependencies": [
+        "module:supabase/functions/_shared/connect-expense.ts",
         "module:supabase/functions/line-webhook-v2/engines/response.ts"
       ],
       "dependents": [
@@ -27161,6 +27165,7 @@
         "module:engines/canonical/artifact-write.ts",
         "module:engines/canonical/debt-write.ts",
         "module:engines/canonical/document-write.ts",
+        "module:engines/canonical/expense-write.ts",
         "module:engines/canonical/inbound-write.ts",
         "module:engines/canonical/transaction-write.ts"
       ],
@@ -30408,6 +30413,68 @@
       "dependents": [
         "module:app/workspace/page.tsx"
       ],
+      "commands": [],
+      "events": [],
+      "capabilities": [],
+      "health": "OK",
+      "cost_source": "UNKNOWN"
+    },
+    {
+      "id": "module:engines/canonical/expense-write.ts",
+      "name": "engines/canonical/expense-write.ts",
+      "type": "Module",
+      "layer": "engines",
+      "source_file": "engines/canonical/expense-write.ts",
+      "status": "OK",
+      "runtime_callable": false,
+      "provider": "UNKNOWN",
+      "dependencies": [
+        "module:engines/canonical/audit.ts",
+        "module:services/supabase/queries.ts"
+      ],
+      "dependents": [
+        "module:app/api/internal/connect/expense/route.ts"
+      ],
+      "commands": [],
+      "events": [],
+      "capabilities": [],
+      "health": "OK",
+      "cost_source": "UNKNOWN"
+    },
+    {
+      "id": "module:supabase/functions/_shared/connect-expense.ts",
+      "name": "supabase/functions/_shared/connect-expense.ts",
+      "type": "Module",
+      "layer": "supabase",
+      "source_file": "supabase/functions/_shared/connect-expense.ts",
+      "status": "OK",
+      "runtime_callable": false,
+      "provider": "UNKNOWN",
+      "dependencies": [],
+      "dependents": [
+        "module:supabase/functions/line-webhook-v2/engines/owner-dispatcher.ts",
+        "module:supabase/functions/line-webhook-v2/engines/process-classified-image.ts",
+        "module:supabase/functions/line-webhook-v2/handlers/postback.ts"
+      ],
+      "commands": [],
+      "events": [],
+      "capabilities": [],
+      "health": "OK",
+      "cost_source": "UNKNOWN"
+    },
+    {
+      "id": "module:app/api/internal/connect/expense/route.ts",
+      "name": "app/api/internal/connect/expense/route.ts",
+      "type": "Module",
+      "layer": "app",
+      "source_file": "app/api/internal/connect/expense/route.ts",
+      "status": "OK",
+      "runtime_callable": true,
+      "provider": "UNKNOWN",
+      "dependencies": [
+        "module:engines/canonical/expense-write.ts"
+      ],
+      "dependents": [],
       "commands": [],
       "events": [],
       "capabilities": [],
@@ -39513,6 +39580,11 @@
     },
     {
       "source": "layer:app",
+      "target": "module:app/api/internal/connect/expense/route.ts",
+      "type": "governed_by"
+    },
+    {
+      "source": "layer:app",
       "target": "module:app/api/internal/connect/inbound-source/route.ts",
       "type": "governed_by"
     },
@@ -40759,6 +40831,11 @@
     {
       "source": "layer:engines",
       "target": "module:engines/canonical/event-write.ts",
+      "type": "governed_by"
+    },
+    {
+      "source": "layer:engines",
+      "target": "module:engines/canonical/expense-write.ts",
       "type": "governed_by"
     },
     {
@@ -43084,6 +43161,11 @@
     {
       "source": "layer:supabase",
       "target": "module:supabase/functions/_shared/connect-event.ts",
+      "type": "governed_by"
+    },
+    {
+      "source": "layer:supabase",
+      "target": "module:supabase/functions/_shared/connect-expense.ts",
       "type": "governed_by"
     },
     {
@@ -51497,6 +51579,11 @@
       "type": "imports"
     },
     {
+      "source": "module:app/api/internal/connect/expense/route.ts",
+      "target": "module:engines/canonical/expense-write.ts",
+      "type": "imports"
+    },
+    {
       "source": "module:app/api/internal/connect/inbound-source/route.ts",
       "target": "module:engines/canonical/inbound-write.ts",
       "type": "imports"
@@ -54883,6 +54970,16 @@
     },
     {
       "source": "module:engines/canonical/document-write.ts",
+      "target": "module:services/supabase/queries.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:engines/canonical/expense-write.ts",
+      "target": "module:engines/canonical/audit.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:engines/canonical/expense-write.ts",
       "target": "module:services/supabase/queries.ts",
       "type": "imports"
     },
@@ -59923,6 +60020,11 @@
     },
     {
       "source": "module:supabase/functions/line-webhook-v2/engines/owner-dispatcher.ts",
+      "target": "module:supabase/functions/_shared/connect-expense.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:supabase/functions/line-webhook-v2/engines/owner-dispatcher.ts",
       "target": "module:supabase/functions/line-webhook-v2/engines/response.ts",
       "type": "imports"
     },
@@ -59944,6 +60046,11 @@
     {
       "source": "module:supabase/functions/line-webhook-v2/engines/process-classified-image.ts",
       "target": "module:supabase/functions/_shared/connect-event.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:supabase/functions/line-webhook-v2/engines/process-classified-image.ts",
+      "target": "module:supabase/functions/_shared/connect-expense.ts",
       "type": "imports"
     },
     {
@@ -60184,6 +60291,11 @@
     {
       "source": "module:supabase/functions/line-webhook-v2/handlers/postback.ts",
       "target": "module:supabase/functions/_shared/connect-event.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:supabase/functions/line-webhook-v2/handlers/postback.ts",
+      "target": "module:supabase/functions/_shared/connect-expense.ts",
       "type": "imports"
     },
     {
@@ -61923,9 +62035,9 @@
     }
   ],
   "summary": {
-    "total_nodes": 1687,
-    "total_edges": 4975,
-    "modules": 1288,
+    "total_nodes": 1690,
+    "total_edges": 4984,
+    "modules": 1291,
     "layers": 9,
     "commands": 99,
     "events": 60,
@@ -61934,8 +62046,8 @@
     "drivers": 11,
     "connector_stages": 5,
     "module_health": {
-      "total": 1288,
-      "ok": 1288,
+      "total": 1291,
+      "ok": 1291,
       "broken": 0,
       "unused": 0,
       "unregistered": 0
@@ -61949,7 +62061,7 @@
     "unknown_field_counts": {
       "nodes_with_unknown_source_file": 82,
       "nodes_with_unknown_status": 159,
-      "nodes_with_unknown_provider": 1663
+      "nodes_with_unknown_provider": 1666
     },
     "unknown_dimensions": [
       "ai_model_registry",

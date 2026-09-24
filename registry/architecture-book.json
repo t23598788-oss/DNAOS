@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-24T06:10:29.129Z",
+  "generated_at": "2026-09-24T06:20:47.268Z",
   "version": 1,
   "nodes": [
     {
@@ -13213,6 +13213,7 @@
         "module:engines/canonical/audit.ts",
         "module:engines/canonical/debt-write.ts",
         "module:engines/canonical/document-write.ts",
+        "module:engines/canonical/expense-write.ts",
         "module:engines/canonical/inbound-write.ts",
         "module:engines/canonical/payment-write.ts",
         "module:engines/canonical/receipt-confirm-flow.ts",
@@ -13674,6 +13675,7 @@
       "runtime_entry_point": false,
       "internal_dependencies": [
         "module:supabase/functions/_shared/connect-event.ts",
+        "module:supabase/functions/_shared/connect-expense.ts",
         "module:supabase/functions/line-webhook-v2/engines/print-jobs.ts",
         "module:supabase/functions/line-webhook-v2/engines/response.ts",
         "module:supabase/functions/line-webhook-v2/events/store.ts",
@@ -13684,7 +13686,6 @@
       ],
       "data_tables": [
         "business_events",
-        "partner_payable_requests",
         "pending_authorizations"
       ],
       "business_capabilities": "UNKNOWN",
@@ -13702,8 +13703,8 @@
         {
           "name": "handlePostback",
           "kind": "function",
-          "line_start": 7,
-          "line_end": 140
+          "line_start": 8,
+          "line_end": 150
         }
       ],
       "import_sites": [
@@ -13731,6 +13732,11 @@
           "specifier": "../../_shared/connect-event.ts",
           "line": 5,
           "resolved_target": "supabase/functions/_shared/connect-event.ts"
+        },
+        {
+          "specifier": "../../_shared/connect-expense.ts",
+          "line": 6,
+          "resolved_target": "supabase/functions/_shared/connect-expense.ts"
         }
       ]
     },
@@ -35480,6 +35486,7 @@
       "runtime_entry_point": false,
       "internal_dependencies": [
         "module:supabase/functions/_shared/connect-event.ts",
+        "module:supabase/functions/_shared/connect-expense.ts",
         "module:supabase/functions/_shared/connect-inbound.ts",
         "module:supabase/functions/line-webhook-v2/engines/auto-confirm-payment.ts",
         "module:supabase/functions/line-webhook-v2/engines/ocr-classify.ts",
@@ -35495,7 +35502,6 @@
         "bank_notifications",
         "business_events",
         "companies",
-        "company_expenses",
         "company_line_links",
         "line_events",
         "line_profiles",
@@ -35516,8 +35522,8 @@
         {
           "name": "processClassifiedImage",
           "kind": "function",
-          "line_start": 18,
-          "line_end": 405
+          "line_start": 19,
+          "line_end": 408
         }
       ],
       "import_sites": [
@@ -35550,6 +35556,11 @@
           "specifier": "../../_shared/connect-inbound.ts",
           "line": 16,
           "resolved_target": "supabase/functions/_shared/connect-inbound.ts"
+        },
+        {
+          "specifier": "../../_shared/connect-expense.ts",
+          "line": 17,
+          "resolved_target": "supabase/functions/_shared/connect-expense.ts"
         }
       ]
     },
@@ -35856,6 +35867,7 @@
       "status": "OK",
       "runtime_entry_point": false,
       "internal_dependencies": [
+        "module:supabase/functions/_shared/connect-expense.ts",
         "module:supabase/functions/line-webhook-v2/engines/response.ts"
       ],
       "dependents": [
@@ -35866,7 +35878,6 @@
       ],
       "data_tables": [
         "bank_notifications",
-        "company_expenses",
         "line_profiles",
         "partner_payable_requests",
         "supabase_billing_events"
@@ -35886,32 +35897,32 @@
         {
           "name": "getOwnerLineUserId",
           "kind": "function",
-          "line_start": 16,
-          "line_end": 23
+          "line_start": 17,
+          "line_end": 24
         },
         {
           "name": "isOwnerSurface",
           "kind": "function",
-          "line_start": 25,
-          "line_end": 29
+          "line_start": 26,
+          "line_end": 30
         },
         {
           "name": "alertOwnerAnomaly",
           "kind": "function",
-          "line_start": 35,
-          "line_end": 39
+          "line_start": 36,
+          "line_end": 40
         },
         {
           "name": "requestPartnerPayableApproval",
           "kind": "function",
-          "line_start": 55,
-          "line_end": 81
+          "line_start": 57,
+          "line_end": 88
         },
         {
           "name": "matchOwnerSlipToPartnerPayable",
           "kind": "function",
-          "line_start": 90,
-          "line_end": 151
+          "line_start": 97,
+          "line_end": 165
         }
       ],
       "import_sites": [
@@ -35919,6 +35930,11 @@
           "specifier": "./response.ts",
           "line": 12,
           "resolved_target": "supabase/functions/line-webhook-v2/engines/response.ts"
+        },
+        {
+          "specifier": "../../_shared/connect-expense.ts",
+          "line": 13,
+          "resolved_target": "supabase/functions/_shared/connect-expense.ts"
         }
       ]
     },
@@ -78243,6 +78259,7 @@
         "module:engines/canonical/artifact-write.ts",
         "module:engines/canonical/debt-write.ts",
         "module:engines/canonical/document-write.ts",
+        "module:engines/canonical/expense-write.ts",
         "module:engines/canonical/inbound-write.ts",
         "module:engines/canonical/transaction-write.ts"
       ],
@@ -78265,31 +78282,31 @@
           "name": "CANONICAL_AUDIT_ACTIONS",
           "kind": "const",
           "line_start": 18,
-          "line_end": 30
+          "line_end": 35
         },
         {
           "name": "CanonicalAuditAction",
           "kind": "type",
-          "line_start": 32,
-          "line_end": 32
+          "line_start": 37,
+          "line_end": 37
         },
         {
           "name": "CanonicalAuditInput",
           "kind": "interface",
-          "line_start": 34,
-          "line_end": 45
+          "line_start": 39,
+          "line_end": 50
         },
         {
           "name": "CanonicalAuditRecord",
           "kind": "interface",
-          "line_start": 52,
-          "line_end": 58
+          "line_start": 57,
+          "line_end": 63
         },
         {
           "name": "recordCanonicalAudit",
           "kind": "function",
-          "line_start": 60,
-          "line_end": 81
+          "line_start": 65,
+          "line_end": 86
         }
       ],
       "import_sites": [
@@ -87516,8 +87533,8 @@
         {
           "name": "scanSource",
           "kind": "function",
-          "line_start": 245,
-          "line_end": 255
+          "line_start": 238,
+          "line_end": 248
         }
       ]
     },
@@ -87858,6 +87875,211 @@
           "specifier": "./businessTools",
           "line": 22,
           "resolved_target": "app/workspace/_lib/businessTools.ts"
+        }
+      ]
+    },
+    {
+      "id": "module:engines/canonical/expense-write.ts",
+      "type": "Module",
+      "layer": "engines",
+      "name_en": "engines/canonical/expense-write.ts",
+      "purpose_th": "Canonical expense/payable write model (D3 deferred work landed, owner 2026-09-24).",
+      "exports": [
+        "CompanyExpenseResult",
+        "PartnerPayableResult",
+        "PayableTransitionTarget",
+        "RecordCompanyExpenseInput",
+        "RequestPartnerPayableInput",
+        "TransitionPartnerPayableInput",
+        "recordCompanyExpense",
+        "requestPartnerPayable",
+        "transitionPartnerPayable"
+      ],
+      "status": "OK",
+      "runtime_entry_point": false,
+      "internal_dependencies": [
+        "module:engines/canonical/audit.ts",
+        "module:services/supabase/queries.ts"
+      ],
+      "dependents": [
+        "module:app/api/internal/connect/expense/route.ts"
+      ],
+      "data_tables": [
+        "company_expenses",
+        "partner_payable_requests"
+      ],
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "engines",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "symbols": [
+        {
+          "name": "RecordCompanyExpenseInput",
+          "kind": "interface",
+          "line_start": 44,
+          "line_end": 58
+        },
+        {
+          "name": "CompanyExpenseResult",
+          "kind": "interface",
+          "line_start": 60,
+          "line_end": 62
+        },
+        {
+          "name": "recordCompanyExpense",
+          "kind": "function",
+          "line_start": 64,
+          "line_end": 101
+        },
+        {
+          "name": "RequestPartnerPayableInput",
+          "kind": "interface",
+          "line_start": 105,
+          "line_end": 115
+        },
+        {
+          "name": "PartnerPayableResult",
+          "kind": "interface",
+          "line_start": 117,
+          "line_end": 119
+        },
+        {
+          "name": "requestPartnerPayable",
+          "kind": "function",
+          "line_start": 121,
+          "line_end": 158
+        },
+        {
+          "name": "PayableTransitionTarget",
+          "kind": "type",
+          "line_start": 160,
+          "line_end": 160
+        },
+        {
+          "name": "TransitionPartnerPayableInput",
+          "kind": "interface",
+          "line_start": 169,
+          "line_end": 178
+        },
+        {
+          "name": "transitionPartnerPayable",
+          "kind": "function",
+          "line_start": 180,
+          "line_end": 228
+        }
+      ],
+      "import_sites": [
+        {
+          "specifier": "@/services/supabase/queries",
+          "line": 25,
+          "resolved_target": "services/supabase/queries.ts"
+        },
+        {
+          "specifier": "@/engines/canonical/audit",
+          "line": 26,
+          "resolved_target": "engines/canonical/audit.ts"
+        }
+      ]
+    },
+    {
+      "id": "module:supabase/functions/_shared/connect-expense.ts",
+      "type": "Module",
+      "layer": "supabase",
+      "name_en": "supabase/functions/_shared/connect-expense.ts",
+      "purpose_th": "Connect money-OUT transport (LINE financial-edge removal · D3 deferred work",
+      "exports": [
+        "ConnectExpenseCommand",
+        "ConnectExpenseResult",
+        "sendConnectExpenseCommand"
+      ],
+      "status": "OK",
+      "runtime_entry_point": false,
+      "internal_dependencies": [],
+      "dependents": [
+        "module:supabase/functions/line-webhook-v2/engines/owner-dispatcher.ts",
+        "module:supabase/functions/line-webhook-v2/engines/process-classified-image.ts",
+        "module:supabase/functions/line-webhook-v2/handlers/postback.ts"
+      ],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "supabase",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "symbols": [
+        {
+          "name": "ConnectExpenseCommand",
+          "kind": "type",
+          "line_start": 15,
+          "line_end": 15
+        },
+        {
+          "name": "ConnectExpenseResult",
+          "kind": "interface",
+          "line_start": 17,
+          "line_end": 21
+        },
+        {
+          "name": "sendConnectExpenseCommand",
+          "kind": "function",
+          "line_start": 23,
+          "line_end": 49
+        }
+      ]
+    },
+    {
+      "id": "module:app/api/internal/connect/expense/route.ts",
+      "type": "Module",
+      "layer": "app",
+      "name_en": "app/api/internal/connect/expense/route.ts",
+      "purpose_th": "POST /api/internal/connect/expense — Connect money-OUT bridge",
+      "exports": [
+        "POST"
+      ],
+      "status": "OK",
+      "runtime_entry_point": true,
+      "internal_dependencies": [
+        "module:engines/canonical/expense-write.ts"
+      ],
+      "dependents": [],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "app",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "symbols": [
+        {
+          "name": "POST",
+          "kind": "function",
+          "line_start": 41,
+          "line_end": 126
+        }
+      ],
+      "import_sites": [
+        {
+          "specifier": "@/engines/canonical/expense-write",
+          "line": 24,
+          "resolved_target": "engines/canonical/expense-write.ts"
         }
       ]
     }
@@ -90330,6 +90552,11 @@
     },
     {
       "source": "layer:app",
+      "target": "module:app/api/internal/connect/expense/route.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:app",
       "target": "module:app/api/internal/connect/inbound-source/route.ts",
       "label": "contains"
     },
@@ -91576,6 +91803,11 @@
     {
       "source": "layer:engines",
       "target": "module:engines/canonical/event-write.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:engines",
+      "target": "module:engines/canonical/expense-write.ts",
       "label": "contains"
     },
     {
@@ -93901,6 +94133,11 @@
     {
       "source": "layer:supabase",
       "target": "module:supabase/functions/_shared/connect-event.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:supabase",
+      "target": "module:supabase/functions/_shared/connect-expense.ts",
       "label": "contains"
     },
     {
@@ -102314,6 +102551,11 @@
       "label": "imports"
     },
     {
+      "source": "module:app/api/internal/connect/expense/route.ts",
+      "target": "module:engines/canonical/expense-write.ts",
+      "label": "imports"
+    },
+    {
       "source": "module:app/api/internal/connect/inbound-source/route.ts",
       "target": "module:engines/canonical/inbound-write.ts",
       "label": "imports"
@@ -105700,6 +105942,16 @@
     },
     {
       "source": "module:engines/canonical/document-write.ts",
+      "target": "module:services/supabase/queries.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:engines/canonical/expense-write.ts",
+      "target": "module:engines/canonical/audit.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:engines/canonical/expense-write.ts",
       "target": "module:services/supabase/queries.ts",
       "label": "imports"
     },
@@ -110740,6 +110992,11 @@
     },
     {
       "source": "module:supabase/functions/line-webhook-v2/engines/owner-dispatcher.ts",
+      "target": "module:supabase/functions/_shared/connect-expense.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:supabase/functions/line-webhook-v2/engines/owner-dispatcher.ts",
       "target": "module:supabase/functions/line-webhook-v2/engines/response.ts",
       "label": "imports"
     },
@@ -110761,6 +111018,11 @@
     {
       "source": "module:supabase/functions/line-webhook-v2/engines/process-classified-image.ts",
       "target": "module:supabase/functions/_shared/connect-event.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:supabase/functions/line-webhook-v2/engines/process-classified-image.ts",
+      "target": "module:supabase/functions/_shared/connect-expense.ts",
       "label": "imports"
     },
     {
@@ -111005,6 +111267,11 @@
     },
     {
       "source": "module:supabase/functions/line-webhook-v2/handlers/postback.ts",
+      "target": "module:supabase/functions/_shared/connect-expense.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:supabase/functions/line-webhook-v2/handlers/postback.ts",
       "target": "module:supabase/functions/line-webhook-v2/engines/print-jobs.ts",
       "label": "imports"
     },
@@ -111235,8 +111502,8 @@
     }
   ],
   "summary": {
-    "total": 1288,
-    "ok": 1288,
+    "total": 1291,
+    "ok": 1291,
     "broken": 0,
     "unused": 0,
     "unregistered": 0

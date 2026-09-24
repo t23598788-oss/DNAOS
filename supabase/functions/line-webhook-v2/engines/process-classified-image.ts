@@ -14,6 +14,7 @@ import { maybeCreatePrintJob, matchPaymentToPrintJob } from "./print-jobs.ts"
 import { alertOwnerAnomaly } from "./owner-dispatcher.ts"
 import { sendConnectEventCommand, CONNECT_PROVIDER } from "../../_shared/connect-event.ts"
 import { sendConnectInboundSource } from "../../_shared/connect-inbound.ts"
+import { sendConnectExpenseCommand } from "../../_shared/connect-expense.ts"
 
 export async function processClassifiedImage(
   supabase: any,
@@ -198,23 +199,25 @@ export async function processClassifiedImage(
   // two exact roles, still requires verified trust — a customer/supplier/
   // driver role can never reach this regardless of what the AI classifies.
   const INTERNAL_EXPENSE_ROLES = new Set(["owner", "manager"])
-  // TEMPORARY (D3 = ข, owner 2026-09-24): this direct company_expenses insert
-  // stays as-is until the canonical expense writer lands — expiry enforced by
-  // D3_TEMPORARY_EXPIRES in scripts/connect-boundary-census-test.ts.
+  // LANDED (D3 deferred work, owner 2026-09-24): this expense insert now goes
+  // through the Connect expense bridge → engines/canonical/expense-write
+  // (+ canonical audit) — no direct money write remains in this file.
   if (classified && EXPENSE_DOCUMENT_TYPES.has(classified.document_type) && userId && insertedDoc) {
     const { data: profile } = await supabase
       .from("line_profiles").select("display_name, role, trust_level").eq("line_user_id", userId).maybeSingle()
     if (profile?.role && INTERNAL_EXPENSE_ROLES.has(profile.role) && profile?.trust_level === "verified") {
-      await supabase.from("company_expenses").insert({
+      // ของเดิม insert error ถูกกลืนเงียบ → log แล้วไปต่อ เหมือนเดิม (fail-closed ไม่มี fallback)
+      const expense = await sendConnectExpenseCommand("expense.record", {
         receipt_document_id: insertedDoc.id,
         document_type: classified.document_type,
-        amount: classified.amount,
+        amount: Number(classified.amount),
         vendor_name: classified.vendor_name,
         expense_date: classified.document_date,
         submitted_by_line_user_id: userId,
         submitted_by_name: profile.display_name,
         submitted_by_role: profile.role,
-      })
+      }, "system:auto-ocr")
+      if (!expense.ok) console.error(`[process-classified-image] EXPENSE_RECORD_FAILED: ${expense.error}`)
     }
   }
 
