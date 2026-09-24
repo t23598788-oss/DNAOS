@@ -34,7 +34,9 @@ const ROOT = process.cwd();
 // payment authority เหลือ exactly 1 (canonical payment-write) — ค่าสองตัวนี้
 // จึงเป็น invariant แล้ว ไม่ใช่เพดานอีกต่อไป
 const BASELINE = {
-  DENO_BUSINESS_SITES: 26,
+  // P4b (2026-09-24): claim + OCR receipt inserts ย้ายเข้า inbound bridge →
+  // receipt_documents direct write ใน Deno เหลือเฉพาะ sweep link update ⇒ 24
+  DENO_BUSINESS_SITES: 24,
   DENO_BUSINESS_TABLES: 12,
   NEXT_BUSINESS_SITES: 3,
   PROVIDER_MONETARY_SITES: 7,
@@ -161,6 +163,25 @@ function main() {
       existsSafe("engines/canonical/event-write.ts") &&
       existsSafe("app/api/internal/connect/event/route.ts"),
   );
+
+  // ── T6 (P4b): receipt_documents สร้างผ่าน inbound bridge เท่านั้น ────────
+  const inboundRoute = existsSafe("app/api/internal/connect/inbound-source/route.ts")
+    ? readFileSync(join(ROOT, "app/api/internal/connect/inbound-source/route.ts"), "utf8")
+    : "";
+  check(
+    "T6 inbound-source bridge exists and delegates to the canonical writer (no own insert)",
+    inboundRoute.includes("recordInboundSource") && !/from\(\s*["']receipt_documents["']\s*\)/.test(stripComments(inboundRoute)),
+  );
+  for (const providerFile of [
+    "supabase/functions/line-webhook-v2/engines/payment-claim.ts",
+    "supabase/functions/line-webhook-v2/engines/process-classified-image.ts",
+  ]) {
+    const src = stripComments(readFileSync(join(ROOT, providerFile), "utf8"));
+    check(
+      `T6 ${providerFile.split("/").pop()} creates receipts via the Connect transport, never a direct insert`,
+      src.includes("sendConnectInboundSource") && !/from\(\s*["']receipt_documents["']\s*\)\s*\.\s*insert/.test(src),
+    );
+  }
 
   // ── NC1: scanner ต้องจับได้จริง ไม่ใช่ empty matcher ───────────────────
   // fixture สร้างด้วย concatenation — แบบ probe ของ business-event-authority-test

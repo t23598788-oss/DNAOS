@@ -13,6 +13,7 @@ import { tryAutoConfirmPayment } from "./auto-confirm-payment.ts"
 import { maybeCreatePrintJob, matchPaymentToPrintJob } from "./print-jobs.ts"
 import { alertOwnerAnomaly } from "./owner-dispatcher.ts"
 import { sendConnectEventCommand, CONNECT_PROVIDER } from "../../_shared/connect-event.ts"
+import { sendConnectInboundSource } from "../../_shared/connect-inbound.ts"
 
 export async function processClassifiedImage(
   supabase: any,
@@ -124,36 +125,43 @@ export async function processClassifiedImage(
     }
   }
 
-  const insertRow = classified
-    ? {
-        line_event_id: lineEventId,
-        media_path: mediaPath,
-        document_type: classified.document_type,
-        vendor_name: classified.vendor_name,
-        amount: classified.amount,
-        document_date: classified.document_date,
-        raw_ocr_text: classified.raw_ocr_text,
-        description: classified.description,
-        confidence: classified.confidence,
-        status: "ai_read",
-        sender_name: classified.sender_name,
-        sender_bank: classified.sender_bank,
-        reference_number: classified.reference_number,
-        transaction_datetime: classified.transaction_datetime,
-        customer_company_id: customerCompanyId,
-        verification_level: bankEmailVerified ? 3 : 2,
-        error_th: [reusedSlipWarning, staleSlipWarning].filter(Boolean).join(" | ") || null,
-      }
-    : {
-        line_event_id: lineEventId,
-        media_path: mediaPath,
-        document_type: "other",
-        status: "ai_read",
-        error_th: "AI จำแนกเอกสารไม่สำเร็จ — รูปต้นฉบับยังดูได้ปกติ",
-        verification_level: 2,
-      }
-  const { data: insertedDoc } = await supabase
-    .from("receipt_documents").insert(insertRow).select("id").single()
+  // P4b (owner approval 2026-09-24): receipt creation goes through the
+  // Connect inbound bridge → recordInboundSource (canonical writer + audit +
+  // evidence rules) instead of a direct business-table insert from this
+  // provider tier. Fail-closed with no fallback: transport/writer failure
+  // leaves insertedDoc = null — every downstream block below is already
+  // guarded on insertedDoc, exactly like the old insert-error path, so
+  // nothing runs against a record that was not stored.
+  const ingestErrorTh = classified
+    ? ([reusedSlipWarning, staleSlipWarning].filter(Boolean).join(" | ") || null)
+    : "AI จำแนกเอกสารไม่สำเร็จ — รูปต้นฉบับยังดูได้ปกติ"
+  const inbound = await sendConnectInboundSource({
+    channel: "line",
+    media_path: mediaPath,
+    document_type: classified ? classified.document_type : "other",
+    line_event_id: lineEventId,
+    customer_company_id: classified ? customerCompanyId : null,
+    raw_ocr_text: classified?.raw_ocr_text ?? null,
+    amount: classified?.amount ?? null,
+    sender_name: classified?.sender_name ?? null,
+    sender_bank: classified?.sender_bank ?? null,
+    reference_number: classified?.reference_number ?? null,
+    transaction_datetime: classified?.transaction_datetime ?? null,
+    document_date: classified?.document_date ?? null,
+    vendor_name: classified?.vendor_name ?? null,
+    description: classified?.description ?? null,
+    confidence: classified?.confidence ?? null,
+    verification_level: bankEmailVerified ? 3 : 2,
+    error_th: ingestErrorTh,
+    actor: "system:auto-ocr",
+    provenance: {
+      provider: CONNECT_PROVIDER,
+      received_via: "edge:line-webhook-v2",
+      bank_email_verified: bankEmailVerified,
+    },
+  })
+  if (!inbound.ok) console.error(`[process-classified-image] INBOUND_CONNECT_FAILED: ${inbound.error}`)
+  const insertedDoc = inbound.ok && inbound.data ? { id: inbound.data.receipt_document_id } : null
 
   if (bankEmailVerified && insertedDoc && classified?.reference_number) {
     await supabase.from("bank_notifications")

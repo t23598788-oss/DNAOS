@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-24T00:09:55.960Z",
+  "generated_at": "2026-09-24T05:13:10.917Z",
   "note": "Computed live from registry/CONSTITUTION.json + registry/rule-coverage.json + registry/factory-mapping.json by app/api/admin/ide/_lib/governanceRuntime.ts — never hand-edited, never a cached stale number. Re-run via `npm run sync` or `npx tsx scripts/build-governance-summary.ts`.",
   "totalRules": 282,
   "enforced": 179,
@@ -60,7 +60,7 @@
       "coveragePercent": 100,
       "missingRuleCount": 0,
       "health": "HEALTHY",
-      "unknownFileCount": 182
+      "unknownFileCount": 183
     },
     {
       "factoryId": "communication-factory",
@@ -87,7 +87,7 @@
       "coveragePercent": 100,
       "missingRuleCount": 0,
       "health": "HEALTHY",
-      "unknownFileCount": 42
+      "unknownFileCount": 43
     },
     {
       "factoryId": "infrastructure-factory",
@@ -105,7 +105,7 @@
       "coveragePercent": 100,
       "missingRuleCount": 0,
       "health": "HEALTHY",
-      "unknownFileCount": 112
+      "unknownFileCount": 113
     },
     {
       "factoryId": "deployment-factory",
@@ -114,7 +114,7 @@
       "coveragePercent": 100,
       "missingRuleCount": 0,
       "health": "HEALTHY",
-      "unknownFileCount": 77
+      "unknownFileCount": 78
     },
     {
       "factoryId": "operations-center",

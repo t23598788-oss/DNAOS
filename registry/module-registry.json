@@ -13948,10 +13948,11 @@
       "purpose_th": "โมเดลเขียนต้นฉบับขาเข้าตาม canonical — normalize LINE/อัปโหลด/อีเมล/ธนาคารเข้า receipt_documents (ไฟล์+ผลสกัด+หลักฐาน) พร้อม provenance จริง ไม่เดา",
       "exports": [
         "InboundChannel",
+        "InboundReceiptStatus",
         "InboundSourceInput",
         "InboundSourceResult",
-        "recordInboundSource",
-        "linkInboundSource"
+        "linkInboundSource",
+        "recordInboundSource"
       ],
       "status": "active"
     },
@@ -15605,6 +15606,28 @@
       "layer": "app",
       "purpose": "POST /api/internal/connect/payment-confirm — Connect money bridge",
       "purpose_th": "POST /api/internal/connect/payment-confirm — Connect money bridge",
+      "exports": [
+        "POST"
+      ],
+      "status": "active"
+    },
+    "supabase/functions/_shared/connect-inbound.ts": {
+      "owner": "supabase",
+      "layer": "supabase",
+      "purpose": "Connect inbound-source transport (LINE financial-edge removal P4b ·",
+      "purpose_th": "Connect inbound-source transport (LINE financial-edge removal P4b ·",
+      "exports": [
+        "ConnectInboundPayload",
+        "ConnectInboundResult",
+        "sendConnectInboundSource"
+      ],
+      "status": "active"
+    },
+    "app/api/internal/connect/inbound-source/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "POST /api/internal/connect/inbound-source — Connect inbound-evidence bridge",
+      "purpose_th": "POST /api/internal/connect/inbound-source — Connect inbound-evidence bridge",
       "exports": [
         "POST"
       ],

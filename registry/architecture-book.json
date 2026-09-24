@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-24T05:00:37.078Z",
+  "generated_at": "2026-09-24T05:13:10.164Z",
   "version": 1,
   "nodes": [
     {
@@ -33038,13 +33038,14 @@
       ],
       "status": "OK",
       "runtime_entry_point": false,
-      "internal_dependencies": [],
+      "internal_dependencies": [
+        "module:supabase/functions/_shared/connect-inbound.ts"
+      ],
       "dependents": [
         "module:supabase/functions/line-webhook-v2/handlers/text.ts"
       ],
       "data_tables": [
-        "company_line_links",
-        "receipt_documents"
+        "company_line_links"
       ],
       "business_capabilities": "UNKNOWN",
       "domain_owner": "supabase",
@@ -33061,14 +33062,21 @@
         {
           "name": "isPaymentClaim",
           "kind": "function",
-          "line_start": 14,
-          "line_end": 16
+          "line_start": 28,
+          "line_end": 30
         },
         {
           "name": "tryRecordPaymentClaim",
           "kind": "function",
-          "line_start": 18,
-          "line_end": 46
+          "line_start": 32,
+          "line_end": 67
+        }
+      ],
+      "import_sites": [
+        {
+          "specifier": "../../_shared/connect-inbound.ts",
+          "line": 24,
+          "resolved_target": "supabase/functions/_shared/connect-inbound.ts"
         }
       ]
     },
@@ -35466,6 +35474,7 @@
       "runtime_entry_point": false,
       "internal_dependencies": [
         "module:supabase/functions/_shared/connect-event.ts",
+        "module:supabase/functions/_shared/connect-inbound.ts",
         "module:supabase/functions/line-webhook-v2/engines/auto-confirm-payment.ts",
         "module:supabase/functions/line-webhook-v2/engines/ocr-classify.ts",
         "module:supabase/functions/line-webhook-v2/engines/owner-dispatcher.ts",
@@ -35501,8 +35510,8 @@
         {
           "name": "processClassifiedImage",
           "kind": "function",
-          "line_start": 17,
-          "line_end": 394
+          "line_start": 18,
+          "line_end": 402
         }
       ],
       "import_sites": [
@@ -35530,6 +35539,11 @@
           "specifier": "../../_shared/connect-event.ts",
           "line": 15,
           "resolved_target": "supabase/functions/_shared/connect-event.ts"
+        },
+        {
+          "specifier": "../../_shared/connect-inbound.ts",
+          "line": 16,
+          "resolved_target": "supabase/functions/_shared/connect-inbound.ts"
         }
       ]
     },
@@ -78765,10 +78779,11 @@
       "purpose_th": "โมเดลเขียนต้นฉบับขาเข้าตาม canonical — normalize LINE/อัปโหลด/อีเมล/ธนาคารเข้า receipt_documents (ไฟล์+ผลสกัด+หลักฐาน) พร้อม provenance จริง ไม่เดา",
       "exports": [
         "InboundChannel",
+        "InboundReceiptStatus",
         "InboundSourceInput",
         "InboundSourceResult",
-        "recordInboundSource",
-        "linkInboundSource"
+        "linkInboundSource",
+        "recordInboundSource"
       ],
       "status": "OK",
       "runtime_entry_point": false,
@@ -78777,7 +78792,8 @@
         "module:services/supabase/queries.ts"
       ],
       "dependents": [
-        "module:app/api/admin/receipt-documents/route.ts"
+        "module:app/api/admin/receipt-documents/route.ts",
+        "module:app/api/internal/connect/inbound-source/route.ts"
       ],
       "data_tables": [
         "inbound_source_links",
@@ -78802,28 +78818,34 @@
           "line_end": 16
         },
         {
+          "name": "InboundReceiptStatus",
+          "kind": "type",
+          "line_start": 21,
+          "line_end": 21
+        },
+        {
           "name": "InboundSourceInput",
           "kind": "interface",
-          "line_start": 18,
-          "line_end": 43
+          "line_start": 23,
+          "line_end": 67
         },
         {
           "name": "InboundSourceResult",
           "kind": "interface",
-          "line_start": 45,
-          "line_end": 50
+          "line_start": 69,
+          "line_end": 74
         },
         {
           "name": "recordInboundSource",
           "kind": "function",
-          "line_start": 52,
-          "line_end": 98
+          "line_start": 76,
+          "line_end": 143
         },
         {
           "name": "linkInboundSource",
           "kind": "function",
-          "line_start": 101,
-          "line_end": 127
+          "line_start": 146,
+          "line_end": 172
         }
       ],
       "import_sites": [
@@ -87484,8 +87506,8 @@
         {
           "name": "scanSource",
           "kind": "function",
-          "line_start": 208,
-          "line_end": 218
+          "line_start": 229,
+          "line_end": 239
         }
       ]
     },
@@ -87648,6 +87670,100 @@
           "specifier": "@/engines/canonical/receipt-confirm-flow",
           "line": 30,
           "resolved_target": "engines/canonical/receipt-confirm-flow.ts"
+        }
+      ]
+    },
+    {
+      "id": "module:supabase/functions/_shared/connect-inbound.ts",
+      "type": "Module",
+      "layer": "supabase",
+      "name_en": "supabase/functions/_shared/connect-inbound.ts",
+      "purpose_th": "Connect inbound-source transport (LINE financial-edge removal P4b ·",
+      "exports": [
+        "ConnectInboundPayload",
+        "ConnectInboundResult",
+        "sendConnectInboundSource"
+      ],
+      "status": "OK",
+      "runtime_entry_point": false,
+      "internal_dependencies": [],
+      "dependents": [
+        "module:supabase/functions/line-webhook-v2/engines/payment-claim.ts",
+        "module:supabase/functions/line-webhook-v2/engines/process-classified-image.ts"
+      ],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "supabase",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "symbols": [
+        {
+          "name": "ConnectInboundPayload",
+          "kind": "interface",
+          "line_start": 21,
+          "line_end": 41
+        },
+        {
+          "name": "ConnectInboundResult",
+          "kind": "interface",
+          "line_start": 43,
+          "line_end": 47
+        },
+        {
+          "name": "sendConnectInboundSource",
+          "kind": "function",
+          "line_start": 49,
+          "line_end": 74
+        }
+      ]
+    },
+    {
+      "id": "module:app/api/internal/connect/inbound-source/route.ts",
+      "type": "Module",
+      "layer": "app",
+      "name_en": "app/api/internal/connect/inbound-source/route.ts",
+      "purpose_th": "POST /api/internal/connect/inbound-source — Connect inbound-evidence bridge",
+      "exports": [
+        "POST"
+      ],
+      "status": "OK",
+      "runtime_entry_point": true,
+      "internal_dependencies": [
+        "module:engines/canonical/inbound-write.ts"
+      ],
+      "dependents": [],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "app",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "symbols": [
+        {
+          "name": "POST",
+          "kind": "function",
+          "line_start": 65,
+          "line_end": 127
+        }
+      ],
+      "import_sites": [
+        {
+          "specifier": "@/engines/canonical/inbound-write",
+          "line": 30,
+          "resolved_target": "engines/canonical/inbound-write.ts"
         }
       ]
     }
@@ -90116,6 +90232,11 @@
     {
       "source": "layer:app",
       "target": "module:app/api/internal/connect/event/route.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:app",
+      "target": "module:app/api/internal/connect/inbound-source/route.ts",
       "label": "contains"
     },
     {
@@ -93691,6 +93812,11 @@
     {
       "source": "layer:supabase",
       "target": "module:supabase/functions/_shared/connect-identity.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:supabase",
+      "target": "module:supabase/functions/_shared/connect-inbound.ts",
       "label": "contains"
     },
     {
@@ -102086,6 +102212,11 @@
     {
       "source": "module:app/api/internal/connect/event/route.ts",
       "target": "module:services/supabase/queries.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/internal/connect/inbound-source/route.ts",
+      "target": "module:engines/canonical/inbound-write.ts",
       "label": "imports"
     },
     {
@@ -110489,6 +110620,11 @@
       "label": "imports"
     },
     {
+      "source": "module:supabase/functions/line-webhook-v2/engines/payment-claim.ts",
+      "target": "module:supabase/functions/_shared/connect-inbound.ts",
+      "label": "imports"
+    },
+    {
       "source": "module:supabase/functions/line-webhook-v2/engines/payment-instructions.ts",
       "target": "module:supabase/functions/_shared/connect-event.ts",
       "label": "imports"
@@ -110501,6 +110637,11 @@
     {
       "source": "module:supabase/functions/line-webhook-v2/engines/process-classified-image.ts",
       "target": "module:supabase/functions/_shared/connect-event.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:supabase/functions/line-webhook-v2/engines/process-classified-image.ts",
+      "target": "module:supabase/functions/_shared/connect-inbound.ts",
       "label": "imports"
     },
     {
@@ -110970,8 +111111,8 @@
     }
   ],
   "summary": {
-    "total": 1285,
-    "ok": 1285,
+    "total": 1287,
+    "ok": 1287,
     "broken": 0,
     "unused": 0,
     "unregistered": 0
