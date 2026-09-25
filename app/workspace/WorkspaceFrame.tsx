@@ -68,7 +68,7 @@ const ACTIONS: FrameItem[] = [
 
 /** CSS ยึด tokens + โครงสร้างของ reference (paper/ink/line/soft · edge drawer · stage โล่ง) */
 const FRAME_CSS = `
-#dna-frame{--paper:#fdfbf8;--ink:#36332f;--line:#e9e1d6;--soft:#f0ebe5;position:relative;background:var(--paper);color:var(--ink);font:14px/1.6 system-ui,sans-serif;border:1px solid var(--line);border-radius:16px;overflow:hidden;min-height:100vh}
+#dna-frame{--paper:#fdfbf8;--ink:#36332f;--line:#e9e1d6;--soft:#f0ebe5;position:relative;background:var(--paper);color:var(--ink);font:14px/1.6 system-ui,sans-serif;border:1px solid var(--line);border-radius:16px;overflow:hidden;height:100dvh;display:flex;flex-direction:column}
 #dna-frame *{box-sizing:border-box}
 #dna-frame button,#dna-frame textarea{font:inherit;color:inherit}
 #dna-frame button{background:transparent;border:1px solid var(--line);border-radius:9px;padding:8px 12px;min-height:44px;cursor:pointer}
@@ -79,8 +79,8 @@ const FRAME_CSS = `
 #dna-frame header strong{margin-right:auto;font-weight:500}
 #dna-frame .corner{position:absolute;z-index:4;right:14px;top:16px;background:var(--paper)}
 #dna-frame .gear{position:absolute;left:12px;bottom:16px;z-index:3;background:var(--paper)}
-#dna-frame .stage{position:relative;min-height:560px;padding:84px 64px 78px;display:flex;flex-direction:column}
-#dna-frame .stage--bleed{padding:76px 12px 12px;min-height:calc(100dvh - 57px)}
+#dna-frame .stage{position:relative;flex:1 1 auto;min-height:0;padding:84px 64px 78px;display:flex;flex-direction:column}
+#dna-frame .stage--bleed{padding:76px 12px 12px}
 #dna-frame .stage--bleed .edge.right{top:28px}
 #dna-frame .edge{position:absolute;top:20px;padding:8px}
 #dna-frame .edge.left{left:8px}
@@ -89,12 +89,15 @@ const FRAME_CSS = `
 #dna-frame .drawer .row,#dna-frame .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 #dna-frame .tools{display:grid;grid-template-columns:repeat(auto-fit,minmax(115px,1fr));gap:8px;margin-top:12px}
 #dna-frame .tools button{display:flex;align-items:center;gap:8px;justify-content:flex-start;text-align:left}
-#dna-frame .tabs{display:flex;gap:6px;flex-wrap:wrap}
+#dna-frame .canvas{flex:1;min-height:0;min-width:0;display:flex;flex-direction:column}
+#dna-frame .msg-panel{position:absolute;top:56px;right:12px;bottom:12px;width:min(420px,calc(100% - 24px));z-index:5;background:var(--paper);border:1px solid var(--line);border-radius:14px;box-shadow:0 12px 24px #0002;display:flex;flex-direction:column;padding:14px;gap:10px;overflow:hidden}
+#dna-frame .msg-panel .row strong{margin-right:auto;font-weight:500}
+#dna-frame .msg-panel .panel-body{flex:1;min-height:0;overflow:auto}
 #dna-frame .content{flex:1;padding:32px 0;min-height:200px;display:flex;flex-direction:column}
 #dna-frame .content--fill{padding:0;min-height:0;overflow:hidden}
 #dna-frame .content--fill>div{flex:1 1 0%;min-height:0}
 #dna-frame .count{background:#c93232;color:#fff;min-width:18px;border-radius:10px;font-size:11px;padding:0 5px;margin-left:auto}
-#dna-frame .msg-list{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:10px;padding-bottom:12px}
+#dna-frame .msg-list{flex:0 1 auto;max-height:36vh;overflow-y:auto;display:flex;flex-direction:column;gap:10px;padding-bottom:12px}
 #dna-frame button[disabled]{opacity:.5;cursor:not-allowed}
 #dna-frame button[disabled]:hover{background:transparent}
 #dna-frame .blank{text-align:center;padding:42px 0}
@@ -109,17 +112,29 @@ const FRAME_CSS = `
 
 export function WorkspaceFrame({
   children,
-  centerTab,
-  initialTab,
+  messagePanel,
+  panelOpen,
+  onPanelOpenChange,
+  composerContext,
   selfRoute,
   itemBadges,
 }: {
-  /** เนื้อหาของแท็บกลาง (render เมื่อ centerTab เป็นแท็บ active) */
+  /** canvas หลัก = entity context ที่เลือก — ไม่ส่ง = หน้าโล่งตาม reference */
   children?: ReactNode;
-  /** แท็บกลางเพิ่มจากแชท — START-HERE ข้อ17: feed จริง = แท็บแรกตรงกลาง */
-  centerTab?: { key: string; label: string };
-  initialTab?: string;
-  /** route ของหน้าปัจจุบัน — item ตัวนี้ใน drawer เปิดแท็บกลางแทน navigate ซ้ำ */
+  /** เนื้อหาแผง "ประวัติการสื่อสาร" (กดปุ่มมุมขวาบน) — ไม่ส่ง = ปุ่มไป /admin/event-inbox เดิม */
+  messagePanel?: ReactNode;
+  /** เปิด/ปิดแผง (controlled ก็ได้ ไม่ส่งก็ใช้ state ในตัว) */
+  panelOpen?: boolean;
+  onPanelOpenChange?: (open: boolean) => void;
+  /** context ของ entity ที่เลือก — composer ยิงด้วย body เดิมกับ runCommand/ask เดิม
+   *  (sessionKey/knownCustomerId/knownCustomerName) + upload ลงโฟลเดอร์ documentId */
+  composerContext?: {
+    sessionKey?: string;
+    knownCustomerId?: string;
+    knownCustomerName?: string | null;
+    documentId?: string;
+  };
+  /** route ของหน้าปัจจุบัน — item นี้ใน drawer แค่ปิดเมนู ไม่ navigate ซ้ำ */
   selfRoute?: string;
   /** ตัวเลขจริงจากชั้นข้อมูลของหน้า (key = label ของ item ใน drawer) */
   itemBadges?: Record<string, number>;
@@ -127,9 +142,13 @@ export function WorkspaceFrame({
   const router = useRouter();
   const [drawer, setDrawer] = useState<null | "apps" | "actions">(null);
   const [draft, setDraft] = useState("");
-  const [active, setActive] = useState(initialTab ?? centerTab?.key ?? "แชท");
+  const [internalPanel, setInternalPanel] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
-  const showChat = active === "แชท";
+  const panelIsOpen = panelOpen ?? internalPanel;
+  const setPanelOpen = (open: boolean) => {
+    setInternalPanel(open);
+    onPanelOpenChange?.(open);
+  };
   // LOGIC WIRING (owner 2026-09-25) — เสียบ backend จริงเข้า element เดิมของ
   // frame นี้เท่านั้น (ไม่เปลี่ยนโครง DOM/ID/Class):
   //   textarea → POST /api/chat (cognitive pipeline จริง · session gate ของ route เดิม)
@@ -174,11 +193,7 @@ export function WorkspaceFrame({
     }
     if (!item.route) return;
     setDrawer(null);
-    if (selfRoute && item.route === selfRoute && centerTab) {
-      // หน้าปัจจุบันเอง = เปิดแท็บกลาง ไม่ navigate ซ้ำ
-      setActive(centerTab.key);
-      return;
-    }
+    if (selfRoute && item.route === selfRoute) return;
     router.push(item.route);
   };
 
@@ -193,10 +208,18 @@ export function WorkspaceFrame({
     setSending(true);
     pushMsg("user", text);
     try {
+      // มี entity → body = sessionKey/knownCustomerId/knownCustomerName (ชุดเดียวกับ
+      // runCommand/ask ของ relationships — ข้อความ/คำสั่ง = context ของ entity)
+      const body: Record<string, unknown> = {
+        message: text,
+        sessionKey: composerContext?.sessionKey || "workspace-shell",
+      };
+      if (composerContext?.knownCustomerId) body.knownCustomerId = composerContext.knownCustomerId;
+      if (composerContext?.knownCustomerName) body.knownCustomerName = composerContext.knownCustomerName;
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: text, sessionKey: "workspace-shell" }),
+        body: JSON.stringify(body),
       });
       const data = await res.json().catch(() => null);
       if (res.ok && data) {
@@ -231,6 +254,8 @@ export function WorkspaceFrame({
       try {
         const formData = new FormData();
         formData.append("file", file);
+        // มี entity → ลงโฟลเดอร์ของ entity (documentId เดิมของ route upload) · ไม่มี → unfiled
+        if (composerContext?.documentId) formData.append("documentId", composerContext.documentId);
         const res = await fetch("/api/admin/upload", { method: "POST", body: formData });
         const data = await res.json().catch(() => null);
         if (res.ok && data && data.path) {
@@ -292,14 +317,39 @@ export function WorkspaceFrame({
         <span className="note">เมนูอยู่ที่ขอบจอ — กดปุ่มมุมซ้าย/ขวาเพื่อเปิด</span>
       </header>
 
-      <button className="corner" onClick={() => router.push("/admin/event-inbox")} aria-label="กล่องรับเข้า (เปิดหน้าเหตุการณ์จริง)">
+      {/* ONE SURFACE: ปุ่มมุมขวาบน = ทางเข้าแผง "ประวัติการสื่อสาร" (ถ้าหน้าส่ง
+          messagePanel มา) — หน้าที่ไม่มีแผงยังไป /admin/event-inbox เหมือนเดิม */}
+      <button
+        className="corner"
+        onClick={() => {
+          setDrawer(null);
+          if (messagePanel) setPanelOpen(!panelIsOpen);
+          else router.push("/admin/event-inbox");
+        }}
+        aria-expanded={messagePanel ? panelIsOpen : undefined}
+        aria-label="เปิดประวัติการสื่อสาร"
+      >
         <MessageSquare />
       </button>
       <button className="gear" onClick={() => router.push("/admin/settings")} aria-label="Settings">
         <Settings />
       </button>
 
-      <section className={showChat ? "stage" : "stage stage--bleed"} data-screen="work">
+      {/* แผง "ประวัติการสื่อสาร" — รูปแบบตาม reference .inbox: เปิดทับ canvas (stage ซ่อน) */}
+      {panelIsOpen && messagePanel && (
+        <aside className="msg-panel" aria-label="ประวัติการสื่อสาร">
+          <div className="row">
+            <strong>ประวัติการสื่อสาร</strong>
+            <button type="button" onClick={() => setPanelOpen(false)} aria-label="ปิดแผง">
+              <X />
+            </button>
+          </div>
+          <div className="panel-body">{messagePanel}</div>
+        </aside>
+      )}
+
+      {!panelIsOpen && (
+      <section className={children ? "stage stage--bleed" : "stage"} data-screen="work">
         <button className="edge left" data-drawer="apps" aria-expanded={drawer === "apps"} onClick={() => toggle("apps")} aria-label="เปิดกล่องเครื่องมือ">
           <Grid2X2 />
         </button>
@@ -339,104 +389,88 @@ export function WorkspaceFrame({
           </aside>
         )}
 
-        <nav className="tabs" aria-label="งานที่เปิด">
-          {centerTab && (
-            <button
-              data-view={centerTab.label}
-              aria-pressed={!showChat}
-              onClick={() => setActive(centerTab.key)}
-            >
-              {centerTab.label}
-            </button>
-          )}
-          <button data-view="แชท" aria-pressed={showChat} onClick={() => setActive("แชท")}>
-            แชท
-          </button>
-        </nav>
-
-        <div className={showChat ? "content" : "content content--fill"} aria-live="polite">
-          {showChat ? (
-            <>
-              {messages.length === 0 ? (
-                <div className="blank">
-                  วันนี้จะทำอะไร?
-                  <div className="note">พิมพ์คำสั่ง แนบไฟล์ หรือเปิดเครื่องมือด้านข้าง</div>
-                </div>
-              ) : (
-                <div className="msg-list">
-                  {messages.map((m) => (
-                    <div className="result" key={m.id}>
-                      <div className="note">{m.role === "user" ? "คุณ" : m.role === "ai" ? "DNA OS" : "ระบบ"}</div>
-                      <div style={{ marginTop: 4, whiteSpace: "pre-wrap", overflowWrap: "anywhere" }}>{m.text}</div>
-                      {m.flexPreview != null && (
-                        <div style={{ marginTop: 8 }}>
-                          <FlexPreview flex={m.flexPreview} />
-                        </div>
-                      )}
-                      {m.docHtml && (
-                        <div style={{ marginTop: 8 }}>
-                          <button type="button" onClick={() => openHtmlDocument(m.docHtml!)}>
-                            เปิดเอกสาร (HTML เต็ม)
-                          </button>
-                        </div>
-                      )}
-                      {m.confirm && (
-                        <div className="row" style={{ marginTop: 8 }}>
-                          <button
-                            type="button"
-                            disabled={m.confirm.busy}
-                            onClick={() => void confirmMsg(m.id, m.confirm!.action, m.confirm!.token)}
-                          >
-                            {m.confirm.busy ? "กำลังยืนยัน..." : "ยืนยัน"}
-                          </button>
-                          <span className="note">รอการยืนยัน (preview token ใช้ได้ครั้งเดียว)</span>
-                        </div>
-                      )}
+        <div className={children ? "content content--fill" : "content"} aria-live="polite">
+          {messages.length > 0 && (
+            <div className="msg-list">
+              {messages.map((m) => (
+                <div className="result" key={m.id}>
+                  <div className="note">{m.role === "user" ? "คุณ" : m.role === "ai" ? "DNA OS" : "ระบบ"}</div>
+                  <div style={{ marginTop: 4, whiteSpace: "pre-wrap", overflowWrap: "anywhere" }}>{m.text}</div>
+                  {m.flexPreview != null && (
+                    <div style={{ marginTop: 8 }}>
+                      <FlexPreview flex={m.flexPreview} />
                     </div>
-                  ))}
-                  {sending && <div className="note">DNA OS กำลังประมวลผล...</div>}
-                  {uploading && <div className="note">กำลังอัปโหลดไฟล์...</div>}
+                  )}
+                  {m.docHtml && (
+                    <div style={{ marginTop: 8 }}>
+                      <button type="button" onClick={() => openHtmlDocument(m.docHtml!)}>
+                        เปิดเอกสาร (HTML เต็ม)
+                      </button>
+                    </div>
+                  )}
+                  {m.confirm && (
+                    <div className="row" style={{ marginTop: 8 }}>
+                      <button
+                        type="button"
+                        disabled={m.confirm.busy}
+                        onClick={() => void confirmMsg(m.id, m.confirm!.action, m.confirm!.token)}
+                      >
+                        {m.confirm.busy ? "กำลังยืนยัน..." : "ยืนยัน"}
+                      </button>
+                      <span className="note">รอการยืนยัน (preview token ใช้ได้ครั้งเดียว)</span>
+                    </div>
+                  )}
                 </div>
-              )}
-
-              <form
-                className="compose"
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  void sendDraft();
-                }}
-              >
-                <textarea
-                  aria-label="คำสั่ง"
-                  placeholder="พิมพ์คำสั่งกับ DNA OS…"
-                  value={draft}
-                  onChange={(e) => setDraft(e.target.value)}
-                  disabled={sending}
-                />
-                <div className="row">
-                  <button type="button" onClick={() => fileRef.current?.click()} disabled={uploading}>
-                    <Paperclip /> แนบไฟล์
-                  </button>
-                  <input
-                    ref={fileRef}
-                    type="file"
-                    hidden
-                    multiple
-                    onChange={(e) => {
-                      void uploadFiles(e.target.files);
-                    }}
-                  />
-                  <button className="send" type="submit" aria-label="ส่งคำสั่ง" disabled={sending}>
-                    <ArrowUp />
-                  </button>
-                </div>
-              </form>
-            </>
-          ) : (
-            children
+              ))}
+              {sending && <div className="note">DNA OS กำลังประมวลผล...</div>}
+              {uploading && <div className="note">กำลังอัปโหลดไฟล์...</div>}
+            </div>
           )}
+          {children ? (
+            <div className="canvas">{children}</div>
+          ) : messages.length === 0 ? (
+            <div className="blank">
+              วันนี้จะทำอะไร?
+              <div className="note">พิมพ์คำสั่ง แนบไฟล์ หรือเปิดเครื่องมือด้านข้าง</div>
+            </div>
+          ) : null}
         </div>
+
+        {/* ONE COMPOSER — ตำแหน่งเดิมด้านล่างเสมอ ทั้งตอนไม่มี entity และมี entity */}
+        <form
+          className="compose"
+          onSubmit={(e) => {
+            e.preventDefault();
+            void sendDraft();
+          }}
+        >
+          <textarea
+            aria-label="คำสั่ง"
+            placeholder="พิมพ์คำสั่งกับ DNA OS…"
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            disabled={sending}
+          />
+          <div className="row">
+            <button type="button" onClick={() => fileRef.current?.click()} disabled={uploading}>
+              <Paperclip /> แนบไฟล์
+            </button>
+            <input
+              ref={fileRef}
+              type="file"
+              hidden
+              multiple
+              onChange={(e) => {
+                void uploadFiles(e.target.files);
+              }}
+            />
+            <button className="send" type="submit" aria-label="ส่งคำสั่ง" disabled={sending}>
+              <ArrowUp />
+            </button>
+          </div>
+        </form>
       </section>
+      )}
     </div>
   );
 }

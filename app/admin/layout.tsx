@@ -2,7 +2,6 @@ import { headers } from "next/headers";
 import { requireAuthPage } from "@/core/auth/requireAuthPage";
 import { ADMIN_TIER } from "@/core/auth/session";
 import { LOCAL_UI_REVIEW_HEADER } from "@/core/auth/devReviewAccess";
-import { HomeBackBar } from "@/presentation/shell/navigation/HomeBackBar";
 import { VoiceStandbyWidget } from "@/components/admin/VoiceStandbyWidget";
 
 /**
@@ -65,7 +64,10 @@ export default async function AdminLayout({
 
   return (
     <div className="h-screen flex flex-col bg-stone-50">
-      <HomeBackBar />
+      {/* ONE SURFACE (owner spec 2026-09-25): HomeBackBar (แถบดำ ย้อนกลับ/หน้าหลัก)
+          ถูกถอดทั้งระบบ — ไม่มี top bar ถาวรด้านบน · navigation = shell (drawer
+          + ปุ่มขอบจอ) กับ browser back เท่านั้น — หน้า children ทั้งหมดเลื่อนใน
+          region เดียวด้านล่างนี้เหมือนเดิม */}
       <div className="flex-1 min-h-0 overflow-y-auto">
         {children}
       </div>

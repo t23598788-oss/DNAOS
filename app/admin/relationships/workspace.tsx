@@ -4,12 +4,11 @@ import { useState, useEffect, useCallback, useMemo, useRef } from "react"
 import Link from "next/link"
 import {
   LayoutGrid, MessageCircle, Briefcase, Building2, FileText, Wallet, Mountain,
-  MapPin, FileSignature, Receipt, Truck, Banknote, Phone, Paperclip, Bot, X, ExternalLink, Settings, Wrench, BarChart3, Server, Cloud, ChevronLeft, ChevronRight,
+  MapPin, FileSignature, Receipt, Truck, Banknote, Phone, Paperclip, Bot, X, ExternalLink, Settings, Wrench, BarChart3, Server, Cloud,
 } from "lucide-react"
 import { formatMoney } from "@/engines/documents/document-editor"
 import { WorkspaceFrame } from "@/app/workspace/WorkspaceFrame"
 import ListColumn from "@/presentation/shell/navigation/ListColumn"
-import { TabStrip } from "@/presentation/shell/ide/TabStrip"
 import ActionBar, { type ActionBarItem } from "@/presentation/panels/ActionBar"
 import MapView from "@/presentation/viewer/MapView"
 import FlexPreview from "@/presentation/viewer/FlexPreview"
@@ -18,7 +17,6 @@ import type { ListColumnItem } from "@/presentation/shell/navigation/ListColumn"
 import { createBrowserSupabase } from "@/services/supabase/browser"
 import SettingsDrawer from "@/components/settings/SettingsDrawer"
 import ContactSettingsModal from "@/components/line/ContactSettingsModal"
-import AppHeader from "@/presentation/shell/navigation/AppHeader"
 import { WorkspaceProvider, useWorkspace } from "./workspace-state"
 import { buildFeed, buildInspectorFields, DOCUMENT_TYPE_LABEL, type Relationship, type RelationshipDetail, type ActionLogEntry, type FeedItem } from "./feed"
 
@@ -716,6 +714,8 @@ function RelationshipWorkspace({ initialRelationshipId }: { initialRelationshipI
   // relationship still goes through the SAME selectRelationship()/detail
   // fetch; the tab strip is a view of "which relationships are open here".
   const [openRelIds, setOpenRelIds] = useState<string[]>(initialRelationshipId ? [initialRelationshipId] : [])
+  // ONE SURFACE: แผง "ประวัติการสื่อสาร" (มุมขวาบน) — controlled ของ shell หน้านี้
+  const [panelOpen, setPanelOpen] = useState(false)
   const [listWidth, setListWidth] = useState(300)
   const [listCollapsed, setListCollapsed] = useState(false)
   const listDragging = useRef(false)
@@ -1201,28 +1201,25 @@ function RelationshipWorkspace({ initialRelationshipId }: { initialRelationshipI
     ...(pendingFinanceCount > 0 ? { "การเงิน": pendingFinanceCount } : {}),
   }
 
-  // ── ONE content fragment, TWO display layers ─────────────────────────────
-  // Everything below (AppHeader/debt/drafts/timeline/ActionBar/cockpit/
-  // reply/GPS/match/SettingsDrawer/lightbox …) renders IDENTICALLY inside
-  // the new shell and the rollback shell — capabilities cannot drift between
-  // the two screens because there is only one copy of them.
+  // ── ONE canvas, ONE context (owner spec ONE SURFACE 2026-09-25) ──────────
+  // Everything below (context row/debt/drafts/timeline/ActionBar/cockpit/
+  // GPS/match/SettingsDrawer/lightbox …) = entity canvas ชุดเดียวที่เปลี่ยน
+  // context ตาม entity ที่เลือก — ไม่มี top bar (AppHeader) ไม่มี composer ที่สอง
+  // ไม่มี sidebar ถาวร · endpoints/logic ทั้งหมดคงเดิมทุกบรรทัด
   const workspaceContent = (
     <>
       {!activeRelationship ? (
         <div className="flex items-center justify-center h-full text-sm text-stone-400">
-          เลือกลูกค้าทางซ้ายเพื่อเปิด Workspace
+          เปิดรายชื่อลูกค้าจากปุ่มมุมขวาบน (ประวัติการสื่อสาร) เพื่อเลือกบุคคล/บริษัท
         </div>
       ) : (
         <div className="flex h-full">
           <div className="flex flex-col h-full flex-1 min-w-0">
-            {/* Header — Navigation redesign (owner, 2026-07-16, final form):
-                AppHeader owns Back/Home/title (system's responsibility);
-                everything below is this module's own actions (contact
-                avatar/name, automation status, debt + send). */}
-            <AppHeader
-              title="ข้อความ"
-              actions={
-                <>
+            {/* ONE SURFACE (owner spec 2026-09-25): AppHeader (Back|Home|title bar) ถูกถอด —
+                ข้อมูลทั้งหมด (โปรไฟล์/ชื่อ/จับคู่/อัตโนมัติ/หนี้+ส่ง) แสดงเป็น context row
+                ของ entity ใน canvas = content ไม่ใช่ chrome */}
+            <div className="flex items-center gap-3 px-4 py-2.5 flex-shrink-0">
+              <>
                   {/* Contact Settings Popup (owner, 2026-07-18): "กดที่รูป
                       โปรไฟล์หรือปุ่มตั้งค่า" — click the avatar to open the
                       floating modal, no page navigation, per the owner's own
@@ -1285,9 +1282,8 @@ function RelationshipWorkspace({ initialRelationshipId }: { initialRelationshipI
                       </button>
                     </div>
                   )}
-                </>
-              }
-            />
+              </>
+            </div>
 
             {contactSettingsOpen && primaryLineUserId && (
               <ContactSettingsModal lineUserId={primaryLineUserId} onClose={() => setContactSettingsOpen(false)} />
@@ -1402,27 +1398,9 @@ function RelationshipWorkspace({ initialRelationshipId }: { initialRelationshipI
               )}
             </div>
 
-            {/* พิมพ์ตอบลูกค้าโดยตรง — ข้อความจริงส่งเข้า LINE จริง ไม่ใช่ ephemeral */}
-            <div className="border-t border-stone-200 bg-white flex-shrink-0 p-2.5">
-              {replyError && <div className="text-[11px] text-rose-600 bg-rose-50 border border-rose-200 rounded-lg px-2.5 py-1.5 mb-2">{replyError}</div>}
-              <div className="flex items-center gap-2">
-                <input
-                  value={replyText}
-                  onChange={(e) => setReplyText(e.target.value)}
-                  onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey && primaryLineUserId) { e.preventDefault(); sendReply(primaryLineUserId, activeRelationship.relationship_id) } }}
-                  placeholder={primaryLineUserId ? "พิมพ์ตอบลูกค้า..." : "ยังไม่มีช่องทาง LINE สำหรับลูกค้ารายนี้"}
-                  disabled={!primaryLineUserId}
-                  className="flex-1 text-xs border border-stone-200 rounded-lg px-3 py-2 focus:outline-none focus:border-emerald-500 disabled:bg-stone-50 disabled:text-stone-400"
-                />
-                <button
-                  onClick={() => primaryLineUserId && sendReply(primaryLineUserId, activeRelationship.relationship_id)}
-                  disabled={replySending || !replyText.trim() || !primaryLineUserId}
-                  className="px-3 py-2 rounded-lg bg-emerald-600 text-white text-xs font-semibold disabled:opacity-40 hover:bg-emerald-700 transition"
-                >
-                  {replySending ? "..." : "ส่ง"}
-                </button>
-              </div>
-            </div>
+            {/* ONE COMPOSER (owner spec 2026-09-25): กล่อง "พิมพ์ตอบลูกค้า" ถูกถอด —
+                ข้อความ/ไฟล์/คำสั่งพิมพ์ที่ composer เดียวด้านล่างของ shell
+                (มี entity = context ของ entity · route ส่งข้อมูลเดิม) */}
 
             {/* GPS popover — real coordinates only, never guessed */}
             {gpsOpen && lastLocation?.extracted?.latitude != null && lastLocation.extracted.longitude != null && (
@@ -1524,23 +1502,8 @@ function RelationshipWorkspace({ initialRelationshipId }: { initialRelationshipI
                 </div>
               )}
 
-              <div className="border-t border-stone-200 flex-shrink-0 p-2.5 flex gap-2">
-                <input
-                  value={aiAskText}
-                  onChange={(e) => setAiAskText(e.target.value)}
-                  onKeyDown={(e) => { if (e.key === "Enter" && aiAskText.trim() && primaryLineUserId) { askAi(aiAskText.trim(), companyName, primaryLineUserId); setCockpitHtmlPreview(null) } }}
-                  placeholder={companyName ? `สั่งงานหรือถามเกี่ยวกับ ${companyName}...` : "ยังไม่มีช่องทาง LINE สำหรับลูกค้ารายนี้"}
-                  disabled={!primaryLineUserId}
-                  className="flex-1 text-xs border border-stone-200 rounded-lg px-3 py-2 focus:outline-none focus:border-stone-400 disabled:bg-stone-50 disabled:text-stone-400"
-                />
-                <button
-                  onClick={() => { if (aiAskText.trim() && primaryLineUserId) { askAi(aiAskText.trim(), companyName, primaryLineUserId); setCockpitHtmlPreview(null) } }}
-                  disabled={!aiAskText.trim() || !primaryLineUserId}
-                  className="px-3 py-2 rounded-lg bg-stone-800 text-white text-xs font-semibold disabled:opacity-40 hover:bg-stone-700 transition"
-                >
-                  ถาม
-                </button>
-              </div>
+              {/* ONE COMPOSER (owner spec 2026-09-25): กล่อง "ถาม AI/สั่งงาน" ถูกถอด —
+                  ใช้ composer เดียวด้านล่าง (context = entity ที่เลือก) */}
             </div>
           )}
         </div>
@@ -1577,101 +1540,46 @@ function RelationshipWorkspace({ initialRelationshipId }: { initialRelationshipI
   // ไม่มี switch/ปุ่มกลับ UI เดิมในหน้านี้อีกต่อไป (หน้า = frame โดยตรง)
 
 
-  // ── NEW DISPLAY (START-HERE ข้อ17, dna-ui-master-template 2026-09-25):
-  // WorkspaceFrame = shell ของหน้าโดยตรง — ไม่มี iframe ครอบ UI เก่า ไม่มี
-  // ปุ่มกลับเครื่องมือเดิม · feed/รายชื่อ/inspector จริง = แท็บแรกตรงกลาง
-  // (ความสัมพันธ์) · แชท = แท็บที่สอง · list pane + divider + TabStrip เดิม
-  // ย้ายเข้าแท็บกลาง — endpoints/logic/formatMoney ไม่เปลี่ยนแม้แต่บรรทัด
-  const tabIdSet = [...new Set([...openRelIds, ...(activeId ? [activeId] : [])])]
-  const relTabs = tabIdSet.map((id) => ({
-    id,
-    title: relationships.find((r) => r.relationship_id === id)?.name ?? listItems.find((i) => i.id === id)?.title ?? "ความสัมพันธ์",
-    kind: "file" as const,
-    path: id,
-  }))
-
+  // ── ONE SURFACE ONE PATH (owner spec 2026-09-25): ไม่มีแท็บสองโหมด ไม่มี top bar
+  // ไม่มี sidebar รายชื่อถาวรบน canvas ไม่มี composer ที่สอง —
+  //   · ปุ่มมุมขวาบน = แผง "ประวัติการสื่อสาร" (ListColumn ชุดเดิม: รายชื่อ+ข้อความล่าสุด
+  //     +unread จาก last_message เดิม · select = openRelationship เดิม)
+  //   · เลือก entity → canvas กลางเปลี่ยน context = workspaceContent ชุดเดิม
+  //     (feed/เอกสาร/การเงิน/งาน/inspector) — ไม่ navigate ไป UI shell ชุดที่สอง
+  //   · ONE composer ด้านล่าง:ไม่มี entity = คำสั่ง DNA OS (sessionKey คงที่) ·
+  //     มี entity = body sessionKey/knownCustomerId/knownCustomerName ชุดเดียวกับ
+  //     runCommand/ask เดิม + upload ลง documentId ของ entity
+  // route/backend/data/message ทั้งหมดคงเดิม — งานนี้ UI PRESENTATION เท่านั้น
   return (
     <WorkspaceFrame
-      centerTab={{ key: "relationships", label: "ความสัมพันธ์" }}
-      initialTab="relationships"
+      panelOpen={panelOpen}
+      onPanelOpenChange={setPanelOpen}
       selfRoute="/admin/relationships"
       itemBadges={frameItemBadges}
+      composerContext={
+        activeId
+          ? {
+              sessionKey: primaryLineUserId ?? `relationship:${activeId}`,
+              knownCustomerId: activeId,
+              knownCustomerName: activeRelationship?.name ?? null,
+              documentId: activeId,
+            }
+          : undefined
+      }
+      messagePanel={
+        <ListColumn
+          items={listItems}
+          activeId={activeId}
+          onSelect={(id) => {
+            void openRelationship(id)
+            setPanelOpen(false)
+          }}
+          searchPlaceholder="ค้นหาชื่อหรือข้อความ..."
+          emptyMessage={loading ? "กำลังโหลด..." : "ยังไม่มีลูกค้าในระบบ"}
+        />
+      }
     >
-      <div className="flex h-full w-full overflow-hidden bg-[#F0EBE5] text-stone-800">
-        {/* LEFT — รายชื่อลูกค้า: แหล่งข้อมูล/กฎ unread/highlight เดิมทั้งหมด */}
-        {listCollapsed ? (
-          <button
-            type="button"
-            onClick={() => setListCollapsed(false)}
-            title="เปิดรายชื่อลูกค้า"
-            className="flex w-4 flex-shrink-0 items-center justify-center border-r border-[#E9E1D6] bg-[#F7F4EF] text-stone-400 hover:text-stone-700"
-          >
-            <ChevronRight className="h-3.5 w-3.5" />
-          </button>
-        ) : (
-          <div
-            className="flex shrink-0 flex-col border-r border-[#E9E1D6] bg-[#FDFBF8]"
-            style={{ width: listWidth, maxWidth: "calc(100vw - 100px)" }}
-          >
-            <div className="flex items-center gap-2 border-b border-[#E9E1D6] px-3 py-2">
-              <span className="text-xs font-semibold">ลูกค้า / ความสัมพันธ์</span>
-              <span className="ml-auto text-[10px] text-stone-400">{listItems.length} ราย</span>
-              <button
-                type="button"
-                onClick={() => setListCollapsed(true)}
-                title="ย่อรายชื่อ"
-                className="flex h-6 w-6 items-center justify-center rounded-md border border-[#E9E1D6] text-stone-500 hover:border-[#D5C8B6]"
-              >
-                <ChevronLeft className="h-3.5 w-3.5" />
-              </button>
-            </div>
-            <div className="min-h-0 flex-1 overflow-hidden">
-              <ListColumn
-                items={listItems}
-                activeId={activeId}
-                onSelect={openRelationship}
-                searchPlaceholder="ค้นหาชื่อหรือข้อความ..."
-                emptyMessage={loading ? "กำลังโหลด..." : "ยังไม่มีลูกค้าในระบบ"}
-              />
-            </div>
-          </div>
-        )}
-
-        {/* DIVIDER — ลากปรับขนาดซ้าย↔ขวา (แบบ BusinessWorkspace) */}
-        {!listCollapsed && (
-          <div
-            role="separator"
-            aria-orientation="vertical"
-            onPointerDown={(e) => {
-              listDragging.current = true
-              ;(e.target as HTMLElement).setPointerCapture(e.pointerId)
-            }}
-            onPointerMove={(e) => {
-              if (!listDragging.current) return
-              setListWidth(Math.min(560, Math.max(200, e.clientX - 64)))
-            }}
-            onPointerUp={() => {
-              listDragging.current = false
-            }}
-            className="w-1 flex-shrink-0 cursor-col-resize bg-[#E9E1D6] hover:bg-[#B49C7C]"
-          />
-        )}
-
-        {/* RIGHT — TabStrip ของความสัมพันธ์ที่เปิดไว้ + content เดิมทั้งผืน */}
-        <div className="flex min-w-0 flex-1 flex-col bg-[#FDFBF8]">
-          <TabStrip
-            tabs={relTabs}
-            activeTabId={activeId}
-            onSelect={(id) => void selectRelationship(id)}
-            onClose={closeRelationshipTab}
-            dirtyTabIds={[]}
-            fileStates={{}}
-          />
-          <div className="relative min-h-0 flex-1 overflow-hidden">
-            {workspaceContent}
-          </div>
-        </div>
-      </div>
+      {activeId ? workspaceContent : null}
     </WorkspaceFrame>
   )
 }

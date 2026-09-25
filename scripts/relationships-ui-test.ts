@@ -2,7 +2,10 @@
  * relationships-ui-test.ts — /admin/relationships display-layer replacement
  * (2026-09-24; contract ปรับตาม START-HERE ข้อ17/22 dna-ui-master-template
  * 2026-09-25: shell = WorkspaceFrame โดยตรง, ?ui=legacy/rollback branch
- * ถูกลบ — ย้อนกลับผ่าน Git เท่านั้น). Structural, source-truth only: proves
+ * ถูกลบ — ย้อนกลับผ่าน Git เท่านั้น). ONE SURFACE ONE PATH (owner 2026-09-25):
+ * ไม่มี top bar (HomeBackBar/AppHeader) · ไม่มีแท็บสองโหมด · ไม่มี sidebar รายชื่อ
+ * ถาวร · ไม่มี composer ที่สอง — รายชื่ออยู่ใน messagePanel ของ frame, canvas กลาง
+ * เปลี่ยน context ตาม entity, ONE composer ด้านล่าง. Structural, source-truth only: proves
  * the screen reuses the SAME endpoints, permissions, ONE content fragment and
  * canonical money sources as the original screen, and that NO calculation or
  * backend was added/removed. No mocks, no fixtures, no network.
@@ -34,20 +37,24 @@ const detailRoute = read("app/api/admin/relationships/[relationshipId]/route.ts"
 const matchRoute = read("app/api/admin/relationships/[relationshipId]/match/route.ts");
 const feed = read("app/admin/relationships/feed.ts");
 const middleware = read("middleware.ts");
+const adminLayout = read("app/admin/layout.tsx");
+const frameSrc = read("app/workspace/WorkspaceFrame.tsx");
 
 // ── R1: same route, display switch, ONE content source ──────────────────────
 check("R1. root page renders the frame shell — no ?ui=legacy switch (START-HERE ข้อ17/22: ไม่มีปุ่ม/เส้นทางกลับ UI เก่า)", rootPage.includes("<RelationshipWorkspacePage") && !rootPage.includes("legacyUi"));
 check("R1. deep-link page keeps initialRelationshipId + legacy switch removed", deepPage.includes("initialRelationshipId={relationshipId}") && !deepPage.includes("legacyUi"));
 check("R1. old AppShell rollback branch deleted (rollback = git per ข้อ22, marker comment kept)", !ws.includes("if (legacyUi)") && !ws.includes("<AppShell") && ws.includes("ROLLBACK SCREEN (?ui=legacy) DELETED"));
-check("R1. ONE content fragment, ONE render site (declared once, used once inside the frame tab)", (ws.match(/const workspaceContent = /g) ?? []).length === 1 && (ws.match(/\{workspaceContent\}/g) ?? []).length === 1);
+check("R1. ONE content fragment, ONE render site (declared once, used once as the entity canvas)", (ws.match(/const workspaceContent = /g) ?? []).length === 1 && (ws.match(/\{activeId \? workspaceContent : null\}/g) ?? []).length === 1);
 check("R1. both pages still render RelationshipWorkspacePage (same component)", rootPage.includes("<RelationshipWorkspacePage") && deepPage.includes("<RelationshipWorkspacePage"));
+check("R1. ONE SURFACE: admin layout ไม่มี HomeBackBar (แถบดำ ย้อนกลับ/หน้าหลัก ถูกถอด)", !adminLayout.includes("HomeBackBar />"));
+check("R1. frame = ไม่มีแท็บสองโหมด (data-view) + ล็อกจอ height:100dvh + แผง msg-panel ประวัติการสื่อสาร", !frameSrc.includes("data-view=") && frameSrc.includes("height:100dvh") && frameSrc.includes(".msg-panel"));
 
 // ── R2: new shell = /workspace component family ─────────────────────────────
 check("R2. shell = WorkspaceFrame from app/workspace (START-HERE ข้อ17 — UI ใหม่โดยตรง); IconRail retired from this page", ws.includes('import { WorkspaceFrame } from "@/app/workspace/WorkspaceFrame"') && ws.includes("<WorkspaceFrame") && !ws.includes("import IconRail"));
-check("R2. ListColumn + TabStrip imported from presentation/shell", ws.includes('from "@/presentation/shell/navigation/ListColumn"') && ws.includes('from "@/presentation/shell/ide/TabStrip"'));
-check("R2. BusinessWorkspace canvas tokens used (F0EBE5/FDFBF8/E9E1D6)", ws.includes("bg-[#F0EBE5]") && ws.includes("bg-[#FDFBF8]") && ws.includes("border-[#E9E1D6]"));
-check("R2. resizable list divider (drag) present", ws.includes('role="separator"') && ws.includes("cursor-col-resize"));
-check("R2. TabStrip wired with open-relationship tabs + close", ws.includes("<TabStrip") && ws.includes("closeRelationshipTab") && ws.includes("openRelationship"));
+check("R2. ListColumn imported from presentation/shell; TabStrip/สองแท็บถอดออก (ONE SURFACE)", ws.includes('from "@/presentation/shell/navigation/ListColumn"') && !ws.includes('ide/TabStrip') && !ws.includes("<TabStrip"));
+check("R2. ONE SURFACE: ไม่มี top bar/แท็บ/separator/composer ที่สองบน canvas (AppHeader/TabStrip/drag-divider/reply/ask inputs)", !ws.includes("<AppHeader") && !ws.includes("<TabStrip") && !ws.includes('role="separator"') && !ws.includes("value={replyText}") && !ws.includes("value={aiAskText}"));
+check("R2. contact list lives in the top-right message panel (messagePanel + controlled open)", ws.includes("messagePanel={") && ws.includes("panelOpen={panelOpen}") && ws.includes("onPanelOpenChange={setPanelOpen}"));
+check("R2. TabStrip→panel: selecting in the message panel opens the entity via openRelationship + closes panel", /onSelect=\{\(id\) => \{[\s\S]{0,80}openRelationship\(id\)/.test(ws) && ws.includes("setPanelOpen(false)"));
 
 // ── R3: identical data/service endpoints (logic untouched) ──────────────────
 const endpoints: [string, string][] = [
@@ -103,8 +110,8 @@ check("R6. jobs strip from transactions API (openJobs/jobsLoaded)", ws.includes(
 check("R6. finance strip renders API summary (formatMoney only)", ws.includes("formatMoney(finance.revenue_total)") && ws.includes("รายรับ") && ws.includes("รายจ่าย"));
 check("R6. debt header + collection state + days", ws.includes("debt.total_outstanding") && ws.includes("days_overdue") && ws.includes("ชำระแล้ว") && ws.includes("ค้างชำระ"));
 check("R6. rail badges (pending quotes + finance alerts)", ws.includes("pendingQuotesCount") && ws.includes("pendingFinanceCount"));
-check("R6. reply composer + AI ask input kept", ws.includes("replyText") && ws.includes("aiAskText"));
-check("R6. AppHeader + Inspector + MapView still wired", ws.includes("AppHeader") && ws.includes("Inspector") && ws.includes("MapView"));
+check("R6. ONE composer (owner 2026-09-25): ไม่มี input ตอบ/ถาม ที่สอง + composerContext ผูก entity", !ws.includes("value={replyText}") && !ws.includes("value={aiAskText}") && ws.includes("composerContext={"));
+check("R6. Inspector + MapView kept in canvas; AppHeader bar ถูกถอด (ONE SURFACE)", ws.includes("<Inspector") && ws.includes("<MapView") && !ws.includes("<AppHeader"));
 check("R6. unified feed via buildFeed (messages+events+docs+sent bubbles)", ws.includes("buildFeed(detail") && ws.includes("sentInvoiceEntries"));
 
 // ── R7: no parallel workspace / no removed backend ─────────────────────────
