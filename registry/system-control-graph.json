@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-24T13:17:39.762Z",
+  "generated_at": "2026-09-25T16:37:56.617Z",
   "nodes": [
     {
       "id": "layer:core",
@@ -202,6 +202,8 @@
       "runtime_callable": true,
       "provider": "UNKNOWN",
       "dependencies": [
+        "module:app/api/chat/_lib/chatResultTypes.ts",
+        "module:app/api/chat/_lib/resultContract.ts",
         "module:cognitive/pipeline.ts",
         "module:core/auth/requireAuth.ts",
         "module:core/auth/session.ts"
@@ -1022,7 +1024,7 @@
       "provider": "UNKNOWN",
       "dependencies": [
         "module:core/shared/types.ts",
-        "module:engines/presentation/event-style.ts"
+        "module:presentation/panels/PartnerTimeline.tsx"
       ],
       "dependents": [],
       "commands": [],
@@ -2364,6 +2366,7 @@
         "module:app/api/admin/line-customers/[lineUserId]/send-debt/route.ts",
         "module:app/api/admin/line-customers/[lineUserId]/send-document/route.ts",
         "module:app/api/admin/settings/route.ts",
+        "module:app/api/chat/_lib/resultContract.ts",
         "module:app/api/chat/confirm/route.ts",
         "module:components/documents/DocumentBuilder.tsx",
         "module:components/documents/DocumentPreview.tsx",
@@ -2591,6 +2594,7 @@
       "dependents": [
         "module:app/admin/partners/[id]/page.tsx",
         "module:app/api/admin/ide/_lib/providerRegistryRuntime.ts",
+        "module:app/api/chat/_lib/chatResultTypes.ts",
         "module:app/workspace-preview/document/DocumentEngineRuntimeRegistration.tsx",
         "module:core/executor/audit.ts",
         "module:core/executor/engine.ts",
@@ -2633,6 +2637,7 @@
         "module:plugins/drivers/chrome.selfDescription.ts",
         "module:plugins/drivers/line.selfDescription.ts",
         "module:plugins/drivers/selfDescriptionFactory.ts",
+        "module:presentation/panels/PartnerTimeline.tsx",
         "module:scripts/hello.ts"
       ],
       "commands": [],
@@ -3041,6 +3046,7 @@
         "module:app/admin/relationships/workspace.tsx",
         "module:app/api/admin/documents/[id]/route.ts",
         "module:app/api/admin/documents/route.ts",
+        "module:app/api/chat/_lib/resultContract.ts",
         "module:components/documents/DebtTrackingManager.tsx",
         "module:components/documents/DocumentBuilder.tsx",
         "module:components/documents/DocumentPreview.tsx",
@@ -3109,6 +3115,7 @@
         "module:app/api/admin/documents/[id]/route.ts",
         "module:app/api/admin/documents/route.ts",
         "module:app/api/admin/line-customers/[lineUserId]/send-document/route.ts",
+        "module:app/api/chat/_lib/resultContract.ts",
         "module:app/api/chat/confirm/route.ts",
         "module:app/api/document/route.ts",
         "module:app/api/internal/line/document-artifact/route.ts",
@@ -4731,7 +4738,6 @@
         "module:app/api/internal/line/token/route.ts",
         "module:app/workspace-preview/presentationGatewayDeps.ts",
         "module:app/workspace/_lib/jobDisplayModel.ts",
-        "module:app/workspace/_lib/partnerDisplayModel.ts",
         "module:cognitive/pipeline.ts",
         "module:engines/business.ts",
         "module:engines/canonical/artifact-write.ts",
@@ -5940,6 +5946,7 @@
       "provider": "UNKNOWN",
       "dependencies": [
         "module:core/auth/resolveDestination.ts",
+        "module:core/identity/identity.ts",
         "module:services/supabase/browser.ts"
       ],
       "dependents": [],
@@ -6024,7 +6031,7 @@
         "module:app/admin/dev-loop/DevLoopDashboard.tsx",
         "module:app/admin/relationships/workspace.tsx",
         "module:app/login/page.tsx",
-        "module:components/admin/SecretaryChat.tsx",
+        "module:app/workspace/WorkspaceFrame.tsx",
         "module:components/admin/VoiceStandbyWidget.tsx",
         "module:components/admin/useAiTaskPulse.ts",
         "module:middleware.ts",
@@ -6835,28 +6842,6 @@
       "cost_source": "UNKNOWN"
     },
     {
-      "id": "module:components/admin/SecretaryChat.tsx",
-      "name": "components/admin/SecretaryChat.tsx",
-      "type": "Module",
-      "layer": "components",
-      "source_file": "components/admin/SecretaryChat.tsx",
-      "status": "OK",
-      "runtime_callable": false,
-      "provider": "UNKNOWN",
-      "dependencies": [
-        "module:components/admin/ttsSpeak.ts",
-        "module:services/supabase/browser.ts"
-      ],
-      "dependents": [
-        "module:app/admin/dashboard/page.tsx"
-      ],
-      "commands": [],
-      "events": [],
-      "capabilities": [],
-      "health": "OK",
-      "cost_source": "UNKNOWN"
-    },
-    {
       "id": "module:components/admin/UsersRoleTable.tsx",
       "name": "components/admin/UsersRoleTable.tsx",
       "type": "Module",
@@ -7093,55 +7078,11 @@
       "cost_source": "UNKNOWN"
     },
     {
-      "id": "module:app/admin/architecture/page.tsx",
-      "name": "app/admin/architecture/page.tsx",
-      "type": "Module",
-      "layer": "app",
-      "source_file": "app/admin/architecture/page.tsx",
-      "status": "OK",
-      "runtime_callable": true,
-      "provider": "UNKNOWN",
-      "dependencies": [
-        "module:registry/ARCHITECTURE_HEALTH_REPORT.json.ts",
-        "module:registry/architecture-book.json.ts",
-        "module:registry/command-registry.json.ts",
-        "module:registry/connector-lifecycle.json.ts",
-        "module:registry/drivers.json.ts",
-        "module:registry/events.json.ts",
-        "module:registry/infrastructure.json.ts",
-        "module:registry/module-registry.json.ts",
-        "module:registry/system-control-graph.json.ts"
-      ],
-      "dependents": [],
-      "commands": [],
-      "events": [],
-      "capabilities": [],
-      "health": "OK",
-      "cost_source": "UNKNOWN"
-    },
-    {
       "id": "module:app/admin/backup/page.tsx",
       "name": "app/admin/backup/page.tsx",
       "type": "Module",
       "layer": "app",
       "source_file": "app/admin/backup/page.tsx",
-      "status": "OK",
-      "runtime_callable": true,
-      "provider": "UNKNOWN",
-      "dependencies": [],
-      "dependents": [],
-      "commands": [],
-      "events": [],
-      "capabilities": [],
-      "health": "OK",
-      "cost_source": "UNKNOWN"
-    },
-    {
-      "id": "module:app/admin/build/page.tsx",
-      "name": "app/admin/build/page.tsx",
-      "type": "Module",
-      "layer": "app",
-      "source_file": "app/admin/build/page.tsx",
       "status": "OK",
       "runtime_callable": true,
       "provider": "UNKNOWN",
@@ -7185,25 +7126,6 @@
         "module:components/admin/SystemConfigCenter.tsx",
         "module:core/auth/requireAuthPage.ts",
         "module:core/auth/session.ts"
-      ],
-      "dependents": [],
-      "commands": [],
-      "events": [],
-      "capabilities": [],
-      "health": "OK",
-      "cost_source": "UNKNOWN"
-    },
-    {
-      "id": "module:app/admin/dashboard/page.tsx",
-      "name": "app/admin/dashboard/page.tsx",
-      "type": "Module",
-      "layer": "app",
-      "source_file": "app/admin/dashboard/page.tsx",
-      "status": "OK",
-      "runtime_callable": true,
-      "provider": "UNKNOWN",
-      "dependencies": [
-        "module:components/admin/SecretaryChat.tsx"
       ],
       "dependents": [],
       "commands": [],
@@ -7257,42 +7179,6 @@
       "provider": "UNKNOWN",
       "dependencies": [],
       "dependents": [],
-      "commands": [],
-      "events": [],
-      "capabilities": [],
-      "health": "OK",
-      "cost_source": "UNKNOWN"
-    },
-    {
-      "id": "module:app/admin/graph/page.tsx",
-      "name": "app/admin/graph/page.tsx",
-      "type": "Module",
-      "layer": "app",
-      "source_file": "app/admin/graph/page.tsx",
-      "status": "OK",
-      "runtime_callable": true,
-      "provider": "UNKNOWN",
-      "dependencies": [],
-      "dependents": [],
-      "commands": [],
-      "events": [],
-      "capabilities": [],
-      "health": "OK",
-      "cost_source": "UNKNOWN"
-    },
-    {
-      "id": "module:app/admin/graph/ForceGraph3DView.tsx",
-      "name": "app/admin/graph/ForceGraph3DView.tsx",
-      "type": "Module",
-      "layer": "app",
-      "source_file": "app/admin/graph/ForceGraph3DView.tsx",
-      "status": "OK",
-      "runtime_callable": false,
-      "provider": "UNKNOWN",
-      "dependencies": [],
-      "dependents": [
-        "module:app/admin/graph/GraphView.tsx"
-      ],
       "commands": [],
       "events": [],
       "capabilities": [],
@@ -7371,8 +7257,7 @@
         "module:components/admin/VoiceStandbyWidget.tsx",
         "module:core/auth/devReviewAccess.ts",
         "module:core/auth/requireAuthPage.ts",
-        "module:core/auth/session.ts",
-        "module:presentation/shell/navigation/HomeBackBar.tsx"
+        "module:core/auth/session.ts"
       ],
       "dependents": [],
       "commands": [],
@@ -9057,16 +8942,12 @@
       "dependencies": [
         "module:app/admin/relationships/feed.ts",
         "module:app/admin/relationships/workspace-state.tsx",
-        "module:components/admin/openExternal.ts",
+        "module:app/workspace/WorkspaceFrame.tsx",
         "module:components/line/ContactSettingsModal.tsx",
         "module:components/settings/SettingsDrawer.tsx",
         "module:engines/documents/document-editor.ts",
         "module:presentation/panels/ActionBar.tsx",
         "module:presentation/panels/Inspector.tsx",
-        "module:presentation/shell/AppShell.tsx",
-        "module:presentation/shell/ide/TabStrip.tsx",
-        "module:presentation/shell/navigation/AppHeader.tsx",
-        "module:presentation/shell/navigation/IconRail.tsx",
         "module:presentation/shell/navigation/ListColumn.tsx",
         "module:presentation/viewer/FlexPreview.tsx",
         "module:presentation/viewer/MapView.tsx",
@@ -9200,7 +9081,7 @@
       "dependencies": [],
       "dependents": [
         "module:app/admin/jobs/[id]/page.tsx",
-        "module:app/admin/partners/[id]/page.tsx"
+        "module:presentation/panels/PartnerTimeline.tsx"
       ],
       "commands": [],
       "events": [],
@@ -9361,7 +9242,6 @@
         "module:app/business/layout.tsx",
         "module:app/partner/layout.tsx",
         "module:app/user/layout.tsx",
-        "module:app/workspace/page.tsx",
         "module:components/workspace/WorkspaceShell.tsx"
       ],
       "commands": [],
@@ -11184,15 +11064,9 @@
       "runtime_callable": true,
       "provider": "UNKNOWN",
       "dependencies": [
-        "module:app/workspace/BusinessWorkspace.tsx",
-        "module:app/workspace/_lib/businessTools.ts",
-        "module:app/workspace/_lib/connectDisplayModel.ts",
-        "module:app/workspace/_lib/jobDisplayModel.ts",
-        "module:app/workspace/_lib/partnerDisplayModel.ts",
+        "module:app/workspace/WorkspaceFrame.tsx",
         "module:core/auth/devReviewAccess.ts",
-        "module:core/auth/session.ts",
-        "module:core/navigation/resolveCapabilityAccess.ts",
-        "module:core/navigation/resolveNavItems.ts"
+        "module:core/auth/session.ts"
       ],
       "dependents": [],
       "commands": [],
@@ -13011,68 +12885,6 @@
       "dependencies": [
         "module:services/supabase/browser.ts"
       ],
-      "dependents": [
-        "module:app/admin/system/page 2.tsx",
-        "module:app/admin/system/page.tsx"
-      ],
-      "commands": [],
-      "events": [],
-      "capabilities": [],
-      "health": "OK",
-      "cost_source": "UNKNOWN"
-    },
-    {
-      "id": "module:app/admin/graph/GraphView.tsx",
-      "name": "app/admin/graph/GraphView.tsx",
-      "type": "Module",
-      "layer": "app",
-      "source_file": "app/admin/graph/GraphView.tsx",
-      "status": "OK",
-      "runtime_callable": true,
-      "provider": "UNKNOWN",
-      "dependencies": [
-        "module:app/admin/graph/ForceGraph3DView.tsx"
-      ],
-      "dependents": [
-        "module:app/admin/system/page 2.tsx",
-        "module:app/admin/system/page.tsx"
-      ],
-      "commands": [],
-      "events": [],
-      "capabilities": [],
-      "health": "OK",
-      "cost_source": "UNKNOWN"
-    },
-    {
-      "id": "module:app/admin/system/page.tsx",
-      "name": "app/admin/system/page.tsx",
-      "type": "Module",
-      "layer": "app",
-      "source_file": "app/admin/system/page.tsx",
-      "status": "OK",
-      "runtime_callable": true,
-      "provider": "UNKNOWN",
-      "dependencies": [
-        "module:app/admin/graph/GraphView.tsx",
-        "module:components/admin/useAiTaskPulse.ts"
-      ],
-      "dependents": [],
-      "commands": [],
-      "events": [],
-      "capabilities": [],
-      "health": "OK",
-      "cost_source": "UNKNOWN"
-    },
-    {
-      "id": "module:app/admin/telemetry/page.tsx",
-      "name": "app/admin/telemetry/page.tsx",
-      "type": "Module",
-      "layer": "app",
-      "source_file": "app/admin/telemetry/page.tsx",
-      "status": "OK",
-      "runtime_callable": true,
-      "provider": "UNKNOWN",
-      "dependencies": [],
       "dependents": [],
       "commands": [],
       "events": [],
@@ -13306,7 +13118,7 @@
       "provider": "UNKNOWN",
       "dependencies": [],
       "dependents": [
-        "module:app/admin/relationships/workspace.tsx"
+        "module:app/workspace/WorkspaceFrame.tsx"
       ],
       "commands": [],
       "events": [],
@@ -13325,8 +13137,8 @@
       "provider": "UNKNOWN",
       "dependencies": [],
       "dependents": [
+        "module:app/workspace/WorkspaceFrame.tsx",
         "module:components/admin/DevLoopVoiceAlerts.tsx",
-        "module:components/admin/SecretaryChat.tsx",
         "module:components/admin/VoiceStandbyWidget.tsx"
       ],
       "commands": [],
@@ -25115,26 +24927,6 @@
       "cost_source": "UNKNOWN"
     },
     {
-      "id": "module:app/admin/system/page 2.tsx",
-      "name": "app/admin/system/page 2.tsx",
-      "type": "Module",
-      "layer": "app",
-      "source_file": "app/admin/system/page 2.tsx",
-      "status": "OK",
-      "runtime_callable": true,
-      "provider": "UNKNOWN",
-      "dependencies": [
-        "module:app/admin/graph/GraphView.tsx",
-        "module:components/admin/useAiTaskPulse.ts"
-      ],
-      "dependents": [],
-      "commands": [],
-      "events": [],
-      "capabilities": [],
-      "health": "OK",
-      "cost_source": "UNKNOWN"
-    },
-    {
       "id": "module:app/api/admin/ide/_lib/workerTaskOrchestrator.ts",
       "name": "app/api/admin/ide/_lib/workerTaskOrchestrator.ts",
       "type": "Module",
@@ -26862,7 +26654,6 @@
         "module:app/api/admin/connectors/providers/route.ts",
         "module:app/api/admin/connectors/route.ts",
         "module:app/api/admin/provider-settings/route.ts",
-        "module:app/workspace/_lib/connectDisplayModel.ts",
         "module:scripts/connect-core-acceptance-test.ts",
         "module:scripts/connect-inbound-boundary-test.ts"
       ],
@@ -26887,7 +26678,6 @@
       "dependents": [
         "module:app/api/admin/connectors/_lib/connectRuntime.ts",
         "module:app/api/admin/connectors/providers/route.ts",
-        "module:app/workspace/_lib/connectDisplayModel.ts",
         "module:engines/connectors/providers/github.ts",
         "module:engines/connectors/providers/line.ts",
         "module:engines/connectors/providers/railway.ts",
@@ -27798,7 +27588,8 @@
         "module:app/admin/ui-gallery/_lib/BusinessDisplayRenderer.tsx",
         "module:app/admin/ui-gallery/_lib/assemblyHost.tsx",
         "module:app/admin/ui-gallery/_lib/componentHost.tsx",
-        "module:app/admin/ui-gallery/visual-review/page.tsx"
+        "module:app/admin/ui-gallery/visual-review/page.tsx",
+        "module:app/workspace/WorkspaceFrame.tsx"
       ],
       "commands": [],
       "events": [],
@@ -27842,7 +27633,8 @@
       "dependencies": [],
       "dependents": [
         "module:app/admin/relationships/workspace.tsx",
-        "module:app/admin/ui-gallery/_lib/componentHost.tsx"
+        "module:app/admin/ui-gallery/_lib/componentHost.tsx",
+        "module:app/workspace/WorkspaceFrame.tsx"
       ],
       "commands": [],
       "events": [],
@@ -27941,7 +27733,6 @@
       ],
       "dependents": [
         "module:app/admin/line-customers/page.tsx",
-        "module:app/admin/relationships/workspace.tsx",
         "module:app/admin/ui-gallery/_lib/assemblyHost.tsx",
         "module:app/admin/ui-gallery/_lib/componentHost.tsx"
       ],
@@ -28409,12 +28200,10 @@
       "dependencies": [],
       "dependents": [
         "module:app/admin/line-customers/page.tsx",
-        "module:app/admin/relationships/workspace.tsx",
         "module:app/admin/ui-gallery/_lib/componentHost.tsx",
         "module:app/workspace/BusinessWorkspace.tsx",
         "module:components/workspace/WorkspaceShell.tsx",
-        "module:presentation/shell/AppShell.tsx",
-        "module:scripts/relationships-ui-test.ts"
+        "module:presentation/shell/AppShell.tsx"
       ],
       "commands": [],
       "events": [],
@@ -28433,7 +28222,6 @@
       "provider": "UNKNOWN",
       "dependencies": [],
       "dependents": [
-        "module:app/admin/layout.tsx",
         "module:app/admin/ui-gallery/_lib/assemblyHost.tsx",
         "module:app/admin/ui-gallery/_lib/componentHost.tsx"
       ],
@@ -28454,7 +28242,6 @@
       "provider": "UNKNOWN",
       "dependencies": [],
       "dependents": [
-        "module:app/admin/relationships/workspace.tsx",
         "module:app/admin/ui-gallery/_lib/assemblyHost.tsx",
         "module:app/admin/ui-gallery/_lib/componentHost.tsx"
       ],
@@ -28926,7 +28713,6 @@
         "module:presentation/shell/navigation/IconRail.tsx"
       ],
       "dependents": [
-        "module:app/workspace/page.tsx",
         "module:scripts/workspace-tool-bindings-test.tsx"
       ],
       "commands": [],
@@ -28967,10 +28753,8 @@
       "provider": "UNKNOWN",
       "dependencies": [],
       "dependents": [
-        "module:app/admin/relationships/workspace.tsx",
         "module:app/workspace/BusinessWorkspace.tsx",
-        "module:components/ide-shell/IDEWorkspace.tsx",
-        "module:scripts/relationships-ui-test.ts"
+        "module:components/ide-shell/IDEWorkspace.tsx"
       ],
       "commands": [],
       "events": [],
@@ -28992,10 +28776,7 @@
       ],
       "dependents": [
         "module:app/workspace/BusinessWorkspace.tsx",
-        "module:app/workspace/_lib/connectDisplayModel.ts",
         "module:app/workspace/_lib/jobDisplayModel.ts",
-        "module:app/workspace/_lib/partnerDisplayModel.ts",
-        "module:app/workspace/page.tsx",
         "module:scripts/workspace-capability-access-test.ts",
         "module:scripts/workspace-job-path-test.ts",
         "module:scripts/workspace-tool-bindings-test.tsx"
@@ -29126,11 +28907,11 @@
       "dependents": [
         "module:app/admin/ui-gallery/_lib/BusinessDisplayRenderer.tsx",
         "module:app/admin/ui-gallery/business-display/page.tsx",
+        "module:app/api/chat/_lib/chatResultTypes.ts",
         "module:app/workspace/BusinessWorkspace.tsx",
+        "module:app/workspace/WorkspaceFrame.tsx",
         "module:app/workspace/_lib/businessTools.ts",
-        "module:app/workspace/_lib/connectDisplayModel.ts",
-        "module:app/workspace/_lib/jobDisplayModel.ts",
-        "module:app/workspace/_lib/partnerDisplayModel.ts"
+        "module:app/workspace/_lib/jobDisplayModel.ts"
       ],
       "commands": [],
       "events": [],
@@ -29228,7 +29009,8 @@
       ],
       "dependents": [
         "module:app/admin/ui-gallery/business-display/page.tsx",
-        "module:app/workspace/BusinessWorkspace.tsx"
+        "module:app/workspace/BusinessWorkspace.tsx",
+        "module:app/workspace/WorkspaceFrame.tsx"
       ],
       "commands": [],
       "events": [],
@@ -29361,32 +29143,8 @@
         "module:registry/permissions.json.ts"
       ],
       "dependents": [
-        "module:app/workspace/page.tsx",
         "module:scripts/workspace-capability-access-test.ts",
         "module:scripts/workspace-job-path-test.ts"
-      ],
-      "commands": [],
-      "events": [],
-      "capabilities": [],
-      "health": "OK",
-      "cost_source": "UNKNOWN"
-    },
-    {
-      "id": "module:app/workspace/_lib/partnerDisplayModel.ts",
-      "name": "app/workspace/_lib/partnerDisplayModel.ts",
-      "type": "Module",
-      "layer": "app",
-      "source_file": "app/workspace/_lib/partnerDisplayModel.ts",
-      "status": "OK",
-      "runtime_callable": false,
-      "provider": "UNKNOWN",
-      "dependencies": [
-        "module:app/admin/ui-gallery/_lib/businessDisplayModel.ts",
-        "module:app/workspace/_lib/businessTools.ts",
-        "module:services/supabase/queries.ts"
-      ],
-      "dependents": [
-        "module:app/workspace/page.tsx"
       ],
       "commands": [],
       "events": [],
@@ -29455,7 +29213,6 @@
         "module:services/supabase/queries.ts"
       ],
       "dependents": [
-        "module:app/workspace/page.tsx",
         "module:scripts/workspace-job-path-test.ts"
       ],
       "commands": [],
@@ -30465,30 +30222,6 @@
       "cost_source": "UNKNOWN"
     },
     {
-      "id": "module:app/workspace/_lib/connectDisplayModel.ts",
-      "name": "app/workspace/_lib/connectDisplayModel.ts",
-      "type": "Module",
-      "layer": "app",
-      "source_file": "app/workspace/_lib/connectDisplayModel.ts",
-      "status": "OK",
-      "runtime_callable": false,
-      "provider": "UNKNOWN",
-      "dependencies": [
-        "module:app/admin/ui-gallery/_lib/businessDisplayModel.ts",
-        "module:app/workspace/_lib/businessTools.ts",
-        "module:engines/connectors/contract.ts",
-        "module:engines/connectors/registry.ts"
-      ],
-      "dependents": [
-        "module:app/workspace/page.tsx"
-      ],
-      "commands": [],
-      "events": [],
-      "capabilities": [],
-      "health": "OK",
-      "cost_source": "UNKNOWN"
-    },
-    {
       "id": "module:engines/canonical/expense-write.ts",
       "name": "engines/canonical/expense-write.ts",
       "type": "Module",
@@ -30719,9 +30452,8 @@
       "runtime_callable": true,
       "provider": "UNKNOWN",
       "dependencies": [
+        "module:app/workspace/WorkspaceFrame.tsx",
         "module:engines/documents/document-editor.ts",
-        "module:presentation/shell/ide/TabStrip.tsx",
-        "module:presentation/shell/navigation/IconRail.tsx",
         "module:presentation/shell/navigation/ListColumn.tsx"
       ],
       "dependents": [],
@@ -31311,6 +31043,7 @@
       "provider": "UNKNOWN",
       "dependencies": [],
       "dependents": [
+        "module:app/login/page.tsx",
         "module:core/auth/session.ts"
       ],
       "commands": [],
@@ -31330,6 +31063,145 @@
       "provider": "UNKNOWN",
       "dependencies": [],
       "dependents": [],
+      "commands": [],
+      "events": [],
+      "capabilities": [],
+      "health": "OK",
+      "cost_source": "UNKNOWN"
+    },
+    {
+      "id": "module:scripts/debt-patch-freeze-test.ts",
+      "name": "scripts/debt-patch-freeze-test.ts",
+      "type": "Module",
+      "layer": "scripts",
+      "source_file": "scripts/debt-patch-freeze-test.ts",
+      "status": "OK",
+      "runtime_callable": true,
+      "provider": "UNKNOWN",
+      "dependencies": [],
+      "dependents": [],
+      "commands": [],
+      "events": [],
+      "capabilities": [],
+      "health": "OK",
+      "cost_source": "UNKNOWN"
+    },
+    {
+      "id": "module:app/workspace/WorkspaceFrame.tsx",
+      "name": "app/workspace/WorkspaceFrame.tsx",
+      "type": "Module",
+      "layer": "app",
+      "source_file": "app/workspace/WorkspaceFrame.tsx",
+      "status": "OK",
+      "runtime_callable": false,
+      "provider": "UNKNOWN",
+      "dependencies": [
+        "module:app/admin/ui-gallery/_lib/BusinessDisplayRenderer.tsx",
+        "module:app/admin/ui-gallery/_lib/businessDisplayModel.ts",
+        "module:app/api/chat/_lib/chatResultTypes.ts",
+        "module:components/admin/openExternal.ts",
+        "module:components/admin/ttsSpeak.ts",
+        "module:presentation/ai/RichText.tsx",
+        "module:presentation/panels/PartnerTimeline.tsx",
+        "module:presentation/viewer/FlexPreview.tsx",
+        "module:presentation/viewer/Viewer.tsx",
+        "module:services/supabase/browser.ts"
+      ],
+      "dependents": [
+        "module:app/admin/relationships/workspace.tsx",
+        "module:app/workspace/page.tsx",
+        "module:scripts/relationships-ui-test.ts"
+      ],
+      "commands": [],
+      "events": [],
+      "capabilities": [],
+      "health": "OK",
+      "cost_source": "UNKNOWN"
+    },
+    {
+      "id": "module:presentation/ai/RichText.tsx",
+      "name": "presentation/ai/RichText.tsx",
+      "type": "Module",
+      "layer": "presentation",
+      "source_file": "presentation/ai/RichText.tsx",
+      "status": "OK",
+      "runtime_callable": false,
+      "provider": "UNKNOWN",
+      "dependencies": [],
+      "dependents": [
+        "module:app/workspace/WorkspaceFrame.tsx"
+      ],
+      "commands": [],
+      "events": [],
+      "capabilities": [],
+      "health": "OK",
+      "cost_source": "UNKNOWN"
+    },
+    {
+      "id": "module:presentation/panels/PartnerTimeline.tsx",
+      "name": "presentation/panels/PartnerTimeline.tsx",
+      "type": "Module",
+      "layer": "presentation",
+      "source_file": "presentation/panels/PartnerTimeline.tsx",
+      "status": "OK",
+      "runtime_callable": false,
+      "provider": "UNKNOWN",
+      "dependencies": [
+        "module:core/shared/types.ts",
+        "module:engines/presentation/event-style.ts"
+      ],
+      "dependents": [
+        "module:app/admin/partners/[id]/page.tsx",
+        "module:app/workspace/WorkspaceFrame.tsx"
+      ],
+      "commands": [],
+      "events": [],
+      "capabilities": [],
+      "health": "OK",
+      "cost_source": "UNKNOWN"
+    },
+    {
+      "id": "module:app/api/chat/_lib/resultContract.ts",
+      "name": "app/api/chat/_lib/resultContract.ts",
+      "type": "Module",
+      "layer": "app",
+      "source_file": "app/api/chat/_lib/resultContract.ts",
+      "status": "OK",
+      "runtime_callable": false,
+      "provider": "UNKNOWN",
+      "dependencies": [
+        "module:app/api/chat/_lib/chatResultTypes.ts",
+        "module:core/config/company-settings.ts",
+        "module:engines/documents/document-editor.ts",
+        "module:engines/documents/engine.ts"
+      ],
+      "dependents": [
+        "module:app/api/chat/route.ts"
+      ],
+      "commands": [],
+      "events": [],
+      "capabilities": [],
+      "health": "OK",
+      "cost_source": "UNKNOWN"
+    },
+    {
+      "id": "module:app/api/chat/_lib/chatResultTypes.ts",
+      "name": "app/api/chat/_lib/chatResultTypes.ts",
+      "type": "Module",
+      "layer": "app",
+      "source_file": "app/api/chat/_lib/chatResultTypes.ts",
+      "status": "OK",
+      "runtime_callable": false,
+      "provider": "UNKNOWN",
+      "dependencies": [
+        "module:app/admin/ui-gallery/_lib/businessDisplayModel.ts",
+        "module:core/shared/types.ts"
+      ],
+      "dependents": [
+        "module:app/api/chat/_lib/resultContract.ts",
+        "module:app/api/chat/route.ts",
+        "module:app/workspace/WorkspaceFrame.tsx"
+      ],
       "commands": [],
       "events": [],
       "capabilities": [],
@@ -38225,17 +38097,7 @@
     },
     {
       "source": "layer:app",
-      "target": "module:app/admin/architecture/page.tsx",
-      "type": "governed_by"
-    },
-    {
-      "source": "layer:app",
       "target": "module:app/admin/backup/page.tsx",
-      "type": "governed_by"
-    },
-    {
-      "source": "layer:app",
-      "target": "module:app/admin/build/page.tsx",
       "type": "governed_by"
     },
     {
@@ -38251,11 +38113,6 @@
     {
       "source": "layer:app",
       "target": "module:app/admin/create-document/page.tsx",
-      "type": "governed_by"
-    },
-    {
-      "source": "layer:app",
-      "target": "module:app/admin/dashboard/page.tsx",
       "type": "governed_by"
     },
     {
@@ -38326,21 +38183,6 @@
     {
       "source": "layer:app",
       "target": "module:app/admin/finance/page.tsx",
-      "type": "governed_by"
-    },
-    {
-      "source": "layer:app",
-      "target": "module:app/admin/graph/ForceGraph3DView.tsx",
-      "type": "governed_by"
-    },
-    {
-      "source": "layer:app",
-      "target": "module:app/admin/graph/GraphView.tsx",
-      "type": "governed_by"
-    },
-    {
-      "source": "layer:app",
-      "target": "module:app/admin/graph/page.tsx",
       "type": "governed_by"
     },
     {
@@ -38491,21 +38333,6 @@
     {
       "source": "layer:app",
       "target": "module:app/admin/system-config/page.tsx",
-      "type": "governed_by"
-    },
-    {
-      "source": "layer:app",
-      "target": "module:app/admin/system/page 2.tsx",
-      "type": "governed_by"
-    },
-    {
-      "source": "layer:app",
-      "target": "module:app/admin/system/page.tsx",
-      "type": "governed_by"
-    },
-    {
-      "source": "layer:app",
-      "target": "module:app/admin/telemetry/page.tsx",
       "type": "governed_by"
     },
     {
@@ -40440,6 +40267,16 @@
     },
     {
       "source": "layer:app",
+      "target": "module:app/api/chat/_lib/chatResultTypes.ts",
+      "type": "governed_by"
+    },
+    {
+      "source": "layer:app",
+      "target": "module:app/api/chat/_lib/resultContract.ts",
+      "type": "governed_by"
+    },
+    {
+      "source": "layer:app",
       "target": "module:app/api/chat/confirm/route.ts",
       "type": "governed_by"
     },
@@ -40970,6 +40807,11 @@
     },
     {
       "source": "layer:app",
+      "target": "module:app/workspace/WorkspaceFrame.tsx",
+      "type": "governed_by"
+    },
+    {
+      "source": "layer:app",
       "target": "module:app/workspace/WorkspaceSettings.tsx",
       "type": "governed_by"
     },
@@ -40980,17 +40822,7 @@
     },
     {
       "source": "layer:app",
-      "target": "module:app/workspace/_lib/connectDisplayModel.ts",
-      "type": "governed_by"
-    },
-    {
-      "source": "layer:app",
       "target": "module:app/workspace/_lib/jobDisplayModel.ts",
-      "type": "governed_by"
-    },
-    {
-      "source": "layer:app",
-      "target": "module:app/workspace/_lib/partnerDisplayModel.ts",
       "type": "governed_by"
     },
     {
@@ -41216,11 +41048,6 @@
     {
       "source": "layer:components",
       "target": "module:components/admin/DevLoopVoiceAlerts.tsx",
-      "type": "governed_by"
-    },
-    {
-      "source": "layer:components",
-      "target": "module:components/admin/SecretaryChat.tsx",
       "type": "governed_by"
     },
     {
@@ -42845,6 +42672,11 @@
     },
     {
       "source": "layer:presentation",
+      "target": "module:presentation/ai/RichText.tsx",
+      "type": "governed_by"
+    },
+    {
+      "source": "layer:presentation",
       "target": "module:presentation/assets/manifest.ts",
       "type": "governed_by"
     },
@@ -42916,6 +42748,11 @@
     {
       "source": "layer:presentation",
       "target": "module:presentation/panels/Inspector.tsx",
+      "type": "governed_by"
+    },
+    {
+      "source": "layer:presentation",
+      "target": "module:presentation/panels/PartnerTimeline.tsx",
       "type": "governed_by"
     },
     {
@@ -43486,6 +43323,11 @@
     {
       "source": "layer:scripts",
       "target": "module:scripts/dead-end-sweep-test.ts",
+      "type": "governed_by"
+    },
+    {
+      "source": "layer:scripts",
+      "target": "module:scripts/debt-patch-freeze-test.ts",
       "type": "governed_by"
     },
     {
@@ -44699,51 +44541,6 @@
       "type": "imports"
     },
     {
-      "source": "module:app/admin/architecture/page.tsx",
-      "target": "module:registry/ARCHITECTURE_HEALTH_REPORT.json.ts",
-      "type": "imports"
-    },
-    {
-      "source": "module:app/admin/architecture/page.tsx",
-      "target": "module:registry/architecture-book.json.ts",
-      "type": "imports"
-    },
-    {
-      "source": "module:app/admin/architecture/page.tsx",
-      "target": "module:registry/command-registry.json.ts",
-      "type": "imports"
-    },
-    {
-      "source": "module:app/admin/architecture/page.tsx",
-      "target": "module:registry/connector-lifecycle.json.ts",
-      "type": "imports"
-    },
-    {
-      "source": "module:app/admin/architecture/page.tsx",
-      "target": "module:registry/drivers.json.ts",
-      "type": "imports"
-    },
-    {
-      "source": "module:app/admin/architecture/page.tsx",
-      "target": "module:registry/events.json.ts",
-      "type": "imports"
-    },
-    {
-      "source": "module:app/admin/architecture/page.tsx",
-      "target": "module:registry/infrastructure.json.ts",
-      "type": "imports"
-    },
-    {
-      "source": "module:app/admin/architecture/page.tsx",
-      "target": "module:registry/module-registry.json.ts",
-      "type": "imports"
-    },
-    {
-      "source": "module:app/admin/architecture/page.tsx",
-      "target": "module:registry/system-control-graph.json.ts",
-      "type": "imports"
-    },
-    {
       "source": "module:app/admin/connectors/page.tsx",
       "target": "module:app/admin/connectors/_lib/types.ts",
       "type": "imports"
@@ -44761,11 +44558,6 @@
     {
       "source": "module:app/admin/create-document/page.tsx",
       "target": "module:engines/documents/draft-builders.ts",
-      "type": "imports"
-    },
-    {
-      "source": "module:app/admin/dashboard/page.tsx",
-      "target": "module:components/admin/SecretaryChat.tsx",
       "type": "imports"
     },
     {
@@ -44826,11 +44618,6 @@
     {
       "source": "module:app/admin/engine-explorer/page.tsx",
       "target": "module:registry/module-registry.json.ts",
-      "type": "imports"
-    },
-    {
-      "source": "module:app/admin/graph/GraphView.tsx",
-      "target": "module:app/admin/graph/ForceGraph3DView.tsx",
       "type": "imports"
     },
     {
@@ -44899,11 +44686,6 @@
       "type": "imports"
     },
     {
-      "source": "module:app/admin/layout.tsx",
-      "target": "module:presentation/shell/navigation/HomeBackBar.tsx",
-      "type": "imports"
-    },
-    {
       "source": "module:app/admin/line-customers/page.tsx",
       "target": "module:components/admin/ConnectionsCredentialsBoard.tsx",
       "type": "imports"
@@ -44950,7 +44732,7 @@
     },
     {
       "source": "module:app/admin/partners/[id]/page.tsx",
-      "target": "module:engines/presentation/event-style.ts",
+      "target": "module:presentation/panels/PartnerTimeline.tsx",
       "type": "imports"
     },
     {
@@ -45040,7 +44822,7 @@
     },
     {
       "source": "module:app/admin/relationships/workspace.tsx",
-      "target": "module:components/admin/openExternal.ts",
+      "target": "module:app/workspace/WorkspaceFrame.tsx",
       "type": "imports"
     },
     {
@@ -45066,26 +44848,6 @@
     {
       "source": "module:app/admin/relationships/workspace.tsx",
       "target": "module:presentation/panels/Inspector.tsx",
-      "type": "imports"
-    },
-    {
-      "source": "module:app/admin/relationships/workspace.tsx",
-      "target": "module:presentation/shell/AppShell.tsx",
-      "type": "imports"
-    },
-    {
-      "source": "module:app/admin/relationships/workspace.tsx",
-      "target": "module:presentation/shell/ide/TabStrip.tsx",
-      "type": "imports"
-    },
-    {
-      "source": "module:app/admin/relationships/workspace.tsx",
-      "target": "module:presentation/shell/navigation/AppHeader.tsx",
-      "type": "imports"
-    },
-    {
-      "source": "module:app/admin/relationships/workspace.tsx",
-      "target": "module:presentation/shell/navigation/IconRail.tsx",
       "type": "imports"
     },
     {
@@ -45151,26 +44913,6 @@
     {
       "source": "module:app/admin/system-config/page.tsx",
       "target": "module:core/auth/session.ts",
-      "type": "imports"
-    },
-    {
-      "source": "module:app/admin/system/page 2.tsx",
-      "target": "module:app/admin/graph/GraphView.tsx",
-      "type": "imports"
-    },
-    {
-      "source": "module:app/admin/system/page 2.tsx",
-      "target": "module:components/admin/useAiTaskPulse.ts",
-      "type": "imports"
-    },
-    {
-      "source": "module:app/admin/system/page.tsx",
-      "target": "module:app/admin/graph/GraphView.tsx",
-      "type": "imports"
-    },
-    {
-      "source": "module:app/admin/system/page.tsx",
-      "target": "module:components/admin/useAiTaskPulse.ts",
       "type": "imports"
     },
     {
@@ -52569,6 +52311,41 @@
       "type": "imports"
     },
     {
+      "source": "module:app/api/chat/_lib/chatResultTypes.ts",
+      "target": "module:app/admin/ui-gallery/_lib/businessDisplayModel.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/api/chat/_lib/chatResultTypes.ts",
+      "target": "module:core/shared/types.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/api/chat/_lib/resultContract.ts",
+      "target": "module:app/api/chat/_lib/chatResultTypes.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/api/chat/_lib/resultContract.ts",
+      "target": "module:app/api/chat/_lib/chatResultTypes.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/api/chat/_lib/resultContract.ts",
+      "target": "module:core/config/company-settings.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/api/chat/_lib/resultContract.ts",
+      "target": "module:engines/documents/document-editor.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/api/chat/_lib/resultContract.ts",
+      "target": "module:engines/documents/engine.ts",
+      "type": "imports"
+    },
+    {
       "source": "module:app/api/chat/confirm/route.ts",
       "target": "module:app/api/admin/ide/_lib/businessFailureBridge.ts",
       "type": "imports"
@@ -52611,6 +52388,16 @@
     {
       "source": "module:app/api/chat/confirm/route.ts",
       "target": "module:services/supabase/queries.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/api/chat/route.ts",
+      "target": "module:app/api/chat/_lib/chatResultTypes.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/api/chat/route.ts",
+      "target": "module:app/api/chat/_lib/resultContract.ts",
       "type": "imports"
     },
     {
@@ -53485,6 +53272,11 @@
     },
     {
       "source": "module:app/login/page.tsx",
+      "target": "module:core/identity/identity.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/login/page.tsx",
       "target": "module:services/supabase/browser.ts",
       "type": "imports"
     },
@@ -54259,6 +54051,56 @@
       "type": "imports"
     },
     {
+      "source": "module:app/workspace/WorkspaceFrame.tsx",
+      "target": "module:app/admin/ui-gallery/_lib/BusinessDisplayRenderer.tsx",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/workspace/WorkspaceFrame.tsx",
+      "target": "module:app/admin/ui-gallery/_lib/businessDisplayModel.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/workspace/WorkspaceFrame.tsx",
+      "target": "module:app/api/chat/_lib/chatResultTypes.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/workspace/WorkspaceFrame.tsx",
+      "target": "module:components/admin/openExternal.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/workspace/WorkspaceFrame.tsx",
+      "target": "module:components/admin/ttsSpeak.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/workspace/WorkspaceFrame.tsx",
+      "target": "module:presentation/ai/RichText.tsx",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/workspace/WorkspaceFrame.tsx",
+      "target": "module:presentation/panels/PartnerTimeline.tsx",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/workspace/WorkspaceFrame.tsx",
+      "target": "module:presentation/viewer/FlexPreview.tsx",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/workspace/WorkspaceFrame.tsx",
+      "target": "module:presentation/viewer/Viewer.tsx",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/workspace/WorkspaceFrame.tsx",
+      "target": "module:services/supabase/browser.ts",
+      "type": "imports"
+    },
+    {
       "source": "module:app/workspace/WorkspaceSettings.tsx",
       "target": "module:app/workspace/_lib/toolBindings.ts",
       "type": "imports"
@@ -54266,26 +54108,6 @@
     {
       "source": "module:app/workspace/_lib/businessTools.ts",
       "target": "module:app/admin/ui-gallery/_lib/businessDisplayModel.ts",
-      "type": "imports"
-    },
-    {
-      "source": "module:app/workspace/_lib/connectDisplayModel.ts",
-      "target": "module:app/admin/ui-gallery/_lib/businessDisplayModel.ts",
-      "type": "imports"
-    },
-    {
-      "source": "module:app/workspace/_lib/connectDisplayModel.ts",
-      "target": "module:app/workspace/_lib/businessTools.ts",
-      "type": "imports"
-    },
-    {
-      "source": "module:app/workspace/_lib/connectDisplayModel.ts",
-      "target": "module:engines/connectors/contract.ts",
-      "type": "imports"
-    },
-    {
-      "source": "module:app/workspace/_lib/connectDisplayModel.ts",
-      "target": "module:engines/connectors/registry.ts",
       "type": "imports"
     },
     {
@@ -54309,43 +54131,8 @@
       "type": "imports"
     },
     {
-      "source": "module:app/workspace/_lib/partnerDisplayModel.ts",
-      "target": "module:app/admin/ui-gallery/_lib/businessDisplayModel.ts",
-      "type": "imports"
-    },
-    {
-      "source": "module:app/workspace/_lib/partnerDisplayModel.ts",
-      "target": "module:app/workspace/_lib/businessTools.ts",
-      "type": "imports"
-    },
-    {
-      "source": "module:app/workspace/_lib/partnerDisplayModel.ts",
-      "target": "module:services/supabase/queries.ts",
-      "type": "imports"
-    },
-    {
       "source": "module:app/workspace/page.tsx",
-      "target": "module:app/workspace/BusinessWorkspace.tsx",
-      "type": "imports"
-    },
-    {
-      "source": "module:app/workspace/page.tsx",
-      "target": "module:app/workspace/_lib/businessTools.ts",
-      "type": "imports"
-    },
-    {
-      "source": "module:app/workspace/page.tsx",
-      "target": "module:app/workspace/_lib/connectDisplayModel.ts",
-      "type": "imports"
-    },
-    {
-      "source": "module:app/workspace/page.tsx",
-      "target": "module:app/workspace/_lib/jobDisplayModel.ts",
-      "type": "imports"
-    },
-    {
-      "source": "module:app/workspace/page.tsx",
-      "target": "module:app/workspace/_lib/partnerDisplayModel.ts",
+      "target": "module:app/workspace/WorkspaceFrame.tsx",
       "type": "imports"
     },
     {
@@ -54356,16 +54143,6 @@
     {
       "source": "module:app/workspace/page.tsx",
       "target": "module:core/auth/session.ts",
-      "type": "imports"
-    },
-    {
-      "source": "module:app/workspace/page.tsx",
-      "target": "module:core/navigation/resolveCapabilityAccess.ts",
-      "type": "imports"
-    },
-    {
-      "source": "module:app/workspace/page.tsx",
-      "target": "module:core/navigation/resolveNavItems.ts",
       "type": "imports"
     },
     {
@@ -54831,16 +54608,6 @@
     {
       "source": "module:components/admin/DevLoopVoiceAlerts.tsx",
       "target": "module:components/admin/ttsSpeak.ts",
-      "type": "imports"
-    },
-    {
-      "source": "module:components/admin/SecretaryChat.tsx",
-      "target": "module:components/admin/ttsSpeak.ts",
-      "type": "imports"
-    },
-    {
-      "source": "module:components/admin/SecretaryChat.tsx",
-      "target": "module:services/supabase/browser.ts",
       "type": "imports"
     },
     {
@@ -58444,6 +58211,16 @@
       "type": "imports"
     },
     {
+      "source": "module:presentation/panels/PartnerTimeline.tsx",
+      "target": "module:core/shared/types.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:presentation/panels/PartnerTimeline.tsx",
+      "target": "module:engines/presentation/event-style.ts",
+      "type": "imports"
+    },
+    {
       "source": "module:presentation/shell/AppShell.tsx",
       "target": "module:presentation/shell/navigation/IconRail.tsx",
       "type": "imports"
@@ -60605,17 +60382,12 @@
     },
     {
       "source": "module:scripts/relationships-ui-test.ts",
+      "target": "module:app/workspace/WorkspaceFrame.tsx",
+      "type": "imports"
+    },
+    {
+      "source": "module:scripts/relationships-ui-test.ts",
       "target": "module:engines/documents/document-editor.ts",
-      "type": "imports"
-    },
-    {
-      "source": "module:scripts/relationships-ui-test.ts",
-      "target": "module:presentation/shell/ide/TabStrip.tsx",
-      "type": "imports"
-    },
-    {
-      "source": "module:scripts/relationships-ui-test.ts",
-      "target": "module:presentation/shell/navigation/IconRail.tsx",
       "type": "imports"
     },
     {
@@ -63540,9 +63312,9 @@
     }
   ],
   "summary": {
-    "total_nodes": 1728,
-    "total_edges": 5114,
-    "modules": 1329,
+    "total_nodes": 1722,
+    "total_edges": 5094,
+    "modules": 1323,
     "layers": 9,
     "commands": 99,
     "events": 60,
@@ -63551,8 +63323,8 @@
     "drivers": 11,
     "connector_stages": 5,
     "module_health": {
-      "total": 1329,
-      "ok": 1329,
+      "total": 1323,
+      "ok": 1323,
       "broken": 0,
       "unused": 0,
       "unregistered": 0
@@ -63566,7 +63338,7 @@
     "unknown_field_counts": {
       "nodes_with_unknown_source_file": 82,
       "nodes_with_unknown_status": 159,
-      "nodes_with_unknown_provider": 1704
+      "nodes_with_unknown_provider": 1698
     },
     "unknown_dimensions": [
       "ai_model_registry",

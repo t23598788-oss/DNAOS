@@ -8,7 +8,8 @@
  *   timeline        → /api/admin/partners?search= + /partners/{id}/timeline (engine เดิม)
  *   confirmation/doc_html → board fields เดิม ไม่เปลี่ยน
  */
-import type { ChatResult, ResultField, ResultTable } from "./chatResultTypes";
+import type { ChatResult, ResultField, ResultSectionLike, ResultTable } from "./chatResultTypes";
+import { sectionsToBlocks } from "./chatResultTypes";
 import {
   createEmptyDocumentDraft,
   draftToDocData,
@@ -253,6 +254,7 @@ type PipelineLike = {
   confirm_action?: string;
   flex_preview?: unknown;
   doc_html?: string;
+  workspace?: { sections?: ResultSectionLike[] };
 };
 
 export async function buildChatResult(
@@ -273,15 +275,28 @@ export async function buildChatResult(
   if (pipeline.doc_html) {
     return { type: "document", title: "เอกสาร", html: pipeline.doc_html };
   }
+  // board workspace.sections (ของเดิม) — fallback ท้ายสุดถ้า canonical query พลาด
+  const sectionBlocks = pipeline.workspace?.sections?.length
+    ? sectionsToBlocks(pipeline.workspace.sections)
+    : [];
   try {
-    if (isFinanceIntent(message)) return await financeResult(req);
+    if (isFinanceIntent(message)) {
+      const r = await financeResult(req);
+      if (r) return r;
+    }
     const name = timelineIntentName(message);
-    if (name) return await timelineResult(req, name);
+    if (name) {
+      const r = await timelineResult(req, name);
+      if (r) return r;
+    }
     const docType = documentIntentType(message);
-    if (docType) return await documentResult(req, docType);
+    if (docType) {
+      const r = await documentResult(req, docType);
+      if (r) return r;
+    }
   } catch {
-    // canonical query ล้มเหลว → null = route ใช้ข้อความ pipeline เดิม (ไม่เดา ไม่แต่ง)
-    return null;
+    // canonical query ล้มเหลว → ตกไป sections/text (ไม่เดา ไม่แต่ง)
   }
+  if (sectionBlocks.length) return { type: "sections", blocks: sectionBlocks };
   return null;
 }

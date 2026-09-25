@@ -3327,16 +3327,6 @@
       "archival_status": "ARCHIVED",
       "archived_knowledge_ref": "registry/existence.json#archived_knowledge.entries[AK-004]"
     },
-    "components/admin/SecretaryChat.tsx": {
-      "owner": "components",
-      "layer": "components",
-      "purpose": "Secretary chat component — real chat surface backed by the AI gateway for the admin secretary feature.",
-      "purpose_th": "คอมโพเนนต์แชทเลขา — หน้าแชทจริงที่ backed ด้วย AI gateway สำหรับฟีเจอร์เลขาฝั่งผู้ดูแล",
-      "exports": [
-        "SecretaryChat"
-      ],
-      "status": "active"
-    },
     "components/admin/UsersRoleTable.tsx": {
       "owner": "admin",
       "layer": "ui",
@@ -3486,16 +3476,6 @@
       "purpose_th": "ศูนย์รวมการตั้งค่าของ DNA OS หน้าเดียว แบ่งตามหมวด ไม่ต้องแก้ .env",
       "exports": [
         "SystemConfigPage"
-      ],
-      "status": "active"
-    },
-    "app/admin/dashboard/page.tsx": {
-      "owner": "app",
-      "layer": "app",
-      "purpose": "Real business dashboard — today's revenue, active jobs, pending docs pulled live from DB. Landing target of /admin (root redirects here).",
-      "purpose_th": "แดชบอร์ดธุรกิจจริง — รายได้วันนี้/งานที่ทำอยู่/เอกสารค้าง (หน้าแรกที่ /admin redirect มา)",
-      "exports": [
-        "DashboardPage"
       ],
       "status": "active"
     },
@@ -16015,6 +15995,51 @@
         "WorkspaceFrame"
       ],
       "status": "active"
+    },
+    "presentation/ai/RichText.tsx": {
+      "owner": "presentation",
+      "layer": "presentation",
+      "purpose": "RichText — ข้อความธรรมดาของคำตอบ: wrap ตามพื้นที่จริง เก็บย่อหน้า + ขึ้น",
+      "purpose_th": "RichText — ข้อความธรรมดาของคำตอบ: wrap ตามพื้นที่จริง เก็บย่อหน้า + ขึ้น",
+      "exports": [
+        "RichText"
+      ],
+      "status": "active"
+    },
+    "presentation/panels/PartnerTimeline.tsx": {
+      "owner": "presentation",
+      "layer": "presentation",
+      "purpose": "Partner timeline/summary — สกัดออกจาก app/admin/partners/[id]/page.tsx",
+      "purpose_th": "Partner timeline/summary — สกัดออกจาก app/admin/partners/[id]/page.tsx",
+      "exports": [
+        "PartnerSummaryCard",
+        "PartnerTimelineList"
+      ],
+      "status": "active"
+    },
+    "app/api/chat/_lib/resultContract.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "buildChatResult — RESPONSE CONTRACT (owner spec 2026-09-25 BUSINESS RESULT",
+      "purpose_th": "buildChatResult — RESPONSE CONTRACT (owner spec 2026-09-25 BUSINESS RESULT",
+      "exports": [
+        "buildChatResult"
+      ],
+      "status": "active"
+    },
+    "app/api/chat/_lib/chatResultTypes.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "RESULT CONTRACT (owner spec 2026-09-25 — BUSINESS RESULT PRESENTATION):",
+      "purpose_th": "RESULT CONTRACT (owner spec 2026-09-25 — BUSINESS RESULT PRESENTATION):",
+      "exports": [
+        "ChatResult",
+        "ResultField",
+        "ResultSectionLike",
+        "ResultTable",
+        "sectionsToBlocks"
+      ],
+      "status": "active"
     }
   },
   "excluded": [
@@ -16342,6 +16367,20 @@
       "reason": "ไฟล์ไม่มีอยู่ใน Source แล้ว (Git/Source = source of truth) — ย้ายออกจาก modules ไม่นับเป็น BROKEN ปัจจุบัน",
       "last_status": "active",
       "purpose_th": "BUSINESS WORKSPACE — Connect capabilities → BusinessDisplayModel"
+    },
+    {
+      "path": "components/admin/SecretaryChat.tsx",
+      "retired_at": "2026-09-25T16:37:52.644Z",
+      "reason": "ไฟล์ไม่มีอยู่ใน Source แล้ว (Git/Source = source of truth) — ย้ายออกจาก modules ไม่นับเป็น BROKEN ปัจจุบัน",
+      "last_status": "active",
+      "purpose_th": "คอมโพเนนต์แชทเลขา — หน้าแชทจริงที่ backed ด้วย AI gateway สำหรับฟีเจอร์เลขาฝั่งผู้ดูแล"
+    },
+    {
+      "path": "app/admin/dashboard/page.tsx",
+      "retired_at": "2026-09-25T16:37:52.645Z",
+      "reason": "ไฟล์ไม่มีอยู่ใน Source แล้ว (Git/Source = source of truth) — ย้ายออกจาก modules ไม่นับเป็น BROKEN ปัจจุบัน",
+      "last_status": "active",
+      "purpose_th": "แดชบอร์ดธุรกิจจริง — รายได้วันนี้/งานที่ทำอยู่/เอกสารค้าง (หน้าแรกที่ /admin redirect มา)"
     }
   ]
 }

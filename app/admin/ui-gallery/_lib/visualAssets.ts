@@ -227,7 +227,6 @@ export const INTERNAL_CAPABILITY_IDENTITIES: ProviderBrandEntry[] = [
 // ── 3) BUSINESS MODULE ICONS — icon ที่ระบบใช้จริงต่อโมดูล ────────────────────
 
 export const BUSINESS_MODULE_ICONS: BusinessModuleIconEntry[] = [
-  { key: "dashboard", label: "เลขา", iconName: "LayoutGrid", evidencePath: "app/admin/relationships/workspace.tsx" },
   { key: "relationships", label: "ข้อความ", iconName: "MessageCircle", evidencePath: "app/admin/relationships/workspace.tsx" },
   { key: "line-customers", label: "LINE", iconName: "MessageCircle", evidencePath: "app/admin/line-customers/page.tsx" },
   { key: "jobs", label: "งาน", iconName: "Briefcase", evidencePath: "app/admin/relationships/workspace.tsx" },

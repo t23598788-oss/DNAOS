@@ -36,7 +36,8 @@ import { VoiceStandbyWidget } from "@/components/admin/VoiceStandbyWidget";
  * fixed, only the message list scrolls, whole window never bounces. Root
  * cause of the old "whole page scrolls/reflows" behavior: this wrapper used
  * `min-h-screen` (a MINIMUM — grows past the viewport if content is taller)
- * stacked with pages like app/admin/dashboard/page.tsx that ALSO used
+ * stacked with older full-page screens (เช่น หน้าเลขา dashboard เดิมที่ถูกตัด
+ * ออกแล้ว — ยุบทุกความสามารถเข้าแชตบอร์ดหลัก WorkspaceFrame) that ALSO used
  * `min-h-screen` for themselves — two stacked "at least 100vh" boxes render
  * taller than one real viewport, so the whole native window scrolled as one
  * long page instead of behaving like a locked app frame. Changed to a real

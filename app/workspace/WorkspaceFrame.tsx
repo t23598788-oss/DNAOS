@@ -16,7 +16,7 @@ import {
   Grid2X2, Ellipsis, MessageSquare, Settings, FileText, MessageCircle,
   Wallet, MapPin, Briefcase, Users, ScanLine, Files, FileOutput, Printer,
   Download, Share2, History, Paperclip, ArrowUp, X,
-  LayoutGrid, FileSignature, Banknote, Mountain, Server, Cloud,
+  FileSignature, Banknote, Mountain, Server, Cloud,
 } from "lucide-react";
 import { openExternal } from "@/components/admin/openExternal";
 import FlexPreview from "@/presentation/viewer/FlexPreview";
@@ -25,7 +25,9 @@ import { RichText } from "@/presentation/ai/RichText";
 import { PartnerTimelineList, PartnerSummaryCard } from "@/presentation/panels/PartnerTimeline";
 import { BusinessDisplayRenderer } from "@/app/admin/ui-gallery/_lib/BusinessDisplayRenderer";
 import type { BusinessDisplayModel } from "@/app/admin/ui-gallery/_lib/businessDisplayModel";
-import type { ChatResult } from "@/app/api/chat/_lib/chatResultTypes";
+import { sectionsToBlocks, type ChatResult, type ResultSectionLike } from "@/app/api/chat/_lib/chatResultTypes";
+import { speak } from "@/components/admin/ttsSpeak";
+import { createBrowserSupabase } from "@/services/supabase/browser";
 
 type FrameItem = {
   icon: React.ElementType;
@@ -55,7 +57,6 @@ const APPS: FrameItem[] = [
   { icon: Users, label: "รายชื่อ", route: "/admin/partners" },
   { icon: ScanLine, label: "สแกน / AI", route: "/admin/receipts" },
   { icon: MessageSquare, label: "ความสัมพันธ์", route: "/admin/relationships" },
-  { icon: LayoutGrid, label: "เลขา", route: "/admin/dashboard" },
   { icon: FileSignature, label: "รายการเอกสาร", route: "/admin/transactions" },
   { icon: Banknote, label: "ลูกหนี้", route: "/admin/debt-tracking" },
   { icon: Mountain, label: "บ่อวัสดุ", route: "/admin/pits" },
@@ -198,6 +199,10 @@ export function WorkspaceFrame({
   }[]>([]);
   const [sending, setSending] = useState(false);
   const [uploading, setUploading] = useState(false);
+  // เสียงตอบ (ยุบมาจากเลขาส่วนตัวเดิม) — voiceRef ใช้ใน realtime effect ที่ mount ครั้งเดียว
+  const [voiceOn, setVoiceOn] = useState(false);
+  const voiceRef = useRef(false);
+  voiceRef.current = voiceOn;
   const msgSeq = useRef(0);
   const pushMsg = (
     role: "user" | "ai" | "system",
@@ -220,6 +225,77 @@ export function WorkspaceFrame({
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
+  // ข้อความเปิดแชต (ยุบมาจากหน้าเลขาเดิม): pulse + LINE drafts — โชว์เฉพาะ
+  // ตอนมีของค้างจริง เงียบเมื่อไม่มี = blank "วันนี้จะทำอะไร?" ตาม reference คงเดิม
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      try {
+        const [pulseRes, draftsRes] = await Promise.all([
+          fetch("/api/admin/pulse"),
+          fetch("/api/admin/outbound-drafts").catch(() => null),
+        ]);
+        if (!pulseRes.ok) return;
+        const pulse = await pulseRes.json().catch(() => null);
+        let pendingDrafts = 0;
+        if (draftsRes?.ok) {
+          const d = await draftsRes.json().catch(() => null);
+          pendingDrafts = ((d?.drafts ?? []) as { status: string }[]).filter((x) => x.status === "pending_review").length;
+        }
+        const lines: string[] = [];
+        if (Array.isArray(pulse?.pendingDocs) && pulse.pendingDocs.length > 0)
+          lines.push(`เอกสารรอยืนยัน ${pulse.pendingDocs.length} ใบ`);
+        if (Array.isArray(pulse?.activeJobs) && pulse.activeJobs.length > 0)
+          lines.push(`งานที่กำลังเดิน ${pulse.activeJobs.length} งาน`);
+        if (pendingDrafts > 0) lines.push(`ข้อความ LINE รอเฮียอนุมัติก่อนส่งลูกค้า ${pendingDrafts} รายการ`);
+        if (!alive || lines.length === 0) return;
+        const text = `วันนี้เฮียมี:\n${lines.map((l) => `• ${l}`).join("\n")}`;
+        pushMsg("ai", text, { result: { type: "text", text } });
+      } catch {
+        // เงียบ — ไม่บังคับข้อมูลเปิดแชต
+      }
+    })();
+    return () => {
+      alive = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Live push จาก LINE (ยุบมาจากเลขาเดิม): คำสั่งที่พิมพ์ใน LINE วิ่ง pipeline
+  // เดียวกัน (app/api/internal/line/command) แล้ว insert live_commands — จอนี้ react
+  // เหมือนพิมพ์เอง (ตอบ/พูด/พาไปหน้า)
+  useEffect(() => {
+    const supabase = createBrowserSupabase();
+    const channel = supabase
+      .channel("live_commands_frame")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "live_commands" },
+        (payload) => {
+          const row = payload.new as {
+            reply_text: string | null;
+            navigate_url: string | null;
+            workspace: { sections?: ResultSectionLike[] } | null;
+          };
+          const blocks = row.workspace?.sections?.length ? sectionsToBlocks(row.workspace.sections) : [];
+          pushMsg(
+            "ai",
+            row.reply_text ?? "รับคำสั่งจาก LINE แล้วครับ",
+            blocks.length ? { result: { type: "sections", blocks } } : undefined,
+          );
+          if (voiceRef.current && row.reply_text) speak(row.reply_text);
+          if (row.navigate_url) {
+            setTimeout(() => router.push(row.navigate_url as string), 600);
+          }
+        },
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const toggle = (kind: "apps" | "actions") => setDrawer((p) => (p === kind ? null : kind));
@@ -285,8 +361,55 @@ export function WorkspaceFrame({
       });
       const data = await res.json().catch(() => null);
       if (res.ok && data) {
+        // ── client-only side effects (thin executor — central dispatcher ใน
+        //    cognitive/pipeline ตัดสินใจเองว่าคำสั่งไหนใช้แบบไหน · ยุบมาจาก
+        //    เลขาส่วนตัวเดิมตัวเดียว ไม่มี matcher ซ้ำในหน้าจอ) ──
+        if (data.back) {
+          pushMsg("ai", String(data.text ?? "ย้อนกลับให้แล้วครับ"));
+          router.back();
+          return;
+        }
+        if (data.window_action) {
+          await performWindowAction(data.window_action as "minimize" | "maximize" | "close");
+          pushMsg("ai", String(data.text ?? "รับทราบครับ"));
+          return;
+        }
+        if (data.external_url) {
+          window.open(String(data.external_url), "_blank");
+          pushMsg("ai", String(data.text ?? "เปิดให้แล้วครับ"));
+          return;
+        }
+        if (data.screen_vision) {
+          pushMsg("ai", String(data.text ?? "กำลังอ่านหน้าจอให้ครับ..."));
+          const vision = await performScreenVision(
+            typeof data.screen_vision_goal === "string" ? data.screen_vision_goal : undefined,
+          );
+          pushMsg("ai", vision);
+          if (voiceOn) speak(vision);
+          return;
+        }
+        if (data.open_app) {
+          pushMsg("ai", await performOpenApp(String(data.open_app)));
+          return;
+        }
+        if (data.line_copilot) {
+          pushMsg("ai", String(data.text ?? "กำลังเปิด LINE และอ่านแชทให้ครับ..."));
+          const copilot = await performLineCopilot();
+          if (copilot) {
+            const blocks = copilot.sections?.length ? sectionsToBlocks(copilot.sections) : [];
+            pushMsg("ai", copilot.text, {
+              ...(copilot.confirmToken
+                ? { confirm: { action: copilot.confirmAction ?? "", token: copilot.confirmToken } }
+                : {}),
+              ...(blocks.length ? { result: { type: "sections", blocks } as ChatResult } : {}),
+            });
+            if (voiceOn) speak(copilot.text);
+          }
+          return;
+        }
+
         const result: ChatResult | undefined = data.result;
-        const structured = !!result && !["text", "confirmation"].includes(result.type);
+        const structured = !!result && !["text", "confirmation", "sections"].includes(result.type);
         const text = structured
           ? ""
           : typeof data.text === "string" && data.text
@@ -302,6 +425,8 @@ export function WorkspaceFrame({
           ...(data.doc_html ? { docHtml: String(data.doc_html) } : {}),
           ...(data.flex_preview ? { flexPreview: data.flex_preview } : {}),
         });
+        // เสียงตอบ (voiceOn) — พูดข้อความตอบจริง ไม่พูด structured ที่ไม่มี text
+        if (voiceOn && typeof data.text === "string" && data.text) speak(String(data.text));
         // navigate_url = contract ของ pipeline ที่ตอบ "เปิดหน้าให้แล้วครับ"
         // — route ที่ server รู้จักเท่านั้น (ตัวเดียวกับ navigation intercept)
         if (data.navigate_url) router.push(String(data.navigate_url));
@@ -508,6 +633,15 @@ export function WorkspaceFrame({
                           >
                             {m.confirm.busy ? "กำลังยืนยัน..." : "ยืนยัน"}
                           </button>
+                          <button
+                            type="button"
+                            disabled={m.confirm.busy}
+                            onClick={() =>
+                              setMessages((ms) => ms.map((x) => (x.id === m.id ? { ...x, confirm: undefined } : x)))
+                            }
+                          >
+                            ยกเลิก
+                          </button>
                           <span className="note">รอการยืนยัน (preview token ใช้ได้ครั้งเดียว)</span>
                         </div>
                       )}
@@ -557,6 +691,20 @@ export function WorkspaceFrame({
                 void uploadFiles(e.target.files);
               }}
             />
+            <button
+              type="button"
+              aria-pressed={voiceOn}
+              aria-label="เปิดหรือปิดเสียงตอบ"
+              title={voiceOn ? "ปิดเสียงพูด" : "เปิดให้พูดคำตอบ"}
+              onClick={() => {
+                const next = !voiceOn;
+                setVoiceOn(next);
+                voiceRef.current = next;
+                if (!next && typeof window !== "undefined" && "speechSynthesis" in window) window.speechSynthesis.cancel();
+              }}
+            >
+              {voiceOn ? "🔊 เสียง: เปิด" : "🔇 เสียง: ปิด"}
+            </button>
             <button className="send" type="submit" aria-label="ส่งคำสั่ง" disabled={sending}>
               <ArrowUp />
             </button>
@@ -573,6 +721,105 @@ export function WorkspaceFrame({
 // (→ DataTable สำหรับ table/finance · Viewer kind=document สำหรับเอกสาร) ·
 // RichText (wrap/ย่อหน้า/list/markdown table) · PartnerTimelineList (timeline
 // สกัดจากหน้าคู่ค้า ONE implementation) · Viewer kind=image (รูป)
+
+// ── CLIENT-ONLY SIDE EFFECTS (thin executor — ยุบมาจาก components/admin/
+//    SecretaryChat.tsx ที่ถูกตัดออกตามคำสั่ง Owner2026-09-25 "ยุบความสามารถ
+//    ทั้งหมดมาไว้ที่แชตบอร์ดหลักตัวเดียว") — central dispatcher
+//    (cognitive/pipeline classifyClientCommand) เป็นคนสั่งว่าใช้อันไหน
+//    หน้านี้แค่ execute ไม่มี matcher ซ้ำ
+
+async function performWindowAction(action: "minimize" | "maximize" | "close") {
+  if (typeof window === "undefined" || !("__TAURI_INTERNALS__" in window)) return;
+  try {
+    const { getCurrentWindow } = await import("@tauri-apps/api/window");
+    const win = getCurrentWindow();
+    if (action === "minimize") await win.minimize();
+    else if (action === "maximize") {
+      const isMax = await win.isMaximized();
+      if (isMax) await win.unmaximize();
+      else await win.maximize();
+    } else if (action === "close") await win.close();
+  } catch {
+    // honest failure — ไม่ได้รันเป็นแอป Tauri จริง
+  }
+}
+
+async function performOpenApp(appName: string): Promise<string> {
+  if (typeof window === "undefined" || !("__TAURI_INTERNALS__" in window)) {
+    return "เปิดแอปได้เฉพาะตอนรันเป็นแอปเดสก์ท็อปเท่านั้นครับ";
+  }
+  try {
+    const { invoke } = await import("@tauri-apps/api/core");
+    return await invoke<string>("open_app", { appName });
+  } catch (err) {
+    return err instanceof Error ? err.message : String(err);
+  }
+}
+
+async function performScreenVision(goal?: string): Promise<string> {
+  if (typeof window === "undefined" || !("__TAURI_INTERNALS__" in window)) {
+    return "อ่านหน้าจอได้เฉพาะตอนรันเป็นแอปเดสก์ท็อปเท่านั้นครับ";
+  }
+  try {
+    const { invoke } = await import("@tauri-apps/api/core");
+    await invoke("capture_screen");
+    const res = await fetch("/api/admin/screen-vision", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ goal }),
+    });
+    const data = await res.json();
+    return data.text ?? data.error ?? "อ่านหน้าจอไม่สำเร็จครับ";
+  } catch (err) {
+    return `ถ่ายภาพหน้าจอไม่สำเร็จครับ (${err instanceof Error ? err.message : String(err)}) — เช็คว่าให้สิทธิ์ Screen Recording กับแอปนี้แล้วหรือยัง (System Settings → Privacy & Security → Screen Recording)`;
+  }
+}
+
+// Chain Action / "line.copilot" — open_app (LINE) → screen vision (OCR อ่านแชท)
+// → feed กลับ /api/chat pipeline ตัวเดียวกัน (read-only ทั้ง链 · confirm จริงยัง
+// ต้องกดยืนยันเอง)
+async function performLineCopilot(): Promise<{
+  text: string;
+  sections?: ResultSectionLike[];
+  confirmToken?: string;
+  confirmAction?: string;
+} | null> {
+  if (typeof window === "undefined" || !("__TAURI_INTERNALS__" in window)) {
+    return { text: "อ่านแชท LINE ให้ได้เฉพาะตอนรันเป็นแอปเดสก์ท็อปเท่านั้นครับ" };
+  }
+  try {
+    const { invoke } = await import("@tauri-apps/api/core");
+    const openResult = await invoke<string>("open_app", { appName: "LINE" });
+    if (/ไม่พบแอปพลิเคชัน/.test(openResult)) return { text: openResult };
+    await new Promise((r) => setTimeout(r, 1800)); // delay เปิด LINE จริง
+    await invoke("capture_screen");
+    const visionRes = await fetch("/api/admin/screen-vision", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        goal: "หาชื่อผู้ติดต่อที่กำลังคุยด้วย และสิ่งที่เขาขอราคาหรือขอสั่งซื้อจากข้อความล่าสุดในแชทนี้ ตอบสั้นๆ เฉพาะชื่อคนและสิ่งที่ขอเท่านั้น",
+      }),
+    });
+    const visionData = await visionRes.json();
+    const ocrText: string | undefined = visionData.text;
+    if (!ocrText) return { text: visionData.error ?? "อ่านแชท LINE ไม่ได้ผลลัพธ์ครับ" };
+
+    const chatRes = await fetch("/api/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message: ocrText }),
+    });
+    const chatData = await chatRes.json();
+    return {
+      text: `อ่านแชทได้ว่า: "${ocrText}"\n\n${chatData.text ?? "รับทราบครับ"}`,
+      sections: chatData.workspace?.sections,
+      confirmToken: chatData.confirm_token,
+      confirmAction: chatData.confirm_action,
+    };
+  } catch (err) {
+    return { text: `เปิดอ่านแชท LINE ไม่สำเร็จครับ (${err instanceof Error ? err.message : String(err)})` };
+  }
+}
 
 function openHtmlDocument(html: string) {
   const blob = new Blob([html], { type: "text/html" });
@@ -744,6 +991,27 @@ function ChatResultView({ result, fallbackText }: { result: ChatResult; fallback
     }
     case "document":
       return <DocumentResultView title={result.title} html={result.html} />;
+    case "sections":
+      // board workspace.sections (ยุบมาจากเลขาเดิม) — caption + blocks ของระบบ
+      return (
+        <>
+          {fallbackText && (
+            <div className="bubble-dna">
+              <RichText text={fallbackText} />
+            </div>
+          )}
+          <div className="result-block">
+            <BusinessDisplayRenderer
+              model={{
+                id: "chat-board",
+                title: "ผลลัพธ์",
+                domain: "คำสั่ง",
+                blocks: result.blocks,
+              }}
+            />
+          </div>
+        </>
+      );
     case "confirmation":
       return (
         <>

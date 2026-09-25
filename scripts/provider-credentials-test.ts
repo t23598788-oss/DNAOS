@@ -45,7 +45,7 @@ const proposalStore = read("engines/integration-gateway/evidence/proposalStore.t
 const lineContract = read("engines/connectors/providers/line.ts");
 const railwayContract = read("engines/connectors/providers/railway.ts");
 const githubContract = read("engines/connectors/providers/github.ts");
-const dashboard = read("app/admin/dashboard/page.tsx");
+const frameShell = read("app/workspace/WorkspaceFrame.tsx");
 const connectorsPage = read("app/admin/connectors/page.tsx");
 
 const BOARD_MODULE = '@/components/admin/ConnectionsCredentialsBoard';
@@ -159,7 +159,7 @@ const eventsWriters = filesWith(/\.from\("provider_credential_events"\)/);
 check("N. ONLY the metadata layer writes provider_credential_events", JSON.stringify(eventsWriters) === JSON.stringify([META]), JSON.stringify(eventsWriters));
 
 // ── PHASE 8 entry points ────────────────────────────────────────────────────
-check("PHASE8. Dashboard link to Settings (text link, no cards)", dashboard.includes('href="/admin/settings"') && dashboard.includes("Connections &amp; Credentials"));
+check("PHASE8. ONE chat surface → Settings (frame gear · หน้าเลขา dashboard เดิมถูกตัดออก — ยุบทุกความสามารถเข้าแชตบอร์ดหลัก)", frameShell.includes('router.push("/admin/settings")') && !existsSync(join(ROOT, "app/admin/dashboard/page.tsx")));
 check("PHASE8. Setup Provider deep-link preselects connectors page", connectorsPage.includes('get("provider")') && board.includes("/admin/connectors?provider="));
 check("PHASE8. Verify All action exists on board", board.includes("Verify All"));
 

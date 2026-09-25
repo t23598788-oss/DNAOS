@@ -12,11 +12,47 @@
  * ไฟล์นี้มีแต่ type — client (WorkspaceFrame) import แบบ type-only ได้ปลอดภัย
  */
 import type { PartnerSummary, PartnerTimelineEntry } from "@/core/shared/types";
+import type { DisplayBlock } from "@/app/admin/ui-gallery/_lib/businessDisplayModel";
 
 export interface ResultField {
   id: string;
   label: string;
   value: string;
+}
+
+/** shape เดียวกับ BoardSection ของ cognitive/board (workspace.sections) */
+export interface ResultSectionLike {
+  type?: string;
+  title?: string;
+  subtitle?: string | null;
+  html?: string;
+  items?: { title?: string; subtitle?: string | null; label?: string; value?: string }[];
+}
+
+/** sections ของ board response → display blocks ของ BusinessDisplayRenderer */
+export function sectionsToBlocks(sections: ResultSectionLike[]): DisplayBlock[] {
+  const blocks: DisplayBlock[] = [];
+  sections.forEach((s, i) => {
+    const id = `sec-${i}`;
+    if (s.html) {
+      blocks.push({ kind: "document", id, title: s.title, html: s.html });
+      return;
+    }
+    if (s.items && s.items.length > 0) {
+      blocks.push({
+        kind: "fields",
+        id,
+        title: s.title,
+        fields: s.items.map((it, j) => ({
+          kind: "field" as const,
+          id: `${id}-${j}`,
+          label: String(it.title ?? it.label ?? ""),
+          value: String(it.subtitle ?? it.value ?? ""),
+        })),
+      });
+    }
+  });
+  return blocks;
 }
 
 /** shape เดียวกับ DisplayBlock kind "table" ของ businessDisplayModel */
@@ -51,4 +87,6 @@ export type ChatResult =
       action: string;
       token: string;
       html?: string;
-    };
+    }
+  /** board response workspace.sections (ยุบมาจากเลขาเดิม) → BusinessDisplayRenderer */
+  | { type: "sections"; blocks: DisplayBlock[] };

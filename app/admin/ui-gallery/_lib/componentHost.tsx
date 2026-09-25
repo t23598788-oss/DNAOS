@@ -353,7 +353,7 @@ export function renderHost(hostKey: string | undefined, props: HostProps = {}): 
 
     case "sidebar-admin-sidebar-nav": {
       const items = [
-        { href: "/admin/dashboard", label: "เมนูตัวอย่าง 1", icon: "LayoutGrid", group: undefined as string | undefined },
+        { href: "/admin/line-customers", label: "เมนูตัวอย่าง 1", icon: "LayoutGrid", group: undefined as string | undefined },
         { href: "/admin/relationships", label: "เมนูตัวอย่าง 2", icon: "Network", group: undefined as string | undefined },
         { href: "/admin/ide", label: "เมนูตัวอย่าง (dev)", icon: "Cpu", group: "dev" as string | undefined },
       ];

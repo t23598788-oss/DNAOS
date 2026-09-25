@@ -135,6 +135,37 @@ check("R7. no second settings system in v2 (no setScreen copy)", !ws.includes("s
 check("R8. tab/panel helpers add no new fetch inside helper body", !/function openRelationship[\s\S]{0,300}fetch\(/.test(ws));
 check("R8. open tabs init from deep-link id", ws.includes("initialRelationshipId ? [initialRelationshipId]"));
 
+// ── F8: ONE CHAT BOARD (Owner 2026-09-25 "ยุบความสามารถทั้งหมดมาไว้ที่ตัวใหม่
+//      แล้วก็ตัดหน้าจอที่ชี้ไปหาเลขาส่วนตัวออกให้หมด") ─────────────────────
+check(
+  "F8. secretary board ถูกตัดออกจริง (ไม่มี SecretaryChat.tsx + ไม่มีหน้า /admin/dashboard)",
+  !existsSync(join(ROOT, "components/admin/SecretaryChat.tsx")) &&
+    !existsSync(join(ROOT, "app/admin/dashboard/page.tsx")),
+);
+check(
+  "F8. ไม่มีลิงก์ชี้ไปหน้าเลขาเดิม (frame APPS + relationships ไม่มี /admin/dashboard)",
+  !frameSrc.includes("/admin/dashboard") && !ws.includes("/admin/dashboard"),
+);
+check(
+  "F8. ความสามารถยุบเข้าแชตบอร์ดหลักครบ (thin executor: screen-vision/open-app/line-copilot/window + voice + live_commands + sections)",
+  [
+    "performScreenVision",
+    "performOpenApp",
+    "performLineCopilot",
+    "performWindowAction",
+    "voiceOn",
+    "live_commands",
+    "sectionsToBlocks",
+    "ttsSpeak",
+  ].every((s) => frameSrc.includes(s)),
+);
+check(
+  "F8. ยุบแต่ไม่เสียของเดิม (result contract + ONE composer + ปุ่มเสียงใน compose)",
+  frameSrc.includes('"sections"') &&
+    (frameSrc.match(/className="compose"/g) ?? []).length === 1 &&
+    frameSrc.includes("เปิดหรือปิดเสียงตอบ"),
+);
+
 console.log(`\nrelationships-ui: ${pass} PASS / ${fail} FAIL`);
 if (fail > 0) process.exit(1);
 

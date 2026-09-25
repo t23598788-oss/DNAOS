@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-24T06:20:35.736Z",
+  "generated_at": "2026-09-25T16:35:16.666Z",
   "policy": "Per-module Factory mapping only — no file was moved. See registry/factory-registry.json for the Factory contracts this maps into.",
   "modules": {
     "app/.well-known/oauth-authorization-server/route.ts": {
@@ -65,29 +65,11 @@
         "admin UI page (remaining)"
       ]
     },
-    "app/admin/architecture/page.tsx": {
-      "factoryOwner": "software-factory",
-      "domain": "Developer Tooling",
-      "capability": "app",
-      "responsibility": "หน้าแสดงรายการโมดูลทั้งหมดพร้อมสถานะ จาก module-registry.json — เครื่องมือนักพัฒนา",
-      "evidence": [
-        "admin UI page (remaining)"
-      ]
-    },
     "app/admin/backup/page.tsx": {
       "factoryOwner": "software-factory",
       "domain": "Developer Tooling",
       "capability": "app",
       "responsibility": "หน้าแสดงสถิติการสำรองข้อมูลล่าสุด — เครื่องมือฝั่ง ops",
-      "evidence": [
-        "admin UI page (remaining)"
-      ]
-    },
-    "app/admin/build/page.tsx": {
-      "factoryOwner": "software-factory",
-      "domain": "Developer Tooling",
-      "capability": "app",
-      "responsibility": "หน้าแสดงสถานะ build ล่าสุด — เครื่องมือนักพัฒนา",
       "evidence": [
         "admin UI page (remaining)"
       ]
@@ -191,6 +173,24 @@
         "admin UI page (remaining)"
       ]
     },
+    "app/admin/devices/DevicesBoard.tsx": {
+      "factoryOwner": "software-factory",
+      "domain": "Developer Tooling",
+      "capability": "app",
+      "responsibility": "Devices board (2026-09-25) — admin surface for paired device executors.",
+      "evidence": [
+        "admin UI page (remaining)"
+      ]
+    },
+    "app/admin/devices/page.tsx": {
+      "factoryOwner": "software-factory",
+      "domain": "Developer Tooling",
+      "capability": "app",
+      "responsibility": "Devices (2026-09-25) — the admin surface for paired user-machine executors:",
+      "evidence": [
+        "admin UI page (remaining)"
+      ]
+    },
     "app/admin/dna/page.tsx": {
       "factoryOwner": "software-factory",
       "domain": "Developer Tooling",
@@ -232,33 +232,6 @@
       "domain": "Developer Tooling",
       "capability": "app",
       "responsibility": "หน้าสรุปการเงิน (owner ขอ 2026-07-25: \"ยังไม่เห็นกำไรและงบดุลบริษัทเลย\") กราฟแท่งจริงจากเอกสารจริงในระบบ — รายได้, เงินเข้าที่ยืนยันแล้ว, ค่าน้ำมัน, หนี้ค้าง...",
-      "evidence": [
-        "admin UI page (remaining)"
-      ]
-    },
-    "app/admin/graph/ForceGraph3DView.tsx": {
-      "factoryOwner": "software-factory",
-      "domain": "Developer Tooling",
-      "capability": "app",
-      "responsibility": "มุมมองกราฟแรง 3 มิติของสถาปัตยกรรม (three.js) — แสดงกราฟความสัมพันธ์ของโมดูลจริงบนหน้า graph ของผู้ดูแล",
-      "evidence": [
-        "admin UI page (remaining)"
-      ]
-    },
-    "app/admin/graph/GraphView.tsx": {
-      "factoryOwner": "software-factory",
-      "domain": "Developer Tooling",
-      "capability": "app",
-      "responsibility": "แสดงผลกราฟสถาปัตยกรรม (ForceGraph3DView) + inspector รายละเอียด node — เป็น implementation เดียวกับที่ app/admin/system/page.tsx เรียกใช้ ไม่ใช่กราฟตัวที่สอง",
-      "evidence": [
-        "admin UI page (remaining)"
-      ]
-    },
-    "app/admin/graph/page.tsx": {
-      "factoryOwner": "software-factory",
-      "domain": "Developer Tooling",
-      "capability": "app",
-      "responsibility": "หน้า redirect ไป /admin/system ตามแผนรวม 3 หน้าเป็นหน้าเดียว",
       "evidence": [
         "admin UI page (remaining)"
       ]
@@ -547,33 +520,6 @@
       "domain": "Developer Tooling",
       "capability": "app",
       "responsibility": "ศูนย์รวมการตั้งค่าของ DNA OS หน้าเดียว แบ่งตามหมวด ไม่ต้องแก้ .env",
-      "evidence": [
-        "admin UI page (remaining)"
-      ]
-    },
-    "app/admin/system/page 2.tsx": {
-      "factoryOwner": "software-factory",
-      "domain": "Developer Tooling",
-      "capability": "app",
-      "responsibility": "ไฟล์สำเนาซ้ำของ macOS ('page 2') จาก app/admin/system/page.tsx — เก็บไว้ตามนโยบายห้ามลบใน registry/existence.json (AK-026) ไม่ถูก Next.js ใช้เป็นเส้นทางจริง ...",
-      "evidence": [
-        "admin UI page (remaining)"
-      ]
-    },
-    "app/admin/system/page.tsx": {
-      "factoryOwner": "software-factory",
-      "domain": "Developer Tooling",
-      "capability": "app",
-      "responsibility": "หน้ารวม Build/Graph/Telemetry เป็นหน้าเดียว — canonical route ใหม่",
-      "evidence": [
-        "admin UI page (remaining)"
-      ]
-    },
-    "app/admin/telemetry/page.tsx": {
-      "factoryOwner": "software-factory",
-      "domain": "Developer Tooling",
-      "capability": "app",
-      "responsibility": "หน้าจอ Real-Time 3D Telemetry เต็มจอ — เชื่อม Supabase Realtime (ai_tasks) ข้อมูลพังจริงจาก /api/governance และ latency จริง เปิดมาเจอเลยไม่ต้องคลิก/มีเมนูบัง",
       "evidence": [
         "admin UI page (remaining)"
       ]
@@ -1000,6 +946,78 @@
       "responsibility": "Route GET แบบอ่านอย่างเดียวสำหรับ widget แจ้งเตือน owner ใน Dev Loop dashboard — ต้องมีสิทธิ์ ADMIN_TIER อ่านแถวเดียวใน system_health_status ที่ service_key ...",
       "evidence": [
         "dev-loop governance approval/problem-report API"
+      ]
+    },
+    "app/api/admin/devices/[id]/probe/route.ts": {
+      "factoryOwner": "business-factory",
+      "domain": "Business",
+      "capability": "app",
+      "responsibility": "POST /api/admin/devices/[id]/probe { kind } — queue a server→device command.",
+      "evidence": [
+        "default: unmatched admin API surface on a business-operations platform"
+      ]
+    },
+    "app/api/admin/devices/[id]/route.ts": {
+      "factoryOwner": "business-factory",
+      "domain": "Business",
+      "capability": "app",
+      "responsibility": "DELETE /api/admin/devices/[id] — REVOKE a device: token stops",
+      "evidence": [
+        "default: unmatched admin API surface on a business-operations platform"
+      ]
+    },
+    "app/api/admin/devices/_lib/deviceCommands.ts": {
+      "factoryOwner": "business-factory",
+      "domain": "Business",
+      "capability": "app",
+      "responsibility": "Device Command lifecycle (owner step7,2026-09-26) — command_id, expiry,",
+      "evidence": [
+        "default: unmatched admin API surface on a business-operations platform"
+      ]
+    },
+    "app/api/admin/devices/_lib/deviceRegistry.ts": {
+      "factoryOwner": "business-factory",
+      "domain": "Business",
+      "capability": "app",
+      "responsibility": "Device Registry metadata layer (2026-09-25) — the ONE read/write path for",
+      "evidence": [
+        "default: unmatched admin API surface on a business-operations platform"
+      ]
+    },
+    "app/api/admin/devices/commands/[cmdId]/route.ts": {
+      "factoryOwner": "business-factory",
+      "domain": "Business",
+      "capability": "app",
+      "responsibility": "POST /api/admin/devices/commands/[cmdId] { op: \"cancel\" | \"requeue\" }",
+      "evidence": [
+        "default: unmatched admin API surface on a business-operations platform"
+      ]
+    },
+    "app/api/admin/devices/commands/route.ts": {
+      "factoryOwner": "business-factory",
+      "domain": "Business",
+      "capability": "app",
+      "responsibility": "GET  /api/admin/devices/commands — latest command rows (owner view: งานใดกำลังทำ).",
+      "evidence": [
+        "default: unmatched admin API surface on a business-operations platform"
+      ]
+    },
+    "app/api/admin/devices/grants/route.ts": {
+      "factoryOwner": "business-factory",
+      "domain": "Business",
+      "capability": "app",
+      "responsibility": "Scoped Grants — the owner-controlled permission rows (deny-by-default data",
+      "evidence": [
+        "default: unmatched admin API surface on a business-operations platform"
+      ]
+    },
+    "app/api/admin/devices/route.ts": {
+      "factoryOwner": "business-factory",
+      "domain": "Business",
+      "capability": "app",
+      "responsibility": "GET  /api/admin/devices — list paired devices (metadata only; token hash",
+      "evidence": [
+        "default: unmatched admin API surface on a business-operations platform"
       ]
     },
     "app/api/admin/documents/[id]/confirm/route.ts": {
@@ -3873,6 +3891,51 @@
         "default: unmatched admin API surface on a business-operations platform"
       ]
     },
+    "app/api/admin/provider-settings/[providerId]/request-approval/route.ts": {
+      "factoryOwner": "business-factory",
+      "domain": "Business",
+      "capability": "app",
+      "responsibility": "POST /api/admin/provider-settings/[providerId]/request-approval — the Owner",
+      "evidence": [
+        "default: unmatched admin API surface on a business-operations platform"
+      ]
+    },
+    "app/api/admin/provider-settings/[providerId]/rotate/route.ts": {
+      "factoryOwner": "business-factory",
+      "domain": "Business",
+      "capability": "app",
+      "responsibility": "POST /api/admin/provider-settings/[providerId]/rotate — PHASE 6.15.",
+      "evidence": [
+        "default: unmatched admin API surface on a business-operations platform"
+      ]
+    },
+    "app/api/admin/provider-settings/[providerId]/route.ts": {
+      "factoryOwner": "business-factory",
+      "domain": "Business",
+      "capability": "app",
+      "responsibility": "PUT /api/admin/provider-settings/[providerId] — save one provider card:",
+      "evidence": [
+        "default: unmatched admin API surface on a business-operations platform"
+      ]
+    },
+    "app/api/admin/provider-settings/_lib/providerCredentialMeta.ts": {
+      "factoryOwner": "business-factory",
+      "domain": "Business",
+      "capability": "app",
+      "responsibility": "Provider Credentials metadata layer — the shared read/write helpers behind",
+      "evidence": [
+        "default: unmatched admin API surface on a business-operations platform"
+      ]
+    },
+    "app/api/admin/provider-settings/route.ts": {
+      "factoryOwner": "business-factory",
+      "domain": "Business",
+      "capability": "app",
+      "responsibility": "GET /api/admin/provider-settings — the ONE aggregate read the Connections &",
+      "evidence": [
+        "default: unmatched admin API surface on a business-operations platform"
+      ]
+    },
     "app/api/admin/pulse/route.ts": {
       "factoryOwner": "business-factory",
       "domain": "Business",
@@ -4188,6 +4251,24 @@
         "build/deploy API"
       ]
     },
+    "app/api/chat/_lib/chatResultTypes.ts": {
+      "factoryOwner": "ai-factory",
+      "domain": "AI",
+      "capability": "app",
+      "responsibility": "RESULT CONTRACT (owner spec 2026-09-25 — BUSINESS RESULT PRESENTATION):",
+      "evidence": [
+        "AI-facing API"
+      ]
+    },
+    "app/api/chat/_lib/resultContract.ts": {
+      "factoryOwner": "ai-factory",
+      "domain": "AI",
+      "capability": "app",
+      "responsibility": "buildChatResult — RESPONSE CONTRACT (owner spec 2026-09-25 BUSINESS RESULT",
+      "evidence": [
+        "AI-facing API"
+      ]
+    },
     "app/api/chat/confirm/route.ts": {
       "factoryOwner": "ai-factory",
       "domain": "AI",
@@ -4391,6 +4472,15 @@
         "internal command-execution API"
       ]
     },
+    "app/api/internal/connect/expense/route.ts": {
+      "factoryOwner": "runtime-factory",
+      "domain": "Runtime",
+      "capability": "app",
+      "responsibility": "POST /api/internal/connect/expense — Connect money-OUT bridge",
+      "evidence": [
+        "internal command-execution API"
+      ]
+    },
     "app/api/internal/connect/inbound-source/route.ts": {
       "factoryOwner": "runtime-factory",
       "domain": "Runtime",
@@ -4405,6 +4495,42 @@
       "domain": "Runtime",
       "capability": "app",
       "responsibility": "POST /api/internal/connect/payment-confirm — Connect money bridge",
+      "evidence": [
+        "internal command-execution API"
+      ]
+    },
+    "app/api/internal/device/commands/[cmdId]/route.ts": {
+      "factoryOwner": "runtime-factory",
+      "domain": "Runtime",
+      "capability": "app",
+      "responsibility": "POST /api/internal/device/commands/[cmdId] — header: x-dnaos-device-token.",
+      "evidence": [
+        "internal command-execution API"
+      ]
+    },
+    "app/api/internal/device/commands/route.ts": {
+      "factoryOwner": "runtime-factory",
+      "domain": "Runtime",
+      "capability": "app",
+      "responsibility": "POST /api/internal/device/commands { op:\"pull\" } — header:",
+      "evidence": [
+        "internal command-execution API"
+      ]
+    },
+    "app/api/internal/device/health/route.ts": {
+      "factoryOwner": "runtime-factory",
+      "domain": "Runtime",
+      "capability": "app",
+      "responsibility": "POST /api/internal/device/health — device heartbeat (header:",
+      "evidence": [
+        "internal command-execution API"
+      ]
+    },
+    "app/api/internal/device/pair/route.ts": {
+      "factoryOwner": "runtime-factory",
+      "domain": "Runtime",
+      "capability": "app",
+      "responsibility": "POST /api/internal/device/pair { code, health? } — the machine exchanges a",
       "evidence": [
         "internal command-execution API"
       ]
@@ -4724,11 +4850,27 @@
         "self-description/manifest/constitution/capabilities API surface"
       ]
     },
+    "app/app/page.tsx": {
+      "factoryOwner": "UNKNOWN",
+      "domain": null,
+      "capability": null,
+      "responsibility": "PWA start_url bounce (2026-09-24, step: ทางติดตั้งเว็บแอป) — the ONE",
+      "evidence": []
+    },
     "app/auth/confirm/route.ts": {
       "factoryOwner": "infrastructure-factory",
       "domain": "Infrastructure",
       "capability": "app",
       "responsibility": "GET /auth/confirm — จัดการ login แบบ magic-link/OTP ผ่าน verifyOtp (ช่องทาง login สำรอง เพิ่มมา 2026-07-14) มี rate limiter ต่อ IP กัน brute-force ที่ token_...",
+      "evidence": [
+        "auth-adjacent page"
+      ]
+    },
+    "app/auth/verify/route.ts": {
+      "factoryOwner": "infrastructure-factory",
+      "domain": "Infrastructure",
+      "capability": "app",
+      "responsibility": "Email-template entry alias (owner, 2026-09-24): Supabase's default mailer",
       "evidence": [
         "auth-adjacent page"
       ]
@@ -4835,6 +4977,13 @@
       "evidence": [
         "product demo/utility page"
       ]
+    },
+    "app/install/page.tsx": {
+      "factoryOwner": "UNKNOWN",
+      "domain": null,
+      "capability": null,
+      "responsibility": "วิธีติดตั้งแอป (PWA) — หน้าช่วยติดตั้งสาธารณะ (ไม่มีข้อมูลบัญชี/ความลับใด ๆ)",
+      "evidence": []
     },
     "app/layout.tsx": {
       "factoryOwner": "software-factory",
@@ -5268,6 +5417,24 @@
         "operational workspace page"
       ]
     },
+    "app/workspace/InboxIndicator.tsx": {
+      "factoryOwner": "software-factory",
+      "domain": "Developer Tooling",
+      "capability": "app",
+      "responsibility": "กล่องรับเข้า — ขวาบนของ Workspace (handoff workspace-reference.html:",
+      "evidence": [
+        "operational workspace page"
+      ]
+    },
+    "app/workspace/WorkspaceFrame.tsx": {
+      "factoryOwner": "software-factory",
+      "domain": "Developer Tooling",
+      "capability": "app",
+      "responsibility": "WORKSPACE FRAME — BUSINESS UI SHELL ใหม่ตาม reference ของ Owner",
+      "evidence": [
+        "operational workspace page"
+      ]
+    },
     "app/workspace/WorkspaceSettings.tsx": {
       "factoryOwner": "software-factory",
       "domain": "Developer Tooling",
@@ -5286,29 +5453,11 @@
         "operational workspace page"
       ]
     },
-    "app/workspace/_lib/connectDisplayModel.ts": {
-      "factoryOwner": "software-factory",
-      "domain": "Developer Tooling",
-      "capability": "app",
-      "responsibility": "BUSINESS WORKSPACE — Connect capabilities → BusinessDisplayModel",
-      "evidence": [
-        "operational workspace page"
-      ]
-    },
     "app/workspace/_lib/jobDisplayModel.ts": {
       "factoryOwner": "software-factory",
       "domain": "Developer Tooling",
       "capability": "app",
       "responsibility": "BUSINESS WORKSPACE — JOB list → BusinessDisplayModel (SLICE-2)",
-      "evidence": [
-        "operational workspace page"
-      ]
-    },
-    "app/workspace/_lib/partnerDisplayModel.ts": {
-      "factoryOwner": "software-factory",
-      "domain": "Developer Tooling",
-      "capability": "app",
-      "responsibility": "BUSINESS WORKSPACE — Company/Partner master → BusinessDisplayModel (SLICE-1)",
       "evidence": [
         "operational workspace page"
       ]
@@ -5691,6 +5840,15 @@
         "business workspace/admin/transactions UI components"
       ]
     },
+    "components/admin/ConnectionsCredentialsBoard.tsx": {
+      "factoryOwner": "business-factory",
+      "domain": "Business",
+      "capability": "components",
+      "responsibility": "Connections & Credentials board — THE shared provider-card renderer.",
+      "evidence": [
+        "business workspace/admin/transactions UI components"
+      ]
+    },
     "components/admin/DevLoopVoiceAlerts.tsx": {
       "factoryOwner": "business-factory",
       "domain": "Business",
@@ -5824,6 +5982,15 @@
       "responsibility": "Popup ตั้งค่าผู้ติดต่อ — เป็น generic tree-renderer อ่านจาก registry/contact-settings-categories.ts แล้ว render ตามที่ประกาศไว้ ไม่ hardcode JSX เฉพาะโมดูล ม...",
       "evidence": [
         "under a line/ directory"
+      ]
+    },
+    "components/pwa/PwaRegistration.tsx": {
+      "factoryOwner": "software-factory",
+      "domain": "Developer Tooling",
+      "capability": "components",
+      "responsibility": "PWA lifecycle (2026-09-24): registers public/sw.js and announces updates.",
+      "evidence": [
+        "UI component (remaining)"
       ]
     },
     "components/settings/SettingsDrawer.tsx": {
@@ -6105,6 +6272,13 @@
         "core command executor"
       ]
     },
+    "core/identity/identity.ts": {
+      "factoryOwner": "UNKNOWN",
+      "domain": null,
+      "capability": null,
+      "responsibility": "Identity Layer — the ONE central module (owner, 2026-09-24).",
+      "evidence": []
+    },
     "core/navigation/resolveCapabilityAccess.ts": {
       "factoryOwner": "software-factory",
       "domain": "Developer Tooling",
@@ -6122,6 +6296,13 @@
       "evidence": [
         "app navigation resolution"
       ]
+    },
+    "core/policy/scope.ts": {
+      "factoryOwner": "UNKNOWN",
+      "domain": null,
+      "capability": null,
+      "responsibility": "Tool Scope Policy — the ONE deny-by-default evaluator for \"may this subject",
+      "evidence": []
     },
     "core/runtime/cockpit.ts": {
       "factoryOwner": "executive-office",
@@ -6939,6 +7120,15 @@
       "domain": "Business",
       "capability": "engines",
       "responsibility": "DNA OS — canonical Business Event writer (capability D, owner decision D5, 2026-09-23).",
+      "evidence": [
+        "business-domain engine (remaining)"
+      ]
+    },
+    "engines/canonical/expense-write.ts": {
+      "factoryOwner": "business-factory",
+      "domain": "Business",
+      "capability": "engines",
+      "responsibility": "Canonical expense/payable write model (D3 deferred work landed, owner 2026-09-24).",
       "evidence": [
         "business-domain engine (remaining)"
       ]
@@ -8819,6 +9009,15 @@
         "canonical presentation implementation"
       ]
     },
+    "presentation/ai/RichText.tsx": {
+      "factoryOwner": "software-factory",
+      "domain": "Developer Tooling",
+      "capability": "presentation",
+      "responsibility": "RichText — ข้อความธรรมดาของคำตอบ: wrap ตามพื้นที่จริง เก็บย่อหน้า + ขึ้น",
+      "evidence": [
+        "canonical presentation implementation"
+      ]
+    },
     "presentation/assets/manifest.ts": {
       "factoryOwner": "software-factory",
       "domain": "Developer Tooling",
@@ -8950,6 +9149,15 @@
       "domain": "Developer Tooling",
       "capability": "presentation",
       "responsibility": "UIKit — Inspector",
+      "evidence": [
+        "canonical presentation implementation"
+      ]
+    },
+    "presentation/panels/PartnerTimeline.tsx": {
+      "factoryOwner": "software-factory",
+      "domain": "Developer Tooling",
+      "capability": "presentation",
+      "responsibility": "Partner timeline/summary — สกัดออกจาก app/admin/partners/[id]/page.tsx",
       "evidence": [
         "canonical presentation implementation"
       ]
@@ -9321,6 +9529,15 @@
       "responsibility": "Real standalone script scanning the real Hardcode Governance decision engine output for UNKNOWN-category findings (masking secret-shaped values) — a diagnost...",
       "evidence": []
     },
+    "scripts/access-path-survey-test.ts": {
+      "factoryOwner": "qa-factory",
+      "domain": "Quality",
+      "capability": "scripts",
+      "responsibility": "access-path-survey-test.ts (owner step1+5,2026-09-26) — THE scope-vulnerability",
+      "evidence": [
+        "real test file — QA Factory owns all test code regardless of domain"
+      ]
+    },
     "scripts/ai-caller-cutover-test.ts": {
       "factoryOwner": "qa-factory",
       "domain": "Quality",
@@ -9405,6 +9622,24 @@
       "domain": "Quality",
       "capability": "scripts",
       "responsibility": "Real Artifact Pipeline & Evidence Warehouse regression suite (Step 5) — npm run artifact:test.",
+      "evidence": [
+        "real test file — QA Factory owns all test code regardless of domain"
+      ]
+    },
+    "scripts/auth-access-test.ts": {
+      "factoryOwner": "qa-factory",
+      "domain": "Quality",
+      "capability": "scripts",
+      "responsibility": "auth-access-test.ts — login/permission/redirect integrity (2026-09-24).",
+      "evidence": [
+        "real test file — QA Factory owns all test code regardless of domain"
+      ]
+    },
+    "scripts/auth-single-flow-test.ts": {
+      "factoryOwner": "qa-factory",
+      "domain": "Quality",
+      "capability": "scripts",
+      "responsibility": "auth-single-flow-test.ts — ONE authentication flow invariant (2026-09-24).",
       "evidence": [
         "real test file — QA Factory owns all test code regardless of domain"
       ]
@@ -9714,6 +9949,15 @@
         "real test file — QA Factory owns all test code regardless of domain"
       ]
     },
+    "scripts/debt-patch-freeze-test.ts": {
+      "factoryOwner": "qa-factory",
+      "domain": "Quality",
+      "capability": "scripts",
+      "responsibility": "DEBT PATCH FREEZE — negative control (Owner decision ⑤a-B, 2026-09-24).",
+      "evidence": [
+        "real test file — QA Factory owns all test code regardless of domain"
+      ]
+    },
     "scripts/demo-full-pipeline-part2.ts": {
       "factoryOwner": "UNKNOWN",
       "domain": null,
@@ -9742,6 +9986,15 @@
       "domain": "Quality",
       "capability": "scripts",
       "responsibility": "Real Deployment Orchestration Runtime regression suite (Step 11) — npm run deployment:test.",
+      "evidence": [
+        "real test file — QA Factory owns all test code regardless of domain"
+      ]
+    },
+    "scripts/device-connector-test.ts": {
+      "factoryOwner": "qa-factory",
+      "domain": "Quality",
+      "capability": "scripts",
+      "responsibility": "device-connector-test.ts — step1 inventory + step3/5 contract proof for the",
       "evidence": [
         "real test file — QA Factory owns all test code regardless of domain"
       ]
@@ -10009,6 +10262,15 @@
         "real test file — QA Factory owns all test code regardless of domain"
       ]
     },
+    "scripts/identity-layer-test.ts": {
+      "factoryOwner": "qa-factory",
+      "domain": "Quality",
+      "capability": "scripts",
+      "responsibility": "identity-layer-test.ts — central Identity Layer invariants (2026-09-24).",
+      "evidence": [
+        "real test file — QA Factory owns all test code regardless of domain"
+      ]
+    },
     "scripts/impact-analyzer.ts": {
       "factoryOwner": "UNKNOWN",
       "domain": null,
@@ -10107,6 +10369,15 @@
       "domain": "Quality",
       "capability": "scripts",
       "responsibility": "ชุดทดสอบ Adapter ผู้ปฏิบัติงานโมเดลท้องถิ่นจริง",
+      "evidence": [
+        "real test file — QA Factory owns all test code regardless of domain"
+      ]
+    },
+    "scripts/login-autofill-test.ts": {
+      "factoryOwner": "qa-factory",
+      "domain": "Quality",
+      "capability": "scripts",
+      "responsibility": "login-autofill-test.ts — browser autofill semantics of /login (2026-09-24).",
       "evidence": [
         "real test file — QA Factory owns all test code regardless of domain"
       ]
@@ -10228,6 +10499,24 @@
         "real test file — QA Factory owns all test code regardless of domain"
       ]
     },
+    "scripts/provider-credentials-test.ts": {
+      "factoryOwner": "qa-factory",
+      "domain": "Quality",
+      "capability": "scripts",
+      "responsibility": "provider-credentials-test.ts — Connections & Credentials (Provider Settings",
+      "evidence": [
+        "real test file — QA Factory owns all test code regardless of domain"
+      ]
+    },
+    "scripts/pwa-install-test.ts": {
+      "factoryOwner": "qa-factory",
+      "domain": "Quality",
+      "capability": "scripts",
+      "responsibility": "pwa-install-test.ts — install/update path integrity (2026-09-24).",
+      "evidence": [
+        "real test file — QA Factory owns all test code regardless of domain"
+      ]
+    },
     "scripts/railway-adapter-test.ts": {
       "factoryOwner": "qa-factory",
       "domain": "Quality",
@@ -10245,6 +10534,13 @@
       "evidence": [
         "real test file — QA Factory owns all test code regardless of domain"
       ]
+    },
+    "scripts/receipt-upload-ocr-e2e.ts": {
+      "factoryOwner": "UNKNOWN",
+      "domain": null,
+      "capability": null,
+      "responsibility": "receipt-upload-ocr-e2e.ts — E2E: image upload → Apple Vision OCR →",
+      "evidence": []
     },
     "scripts/record-validation.ts": {
       "factoryOwner": "architecture-office",
@@ -10292,6 +10588,15 @@
       "domain": "Quality",
       "capability": "scripts",
       "responsibility": "Real regression suite proving the Phase 12 sync-registry.ts root-cause fix (zero-export files are no longer silently hidden) — npm run registry-sync:test.",
+      "evidence": [
+        "real test file — QA Factory owns all test code regardless of domain"
+      ]
+    },
+    "scripts/relationships-ui-test.ts": {
+      "factoryOwner": "qa-factory",
+      "domain": "Quality",
+      "capability": "scripts",
+      "responsibility": "relationships-ui-test.ts — /admin/relationships display-layer replacement",
       "evidence": [
         "real test file — QA Factory owns all test code regardless of domain"
       ]
@@ -10428,6 +10733,15 @@
       "domain": "Quality",
       "capability": "scripts",
       "responsibility": "Real Test Pipeline & Quality Assurance Runtime regression suite (Step 8) — npm run test:test.",
+      "evidence": [
+        "real test file — QA Factory owns all test code regardless of domain"
+      ]
+    },
+    "scripts/tool-scope-test.ts": {
+      "factoryOwner": "qa-factory",
+      "domain": "Quality",
+      "capability": "scripts",
+      "responsibility": "tool-scope-test.ts — owner steps2/4/6/7/8 (2026-09-26).",
       "evidence": [
         "real test file — QA Factory owns all test code regardless of domain"
       ]
@@ -10835,6 +11149,15 @@
       "domain": "Deployment",
       "capability": "supabase",
       "responsibility": "Connect event transport (capability D, 2026-09-23) — the Deno side's only way",
+      "evidence": [
+        "Supabase Edge Function (remaining, not architecture-drift-alert)"
+      ]
+    },
+    "supabase/functions/_shared/connect-expense.ts": {
+      "factoryOwner": "deployment-factory",
+      "domain": "Deployment",
+      "capability": "supabase",
+      "responsibility": "Connect money-OUT transport (LINE financial-edge removal · D3 deferred work",
       "evidence": [
         "Supabase Edge Function (remaining, not architecture-drift-alert)"
       ]

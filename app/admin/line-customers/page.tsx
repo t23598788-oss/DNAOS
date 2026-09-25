@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from "react"
 import Link from "next/link"
 import {
-  LayoutGrid, MessageCircle, Briefcase, Building2, FileText, Wallet, Mountain,
+  MessageCircle, Briefcase, Building2, FileText, Wallet, Mountain,
   MapPin, FileSignature, Receipt, Truck, Banknote, Phone, Paperclip, Bot,
 } from "lucide-react"
 import { formatMoney } from "@/engines/documents/document-editor"
@@ -93,7 +93,6 @@ interface BizEvent {
 // (ลูกค้า LINE) เป็นหน้าแรกที่ใช้โครง AppShell เต็มรูปแบบ ที่เหลืออีก 6 ยังพาไป
 // หน้าเดิมตามปกติก่อน รอดูหน้าตานี้แล้วค่อยขยาย (owner request 2026-07-11)
 const RAIL_ITEMS: IconRailItem[] = [
-  { key: "dashboard", label: "เลขา", icon: LayoutGrid, href: "/admin/dashboard" },
   { key: "line-customers", label: "LINE", icon: MessageCircle, href: "/admin/line-customers" },
   { key: "jobs", label: "งาน", icon: Briefcase, href: "/admin/jobs" },
   { key: "partners", label: "คู่ค้า", icon: Building2, href: "/admin/partners" },
