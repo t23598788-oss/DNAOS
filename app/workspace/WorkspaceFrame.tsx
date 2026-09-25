@@ -10,24 +10,34 @@
  * ปุ่มที่ยังไม่มี backend จริง = disabled ชัดเจน (ห้าม fake) ·
  * route/backend เดิมใช้ต่อ — ไม่แตะ business logic/canonical/auth/migration
  */
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import {
   Grid2X2, Ellipsis, MessageSquare, Settings, FileText, MessageCircle,
   Wallet, MapPin, Briefcase, Users, ScanLine, Files, FileOutput, Printer,
   Download, Share2, History, Paperclip, ArrowUp, X,
+  LayoutGrid, FileSignature, Banknote, Mountain, Server, Cloud,
 } from "lucide-react";
+import { openExternal } from "@/components/admin/openExternal";
 
 type FrameItem = {
   icon: React.ElementType;
   label: string;
   /** route เดิมของ DNA OS — map ตาม reference ใหม่ */
   route?: string;
+  /** URL ภายนอก (เปิดผ่าน openExternal — Tauri+web pattern เดิมของ rail) */
+  external?: string;
   /** ยังไม่มี backend จริง → disabled (ห้ามทำปุ่มหลอก) */
   disabledNote?: string;
 };
 
+// RUNPOD console shortcut (owner 2026-08-03): เดิมอยู่ใน IconRail ของ
+// relationships — shell ใหม่คงไว้ใน drawer (external = เปิด browser จริง
+// ไม่ใช่ navigate webview เหมือนเหตุผลเดิมที่ rail ไม่มี href)
+const RUNPOD_CONSOLE_URL = "https://console.runpod.io/pods";
+
 /** apps ตาม reference: ไฟล์·เอกสาร·LINE·การเงิน·GPS·งาน·รายชื่อ·สแกน/AI (+ความสัมพันธ์ ตามคำสั่ง map ของ Owner) */
+/** รายการถัดไป = จุดหมาย rail เดิมของ relationships ที่ย้ายมา shell (คงทางเข้าไว้ครบทุกตัว) */
 const APPS: FrameItem[] = [
   { icon: Files, label: "ไฟล์", route: "/admin/storage" },
   { icon: FileText, label: "เอกสาร", route: "/admin/create-document" },
@@ -38,6 +48,12 @@ const APPS: FrameItem[] = [
   { icon: Users, label: "รายชื่อ", route: "/admin/partners" },
   { icon: ScanLine, label: "สแกน / AI", route: "/admin/receipts" },
   { icon: MessageSquare, label: "ความสัมพันธ์", route: "/admin/relationships" },
+  { icon: LayoutGrid, label: "เลขา", route: "/admin/dashboard" },
+  { icon: FileSignature, label: "รายการเอกสาร", route: "/admin/transactions" },
+  { icon: Banknote, label: "ลูกหนี้", route: "/admin/debt-tracking" },
+  { icon: Mountain, label: "บ่อวัสดุ", route: "/admin/pits" },
+  { icon: Server, label: "ค่าใช้จ่าย", route: "/admin/infrastructure" },
+  { icon: Cloud, label: "Cloud GPU", external: RUNPOD_CONSOLE_URL },
 ];
 
 /** actions ตาม reference — เหลือแค่ตัวที่มี backend จริง (ประวัติ→event-inbox) ที่เหลือ disabled */
@@ -63,6 +79,8 @@ const FRAME_CSS = `
 #dna-frame .corner{position:absolute;z-index:4;right:14px;top:16px;background:var(--paper)}
 #dna-frame .gear{position:absolute;left:12px;bottom:16px;z-index:3;background:var(--paper)}
 #dna-frame .stage{position:relative;min-height:560px;padding:84px 64px 78px;display:flex;flex-direction:column}
+#dna-frame .stage--bleed{padding:76px 12px 12px;min-height:calc(100dvh - 57px)}
+#dna-frame .stage--bleed .edge.right{top:28px}
 #dna-frame .edge{position:absolute;top:20px;padding:8px}
 #dna-frame .edge.left{left:8px}
 #dna-frame .edge.right{right:8px;top:82px}
@@ -71,9 +89,12 @@ const FRAME_CSS = `
 #dna-frame .tools{display:grid;grid-template-columns:repeat(auto-fit,minmax(115px,1fr));gap:8px;margin-top:12px}
 #dna-frame .tools button{display:flex;align-items:center;gap:8px;justify-content:flex-start;text-align:left}
 #dna-frame .tabs{display:flex;gap:6px;flex-wrap:wrap}
-#dna-frame .content{flex:1;padding:32px 0;min-height:200px}
+#dna-frame .content{flex:1;padding:32px 0;min-height:200px;display:flex;flex-direction:column}
+#dna-frame .content--fill{padding:0;min-height:0;overflow:hidden}
+#dna-frame .content--fill>div{flex:1 1 0%;min-height:0}
+#dna-frame .count{background:#c93232;color:#fff;min-width:18px;border-radius:10px;font-size:11px;padding:0 5px;margin-left:auto}
 #dna-frame .blank{text-align:center;padding:42px 0}
-#dna-frame .compose{border:1px solid var(--line);border-radius:16px;padding:12px}
+#dna-frame .compose{border:1px solid var(--line);border-radius:16px;padding:12px;margin-top:auto}
 #dna-frame textarea{width:100%;resize:vertical;min-height:54px;background:transparent;border:0;outline:none}
 #dna-frame .row .send{margin-left:auto}
 #dna-frame .note{font-size:12px;opacity:.75}
@@ -82,12 +103,30 @@ const FRAME_CSS = `
 @media(max-width:500px){#dna-frame .stage{padding:72px 14px 16px}#dna-frame header{padding:10px 56px 10px 10px}#dna-frame header .note{display:none}#dna-frame .blank{padding:24px 0}#dna-frame .edge.right{top:70px}}
 `;
 
-export function WorkspaceFrame() {
+export function WorkspaceFrame({
+  children,
+  centerTab,
+  initialTab,
+  selfRoute,
+  itemBadges,
+}: {
+  /** เนื้อหาของแท็บกลาง (render เมื่อ centerTab เป็นแท็บ active) */
+  children?: ReactNode;
+  /** แท็บกลางเพิ่มจากแชท — START-HERE ข้อ17: feed จริง = แท็บแรกตรงกลาง */
+  centerTab?: { key: string; label: string };
+  initialTab?: string;
+  /** route ของหน้าปัจจุบัน — item ตัวนี้ใน drawer เปิดแท็บกลางแทน navigate ซ้ำ */
+  selfRoute?: string;
+  /** ตัวเลขจริงจากชั้นข้อมูลของหน้า (key = label ของ item ใน drawer) */
+  itemBadges?: Record<string, number>;
+}) {
   const router = useRouter();
   const [drawer, setDrawer] = useState<null | "apps" | "actions">(null);
   const [note, setNote] = useState<{ title: string; body?: string } | null>(null);
   const [draft, setDraft] = useState("");
+  const [active, setActive] = useState(initialTab ?? centerTab?.key ?? "แชท");
   const fileRef = useRef<HTMLInputElement>(null);
+  const showChat = active === "แชท";
 
   // reference: Escape ปิด drawer
   useEffect(() => {
@@ -100,8 +139,19 @@ export function WorkspaceFrame() {
 
   const toggle = (kind: "apps" | "actions") => setDrawer((p) => (p === kind ? null : kind));
   const go = (item: FrameItem) => {
-    if (!item.route || item.disabledNote) return;
+    if (item.disabledNote) return;
+    if (item.external) {
+      setDrawer(null);
+      void openExternal(item.external);
+      return;
+    }
+    if (!item.route) return;
     setDrawer(null);
+    if (selfRoute && item.route === selfRoute && centerTab) {
+      // หน้าปัจจุบันเอง = เปิดแท็บกลาง ไม่ navigate ซ้ำ
+      setActive(centerTab.key);
+      return;
+    }
     router.push(item.route);
   };
 
@@ -121,7 +171,7 @@ export function WorkspaceFrame() {
         <Settings />
       </button>
 
-      <section className="stage" data-screen="work">
+      <section className={showChat ? "stage" : "stage stage--bleed"} data-screen="work">
         <button className="edge left" data-drawer="apps" aria-expanded={drawer === "apps"} onClick={() => toggle("apps")} aria-label="เปิดกล่องเครื่องมือ">
           <Grid2X2 />
         </button>
@@ -143,10 +193,13 @@ export function WorkspaceFrame() {
                   key={item.label}
                   type="button"
                   aria-disabled={!!item.disabledNote}
-                  title={item.disabledNote ?? item.route}
+                  title={item.disabledNote ?? item.route ?? item.external}
                   onClick={() => go(item)}
                 >
                   <item.icon /> {item.label}
+                  {(itemBadges?.[item.label] ?? 0) > 0 && (
+                    <span className="count">{itemBadges![item.label]}</span>
+                  )}
                 </button>
               ))}
             </div>
@@ -159,54 +212,71 @@ export function WorkspaceFrame() {
         )}
 
         <nav className="tabs" aria-label="งานที่เปิด">
-          <button data-view="แชท" aria-pressed="true">แชท</button>
+          {centerTab && (
+            <button
+              data-view={centerTab.label}
+              aria-pressed={!showChat}
+              onClick={() => setActive(centerTab.key)}
+            >
+              {centerTab.label}
+            </button>
+          )}
+          <button data-view="แชท" aria-pressed={showChat} onClick={() => setActive("แชท")}>
+            แชท
+          </button>
         </nav>
 
-        <div className="content" aria-live="polite">
-          {note ? (
-            <div className="result">
-              <div>{note.title}</div>
-              {note.body && <div className="note" style={{ marginTop: 6 }}>{note.body}</div>}
-            </div>
+        <div className={showChat ? "content" : "content content--fill"} aria-live="polite">
+          {showChat ? (
+            <>
+              {note ? (
+                <div className="result">
+                  <div>{note.title}</div>
+                  {note.body && <div className="note" style={{ marginTop: 6 }}>{note.body}</div>}
+                </div>
+              ) : (
+                <div className="blank">
+                  วันนี้จะทำอะไร?
+                  <div className="note">พิมพ์คำสั่ง แนบไฟล์ หรือเปิดเครื่องมือด้านข้าง</div>
+                </div>
+              )}
+
+              <form
+                className="compose"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  if (!draft.trim()) return;
+                  // honest: อ้าง reference — ร่างเท่านั้น ไม่มี fake success
+                  setNote({ title: `คำสั่งร่าง: ${draft.trim()}`, body: "ยังไม่ส่งไปทำงาน (shell นี้ยังไม่ผูกคำสั่งกับระบบ)" });
+                  setDraft("");
+                }}
+              >
+                <textarea aria-label="คำสั่ง" placeholder="พิมพ์คำสั่งกับ DNA OS…" value={draft} onChange={(e) => setDraft(e.target.value)} />
+                <div className="row">
+                  <button type="button" onClick={() => fileRef.current?.click()}>
+                    <Paperclip /> แนบไฟล์
+                  </button>
+                  <input
+                    ref={fileRef}
+                    type="file"
+                    hidden
+                    multiple
+                    onChange={(e) => {
+                      const names = Array.from(e.target.files ?? []).map((f) => f.name);
+                      if (names.length) setNote({ title: names.join(" · "), body: "เลือกในเครื่องเท่านั้น — ยังไม่อัปโหลด" });
+                    }}
+                  />
+                  <span className="note">ยังไม่เชื่อมคำสั่งกับระบบ</span>
+                  <button className="send" type="submit" aria-label="ส่งคำสั่ง">
+                    <ArrowUp />
+                  </button>
+                </div>
+              </form>
+            </>
           ) : (
-            <div className="blank">
-              วันนี้จะทำอะไร?
-              <div className="note">พิมพ์คำสั่ง แนบไฟล์ หรือเปิดเครื่องมือด้านข้าง</div>
-            </div>
+            children
           )}
         </div>
-
-        <form
-          className="compose"
-          onSubmit={(e) => {
-            e.preventDefault();
-            if (!draft.trim()) return;
-            // honest: อ้าง reference — ร่างเท่านั้น ไม่มี fake success
-            setNote({ title: `คำสั่งร่าง: ${draft.trim()}`, body: "ยังไม่ส่งไปทำงาน (shell นี้ยังไม่ผูกคำสั่งกับระบบ)" });
-            setDraft("");
-          }}
-        >
-          <textarea aria-label="คำสั่ง" placeholder="พิมพ์คำสั่งกับ DNA OS…" value={draft} onChange={(e) => setDraft(e.target.value)} />
-          <div className="row">
-            <button type="button" onClick={() => fileRef.current?.click()}>
-              <Paperclip /> แนบไฟล์
-            </button>
-            <input
-              ref={fileRef}
-              type="file"
-              hidden
-              multiple
-              onChange={(e) => {
-                const names = Array.from(e.target.files ?? []).map((f) => f.name);
-                if (names.length) setNote({ title: names.join(" · "), body: "เลือกในเครื่องเท่านั้น — ยังไม่อัปโหลด" });
-              }}
-            />
-            <span className="note">ยังไม่เชื่อมคำสั่งกับระบบ</span>
-            <button className="send" type="submit" aria-label="ส่งคำสั่ง">
-              <ArrowUp />
-            </button>
-          </div>
-        </form>
       </section>
     </div>
   );

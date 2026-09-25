@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-25T07:01:21.425Z",
+  "generated_at": "2026-09-25T08:00:00.442Z",
   "version": 1,
   "nodes": [
     {
@@ -24015,8 +24015,8 @@
         {
           "name": "RelationshipsPage",
           "kind": "function",
-          "line_start": 17,
-          "line_end": 21
+          "line_start": 12,
+          "line_end": 15
         }
       ],
       "import_sites": [
@@ -24071,7 +24071,7 @@
           "name": "RelationshipWorkspaceRoute",
           "kind": "function",
           "line_start": 14,
-          "line_end": 19
+          "line_end": 18
         }
       ],
       "import_sites": [
@@ -24106,16 +24106,14 @@
       "internal_dependencies": [
         "module:app/admin/relationships/feed.ts",
         "module:app/admin/relationships/workspace-state.tsx",
-        "module:components/admin/openExternal.ts",
+        "module:app/workspace/WorkspaceFrame.tsx",
         "module:components/line/ContactSettingsModal.tsx",
         "module:components/settings/SettingsDrawer.tsx",
         "module:engines/documents/document-editor.ts",
         "module:presentation/panels/ActionBar.tsx",
         "module:presentation/panels/Inspector.tsx",
-        "module:presentation/shell/AppShell.tsx",
         "module:presentation/shell/ide/TabStrip.tsx",
         "module:presentation/shell/navigation/AppHeader.tsx",
-        "module:presentation/shell/navigation/IconRail.tsx",
         "module:presentation/shell/navigation/ListColumn.tsx",
         "module:presentation/viewer/FlexPreview.tsx",
         "module:presentation/viewer/MapView.tsx",
@@ -24141,8 +24139,8 @@
         {
           "name": "RelationshipWorkspacePage",
           "kind": "function",
-          "line_start": 140,
-          "line_end": 146
+          "line_start": 106,
+          "line_end": 112
         }
       ],
       "import_sites": [
@@ -24152,83 +24150,73 @@
           "resolved_target": "engines/documents/document-editor.ts"
         },
         {
-          "specifier": "@/components/admin/openExternal",
+          "specifier": "@/app/workspace/WorkspaceFrame",
           "line": 10,
-          "resolved_target": "components/admin/openExternal.ts"
-        },
-        {
-          "specifier": "@/presentation/shell/AppShell",
-          "line": 11,
-          "resolved_target": "presentation/shell/AppShell.tsx"
+          "resolved_target": "app/workspace/WorkspaceFrame.tsx"
         },
         {
           "specifier": "@/presentation/shell/navigation/ListColumn",
-          "line": 12,
+          "line": 11,
           "resolved_target": "presentation/shell/navigation/ListColumn.tsx"
         },
         {
           "specifier": "@/presentation/shell/ide/TabStrip",
-          "line": 13,
+          "line": 12,
           "resolved_target": "presentation/shell/ide/TabStrip.tsx"
         },
         {
           "specifier": "@/presentation/panels/ActionBar",
-          "line": 14,
+          "line": 13,
           "resolved_target": "presentation/panels/ActionBar.tsx"
         },
         {
           "specifier": "@/presentation/viewer/MapView",
-          "line": 15,
+          "line": 14,
           "resolved_target": "presentation/viewer/MapView.tsx"
         },
         {
           "specifier": "@/presentation/viewer/FlexPreview",
-          "line": 16,
+          "line": 15,
           "resolved_target": "presentation/viewer/FlexPreview.tsx"
         },
         {
           "specifier": "@/presentation/panels/Inspector",
-          "line": 17,
+          "line": 16,
           "resolved_target": "presentation/panels/Inspector.tsx"
         },
         {
-          "specifier": "@/presentation/shell/navigation/IconRail",
-          "line": 18,
-          "resolved_target": "presentation/shell/navigation/IconRail.tsx"
-        },
-        {
           "specifier": "@/presentation/shell/navigation/ListColumn",
-          "line": 19,
+          "line": 17,
           "resolved_target": "presentation/shell/navigation/ListColumn.tsx"
         },
         {
           "specifier": "@/services/supabase/browser",
-          "line": 20,
+          "line": 18,
           "resolved_target": "services/supabase/browser.ts"
         },
         {
           "specifier": "@/components/settings/SettingsDrawer",
-          "line": 21,
+          "line": 19,
           "resolved_target": "components/settings/SettingsDrawer.tsx"
         },
         {
           "specifier": "@/components/line/ContactSettingsModal",
-          "line": 22,
+          "line": 20,
           "resolved_target": "components/line/ContactSettingsModal.tsx"
         },
         {
           "specifier": "@/presentation/shell/navigation/AppHeader",
-          "line": 23,
+          "line": 21,
           "resolved_target": "presentation/shell/navigation/AppHeader.tsx"
         },
         {
           "specifier": "./workspace-state",
-          "line": 24,
+          "line": 22,
           "resolved_target": "app/admin/relationships/workspace-state.tsx"
         },
         {
           "specifier": "./feed",
-          "line": 25,
+          "line": 23,
           "resolved_target": "app/admin/relationships/feed.ts"
         }
       ]
@@ -35801,7 +35789,7 @@
       "runtime_entry_point": false,
       "internal_dependencies": [],
       "dependents": [
-        "module:app/admin/relationships/workspace.tsx"
+        "module:app/workspace/WorkspaceFrame.tsx"
       ],
       "data_tables": "UNKNOWN",
       "business_capabilities": "UNKNOWN",
@@ -80222,7 +80210,6 @@
       ],
       "dependents": [
         "module:app/admin/line-customers/page.tsx",
-        "module:app/admin/relationships/workspace.tsx",
         "module:app/admin/ui-gallery/_lib/assemblyHost.tsx",
         "module:app/admin/ui-gallery/_lib/componentHost.tsx"
       ],
@@ -81168,12 +81155,10 @@
       "internal_dependencies": [],
       "dependents": [
         "module:app/admin/line-customers/page.tsx",
-        "module:app/admin/relationships/workspace.tsx",
         "module:app/admin/ui-gallery/_lib/componentHost.tsx",
         "module:app/workspace/BusinessWorkspace.tsx",
         "module:components/workspace/WorkspaceShell.tsx",
-        "module:presentation/shell/AppShell.tsx",
-        "module:scripts/relationships-ui-test.ts"
+        "module:presentation/shell/AppShell.tsx"
       ],
       "data_tables": "UNKNOWN",
       "business_capabilities": "UNKNOWN",
@@ -88124,9 +88109,9 @@
       "status": "OK",
       "runtime_entry_point": true,
       "internal_dependencies": [
+        "module:app/workspace/WorkspaceFrame.tsx",
         "module:engines/documents/document-editor.ts",
         "module:presentation/shell/ide/TabStrip.tsx",
-        "module:presentation/shell/navigation/IconRail.tsx",
         "module:presentation/shell/navigation/ListColumn.tsx"
       ],
       "dependents": [],
@@ -89822,9 +89807,13 @@
       ],
       "status": "OK",
       "runtime_entry_point": false,
-      "internal_dependencies": [],
+      "internal_dependencies": [
+        "module:components/admin/openExternal.ts"
+      ],
       "dependents": [
-        "module:app/workspace/page.tsx"
+        "module:app/admin/relationships/workspace.tsx",
+        "module:app/workspace/page.tsx",
+        "module:scripts/relationships-ui-test.ts"
       ],
       "data_tables": "UNKNOWN",
       "business_capabilities": "UNKNOWN",
@@ -89842,8 +89831,15 @@
         {
           "name": "WorkspaceFrame",
           "kind": "function",
-          "line_start": 85,
-          "line_end": 213
+          "line_start": 106,
+          "line_end": 283
+        }
+      ],
+      "import_sites": [
+        {
+          "specifier": "@/components/admin/openExternal",
+          "line": 21,
+          "resolved_target": "components/admin/openExternal.ts"
         }
       ]
     }
@@ -96831,7 +96827,7 @@
     },
     {
       "source": "module:app/admin/relationships/workspace.tsx",
-      "target": "module:components/admin/openExternal.ts",
+      "target": "module:app/workspace/WorkspaceFrame.tsx",
       "label": "imports"
     },
     {
@@ -96861,22 +96857,12 @@
     },
     {
       "source": "module:app/admin/relationships/workspace.tsx",
-      "target": "module:presentation/shell/AppShell.tsx",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/admin/relationships/workspace.tsx",
       "target": "module:presentation/shell/ide/TabStrip.tsx",
       "label": "imports"
     },
     {
       "source": "module:app/admin/relationships/workspace.tsx",
       "target": "module:presentation/shell/navigation/AppHeader.tsx",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/admin/relationships/workspace.tsx",
-      "target": "module:presentation/shell/navigation/IconRail.tsx",
       "label": "imports"
     },
     {
@@ -106030,6 +106016,11 @@
       "label": "imports"
     },
     {
+      "source": "module:app/workspace/WorkspaceFrame.tsx",
+      "target": "module:components/admin/openExternal.ts",
+      "label": "imports"
+    },
+    {
       "source": "module:app/workspace/WorkspaceSettings.tsx",
       "target": "module:app/workspace/_lib/toolBindings.ts",
       "label": "imports"
@@ -112311,17 +112302,17 @@
     },
     {
       "source": "module:scripts/relationships-ui-test.ts",
+      "target": "module:app/workspace/WorkspaceFrame.tsx",
+      "label": "imports"
+    },
+    {
+      "source": "module:scripts/relationships-ui-test.ts",
       "target": "module:engines/documents/document-editor.ts",
       "label": "imports"
     },
     {
       "source": "module:scripts/relationships-ui-test.ts",
       "target": "module:presentation/shell/ide/TabStrip.tsx",
-      "label": "imports"
-    },
-    {
-      "source": "module:scripts/relationships-ui-test.ts",
-      "target": "module:presentation/shell/navigation/IconRail.tsx",
       "label": "imports"
     },
     {

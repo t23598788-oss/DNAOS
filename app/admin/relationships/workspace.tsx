@@ -7,15 +7,13 @@ import {
   MapPin, FileSignature, Receipt, Truck, Banknote, Phone, Paperclip, Bot, X, ExternalLink, Settings, Wrench, BarChart3, Server, Cloud, ChevronLeft, ChevronRight,
 } from "lucide-react"
 import { formatMoney } from "@/engines/documents/document-editor"
-import { openExternal } from "@/components/admin/openExternal"
-import AppShell from "@/presentation/shell/AppShell"
+import { WorkspaceFrame } from "@/app/workspace/WorkspaceFrame"
 import ListColumn from "@/presentation/shell/navigation/ListColumn"
 import { TabStrip } from "@/presentation/shell/ide/TabStrip"
 import ActionBar, { type ActionBarItem } from "@/presentation/panels/ActionBar"
 import MapView from "@/presentation/viewer/MapView"
 import FlexPreview from "@/presentation/viewer/FlexPreview"
 import Inspector from "@/presentation/panels/Inspector"
-import IconRail, { type IconRailItem } from "@/presentation/shell/navigation/IconRail"
 import type { ListColumnItem } from "@/presentation/shell/navigation/ListColumn"
 import { createBrowserSupabase } from "@/services/supabase/browser"
 import SettingsDrawer from "@/components/settings/SettingsDrawer"
@@ -56,46 +54,14 @@ function nextActionLogId() {
 // instead of the workspace's own identity — a relationship can have zero,
 // one, or several linked LINE accounts (confirmed real case: a company with
 // 2 LINE accounts for different staff).
-// Navigation redesign (owner, 2026-07-16): left rail is the system's central
-// nav — Relationship Workspace (ข้อความ) is Home, every other real module
-// listed here. "รายงาน" intentionally omitted — no real report page exists
-// yet in this repo; adding a link to a page that doesn't exist would be a
-// guess, not a fix.
-const RAIL_ITEMS: IconRailItem[] = [
-  { key: "dashboard", label: "เลขา", icon: LayoutGrid, href: "/admin/dashboard" },
-  { key: "relationships", label: "ข้อความ", icon: MessageCircle, href: "/admin/relationships" },
-  { key: "jobs", label: "งาน", icon: Briefcase, href: "/admin/jobs" },
-  { key: "partners", label: "คู่ค้า", icon: Building2, href: "/admin/partners" },
-  { key: "transactions", label: "เอกสาร", icon: FileText, href: "/admin/transactions" },
-  { key: "debt-tracking", label: "การเงิน", icon: Wallet, href: "/admin/debt-tracking" },
-  { key: "pits", label: "บ่อวัสดุ", icon: Mountain, href: "/admin/pits" },
-  // Equipment GPS/Relay Permission System (owner spec, 2026-07-24): "เพิ่ม
-  // กล่องตั้งค่า Setting ของระบบควบคุมเครื่องยนต์อัตโนมัติขึ้นมาไว้ด้วย" — a real
-  // top-level nav entry, not just a URL only discoverable by typing it.
-  { key: "equipment", label: "เครื่องยนต์", icon: Wrench, href: "/admin/equipment" },
-  // Finance Summary (owner request 2026-07-25): "ยังไม่เห็นกำไรและงบดุลบริษัทเลย"
-  // — a real cash-flow chart from real documents, reached via a small rail
-  // icon per explicit instruction, not a new prominent destination.
-  { key: "finance", label: "ภาพรวมการเงิน", icon: BarChart3, href: "/admin/finance" },
-  // Infrastructure & Costs (owner request, 2026-08-03): "หน้าจอค่าใช้จ่าย...
-  // ขึ้นมาแสดงผลในค่าใช้จ่ายและตัวประมวลผลต่างๆ" — real registry/
-  // infrastructure.json data already existed (every service + real
-  // cost_monthly_thb) but had zero UI ever reading it. Placed next to
-  // telemetry (สถาปัตยกรรม), same "what does the system actually depend on"
-  // family of pages.
-  { key: "infrastructure", label: "ค่าใช้จ่าย", icon: Server, href: "/admin/infrastructure" },
-  // RunPod / Cloud GPU console shortcut (owner, 2026-08-03): "เปิด URL
-  // https://console.runpod.io/pods ผ่าน Default Browser ของเครื่อง macOS
-  // ทันที" — deliberately NO href: IconRail renders href items as a Next
-  // <Link>, which inside the Tauri desktop app just navigates the app's own
-  // webview to runpod.io instead of opening the real system browser. This
-  // item has no href on purpose so IconRail falls back to calling
-  // onSelectRail (wired below to openExternal), the same
-  // works-in-both-web-and-Tauri pattern already used for speak_native.
-  { key: "runpod", label: "Cloud GPU", icon: Cloud },
-]
-
-const RUNPOD_CONSOLE_URL = "https://console.runpod.io/pods"
+// RAIL_ITEMS RETIRED (START-HERE ข้อ17 + ข้อ22, dna-ui-master-template
+// 2026-09-25): shell ของหน้านี้ = WorkspaceFrame โดยตรง — จุดหมายทั้งหมด
+// (เลขา·ข้อความ/ความสัมพันธ์·งาน·คู่ค้า·เอกสาร·การเงิน·บ่อวัสดุ·เครื่องยนต์·
+// ภาพรวมการเงิน·ค่าใช้จ่าย·Cloud GPU) ย้ายเข้า drawer ของ frame
+// (app/workspace/WorkspaceFrame.tsx · APPS — route เดิมทุกตัว) · history เดิม
+// ของ rail แต่ละรายการ (owner requests 2026-07-16→08-03) ดูได้จาก git log
+// (workspace.tsx @HEAD ก่อนการแทนที่) · Cloud GPU คง openExternal pattern
+// (Tauri เปิด browser จริง — เหตุผลเดิมที่ rail ไม่มี href ยังใช้ได้)
 
 function fmtTime(d: string) {
   return new Date(d).toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit" })
@@ -137,15 +103,15 @@ function openHtmlDocument(html: string) {
 // AppShell screen (rollback path — same URL/session/data, byte-for-byte
 // behavior); default renders the BusinessWorkspace-family screen the Owner
 // chose. Both wrap ONE shared `workspaceContent` fragment — zero logic copies.
-export function RelationshipWorkspacePage({ initialRelationshipId, legacyUi = false }: { initialRelationshipId: string | null; legacyUi?: boolean }) {
+export function RelationshipWorkspacePage({ initialRelationshipId }: { initialRelationshipId: string | null }) {
   return (
     <WorkspaceProvider>
-      <RelationshipWorkspace initialRelationshipId={initialRelationshipId} legacyUi={legacyUi} />
+      <RelationshipWorkspace initialRelationshipId={initialRelationshipId} />
     </WorkspaceProvider>
   )
 }
 
-function RelationshipWorkspace({ initialRelationshipId, legacyUi = false }: { initialRelationshipId: string | null; legacyUi?: boolean }) {
+function RelationshipWorkspace({ initialRelationshipId }: { initialRelationshipId: string | null }) {
   const { state, dispatch } = useWorkspace()
   const [relationships, setRelationships] = useState<Relationship[]>([])
   const [loading, setLoading] = useState(true)
@@ -1228,11 +1194,12 @@ function RelationshipWorkspace({ initialRelationshipId, legacyUi = false }: { in
     },
   ] : []
 
-  const railItems: IconRailItem[] = RAIL_ITEMS.map((item) => {
-    if (item.key === "pits" && pendingQuotesCount > 0) return { ...item, badge: pendingQuotesCount }
-    if (item.key === "finance" && pendingFinanceCount > 0) return { ...item, badge: pendingFinanceCount }
-    return item
-  })
+  // badge ตัวเลขจริงเดิมของ rail (pits = รอเสนอราคา · finance = การเงินค้าง)
+  // ย้ายเข้า drawer ของ WorkspaceFrame — ชื่อตัวแปร state คงเดิมทุกตัว
+  const frameItemBadges: Record<string, number> = {
+    ...(pendingQuotesCount > 0 ? { "บ่อวัสดุ": pendingQuotesCount } : {}),
+    ...(pendingFinanceCount > 0 ? { "การเงิน": pendingFinanceCount } : {}),
+  }
 
   // ── ONE content fragment, TWO display layers ─────────────────────────────
   // Everything below (AppHeader/debt/drafts/timeline/ActionBar/cockpit/
@@ -1605,33 +1572,16 @@ function RelationshipWorkspace({ initialRelationshipId, legacyUi = false }: { in
     </>
   )
 
-  // ── ROLLBACK SCREEN (?ui=legacy): the original AppShell display, same
-  // content fragment, same behavior. Kept until the Owner inspects and
-  // approves the new screen; removing it is a separate approved change.
-  if (legacyUi) {
-    return (
-      <AppShell
-        railItems={railItems}
-        activeRailKey="relationships"
-        onSelectRail={(key) => {
-          if (key === "runpod") openExternal(RUNPOD_CONSOLE_URL)
-        }}
-        listItems={listItems}
-        activeListId={activeId}
-        onSelectList={selectRelationship}
-        listSearchPlaceholder="ค้นหาชื่อหรือข้อความ..."
-        listEmptyMessage={loading ? "กำลังโหลด..." : "ยังไม่มีลูกค้าในระบบ"}
-        listCollapsible
-      >
-        {workspaceContent}
-      </AppShell>
-    )
-  }
+  // ROLLBACK SCREEN (?ui=legacy) DELETED — START-HERE ข้อ22 (master template):
+  // ย้อนกลับผ่าน Git เท่านั้น ไม่เก่าสองชุดเปิดคู่เป็นผลสุดท้าย ·
+  // ไม่มี switch/ปุ่มกลับ UI เดิมในหน้านี้อีกต่อไป (หน้า = frame โดยตรง)
 
-  // ── NEW DISPLAY — the format the Owner chose: BusinessWorkspace-family
-  // shell (canvas tokens + IconRail + resizable list + TabStrip), imported
-  // from the SAME presentation modules /workspace renders with. Same rail
-  // destinations (RAIL_ITEMS), same list (listItems), same content above.
+
+  // ── NEW DISPLAY (START-HERE ข้อ17, dna-ui-master-template 2026-09-25):
+  // WorkspaceFrame = shell ของหน้าโดยตรง — ไม่มี iframe ครอบ UI เก่า ไม่มี
+  // ปุ่มกลับเครื่องมือเดิม · feed/รายชื่อ/inspector จริง = แท็บแรกตรงกลาง
+  // (ความสัมพันธ์) · แชท = แท็บที่สอง · list pane + divider + TabStrip เดิม
+  // ย้ายเข้าแท็บกลาง — endpoints/logic/formatMoney ไม่เปลี่ยนแม้แต่บรรทัด
   const tabIdSet = [...new Set([...openRelIds, ...(activeId ? [activeId] : [])])]
   const relTabs = tabIdSet.map((id) => ({
     id,
@@ -1641,88 +1591,87 @@ function RelationshipWorkspace({ initialRelationshipId, legacyUi = false }: { in
   }))
 
   return (
-    <div className="flex h-[100dvh] w-full overflow-hidden bg-[#F0EBE5] text-stone-800">
-      <IconRail
-        items={railItems}
-        activeKey="relationships"
-        onSelect={(key) => {
-          if (key === "runpod") openExternal(RUNPOD_CONSOLE_URL)
-        }}
-      />
-
-      {/* LEFT — รายชื่อลูกค้า: แหล่งข้อมูล/กฎ unread/highlight เดิมทั้งหมด */}
-      {listCollapsed ? (
-        <button
-          type="button"
-          onClick={() => setListCollapsed(false)}
-          title="เปิดรายชื่อลูกค้า"
-          className="flex w-4 flex-shrink-0 items-center justify-center border-r border-[#E9E1D6] bg-[#F7F4EF] text-stone-400 hover:text-stone-700"
-        >
-          <ChevronRight className="h-3.5 w-3.5" />
-        </button>
-      ) : (
-        <div
-          className="flex shrink-0 flex-col border-r border-[#E9E1D6] bg-[#FDFBF8]"
-          style={{ width: listWidth, maxWidth: "calc(100vw - 100px)" }}
-        >
-          <div className="flex items-center gap-2 border-b border-[#E9E1D6] px-3 py-2">
-            <span className="text-xs font-semibold">ลูกค้า / ความสัมพันธ์</span>
-            <span className="ml-auto text-[10px] text-stone-400">{listItems.length} ราย</span>
-            <button
-              type="button"
-              onClick={() => setListCollapsed(true)}
-              title="ย่อรายชื่อ"
-              className="flex h-6 w-6 items-center justify-center rounded-md border border-[#E9E1D6] text-stone-500 hover:border-[#D5C8B6]"
-            >
-              <ChevronLeft className="h-3.5 w-3.5" />
-            </button>
+    <WorkspaceFrame
+      centerTab={{ key: "relationships", label: "ความสัมพันธ์" }}
+      initialTab="relationships"
+      selfRoute="/admin/relationships"
+      itemBadges={frameItemBadges}
+    >
+      <div className="flex h-full w-full overflow-hidden bg-[#F0EBE5] text-stone-800">
+        {/* LEFT — รายชื่อลูกค้า: แหล่งข้อมูล/กฎ unread/highlight เดิมทั้งหมด */}
+        {listCollapsed ? (
+          <button
+            type="button"
+            onClick={() => setListCollapsed(false)}
+            title="เปิดรายชื่อลูกค้า"
+            className="flex w-4 flex-shrink-0 items-center justify-center border-r border-[#E9E1D6] bg-[#F7F4EF] text-stone-400 hover:text-stone-700"
+          >
+            <ChevronRight className="h-3.5 w-3.5" />
+          </button>
+        ) : (
+          <div
+            className="flex shrink-0 flex-col border-r border-[#E9E1D6] bg-[#FDFBF8]"
+            style={{ width: listWidth, maxWidth: "calc(100vw - 100px)" }}
+          >
+            <div className="flex items-center gap-2 border-b border-[#E9E1D6] px-3 py-2">
+              <span className="text-xs font-semibold">ลูกค้า / ความสัมพันธ์</span>
+              <span className="ml-auto text-[10px] text-stone-400">{listItems.length} ราย</span>
+              <button
+                type="button"
+                onClick={() => setListCollapsed(true)}
+                title="ย่อรายชื่อ"
+                className="flex h-6 w-6 items-center justify-center rounded-md border border-[#E9E1D6] text-stone-500 hover:border-[#D5C8B6]"
+              >
+                <ChevronLeft className="h-3.5 w-3.5" />
+              </button>
+            </div>
+            <div className="min-h-0 flex-1 overflow-hidden">
+              <ListColumn
+                items={listItems}
+                activeId={activeId}
+                onSelect={openRelationship}
+                searchPlaceholder="ค้นหาชื่อหรือข้อความ..."
+                emptyMessage={loading ? "กำลังโหลด..." : "ยังไม่มีลูกค้าในระบบ"}
+              />
+            </div>
           </div>
-          <div className="min-h-0 flex-1 overflow-hidden">
-            <ListColumn
-              items={listItems}
-              activeId={activeId}
-              onSelect={openRelationship}
-              searchPlaceholder="ค้นหาชื่อหรือข้อความ..."
-              emptyMessage={loading ? "กำลังโหลด..." : "ยังไม่มีลูกค้าในระบบ"}
-            />
+        )}
+
+        {/* DIVIDER — ลากปรับขนาดซ้าย↔ขวา (แบบ BusinessWorkspace) */}
+        {!listCollapsed && (
+          <div
+            role="separator"
+            aria-orientation="vertical"
+            onPointerDown={(e) => {
+              listDragging.current = true
+              ;(e.target as HTMLElement).setPointerCapture(e.pointerId)
+            }}
+            onPointerMove={(e) => {
+              if (!listDragging.current) return
+              setListWidth(Math.min(560, Math.max(200, e.clientX - 64)))
+            }}
+            onPointerUp={() => {
+              listDragging.current = false
+            }}
+            className="w-1 flex-shrink-0 cursor-col-resize bg-[#E9E1D6] hover:bg-[#B49C7C]"
+          />
+        )}
+
+        {/* RIGHT — TabStrip ของความสัมพันธ์ที่เปิดไว้ + content เดิมทั้งผืน */}
+        <div className="flex min-w-0 flex-1 flex-col bg-[#FDFBF8]">
+          <TabStrip
+            tabs={relTabs}
+            activeTabId={activeId}
+            onSelect={(id) => void selectRelationship(id)}
+            onClose={closeRelationshipTab}
+            dirtyTabIds={[]}
+            fileStates={{}}
+          />
+          <div className="relative min-h-0 flex-1 overflow-hidden">
+            {workspaceContent}
           </div>
-        </div>
-      )}
-
-      {/* DIVIDER — ลากปรับขนาดซ้าย↔ขวา (แบบ BusinessWorkspace) */}
-      {!listCollapsed && (
-        <div
-          role="separator"
-          aria-orientation="vertical"
-          onPointerDown={(e) => {
-            listDragging.current = true
-            ;(e.target as HTMLElement).setPointerCapture(e.pointerId)
-          }}
-          onPointerMove={(e) => {
-            if (!listDragging.current) return
-            setListWidth(Math.min(560, Math.max(200, e.clientX - 64)))
-          }}
-          onPointerUp={() => {
-            listDragging.current = false
-          }}
-          className="w-1 flex-shrink-0 cursor-col-resize bg-[#E9E1D6] hover:bg-[#B49C7C]"
-        />
-      )}
-
-      {/* RIGHT — TabStrip ของความสัมพันธ์ที่เปิดไว้ + content เดิมทั้งผืน */}
-      <div className="flex min-w-0 flex-1 flex-col bg-[#FDFBF8]">
-        <TabStrip
-          tabs={relTabs}
-          activeTabId={activeId}
-          onSelect={(id) => void selectRelationship(id)}
-          onClose={closeRelationshipTab}
-          dirtyTabIds={[]}
-          fileStates={{}}
-        />
-        <div className="relative min-h-0 flex-1 overflow-hidden">
-          {workspaceContent}
         </div>
       </div>
-    </div>
+    </WorkspaceFrame>
   )
 }

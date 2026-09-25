@@ -1,10 +1,11 @@
 /**
  * relationships-ui-test.ts — /admin/relationships display-layer replacement
- * (2026-09-24). Structural, source-truth only: proves the new
- * BusinessWorkspace-family screen reuses the SAME endpoints, permissions,
- * content fragment and canonical money sources as the original screen, that
- * the ?ui=legacy rollback exists, and that NO calculation or backend was
- * added/removed. No mocks, no fixtures, no network.
+ * (2026-09-24; contract ปรับตาม START-HERE ข้อ17/22 dna-ui-master-template
+ * 2026-09-25: shell = WorkspaceFrame โดยตรง, ?ui=legacy/rollback branch
+ * ถูกลบ — ย้อนกลับผ่าน Git เท่านั้น). Structural, source-truth only: proves
+ * the screen reuses the SAME endpoints, permissions, ONE content fragment and
+ * canonical money sources as the original screen, and that NO calculation or
+ * backend was added/removed. No mocks, no fixtures, no network.
  *
  * PASS/FAIL per check; exit 1 on any FAIL.
  */
@@ -35,14 +36,14 @@ const feed = read("app/admin/relationships/feed.ts");
 const middleware = read("middleware.ts");
 
 // ── R1: same route, display switch, ONE content source ──────────────────────
-check("R1. root page reads ?ui=legacy into legacyUi", rootPage.includes('sp?.ui === "legacy"'));
-check("R1. deep-link page reads ?ui=legacy too", deepPage.includes('sp.ui === "legacy"') && deepPage.includes("initialRelationshipId={relationshipId}"));
-check("R1. rollback branch renders the original AppShell", ws.includes("ROLLBACK SCREEN (?ui=legacy)") && ws.includes("if (legacyUi)"));
-check("R1. ONE content fragment shared by both shells (declared once, used twice)", (ws.match(/const workspaceContent = /g) ?? []).length === 1 && (ws.match(/\{workspaceContent\}/g) ?? []).length === 2);
+check("R1. root page renders the frame shell — no ?ui=legacy switch (START-HERE ข้อ17/22: ไม่มีปุ่ม/เส้นทางกลับ UI เก่า)", rootPage.includes("<RelationshipWorkspacePage") && !rootPage.includes("legacyUi"));
+check("R1. deep-link page keeps initialRelationshipId + legacy switch removed", deepPage.includes("initialRelationshipId={relationshipId}") && !deepPage.includes("legacyUi"));
+check("R1. old AppShell rollback branch deleted (rollback = git per ข้อ22, marker comment kept)", !ws.includes("if (legacyUi)") && !ws.includes("<AppShell") && ws.includes("ROLLBACK SCREEN (?ui=legacy) DELETED"));
+check("R1. ONE content fragment, ONE render site (declared once, used once inside the frame tab)", (ws.match(/const workspaceContent = /g) ?? []).length === 1 && (ws.match(/\{workspaceContent\}/g) ?? []).length === 1);
 check("R1. both pages still render RelationshipWorkspacePage (same component)", rootPage.includes("<RelationshipWorkspacePage") && deepPage.includes("<RelationshipWorkspacePage"));
 
 // ── R2: new shell = /workspace component family ─────────────────────────────
-check("R2. IconRail imported as COMPONENT (presentation/shell)", ws.includes('import IconRail, { type IconRailItem } from "@/presentation/shell/navigation/IconRail"'));
+check("R2. shell = WorkspaceFrame from app/workspace (START-HERE ข้อ17 — UI ใหม่โดยตรง); IconRail retired from this page", ws.includes('import { WorkspaceFrame } from "@/app/workspace/WorkspaceFrame"') && ws.includes("<WorkspaceFrame") && !ws.includes("import IconRail"));
 check("R2. ListColumn + TabStrip imported from presentation/shell", ws.includes('from "@/presentation/shell/navigation/ListColumn"') && ws.includes('from "@/presentation/shell/ide/TabStrip"'));
 check("R2. BusinessWorkspace canvas tokens used (F0EBE5/FDFBF8/E9E1D6)", ws.includes("bg-[#F0EBE5]") && ws.includes("bg-[#FDFBF8]") && ws.includes("border-[#E9E1D6]"));
 check("R2. resizable list divider (drag) present", ws.includes('role="separator"') && ws.includes("cursor-col-resize"));
