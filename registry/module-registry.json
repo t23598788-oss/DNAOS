@@ -16104,6 +16104,19 @@
         "GET"
       ],
       "status": "active"
+    },
+    "scripts/debt-patch-freeze-test.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "DEBT PATCH FREEZE — negative control (Owner decision ⑤a-B, 2026-09-24).",
+      "purpose_th": "DEBT PATCH FREEZE — negative control (Owner decision ⑤a-B, 2026-09-24).",
+      "exports": [
+        "appendDebtEvent",
+        "createDebtTracking",
+        "refreshDebtSnapshotFromLedger",
+        "updateDebtTracking"
+      ],
+      "status": "active"
     }
   },
   "excluded": [

@@ -197,19 +197,20 @@ export async function getDebtTrackingById(id: string) {
   };
 }
 
+// FREEZE — Owner decision ⑤a-B (2026-09-24): PATCH writer = configuration columns
+// เท่านั้น. สาขาเขียนคอลัมน์ยอดหนี้ (money columns) ถูกถอดออกจาก legacy authority
+// นี้แล้ว — LEGACY_DEBT_PATCH_DIRECT_MONEY_OVERWRITE = 0 · negative control =
+// scripts/debt-patch-freeze-test.ts · ยอดหนี้เปลี่ยนผ่าน canonical debt_events ผ่าน
+// /api/admin/debt-trackings/[id]/events เท่านั้น. ไม่มี semantics ใหม่ — CREATE/DELETE
+// คงรูปเดิม = DEFERRED_DEBT_MODEL_DECISION · debt-write contract คงเดิม · B-05 ห้ามแตะ.
 export async function updateDebtTracking(id: string, payload: {
   partner_id?: string;
   customer_name?: string;
-  principal_amount?: number;
   fee_rate?: number;
   interest_start_at?: string;
 }) {
   const update: any = { last_refreshed_at: new Date().toISOString() };
   if (payload.partner_id) update.customer_company_id = payload.partner_id;
-  if (payload.principal_amount !== undefined) {
-    update.total_outstanding = payload.principal_amount;
-    update.overdue_amount = payload.principal_amount;
-  }
   if (payload.interest_start_at) update.debt_start_at = payload.interest_start_at;
 
   const { data, error } = await supabaseAdmin()

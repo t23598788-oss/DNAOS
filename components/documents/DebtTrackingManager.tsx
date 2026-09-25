@@ -63,6 +63,8 @@ export default function DebtTrackingManager() {
   const [loading, setLoading] = useState(false)
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [editingId, setEditingId] = useState<string | null>(null)
+  // FREEZE ⑤a-B: เก็บค่าเงินต้นตั้งต้นตอนเข้าโหมดแก้ไข เพื่อปฏิเสธการแก้ยอดแบบเห็นชัด
+  const [editOriginalPrincipal, setEditOriginalPrincipal] = useState<string | null>(null)
   const [form, setForm] = useState(EMPTY_FORM)
   const [saving, setSaving] = useState(false)
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null)
@@ -109,6 +111,7 @@ export default function DebtTrackingManager() {
 
   function startEdit(row: DebtTrackingRow) {
     setEditingId(row.id)
+    setEditOriginalPrincipal(String(row.principal_amount))
     setForm({
       partnerId: row.partner_id ?? "",
       principalAmount: String(row.principal_amount),
@@ -123,12 +126,21 @@ export default function DebtTrackingManager() {
 
   function resetForm() {
     setEditingId(null)
+    setEditOriginalPrincipal(null)
     setForm(EMPTY_FORM)
   }
 
   async function save() {
     if (!form.partnerId || !form.principalAmount) {
       setMsg({ ok: false, text: "ต้องเลือกพาร์ทเนอร์และระบุเงินต้น" })
+      return
+    }
+    // FREEZE — Owner decision ⑤a-B (2026-09-24): แก้ไข (PATCH) = config เท่านั้น —
+    // ไม่ส่ง monetary key และถ้าผู้ใช้แก้ค่าเงินต้นในฟอร์มแก้ไข ให้ปฏิเสธแบบเห็นชัด
+    // (ไม่ silent ignore, ไม่ silent overwrite) — ยอดหนี้เปลี่ยนผ่าน canonical
+    // events (ปุ่มปรับยอด/ปิดหนี้) เท่านั้น · negative control = debt-patch-freeze-test
+    if (editingId && editOriginalPrincipal != null && Number(form.principalAmount) !== Number(editOriginalPrincipal)) {
+      setMsg({ ok: false, text: "FREEZE: แก้ยอดหนี้/เงินต้นผ่านฟอร์มนี้ไม่ได้แล้ว — ใช้ปุ่มปรับยอด/ปิดหนี้ (canonical events) แทน" })
       return
     }
     setSaving(true)
@@ -138,9 +150,9 @@ export default function DebtTrackingManager() {
       const payload = {
         partnerId: form.partnerId,
         customerName: partner?.name ?? "",
-        principalAmount: Number(form.principalAmount),
         feeRate: Number(form.feeRate),
         interestStartAt: form.interestStartAt,
+        ...(editingId ? {} : { principalAmount: Number(form.principalAmount) }), // FREEZE ⑤a-B: PATCH ไม่มี monetary key
       }
       const res = await fetch(editingId ? `/api/admin/debt-trackings/${editingId}` : "/api/admin/debt-trackings", {
         method: editingId ? "PATCH" : "POST",

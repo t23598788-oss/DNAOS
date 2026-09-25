@@ -31,17 +31,35 @@ export async function GET(_req: NextRequest, { params }: Params) {
   }
 }
 
+// FREEZE — Owner decision ⑤a-B (2026-09-24): legacy PATCH = configuration fields
+// เท่านั้น (company re-point + interest start date). ห้ามเขียนยอดหนี้ตรง ๆ ผ่าน
+// legacy path — LEGACY_DEBT_PATCH_DIRECT_MONEY_OVERWRITE = 0 พิสูจน์โดย
+// scripts/debt-patch-freeze-test.ts (negative control: monetary key มาใน body →
+// 422 REJECT — contract = fail-closed, ไม่ใช่ ignore และไม่ใช่ silent overwrite).
+// ยอดหนี้เปลี่ยนผ่าน canonical events (/events route → engines/canonical/debt-write)
+// เท่านั้น — ไม่มี semantics ใหม่, ไม่ขยาย debt-write contract, ไม่แตะ B-05
+// (executeDebtCreate ยังเป็น separate round ตาม tests เดิม). CREATE/DELETE = DEFERRED_DEBT_MODEL_DECISION.
+const FROZEN_MONETARY_KEYS = ["principalAmount", "principal_amount", "total_outstanding", "overdue_amount"]
+
 export async function PATCH(req: NextRequest, { params }: Params) {
   const auth = await requireAuth(ADMIN_TIER)
   if (auth instanceof NextResponse) return auth
 
   const { id } = await params
   const body = await req.json()
+  if (FROZEN_MONETARY_KEYS.some((key) => key in body)) {
+    return NextResponse.json(
+      {
+        error: "ยังแก้ยอดหนี้ผ่าน PATCH ไม่ได้แล้ว (FREEZE) — ยอดหนี้เปลี่ยนผ่าน canonical events (ปุ่มปรับยอด/ปิดหนี้) เท่านั้น",
+        code: "DEBT_PATCH_MONETARY_FROZEN",
+      },
+      { status: 422 },
+    )
+  }
   try {
     const updated = await updateDebtTracking(id, {
       partner_id: body.partnerId,
       customer_name: body.customerName,
-      principal_amount: body.principalAmount != null ? Number(body.principalAmount) : undefined,
       fee_rate: body.feeRate != null ? Number(body.feeRate) : undefined,
       interest_start_at: body.interestStartAt,
     })
