@@ -19,6 +19,7 @@ import {
   LayoutGrid, FileSignature, Banknote, Mountain, Server, Cloud,
 } from "lucide-react";
 import { openExternal } from "@/components/admin/openExternal";
+import FlexPreview from "@/presentation/viewer/FlexPreview";
 
 type FrameItem = {
   icon: React.ElementType;
@@ -93,6 +94,9 @@ const FRAME_CSS = `
 #dna-frame .content--fill{padding:0;min-height:0;overflow:hidden}
 #dna-frame .content--fill>div{flex:1 1 0%;min-height:0}
 #dna-frame .count{background:#c93232;color:#fff;min-width:18px;border-radius:10px;font-size:11px;padding:0 5px;margin-left:auto}
+#dna-frame .msg-list{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:10px;padding-bottom:12px}
+#dna-frame button[disabled]{opacity:.5;cursor:not-allowed}
+#dna-frame button[disabled]:hover{background:transparent}
 #dna-frame .blank{text-align:center;padding:42px 0}
 #dna-frame .compose{border:1px solid var(--line);border-radius:16px;padding:12px;margin-top:auto}
 #dna-frame textarea{width:100%;resize:vertical;min-height:54px;background:transparent;border:0;outline:none}
@@ -122,11 +126,34 @@ export function WorkspaceFrame({
 }) {
   const router = useRouter();
   const [drawer, setDrawer] = useState<null | "apps" | "actions">(null);
-  const [note, setNote] = useState<{ title: string; body?: string } | null>(null);
   const [draft, setDraft] = useState("");
   const [active, setActive] = useState(initialTab ?? centerTab?.key ?? "แชท");
   const fileRef = useRef<HTMLInputElement>(null);
   const showChat = active === "แชท";
+  // LOGIC WIRING (owner 2026-09-25) — เสียบ backend จริงเข้า element เดิมของ
+  // frame นี้เท่านั้น (ไม่เปลี่ยนโครง DOM/ID/Class):
+  //   textarea → POST /api/chat (cognitive pipeline จริง · session gate ของ route เดิม)
+  //   แนบไฟล์  → POST /api/admin/upload (bucket attachments จริง · route เดิม)
+  //   กลางจอ   → render message/response ที่ได้จาก API จริง
+  const [messages, setMessages] = useState<{
+    id: number;
+    role: "user" | "ai" | "system";
+    text: string;
+    confirm?: { action: string; token: string; busy?: boolean };
+    docHtml?: string;
+    flexPreview?: unknown;
+  }[]>([]);
+  const [sending, setSending] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const msgSeq = useRef(0);
+  const pushMsg = (
+    role: "user" | "ai" | "system",
+    text: string,
+    extra?: { confirm?: { action: string; token: string }; docHtml?: string; flexPreview?: unknown },
+  ) => {
+    msgSeq.current += 1;
+    setMessages((m) => [...m, { id: msgSeq.current, role, text, ...extra }]);
+  };
 
   // reference: Escape ปิด drawer
   useEffect(() => {
@@ -153,6 +180,107 @@ export function WorkspaceFrame({
       return;
     }
     router.push(item.route);
+  };
+
+  // textarea → /api/chat จริง (route เดิม = runCognitivePipeline · เดียวกับที่
+  // relationships runCommand เรียก). sessionKey คงที่ของ shell ตัวนี้เพื่อให้
+  // memory แยกจาก relationship อื่น (อุบัติการณ์ singleton 2026-07-31 ที่
+  // cognitive/memory/session.ts) · ไม่มี knownCustomerId — shell ไม่รู้ลูกค้า
+  const sendDraft = async () => {
+    const text = draft.trim();
+    if (!text || sending) return;
+    setDraft("");
+    setSending(true);
+    pushMsg("user", text);
+    try {
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: text, sessionKey: "workspace-shell" }),
+      });
+      const data = await res.json().catch(() => null);
+      if (res.ok && data) {
+        const text = typeof data.text === "string" && data.text ? data.text : JSON.stringify(data);
+        pushMsg("ai", text, {
+          ...(data.confirm_token
+            ? { confirm: { action: String(data.confirm_action ?? ""), token: String(data.confirm_token) } }
+            : {}),
+          ...(data.doc_html ? { docHtml: String(data.doc_html) } : {}),
+          ...(data.flex_preview ? { flexPreview: data.flex_preview } : {}),
+        });
+        // navigate_url = contract ของ pipeline ที่ตอบ "เปิดหน้าให้แล้วครับ"
+        // — route ที่ server รู้จักเท่านั้น (ตัวเดียวกับ navigation intercept)
+        if (data.navigate_url) router.push(String(data.navigate_url));
+      } else {
+        pushMsg("system", `ส่งคำสั่งไม่สำเร็จ: ${data?.error ?? data?.text ?? `HTTP ${res.status}`}`);
+      }
+    } catch {
+      pushMsg("system", "ติดต่อ /api/chat ไม่สำเร็จ ลองใหม่อีกครั้งครับ");
+    } finally {
+      setSending(false);
+    }
+  };
+
+  // แนบไฟล์ → /api/admin/upload จริง (route เดิม = bucket attachments · ไม่ส่ง
+  // documentId → ลงโฟลเดอร์ unfiled — หน้าจอเดียวกับที่ relationships เรียก)
+  const uploadFiles = async (files: FileList | null) => {
+    if (!files || files.length === 0 || uploading) return;
+    for (const file of Array.from(files)) {
+      pushMsg("user", `📎 แนบไฟล์ ${file.name}`);
+      setUploading(true);
+      try {
+        const formData = new FormData();
+        formData.append("file", file);
+        const res = await fetch("/api/admin/upload", { method: "POST", body: formData });
+        const data = await res.json().catch(() => null);
+        if (res.ok && data && data.path) {
+          pushMsg("system", `📎 อัปโหลด ${data.name} แล้ว (${data.path})`);
+        } else {
+          pushMsg("system", `แนบไฟล์ไม่สำเร็จ: ${data?.error ?? `HTTP ${res.status}`}`);
+        }
+      } catch {
+        pushMsg("system", "แนบไฟล์ไม่สำเร็จ ลองใหม่อีกครั้งครับ");
+      } finally {
+        setUploading(false);
+      }
+    }
+    if (fileRef.current) fileRef.current.value = "";
+  };
+
+  // pattern เดิมจาก relationships (openHtmlDocument) — เปิด doc_html จริง
+  // จาก cognitive/executor ในแท็บใหม่ด้วย blob URL (revoke ตอนโหลดเสร็จ)
+  const openHtmlDocument = (html: string) => {
+    const blob = new Blob([html], { type: "text/html" });
+    const url = URL.createObjectURL(blob);
+    const win = window.open(url, "_blank");
+    if (!win) {
+      URL.revokeObjectURL(url);
+      return;
+    }
+    win.addEventListener("load", () => URL.revokeObjectURL(url), { once: true });
+  };
+
+  // เส้น "ยืนยันงาน/เอกสาร" → POST /api/chat/confirm (route เดิม: Rule-72
+  // preview_token → dispatchAction mode=execute → ผล {ok,error,line_send_error})
+  const confirmMsg = async (id: number, action: string, token: string) => {
+    setMessages((m) => m.map((x) => (x.id === id && x.confirm ? { ...x, confirm: { ...x.confirm, busy: true } } : x)));
+    try {
+      const res = await fetch("/api/chat/confirm", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action, preview_token: token }),
+      });
+      const data = await res.json().catch(() => null);
+      if (res.ok && data?.ok) {
+        pushMsg("system", data.line_send_error ? `ยืนยันแล้ว แต่ส่ง LINE ไม่สำเร็จ: ${data.line_send_error}` : "✅ ยืนยันสำเร็จ");
+      } else {
+        pushMsg("system", `ยืนยันไม่สำเร็จ: ${data?.error ?? data?.line_send_error ?? `HTTP ${res.status}`}`);
+      }
+    } catch {
+      pushMsg("system", "เชื่อมต่อไม่สำเร็จ ลองใหม่อีกครั้งครับ");
+    } finally {
+      setMessages((m) => m.map((x) => (x.id === id ? { ...x, confirm: undefined } : x)));
+    }
   };
 
   return (
@@ -229,15 +357,45 @@ export function WorkspaceFrame({
         <div className={showChat ? "content" : "content content--fill"} aria-live="polite">
           {showChat ? (
             <>
-              {note ? (
-                <div className="result">
-                  <div>{note.title}</div>
-                  {note.body && <div className="note" style={{ marginTop: 6 }}>{note.body}</div>}
-                </div>
-              ) : (
+              {messages.length === 0 ? (
                 <div className="blank">
                   วันนี้จะทำอะไร?
                   <div className="note">พิมพ์คำสั่ง แนบไฟล์ หรือเปิดเครื่องมือด้านข้าง</div>
+                </div>
+              ) : (
+                <div className="msg-list">
+                  {messages.map((m) => (
+                    <div className="result" key={m.id}>
+                      <div className="note">{m.role === "user" ? "คุณ" : m.role === "ai" ? "DNA OS" : "ระบบ"}</div>
+                      <div style={{ marginTop: 4, whiteSpace: "pre-wrap", overflowWrap: "anywhere" }}>{m.text}</div>
+                      {m.flexPreview != null && (
+                        <div style={{ marginTop: 8 }}>
+                          <FlexPreview flex={m.flexPreview} />
+                        </div>
+                      )}
+                      {m.docHtml && (
+                        <div style={{ marginTop: 8 }}>
+                          <button type="button" onClick={() => openHtmlDocument(m.docHtml!)}>
+                            เปิดเอกสาร (HTML เต็ม)
+                          </button>
+                        </div>
+                      )}
+                      {m.confirm && (
+                        <div className="row" style={{ marginTop: 8 }}>
+                          <button
+                            type="button"
+                            disabled={m.confirm.busy}
+                            onClick={() => void confirmMsg(m.id, m.confirm!.action, m.confirm!.token)}
+                          >
+                            {m.confirm.busy ? "กำลังยืนยัน..." : "ยืนยัน"}
+                          </button>
+                          <span className="note">รอการยืนยัน (preview token ใช้ได้ครั้งเดียว)</span>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                  {sending && <div className="note">DNA OS กำลังประมวลผล...</div>}
+                  {uploading && <div className="note">กำลังอัปโหลดไฟล์...</div>}
                 </div>
               )}
 
@@ -245,15 +403,18 @@ export function WorkspaceFrame({
                 className="compose"
                 onSubmit={(e) => {
                   e.preventDefault();
-                  if (!draft.trim()) return;
-                  // honest: อ้าง reference — ร่างเท่านั้น ไม่มี fake success
-                  setNote({ title: `คำสั่งร่าง: ${draft.trim()}`, body: "ยังไม่ส่งไปทำงาน (shell นี้ยังไม่ผูกคำสั่งกับระบบ)" });
-                  setDraft("");
+                  void sendDraft();
                 }}
               >
-                <textarea aria-label="คำสั่ง" placeholder="พิมพ์คำสั่งกับ DNA OS…" value={draft} onChange={(e) => setDraft(e.target.value)} />
+                <textarea
+                  aria-label="คำสั่ง"
+                  placeholder="พิมพ์คำสั่งกับ DNA OS…"
+                  value={draft}
+                  onChange={(e) => setDraft(e.target.value)}
+                  disabled={sending}
+                />
                 <div className="row">
-                  <button type="button" onClick={() => fileRef.current?.click()}>
+                  <button type="button" onClick={() => fileRef.current?.click()} disabled={uploading}>
                     <Paperclip /> แนบไฟล์
                   </button>
                   <input
@@ -262,12 +423,10 @@ export function WorkspaceFrame({
                     hidden
                     multiple
                     onChange={(e) => {
-                      const names = Array.from(e.target.files ?? []).map((f) => f.name);
-                      if (names.length) setNote({ title: names.join(" · "), body: "เลือกในเครื่องเท่านั้น — ยังไม่อัปโหลด" });
+                      void uploadFiles(e.target.files);
                     }}
                   />
-                  <span className="note">ยังไม่เชื่อมคำสั่งกับระบบ</span>
-                  <button className="send" type="submit" aria-label="ส่งคำสั่ง">
+                  <button className="send" type="submit" aria-label="ส่งคำสั่ง" disabled={sending}>
                     <ArrowUp />
                   </button>
                 </div>
