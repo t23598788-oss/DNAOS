@@ -26,6 +26,10 @@ interface FinanceSummary {
   months: MonthRow[]
   totals: {
     revenue_documented: number
+    revenue_subtotal: number
+    revenue_vat_output: number
+    revenue_wht_output: number
+    revenue_net_payable: number
     payments_received_verified: number
     fuel_bills: number
     outstanding_debt: number
@@ -112,6 +116,33 @@ export default function FinancePage() {
         <div style={{ border: "1px solid #eee", borderRadius: 8, padding: 12 }}>
           <div style={{ fontSize: 11, color: "#888" }}>หนี้ค้างชำระรวม</div>
           <div style={{ fontSize: 18, fontWeight: 700, color: "#c77700" }}>{thb(data.totals.outstanding_debt)} ฿</div>
+        </div>
+      </div>
+
+      {/* FINANCE CHECK (owner playable loop, 2026-09-25) — แสดงเฉพาะค่าที่ API
+          คำนวณจาก document_canonical + payment_allocations ไว้แล้วเท่านั้น
+          (ไม่มีการคำนวณซ้ำใน UI): ยอดก่อน VAT · VAT · WHT · ยอดสุทธิ ·
+          ยอดชำระ = การ์ด "เงินเข้าจริงที่ยืนยันแล้ว" (payment_allocations) ·
+          ยอดคงเหลือ = การ์ด "หนี้ค้างชำระรวม" (company_debt_current) ด้านบน */}
+      <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 8, color: "#333" }}>
+        ยอดเอกสารขาย (canonical · document_canonical — ไม่ตัดเอกสาร VOID/ใบเสนอราคา)
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, marginBottom: 32 }}>
+        <div style={{ border: "1px solid #eee", borderRadius: 8, padding: 12 }}>
+          <div style={{ fontSize: 11, color: "#888" }}>ยอดก่อน VAT</div>
+          <div style={{ fontSize: 18, fontWeight: 700 }}>{thb(data.totals.revenue_subtotal)} ฿</div>
+        </div>
+        <div style={{ border: "1px solid #eee", borderRadius: 8, padding: 12 }}>
+          <div style={{ fontSize: 11, color: "#888" }}>VAT (ออก)</div>
+          <div style={{ fontSize: 18, fontWeight: 700 }}>{thb(data.totals.revenue_vat_output)} ฿</div>
+        </div>
+        <div style={{ border: "1px solid #eee", borderRadius: 8, padding: 12 }}>
+          <div style={{ fontSize: 11, color: "#888" }}>WHT (หัก ณ ที่จ่าย)</div>
+          <div style={{ fontSize: 18, fontWeight: 700 }}>{thb(data.totals.revenue_wht_output)} ฿</div>
+        </div>
+        <div style={{ border: "1px solid #eee", borderRadius: 8, padding: 12 }}>
+          <div style={{ fontSize: 11, color: "#888" }}>ยอดสุทธิ</div>
+          <div style={{ fontSize: 18, fontWeight: 700, color: "#1a7f37" }}>{thb(data.totals.revenue_net_payable)} ฿</div>
         </div>
       </div>
 

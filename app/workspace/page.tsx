@@ -9,6 +9,7 @@ import { TOOLS } from "./_lib/businessTools";
 import { loadPartnerWorkspace } from "./_lib/partnerDisplayModel";
 import { loadConnectWorkspace } from "./_lib/connectDisplayModel";
 import { loadJobWorkspace } from "./_lib/jobDisplayModel";
+import { HomeBackBar } from "@/presentation/shell/navigation/HomeBackBar";
 
 // BUSINESS WORKSPACE — หน้าจอใช้งานจริงเพียงหน้าจอเดียวของ DNA OS (owner, 2026-09-22)
 //
@@ -86,19 +87,22 @@ export default async function WorkspacePage() {
   });
 
   return (
-    <BusinessWorkspace
-      allowedTools={allowedTools}
-      canManageSettings={resolveNavItems(user.role).some(item => item.href === "/admin/dashboard")}
-      liveModels={{
-        ...(partners ? { people: partners.listModel } : {}),
-        ...(jobs ? { jobs: jobs.listModel } : {}),
-        ...(connect ? { connections: connect.listModel } : {}),
-      }}
-      liveTargets={{
-        ...(partners?.targets ?? {}),
-        ...(jobs?.targets ?? {}),
-        ...(connect?.targets ?? {}),
-      }}
-    />
+    <>
+      <HomeBackBar />
+      <BusinessWorkspace
+        allowedTools={allowedTools}
+        canManageSettings={resolveNavItems(user.role).some(item => item.href === "/admin/dashboard")}
+        liveModels={{
+          ...(partners ? { people: partners.listModel } : {}),
+          ...(jobs ? { jobs: jobs.listModel } : {}),
+          ...(connect ? { connections: connect.listModel } : {}),
+        }}
+        liveTargets={{
+          ...(partners?.targets ?? {}),
+          ...(jobs?.targets ?? {}),
+          ...(connect?.targets ?? {}),
+        }}
+      />
+    </>
   );
 }

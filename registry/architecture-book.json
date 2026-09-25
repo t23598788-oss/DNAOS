@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-25T04:30:45.974Z",
+  "generated_at": "2026-09-25T05:39:49.243Z",
   "version": 1,
   "nodes": [
     {
@@ -29974,7 +29974,8 @@
         "module:core/auth/devReviewAccess.ts",
         "module:core/auth/session.ts",
         "module:core/navigation/resolveCapabilityAccess.ts",
-        "module:core/navigation/resolveNavItems.ts"
+        "module:core/navigation/resolveNavItems.ts",
+        "module:presentation/shell/navigation/HomeBackBar.tsx"
       ],
       "dependents": [],
       "data_tables": "UNKNOWN",
@@ -29993,8 +29994,8 @@
         {
           "name": "WorkspacePage",
           "kind": "function",
-          "line_start": 38,
-          "line_end": 104
+          "line_start": 39,
+          "line_end": 108
         }
       ],
       "import_sites": [
@@ -30042,6 +30043,11 @@
           "specifier": "./_lib/jobDisplayModel",
           "line": 11,
           "resolved_target": "app/workspace/_lib/jobDisplayModel.ts"
+        },
+        {
+          "specifier": "@/presentation/shell/navigation/HomeBackBar",
+          "line": 12,
+          "resolved_target": "presentation/shell/navigation/HomeBackBar.tsx"
         }
       ]
     },
@@ -35147,8 +35153,8 @@
         {
           "name": "FinancePage",
           "kind": "function",
-          "line_start": 73,
-          "line_end": 169
+          "line_start": 77,
+          "line_end": 200
         }
       ]
     },
@@ -81654,7 +81660,8 @@
       "dependents": [
         "module:app/admin/layout.tsx",
         "module:app/admin/ui-gallery/_lib/assemblyHost.tsx",
-        "module:app/admin/ui-gallery/_lib/componentHost.tsx"
+        "module:app/admin/ui-gallery/_lib/componentHost.tsx",
+        "module:app/workspace/page.tsx"
       ],
       "data_tables": "UNKNOWN",
       "business_capabilities": "UNKNOWN",
@@ -81672,8 +81679,8 @@
         {
           "name": "HomeBackBar",
           "kind": "function",
-          "line_start": 24,
-          "line_end": 45
+          "line_start": 43,
+          "line_end": 109
         }
       ]
     },
@@ -106823,6 +106830,11 @@
     {
       "source": "module:app/workspace/page.tsx",
       "target": "module:core/navigation/resolveNavItems.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/workspace/page.tsx",
+      "target": "module:presentation/shell/navigation/HomeBackBar.tsx",
       "label": "imports"
     },
     {
