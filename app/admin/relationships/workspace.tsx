@@ -1559,6 +1559,10 @@ function RelationshipWorkspace({ initialRelationshipId }: { initialRelationshipI
       composerContext={
         activeId
           ? {
+              // (E) มีช่องทาง LINE → composer ยิง LINE/send API เดิม (…/reply)
+              lineUserId: primaryLineUserId,
+              relationshipId: activeId,
+              // ไม่มีช่องทาง LINE → /api/chat ด้วย context ของ entity (คำสั่ง/ถาม)
               sessionKey: primaryLineUserId ?? `relationship:${activeId}`,
               knownCustomerId: activeId,
               knownCustomerName: activeRelationship?.name ?? null,
@@ -1566,6 +1570,9 @@ function RelationshipWorkspace({ initialRelationshipId }: { initialRelationshipI
             }
           : undefined
       }
+      onComposerSent={() => {
+        if (activeId) void loadDetail(activeId)
+      }}
       messagePanel={
         <ListColumn
           items={listItems}

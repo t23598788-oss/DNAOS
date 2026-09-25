@@ -75,16 +75,13 @@ const FRAME_CSS = `
 #dna-frame button:hover,#dna-frame button[aria-pressed=true]{background:var(--soft)}
 #dna-frame button[aria-disabled=true]{opacity:.45;cursor:not-allowed}
 #dna-frame button[aria-disabled=true]:hover{background:transparent}
-#dna-frame header{display:flex;align-items:center;gap:12px;padding:12px 60px 12px 16px;border-bottom:1px solid var(--line);flex-wrap:wrap}
-#dna-frame header strong{margin-right:auto;font-weight:500}
 #dna-frame .corner{position:absolute;z-index:4;right:14px;top:16px;background:var(--paper)}
 #dna-frame .gear{position:absolute;left:12px;bottom:16px;z-index:3;background:var(--paper)}
 #dna-frame .stage{position:relative;flex:1 1 auto;min-height:0;padding:84px 64px 78px;display:flex;flex-direction:column}
 #dna-frame .stage--bleed{padding:76px 12px 12px}
-#dna-frame .stage--bleed .edge.right{top:28px}
 #dna-frame .edge{position:absolute;top:20px;padding:8px}
 #dna-frame .edge.left{left:8px}
-#dna-frame .edge.right{right:8px;top:82px}
+#dna-frame .edge.right{right:8px}
 #dna-frame .drawer{position:absolute;top:76px;left:12px;right:12px;z-index:2;background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:16px;box-shadow:0 12px 24px #0002}
 #dna-frame .drawer .row,#dna-frame .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 #dna-frame .tools{display:grid;grid-template-columns:repeat(auto-fit,minmax(115px,1fr));gap:8px;margin-top:12px}
@@ -107,7 +104,7 @@ const FRAME_CSS = `
 #dna-frame .note{font-size:12px;opacity:.75}
 #dna-frame .result{padding:20px;background:var(--soft);border-radius:12px;overflow-wrap:anywhere;margin-bottom:12px}
 #dna-frame svg{width:18px;height:18px;vertical-align:middle}
-@media(max-width:500px){#dna-frame .stage{padding:72px 14px 16px}#dna-frame header{padding:10px 56px 10px 10px}#dna-frame header .note{display:none}#dna-frame .blank{padding:24px 0}#dna-frame .edge.right{top:70px}}
+@media(max-width:500px){#dna-frame .stage{padding:72px 14px 16px}#dna-frame .blank{padding:24px 0}}
 `;
 
 export function WorkspaceFrame({
@@ -116,6 +113,7 @@ export function WorkspaceFrame({
   panelOpen,
   onPanelOpenChange,
   composerContext,
+  onComposerSent,
   selfRoute,
   itemBadges,
 }: {
@@ -126,14 +124,21 @@ export function WorkspaceFrame({
   /** เปิด/ปิดแผง (controlled ก็ได้ ไม่ส่งก็ใช้ state ในตัว) */
   panelOpen?: boolean;
   onPanelOpenChange?: (open: boolean) => void;
-  /** context ของ entity ที่เลือก — composer ยิงด้วย body เดิมกับ runCommand/ask เดิม
-   *  (sessionKey/knownCustomerId/knownCustomerName) + upload ลงโฟลเดอร์ documentId */
+  /** context ของ entity ที่เลือก — ไม่มีช่องทาง LINE → ยิง /api/chat ด้วย
+   *  sessionKey/knownCustomerId/knownCustomerName (ชุดเดียวกับ runCommand/ask) +
+   *  upload ลงโฟลเดอร์ documentId · มีช่องทาง LINE → communication action
+   *  ใช้ LINE/send API เดิม (POST …/reply) */
   composerContext?: {
+    /** channel จริงของ entity — มีค่า = ส่งข้อความผ่าน LINE reply API เดิม */
+    lineUserId?: string | null;
+    relationshipId?: string;
     sessionKey?: string;
     knownCustomerId?: string;
     knownCustomerName?: string | null;
     documentId?: string;
   };
+  /** หลังส่งสำเร็จ (LINE) — ให้หน้าเจ้าของ canvas refresh timeline ตัวเอง */
+  onComposerSent?: () => void;
   /** route ของหน้าปัจจุบัน — item นี้ใน drawer แค่ปิดเมนู ไม่ navigate ซ้ำ */
   selfRoute?: string;
   /** ตัวเลขจริงจากชั้นข้อมูลของหน้า (key = label ของ item ใน drawer) */
@@ -207,9 +212,32 @@ export function WorkspaceFrame({
     setDraft("");
     setSending(true);
     pushMsg("user", text);
+    // (E) มี entity + ช่องทาง LINE → communication action ใช้ LINE/send API เดิม
+    // (POST …/reply body {text} — สัญญาเดียวกับ sendReply ของ relationships ทุกตัวอักษร)
+    if (composerContext?.lineUserId && composerContext.relationshipId) {
+      try {
+        const res = await fetch(`/api/admin/line-customers/${composerContext.lineUserId}/reply`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text }),
+        });
+        const d = await res.json().catch(() => null);
+        if (res.ok) {
+          pushMsg("system", "ส่งข้อความแล้ว");
+          onComposerSent?.();
+        } else {
+          pushMsg("system", (d && typeof d.error === "string" && d.error) || "ส่งไม่สำเร็จ");
+        }
+      } catch {
+        pushMsg("system", "เชื่อมต่อไม่สำเร็จ");
+      } finally {
+        setSending(false);
+      }
+      return;
+    }
     try {
-      // มี entity → body = sessionKey/knownCustomerId/knownCustomerName (ชุดเดียวกับ
-      // runCommand/ask ของ relationships — ข้อความ/คำสั่ง = context ของ entity)
+      // ไม่มี entity (คำสั่ง DNA OS) หรือ entity ไม่มีช่องทาง LINE (คำสั่ง/ถามกับ
+      // context ของ entity) → /api/chat เดิม
       const body: Record<string, unknown> = {
         message: text,
         sessionKey: composerContext?.sessionKey || "workspace-shell",
@@ -312,10 +340,8 @@ export function WorkspaceFrame({
     <div id="dna-frame" aria-label="โครงหน้าจอ DNA OS">
       <style>{FRAME_CSS}</style>
 
-      <header>
-        <strong>DNA OS · พื้นที่ทำงาน</strong>
-        <span className="note">เมนูอยู่ที่ขอบจอ — กดปุ่มมุมซ้าย/ขวาเพื่อเปิด</span>
-      </header>
+      {/* ONE SURFACE (B): permanent header "DNA OS · พื้นที่ทำงาน" + note ถูกถอด —
+          หน้าเริ่มต้น = canvas โล่งตาม Owner reference · ปุ่มควบคุมทั้งหมดอยู่ที่ขอบจอ */}
 
       {/* ONE SURFACE: ปุ่มมุมขวาบน = ทางเข้าแผง "ประวัติการสื่อสาร" (ถ้าหน้าส่ง
           messagePanel มา) — หน้าที่ไม่มีแผงยังไป /admin/event-inbox เหมือนเดิม */}

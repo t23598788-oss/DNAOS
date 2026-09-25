@@ -46,13 +46,15 @@ check("R1. deep-link page keeps initialRelationshipId + legacy switch removed", 
 check("R1. old AppShell rollback branch deleted (rollback = git per ข้อ22, marker comment kept)", !ws.includes("if (legacyUi)") && !ws.includes("<AppShell") && ws.includes("ROLLBACK SCREEN (?ui=legacy) DELETED"));
 check("R1. ONE content fragment, ONE render site (declared once, used once as the entity canvas)", (ws.match(/const workspaceContent = /g) ?? []).length === 1 && (ws.match(/\{activeId \? workspaceContent : null\}/g) ?? []).length === 1);
 check("R1. both pages still render RelationshipWorkspacePage (same component)", rootPage.includes("<RelationshipWorkspacePage") && deepPage.includes("<RelationshipWorkspacePage"));
-check("R1. ONE SURFACE: admin layout ไม่มี HomeBackBar (แถบดำ ย้อนกลับ/หน้าหลัก ถูกถอด)", !adminLayout.includes("HomeBackBar />"));
-check("R1. frame = ไม่มีแท็บสองโหมด (data-view) + ล็อกจอ height:100dvh + แผง msg-panel ประวัติการสื่อสาร", !frameSrc.includes("data-view=") && frameSrc.includes("height:100dvh") && frameSrc.includes(".msg-panel"));
+check("F. no HomeBackBar on active business surface (admin layout ไม่ mount — แถบดำ ย้อนกลับ/หน้าหลัก หายจาก presentation; capability ยังอยู่)", !adminLayout.includes("<HomeBackBar") && !adminLayout.includes("HomeBackBar />"));
+check("F. frame: no permanent header + no tabs (centerTab/data-view) + ล็อกจอ 100dvh + msg-panel เปิดตามดีมานด์", !frameSrc.includes("<header") && !frameSrc.includes("centerTab") && !frameSrc.includes("data-view=") && frameSrc.includes("height:100dvh") && frameSrc.includes(".msg-panel") && frameSrc.includes("panelIsOpen && messagePanel"));
+check("F. exactly one WorkspaceFrame mount (ACTIVE_SHELL_COUNT=1)", (ws.match(/<WorkspaceFrame/g) ?? []).length === 1);
+check("F. exactly one composer ทั้งผืน (COMPOSER_COUNT=1 — มีแค่ใน frame ไม่มีใน relationship content)", (frameSrc.match(/className="compose"/g) ?? []).length === 1 && (ws.match(/className="compose"/g) ?? []).length === 0);
 
 // ── R2: new shell = /workspace component family ─────────────────────────────
 check("R2. shell = WorkspaceFrame from app/workspace (START-HERE ข้อ17 — UI ใหม่โดยตรง); IconRail retired from this page", ws.includes('import { WorkspaceFrame } from "@/app/workspace/WorkspaceFrame"') && ws.includes("<WorkspaceFrame") && !ws.includes("import IconRail"));
-check("R2. ListColumn imported from presentation/shell; TabStrip/สองแท็บถอดออก (ONE SURFACE)", ws.includes('from "@/presentation/shell/navigation/ListColumn"') && !ws.includes('ide/TabStrip') && !ws.includes("<TabStrip"));
-check("R2. ONE SURFACE: ไม่มี top bar/แท็บ/separator/composer ที่สองบน canvas (AppHeader/TabStrip/drag-divider/reply/ask inputs)", !ws.includes("<AppHeader") && !ws.includes("<TabStrip") && !ws.includes('role="separator"') && !ws.includes("value={replyText}") && !ws.includes("value={aiAskText}"));
+check("F. no permanent ListColumn (exactly 1 ตัว และอยู่ใน messagePanel = เปิดตามดีมานด์) + no TabStrip", ws.includes('from "@/presentation/shell/navigation/ListColumn"') && (ws.match(/<ListColumn/g) ?? []).length === 1 && ws.indexOf("messagePanel={") >= 0 && ws.indexOf("<ListColumn") > ws.indexOf("messagePanel={") && !ws.includes('ide/TabStrip') && !ws.includes("<TabStrip"));
+check("F. no resizable relationship sidebar + ไม่มี top bar/แท็บ/composer ที่สอง (AppHeader/TabStrip/drag-divider/reply/ask inputs)", !ws.includes("<AppHeader") && !ws.includes("<TabStrip") && !ws.includes('role="separator"') && !ws.includes("cursor-col-resize") && !ws.includes("value={replyText}") && !ws.includes("value={aiAskText}"));
 check("R2. contact list lives in the top-right message panel (messagePanel + controlled open)", ws.includes("messagePanel={") && ws.includes("panelOpen={panelOpen}") && ws.includes("onPanelOpenChange={setPanelOpen}"));
 check("R2. TabStrip→panel: selecting in the message panel opens the entity via openRelationship + closes panel", /onSelect=\{\(id\) => \{[\s\S]{0,80}openRelationship\(id\)/.test(ws) && ws.includes("setPanelOpen(false)"));
 
@@ -111,6 +113,8 @@ check("R6. finance strip renders API summary (formatMoney only)", ws.includes("f
 check("R6. debt header + collection state + days", ws.includes("debt.total_outstanding") && ws.includes("days_overdue") && ws.includes("ชำระแล้ว") && ws.includes("ค้างชำระ"));
 check("R6. rail badges (pending quotes + finance alerts)", ws.includes("pendingQuotesCount") && ws.includes("pendingFinanceCount"));
 check("R6. ONE composer (owner 2026-09-25): ไม่มี input ตอบ/ถาม ที่สอง + composerContext ผูก entity", !ws.includes("value={replyText}") && !ws.includes("value={aiAskText}") && ws.includes("composerContext={"));
+check("F/E. เลือก entity → composer ใช้ LINE/send API เดิม (…/line-customers/…/reply body {text}) + onComposerSent refresh timeline", frameSrc.includes("/line-customers/") && frameSrc.includes("JSON.stringify({ text })") && ws.includes("lineUserId: primaryLineUserId") && ws.includes("onComposerSent=") && existsSync("app/api/admin/line-customers/[lineUserId]/reply/route.ts"));
+check("F. business logic เดิมเก็บครบ (sendReply/askAi/runCommand/buildFeed — เปลี่ยนแค่ presentation)", ws.includes("const sendReply") && ws.includes("const askAi") && ws.includes("const runCommand") && ws.includes("buildFeed(detail"));
 check("R6. Inspector + MapView kept in canvas; AppHeader bar ถูกถอด (ONE SURFACE)", ws.includes("<Inspector") && ws.includes("<MapView") && !ws.includes("<AppHeader"));
 check("R6. unified feed via buildFeed (messages+events+docs+sent bubbles)", ws.includes("buildFeed(detail") && ws.includes("sentInvoiceEntries"));
 
