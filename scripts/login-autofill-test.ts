@@ -48,9 +48,16 @@ check("S2 client still the ONE createBrowserSupabase; no password-store/vault/ke
   page.includes('from "@/services/supabase/browser"') &&
     page.includes("createBrowserSupabase") &&
     !/from "[^"]*(keychain|vault|password-?store|credential-?store)/i.test(importLines));
-check("S3 no new auth module imported (login page imports unchanged set)",
+// S3 updated (2026-09-25 — owner: "ตรวจผลและแก้ข้อขัดแย้งร่วมกัน"): the Codex
+// session's return-from-email resume adds exactly ONE sanctioned import —
+// @/core/identity/identity = ชั้น Identity กลางตัวเดิมที่ core/auth/session
+// delegate อยู่แล้ว (อ่านอย่างเดียว ไม่ mint session — พิสูจน์พฤติกรรมแล้ว:
+// auth-access/identity-layer/auth-single-flow/login-autofill ผ่านครบ + diff
+// ไม่มี setSession/cookies). ยังบล็อก keychain/vault/password-store/โมดูลแปลก
+// ทุกตัวเหมือนเดิม — ไม่ใช่การผ่อน test ให้ผ่านเฉย ๆ.
+check("S3 no new auth module imported (login page imports unchanged set + central identity layer)",
   (page.match(/^import .*$/gm) ?? []).every((l) =>
-    /from "(react|next\/navigation|lucide-react|@\/services\/supabase\/browser|@\/core\/auth\/resolveDestination|@\/core\/auth\/session)"/.test(l),
+    /from "(react|next\/navigation|lucide-react|@\/services\/supabase\/browser|@\/core\/auth\/resolveDestination|@\/core\/auth\/session|@\/core\/identity\/identity)"/.test(l),
   ));
 
 // ──4: no password copied into env / no new store on disk ──────────────────

@@ -1,8 +1,9 @@
 'use client'
 
-import { Suspense, useRef, useState } from "react"
+import { Suspense, useEffect, useRef, useState } from "react"
 import { useSearchParams } from "next/navigation"
 import { createBrowserSupabase } from "@/services/supabase/browser"
+import { resolveIdentityContext } from "@/core/identity/identity"
 import { isSafeInternalPath } from "@/core/auth/resolveDestination"
 
 // The ONE login page for the whole system (TASK-001 SSO) — Admin, Business,
@@ -59,6 +60,48 @@ function LoginForm() {
   const [pwLoading, setPwLoading] = useState(false)
   const [pwMaintenance, setPwMaintenance] = useState(false)
   const [sentTo, setSentTo] = useState<string | null>(null)
+
+  // Recheck on return from the email/browser tab. Never mint a session here;
+  // /app still resolves the destination and enforces server-side authority.
+  useEffect(() => {
+    if (urlError === "forbidden") return;
+    const sb = createBrowserSupabase();
+    let disposed = false;
+    let checking = false;
+    const resume = async () => {
+      if (checking || disposed) return;
+      checking = true;
+      try {
+        const { data: { user } } = await sb.auth.getUser();
+        if (!user || disposed) return;
+        const identity = await resolveIdentityContext(user, async ({ field, value }) => {
+          const { data, error } = await sb.from("profiles").select("id, role").eq(field, value).maybeSingle();
+          if (error) throw error;
+          return data;
+        });
+        if (disposed) return;
+        if (!identity) {
+          setError("ยืนยันบัญชีแล้ว แต่ยังไม่พบข้อมูลสิทธิ์ผู้ใช้ในระบบ กรุณาให้ผู้ดูแลตรวจบัญชี ไม่ต้องขอลิงก์ซ้ำ");
+          return;
+        }
+        window.location.replace("/app");
+      } catch {
+        if (!disposed) setError("ตรวจสถานะบัญชีหรือสิทธิ์ไม่สำเร็จ ยังไม่สามารถเปิดพื้นที่ทำงานได้");
+      } finally {
+        checking = false;
+      }
+    };
+    const onVisible = () => { if (document.visibilityState === "visible") void resume(); };
+    void resume();
+    window.addEventListener("focus", onVisible);
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      disposed = true;
+      window.removeEventListener("focus", onVisible);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
+  }, [urlError]);
+
 
   // DOM refs so submit reads the actual input values, not React state — some
   // autofill mechanisms set value via the native setter, bypassing onChange.

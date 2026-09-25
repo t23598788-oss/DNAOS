@@ -61,7 +61,11 @@ export async function GET(req: NextRequest) {
   const safeNext = isSafeInternalPath(next) ? next : "/app"; // /app = role-bounce entry (PWA start_url)
 
   if (providerError) {
-    return NextResponse.redirect(new URL("/login?error=oauth_denied", origin));
+    const errorCode = searchParams.get("error_code");
+    const target = new URL("/login", origin);
+    target.searchParams.set("error", errorCode === "otp_expired" ? "invalid_link" : "oauth_denied");
+    target.searchParams.set("next", safeNext);
+    return NextResponse.redirect(target);
   }
 
   const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
