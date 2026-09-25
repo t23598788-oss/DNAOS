@@ -14921,19 +14921,6 @@
       ],
       "status": "active"
     },
-    "app/workspace/_lib/partnerDisplayModel.ts": {
-      "owner": "app",
-      "layer": "app",
-      "purpose": "BUSINESS WORKSPACE — Company/Partner master → BusinessDisplayModel (SLICE-1)",
-      "purpose_th": "BUSINESS WORKSPACE — Company/Partner master → BusinessDisplayModel (SLICE-1)",
-      "exports": [
-        "PARTNER_TABLE_TARGET_ID",
-        "buildPartnerListModel",
-        "buildPartnerTargets",
-        "loadPartnerWorkspace"
-      ],
-      "status": "active"
-    },
     "scripts/workspace-capability-access-test.ts": {
       "owner": "scripts",
       "layer": "scripts",
@@ -15550,19 +15537,6 @@
       ],
       "status": "active"
     },
-    "app/workspace/_lib/connectDisplayModel.ts": {
-      "owner": "app",
-      "layer": "app",
-      "purpose": "BUSINESS WORKSPACE — Connect capabilities → BusinessDisplayModel",
-      "purpose_th": "BUSINESS WORKSPACE — Connect capabilities → BusinessDisplayModel",
-      "exports": [
-        "CONNECT_TABLE_TARGET_ID",
-        "buildConnectListModel",
-        "buildConnectTargets",
-        "loadConnectWorkspace"
-      ],
-      "status": "active"
-    },
     "engines/canonical/expense-write.ts": {
       "owner": "engines",
       "layer": "engines",
@@ -16031,6 +16005,16 @@
         "updateDebtTracking"
       ],
       "status": "active"
+    },
+    "app/workspace/WorkspaceFrame.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "WORKSPACE FRAME — BUSINESS UI SHELL ใหม่ตาม reference ของ Owner",
+      "purpose_th": "WORKSPACE FRAME — BUSINESS UI SHELL ใหม่ตาม reference ของ Owner",
+      "exports": [
+        "WorkspaceFrame"
+      ],
+      "status": "active"
     }
   },
   "excluded": [
@@ -16344,6 +16328,20 @@
       "reason": "ไฟล์ไม่มีอยู่ใน Source แล้ว (Git/Source = source of truth) — ย้ายออกจาก modules ไม่นับเป็น BROKEN ปัจจุบัน",
       "last_status": "active",
       "purpose_th": "ไฟล์สำเนาซ้ำของ macOS ('page 2') จาก app/admin/system/page.tsx — เก็บไว้ตามนโยบายห้ามลบใน registry/existence.json (AK-026) ไม่ถูก Next.js ใช้เป็นเส้นทางจริง (ชื่อไฟล์มีช่องว่าง)"
+    },
+    {
+      "path": "app/workspace/_lib/partnerDisplayModel.ts",
+      "retired_at": "2026-09-25T06:55:51.168Z",
+      "reason": "ไฟล์ไม่มีอยู่ใน Source แล้ว (Git/Source = source of truth) — ย้ายออกจาก modules ไม่นับเป็น BROKEN ปัจจุบัน",
+      "last_status": "active",
+      "purpose_th": "BUSINESS WORKSPACE — Company/Partner master → BusinessDisplayModel (SLICE-1)"
+    },
+    {
+      "path": "app/workspace/_lib/connectDisplayModel.ts",
+      "retired_at": "2026-09-25T06:55:51.169Z",
+      "reason": "ไฟล์ไม่มีอยู่ใน Source แล้ว (Git/Source = source of truth) — ย้ายออกจาก modules ไม่นับเป็น BROKEN ปัจจุบัน",
+      "last_status": "active",
+      "purpose_th": "BUSINESS WORKSPACE — Connect capabilities → BusinessDisplayModel"
     }
   ]
 }

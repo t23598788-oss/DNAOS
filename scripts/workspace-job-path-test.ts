@@ -15,7 +15,9 @@
  *      carries (company/person); no invented material/vehicle/equipment field
  *   7. exactly ONE module reads registry/permissions.json#capability_access
  *      (no second permission resolver)
- *   8. the job read in app/workspace/page.tsx is gated on the authority result
+ *   8. the SHELL page (owner REPLACE BUSINESS UI SHELL, 2026-09-25) performs NO
+ *      business read of its own — data access happens only behind the existing
+ *      guarded routes (งาน → /admin/jobs); no page-level authority logic either
  *   9. renderer = the canonical BusinessDisplayRenderer, no new renderer file
  * No network, no Supabase session, no credentials.
  */
@@ -120,10 +122,26 @@ function main() {
     `capability_access must be read by exactly one module, got ${readers.join(", ")}`,
   );
 
-  // 8 · the page gates the job read on the authority result
+  // 8 · SHELL contract (owner REPLACE BUSINESS UI SHELL, 2026-09-25)
+  //     เดิมสัญญา = page gate การอ่าน jobs ด้วย authority (shell เดิม page อ่าน data เอง)
+  //     ใหม่ = shell page ไม่อ่าน business data เลยแม้แต่บรรทัดเดียว (เข้มกว่าเดิม:
+  //     ไม่มีให้อ่านโดยไม่ผ่าน guard) · การเข้าถึงงาน = route เดิม /admin/jobs ที่มี
+  //     server guard ของตัวเอง · อำนาจ jobs ยังคุมที่ checks 1-3 + 7 เหมือนเดิม
+  const pageSource = read("app/workspace/page.tsx");
+  assert.equal(
+    pageSource.includes("loadJobWorkspace"),
+    false,
+    "the shell page must not read job data itself (data lives behind guarded routes)",
+  );
+  assert.equal(
+    pageSource.includes("resolveAllowedCapabilities"),
+    false,
+    "the shell page must not carry page-level authority logic",
+  );
+  assert.ok(pageSource.includes("<WorkspaceFrame"), "the shell must render the new reference frame");
   assert.ok(
-    read("app/workspace/page.tsx").includes('allowedTools.includes("jobs")'),
-    "the job read must be gated on the authority result",
+    read("app/workspace/WorkspaceFrame.tsx").includes('"/admin/jobs"'),
+    "งาน in the frame must map to the existing guarded route",
   );
 
   // 9 · canonical renderer only
@@ -138,7 +156,7 @@ function main() {
 
   console.log("workspace-job-path:test PASS");
   console.log(
-    "checks: authority(jobs) admin-tier only · default deny · registry==UI keys · existing canonical sources only · input-driven model (no mock) · no invented resource relation · one authority reader · gated page read · canonical renderer only",
+    "checks: authority(jobs) admin-tier only · default deny · registry==UI keys · existing canonical sources only · input-driven model (no mock) · no invented resource relation · one authority reader · shell reads nothing (data behind guarded routes, งาน→/admin/jobs) · canonical renderer only",
   );
 }
 

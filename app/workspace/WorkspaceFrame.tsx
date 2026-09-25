@@ -1,0 +1,213 @@
+"use client";
+
+/**
+ * WORKSPACE FRAME — BUSINESS UI SHELL ใหม่ตาม reference ของ Owner
+ * (sites/workspace-frame/dist/index.html = dna-workspace-frame, v2 2026-09-24)
+ *
+ * หลัก: หน้าหลักโล่ง · กลางจอ = บอร์ดแชท/คำสั่ง · เมนูซ่อนที่ขอบจอ (กดค่อยเปิด) ·
+ * icon ความสามารถเป็นตัวเลือก · ไม่โชว์ dashboard/status/system บนหน้าหลัก ·
+ * ไม่มีเมนูถาวรขนาดใหญ่ · ทุกปุ่ม map ไป route เดิมของ DNA OS ·
+ * ปุ่มที่ยังไม่มี backend จริง = disabled ชัดเจน (ห้าม fake) ·
+ * route/backend เดิมใช้ต่อ — ไม่แตะ business logic/canonical/auth/migration
+ */
+import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import {
+  Grid2X2, Ellipsis, MessageSquare, Settings, FileText, MessageCircle,
+  Wallet, MapPin, Briefcase, Users, ScanLine, Files, FileOutput, Printer,
+  Download, Share2, History, Paperclip, ArrowUp, X,
+} from "lucide-react";
+
+type FrameItem = {
+  icon: React.ElementType;
+  label: string;
+  /** route เดิมของ DNA OS — map ตาม reference ใหม่ */
+  route?: string;
+  /** ยังไม่มี backend จริง → disabled (ห้ามทำปุ่มหลอก) */
+  disabledNote?: string;
+};
+
+/** apps ตาม reference: ไฟล์·เอกสาร·LINE·การเงิน·GPS·งาน·รายชื่อ·สแกน/AI (+ความสัมพันธ์ ตามคำสั่ง map ของ Owner) */
+const APPS: FrameItem[] = [
+  { icon: Files, label: "ไฟล์", route: "/admin/storage" },
+  { icon: FileText, label: "เอกสาร", route: "/admin/create-document" },
+  { icon: MessageCircle, label: "LINE", route: "/admin/line-customers" },
+  { icon: Wallet, label: "การเงิน", route: "/admin/finance" },
+  { icon: MapPin, label: "GPS", route: "/admin/equipment" },
+  { icon: Briefcase, label: "งาน", route: "/admin/jobs" },
+  { icon: Users, label: "รายชื่อ", route: "/admin/partners" },
+  { icon: ScanLine, label: "สแกน / AI", route: "/admin/receipts" },
+  { icon: MessageSquare, label: "ความสัมพันธ์", route: "/admin/relationships" },
+];
+
+/** actions ตาม reference — เหลือแค่ตัวที่มี backend จริง (ประวัติ→event-inbox) ที่เหลือ disabled */
+const ACTIONS: FrameItem[] = [
+  { icon: History, label: "ประวัติ / หลักฐาน", route: "/admin/event-inbox" },
+  { icon: FileOutput, label: "แปลงไฟล์", disabledNote: "ยังไม่มี backend แปลงไฟล์" },
+  { icon: Printer, label: "พิมพ์", disabledNote: "ใช้ในหน้าเอกสาร (ปุ่ม พิมพ์ / ส่งออก PDF)" },
+  { icon: Download, label: "ดาวน์โหลด", disabledNote: "ยังไม่มี backend ดาวน์โหลดรวม" },
+  { icon: Share2, label: "แชร์ / ส่งต่อ", disabledNote: "ยังไม่มี backend แชร์/ส่ง" },
+];
+
+/** CSS ยึด tokens + โครงสร้างของ reference (paper/ink/line/soft · edge drawer · stage โล่ง) */
+const FRAME_CSS = `
+#dna-frame{--paper:#fdfbf8;--ink:#36332f;--line:#e9e1d6;--soft:#f0ebe5;position:relative;background:var(--paper);color:var(--ink);font:14px/1.6 system-ui,sans-serif;border:1px solid var(--line);border-radius:16px;overflow:hidden;min-height:100vh}
+#dna-frame *{box-sizing:border-box}
+#dna-frame button,#dna-frame textarea{font:inherit;color:inherit}
+#dna-frame button{background:transparent;border:1px solid var(--line);border-radius:9px;padding:8px 12px;min-height:44px;cursor:pointer}
+#dna-frame button:hover,#dna-frame button[aria-pressed=true]{background:var(--soft)}
+#dna-frame button[aria-disabled=true]{opacity:.45;cursor:not-allowed}
+#dna-frame button[aria-disabled=true]:hover{background:transparent}
+#dna-frame header{display:flex;align-items:center;gap:12px;padding:12px 60px 12px 16px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+#dna-frame header strong{margin-right:auto;font-weight:500}
+#dna-frame .corner{position:absolute;z-index:4;right:14px;top:16px;background:var(--paper)}
+#dna-frame .gear{position:absolute;left:12px;bottom:16px;z-index:3;background:var(--paper)}
+#dna-frame .stage{position:relative;min-height:560px;padding:84px 64px 78px;display:flex;flex-direction:column}
+#dna-frame .edge{position:absolute;top:20px;padding:8px}
+#dna-frame .edge.left{left:8px}
+#dna-frame .edge.right{right:8px;top:82px}
+#dna-frame .drawer{position:absolute;top:76px;left:12px;right:12px;z-index:2;background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:16px;box-shadow:0 12px 24px #0002}
+#dna-frame .drawer .row,#dna-frame .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+#dna-frame .tools{display:grid;grid-template-columns:repeat(auto-fit,minmax(115px,1fr));gap:8px;margin-top:12px}
+#dna-frame .tools button{display:flex;align-items:center;gap:8px;justify-content:flex-start;text-align:left}
+#dna-frame .tabs{display:flex;gap:6px;flex-wrap:wrap}
+#dna-frame .content{flex:1;padding:32px 0;min-height:200px}
+#dna-frame .blank{text-align:center;padding:42px 0}
+#dna-frame .compose{border:1px solid var(--line);border-radius:16px;padding:12px}
+#dna-frame textarea{width:100%;resize:vertical;min-height:54px;background:transparent;border:0;outline:none}
+#dna-frame .row .send{margin-left:auto}
+#dna-frame .note{font-size:12px;opacity:.75}
+#dna-frame .result{padding:20px;background:var(--soft);border-radius:12px;overflow-wrap:anywhere;margin-bottom:12px}
+#dna-frame svg{width:18px;height:18px;vertical-align:middle}
+@media(max-width:500px){#dna-frame .stage{padding:72px 14px 16px}#dna-frame header{padding:10px 56px 10px 10px}#dna-frame header .note{display:none}#dna-frame .blank{padding:24px 0}#dna-frame .edge.right{top:70px}}
+`;
+
+export function WorkspaceFrame() {
+  const router = useRouter();
+  const [drawer, setDrawer] = useState<null | "apps" | "actions">(null);
+  const [note, setNote] = useState<{ title: string; body?: string } | null>(null);
+  const [draft, setDraft] = useState("");
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  // reference: Escape ปิด drawer
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") setDrawer(null);
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
+  const toggle = (kind: "apps" | "actions") => setDrawer((p) => (p === kind ? null : kind));
+  const go = (item: FrameItem) => {
+    if (!item.route || item.disabledNote) return;
+    setDrawer(null);
+    router.push(item.route);
+  };
+
+  return (
+    <div id="dna-frame" aria-label="โครงหน้าจอ DNA OS">
+      <style>{FRAME_CSS}</style>
+
+      <header>
+        <strong>DNA OS · พื้นที่ทำงาน</strong>
+        <span className="note">เมนูอยู่ที่ขอบจอ — กดปุ่มมุมซ้าย/ขวาเพื่อเปิด</span>
+      </header>
+
+      <button className="corner" onClick={() => router.push("/admin/event-inbox")} aria-label="กล่องรับเข้า (เปิดหน้าเหตุการณ์จริง)">
+        <MessageSquare />
+      </button>
+      <button className="gear" onClick={() => router.push("/admin/settings")} aria-label="Settings">
+        <Settings />
+      </button>
+
+      <section className="stage" data-screen="work">
+        <button className="edge left" data-drawer="apps" aria-expanded={drawer === "apps"} onClick={() => toggle("apps")} aria-label="เปิดกล่องเครื่องมือ">
+          <Grid2X2 />
+        </button>
+        <button className="edge right" data-drawer="actions" aria-expanded={drawer === "actions"} onClick={() => toggle("actions")} aria-label="เปิดคำสั่งของรายการ">
+          <Ellipsis />
+        </button>
+
+        {drawer && (
+          <aside className="drawer">
+            <div className="row">
+              <strong>{drawer === "apps" ? "เครื่องมือ" : "คำสั่ง"}</strong>
+              <button style={{ marginLeft: "auto" }} onClick={() => setDrawer(null)} aria-label="ปิด">
+                <X />
+              </button>
+            </div>
+            <div className="tools">
+              {(drawer === "apps" ? APPS : ACTIONS).map((item) => (
+                <button
+                  key={item.label}
+                  type="button"
+                  aria-disabled={!!item.disabledNote}
+                  title={item.disabledNote ?? item.route}
+                  onClick={() => go(item)}
+                >
+                  <item.icon /> {item.label}
+                </button>
+              ))}
+            </div>
+            {drawer === "actions" && (
+              <p className="note" style={{ marginTop: 10 }}>
+                ปุ่มที่disabled = ยังไม่มี backend จริง — ไม่เปิดใช้เพื่อไม่ให้เข้าใจผิด
+              </p>
+            )}
+          </aside>
+        )}
+
+        <nav className="tabs" aria-label="งานที่เปิด">
+          <button data-view="แชท" aria-pressed="true">แชท</button>
+        </nav>
+
+        <div className="content" aria-live="polite">
+          {note ? (
+            <div className="result">
+              <div>{note.title}</div>
+              {note.body && <div className="note" style={{ marginTop: 6 }}>{note.body}</div>}
+            </div>
+          ) : (
+            <div className="blank">
+              วันนี้จะทำอะไร?
+              <div className="note">พิมพ์คำสั่ง แนบไฟล์ หรือเปิดเครื่องมือด้านข้าง</div>
+            </div>
+          )}
+        </div>
+
+        <form
+          className="compose"
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (!draft.trim()) return;
+            // honest: อ้าง reference — ร่างเท่านั้น ไม่มี fake success
+            setNote({ title: `คำสั่งร่าง: ${draft.trim()}`, body: "ยังไม่ส่งไปทำงาน (shell นี้ยังไม่ผูกคำสั่งกับระบบ)" });
+            setDraft("");
+          }}
+        >
+          <textarea aria-label="คำสั่ง" placeholder="พิมพ์คำสั่งกับ DNA OS…" value={draft} onChange={(e) => setDraft(e.target.value)} />
+          <div className="row">
+            <button type="button" onClick={() => fileRef.current?.click()}>
+              <Paperclip /> แนบไฟล์
+            </button>
+            <input
+              ref={fileRef}
+              type="file"
+              hidden
+              multiple
+              onChange={(e) => {
+                const names = Array.from(e.target.files ?? []).map((f) => f.name);
+                if (names.length) setNote({ title: names.join(" · "), body: "เลือกในเครื่องเท่านั้น — ยังไม่อัปโหลด" });
+              }}
+            />
+            <span className="note">ยังไม่เชื่อมคำสั่งกับระบบ</span>
+            <button className="send" type="submit" aria-label="ส่งคำสั่ง">
+              <ArrowUp />
+            </button>
+          </div>
+        </form>
+      </section>
+    </div>
+  );
+}

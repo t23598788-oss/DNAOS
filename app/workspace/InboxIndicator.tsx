@@ -8,7 +8,8 @@ import { useEffect, useState } from "react";
  * ข้อมูลจริง"). Floating edge control, NOT a top bar (รูปแบบที่ต้องรักษา:
  * Workspace โล่ง ไม่มีแถบบน).
  *
- * Real sources only — same ADMIN_TIER APIs the existing screens use:
+ * Real sources only — same admin-tier APIs (core/auth/session) the existing
+ * screens use:
  *   ข้อความ     = /api/admin/outbound-drafts ที่ status=pending_review
  *                 (Rule-72 queue — ตัวเลขเดียวกับ badge ฝั่งเลขา/relationships)
  *   เหตุการณ์   = /api/admin/event-inbox        (business_events ทั้งหมด)
