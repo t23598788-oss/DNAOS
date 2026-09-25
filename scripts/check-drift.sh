@@ -69,7 +69,7 @@ echo "--- Checking for undeclared top-level directories ---"
 # contractor/worker coordination package (own package.json/tsconfig, lease client over
 # registry/LOCK_MANAGER.json, Freebuff pull-mode adapter). Same treatment as
 # dna-os-mcp-server/ above: a real tracked top-level folder with its own package.
-DECLARED_TOP_LEVEL="core gateway engines cognitive presenter services plugins registry app components scripts supabase config node_modules backups public observatory docs styles src-tauri local-runtime dna-os-mcp-server _inventory platform project system workers e2e presentation dna-os-contractor"
+DECLARED_TOP_LEVEL="core gateway engines cognitive presenter services plugins registry app components scripts supabase config node_modules backups public observatory docs styles src-tauri local-runtime dna-os-mcp-server _inventory platform project system workers e2e presentation dna-os-contractor device-connector tmp output sites handoff"
 
 for dir in */; do
   dirname=$(basename "$dir")

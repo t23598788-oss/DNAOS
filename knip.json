@@ -64,7 +64,14 @@
     "app/api/admin/ide/_lib/openCapabilityArchitecture.ts",
     "e2e/**",
     "playwright.config.ts",
-    "plugins/agent/server.ts"
+    "plugins/agent/server.ts",
+    "app/workspace/BusinessWorkspace.tsx",
+    "app/workspace/_lib/toolBindings.ts",
+    "app/workspace/_lib/workspaceAppearance.ts",
+    "app/workspace/InboxIndicator.tsx",
+    "app/workspace/WorkspaceSettings.tsx",
+    "public/sw.js",
+    "device-connector/dnaos-device.mjs"
   ],
   "workspaces": {
     "dna-os-mcp-server": {
@@ -79,7 +86,8 @@
     "@types/three",
     "tailwindcss",
     "@types/chokidar",
-    "@tauri-apps/cli"
+    "@tauri-apps/cli",
+    "react-force-graph-3d"
   ],
   "ignoreBinaries": [
     "top",
