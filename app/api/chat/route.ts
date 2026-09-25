@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { requireAuth } from "@/core/auth/requireAuth";
 import { ADMIN_TIER } from "@/core/auth/session";
 import { runCognitivePipeline } from "@/cognitive/pipeline";
+import { buildChatResult } from "./_lib/resultContract";
+import type { ChatResult } from "./_lib/chatResultTypes";
 
 // Real Data Analysis Layer (owner, 2026-07-30): "ai ในเครื่องมันตัวเล็กมาก
 // มันไม่สามารถประมวลผลด้วยตัวของมันเองและวิเคราะห์ได้รวดเร็ว...ก่อนที่จะให้
@@ -28,13 +30,26 @@ export async function POST(request: Request) {
     // already knows exactly which customer this is, skip AI name-matching
     // for identity entirely (see runCognitiveCore's knownCustomer handling).
     const { message, sessionKey, knownCustomerId, knownCustomerName } = await request.json();
+    const rawMessage = String(message ?? "");
     const response = await runCognitivePipeline(
-      String(message ?? ""),
+      rawMessage,
       null,
       sessionKey ?? null,
       knownCustomerId ? { id: String(knownCustomerId), name: String(knownCustomerName ?? "") } : null,
     );
-    return NextResponse.json(response);
+    // RESPONSE CONTRACT (owner 2026-09-25): แนบ result ทุกครั้ง — structured
+    // (finance/document/timeline/table) มาจาก canonical reader จึง "แทนที่"
+    // ข้อความ LLM (text="") ห้ามให้ LLM แต่งตัวเลข · confirmation/text คงข้อความเดิม
+    const result: ChatResult = (await buildChatResult(request, rawMessage, response)) ?? {
+      type: "text",
+      text: response.text ?? "",
+    };
+    const structured = ["finance_summary", "document", "timeline", "table", "error"].includes(result.type);
+    return NextResponse.json({
+      ...response,
+      text: structured ? "" : response.text,
+      result,
+    });
   } catch (error) {
     return NextResponse.json({
       sender: "ai",

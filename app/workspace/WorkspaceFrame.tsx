@@ -20,6 +20,12 @@ import {
 } from "lucide-react";
 import { openExternal } from "@/components/admin/openExternal";
 import FlexPreview from "@/presentation/viewer/FlexPreview";
+import Viewer from "@/presentation/viewer/Viewer";
+import { RichText } from "@/presentation/ai/RichText";
+import { PartnerTimelineList, PartnerSummaryCard } from "@/presentation/panels/PartnerTimeline";
+import { BusinessDisplayRenderer } from "@/app/admin/ui-gallery/_lib/BusinessDisplayRenderer";
+import type { BusinessDisplayModel } from "@/app/admin/ui-gallery/_lib/businessDisplayModel";
+import type { ChatResult } from "@/app/api/chat/_lib/chatResultTypes";
 
 type FrameItem = {
   icon: React.ElementType;
@@ -94,7 +100,9 @@ const FRAME_CSS = `
 #dna-frame .content--fill{padding:0;min-height:0;overflow:hidden}
 #dna-frame .content--fill>div{flex:1 1 0%;min-height:0}
 #dna-frame .count{background:#c93232;color:#fff;min-width:18px;border-radius:10px;font-size:11px;padding:0 5px;margin-left:auto}
-#dna-frame .msg-list{flex:0 1 auto;max-height:36vh;overflow-y:auto;display:flex;flex-direction:column;gap:10px;padding-bottom:12px}
+#dna-frame .msg-list{flex:1 1 auto;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:14px;padding-bottom:12px}
+#dna-frame .content:not(.content--fill) .msg-list{max-height:none}
+#dna-frame .content--fill .msg-list{flex:0 1 auto;max-height:42vh}
 #dna-frame button[disabled]{opacity:.5;cursor:not-allowed}
 #dna-frame button[disabled]:hover{background:transparent}
 #dna-frame .blank{text-align:center;padding:42px 0}
@@ -102,7 +110,24 @@ const FRAME_CSS = `
 #dna-frame textarea{width:100%;resize:vertical;min-height:54px;background:transparent;border:0;outline:none}
 #dna-frame .row .send{margin-left:auto}
 #dna-frame .note{font-size:12px;opacity:.75}
-#dna-frame .result{padding:20px;background:var(--soft);border-radius:12px;overflow-wrap:anywhere;margin-bottom:12px}
+/* BUSINESS RESULT PRESENTATION (spec §1): user ขวา/ตามเนื้อหา · DNA OS ซ้าย/พื้นที่ผลลัพธ์ */
+#dna-frame .msg-row{display:flex;flex-direction:column}
+#dna-frame .msg-row-user{align-items:flex-end}
+#dna-frame .msg-row-dna{align-items:flex-start;width:100%}
+#dna-frame .msg-col{display:flex;flex-direction:column;gap:6px;min-width:0;max-width:100%}
+#dna-frame .msg-sender{font-size:11px;color:#a8a29e;letter-spacing:.02em}
+#dna-frame .bubble-user{background:#36332f;color:#fdfbf8;border-radius:16px 16px 4px 16px;padding:8px 14px;max-width:min(560px,78%);white-space:pre-wrap;overflow-wrap:anywhere;font-size:14px;line-height:1.55}
+#dna-frame .bubble-dna{background:#fff;border:1px solid var(--line);border-radius:16px 16px 16px 4px;padding:10px 14px;max-width:min(760px,94%)}
+#dna-frame .bubble-error{background:#fef2f2;border:1px solid #fecaca;color:#b91c1c;border-radius:14px;padding:10px 14px;max-width:min(760px,94%)}
+#dna-frame .result-block{width:100%;max-width:920px;display:flex;flex-direction:column;gap:8px;min-width:0}
+#dna-frame .result-title{font-weight:600;font-size:13px}
+#dna-frame .result-notes{font-size:12px;color:#78716c}
+#dna-frame .msg-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+#dna-frame .msg-actions button{min-height:36px;font-size:12px;padding:6px 12px}
+#dna-frame .msg-attachment{max-width:min(420px,90%)}
+#dna-frame .attachment-row{display:flex;gap:10px;align-items:center;background:#fff;border:1px solid var(--line);border-radius:12px;padding:8px 12px;flex-wrap:wrap}
+#dna-frame .attachment-link{font-size:12px;color:#0f766e;text-decoration:underline}
+#dna-frame .result-timeline{max-width:820px}
 #dna-frame svg{width:18px;height:18px;vertical-align:middle}
 @media(max-width:500px){#dna-frame .stage{padding:72px 14px 16px}#dna-frame .blank{padding:24px 0}}
 `;
@@ -163,6 +188,8 @@ export function WorkspaceFrame({
     id: number;
     role: "user" | "ai" | "system";
     text: string;
+    /** RESPONSE CONTRACT — render ตามชนิดข้อมูลจริง (spec §2) */
+    result?: ChatResult;
     confirm?: { action: string; token: string; busy?: boolean };
     docHtml?: string;
     flexPreview?: unknown;
@@ -173,7 +200,12 @@ export function WorkspaceFrame({
   const pushMsg = (
     role: "user" | "ai" | "system",
     text: string,
-    extra?: { confirm?: { action: string; token: string }; docHtml?: string; flexPreview?: unknown },
+    extra?: {
+      result?: ChatResult;
+      confirm?: { action: string; token: string };
+      docHtml?: string;
+      flexPreview?: unknown;
+    },
   ) => {
     msgSeq.current += 1;
     setMessages((m) => [...m, { id: msgSeq.current, role, text, ...extra }]);
@@ -251,8 +283,17 @@ export function WorkspaceFrame({
       });
       const data = await res.json().catch(() => null);
       if (res.ok && data) {
-        const text = typeof data.text === "string" && data.text ? data.text : JSON.stringify(data);
+        const result: ChatResult | undefined = data.result;
+        const structured = !!result && !["text", "confirmation"].includes(result.type);
+        const text = structured
+          ? ""
+          : typeof data.text === "string" && data.text
+            ? data.text
+            : result && result.type === "text"
+              ? result.text
+              : JSON.stringify(data);
         pushMsg("ai", text, {
+          ...(result ? { result } : {}),
           ...(data.confirm_token
             ? { confirm: { action: String(data.confirm_action ?? ""), token: String(data.confirm_token) } }
             : {}),
@@ -263,10 +304,12 @@ export function WorkspaceFrame({
         // — route ที่ server รู้จักเท่านั้น (ตัวเดียวกับ navigation intercept)
         if (data.navigate_url) router.push(String(data.navigate_url));
       } else {
-        pushMsg("system", `ส่งคำสั่งไม่สำเร็จ: ${data?.error ?? data?.text ?? `HTTP ${res.status}`}`);
+        const message = `ส่งคำสั่งไม่สำเร็จ: ${data?.error ?? data?.text ?? `HTTP ${res.status}`}`;
+        pushMsg("system", message, { result: { type: "error", message } });
       }
     } catch {
-      pushMsg("system", "ติดต่อ /api/chat ไม่สำเร็จ ลองใหม่อีกครั้งครับ");
+      const message = "ติดต่อ /api/chat ไม่สำเร็จ ลองใหม่อีกครั้งครับ";
+      pushMsg("system", message, { result: { type: "error", message } });
     } finally {
       setSending(false);
     }
@@ -287,12 +330,24 @@ export function WorkspaceFrame({
         const res = await fetch("/api/admin/upload", { method: "POST", body: formData });
         const data = await res.json().catch(() => null);
         if (res.ok && data && data.path) {
-          pushMsg("system", `📎 อัปโหลด ${data.name} แล้ว (${data.path})`);
+          // FILE/IMAGE RESULT (spec §5) — ชนิดไฟล์จริงจาก upload response
+          const isImage = String(data.type ?? "").startsWith("image/");
+          pushMsg("ai", `📎 อัปโหลด ${data.name} แล้ว`, {
+            result: {
+              type: isImage ? "image" : "file",
+              name: String(data.name ?? file.name),
+              path: String(data.path),
+              mime: String(data.type ?? ""),
+              size: Number(data.size ?? file.size),
+            },
+          });
         } else {
-          pushMsg("system", `แนบไฟล์ไม่สำเร็จ: ${data?.error ?? `HTTP ${res.status}`}`);
+          const message = `แนบไฟล์ไม่สำเร็จ: ${data?.error ?? `HTTP ${res.status}`}`;
+          pushMsg("system", message, { result: { type: "error", message } });
         }
       } catch {
-        pushMsg("system", "แนบไฟล์ไม่สำเร็จ ลองใหม่อีกครั้งครับ");
+        const message = "แนบไฟล์ไม่สำเร็จ ลองใหม่อีกครั้งครับ";
+        pushMsg("system", message, { result: { type: "error", message } });
       } finally {
         setUploading(false);
       }
@@ -302,16 +357,7 @@ export function WorkspaceFrame({
 
   // pattern เดิมจาก relationships (openHtmlDocument) — เปิด doc_html จริง
   // จาก cognitive/executor ในแท็บใหม่ด้วย blob URL (revoke ตอนโหลดเสร็จ)
-  const openHtmlDocument = (html: string) => {
-    const blob = new Blob([html], { type: "text/html" });
-    const url = URL.createObjectURL(blob);
-    const win = window.open(url, "_blank");
-    if (!win) {
-      URL.revokeObjectURL(url);
-      return;
-    }
-    win.addEventListener("load", () => URL.revokeObjectURL(url), { once: true });
-  };
+  // openHtmlDocument = module scope ด้านล่าง (pure — เปิด blob แท็บใหม่)
 
   // เส้น "ยืนยันงาน/เอกสาร" → POST /api/chat/confirm (route เดิม: Rule-72
   // preview_token → dispatchAction mode=execute → ผล {ok,error,line_send_error})
@@ -418,36 +464,55 @@ export function WorkspaceFrame({
         <div className={children ? "content content--fill" : "content"} aria-live="polite">
           {messages.length > 0 && (
             <div className="msg-list">
-              {messages.map((m) => (
-                <div className="result" key={m.id}>
-                  <div className="note">{m.role === "user" ? "คุณ" : m.role === "ai" ? "DNA OS" : "ระบบ"}</div>
-                  <div style={{ marginTop: 4, whiteSpace: "pre-wrap", overflowWrap: "anywhere" }}>{m.text}</div>
-                  {m.flexPreview != null && (
-                    <div style={{ marginTop: 8 }}>
-                      <FlexPreview flex={m.flexPreview} />
+              {messages.map((m, idx) => {
+                if (m.role === "user") {
+                  // spec §1 USER: ฝั่งขวา · ความกว้างตามเนื้อหา · ไม่มี label ซ้ำ
+                  return (
+                    <div className="msg-row msg-row-user" key={m.id}>
+                      <div className="bubble-user">{m.text}</div>
                     </div>
-                  )}
-                  {m.docHtml && (
-                    <div style={{ marginTop: 8 }}>
-                      <button type="button" onClick={() => openHtmlDocument(m.docHtml!)}>
-                        เปิดเอกสาร (HTML เต็ม)
-                      </button>
+                  );
+                }
+                const firstDna = !messages.slice(0, idx).some((x) => x.role !== "user");
+                return (
+                  <div className="msg-row msg-row-dna" key={m.id}>
+                    <div className="msg-col">
+                      {firstDna && <div className="msg-sender">{m.role === "ai" ? "DNA OS" : "ระบบ"}</div>}
+                      {m.result ? (
+                        <ChatResultView result={m.result} fallbackText={m.text} />
+                      ) : m.text ? (
+                        <div className="bubble-dna">
+                          <RichText text={m.text} />
+                        </div>
+                      ) : null}
+                      {!m.result && m.docHtml && (
+                        <div className="msg-actions">
+                          <button type="button" onClick={() => openHtmlDocument(m.docHtml!)}>
+                            เปิดเอกสาร (HTML เต็ม)
+                          </button>
+                        </div>
+                      )}
+                      {m.flexPreview != null && (
+                        <div className="msg-attachment">
+                          <FlexPreview flex={m.flexPreview} />
+                        </div>
+                      )}
+                      {m.confirm && (
+                        <div className="row msg-actions">
+                          <button
+                            type="button"
+                            disabled={m.confirm.busy}
+                            onClick={() => void confirmMsg(m.id, m.confirm!.action, m.confirm!.token)}
+                          >
+                            {m.confirm.busy ? "กำลังยืนยัน..." : "ยืนยัน"}
+                          </button>
+                          <span className="note">รอการยืนยัน (preview token ใช้ได้ครั้งเดียว)</span>
+                        </div>
+                      )}
                     </div>
-                  )}
-                  {m.confirm && (
-                    <div className="row" style={{ marginTop: 8 }}>
-                      <button
-                        type="button"
-                        disabled={m.confirm.busy}
-                        onClick={() => void confirmMsg(m.id, m.confirm!.action, m.confirm!.token)}
-                      >
-                        {m.confirm.busy ? "กำลังยืนยัน..." : "ยืนยัน"}
-                      </button>
-                      <span className="note">รอการยืนยัน (preview token ใช้ได้ครั้งเดียว)</span>
-                    </div>
-                  )}
-                </div>
-              ))}
+                  </div>
+                );
+              })}
               {sending && <div className="note">DNA OS กำลังประมวลผล...</div>}
               {uploading && <div className="note">กำลังอัปโหลดไฟล์...</div>}
             </div>
@@ -499,4 +564,207 @@ export function WorkspaceFrame({
       )}
     </div>
   );
+}
+
+// ── BUSINESS RESULT RENDERING (owner spec 2026-09-25) ───────────────────────
+// render ตามชนิดข้อมูลจริง — ใช้ renderer ของระบบเดิม (§8): BusinessDisplayRenderer
+// (→ DataTable สำหรับ table/finance · Viewer kind=document สำหรับเอกสาร) ·
+// RichText (wrap/ย่อหน้า/list/markdown table) · PartnerTimelineList (timeline
+// สกัดจากหน้าคู่ค้า ONE implementation) · Viewer kind=image (รูป)
+
+function openHtmlDocument(html: string) {
+  const blob = new Blob([html], { type: "text/html" });
+  const url = URL.createObjectURL(blob);
+  const win = window.open(url, "_blank");
+  if (!win) {
+    URL.revokeObjectURL(url);
+    return;
+  }
+  win.addEventListener("load", () => URL.revokeObjectURL(url), { once: true });
+}
+
+/** พิมพ์/PDF จาก html ต้นฉบับตัวเดียวกัน (browser print — ไม่มี PDF engine ใหม่) */
+function printHtml(html: string) {
+  const blob = new Blob([html], { type: "text/html" });
+  const url = URL.createObjectURL(blob);
+  const win = window.open(url, "_blank");
+  if (!win) {
+    URL.revokeObjectURL(url);
+    return;
+  }
+  win.addEventListener(
+    "load",
+    () => {
+      win.focus();
+      win.print();
+      URL.revokeObjectURL(url);
+    },
+    { once: true },
+  );
+}
+
+function DocumentResultView({ title, html }: { title: string; html: string }) {
+  const model: BusinessDisplayModel = {
+    id: "chat-document",
+    title,
+    domain: "เอกสาร",
+    blocks: [{ kind: "document", id: "doc", title, html }],
+  };
+  return (
+    <div className="result-block">
+      <BusinessDisplayRenderer model={model} />
+      <div className="msg-actions">
+        <button type="button" onClick={() => openHtmlDocument(html)}>
+          เปิดเต็ม
+        </button>
+        <button type="button" onClick={() => printHtml(html)}>
+          พิมพ์ / PDF
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function AttachmentResult({ result }: { result: Extract<ChatResult, { type: "file" | "image" }> }) {
+  const [url, setUrl] = useState<string | null>(null);
+  useEffect(() => {
+    let alive = true;
+    fetch(`/api/admin/upload?path=${encodeURIComponent(result.path)}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (alive && d?.url) setUrl(String(d.url));
+      })
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, [result.path]);
+
+  const kb = Math.max(1, Math.round(result.size / 1024));
+  if (result.type === "image") {
+    return (
+      <div className="result-block">
+        <div className="result-title">🖼 {result.name}</div>
+        {url ? (
+          <Viewer kind="image" src={url} alt={result.name} />
+        ) : (
+          <div className="note">กำลังโหลดรูป...</div>
+        )}
+      </div>
+    );
+  }
+  return (
+    <div className="result-block">
+      <div className="attachment-row">
+        <span className="attachment-name">
+          📄 {result.name} <span className="note">({kb} KB · {result.mime || "ไฟล์"})</span>
+        </span>
+        {url ? (
+          <a className="attachment-link" href={url} target="_blank" rel="noreferrer">
+            เปิด / ดาวน์โหลด
+          </a>
+        ) : (
+          <span className="note">กำลังเตรียมลิงก์...</span>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function ChatResultView({ result, fallbackText }: { result: ChatResult; fallbackText: string }) {
+  switch (result.type) {
+    case "text":
+      return (
+        <div className="bubble-dna">
+          <RichText text={result.text || fallbackText} />
+        </div>
+      );
+    case "error":
+      return (
+        <div className="bubble-error">
+          <RichText text={result.message} />
+        </div>
+      );
+    case "table":
+      return (
+        <div className="result-block">
+          <BusinessDisplayRenderer
+            model={{
+              id: "chat-table",
+              title: result.title ?? "ตารางข้อมูล",
+              domain: "ตาราง",
+              blocks: [
+                {
+                  kind: "table",
+                  id: "t",
+                  title: result.title,
+                  columns: result.table.columns,
+                  rows: result.table.rows,
+                },
+              ],
+            }}
+          />
+        </div>
+      );
+    case "finance_summary": {
+      // summary = field จาก canonical finance source · rows = canonical rows —
+      // BusinessDisplayRenderer = BusinessDisplayRenderer → DataTable ของระบบ (ไม่มี table ใหม่)
+      const model: BusinessDisplayModel = {
+        id: "chat-finance",
+        title: result.title,
+        domain: "การเงิน",
+        blocks: [
+          {
+            kind: "fields",
+            id: "sum",
+            title: "สรุป (canonical finance source)",
+            fields: result.summary.map((s) => ({ kind: "field" as const, id: s.id, label: s.label, value: s.value })),
+          },
+          {
+            kind: "table",
+            id: "rows",
+            title: "เอกสารในเดือนนี้ (แถวจริงจาก canonical)",
+            columns: result.table.columns,
+            rows: result.table.rows,
+          },
+        ],
+      };
+      return (
+        <div className="result-block">
+          <BusinessDisplayRenderer model={model} />
+          {result.notes.length > 0 && (
+            <div className="result-notes">
+              <RichText text={result.notes.join("\n\n")} />
+            </div>
+          )}
+        </div>
+      );
+    }
+    case "document":
+      return <DocumentResultView title={result.title} html={result.html} />;
+    case "confirmation":
+      return (
+        <>
+          {fallbackText && (
+            <div className="bubble-dna">
+              <RichText text={fallbackText} />
+            </div>
+          )}
+          {result.html && <DocumentResultView title="ตัวอย่างเอกสาร" html={result.html} />}
+        </>
+      );
+    case "file":
+    case "image":
+      return <AttachmentResult result={result} />;
+    case "timeline":
+      return (
+        <div className="result-block result-timeline">
+          <div className="result-title">{result.title}</div>
+          {result.summary && <PartnerSummaryCard summary={result.summary} />}
+          <PartnerTimelineList items={result.items} />
+        </div>
+      );
+    default:
+      return null;
+  }
 }
