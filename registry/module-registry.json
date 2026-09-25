@@ -3459,16 +3459,6 @@
       ],
       "status": "active"
     },
-    "app/admin/architecture/page.tsx": {
-      "owner": "app",
-      "layer": "app",
-      "purpose": "Renders module-registry.json + architecture.json as a browsable module list with status pills (OK/broken/unused/unregistered) — dev tool.",
-      "purpose_th": "หน้าแสดงรายการโมดูลทั้งหมดพร้อมสถานะ จาก module-registry.json — เครื่องมือนักพัฒนา",
-      "exports": [
-        "RegistryViewerPage"
-      ],
-      "status": "active"
-    },
     "app/admin/backup/page.tsx": {
       "owner": "app",
       "layer": "app",
@@ -3476,16 +3466,6 @@
       "purpose_th": "หน้าแสดงสถิติการสำรองข้อมูลล่าสุด — เครื่องมือฝั่ง ops",
       "exports": [
         "BackupPage"
-      ],
-      "status": "active"
-    },
-    "app/admin/build/page.tsx": {
-      "owner": "app",
-      "layer": "app",
-      "purpose": "Shows latest build status (clean/has_issues/not_built) + health/summary counts — dev tool.",
-      "purpose_th": "หน้าแสดงสถานะ build ล่าสุด — เครื่องมือนักพัฒนา",
-      "exports": [
-        "BuildPage"
       ],
       "status": "active"
     },
@@ -3546,29 +3526,6 @@
       "purpose_th": "หน้าสรุป 'ดีเอ็นเอ' ของระบบ (อายุ, จำนวนกฎ/workflow/module) — เครื่องมือนักพัฒนา",
       "exports": [
         "DnaPage"
-      ],
-      "status": "active"
-    },
-    "app/admin/graph/page.tsx": {
-      "owner": "app",
-      "layer": "app",
-      "purpose": "Redirect stub to /admin/system. Part of the 2026-08-04 merge of /admin/build, /admin/graph, /admin/telemetry into one screen — the real graph component moved to GraphView.tsx.",
-      "purpose_th": "หน้า redirect ไป /admin/system ตามแผนรวม 3 หน้าเป็นหน้าเดียว",
-      "exports": [
-        "GraphRedirectPage"
-      ],
-      "status": "active"
-    },
-    "app/admin/graph/ForceGraph3DView.tsx": {
-      "owner": "app",
-      "layer": "app",
-      "purpose": "3D force-graph view of the architecture (three.js) — visualizes the real module dependency graph for the admin graph page.",
-      "purpose_th": "มุมมองกราฟแรง 3 มิติของสถาปัตยกรรม (three.js) — แสดงกราฟความสัมพันธ์ของโมดูลจริงบนหน้า graph ของผู้ดูแล",
-      "exports": [
-        "FGData",
-        "FGLink",
-        "FGNode",
-        "ForceGraph3DView"
       ],
       "status": "active"
     },
@@ -6395,38 +6352,6 @@
       "status": "active",
       "entry_point": true,
       "note": "Real code, currently unused-by-import because its only caller (app/admin/system/page.tsx) is deferred to a separate commit (GraphView.tsx props gap, unresolved pending owner decision) — see registry/CHANGELOG.json 2026-08-04 auth-token audit session."
-    },
-    "app/admin/graph/GraphView.tsx": {
-      "owner": "app",
-      "layer": "app",
-      "purpose": "Architecture graph rendering (ForceGraph3DView) + node inspector — the exact same implementation app/admin/system/page.tsx now imports and reuses, not a second graph.",
-      "purpose_th": "แสดงผลกราฟสถาปัตยกรรม (ForceGraph3DView) + inspector รายละเอียด node — เป็น implementation เดียวกับที่ app/admin/system/page.tsx เรียกใช้ ไม่ใช่กราฟตัวที่สอง",
-      "exports": [
-        "GraphPage"
-      ],
-      "status": "active",
-      "entry_point": true,
-      "note": "Real code, currently unused-by-import because its only caller (app/admin/system/page.tsx) is deferred to a separate commit (GraphView.tsx props gap, unresolved pending owner decision) — see registry/CHANGELOG.json 2026-08-04 auth-token audit session."
-    },
-    "app/admin/system/page.tsx": {
-      "owner": "app",
-      "layer": "app",
-      "purpose": "Unified Build + Architecture Graph + Realtime Pulse screen (owner directive, 2026-08-04). Merges /admin/build, /admin/graph, /admin/telemetry into one screen — canonical route going forward.",
-      "purpose_th": "หน้ารวม Build/Graph/Telemetry เป็นหน้าเดียว — canonical route ใหม่",
-      "exports": [
-        "SystemOperationsPage"
-      ],
-      "status": "active"
-    },
-    "app/admin/telemetry/page.tsx": {
-      "owner": "app",
-      "layer": "app",
-      "purpose": "Real-Time 3D Telemetry landing page — fullscreen hologram globe view wired to Supabase Realtime (ai_tasks), live governance fault data (/api/governance), and real latency ping, no click/menu required to see it.",
-      "purpose_th": "หน้าจอ Real-Time 3D Telemetry เต็มจอ — เชื่อม Supabase Realtime (ai_tasks) ข้อมูลพังจริงจาก /api/governance และ latency จริง เปิดมาเจอเลยไม่ต้องคลิก/มีเมนูบัง",
-      "exports": [
-        "TelemetryRedirectPage"
-      ],
-      "status": "active"
     },
     "supabase/functions/line-webhook-v2/engines/thoughtful-fallback.ts": {
       "owner": "supabase",
@@ -12647,17 +12572,6 @@
       ],
       "status": "active"
     },
-    "app/admin/system/page 2.tsx": {
-      "owner": "app",
-      "layer": "app",
-      "purpose": "Legacy macOS 'page 2' duplicate of app/admin/system/page.tsx — retained on disk per the file-preservation policy recorded in registry/existence.json (AK-026, never-deleted note). Not routed by Next.js (invalid route filename with space); content overlaps admin/system/page.tsx.",
-      "purpose_th": "ไฟล์สำเนาซ้ำของ macOS ('page 2') จาก app/admin/system/page.tsx — เก็บไว้ตามนโยบายห้ามลบใน registry/existence.json (AK-026) ไม่ถูก Next.js ใช้เป็นเส้นทางจริง (ชื่อไฟล์มีช่องว่าง)",
-      "exports": [
-        "SystemOperationsPage"
-      ],
-      "status": "active",
-      "entry_point": true
-    },
     "app/api/admin/ide/_lib/workerTaskOrchestrator.ts": {
       "owner": "app",
       "layer": "app",
@@ -16374,6 +16288,62 @@
       "reason": "ไฟล์ไม่มีอยู่ใน Source แล้ว (Git/Source = source of truth) — ย้ายออกจาก modules ไม่นับเป็น BROKEN ปัจจุบัน",
       "last_status": "active",
       "purpose_th": "READ-ONLY capability probe: does generateDependencyGraph() write anything?"
+    },
+    {
+      "path": "app/admin/architecture/page.tsx",
+      "retired_at": "2026-09-25T06:24:20.626Z",
+      "reason": "ไฟล์ไม่มีอยู่ใน Source แล้ว (Git/Source = source of truth) — ย้ายออกจาก modules ไม่นับเป็น BROKEN ปัจจุบัน",
+      "last_status": "active",
+      "purpose_th": "หน้าแสดงรายการโมดูลทั้งหมดพร้อมสถานะ จาก module-registry.json — เครื่องมือนักพัฒนา"
+    },
+    {
+      "path": "app/admin/build/page.tsx",
+      "retired_at": "2026-09-25T06:24:20.627Z",
+      "reason": "ไฟล์ไม่มีอยู่ใน Source แล้ว (Git/Source = source of truth) — ย้ายออกจาก modules ไม่นับเป็น BROKEN ปัจจุบัน",
+      "last_status": "active",
+      "purpose_th": "หน้าแสดงสถานะ build ล่าสุด — เครื่องมือนักพัฒนา"
+    },
+    {
+      "path": "app/admin/graph/page.tsx",
+      "retired_at": "2026-09-25T06:24:20.627Z",
+      "reason": "ไฟล์ไม่มีอยู่ใน Source แล้ว (Git/Source = source of truth) — ย้ายออกจาก modules ไม่นับเป็น BROKEN ปัจจุบัน",
+      "last_status": "active",
+      "purpose_th": "หน้า redirect ไป /admin/system ตามแผนรวม 3 หน้าเป็นหน้าเดียว"
+    },
+    {
+      "path": "app/admin/graph/ForceGraph3DView.tsx",
+      "retired_at": "2026-09-25T06:24:20.627Z",
+      "reason": "ไฟล์ไม่มีอยู่ใน Source แล้ว (Git/Source = source of truth) — ย้ายออกจาก modules ไม่นับเป็น BROKEN ปัจจุบัน",
+      "last_status": "active",
+      "purpose_th": "มุมมองกราฟแรง 3 มิติของสถาปัตยกรรม (three.js) — แสดงกราฟความสัมพันธ์ของโมดูลจริงบนหน้า graph ของผู้ดูแล"
+    },
+    {
+      "path": "app/admin/graph/GraphView.tsx",
+      "retired_at": "2026-09-25T06:24:20.628Z",
+      "reason": "ไฟล์ไม่มีอยู่ใน Source แล้ว (Git/Source = source of truth) — ย้ายออกจาก modules ไม่นับเป็น BROKEN ปัจจุบัน",
+      "last_status": "active",
+      "purpose_th": "แสดงผลกราฟสถาปัตยกรรม (ForceGraph3DView) + inspector รายละเอียด node — เป็น implementation เดียวกับที่ app/admin/system/page.tsx เรียกใช้ ไม่ใช่กราฟตัวที่สอง"
+    },
+    {
+      "path": "app/admin/system/page.tsx",
+      "retired_at": "2026-09-25T06:24:20.628Z",
+      "reason": "ไฟล์ไม่มีอยู่ใน Source แล้ว (Git/Source = source of truth) — ย้ายออกจาก modules ไม่นับเป็น BROKEN ปัจจุบัน",
+      "last_status": "active",
+      "purpose_th": "หน้ารวม Build/Graph/Telemetry เป็นหน้าเดียว — canonical route ใหม่"
+    },
+    {
+      "path": "app/admin/telemetry/page.tsx",
+      "retired_at": "2026-09-25T06:24:20.629Z",
+      "reason": "ไฟล์ไม่มีอยู่ใน Source แล้ว (Git/Source = source of truth) — ย้ายออกจาก modules ไม่นับเป็น BROKEN ปัจจุบัน",
+      "last_status": "active",
+      "purpose_th": "หน้าจอ Real-Time 3D Telemetry เต็มจอ — เชื่อม Supabase Realtime (ai_tasks) ข้อมูลพังจริงจาก /api/governance และ latency จริง เปิดมาเจอเลยไม่ต้องคลิก/มีเมนูบัง"
+    },
+    {
+      "path": "app/admin/system/page 2.tsx",
+      "retired_at": "2026-09-25T06:24:20.630Z",
+      "reason": "ไฟล์ไม่มีอยู่ใน Source แล้ว (Git/Source = source of truth) — ย้ายออกจาก modules ไม่นับเป็น BROKEN ปัจจุบัน",
+      "last_status": "active",
+      "purpose_th": "ไฟล์สำเนาซ้ำของ macOS ('page 2') จาก app/admin/system/page.tsx — เก็บไว้ตามนโยบายห้ามลบใน registry/existence.json (AK-026) ไม่ถูก Next.js ใช้เป็นเส้นทางจริง (ชื่อไฟล์มีช่องว่าง)"
     }
   ]
 }

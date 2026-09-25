@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-25T05:39:49.243Z",
+  "generated_at": "2026-09-25T06:24:22.845Z",
   "version": 1,
   "nodes": [
     {
@@ -19404,97 +19404,6 @@
       ]
     },
     {
-      "id": "module:app/admin/architecture/page.tsx",
-      "type": "Module",
-      "layer": "app",
-      "name_en": "app/admin/architecture/page.tsx",
-      "purpose_th": "หน้าแสดงรายการโมดูลทั้งหมดพร้อมสถานะ จาก module-registry.json — เครื่องมือนักพัฒนา",
-      "exports": [
-        "RegistryViewerPage"
-      ],
-      "status": "OK",
-      "runtime_entry_point": true,
-      "internal_dependencies": [
-        "module:registry/ARCHITECTURE_HEALTH_REPORT.json.ts",
-        "module:registry/architecture-book.json.ts",
-        "module:registry/command-registry.json.ts",
-        "module:registry/connector-lifecycle.json.ts",
-        "module:registry/drivers.json.ts",
-        "module:registry/events.json.ts",
-        "module:registry/infrastructure.json.ts",
-        "module:registry/module-registry.json.ts",
-        "module:registry/system-control-graph.json.ts"
-      ],
-      "dependents": [],
-      "data_tables": "UNKNOWN",
-      "business_capabilities": "UNKNOWN",
-      "domain_owner": "app",
-      "lifecycle_status": "active",
-      "deprecated": false,
-      "event_producer": "UNKNOWN",
-      "event_consumer": "UNKNOWN",
-      "related_workflows": "UNKNOWN",
-      "related_business_events": "UNKNOWN",
-      "related_documents": "UNKNOWN",
-      "related_commands": "UNKNOWN",
-      "related_services": "UNKNOWN",
-      "symbols": [
-        {
-          "name": "RegistryViewerPage",
-          "kind": "function",
-          "line_start": 150,
-          "line_end": 156
-        }
-      ],
-      "import_sites": [
-        {
-          "specifier": "@/registry/module-registry.json",
-          "line": 5,
-          "resolved_target": "registry/module-registry.json.ts"
-        },
-        {
-          "specifier": "@/registry/architecture-book.json",
-          "line": 6,
-          "resolved_target": "registry/architecture-book.json.ts"
-        },
-        {
-          "specifier": "@/registry/system-control-graph.json",
-          "line": 7,
-          "resolved_target": "registry/system-control-graph.json.ts"
-        },
-        {
-          "specifier": "@/registry/ARCHITECTURE_HEALTH_REPORT.json",
-          "line": 8,
-          "resolved_target": "registry/ARCHITECTURE_HEALTH_REPORT.json.ts"
-        },
-        {
-          "specifier": "@/registry/infrastructure.json",
-          "line": 9,
-          "resolved_target": "registry/infrastructure.json.ts"
-        },
-        {
-          "specifier": "@/registry/drivers.json",
-          "line": 10,
-          "resolved_target": "registry/drivers.json.ts"
-        },
-        {
-          "specifier": "@/registry/connector-lifecycle.json",
-          "line": 11,
-          "resolved_target": "registry/connector-lifecycle.json.ts"
-        },
-        {
-          "specifier": "@/registry/command-registry.json",
-          "line": 12,
-          "resolved_target": "registry/command-registry.json.ts"
-        },
-        {
-          "specifier": "@/registry/events.json",
-          "line": 13,
-          "resolved_target": "registry/events.json.ts"
-        }
-      ]
-    },
-    {
       "id": "module:app/admin/backup/page.tsx",
       "type": "Module",
       "layer": "app",
@@ -19525,40 +19434,6 @@
           "kind": "function",
           "line_start": 23,
           "line_end": 162
-        }
-      ]
-    },
-    {
-      "id": "module:app/admin/build/page.tsx",
-      "type": "Module",
-      "layer": "app",
-      "name_en": "app/admin/build/page.tsx",
-      "purpose_th": "หน้าแสดงสถานะ build ล่าสุด — เครื่องมือนักพัฒนา",
-      "exports": [
-        "BuildPage"
-      ],
-      "status": "OK",
-      "runtime_entry_point": true,
-      "internal_dependencies": [],
-      "dependents": [],
-      "data_tables": "UNKNOWN",
-      "business_capabilities": "UNKNOWN",
-      "domain_owner": "app",
-      "lifecycle_status": "active",
-      "deprecated": false,
-      "event_producer": "UNKNOWN",
-      "event_consumer": "UNKNOWN",
-      "related_workflows": "UNKNOWN",
-      "related_business_events": "UNKNOWN",
-      "related_documents": "UNKNOWN",
-      "related_commands": "UNKNOWN",
-      "related_services": "UNKNOWN",
-      "symbols": [
-        {
-          "name": "BuildPage",
-          "kind": "function",
-          "line_start": 42,
-          "line_end": 190
         }
       ]
     },
@@ -19732,8 +19607,8 @@
         {
           "name": "DBDPage",
           "kind": "function",
-          "line_start": 877,
-          "line_end": 1048
+          "line_start": 875,
+          "line_end": 1046
         }
       ]
     },
@@ -19802,97 +19677,6 @@
           "kind": "function",
           "line_start": 95,
           "line_end": 395
-        }
-      ]
-    },
-    {
-      "id": "module:app/admin/graph/page.tsx",
-      "type": "Module",
-      "layer": "app",
-      "name_en": "app/admin/graph/page.tsx",
-      "purpose_th": "หน้า redirect ไป /admin/system ตามแผนรวม 3 หน้าเป็นหน้าเดียว",
-      "exports": [
-        "GraphRedirectPage"
-      ],
-      "status": "OK",
-      "runtime_entry_point": true,
-      "internal_dependencies": [],
-      "dependents": [],
-      "data_tables": "UNKNOWN",
-      "business_capabilities": "UNKNOWN",
-      "domain_owner": "app",
-      "lifecycle_status": "active",
-      "deprecated": false,
-      "event_producer": "UNKNOWN",
-      "event_consumer": "UNKNOWN",
-      "related_workflows": "UNKNOWN",
-      "related_business_events": "UNKNOWN",
-      "related_documents": "UNKNOWN",
-      "related_commands": "UNKNOWN",
-      "related_services": "UNKNOWN",
-      "symbols": [
-        {
-          "name": "GraphRedirectPage",
-          "kind": "function",
-          "line_start": 8,
-          "line_end": 10
-        }
-      ]
-    },
-    {
-      "id": "module:app/admin/graph/ForceGraph3DView.tsx",
-      "type": "Module",
-      "layer": "app",
-      "name_en": "app/admin/graph/ForceGraph3DView.tsx",
-      "purpose_th": "มุมมองกราฟแรง 3 มิติของสถาปัตยกรรม (three.js) — แสดงกราฟความสัมพันธ์ของโมดูลจริงบนหน้า graph ของผู้ดูแล",
-      "exports": [
-        "FGData",
-        "FGLink",
-        "FGNode",
-        "ForceGraph3DView"
-      ],
-      "status": "OK",
-      "runtime_entry_point": false,
-      "internal_dependencies": [],
-      "dependents": [
-        "module:app/admin/graph/GraphView.tsx"
-      ],
-      "data_tables": "UNKNOWN",
-      "business_capabilities": "UNKNOWN",
-      "domain_owner": "app",
-      "lifecycle_status": "active",
-      "deprecated": false,
-      "event_producer": "UNKNOWN",
-      "event_consumer": "UNKNOWN",
-      "related_workflows": "UNKNOWN",
-      "related_business_events": "UNKNOWN",
-      "related_documents": "UNKNOWN",
-      "related_commands": "UNKNOWN",
-      "related_services": "UNKNOWN",
-      "symbols": [
-        {
-          "name": "FGNode",
-          "kind": "interface",
-          "line_start": 10,
-          "line_end": 22
-        },
-        {
-          "name": "FGLink",
-          "kind": "interface",
-          "line_start": 24,
-          "line_end": 28
-        },
-        {
-          "name": "FGData",
-          "kind": "interface",
-          "line_start": 30,
-          "line_end": 33
-        },
-        {
-          "name": "ForceGraph3DView",
-          "kind": "function",
-          "line_start": 92,
-          "line_end": 383
         }
       ]
     },
@@ -24358,8 +24142,8 @@
         {
           "name": "RelationshipWorkspacePage",
           "kind": "function",
-          "line_start": 147,
-          "line_end": 153
+          "line_start": 140,
+          "line_end": 146
         }
       ],
       "import_sites": [
@@ -35400,10 +35184,7 @@
       "internal_dependencies": [
         "module:services/supabase/browser.ts"
       ],
-      "dependents": [
-        "module:app/admin/system/page 2.tsx",
-        "module:app/admin/system/page.tsx"
-      ],
+      "dependents": [],
       "data_tables": "UNKNOWN",
       "business_capabilities": "UNKNOWN",
       "domain_owner": "app",
@@ -35429,135 +35210,6 @@
           "specifier": "@/services/supabase/browser",
           "line": 4,
           "resolved_target": "services/supabase/browser.ts"
-        }
-      ]
-    },
-    {
-      "id": "module:app/admin/graph/GraphView.tsx",
-      "type": "Module",
-      "layer": "app",
-      "name_en": "app/admin/graph/GraphView.tsx",
-      "purpose_th": "แสดงผลกราฟสถาปัตยกรรม (ForceGraph3DView) + inspector รายละเอียด node — เป็น implementation เดียวกับที่ app/admin/system/page.tsx เรียกใช้ ไม่ใช่กราฟตัวที่สอง",
-      "exports": [
-        "GraphPage"
-      ],
-      "status": "OK",
-      "runtime_entry_point": true,
-      "internal_dependencies": [
-        "module:app/admin/graph/ForceGraph3DView.tsx"
-      ],
-      "dependents": [
-        "module:app/admin/system/page 2.tsx",
-        "module:app/admin/system/page.tsx"
-      ],
-      "data_tables": "UNKNOWN",
-      "business_capabilities": "UNKNOWN",
-      "domain_owner": "app",
-      "lifecycle_status": "active",
-      "deprecated": false,
-      "event_producer": "UNKNOWN",
-      "event_consumer": "UNKNOWN",
-      "related_workflows": "UNKNOWN",
-      "related_business_events": "UNKNOWN",
-      "related_documents": "UNKNOWN",
-      "related_commands": "UNKNOWN",
-      "related_services": "UNKNOWN",
-      "symbols": [
-        {
-          "name": "GraphPage",
-          "kind": "function",
-          "line_start": 82,
-          "line_end": 255
-        }
-      ],
-      "import_sites": [
-        {
-          "specifier": "./ForceGraph3DView",
-          "line": 6,
-          "resolved_target": "app/admin/graph/ForceGraph3DView.tsx"
-        }
-      ]
-    },
-    {
-      "id": "module:app/admin/system/page.tsx",
-      "type": "Module",
-      "layer": "app",
-      "name_en": "app/admin/system/page.tsx",
-      "purpose_th": "หน้ารวม Build/Graph/Telemetry เป็นหน้าเดียว — canonical route ใหม่",
-      "exports": [
-        "SystemOperationsPage"
-      ],
-      "status": "OK",
-      "runtime_entry_point": true,
-      "internal_dependencies": [
-        "module:app/admin/graph/GraphView.tsx",
-        "module:components/admin/useAiTaskPulse.ts"
-      ],
-      "dependents": [],
-      "data_tables": "UNKNOWN",
-      "business_capabilities": "UNKNOWN",
-      "domain_owner": "app",
-      "lifecycle_status": "active",
-      "deprecated": false,
-      "event_producer": "UNKNOWN",
-      "event_consumer": "UNKNOWN",
-      "related_workflows": "UNKNOWN",
-      "related_business_events": "UNKNOWN",
-      "related_documents": "UNKNOWN",
-      "related_commands": "UNKNOWN",
-      "related_services": "UNKNOWN",
-      "symbols": [
-        {
-          "name": "SystemOperationsPage",
-          "kind": "function",
-          "line_start": 90,
-          "line_end": 376
-        }
-      ],
-      "import_sites": [
-        {
-          "specifier": "../graph/GraphView",
-          "line": 5,
-          "resolved_target": "app/admin/graph/GraphView.tsx"
-        },
-        {
-          "specifier": "@/components/admin/useAiTaskPulse",
-          "line": 6,
-          "resolved_target": "components/admin/useAiTaskPulse.ts"
-        }
-      ]
-    },
-    {
-      "id": "module:app/admin/telemetry/page.tsx",
-      "type": "Module",
-      "layer": "app",
-      "name_en": "app/admin/telemetry/page.tsx",
-      "purpose_th": "หน้าจอ Real-Time 3D Telemetry เต็มจอ — เชื่อม Supabase Realtime (ai_tasks) ข้อมูลพังจริงจาก /api/governance และ latency จริง เปิดมาเจอเลยไม่ต้องคลิก/มีเมนูบัง",
-      "exports": [
-        "TelemetryRedirectPage"
-      ],
-      "status": "OK",
-      "runtime_entry_point": true,
-      "internal_dependencies": [],
-      "dependents": [],
-      "data_tables": "UNKNOWN",
-      "business_capabilities": "UNKNOWN",
-      "domain_owner": "app",
-      "lifecycle_status": "active",
-      "deprecated": false,
-      "event_producer": "UNKNOWN",
-      "event_consumer": "UNKNOWN",
-      "related_workflows": "UNKNOWN",
-      "related_business_events": "UNKNOWN",
-      "related_documents": "UNKNOWN",
-      "related_commands": "UNKNOWN",
-      "related_services": "UNKNOWN",
-      "symbols": [
-        {
-          "name": "TelemetryRedirectPage",
-          "kind": "function",
-          "line_start": 8,
-          "line_end": 10
         }
       ]
     },
@@ -71061,55 +70713,6 @@
       ]
     },
     {
-      "id": "module:app/admin/system/page 2.tsx",
-      "type": "Module",
-      "layer": "app",
-      "name_en": "app/admin/system/page 2.tsx",
-      "purpose_th": "ไฟล์สำเนาซ้ำของ macOS ('page 2') จาก app/admin/system/page.tsx — เก็บไว้ตามนโยบายห้ามลบใน registry/existence.json (AK-026) ไม่ถูก Next.js ใช้เป็นเส้นทางจริง (ชื่อไฟล์มีช่องว่าง)",
-      "exports": [
-        "SystemOperationsPage"
-      ],
-      "status": "OK",
-      "runtime_entry_point": true,
-      "internal_dependencies": [
-        "module:app/admin/graph/GraphView.tsx",
-        "module:components/admin/useAiTaskPulse.ts"
-      ],
-      "dependents": [],
-      "data_tables": "UNKNOWN",
-      "business_capabilities": "UNKNOWN",
-      "domain_owner": "app",
-      "lifecycle_status": "active",
-      "deprecated": false,
-      "event_producer": "UNKNOWN",
-      "event_consumer": "UNKNOWN",
-      "related_workflows": "UNKNOWN",
-      "related_business_events": "UNKNOWN",
-      "related_documents": "UNKNOWN",
-      "related_commands": "UNKNOWN",
-      "related_services": "UNKNOWN",
-      "symbols": [
-        {
-          "name": "SystemOperationsPage",
-          "kind": "function",
-          "line_start": 90,
-          "line_end": 376
-        }
-      ],
-      "import_sites": [
-        {
-          "specifier": "../graph/GraphView",
-          "line": 5,
-          "resolved_target": "app/admin/graph/GraphView.tsx"
-        },
-        {
-          "specifier": "@/components/admin/useAiTaskPulse",
-          "line": 6,
-          "resolved_target": "components/admin/useAiTaskPulse.ts"
-        }
-      ]
-    },
-    {
       "id": "module:app/api/admin/ide/_lib/workerTaskOrchestrator.ts",
       "type": "Module",
       "layer": "app",
@@ -82660,43 +82263,43 @@
           "name": "UI_CATALOG",
           "kind": "const",
           "line_start": 82,
-          "line_end": 264
+          "line_end": 259
         },
         {
           "name": "UiComparePreset",
           "kind": "interface",
-          "line_start": 270,
-          "line_end": 275
+          "line_start": 265,
+          "line_end": 270
         },
         {
           "name": "UI_COMPARE_PRESETS",
           "kind": "const",
-          "line_start": 277,
-          "line_end": 320
+          "line_start": 272,
+          "line_end": 315
         },
         {
           "name": "PresentationGroup",
           "kind": "type",
-          "line_start": 331,
-          "line_end": 342
+          "line_start": 326,
+          "line_end": 337
         },
         {
           "name": "PRESENTATION_GROUP_ORDER",
           "kind": "const",
-          "line_start": 344,
-          "line_end": 356
+          "line_start": 339,
+          "line_end": 351
         },
         {
           "name": "PresentationEntry",
           "kind": "interface",
-          "line_start": 358,
-          "line_end": 367
+          "line_start": 353,
+          "line_end": 362
         },
         {
           "name": "PRESENTATION_CATALOG",
           "kind": "const",
-          "line_start": 371,
-          "line_end": 427
+          "line_start": 366,
+          "line_end": 422
         }
       ]
     },
@@ -90684,17 +90287,7 @@
     },
     {
       "source": "layer:app",
-      "target": "module:app/admin/architecture/page.tsx",
-      "label": "contains"
-    },
-    {
-      "source": "layer:app",
       "target": "module:app/admin/backup/page.tsx",
-      "label": "contains"
-    },
-    {
-      "source": "layer:app",
-      "target": "module:app/admin/build/page.tsx",
       "label": "contains"
     },
     {
@@ -90785,21 +90378,6 @@
     {
       "source": "layer:app",
       "target": "module:app/admin/finance/page.tsx",
-      "label": "contains"
-    },
-    {
-      "source": "layer:app",
-      "target": "module:app/admin/graph/ForceGraph3DView.tsx",
-      "label": "contains"
-    },
-    {
-      "source": "layer:app",
-      "target": "module:app/admin/graph/GraphView.tsx",
-      "label": "contains"
-    },
-    {
-      "source": "layer:app",
-      "target": "module:app/admin/graph/page.tsx",
       "label": "contains"
     },
     {
@@ -90950,21 +90528,6 @@
     {
       "source": "layer:app",
       "target": "module:app/admin/system-config/page.tsx",
-      "label": "contains"
-    },
-    {
-      "source": "layer:app",
-      "target": "module:app/admin/system/page 2.tsx",
-      "label": "contains"
-    },
-    {
-      "source": "layer:app",
-      "target": "module:app/admin/system/page.tsx",
-      "label": "contains"
-    },
-    {
-      "source": "layer:app",
-      "target": "module:app/admin/telemetry/page.tsx",
       "label": "contains"
     },
     {
@@ -97163,51 +96726,6 @@
       "label": "imports"
     },
     {
-      "source": "module:app/admin/architecture/page.tsx",
-      "target": "module:registry/ARCHITECTURE_HEALTH_REPORT.json.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/admin/architecture/page.tsx",
-      "target": "module:registry/architecture-book.json.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/admin/architecture/page.tsx",
-      "target": "module:registry/command-registry.json.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/admin/architecture/page.tsx",
-      "target": "module:registry/connector-lifecycle.json.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/admin/architecture/page.tsx",
-      "target": "module:registry/drivers.json.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/admin/architecture/page.tsx",
-      "target": "module:registry/events.json.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/admin/architecture/page.tsx",
-      "target": "module:registry/infrastructure.json.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/admin/architecture/page.tsx",
-      "target": "module:registry/module-registry.json.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/admin/architecture/page.tsx",
-      "target": "module:registry/system-control-graph.json.ts",
-      "label": "imports"
-    },
-    {
       "source": "module:app/admin/connectors/page.tsx",
       "target": "module:app/admin/connectors/_lib/types.ts",
       "label": "imports"
@@ -97290,11 +96808,6 @@
     {
       "source": "module:app/admin/engine-explorer/page.tsx",
       "target": "module:registry/module-registry.json.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/admin/graph/GraphView.tsx",
-      "target": "module:app/admin/graph/ForceGraph3DView.tsx",
       "label": "imports"
     },
     {
@@ -97615,26 +97128,6 @@
     {
       "source": "module:app/admin/system-config/page.tsx",
       "target": "module:core/auth/session.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/admin/system/page 2.tsx",
-      "target": "module:app/admin/graph/GraphView.tsx",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/admin/system/page 2.tsx",
-      "target": "module:components/admin/useAiTaskPulse.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/admin/system/page.tsx",
-      "target": "module:app/admin/graph/GraphView.tsx",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/admin/system/page.tsx",
-      "target": "module:components/admin/useAiTaskPulse.ts",
       "label": "imports"
     },
     {
@@ -114504,8 +113997,8 @@
     }
   ],
   "summary": {
-    "total": 1330,
-    "ok": 1330,
+    "total": 1322,
+    "ok": 1322,
     "broken": 0,
     "unused": 0,
     "unregistered": 0

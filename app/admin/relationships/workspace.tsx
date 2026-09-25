@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useMemo, useRef } from "react"
 import Link from "next/link"
 import {
   LayoutGrid, MessageCircle, Briefcase, Building2, FileText, Wallet, Mountain,
-  MapPin, FileSignature, Receipt, Truck, Banknote, Phone, Paperclip, Bot, X, ExternalLink, Settings, Wrench, BarChart3, Satellite, Server, Cloud, ChevronLeft, ChevronRight,
+  MapPin, FileSignature, Receipt, Truck, Banknote, Phone, Paperclip, Bot, X, ExternalLink, Settings, Wrench, BarChart3, Server, Cloud, ChevronLeft, ChevronRight,
 } from "lucide-react"
 import { formatMoney } from "@/engines/documents/document-editor"
 import { openExternal } from "@/components/admin/openExternal"
@@ -77,12 +77,6 @@ const RAIL_ITEMS: IconRailItem[] = [
   // — a real cash-flow chart from real documents, reached via a small rail
   // icon per explicit instruction, not a new prominent destination.
   { key: "finance", label: "ภาพรวมการเงิน", icon: BarChart3, href: "/admin/finance" },
-  // Real-Time 3D Hologram Telemetry (owner, 2026-07-26): owner pointed out
-  // this rail — the system's one real central nav — never got the icon for
-  // /admin/telemetry, so there was no way to reach it except typing the URL.
-  // Placed directly before the settings gear per explicit instruction
-  // ("เอาสัญลักษณ์มาวางไว้บนคำสั่งก่อนลูกเฟืองตั้งค่า").
-  { key: "telemetry", label: "สถาปัตยกรรม", icon: Satellite, href: "/admin/telemetry" },
   // Infrastructure & Costs (owner request, 2026-08-03): "หน้าจอค่าใช้จ่าย...
   // ขึ้นมาแสดงผลในค่าใช้จ่ายและตัวประมวลผลต่างๆ" — real registry/
   // infrastructure.json data already existed (every service + real
@@ -99,7 +93,6 @@ const RAIL_ITEMS: IconRailItem[] = [
   // onSelectRail (wired below to openExternal), the same
   // works-in-both-web-and-Tauri pattern already used for speak_native.
   { key: "runpod", label: "Cloud GPU", icon: Cloud },
-  { key: "build", label: "ระบบ", icon: Settings, href: "/admin/build" },
 ]
 
 const RUNPOD_CONSOLE_URL = "https://console.runpod.io/pods"

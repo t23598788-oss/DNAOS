@@ -151,7 +151,7 @@ function RuntimeSection({ d, onNavigate }: { d: DBDData; onNavigate: (path: stri
   const s = d.runtime.summary;
   return (
     <div className="space-y-4">
-      <Section title="Runtime Status" actionLabel="เปิด Dashboard" onAction={() => onNavigate("/admin/architecture")}>
+      <Section title="Runtime Status">
         <div className="grid grid-cols-5 gap-3">
           {s ? [
             { l: "ทั้งหมด",          v: s.total,        c: "text-slate-100" },
@@ -287,8 +287,7 @@ function ModuleSection({ d, onNavigate }: { d: DBDData; onNavigate: (path: strin
 
   return (
     <div className="space-y-3">
-      <Section title="Module Registry" count={d.modules.total}
-        actionLabel="เปิด Dashboard" onAction={() => onNavigate("/admin/architecture")}>
+      <Section title="Module Registry" count={d.modules.total}>
         {/* Layer tabs */}
         <div className="flex flex-wrap gap-1.5">
           {layers.map(([layer, nodes]) => {
@@ -516,8 +515,7 @@ function GraphSection({ d, onNavigate }: { d: DBDData; onNavigate: (path: string
 
   return (
     <Section title="Architecture Graph"
-      count={d.arch.nodes.filter((n: any) => n.type === "Module").length}
-      actionLabel="เปิด Graph" onAction={() => onNavigate("/admin/graph")}>
+      count={d.arch.nodes.filter((n: any) => n.type === "Module").length}>
       {d.arch.summary && (
         <div className="flex gap-4 text-xs mb-3">
           <span className="text-slate-400">nodes: <b>{d.arch.nodes.length}</b></span>
@@ -538,7 +536,7 @@ function GraphSection({ d, onNavigate }: { d: DBDData; onNavigate: (path: string
             const fill = s.broken > 0 ? "#450a0a33" : "#05966918";
             const stroke = s.broken > 0 ? "#f8717166" : "#22d3ee4d";
             return (
-              <g key={layer} style={{ cursor: "pointer" }} onClick={() => onNavigate("/admin/graph")}>
+              <g key={layer}>
                 <rect x={x} y={y} width={BOX_W} height={BOX_H} rx={6} fill={fill} stroke={stroke} strokeWidth={1} />
                 <text x={x + 6} y={y + 13} fontSize={9} fontWeight="600" fill="#e2e8f0">
                   {layer.length > 16 ? layer.slice(0, 16) + "…" : layer}
@@ -561,7 +559,7 @@ function GraphSection({ d, onNavigate }: { d: DBDData; onNavigate: (path: string
 function BuildDeploySection({ d, onNavigate }: { d: DBDData; onNavigate: (path: string) => void }) {
   return (
     <div className="space-y-4">
-      <Section title="Build Status" actionLabel="เปิด Build" onAction={() => onNavigate("/admin/build")}>
+      <Section title="Build Status">
         <div className="bg-slate-900/60 border border-cyan-500/10 rounded-xl backdrop-blur-sm shadow-[0_0_20px_-10px_rgba(34,211,238,0.25)] p-4 flex items-center gap-4">
           <Ring pct={d.runtime.health_pct} size={60} />
           <div>

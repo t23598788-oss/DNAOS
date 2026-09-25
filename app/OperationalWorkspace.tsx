@@ -370,52 +370,7 @@ function OperationalWorkspaceContent() {
           </div>
           <div className={`mt-6 max-w-3xl mx-auto p-4 rounded-lg text-sm ${e.card} ${ty.description}`}>
             Running jobs, recent events, and issues awaiting review are not read by this component — see{' '}
-            <Link href="/admin/event-inbox" className={semanticColors[theme].success.text}>Event Inbox</Link> and{' '}
-            <Link href="/admin/telemetry" className={semanticColors[theme].success.text}>Telemetry</Link> for that live data.
-          </div>
-        </section>
-
-        {/* System Map — click a layer to Inspect it, not to read a description */}
-        <section id="architecture" className={`${spacing.section} ${e.section} rounded-2xl px-4 sm:px-8`}>
-          <SectionHeading
-            eyebrow="System Map"
-            title="Runtime Dependency Map"
-            description="Every request moves through the same fixed sequence of layers. Click a layer to Inspect it in the System Map explorer — every cross-layer import is declared in the dependency graph."
-          />
-          <div className="mt-12 flex flex-col gap-3 max-w-3xl mx-auto">
-            {layerEntries.map(([key, layer], i) => (
-              <PipelineNode
-                key={key}
-                index={i}
-                isLast={i === layerEntries.length - 1}
-                href={`/admin/architecture?layer=${key}`}
-                icon={iconMap[(layer as any).icon] || Layers}
-                title={(layer as any).name}
-                description={(layer as any).purpose}
-                count={(layer as any).modules.length}
-              />
-            ))}
-          </div>
-        </section>
-
-        {/* Capabilities — Capability Registry. Cards link through to the real
-            System Map explorer (/admin/architecture); a per-status deep link
-            isn't wired here on purpose — module-registry.json's per-module
-            `status` field (active/deprecated) and architecture-book.json's
-            generated summary categories (ok/unused/unregistered/broken) are
-            two different taxonomies, and forcing one to filter the other
-            would show wrong results, which is worse than no filter. */}
-        <section id="modules" className={spacing.section}>
-          <SectionHeading
-            eyebrow="Capabilities"
-            title="Capability Registry"
-            description="Generated directly from the codebase on every build — not a static claim about coverage. Each tile opens the System Map explorer."
-          />
-          <div className="mt-12 grid grid-cols-2 md:grid-cols-4 gap-4">
-            <Link href="/admin/architecture"><StatCard title="Registered Capabilities" value={(archBook as any).summary?.total ?? 0} tone="info" /></Link>
-            <Link href="/admin/architecture"><StatCard title="Operational" value={(archBook as any).summary?.ok ?? 0} tone="success" /></Link>
-            <Link href="/admin/architecture"><StatCard title="Dormant" value={(archBook as any).summary?.unused ?? 0} tone="warning" /></Link>
-            <Link href="/admin/architecture"><StatCard title="Outside Registry" value={(archBook as any).summary?.unregistered ?? 0} tone="error" /></Link>
+            <Link href="/admin/event-inbox" className={semanticColors[theme].success.text}>Event Inbox</Link> for that live data.
           </div>
         </section>
 
@@ -550,24 +505,6 @@ function OperationalWorkspaceContent() {
           </div>
         </section>
 
-        {/* System Health — links through to /admin/system (real page, not a dead-end stat) */}
-        <section id="deployment" className={spacing.section}>
-          <SectionHeading
-            eyebrow="System Health"
-            title="Build and Deployment Status"
-            description="Live governance check results for the currently deployed build. Click through for full detail."
-          />
-          <Link href="/admin/system" className={`block mt-10 max-w-2xl mx-auto p-6 sm:p-8 rounded-lg text-center transition-colors ${e.floatingSurface} ${e.interactiveCard}`}>
-            <div className={`inline-flex items-center gap-2 ${(archBook as any).summary?.broken === 0 ? semanticColors[theme].success.text : semanticColors[theme].warning.text}`}>
-              <CheckCircle className="w-5 h-5" />
-              <span className="font-semibold">{(archBook as any).summary?.broken === 0 ? 'All governance checks passing' : `${(archBook as any).summary?.broken} module(s) need attention`}</span>
-            </div>
-            <div className={`mt-4 text-sm ${ty.description}`}>
-              {(archBook as any).summary?.ok}/{(archBook as any).summary?.total} modules OK — open System Workspace for the full registry explorer.
-            </div>
-          </Link>
-        </section>
-
         {/* Runtime footer — build/registry facts, not a website footer.
             Every field comes from a source already imported above; no live
             build/commit identifier is imported here, so it reads UNKNOWN
@@ -670,7 +607,7 @@ function HeroArchitectureDiagram({
           const Icon = iconMap[l.icon] || Layers;
           const isLast = i === layerEntries.length - 1;
           return (
-            <Link key={key} href={`/admin/architecture?layer=${key}`} className="group block">
+            <div key={key} className="group block">
               <div className={`flex items-center gap-3 px-3 py-2.5 rounded-md ${e.interactiveCard} mb-0.5`}>
                 <span className={`text-[10px] font-mono w-4 shrink-0 ${ty.description}`}>{String(i + 1).padStart(2, '0')}</span>
                 <Icon className={`w-4 h-4 shrink-0 ${ty.description}`} />
@@ -678,7 +615,7 @@ function HeroArchitectureDiagram({
                 <span className={`text-[10px] font-mono shrink-0 ${ty.description}`}>{l.modules.length} mod</span>
               </div>
               {!isLast && <div className={`ml-[26px] w-px h-1.5 border-l ${e.divider}`} />}
-            </Link>
+            </div>
           );
         })}
       </div>
@@ -769,7 +706,7 @@ function SolutionCard({ domainKey, domain }: { domainKey: string; domain: { labe
   const style = coverageTone[domain.status] || coverageTone.not_covered;
   const Icon = style.icon;
   return (
-    <Link href="/admin/architecture" className={`block p-6 rounded-lg transition-colors ${e.card} ${e.interactiveCard}`}>
+    <div className={`block p-6 rounded-lg transition-colors ${e.card} ${e.interactiveCard}`}>
       <div className="flex items-center justify-between">
         <h3 className={`text-base font-semibold capitalize ${ty.heading}`}>{domain.label}</h3>
         <span className={`inline-flex items-center gap-1 text-[10px] uppercase tracking-wide px-2 py-0.5 rounded-full border ${semanticColors[theme][style.tone].chip}`}>
@@ -778,6 +715,6 @@ function SolutionCard({ domainKey, domain }: { domainKey: string; domain: { labe
       </div>
       <p className={`mt-3 text-xs font-mono ${ty.description}`}>{domainKey}</p>
       <p className={`mt-2 text-sm ${ty.description}`}>{domain.modules?.length ?? 0} modules</p>
-    </Link>
+    </div>
   );
 }
