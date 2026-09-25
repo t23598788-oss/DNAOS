@@ -87,7 +87,9 @@ const FRAME_CSS = `
 #dna-frame .stage--bleed{padding:76px 12px 12px}
 #dna-frame .edge{position:absolute;top:20px;padding:8px}
 #dna-frame .edge.left{left:8px}
-#dna-frame .edge.right{right:8px}
+/* top:82px = ตำแหน่ง reference (sites/workspace-frame) — ตอนนี้ stage เริ่มที่ y=0
+   หลังถอด header จึงต้องเว้นมุมขวาบนให้ปุ่ม .corner (ข้อความ) ไม่ซ้อน Ellipsis */
+#dna-frame .edge.right{right:8px;top:82px}
 #dna-frame .drawer{position:absolute;top:76px;left:12px;right:12px;z-index:2;background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:16px;box-shadow:0 12px 24px #0002}
 #dna-frame .drawer .row,#dna-frame .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 #dna-frame .tools{display:grid;grid-template-columns:repeat(auto-fit,minmax(115px,1fr));gap:8px;margin-top:12px}
