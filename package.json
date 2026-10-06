@@ -157,7 +157,8 @@
     "ai-resolver:test": "npx tsx scripts/ai-resolver-test.ts",
     "ai-caller-cutover:test": "npx tsx scripts/ai-caller-cutover-test.ts",
     "ai-deno-cutover:test": "npx tsx scripts/ai-deno-cutover-test.ts",
-    "ai-device-cutover:test": "npx tsx scripts/ai-device-cutover-test.ts"
+    "ai-device-cutover:test": "npx tsx scripts/ai-device-cutover-test.ts",
+    "ui-baseline:guard": "npx tsx scripts/ui-baseline-guard.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.115.0",
