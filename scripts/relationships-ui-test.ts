@@ -133,7 +133,10 @@ check("R7. no second settings system in v2 (no setScreen copy)", !ws.includes("s
 
 // ── R8: display-layer state is view-only ────────────────────────────────────
 check("R8. tab/panel helpers add no new fetch inside helper body", !/function openRelationship[\s\S]{0,300}fetch\(/.test(ws));
-check("R8. open tabs init from deep-link id", ws.includes("initialRelationshipId ? [initialRelationshipId]"));
+// ONE NAVIGATION: deep-link เลือก entity ตอน mount = selectRelationship (capability จริง)
+check("R8. deep-link id still selects the relationship on load", ws.includes("if (initialRelationshipId) selectRelationship(initialRelationshipId)"));
+// และ state แท็บเก่า (openRelIds/tab strip) ต้องไม่กลับมา
+check("R8. old tab state stays deleted (openRelIds/closeRelationshipTab/listWidth)", !ws.includes("openRelIds") && !ws.includes("closeRelationshipTab") && !ws.includes("listWidth"));
 
 // ── F8: ONE CHAT BOARD (Owner 2026-09-25 "ยุบความสามารถทั้งหมดมาไว้ที่ตัวใหม่
 //      แล้วก็ตัดหน้าจอที่ชี้ไปหาเลขาส่วนตัวออกให้หมด") ─────────────────────

@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-25T16:37:56.001Z",
+  "generated_at": "2026-10-06T09:05:00.723Z",
   "version": 1,
   "nodes": [
     {
@@ -19785,8 +19785,8 @@
         {
           "name": "AdminLayout",
           "kind": "function",
-          "line_start": 51,
-          "line_end": 82
+          "line_start": 49,
+          "line_end": 79
         }
       ],
       "import_sites": [
@@ -24062,8 +24062,8 @@
         {
           "name": "RelationshipWorkspacePage",
           "kind": "function",
-          "line_start": 104,
-          "line_end": 110
+          "line_start": 103,
+          "line_end": 109
         }
       ],
       "import_sites": [
@@ -29670,8 +29670,8 @@
         {
           "name": "WorkspacePage",
           "kind": "function",
-          "line_start": 18,
-          "line_end": 42
+          "line_start": 19,
+          "line_end": 43
         }
       ],
       "import_sites": [
@@ -44479,7 +44479,11 @@
       "name_en": "components/ide-shell/IDEWorkspace.tsx",
       "purpose_th": "เชลล์ห้องผลิตโค้ด /admin/ide (เฮีย, 2026-08-05) — Explorer/Search/Source Control (เฟส 1) และ Editor แก้ไข+บันทึกไฟล์จริงได้ (เฟส 2) พร้อม dirty state/Save/Save All/Undo-Redo/Find/Go to Line/ตรวจ conflict ก่อนบันทึกทับ ยังไม่มี create/rename/move/delete/commit/push/pull",
       "exports": [
+        "ClassificationInfo",
+        "CodeCategory",
+        "FileTabState",
         "IDEWorkspace",
+        "RiskLevel",
         "isDirty",
         "isSettingCheckboxEnabled",
         "lineColAt",
@@ -44490,8 +44494,7 @@
       "runtime_entry_point": false,
       "internal_dependencies": [
         "module:app/admin/connectors/_lib/types.ts",
-        "module:app/api/admin/ide/_lib/autoSaveRuntime.ts",
-        "module:presentation/shell/ide/TabStrip.tsx"
+        "module:app/api/admin/ide/_lib/autoSaveRuntime.ts"
       ],
       "dependents": [
         "module:app/admin/ide/page.tsx",
@@ -44514,34 +44517,64 @@
       "related_services": "UNKNOWN",
       "symbols": [
         {
+          "name": "CodeCategory",
+          "kind": "type",
+          "line_start": 438,
+          "line_end": 439
+        },
+        {
+          "name": "RiskLevel",
+          "kind": "type",
+          "line_start": 440,
+          "line_end": 440
+        },
+        {
+          "name": "ClassificationInfo",
+          "kind": "interface",
+          "line_start": 442,
+          "line_end": 445
+        },
+        {
+          "name": "FileTabState",
+          "kind": "interface",
+          "line_start": 487,
+          "line_end": 499
+        },
+        {
+          "name": "isDirty",
+          "kind": "function",
+          "line_start": 501,
+          "line_end": 503
+        },
+        {
           "name": "IDEWorkspace",
           "kind": "function",
-          "line_start": 481,
-          "line_end": 1289
+          "line_start": 522,
+          "line_end": 1319
         },
         {
           "name": "isSettingCheckboxEnabled",
           "kind": "function",
-          "line_start": 2266,
-          "line_end": 2268
+          "line_start": 2296,
+          "line_end": 2298
         },
         {
           "name": "shouldSoftWrapPath",
           "kind": "function",
-          "line_start": 2610,
-          "line_end": 2613
+          "line_start": 2637,
+          "line_end": 2640
         },
         {
           "name": "lineColAt",
           "kind": "function",
-          "line_start": 2618,
-          "line_end": 2624
+          "line_start": 2645,
+          "line_end": 2651
         },
         {
           "name": "offsetOfLine",
           "kind": "function",
-          "line_start": 2625,
-          "line_end": 2635
+          "line_start": 2652,
+          "line_end": 2662
         }
       ],
       "import_sites": [
@@ -44554,11 +44587,6 @@
           "specifier": "@/app/admin/connectors/_lib/types",
           "line": 86,
           "resolved_target": "app/admin/connectors/_lib/types.ts"
-        },
-        {
-          "specifier": "@/presentation/shell/ide/TabStrip",
-          "line": 437,
-          "resolved_target": "presentation/shell/ide/TabStrip.tsx"
         }
       ]
     },
@@ -80376,8 +80404,7 @@
         "module:app/admin/line-customers/page.tsx",
         "module:app/admin/relationships/workspace.tsx",
         "module:app/admin/ui-gallery/_lib/assemblyHost.tsx",
-        "module:app/admin/ui-gallery/_lib/componentHost.tsx",
-        "module:app/workspace/BusinessWorkspace.tsx"
+        "module:app/admin/ui-gallery/_lib/componentHost.tsx"
       ],
       "data_tables": "UNKNOWN",
       "business_capabilities": "UNKNOWN",
@@ -80423,7 +80450,6 @@
         "module:app/admin/ui-gallery/_lib/assemblyHost.tsx",
         "module:app/admin/ui-gallery/_lib/componentHost.tsx",
         "module:app/admin/ui-gallery/visual-review/page.tsx",
-        "module:app/workspace/BusinessWorkspace.tsx",
         "module:presentation/panels/Inspector.tsx",
         "module:presentation/shell/navigation/ListColumn.tsx",
         "module:presentation/table/DataTable.tsx",
@@ -81071,7 +81097,6 @@
       "dependents": [
         "module:app/admin/line-customers/page.tsx",
         "module:app/admin/ui-gallery/_lib/componentHost.tsx",
-        "module:app/workspace/BusinessWorkspace.tsx",
         "module:components/workspace/WorkspaceShell.tsx",
         "module:presentation/shell/AppShell.tsx"
       ],
@@ -81099,87 +81124,6 @@
           "kind": "function",
           "line_start": 19,
           "line_end": 61
-        }
-      ]
-    },
-    {
-      "id": "module:presentation/shell/navigation/HomeBackBar.tsx",
-      "type": "Module",
-      "layer": "presentation",
-      "name_en": "presentation/shell/navigation/HomeBackBar.tsx",
-      "purpose_th": "Owner request (2026-07-30): once wrapped in a native Tauri window, there's",
-      "exports": [
-        "HomeBackBar"
-      ],
-      "status": "OK",
-      "runtime_entry_point": false,
-      "internal_dependencies": [],
-      "dependents": [
-        "module:app/admin/ui-gallery/_lib/assemblyHost.tsx",
-        "module:app/admin/ui-gallery/_lib/componentHost.tsx"
-      ],
-      "data_tables": "UNKNOWN",
-      "business_capabilities": "UNKNOWN",
-      "domain_owner": "presentation",
-      "lifecycle_status": "active",
-      "deprecated": false,
-      "event_producer": "UNKNOWN",
-      "event_consumer": "UNKNOWN",
-      "related_workflows": "UNKNOWN",
-      "related_business_events": "UNKNOWN",
-      "related_documents": "UNKNOWN",
-      "related_commands": "UNKNOWN",
-      "related_services": "UNKNOWN",
-      "symbols": [
-        {
-          "name": "HomeBackBar",
-          "kind": "function",
-          "line_start": 30,
-          "line_end": 51
-        }
-      ]
-    },
-    {
-      "id": "module:presentation/shell/navigation/AppHeader.tsx",
-      "type": "Module",
-      "layer": "presentation",
-      "name_en": "presentation/shell/navigation/AppHeader.tsx",
-      "purpose_th": "Module name — owned by the module, not by Navigation (e.g. \"ข้อความ\", \"การเงิน\", \"ใบแจ้งหนี้\").",
-      "exports": [
-        "AppHeader",
-        "AppHeaderProps"
-      ],
-      "status": "OK",
-      "runtime_entry_point": false,
-      "internal_dependencies": [],
-      "dependents": [
-        "module:app/admin/ui-gallery/_lib/assemblyHost.tsx",
-        "module:app/admin/ui-gallery/_lib/componentHost.tsx"
-      ],
-      "data_tables": "UNKNOWN",
-      "business_capabilities": "UNKNOWN",
-      "domain_owner": "presentation",
-      "lifecycle_status": "active",
-      "deprecated": false,
-      "event_producer": "UNKNOWN",
-      "event_consumer": "UNKNOWN",
-      "related_workflows": "UNKNOWN",
-      "related_business_events": "UNKNOWN",
-      "related_documents": "UNKNOWN",
-      "related_commands": "UNKNOWN",
-      "related_services": "UNKNOWN",
-      "symbols": [
-        {
-          "name": "AppHeaderProps",
-          "kind": "interface",
-          "line_start": 9,
-          "line_end": 15
-        },
-        {
-          "name": "AppHeader",
-          "kind": "function",
-          "line_start": 25,
-          "line_end": 60
         }
       ]
     },
@@ -82114,43 +82058,43 @@
           "name": "UI_CATALOG",
           "kind": "const",
           "line_start": 82,
-          "line_end": 257
+          "line_end": 255
         },
         {
           "name": "UiComparePreset",
           "kind": "interface",
-          "line_start": 263,
-          "line_end": 268
+          "line_start": 261,
+          "line_end": 266
         },
         {
           "name": "UI_COMPARE_PRESETS",
           "kind": "const",
-          "line_start": 270,
-          "line_end": 313
+          "line_start": 268,
+          "line_end": 311
         },
         {
           "name": "PresentationGroup",
           "kind": "type",
-          "line_start": 324,
-          "line_end": 335
+          "line_start": 322,
+          "line_end": 333
         },
         {
           "name": "PRESENTATION_GROUP_ORDER",
           "kind": "const",
-          "line_start": 337,
-          "line_end": 349
+          "line_start": 335,
+          "line_end": 347
         },
         {
           "name": "PresentationEntry",
           "kind": "interface",
-          "line_start": 351,
-          "line_end": 360
+          "line_start": 349,
+          "line_end": 358
         },
         {
           "name": "PRESENTATION_CATALOG",
           "kind": "const",
-          "line_start": 364,
-          "line_end": 420
+          "line_start": 362,
+          "line_end": 416
         }
       ]
     },
@@ -82205,8 +82149,6 @@
         "module:presentation/shell/AppShell.tsx",
         "module:presentation/shell/PortalShell.tsx",
         "module:presentation/shell/TemplateShell.tsx",
-        "module:presentation/shell/navigation/AppHeader.tsx",
-        "module:presentation/shell/navigation/HomeBackBar.tsx",
         "module:presentation/shell/navigation/IconRail.tsx",
         "module:presentation/shell/navigation/ListColumn.tsx",
         "module:presentation/shell/workspace/DashboardBoard.tsx",
@@ -82238,38 +82180,38 @@
         {
           "name": "REAL_NAV_ITEMS",
           "kind": "const",
-          "line_start": 72,
-          "line_end": 72
+          "line_start": 70,
+          "line_end": 70
         },
         {
           "name": "REAL_RAIL_ITEMS",
           "kind": "const",
-          "line_start": 74,
-          "line_end": 79
+          "line_start": 72,
+          "line_end": 77
         },
         {
           "name": "HostProps",
           "kind": "interface",
-          "line_start": 159,
-          "line_end": 168
+          "line_start": 157,
+          "line_end": 166
         },
         {
           "name": "HOST_KEYS",
           "kind": "const",
-          "line_start": 184,
-          "line_end": 228
+          "line_start": 182,
+          "line_end": 224
         },
         {
           "name": "hasHost",
           "kind": "function",
-          "line_start": 230,
-          "line_end": 232
+          "line_start": 226,
+          "line_end": 228
         },
         {
           "name": "renderHost",
           "kind": "function",
-          "line_start": 240,
-          "line_end": 742
+          "line_start": 236,
+          "line_end": 725
         }
       ],
       "import_sites": [
@@ -82354,148 +82296,138 @@
           "resolved_target": "components/auth/LogoutButton.tsx"
         },
         {
-          "specifier": "@/presentation/shell/navigation/AppHeader",
-          "line": 34,
-          "resolved_target": "presentation/shell/navigation/AppHeader.tsx"
-        },
-        {
-          "specifier": "@/presentation/shell/navigation/HomeBackBar",
-          "line": 35,
-          "resolved_target": "presentation/shell/navigation/HomeBackBar.tsx"
-        },
-        {
           "specifier": "@/presentation/feedback/CapabilitySkeleton",
-          "line": 36,
+          "line": 34,
           "resolved_target": "presentation/feedback/CapabilitySkeleton.tsx"
         },
         {
           "specifier": "@/presentation/feedback/CopyButton",
-          "line": 37,
+          "line": 35,
           "resolved_target": "presentation/feedback/CopyButton.tsx"
         },
         {
           "specifier": "@/presentation/documents/FileUpload",
-          "line": 38,
+          "line": 36,
           "resolved_target": "presentation/documents/FileUpload.tsx"
         },
         {
           "specifier": "@/presentation/shell/workspace/DashboardBoard",
-          "line": 40,
+          "line": 38,
           "resolved_target": "presentation/shell/workspace/DashboardBoard.tsx"
         },
         {
           "specifier": "@/presentation/shell/workspace/NotImplementedBoard",
-          "line": 41,
+          "line": 39,
           "resolved_target": "presentation/shell/workspace/NotImplementedBoard.tsx"
         },
         {
           "specifier": "@/components/workspace/canvas/ModulePalette",
-          "line": 42,
+          "line": 40,
           "resolved_target": "components/workspace/canvas/ModulePalette.tsx"
         },
         {
           "specifier": "@/components/workspace/canvas/ModuleInspector",
-          "line": 43,
+          "line": 41,
           "resolved_target": "components/workspace/canvas/ModuleInspector.tsx"
         },
         {
           "specifier": "@/components/workspace/canvas/PropertyInspector",
-          "line": 44,
+          "line": 42,
           "resolved_target": "components/workspace/canvas/PropertyInspector.tsx"
         },
         {
           "specifier": "@/components/workspace/canvas",
-          "line": 45,
+          "line": 43,
           "resolved_target": "components/workspace/canvas/index.ts"
         },
         {
           "specifier": "@/components/workspace/canvas/types",
-          "line": 46,
+          "line": 44,
           "resolved_target": "components/workspace/canvas/types.ts"
         },
         {
           "specifier": "@/components/workspace/SystemRealityReportSection",
-          "line": 47,
+          "line": 45,
           "resolved_target": "components/workspace/SystemRealityReportSection.tsx"
         },
         {
           "specifier": "@/core/workspace/renderModel",
-          "line": 49,
+          "line": 47,
           "resolved_target": "core/workspace/renderModel.ts"
         },
         {
           "specifier": "@/core/workspace/boardRouter",
-          "line": 50,
+          "line": 48,
           "resolved_target": "core/workspace/boardRouter.ts"
         },
         {
           "specifier": "@/core/workspace/board",
-          "line": 51,
+          "line": 49,
           "resolved_target": "core/workspace/board.ts"
         },
         {
           "specifier": "@/core/workspace/workspaceLayout",
-          "line": 52,
+          "line": 50,
           "resolved_target": "core/workspace/workspaceLayout.ts"
         },
         {
           "specifier": "@/core/navigation/resolveNavItems",
-          "line": 53,
+          "line": 51,
           "resolved_target": "core/navigation/resolveNavItems.ts"
         },
         {
           "specifier": "@/presentation/foundation/tokens",
-          "line": 54,
+          "line": 52,
           "resolved_target": "presentation/foundation/tokens/index.tsx"
         },
         {
           "specifier": "@/presentation/viewer/Viewer",
-          "line": 58,
+          "line": 56,
           "resolved_target": "presentation/viewer/Viewer.tsx"
         },
         {
           "specifier": "@/presentation/table/DataTable",
-          "line": 59,
+          "line": 57,
           "resolved_target": "presentation/table/DataTable.tsx"
         },
         {
           "specifier": "@/presentation/form/FormField",
-          "line": 60,
+          "line": 58,
           "resolved_target": "presentation/form/FormField.tsx"
         },
         {
           "specifier": "@/presentation/form/FormActions",
-          "line": 61,
+          "line": 59,
           "resolved_target": "presentation/form/FormActions.tsx"
         },
         {
           "specifier": "@/presentation/ai/ChatInput",
-          "line": 62,
+          "line": 60,
           "resolved_target": "presentation/ai/ChatInput.tsx"
         },
         {
           "specifier": "@/presentation/ai/ChatMessageList",
-          "line": 63,
+          "line": 61,
           "resolved_target": "presentation/ai/ChatMessageList.tsx"
         },
         {
           "specifier": "@/presentation/ai/ClarifyingChoice",
-          "line": 64,
+          "line": 62,
           "resolved_target": "presentation/ai/ClarifyingChoice.tsx"
         },
         {
           "specifier": "@/presentation/ai/ConfirmationPreview",
-          "line": 65,
+          "line": 63,
           "resolved_target": "presentation/ai/ConfirmationPreview.tsx"
         },
         {
           "specifier": "@/presentation/ai/ResultCard",
-          "line": 66,
+          "line": 64,
           "resolved_target": "presentation/ai/ResultCard.tsx"
         },
         {
           "specifier": "@/presentation/assets/manifest",
-          "line": 67,
+          "line": 65,
           "resolved_target": "presentation/assets/manifest.ts"
         }
       ]
@@ -82589,111 +82521,6 @@
       ]
     },
     {
-      "id": "module:app/workspace/BusinessWorkspace.tsx",
-      "type": "Module",
-      "layer": "app",
-      "name_en": "app/workspace/BusinessWorkspace.tsx",
-      "purpose_th": "BUSINESS WORKSPACE — หน้าจอใช้งานจริงเพียงหน้าจอเดียว (/workspace)",
-      "exports": [
-        "BusinessWorkspace"
-      ],
-      "status": "OK",
-      "runtime_entry_point": false,
-      "internal_dependencies": [
-        "module:app/admin/ui-gallery/_lib/BusinessDisplayRenderer.tsx",
-        "module:app/admin/ui-gallery/_lib/businessDisplayModel.ts",
-        "module:app/workspace/InboxIndicator.tsx",
-        "module:app/workspace/WorkspaceSettings.tsx",
-        "module:app/workspace/_lib/businessTools.ts",
-        "module:app/workspace/_lib/toolBindings.ts",
-        "module:app/workspace/_lib/workspaceAppearance.ts",
-        "module:presentation/feedback/EmptyState.tsx",
-        "module:presentation/panels/ActionBar.tsx",
-        "module:presentation/shell/ide/TabStrip.tsx",
-        "module:presentation/shell/navigation/IconRail.tsx"
-      ],
-      "dependents": [
-        "module:scripts/workspace-tool-bindings-test.tsx"
-      ],
-      "data_tables": "UNKNOWN",
-      "business_capabilities": "UNKNOWN",
-      "domain_owner": "app",
-      "lifecycle_status": "active",
-      "deprecated": false,
-      "event_producer": "UNKNOWN",
-      "event_consumer": "UNKNOWN",
-      "related_workflows": "UNKNOWN",
-      "related_business_events": "UNKNOWN",
-      "related_documents": "UNKNOWN",
-      "related_commands": "UNKNOWN",
-      "related_services": "UNKNOWN",
-      "symbols": [
-        {
-          "name": "BusinessWorkspace",
-          "kind": "function",
-          "line_start": 37,
-          "line_end": 196
-        }
-      ],
-      "import_sites": [
-        {
-          "specifier": "@/presentation/shell/navigation/IconRail",
-          "line": 20,
-          "resolved_target": "presentation/shell/navigation/IconRail.tsx"
-        },
-        {
-          "specifier": "@/presentation/panels/ActionBar",
-          "line": 21,
-          "resolved_target": "presentation/panels/ActionBar.tsx"
-        },
-        {
-          "specifier": "@/presentation/feedback/EmptyState",
-          "line": 22,
-          "resolved_target": "presentation/feedback/EmptyState.tsx"
-        },
-        {
-          "specifier": "@/app/admin/ui-gallery/_lib/BusinessDisplayRenderer",
-          "line": 23,
-          "resolved_target": "app/admin/ui-gallery/_lib/BusinessDisplayRenderer.tsx"
-        },
-        {
-          "specifier": "@/app/admin/ui-gallery/_lib/businessDisplayModel",
-          "line": 24,
-          "resolved_target": "app/admin/ui-gallery/_lib/businessDisplayModel.ts"
-        },
-        {
-          "specifier": "@/presentation/shell/ide/TabStrip",
-          "line": 25,
-          "resolved_target": "presentation/shell/ide/TabStrip.tsx"
-        },
-        {
-          "specifier": "./_lib/businessTools",
-          "line": 26,
-          "resolved_target": "app/workspace/_lib/businessTools.ts"
-        },
-        {
-          "specifier": "./_lib/toolBindings",
-          "line": 28,
-          "resolved_target": "app/workspace/_lib/toolBindings.ts"
-        },
-        {
-          "specifier": "./_lib/workspaceAppearance",
-          "line": 29,
-          "resolved_target": "app/workspace/_lib/workspaceAppearance.ts"
-        },
-        {
-          "specifier": "./WorkspaceSettings",
-          "line": 30,
-          "resolved_target": "app/workspace/WorkspaceSettings.tsx"
-        },
-        {
-          "specifier": "./InboxIndicator",
-          "line": 31,
-          "resolved_target": "app/workspace/InboxIndicator.tsx"
-        }
-      ]
-    },
-    {
       "id": "module:app/business-workspace-template/layout.tsx",
       "type": "Module",
       "layer": "app",
@@ -82749,113 +82576,6 @@
       ]
     },
     {
-      "id": "module:presentation/shell/ide/TabStrip.tsx",
-      "type": "Module",
-      "layer": "presentation",
-      "name_en": "presentation/shell/ide/TabStrip.tsx",
-      "purpose_th": "IDE Primitives — TabStrip (EXTRACTED, source-preserving)",
-      "exports": [
-        "CATEGORY_COLORS",
-        "ClassificationInfo",
-        "CodeCategory",
-        "FileTabState",
-        "RISK_COLORS",
-        "RISK_LABELS_TH",
-        "RiskLevel",
-        "Tab",
-        "TabStrip",
-        "classificationTooltip",
-        "isDirty"
-      ],
-      "status": "OK",
-      "runtime_entry_point": false,
-      "internal_dependencies": [],
-      "dependents": [
-        "module:app/workspace/BusinessWorkspace.tsx",
-        "module:components/ide-shell/IDEWorkspace.tsx"
-      ],
-      "data_tables": "UNKNOWN",
-      "business_capabilities": "UNKNOWN",
-      "domain_owner": "presentation",
-      "lifecycle_status": "active",
-      "deprecated": false,
-      "event_producer": "UNKNOWN",
-      "event_consumer": "UNKNOWN",
-      "related_workflows": "UNKNOWN",
-      "related_business_events": "UNKNOWN",
-      "related_documents": "UNKNOWN",
-      "related_commands": "UNKNOWN",
-      "related_services": "UNKNOWN",
-      "symbols": [
-        {
-          "name": "CodeCategory",
-          "kind": "type",
-          "line_start": 20,
-          "line_end": 21
-        },
-        {
-          "name": "RiskLevel",
-          "kind": "type",
-          "line_start": 22,
-          "line_end": 22
-        },
-        {
-          "name": "ClassificationInfo",
-          "kind": "interface",
-          "line_start": 24,
-          "line_end": 27
-        },
-        {
-          "name": "CATEGORY_COLORS",
-          "kind": "const",
-          "line_start": 29,
-          "line_end": 40
-        },
-        {
-          "name": "RISK_COLORS",
-          "kind": "const",
-          "line_start": 42,
-          "line_end": 44
-        },
-        {
-          "name": "RISK_LABELS_TH",
-          "kind": "const",
-          "line_start": 46,
-          "line_end": 48
-        },
-        {
-          "name": "classificationTooltip",
-          "kind": "function",
-          "line_start": 50,
-          "line_end": 55
-        },
-        {
-          "name": "Tab",
-          "kind": "interface",
-          "line_start": 57,
-          "line_end": 63
-        },
-        {
-          "name": "FileTabState",
-          "kind": "interface",
-          "line_start": 68,
-          "line_end": 80
-        },
-        {
-          "name": "isDirty",
-          "kind": "function",
-          "line_start": 82,
-          "line_end": 84
-        },
-        {
-          "name": "TabStrip",
-          "kind": "function",
-          "line_start": 86,
-          "line_end": 119
-        }
-      ]
-    },
-    {
       "id": "module:app/workspace/_lib/businessTools.ts",
       "type": "Module",
       "layer": "app",
@@ -82874,7 +82594,6 @@
         "module:app/admin/ui-gallery/_lib/businessDisplayModel.ts"
       ],
       "dependents": [
-        "module:app/workspace/BusinessWorkspace.tsx",
         "module:app/workspace/_lib/jobDisplayModel.ts",
         "module:scripts/workspace-capability-access-test.ts",
         "module:scripts/workspace-job-path-test.ts",
@@ -83302,7 +83021,6 @@
         "module:app/admin/ui-gallery/_lib/BusinessDisplayRenderer.tsx",
         "module:app/admin/ui-gallery/business-display/page.tsx",
         "module:app/api/chat/_lib/chatResultTypes.ts",
-        "module:app/workspace/BusinessWorkspace.tsx",
         "module:app/workspace/WorkspaceFrame.tsx",
         "module:app/workspace/_lib/businessTools.ts",
         "module:app/workspace/_lib/jobDisplayModel.ts"
@@ -83483,8 +83201,6 @@
         "module:presentation/shell/AppShell.tsx",
         "module:presentation/shell/PortalShell.tsx",
         "module:presentation/shell/TemplateShell.tsx",
-        "module:presentation/shell/navigation/AppHeader.tsx",
-        "module:presentation/shell/navigation/HomeBackBar.tsx",
         "module:presentation/shell/navigation/ListColumn.tsx",
         "module:presentation/shell/workspace/DashboardBoard.tsx",
         "module:presentation/table/DataTable.tsx",
@@ -83509,80 +83225,80 @@
         {
           "name": "AssemblyFrame",
           "kind": "function",
-          "line_start": 55,
-          "line_end": 85
+          "line_start": 53,
+          "line_end": 83
         },
         {
           "name": "AsmApplicationShell",
           "kind": "function",
-          "line_start": 121,
-          "line_end": 173
+          "line_start": 119,
+          "line_end": 171
         },
         {
           "name": "AsmWorkspaceBoard",
           "kind": "function",
-          "line_start": 177,
-          "line_end": 196
+          "line_start": 175,
+          "line_end": 194
         },
         {
           "name": "AsmViewerWorkspace",
           "kind": "function",
-          "line_start": 201,
-          "line_end": 248
+          "line_start": 199,
+          "line_end": 246
         },
         {
           "name": "AsmTableWorkspace",
           "kind": "function",
-          "line_start": 252,
-          "line_end": 317
+          "line_start": 250,
+          "line_end": 315
         },
         {
           "name": "AsmFormWorkspace",
           "kind": "function",
-          "line_start": 322,
-          "line_end": 384
+          "line_start": 320,
+          "line_end": 382
         },
         {
           "name": "AsmDocumentWorkspace",
           "kind": "function",
-          "line_start": 389,
-          "line_end": 421
+          "line_start": 387,
+          "line_end": 419
         },
         {
           "name": "AsmAiWorkspace",
           "kind": "function",
-          "line_start": 427,
-          "line_end": 457
+          "line_start": 425,
+          "line_end": 455
         },
         {
           "name": "AsmTemplateSuite",
           "kind": "function",
-          "line_start": 461,
-          "line_end": 498
+          "line_start": 459,
+          "line_end": 496
         },
         {
           "name": "AsmAdminOwnerWorkspace",
           "kind": "function",
-          "line_start": 503,
-          "line_end": 539
+          "line_start": 502,
+          "line_end": 534
         },
         {
           "name": "AsmPortalCapability",
           "kind": "function",
-          "line_start": 543,
-          "line_end": 578
+          "line_start": 538,
+          "line_end": 573
         },
         {
           "name": "AsmCanvasWorkspace",
           "kind": "function",
-          "line_start": 582,
-          "line_end": 584
+          "line_start": 577,
+          "line_end": 579
         },
         {
           "name": "AssemblyHost",
           "kind": "function",
-          "line_start": 588,
-          "line_end": 619
+          "line_start": 583,
+          "line_end": 614
         }
       ],
       "import_sites": [
@@ -83662,73 +83378,63 @@
           "resolved_target": "components/workspace/WorkspaceShell.tsx"
         },
         {
-          "specifier": "@/presentation/shell/navigation/AppHeader",
-          "line": 35,
-          "resolved_target": "presentation/shell/navigation/AppHeader.tsx"
-        },
-        {
-          "specifier": "@/presentation/shell/navigation/HomeBackBar",
-          "line": 36,
-          "resolved_target": "presentation/shell/navigation/HomeBackBar.tsx"
-        },
-        {
           "specifier": "@/presentation/shell/workspace/DashboardBoard",
-          "line": 37,
+          "line": 35,
           "resolved_target": "presentation/shell/workspace/DashboardBoard.tsx"
         },
         {
           "specifier": "@/presentation/ai/ChatInput",
-          "line": 38,
+          "line": 36,
           "resolved_target": "presentation/ai/ChatInput.tsx"
         },
         {
           "specifier": "@/presentation/ai/ChatMessageList",
-          "line": 39,
+          "line": 37,
           "resolved_target": "presentation/ai/ChatMessageList.tsx"
         },
         {
           "specifier": "@/presentation/ai/ClarifyingChoice",
-          "line": 40,
+          "line": 38,
           "resolved_target": "presentation/ai/ClarifyingChoice.tsx"
         },
         {
           "specifier": "@/presentation/ai/ConfirmationPreview",
-          "line": 41,
+          "line": 39,
           "resolved_target": "presentation/ai/ConfirmationPreview.tsx"
         },
         {
           "specifier": "@/presentation/ai/ResultCard",
-          "line": 42,
+          "line": 40,
           "resolved_target": "presentation/ai/ResultCard.tsx"
         },
         {
           "specifier": "@/core/workspace/renderModel",
-          "line": 44,
+          "line": 42,
           "resolved_target": "core/workspace/renderModel.ts"
         },
         {
           "specifier": "@/core/workspace/boardRouter",
-          "line": 45,
+          "line": 43,
           "resolved_target": "core/workspace/boardRouter.ts"
         },
         {
           "specifier": "@/core/workspace/board",
-          "line": 46,
+          "line": 44,
           "resolved_target": "core/workspace/board.ts"
         },
         {
           "specifier": "@/core/navigation/resolveNavItems",
-          "line": 47,
+          "line": 45,
           "resolved_target": "core/navigation/resolveNavItems.ts"
         },
         {
           "specifier": "@/app/playground/_lib/conversationState",
-          "line": 48,
+          "line": 46,
           "resolved_target": "app/playground/_lib/conversationState.ts"
         },
         {
           "specifier": "./componentHost",
-          "line": 50,
+          "line": 48,
           "resolved_target": "app/admin/ui-gallery/_lib/componentHost.tsx"
         }
       ]
@@ -83774,13 +83480,13 @@
           "name": "ASSEMBLIES",
           "kind": "const",
           "line_start": 25,
-          "line_end": 222
+          "line_end": 219
         },
         {
           "name": "getAssembly",
           "kind": "function",
-          "line_start": 224,
-          "line_end": 227
+          "line_start": 221,
+          "line_end": 224
         }
       ]
     },
@@ -83807,7 +83513,6 @@
       ],
       "dependents": [
         "module:app/admin/ui-gallery/business-display/page.tsx",
-        "module:app/workspace/BusinessWorkspace.tsx",
         "module:app/workspace/WorkspaceFrame.tsx"
       ],
       "data_tables": "UNKNOWN",
@@ -86118,10 +85823,8 @@
       "status": "OK",
       "runtime_entry_point": true,
       "internal_dependencies": [
-        "module:app/workspace/BusinessWorkspace.tsx",
         "module:app/workspace/_lib/businessTools.ts",
-        "module:app/workspace/_lib/toolBindings.ts",
-        "module:app/workspace/_lib/workspaceAppearance.ts"
+        "module:app/workspace/_lib/toolBindings.ts"
       ],
       "dependents": [],
       "data_tables": "UNKNOWN",
@@ -86138,113 +85841,14 @@
       "related_services": "UNKNOWN",
       "import_sites": [
         {
-          "specifier": "../app/workspace/BusinessWorkspace",
-          "line": 4,
-          "resolved_target": "app/workspace/BusinessWorkspace.tsx"
-        },
-        {
           "specifier": "../app/workspace/_lib/businessTools",
-          "line": 5,
+          "line": 3,
           "resolved_target": "app/workspace/_lib/businessTools.ts"
         },
         {
           "specifier": "../app/workspace/_lib/toolBindings",
-          "line": 6,
+          "line": 4,
           "resolved_target": "app/workspace/_lib/toolBindings.ts"
-        },
-        {
-          "specifier": "../app/workspace/_lib/workspaceAppearance",
-          "line": 7,
-          "resolved_target": "app/workspace/_lib/workspaceAppearance.ts"
-        }
-      ]
-    },
-    {
-      "id": "module:app/workspace/WorkspaceSettings.tsx",
-      "type": "Module",
-      "layer": "app",
-      "name_en": "app/workspace/WorkspaceSettings.tsx",
-      "purpose_th": "Navigation to existing guarded screens only; mounting does not run services.",
-      "exports": [
-        "WorkspaceSettings"
-      ],
-      "status": "OK",
-      "runtime_entry_point": false,
-      "internal_dependencies": [
-        "module:app/workspace/_lib/toolBindings.ts"
-      ],
-      "dependents": [
-        "module:app/workspace/BusinessWorkspace.tsx"
-      ],
-      "data_tables": "UNKNOWN",
-      "business_capabilities": "UNKNOWN",
-      "domain_owner": "app",
-      "lifecycle_status": "active",
-      "deprecated": false,
-      "event_producer": "UNKNOWN",
-      "event_consumer": "UNKNOWN",
-      "related_workflows": "UNKNOWN",
-      "related_business_events": "UNKNOWN",
-      "related_documents": "UNKNOWN",
-      "related_commands": "UNKNOWN",
-      "related_services": "UNKNOWN",
-      "symbols": [
-        {
-          "name": "WorkspaceSettings",
-          "kind": "function",
-          "line_start": 6,
-          "line_end": 25
-        }
-      ],
-      "import_sites": [
-        {
-          "specifier": "./_lib/toolBindings",
-          "line": 3,
-          "resolved_target": "app/workspace/_lib/toolBindings.ts"
-        }
-      ]
-    },
-    {
-      "id": "module:app/workspace/_lib/workspaceAppearance.ts",
-      "type": "Module",
-      "layer": "app",
-      "name_en": "app/workspace/_lib/workspaceAppearance.ts",
-      "purpose_th": "Owner-editable presentation only. Keep bindings and authority out of here.",
-      "exports": [
-        "WORKSPACE_APPEARANCE",
-        "WorkspaceAppearance"
-      ],
-      "status": "OK",
-      "runtime_entry_point": false,
-      "internal_dependencies": [],
-      "dependents": [
-        "module:app/workspace/BusinessWorkspace.tsx",
-        "module:scripts/workspace-tool-bindings-test.tsx"
-      ],
-      "data_tables": "UNKNOWN",
-      "business_capabilities": "UNKNOWN",
-      "domain_owner": "app",
-      "lifecycle_status": "active",
-      "deprecated": false,
-      "event_producer": "UNKNOWN",
-      "event_consumer": "UNKNOWN",
-      "related_workflows": "UNKNOWN",
-      "related_business_events": "UNKNOWN",
-      "related_documents": "UNKNOWN",
-      "related_commands": "UNKNOWN",
-      "related_services": "UNKNOWN",
-      "symbols": [
-        {
-          "name": "WorkspaceAppearance",
-          "kind": "interface",
-          "line_start": 5,
-          "line_end": 11
-        },
-        {
-          "name": "WORKSPACE_APPEARANCE",
-          "kind": "const",
-          "line_start": 13,
-          "line_end": 19
         }
       ]
     },
@@ -86264,8 +85868,6 @@
       "runtime_entry_point": false,
       "internal_dependencies": [],
       "dependents": [
-        "module:app/workspace/BusinessWorkspace.tsx",
-        "module:app/workspace/WorkspaceSettings.tsx",
         "module:scripts/auth-access-test.ts",
         "module:scripts/workspace-tool-bindings-test.tsx"
       ],
@@ -88152,42 +87754,6 @@
           "kind": "function",
           "line_start": 16,
           "line_end": 75
-        }
-      ]
-    },
-    {
-      "id": "module:app/workspace/InboxIndicator.tsx",
-      "type": "Module",
-      "layer": "app",
-      "name_en": "app/workspace/InboxIndicator.tsx",
-      "purpose_th": "กล่องรับเข้า — ขวาบนของ Workspace (handoff workspace-reference.html:",
-      "exports": [
-        "InboxIndicator"
-      ],
-      "status": "OK",
-      "runtime_entry_point": false,
-      "internal_dependencies": [],
-      "dependents": [
-        "module:app/workspace/BusinessWorkspace.tsx"
-      ],
-      "data_tables": "UNKNOWN",
-      "business_capabilities": "UNKNOWN",
-      "domain_owner": "app",
-      "lifecycle_status": "active",
-      "deprecated": false,
-      "event_producer": "UNKNOWN",
-      "event_consumer": "UNKNOWN",
-      "related_workflows": "UNKNOWN",
-      "related_business_events": "UNKNOWN",
-      "related_documents": "UNKNOWN",
-      "related_commands": "UNKNOWN",
-      "related_services": "UNKNOWN",
-      "symbols": [
-        {
-          "name": "InboxIndicator",
-          "kind": "function",
-          "line_start": 29,
-          "line_end": 100
         }
       ]
     },
@@ -93014,22 +92580,7 @@
     },
     {
       "source": "layer:app",
-      "target": "module:app/workspace/BusinessWorkspace.tsx",
-      "label": "contains"
-    },
-    {
-      "source": "layer:app",
-      "target": "module:app/workspace/InboxIndicator.tsx",
-      "label": "contains"
-    },
-    {
-      "source": "layer:app",
       "target": "module:app/workspace/WorkspaceFrame.tsx",
-      "label": "contains"
-    },
-    {
-      "source": "layer:app",
-      "target": "module:app/workspace/WorkspaceSettings.tsx",
       "label": "contains"
     },
     {
@@ -93045,11 +92596,6 @@
     {
       "source": "layer:app",
       "target": "module:app/workspace/_lib/toolBindings.ts",
-      "label": "contains"
-    },
-    {
-      "source": "layer:app",
-      "target": "module:app/workspace/_lib/workspaceAppearance.ts",
       "label": "contains"
     },
     {
@@ -94990,21 +94536,6 @@
     {
       "source": "layer:presentation",
       "target": "module:presentation/shell/TemplateShell.tsx",
-      "label": "contains"
-    },
-    {
-      "source": "layer:presentation",
-      "target": "module:presentation/shell/ide/TabStrip.tsx",
-      "label": "contains"
-    },
-    {
-      "source": "layer:presentation",
-      "target": "module:presentation/shell/navigation/AppHeader.tsx",
-      "label": "contains"
-    },
-    {
-      "source": "layer:presentation",
-      "target": "module:presentation/shell/navigation/HomeBackBar.tsx",
       "label": "contains"
     },
     {
@@ -97294,16 +96825,6 @@
     },
     {
       "source": "module:app/admin/ui-gallery/_lib/assemblyHost.tsx",
-      "target": "module:presentation/shell/navigation/AppHeader.tsx",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/admin/ui-gallery/_lib/assemblyHost.tsx",
-      "target": "module:presentation/shell/navigation/HomeBackBar.tsx",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/admin/ui-gallery/_lib/assemblyHost.tsx",
       "target": "module:presentation/shell/navigation/ListColumn.tsx",
       "label": "imports"
     },
@@ -97495,16 +97016,6 @@
     {
       "source": "module:app/admin/ui-gallery/_lib/componentHost.tsx",
       "target": "module:presentation/shell/TemplateShell.tsx",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/admin/ui-gallery/_lib/componentHost.tsx",
-      "target": "module:presentation/shell/navigation/AppHeader.tsx",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/admin/ui-gallery/_lib/componentHost.tsx",
-      "target": "module:presentation/shell/navigation/HomeBackBar.tsx",
       "label": "imports"
     },
     {
@@ -106213,61 +105724,6 @@
       "label": "imports"
     },
     {
-      "source": "module:app/workspace/BusinessWorkspace.tsx",
-      "target": "module:app/admin/ui-gallery/_lib/BusinessDisplayRenderer.tsx",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/workspace/BusinessWorkspace.tsx",
-      "target": "module:app/admin/ui-gallery/_lib/businessDisplayModel.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/workspace/BusinessWorkspace.tsx",
-      "target": "module:app/workspace/InboxIndicator.tsx",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/workspace/BusinessWorkspace.tsx",
-      "target": "module:app/workspace/WorkspaceSettings.tsx",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/workspace/BusinessWorkspace.tsx",
-      "target": "module:app/workspace/_lib/businessTools.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/workspace/BusinessWorkspace.tsx",
-      "target": "module:app/workspace/_lib/toolBindings.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/workspace/BusinessWorkspace.tsx",
-      "target": "module:app/workspace/_lib/workspaceAppearance.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/workspace/BusinessWorkspace.tsx",
-      "target": "module:presentation/feedback/EmptyState.tsx",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/workspace/BusinessWorkspace.tsx",
-      "target": "module:presentation/panels/ActionBar.tsx",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/workspace/BusinessWorkspace.tsx",
-      "target": "module:presentation/shell/ide/TabStrip.tsx",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/workspace/BusinessWorkspace.tsx",
-      "target": "module:presentation/shell/navigation/IconRail.tsx",
-      "label": "imports"
-    },
-    {
       "source": "module:app/workspace/WorkspaceFrame.tsx",
       "target": "module:app/admin/ui-gallery/_lib/BusinessDisplayRenderer.tsx",
       "label": "imports"
@@ -106315,11 +105771,6 @@
     {
       "source": "module:app/workspace/WorkspaceFrame.tsx",
       "target": "module:services/supabase/browser.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/workspace/WorkspaceSettings.tsx",
-      "target": "module:app/workspace/_lib/toolBindings.ts",
       "label": "imports"
     },
     {
@@ -106935,11 +106386,6 @@
     {
       "source": "module:components/ide-shell/IDEWorkspace.tsx",
       "target": "module:app/api/admin/ide/_lib/autoSaveRuntime.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:components/ide-shell/IDEWorkspace.tsx",
-      "target": "module:presentation/shell/ide/TabStrip.tsx",
       "label": "imports"
     },
     {
@@ -113154,22 +112600,12 @@
     },
     {
       "source": "module:scripts/workspace-tool-bindings-test.tsx",
-      "target": "module:app/workspace/BusinessWorkspace.tsx",
-      "label": "imports"
-    },
-    {
-      "source": "module:scripts/workspace-tool-bindings-test.tsx",
       "target": "module:app/workspace/_lib/businessTools.ts",
       "label": "imports"
     },
     {
       "source": "module:scripts/workspace-tool-bindings-test.tsx",
       "target": "module:app/workspace/_lib/toolBindings.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:scripts/workspace-tool-bindings-test.tsx",
-      "target": "module:app/workspace/_lib/workspaceAppearance.ts",
       "label": "imports"
     },
     {
@@ -114024,8 +113460,8 @@
     }
   ],
   "summary": {
-    "total": 1323,
-    "ok": 1323,
+    "total": 1316,
+    "ok": 1316,
     "broken": 0,
     "unused": 0,
     "unregistered": 0

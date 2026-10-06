@@ -7,6 +7,11 @@ import { VoiceStandbyWidget } from "@/components/admin/VoiceStandbyWidget";
 /**
  * Main layout for the admin area.
  *
+ * ONE NAVIGATION (2026-10-06): ไม่มีแถบ Back/Home ถาวรบนหน้า admin แล้ว —
+ * ทุก navigation มาจาก shell ของแต่ละหน้า (ปุ่มขอบจอของ WorkspaceFrame /
+ * drawer) กับ browser back เท่านั้น ไฟล์แถบ Back/Home ถูกลบออกจาก
+ * presentation/shell/navigation แล้ว
+ *
  * Reverted to its pre-domains-commit state (DNA-000075) — the WorkspaceShell
  * wrap introduced in the same commit as the domain-registration feature
  * (c682a9c) forced a shared theme/header onto ~28 admin pages that were never
@@ -18,17 +23,10 @@ import { VoiceStandbyWidget } from "@/components/admin/VoiceStandbyWidget";
  * don't yet have no left nav — same state as before the WorkspaceShell
  * migration, not a new regression.
  *
- * Navigation redesign (owner, 2026-07-16): a floating HomeBackBar overlay was
- * tried here and reverted the same day — it covered real page content (e.g.
- * the debt amount in the relationships header). The referenced per-page
- * HomeBackInline.tsx was never actually built (comment-only, found live
- * 2026-07-30 while wiring the Tauri desktop wrap — that wrap has no browser
- * chrome at all, no back button, nothing).
- *
- * Real fix (2026-07-30): components/nav/HomeBackBar.tsx, rendered here in
- * NORMAL DOCUMENT FLOW (not floating/absolute) — it takes its own real
- * space and pushes page content down, so it can never cover anything the
- * way the 2026-07-16 overlay did.
+ * Navigation history (owner): a floating back/home overlay was tried here
+ * (2026-07-16) and reverted the same day — it covered real page content. A
+ * fixed back/home bar followed (2026-07-30) and was later removed entirely
+ * by the ONE SURFACE/ONE NAVIGATION spec — the current shell owns navigation.
  *
  * Locked-viewport layout (owner, 2026-07-30): "ล็อกหน้าจอให้พอดีกับหน้าจอ
  * โน๊ตบุ๊ก ไม่อยากให้มันดิ้นได้...กล่องบล็อกการพิมพ์/หัวข้อด้านบน ไม่ต้องให้
@@ -41,8 +39,8 @@ import { VoiceStandbyWidget } from "@/components/admin/VoiceStandbyWidget";
  * `min-h-screen` for themselves — two stacked "at least 100vh" boxes render
  * taller than one real viewport, so the whole native window scrolled as one
  * long page instead of behaving like a locked app frame. Changed to a real
- * `h-screen` (a FIXED size) flex column with HomeBackBar pinned and a single
- * `overflow-y-auto` region below it — this preserves normal scrolling for
+ * `h-screen` (a FIXED size) flex column with a single `overflow-y-auto`
+ * region below the top chrome — this preserves normal scrolling for
  * every other admin page (that region scrolls exactly like `<body>` used
  * to), while giving pages that want a fully locked frame (the dashboard/
  * chat screen) a bounded, correctly-measured parent to fill with `h-full`
@@ -65,10 +63,9 @@ export default async function AdminLayout({
 
   return (
     <div className="h-screen flex flex-col bg-stone-50">
-      {/* ONE SURFACE (owner spec 2026-09-25): HomeBackBar (แถบดำ ย้อนกลับ/หน้าหลัก)
-          ถูกถอดทั้งระบบ — ไม่มี top bar ถาวรด้านบน · navigation = shell (drawer
-          + ปุ่มขอบจอ) กับ browser back เท่านั้น — หน้า children ทั้งหมดเลื่อนใน
-          region เดียวด้านล่างนี้เหมือนเดิม */}
+      {/* ONE NAVIGATION (2026-10-06): ไม่มีแถบ Back/Home ถาวร —
+          navigation = shell ของแต่ละหน้า (ปุ่มขอบจอ + drawer) กับ browser
+          back เท่านั้น — หน้า children ทั้งหมดเลื่อนใน region เดียวด้านล่างนี้ */}
       <div className="flex-1 min-h-0 overflow-y-auto">
         {children}
       </div>

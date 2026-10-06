@@ -65,11 +65,9 @@
     "e2e/**",
     "playwright.config.ts",
     "plugins/agent/server.ts",
-    "app/workspace/BusinessWorkspace.tsx",
     "app/workspace/_lib/toolBindings.ts",
-    "app/workspace/_lib/workspaceAppearance.ts",
-    "app/workspace/InboxIndicator.tsx",
-    "app/workspace/WorkspaceSettings.tsx",
+    "app/workspace/_lib/businessTools.ts",
+    "app/workspace/_lib/jobDisplayModel.ts",
     "public/sw.js",
     "device-connector/dnaos-device.mjs"
   ],

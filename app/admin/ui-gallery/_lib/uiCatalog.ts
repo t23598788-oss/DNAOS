@@ -85,7 +85,7 @@ export const UI_CATALOG: UiItem[] = [
   { id: "owner-control-center", label: "Owner Control Center", path: "app/OperationalWorkspace.tsx", branch: "main", category: "Full Workspace", renderMode: "route", route: "/", shell: T, layout: "app/layout.tsx", needsRealData: true, notes: "gated ด้วย requireAuthPage(ADMIN_TIER) เหมือน /admin" },
   { id: "relationship-workspace", label: "Relationship Workspace V1", path: "app/admin/relationships/workspace.tsx", branch: "main", category: "Full Workspace", renderMode: "route", route: "/admin/relationships", shell: "presentation/shell/AppShell", layout: "app/admin/layout.tsx", needsRealData: true },
   { id: "line-customers-workspace", label: "LINE Customers Workspace", path: "app/admin/line-customers/page.tsx", branch: "main", category: "Full Workspace", renderMode: "route", route: "/admin/line-customers", shell: "presentation/shell/AppShell", layout: "app/admin/layout.tsx", needsRealData: true },
-  { id: "software-factory-ide", label: "Software Factory IDE", path: "components/ide-shell/IDEWorkspace.tsx", branch: "main", category: "Full Workspace", renderMode: "route", route: "/admin/ide", shell: "ตัวเองเป็น shell (ActivityBar+LeftPanel+TabStrip+BottomTabs+StatusBar)", layout: "app/admin/layout.tsx", needsRealData: true, notes: "5,976 บรรทัด — reuse ได้เป็น route ทั้งก้อนเท่านั้น" },
+  { id: "software-factory-ide", label: "Software Factory IDE", path: "components/ide-shell/IDEWorkspace.tsx", branch: "main", category: "Full Workspace", renderMode: "route", route: "/admin/ide", shell: "ตัวเองเป็น shell (ActivityBar+LeftPanel+BottomTabs+StatusBar — ONE NAVIGATION: แถบแท็บไฟล์ถูกถอดแล้ว)", layout: "app/admin/layout.tsx", needsRealData: true, notes: "5,976 บรรท� — reuse ได้เป็น route ทั้งก้อนเท่านั้น" },
   { id: "admin-command-workspace", label: "Admin Command Workspace", path: "app/admin/workspace/page.tsx", branch: "main", category: "Full Workspace", renderMode: "route", route: "/admin/workspace", shell: "(ไม่มี nav ในตัวเอง)", layout: "app/admin/layout.tsx", needsRealData: true },
   { id: "visual-workspace-canvas", label: "Visual Workspace Canvas", path: "app/workspace-preview/WorkspacePreviewClient.tsx", branch: "main", category: "Full Workspace", renderMode: "route", route: "/workspace-preview", shell: "components/workspace/canvas/Canvas", notes: "อ่าน moduleRegistry + localStorage เท่านั้น ไม่แตะ DB" },
   { id: "application-composition", label: "Application Composition", path: "app/workspace-preview/apps/[appId]/page.tsx", branch: "main", category: "Full Workspace", renderMode: "route", route: "/workspace-preview/apps/dashboard", shell: "presentation/shell/workspace/DashboardBoard", needsRealData: true, notes: "appId จริงจาก core/workspace/applicationRegistry.ts" },
@@ -109,7 +109,7 @@ export const UI_CATALOG: UiItem[] = [
 
   // ── LAYOUTS (7 — preview ผ่าน route ตัวแทน) ─────────────────────────────────
   { id: "layout-root", label: "Root Layout", path: "app/layout.tsx", branch: "main", category: "Layout", renderMode: "route", route: "/login", layout: "app/layout.tsx", notes: "ครอบทุก route" },
-  { id: "layout-admin", label: "Admin Layout", path: "app/admin/layout.tsx", branch: "main", category: "Layout", renderMode: "route", route: "/admin/line-customers", layout: "app/admin/layout.tsx", needsRealData: true, notes: "h-screen locked viewport + VoiceStandbyWidget (HomeBackBar removed by ONE SURFACE)" },
+  { id: "layout-admin", label: "Admin Layout", path: "app/admin/layout.tsx", branch: "main", category: "Layout", renderMode: "route", route: "/admin/line-customers", layout: "app/admin/layout.tsx", needsRealData: true, notes: "h-screen locked viewport + VoiceStandbyWidget (no top bar — ONE SURFACE)" },
   { id: "layout-business", label: "Business Layout", path: "app/business/layout.tsx", branch: "main", category: "Layout", renderMode: "route", route: "/business", layout: "app/business/layout.tsx", needsRealData: true },
   { id: "layout-partner", label: "Partner Layout", path: "app/partner/layout.tsx", branch: "main", category: "Layout", renderMode: "route", route: "/partner", layout: "app/partner/layout.tsx", needsRealData: true },
   { id: "layout-user", label: "User Layout", path: "app/user/layout.tsx", branch: "main", category: "Layout", renderMode: "route", route: "/user", layout: "app/user/layout.tsx", needsRealData: true },
@@ -174,8 +174,6 @@ export const UI_CATALOG: UiItem[] = [
   { id: "comp-action-bar", label: "ActionBar (actions + overflow)", path: "presentation/panels/ActionBar.tsx", branch: "main", category: "Component", renderMode: "component", hostKey: "comp-action-bar" },
   { id: "comp-map-view", label: "MapView (markers grid)", path: "presentation/viewer/MapView.tsx", branch: "main", category: "Component", renderMode: "component", hostKey: "comp-map-view" },
   { id: "comp-flex-preview", label: "FlexPreview (LINE Flex renderer)", path: "presentation/viewer/FlexPreview.tsx", branch: "main", category: "Component", renderMode: "component", hostKey: "comp-flex-preview", notes: "ป้อน Flex แบบโครงสร้างล้วน (ไม่มีข้อมูลธุรกิจ) เพื่อดูว่า renderer ทำงานอย่างไร" },
-  { id: "comp-app-header", label: "AppHeader (Back | Home | title | actions)", path: "presentation/shell/navigation/AppHeader.tsx", branch: "main", category: "Component", renderMode: "component", hostKey: "comp-app-header" },
-  { id: "comp-home-back-bar", label: "HomeBackBar (sticky)", path: "presentation/shell/navigation/HomeBackBar.tsx", branch: "main", category: "Component", renderMode: "component", hostKey: "comp-home-back-bar" },
   { id: "comp-capability-skeleton", label: "CapabilitySkeleton (loading)", path: "presentation/feedback/CapabilitySkeleton.tsx", branch: "main", category: "Component", renderMode: "component", hostKey: "comp-capability-skeleton" },
   { id: "comp-copy-button", label: "CopyButton", path: "presentation/feedback/CopyButton.tsx", branch: "main", category: "Component", renderMode: "component", hostKey: "comp-copy-button" },
   { id: "comp-file-upload", label: "FileUpload (แนบไฟล์)", path: "presentation/documents/FileUpload.tsx", branch: "main", category: "Component", renderMode: "component", hostKey: "comp-file-upload", writeCapable: true, notes: "กดแนบไฟล์ = อัปโหลดเข้า Storage จริง — ใช้ด้วยความระวัง" },
@@ -188,7 +186,7 @@ export const UI_CATALOG: UiItem[] = [
   // ทุกตัวเป็น route จริง เปิดด้วย iframe (same-origin, session เดิม)
   // ตัวที่ต้องมี id/param จริง หรือเป็น redirect-only จะถูกทำเครื่องหมายตามจริง
   { id: "page-admin-root", label: "Admin entry (redirect)", path: "app/admin/page.tsx", branch: "main", category: "Business Page", renderMode: "blocked", route: "/admin/relationships", blockedReason: "redirect ไป /admin/relationships เท่านั้น" },
-  { id: "page-workspace-entry", label: "Business Workspace — พื้นที่ทำงานปัจจุบัน", path: "app/workspace/page.tsx", branch: "main", category: "Full Workspace", renderMode: "route", route: "/workspace", shell: "app/workspace/BusinessWorkspace", needsRealData: true, notes: "IconRail + พื้นที่ซ้าย + แท็บด้านขวา ใช้สิทธิ์จากระบบกลางและข้อมูลคู่ค้า/งานจริง — ต้องเข้าสู่ระบบ" },
+  { id: "page-workspace-entry", label: "Business Workspace — พื้นที่ทำงานปัจจุบัน", path: "app/workspace/page.tsx", branch: "main", category: "Full Workspace", renderMode: "route", route: "/workspace", shell: "app/workspace/WorkspaceFrame", needsRealData: true, notes: "ONE NAVIGATION: shell เดียว = WorkspaceFrame (ปุ่มขอบจอ) — ไม่มี IconRail/แท็บในตัวหน้าอีกต่อไป · ใช้สิทธิ์จากระบบกลาง — ต้องเข้าสู่ระบบ" },
   { id: "page-admin-dev-loop", label: "Dev Loop", path: "app/admin/dev-loop/page.tsx", branch: "main", category: "Business Page", renderMode: "route", route: "/admin/dev-loop", layout: "app/admin/layout.tsx", needsRealData: true, notes: "มี DevLoopVoiceAlerts (Realtime + TTS)" },
   { id: "page-admin-finance", label: "Finance Summary", path: "app/admin/finance/page.tsx", branch: "main", category: "Business Page", renderMode: "route", route: "/admin/finance", layout: "app/admin/layout.tsx", needsRealData: true },
   { id: "page-admin-create-document", label: "Create Document (DocumentBuilder)", path: "app/admin/create-document/page.tsx", branch: "main", category: "Business Page", renderMode: "route", route: "/admin/create-document", layout: "app/admin/layout.tsx", writeCapable: true, needsRealData: true },
@@ -377,11 +375,9 @@ export const PRESENTATION_CATALOG: PresentationEntry[] = [
   { path: "presentation/shell/workspace/DashboardBoard.tsx", group: "Application Shell", kind: "renderable", uiItemId: "board-dashboard-board" },
   { path: "presentation/shell/workspace/NotImplementedBoard.tsx", group: "Application Shell", kind: "renderable", uiItemId: "board-not-implemented" },
 
-  // ── Navigation / Header (4) ────────────────────────────────────────────────
+  // ── Navigation / Header (2 — ONE NAVIGATION: AppHeader/HomeBackBar ถูกลบแล้ว) ──
   { path: "presentation/shell/navigation/IconRail.tsx", group: "Navigation / Header", kind: "renderable", uiItemId: "sidebar-icon-rail" },
   { path: "presentation/shell/navigation/ListColumn.tsx", group: "Navigation / Header", kind: "renderable", uiItemId: "sidebar-list-column" },
-  { path: "presentation/shell/navigation/AppHeader.tsx", group: "Navigation / Header", kind: "renderable", uiItemId: "comp-app-header" },
-  { path: "presentation/shell/navigation/HomeBackBar.tsx", group: "Navigation / Header", kind: "renderable", uiItemId: "comp-home-back-bar" },
 
   // ── Viewer (3) ─────────────────────────────────────────────────────────────
   { path: "presentation/viewer/Viewer.tsx", group: "Viewer", kind: "renderable", uiItemId: "presentation-viewer" },

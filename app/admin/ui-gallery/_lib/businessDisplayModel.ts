@@ -276,11 +276,11 @@ export const DISPLAY_PRIMITIVE_MAPPING: PrimitiveMapping[] = [
   },
   {
     businessDisplay: "TAB / TABSTRIP",
-    existingComponent: "IDEWorkspace :: TabStrip (:2543 · tabs/activeTabId/onSelect/onClose/dirtyTabIds)",
-    existingBehavior: "หลายเอกสารเปิดพร้อมกัน · ปิดได้ · dirty state",
-    state: "MIXED",
-    evidence: "components/ide-shell/IDEWorkspace.tsx:2543 (ไม่ export)",
-    note: "ชั้น presentation ยังไม่มี tab primitive — รอบนี้ compose จาก Window/ActionBar",
+    existingComponent: "ไม่มีแล้ว — ONE NAVIGATION (2026-10-06): แถบแท็บไฟล์ถูกถอดจาก IDEWorkspace",
+    existingBehavior: "เปิดไฟล์จาก Explorer/BottomTabs → active file แสดงใน EditorToolbar/EditorPane (open/edit/save คงเดิม)",
+    state: "MISSING",
+    evidence: "components/ide-shell/IDEWorkspace.tsx (ไม่มีการ import TabStrip — ไฟล์ถูกลบ)",
+    note: "ไม่มี tab primitive ในระบบ — state เปิดไฟล์/dirty/save ยังอยู่ใน IDEWorkspace แต่ไม่มีแถบแท็บให้เห็น",
   },
   {
     businessDisplay: "SEARCH HIGHLIGHT (เน้นช่วงที่ match)",

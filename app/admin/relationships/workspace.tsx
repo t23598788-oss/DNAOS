@@ -97,10 +97,9 @@ function openHtmlDocument(html: string) {
 // same workspace with that one relationship opened on load — the real,
 // bookmarkable/deep-linkable route the architecture migration asked for.
 // Both page.tsx files below just render this with a different prop.
-// Display-layer switch (2026-09-24): legacyUi=true renders the ORIGINAL
-// AppShell screen (rollback path — same URL/session/data, byte-for-byte
-// behavior); default renders the BusinessWorkspace-family screen the Owner
-// chose. Both wrap ONE shared `workspaceContent` fragment — zero logic copies.
+// ONE SURFACE / ONE NAVIGATION (2026-10-06): ไม่มี legacy switch / ไม่มี
+// AppShell shell ตัวที่สอง / ไม่มี tab strip — หน้า = WorkspaceFrame เดียว
+// และ ONE shared `workspaceContent` fragment — zero logic copies.
 export function RelationshipWorkspacePage({ initialRelationshipId }: { initialRelationshipId: string | null }) {
   return (
     <WorkspaceProvider>
@@ -709,30 +708,12 @@ function RelationshipWorkspace({ initialRelationshipId }: { initialRelationshipI
   const pendingDrafts = detail?.drafts.filter((d) => d.status === "pending_review") ?? []
   const [contactSettingsOpen, setContactSettingsOpen] = useState(false)
 
-  // ── NEW DISPLAY ONLY (no business logic): opened-relationship tabs +
-  // resizable list panel — the BusinessWorkspace-family chrome. Selecting a
-  // relationship still goes through the SAME selectRelationship()/detail
-  // fetch; the tab strip is a view of "which relationships are open here".
-  const [openRelIds, setOpenRelIds] = useState<string[]>(initialRelationshipId ? [initialRelationshipId] : [])
+  // ONE NAVIGATION (2026-10-06): state แถบแท็บ/แผง list ยืดได้ของเก่าถูกลบทั้งหมด —
+  // ไม่มี tab strip / resizable list ในหน้านี้แล้ว เลือก entity ผ่าน messagePanel อย่างเดียว
   // ONE SURFACE: แผง "ประวัติการสื่อสาร" (มุมขวาบน) — controlled ของ shell หน้านี้
   const [panelOpen, setPanelOpen] = useState(false)
-  const [listWidth, setListWidth] = useState(300)
-  const [listCollapsed, setListCollapsed] = useState(false)
-  const listDragging = useRef(false)
   function openRelationship(id: string) {
-    setOpenRelIds((prev) => (prev.includes(id) ? prev : [...prev, id]))
     void selectRelationship(id)
-  }
-  function closeRelationshipTab(id: string) {
-    setOpenRelIds((prev) => {
-      const next = prev.filter((x) => x !== id)
-      if (id === activeId) {
-        const fallback = next[next.length - 1] ?? null
-        if (fallback) void selectRelationship(fallback)
-        else setActiveId(null)
-      }
-      return next
-    })
   }
 
   // Business Workspace V1 (owner, 2026-09-18): งาน + รายรับ/รายจ่าย + สถานะชำระ
@@ -1204,7 +1185,7 @@ function RelationshipWorkspace({ initialRelationshipId }: { initialRelationshipI
   // ── ONE canvas, ONE context (owner spec ONE SURFACE 2026-09-25) ──────────
   // Everything below (context row/debt/drafts/timeline/ActionBar/cockpit/
   // GPS/match/SettingsDrawer/lightbox …) = entity canvas ชุดเดียวที่เปลี่ยน
-  // context ตาม entity ที่เลือก — ไม่มี top bar (AppHeader) ไม่มี composer ที่สอง
+  // context ตาม entity ที่เลือก — ไม่มีแถบ Back/Home ไม่มี composer ที่สอง
   // ไม่มี sidebar ถาวร · endpoints/logic ทั้งหมดคงเดิมทุกบรรทัด
   const workspaceContent = (
     <>

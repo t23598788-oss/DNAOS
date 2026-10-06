@@ -3,21 +3,19 @@
 The owner arranges the UI. This layer does not provision services, change schemas,
 grant access, or start agents by moving a box.
 
+ONE NAVIGATION (2026-10-06): the screen itself is `WorkspaceFrame.tsx` only —
+the old `BusinessWorkspace.tsx` shell (IconRail + TabStrip), `WorkspaceSettings.tsx`,
+`InboxIndicator.tsx`, and `_lib/workspaceAppearance.ts` were deleted. The menu is
+the frame's edge buttons; there is no in-page tab bar or rail.
+
 ## Where to change each part
 
-- `_lib/workspaceAppearance.ts`: rail side, tool order, initial panel width,
-  collapsed state, Settings columns. Pass `appearance` to `BusinessWorkspace` to
-  use another manual arrangement. Unknown/duplicate keys are ignored; omitted
-  authorized tools remain available after the specified order.
 - `_lib/businessTools.ts`: icon and label for each stable tool key. Its sample
   models remain reference material; the production workspace no longer uses them.
 - `_lib/toolBindings.ts`: existing-screen routes, live target IDs, and explicit
   reasons when a tool is not connected. Presentation metadata only, not a second
   capability/permission registry. Never put credentials or user-supplied URLs here.
-- `WorkspaceSettings.tsx`: ordinary service boxes inside the DNA OS boundary.
-  No wires or draggable graph. Links open the existing management screen in a
-  new tab, preserving workspace state. The destination enforces its own rights;
-  seeing a box does not grant permission to perform its operations.
+  (Read by auth-access-test + provider-credentials-test; no runtime renderer.)
 
 ## Actual call path
 

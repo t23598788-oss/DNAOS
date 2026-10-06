@@ -22,7 +22,7 @@
  * No network, no Supabase session, no credentials.
  */
 import assert from "node:assert/strict";
-import { readFileSync, readdirSync } from "node:fs";
+import { readFileSync, readdirSync, existsSync } from "node:fs";
 import { join } from "node:path";
 import permissions from "@/registry/permissions.json";
 import { isCapabilityAllowed, resolveAllowedCapabilities } from "@/core/navigation/resolveCapabilityAccess";
@@ -146,8 +146,13 @@ function main() {
 
   // 9 · canonical renderer only
   assert.ok(
-    read("app/workspace/BusinessWorkspace.tsx").includes("BusinessDisplayRenderer"),
+    read("app/workspace/WorkspaceFrame.tsx").includes("BusinessDisplayRenderer"),
     "the workspace must render through BusinessDisplayRenderer",
+  );
+  // ONE NAVIGATION: shell เก่าถูกลบ — /workspace = WorkspaceFrame เท่านั้น
+  assert.ok(
+    !existsSync(join(ROOT, "app/workspace/BusinessWorkspace.tsx")),
+    "BusinessWorkspace (old shell with TabStrip) must stay deleted",
   );
   const renderers = readdirSync(join(ROOT, "app/workspace"), { recursive: true, encoding: "utf-8" }).filter((f) =>
     /Renderer.*\.(tsx|ts)$/.test(f),

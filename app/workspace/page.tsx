@@ -14,7 +14,8 @@ import { WorkspaceFrame } from "./WorkspaceFrame";
 //     ทุก route ที่เมนูเปิดยังมี server guard ของตัวเอง (ห้ามแตะ auth/canonical/
 //     migration/permissions — ไม่มีในไฟล์นี้)
 //   - shell ไม่มีข้อมูล mock: ข้อมูลจริงอยู่หลัง route เดิมที่กดเปิดเท่านั้น
-//   - BusinessWorkspace/TOOL_BINDINGS ยังอยู่ครบ (source ให้ test อ่าน) — ไม่ active render
+//   - ONE NAVIGATION (2026-10-06): BusinessWorkspace shell ถูกลบ — หน้า = WorkspaceFrame
+//     เท่านั้น · TOOL_BINDINGS ยังอยู่ (source ให้ auth/provider tests อ่าน) ไม่ active render
 export default async function WorkspacePage() {
   const user = await getAuthedUser();
 

@@ -31,8 +31,6 @@ import { Panel, StatusPill, TemplateShell } from "@/presentation/shell/TemplateS
 import AdminSidebarNav from "@/components/admin/AdminSidebarNav";
 import SettingsDrawer from "@/components/settings/SettingsDrawer";
 import LogoutButton from "@/components/auth/LogoutButton";
-import AppHeader from "@/presentation/shell/navigation/AppHeader";
-import { HomeBackBar } from "@/presentation/shell/navigation/HomeBackBar";
 import CapabilitySkeleton from "@/presentation/feedback/CapabilitySkeleton";
 import CopyButton from "@/presentation/feedback/CopyButton";
 import FileUpload from "@/presentation/documents/FileUpload";
@@ -206,8 +204,6 @@ export const HOST_KEYS = [
   "comp-action-bar",
   "comp-map-view",
   "comp-flex-preview",
-  "comp-app-header",
-  "comp-home-back-bar",
   "comp-capability-skeleton",
   "comp-copy-button",
   "comp-file-upload",
@@ -495,21 +491,8 @@ export function renderHost(hostKey: string | undefined, props: HostProps = {}): 
         </div>
       );
 
-    case "comp-app-header":
-      return (
-        <div className="rounded-lg border border-stone-200 overflow-hidden bg-white">
-          <AppHeader title="ตัวอย่างหัวข้อของโมดูล" />
-          <div className="p-6 text-xs text-stone-400">title/actions เป็นของแต่ละโมดูล — Navigation (Back | Home) เป็นของระบบ</div>
-        </div>
-      );
-
-    case "comp-home-back-bar":
-      return (
-        <div className="rounded-lg border border-stone-200 overflow-hidden">
-          <HomeBackBar />
-          <div className="p-6 text-xs text-stone-400 bg-white">HomeBackBar เป็น sticky top-0 (อยู่ใน flow จริง ไม่ลอยทับเนื้อหา)</div>
-        </div>
-      );
+    // ONE NAVIGATION: comp-app-header / comp-home-back-bar (AppHeader + HomeBackBar)
+    // ถูกลบออกทั้งระบบ — ไม่มี host ของเมนู Back/Home อีกต่อไป
 
     case "comp-capability-skeleton":
       return <CapabilitySkeleton cards={3} />;

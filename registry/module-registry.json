@@ -8270,7 +8270,11 @@
       "purpose": "Code workspace shell for /admin/ide (owner, 2026-08-05) — Activity Bar (Explorer/Search/Source Control/Runtime/AI/Documents/Settings), resizable/collapsible left panel, tabbed editor/diff viewer, resizable/collapsible bottom panel, status bar, top bar. Explorer/Search/Source Control (Phase 1, read-only) plus the Editor (Phase 2, real editable + save) all work against the REAL project workspace. Editor: per-tab dirty state, Save/Save All, Cmd/Ctrl+S, native-textarea undo/redo, Find-in-file (Cmd/Ctrl+F), Go to Line, cursor Ln/Col, close-with-unsaved-changes confirmation, conflict banner (Reload from disk / Keep mine / Open diff — via a real client-side LCS line diff since no git ref exists to diff an in-progress edit against) on FILE_CONFLICT. No create/rename/move/delete/commit/push/pull anywhere. AI/Runtime/Database providers, Problems/Logs/Build Output/Runtime Events, and Documents remain mock (explicit Phase 2 scope). No Connector/GitHub-remote/Supabase/AI wiring, no deploy system, no Terminal.",
       "purpose_th": "เชลล์ห้องผลิตโค้ด /admin/ide (เฮีย, 2026-08-05) — Explorer/Search/Source Control (เฟส 1) และ Editor แก้ไข+บันทึกไฟล์จริงได้ (เฟส 2) พร้อม dirty state/Save/Save All/Undo-Redo/Find/Go to Line/ตรวจ conflict ก่อนบันทึกทับ ยังไม่มี create/rename/move/delete/commit/push/pull",
       "exports": [
+        "ClassificationInfo",
+        "CodeCategory",
+        "FileTabState",
         "IDEWorkspace",
+        "RiskLevel",
         "isDirty",
         "isSettingCheckboxEnabled",
         "lineColAt",
@@ -14381,27 +14385,6 @@
       ],
       "status": "active"
     },
-    "presentation/shell/navigation/HomeBackBar.tsx": {
-      "owner": "presentation",
-      "layer": "presentation",
-      "purpose": "Owner request (2026-07-30): once wrapped in a native Tauri window, there's",
-      "purpose_th": "Owner request (2026-07-30): once wrapped in a native Tauri window, there's",
-      "exports": [
-        "HomeBackBar"
-      ],
-      "status": "active"
-    },
-    "presentation/shell/navigation/AppHeader.tsx": {
-      "owner": "presentation",
-      "layer": "presentation",
-      "purpose": "Module name — owned by the module, not by Navigation (e.g. \"ข้อความ\", \"การเงิน\", \"ใบแจ้งหนี้\").",
-      "purpose_th": "Module name — owned by the module, not by Navigation (e.g. \"ข้อความ\", \"การเงิน\", \"ใบแจ้งหนี้\").",
-      "exports": [
-        "AppHeader",
-        "AppHeaderProps"
-      ],
-      "status": "active"
-    },
     "presentation/foundation/tokens/typography.ts": {
       "owner": "presentation",
       "layer": "presentation",
@@ -14642,16 +14625,6 @@
       ],
       "status": "active"
     },
-    "app/workspace/BusinessWorkspace.tsx": {
-      "owner": "app",
-      "layer": "app",
-      "purpose": "BUSINESS WORKSPACE — หน้าจอใช้งานจริงเพียงหน้าจอเดียว (/workspace)",
-      "purpose_th": "BUSINESS WORKSPACE — หน้าจอใช้งานจริงเพียงหน้าจอเดียว (/workspace)",
-      "exports": [
-        "BusinessWorkspace"
-      ],
-      "status": "active"
-    },
     "app/business-workspace-template/layout.tsx": {
       "owner": "app",
       "layer": "app",
@@ -14659,26 +14632,6 @@
       "purpose_th": "Business Workspace Template — auth boundary ของพื้นที่ template/review (owner, 2026-09-23)",
       "exports": [
         "BusinessWorkspaceTemplateLayout"
-      ],
-      "status": "active"
-    },
-    "presentation/shell/ide/TabStrip.tsx": {
-      "owner": "presentation",
-      "layer": "presentation",
-      "purpose": "IDE Primitives — TabStrip (EXTRACTED, source-preserving)",
-      "purpose_th": "IDE Primitives — TabStrip (EXTRACTED, source-preserving)",
-      "exports": [
-        "CATEGORY_COLORS",
-        "ClassificationInfo",
-        "CodeCategory",
-        "FileTabState",
-        "RISK_COLORS",
-        "RISK_LABELS_TH",
-        "RiskLevel",
-        "Tab",
-        "TabStrip",
-        "classificationTooltip",
-        "isDirty"
       ],
       "status": "active"
     },
@@ -15281,27 +15234,6 @@
       "exports": [],
       "status": "active"
     },
-    "app/workspace/WorkspaceSettings.tsx": {
-      "owner": "app",
-      "layer": "app",
-      "purpose": "Navigation to existing guarded screens only; mounting does not run services.",
-      "purpose_th": "Navigation to existing guarded screens only; mounting does not run services.",
-      "exports": [
-        "WorkspaceSettings"
-      ],
-      "status": "active"
-    },
-    "app/workspace/_lib/workspaceAppearance.ts": {
-      "owner": "app",
-      "layer": "app",
-      "purpose": "Owner-editable presentation only. Keep bindings and authority out of here.",
-      "purpose_th": "Owner-editable presentation only. Keep bindings and authority out of here.",
-      "exports": [
-        "WORKSPACE_APPEARANCE",
-        "WorkspaceAppearance"
-      ],
-      "status": "active"
-    },
     "app/workspace/_lib/toolBindings.ts": {
       "owner": "app",
       "layer": "app",
@@ -15668,16 +15600,6 @@
       "purpose_th": "PWA lifecycle (2026-09-24): registers public/sw.js and announces updates.",
       "exports": [
         "PwaRegistration"
-      ],
-      "status": "active"
-    },
-    "app/workspace/InboxIndicator.tsx": {
-      "owner": "app",
-      "layer": "app",
-      "purpose": "กล่องรับเข้า — ขวาบนของ Workspace (handoff workspace-reference.html:",
-      "purpose_th": "กล่องรับเข้า — ขวาบนของ Workspace (handoff workspace-reference.html:",
-      "exports": [
-        "InboxIndicator"
       ],
       "status": "active"
     },
@@ -16381,6 +16303,55 @@
       "reason": "ไฟล์ไม่มีอยู่ใน Source แล้ว (Git/Source = source of truth) — ย้ายออกจาก modules ไม่นับเป็น BROKEN ปัจจุบัน",
       "last_status": "active",
       "purpose_th": "แดชบอร์ดธุรกิจจริง — รายได้วันนี้/งานที่ทำอยู่/เอกสารค้าง (หน้าแรกที่ /admin redirect มา)"
+    },
+    {
+      "path": "presentation/shell/navigation/HomeBackBar.tsx",
+      "retired_at": "2026-10-06T09:04:33.062Z",
+      "reason": "ไฟล์ไม่มีอยู่ใน Source แล้ว (Git/Source = source of truth) — ย้ายออกจาก modules ไม่นับเป็น BROKEN ปัจจุบัน",
+      "last_status": "active",
+      "purpose_th": "Owner request (2026-07-30): once wrapped in a native Tauri window, there's"
+    },
+    {
+      "path": "presentation/shell/navigation/AppHeader.tsx",
+      "retired_at": "2026-10-06T09:04:33.063Z",
+      "reason": "ไฟล์ไม่มีอยู่ใน Source แล้ว (Git/Source = source of truth) — ย้ายออกจาก modules ไม่นับเป็น BROKEN ปัจจุบัน",
+      "last_status": "active",
+      "purpose_th": "Module name — owned by the module, not by Navigation (e.g. \"ข้อความ\", \"การเงิน\", \"ใบแจ้งหนี้\")."
+    },
+    {
+      "path": "app/workspace/BusinessWorkspace.tsx",
+      "retired_at": "2026-10-06T09:04:33.063Z",
+      "reason": "ไฟล์ไม่มีอยู่ใน Source แล้ว (Git/Source = source of truth) — ย้ายออกจาก modules ไม่นับเป็น BROKEN ปัจจุบัน",
+      "last_status": "active",
+      "purpose_th": "BUSINESS WORKSPACE — หน้าจอใช้งานจริงเพียงหน้าจอเดียว (/workspace)"
+    },
+    {
+      "path": "presentation/shell/ide/TabStrip.tsx",
+      "retired_at": "2026-10-06T09:04:33.063Z",
+      "reason": "ไฟล์ไม่มีอยู่ใน Source แล้ว (Git/Source = source of truth) — ย้ายออกจาก modules ไม่นับเป็น BROKEN ปัจจุบัน",
+      "last_status": "active",
+      "purpose_th": "IDE Primitives — TabStrip (EXTRACTED, source-preserving)"
+    },
+    {
+      "path": "app/workspace/WorkspaceSettings.tsx",
+      "retired_at": "2026-10-06T09:04:33.063Z",
+      "reason": "ไฟล์ไม่มีอยู่ใน Source แล้ว (Git/Source = source of truth) — ย้ายออกจาก modules ไม่นับเป็น BROKEN ปัจจุบัน",
+      "last_status": "active",
+      "purpose_th": "Navigation to existing guarded screens only; mounting does not run services."
+    },
+    {
+      "path": "app/workspace/_lib/workspaceAppearance.ts",
+      "retired_at": "2026-10-06T09:04:33.063Z",
+      "reason": "ไฟล์ไม่มีอยู่ใน Source แล้ว (Git/Source = source of truth) — ย้ายออกจาก modules ไม่นับเป็น BROKEN ปัจจุบัน",
+      "last_status": "active",
+      "purpose_th": "Owner-editable presentation only. Keep bindings and authority out of here."
+    },
+    {
+      "path": "app/workspace/InboxIndicator.tsx",
+      "retired_at": "2026-10-06T09:04:33.063Z",
+      "reason": "ไฟล์ไม่มีอยู่ใน Source แล้ว (Git/Source = source of truth) — ย้ายออกจาก modules ไม่นับเป็น BROKEN ปัจจุบัน",
+      "last_status": "active",
+      "purpose_th": "กล่องรับเข้า — ขวาบนของ Workspace (handoff workspace-reference.html:"
     }
   ]
 }

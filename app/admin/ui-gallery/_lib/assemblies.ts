@@ -174,17 +174,14 @@ export const ASSEMBLIES: AssemblySpec[] = [
   {
     id: "admin-owner-workspace",
     name: "9 · Admin / Owner Workspace",
-    entry: "WorkspaceShell + AppHeader + HomeBackBar + พื้นที่งาน",
-    componentsUsed: ["WorkspaceShell", "AppHeader", "HomeBackBar", "EmptyState", "resolveNavItems()"],
+    entry: "WorkspaceShell + พื้นที่งาน (ONE NAVIGATION: แถบ Back/Home ถูกลบแล้ว)",
+    componentsUsed: ["WorkspaceShell", "EmptyState", "resolveNavItems()"],
     sourceEvidence: [
       "app/business/layout.tsx:24 (<WorkspaceShell> — ใช้ร่วม business/user/partner)",
       "app/user/layout.tsx:20 และ app/partner/layout.tsx:16 (<WorkspaceShell>)",
-      "app/admin/layout.tsx:58 (<HomeBackBar />)",
     ],
     availableActions: [
       "สลับ active nav item ของ WorkspaceShell",
-      "กดปุ่มย้อนกลับ/หน้าแรกของ HomeBackBar (router จริง)",
-      "กดปุ่มของ AppHeader (router จริง)",
     ],
     notWiredActions: [
       "LogoutButton ไม่ถูกประกอบในชุดนี้ (sign out จริง — ไม่ควรกดพลาดระหว่าง review)",

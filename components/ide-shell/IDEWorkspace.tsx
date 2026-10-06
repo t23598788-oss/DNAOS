@@ -427,43 +427,84 @@ type ExecEventType =
 interface ExecRunEvent { seq: number; type: ExecEventType; ts: string; stream?: "stdout" | "stderr"; text?: string }
 interface ExecOutputLine { seq: number; stream: "stdout" | "stderr"; text: string }
 
-// ---- Semantic Code Classification (owner, 2026-08-05) — client mirrors of
+// ---- IDE Primitives (ONE NAVIGATION 2026-10-06: แถบแท็บไฟล์ TabStrip ถูกลบ
+// ทั้งจาก render และจากไฟล์ presentation/shell/ide/TabStrip.tsx — ชนิดข้อมูล · ค่าสี
+// classification · isDirty ย้ายกลับมาอยู่ที่นี่ที่เดียว ไม่มี consumer สองที่แล้ว) ----
+// Semantic Code Classification — client mirrors of
 // app/api/admin/ide/_lib/classification.ts's real types. The client never
 // decides a category/risk itself — it only ever renders what the server's
-// evidence-based classifyFile() returned. ----
-// ---- IDE Primitives ที่ EXTRACT แล้ว (ONE IMPLEMENTATION · TWO CONSUMERS) ----
-// TabStrip + ชนิดข้อมูล/ค่าสีที่มันใช้ ย้ายไป presentation/shell/ide/TabStrip.tsx
-// โดยไม่แก้ behavior — IDE และ Business Workspace (/workspace) ใช้ตัวเดียวกัน
-import {
-  TabStrip,
-  isDirty,
-  classificationTooltip,
-  CATEGORY_COLORS,
-  RISK_COLORS,
-  RISK_LABELS_TH,
-  type Tab,
-  type FileTabState,
-  type CodeCategory,
-  type RiskLevel,
-  type ClassificationInfo,
-} from "@/presentation/shell/ide/TabStrip";
-// คง export เดิมไว้เพื่อความเข้ากันได้กับผู้ใช้ที่มีอยู่จริง
-// (scripts/ide-regression-test.ts:37 import { isDirty, type FileTabState })
-export { isDirty };
-export type { FileTabState };
+// evidence-based classifyFile() returned.
+
+export type CodeCategory =
+  | "CORE_LOGIC" | "AI" | "INTEGRATION" | "WORKFLOW" | "DATABASE" | "SECURITY" | "UI" | "CONFIGURATION" | "DOCUMENTATION" | "UNKNOWN";
+export type RiskLevel = "NORMAL" | "SENSITIVE" | "CRITICAL" | "LOCKED" | "UNKNOWN";
+
+export interface ClassificationInfo {
+  category: CodeCategory; categoryLabel: string; capability: string | null; riskLevel: RiskLevel;
+  evidence: string[]; requiredChecks: string[]; purposeTh: string | null;
+}
+
+const CATEGORY_COLORS: Record<CodeCategory, string> = {
+  CORE_LOGIC: "#A6484B",
+  AI: "#3F7A54",
+  INTEGRATION: "#3E6690",
+  WORKFLOW: "#6B4E9E",
+  DATABASE: "#A06A2E",
+  SECURITY: "#8A7A2E",
+  UI: "#64748B",
+  CONFIGURATION: "#2F7D78",
+  DOCUMENTATION: "#4C5D80",
+  UNKNOWN: "#94A3B8",
+};
+
+const RISK_COLORS: Record<RiskLevel, string> = {
+  NORMAL: "#94A3B8", SENSITIVE: "#B45309", CRITICAL: "#B91C1C", LOCKED: "#0F172A", UNKNOWN: "#64748B",
+};
+
+const RISK_LABELS_TH: Record<RiskLevel, string> = {
+  NORMAL: "ปกติ", SENSITIVE: "ละเอียดอ่อน", CRITICAL: "วิกฤต", LOCKED: "ล็อก (อ่านอย่างเดียว)", UNKNOWN: "ไม่ทราบ",
+};
+
+function classificationTooltip(c: ClassificationInfo): string {
+  const lines = [`${c.categoryLabel}${c.capability ? ` / ${c.capability}` : ""} · ${RISK_LABELS_TH[c.riskLevel]}`];
+  if (c.purposeTh) lines.push(c.purposeTh);
+  if (c.evidence.length > 0) lines.push(...c.evidence.map((e) => `• ${e}`));
+  return lines.join("\n");
+}
+
+/** เปิดไฟล์/diff หนึ่งรายการใน editor — คง state นี้ไว้ (open/edit/save = capability) */
+interface Tab {
+  id: string;
+  title: string;
+  kind: "file" | "diff";
+  path: string;
+  staged?: boolean; // only meaningful for kind "diff"
+}
+
+/** Per-file editor state (owner, 2026-08-05, Phase 2) — lives at page level,
+ * keyed by tab id, so switching files never loses in-progress edits.
+ * "dirty" is derived (content !== originalContent), never stored separately. */
+export interface FileTabState {
+  content: string;
+  originalContent: string;
+  hash: string;
+  modifiedAt: string;
+  loading: boolean;
+  error: string | null;
+  conflict: { diskContent: string; diskHash: string; diskModifiedAt: string } | null;
+  classification?: ClassificationInfo | null;
+  encoding?: string;
+  lineEnding?: "LF" | "CRLF" | "mixed";
+  lastSavedAt?: string | null;
+}
+
+export function isDirty(state: FileTabState | undefined): boolean {
+  return !!state && !state.loading && !state.error && state.content !== state.originalContent;
+}
 
 // ClassificationEntry / ClassificationListResponse ยังอยู่ที่นี่ (ใช้เฉพาะ IDE)
 interface ClassificationEntry { path: string; category: CodeCategory; categoryLabel: string; capability: string | null; riskLevel: RiskLevel; registered: boolean }
 type ClassificationListResponse = { ok: true; entries: ClassificationEntry[] } | { ok: false; code: IdeErrorCode; message: string };
-
-// CATEGORY_COLORS / RISK_COLORS / RISK_LABELS_TH / classificationTooltip
-// ย้ายไป presentation/shell/ide/TabStrip.tsx แล้ว (import ที่ด้านบนของไฟล์)
-
-// (ย้ายไป presentation/shell/ide/TabStrip.tsx: CATEGORY_COLORS · RISK_COLORS ·
-//  RISK_LABELS_TH · classificationTooltip — ค่าเดิมทุกตัว ไม่แก้)
-
-// Tab / FileTabState / isDirty ย้ายไป presentation/shell/ide/TabStrip.tsx
-// (import + re-export ที่ด้านบนของไฟล์นี้)
 
 const LEFT_MIN = 180;
 const LEFT_MAX = 480;
@@ -630,20 +671,8 @@ export default function IDEWorkspace() {
     setActiveTabId(id);
   }, []);
 
-  const closeTab = useCallback((id: string) => {
-    setFileStates((prev) => {
-      if (isDirty(prev[id]) && !window.confirm("This file has unsaved changes. Close without saving?")) {
-        return prev; // cancelled — tab stays open, state untouched
-      }
-      setTabs((prevTabs) => prevTabs.filter((t) => t.id !== id));
-      setActiveTabId((cur) => (cur === id ? null : cur));
-      // A closed tab must never go on to auto-save later.
-      autoSaveSchedulerRef.current.cancel(id);
-      const next = { ...prev };
-      delete next[id];
-      return next;
-    });
-  }, []);
+  // ONE NAVIGATION: closeTab() ถูกลบพร้อม TabStrip — ไม่มีปุ่มปิดแท็บใน UI แล้ว
+  // (ปิดผ่านการลบไฟล์ = closeTabsUnderPath ด้านล่าง คงเดิมทุกบรรทัด)
 
   const updateFileContent = useCallback((tabId: string, content: string) => {
     setFileStates((prev) => (prev[tabId] ? { ...prev, [tabId]: { ...prev[tabId], content } } : prev));
@@ -1163,12 +1192,12 @@ export default function IDEWorkspace() {
     // ("h-full" for pages that want a fully locked frame, per that file's
     // own code comment). 100vh is the viewport's raw height and ignores
     // real ancestor chrome — this page's real parent chain is html→body→
-    // app/admin/layout.tsx's `h-screen` column→HomeBackBar (a real, non-
-    // zero `sticky` flow element, see components/nav/HomeBackBar.tsx) +
-    // the `flex-1 min-h-0 overflow-y-auto` region this component actually
-    // renders inside. 100vh made this root taller than that real region by
-    // exactly HomeBackBar's height, so that ancestor's own overflow-y-auto
-    // had to scroll to reveal the clipped bottom (StatusBar/BottomPanel) —
+    // app/admin/layout.tsx's `h-screen` column + the
+    // `flex-1 min-h-0 overflow-y-auto` region this component actually
+    // renders inside (ONE NAVIGATION: แถบ HomeBackBar ถูกถอดทั้งระบบแล้ว —
+    // เหลือแค่ column นี้). A raw 100vh root made this root taller than
+    // that real region, so that ancestor's own overflow-y-auto had to
+    // scroll to reveal the clipped bottom (StatusBar/BottomPanel) —
     // the real, reproducible cause of the Owner's reported "browser-level
     // scrollbar" / "whole page scrolls" bugs. height:"100%" makes this
     // root fill exactly the real space its real parent already measured
@@ -1220,7 +1249,8 @@ export default function IDEWorkspace() {
           </button>
         )}
         <div ref={editorColumnRef} style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0, minHeight: 0, overflow: "hidden" }}>
-          <TabStrip tabs={tabs} activeTabId={activeTabId} onSelect={setActiveTabId} onClose={closeTab} dirtyTabIds={tabs.filter((t) => isDirty(fileStates[t.id])).map((t) => t.id)} fileStates={fileStates} />
+          {/* ONE NAVIGATION: แถบแท็บไฟล์ (TabStrip) ถูกถอด — เปิดไฟล์จาก Explorer/BottomTabs
+              → active file แสดงใน EditorToolbar/EditorPane ด้านล่างตามเดิมทุก capability */}
           <EditorToolbar
             tab={activeTabObj}
             dirty={!!activeTabObj && isDirty(fileStates[activeTabObj.id])}
@@ -1249,7 +1279,7 @@ export default function IDEWorkspace() {
               overlaying the Editor from below (deliberate prior design,
               Owner's own real visual inspection explicitly overrode it —
               it covered real content). Now a REAL, in-flow flex sibling
-              of TabStrip/EditorToolbar/EditorPane in this flexDirection:
+              of EditorToolbar/EditorPane in this flexDirection:
               "column" Editor Column: EditorPane above keeps flex:1 (grows
               to fill whatever remains), BottomPanel below is flexShrink:0
               with an explicit height (collapsed strip or the real
@@ -2484,9 +2514,6 @@ const disabledBtnStyle: React.CSSProperties = {
   padding: "5px 10px", fontSize: 12, cursor: "not-allowed", textAlign: "left",
 };
 
-// ---- Tab strip + editor ----
-// TabStrip ย้ายไป presentation/shell/ide/TabStrip.tsx (import ที่ด้านบนของไฟล์)
-
 // ---- Editor toolbar — Save / Save All / Refresh / Find, cursor position ----
 const WRAP_MODE_ORDER: readonly ("smart" | "on" | "off")[] = ["smart", "on", "off"];
 const WRAP_MODE_LABEL: Record<"smart" | "on" | "off", string> = { smart: "Wrap: Smart", on: "Wrap: On", off: "Wrap: Off" };
@@ -3069,7 +3096,7 @@ function BottomPanel({
   return (
     // TASK-075 (Round 2) — real, in-flow flex sibling (flexShrink:0, an
     // explicit real height), NOT position:"absolute": a real flex sibling
-    // of TabStrip/EditorToolbar/EditorPane inside the Editor Column's
+    // of EditorToolbar/EditorPane inside the Editor Column's
     // flexDirection:"column" flow. EditorPane above has flex:1, so it
     // genuinely shrinks by this element's real height whenever it changes
     // (collapsed strip vs. the real drag-resized height) — it is never

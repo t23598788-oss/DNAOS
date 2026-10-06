@@ -32,8 +32,6 @@ import FileUpload, { type UploadedFile } from "@/presentation/documents/FileUplo
 import { Panel, StatusPill, TemplateShell } from "@/presentation/shell/TemplateShell";
 import PortalShell from "@/presentation/shell/PortalShell";
 import WorkspaceShell from "@/components/workspace/WorkspaceShell";
-import AppHeader from "@/presentation/shell/navigation/AppHeader";
-import { HomeBackBar } from "@/presentation/shell/navigation/HomeBackBar";
 import { DashboardBoard } from "@/presentation/shell/workspace/DashboardBoard";
 import { ChatInput } from "@/presentation/ai/ChatInput";
 import { ChatMessageList } from "@/presentation/ai/ChatMessageList";
@@ -499,18 +497,15 @@ export function AsmTemplateSuite() {
 
 
 // ── 9 · Admin / Owner Workspace ──────────────────────────────────────────────
-// WorkspaceShell (ใช้ร่วม business/user/partner) + HomeBackBar + AppHeader ตาม source จริง
+// WorkspaceShell (ใช้ร่วม business/user/partner) ตาม source จริง
+// ONE NAVIGATION: HomeBackBar + AppHeader (แถบ Back/Home) ถูกลบออกทั้งระบบแล้ว
 export function AsmAdminOwnerWorkspace() {
   const navItems = useMemo(() => resolveNavItems("admin"), []);
   const [activeKey, setActiveKey] = useState(navItems[0]?.key ?? "admin");
 
   return (
     <div className="space-y-3 p-3">
-      <div className="overflow-hidden rounded-xl border border-stone-200 bg-white">
-        <HomeBackBar />
-        <AppHeader title="หัวโมดูล (title เป็นของผู้เรียก ไม่ใช่ของ Navigation)" />
-      </div>
-      <div className="h-[440px] overflow-hidden rounded-xl border border-stone-200">
+      <div className="h-[440px] overflow-hidden rounded-xl border border-stone-200 bg-white">
         <WorkspaceShell
           navItems={navItems}
           activeKey={activeKey}
