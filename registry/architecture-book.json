@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-06T09:05:00.723Z",
+  "generated_at": "2026-10-06T21:16:58.809Z",
   "version": 1,
   "nodes": [
     {
@@ -89620,6 +89620,30 @@
           "resolved_target": "app/admin/ui-gallery/_lib/businessDisplayModel.ts"
         }
       ]
+    },
+    {
+      "id": "module:scripts/ui-baseline-guard.ts",
+      "type": "Module",
+      "layer": "scripts",
+      "name_en": "scripts/ui-baseline-guard.ts",
+      "purpose_th": "ui-baseline-guard.ts — ONE NAVIGATION canonical lock",
+      "exports": [],
+      "status": "OK",
+      "runtime_entry_point": true,
+      "internal_dependencies": [],
+      "dependents": [],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "scripts",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN"
     }
   ],
   "edges": [
@@ -95536,6 +95560,11 @@
     {
       "source": "layer:scripts",
       "target": "module:scripts/tool-scope-test.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:scripts",
+      "target": "module:scripts/ui-baseline-guard.ts",
       "label": "contains"
     },
     {
@@ -113460,8 +113489,8 @@
     }
   ],
   "summary": {
-    "total": 1316,
-    "ok": 1316,
+    "total": 1317,
+    "ok": 1317,
     "broken": 0,
     "unused": 0,
     "unregistered": 0

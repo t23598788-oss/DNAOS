@@ -15962,6 +15962,14 @@
         "sectionsToBlocks"
       ],
       "status": "active"
+    },
+    "scripts/ui-baseline-guard.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "ui-baseline-guard.ts — ONE NAVIGATION canonical lock",
+      "purpose_th": "ui-baseline-guard.ts — ONE NAVIGATION canonical lock",
+      "exports": [],
+      "status": "active"
     }
   },
   "excluded": [
