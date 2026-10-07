@@ -14,7 +14,15 @@ import { readFileSync, readdirSync, statSync } from "fs";
 import { join, extname } from "path";
 import { extractLiteralsAST } from "./ast-extractor";
 
-const ROOT = join(__dirname, "..", "..");
+// ROOT (owner fix 2026-10-08, found by real browser login test): `__dirname`
+// inside the Next server bundle resolves to the bundle's own root ("/ROOT/…"),
+// so every readJSON() here threw ENOENT in production — which silently broke
+// identity.resolve for EVERY chat message (the pipeline's own lesson log showed
+// "ENOENT /ROOT/registry/hardcode-governance/forbidden-hardcode-patterns.json").
+// process.cwd() is the repo root in every real runtime of this code (container
+// /app on Railway, project dir locally) — the same convention WORKSPACE_ROOT
+// and every app/api/admin route already use.
+const ROOT = process.cwd();
 const GOV_DIR = join(ROOT, "registry", "hardcode-governance");
 
 function readJSON<T>(relPath: string): T {

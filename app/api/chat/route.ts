@@ -57,8 +57,16 @@ export async function POST(request: Request) {
       text: response.text ?? "",
     };
     const structured = ["finance_summary", "document", "timeline", "table", "error"].includes(result.type);
+    // navigate_url vs structured result (owner fix 2026-10-08, found by real
+    // browser test): the pipeline sometimes answers with BOTH a navigation cue
+    // and a structured read result — the workspace shell pushed the message and
+    // then router.push()ed away, unmounting the result the user just asked for.
+    // When a structured result is present it OWNS the screen: navigation cues
+    // are suppressed. Text-only replies keep their original navigate behavior.
+    const { navigate_url: navigateUrl, ...rest } = response;
     return NextResponse.json({
-      ...response,
+      ...rest,
+      ...(structured ? {} : navigateUrl ? { navigate_url: navigateUrl } : {}),
       text: structured ? "" : response.text,
       result,
     });
