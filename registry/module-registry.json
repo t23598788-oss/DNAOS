@@ -7808,6 +7808,7 @@
       "exports": [
         "DevLoopSession",
         "closeSession",
+        "recordApprovedProposal",
         "startSession"
       ],
       "status": "active",
@@ -8082,6 +8083,8 @@
       "purpose": "Shared authenticate() helper for all MCP governance routes — reads the X-DNA-Token header, validates it via validateApiToken(), and enforces scope (read requires read/governance:read/governance:propose; governance:propose requires exactly that scope), returning either the token+serviceClient or a 401/403 NextResponse.",
       "purpose_th": "ฟังก์ชัน authenticate() ที่ใช้ร่วมกันในทุก route ของ MCP governance — อ่าน header X-DNA-Token ตรวจสอบผ่าน validateApiToken() และบังคับ scope (read ต้องมี read/governance:read/governance:propose อย่างใดอย่างหนึ่ง, governance:propose ต้องมี scope นั้นตรงๆ) คืนค่า token+serviceClient หรือ NextResponse แบบ 401/403",
       "exports": [
+        "GovernanceAuth",
+        "OwnerVerificationContext",
         "authenticate"
       ],
       "status": "active"
@@ -16022,6 +16025,72 @@
         "FinanceStatementInputs",
         "FinancialStatements",
         "buildFinancialStatements"
+      ],
+      "status": "active"
+    },
+    "scripts/permission-policy-test.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "CORE.PERMISSION_POLICY — permission layer contract test (owner directive",
+      "purpose_th": "CORE.PERMISSION_POLICY — permission layer contract test (owner directive",
+      "exports": [
+        "ADMIN_TIER"
+      ],
+      "status": "active"
+    },
+    "scripts/owner-verification-decide-test.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "Owner-verification gate — acceptance test for plan step 2.",
+      "purpose_th": "Owner-verification gate — acceptance test for plan step 2.",
+      "exports": [],
+      "status": "active"
+    },
+    "scripts/owner-authority-contract-test.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "CORE.OWNER_AUTHORIZATION — authority contract test (owner directive",
+      "purpose_th": "CORE.OWNER_AUTHORIZATION — authority contract test (owner directive",
+      "exports": [],
+      "status": "active"
+    },
+    "scripts/impact-verdict-contract-test.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "CORE.VERIFICATION_TEST -> CORE.APPROVAL / CORE.DEPLOYMENT_GATE —",
+      "purpose_th": "CORE.VERIFICATION_TEST -> CORE.APPROVAL / CORE.DEPLOYMENT_GATE —",
+      "exports": [],
+      "status": "active"
+    },
+    "scripts/core-chain-execution-test.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "CORE_CHAIN — execution-chain contract test (owner directive 2026-09-22).",
+      "purpose_th": "CORE_CHAIN — execution-chain contract test (owner directive 2026-09-22).",
+      "exports": [],
+      "status": "active"
+    },
+    "scripts/capability-router-wiring-test.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "CORE.COMMAND_ROUTER -> CORE.CAPABILITY_ROUTER — wiring test (owner directive",
+      "purpose_th": "CORE.COMMAND_ROUTER -> CORE.CAPABILITY_ROUTER — wiring test (owner directive",
+      "exports": [],
+      "status": "active"
+    },
+    "core/owner-verification-client.ts": {
+      "owner": "core",
+      "layer": "core",
+      "purpose": "Owner-verification bridge client — business repo side.",
+      "purpose_th": "Owner-verification bridge client — business repo side.",
+      "exports": [
+        "DEFAULT_INFRA_ORIGIN",
+        "INFRA_ORIGIN_ENV",
+        "OWNER_COMMAND_SECRET_ENV",
+        "OWNER_VERIFICATION_PATH",
+        "OwnerVerificationClientOptions",
+        "OwnerVerificationVerdict",
+        "verifyOwnerArtifact"
       ],
       "status": "active"
     }

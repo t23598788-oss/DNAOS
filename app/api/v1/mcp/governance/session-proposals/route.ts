@@ -3,9 +3,11 @@ import { randomUUID } from "crypto"
 import { authenticate } from "../_lib/auth"
 
 export async function POST(req: Request) {
-  const auth = await authenticate(req, "governance:propose")
+  // Body first (owner_verification_artifact travels with the privileged
+  // mutation), then permission -> owner verification, fail-closed.
+  const body = await req.json().catch(() => null) as { goal?: unknown; file_scope?: unknown; owner_verification_artifact?: unknown } | null
+  const auth = await authenticate(req, "governance:propose", body?.owner_verification_artifact)
   if (!auth.ok) return auth.response
-  const body = await req.json().catch(() => null) as { goal?: unknown; file_scope?: unknown } | null
   const goal = typeof body?.goal === "string" ? body.goal.trim() : ""
   const fileScope = Array.isArray(body?.file_scope) && body.file_scope.every((x) => typeof x === "string") ? body.file_scope : null
   if (!goal || !fileScope || fileScope.length === 0 || fileScope.length > 100) {

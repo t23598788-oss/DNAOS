@@ -145,6 +145,73 @@ async function checkDevLoopGate(): Promise<{ blocked: boolean; reasons: string[]
   return { blocked: reasons.length > 0, reasons };
 }
 
+/**
+ * Core chain wiring (P7): the gate must know WHAT release it is about to allow,
+ * otherwise DEPLOYMENT_GATE and VERSION_RELEASE are disconnected (the previous
+ * gate never read package.json or registry/CURRENT_STATE.json at all). This
+ * reads the release artifacts that already exist — no new registry, no new
+ * version file:
+ *   - package.json            : the machine-readable version (must be semver)
+ *   - registry/CURRENT_STATE.json : the owner-owned release state pointer
+ *   - registry/CHANGELOG.json : the release ledger the pointer must be in
+ * Hard blocks only on missing/invalid release evidence. A stale pointer
+ * (CURRENT_STATE behind the newest CHANGELOG entry) is reported as a WARNING
+ * with the owner action, because re-numbering a release is an owner decision —
+ * the gate never rewrites ledger IDs.
+ */
+function checkReleaseBaseline(): { blocked: boolean; reasons: string[]; warnings: string[] } {
+  const reasons: string[] = [];
+  const warnings: string[] = [];
+
+  let version = "";
+  try {
+    version = String(readJSON<{ version?: string }>("package.json").version ?? "");
+  } catch {
+    version = "";
+  }
+  if (!/^\d+\.\d+\.\d+/.test(version)) {
+    reasons.push(`package.json version is missing or not semver: "${version}"`);
+  }
+
+  let state: { change_id?: string; status?: string } | null = null;
+  try {
+    state = readJSON<{ change_id?: string; status?: string }>("registry/CURRENT_STATE.json");
+  } catch {
+    state = null;
+  }
+  if (!state) {
+    reasons.push("registry/CURRENT_STATE.json is unreadable — the release state pointer is required to deploy");
+    return { blocked: reasons.length > 0, reasons, warnings };
+  }
+  if (state.status !== "READY") {
+    reasons.push(`registry/CURRENT_STATE.json status is "${state.status}" — only a READY release state may deploy`);
+  }
+
+  let changeIds: string[] = [];
+  try {
+    changeIds = (readJSON<{ change_id?: string }[]>("registry/CHANGELOG.json") ?? [])
+      .map((entry) => String(entry.change_id ?? ""))
+      .filter((id) => id.length > 0);
+  } catch {
+    changeIds = [];
+  }
+  if (changeIds.length === 0) {
+    reasons.push("registry/CHANGELOG.json has no change entries — the release ledger is empty");
+  } else {
+    if (state.change_id && !changeIds.includes(state.change_id)) {
+      reasons.push(`release pointer ${state.change_id} is not recorded in registry/CHANGELOG.json`);
+    }
+    const newest = [...changeIds].sort().at(-1) ?? "";
+    if (state.change_id && newest && newest > state.change_id) {
+      warnings.push(
+        `CURRENT_STATE.change_id (${state.change_id}) is behind the newest CHANGELOG entry (${newest}) — the release pointer needs an owner update`
+      );
+    }
+  }
+
+  return { blocked: reasons.length > 0, reasons, warnings };
+}
+
 async function main() {
   console.log("=== DNA OS Deploy Gate ===\n");
   console.log("Running real governance checks (scripts/governance.sh) — not simulated.\n");
@@ -160,10 +227,12 @@ async function main() {
   const failedKeys = Object.entries(health.checks).filter(([, v]) => v === 0).map(([k]) => k);
 
   const devLoop = await checkDevLoopGate();
+  const release = checkReleaseBaseline();
 
   const problemCauses = [
     ...failedKeys.map((key) => `${CHECK_KEY_TO_VALIDATOR[key]?.validator ?? key} failed`),
     ...devLoop.reasons,
+    ...release.reasons,
   ];
   if (problemCauses.length > 0) {
     const report = buildDevLoopProblemReport({
@@ -185,10 +254,24 @@ async function main() {
 
   console.log("\n" + "=".repeat(60));
 
-  if (failedKeys.length === 0 && !devLoop.blocked) {
+  if (failedKeys.length === 0 && !devLoop.blocked && !release.blocked) {
     console.log("Deploy Gate: PASS");
     console.log("Status\n  READY");
+    for (const warning of release.warnings) console.log(`  WARN  ${warning}`);
     process.exit(0);
+  }
+
+  if (release.warnings.length > 0) {
+    for (const warning of release.warnings) console.log(`  WARN  ${warning}`);
+  }
+
+  if (release.blocked) {
+    console.log(`Deploy Blocked — Release Baseline (VERSION_RELEASE)\n`);
+    for (const reason of release.reasons) console.log(`  - ${reason}`);
+    console.log(`\nRequired Action`);
+    console.log(`  - Fix the release artifacts (package.json version / registry/CURRENT_STATE.json / registry/CHANGELOG.json) — all owner-owned`);
+    console.log(`\nStatus\n  NOT READY\n`);
+    console.log("-".repeat(60));
   }
 
   if (devLoop.blocked) {

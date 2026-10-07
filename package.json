@@ -149,6 +149,7 @@
     "canonical:test": "npx tsx scripts/canonical-phase-c-acceptance-test.ts",
     "canonical:write:test": "npx tsx scripts/canonical-phase-d-acceptance-test.ts",
     "canonical:finance:test": "npx tsx scripts/canonical-finance-acceptance-test.ts",
+    "owner-verification:test": "npx tsx scripts/owner-verification-decide-test.ts",
     "job-contract:test": "npx tsx scripts/job-contract-declare-test.ts",
     "job-contract:wrap:test": "npx tsx scripts/job-contract-wrap-test.ts",
     "job-contract:verify:test": "npx tsx scripts/job-contract-verify-test.ts",
@@ -161,7 +162,12 @@
     "ai-caller-cutover:test": "npx tsx scripts/ai-caller-cutover-test.ts",
     "ai-deno-cutover:test": "npx tsx scripts/ai-deno-cutover-test.ts",
     "ai-device-cutover:test": "npx tsx scripts/ai-device-cutover-test.ts",
-    "ui-baseline:guard": "npx tsx scripts/ui-baseline-guard.ts"
+    "ui-baseline:guard": "npx tsx scripts/ui-baseline-guard.ts",
+    "permission-policy:test": "npx tsx scripts/permission-policy-test.ts",
+    "impact-verdict:test": "npx tsx scripts/impact-verdict-contract-test.ts",
+    "capability-router:test": "npx tsx scripts/capability-router-wiring-test.ts",
+    "core-chain:test": "npx tsx scripts/core-chain-execution-test.ts",
+    "owner-authority:test": "npx tsx scripts/owner-authority-contract-test.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.115.0",

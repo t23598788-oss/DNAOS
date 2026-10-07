@@ -18,6 +18,32 @@ import { NextRequest, NextResponse } from "next/server"
 import { randomUUID } from "crypto"
 import { validateApiToken } from "@/services/supabase/api-tokens"
 import { dispatch } from "@/engines/validation/dispatcher"
+import commandRegistry from "@/registry/command-registry.json"
+import capabilityRegistry from "@/registry/capability-registry.json"
+
+/**
+ * Core chain wiring (P2): the registry already links a command to its owner
+ * module (registry/command-registry.json -> commands[<name>].owner) and a
+ * capability to the same owner module (registry/capability-registry.json ->
+ * capabilities[].OwnerModule). This resolves command -> capability ids from
+ * those two existing registries only — no new mapping table, no second source
+ * of truth. An unresolved command returns empty lists, never a guess.
+ */
+function capabilityContextForCommand(command: string): {
+  owner_module: string | null
+  capability_ids: string[]
+} {
+  const commands = (commandRegistry as { commands?: Record<string, { owner?: string }> }).commands ?? {}
+  const ownerModule = commands[command]?.owner ?? null
+  if (!ownerModule) return { owner_module: null, capability_ids: [] }
+  const normalized = ownerModule.replace(/\.ts$/, "")
+  const capabilities =
+    (capabilityRegistry as { capabilities?: { CapabilityId: string; OwnerModule: string }[] }).capabilities ?? []
+  const capabilityIds = capabilities
+    .filter((entry) => entry.OwnerModule.replace(/\.ts$/, "") === normalized)
+    .map((entry) => entry.CapabilityId)
+  return { owner_module: ownerModule, capability_ids: capabilityIds }
+}
 
 // TEMPORARY DIAGNOSTIC (owner-approved, 2026-08-04) — API token UNAUTHORIZED
 // root-cause audit. Logs shape only (lengths, booleans, masked project ref),
@@ -121,6 +147,7 @@ export async function POST(req: NextRequest) {
       command: rawCommand,
       user: tokenRecord.user_email,
       data: result.data,
+      capability: capabilityContextForCommand(rawCommand),
     },
     { headers: corsHeaders() }
   )

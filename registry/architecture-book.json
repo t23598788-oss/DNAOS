@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-07T20:47:43.159Z",
+  "generated_at": "2026-10-07T21:06:29.496Z",
   "version": 1,
   "nodes": [
     {
@@ -2839,6 +2839,8 @@
       "runtime_entry_point": true,
       "internal_dependencies": [
         "module:engines/validation/dispatcher.ts",
+        "module:registry/capability-registry.json.ts",
+        "module:registry/command-registry.json.ts",
         "module:services/supabase/api-tokens.ts"
       ],
       "dependents": [],
@@ -2858,14 +2860,14 @@
         {
           "name": "OPTIONS",
           "kind": "function",
-          "line_start": 41,
-          "line_end": 43
+          "line_start": 67,
+          "line_end": 69
         },
         {
           "name": "POST",
           "kind": "function",
-          "line_start": 45,
-          "line_end": 127
+          "line_start": 71,
+          "line_end": 154
         }
       ],
       "import_sites": [
@@ -2878,6 +2880,16 @@
           "specifier": "@/engines/validation/dispatcher",
           "line": 20,
           "resolved_target": "engines/validation/dispatcher.ts"
+        },
+        {
+          "specifier": "@/registry/command-registry.json",
+          "line": 21,
+          "resolved_target": "registry/command-registry.json.ts"
+        },
+        {
+          "specifier": "@/registry/capability-registry.json",
+          "line": 22,
+          "resolved_target": "registry/capability-registry.json.ts"
         }
       ]
     },
@@ -3252,6 +3264,7 @@
       "status": "OK",
       "runtime_entry_point": true,
       "internal_dependencies": [
+        "module:core/workspace/composer/index.ts",
         "module:registry/existence.json.ts"
       ],
       "dependents": [],
@@ -3271,15 +3284,20 @@
         {
           "name": "GET",
           "kind": "function",
-          "line_start": 8,
-          "line_end": 17
+          "line_start": 22,
+          "line_end": 53
         }
       ],
       "import_sites": [
         {
           "specifier": "@/registry/existence.json",
-          "line": 6,
+          "line": 15,
           "resolved_target": "registry/existence.json.ts"
+        },
+        {
+          "specifier": "@/core/workspace/composer",
+          "line": 16,
+          "resolved_target": "core/workspace/composer/index.ts"
         }
       ]
     },
@@ -10061,6 +10079,7 @@
         "module:app/api/v1/query/route.ts",
         "module:cognitive/executor/index.ts",
         "module:cognitive/pipeline.ts",
+        "module:scripts/core-chain-execution-test.ts",
         "module:scripts/rule72-gate.test.ts"
       ],
       "data_tables": "UNKNOWN",
@@ -18095,7 +18114,8 @@
         "module:core/workspace/applicationRegistry.ts",
         "module:core/workspace/applicationRouter.ts",
         "module:core/workspace/gateway/presentationGateway.ts",
-        "module:core/workspace/permissionComposer.ts"
+        "module:core/workspace/permissionComposer.ts",
+        "module:scripts/permission-policy-test.ts"
       ],
       "data_tables": [
         "profiles"
@@ -29065,7 +29085,10 @@
         "module:core/workspace/composer/composerValidator.ts",
         "module:core/workspace/composer/types.ts"
       ],
-      "dependents": [],
+      "dependents": [
+        "module:app/api/v1/capabilities/route.ts",
+        "module:scripts/capability-router-wiring-test.ts"
+      ],
       "data_tables": "UNKNOWN",
       "business_capabilities": "UNKNOWN",
       "domain_owner": "core",
@@ -38477,7 +38500,10 @@
       "internal_dependencies": [
         "module:engines/workspace/lockManager.ts"
       ],
-      "dependents": [],
+      "dependents": [
+        "module:engines/workspace/devLoopSession.ts",
+        "module:engines/workspace/registerCommands.ts"
+      ],
       "data_tables": "UNKNOWN",
       "business_capabilities": "UNKNOWN",
       "domain_owner": "engines/workspace",
@@ -41116,6 +41142,7 @@
         "module:engines/workspace/dependencyRegistry.ts",
         "module:engines/workspace/lockManager.ts",
         "module:engines/workspace/migrationEngine.ts",
+        "module:engines/workspace/registryWriter.ts",
         "module:engines/workspace/workspaceRootVerifier.ts",
         "module:services/supabase/queries.ts"
       ],
@@ -41138,8 +41165,8 @@
         {
           "name": "STORAGE_WORKSPACE_COMMANDS_REGISTERED",
           "kind": "const",
-          "line_start": 55,
-          "line_end": 55
+          "line_start": 56,
+          "line_end": 56
         }
       ],
       "import_sites": [
@@ -41164,18 +41191,23 @@
           "resolved_target": "engines/workspace/lockManager.ts"
         },
         {
-          "specifier": "@/engines/workspace/dependencyRegistry",
+          "specifier": "@/engines/workspace/registryWriter",
           "line": 21,
+          "resolved_target": "engines/workspace/registryWriter.ts"
+        },
+        {
+          "specifier": "@/engines/workspace/dependencyRegistry",
+          "line": 22,
           "resolved_target": "engines/workspace/dependencyRegistry.ts"
         },
         {
           "specifier": "@/engines/workspace/migrationEngine",
-          "line": 22,
+          "line": 23,
           "resolved_target": "engines/workspace/migrationEngine.ts"
         },
         {
           "specifier": "@/engines/workspace/workspaceRootVerifier",
-          "line": 23,
+          "line": 24,
           "resolved_target": "engines/workspace/workspaceRootVerifier.ts"
         }
       ]
@@ -42165,14 +42197,17 @@
       "exports": [
         "DevLoopSession",
         "closeSession",
+        "recordApprovedProposal",
         "startSession"
       ],
       "status": "OK",
       "runtime_entry_point": false,
       "internal_dependencies": [
-        "module:core/runtime/engine.ts"
+        "module:core/runtime/engine.ts",
+        "module:engines/workspace/registryWriter.ts"
       ],
       "dependents": [
+        "module:app/api/gateway/proposals/[id]/decide/route.ts",
         "module:scripts/verification/dev-loop-e2e-harness.ts",
         "module:scripts/verification/real-dev-loop-integration.ts",
         "module:scripts/watch-registry.ts"
@@ -42195,20 +42230,26 @@
         {
           "name": "DevLoopSession",
           "kind": "interface",
-          "line_start": 10,
-          "line_end": 18
+          "line_start": 11,
+          "line_end": 19
         },
         {
           "name": "startSession",
           "kind": "function",
-          "line_start": 20,
-          "line_end": 40
+          "line_start": 21,
+          "line_end": 41
         },
         {
           "name": "closeSession",
           "kind": "function",
-          "line_start": 42,
-          "line_end": 45
+          "line_start": 43,
+          "line_end": 46
+        },
+        {
+          "name": "recordApprovedProposal",
+          "kind": "function",
+          "line_start": 56,
+          "line_end": 104
         }
       ],
       "import_sites": [
@@ -42216,6 +42257,11 @@
           "specifier": "@/core/runtime/engine",
           "line": 8,
           "resolved_target": "core/runtime/engine.ts"
+        },
+        {
+          "specifier": "@/engines/workspace/registryWriter",
+          "line": 9,
+          "resolved_target": "engines/workspace/registryWriter.ts"
         }
       ]
     },
@@ -42344,6 +42390,7 @@
       "internal_dependencies": [
         "module:core/auth/requireAuth.ts",
         "module:core/auth/session.ts",
+        "module:core/owner-verification-client.ts",
         "module:services/supabase/queries.ts"
       ],
       "dependents": [],
@@ -42365,25 +42412,30 @@
         {
           "name": "POST",
           "kind": "function",
-          "line_start": 14,
-          "line_end": 37
+          "line_start": 23,
+          "line_end": 95
         }
       ],
       "import_sites": [
         {
           "specifier": "@/core/auth/requireAuth",
-          "line": 10,
+          "line": 18,
           "resolved_target": "core/auth/requireAuth.ts"
         },
         {
           "specifier": "@/core/auth/session",
-          "line": 11,
+          "line": 19,
           "resolved_target": "core/auth/session.ts"
         },
         {
           "specifier": "@/services/supabase/queries",
-          "line": 12,
+          "line": 20,
           "resolved_target": "services/supabase/queries.ts"
+        },
+        {
+          "specifier": "@/core/owner-verification-client",
+          "line": 21,
+          "resolved_target": "core/owner-verification-client.ts"
         }
       ]
     },
@@ -43321,7 +43373,7 @@
           "name": "POST",
           "kind": "function",
           "line_start": 5,
-          "line_end": 27
+          "line_end": 29
         }
       ],
       "import_sites": [
@@ -43369,7 +43421,7 @@
           "name": "POST",
           "kind": "function",
           "line_start": 4,
-          "line_end": 26
+          "line_end": 29
         }
       ],
       "import_sites": [
@@ -43439,11 +43491,14 @@
       "name_en": "app/api/v1/mcp/governance/_lib/auth.ts",
       "purpose_th": "ฟังก์ชัน authenticate() ที่ใช้ร่วมกันในทุก route ของ MCP governance — อ่าน header X-DNA-Token ตรวจสอบผ่าน validateApiToken() และบังคับ scope (read ต้องมี read/governance:read/governance:propose อย่างใดอย่างหนึ่ง, governance:propose ต้องมี scope นั้นตรงๆ) คืนค่า token+serviceClient หรือ NextResponse แบบ 401/403",
       "exports": [
+        "GovernanceAuth",
+        "OwnerVerificationContext",
         "authenticate"
       ],
       "status": "OK",
       "runtime_entry_point": false,
       "internal_dependencies": [
+        "module:core/owner-verification-client.ts",
         "module:services/supabase/api-tokens.ts"
       ],
       "dependents": [
@@ -43470,10 +43525,22 @@
       "related_services": "UNKNOWN",
       "symbols": [
         {
+          "name": "OwnerVerificationContext",
+          "kind": "interface",
+          "line_start": 6,
+          "line_end": 10
+        },
+        {
+          "name": "GovernanceAuth",
+          "kind": "type",
+          "line_start": 12,
+          "line_end": 14
+        },
+        {
           "name": "authenticate",
           "kind": "function",
-          "line_start": 4,
-          "line_end": 18
+          "line_start": 43,
+          "line_end": 107
         }
       ],
       "import_sites": [
@@ -43481,6 +43548,11 @@
           "specifier": "@/services/supabase/api-tokens",
           "line": 2,
           "resolved_target": "services/supabase/api-tokens.ts"
+        },
+        {
+          "specifier": "@/core/owner-verification-client",
+          "line": 3,
+          "resolved_target": "core/owner-verification-client.ts"
         }
       ]
     },
@@ -45093,8 +45165,10 @@
       "internal_dependencies": [
         "module:core/auth/requireAuth.ts",
         "module:core/auth/session.ts",
+        "module:core/owner-verification-client.ts",
         "module:engines/integration-gateway/automationCommands.ts",
         "module:engines/integration-gateway/evidence/proposalStore.ts",
+        "module:engines/workspace/devLoopSession.ts",
         "module:services/supabase/queries.ts"
       ],
       "dependents": [],
@@ -45114,35 +45188,45 @@
         {
           "name": "POST",
           "kind": "function",
-          "line_start": 22,
-          "line_end": 74
+          "line_start": 36,
+          "line_end": 172
         }
       ],
       "import_sites": [
         {
           "specifier": "@/core/auth/requireAuth",
-          "line": 14,
+          "line": 26,
           "resolved_target": "core/auth/requireAuth.ts"
         },
         {
           "specifier": "@/core/auth/session",
-          "line": 15,
+          "line": 27,
           "resolved_target": "core/auth/session.ts"
         },
         {
           "specifier": "@/services/supabase/queries",
-          "line": 16,
+          "line": 28,
           "resolved_target": "services/supabase/queries.ts"
         },
         {
           "specifier": "@/engines/integration-gateway/evidence/proposalStore",
-          "line": 17,
+          "line": 29,
           "resolved_target": "engines/integration-gateway/evidence/proposalStore.ts"
         },
         {
           "specifier": "@/engines/integration-gateway/automationCommands",
-          "line": 18,
+          "line": 30,
           "resolved_target": "engines/integration-gateway/automationCommands.ts"
+        },
+        {
+          "specifier": "@/engines/workspace/devLoopSession",
+          "line": 31,
+          "resolved_target": "engines/workspace/devLoopSession.ts"
+        },
+        {
+          "specifier": "@/core/owner-verification-client",
+          "line": 32,
+          "resolved_target": "core/owner-verification-client.ts"
         }
       ]
     },
@@ -89944,6 +90028,262 @@
           "line_end": 71
         }
       ]
+    },
+    {
+      "id": "module:scripts/permission-policy-test.ts",
+      "type": "Module",
+      "layer": "scripts",
+      "name_en": "scripts/permission-policy-test.ts",
+      "purpose_th": "CORE.PERMISSION_POLICY — permission layer contract test (owner directive",
+      "exports": [
+        "ADMIN_TIER"
+      ],
+      "status": "OK",
+      "runtime_entry_point": true,
+      "internal_dependencies": [
+        "module:core/auth/session.ts",
+        "module:registry/permissions.json.ts",
+        "module:scripts/session.ts"
+      ],
+      "dependents": [],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "scripts",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN"
+    },
+    {
+      "id": "module:scripts/owner-verification-decide-test.ts",
+      "type": "Module",
+      "layer": "scripts",
+      "name_en": "scripts/owner-verification-decide-test.ts",
+      "purpose_th": "Owner-verification gate — acceptance test for plan step 2.",
+      "exports": [],
+      "status": "OK",
+      "runtime_entry_point": true,
+      "internal_dependencies": [
+        "module:core/owner-verification-client.ts"
+      ],
+      "dependents": [],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "scripts",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "import_sites": [
+        {
+          "specifier": "@/core/owner-verification-client",
+          "line": 20,
+          "resolved_target": "core/owner-verification-client.ts"
+        }
+      ]
+    },
+    {
+      "id": "module:scripts/owner-authority-contract-test.ts",
+      "type": "Module",
+      "layer": "scripts",
+      "name_en": "scripts/owner-authority-contract-test.ts",
+      "purpose_th": "CORE.OWNER_AUTHORIZATION — authority contract test (owner directive",
+      "exports": [],
+      "status": "OK",
+      "runtime_entry_point": true,
+      "internal_dependencies": [
+        "module:core/owner-verification-client.ts"
+      ],
+      "dependents": [],
+      "data_tables": [
+        "dev_loop_registry_proposals"
+      ],
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "scripts",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN"
+    },
+    {
+      "id": "module:scripts/impact-verdict-contract-test.ts",
+      "type": "Module",
+      "layer": "scripts",
+      "name_en": "scripts/impact-verdict-contract-test.ts",
+      "purpose_th": "CORE.VERIFICATION_TEST -> CORE.APPROVAL / CORE.DEPLOYMENT_GATE —",
+      "exports": [],
+      "status": "OK",
+      "runtime_entry_point": true,
+      "internal_dependencies": [],
+      "dependents": [],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "scripts",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN"
+    },
+    {
+      "id": "module:scripts/core-chain-execution-test.ts",
+      "type": "Module",
+      "layer": "scripts",
+      "name_en": "scripts/core-chain-execution-test.ts",
+      "purpose_th": "CORE_CHAIN — execution-chain contract test (owner directive 2026-09-22).",
+      "exports": [],
+      "status": "OK",
+      "runtime_entry_point": true,
+      "internal_dependencies": [
+        "module:engines/validation/dispatcher.ts"
+      ],
+      "dependents": [],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "scripts",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN"
+    },
+    {
+      "id": "module:scripts/capability-router-wiring-test.ts",
+      "type": "Module",
+      "layer": "scripts",
+      "name_en": "scripts/capability-router-wiring-test.ts",
+      "purpose_th": "CORE.COMMAND_ROUTER -> CORE.CAPABILITY_ROUTER — wiring test (owner directive",
+      "exports": [],
+      "status": "OK",
+      "runtime_entry_point": true,
+      "internal_dependencies": [
+        "module:core/workspace/composer/index.ts"
+      ],
+      "dependents": [],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "scripts",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "import_sites": [
+        {
+          "specifier": "../core/workspace/composer",
+          "line": 14,
+          "resolved_target": "core/workspace/composer/index.ts"
+        }
+      ]
+    },
+    {
+      "id": "module:core/owner-verification-client.ts",
+      "type": "Module",
+      "layer": "core",
+      "name_en": "core/owner-verification-client.ts",
+      "purpose_th": "Owner-verification bridge client — business repo side.",
+      "exports": [
+        "DEFAULT_INFRA_ORIGIN",
+        "INFRA_ORIGIN_ENV",
+        "OWNER_COMMAND_SECRET_ENV",
+        "OWNER_VERIFICATION_PATH",
+        "OwnerVerificationClientOptions",
+        "OwnerVerificationVerdict",
+        "verifyOwnerArtifact"
+      ],
+      "status": "OK",
+      "runtime_entry_point": false,
+      "internal_dependencies": [],
+      "dependents": [
+        "module:app/api/admin/dev-loop/approve/route.ts",
+        "module:app/api/gateway/proposals/[id]/decide/route.ts",
+        "module:app/api/v1/mcp/governance/_lib/auth.ts",
+        "module:scripts/owner-authority-contract-test.ts",
+        "module:scripts/owner-verification-decide-test.ts"
+      ],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "core",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "symbols": [
+        {
+          "name": "OWNER_VERIFICATION_PATH",
+          "kind": "const",
+          "line_start": 25,
+          "line_end": 25
+        },
+        {
+          "name": "DEFAULT_INFRA_ORIGIN",
+          "kind": "const",
+          "line_start": 30,
+          "line_end": 30
+        },
+        {
+          "name": "INFRA_ORIGIN_ENV",
+          "kind": "const",
+          "line_start": 31,
+          "line_end": 31
+        },
+        {
+          "name": "OWNER_COMMAND_SECRET_ENV",
+          "kind": "const",
+          "line_start": 34,
+          "line_end": 34
+        },
+        {
+          "name": "OwnerVerificationVerdict",
+          "kind": "type",
+          "line_start": 38,
+          "line_end": 49
+        },
+        {
+          "name": "OwnerVerificationClientOptions",
+          "kind": "interface",
+          "line_start": 51,
+          "line_end": 58
+        },
+        {
+          "name": "verifyOwnerArtifact",
+          "kind": "function",
+          "line_start": 74,
+          "line_end": 156
+        }
+      ]
     }
   ],
   "edges": [
@@ -93374,6 +93714,11 @@
     },
     {
       "source": "layer:core",
+      "target": "module:core/owner-verification-client.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:core",
       "target": "module:core/policy/scope.ts",
       "label": "contains"
     },
@@ -95339,6 +95684,11 @@
     },
     {
       "source": "layer:scripts",
+      "target": "module:scripts/capability-router-wiring-test.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:scripts",
       "target": "module:scripts/check-system-control-graph.ts",
       "label": "contains"
     },
@@ -95400,6 +95750,11 @@
     {
       "source": "layer:scripts",
       "target": "module:scripts/continuous-operations-test.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:scripts",
+      "target": "module:scripts/core-chain-execution-test.ts",
       "label": "contains"
     },
     {
@@ -95614,6 +95969,11 @@
     },
     {
       "source": "layer:scripts",
+      "target": "module:scripts/impact-verdict-contract-test.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:scripts",
       "target": "module:scripts/incident-test.ts",
       "label": "contains"
     },
@@ -95709,6 +96069,16 @@
     },
     {
       "source": "layer:scripts",
+      "target": "module:scripts/owner-authority-contract-test.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:scripts",
+      "target": "module:scripts/owner-verification-decide-test.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:scripts",
       "target": "module:scripts/package-test.ts",
       "label": "contains"
     },
@@ -95730,6 +96100,11 @@
     {
       "source": "layer:scripts",
       "target": "module:scripts/payment-rpc-adapter-test.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:scripts",
+      "target": "module:scripts/permission-policy-test.ts",
       "label": "contains"
     },
     {
@@ -98110,6 +98485,11 @@
     {
       "source": "module:app/api/admin/dev-loop/approve/route.ts",
       "target": "module:core/auth/session.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/dev-loop/approve/route.ts",
+      "target": "module:core/owner-verification-client.ts",
       "label": "imports"
     },
     {
@@ -104774,12 +105154,22 @@
     },
     {
       "source": "module:app/api/gateway/proposals/[id]/decide/route.ts",
+      "target": "module:core/owner-verification-client.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/gateway/proposals/[id]/decide/route.ts",
       "target": "module:engines/integration-gateway/automationCommands.ts",
       "label": "imports"
     },
     {
       "source": "module:app/api/gateway/proposals/[id]/decide/route.ts",
       "target": "module:engines/integration-gateway/evidence/proposalStore.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/gateway/proposals/[id]/decide/route.ts",
+      "target": "module:engines/workspace/devLoopSession.ts",
       "label": "imports"
     },
     {
@@ -105084,6 +105474,11 @@
     },
     {
       "source": "module:app/api/v1/capabilities/route.ts",
+      "target": "module:core/workspace/composer/index.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/v1/capabilities/route.ts",
       "target": "module:registry/existence.json.ts",
       "label": "imports"
     },
@@ -105174,6 +105569,11 @@
     },
     {
       "source": "module:app/api/v1/mcp/governance/_lib/auth.ts",
+      "target": "module:core/owner-verification-client.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/v1/mcp/governance/_lib/auth.ts",
       "target": "module:services/supabase/api-tokens.ts",
       "label": "imports"
     },
@@ -105250,6 +105650,16 @@
     {
       "source": "module:app/api/v1/query/route.ts",
       "target": "module:engines/validation/dispatcher.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/v1/query/route.ts",
+      "target": "module:registry/capability-registry.json.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/v1/query/route.ts",
+      "target": "module:registry/command-registry.json.ts",
       "label": "imports"
     },
     {
@@ -109428,6 +109838,11 @@
       "label": "imports"
     },
     {
+      "source": "module:engines/workspace/devLoopSession.ts",
+      "target": "module:engines/workspace/registryWriter.ts",
+      "label": "imports"
+    },
+    {
       "source": "module:engines/workspace/evidenceStore.ts",
       "target": "module:core/runtime/engine.ts",
       "label": "imports"
@@ -109500,6 +109915,11 @@
     {
       "source": "module:engines/workspace/registerCommands.ts",
       "target": "module:engines/workspace/migrationEngine.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:engines/workspace/registerCommands.ts",
+      "target": "module:engines/workspace/registryWriter.ts",
       "label": "imports"
     },
     {
@@ -111188,6 +111608,11 @@
       "label": "imports"
     },
     {
+      "source": "module:scripts/capability-router-wiring-test.ts",
+      "target": "module:core/workspace/composer/index.ts",
+      "label": "imports"
+    },
+    {
       "source": "module:scripts/check-transitional-layers.ts",
       "target": "module:engines/integration-gateway/contracts/event.ts",
       "label": "imports"
@@ -111435,6 +111860,11 @@
     {
       "source": "module:scripts/continuous-operations-test.ts",
       "target": "module:app/api/admin/ide/_lib/fsSecurity.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:scripts/core-chain-execution-test.ts",
+      "target": "module:engines/validation/dispatcher.ts",
       "label": "imports"
     },
     {
@@ -112358,6 +112788,16 @@
       "label": "imports"
     },
     {
+      "source": "module:scripts/owner-authority-contract-test.ts",
+      "target": "module:core/owner-verification-client.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:scripts/owner-verification-decide-test.ts",
+      "target": "module:core/owner-verification-client.ts",
+      "label": "imports"
+    },
+    {
       "source": "module:scripts/package-test.ts",
       "target": "module:app/api/admin/ide/_lib/fsSecurity.ts",
       "label": "imports"
@@ -112370,6 +112810,26 @@
     {
       "source": "module:scripts/payment-rpc-adapter-test.ts",
       "target": "module:engines/canonical/payment-write.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:scripts/permission-policy-test.ts",
+      "target": "module:core/auth/session.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:scripts/permission-policy-test.ts",
+      "target": "module:registry/permissions.json.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:scripts/permission-policy-test.ts",
+      "target": "module:scripts/session.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:scripts/permission-policy-test.ts",
+      "target": "module:scripts/session.ts",
       "label": "imports"
     },
     {
@@ -113899,8 +114359,8 @@
     }
   ],
   "summary": {
-    "total": 1322,
-    "ok": 1322,
+    "total": 1329,
+    "ok": 1329,
     "broken": 0,
     "unused": 0,
     "unregistered": 0

@@ -2,9 +2,12 @@ import { NextResponse } from "next/server"
 import { authenticate } from "../_lib/auth"
 
 export async function POST(req: Request) {
-  const auth = await authenticate(req, "governance:propose")
-  if (!auth.ok) return auth.response
+  // Body first (owner_verification_artifact travels with the privileged
+  // mutation), then the authority chain: token scope (permission) -> owner
+  // verification. Nothing below touches the database before both pass.
   const body = await req.json().catch(() => null) as Record<string, unknown> | null
+  const auth = await authenticate(req, "governance:propose", body?.owner_verification_artifact)
+  if (!auth.ok) return auth.response
   const sessionId = typeof body?.session_id === "string" ? body.session_id : ""
   const evidenceId = typeof body?.evidence_event_id === "string" ? body.evidence_event_id : ""
   const checkId = typeof body?.check_result_id === "string" ? body.check_result_id : ""
