@@ -11,6 +11,7 @@
     "prebuild": "npx tsx scripts/deploy-gate.ts",
     "gateway:observe:supabase": "npx tsx scripts/gateway-observe-supabase.ts",
     "check-transitional-layers": "npx tsx scripts/check-transitional-layers.ts",
+    "accounting-financial-statements:test": "npx tsx scripts/accounting-financial-statements-test.ts",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",

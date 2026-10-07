@@ -15996,6 +15996,34 @@
         "POST"
       ],
       "status": "active"
+    },
+    "scripts/verify-accounting-financial-statements-http.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "HTTP smoke verification for the finance-summary financial_statements payload — probes the live route and asserts P&L / position / cash-basis keys are present and numeric.",
+      "purpose_th": "ยืนยัน payload financial_statements ของ finance-summary บน HTTP จริง — ยิง route ที่ live แล้วตรวจว่า P&L / ฐานะการเงิน / กระแสเงินสด ครบและเป็นตัวเลข",
+      "exports": [],
+      "status": "active"
+    },
+    "scripts/accounting-financial-statements-test.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "Contract test for buildFinancialStatements — asserts P&L / position / cash-basis math from known totals.",
+      "purpose_th": "ทดสอบ engine buildFinancialStatements — ตรวจสมการกำไร-ขาดทุน ฐานะการเงิน และกระแสเงินสดจาก totals ที่กำหนด",
+      "exports": [],
+      "status": "active"
+    },
+    "engines/accounting/financial-statements.ts": {
+      "owner": "engines",
+      "layer": "engines",
+      "purpose": "Pure financial-statements engine — derives P&L, statement of financial position and cash-basis figures from canonical finance-summary totals (no queries, no side effects).",
+      "purpose_th": "engine การเงินล้วน — คำนวณงบกำไรขาดทุน งบฐานะการเงิน และงบกระแสเงินสดจาก totals canonical ของ finance-summary (ไม่ query ฐานข้อมูล ไม่มีผลข้างเคียง)",
+      "exports": [
+        "FinanceStatementInputs",
+        "FinancialStatements",
+        "buildFinancialStatements"
+      ],
+      "status": "active"
     }
   },
   "excluded": [

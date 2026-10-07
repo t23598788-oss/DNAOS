@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-07T20:07:31.821Z",
+  "generated_at": "2026-10-07T20:47:43.159Z",
   "version": 1,
   "nodes": [
     {
@@ -13100,7 +13100,7 @@
           "name": "SYSTEM_LINKS",
           "kind": "const",
           "line_start": 49,
-          "line_end": 110
+          "line_end": 118
         }
       ]
     },
@@ -34814,8 +34814,8 @@
         {
           "name": "FinancePage",
           "kind": "function",
-          "line_start": 77,
-          "line_end": 200
+          "line_start": 98,
+          "line_end": 252
         }
       ]
     },
@@ -34833,6 +34833,7 @@
       "internal_dependencies": [
         "module:core/auth/requireAuth.ts",
         "module:core/auth/session.ts",
+        "module:engines/accounting/financial-statements.ts",
         "module:services/supabase/queries.ts"
       ],
       "dependents": [],
@@ -34859,8 +34860,8 @@
         {
           "name": "GET",
           "kind": "function",
-          "line_start": 43,
-          "line_end": 165
+          "line_start": 44,
+          "line_end": 177
         }
       ],
       "import_sites": [
@@ -34878,6 +34879,11 @@
           "specifier": "@/services/supabase/queries",
           "line": 4,
           "resolved_target": "services/supabase/queries.ts"
+        },
+        {
+          "specifier": "@/engines/accounting/financial-statements",
+          "line": 5,
+          "resolved_target": "engines/accounting/financial-statements.ts"
         }
       ]
     },
@@ -89830,6 +89836,114 @@
           "resolved_target": "services/supabase/queries.ts"
         }
       ]
+    },
+    {
+      "id": "module:scripts/verify-accounting-financial-statements-http.ts",
+      "type": "Module",
+      "layer": "scripts",
+      "name_en": "scripts/verify-accounting-financial-statements-http.ts",
+      "purpose_th": "ยืนยัน payload financial_statements ของ finance-summary บน HTTP จริง — ยิง route ที่ live แล้วตรวจว่า P&L / ฐานะการเงิน / กระแสเงินสด ครบและเป็นตัวเลข",
+      "exports": [],
+      "status": "OK",
+      "runtime_entry_point": true,
+      "internal_dependencies": [],
+      "dependents": [],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "scripts",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN"
+    },
+    {
+      "id": "module:scripts/accounting-financial-statements-test.ts",
+      "type": "Module",
+      "layer": "scripts",
+      "name_en": "scripts/accounting-financial-statements-test.ts",
+      "purpose_th": "ทดสอบ engine buildFinancialStatements — ตรวจสมการกำไร-ขาดทุน ฐานะการเงิน และกระแสเงินสดจาก totals ที่กำหนด",
+      "exports": [],
+      "status": "OK",
+      "runtime_entry_point": true,
+      "internal_dependencies": [
+        "module:engines/accounting/financial-statements.ts"
+      ],
+      "dependents": [],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "scripts",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "import_sites": [
+        {
+          "specifier": "../engines/accounting/financial-statements",
+          "line": 2,
+          "resolved_target": "engines/accounting/financial-statements.ts"
+        }
+      ]
+    },
+    {
+      "id": "module:engines/accounting/financial-statements.ts",
+      "type": "Module",
+      "layer": "engines",
+      "name_en": "engines/accounting/financial-statements.ts",
+      "purpose_th": "engine การเงินล้วน — คำนวณงบกำไรขาดทุน งบฐานะการเงิน และงบกระแสเงินสดจาก totals canonical ของ finance-summary (ไม่ query ฐานข้อมูล ไม่มีผลข้างเคียง)",
+      "exports": [
+        "FinanceStatementInputs",
+        "FinancialStatements",
+        "buildFinancialStatements"
+      ],
+      "status": "OK",
+      "runtime_entry_point": false,
+      "internal_dependencies": [],
+      "dependents": [
+        "module:app/api/admin/finance-summary/route.ts",
+        "module:scripts/accounting-financial-statements-test.ts"
+      ],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "engines",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "symbols": [
+        {
+          "name": "FinanceStatementInputs",
+          "kind": "interface",
+          "line_start": 1,
+          "line_end": 8
+        },
+        {
+          "name": "FinancialStatements",
+          "kind": "interface",
+          "line_start": 10,
+          "line_end": 30
+        },
+        {
+          "name": "buildFinancialStatements",
+          "kind": "function",
+          "line_start": 36,
+          "line_end": 71
+        }
+      ]
     }
   ],
   "edges": [
@@ -93595,6 +93709,11 @@
     },
     {
       "source": "layer:engines",
+      "target": "module:engines/accounting/financial-statements.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:engines",
       "target": "module:engines/bot-exchange-rate.ts",
       "label": "contains"
     },
@@ -95060,6 +95179,11 @@
     },
     {
       "source": "layer:scripts",
+      "target": "module:scripts/accounting-financial-statements-test.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:scripts",
       "target": "module:scripts/ai-caller-cutover-test.ts",
       "label": "contains"
     },
@@ -95776,6 +95900,11 @@
     {
       "source": "layer:scripts",
       "target": "module:scripts/verification/real-dev-loop-integration.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:scripts",
+      "target": "module:scripts/verify-accounting-financial-statements-http.ts",
       "label": "contains"
     },
     {
@@ -98451,6 +98580,11 @@
     {
       "source": "module:app/api/admin/finance-summary/route.ts",
       "target": "module:core/auth/session.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/finance-summary/route.ts",
+      "target": "module:engines/accounting/financial-statements.ts",
       "label": "imports"
     },
     {
@@ -110574,6 +110708,11 @@
       "label": "imports"
     },
     {
+      "source": "module:scripts/accounting-financial-statements-test.ts",
+      "target": "module:engines/accounting/financial-statements.ts",
+      "label": "imports"
+    },
+    {
       "source": "module:scripts/ai-caller-cutover-test.ts",
       "target": "module:engines/events/event-builder.ts",
       "label": "imports"
@@ -113760,8 +113899,8 @@
     }
   ],
   "summary": {
-    "total": 1319,
-    "ok": 1319,
+    "total": 1322,
+    "ok": 1322,
     "broken": 0,
     "unused": 0,
     "unregistered": 0

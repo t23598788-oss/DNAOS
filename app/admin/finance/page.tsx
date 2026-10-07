@@ -37,6 +37,27 @@ interface FinanceSummary {
     unverified_transfer_slips_count: number
     company_expenses: number
   }
+  financial_statements: {
+    profit_and_loss: {
+      revenue_documented: number
+      expenses_recorded: number
+      gross_cash_margin: number
+      net_document_margin: number
+    }
+    statement_of_financial_position: {
+      cash_verified: number
+      receivables_known: number
+      pending_verification_assets: number
+      liabilities_known: number | null
+      equity_known: number | null
+      data_gap_note: string
+    }
+    cash_basis: {
+      cash_in_verified: number
+      cash_out_recorded: number
+      net_cash_movement: number
+    }
+  }
   expense_categories: ExpenseCategory[]
   latest_fuel_price: string | null
   honesty_note: string
@@ -159,6 +180,37 @@ export default function FinancePage() {
       {data.latest_fuel_price && (
         <p style={{ fontSize: 12, color: "#888", marginTop: 16 }}>ราคาน้ำมันล่าสุดในระบบ: {data.latest_fuel_price} บาท/ลิตร</p>
       )}
+
+      <div style={{ marginTop: 32 }}>
+        <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 8, color: "#333" }}>งบการเงินจากข้อมูลที่ระบบมีจริง</div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12 }}>
+          <div style={{ border: "1px solid #eee", borderRadius: 8, padding: 12 }}>
+            <div style={{ fontSize: 11, color: "#888", marginBottom: 8 }}>กำไรขาดทุน</div>
+            <div style={{ fontSize: 12, display: "grid", gap: 6 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", gap: 12 }}><span>รายได้ตามเอกสาร</span><b>{thb(data.financial_statements.profit_and_loss.revenue_documented)} ฿</b></div>
+              <div style={{ display: "flex", justifyContent: "space-between", gap: 12 }}><span>ค่าใช้จ่ายที่บันทึก</span><b>{thb(data.financial_statements.profit_and_loss.expenses_recorded)} ฿</b></div>
+              <div style={{ display: "flex", justifyContent: "space-between", gap: 12 }}><span>กำไรจากเอกสาร</span><b>{thb(data.financial_statements.profit_and_loss.net_document_margin)} ฿</b></div>
+            </div>
+          </div>
+          <div style={{ border: "1px solid #eee", borderRadius: 8, padding: 12 }}>
+            <div style={{ fontSize: 11, color: "#888", marginBottom: 8 }}>กระแสเงินสด</div>
+            <div style={{ fontSize: 12, display: "grid", gap: 6 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", gap: 12 }}><span>เงินเข้า verified</span><b>{thb(data.financial_statements.cash_basis.cash_in_verified)} ฿</b></div>
+              <div style={{ display: "flex", justifyContent: "space-between", gap: 12 }}><span>เงินออกที่บันทึก</span><b>{thb(data.financial_statements.cash_basis.cash_out_recorded)} ฿</b></div>
+              <div style={{ display: "flex", justifyContent: "space-between", gap: 12 }}><span>เงินสดสุทธิ</span><b>{thb(data.financial_statements.cash_basis.net_cash_movement)} ฿</b></div>
+            </div>
+          </div>
+          <div style={{ border: "1px solid #eee", borderRadius: 8, padding: 12 }}>
+            <div style={{ fontSize: 11, color: "#888", marginBottom: 8 }}>ฐานะการเงิน</div>
+            <div style={{ fontSize: 12, display: "grid", gap: 6 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", gap: 12 }}><span>เงินสด verified</span><b>{thb(data.financial_statements.statement_of_financial_position.cash_verified)} ฿</b></div>
+              <div style={{ display: "flex", justifyContent: "space-between", gap: 12 }}><span>ลูกหนี้/ค้างรับ</span><b>{thb(data.financial_statements.statement_of_financial_position.receivables_known)} ฿</b></div>
+              <div style={{ display: "flex", justifyContent: "space-between", gap: 12 }}><span>รอตรวจสอบ</span><b>{thb(data.financial_statements.statement_of_financial_position.pending_verification_assets)} ฿</b></div>
+            </div>
+          </div>
+        </div>
+        <p style={{ fontSize: 12, color: "#888", marginTop: 8 }}>{data.financial_statements.statement_of_financial_position.data_gap_note}</p>
+      </div>
 
       {/* Real expense category breakdown (owner, 2026-07-31): "แยกหมวดหมู่
           ค่าใช้จ่ายตามในจากตารางเดิม...ตามบิลจริง" — no pie chart per the

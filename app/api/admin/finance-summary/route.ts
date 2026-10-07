@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { requireAuth } from "@/core/auth/requireAuth"
 import { ADMIN_TIER } from "@/core/auth/session"
 import { supabaseAdmin as supabase } from "@/services/supabase/queries"
+import { buildFinancialStatements } from "@/engines/accounting/financial-statements"
 
 // Finance Summary (owner request 2026-07-25): "ยังไม่เห็นกำไรและงบดุลบริษัทเลย"
 // — a real, honest cash-flow summary aggregated from the actual documents/
@@ -155,6 +156,17 @@ export async function GET() {
       vat_input: Math.round(expenseVatInput * 100) / 100,
       fuel_bills: Math.round(totalFuelBills * 100) / 100,
     },
+    // ENG-1 accounting-financial-statements (adopted 2026-10-08): P&L / ฐานะการเงิน /
+    // กระแสเงินสด คำนวณจาก totals canonical ด้านบน — engine ล้วน ๆ ไม่ query เอง
+    // (finance page แสดงผลจาก key นี้; queries คง PHASE E5.1 canonical sources ไว้)
+    financial_statements: buildFinancialStatements({
+      revenueDocumented: Math.round(totalRevenueDocumented * 100) / 100,
+      paymentsReceivedVerified: Math.round(totalPaymentsAllocated * 100) / 100,
+      fuelBills: Math.round(totalFuelBills * 100) / 100,
+      outstandingDebt: Math.round(totalOutstandingDebt * 100) / 100,
+      unverifiedTransferSlips: Math.round(unconfirmedEvidenceTotal * 100) / 100,
+      companyExpenses: totalCompanyExpenses,
+    }),
     revenue_basis: "document_canonical — ตัดเอกสาร VOID และใบเสนอราคา (quotation); ยอดเป็น gross/net ตาม canonical v1.1",
     payment_basis: "payment_allocations — แถวการจัดสรรคือความจริง; payment_verified เป็นเพียงสถานะ/หลักฐาน ไม่ถูกนับเป็นเงิน",
     expense_categories: expenseCategories,
