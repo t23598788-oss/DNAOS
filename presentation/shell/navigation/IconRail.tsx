@@ -26,7 +26,7 @@ export default function IconRail({
   onSelect?: (key: string) => void;
 }) {
   return (
-    <div className="w-[64px] flex-shrink-0 bg-white border-r border-stone-200 flex flex-col items-center gap-1 py-3">
+    <div data-dna-icon-rail className="w-[64px] flex-shrink-0 bg-white border-r border-stone-200 flex flex-col items-center gap-1 py-3">
       {items.map((item) => {
         const active = item.key === activeKey;
         const Icon = item.icon;

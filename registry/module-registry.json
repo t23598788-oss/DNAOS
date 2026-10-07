@@ -15914,8 +15914,8 @@
       "purpose": "WORKSPACE FRAME — BUSINESS UI SHELL ใหม่ตาม reference ของ Owner",
       "purpose_th": "WORKSPACE FRAME — BUSINESS UI SHELL ใหม่ตาม reference ของ Owner",
       "exports": [
-        "WorkspaceFrame",
-        "WorkspaceToolNavigation"
+        "AdminWorkspaceSurface",
+        "WorkspaceFrame"
       ],
       "status": "active"
     },

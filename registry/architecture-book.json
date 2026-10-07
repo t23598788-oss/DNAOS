@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-07T16:02:49.174Z",
+  "generated_at": "2026-10-07T16:14:01.286Z",
   "version": 1,
   "nodes": [
     {
@@ -19798,8 +19798,8 @@
         {
           "name": "AdminLayout",
           "kind": "function",
-          "line_start": 50,
-          "line_end": 81
+          "line_start": 12,
+          "line_end": 42
         }
       ],
       "import_sites": [
@@ -89303,8 +89303,8 @@
       "name_en": "app/workspace/WorkspaceFrame.tsx",
       "purpose_th": "WORKSPACE FRAME — BUSINESS UI SHELL ใหม่ตาม reference ของ Owner",
       "exports": [
-        "WorkspaceFrame",
-        "WorkspaceToolNavigation"
+        "AdminWorkspaceSurface",
+        "WorkspaceFrame"
       ],
       "status": "OK",
       "runtime_entry_point": false,
@@ -89342,14 +89342,14 @@
         {
           "name": "WorkspaceFrame",
           "kind": "function",
-          "line_start": 138,
-          "line_end": 721
+          "line_start": 147,
+          "line_end": 729
         },
         {
-          "name": "WorkspaceToolNavigation",
+          "name": "AdminWorkspaceSurface",
           "kind": "function",
-          "line_start": 1047,
-          "line_end": 1084
+          "line_start": 1055,
+          "line_end": 1062
         }
       ],
       "import_sites": [
