@@ -1,8 +1,8 @@
 {
   "report_id": "dev-loop-c2NyaXB0cy9kZXBsb3ktZ2F0ZS50c3xE",
-  "status": "resolved",
+  "status": "open",
   "source": "scripts/deploy-gate.ts",
-  "occurred_at": "2026-10-07T01:10:49.900Z",
+  "occurred_at": "2026-10-07T14:38:41.901Z",
   "severity": "critical",
   "check_name": "DNA OS Deploy Gate",
   "cause": "Required Supabase environment values are missing; Dev Loop evidence gate cannot be evaluated",

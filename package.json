@@ -207,7 +207,6 @@
     "three": "^0.185.0",
     "@modelcontextprotocol/sdk": "^1.30.0",
     "pg": "^8.13.0",
-    "tsx": "^4.19.0",
     "zod": "^4.4.3"
   },
   "devDependencies": {
@@ -226,8 +225,6 @@
     "knip": "^6.22.0",
     "tailwindcss": "^4",
     "tsx": "^4.22.4",
-    "typescript": "^5",
-    "@types/pg": "^8.11.0",
-    "railway": "^3.11.0"
+    "typescript": "^5"
   }
 }

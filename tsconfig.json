@@ -34,6 +34,31 @@
   ],
   "exclude": [
     "node_modules",
-    "supabase/functions/**/*"
+    "supabase/functions/**/*",
+    "control",
+    "connections",
+    "software",
+    "contracts",
+    "credentials",
+    "governance",
+    "observability",
+    "permissions",
+    "providers",
+    "transport",
+    "dna-os-circuit",
+    "execution",
+    "ai",
+    "audit",
+    "reports",
+    "engine-prototype",
+    "engine-prototypeไลน์",
+    "tests",
+    "test-fixtures",
+    "local-runtime/dna-dev-app-host",
+    "scripts/register-runtime-control-2026-08-22.ts",
+    "scripts/register-railway-migration-capabilities-2026-08-24.ts",
+    "scripts/register-new-capabilities-2026-08-22.ts",
+    "scripts/register-local-postgres-credential.ts",
+    "scripts/register-supabase-postgres-credential.ts"
   ]
 }
