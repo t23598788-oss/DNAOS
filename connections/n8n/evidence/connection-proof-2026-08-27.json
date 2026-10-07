@@ -1,0 +1,19 @@
+{
+  "WORKFLOW_COUNT_BEFORE": 5,
+  "CREATE_TEST_HTTP_STATUS": 200,
+  "CREATE_TEST_ID": "gFfWen5akgQtBjw9",
+  "CREATE_TEST_ACTIVE": false,
+  "READ_BACK_HTTP_STATUS": 200,
+  "READ_BACK_NAME_MATCH": true,
+  "READ_BACK_NODE_COUNT_MATCH": true,
+  "READ_BACK_NODE_TYPE_MATCH": true,
+  "READ_BACK_NOT_ACTIVE": true,
+  "DELETE_TEST_HTTP_STATUS": 200,
+  "WORKFLOW_COUNT_AFTER": 5,
+  "COUNT_RESTORED": true,
+  "EXISTING_IDS_UNCHANGED": true,
+  "PROOF_WORKFLOW_GONE": true,
+  "recorded_at": "2026-08-26T20:40:50.199Z",
+  "n8n_base_url": "https://n8n.srv1740014.hstgr.cloud",
+  "credential_ref": "credential://macos-keychain/dna-os/n8n-api-key"
+}

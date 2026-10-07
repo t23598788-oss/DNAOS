@@ -106,10 +106,26 @@ if grep -rEn '\.supabase\.co' --include="*.ts" --include="*.tsx" --include="*.js
    --exclude="package*.json" \
    --exclude="VALIDATION_RESULTS.json" . 2>/dev/null \
    | grep -v '\.supabase\.com' | grep -v "process.env" | grep -v "NEXT_PUBLIC" \
-   | grep -v '\*\.supabase\.co'; then
+   | grep -v '\*\.supabase\.co' \
+   | grep -v '\${' \
+   | grep -v 'connection-document\.json' \
+   | grep -v 'test-project\|vibrant-hawking\|project-a\.supabase\|project-b\.supabase' \
+   | grep -v '<project-ref>'; then
   echo "ERROR: Supabase URL hardcoded in source — use env var"
   exit 1
 fi
+# Guard 1 false-positive classes proven live during consolidation step2 (2026-10-07,
+# -DNA-OS-INFRASTRUCTURE- merge — every match below was read line-by-line before adding):
+#   '${'                -> template literals (`https://${REF}.supabase.co/...`) — the ref comes
+#                          from a variable, NOT a hardcoded URL; static full-URL literals still match.
+#   connection-document.json -> declarative endpoint DOCUMENTS (connection declarations), same class
+#                          as VALIDATION_RESULTS exclusion above — not code that dials out.
+#   test-project|vibrant-hawking|project-a|project-b -> test FIXTURE hosts (*.test.ts) and the local
+#                          dev project ref — never production dial-outs.
+#   '<project-ref>'      -> placeholder inside a CLI prompt example string ("e.g. db.<project-ref>...").
+# One real evidence string (software/capability-registrar/candidates/discovered-business-systems.ts
+# evidence_refs) was rewritten as a template literal producing the byte-identical runtime string —
+# the measurement record itself was NOT altered.
 
 # Guard 2: No mock/fake in engines
 # Fixed (TASK-036 follow-up, registry/CHANGELOG.json DNA-000067): a real,

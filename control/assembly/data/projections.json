@@ -1,0 +1,170 @@
+[
+ {
+  "schema": "PROJECTION_V1",
+  "projection_id": "prj.line.chat",
+  "surface": "LINE chat",
+  "source_entities": [
+   "business_events"
+  ],
+  "source_capability": "chat.reply.send",
+  "fields": [
+   "message_kind",
+   "body_ref"
+  ],
+  "permission": "ผู้ใช้ในห้องแชทนั้น",
+  "refresh_mode": "EVENT",
+  "stale_behavior": "แชทไม่ย้อนสถานะเอง ข้อความเก่าคงเดิม",
+  "actions": [
+   "ตอบกลับ"
+  ]
+ },
+ {
+  "schema": "PROJECTION_V1",
+  "projection_id": "prj.admin.inbox",
+  "surface": "deadboard /admin (กล่องข้อความ)",
+  "source_entities": [
+   "line_events"
+  ],
+  "source_capability": "line.message.ingest",
+  "fields": [
+   "line_user_id",
+   "message_type",
+   "text",
+   "received_at"
+  ],
+  "permission": "ADMIN_TIER",
+  "refresh_mode": "REQUEST",
+  "stale_behavior": "โหลดใหม่ทุกครั้งที่เปิดหน้า",
+  "actions": [
+   "เปิดดูบทสนทนา",
+   "สลับโหมดคุยกับคน"
+  ]
+ },
+ {
+  "schema": "PROJECTION_V1",
+  "projection_id": "prj.admin.documents",
+  "surface": "deadboard /admin/documents",
+  "source_entities": [
+   "invoices",
+   "standalone_documents"
+  ],
+  "source_capability": "document.issue",
+  "fields": [
+   "document_number",
+   "document_type",
+   "total",
+   "company_id"
+  ],
+  "permission": "ADMIN_TIER",
+  "refresh_mode": "REQUEST",
+  "stale_behavior": "โหลดใหม่ทุกครั้ง",
+  "actions": [
+   "ออกเอกสาร",
+   "ยืนยัน",
+   "ส่งเข้า LINE"
+  ]
+ },
+ {
+  "schema": "PROJECTION_V1",
+  "projection_id": "prj.admin.receipts",
+  "surface": "deadboard /admin/receipt-documents",
+  "source_entities": [
+   "receipt_documents"
+  ],
+  "source_capability": "payment.claim.record",
+  "fields": [
+   "amount",
+   "claimed_at",
+   "company_id"
+  ],
+  "permission": "ADMIN_TIER",
+  "refresh_mode": "REQUEST",
+  "stale_behavior": "โหลดใหม่ทุกครั้ง",
+  "actions": [
+   "ยืนยัน",
+   "ปฏิเสธ"
+  ]
+ },
+ {
+  "schema": "PROJECTION_V1",
+  "projection_id": "prj.admin.debt",
+  "surface": "deadboard /admin/debt-trackings",
+  "source_entities": [
+   "debt_snapshots",
+   "debt_events"
+  ],
+  "source_capability": "payment.match",
+  "fields": [
+   "company_id",
+   "debt_remaining"
+  ],
+  "permission": "ADMIN_TIER",
+  "refresh_mode": "REQUEST",
+  "stale_behavior": "อ่านค่าที่คำนวณไว้แล้ว ไม่คำนวณใหม่ที่หน้าจอ",
+  "actions": [
+   "ดูรายการเหตุการณ์หนี้"
+  ]
+ },
+ {
+  "schema": "PROJECTION_V1",
+  "projection_id": "prj.admin.equipment",
+  "surface": "deadboard /admin/equipment",
+  "source_entities": [
+   "equipment_assets",
+   "maintenance_tickets"
+  ],
+  "source_capability": "equipment.control",
+  "fields": [
+   "current_status",
+   "engine_hours_total"
+  ],
+  "permission": "ADMIN_TIER",
+  "refresh_mode": "REQUEST",
+  "stale_behavior": "โหลดใหม่ทุกครั้ง",
+  "actions": [
+   "ให้สิทธิ์คนขับ",
+   "สั่งสตาร์ต"
+  ]
+ },
+ {
+  "schema": "PROJECTION_V1",
+  "projection_id": "prj.admin.sites",
+  "surface": "deadboard /admin (หน้างาน)",
+  "source_entities": [
+   "customer_sites"
+  ],
+  "source_capability": "site.location.capture",
+  "fields": [
+   "site_name",
+   "address",
+   "gps_lat",
+   "gps_lng"
+  ],
+  "permission": "ADMIN_TIER",
+  "refresh_mode": "REQUEST",
+  "stale_behavior": "โหลดใหม่ทุกครั้ง",
+  "actions": [
+   "แก้ไขหน้างาน"
+  ]
+ },
+ {
+  "schema": "PROJECTION_V1",
+  "projection_id": "prj.admin.orders",
+  "surface": "deadboard /admin (คำสั่งซื้อ)",
+  "source_entities": [
+   "customer_orders"
+  ],
+  "source_capability": null,
+  "fields": [
+   "order_id",
+   "company_id",
+   "status"
+  ],
+  "permission": "ADMIN_TIER",
+  "refresh_mode": "REQUEST",
+  "stale_behavior": "โหลดใหม่ทุกครั้ง",
+  "actions": [
+   "ออกเอกสารจากคำสั่งซื้อ"
+  ]
+ }
+]

@@ -1,0 +1,399 @@
+[
+ {
+  "schema": "FUNCTION_CONTRACT_V1",
+  "function_id": "fn.line-ingest",
+  "entrypoint": "supabase/functions/line-webhook-v2/index.ts",
+  "input_schema": null,
+  "output_schema": "dc.line.inbound_message.v1",
+  "errors": [
+   "ลายเซ็นไม่ผ่าน",
+   "บันทึก line_events ไม่สำเร็จ"
+  ],
+  "pure_or_side_effect": "SIDE_EFFECT",
+  "reads": [
+   "line_channels"
+  ],
+  "writes": [],
+  "required_context": [
+   "ลายเซ็น webhook ถูกต้อง"
+  ],
+  "authorization": [
+   "NONE"
+  ],
+  "composable_via": [
+   "p.line.webhook.in",
+   "p.line.event.out"
+  ]
+ },
+ {
+  "schema": "FUNCTION_CONTRACT_V1",
+  "function_id": "fn.identity-context",
+  "entrypoint": "supabase/functions/line-webhook-v2/engines/authorization-check.ts",
+  "input_schema": "dc.line.inbound_message.v1",
+  "output_schema": "dc.identity.company_context.v1",
+  "errors": [
+   "ไม่พบการผูกบริษัท",
+   "ไม่พบหน้างาน"
+  ],
+  "pure_or_side_effect": "SIDE_EFFECT",
+  "reads": [
+   "company_line_links",
+   "customer_sites"
+  ],
+  "writes": [
+   "pending_authorizations"
+  ],
+  "required_context": [
+   "ผู้ใช้ผูกบริษัทแล้วใน company_line_links"
+  ],
+  "authorization": [
+   "NONE"
+  ],
+  "composable_via": [
+   "p.identity.resolve.in",
+   "p.identity.context.out"
+  ]
+ },
+ {
+  "schema": "FUNCTION_CONTRACT_V1",
+  "function_id": "fn.quote-price",
+  "entrypoint": "engines/quote-price.ts",
+  "input_schema": "dc.pricing.quote_request.v1",
+  "output_schema": "dc.pricing.quote_result.v1",
+  "errors": [
+   "ไม่มีพิกัดหน้างาน = คำนวณค่าขนส่งไม่ได้",
+   "ไม่พบวัสดุ"
+  ],
+  "pure_or_side_effect": "SIDE_EFFECT",
+  "reads": [
+   "material_types",
+   "pit_materials"
+  ],
+  "writes": [],
+  "required_context": [
+   "มีพิกัดหน้างานปลายทาง",
+   "material_types มีรหัสวัสดุที่ขอ"
+  ],
+  "authorization": [
+   "NONE"
+  ],
+  "composable_via": [
+   "p.price.calculate.in",
+   "p.price.result.out"
+  ]
+ },
+ {
+  "schema": "FUNCTION_CONTRACT_V1",
+  "function_id": "fn.distance",
+  "entrypoint": "engines/quote-price.ts#haversine",
+  "input_schema": "dc.geo.coordinate_pair.v1",
+  "output_schema": "dc.geo.distance_result.v1",
+  "errors": [
+   "พิกัดไม่ครบ"
+  ],
+  "pure_or_side_effect": "PURE",
+  "reads": [
+   "material_types",
+   "pit_materials"
+  ],
+  "writes": [],
+  "required_context": [
+   "มีพิกัดครบสี่ค่า"
+  ],
+  "authorization": [
+   "NONE"
+  ],
+  "composable_via": [
+   "p.distance.calculate.in",
+   "p.distance.result.out"
+  ]
+ },
+ {
+  "schema": "FUNCTION_CONTRACT_V1",
+  "function_id": "fn.document-issuance",
+  "entrypoint": "app/api/admin/documents/route.ts#POST",
+  "input_schema": "dc.document.issue_request.v1",
+  "output_schema": "dc.document.issued.v1",
+  "errors": [
+   "ตั้งค่าบริษัทไม่ครบ",
+   "สร้างไฟล์ไม่สำเร็จ",
+   "ส่ง LINE ไม่สำเร็จ"
+  ],
+  "pure_or_side_effect": "SIDE_EFFECT",
+  "reads": [
+   "customer_orders",
+   "invoices",
+   "standalone_documents"
+  ],
+  "writes": [
+   "customer_orders",
+   "invoices",
+   "standalone_documents"
+  ],
+  "required_context": [
+   "ผู้เรียกผ่าน ADMIN_TIER",
+   "company settings ตั้งค่าครบ"
+  ],
+  "authorization": [
+   "ADMIN_TIER"
+  ],
+  "composable_via": [
+   "p.document.issue.in",
+   "p.document.issued.out",
+   "p.document.deliver.out"
+  ]
+ },
+ {
+  "schema": "FUNCTION_CONTRACT_V1",
+  "function_id": "fn.payment-matching",
+  "entrypoint": "supabase/functions/line-webhook-v2/engines/auto-confirm-payment.ts#tryAutoConfirmPayment",
+  "input_schema": "dc.payment.claim.v1",
+  "output_schema": "dc.payment.match_result.v1",
+  "errors": [
+   "ไม่พบบริษัท",
+   "ไม่มีหนี้ให้จับคู่",
+   "push ไม่สำเร็จ"
+  ],
+  "pure_or_side_effect": "SIDE_EFFECT",
+  "reads": [
+   "business_events",
+   "debt_events",
+   "debt_snapshots"
+  ],
+  "writes": [
+   "business_events",
+   "debt_events",
+   "debt_snapshots",
+   "line_events"
+  ],
+  "required_context": [
+   "ผู้แจ้งผูกบริษัทแล้ว",
+   "มีหนี้คงค้างให้จับคู่"
+  ],
+  "authorization": [
+   "NONE"
+  ],
+  "composable_via": [
+   "p.payment.claim.in",
+   "p.payment.matched.out",
+   "p.payment.notify.out"
+  ]
+ },
+ {
+  "schema": "FUNCTION_CONTRACT_V1",
+  "function_id": "fn.image-classify",
+  "entrypoint": "supabase/functions/line-webhook-v2/engines/ocr-classify.ts#classifyReceiptImage",
+  "input_schema": null,
+  "output_schema": "dc.image.classified_receipt.v1",
+  "errors": [
+   "โมเดลอ่านรูปไม่ได้",
+   "ไม่พบบริษัทผู้ส่ง"
+  ],
+  "pure_or_side_effect": "SIDE_EFFECT",
+  "reads": [],
+  "writes": [],
+  "required_context": [
+   "มีไฟล์รูปใน bucket attachments"
+  ],
+  "authorization": [
+   "NONE"
+  ],
+  "composable_via": [
+   "p.image.classify.in",
+   "p.image.classified.out"
+  ]
+ },
+ {
+  "schema": "FUNCTION_CONTRACT_V1",
+  "function_id": "fn.site-location",
+  "entrypoint": "supabase/functions/line-webhook-v2/handlers/location.ts",
+  "input_schema": "dc.site.location_capture.v1",
+  "output_schema": "dc.site.location_capture.v1",
+  "errors": [
+   "แยกที่อยู่ไทยไม่ได้",
+   "LONGDO_MAP_API_KEY ไม่ได้ตั้งค่า = ไม่มีพิกัด"
+  ],
+  "pure_or_side_effect": "SIDE_EFFECT",
+  "reads": [
+   "company_line_links",
+   "customer_sites"
+  ],
+  "writes": [
+   "customer_sites"
+  ],
+  "required_context": [
+   "ผู้ใช้ผูกบริษัทแล้ว"
+  ],
+  "authorization": [
+   "NONE"
+  ],
+  "composable_via": [
+   "p.site.capture.in",
+   "p.site.geocode.out"
+  ]
+ },
+ {
+  "schema": "FUNCTION_CONTRACT_V1",
+  "function_id": "fn.equipment-telemetry",
+  "entrypoint": "app/api/internal/equipment/telemetry/route.ts#POST",
+  "input_schema": "dc.equipment.telemetry_ping.v1",
+  "output_schema": "dc.equipment.engine_hours.v1",
+  "errors": [
+   "secret ไม่ได้ตั้งค่า = ปฏิเสธ",
+   "ไม่พบเครื่องจักรจาก imei"
+  ],
+  "pure_or_side_effect": "SIDE_EFFECT",
+  "reads": [
+   "equipment_assets"
+  ],
+  "writes": [
+   "equipment_assets",
+   "equipment_telemetry_pings"
+  ],
+  "required_context": [
+   "EQUIPMENT_TELEMETRY_SECRET ตั้งค่าแล้ว",
+   "imei ผูกกับเครื่องจักร"
+  ],
+  "authorization": [
+   "MACHINE_SECRET"
+  ],
+  "composable_via": [
+   "p.equipment.telemetry.in",
+   "p.equipment.hours.out"
+  ]
+ },
+ {
+  "schema": "FUNCTION_CONTRACT_V1",
+  "function_id": "fn.equipment-access",
+  "entrypoint": "app/api/internal/equipment/lock-command/route.ts#POST",
+  "input_schema": "dc.equipment.control_command.v1",
+  "output_schema": null,
+  "errors": [
+   "secret ไม่ตรง",
+   "อัปเดตสถานะไม่สำเร็จ"
+  ],
+  "pure_or_side_effect": "SIDE_EFFECT",
+  "reads": [
+   "equipment_assets"
+  ],
+  "writes": [
+   "equipment_assets"
+  ],
+  "required_context": [
+   "EQUIPMENT_LOCK_INTERNAL_SECRET ตั้งค่าแล้ว"
+  ],
+  "authorization": [
+   "MACHINE_SECRET",
+   "ADMIN_TIER"
+  ],
+  "composable_via": [
+   "p.equipment.control.in"
+  ]
+ },
+ {
+  "schema": "FUNCTION_CONTRACT_V1",
+  "function_id": "fn.chat-response",
+  "entrypoint": "supabase/functions/line-webhook-v2/handlers/text.ts",
+  "input_schema": "dc.line.inbound_message.v1",
+  "output_schema": null,
+  "errors": [
+   "โหมด human_takeover = ไม่ตอบ",
+   "สวิตช์ตอบลูกค้าปิด",
+   "LINE reply ล้มเหลว"
+  ],
+  "pure_or_side_effect": "SIDE_EFFECT",
+  "reads": [],
+  "writes": [
+   "ai_tasks"
+  ],
+  "required_context": [
+   "โหมดการสนทนาไม่ใช่ human_takeover"
+  ],
+  "authorization": [
+   "NONE"
+  ],
+  "composable_via": [
+   "p.chat.decide.in",
+   "p.chat.reply.out"
+  ]
+ },
+ {
+  "schema": "FUNCTION_CONTRACT_V1",
+  "function_id": "fn.line-profile",
+  "entrypoint": "supabase/functions/line-webhook-v2/engines/profile-refresh.ts#ensureFreshLineProfile",
+  "input_schema": "dc.profile.refresh_request.v1",
+  "output_schema": "dc.profile.snapshot.v1",
+  "errors": [
+   "line_profile_refresh_queue ไม่มีใน production = เข้าคิวไม่ได้"
+  ],
+  "pure_or_side_effect": "SIDE_EFFECT",
+  "reads": [
+   "line_profiles"
+  ],
+  "writes": [
+   "line_profile_refresh_queue"
+  ],
+  "required_context": [
+   "มีตาราง line_profile_refresh_queue ใน production"
+  ],
+  "authorization": [
+   "NONE"
+  ],
+  "composable_via": [
+   "p.profile.refresh.in",
+   "p.profile.snapshot.out"
+  ]
+ },
+ {
+  "schema": "FUNCTION_CONTRACT_V1",
+  "function_id": "fn.authorization",
+  "entrypoint": "supabase/functions/line-webhook-v2/engines/authorization-check.ts#requestAuthorization",
+  "input_schema": "dc.authorization.site_request.v1",
+  "output_schema": "dc.authorization.site_request.v1",
+  "errors": [
+   "ไม่มีผู้อนุมัติในบริษัทเจ้าของ"
+  ],
+  "pure_or_side_effect": "SIDE_EFFECT",
+  "reads": [
+   "company_line_links",
+   "customer_sites"
+  ],
+  "writes": [
+   "pending_authorizations"
+  ],
+  "required_context": [
+   "มีผู้ใช้ LINE คนอื่นในบริษัทเจ้าของหน้างาน"
+  ],
+  "authorization": [
+   "NONE"
+  ],
+  "composable_via": [
+   "p.authorization.request.in"
+  ]
+ },
+ {
+  "schema": "FUNCTION_CONTRACT_V1",
+  "function_id": "fn.document-autofill",
+  "entrypoint": "engines/documents/draft-builders.ts#buildDraftFromPartner",
+  "input_schema": null,
+  "output_schema": "dc.document.issue_request.v1",
+  "errors": [
+   "partners และ documents ไม่มีใน production = คืน undefined เสมอ"
+  ],
+  "pure_or_side_effect": "SIDE_EFFECT",
+  "reads": [
+   "documents",
+   "partners"
+  ],
+  "writes": [],
+  "required_context": [
+   "มีตาราง partners และ documents ใน production"
+  ],
+  "authorization": [
+   "ADMIN_TIER"
+  ],
+  "composable_via": [
+   "p.document.autofill.in"
+  ]
+ }
+]

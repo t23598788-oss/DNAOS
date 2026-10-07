@@ -1,0 +1,166 @@
+[
+ {
+  "capability": "authorization.site.request",
+  "unit_id": "u.authorization",
+  "state": "EXECUTABLE",
+  "missing_for_next": [
+   "ยังไม่มีหลักฐานการรันจริงจากเครื่อง"
+  ]
+ },
+ {
+  "capability": "chat.reply.send",
+  "unit_id": "u.chat-response",
+  "state": "EXECUTABLE",
+  "missing_for_next": [
+   "ยังไม่มีหลักฐานการรันจริงจากเครื่อง"
+  ]
+ },
+ {
+  "capability": "chat.response.decide",
+  "unit_id": "u.chat-response",
+  "state": "EXECUTABLE",
+  "missing_for_next": [
+   "ยังไม่มีหลักฐานการรันจริงจากเครื่อง"
+  ]
+ },
+ {
+  "capability": "document.autofill",
+  "unit_id": "u.document-autofill",
+  "state": "CONTRACTED",
+  "missing_for_next": [
+   "unit ใช้งานไม่ได้: u.document-autofill (UNAVAILABLE)"
+  ]
+ },
+ {
+  "capability": "document.deliver",
+  "unit_id": "u.document-issuance",
+  "state": "CONTRACTED",
+  "missing_for_next": []
+ },
+ {
+  "capability": "document.issue",
+  "unit_id": "u.document-issuance",
+  "state": "CONTRACTED",
+  "missing_for_next": []
+ },
+ {
+  "capability": "equipment.control",
+  "unit_id": "u.equipment-access",
+  "state": "EXECUTABLE",
+  "missing_for_next": [
+   "ยังไม่มีหลักฐานการรันจริงจากเครื่อง"
+  ]
+ },
+ {
+  "capability": "equipment.hours.accumulate",
+  "unit_id": "u.equipment-telemetry",
+  "state": "EXECUTABLE",
+  "missing_for_next": [
+   "ยังไม่มีหลักฐานการรันจริงจากเครื่อง"
+  ]
+ },
+ {
+  "capability": "equipment.permission.grant",
+  "unit_id": "u.equipment-access",
+  "state": "EXECUTABLE",
+  "missing_for_next": [
+   "ยังไม่มีหลักฐานการรันจริงจากเครื่อง"
+  ]
+ },
+ {
+  "capability": "equipment.telemetry.record",
+  "unit_id": "u.equipment-telemetry",
+  "state": "EXECUTABLE",
+  "missing_for_next": [
+   "ยังไม่มีหลักฐานการรันจริงจากเครื่อง"
+  ]
+ },
+ {
+  "capability": "geo.distance.calculate",
+  "unit_id": "u.distance",
+  "state": "EXECUTABLE",
+  "missing_for_next": [
+   "ยังไม่มีหลักฐานการรันจริงจากเครื่อง"
+  ]
+ },
+ {
+  "capability": "identity.company.resolve",
+  "unit_id": "u.identity-context",
+  "state": "EXECUTABLE",
+  "missing_for_next": [
+   "ยังไม่มีหลักฐานการรันจริงจากเครื่อง"
+  ]
+ },
+ {
+  "capability": "identity.site.ownership",
+  "unit_id": "u.identity-context",
+  "state": "EXECUTABLE",
+  "missing_for_next": [
+   "ยังไม่มีหลักฐานการรันจริงจากเครื่อง"
+  ]
+ },
+ {
+  "capability": "image.receipt.classify",
+  "unit_id": "u.image-classify",
+  "state": "EXECUTABLE",
+  "missing_for_next": [
+   "ยังไม่มีหลักฐานการรันจริงจากเครื่อง"
+  ]
+ },
+ {
+  "capability": "line.message.ingest",
+  "unit_id": "u.line-ingest",
+  "state": "EXECUTABLE",
+  "missing_for_next": [
+   "ยังไม่มีหลักฐานการรันจริงจากเครื่อง"
+  ]
+ },
+ {
+  "capability": "payment.claim.record",
+  "unit_id": "u.payment-matching",
+  "state": "EXECUTABLE",
+  "missing_for_next": [
+   "ยังไม่มีหลักฐานการรันจริงจากเครื่อง"
+  ]
+ },
+ {
+  "capability": "payment.match",
+  "unit_id": "u.payment-matching",
+  "state": "EXECUTABLE",
+  "missing_for_next": [
+   "ยังไม่มีหลักฐานการรันจริงจากเครื่อง"
+  ]
+ },
+ {
+  "capability": "pricing.quote.calculate",
+  "unit_id": "u.quote-price",
+  "state": "EXECUTABLE",
+  "missing_for_next": [
+   "ยังไม่มีหลักฐานการรันจริงจากเครื่อง"
+  ]
+ },
+ {
+  "capability": "profile.refresh.request",
+  "unit_id": "u.line-profile",
+  "state": "CONTRACTED",
+  "missing_for_next": [
+   "unit ใช้งานไม่ได้: u.line-profile (DEGRADED)"
+  ]
+ },
+ {
+  "capability": "profile.snapshot.read",
+  "unit_id": "u.line-profile",
+  "state": "CONTRACTED",
+  "missing_for_next": [
+   "unit ใช้งานไม่ได้: u.line-profile (DEGRADED)"
+  ]
+ },
+ {
+  "capability": "site.location.capture",
+  "unit_id": "u.site-location",
+  "state": "CONTRACTED",
+  "missing_for_next": [
+   "unit ใช้งานไม่ได้: u.site-location (DEGRADED)"
+  ]
+ }
+]

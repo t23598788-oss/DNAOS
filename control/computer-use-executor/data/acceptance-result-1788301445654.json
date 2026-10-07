@@ -1,0 +1,652 @@
+{
+ "owner": "tam",
+ "authority_id": "authority-1a9eb2543nl",
+ "preauthorized": true,
+ "daemon": "launchd com.dnaos.computer-use-executor",
+ "steps": [
+  {
+   "step": 1,
+   "work_order_id": "acc-1-screenshot-1788301350500",
+   "operation": "screenshot",
+   "target": null,
+   "intent": null,
+   "originator": "OWNER→acceptance-runner",
+   "result": "COMPLETED",
+   "executed": true,
+   "dispatched": true,
+   "execution_owner": "control/computer-use-executor",
+   "evidence_id": "cue-2022d284-4961-4d15-8f45-baeca2cd22e2",
+   "before_screenshot": null,
+   "after_screenshot": null,
+   "state_before": {
+    "clicks": 0,
+    "dbls": 0,
+    "state": "SANDBOX READY",
+    "input": "",
+    "scrollY": 0,
+    "dragLeft": 86,
+    "activeElement": "body",
+    "maxScrollY": 1383,
+    "wheelCount": 0,
+    "wheelDeltaY": 0,
+    "wheelMode": 0,
+    "wheelTarget": ""
+   },
+   "state_after": {
+    "clicks": 0,
+    "dbls": 0,
+    "state": "SANDBOX READY",
+    "input": "",
+    "scrollY": 0,
+    "dragLeft": 86,
+    "activeElement": "body",
+    "maxScrollY": 1383,
+    "wheelCount": 0,
+    "wheelDeltaY": 0,
+    "wheelMode": 0,
+    "wheelTarget": ""
+   },
+   "effect_synced": false
+  },
+  {
+   "step": 2,
+   "work_order_id": "acc-2-pointer_move-1788301355772",
+   "operation": "pointer_move",
+   "target": null,
+   "intent": null,
+   "originator": "OWNER→acceptance-runner",
+   "result": "COMPLETED",
+   "executed": true,
+   "dispatched": true,
+   "execution_owner": "control/computer-use-executor",
+   "evidence_id": "cue-60e13d9e-df49-462d-9f84-02e2b70087b7",
+   "before_screenshot": "/Users/tam/Desktop/DNA-OS-INFRASTRUCTURE/connections/os-ui/data/screenshots/screenshot-1788301354199-96kfmj.png",
+   "after_screenshot": "/Users/tam/Desktop/DNA-OS-INFRASTRUCTURE/connections/os-ui/data/screenshots/screenshot-1788301358380-viue1l.png",
+   "state_before": {
+    "clicks": 0,
+    "dbls": 0,
+    "state": "SANDBOX READY",
+    "input": "",
+    "scrollY": 0,
+    "dragLeft": 86,
+    "activeElement": "body",
+    "maxScrollY": 1383,
+    "wheelCount": 0,
+    "wheelDeltaY": 0,
+    "wheelMode": 0,
+    "wheelTarget": ""
+   },
+   "state_after": {
+    "clicks": 0,
+    "dbls": 0,
+    "state": "SANDBOX READY",
+    "input": "",
+    "scrollY": 0,
+    "dragLeft": 86,
+    "activeElement": "body",
+    "maxScrollY": 1383,
+    "wheelCount": 0,
+    "wheelDeltaY": 0,
+    "wheelMode": 0,
+    "wheelTarget": ""
+   },
+   "effect_synced": false
+  },
+  {
+   "step": 3,
+   "work_order_id": "acc-3-focus-1788301361708",
+   "operation": "focus",
+   "target": null,
+   "intent": null,
+   "originator": "OWNER→acceptance-runner",
+   "result": "COMPLETED",
+   "executed": true,
+   "dispatched": true,
+   "execution_owner": "control/computer-use-executor",
+   "evidence_id": "cue-41daa6cf-1688-4c58-a81c-64e04082d24e",
+   "before_screenshot": "/Users/tam/Desktop/DNA-OS-INFRASTRUCTURE/connections/os-ui/data/screenshots/screenshot-1788301360507-5tm83y.png",
+   "after_screenshot": "/Users/tam/Desktop/DNA-OS-INFRASTRUCTURE/connections/os-ui/data/screenshots/screenshot-1788301364785-tos638.png",
+   "state_before": {
+    "clicks": 0,
+    "dbls": 0,
+    "state": "SANDBOX READY",
+    "input": "",
+    "scrollY": 0,
+    "dragLeft": 86,
+    "activeElement": "body",
+    "maxScrollY": 1383,
+    "wheelCount": 0,
+    "wheelDeltaY": 0,
+    "wheelMode": 0,
+    "wheelTarget": ""
+   },
+   "state_after": {
+    "clicks": 0,
+    "dbls": 0,
+    "state": "SANDBOX READY",
+    "input": "",
+    "scrollY": 0,
+    "dragLeft": 86,
+    "activeElement": "body",
+    "maxScrollY": 1383,
+    "wheelCount": 0,
+    "wheelDeltaY": 0,
+    "wheelMode": 0,
+    "wheelTarget": ""
+   },
+   "effect_synced": false
+  },
+  {
+   "step": 4,
+   "work_order_id": "acc-4-click-1788301368169",
+   "operation": "click",
+   "target": "clickband",
+   "intent": "activate",
+   "originator": "OWNER→acceptance-runner",
+   "result": "COMPLETED",
+   "executed": true,
+   "dispatched": true,
+   "execution_owner": "control/computer-use-executor",
+   "evidence_id": "cue-93a39cda-0761-4f4b-8dbd-886b6ad23836",
+   "before_screenshot": "/Users/tam/Desktop/DNA-OS-INFRASTRUCTURE/connections/os-ui/data/screenshots/screenshot-1788301366913-798j7r.png",
+   "after_screenshot": "/Users/tam/Desktop/DNA-OS-INFRASTRUCTURE/connections/os-ui/data/screenshots/screenshot-1788301371311-fj3djz.png",
+   "state_before": {
+    "clicks": 0,
+    "dbls": 0,
+    "state": "SANDBOX READY",
+    "input": "",
+    "scrollY": 0,
+    "dragLeft": 86,
+    "activeElement": "body",
+    "maxScrollY": 1383,
+    "wheelCount": 0,
+    "wheelDeltaY": 0,
+    "wheelMode": 0,
+    "wheelTarget": ""
+   },
+   "state_after": {
+    "clicks": 1,
+    "dbls": 0,
+    "state": "CLICK #1",
+    "input": "",
+    "scrollY": 0,
+    "dragLeft": 86,
+    "activeElement": "body",
+    "maxScrollY": 1383,
+    "wheelCount": 0,
+    "wheelDeltaY": 0,
+    "wheelMode": 0,
+    "wheelTarget": ""
+   },
+   "effect_synced": true
+  },
+  {
+   "step": 5,
+   "work_order_id": "acc-5-double_click-1788301374787",
+   "operation": "double_click",
+   "target": "clickband",
+   "intent": null,
+   "originator": "OWNER→acceptance-runner",
+   "result": "COMPLETED",
+   "executed": true,
+   "dispatched": true,
+   "execution_owner": "control/computer-use-executor",
+   "evidence_id": "cue-cf560929-472b-4605-a7a5-c148236d4158",
+   "before_screenshot": "/Users/tam/Desktop/DNA-OS-INFRASTRUCTURE/connections/os-ui/data/screenshots/screenshot-1788301373474-xbwjo7.png",
+   "after_screenshot": "/Users/tam/Desktop/DNA-OS-INFRASTRUCTURE/connections/os-ui/data/screenshots/screenshot-1788301378025-75f17o.png",
+   "state_before": {
+    "clicks": 1,
+    "dbls": 0,
+    "state": "CLICK #1",
+    "input": "",
+    "scrollY": 0,
+    "dragLeft": 86,
+    "activeElement": "body",
+    "maxScrollY": 1383,
+    "wheelCount": 0,
+    "wheelDeltaY": 0,
+    "wheelMode": 0,
+    "wheelTarget": ""
+   },
+   "state_after": {
+    "clicks": 3,
+    "dbls": 1,
+    "state": "DOUBLECLICK #1",
+    "input": "",
+    "scrollY": 0,
+    "dragLeft": 86,
+    "activeElement": "body",
+    "maxScrollY": 1383,
+    "wheelCount": 0,
+    "wheelDeltaY": 0,
+    "wheelMode": 0,
+    "wheelTarget": ""
+   },
+   "effect_synced": true
+  },
+  {
+   "step": 6,
+   "work_order_id": "acc-6-scroll-1788301382829",
+   "operation": "scroll",
+   "target": null,
+   "intent": null,
+   "originator": "OWNER→acceptance-runner",
+   "result": "COMPLETED",
+   "executed": true,
+   "dispatched": true,
+   "execution_owner": "control/computer-use-executor",
+   "evidence_id": "cue-06bd19c1-d5ba-4d04-bdc4-e9db653c5d20",
+   "before_screenshot": "/Users/tam/Desktop/DNA-OS-INFRASTRUCTURE/connections/os-ui/data/screenshots/screenshot-1788301380149-xgtrd9.png",
+   "after_screenshot": "/Users/tam/Desktop/DNA-OS-INFRASTRUCTURE/connections/os-ui/data/screenshots/screenshot-1788301392370-4kjab0.png",
+   "state_before": {
+    "clicks": 3,
+    "dbls": 1,
+    "state": "DOUBLECLICK #1",
+    "input": "",
+    "scrollY": 0,
+    "dragLeft": 86,
+    "activeElement": "body",
+    "maxScrollY": 1383,
+    "wheelCount": 0,
+    "wheelDeltaY": 0,
+    "wheelMode": 0,
+    "wheelTarget": ""
+   },
+   "state_after": {
+    "clicks": 3,
+    "dbls": 1,
+    "state": "DOUBLECLICK #1",
+    "input": "",
+    "scrollY": 0,
+    "dragLeft": 86,
+    "activeElement": "body",
+    "maxScrollY": 1383,
+    "wheelCount": 1,
+    "wheelDeltaY": 600,
+    "wheelMode": 0,
+    "wheelTarget": "div"
+   },
+   "effect_synced": false
+  },
+  {
+   "step": 7,
+   "work_order_id": "acc-7-scroll-1788301397329",
+   "operation": "scroll",
+   "target": null,
+   "intent": null,
+   "originator": "OWNER→acceptance-runner",
+   "result": "COMPLETED",
+   "executed": true,
+   "dispatched": true,
+   "execution_owner": "control/computer-use-executor",
+   "evidence_id": "cue-b547f198-0586-4e58-9d84-47f3821a6ef1",
+   "before_screenshot": "/Users/tam/Desktop/DNA-OS-INFRASTRUCTURE/connections/os-ui/data/screenshots/screenshot-1788301394503-371kqf.png",
+   "after_screenshot": "/Users/tam/Desktop/DNA-OS-INFRASTRUCTURE/connections/os-ui/data/screenshots/screenshot-1788301406784-3b9tdc.png",
+   "state_before": {
+    "clicks": 3,
+    "dbls": 1,
+    "state": "DOUBLECLICK #1",
+    "input": "",
+    "scrollY": 0,
+    "dragLeft": 86,
+    "activeElement": "body",
+    "maxScrollY": 1383,
+    "wheelCount": 1,
+    "wheelDeltaY": 600,
+    "wheelMode": 0,
+    "wheelTarget": "div"
+   },
+   "state_after": {
+    "clicks": 3,
+    "dbls": 1,
+    "state": "DOUBLECLICK #1",
+    "input": "",
+    "scrollY": 0,
+    "dragLeft": 86,
+    "activeElement": "body",
+    "maxScrollY": 1383,
+    "wheelCount": 2,
+    "wheelDeltaY": -600,
+    "wheelMode": 0,
+    "wheelTarget": "div"
+   },
+   "effect_synced": false
+  },
+  {
+   "step": 8,
+   "work_order_id": "acc-8-drag-1788301410241",
+   "operation": "drag",
+   "target": null,
+   "intent": null,
+   "originator": "OWNER→acceptance-runner",
+   "result": "COMPLETED",
+   "executed": true,
+   "dispatched": true,
+   "execution_owner": "control/computer-use-executor",
+   "evidence_id": "cue-4f7b51ec-e4a6-471f-a755-c2266e62437a",
+   "before_screenshot": "/Users/tam/Desktop/DNA-OS-INFRASTRUCTURE/connections/os-ui/data/screenshots/screenshot-1788301408916-uj5zg8.png",
+   "after_screenshot": "/Users/tam/Desktop/DNA-OS-INFRASTRUCTURE/connections/os-ui/data/screenshots/screenshot-1788301413613-mzum6e.png",
+   "state_before": {
+    "clicks": 3,
+    "dbls": 1,
+    "state": "DOUBLECLICK #1",
+    "input": "",
+    "scrollY": 0,
+    "dragLeft": 86,
+    "activeElement": "body",
+    "maxScrollY": 1383,
+    "wheelCount": 2,
+    "wheelDeltaY": -600,
+    "wheelMode": 0,
+    "wheelTarget": "div"
+   },
+   "state_after": {
+    "clicks": 3,
+    "dbls": 1,
+    "state": "DRAG DROP @366",
+    "input": "",
+    "scrollY": 0,
+    "dragLeft": 366,
+    "activeElement": "body",
+    "maxScrollY": 1383,
+    "wheelCount": 2,
+    "wheelDeltaY": -600,
+    "wheelMode": 0,
+    "wheelTarget": "div"
+   },
+   "effect_synced": true
+  },
+  {
+   "step": 9,
+   "work_order_id": "acc-9-click-1788301416824",
+   "operation": "click",
+   "target": "testinput",
+   "intent": "focus",
+   "originator": "OWNER→acceptance-runner",
+   "result": "COMPLETED",
+   "executed": true,
+   "dispatched": true,
+   "execution_owner": "control/computer-use-executor",
+   "evidence_id": "cue-18859fb4-f764-4ca2-b6d9-785e0b9f9c76",
+   "before_screenshot": "/Users/tam/Desktop/DNA-OS-INFRASTRUCTURE/connections/os-ui/data/screenshots/screenshot-1788301415736-e4fvts.png",
+   "after_screenshot": "/Users/tam/Desktop/DNA-OS-INFRASTRUCTURE/connections/os-ui/data/screenshots/screenshot-1788301420064-s6vb2q.png",
+   "state_before": {
+    "clicks": 3,
+    "dbls": 1,
+    "state": "DRAG DROP @366",
+    "input": "",
+    "scrollY": 0,
+    "dragLeft": 366,
+    "activeElement": "body",
+    "maxScrollY": 1383,
+    "wheelCount": 2,
+    "wheelDeltaY": -600,
+    "wheelMode": 0,
+    "wheelTarget": "div"
+   },
+   "state_after": {
+    "clicks": 3,
+    "dbls": 1,
+    "state": "DRAG DROP @366",
+    "input": "",
+    "scrollY": 0,
+    "dragLeft": 366,
+    "activeElement": "testinput",
+    "maxScrollY": 1383,
+    "wheelCount": 2,
+    "wheelDeltaY": -600,
+    "wheelMode": 0,
+    "wheelTarget": "div"
+   },
+   "effect_synced": true
+  },
+  {
+   "step": 10,
+   "work_order_id": "acc-10-type-1788301423435",
+   "operation": "type",
+   "target": null,
+   "intent": null,
+   "originator": "OWNER→acceptance-runner",
+   "result": "COMPLETED",
+   "executed": true,
+   "dispatched": true,
+   "execution_owner": "control/computer-use-executor",
+   "evidence_id": "cue-64c09a20-08eb-4c8c-9516-700ff1e09cc8",
+   "before_screenshot": "/Users/tam/Desktop/DNA-OS-INFRASTRUCTURE/connections/os-ui/data/screenshots/screenshot-1788301422183-zo8kvd.png",
+   "after_screenshot": "/Users/tam/Desktop/DNA-OS-INFRASTRUCTURE/connections/os-ui/data/screenshots/screenshot-1788301426441-tyuykq.png",
+   "state_before": {
+    "clicks": 3,
+    "dbls": 1,
+    "state": "DRAG DROP @366",
+    "input": "",
+    "scrollY": 0,
+    "dragLeft": 366,
+    "activeElement": "testinput",
+    "maxScrollY": 1383,
+    "wheelCount": 2,
+    "wheelDeltaY": -600,
+    "wheelMode": 0,
+    "wheelTarget": "div"
+   },
+   "state_after": {
+    "clicks": 3,
+    "dbls": 1,
+    "state": "TYPED: 9070-420956",
+    "input": "9070-420956",
+    "scrollY": 0,
+    "dragLeft": 366,
+    "activeElement": "testinput",
+    "maxScrollY": 1383,
+    "wheelCount": 2,
+    "wheelDeltaY": -600,
+    "wheelMode": 0,
+    "wheelTarget": "div"
+   },
+   "effect_synced": true
+  },
+  {
+   "step": 11,
+   "work_order_id": "acc-11-key-1788301429968",
+   "operation": "key",
+   "target": null,
+   "intent": null,
+   "originator": "OWNER→acceptance-runner",
+   "result": "COMPLETED",
+   "executed": true,
+   "dispatched": true,
+   "execution_owner": "control/computer-use-executor",
+   "evidence_id": "cue-fb30fe99-2581-44f0-8b99-0bf7e759b35b",
+   "before_screenshot": "/Users/tam/Desktop/DNA-OS-INFRASTRUCTURE/connections/os-ui/data/screenshots/screenshot-1788301428592-a19okb.png",
+   "after_screenshot": "/Users/tam/Desktop/DNA-OS-INFRASTRUCTURE/connections/os-ui/data/screenshots/screenshot-1788301438848-xsj9x5.png",
+   "state_before": {
+    "clicks": 3,
+    "dbls": 1,
+    "state": "TYPED: 9070-420956",
+    "input": "9070-420956",
+    "scrollY": 0,
+    "dragLeft": 366,
+    "activeElement": "testinput",
+    "maxScrollY": 1383,
+    "wheelCount": 2,
+    "wheelDeltaY": -600,
+    "wheelMode": 0,
+    "wheelTarget": "div"
+   },
+   "state_after": {
+    "clicks": 3,
+    "dbls": 1,
+    "state": "TYPED: 9070-420956",
+    "input": "9070-420956",
+    "scrollY": 0,
+    "dragLeft": 366,
+    "activeElement": "testinput",
+    "maxScrollY": 1383,
+    "wheelCount": 2,
+    "wheelDeltaY": -600,
+    "wheelMode": 0,
+    "wheelTarget": "div"
+   },
+   "effect_synced": false
+  },
+  {
+   "step": 12,
+   "work_order_id": "acc-12-read_screen-1788301440175",
+   "operation": "read_screen",
+   "target": null,
+   "intent": null,
+   "originator": "OWNER→acceptance-runner",
+   "result": "COMPLETED",
+   "executed": true,
+   "dispatched": true,
+   "execution_owner": "control/computer-use-executor",
+   "evidence_id": "cue-800704fe-db45-4895-8bd1-7ab069d49a6c",
+   "before_screenshot": null,
+   "after_screenshot": null,
+   "state_before": null,
+   "state_after": null,
+   "effect_synced": false
+  },
+  {
+   "step": 13,
+   "work_order_id": "acc-13-screenshot-1788301442496",
+   "operation": "screenshot",
+   "target": null,
+   "intent": null,
+   "originator": "OWNER→acceptance-runner",
+   "result": "COMPLETED",
+   "executed": true,
+   "dispatched": true,
+   "execution_owner": "control/computer-use-executor",
+   "evidence_id": "cue-a4668c18-9a3d-4eaf-bee6-51f8e915ab62",
+   "before_screenshot": null,
+   "after_screenshot": null,
+   "state_before": null,
+   "state_after": null,
+   "effect_synced": false
+  }
+ ],
+ "type_expected": "9070-420956",
+ "post_revoke": {
+  "work_order_id": "acc-postrevoke-1788301444149",
+  "executed": false,
+  "reason": "DENY:AUTHORITY_REVOKED"
+ },
+ "verification": {
+  "proven": false,
+  "results": [
+   {
+    "op": "click",
+    "verdict": "PASS",
+    "reason": "clicks 0->1",
+    "before": {
+     "clicks": 0,
+     "dbls": 0
+    },
+    "after": {
+     "clicks": 1,
+     "dbls": 0,
+     "state": "CLICK #1"
+    }
+   },
+   {
+    "op": "double_click",
+    "verdict": "PASS",
+    "reason": "dbls 0->1 + state=DOUBLECLICK #1",
+    "before": {
+     "clicks": 1,
+     "dbls": 0
+    },
+    "after": {
+     "clicks": 3,
+     "dbls": 1,
+     "state": "DOUBLECLICK #1"
+    }
+   },
+   {
+    "op": "scroll",
+    "verdict": "NOT_PROVEN",
+    "reason": "scrollY ไม่เปลี่ยน (0)",
+    "before": {
+     "clicks": 3,
+     "dbls": 1
+    },
+    "after": {
+     "clicks": 3,
+     "dbls": 1,
+     "state": "DOUBLECLICK #1"
+    }
+   },
+   {
+    "op": "scroll",
+    "verdict": "NOT_PROVEN",
+    "reason": "scrollY ไม่เปลี่ยน (0)",
+    "before": {
+     "clicks": 3,
+     "dbls": 1
+    },
+    "after": {
+     "clicks": 3,
+     "dbls": 1,
+     "state": "DOUBLECLICK #1"
+    }
+   },
+   {
+    "op": "drag",
+    "verdict": "PASS",
+    "reason": "dragLeft 86->366",
+    "before": {
+     "clicks": 3,
+     "dbls": 1
+    },
+    "after": {
+     "clicks": 3,
+     "dbls": 1,
+     "state": "DRAG DROP @366"
+    }
+   },
+   {
+    "op": "click",
+    "verdict": "PASS",
+    "reason": "activeElement body->testinput (=target testinput)",
+    "before": {
+     "clicks": 3,
+     "dbls": 1
+    },
+    "after": {
+     "clicks": 3,
+     "dbls": 1,
+     "state": "DRAG DROP @366"
+    }
+   },
+   {
+    "op": "type",
+    "verdict": "PASS",
+    "reason": "input == expected (9070-420956)",
+    "before": {
+     "clicks": 3,
+     "dbls": 1
+    },
+    "after": {
+     "clicks": 3,
+     "dbls": 1,
+     "state": "TYPED: 9070-420956"
+    }
+   },
+   {
+    "op": "key",
+    "verdict": "NOT_PROVEN",
+    "reason": "ไม่เห็น observable key state (state=\"TYPED: 9070-420956\")",
+    "before": {
+     "clicks": 3,
+     "dbls": 1
+    },
+    "after": {
+     "clicks": 3,
+     "dbls": 1,
+     "state": "TYPED: 9070-420956"
+    }
+   }
+  ]
+ },
+ "physical_computer_use": "NOT_PROVEN"
+}

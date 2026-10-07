@@ -1,0 +1,465 @@
+{
+ "run_at": "2026-09-02T18:59:53.228Z",
+ "core": "http://127.0.0.1:8791",
+ "summary": {
+  "PASS": 15
+ },
+ "results": [
+  {
+   "test_case_id": "OWNER_CMD_PLAN_HAPPY",
+   "area": "1 Owner Command",
+   "boundary": "POST/GET /owner/plan",
+   "test_level": "BEHAVIOR",
+   "isolation": "ISOLATED_TEMP_STATE",
+   "verdict": "PASS",
+   "asserts": [
+    {
+     "name": "http 200",
+     "ok": true,
+     "detail": "200"
+    },
+    {
+     "name": "plan has steps",
+     "ok": true,
+     "detail": "11"
+    },
+    {
+     "name": "did FILE_READ",
+     "ok": true,
+     "detail": ""
+    },
+    {
+     "name": "did RESOURCE_RESOLUTION",
+     "ok": true,
+     "detail": ""
+    },
+    {
+     "name": "terminal running=false",
+     "ok": true,
+     "detail": ""
+    }
+   ]
+  },
+  {
+   "test_case_id": "OWNER_CMD_PLAN_BLOCKED_NEG",
+   "area": "1 Owner Command (negative)",
+   "boundary": "GET /owner/plan",
+   "test_level": "FAILURE",
+   "isolation": "ISOLATED_TEMP_STATE",
+   "verdict": "PASS",
+   "asserts": [
+    {
+     "name": "has blocked step",
+     "ok": true,
+     "detail": "2"
+    },
+    {
+     "name": "blocked_at set",
+     "ok": true,
+     "detail": ""
+    },
+    {
+     "name": "NO_PROVIDER capability surfaced",
+     "ok": true,
+     "detail": "business_database_read"
+    }
+   ]
+  },
+  {
+   "test_case_id": "REGISTRY_LOOKUP_READ",
+   "area": "6 Registry read",
+   "boundary": "POST /registry/lookup",
+   "test_level": "BOUNDARY",
+   "isolation": "PURE_READ",
+   "verdict": "PASS",
+   "asserts": [
+    {
+     "name": "http 200",
+     "ok": true,
+     "detail": "200"
+    },
+    {
+     "name": "match found",
+     "ok": true,
+     "detail": ""
+    },
+    {
+     "name": "capability_id present",
+     "ok": true,
+     "detail": ""
+    },
+    {
+     "name": "resource_ids present",
+     "ok": true,
+     "detail": ""
+    }
+   ]
+  },
+  {
+   "test_case_id": "REGISTRY_CAP_404_NEG",
+   "area": "6 Registry read (negative)",
+   "boundary": "GET /registry/capabilities/:id",
+   "test_level": "FAILURE",
+   "isolation": "PURE_READ",
+   "verdict": "PASS",
+   "asserts": [
+    {
+     "name": "404 for unknown",
+     "ok": true,
+     "detail": "404"
+    }
+   ]
+  },
+  {
+   "test_case_id": "REGISTRY_BIZDATA_REJECT_NEG",
+   "area": "7 Domain gate (negative)",
+   "boundary": "POST /registry/candidates",
+   "test_level": "FAILURE",
+   "isolation": "PURE_READ",
+   "verdict": "PASS",
+   "asserts": [
+    {
+     "name": "not registered (rejected)",
+     "ok": true,
+     "detail": "200"
+    },
+    {
+     "name": "domain/business reject reason",
+     "ok": true,
+     "detail": "{\"request_id\":\"req-harness-candidate-harness-bizreject-probe\",\"ingress_status\":\"REJECTED\","
+    }
+   ]
+  },
+  {
+   "test_case_id": "IDEMPOTENCY_REGISTRY_DUP",
+   "area": "13 Idempotency / no-dup side effect",
+   "boundary": "POST /registry/candidates x2",
+   "test_level": "BEHAVIOR",
+   "isolation": "REVERSIBLE_WRITE",
+   "verdict": "PASS",
+   "asserts": [
+    {
+     "name": "first accepted-or-duplicate",
+     "ok": true,
+     "detail": "201"
+    },
+    {
+     "name": "second is DUPLICATE (no new side effect)",
+     "ok": true,
+     "detail": "{\"request_id\":\"req-harness-candidate-harness-idem-fixture\",\"ingress_status\":\"DUPLICATE\",\"r"
+    }
+   ]
+  },
+  {
+   "test_case_id": "MALFORMED_HANDOFF_NEG",
+   "area": "14 Malformed worker result",
+   "boundary": "POST /handoff",
+   "test_level": "FAILURE",
+   "isolation": "PURE_READ",
+   "verdict": "PASS",
+   "asserts": [
+    {
+     "name": "rejected (>=400)",
+     "ok": true,
+     "detail": "403"
+    },
+    {
+     "name": "not accepted 201",
+     "ok": true,
+     "detail": ""
+    }
+   ]
+  },
+  {
+   "test_case_id": "LIFECYCLE_ORDER_READ",
+   "area": "12 Lifecycle ordering",
+   "boundary": "GET /owner/lifecycle",
+   "test_level": "BOUNDARY",
+   "isolation": "PURE_READ",
+   "verdict": "PASS",
+   "asserts": [
+    {
+     "name": "http 200",
+     "ok": true,
+     "detail": "200"
+    },
+    {
+     "name": "returns lifecycle",
+     "ok": true,
+     "detail": ""
+    }
+   ]
+  },
+  {
+   "test_case_id": "EVIDENCE_TASK_READ",
+   "area": "8 Evidence creation (observe)",
+   "boundary": "GET /task/:id",
+   "test_level": "BOUNDARY",
+   "isolation": "PURE_READ",
+   "verdict": "PASS",
+   "asserts": [
+    {
+     "name": "http 200 or 404 (deterministic)",
+     "ok": true,
+     "detail": "404"
+    }
+   ]
+  },
+  {
+   "test_case_id": "INCIDENT_READ_BOUNDARY",
+   "area": "9 Incident handoff",
+   "boundary": "GET /owner/incident/:id",
+   "test_level": "BOUNDARY",
+   "isolation": "PURE_READ",
+   "verdict": "PASS",
+   "asserts": [
+    {
+     "name": "incident read boundary responds",
+     "ok": true,
+     "detail": "404"
+    }
+   ]
+  },
+  {
+   "test_case_id": "OWNER_ESCALATION_READ",
+   "area": "11 Owner escalation/read",
+   "boundary": "GET /owner/console,/owner/action-queue",
+   "test_level": "BOUNDARY",
+   "isolation": "PURE_READ",
+   "verdict": "PASS",
+   "asserts": [
+    {
+     "name": "console 200",
+     "ok": true,
+     "detail": "200"
+    },
+    {
+     "name": "action-queue 200",
+     "ok": true,
+     "detail": "200"
+    }
+   ]
+  },
+  {
+   "test_case_id": "CAPABILITY_ROUTE_READ",
+   "area": "10 Target/route resolution",
+   "boundary": "GET /capability/route/:ref",
+   "test_level": "BOUNDARY",
+   "isolation": "PURE_READ",
+   "verdict": "PASS",
+   "asserts": [
+    {
+     "name": "route boundary responds",
+     "ok": true,
+     "detail": "404"
+    }
+   ]
+  },
+  {
+   "test_case_id": "SYSTEM_GRAPH_READ",
+   "area": "cross-module",
+   "boundary": "GET /graph/system",
+   "test_level": "BOUNDARY",
+   "isolation": "PURE_READ",
+   "verdict": "PASS",
+   "asserts": [
+    {
+     "name": "http 200",
+     "ok": true,
+     "detail": "200"
+    },
+    {
+     "name": "has graph",
+     "ok": true,
+     "detail": ""
+    }
+   ]
+  },
+  {
+   "test_case_id": "RUNTIME_INVENTORY_READ",
+   "area": "6 Registry/runtime read",
+   "boundary": "GET /runtime/inventory",
+   "test_level": "BOUNDARY",
+   "isolation": "PURE_READ",
+   "verdict": "PASS",
+   "asserts": [
+    {
+     "name": "http 200",
+     "ok": true,
+     "detail": "200"
+    },
+    {
+     "name": "VERIFIED",
+     "ok": true,
+     "detail": "VERIFIED"
+    },
+    {
+     "name": "capabilities listed",
+     "ok": true,
+     "detail": ""
+    }
+   ]
+  },
+  {
+   "test_case_id": "HEALTH_READ",
+   "area": "transport",
+   "boundary": "GET /health",
+   "test_level": "BOUNDARY",
+   "isolation": "PURE_READ",
+   "verdict": "PASS",
+   "asserts": [
+    {
+     "name": "ok true",
+     "ok": true,
+     "detail": "200"
+    }
+   ]
+  }
+ ],
+ "evidence": [
+  {
+   "test_case_id": "OWNER_CMD_PLAN_HAPPY",
+   "verdict": "PASS",
+   "at": "2026-09-02T18:59:53.228Z",
+   "evidence": {
+    "command_id": "plan_1788375593310",
+    "actions": [
+     "OWNER_REQUEST",
+     "SUBJECT_RESOLUTION",
+     "KNOWLEDGE_LOOKUP",
+     "CAPABILITY_PLAN",
+     "SOURCE_LOCATION",
+     "FOLDER_OPEN",
+     "FILE_READ",
+     "RESOURCE_RESOLUTION",
+     "RESOURCE_INVOCATION",
+     "RESOURCE_RESOLUTION",
+     "RESOURCE_INVOCATION"
+    ]
+   }
+  },
+  {
+   "test_case_id": "OWNER_CMD_PLAN_BLOCKED_NEG",
+   "verdict": "PASS",
+   "at": "2026-09-02T18:59:53.228Z",
+   "evidence": {
+    "command_id": "plan_1788375594880",
+    "blocked_reason": "ไม่มีชื่อความสามารถใดในทะเบียนที่ถูกเอ่ยถึงในคำขอนี้",
+    "no_provider": "business_database_read"
+   }
+  },
+  {
+   "test_case_id": "REGISTRY_LOOKUP_READ",
+   "verdict": "PASS",
+   "at": "2026-09-02T18:59:53.228Z",
+   "evidence": {
+    "capability_id": "capability-46dfb6d8-fa05-4f88-90b6-d9181e2ae30f"
+   }
+  },
+  {
+   "test_case_id": "REGISTRY_CAP_404_NEG",
+   "verdict": "PASS",
+   "at": "2026-09-02T18:59:53.228Z",
+   "evidence": {
+    "status": 404
+   }
+  },
+  {
+   "test_case_id": "REGISTRY_BIZDATA_REJECT_NEG",
+   "verdict": "PASS",
+   "at": "2026-09-02T18:59:53.228Z",
+   "evidence": {
+    "status": 200,
+    "reason": "{\"request_id\":\"req-harness-candidate-harness-bizreject-probe\",\"ingress_status\":\"REJECTED\",\"reason_code\":\"BUSINESS_DATA_NOT_ALLOWED\",\"duplica"
+   }
+  },
+  {
+   "test_case_id": "IDEMPOTENCY_REGISTRY_DUP",
+   "verdict": "PASS",
+   "at": "2026-09-02T18:59:53.228Z",
+   "evidence": {
+    "first": "{\"request_id\":\"req-harness-candidate-harness-idem-fixture\",\"ingress_status\":\"REGISTERED\",\"reason_cod",
+    "second": "{\"request_id\":\"req-harness-candidate-harness-idem-fixture\",\"ingress_status\":\"DUPLICATE\",\"reason_code"
+   }
+  },
+  {
+   "test_case_id": "MALFORMED_HANDOFF_NEG",
+   "verdict": "PASS",
+   "at": "2026-09-02T18:59:53.228Z",
+   "evidence": {
+    "status": 403,
+    "body": "{\"status\":\"DNA_BLOCKED\",\"error\":\"WORK_ORDER_NOT_ADMITTED\"}"
+   }
+  },
+  {
+   "test_case_id": "LIFECYCLE_ORDER_READ",
+   "verdict": "PASS",
+   "at": "2026-09-02T18:59:53.228Z",
+   "evidence": {
+    "keys": [
+     "available",
+     "stages",
+     "continuation"
+    ]
+   }
+  },
+  {
+   "test_case_id": "EVIDENCE_TASK_READ",
+   "verdict": "PASS",
+   "at": "2026-09-02T18:59:53.228Z",
+   "evidence": {
+    "status": 404
+   }
+  },
+  {
+   "test_case_id": "INCIDENT_READ_BOUNDARY",
+   "verdict": "PASS",
+   "at": "2026-09-02T18:59:53.228Z",
+   "evidence": {
+    "status": 404,
+    "note": "live-loop incident creation UNWIRED: reportExecutionFailure has 0 production callers"
+   }
+  },
+  {
+   "test_case_id": "OWNER_ESCALATION_READ",
+   "verdict": "PASS",
+   "at": "2026-09-02T18:59:53.228Z",
+   "evidence": {
+    "console": 200,
+    "queue": 200
+   }
+  },
+  {
+   "test_case_id": "CAPABILITY_ROUTE_READ",
+   "verdict": "PASS",
+   "at": "2026-09-02T18:59:53.228Z",
+   "evidence": {
+    "status": 404
+   }
+  },
+  {
+   "test_case_id": "SYSTEM_GRAPH_READ",
+   "verdict": "PASS",
+   "at": "2026-09-02T18:59:53.228Z",
+   "evidence": {
+    "status": 200
+   }
+  },
+  {
+   "test_case_id": "RUNTIME_INVENTORY_READ",
+   "verdict": "PASS",
+   "at": "2026-09-02T18:59:53.228Z",
+   "evidence": {
+    "caps": 12
+   }
+  },
+  {
+   "test_case_id": "HEALTH_READ",
+   "verdict": "PASS",
+   "at": "2026-09-02T18:59:53.228Z",
+   "evidence": {
+    "status": 200
+   }
+  }
+ ]
+}

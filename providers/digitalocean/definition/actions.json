@@ -1,0 +1,100 @@
+{
+  "$schema_note": "Full resource x action -> endpoint/method/scope map. Every record traces to ../evidence/DIGITALOCEAN_PROVIDER_DISCOVERY.md. automatable: YES|NO|PARTIAL. scope: real string, 'not_confirmed', or null if not applicable.",
+  "last_verified": "2026-08-17",
+  "actions": [
+    { "resource": "account", "action": "GET", "endpoint": "/v2/account", "method": "GET", "scope": "account:read", "automatable": "YES", "notes": "Added 2026-08-17 (was previously only referenced indirectly in gaps). Directly re-verified via raw fetch of docs.digitalocean.com/reference/api/reference/account/, HTTP 200. Response includes droplet_limit (used elsewhere as the account's Droplet quota)." },
+    { "resource": "droplets", "action": "LIST", "endpoint": "/v2/droplets", "method": "GET", "scope": "droplet:read", "automatable": "YES" },
+    { "resource": "droplets", "action": "GET", "endpoint": "/v2/droplets/{id}", "method": "GET", "scope": "droplet:read", "automatable": "YES" },
+    { "resource": "droplets", "action": "CREATE", "endpoint": "/v2/droplets", "method": "POST", "scope": "droplet:create", "automatable": "YES", "notes": "GPU Droplets: same endpoint, GPU-enabled size slug + region." },
+    { "resource": "droplets", "action": "RESIZE", "endpoint": "/v2/droplets/{id}/actions", "method": "POST", "scope": "droplet:update,droplet:create", "automatable": "YES", "notes": "type=resize; disk resize requires power-off." },
+    { "resource": "droplets", "action": "RENAME", "endpoint": "/v2/droplets/{id}/actions", "method": "POST", "scope": "droplet:update", "automatable": "YES", "notes": "type=rename" },
+    { "resource": "droplets", "action": "DELETE", "endpoint": "/v2/droplets/{id}", "method": "DELETE", "scope": "droplet:delete", "automatable": "YES", "notes": "bulk via ?tag_name=; full cleanup via .../destroy_with_associated_resources/dangerous" },
+    { "resource": "droplets", "action": "POWER_ON_OFF_SHUTDOWN_REBOOT_CYCLE", "endpoint": "/v2/droplets/{id}/actions", "method": "POST", "scope": "droplet:update", "automatable": "YES", "notes": "type=power_on|power_off|shutdown|reboot|power_cycle; bulk via /v2/droplets/actions?tag_name=" },
+    { "resource": "droplets", "action": "ACTION_STATUS", "endpoint": "/v2/droplets/{id}/actions/{action_id}", "method": "GET", "scope": "droplet:read", "automatable": "YES" },
+    { "resource": "droplets", "action": "MONITORING", "endpoint": "/v2/monitoring/metrics/droplet/{cpu,bandwidth,filesystem,memory_*,load_*}", "method": "GET", "scope": "not_confirmed", "automatable": "YES", "notes": "requires DO Metrics Agent installed on the Droplet" },
+    { "resource": "droplets", "action": "LOGS", "endpoint": null, "method": null, "scope": null, "automatable": "NO", "notes": "no API-exposed console/system log retrieval found" },
+
+    { "resource": "bare_metal_gpus", "action": "ALL", "endpoint": null, "method": null, "scope": null, "automatable": "NO", "notes": "zero REST API surface; sales/contract-provisioned only" },
+
+    { "resource": "app_platform", "action": "LIST", "endpoint": "/v2/apps", "method": "GET", "scope": "app:read", "automatable": "YES" },
+    { "resource": "app_platform", "action": "GET", "endpoint": "/v2/apps/{id}", "method": "GET", "scope": "app:read", "automatable": "YES" },
+    { "resource": "app_platform", "action": "CREATE", "endpoint": "/v2/apps", "method": "POST", "scope": "app:create", "automatable": "YES", "notes": "body = AppSpec object" },
+    { "resource": "app_platform", "action": "UPDATE", "endpoint": "/v2/apps/{id}", "method": "PUT", "scope": "app:update", "automatable": "YES" },
+    { "resource": "app_platform", "action": "DELETE", "endpoint": "/v2/apps/{id}", "method": "DELETE", "scope": "app:delete", "automatable": "YES" },
+    { "resource": "app_platform", "action": "RESTART", "endpoint": "/v2/apps/{id}/restart", "method": "POST", "scope": "app:update", "automatable": "YES", "notes": "no distinct 'stop'; restart is closest" },
+    { "resource": "app_platform", "action": "ROLLBACK", "endpoint": "/v2/apps/{id}/rollback", "method": "POST", "scope": "app:update", "automatable": "YES" },
+    { "resource": "app_platform", "action": "LOGS", "endpoint": "/v2/apps/{id}/logs, /v2/apps/{id}/deployments/{deployment_id}/logs, /v2/apps/{id}/logs/aggregate", "method": "GET", "scope": "not_confirmed", "automatable": "YES", "notes": "only compute resource with a real log API" },
+    { "resource": "app_platform", "action": "STATUS", "endpoint": "/v2/apps/{id}/deployments/{deployment_id}", "method": "GET", "scope": "app:read", "automatable": "YES", "notes": "phase field" },
+    { "resource": "app_platform", "action": "MONITORING", "endpoint": "/v2/apps/{id}/metrics/bandwidth_daily", "method": "GET", "scope": "not_confirmed", "automatable": "PARTIAL", "notes": "bandwidth only, no CPU/memory metrics endpoint found" },
+
+    { "resource": "kubernetes", "action": "LIST", "endpoint": "/v2/kubernetes/clusters", "method": "GET", "scope": "kubernetes:read", "automatable": "YES" },
+    { "resource": "kubernetes", "action": "GET", "endpoint": "/v2/kubernetes/clusters/{id}", "method": "GET", "scope": "kubernetes:read", "automatable": "YES" },
+    { "resource": "kubernetes", "action": "CREATE", "endpoint": "/v2/kubernetes/clusters", "method": "POST", "scope": "kubernetes:create", "automatable": "YES", "notes": "requires >=1 node pool with >=1 worker" },
+    { "resource": "kubernetes", "action": "UPDATE", "endpoint": "/v2/kubernetes/clusters/{id}", "method": "PUT", "scope": "kubernetes:update", "automatable": "YES" },
+    { "resource": "kubernetes", "action": "UPGRADE", "endpoint": "/v2/kubernetes/clusters/{id}/upgrade", "method": "POST", "scope": "kubernetes:update", "automatable": "YES" },
+    { "resource": "kubernetes", "action": "DELETE", "endpoint": "/v2/kubernetes/clusters/{id}", "method": "DELETE", "scope": "kubernetes:delete", "automatable": "YES", "notes": "also .../associatedResources and .../destroy_with_associated_resources/dangerous variants" },
+    { "resource": "kubernetes", "action": "NODE_POOL_RECYCLE", "endpoint": "/v2/kubernetes/clusters/{id}/node_pools/{pool_id}/recycle", "method": "POST", "scope": "kubernetes:update", "automatable": "YES", "notes": "closest start/stop equivalent; no cluster-level stop" },
+    { "resource": "kubernetes", "action": "STATUS", "endpoint": "/v2/kubernetes/clusters/{id}/status", "method": "GET", "scope": "kubernetes:read", "automatable": "YES" },
+    { "resource": "kubernetes", "action": "NODE_POOLS_CRUD", "endpoint": "/v2/kubernetes/clusters/{id}/node_pools[/{pool_id}]", "method": "GET,POST,PUT,DELETE", "scope": "kubernetes:read,kubernetes:update", "automatable": "YES" },
+    { "resource": "kubernetes", "action": "KUBECONFIG_CREDENTIALS", "endpoint": "/v2/kubernetes/clusters/{id}/kubeconfig, .../credentials, .../user", "method": "GET", "scope": "kubernetes:read", "automatable": "YES" },
+    { "resource": "kubernetes", "action": "LOGS_OR_CLUSTER_METRICS", "endpoint": null, "method": null, "scope": null, "automatable": "NO", "notes": "not found as dedicated DOKS REST resources" },
+
+    { "resource": "managed_databases", "action": "LIST_GET", "endpoint": "/v2/databases, /v2/databases/{uuid}", "method": "GET", "scope": "not_confirmed", "automatable": "YES" },
+    { "resource": "managed_databases", "action": "CREATE", "endpoint": "/v2/databases", "method": "POST", "scope": "not_confirmed", "automatable": "YES", "notes": "fields: name, engine, version, region, size, num_nodes; PG supports v14-18" },
+    { "resource": "managed_databases", "action": "DELETE", "endpoint": "/v2/databases/{uuid}", "method": "DELETE", "scope": "not_confirmed", "automatable": "YES" },
+    { "resource": "managed_databases", "action": "RESIZE", "endpoint": "/v2/databases/{uuid}/resize", "method": "PUT", "scope": "not_confirmed", "automatable": "YES" },
+    { "resource": "managed_databases", "action": "ADD_READ_REPLICA", "endpoint": "/v2/databases/{uuid}/replicas", "method": "POST", "scope": "not_confirmed", "automatable": "YES", "notes": "PostgreSQL/MySQL/MongoDB; Kafka/OpenSearch/Valkey use different scaling models" },
+    { "resource": "managed_databases", "action": "CONNECTION_POOLS", "endpoint": ".../pools (path segment partially confirmed)", "method": "POST,DELETE", "scope": "not_confirmed", "automatable": "PARTIAL", "notes": "PostgreSQL only, PGBouncer-backed" },
+    { "resource": "managed_databases", "action": "USERS_FIREWALL_BACKUPS", "endpoint": "sub-resources under /v2/databases/{uuid}/...", "method": "mixed", "scope": "not_confirmed", "automatable": "PARTIAL", "notes": "existence confirmed, exact paths not individually verified" },
+    { "resource": "managed_databases", "action": "OPTIONS", "endpoint": "/v2/databases/options", "method": "GET", "scope": "not_confirmed", "automatable": "YES", "notes": "valid engine/region/size/version combinations" },
+    { "resource": "managed_databases", "action": "LOGS_OR_METRICS", "endpoint": null, "method": null, "scope": null, "automatable": "NO", "notes": "status is a field (creating/online), not a separate endpoint" },
+
+    { "resource": "spaces_data_plane", "action": "BUCKET_OBJECT_CRUD", "endpoint": "https://{region}.digitaloceanspaces.com", "method": "S3-compatible verbs", "scope": "spaces_access_key_secret", "automatable": "YES" },
+    { "resource": "spaces_data_plane", "action": "CORS", "endpoint": "S3 PutBucketCors (XML)", "method": "PUT", "scope": "spaces_access_key_secret", "automatable": "YES" },
+    { "resource": "spaces_data_plane", "action": "BUCKET_POLICY", "endpoint": "S3-compatible bucket policy", "method": "PUT", "scope": "spaces_access_key_secret", "automatable": "YES", "notes": "requires keys to already exist" },
+    { "resource": "spaces_keys", "action": "CREATE", "endpoint": "/v2/spaces/keys", "method": "POST", "scope": "spaces_key:create_credentials", "automatable": "YES", "notes": "CORRECTED 2026-08-17: standard v2 API, not control-panel-only as originally reported. Possible scope naming inconsistency in docs: 'spaces_keys:create' (plural) also appears." },
+    { "resource": "spaces_keys", "action": "LIST_GET", "endpoint": "/v2/spaces/keys, /v2/spaces/keys/{access_key}", "method": "GET", "scope": "spaces_key:read", "automatable": "YES" },
+    { "resource": "spaces_keys", "action": "UPDATE", "endpoint": "/v2/spaces/keys/{access_key}", "method": "PUT,PATCH", "scope": "spaces_key:update", "automatable": "YES" },
+    { "resource": "spaces_keys", "action": "DELETE", "endpoint": "/v2/spaces/keys/{access_key}", "method": "DELETE", "scope": "spaces_key:delete", "automatable": "YES" },
+
+    { "resource": "volumes", "action": "LIST_CREATE_DELETE", "endpoint": "/v2/volumes", "method": "GET,POST,DELETE", "scope": "not_confirmed", "automatable": "YES" },
+    { "resource": "volumes", "action": "ATTACH_DETACH_RESIZE", "endpoint": "/v2/volumes/{id}/actions", "method": "POST", "scope": "not_confirmed", "automatable": "YES" },
+    { "resource": "volumes", "action": "SNAPSHOT", "endpoint": "/v2/volumes/{id}/snapshots, /v2/snapshots", "method": "POST,GET,DELETE", "scope": "not_confirmed", "automatable": "YES", "notes": "grow-only, no shrink" },
+
+    { "resource": "vpc", "action": "CREATE", "endpoint": "/v2/vpcs", "method": "POST", "scope": "vpc:create", "automatable": "YES" },
+    { "resource": "vpc", "action": "LIST_GET_DELETE_MEMBERS", "endpoint": "/v2/vpcs[/{id}][/members]", "method": "GET,DELETE", "scope": "vpc:read", "automatable": "YES", "notes": "delete only succeeds with zero attached members" },
+    { "resource": "vpc", "action": "PEERING", "endpoint": "/v2/vpc_peerings (inferred)", "method": "POST,GET,DELETE", "scope": "not_confirmed", "automatable": "PARTIAL" },
+
+    { "resource": "load_balancers", "action": "CRUD", "endpoint": "/v2/load_balancers[/{id}]", "method": "POST,GET,PUT,DELETE", "scope": "not_confirmed (load_balancer:delete confirmed for delete)", "automatable": "YES" },
+    { "resource": "load_balancers", "action": "ADD_REMOVE_DROPLETS_RULES", "endpoint": ".../droplets, .../forwarding_rules", "method": "POST,DELETE", "scope": "not_confirmed", "automatable": "YES", "notes": "new Droplets start DOWN until health check passes" },
+
+    { "resource": "cloud_firewalls", "action": "CRUD", "endpoint": "/v2/firewalls[/{id}]", "method": "POST,GET,PUT,DELETE", "scope": "firewall:update (confirmed for update only)", "automatable": "YES" },
+    { "resource": "cloud_firewalls", "action": "RULES_DROPLETS_TAGS", "endpoint": ".../rules, .../droplets, .../tags", "method": "POST,DELETE", "scope": "not_confirmed", "automatable": "YES", "notes": "tag-based application recommended for fleets" },
+
+    { "resource": "domains", "action": "CREATE_LIST_GET_DELETE", "endpoint": "/v2/domains[/{name}]", "method": "POST,GET,DELETE", "scope": "not_confirmed", "automatable": "YES", "notes": "no UPDATE - domains immutable, only records editable" },
+    { "resource": "domain_records", "action": "CRUD", "endpoint": "/v2/domains/{name}/records[/{id}]", "method": "POST,GET,PUT,PATCH,DELETE", "scope": "not_confirmed", "automatable": "YES", "notes": "required fields vary per record type A/AAAA/CNAME/MX/TXT/SRV/NS/CAA" },
+
+    { "resource": "reserved_ips", "action": "CREATE_LIST_GET_DELETE", "endpoint": "/v2/reserved_ips[/{ip}]", "method": "POST,GET,DELETE", "scope": "not_confirmed", "automatable": "YES", "notes": "legacy /v2/floating_ips still works as alias" },
+    { "resource": "reserved_ips", "action": "ASSIGN_UNASSIGN", "endpoint": "/v2/reserved_ips/{ip}/actions", "method": "POST", "scope": "not_confirmed", "automatable": "YES" },
+
+    { "resource": "serverless_inference", "action": "CHAT_COMPLETIONS", "endpoint": "https://inference.do-ai.run/v1/chat/completions", "method": "POST", "scope": "inference_bearer_auth", "automatable": "YES" },
+    { "resource": "serverless_inference", "action": "MODELS_EMBEDDINGS_IMAGES_RESPONSES_MESSAGES_ASYNC", "endpoint": "/v1/{models,embeddings,images/generations,responses,messages,async-invoke}", "method": "mixed", "scope": "inference_bearer_auth", "automatable": "YES", "notes": "stateless call surface, no CRUD/DELETE" },
+
+    { "resource": "dedicated_inference", "action": "CRUD", "endpoint": "/v2/dedicated-inferences[/{id}][/accelerators,/tokens,/ca-certificate,/sizes,/gpu-model-config]", "method": "GET,POST,PATCH,DELETE", "scope": "dedicated_inference:read,dedicated_inference:create,dedicated_inference:update,dedicated_inference:delete", "automatable": "YES", "notes": "standard v2 host, unlike Serverless/Batch; public preview" },
+
+    { "resource": "batch_inference", "action": "FILE_UPLOAD_JOB_CRUD_RESULTS_CANCEL", "endpoint": "https://inference.do-ai.run/v1/batches[/files][/{id}][/results][/cancel]", "method": "mixed", "scope": "inference_bearer_auth (unconfirmed if sufficient alone)", "automatable": "YES", "notes": "24hr window; JSONL <=200MB/50000 requests" },
+
+    { "resource": "agent_platform", "action": "AGENTS_CRUD", "endpoint": "/v2/gen-ai/agents[/{id}][/keys,/routes,/status,/usage,/versions]", "method": "GET,POST,PUT,DELETE", "scope": "genai:read,genai:create,genai:update,genai:delete", "automatable": "YES" },
+    { "resource": "agent_platform", "action": "KNOWLEDGE_BASES_CRUD", "endpoint": "/v2/gen-ai/knowledge-bases[/{id}][/data-sources[/{id}]]", "method": "GET,POST,PUT,DELETE", "scope": "genai:read,genai:create,genai:update,genai:delete", "automatable": "YES" },
+    { "resource": "agent_platform", "action": "MODELS_REGIONS_DISCOVERY", "endpoint": "/v2/gen-ai/models, /v2/gen-ai/regions", "method": "GET", "scope": "not_confirmed", "automatable": "YES" },
+
+    { "resource": "regions", "action": "LIST", "endpoint": "/v2/regions", "method": "GET", "scope": "not_confirmed", "automatable": "YES", "notes": "split 2026-08-17 from a combined 'regions_sizes' record for connections/digitalocean/ Phase 1, which needs the two resolved separately (digitalocean.regions.list vs digitalocean.sizes.list)." },
+    { "resource": "sizes", "action": "LIST", "endpoint": "/v2/sizes", "method": "GET", "scope": "not_confirmed", "automatable": "YES", "notes": "split 2026-08-17, see regions. Also returns price_monthly/price_hourly - the practical pricing source absent a dedicated pricing API." },
+
+    { "resource": "projects", "action": "LIST_CREATE_MANAGE", "endpoint": "/v2/projects, /v2/projects/{id}/resources", "method": "GET,POST", "scope": "not_confirmed", "automatable": "YES", "notes": "resources referenced by URN do:resource_type:resource_id" },
+
+    { "resource": "monitoring_alerts", "action": "CRUD", "endpoint": "/v2/monitoring/alerts[/{alert_uuid}]", "method": "GET,POST,PUT,DELETE", "scope": "not_confirmed (pattern: monitoring:read/create/update/delete)", "automatable": "YES", "notes": "alert-rule management, not a 'current health' read" },
+
+    { "resource": "status_page", "action": "GET_SUMMARY_STATUS", "endpoint": "https://status.digitalocean.com/api/v2/summary.json, .../status.json", "method": "GET", "scope": null, "automatable": "YES", "notes": "public Statuspage.io-hosted, no auth required, NOT under api.digitalocean.com" }
+  ]
+}

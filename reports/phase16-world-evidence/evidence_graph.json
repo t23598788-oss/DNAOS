@@ -1,0 +1,2526 @@
+{
+  "generated_at": "2026-08-19T18:05:55.012Z",
+  "generator": "reports/phase16-world-evidence/adapter.mjs (deterministic, no AI judgment at run time)",
+  "node_kinds_used": [
+    "SOURCE",
+    "SUBJECT",
+    "OBSERVATION",
+    "METRIC",
+    "EVIDENCE",
+    "CONSTRAINT",
+    "RESOURCE",
+    "COMPUTATION",
+    "DECISION_STATE",
+    "PEOPLE",
+    "SERVICE",
+    "CHANNEL",
+    "USER",
+    "USAGE",
+    "RESULT",
+    "PRICE",
+    "PAYMENT",
+    "CASH",
+    "PROBLEM",
+    "REAL_USER",
+    "ENTRY_POINT",
+    "PROBLEM_SIGNAL",
+    "ROOT_CAUSE",
+    "PROVEN_RESOLUTION"
+  ],
+  "nodes": [
+    {
+      "id": "SOURCE:src-posttoday-745857",
+      "kind": "SOURCE",
+      "source_url": "https://www.posttoday.com/smart-sme/745857",
+      "source_type": "news_article"
+    },
+    {
+      "id": "SUBJECT:accounting_compliance:TH",
+      "kind": "SUBJECT",
+      "subject_type": "accounting_compliance",
+      "geography": "TH"
+    },
+    {
+      "id": "OBSERVATION:ev-p1-01",
+      "kind": "OBSERVATION",
+      "observation_id": "ev-p1-01",
+      "source": {
+        "source_id": "src-posttoday-745857",
+        "source_url": "https://www.posttoday.com/smart-sme/745857",
+        "source_type": "news_article",
+        "observed_at": "2026-08-19T00:00:00Z"
+      },
+      "subject": {
+        "subject_id": "SUBJECT:accounting_compliance:TH",
+        "subject_type": "accounting_compliance",
+        "geography": "TH",
+        "market_domain": "accounting_compliance"
+      },
+      "metric": {
+        "metric_name": "problem_existence",
+        "value": "SME ไทยรายเล็กขาดระบบบัญชีมาตรฐาน เป็นปัญหาอันดับหนึ่งที่ SME D Bank ระบุ",
+        "unit": null
+      },
+      "extraction_method": "WebSearch tool, AI-summarized snippet of source page (not full-page fetch)",
+      "verification_status": "UNVERIFIED_SINGLE_SOURCE",
+      "evidence_status": "KNOWN",
+      "freshness_rule": "news_article: treat as stale after 365 days from observed_at",
+      "expires_at": null,
+      "origin_registry": "evidence_registry.json",
+      "origin_record_id": "ev-p1-01"
+    },
+    {
+      "id": "METRIC:ev-p1-01",
+      "kind": "METRIC",
+      "metric_name": "problem_existence",
+      "value": "SME ไทยรายเล็กขาดระบบบัญชีมาตรฐาน เป็นปัญหาอันดับหนึ่งที่ SME D Bank ระบุ",
+      "unit": null,
+      "evidence_status": "KNOWN"
+    },
+    {
+      "id": "SOURCE:src-7account-pricing",
+      "kind": "SOURCE",
+      "source_url": "https://www.7account.com/hire-accounting-firm-price-guide/",
+      "source_type": "vendor_pricing_page"
+    },
+    {
+      "id": "OBSERVATION:ev-p1-02",
+      "kind": "OBSERVATION",
+      "observation_id": "ev-p1-02",
+      "source": {
+        "source_id": "src-7account-pricing",
+        "source_url": "https://www.7account.com/hire-accounting-firm-price-guide/",
+        "source_type": "vendor_pricing_page",
+        "observed_at": "2026-08-19T00:00:00Z"
+      },
+      "subject": {
+        "subject_id": "SUBJECT:accounting_compliance:TH",
+        "subject_type": "accounting_compliance",
+        "geography": "TH",
+        "market_domain": "accounting_compliance"
+      },
+      "metric": {
+        "metric_name": "current_provider",
+        "value": "ราคาจ้างสำนักงานบัญชีไม่มีราคาตายตัว ขึ้นกับปัจจัยหลายอย่าง — ตัวเลขจริงไม่เปิดเผยในหน้านี้",
+        "unit": "THB"
+      },
+      "extraction_method": "WebSearch tool, AI-summarized snippet",
+      "verification_status": "UNVERIFIED_SINGLE_SOURCE",
+      "evidence_status": "UNKNOWN",
+      "freshness_rule": "vendor_pricing_page: treat as stale after 180 days",
+      "expires_at": null,
+      "origin_registry": "evidence_registry.json",
+      "origin_record_id": "ev-p1-02"
+    },
+    {
+      "id": "METRIC:ev-p1-02",
+      "kind": "METRIC",
+      "metric_name": "current_provider",
+      "value": "ราคาจ้างสำนักงานบัญชีไม่มีราคาตายตัว ขึ้นกับปัจจัยหลายอย่าง — ตัวเลขจริงไม่เปิดเผยในหน้านี้",
+      "unit": "THB",
+      "evidence_status": "UNKNOWN"
+    },
+    {
+      "id": "SOURCE:src-fastwork-debt",
+      "kind": "SOURCE",
+      "source_url": "https://fastwork.co/legal/debt-collection",
+      "source_type": "marketplace_listing"
+    },
+    {
+      "id": "SUBJECT:debt_collection:TH",
+      "kind": "SUBJECT",
+      "subject_type": "debt_collection",
+      "geography": "TH"
+    },
+    {
+      "id": "OBSERVATION:ev-p2-01",
+      "kind": "OBSERVATION",
+      "observation_id": "ev-p2-01",
+      "source": {
+        "source_id": "src-fastwork-debt",
+        "source_url": "https://fastwork.co/legal/debt-collection",
+        "source_type": "marketplace_listing",
+        "observed_at": "2026-08-19T00:00:00Z"
+      },
+      "subject": {
+        "subject_id": "SUBJECT:debt_collection:TH",
+        "subject_type": "debt_collection",
+        "geography": "TH",
+        "market_domain": "debt_collection"
+      },
+      "metric": {
+        "metric_name": "observed_price",
+        "value": 500,
+        "unit": "THB_starting_price"
+      },
+      "extraction_method": "WebSearch tool, AI-summarized snippet",
+      "verification_status": "UNVERIFIED_SINGLE_SOURCE",
+      "evidence_status": "MEASURED",
+      "freshness_rule": "marketplace_listing: treat as live/current at observed_at only, re-verify before use beyond 30 days",
+      "expires_at": null,
+      "origin_registry": "evidence_registry.json",
+      "origin_record_id": "ev-p2-01"
+    },
+    {
+      "id": "METRIC:ev-p2-01",
+      "kind": "METRIC",
+      "metric_name": "observed_price",
+      "value": 500,
+      "unit": "THB_starting_price",
+      "evidence_status": "MEASURED"
+    },
+    {
+      "id": "SOURCE:src-consumerthai-debtact",
+      "kind": "SOURCE",
+      "source_url": "https://www.consumerthai.org/menutd3/423-...",
+      "source_type": "regulatory_reference"
+    },
+    {
+      "id": "OBSERVATION:ev-p2-02",
+      "kind": "OBSERVATION",
+      "observation_id": "ev-p2-02",
+      "source": {
+        "source_id": "src-consumerthai-debtact",
+        "source_url": "https://www.consumerthai.org/menutd3/423-...",
+        "source_type": "regulatory_reference",
+        "observed_at": "2026-08-19T00:00:00Z"
+      },
+      "subject": {
+        "subject_id": "SUBJECT:debt_collection:TH",
+        "subject_type": "debt_collection",
+        "geography": "TH",
+        "market_domain": "debt_collection"
+      },
+      "metric": {
+        "metric_name": "legal_constraint",
+        "value": "พ.ร.บ.การทวงถามหนี้ กำกับผู้ประกอบวิชาชีพทวงถามหนี้ — ต้องขึ้นทะเบียน",
+        "unit": null
+      },
+      "extraction_method": "WebSearch tool, AI-summarized snippet — statute NOT read in full text",
+      "verification_status": "UNVERIFIED_SINGLE_SOURCE",
+      "evidence_status": "KNOWN",
+      "freshness_rule": "law_reference: valid until amended — no expiry assumed, must re-check before use",
+      "expires_at": null,
+      "origin_registry": "evidence_registry.json",
+      "origin_record_id": "ev-p2-02"
+    },
+    {
+      "id": "METRIC:ev-p2-02",
+      "kind": "METRIC",
+      "metric_name": "legal_constraint",
+      "value": "พ.ร.บ.การทวงถามหนี้ กำกับผู้ประกอบวิชาชีพทวงถามหนี้ — ต้องขึ้นทะเบียน",
+      "unit": null,
+      "evidence_status": "KNOWN"
+    },
+    {
+      "id": "SOURCE:src-jobth-listings",
+      "kind": "SOURCE",
+      "source_url": "https://www.jobth.com/jobs/...",
+      "source_type": "job_board_aggregate"
+    },
+    {
+      "id": "SUBJECT:data_entry:TH",
+      "kind": "SUBJECT",
+      "subject_type": "data_entry",
+      "geography": "TH"
+    },
+    {
+      "id": "OBSERVATION:ev-p3-01",
+      "kind": "OBSERVATION",
+      "observation_id": "ev-p3-01",
+      "source": {
+        "source_id": "src-jobth-listings",
+        "source_url": "https://www.jobth.com/jobs/...",
+        "source_type": "job_board_aggregate",
+        "observed_at": "2026-08-19T00:00:00Z"
+      },
+      "subject": {
+        "subject_id": "SUBJECT:data_entry:TH",
+        "subject_type": "data_entry",
+        "geography": "TH",
+        "market_domain": "data_entry"
+      },
+      "metric": {
+        "metric_name": "target_group_size_proxy",
+        "value": 30000,
+        "unit": "open_job_listings_count"
+      },
+      "extraction_method": "WebSearch tool, AI-summarized snippet",
+      "verification_status": "UNVERIFIED_SINGLE_SOURCE",
+      "evidence_status": "ESTIMATED",
+      "freshness_rule": "job_board_aggregate: point-in-time count, re-verify before reuse",
+      "expires_at": null,
+      "origin_registry": "evidence_registry.json",
+      "origin_record_id": "ev-p3-01"
+    },
+    {
+      "id": "METRIC:ev-p3-01",
+      "kind": "METRIC",
+      "metric_name": "target_group_size_proxy",
+      "value": 30000,
+      "unit": "open_job_listings_count",
+      "evidence_status": "ESTIMATED"
+    },
+    {
+      "id": "SOURCE:src-fiverr-dataentry",
+      "kind": "SOURCE",
+      "source_url": "https://www.fiverr.com/resources/guides/costs/data-entry",
+      "source_type": "vendor_pricing_page"
+    },
+    {
+      "id": "SUBJECT:data_entry:GLOBAL",
+      "kind": "SUBJECT",
+      "subject_type": "data_entry",
+      "geography": "GLOBAL"
+    },
+    {
+      "id": "OBSERVATION:ev-p3-02",
+      "kind": "OBSERVATION",
+      "observation_id": "ev-p3-02",
+      "source": {
+        "source_id": "src-fiverr-dataentry",
+        "source_url": "https://www.fiverr.com/resources/guides/costs/data-entry",
+        "source_type": "vendor_pricing_page",
+        "observed_at": "2026-08-19T00:00:00Z"
+      },
+      "subject": {
+        "subject_id": "SUBJECT:data_entry:GLOBAL",
+        "subject_type": "data_entry",
+        "geography": "GLOBAL",
+        "market_domain": "data_entry"
+      },
+      "metric": {
+        "metric_name": "observed_price_range",
+        "value": {
+          "low": 4,
+          "high": 25
+        },
+        "unit": "USD_per_hour"
+      },
+      "extraction_method": "WebSearch tool, AI-summarized snippet",
+      "verification_status": "UNVERIFIED_SINGLE_SOURCE",
+      "evidence_status": "KNOWN",
+      "freshness_rule": "vendor_pricing_page: stale after 180 days",
+      "expires_at": null,
+      "origin_registry": "evidence_registry.json",
+      "origin_record_id": "ev-p3-02"
+    },
+    {
+      "id": "METRIC:ev-p3-02",
+      "kind": "METRIC",
+      "metric_name": "observed_price_range",
+      "value": {
+        "low": 4,
+        "high": 25
+      },
+      "unit": "USD_per_hour",
+      "evidence_status": "KNOWN"
+    },
+    {
+      "id": "SOURCE:src-webfx-seoaudit",
+      "kind": "SOURCE",
+      "source_url": "https://www.webfx.com/seo/pricing/how-much-does-seo-audit-cost/",
+      "source_type": "agency_pricing_page"
+    },
+    {
+      "id": "SUBJECT:technical_audit:GLOBAL",
+      "kind": "SUBJECT",
+      "subject_type": "technical_audit",
+      "geography": "GLOBAL"
+    },
+    {
+      "id": "OBSERVATION:ev-p4-01",
+      "kind": "OBSERVATION",
+      "observation_id": "ev-p4-01",
+      "source": {
+        "source_id": "src-webfx-seoaudit",
+        "source_url": "https://www.webfx.com/seo/pricing/how-much-does-seo-audit-cost/",
+        "source_type": "agency_pricing_page",
+        "observed_at": "2026-08-19T00:00:00Z"
+      },
+      "subject": {
+        "subject_id": "SUBJECT:technical_audit:GLOBAL",
+        "subject_type": "technical_audit",
+        "geography": "GLOBAL",
+        "market_domain": "technical_audit"
+      },
+      "metric": {
+        "metric_name": "observed_price_range",
+        "value": {
+          "low": 100,
+          "high": 5000
+        },
+        "unit": "USD_per_report"
+      },
+      "extraction_method": "WebSearch tool, AI-summarized snippet, cross-checked against 8 other independent result titles in the same search",
+      "verification_status": "CROSS_CONFIRMED_MULTI_SOURCE",
+      "evidence_status": "KNOWN",
+      "freshness_rule": "agency_pricing_page: stale after 180 days",
+      "expires_at": null,
+      "origin_registry": "evidence_registry.json",
+      "origin_record_id": "ev-p4-01"
+    },
+    {
+      "id": "METRIC:ev-p4-01",
+      "kind": "METRIC",
+      "metric_name": "observed_price_range",
+      "value": {
+        "low": 100,
+        "high": 5000
+      },
+      "unit": "USD_per_report",
+      "evidence_status": "KNOWN"
+    },
+    {
+      "id": "SOURCE:src-marketresearchthailand-construction",
+      "kind": "SOURCE",
+      "source_url": "https://marketresearchthailand.com/insights/articles/concern-soaring-thailand-construction-costs",
+      "source_type": "market_research_article"
+    },
+    {
+      "id": "SUBJECT:construction_materials:TH",
+      "kind": "SUBJECT",
+      "subject_type": "construction_materials",
+      "geography": "TH"
+    },
+    {
+      "id": "OBSERVATION:ev-p7-01",
+      "kind": "OBSERVATION",
+      "observation_id": "ev-p7-01",
+      "source": {
+        "source_id": "src-marketresearchthailand-construction",
+        "source_url": "https://marketresearchthailand.com/insights/articles/concern-soaring-thailand-construction-costs",
+        "source_type": "market_research_article",
+        "observed_at": "2026-08-19T00:00:00Z"
+      },
+      "subject": {
+        "subject_id": "SUBJECT:construction_materials:TH",
+        "subject_type": "construction_materials",
+        "geography": "TH",
+        "market_domain": "construction_materials"
+      },
+      "metric": {
+        "metric_name": "problem_frequency",
+        "value": 65,
+        "unit": "percent_of_contractors_reporting_delay"
+      },
+      "extraction_method": "WebSearch tool, AI-summarized snippet citing Thai Contractors Association survey (survey itself not directly read)",
+      "verification_status": "UNVERIFIED_SINGLE_SOURCE_CITING_SECONDARY_SURVEY",
+      "evidence_status": "ESTIMATED",
+      "freshness_rule": "market_research_article: stale after 180 days",
+      "expires_at": null,
+      "origin_registry": "evidence_registry.json",
+      "origin_record_id": "ev-p7-01"
+    },
+    {
+      "id": "METRIC:ev-p7-01",
+      "kind": "METRIC",
+      "metric_name": "problem_frequency",
+      "value": 65,
+      "unit": "percent_of_contractors_reporting_delay",
+      "evidence_status": "ESTIMATED"
+    },
+    {
+      "id": "SOURCE:src-p7-no-solution-provider-found",
+      "kind": "SOURCE",
+      "source_url": null,
+      "source_type": "absence_of_evidence"
+    },
+    {
+      "id": "OBSERVATION:ev-p7-02",
+      "kind": "OBSERVATION",
+      "observation_id": "ev-p7-02",
+      "source": {
+        "source_id": "src-p7-no-solution-provider-found",
+        "source_url": null,
+        "source_type": "absence_of_evidence",
+        "observed_at": "2026-08-19T00:00:00Z"
+      },
+      "subject": {
+        "subject_id": "SUBJECT:construction_materials:TH",
+        "subject_type": "construction_materials",
+        "geography": "TH",
+        "market_domain": "construction_materials"
+      },
+      "metric": {
+        "metric_name": "current_provider",
+        "value": "no identified vendor",
+        "unit": null
+      },
+      "extraction_method": "negative result — no matching source found in 1 search",
+      "verification_status": "UNVERIFIED_ABSENCE_SINGLE_SEARCH",
+      "evidence_status": "UNKNOWN",
+      "freshness_rule": "absence claims expire immediately on next search — must re-check every time before reuse",
+      "expires_at": null,
+      "origin_registry": "evidence_registry.json",
+      "origin_record_id": "ev-p7-02"
+    },
+    {
+      "id": "METRIC:ev-p7-02",
+      "kind": "METRIC",
+      "metric_name": "current_provider",
+      "value": "no identified vendor",
+      "unit": null,
+      "evidence_status": "UNKNOWN"
+    },
+    {
+      "id": "EVIDENCE:P1",
+      "kind": "EVIDENCE",
+      "problem_id": "P1",
+      "problem_statement": "SME ไทยรายเล็กจัดการบัญชี/เอกสารภาษีเองไม่ไหว",
+      "status": "NO_GO",
+      "origin_registry": "problem_registry.json",
+      "origin_record_id": "P1"
+    },
+    {
+      "id": "CONSTRAINT:P1",
+      "kind": "CONSTRAINT",
+      "statement": "legal_gate: requires licensed accountant/auditor, DNA OS has none",
+      "origin_registry": "problem_registry.json",
+      "origin_record_id": "P1"
+    },
+    {
+      "id": "EVIDENCE:P2",
+      "kind": "EVIDENCE",
+      "problem_id": "P2",
+      "problem_statement": "เจ้าหนี้รายย่อยต้องการติดตามหนี้แต่ขาดเวลา/ความรู้กฎหมาย",
+      "status": "NO_GO",
+      "origin_registry": "problem_registry.json",
+      "origin_record_id": "P2"
+    },
+    {
+      "id": "CONSTRAINT:P2",
+      "kind": "CONSTRAINT",
+      "statement": "legal_gate: พ.ร.บ.การทวงถามหนี้ requires registration DNA OS does not hold",
+      "origin_registry": "problem_registry.json",
+      "origin_record_id": "P2"
+    },
+    {
+      "id": "EVIDENCE:P3",
+      "kind": "EVIDENCE",
+      "problem_id": "P3",
+      "problem_statement": "ธุรกิจต้องการคีย์/จัดระเบียบข้อมูล-เอกสารปริมาณมาก ไม่คุ้มจ้างประจำ",
+      "status": "WAITING_EVIDENCE",
+      "origin_registry": "problem_registry.json",
+      "origin_record_id": "P3"
+    },
+    {
+      "id": "EVIDENCE:P4",
+      "kind": "EVIDENCE",
+      "problem_id": "P4",
+      "problem_statement": "SME ต้องการรู้ปัญหาเทคนิค/SEO ของเว็บไซต์ตัวเอง",
+      "status": "WAITING_EVIDENCE",
+      "origin_registry": "problem_registry.json",
+      "origin_record_id": "P4"
+    },
+    {
+      "id": "EVIDENCE:P5",
+      "kind": "EVIDENCE",
+      "problem_id": "P5",
+      "problem_statement": "SME/startup ไทยหา supplier/นำเข้าสินค้าเองไม่เป็น",
+      "status": "NO_GO",
+      "origin_registry": "problem_registry.json",
+      "origin_record_id": "P5"
+    },
+    {
+      "id": "CONSTRAINT:P5",
+      "kind": "CONSTRAINT",
+      "statement": "capability_gap: no supplier network, no acquisition path identified",
+      "origin_registry": "problem_registry.json",
+      "origin_record_id": "P5"
+    },
+    {
+      "id": "EVIDENCE:P6",
+      "kind": "EVIDENCE",
+      "problem_id": "P6",
+      "problem_statement": "SME ต้องการงานธุรการ/แอดมินแต่จ้างประจำไม่คุ้ม",
+      "status": "NO_GO",
+      "origin_registry": "problem_registry.json",
+      "origin_record_id": "P6"
+    },
+    {
+      "id": "CONSTRAINT:P6",
+      "kind": "CONSTRAINT",
+      "statement": "capability_gap: generalist human labor, not a DNA OS proven capability",
+      "origin_registry": "problem_registry.json",
+      "origin_record_id": "P6"
+    },
+    {
+      "id": "EVIDENCE:P7",
+      "kind": "EVIDENCE",
+      "problem_id": "P7",
+      "problem_statement": "ผู้รับเหมาไทยเจอราคาวัสดุก่อสร้างผันผวน/ขาดแคลนบ่อย",
+      "status": "NO_GO",
+      "origin_registry": "problem_registry.json",
+      "origin_record_id": "P7"
+    },
+    {
+      "id": "CONSTRAINT:P7",
+      "kind": "CONSTRAINT",
+      "statement": "no_paid_solution_provider_identified; no DNA OS data source for real-time TH construction material pricing",
+      "origin_registry": "problem_registry.json",
+      "origin_record_id": "P7"
+    },
+    {
+      "id": "RESOURCE:P3",
+      "kind": "RESOURCE",
+      "problem_id": "P3",
+      "existing_capability_ref": "DNA-LAB-FILE-INTELLIGENCE (scanner/classifier, Phase 8 proof)",
+      "existing_capability_status": "READY",
+      "missing_resource": "OCR for scanned/image documents",
+      "missing_resource_class": "BUYABLE",
+      "acquire_note": "OCR APIs commercially available; not yet integrated",
+      "origin_registry": "price_resource_rules_registry.json",
+      "origin_record_id": "P3"
+    },
+    {
+      "id": "RESOURCE:P4",
+      "kind": "RESOURCE",
+      "problem_id": "P4",
+      "existing_capability_ref": "scan->classify->report pattern (File Intelligence + ts-morph, Phase 12/13 proof)",
+      "existing_capability_status": "PARTIAL",
+      "missing_resource": "SEO-specific analysis logic (backlink check, technical SEO rules), web crawler",
+      "missing_resource_class": "BUILD_REQUIRED",
+      "acquire_note": "no existing DNA OS module performs SEO analysis; would be new logic, not a reused capability",
+      "origin_registry": "price_resource_rules_registry.json",
+      "origin_record_id": "P4"
+    },
+    {
+      "id": "CONSTRAINT:rule:law-th-debt-collection-act",
+      "kind": "CONSTRAINT",
+      "rule_class": "LAW",
+      "statement": "พ.ร.บ.การทวงถามหนี้ พ.ศ. 2558 — ผู้ประกอบวิชาชีพทวงถามหนี้ต้องขึ้นทะเบียน",
+      "origin_registry": "price_resource_rules_registry.json",
+      "origin_record_id": "law-th-debt-collection-act"
+    },
+    {
+      "id": "CONSTRAINT:rule:market-fiverr-fee",
+      "kind": "CONSTRAINT",
+      "rule_class": "PLATFORM_RULE",
+      "statement": "Fiverr takes a flat 20% seller fee (Phase 15 evidence, ev-source: fiverr/gigradar)",
+      "origin_registry": "price_resource_rules_registry.json",
+      "origin_record_id": "market-fiverr-fee"
+    },
+    {
+      "id": "CONSTRAINT:rule:market-upwork-fee",
+      "kind": "CONSTRAINT",
+      "rule_class": "PLATFORM_RULE",
+      "statement": "Upwork moved to a flat 10% service fee (2026) (Phase 15 evidence)",
+      "origin_registry": "price_resource_rules_registry.json",
+      "origin_record_id": "market-upwork-fee"
+    },
+    {
+      "id": "CONSTRAINT:rule:tax-th-wht-status",
+      "kind": "CONSTRAINT",
+      "rule_class": "LAW",
+      "statement": "Thai withholding tax / VAT applicability to freelance platform income",
+      "origin_registry": "price_resource_rules_registry.json",
+      "origin_record_id": "tax-th-wht-status"
+    },
+    {
+      "id": "COMPUTATION:P3",
+      "kind": "COMPUTATION",
+      "problem_id": "P3",
+      "fields": {
+        "problem_id": "P3",
+        "computed_at": "2026-08-19T16:38:56.891Z",
+        "target_group_size": {
+          "name": "target_group_size",
+          "formula": "count of identified buyer entities",
+          "inputs": [
+            "UNKNOWN"
+          ],
+          "source": [],
+          "status": "UNCOMPUTABLE",
+          "value": null,
+          "reason": "missing/UNKNOWN input(s): [\"UNKNOWN\"]"
+        },
+        "reachable_target_group": {
+          "name": "reachable_target_group",
+          "formula": "target_group_size * channel_reach_rate",
+          "inputs": [
+            "UNKNOWN"
+          ],
+          "source": [],
+          "status": "UNCOMPUTABLE",
+          "value": null,
+          "reason": "missing/UNKNOWN input(s): [\"UNKNOWN\"]"
+        },
+        "observed_market_price": {
+          "name": "observed_market_price",
+          "formula": "th_specific_price if present, else UNKNOWN (international price is NOT substituted silently)",
+          "inputs": [
+            null
+          ],
+          "source": [
+            "ev-p3-02"
+          ],
+          "status": "UNCOMPUTABLE",
+          "value": null,
+          "reason": "missing/UNKNOWN input(s): [null]"
+        },
+        "required_capital": {
+          "name": "required_capital",
+          "formula": "capped by Owner policy",
+          "inputs": [
+            10001
+          ],
+          "source": [
+            "owner-directive-phase15"
+          ],
+          "status": "COMPUTED",
+          "value": 10001
+        },
+        "CAC": {
+          "name": "CAC (customer acquisition cost)",
+          "formula": "capital_spent_on_acquisition / customers_acquired",
+          "inputs": [
+            "UNKNOWN",
+            "UNKNOWN"
+          ],
+          "source": [],
+          "status": "UNCOMPUTABLE",
+          "value": null,
+          "reason": "missing/UNKNOWN input(s): [\"UNKNOWN\",\"UNKNOWN\"]"
+        },
+        "delivery_cost": {
+          "name": "delivery_cost",
+          "formula": "hours_to_deliver * cost_per_hour (or 0 if fully automated by existing capability)",
+          "inputs": [
+            0
+          ],
+          "source": [],
+          "status": "COMPUTED",
+          "value": 0
+        },
+        "platform_fees": {
+          "name": "platform_fees",
+          "formula": "observed_market_price * platform_fee_rate",
+          "inputs": [
+            null,
+            "UNKNOWN"
+          ],
+          "source": [
+            "market-fiverr-fee",
+            "market-upwork-fee"
+          ],
+          "status": "UNCOMPUTABLE",
+          "value": null,
+          "reason": "missing/UNKNOWN input(s): [null,\"UNKNOWN\"]"
+        },
+        "tax": {
+          "name": "tax",
+          "formula": "revenue * applicable_tax_rate",
+          "inputs": [
+            "UNKNOWN"
+          ],
+          "source": [
+            "tax-th-wht-status"
+          ],
+          "status": "UNCOMPUTABLE",
+          "value": null,
+          "reason": "missing/UNKNOWN input(s): [\"UNKNOWN\"]"
+        },
+        "gross_margin": {
+          "name": "gross_margin",
+          "formula": "observed_market_price - delivery_cost",
+          "inputs": [
+            null,
+            0
+          ],
+          "source": [],
+          "status": "UNCOMPUTABLE",
+          "value": null,
+          "reason": "missing/UNKNOWN input(s): [null]"
+        },
+        "net_margin": {
+          "name": "net_margin",
+          "formula": "gross_margin - platform_fees - tax",
+          "inputs": [
+            null
+          ],
+          "source": [],
+          "status": "UNCOMPUTABLE",
+          "value": null,
+          "reason": "missing/UNKNOWN input(s): [null]"
+        },
+        "break_even_customers": {
+          "name": "break_even_customers",
+          "formula": "required_capital / net_margin_per_customer",
+          "inputs": [
+            10001,
+            "UNKNOWN"
+          ],
+          "source": [],
+          "status": "UNCOMPUTABLE",
+          "value": null,
+          "reason": "missing/UNKNOWN input(s): [\"UNKNOWN\"]"
+        },
+        "customers_required_for_40k_cash": {
+          "name": "customers_required_for_40k_cash",
+          "formula": "40000 / net_margin_per_customer",
+          "inputs": [
+            "UNKNOWN"
+          ],
+          "source": [],
+          "status": "UNCOMPUTABLE",
+          "value": null,
+          "reason": "missing/UNKNOWN input(s): [\"UNKNOWN\"]"
+        },
+        "required_conversion_rate": {
+          "name": "required_conversion_rate",
+          "formula": "customers_required / reachable_target_group",
+          "inputs": [
+            "UNKNOWN",
+            null
+          ],
+          "source": [],
+          "status": "UNCOMPUTABLE",
+          "value": null,
+          "reason": "missing/UNKNOWN input(s): [\"UNKNOWN\",null]"
+        },
+        "days_to_first_possible_cash": {
+          "name": "days_to_first_possible_cash",
+          "formula": "date(buyer_reachable) + date(delivery) + date(payment_settlement) - date(day_0)",
+          "inputs": [
+            "UNKNOWN"
+          ],
+          "source": [],
+          "status": "UNCOMPUTABLE",
+          "value": null,
+          "reason": "missing/UNKNOWN input(s): [\"UNKNOWN\"]"
+        },
+        "cash_possible_by_day_30": {
+          "name": "cash_possible_by_day_30",
+          "status": "UNCOMPUTABLE",
+          "value": null,
+          "reason": "depends on days_to_first_possible_cash, which is UNCOMPUTABLE"
+        },
+        "maximum_loss": {
+          "name": "maximum_loss",
+          "formula": "required_capital (capital not returned if zero sales)",
+          "inputs": [
+            10001
+          ],
+          "source": [],
+          "status": "COMPUTED",
+          "value": 10001
+        },
+        "capital_remaining": {
+          "name": "capital_remaining",
+          "formula": "CAPITAL_AVAILABLE - required_capital (before any spend)",
+          "inputs": [
+            10001,
+            10001
+          ],
+          "source": [],
+          "status": "COMPUTED",
+          "value": 0
+        },
+        "ROI": {
+          "name": "ROI",
+          "status": "UNCOMPUTABLE",
+          "value": null,
+          "reason": "net_margin and customer count both UNCOMPUTABLE"
+        },
+        "capital_gate": {
+          "gate_result": "WAITING_EVIDENCE",
+          "blocking_fields": [
+            "observed_market_price",
+            "CAC",
+            "days_to_first_possible_cash",
+            "net_margin",
+            "customers_required_for_40k_cash"
+          ]
+        }
+      },
+      "origin_registry": "computed_state.json",
+      "origin_record_id": "P3"
+    },
+    {
+      "id": "DECISION_STATE:P3",
+      "kind": "DECISION_STATE",
+      "problem_id": "P3",
+      "gate_result": "WAITING_EVIDENCE",
+      "blocking_fields": [
+        "observed_market_price",
+        "CAC",
+        "days_to_first_possible_cash",
+        "net_margin",
+        "customers_required_for_40k_cash"
+      ],
+      "origin_registry": "computed_state.json",
+      "origin_record_id": "P3"
+    },
+    {
+      "id": "COMPUTATION:P4",
+      "kind": "COMPUTATION",
+      "problem_id": "P4",
+      "fields": {
+        "problem_id": "P4",
+        "computed_at": "2026-08-19T16:38:56.897Z",
+        "target_group_size": {
+          "name": "target_group_size",
+          "formula": "count of identified buyer entities",
+          "inputs": [
+            "UNKNOWN"
+          ],
+          "source": [],
+          "status": "UNCOMPUTABLE",
+          "value": null,
+          "reason": "missing/UNKNOWN input(s): [\"UNKNOWN\"]"
+        },
+        "reachable_target_group": {
+          "name": "reachable_target_group",
+          "formula": "target_group_size * channel_reach_rate",
+          "inputs": [
+            "UNKNOWN"
+          ],
+          "source": [],
+          "status": "UNCOMPUTABLE",
+          "value": null,
+          "reason": "missing/UNKNOWN input(s): [\"UNKNOWN\"]"
+        },
+        "observed_market_price": {
+          "name": "observed_market_price",
+          "formula": "th_specific_price if present, else UNKNOWN (international price is NOT substituted silently)",
+          "inputs": [
+            null
+          ],
+          "source": [
+            "ev-p4-01"
+          ],
+          "status": "UNCOMPUTABLE",
+          "value": null,
+          "reason": "missing/UNKNOWN input(s): [null]"
+        },
+        "required_capital": {
+          "name": "required_capital",
+          "formula": "capped by Owner policy",
+          "inputs": [
+            10001
+          ],
+          "source": [
+            "owner-directive-phase15"
+          ],
+          "status": "COMPUTED",
+          "value": 10001
+        },
+        "CAC": {
+          "name": "CAC (customer acquisition cost)",
+          "formula": "capital_spent_on_acquisition / customers_acquired",
+          "inputs": [
+            "UNKNOWN",
+            "UNKNOWN"
+          ],
+          "source": [],
+          "status": "UNCOMPUTABLE",
+          "value": null,
+          "reason": "missing/UNKNOWN input(s): [\"UNKNOWN\",\"UNKNOWN\"]"
+        },
+        "delivery_cost": {
+          "name": "delivery_cost",
+          "formula": "hours_to_deliver * cost_per_hour (or 0 if fully automated by existing capability)",
+          "inputs": [
+            "UNKNOWN"
+          ],
+          "source": [],
+          "status": "UNCOMPUTABLE",
+          "value": null,
+          "reason": "missing/UNKNOWN input(s): [\"UNKNOWN\"]"
+        },
+        "platform_fees": {
+          "name": "platform_fees",
+          "formula": "observed_market_price * platform_fee_rate",
+          "inputs": [
+            null,
+            "UNKNOWN"
+          ],
+          "source": [
+            "market-fiverr-fee",
+            "market-upwork-fee"
+          ],
+          "status": "UNCOMPUTABLE",
+          "value": null,
+          "reason": "missing/UNKNOWN input(s): [null,\"UNKNOWN\"]"
+        },
+        "tax": {
+          "name": "tax",
+          "formula": "revenue * applicable_tax_rate",
+          "inputs": [
+            "UNKNOWN"
+          ],
+          "source": [
+            "tax-th-wht-status"
+          ],
+          "status": "UNCOMPUTABLE",
+          "value": null,
+          "reason": "missing/UNKNOWN input(s): [\"UNKNOWN\"]"
+        },
+        "gross_margin": {
+          "name": "gross_margin",
+          "formula": "observed_market_price - delivery_cost",
+          "inputs": [
+            null,
+            null
+          ],
+          "source": [],
+          "status": "UNCOMPUTABLE",
+          "value": null,
+          "reason": "missing/UNKNOWN input(s): [null,null]"
+        },
+        "net_margin": {
+          "name": "net_margin",
+          "formula": "gross_margin - platform_fees - tax",
+          "inputs": [
+            null
+          ],
+          "source": [],
+          "status": "UNCOMPUTABLE",
+          "value": null,
+          "reason": "missing/UNKNOWN input(s): [null]"
+        },
+        "break_even_customers": {
+          "name": "break_even_customers",
+          "formula": "required_capital / net_margin_per_customer",
+          "inputs": [
+            10001,
+            "UNKNOWN"
+          ],
+          "source": [],
+          "status": "UNCOMPUTABLE",
+          "value": null,
+          "reason": "missing/UNKNOWN input(s): [\"UNKNOWN\"]"
+        },
+        "customers_required_for_40k_cash": {
+          "name": "customers_required_for_40k_cash",
+          "formula": "40000 / net_margin_per_customer",
+          "inputs": [
+            "UNKNOWN"
+          ],
+          "source": [],
+          "status": "UNCOMPUTABLE",
+          "value": null,
+          "reason": "missing/UNKNOWN input(s): [\"UNKNOWN\"]"
+        },
+        "required_conversion_rate": {
+          "name": "required_conversion_rate",
+          "formula": "customers_required / reachable_target_group",
+          "inputs": [
+            "UNKNOWN",
+            null
+          ],
+          "source": [],
+          "status": "UNCOMPUTABLE",
+          "value": null,
+          "reason": "missing/UNKNOWN input(s): [\"UNKNOWN\",null]"
+        },
+        "days_to_first_possible_cash": {
+          "name": "days_to_first_possible_cash",
+          "formula": "date(buyer_reachable) + date(delivery) + date(payment_settlement) - date(day_0)",
+          "inputs": [
+            "UNKNOWN"
+          ],
+          "source": [],
+          "status": "UNCOMPUTABLE",
+          "value": null,
+          "reason": "missing/UNKNOWN input(s): [\"UNKNOWN\"]"
+        },
+        "cash_possible_by_day_30": {
+          "name": "cash_possible_by_day_30",
+          "status": "UNCOMPUTABLE",
+          "value": null,
+          "reason": "depends on days_to_first_possible_cash, which is UNCOMPUTABLE"
+        },
+        "maximum_loss": {
+          "name": "maximum_loss",
+          "formula": "required_capital (capital not returned if zero sales)",
+          "inputs": [
+            10001
+          ],
+          "source": [],
+          "status": "COMPUTED",
+          "value": 10001
+        },
+        "capital_remaining": {
+          "name": "capital_remaining",
+          "formula": "CAPITAL_AVAILABLE - required_capital (before any spend)",
+          "inputs": [
+            10001,
+            10001
+          ],
+          "source": [],
+          "status": "COMPUTED",
+          "value": 0
+        },
+        "ROI": {
+          "name": "ROI",
+          "status": "UNCOMPUTABLE",
+          "value": null,
+          "reason": "net_margin and customer count both UNCOMPUTABLE"
+        },
+        "capital_gate": {
+          "gate_result": "WAITING_EVIDENCE",
+          "blocking_fields": [
+            "observed_market_price",
+            "CAC",
+            "days_to_first_possible_cash",
+            "net_margin",
+            "customers_required_for_40k_cash"
+          ]
+        }
+      },
+      "origin_registry": "computed_state.json",
+      "origin_record_id": "P4"
+    },
+    {
+      "id": "DECISION_STATE:P4",
+      "kind": "DECISION_STATE",
+      "problem_id": "P4",
+      "gate_result": "WAITING_EVIDENCE",
+      "blocking_fields": [
+        "observed_market_price",
+        "CAC",
+        "days_to_first_possible_cash",
+        "net_margin",
+        "customers_required_for_40k_cash"
+      ],
+      "origin_registry": "computed_state.json",
+      "origin_record_id": "P4"
+    },
+    {
+      "id": "PEOPLE:P3",
+      "kind": "PEOPLE",
+      "target_group": "UNKNOWN — no named entity, only a problem category",
+      "status": "IDENTIFIED_CATEGORY_ONLY",
+      "origin_registry": "service_candidates.json",
+      "origin_record_id": "P3"
+    },
+    {
+      "id": "SERVICE:P3",
+      "kind": "SERVICE",
+      "solution": "DNA-LAB-FILE-INTELLIGENCE (scanner/classifier, Phase 8 proof)",
+      "existing_capabilities": "PARTIALLY",
+      "status": "DELIVERY_UNPROVEN",
+      "origin_registry": "service_candidates.json",
+      "origin_record_id": "P3"
+    },
+    {
+      "id": "CHANNEL:P3",
+      "kind": "CHANNEL",
+      "status": "CANDIDATE_CHANNELS_NAMED",
+      "note": "candidate channels named from external evidence — no DNA OS usage evidence on any of them yet",
+      "origin_registry": "service_candidates.json",
+      "origin_record_id": "P3"
+    },
+    {
+      "id": "USER:P3",
+      "kind": "USER",
+      "real_count": 0,
+      "status": "NONE_OBSERVED",
+      "origin_registry": "service_candidates.json",
+      "origin_record_id": "P3"
+    },
+    {
+      "id": "USAGE:P3",
+      "kind": "USAGE",
+      "real_count": 1,
+      "status": "REAL_RUN_OBSERVED",
+      "origin_registry": "service_candidates.json",
+      "origin_record_id": "P3",
+      "run_id": "run-1787158463205",
+      "time_to_result_ms": 2536
+    },
+    {
+      "id": "RESULT:P3",
+      "kind": "RESULT",
+      "real_count": 1,
+      "status": "MEASURED",
+      "origin_registry": "service_candidates.json",
+      "origin_record_id": "P3",
+      "found": {
+        "known_duplicate_count": 46,
+        "known_orphan_count": 23,
+        "total_files_scanned": 301
+      },
+      "result_accepted": false
+    },
+    {
+      "id": "PRICE:P3",
+      "kind": "PRICE",
+      "value": "4-25 USD_per_hour (international reference only, not Thai-confirmed)",
+      "status": "REFERENCE_SHOWN_NOT_AGREED",
+      "origin_registry": "service_candidates.json",
+      "origin_record_id": "P3",
+      "note": "PRICE_PRESENTED event fired, no agreement observed"
+    },
+    {
+      "id": "PAYMENT:P3",
+      "kind": "PAYMENT",
+      "real_count": 0,
+      "status": "NONE_OBSERVED — PAYMENT_INTENT not fired this run, PAYMENT_RECEIVED forbidden without external verification",
+      "origin_registry": "service_candidates.json",
+      "origin_record_id": "P3"
+    },
+    {
+      "id": "CASH:P3",
+      "kind": "CASH",
+      "amount_thb": 0,
+      "status": "NONE_RECEIVED",
+      "origin_registry": "service_candidates.json",
+      "origin_record_id": "P3"
+    },
+    {
+      "id": "PEOPLE:P4",
+      "kind": "PEOPLE",
+      "target_group": "UNKNOWN — no named entity, only a problem category",
+      "status": "IDENTIFIED_CATEGORY_ONLY",
+      "origin_registry": "service_candidates.json",
+      "origin_record_id": "P4"
+    },
+    {
+      "id": "SERVICE:P4",
+      "kind": "SERVICE",
+      "solution": "scan->classify->report pattern (File Intelligence + ts-morph, Phase 12/13 proof)",
+      "existing_capabilities": "PARTIALLY",
+      "status": "DELIVERY_UNPROVEN",
+      "origin_registry": "service_candidates.json",
+      "origin_record_id": "P4"
+    },
+    {
+      "id": "CHANNEL:P4",
+      "kind": "CHANNEL",
+      "status": "CANDIDATE_CHANNELS_NAMED",
+      "note": "candidate channels named from external evidence — no DNA OS usage evidence on any of them yet",
+      "origin_registry": "service_candidates.json",
+      "origin_record_id": "P4"
+    },
+    {
+      "id": "USER:P4",
+      "kind": "USER",
+      "real_count": 0,
+      "status": "NONE_OBSERVED",
+      "origin_registry": "service_candidates.json",
+      "origin_record_id": "P4"
+    },
+    {
+      "id": "USAGE:P4",
+      "kind": "USAGE",
+      "real_count": 0,
+      "status": "NONE_OBSERVED",
+      "origin_registry": "service_candidates.json",
+      "origin_record_id": "P4"
+    },
+    {
+      "id": "RESULT:P4",
+      "kind": "RESULT",
+      "real_count": 0,
+      "status": "NONE_OBSERVED",
+      "origin_registry": "service_candidates.json",
+      "origin_record_id": "P4"
+    },
+    {
+      "id": "PRICE:P4",
+      "kind": "PRICE",
+      "value": "100-5000 USD_per_report (international reference only, not Thai-confirmed)",
+      "status": "REFERENCE_ONLY_NOT_THAI_CONFIRMED",
+      "origin_registry": "service_candidates.json",
+      "origin_record_id": "P4"
+    },
+    {
+      "id": "PAYMENT:P4",
+      "kind": "PAYMENT",
+      "real_count": 0,
+      "status": "NONE_OBSERVED",
+      "origin_registry": "service_candidates.json",
+      "origin_record_id": "P4"
+    },
+    {
+      "id": "CASH:P4",
+      "kind": "CASH",
+      "amount_thb": 0,
+      "status": "NONE_RECEIVED",
+      "origin_registry": "service_candidates.json",
+      "origin_record_id": "P4"
+    },
+    {
+      "id": "PROBLEM:REAL_USER_001",
+      "kind": "PROBLEM",
+      "user_id": "REAL_USER_001",
+      "identity_note": "The Owner of the DNA-OS-INFRASTRUCTURE repository itself — the one real, identifiable subject this session has direct, verifiable evidence about (its own working tree). Not a market sample; one observed case, per Phase 19's own rule.",
+      "problem_statement": "Owner's repository (DNA-OS-INFRASTRUCTURE) accumulates untracked/duplicate/orphan files across many working sessions with no automatic detection — confirmed by this session's own Phase 4 and Phase 19 scans.",
+      "problem_started_at": "UNKNOWN — repository predates this session's observation window",
+      "current_workflow": "manual review via git status and ad hoc reading; no dedicated duplicate/orphan detection step before Phase 8 introduced DNA-LAB-FILE-INTELLIGENCE",
+      "current_tools": [
+        "git",
+        "VS Code file explorer"
+      ],
+      "current_cost": "UNKNOWN — no time-tracking data exists for manual review before this tool existed",
+      "time_lost": "UNKNOWN",
+      "failed_steps": "UNKNOWN — no record of a failed manual attempt exists",
+      "desired_result": "a list of duplicate and orphaned files with evidence, so cleanup decisions can be made deliberately (matches Phase 4-6's own stated discovery goals)",
+      "willingness_to_pay": "UNKNOWN — never asked; this session speaks for the Agent's own observations only, not the Owner's stated intent",
+      "evidence_basis": [
+        "Phase 4 File Intelligence scan (24 duplicate candidates, 21 orphan candidates)",
+        "Phase 19 entry_point_run.json (46 duplicate candidates, 23 orphan candidates, 301 files)"
+      ],
+      "origin_registry": "real_user_001.json",
+      "origin_record_id": "REAL_USER_001"
+    },
+    {
+      "id": "REAL_USER:001",
+      "kind": "REAL_USER",
+      "user_id": "REAL_USER_001",
+      "origin_registry": "real_user_001.json",
+      "origin_record_id": "REAL_USER_001"
+    },
+    {
+      "id": "ENTRY_POINT:P3",
+      "kind": "ENTRY_POINT",
+      "script": "reports/phase16-world-evidence/entry_point.mjs",
+      "wraps_capability": "DNA-LAB-FILE-INTELLIGENCE/src/cli.ts",
+      "status": "REAL_RUN_COMPLETED",
+      "origin_registry": "entry_point_run.json",
+      "origin_record_id": "run-1787158463205"
+    },
+    {
+      "id": "SOURCE:obs:claude-code-sessions",
+      "kind": "SOURCE",
+      "source_type": "ambient_observation_source",
+      "status": "DISCOVERABLE_NOT_CONNECTED",
+      "origin_registry": "observation_sources.json",
+      "origin_record_id": "claude-code-sessions"
+    },
+    {
+      "id": "SOURCE:obs:vscode-logs",
+      "kind": "SOURCE",
+      "source_type": "ambient_observation_source",
+      "status": "DISCOVERABLE_NOT_CONNECTED",
+      "origin_registry": "observation_sources.json",
+      "origin_record_id": "vscode-logs"
+    },
+    {
+      "id": "SOURCE:obs:codex-cli-sessions",
+      "kind": "SOURCE",
+      "source_type": "ambient_observation_source",
+      "status": "DISCOVERABLE_NOT_CONNECTED",
+      "origin_registry": "observation_sources.json",
+      "origin_record_id": "codex-cli-sessions"
+    },
+    {
+      "id": "SOURCE:obs:chatgpt-web",
+      "kind": "SOURCE",
+      "source_type": "ambient_observation_source",
+      "status": "DISCONNECTED",
+      "origin_registry": "observation_sources.json",
+      "origin_record_id": "chatgpt-web"
+    },
+    {
+      "id": "SOURCE:obs:dna-os-circuit-server-logs",
+      "kind": "SOURCE",
+      "source_type": "ambient_observation_source",
+      "status": "CONNECTED",
+      "origin_registry": "observation_sources.json",
+      "origin_record_id": "dna-os-circuit-server-logs"
+    },
+    {
+      "id": "PROBLEM_SIGNAL:control",
+      "kind": "PROBLEM_SIGNAL",
+      "signal_id": "sig-etimedout-resolve-problem",
+      "source": "dna-os-circuit-server-logs (CONNECTED, observation_sources.json)",
+      "raw_text": "spawnSync node ETIMEDOUT",
+      "first_seen": "2026-08-19T17:10:04.732Z",
+      "last_seen": "2026-08-19T17:11:45.679Z",
+      "status": "SIGNAL_CONFIRMED",
+      "origin_registry": "control_case_result.json",
+      "origin_record_id": "sig-etimedout-resolve-problem"
+    },
+    {
+      "id": "PROBLEM_SIGNAL:testcase1",
+      "kind": "PROBLEM_SIGNAL",
+      "claim": "Owner repeatedly has to copy explanations between ChatGPT, Claude and VS Code in order to continue development.",
+      "status": "PROBLEM_SIGNAL",
+      "decision": "INSUFFICIENT_EVIDENCE",
+      "origin_registry": "test_case_1_result.json",
+      "origin_record_id": "copy-paste-complaint"
+    },
+    {
+      "id": "ROOT_CAUSE:control",
+      "kind": "ROOT_CAUSE",
+      "statement": "execFileSync (sync child_process API) hangs specifically when invoked from this tsx-loaded, detached (nohup) server process; the async spawn API does not share the issue.",
+      "traceable_to_source": true,
+      "evidence_location": "dna-os-circuit/runtime/server.ts, runResolver() function's own header comment",
+      "origin_registry": "control_case_result.json",
+      "origin_record_id": "root_cause"
+    },
+    {
+      "id": "POLICY_DECISION:control:deny",
+      "kind": "DECISION_STATE",
+      "decision": "DENY",
+      "reason_codes": [
+        "NO_MATCHING_CAPABILITY"
+      ],
+      "target": "dna-os-circuit/runtime/server.ts",
+      "origin_registry": "control_case_result.json",
+      "origin_record_id": "8ba22f5f-c8fe-4a7a-879f-44cff5db5ab7"
+    },
+    {
+      "id": "POLICY_DECISION:control:allow",
+      "kind": "DECISION_STATE",
+      "decision": "ALLOW_MODIFY",
+      "reason_codes": [
+        "MATCHED_EXISTING_CAPABILITY"
+      ],
+      "target": "dna-os-circuit/definition/circuit.json",
+      "origin_registry": "control_case_result.json",
+      "origin_record_id": "acdb0640-e399-4eb4-bca3-39fa47bffe3a"
+    },
+    {
+      "id": "RESULT:control:verify",
+      "kind": "RESULT",
+      "attempted": true,
+      "http_status": 200,
+      "still_reproduces": false,
+      "response_snippet": "{\n  \"problem_text\": \"control case verification ping\",\n  \"status_log\": [\n    {\n      \"stage\": \"กำลังตรวจ\",\n      \"at\": \"2026-08-19T17:22:33.436Z\"\n    },\n    {\n      \"stage\": \"กำลังจัดเส้นทาง\",\n      \"a",
+      "measured_recurrence_after_fix": "PROBLEM_NO_LONGER_REPRODUCES (measured via live HTTP call, not asserted)",
+      "origin_registry": "control_case_result.json",
+      "origin_record_id": "verification"
+    },
+    {
+      "id": "BLOCKED_EXAMPLE:bottleneck-score",
+      "kind": "CONSTRAINT",
+      "statement": "The bottleneck_score formula is real and auditable, but its inputs (occurrence_count, total_time_lost, cost_impact) come from src/data/mockIssues.ts via a hardcoded `const provider = MockTelemetryProvider` in App.tsx line 106 — never real telemetry. Per Phase 22's own rule, MOCK cannot authorize autonomous modification. This example is NOT executed further.",
+      "decision": "BLOCKED_MOCK_DATA",
+      "origin_registry": "action_loop_result.json",
+      "origin_record_id": "mandated_example_trace"
+    },
+    {
+      "id": "PROVEN_RESOLUTION:async-spawn",
+      "kind": "PROVEN_RESOLUTION",
+      "resolution_id": "res-async-spawn-over-execFileSync",
+      "problem_type": "server_hang_or_timeout",
+      "problem_signature": "spawnSync node ETIMEDOUT in a tsx-loaded, detached (nohup) HTTP server process",
+      "resolution": "use async child_process.spawn with explicit timeout+kill, not execFileSync",
+      "proven_by": {
+        "signal_id": "sig-etimedout-resolve-problem",
+        "verification": {
+          "attempted": true,
+          "http_status": 200,
+          "still_reproduces": false,
+          "response_snippet": "{\n  \"problem_text\": \"control case verification ping\",\n  \"status_log\": [\n    {\n      \"stage\": \"กำลังตรวจ\",\n      \"at\": \"2026-08-19T17:22:33.436Z\"\n    },\n    {\n      \"stage\": \"กำลังจัดเส้นทาง\",\n      \"a"
+        },
+        "recurrence_check": {
+          "original_recurrence": 2,
+          "post_fix_recurrence": 0,
+          "resolved": true
+        }
+      },
+      "reusable_capability_ref": "dna-os-circuit/runtime/server.ts runResolver() — same pattern applicable to any future sync-spawn-in-detached-server bug",
+      "status": "PROVEN_RESOLUTION",
+      "origin_registry": "action_loop_result.json",
+      "origin_record_id": "res-async-spawn-over-execFileSync"
+    },
+    {
+      "id": "CAPABILITY_INDEX_ENTRY:server_hang_or_timeout",
+      "kind": "RESOURCE",
+      "problem_type": "server_hang_or_timeout",
+      "available_capability": "async spawn pattern (dna-os-circuit/runtime/server.ts runResolver, mirrors execution/run/host-runtime.ts + control/agent-host/host-runtime.ts)",
+      "input_contract": "command + args + cwd",
+      "execution_method": "node:child_process spawn (async), never execFileSync in a detached tsx-loaded process — Phase 20/21 diagnosis",
+      "required_permission": "none (process-local fix, no capability-registry write required for THIS specific pattern reuse)",
+      "verification_method": "live HTTP re-request against the previously-failing endpoint; still_reproduces must be false",
+      "cost_source": "N/A — no external cost, engineering time only",
+      "current_status": "PROVEN — applied and verified in Phase 20/21",
+      "origin_registry": "capability_index.json",
+      "origin_record_id": "server_hang_or_timeout"
+    },
+    {
+      "id": "BLOCKED_EXAMPLE:bottleneck-score",
+      "kind": "CONSTRAINT",
+      "statement": "The bottleneck_score formula is real and auditable, but its inputs (occurrence_count, total_time_lost, cost_impact) come from src/data/mockIssues.ts via a hardcoded `const provider = MockTelemetryProvider` in App.tsx line 106 — never real telemetry. Per Phase 22's own rule, MOCK cannot authorize autonomous modification. This example is NOT executed further.",
+      "decision": "BLOCKED_MOCK_DATA",
+      "origin_registry": "action_loop_result.json",
+      "origin_record_id": "mandated_example_trace"
+    },
+    {
+      "id": "PROVEN_RESOLUTION:async-spawn",
+      "kind": "PROVEN_RESOLUTION",
+      "resolution_id": "res-async-spawn-over-execFileSync",
+      "problem_type": "server_hang_or_timeout",
+      "problem_signature": "spawnSync node ETIMEDOUT in a tsx-loaded, detached (nohup) HTTP server process",
+      "resolution": "use async child_process.spawn with explicit timeout+kill, not execFileSync",
+      "proven_by": {
+        "signal_id": "sig-etimedout-resolve-problem",
+        "verification": {
+          "attempted": true,
+          "http_status": 200,
+          "still_reproduces": false,
+          "response_snippet": "{\n  \"problem_text\": \"control case verification ping\",\n  \"status_log\": [\n    {\n      \"stage\": \"กำลังตรวจ\",\n      \"at\": \"2026-08-19T17:22:33.436Z\"\n    },\n    {\n      \"stage\": \"กำลังจัดเส้นทาง\",\n      \"a"
+        },
+        "recurrence_check": {
+          "original_recurrence": 2,
+          "post_fix_recurrence": 0,
+          "resolved": true
+        }
+      },
+      "reusable_capability_ref": "dna-os-circuit/runtime/server.ts runResolver() — same pattern applicable to any future sync-spawn-in-detached-server bug",
+      "status": "PROVEN_RESOLUTION",
+      "origin_registry": "action_loop_result.json",
+      "origin_record_id": "res-async-spawn-over-execFileSync"
+    },
+    {
+      "id": "CAPABILITY_INDEX_ENTRY:server_hang_or_timeout",
+      "kind": "RESOURCE",
+      "problem_type": "server_hang_or_timeout",
+      "available_capability": "async spawn pattern (dna-os-circuit/runtime/server.ts runResolver, mirrors execution/run/host-runtime.ts + control/agent-host/host-runtime.ts)",
+      "input_contract": "command + args + cwd",
+      "execution_method": "node:child_process spawn (async), never execFileSync in a detached tsx-loaded process — Phase 20/21 diagnosis",
+      "required_permission": "none (process-local fix, no capability-registry write required for THIS specific pattern reuse)",
+      "verification_method": "live HTTP re-request against the previously-failing endpoint; still_reproduces must be false",
+      "cost_source": "N/A — no external cost, engineering time only",
+      "current_status": "PROVEN — applied and verified in Phase 20/21",
+      "origin_registry": "capability_index.json",
+      "origin_record_id": "server_hang_or_timeout"
+    },
+    {
+      "id": "SOURCE:obs:claude-code-sessions",
+      "kind": "SOURCE",
+      "source_type": "ambient_observation_source",
+      "status": "DISCOVERABLE_NOT_CONNECTED",
+      "origin_registry": "observation_sources.json",
+      "origin_record_id": "claude-code-sessions"
+    },
+    {
+      "id": "SOURCE:obs:vscode-logs",
+      "kind": "SOURCE",
+      "source_type": "ambient_observation_source",
+      "status": "DISCOVERABLE_NOT_CONNECTED",
+      "origin_registry": "observation_sources.json",
+      "origin_record_id": "vscode-logs"
+    },
+    {
+      "id": "SOURCE:obs:codex-cli-sessions",
+      "kind": "SOURCE",
+      "source_type": "ambient_observation_source",
+      "status": "DISCOVERABLE_NOT_CONNECTED",
+      "origin_registry": "observation_sources.json",
+      "origin_record_id": "codex-cli-sessions"
+    },
+    {
+      "id": "SOURCE:obs:chatgpt-web",
+      "kind": "SOURCE",
+      "source_type": "ambient_observation_source",
+      "status": "DISCONNECTED",
+      "origin_registry": "observation_sources.json",
+      "origin_record_id": "chatgpt-web"
+    },
+    {
+      "id": "SOURCE:obs:dna-os-circuit-server-logs",
+      "kind": "SOURCE",
+      "source_type": "ambient_observation_source",
+      "status": "CONNECTED",
+      "origin_registry": "observation_sources.json",
+      "origin_record_id": "dna-os-circuit-server-logs"
+    },
+    {
+      "id": "PROBLEM_SIGNAL:control",
+      "kind": "PROBLEM_SIGNAL",
+      "signal_id": "sig-etimedout-resolve-problem",
+      "source": "dna-os-circuit-server-logs (CONNECTED, observation_sources.json)",
+      "raw_text": "spawnSync node ETIMEDOUT",
+      "first_seen": "2026-08-19T17:10:04.732Z",
+      "last_seen": "2026-08-19T17:11:45.679Z",
+      "status": "SIGNAL_CONFIRMED",
+      "origin_registry": "control_case_result.json",
+      "origin_record_id": "sig-etimedout-resolve-problem"
+    },
+    {
+      "id": "PROBLEM_SIGNAL:testcase1",
+      "kind": "PROBLEM_SIGNAL",
+      "claim": "Owner repeatedly has to copy explanations between ChatGPT, Claude and VS Code in order to continue development.",
+      "status": "PROBLEM_SIGNAL",
+      "decision": "INSUFFICIENT_EVIDENCE",
+      "origin_registry": "test_case_1_result.json",
+      "origin_record_id": "copy-paste-complaint"
+    },
+    {
+      "id": "ROOT_CAUSE:control",
+      "kind": "ROOT_CAUSE",
+      "statement": "execFileSync (sync child_process API) hangs specifically when invoked from this tsx-loaded, detached (nohup) server process; the async spawn API does not share the issue.",
+      "traceable_to_source": true,
+      "evidence_location": "dna-os-circuit/runtime/server.ts, runResolver() function's own header comment",
+      "origin_registry": "control_case_result.json",
+      "origin_record_id": "root_cause"
+    },
+    {
+      "id": "POLICY_DECISION:control:deny",
+      "kind": "DECISION_STATE",
+      "decision": "DENY",
+      "reason_codes": [
+        "NO_MATCHING_CAPABILITY"
+      ],
+      "target": "dna-os-circuit/runtime/server.ts",
+      "origin_registry": "control_case_result.json",
+      "origin_record_id": "7a6662e5-8dbb-4a68-82da-f20eceb5c26a"
+    },
+    {
+      "id": "POLICY_DECISION:control:allow",
+      "kind": "DECISION_STATE",
+      "decision": "ALLOW_MODIFY",
+      "reason_codes": [
+        "MATCHED_EXISTING_CAPABILITY"
+      ],
+      "target": "dna-os-circuit/definition/circuit.json",
+      "origin_registry": "control_case_result.json",
+      "origin_record_id": "08698e1b-96b5-4ba8-874d-f917337edc55"
+    },
+    {
+      "id": "RESULT:control:verify",
+      "kind": "RESULT",
+      "attempted": true,
+      "http_status": 200,
+      "still_reproduces": false,
+      "response_snippet": "{\n  \"problem_text\": \"control case verification ping\",\n  \"status_log\": [\n    {\n      \"stage\": \"กำลังตรวจ\",\n      \"at\": \"2026-08-19T18:05:47.402Z\"\n    },\n    {\n      \"stage\": \"กำลังจัดเส้นทาง\",\n      \"a",
+      "measured_recurrence_after_fix": "PROBLEM_NO_LONGER_REPRODUCES (measured via live HTTP call, not asserted)",
+      "origin_registry": "control_case_result.json",
+      "origin_record_id": "verification"
+    },
+    {
+      "id": "BLOCKED_EXAMPLE:bottleneck-score",
+      "kind": "CONSTRAINT",
+      "statement": "The bottleneck_score formula is real and auditable, but its inputs (occurrence_count, total_time_lost, cost_impact) come from src/data/mockIssues.ts via a hardcoded `const provider = MockTelemetryProvider` in App.tsx line 106 — never real telemetry. Per Phase 22's own rule, MOCK cannot authorize autonomous modification. This example is NOT executed further.",
+      "decision": "BLOCKED_MOCK_DATA",
+      "origin_registry": "action_loop_result.json",
+      "origin_record_id": "mandated_example_trace"
+    },
+    {
+      "id": "PROVEN_RESOLUTION:async-spawn",
+      "kind": "PROVEN_RESOLUTION",
+      "resolution_id": "res-async-spawn-over-execFileSync",
+      "problem_type": "server_hang_or_timeout",
+      "problem_signature": "spawnSync node ETIMEDOUT in a tsx-loaded, detached (nohup) HTTP server process",
+      "resolution": "use async child_process.spawn with explicit timeout+kill, not execFileSync",
+      "proven_by": {
+        "signal_id": "sig-etimedout-resolve-problem",
+        "verification": {
+          "attempted": true,
+          "http_status": 200,
+          "still_reproduces": false,
+          "response_snippet": "{\n  \"problem_text\": \"control case verification ping\",\n  \"status_log\": [\n    {\n      \"stage\": \"กำลังตรวจ\",\n      \"at\": \"2026-08-19T18:05:47.402Z\"\n    },\n    {\n      \"stage\": \"กำลังจัดเส้นทาง\",\n      \"a"
+        },
+        "recurrence_check": {
+          "original_recurrence": 2,
+          "post_fix_recurrence": 0,
+          "resolved": true
+        }
+      },
+      "reusable_capability_ref": "dna-os-circuit/runtime/server.ts runResolver() — same pattern applicable to any future sync-spawn-in-detached-server bug",
+      "status": "PROVEN_RESOLUTION",
+      "origin_registry": "action_loop_result.json",
+      "origin_record_id": "res-async-spawn-over-execFileSync"
+    },
+    {
+      "id": "CAPABILITY_INDEX_ENTRY:server_hang_or_timeout",
+      "kind": "RESOURCE",
+      "problem_type": "server_hang_or_timeout",
+      "available_capability": "async spawn pattern (dna-os-circuit/runtime/server.ts runResolver, mirrors execution/run/host-runtime.ts + control/agent-host/host-runtime.ts)",
+      "input_contract": "command + args + cwd",
+      "execution_method": "node:child_process spawn (async), never execFileSync in a detached tsx-loaded process — Phase 20/21 diagnosis",
+      "required_permission": "none (process-local fix, no capability-registry write required for THIS specific pattern reuse)",
+      "verification_method": "live HTTP re-request against the previously-failing endpoint; still_reproduces must be false",
+      "cost_source": "N/A — no external cost, engineering time only",
+      "current_status": "PROVEN — applied and verified in Phase 20/21",
+      "origin_registry": "capability_index.json",
+      "origin_record_id": "server_hang_or_timeout"
+    }
+  ],
+  "edges": [
+    {
+      "edge_id": "e0",
+      "from": "SOURCE:src-posttoday-745857",
+      "to": "OBSERVATION:ev-p1-01",
+      "relationship": "produced"
+    },
+    {
+      "edge_id": "e1",
+      "from": "OBSERVATION:ev-p1-01",
+      "to": "SUBJECT:accounting_compliance:TH",
+      "relationship": "concerns"
+    },
+    {
+      "edge_id": "e2",
+      "from": "OBSERVATION:ev-p1-01",
+      "to": "METRIC:ev-p1-01",
+      "relationship": "measures"
+    },
+    {
+      "edge_id": "e3",
+      "from": "SOURCE:src-7account-pricing",
+      "to": "OBSERVATION:ev-p1-02",
+      "relationship": "produced"
+    },
+    {
+      "edge_id": "e4",
+      "from": "OBSERVATION:ev-p1-02",
+      "to": "SUBJECT:accounting_compliance:TH",
+      "relationship": "concerns"
+    },
+    {
+      "edge_id": "e5",
+      "from": "OBSERVATION:ev-p1-02",
+      "to": "METRIC:ev-p1-02",
+      "relationship": "measures"
+    },
+    {
+      "edge_id": "e6",
+      "from": "SOURCE:src-fastwork-debt",
+      "to": "OBSERVATION:ev-p2-01",
+      "relationship": "produced"
+    },
+    {
+      "edge_id": "e7",
+      "from": "OBSERVATION:ev-p2-01",
+      "to": "SUBJECT:debt_collection:TH",
+      "relationship": "concerns"
+    },
+    {
+      "edge_id": "e8",
+      "from": "OBSERVATION:ev-p2-01",
+      "to": "METRIC:ev-p2-01",
+      "relationship": "measures"
+    },
+    {
+      "edge_id": "e9",
+      "from": "SOURCE:src-consumerthai-debtact",
+      "to": "OBSERVATION:ev-p2-02",
+      "relationship": "produced"
+    },
+    {
+      "edge_id": "e10",
+      "from": "OBSERVATION:ev-p2-02",
+      "to": "SUBJECT:debt_collection:TH",
+      "relationship": "concerns"
+    },
+    {
+      "edge_id": "e11",
+      "from": "OBSERVATION:ev-p2-02",
+      "to": "METRIC:ev-p2-02",
+      "relationship": "measures"
+    },
+    {
+      "edge_id": "e12",
+      "from": "SOURCE:src-jobth-listings",
+      "to": "OBSERVATION:ev-p3-01",
+      "relationship": "produced"
+    },
+    {
+      "edge_id": "e13",
+      "from": "OBSERVATION:ev-p3-01",
+      "to": "SUBJECT:data_entry:TH",
+      "relationship": "concerns"
+    },
+    {
+      "edge_id": "e14",
+      "from": "OBSERVATION:ev-p3-01",
+      "to": "METRIC:ev-p3-01",
+      "relationship": "measures"
+    },
+    {
+      "edge_id": "e15",
+      "from": "SOURCE:src-fiverr-dataentry",
+      "to": "OBSERVATION:ev-p3-02",
+      "relationship": "produced"
+    },
+    {
+      "edge_id": "e16",
+      "from": "OBSERVATION:ev-p3-02",
+      "to": "SUBJECT:data_entry:GLOBAL",
+      "relationship": "concerns"
+    },
+    {
+      "edge_id": "e17",
+      "from": "OBSERVATION:ev-p3-02",
+      "to": "METRIC:ev-p3-02",
+      "relationship": "measures"
+    },
+    {
+      "edge_id": "e18",
+      "from": "SOURCE:src-webfx-seoaudit",
+      "to": "OBSERVATION:ev-p4-01",
+      "relationship": "produced"
+    },
+    {
+      "edge_id": "e19",
+      "from": "OBSERVATION:ev-p4-01",
+      "to": "SUBJECT:technical_audit:GLOBAL",
+      "relationship": "concerns"
+    },
+    {
+      "edge_id": "e20",
+      "from": "OBSERVATION:ev-p4-01",
+      "to": "METRIC:ev-p4-01",
+      "relationship": "measures"
+    },
+    {
+      "edge_id": "e21",
+      "from": "SOURCE:src-marketresearchthailand-construction",
+      "to": "OBSERVATION:ev-p7-01",
+      "relationship": "produced"
+    },
+    {
+      "edge_id": "e22",
+      "from": "OBSERVATION:ev-p7-01",
+      "to": "SUBJECT:construction_materials:TH",
+      "relationship": "concerns"
+    },
+    {
+      "edge_id": "e23",
+      "from": "OBSERVATION:ev-p7-01",
+      "to": "METRIC:ev-p7-01",
+      "relationship": "measures"
+    },
+    {
+      "edge_id": "e24",
+      "from": "SOURCE:src-p7-no-solution-provider-found",
+      "to": "OBSERVATION:ev-p7-02",
+      "relationship": "produced"
+    },
+    {
+      "edge_id": "e25",
+      "from": "OBSERVATION:ev-p7-02",
+      "to": "SUBJECT:construction_materials:TH",
+      "relationship": "concerns"
+    },
+    {
+      "edge_id": "e26",
+      "from": "OBSERVATION:ev-p7-02",
+      "to": "METRIC:ev-p7-02",
+      "relationship": "measures"
+    },
+    {
+      "edge_id": "e27",
+      "from": "OBSERVATION:ev-p1-01",
+      "to": "EVIDENCE:P1",
+      "relationship": "supports"
+    },
+    {
+      "edge_id": "e28",
+      "from": "OBSERVATION:ev-p1-02",
+      "to": "EVIDENCE:P1",
+      "relationship": "supports"
+    },
+    {
+      "edge_id": "e29",
+      "from": "CONSTRAINT:P1",
+      "to": "EVIDENCE:P1",
+      "relationship": "blocks"
+    },
+    {
+      "edge_id": "e30",
+      "from": "OBSERVATION:ev-p2-01",
+      "to": "EVIDENCE:P2",
+      "relationship": "supports"
+    },
+    {
+      "edge_id": "e31",
+      "from": "OBSERVATION:ev-p2-02",
+      "to": "EVIDENCE:P2",
+      "relationship": "supports"
+    },
+    {
+      "edge_id": "e32",
+      "from": "CONSTRAINT:P2",
+      "to": "EVIDENCE:P2",
+      "relationship": "blocks"
+    },
+    {
+      "edge_id": "e33",
+      "from": "OBSERVATION:ev-p3-01",
+      "to": "EVIDENCE:P3",
+      "relationship": "supports"
+    },
+    {
+      "edge_id": "e34",
+      "from": "OBSERVATION:ev-p3-02",
+      "to": "EVIDENCE:P3",
+      "relationship": "supports"
+    },
+    {
+      "edge_id": "e35",
+      "from": "OBSERVATION:ev-p4-01",
+      "to": "EVIDENCE:P4",
+      "relationship": "supports"
+    },
+    {
+      "edge_id": "e36",
+      "from": "CONSTRAINT:P5",
+      "to": "EVIDENCE:P5",
+      "relationship": "blocks"
+    },
+    {
+      "edge_id": "e37",
+      "from": "CONSTRAINT:P6",
+      "to": "EVIDENCE:P6",
+      "relationship": "blocks"
+    },
+    {
+      "edge_id": "e38",
+      "from": "OBSERVATION:ev-p7-01",
+      "to": "EVIDENCE:P7",
+      "relationship": "supports"
+    },
+    {
+      "edge_id": "e39",
+      "from": "OBSERVATION:ev-p7-02",
+      "to": "EVIDENCE:P7",
+      "relationship": "supports"
+    },
+    {
+      "edge_id": "e40",
+      "from": "CONSTRAINT:P7",
+      "to": "EVIDENCE:P7",
+      "relationship": "blocks"
+    },
+    {
+      "edge_id": "e41",
+      "from": "EVIDENCE:P3",
+      "to": "RESOURCE:P3",
+      "relationship": "requires"
+    },
+    {
+      "edge_id": "e42",
+      "from": "EVIDENCE:P4",
+      "to": "RESOURCE:P4",
+      "relationship": "requires"
+    },
+    {
+      "edge_id": "e43",
+      "from": "CONSTRAINT:rule:law-th-debt-collection-act",
+      "to": "EVIDENCE:P2",
+      "relationship": "constrains"
+    },
+    {
+      "edge_id": "e44",
+      "from": "CONSTRAINT:rule:market-fiverr-fee",
+      "to": "EVIDENCE:P3",
+      "relationship": "constrains"
+    },
+    {
+      "edge_id": "e45",
+      "from": "CONSTRAINT:rule:market-fiverr-fee",
+      "to": "EVIDENCE:P4",
+      "relationship": "constrains"
+    },
+    {
+      "edge_id": "e46",
+      "from": "CONSTRAINT:rule:market-upwork-fee",
+      "to": "EVIDENCE:P3",
+      "relationship": "constrains"
+    },
+    {
+      "edge_id": "e47",
+      "from": "CONSTRAINT:rule:market-upwork-fee",
+      "to": "EVIDENCE:P4",
+      "relationship": "constrains"
+    },
+    {
+      "edge_id": "e48",
+      "from": "CONSTRAINT:rule:tax-th-wht-status",
+      "to": "EVIDENCE:P3",
+      "relationship": "constrains"
+    },
+    {
+      "edge_id": "e49",
+      "from": "CONSTRAINT:rule:tax-th-wht-status",
+      "to": "EVIDENCE:P4",
+      "relationship": "constrains"
+    },
+    {
+      "edge_id": "e50",
+      "from": "EVIDENCE:P3",
+      "to": "COMPUTATION:P3",
+      "relationship": "feeds"
+    },
+    {
+      "edge_id": "e51",
+      "from": "RESOURCE:P3",
+      "to": "COMPUTATION:P3",
+      "relationship": "feeds"
+    },
+    {
+      "edge_id": "e52",
+      "from": "COMPUTATION:P3",
+      "to": "DECISION_STATE:P3",
+      "relationship": "produces"
+    },
+    {
+      "edge_id": "e53",
+      "from": "EVIDENCE:P4",
+      "to": "COMPUTATION:P4",
+      "relationship": "feeds"
+    },
+    {
+      "edge_id": "e54",
+      "from": "RESOURCE:P4",
+      "to": "COMPUTATION:P4",
+      "relationship": "feeds"
+    },
+    {
+      "edge_id": "e55",
+      "from": "COMPUTATION:P4",
+      "to": "DECISION_STATE:P4",
+      "relationship": "produces"
+    },
+    {
+      "edge_id": "svc_e56",
+      "from": "EVIDENCE:P3",
+      "to": "PEOPLE:P3",
+      "relationship": "identifies"
+    },
+    {
+      "edge_id": "svc_e57",
+      "from": "PEOPLE:P3",
+      "to": "SERVICE:P3",
+      "relationship": "targeted_by"
+    },
+    {
+      "edge_id": "svc_e58",
+      "from": "SERVICE:P3",
+      "to": "CHANNEL:P3",
+      "relationship": "delivered_through"
+    },
+    {
+      "edge_id": "svc_e59",
+      "from": "CHANNEL:P3",
+      "to": "USER:P3",
+      "relationship": "reaches"
+    },
+    {
+      "edge_id": "svc_e60",
+      "from": "USER:P3",
+      "to": "USAGE:P3",
+      "relationship": "generates"
+    },
+    {
+      "edge_id": "svc_e61",
+      "from": "USAGE:P3",
+      "to": "RESULT:P3",
+      "relationship": "produces"
+    },
+    {
+      "edge_id": "svc_e62",
+      "from": "RESULT:P3",
+      "to": "PRICE:P3",
+      "relationship": "priced_at"
+    },
+    {
+      "edge_id": "svc_e63",
+      "from": "PRICE:P3",
+      "to": "PAYMENT:P3",
+      "relationship": "requires"
+    },
+    {
+      "edge_id": "svc_e64",
+      "from": "PAYMENT:P3",
+      "to": "CASH:P3",
+      "relationship": "settles_to"
+    },
+    {
+      "edge_id": "svc_e65",
+      "from": "EVIDENCE:P4",
+      "to": "PEOPLE:P4",
+      "relationship": "identifies"
+    },
+    {
+      "edge_id": "svc_e66",
+      "from": "PEOPLE:P4",
+      "to": "SERVICE:P4",
+      "relationship": "targeted_by"
+    },
+    {
+      "edge_id": "svc_e67",
+      "from": "SERVICE:P4",
+      "to": "CHANNEL:P4",
+      "relationship": "delivered_through"
+    },
+    {
+      "edge_id": "svc_e68",
+      "from": "CHANNEL:P4",
+      "to": "USER:P4",
+      "relationship": "reaches"
+    },
+    {
+      "edge_id": "svc_e69",
+      "from": "USER:P4",
+      "to": "USAGE:P4",
+      "relationship": "generates"
+    },
+    {
+      "edge_id": "svc_e70",
+      "from": "USAGE:P4",
+      "to": "RESULT:P4",
+      "relationship": "produces"
+    },
+    {
+      "edge_id": "svc_e71",
+      "from": "RESULT:P4",
+      "to": "PRICE:P4",
+      "relationship": "priced_at"
+    },
+    {
+      "edge_id": "svc_e72",
+      "from": "PRICE:P4",
+      "to": "PAYMENT:P4",
+      "relationship": "requires"
+    },
+    {
+      "edge_id": "svc_e73",
+      "from": "PAYMENT:P4",
+      "to": "CASH:P4",
+      "relationship": "settles_to"
+    },
+    {
+      "edge_id": "p19_e74",
+      "from": "PROBLEM:REAL_USER_001",
+      "to": "REAL_USER:001",
+      "relationship": "affects"
+    },
+    {
+      "edge_id": "p19_e75",
+      "from": "REAL_USER:001",
+      "to": "ENTRY_POINT:P3",
+      "relationship": "entered"
+    },
+    {
+      "edge_id": "p19_e76",
+      "from": "ENTRY_POINT:P3",
+      "to": "SERVICE:P3",
+      "relationship": "invokes"
+    },
+    {
+      "edge_id": "p19_e77",
+      "from": "ENTRY_POINT:P3",
+      "to": "USAGE:P3",
+      "relationship": "produced_real_usage"
+    },
+    {
+      "edge_id": "p19_e78",
+      "from": "USAGE:P3",
+      "to": "RESULT:P3",
+      "relationship": "produced_real_result"
+    },
+    {
+      "edge_id": "p21_e79",
+      "from": "SOURCE:obs:dna-os-circuit-server-logs",
+      "to": "PROBLEM_SIGNAL:control",
+      "relationship": "produced"
+    },
+    {
+      "edge_id": "p21_e80",
+      "from": "PROBLEM_SIGNAL:control",
+      "to": "ROOT_CAUSE:control",
+      "relationship": "explained_by"
+    },
+    {
+      "edge_id": "p21_e81",
+      "from": "ROOT_CAUSE:control",
+      "to": "POLICY_DECISION:control:deny",
+      "relationship": "evaluated_for_writable_target"
+    },
+    {
+      "edge_id": "p21_e82",
+      "from": "ROOT_CAUSE:control",
+      "to": "POLICY_DECISION:control:allow",
+      "relationship": "evaluated_for_positive_control_target"
+    },
+    {
+      "edge_id": "p21_e83",
+      "from": "POLICY_DECISION:control:allow",
+      "to": "RESULT:control:verify",
+      "relationship": "would_authorize"
+    },
+    {
+      "edge_id": "p21_e84",
+      "from": "RESULT:control:verify",
+      "to": "PROBLEM_SIGNAL:control",
+      "relationship": "verifies_resolution_of"
+    },
+    {
+      "edge_id": "p21_e85",
+      "from": "SOURCE:obs:chatgpt-web",
+      "to": "PROBLEM_SIGNAL:testcase1",
+      "relationship": "insufficient_to_produce"
+    },
+    {
+      "edge_id": "p21_e86",
+      "from": "SOURCE:obs:vscode-logs",
+      "to": "PROBLEM_SIGNAL:testcase1",
+      "relationship": "insufficient_to_produce"
+    },
+    {
+      "edge_id": "p21_e87",
+      "from": "SOURCE:obs:claude-code-sessions",
+      "to": "PROBLEM_SIGNAL:testcase1",
+      "relationship": "insufficient_to_produce"
+    },
+    {
+      "edge_id": "p22_e88",
+      "from": "PROBLEM_SIGNAL:control",
+      "to": "PROVEN_RESOLUTION:async-spawn",
+      "relationship": "resolved_by"
+    },
+    {
+      "edge_id": "p22_e89",
+      "from": "CAPABILITY_INDEX_ENTRY:server_hang_or_timeout",
+      "to": "PROVEN_RESOLUTION:async-spawn",
+      "relationship": "backing_capability"
+    },
+    {
+      "edge_id": "p22_e90",
+      "from": "BLOCKED_EXAMPLE:bottleneck-score",
+      "to": "PROBLEM_SIGNAL:control",
+      "relationship": "was_not_used_as_evidence_for"
+    },
+    {
+      "edge_id": "p22_e91",
+      "from": "PROBLEM_SIGNAL:control",
+      "to": "PROVEN_RESOLUTION:async-spawn",
+      "relationship": "resolved_by"
+    },
+    {
+      "edge_id": "p22_e92",
+      "from": "CAPABILITY_INDEX_ENTRY:server_hang_or_timeout",
+      "to": "PROVEN_RESOLUTION:async-spawn",
+      "relationship": "backing_capability"
+    },
+    {
+      "edge_id": "p22_e93",
+      "from": "BLOCKED_EXAMPLE:bottleneck-score",
+      "to": "PROBLEM_SIGNAL:control",
+      "relationship": "was_not_used_as_evidence_for"
+    },
+    {
+      "edge_id": "p21_e94",
+      "from": "SOURCE:obs:dna-os-circuit-server-logs",
+      "to": "PROBLEM_SIGNAL:control",
+      "relationship": "produced"
+    },
+    {
+      "edge_id": "p21_e95",
+      "from": "PROBLEM_SIGNAL:control",
+      "to": "ROOT_CAUSE:control",
+      "relationship": "explained_by"
+    },
+    {
+      "edge_id": "p21_e96",
+      "from": "ROOT_CAUSE:control",
+      "to": "POLICY_DECISION:control:deny",
+      "relationship": "evaluated_for_writable_target"
+    },
+    {
+      "edge_id": "p21_e97",
+      "from": "ROOT_CAUSE:control",
+      "to": "POLICY_DECISION:control:allow",
+      "relationship": "evaluated_for_positive_control_target"
+    },
+    {
+      "edge_id": "p21_e98",
+      "from": "POLICY_DECISION:control:allow",
+      "to": "RESULT:control:verify",
+      "relationship": "would_authorize"
+    },
+    {
+      "edge_id": "p21_e99",
+      "from": "RESULT:control:verify",
+      "to": "PROBLEM_SIGNAL:control",
+      "relationship": "verifies_resolution_of"
+    },
+    {
+      "edge_id": "p21_e100",
+      "from": "SOURCE:obs:chatgpt-web",
+      "to": "PROBLEM_SIGNAL:testcase1",
+      "relationship": "insufficient_to_produce"
+    },
+    {
+      "edge_id": "p21_e101",
+      "from": "SOURCE:obs:vscode-logs",
+      "to": "PROBLEM_SIGNAL:testcase1",
+      "relationship": "insufficient_to_produce"
+    },
+    {
+      "edge_id": "p21_e102",
+      "from": "SOURCE:obs:claude-code-sessions",
+      "to": "PROBLEM_SIGNAL:testcase1",
+      "relationship": "insufficient_to_produce"
+    },
+    {
+      "edge_id": "p22_e103",
+      "from": "PROBLEM_SIGNAL:control",
+      "to": "PROVEN_RESOLUTION:async-spawn",
+      "relationship": "resolved_by"
+    },
+    {
+      "edge_id": "p22_e104",
+      "from": "CAPABILITY_INDEX_ENTRY:server_hang_or_timeout",
+      "to": "PROVEN_RESOLUTION:async-spawn",
+      "relationship": "backing_capability"
+    },
+    {
+      "edge_id": "p22_e105",
+      "from": "BLOCKED_EXAMPLE:bottleneck-score",
+      "to": "PROBLEM_SIGNAL:control",
+      "relationship": "was_not_used_as_evidence_for"
+    }
+  ],
+  "observation_events": [
+    {
+      "observation_id": "ev-p1-01",
+      "source": {
+        "source_id": "src-posttoday-745857",
+        "source_url": "https://www.posttoday.com/smart-sme/745857",
+        "source_type": "news_article",
+        "observed_at": "2026-08-19T00:00:00Z"
+      },
+      "subject": {
+        "subject_id": "SUBJECT:accounting_compliance:TH",
+        "subject_type": "accounting_compliance",
+        "geography": "TH",
+        "market_domain": "accounting_compliance"
+      },
+      "metric": {
+        "metric_name": "problem_existence",
+        "value": "SME ไทยรายเล็กขาดระบบบัญชีมาตรฐาน เป็นปัญหาอันดับหนึ่งที่ SME D Bank ระบุ",
+        "unit": null
+      },
+      "extraction_method": "WebSearch tool, AI-summarized snippet of source page (not full-page fetch)",
+      "verification_status": "UNVERIFIED_SINGLE_SOURCE",
+      "evidence_status": "KNOWN",
+      "freshness_rule": "news_article: treat as stale after 365 days from observed_at",
+      "expires_at": null,
+      "origin_registry": "evidence_registry.json",
+      "origin_record_id": "ev-p1-01"
+    },
+    {
+      "observation_id": "ev-p1-02",
+      "source": {
+        "source_id": "src-7account-pricing",
+        "source_url": "https://www.7account.com/hire-accounting-firm-price-guide/",
+        "source_type": "vendor_pricing_page",
+        "observed_at": "2026-08-19T00:00:00Z"
+      },
+      "subject": {
+        "subject_id": "SUBJECT:accounting_compliance:TH",
+        "subject_type": "accounting_compliance",
+        "geography": "TH",
+        "market_domain": "accounting_compliance"
+      },
+      "metric": {
+        "metric_name": "current_provider",
+        "value": "ราคาจ้างสำนักงานบัญชีไม่มีราคาตายตัว ขึ้นกับปัจจัยหลายอย่าง — ตัวเลขจริงไม่เปิดเผยในหน้านี้",
+        "unit": "THB"
+      },
+      "extraction_method": "WebSearch tool, AI-summarized snippet",
+      "verification_status": "UNVERIFIED_SINGLE_SOURCE",
+      "evidence_status": "UNKNOWN",
+      "freshness_rule": "vendor_pricing_page: treat as stale after 180 days",
+      "expires_at": null,
+      "origin_registry": "evidence_registry.json",
+      "origin_record_id": "ev-p1-02"
+    },
+    {
+      "observation_id": "ev-p2-01",
+      "source": {
+        "source_id": "src-fastwork-debt",
+        "source_url": "https://fastwork.co/legal/debt-collection",
+        "source_type": "marketplace_listing",
+        "observed_at": "2026-08-19T00:00:00Z"
+      },
+      "subject": {
+        "subject_id": "SUBJECT:debt_collection:TH",
+        "subject_type": "debt_collection",
+        "geography": "TH",
+        "market_domain": "debt_collection"
+      },
+      "metric": {
+        "metric_name": "observed_price",
+        "value": 500,
+        "unit": "THB_starting_price"
+      },
+      "extraction_method": "WebSearch tool, AI-summarized snippet",
+      "verification_status": "UNVERIFIED_SINGLE_SOURCE",
+      "evidence_status": "MEASURED",
+      "freshness_rule": "marketplace_listing: treat as live/current at observed_at only, re-verify before use beyond 30 days",
+      "expires_at": null,
+      "origin_registry": "evidence_registry.json",
+      "origin_record_id": "ev-p2-01"
+    },
+    {
+      "observation_id": "ev-p2-02",
+      "source": {
+        "source_id": "src-consumerthai-debtact",
+        "source_url": "https://www.consumerthai.org/menutd3/423-...",
+        "source_type": "regulatory_reference",
+        "observed_at": "2026-08-19T00:00:00Z"
+      },
+      "subject": {
+        "subject_id": "SUBJECT:debt_collection:TH",
+        "subject_type": "debt_collection",
+        "geography": "TH",
+        "market_domain": "debt_collection"
+      },
+      "metric": {
+        "metric_name": "legal_constraint",
+        "value": "พ.ร.บ.การทวงถามหนี้ กำกับผู้ประกอบวิชาชีพทวงถามหนี้ — ต้องขึ้นทะเบียน",
+        "unit": null
+      },
+      "extraction_method": "WebSearch tool, AI-summarized snippet — statute NOT read in full text",
+      "verification_status": "UNVERIFIED_SINGLE_SOURCE",
+      "evidence_status": "KNOWN",
+      "freshness_rule": "law_reference: valid until amended — no expiry assumed, must re-check before use",
+      "expires_at": null,
+      "origin_registry": "evidence_registry.json",
+      "origin_record_id": "ev-p2-02"
+    },
+    {
+      "observation_id": "ev-p3-01",
+      "source": {
+        "source_id": "src-jobth-listings",
+        "source_url": "https://www.jobth.com/jobs/...",
+        "source_type": "job_board_aggregate",
+        "observed_at": "2026-08-19T00:00:00Z"
+      },
+      "subject": {
+        "subject_id": "SUBJECT:data_entry:TH",
+        "subject_type": "data_entry",
+        "geography": "TH",
+        "market_domain": "data_entry"
+      },
+      "metric": {
+        "metric_name": "target_group_size_proxy",
+        "value": 30000,
+        "unit": "open_job_listings_count"
+      },
+      "extraction_method": "WebSearch tool, AI-summarized snippet",
+      "verification_status": "UNVERIFIED_SINGLE_SOURCE",
+      "evidence_status": "ESTIMATED",
+      "freshness_rule": "job_board_aggregate: point-in-time count, re-verify before reuse",
+      "expires_at": null,
+      "origin_registry": "evidence_registry.json",
+      "origin_record_id": "ev-p3-01"
+    },
+    {
+      "observation_id": "ev-p3-02",
+      "source": {
+        "source_id": "src-fiverr-dataentry",
+        "source_url": "https://www.fiverr.com/resources/guides/costs/data-entry",
+        "source_type": "vendor_pricing_page",
+        "observed_at": "2026-08-19T00:00:00Z"
+      },
+      "subject": {
+        "subject_id": "SUBJECT:data_entry:GLOBAL",
+        "subject_type": "data_entry",
+        "geography": "GLOBAL",
+        "market_domain": "data_entry"
+      },
+      "metric": {
+        "metric_name": "observed_price_range",
+        "value": {
+          "low": 4,
+          "high": 25
+        },
+        "unit": "USD_per_hour"
+      },
+      "extraction_method": "WebSearch tool, AI-summarized snippet",
+      "verification_status": "UNVERIFIED_SINGLE_SOURCE",
+      "evidence_status": "KNOWN",
+      "freshness_rule": "vendor_pricing_page: stale after 180 days",
+      "expires_at": null,
+      "origin_registry": "evidence_registry.json",
+      "origin_record_id": "ev-p3-02"
+    },
+    {
+      "observation_id": "ev-p4-01",
+      "source": {
+        "source_id": "src-webfx-seoaudit",
+        "source_url": "https://www.webfx.com/seo/pricing/how-much-does-seo-audit-cost/",
+        "source_type": "agency_pricing_page",
+        "observed_at": "2026-08-19T00:00:00Z"
+      },
+      "subject": {
+        "subject_id": "SUBJECT:technical_audit:GLOBAL",
+        "subject_type": "technical_audit",
+        "geography": "GLOBAL",
+        "market_domain": "technical_audit"
+      },
+      "metric": {
+        "metric_name": "observed_price_range",
+        "value": {
+          "low": 100,
+          "high": 5000
+        },
+        "unit": "USD_per_report"
+      },
+      "extraction_method": "WebSearch tool, AI-summarized snippet, cross-checked against 8 other independent result titles in the same search",
+      "verification_status": "CROSS_CONFIRMED_MULTI_SOURCE",
+      "evidence_status": "KNOWN",
+      "freshness_rule": "agency_pricing_page: stale after 180 days",
+      "expires_at": null,
+      "origin_registry": "evidence_registry.json",
+      "origin_record_id": "ev-p4-01"
+    },
+    {
+      "observation_id": "ev-p7-01",
+      "source": {
+        "source_id": "src-marketresearchthailand-construction",
+        "source_url": "https://marketresearchthailand.com/insights/articles/concern-soaring-thailand-construction-costs",
+        "source_type": "market_research_article",
+        "observed_at": "2026-08-19T00:00:00Z"
+      },
+      "subject": {
+        "subject_id": "SUBJECT:construction_materials:TH",
+        "subject_type": "construction_materials",
+        "geography": "TH",
+        "market_domain": "construction_materials"
+      },
+      "metric": {
+        "metric_name": "problem_frequency",
+        "value": 65,
+        "unit": "percent_of_contractors_reporting_delay"
+      },
+      "extraction_method": "WebSearch tool, AI-summarized snippet citing Thai Contractors Association survey (survey itself not directly read)",
+      "verification_status": "UNVERIFIED_SINGLE_SOURCE_CITING_SECONDARY_SURVEY",
+      "evidence_status": "ESTIMATED",
+      "freshness_rule": "market_research_article: stale after 180 days",
+      "expires_at": null,
+      "origin_registry": "evidence_registry.json",
+      "origin_record_id": "ev-p7-01"
+    },
+    {
+      "observation_id": "ev-p7-02",
+      "source": {
+        "source_id": "src-p7-no-solution-provider-found",
+        "source_url": null,
+        "source_type": "absence_of_evidence",
+        "observed_at": "2026-08-19T00:00:00Z"
+      },
+      "subject": {
+        "subject_id": "SUBJECT:construction_materials:TH",
+        "subject_type": "construction_materials",
+        "geography": "TH",
+        "market_domain": "construction_materials"
+      },
+      "metric": {
+        "metric_name": "current_provider",
+        "value": "no identified vendor",
+        "unit": null
+      },
+      "extraction_method": "negative result — no matching source found in 1 search",
+      "verification_status": "UNVERIFIED_ABSENCE_SINGLE_SEARCH",
+      "evidence_status": "UNKNOWN",
+      "freshness_rule": "absence claims expire immediately on next search — must re-check every time before reuse",
+      "expires_at": null,
+      "origin_registry": "evidence_registry.json",
+      "origin_record_id": "ev-p7-02"
+    }
+  ]
+}

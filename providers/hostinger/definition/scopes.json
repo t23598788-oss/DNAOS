@@ -1,0 +1,20 @@
+{
+  "$schema_note": "Hostinger's token/scope facts actually found in official docs during this discovery round. Never invent a scope string — mark UNKNOWN instead.",
+  "last_verified": "2026-08-22",
+  "token_creation": {
+    "path": "hPanel -> Dev Tools -> API -> Generate Token",
+    "required_fields": ["name", "expiration_date"],
+    "shown_once": true,
+    "source": "https://www.hostinger.com/support/10840865-what-is-hostinger-api/"
+  },
+  "scoped_tokens": "UNKNOWN",
+  "read_only_tokens": "UNKNOWN",
+  "resource_or_project_limited_tokens": "UNKNOWN",
+  "revocation_flow": "UNKNOWN",
+  "rotation_policy": "UNKNOWN",
+  "audit_or_activity_log": "UNKNOWN",
+  "mcp_layer_scoping": {
+    "mechanism": "coarse tool-surface reduction via 12 separate scoped binaries (hostinger-vps-mcp, hostinger-dns-mcp, etc. — see provider.json mcp.scoped_binaries)",
+    "note": "This is a client-side/operator choice of which binary to run, not a server-side token scope restriction. The underlying HOSTINGER_API_TOKEN itself is not confirmed to carry any narrower scope than full account access."
+  }
+}

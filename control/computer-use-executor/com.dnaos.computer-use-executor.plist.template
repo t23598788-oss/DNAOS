@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  DNA OS Computer-Use Executor — LaunchAgent template (repaired 2026-09-01).
+
+  ทำให้ executor เป็น "DNA OS runtime ของตัวเอง" ที่รันอยู่แม้ Claude ปิด.
+  ติดตั้งโดย OWNER เท่านั้น — Claude ไม่ติดตั้ง/ไม่ start ให้.
+
+  ── ทำไมแก้ ──
+  รอบก่อน template ใช้ `npx tsx daemon.ts` แล้ว daemon exit 127 ใต้ launchd เพราะ
+  launchd ให้ PATH ขั้นต่ำ (/usr/bin:/bin:/usr/sbin:/sbin) — npx shebang หา node ไม่เจอ.
+  แก้เป็น: absolute tsx binary + EnvironmentVariables.PATH ที่มี node bin ตรง .nvmrc.
+
+  ── runtime ที่ resolve จริง (ไม่ใช่ก๊อปจาก service อื่น) ──
+    .nvmrc = 24.19.0 · package.json engines node>=18 · tsx 4.23.12 (ต้อง node>=18)
+    → NODE = /Users/tam/.nvm/versions/node/v24.19.0/bin  (v16 ของ joint-monitor ต่ำกว่า engines ไม่ใช้)
+    → TSX  = /Users/tam/Desktop/DNA-OS-INFRASTRUCTURE/node_modules/.bin/tsx (absolute)
+  พิสูจน์ใน clean env (env -i PATH=... absolute-tsx daemon --once) แล้ว: start ได้ exit 0.
+
+  ── ติดตั้ง (Owner ทำเอง) ──
+    1. cp control/computer-use-executor/com.dnaos.computer-use-executor.plist.template \
+         ~/Library/LaunchAgents/com.dnaos.computer-use-executor.plist
+    2. launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.dnaos.computer-use-executor.plist
+  หมายเหตุ: อย่า pre-create ไฟล์ log — ให้ launchd สร้าง StandardOut/ErrorPath เอง (กฎ launchd ของ repo นี้).
+-->
+<plist version="1.0">
+<dict>
+  <key>Label</key><string>com.dnaos.computer-use-executor</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/Users/tam/Desktop/DNA-OS-INFRASTRUCTURE/node_modules/.bin/tsx</string>
+    <string>control/computer-use-executor/daemon.ts</string>
+  </array>
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>PATH</key><string>/Users/tam/.nvm/versions/node/v24.19.0/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+  </dict>
+  <key>WorkingDirectory</key><string>/Users/tam/Desktop/DNA-OS-INFRASTRUCTURE</string>
+  <key>StandardOutPath</key><string>/Users/tam/Desktop/DNA-OS-INFRASTRUCTURE/control/computer-use-executor/data/daemon.out.log</string>
+  <key>StandardErrorPath</key><string>/Users/tam/Desktop/DNA-OS-INFRASTRUCTURE/control/computer-use-executor/data/daemon.err.log</string>
+  <key>RunAtLoad</key><true/>
+  <key>KeepAlive</key><true/>
+</dict>
+</plist>

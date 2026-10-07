@@ -1,0 +1,132 @@
+{
+ "count": 9,
+ "channels": [
+  {
+   "channel": "observation.line",
+   "message_class": "OBSERVATION",
+   "producer": "u.line-ingest",
+   "consumers": [
+    "classification.extraction"
+   ],
+   "message_schema": "RAW_OBSERVATION_V1",
+   "correlation_id": "observation_id",
+   "business_entity_ref": null,
+   "delivery": "AT_LEAST_ONCE",
+   "deduplication": "observation_id",
+   "authority": "LINE channel signature"
+  },
+  {
+   "channel": "classification.extraction",
+   "message_class": "CLASSIFICATION",
+   "producer": "ai-task-watcher (Ollama)",
+   "consumers": [
+    "routing.decision"
+   ],
+   "message_schema": "CLASSIFICATION_RESULT_V1",
+   "correlation_id": "observation_id",
+   "business_entity_ref": null,
+   "delivery": "AT_MOST_ONCE",
+   "deduplication": "classification_id",
+   "authority": "AI_CALLBACK_SECRET"
+  },
+  {
+   "channel": "routing.decision",
+   "message_class": "ROUTING",
+   "producer": "engines/ingestion/router.ts",
+   "consumers": [
+    "command.sales",
+    "command.document",
+    "command.finance",
+    "command.general"
+   ],
+   "message_schema": "ROUTING_DECISION_V1",
+   "correlation_id": "observation_id",
+   "business_entity_ref": "company_id",
+   "delivery": "AT_LEAST_ONCE",
+   "deduplication": "routing_decision_id",
+   "authority": "DETERMINISTIC_POLICY"
+  },
+  {
+   "channel": "command.sales",
+   "message_class": "COMMAND",
+   "producer": "routing.decision",
+   "consumers": [
+    "engines/ingestion/lanes/sales.ts"
+   ],
+   "message_schema": "SalesInput",
+   "correlation_id": "trace_id",
+   "business_entity_ref": "company_id",
+   "delivery": "AT_LEAST_ONCE",
+   "deduplication": "observation_id",
+   "authority": "inherited"
+  },
+  {
+   "channel": "command.document",
+   "message_class": "COMMAND",
+   "producer": "routing.decision",
+   "consumers": [
+    "UNHANDLED — ยังไม่มีตัวรับจากสายแชท"
+   ],
+   "message_schema": "DocumentInput",
+   "correlation_id": "trace_id",
+   "business_entity_ref": "company_id",
+   "delivery": "AT_LEAST_ONCE",
+   "deduplication": "observation_id",
+   "authority": "ADMIN_TIER (ฝั่งหลังบ้านเท่านั้น)"
+  },
+  {
+   "channel": "command.finance",
+   "message_class": "COMMAND",
+   "producer": "routing.decision",
+   "consumers": [
+    "UNHANDLED — ยังไม่มีตัวรับจากสายแชท"
+   ],
+   "message_schema": "FinanceInput",
+   "correlation_id": "trace_id",
+   "business_entity_ref": "company_id",
+   "delivery": "AT_LEAST_ONCE",
+   "deduplication": "observation_id",
+   "authority": "inherited"
+  },
+  {
+   "channel": "domain-event.sales",
+   "message_class": "DOMAIN_EVENT",
+   "producer": "engines/ingestion/lanes/sales.ts",
+   "consumers": [
+    "projection.admin"
+   ],
+   "message_schema": "business_events row",
+   "correlation_id": "trace_id",
+   "business_entity_ref": "event_code",
+   "delivery": "AT_LEAST_ONCE",
+   "deduplication": "event_code",
+   "authority": "NONE"
+  },
+  {
+   "channel": "projection.admin",
+   "message_class": "PROJECTION",
+   "producer": "business_events",
+   "consumers": [
+    "deadboard /admin"
+   ],
+   "message_schema": "UNKNOWN",
+   "correlation_id": "event_code",
+   "business_entity_ref": "company_id",
+   "delivery": "AT_MOST_ONCE",
+   "deduplication": null,
+   "authority": "ADMIN_TIER"
+  },
+  {
+   "channel": "external-action-result.line",
+   "message_class": "EXTERNAL_ACTION_RESULT",
+   "producer": "supabase/functions/line-webhook-v2/engines/response.ts",
+   "consumers": [],
+   "message_schema": "UNKNOWN",
+   "correlation_id": "line_event_id",
+   "business_entity_ref": "line_user_id",
+   "delivery": "AT_MOST_ONCE",
+   "deduplication": null,
+   "authority": "channel_access_token"
+  }
+ ]
+}

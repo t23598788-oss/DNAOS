@@ -1,0 +1,245 @@
+{
+ "flow_id": "FLOW_A_LINE_MESSAGE",
+ "title": "ข้อความเข้าจาก LINE จนถึงการตอบกลับ",
+ "actor": "ผู้ใช้ LINE (ลูกค้า/ซัพพลายเออร์/เจ้าของ)",
+ "trigger": "LINE Platform ส่ง HTTP POST มาที่ webhook เมื่อมี event",
+ "entrypoint": "supabase/functions/line-webhook-v2/index.ts (Supabase Edge Function, Deno)",
+ "steps": [
+  {
+   "unit_id": "A1",
+   "order": 1,
+   "description": "อ่าน raw body เป็นข้อความ ก่อนแตะอย่างอื่น เพราะการตรวจลายเซ็นต้องใช้ไบต์ดิบ",
+   "source_pointer": "supabase/functions/line-webhook-v2/index.ts:26",
+   "input": "HTTP POST body",
+   "output": "rawBody: string",
+   "data_read": [],
+   "data_write": [],
+   "external_call": [],
+   "authority": "ยังไม่มี",
+   "failure_path": "ถ้าอ่าน body ไม่ได้ = จบทันที"
+  },
+  {
+   "unit_id": "A2",
+   "order": 2,
+   "description": "อ่าน header x-line-signature",
+   "source_pointer": "supabase/functions/line-webhook-v2/index.ts:27",
+   "input": "HTTP headers",
+   "output": "signature: string|null",
+   "data_read": [],
+   "data_write": [],
+   "external_call": [],
+   "authority": "ยังไม่มี",
+   "failure_path": "ไม่มี header = ปฏิเสธ"
+  },
+  {
+   "unit_id": "A3",
+   "order": 3,
+   "description": "หา channel_secret/channel_access_token ของ channel นั้นจากฐานข้อมูล",
+   "source_pointer": "supabase/functions/line-webhook-v2/index.ts:51-52",
+   "input": "destination/channel id",
+   "output": "channelRow",
+   "data_read": [
+    "line_channels"
+   ],
+   "data_write": [],
+   "external_call": [
+    "supabase"
+   ],
+   "authority": "service role ของ Edge Function",
+   "failure_path": "ไม่พบ channel = ปฏิเสธ"
+  },
+  {
+   "unit_id": "A4",
+   "order": 4,
+   "description": "ตรวจ HMAC-SHA256 ของ rawBody เทียบ x-line-signature — ต้องผ่านก่อนจึงจะ parse event",
+   "source_pointer": "supabase/functions/line-webhook-v2/middleware/signature.ts + index.ts:60",
+   "input": "rawBody + signature + channelSecret",
+   "output": "valid: boolean",
+   "data_read": [],
+   "data_write": [],
+   "external_call": [],
+   "authority": "ลายเซ็นของ LINE เป็นด่านแรก",
+   "failure_path": "ไม่ผ่าน = ไม่ประมวลผล event ใด ๆ"
+  },
+  {
+   "unit_id": "A5",
+   "order": 5,
+   "description": "แยก event แล้วส่งเข้า processEvent ตามชนิด (follow/unfollow/postback/message)",
+   "source_pointer": "supabase/functions/line-webhook-v2/index.ts:65-100",
+   "input": "LineWebhookPayload.events[]",
+   "output": "ctx ต่อ event",
+   "data_read": [],
+   "data_write": [],
+   "external_call": [],
+   "authority": "ผ่านการตรวจลายเซ็นแล้ว",
+   "failure_path": "ชนิดที่ไม่รู้จัก -> handleFallback"
+  },
+  {
+   "unit_id": "A6",
+   "order": 6,
+   "description": "message แยกตามชนิดสื่อ: text / location / image / file / audio",
+   "source_pointer": "supabase/functions/line-webhook-v2/index.ts:92-97",
+   "input": "message event",
+   "output": "เรียก handler เฉพาะชนิด",
+   "data_read": [],
+   "data_write": [],
+   "external_call": [],
+   "authority": "เหมือนขั้น 5",
+   "failure_path": "ชนิดอื่น -> handleFallback"
+  },
+  {
+   "unit_id": "A7",
+   "order": 7,
+   "description": "กันประมวลผลซ้ำ — event เดิมต้องไม่ตอบสองครั้ง",
+   "source_pointer": "supabase/functions/line-webhook-v2/handlers/text.ts:27",
+   "input": "event id",
+   "output": "ข้ามถ้าเคยจัดการแล้ว",
+   "data_read": [],
+   "data_write": [],
+   "external_call": [],
+   "authority": "ยังไม่มี",
+   "failure_path": "ถ้ากันไม่ได้ = ตอบซ้ำ"
+  },
+  {
+   "unit_id": "A8",
+   "order": 8,
+   "description": "ตรวจว่ามีการรับช่วงโดยมนุษย์อยู่หรือไม่ ถ้ามีให้ตอบข้อความรอเจ้าหน้าที่",
+   "source_pointer": "supabase/functions/line-webhook-v2/engines/human-takeover.ts + handlers/text.ts:38-39",
+   "input": "ctx",
+   "output": "ตอบว่ารับเรื่องแล้ว",
+   "data_read": [],
+   "data_write": [],
+   "external_call": [
+    "line"
+   ],
+   "authority": "นโยบายการรับช่วงของมนุษย์",
+   "failure_path": "ไม่มี replyToken = ไม่ตอบ"
+  },
+  {
+   "unit_id": "A9",
+   "order": 9,
+   "description": "จับคู่ผู้ใช้ LINE กับบริษัทผ่าน company_line_links",
+   "source_pointer": "supabase/functions/line-webhook-v2/handlers/text.ts:81-83",
+   "input": "LINE userId",
+   "output": "ความสัมพันธ์ person/company",
+   "data_read": [
+    "company_line_links"
+   ],
+   "data_write": [],
+   "external_call": [
+    "supabase"
+   ],
+   "authority": "การจับคู่เป็นฐานของสิทธิ์ที่ใช้ตอบ",
+   "failure_path": "ไม่พบคู่ = ตอบแบบทั่วไป ไม่ผูกบริษัท"
+  },
+  {
+   "unit_id": "A10",
+   "order": 10,
+   "description": "tool-router เลือกเครื่องมือจากข้อความ — ไม่ได้เป็นผู้เขียนข้อความตอบเอง",
+   "source_pointer": "supabase/functions/line-webhook-v2/engines/tool-router.ts + handlers/text.ts:112-118",
+   "input": "ข้อความ + บริบท",
+   "output": "tool choice",
+   "data_read": [],
+   "data_write": [],
+   "external_call": [
+    "ai-provider"
+   ],
+   "authority": "ขอบเขต AI: เลือกเครื่องมือเท่านั้น ไม่ใช่ผู้ตัดสินคำตอบ",
+   "failure_path": "เลือกไม่ได้ = ตอบว่าประมวลผลไม่สำเร็จ"
+  },
+  {
+   "unit_id": "A11",
+   "order": 11,
+   "description": "ตอบกลับผ่าน ResponseGateway ไปยัง LINE",
+   "source_pointer": "supabase/functions/line-webhook-v2/engines/response.ts + handlers/text.ts:72-74",
+   "input": "replyToken + ข้อความ",
+   "output": "LINE reply",
+   "data_read": [],
+   "data_write": [],
+   "external_call": [
+    "line"
+   ],
+   "authority": "ต้องมี replyToken ที่ยังไม่หมดอายุ",
+   "failure_path": "ส่งไม่สำเร็จ = ผู้ใช้ไม่ได้รับคำตอบ"
+  }
+ ],
+ "components": [
+  "line-webhook-v2",
+  "middleware/signature.ts",
+  "handlers/text.ts",
+  "engines/tool-router.ts",
+  "engines/response.ts",
+  "engines/human-takeover.ts",
+  "engines/supplier-quote-reply.ts",
+  "engines/external-facts.ts"
+ ],
+ "data_reads": [
+  "line_channels",
+  "company_line_links"
+ ],
+ "data_writes": [
+  "line_events",
+  "ai_tasks",
+  "line_profiles",
+  "customer_sites",
+  "business_events",
+  "partner_payable_requests",
+  "pending_authorizations"
+ ],
+ "external_calls": [
+  "line (reply/push)",
+  "supabase (postgres)",
+  "ai-provider (tool routing)",
+  "supabase storage (bucket attachments)"
+ ],
+ "authority": [
+  "LINE signature verification (HMAC-SHA256 บน raw body)",
+  "Supabase service role ของ Edge Function",
+  "company_line_links เป็นฐานของขอบเขตข้อมูลที่ตอบได้"
+ ],
+ "output": "ข้อความตอบกลับไปยังผู้ใช้ LINE และ/หรือการกระทำทางธุรกิจที่ตามมา",
+ "failure_paths": [
+  "ไม่มี/ผิดลายเซ็น -> ไม่ประมวลผล",
+  "ไม่พบ channel -> ปฏิเสธ",
+  "ไม่มี replyToken -> ไม่ตอบ",
+  "tool router ล้ม -> ข้อความขออภัย",
+  "event ซ้ำ -> ข้าม"
+ ],
+ "ports": [
+  {
+   "port_id": "A.in.webhook",
+   "direction": "IN",
+   "protocol": "HTTPS_WEBHOOK",
+   "schema_hint": "LINE Messaging API webhook payload (events[])",
+   "auth": "x-line-signature HMAC-SHA256"
+  },
+  {
+   "port_id": "A.out.reply",
+   "direction": "OUT",
+   "protocol": "HTTPS_API",
+   "schema_hint": "LINE reply/push message",
+   "auth": "channel_access_token จาก line_channels"
+  },
+  {
+   "port_id": "A.io.db",
+   "direction": "IN",
+   "protocol": "POSTGRES",
+   "schema_hint": "line_channels · company_line_links",
+   "auth": "Supabase service role"
+  }
+ ],
+ "evidence": [
+  "supabase/functions/line-webhook-v2/index.ts:26,27,51,60,65-100",
+  "supabase/functions/line-webhook-v2/middleware/signature.ts",
+  "supabase/functions/line-webhook-v2/handlers/text.ts:27,38,72,81,112",
+  "supabase/functions/line-webhook-v2/ มี 47 ไฟล์ · 10 handler · 25 engine",
+  "อ่านจาก source จริงเมื่อ 2026-09-05",
+  "fallback.ts, follow.ts, group.ts, unfollow.ts ไม่มีการเขียนฐานข้อมูลโดยตรง — ตรวจแล้วว่าไม่มี ไม่ใช่ยังไม่ได้ตรวจ",
+  "supabase/functions/line-webhook-v2/index.ts:52 อ่าน line_channels อย่างเดียวเพื่อระบุช่องทาง",
+  "live schema อ่านจาก production ref xeytcavxejhyzxwevgto เมื่อ 2026-09-05T02:24:57.238Z ผ่าน capability supabase.schema.read (read-only, พิสูจน์ WRITE=DENIED ด้วย Postgres 25006)",
+  "attachments เป็น Storage bucket ไม่ใช่ตาราง — handlers/image.ts:67 และ handlers/file.ts:55 เรียก ctx.supabase.storage.from(\"attachments\").download() จึงไม่นับใน data_writes"
+ ],
+ "status": "PARTIAL",
+ "schema_verification": "VERIFIED",
+ "runtime_verification": "PENDING"
+}

@@ -1,0 +1,16 @@
+{
+  "price_cost_registry": [
+    { "problem_id": "P3", "observed_price_low": 4, "observed_price_high": 25, "unit": "USD_per_hour", "geography": "GLOBAL", "evidence_ids": ["ev-p3-02"], "th_specific_price": null, "th_price_status": "UNKNOWN" },
+    { "problem_id": "P4", "observed_price_low": 100, "observed_price_high": 5000, "unit": "USD_per_report", "geography": "GLOBAL", "evidence_ids": ["ev-p4-01"], "th_specific_price": null, "th_price_status": "UNKNOWN" }
+  ],
+  "resource_registry": [
+    { "problem_id": "P3", "existing_capability_ref": "DNA-LAB-FILE-INTELLIGENCE (scanner/classifier, Phase 8 proof)", "existing_capability_status": "READY", "missing_resource": "OCR for scanned/image documents", "missing_resource_class": "BUYABLE", "acquire_note": "OCR APIs commercially available; not yet integrated" },
+    { "problem_id": "P4", "existing_capability_ref": "scan->classify->report pattern (File Intelligence + ts-morph, Phase 12/13 proof)", "existing_capability_status": "PARTIAL", "missing_resource": "SEO-specific analysis logic (backlink check, technical SEO rules), web crawler", "missing_resource_class": "BUILD_REQUIRED", "acquire_note": "no existing DNA OS module performs SEO analysis; would be new logic, not a reused capability" }
+  ],
+  "business_rules": [
+    { "rule_id": "law-th-debt-collection-act", "rule_class": "LAW", "applies_to_problem_id": "P2", "statement": "พ.ร.บ.การทวงถามหนี้ พ.ศ. 2558 — ผู้ประกอบวิชาชีพทวงถามหนี้ต้องขึ้นทะเบียน", "evidence_ids": ["ev-p2-02"], "verification": "title/existence confirmed via secondary source; full statute text not read this round" },
+    { "rule_id": "market-fiverr-fee", "rule_class": "PLATFORM_RULE", "applies_to_problem_id": "P3,P4", "statement": "Fiverr takes a flat 20% seller fee (Phase 15 evidence, ev-source: fiverr/gigradar)", "evidence_ids": [], "verification": "carried over from Phase 15 World Evidence Ledger, not re-verified this round" },
+    { "rule_id": "market-upwork-fee", "rule_class": "PLATFORM_RULE", "applies_to_problem_id": "P3,P4", "statement": "Upwork moved to a flat 10% service fee (2026) (Phase 15 evidence)", "evidence_ids": [], "verification": "carried over from Phase 15, not re-verified this round" },
+    { "rule_id": "tax-th-wht-status", "rule_class": "LAW", "applies_to_problem_id": "P3,P4", "statement": "Thai withholding tax / VAT applicability to freelance platform income", "evidence_ids": [], "verification": "NOT RESEARCHED THIS ROUND — status UNKNOWN, blocks tax/fee computation" }
+  ]
+}

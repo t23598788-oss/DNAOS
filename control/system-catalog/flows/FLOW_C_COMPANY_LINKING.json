@@ -1,0 +1,108 @@
+{
+ "flow_id": "FLOW_C_COMPANY_LINKING",
+ "title": "ผูกผู้ใช้ LINE กับบริษัท และตรวจสิทธิ์หน้างาน",
+ "actor": "ผู้ใช้ LINE / เจ้าของ",
+ "trigger": "ต้องรู้ว่าผู้ใช้คนนี้เป็นของบริษัทไหน และมีสิทธิ์กับหน้างานไหน",
+ "entrypoint": "supabase/functions/line-webhook-v2/engines/authorization-check.ts#checkSiteOwnership",
+ "steps": [
+  {
+   "unit_id": "C.1",
+   "order": 1,
+   "description": "หาบริษัทเจ้าของหน้างานปลายทาง",
+   "source_pointer": "supabase/functions/line-webhook-v2/engines/authorization-check.ts:33",
+   "input": "destinationSiteId",
+   "output": "customer_company_id",
+   "data_read": [
+    "customer_sites"
+   ],
+   "data_write": [],
+   "external_call": [],
+   "authority": "ไม่มี",
+   "failure_path": "ไม่พบหน้างาน = ตรวจไม่ได้"
+  },
+  {
+   "unit_id": "C.2",
+   "order": 2,
+   "description": "หาบริษัทของผู้ใช้ LINE ที่กำลังคุย",
+   "source_pointer": "supabase/functions/line-webhook-v2/engines/authorization-check.ts:37",
+   "input": "line_user_id",
+   "output": "company_id",
+   "data_read": [
+    "company_line_links"
+   ],
+   "data_write": [],
+   "external_call": [],
+   "authority": "การผูกนี้เป็นฐานของสิทธิ์",
+   "failure_path": "ไม่พบ = ไม่ถือว่าเป็นเจ้าของ"
+  },
+  {
+   "unit_id": "C.3",
+   "order": 3,
+   "description": "หาผู้ใช้ LINE คนอื่นของบริษัทเจ้าของ เพื่อขออนุมัติ",
+   "source_pointer": "supabase/functions/line-webhook-v2/engines/authorization-check.ts:42",
+   "input": "customer_company_id",
+   "output": "รายชื่อ line_user_id",
+   "data_read": [
+    "company_line_links"
+   ],
+   "data_write": [],
+   "external_call": [],
+   "authority": "ไม่มี",
+   "failure_path": "ไม่มีใครให้ขอ = ขออนุมัติไม่ได้"
+  },
+  {
+   "unit_id": "C.4",
+   "order": 4,
+   "description": "สร้างคำขออนุมัติค้างไว้",
+   "source_pointer": "supabase/functions/line-webhook-v2/engines/authorization-check.ts:49-60",
+   "input": "ผู้ขอ + หน้างาน",
+   "output": "แถว pending_authorizations",
+   "data_read": [],
+   "data_write": [
+    "pending_authorizations"
+   ],
+   "external_call": [],
+   "authority": "เจ้าของบริษัทเป็นผู้อนุมัติ ไม่ใช่ระบบ",
+   "failure_path": "สร้างไม่ได้ = ไม่มีการขออนุมัติ"
+  }
+ ],
+ "components": [
+  "engines/authorization-check.ts"
+ ],
+ "data_reads": [
+  "customer_sites",
+  "company_line_links"
+ ],
+ "data_writes": [
+  "pending_authorizations"
+ ],
+ "external_calls": [
+  "supabase (postgres)"
+ ],
+ "authority": [
+  "company_line_links คือฐานความเป็นเจ้าของ",
+  "pending_authorizations ต้องให้คนของบริษัทเจ้าของอนุมัติ"
+ ],
+ "output": "ผลว่าผู้ใช้มีสิทธิ์กับหน้างานหรือไม่ และคำขออนุมัติถ้ายังไม่มีสิทธิ์",
+ "failure_paths": [
+  "ไม่พบหน้างาน",
+  "ผู้ใช้ยังไม่ผูกบริษัท",
+  "ไม่มีผู้อนุมัติในบริษัทเจ้าของ"
+ ],
+ "ports": [
+  {
+   "port_id": "C.io.db",
+   "direction": "IN",
+   "protocol": "POSTGRES",
+   "schema_hint": "customer_sites · company_line_links · pending_authorizations",
+   "auth": "Supabase service role"
+  }
+ ],
+ "evidence": [
+  "supabase/functions/line-webhook-v2/engines/authorization-check.ts:19,25,33,37,42,49,60",
+  "live schema อ่านจาก production ref xeytcavxejhyzxwevgto เมื่อ 2026-09-05T02:24:57.238Z ผ่าน capability supabase.schema.read (read-only, พิสูจน์ WRITE=DENIED ด้วย Postgres 25006)"
+ ],
+ "status": "PARTIAL",
+ "schema_verification": "VERIFIED",
+ "runtime_verification": "PENDING"
+}

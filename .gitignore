@@ -84,3 +84,39 @@ _inventory/
 
 # Contractor pull-model runtime artifacts (NEW-2)
 .agents/
+
+# --- union entries from -DNA-OS-INFRASTRUCTURE- (.gitignore) ---
+node_modules/
+.env
+.env.local
+.env.*.local
+*.log
+.npmrc
+.npm-cache/
+local-runtime/process-locks/
+local-runtime/coordination/
+software/registry-database/data/
+tests/__sandbox__/
+control/conversation-runtime/dist/
+control/scheduler/data/*.jsonl
+control/owner-command/data/latest-work.jsonl
+software/live-census/data/last-census.json
+connections/os-ui/data/*.cursor.json
+connections/voice-command/data/observation-audio/
+connections/human-verified-text/data/sessions/
+connections/os-ui/data/screen-reads/
+local-runtime/work-session-state/
+.agent-host-profiles/
+control/agent-host/test-workspace/
+connections/os-ui/data/screenshots/
+control/computer-use-executor/data/processed/
+control/computer-use-executor/data/results/
+software/system-graph/data/
+*.bak
+*.pre-ownership
+__pycache__/
+*.pyc
+supabase/.temp/
+tmp/
+local-runtime/dna-dev-app-host/build/DNA DEV.app/
+control/runtime-control/data/operations.jsonl

@@ -1,0 +1,37 @@
+{
+  "unlock_id": "registry-retire-2026-09-04",
+  "boundary": "Registry",
+  "lock_map_row": "| Registry | LOCKED | LOCKED | ลงทะเบียนเพิ่ม |",
+  "granted_by": "Owner",
+  "granted_at": "2026-09-04",
+  "reason": "ทะเบียนกลางมี 39 รายการที่ source_location ชี้ไปที่ที่ไม่มีอยู่จริง — ความจริงสองชุดขัดกัน",
+  "scope_granted": [
+    "เพิ่ม mutation ชนิด RETIRE ใน control/registration-update/",
+    "เพิ่ม setCapabilityStatus ใน RegistryStore และตัว implement ทั้งสองตัว"
+  ],
+  "scope_not_granted": [
+    "ลบแถวออกจากทะเบียน — ไม่ทำ ประวัติต้องตรวจสอบย้อนหลังได้",
+    "แก้ไขตัวตนของ capability (canonical_name · capability_id)",
+    "เพิ่ม mutation ชนิดอื่นนอกจาก RETIRE"
+  ],
+  "files_changed": [
+    "software/registry-database/store-port.ts",
+    "software/registry-database/adapters/persistent-file-store.ts",
+    "software/registry-database/adapters/local-file-store.ts",
+    "control/registration-update/types.ts",
+    "control/registration-update/validation.ts",
+    "control/registration-update/mutation.ts"
+  ],
+  "applied": { "retired": 39, "rejected": 0, "not_found": 0 },
+  "verification": {
+    "registry_status_after": { "REGISTERED": 124, "RETIRED": 39 },
+    "evidence_rows_written": 39,
+    "registration_update_tests": "13 passed, 0 failed"
+  },
+  "relock": {
+    "status": "RELOCKED",
+    "relocked_at": "2026-09-04",
+    "meaning": "ขอบเขต Registry กลับสู่สถานะ LOCKED — การเปลี่ยนแปลงถัดไปต้องขอ OWNER UNLOCK ใหม่",
+    "note": "RETIRE เป็นเส้นทางถาวรที่เพิ่มแล้ว แต่การเพิ่ม mutation ชนิดใหม่หลังจากนี้ต้องปลดล็อกอีกครั้ง"
+  }
+}

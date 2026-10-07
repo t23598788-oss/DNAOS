@@ -1,0 +1,142 @@
+{
+ "flow_id": "VF_DOCUMENT_TO_PAYMENT",
+ "business_flow": "ออกเอกสารแล้วตามเก็บเงิน",
+ "source": "ร่างเอกสารจากหลังบ้าน",
+ "sink": "หนี้ที่ปิดแล้ว",
+ "stages": [
+  {
+   "stage_id": "VF4.1",
+   "layer": "L2_IDENTITY_CONTEXT",
+   "nature": "DECISION",
+   "operation": "RESOLVE_IDENTITY",
+   "component": "requireAuth + ADMIN_TIER",
+   "input": "session ผู้เรียก",
+   "output": "สิทธิ์แอดมิน",
+   "data_object": [],
+   "authority": "ADMIN_TIER",
+   "side_effect": null,
+   "next_stage": "VF4.2",
+   "failure_path": "ไม่ผ่าน = ปฏิเสธ",
+   "source_pointer": "app/api/admin/documents/route.ts:2,3"
+  },
+  {
+   "stage_id": "VF4.2",
+   "layer": "L4_CALCULATION",
+   "nature": "DECISION",
+   "operation": "CALCULATION",
+   "component": "engines/documents/engine.ts",
+   "input": "รายการในเอกสาร",
+   "output": "ยอดก่อนภาษี ภาษี ยอดสุทธิ",
+   "data_object": [],
+   "authority": "การคำนวณอยู่ในซอร์ส ไม่ใช่ AI",
+   "side_effect": null,
+   "next_stage": "VF4.3",
+   "failure_path": "รายการว่าง = ยอดเป็นศูนย์",
+   "source_pointer": "engines/documents/engine.ts:31"
+  },
+  {
+   "stage_id": "VF4.3",
+   "layer": "L6_ARTIFACT",
+   "nature": "DECISION",
+   "operation": "ARTIFACT",
+   "component": "engines/documents/artifact.ts",
+   "input": "ผลคำนวณ",
+   "output": "PDF และ PNG",
+   "data_object": [
+    "invoices",
+    "standalone_documents"
+   ],
+   "authority": "ข้อมูลผู้ออกมาจาก company settings",
+   "side_effect": "สร้างไฟล์และเขียนเอกสาร",
+   "next_stage": "VF4.4",
+   "failure_path": "สร้างไฟล์ไม่สำเร็จ = ส่งไม่ได้",
+   "source_pointer": "engines/documents/artifact.ts:140"
+  },
+  {
+   "stage_id": "VF4.4",
+   "layer": "L8_EXTERNAL_ACTION",
+   "nature": "EXTERNAL_ACTION",
+   "operation": "ACTION",
+   "component": "send-document/route.ts",
+   "input": "เอกสาร",
+   "output": "ข้อความ LINE ที่ส่งแล้ว",
+   "data_object": [
+    "company_line_links",
+    "line_events"
+   ],
+   "authority": "company_line_links กำหนดว่าส่งเข้าแชทไหนได้",
+   "side_effect": "ส่งเอกสารถึงลูกค้าจริง",
+   "next_stage": "VF4.5",
+   "failure_path": "ส่งไม่สำเร็จ = ไม่บันทึกว่าส่งแล้ว",
+   "source_pointer": "app/api/admin/line-customers/[lineUserId]/send-document/route.ts:97"
+  },
+  {
+   "stage_id": "VF4.5",
+   "layer": "L5_TRANSACTION_STATE",
+   "nature": "DECISION",
+   "operation": "TRANSACTION",
+   "component": "engines/auto-confirm-payment.ts",
+   "input": "การแจ้งชำระจากลูกค้า",
+   "output": "หนี้ที่ปรับแล้ว",
+   "data_object": [
+    "debt_events",
+    "debt_snapshots"
+   ],
+   "authority": "deterministic",
+   "side_effect": "ปรับยอดหนี้",
+   "next_stage": null,
+   "failure_path": "ไม่พบหนี้ที่ตรง",
+   "source_pointer": "supabase/functions/line-webhook-v2/engines/auto-confirm-payment.ts:120"
+  }
+ ],
+ "terminal_state": "หนี้ปิด และมีร่องรอยการส่งใน line_events",
+ "financial_effect": [
+  {
+   "effect": "REVENUE_CREATED",
+   "data_object": [
+    "invoices",
+    "standalone_documents"
+   ],
+   "deterministic_calculation": "engines/documents/artifact.ts:133-136"
+  },
+  {
+   "effect": "TAX_CREATED",
+   "data_object": [
+    "invoices"
+   ],
+   "deterministic_calculation": "engines/documents/artifact.ts:134"
+  },
+  {
+   "effect": "SETTLED",
+   "data_object": [
+    "debt_snapshots"
+   ],
+   "deterministic_calculation": "supabase/functions/line-webhook-v2/engines/auto-confirm-payment.ts:120"
+  }
+ ],
+ "projection": [
+  {
+   "surface": "deadboard /admin/documents",
+   "canonical_source": [
+    "invoices",
+    "standalone_documents"
+   ],
+   "projection_object": [
+    "invoices",
+    "standalone_documents"
+   ],
+   "refresh": "REQUEST",
+   "reads_raw_ingestion": false,
+   "reason": "อ่านตารางเอกสารโดยตรง"
+  }
+ ],
+ "external_action": [
+  "LINE ส่งเอกสารถึงลูกค้า"
+ ],
+ "health": "PARTIAL",
+ "last_confirmed_stage": "VF4.5",
+ "expected_next_stage": null,
+ "blocker": "รายการบรรทัดของเอกสารเดินไม่สุด — invoice_items และ standalone_document_items มีคนอ่านแต่ไม่มีใครเขียน คอมเมนต์ที่ engines/documents/flex-template.ts:63 บอกว่าถูกยกเลิกไปตอน 2026-07-10 แต่ตารางยังอยู่ใน production",
+ "runtime_trace": [],
+ "schema": "DATA_FLOW_V1"
+}

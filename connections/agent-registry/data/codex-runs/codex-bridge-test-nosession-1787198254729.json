@@ -1,0 +1,19 @@
+{
+  "args": [
+    "exec",
+    "resume",
+    "--last",
+    "-C",
+    "/Users/tam/Desktop/DNA-OS-INFRASTRUCTURE/tests/__sandbox__/",
+    "-s",
+    "workspace-write",
+    "--approve-for-me",
+    "--json",
+    "write a one-line probe file"
+  ],
+  "stdout": "",
+  "stderr": "Error: no session found to resume",
+  "exitCode": 1,
+  "signal": null,
+  "timedOut": false
+}

@@ -1,0 +1,4 @@
+DNA OS — APPLICATION_01 SOFTWARE_DELIVERY acceptance
+This file was written by control/source-execution through the GitHub Contents API,
+not by a git CLI commit (the Process Gate denies git commit/push by design).
+stamp: 20260901T054952Z

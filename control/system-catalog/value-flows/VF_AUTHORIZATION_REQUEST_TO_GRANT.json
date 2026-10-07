@@ -1,0 +1,64 @@
+{
+ "flow_id": "VF_AUTHORIZATION_REQUEST_TO_GRANT",
+ "business_flow": "ขออนุมัติสิทธิ์หน้างานจนได้รับอนุมัติ",
+ "source": "ผู้ใช้ LINE ที่ยังไม่มีสิทธิ์",
+ "sink": "ไม่มีปลายทาง",
+ "stages": [
+  {
+   "stage_id": "VF8.1",
+   "layer": "L2_IDENTITY_CONTEXT",
+   "nature": "DECISION",
+   "operation": "RESOLVE_IDENTITY",
+   "component": "engines/authorization-check.ts",
+   "input": "ผู้ใช้และหน้างาน",
+   "output": "ผลว่ามีสิทธิ์หรือไม่",
+   "data_object": [
+    "customer_sites",
+    "company_line_links"
+   ],
+   "authority": "company_line_links",
+   "side_effect": null,
+   "next_stage": "VF8.2",
+   "failure_path": "ไม่พบหน้างาน = ตรวจไม่ได้",
+   "source_pointer": "supabase/functions/line-webhook-v2/engines/authorization-check.ts:33,37"
+  },
+  {
+   "stage_id": "VF8.2",
+   "layer": "L2_IDENTITY_CONTEXT",
+   "nature": "DECISION",
+   "operation": "BUSINESS_STATE",
+   "component": "engines/authorization-check.ts",
+   "input": "ผู้ขอและหน้างาน",
+   "output": "คำขออนุมัติสถานะ pending",
+   "data_object": [
+    "pending_authorizations"
+   ],
+   "authority": "เจ้าของบริษัทเป็นผู้อนุมัติ ไม่ใช่ระบบ",
+   "side_effect": "เขียน pending_authorizations",
+   "next_stage": null,
+   "failure_path": "ไม่มีผู้อนุมัติในบริษัท = ขอไม่ได้",
+   "source_pointer": "supabase/functions/line-webhook-v2/engines/authorization-check.ts:60"
+  }
+ ],
+ "terminal_state": "ไม่มี — คำขอค้างที่สถานะ pending ตลอดไป",
+ "financial_effect": [],
+ "projection": [
+  {
+   "surface": "ไม่มี",
+   "canonical_source": [
+    "pending_authorizations"
+   ],
+   "projection_object": [],
+   "refresh": "NONE",
+   "reads_raw_ingestion": false,
+   "reason": "ไม่มีหน้าจอใดอ่านตารางนี้"
+  }
+ ],
+ "external_action": [],
+ "health": "DEAD_END",
+ "last_confirmed_stage": "VF8.2",
+ "expected_next_stage": "การอนุมัติหรือปฏิเสธโดยเจ้าของบริษัท",
+ "blocker": "pending_authorizations มีผู้เขียน 2 จุด ผู้อ่าน 0 จุด และไม่มีหน้าจอใดแสดง สคีมามีสถานะ pending/approved/denied/expired แต่ไม่มีโค้ดใดเปลี่ยนสถานะ — คำขออนุมัติเข้าไปแล้วไม่มีใครเห็นและไม่มีทางออก",
+ "runtime_trace": [],
+ "schema": "DATA_FLOW_V1"
+}

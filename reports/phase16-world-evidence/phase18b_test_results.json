@@ -1,0 +1,51 @@
+{
+  "results": [
+    {
+      "name": "SERVICE_CANDIDATE record has all required fields",
+      "pass": true,
+      "detail": "problem_id,target_group,solution,existing_capabilities,delivery_channel,entry_point,user_action,value_delivered,price,cost_to_deliver,payment_method,cash_destination,measurement_events,evidence_ids,unknowns,status"
+    },
+    {
+      "name": "Every SERVICE_CANDIDATE status is from the valid enum",
+      "pass": true,
+      "detail": "DELIVERY_UNPROVEN,DELIVERY_UNPROVEN"
+    },
+    {
+      "name": "No candidate reached PAID (payment can only be set by an observed reconciled event, none occurred)",
+      "pass": true,
+      "detail": "none PAID"
+    },
+    {
+      "name": "No user/usage/payment/cash stage carries a fabricated non-zero count",
+      "pass": true,
+      "detail": "all real_count in {null, 0}"
+    },
+    {
+      "name": "All funnel rates report UNCOMPUTABLE (no observed funnel exists yet — none were guessed)",
+      "pass": true,
+      "detail": "checked reach_rate..repeat_rate for both candidates"
+    },
+    {
+      "name": "Full PROBLEM->PEOPLE->SERVICE->CHANNEL->USER->USAGE->RESULT->PRICE->PAYMENT->CASH chain exists as real graph node kinds",
+      "pass": true,
+      "detail": "SOURCE,SUBJECT,OBSERVATION,METRIC,EVIDENCE,CONSTRAINT,RESOURCE,COMPUTATION,DECISION_STATE,PEOPLE,SERVICE,CHANNEL,USER,USAGE,RESULT,PRICE,PAYMENT,CASH"
+    },
+    {
+      "name": "Every CASH node reverse-traces to a real SOURCE node (cash<-payment<-...<-EVIDENCE<-OBSERVATION<-SOURCE)",
+      "pass": true,
+      "detail": "2 CASH nodes checked"
+    },
+    {
+      "name": "Existing Circuit server serves /world-evidence/services live (same server, same page)",
+      "pass": true,
+      "detail": "served=true"
+    },
+    {
+      "name": "CAPITAL_RELEASED remains 0 (no SERVICE_CANDIDATE reached TESTABLE, so the 10,001 THB experiment has not begun)",
+      "pass": true,
+      "detail": "DELIVERY_UNPROVEN,DELIVERY_UNPROVEN"
+    }
+  ],
+  "passed": 9,
+  "failed": 0
+}

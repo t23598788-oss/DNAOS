@@ -1,0 +1,5 @@
+alpha line
+beta line with zzqegate-local-resource-marker
+gamma line
+
+This document is large enough that local extraction must run before any external-AI-style result is returned.

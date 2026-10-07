@@ -1,0 +1,900 @@
+{
+  "$generated_from": "circuit.json + sbgn-view-builder.ts — run `npx tsx dna-os-circuit/definition/build-sbgn-view.ts` to regenerate. Presentation-layer only: adds no new live-tracked topology.",
+  "statuses": {
+    "node": [
+      "READY",
+      "RUNNING",
+      "PARTIAL",
+      "BLOCKED",
+      "NOT_YET_REAL"
+    ],
+    "edge": [
+      "IDLE",
+      "ACTIVE"
+    ]
+  },
+  "symbols": {
+    "READY": "●",
+    "RUNNING": "◉",
+    "PARTIAL": "○",
+    "BLOCKED": "×",
+    "NOT_YET_REAL": "–"
+  },
+  "nodes": [
+    {
+      "data": {
+        "id": "ENTRY_CONTEXT_DOMAIN",
+        "class": "compartment",
+        "label": "ENTRY CONTEXT DOMAIN",
+        "clonemarker": false,
+        "stateVariables": [],
+        "unitsOfInformation": [],
+        "sbgnPresentationOnly": true
+      }
+    },
+    {
+      "data": {
+        "id": "PERMISSION_DOMAIN",
+        "class": "compartment",
+        "label": "PERMISSION DOMAIN",
+        "clonemarker": false,
+        "stateVariables": [],
+        "unitsOfInformation": [],
+        "sbgnPresentationOnly": true
+      }
+    },
+    {
+      "data": {
+        "id": "EXECUTION_DOMAIN",
+        "class": "compartment",
+        "label": "EXECUTION DOMAIN",
+        "clonemarker": false,
+        "stateVariables": [],
+        "unitsOfInformation": [],
+        "sbgnPresentationOnly": true
+      }
+    },
+    {
+      "data": {
+        "id": "INPUT",
+        "class": "simple chemical",
+        "label": "INPUT",
+        "source_note": "Owner text intent — the conceptual entry point; no dedicated file, always present.",
+        "clonemarker": false,
+        "stateVariables": [],
+        "unitsOfInformation": []
+      }
+    },
+    {
+      "data": {
+        "id": "OWNER_COMMAND",
+        "class": "macromolecule",
+        "label": "OWNER COMMAND",
+        "source_note": "control/owner-command/owner-command.ts — submitOwnerCommand/previewOwnerCommand exist, no transport wired yet (SOURCE_ONLY per capability map), still a real callable module.",
+        "clonemarker": false,
+        "stateVariables": [],
+        "unitsOfInformation": []
+      }
+    },
+    {
+      "data": {
+        "id": "ENTRY_CONTEXT",
+        "class": "process",
+        "label": "ENTRY CONTEXT",
+        "source_note": "control/entry-context/contract.ts resolveEntryContext — real, tested (entry-context.test.ts + account-workspace-resolution.test.ts), the only place that assembles Identity/Account/Workspace/Membership/Command/Grant before permission evaluation. Added 2026-08-16 when the Account/Workspace gap closed.",
+        "clonemarker": false,
+        "stateVariables": [],
+        "unitsOfInformation": []
+      }
+    },
+    {
+      "data": {
+        "id": "IDENTITY",
+        "class": "nucleic acid feature",
+        "label": "IDENTITY",
+        "parent": "ENTRY_CONTEXT_DOMAIN",
+        "source_note": "permissions/access-control/identity-registry.ts — real, in-memory store (registerIdentity/getIdentityRegistration/setIdentityStatus), consumed by control/entry-context/resolver.ts. Flipped from PARTIAL 2026-08-16 once this registry was built (previously only contracts/identity/envelope-identity.ts's type existed, with no resolver).",
+        "clonemarker": false,
+        "stateVariables": [],
+        "unitsOfInformation": []
+      }
+    },
+    {
+      "data": {
+        "id": "ACCOUNT",
+        "class": "nucleic acid feature",
+        "label": "ACCOUNT",
+        "parent": "ENTRY_CONTEXT_DOMAIN",
+        "source_note": "permissions/software-scope/account-registry.ts — real store (registerAccount/getAccount/listAccounts/suspendAccount), tested 8/8. Closes the Account-resolution gap: control/entry-context/resolver.ts now requires a real, ACTIVE Account before any account-scoped Membership is treated as real.",
+        "clonemarker": false,
+        "stateVariables": [],
+        "unitsOfInformation": []
+      }
+    },
+    {
+      "data": {
+        "id": "WORKSPACE",
+        "class": "nucleic acid feature",
+        "label": "WORKSPACE",
+        "parent": "ENTRY_CONTEXT_DOMAIN",
+        "source_note": "permissions/software-scope/workspace-registry.ts — real store, tested 11/11. control/entry-context/resolver.ts requires a real, ACTIVE Workspace whose account_id matches the requested account (cross-account rejection) before any workspace-scoped Membership is treated as real.",
+        "clonemarker": false,
+        "stateVariables": [],
+        "unitsOfInformation": []
+      }
+    },
+    {
+      "data": {
+        "id": "MEMBERSHIP",
+        "class": "nucleic acid feature",
+        "label": "MEMBERSHIP",
+        "parent": "ENTRY_CONTEXT_DOMAIN",
+        "source_note": "permissions/access-control/membership-registry.ts — real store. control/entry-context/resolver.ts FILTERS this array against real Account/Workspace validity before it reaches permissions/execution-policy/rules.ts — rules.ts itself is never modified; a dangling/invalid-scope Membership is dropped here, never made real.",
+        "clonemarker": false,
+        "stateVariables": [],
+        "unitsOfInformation": []
+      }
+    },
+    {
+      "data": {
+        "id": "COMMAND_POLICY",
+        "class": "macromolecule",
+        "label": "COMMAND POLICY",
+        "parent": "ENTRY_CONTEXT_DOMAIN",
+        "source_note": "execution/run/policy-descriptor.ts projectCommandPolicyDescriptor — real, tested, consumed by control/entry-context/resolver.ts to resolve the real CommandPolicyDescriptor for the requested command_id.",
+        "clonemarker": false,
+        "stateVariables": [],
+        "unitsOfInformation": []
+      }
+    },
+    {
+      "data": {
+        "id": "EXECUTION_GRANT",
+        "class": "nucleic acid feature",
+        "label": "EXECUTION GRANT",
+        "parent": "ENTRY_CONTEXT_DOMAIN",
+        "source_note": "permissions/execution-policy/grants.ts — real store (issueExecutionGrant/listExecutionGrantsForIdentity), tested 22/22 in grants.test.ts, consumed by control/entry-context/resolver.ts.",
+        "clonemarker": false,
+        "stateVariables": [],
+        "unitsOfInformation": []
+      }
+    },
+    {
+      "data": {
+        "id": "COMMAND_ROUTER",
+        "class": "association",
+        "label": "COMMAND ROUTER",
+        "source_note": "control/command-router/router.ts + capability-registry.ts — real routing logic, SOURCE_ONLY (no transport caller yet) but a real callable module.",
+        "clonemarker": false,
+        "stateVariables": [],
+        "unitsOfInformation": []
+      }
+    },
+    {
+      "data": {
+        "id": "PERMISSION",
+        "class": "complex",
+        "label": "PERMISSION",
+        "parent": "PERMISSION_DOMAIN",
+        "source_note": "permissions/execution-policy/contract.ts evaluateExecutionPermission — real, tested (32/32), CONNECTED in capability-registry.ts. Positioned AFTER COMMAND_ROUTER (corrected 2026-08-16): control/command-router/router.ts's routeOwnerCommand classifies the destination first, then runExecutionStep evaluates permission before dispatching — verified by reading that file, not assumed.",
+        "clonemarker": false,
+        "stateVariables": [],
+        "unitsOfInformation": []
+      }
+    },
+    {
+      "data": {
+        "id": "EXECUTION",
+        "class": "complex",
+        "label": "EXECUTION",
+        "parent": "EXECUTION_DOMAIN",
+        "source_note": "execution/run/contract.ts startExecution — real, tested (37/37), CONNECTED in capability-registry.ts.",
+        "clonemarker": false,
+        "stateVariables": [],
+        "unitsOfInformation": []
+      }
+    },
+    {
+      "data": {
+        "id": "VALIDATOR",
+        "class": "process",
+        "label": "VALIDATOR",
+        "parent": "EXECUTION_DOMAIN",
+        "source_note": "No validator module exists anywhere in this repo (verified: no file/folder named validator*, no capability-registry.ts entry). Node kept per fixed topology, honestly marked not-yet-real.",
+        "clonemarker": false,
+        "stateVariables": [],
+        "unitsOfInformation": []
+      }
+    },
+    {
+      "data": {
+        "id": "REGISTRY",
+        "class": "nucleic acid feature",
+        "label": "REGISTRY",
+        "parent": "EXECUTION_DOMAIN",
+        "source_note": "execution/run/registry.ts (COMMAND_REGISTRY) and control/command-router/capability-registry.ts both exist and are real, but there is no single unified 'REGISTRY' capability wired as its own routable destination — partial/fragmented, not a single connected capability.",
+        "clonemarker": false,
+        "stateVariables": [],
+        "unitsOfInformation": []
+      }
+    },
+    {
+      "data": {
+        "id": "RESULT",
+        "class": "tag",
+        "label": "RESULT",
+        "source_note": "contracts/command/capability-result.ts CapabilityResult — the real uniform result shape every capability returns through.",
+        "clonemarker": false,
+        "stateVariables": [],
+        "unitsOfInformation": []
+      }
+    },
+    {
+      "data": {
+        "id": "OWNER_UI",
+        "class": "macromolecule",
+        "label": "OWNER UI",
+        "source_note": "control/owner-command/owner-command.ts renderOwnerSurface exists (produces OwnerSurfaceState) but no real UI/transport renders it to an actual Owner screen yet.",
+        "clonemarker": false,
+        "stateVariables": [],
+        "unitsOfInformation": []
+      }
+    },
+    {
+      "data": {
+        "id": "EXEC_COMMAND_DESCRIPTOR",
+        "class": "macromolecule",
+        "label": "Command Descriptor",
+        "parent": "EXECUTION",
+        "source_note": "execution/run/types.ts CommandDescriptor + execution/run/registry.ts COMMAND_REGISTRY — real, 4 registered commands.",
+        "clonemarker": false,
+        "stateVariables": [],
+        "unitsOfInformation": []
+      }
+    },
+    {
+      "data": {
+        "id": "EXEC_GRANT_RESOLUTION",
+        "class": "process",
+        "label": "Grant Resolution",
+        "parent": "EXECUTION",
+        "source_note": "permissions/execution-policy/rules.ts resolveGrant — real, the only rule allowed to ALLOW.",
+        "clonemarker": false,
+        "stateVariables": [],
+        "unitsOfInformation": []
+      }
+    },
+    {
+      "data": {
+        "id": "EXEC_POLICY_EVALUATION",
+        "class": "process",
+        "label": "Policy Evaluation",
+        "parent": "EXECUTION",
+        "source_note": "permissions/execution-policy/policy.ts evaluateExecutionPermission — real, runs rules 1-9 in fixed order.",
+        "clonemarker": false,
+        "stateVariables": [],
+        "unitsOfInformation": []
+      }
+    },
+    {
+      "data": {
+        "id": "EXEC_START_EXECUTION",
+        "class": "process",
+        "label": "Start Execution",
+        "parent": "EXECUTION",
+        "source_note": "execution/run/executor.ts startExecution — real, verifies ALLOW decision, spawns with shell:false.",
+        "clonemarker": false,
+        "stateVariables": [],
+        "unitsOfInformation": []
+      }
+    },
+    {
+      "data": {
+        "id": "EXEC_PROCESS_RUNTIME",
+        "class": "macromolecule",
+        "label": "Process Runtime",
+        "parent": "EXECUTION",
+        "source_note": "execution/run/executor.ts spawnProcess/host-runtime.ts — real child_process spawn, concurrency + exclusive-lock guards.",
+        "clonemarker": false,
+        "stateVariables": [],
+        "unitsOfInformation": []
+      }
+    },
+    {
+      "data": {
+        "id": "EXEC_OUTPUT_SANITIZATION",
+        "class": "process",
+        "label": "Output Sanitization",
+        "parent": "EXECUTION",
+        "source_note": "execution/run/result.ts sanitizeChunk — real, truncation + output-limit handling.",
+        "clonemarker": false,
+        "stateVariables": [],
+        "unitsOfInformation": []
+      }
+    },
+    {
+      "data": {
+        "id": "EXEC_INTEGRITY_CHECK",
+        "class": "process",
+        "label": "Integrity Check",
+        "parent": "EXECUTION",
+        "source_note": "execution/run/result.ts diffWorkspaceSnapshots — real, before/after `git status --porcelain=v2` diff, workspacePolicyViolation flag.",
+        "clonemarker": false,
+        "stateVariables": [],
+        "unitsOfInformation": []
+      }
+    },
+    {
+      "data": {
+        "id": "EXEC_EXECUTION_RESULT",
+        "class": "tag",
+        "label": "Execution Result",
+        "parent": "EXECUTION",
+        "source_note": "execution/run/types.ts ExecutionResult — real, returned by startExecution/getExecution.",
+        "clonemarker": false,
+        "stateVariables": [],
+        "unitsOfInformation": []
+      }
+    },
+    {
+      "data": {
+        "id": "DO_CREDENTIAL_BINDING",
+        "class": "process",
+        "label": "DO Credential Binding",
+        "parent": "EXECUTION",
+        "source_note": "credentials/provider-accounts/digitalocean/types.ts + status.ts + scope-policy.ts + expiry-policy.ts + rotation-policy.ts — real, tested (4/4 policies.test.ts). PARTIAL because no real registry/persistence exists: AccountBindingProvider (connections/digitalocean/binding-provider.ts) has zero real implementation, only an interface, per credentials/provider-accounts/digitalocean/README.md's own STATUS: TYPES_DEFINED.",
+        "clonemarker": false,
+        "stateVariables": [],
+        "unitsOfInformation": []
+      }
+    },
+    {
+      "data": {
+        "id": "DO_CONNECTOR",
+        "class": "macromolecule",
+        "label": "DigitalOcean Connector",
+        "parent": "EXECUTION",
+        "source_note": "connections/digitalocean/digitalocean-adapter.ts handleDigitalOceanReadCommand — real, tested 13/13 (connections/digitalocean/tests/adapter.test.ts), live-verified 2026-08-17: a real CommandEnvelope was run through this exact function with the real default hostFetch (no fake network), reaching the real DigitalOcean API. 5 read-only intents (account/regions/sizes/droplets/billing). NOT wired into control/command-router/'s invocable path — registered in capability-registry.ts as metadata only (health_status: NOT_CONNECTED), because its entry point requires an injected AccountBindingProvider/CredentialProvider that have no real implementation, and the router has no mechanism to supply one yet.",
+        "clonemarker": false,
+        "stateVariables": [],
+        "unitsOfInformation": []
+      }
+    },
+    {
+      "data": {
+        "id": "DO_API_CALL",
+        "class": "process",
+        "label": "DigitalOcean API Call",
+        "parent": "EXECUTION",
+        "source_note": "connections/digitalocean/digitalocean-read-api.ts — real GET-only request construction (mechanically enforced, no method/body parameter anywhere in connections/digitalocean/host-runtime.ts). Live-verified 2026-08-17: a real network round trip to https://api.digitalocean.com/v2/account occurred and received a real HTTP 404 response, correctly reported as a failure (never swallowed). Marked BLOCKED, not READY, because a genuinely AUTHENTICATED real call has never succeeded — no real DigitalOcean credential exists anywhere in this repo/environment (verified by env scan, 2026-08-17); connections/digitalocean/credential-provider.ts's CredentialProvider has zero real implementation because Vault does not exist yet.",
+        "clonemarker": false,
+        "stateVariables": [],
+        "unitsOfInformation": []
+      }
+    },
+    {
+      "data": {
+        "id": "DO_RESULT_EVIDENCE",
+        "class": "tag",
+        "label": "DO Result / Evidence",
+        "parent": "EXECUTION",
+        "source_note": "connections/digitalocean/evidence.ts + adapter-contract.ts's normalized result types — real, tested; live-verified 2026-08-17 producing a real CapabilityResultEvidence[] trail (5 entries: binding resolved, status checked, scope checked, credential resolved, API call reported) and a correctly-typed RoutingResult rejection for the real HTTP 404 response above.",
+        "clonemarker": false,
+        "stateVariables": [],
+        "unitsOfInformation": []
+      }
+    },
+    {
+      "data": {
+        "id": "PERM_IDENTITY_CHECK",
+        "class": "process",
+        "label": "Identity Check",
+        "parent": "PERMISSION",
+        "source_note": "permissions/execution-policy/rules.ts ruleIdentityKnown — real (rule 2).",
+        "clonemarker": false,
+        "stateVariables": [],
+        "unitsOfInformation": []
+      }
+    },
+    {
+      "data": {
+        "id": "PERM_ACCOUNT_CHECK",
+        "class": "process",
+        "label": "Account Check",
+        "parent": "PERMISSION",
+        "source_note": "permissions/execution-policy/rules.ts ruleAccountMembershipValid — real (rule 3).",
+        "clonemarker": false,
+        "stateVariables": [],
+        "unitsOfInformation": []
+      }
+    },
+    {
+      "data": {
+        "id": "PERM_WORKSPACE_CHECK",
+        "class": "process",
+        "label": "Workspace Check",
+        "parent": "PERMISSION",
+        "source_note": "permissions/execution-policy/rules.ts ruleWorkspaceMembershipValid — real (rule 4).",
+        "clonemarker": false,
+        "stateVariables": [],
+        "unitsOfInformation": []
+      }
+    },
+    {
+      "data": {
+        "id": "PERM_COMMAND_CHECK",
+        "class": "process",
+        "label": "Command Check",
+        "parent": "PERMISSION",
+        "source_note": "permissions/execution-policy/rules.ts ruleCommandKnown — real (rule 5).",
+        "clonemarker": false,
+        "stateVariables": [],
+        "unitsOfInformation": []
+      }
+    },
+    {
+      "data": {
+        "id": "PERM_CAPABILITY_CHECK",
+        "class": "process",
+        "label": "Capability Check",
+        "parent": "PERMISSION",
+        "source_note": "permissions/execution-policy/rules.ts ruleCapabilityScope — real (rule 6).",
+        "clonemarker": false,
+        "stateVariables": [],
+        "unitsOfInformation": []
+      }
+    },
+    {
+      "data": {
+        "id": "PERM_ACTION_CHECK",
+        "class": "process",
+        "label": "Action Check",
+        "parent": "PERMISSION",
+        "source_note": "permissions/execution-policy/rules.ts ruleActionScope — real (rule 7).",
+        "clonemarker": false,
+        "stateVariables": [],
+        "unitsOfInformation": []
+      }
+    },
+    {
+      "data": {
+        "id": "PERM_CWD_SCOPE_CHECK",
+        "class": "process",
+        "label": "CWD Scope Check",
+        "parent": "PERMISSION",
+        "source_note": "permissions/execution-policy/rules.ts ruleCwdScope — real (rule 8).",
+        "clonemarker": false,
+        "stateVariables": [],
+        "unitsOfInformation": []
+      }
+    },
+    {
+      "data": {
+        "id": "PERM_GRANT_RESOLUTION",
+        "class": "process",
+        "label": "Grant Resolution",
+        "parent": "PERMISSION",
+        "source_note": "permissions/execution-policy/rules.ts resolveGrant — real (rule 9, terminal).",
+        "clonemarker": false,
+        "stateVariables": [],
+        "unitsOfInformation": []
+      }
+    },
+    {
+      "data": {
+        "id": "PERM_TERMINAL",
+        "class": "or",
+        "label": "ALLOW / DENY / OWNER_REVIEW",
+        "parent": "PERMISSION",
+        "source_note": "permissions/execution-policy/types.ts ExecutionDecisionValue — real terminal decision states.",
+        "clonemarker": false,
+        "stateVariables": [],
+        "unitsOfInformation": []
+      }
+    },
+    {
+      "data": {
+        "id": "PORT_VALIDATOR_0",
+        "class": "unspecified entity",
+        "label": "input:data",
+        "parent": "EXECUTION_DOMAIN",
+        "clonemarker": false,
+        "stateVariables": [],
+        "unitsOfInformation": [],
+        "sbgnPresentationOnly": true
+      }
+    },
+    {
+      "data": {
+        "id": "PORT_VALIDATOR_1",
+        "class": "unspecified entity",
+        "label": "input:evidence",
+        "parent": "EXECUTION_DOMAIN",
+        "clonemarker": false,
+        "stateVariables": [],
+        "unitsOfInformation": [],
+        "sbgnPresentationOnly": true
+      }
+    },
+    {
+      "data": {
+        "id": "PORT_VALIDATOR_2",
+        "class": "unspecified entity",
+        "label": "input:policy",
+        "parent": "EXECUTION_DOMAIN",
+        "clonemarker": false,
+        "stateVariables": [],
+        "unitsOfInformation": [],
+        "sbgnPresentationOnly": true
+      }
+    },
+    {
+      "data": {
+        "id": "PORT_VALIDATOR_3",
+        "class": "unspecified entity",
+        "label": "output:pass",
+        "parent": "EXECUTION_DOMAIN",
+        "clonemarker": false,
+        "stateVariables": [],
+        "unitsOfInformation": [],
+        "sbgnPresentationOnly": true
+      }
+    },
+    {
+      "data": {
+        "id": "PORT_VALIDATOR_4",
+        "class": "unspecified entity",
+        "label": "output:fail",
+        "parent": "EXECUTION_DOMAIN",
+        "clonemarker": false,
+        "stateVariables": [],
+        "unitsOfInformation": [],
+        "sbgnPresentationOnly": true
+      }
+    },
+    {
+      "data": {
+        "id": "PORT_VALIDATOR_5",
+        "class": "unspecified entity",
+        "label": "output:owner_review",
+        "parent": "EXECUTION_DOMAIN",
+        "clonemarker": false,
+        "stateVariables": [],
+        "unitsOfInformation": [],
+        "sbgnPresentationOnly": true
+      }
+    }
+  ],
+  "edges": [
+    {
+      "data": {
+        "id": "e_input_owner_command",
+        "class": "necessary stimulation",
+        "source": "INPUT",
+        "target": "OWNER_COMMAND"
+      }
+    },
+    {
+      "data": {
+        "id": "e_owner_command_entry_context",
+        "class": "necessary stimulation",
+        "source": "OWNER_COMMAND",
+        "target": "ENTRY_CONTEXT"
+      }
+    },
+    {
+      "data": {
+        "id": "e_entry_context_identity",
+        "class": "consumption",
+        "source": "ENTRY_CONTEXT",
+        "target": "IDENTITY"
+      }
+    },
+    {
+      "data": {
+        "id": "e_identity_account",
+        "class": "consumption",
+        "source": "IDENTITY",
+        "target": "ACCOUNT"
+      }
+    },
+    {
+      "data": {
+        "id": "e_account_workspace",
+        "class": "consumption",
+        "source": "ACCOUNT",
+        "target": "WORKSPACE"
+      }
+    },
+    {
+      "data": {
+        "id": "e_workspace_membership",
+        "class": "consumption",
+        "source": "WORKSPACE",
+        "target": "MEMBERSHIP"
+      }
+    },
+    {
+      "data": {
+        "id": "e_membership_command_policy",
+        "class": "consumption",
+        "source": "MEMBERSHIP",
+        "target": "COMMAND_POLICY"
+      }
+    },
+    {
+      "data": {
+        "id": "e_command_policy_execution_grant",
+        "class": "consumption",
+        "source": "COMMAND_POLICY",
+        "target": "EXECUTION_GRANT"
+      }
+    },
+    {
+      "data": {
+        "id": "e_execution_grant_router",
+        "class": "necessary stimulation",
+        "source": "EXECUTION_GRANT",
+        "target": "COMMAND_ROUTER"
+      }
+    },
+    {
+      "data": {
+        "id": "e_router_permission",
+        "class": "necessary stimulation",
+        "source": "COMMAND_ROUTER",
+        "target": "PERMISSION"
+      }
+    },
+    {
+      "data": {
+        "id": "e_permission_execution",
+        "class": "stimulation",
+        "source": "PERMISSION",
+        "target": "EXECUTION"
+      }
+    },
+    {
+      "data": {
+        "id": "e_router_validator",
+        "class": "inhibition",
+        "source": "COMMAND_ROUTER",
+        "target": "VALIDATOR"
+      }
+    },
+    {
+      "data": {
+        "id": "e_router_registry",
+        "class": "catalysis",
+        "source": "COMMAND_ROUTER",
+        "target": "REGISTRY"
+      }
+    },
+    {
+      "data": {
+        "id": "e_execution_result",
+        "class": "production",
+        "source": "EXECUTION",
+        "target": "RESULT"
+      }
+    },
+    {
+      "data": {
+        "id": "e_validator_result",
+        "class": "catalysis",
+        "source": "VALIDATOR",
+        "target": "RESULT"
+      }
+    },
+    {
+      "data": {
+        "id": "e_registry_result",
+        "class": "catalysis",
+        "source": "REGISTRY",
+        "target": "RESULT"
+      }
+    },
+    {
+      "data": {
+        "id": "e_result_owner_ui",
+        "class": "production",
+        "source": "RESULT",
+        "target": "OWNER_UI"
+      }
+    },
+    {
+      "data": {
+        "id": "se_descriptor_grant",
+        "class": "consumption",
+        "source": "EXEC_COMMAND_DESCRIPTOR",
+        "target": "EXEC_GRANT_RESOLUTION"
+      }
+    },
+    {
+      "data": {
+        "id": "se_grant_policy",
+        "class": "necessary stimulation",
+        "source": "EXEC_GRANT_RESOLUTION",
+        "target": "EXEC_POLICY_EVALUATION"
+      }
+    },
+    {
+      "data": {
+        "id": "se_policy_start",
+        "class": "necessary stimulation",
+        "source": "EXEC_POLICY_EVALUATION",
+        "target": "EXEC_START_EXECUTION"
+      }
+    },
+    {
+      "data": {
+        "id": "se_start_process",
+        "class": "necessary stimulation",
+        "source": "EXEC_START_EXECUTION",
+        "target": "EXEC_PROCESS_RUNTIME"
+      }
+    },
+    {
+      "data": {
+        "id": "se_process_sanitize",
+        "class": "production",
+        "source": "EXEC_PROCESS_RUNTIME",
+        "target": "EXEC_OUTPUT_SANITIZATION"
+      }
+    },
+    {
+      "data": {
+        "id": "se_sanitize_integrity",
+        "class": "production",
+        "source": "EXEC_OUTPUT_SANITIZATION",
+        "target": "EXEC_INTEGRITY_CHECK"
+      }
+    },
+    {
+      "data": {
+        "id": "se_integrity_result",
+        "class": "production",
+        "source": "EXEC_INTEGRITY_CHECK",
+        "target": "EXEC_EXECUTION_RESULT"
+      }
+    },
+    {
+      "data": {
+        "id": "se_do_descriptor_binding",
+        "class": "consumption",
+        "source": "EXEC_COMMAND_DESCRIPTOR",
+        "target": "DO_CREDENTIAL_BINDING"
+      }
+    },
+    {
+      "data": {
+        "id": "se_do_binding_connector",
+        "class": "necessary stimulation",
+        "source": "DO_CREDENTIAL_BINDING",
+        "target": "DO_CONNECTOR"
+      }
+    },
+    {
+      "data": {
+        "id": "se_do_connector_api",
+        "class": "necessary stimulation",
+        "source": "DO_CONNECTOR",
+        "target": "DO_API_CALL"
+      }
+    },
+    {
+      "data": {
+        "id": "se_do_api_result",
+        "class": "production",
+        "source": "DO_API_CALL",
+        "target": "DO_RESULT_EVIDENCE"
+      }
+    },
+    {
+      "data": {
+        "id": "sp_wellformed_identity",
+        "class": "consumption",
+        "source": "PERM_IDENTITY_CHECK",
+        "target": "PERM_ACCOUNT_CHECK"
+      }
+    },
+    {
+      "data": {
+        "id": "sp_account_workspace",
+        "class": "consumption",
+        "source": "PERM_ACCOUNT_CHECK",
+        "target": "PERM_WORKSPACE_CHECK"
+      }
+    },
+    {
+      "data": {
+        "id": "sp_workspace_command",
+        "class": "consumption",
+        "source": "PERM_WORKSPACE_CHECK",
+        "target": "PERM_COMMAND_CHECK"
+      }
+    },
+    {
+      "data": {
+        "id": "sp_command_capability",
+        "class": "consumption",
+        "source": "PERM_COMMAND_CHECK",
+        "target": "PERM_CAPABILITY_CHECK"
+      }
+    },
+    {
+      "data": {
+        "id": "sp_capability_action",
+        "class": "consumption",
+        "source": "PERM_CAPABILITY_CHECK",
+        "target": "PERM_ACTION_CHECK"
+      }
+    },
+    {
+      "data": {
+        "id": "sp_action_cwd",
+        "class": "consumption",
+        "source": "PERM_ACTION_CHECK",
+        "target": "PERM_CWD_SCOPE_CHECK"
+      }
+    },
+    {
+      "data": {
+        "id": "sp_cwd_grant",
+        "class": "consumption",
+        "source": "PERM_CWD_SCOPE_CHECK",
+        "target": "PERM_GRANT_RESOLUTION"
+      }
+    },
+    {
+      "data": {
+        "id": "sp_grant_terminal",
+        "class": "necessary stimulation",
+        "source": "PERM_GRANT_RESOLUTION",
+        "target": "PERM_TERMINAL"
+      }
+    },
+    {
+      "data": {
+        "id": "PORT_EDGE_PORT_VALIDATOR_0",
+        "source": "PORT_VALIDATOR_0",
+        "target": "VALIDATOR"
+      }
+    },
+    {
+      "data": {
+        "id": "PORT_EDGE_PORT_VALIDATOR_1",
+        "source": "PORT_VALIDATOR_1",
+        "target": "VALIDATOR"
+      }
+    },
+    {
+      "data": {
+        "id": "PORT_EDGE_PORT_VALIDATOR_2",
+        "source": "PORT_VALIDATOR_2",
+        "target": "VALIDATOR"
+      }
+    },
+    {
+      "data": {
+        "id": "PORT_EDGE_PORT_VALIDATOR_3",
+        "source": "VALIDATOR",
+        "target": "PORT_VALIDATOR_3"
+      }
+    },
+    {
+      "data": {
+        "id": "PORT_EDGE_PORT_VALIDATOR_4",
+        "source": "VALIDATOR",
+        "target": "PORT_VALIDATOR_4"
+      }
+    },
+    {
+      "data": {
+        "id": "PORT_EDGE_PORT_VALIDATOR_5",
+        "source": "VALIDATOR",
+        "target": "PORT_VALIDATOR_5"
+      }
+    }
+  ]
+}

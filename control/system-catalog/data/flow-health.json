@@ -1,0 +1,173 @@
+{
+ "generated_at": "2026-09-05T02:48:50.291Z",
+ "flows": [
+  {
+   "kind": "RUNTIME_FLOW",
+   "flow_id": "FLOW_A_LINE_MESSAGE",
+   "health": "COMPLETE",
+   "last_confirmed_stage": "A11",
+   "expected_next_stage": null,
+   "blocker": null
+  },
+  {
+   "kind": "RUNTIME_FLOW",
+   "flow_id": "FLOW_B_LINE_PROFILE_UPDATE",
+   "health": "BROKEN_SCHEMA",
+   "last_confirmed_stage": "B.4",
+   "expected_next_stage": "ต้องมี object ที่ขาดก่อนจึงจะรันได้",
+   "blocker": "object ที่จำเป็นไม่มีใน live: line_profile_refresh_queue"
+  },
+  {
+   "kind": "RUNTIME_FLOW",
+   "flow_id": "FLOW_C_COMPANY_LINKING",
+   "health": "COMPLETE",
+   "last_confirmed_stage": "C.4",
+   "expected_next_stage": null,
+   "blocker": null
+  },
+  {
+   "kind": "RUNTIME_FLOW",
+   "flow_id": "FLOW_D_DOCUMENT_AUTOFILL",
+   "health": "BROKEN_SCHEMA",
+   "last_confirmed_stage": "D.5",
+   "expected_next_stage": "ต้องมี object ที่ขาดก่อนจึงจะรันได้",
+   "blocker": "object ที่จำเป็นไม่มีใน live: partners, documents"
+  },
+  {
+   "kind": "RUNTIME_FLOW",
+   "flow_id": "FLOW_E_PRICE_CALCULATION",
+   "health": "COMPLETE",
+   "last_confirmed_stage": "E.10",
+   "expected_next_stage": null,
+   "blocker": null
+  },
+  {
+   "kind": "RUNTIME_FLOW",
+   "flow_id": "FLOW_F_DELIVERY_LOCATION_CALCULATION",
+   "health": "COMPLETE",
+   "last_confirmed_stage": "F.3",
+   "expected_next_stage": null,
+   "blocker": null
+  },
+  {
+   "kind": "RUNTIME_FLOW",
+   "flow_id": "FLOW_G_DOCUMENT_ISSUANCE",
+   "health": "COMPLETE",
+   "last_confirmed_stage": "G.8",
+   "expected_next_stage": null,
+   "blocker": null
+  },
+  {
+   "kind": "RUNTIME_FLOW",
+   "flow_id": "FLOW_H_PAYMENT_MATCHING",
+   "health": "COMPLETE",
+   "last_confirmed_stage": "H.6",
+   "expected_next_stage": null,
+   "blocker": null
+  },
+  {
+   "kind": "RUNTIME_FLOW",
+   "flow_id": "FLOW_I_SITE_LOCATION_CAPTURE",
+   "health": "COMPLETE",
+   "last_confirmed_stage": "I.8",
+   "expected_next_stage": null,
+   "blocker": null
+  },
+  {
+   "kind": "RUNTIME_FLOW",
+   "flow_id": "FLOW_J_EQUIPMENT_TELEMETRY_AND_ENGINE_HOURS",
+   "health": "COMPLETE",
+   "last_confirmed_stage": "J.7",
+   "expected_next_stage": null,
+   "blocker": null
+  },
+  {
+   "kind": "RUNTIME_FLOW",
+   "flow_id": "FLOW_K_EQUIPMENT_ACCESS_CONTROL",
+   "health": "COMPLETE",
+   "last_confirmed_stage": "K.9",
+   "expected_next_stage": null,
+   "blocker": null
+  },
+  {
+   "kind": "RUNTIME_FLOW",
+   "flow_id": "FLOW_L_IMAGE_QR_PROCESSING",
+   "health": "COMPLETE",
+   "last_confirmed_stage": "L.5",
+   "expected_next_stage": null,
+   "blocker": null
+  },
+  {
+   "kind": "RUNTIME_FLOW",
+   "flow_id": "FLOW_M_AUTOMATIC_CHAT_RESPONSE",
+   "health": "COMPLETE",
+   "last_confirmed_stage": "M.12",
+   "expected_next_stage": null,
+   "blocker": null
+  },
+  {
+   "kind": "VALUE_FLOW",
+   "flow_id": "VF_AUTHORIZATION_REQUEST_TO_GRANT",
+   "health": "DEAD_END",
+   "last_confirmed_stage": "VF8.2",
+   "expected_next_stage": "การอนุมัติหรือปฏิเสธโดยเจ้าของบริษัท",
+   "blocker": "pending_authorizations มีผู้เขียน 2 จุด ผู้อ่าน 0 จุด และไม่มีหน้าจอใดแสดง สคีมามีสถานะ pending/approved/denied/expired แต่ไม่มีโค้ดใดเปลี่ยนสถานะ — คำขออนุมัติเข้าไปแล้วไม่มีใครเห็นและไม่มีทางออก"
+  },
+  {
+   "kind": "VALUE_FLOW",
+   "flow_id": "VF_DOCUMENT_TO_PAYMENT",
+   "health": "PARTIAL",
+   "last_confirmed_stage": "VF4.5",
+   "expected_next_stage": null,
+   "blocker": "รายการบรรทัดของเอกสารเดินไม่สุด — invoice_items และ standalone_document_items มีคนอ่านแต่ไม่มีใครเขียน คอมเมนต์ที่ engines/documents/flex-template.ts:63 บอกว่าถูกยกเลิกไปตอน 2026-07-10 แต่ตารางยังอยู่ใน production"
+  },
+  {
+   "kind": "VALUE_FLOW",
+   "flow_id": "VF_EQUIPMENT_TO_AUTHORITY_ACTION",
+   "health": "PARTIAL",
+   "last_confirmed_stage": "VF7.4",
+   "expected_next_stage": null,
+   "blocker": "equipment_telemetry_pings ไม่มีหน้าจอไหนแสดง (UI readers = 0) สัญญาณดิบจึงตรวจย้อนด้วยตาไม่ได้ และคอมเมนต์ที่ trigger-start/route.ts:16-18 ระบุว่าการสั่งกล่องจริงผ่าน SMS ยังไม่เปิด"
+  },
+  {
+   "kind": "VALUE_FLOW",
+   "flow_id": "VF_IMAGE_TO_BUSINESS_EVENT",
+   "health": "COMPLETE",
+   "last_confirmed_stage": "VF3.4",
+   "expected_next_stage": null,
+   "blocker": null
+  },
+  {
+   "kind": "VALUE_FLOW",
+   "flow_id": "VF_INQUIRY_TO_CASH",
+   "health": "PARTIAL",
+   "last_confirmed_stage": "VF2.4",
+   "expected_next_stage": "VF2.5",
+   "blocker": "ไม่พบเส้นทางในซอร์สที่เปลี่ยนใบเสนอราคาใน business_events ให้เป็น customer_orders โดยอัตโนมัติ — ช่วงนี้เป็นการทำด้วยมือผ่านหลังบ้าน"
+  },
+  {
+   "kind": "VALUE_FLOW",
+   "flow_id": "VF_MESSAGE_TO_BUSINESS_ACTION",
+   "health": "COMPLETE",
+   "last_confirmed_stage": "VF1.6",
+   "expected_next_stage": null,
+   "blocker": null
+  },
+  {
+   "kind": "VALUE_FLOW",
+   "flow_id": "VF_PROCURE_TO_PAY",
+   "health": "PARTIAL",
+   "last_confirmed_stage": "VF5.1",
+   "expected_next_stage": "VF5.2",
+   "blocker": "สร้างหนี้ที่ต้องจ่ายได้ แต่ไม่พบขั้นอนุมัติหรือการจ่ายเงินจริงในซอร์ส — เงินออกไม่ครบวงจร"
+  },
+  {
+   "kind": "VALUE_FLOW",
+   "flow_id": "VF_RESOURCE_TO_SALE",
+   "health": "COMPLETE",
+   "last_confirmed_stage": "VF6.4",
+   "expected_next_stage": null,
+   "blocker": null
+  }
+ ]
+}

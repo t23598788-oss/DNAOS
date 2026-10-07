@@ -1,0 +1,56 @@
+{
+ "owner": "tam",
+ "target": {
+  "x": 432,
+  "y": 450
+ },
+ "attempts": [
+  {
+   "attempt": 1,
+   "dir": "down",
+   "wc_b": "0",
+   "wc_a": "1",
+   "sy_before": 0,
+   "sy_after": 600,
+   "wheel_received": true,
+   "expected": "sy increases",
+   "pass": true
+  },
+  {
+   "attempt": 2,
+   "dir": "up",
+   "wc_b": "1",
+   "wc_a": "2",
+   "sy_before": 600,
+   "sy_after": 0,
+   "wheel_received": true,
+   "expected": "sy decreases",
+   "pass": true
+  },
+  {
+   "attempt": 3,
+   "dir": "down",
+   "wc_b": "2",
+   "wc_a": "3",
+   "sy_before": 0,
+   "sy_after": 600,
+   "wheel_received": true,
+   "expected": "sy increases",
+   "pass": true
+  },
+  {
+   "attempt": 4,
+   "dir": "up",
+   "wc_b": "3",
+   "wc_a": "4",
+   "sy_before": 600,
+   "sy_after": 0,
+   "wheel_received": true,
+   "expected": "sy decreases",
+   "pass": true
+  }
+ ],
+ "scroll_down_deterministic": true,
+ "scroll_up_deterministic": true,
+ "scroll_primitive": "PROVEN"
+}

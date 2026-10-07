@@ -1,0 +1,664 @@
+[
+ {
+  "schema": "ASSEMBLY_UNIT_V2",
+  "unit_id": "u.line-ingest",
+  "canonical_name": "รับข้อความเข้าจาก LINE",
+  "business_domain": "communication",
+  "provides_capabilities": [
+   "line.message.ingest"
+  ],
+  "requires_capabilities": [],
+  "runtime_ref": "supabase edge function line-webhook-v2",
+  "entrypoint_ref": "supabase/functions/line-webhook-v2/index.ts",
+  "ports_in": [
+   "p.line.webhook.in"
+  ],
+  "ports_out": [
+   "p.line.event.out"
+  ],
+  "data_contracts": [
+   "dc.line.inbound_message.v1"
+  ],
+  "state_contracts": [],
+  "preconditions": [
+   "ลายเซ็น webhook ถูกต้อง"
+  ],
+  "postconditions": [
+   "มีแถวใน line_events"
+  ],
+  "authority_requirements": [],
+  "resource_requirements": [
+   "supabase",
+   "line"
+  ],
+  "side_effects": [
+   "LOCAL_WRITE"
+  ],
+  "failure_modes": [
+   "ลายเซ็นไม่ผ่าน",
+   "บันทึก line_events ไม่สำเร็จ"
+  ],
+  "verification_profile": "FLOW_A_LINE_MESSAGE",
+  "availability": "AVAILABLE",
+  "source_pointer": "supabase/functions/line-webhook-v2/index.ts"
+ },
+ {
+  "schema": "ASSEMBLY_UNIT_V2",
+  "unit_id": "u.identity-context",
+  "canonical_name": "ระบุบริษัทและสิทธิ์ของผู้ใช้ LINE",
+  "business_domain": "identity",
+  "provides_capabilities": [
+   "identity.company.resolve",
+   "identity.site.ownership"
+  ],
+  "requires_capabilities": [],
+  "runtime_ref": "supabase edge function",
+  "entrypoint_ref": "supabase/functions/line-webhook-v2/engines/authorization-check.ts",
+  "ports_in": [
+   "p.identity.resolve.in"
+  ],
+  "ports_out": [
+   "p.identity.context.out"
+  ],
+  "data_contracts": [
+   "dc.identity.company_context.v1"
+  ],
+  "state_contracts": [],
+  "preconditions": [
+   "ผู้ใช้ผูกบริษัทแล้วใน company_line_links"
+  ],
+  "postconditions": [
+   "ได้ company_id หรือทราบว่าไม่มีสิทธิ์"
+  ],
+  "authority_requirements": [],
+  "resource_requirements": [
+   "supabase"
+  ],
+  "side_effects": [
+   "READ_ONLY"
+  ],
+  "failure_modes": [
+   "ไม่พบการผูกบริษัท",
+   "ไม่พบหน้างาน"
+  ],
+  "verification_profile": "FLOW_C_COMPANY_LINKING",
+  "availability": "AVAILABLE",
+  "source_pointer": "supabase/functions/line-webhook-v2/engines/authorization-check.ts:25"
+ },
+ {
+  "schema": "ASSEMBLY_UNIT_V2",
+  "unit_id": "u.quote-price",
+  "canonical_name": "คำนวณราคาวัสดุพร้อมค่าขนส่ง",
+  "business_domain": "pricing",
+  "provides_capabilities": [
+   "pricing.quote.calculate"
+  ],
+  "requires_capabilities": [
+   "geo.distance.calculate",
+   "identity.company.resolve"
+  ],
+  "runtime_ref": "supabase edge function",
+  "entrypoint_ref": "engines/quote-price.ts",
+  "ports_in": [
+   "p.price.calculate.in"
+  ],
+  "ports_out": [
+   "p.price.result.out"
+  ],
+  "data_contracts": [
+   "dc.pricing.quote_request.v1",
+   "dc.pricing.quote_result.v1"
+  ],
+  "state_contracts": [],
+  "preconditions": [
+   "มีพิกัดหน้างานปลายทาง",
+   "material_types มีรหัสวัสดุที่ขอ"
+  ],
+  "postconditions": [
+   "business_events มีเหตุการณ์เสนอราคา"
+  ],
+  "authority_requirements": [],
+  "resource_requirements": [
+   "supabase"
+  ],
+  "side_effects": [
+   "READ_ONLY",
+   "LOCAL_WRITE"
+  ],
+  "failure_modes": [
+   "ไม่มีพิกัดหน้างาน = คำนวณค่าขนส่งไม่ได้",
+   "ไม่พบวัสดุ"
+  ],
+  "verification_profile": "FLOW_E_PRICE_CALCULATION",
+  "availability": "AVAILABLE",
+  "source_pointer": "engines/quote-price.ts:243,289,290",
+  "dependency_inputs": {
+   "geo.distance.calculate": "dc.geo.distance_result.v1",
+   "identity.company.resolve": "dc.identity.company_context.v1"
+  }
+ },
+ {
+  "schema": "ASSEMBLY_UNIT_V2",
+  "unit_id": "u.distance",
+  "canonical_name": "คำนวณระยะทางระหว่างสองพิกัด",
+  "business_domain": "geo",
+  "provides_capabilities": [
+   "geo.distance.calculate"
+  ],
+  "requires_capabilities": [],
+  "runtime_ref": "in-process",
+  "entrypoint_ref": "engines/quote-price.ts#haversine",
+  "ports_in": [
+   "p.distance.calculate.in"
+  ],
+  "ports_out": [
+   "p.distance.result.out"
+  ],
+  "data_contracts": [
+   "dc.geo.coordinate_pair.v1",
+   "dc.geo.distance_result.v1"
+  ],
+  "state_contracts": [],
+  "preconditions": [
+   "มีพิกัดครบสี่ค่า"
+  ],
+  "postconditions": [
+   "ได้ระยะทางเป็นกิโลเมตร"
+  ],
+  "authority_requirements": [],
+  "resource_requirements": [],
+  "side_effects": [
+   "PURE"
+  ],
+  "failure_modes": [
+   "พิกัดไม่ครบ"
+  ],
+  "verification_profile": "FLOW_F_DELIVERY_LOCATION_CALCULATION",
+  "availability": "AVAILABLE",
+  "source_pointer": "engines/quote-price.ts:12-30"
+ },
+ {
+  "schema": "ASSEMBLY_UNIT_V2",
+  "unit_id": "u.document-issuance",
+  "canonical_name": "ออกเอกสารการค้าและส่งให้ลูกค้า",
+  "business_domain": "documents",
+  "provides_capabilities": [
+   "document.issue",
+   "document.deliver"
+  ],
+  "requires_capabilities": [
+   "identity.company.resolve"
+  ],
+  "runtime_ref": "deadboard next.js",
+  "entrypoint_ref": "app/api/admin/documents/route.ts#POST",
+  "ports_in": [
+   "p.document.issue.in"
+  ],
+  "ports_out": [
+   "p.document.issued.out",
+   "p.document.deliver.out"
+  ],
+  "data_contracts": [
+   "dc.document.issue_request.v1",
+   "dc.document.issued.v1"
+  ],
+  "state_contracts": [
+   "sm.document.lifecycle"
+  ],
+  "preconditions": [
+   "ผู้เรียกผ่าน ADMIN_TIER",
+   "company settings ตั้งค่าครบ"
+  ],
+  "postconditions": [
+   "มีแถวเอกสารและไฟล์ที่อ้างถึงได้"
+  ],
+  "authority_requirements": [
+   "ADMIN_TIER"
+  ],
+  "resource_requirements": [
+   "supabase",
+   "company-settings",
+   "line"
+  ],
+  "side_effects": [
+   "FINANCIAL",
+   "EXTERNAL_WRITE"
+  ],
+  "failure_modes": [
+   "ตั้งค่าบริษัทไม่ครบ",
+   "สร้างไฟล์ไม่สำเร็จ",
+   "ส่ง LINE ไม่สำเร็จ"
+  ],
+  "verification_profile": "FLOW_G_DOCUMENT_ISSUANCE",
+  "availability": "AVAILABLE",
+  "source_pointer": "app/api/admin/documents/route.ts:147",
+  "dependency_inputs": {
+   "identity.company.resolve": "dc.identity.company_context.v1"
+  }
+ },
+ {
+  "schema": "ASSEMBLY_UNIT_V2",
+  "unit_id": "u.payment-matching",
+  "canonical_name": "จับคู่การชำระเงินกับหนี้คงค้าง",
+  "business_domain": "finance",
+  "provides_capabilities": [
+   "payment.claim.record",
+   "payment.match"
+  ],
+  "requires_capabilities": [
+   "identity.company.resolve"
+  ],
+  "runtime_ref": "supabase edge function",
+  "entrypoint_ref": "supabase/functions/line-webhook-v2/engines/auto-confirm-payment.ts#tryAutoConfirmPayment",
+  "ports_in": [
+   "p.payment.claim.in"
+  ],
+  "ports_out": [
+   "p.payment.matched.out",
+   "p.payment.notify.out"
+  ],
+  "data_contracts": [
+   "dc.payment.claim.v1",
+   "dc.payment.match_result.v1"
+  ],
+  "state_contracts": [
+   "sm.debt.lifecycle"
+  ],
+  "preconditions": [
+   "ผู้แจ้งผูกบริษัทแล้ว",
+   "มีหนี้คงค้างให้จับคู่"
+  ],
+  "postconditions": [
+   "debt_snapshots สะท้อนยอดใหม่"
+  ],
+  "authority_requirements": [],
+  "resource_requirements": [
+   "supabase",
+   "line"
+  ],
+  "side_effects": [
+   "FINANCIAL",
+   "EXTERNAL_WRITE"
+  ],
+  "failure_modes": [
+   "ไม่พบบริษัท",
+   "ไม่มีหนี้ให้จับคู่",
+   "push ไม่สำเร็จ"
+  ],
+  "verification_profile": "FLOW_H_PAYMENT_MATCHING",
+  "availability": "AVAILABLE",
+  "source_pointer": "supabase/functions/line-webhook-v2/engines/auto-confirm-payment.ts:200",
+  "dependency_inputs": {
+   "identity.company.resolve": "dc.identity.company_context.v1"
+  }
+ },
+ {
+  "schema": "ASSEMBLY_UNIT_V2",
+  "unit_id": "u.image-classify",
+  "canonical_name": "อ่านรูปเอกสารและจำแนกชนิด",
+  "business_domain": "documents",
+  "provides_capabilities": [
+   "image.receipt.classify"
+  ],
+  "requires_capabilities": [],
+  "runtime_ref": "supabase edge function",
+  "entrypoint_ref": "supabase/functions/line-webhook-v2/engines/ocr-classify.ts#classifyReceiptImage",
+  "ports_in": [
+   "p.image.classify.in"
+  ],
+  "ports_out": [
+   "p.image.classified.out"
+  ],
+  "data_contracts": [
+   "dc.image.classified_receipt.v1"
+  ],
+  "state_contracts": [],
+  "preconditions": [
+   "มีไฟล์รูปใน bucket attachments"
+  ],
+  "postconditions": [
+   "มีแถว receipt_documents หรือทราบว่าอ่านไม่ได้"
+  ],
+  "authority_requirements": [],
+  "resource_requirements": [
+   "ai-provider",
+   "supabase"
+  ],
+  "side_effects": [
+   "READ_ONLY",
+   "LOCAL_WRITE"
+  ],
+  "failure_modes": [
+   "โมเดลอ่านรูปไม่ได้",
+   "ไม่พบบริษัทผู้ส่ง"
+  ],
+  "verification_profile": "FLOW_L_IMAGE_QR_PROCESSING",
+  "availability": "AVAILABLE",
+  "source_pointer": "supabase/functions/line-webhook-v2/engines/ocr-classify.ts:115"
+ },
+ {
+  "schema": "ASSEMBLY_UNIT_V2",
+  "unit_id": "u.site-location",
+  "canonical_name": "บันทึกพิกัดหน้างาน",
+  "business_domain": "geo",
+  "provides_capabilities": [
+   "site.location.capture"
+  ],
+  "requires_capabilities": [
+   "identity.company.resolve"
+  ],
+  "runtime_ref": "supabase edge function",
+  "entrypoint_ref": "supabase/functions/line-webhook-v2/handlers/location.ts",
+  "ports_in": [
+   "p.site.capture.in"
+  ],
+  "ports_out": [
+   "p.site.geocode.out"
+  ],
+  "data_contracts": [
+   "dc.site.location_capture.v1"
+  ],
+  "state_contracts": [],
+  "preconditions": [
+   "ผู้ใช้ผูกบริษัทแล้ว"
+  ],
+  "postconditions": [
+   "มีแถว customer_sites"
+  ],
+  "authority_requirements": [],
+  "resource_requirements": [
+   "supabase"
+  ],
+  "side_effects": [
+   "LOCAL_WRITE"
+  ],
+  "failure_modes": [
+   "แยกที่อยู่ไทยไม่ได้",
+   "LONGDO_MAP_API_KEY ไม่ได้ตั้งค่า = ไม่มีพิกัด"
+  ],
+  "verification_profile": "FLOW_I_SITE_LOCATION_CAPTURE",
+  "availability": "DEGRADED",
+  "source_pointer": "supabase/functions/line-webhook-v2/handlers/location.ts:69",
+  "dependency_inputs": {
+   "identity.company.resolve": "dc.identity.company_context.v1"
+  }
+ },
+ {
+  "schema": "ASSEMBLY_UNIT_V2",
+  "unit_id": "u.equipment-telemetry",
+  "canonical_name": "รับสัญญาณเครื่องจักรและสะสมชั่วโมง",
+  "business_domain": "equipment",
+  "provides_capabilities": [
+   "equipment.telemetry.record",
+   "equipment.hours.accumulate"
+  ],
+  "requires_capabilities": [],
+  "runtime_ref": "deadboard next.js",
+  "entrypoint_ref": "app/api/internal/equipment/telemetry/route.ts#POST",
+  "ports_in": [
+   "p.equipment.telemetry.in"
+  ],
+  "ports_out": [
+   "p.equipment.hours.out"
+  ],
+  "data_contracts": [
+   "dc.equipment.telemetry_ping.v1",
+   "dc.equipment.engine_hours.v1"
+  ],
+  "state_contracts": [],
+  "preconditions": [
+   "EQUIPMENT_TELEMETRY_SECRET ตั้งค่าแล้ว",
+   "imei ผูกกับเครื่องจักร"
+  ],
+  "postconditions": [
+   "มี ping ดิบและชั่วโมงสะสมใหม่"
+  ],
+  "authority_requirements": [
+   "MACHINE_SECRET"
+  ],
+  "resource_requirements": [
+   "supabase"
+  ],
+  "side_effects": [
+   "LOCAL_WRITE"
+  ],
+  "failure_modes": [
+   "secret ไม่ได้ตั้งค่า = ปฏิเสธ",
+   "ไม่พบเครื่องจักรจาก imei"
+  ],
+  "verification_profile": "FLOW_J_EQUIPMENT_TELEMETRY_AND_ENGINE_HOURS",
+  "availability": "AVAILABLE",
+  "source_pointer": "app/api/internal/equipment/telemetry/route.ts:27"
+ },
+ {
+  "schema": "ASSEMBLY_UNIT_V2",
+  "unit_id": "u.equipment-access",
+  "canonical_name": "ควบคุมสิทธิ์และสั่งล็อกเครื่องจักร",
+  "business_domain": "equipment",
+  "provides_capabilities": [
+   "equipment.control",
+   "equipment.permission.grant"
+  ],
+  "requires_capabilities": [],
+  "runtime_ref": "deadboard next.js",
+  "entrypoint_ref": "app/api/internal/equipment/lock-command/route.ts#POST",
+  "ports_in": [
+   "p.equipment.control.in"
+  ],
+  "ports_out": [],
+  "data_contracts": [
+   "dc.equipment.control_command.v1"
+  ],
+  "state_contracts": [
+   "sm.equipment.lifecycle"
+  ],
+  "preconditions": [
+   "EQUIPMENT_LOCK_INTERNAL_SECRET ตั้งค่าแล้ว"
+  ],
+  "postconditions": [
+   "equipment_assets.current_status เปลี่ยนแล้ว"
+  ],
+  "authority_requirements": [
+   "MACHINE_SECRET",
+   "ADMIN_TIER"
+  ],
+  "resource_requirements": [
+   "supabase",
+   "line"
+  ],
+  "side_effects": [
+   "DEVICE_CONTROL"
+  ],
+  "failure_modes": [
+   "secret ไม่ตรง",
+   "อัปเดตสถานะไม่สำเร็จ"
+  ],
+  "verification_profile": "FLOW_K_EQUIPMENT_ACCESS_CONTROL",
+  "availability": "AVAILABLE",
+  "source_pointer": "app/api/internal/equipment/lock-command/route.ts:26"
+ },
+ {
+  "schema": "ASSEMBLY_UNIT_V2",
+  "unit_id": "u.chat-response",
+  "canonical_name": "ตัดสินและส่งคำตอบกลับในแชท",
+  "business_domain": "communication",
+  "provides_capabilities": [
+   "chat.response.decide",
+   "chat.reply.send"
+  ],
+  "requires_capabilities": [
+   "identity.company.resolve"
+  ],
+  "runtime_ref": "supabase edge function",
+  "entrypoint_ref": "supabase/functions/line-webhook-v2/handlers/text.ts",
+  "ports_in": [
+   "p.chat.decide.in"
+  ],
+  "ports_out": [
+   "p.chat.reply.out"
+  ],
+  "data_contracts": [
+   "dc.chat.outbound_message.v1"
+  ],
+  "state_contracts": [
+   "sm.conversation.mode"
+  ],
+  "preconditions": [
+   "โหมดการสนทนาไม่ใช่ human_takeover"
+  ],
+  "postconditions": [
+   "ส่งคำตอบแล้ว หรือเข้าคิว ai_tasks"
+  ],
+  "authority_requirements": [],
+  "resource_requirements": [
+   "line",
+   "supabase"
+  ],
+  "side_effects": [
+   "LOCAL_WRITE",
+   "EXTERNAL_WRITE"
+  ],
+  "failure_modes": [
+   "โหมด human_takeover = ไม่ตอบ",
+   "สวิตช์ตอบลูกค้าปิด",
+   "LINE reply ล้มเหลว"
+  ],
+  "verification_profile": "FLOW_M_AUTOMATIC_CHAT_RESPONSE",
+  "availability": "AVAILABLE",
+  "source_pointer": "supabase/functions/line-webhook-v2/engines/response.ts:95",
+  "dependency_inputs": {
+   "identity.company.resolve": "dc.identity.company_context.v1"
+  }
+ },
+ {
+  "schema": "ASSEMBLY_UNIT_V2",
+  "unit_id": "u.line-profile",
+  "canonical_name": "ดูแลความสดของโปรไฟล์ LINE",
+  "business_domain": "identity",
+  "provides_capabilities": [
+   "profile.snapshot.read",
+   "profile.refresh.request"
+  ],
+  "requires_capabilities": [],
+  "runtime_ref": "supabase edge function",
+  "entrypoint_ref": "supabase/functions/line-webhook-v2/engines/profile-refresh.ts#ensureFreshLineProfile",
+  "ports_in": [
+   "p.profile.refresh.in"
+  ],
+  "ports_out": [
+   "p.profile.snapshot.out"
+  ],
+  "data_contracts": [
+   "dc.profile.refresh_request.v1",
+   "dc.profile.snapshot.v1"
+  ],
+  "state_contracts": [],
+  "preconditions": [
+   "มีตาราง line_profile_refresh_queue ใน production"
+  ],
+  "postconditions": [
+   "โปรไฟล์สดหรือรู้ว่าใช้ของแคช"
+  ],
+  "authority_requirements": [],
+  "resource_requirements": [
+   "supabase",
+   "line"
+  ],
+  "side_effects": [
+   "LOCAL_WRITE"
+  ],
+  "failure_modes": [
+   "line_profile_refresh_queue ไม่มีใน production = เข้าคิวไม่ได้"
+  ],
+  "verification_profile": "FLOW_B_LINE_PROFILE_UPDATE",
+  "availability": "DEGRADED",
+  "source_pointer": "supabase/functions/line-webhook-v2/engines/profile-refresh.ts:92"
+ },
+ {
+  "schema": "ASSEMBLY_UNIT_V2",
+  "unit_id": "u.authorization",
+  "canonical_name": "ขออนุมัติสิทธิ์หน้างาน",
+  "business_domain": "identity",
+  "provides_capabilities": [
+   "authorization.site.request"
+  ],
+  "requires_capabilities": [
+   "identity.site.ownership"
+  ],
+  "runtime_ref": "supabase edge function",
+  "entrypoint_ref": "supabase/functions/line-webhook-v2/engines/authorization-check.ts#requestAuthorization",
+  "ports_in": [
+   "p.authorization.request.in"
+  ],
+  "ports_out": [],
+  "data_contracts": [
+   "dc.authorization.site_request.v1"
+  ],
+  "state_contracts": [
+   "sm.authorization.lifecycle"
+  ],
+  "preconditions": [
+   "มีผู้ใช้ LINE คนอื่นในบริษัทเจ้าของหน้างาน"
+  ],
+  "postconditions": [
+   "มีแถว pending_authorizations สถานะ pending"
+  ],
+  "authority_requirements": [],
+  "resource_requirements": [
+   "supabase"
+  ],
+  "side_effects": [
+   "LOCAL_WRITE"
+  ],
+  "failure_modes": [
+   "ไม่มีผู้อนุมัติในบริษัทเจ้าของ"
+  ],
+  "verification_profile": "FLOW_C_COMPANY_LINKING",
+  "availability": "AVAILABLE",
+  "source_pointer": "supabase/functions/line-webhook-v2/engines/authorization-check.ts:49",
+  "dependency_inputs": {
+   "identity.site.ownership": "dc.identity.company_context.v1"
+  }
+ },
+ {
+  "schema": "ASSEMBLY_UNIT_V2",
+  "unit_id": "u.document-autofill",
+  "canonical_name": "เติมข้อมูลเอกสารจากข้อมูลเดิม",
+  "business_domain": "documents",
+  "provides_capabilities": [
+   "document.autofill"
+  ],
+  "requires_capabilities": [],
+  "runtime_ref": "deadboard next.js",
+  "entrypoint_ref": "engines/documents/draft-builders.ts#buildDraftFromPartner",
+  "ports_in": [
+   "p.document.autofill.in"
+  ],
+  "ports_out": [],
+  "data_contracts": [
+   "dc.document.issue_request.v1"
+  ],
+  "state_contracts": [],
+  "preconditions": [
+   "มีตาราง partners และ documents ใน production"
+  ],
+  "postconditions": [
+   "ได้ร่างเอกสารที่กรอกฝั่งคู่สัญญาแล้ว"
+  ],
+  "authority_requirements": [
+   "ADMIN_TIER"
+  ],
+  "resource_requirements": [
+   "supabase"
+  ],
+  "side_effects": [
+   "READ_ONLY"
+  ],
+  "failure_modes": [
+   "partners และ documents ไม่มีใน production = คืน undefined เสมอ"
+  ],
+  "verification_profile": "FLOW_D_DOCUMENT_AUTOFILL",
+  "availability": "UNAVAILABLE",
+  "source_pointer": "engines/documents/draft-builders.ts:33,64"
+ }
+]

@@ -1,0 +1,50 @@
+{
+  "app": "TextEdit",
+  "title": "hello.txt",
+  "state": "window_active",
+  "visible_text_redacted": [
+    "ปุ่มปิด",
+    "ปุ่มเต็มหน้าจอ",
+    "ปุ่มย่อ",
+    "การทำงานเอกสาร",
+    "hello.txt"
+  ],
+  "controls": [
+    {
+      "role": "AXTextArea",
+      "label": "[REDACTED]",
+      "redacted": true
+    },
+    {
+      "role": "AXButton",
+      "label": "ปุ่มปิด",
+      "redacted": false
+    },
+    {
+      "role": "AXButton",
+      "label": "ปุ่มเต็มหน้าจอ",
+      "redacted": false
+    },
+    {
+      "role": "AXButton",
+      "label": "ปุ่มย่อ",
+      "redacted": false
+    },
+    {
+      "role": "AXMenuButton",
+      "label": "การทำงานเอกสาร",
+      "redacted": false
+    },
+    {
+      "role": "AXStaticText",
+      "label": "hello.txt",
+      "redacted": false
+    }
+  ],
+  "warnings": [
+    "1 text field value(s) redacted — never included regardless of field type"
+  ],
+  "suggested_next_action": "Review the app directly for any field value — this summary never includes typed content",
+  "confidence": 0.92,
+  "evidence_timestamp": "2026-08-20T02:48:29.773Z"
+}

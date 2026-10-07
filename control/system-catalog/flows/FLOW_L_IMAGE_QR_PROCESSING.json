@@ -1,0 +1,151 @@
+{
+ "flow_id": "FLOW_L_IMAGE_QR_PROCESSING",
+ "title": "อ่านรูปที่ส่งเข้ามาแล้วแยกชนิดเอกสาร",
+ "actor": "ผู้ใช้ LINE",
+ "trigger": "ส่งรูปเข้ามาในแชท",
+ "entrypoint": "supabase/functions/line-webhook-v2/handlers/image.ts -> engines/ocr-classify.ts -> engines/process-classified-image.ts",
+ "steps": [
+  {
+   "unit_id": "L.1",
+   "order": 1,
+   "description": "ส่งรูปให้โมเดลอ่านและจำแนกชนิดเอกสาร — AI ทำหน้าที่ 'อ่าน' ไม่ใช่ 'ตัดสินธุรกิจ'",
+   "source_pointer": "supabase/functions/line-webhook-v2/engines/ocr-classify.ts:4,21,115 (callClaudeVision)",
+   "input": "รูป base64 + บทบาทผู้ส่ง",
+   "output": "ClassifiedReceipt",
+   "data_read": [],
+   "data_write": [],
+   "external_call": [
+    "ai-provider"
+   ],
+   "authority": "ขอบเขต AI: การสังเกต ไม่ใช่การตัดสิน",
+   "failure_path": "อ่านไม่ได้ = null"
+  },
+  {
+   "unit_id": "L.2",
+   "order": 2,
+   "description": "หาบริษัทของผู้ส่ง",
+   "source_pointer": "supabase/functions/line-webhook-v2/engines/process-classified-image.ts:34",
+   "input": "line userId",
+   "output": "company_id",
+   "data_read": [
+    "company_line_links"
+   ],
+   "data_write": [],
+   "external_call": [],
+   "authority": "company_line_links",
+   "failure_path": "ไม่พบ = จำกัดสิ่งที่ทำได้"
+  },
+  {
+   "unit_id": "L.3",
+   "order": 3,
+   "description": "อ่านโปรไฟล์เพื่อดูบทบาทและระดับความเชื่อถือ",
+   "source_pointer": "supabase/functions/line-webhook-v2/engines/process-classified-image.ts:194",
+   "input": "line userId",
+   "output": "display_name · role · trust_level",
+   "data_read": [
+    "line_profiles"
+   ],
+   "data_write": [],
+   "external_call": [],
+   "authority": "trust_level มีผลต่อการดำเนินการต่อ",
+   "failure_path": "ไม่มีโปรไฟล์ = ถือว่าไม่มีบทบาทพิเศษ"
+  },
+  {
+   "unit_id": "L.4",
+   "order": 4,
+   "description": "จับคู่กับการแจ้งเตือนจากธนาคารถ้ามี",
+   "source_pointer": "supabase/functions/line-webhook-v2/engines/process-classified-image.ts:116,158",
+   "input": "ข้อมูลจากรูป",
+   "output": "การจับคู่",
+   "data_read": [
+    "bank_notifications"
+   ],
+   "data_write": [
+    "bank_notifications"
+   ],
+   "external_call": [],
+   "authority": "ไม่มี",
+   "failure_path": "ไม่พบคู่ = บันทึกเดี่ยว"
+  },
+  {
+   "unit_id": "L.5",
+   "order": 5,
+   "description": "บันทึกเป็นเอกสารการรับเงิน",
+   "source_pointer": "supabase/functions/line-webhook-v2/engines/process-classified-image.ts:61,155",
+   "input": "ClassifiedReceipt",
+   "output": "แถว receipt_documents",
+   "data_read": [
+    "receipt_documents"
+   ],
+   "data_write": [
+    "receipt_documents"
+   ],
+   "external_call": [],
+   "authority": "ไม่มี",
+   "failure_path": "บันทึกไม่ได้ = ไม่มีหลักฐาน"
+  }
+ ],
+ "components": [
+  "handlers/image.ts",
+  "engines/ocr-classify.ts",
+  "engines/claude-client.ts",
+  "engines/process-classified-image.ts"
+ ],
+ "data_reads": [
+  "company_line_links",
+  "line_profiles",
+  "bank_notifications",
+  "receipt_documents"
+ ],
+ "data_writes": [
+  "receipt_documents",
+  "bank_notifications"
+ ],
+ "external_calls": [
+  "ai-provider (Claude Vision)",
+  "supabase (postgres)"
+ ],
+ "authority": [
+  "company_line_links กำหนดขอบเขตบริษัท",
+  "line_profiles.trust_level มีผลต่อการดำเนินการ",
+  "AI อ่านรูปเท่านั้น การบันทึกและจับคู่เป็น deterministic"
+ ],
+ "output": "เอกสารการรับเงินที่บันทึกแล้ว และการจับคู่กับแจ้งเตือนธนาคารถ้ามี",
+ "failure_paths": [
+  "โมเดลอ่านรูปไม่ได้ = null",
+  "ไม่พบบริษัทผู้ส่ง",
+  "ไม่พบการแจ้งเตือนธนาคารที่ตรงกัน"
+ ],
+ "ports": [
+  {
+   "port_id": "L.in.image",
+   "direction": "IN",
+   "protocol": "SDK",
+   "schema_hint": "LINE image message content",
+   "auth": "สืบทอดจาก Flow A"
+  },
+  {
+   "port_id": "L.out.ai",
+   "direction": "OUT",
+   "protocol": "HTTPS_API",
+   "schema_hint": "Claude Vision ผ่าน claude-client.ts",
+   "auth": "API key ฝั่ง Edge Function"
+  },
+  {
+   "port_id": "L.io.db",
+   "direction": "IN",
+   "protocol": "POSTGRES",
+   "schema_hint": "receipt_documents · bank_notifications · line_profiles",
+   "auth": "Supabase service role"
+  }
+ ],
+ "evidence": [
+  "supabase/functions/line-webhook-v2/engines/ocr-classify.ts:4,19,21,38,46,82,115",
+  "supabase/functions/line-webhook-v2/engines/process-classified-image.ts:17,34,61,116,155,158,194",
+  "คอมเมนต์ที่บรรทัด 4 ระบุว่า AI ทำหน้าที่อ่าน ผ่าน claude-client.ts ที่ใช้ร่วมกันทั้งสามจุด",
+  "live schema อ่านจาก production ref xeytcavxejhyzxwevgto เมื่อ 2026-09-05T02:24:57.238Z ผ่าน capability supabase.schema.read (read-only, พิสูจน์ WRITE=DENIED ด้วย Postgres 25006)"
+ ],
+ "status": "PARTIAL",
+ "schema_verification": "VERIFIED",
+ "runtime_verification": "PENDING"
+}

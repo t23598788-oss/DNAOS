@@ -1,0 +1,35 @@
+export {
+  MCP_CONTROLLED_CODE_KNOWLEDGE_ACCESS,
+  DNA_OS_REGISTERED_MUTATION_TOOL_BOUNDARY,
+  DEVELOPMENT_KNOWLEDGE_URIS,
+  SOURCE_MUTATION_TOOLS,
+  CANONICAL_PROMOTION_TOOLS,
+  ENGINEERING_SESSION_BOOTSTRAP,
+  applyRegisteredSourceMutation,
+  codeKnowledgeMetrics,
+  codingClientBarriers,
+  codingKnowledgeFirst,
+  createScopedDevelopmentWorktree,
+  denyCanonicalFactEdit,
+  denyDirectCanonicalWrite,
+  denyDirectGithubWrite,
+  denyUnrestrictedShell,
+  developmentContext,
+  filterMcpResources,
+  filterMcpTools,
+  providerIdentityGrantsSourceAuthority,
+  readScopedSource,
+  scopedWorktreeFile,
+} from "./boundary";
+export {
+  classifyEngineeringSource,
+  lookupCodeReferences,
+  resolveCurrentSource,
+  ENGINEERING_SOURCE_ROLES,
+} from "./source-resolution";
+export type {
+  CodeReferenceLookup,
+  CurrentSourceResolution,
+  EngineeringSourceRole,
+  SourceReference,
+} from "./source-resolution";

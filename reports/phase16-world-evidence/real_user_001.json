@@ -1,0 +1,14 @@
+{
+  "user_id": "REAL_USER_001",
+  "identity_note": "The Owner of the DNA-OS-INFRASTRUCTURE repository itself — the one real, identifiable subject this session has direct, verifiable evidence about (its own working tree). Not a market sample; one observed case, per Phase 19's own rule.",
+  "problem_statement": "Owner's repository (DNA-OS-INFRASTRUCTURE) accumulates untracked/duplicate/orphan files across many working sessions with no automatic detection — confirmed by this session's own Phase 4 and Phase 19 scans.",
+  "problem_started_at": "UNKNOWN — repository predates this session's observation window",
+  "current_workflow": "manual review via git status and ad hoc reading; no dedicated duplicate/orphan detection step before Phase 8 introduced DNA-LAB-FILE-INTELLIGENCE",
+  "current_tools": ["git", "VS Code file explorer"],
+  "current_cost": "UNKNOWN — no time-tracking data exists for manual review before this tool existed",
+  "time_lost": "UNKNOWN",
+  "failed_steps": "UNKNOWN — no record of a failed manual attempt exists",
+  "desired_result": "a list of duplicate and orphaned files with evidence, so cleanup decisions can be made deliberately (matches Phase 4-6's own stated discovery goals)",
+  "willingness_to_pay": "UNKNOWN — never asked; this session speaks for the Agent's own observations only, not the Owner's stated intent",
+  "evidence_basis": ["Phase 4 File Intelligence scan (24 duplicate candidates, 21 orphan candidates)", "Phase 19 entry_point_run.json (46 duplicate candidates, 23 orphan candidates, 301 files)"]
+}

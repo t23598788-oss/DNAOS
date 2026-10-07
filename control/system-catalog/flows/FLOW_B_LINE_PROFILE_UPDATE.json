@@ -1,0 +1,159 @@
+{
+ "flow_id": "FLOW_B_LINE_PROFILE_UPDATE",
+ "title": "ดึงและรีเฟรชโปรไฟล์ LINE",
+ "actor": "ระบบ",
+ "trigger": "ต้องใช้ชื่อ/รูปโปรไฟล์ของผู้ใช้ LINE",
+ "entrypoint": "supabase/functions/line-webhook-v2/engines/profile-refresh.ts#ensureFreshLineProfile",
+ "steps": [
+  {
+   "unit_id": "B.1",
+   "order": 1,
+   "description": "อ่านโปรไฟล์ที่เก็บไว้ในเครื่องก่อน",
+   "source_pointer": "supabase/functions/line-webhook-v2/engines/profile-refresh.ts:99",
+   "input": "line_user_id",
+   "output": "LineProfileSnapshot หรือไม่มี",
+   "data_read": [
+    "line_profiles"
+   ],
+   "data_write": [],
+   "external_call": [],
+   "authority": "ไม่มี",
+   "failure_path": "ไม่มีแถว = ต้องดึงใหม่"
+  },
+  {
+   "unit_id": "B.2",
+   "order": 2,
+   "description": "ตัดสินความสด — ProfileSource เป็นหนึ่งใน LINE_API / CACHED / UNAVAILABLE",
+   "source_pointer": "supabase/functions/line-webhook-v2/engines/profile-refresh.ts:37",
+   "input": "แถวที่เก็บไว้ + เวลา",
+   "output": "แหล่งที่จะใช้",
+   "data_read": [
+    "line_profiles"
+   ],
+   "data_write": [],
+   "external_call": [],
+   "authority": "ไม่มี",
+   "failure_path": "ตัดสินไม่ได้ = UNAVAILABLE"
+  },
+  {
+   "unit_id": "B.3",
+   "order": 3,
+   "description": "ถ้าไม่สด เข้าคิวรีเฟรช",
+   "source_pointer": "supabase/functions/line-webhook-v2/engines/profile-refresh.ts:114",
+   "input": "line_user_id",
+   "output": "แถวในคิว",
+   "data_read": [],
+   "data_write": [
+    "line_profile_refresh_queue"
+   ],
+   "external_call": [],
+   "authority": "ไม่มี",
+   "failure_path": "เข้าคิวไม่ได้ = ใช้ของเก่า"
+  },
+  {
+   "unit_id": "B.4",
+   "order": 4,
+   "description": "ตัวงานเบื้องหลังดึงโปรไฟล์จาก LINE แล้วอัปเดต",
+   "source_pointer": "supabase/functions/line-webhook-v2/../line-profile-refresh-worker/",
+   "input": "คิว",
+   "output": "displayName + pictureUrl ใหม่",
+   "data_read": [
+    "line_profile_refresh_queue"
+   ],
+   "data_write": [
+    "line_profiles"
+   ],
+   "external_call": [
+    "line"
+   ],
+   "authority": "channel_access_token",
+   "failure_path": "ดึงไม่ได้ = คงค่าเดิมและสถานะเป็น UNAVAILABLE"
+  }
+ ],
+ "components": [
+  "engines/profile-refresh.ts",
+  "line-profile-refresh-worker (edge function แยก)"
+ ],
+ "data_reads": [
+  "line_profiles",
+  "line_profile_refresh_queue"
+ ],
+ "data_writes": [
+  "line_profiles",
+  "line_profile_refresh_queue"
+ ],
+ "external_calls": [
+  "line (profile endpoint)",
+  "supabase (postgres)"
+ ],
+ "authority": [
+  "channel_access_token สำหรับเรียก LINE profile",
+  "ไม่มีสิทธิ์ของผู้ใช้เกี่ยวข้อง"
+ ],
+ "output": "ชื่อและรูปโปรไฟล์ที่สดพอใช้ พร้อมสถานะแหล่งที่มา",
+ "failure_paths": [
+  "LINE ไม่ตอบ = UNAVAILABLE ใช้ค่าที่แคชไว้",
+  "ไม่มีแถวและดึงไม่ได้ = ไม่มีโปรไฟล์"
+ ],
+ "ports": [
+  {
+   "port_id": "B.out.lineprofile",
+   "direction": "OUT",
+   "protocol": "HTTPS_API",
+   "schema_hint": "LINE get profile",
+   "auth": "channel_access_token"
+  },
+  {
+   "port_id": "B.io.db",
+   "direction": "IN",
+   "protocol": "POSTGRES",
+   "schema_hint": "line_profiles · line_profile_refresh_queue",
+   "auth": "Supabase service role"
+  }
+ ],
+ "evidence": [
+  "supabase/functions/line-webhook-v2/engines/profile-refresh.ts:37,39,92,99,114",
+  "มี edge function line-profile-refresh-worker แยกต่างหาก",
+  "ProfileSource แยก LINE_API/CACHED/UNAVAILABLE ชัดเจน = ระบบถือว่าเป็นข้อมูลสดจากภายนอก ไม่ใช่ค่าแช่แข็ง",
+  "live schema อ่านจาก production ref xeytcavxejhyzxwevgto เมื่อ 2026-09-05T02:24:57.238Z ผ่าน capability supabase.schema.read (read-only, พิสูจน์ WRITE=DENIED ด้วย Postgres 25006)",
+  "ตารางที่โค้ดอ้างแต่ไม่มีใน live schema: line_profile_refresh_queue",
+  "line_profile_refresh_queue ประกาศไว้ใน migration ในเครื่องแต่ไม่มีใน live schema — พิสูจน์ด้วย information_schema.tables ไม่ใช่การอนุมานจาก migration"
+ ],
+ "status": "PARTIAL",
+ "schema_verification": "MISMATCH",
+ "runtime_verification": "PENDING",
+ "schema_missing_tables": [
+  "line_profile_refresh_queue"
+ ],
+ "schema_status": "FAILED",
+ "runtime_eligibility": "NOT_ELIGIBLE",
+ "optional_data_objects": [],
+ "sub_paths": [
+  {
+   "sub_path_id": "B.cached-read",
+   "description": "อ่านโปรไฟล์ที่แคชไว้",
+   "entrypoint": "supabase/functions/line-webhook-v2/engines/profile-refresh.ts:99",
+   "required_objects": [
+    "line_profiles"
+   ],
+   "missing_objects": [],
+   "schema_status": "VERIFIED",
+   "runtime_eligibility": "ELIGIBLE",
+   "business_effect": "อ่านชื่อและรูปที่เคยเก็บไว้ได้ตามปกติ"
+  },
+  {
+   "sub_path_id": "B.refresh-enqueue",
+   "description": "เข้าคิวรีเฟรชเมื่อโปรไฟล์ไม่สด",
+   "entrypoint": "supabase/functions/line-webhook-v2/engines/profile-refresh.ts:114",
+   "required_objects": [
+    "line_profile_refresh_queue"
+   ],
+   "missing_objects": [
+    "line_profile_refresh_queue"
+   ],
+   "schema_status": "FAILED",
+   "runtime_eligibility": "NOT_ELIGIBLE",
+   "business_effect": "เขียนคิวไม่ลง โปรไฟล์จึงไม่เคยถูกรีเฟรช ระบบใช้ค่าที่แคชไว้ตลอดไป ชื่อหรือรูปที่ผู้ใช้เปลี่ยนใน LINE จะไม่ตามมา"
+  }
+ ]
+}

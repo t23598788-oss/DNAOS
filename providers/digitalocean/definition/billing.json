@@ -1,0 +1,13 @@
+{
+  "$schema_note": "DigitalOcean billing/cost API surface. Deliberately separate from any profit/margin calculation logic — this file is Provider Operations data only, never a pricing formula. See Owner's stated split: Provider Operations vs Business Calculator are two different concerns that must never be merged into one connector.",
+  "last_verified": "2026-08-17",
+  "endpoints": [
+    { "resource": "balance", "action": "GET", "endpoint": "/v2/customers/my/balance", "method": "GET", "scope": "billing:read", "automatable": "YES", "notes": "returns account_balance, month_to_date_balance, month_to_date_usage, generated_at" },
+    { "resource": "invoices", "action": "LIST_GET_CSV_PDF_SUMMARY", "endpoint": "/v2/customers/my/invoices[/{uuid}][/csv,/pdf,/summary]", "method": "GET", "scope": "billing:read", "automatable": "YES", "notes": "monthly-generated; a 'preview' (current, unfinalized) invoice is also accessible" },
+    { "resource": "billing_history", "action": "LIST", "endpoint": "/v2/customers/my/billing_history", "method": "GET", "scope": "billing:read", "automatable": "YES", "notes": "payments/invoices/credits granted; paginated; links to invoices via invoice_uuid" },
+    { "resource": "usage_cost_insights", "action": "GET", "endpoint": "/v2/billing/{account_urn}/insights/{start_date}/{end_date}", "method": "GET", "scope": "billing:read", "automatable": "YES", "notes": "closest thing to a per-resource cost breakdown; exact response granularity unconfirmed" },
+    { "resource": "agent_usage", "action": "GET", "endpoint": "/v2/gen-ai/agents/{id}/usage", "method": "GET", "scope": "genai:read", "automatable": "YES", "notes": "product-specific usage, not account-wide cost" },
+    { "resource": "pricing_catalog", "action": "N/A", "endpoint": null, "method": null, "scope": null, "automatable": "NO", "notes": "No dedicated pricing-catalog API exists. Use price_monthly/price_hourly fields off /v2/sizes and equivalent per-product size/plan endpoints (see regions_sizes in actions.json) as the only programmatic pricing source." },
+    { "resource": "promo_credit_balance", "action": "GET", "endpoint": "/v2/customers/my/balance (account_balance field)", "method": "GET", "scope": "billing:read", "automatable": "PARTIAL", "notes": "folded into the general balance response; a dedicated 'credits remaining' breakout field was not confirmed" }
+  ]
+}

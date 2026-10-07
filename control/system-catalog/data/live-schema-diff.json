@@ -1,0 +1,188 @@
+{
+ "read_at": "2026-09-05T02:24:57.238Z",
+ "match": [
+  "ai_connection_status",
+  "ai_tasks",
+  "api_tokens",
+  "app_configs",
+  "architecture_drift_events",
+  "audit_logs",
+  "bank_notifications",
+  "bank_statement_transactions",
+  "business_events",
+  "companies",
+  "company_expenses",
+  "company_line_links",
+  "connector_webhook_events",
+  "connectors",
+  "customer_orders",
+  "customer_sites",
+  "debt_events",
+  "debt_snapshots",
+  "destructive_action_log",
+  "dev_loop_check_results",
+  "dev_loop_evidence_events",
+  "dev_loop_registry_proposals",
+  "dev_loop_sessions",
+  "document_groups",
+  "driver_equipment_permissions",
+  "driver_profiles",
+  "equipment_assets",
+  "equipment_telemetry_pings",
+  "evidence_requests",
+  "file_existence_registry",
+  "file_snapshots",
+  "fuel_price_log",
+  "github_sync_log",
+  "github_sync_paths",
+  "identities",
+  "identity_account_workspaces",
+  "identity_memberships",
+  "integration_gateway_events",
+  "integration_gateway_proposals",
+  "invoice_items",
+  "invoices",
+  "jobs",
+  "line_channels",
+  "line_conversation_controls",
+  "line_customer_memory",
+  "line_events",
+  "line_outbound_drafts",
+  "line_profiles",
+  "maintenance_tickets",
+  "material_types",
+  "owner_auth_audit_log",
+  "owner_devices",
+  "owner_passkey_credentials",
+  "owner_qr_login_sessions",
+  "partner_payable_requests",
+  "pending_authorizations",
+  "pit_materials",
+  "pit_price_requests",
+  "pit_profiles",
+  "print_jobs",
+  "profiles",
+  "projects",
+  "receipt_documents",
+  "resource_migration_blocks",
+  "resource_migration_plans",
+  "schema_change_log",
+  "standalone_document_items",
+  "standalone_documents",
+  "storage_actions",
+  "storage_classifications",
+  "storage_evidence",
+  "storage_reclaim_plans",
+  "storage_resources",
+  "storage_scan_runs",
+  "storage_threshold_events",
+  "subscription_services",
+  "supabase_billing_events",
+  "system_health_status",
+  "vehicle_types",
+  "voice_wake_events",
+  "worker_usage_events",
+  "workspace_lock_conflicts",
+  "workspace_locks"
+ ],
+ "live_only": [
+  "geography_columns",
+  "geometry_columns",
+  "live_commands",
+  "spatial_ref_sys"
+ ],
+ "source_only": [
+  "conversation_states",
+  "entity_registry",
+  "factory_app_configs",
+  "job_vehicle_pricings",
+  "kv_cache",
+  "line_draft_documents",
+  "line_profile_events",
+  "line_profile_history",
+  "line_profile_refresh_queue",
+  "line_sessions",
+  "match_queue",
+  "oauth_authorization_codes",
+  "oauth_clients",
+  "oauth_refresh_tokens",
+  "partners",
+  "resource_transactions",
+  "transactions",
+  "user_line_auth"
+ ],
+ "flows": [
+  {
+   "flow_id": "FLOW_A_LINE_MESSAGE",
+   "tables": 10,
+   "missing": [
+    "attachments"
+   ]
+  },
+  {
+   "flow_id": "FLOW_B_LINE_PROFILE_UPDATE",
+   "tables": 2,
+   "missing": [
+    "line_profile_refresh_queue"
+   ]
+  },
+  {
+   "flow_id": "FLOW_C_COMPANY_LINKING",
+   "tables": 3,
+   "missing": []
+  },
+  {
+   "flow_id": "FLOW_D_DOCUMENT_AUTOFILL",
+   "tables": 2,
+   "missing": [
+    "partners",
+    "documents"
+   ]
+  },
+  {
+   "flow_id": "FLOW_E_PRICE_CALCULATION",
+   "tables": 9,
+   "missing": []
+  },
+  {
+   "flow_id": "FLOW_F_DELIVERY_LOCATION_CALCULATION",
+   "tables": 3,
+   "missing": []
+  },
+  {
+   "flow_id": "FLOW_G_DOCUMENT_ISSUANCE",
+   "tables": 6,
+   "missing": []
+  },
+  {
+   "flow_id": "FLOW_H_PAYMENT_MATCHING",
+   "tables": 4,
+   "missing": []
+  },
+  {
+   "flow_id": "FLOW_I_SITE_LOCATION_CAPTURE",
+   "tables": 3,
+   "missing": []
+  },
+  {
+   "flow_id": "FLOW_J_EQUIPMENT_TELEMETRY_AND_ENGINE_HOURS",
+   "tables": 2,
+   "missing": []
+  },
+  {
+   "flow_id": "FLOW_K_EQUIPMENT_ACCESS_CONTROL",
+   "tables": 4,
+   "missing": []
+  },
+  {
+   "flow_id": "FLOW_L_IMAGE_QR_PROCESSING",
+   "tables": 4,
+   "missing": []
+  },
+  {
+   "flow_id": "FLOW_M_AUTOMATIC_CHAT_RESPONSE",
+   "tables": 7,
+   "missing": []
+  }
+ ]
+}

@@ -1,0 +1,71 @@
+[
+ {
+  "schema": "DERIVATION_CONTRACT_V1",
+  "derived_object": "debt_snapshots",
+  "inputs": [
+   "debt_events"
+  ],
+  "implementation_ref": "supabase/functions/line-webhook-v2/engines/auto-confirm-payment.ts:61-120",
+  "recompute_trigger": "เมื่อมี debt_events ใหม่",
+  "cache_policy": "เก็บยอดล่าสุดหนึ่งแถวต่อบริษัท",
+  "stale_policy": "ถือว่าเก่าทันทีที่มี debt_events ใหม่ที่ยังไม่ถูกนำมาปรับ",
+  "authority": "ระบบเท่านั้น ไม่มีการแก้ด้วยมือในซอร์ส",
+  "output_schema_ref": "dc.payment.match_result.v1"
+ },
+ {
+  "schema": "DERIVATION_CONTRACT_V1",
+  "derived_object": "quote_result.grand_total",
+  "inputs": [
+   "material_types",
+   "pit_materials",
+   "vehicle_types",
+   "fuel_price_log",
+   "dc.geo.distance_result.v1"
+  ],
+  "implementation_ref": "engines/quote-price.ts:243,289,290 (materialTotal = unitPrice * qty · transportTotal = transportCostPerTrip * trips · grandTotal = ผลรวม)",
+  "recompute_trigger": "ทุกครั้งที่มีคำขอราคา ไม่เก็บผลไว้",
+  "cache_policy": "ไม่แคช",
+  "stale_policy": "ไม่มีค่าค้าง เพราะคำนวณใหม่เสมอ",
+  "authority": "ไม่มี AI เป็นผู้ตัดสินตัวเลข",
+  "output_schema_ref": "dc.pricing.quote_result.v1"
+ },
+ {
+  "schema": "DERIVATION_CONTRACT_V1",
+  "derived_object": "distance_km",
+  "inputs": [
+   "dc.geo.coordinate_pair.v1"
+  ],
+  "implementation_ref": "engines/quote-price.ts:12-30 haversine ในเครื่อง",
+  "recompute_trigger": "ทุกครั้งที่คิดราคา",
+  "cache_policy": "ไม่แคช",
+  "stale_policy": "ไม่มี",
+  "authority": "ฟังก์ชันบริสุทธิ์",
+  "output_schema_ref": "dc.geo.distance_result.v1"
+ },
+ {
+  "schema": "DERIVATION_CONTRACT_V1",
+  "derived_object": "engine_hours_total",
+  "inputs": [
+   "equipment_telemetry_pings"
+  ],
+  "implementation_ref": "engines/equipment/engine-hours.ts:42,77 พร้อม MAX_GAP_HOURS = 0.5",
+  "recompute_trigger": "ทุก ping ที่เข้ามา",
+  "cache_policy": "สะสมไว้ในแถว equipment_assets",
+  "stale_policy": "ช่องว่างสัญญาณเกิน 0.5 ชั่วโมงถูกตัดทิ้ง ไม่นับเป็นเวลาเดินเครื่อง",
+  "authority": "กล่องฮาร์ดแวร์เป็นต้นทางเดียว",
+  "output_schema_ref": "dc.equipment.engine_hours.v1"
+ },
+ {
+  "schema": "DERIVATION_CONTRACT_V1",
+  "derived_object": "document_totals",
+  "inputs": [
+   "dc.document.issue_request.v1"
+  ],
+  "implementation_ref": "engines/documents/artifact.ts:133-136 ยอดก่อนภาษี ภาษี ยอดสุทธิ",
+  "recompute_trigger": "ตอนออกเอกสาร",
+  "cache_policy": "เก็บลงแถวเอกสารเพราะเป็นตัวเลขที่ออกไปแล้วตามกฎหมาย",
+  "stale_policy": "ไม่คำนวณใหม่หลังออกเอกสาร",
+  "authority": "ADMIN_TIER",
+  "output_schema_ref": "dc.document.issued.v1"
+ }
+]

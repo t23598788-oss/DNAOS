@@ -1,0 +1,621 @@
+{
+ "generated_at": "2026-09-05T03:10:53.171Z",
+ "checks_run": 12,
+ "errors": 36,
+ "warnings": 66,
+ "findings": [
+  {
+   "check": "unowned_data",
+   "severity": "WARNING",
+   "subject": "ai_connection_status",
+   "detail": "เขียนได้แต่ไม่มี owner_capability (SINGLE_WRITER)"
+  },
+  {
+   "check": "unowned_data",
+   "severity": "WARNING",
+   "subject": "api_tokens",
+   "detail": "เขียนได้แต่ไม่มี owner_capability (ARCHITECTURE_CONFLICT)"
+  },
+  {
+   "check": "multi_writer_conflict",
+   "severity": "ERROR",
+   "subject": "api_tokens",
+   "detail": "ผู้เขียน 2 ราย โดยยังไม่ประกาศกติกาตัดสิน"
+  },
+  {
+   "check": "unowned_data",
+   "severity": "WARNING",
+   "subject": "app_configs",
+   "detail": "เขียนได้แต่ไม่มี owner_capability (ARCHITECTURE_CONFLICT)"
+  },
+  {
+   "check": "multi_writer_conflict",
+   "severity": "ERROR",
+   "subject": "app_configs",
+   "detail": "ผู้เขียน 2 ราย โดยยังไม่ประกาศกติกาตัดสิน"
+  },
+  {
+   "check": "unowned_data",
+   "severity": "WARNING",
+   "subject": "attachments",
+   "detail": "เขียนได้แต่ไม่มี owner_capability (SINGLE_WRITER)"
+  },
+  {
+   "check": "unowned_data",
+   "severity": "WARNING",
+   "subject": "audit_logs",
+   "detail": "เขียนได้แต่ไม่มี owner_capability (INTENTIONAL_MULTI_WRITER)"
+  },
+  {
+   "check": "unowned_data",
+   "severity": "WARNING",
+   "subject": "bank_notifications",
+   "detail": "เขียนได้แต่ไม่มี owner_capability (INTENTIONAL_MULTI_WRITER)"
+  },
+  {
+   "check": "multi_writer_conflict",
+   "severity": "ERROR",
+   "subject": "business_events",
+   "detail": "ผู้เขียน 13 ราย โดยยังไม่ประกาศกติกาตัดสิน"
+  },
+  {
+   "check": "unowned_data",
+   "severity": "WARNING",
+   "subject": "companies",
+   "detail": "เขียนได้แต่ไม่มี owner_capability (SINGLE_WRITER)"
+  },
+  {
+   "check": "unowned_data",
+   "severity": "WARNING",
+   "subject": "company_expenses",
+   "detail": "เขียนได้แต่ไม่มี owner_capability (ARCHITECTURE_CONFLICT)"
+  },
+  {
+   "check": "multi_writer_conflict",
+   "severity": "ERROR",
+   "subject": "company_expenses",
+   "detail": "ผู้เขียน 3 ราย โดยยังไม่ประกาศกติกาตัดสิน"
+  },
+  {
+   "check": "unowned_data",
+   "severity": "WARNING",
+   "subject": "connector_webhook_events",
+   "detail": "เขียนได้แต่ไม่มี owner_capability (SINGLE_WRITER)"
+  },
+  {
+   "check": "unowned_data",
+   "severity": "WARNING",
+   "subject": "connectors",
+   "detail": "เขียนได้แต่ไม่มี owner_capability (SINGLE_WRITER)"
+  },
+  {
+   "check": "unowned_data",
+   "severity": "WARNING",
+   "subject": "customer_orders",
+   "detail": "เขียนได้แต่ไม่มี owner_capability (ARCHITECTURE_CONFLICT)"
+  },
+  {
+   "check": "multi_writer_conflict",
+   "severity": "ERROR",
+   "subject": "customer_orders",
+   "detail": "ผู้เขียน 6 ราย โดยยังไม่ประกาศกติกาตัดสิน"
+  },
+  {
+   "check": "multi_writer_conflict",
+   "severity": "ERROR",
+   "subject": "customer_sites",
+   "detail": "ผู้เขียน 4 ราย โดยยังไม่ประกาศกติกาตัดสิน"
+  },
+  {
+   "check": "multi_writer_conflict",
+   "severity": "ERROR",
+   "subject": "debt_events",
+   "detail": "ผู้เขียน 5 ราย โดยยังไม่ประกาศกติกาตัดสิน"
+  },
+  {
+   "check": "multi_writer_conflict",
+   "severity": "ERROR",
+   "subject": "debt_snapshots",
+   "detail": "ผู้เขียน 3 ราย โดยยังไม่ประกาศกติกาตัดสิน"
+  },
+  {
+   "check": "unowned_data",
+   "severity": "WARNING",
+   "subject": "destructive_action_log",
+   "detail": "เขียนได้แต่ไม่มี owner_capability (SINGLE_WRITER)"
+  },
+  {
+   "check": "unowned_data",
+   "severity": "WARNING",
+   "subject": "dev_loop_evidence_events",
+   "detail": "เขียนได้แต่ไม่มี owner_capability (SINGLE_WRITER)"
+  },
+  {
+   "check": "unowned_data",
+   "severity": "WARNING",
+   "subject": "dev_loop_registry_proposals",
+   "detail": "เขียนได้แต่ไม่มี owner_capability (ARCHITECTURE_CONFLICT)"
+  },
+  {
+   "check": "multi_writer_conflict",
+   "severity": "ERROR",
+   "subject": "dev_loop_registry_proposals",
+   "detail": "ผู้เขียน 2 ราย โดยยังไม่ประกาศกติกาตัดสิน"
+  },
+  {
+   "check": "unowned_data",
+   "severity": "WARNING",
+   "subject": "dev_loop_sessions",
+   "detail": "เขียนได้แต่ไม่มี owner_capability (ARCHITECTURE_CONFLICT)"
+  },
+  {
+   "check": "multi_writer_conflict",
+   "severity": "ERROR",
+   "subject": "dev_loop_sessions",
+   "detail": "ผู้เขียน 2 ราย โดยยังไม่ประกาศกติกาตัดสิน"
+  },
+  {
+   "check": "unowned_data",
+   "severity": "WARNING",
+   "subject": "document_groups",
+   "detail": "เขียนได้แต่ไม่มี owner_capability (ARCHITECTURE_CONFLICT)"
+  },
+  {
+   "check": "multi_writer_conflict",
+   "severity": "ERROR",
+   "subject": "document_groups",
+   "detail": "ผู้เขียน 3 ราย โดยยังไม่ประกาศกติกาตัดสิน"
+  },
+  {
+   "check": "multi_writer_conflict",
+   "severity": "ERROR",
+   "subject": "equipment_assets",
+   "detail": "ผู้เขียน 8 ราย โดยยังไม่ประกาศกติกาตัดสิน"
+  },
+  {
+   "check": "unowned_data",
+   "severity": "WARNING",
+   "subject": "evidence_requests",
+   "detail": "เขียนได้แต่ไม่มี owner_capability (SINGLE_WRITER)"
+  },
+  {
+   "check": "unowned_data",
+   "severity": "WARNING",
+   "subject": "file_existence_registry",
+   "detail": "เขียนได้แต่ไม่มี owner_capability (ARCHITECTURE_CONFLICT)"
+  },
+  {
+   "check": "multi_writer_conflict",
+   "severity": "ERROR",
+   "subject": "file_existence_registry",
+   "detail": "ผู้เขียน 2 ราย โดยยังไม่ประกาศกติกาตัดสิน"
+  },
+  {
+   "check": "unowned_data",
+   "severity": "WARNING",
+   "subject": "file_snapshots",
+   "detail": "เขียนได้แต่ไม่มี owner_capability (SINGLE_WRITER)"
+  },
+  {
+   "check": "unowned_data",
+   "severity": "WARNING",
+   "subject": "fuel_price_log",
+   "detail": "เขียนได้แต่ไม่มี owner_capability (SINGLE_WRITER)"
+  },
+  {
+   "check": "unowned_data",
+   "severity": "WARNING",
+   "subject": "github_sync_log",
+   "detail": "เขียนได้แต่ไม่มี owner_capability (SINGLE_WRITER)"
+  },
+  {
+   "check": "unowned_data",
+   "severity": "WARNING",
+   "subject": "github_sync_paths",
+   "detail": "เขียนได้แต่ไม่มี owner_capability (ARCHITECTURE_CONFLICT)"
+  },
+  {
+   "check": "multi_writer_conflict",
+   "severity": "ERROR",
+   "subject": "github_sync_paths",
+   "detail": "ผู้เขียน 3 ราย โดยยังไม่ประกาศกติกาตัดสิน"
+  },
+  {
+   "check": "unowned_data",
+   "severity": "WARNING",
+   "subject": "integration_gateway_events",
+   "detail": "เขียนได้แต่ไม่มี owner_capability (SINGLE_WRITER)"
+  },
+  {
+   "check": "unowned_data",
+   "severity": "WARNING",
+   "subject": "integration_gateway_proposals",
+   "detail": "เขียนได้แต่ไม่มี owner_capability (SINGLE_WRITER)"
+  },
+  {
+   "check": "multi_writer_conflict",
+   "severity": "ERROR",
+   "subject": "invoices",
+   "detail": "ผู้เขียน 5 ราย โดยยังไม่ประกาศกติกาตัดสิน"
+  },
+  {
+   "check": "unowned_data",
+   "severity": "WARNING",
+   "subject": "jobs",
+   "detail": "เขียนได้แต่ไม่มี owner_capability (SINGLE_WRITER)"
+  },
+  {
+   "check": "unowned_data",
+   "severity": "WARNING",
+   "subject": "line_customer_memory",
+   "detail": "เขียนได้แต่ไม่มี owner_capability (ARCHITECTURE_CONFLICT)"
+  },
+  {
+   "check": "multi_writer_conflict",
+   "severity": "ERROR",
+   "subject": "line_customer_memory",
+   "detail": "ผู้เขียน 2 ราย โดยยังไม่ประกาศกติกาตัดสิน"
+  },
+  {
+   "check": "unowned_data",
+   "severity": "WARNING",
+   "subject": "line_outbound_drafts",
+   "detail": "เขียนได้แต่ไม่มี owner_capability (ARCHITECTURE_CONFLICT)"
+  },
+  {
+   "check": "multi_writer_conflict",
+   "severity": "ERROR",
+   "subject": "line_outbound_drafts",
+   "detail": "ผู้เขียน 3 ราย โดยยังไม่ประกาศกติกาตัดสิน"
+  },
+  {
+   "check": "multi_writer_conflict",
+   "severity": "ERROR",
+   "subject": "line_profiles",
+   "detail": "ผู้เขียน 2 ราย โดยยังไม่ประกาศกติกาตัดสิน"
+  },
+  {
+   "check": "unowned_data",
+   "severity": "WARNING",
+   "subject": "live_commands",
+   "detail": "เขียนได้แต่ไม่มี owner_capability (SINGLE_WRITER)"
+  },
+  {
+   "check": "multi_writer_conflict",
+   "severity": "ERROR",
+   "subject": "maintenance_tickets",
+   "detail": "ผู้เขียน 2 ราย โดยยังไม่ประกาศกติกาตัดสิน"
+  },
+  {
+   "check": "unowned_data",
+   "severity": "WARNING",
+   "subject": "owner_auth_audit_log",
+   "detail": "เขียนได้แต่ไม่มี owner_capability (INTENTIONAL_MULTI_WRITER)"
+  },
+  {
+   "check": "unowned_data",
+   "severity": "WARNING",
+   "subject": "owner_devices",
+   "detail": "เขียนได้แต่ไม่มี owner_capability (ARCHITECTURE_CONFLICT)"
+  },
+  {
+   "check": "multi_writer_conflict",
+   "severity": "ERROR",
+   "subject": "owner_devices",
+   "detail": "ผู้เขียน 2 ราย โดยยังไม่ประกาศกติกาตัดสิน"
+  },
+  {
+   "check": "unowned_data",
+   "severity": "WARNING",
+   "subject": "owner_passkey_credentials",
+   "detail": "เขียนได้แต่ไม่มี owner_capability (ARCHITECTURE_CONFLICT)"
+  },
+  {
+   "check": "multi_writer_conflict",
+   "severity": "ERROR",
+   "subject": "owner_passkey_credentials",
+   "detail": "ผู้เขียน 3 ราย โดยยังไม่ประกาศกติกาตัดสิน"
+  },
+  {
+   "check": "unowned_data",
+   "severity": "WARNING",
+   "subject": "owner_qr_login_sessions",
+   "detail": "เขียนได้แต่ไม่มี owner_capability (ARCHITECTURE_CONFLICT)"
+  },
+  {
+   "check": "multi_writer_conflict",
+   "severity": "ERROR",
+   "subject": "owner_qr_login_sessions",
+   "detail": "ผู้เขียน 4 ราย โดยยังไม่ประกาศกติกาตัดสิน"
+  },
+  {
+   "check": "unowned_data",
+   "severity": "WARNING",
+   "subject": "partner_payable_requests",
+   "detail": "เขียนได้แต่ไม่มี owner_capability (ARCHITECTURE_CONFLICT)"
+  },
+  {
+   "check": "multi_writer_conflict",
+   "severity": "ERROR",
+   "subject": "partner_payable_requests",
+   "detail": "ผู้เขียน 3 ราย โดยยังไม่ประกาศกติกาตัดสิน"
+  },
+  {
+   "check": "multi_writer_conflict",
+   "severity": "ERROR",
+   "subject": "pending_authorizations",
+   "detail": "ผู้เขียน 2 ราย โดยยังไม่ประกาศกติกาตัดสิน"
+  },
+  {
+   "check": "unowned_data",
+   "severity": "WARNING",
+   "subject": "pit_materials",
+   "detail": "เขียนได้แต่ไม่มี owner_capability (ARCHITECTURE_CONFLICT)"
+  },
+  {
+   "check": "multi_writer_conflict",
+   "severity": "ERROR",
+   "subject": "pit_materials",
+   "detail": "ผู้เขียน 2 ราย โดยยังไม่ประกาศกติกาตัดสิน"
+  },
+  {
+   "check": "unowned_data",
+   "severity": "WARNING",
+   "subject": "pit_price_requests",
+   "detail": "เขียนได้แต่ไม่มี owner_capability (ARCHITECTURE_CONFLICT)"
+  },
+  {
+   "check": "multi_writer_conflict",
+   "severity": "ERROR",
+   "subject": "pit_price_requests",
+   "detail": "ผู้เขียน 2 ราย โดยยังไม่ประกาศกติกาตัดสิน"
+  },
+  {
+   "check": "unowned_data",
+   "severity": "WARNING",
+   "subject": "pit_profiles",
+   "detail": "เขียนได้แต่ไม่มี owner_capability (SINGLE_WRITER)"
+  },
+  {
+   "check": "unowned_data",
+   "severity": "WARNING",
+   "subject": "print_jobs",
+   "detail": "เขียนได้แต่ไม่มี owner_capability (SINGLE_WRITER)"
+  },
+  {
+   "check": "unowned_data",
+   "severity": "WARNING",
+   "subject": "profiles",
+   "detail": "เขียนได้แต่ไม่มี owner_capability (SINGLE_WRITER)"
+  },
+  {
+   "check": "unowned_data",
+   "severity": "WARNING",
+   "subject": "projects",
+   "detail": "เขียนได้แต่ไม่มี owner_capability (ARCHITECTURE_CONFLICT)"
+  },
+  {
+   "check": "multi_writer_conflict",
+   "severity": "ERROR",
+   "subject": "projects",
+   "detail": "ผู้เขียน 3 ราย โดยยังไม่ประกาศกติกาตัดสิน"
+  },
+  {
+   "check": "multi_writer_conflict",
+   "severity": "ERROR",
+   "subject": "receipt_documents",
+   "detail": "ผู้เขียน 5 ราย โดยยังไม่ประกาศกติกาตัดสิน"
+  },
+  {
+   "check": "unowned_data",
+   "severity": "WARNING",
+   "subject": "resource_migration_blocks",
+   "detail": "เขียนได้แต่ไม่มี owner_capability (SINGLE_WRITER)"
+  },
+  {
+   "check": "unowned_data",
+   "severity": "WARNING",
+   "subject": "resource_migration_plans",
+   "detail": "เขียนได้แต่ไม่มี owner_capability (SINGLE_WRITER)"
+  },
+  {
+   "check": "multi_writer_conflict",
+   "severity": "ERROR",
+   "subject": "standalone_documents",
+   "detail": "ผู้เขียน 4 ราย โดยยังไม่ประกาศกติกาตัดสิน"
+  },
+  {
+   "check": "unowned_data",
+   "severity": "WARNING",
+   "subject": "storage_actions",
+   "detail": "เขียนได้แต่ไม่มี owner_capability (SINGLE_WRITER)"
+  },
+  {
+   "check": "unowned_data",
+   "severity": "WARNING",
+   "subject": "storage_classifications",
+   "detail": "เขียนได้แต่ไม่มี owner_capability (SINGLE_WRITER)"
+  },
+  {
+   "check": "unowned_data",
+   "severity": "WARNING",
+   "subject": "storage_evidence",
+   "detail": "เขียนได้แต่ไม่มี owner_capability (SINGLE_WRITER)"
+  },
+  {
+   "check": "unowned_data",
+   "severity": "WARNING",
+   "subject": "storage_reclaim_plans",
+   "detail": "เขียนได้แต่ไม่มี owner_capability (SINGLE_WRITER)"
+  },
+  {
+   "check": "unowned_data",
+   "severity": "WARNING",
+   "subject": "storage_resources",
+   "detail": "เขียนได้แต่ไม่มี owner_capability (SINGLE_WRITER)"
+  },
+  {
+   "check": "unowned_data",
+   "severity": "WARNING",
+   "subject": "storage_scan_runs",
+   "detail": "เขียนได้แต่ไม่มี owner_capability (SINGLE_WRITER)"
+  },
+  {
+   "check": "unowned_data",
+   "severity": "WARNING",
+   "subject": "storage_threshold_events",
+   "detail": "เขียนได้แต่ไม่มี owner_capability (INTENTIONAL_MULTI_WRITER)"
+  },
+  {
+   "check": "unowned_data",
+   "severity": "WARNING",
+   "subject": "subscription_services",
+   "detail": "เขียนได้แต่ไม่มี owner_capability (SINGLE_WRITER)"
+  },
+  {
+   "check": "unowned_data",
+   "severity": "WARNING",
+   "subject": "supabase_billing_events",
+   "detail": "เขียนได้แต่ไม่มี owner_capability (INTENTIONAL_MULTI_WRITER)"
+  },
+  {
+   "check": "unowned_data",
+   "severity": "WARNING",
+   "subject": "system_health_status",
+   "detail": "เขียนได้แต่ไม่มี owner_capability (ARCHITECTURE_CONFLICT)"
+  },
+  {
+   "check": "multi_writer_conflict",
+   "severity": "ERROR",
+   "subject": "system_health_status",
+   "detail": "ผู้เขียน 4 ราย โดยยังไม่ประกาศกติกาตัดสิน"
+  },
+  {
+   "check": "unowned_data",
+   "severity": "WARNING",
+   "subject": "worker_usage_events",
+   "detail": "เขียนได้แต่ไม่มี owner_capability (INTENTIONAL_MULTI_WRITER)"
+  },
+  {
+   "check": "unowned_data",
+   "severity": "WARNING",
+   "subject": "workspace_lock_conflicts",
+   "detail": "เขียนได้แต่ไม่มี owner_capability (SINGLE_WRITER)"
+  },
+  {
+   "check": "unowned_data",
+   "severity": "WARNING",
+   "subject": "workspace_locks",
+   "detail": "เขียนได้แต่ไม่มี owner_capability (SINGLE_WRITER)"
+  },
+  {
+   "check": "orphan_event",
+   "severity": "WARNING",
+   "subject": "PAYMENT_MATCHED",
+   "detail": "ไม่มีผู้บริโภคที่ประกาศไว้"
+  },
+  {
+   "check": "orphan_event",
+   "severity": "WARNING",
+   "subject": "EQUIPMENT_LOCKED",
+   "detail": "ไม่มีผู้บริโภคที่ประกาศไว้"
+  },
+  {
+   "check": "orphan_event",
+   "severity": "WARNING",
+   "subject": "AUTHORIZATION_REQUESTED",
+   "detail": "ไม่มีผู้บริโภคที่ประกาศไว้"
+  },
+  {
+   "check": "missing_transition_owner",
+   "severity": "ERROR",
+   "subject": "sm.authorization.lifecycle#pending->approved",
+   "detail": "ไม่มีโค้ดใดรับผิดชอบ transition นี้"
+  },
+  {
+   "check": "missing_transition_owner",
+   "severity": "ERROR",
+   "subject": "sm.authorization.lifecycle#pending->denied",
+   "detail": "ไม่มีโค้ดใดรับผิดชอบ transition นี้"
+  },
+  {
+   "check": "missing_transition_owner",
+   "severity": "ERROR",
+   "subject": "sm.authorization.lifecycle#pending->expired",
+   "detail": "ไม่มีโค้ดใดรับผิดชอบ transition นี้"
+  },
+  {
+   "check": "missing_terminal_state",
+   "severity": "WARNING",
+   "subject": "sm.equipment.lifecycle",
+   "detail": "ไม่มีสถานะปลายทาง"
+  },
+  {
+   "check": "missing_terminal_state",
+   "severity": "WARNING",
+   "subject": "sm.conversation.mode",
+   "detail": "ไม่มีสถานะปลายทาง"
+  },
+  {
+   "check": "missing_transition_owner",
+   "severity": "ERROR",
+   "subject": "sm.conversation.mode#human_takeover->ai",
+   "detail": "ไม่มีโค้ดใดรับผิดชอบ transition นี้"
+  },
+  {
+   "check": "missing_financial_source",
+   "severity": "ERROR",
+   "subject": "fe.payable.created",
+   "detail": "ไม่มีที่มาของจำนวนเงินที่กำหนดผลได้: UNKNOWN — ไม่มี schema ที่ประกาศไว้"
+  },
+  {
+   "check": "missing_financial_source",
+   "severity": "ERROR",
+   "subject": "fe.maintenance.cost",
+   "detail": "ไม่มีที่มาของจำนวนเงินที่กำหนดผลได้: UNKNOWN — ใบแจ้งซ่อมยังไม่ผูกจำนวนเงิน"
+  },
+  {
+   "check": "projection_without_capability",
+   "severity": "WARNING",
+   "subject": "prj.admin.orders",
+   "detail": "ไม่ได้ผูกกับ capability ใด"
+  },
+  {
+   "check": "output_without_consumer",
+   "severity": "WARNING",
+   "subject": "p.identity.context.out",
+   "detail": "ผลิต dc.identity.company_context.v1 แต่ไม่มี port หรือ event ใดรับ"
+  },
+  {
+   "check": "output_without_consumer",
+   "severity": "WARNING",
+   "subject": "p.distance.result.out",
+   "detail": "ผลิต dc.geo.distance_result.v1 แต่ไม่มี port หรือ event ใดรับ"
+  },
+  {
+   "check": "output_without_consumer",
+   "severity": "WARNING",
+   "subject": "p.document.deliver.out",
+   "detail": "ผลิต dc.chat.outbound_message.v1 แต่ไม่มี port หรือ event ใดรับ"
+  },
+  {
+   "check": "output_without_consumer",
+   "severity": "WARNING",
+   "subject": "p.payment.matched.out",
+   "detail": "ผลิต dc.payment.match_result.v1 แต่ไม่มี port หรือ event ใดรับ"
+  },
+  {
+   "check": "output_without_consumer",
+   "severity": "WARNING",
+   "subject": "p.payment.notify.out",
+   "detail": "ผลิต dc.chat.outbound_message.v1 แต่ไม่มี port หรือ event ใดรับ"
+  },
+  {
+   "check": "output_without_consumer",
+   "severity": "WARNING",
+   "subject": "p.profile.snapshot.out",
+   "detail": "ผลิต dc.profile.snapshot.v1 แต่ไม่มี port หรือ event ใดรับ"
+  }
+ ],
+ "result": "FAIL"
+}

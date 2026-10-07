@@ -1,0 +1,69 @@
+{
+ "generated_at": "2026-09-05T02:24:57.238Z",
+ "groups": [
+  {
+   "business_concept": "เอกสารการค้าที่ออกให้คู่ค้า",
+   "candidate_canonical": "ยังไม่มีผู้ชนะ — ต้องให้เจ้าของตัดสินจากความหมายทางธุรกิจ",
+   "legacy_objects": [
+    "documents",
+    "document_items"
+   ],
+   "live_objects": [
+    "invoices",
+    "standalone_documents",
+    "receipt_documents"
+   ],
+   "data_differences": "invoices ผูกกับ customer_orders · standalone_documents เป็นเอกสารเดี่ยวไม่ผูกคำสั่งซื้อ · receipt_documents เป็นฝั่งรับเงิน ทั้งสามมีผู้เขียนและผู้อ่านจริงทั้งคู่",
+   "lifecycle_differences": "invoices และ standalone_documents มีขั้นยืนยัน (route .../confirm) ส่วน receipt_documents มีทั้ง confirm และ reject",
+   "evidence": "invoices W5 R12 · standalone_documents W4 R10 · receipt_documents W5 R9 · documents W1 R3 แต่ไม่มีใน live schema",
+   "decision_rule_applied": "ไม่ตัดสินจากชื่อ — documents ถูกจัดเป็น legacy เพราะไม่มีใน production ไม่ใช่เพราะชื่อกว้างกว่า"
+  },
+  {
+   "business_concept": "หนี้ค้างชำระของลูกค้า",
+   "candidate_canonical": "debt_events (ต้นทาง) คู่กับ debt_snapshots (ผลคำนวณ)",
+   "legacy_objects": [
+    "invoice_debts",
+    "debt_trackings"
+   ],
+   "live_objects": [
+    "debt_events",
+    "debt_snapshots"
+   ],
+   "data_differences": "debt_events เป็นบันทึกเหตุการณ์ · debt_snapshots เป็นยอดคงเหลือที่คำนวณจากเหตุการณ์",
+   "lifecycle_differences": "FLOW_H เขียน debt_events แล้วปรับ debt_snapshots ในขั้นตอนเดียวกัน ส่วน invoice_debts/debt_trackings ถูกเรียกจาก gateway/actions.ts เท่านั้น",
+   "evidence": "debt_events W5 R10 · debt_snapshots W3 R12 ทั้งคู่มีใน live · invoice_debts W1 R2 และ debt_trackings W1 R0 ไม่มีใน live",
+   "decision_rule_applied": "เลือกจากการมีอยู่จริงใน production บวกกับการถูกใช้ใน flow ที่พิสูจน์แล้ว (FLOW_H)"
+  },
+  {
+   "business_concept": "คู่สัญญา / บริษัทที่ทำธุรกิจด้วย",
+   "candidate_canonical": "companies",
+   "legacy_objects": [
+    "partners"
+   ],
+   "live_objects": [
+    "companies",
+    "company_line_links",
+    "customer_sites"
+   ],
+   "data_differences": "partners เก็บชื่อ เลขภาษี ที่อยู่ เบอร์โทร ผู้ติดต่อ · companies ถูกอ่านจาก 14 จุดรวมหน้าจอหลังบ้าน",
+   "lifecycle_differences": "companies ผูกกับ company_line_links ซึ่งเป็นฐานสิทธิ์ทั้งระบบ ส่วน partners ไม่มีผู้เขียนเลยแม้แต่จุดเดียว",
+   "evidence": "companies W1 R14 มีใน live · partners W0 R2 ไม่มีใน live (อ่านอย่างเดียว ไม่มีใครเขียน)",
+   "decision_rule_applied": "partners ไม่มีผู้เขียนแม้ในซอร์ส แปลว่าต่อให้สร้างตารางก็จะว่างเปล่าตลอด"
+  },
+  {
+   "business_concept": "รายการบรรทัดในเอกสาร",
+   "candidate_canonical": "UNKNOWN",
+   "legacy_objects": [
+    "document_items"
+   ],
+   "live_objects": [
+    "invoice_items",
+    "standalone_document_items"
+   ],
+   "data_differences": "ทั้งสองตารางที่มีใน production ไม่มีผู้เขียนเลย มีแต่ผู้อ่าน",
+   "lifecycle_differences": "คอมเมนต์ที่ engines/documents/flex-template.ts:63 ระบุว่ารายการบรรทัดถูกยกเลิกไปตอน 2026-07-10 และเอกสารที่บันทึกแล้วมีแต่ยอดรวม",
+   "evidence": "invoice_items W0 R2 · standalone_document_items W0 R1 · ทั้งคู่มีใน live schema ทั้งที่คอมเมนต์บอกว่าถูก drop",
+   "decision_rule_applied": "ไม่ตัดสิน — ซอร์สขัดกันเอง (คอมเมนต์บอกว่ายกเลิก แต่ production ยังมีตารางและยังมีโค้ดอ่าน)"
+  }
+ ]
+}

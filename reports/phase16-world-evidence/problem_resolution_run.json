@@ -1,0 +1,27 @@
+{
+  "problem_text": "test problem text for process gate verification",
+  "status_log": [
+    {
+      "stage": "กำลังตรวจ",
+      "at": "2026-08-24T02:58:01.336Z"
+    },
+    {
+      "stage": "กำลังจัดเส้นทาง",
+      "at": "2026-08-24T02:58:01.342Z",
+      "registry_check": {
+        "status": "UNSUPPORTED_COMMAND",
+        "reason": "no registered capability's match_keyword_sets matched \"test problem text for process gate verification\""
+      }
+    },
+    {
+      "stage": "ยังไม่สำเร็จ",
+      "at": "2026-08-24T02:58:01.342Z"
+    }
+  ],
+  "result": "ยังไม่สำเร็จ",
+  "evidence": {
+    "what_changed": "nothing",
+    "what_verified_it": "no matching capability found in the existing registry or resolution table",
+    "what_remains_unresolved": "this problem has no known existing-capability match yet"
+  }
+}

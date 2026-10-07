@@ -1,0 +1,148 @@
+{
+ "flow_id": "VF_MESSAGE_TO_BUSINESS_ACTION",
+ "business_flow": "ข้อความเข้ามาแล้วกลายเป็นการกระทำทางธุรกิจ",
+ "source": "ผู้ใช้ LINE",
+ "sink": "ข้อความตอบกลับหรือเหตุการณ์ทางธุรกิจ",
+ "stages": [
+  {
+   "stage_id": "VF1.1",
+   "layer": "L0_EXTERNAL_INPUT",
+   "nature": "OBSERVATION",
+   "operation": "INGEST",
+   "component": "LINE webhook",
+   "input": "ข้อความจากผู้ใช้",
+   "output": "event ที่ตรวจลายเซ็นแล้ว",
+   "data_object": [
+    "line_events"
+   ],
+   "authority": "ตรวจลายเซ็น webhook",
+   "side_effect": null,
+   "next_stage": "VF1.2",
+   "failure_path": "ลายเซ็นไม่ผ่าน = ปฏิเสธ",
+   "source_pointer": "supabase/functions/line-webhook-v2/index.ts"
+  },
+  {
+   "stage_id": "VF1.2",
+   "layer": "L1_INGESTION",
+   "nature": "OBSERVATION",
+   "operation": "NORMALIZE",
+   "component": "handlers/text.ts",
+   "input": "event ดิบ",
+   "output": "ข้อความที่บันทึกแล้ว",
+   "data_object": [
+    "line_events"
+   ],
+   "authority": "ไม่มี",
+   "side_effect": "เขียน line_events",
+   "next_stage": "VF1.3",
+   "failure_path": "บันทึกไม่ได้ = ทำงานต่อโดยไม่มี event id",
+   "source_pointer": "supabase/functions/line-webhook-v2/handlers/text.ts:18"
+  },
+  {
+   "stage_id": "VF1.3",
+   "layer": "L2_IDENTITY_CONTEXT",
+   "nature": "DECISION",
+   "operation": "RESOLVE_IDENTITY",
+   "component": "engines/human-takeover.ts + company_line_links",
+   "input": "line_user_id",
+   "output": "บริษัทและโหมดการสนทนา",
+   "data_object": [
+    "company_line_links",
+    "line_conversation_controls",
+    "line_profiles"
+   ],
+   "authority": "โหมดมนุษย์เหนือกว่าการตอบอัตโนมัติ",
+   "side_effect": null,
+   "next_stage": "VF1.4",
+   "failure_path": "โหมด human_takeover = จบที่นี่ ไม่ตอบ",
+   "source_pointer": "supabase/functions/line-webhook-v2/engines/human-takeover.ts:9"
+  },
+  {
+   "stage_id": "VF1.4",
+   "layer": "L3_BUSINESS_STATE",
+   "nature": "DECISION",
+   "operation": "BUSINESS_STATE",
+   "component": "engines/tool-router.ts",
+   "input": "ข้อความ + ตัวตน",
+   "output": "เครื่องมือที่ถูกเลือก",
+   "data_object": [
+    "business_events"
+   ],
+   "authority": "เครื่องมือเป็นผู้คำนวณ ไม่ใช่โมเดล",
+   "side_effect": null,
+   "next_stage": "VF1.5",
+   "failure_path": "ไม่ตรงเครื่องมือใด = เข้าคิว ai_tasks",
+   "source_pointer": "supabase/functions/line-webhook-v2/handlers/text.ts:116"
+  },
+  {
+   "stage_id": "VF1.5",
+   "layer": "L7_PROJECTION",
+   "nature": "DECISION",
+   "operation": "PROJECTION",
+   "component": "engines/response.ts",
+   "input": "ผลจากเครื่องมือ",
+   "output": "ข้อความที่จะตอบ",
+   "data_object": [
+    "line_events"
+   ],
+   "authority": "คอขวดขาออกจุดเดียว มีสวิตช์ปิดการตอบลูกค้า",
+   "side_effect": null,
+   "next_stage": "VF1.6",
+   "failure_path": "สวิตช์ปิด = บันทึกแทนการส่ง",
+   "source_pointer": "supabase/functions/line-webhook-v2/engines/response.ts:95"
+  },
+  {
+   "stage_id": "VF1.6",
+   "layer": "L8_EXTERNAL_ACTION",
+   "nature": "EXTERNAL_ACTION",
+   "operation": "ACTION",
+   "component": "LINE reply API",
+   "input": "ข้อความ",
+   "output": "ข้อความที่ส่งแล้ว",
+   "data_object": [],
+   "authority": "channel_access_token",
+   "side_effect": "ส่งข้อความถึงผู้ใช้จริง",
+   "next_stage": null,
+   "failure_path": "LINE ตอบไม่สำเร็จ = บันทึก error",
+   "source_pointer": "supabase/functions/line-webhook-v2/engines/response.ts:115"
+  }
+ ],
+ "terminal_state": "ตอบแล้ว หรือเข้าคิว ai_tasks รอ AI ท้องถิ่น",
+ "financial_effect": [],
+ "projection": [
+  {
+   "surface": "LINE chat",
+   "canonical_source": [
+    "business_events"
+   ],
+   "projection_object": [
+    "line_events"
+   ],
+   "refresh": "EVENT",
+   "reads_raw_ingestion": true,
+   "reason": "แชทคือช่องทางเดิมของข้อมูล การแสดงย้อนหลังจึงอ่าน line_events โดยตรงตามธรรมชาติ"
+  },
+  {
+   "surface": "deadboard admin inbox",
+   "canonical_source": [
+    "business_events"
+   ],
+   "projection_object": [
+    "line_events"
+   ],
+   "refresh": "REQUEST",
+   "reads_raw_ingestion": true,
+   "reason": "หน้ากล่องข้อความต้องแสดงข้อความดิบตามที่ลูกค้าส่งมาจริง"
+  }
+ ],
+ "external_action": [
+  "LINE reply",
+  "LINE loading indicator"
+ ],
+ "health": "COMPLETE",
+ "last_confirmed_stage": "VF1.6",
+ "expected_next_stage": null,
+ "blocker": null,
+ "runtime_trace": [],
+ "schema": "DATA_FLOW_V1"
+}

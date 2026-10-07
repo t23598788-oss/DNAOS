@@ -1,0 +1,535 @@
+{
+ "generated_at": "2026-09-05T02:44:03.385Z",
+ "count": 46,
+ "dead_ends": [
+  {
+   "object": "ai_connection_status",
+   "data_class": "UNKNOWN",
+   "layer": "UNKNOWN_LAYER",
+   "tags": [
+    "GENERATED_BUT_NOT_PROJECTED"
+   ],
+   "writers": 1,
+   "readers": 1,
+   "ui_readers": 0
+  },
+  {
+   "object": "api_tokens",
+   "data_class": "UNKNOWN",
+   "layer": "UNKNOWN_LAYER",
+   "tags": [
+    "GENERATED_BUT_NOT_PROJECTED"
+   ],
+   "writers": 2,
+   "readers": 2,
+   "ui_readers": 0
+  },
+  {
+   "object": "app_configs",
+   "data_class": "CONFIGURATION",
+   "layer": "L2_IDENTITY_CONTEXT",
+   "tags": [
+    "GENERATED_BUT_NOT_PROJECTED"
+   ],
+   "writers": 2,
+   "readers": 6,
+   "ui_readers": 0
+  },
+  {
+   "object": "audit_logs",
+   "data_class": "EVENT_LOG",
+   "layer": "L1_INGESTION",
+   "tags": [
+    "WRITTEN_BUT_NEVER_READ",
+    "EVENT_WITHOUT_CONSUMER",
+    "GENERATED_BUT_NOT_PROJECTED"
+   ],
+   "writers": 5,
+   "readers": 0,
+   "ui_readers": 0
+  },
+  {
+   "object": "bank_notifications",
+   "data_class": "EVENT_LOG",
+   "layer": "L1_INGESTION",
+   "tags": [
+    "GENERATED_BUT_NOT_PROJECTED"
+   ],
+   "writers": 2,
+   "readers": 3,
+   "ui_readers": 0
+  },
+  {
+   "object": "bank_statement_transactions",
+   "data_class": "UNKNOWN",
+   "layer": "UNKNOWN_LAYER",
+   "tags": [
+    "READ_BUT_NEVER_WRITTEN"
+   ],
+   "writers": 0,
+   "readers": 2,
+   "ui_readers": 0
+  },
+  {
+   "object": "connector_webhook_events",
+   "data_class": "EVENT_LOG",
+   "layer": "L1_INGESTION",
+   "tags": [
+    "WRITTEN_BUT_NEVER_READ",
+    "EVENT_WITHOUT_CONSUMER",
+    "GENERATED_BUT_NOT_PROJECTED"
+   ],
+   "writers": 1,
+   "readers": 0,
+   "ui_readers": 0
+  },
+  {
+   "object": "debt_trackings",
+   "data_class": "STALE_SCHEMA",
+   "layer": "UNKNOWN_LAYER",
+   "tags": [
+    "WRITTEN_BUT_NEVER_READ"
+   ],
+   "writers": 1,
+   "readers": 0,
+   "ui_readers": 0
+  },
+  {
+   "object": "destructive_action_log",
+   "data_class": "EVENT_LOG",
+   "layer": "L1_INGESTION",
+   "tags": [
+    "WRITTEN_BUT_NEVER_READ",
+    "EVENT_WITHOUT_CONSUMER",
+    "GENERATED_BUT_NOT_PROJECTED"
+   ],
+   "writers": 1,
+   "readers": 0,
+   "ui_readers": 0
+  },
+  {
+   "object": "dev_loop_check_results",
+   "data_class": "UNKNOWN",
+   "layer": "UNKNOWN_LAYER",
+   "tags": [
+    "READ_BUT_NEVER_WRITTEN"
+   ],
+   "writers": 0,
+   "readers": 6,
+   "ui_readers": 6
+  },
+  {
+   "object": "document_groups",
+   "data_class": "DOCUMENT_ARTIFACT",
+   "layer": "L6_ARTIFACT",
+   "tags": [
+    "WRITTEN_BUT_NEVER_READ",
+    "ARTIFACT_WITHOUT_DELIVERY",
+    "GENERATED_BUT_NOT_PROJECTED"
+   ],
+   "writers": 3,
+   "readers": 0,
+   "ui_readers": 0
+  },
+  {
+   "object": "entity_registry",
+   "data_class": "STALE_SCHEMA",
+   "layer": "UNKNOWN_LAYER",
+   "tags": [
+    "WRITTEN_BUT_NEVER_READ"
+   ],
+   "writers": 1,
+   "readers": 0,
+   "ui_readers": 0
+  },
+  {
+   "object": "entries",
+   "data_class": "STALE_SCHEMA",
+   "layer": "UNKNOWN_LAYER",
+   "tags": [
+    "WRITTEN_BUT_NEVER_READ"
+   ],
+   "writers": 1,
+   "readers": 0,
+   "ui_readers": 0
+  },
+  {
+   "object": "equipment_telemetry_pings",
+   "data_class": "TELEMETRY",
+   "layer": "L1_INGESTION",
+   "tags": [
+    "GENERATED_BUT_NOT_PROJECTED"
+   ],
+   "writers": 1,
+   "readers": 1,
+   "ui_readers": 0
+  },
+  {
+   "object": "evidence_requests",
+   "data_class": "UNKNOWN",
+   "layer": "UNKNOWN_LAYER",
+   "tags": [
+    "GENERATED_BUT_NOT_PROJECTED"
+   ],
+   "writers": 1,
+   "readers": 1,
+   "ui_readers": 0
+  },
+  {
+   "object": "factory_app_configs",
+   "data_class": "STALE_SCHEMA",
+   "layer": "UNKNOWN_LAYER",
+   "tags": [
+    "WRITTEN_BUT_NEVER_READ"
+   ],
+   "writers": 1,
+   "readers": 0,
+   "ui_readers": 0
+  },
+  {
+   "object": "file_existence_registry",
+   "data_class": "UNKNOWN",
+   "layer": "UNKNOWN_LAYER",
+   "tags": [
+    "GENERATED_BUT_NOT_PROJECTED"
+   ],
+   "writers": 2,
+   "readers": 1,
+   "ui_readers": 0
+  },
+  {
+   "object": "file_snapshots",
+   "data_class": "DERIVED_DATA",
+   "layer": "L5_TRANSACTION_STATE",
+   "tags": [
+    "GENERATED_BUT_NOT_PROJECTED"
+   ],
+   "writers": 1,
+   "readers": 1,
+   "ui_readers": 0
+  },
+  {
+   "object": "github_sync_log",
+   "data_class": "EVENT_LOG",
+   "layer": "L1_INGESTION",
+   "tags": [
+    "WRITTEN_BUT_NEVER_READ",
+    "EVENT_WITHOUT_CONSUMER",
+    "GENERATED_BUT_NOT_PROJECTED"
+   ],
+   "writers": 1,
+   "readers": 0,
+   "ui_readers": 0
+  },
+  {
+   "object": "identities",
+   "data_class": "SESSION_STATE",
+   "layer": "L2_IDENTITY_CONTEXT",
+   "tags": [
+    "READ_BUT_NEVER_WRITTEN"
+   ],
+   "writers": 0,
+   "readers": 2,
+   "ui_readers": 2
+  },
+  {
+   "object": "integration_gateway_proposals",
+   "data_class": "UNKNOWN",
+   "layer": "UNKNOWN_LAYER",
+   "tags": [
+    "GENERATED_BUT_NOT_PROJECTED"
+   ],
+   "writers": 1,
+   "readers": 1,
+   "ui_readers": 0
+  },
+  {
+   "object": "invoice_items",
+   "data_class": "DOCUMENT_ARTIFACT",
+   "layer": "L6_ARTIFACT",
+   "tags": [
+    "READ_BUT_NEVER_WRITTEN"
+   ],
+   "writers": 0,
+   "readers": 2,
+   "ui_readers": 1
+  },
+  {
+   "object": "invoice_payments",
+   "data_class": "STALE_SCHEMA",
+   "layer": "UNKNOWN_LAYER",
+   "tags": [
+    "WRITTEN_BUT_NEVER_READ"
+   ],
+   "writers": 1,
+   "readers": 0,
+   "ui_readers": 0
+  },
+  {
+   "object": "jobs",
+   "data_class": "UNKNOWN",
+   "layer": "UNKNOWN_LAYER",
+   "tags": [
+    "GENERATED_BUT_NOT_PROJECTED"
+   ],
+   "writers": 1,
+   "readers": 1,
+   "ui_readers": 0
+  },
+  {
+   "object": "line_customer_memory",
+   "data_class": "UNKNOWN",
+   "layer": "UNKNOWN_LAYER",
+   "tags": [
+    "GENERATED_BUT_NOT_PROJECTED"
+   ],
+   "writers": 2,
+   "readers": 1,
+   "ui_readers": 0
+  },
+  {
+   "object": "line_profile_history",
+   "data_class": "STALE_SCHEMA",
+   "layer": "UNKNOWN_LAYER",
+   "tags": [
+    "READ_BUT_NEVER_WRITTEN"
+   ],
+   "writers": 0,
+   "readers": 1,
+   "ui_readers": 1
+  },
+  {
+   "object": "links",
+   "data_class": "STALE_SCHEMA",
+   "layer": "UNKNOWN_LAYER",
+   "tags": [
+    "WRITTEN_BUT_NEVER_READ"
+   ],
+   "writers": 1,
+   "readers": 0,
+   "ui_readers": 0
+  },
+  {
+   "object": "live_commands",
+   "data_class": "UNKNOWN",
+   "layer": "UNKNOWN_LAYER",
+   "tags": [
+    "WRITTEN_BUT_NEVER_READ",
+    "GENERATED_BUT_NOT_PROJECTED"
+   ],
+   "writers": 1,
+   "readers": 0,
+   "ui_readers": 0
+  },
+  {
+   "object": "owner_auth_audit_log",
+   "data_class": "EVENT_LOG",
+   "layer": "L1_INGESTION",
+   "tags": [
+    "WRITTEN_BUT_NEVER_READ",
+    "EVENT_WITHOUT_CONSUMER",
+    "GENERATED_BUT_NOT_PROJECTED"
+   ],
+   "writers": 3,
+   "readers": 0,
+   "ui_readers": 0
+  },
+  {
+   "object": "partners",
+   "data_class": "STALE_SCHEMA",
+   "layer": "UNKNOWN_LAYER",
+   "tags": [
+    "READ_BUT_NEVER_WRITTEN"
+   ],
+   "writers": 0,
+   "readers": 2,
+   "ui_readers": 0
+  },
+  {
+   "object": "pending_authorizations",
+   "data_class": "CANONICAL_SOURCE_OF_TRUTH",
+   "layer": "L2_IDENTITY_CONTEXT",
+   "tags": [
+    "WRITTEN_BUT_NEVER_READ",
+    "GENERATED_BUT_NOT_PROJECTED"
+   ],
+   "writers": 2,
+   "readers": 0,
+   "ui_readers": 0
+  },
+  {
+   "object": "pit_price_requests",
+   "data_class": "UNKNOWN",
+   "layer": "UNKNOWN_LAYER",
+   "tags": [
+    "GENERATED_BUT_NOT_PROJECTED"
+   ],
+   "writers": 2,
+   "readers": 1,
+   "ui_readers": 0
+  },
+  {
+   "object": "print_jobs",
+   "data_class": "UNKNOWN",
+   "layer": "UNKNOWN_LAYER",
+   "tags": [
+    "GENERATED_BUT_NOT_PROJECTED"
+   ],
+   "writers": 1,
+   "readers": 1,
+   "ui_readers": 0
+  },
+  {
+   "object": "projects",
+   "data_class": "UNKNOWN",
+   "layer": "UNKNOWN_LAYER",
+   "tags": [
+    "WRITTEN_BUT_NEVER_READ",
+    "GENERATED_BUT_NOT_PROJECTED"
+   ],
+   "writers": 3,
+   "readers": 0,
+   "ui_readers": 0
+  },
+  {
+   "object": "resource_migration_blocks",
+   "data_class": "UNKNOWN",
+   "layer": "UNKNOWN_LAYER",
+   "tags": [
+    "WRITTEN_BUT_NEVER_READ",
+    "GENERATED_BUT_NOT_PROJECTED"
+   ],
+   "writers": 1,
+   "readers": 0,
+   "ui_readers": 0
+  },
+  {
+   "object": "resource_migration_plans",
+   "data_class": "UNKNOWN",
+   "layer": "UNKNOWN_LAYER",
+   "tags": [
+    "GENERATED_BUT_NOT_PROJECTED"
+   ],
+   "writers": 1,
+   "readers": 1,
+   "ui_readers": 0
+  },
+  {
+   "object": "resource_transactions",
+   "data_class": "STALE_SCHEMA",
+   "layer": "UNKNOWN_LAYER",
+   "tags": [
+    "WRITTEN_BUT_NEVER_READ"
+   ],
+   "writers": 1,
+   "readers": 0,
+   "ui_readers": 0
+  },
+  {
+   "object": "schema_change_log",
+   "data_class": "EVENT_LOG",
+   "layer": "L1_INGESTION",
+   "tags": [
+    "READ_BUT_NEVER_WRITTEN"
+   ],
+   "writers": 0,
+   "readers": 1,
+   "ui_readers": 1
+  },
+  {
+   "object": "standalone_document_items",
+   "data_class": "DOCUMENT_ARTIFACT",
+   "layer": "L6_ARTIFACT",
+   "tags": [
+    "READ_BUT_NEVER_WRITTEN"
+   ],
+   "writers": 0,
+   "readers": 1,
+   "ui_readers": 1
+  },
+  {
+   "object": "storage_actions",
+   "data_class": "UNKNOWN",
+   "layer": "UNKNOWN_LAYER",
+   "tags": [
+    "WRITTEN_BUT_NEVER_READ",
+    "GENERATED_BUT_NOT_PROJECTED"
+   ],
+   "writers": 1,
+   "readers": 0,
+   "ui_readers": 0
+  },
+  {
+   "object": "storage_classifications",
+   "data_class": "UNKNOWN",
+   "layer": "UNKNOWN_LAYER",
+   "tags": [
+    "WRITTEN_BUT_NEVER_READ",
+    "GENERATED_BUT_NOT_PROJECTED"
+   ],
+   "writers": 1,
+   "readers": 0,
+   "ui_readers": 0
+  },
+  {
+   "object": "storage_evidence",
+   "data_class": "UNKNOWN",
+   "layer": "UNKNOWN_LAYER",
+   "tags": [
+    "WRITTEN_BUT_NEVER_READ",
+    "GENERATED_BUT_NOT_PROJECTED"
+   ],
+   "writers": 1,
+   "readers": 0,
+   "ui_readers": 0
+  },
+  {
+   "object": "storage_reclaim_plans",
+   "data_class": "UNKNOWN",
+   "layer": "UNKNOWN_LAYER",
+   "tags": [
+    "WRITTEN_BUT_NEVER_READ",
+    "GENERATED_BUT_NOT_PROJECTED"
+   ],
+   "writers": 1,
+   "readers": 0,
+   "ui_readers": 0
+  },
+  {
+   "object": "storage_resources",
+   "data_class": "UNKNOWN",
+   "layer": "UNKNOWN_LAYER",
+   "tags": [
+    "GENERATED_BUT_NOT_PROJECTED"
+   ],
+   "writers": 1,
+   "readers": 1,
+   "ui_readers": 0
+  },
+  {
+   "object": "storage_scan_runs",
+   "data_class": "UNKNOWN",
+   "layer": "UNKNOWN_LAYER",
+   "tags": [
+    "WRITTEN_BUT_NEVER_READ",
+    "GENERATED_BUT_NOT_PROJECTED"
+   ],
+   "writers": 1,
+   "readers": 0,
+   "ui_readers": 0
+  },
+  {
+   "object": "storage_threshold_events",
+   "data_class": "EVENT_LOG",
+   "layer": "L1_INGESTION",
+   "tags": [
+    "WRITTEN_BUT_NEVER_READ",
+    "EVENT_WITHOUT_CONSUMER",
+    "GENERATED_BUT_NOT_PROJECTED"
+   ],
+   "writers": 2,
+   "readers": 0,
+   "ui_readers": 0
+  }
+ ]
+}

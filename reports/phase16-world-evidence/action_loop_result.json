@@ -1,0 +1,231 @@
+{
+  "generated_at": "2026-08-19T18:05:54.986Z",
+  "pipeline": "OBSERVE -> MEASURE -> AGGREGATE -> DETECT -> PRIORITIZE -> ROOT_CAUSE -> CAPABILITY_LOOKUP -> POLICY_GATE -> EXECUTE -> VERIFY -> RE-MEASURE -> RECURRENCE_CHECK -> EVIDENCE_BACK_TO_DNA_LAB",
+  "mandated_example_trace": {
+    "claimed_example": {
+      "frequency": 9,
+      "lost_time_hours": 4.8,
+      "cost_impact_usd": 8.2,
+      "bottleneck_score": 88
+    },
+    "provenance_check": {
+      "formula_real": true,
+      "formula_location": "DNA-LAB-PERMISSION-REASONER/research/dashboard/monitor-ui/src/analytics/bottleneckScore.ts",
+      "input_data_source": "MOCK — App.tsx line 106: `const provider = MockTelemetryProvider;` (hardcoded, real DNAOSTelemetryProvider exists but is NOT wired for issues/tasks/capabilities, only for a separate 'research' panel)",
+      "input_data_real": false
+    },
+    "decision": "BLOCKED_MOCK_DATA",
+    "reason": "The bottleneck_score formula is real and auditable, but its inputs (occurrence_count, total_time_lost, cost_impact) come from src/data/mockIssues.ts via a hardcoded `const provider = MockTelemetryProvider` in App.tsx line 106 — never real telemetry. Per Phase 22's own rule, MOCK cannot authorize autonomous modification. This example is NOT executed further."
+  },
+  "observe": {
+    "source": "dna-os-circuit-server-logs (CONNECTED, observation_sources.json)",
+    "raw_signal": {
+      "signal_id": "sig-etimedout-resolve-problem",
+      "source": "dna-os-circuit-server-logs (CONNECTED, observation_sources.json)",
+      "raw_text": "spawnSync node ETIMEDOUT",
+      "first_seen": "2026-08-19T17:10:04.732Z",
+      "last_seen": "2026-08-19T17:11:45.679Z",
+      "status": "SIGNAL_CONFIRMED"
+    },
+    "measured_at": "2026-08-19T18:05:54.985Z"
+  },
+  "measure": {
+    "recurrence_count": 2,
+    "first_seen": "2026-08-19T17:10:04.732Z",
+    "last_seen": "2026-08-19T17:11:45.679Z",
+    "impact": {
+      "observed_effect": "HTTP 500 on POST /resolve-problem (recorded in the same log lines: {\"error\":\"spawnSync node ETIMEDOUT\"})",
+      "affected_capability": "dna-os-circuit /resolve-problem endpoint (Phase 20)",
+      "severity": "RECURRING"
+    }
+  },
+  "aggregate": {
+    "distinct_signal_clusters": 1,
+    "clusters": [
+      {
+        "signal_id": "sig-etimedout-resolve-problem",
+        "recurrence": 2,
+        "severity": "RECURRING"
+      }
+    ]
+  },
+  "prioritize": {
+    "ranked": [
+      {
+        "signal_id": "sig-etimedout-resolve-problem",
+        "rank": 1,
+        "reason": "severity=RECURRING, recurrence=2 — only real candidate this round"
+      }
+    ]
+  },
+  "root_cause": {
+    "statement": "execFileSync (sync child_process API) hangs specifically when invoked from this tsx-loaded, detached (nohup) server process; the async spawn API does not share the issue.",
+    "traceable_to_source": true,
+    "evidence_location": "dna-os-circuit/runtime/server.ts, runResolver() function's own header comment"
+  },
+  "capability_lookup": {
+    "problem_type": "server_hang_or_timeout",
+    "matched": true,
+    "capability": {
+      "problem_type": "server_hang_or_timeout",
+      "available_capability": "async spawn pattern (dna-os-circuit/runtime/server.ts runResolver, mirrors execution/run/host-runtime.ts + control/agent-host/host-runtime.ts)",
+      "input_contract": "command + args + cwd",
+      "execution_method": "node:child_process spawn (async), never execFileSync in a detached tsx-loaded process — Phase 20/21 diagnosis",
+      "required_permission": "none (process-local fix, no capability-registry write required for THIS specific pattern reuse)",
+      "verification_method": "live HTTP re-request against the previously-failing endpoint; still_reproduces must be false",
+      "cost_source": "N/A — no external cost, engineering time only",
+      "current_status": "PROVEN — applied and verified in Phase 20/21"
+    },
+    "no_existing_capability_proven": false
+  },
+  "policy_gate": {
+    "negative_control": {
+      "intent": {
+        "intent_id": "intent-1787162747350",
+        "operation": "MODIFY",
+        "capability": "dna-os-circuit",
+        "target_type": "FILE",
+        "target_path": "dna-os-circuit/runtime/server.ts",
+        "requested_change": "Replace execFileSync with async spawn in /resolve-problem's handler to fix a measured, recurring ETIMEDOUT failure.",
+        "requesting_agent": {
+          "identity_id": "phase21-autonomous-loop",
+          "kind": "ai_agent",
+          "display_name": "Phase 21 Autonomous Feedback Loop"
+        },
+        "evidence": [
+          {
+            "source": "reports/phase16-world-evidence/control_case_pipeline.mjs",
+            "note": "2 real recurrences observed in local logs"
+          }
+        ],
+        "correlation_id": "corr-1787162747350",
+        "submitted_at": "2026-08-19T18:05:47.350Z"
+      },
+      "decision": {
+        "decision": "DENY",
+        "intent_id": "intent-1787162747350",
+        "reason_codes": [
+          "NO_MATCHING_CAPABILITY"
+        ],
+        "evidence": [
+          {
+            "rule_id": "well_formed_intent",
+            "input_field": "intent",
+            "expected": "structurally valid",
+            "actual": "structurally valid",
+            "result": "pass"
+          },
+          {
+            "rule_id": "registry_lookup",
+            "input_field": "target_path",
+            "expected": "an existing registered capability at this path",
+            "actual": "no matching capability found — nothing real to modify/delete/move/rename",
+            "result": "fail"
+          }
+        ],
+        "canonical": null,
+        "decision_id": "7a6662e5-8dbb-4a68-82da-f20eceb5c26a",
+        "correlation_id": "corr-1787162747350",
+        "decided_at": "2026-08-19T18:05:47.351Z"
+      }
+    },
+    "positive_control": {
+      "intent": {
+        "intent_id": "intent-positive-1787162747351",
+        "operation": "MODIFY",
+        "capability": "dna-os-circuit",
+        "target_type": "FILE",
+        "target_path": "dna-os-circuit/definition/circuit.json",
+        "requested_change": "positive control: this path DOES match the registered dna-os-circuit capability's real OWNER_FOLDER (dna-os-circuit/definition/)",
+        "requesting_agent": {
+          "identity_id": "phase21-autonomous-loop",
+          "kind": "ai_agent",
+          "display_name": "Phase 21 Autonomous Feedback Loop"
+        },
+        "evidence": [
+          {
+            "source": "reports/phase16-world-evidence/control_case_pipeline.mjs",
+            "note": "positive control for the policy gate"
+          }
+        ],
+        "correlation_id": "corr-positive-1787162747351",
+        "submitted_at": "2026-08-19T18:05:47.351Z"
+      },
+      "decision": {
+        "decision": "ALLOW_MODIFY",
+        "intent_id": "intent-positive-1787162747351",
+        "reason_codes": [
+          "MATCHED_EXISTING_CAPABILITY"
+        ],
+        "evidence": [
+          {
+            "rule_id": "well_formed_intent",
+            "input_field": "intent",
+            "expected": "structurally valid",
+            "actual": "structurally valid",
+            "result": "pass"
+          },
+          {
+            "rule_id": "registry_lookup",
+            "input_field": "target_path",
+            "expected": "an existing registered capability at this path",
+            "actual": "matches real registered capability \"dna-os-circuit\" at \"dna-os-circuit/definition/\"",
+            "result": "pass"
+          }
+        ],
+        "canonical": {
+          "software_id": "dna-os-circuit",
+          "owner_folder": "dna-os-circuit/definition/",
+          "evidence_source": [
+            "control/command-router/capability-registry.ts"
+          ]
+        },
+        "decision_id": "08698e1b-96b5-4ba8-874d-f917337edc55",
+        "correlation_id": "corr-positive-1787162747351",
+        "decided_at": "2026-08-19T18:05:47.351Z"
+      }
+    }
+  },
+  "execute": {
+    "action_taken": "REUSED_EXISTING_PROVEN_CAPABILITY (no new code written this round)",
+    "capability_used": "server_hang_or_timeout"
+  },
+  "verify": {
+    "attempted": true,
+    "http_status": 200,
+    "still_reproduces": false,
+    "response_snippet": "{\n  \"problem_text\": \"control case verification ping\",\n  \"status_log\": [\n    {\n      \"stage\": \"กำลังตรวจ\",\n      \"at\": \"2026-08-19T18:05:47.402Z\"\n    },\n    {\n      \"stage\": \"กำลังจัดเส้นทาง\",\n      \"a"
+  },
+  "remeasure": {
+    "still_reproduces": false,
+    "measured_via": "live HTTP POST /resolve-problem, same trigger as the original failure"
+  },
+  "recurrence_check": {
+    "original_recurrence": 2,
+    "post_fix_recurrence": 0,
+    "resolved": true
+  },
+  "proven_resolution": {
+    "resolution_id": "res-async-spawn-over-execFileSync",
+    "problem_type": "server_hang_or_timeout",
+    "problem_signature": "spawnSync node ETIMEDOUT in a tsx-loaded, detached (nohup) HTTP server process",
+    "resolution": "use async child_process.spawn with explicit timeout+kill, not execFileSync",
+    "proven_by": {
+      "signal_id": "sig-etimedout-resolve-problem",
+      "verification": {
+        "attempted": true,
+        "http_status": 200,
+        "still_reproduces": false,
+        "response_snippet": "{\n  \"problem_text\": \"control case verification ping\",\n  \"status_log\": [\n    {\n      \"stage\": \"กำลังตรวจ\",\n      \"at\": \"2026-08-19T18:05:47.402Z\"\n    },\n    {\n      \"stage\": \"กำลังจัดเส้นทาง\",\n      \"a"
+      },
+      "recurrence_check": {
+        "original_recurrence": 2,
+        "post_fix_recurrence": 0,
+        "resolved": true
+      }
+    },
+    "reusable_capability_ref": "dna-os-circuit/runtime/server.ts runResolver() — same pattern applicable to any future sync-spawn-in-detached-server bug",
+    "status": "PROVEN_RESOLUTION"
+  },
+  "owner_action_required": "NONE — no VS Code, no agent selection, no script selection, no prompt copy, no manual trigger occurred in this run"
+}

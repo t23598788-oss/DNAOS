@@ -1,0 +1,50 @@
+{
+  "generated_at": "2026-08-19T18:05:46.521Z",
+  "sources": [
+    {
+      "source_id": "claude-code-sessions",
+      "note": "Claude Code's own local session transcripts — real files, but no programmatic real-time hook exists in this pipeline to read them as they're written",
+      "discover": "FOUND",
+      "verify_connection": "REACHABLE",
+      "verify_permission": "READABLE",
+      "ingest": "NOT_BUILT — path is readable, but no automated ingestion connector exists yet",
+      "status": "DISCOVERABLE_NOT_CONNECTED"
+    },
+    {
+      "source_id": "vscode-logs",
+      "note": "VS Code extension host logs — real files exist on disk; no connector reads them for this pipeline",
+      "discover": "FOUND",
+      "verify_connection": "REACHABLE",
+      "verify_permission": "READABLE",
+      "ingest": "NOT_BUILT — path is readable, but no automated ingestion connector exists yet",
+      "status": "DISCOVERABLE_NOT_CONNECTED"
+    },
+    {
+      "source_id": "codex-cli-sessions",
+      "note": "OpenAI Codex CLI sessions — NOT the ChatGPT web product; a distinct, separate tool. No connector reads them.",
+      "discover": "FOUND",
+      "verify_connection": "REACHABLE",
+      "verify_permission": "READABLE",
+      "ingest": "NOT_BUILT — path is readable, but no automated ingestion connector exists yet",
+      "status": "DISCOVERABLE_NOT_CONNECTED"
+    },
+    {
+      "source_id": "chatgpt-web",
+      "note": "No local export, API connection, or MCP connector to ChatGPT (the web product) exists anywhere in this session or repo — genuinely absent, not merely unread",
+      "discover": "NOT_FOUND",
+      "verify_connection": "N/A",
+      "verify_permission": "N/A",
+      "ingest": "BLOCKED — no source to connect to",
+      "status": "DISCONNECTED"
+    },
+    {
+      "source_id": "dna-os-circuit-server-logs",
+      "note": "real stdout/stderr logs from this session's own dna-os-circuit server runs — DNA-OS-owned, already read this session",
+      "discover": "FOUND",
+      "verify_connection": "REACHABLE",
+      "verify_permission": "READABLE",
+      "ingest": "CONNECTED",
+      "status": "CONNECTED"
+    }
+  ]
+}

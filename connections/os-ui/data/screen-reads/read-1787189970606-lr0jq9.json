@@ -1,0 +1,91 @@
+{
+  "app": "Code",
+  "title": "hello.txt — DNA-OS-INFRASTRUCTURE",
+  "state": "window_active",
+  "visible_text_redacted": [
+    "Go Back (⌃-)",
+    "",
+    "Go Forward (⌃⇧-)",
+    "",
+    "Open Quick Access",
+    " 1",
+    "",
+    "1",
+    " 18",
+    "",
+    "18",
+    "Toggle Chat",
+    "Toggle Chat"
+  ],
+  "controls": [
+    {
+      "role": "AXButton",
+      "label": "Go Back (⌃-)",
+      "redacted": false
+    },
+    {
+      "role": "AXStaticText",
+      "label": "",
+      "redacted": false
+    },
+    {
+      "role": "AXButton",
+      "label": "Go Forward (⌃⇧-)",
+      "redacted": false
+    },
+    {
+      "role": "AXStaticText",
+      "label": "",
+      "redacted": false
+    },
+    {
+      "role": "AXButton",
+      "label": "Open Quick Access",
+      "redacted": false
+    },
+    {
+      "role": "AXButton",
+      "label": " 1",
+      "redacted": false
+    },
+    {
+      "role": "AXStaticText",
+      "label": "",
+      "redacted": false
+    },
+    {
+      "role": "AXStaticText",
+      "label": "1",
+      "redacted": false
+    },
+    {
+      "role": "AXButton",
+      "label": " 18",
+      "redacted": false
+    },
+    {
+      "role": "AXStaticText",
+      "label": "",
+      "redacted": false
+    },
+    {
+      "role": "AXStaticText",
+      "label": "18",
+      "redacted": false
+    },
+    {
+      "role": "AXButton",
+      "label": "Toggle Chat",
+      "redacted": false
+    },
+    {
+      "role": "AXButton",
+      "label": "Toggle Chat",
+      "redacted": false
+    }
+  ],
+  "warnings": [],
+  "suggested_next_action": "No further action suggested from structure alone",
+  "confidence": 1,
+  "evidence_timestamp": "2026-08-20T01:39:28.939Z"
+}

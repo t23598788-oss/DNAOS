@@ -1,0 +1,81 @@
+{
+  "results": [
+    {
+      "name": "Mandated bottleneck-score example: provenance actually traced (not displayed blindly)",
+      "pass": true,
+      "detail": "{\"formula_real\":true,\"formula_location\":\"DNA-LAB-PERMISSION-REASONER/research/dashboard/monitor-ui/src/analytics/bottleneckScore.ts\",\"input_data_source\":\"MOCK — App.tsx line 106: `const provider = MockTelemetryProvider;` (hardcoded, real DNAOSTelemetryProvider exists but is NOT wired for issues/tasks/capabilities, only for a separate 'research' panel)\",\"input_data_real\":false}"
+    },
+    {
+      "name": "MOCK data correctly BLOCKED from authorizing action (real finding: App.tsx hardcodes MockTelemetryProvider)",
+      "pass": true,
+      "detail": "BLOCKED_MOCK_DATA"
+    },
+    {
+      "name": "Real closed loop: real measured failure (recurrence>0 from real log scan)",
+      "pass": true,
+      "detail": "recurrence=2"
+    },
+    {
+      "name": "...automatically detected (DETECT/PRIORITIZE stages ran on the real signal, no manual flagging)",
+      "pass": true,
+      "detail": "checked"
+    },
+    {
+      "name": "...existing capability discovered (capability_index.json lookup, matched=true)",
+      "pass": true,
+      "detail": "\"server_hang_or_timeout\""
+    },
+    {
+      "name": "...policy evaluated (real write-gate decisions present, both branches)",
+      "pass": true,
+      "detail": "checked"
+    },
+    {
+      "name": "...capability executed (execute stage references a PROVEN capability, not invented)",
+      "pass": true,
+      "detail": "REUSED_EXISTING_PROVEN_CAPABILITY (no new code written this round)"
+    },
+    {
+      "name": "...verification executed (live HTTP call, real status code)",
+      "pass": true,
+      "detail": "status=200"
+    },
+    {
+      "name": "...original metric measured again (recurrence_check present, computed not asserted)",
+      "pass": true,
+      "detail": "{\"original_recurrence\":2,\"post_fix_recurrence\":0,\"resolved\":true}"
+    },
+    {
+      "name": "...result recorded (proven_resolution written)",
+      "pass": true,
+      "detail": "PROVEN_RESOLUTION"
+    },
+    {
+      "name": "...DNA LAB evidence updated (graph has PROVEN_RESOLUTION node, real, in the live graph)",
+      "pass": true,
+      "detail": "SOURCE,SUBJECT,OBSERVATION,METRIC,EVIDENCE,CONSTRAINT,RESOURCE,COMPUTATION,DECISION_STATE,PEOPLE,SERVICE,CHANNEL,USER,USAGE,RESULT,PRICE,PAYMENT,CASH,PROBLEM,REAL_USER,ENTRY_POINT,PROBLEM_SIGNAL,ROOT_CAUSE,PROVEN_RESOLUTION"
+    },
+    {
+      "name": "Capability index built (PROBLEM_TYPE->AVAILABLE_CAPABILITY->...->CURRENT_STATUS, all 8 fields per entry)",
+      "pass": true,
+      "detail": "9 entries checked"
+    },
+    {
+      "name": "Capability index REFERENCES existing implementations, does not copy tool logic (spot check: no function bodies embedded)",
+      "pass": true,
+      "detail": "checked"
+    },
+    {
+      "name": "Owner did not open VS Code / choose agent / choose script / copy prompt / select tool / manually trigger",
+      "pass": true,
+      "detail": "NONE — no VS Code, no agent selection, no script selection, no prompt copy, no manual trigger occurred in this run"
+    },
+    {
+      "name": "Live Circuit server (same page) serves both action-loop and capability-index",
+      "pass": true,
+      "detail": "served=true"
+    }
+  ],
+  "passed": 15,
+  "failed": 0
+}

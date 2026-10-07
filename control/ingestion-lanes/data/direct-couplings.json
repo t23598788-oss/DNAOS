@@ -1,0 +1,26 @@
+{
+ "count": 3,
+ "items": [
+  {
+   "from": "supabase/functions/line-webhook-v2/handlers/postback.ts",
+   "to_object": "business_events",
+   "owning_lane": "lane.sales",
+   "violation": "ตัวรับข้อความเขียนตารางของ lane อื่นโดยตรง",
+   "should_go_through": "OBSERVATION -> CONTEXT -> INTENT -> COMMAND -> DOMAIN HANDLER"
+  },
+  {
+   "from": "supabase/functions/line-webhook-v2/handlers/location.ts",
+   "to_object": "customer_sites",
+   "owning_lane": "lane.location",
+   "violation": "ตัวรับข้อความเขียนตารางของ lane อื่นโดยตรง",
+   "should_go_through": "OBSERVATION -> CONTEXT -> INTENT -> COMMAND -> DOMAIN HANDLER"
+  },
+  {
+   "from": "supabase/functions/line-webhook-v2/handlers/postback.ts",
+   "to_object": "pending_authorizations",
+   "owning_lane": "lane.authorization",
+   "violation": "ตัวรับข้อความเขียนตารางของ lane อื่นโดยตรง",
+   "should_go_through": "OBSERVATION -> CONTEXT -> INTENT -> COMMAND -> DOMAIN HANDLER"
+  }
+ ]
+}

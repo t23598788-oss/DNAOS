@@ -1,0 +1,145 @@
+{
+ "generated_at": "static",
+ "map": [
+  {
+   "boundary": "1 Owner Command",
+   "entrypoint": "POST /owner/submit-command, /owner/command, /owner/plan",
+   "test_cases": [
+    "OWNER_CMD_PLAN_HAPPY",
+    "OWNER_CMD_PLAN_BLOCKED_NEG"
+   ],
+   "runtime_evidence": "tests/system-behavior-harness/test-run-evidence.json",
+   "behavior_proven_via_real_boundary": true
+  },
+  {
+   "boundary": "2 Agent Gateway",
+   "entrypoint": "POST /command (workOrder) -> submitTask",
+   "test_cases": [
+    "control/agent-gateway/tests/*"
+   ],
+   "runtime_evidence": "NONE (in-proc; see tsx test files)",
+   "behavior_proven_via_real_boundary": false
+  },
+  {
+   "boundary": "3 Agent Host",
+   "entrypoint": "launchAgent (in-proc)",
+   "test_cases": [
+    "control/agent-host/tests/*"
+   ],
+   "runtime_evidence": "NONE (in-proc; see tsx test files)",
+   "behavior_proven_via_real_boundary": false
+  },
+  {
+   "boundary": "4 Resource resolution",
+   "entrypoint": "resolveResources (in-proc)",
+   "test_cases": [
+    "OWNER_CMD_PLAN_HAPPY(transitive)"
+   ],
+   "runtime_evidence": "tests/system-behavior-harness/test-run-evidence.json",
+   "behavior_proven_via_real_boundary": true
+  },
+  {
+   "boundary": "5 Execution profile",
+   "entrypoint": "buildProfiles/decideEligibility (in-proc)",
+   "test_cases": [
+    "software/execution-profile/tests/*"
+   ],
+   "runtime_evidence": "NONE (in-proc; see tsx test files)",
+   "behavior_proven_via_real_boundary": false
+  },
+  {
+   "boundary": "6 Registry read",
+   "entrypoint": "POST /registry/lookup, GET /registry/capabilities/:id",
+   "test_cases": [
+    "REGISTRY_LOOKUP_READ",
+    "REGISTRY_CAP_404_NEG",
+    "RUNTIME_INVENTORY_READ"
+   ],
+   "runtime_evidence": "tests/system-behavior-harness/test-run-evidence.json",
+   "behavior_proven_via_real_boundary": true
+  },
+  {
+   "boundary": "7 Write/Domain gate",
+   "entrypoint": "POST /registry/candidates (domain gate); write-gate in-proc",
+   "test_cases": [
+    "REGISTRY_BIZDATA_REJECT_NEG"
+   ],
+   "runtime_evidence": "tests/system-behavior-harness/test-run-evidence.json",
+   "behavior_proven_via_real_boundary": true
+  },
+  {
+   "boundary": "8 Evidence creation",
+   "entrypoint": "recordEvidence (in-proc); observe GET /task/:id",
+   "test_cases": [
+    "EVIDENCE_TASK_READ"
+   ],
+   "runtime_evidence": "tests/system-behavior-harness/test-run-evidence.json",
+   "behavior_proven_via_real_boundary": true
+  },
+  {
+   "boundary": "9 Incident handoff",
+   "entrypoint": "reportExecutionFailure (in-proc, UNWIRED in live loop); read GET /owner/incident/:id",
+   "test_cases": [
+    "INCIDENT_READ_BOUNDARY"
+   ],
+   "runtime_evidence": "tests/system-behavior-harness/test-run-evidence.json",
+   "behavior_proven_via_real_boundary": true
+  },
+  {
+   "boundary": "10 Target/route resolution",
+   "entrypoint": "resolveTarget/resolveSystemReference (in-proc); GET /capability/route/:ref",
+   "test_cases": [
+    "CAPABILITY_ROUTE_READ"
+   ],
+   "runtime_evidence": "tests/system-behavior-harness/test-run-evidence.json",
+   "behavior_proven_via_real_boundary": true
+  },
+  {
+   "boundary": "11 Owner escalation/read",
+   "entrypoint": "GET /owner/console, /owner/action-queue, /owner/pending-question",
+   "test_cases": [
+    "OWNER_ESCALATION_READ"
+   ],
+   "runtime_evidence": "tests/system-behavior-harness/test-run-evidence.json",
+   "behavior_proven_via_real_boundary": true
+  },
+  {
+   "boundary": "12 Lifecycle ordering",
+   "entrypoint": "GET /owner/lifecycle",
+   "test_cases": [
+    "LIFECYCLE_ORDER_READ"
+   ],
+   "runtime_evidence": "tests/system-behavior-harness/test-run-evidence.json",
+   "behavior_proven_via_real_boundary": true
+  },
+  {
+   "boundary": "13 Idempotency",
+   "entrypoint": "POST /command idempotencyKey; registry duplicate gate",
+   "test_cases": [
+    "IDEMPOTENCY_REGISTRY_DUP"
+   ],
+   "runtime_evidence": "tests/system-behavior-harness/test-run-evidence.json",
+   "behavior_proven_via_real_boundary": true
+  },
+  {
+   "boundary": "14 Malformed worker result",
+   "entrypoint": "POST /handoff validation; agent-host-dispatch parse",
+   "test_cases": [
+    "MALFORMED_HANDOFF_NEG"
+   ],
+   "runtime_evidence": "tests/system-behavior-harness/test-run-evidence.json",
+   "behavior_proven_via_real_boundary": true
+  },
+  {
+   "boundary": "15 Timeout / stall",
+   "entrypoint": "agent-host 15s SIGKILL; supervisor recover (in-proc)",
+   "test_cases": [
+    "execution/run/tests/executor.test.ts",
+    "execution/process-lock/tests/*"
+   ],
+   "runtime_evidence": "NONE (in-proc; see tsx test files)",
+   "behavior_proven_via_real_boundary": false
+  }
+ ],
+ "uncovered_note": "Behavior/boundary coverage via n8n-style HTTP = the areas with n8n_http_behavior_tests. The other ~145 registered capabilities have NO dedicated behavior test yet (UNCOVERED). Existing tsx unit/integration tests cover control-plane modules but are not a behavior-boundary proof."
+}

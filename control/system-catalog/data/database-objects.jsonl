@@ -1,0 +1,141 @@
+{"object_type": "TABLE", "table": "ai_connection_status", "first_seen_migration": "20260804000007_ai_connection_stage1.sql", "columns": []}
+{"object_type": "TABLE", "table": "ai_tasks", "first_seen_migration": "20260725000006_ai_tasks.sql", "columns": [], "writers": ["ai-callback", "stuck-message-sweep", "trigger-auto-build"]}
+{"object_type": "TABLE", "table": "anywhere", "first_seen_migration": "20260705000001_business_events_partner_timeline.sql", "columns": []}
+{"object_type": "TABLE", "table": "api_tokens", "first_seen_migration": "20260705000006_api_tokens.sql", "columns": []}
+{"object_type": "TABLE", "table": "app_configs", "first_seen_migration": "20260707000003_app_configs.sql", "columns": [], "writers": ["back-to-back", "debt-reminder-cron", "fuel-price-sync", "kis-webhook"]}
+{"object_type": "TABLE", "table": "architecture_drift_events", "first_seen_migration": "20260804000006_architecture_drift_events.sql", "columns": []}
+{"object_type": "TABLE", "table": "audit_logs", "first_seen_migration": null, "columns": [], "writers": ["/api/admin/transactions/[id]/advance", "/api/admin/notifications/send"]}
+{"object_type": "TABLE", "table": "bank_notifications", "first_seen_migration": "20260726000006_bank_notifications.sql", "columns": [], "writers": ["bank-email-sync"]}
+{"object_type": "TABLE", "table": "bank_statement_transactions", "first_seen_migration": "20260727000001_bank_statement_transactions.sql", "columns": [], "writers": ["bank-statement-reconcile"]}
+{"object_type": "TABLE", "table": "business_events", "first_seen_migration": "20260705000001_business_events_partner_timeline.sql", "columns": [], "readers": ["/api/admin/event-inbox", "/api/admin/quotation-queue", "/api/admin/relationships/[relationshipId]"], "writers": ["/api/admin/line-customers/[lineUserId]/build-event", "/api/admin/line-customers/[lineUserId]/send-debt", "bank-email-sync", "bank-statement-reconcile", "debt-reminder-cron", "quotation-queue-nudge"]}
+{"object_type": "TABLE", "table": "companies", "first_seen_migration": null, "columns": [], "readers": ["/api/admin/partners", "/api/admin/partners/[id]/chain", "/api/admin/receipt-documents", "/api/admin/relationships/[relationshipId]"], "writers": ["/api/admin/receipt-documents/[id]/confirm", "/api/admin/line-customers/[lineUserId]/build-event", "/api/admin/relationships/[relationshipId]/match", "bank-email-sync", "bank-statement-reconcile", "receipt-reconcile-sweep"]}
+{"object_type": "TABLE", "table": "company_expenses", "first_seen_migration": "20260727000002_company_expenses.sql", "columns": [], "readers": ["/api/admin/finance-summary"], "writers": ["subscription-email-sync"]}
+{"object_type": "TABLE", "table": "company_line_links", "first_seen_migration": "20260710000007_company_line_links.sql", "columns": [], "readers": ["/api/admin/line-profiles", "/api/admin/partners/[id]/line-messages", "/api/admin/quotation-queue", "/api/admin/relationships", "/api/admin/relationships/[relationshipId]"], "writers": ["/api/admin/line-customers/[lineUserId]/build-event", "/api/admin/line-customers/[lineUserId]/ask", "/api/admin/line-customers/[lineUserId]/send-debt", "/api/admin/line-customers/[lineUserId]/send-document", "/api/admin/relationships/[relationshipId]/match", "debt-reminder-cron", "receipt-reconcile-sweep"]}
+{"object_type": "TABLE", "table": "connector_webhook_events", "first_seen_migration": "20260706000004_connectors.sql", "columns": []}
+{"object_type": "TABLE", "table": "connectors", "first_seen_migration": "20260706000004_connectors.sql", "columns": [], "writers": ["/api/admin/infrastructure/github/paths/[id]/sync"]}
+{"object_type": "TABLE", "table": "conversation_states", "first_seen_migration": "20260622000003_conversation_state_and_entity_registry.sql", "columns": []}
+{"object_type": "TABLE", "table": "customer_orders", "first_seen_migration": null, "columns": [], "readers": ["/api/admin/pulse", "/api/admin/partners/[id]/credit", "/api/admin/partners/[id]/chain"], "writers": ["/api/admin/transactions", "/api/admin/transactions/[id]", "/api/admin/transactions/[id]/advance", "/api/admin/documents"]}
+{"object_type": "TABLE", "table": "customer_sites", "first_seen_migration": null, "columns": [], "writers": ["/api/admin/sites", "/api/admin/transactions", "quotation-queue-nudge"], "readers": ["/api/admin/quotation-queue"]}
+{"object_type": "TABLE", "table": "debt_events", "first_seen_migration": "20260718000002_debt_tracking_model.sql", "columns": [], "writers": ["/api/admin/debt-trackings", "/api/admin/debt-trackings/[id]", "/api/admin/debt-trackings/[id]/events", "/api/admin/receipt-documents/[id]/confirm", "debt-reminder-cron"], "readers": ["/api/admin/partners/[id]/credit", "/api/admin/relationships"]}
+{"object_type": "TABLE", "table": "debt_snapshots", "first_seen_migration": null, "columns": [], "writers": ["/api/admin/debt-trackings/[id]/events", "/api/admin/receipt-documents/[id]/confirm", "debt-reminder-cron"], "readers": ["/api/admin/finance-summary", "/api/admin/partners/[id]/credit", "/api/admin/receipt-documents", "/api/admin/relationships", "/api/admin/relationships/[relationshipId]"]}
+{"object_type": "TABLE", "table": "destructive_action_log", "first_seen_migration": "20260804000007_file_existence_intelligence.sql", "columns": []}
+{"object_type": "TABLE", "table": "dev_loop_check_results", "first_seen_migration": "20260805000001_dev_loop_pipeline.sql", "columns": [], "writers": ["/api/v1/mcp/governance/registry-proposals"], "readers": ["/api/v1/mcp/governance/status", "/api/v1/mcp/governance/deploy-approval-status", "/api/v1/mcp/governance/impact/[evidenceEventId]", "/api/admin/workspace/status"]}
+{"object_type": "TABLE", "table": "dev_loop_evidence_events", "first_seen_migration": "20260805000001_dev_loop_pipeline.sql", "columns": [], "writers": ["/api/v1/mcp/governance/registry-proposals"], "readers": ["/api/v1/mcp/governance/status", "/api/v1/mcp/governance/impact/[evidenceEventId]"]}
+{"object_type": "TABLE", "table": "dev_loop_registry_proposals", "first_seen_migration": "20260805000001_dev_loop_pipeline.sql", "columns": [], "writers": ["/api/v1/mcp/governance/registry-proposals", "/api/admin/dev-loop/approve"], "readers": ["/api/v1/mcp/governance/status", "/api/v1/mcp/governance/deploy-approval-status"]}
+{"object_type": "TABLE", "table": "dev_loop_sessions", "first_seen_migration": "20260805000001_dev_loop_pipeline.sql", "columns": [], "writers": ["/api/v1/mcp/governance/registry-proposals", "/api/v1/mcp/governance/session-proposals"], "readers": ["/api/v1/mcp/governance/status", "/api/admin/workspace/ai-agents"]}
+{"object_type": "TABLE", "table": "document_groups", "first_seen_migration": null, "columns": [], "writers": ["/api/admin/transactions"]}
+{"object_type": "TABLE", "table": "document_items", "first_seen_migration": null, "columns": [], "writers": ["back-to-back"]}
+{"object_type": "TABLE", "table": "documents", "first_seen_migration": null, "columns": [], "writers": ["back-to-back"]}
+{"object_type": "TABLE", "table": "driver_equipment_permissions", "first_seen_migration": "20260724000004_equipment_gps_permissions.sql", "columns": [], "writers": ["/api/admin/line-customers/[lineUserId]/ask", "/api/admin/equipment", "/api/admin/equipment/trigger-start", "/api/admin/equipment/toggle-permission"]}
+{"object_type": "TABLE", "table": "driver_profiles", "first_seen_migration": "20260813000006_driver_profiles_recovery.sql", "columns": []}
+{"object_type": "TABLE", "table": "entity_registry", "first_seen_migration": "20260622000003_conversation_state_and_entity_registry.sql", "columns": []}
+{"object_type": "TABLE", "table": "equipment_assets", "first_seen_migration": "20260724000004_equipment_gps_permissions.sql", "columns": [], "writers": ["/api/admin/equipment", "/api/admin/equipment/maintenance-tickets/[id]/close", "/api/admin/equipment/trigger-start", "/api/admin/equipment/toggle-permission", "/api/internal/equipment/lock-command", "/api/internal/equipment/telemetry", "equipment-maintenance-cron"]}
+{"object_type": "TABLE", "table": "equipment_telemetry_pings", "first_seen_migration": "20260804000008_equipment_maintenance_telemetry.sql", "columns": [], "writers": ["/api/internal/equipment/telemetry"]}
+{"object_type": "TABLE", "table": "evidence_requests", "first_seen_migration": "20260813000001_evidence_requests.sql", "columns": []}
+{"object_type": "TABLE", "table": "exists", "first_seen_migration": "20260813000011_factory_business_role_split.sql", "columns": []}
+{"object_type": "TABLE", "table": "factory_app_configs", "first_seen_migration": "20260813000010_factory_app_configs_split 2.sql", "columns": []}
+{"object_type": "TABLE", "table": "file_existence_registry", "first_seen_migration": "20260804000007_file_existence_intelligence.sql", "columns": []}
+{"object_type": "TABLE", "table": "file_snapshots", "first_seen_migration": "20260804000007_file_existence_intelligence.sql", "columns": []}
+{"object_type": "TABLE", "table": "for", "first_seen_migration": "20260622000003_conversation_state_and_entity_registry.sql", "columns": []}
+{"object_type": "TABLE", "table": "fuel_price_log", "first_seen_migration": "20260724000005_fuel_price_log.sql", "columns": [], "readers": ["/api/admin/finance-summary"], "writers": ["fuel-price-sync"]}
+{"object_type": "TABLE", "table": "github_sync_log", "first_seen_migration": "20260814000002_github_infrastructure_sync 2.sql", "columns": []}
+{"object_type": "TABLE", "table": "github_sync_paths", "first_seen_migration": "20260814000002_github_infrastructure_sync 2.sql", "columns": [], "readers": ["/api/admin/infrastructure/github"], "writers": ["/api/admin/infrastructure/github/paths", "/api/admin/infrastructure/github/paths/[id]", "/api/admin/infrastructure/github/paths/[id]/sync"]}
+{"object_type": "TABLE", "table": "identities", "first_seen_migration": "20260815000001_identities.sql", "columns": [], "writers": ["/api/auth/webauthn/bootstrap/options"]}
+{"object_type": "TABLE", "table": "identity_account_workspaces", "first_seen_migration": "20260815000004_identity_membership.sql", "columns": []}
+{"object_type": "TABLE", "table": "identity_memberships", "first_seen_migration": "20260815000004_identity_membership.sql", "columns": []}
+{"object_type": "TABLE", "table": "in", "first_seen_migration": "20260620000000_clearinghouse_upgrade.sql", "columns": []}
+{"object_type": "TABLE", "table": "integration_gateway_events", "first_seen_migration": "20260805000002_integration_gateway_observe.sql", "columns": [], "readers": ["/api/admin/workspace/database", "/api/admin/workspace/status", "/api/admin/system-config"]}
+{"object_type": "TABLE", "table": "integration_gateway_proposals", "first_seen_migration": "20260805000003_integration_gateway_proposals.sql", "columns": []}
+{"object_type": "TABLE", "table": "invoice_debts", "first_seen_migration": null, "columns": [], "writers": ["back-to-back"]}
+{"object_type": "TABLE", "table": "invoice_items", "first_seen_migration": "20260717000003_invoice_items.sql", "columns": [], "writers": ["/api/admin/documents/[id]"]}
+{"object_type": "TABLE", "table": "invoices", "first_seen_migration": null, "columns": [], "readers": ["/api/admin/finance-summary", "/api/admin/pulse", "/api/admin/partners/[id]/credit", "/api/admin/partners/[id]/chain", "/api/admin/relationships/[relationshipId]"], "writers": ["/api/admin/documents", "/api/admin/documents/[id]", "/api/admin/documents/[id]/confirm", "/api/admin/line-customers/[lineUserId]/send-document"]}
+{"object_type": "TABLE", "table": "is", "first_seen_migration": "20260710000001_business_events.sql", "columns": []}
+{"object_type": "TABLE", "table": "job_vehicle_pricings", "first_seen_migration": "20260709000003_migrate_live_line_tables.sql", "columns": []}
+{"object_type": "TABLE", "table": "jobs", "first_seen_migration": "20260620000000_clearinghouse_upgrade.sql", "columns": []}
+{"object_type": "TABLE", "table": "knowledge", "first_seen_migration": "20260717000004_knowledge_schema.sql", "columns": []}
+{"object_type": "TABLE", "table": "kv_cache", "first_seen_migration": "20260705000007_kv_cache.sql", "columns": []}
+{"object_type": "TABLE", "table": "later", "first_seen_migration": "20260620000000_clearinghouse_upgrade.sql", "columns": []}
+{"object_type": "TABLE", "table": "line_channels", "first_seen_migration": "20260725000003_line_channels.sql", "columns": [], "writers": ["line-webhook-v2"]}
+{"object_type": "TABLE", "table": "line_conversation_controls", "first_seen_migration": "20260723000001_financial_reconciliation_and_human_takeover.sql", "columns": [], "readers": ["/api/admin/relationships/[relationshipId]"]}
+{"object_type": "TABLE", "table": "line_customer_memory", "first_seen_migration": "20260725000005_line_customer_memory.sql", "columns": [], "writers": ["ai-callback"]}
+{"object_type": "TABLE", "table": "line_draft_documents", "first_seen_migration": "20260709000003_migrate_live_line_tables.sql", "columns": []}
+{"object_type": "TABLE", "table": "line_events", "first_seen_migration": "20260706000001_line_events_new_project.sql", "columns": [], "writers": ["/api/chat/confirm", "/api/admin/line-customers/[lineUserId]/build-event", "/api/admin/line-customers/[lineUserId]/ask", "/api/admin/line-customers/[lineUserId]/send-debt", "/api/admin/line-customers/[lineUserId]/reply", "/api/admin/line-customers/[lineUserId]/send-document", "bank-email-sync", "bank-statement-reconcile", "debt-reminder-cron", "line-profile-reconcile", "receipt-reconcile-sweep", "stuck-message-sweep", "trigger-auto-build"], "readers": ["/api/admin/line-profiles", "/api/admin/partners/[id]/line-messages", "/api/admin/relationships", "/api/admin/relationships/[relationshipId]"]}
+{"object_type": "TABLE", "table": "line_outbound_drafts", "first_seen_migration": "20260710000006_line_outbound_drafts.sql", "columns": [], "readers": ["/api/admin/outbound-drafts", "/api/admin/relationships", "/api/admin/relationships/[relationshipId]"], "writers": ["/api/admin/outbound-drafts/[id]/reject", "/api/admin/outbound-drafts/[id]/send"]}
+{"object_type": "TABLE", "table": "line_profile_events", "first_seen_migration": "20260809000003_line_profile_versioning_and_history.sql", "columns": []}
+{"object_type": "TABLE", "table": "line_profile_history", "first_seen_migration": "20260809000003_line_profile_versioning_and_history.sql", "columns": [], "writers": ["/api/admin/line-profiles/[lineUserId]"]}
+{"object_type": "TABLE", "table": "line_profile_refresh_queue", "first_seen_migration": "20260809000004_line_profile_refresh_queue.sql", "columns": [], "writers": ["line-profile-refresh-worker"]}
+{"object_type": "TABLE", "table": "line_profiles", "first_seen_migration": "20260718000006_line_profiles.sql", "columns": [], "readers": ["/api/admin/line-profiles", "/api/admin/relationships", "/api/admin/relationships/[relationshipId]", "/api/cron/supabase-project-status"], "writers": ["/api/admin/line-profiles/[lineUserId]", "/api/admin/line-customers/[lineUserId]/ask", "/api/admin/equipment", "/api/admin/equipment/toggle-permission", "architecture-drift-alert", "line-profile-refresh-worker", "storage-threshold-alert"]}
+{"object_type": "TABLE", "table": "line_sessions", "first_seen_migration": "20260709000003_migrate_live_line_tables.sql", "columns": []}
+{"object_type": "TABLE", "table": "live_commands", "first_seen_migration": "20260731000003_live_commands.sql", "columns": [], "writers": ["/api/internal/line/command"]}
+{"object_type": "TABLE", "table": "maintenance_tickets", "first_seen_migration": "20260804000008_equipment_maintenance_telemetry.sql", "columns": [], "readers": ["/api/admin/equipment/maintenance-tickets"], "writers": ["/api/admin/equipment/maintenance-tickets/[id]/close", "equipment-maintenance-cron"]}
+{"object_type": "TABLE", "table": "match_queue", "first_seen_migration": "20260709000003_migrate_live_line_tables.sql", "columns": []}
+{"object_type": "TABLE", "table": "material_types", "first_seen_migration": "20260710000001_business_events.sql", "columns": [], "readers": ["/api/admin/quotation-queue", "/api/admin/pits"], "writers": ["/api/admin/pits/[pitId]/request-quote", "/api/admin/line-customers/[lineUserId]/build-event", "/api/admin/line-customers/[lineUserId]/ask", "quotation-queue-nudge"]}
+{"object_type": "TABLE", "table": "oauth_authorization_codes", "first_seen_migration": "20260804000010_ai_connection_oauth_stage2.sql", "columns": []}
+{"object_type": "TABLE", "table": "oauth_clients", "first_seen_migration": "20260804000010_ai_connection_oauth_stage2.sql", "columns": []}
+{"object_type": "TABLE", "table": "oauth_refresh_tokens", "first_seen_migration": "20260804000010_ai_connection_oauth_stage2.sql", "columns": []}
+{"object_type": "TABLE", "table": "owner_auth_audit_log", "first_seen_migration": "20260824000004_owner_auth_audit_log.sql", "columns": [], "writers": ["/api/auth/recovery/audit", "/api/auth/webauthn/bootstrap/verify", "/api/auth/webauthn/register/verify"]}
+{"object_type": "TABLE", "table": "owner_devices", "first_seen_migration": "20260824000002_owner_devices.sql", "columns": [], "writers": ["/api/auth/webauthn/bootstrap/verify", "/api/auth/webauthn/register/verify"]}
+{"object_type": "TABLE", "table": "owner_passkey_credentials", "first_seen_migration": "20260815000005_owner_passkey_credentials.sql", "columns": [], "writers": ["/api/auth/webauthn/bootstrap/options", "/api/auth/webauthn/bootstrap/verify", "/api/auth/webauthn/register/options", "/api/auth/webauthn/register/verify", "/api/auth/webauthn/login/verify"]}
+{"object_type": "TABLE", "table": "owner_qr_login_sessions", "first_seen_migration": "20260824000001_owner_qr_login_sessions.sql", "columns": [], "writers": ["/api/auth/qr-login/start", "/api/auth/qr-login/approve", "/api/auth/qr-login/deny"], "readers": ["/api/auth/qr-login/status"]}
+{"object_type": "TABLE", "table": "partner_payable_requests", "first_seen_migration": "20260727000003_owner_surface_and_partner_payable.sql", "columns": [], "readers": ["/api/admin/finance-alerts"], "writers": ["bank-email-sync"]}
+{"object_type": "TABLE", "table": "partners", "first_seen_migration": "20260709000003_migrate_live_line_tables.sql", "columns": [], "writers": ["back-to-back"]}
+{"object_type": "TABLE", "table": "pending_authorizations", "first_seen_migration": "20260726000003_pending_authorizations.sql", "columns": []}
+{"object_type": "TABLE", "table": "pit_materials", "first_seen_migration": "20260710000008_restore_pit_pricing_tables.sql", "columns": [], "readers": ["/api/admin/pits"], "writers": ["/api/admin/pits/[pitId]/materials"]}
+{"object_type": "TABLE", "table": "pit_price_requests", "first_seen_migration": "20260724000001_pit_price_requests.sql", "columns": [], "writers": ["/api/admin/pits/[pitId]/request-quote"]}
+{"object_type": "TABLE", "table": "pit_profiles", "first_seen_migration": "20260710000008_restore_pit_pricing_tables.sql", "columns": [], "readers": ["/api/admin/pits"], "writers": ["/api/admin/pits/[pitId]", "/api/admin/pits/[pitId]/request-quote"]}
+{"object_type": "TABLE", "table": "print_jobs", "first_seen_migration": "20260725000002_print_jobs.sql", "columns": []}
+{"object_type": "TABLE", "table": "profiles", "first_seen_migration": "20260708000001_profiles_roles.sql", "columns": [], "readers": ["/api/auth/qr-login/status", "/api/admin/users"], "writers": ["/api/auth/auto-login", "/api/auth/webauthn/bootstrap/options", "/api/auth/webauthn/bootstrap/verify", "/api/auth/webauthn/login/verify", "/api/admin/users/[id]/role"]}
+{"object_type": "TABLE", "table": "projects", "first_seen_migration": null, "columns": [], "writers": ["/api/admin/transactions"]}
+{"object_type": "TABLE", "table": "receipt_documents", "first_seen_migration": "20260717000002_receipt_documents.sql", "columns": [], "readers": ["/api/admin/finance-summary", "/api/admin/receipt-documents", "/api/admin/relationships/[relationshipId]"], "writers": ["/api/admin/receipt-documents/[id]/reject", "/api/admin/receipt-documents/[id]/confirm", "bank-email-sync", "bank-statement-reconcile", "receipt-reconcile-sweep"]}
+{"object_type": "TABLE", "table": "resource_migration_blocks", "first_seen_migration": "20260804000005_workspace_lock_manager.sql", "columns": []}
+{"object_type": "TABLE", "table": "resource_migration_plans", "first_seen_migration": "20260804000005_workspace_lock_manager.sql", "columns": []}
+{"object_type": "TABLE", "table": "resource_transactions", "first_seen_migration": "20260620000000_clearinghouse_upgrade.sql", "columns": [], "writers": ["kis-webhook"]}
+{"object_type": "TABLE", "table": "schema_change_log", "first_seen_migration": "20260710000009_schema_change_audit.sql", "columns": [], "readers": ["/api/admin/schema-audit"]}
+{"object_type": "TABLE", "table": "standalone_document_items", "first_seen_migration": "20260718000009_standalone_document_items.sql", "columns": [], "writers": ["/api/admin/line-customers/[lineUserId]/send-document"]}
+{"object_type": "TABLE", "table": "standalone_documents", "first_seen_migration": null, "columns": [], "readers": ["/api/admin/finance-summary", "/api/admin/pulse", "/api/admin/partners/[id]/chain", "/api/admin/relationships/[relationshipId]"], "writers": ["/api/admin/documents", "/api/admin/documents/[id]", "/api/admin/documents/[id]/confirm", "/api/admin/line-customers/[lineUserId]/send-document"]}
+{"object_type": "TABLE", "table": "storage_actions", "first_seen_migration": "20260804000004_storage_intelligence.sql", "columns": []}
+{"object_type": "TABLE", "table": "storage_classifications", "first_seen_migration": "20260804000004_storage_intelligence.sql", "columns": []}
+{"object_type": "TABLE", "table": "storage_evidence", "first_seen_migration": "20260804000004_storage_intelligence.sql", "columns": []}
+{"object_type": "TABLE", "table": "storage_reclaim_plans", "first_seen_migration": "20260804000004_storage_intelligence.sql", "columns": []}
+{"object_type": "TABLE", "table": "storage_resources", "first_seen_migration": "20260804000004_storage_intelligence.sql", "columns": []}
+{"object_type": "TABLE", "table": "storage_scan_runs", "first_seen_migration": "20260804000004_storage_intelligence.sql", "columns": []}
+{"object_type": "TABLE", "table": "storage_threshold_events", "first_seen_migration": "20260804000004_storage_intelligence.sql", "columns": []}
+{"object_type": "TABLE", "table": "subscription_services", "first_seen_migration": "20260803000004_subscription_services.sql", "columns": [], "readers": ["/api/admin/subscriptions"], "writers": ["subscription-email-sync"]}
+{"object_type": "TABLE", "table": "supabase_billing_events", "first_seen_migration": "20260731000001_supabase_billing_events.sql", "columns": [], "writers": ["supabase-billing-sync"]}
+{"object_type": "TABLE", "table": "system_health_status", "first_seen_migration": "20260729000001_system_health_check.sql", "columns": [], "readers": ["/api/admin/dev-loop/problem-report", "/api/admin/infrastructure"], "writers": ["system-health-check"]}
+{"object_type": "TABLE", "table": "transactions", "first_seen_migration": "20260705000002_transaction_state_machine.sql", "columns": []}
+{"object_type": "TABLE", "table": "user_line_auth", "first_seen_migration": "20260709000003_migrate_live_line_tables.sql", "columns": []}
+{"object_type": "TABLE", "table": "vehicle_types", "first_seen_migration": "20260710000008_restore_pit_pricing_tables.sql", "columns": []}
+{"object_type": "TABLE", "table": "voice_wake_events", "first_seen_migration": "20260730000003_voice_wake_events.sql", "columns": []}
+{"object_type": "TABLE", "table": "worker_usage_events", "first_seen_migration": "20260810000002_worker_usage_events.sql", "columns": []}
+{"object_type": "TABLE", "table": "workspace_lock_conflicts", "first_seen_migration": "20260804000005_workspace_lock_manager.sql", "columns": [], "writers": ["/api/admin/workspace"]}
+{"object_type": "TABLE", "table": "workspace_locks", "first_seen_migration": "20260804000005_workspace_lock_manager.sql", "columns": [], "writers": ["/api/admin/workspace"]}
+{"object_type": "VIEW", "name": "knowledge"}
+{"object_type": "FUNCTION", "name": "ai_connection_vault_delete"}
+{"object_type": "FUNCTION", "name": "ai_connection_vault_read"}
+{"object_type": "FUNCTION", "name": "ai_connection_vault_write"}
+{"object_type": "FUNCTION", "name": "confirm_invoice"}
+{"object_type": "FUNCTION", "name": "get_cron_job_status"}
+{"object_type": "FUNCTION", "name": "handle_new_user"}
+{"object_type": "FUNCTION", "name": "handle_new_user_identity"}
+{"object_type": "FUNCTION", "name": "increment_counter"}
+{"object_type": "FUNCTION", "name": "is_admin_workspace_user"}
+{"object_type": "FUNCTION", "name": "knowledge"}
+{"object_type": "FUNCTION", "name": "log_ddl_drop"}
+{"object_type": "FUNCTION", "name": "log_ddl_end"}
+{"object_type": "FUNCTION", "name": "log_ddl_start"}
+{"object_type": "FUNCTION", "name": "log_line_profile_change"}
+{"object_type": "FUNCTION", "name": "never"}
+{"object_type": "FUNCTION", "name": "owner_accept"}
+{"object_type": "FUNCTION", "name": "reconcile_receipt_payment"}
+{"object_type": "FUNCTION", "name": "set_conversation_states_updated_at"}
+{"object_type": "FUNCTION", "name": "sync_document_items_from_data"}
+{"object_type": "FUNCTION", "name": "sync_job_geom"}
+{"object_type": "FUNCTION", "name": "sync_partner_geom"}
+{"object_type": "FUNCTION", "name": "sync_pit_geom"}
+{"object_type": "FUNCTION", "name": "to"}
+{"object_type": "FUNCTION", "name": "trg_documents_webhook"}
+{"object_type": "FUNCTION", "name": "trg_invoice_debts_webhook"}
+{"object_type": "FUNCTION", "name": "trg_invoice_payments_webhook"}
+{"object_type": "FUNCTION", "name": "update_conversation_states_updated_at"}
+{"object_type": "STORAGE_BUCKET", "name": "attachments", "accessed_by": ["app/api/admin/relationships/[relationshipId]/route.ts:119", "app/api/admin/relationships/[relationshipId]/route.ts:245", "app/api/admin/relationships/[relationshipId]/route.ts:53", "supabase/functions/line-webhook-v2/engines/media.ts:53", "supabase/functions/line-webhook-v2/handlers/file.ts:55", "supabase/functions/line-webhook-v2/handlers/image.ts:67"], "classification_rule": "control/system-catalog/extractor-rules.ts#classifyFromCalls"}

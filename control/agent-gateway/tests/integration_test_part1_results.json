@@ -1,0 +1,53 @@
+{
+  "results": [
+    {
+      "name": "1. Client A submitted a task, no prompt copied between agents (single HTTP call, generic client_id)",
+      "pass": true,
+      "detail": "{\"task_id\":\"task-fa5e688e-a8cf-44f5-8ae1-ffc73d51950e\",\"memory\":{\"user_id\":\"user-alpha\",\"workspace_id\":\"ws-1\",\"conversation_id\":\"conv-a-1\",\"parent_task_id\":null,\"task_id\":\"task-fa5e688e-a8cf-44f5-8ae1-ffc73d51950e\",\"created_at\":\"2026-08-19T18:06:03.191Z\"},\"intent_text\":\"ตรวจสอบไฟล์ซ้ำในระบบ\",\"submitted_by_client\":\"client-A-generic\",\"status\":\"COMPLETED\",\"created_at\":\"2026-08-19T18:06:03.191Z\",\"updated_at\":\"2026-08-19T18:06:10.564Z\"}"
+    },
+    {
+      "name": "Task reached a terminal or waiting status (COMPLETED/FAILED/WAITING_OWNER_DECISION/BLOCKED)",
+      "pass": true,
+      "detail": "COMPLETED"
+    },
+    {
+      "name": "2/11. Client B reads the SAME task by task_id (no screenshot, no prompt copy)",
+      "pass": true,
+      "detail": "{\"task_id\":\"task-fa5e688e-a8cf-44f5-8ae1-ffc73d51950e\",\"memory\":{\"user_id\":\"user-alpha\",\"workspace_id\":\"ws-1\",\"conversation_id\":\"conv-a-1\",\"parent_task_id\":null,\"task_id\":\"task-fa5e688e-a8cf-44f5-8ae1-ffc73d51950e\",\"created_at\":\"2026-08-19T18:06:03.191Z\"},\"intent_text\":\"ตรวจสอบไฟล์ซ้ำในระบบ\",\"submitted_by_client\":\"client-A-generic\",\"status\":\"COMPLETED\",\"created_at\":\"2026-08-19T18:06:03.191Z\",\"updated_at\":\"2026-08-19T18:06:10.564Z\"}"
+    },
+    {
+      "name": "Client B reads the SAME result via task_id",
+      "pass": true,
+      "detail": "{\"task_id\":\"task-fa5e688e-a8cf-44f5-8ae1-ffc73d51950e\",\"status\":\"COMPLETED\",\"output\":{\"ok\":true,\"output\":{\"scan_id\":\"scan-c4d9e4da-c605-4c33-9493-2e2c81d18cea\",\"scannedAt\":\"2026-08-19T18:06:04.101Z\",\""
+    },
+    {
+      "name": "4/6. Evidence IDs present on the result (execution/verification produced real evidence)",
+      "pass": true,
+      "detail": "evidence_ids=[\"ev-27688649-e1b6-4131-97fe-bd43e454df5d\",\"ev-07a9d927-905b-415e-8f52-bd7387844026\",\"ev-f10b06ad-14a8-4f4d-8172-85ebf9324082\",\"ev-9b42aaff-7aa3-44ad-b61b-832c017c5fef\"]"
+    },
+    {
+      "name": "13a. A write-shaped task correctly halted at WAITING_OWNER_DECISION (real write-gate DENY)",
+      "pass": true,
+      "detail": "WAITING_OWNER_DECISION"
+    },
+    {
+      "name": "12. \"อธิบายหน่อย\" returns a real explanation built from persisted state/evidence",
+      "pass": true,
+      "detail": "{\"what_happened\":\"Task \\\"แก้ไข dna-os-circuit/runtime/server.ts\\\" is currently WAITING_OWNER_DECISION.\",\"what_was_checked\":\"Capability lookup matched: {\\\"problem_type\\\":\\\"server_hang_or_timeout\\\",\\\"av"
+    },
+    {
+      "name": "Owner decision test setup: still WAITING_OWNER_DECISION before any decision call",
+      "pass": true,
+      "detail": "WAITING_OWNER_DECISION"
+    },
+    {
+      "name": "13b. Owner answered \"ไม่ทำ\" — decision recorded, task ends BLOCKED, never executed",
+      "pass": true,
+      "detail": "BLOCKED"
+    }
+  ],
+  "passed": 9,
+  "failed": 0,
+  "taskId": "task-fa5e688e-a8cf-44f5-8ae1-ffc73d51950e",
+  "taskIdC": "task-cbecdd52-518b-42b3-9a68-d6014ce6b6e1"
+}

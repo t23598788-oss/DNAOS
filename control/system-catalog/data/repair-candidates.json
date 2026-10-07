@@ -1,0 +1,313 @@
+{
+ "generated_at": "2026-09-05T02:24:57.238Z",
+ "count": 25,
+ "candidates": [
+  {
+   "object_name": "conversation_states",
+   "decision": "UNKNOWN",
+   "reason": "ต้องให้เจ้าของตัดสินว่าความสามารถนี้ยังต้องการอยู่หรือไม่ — ไม่มีอยู่ใน production มาตลอดโดยไม่มีอาการเสียที่มองเห็น",
+   "business_concept": null,
+   "writers": 1,
+   "readers": 1,
+   "layer": "UNKNOWN_LAYER",
+   "data_class": "STALE_SCHEMA",
+   "affected_flows": [],
+   "replacement": null
+  },
+  {
+   "object_name": "entity_registry",
+   "decision": "UNKNOWN",
+   "reason": "ต้องให้เจ้าของตัดสินว่าความสามารถนี้ยังต้องการอยู่หรือไม่ — ไม่มีอยู่ใน production มาตลอดโดยไม่มีอาการเสียที่มองเห็น",
+   "business_concept": null,
+   "writers": 1,
+   "readers": 0,
+   "layer": "UNKNOWN_LAYER",
+   "data_class": "STALE_SCHEMA",
+   "affected_flows": [],
+   "replacement": null
+  },
+  {
+   "object_name": "factory_app_configs",
+   "decision": "UNKNOWN",
+   "reason": "ต้องให้เจ้าของตัดสินว่าความสามารถนี้ยังต้องการอยู่หรือไม่ — ไม่มีอยู่ใน production มาตลอดโดยไม่มีอาการเสียที่มองเห็น",
+   "business_concept": null,
+   "writers": 1,
+   "readers": 0,
+   "layer": "UNKNOWN_LAYER",
+   "data_class": "STALE_SCHEMA",
+   "affected_flows": [],
+   "replacement": null
+  },
+  {
+   "object_name": "job_vehicle_pricings",
+   "decision": "RETIRE",
+   "reason": "ไม่มีโค้ดใดเรียกใช้แล้ว การฟื้นคืนจะเป็นการคืนของที่เลิกใช้ไปแล้ว",
+   "business_concept": null,
+   "writers": 0,
+   "readers": 0,
+   "layer": "UNKNOWN_LAYER",
+   "data_class": "UNKNOWN",
+   "affected_flows": [],
+   "replacement": null
+  },
+  {
+   "object_name": "kv_cache",
+   "decision": "UNKNOWN",
+   "reason": "ต้องให้เจ้าของตัดสินว่าความสามารถนี้ยังต้องการอยู่หรือไม่ — ไม่มีอยู่ใน production มาตลอดโดยไม่มีอาการเสียที่มองเห็น",
+   "business_concept": null,
+   "writers": 1,
+   "readers": 1,
+   "layer": "UNKNOWN_LAYER",
+   "data_class": "STALE_SCHEMA",
+   "affected_flows": [],
+   "replacement": null
+  },
+  {
+   "object_name": "line_draft_documents",
+   "decision": "RETIRE",
+   "reason": "ไม่มีโค้ดใดเรียกใช้แล้ว การฟื้นคืนจะเป็นการคืนของที่เลิกใช้ไปแล้ว",
+   "business_concept": null,
+   "writers": 0,
+   "readers": 0,
+   "layer": "UNKNOWN_LAYER",
+   "data_class": "UNKNOWN",
+   "affected_flows": [],
+   "replacement": null
+  },
+  {
+   "object_name": "line_profile_events",
+   "decision": "RETIRE",
+   "reason": "ไม่มีโค้ดใดเรียกใช้แล้ว การฟื้นคืนจะเป็นการคืนของที่เลิกใช้ไปแล้ว",
+   "business_concept": null,
+   "writers": 0,
+   "readers": 0,
+   "layer": "UNKNOWN_LAYER",
+   "data_class": "UNKNOWN",
+   "affected_flows": [],
+   "replacement": null
+  },
+  {
+   "object_name": "line_profile_history",
+   "decision": "RETIRE",
+   "reason": "โค้ดอ่านอย่างเดียวและไม่มีผู้เขียนแม้ในซอร์ส ต่อให้มีตารางก็จะว่างเปล่า",
+   "business_concept": null,
+   "writers": 0,
+   "readers": 1,
+   "layer": "UNKNOWN_LAYER",
+   "data_class": "STALE_SCHEMA",
+   "affected_flows": [],
+   "replacement": null
+  },
+  {
+   "object_name": "line_profile_refresh_queue",
+   "decision": "UNKNOWN",
+   "reason": "ต้องให้เจ้าของตัดสินว่าความสามารถนี้ยังต้องการอยู่หรือไม่ — ไม่มีอยู่ใน production มาตลอดโดยไม่มีอาการเสียที่มองเห็น",
+   "business_concept": null,
+   "writers": 2,
+   "readers": 1,
+   "layer": "UNKNOWN_LAYER",
+   "data_class": "STALE_SCHEMA",
+   "affected_flows": [
+    "FLOW_B_LINE_PROFILE_UPDATE"
+   ],
+   "replacement": null
+  },
+  {
+   "object_name": "line_sessions",
+   "decision": "RETIRE",
+   "reason": "ไม่มีโค้ดใดเรียกใช้แล้ว การฟื้นคืนจะเป็นการคืนของที่เลิกใช้ไปแล้ว",
+   "business_concept": null,
+   "writers": 0,
+   "readers": 0,
+   "layer": "UNKNOWN_LAYER",
+   "data_class": "UNKNOWN",
+   "affected_flows": [],
+   "replacement": null
+  },
+  {
+   "object_name": "match_queue",
+   "decision": "RETIRE",
+   "reason": "ไม่มีโค้ดใดเรียกใช้แล้ว การฟื้นคืนจะเป็นการคืนของที่เลิกใช้ไปแล้ว",
+   "business_concept": null,
+   "writers": 0,
+   "readers": 0,
+   "layer": "UNKNOWN_LAYER",
+   "data_class": "UNKNOWN",
+   "affected_flows": [],
+   "replacement": null
+  },
+  {
+   "object_name": "oauth_authorization_codes",
+   "decision": "UNKNOWN",
+   "reason": "ต้องให้เจ้าของตัดสินว่าความสามารถนี้ยังต้องการอยู่หรือไม่ — ไม่มีอยู่ใน production มาตลอดโดยไม่มีอาการเสียที่มองเห็น",
+   "business_concept": null,
+   "writers": 1,
+   "readers": 1,
+   "layer": "UNKNOWN_LAYER",
+   "data_class": "STALE_SCHEMA",
+   "affected_flows": [],
+   "replacement": null
+  },
+  {
+   "object_name": "oauth_clients",
+   "decision": "UNKNOWN",
+   "reason": "ต้องให้เจ้าของตัดสินว่าความสามารถนี้ยังต้องการอยู่หรือไม่ — ไม่มีอยู่ใน production มาตลอดโดยไม่มีอาการเสียที่มองเห็น",
+   "business_concept": null,
+   "writers": 1,
+   "readers": 2,
+   "layer": "UNKNOWN_LAYER",
+   "data_class": "STALE_SCHEMA",
+   "affected_flows": [],
+   "replacement": null
+  },
+  {
+   "object_name": "oauth_refresh_tokens",
+   "decision": "UNKNOWN",
+   "reason": "ต้องให้เจ้าของตัดสินว่าความสามารถนี้ยังต้องการอยู่หรือไม่ — ไม่มีอยู่ใน production มาตลอดโดยไม่มีอาการเสียที่มองเห็น",
+   "business_concept": null,
+   "writers": 1,
+   "readers": 1,
+   "layer": "UNKNOWN_LAYER",
+   "data_class": "STALE_SCHEMA",
+   "affected_flows": [],
+   "replacement": null
+  },
+  {
+   "object_name": "partners",
+   "decision": "REPLACE_WITH_EXISTING",
+   "reason": "มี companies ทำหน้าที่เดียวกันอยู่ใน production แล้ว",
+   "business_concept": "คู่สัญญา / บริษัทที่ทำธุรกิจด้วย",
+   "writers": 0,
+   "readers": 2,
+   "layer": "UNKNOWN_LAYER",
+   "data_class": "STALE_SCHEMA",
+   "affected_flows": [
+    "FLOW_D_DOCUMENT_AUTOFILL"
+   ],
+   "replacement": "companies"
+  },
+  {
+   "object_name": "resource_transactions",
+   "decision": "UNKNOWN",
+   "reason": "ต้องให้เจ้าของตัดสินว่าความสามารถนี้ยังต้องการอยู่หรือไม่ — ไม่มีอยู่ใน production มาตลอดโดยไม่มีอาการเสียที่มองเห็น",
+   "business_concept": null,
+   "writers": 1,
+   "readers": 0,
+   "layer": "UNKNOWN_LAYER",
+   "data_class": "STALE_SCHEMA",
+   "affected_flows": [],
+   "replacement": null
+  },
+  {
+   "object_name": "transactions",
+   "decision": "RETIRE",
+   "reason": "ไม่มีโค้ดใดเรียกใช้แล้ว การฟื้นคืนจะเป็นการคืนของที่เลิกใช้ไปแล้ว",
+   "business_concept": null,
+   "writers": 0,
+   "readers": 0,
+   "layer": "UNKNOWN_LAYER",
+   "data_class": "UNKNOWN",
+   "affected_flows": [],
+   "replacement": null
+  },
+  {
+   "object_name": "user_line_auth",
+   "decision": "RETIRE",
+   "reason": "ไม่มีโค้ดใดเรียกใช้แล้ว การฟื้นคืนจะเป็นการคืนของที่เลิกใช้ไปแล้ว",
+   "business_concept": null,
+   "writers": 0,
+   "readers": 0,
+   "layer": "UNKNOWN_LAYER",
+   "data_class": "UNKNOWN",
+   "affected_flows": [],
+   "replacement": null
+  },
+  {
+   "object_name": "debt_trackings",
+   "decision": "REPLACE_WITH_EXISTING",
+   "reason": "มี debt_events (ต้นทาง) คู่กับ debt_snapshots (ผลคำนวณ) ทำหน้าที่เดียวกันอยู่ใน production แล้ว",
+   "business_concept": "หนี้ค้างชำระของลูกค้า",
+   "writers": 1,
+   "readers": 0,
+   "layer": "UNKNOWN_LAYER",
+   "data_class": "STALE_SCHEMA",
+   "affected_flows": [],
+   "replacement": "debt_events (ต้นทาง) คู่กับ debt_snapshots (ผลคำนวณ)"
+  },
+  {
+   "object_name": "document_items",
+   "decision": "UNKNOWN",
+   "reason": "เป็นโมเดลซ้ำของ concept \"เอกสารการค้าที่ออกให้คู่ค้า\" ซึ่งมีตัวที่ทำงานอยู่ใน production แล้ว แต่ยังไม่มีตัวไหนเป็น canonical ที่ตัดสินได้จากซอร์ส — ต้องให้เจ้าของเลือกจากความหมายทางธุรกิจ",
+   "business_concept": "เอกสารการค้าที่ออกให้คู่ค้า",
+   "writers": 1,
+   "readers": 1,
+   "layer": "UNKNOWN_LAYER",
+   "data_class": "STALE_SCHEMA",
+   "affected_flows": [],
+   "replacement": null
+  },
+  {
+   "object_name": "documents",
+   "decision": "UNKNOWN",
+   "reason": "เป็นโมเดลซ้ำของ concept \"เอกสารการค้าที่ออกให้คู่ค้า\" ซึ่งมีตัวที่ทำงานอยู่ใน production แล้ว แต่ยังไม่มีตัวไหนเป็น canonical ที่ตัดสินได้จากซอร์ส — ต้องให้เจ้าของเลือกจากความหมายทางธุรกิจ",
+   "business_concept": "เอกสารการค้าที่ออกให้คู่ค้า",
+   "writers": 1,
+   "readers": 3,
+   "layer": "UNKNOWN_LAYER",
+   "data_class": "STALE_SCHEMA",
+   "affected_flows": [
+    "FLOW_D_DOCUMENT_AUTOFILL"
+   ],
+   "replacement": null
+  },
+  {
+   "object_name": "entries",
+   "decision": "UNKNOWN",
+   "reason": "ต้องให้เจ้าของตัดสินว่าความสามารถนี้ยังต้องการอยู่หรือไม่ — ไม่มีอยู่ใน production มาตลอดโดยไม่มีอาการเสียที่มองเห็น",
+   "business_concept": null,
+   "writers": 1,
+   "readers": 0,
+   "layer": "UNKNOWN_LAYER",
+   "data_class": "STALE_SCHEMA",
+   "affected_flows": [],
+   "replacement": null
+  },
+  {
+   "object_name": "invoice_debts",
+   "decision": "REPLACE_WITH_EXISTING",
+   "reason": "มี debt_events (ต้นทาง) คู่กับ debt_snapshots (ผลคำนวณ) ทำหน้าที่เดียวกันอยู่ใน production แล้ว",
+   "business_concept": "หนี้ค้างชำระของลูกค้า",
+   "writers": 1,
+   "readers": 2,
+   "layer": "UNKNOWN_LAYER",
+   "data_class": "STALE_SCHEMA",
+   "affected_flows": [],
+   "replacement": "debt_events (ต้นทาง) คู่กับ debt_snapshots (ผลคำนวณ)"
+  },
+  {
+   "object_name": "invoice_payments",
+   "decision": "UNKNOWN",
+   "reason": "ต้องให้เจ้าของตัดสินว่าความสามารถนี้ยังต้องการอยู่หรือไม่ — ไม่มีอยู่ใน production มาตลอดโดยไม่มีอาการเสียที่มองเห็น",
+   "business_concept": null,
+   "writers": 1,
+   "readers": 0,
+   "layer": "UNKNOWN_LAYER",
+   "data_class": "STALE_SCHEMA",
+   "affected_flows": [],
+   "replacement": null
+  },
+  {
+   "object_name": "links",
+   "decision": "UNKNOWN",
+   "reason": "ต้องให้เจ้าของตัดสินว่าความสามารถนี้ยังต้องการอยู่หรือไม่ — ไม่มีอยู่ใน production มาตลอดโดยไม่มีอาการเสียที่มองเห็น",
+   "business_concept": null,
+   "writers": 1,
+   "readers": 0,
+   "layer": "UNKNOWN_LAYER",
+   "data_class": "STALE_SCHEMA",
+   "affected_flows": [],
+   "replacement": null
+  }
+ ],
+ "note": "ไม่มีข้อเสนอ CREATE_NEW — การสร้างตารางใหม่เป็นการตัดสินใจของเจ้าของ"
+}

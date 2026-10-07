@@ -1,0 +1,367 @@
+[
+  {
+    "supabase_component": "PostgreSQL",
+    "supabase_pattern": "Managed PostgreSQL database with platform-integrated database access",
+    "supabase_evidence": [
+      "reports/CROSS_PROVIDER_AUDIT_2026-08-24.md:41-42 confirms the Supabase platform surface includes DB, but does not provide a PostgreSQL endpoint or API contract."
+    ],
+    "dna_os_equivalent": [
+      "software/registry-database/adapters/postgres-store.ts",
+      "software/registry-database/migrations/0001_create_software_registry_schema.sql",
+      "software/registry-database/migrations/0001_create_software_registry_roles.sql",
+      "credentials/registry/database-credential-registry.ts"
+    ],
+    "dna_os_registry_ids": [
+      "resource-3e9a6778-9bed-45cb-948c-d8c08c04044b",
+      "resource-8bab0f6c-5a71-4bcc-a197-17c44ec1fc7d",
+      "resource-63ba7b40-6375-4372-8dae-80b912fdf3a8",
+      "capability-69e6e9ba-03a2-40de-b952-c52d41f377ef",
+      "resource-ec8907d2-f721-45e5-b98e-d34a9d6fa3ae"
+    ],
+    "dna_os_evidence": [
+      "software/registry-database/data/canonical/evidence.jsonl:46-48,172,592",
+      "reports/SOFTWARE_REGISTRY_DATABASE_REPORT.md:31-35,54-61,83-89,126-131; SQL shape is verified, but live migration/connection was not executed.",
+      "LIVE Registry API query: POST http://127.0.0.1:8791/registry/lookup for canonical_name=permission-policy-resolution returned REGISTERED capability capability-5dbc056f-2b26-4ff2-a8b7-ee6efe69f775 linked to resource-c52796a8-935d-415d-a2b8-f2b0337de674; GET /registry/resources/:id returned source_location=control/permission-policy-resolution/, version=1.0.0, status=REGISTERED, repository_id=null.",
+      "VERIFIED status: registry evidence verifies schema/adapter shape only; live PostgreSQL use is UNKNOWN."
+    ],
+    "comparison": "PARTIAL",
+    "difference": [
+      "DNA OS has a PostgreSQL-oriented registry schema and adapter, but the evidence does not establish a live Supabase/PostgreSQL runtime connection.",
+      "Supabase database API details are not present in the stored external reference."
+    ],
+    "engineering_significance": "Database structure is evidenced on DNA OS, while production connectivity and equivalent managed-database behavior remain unproven."
+  },
+  {
+    "supabase_component": "API Gateway",
+    "supabase_pattern": "Platform API gateway / Management API front door",
+    "supabase_evidence": [
+      "reports/CROSS_PROVIDER_AUDIT_2026-08-24.md:41-42 confirms the Supabase Management API is part of the platform surface, without an exact endpoint or request/response contract."
+    ],
+    "dna_os_equivalent": [
+      "connections/supabase/README.md",
+      "contracts/connector/connection.ts",
+      "contracts/operational-bridge/bridge.ts"
+    ],
+    "dna_os_registry_ids": [],
+    "dna_os_evidence": [
+      "control/command-router/current-capability-map.json:139-151 records supabase-connection as SOURCE_ONLY.",
+      "connections/supabase/README.md:1-21 specifies an intended CommandEnvelope to EventEnvelope boundary but states there is no source implementation.",
+      "LIVE Registry API query: POST http://127.0.0.1:8791/registry/lookup for canonical_name=supabase-connection returned matches: []; no live software-registry capability was returned for this static command-router identifier.",
+      "VERIFIED status: source boundary is documented; callable gateway implementation is not verified."
+    ],
+    "comparison": "PARTIAL",
+    "difference": [
+      "Supabase has a platform API surface in the external reference; DNA OS has only an external-destination boundary and no implemented Supabase adapter or HTTP endpoint."
+    ],
+    "engineering_significance": "The conceptual boundary exists in DNA OS, but there is no verified runtime path equivalent to a platform API gateway."
+  },
+  {
+    "supabase_component": "Auth",
+    "supabase_pattern": "Platform identity and authentication service",
+    "supabase_evidence": [
+      "reports/CROSS_PROVIDER_AUDIT_2026-08-24.md:41-42 confirms Auth as part of the Supabase platform surface, without an Auth endpoint, SDK contract, or live verification record."
+    ],
+    "dna_os_equivalent": [
+      "permissions/access-control/identity-registry.ts",
+      "permissions/access-control/membership-registry.ts"
+    ],
+    "dna_os_registry_ids": ["capability-dbe569f1-1fb3-4b1a-a098-88a45dc6af73"],
+    "dna_os_evidence": [
+      "software/registry-database/data/canonical/capabilities.jsonl:59",
+      "identity-registry.ts and membership-registry.ts provide register/get/status/membership operations, but explicitly use in-memory stores and do not provide durable persistence.",
+      "LIVE Registry API query: POST http://127.0.0.1:8791/registry/lookup for canonical_name=access-control-identity-membership returned REGISTERED capability capability-dbe569f1-1fb3-4b1a-a098-88a45dc6af73 linked to resource-8cc607d2-54e4-4793-beae-5342cacd3b26, source_location=permissions/access-control/, version=1.0.0.",
+      "VERIFIED status: registry-backed source exists; external authentication integration and durable identity storage are not verified."
+    ],
+    "comparison": "PARTIAL",
+    "difference": [
+      "DNA OS identity/membership logic is not evidenced as a managed authentication service or durable auth backend.",
+      "The stored Supabase reference does not prove the detailed Auth API needed for an equivalence claim."
+    ],
+    "engineering_significance": "Identity modeling exists, but it must not be treated as equivalent to Supabase Auth without runtime and persistence evidence."
+  },
+  {
+    "supabase_component": "Authorization",
+    "supabase_pattern": "Authorization policy enforcement associated with Auth and database access",
+    "supabase_evidence": [
+      "reports/CROSS_PROVIDER_AUDIT_2026-08-24.md:41-42 confirms Auth but does not provide RLS/policy behavior evidence."
+    ],
+    "dna_os_equivalent": [
+      "control/permission-policy-resolution/contract.ts",
+      "permissions/access-control/scope-check.ts",
+      "permissions/access-control/identity-registry.ts",
+      "permissions/access-control/membership-registry.ts"
+    ],
+    "dna_os_registry_ids": [
+      "capability-5dbc056f-2b26-4ff2-a8b7-ee6efe69f775",
+      "access-control"
+    ],
+    "dna_os_evidence": [
+      "software/registry-database/data/canonical/capabilities.jsonl:8; software/registry-database/data/canonical/evidence.jsonl:9,366",
+      "control/command-router/current-capability-map.json:184-210 records the access-control scope boundary.",
+      "LIVE Registry API query: POST http://127.0.0.1:8791/registry/lookup for canonical_name=permission-policy-resolution returned capability-5dbc056f-2b26-4ff2-a8b7-ee6efe69f775 with status=REGISTERED, evidence_refs for permission-policy-resolution and admission tests, and relationship PERMISSION_POLICY_RESOLUTION_TO_ADMISSION.",
+      "VERIFIED status: policy-resolution capability is registry/evidence-backed, with limitations documented in scope-check.ts and membership-registry.ts."
+    ],
+    "comparison": "PARTIAL",
+    "difference": [
+      "DNA OS policy resolution is an application/control-plane decision capability, not proven database-level RLS equivalent.",
+      "DNA OS evidence notes that scope-check does not verify a real Membership row and owner-approved membership issuance is not built.",
+      "Supabase authorization behavior is UNKNOWN from the stored reference."
+    ],
+    "engineering_significance": "Authorization decisions are evidenced, but database row isolation and identity-to-policy persistence are separate unproven concerns."
+  },
+  {
+    "supabase_component": "Realtime",
+    "supabase_pattern": "Postgres change subscription for live UI/runtime updates",
+    "supabase_evidence": [
+      "reports/TWO_PROJECT_REPOSITORY_INTELLIGENCE_COMPARISON_2026-08-22.md:97-106 records a real Supabase Realtime subscription on ai_tasks at components/admin/useAiTaskPulse.ts:49-61."
+    ],
+    "dna_os_equivalent": [
+      "contracts/operational-bridge/bridge.ts",
+      "observability/joint-monitor/",
+      "connections/telemetry/"
+    ],
+    "dna_os_registry_ids": ["capability-448891d2-a02e-4dc3-8910-728985695580", "research-engine"],
+    "dna_os_evidence": [
+      "reports/TWO_PROJECT_REPOSITORY_INTELLIGENCE_COMPARISON_2026-08-22.md:99-106 distinguishes the real Supabase subscription from a hardcoded node lookup.",
+      "control/command-router/capability-registry.ts:53-75 registers the research-engine adapter, not a Supabase Realtime capability.",
+      "VERIFIED status: DNA OS has evidence-bearing telemetry/observation capabilities, but no verified Supabase Realtime subscription."
+    ],
+    "comparison": "DIFFERENT",
+    "difference": [
+      "Supabase provides a live database change subscription; the DNA OS registry does not register an equivalent Supabase Realtime implementation.",
+      "DNA OS event/telemetry surfaces are abstract or adapter-based and are not proven to subscribe to database changes."
+    ],
+    "engineering_significance": "Live event propagation cannot be assumed from the existence of generic event contracts or telemetry."
+  },
+  {
+    "supabase_component": "Storage",
+    "supabase_pattern": "Managed object/file storage service",
+    "supabase_evidence": [
+      "reports/CROSS_PROVIDER_AUDIT_2026-08-24.md:41-42 confirms Storage as part of the Supabase platform surface, without bucket/object API evidence."
+    ],
+    "dna_os_equivalent": [],
+    "dna_os_registry_ids": [],
+    "dna_os_evidence": [
+      "control/command-router/current-capability-map.json:139-151 records supabase-connection as SOURCE_ONLY.",
+      "connections/supabase/README.md:3-8,17-21 states no source implementation exists and forbids using the adapter for business data.",
+      "Static command-router registry status was not accepted as Software Registry evidence; live API lookup for canonical_name=supabase-connection returned matches: []."
+    ],
+    "comparison": "UNKNOWN",
+    "difference": [
+      "The live Registry lookup for canonical_name=supabase-connection returned matches: [], but the runtime has no list-all API; this is insufficient to classify the capability as ABSENT.",
+      "No live Registry record was returned proving a DNA OS Supabase Storage capability, object API, or adapter."
+    ],
+    "engineering_significance": "Storage integration is not available as a verified DNA OS capability and must not be inferred from the connector stub."
+  },
+  {
+    "supabase_component": "Service boundaries",
+    "supabase_pattern": "Platform services exposed as distinct database, auth, storage, realtime, and API surfaces",
+    "supabase_evidence": [
+      "reports/CROSS_PROVIDER_AUDIT_2026-08-24.md:41-42 lists the distinct Supabase platform services and self-contained application usage."
+    ],
+    "dna_os_equivalent": [
+      "connections/supabase/README.md",
+      "contracts/operational-bridge/bridge.ts",
+      "contracts/connector/connection.ts"
+    ],
+    "dna_os_registry_ids": [],
+    "dna_os_evidence": [
+      "connections/supabase/README.md:3-19 explicitly defines Supabase as an external software destination and forbids direct Operational to Infrastructure business-data access.",
+      "contracts/operational-bridge/bridge.ts:1-25 defines the operational/infrastructure boundary.",
+      "LIVE Registry API query: POST http://127.0.0.1:8791/registry/lookup for canonical_name=supabase-connection returned matches: []; no live software-registry record was returned for this static command-router name.",
+      "VERIFIED status: boundary rule is source/evidence-backed; a live Supabase service adapter is not."
+    ],
+    "comparison": "DIFFERENT",
+    "difference": [
+      "Supabase service boundaries describe a running managed platform; DNA OS evidence describes a governance boundary and intentionally unbuilt external connector."
+    ],
+    "engineering_significance": "The boundary is an architectural constraint in DNA OS, not proof that Supabase-like service capabilities are implemented."
+  },
+  {
+    "supabase_component": "Network boundaries",
+    "supabase_pattern": "Network-facing managed platform endpoints and service access boundaries",
+    "supabase_evidence": [
+      "The stored Supabase reference identifies platform/API usage but does not provide a complete network topology, endpoint inventory, or network verification evidence."
+    ],
+    "dna_os_equivalent": [
+      "connections/supabase/README.md",
+      "permissions/network-auth-gate/",
+      "contracts/connector/connection.ts"
+    ],
+    "dna_os_registry_ids": ["capability-2cb89821-ef27-470e-bf62-92b8ec522493"],
+    "dna_os_evidence": [
+      "connections/supabase/README.md:1-21 defines an external-destination boundary with no adapter source.",
+      "permissions/network-auth-gate/ is separately registry/evidence-backed for network request authentication, but no Supabase-specific network path is registered.",
+      "LIVE Registry API query: GET http://127.0.0.1:8791/registry/capabilities/capability-2cb89821-ef27-470e-bf62-92b8ec522493 returned REGISTERED with source_location=connections/connection-registry/, version=1.0.0, and registry/git-discovery/test evidence refs.",
+      "VERIFIED status: generic network/auth boundary evidence exists; Supabase-specific connectivity remains UNKNOWN."
+    ],
+    "comparison": "UNKNOWN",
+    "difference": [
+      "The external reference is insufficient to compare exact Supabase network boundaries with DNA OS network behavior.",
+      "DNA OS has generic network/auth controls but no registry-confirmed Supabase network adapter."
+    ],
+    "engineering_significance": "Network controls must be assessed from concrete endpoint and runtime evidence, not provider names or connector stubs."
+  },
+  {
+    "supabase_component": "Migration system",
+    "supabase_pattern": "Database schema migration files and migration execution workflow",
+    "supabase_evidence": [
+      "The stored external reference confirms Supabase DB/platform usage but does not provide a specific migration API, migration run, or migration result."
+    ],
+    "dna_os_equivalent": [
+      "software/registry-database/migrations/",
+      "software/registry-database/README.md"
+    ],
+    "dna_os_registry_ids": ["software/registry-database"],
+    "dna_os_evidence": [
+      "reports/SOFTWARE_REGISTRY_DATABASE_REPORT.md:52-61 states schema/migration shape is present but SUPABASE MIGRATION EXECUTED: NO.",
+      "software/registry-database/migrations/MIGRATION_PLAN.md is the source for pre-flight gating; no registered migration callable contract is exposed.",
+      "VERIFIED status: migration artifacts exist, execution is not verified."
+    ],
+    "comparison": "UNKNOWN",
+    "difference": [
+      "DNA OS has migration files for its registry database but no evidence of a live migration execution path.",
+      "The stored Supabase reference lacks enough migration-specific evidence for a direct comparison."
+    ],
+    "engineering_significance": "Migration artifacts are not equivalent to a verified migration system operating against a live database."
+  },
+  {
+    "supabase_component": "Secrets/Credentials",
+    "supabase_pattern": "Provider URL, anon key, service-role key, and Management API token used as credential classes",
+    "supabase_evidence": [
+      "reports/CROSS_PROVIDER_AUDIT_2026-08-24.md:7-13 records Supabase URL, anon key, service-role key, and management token categories."
+    ],
+    "dna_os_equivalent": [
+      "credentials/registry/database-credential-registry.ts",
+      "credentials/macos-keychain/",
+      "connections/connection-registry/registry.ts",
+      "contracts/connector/connection.ts"
+    ],
+    "dna_os_registry_ids": ["capability-69e6e9ba-03a2-40de-b952-c52d41f377ef"],
+    "dna_os_evidence": [
+      "software/registry-database/data/canonical/capabilities.jsonl:69",
+      "contracts/connector/connection.ts:1-35 and connections/connection-registry/registry.ts:21-30 define reference-based credential/connection metadata; raw secret values are not the registry payload.",
+      "LIVE Registry API query: GET http://127.0.0.1:8791/registry/capabilities/capability-69e6e9ba-03a2-40de-b952-c52d41f377ef returned REGISTERED with resource-ec8907d2-f721-45e5-b98e-d34a9d6fa3ae, source_location=credentials/registry/, version=1.0.0, and credential registry evidence refs.",
+      "VERIFIED status: generic credential-reference boundary is evidenced; a Supabase-specific resolver is UNKNOWN."
+    ],
+    "comparison": "PARTIAL",
+    "difference": [
+      "DNA OS has generic credential-reference and Keychain mechanisms, but the registry does not prove a Supabase-specific credential resolver or runtime binding.",
+      "Supabase credential classes are provider-specific; DNA OS evidence is provider-neutral."
+    ],
+    "engineering_significance": "Secret-class presence must not be confused with a verified provider credential integration."
+  },
+  {
+    "supabase_component": "Service discovery",
+    "supabase_pattern": "Project/service identity and provider registration used to locate platform services",
+    "supabase_evidence": [
+      "reports/CROSS_PROVIDER_AUDIT_2026-08-24.md:41-42 references providers/supabase/provider.json and scripts/register-known-connectors.ts, but does not prove a live discovery API or binding."
+    ],
+    "dna_os_equivalent": [
+      "connections/connection-registry/registry.ts",
+      "software/repository-registry/registry.ts"
+    ],
+    "dna_os_registry_ids": ["capability-2cb89821-ef27-470e-bf62-92b8ec522493"],
+    "dna_os_evidence": [
+      "software/registry-database/data/canonical/capabilities.jsonl:17",
+      "connections/connection-registry/registry.ts:8-19 provides deterministic buildConnectionId identity fields.",
+      "LIVE Registry API query: GET http://127.0.0.1:8791/registry/capabilities/capability-2cb89821-ef27-470e-bf62-92b8ec522493 returned REGISTERED with source_location=connections/connection-registry/, version=1.0.0, and real registry/git-discovery/test evidence refs.",
+      "VERIFIED status: generic connection identity capability is evidenced; Supabase-specific discovery is UNKNOWN."
+    ],
+    "comparison": "UNKNOWN",
+    "difference": [
+      "The external reference does not establish a concrete Supabase discovery contract.",
+      "DNA OS provides generic connection identity/registry behavior, but no verified Supabase-specific registration path."
+    ],
+    "engineering_significance": "A generic registry identifier is not proof of provider service discovery or runtime endpoint resolution."
+  },
+  {
+    "supabase_component": "Observability",
+    "supabase_pattern": "Runtime signal from Realtime-backed UI/service activity",
+    "supabase_evidence": [
+      "reports/TWO_PROJECT_REPOSITORY_INTELLIGENCE_COMPARISON_2026-08-22.md:99-106 records a real Realtime runtime signal, while noting its mapping is hardcoded and not joined to static graph identity."
+    ],
+    "dna_os_equivalent": [
+      "connections/telemetry/",
+      "observability/joint-monitor/",
+      "software/live-census/"
+    ],
+    "dna_os_registry_ids": ["capability-448891d2-a02e-4dc3-8910-728985695580", "software/live-census"],
+    "dna_os_evidence": [
+      "reports/CROSS_PROVIDER_AUDIT_2026-08-24.md:54-56 records the registered DNA OS telemetry capability.",
+      "software/live-census/README.md defines derived census and evidence-ledger behavior; observability/joint-monitor has source and test artifacts.",
+      "LIVE Registry API query: GET http://127.0.0.1:8791/registry/capabilities/capability-448891d2-a02e-4dc3-8910-728985695580 returned REGISTERED with resource-e7a1e19b-44f7-4b4a-b6ab-9d9498ab95a9, source_location=connections/telemetry/, version=1.0.0, and evidence_ref=connections/telemetry/contract.ts.",
+      "VERIFIED status: DNA OS observability/census evidence exists; it is not proven equivalent to Supabase Realtime-backed application observability."
+    ],
+    "comparison": "DIFFERENT",
+    "difference": [
+      "Supabase evidence is a live application/database subscription signal; DNA OS evidence is host/system telemetry, joint monitoring, and evidence-derived census.",
+      "Neither side's evidence proves a shared join key or equivalent observation model."
+    ],
+    "engineering_significance": "Observability semantics differ materially; a live signal alone does not establish traceable system identity."
+  },
+  {
+    "supabase_component": "Deployment",
+    "supabase_pattern": "Managed platform deployment/control surface",
+    "supabase_evidence": [
+      "The stored Supabase reference does not provide a deployment endpoint, deployment lifecycle contract, or executed deployment evidence."
+    ],
+    "dna_os_equivalent": [],
+    "dna_os_registry_ids": [],
+    "dna_os_evidence": [
+      "control/command-router/capability-registry.ts:226-230 exposes no deployment capability entry.",
+      "reports/INFRASTRUCTURE_MIGRATION_COMPLETENESS_AUDIT.md:191-203 discusses deployment gaps; execution/run is not a deployment contract.",
+      "Registry status: no registry-confirmed deployment capability; this is UNKNOWN for the comparison because the external pattern is also not sufficiently evidenced."
+    ],
+    "comparison": "UNKNOWN",
+    "difference": [
+      "No deployment capability is registered in DNA OS, but the stored Supabase reference does not contain enough deployment evidence to classify the comparison as ABSENT or DIFFERENT."
+    ],
+    "engineering_significance": "Execution and deployment must remain separate claims; deployment cannot be inferred from process execution."
+  },
+  {
+    "supabase_component": "Repository organization",
+    "supabase_pattern": "Project repository organized around supabase/functions, migrations, provider descriptors, and application routes",
+    "supabase_evidence": [
+      "reports/CROSS_PROVIDER_AUDIT_2026-08-24.md:41-42 and reports/INFRASTRUCTURE_MIGRATION_COMPLETENESS_AUDIT.md:74-81 reference the Supabase project organization and provider/source paths."
+    ],
+    "dna_os_equivalent": [
+      "connections/github/adapter-contract.ts",
+      "software/repository-registry/registry.ts",
+      "software/live-census/"
+    ],
+    "dna_os_registry_ids": [],
+    "dna_os_evidence": [
+      "control/command-router/capability-registry.ts:92-100 registers github with its adapter contract and commands.",
+      "software/repository-registry/ is a repository registry source, but not a registered Supabase project-organization capability.",
+      "LIVE Registry API query: POST http://127.0.0.1:8791/registry/lookup for canonical_name=github returned matches: []; the static command-router github entry was not found in the queried Software Registry API.",
+      "VERIFIED status: bounded repository access capability is registered; Supabase-specific organization equivalence is not."
+    ],
+    "comparison": "PARTIAL",
+    "difference": [
+      "DNA OS registry exposes bounded GitHub access, not a Supabase project-structure or repository-organization capability.",
+      "Repository organization is an arrangement pattern, not itself an equivalent callable service."
+    ],
+    "engineering_significance": "Organization patterns can guide evidence location, but should not be promoted to capability equivalence without a registry contract."
+  },
+  {
+    "supabase_component": "Dependency management",
+    "supabase_pattern": "Platform/repository dependency and package management around Supabase services",
+    "supabase_evidence": [
+      "No Supabase dependency-management API or contract is present in the stored external reference."
+    ],
+    "dna_os_equivalent": [],
+    "dna_os_registry_ids": [],
+    "dna_os_evidence": [
+      "reports/SOFTWARE_REGISTRY_DATABASE_REPORT.md:31-35 records pg and @types/pg as implementation dependencies, not a dependency-management capability.",
+      "reports/CURRENT_CAPABILITY_MAP.md:323-328 and control/command-router/capability-registry.ts:226-230 expose no registered dependency-management capability.",
+      "Registry status: no registered dependency-management capability; no registry-certified ABSENT declaration was found."
+    ],
+    "comparison": "UNKNOWN",
+    "difference": [
+      "DNA OS has implementation dependencies and registry metadata, but no callable dependency-management capability is registered.",
+      "The external Supabase dependency-management pattern is not evidenced sufficiently for a direct comparison."
+    ],
+    "engineering_significance": "Package presence is not dependency-management capability evidence; this remains unresolved."
+  }
+]

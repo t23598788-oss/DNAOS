@@ -1,0 +1,442 @@
+{
+ "count": 46,
+ "items": [
+  {
+   "object": "ai_connection_status",
+   "data_class": "UNKNOWN",
+   "tags": [
+    "GENERATED_BUT_NOT_PROJECTED"
+   ],
+   "classification": "MISSING_PROJECTION",
+   "reason": "มีข้อมูลแต่ไม่มีหน้าจอไหนแสดง"
+  },
+  {
+   "object": "api_tokens",
+   "data_class": "UNKNOWN",
+   "tags": [
+    "GENERATED_BUT_NOT_PROJECTED"
+   ],
+   "classification": "MISSING_PROJECTION",
+   "reason": "มีข้อมูลแต่ไม่มีหน้าจอไหนแสดง"
+  },
+  {
+   "object": "app_configs",
+   "data_class": "CONFIGURATION",
+   "tags": [
+    "GENERATED_BUT_NOT_PROJECTED"
+   ],
+   "classification": "MISSING_PROJECTION",
+   "reason": "มีข้อมูลแต่ไม่มีหน้าจอไหนแสดง"
+  },
+  {
+   "object": "audit_logs",
+   "data_class": "EVENT_LOG",
+   "tags": [
+    "WRITTEN_BUT_NEVER_READ",
+    "EVENT_WITHOUT_CONSUMER",
+    "GENERATED_BUT_NOT_PROJECTED"
+   ],
+   "classification": "MISSING_CONSUMER",
+   "reason": "บันทึกเหตุการณ์ไว้แต่ไม่มีใครอ่านต่อ"
+  },
+  {
+   "object": "bank_notifications",
+   "data_class": "EVENT_LOG",
+   "tags": [
+    "GENERATED_BUT_NOT_PROJECTED"
+   ],
+   "classification": "MISSING_PROJECTION",
+   "reason": "มีข้อมูลแต่ไม่มีหน้าจอไหนแสดง"
+  },
+  {
+   "object": "bank_statement_transactions",
+   "data_class": "UNKNOWN",
+   "tags": [
+    "READ_BUT_NEVER_WRITTEN"
+   ],
+   "classification": "MISSING_WRITER",
+   "reason": "มีคนอ่านแต่ไม่มีใครเขียนแม้ในซอร์ส"
+  },
+  {
+   "object": "connector_webhook_events",
+   "data_class": "EVENT_LOG",
+   "tags": [
+    "WRITTEN_BUT_NEVER_READ",
+    "EVENT_WITHOUT_CONSUMER",
+    "GENERATED_BUT_NOT_PROJECTED"
+   ],
+   "classification": "MISSING_CONSUMER",
+   "reason": "บันทึกเหตุการณ์ไว้แต่ไม่มีใครอ่านต่อ"
+  },
+  {
+   "object": "debt_trackings",
+   "data_class": "STALE_SCHEMA",
+   "tags": [
+    "WRITTEN_BUT_NEVER_READ"
+   ],
+   "classification": "STALE",
+   "reason": "object ไม่มีใน production โค้ดที่อ้างถึงจึงล้าสมัย"
+  },
+  {
+   "object": "destructive_action_log",
+   "data_class": "EVENT_LOG",
+   "tags": [
+    "WRITTEN_BUT_NEVER_READ",
+    "EVENT_WITHOUT_CONSUMER",
+    "GENERATED_BUT_NOT_PROJECTED"
+   ],
+   "classification": "MISSING_CONSUMER",
+   "reason": "บันทึกเหตุการณ์ไว้แต่ไม่มีใครอ่านต่อ"
+  },
+  {
+   "object": "dev_loop_check_results",
+   "data_class": "UNKNOWN",
+   "tags": [
+    "READ_BUT_NEVER_WRITTEN"
+   ],
+   "classification": "MISSING_WRITER",
+   "reason": "มีคนอ่านแต่ไม่มีใครเขียนแม้ในซอร์ส"
+  },
+  {
+   "object": "document_groups",
+   "data_class": "DOCUMENT_ARTIFACT",
+   "tags": [
+    "WRITTEN_BUT_NEVER_READ",
+    "ARTIFACT_WITHOUT_DELIVERY",
+    "GENERATED_BUT_NOT_PROJECTED"
+   ],
+   "classification": "MISSING_PROJECTION",
+   "reason": "สร้างเอกสารแล้วแต่ไม่มีหน้าจอส่งต่อ"
+  },
+  {
+   "object": "entity_registry",
+   "data_class": "STALE_SCHEMA",
+   "tags": [
+    "WRITTEN_BUT_NEVER_READ"
+   ],
+   "classification": "STALE",
+   "reason": "object ไม่มีใน production โค้ดที่อ้างถึงจึงล้าสมัย"
+  },
+  {
+   "object": "entries",
+   "data_class": "STALE_SCHEMA",
+   "tags": [
+    "WRITTEN_BUT_NEVER_READ"
+   ],
+   "classification": "STALE",
+   "reason": "object ไม่มีใน production โค้ดที่อ้างถึงจึงล้าสมัย"
+  },
+  {
+   "object": "equipment_telemetry_pings",
+   "data_class": "TELEMETRY",
+   "tags": [
+    "GENERATED_BUT_NOT_PROJECTED"
+   ],
+   "classification": "MISSING_PROJECTION",
+   "reason": "มีข้อมูลแต่ไม่มีหน้าจอไหนแสดง"
+  },
+  {
+   "object": "evidence_requests",
+   "data_class": "UNKNOWN",
+   "tags": [
+    "GENERATED_BUT_NOT_PROJECTED"
+   ],
+   "classification": "MISSING_PROJECTION",
+   "reason": "มีข้อมูลแต่ไม่มีหน้าจอไหนแสดง"
+  },
+  {
+   "object": "factory_app_configs",
+   "data_class": "STALE_SCHEMA",
+   "tags": [
+    "WRITTEN_BUT_NEVER_READ"
+   ],
+   "classification": "STALE",
+   "reason": "object ไม่มีใน production โค้ดที่อ้างถึงจึงล้าสมัย"
+  },
+  {
+   "object": "file_existence_registry",
+   "data_class": "UNKNOWN",
+   "tags": [
+    "GENERATED_BUT_NOT_PROJECTED"
+   ],
+   "classification": "MISSING_PROJECTION",
+   "reason": "มีข้อมูลแต่ไม่มีหน้าจอไหนแสดง"
+  },
+  {
+   "object": "file_snapshots",
+   "data_class": "DERIVED_DATA",
+   "tags": [
+    "GENERATED_BUT_NOT_PROJECTED"
+   ],
+   "classification": "MISSING_PROJECTION",
+   "reason": "มีข้อมูลแต่ไม่มีหน้าจอไหนแสดง"
+  },
+  {
+   "object": "github_sync_log",
+   "data_class": "EVENT_LOG",
+   "tags": [
+    "WRITTEN_BUT_NEVER_READ",
+    "EVENT_WITHOUT_CONSUMER",
+    "GENERATED_BUT_NOT_PROJECTED"
+   ],
+   "classification": "MISSING_CONSUMER",
+   "reason": "บันทึกเหตุการณ์ไว้แต่ไม่มีใครอ่านต่อ"
+  },
+  {
+   "object": "identities",
+   "data_class": "SESSION_STATE",
+   "tags": [
+    "READ_BUT_NEVER_WRITTEN"
+   ],
+   "classification": "MISSING_WRITER",
+   "reason": "มีคนอ่านแต่ไม่มีใครเขียนแม้ในซอร์ส"
+  },
+  {
+   "object": "integration_gateway_proposals",
+   "data_class": "UNKNOWN",
+   "tags": [
+    "GENERATED_BUT_NOT_PROJECTED"
+   ],
+   "classification": "MISSING_PROJECTION",
+   "reason": "มีข้อมูลแต่ไม่มีหน้าจอไหนแสดง"
+  },
+  {
+   "object": "invoice_items",
+   "data_class": "DOCUMENT_ARTIFACT",
+   "tags": [
+    "READ_BUT_NEVER_WRITTEN"
+   ],
+   "classification": "MISSING_WRITER",
+   "reason": "มีคนอ่านแต่ไม่มีใครเขียนแม้ในซอร์ส"
+  },
+  {
+   "object": "invoice_payments",
+   "data_class": "STALE_SCHEMA",
+   "tags": [
+    "WRITTEN_BUT_NEVER_READ"
+   ],
+   "classification": "STALE",
+   "reason": "object ไม่มีใน production โค้ดที่อ้างถึงจึงล้าสมัย"
+  },
+  {
+   "object": "jobs",
+   "data_class": "UNKNOWN",
+   "tags": [
+    "GENERATED_BUT_NOT_PROJECTED"
+   ],
+   "classification": "MISSING_PROJECTION",
+   "reason": "มีข้อมูลแต่ไม่มีหน้าจอไหนแสดง"
+  },
+  {
+   "object": "line_customer_memory",
+   "data_class": "UNKNOWN",
+   "tags": [
+    "GENERATED_BUT_NOT_PROJECTED"
+   ],
+   "classification": "MISSING_PROJECTION",
+   "reason": "มีข้อมูลแต่ไม่มีหน้าจอไหนแสดง"
+  },
+  {
+   "object": "line_profile_history",
+   "data_class": "STALE_SCHEMA",
+   "tags": [
+    "READ_BUT_NEVER_WRITTEN"
+   ],
+   "classification": "STALE",
+   "reason": "object ไม่มีใน production โค้ดที่อ้างถึงจึงล้าสมัย"
+  },
+  {
+   "object": "links",
+   "data_class": "STALE_SCHEMA",
+   "tags": [
+    "WRITTEN_BUT_NEVER_READ"
+   ],
+   "classification": "STALE",
+   "reason": "object ไม่มีใน production โค้ดที่อ้างถึงจึงล้าสมัย"
+  },
+  {
+   "object": "live_commands",
+   "data_class": "UNKNOWN",
+   "tags": [
+    "WRITTEN_BUT_NEVER_READ",
+    "GENERATED_BUT_NOT_PROJECTED"
+   ],
+   "classification": "MISSING_CONSUMER",
+   "reason": "เขียนแล้วไม่มีใครอ่าน"
+  },
+  {
+   "object": "owner_auth_audit_log",
+   "data_class": "EVENT_LOG",
+   "tags": [
+    "WRITTEN_BUT_NEVER_READ",
+    "EVENT_WITHOUT_CONSUMER",
+    "GENERATED_BUT_NOT_PROJECTED"
+   ],
+   "classification": "MISSING_CONSUMER",
+   "reason": "บันทึกเหตุการณ์ไว้แต่ไม่มีใครอ่านต่อ"
+  },
+  {
+   "object": "partners",
+   "data_class": "STALE_SCHEMA",
+   "tags": [
+    "READ_BUT_NEVER_WRITTEN"
+   ],
+   "classification": "STALE",
+   "reason": "object ไม่มีใน production โค้ดที่อ้างถึงจึงล้าสมัย"
+  },
+  {
+   "object": "pending_authorizations",
+   "data_class": "CANONICAL_SOURCE_OF_TRUTH",
+   "tags": [
+    "WRITTEN_BUT_NEVER_READ",
+    "GENERATED_BUT_NOT_PROJECTED"
+   ],
+   "classification": "MISSING_TRANSITION",
+   "reason": "สคีมามีสถานะปลายทางแต่ไม่มีโค้ดใดเปลี่ยนสถานะ"
+  },
+  {
+   "object": "pit_price_requests",
+   "data_class": "UNKNOWN",
+   "tags": [
+    "GENERATED_BUT_NOT_PROJECTED"
+   ],
+   "classification": "MISSING_PROJECTION",
+   "reason": "มีข้อมูลแต่ไม่มีหน้าจอไหนแสดง"
+  },
+  {
+   "object": "print_jobs",
+   "data_class": "UNKNOWN",
+   "tags": [
+    "GENERATED_BUT_NOT_PROJECTED"
+   ],
+   "classification": "MISSING_PROJECTION",
+   "reason": "มีข้อมูลแต่ไม่มีหน้าจอไหนแสดง"
+  },
+  {
+   "object": "projects",
+   "data_class": "UNKNOWN",
+   "tags": [
+    "WRITTEN_BUT_NEVER_READ",
+    "GENERATED_BUT_NOT_PROJECTED"
+   ],
+   "classification": "MISSING_CONSUMER",
+   "reason": "เขียนแล้วไม่มีใครอ่าน"
+  },
+  {
+   "object": "resource_migration_blocks",
+   "data_class": "UNKNOWN",
+   "tags": [
+    "WRITTEN_BUT_NEVER_READ",
+    "GENERATED_BUT_NOT_PROJECTED"
+   ],
+   "classification": "MISSING_CONSUMER",
+   "reason": "เขียนแล้วไม่มีใครอ่าน"
+  },
+  {
+   "object": "resource_migration_plans",
+   "data_class": "UNKNOWN",
+   "tags": [
+    "GENERATED_BUT_NOT_PROJECTED"
+   ],
+   "classification": "MISSING_PROJECTION",
+   "reason": "มีข้อมูลแต่ไม่มีหน้าจอไหนแสดง"
+  },
+  {
+   "object": "resource_transactions",
+   "data_class": "STALE_SCHEMA",
+   "tags": [
+    "WRITTEN_BUT_NEVER_READ"
+   ],
+   "classification": "STALE",
+   "reason": "object ไม่มีใน production โค้ดที่อ้างถึงจึงล้าสมัย"
+  },
+  {
+   "object": "schema_change_log",
+   "data_class": "EVENT_LOG",
+   "tags": [
+    "READ_BUT_NEVER_WRITTEN"
+   ],
+   "classification": "MISSING_WRITER",
+   "reason": "มีคนอ่านแต่ไม่มีใครเขียนแม้ในซอร์ส"
+  },
+  {
+   "object": "standalone_document_items",
+   "data_class": "DOCUMENT_ARTIFACT",
+   "tags": [
+    "READ_BUT_NEVER_WRITTEN"
+   ],
+   "classification": "MISSING_WRITER",
+   "reason": "มีคนอ่านแต่ไม่มีใครเขียนแม้ในซอร์ส"
+  },
+  {
+   "object": "storage_actions",
+   "data_class": "UNKNOWN",
+   "tags": [
+    "WRITTEN_BUT_NEVER_READ",
+    "GENERATED_BUT_NOT_PROJECTED"
+   ],
+   "classification": "MISSING_CONSUMER",
+   "reason": "เขียนแล้วไม่มีใครอ่าน"
+  },
+  {
+   "object": "storage_classifications",
+   "data_class": "UNKNOWN",
+   "tags": [
+    "WRITTEN_BUT_NEVER_READ",
+    "GENERATED_BUT_NOT_PROJECTED"
+   ],
+   "classification": "MISSING_CONSUMER",
+   "reason": "เขียนแล้วไม่มีใครอ่าน"
+  },
+  {
+   "object": "storage_evidence",
+   "data_class": "UNKNOWN",
+   "tags": [
+    "WRITTEN_BUT_NEVER_READ",
+    "GENERATED_BUT_NOT_PROJECTED"
+   ],
+   "classification": "MISSING_CONSUMER",
+   "reason": "เขียนแล้วไม่มีใครอ่าน"
+  },
+  {
+   "object": "storage_reclaim_plans",
+   "data_class": "UNKNOWN",
+   "tags": [
+    "WRITTEN_BUT_NEVER_READ",
+    "GENERATED_BUT_NOT_PROJECTED"
+   ],
+   "classification": "MISSING_CONSUMER",
+   "reason": "เขียนแล้วไม่มีใครอ่าน"
+  },
+  {
+   "object": "storage_resources",
+   "data_class": "UNKNOWN",
+   "tags": [
+    "GENERATED_BUT_NOT_PROJECTED"
+   ],
+   "classification": "MISSING_PROJECTION",
+   "reason": "มีข้อมูลแต่ไม่มีหน้าจอไหนแสดง"
+  },
+  {
+   "object": "storage_scan_runs",
+   "data_class": "UNKNOWN",
+   "tags": [
+    "WRITTEN_BUT_NEVER_READ",
+    "GENERATED_BUT_NOT_PROJECTED"
+   ],
+   "classification": "MISSING_CONSUMER",
+   "reason": "เขียนแล้วไม่มีใครอ่าน"
+  },
+  {
+   "object": "storage_threshold_events",
+   "data_class": "EVENT_LOG",
+   "tags": [
+    "WRITTEN_BUT_NEVER_READ",
+    "EVENT_WITHOUT_CONSUMER",
+    "GENERATED_BUT_NOT_PROJECTED"
+   ],
+   "classification": "MISSING_CONSUMER",
+   "reason": "บันทึกเหตุการณ์ไว้แต่ไม่มีใครอ่านต่อ"
+  }
+ ]
+}

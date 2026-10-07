@@ -1,0 +1,237 @@
+[
+ {
+  "schema": "BUSINESS_LANE_V1",
+  "lane_id": "lane.sales",
+  "domain": "SALES",
+  "accepted_intents": [
+   "REQUEST_QUOTE",
+   "PLACE_ORDER",
+   "GET_ORDER_STATUS",
+   "GET_PURCHASE_HISTORY"
+  ],
+  "required_context": [
+   "company_id"
+  ],
+  "allowed_commands": [
+   "CALCULATE_PRICE"
+  ],
+  "state_machine": null,
+  "owned_data": [
+   "business_events",
+   "customer_orders"
+  ],
+  "financial_effects": [
+   "fe.quote.revenue_projected"
+  ],
+  "output_events": [
+   "PRICE_CALCULATED"
+  ],
+  "deterministic_handler": "engines/quote-price.ts",
+  "note": "ยังไม่มีวงจรชีวิตของใบเสนอราคาที่ประกาศไว้ — business_events.status ถูกใช้แบบไม่มีสัญญา (new, quotation_pending, awaiting_info)"
+ },
+ {
+  "schema": "BUSINESS_LANE_V1",
+  "lane_id": "lane.document",
+  "domain": "DOCUMENT",
+  "accepted_intents": [
+   "REQUEST_DOCUMENT",
+   "GET_DOCUMENT",
+   "AUTOFILL_DOCUMENT_DRAFT"
+  ],
+  "required_context": [
+   "company_id"
+  ],
+  "allowed_commands": [
+   "ISSUE_INVOICE",
+   "AUTOFILL_DOCUMENT"
+  ],
+  "state_machine": "sm.document.lifecycle",
+  "owned_data": [
+   "invoices",
+   "standalone_documents",
+   "receipt_documents"
+  ],
+  "financial_effects": [
+   "fe.invoice.revenue",
+   "fe.invoice.tax"
+  ],
+  "output_events": [
+   "INVOICE_ISSUED"
+  ],
+  "deterministic_handler": "app/api/admin/documents/route.ts#POST"
+ },
+ {
+  "schema": "BUSINESS_LANE_V1",
+  "lane_id": "lane.finance",
+  "domain": "FINANCE",
+  "accepted_intents": [
+   "CLAIM_PAYMENT",
+   "SUBMIT_PAYMENT_EVIDENCE",
+   "GET_PAYMENT_STATUS"
+  ],
+  "required_context": [
+   "company_id"
+  ],
+  "allowed_commands": [
+   "MATCH_PAYMENT",
+   "CLASSIFY_RECEIPT_IMAGE"
+  ],
+  "state_machine": "sm.debt.lifecycle",
+  "owned_data": [
+   "debt_events",
+   "debt_snapshots",
+   "receipt_documents",
+   "bank_notifications"
+  ],
+  "financial_effects": [
+   "fe.payment.in",
+   "fe.debt.settled",
+   "fe.debt.created"
+  ],
+  "output_events": [
+   "PAYMENT_MATCHED",
+   "RECEIPT_CLASSIFIED"
+  ],
+  "deterministic_handler": "supabase/functions/line-webhook-v2/engines/auto-confirm-payment.ts#tryAutoConfirmPayment"
+ },
+ {
+  "schema": "BUSINESS_LANE_V1",
+  "lane_id": "lane.accounting",
+  "domain": "ACCOUNTING",
+  "accepted_intents": [],
+  "required_context": [
+   "company_id"
+  ],
+  "allowed_commands": [],
+  "state_machine": null,
+  "owned_data": [],
+  "financial_effects": [],
+  "output_events": [],
+  "deterministic_handler": null
+ },
+ {
+  "schema": "BUSINESS_LANE_V1",
+  "lane_id": "lane.authorization",
+  "domain": "AUTHORIZATION",
+  "accepted_intents": [
+   "REQUEST_AUTHORIZATION",
+   "APPROVE_AUTHORIZATION",
+   "DENY_AUTHORIZATION",
+   "EXPIRE_AUTHORIZATION"
+  ],
+  "required_context": [
+   "company_id"
+  ],
+  "allowed_commands": [
+   "REQUEST_SITE_AUTHORIZATION"
+  ],
+  "state_machine": "sm.authorization.lifecycle",
+  "owned_data": [
+   "pending_authorizations"
+  ],
+  "financial_effects": [],
+  "output_events": [
+   "AUTHORIZATION_REQUESTED",
+   "AUTHORIZATION_APPROVED",
+   "AUTHORIZATION_DENIED",
+   "AUTHORIZATION_EXPIRED"
+  ],
+  "deterministic_handler": "supabase/functions/line-webhook-v2/engines/authorization-check.ts#requestAuthorization"
+ },
+ {
+  "schema": "BUSINESS_LANE_V1",
+  "lane_id": "lane.logistics",
+  "domain": "LOGISTICS",
+  "accepted_intents": [
+   "REPORT_DELIVERY"
+  ],
+  "required_context": [
+   "company_id"
+  ],
+  "allowed_commands": [],
+  "state_machine": null,
+  "owned_data": [
+   "business_events"
+  ],
+  "financial_effects": [],
+  "output_events": [
+   "DELIVERY_MADE",
+   "WORK_STARTED"
+  ],
+  "deterministic_handler": "engines/transactions/document-link.ts:101-103 (แปลงชนิดเอกสารเป็น biz_event_type ด้วยตารางคงที่)",
+  "note": "เหตุการณ์ฝั่งขนส่งเกิดจากการออกเอกสาร ไม่ได้เกิดจากข้อความในแชท — REPORT_DELIVERY ที่มาทางแชทยังไม่มีเส้นทางรับ"
+ },
+ {
+  "schema": "BUSINESS_LANE_V1",
+  "lane_id": "lane.resource",
+  "domain": "RESOURCE",
+  "accepted_intents": [
+   "REPORT_EQUIPMENT_SIGNAL",
+   "CONTROL_EQUIPMENT"
+  ],
+  "required_context": [],
+  "allowed_commands": [
+   "RECORD_EQUIPMENT_TELEMETRY",
+   "LOCK_EQUIPMENT"
+  ],
+  "state_machine": "sm.equipment.lifecycle",
+  "owned_data": [
+   "equipment_assets",
+   "equipment_telemetry_pings",
+   "maintenance_tickets"
+  ],
+  "financial_effects": [
+   "fe.maintenance.cost"
+  ],
+  "output_events": [
+   "TELEMETRY_RECORDED",
+   "EQUIPMENT_LOCKED"
+  ],
+  "deterministic_handler": "app/api/internal/equipment/telemetry/route.ts#POST"
+ },
+ {
+  "schema": "BUSINESS_LANE_V1",
+  "lane_id": "lane.location",
+  "domain": "LOCATION",
+  "accepted_intents": [
+   "SHARE_LOCATION"
+  ],
+  "required_context": [
+   "company_id"
+  ],
+  "allowed_commands": [
+   "REGISTER_SITE_LOCATION"
+  ],
+  "state_machine": null,
+  "owned_data": [
+   "customer_sites"
+  ],
+  "financial_effects": [],
+  "output_events": [
+   "SITE_REGISTERED"
+  ],
+  "deterministic_handler": "supabase/functions/line-webhook-v2/handlers/location.ts"
+ },
+ {
+  "schema": "BUSINESS_LANE_V1",
+  "lane_id": "lane.general",
+  "domain": "GENERAL_CONVERSATION",
+  "accepted_intents": [
+   "GENERAL_CHAT",
+   "ASK_FOR_HUMAN"
+  ],
+  "required_context": [],
+  "allowed_commands": [
+   "RESPOND_TO_MESSAGE"
+  ],
+  "state_machine": "sm.conversation.mode",
+  "owned_data": [
+   "line_events",
+   "line_conversation_controls",
+   "ai_tasks"
+  ],
+  "financial_effects": [],
+  "output_events": [],
+  "deterministic_handler": "supabase/functions/line-webhook-v2/engines/response.ts"
+ }
+]

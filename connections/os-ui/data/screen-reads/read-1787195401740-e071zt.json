@@ -1,0 +1,11 @@
+{
+  "app": "Google Chrome",
+  "title": "",
+  "state": "window_active",
+  "visible_text_redacted": [],
+  "controls": [],
+  "warnings": [],
+  "suggested_next_action": "No further action suggested from structure alone",
+  "confidence": 0.5,
+  "evidence_timestamp": "2026-08-20T03:10:01.556Z"
+}

@@ -1,0 +1,165 @@
+{
+  "generated_at": "2026-08-19T18:05:47.407Z",
+  "pipeline": "OBSERVATION -> SIGNAL -> EVIDENCE -> RECURRENCE -> IMPACT -> ROOT_CAUSE -> CAPABILITY_CHECK -> POLICY_GATE -> EXECUTION -> TEST -> VERIFY -> MEASURE_RECURRENCE",
+  "signal": {
+    "signal_id": "sig-etimedout-resolve-problem",
+    "source": "dna-os-circuit-server-logs (CONNECTED, observation_sources.json)",
+    "raw_text": "spawnSync node ETIMEDOUT",
+    "first_seen": "2026-08-19T17:10:04.732Z",
+    "last_seen": "2026-08-19T17:11:45.679Z",
+    "status": "SIGNAL_CONFIRMED"
+  },
+  "evidence": {
+    "occurrences": [
+      {
+        "file": "/private/tmp/claude-501/-Users-tam-Desktop-DNA-OS-INFRASTRUCTURE/7c6a2c83-ad31-496c-8c1e-5e5cc5bbf449/scratchpad/resolve_result.log",
+        "mtime": "2026-08-19T17:10:04.732Z",
+        "snippet": "{\"error\":\"spawnSync node ETIMEDOUT\"}\nHTTP_STATUS:500\n"
+      },
+      {
+        "file": "/private/tmp/claude-501/-Users-tam-Desktop-DNA-OS-INFRASTRUCTURE/7c6a2c83-ad31-496c-8c1e-5e5cc5bbf449/tasks/ba9mwqcpk.output",
+        "mtime": "2026-08-19T17:11:45.679Z",
+        "snippet": "{\"error\":\"spawnSync node ETIMEDOUT\"}\nHTTP_STATUS:500\n\n[exited with code 0]\n"
+      }
+    ],
+    "recurrence_count": 2,
+    "distinct_files": 2
+  },
+  "impact": {
+    "observed_effect": "HTTP 500 on POST /resolve-problem (recorded in the same log lines: {\"error\":\"spawnSync node ETIMEDOUT\"})",
+    "affected_capability": "dna-os-circuit /resolve-problem endpoint (Phase 20)",
+    "severity": "RECURRING"
+  },
+  "root_cause": {
+    "statement": "execFileSync (sync child_process API) hangs specifically when invoked from this tsx-loaded, detached (nohup) server process; the async spawn API does not share the issue.",
+    "traceable_to_source": true,
+    "evidence_location": "dna-os-circuit/runtime/server.ts, runResolver() function's own header comment"
+  },
+  "capability_check": {
+    "existing_capability_found": true,
+    "capability_id": "dna-os-circuit",
+    "decision": "REUSE_FIX_EXISTING_CAPABILITY"
+  },
+  "policy": {
+    "intent": {
+      "intent_id": "intent-1787162747350",
+      "operation": "MODIFY",
+      "capability": "dna-os-circuit",
+      "target_type": "FILE",
+      "target_path": "dna-os-circuit/runtime/server.ts",
+      "requested_change": "Replace execFileSync with async spawn in /resolve-problem's handler to fix a measured, recurring ETIMEDOUT failure.",
+      "requesting_agent": {
+        "identity_id": "phase21-autonomous-loop",
+        "kind": "ai_agent",
+        "display_name": "Phase 21 Autonomous Feedback Loop"
+      },
+      "evidence": [
+        {
+          "source": "reports/phase16-world-evidence/control_case_pipeline.mjs",
+          "note": "2 real recurrences observed in local logs"
+        }
+      ],
+      "correlation_id": "corr-1787162747350",
+      "submitted_at": "2026-08-19T18:05:47.350Z"
+    },
+    "decision": {
+      "decision": "DENY",
+      "intent_id": "intent-1787162747350",
+      "reason_codes": [
+        "NO_MATCHING_CAPABILITY"
+      ],
+      "evidence": [
+        {
+          "rule_id": "well_formed_intent",
+          "input_field": "intent",
+          "expected": "structurally valid",
+          "actual": "structurally valid",
+          "result": "pass"
+        },
+        {
+          "rule_id": "registry_lookup",
+          "input_field": "target_path",
+          "expected": "an existing registered capability at this path",
+          "actual": "no matching capability found — nothing real to modify/delete/move/rename",
+          "result": "fail"
+        }
+      ],
+      "canonical": null,
+      "decision_id": "7a6662e5-8dbb-4a68-82da-f20eceb5c26a",
+      "correlation_id": "corr-1787162747350",
+      "decided_at": "2026-08-19T18:05:47.351Z"
+    }
+  },
+  "policy_positive_control": {
+    "intent": {
+      "intent_id": "intent-positive-1787162747351",
+      "operation": "MODIFY",
+      "capability": "dna-os-circuit",
+      "target_type": "FILE",
+      "target_path": "dna-os-circuit/definition/circuit.json",
+      "requested_change": "positive control: this path DOES match the registered dna-os-circuit capability's real OWNER_FOLDER (dna-os-circuit/definition/)",
+      "requesting_agent": {
+        "identity_id": "phase21-autonomous-loop",
+        "kind": "ai_agent",
+        "display_name": "Phase 21 Autonomous Feedback Loop"
+      },
+      "evidence": [
+        {
+          "source": "reports/phase16-world-evidence/control_case_pipeline.mjs",
+          "note": "positive control for the policy gate"
+        }
+      ],
+      "correlation_id": "corr-positive-1787162747351",
+      "submitted_at": "2026-08-19T18:05:47.351Z"
+    },
+    "decision": {
+      "decision": "ALLOW_MODIFY",
+      "intent_id": "intent-positive-1787162747351",
+      "reason_codes": [
+        "MATCHED_EXISTING_CAPABILITY"
+      ],
+      "evidence": [
+        {
+          "rule_id": "well_formed_intent",
+          "input_field": "intent",
+          "expected": "structurally valid",
+          "actual": "structurally valid",
+          "result": "pass"
+        },
+        {
+          "rule_id": "registry_lookup",
+          "input_field": "target_path",
+          "expected": "an existing registered capability at this path",
+          "actual": "matches real registered capability \"dna-os-circuit\" at \"dna-os-circuit/definition/\"",
+          "result": "pass"
+        }
+      ],
+      "canonical": {
+        "software_id": "dna-os-circuit",
+        "owner_folder": "dna-os-circuit/definition/",
+        "evidence_source": [
+          "control/command-router/capability-registry.ts"
+        ]
+      },
+      "decision_id": "08698e1b-96b5-4ba8-874d-f917337edc55",
+      "correlation_id": "corr-positive-1787162747351",
+      "decided_at": "2026-08-19T18:05:47.351Z"
+    }
+  },
+  "execution": {
+    "authorized": false,
+    "policy_decision": "DENY",
+    "reason_codes": [
+      "NO_MATCHING_CAPABILITY"
+    ],
+    "note": "Policy gate did not authorize a write this run."
+  },
+  "verification": {
+    "attempted": true,
+    "http_status": 200,
+    "still_reproduces": false,
+    "response_snippet": "{\n  \"problem_text\": \"control case verification ping\",\n  \"status_log\": [\n    {\n      \"stage\": \"กำลังตรวจ\",\n      \"at\": \"2026-08-19T18:05:47.402Z\"\n    },\n    {\n      \"stage\": \"กำลังจัดเส้นทาง\",\n      \"a"
+  },
+  "measured_recurrence_after_fix": "PROBLEM_NO_LONGER_REPRODUCES (measured via live HTTP call, not asserted)",
+  "success_determined_by": "measurement (live HTTP status/body check), not by AI declaration"
+}

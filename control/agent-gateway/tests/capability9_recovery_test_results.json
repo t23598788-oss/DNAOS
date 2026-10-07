@@ -1,0 +1,36 @@
+{
+  "results": [
+    {
+      "name": "Capability #9 discoverable via real problem_type lookup",
+      "pass": true,
+      "detail": "not found in capability_index.json"
+    },
+    {
+      "name": "Capability #9 status is PROVEN_RECOVERY (not just PROVEN or a bare record)",
+      "pass": true,
+      "detail": "PROVEN_RECOVERY — first proven Phase 20 (server.ts), re-applied Phase 23 (file-intelligence-adapter.ts) after real evidence (PID 67397, 2min+ hang vs 4.15s standalone) confirmed the same failure signature"
+    },
+    {
+      "name": "server.ts (Phase 20 site) actually uses spawn, not execFileSync, in its resolver path",
+      "pass": true,
+      "detail": "checked runResolver()"
+    },
+    {
+      "name": "file-intelligence-adapter.ts (Phase 23 site) actually uses spawn, not execFileSync (as real code, comment mentions don't count)",
+      "pass": true,
+      "detail": "checked runAsync()"
+    },
+    {
+      "name": "Recovery capability's execution_method text matches the real pattern found in both files (async spawn + timeout)",
+      "pass": true,
+      "detail": "node:child_process spawn (async) with explicit setTimeout+kill — never execFileSync/spawnSync from inside a detached tsx-loaded process"
+    },
+    {
+      "name": "The async-spawn-with-timeout PATTERN independently applied at >=3 real sites (proven reuse of a capability, not a one-off patch)",
+      "pass": true,
+      "detail": "[{\"file\":\"dna-os-circuit/runtime/server.ts\",\"hasPattern\":true},{\"file\":\"control/agent-gateway/adapters/file-intelligence-adapter.ts\",\"hasPattern\":true},{\"file\":\"control/agent-host/host-runtime.ts\",\"hasPattern\":true}]"
+    }
+  ],
+  "passed": 6,
+  "failed": 0
+}

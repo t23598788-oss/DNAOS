@@ -1,0 +1,17 @@
+{
+ "count": 2,
+ "items": [
+  {
+   "flow_id": "VF_INQUIRY_TO_CASH",
+   "node_id": "VF2.5",
+   "reason": "ไม่มี assembly unit ที่รับผิดชอบขั้นนี้",
+   "expected_next_stage": "VF2.5"
+  },
+  {
+   "flow_id": "VF_PROCURE_TO_PAY",
+   "node_id": "VF5.2",
+   "reason": "ไม่มี assembly unit ที่รับผิดชอบขั้นนี้",
+   "expected_next_stage": "VF5.2"
+  }
+ ]
+}

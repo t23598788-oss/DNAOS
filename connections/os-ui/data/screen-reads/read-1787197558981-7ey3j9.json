@@ -1,0 +1,79 @@
+{
+  "app": "Code",
+  "title": "Canonical discovery foun… — DNA-OS-INFRASTRUCTURE",
+  "state": "window_active",
+  "visible_text_redacted": [
+    "Go Back (⌃-)",
+    "",
+    "Go Forward (⌃⇧-)",
+    "",
+    "Open Quick Access",
+    " 19",
+    "",
+    "19",
+    "Toggle Chat",
+    "Toggle Chat",
+    ""
+  ],
+  "controls": [
+    {
+      "role": "AXButton",
+      "label": "Go Back (⌃-)",
+      "redacted": false
+    },
+    {
+      "role": "AXStaticText",
+      "label": "",
+      "redacted": false
+    },
+    {
+      "role": "AXButton",
+      "label": "Go Forward (⌃⇧-)",
+      "redacted": false
+    },
+    {
+      "role": "AXStaticText",
+      "label": "",
+      "redacted": false
+    },
+    {
+      "role": "AXButton",
+      "label": "Open Quick Access",
+      "redacted": false
+    },
+    {
+      "role": "AXButton",
+      "label": " 19",
+      "redacted": false
+    },
+    {
+      "role": "AXStaticText",
+      "label": "",
+      "redacted": false
+    },
+    {
+      "role": "AXStaticText",
+      "label": "19",
+      "redacted": false
+    },
+    {
+      "role": "AXButton",
+      "label": "Toggle Chat",
+      "redacted": false
+    },
+    {
+      "role": "AXButton",
+      "label": "Toggle Chat",
+      "redacted": false
+    },
+    {
+      "role": "AXStaticText",
+      "label": "",
+      "redacted": false
+    }
+  ],
+  "warnings": [],
+  "suggested_next_action": "No further action suggested from structure alone",
+  "confidence": 1,
+  "evidence_timestamp": "2026-08-20T03:45:53.671Z"
+}

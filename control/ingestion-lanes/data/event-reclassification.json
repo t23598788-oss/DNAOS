@@ -1,0 +1,83 @@
+{
+ "count": 13,
+ "items": [
+  {
+   "event_type": "invoice_issued",
+   "classification": "TRUE_DOMAIN_EVENT",
+   "domain": "DOCUMENT",
+   "reason": "เอกสารถูกออกแล้วจริง"
+  },
+  {
+   "event_type": "quotation_sent",
+   "classification": "TRUE_DOMAIN_EVENT",
+   "domain": "SALES",
+   "reason": "ส่งใบเสนอราคาแล้ว"
+  },
+  {
+   "event_type": "payment_received",
+   "classification": "TRUE_DOMAIN_EVENT",
+   "domain": "FINANCE",
+   "reason": "รับเงินแล้ว"
+  },
+  {
+   "event_type": "delivery_made",
+   "classification": "TRUE_DOMAIN_EVENT",
+   "domain": "LOGISTICS",
+   "reason": "ส่งของแล้ว"
+  },
+  {
+   "event_type": "debt_closed",
+   "classification": "TRUE_DOMAIN_EVENT",
+   "domain": "FINANCE",
+   "reason": "ปิดหนี้แล้ว"
+  },
+  {
+   "event_type": "debt_started",
+   "classification": "TRUE_DOMAIN_EVENT",
+   "domain": "FINANCE",
+   "reason": "เริ่มมีหนี้"
+  },
+  {
+   "event_type": "work_started",
+   "classification": "TRUE_DOMAIN_EVENT",
+   "domain": "LOGISTICS",
+   "reason": "เริ่มงานแล้ว"
+  },
+  {
+   "event_type": "receipt_received",
+   "classification": "TRUE_DOMAIN_EVENT",
+   "domain": "FINANCE",
+   "reason": "ได้รับใบเสร็จ"
+  },
+  {
+   "event_type": "po_received",
+   "classification": "TRUE_DOMAIN_EVENT",
+   "domain": "SALES",
+   "reason": "ได้รับใบสั่งซื้อ"
+  },
+  {
+   "event_type": "interest_penalty_received",
+   "classification": "TRUE_DOMAIN_EVENT",
+   "domain": "FINANCE",
+   "reason": "ได้รับดอกเบี้ยหรือค่าปรับ"
+  },
+  {
+   "event_type": "promise_to_pay",
+   "classification": "CLASSIFICATION_RESULT",
+   "domain": "FINANCE",
+   "reason": "คำกล่าวอ้างว่าจะจ่าย ไม่ใช่ข้อเท็จจริงที่เกิดแล้ว"
+  },
+  {
+   "event_type": "add",
+   "classification": "MISCLASSIFIED_EVENT",
+   "domain": "GENERAL_CONVERSATION",
+   "reason": "ชื่อไม่สื่อความหมายทางธุรกิจใด"
+  },
+  {
+   "event_type": "อื่นๆ",
+   "classification": "RAW_OBSERVATION",
+   "domain": "GENERAL_CONVERSATION",
+   "reason": "ตัวสกัดปล่อยผ่านเมื่อมี material_text (build-event-from-extraction.ts:29) จึงกลายเป็นแถวใน business_events ทั้งที่ยังไม่รู้ว่าเป็นเรื่องอะไร"
+  }
+ ]
+}

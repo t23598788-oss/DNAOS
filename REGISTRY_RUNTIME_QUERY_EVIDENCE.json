@@ -1,0 +1,155 @@
+{
+  "assessment": "REGISTRY_PARTIAL",
+  "queried_at": "2026-08-24T11:05:09Z",
+  "canonical_runtime": {
+    "endpoint": "http://127.0.0.1:8791",
+    "health_request": "GET /health",
+    "health_response": { "ok": true },
+    "lookup_contract": "POST /registry/lookup",
+    "capability_contract": "GET /registry/capabilities/:capability_id",
+    "resource_contract": "GET /registry/resources/:resource_id"
+  },
+  "queries": [
+    {
+      "request": "POST /registry/lookup",
+      "body": { "canonical_name": "permission-policy-resolution" },
+      "response": {
+        "capability_id": "capability-5dbc056f-2b26-4ff2-a8b7-ee6efe69f775",
+        "resource_ids": ["resource-c52796a8-935d-415d-a2b8-f2b0337de674"],
+        "source_location": ["control/permission-policy-resolution/"],
+        "version": ["1.0.0"],
+        "status": "REGISTERED",
+        "input_contract": [],
+        "output_contract": [],
+        "dependencies": [],
+        "evidence_refs": [
+          "control/permission-policy-resolution/tests/permission-policy-resolution.test.ts",
+          "control/admission/tests/admission.test.ts (real UPDATE path applied live, correct direction)"
+        ],
+        "relationships": [
+          {
+            "to_type": "CAPABILITY",
+            "to_id": "capability-5f0e0f24-a0fa-4394-977f-9ae37376ac44",
+            "relationship_kind": "PERMISSION_POLICY_RESOLUTION_TO_ADMISSION"
+          }
+        ]
+      }
+    },
+    {
+      "request": "POST /registry/lookup",
+      "body": { "canonical_name": "access-control-identity-membership" },
+      "response": {
+        "capability_id": "capability-dbe569f1-1fb3-4b1a-a098-88a45dc6af73",
+        "resource_ids": ["resource-8cc607d2-54e4-4793-beae-5342cacd3b26"],
+        "source_location": ["permissions/access-control/"],
+        "version": ["1.0.0"],
+        "status": "REGISTERED",
+        "input_contract": [],
+        "output_contract": [],
+        "dependencies": [],
+        "evidence_refs": [
+          "permissions/access-control/identity-registry.ts",
+          "control/entry-context/tests/entry-context.test.ts"
+        ],
+        "relationships": []
+      }
+    },
+    {
+      "request": "GET /registry/resources/resource-c52796a8-935d-415d-a2b8-f2b0337de674",
+      "response": {
+        "resource_id": "resource-c52796a8-935d-415d-a2b8-f2b0337de674",
+        "resource_type": "capability",
+        "owner_id": "control/permission-policy-resolution/",
+        "repository_id": null,
+        "source_location": "control/permission-policy-resolution/",
+        "version": "1.0.0",
+        "status": "REGISTERED",
+        "created_at": "2026-08-20T13:19:14.320Z",
+        "updated_at": "2026-08-20T13:19:14.320Z"
+      }
+    },
+    {
+      "request": "GET /registry/resources/resource-8cc607d2-54e4-4793-beae-5342cacd3b26",
+      "response": {
+        "resource_id": "resource-8cc607d2-54e4-4793-beae-5342cacd3b26",
+        "resource_type": "capability",
+        "owner_id": "dna-os-infrastructure",
+        "repository_id": null,
+        "source_location": "permissions/access-control/",
+        "version": "1.0.0",
+        "status": "REGISTERED",
+        "created_at": "2026-08-22T07:12:01.361Z",
+        "updated_at": "2026-08-22T07:12:01.361Z"
+      }
+    },
+    {
+      "request": "GET /registry/capabilities/capability-69e6e9ba-03a2-40de-b952-c52d41f377ef",
+      "response": {
+        "capability_id": "capability-69e6e9ba-03a2-40de-b952-c52d41f377ef",
+        "resource_ids": ["resource-ec8907d2-f721-45e5-b98e-d34a9d6fa3ae"],
+        "source_location": ["credentials/registry/"],
+        "version": ["1.0.0"],
+        "status": "REGISTERED",
+        "input_contract": [],
+        "output_contract": [],
+        "dependencies": [],
+        "evidence_refs": ["credentials/registry/database-credential-registry.ts", "credentials/registry/api-credential-registry.ts"],
+        "relationships": []
+      }
+    },
+    {
+      "request": "GET /registry/capabilities/capability-2cb89821-ef27-470e-bf62-92b8ec522493",
+      "response": {
+        "capability_id": "capability-2cb89821-ef27-470e-bf62-92b8ec522493",
+        "resource_ids": ["resource-4bc97eff-ed9d-43ac-8bd9-47f949175525"],
+        "source_location": ["connections/connection-registry/"],
+        "version": ["1.0.0"],
+        "status": "REGISTERED",
+        "input_contract": [],
+        "output_contract": [],
+        "dependencies": [],
+        "evidence_refs": ["connections/connection-registry/registry.ts", "connections/connection-registry/git-discovery.ts", "connections/connection-registry/tests/connection-registry.test.ts"],
+        "relationships": []
+      }
+    },
+    {
+      "request": "GET /registry/capabilities/capability-448891d2-a02e-4dc3-8910-728985695580",
+      "response": {
+        "capability_id": "capability-448891d2-a02e-4dc3-8910-728985695580",
+        "resource_ids": ["resource-e7a1e19b-44f7-4b4a-b6ab-9d9498ab95a9"],
+        "source_location": ["connections/telemetry/"],
+        "version": ["1.0.0"],
+        "status": "REGISTERED",
+        "input_contract": [],
+        "output_contract": [],
+        "dependencies": [],
+        "evidence_refs": ["connections/telemetry/contract.ts"],
+        "relationships": []
+      }
+    }
+  ],
+  "persistence_probe": {
+    "second_process_endpoint": "http://127.0.0.1:8792",
+    "same_lookup_request": {
+      "capability_id": "capability-5dbc056f-2b26-4ff2-a8b7-ee6efe69f775"
+    },
+    "same_resource_request": {
+      "resource_id": "resource-c52796a8-935d-415d-a2b8-f2b0337de674"
+    },
+    "observed": "A separately started instance of the registered runtime returned the same capability/resource IDs, source_location, version, status, evidence_refs, relationship, and original created_at values."
+  },
+  "limitations_proven_by_api": [
+    "POST /registry/lookup with {} returns matches: [] rather than a list of all registered capabilities/resources.",
+    "Sampled capability rows return empty input_contract, output_contract, and dependencies arrays.",
+    "Sampled resource rows return repository_id: null.",
+    "The runtime response exposes evidence_refs and relationships, but not expanded evidence records or downstream relationships as a separate field.",
+    "The runtime is persistent across process instances, but the observed endpoint is backed by the canonical JSONL file store rather than a verified live PostgreSQL/Supabase connection."
+  ],
+  "machine_verifiable_commands": [
+    "curl -sS http://127.0.0.1:8791/health",
+    "curl -sS -X POST http://127.0.0.1:8791/registry/lookup -H 'content-type: application/json' --data '{\"canonical_name\":\"permission-policy-resolution\"}'",
+    "curl -sS http://127.0.0.1:8791/registry/capabilities/capability-5dbc056f-2b26-4ff2-a8b7-ee6efe69f775",
+    "curl -sS http://127.0.0.1:8791/registry/resources/resource-c52796a8-935d-415d-a2b8-f2b0337de674",
+    "PORT=8792 npx tsx transport/owner-command-http/server.ts; repeat the same API calls against 127.0.0.1:8792"
+  ]
+}

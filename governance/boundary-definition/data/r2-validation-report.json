@@ -1,0 +1,128 @@
+{
+  "run": "R2-BOUNDARY-DEFINITION",
+  "registry_snapshot": {
+    "capabilities": 163,
+    "resources": 730,
+    "links": 170
+  },
+  "registered_before": 124,
+  "deregistered_by_owner_order": 0,
+  "in_scope": 124,
+  "boundaries_complete": 0,
+  "boundaries_partial": 124,
+  "boundaries_unresolved": 0,
+  "dimension_complete": {
+    "execution": 54,
+    "input": 5,
+    "output": 3,
+    "data": 3,
+    "authority": 1,
+    "resources": 124,
+    "external_access": 5,
+    "verification": 98
+  },
+  "gates": [
+    {
+      "id": "A",
+      "name": "ทุกรายการมีขอบเขตชัดเจน",
+      "pass": false,
+      "detail": "COMPLETE 0/124"
+    },
+    {
+      "id": "B",
+      "name": "ทุกปฏิบัติการมีสัญญาขาเข้า",
+      "pass": false,
+      "detail": "5/124"
+    },
+    {
+      "id": "C",
+      "name": "ทุกปฏิบัติการมีสัญญาขาออกและข้อผิดพลาด",
+      "pass": false,
+      "detail": "3/124"
+    },
+    {
+      "id": "D",
+      "name": "สิทธิ์อ่าน/เขียน/รัน ระบุชัด",
+      "pass": false,
+      "detail": "1/124"
+    },
+    {
+      "id": "E",
+      "name": "ขอบเขตผลข้างเคียงระบุชัด",
+      "pass": false,
+      "detail": "54/124"
+    },
+    {
+      "id": "F",
+      "name": "ขอบเขตการเข้าถึงภายนอกระบุชัด",
+      "pass": false,
+      "detail": "5/124"
+    },
+    {
+      "id": "G",
+      "name": "ผู้เป็นเจ้าของการรันระบุชัด",
+      "pass": true,
+      "detail": "124/124"
+    },
+    {
+      "id": "H",
+      "name": "เส้นทางหลักฐาน/การพิสูจน์ระบุชัด",
+      "pass": false,
+      "detail": "98/124"
+    },
+    {
+      "id": "I",
+      "name": "ไม่มี canonical id ซ้ำ",
+      "pass": true,
+      "detail": "ซ้ำ 0"
+    },
+    {
+      "id": "J",
+      "name": "ไม่มีการฝังชื่อผู้ให้บริการ/โมเดล",
+      "pass": false,
+      "detail": "พบ 6"
+    },
+    {
+      "id": "K",
+      "name": "UNKNOWN ไม่ถูกแปลงเป็นข้อเท็จจริง",
+      "pass": true,
+      "detail": "รั่ว 0"
+    },
+    {
+      "id": "L",
+      "name": "อ่านได้ด้วยเครื่อง",
+      "pass": true,
+      "detail": "JSONL หนึ่งระเบียนต่อบรรทัด"
+    },
+    {
+      "id": "M",
+      "name": "บังคับใช้ได้ด้วยเครื่อง",
+      "pass": false,
+      "detail": "บังคับใช้ได้เฉพาะระเบียนที่ไม่มีฟิลด์ UNRESOLVED"
+    },
+    {
+      "id": "N",
+      "name": "ตรวจซ้ำได้ผลเดิม",
+      "pass": true,
+      "detail": "อ่านจาก registry อย่างเดียว ไม่มีเวลา/สุ่ม"
+    },
+    {
+      "id": "O",
+      "name": "หลักฐานอ่านกลับได้",
+      "pass": true,
+      "detail": "เขียนแล้วอ่านกลับตรวจในขั้นถัดไป"
+    }
+  ],
+  "gate_result": "BLOCKED",
+  "blocked_gates": [
+    "A",
+    "B",
+    "C",
+    "D",
+    "E",
+    "F",
+    "H",
+    "J",
+    "M"
+  ]
+}

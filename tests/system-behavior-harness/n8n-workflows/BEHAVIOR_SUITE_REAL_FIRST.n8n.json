@@ -1,0 +1,107 @@
+{
+ "name": "DNA_OS__BEHAVIOR_SUITE__REAL_FIRST",
+ "nodes": [
+  {
+   "parameters": {},
+   "id": "trig",
+   "name": "Manual Trigger",
+   "type": "n8n-nodes-base.manualTrigger",
+   "typeVersion": 1,
+   "position": [
+    240,
+    300
+   ]
+  },
+  {
+   "parameters": {
+    "language": "javaScript",
+    "jsCode": "// SUITE cases -> one item each (fan-out to TEST_CASE_RUNNER)\nreturn [{\"json\": {\"body\": {\"test_case_id\": \"OWNER_CMD_PLAN_HAPPY\", \"boundary\": \"POST /owner/plan\", \"method\": \"POST\", \"path\": \"/owner/plan\", \"payload\": {\"commandText\": \"\\u0e15\\u0e23\\u0e27\\u0e08\\u0e2a\\u0e2d\\u0e1a agent-host\"}, \"asserts\": [{\"name\": \"http 200/202\", \"path\": \"\", \"op\": \"in\", \"value\": [200, 202]}, {\"name\": \"command_id\", \"path\": \"command_id\", \"op\": \"exists\"}], \"note\": \"then GET /owner/plan?command_id to observe steps (STATE_OBSERVER)\"}}}, {\"json\": {\"body\": {\"test_case_id\": \"OWNER_CMD_PLAN_BLOCKED_NEG\", \"boundary\": \"POST /owner/plan (negative)\", \"method\": \"POST\", \"path\": \"/owner/plan\", \"payload\": {\"commandText\": \"\\u0e02\\u0e2d\\u0e14\\u0e39\\u0e23\\u0e30\\u0e1a\\u0e1a\\u0e1a\\u0e31\\u0e0d\\u0e0a\\u0e35\\u0e02\\u0e2d\\u0e07 DNA OS\"}, \"asserts\": [{\"name\": \"accepted\", \"path\": \"command_id\", \"op\": \"exists\"}], \"note\": \"observe blocked_at + NO_PROVIDER via GET /owner/plan\"}}}, {\"json\": {\"body\": {\"test_case_id\": \"REGISTRY_LOOKUP_READ\", \"boundary\": \"POST /registry/lookup\", \"method\": \"POST\", \"path\": \"/registry/lookup\", \"payload\": {\"canonical_name\": \"accounting-system\"}, \"asserts\": [{\"name\": \"http 200\", \"path\": \"\", \"op\": \"status\", \"value\": 200}, {\"name\": \"match\", \"path\": \"matches.0.capability_id\", \"op\": \"exists\"}]}}}, {\"json\": {\"body\": {\"test_case_id\": \"REGISTRY_CAP_404_NEG\", \"boundary\": \"GET /registry/capabilities/:id (negative)\", \"method\": \"GET\", \"path\": \"/registry/capabilities/capability-does-not-exist\", \"asserts\": [{\"name\": \"404\", \"path\": \"\", \"op\": \"status\", \"value\": 404}]}}}, {\"json\": {\"body\": {\"test_case_id\": \"REGISTRY_BIZDATA_REJECT_NEG\", \"boundary\": \"POST /registry/candidates (domain gate)\", \"method\": \"POST\", \"path\": \"/registry/candidates\", \"payload\": \"<see envelope: candidate.resource_type=INVOICE,domain=BUSINESS_OPERATIONAL_DATA>\", \"asserts\": [{\"name\": \"not registered\", \"path\": \"\", \"op\": \"contains\", \"value\": \"DOMAIN\"}]}}}, {\"json\": {\"body\": {\"test_case_id\": \"IDEMPOTENCY_REGISTRY_DUP\", \"boundary\": \"POST /registry/candidates x2\", \"method\": \"POST\", \"path\": \"/registry/candidates\", \"payload\": \"<same TEST_FIXTURE candidate twice>\", \"asserts\": [{\"name\": \"2nd DUPLICATE\", \"path\": \"\", \"op\": \"contains\", \"value\": \"DUPLICATE\"}]}}}, {\"json\": {\"body\": {\"test_case_id\": \"MALFORMED_HANDOFF_NEG\", \"boundary\": \"POST /handoff (negative)\", \"method\": \"POST\", \"path\": \"/handoff\", \"payload\": {\"garbage\": true}, \"asserts\": [{\"name\": \">=400\", \"path\": \"\", \"op\": \"in\", \"value\": [400, 409, 422, 403]}]}}}, {\"json\": {\"body\": {\"test_case_id\": \"LIFECYCLE_ORDER_READ\", \"boundary\": \"GET /owner/lifecycle\", \"method\": \"GET\", \"path\": \"/owner/lifecycle\", \"asserts\": [{\"name\": \"200\", \"path\": \"\", \"op\": \"status\", \"value\": 200}]}}}, {\"json\": {\"body\": {\"test_case_id\": \"EVIDENCE_TASK_READ\", \"boundary\": \"GET /task/:id\", \"method\": \"GET\", \"path\": \"/task/task_handoff_1\", \"asserts\": [{\"name\": \"200/404\", \"path\": \"\", \"op\": \"in\", \"value\": [200, 404]}]}}}, {\"json\": {\"body\": {\"test_case_id\": \"INCIDENT_READ_BOUNDARY\", \"boundary\": \"GET /owner/incident/:id\", \"method\": \"GET\", \"path\": \"/owner/incident/probe\", \"asserts\": [{\"name\": \"200/404\", \"path\": \"\", \"op\": \"in\", \"value\": [200, 404]}], \"note\": \"live-loop incident creation UNWIRED (reportExecutionFailure 0 callers)\"}}}, {\"json\": {\"body\": {\"test_case_id\": \"OWNER_ESCALATION_READ\", \"boundary\": \"GET /owner/console\", \"method\": \"GET\", \"path\": \"/owner/console\", \"asserts\": [{\"name\": \"200\", \"path\": \"\", \"op\": \"status\", \"value\": 200}]}}}, {\"json\": {\"body\": {\"test_case_id\": \"CAPABILITY_ROUTE_READ\", \"boundary\": \"GET /capability/route/:ref\", \"method\": \"GET\", \"path\": \"/capability/route/accounting-system\", \"asserts\": [{\"name\": \"200/404\", \"path\": \"\", \"op\": \"in\", \"value\": [200, 404]}]}}}, {\"json\": {\"body\": {\"test_case_id\": \"SYSTEM_GRAPH_READ\", \"boundary\": \"GET /graph/system\", \"method\": \"GET\", \"path\": \"/graph/system\", \"asserts\": [{\"name\": \"200\", \"path\": \"\", \"op\": \"status\", \"value\": 200}]}}}, {\"json\": {\"body\": {\"test_case_id\": \"RUNTIME_INVENTORY_READ\", \"boundary\": \"GET /runtime/inventory\", \"method\": \"GET\", \"path\": \"/runtime/inventory\", \"asserts\": [{\"name\": \"VERIFIED\", \"path\": \"status\", \"op\": \"eq\", \"value\": \"VERIFIED\"}]}}}, {\"json\": {\"body\": {\"test_case_id\": \"HEALTH_READ\", \"boundary\": \"GET /health\", \"method\": \"GET\", \"path\": \"/health\", \"asserts\": [{\"name\": \"ok\", \"path\": \"ok\", \"op\": \"eq\", \"value\": true}]}}}];"
+   },
+   "id": "cases",
+   "name": "SUITE CASES (15)",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    480,
+    300
+   ]
+  },
+  {
+   "parameters": {
+    "method": "POST",
+    "url": "http://127.0.0.1:5678/webhook/dna-os-test-case-runner",
+    "sendBody": true,
+    "specifyBody": "json",
+    "jsonBody": "={{ JSON.stringify($json.body) }}",
+    "options": {
+     "response": {
+      "response": {
+       "neverError": true
+      }
+     }
+    }
+   },
+   "id": "run",
+   "name": "CALL TEST_CASE_RUNNER (per case)",
+   "type": "n8n-nodes-base.httpRequest",
+   "typeVersion": 4.2,
+   "position": [
+    720,
+    300
+   ]
+  },
+  {
+   "parameters": {
+    "language": "javaScript",
+    "jsCode": "// REPORT_BUILDER: aggregate matrix\nconst rows=items.map(i=>i.json);\nconst summary={};for(const r of rows){const v=r.verdict||'?';summary[v]=(summary[v]||0)+1;}\nreturn [{json:{suite:'DNA_OS_BEHAVIOR_REAL_FIRST',ran_at:new Date().toISOString(),summary,rows}}];"
+   },
+   "id": "agg",
+   "name": "REPORT_BUILDER (matrix)",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    960,
+    300
+   ]
+  }
+ ],
+ "connections": {
+  "Manual Trigger": {
+   "main": [
+    [
+     {
+      "node": "SUITE CASES (15)",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "SUITE CASES (15)": {
+   "main": [
+    [
+     {
+      "node": "CALL TEST_CASE_RUNNER (per case)",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "CALL TEST_CASE_RUNNER (per case)": {
+   "main": [
+    [
+     {
+      "node": "REPORT_BUILDER (matrix)",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  }
+ },
+ "settings": {
+  "executionOrder": "v1"
+ },
+ "active": false
+}

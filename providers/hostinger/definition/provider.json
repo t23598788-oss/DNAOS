@@ -1,0 +1,60 @@
+{
+  "$schema_note": "Machine-readable provider identity for Hostinger. Derived from ../evidence/HOSTINGER_PROVIDER_DISCOVERY.md — never hand-invented. Do not add a fact here that isn't traceable to that evidence file.",
+  "provider_id": "hostinger",
+  "display_name": "Hostinger",
+  "last_verified": "2026-08-22",
+  "evidence_file": "../evidence/HOSTINGER_PROVIDER_DISCOVERY.md",
+  "api_hosts": {
+    "core_api_reference": "https://developers.hostinger.com/",
+    "mcp_hosted": "https://mcp.hostinger.com",
+    "mcp_oauth_issuer": "https://auth.hostinger.com",
+    "hpanel": "https://hpanel.hostinger.com/"
+  },
+  "auth_methods": [
+    {
+      "method_id": "bearer_token",
+      "name": "Hostinger API Token",
+      "credential_shape": "bearer_token",
+      "issued_via": "hPanel -> Dev Tools -> API -> Generate Token",
+      "automatable_bootstrap": "NO",
+      "notes": "Name + expiration date required at creation; token shown once and never retrievable again. Scopes/read-only/resource-limiting/revocation flow: UNKNOWN, not documented in fetched sources."
+    },
+    {
+      "method_id": "oauth2_pkce",
+      "name": "OAuth 2.0 with PKCE (MCP server only)",
+      "credential_shape": "bearer_token",
+      "flow": "authorization_code_pkce",
+      "authorize_via": "https://auth.hostinger.com",
+      "automatable_bootstrap": "NO",
+      "notes": "Interactive browser sign-in required. Not supported when the local MCP server runs in --http mode (README: 'OAuth sign-in is not supported in --http mode. Set HOSTINGER_API_TOKEN before using --http.'). Recommended by Hostinger for agent/multi-user/production use over the static token."
+    }
+  ],
+  "mcp": {
+    "package": "hostinger-api-mcp",
+    "repository": "https://github.com/hostinger/api-mcp-server",
+    "node_requirement": ">=24",
+    "transports": ["stdio", "streamable_http"],
+    "remote_endpoint": "https://mcp.hostinger.com",
+    "local_http_default": "http://127.0.0.1:8100",
+    "tool_count_total": 365,
+    "scoped_binaries": {
+      "hostinger-api-mcp": 365,
+      "hostinger-vps-mcp": 62,
+      "hostinger-hosting-mcp": 56,
+      "hostinger-mail-mcp": 38,
+      "hostinger-domains-mcp": 40,
+      "hostinger-wordpress-mcp": 38,
+      "hostinger-reach-mcp": 45,
+      "hostinger-agency-hosting-mcp": 38,
+      "hostinger-ecommerce-mcp": 29,
+      "hostinger-billing-mcp": 9,
+      "hostinger-dns-mcp": 8,
+      "hostinger-horizons-mcp": 2
+    },
+    "gpu_tools_confirmed": false,
+    "gpu_tools_note": "Zero tool names/descriptions/paths contain 'gpu' anywhere in the full 4,243-line README (direct full-text search)."
+  },
+  "related_products_not_part_of_this_provider": [
+    { "product_id": "nexos_ai", "display_name": "nexos.ai", "reason": "Separate company/domain (nexos.ai, docs.nexos.ai) — an AI-model gateway Hostinger integrates as a partner, not a Hostinger-native API/MCP surface." }
+  ]
+}

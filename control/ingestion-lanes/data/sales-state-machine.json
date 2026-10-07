@@ -1,0 +1,80 @@
+[
+ {
+  "schema": "STATE_MACHINE_V1",
+  "machine_id": "sm.sales.business_event",
+  "entity": "business_events.status",
+  "states": [
+   "new",
+   "quotation_pending",
+   "awaiting_info"
+  ],
+  "initial_state": "new",
+  "terminal_states": [],
+  "note": "บันทึกจากสถานะที่พบจริงในซอร์สเท่านั้น ไม่ได้ออกแบบใหม่ตามข้อ 16",
+  "transitions": [
+   {
+    "from": "(none)",
+    "to": "new",
+    "trigger": "ตัวสกัดไม่ได้ระบุสถานะ",
+    "guard": "extracted.status เป็น null",
+    "actor": "ระบบ",
+    "authority": "NONE",
+    "action": "insert business_events status = new",
+    "data_effect": [
+     "business_events"
+    ],
+    "financial_effect": null,
+    "event_emitted": null,
+    "failure_state": null,
+    "implementation_owner": "supabase/functions/line-webhook-v2/engines/ingestion/lanes/sales.ts (ย้ายมาจาก build-event-from-extraction.ts:63)"
+   },
+   {
+    "from": "(none)",
+    "to": "quotation_pending",
+    "trigger": "ตัวสกัดระบุว่ากำลังรอราคา",
+    "guard": "extracted.status = quotation_pending",
+    "actor": "ระบบ",
+    "authority": "NONE",
+    "action": "insert business_events",
+    "data_effect": [
+     "business_events"
+    ],
+    "financial_effect": null,
+    "event_emitted": null,
+    "failure_state": null,
+    "implementation_owner": "supabase/functions/line-webhook-v2/engines/ingestion/lanes/sales.ts"
+   },
+   {
+    "from": "quotation_pending",
+    "to": "awaiting_info",
+    "trigger": "บันทึกเหตุการณ์แล้วและต้องถามข้อมูลเพิ่ม",
+    "guard": null,
+    "actor": "ระบบ",
+    "authority": "NONE",
+    "action": "update status = awaiting_info",
+    "data_effect": [
+     "business_events"
+    ],
+    "financial_effect": null,
+    "event_emitted": null,
+    "failure_state": null,
+    "implementation_owner": "supabase/functions/line-webhook-v2/engines/ingestion/lanes/sales.ts (เดิม build-event-from-extraction.ts:72)"
+   },
+   {
+    "from": "awaiting_info",
+    "to": "UNKNOWN",
+    "trigger": "UNKNOWN — ไม่พบโค้ดที่พาออกจาก awaiting_info",
+    "guard": null,
+    "actor": "UNKNOWN",
+    "authority": "UNKNOWN",
+    "action": null,
+    "data_effect": [],
+    "financial_effect": null,
+    "event_emitted": null,
+    "failure_state": null,
+    "implementation_owner": null
+   }
+  ],
+  "source_pointer": "supabase/functions/line-webhook-v2/engines/ingestion/lanes/sales.ts"
+ }
+]

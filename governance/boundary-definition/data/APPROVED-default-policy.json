@@ -1,0 +1,82 @@
+{
+  "proposal": "DNA OS · Zero-Trust Default Security Policy (Deny by Default)",
+  "status": "APPROVED_BY_OWNER",
+  "authored_by": "claude:R2",
+  "authored_at": "2026-09-04",
+  "principle": "ทุกฟิลด์เริ่มจากปฏิเสธ แล้วผ่อนเฉพาะที่มีหลักฐานว่าจำเป็นและ Owner อนุมัติ — ไม่ใช่เริ่มจากอนุญาตแล้วค่อยไล่ปิด",
+  "applies_to": "capability ทั้ง 163 ตัวใน canonical registry",
+  "risk_tiers_measured_from_source": {
+    "CRITICAL": 23,
+    "HIGH": 42,
+    "MEDIUM": 9,
+    "LOW": 50,
+    "UNVERIFIABLE": 39
+  },
+  "baseline_deny_by_default": {
+    "authority.may_request": [
+      "dna-os-control-plane"
+    ],
+    "authority.approval_requirement": "REQUIRED_OWNER_APPROVAL",
+    "authority.external_commit_authority": false,
+    "resources.cost_policy": "ZERO_SPEND",
+    "resources.concurrency_policy": "SINGLE_FLIGHT",
+    "resources.availability_requirement": "BEST_EFFORT",
+    "resources.service_requirement": [],
+    "input.validation_requirements": [
+      "FAIL_CLOSED_ON_UNKNOWN_FIELD",
+      "REJECT_ABSOLUTE_PATH",
+      "REJECT_PATH_TRAVERSAL",
+      "REJECT_NUL_IN_STRING"
+    ],
+    "data.persistence": "NO_PERSISTENCE_BEYOND_OWN_CAPABILITY_FOLDER"
+  },
+  "tier_overrides": {
+    "CRITICAL": {
+      "reason": "แตะสิทธิ์ไฟล์ · คุม service ของเครื่อง · หรือเขียนเข้าไปในขอบเขตที่ถูกป้องกัน",
+      "authority.may_request": [
+        "owner-only"
+      ],
+      "authority.approval_requirement": "REQUIRED_OWNER_APPROVAL_PER_INVOCATION",
+      "authority.external_commit_authority": false,
+      "resources.concurrency_policy": "SINGLE_FLIGHT_GLOBAL_LOCK",
+      "data.persistence": "APPEND_ONLY_EVIDENCE_ONLY"
+    },
+    "HIGH": {
+      "reason": "สั่งงานระดับ OS · แก้ git · ควบคุมหน้าจอ · หรือแตะ credential",
+      "authority.may_request": [
+        "dna-os-control-plane"
+      ],
+      "authority.approval_requirement": "REQUIRED_OWNER_APPROVAL",
+      "authority.external_commit_authority": false
+    },
+    "MEDIUM": {
+      "reason": "เขียนไฟล์ · เครือข่ายขาออก · เปิดพอร์ต",
+      "authority.approval_requirement": "REQUIRED_OWNER_APPROVAL_FOR_EXTERNAL_EFFECT"
+    },
+    "LOW": {
+      "reason": "ไม่พบสัญญาณเสี่ยงในซอร์สที่อ่านได้",
+      "authority.approval_requirement": "NOT_REQUIRED_FOR_READ_ONLY"
+    },
+    "UNVERIFIABLE": {
+      "reason": "source_location ชี้ไปที่ที่ไม่มีอยู่จริง หรืออยู่นอกรีโปนี้ — ตรวจพฤติกรรมไม่ได้",
+      "authority.may_request": [],
+      "authority.approval_requirement": "BLOCKED_UNTIL_SOURCE_RESOLVABLE",
+      "authority.external_commit_authority": false,
+      "note": "ไม่ใช่ปลอดภัย แต่คือพิสูจน์ไม่ได้ — fail closed",
+      "runtime_disposition": "MUST_NOT_LOAD_OR_EXECUTE"
+    }
+  },
+  "hard_invariants": {
+    "AGENT_WRITE_TO_PROTECTED_CORE": "NEVER — ไม่มี tier ใดผ่อนข้อนี้ได้",
+    "AGENT_SELF_APPROVAL": "NEVER — capability อนุมัติคำขอของตัวเองไม่ได้",
+    "COMPUTER_USE_TO_SOURCE_AUTHORITY": "NEVER — คนละโลก",
+    "external_commit_authority": "ค่าเริ่มต้น false ทุกตัว เปิดได้เฉพาะที่ Owner ระบุชื่อทีละตัว"
+  },
+  "approved_at": "2026-09-04",
+  "approved_scope": [
+    "บังคับใช้กฎเหล็กห้าม Agent เขียนเข้าแกนหลัก และล็อกสิทธิ์ตามระดับความเสี่ยง",
+    "external_commit_authority = false ทุกตัว ไม่มีข้อยกเว้น",
+    "cost_policy = ZERO_SPEND ทุกตัว",
+    "UNVERIFIABLE 39 ตัว = BLOCKED_UNTIL_SOURCE_RESOLVABLE ห้ามรันหรือโหลดเข้าหน่วยความจำ"
+  ]
+}

@@ -1,0 +1,214 @@
+{
+ "updatedAt": "2026-08-26T21:03:17.723Z",
+ "createdAt": "2026-08-26T20:50:51.342Z",
+ "id": "jiNltcrOhck2wYtM",
+ "name": "DNA-OS-OUTBOUND-ORCHESTRATION-PROOF",
+ "description": null,
+ "active": true,
+ "isArchived": false,
+ "nodes": [
+  {
+   "parameters": {
+    "httpMethod": "POST",
+    "path": "dna-os-outbound-proof",
+    "responseMode": "responseNode",
+    "options": {}
+   },
+   "id": "webhook-1",
+   "name": "Webhook",
+   "type": "n8n-nodes-base.webhook",
+   "typeVersion": 2,
+   "position": [
+    208,
+    304
+   ],
+   "webhookId": "dna-os-outbound-proof-webhook"
+  },
+  {
+   "parameters": {
+    "jsCode": "// DNA-OS-OUTBOUND-ORCHESTRATION-PROOF -- node \"Validate, Classify and Route\".\n//\n// n8n is the ROUTER. It classifies an event, guards against loops, and names\n// the route group. It does NOT resolve capabilities, does NOT check policy,\n// does NOT dispatch, and never calls back into DNA OS -- there is no inbound\n// control port and this file must never assume one. Capability/agent\n// resolution and policy live in DNA OS, which owns the registries and the\n// authority; the caller reads this decision and dispatches locally.\n//\n// CLASSIFICATION IS FROM STRUCTURED SIGNALS, NEVER FROM A NAME ALONE.\n// error_code is checked before event_type because a code is an assertion the\n// emitter made deliberately, while a type prefix is a naming convention that\n// drifts. Nothing here does substring matching on `message`: free text is the\n// least reliable signal in the event and would silently reclassify an event\n// when someone rewords a log line.\n//\n// An event that matches nothing is UNCLASSIFIED with route_status\n// UNRESOLVED_OWNER. It is never assigned to the nearest-looking group --\n// guessing an owner is how work silently lands on the wrong capability.\n\nconst MAX_HOPS = 10;\nconst MAX_SAME_CAPABILITY_VISITS = 3;\nconst SEEN_EVENT_LIMIT = 5000;\n\nconst CENTRAL_FIELDS = [\n  'event_id', 'work_id', 'trace_id', 'owner_id', 'source', 'event_type',\n  'severity', 'status', 'message', 'capability_id', 'resource_id',\n  'error_code', 'evidence_ref', 'occurred_at', 'payload',\n];\n\n// Priority order is the Owner's group order, with one deliberate exception:\n// SECURITY_POLICY is evaluated first. A permission denial that also crashed a\n// process is a security event, not a runtime event, and routing it to a\n// restart path would treat a refusal as a fault.\nconst GROUPS = [\n  {\n    group: 'SECURITY_POLICY',\n    codes: ['PERMISSION_DENIED', 'WRITE_GATE_BLOCKED', 'SANDBOX_VIOLATION', 'AUTH_REQUIRED',\n            'CREDENTIAL_MISSING', 'CREDENTIAL_EXPIRED', 'POLICY_DENY', 'EXECUTION_GRANT_MISSING'],\n    prefixes: ['permission.', 'security.', 'sandbox.', 'credential.', 'writegate.', 'policy.'],\n  },\n  {\n    group: 'OWNER_COMMAND',\n    codes: [],\n    prefixes: ['owner.command', 'command.', 'owner.decision', 'owner.goal'],\n    sources: ['OWNER_TEXT', 'OWNER_VOICE', 'OWNER_UI', 'LINE', 'LOCAL_APP', 'OWNER_AI'],\n  },\n  {\n    group: 'RUNTIME_ERROR',\n    codes: ['PROCESS_CRASH', 'SPAWN_FAILED', 'TIMEOUT', 'SERVICE_DOWN', 'EXIT_NONZERO',\n            'RESTART_LOOP', 'SUPERVISOR_GAVE_UP'],\n    prefixes: ['runtime.', 'process.', 'service.down', 'service.crash'],\n  },\n  {\n    group: 'SOFTWARE_CODE',\n    codes: ['BUILD_FAILED', 'TEST_FAILED', 'TYPECHECK_FAILED', 'DEPENDENCY_MISSING',\n            'REGRESSION_DETECTED', 'DEPLOY_NOT_READY'],\n    prefixes: ['build.', 'test.', 'source.', 'regression.', 'deploy.readiness', 'dependency.'],\n  },\n  {\n    group: 'INFRASTRUCTURE',\n    codes: ['DNS_FAILURE', 'TLS_EXPIRED', 'TLS_INVALID', 'PORT_CONFLICT', 'HOST_UNREACHABLE',\n            'DISK_FULL', 'SERVICE_UNHEALTHY'],\n    prefixes: ['infra.', 'server.', 'dns.', 'tls.', 'network.', 'port.', 'storage.', 'service.health'],\n  },\n  {\n    group: 'DATABASE_DATA',\n    codes: ['DB_UNAVAILABLE', 'SCHEMA_MISMATCH', 'TRANSACTION_FAILED', 'ROW_MISSING',\n            'MIGRATION_FAILED', 'PERSISTENCE_FAILED'],\n    prefixes: ['database.', 'schema.', 'transaction.', 'persistence.', 'migration.'],\n  },\n  {\n    group: 'RESOURCE_COMPUTE',\n    codes: ['CPU_SATURATED', 'MEMORY_EXHAUSTED', 'GPU_UNAVAILABLE', 'DISK_IO_SATURATED',\n            'COMPUTE_ALLOCATION_FAILED', 'RESOURCE_NOT_MEASURED'],\n    prefixes: ['resource.', 'compute.', 'measurement.'],\n  },\n  {\n    group: 'COST_BILLING',\n    codes: ['COST_ANOMALY', 'PAYMENT_FAILED', 'RATE_CARD_MISSING', 'BUDGET_EXCEEDED',\n            'INVOICE_MISMATCH', 'RECONCILIATION_FAILED'],\n    prefixes: ['cost.', 'billing.', 'invoice.', 'budget.', 'rate_card.'],\n  },\n  {\n    group: 'EXTERNAL_INTEGRATION',\n    codes: ['WEBHOOK_FAILED', 'PROVIDER_ERROR', 'API_RATE_LIMITED', 'OAUTH_FAILED',\n            'EXTERNAL_TIMEOUT'],\n    prefixes: ['integration.', 'webhook.', 'provider.', 'external.'],\n  },\n  {\n    group: 'EVIDENCE_VERIFICATION',\n    codes: ['EVIDENCE_MISSING', 'VERIFICATION_FAILED', 'EVIDENCE_CONFLICT', 'REGISTRY_MISMATCH',\n            'DUPLICATE_UNRESOLVED', 'UNKNOWN'],\n    prefixes: ['evidence.', 'verification.', 'registry.'],\n  },\n];\n\nfunction classify(event) {\n  const code = (event.error_code || '').toUpperCase();\n  const type = (event.event_type || '').toLowerCase();\n  const source = (event.source || '').toUpperCase();\n\n  // 1. error_code is a deliberate assertion -- it wins.\n  for (const g of GROUPS) {\n    if (code && g.codes.indexOf(code) !== -1) {\n      return { group: g.group, signal: 'error_code', matched: code };\n    }\n  }\n  // 2. source identifies an Owner-originated event regardless of naming.\n  for (const g of GROUPS) {\n    if (g.sources && source && g.sources.indexOf(source) !== -1) {\n      return { group: g.group, signal: 'source', matched: source };\n    }\n  }\n  // 3. event_type prefix, longest prefix first so 'service.health' cannot be\n  //    stolen by 'service.' in a different group.\n  let best = null;\n  for (const g of GROUPS) {\n    for (const p of g.prefixes) {\n      if (type.indexOf(p) === 0 && (!best || p.length > best.matched.length)) {\n        best = { group: g.group, signal: 'event_type_prefix', matched: p };\n      }\n    }\n  }\n  if (best) return best;\n\n  // 4. status UNKNOWN with no other signal is an evidence problem by\n  //    definition: the system does not know what happened.\n  if ((event.status || '').toUpperCase() === 'UNKNOWN') {\n    return { group: 'EVIDENCE_VERIFICATION', signal: 'status_unknown', matched: 'UNKNOWN' };\n  }\n  return { group: 'UNCLASSIFIED', signal: 'none', matched: null };\n}\n\nfunction guard(event, staticData) {\n  const hops = Number(event.hop_count == null ? 0 : event.hop_count);\n  if (!Number.isFinite(hops) || hops < 0) {\n    return { loop: true, reason: 'hop_count is not a non-negative number: ' + event.hop_count };\n  }\n  if (hops >= MAX_HOPS) {\n    return { loop: true, reason: 'hop_count ' + hops + ' reached MAX_HOPS ' + MAX_HOPS };\n  }\n  const seen = staticData.seen_event_ids || {};\n  if (event.event_id && seen[event.event_id]) {\n    return { loop: true, reason: 'event_id already routed at ' + seen[event.event_id] + ' -- a re-sent event is a loop, not a retry (a retry carries a new event_id and the same trace_id)' };\n  }\n  const path = Array.isArray((event.payload || {}).trace_path) ? event.payload.trace_path : [];\n  const counts = {};\n  for (const step of path) {\n    counts[step] = (counts[step] || 0) + 1;\n    if (counts[step] > MAX_SAME_CAPABILITY_VISITS) {\n      return { loop: true, reason: 'trace revisited capability ' + step + ' ' + counts[step] + ' times (limit ' + MAX_SAME_CAPABILITY_VISITS + ')' };\n    }\n  }\n  return { loop: false, reason: null };\n}\n\nconst receivedAt = new Date().toISOString();\nconst raw = $input.first().json;\nconst event = raw.body ? raw.body : raw;\nconst staticData = $getWorkflowStaticData('global');\nif (!staticData.seen_event_ids) staticData.seen_event_ids = {};\n\nconst missing = CENTRAL_FIELDS.filter((f) => event[f] === undefined);\n\n// Backwards compatibility with the original proof contract: every response\n// still carries accepted/workflow_id/received_event_id/processed_at/result/\n// evidence_ref. The routing block is additive, so the first proven caller\n// keeps working unchanged.\nfunction respond(extra) {\n  return [{ json: Object.assign({\n    accepted: extra.route_status === 'ROUTED' || extra.route_status === 'UNRESOLVED_OWNER',\n    workflow_id: $workflow.id,\n    received_event_id: event.event_id || null,\n    processed_at: receivedAt,\n    evidence_ref: event.evidence_ref || null,\n  }, extra) }];\n}\n\nif (missing.length > 0) {\n  return respond({\n    route_status: 'REJECTED_MISSING_FIELDS',\n    result: 'REJECTED_MISSING_FIELDS: ' + missing.join(','),\n    route_group: null,\n    missing_fields: missing,\n    hop_count_in: event.hop_count == null ? null : event.hop_count,\n    hop_count_out: null,\n  });\n}\n\nconst guarded = guard(event, staticData);\nif (guarded.loop) {\n  return respond({\n    route_status: 'LOOP_DETECTED',\n    result: 'LOOP_DETECTED',\n    route_group: null,\n    loop_reason: guarded.reason,\n    hop_count_in: event.hop_count,\n    hop_count_out: event.hop_count,\n    trace_id: event.trace_id,\n    origin: event.origin || null,\n    // A detected loop is evidence, not a silent drop: the caller is told to\n    // stop AND told to record it.\n    next_action: 'STOP_AND_RECORD_EVIDENCE',\n    owner_decision_required: true,\n  });\n}\n\n// Only a non-loop event is remembered, so a rejected event can be legitimately\n// resubmitted after correction with the same id.\nstaticData.seen_event_ids[event.event_id] = receivedAt;\nconst ids = Object.keys(staticData.seen_event_ids);\nif (ids.length > SEEN_EVENT_LIMIT) {\n  // Trim oldest-first. An unbounded map would grow until the workflow's static\n  // data write fails, which would disable loop detection exactly when the\n  // system is busiest.\n  ids.sort((a, b) => (staticData.seen_event_ids[a] < staticData.seen_event_ids[b] ? -1 : 1));\n  for (let i = 0; i < ids.length - SEEN_EVENT_LIMIT; i++) delete staticData.seen_event_ids[ids[i]];\n}\n\nconst classified = classify(event);\nconst unresolved = classified.group === 'UNCLASSIFIED';\n\nreturn respond({\n  route_status: unresolved ? 'UNRESOLVED_OWNER' : 'ROUTED',\n  result: unresolved ? 'UNRESOLVED_OWNER' : 'ROUTED_' + classified.group,\n  route_group: unresolved ? null : classified.group,\n  classification_signal: classified.signal,\n  classification_matched: classified.matched,\n  trace_id: event.trace_id,\n  origin: event.origin || null,\n  hop_count_in: event.hop_count,\n  hop_count_out: Number(event.hop_count) + 1,\n  max_hops: MAX_HOPS,\n  // n8n names the GROUP. DNA OS resolves which capability and which agent owns\n  // that group, from its own registries -- this workflow has no access to them\n  // and must never pretend otherwise.\n  resolution_required_by: 'DNA_OS',\n  next_action: unresolved\n    ? 'RETURN_TO_DNA_OS_FOR_OWNER_TRIAGE'\n    : 'RESOLVE_CAPABILITY_AND_DISPATCH_IN_DNA_OS',\n  owner_decision_required: unresolved,\n});\n"
+   },
+   "id": "code-1",
+   "name": "Validate, Classify and Route",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    464,
+    304
+   ]
+  },
+  {
+   "parameters": {
+    "respondWith": "json",
+    "responseBody": "={{ $json }}",
+    "options": {}
+   },
+   "id": "respond-1",
+   "name": "Respond to Webhook",
+   "type": "n8n-nodes-base.respondToWebhook",
+   "typeVersion": 1,
+   "position": [
+    752,
+    304
+   ]
+  }
+ ],
+ "connections": {
+  "Webhook": {
+   "main": [
+    [
+     {
+      "node": "Validate, Classify and Route",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Validate, Classify and Route": {
+   "main": [
+    [
+     {
+      "node": "Respond to Webhook",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  }
+ },
+ "settings": {
+  "executionOrder": "v1",
+  "binaryMode": "separate"
+ },
+ "staticData": null,
+ "meta": null,
+ "nodeGroups": [],
+ "pinData": {},
+ "versionId": "79c5aa86-c9ec-47f0-aa8d-f5291703467d",
+ "activeVersionId": "79c5aa86-c9ec-47f0-aa8d-f5291703467d",
+ "versionCounter": 5,
+ "triggerCount": 1,
+ "sourceWorkflowId": null,
+ "shared": [
+  {
+   "updatedAt": "2026-08-26T20:50:51.344Z",
+   "createdAt": "2026-08-26T20:50:51.344Z",
+   "role": "workflow:owner",
+   "workflowId": "jiNltcrOhck2wYtM",
+   "projectId": "Hk4S7h9ZL26xrudV",
+   "project": {
+    "updatedAt": "2026-08-26T20:16:07.512Z",
+    "createdAt": "2026-06-08T00:20:25.738Z",
+    "id": "Hk4S7h9ZL26xrudV",
+    "name": "\u0e19\u0e32\u0e22 \u0e18\u0e27\u0e31\u0e0a\u0e0a\u0e31\u0e22 \u0e21\u0e39\u0e25\u0e23\u0e32\u0e0a <t23598788@gmail.com>",
+    "type": "personal",
+    "icon": null,
+    "description": null,
+    "customTelemetryTags": [],
+    "creatorId": "6197c67a-42c4-4829-9b94-3b0dfb5968a1"
+   }
+  }
+ ],
+ "tags": [],
+ "activeVersion": {
+  "updatedAt": "2026-08-26T21:03:17.725Z",
+  "createdAt": "2026-08-26T21:03:17.725Z",
+  "versionId": "79c5aa86-c9ec-47f0-aa8d-f5291703467d",
+  "workflowId": "jiNltcrOhck2wYtM",
+  "nodes": [
+   {
+    "parameters": {
+     "httpMethod": "POST",
+     "path": "dna-os-outbound-proof",
+     "responseMode": "responseNode",
+     "options": {}
+    },
+    "id": "webhook-1",
+    "name": "Webhook",
+    "type": "n8n-nodes-base.webhook",
+    "typeVersion": 2,
+    "position": [
+     208,
+     304
+    ],
+    "webhookId": "dna-os-outbound-proof-webhook"
+   },
+   {
+    "parameters": {
+     "jsCode": "// DNA-OS-OUTBOUND-ORCHESTRATION-PROOF -- node \"Validate, Classify and Route\".\n//\n// n8n is the ROUTER. It classifies an event, guards against loops, and names\n// the route group. It does NOT resolve capabilities, does NOT check policy,\n// does NOT dispatch, and never calls back into DNA OS -- there is no inbound\n// control port and this file must never assume one. Capability/agent\n// resolution and policy live in DNA OS, which owns the registries and the\n// authority; the caller reads this decision and dispatches locally.\n//\n// CLASSIFICATION IS FROM STRUCTURED SIGNALS, NEVER FROM A NAME ALONE.\n// error_code is checked before event_type because a code is an assertion the\n// emitter made deliberately, while a type prefix is a naming convention that\n// drifts. Nothing here does substring matching on `message`: free text is the\n// least reliable signal in the event and would silently reclassify an event\n// when someone rewords a log line.\n//\n// An event that matches nothing is UNCLASSIFIED with route_status\n// UNRESOLVED_OWNER. It is never assigned to the nearest-looking group --\n// guessing an owner is how work silently lands on the wrong capability.\n\nconst MAX_HOPS = 10;\nconst MAX_SAME_CAPABILITY_VISITS = 3;\nconst SEEN_EVENT_LIMIT = 5000;\n\nconst CENTRAL_FIELDS = [\n  'event_id', 'work_id', 'trace_id', 'owner_id', 'source', 'event_type',\n  'severity', 'status', 'message', 'capability_id', 'resource_id',\n  'error_code', 'evidence_ref', 'occurred_at', 'payload',\n];\n\n// Priority order is the Owner's group order, with one deliberate exception:\n// SECURITY_POLICY is evaluated first. A permission denial that also crashed a\n// process is a security event, not a runtime event, and routing it to a\n// restart path would treat a refusal as a fault.\nconst GROUPS = [\n  {\n    group: 'SECURITY_POLICY',\n    codes: ['PERMISSION_DENIED', 'WRITE_GATE_BLOCKED', 'SANDBOX_VIOLATION', 'AUTH_REQUIRED',\n            'CREDENTIAL_MISSING', 'CREDENTIAL_EXPIRED', 'POLICY_DENY', 'EXECUTION_GRANT_MISSING'],\n    prefixes: ['permission.', 'security.', 'sandbox.', 'credential.', 'writegate.', 'policy.'],\n  },\n  {\n    group: 'OWNER_COMMAND',\n    codes: [],\n    prefixes: ['owner.command', 'command.', 'owner.decision', 'owner.goal'],\n    sources: ['OWNER_TEXT', 'OWNER_VOICE', 'OWNER_UI', 'LINE', 'LOCAL_APP', 'OWNER_AI'],\n  },\n  {\n    group: 'RUNTIME_ERROR',\n    codes: ['PROCESS_CRASH', 'SPAWN_FAILED', 'TIMEOUT', 'SERVICE_DOWN', 'EXIT_NONZERO',\n            'RESTART_LOOP', 'SUPERVISOR_GAVE_UP'],\n    prefixes: ['runtime.', 'process.', 'service.down', 'service.crash'],\n  },\n  {\n    group: 'SOFTWARE_CODE',\n    codes: ['BUILD_FAILED', 'TEST_FAILED', 'TYPECHECK_FAILED', 'DEPENDENCY_MISSING',\n            'REGRESSION_DETECTED', 'DEPLOY_NOT_READY'],\n    prefixes: ['build.', 'test.', 'source.', 'regression.', 'deploy.readiness', 'dependency.'],\n  },\n  {\n    group: 'INFRASTRUCTURE',\n    codes: ['DNS_FAILURE', 'TLS_EXPIRED', 'TLS_INVALID', 'PORT_CONFLICT', 'HOST_UNREACHABLE',\n            'DISK_FULL', 'SERVICE_UNHEALTHY'],\n    prefixes: ['infra.', 'server.', 'dns.', 'tls.', 'network.', 'port.', 'storage.', 'service.health'],\n  },\n  {\n    group: 'DATABASE_DATA',\n    codes: ['DB_UNAVAILABLE', 'SCHEMA_MISMATCH', 'TRANSACTION_FAILED', 'ROW_MISSING',\n            'MIGRATION_FAILED', 'PERSISTENCE_FAILED'],\n    prefixes: ['database.', 'schema.', 'transaction.', 'persistence.', 'migration.'],\n  },\n  {\n    group: 'RESOURCE_COMPUTE',\n    codes: ['CPU_SATURATED', 'MEMORY_EXHAUSTED', 'GPU_UNAVAILABLE', 'DISK_IO_SATURATED',\n            'COMPUTE_ALLOCATION_FAILED', 'RESOURCE_NOT_MEASURED'],\n    prefixes: ['resource.', 'compute.', 'measurement.'],\n  },\n  {\n    group: 'COST_BILLING',\n    codes: ['COST_ANOMALY', 'PAYMENT_FAILED', 'RATE_CARD_MISSING', 'BUDGET_EXCEEDED',\n            'INVOICE_MISMATCH', 'RECONCILIATION_FAILED'],\n    prefixes: ['cost.', 'billing.', 'invoice.', 'budget.', 'rate_card.'],\n  },\n  {\n    group: 'EXTERNAL_INTEGRATION',\n    codes: ['WEBHOOK_FAILED', 'PROVIDER_ERROR', 'API_RATE_LIMITED', 'OAUTH_FAILED',\n            'EXTERNAL_TIMEOUT'],\n    prefixes: ['integration.', 'webhook.', 'provider.', 'external.'],\n  },\n  {\n    group: 'EVIDENCE_VERIFICATION',\n    codes: ['EVIDENCE_MISSING', 'VERIFICATION_FAILED', 'EVIDENCE_CONFLICT', 'REGISTRY_MISMATCH',\n            'DUPLICATE_UNRESOLVED', 'UNKNOWN'],\n    prefixes: ['evidence.', 'verification.', 'registry.'],\n  },\n];\n\nfunction classify(event) {\n  const code = (event.error_code || '').toUpperCase();\n  const type = (event.event_type || '').toLowerCase();\n  const source = (event.source || '').toUpperCase();\n\n  // 1. error_code is a deliberate assertion -- it wins.\n  for (const g of GROUPS) {\n    if (code && g.codes.indexOf(code) !== -1) {\n      return { group: g.group, signal: 'error_code', matched: code };\n    }\n  }\n  // 2. source identifies an Owner-originated event regardless of naming.\n  for (const g of GROUPS) {\n    if (g.sources && source && g.sources.indexOf(source) !== -1) {\n      return { group: g.group, signal: 'source', matched: source };\n    }\n  }\n  // 3. event_type prefix, longest prefix first so 'service.health' cannot be\n  //    stolen by 'service.' in a different group.\n  let best = null;\n  for (const g of GROUPS) {\n    for (const p of g.prefixes) {\n      if (type.indexOf(p) === 0 && (!best || p.length > best.matched.length)) {\n        best = { group: g.group, signal: 'event_type_prefix', matched: p };\n      }\n    }\n  }\n  if (best) return best;\n\n  // 4. status UNKNOWN with no other signal is an evidence problem by\n  //    definition: the system does not know what happened.\n  if ((event.status || '').toUpperCase() === 'UNKNOWN') {\n    return { group: 'EVIDENCE_VERIFICATION', signal: 'status_unknown', matched: 'UNKNOWN' };\n  }\n  return { group: 'UNCLASSIFIED', signal: 'none', matched: null };\n}\n\nfunction guard(event, staticData) {\n  const hops = Number(event.hop_count == null ? 0 : event.hop_count);\n  if (!Number.isFinite(hops) || hops < 0) {\n    return { loop: true, reason: 'hop_count is not a non-negative number: ' + event.hop_count };\n  }\n  if (hops >= MAX_HOPS) {\n    return { loop: true, reason: 'hop_count ' + hops + ' reached MAX_HOPS ' + MAX_HOPS };\n  }\n  const seen = staticData.seen_event_ids || {};\n  if (event.event_id && seen[event.event_id]) {\n    return { loop: true, reason: 'event_id already routed at ' + seen[event.event_id] + ' -- a re-sent event is a loop, not a retry (a retry carries a new event_id and the same trace_id)' };\n  }\n  const path = Array.isArray((event.payload || {}).trace_path) ? event.payload.trace_path : [];\n  const counts = {};\n  for (const step of path) {\n    counts[step] = (counts[step] || 0) + 1;\n    if (counts[step] > MAX_SAME_CAPABILITY_VISITS) {\n      return { loop: true, reason: 'trace revisited capability ' + step + ' ' + counts[step] + ' times (limit ' + MAX_SAME_CAPABILITY_VISITS + ')' };\n    }\n  }\n  return { loop: false, reason: null };\n}\n\nconst receivedAt = new Date().toISOString();\nconst raw = $input.first().json;\nconst event = raw.body ? raw.body : raw;\nconst staticData = $getWorkflowStaticData('global');\nif (!staticData.seen_event_ids) staticData.seen_event_ids = {};\n\nconst missing = CENTRAL_FIELDS.filter((f) => event[f] === undefined);\n\n// Backwards compatibility with the original proof contract: every response\n// still carries accepted/workflow_id/received_event_id/processed_at/result/\n// evidence_ref. The routing block is additive, so the first proven caller\n// keeps working unchanged.\nfunction respond(extra) {\n  return [{ json: Object.assign({\n    accepted: extra.route_status === 'ROUTED' || extra.route_status === 'UNRESOLVED_OWNER',\n    workflow_id: $workflow.id,\n    received_event_id: event.event_id || null,\n    processed_at: receivedAt,\n    evidence_ref: event.evidence_ref || null,\n  }, extra) }];\n}\n\nif (missing.length > 0) {\n  return respond({\n    route_status: 'REJECTED_MISSING_FIELDS',\n    result: 'REJECTED_MISSING_FIELDS: ' + missing.join(','),\n    route_group: null,\n    missing_fields: missing,\n    hop_count_in: event.hop_count == null ? null : event.hop_count,\n    hop_count_out: null,\n  });\n}\n\nconst guarded = guard(event, staticData);\nif (guarded.loop) {\n  return respond({\n    route_status: 'LOOP_DETECTED',\n    result: 'LOOP_DETECTED',\n    route_group: null,\n    loop_reason: guarded.reason,\n    hop_count_in: event.hop_count,\n    hop_count_out: event.hop_count,\n    trace_id: event.trace_id,\n    origin: event.origin || null,\n    // A detected loop is evidence, not a silent drop: the caller is told to\n    // stop AND told to record it.\n    next_action: 'STOP_AND_RECORD_EVIDENCE',\n    owner_decision_required: true,\n  });\n}\n\n// Only a non-loop event is remembered, so a rejected event can be legitimately\n// resubmitted after correction with the same id.\nstaticData.seen_event_ids[event.event_id] = receivedAt;\nconst ids = Object.keys(staticData.seen_event_ids);\nif (ids.length > SEEN_EVENT_LIMIT) {\n  // Trim oldest-first. An unbounded map would grow until the workflow's static\n  // data write fails, which would disable loop detection exactly when the\n  // system is busiest.\n  ids.sort((a, b) => (staticData.seen_event_ids[a] < staticData.seen_event_ids[b] ? -1 : 1));\n  for (let i = 0; i < ids.length - SEEN_EVENT_LIMIT; i++) delete staticData.seen_event_ids[ids[i]];\n}\n\nconst classified = classify(event);\nconst unresolved = classified.group === 'UNCLASSIFIED';\n\nreturn respond({\n  route_status: unresolved ? 'UNRESOLVED_OWNER' : 'ROUTED',\n  result: unresolved ? 'UNRESOLVED_OWNER' : 'ROUTED_' + classified.group,\n  route_group: unresolved ? null : classified.group,\n  classification_signal: classified.signal,\n  classification_matched: classified.matched,\n  trace_id: event.trace_id,\n  origin: event.origin || null,\n  hop_count_in: event.hop_count,\n  hop_count_out: Number(event.hop_count) + 1,\n  max_hops: MAX_HOPS,\n  // n8n names the GROUP. DNA OS resolves which capability and which agent owns\n  // that group, from its own registries -- this workflow has no access to them\n  // and must never pretend otherwise.\n  resolution_required_by: 'DNA_OS',\n  next_action: unresolved\n    ? 'RETURN_TO_DNA_OS_FOR_OWNER_TRIAGE'\n    : 'RESOLVE_CAPABILITY_AND_DISPATCH_IN_DNA_OS',\n  owner_decision_required: unresolved,\n});\n"
+    },
+    "id": "code-1",
+    "name": "Validate, Classify and Route",
+    "type": "n8n-nodes-base.code",
+    "typeVersion": 2,
+    "position": [
+     464,
+     304
+    ]
+   },
+   {
+    "parameters": {
+     "respondWith": "json",
+     "responseBody": "={{ $json }}",
+     "options": {}
+    },
+    "id": "respond-1",
+    "name": "Respond to Webhook",
+    "type": "n8n-nodes-base.respondToWebhook",
+    "typeVersion": 1,
+    "position": [
+     752,
+     304
+    ]
+   }
+  ],
+  "connections": {
+   "Webhook": {
+    "main": [
+     [
+      {
+       "node": "Validate, Classify and Route",
+       "type": "main",
+       "index": 0
+      }
+     ]
+    ]
+   },
+   "Validate, Classify and Route": {
+    "main": [
+     [
+      {
+       "node": "Respond to Webhook",
+       "type": "main",
+       "index": 0
+      }
+     ]
+    ]
+   }
+  },
+  "nodeGroups": [],
+  "authors": "\u0e19\u0e32\u0e22 \u0e18\u0e27\u0e31\u0e0a\u0e0a\u0e31\u0e22 \u0e21\u0e39\u0e25\u0e23\u0e32\u0e0a",
+  "name": null,
+  "description": null,
+  "autosaved": false,
+  "workflowPublishHistory": [
+   {
+    "createdAt": "2026-08-26T21:03:17.773Z",
+    "id": 11,
+    "workflowId": "jiNltcrOhck2wYtM",
+    "versionId": "79c5aa86-c9ec-47f0-aa8d-f5291703467d",
+    "event": "activated",
+    "userId": "6197c67a-42c4-4829-9b94-3b0dfb5968a1"
+   },
+   {
+    "createdAt": "2026-08-26T21:03:17.762Z",
+    "id": 10,
+    "workflowId": "jiNltcrOhck2wYtM",
+    "versionId": "79c5aa86-c9ec-47f0-aa8d-f5291703467d",
+    "event": "deactivated",
+    "userId": "6197c67a-42c4-4829-9b94-3b0dfb5968a1"
+   }
+  ]
+ }
+}

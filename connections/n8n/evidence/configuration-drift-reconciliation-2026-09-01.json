@@ -1,0 +1,77 @@
+{
+  "record_type": "CONFIGURATION_DRIFT_RECONCILIATION",
+  "recorded_at": "2026-08-31T19:08:59.000Z",
+  "subject_capability_id": "capability-19fb83ac-5dc7-4128-bbd1-e6664803b146",
+  "subject_canonical_name": "n8n-workflow-control",
+  "state": "CONFIGURATION_DRIFT",
+
+  "declared_target": {
+    "endpoint": "https://n8n.srv1740014.hstgr.cloud",
+    "declared_in": "connections/n8n/outbound-webhook.ts:45 (const N8N_BASE_URL)",
+    "mutability": "hardcoded constant — ไฟล์เดียวกันประกาศว่า 'Never accept a caller-supplied URL'",
+    "reachability": { "probe": "GET /healthz", "http_code": 0, "result": "UNREACHABLE" },
+    "state": "DECLARED"
+  },
+
+  "observed_target": {
+    "endpoint": "http://127.0.0.1:5678",
+    "reachability": { "probe": "GET /healthz", "http_code": 200, "result": "REACHABLE" },
+    "state": "OBSERVED"
+  },
+
+  "trace": {
+    "process": {
+      "pid": 31291,
+      "command": "node ./node_modules/.bin/n8n start",
+      "started_at": "2026-08-31T17:29:14 local",
+      "ppid": 31208,
+      "parent_command": "/bin/zsh -c source /Users/tam/.claude/shell-snapshots/snapshot-zsh-1788166301025-jw1vtb.sh",
+      "finding": "สตาร์ทจาก shell ของ Claude session ไม่ใช่จากตัว DNA OS"
+    },
+    "startup_config": {
+      "launch_agent": "NONE — ~/Library/LaunchAgents ไม่มีไฟล์ n8n",
+      "launchctl_job": "NONE — launchctl list ไม่มี job n8n",
+      "finding": "ไม่มี supervisor ของ DNA OS ดูแล process นี้"
+    },
+    "service_reference": {
+      "dna_os_source_or_config_referencing_5678": 0,
+      "search_scope": "*.ts *.mjs *.json *.md ทั้งรีโป (ไม่รวม node_modules/*.jsonl)",
+      "finding": "ไม่มีไฟล์ใดของ DNA OS อ้างถึง :5678 เลย ผลที่ grep เจอเป็น substring ใน UUID"
+    },
+    "credential_pointer": {
+      "credential_ref": "credential://macos-keychain/dna-os/n8n-api-key",
+      "resolver_kind": "macos_keychain",
+      "scope": ["workflow.read", "workflow.write"],
+      "status": "ACTIVE",
+      "finding": "ผูกกับ provider ไม่ได้ผูกกับ instance — ชี้ขาดไม่ได้ว่าเป็น instance ไหน"
+    },
+    "caller": {
+      "module": "control/repair-loop/loop.ts",
+      "imports": "routeDnaOsEvent จาก connections/n8n/contract",
+      "finding": "ผู้เรียกมีจริง แต่ปลายทางที่มันจะไปคือ declared_target ที่ตายแล้ว"
+    },
+    "workflow_api": {
+      "probe": "GET http://127.0.0.1:5678/rest/workflows",
+      "result": "{\"status\":\"error\",\"message\":\"Unauthorized\"}",
+      "finding": "instance ที่รันอยู่ต้องใช้ credential — ยังไม่ได้ตรวจว่า key ในทะเบียนใช้กับ instance นี้ได้"
+    },
+    "latest_module_evidence": {
+      "newest_evidence_file": "connections/n8n/evidence/ten-group-routing-proof-1787780204259.json",
+      "captured_at": "2026-08-26T21:36:44.259Z",
+      "finding": "หลักฐานทั้งหมดของโมดูลนี้เกิดในยุค Hostinger ไม่มีหลักฐานใดที่เกิดกับ :5678"
+    }
+  },
+
+  "verdict": {
+    "dna_os_uses_5678": "UNKNOWN",
+    "reason": "พิสูจน์ไม่ได้ — ไม่มี source, config, supervisor, หรือ evidence ใดของ DNA OS เชื่อม :5678 เข้ากับตัวระบบ instance นี้ถูกสตาร์ทโดยผู้ปฏิบัติงานผ่าน shell ไม่ใช่โดย DNA OS",
+    "evidence_missing_to_prove": [
+      "config/declaration ของ DNA OS ที่ระบุ :5678 เป็นปลายทาง",
+      "LaunchAgent หรือ supervisor ของ DNA OS ที่คุม process นี้",
+      "การเรียกสำเร็จจาก DNA OS ไป :5678 ที่มี evidence รองรับ"
+    ],
+    "not_done_on_purpose": "ไม่แก้ N8N_BASE_URL ไม่สร้าง workflow ไม่ลงทะเบียน connection ให้ n8n — ทั้งหมดจะเป็นการปิดช่องว่างด้วยการเดา"
+  },
+
+  "history_preserved": "ไม่มีไฟล์ evidence เดิมถูกแก้หรือลบ record นี้เป็นไฟล์ใหม่"
+}

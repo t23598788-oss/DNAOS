@@ -1,0 +1,314 @@
+{
+ "generated_at": "static",
+ "legend": [
+  "PASS",
+  "FAIL",
+  "BLOCKED",
+  "NOT_APPLICABLE",
+  "NOT_IMPLEMENTED"
+ ],
+ "note": "n8n drives HTTP boundaries only; in-proc-only areas are NOT_APPLICABLE for n8n and remain covered by existing tsx tests. RECOVERY not yet tested (incident creation from live loop is UNWIRED).",
+ "rows": [
+  {
+   "boundary_area": "1 Owner Command",
+   "entrypoint": "POST /owner/submit-command, /owner/command, /owner/plan",
+   "reach": "HTTP",
+   "existing_tsx_tests": [
+    "control/owner-command/tests/*",
+    "owner-command-semantics/tests/*",
+    "owner-backbone/tests/*"
+   ],
+   "n8n_http_behavior_tests": [
+    "OWNER_CMD_PLAN_HAPPY",
+    "OWNER_CMD_PLAN_BLOCKED_NEG"
+   ],
+   "n8n_http_status": "PASS",
+   "classification": {
+    "UNIT_TESTED": true,
+    "INTEGRATION_TESTED": true,
+    "BOUNDARY_TESTED": true,
+    "BEHAVIOR_TESTED": true,
+    "FAILURE_TESTED": true,
+    "RECOVERY_TESTED": false
+   }
+  },
+  {
+   "boundary_area": "2 Agent Gateway",
+   "entrypoint": "POST /command (workOrder) -> submitTask",
+   "reach": "HTTP(transitive)",
+   "existing_tsx_tests": [
+    "control/agent-gateway/tests/*"
+   ],
+   "n8n_http_behavior_tests": [],
+   "n8n_http_status": "NOT_APPLICABLE(in-proc, not HTTP-drivable by n8n; covered by tsx unit/integration tests)",
+   "classification": {
+    "UNIT_TESTED": true,
+    "INTEGRATION_TESTED": true,
+    "BOUNDARY_TESTED": false,
+    "BEHAVIOR_TESTED": false,
+    "FAILURE_TESTED": false,
+    "RECOVERY_TESTED": false
+   }
+  },
+  {
+   "boundary_area": "3 Agent Host",
+   "entrypoint": "launchAgent (in-proc)",
+   "reach": "IN_PROC",
+   "existing_tsx_tests": [
+    "control/agent-host/tests/*"
+   ],
+   "n8n_http_behavior_tests": [],
+   "n8n_http_status": "NOT_APPLICABLE(in-proc, not HTTP-drivable by n8n; covered by tsx unit/integration tests)",
+   "classification": {
+    "UNIT_TESTED": true,
+    "INTEGRATION_TESTED": true,
+    "BOUNDARY_TESTED": false,
+    "BEHAVIOR_TESTED": false,
+    "FAILURE_TESTED": false,
+    "RECOVERY_TESTED": false
+   }
+  },
+  {
+   "boundary_area": "4 Resource resolution",
+   "entrypoint": "resolveResources (in-proc)",
+   "reach": "IN_PROC",
+   "existing_tsx_tests": [
+    "software/execution-profile/tests/phase1,phase2"
+   ],
+   "n8n_http_behavior_tests": [
+    "OWNER_CMD_PLAN_HAPPY(transitive)"
+   ],
+   "n8n_http_status": "PASS",
+   "classification": {
+    "UNIT_TESTED": true,
+    "INTEGRATION_TESTED": true,
+    "BOUNDARY_TESTED": false,
+    "BEHAVIOR_TESTED": true,
+    "FAILURE_TESTED": false,
+    "RECOVERY_TESTED": false
+   }
+  },
+  {
+   "boundary_area": "5 Execution profile",
+   "entrypoint": "buildProfiles/decideEligibility (in-proc)",
+   "reach": "IN_PROC",
+   "existing_tsx_tests": [
+    "software/execution-profile/tests/*"
+   ],
+   "n8n_http_behavior_tests": [],
+   "n8n_http_status": "NOT_APPLICABLE(in-proc, not HTTP-drivable by n8n; covered by tsx unit/integration tests)",
+   "classification": {
+    "UNIT_TESTED": true,
+    "INTEGRATION_TESTED": true,
+    "BOUNDARY_TESTED": false,
+    "BEHAVIOR_TESTED": false,
+    "FAILURE_TESTED": false,
+    "RECOVERY_TESTED": false
+   }
+  },
+  {
+   "boundary_area": "6 Registry read",
+   "entrypoint": "POST /registry/lookup, GET /registry/capabilities/:id",
+   "reach": "HTTP",
+   "existing_tsx_tests": [
+    "software/registry-database/tests/*"
+   ],
+   "n8n_http_behavior_tests": [
+    "REGISTRY_LOOKUP_READ",
+    "REGISTRY_CAP_404_NEG",
+    "RUNTIME_INVENTORY_READ"
+   ],
+   "n8n_http_status": "PASS",
+   "classification": {
+    "UNIT_TESTED": true,
+    "INTEGRATION_TESTED": true,
+    "BOUNDARY_TESTED": true,
+    "BEHAVIOR_TESTED": true,
+    "FAILURE_TESTED": true,
+    "RECOVERY_TESTED": false
+   }
+  },
+  {
+   "boundary_area": "7 Write/Domain gate",
+   "entrypoint": "POST /registry/candidates (domain gate); write-gate in-proc",
+   "reach": "HTTP(domain) / IN_PROC(write-gate)",
+   "existing_tsx_tests": [
+    "permissions/write-gate/tests/policy.test.ts"
+   ],
+   "n8n_http_behavior_tests": [
+    "REGISTRY_BIZDATA_REJECT_NEG"
+   ],
+   "n8n_http_status": "PASS",
+   "classification": {
+    "UNIT_TESTED": true,
+    "INTEGRATION_TESTED": true,
+    "BOUNDARY_TESTED": true,
+    "BEHAVIOR_TESTED": true,
+    "FAILURE_TESTED": true,
+    "RECOVERY_TESTED": false
+   }
+  },
+  {
+   "boundary_area": "8 Evidence creation",
+   "entrypoint": "recordEvidence (in-proc); observe GET /task/:id",
+   "reach": "IN_PROC+observe",
+   "existing_tsx_tests": [
+    "control/repair-loop/tests/evidence-admissibility.test.ts"
+   ],
+   "n8n_http_behavior_tests": [
+    "EVIDENCE_TASK_READ"
+   ],
+   "n8n_http_status": "PASS",
+   "classification": {
+    "UNIT_TESTED": true,
+    "INTEGRATION_TESTED": true,
+    "BOUNDARY_TESTED": false,
+    "BEHAVIOR_TESTED": true,
+    "FAILURE_TESTED": false,
+    "RECOVERY_TESTED": false
+   }
+  },
+  {
+   "boundary_area": "9 Incident handoff",
+   "entrypoint": "reportExecutionFailure (in-proc, UNWIRED in live loop); read GET /owner/incident/:id",
+   "reach": "IN_PROC+read",
+   "existing_tsx_tests": [
+    "control/execution-incident-handoff/tests/handoff.test.ts",
+    "incident-remediation/tests/cases-proof.test.ts"
+   ],
+   "n8n_http_behavior_tests": [
+    "INCIDENT_READ_BOUNDARY"
+   ],
+   "n8n_http_status": "PASS",
+   "classification": {
+    "UNIT_TESTED": true,
+    "INTEGRATION_TESTED": true,
+    "BOUNDARY_TESTED": false,
+    "BEHAVIOR_TESTED": true,
+    "FAILURE_TESTED": false,
+    "RECOVERY_TESTED": false
+   }
+  },
+  {
+   "boundary_area": "10 Target/route resolution",
+   "entrypoint": "resolveTarget/resolveSystemReference (in-proc); GET /capability/route/:ref",
+   "reach": "IN_PROC+HTTP",
+   "existing_tsx_tests": [
+    "control/target-resolution/tests/*",
+    "system-reference-resolution/tests/*"
+   ],
+   "n8n_http_behavior_tests": [
+    "CAPABILITY_ROUTE_READ"
+   ],
+   "n8n_http_status": "PASS",
+   "classification": {
+    "UNIT_TESTED": true,
+    "INTEGRATION_TESTED": true,
+    "BOUNDARY_TESTED": true,
+    "BEHAVIOR_TESTED": true,
+    "FAILURE_TESTED": false,
+    "RECOVERY_TESTED": false
+   }
+  },
+  {
+   "boundary_area": "11 Owner escalation/read",
+   "entrypoint": "GET /owner/console, /owner/action-queue, /owner/pending-question",
+   "reach": "HTTP",
+   "existing_tsx_tests": [
+    "control/owner-error-lane/tests/*"
+   ],
+   "n8n_http_behavior_tests": [
+    "OWNER_ESCALATION_READ"
+   ],
+   "n8n_http_status": "PASS",
+   "classification": {
+    "UNIT_TESTED": true,
+    "INTEGRATION_TESTED": true,
+    "BOUNDARY_TESTED": true,
+    "BEHAVIOR_TESTED": true,
+    "FAILURE_TESTED": false,
+    "RECOVERY_TESTED": false
+   }
+  },
+  {
+   "boundary_area": "12 Lifecycle ordering",
+   "entrypoint": "GET /owner/lifecycle",
+   "reach": "HTTP",
+   "existing_tsx_tests": [
+    "control/operational-lifecycle/tests/lifecycle.test.ts"
+   ],
+   "n8n_http_behavior_tests": [
+    "LIFECYCLE_ORDER_READ"
+   ],
+   "n8n_http_status": "PASS",
+   "classification": {
+    "UNIT_TESTED": true,
+    "INTEGRATION_TESTED": true,
+    "BOUNDARY_TESTED": true,
+    "BEHAVIOR_TESTED": true,
+    "FAILURE_TESTED": false,
+    "RECOVERY_TESTED": false
+   }
+  },
+  {
+   "boundary_area": "13 Idempotency",
+   "entrypoint": "POST /command idempotencyKey; registry duplicate gate",
+   "reach": "HTTP",
+   "existing_tsx_tests": [
+    "control/owner-command/tests/input-gateway.test.ts",
+    "duplicate-reservation/tests/*"
+   ],
+   "n8n_http_behavior_tests": [
+    "IDEMPOTENCY_REGISTRY_DUP"
+   ],
+   "n8n_http_status": "PASS",
+   "classification": {
+    "UNIT_TESTED": true,
+    "INTEGRATION_TESTED": true,
+    "BOUNDARY_TESTED": true,
+    "BEHAVIOR_TESTED": true,
+    "FAILURE_TESTED": false,
+    "RECOVERY_TESTED": false
+   }
+  },
+  {
+   "boundary_area": "14 Malformed worker result",
+   "entrypoint": "POST /handoff validation; agent-host-dispatch parse",
+   "reach": "HTTP+IN_PROC",
+   "existing_tsx_tests": [
+    "control/work-result-ingress/tests/*"
+   ],
+   "n8n_http_behavior_tests": [
+    "MALFORMED_HANDOFF_NEG"
+   ],
+   "n8n_http_status": "PASS",
+   "classification": {
+    "UNIT_TESTED": true,
+    "INTEGRATION_TESTED": true,
+    "BOUNDARY_TESTED": true,
+    "BEHAVIOR_TESTED": true,
+    "FAILURE_TESTED": true,
+    "RECOVERY_TESTED": false
+   }
+  },
+  {
+   "boundary_area": "15 Timeout / stall",
+   "entrypoint": "agent-host 15s SIGKILL; supervisor recover (in-proc)",
+   "reach": "IN_PROC",
+   "existing_tsx_tests": [
+    "execution/run/tests/executor.test.ts",
+    "execution/process-lock/tests/*"
+   ],
+   "n8n_http_behavior_tests": [],
+   "n8n_http_status": "NOT_APPLICABLE(in-proc, not HTTP-drivable by n8n; covered by tsx unit/integration tests)",
+   "classification": {
+    "UNIT_TESTED": true,
+    "INTEGRATION_TESTED": true,
+    "BOUNDARY_TESTED": false,
+    "BEHAVIOR_TESTED": false,
+    "FAILURE_TESTED": false,
+    "RECOVERY_TESTED": false
+   }
+  }
+ ]
+}

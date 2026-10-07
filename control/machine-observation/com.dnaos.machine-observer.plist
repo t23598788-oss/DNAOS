@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  หน้าที่: the LaunchAgent that keeps the observation runtime alive, in the
+  same form control/runtime-control/ already manages its four services
+  (launchctl bootstrap / bootout / kickstart + an HTTP health probe).
+
+  Install (Owner, by hand — this repo never installs a LaunchAgent itself):
+    cp control/machine-observation/com.dnaos.machine-observer.plist ~/Library/LaunchAgents/
+    launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.dnaos.machine-observer.plist
+
+  RunAtLoad + KeepAlive because an observer that is not running observes
+  nothing, and its absence must be visible as a failed health probe rather
+  than as silence.
+-->
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.dnaos.machine-observer</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/Users/tam/Desktop/DNA-OS-INFRASTRUCTURE/node_modules/.bin/tsx</string>
+    <string>/Users/tam/Desktop/DNA-OS-INFRASTRUCTURE/control/machine-observation/start.ts</string>
+  </array>
+  <key>WorkingDirectory</key>
+  <string>/Users/tam/Desktop/DNA-OS-INFRASTRUCTURE</string>
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>MACHINE_OBSERVER_PORT</key>
+    <string>5179</string>
+    <key>PATH</key>
+    <string>/Users/tam/.nvm/versions/node/v24.19.0/bin:/usr/bin:/bin</string>
+  </dict>
+  <key>RunAtLoad</key>
+  <true/>
+  <key>KeepAlive</key>
+  <true/>
+  <key>StandardOutPath</key>
+  <string>/Users/tam/Desktop/DNA-OS-INFRASTRUCTURE/control/machine-observation/data/observer.log</string>
+  <key>StandardErrorPath</key>
+  <string>/Users/tam/Desktop/DNA-OS-INFRASTRUCTURE/control/machine-observation/data/observer.err.log</string>
+</dict>
+</plist>

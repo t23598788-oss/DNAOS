@@ -1,0 +1,107 @@
+{
+ "flow_id": "VF_IMAGE_TO_BUSINESS_EVENT",
+ "business_flow": "รูปที่ส่งเข้ามากลายเป็นเหตุการณ์ทางธุรกิจ",
+ "source": "รูปในแชท LINE",
+ "sink": "เอกสารการรับเงินที่บันทึกแล้ว",
+ "stages": [
+  {
+   "stage_id": "VF3.1",
+   "layer": "L0_EXTERNAL_INPUT",
+   "nature": "OBSERVATION",
+   "operation": "INGEST",
+   "component": "handlers/image.ts",
+   "input": "รูปจากผู้ใช้",
+   "output": "ไฟล์ใน bucket",
+   "data_object": [
+    "attachments"
+   ],
+   "authority": "สืบทอดจากการตรวจลายเซ็น webhook",
+   "side_effect": "ดาวน์โหลดสื่อจาก LINE",
+   "next_stage": "VF3.2",
+   "failure_path": "ดาวน์โหลดไม่ได้ = ไม่มีรูปให้อ่าน",
+   "source_pointer": "supabase/functions/line-webhook-v2/handlers/image.ts:67"
+  },
+  {
+   "stage_id": "VF3.2",
+   "layer": "L1_INGESTION",
+   "nature": "OBSERVATION",
+   "operation": "NORMALIZE",
+   "component": "engines/ocr-classify.ts",
+   "input": "รูป base64",
+   "output": "ชนิดเอกสารและค่าที่อ่านได้",
+   "data_object": [],
+   "authority": "AI ทำหน้าที่อ่าน ไม่ใช่ตัดสินธุรกิจ",
+   "side_effect": null,
+   "next_stage": "VF3.3",
+   "failure_path": "อ่านไม่ได้ = null",
+   "source_pointer": "supabase/functions/line-webhook-v2/engines/ocr-classify.ts:115"
+  },
+  {
+   "stage_id": "VF3.3",
+   "layer": "L2_IDENTITY_CONTEXT",
+   "nature": "DECISION",
+   "operation": "RESOLVE_IDENTITY",
+   "component": "process-classified-image.ts",
+   "input": "line userId",
+   "output": "บริษัทและ trust_level",
+   "data_object": [
+    "company_line_links",
+    "line_profiles"
+   ],
+   "authority": "trust_level มีผลต่อการดำเนินการต่อ",
+   "side_effect": null,
+   "next_stage": "VF3.4",
+   "failure_path": "ไม่พบบริษัท = จำกัดสิ่งที่ทำได้",
+   "source_pointer": "supabase/functions/line-webhook-v2/engines/process-classified-image.ts:34,194"
+  },
+  {
+   "stage_id": "VF3.4",
+   "layer": "L5_TRANSACTION_STATE",
+   "nature": "DECISION",
+   "operation": "TRANSACTION",
+   "component": "process-classified-image.ts",
+   "input": "ค่าที่อ่านได้",
+   "output": "เอกสารการรับเงิน",
+   "data_object": [
+    "receipt_documents",
+    "bank_notifications"
+   ],
+   "authority": "การจับคู่เป็น deterministic",
+   "side_effect": "เขียน receipt_documents",
+   "next_stage": null,
+   "failure_path": "ไม่พบการแจ้งเตือนธนาคารที่ตรง = บันทึกเดี่ยว",
+   "source_pointer": "supabase/functions/line-webhook-v2/engines/process-classified-image.ts:116,155"
+  }
+ ],
+ "terminal_state": "เอกสารการรับเงินที่รอการยืนยันจากหลังบ้าน",
+ "financial_effect": [
+  {
+   "effect": "PAYMENT_RECEIVED",
+   "data_object": [
+    "receipt_documents"
+   ],
+   "deterministic_calculation": "supabase/functions/line-webhook-v2/engines/process-classified-image.ts:155"
+  }
+ ],
+ "projection": [
+  {
+   "surface": "deadboard /admin/receipt-documents",
+   "canonical_source": [
+    "receipt_documents"
+   ],
+   "projection_object": [
+    "receipt_documents"
+   ],
+   "refresh": "REQUEST",
+   "reads_raw_ingestion": false,
+   "reason": "หน้ายืนยันการรับเงินอ่านจากตารางเอกสารโดยตรง"
+  }
+ ],
+ "external_action": [],
+ "health": "COMPLETE",
+ "last_confirmed_stage": "VF3.4",
+ "expected_next_stage": null,
+ "blocker": null,
+ "runtime_trace": [],
+ "schema": "DATA_FLOW_V1"
+}

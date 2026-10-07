@@ -1,0 +1,26 @@
+{
+ "count": 3,
+ "items": [
+  {
+   "coupling": "handlers/postback.ts -> business_events",
+   "classification": "NEEDS_COMMAND_BOUNDARY",
+   "reason": "การกดปุ่มเป็นเจตนาที่ชัดเจนอยู่แล้ว แต่ยังเขียนเหตุการณ์ธุรกิจเองโดยไม่ผ่านคำสั่ง ทำให้ไม่มีจุดเดียวที่ตรวจสิทธิ์และตรวจบริบทได้",
+   "keep_behavior": true,
+   "removal_phase": "หลังมี command boundary ของ lane.sales"
+  },
+  {
+   "coupling": "handlers/postback.ts -> pending_authorizations",
+   "classification": "NEEDS_EVENT_BOUNDARY",
+   "reason": "สร้างคำขออนุมัติได้ แต่ไม่มีเหตุการณ์ออกมาให้ใครรับรู้ คำขอจึงค้างโดยไม่มีผู้บริโภค",
+   "keep_behavior": true,
+   "removal_phase": "หลังมี AUTHORIZATION_REQUESTED ที่มีผู้บริโภคจริง"
+  },
+  {
+   "coupling": "handlers/location.ts -> customer_sites",
+   "classification": "VALID_DOMAIN_WRITE",
+   "reason": "handler นี้เป็นเจ้าของ lane.location อยู่แล้ว การเขียน customer_sites จึงเป็นการเขียนในโดเมนตัวเอง ไม่ใช่การข้ามโดเมน",
+   "keep_behavior": true,
+   "removal_phase": "ไม่ต้องถอด"
+  }
+ ]
+}

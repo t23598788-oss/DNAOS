@@ -1,0 +1,59 @@
+{
+ "observed_at": "2026-08-31T21:35:46Z",
+ "evidence_class": "OBSERVED_BROWSER_READ",
+ "source": "os-ui lane · GET https://www.tiktok.com/@user30932384913455 (Owner's logged-in Chrome session)",
+ "proves": "DNA OS สามารถอ่าน/สังเกตบัญชีและรายการคลิปของ Owner ได้ (READ) — ยังไม่ใช่การควบคุมผ่าน OAuth API",
+ "not_proven": [
+  "OAUTH_COMPLETED",
+  "CREDENTIAL_REFERENCE_CREATED (no token)",
+  "OAUTH_API_USER_INFO",
+  "OAUTH_API_VIDEO_LIST",
+  "post/publish ability"
+ ],
+ "account_identity": {
+  "handle": "@user30932384913455",
+  "display_name": "ช.ธวัชชัยการช่าง เมืองขอนแก่น",
+  "profile_url": "https://www.tiktok.com/@user30932384913455",
+  "following": 172,
+  "followers": 205,
+  "likes_total": 2876,
+  "business_contact": [
+   "080-985-4294",
+   "064-962-3567"
+  ]
+ },
+ "video_list_observed": [
+  {
+   "rank": 1,
+   "pinned": true,
+   "views_label": "15.2K"
+  },
+  {
+   "rank": 2,
+   "pinned": true,
+   "views_label": "16K"
+  },
+  {
+   "rank": 3,
+   "pinned": true,
+   "views_label": "117.5K"
+  },
+  {
+   "rank": 4,
+   "pinned": false,
+   "views_label": "276"
+  },
+  {
+   "rank": 5,
+   "pinned": false,
+   "views_label": "166"
+  },
+  {
+   "rank": 6,
+   "pinned": false,
+   "views_label": "316"
+  }
+ ],
+ "video_list_note": "อ่านจาก grid หน้าโปรไฟล์ (บางส่วนที่เห็นบนจอ ยังมีต่อด้านล่าง) — ไม่ใช่ payload ของ /v2/video/list/",
+ "linked_connection_declaration": "connection-declaration://tiktok/SOCIAL_ACCOUNT/BIDIRECTIONAL/account=owner-primary,login_kit=v2"
+}
