@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-07T21:52:01.900Z",
+  "generated_at": "2026-10-07T22:05:36.493Z",
   "version": 1,
   "nodes": [
     {
@@ -1708,13 +1708,18 @@
       "name_en": "app/api/deploy/route.ts",
       "purpose_th": "API Deploy status — ตรวจสอบสถานะ deployment",
       "exports": [
-        "GET"
+        "GET",
+        "POST"
       ],
       "status": "OK",
       "runtime_entry_point": true,
       "internal_dependencies": [
         "module:core/auth/requireAuth.ts",
-        "module:core/auth/session.ts"
+        "module:core/auth/session.ts",
+        "module:engines/integration-gateway/adapters/railway.ts",
+        "module:engines/integration-gateway/adapters/vercel.ts",
+        "module:engines/integration-gateway/connect-failover.ts",
+        "module:engines/integration-gateway/runtime-router.ts"
       ],
       "dependents": [],
       "data_tables": "UNKNOWN",
@@ -1733,8 +1738,14 @@
         {
           "name": "GET",
           "kind": "function",
-          "line_start": 41,
-          "line_end": 56
+          "line_start": 45,
+          "line_end": 69
+        },
+        {
+          "name": "POST",
+          "kind": "function",
+          "line_start": 77,
+          "line_end": 96
         }
       ],
       "import_sites": [
@@ -1747,6 +1758,26 @@
           "specifier": "@/core/auth/session",
           "line": 3,
           "resolved_target": "core/auth/session.ts"
+        },
+        {
+          "specifier": "@/engines/integration-gateway/runtime-router",
+          "line": 7,
+          "resolved_target": "engines/integration-gateway/runtime-router.ts"
+        },
+        {
+          "specifier": "@/engines/integration-gateway/connect-failover",
+          "line": 8,
+          "resolved_target": "engines/integration-gateway/connect-failover.ts"
+        },
+        {
+          "specifier": "@/engines/integration-gateway/adapters/vercel",
+          "line": 9,
+          "resolved_target": "engines/integration-gateway/adapters/vercel.ts"
+        },
+        {
+          "specifier": "@/engines/integration-gateway/adapters/railway",
+          "line": 10,
+          "resolved_target": "engines/integration-gateway/adapters/railway.ts"
         }
       ]
     },
@@ -13082,7 +13113,8 @@
       "dependents": [
         "module:app/admin/links/page.tsx",
         "module:app/admin/settings/page.tsx",
-        "module:app/api/admin/workspace/database/route.ts"
+        "module:app/api/admin/workspace/database/route.ts",
+        "module:engines/integration-gateway/adapters/vercel.ts"
       ],
       "data_tables": "UNKNOWN",
       "business_capabilities": "UNKNOWN",
@@ -42620,7 +42652,11 @@
       "purpose_th": "Integration Gateway: แปลง Vercel deployment webhook payload จริงเป็น GatewayEvent (Observe Channel เท่านั้น) พร้อมตรวจ signature HMAC-SHA1 ให้ ingress route",
       "exports": [
         "VercelRuntimeProviderConfig",
+        "activateVercelRelease",
         "normalizeVercelWebhook",
+        "observeVercelConnectStatus",
+        "observeVercelRuntimeProviderStatus",
+        "vercelExternalConnect",
         "vercelRuntimeProvider",
         "vercelRuntimeProviderStatus",
         "verifyVercelSignature"
@@ -42628,10 +42664,13 @@
       "status": "OK",
       "runtime_entry_point": false,
       "internal_dependencies": [
+        "module:config/system-links.ts",
         "module:engines/integration-gateway/contracts/event.ts",
+        "module:engines/integration-gateway/contracts/external-connect.ts",
         "module:engines/integration-gateway/contracts/runtime-provider.ts"
       ],
       "dependents": [
+        "module:app/api/deploy/route.ts",
         "module:app/api/gateway/observe/vercel/route.ts",
         "module:scripts/runtime-provider-router-test.ts"
       ],
@@ -42651,44 +42690,78 @@
         {
           "name": "verifyVercelSignature",
           "kind": "function",
-          "line_start": 16,
-          "line_end": 23
+          "line_start": 8,
+          "line_end": 15
         },
         {
           "name": "normalizeVercelWebhook",
           "kind": "function",
-          "line_start": 35,
-          "line_end": 59
+          "line_start": 19,
+          "line_end": 36
         },
         {
           "name": "VercelRuntimeProviderConfig",
           "kind": "interface",
-          "line_start": 61,
-          "line_end": 69
+          "line_start": 38,
+          "line_end": 46
         },
         {
           "name": "vercelRuntimeProviderStatus",
           "kind": "function",
-          "line_start": 71,
-          "line_end": 92
+          "line_start": 66,
+          "line_end": 82
+        },
+        {
+          "name": "observeVercelRuntimeProviderStatus",
+          "kind": "function",
+          "line_start": 84,
+          "line_end": 89
+        },
+        {
+          "name": "observeVercelConnectStatus",
+          "kind": "function",
+          "line_start": 91,
+          "line_end": 101
+        },
+        {
+          "name": "activateVercelRelease",
+          "kind": "function",
+          "line_start": 103,
+          "line_end": 105
         },
         {
           "name": "vercelRuntimeProvider",
           "kind": "const",
-          "line_start": 94,
-          "line_end": 97
+          "line_start": 107,
+          "line_end": 107
+        },
+        {
+          "name": "vercelExternalConnect",
+          "kind": "const",
+          "line_start": 108,
+          "line_end": 108
         }
       ],
       "import_sites": [
         {
+          "specifier": "@/config/system-links",
+          "line": 3,
+          "resolved_target": "config/system-links.ts"
+        },
+        {
           "specifier": "../contracts/event",
-          "line": 10,
+          "line": 4,
           "resolved_target": "engines/integration-gateway/contracts/event.ts"
         },
         {
           "specifier": "../contracts/runtime-provider",
-          "line": 11,
+          "line": 5,
           "resolved_target": "engines/integration-gateway/contracts/runtime-provider.ts"
+        },
+        {
+          "specifier": "../contracts/external-connect",
+          "line": 6,
+          "resolved_target": "engines/integration-gateway/contracts/external-connect.ts"
         }
       ]
     },
@@ -76030,8 +76103,12 @@
       "exports": [
         "RailwayDeploymentStatus",
         "RailwayRuntimeProviderConfig",
+        "activateRailwayRelease",
         "isRailwayTerminalStatus",
         "normalizeRailwayWebhook",
+        "observeRailwayConnectStatus",
+        "observeRailwayRuntimeProviderStatus",
+        "railwayExternalConnect",
         "railwayRuntimeProvider",
         "railwayRuntimeProviderStatus",
         "railwayWebhookTypeToStatus"
@@ -76040,9 +76117,11 @@
       "runtime_entry_point": false,
       "internal_dependencies": [
         "module:engines/integration-gateway/contracts/event.ts",
+        "module:engines/integration-gateway/contracts/external-connect.ts",
         "module:engines/integration-gateway/contracts/runtime-provider.ts"
       ],
       "dependents": [
+        "module:app/api/deploy/route.ts",
         "module:app/api/gateway/observe/railway/route.ts",
         "module:scripts/railway-adapter-test.ts",
         "module:scripts/runtime-provider-router-test.ts"
@@ -76063,44 +76142,68 @@
         {
           "name": "RailwayDeploymentStatus",
           "kind": "type",
-          "line_start": 28,
-          "line_end": 31
+          "line_start": 33,
+          "line_end": 36
         },
         {
           "name": "railwayWebhookTypeToStatus",
           "kind": "function",
-          "line_start": 36,
-          "line_end": 59
+          "line_start": 41,
+          "line_end": 64
         },
         {
           "name": "isRailwayTerminalStatus",
           "kind": "function",
-          "line_start": 62,
-          "line_end": 65
+          "line_start": 67,
+          "line_end": 70
         },
         {
           "name": "normalizeRailwayWebhook",
           "kind": "function",
-          "line_start": 70,
-          "line_end": 114
+          "line_start": 75,
+          "line_end": 119
         },
         {
           "name": "RailwayRuntimeProviderConfig",
           "kind": "interface",
-          "line_start": 121,
-          "line_end": 129
+          "line_start": 126,
+          "line_end": 134
         },
         {
           "name": "railwayRuntimeProviderStatus",
           "kind": "function",
-          "line_start": 131,
-          "line_end": 152
+          "line_start": 152,
+          "line_end": 169
+        },
+        {
+          "name": "observeRailwayRuntimeProviderStatus",
+          "kind": "function",
+          "line_start": 171,
+          "line_end": 179
+        },
+        {
+          "name": "observeRailwayConnectStatus",
+          "kind": "function",
+          "line_start": 181,
+          "line_end": 191
+        },
+        {
+          "name": "activateRailwayRelease",
+          "kind": "function",
+          "line_start": 193,
+          "line_end": 195
         },
         {
           "name": "railwayRuntimeProvider",
           "kind": "const",
-          "line_start": 154,
-          "line_end": 157
+          "line_start": 197,
+          "line_end": 200
+        },
+        {
+          "name": "railwayExternalConnect",
+          "kind": "const",
+          "line_start": 202,
+          "line_end": 206
         }
       ],
       "import_sites": [
@@ -76113,6 +76216,11 @@
           "specifier": "../contracts/runtime-provider",
           "line": 23,
           "resolved_target": "engines/integration-gateway/contracts/runtime-provider.ts"
+        },
+        {
+          "specifier": "../contracts/external-connect",
+          "line": 24,
+          "resolved_target": "engines/integration-gateway/contracts/external-connect.ts"
         }
       ]
     },
@@ -90407,6 +90515,7 @@
         "module:engines/integration-gateway/contracts/runtime-provider.ts"
       ],
       "dependents": [
+        "module:app/api/deploy/route.ts",
         "module:scripts/runtime-provider-router-test.ts"
       ],
       "data_tables": "UNKNOWN",
@@ -90426,7 +90535,7 @@
           "name": "selectRuntimeProvider",
           "kind": "function",
           "line_start": 18,
-          "line_end": 75
+          "line_end": 81
         }
       ],
       "import_sites": [
@@ -90463,7 +90572,9 @@
       "dependents": [
         "module:engines/integration-gateway/adapters/railway.ts",
         "module:engines/integration-gateway/adapters/vercel.ts",
+        "module:engines/integration-gateway/contracts/external-connect.ts",
         "module:engines/integration-gateway/runtime-router.ts",
+        "module:scripts/external-connect-failover-test.ts",
         "module:scripts/runtime-provider-router-test.ts"
       ],
       "data_tables": "UNKNOWN",
@@ -90550,6 +90661,187 @@
           "kind": "const",
           "line_start": 66,
           "line_end": 72
+        }
+      ]
+    },
+    {
+      "id": "module:engines/integration-gateway/connect-failover.ts",
+      "type": "Module",
+      "layer": "engines",
+      "name_en": "engines/integration-gateway/connect-failover.ts",
+      "purpose_th": "gate เปิดใช้งาน failover — activateStandbyConnect ยก standby connect ภายนอก (เช่น Railway standby) ผ่านสัญญา external-connect เท่านั้น เมื่อผ่านการตรวจ status/capability แล้ว",
+      "exports": [
+        "activateStandbyConnect"
+      ],
+      "status": "OK",
+      "runtime_entry_point": false,
+      "internal_dependencies": [
+        "module:engines/integration-gateway/contracts/external-connect.ts"
+      ],
+      "dependents": [
+        "module:app/api/deploy/route.ts",
+        "module:scripts/external-connect-failover-test.ts"
+      ],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "engines",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "symbols": [
+        {
+          "name": "activateStandbyConnect",
+          "kind": "function",
+          "line_start": 16,
+          "line_end": 39
+        }
+      ],
+      "import_sites": [
+        {
+          "specifier": "./contracts/external-connect",
+          "line": 1,
+          "resolved_target": "engines/integration-gateway/contracts/external-connect.ts"
+        }
+      ]
+    },
+    {
+      "id": "module:engines/integration-gateway/contracts/external-connect.ts",
+      "type": "Module",
+      "layer": "engines",
+      "name_en": "engines/integration-gateway/contracts/external-connect.ts",
+      "purpose_th": "สัญญา external-connect — รูป status/activation/failover (ExternalConnectStatus, ExternalConnectAdapter, ExternalConnectActivation*, ExternalConnectFailover*) ที่ adapter connect ของ Railway/Vercel ใช้ร่วมกัน",
+      "exports": [
+        "ExternalConnectActivationRequest",
+        "ExternalConnectActivationResult",
+        "ExternalConnectAdapter",
+        "ExternalConnectFailoverRequest",
+        "ExternalConnectFailoverResult",
+        "ExternalConnectFailureCode",
+        "ExternalConnectStatus"
+      ],
+      "status": "OK",
+      "runtime_entry_point": false,
+      "internal_dependencies": [
+        "module:engines/integration-gateway/contracts/runtime-provider.ts"
+      ],
+      "dependents": [
+        "module:engines/integration-gateway/adapters/railway.ts",
+        "module:engines/integration-gateway/adapters/vercel.ts",
+        "module:engines/integration-gateway/connect-failover.ts",
+        "module:scripts/external-connect-failover-test.ts"
+      ],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "engines",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "symbols": [
+        {
+          "name": "ExternalConnectFailureCode",
+          "kind": "type",
+          "line_start": 3,
+          "line_end": 11
+        },
+        {
+          "name": "ExternalConnectStatus",
+          "kind": "interface",
+          "line_start": 13,
+          "line_end": 19
+        },
+        {
+          "name": "ExternalConnectActivationRequest",
+          "kind": "interface",
+          "line_start": 21,
+          "line_end": 24
+        },
+        {
+          "name": "ExternalConnectActivationResult",
+          "kind": "interface",
+          "line_start": 26,
+          "line_end": 29
+        },
+        {
+          "name": "ExternalConnectAdapter",
+          "kind": "interface",
+          "line_start": 31,
+          "line_end": 35
+        },
+        {
+          "name": "ExternalConnectFailoverRequest",
+          "kind": "interface",
+          "line_start": 37,
+          "line_end": 42
+        },
+        {
+          "name": "ExternalConnectFailoverResult",
+          "kind": "interface",
+          "line_start": 44,
+          "line_end": 49
+        }
+      ],
+      "import_sites": [
+        {
+          "specifier": "./runtime-provider",
+          "line": 1,
+          "resolved_target": "engines/integration-gateway/contracts/runtime-provider.ts"
+        }
+      ]
+    },
+    {
+      "id": "module:scripts/external-connect-failover-test.ts",
+      "type": "Module",
+      "layer": "scripts",
+      "name_en": "scripts/external-connect-failover-test.ts",
+      "purpose_th": "ทดสอบ failover gate ของ external-connect — รันบน CJS ล้วน (d15ea86) ตรวจ eligibility, รหัส rejection และผล activation ของ activateStandbyConnect โดยไม่ยิงเครือข่ายจริง",
+      "exports": [],
+      "status": "OK",
+      "runtime_entry_point": true,
+      "internal_dependencies": [
+        "module:engines/integration-gateway/connect-failover.ts",
+        "module:engines/integration-gateway/contracts/external-connect.ts",
+        "module:engines/integration-gateway/contracts/runtime-provider.ts"
+      ],
+      "dependents": [],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "scripts",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "import_sites": [
+        {
+          "specifier": "../engines/integration-gateway/connect-failover",
+          "line": 2,
+          "resolved_target": "engines/integration-gateway/connect-failover.ts"
+        },
+        {
+          "specifier": "../engines/integration-gateway/contracts/external-connect",
+          "line": 3,
+          "resolved_target": "engines/integration-gateway/contracts/external-connect.ts"
+        },
+        {
+          "specifier": "../engines/integration-gateway/contracts/runtime-provider",
+          "line": 4,
+          "resolved_target": "engines/integration-gateway/contracts/runtime-provider.ts"
         }
       ]
     }
@@ -94657,7 +94949,17 @@
     },
     {
       "source": "layer:engines",
+      "target": "module:engines/integration-gateway/connect-failover.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:engines",
       "target": "module:engines/integration-gateway/contracts/event.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:engines",
+      "target": "module:engines/integration-gateway/contracts/external-connect.ts",
       "label": "contains"
     },
     {
@@ -96143,6 +96445,11 @@
     {
       "source": "layer:scripts",
       "target": "module:scripts/external-attack-surface-test.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:scripts",
+      "target": "module:scripts/external-connect-failover-test.ts",
       "label": "contains"
     },
     {
@@ -105301,6 +105608,26 @@
       "label": "imports"
     },
     {
+      "source": "module:app/api/deploy/route.ts",
+      "target": "module:engines/integration-gateway/adapters/railway.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/deploy/route.ts",
+      "target": "module:engines/integration-gateway/adapters/vercel.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/deploy/route.ts",
+      "target": "module:engines/integration-gateway/connect-failover.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/deploy/route.ts",
+      "target": "module:engines/integration-gateway/runtime-router.ts",
+      "label": "imports"
+    },
+    {
       "source": "module:app/api/document/route.ts",
       "target": "module:core/auth/requireAuth.ts",
       "label": "imports"
@@ -109587,6 +109914,11 @@
     },
     {
       "source": "module:engines/integration-gateway/adapters/railway.ts",
+      "target": "module:engines/integration-gateway/contracts/external-connect.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:engines/integration-gateway/adapters/railway.ts",
       "target": "module:engines/integration-gateway/contracts/runtime-provider.ts",
       "label": "imports"
     },
@@ -109597,11 +109929,31 @@
     },
     {
       "source": "module:engines/integration-gateway/adapters/vercel.ts",
+      "target": "module:config/system-links.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:engines/integration-gateway/adapters/vercel.ts",
       "target": "module:engines/integration-gateway/contracts/event.ts",
       "label": "imports"
     },
     {
       "source": "module:engines/integration-gateway/adapters/vercel.ts",
+      "target": "module:engines/integration-gateway/contracts/external-connect.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:engines/integration-gateway/adapters/vercel.ts",
+      "target": "module:engines/integration-gateway/contracts/runtime-provider.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:engines/integration-gateway/connect-failover.ts",
+      "target": "module:engines/integration-gateway/contracts/external-connect.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:engines/integration-gateway/contracts/external-connect.ts",
       "target": "module:engines/integration-gateway/contracts/runtime-provider.ts",
       "label": "imports"
     },
@@ -112496,6 +112848,21 @@
       "label": "imports"
     },
     {
+      "source": "module:scripts/external-connect-failover-test.ts",
+      "target": "module:engines/integration-gateway/connect-failover.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:scripts/external-connect-failover-test.ts",
+      "target": "module:engines/integration-gateway/contracts/external-connect.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:scripts/external-connect-failover-test.ts",
+      "target": "module:engines/integration-gateway/contracts/runtime-provider.ts",
+      "label": "imports"
+    },
+    {
       "source": "module:scripts/factory-completion-test.ts",
       "target": "module:app/api/admin/ide/_lib/factoryCompletionRegistry.ts",
       "label": "imports"
@@ -114677,8 +115044,8 @@
     }
   ],
   "summary": {
-    "total": 1332,
-    "ok": 1332,
+    "total": 1335,
+    "ok": 1335,
     "broken": 0,
     "unused": 0,
     "unregistered": 0

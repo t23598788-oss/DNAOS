@@ -305,7 +305,8 @@
       "purpose": "API Deploy status — ตรวจสอบสถานะ deployment",
       "purpose_th": "API Deploy status — ตรวจสอบสถานะ deployment",
       "exports": [
-        "GET"
+        "GET",
+        "POST"
       ],
       "status": "active"
     },
@@ -7892,7 +7893,11 @@
       "purpose_th": "Integration Gateway: แปลง Vercel deployment webhook payload จริงเป็น GatewayEvent (Observe Channel เท่านั้น) พร้อมตรวจ signature HMAC-SHA1 ให้ ingress route",
       "exports": [
         "VercelRuntimeProviderConfig",
+        "activateVercelRelease",
         "normalizeVercelWebhook",
+        "observeVercelConnectStatus",
+        "observeVercelRuntimeProviderStatus",
+        "vercelExternalConnect",
         "vercelRuntimeProvider",
         "vercelRuntimeProviderStatus",
         "verifyVercelSignature"
@@ -13453,8 +13458,12 @@
       "exports": [
         "RailwayDeploymentStatus",
         "RailwayRuntimeProviderConfig",
+        "activateRailwayRelease",
         "isRailwayTerminalStatus",
         "normalizeRailwayWebhook",
+        "observeRailwayConnectStatus",
+        "observeRailwayRuntimeProviderStatus",
+        "railwayExternalConnect",
         "railwayRuntimeProvider",
         "railwayRuntimeProviderStatus",
         "railwayWebhookTypeToStatus"
@@ -16137,6 +16146,40 @@
         "RuntimeTargetRequest",
         "RuntimeTargetSelection"
       ],
+      "status": "active"
+    },
+    "engines/integration-gateway/connect-failover.ts": {
+      "owner": "engines",
+      "layer": "engines",
+      "purpose": "Failover activation gate — activateStandbyConnect promotes a standby external connect (e.g. Railway standby) through the external-connect contract only after status/capability checks pass.",
+      "purpose_th": "gate เปิดใช้งาน failover — activateStandbyConnect ยก standby connect ภายนอก (เช่น Railway standby) ผ่านสัญญา external-connect เท่านั้น เมื่อผ่านการตรวจ status/capability แล้ว",
+      "exports": [
+        "activateStandbyConnect"
+      ],
+      "status": "active"
+    },
+    "engines/integration-gateway/contracts/external-connect.ts": {
+      "owner": "engines",
+      "layer": "engines",
+      "purpose": "External-connect contract — status/activation/failover shapes (ExternalConnectStatus, ExternalConnectAdapter, ExternalConnectActivation*, ExternalConnectFailover*) shared by the Railway/Vercel connect adapters.",
+      "purpose_th": "สัญญา external-connect — รูป status/activation/failover (ExternalConnectStatus, ExternalConnectAdapter, ExternalConnectActivation*, ExternalConnectFailover*) ที่ adapter connect ของ Railway/Vercel ใช้ร่วมกัน",
+      "exports": [
+        "ExternalConnectActivationRequest",
+        "ExternalConnectActivationResult",
+        "ExternalConnectAdapter",
+        "ExternalConnectFailoverRequest",
+        "ExternalConnectFailoverResult",
+        "ExternalConnectFailureCode",
+        "ExternalConnectStatus"
+      ],
+      "status": "active"
+    },
+    "scripts/external-connect-failover-test.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "Contract test for the external-connect failover gate — runs under plain CJS (d15ea86) and asserts activateStandbyConnect's eligibility checks, typed rejection codes and activation outcome without any network.",
+      "purpose_th": "ทดสอบ failover gate ของ external-connect — รันบน CJS ล้วน (d15ea86) ตรวจ eligibility, รหัส rejection และผล activation ของ activateStandbyConnect โดยไม่ยิงเครือข่ายจริง",
+      "exports": [],
       "status": "active"
     }
   },

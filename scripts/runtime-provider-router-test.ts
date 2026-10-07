@@ -142,7 +142,10 @@ async function main() {
   delete process.env.NEXT_PUBLIC_APP_URL;
   delete process.env.VERCEL_RUNTIME_PAID;
   delete process.env.VERCEL_RUNTIME_OWNER_APPROVED;
-  delete process.env.RAILWAY_RUNTIME_URL;
+  // Canonical runtime reality (config/system-links): the production site
+  // belongs to the Railway group — Vercel has no Production-site fallback
+  // anymore, so with no env at all Vercel resolves to null/unavailable.
+  process.env.RAILWAY_RUNTIME_URL = "https://dnaos.dev";
   delete process.env.RAILWAY_RUNTIME_PAID;
   delete process.env.RAILWAY_RUNTIME_OWNER_APPROVED;
 
@@ -150,13 +153,14 @@ async function main() {
   const railway = railwayRuntimeProviderStatus({ latencyMs: 90 });
   const result = await selectRuntimeProvider([adapter(vercel), adapter(railway)], request);
 
-  assert.equal(vercel.runtime_url, "https://dnaos.dev");
+  assert.equal(vercel.runtime_url, null);
+  assert.equal(vercel.availability, "unavailable");
   assert.equal(vercel.cost.paid, false);
   assert.equal(vercel.cost.owner_approved, false);
-  assert.equal(railway.runtime_url, null);
-  assert.equal(railway.availability, "unavailable");
+  assert.equal(railway.runtime_url, "https://dnaos.dev");
+  assert.equal(railway.availability, "available");
   assert.equal(result.ok, true);
-  assert.equal(result.selected_provider_id, "vercel");
+  assert.equal(result.selected_provider_id, "railway");
 
   if (originalVercelRuntimeUrl === undefined) delete process.env.VERCEL_RUNTIME_URL;
   else process.env.VERCEL_RUNTIME_URL = originalVercelRuntimeUrl;
