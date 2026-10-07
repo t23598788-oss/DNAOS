@@ -187,7 +187,11 @@ const DOC_COLUMNS: ResultTable["columns"] = [
 ];
 
 function documentNumberFromMessage(message: string): string | null {
-  const m = message.match(/\b([A-Za-z]{1,4}-\d{3,})\b/);
+  // Covers the real document-number shapes in this system: INV-D10-20260922012005,
+  // REC-20260805-812, QT-2026… (leading letters, 1–4 dash-separated segments of
+  // letters/digits). Requires a LETTER-led token so a date like 2026-09-22 can
+  // never be mistaken for a document number.
+  const m = message.match(/\b([A-Za-z]{1,6}(?:-[A-Za-z0-9]+){1,4})\b/);
   return m ? m[1] : null;
 }
 
