@@ -15,7 +15,7 @@ import { usePathname, useRouter } from "next/navigation";
 import {
   Grid2X2, Ellipsis, MessageSquare, Settings, FileText, MessageCircle,
   Wallet, MapPin, Briefcase, Users, ScanLine, Files, FileOutput, Printer,
-  Download, Share2, History, Paperclip, ArrowUp, X,
+  Download, Share2, History, Paperclip, ArrowUp, Mic, X,
   FileSignature, Banknote, Mountain, Server, Cloud,
 } from "lucide-react";
 import { openExternal } from "@/components/admin/openExternal";
@@ -84,7 +84,7 @@ const FRAME_CSS = `
 #dna-frame button[aria-disabled=true]:hover{background:transparent}
 #dna-frame .corner{position:absolute;z-index:4;right:14px;top:16px;background:var(--paper)}
 #dna-frame .gear{position:absolute;left:12px;bottom:16px;z-index:3;background:var(--paper)}
-#dna-frame .stage{position:relative;flex:1 1 auto;min-height:0;padding:84px 64px 78px;display:flex;flex-direction:column}
+#dna-frame .stage{position:relative;flex:1 1 auto;min-height:0;padding:12px 64px 16px;display:flex;flex-direction:column}
 #dna-frame .stage--bleed{padding:76px 12px 12px}
 #dna-frame .edge{position:absolute;top:20px;padding:8px;z-index:6}
 #dna-frame .edge.left{left:8px}
@@ -99,7 +99,7 @@ const FRAME_CSS = `
 #dna-frame .msg-panel{position:absolute;top:76px;right:12px;bottom:76px;width:min(420px,calc(100% - 24px));z-index:5;background:var(--paper);border:1px solid var(--line);border-radius:14px;box-shadow:0 12px 24px #0002;display:flex;flex-direction:column;padding:14px;gap:10px;overflow:hidden}
 #dna-frame .msg-panel .row strong{margin-right:auto;font-weight:500}
 #dna-frame .msg-panel .panel-body{flex:1;min-height:0;overflow:auto}
-#dna-frame .content{flex:1;padding:32px 0;min-height:0;overflow:hidden;display:flex;flex-direction:column}
+#dna-frame .content{flex:1;padding:0 0 12px;min-height:0;overflow:hidden;display:flex;flex-direction:column}
 #dna-frame .content--fill{padding:0;min-height:0;overflow:hidden}
 #dna-frame .content--fill>div{flex:1 1 0%;min-height:0}
 #dna-frame .count{background:#c93232;color:#fff;min-width:18px;border-radius:10px;font-size:11px;padding:0 5px;margin-left:auto}
@@ -109,9 +109,16 @@ const FRAME_CSS = `
 #dna-frame button[disabled]{opacity:.5;cursor:not-allowed}
 #dna-frame button[disabled]:hover{background:transparent}
 #dna-frame .blank{text-align:center;padding:42px 0}
-#dna-frame .compose{border:1px solid var(--line);border-radius:16px;padding:12px;margin-top:auto;width:min(100%,860px);margin-inline:auto}
-#dna-frame textarea{width:100%;resize:vertical;min-height:54px;max-height:25dvh;background:transparent;border:0;outline:none}
-#dna-frame .row .send{margin-left:auto}
+#dna-frame .compose{border:1px solid var(--line);border-radius:16px;padding:8px 10px;margin-top:auto;width:min(100%,860px);margin-inline:auto}
+#dna-frame textarea{width:100%;resize:none;height:36px;min-height:36px;max-height:36px;background:transparent;border:0;outline:none}
+#dna-frame .compose .compose-tools{display:flex;align-items:center;gap:6px}
+#dna-frame .compose button{min-height:32px;width:32px;height:32px;padding:6px;display:inline-flex;align-items:center;justify-content:center}
+#dna-frame .compose button svg{width:16px;height:16px}
+#dna-frame .compose .voice{margin-left:auto}
+#dna-frame .compose .send{margin-left:0}
+#dna-frame .stage:not(.stage--bleed) .content{padding-inline:0}
+#dna-frame .stage:not(.stage--bleed) .msg-list{padding:0 0 12px}
+#dna-frame .stage:not(.stage--bleed) .msg-col{width:100%}
 #dna-frame .note{font-size:12px;opacity:.75}
 /* BUSINESS RESULT PRESENTATION (spec §1): user ขวา/ตามเนื้อหา · DNA OS ซ้าย/พื้นที่ผลลัพธ์ */
 #dna-frame .msg-row{display:flex;flex-direction:column}
@@ -132,7 +139,7 @@ const FRAME_CSS = `
 #dna-frame .attachment-link{font-size:12px;color:#0f766e;text-decoration:underline}
 #dna-frame .result-timeline{max-width:820px}
 #dna-frame svg{width:18px;height:18px;vertical-align:middle}
-@media(max-width:500px){#dna-frame .stage{padding:72px 14px 16px}#dna-frame .blank{padding:24px 0}}
+@media(max-width:500px){#dna-frame .stage{padding:12px 64px 12px}#dna-frame .blank{padding:24px 0}}
 `;
 
 export function WorkspaceFrame({
@@ -680,11 +687,17 @@ export function WorkspaceFrame({
             placeholder="พิมพ์คำสั่งกับ DNA OS…"
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing && e.nativeEvent.keyCode !== 229) {
+                e.preventDefault();
+                if (!sending && !uploading && draft.trim()) e.currentTarget.form?.requestSubmit();
+              }
+            }}
             disabled={sending}
           />
-          <div className="row">
-            <button type="button" onClick={() => fileRef.current?.click()} disabled={uploading}>
-              <Paperclip /> แนบไฟล์
+          <div className="row compose-tools">
+            <button type="button" aria-label="แนบไฟล์" title="แนบไฟล์" onClick={() => fileRef.current?.click()} disabled={uploading}>
+              <Paperclip />
             </button>
             <input
               ref={fileRef}
@@ -697,6 +710,7 @@ export function WorkspaceFrame({
             />
             <button
               type="button"
+              className="voice"
               aria-pressed={voiceOn}
               aria-label="เปิดหรือปิดเสียงตอบ"
               title={voiceOn ? "ปิดเสียงพูด" : "เปิดให้พูดคำตอบ"}
@@ -707,7 +721,7 @@ export function WorkspaceFrame({
                 if (!next && typeof window !== "undefined" && "speechSynthesis" in window) window.speechSynthesis.cancel();
               }}
             >
-              {voiceOn ? "🔊 เสียง: เปิด" : "🔇 เสียง: ปิด"}
+              <Mic />
             </button>
             <button className="send" type="submit" aria-label="ส่งคำสั่ง" disabled={sending}>
               <ArrowUp />

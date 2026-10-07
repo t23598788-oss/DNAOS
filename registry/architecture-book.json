@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-07T16:02:49.174Z",
+  "generated_at": "2026-10-07T17:07:03.917Z",
   "version": 1,
   "nodes": [
     {
@@ -89342,14 +89342,14 @@
         {
           "name": "WorkspaceFrame",
           "kind": "function",
-          "line_start": 138,
-          "line_end": 721
+          "line_start": 145,
+          "line_end": 735
         },
         {
           "name": "WorkspaceToolNavigation",
           "kind": "function",
-          "line_start": 1047,
-          "line_end": 1084
+          "line_start": 1061,
+          "line_end": 1098
         }
       ],
       "import_sites": [
