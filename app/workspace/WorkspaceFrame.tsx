@@ -77,6 +77,8 @@ const ACTIONS: FrameItem[] = [
 const FRAME_CSS = `
 #dna-frame{--paper:#fdfbf8;--ink:#36332f;--line:#e9e1d6;--soft:#f0ebe5;position:relative;background:var(--paper);color:var(--ink);font:14px/1.6 system-ui,sans-serif;border:1px solid var(--line);border-radius:16px;overflow:hidden;height:100dvh;display:flex;flex-direction:column}
 #dna-frame *{box-sizing:border-box}
+#dna-frame,#dna-frame *{scrollbar-width:none}
+#dna-frame::-webkit-scrollbar,#dna-frame *::-webkit-scrollbar{display:none;width:0;height:0}
 #dna-frame button,#dna-frame textarea{font:inherit;color:inherit}
 #dna-frame button{background:transparent;border:1px solid var(--line);border-radius:9px;padding:8px 12px;min-height:44px;cursor:pointer}
 #dna-frame button:hover,#dna-frame button[aria-pressed=true]{background:var(--soft)}
