@@ -9,17 +9,21 @@ const user = { id: "00000000-0000-4000-8000-000000000001", email: "owner@example
 
 const rows: Record<string, unknown[]> = {
   profiles: [{ role: "admin" }],
-  invoices: [{ total_amount: 10000, created_at: "2026-09-01T00:00:00Z" }],
-  standalone_documents: [
-    { total_amount: 5000, document_date: "2026-09-02", document_type: "invoice" },
-    { total_amount: 99999, document_date: "2026-09-03", document_type: "QT" },
+  // Canonical sources only — exactly the tables the PHASE E5.1 route queries:
+  // document_canonical / payment_allocations / company_debt_current + evidence
+  // tables. A VOID row and a quotation row are present to prove the route
+  // excludes them from revenue.
+  document_canonical: [
+    { document_kind: "sales", document_type: "invoice", document_status: "ISSUED", issue_date: "2026-09-01", subtotal: 9090.91, discount_amount: 0, vat_amount: 909.09, gross_amount: 10000, total_amount: 10000, wht_amount: 0, net_payable: 10000, paid_amount: 0, data_completeness: "complete" },
+    { document_kind: "sales", document_type: "quotation", document_status: "ISSUED", issue_date: "2026-09-02", subtotal: 90909.09, discount_amount: 0, vat_amount: 9090.91, gross_amount: 99999, total_amount: 99999, wht_amount: 0, net_payable: 99999, paid_amount: 0, data_completeness: "complete" },
+    { document_kind: "sales", document_type: "invoice", document_status: "VOID", issue_date: "2026-09-03", subtotal: 50000, discount_amount: 0, vat_amount: 0, gross_amount: 50000, total_amount: 50000, wht_amount: 0, net_payable: 50000, paid_amount: 0, data_completeness: "complete" },
   ],
+  payment_allocations: [{ amount: 7000, allocated_at: "2026-09-05" }],
+  company_debt_current: [{ ledger_outstanding: 3000, snapshot_total_outstanding: 3000 }],
   receipt_documents: [
-    { amount: 7000, document_date: "2026-09-04", document_type: "transfer_slip", payment_verified: true },
-    { amount: 1200, document_date: "2026-09-05", document_type: "transfer_slip", payment_verified: false },
-    { amount: 800, document_date: "2026-09-06", document_type: "fuel_bill", payment_verified: false },
+    { amount: 500, document_date: "2026-09-06", document_type: "fuel_bill", status: "confirmed" },
+    { amount: 1200, document_date: "2026-09-07", document_type: "transfer_slip", status: "pending" },
   ],
-  debt_snapshots: [{ total_outstanding: 3000 }],
   fuel_price_log: [{ price: "35.50", fetched_at: "2026-09-07T00:00:00Z" }],
   company_expenses: [{ document_type: "receipt", vendor_name: "Test Vendor", amount: 2000, expense_date: "2026-09-08" }],
 }
@@ -162,8 +166,11 @@ async function main() {
   try {
     await page.goto(`http://127.0.0.1:${port}/login?next=%2Fadmin%2Ffinance`)
     await page.locator('input[name="email"]').fill(user.email)
+    // Password login is maintenance-only behind a reveal toggle (UI baseline,
+    // owner directive 2026-09-24) — open the fallback form first.
+    await page.getByRole("button", { name: /บำรุงรักษา/ }).click()
     await page.locator('input[name="password"]').fill("test-password")
-    await page.getByRole("button", { name: "Sign in" }).click()
+    await page.getByRole("button", { name: "เข้าสู่ระบบด้วยรหัสผ่าน" }).click()
     try {
       await page.waitForURL(`http://127.0.0.1:${port}/admin/finance`, { timeout: 30000 })
     } catch (error) {
@@ -175,18 +182,22 @@ async function main() {
     await page.getByText("กำไรขาดทุน", { exact: true }).waitFor()
     await page.getByText("กระแสเงินสด", { exact: true }).waitFor()
     await page.getByText("ฐานะการเงิน", { exact: true }).waitFor()
-    await page.locator("b").filter({ hasText: /^13,000\.00 ฿$/ }).waitFor()
-    await page.locator("b").filter({ hasText: /^5,000\.00 ฿$/ }).waitFor()
-    await page.locator("b").filter({ hasText: /^3,000\.00 ฿$/ }).waitFor()
+    // Render through the page's own th-TH formatter (may emit Thai digits) —
+    // never hardcode a locale-specific string.
+    const thbFmt = (n: number) => n.toLocaleString("th-TH", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+    const esc = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+    await page.locator("b").filter({ hasText: new RegExp(`^${esc(thbFmt(8000))} ฿$`) }).waitFor()
+    await page.locator("b").filter({ hasText: new RegExp(`^${esc(thbFmt(5000))} ฿$`) }).waitFor()
+    await page.locator("b").filter({ hasText: new RegExp(`^${esc(thbFmt(3000))} ฿$`) }).waitFor()
 
     const apiResponse = await page.request.get(`http://127.0.0.1:${port}/api/admin/finance-summary`)
     assert.equal(apiResponse.status(), 200)
     const api = await apiResponse.json()
 
     assert.equal(api.ok, true)
-    assert.equal(api.financial_statements.profit_and_loss.revenue_documented, 15000)
+    assert.equal(api.financial_statements.profit_and_loss.revenue_documented, 10000)
     assert.equal(api.financial_statements.profit_and_loss.expenses_recorded, 2000)
-    assert.equal(api.financial_statements.profit_and_loss.net_document_margin, 13000)
+    assert.equal(api.financial_statements.profit_and_loss.net_document_margin, 8000)
     assert.equal(api.financial_statements.cash_basis.cash_in_verified, 7000)
     assert.equal(api.financial_statements.cash_basis.cash_out_recorded, 2000)
     assert.equal(api.financial_statements.cash_basis.net_cash_movement, 5000)
