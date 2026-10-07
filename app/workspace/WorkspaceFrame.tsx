@@ -86,15 +86,15 @@ const FRAME_CSS = `
 #dna-frame .gear{position:absolute;left:12px;bottom:16px;z-index:3;background:var(--paper)}
 #dna-frame .stage{position:relative;flex:1 1 auto;min-height:0;padding:84px 64px 78px;display:flex;flex-direction:column}
 #dna-frame .stage--bleed{padding:76px 12px 12px}
-#dna-frame .stage--shared{padding:76px 64px 20px}
-#dna-frame .canvas--shared{width:min(100%,860px);margin-inline:auto;overflow:auto;overscroll-behavior:contain}
+#dna-frame .stage--shared{padding:76px 12px 20px}
+#dna-frame .canvas--shared{width:100%;margin-inline:auto;overflow:auto;overscroll-behavior:contain}
 #dna-frame .canvas--shared [data-dna-icon-rail]{display:none}
 #dna-frame .canvas--shared > .h-screen{height:100%;min-height:0}
 #dna-frame .canvas--shared > .min-h-screen{min-height:100%}
 #dna-frame .stage--shared .content--fill{gap:16px;padding-bottom:16px}
 #dna-frame .stage--shared .msg-list{flex:0 1 auto;max-height:45%;}
 #dna-frame .stage--shared .compose{flex-shrink:0}
-@media(max-width:700px){#dna-frame .stage--shared{padding:76px 14px 16px}}
+@media(max-width:700px){#dna-frame .stage--shared{padding:76px 12px 16px}}
 #dna-frame .edge{position:absolute;top:20px;padding:8px;z-index:6}
 #dna-frame .edge.left{left:8px}
 /* top:82px = ตำแหน่ง reference (sites/workspace-frame) — ตอนนี้ stage เริ่มที่ y=0
