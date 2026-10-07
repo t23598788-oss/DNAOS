@@ -6,19 +6,19 @@
     <string>com.dnaos.drive-watcher</string>
     <key>ProgramArguments</key>
     <array>
-        <string>/usr/local/bin/node</string>
-        <string>/Users/tam/Desktop/DNA OS-ต้นฉบับ /dna-os-deadboard/local-runtime/watch-drive.mjs</string>
+        <string>/Users/tam/.nvm/versions/node/v24.19.0/bin/node</string>
+        <string>/Users/tam/Desktop/ระบบธุรกิจ/dna-os-maincheck/local-runtime/watch-drive.mjs</string>
         
     </array>
     <key>WorkingDirectory</key>
-    <string>/Users/tam/Desktop/DNA OS-ต้นฉบับ /dna-os-deadboard</string>
+    <string>/Users/tam/Desktop/ระบบธุรกิจ/dna-os-maincheck</string>
     <key>StartInterval</key>
     <integer>300</integer>
     <key>RunAtLoad</key>
     <true/>
     <key>StandardOutPath</key>
-    <string>/Users/tam/Desktop/DNA OS-ต้นฉบับ /dna-os-deadboard/local-runtime/drive-watcher.log</string>
+    <string>/Users/tam/Desktop/ระบบธุรกิจ/dna-os-maincheck/local-runtime/drive-watcher.log</string>
     <key>StandardErrorPath</key>
-    <string>/Users/tam/Desktop/DNA OS-ต้นฉบับ /dna-os-deadboard/local-runtime/drive-watcher.log</string>
+    <string>/Users/tam/Desktop/ระบบธุรกิจ/dna-os-maincheck/local-runtime/drive-watcher.log</string>
 </dict>
 </plist>
