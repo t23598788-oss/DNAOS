@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-06T21:16:58.809Z",
+  "generated_at": "2026-10-07T00:00:58.006Z",
   "version": 1,
   "nodes": [
     {
@@ -3654,6 +3654,7 @@
       "internal_dependencies": [
         "module:core/auth/requireAuth.ts",
         "module:core/auth/session.ts",
+        "module:engines/canonical/transaction-write.ts",
         "module:services/canonical/transaction-detail.ts",
         "module:services/supabase/queries.ts"
       ],
@@ -3676,20 +3677,20 @@
         {
           "name": "GET",
           "kind": "function",
-          "line_start": 13,
-          "line_end": 55
+          "line_start": 14,
+          "line_end": 56
         },
         {
           "name": "PATCH",
           "kind": "function",
-          "line_start": 60,
-          "line_end": 81
+          "line_start": 63,
+          "line_end": 84
         },
         {
           "name": "DELETE",
           "kind": "function",
-          "line_start": 85,
-          "line_end": 96
+          "line_start": 92,
+          "line_end": 109
         }
       ],
       "import_sites": [
@@ -3712,6 +3713,11 @@
           "specifier": "@/services/canonical/transaction-detail",
           "line": 5,
           "resolved_target": "services/canonical/transaction-detail.ts"
+        },
+        {
+          "specifier": "@/engines/canonical/transaction-write",
+          "line": 6,
+          "resolved_target": "engines/canonical/transaction-write.ts"
         }
       ]
     },
@@ -3729,12 +3735,12 @@
       "internal_dependencies": [
         "module:core/auth/requireAuth.ts",
         "module:core/auth/session.ts",
+        "module:engines/canonical/transaction-write.ts",
         "module:engines/transactions/state-machine.ts",
         "module:services/supabase/queries.ts"
       ],
       "dependents": [],
       "data_tables": [
-        "audit_logs",
         "customer_orders"
       ],
       "business_capabilities": "UNKNOWN",
@@ -3752,8 +3758,8 @@
         {
           "name": "POST",
           "kind": "function",
-          "line_start": 11,
-          "line_end": 79
+          "line_start": 21,
+          "line_end": 88
         }
       ],
       "import_sites": [
@@ -3776,6 +3782,11 @@
           "specifier": "@/engines/transactions/state-machine",
           "line": 5,
           "resolved_target": "engines/transactions/state-machine.ts"
+        },
+        {
+          "specifier": "@/engines/canonical/transaction-write",
+          "line": 6,
+          "resolved_target": "engines/canonical/transaction-write.ts"
         }
       ]
     },
@@ -9845,7 +9856,8 @@
       ],
       "dependents": [
         "module:app/api/admin/transactions/[id]/advance/route.ts",
-        "module:app/workspace-preview/presentationGatewayDeps.ts"
+        "module:app/workspace-preview/presentationGatewayDeps.ts",
+        "module:scripts/transaction-status-authority.test.ts"
       ],
       "data_tables": "UNKNOWN",
       "business_capabilities": [
@@ -78089,6 +78101,8 @@
       "dependents": [
         "module:app/api/admin/documents/route.ts",
         "module:app/api/admin/ide/_lib/canonicalJobTransportRuntime.ts",
+        "module:app/api/admin/transactions/[id]/advance/route.ts",
+        "module:app/api/admin/transactions/[id]/route.ts",
         "module:app/api/admin/transactions/route.ts",
         "module:engines/jobs/auto-create.ts",
         "module:scripts/canonical-phase-d-acceptance-test.ts",
@@ -78164,8 +78178,8 @@
         {
           "name": "changeTransactionStatus",
           "kind": "function",
-          "line_start": 306,
-          "line_end": 330
+          "line_start": 314,
+          "line_end": 339
         }
       ],
       "import_sites": [
@@ -103819,6 +103833,11 @@
     },
     {
       "source": "module:app/api/admin/transactions/[id]/advance/route.ts",
+      "target": "module:engines/canonical/transaction-write.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/transactions/[id]/advance/route.ts",
       "target": "module:engines/transactions/state-machine.ts",
       "label": "imports"
     },
@@ -103835,6 +103854,11 @@
     {
       "source": "module:app/api/admin/transactions/[id]/route.ts",
       "target": "module:core/auth/session.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/transactions/[id]/route.ts",
+      "target": "module:engines/canonical/transaction-write.ts",
       "label": "imports"
     },
     {
@@ -112370,6 +112394,11 @@
     {
       "source": "module:scripts/tool-scope-test.ts",
       "target": "module:core/policy/scope.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:scripts/transaction-status-authority.test.ts",
+      "target": "module:engines/transactions/state-machine.ts",
       "label": "imports"
     },
     {
