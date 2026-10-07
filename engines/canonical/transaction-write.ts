@@ -302,7 +302,15 @@ export async function linkDocumentWithValidation(input: {
   return { linked: true, order_id: resolution.order_id };
 }
 
-/** Status change with the canonical audit action. */
+/** Status change with the canonical audit action.
+ * D1 cutover (owner 2026-09-25) — the ONE runtime authority for customer_orders
+ * status writes: advance + DELETE routes send their target here after THEIR OWN
+ * state-machine validation (this function never re-computes a transition —
+ * see app/api/admin/transactions/[id]/advance/route.ts). Per-request contract:
+ * exactly one status update + exactly one canonical audit row.
+ * Validation owned here = the current state must exist (no status write, no
+ * audit row for a ghost order); target-state rules stay with the caller's
+ * existing contract. */
 export async function changeTransactionStatus(input: {
   order_id: string;
   status: string;
@@ -311,6 +319,7 @@ export async function changeTransactionStatus(input: {
 }) {
   const db = supabaseAdmin();
   const { data: before } = await db.from("customer_orders").select("status, customer_company_id").eq("id", input.order_id).maybeSingle();
+  if (!before) throw new Error(`TRANSACTION_NOT_FOUND: ไม่พบธุรกรรม ${input.order_id}`);
   const { error } = await db
     .from("customer_orders")
     .update({ status: input.status, updated_at: new Date().toISOString() })

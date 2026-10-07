@@ -3,6 +3,7 @@ import { requireAuth } from "@/core/auth/requireAuth"
 import { ADMIN_TIER } from "@/core/auth/session"
 import { supabaseAdmin as supabase, getTransactionById } from "@/services/supabase/queries"
 import { getTransactionDetail } from "@/services/canonical/transaction-detail"
+import { changeTransactionStatus } from "@/engines/canonical/transaction-write"
 
 type Params = { params: Promise<{ id: string }> }
 
@@ -57,6 +58,8 @@ export async function GET(_req: NextRequest, { params }: Params) {
 
 // customer_orders ไม่มีคอลัมน์ title/net_amount (ไม่ใช่ตารางการเงิน — ยอดเงินคำนวณจาก invoices ที่ผูกอยู่)
 // แก้ไขได้เฉพาะฟิลด์ที่มีจริงในตาราง
+// D1 scope: PATCH นี้ไม่แตะ status อยู่แล้ว (non-status fields คง behavior เดิม
+// ตรง — ห้ามย้ายเข้า canonical เพราะไม่ใช่ status writer)
 export async function PATCH(req: NextRequest, { params }: Params) {
   const auth = await requireAuth(ADMIN_TIER)
   if (auth instanceof NextResponse) return auth
@@ -82,15 +85,25 @@ export async function PATCH(req: NextRequest, { params }: Params) {
 
 // ไม่มีคอลัมน์ deleted_at บน customer_orders — "ลบ" = เปลี่ยนสถานะเป็น CANCELLED (ตรงกับที่
 // app/api/admin/pulse/route.ts ใช้ CANCELLED เป็นสถานะปิดงานอยู่แล้ว)
+// D1 cutover (owner 2026-09-25): status write นี้ไม่เขียนตรงแล้ว — ส่ง command
+// เข้า engines/canonical/transaction-write.ts#changeTransactionStatus (canonical
+// audit ครั้งเดียวต่อ request) · response contract เดิม = { ok: true } ·
+// negative control: scripts/transaction-status-authority.test.ts
 export async function DELETE(_req: NextRequest, { params }: Params) {
   const auth = await requireAuth(ADMIN_TIER)
   if (auth instanceof NextResponse) return auth
 
   const { id } = await params
-  const { error } = await supabase()
-    .from("customer_orders")
-    .update({ status: "CANCELLED", updated_at: new Date().toISOString() })
-    .eq("id", id)
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  try {
+    await changeTransactionStatus({
+      order_id: id,
+      status: "CANCELLED",
+      actor: auth.email,
+      evidence: { action: "cancel", source: "delete" },
+    })
+  } catch (e: unknown) {
+    const message = e instanceof Error ? e.message : "เปลี่ยนสถานะธุรกรรมไม่สำเร็จ"
+    return NextResponse.json({ error: message }, { status: message.startsWith("TRANSACTION_NOT_FOUND") ? 404 : 500 })
+  }
   return NextResponse.json({ ok: true })
 }
