@@ -11,7 +11,7 @@
  * route/backend เดิมใช้ต่อ — ไม่แตะ business logic/canonical/auth/migration
  */
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   Grid2X2, Ellipsis, MessageSquare, Settings, FileText, MessageCircle,
   Wallet, MapPin, Briefcase, Users, ScanLine, Files, FileOutput, Printer,
@@ -86,7 +86,7 @@ const FRAME_CSS = `
 #dna-frame .gear{position:absolute;left:12px;bottom:16px;z-index:3;background:var(--paper)}
 #dna-frame .stage{position:relative;flex:1 1 auto;min-height:0;padding:84px 64px 78px;display:flex;flex-direction:column}
 #dna-frame .stage--bleed{padding:76px 12px 12px}
-#dna-frame .edge{position:absolute;top:20px;padding:8px}
+#dna-frame .edge{position:absolute;top:20px;padding:8px;z-index:6}
 #dna-frame .edge.left{left:8px}
 /* top:82px = ตำแหน่ง reference (sites/workspace-frame) — ตอนนี้ stage เริ่มที่ y=0
    หลังถอด header จึงต้องเว้นมุมขวาบนให้ปุ่ม .corner (ข้อความ) ไม่ซ้อน Ellipsis */
@@ -103,13 +103,13 @@ const FRAME_CSS = `
 #dna-frame .content--fill{padding:0;min-height:0;overflow:hidden}
 #dna-frame .content--fill>div{flex:1 1 0%;min-height:0}
 #dna-frame .count{background:#c93232;color:#fff;min-width:18px;border-radius:10px;font-size:11px;padding:0 5px;margin-left:auto}
-#dna-frame .msg-list{flex:1 1 auto;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:14px;padding-bottom:12px}
+#dna-frame .msg-list{flex:1 1 auto;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:14px;padding-bottom:12px;width:min(100%,860px);margin-inline:auto}
 #dna-frame .content:not(.content--fill) .msg-list{max-height:none}
 #dna-frame .content--fill .msg-list{flex:0 1 auto;max-height:42vh}
 #dna-frame button[disabled]{opacity:.5;cursor:not-allowed}
 #dna-frame button[disabled]:hover{background:transparent}
 #dna-frame .blank{text-align:center;padding:42px 0}
-#dna-frame .compose{border:1px solid var(--line);border-radius:16px;padding:12px;margin-top:auto}
+#dna-frame .compose{border:1px solid var(--line);border-radius:16px;padding:12px;margin-top:auto;width:min(100%,860px);margin-inline:auto}
 #dna-frame textarea{width:100%;resize:vertical;min-height:54px;background:transparent;border:0;outline:none}
 #dna-frame .row .send{margin-left:auto}
 #dna-frame .note{font-size:12px;opacity:.75}
@@ -122,7 +122,7 @@ const FRAME_CSS = `
 #dna-frame .bubble-user{background:#36332f;color:#fdfbf8;border-radius:16px 16px 4px 16px;padding:8px 14px;max-width:min(560px,78%);white-space:pre-wrap;overflow-wrap:anywhere;font-size:14px;line-height:1.55}
 #dna-frame .bubble-dna{background:#fff;border:1px solid var(--line);border-radius:16px 16px 16px 4px;padding:10px 14px;max-width:min(760px,94%)}
 #dna-frame .bubble-error{background:#fef2f2;border:1px solid #fecaca;color:#b91c1c;border-radius:14px;padding:10px 14px;max-width:min(760px,94%)}
-#dna-frame .result-block{width:100%;max-width:920px;display:flex;flex-direction:column;gap:8px;min-width:0}
+#dna-frame .result-block{width:100%;max-width:760px;display:flex;flex-direction:column;gap:8px;min-width:0}
 #dna-frame .result-title{font-weight:600;font-size:13px}
 #dna-frame .result-notes{font-size:12px;color:#78716c}
 #dna-frame .msg-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
@@ -298,7 +298,10 @@ export function WorkspaceFrame({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const toggle = (kind: "apps" | "actions") => setDrawer((p) => (p === kind ? null : kind));
+  const toggle = (kind: "apps" | "actions") => {
+    setPanelOpen(false);
+    setDrawer((p) => (p === kind ? null : kind));
+  };
   const go = (item: FrameItem) => {
     if (item.disabledNote) return;
     if (item.external) {
@@ -547,11 +550,12 @@ export function WorkspaceFrame({
         </aside>
       )}
 
-      {!panelIsOpen && (
-      <section className={children ? "stage stage--bleed" : "stage"} data-screen="work">
         <button className="edge left" data-drawer="apps" aria-expanded={drawer === "apps"} onClick={() => toggle("apps")} aria-label="เปิดกล่องเครื่องมือ">
           <Grid2X2 />
         </button>
+
+      {!panelIsOpen && (
+      <section className={children ? "stage stage--bleed" : "stage"} data-screen="work">
         <button className="edge right" data-drawer="actions" aria-expanded={drawer === "actions"} onClick={() => toggle("actions")} aria-label="เปิดคำสั่งของรายการ">
           <Ellipsis />
         </button>
@@ -1037,4 +1041,46 @@ function ChatResultView({ result, fallbackText }: { result: ChatResult; fallback
     default:
       return null;
   }
+}
+
+/** Shared tool access for admin destinations that do not render WorkspaceFrame. */
+export function WorkspaceToolNavigation() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const [open, setOpen] = useState(false);
+  useEffect(() => { setOpen(false); }, [pathname]);
+
+  return (
+    <nav className="dna-tool-access" aria-label="เครื่องมือ DNA OS">
+      <style>{`
+        .dna-tool-access{position:fixed;left:8px;top:20px;z-index:40;color:#36332f;font:14px/1.6 system-ui,sans-serif}
+        body:has(#dna-frame) .dna-tool-access{display:none}
+        .dna-admin-content{padding-top:76px}
+        .dna-admin-content:has(#dna-frame){padding-top:0}
+        .dna-tool-access button{background:#fdfbf8;border:1px solid #e9e1d6;border-radius:9px;min-height:44px;padding:8px;cursor:pointer;color:inherit;font:inherit}
+        .dna-tool-access button:hover{background:#f0ebe5}
+        .dna-tool-access svg{width:18px;height:18px}
+        .dna-tool-menu{position:fixed;top:76px;left:12px;right:12px;max-height:calc(100dvh - 92px);overflow:auto;padding:16px;border:1px solid #e9e1d6;border-radius:12px;background:#fdfbf8;box-shadow:0 12px 24px #0002}
+        .dna-tool-menu .menu-heading{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+        .dna-tool-menu section{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px}
+        .dna-tool-menu section button{display:flex;gap:8px;align-items:center;text-align:left}
+      `}</style>
+      <button type="button" aria-label="เปิดกล่องเครื่องมือ" aria-expanded={open} onClick={() => setOpen(!open)}><Grid2X2 /></button>
+      {open && (
+        <div className="dna-tool-menu">
+          <div className="menu-heading"><strong>เครื่องมือ</strong><button type="button" aria-label="ปิดกล่องเครื่องมือ" onClick={() => setOpen(false)}><X /></button></div>
+          <section>
+            <button type="button" onClick={() => { setOpen(false); router.push("/workspace"); }}><MessageSquare />พื้นที่ทำงาน</button>
+            {APPS.map((item) => (
+              <button key={item.label} type="button" onClick={() => {
+                setOpen(false);
+                if (item.external) void openExternal(item.external);
+                else if (item.route && item.route !== pathname) router.push(item.route);
+              }}><item.icon />{item.label}</button>
+            ))}
+          </section>
+        </div>
+      )}
+    </nav>
+  );
 }

@@ -2,6 +2,7 @@ import { headers } from "next/headers";
 import { requireAuthPage } from "@/core/auth/requireAuthPage";
 import { ADMIN_TIER } from "@/core/auth/session";
 import { LOCAL_UI_REVIEW_HEADER } from "@/core/auth/devReviewAccess";
+import { WorkspaceToolNavigation } from "@/app/workspace/WorkspaceFrame";
 import { VoiceStandbyWidget } from "@/components/admin/VoiceStandbyWidget";
 
 /**
@@ -66,7 +67,8 @@ export default async function AdminLayout({
       {/* ONE NAVIGATION (2026-10-06): ไม่มีแถบ Back/Home ถาวร —
           navigation = shell ของแต่ละหน้า (ปุ่มขอบจอ + drawer) กับ browser
           back เท่านั้น — หน้า children ทั้งหมดเลื่อนใน region เดียวด้านล่างนี้ */}
-      <div className="flex-1 min-h-0 overflow-y-auto">
+      <WorkspaceToolNavigation />
+      <div className="dna-admin-content flex-1 min-h-0 overflow-y-auto">
         {children}
       </div>
       {/* Global Background Voice Listener — UI half (owner, 2026-07-30):

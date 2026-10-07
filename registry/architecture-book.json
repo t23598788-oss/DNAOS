@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-07T00:00:58.006Z",
+  "generated_at": "2026-10-07T15:32:26.262Z",
   "version": 1,
   "nodes": [
     {
@@ -19775,6 +19775,7 @@
       "status": "OK",
       "runtime_entry_point": true,
       "internal_dependencies": [
+        "module:app/workspace/WorkspaceFrame.tsx",
         "module:components/admin/VoiceStandbyWidget.tsx",
         "module:core/auth/devReviewAccess.ts",
         "module:core/auth/requireAuthPage.ts",
@@ -19797,8 +19798,8 @@
         {
           "name": "AdminLayout",
           "kind": "function",
-          "line_start": 49,
-          "line_end": 79
+          "line_start": 50,
+          "line_end": 81
         }
       ],
       "import_sites": [
@@ -19818,8 +19819,13 @@
           "resolved_target": "core/auth/devReviewAccess.ts"
         },
         {
-          "specifier": "@/components/admin/VoiceStandbyWidget",
+          "specifier": "@/app/workspace/WorkspaceFrame",
           "line": 5,
+          "resolved_target": "app/workspace/WorkspaceFrame.tsx"
+        },
+        {
+          "specifier": "@/components/admin/VoiceStandbyWidget",
+          "line": 6,
           "resolved_target": "components/admin/VoiceStandbyWidget.tsx"
         }
       ]
@@ -89297,7 +89303,8 @@
       "name_en": "app/workspace/WorkspaceFrame.tsx",
       "purpose_th": "WORKSPACE FRAME — BUSINESS UI SHELL ใหม่ตาม reference ของ Owner",
       "exports": [
-        "WorkspaceFrame"
+        "WorkspaceFrame",
+        "WorkspaceToolNavigation"
       ],
       "status": "OK",
       "runtime_entry_point": false,
@@ -89314,6 +89321,7 @@
         "module:services/supabase/browser.ts"
       ],
       "dependents": [
+        "module:app/admin/layout.tsx",
         "module:app/admin/relationships/workspace.tsx",
         "module:app/workspace/page.tsx",
         "module:scripts/relationships-ui-test.ts"
@@ -89335,7 +89343,13 @@
           "name": "WorkspaceFrame",
           "kind": "function",
           "line_start": 138,
-          "line_end": 717
+          "line_end": 721
+        },
+        {
+          "name": "WorkspaceToolNavigation",
+          "kind": "function",
+          "line_start": 1047,
+          "line_end": 1086
         }
       ],
       "import_sites": [
@@ -96454,6 +96468,11 @@
     {
       "source": "module:app/admin/jobs/page.tsx",
       "target": "module:engines/transactions/workflows.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/admin/layout.tsx",
+      "target": "module:app/workspace/WorkspaceFrame.tsx",
       "label": "imports"
     },
     {
