@@ -6,6 +6,7 @@ export async function handleFallback(ctx: HandlerContext): Promise<void> {
     event:   ctx.event,
     userId:  ctx.userId,
     groupId: ctx.groupId,
+    channelDestination: ctx.channelDestination,
     rawType: ctx.event.type ?? "unknown",
     rawText: "",
     status:  "new",

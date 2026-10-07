@@ -2,14 +2,18 @@
 // receipt_documents via Cloud Runtime vision (the adapter-configured model, via
 // ollama-cloud-gateway.mjs, Migration Completion 2026-08-04 — no local
 // Ollama, no ANTHROPIC_API_KEY needed either).
-// Real extraction, real insert — logs every file processed/skipped/failed,
-// never fabricates a row for an image that didn't parse cleanly.
+// Real extraction, real creation THROUGH the Connect inbound bridge (owner
+// channel-expansion 2026-10-07 — NO direct insert; canonical writer + audit,
+// channel "upload" with media_path local_backfill:<path> keeping the true
+// origin) — logs every file processed/skipped/failed, never fabricates a row
+// for an image that didn't parse cleanly, never falls back to a direct write.
 import { createClient } from "@supabase/supabase-js";
 import { runDeviceAiCapability } from "./ai/device-ai-runtime.mjs";
 import { createDeviceEvidence } from "./ai/device-ai-evidence.mjs";
 import { readFileSync, readdirSync, statSync } from "fs";
 import { join } from "path";
 import { getReadyOllamaUrl } from "./ollama-cloud-gateway.mjs";
+import { sendConnectInboundSource } from "./connect-inbound.mjs";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
 
@@ -75,7 +79,10 @@ async function main() {
         continue;
       }
       const mtime = statSync(f).mtime.toISOString().slice(0, 10);
-      const { error } = await db.from("receipt_documents").insert({
+      // Connect inbound bridge (channel "upload", media_path keeps the true
+      // local_backfill origin) — failure = counted failed, NO direct fallback.
+      const created = await sendConnectInboundSource(env, {
+        channel: "upload",
         media_path: `local_backfill:${f}`,
         document_type: "transfer_slip",
         vendor_name: parsed.receiver ?? null,
@@ -84,10 +91,10 @@ async function main() {
         document_date: mtime,
         confidence: 0.7,
         status: "ai_read",
-        payment_verified: false,
         raw_ocr_text: JSON.stringify(parsed),
-      });
-      if (error) throw error;
+        provenance: { origin: "local-runtime/backfill-slips-test.mjs", file: f },
+      }, "local-runtime:backfill-slips-test");
+      if (!created.ok) throw new Error(created.error ?? "INBOUND_BRIDGE_FAILED");
       console.log(`${label} ✓ ${parsed.sender ?? "?"} -> ${parsed.receiver ?? "?"} : ${parsed.amount} บาท (${f.split("/").pop()})`);
       ok++;
     } catch (e) {

@@ -30,6 +30,7 @@ export async function handleFile(ctx: HandlerContext): Promise<void> {
     event:   ctx.event,
     userId:  ctx.userId,
     groupId: ctx.groupId,
+    channelDestination: ctx.channelDestination,
     rawType: "file",
     rawText: fileName ?? messageId,
     status:  "new",

@@ -7,6 +7,7 @@ export async function handleFollow(ctx: HandlerContext): Promise<void> {
     event:   ctx.event,
     userId:  ctx.userId,
     groupId: ctx.groupId,
+    channelDestination: ctx.channelDestination,
     rawType: "follow",
     rawText: "follow",
   })

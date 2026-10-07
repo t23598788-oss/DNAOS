@@ -10,6 +10,7 @@ export async function handleGroup(ctx: HandlerContext): Promise<void> {
     event:   ctx.event,
     userId:  ctx.userId,
     groupId: ctx.groupId,
+    channelDestination: ctx.channelDestination,
     rawType: `group_${msg.type ?? "message"}`,
     rawText: text,
     status:  "new",

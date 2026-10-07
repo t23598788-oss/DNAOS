@@ -36,6 +36,7 @@ export async function handleImage(ctx: HandlerContext): Promise<void> {
     event:   ctx.event,
     userId:  ctx.userId,
     groupId: ctx.groupId,
+    channelDestination: ctx.channelDestination,
     rawType: "image",
     rawText: messageId,
     status:  "new",
