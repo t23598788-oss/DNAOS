@@ -69,7 +69,12 @@ echo "--- Checking for undeclared top-level directories ---"
 # contractor/worker coordination package (own package.json/tsconfig, lease client over
 # registry/LOCK_MANAGER.json, Freebuff pull-mode adapter). Same treatment as
 # dna-os-mcp-server/ above: a real tracked top-level folder with its own package.
-DECLARED_TOP_LEVEL="core gateway engines cognitive presenter services plugins registry app components scripts supabase config node_modules backups public observatory docs styles src-tauri local-runtime dna-os-mcp-server _inventory platform project system workers e2e presentation dna-os-contractor device-connector tmp output sites handoff"
+# architecture/ (BATCH 3, repository-authority-phase1 ace8cda, 2026-10-08) — the frozen
+# declarative repository.manifest.json of the Nine-Repo Architecture Contract Phase 1
+# (data-only, no code reads it; declares which repository owns which authority so the
+# boundaries are reviewable). Same treatment as the folders above: real tracked content,
+# declared rather than flagged as a "Shadow Layer" every run.
+DECLARED_TOP_LEVEL="core gateway engines cognitive presenter services plugins registry app components scripts supabase config node_modules backups public observatory docs styles src-tauri local-runtime dna-os-mcp-server _inventory platform project system workers e2e presentation dna-os-contractor device-connector tmp output sites handoff architecture"
 
 for dir in */; do
   dirname=$(basename "$dir")
