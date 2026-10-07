@@ -13,7 +13,11 @@ import { getWorkerSettings, updateWorkerSettings, computeProviderStatuses } from
 export async function GET() {
   const auth = await requireAuth(ADMIN_TIER);
   if (auth instanceof NextResponse) return auth;
-  return NextResponse.json({ ok: true, settings: getWorkerSettings(auth.id), providerStatuses: computeProviderStatuses(auth.id) });
+  const [settings, providerStatuses] = await Promise.all([
+    getWorkerSettings(auth.id),
+    computeProviderStatuses(auth.id),
+  ]);
+  return NextResponse.json({ ok: true, settings, providerStatuses });
 }
 
 export async function POST(req: Request) {
@@ -26,6 +30,6 @@ export async function POST(req: Request) {
   const allowedKeys = ["providerEnabled", "localCloudPreference", "allowedWorkerTypes", "budgetDefaults", "privacyPolicy", "fallbackPolicy", "modelPreference", "toolAccess", "maxContextBytes", "approvalMode"];
   const patch: Record<string, unknown> = {};
   for (const k of allowedKeys) if (k in body) patch[k] = body[k];
-  const updated = updateWorkerSettings(auth.id, patch);
+  const updated = await updateWorkerSettings(auth.id, patch);
   return NextResponse.json({ ok: true, settings: updated });
 }

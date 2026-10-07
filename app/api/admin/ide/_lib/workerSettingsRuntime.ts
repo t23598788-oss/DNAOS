@@ -38,63 +38,71 @@ function defaultSettings(ownerId: string): WorkerSettings {
 }
 
 /**
- * PERSISTENT storage (owner step "ui-baseline-workspace-2026-10-08" ข้อ 5):
- * replaced the in-memory `Map` (which silently reset every time the server
- * process restarted — a settings change was never really saved). The file is
- * now the source of truth; the module-level cache only accelerates repeat
- * reads inside one process. Atomic write (tmp + rename) matches the existing
- * precedent in ./executionContextRuntime.ts — same workspace-relative,
- * hardcoded path rules (never a user-controlled path), and `_local-data/` is
- * already gitignored so real owner settings never get committed.
+ * PERSISTENT store (owner 2026-10-08 review of a91d8b0): a JSON file inside
+ * the container is NOT durable — the container has no volume, so a
+ * redeploy/restart wipes it. Settings now live in the existing
+ * `app_configs` table (title = "worker-settings", data = JSON — no new
+ * migration, same table company-settings already uses), written through
+ * supabaseAdmin (service role) and cached in-process only as a read
+ * accelerator. Survives restart AND redeploy because the truth is in the
+ * database, not on disk.
  */
-import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "fs";
-import { dirname, join } from "path";
-import { WORKSPACE_ROOT } from "./fsSecurity";
+import { supabaseAdmin } from "@/services/supabase/queries";
 
-const SETTINGS_FILE_PATH = join(WORKSPACE_ROOT, "_local-data", "worker-settings.json");
+const SETTINGS_ROW = "worker-settings";
 
 type SettingsFile = Record<string, WorkerSettings>;
 
 let settingsCache: SettingsFile | null = null;
 
-function readSettingsFile(): SettingsFile {
+async function loadStore(): Promise<SettingsFile> {
   if (settingsCache) return settingsCache;
-  if (!existsSync(SETTINGS_FILE_PATH)) {
+  const { data, error } = await supabaseAdmin()
+    .from("app_configs")
+    .select("data")
+    .eq("title", SETTINGS_ROW)
+    .maybeSingle();
+  if (error) throw new Error(`โหลด worker settings ไม่สำเร็จ: ${error.message}`);
+  if (!data || typeof data.data !== "string" || !data.data.trim()) {
     settingsCache = {};
     return settingsCache;
   }
   try {
-    const parsed = JSON.parse(readFileSync(SETTINGS_FILE_PATH, "utf-8")) as SettingsFile;
+    const parsed = JSON.parse(data.data) as SettingsFile;
     settingsCache = parsed && typeof parsed === "object" ? parsed : {};
   } catch {
-    // Corrupt/unreadable file is treated as "no saved settings yet" — never a
-    // fabricated guess at its contents (same rule as executionContextRuntime).
+    // Corrupt row is treated as "no saved settings yet" — never a fabricated
+    // guess at its contents (same rule as executionContextRuntime).
     settingsCache = {};
   }
   return settingsCache;
 }
 
-function atomicWriteSettings(data: SettingsFile): void {
-  mkdirSync(dirname(SETTINGS_FILE_PATH), { recursive: true });
-  const tmpPath = `${SETTINGS_FILE_PATH}.tmp-${process.pid}-${Date.now()}`;
-  writeFileSync(tmpPath, JSON.stringify(data, null, 2) + "\n", "utf-8");
-  renameSync(tmpPath, SETTINGS_FILE_PATH);
+async function persistStore(file: SettingsFile): Promise<void> {
+  const { error } = await supabaseAdmin()
+    .from("app_configs")
+    .upsert({ title: SETTINGS_ROW, data: JSON.stringify(file) }, { onConflict: "title" });
+  if (error) throw new Error(`บันทึก worker settings ไม่สำเร็จ: ${error.message}`);
+  settingsCache = file;
 }
 
-export function getWorkerSettings(ownerId: string): WorkerSettings {
-  return readSettingsFile()[ownerId] ?? defaultSettings(ownerId);
+export async function getWorkerSettings(ownerId: string): Promise<WorkerSettings> {
+  const store = await loadStore();
+  return store[ownerId] ?? defaultSettings(ownerId);
 }
 
 /** Real, Owner-only update — never accepts a secret value field (there
  * is none in the real WorkerSettings shape; secrets stay in real
- * process.env, never here — Section 16). Persists to disk immediately. */
-export function updateWorkerSettings(ownerId: string, patch: Partial<Omit<WorkerSettings, "ownerId" | "updatedAt">>): WorkerSettings {
-  const current = getWorkerSettings(ownerId);
+ * process.env, never here — Section 16). Persists to the database row. */
+export async function updateWorkerSettings(
+  ownerId: string,
+  patch: Partial<Omit<WorkerSettings, "ownerId" | "updatedAt">>,
+): Promise<WorkerSettings> {
+  const current = await getWorkerSettings(ownerId);
   const updated: WorkerSettings = { ...current, ...patch, ownerId, updatedAt: new Date().toISOString() };
-  const file = readSettingsFile();
-  file[ownerId] = updated;
-  atomicWriteSettings(file);
-  settingsCache = file;
+  const store = await loadStore();
+  store[ownerId] = updated;
+  await persistStore(store);
   return updated;
 }
 
@@ -102,8 +110,8 @@ export interface ProviderSettingsStatus { adapterId: string; enabled: boolean; s
 
 /** Real, live-checked status per Adapter — reuses each real Adapter's
  * own availability() (never a second config-presence check). */
-export function computeProviderStatuses(ownerId: string): ProviderSettingsStatus[] {
-  const settings = getWorkerSettings(ownerId);
+export async function computeProviderStatuses(ownerId: string): Promise<ProviderSettingsStatus[]> {
+  const settings = await getWorkerSettings(ownerId);
   return WORKER_ADAPTER_REGISTRY.map((a) => {
     const enabled = settings.providerEnabled[a.id] ?? true;
     const avail = a.availability();
