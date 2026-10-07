@@ -13,6 +13,7 @@ export async function handlePostback(ctx: HandlerContext): Promise<void> {
     event:     ctx.event,
     userId:    ctx.userId,
     groupId:   ctx.groupId,
+    channelDestination: ctx.channelDestination,
     rawType:   "postback",
     rawText:   data,
     extracted: pb.params ? { params: pb.params } : undefined,

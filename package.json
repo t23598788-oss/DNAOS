@@ -155,6 +155,7 @@
     "job-contract:cross-runtime:test": "npx tsx scripts/job-contract-cross-runtime-test.ts",
     "document-authority:test": "tsx scripts/document-authority-census.test.ts",
     "transaction-status-authority:test": "npx tsx scripts/transaction-status-authority.test.ts",
+    "connect-channel-receive:test": "npx tsx scripts/connect-channel-receive.test.ts",
     "ai-resolver:test": "npx tsx scripts/ai-resolver-test.ts",
     "ai-caller-cutover:test": "npx tsx scripts/ai-caller-cutover-test.ts",
     "ai-deno-cutover:test": "npx tsx scripts/ai-deno-cutover-test.ts",

@@ -12,6 +12,11 @@ export interface SaveEventInput {
   rawText: string
   extracted?: Record<string, unknown>
   status?: string
+  // Which LINE account received this event (webhook payload.destination) —
+  // persisted under extracted.channel_destination (additive jsonb key, no
+  // schema change) so line_events can separate accounts retrospectively.
+  // See HandlerContext.channelDestination in types.ts.
+  channelDestination?: string | null
 }
 
 export interface SavedEvent {
@@ -89,6 +94,17 @@ export async function saveEvent(
     }
   }
 
+  // Channel audit (owner, 2026-10-07): merge the receiving account's id into
+  // extracted as channel_destination — additive jsonb key, existing readers of
+  // extracted (latitude/address/flex) are unaffected. When neither the
+  // handler's extraction nor a destination exists, extracted stays null exactly
+  // as before (no shape change for the old path).
+  const channelDestination = input.channelDestination ?? null
+  const extracted =
+    input.extracted || channelDestination
+      ? { ...(input.extracted ?? {}), ...(channelDestination ? { channel_destination: channelDestination } : {}) }
+      : null
+
   const insertRow = {
     line_user_id:     input.userId,
     group_id:         input.groupId,
@@ -99,7 +115,7 @@ export async function saveEvent(
     line_webhook_event_id: webhookEventId,
     event_timestamp:  new Date(input.event.timestamp).toISOString(),
     status:           input.status ?? "new",
-    extracted:        input.extracted ?? null,
+    extracted,
     raw_json:         input.event as unknown as Record<string, unknown>,
     line_name:        lineName,
     line_picture:     linePicture,

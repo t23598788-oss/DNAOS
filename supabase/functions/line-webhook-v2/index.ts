@@ -80,6 +80,9 @@ Deno.serve(async (req: Request) => {
       groupId,
       replyToken: (event as any).replyToken ?? null,
       channelAccessToken,
+      // Which account this webhook arrived through (payload.destination) —
+      // stored per-event for LINE account audit (types.ts channelDestination).
+      channelDestination: typeof payload.destination === "string" ? payload.destination : null,
     }
 
     // Group events — store only, no pipeline

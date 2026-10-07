@@ -6,6 +6,7 @@ export async function handleUnfollow(ctx: HandlerContext): Promise<void> {
     event:   ctx.event,
     userId:  ctx.userId,
     groupId: ctx.groupId,
+    channelDestination: ctx.channelDestination,
     rawType: "unfollow",
     rawText: "unfollow",
   })

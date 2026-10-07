@@ -15970,6 +15970,31 @@
       "purpose_th": "ui-baseline-guard.ts — ONE NAVIGATION canonical lock",
       "exports": [],
       "status": "active"
+    },
+    "engines/integration-gateway/adapters/meta.ts": {
+      "owner": "engines",
+      "layer": "engines",
+      "purpose": "Integration Gateway — Meta adapter (Facebook Messenger + Instagram messaging receive, owner channel-expansion 2026-10-07).",
+      "purpose_th": "Integration Gateway — Meta adapter (Facebook Messenger + Instagram messaging receive, owner channel-expansion 2026-10-07).",
+      "exports": [
+        "EVIDENCE_KEYS",
+        "capabilityForMetaMessage",
+        "metaVerifyChallenge",
+        "normalizeMetaWebhook",
+        "verifyMetaSignature"
+      ],
+      "status": "active"
+    },
+    "app/api/gateway/observe/meta/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "POST/GET /api/gateway/observe/meta — Meta (Facebook Messenger + Instagram",
+      "purpose_th": "POST/GET /api/gateway/observe/meta — Meta (Facebook Messenger + Instagram",
+      "exports": [
+        "GET",
+        "POST"
+      ],
+      "status": "active"
     }
   },
   "excluded": [

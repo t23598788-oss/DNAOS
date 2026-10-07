@@ -13,6 +13,7 @@ export async function handleAudio(ctx: HandlerContext): Promise<void> {
     event:   ctx.event,
     userId:  ctx.userId,
     groupId: ctx.groupId,
+    channelDestination: ctx.channelDestination,
     rawType: "audio",
     rawText: messageId,
     status:  "new",

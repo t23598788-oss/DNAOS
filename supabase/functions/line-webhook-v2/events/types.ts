@@ -95,4 +95,11 @@ export interface HandlerContext {
   // table / index.ts). Null falls back to the single-channel env vars,
   // preserving all existing behavior.
   channelAccessToken: string | null
+  // Channel-expansion audit (owner, 2026-10-07) — the webhook payload's
+  // `destination` (the receiving channel's numeric id) threaded into
+  // saveEvent so line_events records WHICH account received each event —
+  // the audit fact that lets "LINE ส่วนตัว vs LINE OA" (any two accounts in
+  // line_channels) be separated retrospectively from the business store.
+  // Was previously only best-effort in gateway evidence (forwardLineInbound).
+  channelDestination: string | null
 }

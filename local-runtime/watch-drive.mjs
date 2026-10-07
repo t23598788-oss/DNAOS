@@ -1,17 +1,21 @@
 // Persistent Google Drive watcher — reads NEW financial document images from
 // the locally-synced Google Drive folder using Cloud Runtime vision
 // (the adapter-configured Cloud Runtime vision model, Migration Completion
-// 2026-08-04 — no local Ollama), inserts real rows into receipt_documents.
-// Designed to run independently forever via a macOS LaunchAgent (see
-// com.dnaos.drive-watcher.plist) — does NOT depend on any Claude/AI chat
-// session being open. Tracks already-processed files in a local log so it
-// never double-processes on repeated runs.
+// 2026-08-04 — no local Ollama), creates rows through the Connect inbound
+// bridge (owner channel-expansion 2026-10-07 — NO direct receipt_documents
+// insert; canonical writer + audit at /api/internal/connect/inbound-source,
+// channel "drive"). Designed to run independently forever via a macOS
+// LaunchAgent (see com.dnaos.drive-watcher.plist) — does NOT depend on any
+// Claude/AI chat session being open. Tracks already-processed files in a local
+// log so it never double-processes on repeated runs. Bridge failure = the file
+// is NOT marked processed (fail-closed, retried next round — no fallback write).
 import { createClient } from "@supabase/supabase-js";
 import { runDeviceAiCapability } from "./ai/device-ai-runtime.mjs";
 import { createDeviceEvidence } from "./ai/device-ai-evidence.mjs";
 import { readFileSync, readdirSync, statSync, existsSync, appendFileSync, writeFileSync } from "fs";
 import { join } from "path";
 import { getReadyOllamaUrl } from "./ollama-cloud-gateway.mjs";
+import { sendConnectInboundSource } from "./connect-inbound.mjs";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
 
@@ -87,7 +91,11 @@ async function main() {
       const parsed = await extractSlip(f);
       if (parsed.is_receipt_type && parsed.amount) {
         const mtime = statSync(f).mtime.toISOString().slice(0, 10);
-        await db.from("receipt_documents").insert({
+        // Connect inbound bridge (channel "drive") — canonical writer + audit.
+        // Failure throws → caught below → file stays unprocessed → retried
+        // next round. NO direct insert fallback (fail-closed by contract).
+        const created = await sendConnectInboundSource(env, {
+          channel: "drive",
           media_path: `local_drive:${f}`,
           document_type: "transfer_slip",
           vendor_name: parsed.receiver ?? null,
@@ -96,9 +104,10 @@ async function main() {
           document_date: mtime,
           confidence: 0.7,
           status: "ai_read",
-          payment_verified: false,
           raw_ocr_text: JSON.stringify(parsed),
-        });
+          provenance: { origin: "local-runtime/watch-drive.mjs", file: f },
+        }, "local-runtime:watch-drive");
+        if (!created.ok) throw new Error(created.error ?? "INBOUND_BRIDGE_FAILED");
         console.log(`[drive-watcher]   ✓ บันทึกแล้ว: ${parsed.sender ?? "?"} -> ${parsed.receiver ?? "?"} : ${parsed.amount} บาท`);
       } else {
         console.log(`[drive-watcher]   - ข้าม (ไม่ใช่เอกสารการเงิน): ${f.split("/").pop()}`);

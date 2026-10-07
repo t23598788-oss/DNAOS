@@ -19,6 +19,7 @@ export async function handleText(ctx: HandlerContext): Promise<void> {
     event:   ctx.event,
     userId:  ctx.userId,
     groupId: ctx.groupId,
+    channelDestination: ctx.channelDestination,
     rawType: "text",
     rawText: text,
   })

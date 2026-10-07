@@ -34,6 +34,7 @@ export async function handleLocation(ctx: HandlerContext): Promise<void> {
     event:     ctx.event,
     userId:    ctx.userId,
     groupId:   ctx.groupId,
+    channelDestination: ctx.channelDestination,
     rawType:   "location",
     rawText:   address,
     extracted: { latitude: lat, longitude: lng, address },
