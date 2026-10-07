@@ -59,12 +59,16 @@ export async function GET(req: NextRequest) {
   // to https://evil.com (protocol-relative). Guard through the SAME
   // isSafeInternalPath authority resolveDestination uses; unsafe → default.
   const safeNext = isSafeInternalPath(next) ? next : "/app"; // /app = role-bounce entry (PWA start_url)
-  // REDIRECTS ARE RELATIVE (owner fix 2026-10-08, found by real browser login
-  // test on Railway): `new URL(req.url).origin` inside the container is
-  // http://localhost:8080 (the proxy forwards the internal host), so every
-  // absolute redirect built from it sent the browser to localhost:8080 —
-  // a guaranteed broken login on any hosted deploy. A relative Location is
-  // resolved by the BROWSER against the real host the user is on.
+  // REDIRECTS SEND A RELATIVE Location HEADER DIRECTLY (owner fix 2026-10-08,
+  // found by real browser login test on Railway): `new URL(req.url).origin`
+  // inside the container is http://localhost:8080 (the proxy forwards the
+  // internal host), so absolute redirects built from it sent the browser to
+  // localhost — a guaranteed broken hosted login. And NextResponse.redirect()
+  // rejects relative URLs outright ("middleware-relative-urls"), so we emit a
+  // raw 307 with a relative Location and let the BROWSER resolve it against
+  // the host the user is actually on. The ?next= safety guard is unchanged.
+  const redirectTo = (location: string): NextResponse =>
+    new NextResponse(null, { status: 307, headers: { Location: location } });
 
   if (providerError) {
     const errorCode = searchParams.get("error_code");
@@ -72,12 +76,12 @@ export async function GET(req: NextRequest) {
       error: errorCode === "otp_expired" ? "invalid_link" : "oauth_denied",
       next: safeNext,
     });
-    return NextResponse.redirect(`/login?${params.toString()}`);
+    return redirectTo(`/login?${params.toString()}`);
   }
 
   const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
   if (isRateLimited(ip)) {
-    return NextResponse.redirect("/login?error=too_many_attempts");
+    return redirectTo("/login?error=too_many_attempts");
   }
 
   const supabase = await createServerSupabase();
@@ -88,22 +92,22 @@ export async function GET(req: NextRequest) {
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (error) {
       recordFailure(ip);
-      return NextResponse.redirect("/login?error=invalid_link");
+      return redirectTo("/login?error=invalid_link");
     }
     clearFailures(ip);
-    return NextResponse.redirect(safeNext);
+    return redirectTo(safeNext);
   }
 
   if (!tokenHash || !type) {
     // Nothing was guessed here (no oracle) — redirect WITHOUT counting.
-    return NextResponse.redirect("/login?error=invalid_link");
+    return redirectTo("/login?error=invalid_link");
   }
 
   const { error } = await supabase.auth.verifyOtp({ token_hash: tokenHash, type });
   if (error) {
     recordFailure(ip);
-    return NextResponse.redirect("/login?error=invalid_link");
+    return redirectTo("/login?error=invalid_link");
   }
   clearFailures(ip);
-  return NextResponse.redirect(safeNext);
+  return redirectTo(safeNext);
 }
