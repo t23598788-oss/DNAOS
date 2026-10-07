@@ -49,7 +49,7 @@ export const SUPABASE_TABLES = [
 export const SYSTEM_LINKS: SystemLinkGroup[] = [
   {
     id: "supabase",
-    title: "Supabase — ฐานข้อมูลจริง (D N A O S system)",
+    title: "Supabase — คอนเนกเตอร์ฐานข้อมูล DNA OS",
     account: "dnaos.tech@gmail.com",
     items: [
       { label: "Table Editor (รายการตารางทั้งหมด)", url: `https://supabase.com/dashboard/project/${SUPABASE_PROJECT_REF}/editor` },
@@ -62,11 +62,19 @@ export const SYSTEM_LINKS: SystemLinkGroup[] = [
     ],
   },
   {
-    id: "vercel",
-    title: "Vercel — โฮสต์เว็บจริง (dna-os-deadboard)",
-    account: "t23598788-3511 (t23598788@gmail.com)",
+    id: "railway",
+    title: "Railway — คอนเนกเตอร์โฮสต์ DNA OS",
+    account: "t23598788-oss",
     items: [
       { label: "Production site", url: "https://dnaos.dev" },
+      { label: "Service Dashboard", url: "https://railway.com/project/ffe589bf-58fb-4e3e-8969-4a75915fda1a/service/c08254e4-9679-4984-b388-402f7909bf47?environmentId=4d28eafa-9735-4405-a585-55ea354bafab" },
+    ],
+  },
+  {
+    id: "vercel",
+    title: "Vercel — คอนเนกเตอร์",
+    account: "t23598788-3511 (t23598788@gmail.com)",
+    items: [
       { label: "Project Dashboard", url: "https://vercel.com/t23598788-3511s-projects/dna-os-deadboard" },
       { label: "Deployments", url: "https://vercel.com/t23598788-3511s-projects/dna-os-deadboard/deployments" },
       { label: "Environment Variables", url: "https://vercel.com/t23598788-3511s-projects/dna-os-deadboard/settings/environment-variables" },
@@ -101,7 +109,7 @@ export const SYSTEM_LINKS: SystemLinkGroup[] = [
   },
   {
     id: "hostinger",
-    title: "Hostinger — VPS ที่รัน n8n",
+    title: "Hostinger — คอนเนกเตอร์โดเมนและ VPS",
     account: "t23598788@gmail.com",
     items: [
       { label: "hPanel", url: "https://hpanel.hostinger.com" },

@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-07T17:13:29.818Z",
+  "generated_at": "2026-10-07T20:07:31.821Z",
   "version": 1,
   "nodes": [
     {
@@ -281,13 +281,13 @@
           "name": "POST",
           "kind": "function",
           "line_start": 14,
-          "line_end": 36
+          "line_end": 38
         },
         {
           "name": "GET",
           "kind": "function",
-          "line_start": 38,
-          "line_end": 44
+          "line_start": 40,
+          "line_end": 46
         }
       ],
       "import_sites": [
@@ -344,7 +344,7 @@
           "name": "POST",
           "kind": "function",
           "line_start": 17,
-          "line_end": 60
+          "line_end": 80
         }
       ],
       "import_sites": [
@@ -4593,74 +4593,74 @@
         {
           "name": "getMemory",
           "kind": "function",
-          "line_start": 85,
-          "line_end": 87
+          "line_start": 86,
+          "line_end": 88
         },
         {
           "name": "isStale",
           "kind": "function",
-          "line_start": 89,
-          "line_end": 92
+          "line_start": 90,
+          "line_end": 93
         },
         {
           "name": "resetMemory",
           "kind": "function",
-          "line_start": 96,
-          "line_end": 100
+          "line_start": 97,
+          "line_end": 101
         },
         {
           "name": "newSession",
           "kind": "function",
-          "line_start": 102,
-          "line_end": 106
+          "line_start": 103,
+          "line_end": 107
         },
         {
           "name": "applyReflection",
           "kind": "function",
-          "line_start": 110,
-          "line_end": 128
+          "line_start": 111,
+          "line_end": 129
         },
         {
           "name": "enrichWithMemory",
           "kind": "function",
-          "line_start": 151,
-          "line_end": 200
+          "line_start": 152,
+          "line_end": 201
         },
         {
           "name": "whatChanged",
           "kind": "function",
-          "line_start": 204,
-          "line_end": 206
+          "line_start": 205,
+          "line_end": 207
         },
         {
           "name": "whatIsPending",
           "kind": "function",
-          "line_start": 208,
-          "line_end": 210
+          "line_start": 209,
+          "line_end": 211
         },
         {
           "name": "whatWasCancelled",
           "kind": "function",
-          "line_start": 212,
-          "line_end": 214
+          "line_start": 213,
+          "line_end": 215
         },
         {
           "name": "whatIsCurrentGoal",
           "kind": "function",
-          "line_start": 216,
-          "line_end": 218
+          "line_start": 217,
+          "line_end": 219
         },
         {
           "name": "cancelPending",
           "kind": "function",
-          "line_start": 220,
-          "line_end": 225
+          "line_start": 221,
+          "line_end": 226
         },
         {
           "name": "executePending",
           "kind": "function",
-          "line_start": 227,
-          "line_end": 232
+          "line_start": 228,
+          "line_end": 233
         }
       ],
       "import_sites": [
@@ -6075,7 +6075,6 @@
         "module:app/api/admin/line-customers/[lineUserId]/send-debt/route.ts",
         "module:app/api/admin/line-customers/[lineUserId]/send-document/route.ts",
         "module:app/api/admin/settings/route.ts",
-        "module:app/api/chat/_lib/resultContract.ts",
         "module:app/api/chat/confirm/route.ts",
         "module:components/documents/DocumentBuilder.tsx",
         "module:components/documents/DocumentPreview.tsx",
@@ -10058,6 +10057,7 @@
       ],
       "dependents": [
         "module:app/api/admin/capability-boxes/run/route.ts",
+        "module:app/api/chat/_lib/resultContract.ts",
         "module:app/api/v1/query/route.ts",
         "module:cognitive/executor/index.ts",
         "module:cognitive/pipeline.ts",
@@ -13181,6 +13181,7 @@
         "module:app/api/admin/ide/_lib/jobRecoveryRuntime.ts",
         "module:app/api/admin/ide/_lib/switchBasedOrchestratorRuntime.ts",
         "module:app/api/admin/ide/_lib/usageMeterRuntime.ts",
+        "module:app/api/admin/ide/_lib/workerSettingsRuntime.ts",
         "module:app/api/admin/infrastructure/route.ts",
         "module:app/api/admin/line-customers/[lineUserId]/ask/route.ts",
         "module:app/api/admin/line-customers/[lineUserId]/build-event/route.ts",
@@ -13239,6 +13240,7 @@
         "module:app/api/explain/route.ts",
         "module:app/api/gateway/observe/github/route.ts",
         "module:app/api/gateway/observe/line/route.ts",
+        "module:app/api/gateway/observe/meta/route.ts",
         "module:app/api/gateway/observe/railway/route.ts",
         "module:app/api/gateway/observe/vercel/route.ts",
         "module:app/api/gateway/proposals/[id]/decide/route.ts",
@@ -13589,7 +13591,7 @@
           "name": "handleUnfollow",
           "kind": "function",
           "line_start": 4,
-          "line_end": 12
+          "line_end": 13
         }
       ],
       "import_sites": [
@@ -13651,7 +13653,7 @@
           "name": "handleText",
           "kind": "function",
           "line_start": 13,
-          "line_end": 232
+          "line_end": 233
         }
       ],
       "import_sites": [
@@ -13754,7 +13756,7 @@
           "name": "handlePostback",
           "kind": "function",
           "line_start": 8,
-          "line_end": 150
+          "line_end": 151
         }
       ],
       "import_sites": [
@@ -13838,7 +13840,7 @@
           "name": "handleLocation",
           "kind": "function",
           "line_start": 25,
-          "line_end": 102
+          "line_end": 103
         }
       ],
       "import_sites": [
@@ -13929,7 +13931,7 @@
           "name": "handleImage",
           "kind": "function",
           "line_start": 31,
-          "line_end": 119
+          "line_end": 120
         }
       ],
       "import_sites": [
@@ -14005,7 +14007,7 @@
           "name": "handleGroup",
           "kind": "function",
           "line_start": 4,
-          "line_end": 19
+          "line_end": 20
         }
       ],
       "import_sites": [
@@ -14057,7 +14059,7 @@
           "name": "handleFollow",
           "kind": "function",
           "line_start": 5,
-          "line_end": 28
+          "line_end": 29
         }
       ],
       "import_sites": [
@@ -14113,7 +14115,7 @@
           "name": "handleFallback",
           "kind": "function",
           "line_start": 4,
-          "line_end": 15
+          "line_end": 16
         }
       ],
       "import_sites": [
@@ -14256,7 +14258,7 @@
           "name": "HandlerContext",
           "kind": "interface",
           "line_start": 86,
-          "line_end": 98
+          "line_end": 105
         }
       ]
     },
@@ -14311,31 +14313,31 @@
           "name": "SaveEventInput",
           "kind": "interface",
           "line_start": 7,
-          "line_end": 15
+          "line_end": 20
         },
         {
           "name": "SavedEvent",
           "kind": "interface",
-          "line_start": 17,
-          "line_end": 21
+          "line_start": 22,
+          "line_end": 26
         },
         {
           "name": "saveEvent",
           "kind": "function",
-          "line_start": 23,
-          "line_end": 134
+          "line_start": 28,
+          "line_end": 150
         },
         {
           "name": "markEventProcessed",
           "kind": "function",
-          "line_start": 136,
-          "line_end": 145
+          "line_start": 152,
+          "line_end": 161
         },
         {
           "name": "markEventError",
           "kind": "function",
-          "line_start": 147,
-          "line_end": 156
+          "line_start": 163,
+          "line_end": 172
         }
       ],
       "import_sites": [
@@ -29332,7 +29334,7 @@
           "name": "GET",
           "kind": "function",
           "line_start": 51,
-          "line_end": 102
+          "line_end": 113
         }
       ],
       "import_sites": [
@@ -32177,7 +32179,7 @@
           "name": "handleFile",
           "kind": "function",
           "line_start": 23,
-          "line_end": 81
+          "line_end": 82
         }
       ],
       "import_sites": [
@@ -32256,7 +32258,7 @@
           "name": "handleAudio",
           "kind": "function",
           "line_start": 8,
-          "line_end": 27
+          "line_end": 28
         }
       ],
       "import_sites": [
@@ -35934,7 +35936,7 @@
           "name": "POST",
           "kind": "function",
           "line_start": 18,
-          "line_end": 38
+          "line_end": 46
         }
       ],
       "import_sites": [
@@ -36069,9 +36071,7 @@
       "runtime_entry_point": true,
       "internal_dependencies": [],
       "dependents": [],
-      "data_tables": [
-        "receipt_documents"
-      ],
+      "data_tables": "UNKNOWN",
       "business_capabilities": "UNKNOWN",
       "domain_owner": "local-runtime",
       "lifecycle_status": "active",
@@ -36095,9 +36095,7 @@
       "runtime_entry_point": true,
       "internal_dependencies": [],
       "dependents": [],
-      "data_tables": [
-        "receipt_documents"
-      ],
+      "data_tables": "UNKNOWN",
       "business_capabilities": "UNKNOWN",
       "domain_owner": "local-runtime",
       "lifecycle_status": "active",
@@ -36198,9 +36196,7 @@
       "runtime_entry_point": true,
       "internal_dependencies": [],
       "dependents": [],
-      "data_tables": [
-        "receipt_documents"
-      ],
+      "data_tables": "UNKNOWN",
       "business_capabilities": "UNKNOWN",
       "domain_owner": "local-runtime",
       "lifecycle_status": "active",
@@ -38274,110 +38270,110 @@
         {
           "name": "Category",
           "kind": "type",
-          "line_start": 28,
-          "line_end": 46
+          "line_start": 36,
+          "line_end": 54
         },
         {
           "name": "Verdict",
           "kind": "type",
-          "line_start": 48,
-          "line_end": 58
+          "line_start": 56,
+          "line_end": 66
         },
         {
           "name": "ScanHit",
           "kind": "interface",
-          "line_start": 60,
-          "line_end": 64
+          "line_start": 68,
+          "line_end": 72
         },
         {
           "name": "Classification",
           "kind": "interface",
-          "line_start": 66,
-          "line_end": 79
+          "line_start": 74,
+          "line_end": 87
         },
         {
           "name": "classify",
           "kind": "function",
-          "line_start": 174,
-          "line_end": 525
+          "line_start": 182,
+          "line_end": 533
         },
         {
           "name": "scanText",
           "kind": "function",
-          "line_start": 626,
-          "line_end": 635
+          "line_start": 634,
+          "line_end": 643
         },
         {
           "name": "scanFile",
           "kind": "function",
-          "line_start": 637,
-          "line_end": 639
+          "line_start": 645,
+          "line_end": 647
         },
         {
           "name": "scanRepository",
           "kind": "function",
-          "line_start": 641,
-          "line_end": 655
+          "line_start": 649,
+          "line_end": 663
         },
         {
           "name": "findDuplicates",
           "kind": "function",
-          "line_start": 661,
-          "line_end": 674
+          "line_start": 669,
+          "line_end": 682
         },
         {
           "name": "explain",
           "kind": "function",
-          "line_start": 676,
-          "line_end": 691
+          "line_start": 684,
+          "line_end": 699
         },
         {
           "name": "MigrationPlanItem",
           "kind": "interface",
-          "line_start": 693,
-          "line_end": 699
+          "line_start": 701,
+          "line_end": 707
         },
         {
           "name": "generateMigrationPlan",
           "kind": "function",
-          "line_start": 701,
-          "line_end": 714
+          "line_start": 709,
+          "line_end": 722
         },
         {
           "name": "ScanReport",
           "kind": "interface",
-          "line_start": 716,
-          "line_end": 725
+          "line_start": 724,
+          "line_end": 733
         },
         {
           "name": "buildReport",
           "kind": "function",
-          "line_start": 727,
-          "line_end": 741
+          "line_start": 735,
+          "line_end": 749
         },
         {
           "name": "ExternalConstraintCheck",
           "kind": "interface",
-          "line_start": 748,
-          "line_end": 755
+          "line_start": 756,
+          "line_end": 763
         },
         {
           "name": "verifyExternalConstraint",
           "kind": "function",
-          "line_start": 757,
-          "line_end": 782
+          "line_start": 765,
+          "line_end": 790
         },
         {
           "name": "RegisteredException",
           "kind": "interface",
-          "line_start": 784,
-          "line_end": 791
+          "line_start": 792,
+          "line_end": 799
         },
         {
           "name": "registerException",
           "kind": "function",
-          "line_start": 799,
-          "line_end": 810
+          "line_start": 807,
+          "line_end": 818
         }
       ],
       "import_sites": [
@@ -42739,6 +42735,7 @@
         "module:app/api/gateway/proposals/route.ts",
         "module:engines/integration-gateway/adapters/github.ts",
         "module:engines/integration-gateway/adapters/line.ts",
+        "module:engines/integration-gateway/adapters/meta.ts",
         "module:engines/integration-gateway/adapters/railway.ts",
         "module:engines/integration-gateway/adapters/supabase.ts",
         "module:engines/integration-gateway/adapters/vercel.ts",
@@ -42748,6 +42745,7 @@
         "module:engines/integration-gateway/policy/gate.ts",
         "module:engines/integration-gateway/selfDescription.ts",
         "module:scripts/check-transitional-layers.ts",
+        "module:scripts/connect-channel-receive.test.ts",
         "module:scripts/connect-inbound-boundary-test.ts",
         "module:scripts/dispatcher-execution-mode-test.ts",
         "module:scripts/railway-adapter-test.ts"
@@ -42822,6 +42820,7 @@
         "module:app/api/admin/provider-settings/[providerId]/request-approval/route.ts",
         "module:app/api/gateway/observe/github/route.ts",
         "module:app/api/gateway/observe/line/route.ts",
+        "module:app/api/gateway/observe/meta/route.ts",
         "module:app/api/gateway/observe/railway/route.ts",
         "module:app/api/gateway/observe/vercel/route.ts",
         "module:app/api/gateway/proposals/route.ts",
@@ -67395,12 +67394,15 @@
       "status": "OK",
       "runtime_entry_point": false,
       "internal_dependencies": [
-        "module:app/api/admin/ide/_lib/workerSelectorRuntime.ts"
+        "module:app/api/admin/ide/_lib/workerSelectorRuntime.ts",
+        "module:services/supabase/queries.ts"
       ],
       "dependents": [
         "module:app/api/admin/ide/workers/settings/route.ts"
       ],
-      "data_tables": "UNKNOWN",
+      "data_tables": [
+        "app_configs"
+      ],
       "business_capabilities": "UNKNOWN",
       "domain_owner": "app",
       "lifecycle_status": "active",
@@ -67446,26 +67448,26 @@
         {
           "name": "getWorkerSettings",
           "kind": "function",
-          "line_start": 42,
-          "line_end": 44
+          "line_start": 89,
+          "line_end": 92
         },
         {
           "name": "updateWorkerSettings",
           "kind": "function",
-          "line_start": 49,
-          "line_end": 54
+          "line_start": 97,
+          "line_end": 107
         },
         {
           "name": "ProviderSettingsStatus",
           "kind": "interface",
-          "line_start": 56,
-          "line_end": 56
+          "line_start": 109,
+          "line_end": 109
         },
         {
           "name": "computeProviderStatuses",
           "kind": "function",
-          "line_start": 60,
-          "line_end": 71
+          "line_start": 113,
+          "line_end": 124
         }
       ],
       "import_sites": [
@@ -67473,6 +67475,11 @@
           "specifier": "./workerSelectorRuntime",
           "line": 8,
           "resolved_target": "app/api/admin/ide/_lib/workerSelectorRuntime.ts"
+        },
+        {
+          "specifier": "@/services/supabase/queries",
+          "line": 50,
+          "resolved_target": "services/supabase/queries.ts"
         }
       ]
     },
@@ -67979,13 +67986,13 @@
           "name": "GET",
           "kind": "function",
           "line_start": 13,
-          "line_end": 17
+          "line_end": 21
         },
         {
           "name": "POST",
           "kind": "function",
-          "line_start": 19,
-          "line_end": 31
+          "line_start": 23,
+          "line_end": 35
         }
       ],
       "import_sites": [
@@ -76744,6 +76751,7 @@
         "module:app/api/admin/connectors/providers/route.ts",
         "module:app/api/admin/connectors/route.ts",
         "module:app/api/admin/provider-settings/route.ts",
+        "module:scripts/connect-channel-receive.test.ts",
         "module:scripts/connect-core-acceptance-test.ts",
         "module:scripts/connect-inbound-boundary-test.ts"
       ],
@@ -77482,6 +77490,7 @@
         "module:services/canonical/payments.ts"
       ],
       "dependents": [
+        "module:app/api/chat/_lib/resultContract.ts",
         "module:scripts/canonical-finance-acceptance-test.ts",
         "module:services/canonical/document-detail.ts",
         "module:services/canonical/transaction-detail.ts"
@@ -77708,6 +77717,7 @@
       ],
       "dependents": [
         "module:app/api/admin/documents/[id]/route.ts",
+        "module:app/api/chat/_lib/resultContract.ts",
         "module:scripts/canonical-phase-c-acceptance-test.ts",
         "module:scripts/canonical-phase-d-acceptance-test.ts"
       ],
@@ -89513,9 +89523,11 @@
       "runtime_entry_point": false,
       "internal_dependencies": [
         "module:app/api/chat/_lib/chatResultTypes.ts",
-        "module:core/config/company-settings.ts",
         "module:engines/documents/document-editor.ts",
-        "module:engines/documents/engine.ts"
+        "module:engines/documents/engine.ts",
+        "module:engines/validation/dispatcher.ts",
+        "module:services/canonical/document-detail.ts",
+        "module:services/canonical/read-model.ts"
       ],
       "dependents": [
         "module:app/api/chat/route.ts"
@@ -89536,35 +89548,45 @@
         {
           "name": "buildChatResult",
           "kind": "function",
-          "line_start": 260,
-          "line_end": 302
+          "line_start": 386,
+          "line_end": 428
         }
       ],
       "import_sites": [
         {
           "specifier": "./chatResultTypes",
-          "line": 11,
+          "line": 14,
           "resolved_target": "app/api/chat/_lib/chatResultTypes.ts"
         },
         {
           "specifier": "./chatResultTypes",
-          "line": 12,
+          "line": 15,
           "resolved_target": "app/api/chat/_lib/chatResultTypes.ts"
         },
         {
           "specifier": "@/engines/documents/document-editor",
-          "line": 13,
+          "line": 16,
           "resolved_target": "engines/documents/document-editor.ts"
         },
         {
           "specifier": "@/engines/documents/engine",
-          "line": 20,
+          "line": 17,
           "resolved_target": "engines/documents/engine.ts"
         },
         {
-          "specifier": "@/core/config/company-settings",
-          "line": 21,
-          "resolved_target": "core/config/company-settings.ts"
+          "specifier": "@/engines/validation/dispatcher",
+          "line": 18,
+          "resolved_target": "engines/validation/dispatcher.ts"
+        },
+        {
+          "specifier": "@/services/canonical/document-detail",
+          "line": 19,
+          "resolved_target": "services/canonical/document-detail.ts"
+        },
+        {
+          "specifier": "@/services/canonical/read-model",
+          "line": 20,
+          "resolved_target": "services/canonical/read-model.ts"
         }
       ]
     },
@@ -89672,6 +89694,142 @@
       "related_documents": "UNKNOWN",
       "related_commands": "UNKNOWN",
       "related_services": "UNKNOWN"
+    },
+    {
+      "id": "module:engines/integration-gateway/adapters/meta.ts",
+      "type": "Module",
+      "layer": "engines",
+      "name_en": "engines/integration-gateway/adapters/meta.ts",
+      "purpose_th": "Integration Gateway — Meta adapter (Facebook Messenger + Instagram messaging receive, owner channel-expansion 2026-10-07).",
+      "exports": [
+        "EVIDENCE_KEYS",
+        "capabilityForMetaMessage",
+        "metaVerifyChallenge",
+        "normalizeMetaWebhook",
+        "verifyMetaSignature"
+      ],
+      "status": "OK",
+      "runtime_entry_point": false,
+      "internal_dependencies": [
+        "module:engines/integration-gateway/contracts/event.ts"
+      ],
+      "dependents": [
+        "module:app/api/gateway/observe/meta/route.ts",
+        "module:scripts/connect-channel-receive.test.ts"
+      ],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "engines",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "symbols": [
+        {
+          "name": "verifyMetaSignature",
+          "kind": "function",
+          "line_start": 27,
+          "line_end": 34
+        },
+        {
+          "name": "metaVerifyChallenge",
+          "kind": "function",
+          "line_start": 41,
+          "line_end": 47
+        },
+        {
+          "name": "EVIDENCE_KEYS",
+          "kind": "const",
+          "line_start": 57,
+          "line_end": 69
+        },
+        {
+          "name": "capabilityForMetaMessage",
+          "kind": "function",
+          "line_start": 91,
+          "line_end": 95
+        },
+        {
+          "name": "normalizeMetaWebhook",
+          "kind": "function",
+          "line_start": 118,
+          "line_end": 171
+        }
+      ],
+      "import_sites": [
+        {
+          "specifier": "../contracts/event",
+          "line": 20,
+          "resolved_target": "engines/integration-gateway/contracts/event.ts"
+        }
+      ]
+    },
+    {
+      "id": "module:app/api/gateway/observe/meta/route.ts",
+      "type": "Module",
+      "layer": "app",
+      "name_en": "app/api/gateway/observe/meta/route.ts",
+      "purpose_th": "POST/GET /api/gateway/observe/meta — Meta (Facebook Messenger + Instagram",
+      "exports": [
+        "GET",
+        "POST"
+      ],
+      "status": "OK",
+      "runtime_entry_point": true,
+      "internal_dependencies": [
+        "module:engines/integration-gateway/adapters/meta.ts",
+        "module:engines/integration-gateway/event-bus/bus.ts",
+        "module:services/supabase/queries.ts"
+      ],
+      "dependents": [],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "app",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "symbols": [
+        {
+          "name": "GET",
+          "kind": "function",
+          "line_start": 31,
+          "line_end": 50
+        },
+        {
+          "name": "POST",
+          "kind": "function",
+          "line_start": 52,
+          "line_end": 79
+        }
+      ],
+      "import_sites": [
+        {
+          "specifier": "@/engines/integration-gateway/adapters/meta",
+          "line": 27,
+          "resolved_target": "engines/integration-gateway/adapters/meta.ts"
+        },
+        {
+          "specifier": "@/engines/integration-gateway/event-bus/bus",
+          "line": 28,
+          "resolved_target": "engines/integration-gateway/event-bus/bus.ts"
+        },
+        {
+          "specifier": "@/services/supabase/queries",
+          "line": 29,
+          "resolved_target": "services/supabase/queries.ts"
+        }
+      ]
     }
   ],
   "edges": [
@@ -92152,6 +92310,11 @@
     },
     {
       "source": "layer:app",
+      "target": "module:app/api/gateway/observe/meta/route.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:app",
       "target": "module:app/api/gateway/observe/railway/route.ts",
       "label": "contains"
     },
@@ -93733,6 +93896,11 @@
     {
       "source": "layer:engines",
       "target": "module:engines/integration-gateway/adapters/line.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:engines",
+      "target": "module:engines/integration-gateway/adapters/meta.ts",
       "label": "contains"
     },
     {
@@ -99796,6 +99964,11 @@
       "label": "imports"
     },
     {
+      "source": "module:app/api/admin/ide/_lib/workerSettingsRuntime.ts",
+      "target": "module:services/supabase/queries.ts",
+      "label": "imports"
+    },
+    {
       "source": "module:app/api/admin/ide/_lib/workerTaskOrchestrator.ts",
       "target": "module:app/api/admin/ide/_lib/acceptanceContractRuntime.ts",
       "label": "imports"
@@ -104132,17 +104305,27 @@
     },
     {
       "source": "module:app/api/chat/_lib/resultContract.ts",
-      "target": "module:core/config/company-settings.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/api/chat/_lib/resultContract.ts",
       "target": "module:engines/documents/document-editor.ts",
       "label": "imports"
     },
     {
       "source": "module:app/api/chat/_lib/resultContract.ts",
       "target": "module:engines/documents/engine.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/chat/_lib/resultContract.ts",
+      "target": "module:engines/validation/dispatcher.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/chat/_lib/resultContract.ts",
+      "target": "module:services/canonical/document-detail.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/chat/_lib/resultContract.ts",
+      "target": "module:services/canonical/read-model.ts",
       "label": "imports"
     },
     {
@@ -104397,6 +104580,21 @@
     },
     {
       "source": "module:app/api/gateway/observe/line/route.ts",
+      "target": "module:services/supabase/queries.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/gateway/observe/meta/route.ts",
+      "target": "module:engines/integration-gateway/adapters/meta.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/gateway/observe/meta/route.ts",
+      "target": "module:engines/integration-gateway/event-bus/bus.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/gateway/observe/meta/route.ts",
       "target": "module:services/supabase/queries.ts",
       "label": "imports"
     },
@@ -108551,6 +108749,11 @@
       "label": "imports"
     },
     {
+      "source": "module:engines/integration-gateway/adapters/meta.ts",
+      "target": "module:engines/integration-gateway/contracts/event.ts",
+      "label": "imports"
+    },
+    {
       "source": "module:engines/integration-gateway/adapters/railway.ts",
       "target": "module:engines/integration-gateway/contracts/event.ts",
       "label": "imports"
@@ -110988,6 +111191,26 @@
     {
       "source": "module:scripts/compatibility-test.ts",
       "target": "module:app/api/admin/ide/_lib/releaseRuntime.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:scripts/connect-channel-receive.test.ts",
+      "target": "module:engines/connectors/registry.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:scripts/connect-channel-receive.test.ts",
+      "target": "module:engines/integration-gateway/adapters/meta.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:scripts/connect-channel-receive.test.ts",
+      "target": "module:engines/integration-gateway/contracts/event.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:scripts/connect-channel-receive.test.ts",
+      "target": "module:local-runtime/connect-inbound.mjs.ts",
       "label": "imports"
     },
     {
@@ -113537,8 +113760,8 @@
     }
   ],
   "summary": {
-    "total": 1317,
-    "ok": 1317,
+    "total": 1319,
+    "ok": 1319,
     "broken": 0,
     "unused": 0,
     "unregistered": 0
