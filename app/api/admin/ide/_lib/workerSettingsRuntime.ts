@@ -37,19 +37,64 @@ function defaultSettings(ownerId: string): WorkerSettings {
   };
 }
 
-const settingsStore = new Map<string, WorkerSettings>();
+/**
+ * PERSISTENT storage (owner step "ui-baseline-workspace-2026-10-08" ข้อ 5):
+ * replaced the in-memory `Map` (which silently reset every time the server
+ * process restarted — a settings change was never really saved). The file is
+ * now the source of truth; the module-level cache only accelerates repeat
+ * reads inside one process. Atomic write (tmp + rename) matches the existing
+ * precedent in ./executionContextRuntime.ts — same workspace-relative,
+ * hardcoded path rules (never a user-controlled path), and `_local-data/` is
+ * already gitignored so real owner settings never get committed.
+ */
+import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "fs";
+import { dirname, join } from "path";
+import { WORKSPACE_ROOT } from "./fsSecurity";
+
+const SETTINGS_FILE_PATH = join(WORKSPACE_ROOT, "_local-data", "worker-settings.json");
+
+type SettingsFile = Record<string, WorkerSettings>;
+
+let settingsCache: SettingsFile | null = null;
+
+function readSettingsFile(): SettingsFile {
+  if (settingsCache) return settingsCache;
+  if (!existsSync(SETTINGS_FILE_PATH)) {
+    settingsCache = {};
+    return settingsCache;
+  }
+  try {
+    const parsed = JSON.parse(readFileSync(SETTINGS_FILE_PATH, "utf-8")) as SettingsFile;
+    settingsCache = parsed && typeof parsed === "object" ? parsed : {};
+  } catch {
+    // Corrupt/unreadable file is treated as "no saved settings yet" — never a
+    // fabricated guess at its contents (same rule as executionContextRuntime).
+    settingsCache = {};
+  }
+  return settingsCache;
+}
+
+function atomicWriteSettings(data: SettingsFile): void {
+  mkdirSync(dirname(SETTINGS_FILE_PATH), { recursive: true });
+  const tmpPath = `${SETTINGS_FILE_PATH}.tmp-${process.pid}-${Date.now()}`;
+  writeFileSync(tmpPath, JSON.stringify(data, null, 2) + "\n", "utf-8");
+  renameSync(tmpPath, SETTINGS_FILE_PATH);
+}
 
 export function getWorkerSettings(ownerId: string): WorkerSettings {
-  return settingsStore.get(ownerId) ?? defaultSettings(ownerId);
+  return readSettingsFile()[ownerId] ?? defaultSettings(ownerId);
 }
 
 /** Real, Owner-only update — never accepts a secret value field (there
  * is none in the real WorkerSettings shape; secrets stay in real
- * process.env, never here — Section 16). */
+ * process.env, never here — Section 16). Persists to disk immediately. */
 export function updateWorkerSettings(ownerId: string, patch: Partial<Omit<WorkerSettings, "ownerId" | "updatedAt">>): WorkerSettings {
   const current = getWorkerSettings(ownerId);
   const updated: WorkerSettings = { ...current, ...patch, ownerId, updatedAt: new Date().toISOString() };
-  settingsStore.set(ownerId, updated);
+  const file = readSettingsFile();
+  file[ownerId] = updated;
+  atomicWriteSettings(file);
+  settingsCache = file;
   return updated;
 }
 
