@@ -170,30 +170,108 @@ async function financeResult(req: Request): Promise<Extract<ChatResult, { type: 
 
 // ── document ────────────────────────────────────────────────────────────────
 
+type DocRow = {
+  id?: string;
+  document_type?: string;
+  document_number?: string;
+  issue_date?: string | null;
+  party_name?: string;
+  net_amount?: number;
+};
+
+const DOC_COLUMNS: ResultTable["columns"] = [
+  { key: "no", label: "เลขเอกสาร" },
+  { key: "date", label: "วันที่" },
+  { key: "party", label: "ลูกค้า/คู่ค้า" },
+  { key: "amt", label: "ยอด" },
+];
+
+function documentNumberFromMessage(message: string): string | null {
+  const m = message.match(/\b([A-Za-z]{1,4}-\d{3,})\b/);
+  return m ? m[1] : null;
+}
+
 async function documentResult(
-  _req: Request,
+  req: Request,
   docType: DocumentType,
-): Promise<Extract<ChatResult, { type: "document" }> | null> {
+  message: string,
+): Promise<ChatResult | null> {
   // READ through the dispatcher (owner ข้อ 3): registry-gated command, input
   // validated, no write path — never a POST/write route.
   const listResult = await dispatch("document.list", {});
   if (!listResult.ok || !Array.isArray(listResult.data)) return null;
-  type DocRow = { id?: string; document_type?: string; document_number?: string };
-  const doc = (listResult.data as DocRow[]).find(
+  const matches = (listResult.data as DocRow[]).filter(
     (d) => String(d.document_type ?? "").toLowerCase() === docType,
   );
-  if (!doc?.id) return null;
+  if (matches.length === 0) return null;
+
+  // (owner 2026-10-08): NEVER auto-pick the first match. If the message names
+  // a document number, open exactly that one; if exactly one match exists,
+  // open it; otherwise return a picker table so the human chooses.
+  const wantedNumber = documentNumberFromMessage(message);
+  let doc: DocRow | undefined;
+  if (wantedNumber) doc = matches.find((d) => String(d.document_number ?? "") === wantedNumber);
+  else if (matches.length === 1) doc = matches[0];
+  if (!doc) {
+    return {
+      type: "table",
+      title: `พบ ${matches.length} ฉบับ — ระบุเลขเอกสารในข้อความถัดไปเพื่อเปิดฉบับที่ต้องการ`,
+      table: {
+        columns: DOC_COLUMNS,
+        rows: matches.slice(0, 20).map((d) => [
+          String(d.document_number ?? "—"),
+          String(d.issue_date ?? "—"),
+          String(d.party_name ?? "—"),
+          d.net_amount === null || d.net_amount === undefined ? "—" : formatMoney(Number(d.net_amount)),
+        ]),
+      },
+    };
+  }
+  if (!doc.id) return null;
 
   // (owner ข้อ 4): read the ORIGINAL persisted document — getDocumentDetail()
   // pulls document_versions (snapshot) + document_artifacts (files) exactly as
-  // stored. generateDoc() is deliberately NOT called here anymore: rendering a
-  // fresh document from a rebuilt draft would replace the original artifact.
+  // stored. generateDoc() is deliberately NOT called here anymore.
   const kind = docType === "invoice" ? "invoice" : "standalone_document";
   const detail = await getDocumentDetail(kind, doc.id);
   if (!detail) return null;
+
+  // Open the REAL file — only artifacts belonging to the version this reader
+  // actually selected (highest version_no, as returned in detail.version) —
+  // never another version's file. newest created_at wins because that is the
+  // latest produced file OF THAT VERSION (not "first row of a search").
+  const versionId = detail.version?.id ?? null;
+  const versionArtifacts = versionId
+    ? detail.generated_artifacts.filter((a) => String(a.document_version_id ?? "") === versionId)
+    : [];
+  const artifact =
+    versionArtifacts.length > 0
+      ? [...versionArtifacts].sort((a, b) =>
+          String(b.created_at ?? "").localeCompare(String(a.created_at ?? "")),
+        )[0]
+      : null;
+  if (artifact?.storage_path) {
+    // The file opens through /api/admin/upload?path=… which re-checks
+    // requireAuth(ADMIN_TIER) before minting the short-lived signed URL —
+    // permission is enforced at open-time, not trusted from this payload.
+    return {
+      type: "file",
+      name: `${doc.document_number || detail.identity.document_no || "เอกสาร"}_${String(artifact.kind ?? "file")}`,
+      path: String(artifact.storage_path),
+      mime: String(artifact.mime_type ?? "application/octet-stream"),
+      size: Number(artifact.size_bytes ?? 0),
+    };
+  }
+
+  // No stored file for this version → honest DATA SUMMARY, clearly labelled
+  // as a summary of the version snapshot — never presented as the original file.
   const label = DOC_LABELS[docType]?.th ?? "เอกสาร";
   const html = renderCanonicalDetailHtml(detail);
-  return { type: "document", title: `${label} ${doc.document_number ?? detail.identity.document_no ?? ""}`.trim(), html };
+  return {
+    type: "document",
+    title: `${label} ${doc.document_number ?? detail.identity.document_no ?? ""} — สรุปข้อมูลจาก version snapshot (ไม่ใช่ไฟล์ต้นฉบับ)`.trim(),
+    html,
+  };
 }
 
 // ── canonical detail → read-only HTML (version snapshot ต้นฉบับ) ─────────────
@@ -255,14 +333,32 @@ function renderCanonicalDetailHtml(detail: CanonicalDocumentDetail): string {
 
 // ── timeline ────────────────────────────────────────────────────────────────
 
-async function timelineResult(_req: Request, name: string): Promise<Extract<ChatResult, { type: "timeline" }> | null> {
+async function timelineResult(_req: Request, name: string): Promise<Extract<ChatResult, { type: "timeline" }> | ChatResult | null> {
   // READ through the dispatcher (owner ข้อ 3) — both commands are registry-
   // declared read commands with real QUERY_MAP handlers; no write path.
   const findResult = await dispatch("partner.find", { keyword: name });
   if (!findResult.ok || !Array.isArray(findResult.data)) return null;
   type PartnerRow = { id?: string; name?: string };
-  const partner = (findResult.data as PartnerRow[])[0];
-  if (!partner?.id) return null;
+  const found = findResult.data as PartnerRow[];
+  if (found.length === 0) return null;
+
+  // (owner 2026-10-08): NEVER auto-pick the first partner. Exact full-name
+  // match wins; otherwise hand the human a picker table to choose.
+  let partner: PartnerRow | undefined;
+  const exact = found.filter((p) => String(p.name ?? "").trim() === name.trim());
+  if (exact.length === 1) partner = exact[0];
+  else if (found.length === 1) partner = found[0];
+  if (!partner) {
+    return {
+      type: "table",
+      title: `พบ ${found.length} รายที่ตรงกับ "${name}" — ระบุชื่อเต็มเพื่อดูประวัติ`,
+      table: {
+        columns: [{ key: "name", label: "ชื่อ" }],
+        rows: found.slice(0, 20).map((p) => [String(p.name ?? "—")]),
+      },
+    };
+  }
+  if (!partner.id) return null;
   const tl = await dispatch("partner.timeline", { partner_id: String(partner.id) });
   if (!tl.ok || !tl.data || typeof tl.data !== "object") return null;
   const data = tl.data as {
@@ -317,7 +413,7 @@ export async function buildChatResult(
     }
     const docType = documentIntentType(message);
     if (docType) {
-      const r = await documentResult(req, docType);
+      const r = await documentResult(req, docType, message);
       if (r) return r;
     }
   } catch {
