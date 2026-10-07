@@ -42,24 +42,25 @@ function createFreshMemory(): SessionMemory {
   };
 }
 
-// Real incident (owner, 2026-07-31): this used to be one `let _memory`
-// singleton shared by EVERY request the Node process serves — every admin
-// tab, every customer chat thread, concurrently. Typing "ออกบิลให้คุณ
-// [company A]" while a DIFFERENT company's session was the last one
-// resolved anywhere in the process silently produced an invoice for that
-// stale company instead. Now keyed by `contactContext` (already an existing
-// parameter on runCognitivePipeline, just never threaded down to here) —
-// each customer/relationship/LINE user gets its own real, isolated memory.
-// Callers that genuinely have no session key (should be rare — every real
-// caller has a customer id, a LINE user id, or "owner") fall back to a
-// single shared "__default__" bucket, same behavior as before this fix,
-// not worse.
-const DEFAULT_KEY = "__default__";
+// Owner fix 2026-10-08 (a91d8b0 review): the old shared `"__default__"`
+// bucket meant ANY caller that passed a null/empty sessionKey landed in the
+// SAME memory as every other user in the process — two admins (or an admin
+// and a bridge channel) silently shared goals/entities/pending actions. That
+// is forbidden now: a session key is REQUIRED, callers derive it server-side
+// from the authenticated identity (e.g. `u:<auth.id>:<key>` in
+// app/api/chat/route.ts, `u:<auth.id>:command` in app/api/command/route.ts,
+// `line:<lineUserId>` for LINE bridges). Fail closed instead of sharing.
 const SESSION_TTL_MS = 30 * 60 * 1000; // unbounded growth guard — old sessions are just abandoned conversations
 const _sessions = new Map<string, SessionMemory>();
 
 function keyOf(sessionKey?: string | null): string {
-  return sessionKey && sessionKey.trim() ? sessionKey : DEFAULT_KEY;
+  const key = sessionKey?.trim();
+  if (!key) {
+    throw new Error(
+      "session key required — memory must be scoped per user/session (owner 2026-10-08: ห้ามใช้ __default__ ร่วมระหว่างผู้ใช้)",
+    );
+  }
+  return key;
 }
 
 function getOrCreate(sessionKey?: string | null): SessionMemory {

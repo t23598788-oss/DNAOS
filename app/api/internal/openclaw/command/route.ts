@@ -21,13 +21,21 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "ไม่ได้รับอนุญาต" }, { status: 401 })
   }
 
-  const body = (await req.json().catch(() => null)) as { userCommand?: string; contactContext?: string | null } | null
+  const body = (await req.json().catch(() => null)) as { userCommand?: string; contactContext?: string | null; userId?: string } | null
   if (!body?.userCommand) {
     return NextResponse.json({ error: "ไม่มี userCommand" }, { status: 400 })
   }
 
   try {
-    const result = await runCognitivePipeline(body.userCommand, body.contactContext ?? null)
+    // Server-derived, channel-scoped memory key (owner 2026-10-08): this bridge
+    // authenticates with a shared secret, so its identity is the CHANNEL (plus
+    // userId when the edge function provides one) — never the shared
+    // `__default__` bucket that other users could also land in.
+    const result = await runCognitivePipeline(
+      body.userCommand,
+      body.contactContext ?? null,
+      `channel:openclaw:${body.userId && body.userId.trim() ? body.userId.trim() : "shared"}`,
+    )
     return NextResponse.json({ ok: true, reply: toReplyText(result) })
   } catch {
     return NextResponse.json(

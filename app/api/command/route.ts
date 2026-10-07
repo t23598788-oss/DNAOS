@@ -20,7 +20,9 @@ export async function POST(request: NextRequest) {
     let state: DisplayState;
 
     if (body.userCommand) {
-      const result = await runCognitivePipeline(body.userCommand);
+      // Server-derived, user-scoped memory key (owner 2026-10-08): memory is
+      // keyed per authenticated user — never a shared default bucket.
+      const result = await runCognitivePipeline(body.userCommand, null, `u:${auth.id}:command`);
       state = toDisplayState(result);
     } else if (body.command) {
       state = { activeView: body.command, data: body.payload || {} };
