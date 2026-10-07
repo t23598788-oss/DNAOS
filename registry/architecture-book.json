@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-07T15:32:26.262Z",
+  "generated_at": "2026-10-07T16:02:49.174Z",
   "version": 1,
   "nodes": [
     {
@@ -89349,7 +89349,7 @@
           "name": "WorkspaceToolNavigation",
           "kind": "function",
           "line_start": 1047,
-          "line_end": 1086
+          "line_end": 1084
         }
       ],
       "import_sites": [

@@ -91,26 +91,26 @@ const FRAME_CSS = `
 /* top:82px = ตำแหน่ง reference (sites/workspace-frame) — ตอนนี้ stage เริ่มที่ y=0
    หลังถอด header จึงต้องเว้นมุมขวาบนให้ปุ่ม .corner (ข้อความ) ไม่ซ้อน Ellipsis */
 #dna-frame .edge.right{right:8px;top:82px}
-#dna-frame .drawer{position:absolute;top:76px;left:12px;right:12px;z-index:2;background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:16px;box-shadow:0 12px 24px #0002}
+#dna-frame .drawer{position:absolute;top:144px;max-height:calc(100dvh - 160px);overflow-y:auto;overscroll-behavior:contain;left:12px;right:12px;z-index:2;background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:16px;box-shadow:0 12px 24px #0002}
 #dna-frame .drawer .row,#dna-frame .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 #dna-frame .tools{display:grid;grid-template-columns:repeat(auto-fit,minmax(115px,1fr));gap:8px;margin-top:12px}
 #dna-frame .tools button{display:flex;align-items:center;gap:8px;justify-content:flex-start;text-align:left}
 #dna-frame .canvas{flex:1;min-height:0;min-width:0;display:flex;flex-direction:column}
-#dna-frame .msg-panel{position:absolute;top:56px;right:12px;bottom:12px;width:min(420px,calc(100% - 24px));z-index:5;background:var(--paper);border:1px solid var(--line);border-radius:14px;box-shadow:0 12px 24px #0002;display:flex;flex-direction:column;padding:14px;gap:10px;overflow:hidden}
+#dna-frame .msg-panel{position:absolute;top:76px;right:12px;bottom:76px;width:min(420px,calc(100% - 24px));z-index:5;background:var(--paper);border:1px solid var(--line);border-radius:14px;box-shadow:0 12px 24px #0002;display:flex;flex-direction:column;padding:14px;gap:10px;overflow:hidden}
 #dna-frame .msg-panel .row strong{margin-right:auto;font-weight:500}
 #dna-frame .msg-panel .panel-body{flex:1;min-height:0;overflow:auto}
-#dna-frame .content{flex:1;padding:32px 0;min-height:200px;display:flex;flex-direction:column}
+#dna-frame .content{flex:1;padding:32px 0;min-height:0;overflow:hidden;display:flex;flex-direction:column}
 #dna-frame .content--fill{padding:0;min-height:0;overflow:hidden}
 #dna-frame .content--fill>div{flex:1 1 0%;min-height:0}
 #dna-frame .count{background:#c93232;color:#fff;min-width:18px;border-radius:10px;font-size:11px;padding:0 5px;margin-left:auto}
-#dna-frame .msg-list{flex:1 1 auto;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:14px;padding-bottom:12px;width:min(100%,860px);margin-inline:auto}
+#dna-frame .msg-list{flex:1 1 auto;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:14px;overscroll-behavior:contain;padding-bottom:12px;width:min(100%,860px);margin-inline:auto}
 #dna-frame .content:not(.content--fill) .msg-list{max-height:none}
 #dna-frame .content--fill .msg-list{flex:0 1 auto;max-height:42vh}
 #dna-frame button[disabled]{opacity:.5;cursor:not-allowed}
 #dna-frame button[disabled]:hover{background:transparent}
 #dna-frame .blank{text-align:center;padding:42px 0}
 #dna-frame .compose{border:1px solid var(--line);border-radius:16px;padding:12px;margin-top:auto;width:min(100%,860px);margin-inline:auto}
-#dna-frame textarea{width:100%;resize:vertical;min-height:54px;background:transparent;border:0;outline:none}
+#dna-frame textarea{width:100%;resize:vertical;min-height:54px;max-height:25dvh;background:transparent;border:0;outline:none}
 #dna-frame .row .send{margin-left:auto}
 #dna-frame .note{font-size:12px;opacity:.75}
 /* BUSINESS RESULT PRESENTATION (spec §1): user ขวา/ตามเนื้อหา · DNA OS ซ้าย/พื้นที่ผลลัพธ์ */
@@ -1053,10 +1053,8 @@ export function WorkspaceToolNavigation() {
   return (
     <nav className="dna-tool-access" aria-label="เครื่องมือ DNA OS">
       <style>{`
-        .dna-tool-access{position:fixed;left:8px;top:20px;z-index:40;color:#36332f;font:14px/1.6 system-ui,sans-serif}
+        .dna-tool-access{position:relative;grid-row:1;align-self:stretch;padding:16px 8px;z-index:40;color:#36332f;font:14px/1.6 system-ui,sans-serif}
         body:has(#dna-frame) .dna-tool-access{display:none}
-        .dna-admin-content{padding-top:76px}
-        .dna-admin-content:has(#dna-frame){padding-top:0}
         .dna-tool-access button{background:#fdfbf8;border:1px solid #e9e1d6;border-radius:9px;min-height:44px;padding:8px;cursor:pointer;color:inherit;font:inherit}
         .dna-tool-access button:hover{background:#f0ebe5}
         .dna-tool-access svg{width:18px;height:18px}
