@@ -31,11 +31,26 @@ export async function POST(request: Request) {
     // for identity entirely (see runCognitiveCore's knownCustomer handling).
     const { message, sessionKey, knownCustomerId, knownCustomerName } = await request.json();
     const rawMessage = String(message ?? "");
+    // gatewayContext (owner, step "ui-baseline-workspace-2026-10-08" ข้อ 1):
+    // the SAME authenticated session that passed requireAuth(ADMIN_TIER) above —
+    // never a client-invented identity. ownerId = auth.email, matching the
+    // established convention in app/api/admin/screen-vision/route.ts; sessionId
+    // prefers the real session header the workspace shell sends, then the
+    // caller's sessionKey (workspace-shell/composer context), then a stable
+    // fallback for this one route. Without this, runCognitivePipeline's
+    // classifyIntentViaAi()/answerWithAi() both no-op ("ไม่มี AI session context").
+    const gatewayContext = {
+      ownerId: auth.email,
+      sessionId:
+        request.headers.get("x-dna-session") ??
+        (sessionKey ? String(sessionKey) : "workspace-chat"),
+    };
     const response = await runCognitivePipeline(
       rawMessage,
       null,
       sessionKey ?? null,
       knownCustomerId ? { id: String(knownCustomerId), name: String(knownCustomerName ?? "") } : null,
+      gatewayContext,
     );
     // RESPONSE CONTRACT (owner 2026-09-25): แนบ result ทุกครั้ง — structured
     // (finance/document/timeline/table) มาจาก canonical reader จึง "แทนที่"
