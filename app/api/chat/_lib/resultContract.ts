@@ -1,24 +1,23 @@
 /**
  * buildChatResult — RESPONSE CONTRACT (owner spec 2026-09-25 BUSINESS RESULT
- * PRESENTATION): query ผ่าน canonical API/reader เดิม (proxy ไป route ที่มีอยู่
- * ด้วย cookie ของผู้เรียกคนเดิม) — ไม่มี logic การเงินใหม่ ไม่มีตัวเลขจาก
- * LLM ไม่มี business shape ซ้ำ:
- *   finance_summary → /api/admin/finance-summary + /api/admin/documents (แถว canonical)
- *   document        → /api/admin/documents?type=… + /{id} → engine จริง (draftToDocData+generateDoc)
- *   timeline        → /api/admin/partners?search= + /partners/{id}/timeline (engine เดิม)
+ * PRESENTATION) + owner step "ui-baseline-workspace-2026-10-08" ข้อ 3–4:
+ *   คำสั่งอ่าน (document.list, partner.find, partner.timeline) วิ่งผ่าน
+ *   engines/validation/dispatcher#dispatch — registry gate + input validation
+ *   + Rule-72 confirmation gate ของคำสั่งนั้น ๆ (อ่านล้วน ไม่มีเส้นทางเขียน)
+ *   เอกสารอ่านจาก getDocumentDetail() → document_versions → document_artifacts
+ *   (version snapshot ต้นฉบับ — ห้าม generateDoc() ทดแทนไฟล์ต้นฉบับ)
+ *   finance_summary ยังคงอ่านผ่าน /api/admin/finance-summary (route อ่าน
+ *   ที่ requireAuth เดิม — ไม่มีคำสั่ง finance ใน registry จึงยังไม่ผ่าน
+ *   dispatcher · ไม่ใช่เส้นทางเขียนข้อมูล)
  *   confirmation/doc_html → board fields เดิม ไม่เปลี่ยน
  */
 import type { ChatResult, ResultField, ResultSectionLike, ResultTable } from "./chatResultTypes";
 import { sectionsToBlocks } from "./chatResultTypes";
-import {
-  createEmptyDocumentDraft,
-  draftToDocData,
-  formatMoney,
-  type DocumentDraftInput,
-  type DocumentType,
-} from "@/engines/documents/document-editor";
-import { DOC_LABELS, generateDoc } from "@/engines/documents/engine";
-import { loadCompanySettings } from "@/core/config/company-settings";
+import { formatMoney, type DocumentType } from "@/engines/documents/document-editor";
+import { DOC_LABELS } from "@/engines/documents/engine";
+import { dispatch } from "@/engines/validation/dispatcher";
+import { getDocumentDetail } from "@/services/canonical/document-detail";
+import type { CanonicalDocumentDetail } from "@/services/canonical/read-model";
 
 // ── intent matchers (pure function ตรวจ/ทดสอบง่าย — เรียกจาก buildChatResult เท่านั้น) ──
 
@@ -169,81 +168,108 @@ async function financeResult(req: Request): Promise<Extract<ChatResult, { type: 
 
 // ── document ────────────────────────────────────────────────────────────────
 
-type DocumentPayload = {
-  document_number?: string;
-  issue_date?: string | null;
-  due_date?: string | null;
-  reference_number?: string | null;
-  note?: string | null;
-  vat_enabled?: boolean;
-  partner_id?: string | null;
-  party_name?: string;
-  partners?: { name?: string; phone?: string; address?: string } | null;
-  data?: { items?: { description?: string; qty?: number; unit_label?: string; unit_price?: number }[] };
-};
+// ── document ────────────────────────────────────────────────────────────────
 
 async function documentResult(
-  req: Request,
+  _req: Request,
   docType: DocumentType,
 ): Promise<Extract<ChatResult, { type: "document" }> | null> {
-  const list = await proxyJson<{ documents?: { id: string; document_number?: string }[] }>(
-    req,
-    `/api/admin/documents?type=${docType}&perPage=1`,
+  // READ through the dispatcher (owner ข้อ 3): registry-gated command, input
+  // validated, no write path — never a POST/write route.
+  const listResult = await dispatch("document.list", {});
+  if (!listResult.ok || !Array.isArray(listResult.data)) return null;
+  type DocRow = { id?: string; document_type?: string; document_number?: string };
+  const doc = (listResult.data as DocRow[]).find(
+    (d) => String(d.document_type ?? "").toLowerCase() === docType,
   );
-  const doc = list?.documents?.[0];
-  if (!doc) return null;
-  const full = await proxyJson<{ document?: DocumentPayload }>(req, `/api/admin/documents/${doc.id}`);
-  const d = full?.document;
-  if (!d) return null;
-  const settings = await loadCompanySettings().catch(() => null);
-  if (!settings) return null;
+  if (!doc?.id) return null;
 
-  // draft ชุดเดียวกับ DocumentBuilder/DocumentPreview (default จาก
-  // createEmptyDocumentDraft — ไม่มีค่าเดา) → render ด้วย engine จริง
-  const draft: DocumentDraftInput = {
-    ...createEmptyDocumentDraft(docType),
-    type: docType,
-    documentNumber: d.document_number ?? doc.document_number ?? "",
-    issueDate: d.issue_date ?? "",
-    dueDate: d.due_date ?? "",
-    reference: d.reference_number ?? "",
-    note: d.note ?? "",
-    vatEnabled: typeof d.vat_enabled === "boolean" ? d.vat_enabled : true,
-    partnerId: d.partner_id ?? "",
-    customer: {
-      name: d.party_name ?? "",
-      tax: "",
-      addr: d.partners?.address ?? "",
-      contact: "",
-      tel: d.partners?.phone ?? "",
-    },
-    rows: (d.data?.items ?? []).map((it) => ({
-      description: String(it.description ?? ""),
-      qty: Number(it.qty ?? 1),
-      unit: String(it.unit_label ?? "หน่วย"),
-      unitPrice: Number(it.unit_price ?? 0),
-    })),
-  };
-  const html = generateDoc(draftToDocData(draft, draft.documentNumber || "เอกสาร", settings)).html;
+  // (owner ข้อ 4): read the ORIGINAL persisted document — getDocumentDetail()
+  // pulls document_versions (snapshot) + document_artifacts (files) exactly as
+  // stored. generateDoc() is deliberately NOT called here anymore: rendering a
+  // fresh document from a rebuilt draft would replace the original artifact.
+  const kind = docType === "invoice" ? "invoice" : "standalone_document";
+  const detail = await getDocumentDetail(kind, doc.id);
+  if (!detail) return null;
   const label = DOC_LABELS[docType]?.th ?? "เอกสาร";
-  return { type: "document", title: `${label} ${doc.document_number ?? ""}`.trim(), html };
+  const html = renderCanonicalDetailHtml(detail);
+  return { type: "document", title: `${label} ${doc.document_number ?? detail.identity.document_no ?? ""}`.trim(), html };
+}
+
+// ── canonical detail → read-only HTML (version snapshot ต้นฉบับ) ─────────────
+
+const esc = (v: unknown): string =>
+  String(v ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+
+function renderCanonicalDetailHtml(detail: CanonicalDocumentDetail): string {
+  const id = detail.identity;
+  const f = detail.financials;
+  const money = (n: number | null | undefined): string =>
+    n === null || n === undefined || Number.isNaN(Number(n)) ? "—" : formatMoney(Number(n));
+  const head = `<table style="width:100%;border-collapse:collapse;margin-bottom:12px">
+    <tr><td style="padding:4px 8px;color:#888">เลขเอกสาร</td><td><b>${esc(id.document_no ?? "—")}</b></td>
+        <td style="padding:4px 8px;color:#888">ประเภท</td><td>${esc(id.document_type)}</td></tr>
+    <tr><td style="padding:4px 8px;color:#888">สถานะ</td><td>${esc(id.document_status ?? "—")}</td>
+        <td style="padding:4px 8px;color:#888">บันทึกเมื่อ</td><td>${esc((id.created_at ?? "").slice(0, 10) || "—")}</td></tr></table>`;
+  const completeness =
+    f.data_completeness === "LEGACY_PARTIAL"
+      ? `<p style="color:#b26a00">เอกสารฉบับนี้เก็บแบบ LEGACY_PARTIAL — แสดงเฉพาะค่าที่มีจริงใน version snapshot (ไม่เดา ไม่คำนวณใหม่)</p>`
+      : "";
+  const items =
+    detail.line_items_source === "unavailable" || detail.line_items.length === 0
+      ? `<p style="color:#888">ไม่มีรายการบรรทัดใน version snapshot (line_items_source: ${esc(detail.line_items_source)})</p>`
+      : `<table style="width:100%;border-collapse:collapse"><thead><tr style="border-bottom:2px solid #ccc">
+          <th style="text-align:left;padding:4px">รายการ</th><th style="text-align:right;padding:4px">จำนวน</th>
+          <th style="text-align:left;padding:4px">หน่วย</th><th style="text-align:right;padding:4px">ราคา/หน่วย</th>
+        </tr></thead><tbody>${detail.line_items
+          .map(
+            (it, i) => `<tr style="border-bottom:1px solid #eee">
+              <td style="padding:4px">${esc(it.description ?? it.item_description ?? `รายการ ${i + 1}`)}</td>
+              <td style="text-align:right;padding:4px">${esc(it.qty ?? it.quantity ?? "—")}</td>
+              <td style="padding:4px">${esc(it.unit ?? it.unit_label ?? "—")}</td>
+              <td style="text-align:right;padding:4px">${money(Number(it.unit_price ?? it.price ?? NaN))}</td></tr>`,
+          )
+          .join("")}</tbody></table>`;
+  const totals = `<table style="width:100%;border-collapse:collapse;margin-top:12px">
+    <tr><td style="padding:3px 8px;color:#888">ก่อน VAT</td><td style="text-align:right">${money(f.subtotal)}</td>
+        <td style="padding:3px 8px;color:#888">VAT</td><td style="text-align:right">${money(f.vat_amount)}</td></tr>
+    <tr><td style="padding:3px 8px;color:#888">WHT</td><td style="text-align:right">${money(f.wht_amount)}</td>
+        <td style="padding:3px 8px;color:#888">ยอดสุทธิ (${esc(f.receivable_basis)})</td><td style="text-align:right"><b>${money(f.net_payable ?? f.gross_amount ?? f.total_amount_persisted)}</b></td></tr>
+    <tr><td style="padding:3px 8px;color:#888">ชำระแล้ว</td><td style="text-align:right">${money(f.paid_amount)}</td>
+        <td style="padding:3px 8px;color:#888">คงเหลือ</td><td style="text-align:right">${money(f.outstanding)}</td></tr></table>`;
+  const artifacts = detail.generated_artifacts.length
+    ? `<p style="margin-top:10px"><b>ไฟล์ต้นฉบับที่บันทึกไว้ (document_artifacts):</b><ul>${detail.generated_artifacts
+        .map(
+          (a) =>
+            `<li>${esc(a.kind ?? "file")} — ${esc(a.mime_type ?? "unknown")}${a.size_bytes ? ` (${esc(a.size_bytes)} bytes)` : ""} · version ${esc(a.document_version_id ?? "—")}</li>`,
+        )
+        .join("")}</ul></p>`
+    : "";
+  return `<div style="font-family:sans-serif">${completeness}${head}${items}${totals}${artifacts}</div>`;
 }
 
 // ── timeline ────────────────────────────────────────────────────────────────
 
-async function timelineResult(req: Request, name: string): Promise<Extract<ChatResult, { type: "timeline" }> | null> {
-  const search = await proxyJson<{ partners?: { id: string; name: string }[] }>(
-    req,
-    `/api/admin/partners?search=${encodeURIComponent(name)}`,
-  );
-  const partner = search?.partners?.[0];
-  if (!partner) return null;
-  const tl = await proxyJson<{
+async function timelineResult(_req: Request, name: string): Promise<Extract<ChatResult, { type: "timeline" }> | null> {
+  // READ through the dispatcher (owner ข้อ 3) — both commands are registry-
+  // declared read commands with real QUERY_MAP handlers; no write path.
+  const findResult = await dispatch("partner.find", { keyword: name });
+  if (!findResult.ok || !Array.isArray(findResult.data)) return null;
+  type PartnerRow = { id?: string; name?: string };
+  const partner = (findResult.data as PartnerRow[])[0];
+  if (!partner?.id) return null;
+  const tl = await dispatch("partner.timeline", { partner_id: String(partner.id) });
+  if (!tl.ok || !tl.data || typeof tl.data !== "object") return null;
+  const data = tl.data as {
     summary: Extract<ChatResult, { type: "timeline" }>["summary"];
     timeline: Extract<ChatResult, { type: "timeline" }>["items"];
-  }>(req, `/api/admin/partners/${partner.id}/timeline`);
-  if (!tl) return null;
-  return { type: "timeline", title: `ประวัติ ${partner.name}`, summary: tl.summary ?? null, items: tl.timeline ?? [] };
+  };
+  return { type: "timeline", title: `ประวัติ ${partner.name ?? name}`, summary: data.summary ?? null, items: data.timeline ?? [] };
 }
 
 // ── entry ───────────────────────────────────────────────────────────────────
