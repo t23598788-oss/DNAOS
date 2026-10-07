@@ -4,30 +4,130 @@
   "note": "Per-file lock ledger. Supersedes registry/WORK_LOCK.json (which could only represent one worker at a time) — multiple agents may hold locks simultaneously as long as they lock different files. Lock only the files you are actively modifying, never the whole project. To acquire: append an entry to locks[]. To release: remove your entry entirely (do not just mark it idle — a stale entry blocks nobody but confuses the next reader).",
   "rule": "Never edit a file that has an active lock entry held by a different agent_id/session_id. Never overwrite another agent's work.",
   "locks": [
-    { "file": "components/workspace/canvas/Canvas.tsx", "held_by": "owner-freeze:visual-canvas (2026-09-22)", "acquired_at": "2026-09-22T21:43:45.000Z" },
-    { "file": "components/workspace/canvas/useCanvasState.ts", "held_by": "owner-freeze:visual-canvas (2026-09-22)", "acquired_at": "2026-09-22T21:43:45.000Z" },
-    { "file": "components/workspace/canvas/NodeRenderer.tsx", "held_by": "owner-freeze:visual-canvas (2026-09-22)", "acquired_at": "2026-09-22T21:43:45.000Z" },
-    { "file": "components/workspace/canvas/PropertyInspector.tsx", "held_by": "owner-freeze:visual-canvas (2026-09-22)", "acquired_at": "2026-09-22T21:43:45.000Z" },
-    { "file": "components/workspace/canvas/ModuleInspector.tsx", "held_by": "owner-freeze:visual-canvas (2026-09-22)", "acquired_at": "2026-09-22T21:43:45.000Z" },
-    { "file": "components/workspace/canvas/ModulePalette.tsx", "held_by": "owner-freeze:visual-canvas (2026-09-22)", "acquired_at": "2026-09-22T21:43:45.000Z" },
-    { "file": "components/workspace/canvas/ConnectionLayer.tsx", "held_by": "owner-freeze:visual-canvas (2026-09-22)", "acquired_at": "2026-09-22T21:43:45.000Z" },
-    { "file": "components/workspace/canvas/types.ts", "held_by": "owner-freeze:visual-canvas (2026-09-22)", "acquired_at": "2026-09-22T21:43:45.000Z" },
-    { "file": "components/workspace/canvas/index.ts", "held_by": "owner-freeze:visual-canvas (2026-09-22)", "acquired_at": "2026-09-22T21:43:45.000Z" },
-    { "file": "core/workspace/workspaceLayout.ts", "held_by": "owner-freeze:visual-canvas (2026-09-22)", "acquired_at": "2026-09-22T21:43:45.000Z" },
-    { "file": "core/workspace/attachmentRegistry.ts", "held_by": "owner-freeze:visual-canvas (2026-09-22)", "acquired_at": "2026-09-22T21:43:45.000Z" },
-    { "file": "core/workspace/screenController.ts", "held_by": "owner-freeze:visual-canvas (2026-09-22)", "acquired_at": "2026-09-22T21:43:45.000Z" },
-    { "file": "core/workspace/runtimeRegistry.ts", "held_by": "owner-freeze:visual-canvas (2026-09-22)", "acquired_at": "2026-09-22T21:43:45.000Z" },
-    { "file": "core/workspace/presenterRegistry.ts", "held_by": "owner-freeze:visual-canvas (2026-09-22)", "acquired_at": "2026-09-22T21:43:45.000Z" },
-    { "file": "core/workspace/panelRegistry.ts", "held_by": "owner-freeze:visual-canvas (2026-09-22)", "acquired_at": "2026-09-22T21:43:45.000Z" },
-    { "file": "core/workspace/workspaceState.ts", "held_by": "owner-freeze:visual-canvas (2026-09-22)", "acquired_at": "2026-09-22T21:43:45.000Z" },
-    { "file": "core/workspace/dockManager.ts", "held_by": "owner-freeze:visual-canvas (2026-09-22)", "acquired_at": "2026-09-22T21:43:45.000Z" },
-    { "file": "core/workspace/moduleRegistry.ts", "held_by": "owner-freeze:visual-canvas (2026-09-22)", "acquired_at": "2026-09-22T21:43:45.000Z" },
-    { "file": "core/workspace/types.ts", "held_by": "owner-freeze:visual-canvas (2026-09-22)", "acquired_at": "2026-09-22T21:43:45.000Z" },
-    { "file": "core/workspace/workspaceTemplate.ts", "held_by": "owner-freeze:visual-canvas (2026-09-22)", "acquired_at": "2026-09-22T21:43:45.000Z" },
-    { "file": "core/workspace/applicationWorkspace.ts", "held_by": "owner-freeze:visual-canvas (2026-09-22)", "acquired_at": "2026-09-22T21:43:45.000Z" },
-    { "file": "app/workspace-preview/page.tsx", "held_by": "owner-freeze:visual-canvas (2026-09-22)", "acquired_at": "2026-09-22T21:43:45.000Z" },
-    { "file": "app/workspace-preview/WorkspacePreviewClient.tsx", "held_by": "owner-freeze:visual-canvas (2026-09-22)", "acquired_at": "2026-09-22T21:43:45.000Z" },
-    { "file": "app/workspace-preview/apps/[appId]/OpenInCanvasButton.tsx", "held_by": "owner-freeze:visual-canvas (2026-09-22)", "acquired_at": "2026-09-22T21:43:45.000Z" },
-    { "file": "app/workspace-preview/document/DocumentEngineRuntimeRegistration.tsx", "held_by": "owner-freeze:visual-canvas (2026-09-22)", "acquired_at": "2026-09-22T21:43:45.000Z" }
+    {
+      "file": "components/workspace/canvas/Canvas.tsx",
+      "held_by": "owner-freeze:visual-canvas (2026-09-22)",
+      "acquired_at": "2026-09-22T21:43:45.000Z"
+    },
+    {
+      "file": "components/workspace/canvas/useCanvasState.ts",
+      "held_by": "owner-freeze:visual-canvas (2026-09-22)",
+      "acquired_at": "2026-09-22T21:43:45.000Z"
+    },
+    {
+      "file": "components/workspace/canvas/NodeRenderer.tsx",
+      "held_by": "owner-freeze:visual-canvas (2026-09-22)",
+      "acquired_at": "2026-09-22T21:43:45.000Z"
+    },
+    {
+      "file": "components/workspace/canvas/PropertyInspector.tsx",
+      "held_by": "owner-freeze:visual-canvas (2026-09-22)",
+      "acquired_at": "2026-09-22T21:43:45.000Z"
+    },
+    {
+      "file": "components/workspace/canvas/ModuleInspector.tsx",
+      "held_by": "owner-freeze:visual-canvas (2026-09-22)",
+      "acquired_at": "2026-09-22T21:43:45.000Z"
+    },
+    {
+      "file": "components/workspace/canvas/ModulePalette.tsx",
+      "held_by": "owner-freeze:visual-canvas (2026-09-22)",
+      "acquired_at": "2026-09-22T21:43:45.000Z"
+    },
+    {
+      "file": "components/workspace/canvas/ConnectionLayer.tsx",
+      "held_by": "owner-freeze:visual-canvas (2026-09-22)",
+      "acquired_at": "2026-09-22T21:43:45.000Z"
+    },
+    {
+      "file": "components/workspace/canvas/types.ts",
+      "held_by": "owner-freeze:visual-canvas (2026-09-22)",
+      "acquired_at": "2026-09-22T21:43:45.000Z"
+    },
+    {
+      "file": "components/workspace/canvas/index.ts",
+      "held_by": "owner-freeze:visual-canvas (2026-09-22)",
+      "acquired_at": "2026-09-22T21:43:45.000Z"
+    },
+    {
+      "file": "core/workspace/workspaceLayout.ts",
+      "held_by": "owner-freeze:visual-canvas (2026-09-22)",
+      "acquired_at": "2026-09-22T21:43:45.000Z"
+    },
+    {
+      "file": "core/workspace/attachmentRegistry.ts",
+      "held_by": "owner-freeze:visual-canvas (2026-09-22)",
+      "acquired_at": "2026-09-22T21:43:45.000Z"
+    },
+    {
+      "file": "core/workspace/screenController.ts",
+      "held_by": "owner-freeze:visual-canvas (2026-09-22)",
+      "acquired_at": "2026-09-22T21:43:45.000Z"
+    },
+    {
+      "file": "core/workspace/runtimeRegistry.ts",
+      "held_by": "owner-freeze:visual-canvas (2026-09-22)",
+      "acquired_at": "2026-09-22T21:43:45.000Z"
+    },
+    {
+      "file": "core/workspace/presenterRegistry.ts",
+      "held_by": "owner-freeze:visual-canvas (2026-09-22)",
+      "acquired_at": "2026-09-22T21:43:45.000Z"
+    },
+    {
+      "file": "core/workspace/panelRegistry.ts",
+      "held_by": "owner-freeze:visual-canvas (2026-09-22)",
+      "acquired_at": "2026-09-22T21:43:45.000Z"
+    },
+    {
+      "file": "core/workspace/workspaceState.ts",
+      "held_by": "owner-freeze:visual-canvas (2026-09-22)",
+      "acquired_at": "2026-09-22T21:43:45.000Z"
+    },
+    {
+      "file": "core/workspace/dockManager.ts",
+      "held_by": "owner-freeze:visual-canvas (2026-09-22)",
+      "acquired_at": "2026-09-22T21:43:45.000Z"
+    },
+    {
+      "file": "core/workspace/moduleRegistry.ts",
+      "held_by": "owner-freeze:visual-canvas (2026-09-22)",
+      "acquired_at": "2026-09-22T21:43:45.000Z"
+    },
+    {
+      "file": "core/workspace/types.ts",
+      "held_by": "owner-freeze:visual-canvas (2026-09-22)",
+      "acquired_at": "2026-09-22T21:43:45.000Z"
+    },
+    {
+      "file": "core/workspace/workspaceTemplate.ts",
+      "held_by": "owner-freeze:visual-canvas (2026-09-22)",
+      "acquired_at": "2026-09-22T21:43:45.000Z"
+    },
+    {
+      "file": "core/workspace/applicationWorkspace.ts",
+      "held_by": "owner-freeze:visual-canvas (2026-09-22)",
+      "acquired_at": "2026-09-22T21:43:45.000Z"
+    },
+    {
+      "file": "app/workspace-preview/page.tsx",
+      "held_by": "owner-freeze:visual-canvas (2026-09-22)",
+      "acquired_at": "2026-09-22T21:43:45.000Z"
+    },
+    {
+      "file": "app/workspace-preview/WorkspacePreviewClient.tsx",
+      "held_by": "owner-freeze:visual-canvas (2026-09-22)",
+      "acquired_at": "2026-09-22T21:43:45.000Z"
+    },
+    {
+      "file": "app/workspace-preview/apps/[appId]/OpenInCanvasButton.tsx",
+      "held_by": "owner-freeze:visual-canvas (2026-09-22)",
+      "acquired_at": "2026-09-22T21:43:45.000Z"
+    },
+    {
+      "file": "app/workspace-preview/document/DocumentEngineRuntimeRegistration.tsx",
+      "held_by": "owner-freeze:visual-canvas (2026-09-22)",
+      "acquired_at": "2026-09-22T21:43:45.000Z"
+    }
   ]
 }

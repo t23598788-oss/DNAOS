@@ -1,26 +1,16 @@
 {
-  "generated_at": "2026-09-23T04:37:50.952Z",
+  "generated_at": "2026-10-06T23:54:32.298Z",
   "policy": "Report only — this script NEVER deletes or moves anything. safeToRemove is a conservative suggestion (untracked + unreferenced + a real original exists), not an action. A human must set ownerConfirmation before any removal happens, and removal itself is a separate, manual step not performed by this script.",
-  "total_found": 2,
+  "total_found": 1,
   "suggested_safe_count": 0,
   "entries": [
-    {
-      "duplicate": "app/admin/system/page 2.tsx",
-      "original": "app/admin/system/page.tsx",
-      "originalExists": true,
-      "gitTracked": true,
-      "referencedElsewhere": true,
-      "lastModified": "2026-09-22T15:40:36.825Z",
-      "safeToRemove": false,
-      "ownerConfirmation": null
-    },
     {
       "duplicate": "scripts/_ide_regression_fixtures/dup-scan/sample 2.txt",
       "original": "scripts/_ide_regression_fixtures/dup-scan/sample.txt",
       "originalExists": true,
       "gitTracked": false,
       "referencedElsewhere": true,
-      "lastModified": "2026-09-23T04:30:08.619Z",
+      "lastModified": "2026-10-06T23:54:31.777Z",
       "safeToRemove": false,
       "ownerConfirmation": null
     }
