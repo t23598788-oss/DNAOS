@@ -1,163 +1,106 @@
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.43.4"
+/**
+ * KIS webhook — email inbound (Kubota KIS machine events) — BATCH 20
+ *
+ * Canonical path (ไม่มี direct insert เหลืออยู่ในไฟล์นี้):
+ *   KIS email → SendGrid Inbound Parse → this function
+ *     → POST {DNA_OS_APP_URL}/api/internal/connect/resource-transaction
+ *       (RESOURCE_TRANSACTION_INTERNAL_SECRET header)
+ *     → engines/canonical/resource-transaction-write.ts (canonical writer)
+ *     → public.resource_transactions + recordCanonicalAudit
+ *
+ * Auth ชั้นแรก (fail-closed — ไม่มี = 401 เสมอ):
+ *   · ?token=KIS_WEBHOOK_TOKEN (timing-safe) — ตั้งใน SendGrid destination URL
+ *   · sender ต้องอยู่ใน KIS_SENDER_ALLOWLIST
+ * Config authority (fuel-price / machinery_rates) อยู่ใน canonical writer
+ * — ไฟล์นี้ไม่คำนวณเงิน ไม่มี fallback ค่า default ใด ๆ อีกต่อไป
+ */
+import { parseKisEmail, buildKisSourceEventId, buildKisEvidenceRef, verifyKisWebhook, type KisEmailPayload } from "../_shared/kis-inbound-core.ts";
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-}
-
-// Helper to parse duration string (e.g. "3 hours 30 minutes" -> 3.5 hours)
-function parseDurationToHours(text: string): number {
-  const durationMatch = text.match(/Duration:\s*(\d+)\s*hours?\s*(\d+)\s*minutes?/i)
-  if (durationMatch) {
-    const hours = parseInt(durationMatch[1], 10)
-    const minutes = parseInt(durationMatch[2], 10)
-    return hours + (minutes / 60)
-  }
-  // Try matching just minutes
-  const minutesMatch = text.match(/Duration:\s*(\d+)\s*minutes?/i)
-  if (minutesMatch) {
-    return parseInt(minutesMatch[1], 10) / 60
-  }
-  // Try matching decimal hours
-  const decimalMatch = text.match(/Duration:\s*([\d\.]+)\s*hours?/i)
-  if (decimalMatch) {
-    return parseFloat(decimalMatch[1])
-  }
-  return 0
-}
-
-// Helper to extract values using RegExp
-function extractValue(text: string, label: string): string {
-  const regex = new RegExp(`${label}:\\s*(.+)`, 'i')
-  const match = text.match(regex)
-  return match ? match[1].trim() : ""
-}
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+};
 
 Deno.serve(async (req) => {
-  // Handle CORS preflight
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
-  }
+  if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
   try {
-    const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? ""
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ""
-    
-    const supabase = createClient(supabaseUrl, supabaseServiceKey)
-
-    // Parse the payload (expecting JSON from email webhook like SendGrid Inbound Parse)
-    const payload = await req.json()
-    console.log("Received KIS Email webhook:", JSON.stringify(payload))
-
-    const bodyText = payload.text || ""
-    
-    // Extract metadata from the email body
-    const machine = extractValue(bodyText, "Machine") || "Kubota Excavator"
-    const event = extractValue(bodyText, "Event") || "Engine Stop"
-    const jobId = extractValue(bodyText, "Job ID")
-    const startTimeStr = extractValue(bodyText, "Start Time")
-    const stopTimeStr = extractValue(bodyText, "Stop Time")
-    
-    const durationHours = parseDurationToHours(bodyText)
-
-    if (!jobId) {
-      console.warn("No Job ID found in email payload. Skipping transaction entry.")
-      return new Response(JSON.stringify({ error: "Missing Job ID in email body text" }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      })
+    let payload: KisEmailPayload;
+    try {
+      payload = await req.json();
+    } catch {
+      return new Response(JSON.stringify({ error: "unparseable JSON body" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    if (durationHours <= 0) {
-      console.log(`Event is ${event} (Duration: 0). Skipping resource transaction log.`);
-      return new Response(JSON.stringify({ status: "skipped", message: "Duration is 0 or event is not a stopping event" }), {
-        status: 200,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      })
+    // Layer 1-2: token + sender allowlist — fail-closed 401
+    const url = new URL(req.url);
+    const verdict = verifyKisWebhook(url, payload, {
+      token: Deno.env.get("KIS_WEBHOOK_TOKEN"),
+      senderAllowlist: Deno.env.get("KIS_SENDER_ALLOWLIST"),
+    });
+    if (!verdict.ok) {
+      console.warn(`[kis-webhook] rejected: ${verdict.reason}`);
+      return new Response(JSON.stringify({ error: "unauthorized" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    // 1. Fetch dynamic config (e.g., fuel price ref, backhoe rate) from app_configs to prevent hardcoding
-    const { data: configRows, error: configError } = await supabase
-      .from('app_configs')
-      .select('title, data')
-      .in('title', ['fuel_price_ref', 'machinery_base_rate_per_hour'])
-
-    if (configError) {
-      console.error("Failed to fetch app_configs:", configError)
+    const facts = parseKisEmail(payload);
+    if (!facts.job_id) {
+      return new Response(JSON.stringify({ error: "Missing Job ID in email body text" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+    if (facts.duration_hours <= 0) {
+      return new Response(JSON.stringify({ status: "skipped", message: "Duration is 0 or event is not a stopping event" }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    let fuelPriceRef = 35.00 // Default fallback fuel price
-    let baseRateRef = 600.00 // Default fallback hourly rate
-
-    if (configRows) {
-      configRows.forEach((row: any) => {
-        if (row.title === 'fuel_price_ref') {
-          fuelPriceRef = parseFloat(row.data) || fuelPriceRef
-        } else if (row.title === 'machinery_base_rate_per_hour') {
-          baseRateRef = parseFloat(row.data) || baseRateRef
-        }
-      })
+    const appUrl = Deno.env.get("DNA_OS_APP_URL");
+    const bridgeSecret = Deno.env.get("RESOURCE_TRANSACTION_INTERNAL_SECRET");
+    if (!appUrl || !bridgeSecret) {
+      // fail-closed — ไม่มี configured bridge = ห้ามเขียนอะไรทั้งสิ้น
+      return new Response(JSON.stringify({ error: "bridge not configured" }), { status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    // 2. Calculate dynamic cost and pricing structure
-    // Dynamic formula: hourly cost = base machinery rate + (fuel consumption * fuel price)
-    const fuelConsumptionPerHour = 8.5 // liters per hour for Kubota U-55
-    const unitCost = baseRateRef + (fuelConsumptionPerHour * fuelPriceRef)
-    
-    // Dynamic markup margin based on pricing model (e.g., 25% markup)
-    const markupMargin = unitCost * 0.25
-    const unitPrice = unitCost + markupMargin
+    const receivedAt = new Date().toISOString();
+    const body = {
+      source: "kis_email",
+      source_event_id: buildKisSourceEventId(payload),
+      resource_id: null,
+      resource_label: facts.machine,
+      job_id: facts.job_id,
+      started_at: facts.start_time ?? receivedAt,
+      duration_hours: facts.duration_hours,
+      evidence_ref: buildKisEvidenceRef(payload, facts),
+      received_at: receivedAt,
+      actor: "supabase:function:kis-webhook",
+    };
 
-    const totalCost = durationHours * unitCost
-    const totalPrice = durationHours * unitPrice
-
-    // 3. Save to public.resource_transactions
-    const { data: tx, error: txError } = await supabase
-      .from('resource_transactions')
-      .insert({
-        job_id: jobId,
-        resource_type: 'machinery_hours',
-        resource_label: machine,
-        quantity: durationHours,
-        unit: 'ชั่วโมง',
-        unit_cost: parseFloat(unitCost.toFixed(2)),
-        unit_price: parseFloat(unitPrice.toFixed(2)),
-        markup_margin: parseFloat(markupMargin.toFixed(2)),
-        total_cost: parseFloat(totalCost.toFixed(2)),
-        total_price: parseFloat(totalPrice.toFixed(2)),
-        note: `อีเมลแจ้งเตือนอัตโนมัติจากระบบ Kubota KIS (${event})\nStart: ${startTimeStr}\nStop: ${stopTimeStr}`,
-        meta: {
-          raw_email_subject: payload.subject,
-          start_time: startTimeStr,
-          stop_time: stopTimeStr,
-          raw_body: bodyText,
-          calculated_using: {
-            fuel_price: fuelPriceRef,
-            base_hourly_rate: baseRateRef,
-            fuel_consumption_rate: fuelConsumptionPerHour
-          }
-        }
-      })
-      .select()
-      .single()
-
-    if (txError) {
-      console.error("Failed to insert resource transaction:", txError)
-      throw txError
+    let bridgeResponse: Response;
+    try {
+      bridgeResponse = await fetch(`${appUrl.replace(/\\/+$/, "")}/api/internal/connect/resource-transaction`, {
+        method: "POST",
+        headers: { "content-type": "application/json", "x-resource-transaction-internal-secret": bridgeSecret },
+        body: JSON.stringify(body),
+        signal: AbortSignal.timeout(8000),
+      });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      console.error(`[kis-webhook] bridge unreachable: ${message}`);
+      return new Response(JSON.stringify({ error: `bridge unreachable: ${message}` }), { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    console.log("Successfully inserted resource transaction:", tx)
+    const bridgeBody = await bridgeResponse.json().catch(() => ({} as Record<string, unknown>));
+    if (!bridgeResponse.ok || bridgeBody.ok === false) {
+      const error = typeof bridgeBody.error === "string" ? bridgeBody.error : `bridge HTTP ${bridgeResponse.status}`;
+      console.error(`[kis-webhook] canonical write rejected: ${error}`);
+      return new Response(JSON.stringify({ error }), { status: bridgeResponse.status === 200 ? 502 : bridgeResponse.status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
 
-    return new Response(JSON.stringify({ status: "success", transaction: tx }), {
+    console.log(`[kis-webhook] canonical write ok: ${JSON.stringify(bridgeBody.data ?? {})}`);
+    return new Response(JSON.stringify({ status: "success", transaction: bridgeBody.data ?? null }), {
       status: 200,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-    })
-
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   } catch (error) {
-    console.error("Error executing KIS Webhook:", error)
-    return new Response(JSON.stringify({ error: error.message }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-    })
+    const message = error instanceof Error ? error.message : String(error);
+    console.error("[kis-webhook] error:", message);
+    return new Response(JSON.stringify({ error: message }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
-})
+});
