@@ -14,6 +14,7 @@ import { maybeCreatePrintJob, matchPaymentToPrintJob } from "./print-jobs.ts"
 import { alertOwnerAnomaly } from "./owner-dispatcher.ts"
 import { sendConnectEventCommand, CONNECT_PROVIDER } from "../../_shared/connect-event.ts"
 import { sendConnectInboundSource } from "../../_shared/connect-inbound.ts"
+import { resolveExternalIdentity } from "../../_shared/connect-identity.ts"
 import { sendConnectExpenseCommand } from "../../_shared/connect-expense.ts"
 
 export async function processClassifiedImage(
@@ -30,11 +31,13 @@ export async function processClassifiedImage(
   // Payment Verification Engine — Phase 1 (owner, 2026-07-18): a slip alone
   // is Pending Review, never auto-Verified. Matching the company here so a
   // reviewer doesn't have to do it manually.
+  // Connect identity cutover (BATCH 28): company resolution now reads the
+  // canonical Connect model (connect_identity_current view via
+  // resolveExternalIdentity) — never the legacy company_line_links projection.
   let customerCompanyId: string | null = null
   if ((classified?.document_type === "transfer_slip" || classified?.document_type === "payment_advice") && userId) {
-    const { data: link } = await supabase
-      .from("company_line_links").select("company_id").eq("line_user_id", userId).maybeSingle()
-    customerCompanyId = (link as any)?.company_id ?? null
+    const identity = await resolveExternalIdentity(supabase, "line", userId)
+    customerCompanyId = identity?.companyId ?? null
   }
 
   // Replayed-slip fraud gate (owner, 2026-07-26 — real trace of EV260726-0006

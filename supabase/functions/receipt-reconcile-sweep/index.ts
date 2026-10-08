@@ -10,8 +10,8 @@
 // This is the self-healing half: runs on a schedule (see migration
 // 20260724000003), finds every receipt_documents row that's still Pending
 // Review but has complete evidence, backfills company-matching if that's
-// the only thing missing (same company_line_links lookup every other
-// consumer uses, never a guess), then reuses the EXACT SAME reconcile path
+// the only thing missing (canonical Connect identity lookup — same
+// resolveExternalIdentity contract every other consumer uses, never a guess), then reuses the EXACT SAME reconcile path
 // (tryAutoConfirmPayment → Connect payment-confirm bridge → confirmPayment,
 // P4/D2=ก 2026-09-24) as the inline
 // path — one reconciliation engine, two triggers (event-driven + swept),
@@ -19,6 +19,7 @@
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.43.4"
 import { tryAutoConfirmPayment } from "../line-webhook-v2/engines/auto-confirm-payment.ts"
+import { resolveExternalIdentity } from "../_shared/connect-identity.ts"
 
 Deno.serve(async (req) => {
   // Rule 103 check done: RECONCILE_CRON_SECRET already exists, shared by
@@ -56,8 +57,8 @@ Deno.serve(async (req) => {
   for (const doc of pending ?? []) {
     let companyId = doc.customer_company_id as string | null
 
-    // Backfill company-matching — same direct-link-first lookup every other
-    // consumer in this codebase uses (company_line_links), never a guess.
+    // Backfill company-matching — canonical Connect identity resolution
+    // (resolveExternalIdentity → connect_identity_current), never a guess.
     // This is what actually unblocks the KT Construction slip: it was
     // eligible all along, just never matched because of the classification
     // bug fixed alongside this.
@@ -68,9 +69,11 @@ Deno.serve(async (req) => {
       lineUserId = (lineEvent as any)?.line_user_id ?? null
     }
     if (!companyId && lineUserId) {
-      const { data: link } = await supabase
-        .from("company_line_links").select("company_id").eq("line_user_id", lineUserId).maybeSingle()
-      companyId = (link as any)?.company_id ?? null
+      // Connect identity cutover (BATCH 28): canonical Connect read
+      // (connect_identity_current) — never the legacy company_line_links
+      // projection. Unknown identity => null => "needs a human" below (fail-closed).
+      const identity = await resolveExternalIdentity(supabase, "line", lineUserId)
+      companyId = identity?.companyId ?? null
       if (companyId) {
         await supabase.from("receipt_documents").update({ customer_company_id: companyId }).eq("id", doc.id)
       }
