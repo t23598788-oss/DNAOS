@@ -127,11 +127,27 @@ function testWiredAndCensus() {
   assert.deepEqual([...new Set(directWriters)].filter((f) => !f.startsWith("scripts/")), [],
     `no TypeScript file may write payment_allocations directly, got: ${[...new Set(directWriters)].join(", ")}`);
 
-  // the commit implementation must exist in exactly one migration
+  // the commit implementation: the original B-04R2 migration plus any superseding
+  // CREATE OR REPLACE (batch 35 principal-only anchor). Every definition must keep
+  // the security model, and the LATEST one (the definition production runs) must
+  // carry the anchor double-count fix.
   const sqlFiles = readdirSync(join(ROOT, "supabase/migrations")).filter((f) => f.endsWith(".sql"));
-  const definers = sqlFiles.filter((f) => read("supabase/migrations/" + f).includes("function public.confirm_payment_allocation"));
-  assert.equal(definers.length, 1, `exactly one migration may define the commit implementation, got: ${definers.join(", ")}`);
-  return { rpcCallers: rpcCallerSet, directWriters: [...new Set(directWriters)], commitImplementation: "supabase/migrations/" + definers[0] };
+  const definers = sqlFiles.filter((f) => read("supabase/migrations/" + f).includes("function public.confirm_payment_allocation")).sort();
+  assert.ok(definers.length >= 1, "at least one migration must define the commit implementation");
+  for (const f of definers) {
+    const src = stripSqlComments(read("supabase/migrations/" + f));
+    assert.ok(/create or replace function public\.confirm_payment_allocation/.test(src), `${f} must define the function`);
+    assert.ok(src.includes("security definer") && src.includes("set search_path = public"),
+      `every definition of the commit implementation must keep the security model: ${f}`);
+  }
+  const latest = definers[definers.length - 1];
+  if (definers.length > 1) {
+    // superseding definitions exist → the production definition must be the fixed one
+    const latestSrc = stripSqlComments(read("supabase/migrations/" + latest));
+    assert.ok(/a->>'allocation_kind' = 'principal'/.test(latestSrc),
+      `the superseding definition must book the anchor event from principal allocations only: ${latest}`);
+  }
+  return { rpcCallers: rpcCallerSet, directWriters: [...new Set(directWriters)], commitImplementation: "supabase/migrations/" + latest };
 }
 
 // ── SQL fixtures (local database only) ───────────────────────────────────────
@@ -166,7 +182,8 @@ insert into public.receipt_documents (id,media_path,document_type,status,amount,
   ('b3000000-0000-4000-8000-000000000006','local:c2b.jpg','transfer_slip','ai_read',70000,'c3000000-0000-4000-8000-000000000001','unallocated'),
   ('b3000000-0000-4000-8000-000000000007','local:c3.jpg','transfer_slip','ai_read',40000,'c3000000-0000-4000-8000-000000000001','unallocated'),
   ('b3000000-0000-4000-8000-000000000008','local:c4.jpg','transfer_slip','ai_read',5000,'c3000000-0000-4000-8000-000000000001','unallocated'),
-  ('b3000000-0000-4000-8000-000000000009','local:c4b.jpg','transfer_slip','ai_read',5000,'c3000000-0000-4000-8000-000000000001','unallocated');
+  ('b3000000-0000-4000-8000-000000000009','local:c4b.jpg','transfer_slip','ai_read',5000,'c3000000-0000-4000-8000-000000000001','unallocated'),
+  ('b3000000-0000-4000-8000-000000000010','local:c5.jpg','transfer_slip','ai_read',10000,'c3000000-0000-4000-8000-000000000001','unallocated');
 commit;
 `;
 
@@ -190,6 +207,21 @@ do $$ declare v jsonb; begin
   then raise notice 'CHECK anchor_ledger_projection PASS';
   else raise notice 'CHECK anchor_ledger_projection FAIL %', v; end if;
 exception when others then raise notice 'CHECK anchor_ledger_projection FAIL %', sqlerrm; end $$;
+
+-- BATCH 35: the anchor event must book principal ONLY — the penalty part of a mixed
+-- anchor call must NOT be double-counted against the ledger (flow appends its own
+-- interest_penalty_received row for the penalty).
+do $$ declare v jsonb; v_anchor numeric; begin
+  v := public.confirm_payment_allocation('b3000000-0000-4000-8000-000000000010',
+    '[{"target_kind":"anchor","allocation_kind":"principal","amount":6000},
+      {"target_kind":"anchor","allocation_kind":"penalty","amount":4000}]'::jsonb,'t:anchor35','receipt_received');
+  select de.amount into v_anchor from public.debt_events de where de.id = (v->>'debt_event_id')::uuid;
+  if v_anchor = 6000
+     and (select coalesce(sum(amount),0) from public.payment_allocations
+           where receipt_document_id='b3000000-0000-4000-8000-000000000010') = 10000
+  then raise notice 'CHECK anchor_principal_only_booking PASS';
+  else raise notice 'CHECK anchor_principal_only_booking FAIL anchor=% v=%', v_anchor, v; end if;
+exception when others then raise notice 'CHECK anchor_principal_only_booking FAIL %', sqlerrm; end $$;
 
 do $$ declare v jsonb; begin
   v := public.reallocate_payment_allocation(
@@ -335,7 +367,16 @@ async function runLocalProof(): Promise<string> {
   if (have < 6) return `NOT_EXECUTED (local "${LOCAL_DB}" has no canonical schema: ${have}/6 tables)`;
 
   const dir = mkdtempSync(join(tmpdir(), "b04r2-"));
-  const apply = psql(["-d", LOCAL_DB, "-v", "ON_ERROR_STOP=1", "-f", join(ROOT, MIGRATION)]);
+  // apply EVERY definition in order so the local function matches production
+  // (original v1.1 + any superseding batch fix)
+  const defFiles = readdirSync(join(ROOT, "supabase/migrations"))
+    .filter((f) => f.endsWith(".sql") && read("supabase/migrations/" + f).includes("function public.confirm_payment_allocation"))
+    .sort();
+  let apply = { code: 1 as number | null, out: "no definition found" };
+  for (const f of defFiles) {
+    apply = psql(["-d", LOCAL_DB, "-v", "ON_ERROR_STOP=1", "-f", join(ROOT, "supabase/migrations", f)]);
+    if (apply.code !== 0) break;
+  }
   assert.equal(apply.code, 0, `the migration must apply on the local database: ${apply.out.slice(0, 300)}`);
 
   const fixtureFile = join(dir, "fixture.sql");

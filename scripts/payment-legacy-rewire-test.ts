@@ -112,9 +112,13 @@ function testAuthorityCensus() {
   assert.deepEqual([...new Set(legacyWriters)], [], `no runtime file may reference the legacy tables, got: ${[...new Set(legacyWriters)].join(", ")}`);
 
   const migrations = readdirSync(join(ROOT, "supabase/migrations")).filter((f) => f.endsWith(".sql"));
-  const impls = migrations.filter((f) => read(`supabase/migrations/${f}`).includes("function public.confirm_payment_allocation"));
-  assert.equal(impls.length, 1, `exactly one DB commit implementation expected, got: ${impls.join(", ")}`);
-  return { authorities: [WRITER], commitImpl: `supabase/migrations/${impls[0]}` };
+  // original + superseding CREATE OR REPLACE fixes (batch 35) — the LATEST runs
+  const impls = migrations.filter((f) => read(`supabase/migrations/${f}`).includes("function public.confirm_payment_allocation")).sort();
+  assert.ok(impls.length >= 1, "the DB commit implementation must live in a migration");
+  const latestSql = stripComments(read(`supabase/migrations/${impls[impls.length - 1]}`));
+  assert.ok(/a->>'allocation_kind' = 'principal'/.test(latestSql),
+    "the active commit implementation must book the anchor event from principal allocations only (batch 35)");
+  return { authorities: [WRITER], commitImpl: `supabase/migrations/${impls[impls.length - 1]}` };
 }
 
 function testLegacyReferenceClassification() {
@@ -146,7 +150,7 @@ function main() {
 
   console.log("payment-legacy-rewire:test PASS");
   console.log(
-    `checks: gateway legacy writes=0 · executePayment→confirmPayment(actor) · deterministic relation (inbound_source_links) · token {receipt,invoice,amount} · fail-closed (no legacy fallback) · authority=${census.authorities.join(",")} (count=1) · commit_impl=${census.commitImpl} (count=1)`,
+    `checks: gateway legacy writes=0 · executePayment→confirmPayment(actor) · deterministic relation (inbound_source_links) · token {receipt,invoice,amount} · fail-closed (no legacy fallback) · authority=${census.authorities.join(",")} (count=1) · commit_impl=${census.commitImpl} (active definition = original + superseding fixes)`,
   );
   console.log(
     `legacy refs: ACTIVE_RUNTIME=${classification.activeRuntime} · diagnostic_metadata=${classification.diagnosticMetadata.length} (${classification.diagnosticMetadata.join(", ")}) · doc_test=${classification.documentationOrTest.length} · migration_historical=${classification.migrationHistorical}`,

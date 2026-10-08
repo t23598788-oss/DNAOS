@@ -22,13 +22,15 @@
  * ไม่มีสูตรเงินใหม่ในไฟล์นี้ — split/guards/atomic commit มาจาก canonical
  * writers เดิมทั้งสิ้น
  *
- * Known deferral (flagged 2026-09-24 — ไม่แก้เงียบ): anchor debt event ภายใน
- * confirm_payment_allocation คือผลรวม anchor allocations ดังนั้นเงินที่จ่ายเกิน
- * ยอดที่ ledger track อยู่ได้ receipt_received(ทั้งหมด) +
- * interest_penalty_received(ส่วนเกิน) — แถวเดียวกับที่ manual path เขียนวันนี้
- * (legacy RPC เขียน receipt_received(principal) แทน) · ปรับให้เท่ากันต้องแตะ
- * RPC = DDL ขออนุมัติแยก — รอบนี้แค่ทำให้ auto กับ manual มี behavior เดียวกัน
- * แทนที่จะต่างกันคนละแบบ
+ * Known deferral (RESOLVED 2026-10-08, BATCH 35 — owner approved the RPC fix):
+ * the anchor debt event inside confirm_payment_allocation used to be the sum of
+ * ALL anchor allocations, so an over-payment booked the penalty twice (anchor
+ * total + this file's separate interest_penalty_received row) and the snapshot
+ * fell below the honest over-paid balance (real incident: receipt 0722ae13,
+ * −9,000 instead of −4,500). Migration 20261008000001 makes the anchor event
+ * book principal only (the legacy reconcile_receipt_payment contract), so
+ * anchor receipt_received + interest_penalty_received now always add up to
+ * exactly the money received.
  */
 import { supabaseAdmin } from "@/services/supabase/queries";
 import { confirmPayment, type ConfirmPaymentResult } from "@/engines/canonical/payment-write";

@@ -200,8 +200,18 @@ function testAuthorityBoundaries() {
   const writer = stripComments(read("engines/canonical/payment-write.ts"));
   assert.ok(/rpc\("confirm_payment_allocation"/.test(writer) && /rpc\("reallocate_payment_allocation"/.test(writer), "both RPCs must be called from the canonical writer");
   const migrations = readdirSync(join(ROOT, "supabase/migrations")).filter((f) => f.endsWith(".sql"));
-  const impls = migrations.filter((f) => read(`supabase/migrations/${f}`).includes("function public.confirm_payment_allocation"));
-  assert.equal(impls.length, 1, "the DB commit implementation must live in exactly one migration");
+  // one line of authority: the original migration + superseding CREATE OR REPLACE
+  // fixes (batch 35 principal-only anchor) — the LATEST definition is what runs
+  const impls = migrations.filter((f) => read(`supabase/migrations/${f}`).includes("function public.confirm_payment_allocation")).sort();
+  assert.ok(impls.length >= 1, "the DB commit implementation must live in a migration");
+  for (const f of impls) {
+    const sql = stripComments(read(`supabase/migrations/${f}`));
+    assert.ok(sql.includes("security definer") && sql.includes("set search_path = public"),
+      `every definition of the commit implementation must keep the security model: ${f}`);
+  }
+  const latestSql = stripComments(read(`supabase/migrations/${impls[impls.length - 1]}`));
+  assert.ok(/a->>'allocation_kind' = 'principal'/.test(latestSql),
+    "the active definition must book the anchor event from principal allocations only (batch 35)");
   return { impls: impls.map((f) => `supabase/migrations/${f}`) };
 }
 
