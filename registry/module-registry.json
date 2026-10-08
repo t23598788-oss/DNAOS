@@ -16181,6 +16181,24 @@
       "purpose_th": "ทดสอบ failover gate ของ external-connect — รันบน CJS ล้วน (d15ea86) ตรวจ eligibility, รหัส rejection และผล activation ของ activateStandbyConnect โดยไม่ยิงเครือข่ายจริง",
       "exports": [],
       "status": "active"
+    },
+    "core/owner-runtime/client.ts": {
+      "owner": "core",
+      "layer": "core",
+      "purpose": "Owner conversation runtime client — workspace side.",
+      "purpose_th": "Owner conversation runtime client — workspace side.",
+      "exports": [
+        "DEFAULT_OWNER_RUNTIME_ORIGIN",
+        "OWNER_RUNTIME_IDENTITY_ENV",
+        "OWNER_RUNTIME_ORIGIN_ENV",
+        "OwnerRuntimeAnswer",
+        "OwnerRuntimeAskRequest",
+        "OwnerRuntimeDocumentContext",
+        "askOwnerRuntime",
+        "resolveOwnerRuntimeIdentity",
+        "resolveOwnerRuntimeInstruction"
+      ],
+      "status": "active"
     }
   },
   "excluded": [

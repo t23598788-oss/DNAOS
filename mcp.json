@@ -1,14 +1,17 @@
 {
-  "$comment": "DNA OS — MCP discovery for external contractors (NEW-2, 2026-09-23). Freebuff loads this file (and .agents/) from the working directory when run with --trust-agents; Cline is registered separately in its own cline_mcp_settings.json. This file only POINTS at the DNA OS MCP server — it holds no credential: DNA_OS_API_TOKEN must be exported by whoever launches Freebuff (a token value must never be committed here).",
+  "$comment": "DNA OS — MCP discovery for external contractors (NEW-2, 2026-09-23; discovery target repaired BATCH 13). Freebuff loads this file (and .agents/) from the working directory when run with --trust-agents; Cline is registered separately in its own cline_mcp_settings.json. This file POINTS at the real DNA OS MCP server: connections/dna-os-mcp/server.ts over its stdio transport (same server that serves the canonical Streamable HTTP on 127.0.0.1:8793 — stdio spawn never binds a port, so it cannot collide with the running instance). It holds no credential: DNA_OS_API_TOKEN must be exported by whoever launches Freebuff for claim/submit tools (a token value must never be committed here).",
   "mcpServers": {
     "dna-os": {
-      "command": "node",
-      "args": ["dna-os-mcp-server/dist/index.js"],
-      "cwd": ".",
+      "command": "/Users/tam/Desktop/DNA-OS-INFRASTRUCTURE/node_modules/.bin/tsx",
+      "args": [
+        "/Users/tam/Desktop/DNA-OS-INFRASTRUCTURE/connections/dna-os-mcp/server.ts",
+        "--stdio"
+      ],
+      "cwd": "/Users/tam/Desktop/DNA-OS-INFRASTRUCTURE",
       "env": {
-        "DNA_OS_BASE_URL": "http://localhost:3000"
+        "DNA_OS_HTTP_BASE_URL": "http://127.0.0.1:8791"
       },
-      "description": "DNA OS central coordinator. Contractors PULL work through contractor.task.claim, report back through contractor.evidence.submit, and read status through contractor.status. Read-only tools are safe to auto-run; claim/submit require the DNA OS API token and Owner approval per the Worker Contract."
+      "description": "DNA OS central coordinator (stdio transport of the canonical dna-os-mcp server; its HTTP peer lives at 127.0.0.1:8793/mcp). Contractors PULL work through contractor.task.claim, report back through contractor.evidence.submit, and read status through contractor.status. Read-only tools are safe to auto-run; claim/submit require the DNA OS API token and Owner approval per the Worker Contract."
     }
   }
 }

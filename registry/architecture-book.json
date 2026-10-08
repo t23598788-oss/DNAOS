@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-07T22:05:36.493Z",
+  "generated_at": "2026-10-08T03:17:53.280Z",
   "version": 1,
   "nodes": [
     {
@@ -324,7 +324,8 @@
         "module:app/api/chat/_lib/resultContract.ts",
         "module:cognitive/pipeline.ts",
         "module:core/auth/requireAuth.ts",
-        "module:core/auth/session.ts"
+        "module:core/auth/session.ts",
+        "module:core/owner-runtime/client.ts"
       ],
       "dependents": [],
       "data_tables": "UNKNOWN",
@@ -343,8 +344,8 @@
         {
           "name": "POST",
           "kind": "function",
-          "line_start": 17,
-          "line_end": 80
+          "line_start": 60,
+          "line_end": 159
         }
       ],
       "import_sites": [
@@ -372,6 +373,11 @@
           "specifier": "./_lib/chatResultTypes",
           "line": 6,
           "resolved_target": "app/api/chat/_lib/chatResultTypes.ts"
+        },
+        {
+          "specifier": "@/core/owner-runtime/client",
+          "line": 7,
+          "resolved_target": "core/owner-runtime/client.ts"
         }
       ]
     },
@@ -89607,13 +89613,13 @@
           "name": "WorkspaceFrame",
           "kind": "function",
           "line_start": 147,
-          "line_end": 737
+          "line_end": 749
         },
         {
           "name": "WorkspaceToolNavigation",
           "kind": "function",
-          "line_start": 1063,
-          "line_end": 1100
+          "line_start": 1075,
+          "line_end": 1112
         }
       ],
       "import_sites": [
@@ -90842,6 +90848,98 @@
           "specifier": "../engines/integration-gateway/contracts/runtime-provider",
           "line": 4,
           "resolved_target": "engines/integration-gateway/contracts/runtime-provider.ts"
+        }
+      ]
+    },
+    {
+      "id": "module:core/owner-runtime/client.ts",
+      "type": "Module",
+      "layer": "core",
+      "name_en": "core/owner-runtime/client.ts",
+      "purpose_th": "Owner conversation runtime client — workspace side.",
+      "exports": [
+        "DEFAULT_OWNER_RUNTIME_ORIGIN",
+        "OWNER_RUNTIME_IDENTITY_ENV",
+        "OWNER_RUNTIME_ORIGIN_ENV",
+        "OwnerRuntimeAnswer",
+        "OwnerRuntimeAskRequest",
+        "OwnerRuntimeDocumentContext",
+        "askOwnerRuntime",
+        "resolveOwnerRuntimeIdentity",
+        "resolveOwnerRuntimeInstruction"
+      ],
+      "status": "OK",
+      "runtime_entry_point": false,
+      "internal_dependencies": [],
+      "dependents": [
+        "module:app/api/chat/route.ts"
+      ],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "core",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "symbols": [
+        {
+          "name": "OWNER_RUNTIME_ORIGIN_ENV",
+          "kind": "const",
+          "line_start": 21,
+          "line_end": 21
+        },
+        {
+          "name": "OWNER_RUNTIME_IDENTITY_ENV",
+          "kind": "const",
+          "line_start": 22,
+          "line_end": 22
+        },
+        {
+          "name": "DEFAULT_OWNER_RUNTIME_ORIGIN",
+          "kind": "const",
+          "line_start": 23,
+          "line_end": 23
+        },
+        {
+          "name": "OwnerRuntimeDocumentContext",
+          "kind": "interface",
+          "line_start": 27,
+          "line_end": 32
+        },
+        {
+          "name": "OwnerRuntimeAskRequest",
+          "kind": "interface",
+          "line_start": 34,
+          "line_end": 43
+        },
+        {
+          "name": "OwnerRuntimeAnswer",
+          "kind": "interface",
+          "line_start": 45,
+          "line_end": 53
+        },
+        {
+          "name": "resolveOwnerRuntimeIdentity",
+          "kind": "function",
+          "line_start": 67,
+          "line_end": 73
+        },
+        {
+          "name": "askOwnerRuntime",
+          "kind": "function",
+          "line_start": 80,
+          "line_end": 146
+        },
+        {
+          "name": "resolveOwnerRuntimeInstruction",
+          "kind": "function",
+          "line_start": 153,
+          "line_end": 161
         }
       ]
     }
@@ -94270,6 +94368,11 @@
     {
       "source": "layer:core",
       "target": "module:core/navigation/resolveNavItems.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:core",
+      "target": "module:core/owner-runtime/client.ts",
       "label": "contains"
     },
     {
@@ -105503,6 +105606,11 @@
       "label": "imports"
     },
     {
+      "source": "module:app/api/chat/route.ts",
+      "target": "module:core/owner-runtime/client.ts",
+      "label": "imports"
+    },
+    {
       "source": "module:app/api/command/route.ts",
       "target": "module:cognitive/pipeline.ts",
       "label": "imports"
@@ -115044,8 +115152,8 @@
     }
   ],
   "summary": {
-    "total": 1335,
-    "ok": 1335,
+    "total": 1336,
+    "ok": 1336,
     "broken": 0,
     "unused": 0,
     "unregistered": 0
