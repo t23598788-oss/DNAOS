@@ -52,7 +52,7 @@ const APPS: FrameItem[] = [
   { icon: FileText, label: "เอกสาร", route: "/admin/create-document" },
   { icon: MessageCircle, label: "LINE", route: "/admin/line-customers" },
   { icon: Wallet, label: "การเงิน", route: "/admin/finance" },
-  { icon: MapPin, label: "GPS", route: "/admin/equipment" },
+  { icon: MapPin, label: "เครื่องจักรและซ่อมบำรุง", route: "/admin/equipment" },
   { icon: Briefcase, label: "งาน", route: "/admin/jobs" },
   { icon: Users, label: "รายชื่อ", route: "/admin/partners" },
   { icon: ScanLine, label: "สแกน / AI", route: "/admin/receipts" },

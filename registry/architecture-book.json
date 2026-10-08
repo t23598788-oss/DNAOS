@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-08T03:17:53.280Z",
+  "generated_at": "2026-10-08T05:37:45.405Z",
   "version": 1,
   "nodes": [
     {
@@ -13326,6 +13326,7 @@
         "module:engines/canonical/inbound-write.ts",
         "module:engines/canonical/payment-write.ts",
         "module:engines/canonical/receipt-confirm-flow.ts",
+        "module:engines/canonical/resource-transaction-write.ts",
         "module:engines/canonical/transaction-write.ts",
         "module:engines/capacity.ts",
         "module:engines/cost.ts",
@@ -58143,12 +58144,11 @@
       "exports": [],
       "status": "OK",
       "runtime_entry_point": true,
-      "internal_dependencies": [],
-      "dependents": [],
-      "data_tables": [
-        "app_configs",
-        "resource_transactions"
+      "internal_dependencies": [
+        "module:supabase/functions/_shared/kis-inbound-core.ts"
       ],
+      "dependents": [],
+      "data_tables": "UNKNOWN",
       "business_capabilities": "UNKNOWN",
       "domain_owner": "supabase",
       "lifecycle_status": "active",
@@ -58159,7 +58159,14 @@
       "related_business_events": "UNKNOWN",
       "related_documents": "UNKNOWN",
       "related_commands": "UNKNOWN",
-      "related_services": "UNKNOWN"
+      "related_services": "UNKNOWN",
+      "import_sites": [
+        {
+          "specifier": "../_shared/kis-inbound-core.ts",
+          "line": 17,
+          "resolved_target": "supabase/functions/_shared/kis-inbound-core.ts"
+        }
+      ]
     },
     {
       "id": "module:supabase/functions/bank-email-sync/index.ts",
@@ -78164,6 +78171,7 @@
         "module:engines/canonical/document-write.ts",
         "module:engines/canonical/expense-write.ts",
         "module:engines/canonical/inbound-write.ts",
+        "module:engines/canonical/resource-transaction-write.ts",
         "module:engines/canonical/transaction-write.ts"
       ],
       "data_tables": [
@@ -90942,6 +90950,258 @@
           "line_end": 161
         }
       ]
+    },
+    {
+      "id": "module:scripts/resource-transaction-write-test.ts",
+      "type": "Module",
+      "layer": "scripts",
+      "name_en": "scripts/resource-transaction-write-test.ts",
+      "purpose_th": "Resource-transaction canonical path test (BATCH 20 — offline, no DB).",
+      "exports": [],
+      "status": "OK",
+      "runtime_entry_point": true,
+      "internal_dependencies": [
+        "module:engines/canonical/resource-transaction-write.ts",
+        "module:supabase/functions/_shared/kis-inbound-core.ts"
+      ],
+      "dependents": [],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "scripts",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "import_sites": [
+        {
+          "specifier": "@/engines/canonical/resource-transaction-write",
+          "line": 11,
+          "resolved_target": "engines/canonical/resource-transaction-write.ts"
+        },
+        {
+          "specifier": "../supabase/functions/_shared/kis-inbound-core",
+          "line": 12,
+          "resolved_target": "supabase/functions/_shared/kis-inbound-core.ts"
+        }
+      ]
+    },
+    {
+      "id": "module:engines/canonical/resource-transaction-write.ts",
+      "type": "Module",
+      "layer": "engines",
+      "name_en": "engines/canonical/resource-transaction-write.ts",
+      "purpose_th": "Canonical resource-transaction write model (KIS machinery hours — BATCH 19/20).",
+      "exports": [
+        "MachineryRatesConfig",
+        "ResourceTransactionDeps",
+        "ResourceTransactionInput",
+        "ResourceTransactionResult",
+        "defaultDeps",
+        "readConfigAuthorities",
+        "recordResourceTransaction"
+      ],
+      "status": "OK",
+      "runtime_entry_point": false,
+      "internal_dependencies": [
+        "module:engines/canonical/audit.ts",
+        "module:services/supabase/queries.ts"
+      ],
+      "dependents": [
+        "module:app/api/internal/connect/resource-transaction/route.ts",
+        "module:scripts/resource-transaction-write-test.ts"
+      ],
+      "data_tables": [
+        "app_configs",
+        "jobs",
+        "resource_transactions"
+      ],
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "engines",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "symbols": [
+        {
+          "name": "ResourceTransactionInput",
+          "kind": "interface",
+          "line_start": 25,
+          "line_end": 46
+        },
+        {
+          "name": "ResourceTransactionResult",
+          "kind": "interface",
+          "line_start": 48,
+          "line_end": 55
+        },
+        {
+          "name": "MachineryRatesConfig",
+          "kind": "interface",
+          "line_start": 57,
+          "line_end": 61
+        },
+        {
+          "name": "ResourceTransactionDeps",
+          "kind": "interface",
+          "line_start": 64,
+          "line_end": 82
+        },
+        {
+          "name": "defaultDeps",
+          "kind": "function",
+          "line_start": 84,
+          "line_end": 90
+        },
+        {
+          "name": "readConfigAuthorities",
+          "kind": "function",
+          "line_start": 100,
+          "line_end": 124
+        },
+        {
+          "name": "recordResourceTransaction",
+          "kind": "function",
+          "line_start": 126,
+          "line_end": 236
+        }
+      ],
+      "import_sites": [
+        {
+          "specifier": "@/services/supabase/queries",
+          "line": 21,
+          "resolved_target": "services/supabase/queries.ts"
+        },
+        {
+          "specifier": "@/engines/canonical/audit",
+          "line": 22,
+          "resolved_target": "engines/canonical/audit.ts"
+        }
+      ]
+    },
+    {
+      "id": "module:supabase/functions/_shared/kis-inbound-core.ts",
+      "type": "Module",
+      "layer": "supabase",
+      "name_en": "supabase/functions/_shared/kis-inbound-core.ts",
+      "purpose_th": "KIS inbound core — pure logic shared by the edge function (Deno) and the",
+      "exports": [
+        "KisEmailFacts",
+        "KisEmailPayload",
+        "buildKisEvidenceRef",
+        "buildKisSourceEventId",
+        "parseKisEmail",
+        "verifyKisWebhook"
+      ],
+      "status": "OK",
+      "runtime_entry_point": false,
+      "internal_dependencies": [],
+      "dependents": [
+        "module:scripts/resource-transaction-write-test.ts",
+        "module:supabase/functions/kis-webhook/index.ts"
+      ],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "supabase",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "symbols": [
+        {
+          "name": "KisEmailPayload",
+          "kind": "interface",
+          "line_start": 8,
+          "line_end": 17
+        },
+        {
+          "name": "KisEmailFacts",
+          "kind": "interface",
+          "line_start": 19,
+          "line_end": 26
+        },
+        {
+          "name": "parseKisEmail",
+          "kind": "function",
+          "line_start": 48,
+          "line_end": 58
+        },
+        {
+          "name": "buildKisSourceEventId",
+          "kind": "function",
+          "line_start": 73,
+          "line_end": 79
+        },
+        {
+          "name": "buildKisEvidenceRef",
+          "kind": "function",
+          "line_start": 82,
+          "line_end": 85
+        },
+        {
+          "name": "verifyKisWebhook",
+          "kind": "function",
+          "line_start": 100,
+          "line_end": 119
+        }
+      ]
+    },
+    {
+      "id": "module:app/api/internal/connect/resource-transaction/route.ts",
+      "type": "Module",
+      "layer": "app",
+      "name_en": "app/api/internal/connect/resource-transaction/route.ts",
+      "purpose_th": "POST /api/internal/connect/resource-transaction — machinery/resource bridge",
+      "exports": [
+        "POST"
+      ],
+      "status": "OK",
+      "runtime_entry_point": true,
+      "internal_dependencies": [
+        "module:engines/canonical/resource-transaction-write.ts"
+      ],
+      "dependents": [],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "app",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "symbols": [
+        {
+          "name": "POST",
+          "kind": "function",
+          "line_start": 42,
+          "line_end": 91
+        }
+      ],
+      "import_sites": [
+        {
+          "specifier": "@/engines/canonical/resource-transaction-write",
+          "line": 24,
+          "resolved_target": "engines/canonical/resource-transaction-write.ts"
+        }
+      ]
     }
   ],
   "edges": [
@@ -93472,6 +93732,11 @@
     },
     {
       "source": "layer:app",
+      "target": "module:app/api/internal/connect/resource-transaction/route.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:app",
       "target": "module:app/api/internal/device/commands/[cmdId]/route.ts",
       "label": "contains"
     },
@@ -94773,6 +95038,11 @@
     {
       "source": "layer:engines",
       "target": "module:engines/canonical/receipt-confirm-flow.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:engines",
+      "target": "module:engines/canonical/resource-transaction-write.ts",
       "label": "contains"
     },
     {
@@ -96867,6 +97137,11 @@
     },
     {
       "source": "layer:scripts",
+      "target": "module:scripts/resource-transaction-write-test.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:scripts",
       "target": "module:scripts/restore-test-test.ts",
       "label": "contains"
     },
@@ -97253,6 +97528,11 @@
     {
       "source": "layer:supabase",
       "target": "module:supabase/functions/_shared/haversine.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:supabase",
+      "target": "module:supabase/functions/_shared/kis-inbound-core.ts",
       "label": "contains"
     },
     {
@@ -105986,6 +106266,11 @@
       "label": "imports"
     },
     {
+      "source": "module:app/api/internal/connect/resource-transaction/route.ts",
+      "target": "module:engines/canonical/resource-transaction-write.ts",
+      "label": "imports"
+    },
+    {
       "source": "module:app/api/internal/device/commands/[cmdId]/route.ts",
       "target": "module:app/api/admin/devices/_lib/deviceCommands.ts",
       "label": "imports"
@@ -109422,6 +109707,16 @@
     },
     {
       "source": "module:engines/canonical/receipt-confirm-flow.ts",
+      "target": "module:services/supabase/queries.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:engines/canonical/resource-transaction-write.ts",
+      "target": "module:engines/canonical/audit.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:engines/canonical/resource-transaction-write.ts",
       "target": "module:services/supabase/queries.ts",
       "label": "imports"
     },
@@ -113781,6 +114076,16 @@
       "label": "imports"
     },
     {
+      "source": "module:scripts/resource-transaction-write-test.ts",
+      "target": "module:engines/canonical/resource-transaction-write.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:scripts/resource-transaction-write-test.ts",
+      "target": "module:supabase/functions/_shared/kis-inbound-core.ts",
+      "label": "imports"
+    },
+    {
       "source": "module:scripts/restore-test-test.ts",
       "target": "module:app/api/admin/ide/_lib/backupRuntime.ts",
       "label": "imports"
@@ -114556,6 +114861,11 @@
       "label": "imports"
     },
     {
+      "source": "module:supabase/functions/kis-webhook/index.ts",
+      "target": "module:supabase/functions/_shared/kis-inbound-core.ts",
+      "label": "imports"
+    },
+    {
       "source": "module:supabase/functions/line-profile-reconcile/index.ts",
       "target": "module:supabase/functions/_shared/line-client.ts",
       "label": "imports"
@@ -115152,8 +115462,8 @@
     }
   ],
   "summary": {
-    "total": 1336,
-    "ok": 1336,
+    "total": 1340,
+    "ok": 1340,
     "broken": 0,
     "unused": 0,
     "unregistered": 0

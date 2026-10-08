@@ -139,7 +139,7 @@ function renderResources() {
   line("  Database:         Supabase PostgreSQL (cloud)");
   line("  Edge Functions:   Supabase Edge (Deno)");
   line("  Frontend:         Vercel (Next.js)");
-  line("  Webhooks:         LINE × 4, KIS × 1, Back-to-back × 1");
+  line("  Webhooks:         LINE × 4, Back-to-back × 1 (KIS email webhook retired BATCH 24)");
 }
 
 // ═══════════════════════════════════════════

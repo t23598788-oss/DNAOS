@@ -16199,6 +16199,55 @@
         "resolveOwnerRuntimeInstruction"
       ],
       "status": "active"
+    },
+    "scripts/resource-transaction-write-test.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "Resource-transaction canonical path test (BATCH 20 — offline, no DB).",
+      "purpose_th": "Resource-transaction canonical path test (BATCH 20 — offline, no DB).",
+      "exports": [],
+      "status": "active"
+    },
+    "engines/canonical/resource-transaction-write.ts": {
+      "owner": "engines",
+      "layer": "engines",
+      "purpose": "Canonical resource-transaction write model (KIS machinery hours — BATCH 19/20).",
+      "purpose_th": "Canonical resource-transaction write model (KIS machinery hours — BATCH 19/20).",
+      "exports": [
+        "MachineryRatesConfig",
+        "ResourceTransactionDeps",
+        "ResourceTransactionInput",
+        "ResourceTransactionResult",
+        "defaultDeps",
+        "readConfigAuthorities",
+        "recordResourceTransaction"
+      ],
+      "status": "active"
+    },
+    "supabase/functions/_shared/kis-inbound-core.ts": {
+      "owner": "supabase",
+      "layer": "supabase",
+      "purpose": "KIS inbound core — pure logic shared by the edge function (Deno) and the",
+      "purpose_th": "KIS inbound core — pure logic shared by the edge function (Deno) and the",
+      "exports": [
+        "KisEmailFacts",
+        "KisEmailPayload",
+        "buildKisEvidenceRef",
+        "buildKisSourceEventId",
+        "parseKisEmail",
+        "verifyKisWebhook"
+      ],
+      "status": "active"
+    },
+    "app/api/internal/connect/resource-transaction/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "POST /api/internal/connect/resource-transaction — machinery/resource bridge",
+      "purpose_th": "POST /api/internal/connect/resource-transaction — machinery/resource bridge",
+      "exports": [
+        "POST"
+      ],
+      "status": "active"
     }
   },
   "excluded": [

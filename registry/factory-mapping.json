@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-25T16:35:16.666Z",
+  "generated_at": "2026-10-08T06:35:32.860Z",
   "policy": "Per-module Factory mapping only — no file was moved. See registry/factory-registry.json for the Factory contracts this maps into.",
   "modules": {
     "app/.well-known/oauth-authorization-server/route.ts": {
@@ -97,15 +97,6 @@
       "domain": "Developer Tooling",
       "capability": "app",
       "responsibility": "หน้า 'ออกเอกสาร' ตัวจริง — เรียก DocumentBuilder รับ query param เพื่อ pre-fill จากบริบทเดิม",
-      "evidence": [
-        "admin UI page (remaining)"
-      ]
-    },
-    "app/admin/dashboard/page.tsx": {
-      "factoryOwner": "software-factory",
-      "domain": "Developer Tooling",
-      "capability": "app",
-      "responsibility": "แดชบอร์ดธุรกิจจริง — รายได้วันนี้/งานที่ทำอยู่/เอกสารค้าง (หน้าแรกที่ /admin redirect มา)",
       "evidence": [
         "admin UI page (remaining)"
       ]
@@ -4400,6 +4391,15 @@
         "infrastructure-factory"
       ]
     },
+    "app/api/gateway/observe/meta/route.ts": {
+      "factoryOwner": "infrastructure-factory",
+      "domain": "Infrastructure",
+      "capability": "app",
+      "responsibility": "POST/GET /api/gateway/observe/meta — Meta (Facebook Messenger + Instagram",
+      "evidence": [
+        "connector/OAuth/gateway API"
+      ]
+    },
     "app/api/gateway/observe/railway/route.ts": {
       "factoryOwner": "infrastructure-factory",
       "domain": "Infrastructure",
@@ -4495,6 +4495,15 @@
       "domain": "Runtime",
       "capability": "app",
       "responsibility": "POST /api/internal/connect/payment-confirm — Connect money bridge",
+      "evidence": [
+        "internal command-execution API"
+      ]
+    },
+    "app/api/internal/connect/resource-transaction/route.ts": {
+      "factoryOwner": "runtime-factory",
+      "domain": "Runtime",
+      "capability": "app",
+      "responsibility": "POST /api/internal/connect/resource-transaction — machinery/resource bridge",
       "evidence": [
         "internal command-execution API"
       ]
@@ -5408,38 +5417,11 @@
         "business-domain preview/marketing page"
       ]
     },
-    "app/workspace/BusinessWorkspace.tsx": {
-      "factoryOwner": "software-factory",
-      "domain": "Developer Tooling",
-      "capability": "app",
-      "responsibility": "BUSINESS WORKSPACE — หน้าจอใช้งานจริงเพียงหน้าจอเดียว (/workspace)",
-      "evidence": [
-        "operational workspace page"
-      ]
-    },
-    "app/workspace/InboxIndicator.tsx": {
-      "factoryOwner": "software-factory",
-      "domain": "Developer Tooling",
-      "capability": "app",
-      "responsibility": "กล่องรับเข้า — ขวาบนของ Workspace (handoff workspace-reference.html:",
-      "evidence": [
-        "operational workspace page"
-      ]
-    },
     "app/workspace/WorkspaceFrame.tsx": {
       "factoryOwner": "software-factory",
       "domain": "Developer Tooling",
       "capability": "app",
       "responsibility": "WORKSPACE FRAME — BUSINESS UI SHELL ใหม่ตาม reference ของ Owner",
-      "evidence": [
-        "operational workspace page"
-      ]
-    },
-    "app/workspace/WorkspaceSettings.tsx": {
-      "factoryOwner": "software-factory",
-      "domain": "Developer Tooling",
-      "capability": "app",
-      "responsibility": "Navigation to existing guarded screens only; mounting does not run services.",
       "evidence": [
         "operational workspace page"
       ]
@@ -5467,15 +5449,6 @@
       "domain": "Developer Tooling",
       "capability": "app",
       "responsibility": "Presentation bindings only. Routes keep their own server authority checks.",
-      "evidence": [
-        "operational workspace page"
-      ]
-    },
-    "app/workspace/_lib/workspaceAppearance.ts": {
-      "factoryOwner": "software-factory",
-      "domain": "Developer Tooling",
-      "capability": "app",
-      "responsibility": "Owner-editable presentation only. Keep bindings and authority out of here.",
       "evidence": [
         "operational workspace page"
       ]
@@ -5854,15 +5827,6 @@
       "domain": "Business",
       "capability": "components",
       "responsibility": "คอมโพเนนต์แจ้งเตือนด้วยเสียงของ Dev Loop — แจ้งเตือนความล้มเหลวจริงของ dev-loop ให้เจ้าของฟัง",
-      "evidence": [
-        "business workspace/admin/transactions UI components"
-      ]
-    },
-    "components/admin/SecretaryChat.tsx": {
-      "factoryOwner": "business-factory",
-      "domain": "Business",
-      "capability": "components",
-      "responsibility": "คอมโพเนนต์แชทเลขา — หน้าแชทจริงที่ backed ด้วย AI gateway สำหรับฟีเจอร์เลขาฝั่งผู้ดูแล",
       "evidence": [
         "business workspace/admin/transactions UI components"
       ]
@@ -6296,6 +6260,20 @@
       "evidence": [
         "app navigation resolution"
       ]
+    },
+    "core/owner-runtime/client.ts": {
+      "factoryOwner": "UNKNOWN",
+      "domain": null,
+      "capability": null,
+      "responsibility": "Owner conversation runtime client — workspace side.",
+      "evidence": []
+    },
+    "core/owner-verification-client.ts": {
+      "factoryOwner": "UNKNOWN",
+      "domain": null,
+      "capability": null,
+      "responsibility": "Owner-verification bridge client — business repo side.",
+      "evidence": []
     },
     "core/policy/scope.ts": {
       "factoryOwner": "UNKNOWN",
@@ -7061,6 +7039,15 @@
       "responsibility": "Real, genuinely EMPTY file (0 bytes) at the workspace root — a real orphan file, reported honestly here and in the Step 10.5 Factory Completion Report's Sour...",
       "evidence": []
     },
+    "engines/accounting/financial-statements.ts": {
+      "factoryOwner": "business-factory",
+      "domain": "Business",
+      "capability": "engines",
+      "responsibility": "engine การเงินล้วน — คำนวณงบกำไรขาดทุน งบฐานะการเงิน และงบกระแสเงินสดจาก totals canonical ของ finance-summary (ไม่ query ฐานข้อมูล ไม่มีผลข้างเคียง)",
+      "evidence": [
+        "business-domain engine (remaining)"
+      ]
+    },
     "engines/bot-exchange-rate.ts": {
       "factoryOwner": "business-factory",
       "domain": "Business",
@@ -7156,6 +7143,15 @@
       "domain": "Business",
       "capability": "engines",
       "responsibility": "Canonical receipt-confirm flow — ONE sequence, TWO callers",
+      "evidence": [
+        "business-domain engine (remaining)"
+      ]
+    },
+    "engines/canonical/resource-transaction-write.ts": {
+      "factoryOwner": "business-factory",
+      "domain": "Business",
+      "capability": "engines",
+      "responsibility": "Canonical resource-transaction write model (KIS machinery hours — BATCH 19/20).",
       "evidence": [
         "business-domain engine (remaining)"
       ]
@@ -7615,6 +7611,15 @@
         "infrastructure-factory"
       ]
     },
+    "engines/integration-gateway/adapters/meta.ts": {
+      "factoryOwner": "infrastructure-factory",
+      "domain": "Infrastructure",
+      "capability": "engines",
+      "responsibility": "Integration Gateway — Meta adapter (Facebook Messenger + Instagram messaging receive, owner channel-expansion 2026-10-07).",
+      "evidence": [
+        "integration gateway adapter"
+      ]
+    },
     "engines/integration-gateway/adapters/railway.ts": {
       "factoryOwner": "infrastructure-factory",
       "domain": "Infrastructure",
@@ -7651,11 +7656,38 @@
         "integration gateway adapter"
       ]
     },
+    "engines/integration-gateway/connect-failover.ts": {
+      "factoryOwner": "infrastructure-factory",
+      "domain": "Infrastructure",
+      "capability": "engines",
+      "responsibility": "gate เปิดใช้งาน failover — activateStandbyConnect ยก standby connect ภายนอก (เช่น Railway standby) ผ่านสัญญา external-connect เท่านั้น เมื่อผ่านการตรวจ statu...",
+      "evidence": [
+        "integration gateway adapter"
+      ]
+    },
     "engines/integration-gateway/contracts/event.ts": {
       "factoryOwner": "infrastructure-factory",
       "domain": "Infrastructure",
       "capability": "engines",
       "responsibility": "Integration Gateway: สัญญากลาง GatewayEvent ที่ทุก provider adapter ต้องแปลงข้อมูลเข้ามาก่อนถึง DNA OS Core — ภาษากลางของ GitHub/Supabase/Vercel/VS Code/Chat...",
+      "evidence": [
+        "integration gateway adapter"
+      ]
+    },
+    "engines/integration-gateway/contracts/external-connect.ts": {
+      "factoryOwner": "infrastructure-factory",
+      "domain": "Infrastructure",
+      "capability": "engines",
+      "responsibility": "สัญญา external-connect — รูป status/activation/failover (ExternalConnectStatus, ExternalConnectAdapter, ExternalConnectActivation*, ExternalConnectFailover*)...",
+      "evidence": [
+        "integration gateway adapter"
+      ]
+    },
+    "engines/integration-gateway/contracts/runtime-provider.ts": {
+      "factoryOwner": "infrastructure-factory",
+      "domain": "Infrastructure",
+      "capability": "engines",
+      "responsibility": "สัญญา status ของ runtime provider — รูป RuntimeProviderStatus (availability/health/latency/ค่าใช้จ่าย/capabilities) + DNA_OS_RUNTIME_STATE_BOUNDARY: อำนาจข้อ...",
       "evidence": [
         "integration gateway adapter"
       ]
@@ -7692,6 +7724,15 @@
       "domain": "Infrastructure",
       "capability": "engines",
       "responsibility": "Integration Gateway: สวิตช์จริงว่า channel ไหน (observe/propose/execute) เปิดใช้อยู่ — event-bus/bus.ts เช็คก่อน publish ทุกครั้ง ตอนนี้เปิดแค่ observe",
+      "evidence": [
+        "integration gateway adapter"
+      ]
+    },
+    "engines/integration-gateway/runtime-router.ts": {
+      "factoryOwner": "infrastructure-factory",
+      "domain": "Infrastructure",
+      "capability": "engines",
+      "responsibility": "router ผู้ให้บริการ runtime — selectRuntimeProvider เลือก adapter (Railway/Vercel) จาก availability/health/latency/ค่าใช้จ่ายที่เจ้าของอนุมัติ แล้วคืน provid...",
       "evidence": [
         "integration gateway adapter"
       ]
@@ -9198,33 +9239,6 @@
         "canonical presentation implementation"
       ]
     },
-    "presentation/shell/ide/TabStrip.tsx": {
-      "factoryOwner": "software-factory",
-      "domain": "Developer Tooling",
-      "capability": "presentation",
-      "responsibility": "IDE Primitives — TabStrip (EXTRACTED, source-preserving)",
-      "evidence": [
-        "canonical presentation implementation"
-      ]
-    },
-    "presentation/shell/navigation/AppHeader.tsx": {
-      "factoryOwner": "software-factory",
-      "domain": "Developer Tooling",
-      "capability": "presentation",
-      "responsibility": "Module name — owned by the module, not by Navigation (e.g. \"ข้อความ\", \"การเงิน\", \"ใบแจ้งหนี้\").",
-      "evidence": [
-        "canonical presentation implementation"
-      ]
-    },
-    "presentation/shell/navigation/HomeBackBar.tsx": {
-      "factoryOwner": "software-factory",
-      "domain": "Developer Tooling",
-      "capability": "presentation",
-      "responsibility": "Owner request (2026-07-30): once wrapped in a native Tauri window, there's",
-      "evidence": [
-        "canonical presentation implementation"
-      ]
-    },
     "presentation/shell/navigation/IconRail.tsx": {
       "factoryOwner": "software-factory",
       "domain": "Developer Tooling",
@@ -9538,6 +9552,15 @@
         "real test file — QA Factory owns all test code regardless of domain"
       ]
     },
+    "scripts/accounting-financial-statements-test.ts": {
+      "factoryOwner": "qa-factory",
+      "domain": "Quality",
+      "capability": "scripts",
+      "responsibility": "ทดสอบ engine buildFinancialStatements — ตรวจสมการกำไร-ขาดทุน ฐานะการเงิน และกระแสเงินสดจาก totals ที่กำหนด",
+      "evidence": [
+        "real test file — QA Factory owns all test code regardless of domain"
+      ]
+    },
     "scripts/ai-caller-cutover-test.ts": {
       "factoryOwner": "qa-factory",
       "domain": "Quality",
@@ -9805,6 +9828,15 @@
         "real test file — QA Factory owns all test code regardless of domain"
       ]
     },
+    "scripts/capability-router-wiring-test.ts": {
+      "factoryOwner": "qa-factory",
+      "domain": "Quality",
+      "capability": "scripts",
+      "responsibility": "CORE.COMMAND_ROUTER -> CORE.CAPABILITY_ROUTER — wiring test (owner directive",
+      "evidence": [
+        "real test file — QA Factory owns all test code regardless of domain"
+      ]
+    },
     "scripts/check-system-control-graph.ts": {
       "factoryOwner": "architecture-office",
       "domain": "Architecture",
@@ -9918,6 +9950,15 @@
       "domain": "Quality",
       "capability": "scripts",
       "responsibility": "Real Continuous Operations Runtime regression suite (Step 12.5) — npm run continuous-operations:test.",
+      "evidence": [
+        "real test file — QA Factory owns all test code regardless of domain"
+      ]
+    },
+    "scripts/core-chain-execution-test.ts": {
+      "factoryOwner": "qa-factory",
+      "domain": "Quality",
+      "capability": "scripts",
+      "responsibility": "CORE_CHAIN — execution-chain contract test (owner directive 2026-09-22).",
       "evidence": [
         "real test file — QA Factory owns all test code regardless of domain"
       ]
@@ -10110,6 +10151,15 @@
         "real test file — QA Factory owns all test code regardless of domain"
       ]
     },
+    "scripts/external-connect-failover-test.ts": {
+      "factoryOwner": "qa-factory",
+      "domain": "Quality",
+      "capability": "scripts",
+      "responsibility": "ทดสอบ failover gate ของ external-connect — รันบน CJS ล้วน (d15ea86) ตรวจ eligibility, รหัส rejection และผล activation ของ activateStandbyConnect โดยไม่ยิงเคร...",
+      "evidence": [
+        "real test file — QA Factory owns all test code regardless of domain"
+      ]
+    },
     "scripts/factory-completion-test.ts": {
       "factoryOwner": "qa-factory",
       "domain": "Quality",
@@ -10278,6 +10328,15 @@
       "responsibility": "Real script analyzing the real blast-radius/impact of a proposed source change against registry/architecture-book.json.",
       "evidence": []
     },
+    "scripts/impact-verdict-contract-test.ts": {
+      "factoryOwner": "qa-factory",
+      "domain": "Quality",
+      "capability": "scripts",
+      "responsibility": "CORE.VERIFICATION_TEST -> CORE.APPROVAL / CORE.DEPLOYMENT_GATE —",
+      "evidence": [
+        "real test file — QA Factory owns all test code regardless of domain"
+      ]
+    },
     "scripts/incident-test.ts": {
       "factoryOwner": "qa-factory",
       "domain": "Quality",
@@ -10445,6 +10504,24 @@
         "real test file — QA Factory owns all test code regardless of domain"
       ]
     },
+    "scripts/owner-authority-contract-test.ts": {
+      "factoryOwner": "qa-factory",
+      "domain": "Quality",
+      "capability": "scripts",
+      "responsibility": "CORE.OWNER_AUTHORIZATION — authority contract test (owner directive",
+      "evidence": [
+        "real test file — QA Factory owns all test code regardless of domain"
+      ]
+    },
+    "scripts/owner-verification-decide-test.ts": {
+      "factoryOwner": "qa-factory",
+      "domain": "Quality",
+      "capability": "scripts",
+      "responsibility": "Owner-verification gate — acceptance test for plan step 2.",
+      "evidence": [
+        "real test file — QA Factory owns all test code regardless of domain"
+      ]
+    },
     "scripts/package-test.ts": {
       "factoryOwner": "qa-factory",
       "domain": "Quality",
@@ -10486,6 +10563,15 @@
       "domain": "Quality",
       "capability": "scripts",
       "responsibility": "B-04R3 — canonical payment RPC adapter tests (F1–F8).",
+      "evidence": [
+        "real test file — QA Factory owns all test code regardless of domain"
+      ]
+    },
+    "scripts/permission-policy-test.ts": {
+      "factoryOwner": "qa-factory",
+      "domain": "Quality",
+      "capability": "scripts",
+      "responsibility": "CORE.PERMISSION_POLICY — permission layer contract test (owner directive",
       "evidence": [
         "real test file — QA Factory owns all test code regardless of domain"
       ]
@@ -10610,6 +10696,15 @@
         "real test file — QA Factory owns all test code regardless of domain"
       ]
     },
+    "scripts/resource-transaction-write-test.ts": {
+      "factoryOwner": "qa-factory",
+      "domain": "Quality",
+      "capability": "scripts",
+      "responsibility": "Resource-transaction canonical path test (BATCH 20 — offline, no DB).",
+      "evidence": [
+        "real test file — QA Factory owns all test code regardless of domain"
+      ]
+    },
     "scripts/restore-test-test.ts": {
       "factoryOwner": "qa-factory",
       "domain": "Quality",
@@ -10624,6 +10719,15 @@
       "domain": "Quality",
       "capability": "scripts",
       "responsibility": "Real Code Review Pipeline & Change Set Assembly regression suite (Step 7) — npm run review:test.",
+      "evidence": [
+        "real test file — QA Factory owns all test code regardless of domain"
+      ]
+    },
+    "scripts/runtime-provider-router-test.ts": {
+      "factoryOwner": "qa-factory",
+      "domain": "Quality",
+      "capability": "scripts",
+      "responsibility": "ทดสอบ selectRuntimeProvider — การจัดอันดับ เงื่อนไข capability/latency การข้ามผู้ให้บริการแบบ paid ที่ยังไม่ได้รับอนุมัติ และ failover ของผู้ให้บริการ Railwa...",
       "evidence": [
         "real test file — QA Factory owns all test code regardless of domain"
       ]
@@ -10746,6 +10850,13 @@
         "real test file — QA Factory owns all test code regardless of domain"
       ]
     },
+    "scripts/ui-baseline-guard.ts": {
+      "factoryOwner": "UNKNOWN",
+      "domain": null,
+      "capability": null,
+      "responsibility": "ui-baseline-guard.ts — ONE NAVIGATION canonical lock",
+      "evidence": []
+    },
     "scripts/ui-inspection-test.ts": {
       "factoryOwner": "qa-factory",
       "domain": "Quality",
@@ -10772,6 +10883,13 @@
       "evidence": [
         "real test file — QA Factory owns all test code regardless of domain"
       ]
+    },
+    "scripts/verify-accounting-financial-statements-http.ts": {
+      "factoryOwner": "UNKNOWN",
+      "domain": null,
+      "capability": null,
+      "responsibility": "ยืนยัน payload financial_statements ของ finance-summary บน HTTP จริง — ยิง route ที่ live แล้วตรวจว่า P&L / ฐานะการเงิน / กระแสเงินสด ครบและเป็นตัวเลข",
+      "evidence": []
     },
     "scripts/vscode-exit-test.ts": {
       "factoryOwner": "qa-factory",
@@ -11212,6 +11330,15 @@
       "domain": "Deployment",
       "capability": "supabase",
       "responsibility": "คำนวณระยะทาง Haversine สำหรับ Supabase functions",
+      "evidence": [
+        "Supabase Edge Function (remaining, not architecture-drift-alert)"
+      ]
+    },
+    "supabase/functions/_shared/kis-inbound-core.ts": {
+      "factoryOwner": "deployment-factory",
+      "domain": "Deployment",
+      "capability": "supabase",
+      "responsibility": "KIS inbound core — pure logic shared by the edge function (Deno) and the",
       "evidence": [
         "Supabase Edge Function (remaining, not architecture-drift-alert)"
       ]

@@ -1,10 +1,11 @@
 /**
- * Canonical resource-transaction write model (KIS machinery hours — BATCH 19/20).
+ * Canonical resource-transaction write model (machinery/telematics hours —
+ * BATCH 19/20/24).
  *
  * THE one and only path that writes `public.resource_transactions`.
- * The KIS edge function no longer inserts anything: it forwards raw email
- * facts to the internal route (app/api/internal/connect/resource-transaction),
- * which calls this writer — same shape as every other canonical writer
+ * Producers no longer insert anything: they forward raw source facts to the
+ * internal route (app/api/internal/connect/resource-transaction), which calls
+ * this writer — same shape as every other canonical writer
  * (recordCanonicalAudit on success, fail-closed validation before any write).
  *
  * Money authority (ไม่มี fallback — ห้าม hardcode):
@@ -23,13 +24,13 @@ import { recordCanonicalAudit } from "@/engines/canonical/audit";
 
 /** Raw source facts — money fields deliberately absent (computed by the writer). */
 export interface ResourceTransactionInput {
-  /** provider identity (e.g. "kis_email") — a value, never a branch */
+  /** provider identity (e.g. "telematics:equipment") — a value, never a branch */
   source: string;
   /** deterministic idempotency key of the SOURCE event (never a caller guess) */
   source_event_id: string;
   /** equipment_assets.id — only when evidenced; null when the email names no registered asset */
   resource_id: string | null;
-  /** e.g. "Kubota Excavator" — a fact parsed from the source payload */
+  /** e.g. "รถขุด 3 ตัน" — a fact parsed from the source payload (ยี่ห้อ/รุ่นไม่ผูก architecture) */
   resource_label: string;
   /** must resolve to a real public.jobs row — otherwise reject */
   job_id: string;

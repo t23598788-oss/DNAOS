@@ -1,13 +1,14 @@
 /**
  * POST /api/internal/connect/resource-transaction — machinery/resource bridge
- * (KIS canonical path — BATCH 19/20).
+ * (generic canonical path — BATCH 19/20/24; producer จากช่องทาง telemetry/
+ * SIM-GPS ใด ๆ ก็ใช้เส้นนี้ได้ — email webhook เดิมเลิกใช้แล้ว).
  *
- * ประตูเดียวที่สร้าง resource_transactions — คำขอนี้ →
+ * ประตูเดียวที่สร้าง resource_transactions (producer ช่องทางไหนก็ได้) — คำขอนี้ →
  * engines/canonical/resource-transaction-write.ts#recordResourceTransaction
  * (canonical writer + validation + idempotency + recordCanonicalAudit).
- * Edge function (kis-webhook) ไม่เขียน DB โดยตรงอีกต่อไป:
+ * ไม่มี producer หน้าไหนเขียน DB โดยตรง:
  *
- *   KIS email → SendGrid Inbound Parse → functions/v1/kis-webhook
+ *   producer (telemetry/SIM-GPS bridge ใด ๆ)
  *     → POST .../resource-transaction → recordResourceTransaction
  *     → public.resource_transactions (+ canonical audit)
  *

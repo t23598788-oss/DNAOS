@@ -652,13 +652,13 @@
       "next_connection": "ยืนยัน scope ของคำสั่ง"
     },
     {
-      "node_id": "ext:bank-kis-fuel",
-      "name": "Bank email / KIS webhook / Fuel price",
+      "node_id": "ext:bank-fuel",
+      "name": "Bank email / Fuel price",
       "kind": "external_service",
       "domain": "EXTERNAL",
       "owner": "supabase",
       "runtime": "webhook/API",
-      "source_path": "supabase/functions/kis-webhook, fuel-price-sync, bank-statement-reconcile",
+      "source_path": "fuel-price-sync, bank-statement-reconcile",
       "status": "PARTIAL",
       "input": "webhook/ข้อความธนาคาร/ราคาน้ำมัน",
       "output": "ข้อมูลดิบ",
@@ -1800,21 +1800,21 @@
       "evidence": "curated dependencies"
     },
     {
-      "source": "ext:bank-kis-fuel",
+      "source": "ext:bank-fuel",
       "target": "rt:supabase-edge",
       "type": "depends_on",
       "graph": "execution",
       "evidence": "curated dependencies"
     },
     {
-      "source": "ext:bank-kis-fuel",
+      "source": "ext:bank-fuel",
       "target": "db:bank_statement_transactions",
       "type": "writes",
       "graph": "execution",
       "evidence": "curated writes"
     },
     {
-      "source": "ext:bank-kis-fuel",
+      "source": "ext:bank-fuel",
       "target": "db:fuel_price_log",
       "type": "writes",
       "graph": "execution",
@@ -2489,8 +2489,7 @@
         "supabase/functions/debt-reminder-cron",
         "supabase/functions/equipment-maintenance-cron",
         "supabase/functions/fuel-price-sync",
-        "supabase/functions/kis-webhook",
-        "supabase/functions/line-profile-reconcile",
+                "supabase/functions/line-profile-reconcile",
         "supabase/functions/line-webhook-v2",
         "supabase/functions/openclaw-webhook",
         "supabase/functions/quotation-queue-nudge",

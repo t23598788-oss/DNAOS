@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-07T01:27:04.054Z",
+  "generatedAt": "2026-10-08T06:35:32.274Z",
   "totalSystems": 45,
   "byStatus": {
     "COMPLETE": 26,
@@ -1269,11 +1269,10 @@
       "name_th": "วงจรชีวิตตัวเชื่อมต่อ",
       "factoryOwner": "runtime",
       "layer": "runtime",
-      "responsibility": "Real Supabase Edge Function connectors (LINE/bank/KIS/billing/etc.) — real external integration surface.",
+      "responsibility": "Real Supabase Edge Function connectors (LINE/bank/billing/etc.) — real external integration surface (KIS email webhook retired BATCH 24).",
       "sourceFiles": [
         "supabase/functions/line-webhook-v2/index.ts",
         "supabase/functions/bank-email-sync/index.ts",
-        "supabase/functions/kis-webhook/index.ts",
         "supabase/functions/bank-statement-reconcile/index.ts",
         "supabase/functions/supabase-billing-sync/index.ts"
       ],
@@ -1292,10 +1291,6 @@
           "exists": true
         },
         {
-          "path": "supabase/functions/kis-webhook/index.ts",
-          "exists": true
-        },
-        {
           "path": "supabase/functions/bank-statement-reconcile/index.ts",
           "exists": true
         },
@@ -1311,7 +1306,7 @@
       "status": "PARTIAL",
       "completionPercent": 70,
       "evidence": [
-        "All 5 real source file(s) verified present on disk."
+        "All 4 real source file(s) verified present on disk."
       ],
       "limitations": [
         "No dedicated regression test file declared for this system.",

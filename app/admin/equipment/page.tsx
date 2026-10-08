@@ -138,7 +138,7 @@ export default function EquipmentPage() {
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-6">
       <div>
-        <h1 className="text-xl font-semibold text-stone-800">เครื่องจักร & สิทธิ์ GPS Relay</h1>
+        <h1 className="text-xl font-semibold text-stone-800">เครื่องจักรและซ่อมบำรุง</h1>
         <p className="text-sm text-stone-500 mt-1">จับคู่พนักงานขับ ↔ เครื่องจักร ↔ ซิม IoT — เปิด/ปิดสิทธิ์สตาร์ตรถได้ทันที</p>
       </div>
 
@@ -148,7 +148,7 @@ export default function EquipmentPage() {
         <div className="text-xs font-bold text-stone-500 uppercase tracking-wide mb-2">เพิ่มเครื่องจักรใหม่</div>
         <div className="flex gap-2">
           <input value={newCode} onChange={(e) => setNewCode(e.target.value)} placeholder="รหัสเครื่อง เช่น KX033-01" className="text-sm border border-stone-300 rounded-lg px-3 py-2 flex-1" />
-          <input value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="ชื่อ เช่น Kubota KX033" className="text-sm border border-stone-300 rounded-lg px-3 py-2 flex-1" />
+          <input value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="ชื่อ เช่น รถขุด 3 ตัน" className="text-sm border border-stone-300 rounded-lg px-3 py-2 flex-1" />
           <button onClick={createEquipment} disabled={saving || !newCode.trim() || !newName.trim()} className="text-sm font-medium px-4 py-2 rounded-lg bg-stone-800 text-white disabled:opacity-40">เพิ่ม</button>
         </div>
       </div>

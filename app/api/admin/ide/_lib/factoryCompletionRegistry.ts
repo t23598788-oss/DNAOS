@@ -225,10 +225,10 @@ export const FACTORY_SYSTEM_REGISTRY: SystemDefinition[] = [
   {
     id: "INTEGRATION_CONNECTOR_LIFECYCLE", name: "Integration / Connector Lifecycle", name_th: "วงจรชีวิตตัวเชื่อมต่อ",
     factoryOwner: "runtime", layer: "runtime",
-    responsibility: "Real Supabase Edge Function connectors (LINE/bank/KIS/billing/etc.) — real external integration surface.",
+    responsibility: "Real Supabase Edge Function connectors (LINE/bank/billing/etc.) — real external integration surface (KIS email webhook retired BATCH 24).",
     sourceFiles: [
       "supabase/functions/line-webhook-v2/index.ts", "supabase/functions/bank-email-sync/index.ts",
-      "supabase/functions/kis-webhook/index.ts", "supabase/functions/bank-statement-reconcile/index.ts",
+      "supabase/functions/bank-statement-reconcile/index.ts",
       "supabase/functions/supabase-billing-sync/index.ts",
     ],
     routes: [], registries: ["registry/system-control-summary.json"], testFiles: [],

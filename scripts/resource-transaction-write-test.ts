@@ -9,7 +9,7 @@
 import { readFileSync } from "fs";
 import { execSync } from "child_process";
 import { recordResourceTransaction, type ResourceTransactionInput, type ResourceTransactionDeps } from "@/engines/canonical/resource-transaction-write";
-import { verifyKisWebhook, buildKisSourceEventId, type KisEmailPayload } from "../supabase/functions/_shared/kis-inbound-core";
+import { existsSync } from "fs";
 
 let failures = 0;
 let checks = 0;
@@ -29,7 +29,7 @@ async function expectError(name: string, fn: () => Promise<unknown>, needle: str
   }
 }
 
-// ── in-memory fake db (implements ResourceTransactionDeps["db"]) ────────────
+// ── in-memory test double (implements ResourceTransactionDeps["db"]) ────────
 function makeFakeDb(opts: {
   jobs: string[];
   configs: Record<string, unknown>;
@@ -98,10 +98,10 @@ function makeDeps(db: ResourceTransactionDeps["db"]) {
 }
 
 const BASE: ResourceTransactionInput = {
-  source: "kis_email",
-  source_event_id: "kis-sha:test-001",
+  source: "telematics:equipment",
+  source_event_id: "evt:test-001",
   resource_id: null,
-  resource_label: "Kubota Excavator",
+  resource_label: "รถขุด 3 ตัน",
   job_id: "job-real-1",
   started_at: "2026-10-08T01:00:00.000Z",
   duration_hours: 3.5,
@@ -123,7 +123,7 @@ async function main() {
     check("gross_cost = duration * unit_cost", result.gross_cost === Math.round(3.5 * expectedUnitCost * 100) / 100);
     check("fuel_price_reference = 37.19 (authority)", result.fuel_price_reference === 37.19);
     check("exactly one insert", inserted.length === 1, `inserted=${inserted.length}`);
-    check("row carries source_event_id", inserted[0]?.source_event_id === "kis-sha:test-001");
+    check("row carries source_event_id", inserted[0]?.source_event_id === "evt:test-001");
     check("audit recorded", audits.length === 1);
   }
 
@@ -177,50 +177,15 @@ async function main() {
     check("future started_at writes nothing", inserted.length === 0);
   }
 
-  // 7 — webhook token: missing / bad / valid (fail-closed)
+  // 7 (BATCH 24) — KIS email webhook retired: the KIS edge function and its
+  // shared core are deleted; only the generic canonical path remains.
   {
-    const url = new URL("http://x/functions/v1/kis-webhook?token=right-token");
-    const payload: KisEmailPayload = { from: '<kis@example.com>', envelope: { sender: "kis@example.com" }, subject: "s" };
-    const cfg = { token: "right-token", senderAllowlist: "kis@example.com" };
-    check("valid token+sender => ok", verifyKisWebhook(url, payload, cfg).ok === true);
-    const noToken = verifyKisWebhook(new URL("http://x/functions/v1/kis-webhook"), payload, cfg);
-    check("missing token => rejected", noToken.ok === false && noToken.reason.includes("token mismatch"), JSON.stringify(noToken));
-    const badToken = verifyKisWebhook(new URL("http://x/functions/v1/kis-webhook?token=wrong"), payload, cfg);
-    check("bad token => rejected", badToken.ok === false, JSON.stringify(badToken));
-    const noConfig = verifyKisWebhook(url, payload, { token: undefined, senderAllowlist: cfg.senderAllowlist });
-    check("token not configured => rejected (no default)", noConfig.ok === false && noConfig.reason.includes("not configured"));
-    const noAllowlist = verifyKisWebhook(url, payload, { token: "right-token", senderAllowlist: undefined });
-    check("allowlist not configured => rejected", noAllowlist.ok === false && noAllowlist.reason.includes("ALLOWLIST"));
+    check("kis-webhook edge function retired", !existsSync("supabase/functions/kis-webhook"));
+    check("kis-inbound-core retired", !existsSync("supabase/functions/_shared/kis-inbound-core.ts"));
+    check("no KIS secrets documented", !readFileSync(".env.local.example", "utf8").includes("KIS_WEBHOOK_TOKEN"));
   }
 
-  // 8 — sender not allowlisted => reject
-  {
-    const url = new URL("http://x/functions/v1/kis-webhook?token=t");
-    const payload: KisEmailPayload = { from: '<spoof@evil.example>', envelope: { sender: "spoof@evil.example" } };
-    const verdict = verifyKisWebhook(url, payload, { token: "t", senderAllowlist: "kis@example.com" });
-    check("sender not allowlisted => rejected", verdict.ok === false && verdict.reason === "sender not allowlisted", JSON.stringify(verdict));
-  }
-
-  // idempotency key determinism (same email => same key => duplicate path)
-  {
-    const payload: KisEmailPayload = { subject: "Engine Stop", from: '<kis@example.com>', timestamp: 1728000000 };
-    check("source_event_id deterministic", buildKisSourceEventId(payload) === buildKisSourceEventId({ ...payload }));
-    check("source_event_id prefixed", buildKisSourceEventId(payload).startsWith("kis-sha:"));
-    const withMsgId = { ...payload, "message-id": "abc@sg" };
-    check("provider Message-Id preferred", buildKisSourceEventId(withMsgId) === "kis-msg:abc@sg");
-  }
-
-  // 9 — edge function has NO direct DB write
-  {
-    const edge = readFileSync("supabase/functions/kis-webhook/index.ts", "utf8");
-    check("edge has no from(resource_transactions)", !edge.includes("from(") || !/resource_transactions/.test(edge.replace(/\/\/[^\n]*/g, "").replace(/\/\*[\s\S]*?\*\//g, "").split("\n").filter((l) => l.includes("from(")).join("\n")));
-    check("edge has no .insert(", !edge.includes(".insert("));
-    check("edge forwards to internal route", edge.includes("/api/internal/connect/resource-transaction"));
-    check("edge verifies webhook (token+allowlist)", edge.includes("verifyKisWebhook"));
-    check("edge has no hardcoded 600/35 money fallback", !/base.*600|fuel.*35\\.00|35\\.00|600\\.00/.test(edge));
-  }
-
-  // 10 — internal route is the ONLY caller of the canonical writer
+  // 8 — internal route is the ONLY caller of the canonical writer
   {
     const out = execSync('grep -rl recordResourceTransaction --include="*.ts" . 2>/dev/null | grep -v node_modules | grep -v ".next"', { encoding: "utf8" })
       .split("\n")
