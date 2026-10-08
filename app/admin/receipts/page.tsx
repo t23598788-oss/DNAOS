@@ -10,10 +10,18 @@ interface ReceiptItem {
   reference_number: string | null
   transaction_datetime: string | null
   verification_level: number | null
+  customer_company_id: string | null
   partner_name: string | null
   outstanding_before: number
   payment_preview: { kind: "full_payment" | "partial_payment"; title: string; note: string } | null
   error_th: string | null
+}
+
+interface CompanyOption {
+  id: string
+  name: string
+  type: string
+  is_individual: boolean
 }
 
 // Payment Verification Queue (owner, 2026-07-24): the missing read side for
@@ -24,6 +32,7 @@ interface ReceiptItem {
 // what you see here is what will happen, not a separate guess.
 export default function ReceiptsQueuePage() {
   const [items, setItems] = useState<ReceiptItem[]>([])
+  const [companies, setCompanies] = useState<CompanyOption[]>([])
   const [loading, setLoading] = useState(true)
   const [busyId, setBusyId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -33,6 +42,7 @@ export default function ReceiptsQueuePage() {
     const res = await fetch("/api/admin/receipt-documents")
     const data = await res.json()
     setItems(res.ok ? data.items : [])
+    setCompanies(res.ok ? (data.available_companies ?? []) : [])
     setError(res.ok ? null : (data.error ?? "โหลดไม่สำเร็จ"))
     setLoading(false)
   }, [])
@@ -48,6 +58,26 @@ export default function ReceiptsQueuePage() {
       setError(data.error ?? "ดำเนินการไม่สำเร็จ")
       return
     }
+    await load()
+  }
+
+  // Debtor assignment (BATCH 33) — admin picks an EXISTING company/person;
+  // writes through the one approved path (PATCH .../company) with audit.
+  async function assignCompany(id: string, companyId: string) {
+    if (!companyId) return
+    setBusyId(id)
+    const res = await fetch(`/api/admin/receipt-documents/${id}/company`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ customer_company_id: companyId }),
+    })
+    const data = await res.json()
+    setBusyId(null)
+    if (!res.ok) {
+      setError(data.error ?? "ระบุคู่ค้าไม่สำเร็จ")
+      return
+    }
+    setError(null)
     await load()
   }
 
@@ -108,8 +138,30 @@ export default function ReceiptsQueuePage() {
             )}
 
             <div className="mt-3 flex gap-2">
+              {!item.customer_company_id && (
+                // Debtor assignment (BATCH 33) — receipt with no company cannot
+                // be confirmed yet (receipt-confirm-flow rejects RECEIPT_NO_COMPANY);
+                // admin picks an existing company/person first. No OCR/name guess.
+                <div className="flex items-center gap-2 w-full">
+                  <select
+                    className="text-xs border border-stone-300 rounded-lg px-2 py-1.5 flex-1 bg-white"
+                    value=""
+                    disabled={busyId === item.id}
+                    onChange={(e) => {
+                      if (e.target.value) assignCompany(item.id, e.target.value)
+                    }}
+                  >
+                    <option value="">ระบุคู่ค้า/ผู้เป็นหนี้ (เลือกรายการที่มีอยู่)…</option>
+                    {companies.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.name}{c.is_individual ? " (บุคคล)" : ""}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
               <button
-                disabled={busyId === item.id}
+                disabled={busyId === item.id || !item.customer_company_id}
                 onClick={() => act(item.id, "confirm")}
                 className="text-xs px-3 py-1.5 rounded-lg border border-emerald-200 text-emerald-700 hover:bg-emerald-50 transition disabled:opacity-50"
               >

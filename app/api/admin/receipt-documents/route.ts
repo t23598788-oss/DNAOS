@@ -136,5 +136,22 @@ export async function GET(_req: Request) {
     }
   })
 
-  return NextResponse.json({ items })
+  // Debtor picker options (BATCH 33): existing companies/person rows only —
+  // the manual assignment dropdown never offers anything that is not already
+  // in the registry (people are companies with is_individual=true).
+  const { data: allCompanies } = await db
+    .from("companies")
+    .select("id, name, type, is_individual")
+    .order("name")
+    .limit(300)
+
+  return NextResponse.json({
+    items,
+    available_companies: (allCompanies ?? []).map((c) => ({
+      id: c.id,
+      name: c.name,
+      type: c.type,
+      is_individual: Boolean(c.is_individual),
+    })),
+  })
 }
