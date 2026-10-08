@@ -1,15 +1,22 @@
--- BATCH 20 — resource_transactions canonical table + idempotency (SCOPE-LIMITED).
+-- BATCH 20/22 — resource_transactions canonical table + idempotency (SCOPE-LIMITED).
 --
 -- แยกจาก 20260620000000_clearinghouse_upgrade.sql โดยเจตนา: migration นั้น
 -- มี jobs bootstrap + geom functions/triggers/index ที่ไม่เกี่ยว — ห้าม apply
 -- ทั้งก้อน (DIFF PLAN BATCH 19) · migration นี้แตะเฉพาะตารางเดียว
 --
--- NOT APPLIED YET — ต้องได้รับอนุมัติก่อน run (BATCH 20 = เขียนไฟล์อย่างเดียว).
+-- NOT APPLIED YET — ต้องได้รับอนุมัติก่อน run (see
+-- project/docs/kis-resource-transaction-apply-runbook.md).
 --
--- Schema: ลอกจาก 20260620 line107-131 + partner FK ตาม 20260710 (DO block
--- idempotent) + source_event_id (idempotency key ของ canonical writer
--- engines/canonical/resource-transaction-write.ts) + UNIQUE index
--- + RLS deny-all (service-role only — ไม่ expose anon/authenticated).
+-- Schema: ลอกจาก 20260620 line107-131 + source_event_id (idempotency key ของ
+-- canonical writer engines/canonical/resource-transaction-write.ts) + UNIQUE
+-- index + RLS deny-all (service-role only — ไม่ expose anon/authenticated).
+--
+-- BATCH 22 DECISION — partner_id คงเป็น nullable column เปล่า ๆ โดยไม่มี FK:
+--   · production ปัจจุบันไม่มีตาราง partners legacy อีกต่อไป (มีแค่ companies —
+--     PGRST205 x3 ยืนยัน BATCH 21) — FK จะทำให้ migration ทั้งก้อน fail
+--   · canonical writer ส่ง partner_id: null เสมอ — ยังไม่มี code path ใช้ relation
+--   · ห้ามเปลี่ยนไปอ้าง companies ใน batch นี้ จนกว่าจะมี evidence ว่า
+--     company = partner semantics ทุกกรณี
 
 CREATE TABLE IF NOT EXISTS public.resource_transactions (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -32,15 +39,6 @@ CREATE TABLE IF NOT EXISTS public.resource_transactions (
     -- source event เดียว — duplicate email/SendGrid retry ไม่มีวัน insert ซ้ำ
     source_event_id TEXT NOT NULL
 );
-
--- partner FK: idempotent (pattern เดียวกับ 20260710 DO-block — ทำซ้ำได้)
-DO $$ BEGIN
-    ALTER TABLE public.resource_transactions
-        ADD CONSTRAINT resource_transactions_partner_id_fkey
-        FOREIGN KEY (partner_id) REFERENCES public.partners(id) ON DELETE SET NULL;
-EXCEPTION WHEN duplicate_object THEN
-    NULL;
-END $$;
 
 -- Idempotency ระดับ DB (canonical writer ยิงค่าเดียวกันซ้ำ = unique violation
 -- ที่ writer แปลงเป็น duplicate:return-existing เอง)
