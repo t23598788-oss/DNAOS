@@ -173,6 +173,14 @@ export function WorkspaceFrame({
     knownCustomerId?: string;
     knownCustomerName?: string | null;
     documentId?: string;
+    /** current document/entity context for the owner runtime read path
+     *  (BATCH 12) — UI context ONLY, never identity. Sent only when the page
+     *  actually has a document open; absent = the runtime gets the raw text. */
+    documentContext?: {
+      document_no?: string | null;
+      document_id?: string | null;
+      title?: string | null;
+    };
   };
   /** หลังส่งสำเร็จ (LINE) — ให้หน้าเจ้าของ canvas refresh timeline ตัวเอง */
   onComposerSent?: () => void;
@@ -366,6 +374,10 @@ export function WorkspaceFrame({
       };
       if (composerContext?.knownCustomerId) body.knownCustomerId = composerContext.knownCustomerId;
       if (composerContext?.knownCustomerName) body.knownCustomerName = composerContext.knownCustomerName;
+      // BATCH 12 — owner runtime context: current relationship + open
+      // document travel as their own fields (UI context, never identity).
+      if (composerContext?.relationshipId) body.relationshipId = composerContext.relationshipId;
+      if (composerContext?.documentContext) body.documentContext = composerContext.documentContext;
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },

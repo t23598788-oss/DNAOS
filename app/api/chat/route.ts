@@ -4,6 +4,49 @@ import { ADMIN_TIER } from "@/core/auth/session";
 import { runCognitivePipeline } from "@/cognitive/pipeline";
 import { buildChatResult } from "./_lib/resultContract";
 import type { ChatResult } from "./_lib/chatResultTypes";
+import {
+  askOwnerRuntime,
+  resolveOwnerRuntimeIdentity,
+  resolveOwnerRuntimeInstruction,
+  type OwnerRuntimeAnswer,
+} from "@/core/owner-runtime/client";
+
+// ── owner runtime read path (BATCH 12, owner spec) ─────────────────────────
+// After the deterministic command/intent layers and the canonical capability
+// dispatcher have had their chance, a question the workspace still could not
+// answer goes to the infrastructure's owner conversation runtime
+// (127.0.0.1:8791). No AI, no command engine, no reader/router is added
+// here — this is a fallback call with a fail-closed identity.
+
+/**
+ * Map the runtime's answer onto the EXISTING result contract
+ * (chatResultTypes ChatResult): structured facts render as fields blocks
+ * (BusinessDisplayRenderer), a plain answer stays a text result. Nothing is
+ * flattened into a text bubble when the runtime supplied structured fields.
+ */
+function mapOwnerRuntimeResult(owner: OwnerRuntimeAnswer): ChatResult {
+  const facts = owner.facts ?? {};
+  const keys = Object.keys(facts);
+  if (keys.length > 0) {
+    return {
+      type: "sections",
+      blocks: [
+        {
+          kind: "fields",
+          id: "owner-runtime",
+          title: "Owner runtime",
+          fields: keys.map((key) => ({
+            kind: "field" as const,
+            id: `owner-runtime-${key}`,
+            label: key,
+            value: String(facts[key]),
+          })),
+        },
+      ],
+    };
+  }
+  return { type: "text", text: owner.answer };
+}
 
 // Real Data Analysis Layer (owner, 2026-07-30): "ai ในเครื่องมันตัวเล็กมาก
 // มันไม่สามารถประมวลผลด้วยตัวของมันเองและวิเคราะห์ได้รวดเร็ว...ก่อนที่จะให้
@@ -29,7 +72,7 @@ export async function POST(request: Request) {
     // เอกสารไม่ต้องให้ ai เข้ามา" — when the caller (an Action Bar button)
     // already knows exactly which customer this is, skip AI name-matching
     // for identity entirely (see runCognitiveCore's knownCustomer handling).
-    const { message, sessionKey, knownCustomerId, knownCustomerName } = await request.json();
+    const { message, sessionKey, knownCustomerId, knownCustomerName, relationshipId, documentContext } = await request.json();
     const rawMessage = String(message ?? "");
     // gatewayContext + memory session (owner 2026-10-08 fix): BOTH are derived
     // server-side from the authenticated user that just passed
@@ -52,10 +95,46 @@ export async function POST(request: Request) {
     // RESPONSE CONTRACT (owner 2026-09-25): แนบ result ทุกครั้ง — structured
     // (finance/document/timeline/table) มาจาก canonical reader จึง "แทนที่"
     // ข้อความ LLM (text="") ห้ามให้ LLM แต่งตัวเลข · confirmation/text คงข้อความเดิม
-    const result: ChatResult = (await buildChatResult(request, rawMessage, response)) ?? {
+    let result: ChatResult = (await buildChatResult(request, rawMessage, response)) ?? {
       type: "text",
       text: response.text ?? "",
     };
+    let ownerTextOverride: string | null = null;
+    // FALLBACK ORDER (owner spec): deterministic command/intent (inside
+    // runCognitivePipeline: client directives, navigation, external facts) →
+    // canonical capability (buildChatResult dispatcher above) → owner runtime.
+    // A deterministic cue or a structured capability result means the layers
+    // above already answered — the runtime is never consulted for those.
+    const pipelineResponse = response as Record<string, unknown>;
+    const deterministicCue = Boolean(
+      pipelineResponse.navigate_url ||
+        pipelineResponse.open_app ||
+        pipelineResponse.external_url ||
+        pipelineResponse.window_action ||
+        pipelineResponse.screen_vision ||
+        pipelineResponse.line_copilot ||
+        pipelineResponse.command,
+    );
+    const capabilityAnswered = result.type !== "text" && result.type !== "error";
+    if (!deterministicCue && !capabilityAnswered) {
+      // identity_id comes ONLY from the authenticated session mapping —
+      // never hardcoded, never the customer/relationship id (relationshipId
+      // travels as its own context param), never a default. No mapping = no
+      // call: the runtime is never asked under a guessed identity.
+      const identityId = resolveOwnerRuntimeIdentity(auth);
+      if (identityId) {
+        const owner = await askOwnerRuntime({
+          text: resolveOwnerRuntimeInstruction(rawMessage, documentContext),
+          identityId,
+          relationshipId: relationshipId ? String(relationshipId) : knownCustomerId ? String(knownCustomerId) : null,
+          documentContext: documentContext ?? null,
+        });
+        if (owner) {
+          result = mapOwnerRuntimeResult(owner);
+          ownerTextOverride = result.type === "text" ? result.text : null;
+        }
+      }
+    }
     const structured = ["finance_summary", "document", "timeline", "table", "error"].includes(result.type);
     // navigate_url vs structured result (owner fix 2026-10-08, found by real
     // browser test): the pipeline sometimes answers with BOTH a navigation cue
@@ -67,7 +146,7 @@ export async function POST(request: Request) {
     return NextResponse.json({
       ...rest,
       ...(structured ? {} : navigateUrl ? { navigate_url: navigateUrl } : {}),
-      text: structured ? "" : response.text,
+      text: structured ? "" : ownerTextOverride ?? response.text,
       result,
     });
   } catch (error) {
