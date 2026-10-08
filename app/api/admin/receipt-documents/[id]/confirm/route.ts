@@ -3,6 +3,7 @@ import { requireAuth } from "@/core/auth/requireAuth"
 import { ADMIN_TIER } from "@/core/auth/session"
 import { supabaseAdmin as supabase } from "@/services/supabase/queries"
 import { confirmReceiptPayment } from "@/engines/canonical/receipt-confirm-flow"
+import { acknowledgePayment } from "@/gateway/payment-acknowledgement"
 
 type Params = { params: Promise<{ id: string }> }
 
@@ -91,6 +92,18 @@ export async function POST(_req: Request, { params }: Params) {
     return NextResponse.json({ error: message }, { status: isPaymentClass ? 409 : 500 })
   }
 
+  // ── payment acknowledgement (BATCH 40) — NON-FATAL side channel ────────────
+  // select-or-create receipt doc + ledger summary + LINE push + delivery
+  // evidence. A failed ack must never fail (or roll back) a confirmed payment:
+  // it is reported in the response so the caller can retry via
+  // POST .../acknowledge.
+  let acknowledgement: Awaited<ReturnType<typeof acknowledgePayment>> | null = null
+  try {
+    acknowledgement = await acknowledgePayment({ receipt_document_id: id, actor: auth.email ?? auth.id })
+  } catch (e) {
+    acknowledgement = { ok: false, error: e instanceof Error ? e.message.slice(0, 200) : "ack failed" }
+  }
+
   return NextResponse.json({
     ok: true,
     debt_event_id: outcome.debt_event_id,
@@ -98,5 +111,6 @@ export async function POST(_req: Request, { params }: Params) {
     payment_kind: outcome.payment_kind,
     document: outcome.document,
     canonical: outcome.canonical,
+    acknowledgement,
   })
 }

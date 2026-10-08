@@ -28,6 +28,7 @@
  */
 import { NextResponse } from "next/server";
 import { confirmReceiptPayment } from "@/engines/canonical/receipt-confirm-flow";
+import { acknowledgePayment } from "@/gateway/payment-acknowledgement";
 
 interface PaymentConfirmRequest {
   receipt_document_id?: string;
@@ -67,12 +68,22 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: false, error: outcome.error ?? "RECEIPT_NOT_CONFIRMABLE" }, { status: 422 });
   }
 
+  // Payment acknowledgement (BATCH 40) — non-fatal: the Deno side keeps the
+  // exact envelope it already parses (ok/data), acknowledgement is additive.
+  let acknowledgement: Awaited<ReturnType<typeof acknowledgePayment>> | null = null;
+  try {
+    acknowledgement = await acknowledgePayment({ receipt_document_id: receiptDocumentId, actor });
+  } catch (e) {
+    acknowledgement = { ok: false, error: e instanceof Error ? e.message.slice(0, 200) : "ack failed" };
+  }
+
   return NextResponse.json({
     ok: true,
     data: {
       already_reconciled: outcome.already_reconciled,
       new_outstanding: outcome.new_outstanding,
       debt_event_id: outcome.debt_event_id,
+      acknowledgement,
     },
   });
 }

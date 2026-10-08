@@ -32,6 +32,9 @@ export const CANONICAL_AUDIT_ACTIONS = [
   "expense.recorded",
   "payable.requested",
   "payable.transitioned",
+  // BATCH 40 (owner 2026-10-08) — payment acknowledgement vocabulary,
+  // appended additively (same rule as the D3 additions above)
+  "receipt.acknowledged",
 ] as const;
 
 export type CanonicalAuditAction = (typeof CANONICAL_AUDIT_ACTIONS)[number];
