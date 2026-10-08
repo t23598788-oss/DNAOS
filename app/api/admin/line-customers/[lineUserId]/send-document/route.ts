@@ -106,12 +106,24 @@ export async function POST(req: NextRequest, { params }: Params) {
     return NextResponse.json(normalized, { status: 503 })
   }
 
+  // Delivery evidence (BATCH 38) — the SAME structure sendInvoiceToLine writes:
+  // recipient (line_user_id) · sent_at (created_at) · provider message id
+  // (line_message_id) · status · document ref (extracted). This is what the
+  // invoice idempotency guard reads (extracted->>document_id).
   await db.from("line_events").insert({
     line_user_id: lineUserId,
     raw_type: "image",
     raw_text: `📄 ${label} ${documentNumber} ส่งให้ลูกค้าแล้ว`,
     status: "processed",
     direction: "out",
+    line_message_id: lineRes.messageId ?? null,
+    extracted: {
+      document_kind: documentType,
+      document_id: documentId,
+      document_no: documentNumber,
+      provider: "line",
+      table,
+    },
   })
 
   return NextResponse.json({ ok: true })
