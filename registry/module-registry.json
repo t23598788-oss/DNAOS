@@ -10507,14 +10507,6 @@
       "exports": [],
       "status": "active"
     },
-    "supabase/functions/kis-webhook/index.ts": {
-      "owner": "supabase",
-      "layer": "supabase",
-      "purpose": "Real Supabase Edge Function receiving real KIS (banking/payment) webhook events.",
-      "purpose_th": "Real Supabase Edge Function receiving real KIS (banking/payment) webhook events.",
-      "exports": [],
-      "status": "active"
-    },
     "supabase/functions/bank-email-sync/index.ts": {
       "owner": "supabase",
       "layer": "supabase",
@@ -16224,26 +16216,83 @@
       ],
       "status": "active"
     },
-    "supabase/functions/_shared/kis-inbound-core.ts": {
-      "owner": "supabase",
-      "layer": "supabase",
-      "purpose": "KIS inbound core — pure logic shared by the edge function (Deno) and the",
-      "purpose_th": "KIS inbound core — pure logic shared by the edge function (Deno) and the",
-      "exports": [
-        "KisEmailFacts",
-        "KisEmailPayload",
-        "buildKisEvidenceRef",
-        "buildKisSourceEventId",
-        "parseKisEmail",
-        "verifyKisWebhook"
-      ],
-      "status": "active"
-    },
     "app/api/internal/connect/resource-transaction/route.ts": {
       "owner": "app",
       "layer": "app",
       "purpose": "POST /api/internal/connect/resource-transaction — machinery/resource bridge",
       "purpose_th": "POST /api/internal/connect/resource-transaction — machinery/resource bridge",
+      "exports": [
+        "POST"
+      ],
+      "status": "active"
+    },
+    "scripts/connect-identity-cutover-test.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "Connect identity authority cutover test (BATCH 28).",
+      "purpose_th": "Connect identity authority cutover test (BATCH 28).",
+      "exports": [],
+      "status": "active"
+    },
+    "scripts/receipt-company-assign-test.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "Receipt debtor assignment path test (BATCH 33).",
+      "purpose_th": "Receipt debtor assignment path test (BATCH 33).",
+      "exports": [],
+      "status": "active"
+    },
+    "app/api/admin/receipt-documents/[id]/company/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Receipt debtor assignment (BATCH 33) — the ONE approved write path for",
+      "purpose_th": "Receipt debtor assignment (BATCH 33) — the ONE approved write path for",
+      "exports": [
+        "PATCH"
+      ],
+      "status": "active"
+    },
+    "scripts/batch35-anchor-correction.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "BATCH 35 (owner 2026-10-08) — one-off, idempotent ledger correction for the",
+      "purpose_th": "BATCH 35 (owner 2026-10-08) — one-off, idempotent ledger correction for the",
+      "exports": [],
+      "status": "active"
+    },
+    "scripts/document-delivery-ledger-test.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "Document delivery ledger test (BATCH 38).",
+      "purpose_th": "Document delivery ledger test (BATCH 38).",
+      "exports": [],
+      "status": "active"
+    },
+    "scripts/payment-acknowledgement-test.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "Payment acknowledgement test (BATCH 40).",
+      "purpose_th": "Payment acknowledgement test (BATCH 40).",
+      "exports": [],
+      "status": "active"
+    },
+    "gateway/payment-acknowledgement.ts": {
+      "owner": "gateway",
+      "layer": "gateway",
+      "purpose": "Payment acknowledgement (BATCH 40 — owner 2026-10-08).",
+      "purpose_th": "Payment acknowledgement (BATCH 40 — owner 2026-10-08).",
+      "exports": [
+        "AckSummary",
+        "AcknowledgeResult",
+        "acknowledgePayment"
+      ],
+      "status": "active"
+    },
+    "app/api/admin/receipt-documents/[id]/acknowledge/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Payment acknowledgement (BATCH 40) — manual/retry trigger for the",
+      "purpose_th": "Payment acknowledgement (BATCH 40) — manual/retry trigger for the",
       "exports": [
         "POST"
       ],
@@ -16638,6 +16687,20 @@
       "reason": "ไฟล์ไม่มีอยู่ใน Source แล้ว (Git/Source = source of truth) — ย้ายออกจาก modules ไม่นับเป็น BROKEN ปัจจุบัน",
       "last_status": "active",
       "purpose_th": "กล่องรับเข้า — ขวาบนของ Workspace (handoff workspace-reference.html:"
+    },
+    {
+      "path": "supabase/functions/kis-webhook/index.ts",
+      "retired_at": "2026-10-08T06:36:44.861Z",
+      "reason": "ไฟล์ไม่มีอยู่ใน Source แล้ว (Git/Source = source of truth) — ย้ายออกจาก modules ไม่นับเป็น BROKEN ปัจจุบัน",
+      "last_status": "active",
+      "purpose_th": "Real Supabase Edge Function receiving real KIS (banking/payment) webhook events."
+    },
+    {
+      "path": "supabase/functions/_shared/kis-inbound-core.ts",
+      "retired_at": "2026-10-08T06:36:44.863Z",
+      "reason": "ไฟล์ไม่มีอยู่ใน Source แล้ว (Git/Source = source of truth) — ย้ายออกจาก modules ไม่นับเป็น BROKEN ปัจจุบัน",
+      "last_status": "active",
+      "purpose_th": "KIS inbound core — pure logic shared by the edge function (Deno) and the"
     }
   ]
 }

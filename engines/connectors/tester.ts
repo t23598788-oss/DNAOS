@@ -35,7 +35,18 @@ async function timedFetch(url: string, init: RequestInit): Promise<Response> {
  * (engines/connectors/providers/railway.ts).
  */
 function resolveBearerCredential(secret: Record<string, unknown>): string {
-  return (secret.api_key as string) ?? (secret.token as string) ?? (secret.api_token as string) ?? "";
+  // Parity with the canonical Run-path read order (registry/communication.ts
+  // #sendLineMessage, registry/line-richmenu.ts, app/api/internal/line/token):
+  // channel_access_token first — otherwise lifecycle Test validates a DIFFERENT
+  // credential than Run actually uses (found live 2026-10-09: LINE connector had
+  // a valid channel_access_token while an old secret.token made Test 401 forever).
+  return (
+    (secret.channel_access_token as string) ??
+    (secret.api_key as string) ??
+    (secret.token as string) ??
+    (secret.api_token as string) ??
+    ""
+  );
 }
 
 function buildAuthHeader(config: Record<string, unknown>, secret: Record<string, unknown>): Record<string, string> {
