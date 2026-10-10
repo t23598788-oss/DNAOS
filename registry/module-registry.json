@@ -16297,6 +16297,34 @@
         "POST"
       ],
       "status": "active"
+    },
+    "scripts/batch42-payment-reminder-e2e-test.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "Batch 42 — payment acknowledgement + reminder loop E2E proof.",
+      "purpose_th": "Batch 42 — payment acknowledgement + reminder loop E2E proof.",
+      "exports": [],
+      "status": "active"
+    },
+    "scripts/line-auto-reply-test.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "LINE auto-reply restoration test (owner mission 2026-10-10).",
+      "purpose_th": "LINE auto-reply restoration test (owner mission 2026-10-10).",
+      "exports": [
+        "answerDeterministic"
+      ],
+      "status": "active"
+    },
+    "supabase/functions/line-webhook-v2/engines/deterministic-response.ts": {
+      "owner": "supabase",
+      "layer": "supabase",
+      "purpose": "Deterministic Response Engine (owner mission 2026-10-10: \"ข้อความทั่วไป:",
+      "purpose_th": "Deterministic Response Engine (owner mission 2026-10-10: \"ข้อความทั่วไป:",
+      "exports": [
+        "answerDeterministic"
+      ],
+      "status": "active"
     }
   },
   "excluded": [

@@ -18,7 +18,7 @@ export async function GET(_req: Request, { params }: Params) {
 
   const { data: rawMessages, error } = await db
     .from("line_events")
-    .select("id, raw_type, raw_text, line_name, direction, extracted, created_at")
+    .select("id, raw_type, raw_text, line_name, direction, extracted, created_at, line_message_id, status")
     .eq("line_user_id", lineUserId)
     .order("created_at", { ascending: true })
 

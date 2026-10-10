@@ -153,6 +153,7 @@
     "receipt-company-assign:test": "npx tsx scripts/receipt-company-assign-test.ts",
     "document-delivery-ledger:test": "npx tsx scripts/document-delivery-ledger-test.ts",
     "payment-acknowledgement:test": "npx tsx scripts/payment-acknowledgement-test.ts",
+    "line-auto-reply:test": "npx tsx scripts/line-auto-reply-test.ts",
     "batch42:e2e:test": "npx tsx scripts/batch42-payment-reminder-e2e-test.ts",
     "canonical:finance:test": "npx tsx scripts/canonical-finance-acceptance-test.ts",
     "owner-verification:test": "npx tsx scripts/owner-verification-decide-test.ts",

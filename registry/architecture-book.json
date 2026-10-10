@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-08T11:11:08.921Z",
+  "generated_at": "2026-10-10T04:48:22.852Z",
   "version": 1,
   "nodes": [
     {
@@ -1940,6 +1940,7 @@
         "module:supabase/functions/line-webhook-v2/handlers/text.ts"
       ],
       "data_tables": [
+        "app_configs",
         "line_events"
       ],
       "business_capabilities": "UNKNOWN",
@@ -1957,8 +1958,8 @@
         {
           "name": "ResponseGateway",
           "kind": "class",
-          "line_start": 227,
-          "line_end": 265
+          "line_start": 275,
+          "line_end": 313
         }
       ],
       "import_sites": [
@@ -13682,6 +13683,7 @@
       "runtime_entry_point": false,
       "internal_dependencies": [
         "module:supabase/functions/line-webhook-v2/engines/debt-followup.ts",
+        "module:supabase/functions/line-webhook-v2/engines/deterministic-response.ts",
         "module:supabase/functions/line-webhook-v2/engines/event-followup.ts",
         "module:supabase/functions/line-webhook-v2/engines/external-facts.ts",
         "module:supabase/functions/line-webhook-v2/engines/human-takeover.ts",
@@ -13714,8 +13716,8 @@
         {
           "name": "handleText",
           "kind": "function",
-          "line_start": 13,
-          "line_end": 233
+          "line_start": 14,
+          "line_end": 247
         }
       ],
       "import_sites": [
@@ -13773,6 +13775,11 @@
           "specifier": "../engines/external-facts.ts",
           "line": 11,
           "resolved_target": "supabase/functions/line-webhook-v2/engines/external-facts.ts"
+        },
+        {
+          "specifier": "../engines/deterministic-response.ts",
+          "line": 12,
+          "resolved_target": "supabase/functions/line-webhook-v2/engines/deterministic-response.ts"
         }
       ]
     },
@@ -17096,8 +17103,8 @@
         {
           "name": "testConnector",
           "kind": "function",
-          "line_start": 242,
-          "line_end": 263
+          "line_start": 253,
+          "line_end": 274
         }
       ],
       "import_sites": [
@@ -30560,8 +30567,8 @@
         {
           "name": "LineCustomersPage",
           "kind": "function",
-          "line_start": 115,
-          "line_end": 818
+          "line_start": 121,
+          "line_end": 844
         }
       ],
       "import_sites": [
@@ -73867,20 +73874,20 @@
         {
           "name": "SystemRealityModelOptions",
           "kind": "interface",
-          "line_start": 1094,
-          "line_end": 1100
+          "line_start": 1100,
+          "line_end": 1106
         },
         {
           "name": "buildSystemRealityModel",
           "kind": "function",
-          "line_start": 1102,
-          "line_end": 1133
+          "line_start": 1108,
+          "line_end": 1139
         },
         {
           "name": "__debugResetArchitectureBookCache",
           "kind": "function",
-          "line_start": 1141,
-          "line_end": 1143
+          "line_start": 1147,
+          "line_end": 1149
         }
       ],
       "import_sites": [
@@ -91489,6 +91496,92 @@
           "resolved_target": "gateway/payment-acknowledgement.ts"
         }
       ]
+    },
+    {
+      "id": "module:scripts/batch42-payment-reminder-e2e-test.ts",
+      "type": "Module",
+      "layer": "scripts",
+      "name_en": "scripts/batch42-payment-reminder-e2e-test.ts",
+      "purpose_th": "Batch 42 — payment acknowledgement + reminder loop E2E proof.",
+      "exports": [],
+      "status": "OK",
+      "runtime_entry_point": true,
+      "internal_dependencies": [],
+      "dependents": [],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "scripts",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN"
+    },
+    {
+      "id": "module:scripts/line-auto-reply-test.ts",
+      "type": "Module",
+      "layer": "scripts",
+      "name_en": "scripts/line-auto-reply-test.ts",
+      "purpose_th": "LINE auto-reply restoration test (owner mission 2026-10-10).",
+      "exports": [
+        "answerDeterministic"
+      ],
+      "status": "OK",
+      "runtime_entry_point": true,
+      "internal_dependencies": [],
+      "dependents": [],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "scripts",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN"
+    },
+    {
+      "id": "module:supabase/functions/line-webhook-v2/engines/deterministic-response.ts",
+      "type": "Module",
+      "layer": "supabase",
+      "name_en": "supabase/functions/line-webhook-v2/engines/deterministic-response.ts",
+      "purpose_th": "Deterministic Response Engine (owner mission 2026-10-10: \"ข้อความทั่วไป:",
+      "exports": [
+        "answerDeterministic"
+      ],
+      "status": "OK",
+      "runtime_entry_point": false,
+      "internal_dependencies": [],
+      "dependents": [
+        "module:supabase/functions/line-webhook-v2/handlers/text.ts"
+      ],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "supabase",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "symbols": [
+        {
+          "name": "answerDeterministic",
+          "kind": "function",
+          "line_start": 50,
+          "line_end": 57
+        }
+      ]
     }
   ],
   "edges": [
@@ -96864,6 +96957,11 @@
     },
     {
       "source": "layer:scripts",
+      "target": "module:scripts/batch42-payment-reminder-e2e-test.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:scripts",
       "target": "module:scripts/build-arch-book.ts",
       "label": "contains"
     },
@@ -97290,6 +97388,11 @@
     {
       "source": "layer:scripts",
       "target": "module:scripts/lib/deterministicOutput.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:scripts",
+      "target": "module:scripts/line-auto-reply-test.ts",
       "label": "contains"
     },
     {
@@ -97915,6 +98018,11 @@
     {
       "source": "layer:supabase",
       "target": "module:supabase/functions/line-webhook-v2/engines/debt-followup.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:supabase",
+      "target": "module:supabase/functions/line-webhook-v2/engines/deterministic-response.ts",
       "label": "contains"
     },
     {
@@ -115654,6 +115762,11 @@
     },
     {
       "source": "module:supabase/functions/line-webhook-v2/handlers/text.ts",
+      "target": "module:supabase/functions/line-webhook-v2/engines/deterministic-response.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:supabase/functions/line-webhook-v2/handlers/text.ts",
       "target": "module:supabase/functions/line-webhook-v2/engines/event-followup.ts",
       "label": "imports"
     },
@@ -115864,8 +115977,8 @@
     }
   ],
   "summary": {
-    "total": 1346,
-    "ok": 1346,
+    "total": 1349,
+    "ok": 1349,
     "broken": 0,
     "unused": 0,
     "unregistered": 0

@@ -49,7 +49,7 @@ function extractReadableText(messages: any[]): string {
   return first?.text ?? first?.altText ?? `(${first?.type ?? "message"})`
 }
 
-async function logOutboundToDb(lineUserId: string | null, messages: object[]) {
+async function logOutboundToDb(lineUserId: string | null, messages: object[], providerMessageId?: string | null) {
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
@@ -61,6 +61,11 @@ async function logOutboundToDb(lineUserId: string | null, messages: object[]) {
       raw_text: extractReadableText(messages),
       status: 'processed',
       direction: 'out',
+      // Delivery evidence (owner mission 2026-10-10, TEST E/delivery status):
+      // LINE's own message id for the accepted send + provider shape, same
+      // fields the send-debt / document paths already write (BATCH 38).
+      line_message_id: providerMessageId ?? null,
+      extracted: providerMessageId ? { provider: 'line', provider_message_id: providerMessageId } : null,
     })
   } catch (e) {
     console.error('Failed to log outbound message to DB:', e)
@@ -86,25 +91,55 @@ async function resolveUserIdFromReplyToken(replyToken: string): Promise<string |
   }
 }
 
-// Customer Auto-Reply Kill Switch (owner, 2026-07-31): "ปิดท่อตัดท่อการต่อ
-// ข้อความอัตโนมัติลูกค้าก่อน...ยังรับข้อมูลเข้ามาประมวลผลเข้าเก็บในคลัง
-// หลังบ้านเราเหมือนเดิม แต่ไม่มีการตอบพูดคุยกับลูกค้า...ของเฮีย LINE ของเฮีย
-// ห้ามปิด" — owner is auditing the cognitive/session-isolation work before
-// letting the bot talk to real customers again. Nothing about inbound
-// processing changes (saveEvent, classification, ai_tasks, receipt/
-// business-event writes all still run exactly as before) — this is
-// deliberately the single outbound choke point every reply/push method
-// funnels through, so no per-handler edits were needed anywhere else.
-// To re-enable customer replies, remove this block (or delete the env var).
-async function isOwnerLineUserId(userId: string | null): Promise<boolean> {
-  const ownerId = Deno.env.get('OWNER_LINE_USER_ID')
-  return !!ownerId && userId === ownerId
+// Customer Auto-Reply Policy (owner mission 2026-10-10, "RESTORE LINE WEBHOOK,
+// CONNECT AND AUTO-RESPONSE"): the previous HARD-CODED owner-only gate
+// (isOwnerLineUserId, live 2026-07-31, FCR-016) is replaced by the system's
+// CENTRAL policy row — public.app_configs 'line-auto-reply-policy':
+//   'owner_only' -> legacy behaviour (owner recipient only)
+//   'allow_all'  -> every LINE user may receive bot replies/pushes
+// The security mechanism itself is NOT deleted: a missing/unreadable policy
+// row fails closed to 'owner_only' (the old posture), OWNER_LINE_USER_ID is
+// always allowed, the per-user human-takeover gate still blocks the bot
+// engines before any send (handlers/text.ts), and signature verification at
+// the webhook edge is untouched. Written migration-first
+// (supabase/migrations/20261010000001_line_auto_reply_policy.sql).
+type AutoReplyPolicy = "owner_only" | "allow_all"
+let policyCache: { value: AutoReplyPolicy; at: number } | null = null
+
+async function loadAutoReplyPolicy(): Promise<AutoReplyPolicy> {
+  if (policyCache && Date.now() - policyCache.at < 10_000) return policyCache.value
+  let value: AutoReplyPolicy = "owner_only"
+  try {
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")
+    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")
+    if (supabaseUrl && serviceKey) {
+      const db = createClient(supabaseUrl, serviceKey)
+      const { data } = await db
+        .from("app_configs")
+        .select("data")
+        .eq("title", "line-auto-reply-policy")
+        .maybeSingle()
+      if (data?.data === "allow_all") value = "allow_all"
+    }
+  } catch {
+    // fail-closed: policy unreadable -> owner_only (never open by accident)
+  }
+  policyCache = { value, at: Date.now() }
+  return value
+}
+
+/** The single recipient gate every reply/push/loading funnels through. */
+async function canSendTo(userId: string | null): Promise<boolean> {
+  const ownerId = Deno.env.get("OWNER_LINE_USER_ID")
+  if (ownerId && userId === ownerId) return true // owner always allowed
+  if (!userId) return false // never send to an unknown recipient
+  return (await loadAutoReplyPolicy()) === "allow_all"
 }
 
 async function replyMessages(replyToken: string, messages: object[]) {
   const targetUserId = await resolveUserIdFromReplyToken(replyToken)
-  if (!(await isOwnerLineUserId(targetUserId))) {
-    console.log(`[LINE Reply SUPPRESSED — customer auto-reply is off] would have sent to ${targetUserId}:`, JSON.stringify(messages))
+  if (!(await canSendTo(targetUserId))) {
+    console.log(`[LINE Reply BLOCKED — auto-reply policy denies recipient] would have sent to ${targetUserId}:`, JSON.stringify(messages))
     return
   }
 
@@ -126,7 +161,7 @@ async function replyMessages(replyToken: string, messages: object[]) {
     await logErrorToDb(`LINE reply failed: ${err}`)
     return
   }
-  await logOutboundToDb(targetUserId, messages)
+  await logOutboundToDb(targetUserId, messages, await extractProviderMessageId(res))
 }
 
 // Owner-reported bug (2026-07-26): "ทำไมไม่มีเห็นแจ้งเตือนว่าอ่านแล้วหรือยัง
@@ -136,7 +171,7 @@ async function replyMessages(replyToken: string, messages: object[]) {
 // indicator in the chat for a bounded, real number of seconds — not a fake
 // promise, an actual visual cue the platform provides for exactly this.
 async function showLoadingAnimation(userId: string, seconds: number) {
-  if (!(await isOwnerLineUserId(userId))) return // customer auto-reply is off — see replyMessages
+  if (!(await canSendTo(userId))) return // recipient denied by auto-reply policy — see replyMessages
   const lineAccessToken = await getLineChannelAccessToken()
   if (!lineAccessToken) return
   // LINE requires a multiple of 5, clamped 5-60.
@@ -152,8 +187,8 @@ async function showLoadingAnimation(userId: string, seconds: number) {
 }
 
 async function pushMessages(to: string, messages: object[]) {
-  if (!(await isOwnerLineUserId(to))) {
-    console.log(`[LINE Push SUPPRESSED — customer auto-reply is off] would have sent to ${to}:`, JSON.stringify(messages))
+  if (!(await canSendTo(to))) {
+    console.log(`[LINE Push BLOCKED — auto-reply policy denies recipient] would have sent to ${to}:`, JSON.stringify(messages))
     return
   }
 
@@ -173,7 +208,20 @@ async function pushMessages(to: string, messages: object[]) {
     await logErrorToDb(`LINE push failed: ${err}`)
     return
   }
-  await logOutboundToDb(to, messages)
+  await logOutboundToDb(to, messages, await extractProviderMessageId(res))
+}
+
+/** LINE reply/push both answer { sentMessages: [{ id, quoteToken }] } — the id
+ * is the provider's delivery id (evidence for the conversation screen).
+ * Null on any parse failure: never blocks the send path. */
+async function extractProviderMessageId(res: Response): Promise<string | null> {
+  try {
+    const body = await res.json()
+    const id = body?.sentMessages?.[0]?.id
+    return typeof id === 'string' && id ? id : null
+  } catch {
+    return null
+  }
 }
 
 /**

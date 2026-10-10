@@ -74,7 +74,12 @@ echo "--- Checking for undeclared top-level directories ---"
 # (data-only, no code reads it; declares which repository owns which authority so the
 # boundaries are reviewable). Same treatment as the folders above: real tracked content,
 # declared rather than flagged as a "Shadow Layer" every run.
-DECLARED_TOP_LEVEL="core gateway engines cognitive presenter services plugins registry app components scripts supabase config node_modules backups public observatory docs styles src-tauri local-runtime dna-os-mcp-server _inventory platform project system workers e2e presentation dna-os-contractor device-connector tmp output sites handoff architecture"
+# connections/ (owner mission 2026-10-10, RESTORE LINE WEBHOOK/CONNECT) — the Connect
+# workspace folder holding the real google-workspace connection package (same shape as
+# dna-os-step2's tracked connections/ tree, referenced by CAPABILITY_BOX_RUNTIME_INVENTORY).
+# Declared here so an existing real folder stops failing deploy-gate as Shadow Layer —
+# same treatment as the folders above, NOT a new layer of business logic.
+DECLARED_TOP_LEVEL="core gateway engines cognitive presenter services plugins registry app components scripts supabase config node_modules backups public observatory docs styles src-tauri local-runtime dna-os-mcp-server _inventory platform project system workers e2e presentation dna-os-contractor device-connector tmp output sites handoff architecture connections"
 
 for dir in */; do
   dirname=$(basename "$dir")

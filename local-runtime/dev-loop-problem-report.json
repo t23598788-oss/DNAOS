@@ -2,7 +2,7 @@
   "report_id": "dev-loop-c2NyaXB0cy9kZXBsb3ktZ2F0ZS50c3xE",
   "status": "resolved",
   "source": "scripts/deploy-gate.ts",
-  "occurred_at": "2026-10-07T22:37:49.291Z",
+  "occurred_at": "2026-10-10T04:52:20.410Z",
   "severity": "critical",
   "check_name": "DNA OS Deploy Gate",
   "cause": "Architecture Drift failed",

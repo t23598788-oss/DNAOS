@@ -9,6 +9,7 @@ import { isPaymentInfoRequest, tryBuildPaymentInstructionsReply } from "../engin
 import { activateHumanTakeover, getConversationMode, isHumanTakeoverMessage } from "../engines/human-takeover.ts"
 import { trySupplierQuoteReply } from "../engines/supplier-quote-reply.ts"
 import { answerExternalFact, isExternalFactQuestion } from "../engines/external-facts.ts"
+import { answerDeterministic } from "../engines/deterministic-response.ts"
 
 export async function handleText(ctx: HandlerContext): Promise<void> {
   const msgEvent = ctx.event as LineMessageEvent
@@ -217,6 +218,19 @@ export async function handleText(ctx: HandlerContext): Promise<void> {
   // watcher (ai-task-watcher.mjs) to think about and push a reply for —
   // can't reply synchronously here since Ollama-on-a-home-Mac + a polling
   // delay won't finish inside this request.
+  // Deterministic Response Engine (owner mission 2026-10-10): the general
+  // message layer answers RIGHT HERE, synchronously, with zero AI dependency —
+  // greetings/thanks/capability questions and an honest "row was saved"
+  // acknowledgement (genuine AI unavailable -> the customer still gets this
+  // reply). The ai_tasks enqueue below is kept UNCHANGED as OPTIONAL
+  // enrichment: the local watcher may later push a thoughtful follow-up, but
+  // no reply anywhere in this file waits on it (no Mac/Ollama dependency for
+  // production replies). AI stays a capability, never a condition.
+  if (ctx.replyToken) {
+    const detReply = answerDeterministic(text)
+    if (detReply) await ResponseGateway.replyText(ctx.replyToken, detReply)
+  }
+
   if (ctx.userId) {
     await ctx.supabase.from("ai_tasks").insert({
       kind: "handle_text",

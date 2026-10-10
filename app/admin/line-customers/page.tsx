@@ -46,6 +46,12 @@ interface Message {
   direction: "in" | "out"
   extracted: { latitude?: number; longitude?: number; address?: string } | null
   created_at: string
+  line_name?: string | null
+  // Delivery status (owner mission 2026-10-10, TEST F): provider message id
+  // captured by engines/response.ts#logOutboundToDb on accepted sends; status
+  // is line_events' own row status (out rows = 'processed' when LINE accepted).
+  line_message_id?: string | null
+  status?: string | null
 }
 
 interface ActionLogEntry {
@@ -191,6 +197,18 @@ export default function LineCustomersPage() {
       setDetailLoading(false)
     }
   }, [loadDetail])
+
+  // Realtime conversation updates (owner mission 2026-10-10 item 10): while a
+  // thread is open, keep refreshing it from the SAME read API every 5s — the
+  // polling pattern this page already uses for the contact list (30s) and the
+  // quotation badge. Real rows only, no mock data, no second data path.
+  useEffect(() => {
+    if (!activeId) return
+    const id = setInterval(() => {
+      loadDetail(activeId).catch(() => {})
+    }, 5000)
+    return () => clearInterval(id)
+  }, [activeId, loadDetail])
 
   const sendDraft = useCallback(async (draftId: string, lineUserId: string) => {
     setDraftBusyId(draftId)
@@ -620,8 +638,16 @@ export default function LineCustomersPage() {
             {!detailLoading && detail?.messages.map((m) => (
               <div key={m.id} className={"flex " + (m.direction === "out" ? "justify-end" : "justify-start")}>
                 <div className={"max-w-[70%] rounded-lg px-3 py-2 shadow-sm " + (m.direction === "out" ? "bg-[#a8e2a0]" : "bg-white border border-stone-200")}>
+                  <p className="text-[9px] text-stone-500 mb-0.5">{m.direction === "out" ? "ระบบ" : (m.line_name ?? "ลูกค้า")}</p>
                   <p className="text-xs text-stone-800 whitespace-pre-line">{m.raw_text ?? `[${m.raw_type}]`}</p>
-                  <p className="text-[9px] text-stone-500 mt-1 text-right">{fmtTime(m.created_at)}</p>
+                  <p className="text-[9px] text-stone-500 mt-1 text-right">
+                    {fmtTime(m.created_at)}
+                    {m.direction === "out" && (
+                      m.status === "error" ? " · ส่งไม่สำเร็จ ✗"
+                        : (m.line_message_id || m.status === "processed") ? " · ส่งแล้ว ✓"
+                        : " · รอส่ง..."
+                    )}
+                  </p>
                 </div>
               </div>
             ))}

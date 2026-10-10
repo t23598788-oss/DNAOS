@@ -539,18 +539,24 @@ function buildLineCapability(): CapabilityRealityEntry {
   // real, disclosed outbound suppression -> DEGRADED overall, because the
   // Owner-facing question ("can a customer message us and get a reply
   // today") is real and currently "no" for non-owner recipients.
-  const status: CapabilityStatus = fcr016 && fcr016.status !== "RESOLVED" && fcr016.status !== "RESOLVED_BY_MANAGER" ? "DEGRADED" : "LIVE";
+  const fcr016Open = fcr016 !== null && fcr016.status !== "RESOLVED" && fcr016.status !== "RESOLVED_BY_MANAGER";
+  const status: CapabilityStatus = fcr016Open ? "DEGRADED" : "LIVE";
   return {
     capability_name: "LINE Messaging (Customer Channel)",
     business_function: "The channel real customers use to message the business on LINE — send photos of materials, ask about price or an order, and (when enabled) get an automatic reply or a debt reminder.",
     status,
-    runtime_status: lineRow ? `webhook connector real, ${lineRow.status} (${lineRow.evidence}); outbound customer reply/push suppressed by a real, live gate (see current_blocker) — inbound receipt is running, outbound customer-facing reply is not` : "UNKNOWN — registry/CONNECTOR_DIRECTORY.json did not list a line-messaging-api row at composition time",
+    runtime_status: lineRow ? `webhook connector real, ${lineRow.status} (${lineRow.evidence}); ${fcr016Open
+      ? "outbound customer reply/push suppressed by a real, live gate (see current_blocker) — inbound receipt is running, outbound customer-facing reply is not"
+      : "outbound customer reply governed by the central auto-reply policy (public.app_configs line-auto-reply-policy) — FCR-016 RESOLVED 2026-10-10"}`
+      : "UNKNOWN — registry/CONNECTOR_DIRECTORY.json did not list a line-messaging-api row at composition time",
     connected_from: ["Real LINE customers (external, via LINE Messaging API webhook, supabase/functions/line-webhook-v2/index.ts)"],
     connected_to: ["AI Context / cognitive pipeline (engines/validation/dispatcher.ts, engines/quote-price.ts — see AI capability entry)", "Debt reminder cron (supabase/functions/debt-reminder-cron — separate real path, bypasses the kill switch)"],
     missing_connection: null,
-    current_blocker: fcr016 ? `Customer Auto-Reply Kill Switch — supabase/functions/line-webhook-v2/engines/response.ts:98 (isOwnerLineUserId gate, live since 2026-07-31) suppresses every real reply/push/loading-indicator to any non-owner LINE user (see response.ts:105-106,136,152-153 "[LINE Reply/Push SUPPRESSED]"). Real, Owner-authorized policy, not a code defect (${fcrCite("FCR-016")}).` : null,
-    impact: "A real new LINE follower today gets no welcome message and no real customer gets a conversational bot reply — but every real inbound message is still received/logged, and the automated daily debt-reminder push (a separate real code path) still reaches real customers.",
-    last_verified: "REALITY_INVENTORY_STEP1.md headline finding #4 (2026-08-10) — real, live-production fact (webhook event volume, kill-switch effect) this runtime cannot itself re-query (no live LINE/Supabase credential available to this composition); registry/CONNECTOR_DIRECTORY.json's own connector-row evidence (CHANGELOG DNA-000084) was read fresh at generation time.",
+    current_blocker: fcr016Open ? `Customer Auto-Reply Kill Switch — supabase/functions/line-webhook-v2/engines/response.ts (isOwnerLineUserId gate, live since 2026-07-31) suppresses every real reply/push/loading-indicator to any non-owner LINE user (see response.ts:105-106,136,152-153 "[LINE Reply/Push SUPPRESSED]"). Real, Owner-authorized policy, not a code defect (${fcrCite("FCR-016")}).` : null,
+    impact: fcr016Open
+      ? "A real new LINE follower today gets no welcome message and no real customer gets a conversational bot reply — but every real inbound message is still received/logged, and the automated daily debt-reminder push (a separate real code path) still reaches real customers."
+      : "Customer replies are governed by the central auto-reply policy row (FCR-016 RESOLVED 2026-10-10): allow_all answers every LINE user through the single Response Gateway; owner_only restores the legacy owner-only posture at runtime without a deploy.",
+    last_verified: "FCR-016 RESOLVED 2026-10-10 (Owner mission RESTORE LINE WEBHOOK, CONNECT AND AUTO-RESPONSE — central policy row migration 20261010000001 + scripts/line-auto-reply-test.ts). The original kill-switch fact was REALITY_INVENTORY_STEP1.md headline #4 (2026-08-10); registry/CONNECTOR_DIRECTORY.json connector-row evidence read fresh at generation time.",
     evidence: [
       "registry/CONNECTOR_DIRECTORY.json: line-messaging-api row",
       "supabase/functions/line-webhook-v2/engines/response.ts:98 (isOwnerLineUserId), :105-106, :136, :152-153 (SUPPRESSED log lines)",
@@ -884,7 +890,7 @@ function buildNotificationsCapability(): CapabilityRealityEntry {
     status: "DEGRADED",
     runtime_status: `debt-reminder-cron: real, live, ran 2026-08-10 09:00 Bangkok (real Supabase pg_cron, migration 20260711000003). Vercel Cron jobs (supabase-project-status every 6h, operations-loop every 10min, per vercel.json): real, deployed, but ${fcr014 ? "fail closed (401) on every real scheduled invocation — CRON_SECRET missing from real Vercel Production" : "UNKNOWN"}. Manual admin send: ${sendNode ? sendNode.status + " (real, deployed route)" : "UNKNOWN"}.`,
     connected_from: ["Supabase pg_cron (debt-reminder-cron, real, scheduled)", "Vercel Cron (vercel.json, real, scheduled, but blocked)"],
-    connected_to: ["LINE push (subject to the same kill switch as LINE replies for non-owner recipients — real debt-reminder path is a documented exception that bypasses it)"],
+    connected_to: ["LINE push (governed by the same central auto-reply policy as LINE replies — FCR-016 RESOLVED 2026-10-10; the debt-reminder path also bypassed the old gate)"],
     missing_connection: `Vercel Cron -> its own target routes: real 401 failures every real scheduled run, because ANTHROPIC_API_KEY/CRON_SECRET/etc are set in .env.local/Supabase Edge secrets but absent from real Vercel Production (${fcrCite("FCR-014")}).`,
     current_blocker: fcr014 ? `Real production (Vercel) is missing most non-core secrets — only 7 env vars exist on Vercel Production (per vercel env ls, real, read-only). ${fcrCite("FCR-014")}.` : null,
     impact: "The real daily debt-reminder push works and reached real customers today. The 2 real Vercel-scheduled cron jobs (supabase-project-status, operations-loop) fail every real invocation. Manual admin notification sends are real and available.",
