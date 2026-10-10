@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-10T08:23:04.057Z",
+  "generated_at": "2026-10-10T09:41:56.083Z",
   "version": 1,
   "nodes": [
     {
@@ -742,8 +742,8 @@
         {
           "name": "default",
           "kind": "default",
-          "line_start": 28,
-          "line_end": 28
+          "line_start": 37,
+          "line_end": 37
         }
       ]
     },
@@ -6128,6 +6128,7 @@
       "dependents": [
         "module:app/api/admin/documents/[id]/route.ts",
         "module:app/api/admin/documents/route.ts",
+        "module:app/api/admin/line-customers/[lineUserId]/document-preview/route.ts",
         "module:app/api/admin/line-customers/[lineUserId]/send-debt/route.ts",
         "module:app/api/admin/line-customers/[lineUserId]/send-document/route.ts",
         "module:app/api/admin/settings/route.ts",
@@ -6138,7 +6139,8 @@
         "module:engines/documents/document-editor.ts",
         "module:engines/validation/dispatcher.ts",
         "module:gateway/actions.ts",
-        "module:gateway/payment-acknowledgement.ts"
+        "module:gateway/payment-acknowledgement.ts",
+        "module:scripts/document-image-preview-test.ts"
       ],
       "data_tables": [
         "app_configs"
@@ -8820,6 +8822,7 @@
       "dependents": [
         "module:app/api/admin/documents/[id]/route.ts",
         "module:app/api/admin/documents/route.ts",
+        "module:app/api/admin/line-customers/[lineUserId]/document-preview/route.ts",
         "module:app/api/admin/line-customers/[lineUserId]/send-document/route.ts",
         "module:app/api/chat/_lib/resultContract.ts",
         "module:app/api/chat/confirm/route.ts",
@@ -13244,6 +13247,7 @@
         "module:app/api/admin/infrastructure/route.ts",
         "module:app/api/admin/line-customers/[lineUserId]/ask/route.ts",
         "module:app/api/admin/line-customers/[lineUserId]/build-event/route.ts",
+        "module:app/api/admin/line-customers/[lineUserId]/document-preview/route.ts",
         "module:app/api/admin/line-customers/[lineUserId]/reply/route.ts",
         "module:app/api/admin/line-customers/[lineUserId]/route.ts",
         "module:app/api/admin/line-customers/[lineUserId]/send-debt/route.ts",
@@ -18068,6 +18072,7 @@
         "module:app/api/admin/invoices/[invoiceId]/send/route.ts",
         "module:app/api/admin/line-customers/[lineUserId]/ask/route.ts",
         "module:app/api/admin/line-customers/[lineUserId]/build-event/route.ts",
+        "module:app/api/admin/line-customers/[lineUserId]/document-preview/route.ts",
         "module:app/api/admin/line-customers/[lineUserId]/reply/route.ts",
         "module:app/api/admin/line-customers/[lineUserId]/route.ts",
         "module:app/api/admin/line-customers/[lineUserId]/send-debt/route.ts",
@@ -18472,6 +18477,7 @@
         "module:app/api/admin/invoices/[invoiceId]/send/route.ts",
         "module:app/api/admin/line-customers/[lineUserId]/ask/route.ts",
         "module:app/api/admin/line-customers/[lineUserId]/build-event/route.ts",
+        "module:app/api/admin/line-customers/[lineUserId]/document-preview/route.ts",
         "module:app/api/admin/line-customers/[lineUserId]/reply/route.ts",
         "module:app/api/admin/line-customers/[lineUserId]/route.ts",
         "module:app/api/admin/line-customers/[lineUserId]/send-debt/route.ts",
@@ -30569,8 +30575,8 @@
         {
           "name": "LineCustomersPage",
           "kind": "function",
-          "line_start": 125,
-          "line_end": 856
+          "line_start": 160,
+          "line_end": 1099
         }
       ],
       "import_sites": [
@@ -32523,9 +32529,11 @@
         "module:services/supabase/queries.ts"
       ],
       "dependents": [
+        "module:app/api/admin/line-customers/[lineUserId]/document-preview/route.ts",
         "module:app/api/admin/line-customers/[lineUserId]/send-document/route.ts",
         "module:app/api/internal/line/document-artifact/route.ts",
-        "module:gateway/payment-acknowledgement.ts"
+        "module:gateway/payment-acknowledgement.ts",
+        "module:scripts/document-image-preview-test.ts"
       ],
       "data_tables": "UNKNOWN",
       "business_capabilities": "UNKNOWN",
@@ -32701,7 +32709,9 @@
         "module:engines/documents/engine.ts"
       ],
       "dependents": [
-        "module:gateway/document-artifact-storage.ts"
+        "module:app/api/admin/line-customers/[lineUserId]/document-preview/route.ts",
+        "module:gateway/document-artifact-storage.ts",
+        "module:scripts/document-image-preview-test.ts"
       ],
       "data_tables": "UNKNOWN",
       "business_capabilities": "UNKNOWN",
@@ -32725,8 +32735,8 @@
         {
           "name": "createDocumentArtifacts",
           "kind": "function",
-          "line_start": 140,
-          "line_end": 148
+          "line_start": 182,
+          "line_end": 191
         }
       ],
       "import_sites": [
@@ -91584,6 +91594,148 @@
           "line_end": 57
         }
       ]
+    },
+    {
+      "id": "module:scripts/document-preview-compare.ts",
+      "type": "Module",
+      "layer": "scripts",
+      "name_en": "scripts/document-preview-compare.ts",
+      "purpose_th": "T4 visual compare — stored ORIGINAL png vs fresh PREVIEW png (same document).",
+      "exports": [],
+      "status": "OK",
+      "runtime_entry_point": true,
+      "internal_dependencies": [],
+      "dependents": [],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "scripts",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN"
+    },
+    {
+      "id": "module:scripts/document-image-preview-test.ts",
+      "type": "Module",
+      "layer": "scripts",
+      "name_en": "scripts/document-image-preview-test.ts",
+      "purpose_th": "DOCUMENT IMAGE & PREVIEW contract tests (owner mission 2026-10-10).",
+      "exports": [
+        "createDocumentArtifacts"
+      ],
+      "status": "OK",
+      "runtime_entry_point": true,
+      "internal_dependencies": [
+        "module:core/config/company-settings.ts",
+        "module:engines/documents/artifact.ts",
+        "module:gateway/document-artifact-storage.ts"
+      ],
+      "dependents": [],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "scripts",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN"
+    },
+    {
+      "id": "module:app/api/admin/line-customers/[lineUserId]/document-preview/route.ts",
+      "type": "Module",
+      "layer": "app",
+      "name_en": "app/api/admin/line-customers/[lineUserId]/document-preview/route.ts",
+      "purpose_th": "DOCUMENT IMAGE & PREVIEW (owner mission 2026-10-10) — PREVIEW ONLY.",
+      "exports": [
+        "GET"
+      ],
+      "status": "OK",
+      "runtime_entry_point": true,
+      "internal_dependencies": [
+        "module:core/auth/requireAuth.ts",
+        "module:core/auth/session.ts",
+        "module:core/config/company-settings.ts",
+        "module:engines/documents/artifact.ts",
+        "module:engines/documents/engine.ts",
+        "module:gateway/document-artifact-storage.ts",
+        "module:services/supabase/queries.ts"
+      ],
+      "dependents": [],
+      "data_tables": [
+        "attachments",
+        "companies",
+        "company_line_links",
+        "invoice_items",
+        "invoices",
+        "line_events",
+        "standalone_document_items",
+        "standalone_documents"
+      ],
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "app",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "symbols": [
+        {
+          "name": "GET",
+          "kind": "function",
+          "line_start": 183,
+          "line_end": 329
+        }
+      ],
+      "import_sites": [
+        {
+          "specifier": "@/core/auth/requireAuth",
+          "line": 2,
+          "resolved_target": "core/auth/requireAuth.ts"
+        },
+        {
+          "specifier": "@/core/auth/session",
+          "line": 3,
+          "resolved_target": "core/auth/session.ts"
+        },
+        {
+          "specifier": "@/services/supabase/queries",
+          "line": 4,
+          "resolved_target": "services/supabase/queries.ts"
+        },
+        {
+          "specifier": "@/engines/documents/engine",
+          "line": 5,
+          "resolved_target": "engines/documents/engine.ts"
+        },
+        {
+          "specifier": "@/engines/documents/artifact",
+          "line": 6,
+          "resolved_target": "engines/documents/artifact.ts"
+        },
+        {
+          "specifier": "@/core/config/company-settings",
+          "line": 7,
+          "resolved_target": "core/config/company-settings.ts"
+        },
+        {
+          "specifier": "@/gateway/document-artifact-storage",
+          "line": 8,
+          "resolved_target": "gateway/document-artifact-storage.ts"
+        }
+      ]
     }
   ],
   "edges": [
@@ -93775,6 +93927,11 @@
     {
       "source": "layer:app",
       "target": "module:app/api/admin/line-customers/[lineUserId]/build-event/route.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:app",
+      "target": "module:app/api/admin/line-customers/[lineUserId]/document-preview/route.ts",
       "label": "contains"
     },
     {
@@ -97199,7 +97356,17 @@
     },
     {
       "source": "layer:scripts",
+      "target": "module:scripts/document-image-preview-test.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:scripts",
       "target": "module:scripts/document-lifecycle-test.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:scripts",
+      "target": "module:scripts/document-preview-compare.ts",
       "label": "contains"
     },
     {
@@ -105059,6 +105226,41 @@
     },
     {
       "source": "module:app/api/admin/line-customers/[lineUserId]/build-event/route.ts",
+      "target": "module:services/supabase/queries.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/line-customers/[lineUserId]/document-preview/route.ts",
+      "target": "module:core/auth/requireAuth.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/line-customers/[lineUserId]/document-preview/route.ts",
+      "target": "module:core/auth/session.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/line-customers/[lineUserId]/document-preview/route.ts",
+      "target": "module:core/config/company-settings.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/line-customers/[lineUserId]/document-preview/route.ts",
+      "target": "module:engines/documents/artifact.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/line-customers/[lineUserId]/document-preview/route.ts",
+      "target": "module:engines/documents/engine.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/line-customers/[lineUserId]/document-preview/route.ts",
+      "target": "module:gateway/document-artifact-storage.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/line-customers/[lineUserId]/document-preview/route.ts",
       "target": "module:services/supabase/queries.ts",
       "label": "imports"
     },
@@ -113668,6 +113870,21 @@
       "label": "imports"
     },
     {
+      "source": "module:scripts/document-image-preview-test.ts",
+      "target": "module:core/config/company-settings.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:scripts/document-image-preview-test.ts",
+      "target": "module:engines/documents/artifact.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:scripts/document-image-preview-test.ts",
+      "target": "module:gateway/document-artifact-storage.ts",
+      "label": "imports"
+    },
+    {
       "source": "module:scripts/document-lifecycle-test.ts",
       "target": "module:app/api/admin/ide/_lib/documentLifecycleConstitution.ts",
       "label": "imports"
@@ -115979,8 +116196,8 @@
     }
   ],
   "summary": {
-    "total": 1349,
-    "ok": 1349,
+    "total": 1352,
+    "ok": 1352,
     "broken": 0,
     "unused": 0,
     "unregistered": 0

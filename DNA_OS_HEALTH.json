@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-10-10T08:24:20Z",
-  "governance_score": 100,
+  "generated_at": "2026-10-10T09:43:30Z",
+  "governance_score": 85,
   "checks": {
     "type_check": 1,
     "pre_commit_guards": 1,
@@ -9,14 +9,14 @@
     "shadow_system": 1,
     "command_registry": 1,
     "dependency_graph": 1,
-    "architecture_drift": 1
+    "architecture_drift": 0
   },
   "metrics": {
-    "total_modules": 994,
+    "total_modules": 995,
     "unused_files": 0,
     "unused_exports": 483,
     "ghost_rules": 43,
-    "code_clones": 424,
+    "code_clones": 426,
     "layer_violations": 0,
     "shadow_files": 0,
     "dependency_cycles": 0,
@@ -25,8 +25,8 @@
     "business_coverage_pct": 70
   },
   "summary": {
-    "passed": 8,
-    "failed": 0,
+    "passed": 7,
+    "failed": 1,
     "total": 8
   }
 }

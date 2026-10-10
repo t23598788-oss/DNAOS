@@ -79,7 +79,11 @@ echo "--- Checking for undeclared top-level directories ---"
 # dna-os-step2's tracked connections/ tree, referenced by CAPABILITY_BOX_RUNTIME_INVENTORY).
 # Declared here so an existing real folder stops failing deploy-gate as Shadow Layer —
 # same treatment as the folders above, NOT a new layer of business logic.
-DECLARED_TOP_LEVEL="core gateway engines cognitive presenter services plugins registry app components scripts supabase config node_modules backups public observatory docs styles src-tauri local-runtime dna-os-mcp-server _inventory platform project system workers e2e presentation dna-os-contractor device-connector tmp output sites handoff architecture connections"
+# assets/ (owner mission 2026-10-10, FINANCIAL DOCUMENT IMAGE & PREVIEW) — holds the
+# OFL-licensed Noto Sans Thai TTFs that engines/documents/artifact.ts installs into
+# the fontconfig user dir before SVG→PNG render (the production container ships zero
+# fonts; real tofu incident). Data-only folder, no code imports it directly.
+DECLARED_TOP_LEVEL="core gateway engines cognitive presenter services plugins registry app components scripts supabase config node_modules backups public observatory docs styles src-tauri local-runtime dna-os-mcp-server _inventory platform project system workers e2e presentation dna-os-contractor device-connector tmp output sites handoff architecture connections assets"
 
 for dir in */; do
   dirname=$(basename "$dir")

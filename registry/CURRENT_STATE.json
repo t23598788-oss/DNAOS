@@ -1,6 +1,6 @@
 {
   "protocol": "DNA OS Unified AI Runtime v1",
-  "change_id": "DNA-000117",
+  "change_id": "DNA-000208",
   "status": "READY",
   "current_task": "Contractor / MCP runtime-activation track — PAUSED / INCOMPLETE (Owner, 2026-09-23). Source complete (token issuer source, contractor MCP task tools, atomic lease client, Freebuff pull-mode adapter, Cline MCP registration); runtime NOT activated (no owner token created, end-to-end not proven). See registry/TASK_QUEUE.json#TASK-082.",
   "current_file": "N/A — no file mid-edit by MANAGER-07 directly; TASK-051 (FCR-012 fix) dispatched to CODE_WORKER, in progress",
