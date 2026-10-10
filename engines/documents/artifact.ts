@@ -37,6 +37,34 @@ function itemAmount(item: DocItem): number {
   return item.qty * item.unitPrice - (item.discount ?? 0)
 }
 
+// Font availability for SVG→PNG (repair 2026-10-10, found on production):
+// Railway's Linux container ships NO fonts at all — librsvg/pango fell back to
+// a tofu glyph for every character, so each production preview PNG was boxes
+// (6-7KB instead of ~50KB). The PDF path was unaffected because PDFKit embeds
+// the WOFF bytes. Fix: put the OFL-licensed Noto Sans Thai (bundled in
+// assets/fonts) where fontconfig scans by default (~/.local/share/fonts) once
+// per process, before the first render. macOS is unaffected (CoreText doesn't
+// scan that dir and already renders Thai through system fonts); the SVG's
+// font-family 'Noto Sans Thai' then matches exactly on Linux.
+let thaiFontEnsured = false
+function ensureThaiFontForSvg(): void {
+  if (thaiFontEnsured) return
+  thaiFontEnsured = true
+  try {
+    const fs = require("node:fs") as typeof import("node:fs")
+    const sourceDir = path.join(process.cwd(), "assets/fonts")
+    const targetDir = path.join(process.env.HOME || "/tmp", ".local", "share", "fonts")
+    fs.mkdirSync(targetDir, { recursive: true })
+    for (const name of ["NotoSansThai-Regular.ttf", "NotoSansThai-Bold.ttf"]) {
+      const dest = path.join(targetDir, name)
+      if (!fs.existsSync(dest)) fs.copyFileSync(path.join(sourceDir, name), dest)
+    }
+  } catch {
+    // ถ้าคัดลอกไม่ได้ ให้การ render แสดงผลด้วย fallback ที่มีอยู่ — ตรวจด้วยตา/เทสต์
+  }
+}
+
+
 function documentSvg(data: DocData): string {
   const label = DOC_LABELS[data.type] ?? DOC_LABELS.quotation
   const items = data.items.length > 0 ? data.items : [{ description: "ยอดเอกสาร", qty: 1, unit: "รายการ", unitPrice: data.precomputedSummary?.total ?? 0 }]
@@ -152,6 +180,7 @@ function createPdf(data: DocData): Promise<Buffer> {
 }
 
 export async function createDocumentArtifacts(data: DocData): Promise<DocumentArtifacts> {
+  ensureThaiFontForSvg()
   const svg = documentSvg(data)
   const [image, pdf] = await Promise.all([
     sharp(Buffer.from(svg)).png().toBuffer(),
