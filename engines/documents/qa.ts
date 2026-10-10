@@ -30,11 +30,12 @@ interface DocRow {
 }
 
 async function findDocByNumber(db: ReturnType<typeof supabaseAdmin>, number: string): Promise<DocRow | null> {
-  const { data: inv } = await db
+  const { data: inv, error: invErr } = await db
     .from("invoices")
     .select("id, invoice_no, invoice_status, total_amount, invoice_date, companies(name)")
     .eq("invoice_no", number)
     .maybeSingle()
+  if (invErr) console.error("[doc-qa] invoice lookup failed:", invErr.message, "num:", number)
   if (inv) {
     return { id: inv.id, docNumber: inv.invoice_no, docType: "invoice", status: inv.invoice_status,
       total: Number(inv.total_amount ?? 0), date: sliceDate(inv.invoice_date),
