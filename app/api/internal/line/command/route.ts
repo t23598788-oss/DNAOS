@@ -40,7 +40,15 @@ export async function POST(req: Request) {
     // process-wide singleton. This route is owner-only (see text.ts's
     // caller), so contactContext is left null — no extra free-text facts
     // needed here.
-    const result = await runCognitivePipeline(body.commandText, null, body.lineUserId)
+    // gatewayContext (owner mission 2026-10-10, LINE BUSINESS AI): this route
+    // used to omit it, so answerWithAi() collapsed every free-text question to
+    // "ไม่มี AI session context" — the exact complaint the owner reported. The
+    // owner-only bridge now supplies the same {ownerId, sessionId} every other
+    // pipeline caller passes, so the AI gateway + resolver work end-to-end.
+    const result = await runCognitivePipeline(body.commandText, null, body.lineUserId, null, {
+      ownerId: `line-owner:${body.lineUserId}`,
+      sessionId: `line:${body.lineUserId}`,
+    })
     const navigateUrl = "navigate_url" in result ? result.navigate_url ?? null : null
     const workspace = "workspace" in result ? result.workspace ?? null : null
 

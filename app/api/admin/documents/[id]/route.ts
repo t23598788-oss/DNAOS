@@ -98,6 +98,38 @@ function standaloneToDocument(d: NonNullable<Awaited<ReturnType<typeof findStand
   }
 }
 
+// DOCUMENT HISTORY & EVIDENCE (owner mission 2026-10-10) — อ่านย้อนหลังทั้งหมดในที่เดียว:
+// versions → artifacts (SHA-256/produced_by/origin) → audit_logs → delivery evidence
+// จาก canonical tables เดิมทุกตัว ห้ามแก้ของเดิม และห้ามเขียนอะไรทั้งสิ้น
+async function loadDocumentHistory(id: string) {
+  const db = supabase()
+  const { data: versions } = await db
+    .from("document_versions")
+    .select("id, document_type, document_id, invoice_id, standalone_document_id, version, status, current_version, produced_by, superseded_reason, created_at")
+    .or(`invoice_id.eq.${id},standalone_document_id.eq.${id}`)
+    .order("version", { ascending: true })
+  const versionIds = ((versions ?? []) as any[]).map((v: any) => v.id)
+  const { data: artifacts } = versionIds.length
+    ? await db.from("document_artifacts").select("id, document_version_id, payload, produced_by, created_at").in("document_version_id", versionIds).order("created_at", { ascending: false })
+    : { data: [] as any[] }
+  const auditIds = [id, ...versionIds, ...(artifacts ?? []).map((a: any) => a.id)]
+  const { data: audit } = await db
+    .from("audit_logs")
+    .select("id, entity_type, entity_id, action, before_state, after_state, actor_id, created_at")
+    .in("entity_id", auditIds)
+    .order("created_at", { ascending: false })
+    .limit(50)
+  // delivery evidence: ข้อความ LINE ขาออกที่มีเลขเอกสารนี้อยู่ใน payload (ถ้าเคยส่ง)
+  const { data: delivery } = await db
+    .from("line_events")
+    .select("id, direction, line_user_id, line_message_id, extracted, created_at")
+    .eq("direction", "out")
+    .filter("extracted->>document_id", "eq", id)
+    .order("created_at", { ascending: false })
+    .limit(20)
+  return { versions: versions ?? [], artifacts: artifacts ?? [], audit: audit ?? [], delivery: delivery ?? [] }
+}
+
 export async function GET(_req: NextRequest, { params }: Params) {
   const auth = await requireAuth(ADMIN_TIER)
   if (auth instanceof NextResponse) return auth
@@ -112,6 +144,7 @@ export async function GET(_req: NextRequest, { params }: Params) {
     return NextResponse.json({
       document: invoiceToDocument(invoice, items),
       canonical: await getDocumentDetail("invoice", invoice.id),
+      history: await loadDocumentHistory(invoice.id),
     })
   }
 
@@ -119,6 +152,7 @@ export async function GET(_req: NextRequest, { params }: Params) {
     return NextResponse.json({
       document: standaloneToDocument(standalone),
       canonical: await getDocumentDetail("standalone_document", standalone.id),
+      history: await loadDocumentHistory(standalone.id),
     })
   }
 

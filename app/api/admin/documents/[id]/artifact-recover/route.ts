@@ -8,6 +8,7 @@ import { persistGeneratedArtifact, sha256Of } from "@/engines/canonical/artifact
 import { recordCanonicalAudit } from "@/engines/canonical/audit"
 import { DOC_LABELS } from "@/engines/documents/engine"
 import { findDocumentTable, loadDocFromRecord, buildDocDataFromRecord } from "@/app/api/admin/documents/_lib/docDataFromRecord"
+import { findStoredFiles } from "../recover-helpers"
 
 type Params = { params: Promise<{ id: string }> }
 
@@ -39,30 +40,8 @@ async function downloadAndCheck(path: string): Promise<FileCheck | null> {
 }
 
 /** generated-documents/{docId}/{ts}/… — convention ของ storeDocumentArtifacts */
-async function findExistingFiles(documentId: string) {
-  const storage = supabase().storage.from("attachments")
-  const prefix = `generated-documents/${documentId}`
-  const { data: entries, error } = await storage.list(prefix)
-  if (error || !entries?.length) return null
-  const sorted = [...entries].sort((a, b) => String(b.created_at).localeCompare(String(a.created_at)))
-  for (const entry of sorted) {
-    const entryPath = `${prefix}/${entry.name}`
-    const isFile = /\.(png|pdf)$/i.test(entry.name)
-    const { data: files } = isFile ? { data: [entry] } : await storage.list(entryPath)
-    const png = (files ?? []).find((f) => /\.png$/i.test(f.name))
-    const pdf = (files ?? []).find((f) => /\.pdf$/i.test(f.name))
-    if (png || pdf) {
-      const dir = isFile ? prefix : entryPath
-      return {
-        folder: isFile ? "" : entry.name,
-        pngPath: png ? `${dir}/${png.name}` : null,
-        pdfPath: pdf ? `${dir}/${pdf.name}` : null,
-      }
-    }
-  }
-  return null
-}
-
+// Single stored-file lookup shared with file/route.ts (owner mission 2026-10-10) —
+// local copy removed, behavior unchanged.
 const VERSION_COLUMN = (table: string) => (table === "invoices" ? "invoice_id" : "standalone_document_id")
 
 async function versionRows(table: string, id: string) {
@@ -116,7 +95,7 @@ export async function POST(req: NextRequest, { params }: Params) {
   let artifactRows = await artifactRowsForVersions(versions.map((v) => v.id))
 
   // ── ตรวจ storage truth + metadata truth แบบข้ามตรวจสอบ (ห้ามเชื่อฝั่งเดียว) ──
-  const existing = await findExistingFiles(id)
+  const existing = await findStoredFiles(id)
   const pngCheck = existing?.pngPath ? await downloadAndCheck(existing.pngPath) : null
   const pdfCheck = existing?.pdfPath ? await downloadAndCheck(existing.pdfPath) : null
   const pngValid = !!pngCheck?.opened && pngDimensions(pngCheck.bytes) !== null
@@ -183,7 +162,7 @@ export async function POST(req: NextRequest, { params }: Params) {
     }
   }
 
-  const finalFiles = await findExistingFiles(id)
+  const finalFiles = await findStoredFiles(id)
   const finalPng = finalFiles?.pngPath ? await downloadAndCheck(finalFiles.pngPath) : null
   const finalPdf = finalFiles?.pdfPath ? await downloadAndCheck(finalFiles.pdfPath) : null
   return buildResponse({ status, stage, doc, table, latest, artifactRows, png: finalPng, pdf: finalPdf, actor })

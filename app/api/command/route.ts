@@ -22,7 +22,12 @@ export async function POST(request: NextRequest) {
     if (body.userCommand) {
       // Server-derived, user-scoped memory key (owner 2026-10-08): memory is
       // keyed per authenticated user — never a shared default bucket.
-      const result = await runCognitivePipeline(body.userCommand, null, `u:${auth.id}:command`);
+      // gatewayContext (owner mission 2026-10-10): same fix as the LINE bridge —
+      // without it answerWithAi() always answered "ไม่มี AI session context".
+      const result = await runCognitivePipeline(body.userCommand, null, `u:${auth.id}:command`, null, {
+        ownerId: auth.id,
+        sessionId: `u:${auth.id}:command`,
+      });
       state = toDisplayState(result);
     } else if (body.command) {
       state = { activeView: body.command, data: body.payload || {} };

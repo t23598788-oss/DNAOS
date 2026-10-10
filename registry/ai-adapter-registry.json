@@ -227,6 +227,39 @@
         ]
       },
       "display_name": "DigitalOcean Inference"
+    },
+    {
+      "id": "openai",
+      "kind": "ai",
+      "provider": "openai",
+      "runtimes": [
+        "next",
+        "deno"
+      ],
+      "capabilities": [
+        "conversation.answer",
+        "intent.classify",
+        "text.entity_extract"
+      ],
+      "enabled": true,
+      "priority": 30,
+      "authorization": {
+        "requirement": "credential",
+        "note": "OPENAI_API_KEY presence is the configuration check (key already provisioned on Railway by the owner)"
+      },
+      "configuration": {
+        "required_any_env": [
+          "OPENAI_API_KEY"
+        ],
+        "endpoint_env": "AI_GATEWAY_OPENAI_ENDPOINT",
+        "model_env": "AI_GATEWAY_OPENAI_MODEL",
+        "default_model": "gpt-4o-mini",
+        "unconfigured_error": "AI_GATEWAY_OPENAI_NOT_CONFIGURED"
+      },
+      "execution": {
+        "status": "gateway-adapter",
+        "note": "fetch-based chat/completions adapter in services/ai/adapters.ts (owner mission 2026-10-10 LINE BUSINESS AI)"
+      }
     }
   ]
 }

@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from "react"
 import Link from "next/link"
 import {
-  MessageCircle, Briefcase, Building2, FileText, Wallet, Mountain,
+  MessageCircle, Briefcase, Building2, FileText, Wallet, Mountain, FolderOpen,
   MapPin, FileSignature, Receipt, Truck, Banknote, Phone, Paperclip, Bot,
 } from "lucide-react"
 import { formatMoney } from "@/engines/documents/document-editor"
@@ -151,6 +151,9 @@ const RAIL_ITEMS: IconRailItem[] = [
   { key: "jobs", label: "งาน", icon: Briefcase, href: "/admin/jobs" },
   { key: "partners", label: "คู่ค้า", icon: Building2, href: "/admin/partners" },
   { key: "transactions", label: "เอกสาร", icon: FileText, href: "/admin/transactions" },
+  // DOCUMENTS workspace (owner mission 2026-10-10): ค้นหา/เปิด/ดาวน์โหลด/พิมพ์/
+  // ตรวจประวัติเอกสาร แยกจากหน้าจอแชท — เรียก canonical API เดิม (/api/admin/documents)
+  { key: "documents", label: "คลังเอกสาร", icon: FolderOpen, href: "/admin/documents" },
   { key: "debt-tracking", label: "การเงิน", icon: Wallet, href: "/admin/debt-tracking" },
   { key: "pits", label: "บ่อวัสดุ", icon: Mountain, href: "/admin/pits" },
 ]

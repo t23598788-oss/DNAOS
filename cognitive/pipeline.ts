@@ -18,6 +18,7 @@ import { plan, type Decision, type WorkflowDefinition } from "@/cognitive/planne
 import { reason, type Goal } from "@/cognitive/reasoning";
 import { reflect, type ExecutionResult } from "@/cognitive/reflection";
 import { buildSituation } from "@/cognitive/situation";
+import { answerDocumentQuestion } from "@/engines/documents/qa";
 import type { SituationInput } from "@/cognitive/state";
 
 const INTENT_CATALOG: Record<string, string[]> = {
@@ -742,6 +743,13 @@ async function runCognitiveCore(
   }
 
   if (executionPlan.workflow_id === "none") {
+    // DETERMINISTIC DOCUMENT Q&A FIRST (owner mission 2026-10-10): คำถามธุรกิจ
+    // เรื่องเอกสารที่มีข้อมูลจริงอยู่แล้วต้องตอบจาก Business Engine ก่อน — ไม่ต้อง
+    // ใช้ AI ไม่สร้างข้อมูลเอง ไม่แตะยอด (engines/documents/qa.ts อ่าน canonical
+    // record อย่างเดียว และ null ทันทีถ้าไม่ใช่คำถามแนวนี้)
+    const docAnswer = await answerDocumentQuestion(message);
+    if (docAnswer) return { sender: "ai" as const, type: "text" as const, text: docAnswer };
+
     // Real gap, owner-reported 2026-07-30 — see classifyIntentViaAi()'s own
     // comment: before just talking about the message, check whether it
     // actually intends one of the real, already-built client actions
@@ -932,9 +940,18 @@ async function answerWithAi(message: string, contactContext?: string | null, gat
     systemPrompt,
     prompt: `คำถาม: ${message}`,
   });
-  return result.ok && result.output
-    ? { sender: "ai" as const, type: "text" as const, text: result.output }
-    : { sender: "ai" as const, type: "text" as const, text: "ตอบไม่ได้ตอนนี้ครับ (AI Gateway ไม่พร้อมใช้งาน) ลองใหม่อีกครั้งครับ" };
+  if (result.ok && result.output) {
+    return { sender: "ai" as const, type: "text" as const, text: result.output };
+  }
+  // แยกเหตุผลให้ชัด (owner mission 2026-10-10 — ห้ามตอบเหมารวมว่า "ไม่มี AI"):
+  // - resolver ไม่มี adapter ที่ตั้งค่าแล้ว → แจ้งว่า provider ยังไม่พร้อม (คนละเรื่องกับระบบไม่มี AI)
+  // - provider ตอบกลับมาแต่ล้มเหลว/ว่าง → แจ้งให้ลองใหม่
+  const reason = result.error ?? "AI_GATEWAY_UNKNOWN";
+  const providerDown = reason.includes("NO_COMPATIBLE_ADAPTER") || reason.includes("NOT_CONFIGURED");
+  const text = providerDown
+    ? "AI Provider ยังไม่พร้อมใช้งานครับ (ยังไม่มี provider ที่ตั้งค่า key ไว้ในระบบ) — ลองใหม่หลังตั้งค่าคีย์ใน Environment ครับ"
+    : `ตอบจาก AI ไม่สำเร็จตอนนี้ครับ (${reason}) ลองใหม่อีกครั้งครับ`;
+  return { sender: "ai" as const, type: "text" as const, text };
 }
 
 function operatingIntent(input: string, sessionKey?: string | null): EnrichedInput {

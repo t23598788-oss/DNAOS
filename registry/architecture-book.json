@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-10T10:52:14.631Z",
+  "generated_at": "2026-10-10T12:28:37.843Z",
   "version": 1,
   "nodes": [
     {
@@ -281,13 +281,13 @@
           "name": "POST",
           "kind": "function",
           "line_start": 14,
-          "line_end": 38
+          "line_end": 43
         },
         {
           "name": "GET",
           "kind": "function",
-          "line_start": 40,
-          "line_end": 46
+          "line_start": 45,
+          "line_end": 51
         }
       ],
       "import_sites": [
@@ -2177,6 +2177,7 @@
       "status": "OK",
       "runtime_entry_point": true,
       "internal_dependencies": [
+        "module:app/api/admin/documents/_lib/listDocuments.ts",
         "module:app/api/admin/ide/_lib/businessAcceptanceRuntime.ts",
         "module:app/api/admin/ide/_lib/businessJobProgressRuntime.ts",
         "module:core/auth/requireAuth.ts",
@@ -2191,10 +2192,7 @@
         "module:services/supabase/queries.ts"
       ],
       "dependents": [],
-      "data_tables": [
-        "invoices",
-        "standalone_documents"
-      ],
+      "data_tables": "UNKNOWN",
       "business_capabilities": "UNKNOWN",
       "domain_owner": "admin",
       "lifecycle_status": "active",
@@ -2210,14 +2208,14 @@
         {
           "name": "GET",
           "kind": "function",
-          "line_start": 30,
-          "line_end": 114
+          "line_start": 31,
+          "line_end": 38
         },
         {
           "name": "POST",
           "kind": "function",
-          "line_start": 116,
-          "line_end": 267
+          "line_start": 40,
+          "line_end": 191
         }
       ],
       "import_sites": [
@@ -2280,6 +2278,11 @@
           "specifier": "@/app/api/admin/ide/_lib/businessJobProgressRuntime",
           "line": 18,
           "resolved_target": "app/api/admin/ide/_lib/businessJobProgressRuntime.ts"
+        },
+        {
+          "specifier": "./_lib/listDocuments",
+          "line": 19,
+          "resolved_target": "app/api/admin/documents/_lib/listDocuments.ts"
         }
       ]
     },
@@ -2390,8 +2393,12 @@
       ],
       "dependents": [],
       "data_tables": [
+        "audit_logs",
+        "document_artifacts",
+        "document_versions",
         "invoice_items",
         "invoices",
+        "line_events",
         "standalone_documents"
       ],
       "business_capabilities": "UNKNOWN",
@@ -2409,20 +2416,20 @@
         {
           "name": "GET",
           "kind": "function",
-          "line_start": 101,
-          "line_end": 126
+          "line_start": 133,
+          "line_end": 160
         },
         {
           "name": "PATCH",
           "kind": "function",
-          "line_start": 128,
-          "line_end": 196
+          "line_start": 162,
+          "line_end": 230
         },
         {
           "name": "DELETE",
           "kind": "function",
-          "line_start": 200,
-          "line_end": 216
+          "line_start": 234,
+          "line_end": 250
         }
       ],
       "import_sites": [
@@ -4944,6 +4951,7 @@
         "module:cognitive/state/index.ts",
         "module:core/config-loader.ts",
         "module:engines/bot-exchange-rate.ts",
+        "module:engines/documents/qa.ts",
         "module:engines/fuel-live.ts",
         "module:engines/validation/dispatcher.ts",
         "module:engines/weather.ts",
@@ -4976,14 +4984,14 @@
         {
           "name": "ClientDirective",
           "kind": "type",
-          "line_start": 492,
-          "line_end": 526
+          "line_start": 493,
+          "line_end": 527
         },
         {
           "name": "runCognitivePipeline",
           "kind": "function",
-          "line_start": 620,
-          "line_end": 647
+          "line_start": 621,
+          "line_end": 648
         }
       ],
       "import_sites": [
@@ -5088,8 +5096,13 @@
           "resolved_target": "cognitive/situation/index.ts"
         },
         {
-          "specifier": "@/cognitive/state",
+          "specifier": "@/engines/documents/qa",
           "line": 21,
+          "resolved_target": "engines/documents/qa.ts"
+        },
+        {
+          "specifier": "@/cognitive/state",
+          "line": 22,
           "resolved_target": "cognitive/state/index.ts"
         }
       ]
@@ -13231,8 +13244,11 @@
         "module:app/api/admin/devices/route.ts",
         "module:app/api/admin/documents/[id]/artifact-recover/route.ts",
         "module:app/api/admin/documents/[id]/confirm/route.ts",
+        "module:app/api/admin/documents/[id]/file/route.ts",
+        "module:app/api/admin/documents/[id]/recover-helpers.ts",
         "module:app/api/admin/documents/[id]/route.ts",
         "module:app/api/admin/documents/_lib/docDataFromRecord.ts",
+        "module:app/api/admin/documents/_lib/listDocuments.ts",
         "module:app/api/admin/documents/route.ts",
         "module:app/api/admin/equipment/maintenance-tickets/[id]/close/route.ts",
         "module:app/api/admin/equipment/maintenance-tickets/route.ts",
@@ -13346,6 +13362,7 @@
         "module:engines/distance.ts",
         "module:engines/documents/debt-notice-draft.ts",
         "module:engines/documents/draft-builders.ts",
+        "module:engines/documents/qa.ts",
         "module:engines/domains/cloudflare.ts",
         "module:engines/domains/hostinger.ts",
         "module:engines/domains/railway-binding.ts",
@@ -17893,6 +17910,7 @@
         "module:app/api/admin/devices/route.ts",
         "module:app/api/admin/documents/[id]/artifact-recover/route.ts",
         "module:app/api/admin/documents/[id]/confirm/route.ts",
+        "module:app/api/admin/documents/[id]/file/route.ts",
         "module:app/api/admin/documents/[id]/route.ts",
         "module:app/api/admin/documents/route.ts",
         "module:app/api/admin/domains/availability/route.ts",
@@ -18299,6 +18317,7 @@
         "module:app/api/admin/devices/route.ts",
         "module:app/api/admin/documents/[id]/artifact-recover/route.ts",
         "module:app/api/admin/documents/[id]/confirm/route.ts",
+        "module:app/api/admin/documents/[id]/file/route.ts",
         "module:app/api/admin/documents/[id]/route.ts",
         "module:app/api/admin/documents/route.ts",
         "module:app/api/admin/domains/availability/route.ts",
@@ -30581,8 +30600,8 @@
         {
           "name": "LineCustomersPage",
           "kind": "function",
-          "line_start": 169,
-          "line_end": 1120
+          "line_start": 172,
+          "line_end": 1123
         }
       ],
       "import_sites": [
@@ -32719,6 +32738,7 @@
       ],
       "dependents": [
         "module:app/api/admin/documents/[id]/artifact-recover/route.ts",
+        "module:app/api/admin/documents/[id]/file/route.ts",
         "module:app/api/admin/line-customers/[lineUserId]/document-preview/route.ts",
         "module:gateway/document-artifact-storage.ts",
         "module:scripts/document-artifact-recovery-test.ts",
@@ -36120,7 +36140,7 @@
           "name": "POST",
           "kind": "function",
           "line_start": 25,
-          "line_end": 62
+          "line_end": 70
         }
       ],
       "import_sites": [
@@ -78145,6 +78165,7 @@
         "module:services/supabase/queries.ts"
       ],
       "dependents": [
+        "module:app/api/admin/documents/_lib/listDocuments.ts",
         "module:app/api/admin/documents/route.ts"
       ],
       "data_tables": [
@@ -86465,9 +86486,11 @@
         "GEMINI_DEFAULT_MODEL",
         "OLLAMA_DEFAULT_MODEL",
         "OLLAMA_TIMEOUT_MS",
+        "OPENAI_DEFAULT_MODEL",
         "anthropicAdapter",
         "geminiAdapter",
-        "ollamaAdapter"
+        "ollamaAdapter",
+        "openaiAdapter"
       ],
       "status": "OK",
       "runtime_entry_point": false,
@@ -86528,16 +86551,28 @@
           "line_end": 109
         },
         {
+          "name": "OPENAI_DEFAULT_MODEL",
+          "kind": "const",
+          "line_start": 112,
+          "line_end": 112
+        },
+        {
           "name": "geminiAdapter",
           "kind": "const",
-          "line_start": 111,
-          "line_end": 147
+          "line_start": 114,
+          "line_end": 150
+        },
+        {
+          "name": "openaiAdapter",
+          "kind": "const",
+          "line_start": 159,
+          "line_end": 197
         },
         {
           "name": "AI_ADAPTER_IMPLEMENTATIONS",
           "kind": "const",
-          "line_start": 156,
-          "line_end": 160
+          "line_start": 206,
+          "line_end": 211
         }
       ],
       "import_sites": [
@@ -91818,6 +91853,7 @@
       ],
       "dependents": [
         "module:app/api/admin/documents/[id]/artifact-recover/route.ts",
+        "module:app/api/admin/documents/[id]/file/route.ts",
         "module:app/api/admin/line-customers/[lineUserId]/document-preview/route.ts"
       ],
       "data_tables": [
@@ -91900,6 +91936,7 @@
       "status": "OK",
       "runtime_entry_point": true,
       "internal_dependencies": [
+        "module:app/api/admin/documents/[id]/recover-helpers.ts",
         "module:app/api/admin/documents/_lib/docDataFromRecord.ts",
         "module:core/auth/requireAuth.ts",
         "module:core/auth/session.ts",
@@ -91931,8 +91968,8 @@
         {
           "name": "POST",
           "kind": "function",
-          "line_start": 97,
-          "line_end": 190
+          "line_start": 76,
+          "line_end": 169
         }
       ],
       "import_sites": [
@@ -91980,6 +92017,280 @@
           "specifier": "@/app/api/admin/documents/_lib/docDataFromRecord",
           "line": 10,
           "resolved_target": "app/api/admin/documents/_lib/docDataFromRecord.ts"
+        },
+        {
+          "specifier": "../recover-helpers",
+          "line": 11,
+          "resolved_target": "app/api/admin/documents/[id]/recover-helpers.ts"
+        }
+      ]
+    },
+    {
+      "id": "module:engines/documents/qa.ts",
+      "type": "Module",
+      "layer": "engines",
+      "name_en": "engines/documents/qa.ts",
+      "purpose_th": "DETERMINISTIC DOCUMENT Q&A (owner mission 2026-10-10, LINE BUSINESS AI).",
+      "exports": [
+        "answerDocumentQuestion"
+      ],
+      "status": "OK",
+      "runtime_entry_point": false,
+      "internal_dependencies": [
+        "module:services/supabase/queries.ts"
+      ],
+      "dependents": [
+        "module:cognitive/pipeline.ts"
+      ],
+      "data_tables": [
+        "companies",
+        "invoices",
+        "standalone_documents"
+      ],
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "engines",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "symbols": [
+        {
+          "name": "answerDocumentQuestion",
+          "kind": "function",
+          "line_start": 63,
+          "line_end": 144
+        }
+      ],
+      "import_sites": [
+        {
+          "specifier": "@/services/supabase/queries",
+          "line": 1,
+          "resolved_target": "services/supabase/queries.ts"
+        }
+      ]
+    },
+    {
+      "id": "module:app/admin/documents/page.tsx",
+      "type": "Module",
+      "layer": "app",
+      "name_en": "app/admin/documents/page.tsx",
+      "purpose_th": "DOCUMENTS workspace (owner mission 2026-10-10, FINANCIAL DOCUMENT MANAGEMENT).",
+      "exports": [
+        "DocumentsPage"
+      ],
+      "status": "OK",
+      "runtime_entry_point": true,
+      "internal_dependencies": [],
+      "dependents": [],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "app",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "symbols": [
+        {
+          "name": "DocumentsPage",
+          "kind": "function",
+          "line_start": 47,
+          "line_end": 262
+        }
+      ]
+    },
+    {
+      "id": "module:app/api/admin/documents/_lib/listDocuments.ts",
+      "type": "Module",
+      "layer": "app",
+      "name_en": "app/api/admin/documents/_lib/listDocuments.ts",
+      "purpose_th": "DOCUMENT LIST + SEARCH (owner mission 2026-10-10, FINANCIAL DOCUMENT MANAGEMENT).",
+      "exports": [
+        "handleDocumentList"
+      ],
+      "status": "OK",
+      "runtime_entry_point": false,
+      "internal_dependencies": [
+        "module:services/canonical/document-list.ts",
+        "module:services/supabase/queries.ts"
+      ],
+      "dependents": [
+        "module:app/api/admin/documents/route.ts"
+      ],
+      "data_tables": [
+        "document_artifacts",
+        "document_versions",
+        "invoices",
+        "standalone_documents"
+      ],
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "app",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "symbols": [
+        {
+          "name": "handleDocumentList",
+          "kind": "function",
+          "line_start": 114,
+          "line_end": 140
+        }
+      ],
+      "import_sites": [
+        {
+          "specifier": "@/services/supabase/queries",
+          "line": 2,
+          "resolved_target": "services/supabase/queries.ts"
+        },
+        {
+          "specifier": "@/services/canonical/document-list",
+          "line": 3,
+          "resolved_target": "services/canonical/document-list.ts"
+        }
+      ]
+    },
+    {
+      "id": "module:app/api/admin/documents/[id]/recover-helpers.ts",
+      "type": "Module",
+      "layer": "app",
+      "name_en": "app/api/admin/documents/[id]/recover-helpers.ts",
+      "purpose_th": "Shared stored-file lookup (owner mission 2026-10-10) — single copy ใช้ร่วมกัน",
+      "exports": [
+        "StoredFileSet",
+        "findStoredFiles"
+      ],
+      "status": "OK",
+      "runtime_entry_point": false,
+      "internal_dependencies": [
+        "module:services/supabase/queries.ts"
+      ],
+      "dependents": [
+        "module:app/api/admin/documents/[id]/artifact-recover/route.ts",
+        "module:app/api/admin/documents/[id]/file/route.ts"
+      ],
+      "data_tables": [
+        "attachments"
+      ],
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "app",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "symbols": [
+        {
+          "name": "StoredFileSet",
+          "kind": "interface",
+          "line_start": 7,
+          "line_end": 11
+        },
+        {
+          "name": "findStoredFiles",
+          "kind": "function",
+          "line_start": 13,
+          "line_end": 35
+        }
+      ],
+      "import_sites": [
+        {
+          "specifier": "@/services/supabase/queries",
+          "line": 1,
+          "resolved_target": "services/supabase/queries.ts"
+        }
+      ]
+    },
+    {
+      "id": "module:app/api/admin/documents/[id]/file/route.ts",
+      "type": "Module",
+      "layer": "app",
+      "name_en": "app/api/admin/documents/[id]/file/route.ts",
+      "purpose_th": "DOCUMENT FILE ACCESS (owner mission 2026-10-10) — เปิด/ดาวน์โหลดต้นฉบับ PDF/PNG",
+      "exports": [
+        "GET"
+      ],
+      "status": "OK",
+      "runtime_entry_point": true,
+      "internal_dependencies": [
+        "module:app/api/admin/documents/[id]/recover-helpers.ts",
+        "module:app/api/admin/documents/_lib/docDataFromRecord.ts",
+        "module:core/auth/requireAuth.ts",
+        "module:core/auth/session.ts",
+        "module:engines/documents/artifact.ts",
+        "module:services/supabase/queries.ts"
+      ],
+      "dependents": [],
+      "data_tables": [
+        "attachments"
+      ],
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "app",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "symbols": [
+        {
+          "name": "GET",
+          "kind": "function",
+          "line_start": 16,
+          "line_end": 67
+        }
+      ],
+      "import_sites": [
+        {
+          "specifier": "@/core/auth/requireAuth",
+          "line": 2,
+          "resolved_target": "core/auth/requireAuth.ts"
+        },
+        {
+          "specifier": "@/core/auth/session",
+          "line": 3,
+          "resolved_target": "core/auth/session.ts"
+        },
+        {
+          "specifier": "@/services/supabase/queries",
+          "line": 4,
+          "resolved_target": "services/supabase/queries.ts"
+        },
+        {
+          "specifier": "../../_lib/docDataFromRecord",
+          "line": 5,
+          "resolved_target": "app/api/admin/documents/_lib/docDataFromRecord.ts"
+        },
+        {
+          "specifier": "@/engines/documents/artifact",
+          "line": 6,
+          "resolved_target": "engines/documents/artifact.ts"
+        },
+        {
+          "specifier": "../recover-helpers",
+          "line": 7,
+          "resolved_target": "app/api/admin/documents/[id]/recover-helpers.ts"
         }
       ]
     }
@@ -92308,6 +92619,11 @@
     {
       "source": "layer:app",
       "target": "module:app/admin/dna/page.tsx",
+      "label": "contains"
+    },
+    {
+      "source": "layer:app",
+      "target": "module:app/admin/documents/page.tsx",
       "label": "contains"
     },
     {
@@ -92727,7 +93043,22 @@
     },
     {
       "source": "layer:app",
+      "target": "module:app/api/admin/documents/[id]/file/route.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:app",
+      "target": "module:app/api/admin/documents/[id]/recover-helpers.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:app",
       "target": "module:app/api/admin/documents/_lib/docDataFromRecord.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:app",
+      "target": "module:app/api/admin/documents/_lib/listDocuments.ts",
       "label": "contains"
     },
     {
@@ -95993,6 +96324,11 @@
     {
       "source": "layer:engines",
       "target": "module:engines/documents/flex-template.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:engines",
+      "target": "module:engines/documents/qa.ts",
       "label": "contains"
     },
     {
@@ -100472,6 +100808,11 @@
     },
     {
       "source": "module:app/api/admin/documents/[id]/artifact-recover/route.ts",
+      "target": "module:app/api/admin/documents/[id]/recover-helpers.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/documents/[id]/artifact-recover/route.ts",
       "target": "module:app/api/admin/documents/_lib/docDataFromRecord.ts",
       "label": "imports"
     },
@@ -100536,6 +100877,41 @@
       "label": "imports"
     },
     {
+      "source": "module:app/api/admin/documents/[id]/file/route.ts",
+      "target": "module:app/api/admin/documents/[id]/recover-helpers.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/documents/[id]/file/route.ts",
+      "target": "module:app/api/admin/documents/_lib/docDataFromRecord.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/documents/[id]/file/route.ts",
+      "target": "module:core/auth/requireAuth.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/documents/[id]/file/route.ts",
+      "target": "module:core/auth/session.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/documents/[id]/file/route.ts",
+      "target": "module:engines/documents/artifact.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/documents/[id]/file/route.ts",
+      "target": "module:services/supabase/queries.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/documents/[id]/recover-helpers.ts",
+      "target": "module:services/supabase/queries.ts",
+      "label": "imports"
+    },
+    {
       "source": "module:app/api/admin/documents/[id]/route.ts",
       "target": "module:core/auth/requireAuth.ts",
       "label": "imports"
@@ -100588,6 +100964,21 @@
     {
       "source": "module:app/api/admin/documents/_lib/docDataFromRecord.ts",
       "target": "module:services/supabase/queries.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/documents/_lib/listDocuments.ts",
+      "target": "module:services/canonical/document-list.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/documents/_lib/listDocuments.ts",
+      "target": "module:services/supabase/queries.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/documents/route.ts",
+      "target": "module:app/api/admin/documents/_lib/listDocuments.ts",
       "label": "imports"
     },
     {
@@ -108887,6 +109278,11 @@
     },
     {
       "source": "module:cognitive/pipeline.ts",
+      "target": "module:engines/documents/qa.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:cognitive/pipeline.ts",
       "target": "module:engines/fuel-live.ts",
       "label": "imports"
     },
@@ -111058,6 +111454,11 @@
     {
       "source": "module:engines/documents/flex-template.ts",
       "target": "module:engines/documents/engine.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:engines/documents/qa.ts",
+      "target": "module:services/supabase/queries.ts",
       "label": "imports"
     },
     {
@@ -116522,8 +116923,8 @@
     }
   ],
   "summary": {
-    "total": 1355,
-    "ok": 1355,
+    "total": 1360,
+    "ok": 1360,
     "broken": 0,
     "unused": 0,
     "unregistered": 0

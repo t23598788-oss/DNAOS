@@ -15309,9 +15309,11 @@
         "GEMINI_DEFAULT_MODEL",
         "OLLAMA_DEFAULT_MODEL",
         "OLLAMA_TIMEOUT_MS",
+        "OPENAI_DEFAULT_MODEL",
         "anthropicAdapter",
         "geminiAdapter",
-        "ollamaAdapter"
+        "ollamaAdapter",
+        "openaiAdapter"
       ],
       "status": "active"
     },
@@ -16389,6 +16391,57 @@
       "purpose_th": "CANONICAL DOCUMENT ARTIFACT RECOVERY (owner mission 2026-10-10, PHASE 5).",
       "exports": [
         "POST"
+      ],
+      "status": "active"
+    },
+    "engines/documents/qa.ts": {
+      "owner": "engines",
+      "layer": "engines",
+      "purpose": "DETERMINISTIC DOCUMENT Q&A (owner mission 2026-10-10, LINE BUSINESS AI).",
+      "purpose_th": "DETERMINISTIC DOCUMENT Q&A (owner mission 2026-10-10, LINE BUSINESS AI).",
+      "exports": [
+        "answerDocumentQuestion"
+      ],
+      "status": "active"
+    },
+    "app/admin/documents/page.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "DOCUMENTS workspace (owner mission 2026-10-10, FINANCIAL DOCUMENT MANAGEMENT).",
+      "purpose_th": "DOCUMENTS workspace (owner mission 2026-10-10, FINANCIAL DOCUMENT MANAGEMENT).",
+      "exports": [
+        "DocumentsPage"
+      ],
+      "status": "active"
+    },
+    "app/api/admin/documents/_lib/listDocuments.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "DOCUMENT LIST + SEARCH (owner mission 2026-10-10, FINANCIAL DOCUMENT MANAGEMENT).",
+      "purpose_th": "DOCUMENT LIST + SEARCH (owner mission 2026-10-10, FINANCIAL DOCUMENT MANAGEMENT).",
+      "exports": [
+        "handleDocumentList"
+      ],
+      "status": "active"
+    },
+    "app/api/admin/documents/[id]/recover-helpers.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Shared stored-file lookup (owner mission 2026-10-10) — single copy ใช้ร่วมกัน",
+      "purpose_th": "Shared stored-file lookup (owner mission 2026-10-10) — single copy ใช้ร่วมกัน",
+      "exports": [
+        "StoredFileSet",
+        "findStoredFiles"
+      ],
+      "status": "active"
+    },
+    "app/api/admin/documents/[id]/file/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "DOCUMENT FILE ACCESS (owner mission 2026-10-10) — เปิด/ดาวน์โหลดต้นฉบับ PDF/PNG",
+      "purpose_th": "DOCUMENT FILE ACCESS (owner mission 2026-10-10) — เปิด/ดาวน์โหลดต้นฉบับ PDF/PNG",
+      "exports": [
+        "GET"
       ],
       "status": "active"
     }

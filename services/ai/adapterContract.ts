@@ -39,7 +39,7 @@ export type AiCapability =
 export type AiEffect = "analysis" | "classification" | "draft";
 
 /** Adapter ids. A provider name is an adapter id — never a capability. */
-export type AiAdapterId = "ollama" | "anthropic" | "gemini" | "digitalocean";
+export type AiAdapterId = "ollama" | "anthropic" | "gemini" | "digitalocean" | "openai";
 
 /** Back-compat alias: was `"anthropic" | "ollama"` before A4 — only widened
  * (additive), so every existing comparison still type-checks. */

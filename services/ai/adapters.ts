@@ -108,6 +108,9 @@ export const anthropicAdapter: AiAdapter = {
   },
 };
 
+/** Literal the openai adapter uses as its default (OPENAI_API_KEY พร้อมแล้วบน Railway). */
+export const OPENAI_DEFAULT_MODEL = "gpt-4o-mini";
+
 export const geminiAdapter: AiAdapter = {
   id: "gemini",
   kind: "ai",
@@ -147,6 +150,53 @@ export const geminiAdapter: AiAdapter = {
 };
 
 /**
+ * OpenAI adapter (owner mission 2026-10-10, LINE BUSINESS AI). OPENAI_API_KEY
+ * was already provisioned on Railway but no adapter existed to use it — the
+ * resolver therefore returned AI_NO_COMPATIBLE_ADAPTER and every free-text
+ * question collapsed to "ไม่มี AI". Same contract as gemini (fetch-based, no
+ * new dependency): configured = OPENAI_API_KEY present.
+ */
+export const openaiAdapter: AiAdapter = {
+  id: "openai",
+  kind: "ai",
+  capabilities: ["conversation.answer", "intent.classify", "text.entity_extract"],
+  runtimes: ["next", "deno"],
+  status(context): AiAdapterStatus {
+    const configured = Boolean(envOf(context)("OPENAI_API_KEY"));
+    return {
+      configured,
+      reason: configured ? "OPENAI_API_KEY present" : "OPENAI_API_KEY missing",
+      model: envOf(context)("AI_GATEWAY_OPENAI_MODEL") ?? OPENAI_DEFAULT_MODEL,
+      endpoint: "api.openai.com",
+    };
+  },
+  async invoke(request, context) {
+    const env = envOf(context);
+    const apiKey = env("OPENAI_API_KEY");
+    if (!apiKey) throw new Error("AI_GATEWAY_OPENAI_NOT_CONFIGURED");
+    const model = env("AI_GATEWAY_OPENAI_MODEL") ?? OPENAI_DEFAULT_MODEL;
+    const response = await fetchOf(context)("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
+      body: JSON.stringify({
+        model,
+        temperature: 0,
+        messages: [
+          ...(request.systemPrompt ? [{ role: "system", content: request.systemPrompt }] : []),
+          { role: "user", content: request.prompt },
+        ],
+      }),
+      signal: AbortSignal.timeout(OLLAMA_TIMEOUT_MS),
+    });
+    if (!response.ok) throw new Error(`AI_GATEWAY_OPENAI_HTTP_${response.status}`);
+    const body = (await response.json()) as { choices?: { message?: { content?: unknown } }[] };
+    const text = body.choices?.[0]?.message?.content;
+    if (typeof text !== "string" || !text.trim()) throw new Error("AI_GATEWAY_EMPTY_PROVIDER_RESULT");
+    return text.trim();
+  },
+};
+
+/**
  * Implementations the gateway may execute, keyed by adapter id. `digitalocean`
  * is deliberately absent: its real execution path is the worker adapter
  * (workerAdapters/digitalOceanWorkerAdapter.ts) and the registry keeps it
@@ -157,4 +207,5 @@ export const AI_ADAPTER_IMPLEMENTATIONS: Partial<Record<AiAdapterId, AiAdapter>>
   ollama: ollamaAdapter,
   anthropic: anthropicAdapter,
   gemini: geminiAdapter,
+  openai: openaiAdapter,
 };
