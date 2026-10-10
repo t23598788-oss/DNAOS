@@ -44,7 +44,7 @@ interface Message {
   raw_type: string
   raw_text: string | null
   direction: "in" | "out"
-  extracted: { latitude?: number; longitude?: number; address?: string } | null
+  extracted: { latitude?: number; longitude?: number; address?: string; document_id?: string; document_no?: string; document_kind?: string; table?: string } | null
   created_at: string
   line_name?: string | null
   // Delivery status (owner mission 2026-10-10, TEST F): provider message id
@@ -56,6 +56,41 @@ interface Message {
   // URL minted by the detail API from line_events.media_path (same private
   // 'attachments' bucket pattern as the relationships feed).
   media_url?: string | null
+}
+
+// DOCUMENT IMAGE & PREVIEW (owner mission 2026-10-10) — meta ของ
+// /document-preview?format=json (PREVIEW_ONLY, ไม่มีการส่ง LINE ในรอบนี้)
+interface PreviewMeta {
+  mode: string
+  sent: boolean
+  document: {
+    id: string
+    table: string
+    document_no: string
+    type: string
+    label: { th: string; en: string }
+    date: string
+    status: string
+    subtotal: number
+    vat: number
+    total: number
+    items_count: number
+    notes: string | null
+  }
+  recipient: { line_user_id: string; company_id: string }
+  delivery: { sent: boolean; line_message_id?: string | null; at?: string; status?: string }
+  original: {
+    status: string
+    folder?: string
+    created_at?: string
+    png_url?: string | null
+    pdf_url?: string | null
+    png_bytes?: number | null
+    pdf_bytes?: number | null
+    reason?: string
+  }
+  preview: { source: string; png_bytes: number; pdf_bytes: number; pdf_pages: number; image_scope: string; file_name: string }
+  line_presentation: { send_ready: boolean; note?: string; reason?: string; messages: unknown[] | null }
 }
 
 interface ActionLogEntry {
@@ -152,6 +187,24 @@ export default function LineCustomersPage() {
   const [replyError, setReplyError] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
+  // DOCUMENT IMAGE & PREVIEW (owner mission 2026-10-10 §3) — preview ในหน้าจอ
+  // เดิม: เลือกเอกสารในบทสนทนา/รายการเอกสาร → modal ภาพเอกสารจริง + ขยายเต็มจอ
+  // + เปิดต้นฉบับ + ดาวน์โหลด ทั้งหมดอ่านจาก route document-preview (read-only)
+  const [preview, setPreview] = useState<{ table: string; id: string; label: string } | null>(null)
+  const [previewMeta, setPreviewMeta] = useState<PreviewMeta | null>(null)
+  const [previewLoading, setPreviewLoading] = useState(false)
+  const [previewFull, setPreviewFull] = useState(false)
+
+  const openPreview = (table: string, id: string, label: string) => {
+    setPreviewFull(false)
+    setPreview({ table, id, label })
+  }
+  const previewUrl = (fmt: "json" | "png" | "pdf", source: "preview" | "original", download = false) =>
+    preview && activeId
+      ? `/api/admin/line-customers/${activeId}/document-preview?table=${encodeURIComponent(preview.table)}&id=${encodeURIComponent(preview.id)}&format=${fmt}&source=${source}${download ? "&download=1" : ""}`
+      : "#"
+
+
   useEffect(() => {
     fetch("/api/admin/line-customers")
       .then((r) => r.json())
@@ -213,6 +266,44 @@ export default function LineCustomersPage() {
     }, 5000)
     return () => clearInterval(id)
   }, [activeId, loadDetail])
+
+  // meta ของ document preview (ดึงเมื่อเปิด modal — อ่านอย่างเดียว ไม่มี side effect)
+  useEffect(() => {
+    if (!preview || !activeId) {
+      setPreviewMeta(null)
+      return
+    }
+    let cancelled = false
+    setPreviewLoading(true)
+    fetch(previewUrl("json", "preview"))
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (!cancelled) setPreviewMeta(d && d.document ? (d as PreviewMeta) : null)
+      })
+      .catch(() => {
+        if (!cancelled) setPreviewMeta(null)
+      })
+      .finally(() => {
+        if (!cancelled) setPreviewLoading(false)
+      })
+    return () => {
+      cancelled = true
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [preview, activeId])
+
+  // Esc: ออกจากโหมดเต็มจอ ก่อน แล้วค่อยปิด preview
+  useEffect(() => {
+    if (!preview) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        if (previewFull) setPreviewFull(false)
+        else setPreview(null)
+      }
+    }
+    window.addEventListener("keydown", onKey)
+    return () => window.removeEventListener("keydown", onKey)
+  }, [preview, previewFull])
 
   const sendDraft = useCallback(async (draftId: string, lineUserId: string) => {
     setDraftBusyId(draftId)
@@ -652,6 +743,21 @@ export default function LineCustomersPage() {
                     />
                   )}
                   <p className="text-xs text-stone-800 whitespace-pre-line">{m.raw_text ?? `[${m.raw_type}]`}</p>
+                  {m.extracted?.document_id && (
+                    <button
+                      onClick={() =>
+                        openPreview(
+                          m.extracted!.table ?? (m.extracted!.document_kind === "invoice" ? "invoices" : "standalone_documents"),
+                          m.extracted!.document_id!,
+                          m.extracted!.document_no ?? "เอกสาร",
+                        )
+                      }
+                      title="เปิดภาพเอกสารตัวอย่าง (Preview — ไม่ส่งออก)"
+                      className="mt-1 inline-flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded border border-stone-300 bg-white/80 text-stone-600 hover:bg-white"
+                    >
+                      📄 เปิดเอกสาร {m.extracted.document_no ?? ""}
+                    </button>
+                  )}
                   <p className="text-[9px] text-stone-500 mt-1 text-right">
                     {fmtTime(m.created_at)}
                     {m.direction === "out" && (
@@ -834,13 +940,23 @@ export default function LineCustomersPage() {
                         <div key={d.id} className="flex items-center justify-between text-xs bg-stone-50 border border-stone-200 rounded-lg px-3 py-1.5 gap-2">
                           <span className="text-stone-700">{d.invoice_no ?? d.document_no} <span className="text-stone-400">({d.invoice_status ?? d.document_type})</span></span>
                           <span className="font-medium text-stone-800 tabular-nums">{formatMoney(d.total_amount)}</span>
+                          <span className="flex gap-1 flex-shrink-0">
+                          <button
+                            onClick={() => openPreview(d.table, d.id, d.invoice_no ?? d.document_no ?? "เอกสาร")}
+                            disabled={actionSending}
+                            title="ดูภาพเอกสารตัวอย่าง (Preview — ไม่ส่งออก)"
+                            className="text-[10px] font-medium px-2 py-1 rounded-lg border border-stone-300 text-stone-700 hover:bg-stone-100 disabled:opacity-40 transition"
+                          >
+                            ดู
+                          </button>
                           <button
                             onClick={() => sendDocument(activeContact.line_user_id, d)}
                             disabled={actionSending}
-                            className="text-[10px] font-medium px-2 py-1 rounded-lg border border-emerald-200 text-emerald-700 hover:bg-emerald-50 disabled:opacity-40 transition flex-shrink-0"
+                            className="text-[10px] font-medium px-2 py-1 rounded-lg border border-emerald-200 text-emerald-700 hover:bg-emerald-50 disabled:opacity-40 transition"
                           >
                             ส่ง
                           </button>
+                          </span>
                         </div>
                       ))}
                     </div>
@@ -851,6 +967,133 @@ export default function LineCustomersPage() {
           )}
         </div>
       )}
+    {/* DOCUMENT IMAGE & PREVIEW modal (owner mission 2026-10-10 §3) — อยู่ในหน้าจอ
+        เดิม: ภาพเอกสารจริงจาก renderer เดิม + ขยายเต็มจอ + เปิดต้นฉบับ + ดาวน์โหลด
+        + รายละเอียด/ผู้รับ/สถานะส่ง ทั้งหมดอ่านจาก document-preview (PREVIEW ONLY) */}
+    {preview && activeId && (
+      <div
+        className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
+        onClick={() => {
+          setPreviewFull(false)
+          setPreview(null)
+        }}
+      >
+        <div
+          className={`bg-white shadow-2xl flex flex-col overflow-hidden ${previewFull ? "fixed inset-0 rounded-none" : "w-full max-w-3xl max-h-[90vh] rounded-xl"}`}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="flex items-center justify-between border-b border-stone-200 bg-stone-50 px-4 py-2.5 flex-shrink-0">
+            <div className="min-w-0">
+              <div className="text-sm font-semibold text-stone-800 truncate">
+                {previewMeta?.document.label.th ?? "เอกสาร"} {preview.label}
+                {previewMeta && (
+                  <span className="ml-2 text-[10px] font-normal text-stone-400">{previewMeta.document.status}</span>
+                )}
+              </div>
+              <div className="text-[10px] text-stone-500 truncate">
+                {previewMeta
+                  ? previewMeta.original.status === "ORIGINAL"
+                    ? `ต้นฉบับจริง · ${previewMeta.original.folder ?? ""} · สร้าง ${String(previewMeta.original.created_at ?? "").slice(0, 19)}`
+                    : "ยังไม่มีไฟล์ต้นฉบับ (MISSING_SOURCE) — ภาพนี้ render จาก canonical record"
+                  : "กำลังโหลด..."}
+              </div>
+            </div>
+            <div className="flex items-center gap-1 flex-shrink-0">
+              <button
+                onClick={() => setPreviewFull((v) => !v)}
+                title={previewFull ? "ย่อลง" : "ขยายเต็มจอ"}
+                className="text-xs px-2 py-1 rounded border border-stone-300 hover:bg-stone-100"
+              >
+                {previewFull ? "ย่อ" : "⛶ เต็มจอ"}
+              </button>
+              <button onClick={() => setPreview(null)} title="ปิด (Esc)" className="text-xs px-2 py-1 rounded border border-stone-300 hover:bg-stone-100">
+                ✕ ปิด
+              </button>
+            </div>
+          </div>
+
+          <div className="flex-1 overflow-auto bg-stone-100 p-3 flex items-start justify-center">
+            {previewLoading ? (
+              <div className="text-xs text-stone-400 py-16 animate-pulse">กำลัง render เอกสาร...</div>
+            ) : previewMeta && previewMeta.document.id ? (
+              <img
+                src={previewUrl("png", "preview")}
+                alt={`ภาพเอกสาร ${previewMeta.document.document_no}`}
+                className="max-w-full bg-white shadow border border-stone-200"
+                style={previewFull ? { width: "auto", maxHeight: "none" } : { maxHeight: "60vh", width: "auto" }}
+              />
+            ) : (
+              <div className="text-xs text-rose-500 py-16">เปิด preview ไม่สำเร็จ — ดูรายละเอียดด้านล่าง</div>
+            )}
+          </div>
+          {previewMeta && (
+            <div className="border-t border-stone-200 bg-white px-4 py-2.5 text-[11px] text-stone-600 grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-1 flex-shrink-0">
+              <div><span className="text-stone-400">วันที่</span> {previewMeta.document.date || "-"}</div>
+              <div><span className="text-stone-400">ผู้รับ</span> {previewMeta.recipient.line_user_id.slice(0, 12)}…</div>
+              <div><span className="text-stone-400">ยอดสุทธิ</span> {formatMoney(previewMeta.document.total)}</div>
+              <div><span className="text-stone-400">รายการ</span> {previewMeta.document.items_count} รายการ</div>
+              <div>
+                <span className="text-stone-400">สถานะส่ง</span>{" "}
+                {previewMeta.delivery.sent ? (
+                  <span className="text-emerald-600">ส่งแล้ว ✓{previewMeta.delivery.line_message_id ? ` (${String(previewMeta.delivery.line_message_id).slice(0, 10)}…)` : ""}</span>
+                ) : (
+                  <span className="text-stone-500">ยังไม่ได้ส่ง</span>
+                )}
+              </div>
+              <div>
+                <span className="text-stone-400">ต้นฉบับ</span>{" "}
+                {previewMeta.original.status === "ORIGINAL" ? (
+                  <span className="text-emerald-600">มีไฟล์จริง</span>
+                ) : (
+                  <span className="text-amber-600">MISSING_SOURCE</span>
+                )}
+              </div>
+              <div><span className="text-stone-400">PDF</span> {previewMeta.preview.pdf_pages} หน้า</div>
+              <div>
+                <span className="text-stone-400">รูปแบบ LINE</span>{" "}
+                {previewMeta.line_presentation.send_ready ? (
+                  <span className="text-emerald-600">พร้อมส่งเป็นรูป (ยังไม่ส่ง)</span>
+                ) : (
+                  <span className="text-stone-400">ยังไม่พร้อม (ไม่มีต้นฉบับ)</span>
+                )}
+              </div>
+            </div>
+          )}
+
+          <div className="border-t border-stone-200 bg-stone-50 px-4 py-2.5 flex flex-wrap items-center gap-2 flex-shrink-0">
+            <a href={previewUrl("png", "preview", true)} download className="text-xs px-2.5 py-1.5 rounded-lg border border-stone-300 bg-white hover:bg-stone-100">
+              ⬇ ดาวน์โหลด PNG
+            </a>
+            <a
+              href={previewUrl("pdf", previewMeta?.original.status === "ORIGINAL" ? "original" : "preview", true)}
+              download
+              className="text-xs px-2.5 py-1.5 rounded-lg border border-stone-300 bg-white hover:bg-stone-100"
+            >
+              ⬇ ดาวน์โหลด PDF {previewMeta?.original.status === "ORIGINAL" ? "(ต้นฉบับ)" : "(render ใหม่)"}
+            </a>
+            <a
+              href={previewUrl("pdf", previewMeta?.original.status === "ORIGINAL" ? "original" : "preview")}
+              target="_blank"
+              rel="noreferrer"
+              className="text-xs px-2.5 py-1.5 rounded-lg border border-stone-300 bg-white hover:bg-stone-100"
+            >
+              เปิดดูทุกหน้า (PDF)
+            </a>
+            {previewMeta?.original.status === "ORIGINAL" && previewMeta.original.png_url && (
+              <a
+                href={previewMeta.original.png_url}
+                target="_blank"
+                rel="noreferrer"
+                className="text-xs px-2.5 py-1.5 rounded-lg border border-emerald-300 text-emerald-700 bg-emerald-50 hover:bg-emerald-100"
+              >
+                เปิดไฟล์ต้นฉบับจริง
+              </a>
+            )}
+            <span className="ml-auto text-[10px] text-stone-400">PREVIEW ONLY — ไม่มีการส่งข้อความใด ๆ ออก LINE</span>
+          </div>
+        </div>
+      </div>
+    )}
     </AppShell>
   )
 }

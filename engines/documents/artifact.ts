@@ -105,7 +105,21 @@ function createPdf(data: DocData): Promise<Buffer> {
 
     // PDFKit/fontkit handles the WOFF variant reliably in Node; the WOFF2
     // subset can fail during PDF finalization on some runtimes.
-    const fontRoot = path.dirname(require.resolve("@fontsource/noto-sans-thai/package.json"))
+    // Font root resolution (repair 2026-10-10): turbopack-compiled server code
+    // returns a VIRTUAL id from require.resolve (e.g. "[externals]/…" or
+    // "[project]/…") that no fs.open() can open — found live while the admin
+    // document-preview route first ran on dev. Same bytes, same fonts: fall
+    // back to the real node_modules path (cwd), then fail loudly instead of
+    // writing a tofu document.
+    const fontCandidates = [
+      (() => { try { return path.dirname(require.resolve("@fontsource/noto-sans-thai/package.json")) } catch { return "" } })(),
+      path.join(process.cwd(), "node_modules/@fontsource/noto-sans-thai"),
+      path.join(process.cwd(), "../node_modules/@fontsource/noto-sans-thai"),
+    ].filter((p) => p && require("node:fs").existsSync(path.join(p, "files/noto-sans-thai-thai-400-normal.woff")))
+    if (!fontCandidates.length) {
+      throw new Error("FONT_NOT_FOUND: หาไฟล์ฟอนต์ @fontsource/noto-sans-thai ไม่เจอจาก path ทั้งหมด — หยุดก่อนสร้าง PDF ที่อาจเพี้ยน")
+    }
+    const fontRoot = fontCandidates[0]
     const font = path.join(fontRoot, "files/noto-sans-thai-thai-400-normal.woff")
     const boldFont = path.join(fontRoot, "files/noto-sans-thai-thai-700-normal.woff")
     doc.font(font)

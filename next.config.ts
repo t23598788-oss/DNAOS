@@ -1,6 +1,15 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // pdfkit (แล้ว sharp) ต้อง resolve path ไฟล์ data ของตัวเองจาก node_modules
+  // จริง — ถ้าถูก bundle เข้า server chunk, __dirname กลายเป็น /ROOT (turbopack
+  // virtual root) แล้ว createPdf ตายด้วย ENOENT Helvetica.afm (พบจริงตอนเปิด
+  // document-preview route บน dev) — external ไว้ = เส้นทางที่ renderer เดิมใช้
+  // ได้ทั้ง dev และ production build · @fontsource/noto-sans-thai ถูก external
+  // ด้วยเหตุผลเดียวกัน: artifact.ts ใช้ require.resolve(subpath) เพื่อป้อน
+  // ไฟล์ .woff เข้า pdfkit — ถ้าโดน bundle จะได้ path เสมือน [project]/... ที่
+  // เปิดไฟล์จริงไม่ได้ (ENOENT ที่พบจริงตอน dev)
+  serverExternalPackages: ["pdfkit", "sharp", "@fontsource/noto-sans-thai"],
   turbopack: {
     root: __dirname,
   },
