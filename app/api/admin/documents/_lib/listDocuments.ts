@@ -9,7 +9,16 @@ import { getCanonicalDocumentRows } from "@/services/canonical/document-list"
 
 const rows: any[] = []
 
-async function loadInvoices(params: URLSearchParams, term: string, perPage: number) {
+// ค้นชื่อบริษัท → ได้ ids ไปกรองด้วย .in() (คอลัมน์ตารางหลัก) เพราะ PostgREST
+// .or() ไม่รองรับ embedded resource (companies.name) — ดู Railway log:
+// "failed to parse logic tree (...companies.name.ilike...)"
+async function companyIdsByName(term: string): Promise<string[]> {
+  if (!term) return []
+  const { data } = await supabaseAdmin().from("companies").select("id").ilike("name", `%${term}%`).limit(50)
+  return (data ?? []).map((c: { id: string }) => c.id)
+}
+
+async function loadInvoices(params: URLSearchParams, term: string, coIds: string[], perPage: number) {
   const canonical = params.get("type") && params.get("type") !== "all" ? canonicalDocumentType(params.get("type")!) : null
   if (canonical && canonical !== "invoice") return
   let q = supabaseAdmin()
@@ -17,7 +26,11 @@ async function loadInvoices(params: URLSearchParams, term: string, perPage: numb
     .select("id, invoice_no, invoice_status, customer_company_id, customer_order_id, total_amount, reference_no, invoice_date, created_at, companies!invoices_customer_company_id_fkey(id, name, phone)")
     .order("created_at", { ascending: false })
     .range(0, perPage * 2 - 1)
-  if (term) q = q.or(`invoice_no.ilike.%${term}%,companies.name.ilike.%${term}%`)
+  if (term) {
+    const parts = [`invoice_no.ilike.%${term}%`]
+    if (coIds.length) parts.push(`customer_company_id.in.(${coIds.join(",")})`)
+    q = q.or(parts.join(","))
+  }
   const reference = (params.get("reference") ?? "").trim()
   if (reference) q = q.ilike("reference_no", `%${reference}%`)
   const status = (params.get("status") ?? "").trim()
@@ -47,7 +60,7 @@ async function loadInvoices(params: URLSearchParams, term: string, perPage: numb
 }
 
 
-async function loadStandalone(params: URLSearchParams, term: string, perPage: number) {
+async function loadStandalone(params: URLSearchParams, term: string, coIds: string[], perPage: number) {
   const typeParam = params.get("type") ?? ""
   const canonical = typeParam && typeParam !== "all" ? canonicalDocumentType(typeParam) : null
   if (canonical && canonical === "invoice") return
@@ -57,7 +70,11 @@ async function loadStandalone(params: URLSearchParams, term: string, perPage: nu
     .order("created_at", { ascending: false })
     .range(0, perPage * 2 - 1)
   if (canonical) q = q.eq("document_type", canonical)
-  if (term) q = q.or(`document_no.ilike.%${term}%,companies.name.ilike.%${term}%`)
+  if (term) {
+    const parts = [`document_no.ilike.%${term}%`]
+    if (coIds.length) parts.push(`customer_company_id.in.(${coIds.join(",")})`)
+    q = q.or(parts.join(","))
+  }
   const reference = (params.get("reference") ?? "").trim()
   if (reference) q = q.ilike("reference_no", `%${reference}%`)
   const status = (params.get("status") ?? "").trim()
@@ -121,7 +138,8 @@ export async function handleDocumentList(req: NextRequest): Promise<NextResponse
   const from = (page - 1) * perPage
 
   rows.length = 0
-  await Promise.all([loadInvoices(searchParams, term, perPage), loadStandalone(searchParams, term, perPage)])
+  const coIds = await companyIdsByName(term)
+  await Promise.all([loadInvoices(searchParams, term, coIds, perPage), loadStandalone(searchParams, term, coIds, perPage)])
   rows.sort((a, b) => String(b.created_at).localeCompare(String(a.created_at)))
   const pageRows = rows.slice(from, from + perPage)
   const artifactMap = await attachArtifacts(pageRows)
