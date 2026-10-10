@@ -748,7 +748,6 @@ async function runCognitiveCore(
     // ใช้ AI ไม่สร้างข้อมูลเอง ไม่แตะยอด (engines/documents/qa.ts อ่าน canonical
     // record อย่างเดียว และ null ทันทีถ้าไม่ใช่คำถามแนวนี้)
     const docAnswer = await answerDocumentQuestion(message);
-    console.log("[pipeline] doc-QA hook:", docAnswer ? "matched" : "no-match", "msg:", message.slice(0, 60));
     if (docAnswer) return { sender: "ai" as const, type: "text" as const, text: docAnswer };
 
     // Real gap, owner-reported 2026-07-30 — see classifyIntentViaAi()'s own

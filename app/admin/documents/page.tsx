@@ -122,7 +122,7 @@ export default function DocumentsPage() {
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userCommand: q }),
+        body: JSON.stringify({ message: q }),
       })
       const data = await res.json()
       const text = data?.result?.text ?? data?.text ?? JSON.stringify(data)

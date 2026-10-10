@@ -48,7 +48,6 @@ async function loadInvoices(params: URLSearchParams, term: string, coIds: string
     console.error("[documents] invoices list query failed:", error.message)
     return
   }
-  console.log("[documents] loadInvoices data len:", (data ?? []).length, "term:", term, "coIds:", coIds.length)
   for (const d of (data ?? []) as any[]) {
     rows.push({
       id: d.id, document_type: "invoice", document_number: d.invoice_no ?? "",
@@ -93,7 +92,6 @@ async function loadStandalone(params: URLSearchParams, term: string, coIds: stri
     console.error("[documents] standalone_documents list query failed:", error.message)
     return
   }
-  console.log("[documents] loadStandalone data len:", (data ?? []).length)
   for (const d of (data ?? []) as any[]) {
     rows.push({
       id: d.id, document_type: d.document_type ?? canonical ?? "", document_number: d.document_no ?? "",
@@ -142,7 +140,6 @@ export async function handleDocumentList(req: NextRequest): Promise<NextResponse
   rows.length = 0
   const coIds = await companyIdsByName(term)
   await Promise.all([loadInvoices(searchParams, term, coIds, perPage), loadStandalone(searchParams, term, coIds, perPage)])
-  console.log("[documents] handleDocumentList rows after load:", rows.length, "url:", req.url)
   rows.sort((a, b) => String(b.created_at).localeCompare(String(a.created_at)))
   const pageRows = rows.slice(from, from + perPage)
   const artifactMap = await attachArtifacts(pageRows)
