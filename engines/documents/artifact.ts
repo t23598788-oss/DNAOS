@@ -55,10 +55,12 @@ function ensureThaiFontForSvg(): void {
     const sourceDir = path.join(process.cwd(), "assets/fonts")
     const targetDir = path.join(process.env.HOME || "/tmp", ".local", "share", "fonts")
     fs.mkdirSync(targetDir, { recursive: true })
-    for (const name of ["NotoSansThai-Regular.ttf", "NotoSansThai-Bold.ttf"]) {
-      const dest = path.join(targetDir, name)
-      if (!fs.existsSync(dest)) fs.copyFileSync(path.join(sourceDir, name), dest)
-    }
+    // Noto Sans Thai VARIABLE (OFL) — covers Thai + Latin + digits (the earlier
+    // hinted per-script subset left every number as a tofu box on production).
+    // Always overwrite: a previous deploy may have left the smaller subset in
+    // place and the exists-check would have kept it forever.
+    const name = "NotoSansThai-Regular.ttf"
+    fs.copyFileSync(path.join(sourceDir, name), path.join(targetDir, name))
   } catch {
     // ถ้าคัดลอกไม่ได้ ให้การ render แสดงผลด้วย fallback ที่มีอยู่ — ตรวจด้วยตา/เทสต์
   }

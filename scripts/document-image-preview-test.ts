@@ -32,7 +32,7 @@ check("P1c LINE presentation reuses the existing lineDocumentMessages builder", 
 check("P1d renderer itself untouched (exports the same entry)", read("engines/documents/artifact.ts").includes("export async function createDocumentArtifacts"))
 // font bootstrap — production container has no fonts (real tofu incident 2026-10-10)
 const artifact = read("engines/documents/artifact.ts")
-check("P1e renderer installs the bundled Thai font before SVG render", artifact.includes("ensureThaiFontForSvg()") && existsSync("assets/fonts/NotoSansThai-Regular.ttf") && existsSync("assets/fonts/NotoSansThai-Bold.ttf"))
+check("P1e renderer installs the bundled Thai font before SVG render", artifact.includes("ensureThaiFontForSvg()") && existsSync("assets/fonts/NotoSansThai-Regular.ttf"))
 
 // ── P2: PREVIEW ONLY — no send path reachable ────────────────────────────────
 check("P2a route never imports the send gateway (registry/communication)", !routeNoComments.includes("registry/communication") && !routeNoComments.includes("sendLineMessage"))
