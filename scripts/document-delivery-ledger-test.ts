@@ -48,6 +48,9 @@ check("D2b send-document records provider message id", sendDoc.includes("line_me
 check("D2c send-document records document ref (extracted)", sendDoc.includes("extracted:") && sendDoc.includes("document_no: documentNumber"))
 check("D2d send-document records recipient + status", sendDoc.includes("line_user_id: lineUserId") && sendDoc.includes('status: "processed"'))
 check("D2e send-document still sends through the ONE gateway", sendDoc.includes("sendLineMessage"))
+// mission 2026-10-10 §7 — the route now refuses a document that already has
+// direction-out evidence (the same idempotency contract as sendInvoiceToLine)
+check("D2f send-document refuses resend without idempotency check", sendDoc.includes('eq("extracted->>document_id", documentId)') && sendDoc.includes("status: 409") && sendDoc.includes("ถูกส่งไปแล้ว"))
 
 // ── D3: internal document-artifact route records evidence ────────────────────
 const internal = read("app/api/internal/line/document-artifact/route.ts")
@@ -60,6 +63,12 @@ const actions = read("gateway/actions.ts")
 check("D4a sendInvoiceToLine reference evidence intact (line_message_id + extracted)", actions.includes("line_message_id: lineRes.messageId") && actions.includes("document_kind: \"invoice\""))
 check("D4b invoice idempotency still reads extracted->>document_id", actions.includes("extracted->>document_id"))
 check("D4c invoice send still refuses re-send on existing evidence", actions.includes("ถูกส่งไปแล้ว"))
+
+// ── D6: every remaining out writer carries the provider message id ────────────
+const sendDebt = read("app/api/admin/line-customers/[lineUserId]/send-debt/route.ts")
+check("D6a send-debt records provider message id", sendDebt.includes("line_message_id: lineRes.messageId"))
+const cron = read("supabase/functions/debt-reminder-cron/index.ts")
+check("D6b debt-reminder-cron captures messageId from the push answer", cron.includes("lineBody.messageId") && cron.includes("line_message_id: providerMessageId"))
 
 // no new delivery table introduced by this batch (line_events stays the ledger)
 const allMigrations = read("package.json") // placeholder to keep imports minimal

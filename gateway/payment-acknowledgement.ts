@@ -167,6 +167,16 @@ export async function acknowledgePayment(input: {
     .limit(200);
   let ackDoc: { id: string; document_no?: string | null } | null =
     (candidates ?? []).find((d) => String(d.notes ?? "").includes(marker)) ?? null;
+  // Legacy receipt docs (mission 2026-10-10): receipts issued 2026-08-05 from
+  // confirmed payments carry their debt_events marker in notes instead of the
+  // receipt_document marker above. Matching on the receipt's OWN
+  // matched_debt_event_id is 1:1, so this reuses the existing document instead
+  // of creating a duplicate REC for a payment that already has one.
+  if (!ackDoc && receipt.matched_debt_event_id) {
+    const debtMarker = `debt_events ${receipt.matched_debt_event_id}`;
+    ackDoc =
+      (candidates ?? []).find((d) => String(d.notes ?? "").includes(debtMarker)) ?? null;
+  }
   if (!ackDoc && ref) {
     ackDoc =
       (candidates ?? []).find(

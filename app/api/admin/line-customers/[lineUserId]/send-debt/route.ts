@@ -145,6 +145,10 @@ export async function POST(req: Request, { params }: Params) {
     raw_text: `💰 แจ้งยอดค้างชำระ ${debt.total_due.toLocaleString("th-TH")} บาท ส่งให้ลูกค้าแล้ว`,
     status: "processed",
     direction: "out",
+    // Delivery evidence completeness (mission 2026-10-10 §4): the provider
+    // message id from the push answer — same field every other out writer
+    // records since BATCH 38.
+    line_message_id: lineRes.messageId ?? null,
     // Owner request 2026-07-24: admin control room must show the EXACT card
     // the customer received — the real Flex JSON, not a paraphrased summary.
     extracted: { flex },

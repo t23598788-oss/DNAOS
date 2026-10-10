@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-10T04:48:22.852Z",
+  "generated_at": "2026-10-10T08:02:44.916Z",
   "version": 1,
   "nodes": [
     {
@@ -23822,7 +23822,7 @@
           "name": "POST",
           "kind": "function",
           "line_start": 27,
-          "line_end": 184
+          "line_end": 188
         }
       ],
       "import_sites": [
@@ -23913,7 +23913,7 @@
           "name": "POST",
           "kind": "function",
           "line_start": 29,
-          "line_end": 130
+          "line_end": 147
         }
       ],
       "import_sites": [
@@ -29511,6 +29511,7 @@
       ],
       "dependents": [],
       "data_tables": [
+        "attachments",
         "business_events",
         "companies",
         "company_debt_current",
@@ -29536,7 +29537,7 @@
           "name": "GET",
           "kind": "function",
           "line_start": 12,
-          "line_end": 98
+          "line_end": 111
         }
       ],
       "import_sites": [
@@ -30567,8 +30568,8 @@
         {
           "name": "LineCustomersPage",
           "kind": "function",
-          "line_start": 121,
-          "line_end": 844
+          "line_start": 125,
+          "line_end": 856
         }
       ],
       "import_sites": [
@@ -91406,7 +91407,7 @@
           "name": "acknowledgePayment",
           "kind": "function",
           "line_start": 104,
-          "line_end": 270
+          "line_end": 280
         }
       ],
       "import_sites": [

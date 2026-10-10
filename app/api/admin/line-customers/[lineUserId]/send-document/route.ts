@@ -76,6 +76,23 @@ export async function POST(req: NextRequest, { params }: Params) {
     items = (rows ?? []).map((row) => ({ description: row.description, qty: Number(row.qty), unit: row.unit, unitPrice: Number(row.unit_price) }))
   }
 
+  // Idempotency (owner mission 2026-10-10 §7): a direction-out evidence row
+  // already carrying this document id means it was delivered — refuse instead
+  // of double-sending. This is the same evidence guard sendInvoiceToLine and
+  // acknowledgePayment have; this route previously had none.
+  const { data: existingEvidence } = await db
+    .from("line_events")
+    .select("id, created_at")
+    .eq("direction", "out")
+    .eq("extracted->>document_id", documentId)
+    .limit(1)
+  if (existingEvidence?.length) {
+    return NextResponse.json(
+      { error: `เอกสาร ${documentNumber} ถูกส่งไปแล้ว (${String(existingEvidence[0].created_at).slice(0, 19)}) — ระบบห้ามส่งซ้ำโดยไม่ผ่านการตรวจ Idempotency` },
+      { status: 409 },
+    )
+  }
+
   const company = await loadCompanySettings()
   const artifacts = await storeDocumentArtifacts(documentId, {
     type: documentType,

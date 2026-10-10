@@ -219,12 +219,19 @@ Deno.serve(async (req) => {
       continue
     }
 
+    // Delivery evidence completeness (mission 2026-10-10 §4): capture the
+    // provider message id from the push answer so this out row carries a real
+    // line_message_id, like every other out writer (BATCH 38 shape).
+    const lineBody = (await lineRes.json().catch(() => ({}))) as { messageId?: unknown }
+    const providerMessageId = typeof lineBody.messageId === "string" ? lineBody.messageId : null
+
     await supabase.from('line_events').insert({
       line_user_id: lineUserId,
       raw_type: 'flex',
       raw_text: `💰 แจ้งยอดค้างชำระ ${totalDue.toLocaleString('th-TH')} บาท ส่งอัตโนมัติแล้ว`,
       status: 'processed',
       direction: 'out',
+      line_message_id: providerMessageId,
       // Owner request 2026-07-24: admin control room must show the EXACT
       // card the customer received — the real Flex JSON, same as the manual
       // send-debt/route.ts path, not a paraphrased summary.

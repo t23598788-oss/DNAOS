@@ -18,7 +18,7 @@ export async function GET(_req: Request, { params }: Params) {
 
   const { data: rawMessages, error } = await db
     .from("line_events")
-    .select("id, raw_type, raw_text, line_name, direction, extracted, created_at, line_message_id, status")
+    .select("id, raw_type, raw_text, line_name, direction, extracted, created_at, line_message_id, status, media_path")
     .eq("line_user_id", lineUserId)
     .order("created_at", { ascending: true })
 
@@ -26,11 +26,24 @@ export async function GET(_req: Request, { params }: Params) {
 
   // Stickers/images arrive with an empty raw_text — show a readable label
   // instead of a blank line (blank lines next to "follow" read as duplicate
-  // ghost entries to anyone looking at the timeline).
-  const messages = (rawMessages ?? []).map((m) => ({
-    ...m,
-    raw_text: m.raw_text || (m.raw_type === "sticker" ? "(ส่งสติกเกอร์)" : m.raw_type === "image" ? "(ส่งรูปภาพ)" : m.raw_type === "follow" ? "(กดเพิ่มเพื่อน)" : m.raw_text),
-  }))
+  // ghost entries to anyone looking at the timeline). Attachments (mission
+  // 2026-10-10 §2 item 4) get a fresh 5-min signed URL from the SAME private
+  // 'attachments' bucket + media_path pattern the relationships feed already
+  // uses — no new storage path, no public bucket.
+  const messages = await Promise.all(
+    (rawMessages ?? []).map(async (m) => {
+      let media_url: string | null = null
+      if (m.media_path) {
+        const { data: signed } = await db.storage.from("attachments").createSignedUrl(m.media_path, 60 * 5)
+        media_url = signed?.signedUrl ?? null
+      }
+      return {
+        ...m,
+        media_url,
+        raw_text: m.raw_text || (m.raw_type === "sticker" ? "(ส่งสติกเกอร์)" : m.raw_type === "image" ? "(ส่งรูปภาพ)" : m.raw_type === "follow" ? "(กดเพิ่มเพื่อน)" : m.raw_text),
+      }
+    }),
+  )
 
   const lineName = messages.find((m) => m.line_name)?.line_name ?? null
 

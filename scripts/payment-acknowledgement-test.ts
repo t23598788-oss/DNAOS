@@ -37,6 +37,10 @@ check("A1h idempotency via existing evidence row", ack.includes("already_acknowl
 check("A1i canonical audit on success", ack.includes('action: "receipt.acknowledged"') && ack.includes("recordCanonicalAudit"))
 check("A1j fail-soft contract (explicit codes, no rethrow)", ack.includes("ACK_SEND_FAILED") && ack.includes("ACK_NO_LINE_RECIPIENT") && !/throw new Error\("ACK_/.test(ackNoComments))
 check("A1k single gateway send", ack.includes("sendLineMessage(db, recipient"))
+// mission 2026-10-10 §7 — legacy receipts (2026-08-05 batch) are recognised by
+// their debt_events marker so a retry reuses the existing document instead of
+// creating a duplicate REC
+check("A1l legacy debt_events marker fallback (no duplicate REC on retry)", ack.includes("matched_debt_event_id") && ack.includes("debt_events ${receipt.matched_debt_event_id}"))
 
 // ── A2 callers wired non-fatal + admin gate ──────────────────────────────────
 const confirm = read("app/api/admin/receipt-documents/[id]/confirm/route.ts")
