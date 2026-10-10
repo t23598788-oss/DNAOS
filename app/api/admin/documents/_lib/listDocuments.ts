@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { supabase as supabaseAdmin, canonicalDocumentType } from "@/services/supabase/queries"
+import { supabaseAdmin, canonicalDocumentType } from "@/services/supabase/queries"
 import { getCanonicalDocumentRows } from "@/services/canonical/document-list"
 
 // DOCUMENT LIST + SEARCH (owner mission 2026-10-10, FINANCIAL DOCUMENT MANAGEMENT).
