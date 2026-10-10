@@ -235,7 +235,7 @@ export default function DocumentsPage() {
                   <div style={{ marginTop: 8, background: "#fafafa", borderRadius: 6, padding: 8 }}>
                     {history.artifacts.slice(0, 4).map((a, i) => (
                       <div key={i} style={{ marginBottom: 4, wordBreak: "break-all" }}>
-                        <code>{String(a.produced_by ?? "")}</code> · sha256 <code>{String((a.payload as { sha256?: string })?.sha256 ?? "").slice(0, 16)}…</code>
+                        <code>{String(a.produced_by ?? "")}</code> · {String(a.kind ?? "")} · sha256 <code>{String(a.sha256 ?? "").slice(0, 16)}…</code>
                       </div>
                     ))}
                   </div>

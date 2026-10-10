@@ -103,27 +103,34 @@ async function loadStandalone(params: URLSearchParams, term: string, coIds: stri
   }
 }
 
-// ARTIFACT PRESENCE: แถวบอกว่ามีไฟล์ PDF/PNG เก็บใน Storage จริงไหม
-// (document_versions → document_artifacts — read-only)
+// ARTIFACT PRESENCE: แถวบอกว่ามีไฟล์ PDF/PNG เก็บใน Storage จริงไหม —
+// document_versions (invoice_id/standalone_document_id) → document_artifacts
+// (kind/sha256/produced_by เป็น column ตรง ไม่มี payload) — read-only
 async function attachArtifacts(pageRows: any[]) {
   const artifactMap = new Map<string, { present: boolean; produced_by: string | null; pdf: boolean; png: boolean }>()
   if (pageRows.length === 0) return artifactMap
-  const ids = pageRows.map((r) => r.id)
-  const { data: versions } = await supabaseAdmin().from("document_versions").select("id, document_id, document_type").in("document_id", ids)
-  const versionIds = (versions ?? []).map((v) => v.id)
+  const inList = pageRows.map((r) => r.id).join(",")
+  if (!inList) return artifactMap
+  const { data: versions } = await supabaseAdmin()
+    .from("document_versions")
+    .select("id, invoice_id, standalone_document_id")
+    .or(`invoice_id.in.(${inList}),standalone_document_id.in.(${inList})`)
+  const versionIds = (versions ?? []).map((v: { id: string }) => v.id)
   if (versionIds.length === 0) return artifactMap
-  const { data: artifacts } = await supabaseAdmin().from("document_artifacts").select("id, document_version_id, payload, produced_by").in("document_version_id", versionIds)
-  const versionById = new Map((versions ?? []).map((v) => [v.id, v]))
-  for (const a of artifacts ?? []) {
-    const version = versionById.get(a.document_version_id as string)
-    if (!version) continue
-    const key = `${version.document_id}:${version.document_type}`
-    const prev = artifactMap.get(key) ?? { present: false, produced_by: null, pdf: false, png: false }
+  const { data: artifacts } = await supabaseAdmin()
+    .from("document_artifacts")
+    .select("id, document_version_id, kind, produced_by")
+    .in("document_version_id", versionIds)
+  const docIdByVersion = new Map((versions ?? []).map((v: { id: string; invoice_id: string | null; standalone_document_id: string | null }) => [v.id, (v.invoice_id ?? v.standalone_document_id) as string]))
+  for (const a of (artifacts ?? []) as Array<{ document_version_id: string; kind: string; produced_by: string | null }>) {
+    const docId = docIdByVersion.get(a.document_version_id)
+    if (!docId) continue
+    const prev = artifactMap.get(docId) ?? { present: false, produced_by: null, pdf: false, png: false }
     prev.present = true
     prev.produced_by = a.produced_by ?? prev.produced_by
-    prev.pdf = true
-    prev.png = true
-    artifactMap.set(key, prev)
+    if (a.kind === "pdf") prev.pdf = true
+    if (a.kind === "image") prev.png = true
+    artifactMap.set(docId, prev)
   }
   return artifactMap
 }
@@ -145,7 +152,7 @@ export async function handleDocumentList(req: NextRequest): Promise<NextResponse
   const artifactMap = await attachArtifacts(pageRows)
   const withArtifacts = pageRows.map((r) => ({
     ...r,
-    artifact: artifactMap.get(`${r.id}:${canonicalDocumentType(r.document_type) ?? r.document_type}`) ?? { present: false, produced_by: null, pdf: false, png: false },
+    artifact: artifactMap.get(r.id) ?? { present: false, produced_by: null, pdf: false, png: false },
   }))
   // PHASE C7 — canonical financials attached to each list row (unchanged path)
   const canon = await getCanonicalDocumentRows(withArtifacts.map((d: { id: string }) => d.id))

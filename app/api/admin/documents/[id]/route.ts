@@ -105,12 +105,12 @@ async function loadDocumentHistory(id: string) {
   const db = supabase()
   const { data: versions } = await db
     .from("document_versions")
-    .select("id, document_type, document_id, invoice_id, standalone_document_id, version, status, current_version, produced_by, superseded_reason, created_at")
+    .select("id, invoice_id, standalone_document_id, version_no, status, snapshot, created_at, created_by")
     .or(`invoice_id.eq.${id},standalone_document_id.eq.${id}`)
-    .order("version", { ascending: true })
+    .order("version_no", { ascending: true })
   const versionIds = ((versions ?? []) as any[]).map((v: any) => v.id)
   const { data: artifacts } = versionIds.length
-    ? await db.from("document_artifacts").select("id, document_version_id, payload, produced_by, created_at").in("document_version_id", versionIds).order("created_at", { ascending: false })
+    ? await db.from("document_artifacts").select("id, document_version_id, kind, storage_path, sha256, size_bytes, mime_type, produced_by, created_at").in("document_version_id", versionIds).order("created_at", { ascending: false })
     : { data: [] as any[] }
   const auditIds = [id, ...versionIds, ...(artifacts ?? []).map((a: any) => a.id)]
   const { data: audit } = await db
