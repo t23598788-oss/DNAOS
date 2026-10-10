@@ -50,6 +50,9 @@ export async function POST(req: NextRequest, { params }: Params) {
     raw_text: text,
     status: "processed",
     direction: "out",
+    // Delivery evidence (mission 2026-10-10 §4): provider message id — the
+    // admin reply is an out writer like every other (BATCH 38 shape).
+    line_message_id: res.messageId ?? null,
   })
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 

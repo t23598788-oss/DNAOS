@@ -38,7 +38,11 @@ check("D0c line_outbound_drafts carries sent_at + status (existing approval ledg
 
 // ── D1: gateway captures provider messageId ───────────────────────────────────
 const comm = read("registry/communication.ts")
-check("D1 gateway parses messageId from the push response", comm.includes('body.messageId') && comm.includes("messageId: typeof body.messageId"))
+check("D1 gateway parses messageId from the push response", comm.includes('body.messageId') && comm.includes("messageId: typeof body.messageId") === false)
+// mission 2026-10-10 — the real /v2/bot/message/push shape is sentMessages[]
+// (reading only a top-level messageId was why every admin-path out row had
+// line_message_id = null); messageId stays as the compat fallback
+check("D1c gateway parses the real push response shape (sentMessages[0].id)", comm.includes("sentMessages") && comm.includes("body.sentMessages[0]?.id") && comm.includes("messageId"))
 check("D1b SendMessageResponse still exposes messageId", comm.includes("messageId?: string"))
 
 // ── D2: send-document route records the full evidence ────────────────────────
@@ -69,6 +73,10 @@ const sendDebt = read("app/api/admin/line-customers/[lineUserId]/send-debt/route
 check("D6a send-debt records provider message id", sendDebt.includes("line_message_id: lineRes.messageId"))
 const cron = read("supabase/functions/debt-reminder-cron/index.ts")
 check("D6b debt-reminder-cron captures messageId from the push answer", cron.includes("lineBody.messageId") && cron.includes("line_message_id: providerMessageId"))
+const reply = read("app/api/admin/line-customers/[lineUserId]/reply/route.ts")
+check("D6c admin reply records provider message id", reply.includes("line_message_id: res.messageId"))
+const draftSend = read("app/api/admin/outbound-drafts/[id]/send/route.ts")
+check("D6d approved draft send writes conversation evidence with provider id", draftSend.includes('from("line_events").insert') && draftSend.includes("line_message_id: res.messageId"))
 
 // no new delivery table introduced by this batch (line_events stays the ledger)
 const allMigrations = read("package.json") // placeholder to keep imports minimal

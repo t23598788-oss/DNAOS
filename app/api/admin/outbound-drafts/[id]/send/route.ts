@@ -55,5 +55,21 @@ export async function POST(req: NextRequest, { params }: Params) {
     .eq("id", id)
 
   if (updErr) return NextResponse.json({ error: updErr.message }, { status: 500 })
+
+  // Delivery evidence + admin conversation binding (mission 2026-10-10 §2
+  // items 3/7 and §7): an approved draft that actually went out must appear
+  // in the contact's timeline exactly like reply / send-debt /
+  // send-document do (BATCH 38 shape) — previously this path recorded only
+  // the draft row, so an approved-and-sent message was invisible in the
+  // admin conversation.
+  await db.from("line_events").insert({
+    line_user_id: draft.line_user_id,
+    raw_type: "text",
+    raw_text: finalText,
+    status: "processed",
+    direction: "out",
+    line_message_id: res.messageId ?? null,
+  })
+
   return NextResponse.json({ ok: true })
 }

@@ -79,12 +79,24 @@ export async function sendLineMessage(
       return { success: false, error: `LINE API Error ${response.status}: ${errorBody}` };
     }
 
-    // Delivery evidence (BATCH 38): the push API answers with {messageId} —
-    // capture it so every caller that writes a direction "out" line_events row
-    // can record the real provider message id in line_message_id. json parse
-    // is best-effort: a success without a body stays a plain success.
-    const body = (await response.json().catch(() => ({}))) as { messageId?: unknown };
-    return { success: true, messageId: typeof body.messageId === "string" ? body.messageId : undefined };
+    // Delivery evidence (BATCH 38 — corrected 2026-10-10): the Messaging API
+    // push endpoint answers {"sentMessages":[{"id":"..."}]}. The top-level
+    // {messageId} shape never occurs on /v2/bot/message/push — reading only
+    // that was the reason every admin-path out row carried line_message_id
+    // = null (ack 2026-10-09, reminders 2026-10-09, …). Keep the messageId
+    // read as a compatibility fallback for gateways that return it.
+    const body = (await response.json().catch(() => ({}))) as {
+      messageId?: unknown;
+      sentMessages?: Array<{ id?: unknown }>;
+    };
+    const sentId = Array.isArray(body.sentMessages) ? body.sentMessages[0]?.id : undefined;
+    const messageId =
+      typeof body.messageId === "string" && body.messageId
+        ? body.messageId
+        : typeof sentId === "string"
+          ? sentId
+          : undefined;
+    return { success: true, messageId };
   } catch (error) {
     console.error('Error sending LINE message:', error);
     const errorMessage = error instanceof Error ? error.message : String(error);
