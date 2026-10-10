@@ -16325,6 +16325,34 @@
         "answerDeterministic"
       ],
       "status": "active"
+    },
+    "scripts/document-preview-compare.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "T4 visual compare — stored ORIGINAL png vs fresh PREVIEW png (same document).",
+      "purpose_th": "T4 visual compare — stored ORIGINAL png vs fresh PREVIEW png (same document).",
+      "exports": [],
+      "status": "active"
+    },
+    "scripts/document-image-preview-test.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "DOCUMENT IMAGE & PREVIEW contract tests (owner mission 2026-10-10).",
+      "purpose_th": "DOCUMENT IMAGE & PREVIEW contract tests (owner mission 2026-10-10).",
+      "exports": [
+        "createDocumentArtifacts"
+      ],
+      "status": "active"
+    },
+    "app/api/admin/line-customers/[lineUserId]/document-preview/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "DOCUMENT IMAGE & PREVIEW (owner mission 2026-10-10) — PREVIEW ONLY.",
+      "purpose_th": "DOCUMENT IMAGE & PREVIEW (owner mission 2026-10-10) — PREVIEW ONLY.",
+      "exports": [
+        "GET"
+      ],
+      "status": "active"
     }
   },
   "excluded": [

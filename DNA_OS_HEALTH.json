@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-10-10T09:43:30Z",
-  "governance_score": 85,
+  "generated_at": "2026-10-10T10:02:45Z",
+  "governance_score": 100,
   "checks": {
     "type_check": 1,
     "pre_commit_guards": 1,
@@ -9,7 +9,7 @@
     "shadow_system": 1,
     "command_registry": 1,
     "dependency_graph": 1,
-    "architecture_drift": 0
+    "architecture_drift": 1
   },
   "metrics": {
     "total_modules": 995,
@@ -25,8 +25,8 @@
     "business_coverage_pct": 70
   },
   "summary": {
-    "passed": 7,
-    "failed": 1,
+    "passed": 8,
+    "failed": 0,
     "total": 8
   }
 }

@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-10T09:41:56.083Z",
+  "generated_at": "2026-10-10T10:01:11.137Z",
   "version": 1,
   "nodes": [
     {
@@ -32735,8 +32735,8 @@
         {
           "name": "createDocumentArtifacts",
           "kind": "function",
-          "line_start": 182,
-          "line_end": 191
+          "line_start": 184,
+          "line_end": 193
         }
       ],
       "import_sites": [
