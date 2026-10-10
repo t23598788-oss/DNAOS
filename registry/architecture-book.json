@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-10T08:02:44.916Z",
+  "generated_at": "2026-10-10T08:23:04.057Z",
   "version": 1,
   "nodes": [
     {
@@ -22215,6 +22215,7 @@
       ],
       "dependents": [],
       "data_tables": [
+        "line_events",
         "line_outbound_drafts"
       ],
       "business_capabilities": "UNKNOWN",
@@ -22233,7 +22234,7 @@
           "name": "POST",
           "kind": "function",
           "line_start": 14,
-          "line_end": 59
+          "line_end": 75
         }
       ],
       "import_sites": [
@@ -23255,7 +23256,7 @@
           "name": "POST",
           "kind": "function",
           "line_start": 19,
-          "line_end": 57
+          "line_end": 60
         }
       ],
       "import_sites": [
@@ -33534,7 +33535,7 @@
           "name": "sendLineMessage",
           "kind": "function",
           "line_start": 37,
-          "line_end": 93
+          "line_end": 105
         }
       ],
       "import_sites": [
