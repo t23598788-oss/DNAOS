@@ -219,11 +219,21 @@ Deno.serve(async (req) => {
       continue
     }
 
-    // Delivery evidence completeness (mission 2026-10-10 §4): capture the
-    // provider message id from the push answer so this out row carries a real
-    // line_message_id, like every other out writer (BATCH 38 shape).
-    const lineBody = (await lineRes.json().catch(() => ({}))) as { messageId?: unknown }
-    const providerMessageId = typeof lineBody.messageId === "string" ? lineBody.messageId : null
+    // Delivery evidence completeness (mission 2026-10-10 §4): the Messaging
+    // API push answers {"sentMessages":[{"id":...}]} — read that real shape
+    // (top-level messageId never occurs here) so this out row carries the
+    // provider id, like every other out writer (BATCH 38 shape).
+    const lineBody = (await lineRes.json().catch(() => ({}))) as {
+      messageId?: unknown
+      sentMessages?: Array<{ id?: unknown }>
+    }
+    const sentId = Array.isArray(lineBody.sentMessages) ? lineBody.sentMessages[0]?.id : undefined
+    const providerMessageId =
+      typeof lineBody.messageId === "string" && lineBody.messageId
+        ? lineBody.messageId
+        : typeof sentId === "string"
+          ? sentId
+          : null
 
     await supabase.from('line_events').insert({
       line_user_id: lineUserId,

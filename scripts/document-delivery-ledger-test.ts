@@ -72,7 +72,7 @@ check("D4c invoice send still refuses re-send on existing evidence", actions.inc
 const sendDebt = read("app/api/admin/line-customers/[lineUserId]/send-debt/route.ts")
 check("D6a send-debt records provider message id", sendDebt.includes("line_message_id: lineRes.messageId"))
 const cron = read("supabase/functions/debt-reminder-cron/index.ts")
-check("D6b debt-reminder-cron captures messageId from the push answer", cron.includes("lineBody.messageId") && cron.includes("line_message_id: providerMessageId"))
+check("D6b debt-reminder-cron captures messageId from the real push shape", cron.includes("lineBody.sentMessages") && cron.includes("line_message_id: providerMessageId"))
 const reply = read("app/api/admin/line-customers/[lineUserId]/reply/route.ts")
 check("D6c admin reply records provider message id", reply.includes("line_message_id: res.messageId"))
 const draftSend = read("app/api/admin/outbound-drafts/[id]/send/route.ts")
