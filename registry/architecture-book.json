@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-10T10:01:11.137Z",
+  "generated_at": "2026-10-10T10:52:14.631Z",
   "version": 1,
   "nodes": [
     {
@@ -6127,8 +6127,8 @@
       ],
       "dependents": [
         "module:app/api/admin/documents/[id]/route.ts",
+        "module:app/api/admin/documents/_lib/docDataFromRecord.ts",
         "module:app/api/admin/documents/route.ts",
-        "module:app/api/admin/line-customers/[lineUserId]/document-preview/route.ts",
         "module:app/api/admin/line-customers/[lineUserId]/send-debt/route.ts",
         "module:app/api/admin/line-customers/[lineUserId]/send-document/route.ts",
         "module:app/api/admin/settings/route.ts",
@@ -8820,7 +8820,9 @@
         "module:engines/documents/types.ts"
       ],
       "dependents": [
+        "module:app/api/admin/documents/[id]/artifact-recover/route.ts",
         "module:app/api/admin/documents/[id]/route.ts",
+        "module:app/api/admin/documents/_lib/docDataFromRecord.ts",
         "module:app/api/admin/documents/route.ts",
         "module:app/api/admin/line-customers/[lineUserId]/document-preview/route.ts",
         "module:app/api/admin/line-customers/[lineUserId]/send-document/route.ts",
@@ -13227,8 +13229,10 @@
         "module:app/api/admin/devices/commands/route.ts",
         "module:app/api/admin/devices/grants/route.ts",
         "module:app/api/admin/devices/route.ts",
+        "module:app/api/admin/documents/[id]/artifact-recover/route.ts",
         "module:app/api/admin/documents/[id]/confirm/route.ts",
         "module:app/api/admin/documents/[id]/route.ts",
+        "module:app/api/admin/documents/_lib/docDataFromRecord.ts",
         "module:app/api/admin/documents/route.ts",
         "module:app/api/admin/equipment/maintenance-tickets/[id]/close/route.ts",
         "module:app/api/admin/equipment/maintenance-tickets/route.ts",
@@ -17887,6 +17891,7 @@
         "module:app/api/admin/devices/commands/route.ts",
         "module:app/api/admin/devices/grants/route.ts",
         "module:app/api/admin/devices/route.ts",
+        "module:app/api/admin/documents/[id]/artifact-recover/route.ts",
         "module:app/api/admin/documents/[id]/confirm/route.ts",
         "module:app/api/admin/documents/[id]/route.ts",
         "module:app/api/admin/documents/route.ts",
@@ -18292,6 +18297,7 @@
         "module:app/api/admin/devices/commands/route.ts",
         "module:app/api/admin/devices/grants/route.ts",
         "module:app/api/admin/devices/route.ts",
+        "module:app/api/admin/documents/[id]/artifact-recover/route.ts",
         "module:app/api/admin/documents/[id]/confirm/route.ts",
         "module:app/api/admin/documents/[id]/route.ts",
         "module:app/api/admin/documents/route.ts",
@@ -30575,8 +30581,8 @@
         {
           "name": "LineCustomersPage",
           "kind": "function",
-          "line_start": 160,
-          "line_end": 1099
+          "line_start": 169,
+          "line_end": 1120
         }
       ],
       "import_sites": [
@@ -32529,6 +32535,7 @@
         "module:services/supabase/queries.ts"
       ],
       "dependents": [
+        "module:app/api/admin/documents/[id]/artifact-recover/route.ts",
         "module:app/api/admin/line-customers/[lineUserId]/document-preview/route.ts",
         "module:app/api/admin/line-customers/[lineUserId]/send-document/route.ts",
         "module:app/api/internal/line/document-artifact/route.ts",
@@ -32701,7 +32708,9 @@
       "purpose_th": "ตัวสร้างไฟล์เอกสารมาตรฐาน — DocData หนึ่งชุดสร้าง PDF (pdfkit) และรูปพรีวิวสำหรับ LINE (sharp) ไม่มี template แยกตามช่องทาง",
       "exports": [
         "DocumentArtifacts",
-        "createDocumentArtifacts"
+        "createDocumentArtifacts",
+        "documentSvg",
+        "wrapSvgText"
       ],
       "status": "OK",
       "runtime_entry_point": false,
@@ -32709,8 +32718,10 @@
         "module:engines/documents/engine.ts"
       ],
       "dependents": [
+        "module:app/api/admin/documents/[id]/artifact-recover/route.ts",
         "module:app/api/admin/line-customers/[lineUserId]/document-preview/route.ts",
         "module:gateway/document-artifact-storage.ts",
+        "module:scripts/document-artifact-recovery-test.ts",
         "module:scripts/document-image-preview-test.ts"
       ],
       "data_tables": "UNKNOWN",
@@ -32733,10 +32744,22 @@
           "line_end": 17
         },
         {
+          "name": "wrapSvgText",
+          "kind": "function",
+          "line_start": 75,
+          "line_end": 100
+        },
+        {
+          "name": "documentSvg",
+          "kind": "function",
+          "line_start": 105,
+          "line_end": 174
+        },
+        {
           "name": "createDocumentArtifacts",
           "kind": "function",
-          "line_start": 184,
-          "line_end": 193
+          "line_start": 241,
+          "line_end": 250
         }
       ],
       "import_sites": [
@@ -78180,6 +78203,7 @@
         "module:services/supabase/queries.ts"
       ],
       "dependents": [
+        "module:app/api/admin/documents/[id]/artifact-recover/route.ts",
         "module:app/api/admin/receipt-documents/[id]/company/route.ts",
         "module:engines/canonical/artifact-write.ts",
         "module:engines/canonical/debt-write.ts",
@@ -78836,6 +78860,7 @@
         "module:services/supabase/queries.ts"
       ],
       "dependents": [
+        "module:app/api/admin/documents/[id]/artifact-recover/route.ts",
         "module:gateway/document-artifact-storage.ts",
         "module:scripts/canonical-phase-d-acceptance-test.ts"
       ],
@@ -91412,13 +91437,13 @@
           "name": "AcknowledgeResult",
           "kind": "interface",
           "line_start": 40,
-          "line_end": 57
+          "line_end": 66
         },
         {
           "name": "acknowledgePayment",
           "kind": "function",
-          "line_start": 104,
-          "line_end": 280
+          "line_start": 113,
+          "line_end": 310
         }
       ],
       "import_sites": [
@@ -91661,9 +91686,9 @@
       "status": "OK",
       "runtime_entry_point": true,
       "internal_dependencies": [
+        "module:app/api/admin/documents/_lib/docDataFromRecord.ts",
         "module:core/auth/requireAuth.ts",
         "module:core/auth/session.ts",
-        "module:core/config/company-settings.ts",
         "module:engines/documents/artifact.ts",
         "module:engines/documents/engine.ts",
         "module:gateway/document-artifact-storage.ts",
@@ -91672,13 +91697,10 @@
       "dependents": [],
       "data_tables": [
         "attachments",
-        "companies",
         "company_line_links",
-        "invoice_items",
-        "invoices",
-        "line_events",
-        "standalone_document_items",
-        "standalone_documents"
+        "document_artifacts",
+        "document_versions",
+        "line_events"
       ],
       "business_capabilities": "UNKNOWN",
       "domain_owner": "app",
@@ -91695,8 +91717,8 @@
         {
           "name": "GET",
           "kind": "function",
-          "line_start": 183,
-          "line_end": 329
+          "line_start": 58,
+          "line_end": 225
         }
       ],
       "import_sites": [
@@ -91726,14 +91748,238 @@
           "resolved_target": "engines/documents/artifact.ts"
         },
         {
-          "specifier": "@/core/config/company-settings",
+          "specifier": "@/gateway/document-artifact-storage",
           "line": 7,
+          "resolved_target": "gateway/document-artifact-storage.ts"
+        },
+        {
+          "specifier": "@/app/api/admin/documents/_lib/docDataFromRecord",
+          "line": 8,
+          "resolved_target": "app/api/admin/documents/_lib/docDataFromRecord.ts"
+        }
+      ]
+    },
+    {
+      "id": "module:scripts/document-artifact-recovery-test.ts",
+      "type": "Module",
+      "layer": "scripts",
+      "name_en": "scripts/document-artifact-recovery-test.ts",
+      "purpose_th": "CANONICAL DOCUMENT ARTIFACT RECOVERY contract tests (owner mission 2026-10-10).",
+      "exports": [
+        "buildDocDataFromRecord",
+        "loadDocFromRecord",
+        "wrapSvgText"
+      ],
+      "status": "OK",
+      "runtime_entry_point": true,
+      "internal_dependencies": [
+        "module:engines/documents/artifact.ts"
+      ],
+      "dependents": [],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "scripts",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "import_sites": [
+        {
+          "specifier": "../engines/documents/artifact",
+          "line": 11,
+          "resolved_target": "engines/documents/artifact.ts"
+        }
+      ]
+    },
+    {
+      "id": "module:app/api/admin/documents/_lib/docDataFromRecord.ts",
+      "type": "Module",
+      "layer": "app",
+      "name_en": "app/api/admin/documents/_lib/docDataFromRecord.ts",
+      "purpose_th": "เอกสารอยู่ใน 2 ตาราง (ไม่มีตารางรวม) — ลองทั้งสองแบบเดียวกับ /api/admin/documents/[id]",
+      "exports": [
+        "DocTable",
+        "LoadedDoc",
+        "buildDocDataFromRecord",
+        "findDocumentTable",
+        "loadDocFromRecord"
+      ],
+      "status": "OK",
+      "runtime_entry_point": false,
+      "internal_dependencies": [
+        "module:core/config/company-settings.ts",
+        "module:engines/documents/engine.ts",
+        "module:services/supabase/queries.ts"
+      ],
+      "dependents": [
+        "module:app/api/admin/documents/[id]/artifact-recover/route.ts",
+        "module:app/api/admin/line-customers/[lineUserId]/document-preview/route.ts"
+      ],
+      "data_tables": [
+        "companies",
+        "invoice_items",
+        "invoices",
+        "standalone_document_items",
+        "standalone_documents"
+      ],
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "app",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "symbols": [
+        {
+          "name": "DocTable",
+          "kind": "type",
+          "line_start": 22,
+          "line_end": 22
+        },
+        {
+          "name": "LoadedDoc",
+          "kind": "interface",
+          "line_start": 24,
+          "line_end": 38
+        },
+        {
+          "name": "findDocumentTable",
+          "kind": "function",
+          "line_start": 41,
+          "line_end": 47
+        },
+        {
+          "name": "loadDocFromRecord",
+          "kind": "function",
+          "line_start": 49,
+          "line_end": 123
+        },
+        {
+          "name": "buildDocDataFromRecord",
+          "kind": "function",
+          "line_start": 126,
+          "line_end": 147
+        }
+      ],
+      "import_sites": [
+        {
+          "specifier": "@/services/supabase/queries",
+          "line": 1,
+          "resolved_target": "services/supabase/queries.ts"
+        },
+        {
+          "specifier": "@/engines/documents/engine",
+          "line": 2,
+          "resolved_target": "engines/documents/engine.ts"
+        },
+        {
+          "specifier": "@/core/config/company-settings",
+          "line": 3,
           "resolved_target": "core/config/company-settings.ts"
+        }
+      ]
+    },
+    {
+      "id": "module:app/api/admin/documents/[id]/artifact-recover/route.ts",
+      "type": "Module",
+      "layer": "app",
+      "name_en": "app/api/admin/documents/[id]/artifact-recover/route.ts",
+      "purpose_th": "CANONICAL DOCUMENT ARTIFACT RECOVERY (owner mission 2026-10-10, PHASE 5).",
+      "exports": [
+        "POST"
+      ],
+      "status": "OK",
+      "runtime_entry_point": true,
+      "internal_dependencies": [
+        "module:app/api/admin/documents/_lib/docDataFromRecord.ts",
+        "module:core/auth/requireAuth.ts",
+        "module:core/auth/session.ts",
+        "module:engines/canonical/artifact-write.ts",
+        "module:engines/canonical/audit.ts",
+        "module:engines/documents/artifact.ts",
+        "module:engines/documents/engine.ts",
+        "module:gateway/document-artifact-storage.ts",
+        "module:services/supabase/queries.ts"
+      ],
+      "dependents": [],
+      "data_tables": [
+        "attachments",
+        "document_artifacts",
+        "document_versions"
+      ],
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "app",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "symbols": [
+        {
+          "name": "POST",
+          "kind": "function",
+          "line_start": 97,
+          "line_end": 190
+        }
+      ],
+      "import_sites": [
+        {
+          "specifier": "@/core/auth/requireAuth",
+          "line": 2,
+          "resolved_target": "core/auth/requireAuth.ts"
+        },
+        {
+          "specifier": "@/core/auth/session",
+          "line": 3,
+          "resolved_target": "core/auth/session.ts"
+        },
+        {
+          "specifier": "@/services/supabase/queries",
+          "line": 4,
+          "resolved_target": "services/supabase/queries.ts"
+        },
+        {
+          "specifier": "@/engines/documents/artifact",
+          "line": 5,
+          "resolved_target": "engines/documents/artifact.ts"
         },
         {
           "specifier": "@/gateway/document-artifact-storage",
-          "line": 8,
+          "line": 6,
           "resolved_target": "gateway/document-artifact-storage.ts"
+        },
+        {
+          "specifier": "@/engines/canonical/artifact-write",
+          "line": 7,
+          "resolved_target": "engines/canonical/artifact-write.ts"
+        },
+        {
+          "specifier": "@/engines/canonical/audit",
+          "line": 8,
+          "resolved_target": "engines/canonical/audit.ts"
+        },
+        {
+          "specifier": "@/engines/documents/engine",
+          "line": 9,
+          "resolved_target": "engines/documents/engine.ts"
+        },
+        {
+          "specifier": "@/app/api/admin/documents/_lib/docDataFromRecord",
+          "line": 10,
+          "resolved_target": "app/api/admin/documents/_lib/docDataFromRecord.ts"
         }
       ]
     }
@@ -92472,6 +92718,16 @@
     {
       "source": "layer:app",
       "target": "module:app/api/admin/devices/route.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:app",
+      "target": "module:app/api/admin/documents/[id]/artifact-recover/route.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:app",
+      "target": "module:app/api/admin/documents/_lib/docDataFromRecord.ts",
       "label": "contains"
     },
     {
@@ -97351,6 +97607,11 @@
     },
     {
       "source": "layer:scripts",
+      "target": "module:scripts/document-artifact-recovery-test.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:scripts",
       "target": "module:scripts/document-delivery-ledger-test.ts",
       "label": "contains"
     },
@@ -100210,6 +100471,51 @@
       "label": "imports"
     },
     {
+      "source": "module:app/api/admin/documents/[id]/artifact-recover/route.ts",
+      "target": "module:app/api/admin/documents/_lib/docDataFromRecord.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/documents/[id]/artifact-recover/route.ts",
+      "target": "module:core/auth/requireAuth.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/documents/[id]/artifact-recover/route.ts",
+      "target": "module:core/auth/session.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/documents/[id]/artifact-recover/route.ts",
+      "target": "module:engines/canonical/artifact-write.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/documents/[id]/artifact-recover/route.ts",
+      "target": "module:engines/canonical/audit.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/documents/[id]/artifact-recover/route.ts",
+      "target": "module:engines/documents/artifact.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/documents/[id]/artifact-recover/route.ts",
+      "target": "module:engines/documents/engine.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/documents/[id]/artifact-recover/route.ts",
+      "target": "module:gateway/document-artifact-storage.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/documents/[id]/artifact-recover/route.ts",
+      "target": "module:services/supabase/queries.ts",
+      "label": "imports"
+    },
+    {
       "source": "module:app/api/admin/documents/[id]/confirm/route.ts",
       "target": "module:core/auth/requireAuth.ts",
       "label": "imports"
@@ -100266,6 +100572,21 @@
     },
     {
       "source": "module:app/api/admin/documents/[id]/route.ts",
+      "target": "module:services/supabase/queries.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/documents/_lib/docDataFromRecord.ts",
+      "target": "module:core/config/company-settings.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/documents/_lib/docDataFromRecord.ts",
+      "target": "module:engines/documents/engine.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/documents/_lib/docDataFromRecord.ts",
       "target": "module:services/supabase/queries.ts",
       "label": "imports"
     },
@@ -105231,17 +105552,17 @@
     },
     {
       "source": "module:app/api/admin/line-customers/[lineUserId]/document-preview/route.ts",
+      "target": "module:app/api/admin/documents/_lib/docDataFromRecord.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/line-customers/[lineUserId]/document-preview/route.ts",
       "target": "module:core/auth/requireAuth.ts",
       "label": "imports"
     },
     {
       "source": "module:app/api/admin/line-customers/[lineUserId]/document-preview/route.ts",
       "target": "module:core/auth/session.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/api/admin/line-customers/[lineUserId]/document-preview/route.ts",
-      "target": "module:core/config/company-settings.ts",
       "label": "imports"
     },
     {
@@ -113860,6 +114181,11 @@
       "label": "imports"
     },
     {
+      "source": "module:scripts/document-artifact-recovery-test.ts",
+      "target": "module:engines/documents/artifact.ts",
+      "label": "imports"
+    },
+    {
       "source": "module:scripts/document-authority-census.test.ts",
       "target": "module:gateway/actions.ts",
       "label": "imports"
@@ -116196,8 +116522,8 @@
     }
   ],
   "summary": {
-    "total": 1352,
-    "ok": 1352,
+    "total": 1355,
+    "ok": 1355,
     "broken": 0,
     "unused": 0,
     "unregistered": 0

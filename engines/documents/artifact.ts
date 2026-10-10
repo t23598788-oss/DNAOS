@@ -67,23 +67,71 @@ function ensureThaiFontForSvg(): void {
 }
 
 
-function documentSvg(data: DocData): string {
+/**
+ * Text wrapping สำหรับ PNG (owner mission 2026-10-10, ARTIFACT RECOVERY §6):
+ * คำอธิบายยาวต้อง wrap โดยไม่เปลี่ยนเนื้อหาและไม่ทับคอลัมน์เงิน — ตัดที่
+ * ขอบอักษรโดยพยายามแตกที่เว้นวรรคก่อน (ไทยไม่มี space จึง hard-cut ได้)
+ */
+export function wrapSvgText(text: string, maxChars: number): string[] {
+  const out: string[] = []
+  for (const paragraph of String(text).split(/\r?\n/)) {
+    let line = ""
+    for (const word of paragraph.split(" ")) {
+      let w = word
+      while (w.length > maxChars) {
+        if (line) {
+          out.push(line)
+          line = ""
+        }
+        out.push(w.slice(0, maxChars))
+        w = w.slice(maxChars)
+      }
+      const candidate = line ? `${line} ${w}` : w
+      if (candidate.length > maxChars) {
+        if (line) out.push(line)
+        line = w
+      } else {
+        line = candidate
+      }
+    }
+    out.push(line)
+  }
+  return out.length ? out : [""]
+}
+
+const SVG_DESC_MAX_CHARS = 58 // ≈ (794 - 96 - 210) / 8.2px ที่ 15px font — เว้นคอลัมน์เงิน 210px
+const SVG_LINE_HEIGHT = 17
+
+export function documentSvg(data: DocData): string {
   const label = DOC_LABELS[data.type] ?? DOC_LABELS.quotation
   const items = data.items.length > 0 ? data.items : [{ description: "ยอดเอกสาร", qty: 1, unit: "รายการ", unitPrice: data.precomputedSummary?.total ?? 0 }]
   const summary = data.precomputedSummary
   const subtotal = summary?.subtotal ?? items.reduce((total, item) => total + itemAmount(item), 0)
   const vat = summary?.vat ?? 0
   const total = summary?.total ?? subtotal + (data.shipping ?? 0) + (data.serviceFee ?? 0) - (data.discount ?? 0) + vat
-  const rowHeight = 46
   const itemStart = 330
-  const itemRows = items.slice(0, 18).map((item, index) => {
-    const y = itemStart + index * rowHeight
-    return `<line x1="${MARGIN}" y1="${y + rowHeight}" x2="${PAGE_WIDTH - MARGIN}" y2="${y + rowHeight}" stroke="#e5e7eb" />
-      <text x="${MARGIN}" y="${y + 20}" class="item">${esc(item.description)}</text>
-      <text x="${PAGE_WIDTH - MARGIN}" y="${y + 20}" text-anchor="end" class="amount">${money(itemAmount(item))} บาท</text>
-      <text x="${MARGIN}" y="${y + 37}" class="detail">${esc(`${item.qty} ${item.unit} × ${money(item.unitPrice)} บาท`)}</text>`
-  }).join("")
-  const summaryY = itemStart + Math.max(items.length, 1) * rowHeight + 34
+  let cursor = itemStart
+  const itemRows: string[] = []
+  let renderedCount = 0
+  for (const item of items) {
+    const descLines = wrapSvgText(item.description, SVG_DESC_MAX_CHARS)
+    const rowHeight = descLines.length * SVG_LINE_HEIGHT + 26
+    if (cursor + rowHeight > PAGE_HEIGHT - 170) break // เว้นที่ให้ summary+footer ชัดเจน
+    const y = cursor
+    itemRows.push(`<line x1="${MARGIN}" y1="${y + rowHeight}" x2="${PAGE_WIDTH - MARGIN}" y2="${y + rowHeight}" stroke="#e5e7eb" />
+      <text x="${MARGIN}" y="${y + 18}" class="item">${descLines.map((l, i) => `<tspan x="${MARGIN}" dy="${i === 0 ? 0 : SVG_LINE_HEIGHT}">${esc(l)}</tspan>`).join("")}</text>
+      <text x="${PAGE_WIDTH - MARGIN}" y="${y + 18}" text-anchor="end" class="amount">${money(itemAmount(item))} บาท</text>
+      <text x="${MARGIN}" y="${y + 18 + descLines.length * SVG_LINE_HEIGHT}" class="detail">${esc(`${item.qty} ${item.unit} × ${money(item.unitPrice)} บาท`)}</text>`)
+    cursor += rowHeight
+    renderedCount++
+  }
+  // PNG = หน้าแรกสำหรับดูแบบรูป — รายการที่เกินพื้นที่ต้องประกาศให้เห็น (ไม่หายเงียบ)
+  const hiddenCount = items.length - renderedCount
+  const overflowRow = hiddenCount > 0
+    ? `<text x="${MARGIN}" y="${cursor + 18}" class="detail">… และอีก ${hiddenCount} รายการ — เปิด PDF ดูครบทุกหน้า</text>`
+    : ""
+  if (hiddenCount > 0) cursor += 30
+  const summaryY = cursor + 34
   const company = data.company?.name ?? "DNA OS"
   const customer = data.customer?.name ?? ""
 
@@ -112,7 +160,7 @@ function documentSvg(data: DocData): string {
     <line x1="${MARGIN}" y1="220" x2="${PAGE_WIDTH - MARGIN}" y2="220" stroke="#d1d5db" />
     <text x="${MARGIN}" y="270" class="label">รายการ</text>
     <text x="${PAGE_WIDTH - MARGIN}" y="270" text-anchor="end" class="label">จำนวนเงิน</text>
-    ${itemRows}
+    ${itemRows.join("")}${overflowRow}
     <line x1="${PAGE_WIDTH - 310}" y1="${summaryY}" x2="${PAGE_WIDTH - MARGIN}" y2="${summaryY}" stroke="#1a1a1a" stroke-width="2" />
     <text x="${PAGE_WIDTH - 310}" y="${summaryY + 30}" class="muted">ยอดก่อนภาษี</text>
     <text x="${PAGE_WIDTH - MARGIN}" y="${summaryY + 30}" text-anchor="end" class="amount">${money(subtotal)} บาท</text>
@@ -167,12 +215,21 @@ function createPdf(data: DocData): Promise<Buffer> {
     doc.fillColor("#1a1a1a").font(boldFont).fontSize(11).text(data.customer?.name ?? "")
     doc.font(font).fontSize(9).fillColor("#666666").text(`${data.date ?? ""}${data.customer?.address ? ` · ${data.customer.address}` : ""}`)
     doc.moveDown(1.5).strokeColor("#d1d5db").lineWidth(0.7).moveTo(MARGIN, doc.y).lineTo(546, doc.y).stroke().moveDown(1)
-    for (const item of items.slice(0, 24)) {
-      doc.fillColor("#1a1a1a").font(boldFont).fontSize(10).text(item.description, { continued: true })
-      doc.font(font).fontSize(9).text(`  ${item.qty} ${item.unit} × ${money(item.unitPrice)} บาท`, { continued: true })
-      doc.text(`  ${money(itemAmount(item))} บาท`, { align: "right" })
-      doc.moveDown(0.3).strokeColor("#eeeeee").lineWidth(0.5).moveTo(MARGIN, doc.y).lineTo(546, doc.y).stroke().moveDown(0.5)
+    // ทุกจำนวนรายการ (owner mission §6): pdfkit เพิ่มหน้าใหม่เองเมื่อใกล้ขอบ
+    // — ไม่มีการ slice/ตัดรายการทิ้ง และ desc ถูกจำกัดความกว้างไม่ให้ชน
+    // คอลัมน์เงิน
+    for (const item of items) {
+      if (doc.y > 1123 - 130) doc.addPage()
+      const yStart = doc.y
+      doc.fillColor("#1a1a1a").font(boldFont).fontSize(10).text(item.description, MARGIN, yStart, { width: 340 })
+      const afterDesc = doc.y
+      doc.font(font).fontSize(9).text(`${item.qty} ${item.unit} × ${money(item.unitPrice)} บาท`, MARGIN, afterDesc, { width: 340 })
+      const afterDetail = doc.y
+      doc.font(boldFont).fontSize(10).text(`${money(itemAmount(item))} บาท`, MARGIN + 350, yStart, { width: 146, align: "right" })
+      doc.y = Math.max(afterDetail, doc.y) + 4
+      doc.strokeColor("#eeeeee").lineWidth(0.5).moveTo(MARGIN, doc.y).lineTo(546, doc.y).stroke().moveDown(0.5)
     }
+    if (doc.y > 1123 - 210) doc.addPage()
     doc.moveDown(1).font(font).fontSize(10).fillColor("#666666").text(`ยอดก่อนภาษี  ${money(subtotal)} บาท`, { align: "right" })
     doc.text(`ภาษีมูลค่าเพิ่ม  ${money(vat)} บาท`, { align: "right" })
     doc.moveDown(0.4).font(boldFont).fontSize(15).fillColor("#1a1a1a").text(`ยอดสุทธิ  ${money(total)} บาท`, { align: "right" })

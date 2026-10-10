@@ -2,10 +2,10 @@ import { NextRequest, NextResponse } from "next/server"
 import { requireAuth } from "@/core/auth/requireAuth"
 import { ADMIN_TIER } from "@/core/auth/session"
 import { supabaseAdmin as supabase } from "@/services/supabase/queries"
-import { DOC_LABELS, type DocData, type DocType } from "@/engines/documents/engine"
+import { DOC_LABELS } from "@/engines/documents/engine"
 import { createDocumentArtifacts } from "@/engines/documents/artifact"
-import { loadCompanySettings } from "@/core/config/company-settings"
 import { lineDocumentMessages } from "@/gateway/document-artifact-storage"
+import { loadDocFromRecord, buildDocDataFromRecord, type LoadedDoc } from "@/app/api/admin/documents/_lib/docDataFromRecord"
 
 type Params = { params: Promise<{ lineUserId: string }> }
 
@@ -16,132 +16,7 @@ type Params = { params: Promise<{ lineUserId: string }> }
 // ไม่มีการส่งข้อความใด ๆ — route นี้ไม่ import registry/communication เลย
 // และไม่มี insert/update/delete ใด ๆ (อ่านอย่างเดียว + render ในหน่วยความจำ).
 
-// doc type mapping ของจอนี้ = ชุดเดียวกับ send-document route (ของเดิม)
-const ENUM_TO_DOC_TYPE: Record<string, DocType> = {
-  QT: "quotation",
-  RCP: "receipt",
-  ORD: "delivery_order",
-  BOQ: "boq",
-  PO: "purchase_order",
-  PV: "payment_voucher",
-}
 
-interface LoadedDoc {
-  table: "invoices" | "standalone_documents"
-  id: string
-  docNumber: string
-  docType: DocType
-  rawType: string
-  date: string
-  status: string
-  companyId: string
-  subtotal: number
-  vat: number
-  total: number
-  notes: string | null
-  items: { description: string; qty: number; unit: string; unitPrice: number }[]
-}
-
-async function loadDoc(table: string, id: string): Promise<LoadedDoc | null> {
-  const db = supabase()
-  if (table === "invoices") {
-    const { data: inv } = await db
-      .from("invoices")
-      .select("id, invoice_no, invoice_status, customer_company_id, subtotal, vat_amount, total_amount, invoice_date, notes")
-      .eq("id", id)
-      .maybeSingle()
-    if (!inv) return null
-    const { data: rows } = await db
-      .from("invoice_items")
-      .select("description, qty, unit, unit_price")
-      .eq("invoice_id", id)
-      .order("sort_order", { ascending: true })
-    return {
-      table: "invoices",
-      id,
-      docNumber: String(inv.invoice_no ?? ""),
-      docType: "invoice",
-      rawType: "invoice",
-      date: String(inv.invoice_date ?? "").slice(0, 10),
-      status: String(inv.invoice_status ?? ""),
-      companyId: String(inv.customer_company_id ?? ""),
-      subtotal: Number(inv.subtotal ?? 0),
-      vat: Number(inv.vat_amount ?? 0),
-      total: Number(inv.total_amount ?? 0),
-      notes: inv.notes ?? null,
-      items: (rows ?? []).map((r) => ({
-        description: String(r.description ?? ""),
-        qty: Number(r.qty ?? 0),
-        unit: String(r.unit ?? "รายการ"),
-        unitPrice: Number(r.unit_price ?? 0),
-      })),
-    }
-  }
-  if (table === "standalone_documents") {
-    const { data: doc } = await db
-      .from("standalone_documents")
-      .select("id, document_no, document_type, status, customer_company_id, subtotal, vat_amount, total_amount, document_date, notes")
-      .eq("id", id)
-      .maybeSingle()
-    if (!doc) return null
-    const { data: rows } = await db
-      .from("standalone_document_items")
-      .select("description, qty, unit, unit_price")
-      .eq("document_id", id)
-      .order("sort_order", { ascending: true })
-    const rawType = String(doc.document_type ?? "")
-    // DB reality (census 2026-10-10): document_type เก็บเป็น full word
-    // (receipt/quotation/delivery_order) — รองรับทั้ง full word และรหัสเก่า
-    // (QT/RCP/ORD/…) แบบ send-document route
-    const resolvedType: DocType | undefined =
-      rawType in DOC_LABELS ? (rawType as DocType) : ENUM_TO_DOC_TYPE[rawType]
-    return {
-      table: "standalone_documents",
-      id,
-      docNumber: String(doc.document_no ?? ""),
-      docType: resolvedType ?? "quotation",
-      rawType,
-      date: String(doc.document_date ?? "").slice(0, 10),
-      status: String(doc.status ?? ""),
-      companyId: String(doc.customer_company_id ?? ""),
-      subtotal: Number(doc.subtotal ?? 0),
-      vat: Number(doc.vat_amount ?? 0),
-      total: Number(doc.total_amount ?? 0),
-      notes: doc.notes ?? null,
-      items: (rows ?? []).map((r) => ({
-        description: String(r.description ?? ""),
-        qty: Number(r.qty ?? 0),
-        unit: String(r.unit ?? "รายการ"),
-        unitPrice: Number(r.unit_price ?? 0),
-      })),
-    }
-  }
-  return null
-}
-
-/** Canonical DocData — จาก record ใน DB เท่านั้น (ยอด/เลข/รายการเดิม ไม่คำนวณใหม่). */
-async function buildDocData(doc: LoadedDoc): Promise<DocData> {
-  const settings = await loadCompanySettings()
-  const { data: party } = await supabase().from("companies").select("name").eq("id", doc.companyId).maybeSingle()
-  return {
-    type: doc.docType,
-    company: { name: settings.companyName, taxId: settings.companyTaxId },
-    docNumber: doc.docNumber,
-    date: doc.date,
-    status: doc.status,
-    customer: { name: (party as { name?: string } | null)?.name ?? "" },
-    items: doc.items.length > 0
-      ? doc.items
-      : [{ description: "ยอดเอกสาร", qty: 1, unit: "รายการ", unitPrice: doc.total }],
-    notes: doc.notes ?? undefined,
-    precomputedSummary: {
-      subtotal: doc.subtotal,
-      vatRate: doc.total > doc.subtotal ? doc.vat / Math.max(doc.subtotal, 1) : 0,
-      vat: doc.vat,
-      total: doc.total,
-    },
-  }
-}
 
 
 /** ไฟล์ต้นฉบับที่เคยสร้าง/ส่งจริง — generated-documents/{id}/{ts}/… (bucket attachments). */
@@ -206,7 +81,7 @@ export async function GET(req: NextRequest, { params }: Params) {
     return NextResponse.json({ error: "NOT_LINKED_TO_CONTACT: contact นี้ไม่มีบริษัทที่ผูกไว้", code: "NOT_LINKED_TO_CONTACT" }, { status: 404 })
   }
 
-  const doc = await loadDoc(table, id)
+  const doc = await loadDocFromRecord(table, id)
   if (!doc) return NextResponse.json({ error: "ไม่พบเอกสาร", code: "DOCUMENT_NOT_FOUND" }, { status: 404 })
   if (doc.companyId !== String(link.company_id)) {
     return NextResponse.json({ error: "เอกสารนี้ไม่ได้เกี่ยวกับ contact นี้", code: "NOT_FOR_THIS_CONTACT" }, { status: 404 })
@@ -216,7 +91,7 @@ export async function GET(req: NextRequest, { params }: Params) {
   }
 
   const original = await findOriginal(doc.id)
-  const docData = await buildDocData(doc)
+  const docData = await buildDocDataFromRecord(doc)
 
   if (format === "json") {
     // render ในหน่วยความจำ — ไม่มีการเขียนไฟล์/ฐานข้อมูลใด ๆ
@@ -244,6 +119,19 @@ export async function GET(req: NextRequest, { params }: Params) {
     const pngBytes = pngFile ? (await pngFile.arrayBuffer()).byteLength : null
     const pdfBytes = pdfFile ? (await pdfFile.arrayBuffer()).byteLength : null
 
+    // provenance (PHASE 7): metadata ของไฟล์จริงจาก document_artifacts — แยก
+    // STORED_ARTIFACT (ไฟล์ที่เคยสร้างตอนส่ง) ออกจาก RECONSTRUCTED (กู้ย้อนหลัง)
+    const versionCol = doc.table === "invoices" ? "invoice_id" : "standalone_document_id"
+    const { data: vers } = await db.from("document_versions").select("id, version_no").eq(versionCol, doc.id).order("version_no", { ascending: false })
+    const versIds = (vers ?? []).map((v) => v.id)
+    const { data: artRows } = versIds.length
+      ? await db.from("document_artifacts").select("id, document_version_id, storage_path, sha256, size_bytes, produced_by, created_at").in("document_version_id", versIds)
+      : { data: [] as Array<{ id: string; document_version_id: string; storage_path: string; sha256: string; size_bytes: number; produced_by: string; created_at: string }> }
+    const artForPath = (p: string | null | undefined) =>
+      p ? (artRows ?? []).find((r) => r.storage_path === p) ?? null : null
+    const originArt = original ? artForPath(original.pngPath) ?? artForPath(original.pdfPath) : null
+    const originKind = originArt?.produced_by?.startsWith("recovery:") ? "RECONSTRUCTED" : originArt ? "STORED_ARTIFACT" : "UNVERIFIED"
+
     return NextResponse.json({
       mode: "PREVIEW_ONLY",
       sent: false,
@@ -260,11 +148,18 @@ export async function GET(req: NextRequest, { params }: Params) {
         : { sent: false },
       original: original && (original.pngPath || original.pdfPath)
         ? {
-            status: "ORIGINAL", folder: original.folder, created_at: original.created_at,
+            status: "ORIGINAL", origin: originKind, folder: original.folder, created_at: original.created_at,
             png_url: pngSigned.data?.signedUrl ?? null, pdf_url: pdfSigned.data?.signedUrl ?? null,
             png_bytes: pngBytes, pdf_bytes: pdfBytes,
+            artifact: originArt
+              ? {
+                  artifact_id: originArt.id, sha256: originArt.sha256, size_bytes: originArt.size_bytes,
+                  produced_by: originArt.produced_by, created_at: originArt.created_at,
+                  version_no: (vers ?? []).find((v) => v.id === originArt.document_version_id)?.version_no ?? null,
+                }
+              : null,
           }
-        : { status: "MISSING_SOURCE", reason: "ไม่พบไฟล์ต้นฉบับใน generated-documents/ของเอกสารเล่มนี้ (ระบบยังไม่เคยสร้าง/ส่งไฟล์ของเอกสารนี้)" },
+        : { status: "MISSING_SOURCE", origin: "NONE", reason: "ไม่พบไฟล์ต้นฉบับใน generated-documents/ของเอกสารเล่มนี้ (ระบบยังไม่เคยสร้าง/ส่งไฟล์ของเอกสารนี้)", artifact: null },
       preview: {
         source: "RENDERED_FROM_CANONICAL_RECORD",
         png_bytes: fresh.image.length, pdf_bytes: fresh.pdf.length,
@@ -276,6 +171,7 @@ export async function GET(req: NextRequest, { params }: Params) {
         ? {
             send_ready: true,
             note: "รูปแบบข้อความรูปภาพที่เส้นส่งเดิมใช้ (lineDocumentMessages) — PREVIEW ONLY, ไม่มีการส่งในรอบนี้",
+            url_expires_seconds: 7 * 24 * 3600,
             messages: lineDocumentMessages(
               {
                 imageUrl: pngSigned.data.signedUrl,

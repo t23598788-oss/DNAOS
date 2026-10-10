@@ -27,7 +27,8 @@ const page = read("app/admin/line-customers/page.tsx")
 
 // ── P1: existing renderer reuse (no new engine) ──────────────────────────────
 check("P1a uses the existing engines/documents artifact renderer", route.includes('from "@/engines/documents/artifact"') && route.includes("createDocumentArtifacts("))
-check("P1b uses the existing company settings + doc labels", route.includes('from "@/core/config/company-settings"') && route.includes("DOC_LABELS"))
+const shared = read("app/api/admin/documents/_lib/docDataFromRecord.ts")
+check("P1b uses the existing company settings + doc labels", shared.includes('from "@/core/config/company-settings"') && shared.includes("DOC_LABELS") && route.includes("docDataFromRecord"))
 check("P1c LINE presentation reuses the existing lineDocumentMessages builder", route.includes('from "@/gateway/document-artifact-storage"') && route.includes("lineDocumentMessages("))
 check("P1d renderer itself untouched (exports the same entry)", read("engines/documents/artifact.ts").includes("export async function createDocumentArtifacts"))
 // font bootstrap — production container has no fonts (real tofu incident 2026-10-10)
@@ -46,8 +47,8 @@ check("P3b no update/delete", !route.includes(".update(") && !route.includes(".d
 check("P3c no storage upload (preview never writes artifacts)", !route.includes(".upload("))
 
 // ── P4: money/identity integrity ─────────────────────────────────────────────
-check("P4a totals come from the stored record (precomputedSummary verbatim)", route.includes("precomputedSummary") && route.includes("subtotal: doc.subtotal") && route.includes("total: doc.total"))
-check("P4b no document number minting (uses stored docNumber)", route.includes("docNumber: doc.docNumber") && !/document_no:\s*`/.test(routeNoComments))
+check("P4a totals come from the stored record (precomputedSummary verbatim)", shared.includes("precomputedSummary") && shared.includes("subtotal: doc.subtotal") && shared.includes("total: doc.total") && route.includes("buildDocDataFromRecord"))
+check("P4b no document number minting (uses stored docNumber)", shared.includes("docNumber: doc.docNumber") && !/document_no:\s*`/.test(shared.replace(/\/\/[^\n]*/g, "")))
 check("P4c recipient gate — doc must belong to the contact's company", route.includes("company_line_links") && route.includes("NOT_FOR_THIS_CONTACT"))
 check("P4d missing original reported honestly as MISSING_SOURCE", route.includes("MISSING_SOURCE"))
 

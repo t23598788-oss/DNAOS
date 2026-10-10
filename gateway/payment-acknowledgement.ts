@@ -54,6 +54,15 @@ export interface AcknowledgeResult {
   delivered?: boolean;
   provider_message_id?: string | null;
   summary?: AckSummary;
+  /** artifact ที่สร้าง/เก็บสำเร็จ (PNG+PDF ใน generated-documents/) */
+  artifact?: { image_path: string; pdf_path: string } | null;
+  /**
+   * Artifact generation/storage failure (owner mission 2026-10-10, ARTIFACT
+   * RECOVERY §2): เดิม error นี้ถูกกลืนเงียบแล้ว ack ลดเป็นข้อความล้วน —
+   * ห้ามเงียบอีกต่อไป: บันทึก audit + console.error + คืนค่าให้ caller เห็น
+   * (การ ack ยังคง non-fatal ต่อ payment เหมือนเดิม — แต่ไม่ใช่ silent)
+   */
+  artifact_error?: string | null;
 }
 
 const fmt = (n: number) =>
@@ -217,6 +226,8 @@ export async function acknowledgePayment(input: {
   // ── message: receipt artifact + summary, text-only fallback ─────────────────
   const ackHead = `🧾 ใบรับเงิน ${ackNo}\nรับชำระ ${fmt(amount)} บาท${ref ? `\nสลิปอ้างอิง: ${ref}` : ""}\nคู่ค้า: ${companyName}`;
   let messages: Array<Record<string, unknown>>;
+  let artifact: { image_path: string; pdf_path: string } | null = null;
+  let artifactError: string | null = null;
   try {
     const settings = await loadCompanySettings();
     const artifacts = await storeDocumentArtifacts(ackId, {
@@ -229,8 +240,25 @@ export async function acknowledgePayment(input: {
       items: [{ description: `รับชำระ ${fmt(amount)} บาท${ref ? ` (สลิป ${ref})` : ""}`, qty: 1, unit: "รายการ", unitPrice: amount }],
       precomputedSummary: { subtotal: amount, vatRate: 0, vat: 0, total: amount },
     });
+    artifact = { image_path: artifacts.imagePath, pdf_path: artifacts.pdfPath };
     messages = [...lineDocumentMessages(artifacts, `ใบรับเงิน ${ackNo}`), { type: "text", text: `${ackHead}\n${summary.text}` }];
-  } catch {
+  } catch (e) {
+    // NO SILENT ARTIFACT FAILURE (owner 2026-10-10, ARTIFACT RECOVERY §2): ack
+    // ยังส่งต่อแบบข้อความ (non-fatal ต่อ payment เหมือนเดิม) แต่ failure ต้อง
+    // ถูกบันทึก (audit) + รายงาน (console.error + artifact_error ในผลลัพธ์)
+    artifactError = e instanceof Error ? e.message : String(e);
+    console.error("[payment-acknowledgement] artifact generation failed — acknowledged with text-only message:", artifactError);
+    try {
+      await recordCanonicalAudit({
+        action: "artifact.failed",
+        entity_type: "receipt_document",
+        entity_id: input.receipt_document_id,
+        actor: input.actor,
+        new_value: { stage: "render_or_store", ack_document_id: ackId, error: artifactError },
+      });
+    } catch {
+      /* audit ที่ล้มเหลวห้ามทำให้ payment พัง — console.error ด้านบนคือหลักฐานแล้ว */
+    }
     messages = [{ type: "text", text: `${ackHead}\n${summary.text}` }];
   }
 
@@ -276,6 +304,8 @@ export async function acknowledgePayment(input: {
     delivered: true,
     provider_message_id: lineRes.messageId ?? null,
     summary,
+    artifact,
+    artifact_error: artifactError,
   };
 }
 

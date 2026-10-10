@@ -81,6 +81,7 @@ interface PreviewMeta {
   delivery: { sent: boolean; line_message_id?: string | null; at?: string; status?: string }
   original: {
     status: string
+    origin?: string
     folder?: string
     created_at?: string
     png_url?: string | null
@@ -88,6 +89,14 @@ interface PreviewMeta {
     png_bytes?: number | null
     pdf_bytes?: number | null
     reason?: string
+    artifact?: {
+      artifact_id: string
+      sha256: string
+      size_bytes: number
+      produced_by: string
+      created_at: string
+      version_no: number | null
+    } | null
   }
   preview: { source: string; png_bytes: number; pdf_bytes: number; pdf_pages: number; image_scope: string; file_name: string }
   line_presentation: { send_ready: boolean; note?: string; reason?: string; messages: unknown[] | null }
@@ -993,7 +1002,7 @@ export default function LineCustomersPage() {
               <div className="text-[10px] text-stone-500 truncate">
                 {previewMeta
                   ? previewMeta.original.status === "ORIGINAL"
-                    ? `ต้นฉบับจริง · ${previewMeta.original.folder ?? ""} · สร้าง ${String(previewMeta.original.created_at ?? "").slice(0, 19)}`
+                    ? `ไฟล์จริงใน Storage · ${previewMeta.original.origin === "RECONSTRUCTED" ? "RECONSTRUCTED (กู้จาก canonical record)" : previewMeta.original.origin === "STORED_ARTIFACT" ? "ไฟล์ตอนส่ง" : "ไม่มี metadata"} · ${previewMeta.original.folder ?? ""} · สร้าง ${String(previewMeta.original.created_at ?? "").slice(0, 19)}`
                     : "ยังไม่มีไฟล์ต้นฉบับ (MISSING_SOURCE) — ภาพนี้ render จาก canonical record"
                   : "กำลังโหลด..."}
               </div>
@@ -1043,9 +1052,21 @@ export default function LineCustomersPage() {
               <div>
                 <span className="text-stone-400">ต้นฉบับ</span>{" "}
                 {previewMeta.original.status === "ORIGINAL" ? (
-                  <span className="text-emerald-600">มีไฟล์จริง</span>
+                  <span className="text-emerald-600">
+                    {previewMeta.original.origin === "RECONSTRUCTED" ? "มีไฟล์จริง (กู้คืน)" : previewMeta.original.origin === "STORED_ARTIFACT" ? "มีไฟล์จริง" : "มีไฟล์ (ไม่มี metadata)"}
+                  </span>
                 ) : (
                   <span className="text-amber-600">MISSING_SOURCE</span>
+                )}
+              </div>
+              <div>
+                <span className="text-stone-400">Artifact</span>{" "}
+                {previewMeta.original.artifact ? (
+                  <span className="tabular-nums" title={`sha256: ${previewMeta.original.artifact.sha256}`}>
+                    sha {previewMeta.original.artifact.sha256.slice(0, 8)}… · v{previewMeta.original.artifact.version_no ?? "?"}
+                  </span>
+                ) : (
+                  <span className="text-stone-400">—</span>
                 )}
               </div>
               <div><span className="text-stone-400">PDF</span> {previewMeta.preview.pdf_pages} หน้า</div>

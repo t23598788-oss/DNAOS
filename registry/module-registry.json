@@ -5870,7 +5870,9 @@
       "purpose_th": "ตัวสร้างไฟล์เอกสารมาตรฐาน — DocData หนึ่งชุดสร้าง PDF (pdfkit) และรูปพรีวิวสำหรับ LINE (sharp) ไม่มี template แยกตามช่องทาง",
       "exports": [
         "DocumentArtifacts",
-        "createDocumentArtifacts"
+        "createDocumentArtifacts",
+        "documentSvg",
+        "wrapSvgText"
       ],
       "status": "active"
     },
@@ -16351,6 +16353,42 @@
       "purpose_th": "DOCUMENT IMAGE & PREVIEW (owner mission 2026-10-10) — PREVIEW ONLY.",
       "exports": [
         "GET"
+      ],
+      "status": "active"
+    },
+    "scripts/document-artifact-recovery-test.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "CANONICAL DOCUMENT ARTIFACT RECOVERY contract tests (owner mission 2026-10-10).",
+      "purpose_th": "CANONICAL DOCUMENT ARTIFACT RECOVERY contract tests (owner mission 2026-10-10).",
+      "exports": [
+        "buildDocDataFromRecord",
+        "loadDocFromRecord",
+        "wrapSvgText"
+      ],
+      "status": "active"
+    },
+    "app/api/admin/documents/_lib/docDataFromRecord.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "เอกสารอยู่ใน 2 ตาราง (ไม่มีตารางรวม) — ลองทั้งสองแบบเดียวกับ /api/admin/documents/[id]",
+      "purpose_th": "เอกสารอยู่ใน 2 ตาราง (ไม่มีตารางรวม) — ลองทั้งสองแบบเดียวกับ /api/admin/documents/[id]",
+      "exports": [
+        "DocTable",
+        "LoadedDoc",
+        "buildDocDataFromRecord",
+        "findDocumentTable",
+        "loadDocFromRecord"
+      ],
+      "status": "active"
+    },
+    "app/api/admin/documents/[id]/artifact-recover/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "CANONICAL DOCUMENT ARTIFACT RECOVERY (owner mission 2026-10-10, PHASE 5).",
+      "purpose_th": "CANONICAL DOCUMENT ARTIFACT RECOVERY (owner mission 2026-10-10, PHASE 5).",
+      "exports": [
+        "POST"
       ],
       "status": "active"
     }
