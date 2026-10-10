@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-10T12:28:37.843Z",
+  "generated_at": "2026-10-10T14:07:59.241Z",
   "version": 1,
   "nodes": [
     {
@@ -92040,7 +92040,8 @@
         "module:services/supabase/queries.ts"
       ],
       "dependents": [
-        "module:cognitive/pipeline.ts"
+        "module:cognitive/pipeline.ts",
+        "module:scripts/finance-doc-intelligence-test.ts"
       ],
       "data_tables": [
         "companies",
@@ -92062,8 +92063,8 @@
         {
           "name": "answerDocumentQuestion",
           "kind": "function",
-          "line_start": 63,
-          "line_end": 144
+          "line_start": 64,
+          "line_end": 145
         }
       ],
       "import_sites": [
@@ -92127,6 +92128,7 @@
         "module:app/api/admin/documents/route.ts"
       ],
       "data_tables": [
+        "companies",
         "document_artifacts",
         "document_versions",
         "invoices",
@@ -92147,8 +92149,8 @@
         {
           "name": "handleDocumentList",
           "kind": "function",
-          "line_start": 114,
-          "line_end": 140
+          "line_start": 138,
+          "line_end": 165
         }
       ],
       "import_sites": [
@@ -92293,6 +92295,37 @@
           "resolved_target": "app/api/admin/documents/[id]/recover-helpers.ts"
         }
       ]
+    },
+    {
+      "id": "module:scripts/finance-doc-intelligence-test.ts",
+      "type": "Module",
+      "layer": "scripts",
+      "name_en": "scripts/finance-doc-intelligence-test.ts",
+      "purpose_th": "FINANCIAL DOCUMENT & INTELLIGENCE RECOVERY — contract test (owner mission 2026-10-10)",
+      "exports": [
+        "answerDocumentQuestion",
+        "findStoredFiles",
+        "openaiAdapter"
+      ],
+      "status": "OK",
+      "runtime_entry_point": true,
+      "internal_dependencies": [
+        "module:engines/documents/qa.ts",
+        "module:recover-helpers.ts"
+      ],
+      "dependents": [],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "scripts",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN"
     }
   ],
   "edges": [
@@ -98024,6 +98057,11 @@
     {
       "source": "layer:scripts",
       "target": "module:scripts/factory-workspace-test.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:scripts",
+      "target": "module:scripts/finance-doc-intelligence-test.ts",
       "label": "contains"
     },
     {
@@ -114772,6 +114810,16 @@
       "label": "imports"
     },
     {
+      "source": "module:scripts/finance-doc-intelligence-test.ts",
+      "target": "module:engines/documents/qa.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:scripts/finance-doc-intelligence-test.ts",
+      "target": "module:recover-helpers.ts",
+      "label": "imports"
+    },
+    {
       "source": "module:scripts/gap-loop-test.ts",
       "target": "module:app/api/admin/ide/_lib/fsSecurity.ts",
       "label": "imports"
@@ -116923,8 +116971,8 @@
     }
   ],
   "summary": {
-    "total": 1360,
-    "ok": 1360,
+    "total": 1361,
+    "ok": 1361,
     "broken": 0,
     "unused": 0,
     "unregistered": 0

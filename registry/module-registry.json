@@ -16444,6 +16444,18 @@
         "GET"
       ],
       "status": "active"
+    },
+    "scripts/finance-doc-intelligence-test.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "FINANCIAL DOCUMENT & INTELLIGENCE RECOVERY — contract test (owner mission 2026-10-10)",
+      "purpose_th": "FINANCIAL DOCUMENT & INTELLIGENCE RECOVERY — contract test (owner mission 2026-10-10)",
+      "exports": [
+        "answerDocumentQuestion",
+        "findStoredFiles",
+        "openaiAdapter"
+      ],
+      "status": "active"
     }
   },
   "excluded": [

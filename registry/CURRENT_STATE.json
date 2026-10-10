@@ -1,10 +1,10 @@
 {
   "protocol": "DNA OS Unified AI Runtime v1",
-  "change_id": "DNA-000210",
+  "change_id": "DNA-000211",
   "status": "READY",
-  "current_task": "Contractor / MCP runtime-activation track — PAUSED / INCOMPLETE (Owner, 2026-09-23). Source complete (token issuer source, contractor MCP task tools, atomic lease client, Freebuff pull-mode adapter, Cline MCP registration); runtime NOT activated (no owner token created, end-to-end not proven). See registry/TASK_QUEUE.json#TASK-082.",
+  "current_task": "FINANCIAL DOCUMENT & INTELLIGENCE RECOVERY (owner mission 2026-10-10) COMPLETE. LINE business AI restored (gatewayContext fix + openai adapter + deterministic document Q&A); documents workspace live at /admin/documents (search/open/download/print/history/evidence via canonical APIs); document file route opens original PDF/PNG + in-memory preview with zero writes. Live b90 23/23, static 29/29, drift clean. NOTE: Contractor / MCP runtime-activation track remains PAUSED (Owner, 2026-09-23) — see TASK_QUEUE.json#TASK-082.",
   "current_file": "N/A — no file mid-edit by MANAGER-07 directly; TASK-051 (FCR-012 fix) dispatched to CODE_WORKER, in progress",
-  "next_step": "Wait for the DNA OS Owner Settings / Credential Authorization surface before activating the contractor runtime. Runtime activation intentionally deferred until DNA OS Owner Settings / Credential Authorization surface is available. Do not create alternate token/credential path — no token, no temporary UI, no ad-hoc issuer. Separate release track still pending (NOT APPLIED): migrations 20260923000001 / 20260923000002 / 20260923000003.",
+  "next_step": "Await owner. If ordered: (a) owner decision on duplicate invoice pair INV-20260731-299/358 (Rule 113/114), (b) whether to send the 3 issued-but-unsent KT invoices, (c) fix Vercel billing / rotate LINE channel secret. Watch tomorrow 09:00 debt-reminder cron — new rows should carry line_message_id (edge deployed).",
   "handoff": "Read MASTER_EXECUTION_STATE.md first — regenerated 2026-08-10 (DNA-000117) as the real Factory Stabilization Phase STEP 2 Reference Index, pointing to Architecture/Control Plane/Worker Roles/Runtime/Registry/Rules/Routing/Evidence/Completed Tasks/Known Remaining Gaps. If MASTER_EXECUTION_STATE.md and this file (or TASK_QUEUE.json) ever disagree, these JSON registries win — same relationship CLAUDE.md has to registry/CONSTITUTION.json. This file's own pre-2026-08-09 content (architecture_freeze, plan_lock, older exceptions_log entries) is real, historical, and left unedited (C-010, append-only) — only the top-level current_task/next_step/handoff/change_id fields and plan_lock.exceptions_log (one new FACTORY entry appended) reflect today's real work.",
   "open_questions": [
     {
