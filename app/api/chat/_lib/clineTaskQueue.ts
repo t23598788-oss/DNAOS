@@ -27,11 +27,13 @@ export async function runOwnerRequestViaRailwayTaskQueue(
   if (!url || !key || !opts.transport.cookie || !opts.transport.userId) return null
   const db = createClient(url, key, { auth: { persistSession: false } })
 
-  // duplicate protection: reuse an in-flight task for the same session
+  // duplicate protection + ownership: reuse in-flight task เฉพาะของ owner คน
+  // เดียวกันและ session เดียวกัน (owner_user_id + session_key)
   const { data: existing } = await db
     .from("ai_tasks")
     .select("id")
     .eq("kind", "owner_cline_command")
+    .eq("owner_user_id", opts.transport.userId)
     .eq("session_key", opts.sessionKey ?? "-")
     .in("status", ["pending", "processing"])
     .limit(1)
@@ -47,6 +49,10 @@ export async function runOwnerRequestViaRailwayTaskQueue(
         input_text: message.slice(0, 2000),
         session_key: opts.sessionKey ?? null,
         session_cookie: opts.transport.cookie,
+        // company context propagation (DNA-000219): ใช้คอลัมน์ trace jsonb ที่มี
+        // อยู่แล้ว (migration 20260804000003) เก็บบริบทคู่ค้าให้ worker เอามาใส่
+        // prompt — ไม่สร้างคอลัมน์/คอลัมน์ claim_who ใหม่ (ไม่จำเป็นจริง)
+        trace: { context: { who: opts.who ?? null } },
         status: "pending",
         expires_at: new Date(Date.now() + MAX_WAIT_MS + 60_000).toISOString(),
       })

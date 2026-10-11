@@ -147,7 +147,7 @@ async function executeTask(task) {
   try {
     const prox = await startTaskProxy(task.session_cookie);
     if (!prox) throw new Error("proxy start failed");
-    const out = await runCline(task.input_text || "", prox.port, task.claim_who || null);
+    const out = await runCline(task.input_text || "", prox.port, task?.trace?.context?.who || null);
     prox.proxy.close();
     // clear the session cookie BEFORE callback (secret minimisation)
     await db.from("ai_tasks").update({ session_cookie: null }).eq("id", task.id);
