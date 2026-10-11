@@ -92,6 +92,10 @@ export async function POST(request: Request) {
       memorySessionKey,
       knownCustomerId ? { id: String(knownCustomerId), name: String(knownCustomerName ?? "") } : null,
       gatewayContext,
+      // OWNER WORKSPACE AI TOOL INTEGRATION (2026-10-11): transport ให้ Cline
+      // (ทำงานบนเครื่องที่มี cline binary — Mac เจ้าของ · ไม่มี binary อย่าง
+      // Railway → clineWorker fail-closed null ในไม่กี่ ms พฤติกรรมเดิมเหมือนเดิม)
+      { origin: new URL(request.url).origin, cookie: request.headers.get("cookie") },
     );
     // RESPONSE CONTRACT (owner 2026-09-25): แนบ result ทุกครั้ง — structured
     // (finance/document/timeline/table) มาจาก canonical reader จึง "แทนที่"
@@ -100,13 +104,24 @@ export async function POST(request: Request) {
       type: "text",
       text: response.text ?? "",
     };
+    // OWNER WORKSPACE AI TOOL INTEGRATION (2026-10-11): structured result จาก
+    // Cline (sanitized ใน clineWorker แล้ว) ชนะ text เปล่า — render ด้วย
+    // Workspace result contract เดิมทุก type (sections/table/timeline/file/document)
+    const pipelineResponse = response as Record<string, unknown>;
+    const clineStructured = pipelineResponse.cline_result;
+    if (
+      pipelineResponse.pulse_node === "module:app/api/chat/_lib/clineWorker" &&
+      clineStructured &&
+      typeof clineStructured === "object"
+    ) {
+      result = clineStructured as ChatResult;
+    }
     let ownerTextOverride: string | null = null;
     // FALLBACK ORDER (owner spec): deterministic command/intent (inside
     // runCognitivePipeline: client directives, navigation, external facts) →
     // canonical capability (buildChatResult dispatcher above) → owner runtime.
     // A deterministic cue or a structured capability result means the layers
     // above already answered — the runtime is never consulted for those.
-    const pipelineResponse = response as Record<string, unknown>;
     const deterministicCue = Boolean(
       pipelineResponse.navigate_url ||
         pipelineResponse.open_app ||

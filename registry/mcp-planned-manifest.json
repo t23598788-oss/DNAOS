@@ -5,7 +5,10 @@
   "tools": {
     "contractor.task.claim": {
       "reads_endpoint": "POST /api/v1/mcp/contractor/task-claim",
-      "reads_source_files": ["app/api/admin/ide/_lib/workerContract.ts", "app/api/admin/ide/_lib/workerTaskOrchestrator.ts"],
+      "reads_source_files": [
+        "app/api/admin/ide/_lib/workerContract.ts",
+        "app/api/admin/ide/_lib/workerTaskOrchestrator.ts"
+      ],
       "new_route_required": true,
       "route_implemented": true,
       "implementation": "app/api/v1/mcp/contractor/task-claim/route.ts + dna-os-mcp-server/src/tools/contractorTaskClaim.ts",
@@ -14,7 +17,10 @@
     },
     "contractor.evidence.submit": {
       "reads_endpoint": "POST /api/v1/mcp/contractor/evidence-submit",
-      "reads_source_files": ["app/api/admin/ide/_lib/workerContract.ts", "app/api/admin/ide/_lib/changeSetRuntime.ts"],
+      "reads_source_files": [
+        "app/api/admin/ide/_lib/workerContract.ts",
+        "app/api/admin/ide/_lib/changeSetRuntime.ts"
+      ],
       "new_route_required": true,
       "route_implemented": true,
       "implementation": "app/api/v1/mcp/contractor/evidence-submit/route.ts + dna-os-mcp-server/src/tools/contractorEvidenceSubmit.ts",
@@ -23,7 +29,9 @@
     },
     "contractor.status": {
       "reads_endpoint": "GET /api/v1/mcp/contractor/status?ownerId=",
-      "reads_source_files": ["app/api/admin/ide/_lib/queueRuntime.ts"],
+      "reads_source_files": [
+        "app/api/admin/ide/_lib/queueRuntime.ts"
+      ],
       "new_route_required": true,
       "route_implemented": true,
       "implementation": "app/api/v1/mcp/contractor/status/route.ts + dna-os-mcp-server/src/tools/contractorStatus.ts",
@@ -32,7 +40,10 @@
     },
     "architecture.system_summary": {
       "reads_endpoint": "GET /api/v1/mcp/architecture/summary",
-      "reads_source_files": ["registry/CONSTITUTION.json", "registry/dependency-graph.json"],
+      "reads_source_files": [
+        "registry/CONSTITUTION.json",
+        "registry/dependency-graph.json"
+      ],
       "new_route_required": true,
       "route_implemented": true,
       "implementation": "dna-os-mcp-server/src/tools/architectureSystemSummary.ts",
@@ -41,7 +52,9 @@
     },
     "registry.list_modules": {
       "reads_endpoint": "GET /api/v1/modules",
-      "reads_source_files": ["registry/module-registry.json"],
+      "reads_source_files": [
+        "registry/module-registry.json"
+      ],
       "new_route_required": false,
       "reuses_existing_route": true,
       "reuses_existing_command": true,
@@ -54,7 +67,9 @@
     },
     "registry.list_commands": {
       "reads_endpoint": "GET /api/v1/mcp/registry/commands",
-      "reads_source_files": ["registry/command-registry.json"],
+      "reads_source_files": [
+        "registry/command-registry.json"
+      ],
       "new_route_required": true,
       "route_implemented": true,
       "note": "Distinct from the existing GET /api/v1/spec, which returns OpenAI/Claude tool-schema-shaped output for external LLM tool-use and already filters deprecated/requires_confirmation:true commands. This endpoint returns the raw registry listing shape for MCP clients instead.",
@@ -64,7 +79,9 @@
     },
     "architecture.get_dependency_graph": {
       "reads_endpoint": "GET /api/v1/mcp/architecture/dependency-graph",
-      "reads_source_files": ["registry/dependency-graph.json"],
+      "reads_source_files": [
+        "registry/dependency-graph.json"
+      ],
       "new_route_required": true,
       "route_implemented": true,
       "implementation": "dna-os-mcp-server/src/tools/architectureDependencyGraph.ts",
@@ -80,12 +97,31 @@
       "integration_tested": "partial",
       "integration_test_detail": "Verified live: no-token -> CONFIGURATION_ERROR, invalid-token -> UNAUTHORIZED. NOT yet verified: successful read command, confirmation-required command rejection — both need a real DNA_OS_API_TOKEN, none was available in this environment. Status stays planned until both are confirmed, per the owner's Phase 1B lifecycle rule (active requires implementation AND integration test passed).",
       "status": "planned"
+    },
+    "business.dispatch": {
+      "reads_endpoint": "POST /api/v1/mcp/business/dispatch",
+      "reads_source_files": [
+        "engines/validation/dispatcher.ts",
+        "registry/command-registry.json",
+        "services/canonical/document-detail.ts"
+      ],
+      "new_route_required": false,
+      "reuses_existing_route": true,
+      "reuses_existing_command": true,
+      "existing_command_owner": "engines/validation/dispatcher",
+      "command_registry_change_required": false,
+      "note": "Owner Workspace AI integration (2026-10-11): AUTHORIZED WORKER->DISPATCHER BRIDGE — the missing connection found by inspection. External AI workers (Cline / AI Queen clients) carrying the OWNER session may execute WHITELISTED READ commands through the SAME Capability Dispatcher every other surface uses (registry gate + validation inside). Explicit read whitelist, fail-closed on anything else; document.preview reuses getDocumentDetail + the chat renderer's version-scoped artifact rule. No new reader, no writer, no command.",
+      "implementation": "app/api/v1/mcp/business/dispatch/route.ts",
+      "integration_tested": true,
+      "status": "active"
     }
   },
   "resources": {
     "constitution.get_rules": {
       "reads_endpoint": "GET /api/v1/constitution",
-      "reads_source_files": ["registry/CONSTITUTION.json"],
+      "reads_source_files": [
+        "registry/CONSTITUTION.json"
+      ],
       "new_route_required": false,
       "reuses_existing_route": true,
       "note": "GET /api/v1/constitution already exists (public, returns registry/CONSTITUTION.json verbatim). Reused instead of building a duplicate /api/v1/mcp/constitution route, per Rule 103.",

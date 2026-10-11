@@ -19,6 +19,7 @@ import { reason, type Goal } from "@/cognitive/reasoning";
 import { reflect, type ExecutionResult } from "@/cognitive/reflection";
 import { buildSituation } from "@/cognitive/situation";
 import { answerDocumentQuestion } from "@/engines/documents/qa";
+import { runOwnerRequestViaCline, type ClineWorkerTransport } from "@/app/api/chat/_lib/clineWorker";
 import type { SituationInput } from "@/cognitive/state";
 
 const INTENT_CATALOG: Record<string, string[]> = {
@@ -325,6 +326,10 @@ const NAV_KEYWORDS: [RegExp, string][] = [
 
 function tryNavigationIntercept(text: string): { sender: "ai"; type: "text"; text: string; navigate_url: string; pulse_node: string } | null {
   if (!NAV_VERB_PATTERN.test(text)) return null;
+  // FOLLOW-UP REFERENCE GUARD (Owner Workspace AI integration, 2026-10-11):
+  // คำสั่งที่อ้างถึงสิ่งที่กำลังคุยอยู่ ("...ของบริษัทนี้", "...ล่าสุด") ไม่ใช่
+  // คำสั่งเปิดหน้า — ปล่อยให้ชั้นถัดไป (workflow/reasoning/Cline) จัดการ
+  if (/(?:ของ(?:บริษัท|คน|ราย|ลูกค้า|คู่ค้า|เอกสาร|งวด|งาน)?\s*นี้|ล่าสุด)/.test(text)) return null;
   for (const [pattern, url] of NAV_KEYWORDS) {
     if (pattern.test(text)) {
       // Real module id for the Live State Signal (owner, 2026-07-30): "ให้มัน
@@ -524,6 +529,10 @@ export type ClientDirective = {
   // document.create flow — never happens automatically.
   line_copilot?: boolean;
   pulse_node?: string;
+  /** OWNER WORKSPACE AI TOOL INTEGRATION (2026-10-11): structured result ที่
+   * Cline คืนมาจาก business readers (sanitized แล้ว) — route ส่งต่อให้
+   * Workspace result renderer เดิม ไม่ใช่ข้อความเปล่า */
+  cline_result?: unknown;
 };
 
 const BACK_PATTERN = /^(กลับ|ย้อนกลับ|ปิดหน้านี้|back)[\s!.]*$/i;
@@ -630,7 +639,7 @@ type PipelineResult = BoardResponse | ({ sender: "ai"; type: "command" | "text";
 // deps.dispatch = test seam (fixture) — ค่าเริ่มต้นคือ dispatcher ตัวจริงตัวเดิม
 export async function answerCompanyInfoQuestion(
   message: string,
-  deps: { dispatch?: typeof dispatchCommand } = {},
+  deps: { dispatch?: typeof dispatchCommand; sessionKey?: string | null } = {},
 ): Promise<{ sender: "ai"; type: "text"; text: string; pulse_node: string } | null> {
   const dispatch = deps.dispatch ?? dispatchCommand;
   // จับรูปแบบภาษาไทยของเจ้าของ: (verb ได้)? (ข้อมูล|โปรไฟล์)? (บริษัท|คู่ค้า|พาร์ทเนอร์) <ชื่อ>
@@ -686,6 +695,10 @@ export async function answerCompanyInfoQuestion(
       : [];
 
   const label = String(profile.name ?? chosen.name);
+  // OWNER WORKSPACE AI TOOL INTEGRATION: identity ที่ resolve แล้วเก็บลง
+  // session memory (สัญญาเดิม cognitive/memory/newSession) เพื่อให้คำสั่ง
+  // ต่อเนื่องของเจ้าของมีบริบท — ข้อมูลทุกชิ้นยังดึงจาก dispatcher เท่านั้น
+  if (deps.sessionKey) newSession(label, deps.sessionKey, String(chosen.id));
   const lines: string[] = [`🏢 ${label}`];
   const phone = String(profile.phone ?? "").trim();
   const address = String(profile.address ?? "").trim();
@@ -711,6 +724,7 @@ export async function runCognitivePipeline(
   sessionKey?: string | null,
   knownCustomer?: { id: string; name: string } | null,
   gatewayContext?: GatewayContext,
+  workerTransport?: ClineWorkerTransport,
 ): Promise<PipelineResult> {
   // Central Intent Dispatcher, checked first — see classifyClientCommand()'s
   // header comment.
@@ -731,7 +745,7 @@ export async function runCognitivePipeline(
     return { sender: "ai", type: "text", text: "กลับหน้าหลักให้แล้วครับ", navigate_url: "/admin/relationships", pulse_node: clientDirective.pulse_node };
   }
 
-  return runCognitiveCore(message, contactContext, sessionKey, knownCustomer, gatewayContext);
+  return runCognitiveCore(message, contactContext, sessionKey, knownCustomer, gatewayContext, workerTransport);
 }
 
 async function runCognitiveCore(
@@ -740,6 +754,7 @@ async function runCognitiveCore(
   sessionKey?: string | null,
   knownCustomer?: { id: string; name: string } | null,
   gatewayContext?: GatewayContext,
+  workerTransport?: ClineWorkerTransport,
 ): Promise<PipelineResult> {
   // Owner directive (2026-08-01): "เกี่ยวกับเรื่องการเงินเอกสารไม่ต้องให้ ai
   // เข้ามาอยู่...มันเป็นตรรกะการบวกเลขเฉยๆ" — when the caller already knows
@@ -826,6 +841,28 @@ async function runCognitiveCore(
   applyReflection(reflection, sessionKey);
 
   if (executionPlan.ask_user) {
+    // OWNER WORKSPACE AI TOOL INTEGRATION: reasoning ติดปัญหา "ของใครครับ"
+    // (identity ขาดจาก memory) → ถ้ามี Cline transport ให้ Cline ลองจัดการ
+    // ก่อน (มี session context ต่อเนื่อง + ask-back เมื่อกำกวมจริง) —
+    // fail-closed: Cline ไม่ตอบ → คำถามเดิมถูกส่งกลับเหมือนทุกพฤติกรรมก่อนหน้า
+    if (workerTransport) {
+      const clineMemory = getMemory(sessionKey);
+      const clineReply = await runOwnerRequestViaCline(message, {
+        sessionKey,
+        transport: workerTransport,
+        who: clineMemory.who,
+        whoId: clineMemory.who_id ?? null,
+      });
+      if (clineReply) {
+        return {
+          sender: "ai" as const,
+          type: "text" as const,
+          text: clineReply.text,
+          pulse_node: "module:app/api/chat/_lib/clineWorker",
+          cline_result: clineReply.result ?? null,
+        };
+      }
+    }
     return { sender: "ai", type: "text", text: executionPlan.ask_user };
   }
 
@@ -841,8 +878,33 @@ async function runCognitiveCore(
     // ภาษาคน ("เปิดข้อมูลบริษัท ช.ธวัชชัยการช่าง") → business readers เดิม
     // (partner.find/profile/timeline ผ่าน dispatcher) — deterministic, READ-ONLY,
     // ไม่ผ่าน AI Gateway: เคยตกหลุม answerWithAi → openai 429 บน production
-    const companyAnswer = await answerCompanyInfoQuestion(message);
+    const companyAnswer = await answerCompanyInfoQuestion(message, { sessionKey });
     if (companyAnswer) return companyAnswer;
+
+    // OWNER WORKSPACE AI TOOL INTEGRATION (2026-10-11): คำสั่งที่ deterministic
+    // paths ตอบไม่ได้ (บริบทหลายขั้น/ต้องค้นหลายคำสั่ง) → ส่งต่อให้ **Cline**
+    // (AI ที่ owner ติดตั้งจริง) คิดและเรียก business.dispatch ผ่าน owner
+    // session — ไม่มี AI runtime ใหม่ ไม่มี reader/writer ใหม่ · fail-closed:
+    // ไม่มี cline binary (เช่นบน Railway) / timeout / ตอบไม่เป็น JSON → null
+    // → เส้นทางเดิม (classifyIntentViaAi/answerWithAi/bridge/owner-runtime) ต่อตามเดิม
+    if (workerTransport) {
+      const clineMemory = getMemory(sessionKey);
+      const clineReply = await runOwnerRequestViaCline(message, {
+        sessionKey,
+        transport: workerTransport,
+        who: clineMemory.who,
+        whoId: clineMemory.who_id ?? null,
+      });
+      if (clineReply) {
+        return {
+          sender: "ai" as const,
+          type: "text" as const,
+          text: clineReply.text,
+          pulse_node: "module:app/api/chat/_lib/clineWorker",
+          cline_result: clineReply.result ?? null,
+        };
+      }
+    }
 
     // Real gap, owner-reported 2026-07-30 — see classifyIntentViaAi()'s own
     // comment: before just talking about the message, check whether it
@@ -872,6 +934,31 @@ async function runCognitiveCore(
 
   const board = composeBoard(worldState, hypotheses, executionResults, reflection, memory.turn_count + 1);
   board.debug = { ...board.debug, objective: objective.type, workflow: executionPlan.workflow_id, learning: learned };
+  // OWNER WORKSPACE AI TOOL INTEGRATION: จุดนี้คือจุดทุก deterministic path
+  // (client directive, navigation, board Q&A, workflow, capability dispatcher,
+  // reasoning) "ตอบไม่ได้จริง" และกำลังจะ fallback เป็น board overview ชุด
+  // เดิม — ถ้ามี Cline transport ให้ Cline ลองคิด/ค้นก่อน (สั่งอ่านอย่างเดียว
+  // ผ่าน business.dispatch) แล้วค่อยตกกลับเป็น board เมื่อ Cline ไม่ตอบ
+  // (fail-closed เหมือนเดิม) · objective "workspace" = ถามสถานะหน้าเวิร์กสเปซ
+  // ตรง ๆ  board คือคำตอบที่ถูกต้องอยู่แล้ว ไม่ต้องส่งให้ Cline
+  if (workerTransport && objective.type !== "workspace") {
+    const clineMemory = getMemory(sessionKey);
+    const clineReply = await runOwnerRequestViaCline(message, {
+      sessionKey,
+      transport: workerTransport,
+      who: clineMemory.who,
+      whoId: clineMemory.who_id ?? null,
+    });
+    if (clineReply) {
+      return {
+        sender: "ai" as const,
+        type: "text" as const,
+        text: clineReply.text,
+        pulse_node: "module:app/api/chat/_lib/clineWorker",
+        cline_result: clineReply.result ?? null,
+      };
+    }
+  }
   return board;
 }
 

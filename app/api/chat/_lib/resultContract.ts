@@ -288,7 +288,7 @@ const esc = (v: unknown): string =>
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#39;");
 
-function renderCanonicalDetailHtml(detail: CanonicalDocumentDetail): string {
+export function renderCanonicalDetailHtml(detail: CanonicalDocumentDetail): string {
   const id = detail.identity;
   const f = detail.financials;
   const money = (n: number | null | undefined): string =>
