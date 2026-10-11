@@ -1,10 +1,10 @@
 {
   "protocol": "DNA OS Unified AI Runtime v1",
-  "change_id": "DNA-000215",
+  "change_id": "DNA-000216",
   "status": "READY",
-  "current_task": "Owner-chain walkthrough PROVEN (2026-10-11): Owner→Cline→DNA OS MCP (stdio, 130 tools/14 resources, reads 1-149ms) → Capability Dispatcher→Business Reader (86 companies/30 documents/3 debts/37-entry real timeline) → Workspace (canonical APIs same as admin pages). Fixed the one real gap: partner.timeline Shadow-Command registry hole (silent /api/chat timeline break). No new agent/model/Ollama; all reads; deploy only after proven (163501a).",
+  "current_task": "OWNER BUSINESS ROUTING FIX COMPLETE (2026-10-11): 'เปิดข้อมูลบริษัท ช.ธวัชชัยการช่าง' → deterministic answerCompanyInfoQuestion → partner.find/profile/timeline (37 real activities) — zero AI gateway calls, openai adapter disabled (owner 2026-07-25 order), regression 15/15, local+production E2E 3/3, deploy ae485b6c.",
   "current_file": "N/A — no file mid-edit by MANAGER-07 directly; TASK-051 (FCR-012 fix) dispatched to CODE_WORKER, in progress",
-  "next_step": "Await owner. Measurements kept per order (Mac slowdown unproven — biggest idle RSS still recovery-supervisor child 307MB + machine-observer child 195MB; no LaunchAgent stopped). Open items unchanged: pre-existing acceptance 3 data fails + identity-cutover, dnsos.dev DNS, Vercel 402, LINE rotate, Tailscale login for Railway→Mac + AI_GATEWAY_OLLAMA_URL activation when owner approves.",
+  "next_step": "Await owner. Optional follow-ups: remove OPENAI_API_KEY from Railway/Supabase envs when convenient (adapter already disabled — key is inert), consider deleting local qwen3:8b if not needed, pre-existing blockers unchanged (acceptance 3 data fails, identity-cutover, dnsos.dev DNS, Vercel 402, LINE rotate, Tailscale for Railway→Mac).",
   "handoff": "Read MASTER_EXECUTION_STATE.md first — regenerated 2026-08-10 (DNA-000117) as the real Factory Stabilization Phase STEP 2 Reference Index, pointing to Architecture/Control Plane/Worker Roles/Runtime/Registry/Rules/Routing/Evidence/Completed Tasks/Known Remaining Gaps. If MASTER_EXECUTION_STATE.md and this file (or TASK_QUEUE.json) ever disagree, these JSON registries win — same relationship CLAUDE.md has to registry/CONSTITUTION.json. This file's own pre-2026-08-09 content (architecture_freeze, plan_lock, older exceptions_log entries) is real, historical, and left unedited (C-010, append-only) — only the top-level current_task/next_step/handoff/change_id fields and plan_lock.exceptions_log (one new FACTORY entry appended) reflect today's real work.",
   "open_questions": [
     {

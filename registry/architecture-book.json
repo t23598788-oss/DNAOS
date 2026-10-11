@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-11T09:28:57.998Z",
+  "generated_at": "2026-10-11T11:03:29.873Z",
   "version": 1,
   "nodes": [
     {
@@ -346,7 +346,7 @@
           "name": "POST",
           "kind": "function",
           "line_start": 61,
-          "line_end": 187
+          "line_end": 191
         }
       ],
       "import_sites": [
@@ -4937,6 +4937,7 @@
       "purpose_th": "กระบวนการคิดหลักของระบบ — เจตนา → วางแผน → ปฏิบัติ → ประเมินผล → แสดงผล",
       "exports": [
         "ClientDirective",
+        "answerCompanyInfoQuestion",
         "runCognitivePipeline"
       ],
       "status": "OK",
@@ -4970,7 +4971,8 @@
         "module:app/api/chat/route.ts",
         "module:app/api/command/route.ts",
         "module:app/api/internal/line/command/route.ts",
-        "module:app/api/internal/openclaw/command/route.ts"
+        "module:app/api/internal/openclaw/command/route.ts",
+        "module:scripts/owner-company-routing-test.ts"
       ],
       "data_tables": "UNKNOWN",
       "business_capabilities": [
@@ -4994,10 +4996,16 @@
           "line_end": 527
         },
         {
+          "name": "answerCompanyInfoQuestion",
+          "kind": "function",
+          "line_start": 631,
+          "line_end": 705
+        },
+        {
           "name": "runCognitivePipeline",
           "kind": "function",
-          "line_start": 621,
-          "line_end": 648
+          "line_start": 708,
+          "line_end": 735
         }
       ],
       "import_sites": [
@@ -93343,6 +93351,42 @@
           "resolved_target": "services/ai/gateway.ts"
         }
       ]
+    },
+    {
+      "id": "module:scripts/owner-company-routing-test.ts",
+      "type": "Module",
+      "layer": "scripts",
+      "name_en": "scripts/owner-company-routing-test.ts",
+      "purpose_th": "Owner company-routing regression tests (owner business routing fix, 2026-10-11)",
+      "exports": [
+        "answerCompanyInfoQuestion",
+        "runCognitivePipeline"
+      ],
+      "status": "OK",
+      "runtime_entry_point": true,
+      "internal_dependencies": [
+        "module:cognitive/pipeline.ts"
+      ],
+      "dependents": [],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "scripts",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "import_sites": [
+        {
+          "specifier": "../cognitive/pipeline",
+          "line": 7,
+          "resolved_target": "cognitive/pipeline.ts"
+        }
+      ]
     }
   ],
   "edges": [
@@ -99339,6 +99383,11 @@
     {
       "source": "layer:scripts",
       "target": "module:scripts/owner-authority-contract-test.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:scripts",
+      "target": "module:scripts/owner-company-routing-test.ts",
       "label": "contains"
     },
     {
@@ -116597,6 +116646,11 @@
       "label": "imports"
     },
     {
+      "source": "module:scripts/owner-company-routing-test.ts",
+      "target": "module:cognitive/pipeline.ts",
+      "label": "imports"
+    },
+    {
       "source": "module:scripts/owner-verification-decide-test.ts",
       "target": "module:core/owner-verification-client.ts",
       "label": "imports"
@@ -118223,8 +118277,8 @@
     }
   ],
   "summary": {
-    "total": 1378,
-    "ok": 1378,
+    "total": 1379,
+    "ok": 1379,
     "broken": 0,
     "unused": 0,
     "unregistered": 0

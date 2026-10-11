@@ -903,6 +903,7 @@
       "purpose_th": "กระบวนการคิดหลักของระบบ — เจตนา → วางแผน → ปฏิบัติ → ประเมินผล → แสดงผล",
       "exports": [
         "ClientDirective",
+        "answerCompanyInfoQuestion",
         "runCognitivePipeline"
       ],
       "status": "active"
@@ -16649,6 +16650,17 @@
         "LOCAL_AI_COMMAND_VOCABULARY",
         "LocalAiCommand",
         "translateLocalAiCommand"
+      ],
+      "status": "active"
+    },
+    "scripts/owner-company-routing-test.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "Owner company-routing regression tests (owner business routing fix, 2026-10-11)",
+      "purpose_th": "Owner company-routing regression tests (owner business routing fix, 2026-10-11)",
+      "exports": [
+        "answerCompanyInfoQuestion",
+        "runCognitivePipeline"
       ],
       "status": "active"
     }

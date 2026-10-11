@@ -3490,5 +3490,20 @@
       "registry/command-registry.json (partner.timeline declaration added to commands)"
     ],
     "summary": "OWNER→CLINE→MCP→DISPATCHER→READER WALKTHROUGH (owner mission 2026-10-11, proof-only + one registry fix). พิสูจน์เส้นทางเดิมทั้งเส้นแบบ read-only ไม่มี agent ใหม่ ไม่มีโมเดลใหม่ ไม่เปิด Ollama: LEG A (Cline → DNA OS MCP stdio จริงบน Mac): initialize ✓ · tools/list = 130 · resources/list = 14 · resource://dna-os/activity อ่านได้ · dna_os.get_activity_view 200 (43ms) · list_notifications 200 (1ms) · get_system_activity 200 (39ms) · get_current_work_context 200 (149ms) · mutation tool = blocked (schema fail-closed) = 8/8 PASS · LEG B (Cline → Capability Dispatcher → Business Reader): partner.list = 86 บริษัท (725ms) · document.list = 30 ฉบับ (invoice:22 receipt:6 DO:1 QT:1 · 426ms) · debt.list = 3 ราย (226ms) · partner.timeline = 37 รายการจริงของ ช.ธวัชชัยการช่าง (447ms) · partner.delete (นอก registry) ถูกปฏิเสธ = 5/5 PASS · ROOT CAUSE FOUND & FIXED: partner.timeline มี handler จริง (dispatcher QUERY_MAP + engines/partner/timeline) แต่ ไม่มี declaration ใน registry/command-registry.json.commands → Shadow-Command guard ปฏิเสธเสมอ = /api/chat partner timeline พังเงียบมาตลอด (try/catch กลืน) — แก้ด้วย declaration เดียว (owner/layer/input/output ตาม pattern เดิม) · gap check เชิงระบบ: handlers 22 ตัว / commands 100 / ขาด = 0 (ก่อนแก้ขาด 1) · ทรัพยากรระหว่างทดสอบ (บันทึกตามคำสั่ง ยังไม่ฟันธงสาเหตุ Mac ช้า): baseline 470MB/peak ~695MB ชั่วคราว (tsx compile)/after 134-186MB · loadavg 3.7-5.6 · ทุกการเรียก 0-149ms · Ollama ปิดอยู่ตลอดการทดสอบ · deploy หลังเส้นทางผ่านจริงเท่านั้น (owner condition) — commit 163501a"
+  },
+  {
+    "agent": "Cline",
+    "agent_id": "unknown",
+    "agent_id_note": "Not available to this session — not guessed.",
+    "change_id": "DNA-000216",
+    "date": "2026-10-11",
+    "session_id": "unknown",
+    "files": [
+      "cognitive/pipeline.ts (answerCompanyInfoQuestion + wired before AI fallbacks + pulse_node markers)",
+      "app/api/chat/route.ts (deterministicCue includes pulse_node — deterministic answers skip AI bridge/owner-runtime)",
+      "registry/ai-adapter-registry.json (openai.enabled=false + disabled_reason)",
+      "scripts/owner-company-routing-test.ts (new, 15 regression checks)"
+    ],
+    "summary": "OWNER BUSINESS ROUTING FIX (mission 2026-10-11). ROOT CAUSE: 'เปิดข้อมูลบริษัท ช.ธวัชชัยการช่าง' มี matcher ที่ไหนก็ไม่ตรง (INTENT_CATALOG มีแค่ 'ข้อมูลลูกค้า', NAV_KEYWORDS ไม่มี 'บริษัท' เดี่ยว) → ตกลงสู่ answerWithAi (conversation.answer) ที่ resolver เลือก openai (key ค้างบน Railway หลัง ollama/anthropic ไม่ configured) → AI_GATEWAY_OPENAI_HTTP_429 บน production · FIX: answerCompanyInfoQuestion() — deterministic READ-ONLY routing (regex ภาษาคน: เปิด/ดู/แสดงข้อมูล บริษัท/คู่ค้า/พาร์ทเนอร์ + ชื่อ) → canonical dispatcher partner.find → เดียว: partner.profile + partner.timeline (37 กิจกรรมจริงของ ช.ธวัชชัยการช่าง) · หลายราย: รายชื่อให้เลือก (ไม่เดา) · ไม่พบ: explicit not-found · wire ก่อน classifyIntentViaAi/answerWithAi จุดเดียวกับ answerDocumentQuestion pattern · คำตอบแนบ pulse_node → route deterministicCue ข้าม AI bridge/owner-runtime = ZERO AI Gateway invocation (พิสูจน์ด้วย evidence row ไม่ขยับ) · OPENAI: consumer audit (cognitive/pipeline, localAiBridge, localModelWorkerAdapter, translator, Deno LINE) → ปิด openai adapter (enabled=false) ตามคำสั่งเจ้าของ 2026-07-25 — LINE entity_extract ยัง gemini · IDE workers ใช้ ollama · owner chat fail-closed → deterministic · ไม่มี service อื่นเสีย · VALIDATION: tsc 0 · routing regression 15/15 (exact/multiple/none/5 Thai variants/no-hijack/no-gateway-call/no-mutation/wiring order/openai disabled/others enabled/census baseline) · next build OK · census 15/15 · finance-admin 56/56 · payment-integrity 51/51 · LOCAL E2E 3/3 (dev :3000 + session จริง): ทั้ง 3 วลีได้ 🏢 ช.ธวัชชัยการช่าง + 37 กิจกรรมจริง ไม่มี AI error · PRODUCTION E2E 3/3 (deploy แล้ว, OPENAI key ยังอยู่บน Railway): วลีเดียวกันได้ข้อมูลจริง ไม่มี 429 · OWNER_OPENAI_CALLS = 0 ทั้ง local และ production (AI evidence row เวลาเดิม 10:56:36 ไม่ขยับ) · commit 8827c38, deploy ae485b6c SUCCESS"
   }
 ]
