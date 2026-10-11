@@ -251,8 +251,16 @@ async function executeTask(task) {
   if (!started.data?.length) return; // atomic claim = duplicate protection
   const who = task?.trace?.context?.who || null;
   try {
-    const interp = await runCline(task.input_text || "", who);
+    let interp = await runCline(task.input_text || "", who);
     if (interp.error) throw new Error(interp.error);
+    // DNA-000223B: แยก "คำตอบไม่ใช่ JSON" (เช่น โมเดล/เครดิตมีปัญหา) ออกจาก
+    // "ถามจริง" — เดิม parse-fail ถูกปลอมเป็น ask → retry 1 ครั้ง แล้ว fail ชัดเจน
+    if (!interp.parsed) {
+      console.error(`[cline-worker] task ${task.id} interpreter non-JSON — retrying once`);
+      interp = await runCline(`${task.input_text} (ตอบด้วย JSON เท่านั้น ห้ามมีข้อความอื่น)`, who);
+      if (interp.error) throw new Error(interp.error);
+      if (!interp.parsed) throw new Error(`INTERPRETER_OUTPUT_INVALID: non-JSON interpreter response`);
+    }
     const parsed = interp.parsed ?? {};
     const aiMs = Date.now() - t0;
     console.log(`[cline-worker] task ${task.id} interpreted (${aiMs}ms, tokens=${interp.usage?.totalOutputTokens ?? "?"}, cmd=${parsed.command ?? "ask"})`);
