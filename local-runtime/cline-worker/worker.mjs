@@ -177,6 +177,14 @@ async function executeTask(task) {
 }
 
 async function main() {
+  // stale processing cleanup (DNA-000219): container restart ระหว่าง cline ทำ
+  // งานจะทิ้ง task ค้างสถานะ processing ตลอดกาล — fail ที่เกิน 8 นาทีเพื่อให้
+  // ระบบเห็น error จริง (duplicate ยังถูกกันด้วย atomic claim เดิม)
+  await db.from("ai_tasks")
+    .update({ status: "failed", error: "stale processing (worker restart or cline timeout)", processed_at: new Date().toISOString() })
+    .eq("kind", CLAIM_WHERE).eq("status", "processing")
+    .lt("claimed_at", new Date(Date.now() - 8 * 60 * 1000).toISOString());
+
   const { data: tasks, error } = await db.from("ai_tasks")
     .select("*").eq("kind", CLAIM_WHERE).eq("status", "pending")
     .order("created_at", { ascending: true }).limit(3);
